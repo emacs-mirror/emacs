@@ -1,6 +1,6 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Authors:    1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
@@ -134,11 +134,12 @@
      (fill-column . 78)
      )
     ("java"
-     (c-basic-offset . 2)
+     (c-basic-offset . 4)
      (c-comment-only-line-offset . (0 . 0))
      ;; the following preserves Javadoc starter lines
      (c-hanging-comment-starter-p . nil)
-     (c-offsets-alist . ((topmost-intro-cont    . +)
+     (c-offsets-alist . ((inline-open . 0)
+			 (topmost-intro-cont    . +)
 			 (statement-block-intro . +)
  			 (knr-argdecl-intro     . 5)
  			 (substatement-open     . +)
@@ -217,18 +218,18 @@ the existing style.")
 
 (defun c-set-style-2 (style basestyles)
   ;; Recursively set the base style.  If no base style is given, the
-  ;; default base style is "cc-mode" and the recursion stops.  Be sure
-  ;; to detect loops.
+  ;; default base style is "user" (a.k.a. "cc-mode") and the recursion
+  ;; stops.  Be sure to detect loops.
   (let ((vars (cdr (or (assoc (downcase style) c-style-alist)
 		       (assoc (upcase style) c-style-alist)
 		       (assoc style c-style-alist)
 		       (error "Undefined style: %s" style)))))
-    (if (not (string-equal style "cc-mode"))
+    (if (not (string-equal style "user"))
 	(let ((base (if (stringp (car vars))
 			(prog1
 			    (downcase (car vars))
 			  (setq vars (cdr vars)))
-		      "cc-mode")))
+		      "user")))
 	  (if (memq base basestyles)
 	      (error "Style loop detected: %s in %s" base basestyles))
 	  (c-set-style-2 base (cons base basestyles))))
@@ -331,6 +332,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     (stream-op             . c-lineup-streamop)
     (inclass               . +)
     (cpp-macro             . -1000)
+    (cpp-macro-cont        . c-lineup-dont-change)
     (friend                . 0)
     (objc-method-intro     . -1000)
     (objc-method-args-cont . c-lineup-ObjC-method-args)
@@ -338,6 +340,9 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     (extern-lang-open      . 0)
     (extern-lang-close     . 0)
     (inextern-lang         . +)
+    (namespace-open        . 0)
+    (namespace-close       . 0)
+    (innamespace           . +)
     (template-args-cont    . +)
     )
   "Association list of syntactic element symbols and indentation offsets.
@@ -429,14 +434,21 @@ Here is the current list of valid syntactic element symbols:
  arglist-close          -- the solo close paren of an argument list
  stream-op              -- lines continuing a stream operator construct
  inclass                -- the construct is nested inside a class definition
- cpp-macro              -- the start of a cpp macro
+ cpp-macro              -- the start of a C preprocessor macro definition
+ cpp-macro-cont         -- the second and subsequent lines in a
+                           multi-line C preprocessor macro definition
  friend                 -- a C++ friend declaration
  objc-method-intro      -- the first line of an Objective-C method definition
  objc-method-args-cont  -- lines continuing an Objective-C method definition
  objc-method-call-cont  -- lines continuing an Objective-C method call
  extern-lang-open       -- brace that opens an external language block
  extern-lang-close      -- brace that closes an external language block
- inextern-lang          -- analogous to `inclass' syntactic symbol
+ inextern-lang          -- analogous to `inclass' syntactic symbol,
+                           but used inside, e.g. extern \"C\" constructs
+ namespace-open         -- brace that opens a C++ namespace block
+ namespace-close        -- brace that closes a C++ namespace block
+ innamespace            -- analogous to `inextern-lang' syntactic
+                           symbol, but used inside C++ namespace constructs
  template-args-cont     -- C++ template argument list continuations
 ")
 
@@ -569,18 +581,20 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
   ;; crucial because future c-set-style calls will always reset the
   ;; variables first to the `cc-mode' style before instituting the new
   ;; style.  Only do this once!
+  (c-initialize-cc-mode t)
   (or (assoc "cc-mode" c-style-alist)
+      (assoc "user" c-style-alist)
       (let (copyfunc)
 	;; use built-in copy-tree if its there.
 	(if (and (fboundp 'copy-tree)
 		 (functionp (symbol-function 'copy-tree)))
 	    (setq copyfunc (symbol-function 'copy-tree))
 	  (setq copyfunc (lambda (tree)
-			    (if (consp tree)
-				(cons (funcall copyfunc (car tree))
-				      (funcall copyfunc (cdr tree)))
-			      tree))))
-	(c-add-style "cc-mode"
+			   (if (consp tree)
+			       (cons (funcall copyfunc (car tree))
+				     (funcall copyfunc (cdr tree)))
+			     tree))))
+	(c-add-style "user"
 		     (mapcar
 		      (function
 		       (lambda (var)
@@ -601,14 +615,15 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 			c-hanging-comment-ender-p
 			c-offsets-alist
 			)))
+	(c-add-style "cc-mode" '("user"))
 	;; the default style is now GNU.  This can be overridden in
 	;; c-mode-common-hook or {c,c++,objc,java}-mode-hook.
-	(c-set-style c-site-default-style)))
+	(c-set-style c-default-style)))
   (if c-style-variables-are-local-p
       (c-make-styles-buffer-local)))
 
 
-(defun c-make-styles-buffer-local ()
+(defun c-make-styles-buffer-local (&optional this-buf-only-p)
   "Make all CC Mode style variables buffer local.
 If you edit primarily one style of C (or C++, Objective-C, Java) code,
 you probably want style variables to be global.  This is the default.
@@ -623,22 +638,34 @@ This function makes all the CC Mode style variables buffer local.
 Call it after CC Mode is loaded into your Emacs environment.
 Conversely, set the variable `c-style-variables-are-local-p' to t in
 your .emacs file, before CC Mode is loaded, and this function will be
-automatically called when CC Mode is loaded."
+automatically called when CC Mode is loaded.
+
+Optional argument, when non-nil, means use `make-local-variable'
+instead of `make-variable-buffer-local'."
   ;; style variables
-  (make-variable-buffer-local 'c-offsets-alist)
-  (make-variable-buffer-local 'c-basic-offset)
-  (make-variable-buffer-local 'c-file-style)
-  (make-variable-buffer-local 'c-file-offsets)
-  (make-variable-buffer-local 'c-comment-only-line-offset)
-  (make-variable-buffer-local 'c-cleanup-list)
-  (make-variable-buffer-local 'c-hanging-braces-alist)
-  (make-variable-buffer-local 'c-hanging-colons-alist)
-  (make-variable-buffer-local 'c-hanging-comment-starter-p)
-  (make-variable-buffer-local 'c-hanging-comment-ender-p)
-  (make-variable-buffer-local 'c-backslash-column)
-  (make-variable-buffer-local 'c-label-minimum-indentation)
-  (make-variable-buffer-local 'c-special-indent-hook)
-  (make-variable-buffer-local 'c-indentation-style))
+  (let ((func (if this-buf-only-p
+		  'make-local-variable
+		'make-variable-buffer-local))
+	(varsyms '(c-offsets-alist
+		   c-basic-offset
+		   c-file-style
+		   c-file-offsets
+		   c-comment-only-line-offset
+		   c-cleanup-list
+		   c-hanging-braces-alist
+		   c-hanging-colons-alist
+		   c-hanging-comment-starter-p
+		   c-hanging-comment-ender-p
+		   c-backslash-column
+		   c-label-minimum-indentation
+		   c-indentation-style)))
+    (mapcar func varsyms)
+    ;; Hooks must be handled specially
+    (if this-buf-only-p
+	(make-local-hook 'c-special-indent-hook)
+      (make-variable-buffer-local 'c-special-indent-hook))
+    ))
+
 
 
 (provide 'cc-styles)
