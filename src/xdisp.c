@@ -52,7 +52,7 @@ Boston, MA 02111-1307, USA.  */
    	  +---------------------------------+
           |                                 |
 	  |                                 V
-   +--------------+   redisplay()   +----------------+
+   +--------------+   redisplay     +----------------+
    | Lisp machine |---------------->| Redisplay code |<--+
    +--------------+   (xdisp.c)     +----------------+   |
 	  ^				     |		 |
@@ -593,6 +593,10 @@ Lisp_Object Vimage_types;
 
 Lisp_Object Vresize_mini_windows;
 
+/* Buffer being redisplayed -- for redisplay_window_error.  */
+
+struct buffer *displayed_buffer;
+
 /* Value returned from text property handlers (see below).  */
 
 enum prop_handled
@@ -733,6 +737,9 @@ static void redisplay_internal P_ ((int));
 static int echo_area_display P_ ((int));
 static void redisplay_windows P_ ((Lisp_Object));
 static void redisplay_window P_ ((Lisp_Object, int));
+static Lisp_Object redisplay_window_error ();
+static Lisp_Object redisplay_window_0 P_ ((Lisp_Object));
+static Lisp_Object redisplay_window_1 P_ ((Lisp_Object));
 static void update_menu_bar P_ ((struct frame *, int));
 static int try_window_reusing_current_matrix P_ ((struct window *));
 static int try_window_id P_ ((struct window *));
@@ -8883,7 +8890,9 @@ redisplay_internal (preserve_echo_area)
       Lisp_Object mini_window;
       struct frame *mini_frame;
 
-      redisplay_window (selected_window, 1);
+      displayed_buffer = XBUFFER (XWINDOW (selected_window)->buffer);
+      internal_condition_case_1 (redisplay_window_1, selected_window, Qerror,
+				 redisplay_window_error);
   
       /* Compare desired and current matrices, perform output.  */
     update:
@@ -9219,13 +9228,41 @@ redisplay_windows (window)
       else if (!NILP (w->vchild))
 	redisplay_windows (w->vchild);
       else
-	redisplay_window (window, 0);
+	{
+	  displayed_buffer = XBUFFER (w->buffer);
+	  internal_condition_case_1 (redisplay_window_0, window, Qerror,
+				     redisplay_window_error);
+	}
 
       window = w->next;
     }
 }
 
+static Lisp_Object
+redisplay_window_error ()
+{
+  displayed_buffer->display_error_modiff = BUF_MODIFF (displayed_buffer);
+  return Qnil;
+}
 
+static Lisp_Object
+redisplay_window_0 (window)
+     Lisp_Object window;
+{
+  if (displayed_buffer->display_error_modiff < BUF_MODIFF (displayed_buffer))
+    redisplay_window (window, 0);
+  return Qnil;
+}
+
+static Lisp_Object
+redisplay_window_1 (window)
+     Lisp_Object window;
+{
+  if (displayed_buffer->display_error_modiff < BUF_MODIFF (displayed_buffer))
+    redisplay_window (window, 1);
+  return Qnil;
+}
+
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
    DELTA is the number of bytes by which positions recorded in ROW
    differ from current buffer positions.  */
