@@ -1,3 +1,8 @@
+2001-02-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-weekly4-box): Respect setting 
+	of cal-tex-24.
+
 2001-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (kill-region, kill-line, kill-ring-save): Doc fix.

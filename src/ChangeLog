@@ -1,5 +1,16 @@
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (handle_single_display_prop): Set iterator's position
+	to where the `display' property starts, like for images.
+	(dump_glyph): New function.
+	(dump_glyph_row): Use it.  Dump info about marginal areas.
+
+	* dispnew.c (direct_output_for_insert): Recognize more cases where
+	glyphs can be written instead of being inserted.
+
+	* xterm.c (x_insert_glyphs): Call window_box_left to obtain
+	the left x-coordinate of the area to shift.
+
 	* dired.c (directory_files_internal): Set result list to nil
 	before retrying.
 
