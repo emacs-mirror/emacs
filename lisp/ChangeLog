@@ -1,3 +1,9 @@
+2001-03-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* mail/rmail.el (rmail-insert-inbox-text): Call expand-file-name
+	before substitute-in-file-name to handle double slashes in FILE
+	correctly.
+
 2001-03-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/ispell.el (ispell-dictionary-alist-6): Add support
