@@ -1679,7 +1679,8 @@ redisplay_window (window, just_this_one)
 
   /* Try to scroll by specified few lines */
 
-  if (scroll_step && !current_buffer->clip_changed)
+  if (scroll_step && !current_buffer->clip_changed
+      && startp >= BEGV && startp <= ZV)
     {
       if (PT > startp)
 	{
