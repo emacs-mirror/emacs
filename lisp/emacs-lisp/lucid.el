@@ -46,7 +46,7 @@
     tail))
 
 (defun set-keymap-parent (keymap new-parent)
-  (let ((tail (cdr keymap)))
+  (let ((tail keymap))
     (while (and tail (cdr tail) (not (eq (car (cdr tail)) 'keymap)))
       (setq tail (cdr tail)))
     (if tail
@@ -118,7 +118,7 @@ bottom of the buffer stack."
       (bury-buffer (current-buffer)))
   (switch-to-buffer
    (if (<= arg 1) (other-buffer (current-buffer))
-     (nth (1+ arg)
+     (nth arg
 	  (apply 'nconc
 		 (mapcar
 		  (lambda (buf)
