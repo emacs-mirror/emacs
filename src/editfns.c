@@ -104,11 +104,11 @@ init_editfns ()
   
 #ifdef AMPERSAND_FULL_NAME
   p = XSTRING (Vuser_full_name)->data;
-  q = (char *) index (p, '&');
+  q = (unsigned char *) index (p, '&');
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
-      r = (char *) alloca (strlen (p) + XSTRING (Vuser_name)->size + 1);
+      r = (unsigned char *) alloca (strlen (p) + XSTRING (Vuser_name)->size + 1);
       bcopy (p, r, q - p);
       r[q - p] = 0;
       strcat (r, XSTRING (Vuser_name)->data);
@@ -118,7 +118,7 @@ init_editfns ()
     }
 #endif /* AMPERSAND_FULL_NAME */
 
-  p = getenv ("NAME");
+  p = (unsigned char *) getenv ("NAME");
   if (p)
     Vuser_full_name = build_string (p);
 }
