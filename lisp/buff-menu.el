@@ -41,7 +41,17 @@
 
 ;;; Code:
  
-;;;Not needed, now that q is now just quit and Buffer-menu-select is v.
+;;;Trying to preserve the old window configuration works well in
+;;;simple scenarios, when you enter the buffer menu, use it, and exit it.
+;;;But it does strange things when you switch back to the buffer list buffer
+;;;with C-x b, later on, when the window configuration is different.
+;;;The choice seems to be, either restore the window configuration
+;;;in all cases, or in no cases.
+;;;I decided it was better not to restore the window config at all. -- rms.
+
+;;;But since then, I changed buffer-menu to use the selected window,
+;;;so q now once again goes back to the previous window configuration.
+
 ;;;(defvar Buffer-menu-window-config nil
 ;;;  "Window configuration saved from entry to `buffer-menu'.")
 
@@ -161,15 +171,22 @@ Letters do not insert themselves; instead, they are commands.
   "Make a menu of buffers so you can save, delete or select them.
 With argument, show only buffers that are visiting files.
 Type ? after invocation to get help on commands available.
-Type q immediately to make the buffer menu go away and to restore
-previous window configuration."
+Type q immediately to make the buffer menu go away."
   (interactive "P")
 ;;;  (setq Buffer-menu-window-config (current-window-configuration))
-  (list-buffers arg)
-  (let ((newpoint (save-excursion (set-buffer "*Buffer List*")
-				  (point))))
-    (pop-to-buffer "*Buffer List*")
-    (goto-char newpoint))
+  (switch-to-buffer (list-buffers-noselect arg))
+  (message
+   "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
+
+(defun buffer-menu-other-window (&optional arg)
+  "Display a list of buffers in another window.
+With the buffer list buffer, you can save, delete or select the buffers.
+With argument, show only buffers that are visiting files.
+Type ? after invocation to get help on commands available.
+Type q immediately to make the buffer menu go away."
+  (interactive "P")
+;;;  (setq Buffer-menu-window-config (current-window-configuration))
+  (switch-to-buffer-other-window (list-buffers-noselect arg))
   (message
    "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
 
@@ -177,8 +194,7 @@ previous window configuration."
   "Quit the buffer menu."
   (interactive)
   (let ((buffer (current-buffer)))
-    ;; Restore previous window configuration before displaying
-    ;; selected buffers.
+    ;; Switch away from the buffer menu and bury it.
     (switch-to-buffer (other-buffer))
     (bury-buffer buffer)))
 
@@ -305,7 +321,9 @@ and then move up one line.  Prefix arg means move that many lines."
 
 (defun Buffer-menu-select ()
   "Select this line's buffer; also display buffers marked with `>'.
-You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] command."
+You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] command.
+This command deletes and replaces all the previously existing windows
+in the selected frame."
   (interactive)
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer))	      
@@ -340,6 +358,7 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
 	(setq others (cdr others)))
       (other-window 1)  			;back to the beginning!
 )))
+
 
 
 (defun Buffer-menu-visit-tags-table ()
@@ -428,11 +447,24 @@ Non-null optional arg FILES-ONLY means mention only file buffers.
 The M column contains a * for buffers that are modified.
 The R column contains a % for buffers that are read-only."
   (interactive "P")
+  (display-buffer (list-buffers-noselect files-only)))
+
+(defun list-buffers-noselect (&optional files-only)
+  "Create and return a buffer with a list of names of existing buffers.
+The buffer is named `*Buffer List*'.
+Note that buffers with names starting with spaces are omitted.
+Non-null optional arg FILES-ONLY means mention only file buffers.
+
+The M column contains a * for buffers that are modified.
+The R column contains a % for buffers that are read-only."
   (let ((old-buffer (current-buffer))
-	(blist-buffer (get-buffer-create "*Buffer List*"))
-	(desired-point nil))
-    (with-output-to-temp-buffer "*Buffer List*"
-      (set-buffer standard-output)
+	(standard-output standard-output)
+	desired-point)
+    (save-excursion
+      (set-buffer (get-buffer-create "*Buffer List*"))
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (setq standard-output (current-buffer))
       (princ "\
  MR Buffer           Size  Mode         File
  -- ------           ----  ----         ----
@@ -496,13 +528,12 @@ The R column contains a % for buffers that are read-only."
 	      (if file
 		  (princ file))
 	      (princ "\n"))))
-	  (setq bl (cdr bl)))))
-    ;; DESIRED-POINT doesn't have to be set; it is not when the
-    ;; current buffer is not displayed for some reason.
-    (save-excursion
-      (set-buffer blist-buffer)
+	  (setq bl (cdr bl))))
       (Buffer-menu-mode)
+      ;; DESIRED-POINT doesn't have to be set; it is not when the
+      ;; current buffer is not displayed for some reason.
       (and desired-point
-	   (goto-char desired-point)))))
+	   (goto-char desired-point))
+      (current-buffer))))
 
 ;;; buff-menu.el ends here
