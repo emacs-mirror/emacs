@@ -35,23 +35,41 @@
 (define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
 (defvar menu-bar-file-menu (make-sparse-keymap "File"))
 (define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
-
+
 (define-key menu-bar-file-menu [exit-emacs]
   '("Exit Emacs" . save-buffers-kill-emacs))
-(define-key menu-bar-file-menu [kill-buffer]
-  '("Kill Buffer" . kill-this-buffer))
-(define-key menu-bar-file-menu [delete-frame] '("Delete Frame" . delete-frame))
+
+(define-key menu-bar-file-menu [separator-compare]
+  '("--"))
+
 (define-key menu-bar-file-menu [epatch]
   '("Apply Patch" . menu-bar-epatch-menu))
 (define-key menu-bar-file-menu [ediff]
   '("Compare Files" . menu-bar-ediff-menu))
 (define-key menu-bar-file-menu [emerge] '("Emerge" . menu-bar-emerge-menu))
+
+(define-key menu-bar-file-menu [separator-misc]
+  '("--"))
+
 (define-key menu-bar-file-menu [calendar] '("Calendar" . calendar))
 (define-key menu-bar-file-menu [rmail] '("Read Mail" . rmail))
 (define-key menu-bar-file-menu [gnus] '("Read Net News" . gnus))
+
+(define-key menu-bar-file-menu [separator-frames]
+  '("--"))
+
+(define-key menu-bar-file-menu [delete-frame] '("Delete Frame" . delete-frame))
+(define-key menu-bar-file-menu [make-frame] '("Make New Frame" . make-frame))
+
+(define-key menu-bar-file-menu [separator-buffers]
+  '("--"))
+
 (define-key menu-bar-file-menu [bookmark]
   '("Bookmarks" . menu-bar-bookmark-map))
-(define-key menu-bar-file-menu [print-buffer] '("Print Buffer" . print-buffer))
+(define-key menu-bar-file-menu [print-buffer]
+  '("Print Buffer" . print-buffer))
+(define-key menu-bar-file-menu [kill-buffer]
+  '("Kill Buffer" . kill-this-buffer))
 (define-key menu-bar-file-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
 (define-key menu-bar-file-menu [write-file]
@@ -59,11 +77,7 @@
 (define-key menu-bar-file-menu [save-buffer] '("Save Buffer" . save-buffer))
 (define-key menu-bar-file-menu [dired] '("Open Directory..." . dired))
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
-(define-key menu-bar-file-menu [make-frame] '("Make New Frame" . make-frame))
-
-(define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map))
-(define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
-(define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
+
 (define-key menu-bar-edit-menu [query-replace]
   '("Query Replace" . query-replace))
 (define-key menu-bar-edit-menu [re-search-back]
@@ -74,6 +88,17 @@
   '("Regexp Search" . re-search-forward))
 (define-key menu-bar-edit-menu [search-fwd]
   '("Search" . search-forward))
+
+(define-key menu-bar-edit-menu [separator-misc]
+  '("--"))
+
+(define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map))
+(define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
+
+(define-key menu-bar-edit-menu [separator-edit]
+  '("--"))
+
+(define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
 (define-key menu-bar-edit-menu [choose-next-paste]
   '("Choose Next Paste >" . mouse-menu-choose-yank))
 (define-key menu-bar-edit-menu [paste] '("Paste" . yank))
