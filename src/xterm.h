@@ -427,6 +427,10 @@ struct x_display
 /* Return the window associated with the frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->display.x->window_desc)
 
+#define FRAME_FOREGROUND_PIXEL(f) ((f)->display.x->foreground_pixel)
+#define FRAME_BACKGROUND_PIXEL(f) ((f)->display.x->background_pixel)
+#define FRAME_FONT(f) ((f)->display.x->font)
+
 #define FRAME_X_SCREEN(f) ((f)->display.x->x_screen)
 
 /* This is the `Display *' which frame F is on.  */
