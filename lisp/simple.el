@@ -1842,7 +1842,8 @@ may access and use elements from the kill-ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
   (if (> (length string) 0)
       (if yank-handler
-	  (put-text-property 0 1 'yank-handler yank-handler string))
+	  (put-text-property 0 (length string)
+			     'yank-handler yank-handler string))
     (if yank-handler
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
