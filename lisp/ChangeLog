@@ -1,3 +1,7 @@
+2004-07-09  Lars Hansen  <larsh@math.ku.dk>
+
+	* wid-edit.el (widget-field-buffer): Doc fix.
+
 2004-07-09  John Paul Wallington  <jpw@gnu.org>
 
 	* emacs-lisp/re-builder.el (reb-update-overlays): Distinguish
