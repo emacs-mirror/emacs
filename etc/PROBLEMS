@@ -1037,13 +1037,32 @@ in Emacs.
 
 * When you run Ispell from Emacs, it reports a "misalignment" error.
 
-This can happen if you compiled Ispell to use ASCII characters only
-and then try to use it from Emacs with non-ASCII characters,
-specifically Latin-1.  The solution is to recompile Ispell with
-Latin-1 support.
+This can happen if you compiled the Ispell program to use ASCII
+characters only and then try to use it from Emacs with non-ASCII
+characters, like Latin-1.  The solution is to recompile Ispell with
+support for 8-bit characters.
 
-This can also happen if the version of Ispell installed on your
-machine is old.
+To see whether your Ispell program supports 8-bit characters, type
+this at your shell's prompt:
+
+     ispell -vv
+
+and look in the output for the string "NO8BIT".  If Ispell says
+"!NO8BIT (8BIT)", your speller supports 8-bit characters; otherwise it
+does not.
+
+To rebuild Ispell with 8-bit character support, edit the local.h file
+in the Ispell distribution and make sure it does _not_ define NO8BIT.
+Then rebuild the speller.
+
+Another possible cause for "misalignment" error messages is that the
+version of Ispell installed on your machine is old.  Upgrade.
+
+Yet another possibility is that you are trying to spell-check a word
+in a language that doesn't fit the dictionary you choose for use by
+Ispell.  (Ispell can only spell-check one language at a time, because
+it uses a single dictionary.)  Make sure that the text you are
+spelling and the dictionary used by Ispell conform to each other.
 
 * On Linux-based GNU systems using libc versions 5.4.19 through
 5.4.22, Emacs crashes at startup with a segmentation fault.
