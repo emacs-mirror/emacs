@@ -1,3 +1,10 @@
+2004-06-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (file_dialog_callback): Disable edit control if set
+	to directories only on CDN_INITDONE message.
+	(Fx_file_dialog): Default to directories only when prompt starts
+	with "Dired".
+
 2004-06-25  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (allocate_misc): Update total_free_markers.
