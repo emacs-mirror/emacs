@@ -1,3 +1,15 @@
+2003-06-04  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-get-filename): Err for . and .. in usual case.
+	(dired-get-file-for-visit): Specify no-error to dired-get-filename,
+	and check for real errors here.
+	(dired-unmark-all-files): Specify no-error to dired-get-filename.
+
+	* buff-menu.el (list-buffers-noselect): Use window-inside-edges
+	to compute the number of offset spaces.
+	(list-buffers-noselect): Use Buffer-menu-buffer+size to
+	indent the dashes properly.  Put some in fixed-pitch.
+
 2003-06-04  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el (desktop-create-buffer): Undo last change.
