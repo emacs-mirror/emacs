@@ -170,7 +170,7 @@ enum Lisp_Type
 
 #ifndef NO_UNION_TYPE
 
-#ifndef BIG_ENDIAN
+#ifndef WORDS_BIG_ENDIAN
 
 /* Definition of Lisp_Object for little-endian machines.  */
 
@@ -202,7 +202,7 @@ union Lisp_Object
   }
 Lisp_Object;
 
-#else /* If BIG_ENDIAN */
+#else /* If WORDS_BIG_ENDIAN */
 
 typedef
 union Lisp_Object
@@ -232,7 +232,7 @@ union Lisp_Object
   }
 Lisp_Object;
 
-#endif /* BIG_ENDIAN */
+#endif /* WORDS_BIG_ENDIAN */
 
 #endif /* NO_UNION_TYPE */
 
@@ -793,10 +793,37 @@ typedef unsigned char UCHAR;
  `doc' is documentation for the user.
 */
 
+#ifndef __STDC__
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc) \
   Lisp_Object fnname (); \
   struct Lisp_Subr sname = {fnname, minargs, maxargs, lname, prompt, 0}; \
   Lisp_Object fnname
+
+#else
+
+/* This version of DEFUN declares a function prototype with the right
+   arguments, so we can catch errors with maxargs at compile-time. */
+#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc) \
+  Lisp_Object fnname DEFUN_ARGS_ ## maxargs ; \
+  struct Lisp_Subr sname = {fnname, minargs, maxargs, lname, prompt, 0}; \
+  Lisp_Object fnname
+
+/* Note that the weird token-substitution semantics of ANSI C makes
+   this work for MANY and UNEVALLED. */
+#define DEFUN_ARGS_MANY		(int, Lisp_Object *)
+#define DEFUN_ARGS_UNEVALLED	(Lisp_Object)
+#define DEFUN_ARGS_0	(void)
+#define DEFUN_ARGS_1	(Lisp_Object)
+#define DEFUN_ARGS_2	(Lisp_Object, Lisp_Object)
+#define DEFUN_ARGS_3	(Lisp_Object, Lisp_Object, Lisp_Object)
+#define DEFUN_ARGS_4	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
+#define DEFUN_ARGS_5	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
+			 Lisp_Object)
+#define DEFUN_ARGS_6	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
+			 Lisp_Object, Lisp_Object)
+#define DEFUN_ARGS_7	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
+			 Lisp_Object, Lisp_Object, Lisp_Object)
+#endif
 
 /* defsubr (Sname);
  is how we define the symbol for function `name' at start-up time. */
@@ -1218,7 +1245,7 @@ extern Lisp_Object Qvertical_scroll_bar;
 
 /* defined in keymap.c */
 
-extern Lisp_Object Qkeymap;
+extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object current_global_map;
 extern Lisp_Object Fkey_description (), Fsingle_key_description ();
 extern Lisp_Object Fwhere_is_internal ();
