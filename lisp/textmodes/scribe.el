@@ -1,5 +1,8 @@
 ;;; scribe.el --- scribe mode, and its idiosyncratic commands.
 
+;; Maintainer: FSF
+;; Last-Modified: 9 May 1991
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file might become part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; It should be in a file named COPYING.  Among other things, the
 ;; copyright notice and this notice must be preserved on all copies.
 
+;;; Code:
 
 (defvar scribe-mode-syntax-table nil
   "Syntax table used while in scribe mode.")

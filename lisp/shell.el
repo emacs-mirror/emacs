@@ -1,5 +1,8 @@
 ;;; shell.el --- general command interpreter in a window stuff
 
+;; Author: Olin Shivers <shivers@cs.cmu.edu>
+;; Last-Modified: 16 Mar 1992
+
 ;;; Copyright Olin Shivers (1988).
 
 ;;; This file is part of GNU Emacs.
@@ -17,6 +20,8 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;;; The changelog is at the end of file.
 
@@ -44,7 +49,6 @@
 ;;; Maybe I should ensure the process mark is in the window when I send
 ;;; text to the process? Switch selectable?
 
-(require 'comint)
 ;; YOUR .EMACS FILE
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
@@ -135,6 +139,10 @@
 ;;; Customisation and Buffer Variables
 ;;; ===========================================================================
 ;;; 
+
+;;; Code:
+
+(require 'comint)
 
 ;;;###autoload
 (defconst shell-prompt-pattern "^[^#$%>]*[#$%>] *"

@@ -1,4 +1,8 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
+
+;; Maintainer: FSF
+;; Last-Modified: 12 Aug 1991
+
 ;;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -17,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (defun one-window-p (&optional nomini)
   "Returns non-nil if there is only one window.
@@ -351,3 +356,5 @@ and then modifies one entry in it."
 instead of having to write (function (lambda ...)) or '(lambda ...), the
 latter of which won't get byte-compiled."
   (` (function (lambda (,@ cdr)))))
+
+;;; subr.el ends here

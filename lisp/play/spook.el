@@ -1,5 +1,8 @@
 ;;; spook.el --- spook phrase utility for overloading the NSA line eater
 
+;;; Maintainer: FSF
+;;; Last-modified: 05 Dec 1991
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ; Steve Strassmann (straz@media-lab.media.mit.edu) didn't write
 ; this, and even if he did, he really didn't mean for you to use it
@@ -35,6 +39,8 @@
 ;  A number of phrases will be inserted into your buffer, to help
 ;  give your message that extra bit of attractiveness for automated
 ;  keyword scanners.
+
+;;; Code:
 
 ; Variables
 (defvar spook-phrases-file (concat data-directory "spook.lines")

@@ -1,4 +1,11 @@
-;;; superyank.el --- smart message-yanking code for GNUS (Version 1.1)
+;;; superyank.el --- smart message-yanking code for GNUS
+
+;; Author: Barry A. Warsaw <warsaw@cme.nist.gov>
+;; Version: 1.1
+;; Last-Modified: 15 Jul 1992
+;; Adapted-By: ESR
+
+;;; Commentary:
 
 ;; Inserts the message being replied to with various user controlled
 ;; citation styles.
@@ -83,6 +90,9 @@
 ;; 2) reparse nested citations to try to recast as non-nested citations
 ;;    perhaps by checking the References: line
 ;;
+
+;;; Code:
+
 ;; ======================================================================
 ;;
 ;; require and provide features

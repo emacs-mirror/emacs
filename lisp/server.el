@@ -1,8 +1,11 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process.
 
-;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
-;; Author William Sommerfeld, wesommer@athena.mit.edu.
+;; Author: William Sommerfeld <wesommer@athena.mit.edu>
+;; Last-Modified: 5 Dec 1991
+
 ;; Changes by peck@sun.com and by rms.
+
+;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +23,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ;;; This Lisp code is run in Emacs when it is to operate as
 ;;; a server for other processes.
@@ -66,6 +70,8 @@
 ;;; the clients who are waiting for this buffer to be edited.  
 ;;; The global variable "server-clients" lists all the waiting clients,
 ;;; and which files are yet to be edited for each.
+
+;;; Code:
 
 (defvar server-program "emacsserver"
   "*The program to use as the edit server")

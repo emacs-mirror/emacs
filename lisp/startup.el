@@ -1,5 +1,8 @@
 ;;; startup.el --- process Emacs shell arguments
 
+;; Maintainer: FSF
+;; Last-Modified: 9 Jul 1992
+
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ; These are processed only at the beginning of the argument list.
 ; -batch		execute noninteractively (messages go to stdout,
@@ -47,6 +51,8 @@
 ; -insert file		same
 ; file			visit file
 ; -kill			kill (exit) emacs
+
+;;; Code:
 
 (setq top-level '(normal-top-level))
 
