@@ -1,3 +1,9 @@
+1999-10-08  Simon Marshall  <simon@gnu.org>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-try-suffix): New function.
+	(regexp-opt-group): Use it to get common suffixes in STRINGS.
+	If STRINGS is nil, return "" rather than nil.
+	
 1999-10-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile (compile): Compile files one by one.  Set load-path to
