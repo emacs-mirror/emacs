@@ -181,7 +181,7 @@ ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
   (unless (stringp doc) (setq doc "Not documented"))
   (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (eq arglist t))
       doc
-    (format "%s%s%s" doc
+    (format "%s%s%S" doc
 	    (if (string-match "\n?\n\\'" doc)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
@@ -339,7 +339,7 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	  ;; FIXME: This list can be very long (f.ex. for self-insert-command).
 	  ;; If there are many, remove them from KEYS.
 	  (if (< (length non-modified-keys) 10)
-	      (princ (mapconcat 'key-description keys ", "))	      
+	      (princ (mapconcat 'key-description keys ", "))
 	    (dolist (key non-modified-keys)
 	      (setq keys (delq key keys)))
 	    (if keys
