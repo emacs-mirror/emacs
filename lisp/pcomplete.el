@@ -1147,12 +1147,6 @@ If specific documentation can't be given, be generic."
 
 ;; general utilities
 
-(defsubst pcomplete-time-less-p (t1 t2)
-  "Say whether time T1 is less than time T2."
-  (or (< (car t1) (car t2))
-      (and (= (car t1) (car t2))
-	   (< (nth 1 t1) (nth 1 t2)))))
-
 (defun pcomplete-pare-list (l r &optional pred)
   "Destructively remove from list L all elements matching any in list R.
 Test is done using `equal'.
