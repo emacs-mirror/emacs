@@ -55,8 +55,6 @@
 ;; -title		.title
 ;; -xrm
 
-(message "X-windows...")
-
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
@@ -203,10 +201,14 @@
 (defun x-pop-initial-window ()
   ;; xterm.c depends on using interrupt-driven input.
   (set-input-mode t nil t)
-  (setq mouse-motion-handler 'x-track-pointer)
+  ;; (setq mouse-motion-handler 'x-track-pointer)
   (setq x-switches-specified (append x-switches-specified
 				     initial-screen-alist
 				     screen-default-alist))
+  (and (string-equal (user-real-login-name) "mtr")
+       (setq x-switches-specified
+	     (append (list '(name . "Die, Yuppie SCUM!!!"))
+		     x-switches-specified)))
   ;; see screen.el for this function
   (pop-initial-screen x-switches-specified)
   (delete-screen terminal-screen))
