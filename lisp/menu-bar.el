@@ -1282,15 +1282,12 @@ key (or menu-item)"))
 	   file))
 	(car elt)))
 
-(defvar menu-bar-buffers-menu-list-buffers-entry nil)
-
 (defun menu-bar-update-buffers (&optional force)
   ;; If user discards the Buffers item, play along.
   (and (lookup-key (current-global-map) [menu-bar buffer])
        (or force (frame-or-buffer-changed-p))
        (let ((buffers (buffer-list))
 	     (frames (frame-list))
-	     (maxlen 0)
 	     buffers-menu frames-menu)
 	 ;; If requested, list only the N most recently selected buffers.
 	 (if (and (integerp buffers-menu-max-size)
@@ -1300,102 +1297,82 @@ key (or menu-item)"))
 
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
-	       (cons "Select Buffer"
-		     (let* ((buffer-list
-			     (mapcar 'list buffers))
-			    tail
-			    (menu-bar-update-buffers-maxbuf 0)
-			    alist
-			    head)
-		       ;; Put into each element of buffer-list
-		       ;; the name for actual display,
-		       ;; perhaps truncated in the middle.
-		       (setq tail buffer-list)
-		       (while tail
-			 (let ((name (buffer-name (car (car tail)))))
-			   (setcdr (car tail)
-				   (if (> (length name) 27)
-				       (concat (substring name 0 12)
-					       "..."
-					       (substring name -12))
-				     name)))
-			 (setq tail (cdr tail)))
-		       ;; Compute the maximum length of any name.
-		       (setq tail buffer-list)
-		       (while tail
-			 (or (eq ?\ (aref (cdr (car tail)) 0))
-			     (setq menu-bar-update-buffers-maxbuf
-				   (max menu-bar-update-buffers-maxbuf
-					(length (cdr (car tail))))))
-			 (setq tail (cdr tail)))
-		       ;; Set ALIST to an alist of the form
-		       ;; ITEM-STRING . BUFFER
-		       (setq tail buffer-list)
-		       (while tail
-			 (let ((elt (car tail)))
-			   (or (eq ?\ (aref (cdr elt) 0))
-			       (setq alist (cons
-					    (menu-bar-update-buffers-1 elt)
-					    alist)))
-			   (and alist (> (length (car (car alist))) maxlen)
-				(setq maxlen (length (car (car alist))))))
-			 (setq tail (cdr tail)))
-		       (setq alist (nreverse alist))
-		       ;; Make the menu item for list-buffers
-		       ;; or reuse the one we already have.
-		       ;; The advantage in reusing one
-		       ;; is that it already has the keyboard equivalent
-		       ;; cached, so we save the time to look that up again.
-		       (or menu-bar-buffers-menu-list-buffers-entry
-			   (setq menu-bar-buffers-menu-list-buffers-entry
-				 (cons
-				  'list-buffers
-				  (cons
-				   ""
-				   'list-buffers))))
-		       ;; Update the item string for menu's new width.
-		       (setcar (cdr menu-bar-buffers-menu-list-buffers-entry)
-			       (concat (make-string (max (- (/ maxlen 2) 8) 0)
-						    ?\ )
-				       "List All Buffers"))
-		       ;; Now make the actual list of items,
-		       ;; ending with the list-buffers item.
-		       (nconc (mapcar (lambda (pair)
-					;; This is somewhat risque, to use
-					;; the buffer name itself as the event
-					;; type to define, but it works.
-					;; It would not work to use the buffer
-					;; since a buffer as an event has its
-					;; own meaning.
-					(nconc (list (buffer-name (cdr pair))
-						     (car pair)
-						     (cons nil nil))
-					       'menu-bar-select-buffer))
-				      alist)
-			      (list menu-bar-buffers-menu-list-buffers-entry)))))
-
+	       (let* ((buffer-list
+		       (mapcar 'list buffers))
+		      (menu-bar-update-buffers-maxbuf 0)
+		      alist)
+		 ;; Put into each element of buffer-list
+		 ;; the name for actual display,
+		 ;; perhaps truncated in the middle.
+		 (dolist (buf buffer-list)
+		   (let ((name (buffer-name (car buf))))
+		     (setcdr buf
+			     (if (> (length name) 27)
+				 (concat (substring name 0 12)
+					 "..."
+					 (substring name -12))
+			       name))))
+		 ;; Compute the maximum length of any name.
+		 (dolist (buf buffer-list)
+		   (unless (eq ?\  (aref (cdr buf) 0))
+		     (setq menu-bar-update-buffers-maxbuf
+			   (max menu-bar-update-buffers-maxbuf
+				(length (cdr buf))))))
+		 ;; Set ALIST to an alist of the form
+		 ;; ITEM-STRING . BUFFER
+		 (dolist (buf buffer-list)
+		   (unless (eq ?\  (aref (cdr buf) 0))
+		     (push (menu-bar-update-buffers-1 buf) alist)))
+		 ;; Now make the actual list of items, and add
+		 ;; some miscellaneous buffer commands to the end.
+		 (mapcar (lambda (pair)
+			   ;; This is somewhat risque, to use
+			   ;; the buffer name itself as the event
+			   ;; type to define, but it works.
+			   ;; It would not work to use the buffer
+			   ;; since a buffer as an event has its
+			   ;; own meaning.
+			   (nconc (list (buffer-name (cdr pair))
+					(car pair)
+					(cons nil nil))
+				  'menu-bar-select-buffer))
+			 (nreverse alist))))
 
 	 ;; Make a Frames menu if we have more than one frame.
-	 (if (cdr frames)
-	     (let ((name (concat (make-string (max (- (/ maxlen 2) 3) 0)
-					      ?\ )
-				 "Frames"))
-		   (frames-menu
-		    (cons 'keymap
-			  (cons "Select Frame"
-				(mapcar
-				 (lambda (frame)
-				   (nconc
-				    (list (frame-parameter frame 'name)
-					  (frame-parameter frame 'name)
-					  (cons nil nil))
-					  'menu-bar-select-frame))
-					frames)))))
-	       ;; Put it underneath the Buffers menu.
-	       (setq buffers-menu (cons (cons 'frames (cons name frames-menu))
-					buffers-menu))))
-	 (if buffers-menu
-	     (setq buffers-menu (cons 'keymap buffers-menu)))
+	 (when (cdr frames)
+	   (let ((frames-menu
+		  (cons 'keymap
+			(cons "Select Frame"
+			      (mapcar
+			       (lambda (frame)
+				 (nconc
+				  (list (frame-parameter frame 'name)
+					(frame-parameter frame 'name)
+					(cons nil nil))
+				  'menu-bar-select-frame))
+			       frames)))))
+	     ;; Put it after the normal buffers
+	     (setq buffers-menu
+		   (nconc buffers-menu
+			  `((frames-separator "--")
+			    (frames menu-item "Frames" ,frames-menu))))))
+
+	 ;; Add in some normal commands at the end of the menu
+	 (setq buffers-menu
+	       (nconc buffers-menu
+		      '((command-separator "--")
+			(select-named-buffer
+			 menu-item
+			 "Select Named Buffer..."
+			 switch-to-buffer
+			 :help "Prompt for a buffer name, and select that buffer in the current window")
+			(list-all-buffers
+			 menu-item
+			 "List All Buffers"
+			 list-buffers
+			 :help "Pop up a window listing all emacs buffers"))))
+
+	 (setq buffers-menu (cons 'keymap (cons "Select Buffer" buffers-menu)))
 	 (define-key (current-global-map) [menu-bar buffer]
 	   (cons "Buffers" buffers-menu)))))
 
