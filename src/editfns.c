@@ -490,6 +490,11 @@ Also, if the environment variable LOGNAME or USER is set,\n\
 that determines the value of this function.")
   ()
 {
+  /* Set up the user name info if we didn't do it before.
+     (That can happen if Emacs is dumpable
+     but you decide to run `temacs -l loadup' and not dump.  */
+  if (INTEGERP (Vuser_name))
+    init_editfns ();
   return Vuser_name;
 }
 
@@ -500,6 +505,11 @@ This ignores the environment variables LOGNAME and USER, so it differs from\n\
 `user-login-name' when running under `su'.")
   ()
 {
+  /* Set up the user name info if we didn't do it before.
+     (That can happen if Emacs is dumpable
+     but you decide to run `temacs -l loadup' and not dump.  */
+  if (INTEGERP (Vuser_name))
+    init_editfns ();
   return Vuser_real_name;
 }
 
