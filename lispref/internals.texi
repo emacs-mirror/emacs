@@ -503,6 +503,18 @@ must declare these explicitly, with type @code{struct gcpro}.  Thus, if
 you use @code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
 Alas, we can't explain all the tricky details here.
 
+  Remember that you must never initialise external variables (whether
+static or not).  If you do that, the linker will put the variable into
+the initialised data area of the process, which on many architectures
+becomes read-only when emacs is dumped (@pxref {Pure Storage}).
+
+  Remember also that the keyword @code{static} is defined as nothing on
+many architectures whose linkers would put every static variable in the
+initialised data area, which becomes read-only after dumping.  This
+means that you must never use static local variables, because on those
+architectures they would lose the @code{static} specifier and become
+automatic.  Use static external variables instead.
+
   Defining the C function is not enough to make a Lisp primitive
 available; you must also create the Lisp symbol for the primitive and
 store a suitable subr object in its function cell.  The code looks like
