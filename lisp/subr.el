@@ -290,6 +290,17 @@ FILE should be the name of a library, with no directory name."
 This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
+
+(defmacro defun-inline (name args &rest body)
+  "Create an \"inline defun\" (actually a macro).
+Use just like `defun'."
+  (nconc (list 'defmacro name '(&rest args))
+	 (if (stringp (car body))
+	     (prog1 (list (car body))
+	       (setq body (or (cdr body) body))))
+	 (list (list 'cons (list 'quote
+				 (cons 'lambda (cons args body)))
+		     'args))))
 
 (defun user-original-login-name ()
   "Return user's login name from original login.
