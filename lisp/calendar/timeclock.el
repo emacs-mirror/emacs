@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
-;; Version: 2.4
+;; Version: 2.5
 ;; Keywords: calendar data
 
 ;; This file is part of GNU Emacs.
@@ -461,8 +461,12 @@ The amount returned is relative to the value of `timeclock-workday'.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time.  This argument only makes
 a difference if `timeclock-relative' is non-nil."
-  (let ((discrep (timeclock-find-discrep today-only)))
-    (or (and discrep (- discrep)) 0.0)))
+  (let ((discrep (timeclock-find-discrep)))
+    (if discrep
+	(if today-only
+	    (- (cadr discrep))
+	  (- (car discrep)))
+      0.0)))
 
 (defsubst timeclock-currently-in-p ()
   "Return non-nil if the user is currently clocked in."
@@ -484,24 +488,24 @@ See `timeclock-relative' for more information about the meaning of
 	(message string)
       string)))
 
-(defsubst timeclock-workday-elapsed (&optional relative)
+(defsubst timeclock-workday-elapsed ()
   "Return a the number of seconds worked so far today.
 If RELATIVE is non-nil, the amount returned will be relative to past
 time worked.  The default is to return only the time that has elapsed
 so far today."
-  (+ timeclock-workday
-     (timeclock-find-discrep (not relative))))
+  (let ((discrep (timeclock-find-discrep)))
+    (if discrep
+	(nth 2 discrep)
+      0.0)))
 
 ;;;###autoload
-(defun timeclock-workday-elapsed-string (&optional show-seconds
-						   relative)
+(defun timeclock-workday-elapsed-string (&optional show-seconds)
   "Return a string representing the amount of time worked today.
 Display seconds resolution if SHOW-SECONDS is non-nil.  If RELATIVE is
 non-nil, the amount returned will be relative to past time worked."
   (interactive)
-  (let ((string (timeclock-seconds-to-string
-		 (timeclock-workday-elapsed relative)
-		 show-seconds)))
+  (let ((string (timeclock-seconds-to-string (timeclock-workday-elapsed)
+					     show-seconds)))
     (if (interactive-p)
 	(message string)
       string)))
@@ -513,7 +517,12 @@ the time worked today, and not to past time.  This argument only makes
 a difference if `timeclock-relative' is non-nil."
   (timeclock-seconds-to-time
    (- (timeclock-time-to-seconds (current-time))
-      (timeclock-find-discrep today-only))))
+      (let ((discrep (timeclock-find-discrep)))
+	(if discrep
+	    (if today-only
+		(cadr discrep)
+	      (car discrep))
+	  0.0)))))
 
 ;;;###autoload
 (defun timeclock-when-to-leave-string (&optional show-seconds
@@ -991,11 +1000,8 @@ See the documentation for the given function if more info is needed."
 			(cadr log-data))))
       log-data)))
 
-(defun timeclock-find-discrep (&optional today-only)
-  "Find overall discrepancy from `timeclock-workday' (in seconds).
-If TODAY-ONLY is non-nil, the discrepancy will be not be relative, and
-will correspond only to the amount of time elapsed today.  This is
-identical to what would be return if `timeclock-relative' were nil."
+(defun timeclock-find-discrep ()
+  "Find overall discrepancy from `timeclock-workday' (in seconds)."
   ;; This is not implemented in terms of the functions above, because
   ;; it's a bit wasteful to read all of that data in, just to throw
   ;; away more than 90% of the information afterwards.
@@ -1011,7 +1017,7 @@ identical to what would be return if `timeclock-relative' were nil."
   ;;    total)
   (let* ((now (current-time))
 	 (todays-date (timeclock-time-to-date now))
-	 (first t) (accum 0)
+	 (first t) (accum 0) elapsed
 	 event beg last-date avg
 	 last-date-limited last-date-seconds)
     (unless timeclock-discrepancy
@@ -1039,16 +1045,13 @@ identical to what would be return if `timeclock-relative' were nil."
 		     (add-to-list 'timeclock-project-list (nth 2 event))
 		     (setq timeclock-last-project (nth 2 event)))
 		   (let ((date (timeclock-time-to-date (cadr event))))
-		     (if (if timeclock-relative
-			     (if last-date
-				 (not (equal date last-date))
-			       first)
-			   (equal date todays-date))
+		     (if (if last-date
+			     (not (equal date last-date))
+			   first)
 			 (setq first nil
-			       accum (- accum
-					(if last-date-limited
-					    last-date-seconds
-					  timeclock-workday))))
+			       accum (- accum (if last-date-limited
+						  last-date-seconds
+						timeclock-workday))))
 		     (setq last-date date
 			   last-date-limited nil)
 		     (if beg
@@ -1058,15 +1061,12 @@ identical to what would be return if `timeclock-relative' were nil."
 		   (if (and (nth 2 event)
 			    (> (length (nth 2 event)) 0))
 		       (add-to-list 'timeclock-reason-list (nth 2 event)))
-		   (if (or timeclock-relative
-			   (equal last-date todays-date))
-		       (if (not beg)
-			   (error "Error in format of timelog file!")
-			 (setq timeclock-last-period
-			       (- (timeclock-time-to-seconds (cadr event)) beg)
-			       accum (+ timeclock-last-period accum)
-			       beg nil))
-		     (setq beg nil))
+		   (if (not beg)
+		       (error "Error in format of timelog file!")
+		     (setq timeclock-last-period
+			   (- (timeclock-time-to-seconds (cadr event)) beg)
+			   accum (+ timeclock-last-period accum)
+			   beg nil))
 		   (if (equal last-date todays-date)
 		       (setq timeclock-elapsed
 			     (+ timeclock-last-period timeclock-elapsed)))))
@@ -1077,17 +1077,19 @@ identical to what would be return if `timeclock-relative' were nil."
 		    timeclock-workday))
 	    (forward-line))
 	  (setq timeclock-discrepancy accum))))
-    (setq accum (if today-only
-		    timeclock-elapsed
-		  timeclock-discrepancy))
+    (setq accum timeclock-discrepancy
+	  elapsed timeclock-elapsed)
     (if timeclock-last-event
 	(if (equal (car timeclock-last-event) "i")
-	    (setq accum (+ accum (timeclock-last-period now)))
+	    (let ((last-period (timeclock-last-period now)))
+	      (setq accum (+ accum last-period)
+		    elapsed (+ elapsed last-period)))
 	  (if (not (equal (timeclock-time-to-date
 			   (cadr timeclock-last-event))
 			  (timeclock-time-to-date now)))
 	      (setq accum (- accum timeclock-last-event-workday)))))
-    accum))
+    (list accum (- elapsed timeclock-last-event-workday)
+	  elapsed)))
 
 ;;; A reporting function that uses timeclock-log-data
 
