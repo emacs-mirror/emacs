@@ -218,9 +218,27 @@ With argument FLIST, use the list FLIST instead."
 	(setcdr accum (- (cdr accum) profile-million)))
       )))
 
+(defun profile-convert-byte-code (function)
+  (let ((defn (symbol-function function)))
+    (if (byte-code-function-p defn)
+	;; It is a compiled code object.
+	(let* ((contents (append defn nil))
+	       (body
+		(list (list 'byte-code (nth 1 contents)
+			    (nth 2 contents) (nth 3 contents)))))
+	  (if (nthcdr 5 contents)
+	      (setq body (cons (list 'interactive (nth 5 contents)) body)))
+	  (if (nth 4 contents)
+	      ;; Use `documentation' here, to get the actual string,
+	      ;; in case the compiled function has a reference
+	      ;; to the .elc file.
+	      (setq body (cons (documentation function) body)))
+	  (fset function (cons 'lambda (cons (car contents) body)))))))
+
 (defun profile-a-function (fun)
   "Profile the function FUN."
   (interactive "aFunction to profile: ")
+  (profile-convert-byte-code fun)
   (let ((def (symbol-function fun)) (funlen (length (symbol-name fun))))
     (if (eq (car def) 'lambda) nil
       (error "To profile: %s must be a user-defined function" fun))
