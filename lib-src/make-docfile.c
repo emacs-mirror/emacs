@@ -66,7 +66,7 @@ main (argc, argv)
     err_count += scan_file (argv[i]);	/* err_count seems to be {mis,un}used */
 #ifndef VMS
   exit (err_count);			/* see below - shane */
-#endif VMS
+#endif /* VMS */
 }
 
 /* Read file FILENAME and output its doc strings to outfile.  */
