@@ -121,7 +121,7 @@ With argument t, set the random number seed from the current time and pid. */)
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
 A byte-code function object is also allowed.
-If the string contains multibyte characters, this is not the necessarily
+If the string contains multibyte characters, this is not necessarily
 the number of bytes in the string; it is the number of characters.
 To get the number of bytes, use `string-bytes'. */)
      (sequence)
@@ -443,7 +443,7 @@ usage: (vconcat &rest SEQUENCES)   */)
   return concat (nargs, args, Lisp_Vectorlike, 0);
 }
 
-/* Retrun a copy of a sub char table ARG.  The elements except for a
+/* Return a copy of a sub char table ARG.  The elements except for a
    nested sub char table are not copied.  */
 static Lisp_Object
 copy_sub_char_table (arg)

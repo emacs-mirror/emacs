@@ -1,3 +1,7 @@
+2002-10-05  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* fns.c (Flength): Doc fix.
+
 2002-10-04  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (keycode_to_xkeysym_table): Change return to be 
@@ -18,7 +22,7 @@
 
 	* xfns.c (x_create_tip_frame): Set `tooltip' frame parameter to t.
 
-	* w32fns.c (x_create_tip_frame): Likewise
+	* w32fns.c (x_create_tip_frame): Likewise.
 
 	* macfns.c (x_create_tip_frame): Likewise.
 
