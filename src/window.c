@@ -2634,7 +2634,7 @@ window_scroll (window, n, noerror)
   Lisp_Object bolp, nmoved;
 
   /* Always set force_start so that redisplay_window will run
-     thw window-scroll-functions.  */
+     the window-scroll-functions.  */
   w->force_start = Qt;
 
   XSETFASTINT (tem, PT);
