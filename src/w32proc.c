@@ -41,6 +41,7 @@ Boston, MA 02111-1307, USA.
 
 #include "lisp.h"
 #include "w32.h"
+#include "w32heap.h"
 #include "systime.h"
 #include "syswait.h"
 #include "process.h"
@@ -55,6 +56,12 @@ Lisp_Object Vw32_quote_process_args;
    hidden.  The default is nil. */
 Lisp_Object Vw32_start_process_show_window;
 
+/* Control whether create_child causes the process to inherit Emacs'
+   console window, or be given a new one of its own.  The default is
+   nil, to allow multiple DOS programs to run on Win95.  Having separate
+   consoles also allows Emacs to cleanly terminate process groups.  */
+Lisp_Object Vw32_start_process_share_console;
+
 /* Time to sleep before reading from a subprocess output pipe - this
    avoids the inefficiency of frequently reading small amounts of data.
    This is primarily necessary for handling DOS processes on Windows 95,
@@ -65,8 +72,18 @@ Lisp_Object Vw32_pipe_read_delay;
    nil means no, t means yes. */
 Lisp_Object Vw32_downcase_file_names;
 
-/* Keep track of whether we have already started a DOS program. */
-BOOL dos_process_running;
+/* Control whether stat() attempts to generate fake but hopefully
+   "accurate" inode values, by hashing the absolute truenames of files.
+   This should detect aliasing between long and short names, but still
+   allows the possibility of hash collisions.  */
+Lisp_Object Vw32_generate_fake_inodes;
+
+/* Control whether stat() attempts to determine file type and link count
+   exactly, at the expense of slower operation.  Since true hard links
+   are supported on NTFS volumes, this is only relevant on NT.  */
+Lisp_Object Vw32_get_true_file_attributes;
+
+Lisp_Object Qhigh, Qlow;
 
 #ifndef SYS_SIGLIST_DECLARED
 extern char *sys_siglist[];
@@ -237,8 +254,8 @@ reader_thread (void *arg)
   cp = (child_process *)arg;
   
   /* We have to wait for the go-ahead before we can start */
-  if (cp == NULL ||
-      WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
+  if (cp == NULL
+      || WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
     return 1;
 
   for (;;)
@@ -274,6 +291,11 @@ reader_thread (void *arg)
   return 0;
 }
 
+/* To avoid Emacs changing directory, we just record here the directory
+   the new process should start in.  This is set just before calling
+   sys_spawnve, and is not generally valid at any other time.  */
+static char * process_dir;
+
 static BOOL 
 create_child (char *exe, char *cmdline, char *env,
 	      int * pPid, child_process *cp)
@@ -281,6 +303,7 @@ create_child (char *exe, char *cmdline, char *env,
   STARTUPINFO start;
   SECURITY_ATTRIBUTES sec_attrs;
   SECURITY_DESCRIPTOR sec_desc;
+  char dir[ MAXPATHLEN ];
   
   if (cp == NULL) abort ();
   
@@ -308,9 +331,14 @@ create_child (char *exe, char *cmdline, char *env,
   sec_attrs.lpSecurityDescriptor = &sec_desc;
   sec_attrs.bInheritHandle = FALSE;
   
+  strcpy (dir, process_dir);
+  unixtodos_filename (dir);
+  
   if (!CreateProcess (exe, cmdline, &sec_attrs, NULL, TRUE,
-		      CREATE_NEW_PROCESS_GROUP,
-		      env, NULL,
+		      (!NILP (Vw32_start_process_share_console)
+		       ? CREATE_NEW_PROCESS_GROUP
+		       : CREATE_NEW_CONSOLE),
+		      env, dir,
 		      &start, &cp->procinfo))
     goto EH_Fail;
 
@@ -323,11 +351,10 @@ create_child (char *exe, char *cmdline, char *env,
   /* pid must fit in a Lisp_Int */
   cp->pid = (cp->pid & VALMASK);
 
-
   *pPid = cp->pid;
-  
+
   return TRUE;
-  
+
  EH_Fail:
   DebPrint (("create_child.CreateProcess failed: %ld\n", GetLastError()););
   return FALSE;
@@ -380,18 +407,15 @@ reap_subprocess (child_process *cp)
   if (cp->procinfo.hProcess)
     {
       /* Reap the process */
-      if (WaitForSingleObject (cp->procinfo.hProcess, INFINITE) != WAIT_OBJECT_0)
-	DebPrint (("reap_subprocess.WaitForSingleObject (process) failed "
-		   "with %lu for fd %ld\n", GetLastError (), cp->fd));
+#ifdef FULL_DEBUG
+      /* Process should have already died before we are called.  */
+      if (WaitForSingleObject (cp->procinfo.hProcess, 0) != WAIT_OBJECT_0)
+	DebPrint (("reap_subprocess: child fpr fd %d has not died yet!", cp->fd));
+#endif
       CloseHandle (cp->procinfo.hProcess);
       cp->procinfo.hProcess = NULL;
       CloseHandle (cp->procinfo.hThread);
       cp->procinfo.hThread = NULL;
-
-      /* If this was a DOS process, indicate that it is now safe to
-	 start a new one.  */
-      if (cp->is_dos_process)
-	dos_process_running = FALSE;
     }
 
   /* For asynchronous children, the child_proc resources will be freed
@@ -423,6 +447,8 @@ sys_wait (int *status)
       cps[nh] = dead_child;
       if (!wait_hnd[nh]) abort ();
       nh++;
+      active = 0;
+      goto get_result;
     }
   else
     {
@@ -432,7 +458,6 @@ sys_wait (int *status)
 	  {
 	    wait_hnd[nh] = cp->procinfo.hProcess;
 	    cps[nh] = cp;
-	    if (!wait_hnd[nh]) abort ();
 	    nh++;
 	  }
     }
@@ -443,30 +468,33 @@ sys_wait (int *status)
       errno = ECHILD;
       return -1;
     }
-  
-  active = WaitForMultipleObjects (nh, wait_hnd, FALSE, INFINITE);
+
+  do
+    {
+      /* Check for quit about once a second. */
+      QUIT;
+      active = WaitForMultipleObjects (nh, wait_hnd, FALSE, 1000);
+    } while (active == WAIT_TIMEOUT);
+
   if (active == WAIT_FAILED)
     {
       errno = EBADF;
       return -1;
     }
-  else if (active == WAIT_TIMEOUT)
-    {
-      /* Should never happen */
-      errno = EINVAL;
-      return -1;
-    }
-  else if (active >= WAIT_OBJECT_0 &&
-	   active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
+  else if (active >= WAIT_OBJECT_0
+	   && active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
     {
       active -= WAIT_OBJECT_0;
     }
-  else if (active >= WAIT_ABANDONED_0 &&
-	   active < WAIT_ABANDONED_0+MAXIMUM_WAIT_OBJECTS)
+  else if (active >= WAIT_ABANDONED_0
+	   && active < WAIT_ABANDONED_0+MAXIMUM_WAIT_OBJECTS)
     {
       active -= WAIT_ABANDONED_0;
     }
-  
+  else
+    abort ();
+
+get_result:
   if (!GetExitCodeProcess (wait_hnd[active], &retval))
     {
       DebPrint (("Wait.GetExitCodeProcess failed with %lu\n",
@@ -525,56 +553,95 @@ sys_wait (int *status)
 
       reap_subprocess (cp);
     }
+
+  reap_subprocess (cp);
   
   return pid;
 }
 
-int
-w32_is_dos_binary (char * filename)
+void
+w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app)
 {
-  IMAGE_DOS_HEADER dos_header;
-  DWORD signature;
-  int fd;
-  int is_dos_binary = FALSE;
+  file_data executable;
+  char * p;
+  
+  /* Default values in case we can't tell for sure.  */
+  *is_dos_app = FALSE;
+  *is_cygnus_app = FALSE;
 
-  fd = open (filename, O_RDONLY | O_BINARY, 0);
-  if (fd >= 0)
+  if (!open_input_file (&executable, filename))
+    return;
+
+  p = strrchr (filename, '.');
+  
+  /* We can only identify DOS .com programs from the extension. */
+  if (p && stricmp (p, ".com") == 0)
+    *is_dos_app = TRUE;
+  else if (p && (stricmp (p, ".bat") == 0
+		 || stricmp (p, ".cmd") == 0))
     {
-      char * p = strrchr (filename, '.');
-
-      /* We can only identify DOS .com programs from the extension. */
-      if (p && stricmp (p, ".com") == 0)
-	is_dos_binary = TRUE;
-      else if (p && stricmp (p, ".bat") == 0)
-	{
-	  /* A DOS shell script - it appears that CreateProcess is happy
-	     to accept this (somewhat surprisingly); presumably it looks
-	     at COMSPEC to determine what executable to actually invoke.
-	     Therefore, we have to do the same here as well. */
-	  p = getenv ("COMSPEC");
-	  if (p)
-	    is_dos_binary = w32_is_dos_binary (p);
-	}
-      else
-	{
-	  /* Look for DOS .exe signature - if found, we must also check
-	     that it isn't really a 16- or 32-bit Windows exe, since
-	     both formats start with a DOS program stub.  Note that
-	     16-bit Windows executables use the OS/2 1.x format. */
-	  if (read (fd, &dos_header, sizeof (dos_header)) == sizeof (dos_header)
-	      && dos_header.e_magic == IMAGE_DOS_SIGNATURE
-	      && lseek (fd, dos_header.e_lfanew, SEEK_SET) != -1)
-	    {
-	      if (read (fd, &signature, sizeof (signature)) != sizeof (signature)
-		  || (signature != IMAGE_NT_SIGNATURE &&
-		      LOWORD (signature) != IMAGE_OS2_SIGNATURE))
-		is_dos_binary = TRUE;
-	    }
-	}
-      close (fd);
+      /* A DOS shell script - it appears that CreateProcess is happy to
+	 accept this (somewhat surprisingly); presumably it looks at
+	 COMSPEC to determine what executable to actually invoke.
+	 Therefore, we have to do the same here as well. */
+      /* Actually, I think it uses the program association for that
+	 extension, which is defined in the registry.  */
+      p = egetenv ("COMSPEC");
+      if (p)
+	w32_executable_type (p, is_dos_app, is_cygnus_app);
     }
+  else
+    {
+      /* Look for DOS .exe signature - if found, we must also check that
+	 it isn't really a 16- or 32-bit Windows exe, since both formats
+	 start with a DOS program stub.  Note that 16-bit Windows
+	 executables use the OS/2 1.x format. */
 
-  return is_dos_binary;
+      IMAGE_DOS_HEADER * dos_header;
+      IMAGE_NT_HEADERS * nt_header;
+
+      dos_header = (PIMAGE_DOS_HEADER) executable.file_base;
+      if (dos_header->e_magic != IMAGE_DOS_SIGNATURE)
+	goto unwind;
+
+      nt_header = (PIMAGE_NT_HEADERS) ((char *) dos_header + dos_header->e_lfanew);
+
+      if (nt_header > dos_header + executable.size) 
+	{
+	  /* Some dos headers (pkunzip) have bogus e_lfanew fields.  */
+	  *is_dos_app = TRUE;
+	} 
+      else if (nt_header->Signature != IMAGE_NT_SIGNATURE
+	       && LOWORD (nt_header->Signature) != IMAGE_OS2_SIGNATURE)
+  	{
+	  *is_dos_app = TRUE;
+  	}
+      else if (nt_header->Signature == IMAGE_NT_SIGNATURE)
+  	{
+	  /* Look for cygwin.dll in DLL import list. */
+	  IMAGE_DATA_DIRECTORY import_dir =
+	    nt_header->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+	  IMAGE_IMPORT_DESCRIPTOR * imports;
+	  IMAGE_SECTION_HEADER * section;
+
+	  section = rva_to_section (import_dir.VirtualAddress, nt_header);
+	  imports = RVA_TO_PTR (import_dir.VirtualAddress, section, executable);
+
+	  for ( ; imports->Name; imports++)
+  	    {
+	      char * dllname = RVA_TO_PTR (imports->Name, section, executable);
+
+	      if (strcmp (dllname, "cygwin.dll") == 0)
+		{
+		  *is_cygnus_app = TRUE;
+		  break;
+		}
+  	    }
+  	}
+    }
+  
+unwind:
+  close_file_data (&executable);
 }
 
 int
@@ -631,7 +698,9 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   int arglen, numenv;
   int pid;
   child_process *cp;
-  int is_dos_binary;
+  int is_dos_app, is_cygnus_app;
+  int do_quoting = 0;
+  char escape_char;
   /* We pass our process ID to our children by setting up an environment
      variable in their environment.  */
   char ppid_env_var_buffer[64];
@@ -659,22 +728,35 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	  errno = EINVAL;
 	  return -1;
 	}
-      cmdname = XSTRING (full)->data;
-      argv[0] = cmdname;
+      program = full;
     }
 
-  /* make sure cmdname is in DOS format */
-  strcpy (cmdname = alloca (strlen (cmdname) + 1), argv[0]);
+  /* make sure argv[0] and cmdname are both in DOS format */
+  cmdname = XSTRING (program)->data;
   unixtodos_filename (cmdname);
   argv[0] = cmdname;
 
-  /* Check if program is a DOS executable, and if so whether we are
-     allowed to start it. */
-  is_dos_binary = w32_is_dos_binary (cmdname);
-  if (is_dos_binary && dos_process_running)
+  /* Determine whether program is a 16-bit DOS executable, or a Win32
+     executable that is implicitly linked to the Cygnus dll (implying it
+     was compiled with the Cygnus GNU toolchain and hence relies on
+     cygwin.dll to parse the command line - we use this to decide how to
+     escape quote chars in command line args that must be quoted). */
+  w32_executable_type (cmdname, &is_dos_app, &is_cygnus_app);
+
+  /* On Windows 95, if cmdname is a DOS app, we invoke a helper
+     application to start it by specifying the helper app as cmdname,
+     while leaving the real app name as argv[0].  */
+  if (is_dos_app)
     {
-      errno = EAGAIN;
-      return -1;
+      cmdname = alloca (MAXPATHLEN);
+      if (egetenv ("CMDPROXY"))
+	strcpy (cmdname, egetenv ("CMDPROXY"));
+      else
+	{
+	  strcpy (cmdname, XSTRING (Vinvocation_directory)->data);
+	  strcat (cmdname, "cmdproxy.exe");
+	}
+      unixtodos_filename (cmdname);
     }
   
   /* we have to do some conjuring here to put argv and envp into the
@@ -682,17 +764,41 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      terminated list of parameters, and envp is a null
      separated/double-null terminated list of parameters.
 
-     Additionally, zero-length args and args containing whitespace need
-     to be wrapped in double quotes.  Args containing embedded double
-     quotes (as opposed to enclosing quotes, which we leave alone) are
-     usually illegal (most W32 programs do not implement escaping of
-     double quotes - sad but true, at least for programs compiled with
-     MSVC), but we will escape quotes anyway for those programs that can
-     handle it.  The W32 gcc library from Cygnus doubles quotes to
-     escape them, so we will use that convention.
-   
-     Since I have no idea how large argv and envp are likely to be
-     we figure out list lengths on the fly and allocate them.  */
+     Additionally, zero-length args and args containing whitespace or
+     quote chars need to be wrapped in double quotes - for this to work,
+     embedded quotes need to be escaped as well.  The aim is to ensure
+     the child process reconstructs the argv array we start with
+     exactly, so we treat quotes at the beginning and end of arguments
+     as embedded quotes.
+
+     The Win32 GNU-based library from Cygnus doubles quotes to escape
+     them, while MSVC uses backslash for escaping.  (Actually the MSVC
+     startup code does attempt to recognise doubled quotes and accept
+     them, but gets it wrong and ends up requiring three quotes to get a
+     single embedded quote!)  So by default we decide whether to use
+     quote or backslash as the escape character based on whether the
+     binary is apparently a Cygnus compiled app.
+
+     Note that using backslash to escape embedded quotes requires
+     additional special handling if an embedded quote is already
+     preceeded by backslash, or if an arg requiring quoting ends with
+     backslash.  In such cases, the run of escape characters needs to be
+     doubled.  For consistency, we apply this special handling as long
+     as the escape character is not quote.
+
+     Since we have no idea how large argv and envp are likely to be we
+     figure out list lengths on the fly and allocate them.  */
+
+  if (!NILP (Vw32_quote_process_args))
+    {
+      do_quoting = 1;
+      /* Override escape char by binding w32-quote-process-args to
+	 desired character, or use t for auto-selection.  */
+      if (INTEGERP (Vw32_quote_process_args))
+	escape_char = XINT (Vw32_quote_process_args);
+      else
+	escape_char = is_cygnus_app ? '"' : '\\';
+    }
   
   /* do argv...  */
   arglen = 0;
@@ -700,22 +806,45 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   while (*targ)
     {
       char * p = *targ;
-      int add_quotes = 0;
+      int need_quotes = 0;
+      int escape_char_run = 0;
 
       if (*p == 0)
-	add_quotes = 1;
-      while (*p)
-	if (*p++ == '"')
-	  {
-	    /* allow for embedded quotes to be doubled - we won't
-	       actually double quotes that aren't embedded though */
-	    arglen++;
-	    add_quotes = 1;
-	  }
-      else if (*p == ' ' || *p == '\t')
-	add_quotes = 1;
-      if (add_quotes)
-	arglen += 2;
+	need_quotes = 1;
+      for ( ; *p; p++)
+	{
+	  if (*p == '"')
+	    {
+	      /* allow for embedded quotes to be escaped */
+	      arglen++;
+	      need_quotes = 1;
+	      /* handle the case where the embedded quote is already escaped */
+	      if (escape_char_run > 0)
+		{
+		  /* To preserve the arg exactly, we need to double the
+		     preceding escape characters (plus adding one to
+		     escape the quote character itself).  */
+		  arglen += escape_char_run;
+		}
+	    }
+	  else if (*p == ' ' || *p == '\t')
+	    {
+	      need_quotes = 1;
+	    }
+
+	  if (*p == escape_char && escape_char != '"')
+	    escape_char_run++;
+	  else
+	    escape_char_run = 0;
+	}
+      if (need_quotes)
+	{
+	  arglen += 2;
+	  /* handle the case where the arg ends with an escape char - we
+	     must not let the enclosing quote be escaped.  */
+	  if (escape_char_run > 0)
+	    arglen += escape_char_run;
+	}
       arglen += strlen (*targ++) + 1;
     }
   cmdline = alloca (arglen);
@@ -724,24 +853,20 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   while (*targ)
     {
       char * p = *targ;
-      int add_quotes = 0;
+      int need_quotes = 0;
 
       if (*p == 0)
-	add_quotes = 1;
+	need_quotes = 1;
 
-      if (!NILP (Vw32_quote_process_args))
+      if (do_quoting)
 	{
-	  /* This is conditional because it sometimes causes more
-	     problems than it solves, since argv arrays are not always
-	     carefully constructed.  M-x grep, for instance, passes the
-	     whole command line as one argument, so it becomes
-	     impossible to pass a regexp which contains spaces. */
 	  for ( ; *p; p++)
 	    if (*p == ' ' || *p == '\t' || *p == '"')
-	      add_quotes = 1;
+	      need_quotes = 1;
 	}
-      if (add_quotes)
+      if (need_quotes)
 	{
+	  int escape_char_run = 0;
 	  char * first;
 	  char * last;
 
@@ -749,12 +874,47 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	  first = p;
 	  last = p + strlen (p) - 1;
 	  *parg++ = '"';
+#if 0
+	  /* This version does not escape quotes if they occur at the
+	     beginning or end of the arg - this could lead to incorrect
+	     behaviour when the arg itself represents a command line
+	     containing quoted args.  I believe this was originally done
+	     as a hack to make some things work, before
+	     `w32-quote-process-args' was added.  */
 	  while (*p)
 	    {
 	      if (*p == '"' && p > first && p < last)
-		*parg++ = '"';	/* double up embedded quotes only */
+		*parg++ = escape_char;	/* escape embedded quotes */
 	      *parg++ = *p++;
 	    }
+#else
+	  for ( ; *p; p++)
+	    {
+	      if (*p == '"')
+		{
+		  /* double preceding escape chars if any */
+		  while (escape_char_run > 0)
+		    {
+		      *parg++ = escape_char;
+		      escape_char_run--;
+		    }
+		  /* escape all quote chars, even at beginning or end */
+		  *parg++ = escape_char;
+		}
+	      *parg++ = *p;
+
+	      if (*p == escape_char && escape_char != '"')
+		escape_char_run++;
+	      else
+		escape_char_run = 0;
+	    }
+	  /* double escape chars before enclosing quote */
+	  while (escape_char_run > 0)
+	    {
+	      *parg++ = escape_char;
+	      escape_char_run--;
+	    }
+#endif
 	  *parg++ = '"';
 	}
       else
@@ -812,12 +972,6 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       errno = ENOEXEC;
       return -1;
     }
-
-  if (is_dos_binary)
-    {
-      cp->is_dos_process = TRUE;
-      dos_process_running = TRUE;
-    }
   
   return pid;
 }
@@ -825,7 +979,14 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 /* Emulate the select call
    Wait for available input on any of the given rfds, or timeout if
    a timeout is given and no input is detected
-   wfds and efds are not supported and must be NULL.  */
+   wfds and efds are not supported and must be NULL.
+
+   For simplicity, we detect the death of child processes here and
+   synchronously call the SIGCHLD handler.  Since it is possible for
+   children to be created without a corresponding pipe handle from which
+   to read output, we wait separately on the process handles as well as
+   the char_avail events for each process pipe.  We only call
+   wait/reap_process when the process actually terminates.  */
 
 /* From ntterm.c */
 extern HANDLE keyboard_handle;
@@ -837,17 +998,19 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	    EMACS_TIME *timeout)
 {
   SELECT_TYPE orfds;
-  DWORD timeout_ms;
-  int i, nh, nr;
+  DWORD timeout_ms, start_time;
+  int i, nh, nc, nr;
   DWORD active;
-  child_process *cp;
-  HANDLE wait_hnd[MAXDESC];
+  child_process *cp, *cps[MAX_CHILDREN];
+  HANDLE wait_hnd[MAXDESC + MAX_CHILDREN];
   int fdindex[MAXDESC];   /* mapping from wait handles back to descriptors */
   
+  timeout_ms = timeout ? (timeout->tv_sec * 1000 + timeout->tv_usec / 1000) : INFINITE;
+
   /* If the descriptor sets are NULL but timeout isn't, then just Sleep.  */
   if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL) 
     {
-      Sleep (timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
+      Sleep (timeout_ms);
       return 0;
     }
 
@@ -862,7 +1025,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   FD_ZERO (rfds);
   nr = 0;
   
-  /* Build a list of handles to wait on.  */
+  /* Build a list of pipe handles to wait on.  */
   nh = 0;
   for (i = 0; i < nfds; i++)
     if (FD_ISSET (i, &orfds))
@@ -914,8 +1077,8 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		       have changed) should indicate read has completed
 		       but has not been acknowledged. */
 		    current_status = cp->status;
-		    if (current_status != STATUS_READ_SUCCEEDED &&
-			current_status != STATUS_READ_FAILED)
+		    if (current_status != STATUS_READ_SUCCEEDED
+			&& current_status != STATUS_READ_FAILED)
 		      DebPrint (("char_avail set, but read not completed: status %d\n",
 				 current_status));
 		  }
@@ -926,10 +1089,10 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		       that read has completed but event wasn't yet signalled
 		       when we tested it (because a context switch occurred
 		       or if running on separate CPUs). */
-		    if (current_status != STATUS_READ_READY &&
-			current_status != STATUS_READ_IN_PROGRESS &&
-			current_status != STATUS_READ_SUCCEEDED &&
-			current_status != STATUS_READ_FAILED)
+		    if (current_status != STATUS_READ_READY
+			&& current_status != STATUS_READ_IN_PROGRESS
+			&& current_status != STATUS_READ_SUCCEEDED
+			&& current_status != STATUS_READ_FAILED)
 		      DebPrint (("char_avail reset, but read status is bad: %d\n",
 				 current_status));
 		  }
@@ -951,29 +1114,35 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	      }
 	  }
       }
+
+count_children:
+  /* Add handles of child processes.  */
+  nc = 0;
+  for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+    /* some child_procs might be sockets; ignore them */
+    if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
+      {
+	wait_hnd[nh + nc] = cp->procinfo.hProcess;
+	cps[nc] = cp;
+	nc++;
+      }
   
   /* Nothing to look for, so we didn't find anything */
-  if (nh == 0) 
+  if (nh + nc == 0) 
     {
       if (timeout)
-	Sleep (timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
+	Sleep (timeout_ms);
       return 0;
     }
   
-  /*
-     Wait for input
-     If a child process dies while this is waiting, its pipe will break
-     so the reader thread will signal an error condition, thus, the wait
-     will wake up
-     */
-  timeout_ms = timeout ? (timeout->tv_sec * 1000 + timeout->tv_usec / 1000) : INFINITE;
-
-  active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
+  /* Wait for input or child death to be signalled.  */
+  start_time = GetTickCount ();
+  active = WaitForMultipleObjects (nh + nc, wait_hnd, FALSE, timeout_ms);
 
   if (active == WAIT_FAILED)
     {
       DebPrint (("select.WaitForMultipleObjects (%d, %lu) failed with %lu\n",
-		 nh, timeout_ms, GetLastError ()));
+		 nh + nc, timeout_ms, GetLastError ()));
       /* don't return EBADF - this causes wait_reading_process_input to
 	 abort; WAIT_FAILED is returned when single-stepping under
 	 Windows 95 after switching thread focus in debugger, and
@@ -985,16 +1154,18 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     {
       return 0;
     }
-  else if (active >= WAIT_OBJECT_0 &&
-	   active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
+  else if (active >= WAIT_OBJECT_0
+	   && active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
     {
       active -= WAIT_OBJECT_0;
     }
-  else if (active >= WAIT_ABANDONED_0 &&
-	   active < WAIT_ABANDONED_0+MAXIMUM_WAIT_OBJECTS)
+  else if (active >= WAIT_ABANDONED_0
+	   && active < WAIT_ABANDONED_0+MAXIMUM_WAIT_OBJECTS)
     {
       active -= WAIT_ABANDONED_0;
     }
+  else
+    abort ();
 
   /* Loop over all handles after active (now officially documented as
      being the first signalled handle in the array).  We do this to
@@ -1002,7 +1173,23 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
      processed - otherwise higher numbered channels could be starved. */
   do
     {
-      if (fdindex[active] == 0)
+      if (active >= nh)
+	{
+	  cp = cps[active - nh];
+	  /* SIG_DFL for SIGCHLD is ignore */
+	  if (sig_handlers[SIGCHLD] != SIG_DFL
+	      && sig_handlers[SIGCHLD] != SIG_IGN)
+	    {
+#ifdef FULL_DEBUG
+	      DebPrint (("select calling SIGCHLD handler for pid %d\n",
+			 cp->pid));
+#endif
+	      dead_child = cp;
+	      sig_handlers[SIGCHLD] (SIGCHLD);
+	      dead_child = NULL;
+	    }
+	}
+      else if (fdindex[active] == 0)
 	{
 	  /* Keyboard input available */
 	  FD_SET (0, rfds);
@@ -1010,60 +1197,63 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	}
       else
 	{
-	  /* must be a socket or pipe */
-	  int current_status;
-
-	  cp = fd_info[ fdindex[active] ].cp;
-
-	  /* Read ahead should have completed, either succeeding or failing. */
+	  /* must be a socket or pipe - read ahead should have
+             completed, either succeeding or failing.  */
 	  FD_SET (fdindex[active], rfds);
 	  nr++;
-	  current_status = cp->status;
-	  if (current_status != STATUS_READ_SUCCEEDED)
-	    {
-	      if (current_status != STATUS_READ_FAILED)
-		DebPrint (("internal error: subprocess pipe signalled "
-			   "at the wrong time (status %d)\n!", current_status));
-
-	      /* The child_process entry for a socket or pipe will be
-		 freed when the last descriptor using it is closed; for
-		 pipes, we call the SIGCHLD handler. */
-	      if (fd_info[ fdindex[active] ].flags & FILE_PIPE)
-		{
-		  /* The SIGCHLD handler will do a Wait so we know it won't
-		     return until the process is dead
-		     We force Wait to only wait for this process to avoid it
-		     picking up other children that happen to be dead but that
-		     we haven't noticed yet
-		     SIG_DFL for SIGCHLD is ignore? */
-		  if (sig_handlers[SIGCHLD] != SIG_DFL &&
-		      sig_handlers[SIGCHLD] != SIG_IGN)
-		    {
-#ifdef FULL_DEBUG
-		      DebPrint (("select calling SIGCHLD handler for pid %d\n",
-				 cp->pid));
-#endif
-		      dead_child = cp;
-		      sig_handlers[SIGCHLD] (SIGCHLD);
-		      dead_child = NULL;
-		    }
-
-		  /* Clean up the child process entry in the table */
-		  reap_subprocess (cp);
-		}
-	    }
 	}
 
-      /* Test for input on remaining channels. */
-      while (++active < nh)
+      /* Even though wait_reading_process_output only reads from at most
+	 one channel, we must process all channels here so that we reap
+	 all children that have died.  */
+      while (++active < nh + nc)
 	if (WaitForSingleObject (wait_hnd[active], 0) == WAIT_OBJECT_0)
 	  break;
-    } while (active < nh);
+    } while (active < nh + nc);
+
+  /* If no input has arrived and timeout hasn't expired, wait again.  */
+  if (nr == 0)
+    {
+      DWORD elapsed = GetTickCount () - start_time;
+
+      if (timeout_ms > elapsed)	/* INFINITE is MAX_UINT */
+	{
+	  if (timeout_ms != INFINITE)
+	    timeout_ms -= elapsed;
+	  goto count_children;
+	}
+    }
 
   return nr;
 }
 
 /* Substitute for certain kill () operations */
+
+static BOOL CALLBACK
+find_child_console (HWND hwnd, child_process * cp)
+{
+  DWORD thread_id;
+  DWORD process_id;
+
+  thread_id = GetWindowThreadProcessId (hwnd, &process_id);
+  if (process_id == cp->procinfo.dwProcessId)
+    {
+      char window_class[32];
+
+      GetClassName (hwnd, window_class, sizeof (window_class));
+      if (strcmp (window_class,
+		  (os_subtype == OS_WIN95)
+		  ? "tty"
+		  : "ConsoleWindowClass") == 0)
+	{
+	  cp->hwnd = hwnd;
+	  return FALSE;
+	}
+    }
+  /* keep looking */
+  return TRUE;
+}
+
 int 
 sys_kill (int pid, int sig)
 {
@@ -1094,27 +1284,81 @@ sys_kill (int pid, int sig)
     {
       proc_hand = cp->procinfo.hProcess;
       pid = cp->procinfo.dwProcessId;
+
+      /* Try to locate console window for process. */
+      EnumWindows (find_child_console, (LPARAM) cp);
     }
   
   if (sig == SIGINT)
     {
+      if (NILP (Vw32_start_process_share_console) && cp && cp->hwnd)
+	{
+	  BYTE control_scan_code = (BYTE) MapVirtualKey (VK_CONTROL, 0);
+	  BYTE vk_break_code = VK_CANCEL;
+	  BYTE break_scan_code = (BYTE) MapVirtualKey (vk_break_code, 0);
+	  HWND foreground_window;
+
+	  if (break_scan_code == 0)
+	    {
+	      /* Fake Ctrl-C if we can't manage Ctrl-Break. */
+	      vk_break_code = 'C';
+	      break_scan_code = (BYTE) MapVirtualKey (vk_break_code, 0);
+	    }
+
+	  foreground_window = GetForegroundWindow ();
+	  if (foreground_window && SetForegroundWindow (cp->hwnd))
+	    {
+	      /* Generate keystrokes as if user had typed Ctrl-Break or Ctrl-C.  */
+	      keybd_event (VK_CONTROL, control_scan_code, 0, 0);
+	      keybd_event (vk_break_code, break_scan_code, 0, 0);
+	      keybd_event (vk_break_code, break_scan_code, KEYEVENTF_KEYUP, 0);
+	      keybd_event (VK_CONTROL, control_scan_code, KEYEVENTF_KEYUP, 0);
+
+	      SetForegroundWindow (foreground_window);
+	    }
+	}
       /* Ctrl-Break is NT equivalent of SIGINT.  */
-      if (!GenerateConsoleCtrlEvent (CTRL_BREAK_EVENT, pid))
+      else if (!GenerateConsoleCtrlEvent (CTRL_BREAK_EVENT, pid))
         {
 	  DebPrint (("sys_kill.GenerateConsoleCtrlEvent return %d "
 		     "for pid %lu\n", GetLastError (), pid));
 	  errno = EINVAL;
 	  rc = -1;
-        }
+    }
     }
   else
     {
+      if (NILP (Vw32_start_process_share_console) && cp && cp->hwnd)
+	{
+#if 1
+	  if (os_subtype == OS_WIN95)
+	    {
+/*
+   Another possibility is to try terminating the VDM out-right by
+   calling the Shell VxD (id 0x17) V86 interface, function #4
+   "SHELL_Destroy_VM", ie.
+
+     mov edx,4
+     mov ebx,vm_handle
+     call shellapi
+
+   First need to determine the current VM handle, and then arrange for
+   the shellapi call to be made from the system vm (by using
+   Switch_VM_and_callback).
+
+   Could try to invoke DestroyVM through CallVxD.
+
+*/
+	      PostMessage (cp->hwnd, WM_QUIT, 0xff, 0);
+	    }
+	  else
+#endif
+	    PostMessage (cp->hwnd, WM_CLOSE, 0, 0);
+	}
       /* Kill the process.  On W32 this doesn't kill child processes
 	 so it doesn't work very well for shells which is why it's not
-	 used in every case.  Also, don't try to terminate DOS processes
-	 (on Windows 95), because this will hang Emacs. */
-      if (!(cp && cp->is_dos_process)
-	  && !TerminateProcess (proc_hand, 0xff))
+	 used in every case.  */
+      else if (!TerminateProcess (proc_hand, 0xff))
         {
 	  DebPrint (("sys_kill.TerminateProcess returned %d "
 		     "for pid %lu\n", GetLastError (), pid));
@@ -1213,6 +1457,12 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[3])
   SetStdHandle (STD_ERROR_HANDLE, handles[2]);
 }
 
+void
+set_process_dir (char * dir)
+{
+  process_dir = dir;
+}
+
 #ifdef HAVE_SOCKETS
 
 /* To avoid problems with winsock implementations that work over dial-up
@@ -1282,12 +1532,220 @@ socket connections still exist.")
 #endif /* HAVE_SOCKETS */
 
 
+/* Some miscellaneous functions that are Windows specific, but not GUI
+   specific (ie. are applicable in terminal or batch mode as well).  */
+
+/* lifted from fileio.c  */
+#define CORRECT_DIR_SEPS(s) \
+  do { if ('/' == DIRECTORY_SEP) dostounix_filename (s); \
+       else unixtodos_filename (s); \
+  } while (0)
+
+DEFUN ("w32-short-file-name", Fw32_short_file_name, Sw32_short_file_name, 1, 1, 0,
+  "Return the short file name version (8.3) of the full path of FILENAME.\n\
+If FILENAME does not exist, return nil.\n\
+All path elements in FILENAME are converted to their short names.")
+     (filename)
+     Lisp_Object filename;
+{
+  char shortname[MAX_PATH];
+
+  CHECK_STRING (filename, 0);
+
+  /* first expand it.  */
+  filename = Fexpand_file_name (filename, Qnil);
+
+  /* luckily, this returns the short version of each element in the path.  */
+  if (GetShortPathName (XSTRING (filename)->data, shortname, MAX_PATH) == 0)
+    return Qnil;
+
+  CORRECT_DIR_SEPS (shortname);
+
+  return build_string (shortname);
+}
+
+
+DEFUN ("w32-long-file-name", Fw32_long_file_name, Sw32_long_file_name,
+       1, 1, 0,
+  "Return the long file name version of the full path of FILENAME.\n\
+If FILENAME does not exist, return nil.\n\
+All path elements in FILENAME are converted to their long names.")
+  (filename)
+     Lisp_Object filename;
+{
+  char longname[ MAX_PATH ];
+
+  CHECK_STRING (filename, 0);
+
+  /* first expand it.  */
+  filename = Fexpand_file_name (filename, Qnil);
+
+  if (!w32_get_long_filename (XSTRING (filename)->data, longname, MAX_PATH))
+    return Qnil;
+
+  CORRECT_DIR_SEPS (longname);
+
+  return build_string (longname);
+}
+
+DEFUN ("w32-set-process-priority", Fw32_set_process_priority, Sw32_set_process_priority,
+       2, 2, 0,
+  "Set the priority of PROCESS to PRIORITY.\n\
+If PROCESS is nil, the priority of Emacs is changed, otherwise the\n\
+priority of the process whose pid is PROCESS is changed.\n\
+PRIORITY should be one of the symbols high, normal, or low;\n\
+any other symbol will be interpreted as normal.\n\
+\n\
+If successful, the return value is t, otherwise nil.")
+  (process, priority)
+     Lisp_Object process, priority;
+{
+  HANDLE proc_handle = GetCurrentProcess ();
+  DWORD  priority_class = NORMAL_PRIORITY_CLASS;
+  Lisp_Object result = Qnil;
+
+  CHECK_SYMBOL (priority, 0);
+
+  if (!NILP (process))
+    {
+      DWORD pid;
+      child_process *cp;
+
+      CHECK_NUMBER (process, 0);
+
+      /* Allow pid to be an internally generated one, or one obtained
+	 externally.  This is necessary because real pids on Win95 are
+	 negative.  */
+
+      pid = XINT (process);
+      cp = find_child_pid (pid);
+      if (cp != NULL)
+	pid = cp->procinfo.dwProcessId;
+
+      proc_handle = OpenProcess (PROCESS_SET_INFORMATION, FALSE, pid);
+    }
+
+  if (EQ (priority, Qhigh))
+    priority_class = HIGH_PRIORITY_CLASS;
+  else if (EQ (priority, Qlow))
+    priority_class = IDLE_PRIORITY_CLASS;
+
+  if (proc_handle != NULL)
+    {
+      if (SetPriorityClass (proc_handle, priority_class))
+	result = Qt;
+      if (!NILP (process))
+	CloseHandle (proc_handle);
+    }
+
+  return result;
+}
+
+
+DEFUN ("w32-get-locale-info", Fw32_get_locale_info, Sw32_get_locale_info, 1, 2, 0,
+  "Return information about the Windows locale LCID.\n\
+By default, return a three letter locale code which encodes the default\n\
+language as the first two characters, and the country or regionial variant\n\
+as the third letter.  For example, ENU refers to `English (United States)',\n\
+while ENC means `English (Canadian)'.\n\
+\n\
+If the optional argument LONGFORM is non-nil, the long form of the locale\n\
+name is returned, e.g. `English (United States)' instead.\n\
+\n\
+If LCID (a 16-bit number) is not a valid locale, the result is nil.")
+     (lcid, longform)
+     Lisp_Object lcid, longform;
+{
+  int got_abbrev;
+  int got_full;
+  char abbrev_name[32] = { 0 };
+  char full_name[256] = { 0 };
+
+  CHECK_NUMBER (lcid, 0);
+
+  if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
+    return Qnil;
+
+  if (NILP (longform))
+    {
+      got_abbrev = GetLocaleInfo (XINT (lcid),
+				  LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
+				  abbrev_name, sizeof (abbrev_name));
+      if (got_abbrev)
+	return build_string (abbrev_name);
+    }
+  else
+    {
+      got_full = GetLocaleInfo (XINT (lcid),
+				LOCALE_SLANGUAGE | LOCALE_USE_CP_ACP,
+				full_name, sizeof (full_name));
+      if (got_full)
+	return build_string (full_name);
+    }
+
+  return Qnil;
+}
+
+
+DEFUN ("w32-get-current-locale-id", Fw32_get_current_locale_id, Sw32_get_current_locale_id, 0, 0, 0,
+  "Return Windows locale id for current locale setting.\n\
+This is a numerical value; use `w32-get-locale-info' to convert to a\n\
+human-readable form.")
+     ()
+{
+  return make_number (GetThreadLocale ());
+}
+
+
+DEFUN ("w32-get-default-locale-id", Fw32_get_default_locale_id, Sw32_get_default_locale_id, 0, 1, 0,
+  "Return Windows locale id for default locale setting.\n\
+By default, the system default locale setting is returned; if the optional\n\
+parameter USERP is non-nil, the user default locale setting is returned.\n\
+This is a numerical value; use `w32-get-locale-info' to convert to a\n\
+human-readable form.")
+     (userp)
+     Lisp_Object userp;
+{
+  if (NILP (userp))
+    return make_number (GetSystemDefaultLCID ());
+  return make_number (GetUserDefaultLCID ());
+}
+
+  
+DEFUN ("w32-set-current-locale", Fw32_set_current_locale, Sw32_set_current_locale, 1, 1, 0,
+  "Make Windows locale LCID be the current locale setting for Emacs.\n\
+If successful, the new locale id is returned, otherwise nil.")
+     (lcid)
+     Lisp_Object lcid;
+{
+  CHECK_NUMBER (lcid, 0);
+
+  if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
+    return Qnil;
+
+  if (!SetThreadLocale (XINT (lcid)))
+    return Qnil;
+
+  return make_number (GetThreadLocale ());
+}
+
+
 syms_of_ntproc ()
 {
+  Qhigh = intern ("high");
+  Qlow = intern ("low");
+
 #ifdef HAVE_SOCKETS
   defsubr (&Sw32_has_winsock);
   defsubr (&Sw32_unload_winsock);
 #endif
+  defsubr (&Sw32_short_file_name);
+  defsubr (&Sw32_long_file_name);
+  defsubr (&Sw32_set_process_priority);
+  defsubr (&Sw32_get_locale_info);
+  defsubr (&Sw32_get_current_locale_id);
+  defsubr (&Sw32_get_default_locale_id);
+  defsubr (&Sw32_set_current_locale);
 
   DEFVAR_LISP ("w32-quote-process-args", &Vw32_quote_process_args,
     "Non-nil enables quoting of process arguments to ensure correct parsing.\n\
@@ -1296,16 +1754,26 @@ programs have to reconstruct the argv array by parsing the command\n\
 line string.  For an argument to contain a space, it must be enclosed\n\
 in double quotes or it will be parsed as multiple arguments.\n\
 \n\
-However, the argument list to call-process is not always correctly\n\
-constructed (or arguments have already been quoted), so enabling this\n\
-option may cause unexpected behavior.");
-  Vw32_quote_process_args = Qnil;
+If the value is a character, that character will be used to escape any\n\
+quote characters that appear, otherwise a suitable escape character\n\
+will be chosen based on the type of the program.");
+  Vw32_quote_process_args = Qt;
 
   DEFVAR_LISP ("w32-start-process-show-window",
 	       &Vw32_start_process_show_window,
     "When nil, processes started via start-process hide their windows.\n\
 When non-nil, they show their window in the method of their choice.");
   Vw32_start_process_show_window = Qnil;
+
+  DEFVAR_LISP ("w32-start-process-share-console",
+	       &Vw32_start_process_share_console,
+    "When nil, processes started via start-process are given a new console.\n\
+When non-nil, they share the Emacs console; this has the limitation of\n\
+allowing only only DOS subprocess to run at a time (whether started directly\n\
+or indirectly by Emacs), and preventing Emacs from cleanly terminating the\n\
+subprocess group, but may allow Emacs to interrupt a subprocess that doesn't\n\
+otherwise respond to interrupts from Emacs.");
+  Vw32_start_process_share_console = Qnil;
 
   DEFVAR_INT ("w32-pipe-read-delay", &Vw32_pipe_read_delay,
     "Forced delay before reading subprocess output.\n\
@@ -1322,5 +1790,22 @@ process temporarily).  A value of zero disables waiting entirely.");
     "Non-nil means convert all-upper case file names to lower case.\n\
 This applies when performing completions and file name expansion.");
   Vw32_downcase_file_names = Qnil;
+
+#if 0
+  DEFVAR_LISP ("w32-generate-fake-inodes", &Vw32_generate_fake_inodes,
+    "Non-nil means attempt to fake realistic inode values.\n\
+This works by hashing the truename of files, and should detect \n\
+aliasing between long and short (8.3 DOS) names, but can have\n\
+false positives because of hash collisions.  Note that determing\n\
+the truename of a file can be slow.");
+  Vw32_generate_fake_inodes = Qnil;
+#endif
+
+  DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
+    "Non-nil means determine accurate link count in file-attributes.\n\
+This option slows down file-attributes noticeably, so is disabled by\n\
+default.  Note that it is only useful for files on NTFS volumes,\n\
+where hard links are supported.");
+  Vw32_get_true_file_attributes = Qnil;
 }
 /* end of ntproc.c */
