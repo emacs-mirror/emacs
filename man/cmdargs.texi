@@ -948,21 +948,12 @@ creates a larger frame than a small font.  (If you specify a proportional
 font, Emacs uses its maximum bounds width as the width unit.)  The
 @var{xoffset} and @var{yoffset} are measured in pixels.
 
-  Since the mode line and the echo area occupy the last 2 lines of the
-frame, the height of the initial text window is 2 less than the height
-specified in your geometry.  In non-X-toolkit versions of Emacs, the
-menu bar also takes one line of the specified number.  But in the X
-toolkit version, the menu bar is additional and does not count against
-the specified height.  The tool bar, if present, is also additional.
-
   You do not have to specify all of the fields in the geometry
-specification.
-
-  If you omit both @var{xoffset} and @var{yoffset}, the window manager
-decides where to put the Emacs frame, possibly by letting you place
-it with the mouse.  For example, @samp{164x55} specifies a window 164
-columns wide, enough for two ordinary width windows side by side, and 55
-lines tall.
+specification.  If you omit both @var{xoffset} and @var{yoffset}, the
+window manager decides where to put the Emacs frame, possibly by
+letting you place it with the mouse.  For example, @samp{164x55}
+specifies a window 164 columns wide, enough for two ordinary width
+windows side by side, and 55 lines tall.
 
   The default width for Emacs is 80 characters and the default height is
 40 lines.  You can omit either the width or the height or both.  If
@@ -981,8 +972,24 @@ which means both sizes are omitted.  Thus, @samp{-3} specifies the
 @file{.Xdefaults} file, and then override selected fields with a
 @samp{--geometry} option.
 
+  Since the mode line and the echo area occupy the last 2 lines of the
+frame, the height of the initial text window is 2 less than the height
+specified in your geometry.  In non-X-toolkit versions of Emacs, the
+menu bar also takes one line of the specified number.  But in the X
+toolkit version, the menu bar is additional and does not count against
+the specified height.  The tool bar, if present, is also additional.
 
- When using one of @samp{--fullscreen}, @samp{--fullwidth} or
+  Enabling or disabling the menu bar or tool bar alters the amount of
+space available for ordinary text.  Therefore, if Emacs starts up with
+a tool bar (which is the default), and handles the geometry
+specification assuming there is a tool bar, and then your
+@file{~/.emacs} file disables the tool bar, you will end up with a
+frame geometry different from what you asked for.  To get the intended
+size with no tool bar, use an X resource to specify ``no tool bar''
+(@pxref{Table of Resources});then Emacs will already know there's no
+tool bar when it processes the specified geometry.
+
+  When using one of @samp{--fullscreen}, @samp{--fullwidth} or
 @samp{--fullheight} there may be some space around the frame
 anyway.  That is because Emacs rounds the sizes so they are an
 even number of character heights and widths.
