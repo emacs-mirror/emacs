@@ -1,3 +1,8 @@
+2001-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xterm.c (XTread_socket) <Expose> [!USE_TOOLKIT_SCROLL_BARS]: Fix
+	the change from 2001-04-30.
+
 2001-05-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (file_dialog_unmap_cb): New function.
