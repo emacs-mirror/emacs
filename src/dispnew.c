@@ -1961,7 +1961,7 @@ the current state.\n")
 	goto changed;
     }
   /* Detect deletion of a buffer at the end of the list.  */
-  if (*vecp == Qlambda)
+  if (EQ (*vecp, Qlambda))
     return Qnil;
  changed:
   /* Start with 1 so there is room for at least one lambda at the end.  */
