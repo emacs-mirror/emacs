@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
- * $HopeName: MMsrc!event.h(trunk.9) $
+ * $HopeName: MMsrc!event.h(trunk.10) $
  *
  * READERSHIP
  *
@@ -20,6 +20,7 @@
 #include "eventgen.h"
 
 extern Res EventFlush(void);
+extern Res EventSync(void);
 extern Res EventInit(void);
 extern void EventFinish(void);
 extern Word EventControl(Word, Word);
