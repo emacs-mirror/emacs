@@ -479,33 +479,50 @@ For example, -74.0 for New York City.")
 `calendar-longitude', calendar-latitude'.  Default value is just the latitude,
 longitude pair.")
 
-;;; Since this defvar is marked to go into loaddefs.el, it will be
-;;; evaluated when Emacs is dumped.  However, this variable's
-;;; appropriate value really depends on the conditions under which the
-;;; code is invoked; it would be inappropriate to initialize this when
-;;; Emacs is dumped.  So, we initialize it to nil now, and if it's
-;;; still nil when this file is actually loaded, we give it its real value.
+;;; Since the following three defvars are marked to go into
+;;; loaddefs.el, they will be evaluated when Emacs is dumped.
+;;; However, these variables' appropriate values really depend on the
+;;; conditions under which the code is invoked; so it's inappropriate
+;;; to initialize them when Emacs is dumped.  Thus we initialize them
+;;; to nil now, and if they are still nil when this file is actually
+;;; loaded, we give them their real values then.
+
 ;;;###autoload
 (defvar calendar-time-zone nil
   "*Number of minutes difference between local standard time at
 `calendar-location-name' and Universal (Greenwich) Time.  For example, -300
 for New York City, -480 for Los Angeles.
+
 If this is nil, it will be set to the local time zone when the calendar
 package loads.")
 ;;; If the user has given this a real value, don't wipe it out.
 (or calendar-time-zone
-    (setq calendar-time-zone (current-time-zone)))
+    (setq calendar-time-zone (car (current-time-zone))))
 
 ;;;###autoload
-(defvar calendar-standard-time-zone-name (car (nthcdr 2 (current-time-zone)))
+(defvar calendar-standard-time-zone-name nil
   "*Abbreviated name of standard time zone at `calendar-location-name'.
-For example, \"EST\" in New York City, \"PST\" for Los Angeles.")
+For example, \"EST\" in New York City, \"PST\" for Los Angeles.
+
+If this is nil, it will be set for the local time zone when the calendar
+package loads.")
+;;; If the user has given this a value, don't wipe it out.
+(or calendar-standard-time-zone-name
+    (setq calendar-standard-time-zone-name
+          (car (nthcdr 2 (current-time-zone)))))
 
 ;;;###autoload
-(defvar calendar-daylight-time-zone-name (car (nthcdr 3 (current-time-zone)))
+(defvar calendar-daylight-time-zone-name nil
   "*Abbreviated name of daylight-savings time zone at `calendar-location-name'.
-For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.")
+For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.
 
+If this is nil, it will be set for the local time zone when the calendar
+package loads.")
+;;; If the user has given this a value, don't wipe it out.
+(or calendar-daylight-time-zone-name
+    (setq calendar-daylight-time-zone-name
+          (car (nthcdr 3 (current-time-zone)))))
+  
 ;;;###autoload
 (defvar calendar-daylight-savings-starts
   '(calendar-nth-named-day 1 0 4 year)
