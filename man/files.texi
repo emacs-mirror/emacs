@@ -1067,14 +1067,17 @@ links point to directories.
 two different buffers, but it warns you about the situation.
 
 @vindex find-file-existing-other-name 
+@vindex find-file-suppress-same-file-warnings
   Normally, if you visit a file which Emacs is already visiting under
 a different name, Emacs displays a message in the echo area and uses
 the existing buffer visiting that file.  This can happen on systems
 that support symbolic links, or if you use a long file name on a
-system that truncates long file names.  You can disable this feature
-by setting the variable @code{find-file-existing-other-name} to
-@code{nil}.  Then if you visit the same file under two different names,
-you get a separate buffer for each file name.
+system that truncates long file names.  You can suppress the message by
+setting the variable @code{find-file-suppress-same-file-warnings} to a
+non-@code{nil} value.  You can disable this feature entirely by setting
+the variable @code{find-file-existing-other-name} to @code{nil}: then
+if you visit the same file under two different names, you get a separate
+buffer for each file name.
 
 @vindex find-file-visit-truename
 @cindex truenames of files
