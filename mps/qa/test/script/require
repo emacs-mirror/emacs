@@ -1,0 +1,12 @@
+#!/usr/local/perl
+#
+# require all the qa harness pl files
+#
+
+require "dirs";
+require "compile";
+require "logging";
+require "headread";
+
+1;
+
