@@ -55,7 +55,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* there are no -lg libraries on this system, and no libPW */
 
 #define LIBS_DEBUG
-#define LIBS_STANDARD -lc
+/* This is turned off because nobody actually uses LIBS_STANDARD (Nov 1995).
+   That name is a typo.  The next step is to delete this entirely.  */
+/* #define LIBS_STANDARD -lc */
 
 /* No <sioctl.h> */
 
