@@ -338,7 +338,7 @@ syms_of_cmds ()
     "*Non-nil means overwrite mode treats tab and newline normally.\n\
 Ordinarily, overwriting preserves a tab until its whole width is overwritten\n\
 and never replaces a newline.");
-  overwrite_tabs_mode = 1;
+  overwrite_binary_mode = 1;
 
   DEFVAR_LISP ("blink-paren-function", &Vblink_paren_function,
     "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
