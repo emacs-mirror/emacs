@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(MMdevel_drj_arena_hysteresis.2) $
+ * $HopeName: MMsrc!mpsi.c(trunk.66) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -53,7 +53,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(MMdevel_drj_arena_hysteresis.2) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.66) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -777,13 +777,10 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
     return MPS_RES_FAIL;
   }
 
-  if (mps_ap->enabled && 
-      mps_ap->frameptr == NULL &&
-      mps_ap->limit != (mps_addr_t)0) {
+  if(!mps_ap->lwpoppending) {
     /* Valid state for a lightweight push */
     *frame_o = (mps_frame_t)mps_ap->init;
     return MPS_RES_OK;
-
   } else {
     /* Need a heavyweight push */
     Buffer buf = BufferOfAP((AP)mps_ap);
@@ -825,6 +822,7 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
   if (mps_ap->enabled) {
     /* Valid state for a lightweight pop */
     mps_ap->frameptr = (mps_addr_t)frame; /* record pending pop */
+    mps_ap->lwpoppending = TRUE;
     mps_ap->limit = (mps_addr_t)0; /* trap the buffer */
     return MPS_RES_OK;
 

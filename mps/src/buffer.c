@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.48) $
+ * $HopeName: MMsrc!buffer.c(trunk.49) $
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.48) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.49) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -44,6 +44,12 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(RankSetCheck(buffer->rankSet));
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
+  CHECKL(BoolCheck(buffer->apStruct.lwPopPending));
+  CHECKL(BoolCheck(buffer->apStruct.enabled));
+  CHECKL(buffer->apStruct.lwPopPending == TRUE ||
+         buffer->apStruct.frameptr == NULL);
+  /* lwPopPending implies enabled */
+  CHECKL(!buffer->apStruct.lwPopPending || buffer->apStruct.enabled);
 
   /* If any of the buffer's fields indicate that it is reset, make */
   /* sure it is really reset.  Otherwise, check various properties */
@@ -202,6 +208,7 @@ static Res BufferInitV(Buffer buffer, Pool pool, Bool isMutator, va_list args)
   buffer->apStruct.limit = (Addr)0;
   buffer->apStruct.frameptr = NULL;
   buffer->apStruct.enabled = FALSE;
+  buffer->apStruct.lwPopPending = FALSE;
   buffer->poolLimit = (Addr)0;
   buffer->rampCount = 0;
   buffer->p = NULL;
@@ -456,13 +463,15 @@ FrameState BufferFrameState(Buffer buffer)
 {
   AVERT(Buffer, buffer);
   if(buffer->apStruct.enabled) {
-    if (buffer->apStruct.frameptr == NULL) {
-      return BufferFrameVALID;
-    } else {
+    if(buffer->apStruct.lwPopPending) {
       return BufferFramePOP_PENDING;
+    } else {
+      AVER(buffer->apStruct.frameptr == NULL);
+      return BufferFrameVALID;
     }
   } else {
     AVER(buffer->apStruct.frameptr == NULL);
+    AVER(buffer->apStruct.lwPopPending == FALSE);
     return BufferFrameDISABLED;
   }
 }
@@ -479,6 +488,7 @@ void BufferFrameSetState(Buffer buffer, FrameState state)
   AVERT(Buffer, buffer);
   AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
   buffer->apStruct.frameptr = NULL;
+  buffer->apStruct.lwPopPending = FALSE;
   buffer->apStruct.enabled = (state == BufferFrameVALID);
 }
 
@@ -999,9 +1009,10 @@ Bool BufferIsTrapped(Buffer buffer)
 
 Bool BufferIsTrappedByMutator(Buffer buffer)
 {
+  AVER(buffer->apStruct.lwPopPending == FALSE ||
+       buffer->apStruct.enabled == TRUE);
   /* Can't check buffer, see .check.use-trapped */
-  return (buffer->apStruct.enabled && 
-          buffer->apStruct.frameptr != NULL);
+  return buffer->apStruct.lwPopPending;
 }
 
 
