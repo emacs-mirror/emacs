@@ -728,7 +728,7 @@ determined by DEFINITION.  */)
 }
 
 DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
-       doc: /* Set SYMBOL's property list to NEWVAL, and return NEWVAL.  */)
+       doc: /* Set SYMBOL's property list to NEWPLIST, and return NEWPLIST.  */)
      (symbol, newplist)
      register Lisp_Object symbol, newplist;
 {
