@@ -1058,18 +1058,25 @@ line and column numbers, since those depend on point and on how the
 window is scrolled.  @code{header-line-format} is used likewise for
 header lines.
 
-  The mode line and header line of a window are normally updated
-whenever a different buffer is shown in the window, or when the buffer's
-modified-status changes from @code{nil} to @code{t} or vice-versa.  If
-you modify any of the variables referenced by @code{mode-line-format}
-(@pxref{Mode Line Variables}), or any other variables and data
-structures that affect how text is displayed (@pxref{Display}), you may
-want to force an update of the mode line so as to display the new
-information or display it in the new way.
+  For efficiency, Emacs does not recompute the mode line and header
+line of a window in every redisplay.  It does so when circumstances
+appear to call for it---for instance, if you change the window
+configuration, switch buffers, narrow or widen the buffer, scroll, or
+change the buffer's modification status.  If you modify any of the
+variables referenced by @code{mode-line-format} (@pxref{Mode Line
+Variables}), or any other variables and data structures that affect
+how text is displayed (@pxref{Display}), you may want to force an
+update of the mode line so as to display the new information or
+display it in the new way.
 
 @c Emacs 19 feature
 @defun force-mode-line-update
 Force redisplay of the current buffer's mode line and header line.
+The next redisplay will update the mode line and header line based on
+the latest values of all relevant variables.
+
+This function also forces recomputation of the menu bar menus
+and the frame title.
 @end defun
 
   The mode line is usually displayed in inverse video; see
