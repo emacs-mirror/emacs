@@ -28,7 +28,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@prep.ai.mit.edu>.'
 
-Id='$Id: rcs2log,v 1.36 1997/01/20 09:03:05 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.37 1997/03/21 22:12:24 eggert Exp eggert $'
 
 # Copyright 1992, 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -405,7 +405,7 @@ EOF
 		(
 			cat /etc/passwd
 			for author in $authors
-			do nismatch $author passwd.org_dir
+			do NIS_PATH= nismatch $author passwd.org_dir
 			done
 			ypmatch $authors passwd
 		) 2>/dev/null |
