@@ -170,8 +170,6 @@ pointer looks like an int) but not on all machines.
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
-#ifndef CANNOT_UNEXEC /* most of rest of file */
-
 #ifdef COFF_ENCAPSULATE
 int need_coff_header = 1;
 #include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
@@ -1193,7 +1191,5 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 #endif /* COFF_BSD_SYMBOLS */
 
 #endif /* COFF */
-
-#endif /* not CANNOT_UNEXEC */
 
 #endif /* not CANNOT_DUMP */
