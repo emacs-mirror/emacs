@@ -403,7 +403,7 @@ void x_set_icon_type ();
 void x_set_font ();
 void x_set_border_width ();
 void x_set_internal_border_width ();
-void x_set_name ();
+void x_explicitly_set_name ();
 void x_set_autoraise ();
 void x_set_autolower ();
 void x_set_vertical_scrollbar ();
@@ -420,7 +420,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "font", x_set_font,
   "border-width", x_set_border_width,
   "internal-border-width", x_set_internal_border_width,
-  "name", x_set_name,
+  "name", x_explicitly_set_name,
   "autoraise", x_set_autoraise,
   "autolower", x_set_autolower,
   "vertical-scrollbar", x_set_vertical_scrollbar,
@@ -1164,44 +1164,83 @@ x_set_internal_border_width (f, arg, oldval)
     }
 }
 
-void
-x_set_name (f, arg, oldval)
+void x_user_set_name (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  /* If ARG is nil, set the name to the x_id_name.  */
-  if (NILP (arg))
-    arg = build_string (x_id_name);
-  else
-    CHECK_STRING (arg, 0);
+}
 
-  /* Don't change the name if it's already ARG.  */
-  if (! NILP (Fstring_equal (arg, f->name)))
+/* Change the name of frame F to ARG.  If ARG is nil, set F's name to
+       x_id_name.
+
+   If EXPLICIT is non-zero, that indicates that lisp code is setting the
+       name; if ARG is a string, set F's name to ARG and set
+       F->explicit_name; if ARG is Qnil, then clear F->explicit_name.
+
+   If EXPLICIT is zero, that indicates that Emacs redisplay code is
+       suggesting a new name, which lisp code should override; if
+       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+
+void
+x_set_name (f, name, explicit)
+     struct frame *f;
+     Lisp_Object name;
+     int explicit;
+{
+  /* Make sure that requests from lisp code override requests from 
+     Emacs redisplay code.  */
+  if (explicit)
+    {
+      /* If we're switching from explicit to implicit, we had better
+	 update the mode lines and thereby update the title.  */
+      if (f->explicit_name && NILP (name))
+	update_mode_lines;
+
+      f->explicit_name = ! NILP (name);
+    }
+  else if (f->explicit_name)
+    return;
+
+  /* If NAME is nil, set the name to the x_id_name.  */
+  if (NILP (name))
+    name = build_string (x_id_name);
+  else
+    CHECK_STRING (name, 0);
+
+  /* Don't change the name if it's already NAME.  */
+  if (! NILP (Fstring_equal (name, f->name)))
     return;
 
   if (f->display.x->window_desc)
     {
-#ifdef HAVE_X11
-      XTextProperty prop;
-      prop.value = XSTRING (arg)->data;
-      prop.encoding = XA_STRING;
-      prop.format = 8;
-      prop.nitems = XSTRING (arg)->size;
       BLOCK_INPUT;
-      XSetWMName (XDISPLAY f->display.x->window_desc, &prop);
-      XSetWMIconName (XDISPLAY f->display.x->window_desc, &prop);
+      x_set_text_property (f, XA_WM_NAME, name);
+      x_set_text_property (f, XA_WM_ICON_NAME, name);
       UNBLOCK_INPUT;
-#else
-      BLOCK_INPUT;
-      XStoreName (XDISPLAY f->display.x->window_desc,
-		  (char *) XSTRING (arg)->data);
-      XSetIconName (XDISPLAY f->display.x->window_desc, 
-		    (char *) XSTRING (arg)->data);
-      UNBLOCK_INPUT;
-#endif
     }
 
-  f->name = arg;
+  f->name = name;
+}
+
+/* This function should be called when the user's lisp code has
+   specified a name for the frame; the name will override any set by the
+   redisplay code.  */
+void
+x_explicitly_set_name (f, arg, oldval)
+     FRAME_PTR f;
+     Lisp_Object arg, oldval;
+{
+  x_set_name (f, arg, 1);
+}
+
+/* This function should be called by Emacs redisplay code to set the
+   name; names set this way will never override names set by the user's
+   lisp code.  */
+x_implicitly_set_name (f, arg, oldval)
+     FRAME_PTR f;
+     Lisp_Object arg, oldval;
+{
+  x_set_name (f, arg, 0);
 }
 
 void
@@ -1549,7 +1588,7 @@ The defaults are specified in the file `~/.Xdefaults'.")
 /* Types we might convert a resource string into.  */
 enum resource_types
   {
-    number, boolean, string,
+    number, boolean, string, symbol,
   };
 
 /* Return the value of parameter PARAM.
@@ -1599,6 +1638,9 @@ x_get_arg (alist, param, attribute, type)
 
 	    case string:
 	      return tem;
+
+	    case symbol:
+	      return intern (tem);
 
 	    default:
 	      abort ();
@@ -1713,8 +1755,8 @@ x_figure_window_size (f, parms)
   f->display.x->top_pos = 1;
   f->display.x->left_pos = 1;
 
-  tem0 = x_get_arg (parms, Qheight, 0, 0);
-  tem1 = x_get_arg (parms, Qwidth, 0, 0);
+  tem0 = x_get_arg (parms, Qheight, 0, number);
+  tem1 = x_get_arg (parms, Qwidth, 0, number);
   if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1731,8 +1773,8 @@ x_figure_window_size (f, parms)
   f->display.x->pixel_height = (FONT_HEIGHT (f->display.x->font) * f->height
 				+ 2 * f->display.x->internal_border_width);
 
-  tem0 = x_get_arg (parms, Qtop, 0, 0);
-  tem1 = x_get_arg (parms, Qleft, 0, 0);
+  tem0 = x_get_arg (parms, Qtop, 0, number);
+  tem1 = x_get_arg (parms, Qleft, 0, number);
   if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1817,7 +1859,7 @@ x_window (f)
     Lisp_Object name = f->name;
 
     f->name = Qnil;
-    x_set_name (f, name, Qnil);
+    x_implicitly_set_name (f, name, Qnil);
   }
 
   XDefineCursor (XDISPLAY f->display.x->window_desc,
@@ -1841,8 +1883,8 @@ x_icon (f, parms)
 
   /* Set the position of the icon.  Note that twm groups all
      icons in an icon window. */
-  icon_x = x_get_arg (parms, Qicon_left, 0, 0);
-  icon_y = x_get_arg (parms, Qicon_top, 0, 0);
+  icon_x = x_get_arg (parms, Qicon_left, 0, number);
+  icon_y = x_get_arg (parms, Qicon_top, 0, number);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
       CHECK_NUMBER (icon_x, 0);
@@ -1861,9 +1903,11 @@ x_icon (f, parms)
   x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
 
   /* Start up iconic or window? */
-  x_wm_set_window_state (f, (EQ (x_get_arg (parms, Qiconic_startup, 0, 0), Qt)
-			     ? IconicState
-			     : NormalState));
+  x_wm_set_window_state (f,
+			 (EQ (x_get_arg (parms, Qiconic_startup, 0, boolean),
+			      Qt)
+			  ? IconicState
+			  : NormalState));
 
   UNBLOCK_INPUT;
 }
@@ -1872,6 +1916,14 @@ x_icon (f, parms)
    background, border and mouse colors; also create the
    mouse cursor and the gray border tile.  */
 
+static char cursor_bits[] =
+  {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+  };
+
 static void
 x_make_gc (f)
      struct frame *f;
@@ -1879,13 +1931,6 @@ x_make_gc (f)
   XGCValues gc_values;
   GC temp_gc;
   XImage tileimage;
-  static char cursor_bits[] =
-    {
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    };
 
   /* Create the GC's of this frame.
      Note that many default values are used. */
@@ -1984,7 +2029,7 @@ be shared by the new frame.")
   if (XTYPE (name) != Lisp_String)
     error ("x-create-frame: name parameter must be a string");
 
-  tem = x_get_arg (parms, Qminibuffer, 0, 0);
+  tem = x_get_arg (parms, Qminibuffer, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil);
   else if (EQ (tem, Qonly))
@@ -2031,6 +2076,22 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qborder_color,
 		      build_string ("black"), "border", string);
 
+  /* When XSetWMHints eventually gets called, this will indicate that
+     we use the "Passive Input" input model.  Unless we do this, we
+     don't get the Focus{In,Out} events that we need to draw the
+     cursor correctly.  Accursed bureaucrats.
+
+     We set this here and leave it, because we know, being decidedly
+     non-humble programmers (nay, weigh'd low by our hubris!), that
+     Fx_create_frame calls x_icon which begat x_wm_set_window_state
+     which begat XSetWMHints, which will get this information to the
+     right parties.  -JimB
+
+   XWhipsAndChains (x_current_display, IronMaiden, &TheRack);  */
+
+  f->display.x->wm_hints.input = True;
+  f->display.x->wm_hints.flags |= InputHint;
+
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
 
@@ -2040,7 +2101,7 @@ be shared by the new frame.")
 
   /* We need to do this after creating the X window, so that the
      icon-creation functions can say whose icon they're describing.  */
-  x_default_parameter (f, parms, Qicon_type, Qt, "IconType", boolean);
+  x_default_parameter (f, parms, Qicon_type, Qnil, "IconType", symbol);
 
   x_default_parameter (f, parms, Qauto_raise, Qnil, "AutoRaise", boolean);
   x_default_parameter (f, parms, Qauto_lower, Qnil, "AutoLower", boolean);
@@ -2056,17 +2117,17 @@ be shared by the new frame.")
   x_wm_set_size_hint (f, window_prompting);
   UNBLOCK_INPUT;
 
-  tem = x_get_arg (parms, Qunsplittable, 0, 0);
+  tem = x_get_arg (parms, Qunsplittable, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Now handle the rest of the parameters. */
   x_default_parameter (f, parms, Qhorizontal_scroll_bar,
-		       Qnil, "?HScrollBar", string);
+		       Qnil, "HScrollBar", boolean);
   x_default_parameter (f, parms, Qvertical_scroll_bar,
-		       Qnil, "?VScrollBar", string);
+		       Qnil, "VScrollBar", boolean);
 
   /* Make the window appear on the frame and enable display.  */
-  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, 0), Qt))
+  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, boolean), Qt))
     x_make_frame_visible (f);
 
   return frame;
@@ -2087,9 +2148,7 @@ be shared by the new frame.")
 
   name = Fassq (Qname, parms);
 
-  tem = x_get_arg (parms, Qminibuffer, 0, string);
-  if (XTYPE (tem) == Lisp_String)
-    tem = Fintern (tem, Qnil);
+  tem = x_get_arg (parms, Qminibuffer, 0, symbol);
   if (EQ (tem, Qnone))
     f = make_frame_without_minibuffer (Qnil);
   else if (EQ (tem, Qonly))
@@ -2181,29 +2240,29 @@ be shared by the new frame.")
     }
   else
     {
-      tem = x_get_arg (parms, Qparent_id, 0, 0);
+      tem = x_get_arg (parms, Qparent_id, 0, number);
       if (!EQ (tem, Qunbound))
 	{
 	  CHECK_NUMBER (tem, 0);
 	  parent = (Window) XINT (tem);
 	}
       f->display.x->parent_desc = parent;
-      tem = x_get_arg (parms, Qheight, 0, 0);
+      tem = x_get_arg (parms, Qheight, 0, number);
       if (EQ (tem, Qunbound))
 	{
-	  tem = x_get_arg (parms, Qwidth, 0, 0);
+	  tem = x_get_arg (parms, Qwidth, 0, number);
 	  if (EQ (tem, Qunbound))
 	    {
-	      tem = x_get_arg (parms, Qtop, 0, 0);
+	      tem = x_get_arg (parms, Qtop, 0, number);
 	      if (EQ (tem, Qunbound))
-		tem = x_get_arg (parms, Qleft, 0, 0);
+		tem = x_get_arg (parms, Qleft, 0, number);
 	    }
 	}
       /* Now TEM is Qunbound if no edge or size was specified.
 	 In that case, we must do rubber-banding.  */
       if (EQ (tem, Qunbound))
 	{
-	  tem = x_get_arg (parms, Qgeometry, 0, 0);
+	  tem = x_get_arg (parms, Qgeometry, 0, number);
 	  x_rubber_band (f,
 			 &f->display.x->left_pos, &f->display.x->top_pos,
 			 &width, &height,
@@ -2216,25 +2275,25 @@ be shared by the new frame.")
 	{
 	  /* Here if at least one edge or size was specified.
 	     Demand that they all were specified, and use them.  */
-	  tem = x_get_arg (parms, Qheight, 0, 0);
+	  tem = x_get_arg (parms, Qheight, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Height not specified");
 	  CHECK_NUMBER (tem, 0);
 	  height = XINT (tem);
 
-	  tem = x_get_arg (parms, Qwidth, 0, 0);
+	  tem = x_get_arg (parms, Qwidth, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Width not specified");
 	  CHECK_NUMBER (tem, 0);
 	  width = XINT (tem);
 
-	  tem = x_get_arg (parms, Qtop, 0, 0);
+	  tem = x_get_arg (parms, Qtop, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Top position not specified");
 	  CHECK_NUMBER (tem, 0);
 	  f->display.x->left_pos = XINT (tem);
 
-	  tem = x_get_arg (parms, Qleft, 0, 0);
+	  tem = x_get_arg (parms, Qleft, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Left position not specified");
 	  CHECK_NUMBER (tem, 0);
@@ -2274,16 +2333,16 @@ be shared by the new frame.")
 
   /* Now override the defaults with all the rest of the specified
      parms.  */
-  tem = x_get_arg (parms, Qunsplittable, 0, 0);
+  tem = x_get_arg (parms, Qunsplittable, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Do not create an icon window if the caller says not to */
-  if (!EQ (x_get_arg (parms, Qsuppress_icon, 0, 0), Qt)
+  if (!EQ (x_get_arg (parms, Qsuppress_icon, 0, boolean), Qt)
       || f->display.x->parent_desc != ROOT_WINDOW)
     {
       x_text_icon (f, iconidentity);
       x_default_parameter (f, parms, Qicon_type, Qnil,
-			   "BitmapIcon", boolean);
+			   "BitmapIcon", symbol);
     }
 
   /* Tell the X server the previously set values of the
@@ -2308,7 +2367,7 @@ be shared by the new frame.")
 
   /* Make the window appear on the frame and enable display.  */
 
-  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, 0), Qt))
+  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, boolean), Qt))
     x_make_window_visible (f);
   FRAME_GARBAGED (f);
 
@@ -4259,7 +4318,10 @@ select_visual (screen, depth)
   int n_visuals;
 
   v = DefaultVisualOfScreen (screen);
-  vinfo_template.visualid = XVisualIDFromVisual (v);
+  /* It may be a bad idea to fetch the visualid directly from the structure,
+     rather than using XVisualIDFromVisual, but I'll bet this is pretty
+     portable for the revisions of X we care about.  */
+  vinfo_template.visualid = v->visualid;
   vinfo = XGetVisualInfo (x_current_display, VisualIDMask, &vinfo_template,
 			  &n_visuals);
   if (n_visuals != 1)
