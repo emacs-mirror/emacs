@@ -454,6 +454,99 @@ detailed meanings of these arguments."
 	    (t
 	     (error "Invalid charset %s" charset))))))
 
+
+;;;###autoload
+(defun describe-char-after (&optional pos)
+  "Display information of in current buffer at position POS.
+The information includes character code, charset and code points in it,
+syntax, category, how the character is encoded in a file,
+which font is being used for displaying the character."
+  (interactive)
+  (or pos
+      (setq pos (point)))
+  (if (>= pos (point-max))
+      (error "No character at point"))
+  (let* ((char (char-after pos))
+	 (charset (char-charset char))
+	 (composition (find-composition (point) nil nil t))
+	 (composed (if composition (buffer-substring (car composition)
+						     (nth 1 composition))))
+	 item-list max-width)
+    (unless (eq charset 'unknown)
+      (setq item-list
+	    `(("character"
+	       ,(format "%s (0%o, %d, 0x%x)" (if (< char 256)
+						 (single-key-description char)
+					       (char-to-string char))
+			char char char))
+	      ("charset"
+	       ,(symbol-name charset)
+	       ,(format "(%s)" (charset-description charset)))
+	      ("code point"
+	       ,(let ((split (split-char char)))
+		  (if (= (charset-dimension charset) 1)
+		      (format "%d" (nth 1 split))
+		    (format "%d %d" (nth 1 split) (nth 2 split)))))
+	      ("syntax"
+	       ,(nth 2 (assq (char-syntax char) syntax-code-table)))
+	      ("category"
+	       ,@(let ((category-set (char-category-set char)))
+		   (if (not category-set)
+		       '("-- none --")
+		     (mapcar #'(lambda (x) (format "%c:%s  "
+						   x (category-docstring x)))
+			     (category-set-mnemonics category-set)))))
+	      ("buffer code"
+	       ,(encoded-string-description
+		 (string-as-unibyte (char-to-string char)) nil))
+	      ("file code"
+	       ,@(let* ((coding buffer-file-coding-system)
+			(encoded (encode-coding-char char coding)))
+		   (if encoded
+		       (list (encoded-string-description encoded coding)
+			     (format "(encoded by coding system %S)" coding))
+		     (list "not encodable by coding system"
+			   (symbol-name coding)))))
+	      ,(if window-system
+		   (list "font" (char-font (point)))
+		 (list "terminal code"
+		       (let* ((coding (terminal-coding-system))
+			      (encoded (encode-coding-char char coding)))
+			 (if encoded
+			     (encoded-string-description encoded coding)
+			   "not encodable"))))))
+      (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
+					   item-list)))
+      (with-output-to-temp-buffer "*Help*"
+	(save-excursion
+	  (set-buffer standard-output)
+	  (let ((formatter (format "%%%ds:" max-width)))
+	    (dolist (elt item-list)
+	      (insert (format formatter (car elt)))
+	      (dolist (clm (cdr elt))
+		(when (>= (+ (current-column) (string-width clm) 1)
+			  (frame-width))
+		  (insert "\n")
+		  (indent-to (1+ max-width)))
+		(insert " " clm))
+	      (insert "\n")))
+	  (when composition
+	    (insert "\nComposed with the following characerter(s) "
+		    (mapconcat (lambda (x) (format "`%c'" x))
+			       (substring composed 1)
+			       ", ")
+		    " to form `" composed "'")
+	    (if (nth 3 composition)
+		(insert ".\n")
+	      (insert "\nby the rule ("
+		      (mapconcat (lambda (x)
+				   (format (if (consp x) "%S" "?%c") x))
+				 (nth 2 composition)
+				 " ")
+		      ").\n"
+		      "See the variable `reference-point-alist' for the meaning of the rule.\n")))
+	  )))))
+
 
 ;;; CODING-SYSTEM
 
@@ -893,13 +986,10 @@ but still contains full information about each coding system."
 (defun describe-font-internal (font-info &optional verbose)
   (print-list "name (opened by):" (aref font-info 0))
   (print-list "       full name:" (aref font-info 1))
-  (let ((charset (aref font-info 2)))
-    (print-list "   charset:"
-		(format "%s (%s)" charset (charset-description charset))))
-  (print-list "            size:" (format "%d" (aref font-info 3)))
-  (print-list "          height:" (format "%d" (aref font-info 4)))
-  (print-list " baseline-offset:" (format "%d" (aref font-info 5)))
-  (print-list "relative-compose:" (format "%d" (aref font-info 6))))
+  (print-list "            size:" (format "%2d" (aref font-info 2)))
+  (print-list "          height:" (format "%2d" (aref font-info 3)))
+  (print-list " baseline-offset:" (format "%2d" (aref font-info 4)))
+  (print-list "relative-compose:" (format "%2d" (aref font-info 5))))
 
 ;;;###autoload
 (defun describe-font (fontname)
@@ -911,7 +1001,7 @@ but still contains full information about each coding system."
     (setq fontname (cdr (assq 'font (frame-parameters))))
     (if (query-fontset fontname)
 	(setq fontname
-	      (nth 2 (assq 'ascii (aref (fontset-info fontname) 2))))))
+	      (nth 1 (assq 'ascii (fontset-info fontname))))))
   (let ((font-info (font-info fontname)))
     (if (null font-info)
 	(message "No matching font")
@@ -919,93 +1009,95 @@ but still contains full information about each coding system."
 	(describe-font-internal font-info 'verbose)))))
 
 ;; Print information of FONTSET.  If optional arg PRINT-FONTS is
-;; non-nil, print also names of all fonts in FONTSET.  This function
-;; actually INSERT such information in the current buffer.
+;; non-nil, print also names of all opened fonts for FONTSET.  This
+;; function actually INSERT such information in the current buffer.
 (defun print-fontset (fontset &optional print-fonts)
-  (let* ((fontset-info (fontset-info fontset))
-	 (size (aref fontset-info 0))
-	 (height (aref fontset-info 1))
-	 (fonts (and print-fonts (aref fontset-info 2)))
-	 (xlfd-fields (x-decompose-font-name fontset))
-	 style)
-    (if xlfd-fields
-	(let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
-	      (slant  (aref xlfd-fields xlfd-regexp-slant-subnum)))
-	  (if (string-match "^bold$\\|^demibold$" weight)
-	      (setq style (concat weight " "))
-	    (setq style "medium "))
-	  (cond ((string-match "^i$" slant)
-		 (setq style (concat style "italic")))
-		((string-match "^o$" slant)
-		 (setq style (concat style "slant")))
-		((string-match "^ri$" slant)
-		 (setq style (concat style "reverse italic")))
-		((string-match "^ro$" slant)
-		 (setq style (concat style "reverse slant")))))
-      (setq style " ? "))
+  (let ((tail (cdr (fontset-info fontset)))
+	elt chars font-spec opened prev-charset charset from to)
     (beginning-of-line)
-    (insert fontset)
-    (indent-to 58)
-    (insert (if (and size (> size 0)) (format "%2dx%d" size height) "  -"))
-    (indent-to 64)
-    (insert style "\n")
-    (when print-fonts
-      (insert "  O Charset / Fontname\n"
-	      "  - ------------------\n")
-      (sort-charset-list)
-      (let ((l charset-list)
-	    charset font-info opened fontname)
-	(while l
-	  (setq charset (car l) l (cdr l))
-	  (setq font-info (assq charset fonts))
-	  (if (null font-info)
-	      (setq opened ?? fontname "not specified")
-	    (if (nth 2 font-info)
-		(if (stringp (nth 2 font-info))
-		    (setq opened ?o fontname (nth 2 font-info))
-		  (setq opened ?- fontname (nth 1 font-info)))
-	      (setq opened ?x fontname (nth 1 font-info))))
-	  (insert (format "  %c %s\n    %s\n"
-			  opened charset fontname)))))))
+    (insert "Fontset: " fontset "\n")
+    (insert "CHARSET or CHAR RANGE")
+    (indent-to 25)
+    (insert "FONT NAME\n")
+    (insert "---------------------")
+    (indent-to 25)
+    (insert "---------")
+    (insert "\n")
+    (while tail
+      (setq elt (car tail) tail (cdr tail))
+      (setq chars (car elt) font-spec (car (cdr elt)) opened (cdr (cdr elt)))
+      (if (symbolp chars)
+	  (setq charset chars from nil to nil)
+	(if (integerp chars)
+	    (setq charset (char-charset chars) from chars to chars)
+	  (setq charset (char-charset (car chars))
+		from (car chars) to (cdr chars))))
+      (unless (eq charset prev-charset)
+	(insert (symbol-name charset))
+	(if from
+	    (insert "\n")))
+      (when from
+	(let ((split (split-char from)))
+	  (if (and (= (charset-dimension charset) 2)
+		   (= (nth 2 split) 0))
+	      (setq from
+		    (make-char charset (nth 1 split)
+			       (if (= (charset-chars charset) 94) 33 32))))
+	  (insert "  " from))
+	(when (/= from to)
+	  (insert "-")
+	  (let ((split (split-char to)))
+	    (if (and (= (charset-dimension charset) 2)
+		     (= (nth 2 split) 0))
+		(setq to
+		      (make-char charset (nth 1 split)
+				 (if (= (charset-chars charset) 94) 126 127))))
+	    (insert to))))
+      (indent-to 25)
+      (if (stringp font-spec)
+	  (insert font-spec)
+	(if (car font-spec)
+	    (if (string-match "-" (car font-spec))
+		(insert "-" (car font-spec) "-")
+	      (insert "-*-" (car font-spec) "-"))
+	  (insert "-*-"))
+	(if (cdr font-spec)
+	    (if (string-match "-" (cdr font-spec))
+		(insert (cdr font-spec))
+	      (insert (cdr font-spec) "-*"))
+	  (insert "*")))
+      (insert "\n")
+      (when print-fonts
+	(while opened
+	  (indent-to 5)
+	  (insert "[" (car opened) "]\n")
+	  (setq opened (cdr opened))))
+      (setq prev-charset charset)
+      )))
 
 ;;;###autoload
 (defun describe-fontset (fontset)
   "Display information of FONTSET.
-This shows the name, size, and style of FONTSET, and the list of fonts
-contained in FONTSET.
-
-The column WDxHT contains width and height (pixels) of each fontset
-\(i.e. those of ASCII font in the fontset).  The letter `-' in this
-column means that the corresponding fontset is not yet used in any
-frame.
-
-The O column for each font contains one of the following letters:
- o -- font already opened
- - -- font not yet opened
- x -- font can't be opened
- ? -- no font specified
-
-The Charset column for each font contains a name of character set
-displayed (for this fontset) using that font."
+This shows which font is used for which character(s)."
   (interactive
    (if (not (and window-system (fboundp 'fontset-list)))
        (error "No fontsets being used")
-     (let ((fontset-list (mapcar '(lambda (x) (list x)) (fontset-list)))
+     (let ((fontset-list (append
+			  (mapcar '(lambda (x) (list x)) (fontset-list))
+			  (mapcar '(lambda (x) (list (cdr x)))
+				  fontset-alias-alist)))
 	   (completion-ignore-case t))
        (list (completing-read
 	      "Fontset (default, used by the current frame): "
 	      fontset-list nil t)))))
   (if (= (length fontset) 0)
       (setq fontset (cdr (assq 'font (frame-parameters)))))
-  (if (not (query-fontset fontset))
+  (if (not (setq fontset (query-fontset fontset)))
       (error "Current frame is using font, not fontset"))
-  (let ((fontset-info (fontset-info fontset)))
-    (with-output-to-temp-buffer "*Help*"
-      (save-excursion
-	(set-buffer standard-output)
-	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
-	(insert "------------\t\t\t\t\t\t  ----- -----\n")
-	(print-fontset fontset t)))))
+  (with-output-to-temp-buffer "*Help*"
+    (save-excursion
+      (set-buffer standard-output)
+      (print-fontset fontset t))))
 
 ;;;###autoload
 (defun list-fontsets (arg)
@@ -1020,15 +1112,15 @@ see the function `describe-fontset' for the format of the list."
       (save-excursion
 	;; This code is duplicated near the end of mule-diag.
 	(set-buffer standard-output)
-	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
-	(insert "------------\t\t\t\t\t\t  ----- -----\n")
 	(let ((fontsets
 	       (sort (fontset-list)
 		     (function (lambda (x y)
 				 (string< (fontset-plain-name x)
 					  (fontset-plain-name y)))))))
 	  (while fontsets
-	    (print-fontset (car fontsets) arg)
+	    (if arg
+		(print-fontset (car fontsets) nil)
+	      (insert "Fontset: " (car fontsets) "\n"))
 	    (setq fontsets (cdr fontsets))))))))
 
 ;;;###autoload
