@@ -189,7 +189,7 @@ in that frame; otherwise change each frame."
   "Change the foreground color of face FACE to COLOR (a string).
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "foreground"))
+  (interactive (internal-face-interactive "foreground" 'color))
   (internal-set-face-1 face 'foreground color 4 frame))
 
 (defvar face-default-stipple "gray3" 
@@ -214,7 +214,7 @@ FRAME specifies the frame and thus the display for interpreting COLOR."
   "Change the background color of face FACE to COLOR (a string).
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "background"))
+  (interactive (internal-face-interactive "background" 'color))
   ;; For a specific frame, use gray stipple instead of gray color
   ;; if the display does not support a gray color.
   (if (and frame (not (eq frame t)) color
@@ -455,11 +455,20 @@ If NAME is already a face, it is simply returned."
 	 (default (if (fboundp fn)
 		      (or (funcall fn face (selected-frame))
 			  (funcall fn 'default (selected-frame)))))
-	 (value (if bool
-		    (y-or-n-p (concat "Should face " (symbol-name face)
-				      " be " bool "? "))
-		  (read-string (concat prompt " " (symbol-name face) " to: ")
-			       default))))
+	 value)
+    (setq value
+	  (cond ((eq bool 'color)
+		 (completing-read (concat prompt " " (symbol-name face) " to: ")
+				  (mapcar (function (lambda (color)
+						      (cons color color)))
+					  x-colors)
+				  nil nil nil nil default))
+		(bool
+		 (y-or-n-p (concat "Should face " (symbol-name face)
+				   " be " bool "? ")))
+		(t
+		 (read-string (concat prompt " " (symbol-name face) " to: ")
+			      nil nil default))))
     (list face (if (equal value "") nil value))))
 
 (defun internal-face-interactive-stipple (what)
