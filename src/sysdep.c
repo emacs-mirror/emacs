@@ -26,8 +26,14 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
 #include "lisp.h"
+/* Including stdlib.h isn't necessarily enough to get srandom
+   declared, e.g. without __USE_XOPEN_EXTENDED with glibc 2.  */
+#ifdef HAVE_RANDOM
+extern long int random P_ ((void));
+extern void srandom P_ ((unsigned int));
+#endif
+
 #include "blockinput.h"
 #undef NULL
 
