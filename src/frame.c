@@ -2593,30 +2593,6 @@ x_fullscreen_adjust (f, width, height, top_pos, left_pos)
 }
 
 
-/* Really try to move where we want to be in case of fullscreen.  Some WMs
-   moves the window where we tell them.  Some (mwm, twm) moves the outer
-   window manager window there instead.
-   Try to compensate for those WM here. */
-
-static void
-x_fullscreen_move (f, new_top, new_left)
-     struct frame *f;
-     int new_top;
-     int new_left;
-{
-  if (new_top != f->top_pos || new_left != f->left_pos)
-    {
-      int move_x = new_left;
-      int move_y = new_top;
-
-#ifndef HAVE_X_WINDOWS
-      f->want_fullscreen |= FULLSCREEN_MOVE_WAIT;
-#endif
-
-      x_set_offset (f, move_x, move_y, 1);
-    }
-}
-
 /* Change the parameters of frame F as specified by ALIST.
    If a parameter is not specially recognized, do nothing special;
    otherwise call the `x_set_...' function for that parameter.
@@ -2812,7 +2788,8 @@ x_set_frame_parameters (f, alist)
       int new_left, new_top;
 
       x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
-      x_fullscreen_move (f, new_top, new_left);
+      if (new_top != f->top_pos || new_left != f->left_pos)
+        x_set_offset (f, new_left, new_top, 1);
     }
 #endif
 

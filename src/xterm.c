@@ -8337,8 +8337,11 @@ x_set_offset (f, xoff, yoff, change_gravity)
 
   if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A)
     {
-      modified_left += FRAME_X_OUTPUT (f)->x_pixels_outer_diff;
-      modified_top += FRAME_X_OUTPUT (f)->y_pixels_outer_diff;
+      /* Some WMs (twm, wmaker at least) has an offset that is smaller
+         than the WM decorations.  So we use the calculated offset instead
+         of the WM decoration sizes here (x/y_pixels_outer_diff).  */
+      modified_left += FRAME_X_OUTPUT (f)->move_offset_left;
+      modified_top += FRAME_X_OUTPUT (f)->move_offset_top;
     }
 
   XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
@@ -8399,11 +8402,13 @@ x_check_expected_move (f)
   {
     int expect_top = FRAME_X_OUTPUT (f)->expected_top;
     int expect_left = FRAME_X_OUTPUT (f)->expected_left;
-    
+
     if (expect_top != f->top_pos || expect_left != f->left_pos)
       {
-        if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
-          FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_A;
+        FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_A;
+        FRAME_X_OUTPUT (f)->move_offset_left = expect_left - f->left_pos;
+        FRAME_X_OUTPUT (f)->move_offset_top = expect_top - f->top_pos;
+
         x_set_offset (f, expect_left, expect_top, 1);
       }
     else if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)

@@ -625,9 +625,13 @@ struct x_output
   int focus_state;
 
   /* The latest move we made to FRAME_OUTER_WINDOW.  Saved so we can
-     compensate for type A WMs (see wm_type in dpyinfo above.  */
+     compensate for type A WMs (see wm_type in dpyinfo above).  */
   int expected_top;
   int expected_left;
+
+  /* The offset we need to add to compensate for type A WMs.  */
+  int move_offset_top;
+  int move_offset_left;
 
   /* Nonzero if we have made a move and needs to check if the WM placed us
      at the right position.  */

@@ -3064,7 +3064,6 @@ note_mouse_movement (frame, msg)
 static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
 static void x_check_fullscreen P_ ((struct frame *));
-static void x_check_fullscreen_move P_ ((struct frame *));
 static int glyph_rect P_ ((struct frame *f, int, int, RECT *));
 
 
@@ -4476,7 +4475,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
 	    {
-	      x_check_fullscreen_move(f);
 	      if (f->want_fullscreen & FULLSCREEN_WAIT)
 		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
 	    }
@@ -5442,9 +5440,7 @@ x_check_fullscreen (f)
       x_fullscreen_adjust (f, &width, &height, &ign, &ign);
 
       /* We do not need to move the window, it shall be taken care of
-         when setting WM manager hints.
-         If the frame is visible already, the position is checked by
-         x_check_fullscreen_move. */
+         when setting WM manager hints.  */
       if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
           change_frame_size (f, height, width, 0, 1, 0);
@@ -5456,36 +5452,6 @@ x_check_fullscreen (f)
         }
     }
 }
-
-/* If frame parameters are set after the frame is mapped, we need to move
-   the window.  This is done in xfns.c.
-   Some window managers moves the window to the right position, some
-   moves the outer window manager window to the specified position.
-   Here we check that we are in the right spot.  If not, make a second
-   move, assuming we are dealing with the second kind of window manager. */
-static void
-x_check_fullscreen_move (f)
-     struct frame *f;
-{
-  if (f->want_fullscreen & FULLSCREEN_MOVE_WAIT)
-  {
-    int expect_top = f->top_pos;
-    int expect_left = f->left_pos;
-
-    if (f->want_fullscreen & FULLSCREEN_HEIGHT)
-      expect_top = 0;
-    if (f->want_fullscreen & FULLSCREEN_WIDTH)
-      expect_left = 0;
-
-    if (expect_top != f->top_pos
-        || expect_left != f->left_pos)
-      x_set_offset (f, expect_left, expect_top, 1);
-
-    /* Just do this once */
-    f->want_fullscreen &= ~FULLSCREEN_MOVE_WAIT;
-  }
-}
-
 
 /* Call this to change the size of frame F's x-window.
    If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity

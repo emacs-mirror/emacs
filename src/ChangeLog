@@ -1,5 +1,19 @@
 2003-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* w32term.c (w32_read_socket): Remove call to x_check_fullscreen_move,
+	that function is removed.
+
+	* xterm.c (x_set_offset): Use move_offset_left/top instead of
+	x/y_pixels_outer_diff.
+	(x_check_expected_move): Calculate move_offset_left/top.
+
+	* xterm.h (struct x_output): New members: move_offset_top/left.
+
+	* frame.c (x_set_frame_parameters): x_fullscreen_move removed,
+	call x_set_offset directly.
+
+	* frame.h (enum): FULLSCREEN_MOVE_WAIT removed.
+
 	* frame.c (Fdelete_frame): Free decode_mode_spec_buffer.
 
 	* xterm.c (x_delete_display): Free font names and font_encoder

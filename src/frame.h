@@ -1023,7 +1023,6 @@ enum
   FULLSCREEN_HEIGHT     = 2,
   FULLSCREEN_BOTH       = 3,
   FULLSCREEN_WAIT       = 4,
-  FULLSCREEN_MOVE_WAIT  = 8,
 };
 
 
