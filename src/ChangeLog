@@ -1,3 +1,9 @@
+2001-01-17  Andrew Innes  <andrewi@gnu.org>
+
+	* dired.c (directory_files_internal): Convert result from readdir
+	to a unibyte string initially, to avoid possible misinterpretation
+	of some bytes as the internal form of Emacs characters.
+
 2001-01-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* fns.c (concat): Be sure to avoid putting the same `composition'
