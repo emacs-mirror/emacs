@@ -372,14 +372,23 @@ that uses or sets the mark."
 	   (count-lines start end) (- end start)))
 
 (defun what-line ()
-  "Print the current line number (in the buffer) of point."
+  "Print the current buffer line number and narrowed line number of point."
   (interactive)
-  (save-restriction
-    (widen)
+  (let ((opoint (point)) start)
     (save-excursion
-      (beginning-of-line)
-      (message "Line %d"
-	       (1+ (count-lines 1 (point)))))))
+      (save-restriction
+	(goto-char (point-min))
+	(widen)
+	(beginning-of-line)
+	(setq start (point))
+	(goto-char opoint)
+	(beginning-of-line)
+	(if (/= start 1)
+	    (message "line %d (narrowed line %d)"
+		     (1+ (count-lines 1 (point)))
+		     (1+ (count-lines start (point))))
+	  (message "Line %d" (1+ (count-lines 1 (point)))))))))
+
 
 (defun count-lines (start end)
   "Return number of lines between START and END.
