@@ -1,4 +1,16 @@
+1999-11-04  John Tobey  <jtobey@epsilondev.com>
+
+	* gud.el (gud-perldb-massage-args): Handle the case "perl -e 0",
+	the default when invoking perldb in a non-Perl buffer, and other
+	cases involving -e or --.
+
 1999-11-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (previous-matching-history-element)
+	(next-history-element): Use delete-field instead of erase-field.
+
+	* isearch.el (isearch-ring-advance-edit, isearch-complete-edit):
+	Use delete-field instead of erase-field.
 
 	* faces.el (secondary-selection): Change background to yellow.
 
