@@ -1,3 +1,9 @@
+2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mouse.el (mouse-yank-at-click, mouse-yank-secondary): Revert
+	change from 2004-10-16.  '*' checks the current buffer, but the
+	mouse click may be in another buffer.
+
 2004-11-01  John Paul Wallington  <jpw@gnu.org>
 
 	* files.el (large-file-warning-threshold): Add :version keyword.
