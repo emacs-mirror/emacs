@@ -371,6 +371,7 @@
 ;; Japanese character set (JISX0201-kana, JISX0201-roman, JISX0208, JISX0212)
 
 (modify-category-entry (make-char 'katakana-jisx0201) ?k)
+(modify-category-entry (make-char 'katakana-jisx0201) ?j)
 (modify-category-entry (make-char 'latin-jisx0201) ?r)
 (modify-category-entry (make-char 'japanese-jisx0208) ?j)
 (modify-category-entry (make-char 'japanese-jisx0212) ?j)
@@ -428,10 +429,13 @@
 
 ;; JISX0201-Kana
 (modify-syntax-entry (make-char 'katakana-jisx0201) "w")
-(let ((chars '(?｡ ?｢ ?｣ ?､ ?･)))
+(let ((chars '(?｡ ?､ ?･)))
   (while chars
     (modify-syntax-entry (car chars) ".")
     (setq chars (cdr chars))))
+
+(modify-syntax-entry ?\｢ "(｣")
+(modify-syntax-entry ?\｣ "(｢")
 
 ;; Korean character set (KSC5601)
 
