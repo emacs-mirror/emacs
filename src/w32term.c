@@ -5518,6 +5518,7 @@ construct_mouse_click (result, msg, f)
     XSETINT (result->x, LOWORD (msg->msg.lParam));
     XSETINT (result->y, HIWORD (msg->msg.lParam));
     XSETFRAME (result->frame_or_window, f);
+    result->arg = Qnil;
   }
 }
 
@@ -5538,6 +5539,7 @@ construct_mouse_wheel (result, msg, f)
   XSETINT (result->x, p.x);
   XSETINT (result->y, p.y);
   XSETFRAME (result->frame_or_window, f);
+  result->arg = Qnil;
 }
 
 static void
@@ -5588,6 +5590,7 @@ construct_drag_n_drop (result, msg, f)
 
   XSETFRAME (frame, f);
   result->frame_or_window = Fcons (frame, files);
+  result->arg = Qnil;
 }
 
 
@@ -7189,6 +7192,7 @@ x_scroll_bar_handle_click (bar, msg, emacs_event)
   /* not really meaningful to distinguish up/down */
   emacs_event->modifiers = msg->dwModifiers;
   emacs_event->frame_or_window = bar->window;
+  emacs_event->arg = Qnil;
   emacs_event->timestamp = msg->msg.time;
 
   {
@@ -7506,6 +7510,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		      {
 			bufp->kind = deiconify_event;
 			XSETFRAME (bufp->frame_or_window, f);
+			bufp->arg = Qnil;
 			bufp++;
 			count++;
 			numchars--;
@@ -7543,6 +7548,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  
 	      bufp->kind = language_change_event;
 	      XSETFRAME (bufp->frame_or_window, f);
+	      bufp->arg = Qnil;
 	      bufp->code = msg.msg.wParam;
 	      bufp->modifiers = msg.msg.lParam & 0xffff;
 	      bufp++;
@@ -7564,6 +7570,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      bufp->code = msg.msg.wParam;
 	      bufp->modifiers = msg.dwModifiers;
 	      XSETFRAME (bufp->frame_or_window, f);
+	      bufp->arg = Qnil;
 	      bufp->timestamp = msg.msg.time;
 	      bufp++;
 	      numchars--;
@@ -7584,6 +7591,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      bufp->code = msg.msg.wParam;
 	      bufp->modifiers = msg.dwModifiers;
 	      XSETFRAME (bufp->frame_or_window, f);
+	      bufp->arg = Qnil;
 	      bufp->timestamp = msg.msg.time;
 	      bufp++;
 	      numchars--;
@@ -7830,6 +7838,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  
 		  bufp->kind = iconify_event;
 		  XSETFRAME (bufp->frame_or_window, f);
+		  bufp->arg = Qnil;
 		  bufp++;
 		  count++;
 		  numchars--;
@@ -7859,6 +7868,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 		      bufp->kind = deiconify_event;
 		      XSETFRAME (bufp->frame_or_window, f);
+		      bufp->arg = Qnil;
 		      bufp++;
 		      count++;
 		      numchars--;
@@ -7975,6 +7985,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      
 	      bufp->kind = delete_window_event;
 	      XSETFRAME (bufp->frame_or_window, f);
+	      bufp->arg = Qnil;
 	      bufp++;
 	      count++;
 	      numchars--;
@@ -7991,6 +8002,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  
 	      bufp->kind = menu_bar_activate_event;
 	      XSETFRAME (bufp->frame_or_window, f);
+	      bufp->arg = Qnil;
 	      bufp++;
 	      count++;
 	      numchars--;
