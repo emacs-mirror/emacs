@@ -128,7 +128,10 @@ Lisp_Object Vkill_buffer_query_functions;
 
 /* List of functions to call before changing an unmodified buffer.  */
 Lisp_Object Vfirst_change_hook;
+
 Lisp_Object Qfirst_change_hook;
+Lisp_Object Qbefore_change_functions;
+Lisp_Object Qafter_change_functions;
 
 Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
 
@@ -3428,17 +3431,18 @@ syms_of_buffer ()
   staticpro (&Qprotected_field);
   staticpro (&Qpermanent_local);
   staticpro (&Qkill_buffer_hook);
+  Qoverlayp = intern ("overlayp");
   staticpro (&Qoverlayp);
   Qevaporate = intern ("evaporate");
   staticpro (&Qevaporate);
-  staticpro (&Qmodification_hooks);
   Qmodification_hooks = intern ("modification-hooks");
-  staticpro (&Qinsert_in_front_hooks);
+  staticpro (&Qmodification_hooks);
   Qinsert_in_front_hooks = intern ("insert-in-front-hooks");
-  staticpro (&Qinsert_behind_hooks);
+  staticpro (&Qinsert_in_front_hooks);
   Qinsert_behind_hooks = intern ("insert-behind-hooks");
-  staticpro (&Qget_file_buffer);
+  staticpro (&Qinsert_behind_hooks);
   Qget_file_buffer = intern ("get-file-buffer");
+  staticpro (&Qget_file_buffer);
   Qpriority = intern ("priority");
   staticpro (&Qpriority);
   Qwindow = intern ("window");
@@ -3447,8 +3451,12 @@ syms_of_buffer ()
   staticpro (&Qbefore_string);
   Qafter_string = intern ("after-string");
   staticpro (&Qafter_string);
-
-  Qoverlayp = intern ("overlayp");
+  Qfirst_change_hook = intern ("first-change-hook");
+  staticpro (&Qfirst_change_hook);
+  Qbefore_change_functions = intern ("before-change-functions");
+  staticpro (&Qbefore_change_functions);
+  Qafter_change_functions = intern ("after-change-functions");
+  staticpro (&Qafter_change_functions);
 
   Fput (Qprotected_field, Qerror_conditions,
 	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
@@ -3780,8 +3788,6 @@ accomplishing an equivalent result by using other variables.");
   "A list of functions to call before changing a buffer which is unmodified.\n\
 The functions are run using the `run-hooks' function.");
   Vfirst_change_hook = Qnil;
-  Qfirst_change_hook = intern ("first-change-hook");
-  staticpro (&Qfirst_change_hook);
 
 #if 0 /* The doc string is too long for some compilers,
 	 but make-docfile can find it in this comment.  */
