@@ -1,3 +1,18 @@
+2000-06-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_check_font) [GLYPH_DEBUG]: Add prototype.
+
+2000-06-13  Richard Stallman  <rms@caffeine.ai.mit.edu>
+
+	* frame.c (Fmodify_frame_parameters): Doc fix.
+	
+	* xfns.c (x_set_frame_parameters): Comment fix.
+
+	* frame.c (store_frame_param): Call swap_in_global_binding if the
+	variable's current binding was chosen based on this frame.
+
+	* data.c (swap_in_global_binding): New function.
+
 2000-06-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_write_glyphs): Don't use CODING_REQUIRE_ENCODING
