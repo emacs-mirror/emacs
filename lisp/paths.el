@@ -126,62 +126,6 @@ the terminal-initialization file to be loaded.")
 			     "/usr/ucb/man" "/usr/bin/man")
   "Program to run to print man pages.")
 
-;; Note that /usr/man/cat is not really right for this on sysV; nothing is,
-;; judging by the list of directories below.  You can't get the dir
-;; for a section by appending the section number to any one prefix.
-;; But it turns out that a string that's wrong does no harm here.
-(defconst manual-formatted-dir-prefix
-  (if (file-exists-p "/usr/man/cat.C")  ;; Check for Xenix.
-      "/usr/man/cat." "/usr/man/cat")
-  "Prefix for directories containing formatted manual pages.
-Append a section-number or section-name to get a directory name.")
-
-(defconst manual-formatted-dirlist
-  (cond ((eq system-type 'hpux)
-	 '("/usr/man/cat1" "/usr/man/cat2" "/usr/man/cat3"
-	   "/usr/man/cat4" "/usr/man/cat5" "/usr/man/cat6"
-	   "/usr/man/cat7" "/usr/man/cat1m" "/usr/man/cat8"
-	   "/usr/local/man/cat1" "/usr/local/man/cat2" "/usr/local/man/cat3"
-	   "/usr/local/man/cat4" "/usr/local/man/cat5" "/usr/local/man/cat6"
-	   "/usr/local/man/cat7" "/usr/local/man/cat1m" "/usr/local/man/cat8"
-	   "/usr/contrib/man/cat1" "/usr/contrib/man/cat2"
-	   "/usr/contrib/man/cat3" "/usr/contrib/man/cat4"
-	   "/usr/contrib/man/cat5" "/usr/contrib/man/cat6"
-	   "/usr/contrib/man/cat7" "/usr/contrib/man/cat1m"
-	   "/usr/contrib/man/cat8"))
-	 ((file-exists-p "/usr/man/cat.C")  ; Xenix
-	  '("/usr/man/cat.C" "/usr/man/cat.CP" "/usr/man/cat.CT"
-	    "/usr/man/cat.DOS/" "/usr/man/cat.F" "/usr/man/cat.HW"
-	    "/usr/man/cat.M/" "/usr/man/cat.S" "/usr/man/cat.LOCAL"))
-	 ((file-exists-p "/usr/man/cat3/cat3")
-	  ;; This is for UMAX.
-	  '("/usr/man/cat1"       "/usr/man/cat2"
-	    "/usr/man/cat3"       "/usr/man/cat3/cat3"
-	    "/usr/man/cat3/cat3b" "/usr/man/cat3/cat3c"
-	    "/usr/man/cat3/cat3f" "/usr/man/cat3/cat3m"
-	    "/usr/man/cat3/cat3n" "/usr/man/cat3/cat3p"
-	    "/usr/man/cat3/cat3s" "/usr/man/cat3/cat3u"
-	    "/usr/man/cat3/cat3x" "/usr/man/cat4"
-	    "/usr/man/cat5"       "/usr/man/cat6"
-	    "/usr/man/cat7"       "/usr/man/cat8"
-	    "/usr/man/catl"       "/usr/man/catn"))
-	 ((file-exists-p "/usr/man/cat1")
-	  '("/usr/man/cat1" "/usr/man/cat2" "/usr/man/cat3"
-	    "/usr/man/cat4" "/usr/man/cat5" "/usr/man/cat6"
-	    "/usr/man/cat7" "/usr/man/cat8" "/usr/man/catl" "/usr/man/catn"))
-	 (t
-	   '("/usr/catman/u_man/man1" "/usr/catman/u_man/man6"
-	     "/usr/catman/p_man/man2" "/usr/catman/p_man/man3"
-	     "/usr/catman/p_man/man4" "/usr/catman/p_man/man5"
-	     "/usr/catman/a_man/man1" "/usr/catman/a_man/man7"
-	     "/usr/catman/a_man/man8" "/usr/catman/local"
-	     "/usr/catman/a_man/man8" "/usr/catman/local/man1"
-	     "/usr/catman/local/man2" "/usr/catman/local/man3"
-	     "/usr/catman/local/man4" "/usr/catman/local/man5"
-	     "/usr/catman/local/man6" "/usr/catman/local/man7"
-	     "/usr/catman/local/man8")))
-  "List of directories containing formatted manual pages.")
-
 (defconst abbrev-file-name 
   (if (eq system-type 'vax-vms)
       "~/abbrev.def"
