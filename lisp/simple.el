@@ -1935,6 +1935,7 @@ Can be `untabify' -- turn a tab to many spaces, then delete one space;
        `all' -- delete all whitespace, including tabs, spaces and newlines;
        nil -- just delete one character."
   :type '(choice (const untabify) (const hungry) (const all) (const nil))
+  :version "20.3"
   :group 'killing)
 
 (defun backward-delete-char-untabify (arg &optional killp)
