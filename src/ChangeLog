@@ -1,3 +1,7 @@
+2000-09-07  Dave Love  <fx@gnu.org>
+
+	* Makefile.in [!SYSTEM_MALLOC && REL_ALLOC_MMAP]: Set mallocobj.
+
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.h (MAKE_CHAR): Be sure to set MSB of C1 to 0.
