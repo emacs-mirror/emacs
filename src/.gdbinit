@@ -1,6 +1,6 @@
 # Set up something to print out s-expressions.
 define pr
-set Fprin1 ($, Qexternal_debugging_output)
+set debug_print ($)
 echo \n
 end
 document pr
