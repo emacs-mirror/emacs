@@ -731,6 +731,37 @@ command again."
 	(setq ds (cdr ds))))
     (message "%s" msg)))
 
+;; This was mostly copied from shell-resync-dirs.
+(defun shell-snarf-envar (var)
+  "Return as a string the shell's value of environment variable VAR."
+  (let* ((cmd (format "printenv '%s'\n" var))
+	 (proc (get-buffer-process (current-buffer)))
+	 (pmark (process-mark proc)))
+    (goto-char pmark)
+    (insert cmd)
+    (sit-for 0)				; force redisplay
+    (comint-send-string proc cmd)
+    (set-marker pmark (point))
+    (let ((pt (point)))			; wait for 1 line
+      ;; This extra newline prevents the user's pending input from spoofing us.
+      (insert "\n") (backward-char 1)
+      (while (not (looking-at ".+\n"))
+	(accept-process-output proc)
+	(goto-char pt)))
+    (goto-char pmark) (delete-char 1)	; remove the extra newline
+    (buffer-substring (match-beginning 0) (1- (match-end 0)))))
+
+(defun shell-copy-environment-variable (variable)
+  "Copy the environment variable VARIABLE from the subshell to Emacs.
+This command reads the value of the specified environment variable
+in the shell, and sets the same environment variable in Emacs
+\(what `getenv' in Emacvs would return) to that value.
+That value will affect any new subprocesses that you subsequently start
+from Emacs."
+  (interactive (list (read-envvar-name "\
+Copy Shell environment variable to Emacs: ")))
+  (setenv variable (shell-snarf-envar variable)))
+
 (defun shell-forward-command (&optional arg)
   "Move forward across ARG shell command(s).  Does not cross lines.
 See `shell-command-regexp'."
