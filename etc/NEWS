@@ -748,6 +748,9 @@ Please note that only buffers are killed that still have a client,
 i.e. buffers visited with `emacsclient --no-wait' are never killed in
 this way.
 
+** Both emacsclient and Emacs itself now accept command line options
+of the form +LINE:COLUMN in addition to +LINE.
+
 ** Changes to Show Paren mode.
 
 *** Overlays used by Show Paren mode now use a priority property.
