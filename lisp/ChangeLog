@@ -1,3 +1,9 @@
+2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Fix off-by-one
+	error in arguments to base64-decode-region.  Remove ^M characters
+	after decoding base64.
+
 2003-12-30  Simon Josefsson  <jas@extundo.com>
 
 	* textmodes/texinfo.el: Change maintainer to FSF.  Suggested by
