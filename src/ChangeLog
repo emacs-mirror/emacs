@@ -1,3 +1,7 @@
+2001-11-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* frame.c (Fframe_live_p): Doc fix.
+
 2001-11-18  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (message_dolog_marker1, message_dolog_marker2)
