@@ -134,6 +134,10 @@ is the string or buffer containing the text."
   :group 'widgets
   :group 'faces)
 
+(defvar widget-documentation-face 'widget-documentation-face
+  "Face used for documentation strings in widges.
+This exists as a variable so it can be set locally in certain buffers.")
+
 (defface widget-documentation-face '((((class color)
 				       (background dark))
 				      (:foreground "lime green"))
@@ -202,6 +206,13 @@ Larger menus are read through the minibuffer."
   :group 'widgets
   :type 'integer)
 
+(defcustom widget-menu-minibuffer-flag nil
+  "*Control how to ask for a choice from the keyboard.
+Non-nil means use the minibuffer;
+nil means read a single character."
+  :group 'widgets
+  :type 'boolean)
+
 (defun widget-choose (title items &optional event)
   "Choose an item from a list.
 
@@ -238,7 +249,8 @@ minibuffer."
 			  (stringp (car-safe (event-object val)))
 			  (car (event-object val))))
 	   (cdr (assoc val items))))
-	(t
+	(widget-menu-minibuffer-flag
+	 ;; Read the choice of name from the minibuffer.
 	 (setq items (widget-remove-if 'stringp items))
 	 (let ((val (completing-read (concat title ": ") items nil t)))
 	   (if (stringp val)
@@ -246,7 +258,45 @@ minibuffer."
 		 (when (stringp try)
 		   (setq val try))
 		 (cdr (assoc val items)))
-	     nil)))))
+	     nil)))
+	(t
+	 ;; Construct a menu of the choices
+	 ;; and then use it for prompting for a single character.
+	 (let* ((overriding-terminal-local-map
+		 (make-sparse-keymap))
+		map choice (next-digit ?0)
+		value)
+	   ;; Define SPC as a prefix char to get to this menu.
+	   (define-key overriding-terminal-local-map " "
+	     (setq map (make-sparse-keymap title)))
+	   (while items
+	     (setq choice (car items) items (cdr items))
+	     (if (consp choice)
+		 (let* ((name (car choice))
+		       (function (cdr choice))
+		       (character (aref name 0)))
+		   ;; Pick a character for this choice;
+		   ;; avoid duplication.
+		   (when (lookup-key map (vector character))
+		     (setq character (downcase character))
+		     (when (lookup-key map (vector character))
+		       (setq character next-digit
+			     next-digit (1+ next-digit))))
+		   (define-key map (vector character)
+		     (cons (format "%c = %s" character name) function)))))
+	   (define-key map [?\C-g] '("Quit" . keyboard-quit))
+	   (define-key map [t] 'keyboard-quit)
+	   (setcdr map (nreverse (cdr map)))
+	   ;; Unread a SPC to lead to our new menu.
+	   (setq unread-command-events (cons ?\ unread-command-events))
+	   ;; Read a char with the menu, and return the result
+	   ;; that corresponds to it.
+	   (setq value
+		 (lookup-key overriding-terminal-local-map
+			     (read-key-sequence title) t))
+	   (when (eq value 'keyboard-quit)
+	     (error "Canceled"))
+	   value))))
 
 (defun widget-remove-if (predictate list)
   (let (result (tail list))
@@ -354,7 +404,7 @@ size field."
 (defun widget-specify-doc (widget from to)
   ;; Specify documentation for WIDGET between FROM and TO.
   (add-text-properties from to (list 'widget-doc widget
-				     'face 'widget-documentation-face)))
+				     'face widget-documentation-face)))
 
 (defmacro widget-specify-insert (&rest form)
   ;; Execute FORM without inheriting any text properties.
@@ -1435,9 +1485,17 @@ If that does not exists, call the value of `widget-complete-field'."
 	   (error "Unknown escape `%c'" escape)))
     (widget-put widget :buttons buttons)))
 
+(defvar widget-button-face nil
+  "Face to use for buttons.
+This is a variable so that it can be buffer-local.")
+
 (defun widget-default-button-face-get (widget)
   ;; Use :button-face or widget-button-face
-  (or (widget-get widget :button-face) 'widget-button-face))
+  (or (widget-get widget :button-face)
+      (let ((parent (widget-get widget :parent)))
+	(if parent
+	    (widget-apply parent :button-face-get)
+	  'widget-button-face))))
 
 (defun widget-default-sample-face-get (widget)
   ;; Use :sample-face.
@@ -1716,12 +1774,12 @@ If END is omitted, it defaults to the length of LIST."
 				:prompt-internal prompt initial history)))
       (widget-apply widget :value-to-external answer))))
 
-(defvar widget-edit-hook nil)
+(defvar widget-edit-functions nil)
 
 (defun widget-field-action (widget &optional event)
   ;; Move to next field.
   (widget-forward 1)
-  (run-hooks 'widget-edit-hook))
+  (run-hook-with-args 'widget-edit-functions widget))
 
 (defun widget-field-validate (widget)
   ;; Valid if the content matches `:valid-regexp'.
@@ -3031,19 +3089,45 @@ It will read a directory name from the minibuffer when invoked."
 		   (buffer-substring (point) (point-max))))
 	  answer)))))
 
-(define-widget 'integer 'sexp
+(define-widget 'restricted-sexp 'sexp
+  "A Lisp expression restricted to values that match.
+To use this type, you must define :match or :match-alternatives."
+  :type-error "The specified value is not valid"
+  :match 'widget-restricted-sexp-match
+  :value-to-internal (lambda (widget value)
+		       (if (widget-apply widget :match value)
+			   (prin1-to-string value)
+			 value)))
+
+(defun widget-restricted-sexp-match (widget value)
+  (let ((alternatives (widget-get widget :match-alternatives))
+	matched)
+    (while (and alternatives (not matched))
+      (if (cond ((functionp (car alternatives))
+		 (funcall (car alternatives) value))
+		((and (consp (car alternatives))
+		      (eq (car (car alternatives)) 'quote))
+		 (eq value (nth 1 (car alternatives)))))
+	  (setq matched t))
+      (setq alternatives (cdr alternatives)))
+    matched))
+
+(define-widget 'integer 'restricted-sexp
   "An integer."
   :tag "Integer"
   :value 0
   :type-error "This field should contain an integer"
-  :value-to-internal (lambda (widget value)
-		       (if (integerp value) 
-			   (prin1-to-string value)
-			 value))
-  :match (lambda (widget value) (integerp value)))
+  :match-alternatives '(integerp))
+
+(define-widget 'number 'restricted-sexp
+  "A floating point number."
+  :tag "Number"
+  :value 0.0
+  :type-error "This field should contain a number"
+  :match-alternatives '(numberp))
 
 (define-widget 'character 'editable-field
-  "An character."
+  "A character."
   :tag "Character"
   :value 0
   :size 1 
@@ -3062,17 +3146,6 @@ It will read a directory name from the minibuffer when invoked."
 	   (if (fboundp 'characterp)
 	       (characterp value)
 	     (integerp value))))
-
-(define-widget 'number 'sexp
-  "A floating point number."
-  :tag "Number"
-  :value 0.0
-  :type-error "This field should contain a number"
-  :value-to-internal (lambda (widget value)
-		       (if (numberp value)
-			   (prin1-to-string value)
-			 value))
-  :match (lambda (widget value) (numberp value)))
 
 (define-widget 'list 'group
   "A lisp list."
