@@ -3124,7 +3124,7 @@ decode_coding_iso_2022 (coding)
     int c;								\
 									\
     if (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_REVISION)		\
-      revision = XINT (CHARSET_ISO_REVISION (charset));			\
+      revision = CHARSET_ISO_REVISION (charset);			\
 									\
     if (revision >= 0)							\
       {									\
@@ -5128,7 +5128,7 @@ decode_eol (coding)
 		     coding->dst_pos_byte + coding->produced);
       undo_list = current_buffer->undo_list;
       current_buffer->undo_list = Qt;
-      del_range_2 (coding->dst_pos, coding->dst_pos_byte, GPT, GPT_BYTE, Qnil);
+      del_range_2 (coding->dst_pos, coding->dst_pos_byte, GPT, GPT_BYTE, 0);
       current_buffer->undo_list = undo_list;
       pbeg = GPT_ADDR;
       pend = pbeg + coding->produced;
@@ -5783,7 +5783,7 @@ make_conversion_work_buffer (multibytep)
     }
   else
     {
-      int depth = Flength (Vcode_conversion_work_buf_list);
+      int depth = XINT (Flength (Vcode_conversion_work_buf_list));
       char str[128];
 
       sprintf (str, " *code-conversion-work*<%d>", depth);
@@ -5807,7 +5807,7 @@ Lisp_Object
 code_conversion_restore (info)
      Lisp_Object info;
 {
-  int depth = Flength (Vcode_conversion_work_buf_list);
+  int depth = XINT (Flength (Vcode_conversion_work_buf_list));
   Lisp_Object buf;
 
   if (depth > 0)
@@ -5818,7 +5818,7 @@ code_conversion_restore (info)
 	Fkill_buffer (buf);
     }
 
-  if (saved_coding->dst_object == Qt
+  if (EQ (saved_coding->dst_object, Qt)
       && saved_coding->destination)
     xfree (saved_coding->destination);
 
@@ -6878,7 +6878,7 @@ not fully specified.)  */)
      Lisp_Object string, coding_system, nocopy, buffer;
 {
   return code_convert_string (string, coding_system, buffer,
-			      nocopy, ! NILP (nocopy), 1);
+			      1, ! NILP (nocopy), 1);
 }
 
 
@@ -7493,7 +7493,7 @@ usage: (define-coding-system-internal ...)  */)
 	{
 	  val = Fcar (tail);
 	  if (INTEGERP (val))
-	    ASET (valids, XINT (val), 1);
+	    ASET (valids, XINT (val), make_number (1));
 	  else
 	    {
 	      int from, to;
@@ -7504,7 +7504,7 @@ usage: (define-coding-system-internal ...)  */)
 	      from = XINT (XCAR (val));
 	      to = XINT (XCDR (val));
 	      for (i = from; i <= to; i++)
-		ASET (valids, i, 1);
+		ASET (valids, i, make_number (1));
 	    }
 	}
       ASET (attrs, coding_attr_ccl_valids, valids);
