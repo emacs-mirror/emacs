@@ -1,3 +1,10 @@
+1999-12-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (charsetp): Fix typo in docstring.
+
+	* international/mule-diag.el (list-coding-categories): Fix typo;
+	automatic -> autoload.
+
 1999-12-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc.el (vc-update-change-log): Look for rcs2log under
