@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpstd.h(trunk.8) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -75,6 +75,36 @@
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    1
+
+/* 1. MPW 3.0 C Ref, p. 43.						*/
+/* 2. MPW SC/SCpp C/C++ Compiler for 68k Macintosh, p 3-60.		*/
+/* These are the two MPW 68k compilers. They do not define anything 	*/
+/* which lets us determine the system version. 				*/
+
+#elif defined(m68k) && (defined (applec) || defined(__SC__))
+#define MPS_PF_S7M6AC
+#define MPS_OS_S7
+#define MPS_ARCH_M6
+#define MPS_BUILD_AC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    1
+
+/* 1. C++/C Compiler for Macintosh with PowerPC, p 3-36.		*/
+/* 2. MPW MrC/MrCpp C/C++ Compiler for Power Macintosh, p 3-57.		*/
+/* These are the two MPW PowerPC compilers. They do not define anything	*/
+/* which lets us determine the system version. 				*/
+
+#elif defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC__))
+#define MPS_PF_S7PPAC
+#define MPS_OS_S7
+#define MPS_ARCH_PP
+#define MPS_BUILD_AC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
