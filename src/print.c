@@ -744,7 +744,7 @@ DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
   "Output the printed representation of OBJECT, any Lisp object.\n\
 No quoting characters are used; no delimiters are printed around\n\
 the contents of strings.\n\
-Output stream is PRINTCHARFUN, or value of standard-output (which see).")
+Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
   (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
