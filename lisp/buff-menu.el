@@ -503,7 +503,6 @@ The R column contains a % for buffers that are read-only."
       (set-buffer blist-buffer)
       (Buffer-menu-mode)
       (and desired-point
-	   (goto-char desired-point))
-      (setq ZZZ (point)))))
+	   (goto-char desired-point)))))
 
 ;;; buff-menu.el ends here
