@@ -1021,7 +1021,7 @@ inclusive) are displayed as octal escapes.  You can change this for
 non-standard `extended' versions of ISO-8859 character sets by using the
 function @code{standard-display-8bit} in the @code{disp-table} library.
 
-  There are three different ways you can input single-byte non-ASCII
+  There are several ways you can input single-byte non-ASCII
 characters:
 
 @itemize @bullet
@@ -1065,4 +1065,12 @@ the same purpose as @kbd{C-x 8}; use @key{ALT} together with an accent
 character to modify the following letter.  In addition, if you have keys
 for the Latin-1 ``dead accent characters'', they too are defined to
 compose with the following character, once @code{iso-transl} is loaded.
+Use @kbd{C-x 8 C-h} to list the available translations as mnemonic
+command names.
+
+@cindex @code{iso-acc} library
+@item
+Also for Latin-1 only, @kbd{M-x iso-aacents-mode} installs a minor mode
+which provides a facility like the @code{latin-1-prefix} input method
+but independent of the Leim package.
 @end itemize
