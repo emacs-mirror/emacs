@@ -23,8 +23,13 @@
 
 2004-10-23  John Paul Wallington  <jpw@gnu.org>
 
+	* ibuffer.el (ibuffer-find-file): Remove `interactive-p' call;
+	`wildcards' set to t in interactive spec.
+
 	* ibuf-ext.el (ibuffer-jump-to-buffer): Read buffer name in
 	interactive spec rather than use `interactive-p'.
+	(ibuffer-kill-line): Set arg `interactive-p' in interactive spec
+	rather than use function `interactive-p'.
 
 2004-10-22  Kenichi Handa  <handa@m17n.org>
 
