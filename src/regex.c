@@ -267,6 +267,9 @@ typedef enum
 {
   no_op = 0,
 
+  /* Succeed right away--no more backtracking.  */
+  succeed,
+
         /* Followed by one byte giving n, then by n literal bytes.  */
   exactn,
 
@@ -834,7 +837,9 @@ print_double_string (where, string1, size1, string2, size2)
 /* Set by `re_set_syntax' to the current regexp syntax to recognize.  Can
    also be assigned to arbitrarily: each pattern buffer stores its own
    syntax, so it can be changed between regex compilations.  */
-reg_syntax_t re_syntax_options = RE_SYNTAX_EMACS;
+/* This has no initializer because initialized variables in Emacs
+   become read-only after dumping.  */
+reg_syntax_t re_syntax_options;
 
 
 /* Specify the precise syntax of regexps for compilation.  This provides
@@ -2470,6 +2475,11 @@ regex_compile (pattern, size, syntax, bufp)
   if (!COMPILE_STACK_EMPTY) 
     FREE_STACK_RETURN (REG_EPAREN);
 
+  /* If we don't want backtracking, force success
+     the first time we reach the end of the compiled pattern.  */
+  if (syntax & RE_NO_POSIX_BACKTRACKING)
+    BUF_PUSH (succeed);
+
   free (compile_stack.stack);
 
   /* We have succeeded; set the length of the buffer.  */
@@ -3652,6 +3662,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
                 }
             } /* d != end_match_2 */
 
+	succeed:
           DEBUG_PRINT1 ("Accepting match.\n");
 
           /* If caller wants register contents data back, do it.  */
@@ -3752,6 +3763,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
           DEBUG_PRINT1 ("EXECUTING no_op.\n");
           break;
 
+	case succeed:
+          DEBUG_PRINT1 ("EXECUTING succeed.\n");
+	  goto succeed;
 
         /* Match the next n pattern characters exactly.  The following
            byte in the pattern defines n, and the n bytes after that
