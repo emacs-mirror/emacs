@@ -11096,10 +11096,23 @@ usual X keysyms.")
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
   Lisp_Object have_keys;
-
-  have_keys = Qnil;
+  int major, minor, op, event, error;
 
   BLOCK_INPUT;
+
+  /* Check library version in case we're dynamically linked.  */
+  major = XkbMajorVersion;
+  minor = XkbMinorVersion;
+  if (!XkbLibraryVersion (&major, &minor))
+    return Qnil;
+
+  /* Check that the server supports XKB.  */
+  major = XkbMajorVersion;
+  minor = XkbMinorVersion;
+  if (!XkbQueryExtension (dpy, &op, &event, &error, &major, &minor))
+    return Qnil;
+  
+  have_keys = Qnil;
   kb = XkbGetKeyboard (dpy, XkbAllComponentsMask, XkbUseCoreKbd);
   if (kb)
     {
@@ -11118,7 +11131,7 @@ usual X keysyms.")
 	    backspace_keycode = i;
 	}
 
-      XkbFreeKeyboard (kb, XkbAllComponentsMask, True);
+      XkbFreeKeyboard (kb, 0, True);
   
       if (delete_keycode
 	  && backspace_keycode
