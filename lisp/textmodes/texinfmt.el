@@ -357,11 +357,18 @@ Info-split to do these manually."
           (error "Texinfo file needs an `@setfilename FILENAME' line."))
       (setq texinfo-command-end (point))
       (setq outfile (texinfo-parse-line-arg)))
+
     (find-file outfile)
     (texinfo-mode)
+    (erase-buffer)
+
+    (message "Formatting Info file: %s" outfile)
+    (setq texinfo-format-filename
+          (file-name-nondirectory (expand-file-name outfile)))
+
     (setq fill-column fill-column-for-info)
     (set-syntax-table texinfo-format-syntax-table)
-    (erase-buffer)
+
     (insert-buffer-substring input-buffer)
     (message "Converting %s to Info format..." (buffer-name input-buffer))
     
@@ -410,8 +417,26 @@ Info-split to do these manually."
         (insert "\n"))
     ;; Scan the whole buffer, converting to Info format.
     (texinfo-format-scan)
-    ;; Return data for indices.
     (goto-char (point-min))
+    ;; Insert info about how this file was made.
+    (insert "Info file: "
+            texinfo-format-filename ",    -*-Text-*-\n"
+            "produced by `texinfo-format-buffer'\n"
+            ;; Date string removed so that regression testing is easier.
+            ;; "on "
+            ;; (insert (format-time-string "%e %b %Y")) " "
+            "from file"
+            (if (buffer-file-name input-buffer)
+                (concat " `"
+                        (file-name-sans-versions
+                         (file-name-nondirectory
+                          (buffer-file-name input-buffer)))
+                        "'")
+              (concat "buffer `" (buffer-name input-buffer) "'"))
+            "\nusing `texinfmt.el' version "
+            texinfmt-version
+            ".\n\n")
+    ;; Return data for indices.
     (list outfile
           texinfo-vindex texinfo-findex texinfo-cindex
           texinfo-pindex texinfo-tindex texinfo-kindex)))
@@ -1068,27 +1093,7 @@ Leave point after argument."
 ;; specially. 
 (put 'setfilename 'texinfo-format 'texinfo-format-setfilename)
 (defun texinfo-format-setfilename ()
-  (let ((arg (texinfo-parse-arg-discard)))
-    (message "Formatting Info file: %s" arg)
-    (setq texinfo-format-filename
-          (file-name-nondirectory (expand-file-name arg)))
-    (insert "Info file: "
-            texinfo-format-filename ",    -*-Text-*-\n"
-            "produced by `texinfo-format-buffer'\n"
-            ;; Date string removed so that regression testing is easier.
-            ;; "on "
-            ;; (insert (format-time-string "%e %b %Y")) " "
-            "from file"
-            (if (buffer-file-name input-buffer)
-                (concat " `"
-                        (file-name-sans-versions
-                         (file-name-nondirectory
-                          (buffer-file-name input-buffer)))
-                        "'")
-              (concat "buffer `" (buffer-name input-buffer) "'"))
-            "\nusing `texinfmt.el' version "
-            texinfmt-version
-            ".\n\n")))
+  (texinfo-parse-arg-discard))
 
 ;;; @node, @menu, @detailmenu
 
