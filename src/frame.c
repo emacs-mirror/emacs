@@ -451,7 +451,7 @@ do_switch_frame (frame, no_enter, track)
 #else /* ! 0 */
   /* Instead, apply it only to the frame we're pointing to.  */
 #ifdef HAVE_X_WINDOWS
-  if (track)
+  if (track && FRAME_X_P (XFRAME (frame)))
     {
       Lisp_Object focus, xfocus;
 
