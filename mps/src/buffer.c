@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.12) $
+ * $HopeName: MMsrc!buffer.c(trunk.13) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.11) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.13) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
@@ -187,6 +187,7 @@ void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit)
 {
   AVERT(Buffer, buffer);
   AVER(SegCheck(seg));
+  AVER(BufferIsReady(buffer));
   /* No check for base, init, limit */
 
   buffer->seg = seg;
@@ -199,6 +200,7 @@ void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit)
 void BufferReset(Buffer buffer)
 {
   AVERT(Buffer, buffer);
+  AVER(BufferIsReady(buffer));
 
   buffer->seg = NULL;
   buffer->base = (Addr)0;
