@@ -12,8 +12,12 @@ A workaround for this is to add something like
 
 emacs.waitForWM: false
 
-to your X resources. or to add `(wait-for-wm . nil)' to a frame's
-parameter list.
+to your X resources.  Alternatively, add `(wait-for-wm . nil)' to a
+frame's parameter list, like this:
+
+   (modify-frame-parameters nil '((wait-for-wm . nil)))
+
+(this should go into your `.emacs' file).
 
 * Underlines appear at the wrong position.
 
