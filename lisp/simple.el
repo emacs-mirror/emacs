@@ -1025,7 +1025,9 @@ A numeric argument serves as a repeat count.
 Contrary to `undo', this will not redo a previous undo."
   (interactive "*p")
   (let ((undo-no-redo t)) (undo arg)))
-(define-key ctl-x-map "U" 'undo-only)
+;; Richard said that we should not use C-x <uppercase letter> and I have
+;; no idea whereas to bind it.  Any suggestion welcome.  -stef
+;; (define-key ctl-x-map "U" 'undo-only)
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.")
