@@ -1,3 +1,11 @@
+2000-09-20  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* cus-edit.el (custom-face-tag-face, custom-group-tag-face-1)
+	(custom-group-tag-face, custom-variable-tag-face): Use relative
+	:height and inherit from `variable-pitch' face instead of
+	hardwiring :family.
+	* hi-lock.el (hi-black-hb): Likewise.
+
 2000-09-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el: Docstring fixes.
