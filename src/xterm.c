@@ -159,7 +159,7 @@ Display *x_current_display;
 /* The cursor to use for vertical scroll bars on x_current_display.  */
 static Cursor x_vertical_scroll_bar_cursor;
 
-/* Frame being updated by update_frame.  This is declared in term.c.  */ 
+/* Frame being updated by update_frame.  This is declared in term.c.
    This is set by update_begin and looked at by all the
    XT functions.  It is zero while not inside an update.
    In that case, the XT functions assume that `selected_frame'
