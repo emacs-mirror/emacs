@@ -2046,10 +2046,11 @@ nil means no recursive deletes.
 `top' means ask for each directory at top level, but delete its subdirectories
 without asking.
 Anything else means ask for each directory."
-  :type '(choice :tag "Delete not empty directory"
-		 (const :tag "No. Only empty directories" nil)
-		 (const :tag "Ask for each directory" t)
-		 (const :tag "Ask for each top directory only" top))
+  :type '(choice :tag "Delete non-empty directories"
+		 (const :tag "Yes" always)
+		 (const :tag "No--only delete empty directories" nil)
+		 (const :tag "Confirm for each directory" t)
+		 (const :tag "Confirm for each top directory only" top))
   :group 'dired)
 
 ;; Match anything but `.' and `..'. 
