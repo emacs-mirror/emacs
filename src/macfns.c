@@ -248,6 +248,8 @@ extern Lisp_Object Qtool_bar_lines;
 
 extern Lisp_Object Vwindow_system_version;
 
+extern Lisp_Object Qbox;
+
 Lisp_Object Qface_set_after_frame_default;
 
 extern int mac_initialized;

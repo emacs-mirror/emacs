@@ -1,3 +1,7 @@
+2002-08-30  Andrew Choi  <akochoi@shaw.ca>
+
+	* macfns.c (Qbox): Add extern declaration.
+
 2002-08-30  Juanma Barranquero  <lektu@terra.es>
 
 	* w32fns.c (Qbox): Make extern.
