@@ -147,7 +147,8 @@
     (kill-region beg end)))
 
 (defun menu-bar-enable-clipboard ()
-  "Make the menu bar CUT, PASTE and COPY items use the clipboard."
+  "Make CUT, PASTE and COPY (keys and menu bar items) use the clipboard.
+Do the same for the keys of the same name."
   (interactive)
   ;; We can't use constant list structure here because it becomes pure,
   ;; and because it gets modified with cache data.
@@ -156,16 +157,15 @@
   (define-key menu-bar-edit-menu [copy]
     (cons "Copy" 'clipboard-kill-ring-save))
   (define-key menu-bar-edit-menu [cut]
-    (cons "Cut" 'clipboard-kill-region)))
+    (cons "Cut" 'clipboard-kill-region))
 
-;; Sun expects these commands on these keys, so why not?
-(define-key global-map [f20] 'clipboard-kill-region)
-(define-key global-map [f16] 'clipboard-kill-ring-save)
-(define-key global-map [f18] 'clipboard-yank)
-;; X11R6 versions
-(define-key global-map [cut] 'clipboard-kill-region)
-(define-key global-map [copy] 'clipboard-kill-ring-save)
-(define-key global-map [paste] 'clipboard-yank)
+  (define-key global-map [f20] 'clipboard-kill-region)
+  (define-key global-map [f16] 'clipboard-kill-ring-save)
+  (define-key global-map [f18] 'clipboard-yank)
+  ;; X11R6 versions
+  (define-key global-map [cut] 'clipboard-kill-region)
+  (define-key global-map [copy] 'clipboard-kill-ring-save)
+  (define-key global-map [paste] 'clipboard-yank))
 
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
