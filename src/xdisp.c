@@ -12006,8 +12006,9 @@ try_window (window, pos)
     }
   else
     {
-      w->window_end_bytepos = 0;
-      w->window_end_pos = w->window_end_vpos = make_number (0);
+      w->window_end_bytepos = Z_BYTE - ZV_BYTE;
+      w->window_end_pos = make_number (Z - ZV);
+      w->window_end_vpos = make_number (0);
     }
 
   /* But that is not valid info until redisplay finishes.  */
@@ -12220,8 +12221,9 @@ try_window_reusing_current_matrix (w)
       else
 	{
 	  /* This window must be completely empty.  */
-	  w->window_end_bytepos = 0;
-	  w->window_end_pos = w->window_end_vpos = make_number (0);
+	  w->window_end_bytepos = Z_BYTE - ZV_BYTE;
+	  w->window_end_pos = make_number (Z - ZV);
+	  w->window_end_vpos = make_number (0);
 	}
       w->window_end_valid = Qnil;
 
