@@ -159,7 +159,10 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;;  "foo.c", line 32 pos 1; (E) syntax error; unexpected symbol: "lossage"
     ;; GNAT (as of July 94):
     ;;  "foo.adb", line 2(11): warning: file name does not match ...
-    ("\"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[:., (-]" 1 2)
+    ;; IBM AIX xlc compiler:
+    ;;  "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
+    ("\"\\([^,\" \n\t]+\\)\", lines? \
+\\([0-9]+\\)\\([\(.]\\([0-9]+\\)\)?\\)?[:., (-]" 1 2 4)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
@@ -172,9 +175,6 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ("in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
-    ;; IBM AIX xlc compiler:
-    ;;  "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
-    ("\"\\([^\"]+\\)\", lines? \\([0-9]+\\)\\(\\.\\([0-9]+\\)\\)" 1 2 4)
 
     ;; Lucid Compiler, lcc 3.x
     ;; E, file.cc(35,52) Illegal operation on pointers
