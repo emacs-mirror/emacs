@@ -1,3 +1,10 @@
+2001-01-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el (isearch-old-signal-hook): Removed.
+	(isearch-mode): Add isearch-done to kbd-macro-termination-hook
+	instead of setting signal-hook-function.
+	(isearch-done): Remove isearch-done from kbd-macro-termination-hook.
+
 2001-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/sendmail.el (mail-mode): Doc fix.
