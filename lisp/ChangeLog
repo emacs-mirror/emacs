@@ -1,5 +1,12 @@
 2001-12-18  Dave Love  <fx@gnu.org>
 
+	* simple.el (newline): Doc fix.
+
+	* Makefile.in (DONTCOMPILE): Add various language files.
+
+	* international/quail.el (quail-input-string-to-events): Don't use
+	string-to-list.
+
 	* progmodes/f90.el (f90-break-line): Avoid infinite recursion
 	calling `newline'.
 
