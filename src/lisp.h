@@ -827,10 +827,15 @@ struct Lisp_Buffer_Objfwd
    Only make-local-variable does that.  */
 struct Lisp_Buffer_Local_Value
   {
-    int type : 16; /* = Lisp_Misc_Buffer_Local_Value
-				      or Lisp_Misc_Some_Buffer_Local_Value */
-    int spacer : 16;
-    Lisp_Object car, cdr;
+    int type : 16;      /* = Lisp_Misc_Buffer_Local_Value
+			   or Lisp_Misc_Some_Buffer_Local_Value */
+    int spacer : 13;
+    unsigned int check_frame : 1;
+    unsigned int found_for_buffer : 1;
+    unsigned int found_for_frame : 1;
+    Lisp_Object realvalue;
+    Lisp_Object buffer, frame;
+    Lisp_Object cdr;
   };
 
 /* In an overlay object, the mark bit of the plist is used as the GC mark.
