@@ -202,6 +202,7 @@ See also `frame-live-p'.  */)
     return Qnil;
   switch (XFRAME (object)->output_method)
     {
+    case output_initial: /* The initial frame is like a termcap frame. */
     case output_termcap:
       return Qt;
     case output_x_window:
@@ -502,15 +503,12 @@ make_minibuffer_frame ()
 static int terminal_frame_count;
 
 struct frame *
-make_terminal_frame (tty_name, tty_type)
-     char *tty_name;
-     char *tty_type;
+make_initial_frame (void)
 {
-  register struct frame *f;
+  struct frame *f;
   struct display *display;
   Lisp_Object frame;
-  char name[20];
-  
+
 #ifdef MULTI_KBOARD
   /* Create the initial keyboard. */
   if (!initial_kboard)
@@ -526,12 +524,51 @@ make_terminal_frame (tty_name, tty_type)
   if (! (NILP (Vframe_list) || CONSP (Vframe_list)))
     Vframe_list = Qnil;
 
+  display = init_initial_display ();
+
+  f = make_frame (1);
+  XSETFRAME (frame, f);
+
+  Vframe_list = Fcons (frame, Vframe_list);
+
+  terminal_frame_count = 1;
+  f->name = build_string ("F1");
+
+  f->visible = 1;
+  f->async_visible = 1;
+
+  f->output_method = display->type;
+  f->display = display;
+  f->display->reference_count++;
+  f->output_data.nothing = 0;
+  
+  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
+  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
+    
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+
+#ifdef MULTI_KBOARD
+  f->kboard = initial_kboard;
+#endif
+
+  return f;
+}
+
+
+struct frame *
+make_terminal_frame (tty_name, tty_type)
+     char *tty_name;
+     char *tty_type;
+{
+  register struct frame *f;
+  struct display *display;
+  Lisp_Object frame;
+  char name[20];
+  
   /* Open the display before creating the new frame, because
      create_tty_display might throw an error. */
-  if (initialized)
-    display = term_init (tty_name, tty_type);
-  else
-    display = initial_term_init ();
+  display = term_init (tty_name, tty_type, 0); /* Errors are not fatal. */
   
   f = make_frame (1);
 

@@ -123,7 +123,7 @@ for the currently selected frame.  The first 16 colors are taken from
 `xterm-standard-colors', which see, while the rest are computed assuming
 either the 88- or 256-color standard color scheme supported by latest
 versions of xterm."
-  (let* ((ncolors (display-color-cells))
+  (let* ((ncolors (display-color-cells (selected-frame)))
 	 (colors xterm-standard-colors)
 	 (color (car colors)))
     (if (> ncolors 0)

@@ -41,6 +41,7 @@ extern int message_buf_print;
 
 enum output_method
 {
+  output_initial,
   output_termcap,
   output_x_window,
   output_msdos_raw,
@@ -462,6 +463,7 @@ typedef struct frame *FRAME_PTR;
 #define WINDOW_FRAME(w) (w)->frame
 
 /* Test a frame for particular kinds of display methods.  */
+#define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
@@ -771,7 +773,8 @@ extern Lisp_Object Qframep, Qframe_live_p;
 
 extern struct frame *last_nonminibuf_frame;
 
-extern struct frame *make_terminal_frame P_ ((char *tty, char *tty_type));
+extern struct frame *make_initial_frame P_ ((void));
+extern struct frame *make_terminal_frame P_ ((char *, char *));
 extern struct frame *make_frame P_ ((int));
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame P_ ((void));

@@ -1689,7 +1689,7 @@ nil means don't delete them until `list-processes' is run.  */);
       )
 #endif
 #endif
-    tty_set_terminal_modes (tty_out);
+    tty_set_terminal_modes (tty_out->display);
 
   if (!tty_out->term_initted)
     {
@@ -1869,7 +1869,9 @@ reset_sys_modes (tty_out)
 #endif
   
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
+#if 0  /* XXX This doesn't work anymore, the signature has changed. */
   tty_clear_end_of_line (tty_out, FrameCols (tty_out));
+#endif
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
   fflush (tty_out->output);
   
@@ -1884,7 +1886,7 @@ reset_sys_modes (tty_out)
   }
 #endif
 
-  tty_reset_terminal_modes (tty_out);
+  tty_reset_terminal_modes (tty_out->display);
   fflush (TTY_OUTPUT (tty_out));
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1

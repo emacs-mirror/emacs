@@ -52,6 +52,9 @@ struct tty_display_info
 
 
   int reference_count;          /* Number of frames that are on this display. */
+
+  struct display *display;      /* Points back to the generic display
+                                   structure.  This is sometimes handy. */
   
   /* Info on cursor positioning.  */
   struct cm *Wcm;

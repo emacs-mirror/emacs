@@ -1,4 +1,4 @@
-			-*- coding: utf-8; -*-
+			-*- coding: utf-8; mode: text; -*-
 GOAL
 ----
 
@@ -131,7 +131,12 @@ THINGS TO DO
    sessions automatically convert the face colors to terminal colors
    when the face is loaded.  This conversion must happen instead on
    the fly in write_glyphs, which might be problematic, as color
-   approximation is done in lisp (term/tty-colors.el).)
+   approximation is currently done in lisp (term/tty-colors.el).)
+
+** frame-creation-function should always create a frame that is on the
+   same display as the selected frame.  Maybe frame-creation-function
+   should simply be removed and make-frame changed to do the right
+   thing.
 
 ** The command `emacsclient -t -e '(delete-frame)'' fails to exit.
 
@@ -140,6 +145,11 @@ THINGS TO DO
    ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
    extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
    works right now.)
+
+** If there are no frames on its controlling terminal, Emacs should
+   exit if the uses presses C-c there.  (See the SIGTERM comment in
+   interrupt_signal on why this seems to be impossible to solve
+   generally.)
 
 ** During an X session, Emacs seems to read from stdin.
 
@@ -152,11 +162,20 @@ THINGS TO DO
    an initial frame.  (The user would connect to it and open frames
    later, with emacsclient.)  Not necessarily a good idea.
 
-** Fix Mac support (I can't do this myself).
+** Fix Mac support (I can't do this myself).  Note that the current
+   state of Mac-specific source files in the multi-tty tree are not
+   useful; before starting work on Mac support, revert to pristine,
+   pre-multi-tty versions.
 
-** Fix W32 support (I can't do this myself).
+** Fix W32 support (I can't do this myself).  Note that the current
+   state of W32-specific source files in the multi-tty tree are not
+   useful; before starting work on W32 support, revert to pristine,
+   pre-multi-tty versions.
 
-** Fix DOS support (I can't do this myself).
+** Fix DOS support (I can't do this myself).  Note that the current
+   state of DOS-specific source files in the multi-tty tree are not
+   useful; before starting work on DOS support, revert to pristine,
+   pre-multi-tty versions.
 
 ** Do a grep on XXX and ?? for more issues.
 
@@ -349,7 +368,7 @@ DIARY OF CHANGES
 	while true; do TERM=no-such-terminal-definition emacsclient -h; done
 
    Emacs usually dumps core after a few dozen iterations.  (The bug
-   seems to be related to the xfree()ing or bzero()ing of
+   seems to be related to the xfreeing or bzeroing of
    tty_output.Wcm.  Maybe there are outside references to struct Wcm?
    Why were these vars collected into a struct before multi-tty
    support?)
@@ -358,18 +377,18 @@ DIARY OF CHANGES
    with hypothetical external references to Wcm, or any other
    tty_output component; it was simply that delete_tty closed the
    filehandles of secondary ttys twice, resulting in fclose doubly
-   free()ing memory.  Utterly trivial matter.  I love the C's memory
+   freeing memory.  Utterly trivial matter.  I love the C's memory
    management, it puts hair on your chest.)
 
 -- Support raw secondary terminals.  (Note that SIGIO works only on
-   the controlling terminal.) Hint: extend read_input_waiting() for
+   the controlling terminal.) Hint: extend read_input_waiting for
    multiple ttys and hopefully this will be fixed.
 
    (Done, it seems to have been working already for some time.  It
    seems F_SETOWN does work, after all.  Not sure what made it fail
    earlier, but it seems to be fixed (there were several changes
    around request_sigio, maybe one of them did it).
-   read_input_waiting() is only used in sys_select(), don't change
+   read_input_waiting is only used in sys_select, don't change
    it.)  (Update: After adding X support, it's broken again.)
 
 -- Find out why does Emacs abort when it wants to close its
@@ -381,7 +400,7 @@ DIARY OF CHANGES
    term_init/delete_tty.  The hint was right, in a way.)
 
 -- Issue with SIGIO: it needs to be disabled during redisplay.  See if
-   fcntl() kernel behaviour could be emulated by emacsclient.
+   fcntl kernel behaviour could be emulated by emacsclient.
 
    (Done.  Simply disabled the SIGIO emulation hack in emacsclient.)
    (Update: it was added back.)

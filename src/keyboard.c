@@ -10281,8 +10281,26 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   signal (SIGQUIT, interrupt_signal);
 #endif /* USG */
 
+  if (! tty_list)
+    {
+      /* If there are no tty frames, exit Emacs.
+
+         Emacs should exit on SIGINT if and only if there are no
+         frames on its controlling tty and the signal came from there.
+         We can check for the first condition, but (alas) not for the
+         second.  The best we can do is that we only exit if we are
+         sure that the SIGINT was from the controlling tty, i.e., if
+         there are no termcap frames.
+      */
+      Fkill_emacs (Qnil);
+      
+      errno = old_errno;
+      return;
+    }
+
   cancel_echoing ();
 
+  /* XXX This code needs to be revised for multi-tty support. */
   if (!NILP (Vquit_flag)
       && (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf)))
     {
@@ -10463,7 +10481,7 @@ See also `current-input-mode'.  */)
 
 #ifndef DOS_NT
   /* this causes startup screen to be restored and messes with the mouse */
-  if (FRAME_TERMCAP_P (SELECTED_FRAME ()) && CURTTY ()->type)
+  if (FRAME_TERMCAP_P (SELECTED_FRAME ()))
     reset_sys_modes (CURTTY ());
 #endif
 
@@ -10502,7 +10520,7 @@ See also `current-input-mode'.  */)
         tty->meta_key = 2;
     }
   
-  if (!NILP (quit))
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame)) && !NILP (quit))
     /* Don't let this value be out of range.  */
     quit_char = XINT (quit) & (CURTTY ()->meta_key ? 0377 : 0177);
 
@@ -10660,6 +10678,11 @@ init_keyboard ()
 
   if (!noninteractive)
     {
+      /* Before multi-tty support, these handlers used to be installed
+         only if the current session was a tty session.  Now an Emacs
+         session may have multiple display types, so we always handle
+         SIGINT.  There is special code in interrupt_signal to exit
+         Emacs on SIGINT when there are no termcap frames. */
       signal (SIGINT, interrupt_signal);
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
       /* For systems with SysV TERMIO, C-g is set up for both SIGINT and

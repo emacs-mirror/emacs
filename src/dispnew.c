@@ -3306,8 +3306,10 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
     return Qnil;
 
   update_begin (f);
+#ifdef MSDOS
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes ();
+    set_terminal_modes (FRAME_DISPLAY (f));
+#endif
   clear_frame ();
   clear_current_matrices (f);
   update_end (f);
@@ -3833,9 +3835,12 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p);
       update_end (f);
 
-      if (TTY_TERMSCRIPT (FRAME_TTY (f)))
-	fflush (TTY_TERMSCRIPT (FRAME_TTY (f)));
-      fflush (TTY_OUTPUT (FRAME_TTY (f)));
+      if (FRAME_TERMCAP_P (f))
+        {
+          if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+            fflush (TTY_TERMSCRIPT (FRAME_TTY (f)));
+          fflush (TTY_OUTPUT (FRAME_TTY (f)));
+        }
 
       /* Check window matrices for lost pointers.  */
 #if GLYPH_DEBUG
@@ -6634,10 +6639,24 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
   {
     struct display *d;
-    
-    d = term_init (0, terminal_type);
+    struct frame *f = XFRAME (selected_frame);
+
+    /* Open a display on the controlling tty. */
+    d = term_init (0, terminal_type, 1); /* Errors are fatal. */
+
+    /* Convert the initial frame to use the new display. */
+    if (! f->output_method == output_initial)
+      abort ();
+    f->output_method = d->type;
+    f->display = d;
+
     d->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame), FrameRows (d->display_info.tty), FrameCols (d->display_info.tty), 0, 0, 1);
+
+    /* Delete the initial display. */
+    if (--initial_display->reference_count == 0
+        && initial_display->delete_display_hook)
+      (*initial_display->delete_display_hook) (initial_display);
   }
   
   {

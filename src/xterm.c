@@ -331,8 +331,8 @@ static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
-static void XTset_terminal_modes P_ ((void));
-static void XTreset_terminal_modes P_ ((void));
+static void XTset_terminal_modes P_ ((struct display *));
+static void XTreset_terminal_modes P_ ((struct display *));
 static void x_clear_frame P_ ((void));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
@@ -747,7 +747,7 @@ x_draw_fringe_bitmap (w, row, p)
    rarely happens).  */
 
 static void
-XTset_terminal_modes ()
+XTset_terminal_modes (struct display *display)
 {
 }
 
@@ -755,7 +755,7 @@ XTset_terminal_modes ()
    the X-windows go away, and suspending requires no action.  */
 
 static void
-XTreset_terminal_modes ()
+XTreset_terminal_modes (struct display *display)
 {
 }
 

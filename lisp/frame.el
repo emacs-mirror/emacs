@@ -1137,7 +1137,7 @@ the question is inapplicable to a certain kind of display."
      ((eq frame-type 'pc)
       16)
      (t
-      (tty-display-color-cells)))))
+      (tty-display-color-cells display)))))
 
 (defun display-visual-class (&optional display)
   "Returns the visual class of DISPLAY.

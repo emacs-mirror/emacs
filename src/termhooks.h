@@ -344,8 +344,8 @@ struct display
   
   void (*ring_bell_hook) P_ ((void));
   
-  void (*reset_terminal_modes_hook) P_ ((void));
-  void (*set_terminal_modes_hook) P_ ((void));
+  void (*reset_terminal_modes_hook) P_ ((struct display *));
+  void (*set_terminal_modes_hook) P_ ((struct display *));
   void (*update_begin_hook) P_ ((struct frame *));
   void (*update_end_hook) P_ ((struct frame *));
   void (*set_terminal_window_hook) P_ ((int));

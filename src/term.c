@@ -71,6 +71,7 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 
+void delete_initial_display P_ ((struct display *));
 void delete_tty P_ ((struct display *));
 void create_tty_output P_ ((struct frame *));
 void delete_tty_output P_ ((struct frame *));
@@ -104,6 +105,9 @@ Lisp_Object Vdelete_tty_after_functions;
 
 /* Chain of all displays currently in use. */
 struct display *display_list;
+
+/* The initial display device, created by initial_term_init. */
+struct display *initial_display;
 
 /* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;
@@ -172,7 +176,9 @@ extern char *tgetstr ();
 void
 ring_bell ()
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
   if (!NILP (Vring_bell_function))
     {
@@ -195,32 +201,36 @@ ring_bell ()
     }
   else if (FRAME_DISPLAY (f)->ring_bell_hook)
     (*FRAME_DISPLAY (f)->ring_bell_hook) ();
-  else {
-    struct tty_display_info *tty = FRAME_TTY (f);
-    OUTPUT (tty, tty->TS_visible_bell && visible_bell ? tty->TS_visible_bell : tty->TS_bell);
-  }
 }
 
-void tty_set_terminal_modes (struct tty_display_info *tty)
+void
+tty_ring_bell ()
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  struct tty_display_info *tty = FRAME_TTY (f);
+
+  OUTPUT (tty, (tty->TS_visible_bell && visible_bell
+                ? tty->TS_visible_bell
+                : tty->TS_bell));
+}
+
+void tty_set_terminal_modes (struct display *display)
+{
+  struct tty_display_info *tty = display->display_info.tty;
+  
   OUTPUT_IF (tty, tty->TS_termcap_modes);
   OUTPUT_IF (tty, tty->TS_cursor_visible);
   OUTPUT_IF (tty, tty->TS_keypad_mode);
   losecursor (tty);
 }
 
-void
-set_terminal_modes ()
+void tty_reset_terminal_modes (struct display *display)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  if (FRAME_DISPLAY (f)->set_terminal_modes_hook)
-    (*FRAME_DISPLAY (f)->set_terminal_modes_hook) ();
-  else 
-    tty_set_terminal_modes (FRAME_TTY (f));
-}
-
-void tty_reset_terminal_modes (struct tty_display_info *tty)
-{
+  struct tty_display_info *tty = display->display_info.tty;
+  
   turn_off_highlight (tty);
   turn_off_insert (tty);
   OUTPUT_IF (tty, tty->TS_end_keypad_mode);
@@ -230,16 +240,6 @@ void tty_reset_terminal_modes (struct tty_display_info *tty)
   /* Output raw CR so kernel can track the cursor hpos.  */
   current_tty = tty;
   cmputc ('\r');
-}
-
-void
-reset_terminal_modes ()
-{
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  if (FRAME_DISPLAY (f)->reset_terminal_modes_hook)
-    (*FRAME_DISPLAY (f)->reset_terminal_modes_hook) ();
-  else
-    tty_reset_terminal_modes (FRAME_TTY (f));
 }
 
 void
@@ -257,32 +257,44 @@ update_end (f)
 {
   if (FRAME_DISPLAY (f)->update_end_hook)
     (*FRAME_DISPLAY (f)->update_end_hook) (f);
-  else if (FRAME_TERMCAP_P (f))
-    {
-      struct tty_display_info *tty = FRAME_TTY (f);
-      if (!XWINDOW (selected_window)->cursor_off_p)
-	tty_show_cursor (tty);
-      turn_off_insert (tty);
-      background_highlight (tty);
-    }
-
   updating_frame = NULL;
+}
+
+void
+tty_update_end (struct frame *f)
+{
+  struct tty_display_info *tty = FRAME_TTY (f);
+
+  if (!XWINDOW (selected_window)->cursor_off_p)
+    tty_show_cursor (tty);
+  turn_off_insert (tty);
+  background_highlight (tty);
 }
 
 void
 set_terminal_window (size)
      int size;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
   if (FRAME_DISPLAY (f)->set_terminal_window_hook)
     (*FRAME_DISPLAY (f)->set_terminal_window_hook) (size);
-  else if (FRAME_TERMCAP_P (f))
-    {
-      struct tty_display_info *tty = FRAME_TTY (f);
-      tty->specified_window = size ? size : FRAME_LINES (f);
-      if (FRAME_SCROLL_REGION_OK (f))
-	set_scroll_region (0, tty->specified_window);
-    }
+}
+
+void
+tty_set_terminal_window (int size)
+{
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  struct tty_display_info *tty = FRAME_TTY (f);
+
+  tty->specified_window = size ? size : FRAME_LINES (f);
+  if (FRAME_SCROLL_REGION_OK (f))
+    set_scroll_region (0, tty->specified_window);
 }
 
 void
@@ -290,7 +302,10 @@ set_scroll_region (start, stop)
      int start, stop;
 {
   char *buf;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_set_scroll_region)
@@ -412,16 +427,22 @@ void
 cursor_to (vpos, hpos)
      int vpos, hpos;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_display_info *tty;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->cursor_to_hook)
-    {
-      (*FRAME_DISPLAY (f)->cursor_to_hook) (vpos, hpos);
-      return;
-    }
+    (*FRAME_DISPLAY (f)->cursor_to_hook) (vpos, hpos);
+}
 
-  tty = FRAME_TTY (f);
+void
+tty_cursor_to (int vpos, int hpos)
+{
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+  
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   /* Detect the case where we are called from reset_sys_modes
      and the costs have never been calculated.  Do nothing.  */
@@ -444,14 +465,23 @@ void
 raw_cursor_to (row, col)
      int row, col;
 {
-  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
-  struct tty_display_info *tty;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
   if (FRAME_DISPLAY (f)->raw_cursor_to_hook)
-    {
-      (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (row, col);
-      return;
-    }
-  tty = FRAME_TTY (f);
+    (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (row, col);  
+}
+
+void
+tty_raw_cursor_to (int row, int col)
+{
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  struct tty_display_info *tty = FRAME_TTY (f);
+
   if (curY (tty) == row
       && curX (tty) == col)
     return;
@@ -468,17 +498,23 @@ raw_cursor_to (row, col)
 void
 clear_to_end ()
 {
-  register int i;
-
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_display_info *tty;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->clear_to_end_hook)
-    {
-      (*FRAME_DISPLAY (f)->clear_to_end_hook) ();
-      return;
-    }
-  tty = FRAME_TTY (f);
+    (*FRAME_DISPLAY (f)->clear_to_end_hook) ();
+}
+
+void
+tty_clear_to_end (void)
+{
+  register int i;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+  struct tty_display_info *tty = FRAME_TTY (f);
+
   if (tty->TS_clr_to_bottom)
     {
       background_highlight (tty);
@@ -500,14 +536,20 @@ void
 clear_frame ()
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_display_info *tty;
 
   if (FRAME_DISPLAY (f)->clear_frame_hook)
-    {
-      (*FRAME_DISPLAY (f)->clear_frame_hook) ();
-      return;
-    }
-  tty = FRAME_TTY (f);
+    (*FRAME_DISPLAY (f)->clear_frame_hook) ();
+}
+
+void
+tty_clear_frame ()
+{
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  struct tty_display_info *tty = FRAME_TTY (f);
+
   if (tty->TS_clr_frame)
     {
       background_highlight (tty);
@@ -530,22 +572,23 @@ void
 clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_display_info *tty;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->clear_end_of_line_hook)
-    {
-      (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (first_unused_hpos);
-      return;
-    }
-
-  tty_clear_end_of_line (FRAME_TTY (f), first_unused_hpos);
+    (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (first_unused_hpos);
 }
 
 void
-tty_clear_end_of_line (struct tty_display_info *tty, int first_unused_hpos)
+tty_clear_end_of_line (int first_unused_hpos)
 {
   register int i;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+  struct tty_display_info *tty = FRAME_TTY (f);
+
   /* Detect the case where we are called from reset_sys_modes
      and the costs have never been calculated.  Do nothing.  */
   if (! tty->costs_set)
@@ -692,19 +735,26 @@ write_glyphs (string, len)
      register struct glyph *string;
      register int len;
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  if (FRAME_DISPLAY (f)->write_glyphs_hook)
+    (*FRAME_DISPLAY (f)->write_glyphs_hook) (string, len);
+}
+
+void
+tty_write_glyphs (struct glyph *string, int len)
+{
   int produced, consumed;
-  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
-  struct tty_display_info *tty;
   unsigned char conversion_buffer[1024];
   int conversion_buffer_size = sizeof conversion_buffer;
 
-  if (FRAME_DISPLAY (f)->write_glyphs_hook)
-    {
-      (*FRAME_DISPLAY (f)->write_glyphs_hook) (string, len);
-      return;
-    }
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
-  tty = FRAME_TTY (f);
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   turn_off_insert (tty);
   tty_hide_cursor (tty);
@@ -795,23 +845,27 @@ insert_glyphs (start, len)
      register struct glyph *start;
      register int len;
 {
-  char *buf;
-  struct glyph *glyph = NULL;
-  struct frame *f;
-  struct tty_display_info *tty;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
   if (len <= 0)
     return;
 
-  f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->insert_glyphs_hook)
-    {
-      (*FRAME_DISPLAY (f)->insert_glyphs_hook) (start, len);
-      return;
-    }
+    (*FRAME_DISPLAY (f)->insert_glyphs_hook) (start, len);
+}
 
-  tty = FRAME_TTY (f);
+void
+tty_insert_glyphs (struct glyph *start, int len)
+{
+  char *buf;
+  struct glyph *glyph = NULL;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_ins_multi_chars)
     {
@@ -889,17 +943,24 @@ void
 delete_glyphs (n)
      register int n;
 {
-  char *buf;
-  register int i;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_display_info *tty = FRAME_TTY (f);
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->delete_glyphs_hook)
-    {
-      (*FRAME_DISPLAY (f)->delete_glyphs_hook) (n);
-      return;
-    }
+    (*FRAME_DISPLAY (f)->delete_glyphs_hook) (n);
+}
 
+void
+tty_delete_glyphs (int n)
+{
+  char *buf;
+  register int i;
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->delete_in_insert_mode)
     {
@@ -930,73 +991,79 @@ void
 ins_del_lines (vpos, n)
      int vpos, n;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+  
   if (FRAME_DISPLAY (f)->ins_del_lines_hook)
+    (*FRAME_DISPLAY (f)->ins_del_lines_hook) (vpos, n);
+}
+
+void
+tty_ins_del_lines (int vpos, int n)
+{
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
+  struct tty_display_info *tty = FRAME_TTY (f);
+  char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
+  char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
+  char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
+
+  register int i = n > 0 ? n : -n;
+  register char *buf;
+
+  /* If the lines below the insertion are being pushed
+     into the end of the window, this is the same as clearing;
+     and we know the lines are already clear, since the matching
+     deletion has already been done.  So can ignore this.  */
+  /* If the lines below the deletion are blank lines coming
+     out of the end of the window, don't bother,
+     as there will be a matching inslines later that will flush them. */
+  if (FRAME_SCROLL_REGION_OK (f)
+      && vpos + i >= tty->specified_window)
+    return;
+  if (!FRAME_MEMORY_BELOW_FRAME (f)
+      && vpos + i >= FRAME_LINES (f))
+    return;
+  
+  if (multi)
     {
-      (*FRAME_DISPLAY (f)->ins_del_lines_hook) (vpos, n);
-      return;
+      raw_cursor_to (vpos, 0);
+      background_highlight (tty);
+      buf = tparam (multi, 0, 0, i);
+      OUTPUT (tty, buf);
+      xfree (buf);
+    }
+  else if (single)
+    {
+      raw_cursor_to (vpos, 0);
+      background_highlight (tty);
+      while (--i >= 0)
+        OUTPUT (tty, single);
+      if (tty->TF_teleray)
+        curX (tty) = 0;
     }
   else
     {
-      struct tty_display_info *tty = FRAME_TTY (f);
-      char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
-      char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
-      char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
-
-      register int i = n > 0 ? n : -n;
-      register char *buf;
-
-      /* If the lines below the insertion are being pushed
-         into the end of the window, this is the same as clearing;
-         and we know the lines are already clear, since the matching
-         deletion has already been done.  So can ignore this.  */
-      /* If the lines below the deletion are blank lines coming
-         out of the end of the window, don't bother,
-         as there will be a matching inslines later that will flush them. */
-      if (FRAME_SCROLL_REGION_OK (f)
-          && vpos + i >= tty->specified_window)
-        return;
-      if (!FRAME_MEMORY_BELOW_FRAME (f)
-          && vpos + i >= FRAME_LINES (f))
-        return;
-
-      if (multi)
-        {
-          raw_cursor_to (vpos, 0);
-          background_highlight (tty);
-          buf = tparam (multi, 0, 0, i);
-          OUTPUT (tty, buf);
-          xfree (buf);
-        }
-      else if (single)
-        {
-          raw_cursor_to (vpos, 0);
-          background_highlight (tty);
-          while (--i >= 0)
-            OUTPUT (tty, single);
-          if (tty->TF_teleray)
-            curX (tty) = 0;
-        }
+      set_scroll_region (vpos, tty->specified_window);
+      if (n < 0)
+        raw_cursor_to (tty->specified_window - 1, 0);
       else
-        {
-          set_scroll_region (vpos, tty->specified_window);
-          if (n < 0)
-            raw_cursor_to (tty->specified_window - 1, 0);
-          else
-            raw_cursor_to (vpos, 0);
-          background_highlight (tty);
-          while (--i >= 0)
-            OUTPUTL (tty, scroll, tty->specified_window - vpos);
-          set_scroll_region (0, tty->specified_window);
-        }
-
-      if (!FRAME_SCROLL_REGION_OK (f)
-          && FRAME_MEMORY_BELOW_FRAME (f)
-          && n < 0)
-        {
-          cursor_to (FRAME_LINES (f) + n, 0);
-          clear_to_end ();
-        }
+        raw_cursor_to (vpos, 0);
+      background_highlight (tty);
+      while (--i >= 0)
+        OUTPUTL (tty, scroll, tty->specified_window - vpos);
+      set_scroll_region (0, tty->specified_window);
+    }
+  
+  if (!FRAME_SCROLL_REGION_OK (f)
+      && FRAME_MEMORY_BELOW_FRAME (f)
+      && n < 0)
+    {
+      cursor_to (FRAME_LINES (f) + n, 0);
+      clear_to_end ();
     }
 }
 
@@ -1809,6 +1876,48 @@ tty_capable_p (tty, caps, fg, bg)
   return 1;
 }
 
+/* Return the tty display object specified by DISPLAY.
+   DISPLAY may be a frame or a string. */
+
+static struct display *
+get_tty_display (Lisp_Object display)
+{
+  struct display *d;
+
+  if (! FRAMEP (display) && ! STRINGP (display))
+    return 0;
+
+  /* The initial frame does not support colors. */
+  if (FRAMEP (display) && FRAME_INITIAL_P (XFRAME (display)))
+    return 0;
+
+  if (FRAMEP (display))
+    {
+      if (! FRAME_TERMCAP_P (XFRAME (display)))
+#if 0   /* XXX We need a predicate as the first argument; find one. */
+        wrong_type_argument ("Not a termcap frame", display);
+#else /* Until we fix the wrong_type_argument call above, simply throw
+         a dumb error. */
+      error ("DISPLAY is not a termcap frame");
+#endif  
+  
+      d = FRAME_DISPLAY (XFRAME (display));
+    }
+  else if (STRINGP (display))
+    {
+      char *name = (char *) alloca (SBYTES (display) + 1);
+      strncpy (name, SDATA (display), SBYTES (display));
+      name[SBYTES (display)] = 0;
+
+      d = get_named_tty_display (name);
+
+      if (!d)
+        error ("There is no tty display on %s", name);
+    }
+
+  return d;
+}
+
 
 /* Return non-zero if the terminal is capable to display colors.  */
 
@@ -1818,13 +1927,11 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
      (display)
      Lisp_Object display;
 {
-  struct tty_display_info *tty;
-
-  if (! FRAMEP (display))
+  struct display *d = get_tty_display (display);
+  if (!d)
     return Qnil;
-  
-  tty = FRAME_TTY (XFRAME (display));
-  return tty->TN_max_colors > 0 ? Qt : Qnil;
+  else
+    return d->display_info.tty->TN_max_colors > 0 ? Qt : Qnil;
 }
 
 /* Return the number of supported colors.  */
@@ -1834,13 +1941,11 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
      (display)
      Lisp_Object display;
 {
-  struct tty_display_info *tty;
-
-  if (! FRAMEP (display))
+  struct display *d = get_tty_display (display);
+  if (!d)
     return Qnil;
-  
-  tty = FRAME_TTY (XFRAME (display));
-  return make_number (tty->TN_max_colors);
+  else
+    return make_number (d->display_info.tty->TN_max_colors);
 }
 
 #ifndef WINDOWSNT
@@ -1982,7 +2087,7 @@ set_tty_color_mode (f, val)
 
 
 
-static struct display *
+struct display *
 get_named_tty_display (name)
      char *name;
 {
@@ -2058,33 +2163,50 @@ DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
 			    Initialization
  ***********************************************************************/
 
+/* Create the bootstrap display device for the initial frame.
+
+Returns a display of type output_initial. */
 struct display *
-initial_term_init (void)
+init_initial_display (void)
 {
+  struct tty_display_info *tty;
+  
   if (initialized || display_list || tty_list)
     abort ();
 
-  display_list = create_display ();
-
-  tty_list = xmalloc (sizeof (struct tty_display_info));
-  bzero (tty_list, sizeof (struct tty_display_info));
-  tty_list->name = 0;
-  tty_list->input = stdin;
-  tty_list->output = stdout;
-  tty_list->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
-#ifdef MULTI_KBOARD
-  tty_list->kboard = initial_kboard;
-#endif
+  initial_display = create_display ();
+  initial_display->type = output_initial;
   
-  display_list->type = output_termcap;
-  display_list->display_info.tty = tty_list;
+  initial_display->delete_display_hook = &delete_initial_display;
+  /* All other hooks are NULL. */
   
-  return display_list;
+  return initial_display;
 }
 
+/* Deletes the bootstrap display device.
+   Called through delete_display_hook. */
+void
+delete_initial_display (struct display *display)
+{
+  if (display != initial_display)
+    abort ();
 
+  delete_display (display);
+  initial_display = NULL;
+}
+
+/* Create a termcap display on the tty device with the given name and
+   type.
+
+   If NAME is NULL, then use the controlling tty, i.e., stdin/stdout.
+   Otherwise NAME should be a path to the tty device file,
+   e.g. "/dev/pts/7".
+
+   TERMINAL_TYPE is the termcap type of the device, e.g. "vt100".
+
+   If MUST_SUCCEED is true, then all errors are fatal. */
 struct display *
-term_init (char *name, char *terminal_type)
+term_init (char *name, char *terminal_type, int must_succeed)
 {
   char *area;
   char **address = &area;
@@ -2095,39 +2217,65 @@ term_init (char *name, char *terminal_type)
   struct tty_display_info *tty;
   struct display *display;
 
+  static void maybe_fatal();
+
+  if (!terminal_type)
+    maybe_fatal (must_succeed, 0, 0,
+                 "Unknown terminal type",
+                 "Unknown terminal type");
+  
   display = get_named_tty_display (name);
   if (display)
-    {
-      tty = display->display_info.tty;
+    return display;             /* We have already opened a display there. */
 
-      /* Return the previously initialized terminal, except if it is
-         the dummy terminal created for the initial frame. */
-      if (tty->type)
-        return display;
+  display = create_display ();
+  tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
+  bzero (tty, sizeof (struct tty_display_info));
+  tty->next = tty_list;
+  tty_list = tty;
 
-      /* Free up temporary structures. */
-      if (tty->Wcm)
-        xfree (tty->Wcm);
-      if (tty->kboard != initial_kboard)
-        abort ();
-      tty->kboard = 0;
-    }
-  else
-    {
-      display = create_display ();
-      tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
-      bzero (tty, sizeof (struct tty_display_info));
-      tty->next = tty_list;
-      tty_list = tty;
-
-      display->type = output_termcap;
-      display->display_info.tty = tty;
-    }
+  display->type = output_termcap;
+  display->display_info.tty = tty;
+  tty->display = display;
 
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
   display->rif = 0; /* ttys don't support window-based redisplay. */
+
+  display->cursor_to_hook = &tty_cursor_to;
+  display->raw_cursor_to_hook = &tty_raw_cursor_to;
+
+  display->clear_to_end_hook = &tty_clear_to_end;
+  display->clear_frame_hook = &tty_clear_frame;
+  display->clear_end_of_line_hook = &tty_clear_end_of_line;
+
+  display->ins_del_lines_hook = &tty_ins_del_lines;
+
+  display->insert_glyphs_hook = &tty_insert_glyphs;
+  display->write_glyphs_hook = &tty_write_glyphs;
+  display->delete_glyphs_hook = &tty_delete_glyphs;
+
+  display->ring_bell_hook = &tty_ring_bell;
+  
+  display->reset_terminal_modes_hook = &tty_reset_terminal_modes;
+  display->set_terminal_modes_hook = &tty_set_terminal_modes;
+  display->update_begin_hook = 0; /* Not needed. */
+  display->update_end_hook = &tty_update_end;
+  display->set_terminal_window_hook = &tty_set_terminal_window;
+
+  display->mouse_position_hook = 0; /* Not needed. */
+  display->frame_rehighlight_hook = 0; /* Not needed. */
+  display->frame_raise_lower_hook = 0; /* Not needed. */
+
+  display->set_vertical_scroll_bar_hook = 0; /* Not needed. */
+  display->condemn_scroll_bars_hook = 0; /* Not needed. */
+  display->redeem_scroll_bar_hook = 0; /* Not needed. */
+  display->judge_scroll_bars_hook = 0; /* Not needed. */
+
+  display->read_socket_hook = 0; /* Not needed. */
+  display->frame_up_to_date_hook = 0; /* Not needed. */
+  
   display->delete_frame_hook = &delete_tty_output;
   display->delete_display_hook = &delete_tty;
   
@@ -2196,55 +2344,35 @@ term_init (char *name, char *terminal_type)
   if (status < 0)
     {
 #ifdef TERMINFO
-      if (name)
-        {
-          xfree (buffer);
-          delete_tty (display);
-          error ("Cannot open terminfo database file");
-        }
-      else
-        fatal ("Cannot open terminfo database file");
+      maybe_fatal (must_succeed, buffer, display,
+                   "Cannot open terminfo database file",
+                   "Cannot open terminfo database file");
 #else
-      if (name)
-        {
-          xfree (buffer);
-          delete_tty (display);
-          error ("Cannot open termcap database file");
-        }
-      else
-        fatal ("Cannot open termcap database file");
+      maybe_fatal (must_succeed, buffer, display,
+                   "Cannot open termcap database file",
+                   "Cannot open termcap database file");
 #endif
     }
   if (status == 0)
     {
 #ifdef TERMINFO
-      if (name)
-        {
-          xfree (buffer);
-          delete_tty (display);
-          error ("Terminal type %s is not defined", terminal_type);
-        }
-      else
-        fatal ("Terminal type %s is not defined.\n\
+      maybe_fatal (must_succeed, buffer, display,
+                   "Terminal type %s is not defined",
+                   "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
-               terminal_type);
+                   terminal_type);
 #else
-      if (name)
-        {
-          xfree (buffer);
-          delete_tty (display);
-          error ("Terminal type %s is not defined", terminal_type);
-        }
-      else
-        fatal ("Terminal type %s is not defined.\n\
+      maybe_fatal (must_succeed, buffer, display,
+                   "Terminal type %s is not defined",
+                   "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
-               terminal_type);
+                   terminal_type);
 #endif
     }
 
@@ -2384,19 +2512,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     FrameRows (tty) = tgetnum ("li");
 
   if (FrameRows (tty) < 3 || FrameCols (tty) < 3)
-    {
-      if (initialized)
-        {
-          delete_tty (display);
-          error ("Screen size %dx%d is too small",
+    maybe_fatal (must_succeed, NULL, display,
+                 "Screen size %dx%d is too small"
+                 "Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
-        }
-      else
-        {
-          fatal ("Screen size %dx%d is too small",
-                 FrameCols (tty), FrameRows (tty));
-        }
-    }
 
 #if 0  /* This is not used anywhere. */
   tty->display->min_padding_speed = tgetnum ("pb");
@@ -2525,51 +2644,39 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->specified_window = FrameRows (tty);
 
   if (Wcm_init (tty) == -1)	/* can't do cursor motion */
-    if (name)
-      {
-        delete_tty (display);
-        error ("Terminal type \"%s\" is not powerful enough to run Emacs",
-               terminal_type);
-      }
-    else {
+    {
+      maybe_fatal (must_succeed, NULL, display,
+                   "Terminal type \"%s\" is not powerful enough to run Emacs",
 #ifdef VMS
-      fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
+                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have, use either the\n\
 DCL command `SET TERMINAL/DEVICE= ...' for DEC-compatible terminals,\n\
 or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.",
-             terminal_type);
 #else /* not VMS */
 # ifdef TERMINFO
-      fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
+                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
-             terminal_type);
 # else /* TERMCAP */
-      fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
+                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
-             terminal_type);
 # endif /* TERMINFO */
 #endif /*VMS */
+                   terminal_type);
     }
 
   if (FrameRows (tty) <= 0 || FrameCols (tty) <= 0)
-    {
-      if (name)
-        {
-          delete_tty (display);
-          error ("The frame size has not been specified");
-        }
-      else
-        fatal ("The frame size has not been specified");
-    }
+    maybe_fatal (must_succeed, NULL, display,
+                 "Could not determine the frame size",
+                 "Could not determine the frame size");
 
   tty->delete_in_insert_mode
     = tty->TS_delete_mode && tty->TS_insert_mode
@@ -2633,6 +2740,31 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   return display;
 #endif /* not WINDOWSNT */
+}
+
+/* Auxiliary error-handling function for term_init.
+   Free BUFFER and delete DISPLAY, then call error or fatal
+   with str1 or str2, respectively, according to MUST_SUCCEED.
+*/
+static void
+maybe_fatal (must_succeed, buffer, display, str1, str2, arg1, arg2)
+     int must_succeed;
+     char *buffer;
+     struct display *display;
+     char *str1, *str2, *arg1, *arg2;
+{
+  if (buffer)
+    xfree (buffer);
+
+  if (display)
+    delete_tty (display);
+  
+  if (must_succeed)
+    fatal (str2, arg1, arg2);
+  else
+    error (str1, arg1, arg2);
+
+  abort ();
 }
 
 /* VARARGS 1 */
@@ -2725,9 +2857,11 @@ delete_tty (struct display *display)
         }
     }
 
-  delete_display (display);
-
+  /* reset_sys_modes needs a valid display, so this call needs to be
+     before delete_display. */
   reset_sys_modes (tty);
+
+  delete_display (display);
 
   tty_name = tty->name;
   if (tty->type)

@@ -6728,7 +6728,7 @@ realize_default_face (f)
 	LFACE_FOREGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_FOREGROUND (lface) = build_string (unspecified_fg);
       else
 	abort ();
@@ -6743,7 +6743,7 @@ realize_default_face (f)
 	LFACE_BACKGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_BACKGROUND (lface) = build_string (unspecified_bg);
       else
 	abort ();
@@ -6830,7 +6830,7 @@ realize_face (cache, attrs, c, base_face, former_face_id)
 
   if (FRAME_WINDOW_P (cache->f))
     face = realize_x_face (cache, attrs, c, base_face);
-  else if (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f))
+  else if (FRAME_INITIAL_P (cache->f) || FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f))
     face = realize_tty_face (cache, attrs, c);
   else
     abort ();
