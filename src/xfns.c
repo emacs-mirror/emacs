@@ -35,7 +35,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
-#include "paths.h"
+#include <paths.h>
 
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
