@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.3) $
+ * $HopeName: MMsrc!arenacv.c(trunk.4) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * .readership: MPS developers
@@ -66,46 +66,46 @@ static void testit(ArenaClass class, ...)
   for(i = 0; i < 2; ++i) { /* zone loop */
     for(offset = 0; offset <= 2*segsPerPage; offset += segsPerPage) {
       if(offset != 0)
-	die(SegAlloc(&offsetSeg, &pref, arena, offset * pageSize, pool),
+	die(SegAlloc(&offsetSeg, &pref, offset * pageSize, pool),
 	    "offsetSeg");
       for(gap = segsPerPage+1; gap <= 3 * (segsPerPage+1);
 	  gap += (segsPerPage+1)) {
-	die(SegAlloc(&gapSeg, &pref, arena, gap * pageSize, pool),
+	die(SegAlloc(&gapSeg, &pref, gap * pageSize, pool),
 	    "gapSeg");
-	die(SegAlloc(&topSeg, &pref, arena, pageSize, pool),
+	die(SegAlloc(&topSeg, &pref, pageSize, pool),
 	    "topSeg");
-	SegFree(arena, gapSeg);
+	SegFree(gapSeg);
 	for(new = 1; new <= gap; new += segsPerPage) {
 	  Seg seg;
 
-	  die(SegAlloc(&newSeg, &pref, arena, new * pageSize, pool),
+	  die(SegAlloc(&newSeg, &pref, new * pageSize, pool),
 	      "newSeg");
 
 	  /* Test segment iterators */
 	  die(SegFirst(&seg, arena) ? ResOK : ResFAIL, "first");
-	  die(SegNext(&seg, arena, SegBase(arena, seg)) ? ResOK : ResFAIL,
+	  die(SegNext(&seg, arena, SegBase(seg)) ? ResOK : ResFAIL,
 	      "second");
-	  die(SegNext(&seg, arena, SegBase(arena, seg)) ? ResOK : ResFAIL,
+	  die(SegNext(&seg, arena, SegBase(seg)) ? ResOK : ResFAIL,
 	      "third");
 	  /* There are at least three segments */
-	  SegNext(&seg, arena, SegBase(arena, seg));
+	  SegNext(&seg, arena, SegBase(seg));
 
-	  SegFree(arena, newSeg);
+	  SegFree(newSeg);
 	}
 
-	SegFree(arena, topSeg);
+	SegFree(topSeg);
       }
       if(offset != 0) {
 	/* Test size functions */
 	Addr base, limit;
 	Size size;
 
-	base = SegBase(arena, offsetSeg);
-	limit = SegLimit(arena, offsetSeg);
-	size = SegSize(arena, offsetSeg);
+	base = SegBase(offsetSeg);
+	limit = SegLimit(offsetSeg);
+	size = SegSize(offsetSeg);
 	die(size == AddrOffset(base, limit) ? ResOK : ResFAIL, "size");
 
-	SegFree(arena, offsetSeg);
+	SegFree(offsetSeg);
       }
     }
     SegPrefExpress(&pref, SegPrefRefSet, &refSet);

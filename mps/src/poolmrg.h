@@ -2,7 +2,7 @@
  *
  *               MANUAL RANK GUARDIAN POOL CLASS
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!poolmrg.h(trunk.1) $
  *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  */
 
@@ -14,5 +14,6 @@
 typedef struct MRGStruct *MRG;
 
 extern PoolClass PoolClassMRG(void);
+extern Res MRGRegister(Pool, Ref);
 
 #endif /* poolmrg_h */

@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.33) $
+ * $HopeName: MMsrc!mpmst.h(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -177,6 +177,39 @@ typedef struct MVStruct {       /* MV pool outer structure */
   RingStruct spans;             /* span chain */
   Sig sig;                      /* design.mps.sig */
 } MVStruct;
+
+
+/* MessageClassStruct -- Message Class structure 
+ *
+ * see design.mps.message.class.struct (and design.mps.message.message,
+ * and design.mps.message.class).
+ */
+
+#define MessageClassSig	((Sig)0x519359c1) /* SIGnature MeSsaGe CLass */
+
+typedef struct MessageClassStruct {
+  Sig sig;			/* design.mps.sig */
+  const char *name;		/* Human readable Class name */
+  MessageDeleteMethod delete;	/* terminates a message */
+  MessageFinalizationRefMethod
+    finalizationRef; 		/* for MessageTypeFinalization */
+  Sig endSig;			/* design.mps.message.class.sig.double */
+} MessageClassStruct;
+
+#define MessageSig	((Sig)0x5193e559) /* SIG MESSaGe */
+
+/* MessageStruct -- Message structure
+ *
+ * see design.mps.message.message.struct.
+ */
+
+typedef struct MessageStruct {
+  Sig sig;			/* design.mps.sig */
+  Arena arena;	                /* owning arena */
+  MessageType type;		/* Message Type */
+  MessageClass class;		/* Message Class Structure */
+  RingStruct queueRing;		/* Message queue ring */
+} MessageStruct;
 
 
 /* SegStruct -- segment structure
@@ -536,6 +569,14 @@ typedef struct ArenaStruct {
   /* format fields (impl.c.format) */
   RingStruct formatRing;        /* ring of formats attached to arena */
   Serial formatSerial;          /* serial of next format */
+
+  /* message fields (design.mps.message, impl.c.message) */
+  RingStruct messageRing;	/* ring of pending messages */
+  BT enabledMessageTypes;	/* map of which types are enabled */
+
+  /* finalization fields (design.mps.finalize), impl.c.space */
+  Bool isFinalPool;		/* indicator for finalPool */
+  Pool finalPool;		/* either NULL or an MRG pool */
 
   /* thread fields (impl.c.thread) */
   RingStruct threadRing;        /* ring of attached threads */

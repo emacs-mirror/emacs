@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.32) $
+ * $HopeName: MMsrc!buffer.c(trunk.33) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.32) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.33) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -376,7 +376,6 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
 Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 {
   Res res;
-  Arena arena;
   Pool pool;
   Seg seg;
   Addr base, limit, next;
@@ -388,7 +387,6 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   AVER(BufferIsReady(buffer));
 
   pool = BufferPool(buffer);
-  arena = BufferArena(buffer);
 
   /* If we're here because the buffer was trapped, then the mutator */
   /* must not have been between reserve and commit when flip */
@@ -420,9 +418,9 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 
   AVER(SegCheck(seg));
   AVER(SegBuffer(seg) == NULL);
-  AVER(SegBase(arena, seg) <= base);
+  AVER(SegBase(seg) <= base);
   AVER(AddrAdd(base, size) <= limit);
-  AVER(limit <= SegLimit(arena, seg));
+  AVER(limit <= SegLimit(seg));
 
   /* Set up the buffer to point at the memory given by the pool */
   /* and do the allocation that was requested by the client. */

@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.45) $
+ * $HopeName: MMsrc!trace.c(trunk.46) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.45) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.46) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -168,7 +168,7 @@ static Res TraceStart(Trace trace, Action action)
   if(SegFirst(&seg, arena)) {
     Addr base;
     do {
-      base = SegBase(arena, seg);
+      base = SegBase(seg);
       /* Segment should be either black or white by now. */
       AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
@@ -354,7 +354,7 @@ static void TraceFlipBuffers(Arena arena)
 static Res TraceFlip(Trace trace)
 {
   Ring ring;
-  Ring node;
+  Ring node, nextNode;
   Arena arena;
   ScanStateStruct ss;
   Rank rank;
@@ -432,7 +432,7 @@ static Res TraceFlip(Trace trace)
   /* achieved by read protecting all segments containing objects */
   /* which are grey for any of the flipped traces. */
   for(rank = 0; rank < RankMAX; ++rank)
-    RING_FOR(node, ArenaGreyRing(arena, rank)) {
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
       if(TraceSetInter(SegGrey(seg),
                        arena->flippedTraces) == TraceSetEMPTY &&
@@ -471,7 +471,7 @@ static void TraceReclaim(Trace trace)
   if(SegFirst(&seg, arena)) {
     Addr base;
     do {
-      base = SegBase(arena, seg);
+      base = SegBase(seg);
 
       /* There shouldn't be any grey stuff left for this trace. */
       AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
@@ -516,7 +516,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 {
   Rank rank;
   Trace trace;
-  Ring node;
+  Ring node, nextNode;
 
   AVER(segReturn != NULL);
   AVERT(Arena, arena);
@@ -525,7 +525,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
   trace = ArenaTrace(arena, ti);
   
   for(rank = 0; rank < RankMAX; ++rank) {
-    RING_FOR(node, ArenaGreyRing(arena, rank)) {
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
       AVERT(Seg, seg);
       AVER(SegGrey(seg) != TraceSetEMPTY);
