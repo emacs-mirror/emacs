@@ -1,3 +1,9 @@
+2001-12-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-view.el: Partially sync with the Gnus CVS.
+	* gnus-sum.el (gnus-summary-save-article): Nix
+	gnus-display-mime-function and gnus-article-prepare-hook.
+
 2001-12-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-mail): Add send-actions.

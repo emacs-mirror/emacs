@@ -9148,7 +9148,9 @@ The variable `gnus-default-article-saver' specifies the saver function."
 	    (gnus-message 1 "Article %d is unsaveable" article))
 	;; This is a real article.
 	(save-window-excursion
-	  (gnus-summary-select-article t nil nil article))
+	  (let ((gnus-display-mime-function nil)
+		(gnus-article-prepare-hook nil))
+	    (gnus-summary-select-article t nil nil article)))
 	(save-excursion
 	  (set-buffer save-buffer)
 	  (erase-buffer)
