@@ -396,12 +396,11 @@ The output is in landscape format, one month to a page."
             (let ((i (calendar-islamic-date-string date)))
               (if (not (string-equal i ""))
                   (list (list (format "Islamic date (before sunset): %s" i)))))
-;      too slow to leave this in all the time!
-;       (list
-;        (list (format "Chinese date: %s" (calendar-chinese-date-string date))))
-;       so instead,
-            (list '("Chinese date (select to echo Chinese date)"
-                    . calendar-mouse-chinese-date))
+            (list
+             (list (format "Chinese date: %s"
+                           (calendar-chinese-date-string date))))
+;            (list '("Chinese date (select to echo Chinese date)"
+;                    . calendar-mouse-chinese-date))
             (let ((c (calendar-coptic-date-string date)))
               (if (not (string-equal c ""))
                   (list (list (format "Coptic date: %s" c)))))
