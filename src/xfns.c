@@ -1388,7 +1388,13 @@ x_set_scroll_bar_width (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  if (XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
+  if (NILP (arg))
+    {
+      FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 0;
+      FRAME_SCROLL_BAR_COLS (f) = 2;
+    }
+  else if (INTEGERP (arg) && XINT (arg) > 0
+	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
     {
       int wid = FONT_WIDTH (f->display.x->font);
       FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = XFASTINT (arg);
@@ -2395,7 +2401,7 @@ be shared by the new frame.")
 
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", number);
-  x_default_parameter (f, parms, Qscroll_bar_width, make_number (12),
+  x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", number);
 
   f->display.x->parent_desc = ROOT_WINDOW;
