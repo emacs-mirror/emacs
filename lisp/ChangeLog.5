@@ -65,7 +65,7 @@
 1995-06-19  Ed Reingold  <reingold@albert.gnu.ai.mit.edu>
 
 	* solar.el (calendar-location-name, sunrise-sunset): Fix bug in
-        determination of output string.
+	determination of output string.
 
 1995-06-18  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -126,7 +126,7 @@
 1995-06-17  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* ediff.el: Fixed bogus references to menu-bar-file-menu in
- 	define-key forms.
+	define-key forms.
 
 1995-06-16  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
@@ -195,7 +195,7 @@
 	(ispell-dictionary-alist): Once more a single variable.
 	(ispell-required-version): Documentation changes
 	(ispell-skip-sgml): Documentation changes
-	(ispell-command-loop): mode-line-format now shows misspelled word.
+	(ispell-command-loop): `mode-line-format' now shows misspelled word.
 	(ispell-message-text-end): Can now process postscript version 1.
 	(ispell-message-start-skip): New variable for block skips, set up for
 	pgp and forward blocks.
@@ -233,12 +233,12 @@
 	main properties, `vc-workfile-version' and `vc-locking-user',
 	are inferred from those master file properties if the
 	information cannot be found elsehow.  All properties are
-        consistently cached now.
+	consistently cached now.
 
 	Reordered some defuns so they are grouped in a logical way.
 
-	(vc-master-info, vc-log-info, vc-fetch-properties): Functions
-	removed.  Their job is now done by `vc-fetch-master-properties'
+	(vc-master-info, vc-log-info, vc-fetch-properties): Functions removed.
+	Their job is now done by `vc-fetch-master-properties'
 	and `vc-insert-file'.
 
 	(vc-fetch-master-properties): New function.
@@ -269,7 +269,7 @@
 	* vc.el: Adapt to the changes in vc-hooks.el, namely, the new
 	'none-value of vc-locking-user, and the consistent caching
 	of all properties.  Especially, make the properties survive
-        check-ins and check-outs.  Various minor bug fixes.
+	check-ins and check-outs.  Various minor bug fixes.
 
 	(vc-file-clear-masterprops): New function.
 
@@ -323,11 +323,11 @@
 1995-06-14  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* compile.el (compilation-find-file): If FILENAME is absolute,
- 	apply abbreviate-file-name to it and then use its directory part
- 	as the first search path element, searching for its nondirectory
- 	part.  Fix prompting code not to use a free variable.
-	(compilation-parse-errors, compile-abbreviate-directory): Use
-	abbreviate-file-name on directories.
+	apply abbreviate-file-name to it and then use its directory part
+	as the first search path element, searching for its nondirectory
+	part.  Fix prompting code not to use a free variable.
+	(compilation-parse-errors, compile-abbreviate-directory):
+	Use abbreviate-file-name on directories.
 
 1995-06-14  Johan Vromans  <jv@NL.net>
 
@@ -391,8 +391,8 @@
 
 1995-06-13  Michael Kifer <kifer@cs.sunysb.edu>
 
-	* viper.el (vip-change-state-to-vi): bug fix.
-	* viper-util.el (vip-over-whitespace-line): new function.
+	* viper.el (vip-change-state-to-vi): Bug fix.
+	* viper-util.el (vip-over-whitespace-line): New function.
 
 1995-06-13  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
@@ -469,18 +469,18 @@
 
 1995-06-08  Michael Kifer <kifer@cs.sunysb.edu>
 
-	* viper.el (vip-envelop-ESC-key): if an ESC-sequence translates
+	* viper.el (vip-envelop-ESC-key): If an ESC-sequence translates
 	into a function key, pretend that this key was the last command event.
 
-	* viper.el (vip-put-back,vip-Put-back): now emulate Vi's behavior
+	* viper.el (vip-put-back,vip-Put-back): Now emulate Vi's behavior
 	more closely.
 
-	* viper.el (vip-line): no longer not bombs out.
+	* viper.el (vip-line): No longer not bombs out.
 	(vip-exec-shift) now preserves the point.
 
 	* viper.el: Fixed the behavior of the Vi commands M, L, G, yw, dg, etc.
 
-	* viper-util.el (vip-event-key): now handles keys 128--255 as
+	* viper-util.el (vip-event-key): Now handles keys 128--255 as
 	meta-chars.
 	* viper-ex.el: Fixed problems with yanking/deleting buffers.
 
@@ -493,7 +493,7 @@
 1995-06-08  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* map-ynp.el (map-y-or-n-p): Don't eval return value of prompter
- 	function.
+	function.
 
 1995-06-08  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
@@ -502,12 +502,12 @@
 1995-06-08  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* rlogin.el (rlogin): If optional second arg is buffer or string,
- 	use that as name.
+	use that as name.
 
 1995-06-07  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* gud.el (gud-common-init): Call the MASSAGE-ARGS function even if
- 	FILE is nil.
+	FILE is nil.
 
 1995-06-07  Morten Welinder  <terra+@cs.cmu.edu>
 
@@ -540,59 +540,59 @@
 
 1995-06-05  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* ediff-merg.el (ediff-set-state-of-diff-in-all-buffers): bug fix.
-	(ediff-set-merge-mode): new function.
-	(ediff-do-merge): now sets correct major mode in the merge buffer.
-	(ediff-combine-diffs): handles correctly non-interactive calls.
+	* ediff-merg.el (ediff-set-state-of-diff-in-all-buffers): Bug fix.
+	(ediff-set-merge-mode): New function.
+	(ediff-do-merge): Now sets correct major mode in the merge buffer.
+	(ediff-combine-diffs): Handles correctly non-interactive calls.
 
 	* ediff.el: Added ediff-cleanup-hooks and ediff-janitor.
 
 	* ediff-wind.el (ediff-setup-control-frame, ediff-keep-window-config):
 	bug fix.
 
-	* ediff-init.el (ediff-frame-has-menubar): function deleted.
-	(ediff-device-type, ediff-color-display-p): new functions.
+	* ediff-init.el (ediff-frame-has-menubar): Function deleted.
+	(ediff-device-type, ediff-color-display-p): New functions.
 
-	* ediff-wind.el (ediff-make-control-frame): optimized for display.
+	* ediff-wind.el (ediff-make-control-frame): Optimized for display.
 	Commented out (redraw-display), to improve speed.
 
-	* ediff.el: don't make the patch buffer RO.
+	* ediff.el: Don't make the patch buffer RO.
 
-	* ediff.el (ediff-load-version-control): now checks if
+	* ediff.el (ediff-load-version-control): Now checks if
 	ediff-revision-key is non-nil.
 
 	* ediff.el (ediff-revision-key): Now defaults to nil.
 
-	* ediff.el (ediff-revision): now takes prefix argument; can compare
+	* ediff.el (ediff-revision): Now takes prefix argument; can compare
 	two versions of the same file.
 
-	* ediff.el: the merge buffer now assumes the major mode of the
+	* ediff.el: The merge buffer now assumes the major mode of the
 	default variant.
 
-	* ediff.el (ediff-documentation: new function.
+	* ediff.el (ediff-documentation: New function.
 
 	* ediff-wind.el: Got rid of toolbars in control frame in xemacs
 
 	* ediff-wind.el: Changed window-min-height from 1 to 2
 
-	* ediff-wind.el (ediff-diff-at-point, ediff-toggle-multiframe): bug
-	fixes.
-	(ediff-destroy-control-frame, ediff-window-display-p): new functions.
+	* ediff-wind.el (ediff-diff-at-point, ediff-toggle-multiframe):
+	Bug fixes.
+	(ediff-destroy-control-frame, ediff-window-display-p): New functions.
 	* ediff.el, ediff-wind.el, ediff-util.el, ediff-init.el:
 	Converted xemacs *screen* nomenclature to *frame*.
 	Incorporated overlay strings. Ediff no longer runs under emacs
 	19.28 and earlier and XEmacs 19.11 and earlier.
-	* ediff.el (ediff-patch-buffer): now handles buffers that don't
+	* ediff.el (ediff-patch-buffer): Now handles buffers that don't
 	visit any file.
-	(ediff-windows): renamed to ediff-windows-wordwise, added
-	(ediff-windows-linewise): new function.
+	(ediff-windows): Renamed to ediff-windows-wordwise, added
+	(ediff-windows-linewise): New function.
 	Changed ediff-small/large-regions to ediff-regions-wordwise/linewise
 
 	* ediff.el, ediff-wind.el:
 	Changed window-system to ediff-window-display.
 
-	* ediff-wind.el (ediff-toggle-multiframe): fixed.
-	(ediff-destroy-control-frame): new function.
+	* ediff-wind.el (ediff-toggle-multiframe): Fixed.
+	(ediff-destroy-control-frame): New function.
 
 1995-06-05  Boris Goldowsky  <boris@spiff.gnu.ai.mit.edu>
 
@@ -612,15 +612,15 @@
 
 1995-06-02  Ed Reingold  <reingold@albert.gnu.ai.mit.edu>
 
-        * calendar.el (calendar-string-spread): Fix to allow 0 or 1 string.
-        (calendar-set-mode-line): Use this ability.
-        (generate-calendar-month): Ditto.
+	* calendar.el (calendar-string-spread): Fix to allow 0 or 1 string.
+	(calendar-set-mode-line): Use this ability.
+	(generate-calendar-month): Ditto.
 
-        * cal-x.el (calendar-two-frame-setup): Create fancy buffer if needed.
-        (calendar-one-frame-setup): Ditto.
+	* cal-x.el (calendar-two-frame-setup): Create fancy buffer if needed.
+	(calendar-one-frame-setup): Ditto.
 
-        * diary-lib.el (make-fancy-diary-buffer): New function.
-        (fancy-diary-display): Use it.
+	* diary-lib.el (make-fancy-diary-buffer): New function.
+	(fancy-diary-display): Use it.
 
 1995-06-02  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
@@ -633,13 +633,13 @@
 1995-06-01  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* files.el (multiple-recover-finish): Renamed to
- 	recover-session-finish.
+	recover-session-finish.
 	(recover-session): Changed binding.
 	(recover-session-finish): Doc fix; rewritten using map-y-or-n-p.
 
 1995-06-01  Ed Reingold  <reingold@albert.gnu.ai.mit.edu>
 
-        * cal-x.el (calendar-setup): Autoload it.
+	* cal-x.el (calendar-setup): Autoload it.
 
 1995-06-01  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
@@ -649,8 +649,8 @@
 	timestamp of file against cache.  Check buffer with buffer-modified-p.
 	Do set-buffer before all of these.
 	(fast-lock-save-events): Events for which a cache may be saved.
-	(fast-lock-after-save-hook, fast-lock-kill-buffer-hook,
-	fast-lock-kill-emacs-hook): Functions for those events; added to hooks.
+	(fast-lock-after-save-hook, fast-lock-kill-buffer-hook)
+	(fast-lock-kill-emacs-hook): Funs for those events; added to hooks.
 	(fast-lock-save-faces): List of faces to save.
 	(fast-lock-get-face-properties): Use it.
 	(fast-lock-cache-filename): Variable to store buffer's cache file name.
@@ -683,23 +683,23 @@
 	(archive-mode-map, archive-summarize-files): Make it sort-of
 	work with Lucid Emacs.
 	(archive-mouse-extract): Use Lucid compatible code.
-	(archive-summarize-files, archive-lzh-chmod-entry): Guard
-	lambda with function.
+	(archive-summarize-files, archive-lzh-chmod-entry):
+	Guard lambda with function.
 
 1995-05-30  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
-	* time-stamp.el (time-stamp): only warn about time-stamping
+	* time-stamp.el (time-stamp): Only warn about time-stamping
 	being disabled if found a time-stamp that won't get updated.
 
 1995-05-30  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* compile.el (compilation-error-regexp-alist): In "Cray C" regexp,
- 	don't allow newlines.
+	don't allow newlines.
 
 1995-05-30  Michael Kifer <kifer@cs.sunysb.edu>
 
-	* ediff-wind.el (ediff-setup-control-frame): Make
-	Ediff delete the old control frame before creating a new one.
+	* ediff-wind.el (ediff-setup-control-frame):
+	Make Ediff delete the old control frame before creating a new one.
 
 1995-05-30  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
@@ -781,12 +781,12 @@
 
 1995-05-28  Erik Naggum  <erik@naggum.no>
 
-	* mail-extr.el (mail-extr-all-letters-but-separators): reinstate
-	\377, the bug in search.c is apparently gone.
-	(mail-extr-first-letters): add 8-bit characters
-	(mail-extr-last-letters): ditto
+	* mail-extr.el (mail-extr-all-letters-but-separators):
+	Reinstate \377, the bug in search.c is apparently gone.
+	(mail-extr-first-letters): Add 8-bit characters
+	(mail-extr-last-letters): Ditto.
 
-	* simple.el (indent-for-comment): move to beginning of line only
+	* simple.el (indent-for-comment): Move to beginning of line only
 	if there is a comment syntax.
 
 1995-05-28  Michael Ernst  <mernst@research.microsoft.com>
@@ -808,8 +808,8 @@
 	* files.el (find-file-noselect): In "file changed" messages,
 	mention buffer name if different from file name.
 
-	* ediff-wind.el (ediff-setup-control-frame): Use
- 	designated-minibuffer-frame while making the new frame.
+	* ediff-wind.el (ediff-setup-control-frame):
+	Use designated-minibuffer-frame while making the new frame.
 	And delete the old frame if its minibuffer is not in that frame.
 	(ediff-setup-windows-multiframe-compare)
 	(ediff-setup-windows-multiframe-merge): Don't mess with
@@ -851,8 +851,8 @@
 1995-05-26  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* compile.el (compilation-error-regexp-alist): In "IBM C/C++
- 	Tools" regexp, disallow leading spaces and disallow whitespace
- 	chars within the file name.
+	Tools" regexp, disallow leading spaces and disallow whitespace
+	chars within the file name.
 
 1995-05-26  Michael Ernst  <mernst@research.microsoft.com>
 
@@ -879,77 +879,77 @@
 	* ada-mode.el (initial comments): Copyright 1995; don't speak
 	about setup; correct history for a file that actually IS in
 	Emacs 19.29; update list of known bugs.
-	(all functions): inititialize all local variables explicitely to 'nil'.
-	(ada-font-lock-keywords): initialized according to new user option
+	(all functions): Inititialize all local variables explicitely to 'nil'.
+	(ada-font-lock-keywords): Initialized according to new user option
 	`font-lock-maximum-decoration'.
 
-	* ada-mode.el (ada-ident-re): new regexp for Ada identifiers.
+	* ada-mode.el (ada-ident-re): New regexp for Ada identifiers.
 	(ada-block-start-re): "record" may be preceded by one or more
 	occurencies of "limited", "abstract", or "tagged".
-	(ada-end-stmt-re): added "separate" body parts, "else", and
+	(ada-end-stmt-re): Add "separate" body parts, "else", and
 	"package <Id> is".
-	(ada-subprogram-start-re): added "entry", "protected" and
+	(ada-subprogram-start-re): Add "entry", "protected" and
 	"package body"
-	(ada-indent-function): handle "elsif" the same way as "if", added
+	(ada-indent-function): Handle "elsif" the same way as "if", added
 	"separate" for no indent.
-	(ada-get-indent-type): if "type ... is .." is followed by code on
+	(ada-get-indent-type): If "type ... is .." is followed by code on
 	the same line, it is a broken statement. Test it.
-	(ada-check-defun-name): check for "protected" records.
-	(ada-goto-matching-decl-start): use of ada-ident-re.
-	(ada-goto-matching-start): extend regexp for "protected" record.
-	(ada-in-limit-line): renamed from in-limit-line. Don't use
+	(ada-check-defun-name): Check for "protected" records.
+	(ada-goto-matching-decl-start): Use of ada-ident-re.
+	(ada-goto-matching-start): Extend regexp for "protected" record.
+	(ada-in-limit-line): Rename from in-limit-line. Don't use
 	count-lines, but test if beginning-of-line/end-of-line puts us
 	to bob/eob.
-	(ada-goto-previous-nonblank-line): save a beginning-of-line
+	(ada-goto-previous-nonblank-line): Save a beginning-of-line
 	statement, as we already are there.
-	(ada-complete-type): removed.
-	(ada-tabsize): removed.
-	(keymap): use C-M-a and C-M-e for proc/func movement.  No
-	keybinding anymore for next/prev-package.
-	(ada-font-lock-keywords-[1|2]): add protected records. "when" removed
+	(ada-complete-type): Remove.
+	(ada-tabsize): Remove.
+	(keymap): Use C-M-a and C-M-e for proc/func movement.
+	No keybinding anymore for next/prev-package.
+	(ada-font-lock-keywords-[1|2]): Add protected records. "when" removed
 	from 'reference'-face.
-	(initial comments): updated CREDITS list.
-	(ada-add-ada-menu): capitalized menu entries.  Added menu statement
+	(initial comments): Update CREDITS list.
+	(ada-add-ada-menu): Capitalize menu entries.  Add menu statement
 	needed for XEmacs.
 
-	* ada-mode.el: changed all Ada94 to Ada95.
+	* ada-mode.el: Change all Ada94 to Ada95.
 
-	* ada-mode.el: (ada-xemacs): new function, detect if we are
+	* ada-mode.el: (ada-xemacs): New function, detect if we are
 	running on XEmacs. Ada keymap definition and menus use it.
-	(ada-create-syntax-table): corrected comments explaining use of 2nd
+	(ada-create-syntax-table): Correct comments explaining use of 2nd
 	syntax table.  Added creation of ada-mode-symbol-syntax-table
 	with '_' as word constituent.
-	(ada-adjust-case): add test, if symbol is preceeded by a "'".
+	(ada-adjust-case): Add test, if symbol is preceeded by a "'".
 	If true, change case according to ada-case-attribute.
-	(ada-which-function-are-we-in): new routine. Save name of the current
+	(ada-which-function-are-we-in): New routine. Save name of the current
 	function in the old buffer; we can place cursor now at the same
 	function in the new buffer using find-file.
-	(ada-make-body): new function.  Generates body stubs if the body
+	(ada-make-body): New function.  Generates body stubs if the body
 	did not exist yet and you switch to it by find-file.
-	(ada-gen-treat-proc): complete rewrite for ada-make-body.
-	(ada-mode): two doc lines about the above extension.
-	(keymap definition): remove 4th parameter in call to
+	(ada-gen-treat-proc): Complete rewrite for ada-make-body.
+	(ada-mode): Two doc lines about the above extension.
+	(keymap definition): Remove 4th parameter in call to
 	`substitute-key-definition' to make XEmacs happy.
 
-	(ada-adjust-case-region, ada-move-to-start, ada-move-to-end,
-	ada-indent-newline-indent, ada-format-paramlist): switch syntax
+	(ada-adjust-case-region, ada-move-to-start, ada-move-to-end)
+	(ada-indent-newline-indent, ada-format-paramlist): Switch syntax
 	tables, protect switching of syntax tables with unwind-protect.
-	(ada-in-open-paren-p): replace user option
+	(ada-in-open-paren-p): Replace user option
 	`ada-search-paren-line-count-limit' by
 	`ada-search-paren-char-count-limit'.
-	(ada-case-attribute): new user option, but not yet the functionality.
-	(ada-krunch-args): initialized to 0 exploiting the new capability of
+	(ada-case-attribute): New user option, but not yet the functionality.
+	(ada-krunch-args): Initialized to 0 exploiting the new capability of
 	'gnatk8' as of gnat-2.0.
-	(ada-make-filename-from-adaname): remove downcasing and replacement
+	(ada-make-filename-from-adaname): Remove downcasing and replacement
 	of dots. This is done in external program gnatk8 (gnat-2.0).
-	(ada-in-open-paren-p): complete rewrite for speed-up.
-	(ada-search-ignore-string-comment): ignore # as a string terminator
+	(ada-in-open-paren-p): Complete rewrite for speed-up.
+	(ada-search-ignore-string-comment): Ignore # as a string terminator
 	in all searches.
-	(ada-add-ada-menu): use real variables instead of t for invoking
+	(ada-add-ada-menu): Use real variables instead of t for invoking
 	'easymenu'
 	(require 'easymenu).
-	(imenu-create-ada-index): we accept forward definitions again.
-	(ada-indent-region): catch errors, simplified code.
+	(imenu-create-ada-index): We accept forward definitions again.
+	(ada-indent-region): Catch errors, simplified code.
 
 1995-05-23  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -967,7 +967,7 @@
 
 1995-05-22  Erik Naggum  <erik@naggum.no>
 
-	* gnus.el (gnus-gnus-to-quick-newsrc-format): don't save
+	* gnus.el (gnus-gnus-to-quick-newsrc-format): Don't save
 	gnus-newsgroup-alist in .newsrc.el.
 
 1995-05-22  Richard Stallman  <rms@waves>
@@ -1056,12 +1056,12 @@
 	* compile.el (compilation-next-error-locus): Ignore zero column number.
 	(compilation-parse-errors): Don't store the beginning of the line
 	containing the end of the error-regexp match.  Instead, store the
- 	beginning of the line containing the start of the match, unless
- 	the match starts with a newline, in which case the beginning of
- 	the next line.
+	beginning of the line containing the start of the match, unless
+	the match starts with a newline, in which case the beginning of
+	the next line.
 
 	* vc-hooks.el (vc-status): If vc-locking-user returns a number,
- 	compare it to (user-uid).
+	compare it to (user-uid).
 
 1995-05-11  James Thompson  <thompson@wg2.waii.com>
 
@@ -1069,8 +1069,7 @@
 	XEmacs 19.12.
 
 	* ps-print.el (ps-plot-with-face): Added code to handle Emacs
-	19.29's new ability for the face attribute to hold a list of
-	faces.
+	19.29's new ability for the face attribute to hold a list of faces.
 
 	* ps-print.el: Rolled in Chuck Thompson's changes to make color
 	printing work in XEmacs 19.12.
@@ -1080,7 +1079,7 @@
 	* ps-print.el (ps-generate-postscript-with-faces): Add fix to
 	handle extents without faces.
 
-	* ps-print.el (ps-faces-list): deleted.  Added alias for
+	* ps-print.el (ps-faces-list): Delete.  Added alias for
 	list-faces if face-list isn't fbound.
 
 	* ps-print.el: (ps-print-ensure-fontified) added to make sure
@@ -1091,10 +1090,10 @@
 1995-05-10  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* etags.el (tags-loop-continue): Doc fix.  Reset NEW after
- 	visiting for real, so we don't clobber the buffer again.
+	visiting for real, so we don't clobber the buffer again.
 
 	* compile.el (compilation-error-regexp-alist): Add regexps for IBM
- 	and Cray compilers.
+	and Cray compilers.
 	(compilation-next-error-locus): Ignore a column number that is zero.
 
 1995-05-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -1291,7 +1290,7 @@
 1995-04-26  Rob Riepel  <riepel@Snowflake.Stanford.edu>
 
 	* tpu-edt.el (tpu-copy-keyfile): New function.
-        (tpu-load-xkeys): Copy key definition file to new default name.
+	(tpu-load-xkeys): Copy key definition file to new default name.
 
 1995-04-26  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -1310,8 +1309,8 @@
 	here from vc-hooks.el.
 
 	* vc-hooks.el (vc-default-backend, vc-path, vc-consult-headers):
-	(vc-mistrust-permissions, vc-keep-workfiles): Customization
-	variables, moved here from vc.el.
+	(vc-mistrust-permissions, vc-keep-workfiles):
+	Customization variables, moved here from vc.el.
 	(vc-trunk-p, vc-minor-revision, vc-branch-part): Moved to vc.el.
 	(vc-backend): Renamed from vc-backend-deduce.  Callers changed.
 	(vc-match-substring, vc-lock-file, vc-parse-buffer, vc-master-info):
@@ -1325,7 +1324,7 @@
 	(vc-status): Replaced by the much simpler version that gets the
 	information from the file properties.  Removed the obsolete
 	parameter vc-type.
-	(vc-parse-buffer): changed format of PATTERNS.  Each pattern is now a
+	(vc-parse-buffer): Change format of PATTERNS.  Each pattern is now a
 	list of 2 to 3 elements, the first being the pattern, the remaining
 	ones the numbers of subexpressions to refer to.
 	(vc-cvs-status): New per-file property, only used in the CVS case.
@@ -1335,8 +1334,8 @@
 	Better search regexp for CVS latest version.
 	(vc-log-info): Search for branch version only in the RCS case,
 	since this doesn't make sense for SCCS or CVS.
-	(vc-fetch-properties): CVS case: set vc-cvs-status.
-	(vc-locking-user): CVS case: use vc-cvs-status to determine if
+	(vc-fetch-properties) <CVS>: Set vc-cvs-status.
+	(vc-locking-user) <CVS>: Use vc-cvs-status to determine if
 	the file is up-to-date, thus avoiding an expensive call to
 	vc-workfile-unchanged-p.
 	(vc-mode-line): Re-activated the code that makes the buffer read-only
@@ -1360,7 +1359,7 @@
 	* edt.el (edt-advance, edt-backup): Likewise.
 	* emerge.el (emerge-fast-mode, emerge-edit-mode): Likewise.
 	(emerge-auto-advance, emerge-skip-prefers): Likewise.
- 	(emerge-refresh-mode-line): Likewise.
+	(emerge-refresh-mode-line): Likewise.
 	* f90.el (f90-auto-fill-mode): Likewise.
 	* files.el (toggle-read-only, rename-uniquely): Likewise.
 	* find-dired.el (find-dired-sentinel): Likewise.
@@ -1376,7 +1375,7 @@
 	* mh-comp.el (mh-insert-signature): Likewise.
 	* mh-e.el (mh-set-scan-mode): Likewise.
 	* mh-utils.el (mh-set-mode-name): Likewise.
-o	* noutline.el (outline-minor-mode): Likewise.
+	* noutline.el (outline-minor-mode): Likewise.
 	* outline.el (outline-minor-mode): Likewise.
 	* picture.el (picture-set-motion, picture-mode-exit): Likewise.
 	* rmailedit.el (rmail-edit-current-message): Likewise.
@@ -1401,17 +1400,17 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* tpu-extras.el: Removed reference to tpu-gnu-emacs18-p.
 
-        * tpu-mapper.el: Eval key definitions and clean up upon completion.
-        Persistent completion status message.
+	* tpu-mapper.el: Eval key definitions and clean up upon completion.
+	Persistent completion status message.
 
-	* loaddefs.el (esc-map): Define ESC ESC : like ESC :.
+	* loaddefs.el (esc-map): Define `ESC ESC :' like `ESC :'.
 
 1995-04-25  Johan Vromans  <jv@squirrel.NL.net>
 
 	* forms.el: (forms--make-format-elt-using-text-properties)
 	forms--make-format): Add `intangible' text property to read-only areas.
-	(forms-next-field, forms-previous-field): Use
-	`inhibit-point-motion-hooks' to allow move between two
+	(forms-next-field, forms-previous-field):
+	Use `inhibit-point-motion-hooks' to allow move between two
 	intangible areas.
 
 1995-04-25  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
@@ -1467,8 +1466,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(font-lock-apply-highlight): New inline function to apply highlights.
 	(font-lock-hack-keywords): Use them, if font-lock-keywords are not
 	compiled, and to highlight.  Use funcall if MATCHER is not a regexp.
-	(font-lock-mode): Doc fix for font-lock-maximum-decoration.  Use
-	font-lock-set-defaults to call font-lock-make-faces.
+	(font-lock-mode): Doc fix for font-lock-maximum-decoration.
+	Use font-lock-set-defaults to call font-lock-make-faces.
 	(tex-font-lock-keywords): Revamped.
 
 	* fortran.el (fortran-match-!-comment): New function.
@@ -1560,10 +1559,10 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	Rename mouse-sel-selection-type to mouse-sel-primary-thing.
 	(mouse-sel-secondary-thing): New variable.
 	(mouse-sel-selection-alist): New constant.
-	(mouse-sel-set-selection-function): Semantics changed.  Value
-	should now be a function taking two arguments.
-	(mouse-sel-get-selection-function): Semantics changed.  Value
-	should now be a function taking one argument.
+	(mouse-sel-set-selection-function): Semantics changed.
+	Value should now be a function taking two arguments.
+	(mouse-sel-get-selection-function): Semantics changed.
+	Value should now be a function taking one argument.
 	(mouse-sel-selection-owner-p-function): New variable.
 	Removed variable mouse-sel-check-selection-function.
 	Rename mouse-sel-determine-selection-type to
@@ -1596,8 +1595,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-04-18  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
 
-	* info.el (Info-find-node, Info-restore-point, Info-search,
- 	Info-forward-node, Info-backward-node): Use string-equal, not equal,
+	* info.el (Info-find-node, Info-restore-point, Info-search)
+	(Info-forward-node, Info-backward-node): Use string-equal, not equal,
 	to compare node names.
 
 	* cpp.el (cpp-edit-reset): Fix typo.
@@ -1639,7 +1638,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-04-18  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* etags.el (tags-search, tags-query-replace): Put (quote ...)
- 	around args inserted into forms to be evalled.
+	around args inserted into forms to be evalled.
 
 1995-04-18  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1714,7 +1713,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-04-14  Erik Naggum  <erik@naggum.no>
 
 	* rmail.el (rmail-reformat-message): Call `rmail-clear-headers'
- 	also if `rmail-displayed-headers' is set.
+	also if `rmail-displayed-headers' is set.
 	(rmail-clear-headers): Handle `rmail-displayed-headers' correctly.
 
 1995-04-14  Erik Naggum  <erik@naggum.no>
@@ -1783,42 +1782,42 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* vc-hooks.el: Add branch support for RCS;
 	treat CVS more like RCS and SCCS.
-        (vc-occurences, vc-trunk-p, vc-branch-p, vc-minor-revision)
-        (vc-branch-part): new functions that operate on RCS revision numbers.
-        (vc-status): Use the new property vc-workfile-version
+	(vc-occurences, vc-trunk-p, vc-branch-p, vc-minor-revision)
+	(vc-branch-part): New functions that operate on RCS revision numbers.
+	(vc-status): Use the new property vc-workfile-version
 	and vc-locking-user (see vc.el).  Display "locking state" for CVS.
-        (vc-find-cvs-master): Search for file name case-sensitively, store
+	(vc-find-cvs-master): Search for file name case-sensitively, store
 	version number into the new property vc-workfile-version.
-	(vc-find-file-hook): kill any remaining properties.  Like this,
+	(vc-find-file-hook): Kill any remaining properties.  Like this,
 	when re-finding a file (for example because it has changed on disk),
 	the version control state gets re-computed.
-	(vc-mode-line): CVS case: make the buffer read-only if the file
+	(vc-mode-line) <CVS>: Make the buffer read-only if the file
 	is unmodified.
-        (vc-kill-buffer-hook): Clear file's vc props when buffer is killed.
+	(vc-kill-buffer-hook): Clear file's vc props when buffer is killed.
 
-        * vc.el: Add branch support for RCS; treat CVS more like RCS and SCCS.
-	(vc-next-action-on-file): changed CVS handling, such that C-x C-q
+	* vc.el: Add branch support for RCS; treat CVS more like RCS and SCCS.
+	(vc-next-action-on-file): Change CVS handling, such that C-x C-q
 	works as with RCS and SCCS.
 	(vc-consult-rcs-headers): New function.
-        (vc-branch-version): New per-file property, refers
+	(vc-branch-version): New per-file property, refers
 	to the RCS version selected by `rcs -b'.
 	(vc-workfile-version): New function.  Also new per-file property
 	(vc-consult-headers): New parameter variable.
 	(vc-mistrust-permissions): Default set to `nil'.
-        (vc-locking-user): Property is now cached.  The other functions
+	(vc-locking-user): Property is now cached.  The other functions
 	update it as necessary.  Attempts to use RCS headers if enabled.
-        (vc-log-info, vc-parse-buffer): Various bug fixes.  Added support
+	(vc-log-info, vc-parse-buffer): Various bug fixes.  Added support
 	for property `vc-branch-version'.
-	(vc-backend-checkout): RCS case: if no explicit version
+	(vc-backend-checkout) <RCS>: If no explicit version
 	is specified, check out `vc-workfile-version'.  After check-out,
 	set `vc-workfile-version' according to the version number
 	reported by "co".
-	(vc-backend-checkin): RCS case: remove any remaining locks
+	(vc-backend-checkin) <RCS>: Remove any remaining locks
 	if a new branch was created.  After every check-in, adjust
 	the current branch using `rcs -b' (this cannot be avoided).
-	CVS case: allow for explicit checkin, but only on the trunk.
-	(vc-next-action-on-file, vc-backend-checkout, vc-backend-checkin,
-	vc-backend-revert, vc-backend-diff): Explicitly use
+	<CVS>: Allow for explicit checkin, but only on the trunk.
+	(vc-next-action-on-file, vc-backend-checkout, vc-backend-checkin)
+	(vc-backend-revert, vc-backend-diff): Explicitly use
 	vc-workfile-version as the default version to operate on.
 
 1995-04-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -1852,7 +1851,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-04-11  Geoff Voelker  <voelker@cs.washington.edu>
 
-        * loadup.el [WINDOWSNT]: Find doc strings.
+	* loadup.el [WINDOWSNT]: Find doc strings.
 
 	* files.el (set-auto-mode) [WINDOWSNT]: Match insensitive to case.
 
@@ -1884,23 +1883,23 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-04-10  Stefan Schoef  <schoef@Informatik.Uni-Oldenburg.DE>
 
-        * bibtex.el (bibtex-find-text, bibtex-remove-double-quotes-or-braces):
+	* bibtex.el (bibtex-find-text, bibtex-remove-double-quotes-or-braces):
 	Support both kind of delimiters (braces or quotes) regardless of the
 	value of bibtex-field-left-delimiter and bibtex-field-right-delimiter.
-        (bibtex-field-left-delimiter, bibtex-field-right-delimiter):
+	(bibtex-field-left-delimiter, bibtex-field-right-delimiter):
 	Made buffer-local.
 
-        * bibtex.el (bibtex-beginning-of-entry): At the beginning of an
- 	entry, leave point at the beginning of that entry instead of
- 	moving to the beginning of the previous one.
-        (bibtex-end-of-entry): Outside an entry, now move to the end of
- 	the *previous* entry (i.e. bibtex-beginning-of-entry and
- 	bibtex-end-of-entry are now idempotent).
-        (bibtex-sort-entries, bibtex-clean-entry): Removed now obsolete
-        calls of bibtex-beginning-of-entry just before calls to
-        bibtex-end-of-entry.
-        (bibtex-clean-entry): Minor change to adapt to new behavior of
-        bibtex-beginning-of-entry.
+	* bibtex.el (bibtex-beginning-of-entry): At the beginning of an
+	entry, leave point at the beginning of that entry instead of
+	moving to the beginning of the previous one.
+	(bibtex-end-of-entry): Outside an entry, now move to the end of
+	the *previous* entry (i.e. bibtex-beginning-of-entry and
+	bibtex-end-of-entry are now idempotent).
+	(bibtex-sort-entries, bibtex-clean-entry): Removed now obsolete
+	calls of bibtex-beginning-of-entry just before calls to
+	bibtex-end-of-entry.
+	(bibtex-clean-entry): Minor change to adapt to new behavior of
+	bibtex-beginning-of-entry.
 
 1995-04-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1917,12 +1916,12 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-04-10  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* compile.el (compilation-error-regexp-alist): Remove superfluous
- 	SGI cc regexp.
+	SGI cc regexp.
 
 1995-04-10  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
-	* version.el (emacs-major-version, emacs-minor-version): Use
-        match-string rather than substring.
+	* version.el (emacs-major-version, emacs-minor-version):
+	Use match-string rather than substring.
 
 1995-04-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1943,7 +1942,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-04-09  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* server.el (server-switch-buffer): Make first arg optional too;
- 	server-edit might pass no args, since server-done might return nil.
+	server-edit might pass no args, since server-done might return nil.
 
 1995-04-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1974,7 +1973,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-04-08  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* etags.el (next-file): Handle empty list returned by
- 	(tags-table-files).
+	(tags-table-files).
 
 1995-04-08  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1990,7 +1989,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-04-08  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* compile.el (compilation-error-regexp-alist): Extend Ultrix 3.0
- 	f77 regexp to also match SGI cc.
+	f77 regexp to also match SGI cc.
 
 1995-04-08  Morten Welinder  <terra+@cs.cmu.edu>
 
@@ -2014,9 +2013,9 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-04-08  Noah Friedman  <friedman@splode.com>
 
-        * rsz-mini.el (resize-minibuffer-window): Make sure minibuffer
-        window is selected.
-        (resize-minibuffer-window-restore): Likewise.
+	* rsz-mini.el (resize-minibuffer-window): Make sure minibuffer
+	window is selected.
+	(resize-minibuffer-window-restore): Likewise.
 
 1995-04-08  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2038,11 +2037,11 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-04-07  Noah Friedman  <friedman@splode.com>
 
-        * rlogin.el (rlogin): Use format, not concat, to generate numeric
-        buffer names.
-        Do not create a new buffer if process in existing buffer has exited.
-        (rlogin-directory-tracking-mode): Set shell-dirtrackp, not
-        shell-dirtrack-p.
+	* rlogin.el (rlogin): Use format, not concat, to generate numeric
+	buffer names.
+	Do not create a new buffer if process in existing buffer has exited.
+	(rlogin-directory-tracking-mode): Set shell-dirtrackp, not
+	shell-dirtrack-p.
 
 1995-04-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2066,7 +2065,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* avoid.el: Add autoload cookies; doc fixes.
 	(mouse-avoidance-set-pointer-shape): New function.
 	(mouse-avoidance-nudge-mouse): Use it.
-	(mouse-avoidance-fancy-hook): streamline args to set-mouse-pos.
+	(mouse-avoidance-fancy-hook): Streamline args to set-mouse-pos.
 
 1995-04-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2164,14 +2163,14 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	characters that are quoted when in file names (default nil).
 	(comint-mode): Make it buffer local.
 	(comint-quote-filename): Quote them if they are in the file name.
-	(comint-dynamic-complete-as-filename,
-	comint-dynamic-list-filename-completions): Call it before insertion.
+	(comint-dynamic-complete-as-filename)
+	(comint-dynamic-list-filename-completions): Call it before insertion.
 	(comint-unquote-filename): Unquote any character in the file name.
 	(comint-match-partial-filename): Call it before substitution.
 	(comint-word): Include any quoted character as part of the word.
 	(comint-completion-addsuffix): Value can be a cons pair of strings.
-	(comint-dynamic-complete-as-filename,
-	comint-dynamic-simple-complete): Use it when inserting suffixes.
+	(comint-dynamic-complete-as-filename)
+	(comint-dynamic-simple-complete): Use it when inserting suffixes.
 
 	* shell.el (shell-file-name-quote-list): New variable of special
 	characters that are quoted when present in file names.
@@ -2190,7 +2189,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-04-01  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* fill.el (fill-region-as-paragraph): Remove fill-prefix first,
- 	then remove indentation.
+	then remove indentation.
 
 	* files.el (inhibit-first-line-modes-suffixes): New variable.
 	(set-auto-mode): Use it.
@@ -2246,7 +2245,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-03-30  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
 	* dired.el (dired-insert-directory): Wrap filename character
-        quoting code with save-excursion.
+	quoting code with save-excursion.
 
 1995-03-29  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
 
@@ -2299,7 +2298,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-03-24  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
 	* subr.el (match-string): Change to defun, but still return nil if
-        no match.
+	no match.
 
 1995-03-23  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -2329,7 +2328,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-03-23  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
 	* subr.el (match-string): New macro.  Unlike the function version,
-        returns nil if no match.
+	returns nil if no match.
 
 1995-03-22  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2437,30 +2436,30 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* loadup.el: Load format.el.
 
 	* enriched.el: Some keybindings adjusted for new function names.
-	(enriched-auto-save-interval, enriched-downcase-annotations,
-	enriched-code-face, enriched-indenatation-face,
-	enriched-ignored-ok, enriched-encode-interesting-regexp,
-	enriched-decode-special-alist, enriched-decode-interesting-regexp,
-	enriched-encode-special-alist, enriched-translated,
-	enriched-ignored-list, enriched-open-ans,
-	enriched-encode-hard-newline, enriched-decode-hard-newline,
-	enriched-push, enriched-pop, enriched-which-assoc,
-	enriched-get-face-attribute, enriched-overlays-overlapping,
-	enriched-show-codes, enriched-show-margin-codes,
-	enriched-show-region-as-code, enriched-nogrow-hook, enriched-warn,
-	enriched-looking-at-with-props,
-	enriched-search-forward-with-props,
-	enriched-search-backward-with-props,
-	enriched-text-properties-include, enriched-tag-indentation,
-	enriched-open-annotation, enriched-close-annotation,
-	enriched-annotate-function, enriched-delete-indentation,
-	enriched-move-to-next-property-change): Deleted.
+	(enriched-auto-save-interval, enriched-downcase-annotations)
+	(enriched-code-face, enriched-indenatation-face)
+	(enriched-ignored-ok, enriched-encode-interesting-regexp)
+	(enriched-decode-special-alist, enriched-decode-interesting-regexp)
+	(enriched-encode-special-alist, enriched-translated)
+	(enriched-ignored-list, enriched-open-ans)
+	(enriched-encode-hard-newline, enriched-decode-hard-newline)
+	(enriched-push, enriched-pop, enriched-which-assoc)
+	(enriched-get-face-attribute, enriched-overlays-overlapping)
+	(enriched-show-codes, enriched-show-margin-codes)
+	(enriched-show-region-as-code, enriched-nogrow-hook, enriched-warn)
+	(enriched-looking-at-with-props)
+	(enriched-search-forward-with-props)
+	(enriched-search-backward-with-props)
+	(enriched-text-properties-include, enriched-tag-indentation)
+	(enriched-open-annotation, enriched-close-annotation)
+	(enriched-annotate-function, enriched-delete-indentation)
+	(enriched-move-to-next-property-change): Delete.
 
-	(enriched-delq-1, enriched-make-list-uniq,
-	enriched-make-relatively-unique, enriched-common-tail,
-	enriched-reorder, enriched-insert-annotations,
-	enriched-loc-annotations, enriched-annotate-change,
-	enriched-encode-unknown): Moved to format.el.  Names changed.
+	(enriched-delq-1, enriched-make-list-uniq)
+	(enriched-make-relatively-unique, enriched-common-tail)
+	(enriched-reorder, enriched-insert-annotations)
+	(enriched-loc-annotations, enriched-annotate-change
+	(enriched-encode-unknown): Move to format.el.  Names changed.
 
 	(enriched-display-table): Copy standard table if there is one,
 	otherwise create new table.
@@ -2468,21 +2467,21 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(enriched-initial-annotation): Made it closer to MIME standard.
 	(enriched-file-width): Use new header format.
 	(enriched-remove-header): New fn.
-	(enriched-par-props, enriched-initial-annotation,
-	enriched-annotation-format, enriched-annotation-regexp): Declare
-	as const.
+	(enriched-par-props, enriched-initial-annotation)
+	(enriched-annotation-format, enriched-annotation-regexp):
+	Declare as const.
 	(enriched-translations): Name changed from
-	enriched-annotation-alist.  `hard' removed from list.  Description
-	of its semantics moved to format.el.
-	(enriched-list-valued-properties): Deleted, now
+	enriched-annotation-alist.  `hard' removed from list.
+	Description of its semantics moved to format.el.
+	(enriched-list-valued-properties): Delete, now
 	`format-list-valued' property holds this information.
-	(enriched-annotation-name, enriched-annotation-positive-p): Merged
-	into enriched-next-annotation.
+	(enriched-annotation-name, enriched-annotation-positive-p):
+	Merge into enriched-next-annotation.
 	(enriched-mode): Do not translate buffer.  This should be done
 	already when mode is called.  Do not set
 	write-region-annotate-functions or after-change-functions hooks.
-	Put text/enriched on buffer-file-format if necessary.  Don't
-	set auto-save-interval.  Do set default-properties.
+	Put text/enriched on buffer-file-format if necessary.
+	Don't set auto-save-interval.  Do set default-properties.
 	(enriched-insert-indentation): Do nothing to blank lines.
 	(enriched-encode, enriched-decode): New fns are rewritten
 	versions of enriched-encode-region and enriched-decode-region.
@@ -2505,7 +2504,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-03-16  Boris Goldowsky  <boris@cs.rochester.edu>
 
-	* indent.el (indent-line-to): move to end of indentation, even if
+	* indent.el (indent-line-to): Move to end of indentation, even if
 	it didn't change.
 
 1995-03-16  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
@@ -2573,23 +2572,23 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-03-15  Karl Fogel  <kfogel@spiff.gnu.ai.mit.edu>
 
-        * bookmark.el: (bookmark-bmenu-2-window): go to correct position
+	* bookmark.el: (bookmark-bmenu-2-window): Go to correct position
 	as well as correct buffer.
-	(bookmark-bmenu-other-window): same.
-        (bookmark-bmenu-switch-other-window): same.
+	(bookmark-bmenu-other-window): Same.
+	(bookmark-bmenu-switch-other-window): Same.
 
 1995-03-13  Karl Fogel  <kfogel@floss>
 
 	* bookmark.el: Removed C-v bindings; they were inconsistent.
 	Defvarred some variables to nil, solely to avoid compilation warnings.
 	Use "Author's Update Number:" instead of "Version:".
-	(bookmark-history): new var.
-	(bookmark-completing-read): use `bookmark-history'.
-	(bookmark-maybe-historicize-string): new macro.
+	(bookmark-history): New var.
+	(bookmark-completing-read): Use `bookmark-history'.
+	(bookmark-maybe-historicize-string): New macro.
 	Use this everywhere `bookmark-completing-read' is used, because
 	`completing-read' won't get a chance to add to `bookmark-history' if
 	we were invoked via a menu.
-	(bookmark-rename): use `bookmark-history' when reading the new name.
+	(bookmark-rename): Use `bookmark-history' when reading the new name.
 	No need for the strange C-o binding anymore.
 
 1995-03-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -2678,9 +2677,9 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	Changed format of bookmark-alist and therefore of bookmark files.
 	Have version stamps in bookmark files.
 	Automatically upgrade old bookmark files to new format.
-        Changed name of default bookmark file to ".emacs.bmk".
-	Replaced "Bookmark-menu" with "bookmark-bmenu".  The
-        capitalization signified nothing; "bmenu" means "buffer-menu"
+	Changed name of default bookmark file to ".emacs.bmk".
+	Replaced "Bookmark-menu" with "bookmark-bmenu".
+	The capitalization signified nothing; "bmenu" means "buffer-menu"
 	-- that is, bmenu code is for the dired-like of bookmarks that
 	appears when `list-bookmarks' is run, and the "bookmark-menu"
 	prefix is for the menu-bar.
@@ -2717,7 +2716,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(bookmark-make-cell): Use backquote.
 	Produce with the new format (Format Version 1).
 	Use `format' to strip text-properties.
-        (bookmark-write-file): Use `pp' instead of `princ'.
+	(bookmark-write-file): Use `pp' instead of `princ'.
 	Call `bookmark-insert-file-format-version-stamp'.
 	(bookmark-all-names, bookmark-menu-popup-paned-bookmark-menu)
 	(bookmark-menu-build-paned-menu, bookmark-menu-popup-paned-menu)
@@ -2727,8 +2726,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(bookmark-load-hook): New hook.
 
 	(bookmark-make-menu-alist): Function deleted.
-	(bookmark-popup-menu-and-apply-function): replaces
-	`bookmark-make-menu-with-function'.
+	(bookmark-popup-menu-and-apply-function):
+	Replaces `bookmark-make-menu-with-function'.
 
 	(bookmark-load): Use `bookmark-alist-from-buffer'.
 	Call `bookmark-maybe-upgrade-file-format'.
@@ -2796,7 +2795,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-03-07  Francesco Potorti`  (pot@cnuce.cnr.it)
 
-	* cmacexp.el (c-macro-expansion): put the unique string before the
+	* cmacexp.el (c-macro-expansion): Put the unique string before the
 	first #line directive (instead of after), preceded by a newline.
 
 1995-03-06  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
@@ -2807,7 +2806,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(find-dired-filter): Use dired-insert-set-properties on new text.
 
 	* compile.el (compilation-buffer-p): Fix braino in last change:
- 	switch to the buffer first.
+	switch to the buffer first.
 	(compilation-error-regexp-alist): Doc fix: optional cdrs give
 	string containing %s to produce the file name from the matched text.
 	(compilation-find-file): Reorder args: MARKER first, then
@@ -2833,8 +2832,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-03-03  Robert J. Chassell  <bob@hill.gnu.ai.mit.edu>
 
-        * texinfmt.el (texinfo-format-refill): Don't confuse a title
-        underline with 2 or more `*' with an xref line starting with one `*'.
+	* texinfmt.el (texinfo-format-refill): Don't confuse a title
+	underline with 2 or more `*' with an xref line starting with one `*'.
 
 1995-03-03  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2890,11 +2889,11 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(font-lock-fontify-region): Fix to use forward-comment from
 	comment-start, rather than searching for comment-end from point.
 
-	* ada.el, ada-mode.el (ada-font-lock-keywords): Use
-	font-lock-maximum-decoration.
+	* ada.el, ada-mode.el (ada-font-lock-keywords):
+	Use font-lock-maximum-decoration.
 
-	* fortran.el, f90.el (fortran-font-lock-keywords): Use
-        font-lock-maximum-decoration.
+	* fortran.el, f90.el (fortran-font-lock-keywords):
+	Use font-lock-maximum-decoration.
 
 1995-03-02  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2906,8 +2905,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* simple.el (newline): Moved from cmds.c.  Indents last
 	inserted line to left-margin.
 
-	* paragraphs.el (paragraph-start, paragraph-separate): Default
-	values no longer start with ^. Doc fix.
+	* paragraphs.el (paragraph-start, paragraph-separate):
+	Default values no longer start with ^. Doc fix.
 	(use-hard-newlines): Moved here from cmds.c.  Made buffer-local.
 	Doc fix.
 	(looking-at-hard): Deleted, not needed.
@@ -2917,8 +2916,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	treated like blank lines.
 	Paragraph-separate no longer requires a preceding hard newline, but
 	paragraph-start does: paragraph-separates usually won't occur by
-	accident, so it doesn't hurt to respect them whenever they do
-	occur.
+	accident, so it doesn't hurt to respect them whenever they do occur.
 
 1995-03-01  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2947,8 +2945,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-02-28  Noah Friedman  <friedman@splode.com>
 
-        * rlogin.el (rlogin-carriage-filter): Don't assume buffer is
-        narrowed to region with most recent output.
+	* rlogin.el (rlogin-carriage-filter): Don't assume buffer is
+	narrowed to region with most recent output.
 
 1995-02-28  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
@@ -2963,9 +2961,9 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-02-26  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* compile.el (compilation-buffer-p): Check for
- 	compilation-minor-mode or compilation-mode major mode, rather than
- 	internal state variables.  Don't want to match a buffer that was
- 	once in compilation-minor-mode but is not now.
+	compilation-minor-mode or compilation-mode major mode, rather than
+	internal state variables.  Don't want to match a buffer that was
+	once in compilation-minor-mode but is not now.
 
 1995-02-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2998,11 +2996,11 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* shell.el (shell-truncate-buffer): Doc them.
 
-	* comint.el (comint-dynamic-complete-as-filename): Let
-        file-name-handler-alist to nil; comint-file-name-prefix does this.
+	* comint.el (comint-dynamic-complete-as-filename):
+	Let file-name-handler-alist to nil; comint-file-name-prefix does this.
 	(comint-dynamic-list-filename-completions): Likewise.
-	(comint-dynamic-complete-filename,
-	comint-dynamic-complete-as-filename): Use window-minibuffer-p.
+	(comint-dynamic-complete-filename)
+	(comint-dynamic-complete-as-filename): Use window-minibuffer-p.
 
 1995-02-25  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3022,9 +3020,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-02-24  Lars Lindberg  <Lars.Lindberg@sypro.cap.se>
 
-	* msb.el (msb): Select the window that the mouse is in before
-	  showing the menu.  This makes the "Most recently used" menu more
-	  accurate.
+	* msb.el (msb): Select the window that the mouse is in before showing
+	the menu.  This makes the "Most recently used" menu more accurate.
 	(menu-bar-update-buffers): The frame list is now an integrated
 	part of the buffer menu.
 	(msb--few-menus, msb--very-many-menus): Added rmail-edit-mode.
@@ -3049,13 +3046,12 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	done after the save-restriction.
 
 	Newlines at end of region used to be changed to spaces, then
- 	deleted.  Now delete them (all but one) explicitly, so that we
- 	can test whether they are hard and not delete hard newlines.
+	deleted.  Now delete them (all but one) explicitly, so that we
+	can test whether they are hard and not delete hard newlines.
 
-  	Ignore all whitespace at beginning of region: a line
- 	containing spaces before first line of text used to be joined
- 	onto first line of text, making spurious paragraph
- 	indentation.
+	Ignore all whitespace at beginning of region: a line
+	containing spaces before first line of text used to be joined
+	onto first line of text, making spurious paragraph indentation.
 
 	If there is only whitespace in the region, exit quickly (fixed
 	possible infinite-loop condition).
@@ -3067,11 +3063,11 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	any whitespace after the fill-prefix too.
 
 	Always exit with point at end of region, after a single
- 	paragraph-final newline.
+	paragraph-final newline.
 
 	(fill-region): Don't use paragraph-movement commands
- 	in use-hard-newlines mode; just fill between each pair of hard
- 	newlines.  Old strategy of setting paragraph-start to "^"
+	in use-hard-newlines mode; just fill between each pair of hard
+	newlines.  Old strategy of setting paragraph-start to "^"
 	doesn't work, since paragraph-start no longer no longer need
 	occur at BOL.
 
@@ -3082,12 +3078,12 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	begin and end args in noninteractive use, or extend to limits of
 	paragraphs.
 	Don't use "^" in paragraph-start regexp.
-  	Ignore fill-prefix when searching for enclosing paragraph with
+	Ignore fill-prefix when searching for enclosing paragraph with
 	use-hard-newlines true.
-  	Squeeze spaces from regions that used to be full-justified.
+	Squeeze spaces from regions that used to be full-justified.
 	Remove leftover debugging code.
 
-  	(set-justification-{none,left,right,full,center}): Use WHOLE-PAR
+	(set-justification-{none,left,right,full,center}): Use WHOLE-PAR
 	arg of set-justification.  Interactive spec changed to avoid
 	errors when there is no region.
 
@@ -3135,11 +3131,11 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	is active; auto-fill controls only whether to re-fill text.
 	(set-left-margin, increase-left-margin): Use indent-rigidly to
 	change indentation level.
-	(set-left-margin, set-right-margin, increase-left-margin): Save
-	point when calling fill-region.
-	(increase-left-margin): left-margin property can be
+	(set-left-margin, set-right-margin, increase-left-margin):
+	Save point when calling fill-region.
+	(increase-left-margin): `left-margin' property can be
 	negative, for outdenting, up to the value of the left-margin variable.
-	(increase-right-margin): right-margin property can be arbitrarily
+	(increase-right-margin): `right-margin' property can be arbitrarily
 	negative.  Negative values can't be stored in text/enriched
 	format, but that doesn't mean we shouldn't allow it in general.
 
@@ -3167,22 +3163,22 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-02-21  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-ex.el (ex-find-file): now gives an error when a wild card
+	* viper-ex.el (ex-find-file): Now gives an error when a wild card
 	gives no match.
-	(ex-next): now recognizes counts and puts proper commands in
+	(ex-next): Now recognizes counts and puts proper commands in
 	ex-command-history.
-	(vip-info-on-file, ex-substitute): bug fixed.
+	(vip-info-on-file, ex-substitute): Bug fixed.
 
 1995-02-21  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
 	* shell.el (shell-cd): New function.
-	(shell-process-cd, shell-process-pushd, shell-process-popd,
-	shell-resync-dirs): Use it instead of cd.
+	(shell-process-cd, shell-process-pushd, shell-process-popd)
+	(shell-resync-dirs): Use it instead of cd.
 	(shell-mode): Make list-buffers-directory local with value
 	default-directory.
 
 	* mouse.el (mouse-buffer-menu): Use list-buffers-directory if
-        non-nil if buffer-file-name is nil.
+	non-nil if buffer-file-name is nil.
 
 1995-02-20  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -3192,13 +3188,12 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-02-20  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
 	* fortran.el (fortran-mode): Made fortran-font-lock-keywords turn
-        off syntactic fontification by default.
+	off syntactic fontification by default.
 
 1995-02-20  Roland McGrath  <roland@duality.gnu.ai.mit.edu>
 
 	* vc.el (vc-log-info): Don't switch to the *vc* buffer before
- 	running vc-do-command, because that would change its
- 	default-directory.
+	running vc-do-command, because that would change its default-directory.
 
 1995-02-19  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
 
@@ -3545,8 +3540,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-02-01  Noah Friedman  <friedman@splode.com>
 
-        * sendmail.el (mail-mailer-swallows-blank-line): Handle full range
-          of RFC822-legal header names.
+	* sendmail.el (mail-mailer-swallows-blank-line): Handle full range
+	of RFC822-legal header names.
 
 1995-02-01  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
 
@@ -3644,8 +3639,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-01-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* mouse.el (mouse-save-then-kill): When we don't use existing
-	region, put where click and put mark at the other end.  Use
-	point-before-scroll if non-nil.  Recognize mouse-set-region
+	region, put where click and put mark at the other end.
+	Use point-before-scroll if non-nil.  Recognize mouse-set-region
 	as a previous command that makes a region we should use.
 	(mouse-drag-region): When we run the final click's binding,
 	set this-command.
@@ -3674,10 +3669,10 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* etags.el : Changes to support filenames as tags too and provided
 	a drop-in replacement for list-tags.
-	(find-tag-noselect): recognize filenames as valid tags too.
-	(find-tag-file-order): new variable added. This contains the name of
+	(find-tag-noselect): Recognize filenames as valid tags too.
+	(find-tag-file-order): New variable added. This contains the name of
 	the function used to qualify a matched filename.
-	(last-tag-file): new variable; stores the filename looked for via
+	(last-tag-file): New variable; stores the filename looked for via
 	find-tag fmaily of functions.
 	(find-tag-in-order): In case tag searched for is a file, don't do
 	anything fancy to locate position of tag in file. Just seek to
@@ -3839,7 +3834,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-01-20  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
-	* text-mode.el (center-line): fill-column is a var, not a function.
+	* text-mode.el (center-line): `fill-column' is a var, not a function.
 
 1995-01-20  Morten Welinder  <terra@diku.dk>
 
@@ -3874,10 +3869,10 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	Callers changed.
 	(fill-region-as-paragraph): left-margin renamed to current-left-margin.
 
-	* indent.el (move-to-left-margin): justification renamed to
-        current-justification.
-	* simple.el (do-auto-fill): justification renamed to
-        current-justification.
+	* indent.el (move-to-left-margin): `justification' renamed to
+	`current-justification'.
+	* simple.el (do-auto-fill): `justification' renamed to
+	`current-justification'.
 
 	* ispell.el (check-ispell-version): Use Fundamental mode
 	in the temporary buffer.
@@ -3901,8 +3896,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* fill.el (set-justification): New function.
 	(set-justification-{none,left,right,full,center}): New functions.
-	(fill-region-as-paragraph, fill-region, justify-current-line): New
-	arg NOSQUEEZE defeats normal removal of extra whitespace.
+	(fill-region-as-paragraph, fill-region, justify-current-line):
+	New arg NOSQUEEZE defeats normal removal of extra whitespace.
 	(fill-region-as-paragraph, fill-region)
 	(fill-nonuniform-paragraphs, fill-individual-paragraphs):
 	Arg JUSTIFY-FLAG (JUSTIFYP) renamed to JUSTIFY.
@@ -3926,8 +3921,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	Don't check fill-column; do-auto-fill will do that.
 
 	* simple.el (do-auto-fill): Fill, don't fill, or fill-and-justify
-	depending on setting of justification text-property.  Respect
-	left-margin and right-margin text properties.
+	depending on setting of justification text-property.
+	Respect left-margin and right-margin text properties.
 	(open-line, indent-new-comment-line): Inherit when inserting.
 	(newline-and-indent, reindent-then-newline-and-indent): Doc fix.
 
@@ -3990,14 +3985,14 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(facemenu-set-face, facemenu-set-face-from-menu): Check read-only.
 	(facemenu-set-face): Doc fix.
 
-	* facemenu.el (facemenu-face-menu, facemenu-foreground-menu,
-	facemenu-background-menu, facemenu-special-menu): New or renamed
+	* facemenu.el (facemenu-face-menu, facemenu-foreground-menu)
+	(facemenu-background-menu, facemenu-special-menu): New or renamed
 	variables for submenus.
 	(facemenu-color-alist): Renamed from facemenu-colors.
 	(facemenu-add-new-face): New function.
 	(facemenu-update): Don't redo top-level menu;
-	nothing should change.  Move menu setup to defvars.  Use
-	facemenu-add-new-face. Changed global binding to C-down-mouse-3.
+	nothing should change.  Move menu setup to defvars.
+	Use facemenu-add-new-face. Changed global binding to C-down-mouse-3.
 	(facemenu-menu): "Update" item removed; should
 	no longer be needed interactively.
 	(facemenu-complete-face-list): Just return faces, not keybindings.
@@ -4025,8 +4020,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-01-17  Dave Love  <d.love@dl.ac.uk>
 
 	* gud.el (gud-gdb-find-file): Propagate debug menu to found buffers.
-	(gud-dbx-find-file, gud-xdb-find-file, gud-sdb-find-file, gud-perldb-find-file):
-	Likewise.
+	(gud-dbx-find-file, gud-xdb-find-file, gud-sdb-find-file)
+	(gud-perldb-find-file): Likewise.
 	(gud-menu-map): New variable.
 	(gud-mode): Use gud-menu-map and move the menu-setting outside.
 
@@ -4036,14 +4031,14 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-01-17  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
 	* comint.el (comint-dynamic-list-completions): Test event-start to
-        make sure it is not a complex event (e.g., switch-frame).
+	make sure it is not a complex event (e.g., switch-frame).
 
 1995-01-17  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* help.el (help-for-help): Doc fix.
 
 	* help-macro.el (make-help-screen): Use *only* local-map to look
-        up keys.
+	up keys.
 
 1995-01-16  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -4071,7 +4066,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* vc.el: Revert Jan 15 and Jan 5 changes.
 
-	* scribe.el (scribe-mode): Treat @: as a sentence end.
+	* scribe.el (scribe-mode): Treat `@:' as a sentence end.
 
 1995-01-15  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -4081,12 +4076,12 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-01-15  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* vc.el (vc-do-command): Use set-buffer-modified-p instead of
-        not-modified.
+	not-modified.
 
 	* files.el (not-modified): Doc fix.
 
 	* etags.el (etags-tags-completion-table): Don't let match string
-        contain a \177.
+	contain a \177.
 
 1995-01-13  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -4160,10 +4155,10 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-01-10  Noah Friedman  <friedman@splode.com>
 
-        * rlogin.el (rlogin-tab-or-complete): Insert tab in buffer, don't
-        send directly to process.
-        (rlogin, rlogin-directory-tracking-mode): Use rlogin-remote-user,
-        not rlogin-user.
+	* rlogin.el (rlogin-tab-or-complete): Insert tab in buffer, don't
+	send directly to process.
+	(rlogin, rlogin-directory-tracking-mode): Use rlogin-remote-user,
+	not rlogin-user.
 
 1995-01-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -4192,22 +4187,22 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-01-09  Noah Friedman  <friedman@splode.com>
 
-        * rlogin.el: Removed several more gratuitous autoload cookies.
-        (rlogin-initially-track-cwd): Variable deleted.
-        (rlogin-directory-tracking-mode): New variable and function.
-        Default to 'local.
-        (rlogin-host, rlogin-remote-user): New variables.
-        (rlogin): Set them appropriately.
-        (rlogin-tab-or-complete): New function.
-        Bind C-i to it.
-        (rlogin-carriage-filter): New function.
-        (rlogin): Add it to comint-output-filter-functions.
-        (rlogin-parse-words): New function.
-        (rlogin): Make buffer name "*rlogin-USER@HOST* if remote user
-        differs from local.
-        Simplify initialization of local variables, using rlogin-parse-words.
-        Do not call comint-mode directly.
-        Doc fixes.
+	* rlogin.el: Removed several more gratuitous autoload cookies.
+	(rlogin-initially-track-cwd): Variable deleted.
+	(rlogin-directory-tracking-mode): New variable and function.
+	Default to 'local.
+	(rlogin-host, rlogin-remote-user): New variables.
+	(rlogin): Set them appropriately.
+	(rlogin-tab-or-complete): New function.
+	Bind C-i to it.
+	(rlogin-carriage-filter): New function.
+	(rlogin): Add it to comint-output-filter-functions.
+	(rlogin-parse-words): New function.
+	(rlogin): Make buffer name "*rlogin-USER@HOST* if remote user
+	differs from local.
+	Simplify initialization of local variables, using rlogin-parse-words.
+	Do not call comint-mode directly.
+	Doc fixes.
 
 1995-01-09  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
@@ -4225,9 +4220,9 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(dabbrev--capitalize): Function deleted.
 	(dabbrev-completion): Use `capitalize'.
 
-	* msb.el Better format of files-by-directory menus.  Now
-	splits big menus into sub-menus.
-        (msb-max-menu-items): Changed default value.  This variable
+	* msb.el Better format of files-by-directory menus.
+	Now splits big menus into sub-menus.
+	(msb-max-menu-items): Changed default value.  This variable
 	now depicts the maximum number of items in a sub-menu.
 	(msb-display-most-recently-used): Changed default value.
 	(mouse-select-buffer): Now handles several levels of
@@ -4249,9 +4244,9 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-01-05  Stefan Schoef  <schoef@Informatik.Uni-Oldenburg.DE>
 
-        * bibtex.el (bibtex-clean-entry): Killing text while editing
-        the autogenerated label in the minibuffer caused the killed text
-        to appear in front of the bibtex entry.
+	* bibtex.el (bibtex-clean-entry): Killing text while editing
+	the autogenerated label in the minibuffer caused the killed text
+	to appear in front of the bibtex entry.
 
 1995-01-05  Eric Raymond  <esr@locke.ccil.org>
 
@@ -4275,9 +4270,9 @@ o	* noutline.el (outline-minor-mode): Likewise.
 1995-01-05  Johan Vromans  <jv@NL.net>
 
 	* forms.el: Change forms-search to forms-search-forward, and add
-        forms-search-backward.
-	(forms--mode-menu-ro, forms--mode-menu-edit): New
-	functions to create a pulldown menu in the menubar.
+	forms-search-backward.
+	(forms--mode-menu-ro, forms--mode-menu-edit):
+	New functions to create a pulldown menu in the menubar.
 	(forms--mode-commands): Call them for the edit and view mode.
 	* (forms-print): New function.
 
@@ -4288,13 +4283,13 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1995-01-03  Noah Friedman  <friedman@splode.com>
 
-        * sendmail.el (mail-personal-alias-file): New variable.
-        Use globally in place of hardwired "~/.mailrc".
-        * mailalias.el: Here too.
-        * mailabbrev.el (mail-abbrev-mailrc-file): Variable and macro
-        deleted.  All callers now use `mail-personal-alias-file'.
+	* sendmail.el (mail-personal-alias-file): New variable.
+	Use globally in place of hardwired "~/.mailrc".
+	* mailalias.el: Here too.
+	* mailabbrev.el (mail-abbrev-mailrc-file): Variable and macro
+	deleted.  All callers now use `mail-personal-alias-file'.
 
-        * pp.el: Add autoload cookies.
+	* pp.el: Add autoload cookies.
 
 1995-01-03  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -6324,8 +6319,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(vc-backend-dispatch): New argument C, used by CVS.  All callers
 	updated, but many just passes an (error "NYI") form.
 	(vc-backend-admin): Issue a "cvs add" (but not a "cvs commit").
-	(vc-backend-checkout, vc-backend-logentry-check, vc-backend-print-log,
-	vc-backend-assign-name, vc-backend-diff, vc-check-headers): Handle CVS.
+	(vc-backend-checkout, vc-backend-logentry-check, vc-backend-print-log)
+	(vc-backend-assign-name, vc-backend-diff, vc-check-headers): Handle CVS.
 	(vc-backend-steal, vc-backend-uncheck): Give error if using CVS.
 
 	* vc.el (vc-backend-diff): Fixed typo in SCCS code.
@@ -8165,8 +8160,8 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 1994-07-18  Karl Fogel  (kfogel@phylo.life.uiuc.edu)
 
-        * mail-hist.el: Make sure that headers are case-insensitive.
-          Upped version to 1.3.
+	* mail-hist.el: Make sure that headers are case-insensitive.
+	Upped version to 1.3.
 
 1994-07-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 

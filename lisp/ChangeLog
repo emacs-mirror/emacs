@@ -8,18 +8,26 @@
 	* startup.el (fancy-splash-tail): Explain how to recover
 	from a crash, if there was a crash.
 	(command-line-1): Reorganize display of startup screen,
-	to simplify the logic.  Use a temp buffer for it. 
+	to simplify the logic.  Use a temp buffer for it.
 
 2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* frame.el (set-background-color, set-foreground-color): Call
-	face-set-after-frame-default, to propagate the new colors to the
-	frame's parameters alist.
+	* frame.el (set-background-color, set-foreground-color):
+	Call face-set-after-frame-default, to propagate the new colors to
+	the frame's parameters alist.
 
 	* calendar/timeclock.el (timeclock-out): Signal an error if
 	timeclock-last-event is nil.
 
 2001-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-context-prefix): Fix braino.
+
+	* international/quail.el (quail-help):
+	Use `help-buffer' and move `help-setup-xref' to beginning.
+
+	* international/mule-cmds.el (describe-language-environment):
+	Use `help-buffer' and move `help-setup-xref' to beginning.
 
 	* international/mule-diag.el (list-character-sets)
 	(sort-listed-character-sets, describe-character-set)
