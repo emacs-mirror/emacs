@@ -127,7 +127,7 @@ Returns list of symbols and documentation found."
 ;; Returns an alist of form ((symbol fn-doc var-doc) ...).
 
 (defun super-apropos-check-doc-file (regexp)
-  (let* ((doc-file (concat data-directory internal-doc-file-name))
+  (let* ((doc-file (concat doc-directory internal-doc-file-name))
 	 (doc-buffer (find-file-noselect doc-file t))
 	;;	(doc-buffer (or (get-file-buffer doc-file)
 	;;			(find-file-noselect doc-file)))
