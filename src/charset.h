@@ -780,6 +780,7 @@ extern int char_printable_p P_ ((int c));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
 extern void parse_str_as_multibyte P_ ((unsigned char *, int, int *, int *));
 extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
+extern int parse_str_to_multibyte P_ ((unsigned char *, int));
 extern int str_to_multibyte P_ ((unsigned char *, int, int));
 extern int str_as_unibyte P_ ((unsigned char *, int));
 extern int get_charset_id P_ ((Lisp_Object));
