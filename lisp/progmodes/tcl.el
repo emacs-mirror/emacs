@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.21 $
+;; Version: $Revision: 1.22 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/07/14 22:49:21 $|$Revision: 1.21 $|~/modes/tcl.el.Z|
+;; $Date: 1994/07/26 00:46:07 $|$Revision: 1.22 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.22  1994/07/26  00:46:07  tromey
+;; Emacs 18 changes from Carl Witty.
+;;
 ;; Revision 1.21  1994/07/14  22:49:21  tromey
 ;; Added ";;;###autoload" comments where appropriate.
 ;;
@@ -263,7 +266,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.21 $")
+(defconst tcl-version "$Revision: 1.22 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -436,12 +439,12 @@ quoted for Tcl.")
   (define-key tcl-mode-map "\C-c\C-b" 'tcl-submit-bug-report)
   (and (fboundp 'comment-region)
        (define-key tcl-mode-map "\C-c\C-c" 'comment-region))
-  (define-key tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
-  (define-key tcl-mode-map "\C-c\C-e" 'tcl-eval-defun)
-  (define-key tcl-mode-map "\C-c\C-l" 'tcl-load-file)
-  (define-key tcl-mode-map "\C-c\C-p" 'inferior-tcl)
-  (define-key tcl-mode-map "\C-c\C-r" 'tcl-eval-region)
-  (define-key tcl-mode-map "\C-c\C-z" 'switch-to-tcl)
+  (define-key tcl-mode-map "\C-c\C-i" 'tcl-help-on-word)
+  (define-key tcl-mode-map "\C-c\C-v" 'tcl-eval-defun)
+  (define-key tcl-mode-map "\C-c\C-f" 'tcl-load-file)
+  (define-key tcl-mode-map "\C-c\C-t" 'inferior-tcl)
+  (define-key tcl-mode-map "\C-c\C-x" 'tcl-eval-region)
+  (define-key tcl-mode-map "\C-c\C-s" 'switch-to-tcl)
 
   ;; Make menus.
   (if tcl-using-emacs-19
@@ -458,12 +461,12 @@ quoted for Tcl.")
   (define-key inferior-tcl-mode-map "\177" 'backward-delete-char-untabify)
   (define-key inferior-tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
   (define-key inferior-tcl-mode-map "\C-c\C-b" 'tcl-submit-bug-report)
-  (define-key inferior-tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
-  (define-key inferior-tcl-mode-map "\C-c\C-e" 'tcl-eval-defun)
-  (define-key inferior-tcl-mode-map "\C-c\C-l" 'tcl-load-file)
-  (define-key inferior-tcl-mode-map "\C-c\C-p" 'inferior-tcl)
-  (define-key inferior-tcl-mode-map "\C-c\C-r" 'tcl-eval-region)
-  (define-key inferior-tcl-mode-map "\C-c\C-z" 'switch-to-tcl))
+  (define-key inferior-tcl-mode-map "\C-c\C-i" 'tcl-help-on-word)
+  (define-key inferior-tcl-mode-map "\C-c\C-v" 'tcl-eval-defun)
+  (define-key inferior-tcl-mode-map "\C-c\C-f" 'tcl-load-file)
+  (define-key inferior-tcl-mode-map "\C-c\C-t" 'inferior-tcl)
+  (define-key inferior-tcl-mode-map "\C-c\C-x" 'tcl-eval-region)
+  (define-key inferior-tcl-mode-map "\C-c\C-s" 'switch-to-tcl))
 
 (if tcl-mode-map
     ()
