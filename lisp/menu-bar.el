@@ -563,7 +563,7 @@ PROPS are additional properties."
      :button (:toggle . (and (default-boundp ',fname)
 			     (default-value ',fname)))))
 
-(defmacro menu-bar-make-toggle (name variable doc message help &optional props &rest body)
+(defmacro menu-bar-make-toggle (name variable doc message help &rest body)
   `(progn
      (defun ,name ()
        ,(concat "Toggle whether to " (downcase (substring help 0 1))
@@ -576,20 +576,13 @@ PROPS are additional properties."
 		       (get (or (get ',variable 'custom-get) 'default-value)))
 		   (funcall set ',variable (not (funcall get ',variable))))))
 	   (message ,message "enabled")
-  	 (message ,message "disabled")))
-     ;; The function `customize-mark-as-set' must only be called when
-     ;; a variable is set interactively, as the purpose is to mark it
-     ;; as a candidate for "Save Options", and we do not want to save
-     ;; options the user have already set explicitly in his init
-     ;; file.  Unfortunately, he could very likely call the function
-     ;; defined above there.  So we put `customize-mark-as-set' in a
-     ;; lambda expression.
-     ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-     '(menu-item ,doc (lambda ()
-			(interactive)
-			(,name)
-			(customize-mark-as-set ',variable))
-		 ,@(if props props)
+  	 (message ,message "disabled"))
+       ;; The function `customize-mark-as-set' must only be called when
+       ;; a variable is set interactively, as the purpose is to mark it as
+       ;; a candidate for "Save Options", and we do not want to save options
+       ;; the user have already set explicitly in his init file.
+       (if (interactive-p) (customize-mark-as-set ',variable)))
+     '(menu-item ,doc ,name
 		 :help ,help
                  :button (:toggle . (and (default-boundp ',variable)
 					 (default-value ',variable))))))
@@ -637,14 +630,14 @@ PROPS are additional properties."
 (defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
 
 (define-key menu-bar-showhide-menu [column-number-mode]
-  (menu-bar-make-toggle toggle-column-number-mode column-number-mode
-			"Show Column Numbers" "Column number mode %s"
-			"Show the current column number in the mode line"))
+  (menu-bar-make-mm-toggle column-number-mode
+			   "Show Column Numbers"
+			   "Show the current column number in the mode line"))
 
 (define-key menu-bar-showhide-menu [line-number-mode]
-  (menu-bar-make-toggle toggle-line-number-mode line-number-mode
-			"Show Line Numbers" "Line number mode %s"
-			"Show the current line number in the mode line"))
+  (menu-bar-make-mm-toggle line-number-mode
+			   "Show Line Numbers"
+			   "Show the current line number in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
   '("--"))
@@ -850,7 +843,6 @@ PROPS are additional properties."
 			"Use Directory Names in Buffer Names"
 			"Directory name in buffer names (uniquify) %s"
 			"Uniquify buffer names by adding parent directory names"
-			() ; no props
 			(require 'uniquify)
 			(setq uniquify-buffer-name-style
 			      (if (not uniquify-buffer-name-style)
@@ -908,13 +900,12 @@ paste (in addition to the normal Emacs bindings)."
 (define-key menu-bar-options-menu [highlight-paren-mode]
   (menu-bar-make-mm-toggle show-paren-mode
 			   "Paren Match Highlighting"
-			"Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
+			   "Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
 (define-key menu-bar-options-menu [transient-mark-mode]
-  (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
-			"Active Region Highlighting"
-			"Transient Mark mode %s"
-			"Make text in active region stand out in color (Transient Mark mode)"
-			(:enable (not cua-mode))))
+  (menu-bar-make-mm-toggle transient-mark-mode
+			   "Active Region Highlighting"
+			   "Make text in active region stand out in color (Transient Mark mode)"
+			   (:enable (not cua-mode))))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
   (menu-bar-make-mm-toggle global-font-lock-mode
 			   "Syntax Highlighting"
@@ -1540,21 +1531,21 @@ Buffers menu is regenerated."
 (menu-bar-update-buffers)
 
 ;; this version is too slow
-;;;(defun format-buffers-menu-line (buffer)
-;;;  "Returns a string to represent the given buffer in the Buffer menu.
-;;;nil means the buffer shouldn't be listed.  You can redefine this."
-;;;  (if (string-match "\\` " (buffer-name buffer))
-;;;      nil
-;;;    (save-excursion
-;;;     (set-buffer buffer)
-;;;     (let ((size (buffer-size)))
-;;;       (format "%s%s %-19s %6s %-15s %s"
-;;;	       (if (buffer-modified-p) "*" " ")
-;;;	       (if buffer-read-only "%" " ")
-;;;	       (buffer-name)
-;;;	       size
-;;;	       mode-name
-;;;	       (or (buffer-file-name) ""))))))
+;;(defun format-buffers-menu-line (buffer)
+;;  "Returns a string to represent the given buffer in the Buffer menu.
+;;nil means the buffer shouldn't be listed.  You can redefine this."
+;;  (if (string-match "\\` " (buffer-name buffer))
+;;      nil
+;;    (save-excursion
+;;     (set-buffer buffer)
+;;     (let ((size (buffer-size)))
+;;       (format "%s%s %-19s %6s %-15s %s"
+;;	       (if (buffer-modified-p) "*" " ")
+;;	       (if buffer-read-only "%" " ")
+;;	       (buffer-name)
+;;	       size
+;;	       mode-name
+;;	       (or (buffer-file-name) ""))))))
 
 ;;; Set up a menu bar menu for the minibuffer.
 
