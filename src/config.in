@@ -133,6 +133,9 @@ and this notice must be preserved on all copies.  */
 
 #undef HAVE_AIX_SMT_EXP
 
+/* Define if `sys_siglist' is declared by <signal.h>.  */
+#undef SYS_SIGLIST_DECLARED
+
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
 #define INLINE __inline__
