@@ -447,9 +447,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
   CORRECT_DIR_SEPS (beg);
 #endif /* DOS_NT */
 
-  if (STRING_MULTIBYTE (filename))
-    return make_string (beg, p - beg);
-  return make_unibyte_string (beg, p - beg);
+  return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
 }
 
 DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,
@@ -488,9 +486,7 @@ or the entire name if it contains no slash.  */)
 	 )
     p--;
 
-  if (STRING_MULTIBYTE (filename))
-    return make_string (p, end - p);
-  return make_unibyte_string (p, end - p);
+  return make_specified_string (p, -1, end - p, STRING_MULTIBYTE (filename));
 }
 
 DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
@@ -631,7 +627,9 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.  */)
     return call2 (handler, Qfile_name_as_directory, file);
 
   buf = (char *) alloca (SBYTES (file) + 10);
-  return build_string (file_name_as_directory (buf, SDATA (file)));
+  file_name_as_directory (buf, SDATA (file));
+  return make_specified_string (buf, -1, strlen (buf),
+				STRING_MULTIBYTE (file));
 }
 
 /*
@@ -831,7 +829,8 @@ it returns a file name such as \"[X]Y.DIR.1\".  */)
   buf = (char *) alloca (SBYTES (directory) + 20);
 #endif
   directory_file_name (SDATA (directory), buf);
-  return build_string (buf);
+  return make_specified_string (buf, -1, strlen (buf),
+				STRING_MULTIBYTE (directory));
 }
 
 static char make_temp_name_tbl[64] =
@@ -1275,7 +1274,11 @@ See also the function `substitute-in-file-name'.  */)
 	{
 #ifdef VMS
 	  if (index (nm, '/'))
-	    return build_string (sys_translate_unix (nm));
+	    {
+	      nm = sys_translate_unix (nm);
+	      return make_specified_string (nm, -1, strlen (nm),
+					    STRING_MULTIBYTE (name));
+	    }
 #endif /* VMS */
 #ifdef DOS_NT
 	  /* Make sure directories are all separated with / or \ as
@@ -1286,14 +1289,18 @@ See also the function `substitute-in-file-name'.  */)
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
 	      if (strcmp (nm, SDATA (name)) != 0)
-		name = build_string (nm);
+		name
+		  = make_specified_string (nm, -1, strlen (nm),
+					   STRING_MULTIBYTE (name));
 	    }
 	  else
 #endif
 	  /* drive must be set, so this is okay */
 	  if (strcmp (nm - 2, SDATA (name)) != 0)
 	    {
-	      name = make_string (nm - 2, p - nm + 2);
+	      name
+		= make_specified_string (nm, -1, strlen (nm),
+					 STRING_MULTIBYTE (name));
 	      SSET (name, 0, DRIVE_LETTER (drive));
 	      SSET (name, 1, ':');
 	    }
@@ -1301,7 +1308,8 @@ See also the function `substitute-in-file-name'.  */)
 #else /* not DOS_NT */
 	  if (nm == SDATA (name))
 	    return name;
-	  return build_string (nm);
+	  return make_specified_string (nm, -1, strlen (nm),
+					STRING_MULTIBYTE (name));
 #endif /* not DOS_NT */
 	}
     }
@@ -1670,7 +1678,8 @@ See also the function `substitute-in-file-name'.  */)
   CORRECT_DIR_SEPS (target);
 #endif /* DOS_NT */
 
-  return make_string (target, o - target);
+  return make_specified_string (target, -1, o - target,
+				STRING_MULTIBYTE (name));
 }
 
 #if 0
@@ -2101,7 +2110,8 @@ duplicates what `expand-file-name' does.  */)
     }
 
 #ifdef VMS
-  return build_string (nm);
+  return make_specified_string (nm, -1, strlen (nm),
+				STRING_MULTIBYTE (filename));
 #else
 
   /* See if any variables are substituted into the string
@@ -2244,9 +2254,7 @@ duplicates what `expand-file-name' does.  */)
       xnm = p;
 #endif
 
-  if (STRING_MULTIBYTE (filename))
-    return make_string (xnm, x - xnm);
-  return make_unibyte_string (xnm, x - xnm);
+  return make_specified_string (xnm, -1, x - xnm, STRING_MULTIBYTE (filename));
 
  badsubst:
   error ("Bad format environment-variable substitution");
@@ -6023,6 +6031,7 @@ provides a file dialog box.  */)
   Lisp_Object val, insdef, tem;
   struct gcpro gcpro1, gcpro2;
   register char *homedir;
+  Lisp_Object decoded_homedir;
   int replace_in_history = 0;
   int add_to_history = 0;
   int count;
@@ -6045,25 +6054,29 @@ provides a file dialog box.  */)
       CORRECT_DIR_SEPS (homedir);
     }
 #endif
+  if (homedir != 0)
+    decoded_homedir
+      = DECODE_FILE (make_unibyte_string (homedir, strlen (homedir)));
   if (homedir != 0
       && STRINGP (dir)
-      && !strncmp (homedir, SDATA (dir), strlen (homedir))
-      && IS_DIRECTORY_SEP (SREF (dir, strlen (homedir))))
+      && !strncmp (SDATA (decoded_homedir), SDATA (dir),
+		   SBYTES (decoded_homedir))
+      && IS_DIRECTORY_SEP (SREF (dir, SBYTES (decoded_homedir))))
     {
-      dir = make_string (SDATA (dir) + strlen (homedir) - 1,
-			 SBYTES (dir) - strlen (homedir) + 1);
-      SSET (dir, 0, '~');
+      dir = Fsubstring (dir, make_number (SCHARS (decoded_homedir) + 1), Qnil);
+      dir = concat2 (build_string ("~"), dir);
     }
   /* Likewise for default_filename.  */
   if (homedir != 0
       && STRINGP (default_filename)
-      && !strncmp (homedir, SDATA (default_filename), strlen (homedir))
-      && IS_DIRECTORY_SEP (SREF (default_filename, strlen (homedir))))
+      && !strncmp (SDATA (decoded_homedir), SDATA (default_filename),
+		   SBYTES (decoded_homedir))
+      && IS_DIRECTORY_SEP (SREF (default_filename, SBYTES (decoded_homedir))))
     {
       default_filename
-	= make_string (SDATA (default_filename) + strlen (homedir) - 1,
-		       SBYTES (default_filename) - strlen (homedir) + 1);
-      SSET (default_filename, 0, '~');
+	= Fsubstring (default_filename,
+		      make_number (SCHARS (decoded_homedir) + 1), Qnil);
+      default_filename = concat2 (build_string ("~"), default_filename);
     }
   if (!NILP (default_filename))
     {
