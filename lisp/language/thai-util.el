@@ -32,6 +32,12 @@
 
 ;; Setting information of Thai characters.
 
+(defvar thai-category-table (copy-category-table))
+(or (category-docstring ?+ thai-category-table)
+    (define-category ?+ "Thai consonant" thai-category-table))
+(or (category-docstring ?- thai-category-table)
+    (define-category ?- "Thai diacritical mark" thai-category-table))
+
 (let ((l '((?,T!(B consonant "LETTER KO KAI")				; 0xA1
 	   (?,T"(B consonant "LETTER KHO KHAI")				; 0xA2
 	   (?,T#(B consonant "LETTER KHO KHUAT")				; 0xA3
@@ -130,9 +136,15 @@
       elm)
   (while l
     (setq elm (car l))
-    (put-char-code-property (car elm) 'phonetic-type (car (cdr elm)))
+    (let ((ptype (nth 1 elm)))
+      (put-char-code-property (car elm) 'phonetic-type ptype)
+      (if (eq ptype 'consonant)
+	  (modify-category-entry (car elm) ?+ thai-category-table)
+	(if (memq ptype '(vowel-upper vowel-lower tone))
+	  (modify-category-entry (car elm) ?- thai-category-table))))
     (put-char-code-property (car elm) 'name (nth 2 elm))
     (setq l (cdr l))))
+
 
 ;;;###autoload
 (defun thai-compose-region (beg end)
@@ -144,9 +156,12 @@ positions (integers or markers) specifying the region."
     (narrow-to-region beg end)
     (decompose-region (point-min) (point-max))
     (goto-char (point-min))
-    (while (re-search-forward "\\c0\\(\\c2\\|\\c3\\|\\c4\\)+" nil t)
-      (if (aref (char-category-set (char-after (match-beginning 0))) ?t)
-	  (compose-region (match-beginning 0) (match-end 0))))))
+    (let ((current-ctbl (category-table)))
+      (set-category-table thai-category-table)
+      (unwind-protect
+	  (while (re-search-forward "\\c+\\c-+" nil t)
+	    (compose-region (match-beginning 0) (match-end 0)))
+	(set-category-table current-ctbl)))))
 
 ;;;###autoload
 (defun thai-compose-buffer ()
@@ -167,11 +182,11 @@ positions (integers or markers) specifying the region."
 ;;;###autoload
 (defun thai-pre-write-conversion (from to)
   (let ((old-buf (current-buffer)))
-    (with-temp-buffer
-      (if (stringp from)
-	  (insert from)
-	(insert-buffer-substring old-buf from to))
-      (decompose-region (point-min) (point-max)))
+    (set-buffer (generate-new-buffer " *temp*"))
+    (if (stringp from)
+	(insert from)
+      (insert-buffer-substring old-buf from to))
+    (decompose-region (point-min) (point-max))
     ;; Should return nil as annotations.
     nil))
 
