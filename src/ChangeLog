@@ -1,3 +1,41 @@
+2000-06-23  Dave Love  <fx@gnu.org>
+
+	* emacs.c (setgrp): Undefine before defining.
+	(malloc_warning, set_time_zone_rule, index): Prototype.
+
+	* systime.h (EMACS_GET_TIME) [!GETTIMEOFDAY_ONE_ARGUMENT]: Use
+	HAVE_STRUCT_TIMEZONE.
+
+	* s/osf1.h: Move string.h hack here from alpha.h and make it
+	conditional.
+	(C_SWITCH_SYSTEM): Use _OSF_SOURCE, not -BSD, which clashes with
+	_XOPEN_SOURCE.
+	(WAIT_USE_INT, SYS_SIGLIST_DECLARED, sys_siglist, NSIG): Define.
+	(SOCKLEN_TYPE): Don't define.
+
+	* m/alpha.h: Remove string.h hack.
+
+	* s/osf5-0.h: New file.
+
+	* filelock.c: Use feature tests for fcntl.h, string.h.  Don't
+	include time.h, done by systime.h.
+	[__FreeBSD__]: Remove redundant includes.
+
+	* callproc.c: (setpgrp): Undefine before defining.
+	(delete_temp_file): Return Qnil to avoid warning.
+
+	* config.in (HAVE_TERM_H, HAVE_STRUCT_TIMEZONE): Add.
+
+	* xfaces.c: Include fontset.h dependent on HAVE_WINDOW_SYSTEM, not
+	HAVE_X_WINDOWS.
+
+	* fontset.h (free_face_fontset): Renamed from fs_free_face_fontset.
+
+	* composite.h (compose_text): Declare.
+
+	* xterm.c: Don't include sys/types.h unconditionally.  Don't
+	protect its inclusion with !USG (following xmenu.c).
+
 2000-06-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_create_tip_frame): Initialize frame's colors like
