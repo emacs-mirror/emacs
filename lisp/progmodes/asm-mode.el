@@ -80,9 +80,9 @@
   )
 
 (defconst asm-font-lock-keywords
- '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\)?"
+ '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.[lLwWbBsS]\\)?\\)?"
     (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
-   ("^\\s +\\(\\(\\sw\\|\\s_\\)+\\)" 1 font-lock-keyword-face))
+   ("^\\s +\\(\\(\\sw\\|\\s_\\)+\\(\\.[lLwWbBsS]\\)?\\)" 1 font-lock-keyword-face))
  "Additional expressions to highlight in Assembler mode.")
 
 (defvar asm-code-level-empty-comment-pattern nil)
@@ -133,7 +133,7 @@ Special commands:
 			 ">" asm-mode-syntax-table)
   (let ((cs (regexp-quote (char-to-string asm-comment-char))))
     (make-local-variable 'comment-start)
-    (setq comment-start (concat cs " "))
+    (setq comment-start (concat (char-to-string asm-comment-char) " "))
     (make-local-variable 'comment-start-skip)
     (setq comment-start-skip (concat cs "+[ \t]*"))
     (setq asm-inline-empty-comment-pattern (concat "^.+" cs "+ *$"))
