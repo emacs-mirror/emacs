@@ -223,6 +223,8 @@ extern void move_if_not_intangible P_ ((int));
 extern Lisp_Object get_local_map P_ ((int, struct buffer *));
 extern INTERVAL update_interval P_ ((INTERVAL, int));
 extern void set_intervals_multibyte P_ ((int));
+extern INTERVAL validate_interval_range P_ ((Lisp_Object, Lisp_Object *,
+					     Lisp_Object *, int));
 
 /* Defined in xdisp.c */
 extern int invisible_ellipsis_p P_ ((Lisp_Object, Lisp_Object));
@@ -261,6 +263,10 @@ EXFUN (Ftext_property_not_all, 5);
 extern Lisp_Object copy_text_properties P_ ((Lisp_Object, Lisp_Object,
 					     Lisp_Object, Lisp_Object,
 					     Lisp_Object, Lisp_Object));
+Lisp_Object text_property_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				    Lisp_Object));
+int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+void extend_property_ranges P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 extern void syms_of_textprop ();
 
