@@ -634,6 +634,7 @@ for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
 	(strip-prompt (and (get-buffer-process (current-buffer))
+			   comint-use-prompt-regexp-instead-of-fields
 			   comint-prompt-regexp)))
     (if (not old)
 	(progn
@@ -680,6 +681,7 @@ for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
 	(strip-prompt (and (get-buffer-process (current-buffer))
+			   comint-use-prompt-regexp-instead-of-fields
 			   comint-prompt-regexp))
 	(buf (current-buffer))
 	(orig-case-fold-search case-fold-search))
@@ -706,6 +708,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 		      (widen))
 		  (goto-char he-search-loc)
 		  (setq strip-prompt (and (get-buffer-process (current-buffer))
+					  comint-use-prompt-regexp-instead-of-fields
 					  comint-prompt-regexp))
 		  (setq expansion 
 			(let ((case-fold-search orig-case-fold-search))
