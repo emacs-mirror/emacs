@@ -2,6 +2,8 @@
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names):
 	Re-add an interactive spec.
+	(uniquify-rationalize-file-buffer-names): Fix corner case when renaming
+	to the same name.
 
 	* isearch.el (isearch-dehighlight): Remove unused arg `totally'.
 	(isearch-update, isearch-done): Adjust calls accordingly.

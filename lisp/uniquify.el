@@ -194,8 +194,10 @@ this rationalization."
 	     (uniquify-item-base (car uniquify-managed)) (buffer-name))
 	 (uniquify-buffer-file-name (current-buffer))
 	 (current-buffer)))
-  (if (null dirname)
-      (with-current-buffer newbuf (setq uniquify-managed nil))
+  ;; Make sure we don't get confused by outdated uniquify-managed info in
+  ;; this buffer.
+  (with-current-buffer newbuf (setq uniquify-managed nil))
+  (when dirname
     (setq dirname (expand-file-name (directory-file-name dirname)))
     (let ((fix-list (list (uniquify-make-item base dirname newbuf)))
 	  items)
