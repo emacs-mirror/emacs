@@ -103,6 +103,11 @@ change log entry.  It finds the version number by searching the first
 ten percent of the file, using regular expressions from the variable
 @code{change-log-version-number-regexp-list}.
 
+@vindex add-log-always-start-new-record
+  If @code{add-log-always-start-new-record} is non-@code{nil},
+@kbd{C-x 4 a} always makes a new entry, even if the last entry
+was made by you and on the same date.
+
 @cindex Change Log mode
 @findex change-log-mode
   The change log file is visited in Change Log mode.  In this major
@@ -474,95 +479,51 @@ explanation.
 
   The @samp{--regex} option provides a general way of recognizing tags
 based on regexp matching.  You can freely intermix it with file names.
-Each @samp{--regex} option adds to the preceding ones, and applies only
-to the following files.  The syntax is:
+If you specify multiple @samp{--regex} options, all of them are used
+in parallel, but each one applies only to the source files that follow
+it.  The syntax is:
 
 @smallexample
 --regex=[@var{@{language@}}]/@var{tagregexp}/[@var{nameregexp}/]@var{modifiers}
 @end smallexample
 
-@noindent
-or else:
+  The essential part of the option value is @var{tagregexp}, the
+regexp for matching tags.  It is always used anchored, that is, it
+only matches at the beginning of a line.  If you want to allow
+indented tags, use a regexp that matches initial whitespace; start it
+with @samp{[ \t]*}.
 
-@smallexample
---regex=@@@var{regexfile}
-@end smallexample
+  In these regular expressions, @samp{\} quotes the next character, and
+all the GCC character escape sequences are supported (@samp{\a} for
+bell, @samp{\b} for back space, @samp{\d} for delete, @samp{\e} for
+escape, @samp{\f} for formfeed, @samp{\n} for newline, @samp{\r} for
+carriage return, @samp{\t} for tab, and @samp{\v} for vertical tab).
 
-@noindent
-where @var{tagregexp} is a regular expression used to find the tags.
-It is always
-anchored, that is, it behaves as if preceded by @samp{^}.  If you want
-to account for indentation, just match any initial number of blanks by
-beginning your regular expression with @samp{[ \t]*}.  In the regular
-expressions, @samp{\} quotes the next character, and all the
-@code{gcc} character escape sequences are supported.  Here is the list
-of the character escape sequences:
+  Ideally, @var{tagregexp} should not match more characters than are
+needed to recognize what you want to tag.  If the syntax requires you
+to write @var{tagregexp} so it matches more characters beyond the tag
+itself, you should add a @var{nameregexp}, to pick out just the tag.
+This will enable Emacs to find tags more accurately and to do
+completion on tag names more reliably.  You can find some examples
+below.
 
-@table @samp
-@item \a
-BEL (bell).
-@item \b
-BS (back space).
-@item \d
-DEL (delete).
-@item \e
-ESC (delete).
-@item \f
-FF (form feed).
-@item \n
-NL (new line).
-@item \r
-CR (carriage return).
-@item \t
-TAB (horizontal tab).
-@item \v
-VT (vertical tab).
-@end table
-
-@noindent
-The syntax of regular expressions in @code{etags} is the same as in
-Emacs.
-
-  You should not match more characters with @var{tagregexp} than that
-needed to recognize what you want to tag.  If the match is such that
-more characters than needed are unavoidably matched by @var{tagregexp}
-(as will sometimes be the case), you should add a @var{nameregexp}, to
-pick out just the tag.  This will enable Emacs to find tags more
-accurately and to do completion on tag names more reliably.  You can
-find some examples below.
-
-  The suggested separator character used to delimit @var{tagregexp}
-and @var{nameregex} is @samp{/}, as in the example above.  However,
-you can use any other character as a separator, as long as it is
-different from space, tab, braces or the @samp{@@} character.  If you
-need to use the separator as part of the regular expression, you must
-precede it by the @samp{\} character.
-
-  The @var{modifiers} are a sequence of 0 or more characters that
-modify the way @code{etags} does the matching for that particular
-@samp{--regex} option.  Without modifiers, the regular expression
-is applied sequentially to each line of the input file, in
-a case-sensitive way.  The modifiers and their meanings are:
+  The @var{modifiers} are a sequence of zero or more characters that
+modify the way @code{etags} does the matching.  A regexp with no
+modifiers is applied sequentially to each line of the input file, in a
+case-sensitive way.  The modifiers and their meanings are:
 
 @table @samp
 @item i
-ignore case when matching.
+Ignore case when matching this regexp.
 @item m
-do not match line by line; rather, match this regular expression
-against the whole file, so that multi-line matches are possible.
+Match this regular expression against the whole file, so that
+multi-line matches are possible.
 @item s
-implies @samp{m}, and causes dots in @var{tagregexp} to match newlines
-as well.
+Match this regular expression against the whole file, and allow
+@samp{.} in @var{tagregexp} to match newlines.
 @end table
 
-  A @var{regexfile} is the name of a file where you can store the
-arguments of @samp{--regex} options, one per line.  The syntax is the
-same as the one used for the @samp{--regex} option, without the
-initial @samp{--regex=} part.  @code{etags} ignores the lines that
-begin with space or tab: you can use them to include comments in the
-@var{regexfile}.
-
-  The @samp{-R} option deletes all the regexps defined with
+  The @samp{-R} option cancels all the regexps defined by preceding
 @samp{--regex} options.  It applies to the file names following it, as
 you can see from the following example:
 
@@ -580,8 +541,8 @@ Here @code{etags} chooses the parsing language for @file{voo.doo} and
 @file{voo.doo} and @file{bar.ber}, in a case-insensitive way, while
 @var{reg2} is checked against the whole @file{bar.ber} file,
 permitting multi-line matches, in a case-sensitive way.  @code{etags}
-uses the Lisp tags rules, and no regexp matching, to recognize tags in
-@file{los.er}.
+uses only the Lisp tags rules, with no user-specified regexp matching,
+to recognize tags in @file{los.er}.
 
   You can restrict a @samp{--regex} option to match only files of a
 given language by using the optional prefix @var{@{language@}}.
@@ -596,26 +557,25 @@ files, for the C language only:
 @end smallexample
 
 @noindent
-This feature is particularly useful when you store a list of regular
-expressions in a file.  The following option syntax instructs
-@code{etags} to read two files of regular expressions.  The regular
-expressions contained in the second file are matched without regard to
-case.
+When you have complex regular expressions, you can store the list of
+them in a file.  The following option syntax instructs @code{etags} to
+read two files of regular expressions.  The regular expressions
+contained in the second file are matched without regard to case.
 
 @smallexample
---regex=@@first-file --ignore-case-regex=@@second-file
+--regex=@@@var{case-sensitive-file} --ignore-case-regex=@@@var{ignore-case-file}
 @end smallexample
 
 @noindent
-A regex file contains one regular expressions per line.  Empty lines,
-and lines beginning with space or tab are ignored.  When the first
-character in a line is @samp{@@}, @code{etags} assumes that the rest
-of the line is the name of a file of regular expressions; thus, one
-such file can include another file.  All the other lines are taken to
-be regular expressions.  If the first non-whitespace text on the line
-is @samp{--}, that line is a comment.
+A regex file for @code{etags} contains one regular expression per
+line.  Empty lines, and lines beginning with space or tab are ignored.
+When the first character in a line is @samp{@@}, @code{etags} assumes
+that the rest of the line is the name of another file of regular
+expressions; thus, one such file can include another file.  All the
+other lines are taken to be regular expressions.  If the first
+non-whitespace text on the line is @samp{--}, that line is a comment.
 
-  For example, one can create a file called @samp{emacs.tags} with the
+  For example, we can create a file called @samp{emacs.tags} with the
 following contents:
 
 @smallexample
