@@ -1,6 +1,6 @@
 ;;; pcvs.el --- a front-end to CVS
 
-;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,2002
+;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,02,2003
 ;; 		 Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
@@ -1638,8 +1638,14 @@ Signal an error if there is no backup file."
 	  ;; Discard stderr output to work around the CVS+SSH+libc
 	  ;; problem when stdout and stderr are the same.
 	  ;; FIXME: this doesn't seem to make any difference :-(
-	  (let ((res (call-process cvs-program nil '(t . nil) nil
-				   "-q" "update" "-p" "-r" rev file)))
+	  (let ((res (apply 'call-process cvs-program nil '(t . nil) nil
+			    "-q" "update" "-p"
+			    ;; If `rev' is HEAD, don't pass it at all:
+			    ;; the default behavior is to get the head
+			    ;; of the current branch whereas "-r HEAD"
+			    ;; stupidly gives you the head of the trunk.
+			    (append (unless (equal rev "HEAD") (list "-r" rev))
+				    (list file)))))
 	    (when (and res (not (and (equal 0 res))))
 	      (error "Something went wrong retrieving revision %s: %s" rev res))
 	    (set-buffer-modified-p nil)
