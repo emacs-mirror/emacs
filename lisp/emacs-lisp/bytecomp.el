@@ -1410,8 +1410,10 @@ With argument, insert value in current buffer after the form."
 			 1 -1)
 	      (if byte-compile-dynamic-docstrings
 		  "' was compiled for Emacs 19.29 or later\"))\n\n"
-		"' was compiled for Emacs 19\"))\n\n")
-	      )))
+		"' was compiled for Emacs 19\"))\n\n"))
+    (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
+	    "\n")
+    ))
 
 
 (defun byte-compile-output-file-form (form)
