@@ -2263,8 +2263,7 @@ specbind (symbol, value)
     grow_specpdl ();
   specpdl_ptr->symbol = symbol;
   specpdl_ptr->func = 0;
-  ovalue = XSYMBOL (symbol)->value;
-  specpdl_ptr->old_value = EQ (ovalue, Qunbound) ? Qunbound : Fsymbol_value (symbol);
+  specpdl_ptr->old_value = ovalue = find_symbol_value (symbol);
   specpdl_ptr++;
   if (XTYPE (ovalue) == Lisp_Buffer_Objfwd)
     store_symval_forwarding (symbol, ovalue, value);
