@@ -1,3 +1,7 @@
+2000-02-14  Dave Love  <fx@gnu.org>
+
+	* xfaces.c (tty_defined_color): Declare color_idx unsigned long.
+
 2000-02-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.h (RE_SYNTAX_EMACS): Add RE_CHAR_CLASSES and RE_INTERVALS
