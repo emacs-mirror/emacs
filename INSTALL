@@ -125,8 +125,8 @@ the section called "CONFIGURATION BY HAND" below if you want to do the
 configuration yourself.
 
 4) Look at `./lisp/paths.el'; if some of those values are not right
-for your system, edit the file `./lisp/site-init.el' containing Emacs
-Lisp code to override them; you probably don't want to edit paths.el
+for your system, set up the file `./lisp/site-init.el' with Emacs
+Lisp code to override them; it is not a good idea to edit paths.el
 itself.  YOU MUST USE THE LISP FUNCTION `setq' TO ASSIGN VALUES,
 rather than `defvar', as used by `./lisp/paths.el'.  For example,
 
