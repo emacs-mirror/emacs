@@ -1,6 +1,10 @@
+2004-09-25  Stefan  <monnier@iro.umontreal.ca>
+
+	* files.el (insert-directory): Obey --dired even with symlinks.
+
 2004-09-25  Lars Hansen  <larsh@math.ku.dk>
 
-	* ls-lisp.el (ls-lisp-format): Mark file names with poperty
+	* ls-lisp.el (ls-lisp-format): Mark file names with property
 	dired-filename.
 
 2004-09-25  Kim F. Storm  <storm@cua.dk>
@@ -21,8 +25,8 @@
 	it, and show completions.
 	(ido-all-completions): Let bind ido-directory-too-big to nil.
 	(ido-exhibit): Handle ido-directory-too-big.
-	(ido-read-buffer): Handle fallback to read-buffer.  Init
-	ido-directory-too-big.
+	(ido-read-buffer): Handle fallback to read-buffer.
+	Init ido-directory-too-big.
 	(ido-read-file-name, ido-read-directory-name, ido-completing-read):
 	Init ido-directory-too-big.
 
