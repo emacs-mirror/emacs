@@ -105,8 +105,10 @@ displays all characters in that character set.
 ** M-x set-terminal-coding-system (C-x RET t) now allows CCL-based
 coding systems such as cpXXX and cyrillic-koi8.
 
++++
 ** M-; now calls comment-dwim which tries to do something clever based
-on the context.
+on the context.  M-x kill-comment is now an alias to comment-kill,
+defined on newcomment.el.
 
 +++
 ** The function `getenv' is now callable interactively.
