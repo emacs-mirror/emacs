@@ -136,7 +136,6 @@
 
 (require 'mouse)
 (require 'thingatpt)
-(require 'backquote)
 
 ;;=== User Variables ======================================================
 
@@ -197,14 +196,6 @@ Called with one argument:
 
    SELECTION: the name of the selection concerned.")
 
-(defvar mouse-sel-selection-owner-p-function
-  (if (fboundp 'x-selection-owner-p)
-      'x-selection-owner-p)
-  "Function to check whether Emacs still owns the selection.
-Called with one argument:
-
-   SELECTION: the name of the selection concerned.")
-
 ;;=== Support/access functions ============================================
 
 (defun mouse-sel-determine-selection-thing (nclicks)
@@ -245,12 +236,6 @@ multi-click semantics."
   (if mouse-sel-get-selection-function
       (funcall mouse-sel-get-selection-function selection)
     (get 'mouse-sel-internal-selection selection)))
-
-(defun mouse-sel-selection-owner-p (selection)
-  "Determine whether Emacs owns the specified SELECTION."
-  (if mouse-sel-selection-owner-p-function
-      (funcall mouse-sel-selection-owner-p-function selection)
-    t))
 
 (defun mouse-sel-selection-overlay (selection)
   "Return overlay corresponding to SELECTION."
@@ -504,19 +489,17 @@ See documentation for mouse-select-internal for more details."
 		    (if (and (eq direction 1) (not (eobp))) (forward-char 1))
 		    
 		    ;; Move to start/end of selected thing
-		    (let ((goal (point))
-			  last)
+		    (let ((goal (point)))
 		      (goto-char (if (eq 1 direction) min max))
 		      (condition-case nil
 			  (progn
 			    (while (> (* direction (- goal (point))) 0)
-			      (setq last (point))
 			      (forward-thing selection-thing direction))
 			    (let ((end (point)))
 			      (forward-thing selection-thing (- direction))
 			      (goto-char
 			       (if (> (* direction (- goal (point))) 0)
-				   end last))))
+				   end (point)))))
 			(error))))
 		  
 		  ;; Move overlay
@@ -587,24 +570,14 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
 	(push-mark (point) 'nomsg)
 	(insert (or (funcall mouse-sel-get-selection-function selection) "")))))
 
-;;=== Validate selection ==================================================
+;;=== Handle loss of selections ===========================================
 
-(defun mouse-sel-validate-selection ()
-  "Validate selections in mouse-sel-selection-alist.
-For each listed selection, remove the selection overlay if Emacs no longer 
-owns the selection." 
-  (let ((owner-p-function mouse-sel-selection-owner-p-function)
-	(alist mouse-sel-selection-alist)
-	selection overlay)
-    (if owner-p-function
-	(while alist
-	  (setq selection (car (car alist))
-		overlay (symbol-value (nth 1 (car alist)))
-		alist (cdr alist))
-	  (or (funcall owner-p-function selection)
-	      (delete-overlay overlay))))))
+(defun mouse-sel-lost-selection-hook (selection)
+  "Remove the overlay for a lost selection."
+  (let ((overlay (mouse-sel-selection-overlay selection)))
+    (delete-overlay overlay)))
 
-(add-hook 'pre-command-hook 'mouse-sel-validate-selection)
+(add-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
 
 ;;=== Key bindings ========================================================
 
@@ -656,7 +629,6 @@ owns the selection."
 	 'mouse-sel-selection-alist
 	 'mouse-sel-set-selection-function
 	 'mouse-sel-get-selection-function
-	 'mouse-sel-selection-owner-p-function
 	 'mouse-yank-at-point)))
 
 ;; mouse-sel.el ends here.
