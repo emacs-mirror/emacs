@@ -101,6 +101,8 @@ static Lisp_Object last_exact_completion;
 
 Lisp_Object Quser_variable_p;
 
+Lisp_Object Qminibuffer_default;
+
 /* Non-nil means it is the window for C-M-v to scroll
    when the minibuffer is selected.  */
 extern Lisp_Object Vminibuf_scroll_window;
@@ -162,9 +164,9 @@ without invoking the usual minibuffer commands.")
 
 /* Actual minibuffer invocation. */
 
-void read_minibuf_unwind ();
+static void read_minibuf_unwind ();
 Lisp_Object get_minibuffer ();
-Lisp_Object read_minibuf ();
+static Lisp_Object read_minibuf ();
 
 /* Read from the minibuffer using keymap MAP, initial contents INITIAL
    (a string), putting point minus BACKUP_N chars from the end of INITIAL,
@@ -175,10 +177,13 @@ Lisp_Object read_minibuf ();
    but if EXPFLAG is nonzero, read it and return the object read.
    If HISTVAR is given, save the value read on that history only if it doesn't
    match the front of that history list exactly.  The value is pushed onto
-   the list as the string that was read.  */
+   the list as the string that was read.
 
-Lisp_Object
-read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
+   DEFALT specifies te default value for the sake of history commands.  */
+
+static Lisp_Object
+read_minibuf (map, initial, prompt, backup_n, expflag,
+	      histvar, histpos, defalt)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
@@ -186,11 +191,14 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
      int expflag;
      Lisp_Object histvar;
      Lisp_Object histpos;
+     Lisp_Object defalt;
 {
   Lisp_Object val;
   int count = specpdl_ptr - specpdl;
   Lisp_Object mini_frame, ambient_dir, minibuffer;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
+  specbind (Qminibuffer_default, defalt);
 
   single_kboard_state ();
 
@@ -388,17 +396,18 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 	  /* Truncate if requested.  */
 	  length = Fget (Vminibuffer_history_variable, Qhistory_length);
 	  if (NILP (length)) length = Vhistory_length;
-	  if (INTEGERP (length)) {
-	    if (XINT (length) <= 0)
-	      Fset (Vminibuffer_history_variable, Qnil);
-	    else
-	      {
-		Lisp_Object temp;
+	  if (INTEGERP (length))
+	    {
+	      if (XINT (length) <= 0)
+		Fset (Vminibuffer_history_variable, Qnil);
+	      else
+		{
+		  Lisp_Object temp;
 
-		temp = Fnthcdr (Fsub1 (length), histval);
-		if (CONSP (temp)) Fsetcdr (temp, Qnil);
-	      }
-	  }
+		  temp = Fnthcdr (Fsub1 (length), histval);
+		  if (CONSP (temp)) Fsetcdr (temp, Qnil);
+		}
+	    }
 	}
     }
 
@@ -469,7 +478,7 @@ get_minibuffer (depth)
 /* This function is called on exiting minibuffer, whether normally or not,
  and it restores the current window, buffer, etc. */
 
-void
+static void
 read_minibuf_unwind (data)
      Lisp_Object data;
 {
@@ -557,16 +566,19 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
   In that case, HISTVAR is the history list variable to use,\n\
   and HISTPOS is the initial position (the position in the list\n\
   which INITIAL-CONTENTS corresponds to).\n\
-  Positions are counted starting from 1 at the beginning of the list."
+  Positions are counted starting from 1 at the beginning of the list.\n\
+Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is used\n\
+ for history commands, and as the value to return if the user enters\n\
+ the empty string.\n\
 */
 
-DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 5, 0,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 6, 0,
   0 /* See immediately above */)
-  (prompt, initial_contents, keymap, read, hist)
-     Lisp_Object prompt, initial_contents, keymap, read, hist;
+  (prompt, initial_contents, keymap, read, hist, default_value)
+     Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
 {
   int pos = 0;
-  Lisp_Object histvar, histpos, position;
+  Lisp_Object histvar, histpos, position, val;
   position = Qnil;
 
   CHECK_STRING (prompt, 0);
@@ -610,8 +622,12 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   if (NILP (histpos))
     XSETFASTINT (histpos, 0);
 
-  return read_minibuf (keymap, initial_contents, prompt,
-		       make_number (pos), !NILP (read), histvar, histpos);
+  val = read_minibuf (keymap, initial_contents, prompt,
+		      make_number (pos), !NILP (read),
+		      histvar, histpos, default_value);
+  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
+    val = default_value;
+  return val;
 }
 
 DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
@@ -625,7 +641,8 @@ is a string to insert in the minibuffer before reading.")
   if (!NILP (initial_contents))
     CHECK_STRING (initial_contents, 1);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
-		       prompt, Qnil, 1, Qminibuffer_history, make_number (0));
+		       prompt, Qnil, 1, Qminibuffer_history,
+		       make_number (0), Qnil);
 }
 
 DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
@@ -640,16 +657,17 @@ is a string to insert in the minibuffer before reading.")
 
 /* Functions that use the minibuffer to read various things. */
 
-DEFUN ("read-string", Fread_string, Sread_string, 1, 3, 0,
+DEFUN ("read-string", Fread_string, Sread_string, 1, 4, 0,
   "Read a string from the minibuffer, prompting with string PROMPT.\n\
 If non-nil, second arg INITIAL-INPUT is a string to insert before reading.\n\
 The third arg HISTORY, if non-nil, specifies a history list\n\
   and optionally the initial position in the list.\n\
 See `read-from-minibuffer' for details of HISTORY argument.")
-  (prompt, initial_input, history)
-     Lisp_Object prompt, initial_input, history;
+  (prompt, initial_input, history, default_value)
+     Lisp_Object prompt, initial_input, history, default_value;
 {
-  return Fread_from_minibuffer (prompt, initial_input, Qnil, Qnil, history);
+  return Fread_from_minibuffer (prompt, initial_input, Qnil,
+				Qnil, history, default_value);
 }
 
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 2, 0,
@@ -662,17 +680,18 @@ Prompt with PROMPT, and provide INIT as an initial value of the input string.")
   if (! NILP (init))
     CHECK_STRING (init, 1);
 
-  return read_minibuf (Vminibuffer_local_ns_map, init, prompt, Qnil, 0,
-		       Qminibuffer_history, make_number (0));
+  return read_minibuf (Vminibuffer_local_ns_map, init, prompt, Qnil,
+		       0, Qminibuffer_history, make_number (0), Qnil);
 }
 
-DEFUN ("read-command", Fread_command, Sread_command, 1, 1, 0,
-  "One arg PROMPT, a string.  Read the name of a command and return as a symbol.\n\
-Prompts with PROMPT.")
-  (prompt)
-     Lisp_Object prompt;
+DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
+  "Read the name of a command and return as a symbol.\n\
+Prompts with PROMPT.  By default, return DEFAULT-VALUE.")
+  (prompt, default_value)
+     Lisp_Object prompt, default_value;
 {
-  return Fintern (Fcompleting_read (prompt, Vobarray, Qcommandp, Qt, Qnil, Qnil),
+  return Fintern (Fcompleting_read (prompt, Vobarray, Qcommandp, Qt,
+				    Qnil, Qnil, default_value),
 		  Qnil);
 }
 
@@ -683,34 +702,34 @@ Prompts with PROMPT.")
   (prompt)
      Lisp_Object prompt;
 {
-  return Fintern (Fcompleting_read (prompt, Vobarray, Qfboundp, Qt, Qnil, Qnil),
+  return Fintern (Fcompleting_read (prompt, Vobarray, Qfboundp, Qt, Qnil, Qnil, Qnil),
 		  Qnil);
 }
 #endif /* NOTDEF */
 
-DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 1, 0,
-  "One arg PROMPT, a string.  Read the name of a user variable and return\n\
-it as a symbol.  Prompts with PROMPT.\n\
+DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
+  "Read the name of a user variable and return it as a symbol.\n\
+Prompts with PROMPT.  By default, return DEFAULT-VALUE.\n\
 A user variable is one whose documentation starts with a `*' character.")
-  (prompt)
-     Lisp_Object prompt;
+  (prompt, default_value)
+     Lisp_Object prompt, default_value;
 {
   return Fintern (Fcompleting_read (prompt, Vobarray,
-				    Quser_variable_p, Qt, Qnil, Qnil),
+				    Quser_variable_p, Qt,
+				    Qnil, Qnil, default_value),
 		  Qnil);
 }
 
 DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
   "One arg PROMPT, a string.  Read the name of a buffer and return as a string.\n\
 Prompts with PROMPT.\n\
-Optional second arg is value to return if user enters an empty line.\n\
+Optional second arg DEF is value to return if user enters an empty line.\n\
 If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are allowed.")
   (prompt, def, require_match)
      Lisp_Object prompt, def, require_match;
 {
   Lisp_Object tem;
   Lisp_Object args[3];
-  struct gcpro gcpro1;
 
   if (BUFFERP (def))
     def = XBUFFER (def)->name;
@@ -721,12 +740,8 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
       args[2] = def;
       prompt = Fformat (3, args);
     }
-  GCPRO1 (def);
-  tem = Fcompleting_read (prompt, Vbuffer_alist, Qnil, require_match, Qnil, Qnil);
-  UNGCPRO;
-  if (XSTRING (tem)->size)
-    return tem;
-  return def;
+  return Fcompleting_read (prompt, Vbuffer_alist, Qnil,
+			   require_match, Qnil, Qnil, def);
 }
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
@@ -1091,7 +1106,7 @@ Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
 
-DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
+DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
   "Read a string in the minibuffer, with completion.\n\
 PROMPT is a string to prompt with; normally it ends in a colon and a space.\n\
 TABLE is an alist whose elements' cars are strings, or an obarray.\n\
@@ -1116,13 +1131,15 @@ HIST, if non-nil, specifies a history list\n\
   and HISTPOS is the initial position (the position in the list\n\
   which INITIAL-CONTENTS corresponds to).\n\
   Positions are counted starting from 1 at the beginning of the list.\n\
+DEF, if non-nil, is the default value.
+
 Completion ignores case if the ambient value of\n\
   `completion-ignore-case' is non-nil."
 */
-DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
+DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
   0 /* See immediately above */)
-  (prompt, table, predicate, require_match, init, hist)
-     Lisp_Object prompt, table, predicate, require_match, init, hist;
+  (prompt, table, predicate, require_match, init, hist, def)
+     Lisp_Object prompt, table, predicate, require_match, init, hist, def;
 {
   Lisp_Object val, histvar, histpos, position;
   int pos = 0;
@@ -1169,7 +1186,9 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
 		      ? Vminibuffer_local_completion_map
 		      : Vminibuffer_local_must_match_map,
 		      init, prompt, make_number (pos), 0,
-		      histvar, histpos);
+		      histvar, histpos, def);
+  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
+    val = def;
   return unbind_to (count, val);
 }
 
@@ -1848,6 +1867,10 @@ syms_of_minibuf ()
 
   Qread_file_name_internal = intern ("read-file-name-internal");
   staticpro (&Qread_file_name_internal);
+
+  Qminibuffer_default = intern ("minibuffer-default");
+  staticpro (&Qminibuffer_default);
+  Fset (Qminibuffer_default, Qnil);
 
   Qminibuffer_completion_table = intern ("minibuffer-completion-table");
   staticpro (&Qminibuffer_completion_table);
