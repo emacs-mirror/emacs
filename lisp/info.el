@@ -84,8 +84,11 @@ variable INFOPATH to initialize it, or `Info-default-directory-list'
 if there is no INFOPATH variable in the environment.
 The last element of `Info-default-directory-list' is the directory
 where Emacs installs the Info files that come with it.
-If Emacs finds it has been installed elsewhere, or not yet installed,
-it replaces that element with the directory that its Info files are in.")
+
+If you run the Emacs executable from the `src' directory in the Emacs
+source tree, the `info' directory in the source tree is used as the last
+element, in place of the installation Info directory.  This is useful
+when you run a version of Emacs without installing it.")
 
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.")
