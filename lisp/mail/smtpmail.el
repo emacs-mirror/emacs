@@ -4,6 +4,7 @@
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Brian D. Carlstrom <bdc@ai.mit.edu>
+;; ESMTP support: Simon Leinen <simon@switch.ch>
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -243,7 +244,8 @@ don't define this value."
 	(port smtpmail-smtp-service)
 	response-code
 	greeting
-	process-buffer)
+	process-buffer
+	(supported-extensions '()))
     (unwind-protect
 	(catch 'done
 	  ;; get or create the trace buffer
@@ -274,24 +276,105 @@ don't define this value."
 		(throw 'done nil)
 	      )
 
-	    ;; HELO
-	    (smtpmail-send-command process (format "HELO %s" (smtpmail-fqdn)))
+	    ;; EHLO
+	    (smtpmail-send-command process (format "EHLO %s" (smtpmail-fqdn)))
 
 	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
 		    (not (integerp (car response-code)))
 		    (>= (car response-code) 400))
-		(throw 'done nil)
-	      )
+		(progn
+		  ;; HELO
+		  (smtpmail-send-command process (format "HELO %s" (smtpmail-fqdn)))
+
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil)))
+	      (let ((extension-lines (cdr (cdr response-code))))
+		(while extension-lines
+		  (let ((name (intern (downcase (substring (car extension-lines) 4)))))
+		    (and name
+			 (cond ((memq name '(verb xvrb 8bitmime onex xone
+						  expn size dsn etrn
+						  help xusr))
+				(setq supported-extensions
+				      (cons name supported-extensions)))
+			       (t (message "unknown extension %s"
+					   name)))))
+		  (setq extension-lines (cdr extension-lines)))))
+
+	    (if (or (member 'onex supported-extensions)
+		    (member 'xone supported-extensions))
+		(progn
+		  (smtpmail-send-command process (format "ONEX"))
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil))))
+
+	    (if (and smtpmail-debug-info
+		     (or (member 'verb supported-extensions)
+			 (member 'xvrb supported-extensions)))
+		(progn
+		  (smtpmail-send-command process (format "VERB"))
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil))))
+
+	    (if (member 'xusr supported-extensions)
+		(progn
+		  (smtpmail-send-command process (format "XUSR"))
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil))))
 
 	    ;; MAIL FROM: <sender>
-;	    (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
-	    (smtpmail-send-command process (format "MAIL FROM: <%s>" user-mail-address))
+	    (let ((size-part
+		   (if (member 'size supported-extensions)
+		       (format " SIZE=%d"
+			       (save-excursion
+				 (set-buffer smtpmail-text-buffer)
+				 ;; size estimate:
+				 (+ (- (point-max) (point-min))
+				    ;; Add one byte for each change-of-line
+				    ;; because or CR-LF representation:
+				    (count-lines (point-min) (point-max))
+				    ;; For some reason, an empty line is
+				    ;; added to the message.  Maybe this
+				    ;; is a bug, but it can't hurt to add
+				    ;; those two bytes anyway:
+				    2)))
+		     ""))
+		  (body-part
+		   (if (member '8bitmime supported-extensions)
+		       ;; FIXME:
+		       ;; Code should be added here that transforms
+		       ;; the contents of the message buffer into
+		       ;; something the receiving SMTP can handle.
+		       ;; For a receiver that supports 8BITMIME, this
+		       ;; may mean converting BINARY to BASE64, or
+		       ;; adding Content-Transfer-Encoding and the
+		       ;; other MIME headers.  The code should also
+		       ;; return an indication of what encoding the
+		       ;; message buffer is now, i.e. ASCII or
+		       ;; 8BITMIME.
+		       (if nil
+			   " BODY=8BITMIME"
+			 "")
+		     "")))
+;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
+	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
+						     user-mail-address
+						     size-part
+						     body-part))
 
-	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
-		    (not (integerp (car response-code)))
-		    (>= (car response-code) 400))
-		(throw 'done nil)
-	      )
+	      (if (or (null (car (setq response-code (smtpmail-read-response process))))
+		      (not (integerp (car response-code)))
+		      (>= (car response-code) 400))
+		  (throw 'done nil)
+		))
 	    
 	    ;; RCPT TO: <recipient>
 	    (let ((n 0))
@@ -299,7 +382,8 @@ don't define this value."
 		(smtpmail-send-command process (format "RCPT TO: <%s>" (nth n recipient)))
 		(setq n (1+ n))
 
-		(if (or (null (car (setq response-code (smtpmail-read-response process))))
+		(setq response-code (smtpmail-read-response process))
+		(if (or (null (car response-code))
 			(not (integerp (car response-code)))
 			(>= (car response-code) 400))
 		    (throw 'done nil)
@@ -354,14 +438,10 @@ don't define this value."
 
 (defun smtpmail-read-response (process)
   (let ((case-fold-search nil)
-	(response-string nil)
+	(response-strings nil)
 	(response-continue t)
-	(return-value '(nil ""))
+	(return-value '(nil ()))
 	match-end)
-
-;    (setq response-string nil)
-;    (setq response-continue t)
-;    (setq return-value '(nil ""))
 
     (while response-continue
       (goto-char smtpmail-read-point)
@@ -370,32 +450,38 @@ don't define this value."
 	(goto-char smtpmail-read-point))
 
       (setq match-end (point))
-      (if (null response-string)
-	  (setq response-string
-		(buffer-substring smtpmail-read-point (- match-end 2))))
+      (setq response-strings
+	    (cons (buffer-substring smtpmail-read-point (- match-end 2))
+		  response-strings))
 	
       (goto-char smtpmail-read-point)
       (if (looking-at "[0-9]+ ")
-	  (progn (setq response-continue nil)
-;		 (setq return-value response-string)
+	  (let ((begin (match-beginning 0))
+		(end (match-end 0)))
+	    (if smtpmail-debug-info
+		(message "%s" (car response-strings)))
 
-		 (if smtpmail-debug-info
-		     (message "%s" response-string))
+	    (setq smtpmail-read-point match-end)
 
-		 (setq smtpmail-read-point match-end)
-		 (setq return-value
-		       (cons (string-to-int 
-			      (buffer-substring (match-beginning 0) (match-end 0))) 
-			     response-string)))
+	    ;; ignore lines that start with "0"
+	    (if (looking-at "0[0-9]+ ")
+		nil
+	      (setq response-continue nil)
+	      (setq return-value
+		    (cons (string-to-int 
+			   (buffer-substring begin end)) 
+			  (nreverse response-strings)))))
 	
 	(if (looking-at "[0-9]+-")
-	    (progn (setq smtpmail-read-point match-end)
+	    (progn (if smtpmail-debug-info
+		     (message "%s" (car response-strings)))
+		   (setq smtpmail-read-point match-end)
 		   (setq response-continue t))
 	  (progn
 	    (setq smtpmail-read-point match-end)
 	    (setq response-continue nil)
 	    (setq return-value 
-		  (cons nil response-string))
+		  (cons nil (nreverse response-strings)))
 	    )
 	  )))
     (setq smtpmail-read-point match-end)
