@@ -5081,6 +5081,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  interrupted_perdisplay->kbd_queue
 		    = Fcons (keybuf[--t], interrupted_perdisplay->kbd_queue);
 		mock_input = 0;
+		orig_local_map = get_local_map (PT, current_buffer);
 		goto replay_sequence;
 	      }
 #endif
@@ -5110,6 +5111,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  if (BUFFERP (key))
 	    {
 	      mock_input = t;
+	      orig_local_map = get_local_map (PT, current_buffer);
 	      goto replay_sequence;
 	    }
 
@@ -5121,6 +5123,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      keybuf[t++] = key;
 	      mock_input = t;
 	      Vquit_flag = Qnil;
+	      orig_local_map = get_local_map (PT, current_buffer);
 	      goto replay_sequence;
 	    }
 
