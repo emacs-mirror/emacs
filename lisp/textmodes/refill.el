@@ -3,6 +3,7 @@
 ;; Copyright (C) 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
+;; Maintainer: Miles Bader <miles@gnu.org>
 ;; Keywords: wp
 
 ;; This file is part of GNU Emacs.
