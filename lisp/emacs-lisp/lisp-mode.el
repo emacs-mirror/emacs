@@ -719,7 +719,7 @@ is the buffer position of the start of the containing expression."
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
     (if (and (elt state 2)
              (not (looking-at "\\sw\\|\\s_")))
-        ;; car of form doesn't seem to be a a symbol
+        ;; car of form doesn't seem to be a symbol
         (progn
           (if (not (> (save-excursion (forward-line 1) (point))
                       calculate-lisp-indent-last-sexp))
