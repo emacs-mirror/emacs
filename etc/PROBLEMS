@@ -555,6 +555,13 @@ are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
 so, you have hit a compiler bug.  Please make sure to re-configure
 Emacs so that it isn't compiled with `-O5'.
 
+* Compiling on AIX 4.3.x or 4.4 fails.
+
+This could happen if you use /bin/c89 as youir compiler, instead of
+the default `cc'.  /bin/c89 treats certain warnings, such as benign
+redefinitions of macros, as errors, and fails the build.  A solution
+is to use the default compiler `cc'.
+
 * The PSGML package uses the obsolete variables
 `before-change-function' and `after-change-function', which are no
 longer used by Emacs.  These changes to PSGML 1.2.2 fix that.
@@ -972,6 +979,14 @@ slots now.  If the built-in Unicode/UTF-8 support is insufficient,
 e.g. if you need more CJK coverage, use the current Mule-UCS package.
 Any files encoded as emacs-mule using oc-unicode won't be read
 correctly by Emacs 21.
+
+* ps-print commands fail to find prologue files ps-prin*.ps.
+
+This can happen if you use an old version of X-Symbol package: it
+defines compatibility functions which trick ps-print into thinking it
+runs in XEmacs, and look for the prologue files in a wrong directory.
+
+The solution is to upgrade X-Symbol to a later version.
 
 * Using epop3.el package causes Emacs to signal an error.
 
