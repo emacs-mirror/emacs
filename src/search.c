@@ -1254,7 +1254,7 @@ wordify (string)
 }
 
 DEFUN ("search-backward", Fsearch_backward, Ssearch_backward, 1, 4,
-  "sSearch backward: ",
+  "MSearch backward: ",
   "Search backward from point for STRING.\n\
 Set point to the beginning of the occurrence found, and return point.\n\
 An optional second argument bounds the search; it is a buffer position.\n\
@@ -1269,7 +1269,7 @@ See also the functions `match-beginning', `match-end' and `replace-match'.")
   return search_command (string, bound, noerror, count, -1, 0, 0);
 }
 
-DEFUN ("search-forward", Fsearch_forward, Ssearch_forward, 1, 4, "sSearch: ",
+DEFUN ("search-forward", Fsearch_forward, Ssearch_forward, 1, 4, "MSearch: ",
   "Search forward from point for STRING.\n\
 Set point to the end of the occurrence found, and return point.\n\
 An optional second argument bounds the search; it is a buffer position.\n\
