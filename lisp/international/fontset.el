@@ -473,7 +473,7 @@ It returns a name of the created fontset."
 	fontlist full-fontlist ascii-font resolved-ascii-font charset)
     (if (query-fontset name)
 	(or noerror 
-	    (error "Fontset \"%s\" already exists"))
+	    (error "Fontset \"%s\" already exists" name))
       ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
       (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
 	(setq idx (match-end 0))
