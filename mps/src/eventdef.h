@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.15) $
+ * $HopeName: MMsrc!eventdef.h(trunk.16) $
  * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -68,7 +68,7 @@ RELATION(AMCBufferInit                   , 0x0005, TRUE, Pool, PP)
 RELATION(AMCBufferFill                   , 0x0006, TRUE, Seg, PPWAW)
 RELATION(AMCBufferEmpty                  , 0x0007, TRUE, Seg, PPW)
 RELATION(MeterInit                       , 0x0008, TRUE, Pool, PP)
-RELATION(MeterValues                     , 0x0009, TRUE, Pool, PUDDUU)
+RELATION(MeterValues                     , 0x0009, TRUE, Pool, PDDUUU)
 RELATION(AMCScanBegin                    , 0x000a, TRUE, Trace, PPP)
 RELATION(AMCScanEnd                      , 0x000b, TRUE, Trace, PPP)
 RELATION(AMCFix                          , 0x000c, TRUE, Ref, 0)
