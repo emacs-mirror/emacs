@@ -2256,10 +2256,6 @@ sit_for (sec, usec, reading, display)
 {
   Lisp_Object read_kbd;
 
-  if (CONSP (Vunread_command_events)
-      || unread_command_char != -1)
-    return Qnil;
-
   if (detect_input_pending ())
     return Qnil;
 
