@@ -1646,6 +1646,11 @@ this does nothing and returns nil.")
 	   && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
     return Qnil;
 
+  if (NILP (Vpurify_flag))
+    /* Only add entries after dumping, because the ones before are
+       not useful and else we get loads of them from the loaddefs.el.  */
+    LOADHIST_ATTACH (Fcons (Qautoload, function));
+
 #ifdef NO_ARG_ARRAY
   args[0] = file;
   args[1] = docstring;
