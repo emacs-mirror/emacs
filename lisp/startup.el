@@ -695,49 +695,53 @@ from being initialized.")
 		   ;; The convention for this piece of code is that
 		   ;; each piece of output starts with one or two newlines
 		   ;; and does not end with any newlines.
-		   (insert (emacs-version)
-			   "
-Copyright (C) 1996 Free Software Foundation, Inc.")
+		   (insert "Welcome to GNU Emacs")
+		   (if (eq system-type 'gnu/linux)
+		       (insert ", one component of a Linux-based GNU system."))
+		   (insert "\n")
 		   ;; If keys have their default meanings,
 		   ;; use precomputed string to save lots of time.
 		   (if (and (eq (key-binding "\C-h") 'help-command)
 			    (eq (key-binding "\C-xu") 'advertised-undo)
 			    (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
 			    (eq (key-binding "\C-ht") 'help-with-tutorial)
-			    (eq (key-binding "\C-hi") 'info))
-		       (insert "\n
-Type C-x C-c to exit Emacs.
-Type C-h for help; C-x u to undo changes.
-Type C-h t for a tutorial on using Emacs.
-Type C-h i to enter Info, which you can use to read GNU documentation.")
+			    (eq (key-binding "\C-hi") 'info)
+			    (eq (key-binding "\C-h\C-n") 'view-emacs-news))
+		       (insert "
+Get help	   C-h  (Hold down CTRL and press h)
+Undo changes	   C-x u       Exit Emacs		C-x C-c
+Get a tutorial	   C-h t       Use Info to read docs	C-h i")
 		     (insert (substitute-command-keys
 			      (format "\n
-Type \\[save-buffers-kill-emacs] to exit Emacs.
-Type %s for help; \\[advertised-undo] to undo changes.
-Type \\[help-with-tutorial] for a tutorial on using Emacs.
-Type \\[info] to enter Info, which you can use to read GNU documentation."
+Get help	   %s
+Undo changes	   \\[advertised-undo]
+Exit Emacs	   \\[save-buffers-kill-emacs]
+Get a tutorial	   \\[help-with-tutorial]
+Use Info to read docs	\\[info]"
 				      (let ((where (where-is-internal
 						    'help-command nil t)))
 					(if where
 					    (key-description where)
 					  "M-x help"))))))
-		   ;; Many users seem to have problems with these.
-		   (insert "
-(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
-If you have no Meta key, you may instead type ESC followed by the character.)")
 		   ;; Say how to use the menu bar
 		   ;; if that is not with the mouse.
 		   (if (not (assq 'display (frame-parameters)))
-		       (if (eq (key-binding "\M-`") 'tmm-menubar)
-			   (insert "\n\nType F10 or M-` to use the menu bar.")
-			 (insert (substitute-command-keys
-				  "\n\nType \\[tmm-menubar] to use the menu bar."))))
+		       (if (and (eq (key-binding "\M-`") 'tmm-menubar)
+				(eq (key-binding [f10]) 'tmm-menubar))
+			   (insert "
+Activate menubar   F10  or  ESC `  or   M-`")
+			 (insert (substitute-command-keys "
+Activate menubar     \\[tmm-menubar]"))))
 
 		   ;; Windows and MSDOS (currently) do not count as
 		   ;; window systems, but do have mouse support.
 		   (if window-system
-		       (insert "\n
-C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
+		       (insert "
+Mode-specific menu   C-mouse-3 (third button, with CTRL)"))
+		   ;; Many users seem to have problems with these.
+		   (insert "
+\(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
+If you have no Meta key, you may instead type ESC followed by the character.)")
 		   (and auto-save-list-file-prefix
 			(directory-files
 			 (file-name-directory auto-save-list-file-prefix)
@@ -746,10 +750,13 @@ C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
 				 (regexp-quote (file-name-nondirectory
 						auto-save-list-file-prefix)))
 			 t)
-			(insert "\n\nIf an Emacs session crashed recently,\n"
-				"type M-x recover-session RET to recover"
+			(insert "\n\nIf an Emacs session crashed recently, "
+				"type M-x recover-session RET\nto recover"
 				" the files you were editing."))
 
+		   (insert "\n\n" (emacs-version)
+			   "
+Copyright (C) 1996 Free Software Foundation, Inc.")
 		   (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 			    (eq (key-binding "\C-h\C-d") 'describe-distribution)
 			    (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
@@ -763,6 +770,7 @@ Type C-h C-d for information on getting the latest version.")
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
 You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
 Type \\[describe-distribution] for information on getting the latest version.")))
+		   (goto-char (point-min))
 
 		   (set-buffer-modified-p nil)
 		   (sit-for 120))
