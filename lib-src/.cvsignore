@@ -1,0 +1,17 @@
+Makefile.c
+fns-*
+test-distrib
+make-docfile
+profile
+digest-doc
+sorted-doc
+movemail
+cvtmail
+fakemail
+yow
+emacsserver
+hexl
+etags
+ctags
+emacsclient
+b2m

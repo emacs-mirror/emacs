@@ -1,5 +1,17 @@
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (Qbitmap_spec_p): Replaces Qpixmap_spec_p.
+	(Fbitmap_spec_p): Replaces Fpixmap_spec_p.
+	(load_pixmap): Use Fbitmap_spec_p and Qbitmap_spec_p instead of
+	Fpixmap_spec_p and Qpixmap_spec_p.
+	(load_face_colors, check_lface_attrs,
+	merge_face_vector_with_property,
+	Finternal_set_lisp_face_attribute): Use Fbitmap_spec_p.
+	(syms_of_xfaces): Initialize Qbitmap_spec_p, defsubr
+	Fbitmap_spec_p.
+
+1999-10-07  Gerd Moellmann  <gerd@gnu.org>
+
 	* xdisp.c (display_menu_bar): Use MENU_FACE_ID instead of
 	MODE_LINE_FACE_ID.
 

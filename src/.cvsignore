@@ -1,0 +1,10 @@
+Makefile.c
+config.h
+epaths.h
+config.stamp
+stamp-oldxmenu
+prefix-args
+temacs
+emacs
+emacs-*
+*.core
