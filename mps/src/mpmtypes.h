@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(MMdevel_lib.2) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Types and type constants are almost all defined
@@ -171,6 +171,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p);
 #define AttrGC          ((Attr)0x1000)  /* garbage collecting */
 #define AttrINCR_RB     ((Attr)0x2000)  /* read-barrier incremental */
 #define AttrINCR_WB     ((Attr)0x4000)  /* write-barrier incremental */
+#define AttrMask        ((Attr)0x773F)  /* Mask of all set bits */
 
 enum {                          /* rank constants */
   RankAMBIG,                    /* ambiguous reference */
