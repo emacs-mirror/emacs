@@ -1,3 +1,8 @@
+2003-10-01  Dave Love  <fx@gnu.org>
+
+	* vc-cvs.el (vc-cvs-parse-entry): Revert last change to allow
+	bootstrap.
+
 2003-09-30  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-mode): Handle dired-directory as a list.
