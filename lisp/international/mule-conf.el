@@ -259,6 +259,10 @@
   (list (cons (make-char 'japanese-jisx0208-1978)
 	      (make-char 'japanese-jisx0208))
 	(cons (make-char 'latin-jisx0201) (make-char 'ascii))))
+(aset (get 'oldjis-newjis-jisroman-ascii 'translation-table)
+      (make-char 'latin-jisx0201 92) (make-char 'latin-jisx0201 92))
+(aset (get 'oldjis-newjis-jisroman-ascii 'translation-table)
+      (make-char 'latin-jisx0201 126) (make-char 'latin-jisx0201 126))
 
 (setq standard-translation-table-for-decode
       (get 'oldjis-newjis-jisroman-ascii 'translation-table))
