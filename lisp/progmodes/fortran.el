@@ -111,7 +111,8 @@ Normally a space.")
   "*Non-nil causes all numbered lines to be treated as possible DO loop ends.")
 
 (defvar fortran-blink-matching-if nil
-  "*From a Fortran ENDIF statement, blink the matching IF statement.")
+  "*From a Fortran ENDIF statement, blink the matching IF statement.
+Also, from an ENDDO statement, blink on matching DO [WHILE] statement.")
 
 (defvar fortran-continuation-string "$"
   "*Single-character string used for Fortran continuation lines.
@@ -326,6 +327,7 @@ Variables controlling indentation style and extra features:
     statements.  (default nil)
  fortran-blink-matching-if 
     From a Fortran ENDIF statement, blink the matching IF statement.
+    Also, from an ENDDO statement, blink on matching DO [WHILE] statement.
     (default nil)
  fortran-continuation-string
     Single-character string to be inserted in column 5 of a continuation
@@ -726,6 +728,42 @@ non-comment Fortran statement in the file, and nil otherwise."
 	    (goto-char matching-if)
 	    (sit-for 1)
 	    (goto-char endif-point))))))
+
+(defun fortran-blink-matching-do ()
+  ;; From a Fortran ENDDO statement, blink on the matching DO or DO WHILE
+  ;; statement.  This is basically copied from fortran-blink-matching-if.
+  (let ((count 1) (top-of-window (window-start)) matching-do
+	(enddo-point (point)) message)
+    (if (save-excursion (beginning-of-line)
+			(skip-chars-forward " \t0-9")
+			(looking-at "end[ \t]*do\\b"))
+	(progn
+	  (save-excursion
+	    (while (and (not (= count 0))
+			(not (eq (fortran-previous-statement)
+				 'first-statement))
+			(not (looking-at
+			      "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
+					; Keep local to subprogram
+	      (skip-chars-forward " \t0-9")
+	      (cond ((looking-at "do[ \t]+")
+                     (setq count (- count 1)))
+		    ((looking-at "end[ \t]*do\\b")
+		     (setq count (+ count 1)))))
+	    (if (not (= count 0))
+		(setq message "No matching do.")
+	      (if (< (point) top-of-window)
+		  (setq message (concat "Matches " (buffer-substring
+						    (progn (beginning-of-line)
+							   (point))
+						    (progn (end-of-line)
+							   (point)))))
+		(setq matching-do (point)))))
+	  (if message
+	      (message "%s" message)
+	    (goto-char matching-do)
+	    (sit-for 1)
+	    (goto-char enddo-point))))))
 
 (defun fortran-indent-line ()
   "Indents current Fortran line based on its contents and on previous lines."
@@ -750,7 +788,9 @@ non-comment Fortran statement in the file, and nil otherwise."
 	  (end-of-line)
 	  (fortran-do-auto-fill)))
     (if fortran-blink-matching-if
-	(fortran-blink-matching-if))))
+	(progn
+	  (fortran-blink-matching-if)
+	  (fortran-blink-matching-do)))))
 
 (defun fortran-indent-new-line ()
   "Reindent the current Fortran line, insert a newline and indent the newline.
