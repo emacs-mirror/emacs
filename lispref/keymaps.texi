@@ -1638,7 +1638,10 @@ the menu.  To put it elsewhere, use @code{define-key-after}:
 @defun define-key-after map key binding after
 Define a binding in @var{map} for @var{key}, with value @var{binding},
 just like @code{define-key}, but position the binding in @var{map} after
-the binding for the event @var{after}.  For example,
+the binding for the event @var{after}.  The argument @var{key} should
+be of length one---a vector or string with just one element.
+
+For example,
 
 @example
 (define-key-after my-menu [drink]
