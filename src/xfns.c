@@ -1305,19 +1305,21 @@ x_set_cursor_type (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   if (EQ (arg, Qbar))
-    FRAME_DESIRED_CURSOR (f) = bar_cursor;
+    {
+      FRAME_DESIRED_CURSOR (f) = bar_cursor;
+      f->display.x->cursor_width = 2;
+    }
+  else if (CONSP (arg) && EQ (XCONS (arg)->car, Qbar)
+	   && INTEGERP (XCONS (arg)->cdr))
+    {
+      FRAME_DESIRED_CURSOR (f) = bar_cursor;
+      f->display.x->cursor_width = XINT (XCONS (arg)->cdr);
+    }
   else
-#if 0
-    if (EQ (arg, Qbox))
-#endif
-      FRAME_DESIRED_CURSOR (f) = filled_box_cursor;
-  /* Error messages commented out because people have trouble fixing
-     .Xdefaults with Emacs, when it has something bad in it.  */
-#if 0
-  else
-    error
-      ("the `cursor-type' frame parameter should be either `bar' or `box'");
-#endif
+    /* Treat anything unknown as "box cursor".
+       It was bad to signal an error; people have trouble fixing
+       .Xdefaults with Emacs, when it has something bad in it.  */
+    FRAME_DESIRED_CURSOR (f) = filled_box_cursor;
 
   /* Make sure the cursor gets redrawn.  This is overkill, but how
      often do people change cursor types?  */
