@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 88, 93, 94, 95 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -656,11 +656,7 @@ store_symval_forwarding (sym, valcontents, newval)
      Lisp_Object sym;
      register Lisp_Object valcontents, newval;
 {
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XTYPE (valcontents))
-#else
-  switch (XTYPE (valcontents))
-#endif
+  switch (SWITCH_ENUM_CAST (XTYPE (valcontents)))
     {
     case Lisp_Misc:
       switch (XMISC (valcontents)->type)
@@ -1630,11 +1626,7 @@ arith_driver (code, nargs, args)
   register int accum;
   register int next;
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) code)
-#else
-  switch (code)
-#endif
+  switch (SWITCH_ENUM_CAST (code))
     {
     case Alogior:
     case Alogxor:
@@ -1661,11 +1653,7 @@ arith_driver (code, nargs, args)
 #endif /* LISP_FLOAT_TYPE */
       args[argnum] = val;    /* runs into a compiler bug. */
       next = XINT (args[argnum]);
-#ifdef SWITCH_ENUM_BUG
-      switch ((int) code)
-#else
-      switch (code)
-#endif
+      switch (SWITCH_ENUM_CAST (code))
 	{
 	case Aadd: accum += next; break;
 	case Asub:
@@ -1725,11 +1713,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 	  args[argnum] = val;    /* runs into a compiler bug. */
 	  next = XINT (args[argnum]);
 	}
-#ifdef SWITCH_ENUM_BUG
-      switch ((int) code)
-#else
-      switch (code)
-#endif
+      switch (SWITCH_ENUM_CAST (code))
 	{
 	case Aadd:
 	  accum += next;

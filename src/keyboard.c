@@ -2637,11 +2637,7 @@ make_lispy_event (event)
 {
   int i;
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) event->kind)
-#else
-  switch (event->kind)
-#endif
+  switch (SWITCH_ENUM_CAST (event->kind))
     {
       /* A simple keystroke.  */
     case ascii_keystroke:

@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1987, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -401,11 +401,7 @@ describe_syntax (value)
 
   insert_string ("\twhich means: ");
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) code)
-#else
-  switch (code)
-#endif
+  switch (SWITCH_ENUM_CAST (code))
     {
     case Swhitespace:
       insert_string ("whitespace"); break;
@@ -905,11 +901,7 @@ scan_lists (from, count, depth, sexpflag)
 	  if (SYNTAX_PREFIX (c))
 	    continue;
 
-#ifdef SWITCH_ENUM_BUG
-	  switch ((int) code)
-#else
-	  switch (code)
-#endif
+	  switch (SWITCH_ENUM_CAST (code))
 	    {
 	    case Sescape:
 	    case Scharquote:
@@ -922,11 +914,7 @@ scan_lists (from, count, depth, sexpflag)
 	      /* This word counts as a sexp; return at end of it. */
 	      while (from < stop)
 		{
-#ifdef SWITCH_ENUM_BUG
-		  switch ((int) SYNTAX (FETCH_CHAR (from)))
-#else
-		  switch (SYNTAX (FETCH_CHAR (from)))
-#endif
+		  switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from))))
 		    {
 		    case Scharquote:
 		    case Sescape:
@@ -1001,11 +989,7 @@ scan_lists (from, count, depth, sexpflag)
 		{
 		  if (from >= stop) goto lose;
 		  if (FETCH_CHAR (from) == stringterm) break;
-#ifdef SWITCH_ENUM_BUG
-		  switch ((int) SYNTAX (FETCH_CHAR (from)))
-#else
-		  switch (SYNTAX (FETCH_CHAR (from)))
-#endif
+		  switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from))))
 		    {
 		    case Scharquote:
 		    case Sescape:
@@ -1059,11 +1043,7 @@ scan_lists (from, count, depth, sexpflag)
 	  if (SYNTAX_PREFIX (c))
 	    continue;
 
-#ifdef SWITCH_ENUM_BUG
-	  switch ((int) (quoted ? Sword : code))
-#else
-	  switch (quoted ? Sword : code)
-#endif
+	  switch (SWITCH_ENUM_CAST (quoted ? Sword : code))
 	    {
 	    case Sword:
 	    case Ssymbol:
@@ -1466,11 +1446,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 
       if (SYNTAX_PREFIX (FETCH_CHAR (from - 1)))
 	continue;
-#ifdef SWITCH_ENUM_BUG
-      switch ((int) code)
-#else
-      switch (code)
-#endif
+      switch (SWITCH_ENUM_CAST (code))
 	{
 	case Sescape:
 	case Scharquote:
@@ -1488,11 +1464,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	symstarted:
 	  while (from < end)
 	    {
-#ifdef SWITCH_ENUM_BUG
-	      switch ((int) SYNTAX (FETCH_CHAR (from)))
-#else
-	      switch (SYNTAX (FETCH_CHAR (from)))
-#endif
+	      switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from))))
 		{
 		case Scharquote:
 		case Sescape:
@@ -1583,11 +1555,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	    {
 	      if (from >= end) goto done;
 	      if (FETCH_CHAR (from) == state.instring) break;
-#ifdef SWITCH_ENUM_BUG
-	      switch ((int) SYNTAX (FETCH_CHAR (from)))
-#else
-	      switch (SYNTAX (FETCH_CHAR (from)))
-#endif
+	      switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from))))
 		{
 		case Scharquote:
 		case Sescape:

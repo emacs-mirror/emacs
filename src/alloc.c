@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 88, 93, 94, 95 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1502,11 +1502,7 @@ mark_object (objptr)
   if (last_marked_index == LAST_MARKED_SIZE)
     last_marked_index = 0;
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XGCTYPE (obj))
-#else
-  switch (XGCTYPE (obj))
-#endif
+  switch (SWITCH_ENUM_CAST (XGCTYPE (obj)))
     {
     case Lisp_String:
       {

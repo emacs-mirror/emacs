@@ -2878,11 +2878,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 
   depth++;
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XTYPE (elt))
-#else
-  switch (XTYPE (elt))
-#endif
+  switch (SWITCH_ENUM_CAST (XTYPE (elt)))
     {
     case Lisp_String:
       {
