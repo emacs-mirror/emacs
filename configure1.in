@@ -993,6 +993,14 @@ case "${with_x10}" in
   ;;
 esac
 
+### If the user hasn't specified where we should find X, try
+### letting autoconf figure that out.
+if [ "0${x_includes}" == 0 ] && [ "0${x_libraries}" == 0 ]; then
+  ]
+    AC_FIND_X
+  [
+fi
+
 case "${window_system}" in
   "none" | "x11" | "x10" ) ;;
   "" )
