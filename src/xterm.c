@@ -287,7 +287,7 @@ extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
 extern Lisp_Object Vx_no_window_manager;
 
-extern Lisp_Object Qface, Qmouse_face, Qeql;
+extern Lisp_Object Qeql;
 
 extern int errno;
 
@@ -7271,13 +7271,6 @@ x_draw_hollow_cursor (w, row)
   struct glyph *cursor_glyph;
   GC gc;
 
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
-  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  y = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-       + row->ascent - w->phys_cursor_ascent);
-  h = row->height - 1;
-
   /* Get the glyph the cursor is on.  If we can't tell because
      the current matrix is invalid or such, give up.  */
   cursor_glyph = get_phys_cursor_glyph (w);
@@ -7293,6 +7286,19 @@ x_draw_hollow_cursor (w, row)
       && !x_stretch_cursor_p)
     wd = min (FRAME_COLUMN_WIDTH (f), wd);
   w->phys_cursor_width = wd;
+
+  /* Compute frame-relative coordinates from window-relative
+     coordinates.  */
+  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+  y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y);
+
+  /* Compute the proper height and ascent of the rectangle, based
+     on the actual glyph.  Using the full height of the row looks
+     bad when there are tall images on that row.  */
+  h = max (FRAME_LINE_HEIGHT (f), cursor_glyph->ascent + cursor_glyph->descent);
+  if (h < row->height)
+    y += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
+  h--;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
