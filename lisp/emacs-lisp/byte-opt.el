@@ -1094,16 +1094,21 @@
 
 ;; As byte-decompile-bytecode, but updates
 ;; byte-compile-{constants, variables, tag-number}.
-;; If the optional 3rd arg is true, then `return' opcodes are replaced
+;; If MAKE-SPLICEABLE is true, then `return' opcodes are replaced
 ;; with `goto's destined for the end of the code.
-(defun byte-decompile-bytecode-1 (bytes constvec &optional make-splicable)
+;; That is for use by the compiler.
+;; If MAKE-SPLICEABLE is nil, we are being called for the disassembler.
+;; In that case, we put a pc value into the list
+;; before each insn (or its label).
+(defun byte-decompile-bytecode-1 (bytes constvec &optional make-spliceable)
   (let ((length (length bytes))
 	(ptr 0) optr tag tags op offset
 	lap tmp
 	endtag
 	(retcount 0))
     (while (not (= ptr length))
-      (setq lap (cons ptr lap))
+      (or make-spliceable
+	  (setq lap (cons ptr lap)))
       (setq op (aref bytes ptr)
 	    optr ptr
 	    offset (disassemble-offset)) ; this does dynamic-scope magic
@@ -1125,7 +1130,7 @@
 				(car (setq byte-compile-variables
 					   (cons (list tmp)
 						 byte-compile-variables)))))))
-	    ((and make-splicable
+	    ((and make-spliceable
 		  (eq op 'byte-return))
 	     (if (= ptr (1- length))
 		 (setq op nil)
