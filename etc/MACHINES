@@ -1405,10 +1405,10 @@ VMS (vmsM.N)
   distribution.  See the file ../vms/VMSINSTALL for info on moving
   Unix distributions to VMS, and other VMS-related topics.
 
-Windows NT
+Windows NT/95/98/ME/2000
 
-  For installation on Windows NT, see the file etc/INSTALL and search for
-  `Windows NT'.
+  For installation on all versions of the MS-Windows platform, see the
+  file nt/INSTALL.
 
 Xenix (xenix)
 
