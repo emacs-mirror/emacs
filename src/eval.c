@@ -1415,8 +1415,7 @@ do_autoload (fundef, funname)
 
   fun = Findirect_function (fun);
 
-  if (XTYPE (fun) == Lisp_Cons
-      && EQ (XCONS (fun)->car, Qautoload))
+  if (!NILP (Fequal (fun, fundef)))
     error ("Autoloading failed to define function %s",
 	   XSYMBOL (funname)->name->data);
 }
