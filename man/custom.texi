@@ -487,7 +487,8 @@ set, saved or reset.
   The customization buffer normally saves customizations in
 @file{~/.emacs}.  If you wish, you can save customizations in another
 file instead.  To make this work, your @file{~/.emacs} should set
-@code{custom-file} to the name of that file and load it.  For example:
+@code{custom-file} to the name of that file.  Then you should load the
+file by calling @code{load}.  For example:
 
 @example
 (setq custom-file "~/.emacs-custom.el")
