@@ -3398,13 +3398,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		if (event.xclient.data.l[0] == Xatom_wm_take_focus)
 		  {
 		    f = x_window_to_frame (event.xclient.window);
-#if 0 /* x_focus_on_frame is a no-op anyway.  */
+		    /* Since we set WM_TAKE_FOCUS, we must call
+		       XSetInputFocus explicitly.  But not if f is null,
+		       since that might be an event for a deleted frame.  */
 		    if (f)
-		      x_focus_on_frame (f);
-		    else
-#endif
-		      /* Since we set WM_TAKE_FOCUS, we must call
-			 XSetInputFocus explicitly.  */
 		      XSetInputFocus (event.xclient.display,
 				      event.xclient.window,
 				      RevertToPointerRoot,
@@ -4012,9 +4009,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		clear_mouse_face ();
 	      }
 	  }
+#if 0 /* This should be unnecessary, since the toolkit has no use
+	 for motion events that happen outside of the menu event loop,
+	 and it seems to cause the bug that mouse events stop coming
+	 after a while.  */
 #ifdef USE_X_TOOLKIT
 	  goto OTHER;
 #endif /* USE_X_TOOLKIT */
+#endif
 	  break;
 
 	case ConfigureNotify:
