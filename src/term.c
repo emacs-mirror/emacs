@@ -1229,6 +1229,30 @@ static struct fkey_table keys[] = {
   "k9",	"f9",
   };
 
+/* These subroutines are used to call
+   Fdefine_key inside of a condition-case.  */
+static Lisp_Object term_get_fkeys_data;
+
+extern Lisp_Object cmd_error ();
+
+static Lisp_Object
+term_get_fkeys_define_1 ()
+{
+  Fdefine_key (Vfunction_key_map, Fcar (term_get_fkeys_data),
+	       Fcdr (term_get_fkeys_data));
+  return Qnil;
+}
+
+/* Define KEY as DEFINITION in function-key-map, catching errors.  */
+
+static void
+term_get_fkeys_define (key, definition)
+     Lisp_Object key, definition;
+{
+  term_get_fkeys_data = Fcons (key, definition);
+  internal_condition_case (term_get_fkeys_define_1, Qerror, cmd_error);
+}
+
 /* Find the escape codes sent by the function keys for Vfunction_key_map.
    This function scans the termcap function key sequence entries, and 
    adds entries to Vfunction_key_map for each function key it finds.  */
@@ -1248,9 +1272,9 @@ term_get_fkeys (address)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
-	Fdefine_key (Vfunction_key_map,
-		     build_string (sequence),
-		     Fmake_vector (make_number (1), intern (keys[i].name)));
+	term_get_fkeys_define (build_string (sequence),
+			       Fmake_vector (make_number (1),
+					     intern (keys[i].name)));
     }
 
   /* The uses of the "k0" capability are inconsistent; sometimes it
@@ -1265,16 +1289,14 @@ term_get_fkeys (address)
 
     if (k_semi)
       {
-	Fdefine_key (Vfunction_key_map,
-		     build_string (k_semi),
-		     Fmake_vector (make_number (1), intern ("f10")));
+	term_get_fkeys_define (build_string (k_semi),
+			       Fmake_vector (make_number (1), intern ("f10")));
 	k0_name = "f0";
       }
 
     if (k0)
-      Fdefine_key (Vfunction_key_map,
-		   build_string (k0),
-		   Fmake_vector (make_number (1), intern (k0_name)));
+      term_get_fkeys_define (build_string (k0),
+			     Fmake_vector (make_number (1), intern (k0_name)));
   }
 
   /* Set up cookies for numbered function keys above f10. */
@@ -1295,10 +1317,10 @@ term_get_fkeys (address)
 	  char *sequence = tgetstr (fcap, address);
 	  if (sequence)
 	    {
-	      (void) sprintf (fkey, "f%d", i);	    
-	      Fdefine_key (Vfunction_key_map,
-			   build_string (sequence),
-			   Fmake_vector (make_number (1), intern (fkey)));
+	      sprintf (fkey, "f%d", i);
+	      term_get_fkeys_define (build_string (sequence),
+				     Fmake_vector (make_number (1),
+						   intern (fkey)));
 	    }
 	}
       }
@@ -1313,9 +1335,9 @@ term_get_fkeys (address)
 	{								\
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)							\
-	    Fdefine_key (Vfunction_key_map,				\
-			 build_string (sequence),			\
-			 Fmake_vector (make_number (1), intern (sym)));	\
+	    term_get_fkeys_define (build_string (sequence),		\
+				   Fmake_vector (make_number (1),	\
+						 intern (sym)));	\
 	}
 	  
       /* if there's no key_next keycap, map key_npage to `next' keysym */
