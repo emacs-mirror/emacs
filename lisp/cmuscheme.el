@@ -1,13 +1,24 @@
 ;;; cmuscheme.el -- Scheme process in a buffer. Adapted from tea.el.
+;;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Keyword: processes, lisp
 
-;;; Copyright Olin Shivers (1988)
-;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
-;;; notice appearing here to the effect that you may use this code any
-;;; way you like, as long as you don't charge money for it, remove this
-;;; notice, or hold me liable for its results.
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
