@@ -249,14 +249,16 @@ Keymap to display on major and minor modes.")
      'mode-line-buffer-identification
      (propertize "   " 'help-echo help-echo)
      'global-mode-string
+     'mode-line-position
+     '(vc-mode vc-mode)
+     (propertize "   " 'help-echo help-echo)
      'mode-line-modes
      `(which-func-mode ("" which-func-format ,dashes))
-     'mode-line-position
      (propertize "-%-" 'help-echo help-echo)))
 
   (setq-default mode-line-modes
     (list
-     (propertize "   %[(" 'help-echo help-echo)
+     (propertize "%[(" 'help-echo help-echo)
      `(:propertize ("" mode-name mode-line-process minor-mode-alist)
 		   help-echo "mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
@@ -266,8 +268,8 @@ Keymap to display on major and minor modes.")
      (propertize ")%]--" 'help-echo help-echo)))
 
   (setq-default mode-line-position
-    `((line-number-mode (,(propertize "L%l" 'help-echo help-echo) ,dashes))
-      (column-number-mode (,(propertize "C%c" 'help-echo help-echo) ,dashes))
+    `((line-number-mode (,(propertize "L%l " 'help-echo help-echo)))
+      (column-number-mode (,(propertize "C%c " 'help-echo help-echo)))
       (-3 . ,(propertize "%p" 'help-echo help-echo)))))
 
 (defvar mode-line-buffer-identification-keymap nil "\
