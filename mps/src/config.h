@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.16) $
+ * $HopeName: MMsrc!config.h(trunk.17) $
  *
  * .readership: MPS developers.
  */
@@ -187,6 +187,28 @@
 
 #define EVENT_BUFFER_SIZE       ((Count)4096)
 #define EVENT_HEADER_SIZE       ((Count)3)
+
+
+/* memcpy configuration
+ *
+ * PoolClass AMC requires an efficient memcpy routine.
+ * In general we cannot use the ANSI memcpy function as that
+ * would not be freestanding.  However, on some platforms
+ * memcpy is inlined by the compiler and so does not actually
+ * create a dependence on an external library.
+ *
+ * Code here selects a memcpy function to use depending on
+ * various platform and variety configurations.
+ */
+
+#if defined(MPS_PF_W3I3MV) && defined(MPS_HOT)
+/* MSVC on Intel inlines memcpy when optimizing */
+#define MPS_MEMCPY memcpy
+/* prototype ANSI memcpy */
+#include <string.h>
+#else
+#define MPS_MEMCPY mps_lib_memcpy
+#endif
 
 
 #endif /* config_h */
