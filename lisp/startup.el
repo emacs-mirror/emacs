@@ -155,14 +155,19 @@ directory name of the directory where the `.emacs' file was looked for.")
 	   (terpri)
 	   (kill-emacs)))))
 
-  (let ((args (cdr command-line-args))
-	(done nil))
+  (let ((done nil)
+	(args (cdr command-line-args)))
+
     ;; Figure out which user's init file to load,
     ;; either from the environment or from the options.
     (setq init-file-user (if noninteractive nil (user-login-name)))
     ;; If user has not done su, use current $HOME to find .emacs.
     (and init-file-user (string= init-file-user (user-real-login-name))
 	 (setq init-file-user ""))
+
+    ;; Process the command-line args, and delete the arguments
+    ;; processed.  This is consistent with the way main in emacs.c
+    ;; does things.
     (while (and (not done) args)
       (let ((argi (car args)))
 	(cond
@@ -178,7 +183,10 @@ directory name of the directory where the `.emacs' file was looked for.")
 	 ((string-equal argi "-debug-init")
 	  (setq init-file-debug t
 		args (cdr args)))
-	 (t (setq done t))))))
+	 (t (setq done t)))))
+    
+    ;; Re-attach the program name to the front of the arg list.
+    (setcdr command-line-args args))
 
   ;; Load that user's init file, or the default one, or none.
   (let ((debug-on-error init-file-debug)
@@ -225,7 +233,7 @@ directory name of the directory where the `.emacs' file was looked for.")
 	       (setq term (substring term 0 hyphend))
 	     (setq term nil)))))
 
-  ;; Handle all the other options.
+  ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
 
   ;; If -batch, terminate after processing the command options.
@@ -296,14 +304,6 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  (setq command-line-args-left (cdr command-line-args-left))
 	  (cond ((setq tem (assoc argi command-switch-alist))
 		 (funcall (cdr tem) argi))
-		;; These args were already processed; ignore them.
-		((or (string-equal argi "-q")
-		     (string-equal argi "-no-init-file")
-		     (string-equal argi "-debug-init")
-		     (string-equal argi "-batch")))
-		((or (string-equal argi "-u")
-		     (string-equal argi "-user"))
-		 (setq command-line-args-left (cdr command-line-args-left)))
 		((or (string-equal argi "-f")  ;what the manual claims
 		     (string-equal argi "-funcall")
 		     (string-equal argi "-e")) ; what the source used to say
