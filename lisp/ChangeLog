@@ -1,3 +1,18 @@
+2004-12-15  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (match): New face.
+	(list-matching-lines-face): Change default from `bold' to `match'.
+
+	* progmodes/grep.el (grep-match-face): New defvar.
+	(grep-mode-font-lock-keywords): Use grep-match-face instead of
+	compilation-column-face to highlight grep matches.
+
+	* apropos.el (apropos-match-face): Change default from
+	`secondary-selection' to `match'.
+
+	* info-look.el (info-lookup-highlight-face): Change default from
+	`highlight' to `match'.
+
 2004-12-15  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/executable.el (executable-interpret): Eliminate
