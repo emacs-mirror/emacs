@@ -10017,8 +10017,10 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		   This could be a LessTif bug, but I wasn't able to
 		   reproduce the behavior in a simple test program.
+		   On the other hand, Motif seems to not have this
+		   problem.
 
-		   (gerd, LessTif 0.88.1).  */
+		   (gerd, LessTif 0.92).  */
 		
 		if (!event.xcrossing.focus
 		    && f
