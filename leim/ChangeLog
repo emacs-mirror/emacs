@@ -1,3 +1,7 @@
+2000-08-29  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: ja-dic <- skk in several places.
+
 2000-08-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* ja-dic: Directory name changed from skkdic.
