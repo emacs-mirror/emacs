@@ -1100,7 +1100,13 @@ which may actually result in an url rather than a filename."
     (unwind-protect
 	(cond
 	 ;; Immediate rejects (/ and // are too common in C++):
-	 ((member name '("" "/" "//")) nil)
+         ((member name '("" "/" "//" ".")) nil)
+         ;; Immediately test local filenames.  If default-directory is
+         ;; remote, you probably already have a connection.
+         ((and (not abs) (ffap-file-exists-string name)))
+         ;; Try stripping off line numbers; good for compilation/grep output.
+         ((and (not abs) (string-match ":[0-9]" name)
+               (ffap-file-exists-string (substring name 0 (match-beginning 0)))))
 	 ;; Immediately test local filenames.  If default-directory is
 	 ;; remote, you probably already have a connection.
 	 ((and (not abs) (ffap-file-exists-string name)))
