@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Types
  *
- * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.10) $
+ * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!eventcom.h(trunk.11) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -87,5 +87,8 @@ typedef Word EventType;
 #define EventMV2BufferFill  ((EventType)0xEF3F2BF7) /* MV2 Buffer FilL */
 #define EventMV2BufferEmpty ((EventType)0xEF3F2BE3) /* MV2 Buffer EMpty */
 #define EventSegAllocFail   ((EventType)0xEF5E9A7F) /* SEG ALloc Fail */
+#define EventMeterInit      ((EventType)0xEF3E2141) /* METer INIt */
+#define EventMeterValues    ((EventType)0xEF3E2FA7) /* METer VALues */
+#define EventCBSInit        ((EventType)0xEFCB5141) /* CBS INIt */
 
 #endif /* eventcom_h */
