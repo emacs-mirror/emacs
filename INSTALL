@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992, 1994 Free software Foundation, Inc.
+Copyright (c) 1992, 1994, 1996 Free software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -38,8 +38,11 @@ then the installation procedure momentarily requires 70+35 Mb.
 give to the `configure' program.  That file offers hints for
 getting around some possible installation problems.
 
-3) In the top directory of the Emacs distribution, run the program
-`configure' as follows:
+3) You can build Emacs in the top-level Emacs source directory
+or in a separate directory.
+
+3a) To build in the top-level Emacs source directory, go to that
+directory and run the program `configure' as follows:
 
     ./configure CONFIGURATION-NAME [--OPTION[=VALUE]] ...
 
@@ -77,13 +80,6 @@ Kerberos-authenticated POP add `--with-kerberos', for Hesiod support
 add `--with-hesiod'.  These options enable Emacs to use POP; whether
 Emacs uses POP is controlled by individual users--see the Rmail
 chapter of the Emacs manual.
-
-You can build Emacs for several different machine types from a single
-source directory.  To do this, you must use a version of `make' that
-supports the `VPATH' variable, such as GNU `make'.  Make separate
-build directories for the different configuration types, and in each
-one, run the Emacs `configure' script.  `configure' looks for the
-Emacs source code in the directory that `configure' is in.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
@@ -130,9 +126,21 @@ tests in FILE instead of `config.cache'.  Set FILE to `/dev/null' to
 disable caching, for debugging `configure'.
 
 The work of `configure' can be done by editing various files in the
-distribution, but using `configure' is supposed to be simpler.  See
-the section called "CONFIGURATION BY HAND" below if you want to do the
-configuration yourself.
+distribution, but using `configure' is easier.  See the section called
+"CONFIGURATION BY HAND" below if you want to do the configuration
+yourself.
+
+3b) To build in a separate directory, go to that directory
+and run the program `configure' as follows:
+
+    SOURCE-DIR/configure CONFIGURATION-NAME [--OPTION[=VALUE]] ...
+
+SOURCE-DIR refers to the top-level Emacs source directory which is
+where Emacs's configure script is located.  `configure' looks for the
+Emacs source code in the directory that `configure' is in.
+
+To build in a separate directory, you must use a version of `make'
+that supports the `VPATH' variable, such as GNU `make'.
 
 4) Look at `./lisp/paths.el'; if some of those values are not right
 for your system, set up the file `./lisp/site-init.el' with Emacs
