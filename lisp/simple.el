@@ -517,29 +517,40 @@ Each language environment may show different external character components."
 		     pos total percent beg end col hscroll)
 	  (message "point=%d of %d(%d%%)  column %d %s"
 		   pos total percent col hscroll))
-      (let* ((coding-system buffer-file-coding-system)
-	     (encoding
-	      (encode-coding-string (char-to-string char) coding-system t))
-	     (encoding-string-hex
-	      (mapconcat (lambda (ch) (format "0x%x" ch)) encoding " "))
-	     (encoding-msg
-	      (if (and coding-system
-			       (not (and (= (length encoding) 1)
-					 (= (aref encoding 0) char))))
-		  (format "(0%o, %d, 0x%x, ext %s)"
-			  char char char
-			  encoding-string-hex)
-		(format "(0%o, %d, 0x%x)"
-			char char char))))
+      (let ((charset (char-charset char))
+	    (coding-system buffer-file-coding-system)
+	    slot external encoding-msg)
+	;; To decided an external character code, we use
+	;; charset-origin-alist property of buffer-file-coding-system.
+	;; But, if buffer-file-coding-system is nil of undecided, use
+	;; that property of default-buffer-file-coding-system.  If
+	;; that property value is nil, we don't show external
+	;; character code.
+	(if (or (not coding-system)
+		(eq (coding-system-type coding-system) t))
+	    (setq coding-system default-buffer-file-coding-system))
+	(if (and coding-system
+		 (setq slot
+		       (coding-system-get coding-system 'charset-origin-alist))
+		 (setq slot (assq charset slot)))
+	    (setq external (list (nth 1 slot) (funcall (nth 2 slot) char))))
+	(setq encoding-msg
+	      (if external
+		  (format "(0%o, %d, 0x%x, ext 0x%x)"
+			  char char char (nth 1 external))
+		(format "(0%o, %d, 0x%x)" char char char)))
 	(if detail
-	    (let* ((internal (split-char char))
-		   (charset (char-charset char))
-		   (slot (assq charset charset-origin-alist))
-		   external)
-	      (if slot
-		  (setq external (list (nth 1 slot) (funcall (nth 2 slot) char)))
-		(if (eq charset 'composition)
-		    (setq internal '("composite-character"))
+	    ;; We show the detailed information of CHAR.
+	    (let (internal)
+	      (if (eq charset 'composition)
+		  ;; For a composite character, we show the components
+		  ;; only.
+		  (setq internal (concat "(composition of \""
+					 (decompose-composite-char char)
+					 "\")")
+			external nil)
+		(setq internal (split-char char))
+		(unless external
 		  (setq external (cons (charset-short-name charset)
 				       (copy-sequence (cdr internal))))
 		  (if (= (charset-iso-graphic-plane charset) 1)
@@ -552,7 +563,7 @@ Each language environment may show different external character components."
 		       (if (< char 256)
 			   (single-key-description char)
 			 (char-to-string char))
-		       encoding-msg (or internal "") (or external "")))
+		       encoding-msg internal (or external "")))
 	  (if (or (/= beg 1) (/= end (1+ total)))
 	      (message "Char: %s %s point=%d of %d(%d%%) <%d - %d>  column %d %s"
 		       (if (< char 256)
