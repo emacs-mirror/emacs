@@ -1194,7 +1194,8 @@ When calling from a program, give three arguments:
 BUFFER (or buffer name), START and END.
 START and END specify the portion of the current buffer to be copied."
   (interactive
-   (list (read-buffer "Append to buffer: " (other-buffer nil t) t)))
+   (list (read-buffer "Append to buffer: " (other-buffer nil t))
+	 (region-beginning) (region-end)))
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (set-buffer (get-buffer-create buffer))
