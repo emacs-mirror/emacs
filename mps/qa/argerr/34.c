@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = high bit set 3rd arg to mps_alloc (MV)
  language = c
  link = testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = highbit set size to mps_reserve
  language = c
  link = testlib.o newfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = highbit set rank for mps_root_create_fmt
  language = c
  link = testlib.o

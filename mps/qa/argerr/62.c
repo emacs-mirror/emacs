@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = UNALIGNED ap to mps_commit
  language = c
  link = testlib.o newfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = unaligned addr_t to free (MV)
  language = c
  link = testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = NULL ap to mps_reserve
  language = c
  link = testlib.o newfmt.o

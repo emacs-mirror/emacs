@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = unaligned scan state to fix (function)
  language = c
  link = testlib.o newfmt.o

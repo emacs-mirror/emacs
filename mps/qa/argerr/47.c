@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = NULL pool to mps_ap_create
  language = c
  link = testlib.o newfmt.o

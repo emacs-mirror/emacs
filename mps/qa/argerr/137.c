@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = MIN-1 root mode for mps_root_create_reg (with stack scan ambig)
  language = c
  link = testlib.o
