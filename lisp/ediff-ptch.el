@@ -85,12 +85,14 @@ See also `ediff-backup-specs'."
   :group 'ediff-ptch)
 
 (defun ediff-test-patch-utility ()
-  (cond ((zerop (call-process ediff-patch-program nil nil nil "-z." "-b"))
-	 ;; GNU `patch' v. >= 2.2
-	 'gnu)
-	((zerop (call-process ediff-patch-program nil nil nil "-b"))
-	 'posix)
-	(t 'traditional)))
+  (condition-case nil
+      (cond ((zerop (call-process ediff-patch-program nil nil nil "-z." "-b"))
+	     ;; GNU `patch' v. >= 2.2
+	     'gnu)
+	    ((zerop (call-process ediff-patch-program nil nil nil "-b"))
+	     'posix)
+	    (t 'traditional))
+    (file-error nil)))
 
 (defcustom ediff-backup-specs 
   (let ((type (ediff-test-patch-utility)))
