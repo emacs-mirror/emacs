@@ -1,7 +1,18 @@
+2004-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit-union: Remove.
+
+	* .gdbinit: Make it work for USE_LSB_TAG and !NO_LISP_UNION.
+	(xgetptr, xgetint, xgettype): New funs.  Use them everywhere.
+	($nonvalbits): Remove.
+	($valmask): Set it by calling xreload to avoid redundancy.
+
+	* emacs.c (gdb_use_union, gdb_use_lsb): New vars.
+	(gdb_emacs_intbits): Remove.
+
 2004-03-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* data.c (Fbyteorder): Make test work even if unsigned is not 4
-	bytes.
+	* data.c (Fbyteorder): Make test work even if unsigned is not 4 bytes.
 
 2004-03-30  Kenichi Handa  <handa@m17n.org>
 
