@@ -1,3 +1,7 @@
+2001-01-03  Karl Fogel  <kfogel@red-bean.com>
+
+	* mail/mail-hist.el (mail-hist-text-too-long-p): doc fix.
+
 2001-01-02  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* isearch.el (isearch-lazy-highlight-cleanup): Arg now says

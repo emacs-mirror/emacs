@@ -189,8 +189,7 @@ If the value is nil, that means no limit on text size."
   :group 'mail-hist)
 
 (defun mail-hist-text-too-long-p (text)
-  "Return t if TEXT does not exceed mail-hist's size limit.
-The variable `mail-hist-text-size-limit' defines this limit."
+  "Return non-nil if TEXT's length exceeds `mail-hist-text-size-limit'."
   (if mail-hist-text-size-limit
       (> (length text) mail-hist-text-size-limit)))
 
