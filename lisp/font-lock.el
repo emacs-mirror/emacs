@@ -474,30 +474,15 @@ and those for buffer-specialised fontification functions,
 	 '((lisp-font-lock-keywords
 	    lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
 	   nil nil (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
-	   (font-lock-mark-block-function . mark-defun)))
-	;; For TeX modes we could use `backward-paragraph' for the same reason.
-	;; But we don't, because paragraph breaks are arguably likely enough to
-	;; occur within a genuine syntactic block to make it too risky.
-	;; However, we do specify a MARK-BLOCK function as that cannot result
-	;; in a mis-fontification even if it might not fontify enough.  sm.
-	(tex-mode-defaults
-	 '((tex-font-lock-keywords
-	    tex-font-lock-keywords-1 tex-font-lock-keywords-2)
-	   nil nil ((?$ . "\"")) nil
-	   (font-lock-mark-block-function . mark-paragraph)))
-	)
+	   (font-lock-mark-block-function . mark-defun))))
     (list
      (cons 'c-mode			c-mode-defaults)
      (cons 'c++-mode			c++-mode-defaults)
      (cons 'objc-mode			objc-mode-defaults)
      (cons 'java-mode			java-mode-defaults)
      (cons 'emacs-lisp-mode		lisp-mode-defaults)
-     (cons 'latex-mode			tex-mode-defaults)
      (cons 'lisp-mode			lisp-mode-defaults)
-     (cons 'lisp-interaction-mode	lisp-mode-defaults)
-     (cons 'plain-tex-mode		tex-mode-defaults)
-     (cons 'slitex-mode			tex-mode-defaults)
-     (cons 'tex-mode			tex-mode-defaults)))
+     (cons 'lisp-interaction-mode	lisp-mode-defaults)))
   "Alist of fall-back Font Lock defaults for major modes.
 Each item should be a list of the form:
 
@@ -1087,13 +1072,24 @@ The value of this variable is used when Font Lock mode is turned on."
 	  ((eq thing-mode 'lazy-lock-mode)
 	   (lazy-lock-mode t))
 	  ((eq thing-mode 'jit-lock-mode)
-	   (jit-lock-mode t)))))
+	   ;; Prepare for jit-lock
+	   (remove-hook 'after-change-functions
+			'font-lock-after-change-function t)
+	   (set (make-local-variable 'font-lock-fontify-buffer-function)
+		'jit-lock-fontify-buffer)
+	   ;; Don't fontify eagerly (and don't abort is the buffer is large).
+	   (set (make-local-variable 'font-lock-fontified) t)
+	   ;; Use jit-lock.
+	   (jit-lock-register 'font-lock-fontify-region
+			      (not font-lock-keywords-only))))))
 
 (defun font-lock-turn-off-thing-lock ()
   (cond (fast-lock-mode
 	 (fast-lock-mode nil))
 	(jit-lock-mode
-	 (jit-lock-mode nil))
+	 (jit-lock-unregister 'font-lock-fontify-region)
+	 ;; Reset local vars to the non-jit-lock case.
+	 (kill-local-variable 'font-lock-fontify-buffer-function))
 	(lazy-lock-mode
 	 (lazy-lock-mode nil))))
 
@@ -1224,18 +1220,12 @@ The value of this variable is used when Font Lock mode is turned on."
 	    (set-syntax-table font-lock-syntax-table))
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
-	  (setq beg (if (get-text-property beg 'font-lock-multiline)
-			;; if the text-property is non-nil, (1+ beg)
-			;; is valid.  We need to use (1+ beg) for the
-			;; case where (get-text-property (1- beg)) is nil
-			;; in which case we want to keep BEG but
-			;; previous-single-property-change will return
-			;; the previous change (if any) rather than
-			;; the one at BEG.
-			(or (previous-single-property-change
-			     (1+ beg) 'font-lock-multiline)
-			    (point-min))
-		      beg))
+	  (when (and (> beg (point-min))
+		     (get-text-property (1- beg) 'font-lock-multiline))
+	    ;; We are just after or in a multiline match.
+	    (setq beg (or (previous-single-property-change
+			   beg 'font-lock-multiline)
+			  (point-min))))
 	  (setq end (or (text-property-any end (point-max)
 					   'font-lock-multiline nil)
 			(point-max)))
@@ -1587,7 +1577,8 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 			  (line-beginning-position 2)))
 	;; this is a multiline anchored match
 	(setq font-lock-multiline t)
-	(put-text-property (point) limit 'font-lock-multiline t)))
+	(put-text-property (min lead-start (point)) limit
+			   'font-lock-multiline t)))
     (save-match-data
       ;; Find an occurrence of `matcher' before `limit'.
       (while (and (< (point) limit)
@@ -2186,131 +2177,6 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 
 (defvar lisp-font-lock-keywords lisp-font-lock-keywords-1
   "Default expressions to highlight in Lisp modes.")
-
-;; TeX.
-
-;(defvar tex-font-lock-keywords
-;  ;; Regexps updated with help from Ulrik Dickow <dickow@nbi.dk>.
-;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
-;     2 font-lock-function-name-face)
-;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
-;     2 font-lock-constant-face)
-;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
-;    ;; not be able to display those fonts.
-;    ("{\\\\bf\\([^}]+\\)}" 1 'bold keep)
-;    ("{\\\\\\(em\\|it\\|sl\\)\\([^}]+\\)}" 2 'italic keep)
-;    ("\\\\\\([a-zA-Z@]+\\|.\\)" . font-lock-keyword-face)
-;    ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
-;  ;; Rewritten and extended for LaTeX2e by Ulrik Dickow <dickow@nbi.dk>.
-;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
-;     2 font-lock-function-name-face)
-;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
-;     2 font-lock-constant-face)
-;    ("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)" 1 font-lock-function-name-face)
-;    "\\\\\\([a-zA-Z@]+\\|.\\)"
-;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
-;    ;; not be able to display those fonts.
-;    ;; LaTeX2e: \emph{This is emphasized}.
-;    ("\\\\emph{\\([^}]+\\)}" 1 'italic keep)
-;    ;; LaTeX2e: \textbf{This is bold}, \textit{...}, \textsl{...}
-;    ("\\\\text\\(\\(bf\\)\\|it\\|sl\\){\\([^}]+\\)}"
-;     3 (if (match-beginning 2) 'bold 'italic) keep)
-;    ;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
-;    ("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
-;     3 (if (match-beginning 2) 'bold 'italic) keep))
-
-;; Rewritten with the help of Alexandra Bac <abac@welcome.disi.unige.it>.
-(defconst tex-font-lock-keywords-1
-  (eval-when-compile
-    (let* (;; Names of commands whose arg should be fontified as heading, etc.
-	   (headings (regexp-opt
-		      '("title"  "begin" "end" "chapter" "part"
-			"section" "subsection" "subsubsection"
-			"paragraph" "subparagraph" "subsubparagraph"
-			"newcommand" "renewcommand" "newenvironment"
-			"newtheorem")
-		      t))
-	   (variables (regexp-opt
-		       '("newcounter" "newcounter*" "setcounter" "addtocounter"
-			 "setlength" "addtolength" "settowidth")
-		       t))
-	   (includes (regexp-opt
-		      '("input" "include" "includeonly" "bibliography"
-			"epsfig" "psfig" "epsf" "nofiles" "usepackage"
-			"includegraphics" "includegraphics*")
-		      t))
-	   ;; Miscellany.
-	   (slash "\\\\")
-	   (opt "\\(\\[[^]]*\\]\\)?")
-	   (arg "{\\(\\(?:[^{}]+\\(?:{[^}]*}\\)?\\)+\\)"))
-      (list
-       ;; Heading args.
-       (list (concat slash headings "\\*?" opt arg)
-	     3 'font-lock-function-name-face 'prepend)
-       ;; Variable args.
-       (list (concat slash variables arg) 2 'font-lock-variable-name-face)
-       ;; Include args.
-       (list (concat slash includes opt arg) 3 'font-lock-builtin-face)
-       ;; Definitions.  I think.
-       '("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)"
-	 1 font-lock-function-name-face)
-       )))
-  "Subdued expressions to highlight in TeX modes.")
-
-(defconst tex-font-lock-keywords-2
-  (append tex-font-lock-keywords-1
-   (eval-when-compile
-     (let* (;;
-	    ;; Names of commands whose arg should be fontified with fonts.
-	    (bold (regexp-opt '("bf" "textbf" "textsc" "textup"
-				"boldsymbol" "pmb") t))
-	    (italic (regexp-opt '("it" "textit" "textsl" "emph") t))
-	    (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
-	    ;;
-	    ;; Names of commands whose arg should be fontified as a citation.
-	    (citations (regexp-opt
-			'("label" "ref" "pageref" "vref" "eqref"
-			  "cite" "nocite" "caption" "index" "glossary"
-			  "footnote" "footnotemark" "footnotetext")
-			t))
-	    ;;
-	    ;; Names of commands that should be fontified.
-	    (specials (regexp-opt
-		       '("\\"
-			 "linebreak" "nolinebreak" "pagebreak" "nopagebreak"
-			 "newline" "newpage" "clearpage" "cleardoublepage"
-			 "displaybreak" "allowdisplaybreaks" "enlargethispage")
-		       t))
-	    (general "\\([a-zA-Z@]+\\**\\|[^ \t\n]\\)")
-	    ;;
-	    ;; Miscellany.
-	    (slash "\\\\")
-	    (opt "\\(\\[[^]]*\\]\\)?")
-	    (arg "{\\(\\(?:[^{}]+\\(?:{[^}]*}\\)?\\)+\\)"))
-       (list
-	;;
-	;; Citation args.
-	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
-	;;
-	;; Command names, special and general.
-	(cons (concat slash specials) 'font-lock-warning-face)
-	(concat slash general)
-	;;
-	;; Font environments.  It seems a bit dubious to use `bold' etc. faces
-	;; since we might not be able to display those fonts.
-	(list (concat slash bold arg) 2 '(quote bold) 'append)
-	(list (concat slash italic arg) 2 '(quote italic) 'append)
-	(list (concat slash type arg) 2 '(quote bold-italic) 'append)
-	;;
-	;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
-	(list (concat "\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>"
-		      "\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)")
-	      3 '(if (match-beginning 2) 'bold 'italic) 'append)
-	))))
-   "Gaudy expressions to highlight in TeX modes.")
-
-(defvar tex-font-lock-keywords tex-font-lock-keywords-1
-  "Default expressions to highlight in TeX modes.")
 
 ;;; User choices.
 
