@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.35) $
+ * $HopeName: MMsrc!poolawl.c(trunk.36) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.35) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.36) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -749,22 +749,18 @@ static Res AWLTraceBegin(Pool pool, Trace trace)
   return ResOK;
 }
 
-
-/* AWL Frequency hack. */
-/* If this is smaller than AMCGen1Frequency (see impl.c.amc) */
-/* then this will determine when generation 1 and this pool get */
-/* collected.  If this is larger than AMCGen1Frequency then */
-/* AMCGen1Frequency will determine when generation and this pool */
-/* get collected */
-unsigned long AWLFrequency = 40;
-/* @@@@ completely made-up benefit calculation: each AWL pool gradually
- * becomes a better candidate for collection as allocation goes
- * by. Starting a trace on a pool makes it a bad candidate. nickb
- * 1997-06-19 */
+/* defined in impl.c.trace */
+extern unsigned long AMCGen0Frequency;
+extern unsigned long AMCGen1Frequency;
+extern unsigned long AMCGen2Frequency;
+extern unsigned long AMCGen2plusFrequencyMultiplier;
+extern Serial AMCGenFinal;
 
 static double AWLBenefit(Pool pool, Action action)
 {
   AWL awl;
+  Arena arena;
+  double f;             /* frequency of collection, in Mb of alloc */
 
   AVERT(Pool, pool);
   awl = PoolPoolAWL(pool);
@@ -772,8 +768,27 @@ static double AWLBenefit(Pool pool, Action action)
   AVERT(Action, action);
   AVER(awl == ActionAWL(action));
 
-  return (ArenaMutatorAllocSize(PoolArena(pool)) - awl->lastCollected) -
-            AWLFrequency*1024*1024.0;
+  switch(awl->gen) {
+  case 0: f = AMCGen0Frequency; break;
+  case 1: f = AMCGen1Frequency; break;
+  case 2: f = AMCGen2Frequency; break;
+  default:
+    if(awl->gen == AMCGenFinal) {
+      f = 1e99; /* Don't ever collect the final generation. */
+    } else {
+      f = AMCGen2Frequency + AMCGen2plusFrequencyMultiplier * awl->gen;
+    }
+    break;
+  }
+
+  /* When we have both AMC and AWL we want AMC to do the driving of */
+  /* the collections, as that collects younger generations too. */
+  /* So we make AWLs collections a little less frequent. */
+  f += 1;
+
+  arena = PoolArena(pool);
+
+  return (ArenaMutatorAllocSize(arena) - awl->lastCollected) - f * 1024*1024L;
 }
 
 static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
