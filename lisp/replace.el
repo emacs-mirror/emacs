@@ -69,7 +69,17 @@ strings or patterns."
       (setq from (read-from-minibuffer (format "%s: " string)
 				       nil nil nil
 				       query-replace-from-history-variable
-				       nil t)))
+				       nil t))
+      ;; Warn if user types \n or \t, but don't reject the input.
+      (if (string-match "\\\\[nt]" from)
+	  (let ((match (match-string 0 from)))
+	    (cond
+	     ((string= match "\\n")
+	      (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
+	     ((string= match "\\t")
+	      (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
+	    (sit-for 2))))
+
     (setq to (read-from-minibuffer (format "%s %s with: " string from)
 				   nil nil nil
 				   query-replace-to-history-variable from t))
