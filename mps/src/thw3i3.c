@@ -1,6 +1,6 @@
 /* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- * $HopeName: MMsrc!thw3i3.c(trunk.21) $
+ * $HopeName: MMsrc!thw3i3.c() $
  * Copyright (C) 1995,1998.  Harlequin Group plc.  All rights reserved.
  *
  * Implements thread registration, suspension, and stack
@@ -40,6 +40,10 @@
  * belonging to the client language. In this case, the stack should
  * not be scanned.
  *
+ * .stack.align: assume roots on the stack are always word-aligned,
+ * but don't assume that the stack pointer is necessarily 
+ * word-aligned at the time of reading the context of another thread.
+ *
  * .i3: assumes MPS_ARCH_I3
  * .i3.sp: The sp in the context is Esp
  * .i3.context: Esp is in control context so .context.sp holds
@@ -76,7 +80,7 @@
 
 #include "mpswin.h"
 
-SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.21) $");
+SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c() $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -220,7 +224,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   if(id != thread->id) { /* .thread.id */
     CONTEXT context;
     BOOL success;
-    Addr *stackBase, *stackLimit;
+    Addr *stackBase, *stackLimit, stackPtr;
 
     /* scan stack and register roots in other threads */
 
@@ -236,7 +240,9 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
       return ResOK;
     }
 
-    stackBase  = (Addr *)context.Esp;   /* .i3.sp */
+    stackPtr  = (Addr)context.Esp;   /* .i3.sp */
+    /* .stack.align */
+    stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
     stackLimit = (Addr *)stackBot;
     if (stackBase >= stackLimit)
       return ResOK;    /* .stack.below-bottom */
