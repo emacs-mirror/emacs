@@ -11092,7 +11092,7 @@ try_window_id (w)
     return 0;							\
   } while (0)
 #else
-  #define GIVE_UP(X) return 0
+#define GIVE_UP(X) return 0
 #endif
   
   SET_TEXT_POS_FROM_MARKER (start, w->start);
@@ -11981,12 +11981,20 @@ GLYPH > 1 or omitted means dump glyphs in long form.")
 }
 
 
-DEFUN ("trace-redisplay-toggle", Ftrace_redisplay_toggle,
-       Strace_redisplay_toggle, 0, 0, "",
-  "Toggle tracing of redisplay.")
-     ()
+DEFUN ("trace-redisplay", Ftrace_redisplay, Strace_redisplay, 0, 1, "P",
+  "Toggle tracing of redisplay.\n\
+With ARG, turn tracing on if and only if ARG is positive.")
+  (arg)
+     Lisp_Object arg;
 {
-  trace_redisplay_p = !trace_redisplay_p;
+  if (NILP (arg))
+    trace_redisplay_p = !trace_redisplay_p;
+  else
+    {
+      arg = Fprefix_numeric_value (arg);
+      trace_redisplay_p = XINT (arg) > 0;
+    }
+  
   return Qnil;
 }
 
@@ -14328,7 +14336,7 @@ syms_of_xdisp ()
   defsubr (&Sdump_glyph_matrix);
   defsubr (&Sdump_glyph_row);
   defsubr (&Sdump_tool_bar_row);
-  defsubr (&Strace_redisplay_toggle);
+  defsubr (&Strace_redisplay);
   defsubr (&Strace_to_stderr);
 #endif
 #ifdef HAVE_WINDOW_SYSTEM
