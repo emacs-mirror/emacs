@@ -1,3 +1,9 @@
+2002-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region): When we need more GAP for
+	conversion, pay attention to the case that coding->produced is not
+	greater than coding->consumed.
+
 2002-10-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp, shortlisp): Add utf-16.elc
