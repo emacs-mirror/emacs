@@ -914,7 +914,8 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 	      (condition-case ()
 		  (insert-file-contents-literally filename t)
 		(file-error
-		 (when (not (file-readable-p filename))
+		 (when (and (file-exists-p filename)
+			    (not (file-readable-p filename)))
 		   (kill-buffer buf)
 		   (signal 'file-error (list "File is not readable"
 					     filename)))
@@ -923,7 +924,8 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 	    (condition-case ()
 		(insert-file-contents filename t)
 	      (file-error
-	       (when (not (file-readable-p filename))
+	       (when (and (file-exists-p filename)
+			  (not (file-readable-p filename)))
 		 (kill-buffer buf)
 		 (signal 'file-error (list "File is not readable"
 					   filename)))
