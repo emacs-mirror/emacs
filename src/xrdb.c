@@ -24,7 +24,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>
 #include <sys/param.h>
+#ifdef VMS
+#include "vms-pwd.h"
+#else
 #include <pwd.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 
