@@ -3276,7 +3276,7 @@ oblookup (obarray, ptr, size, size_byte)
   hash %= obsize;
   bucket = XVECTOR (obarray)->contents[hash];
   oblookup_last_bucket_number = hash;
-  if (XFASTINT (bucket) == 0)
+  if (EQ (bucket, make_number (0)))
     ;
   else if (!SYMBOLP (bucket))
     error ("Bad data in guts of obarray"); /* Like CADR error message */
