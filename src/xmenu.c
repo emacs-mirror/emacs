@@ -1377,7 +1377,7 @@ menu_highlight_callback (widget, id, call_data)
 void
 find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
      FRAME_PTR f;
-     int menu_bar_items_used;
+     EMACS_INT menu_bar_items_used;
      Lisp_Object vector;
      void *client_data;
 {
