@@ -102,22 +102,31 @@ non-@code{nil} value, then the compilation buffer always scrolls to
 follow output as it comes in.
 
 @findex kill-compilation
-  To kill the compilation process, do @kbd{M-x kill-compilation}.  When
-the compiler process terminates, the mode line of the
-@samp{*compilation*} buffer changes to say @samp{signal} instead of
-@samp{run}.  Starting a new compilation also kills any running
-compilation, as only one can exist at any time.  However, @kbd{M-x
-compile} asks for confirmation before actually killing a compilation
-that is running.
+  When the compiler process terminates, for whatever reason, the mode
+line of the @samp{*compilation*} buffer changes to say @samp{signal}
+instead of @samp{run}.  Starting a new compilation also kills any
+running compilation, as only one can exist at any time.  However,
+@kbd{M-x compile} asks for confirmation before actually killing a
+compilation that is running.  You can also kill the compilation
+process with @kbd{M-x kill-compilation}.
 
 @findex recompile
   To rerun the last compilation with the same command, type @kbd{M-x
 recompile}.  This automatically reuses the compilation command from the
 last invocation of @kbd{M-x compile}.
 
-  Emacs does not expect a compiler to launch asynchronous
+  Emacs does not expect a compiler process to launch asynchronous
 subprocesses; if it does, and they keep running after the main
-compiler process has terminated, their output may not arrive in Emacs.
+compiler process has terminated, Emacs may kill them or their output
+may not arrive in Emacs.  To avoid this problem, make the main process
+wait for its subprocesses to finish.  In a shell script, you can do this
+using @samp{$!} and @samp{wait}, like this:
+
+@example
+(sleep 10; echo 2nd)& pid=$!  # @r{Record pid of subprocess}
+echo first message
+wait $pid                     # @r{Wait for subprocess}
+@end example
 
 @node Grep Searching
 @section Searching with Grep under Emacs
