@@ -133,7 +133,7 @@
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
 		  (input-method . "chinese-py-punct-b5")
 		  (features china-util)
-		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
+		  (sample-text . "Cantonese ($(Gemk#(B,$(Gl]N)fc(B)	$ATg3?(B, $ADc:C(B")
 		  (documentation . "Support for Chinese Big5 character set.")
 		  (tutorial . "TUTORIAL.zh"))
  '("Chinese"))
@@ -213,7 +213,7 @@ converted to CNS)."))
   "GBK encoding for Chinese (MIME:GBK)."
   :coding-type 'charset
   :mnemonic ?c
-  :charset-list '(chinese-gbk)
+  :charset-list '(ascii chinese-gbk)
   :mime-charset 'gbk)
 (define-coding-system-alias 'gbk 'chinese-gbk)
 (define-coding-system-alias 'cp936 'chinese-gbk)
