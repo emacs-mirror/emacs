@@ -1,5 +1,19 @@
 2000-08-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* format.el (format-encode-run-method): Fix error message to say
+	`encode' instead of `decode'.  Use save-window-excursion around
+	shell-command-on-region as in format-decode-run-method because
+	shell-command-on-region can display a buffer with error output.
+	(format-decode): Don't record undo information for the decoding.
+	(format-annotate-function): Add parameter FORMAT-COUNT.  Make
+	that number part of the temporary buffer name so that more than
+	one decoding using a temporary buffer can happen safely.
+
+	* enriched.el (enriched-annotation-regexp): Use `A-Z' instead
+	of `A-z' in the regexp.
+
+	* hilit-chg.el: Fix typos in commentary.
+
 	* help.el (view-emacs-news): Rewritten for new naming scheme
 	for old NEWS files.
 

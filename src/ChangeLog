@@ -1,3 +1,11 @@
+2000-08-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (build_annotations): Add a comment explaining the
+	return value of format-annotate-function.  Replace a spurious call
+	to Flength with a CONSP test.  Call format-annotate-function with
+	a fifth arg specifying how many times the function is been called
+	in a row, to let it choose temporary buffers appropriately.
+
 2000-08-17  Dave Love  <fx@gnu.org>
 
 	* lisp.h: Remove DECLARE_INTERVALS, INITIALIZE_INTERVAL.  Don't
