@@ -1,4 +1,4 @@
-;;; cus-test.el --- functions for testing custom variable definitions
+;;; cus-test.el --- tests for custom types and load problems
 
 ;; Copyright (C) 1998, 2000, 2002 Free Software Foundation, Inc.
 
@@ -26,13 +26,21 @@
 
 ;;; Commentary:
 
-;; Some user options in GNU Emacs have been defined with incorrect
-;; customization types.  As a result the customization of these
-;; options is disabled.  This file provides functions to detect such
-;; options.  It contains also simple tests for loading libraries and
-;; custom dependencies.
+;; This file provides simple tests to detect custom options with
+;; incorrect customization types and load problems for custom and
+;; autoload dependencies.
 ;;
-;; Usage: Load this file.  Then
+;; The basic tests can be run in batch mode.  Invoke them with
+;;
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-opts
+;;
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-deps
+;;
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs
+;;
+;; in the emacs source directory.
+;;
+;; For interactive use: Load this file.  Then
 ;;
 ;;    M-x cus-test-apropos REGEXP RET
 ;;
@@ -47,9 +55,13 @@
 ;; Therefore `cus-test-apropos' is more efficient after loading many
 ;; libraries.
 ;;
-;;    M-x cus-test-load-custom-loads RET
+;;    M-x cus-test-load-custom-loads
 ;;
-;; loads all (!) custom dependencies.
+;; loads all (!) custom dependencies and
+;;
+;;    M-x cus-test-load-libs
+;;
+;; loads all (!) libraries with autoloads.
 ;;
 ;; Options with a custom-get property, usually defined by a :get
 ;; declaration, are stored in the variable
@@ -64,52 +76,57 @@
 ;; These lists are prepared just in case one wants to investigate
 ;; those options further.
 ;;
-;; For a maximal test of custom options invoke
+;; The command `cus-test-opts' tests many (all?) custom options.
 ;;
-;;    M-x cus-test-opts
+;; The command `cus-test-deps' is like `cus-test-load-custom-loads'
+;; but reports about load errors.
 ;;
-;; Other test routines are `cus-test-deps' and `cus-test-libs'.
-;; These functions are suitable for batch mode.  Invoke them with
+;; The command `cus-test-libs' runs for all libraries with autoloads
+;; separate emacs processes of the form "emacs -batch -l LIB".
 ;;
-;;   src/emacs -batch -l admin/cus-test.el -f cus-test-opts
+;; Some results from October 2002:
 ;;
-;;   src/emacs -batch -l admin/cus-test.el -f cus-test-deps
-;;
-;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs
-;;
-;; in the emacs source directory.
-;;
-;; To make cus-test work one has usually to work-around some existing
-;; bugs/problems.  Therefore this file contains "Fixme" and
-;; "Workarounds" sections, to be edited once in a while.
-;;
-;; Results from Oct 10, 2002:
-;;
-;; Cus Test tested 4514 options.
+;; 4523 options tested
 ;; The following variables might have problems:
-;; (ps-mule-font-info-database-default)
-
-;; Cus Test Deps loaded 332 files.
+;; ps-mule-font-info-database-default
+;;
+;; 288 features required
+;; 10 files loaded
 ;; The following load problems appeared:
-;; ((killing x-win (file-error Cannot open load file x-win)))
-
-;; Cus Test Libs loaded 424 files.
-;; No load problems encountered by Cus Test Libs
+;; (killing x-win (file-error Cannot open load file x-win))
+;; Symbol faces has loaddefs as custom dependency
+;; ...
+;;
+;; 422 libraries had no load errors
+;; The following load problems appeared:
+;; (eudc-export error 255)
+;; ...
 
 ;;; Code:
 
-;;; Variables for workarounds:
+;;; Workarounds.  For a smooth run and to avoid some side effects.
 
 (defvar cus-test-after-load-libs-hook nil
-  "Hook to repair the worst side effects of loading buggy libraries.")
+  "Used to switch off undesired side effects of loading libraries.")
 
-(defvar cus-test-libs-noloads nil
-  "List of libraries not to load by `cus-test-libs'.")
+(defvar cus-test-skip-list nil
+  "List of variables to disregard by `cus-test-apropos'.")
 
-;;; Fixme:
+(defvar cus-test-noloads nil
+  "List of libraries not to load by `cus-test-load-libs'.")
 
-;; Loading filesets.el currently disables mini-buffer echoes.
-;; (add-to-list 'cus-test-libs-noloads "filesets")
+;; The file eudc-export.el loads libraries "bbdb" and "bbdb-com" which
+;; are not part of GNU Emacs:  (locate-library "bbdb") => nil
+;; We avoid the resulting errors from loading eudc-export.el:
+(provide 'bbdb)
+(provide 'bbdb-com)
+
+;; This avoids a hang of `cus-test-apropos' in 21.2.
+;; (add-to-list 'cus-test-skip-list 'sh-alias-alist)
+
+;; Don't create a file `filesets-menu-cache-file'.
+(setq filesets-menu-cache-file "")
+;; Disable filesets hooks.
 (add-hook
  'cus-test-after-load-libs-hook
  (lambda nil
@@ -118,33 +135,13 @@
    (remove-hook 'kill-buffer-hook 'filesets-remove-from-ubl)
    (remove-hook 'first-change-hook 'filesets-reset-filename-on-change)
    ))
-;; (setq cus-test-after-load-libs-hook nil)
-
-;; eshell must be loaded before em-script.  eshell loads esh-util,
-;; which must be loaded before em-cmpl, em-dirs and similar libraries.
-(load "eshell")
-
-;; reftex must be loaded before reftex-vars.
-(load "reftex")
-
-;;; Workarounds:
-
-;; The file eudc-export.el loads libraries "bbdb" and "bbdb-com" which
-;; are not part of GNU Emacs:  (locate-library "bbdb") => nil
-
-;; This avoids the resulting errors from loading eudc-export.el.
-(provide 'bbdb)
-(provide 'bbdb-com)
 
 ;; Loading dunnet in batch mode leads to a Dead end.
-(let (noninteractive)
-  (load "dunnet"))
-(add-to-list 'cus-test-libs-noloads "dunnet")
+(let (noninteractive) (load "dunnet"))
+(add-to-list 'cus-test-noloads "dunnet")
 
-;;; Silencing:
-
-;; Don't create a file `filesets-menu-cache-file'.
-(setq filesets-menu-cache-file "")
+;; Never Viperize.
+(setq viper-mode nil)
 
 ;; Don't create a file `save-place-file'.
 (eval-after-load "saveplace"
@@ -157,36 +154,39 @@
 (eval-after-load "bytecomp"
   '(setq ad-default-compilation-action 'never))
 
+
+;;; Main code:
+
 ;; We want to log all messages.
 (setq message-log-max t)
-
-
-;;; Main Code:
 
 (require 'cus-edit)
 (require 'cus-load)
 
-(defvar cus-test-tested-variables nil
-  "Options tested by last call of `cus-test-apropos'.")
-
 (defvar cus-test-errors nil
   "List of problematic variables found by `cus-test-apropos'.")
+
+(defvar cus-test-tested-variables nil
+  "List of options tested by last call of `cus-test-apropos'.")
 
 (defvar cus-test-deps-errors nil
   "List of require/load problems found by `cus-test-deps'.")
 
+(defvar cus-test-deps-required nil
+  "List of dependencies required by `cus-test-deps'.
+Only unloaded features will be require'd.")
+
 (defvar cus-test-deps-loaded nil
-  "Dependencies loaded by `cus-test-deps'.")
+  "List of dependencies loaded by `cus-test-deps'.")
 
 (defvar cus-test-libs-errors nil
-  "List of load problems found by `cus-test-libs'.")
+  "List of load problems found by `cus-test-load-libs' or `cus-test-libs'.")
 
 (defvar cus-test-libs-loaded nil
-  "Files loaded by `cus-test-libs'.")
+  "List of files loaded by `cus-test-load-libs' or `cus-test-libs'.")
 
-;; I haven't understood this :get stuff.  However, there are only very
-;; few variables with a custom-get property.  Such symbols are stored
-;; in `cus-test-vars-with-custom-get'.
+;; I haven't understood this :get stuff.  The symbols with a
+;; custom-get property are stored here.
 (defvar cus-test-vars-with-custom-get nil
   "Set by `cus-test-apropos' to a list of options with :get property.")
 
@@ -199,12 +199,12 @@ The detected problematic options are stored in `cus-test-errors'."
   (interactive "sVariable regexp: ")
   (setq cus-test-errors nil)
   (setq cus-test-tested-variables nil)
-  (mapcar
+  (mapc
    (lambda (symbol)
      (push symbol cus-test-tested-variables)
-     (unless noninteractive
-       (message "Cus Test Running...[%s]"
-		(length cus-test-tested-variables)))
+     ;; Be verbose in case we hang.
+     (message "Cus Test running...%s %s"
+	      (length cus-test-tested-variables) symbol)
      (condition-case alpha
 	 (let* ((type (custom-variable-type symbol))
 		(conv (widget-convert type))
@@ -220,14 +220,15 @@ The detected problematic options are stored in `cus-test-errors'."
 	   ;; (push (widget-get conv :value) values)
 
 	   ;; Check the values
-	   (mapcar (lambda (value)
-		     (unless (widget-apply conv :match value)
-		       (setq mismatch 'mismatch)))
-		   values)
+	   (mapc (lambda (value)
+		   (unless (widget-apply conv :match value)
+		     (setq mismatch 'mismatch)))
+		 values)
 
 	   ;; Store symbols with a custom-get property.
 	   (when (get symbol 'custom-get)
-	     (push symbol cus-test-vars-with-custom-get))
+	     (add-to-list 'cus-test-vars-with-custom-get
+			  symbol 'append))
 
 	   ;; Changed outside the customize buffer?
 	   ;; This routine is not very much tested.
@@ -238,7 +239,8 @@ The detected problematic options are stored in `cus-test-errors'."
 	     (and (consp c-value)
 		  (boundp symbol)
 		  (not (equal (eval (car c-value)) (symbol-value symbol)))
-		  (push symbol cus-test-vars-with-changed-state)))
+		  (add-to-list 'cus-test-vars-with-changed-state
+			       symbol 'append)))
 
 	   (if mismatch
 	       (push symbol cus-test-errors)))
@@ -247,7 +249,7 @@ The detected problematic options are stored in `cus-test-errors'."
 	(push symbol cus-test-errors)
 	(message "Error for %s: %s" symbol alpha))))
    (cus-test-get-options regexp))
-  (message "Cus Test tested %s options."
+  (message "%s options tested"
 	   (length cus-test-tested-variables))
   (cus-test-errors-display))
 
@@ -263,7 +265,7 @@ The detected problematic options are stored in `cus-test-errors'."
 	 ;; (get symbol 'saved-value)
 	 (get symbol 'custom-type))
 	(string-match regexp (symbol-name symbol))
-	;;	(not (member symbol cus-test-strange-vars))
+	(not (member symbol cus-test-skip-list))
 	(push symbol found))))
     found))
 
@@ -274,22 +276,67 @@ The detected problematic options are stored in `cus-test-errors'."
     (insert (format "Cus Test tested %s variables.\
   See `cus-test-tested-variables'.\n\n"
 		    (length cus-test-tested-variables)))
-    (if cus-test-errors
-	(let ((L cus-test-errors))
-	  (insert "The following variables seem to have problems:\n\n")
-	  (while L (insert (symbol-name (car L))) (insert "\n")
-		 (setq L (cdr L))))
-      (insert "No errors found by cus-test."))))
+    (if (not cus-test-errors)
+	(insert "No errors found by cus-test.")
+      (insert "The following variables seem to have problems:\n\n")
+      (dolist (E cus-test-errors)
+	(insert (symbol-name E) "\n")))))
 
-(defun cus-test-load-custom-loads nil
+(defun cus-test-load-custom-loads ()
   "Call `custom-load-symbol' on all atoms."
   (interactive)
   (mapatoms 'custom-load-symbol)
   (run-hooks 'cus-test-after-load-libs-hook))
 
+(defun cus-test-load-libs ()
+  "Load the libraries with autoloads.
+Don't load libraries in `cus-test-noloads'."
+  (interactive)
+  (setq cus-test-libs-errors nil)
+  (setq cus-test-libs-loaded nil)
+  (mapc
+   (lambda (file)
+     (condition-case alpha
+	 (unless (member file cus-test-noloads)
+	   (load file)
+	   (push file cus-test-libs-loaded))
+       (error
+	(push (cons file alpha) cus-test-libs-errors)
+	(message "Error for %s: %s" file alpha))))
+   (cus-test-get-autoload-deps))
+  (message "%s libraries loaded successfully"
+	   (length cus-test-libs-loaded))
+  (if (not cus-test-libs-errors)
+      (message "No load problems encountered")
+    (message "The following load problems appeared:")
+    (cus-test-message cus-test-libs-errors))
+  (run-hooks 'cus-test-after-load-libs-hook))
+
+(defun cus-test-get-autoload-deps ()
+  "Return the list of libraries with autoloads."
+  (with-temp-buffer
+    (insert-file-contents (locate-library "loaddefs"))
+    ;; This is from `customize-option'.
+    (let (deps file)
+      (while
+	  (search-forward "\n;;; Generated autoloads from " nil t)
+	(goto-char (match-end 0))
+	(setq file (buffer-substring (point)
+				     (progn (end-of-line) (point))))
+	(setq file (file-name-nondirectory file))
+	(string-match "\\.el\\'" file)
+	(setq file (substring file 0 (match-beginning 0)))
+	(setq deps (nconc deps (list file))))
+      deps)))
+
+(defun cus-test-message (list)
+  "Print the members of LIST line by line."
+  (dolist (m list) (message "%s" m)))
+
+
 ;;; The routines for batch mode:
 
-(defun cus-test-opts nil
+(defun cus-test-opts ()
   "Test custom options.
 This function is suitable for batch mode.  E.g., invoke
 
@@ -301,12 +348,12 @@ in the emacs source directory."
   (cus-test-load-custom-loads)
   (message "Running %s" 'cus-test-apropos)
   (cus-test-apropos "")
-  (if cus-test-errors
-      (message "The following options might have problems:\n%s"
-	       cus-test-errors)
-    (message "No problems found by Cus Test Opts")))
+  (if (not cus-test-errors)
+      (message "No problems found")
+    (message "The following options might have problems:")
+    (cus-test-message cus-test-errors)))
 
-(defun cus-test-deps nil
+(defun cus-test-deps ()
   "Run a verbose version of `custom-load-symbol' on all atoms.
 This function is suitable for batch mode.  E.g., invoke
 
@@ -315,6 +362,7 @@ This function is suitable for batch mode.  E.g., invoke
 in the emacs source directory."
   (interactive)
   (setq cus-test-deps-errors nil)
+  (setq cus-test-deps-required nil)
   (setq cus-test-deps-loaded nil)
   (mapatoms
    ;; This code is mainly from `custom-load-symbol'.
@@ -326,12 +374,16 @@ in the emacs source directory."
 	    ((symbolp load)
 	     ;; (condition-case nil (require load) (error nil))
 	     (condition-case alpha
-		 (progn
+		 (unless (featurep load)
 		   (require load)
-		   (push (list symbol load) cus-test-deps-loaded))
+		   (push (list symbol load) cus-test-deps-required))
 	       (error
 		(push (list symbol load alpha) cus-test-deps-errors)
-		(message "Require problem: %s %s: %s" symbol load alpha))))
+		(message "Require problem: %s %s %s" symbol load alpha))))
+	    ((equal load "loaddefs")
+	     (push
+	      (message "Symbol %s has loaddefs as custom dependency" symbol)
+	      cus-test-deps-errors))
 	    ;; This is subsumed by the test below, but it's much
 	    ;; faster.
 	    ((assoc load load-history))
@@ -359,20 +411,20 @@ in the emacs source directory."
 		   (push (list symbol load) cus-test-deps-loaded))
 	       (error
 		(push (list symbol load alpha) cus-test-deps-errors)
-		(message "Load Problem: %s %s: %s" symbol load alpha))))
+		(message "Load Problem: %s %s %s" symbol load alpha))))
 	    ))))))
-  (message "Cus Test Deps loaded %s files."
+  (message "%s features required"
+	   (length cus-test-deps-required))
+  (message "%s files loaded"
 	   (length cus-test-deps-loaded))
-  (if cus-test-deps-errors
-      (message "The following load problems appeared:\n%s"
-	       cus-test-deps-errors)
-    (message "No load problems encountered by Cus Test Deps"))
+  (if (not cus-test-deps-errors)
+      (message "No load problems encountered")
+    (message "The following load problems appeared:")
+    (cus-test-message cus-test-deps-errors))
   (run-hooks 'cus-test-after-load-libs-hook))
 
 (defun cus-test-libs ()
-  "Load the libraries with autoloads in loaddefs.el.
-Don't load libraries in `cus-test-libs-noloads'.
-
+  "Load the libraries with autoloads in separate processes.
 This function is useful to detect load problems of libraries.
 It is suitable for batch mode.  E.g., invoke
 
@@ -380,35 +432,38 @@ It is suitable for batch mode.  E.g., invoke
 
 in the emacs source directory."
   (interactive)
-  (setq cus-test-libs-errors nil)
-  (setq cus-test-libs-loaded nil)
-  (set-buffer (find-file-noselect (locate-library "loaddefs")))
-  (goto-char (point-min))
-  (let (file)
-    (while
-	(search-forward "\n;;; Generated autoloads from " nil t)
-      (goto-char (match-end 0))
-      (setq file (buffer-substring (point)
-				   (progn (end-of-line) (point))))
-      ;; If it is, load that library.
-      (when file
-	(setq file (file-name-nondirectory file))
-	(when (string-match "\\.el\\'" file)
-	  (setq file (substring file 0 (match-beginning 0)))))
-      (condition-case alpha
-	  (unless (member file cus-test-libs-noloads)
-	    (load-library file)
-	    (push file cus-test-libs-loaded))
-	(error
-	 (push (cons file alpha) cus-test-libs-errors)
-	 (message "Error for %s: %s" file alpha)))))
-  (message "Cus Test Libs loaded %s files."
-	   (length cus-test-libs-loaded))
-  (if cus-test-libs-errors
-      (message "The following load problems appeared:\n%s"
-	       cus-test-libs-errors)
-    (message "No load problems encountered by Cus Test Libs"))
-  (run-hooks 'cus-test-after-load-libs-hook))
+  (with-temp-buffer
+    (setq cus-test-libs-errors nil)
+    (setq cus-test-libs-loaded nil)
+    (cd source-directory)
+    (if (not (file-executable-p "src/emacs"))
+	(error "No Emacs executable in %ssrc" default-directory))
+    (mapc
+     (lambda (file)
+       (condition-case alpha
+	   (let (fn cmd status)
+	     (setq fn (locate-library file))
+	     (if (not fn)
+		 (error "Library %s not found" file))
+	     (setq cmd (concat "src/emacs -batch -l " fn))
+	     (setq status (call-process shell-file-name nil nil nil
+					shell-command-switch cmd))
+	     (if (= status 0)
+		 (message "%s" file)
+	       (error "%s" status))
+	     (push file cus-test-libs-loaded))
+	 (error
+	  (push (cons file alpha) cus-test-libs-errors)
+	  (message "Error for %s: %s" file alpha))))
+     (cus-test-get-autoload-deps))
+    (message "Default Directory: %s" default-directory)
+    (message "%s libraries had no load errors"
+	     (length cus-test-libs-loaded))
+    (if (not cus-test-libs-errors)
+	(message "No load problems encountered")
+      (message "The following load problems appeared:")
+      (cus-test-message cus-test-libs-errors))
+    (run-hooks 'cus-test-after-load-libs-hook)))
 
 (provide 'cus-test)
 
