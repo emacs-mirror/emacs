@@ -8420,9 +8420,7 @@ reconsider_clip_changes (w, b)
      struct window *w;
      struct buffer *b;
 {
-  if (b->prevent_redisplay_optimizations_p)
-    b->clip_changed = 1;
-  else if (b->clip_changed
+  if (b->clip_changed
 	   && !NILP (w->window_end_valid)
 	   && w->current_matrix->buffer == b
 	   && w->current_matrix->zv == BUF_ZV (b)
@@ -8689,6 +8687,7 @@ redisplay_internal (preserve_echo_area)
       && CHARPOS (tlbufpos) > 0
       && NILP (w->update_mode_line)
       && !current_buffer->clip_changed
+      && !current_buffer->prevent_redisplay_optimizations_p
       && FRAME_VISIBLE_P (XFRAME (w->frame))
       && !FRAME_OBSCURED_P (XFRAME (w->frame))
       /* Make sure recorded data applies to current buffer, etc.  */
@@ -10093,6 +10092,9 @@ redisplay_window (window, just_this_one_p)
   struct it it;
   /* Record it now because it's overwritten.  */
   int current_matrix_up_to_date_p = 0;
+  /* This is less strict than current_matrix_up_to_date_p.
+     It indictes that the buffer contents and narrowing are unchanged.  */
+  int buffer_unchanged_p = 0;
   int temp_scroll_step = 0;
   int count = SPECPDL_INDEX ();
   int rc;
@@ -10114,7 +10116,8 @@ redisplay_window (window, just_this_one_p)
   /* Has the mode line to be updated?  */
   update_mode_line = (!NILP (w->update_mode_line)
 		      || update_mode_lines
-		      || buffer->clip_changed);
+		      || buffer->clip_changed
+		      || buffer->prevent_redisplay_optimizations_p);
 
   if (MINI_WINDOW_P (w))
     {
@@ -10157,7 +10160,14 @@ redisplay_window (window, just_this_one_p)
   current_matrix_up_to_date_p
     = (!NILP (w->window_end_valid)
        && !current_buffer->clip_changed
+       && !current_buffer->prevent_redisplay_optimizations_p
        && XFASTINT (w->last_modified) >= MODIFF
+       && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
+
+  buffer_unchanged_p
+    = (!NILP (w->window_end_valid)
+       && !current_buffer->clip_changed
+       && END_UNCHANGED + BEG_UNCHANGED >= Z - BEG
        && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
 
   /* When windows_or_buffers_changed is non-zero, we can't rely on
@@ -10277,8 +10287,7 @@ redisplay_window (window, just_this_one_p)
       w->window_end_valid = Qnil;
 
       /* Forget any recorded base line for line number display.  */
-      if (!current_matrix_up_to_date_p
-	  || current_buffer->clip_changed)
+      if (!buffer_unchanged_p)
 	w->base_line_number = Qnil;
 
       /* Redisplay the mode line.  Select the buffer properly for that.
@@ -10356,7 +10365,7 @@ redisplay_window (window, just_this_one_p)
 
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame.  */
-  if (current_matrix_up_to_date_p
+  if (buffer_unchanged_p
       && (rc = try_cursor_movement (window, startp, &temp_scroll_step),
 	  rc != CURSOR_MOVEMENT_CANNOT_BE_USED))
     {
@@ -10510,8 +10519,7 @@ redisplay_window (window, just_this_one_p)
   /* w->vscroll = 0; */
 
   /* Forget any previously recorded base line for line number display.  */
-  if (!current_matrix_up_to_date_p
-      || current_buffer->clip_changed)
+  if (!buffer_unchanged_p)
     w->base_line_number = Qnil;
 
   /* Move backward half the height of the window.  */
@@ -11525,10 +11533,12 @@ try_window_id (w)
   if (windows_or_buffers_changed || cursor_type_changed)
     GIVE_UP (2);
 
-  /* Verify that narrowing has not changed.  This flag is also set to prevent
-     redisplay optimizations.  It would be nice to further
+  /* Verify that narrowing has not changed.
+     Also verify that we were not told to prevent redisplay optimizations.
+     It would be nice to further
      reduce the number of cases where this prevents try_window_id.  */
-  if (current_buffer->clip_changed)
+  if (current_buffer->clip_changed
+      || current_buffer->prevent_redisplay_optimizations_p)
     GIVE_UP (3);
 
   /* Window must either use window-based redisplay or be full width.  */
