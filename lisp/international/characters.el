@@ -105,18 +105,10 @@
 (modify-category-entry '(32 . 127) ?a)
 (modify-category-entry '(32 . 127) ?l)
 
-;; Arabic character set
-
-(let ((charsets '(arabic-iso8859-6
-		  arabic-digit
-		  arabic-1-column
-		  arabic-2-column)))
-  (while charsets
-    (map-charset-chars #'modify-category-entry (car charsets) ?b)
-    (setq charsets (cdr charsets))))
-(modify-category-entry '(#x600 . #x6ff) ?b)
-(modify-category-entry '(#xfb50 . #xfdff) ?b)
-(modify-category-entry '(#xfe70 . #xfefe) ?b)
+;; Deal with the CJK charsets first.  Since the syntax of blocks is
+;; defined per charset, and the charsets may contain e.g. Latin
+;; characters, we end up with the wrong syntax definitions if we're
+;; not careful.
 
 ;; Chinese characters (Unicode)
 (modify-category-entry '(#x3400 . #x9FAF) ?C)
@@ -131,22 +123,6 @@
 (map-charset-chars #'modify-syntax-entry 'chinese-gb2312 "_" #x2121 #x217E)
 (map-charset-chars #'modify-syntax-entry 'chinese-gb2312 "_" #x2221 #x227E)
 (map-charset-chars #'modify-syntax-entry 'chinese-gb2312 "_" #x2921 #x297E)
-(modify-syntax-entry ?\〔 "(〕")
-(modify-syntax-entry ?\〈 "(〉")
-(modify-syntax-entry ?\《 "(》")
-(modify-syntax-entry ?\「 "(」")
-(modify-syntax-entry ?\『 "(』")
-(modify-syntax-entry ?\〖 "(〗")
-(modify-syntax-entry ?\【 "(】")
-(modify-syntax-entry ?\〕 ")〔")
-(modify-syntax-entry ?\〉 ")〈")
-(modify-syntax-entry ?\》 ")《")
-(modify-syntax-entry ?\」 ")「")
-(modify-syntax-entry ?\』 ")『")
-(modify-syntax-entry ?\〗 ")〖")
-(modify-syntax-entry ?\】 ")【")
-(modify-syntax-entry ?\〚 "(〛")
-(modify-syntax-entry ?\〛 ")〚")
 
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?c)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?|)
@@ -178,34 +154,6 @@
       (map-charset-chars #'modify-category-entry c ?C #x4421 #x7E7E)
     (map-charset-chars #'modify-category-entry c ?C))
   (map-charset-chars #'modify-category-entry c ?|))
-
-;; Cyrillic character set (ISO-8859-5)
-
-(modify-syntax-entry ?№ ".")
-
-;; Ethiopic character set
-
-(modify-category-entry '(#x1200 . #x137b) ?e)
-(let ((chars '(?፡ ?። ?፣ ?፤ ?፥ ?፦ ?፧ ?፨ ?���� ?���� ?���� ?���� ?���� ?����)))
-  (while chars
-    (modify-syntax-entry (car chars) ".")
-    (setq chars (cdr chars))))
-(map-charset-chars #'modify-category-entry 'ethiopic ?e)
-
-;; Hebrew character set (ISO-8859-8)
-
-(modify-syntax-entry #x5be ".") ; MAQAF
-(modify-syntax-entry #x5c0 ".") ; PASEQ
-(modify-syntax-entry #x5c3 ".") ; SOF PASUQ
-(modify-syntax-entry #x5f3 ".") ; GERESH
-(modify-syntax-entry #x5f4 ".") ; GERSHAYIM
-
-;; Indian character set (IS 13194 and other Emacs original Indian charsets)
-
-(modify-category-entry '(#x901 . #x970) ?i)
-(map-charset-chars #'modify-category-entry 'indian-is13194 ?i)
-(map-charset-chars #'modify-category-entry 'indian-2-column ?i)
-
 
 ;; Japanese character set (JISX0201-kana, JISX0201-roman, JISX0208, JISX0212)
 
@@ -242,16 +190,6 @@
 (let ((chars '(?ー ?゛ ?゜ ?ヽ ?ヾ ?ゝ ?ゞ ?〃 ?仝 ?々 ?〆 ?〇)))
   (dolist (elt chars)
     (modify-syntax-entry (car chars) "w")))
-(modify-syntax-entry ?\（ "(）")
-(modify-syntax-entry ?\［ "(］")
-(modify-syntax-entry ?\｛ "(｝")
-(modify-syntax-entry ?\「 "(」")
-(modify-syntax-entry ?\『 "(』")
-(modify-syntax-entry ?\） ")（")
-(modify-syntax-entry ?\］ ")［")
-(modify-syntax-entry ?\｝ ")｛")
-(modify-syntax-entry ?\」 ")「")
-(modify-syntax-entry ?\』 ")『")
 
 (map-charset-chars #'modify-category-entry 'japanese-jisx0208 ?A #x2321 #x237E)
 (map-charset-chars #'modify-category-entry 'japanese-jisx0208 ?H #x2421 #x247E)
@@ -300,9 +238,70 @@
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?K #x2B21 #x2B7E)
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?Y #x2C21 #x2C7E)
 
-;; Latin
+;; These are in more than one charset.
+(modify-syntax-entry ?\（ "(）")
+(modify-syntax-entry ?\［ "(］")
+(modify-syntax-entry ?\｛ "(｝")
+(modify-syntax-entry ?\「 "(」")
+(modify-syntax-entry ?\『 "(』")
+(modify-syntax-entry ?\） ")（")
+(modify-syntax-entry ?\］ ")［")
+(modify-syntax-entry ?\｝ ")｛")
+(modify-syntax-entry ?\」 ")「")
+(modify-syntax-entry ?\』 ")『")
 
-(modify-category-entry '(#x80 . #x024F) ?l)
+(modify-syntax-entry ?\〔 "(〕")
+(modify-syntax-entry ?\〈 "(〉")
+(modify-syntax-entry ?\《 "(》")
+(modify-syntax-entry ?\〖 "(〗")
+(modify-syntax-entry ?\【 "(】")
+(modify-syntax-entry ?\〕 ")〔")
+(modify-syntax-entry ?\〉 ")〈")
+(modify-syntax-entry ?\》 ")《")
+(modify-syntax-entry ?\〗 ")〖")
+(modify-syntax-entry ?\】 ")【")
+(modify-syntax-entry ?\〚 "(〛")
+(modify-syntax-entry ?\〛 ")〚")
+
+;; Arabic character set
+
+(let ((charsets '(arabic-iso8859-6
+		  arabic-digit
+		  arabic-1-column
+		  arabic-2-column)))
+  (while charsets
+    (map-charset-chars #'modify-category-entry (car charsets) ?b)
+    (setq charsets (cdr charsets))))
+(modify-category-entry '(#x600 . #x6ff) ?b)
+(modify-category-entry '(#xfb50 . #xfdff) ?b)
+(modify-category-entry '(#xfe70 . #xfefe) ?b)
+
+;; Cyrillic character set (ISO-8859-5)
+
+(modify-syntax-entry ?№ ".")
+
+;; Ethiopic character set
+
+(modify-category-entry '(#x1200 . #x137b) ?e)
+(let ((chars '(?፡ ?። ?፣ ?፤ ?፥ ?፦ ?፧ ?፨ ?���� ?���� ?���� ?���� ?���� ?����)))
+  (while chars
+    (modify-syntax-entry (car chars) ".")
+    (setq chars (cdr chars))))
+(map-charset-chars #'modify-category-entry 'ethiopic ?e)
+
+;; Hebrew character set (ISO-8859-8)
+
+(modify-syntax-entry #x5be ".") ; MAQAF
+(modify-syntax-entry #x5c0 ".") ; PASEQ
+(modify-syntax-entry #x5c3 ".") ; SOF PASUQ
+(modify-syntax-entry #x5f3 ".") ; GERESH
+(modify-syntax-entry #x5f4 ".") ; GERSHAYIM
+
+;; Indian character set (IS 13194 and other Emacs original Indian charsets)
+
+(modify-category-entry '(#x901 . #x970) ?i)
+(map-charset-chars #'modify-category-entry 'indian-is13194 ?i)
+(map-charset-chars #'modify-category-entry 'indian-2-column ?i)
 
 ;; Lao character set
 
@@ -441,6 +440,11 @@
       (if uc (modify-category-entry uc ?v))
       (if lc (modify-category-entry lc ?v)))
     (setq i (1+ i))))
+
+
+;; Latin
+
+(modify-category-entry '(#x80 . #x024F) ?l)
 
 (let ((tbl (standard-case-table)) c)
 
