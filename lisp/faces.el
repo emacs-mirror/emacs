@@ -564,8 +564,11 @@ If FRAME is nil or omitted, test the selected frame."
 	      (or (equal (face-background default frame)
 			 (face-background face frame))
 		  (null (face-background face frame)))
-	      (or (equal (face-font default frame) (face-font face frame))
-		  (null (face-font face frame)))
+	      (or (null (face-font face frame))
+		  (equal (face-font face frame)
+			 (or (face-font default frame)
+			     (downcase
+			      (cdr (assq 'font (frame-parameters frame)))))))
 	      (or (equal (face-stipple default frame)
 			 (face-stipple face frame))
 		  (null (face-stipple face frame)))
