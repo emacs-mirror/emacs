@@ -127,7 +127,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
     (goto-char indent-point)
     (beginning-of-line)
     (cond ((not (extended-loop-p (elt state 1)))
-	   lisp-simple-loop-indentation)
+	   (+ loop-indentation lisp-simple-loop-indentation))
 	  ((looking-at "^\\s-*\\(:?\\sw+\\|;\\)")
 	   (+ loop-indentation lisp-loop-keyword-indentation))
 	  (t
