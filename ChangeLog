@@ -1,8 +1,8 @@
 2000-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* Makefile.in (install-arch-indep): Make this work with
-	`install-info' both from Debian and from Texinfo (they use
-	different syntaxes).
+	* Makefile.in (install-arch-indep): Use --info-dir instead of
+	--dir-file, and a simple argument instead of --info-file, so that
+	the Debian version of install-info also works.
 
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
 
