@@ -545,10 +545,12 @@ for decoding and encoding files, process I/O, etc."
 
 
 ;;; Miscellaneous settings.
+(aset latin-extra-code-table ?\221 t)
 (aset latin-extra-code-table ?\222 t)
 (aset latin-extra-code-table ?\223 t)
 (aset latin-extra-code-table ?\224 t)
 (aset latin-extra-code-table ?\225 t)
+(aset latin-extra-code-table ?\226 t)
 
 (update-coding-systems-internal)
 
