@@ -13953,7 +13953,7 @@ x_initialize ()
   estimate_mode_line_height_hook = x_estimate_mode_line_height;
 
   scroll_region_ok = 1;		/* we'll scroll partial frames */
-  char_ins_del_ok = 0;		/* just as fast to write the line */
+  char_ins_del_ok = 1;
   line_ins_del_ok = 1;		/* we'll just blt 'em */
   fast_clear_end_of_line = 1;	/* X does this well */
   memory_below_frame = 0;	/* we don't remember what scrolls
