@@ -775,6 +775,8 @@ A printed representation of an object is text which describes that object.  */)
   PRINTFINISH;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   object = Fbuffer_string ();
+  if (SBYTES (object) == SCHARS (object))
+    STRING_SET_UNIBYTE (object);
 
   Ferase_buffer ();
   set_buffer_internal (old);
