@@ -783,6 +783,9 @@ init_sys_modes ()
 #endif
       tty.main.c_lflag &= ~ECHO;	/* Disable echo */
       tty.main.c_lflag &= ~ICANON;	/* Disable erase/kill processing */
+#ifdef IEXTEN
+      tty.main.c_iflag &= ~IEXTEN;	/* Disable other editing characters.  */
+#endif
       tty.main.c_lflag |= ISIG;	/* Enable signals */
       if (flow_control)
 	{
@@ -811,19 +814,19 @@ init_sys_modes ()
       tty.main.c_cc[VMIN] = 1;	/* Input should wait for at least 1 char */
       tty.main.c_cc[VTIME] = 0;	/* no matter how long that takes.  */
 #ifdef VSWTCH
-      tty.main.c_cc[VSWTCH] = CDEL;	/* Turn off shell layering use
+      tty.main.c_cc[VSWTCH] = CDISABLE;	/* Turn off shell layering use
 					   of C-z */
 #endif /* VSWTCH */
 #if defined (mips) || defined (HAVE_TCATTR)
-             /* The following code looks like the right thing in general,
-		but it is said to cause a crash on USG V.4.
-		Let's play safe by turning it on only for the MIPS.  */
 #ifdef VSUSP
-      tty.main.c_cc[VSUSP] = CDEL;	/* Turn off mips handling of C-z.  */
+      tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
 #endif /* VSUSP */
 #ifdef V_DSUSP
-      tty.main.c_cc[V_DSUSP] = CDEL;	/* Turn off mips handling of C-y.  */
+      tty.main.c_cc[V_DSUSP] = CDISABLE; /* Turn off mips handling of C-y.  */
 #endif /* V_DSUSP */
+#ifdef VDSUSP /* Some systems have VDSUSP, some have V_DSUSP.  */
+      tty.main.c_cc[VDSUSP] = CDISABLE;
+#endif /* VDSUSP */
 #endif /* mips or HAVE_TCATTR */
 #ifdef AIX
 #ifndef IBMR2AIX
