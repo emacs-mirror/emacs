@@ -1,5 +1,7 @@
 2000-03-31  Dave Love  <fx@gnu.org>
 
+	* help.el (help-manyarg-func-alist): Correct several omissions.
+
 	* add-log.el: Don't require cl, fortran.
 	(add-log-current-defun-function): Doc fix.
 	(change-log-version-number-regexp-list): Remove SCCS part.  Doc
