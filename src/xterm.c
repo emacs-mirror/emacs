@@ -5437,17 +5437,22 @@ XTflash (f)
 	wakeup.tv_sec += (wakeup.tv_usec / 1000000);
 	wakeup.tv_usec %= 1000000;
 
-	/* Keep waiting until past the time wakeup.  */
-	while (1)
+	/* Keep waiting until past the time wakeup or any input gets
+	   available.  */
+	while (! detect_input_pending ())
 	  {
+	    struct timeval current;
 	    struct timeval timeout;
 
-	    EMACS_GET_TIME (timeout);
+	    EMACS_GET_TIME (current);
 
-	    /* In effect, timeout = wakeup - timeout.
-	       Break if result would be negative.  */
-	    if (timeval_subtract (&timeout, wakeup, timeout))
+	    /* Break if result would be negative.  */
+	    if (timeval_subtract (&current, wakeup, current))
 	      break;
+
+	    /* How long `select' should wait.  */
+	    timeout.tv_sec = 0;
+	    timeout.tv_usec = 10000;
 
 	    /* Try to wait that long--but we might wake up sooner.  */
 	    select (0, NULL, NULL, NULL, &timeout);
