@@ -340,6 +340,7 @@ scan_c_file (filename)
   (autoload 'NAME FILE DOCSTRING ...)
   (defvar NAME VALUE DOCSTRING)
   (defconst NAME VALUE DOCSTRING)
+  (fset (quote NAME) (make-byte-code (quote ARGS) ... "\
  starting in column zero.
  ARGS, FILE or VALUE is ignored.  We do not know how to parse Lisp code
  so we use a kludge to skip them:
