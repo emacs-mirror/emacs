@@ -1427,21 +1427,35 @@ or multiple mail buffers, etc."
 Gets two args, first the nominal file name to use,
 and second, t if reading the auto-save file.")
 
-(defun revert-buffer (&optional check-auto noconfirm)
+(defun revert-buffer (&optional ignore-auto noconfirm)
   "Replace the buffer text with the text of the visited file on disk.
 This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
-When called from lisp, this is the first argument, CHECK-AUTO; it is optional.
-Optional second argument NOCONFIRM means don't ask for confirmation at all.
+
+When called from lisp, the first argument is IGNORE-AUTO; only offer
+to revert from the auto-save file when this is nil.  Note that the
+sense of this argument is the reverse of the prefix argument, for the
+sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
+to nil.
+
+Optional second argument NOCONFIRM means don't ask for confirmation at
+all.
 
 If the value of `revert-buffer-function' is non-nil, it is called to
 do the work."
-  (interactive "P")
+  ;; I admit it's odd to reverse the sense of the prefix argument, but
+  ;; there is a lot of code out there which assumes that the first
+  ;; argument should be t to avoid consulting the auto-save file, and
+  ;; there's no straightforward way to encourage authors to notice a
+  ;; reversal of the argument sense.  So I'm just changing the user
+  ;; interface, but leaving the programmatic interface the same.
+  (interactive (list (not prefix-arg)))
   (if revert-buffer-function
-      (funcall revert-buffer-function (not check-auto) noconfirm)
+      (funcall revert-buffer-function ignore-auto noconfirm)
     (let* ((opoint (point))
-	   (auto-save-p (and check-auto (recent-auto-save-p)
+	   (auto-save-p (and (not ignore-auto)
+			     (recent-auto-save-p)
 			     buffer-auto-save-file-name
 			     (file-readable-p buffer-auto-save-file-name)
 			     (y-or-n-p

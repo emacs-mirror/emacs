@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.18 1992/11/20 19:33:38 rms Exp jimb $	
+;;	$Id: vc.el,v 1.19 1992/12/12 15:22:26 jimb Exp jimb $	
 
 ;; This file is part of GNU Emacs.
 
@@ -359,7 +359,7 @@ the option to steal the lock."
   (and (string= buffer-file-name file)
        (if keep
 	   (progn
-	     (vc-revert-buffer1 nil noquery)
+	     (vc-revert-buffer1 t noquery)
 	     (vc-mode-line buffer-file-name))
 	 (progn
 	   (delete-window)
