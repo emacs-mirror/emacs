@@ -1494,6 +1494,15 @@ made.  (The network connection inherits certain information, including
 the process plist, from the server.)  The network server then goes
 back to listening for more connection requests.
 
+  Network connections and servers are created by calling
+@code{make-network-process} with an argument list consisting of
+keyword/argument pairs, for example @code{:server t} to create a
+server process, or @code{:type 'datagram} to create a datagram
+connection.  @xref{Low-Level Network} for details.  You can also use
+one of the @code{open-network-...} functions descibed below;
+internally, they just call @code{make-network-process} with suitable
+arguments.
+
   You can distinguish process objects representing network connections
 and servers from those representing subprocesses with the
 @code{process-status} function.  The possible status values for
