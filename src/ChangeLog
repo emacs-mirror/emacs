@@ -1,5 +1,14 @@
 2001-10-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c, xmenu.c, xfns.c, xdisp.c, window.c: 
+	* w32term.c, w32menu.c, w32console.c, w32bdf.c, w32.c, term.c
+	* sysdep.c, sound.c, search.c, scroll.c, minibuf.c, keymap.c 
+	* intervals.c, insdel.c, indent.c, fns.c, fileio.c, editfns.c
+	* dispnew.c, dired.c, charset.c, xfaces.c, alloc.c, atimer.c: 
+	Don't define min/max.
+
+	* lisp.h (min, max): New macros.
+
 	* puresize.h (BASE_PURESIZE): Increase to 725000.
 
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
