@@ -173,7 +173,7 @@ This must be bound to a button-down mouse event."
     (move-overlay mouse-drag-overlay
 		  start-point start-point
 		  (window-buffer start-window))
-    (setq mark-active nil)
+    (deactivate-mark)
     (let (event end end-point)
       (track-mouse
 	(while (progn
@@ -221,7 +221,7 @@ This must be bound to a button-down mouse event."
 	       (numberp (posn-point (event-end event))))
 	  (goto-char (posn-point (event-end event))))
       (if (= (point) start-point)
-	  (setq mark-active nil)
+	  (deactivate-mark)
 	(set-mark start-point))
       (delete-overlay mouse-drag-overlay))))
 
