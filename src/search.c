@@ -962,7 +962,7 @@ trivial_regexp_p (regexp)
 	    {
 	    case '|': case '(': case ')': case '`': case '\'': case 'b':
 	    case 'B': case '<': case '>': case 'w': case 'W': case 's':
-	    case 'S': case '=':
+	    case 'S': case '=': case '{': case '}':
 	    case 'c': case 'C':	/* for categoryspec and notcategoryspec */
 	    case '1': case '2': case '3': case '4': case '5':
 	    case '6': case '7': case '8': case '9':
@@ -2417,7 +2417,7 @@ since only regular expressions have distinguished subexpressions.")
       return concat3 (before, newtext, after);
     }
 
-  /* Record point, the move (quietly) to the start of the match.  */
+  /* Record point, then move (quietly) to the start of the match.  */
   if (PT >= search_regs.end[sub])
     opoint = PT - ZV;
   else if (PT > search_regs.start[sub])

@@ -1,3 +1,7 @@
+2001-09-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* search.c (trivial_regexp_p): Catch \{N,M\} as well.
+
 2001-09-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (shortlisp): Resync with loadup.el: add backquote,
@@ -32,23 +36,22 @@
 	(try_scrolling, try_cursor_movement, redisplay_window): Give up on
 	this round of redisplay if make_cursor_line_fully_visible fails.
 	(CURSOR_MOVEMENT_*, SCROLLING_*): New enumerators.
-	(try_cursor_movement, try_scrolling): Use them instead of
-	integers.
+	(try_cursor_movement, try_scrolling): Use them instead of integers.
 
 	* dispextern.h (required_matrix_width, required_matrix_height):
 	Add prototypes.
 
-	* dispnew.c (required_matrix_width, required_matrix_height): New
-	functions.
+	* dispnew.c (required_matrix_width, required_matrix_height):
+	New functions.
 	(allocate_matrices_for_window_redisplay)
-	(allocate_matrices_for_frame_redisplay: Use them.  Remove
-	parameters CH_DIM.
+	(allocate_matrices_for_frame_redisplay: Use them.
+	Remove parameters CH_DIM.
 
 	* xdisp.c (display_mode_lines): Temporarily set selected_frame
 	and selected_window to the frame of the window whose mode-lines
 	are displayed, and to the window itself.
 	(redisplay_window, redisplay_mode_lines): Don't set selected_frame
-	here. 
+	here.
 
 2001-09-25  Gerd Moellmann  <gerd@gnu.org>
 
@@ -56,8 +59,7 @@
 	the image cache under us.
 
 	* xdisp.c (display_mode_element): If the mode element is a symbol
-	with a string value, use that string's multibyteness for
-	displaying.
+	with a string value, use that string's multibyteness for displaying.
 
 	* keyboard.c (read_char): Don't clear a message for a switch-frame
 	event.   From Stefan Monnier  <monnier@cs.yale.edu>.
@@ -87,8 +89,8 @@
 
 2001-09-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* sysdep.c (wait_for_termination) [POSIX_SIGNALS]: Terminate
-	only if kill returns -1, and errno is ESRCH.
+	* sysdep.c (wait_for_termination) [POSIX_SIGNALS]:
+	Terminate only if kill returns -1, and errno is ESRCH.
 
 2001-09-21  Markus Rost  <rost@math.ohio-state.edu>
 
