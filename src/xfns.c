@@ -24,10 +24,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <signal.h>
 #include <config.h>
 
-#if 0
-#include <stdio.h>
-#endif
-
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 #define XLIB_ILLEGAL_ACCESS
 
@@ -75,11 +71,11 @@ extern void abort ();
 /* Do the EDITRES protocol if running X11R5 */
 #if (XtSpecificationRelease >= 5)
 #define HACK_EDITRES
-extern void _XEditResCheckMessages();
+extern void _XEditResCheckMessages ();
 #endif /* R5 + Athena */
 
 /* Unique id counter for widgets created by the Lucid Widget
-   Library. */
+   Library.  */
 extern LWLIB_ID widget_id_tick;
 
 /* The one and only application context associated with the connection
@@ -91,17 +87,10 @@ XtAppContext Xt_app_con;
 Widget Xt_app_shell;
 
 extern void free_frame_menubar ();
-extern void free_frame_menubar ();
 #endif /* USE_X_TOOLKIT */
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
-
-/* X Resource data base */
-static XrmDatabase xrdb;
-
-/* The class of this X application.  */
-#define EMACS_CLASS "Emacs"
 
 #ifdef HAVE_X11R4
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
@@ -112,69 +101,26 @@ static XrmDatabase xrdb;
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
 
-/* Title name and application name for X stuff. */
+/* Title name and application name for X stuff.  */
 extern char *x_id_name;
 
 /* The background and shape of the mouse pointer, and shape when not
-   over text or in the modeline. */
+   over text or in the modeline.  */
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
 /* The shape when over mouse-sensitive text.  */
 Lisp_Object Vx_sensitive_text_pointer_shape;
 
-/* Color of chars displayed in cursor box. */
+/* Color of chars displayed in cursor box.  */
 Lisp_Object Vx_cursor_fore_pixel;
 
-/* The screen being used.  */
-static Screen *x_screen;
+/* Nonzero if using X.  */
+static int x_in_use;
 
-/* The X Visual we are using for X windows (the default) */
-Visual *screen_visual;
-
-/* Height of this X screen in pixels. */
-int x_screen_height;
-
-/* Width of this X screen in pixels. */
-int x_screen_width;
-
-/* Number of planes for this screen. */
-int x_screen_planes;
-
-/* Non nil if no window manager is in use. */
+/* Non nil if no window manager is in use.  */
 Lisp_Object Vx_no_window_manager;
-
-/* `t' if a mouse button is depressed. */
-
-Lisp_Object Vmouse_depressed;
 
 /* Search path for bitmap files.  */
 Lisp_Object Vx_bitmap_file_path;
-
-/* For now, we have just one x_display structure since we only support
-   one X display.  */
-static struct x_screen the_x_screen;
-
-extern unsigned int x_mouse_x, x_mouse_y, x_mouse_grabbed;
-
-/* Atom for indicating window state to the window manager. */
-extern Atom Xatom_wm_change_state;
-
-/* Communication with window managers. */
-extern Atom Xatom_wm_protocols;
-
-/* Kinds of protocol things we may receive. */
-extern Atom Xatom_wm_take_focus;
-extern Atom Xatom_wm_save_yourself;
-extern Atom Xatom_wm_delete_window;
-
-/* Other WM communication */
-extern Atom Xatom_wm_configure_denied; /* When our config request is denied */
-extern Atom Xatom_wm_window_moved;     /* When the WM moves us. */
-
-/* EditRes protocol */
-extern Atom Xatom_editres_name;
-
-/* The last 23 bits of the timestamp of the last mouse button event. */
-Time mouse_timestamp;
 
 /* Evaluate this expression to rebuild the section of syms_of_xfns
    that initializes and staticpros the symbols declared below.  Note
@@ -242,8 +188,9 @@ Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
 Lisp_Object Quser_position;
 Lisp_Object Quser_size;
+Lisp_Object Qdisplay;
 
-/* The below are defined in frame.c. */
+/* The below are defined in frame.c.  */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines;
 
@@ -254,7 +201,7 @@ extern Lisp_Object Vwindow_system_version;
 void
 check_x ()
 {
-  if (x_current_display == 0)
+  if (! x_in_use)
     error ("X windows are not in use or not initialized");
 }
 
@@ -263,9 +210,61 @@ check_x ()
 int
 using_x_p ()
 {
-  return x_current_display != 0;
+  return x_in_use;
 }
 
+/* Extract a frame as a FRAME_PTR, defaulting to the selected frame
+   and checking validity for X.  */
+
+FRAME_PTR
+check_x_frame (frame)
+     Lisp_Object frame;
+{
+  FRAME_PTR f;
+
+  if (NILP (frame))
+    f = selected_frame;
+  else
+    {
+      CHECK_LIVE_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
+  if (! FRAME_X_P (f))
+    error ("non-X frame used");
+  return f;
+}
+
+/* Let the user specify an X display with a frame.
+   nil stands for the selected frame--or, if that is not an X frame,
+   the first X display on the list.  */
+
+static struct x_display_info *
+check_x_display_info (frame)
+     Lisp_Object frame;
+{
+  if (NILP (frame))
+    {
+      if (FRAME_X_P (selected_frame))
+	return FRAME_X_DISPLAY_INFO (selected_frame);
+      else if (x_display_list != 0)
+	return x_display_list;
+      else
+	error ("X windows are not in use or not initialized");
+    }
+  else if (STRINGP (frame))
+    return x_display_info_for_name (frame);
+  else
+    {
+      FRAME_PTR f;
+
+      CHECK_LIVE_FRAME (frame, 0);
+      f = XFRAME (frame);
+      if (! FRAME_X_P (f))
+	error ("non-X frame used");
+      return FRAME_X_DISPLAY_INFO (f);
+    }
+}
+
 /* Return the Emacs frame-object corresponding to an X window.
    It could be the frame's main window or an icon window.  */
 
@@ -379,7 +378,7 @@ x_top_window_to_frame (wdesc)
 
    If you use x_create_bitmap_from_data, then you must keep track of
    the bitmaps yourself.  That is, creating a bitmap from the same
-   data more than once will not be caught. */
+   data more than once will not be caught.  */
 
 
 /* Structure recording X pixmap and reference count.
@@ -489,7 +488,7 @@ x_create_bitmap_from_data (f, bits, width, height)
   Pixmap bitmap;
   int id;
 
-  bitmap = XCreateBitmapFromData (x_current_display, FRAME_X_WINDOW (f),
+  bitmap = XCreateBitmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				  bits, width, height);
 
   if (! bitmap)
@@ -540,7 +539,7 @@ x_create_bitmap_from_file (f, file)
 
   filename = (char *) XSTRING (found)->data;
 
-  result = XReadBitmapFile (x_current_display, FRAME_X_WINDOW (f),
+  result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    filename, &width, &height, &bitmap, &xhot, &yhot);
   if (result != BitmapSuccess)
     return -1;
@@ -569,7 +568,7 @@ x_destroy_bitmap (f, id)
       --x_bitmaps[id - 1].refcount;
       if (! x_bitmaps[id - 1].refcount)
 	{
-	  XFreePixmap (x_current_display, x_bitmaps[id - 1].pixmap);
+	  XFreePixmap (FRAME_X_DISPLAY (f), x_bitmaps[id - 1].pixmap);
 	  if (x_bitmaps[id - 1].file)
 	    {
 	      free (x_bitmaps[id - 1].file);
@@ -579,7 +578,7 @@ x_destroy_bitmap (f, id)
     }
 }
 
-/* Return pixmap given bitmap id.  */
+/* Return the actual X pixmap number for a given bitmap id.  */
 
 Pixmap
 x_lookup_pixmap (id)
@@ -886,17 +885,17 @@ x_real_positions (f, xptr, yptr)
   Window *tmp_children;
   int tmp_nchildren;
 
-  XQueryTree (x_current_display, outer, &tmp_root_window,
+  XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
 	      &f->display.x->parent_desc,
 	      &tmp_children, &tmp_nchildren);
   xfree (tmp_children);
 
   /* Find the position of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
-  if (f->display.x->parent_desc != ROOT_WINDOW)
+  if (f->display.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
     {
       BLOCK_INPUT;
-      XTranslateCoordinates (x_current_display,
+      XTranslateCoordinates (FRAME_X_DISPLAY (f),
 			       
 			     /* From-window, to-window.  */
 #ifdef USE_X_TOOLKIT
@@ -952,9 +951,10 @@ x_report_frame_params (f, alistptr)
    If ALLOC is nonzero, allocate a new colormap cell.  */
 
 int
-defined_color (color, color_def, alloc)
+defined_color (f, color, color_def, alloc)
+     FRAME_PTR f;
      char *color;
-     Color *color_def;
+     XColor *color_def;
      int alloc;
 {
   register int foo;
@@ -962,11 +962,12 @@ defined_color (color, color_def, alloc)
 
   BLOCK_INPUT;
   screen_colormap
-    = DefaultColormap (x_current_display, XDefaultScreen (x_current_display));
+    = DefaultColormap (FRAME_X_DISPLAY (f),
+		       XDefaultScreen (FRAME_X_DISPLAY (f)));
 
-  foo = XParseColor (x_current_display, screen_colormap, color, color_def);
+  foo = XParseColor (FRAME_X_DISPLAY (f), screen_colormap, color, color_def);
   if (foo && alloc)
-    foo = XAllocColor (x_current_display, screen_colormap, color_def);
+    foo = XAllocColor (FRAME_X_DISPLAY (f), screen_colormap, color_def);
   UNBLOCK_INPUT;
 
   if (foo)
@@ -981,23 +982,24 @@ defined_color (color, color_def, alloc)
    ARG says.  */
 
 int
-x_decode_color (arg, def)
+x_decode_color (f, arg, def)
+     FRAME_PTR f;
      Lisp_Object arg;
      int def;
 {
-  Color cdef;
+  XColor cdef;
 
   CHECK_STRING (arg, 0);
 
   if (strcmp (XSTRING (arg)->data, "black") == 0)
-    return BLACK_PIX_DEFAULT;
+    return BLACK_PIX_DEFAULT (f);
   else if (strcmp (XSTRING (arg)->data, "white") == 0)
-    return WHITE_PIX_DEFAULT;
+    return WHITE_PIX_DEFAULT (f);
 
-  if (x_screen_planes == 1)
+  if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
     return def;
 
-  if (defined_color (XSTRING (arg)->data, &cdef, 1))
+  if (defined_color (f, XSTRING (arg)->data, &cdef, 1))
     return cdef.pixel;
   else
     Fsignal (Qundefined_color, Fcons (arg, Qnil));
@@ -1016,13 +1018,14 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  f->display.x->foreground_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
+  f->display.x->foreground_pixel
+    = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
-      XSetForeground (x_current_display, f->display.x->normal_gc,
+      XSetForeground (FRAME_X_DISPLAY (f), f->display.x->normal_gc,
 		      f->display.x->foreground_pixel);
-      XSetBackground (x_current_display, f->display.x->reverse_gc,
+      XSetBackground (FRAME_X_DISPLAY (f), f->display.x->reverse_gc,
 		      f->display.x->foreground_pixel);
       UNBLOCK_INPUT;
       recompute_basic_faces (f);
@@ -1039,25 +1042,26 @@ x_set_background_color (f, arg, oldval)
   Pixmap temp;
   int mask;
 
-  f->display.x->background_pixel = x_decode_color (arg, WHITE_PIX_DEFAULT);
+  f->display.x->background_pixel
+    = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
 
   if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
-      /* The main frame area. */
-      XSetBackground (x_current_display, f->display.x->normal_gc,
+      /* The main frame area.  */
+      XSetBackground (FRAME_X_DISPLAY (f), f->display.x->normal_gc,
 		      f->display.x->background_pixel);
-      XSetForeground (x_current_display, f->display.x->reverse_gc,
+      XSetForeground (FRAME_X_DISPLAY (f), f->display.x->reverse_gc,
 		      f->display.x->background_pixel);
-      XSetForeground (x_current_display, f->display.x->cursor_gc,
+      XSetForeground (FRAME_X_DISPLAY (f), f->display.x->cursor_gc,
 		      f->display.x->background_pixel);
-      XSetWindowBackground (x_current_display, FRAME_X_WINDOW (f),
+      XSetWindowBackground (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    f->display.x->background_pixel);
       {
 	Lisp_Object bar;
 	for (bar = FRAME_SCROLL_BARS (f); !NILP (bar);
 	     bar = XSCROLL_BAR (bar)->next)
-	  XSetWindowBackground (x_current_display,
+	  XSetWindowBackground (FRAME_X_DISPLAY (f),
 				SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
 				f->display.x->background_pixel);
       }
@@ -1079,9 +1083,10 @@ x_set_mouse_color (f, arg, oldval)
   int mask_color;
 
   if (!EQ (Qnil, arg))
-    f->display.x->mouse_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
+    f->display.x->mouse_pixel
+      = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   mask_color = f->display.x->background_pixel;
-				/* No invisible pointers. */
+				/* No invisible pointers.  */
   if (mask_color == f->display.x->mouse_pixel
 	&& mask_color == f->display.x->background_pixel)
     f->display.x->mouse_pixel = f->display.x->foreground_pixel;
@@ -1089,98 +1094,98 @@ x_set_mouse_color (f, arg, oldval)
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
-  x_catch_errors ();
+  x_catch_errors (f);
 
   if (!EQ (Qnil, Vx_pointer_shape))
     {
       CHECK_NUMBER (Vx_pointer_shape, 0);
-      cursor = XCreateFontCursor (x_current_display, XINT (Vx_pointer_shape));
+      cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XINT (Vx_pointer_shape));
     }
   else
-    cursor = XCreateFontCursor (x_current_display, XC_xterm);
-  x_check_errors ("bad text pointer cursor: %s");
+    cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_xterm);
+  x_check_errors (f, "bad text pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_nontext_pointer_shape))
     {
       CHECK_NUMBER (Vx_nontext_pointer_shape, 0);
-      nontext_cursor = XCreateFontCursor (x_current_display,
+      nontext_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f),
 					  XINT (Vx_nontext_pointer_shape));
     }
   else
-    nontext_cursor = XCreateFontCursor (x_current_display, XC_left_ptr);
-  x_check_errors ("bad nontext pointer cursor: %s");
+    nontext_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_left_ptr);
+  x_check_errors (f, "bad nontext pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_mode_pointer_shape))
     {
       CHECK_NUMBER (Vx_mode_pointer_shape, 0);
-      mode_cursor = XCreateFontCursor (x_current_display,
-					  XINT (Vx_mode_pointer_shape));
+      mode_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f),
+				       XINT (Vx_mode_pointer_shape));
     }
   else
-    mode_cursor = XCreateFontCursor (x_current_display, XC_xterm);
-  x_check_errors ("bad modeline pointer cursor: %s");
+    mode_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_xterm);
+  x_check_errors (f, "bad modeline pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
     {
       CHECK_NUMBER (Vx_sensitive_text_pointer_shape, 0);
       cross_cursor
-	= XCreateFontCursor (x_current_display,
+	= XCreateFontCursor (FRAME_X_DISPLAY (f),
 			     XINT (Vx_sensitive_text_pointer_shape));
     }
   else
-    cross_cursor = XCreateFontCursor (x_current_display, XC_crosshair);
+    cross_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_crosshair);
 
   /* Check and report errors with the above calls.  */
-  x_check_errors ("can't set cursor shape: %s");
-  x_uncatch_errors ();
+  x_check_errors (f, "can't set cursor shape: %s");
+  x_uncatch_errors (f);
 
   {
     XColor fore_color, back_color;
 
     fore_color.pixel = f->display.x->mouse_pixel;
     back_color.pixel = mask_color;
-    XQueryColor (x_current_display,
-		 DefaultColormap (x_current_display,
-				  DefaultScreen (x_current_display)),
+    XQueryColor (FRAME_X_DISPLAY (f),
+		 DefaultColormap (FRAME_X_DISPLAY (f),
+				  DefaultScreen (FRAME_X_DISPLAY (f))),
 		 &fore_color);
-    XQueryColor (x_current_display,
-		 DefaultColormap (x_current_display,
-				  DefaultScreen (x_current_display)),
+    XQueryColor (FRAME_X_DISPLAY (f),
+		 DefaultColormap (FRAME_X_DISPLAY (f),
+				  DefaultScreen (FRAME_X_DISPLAY (f))),
 		 &back_color);
-    XRecolorCursor (x_current_display, cursor,
+    XRecolorCursor (FRAME_X_DISPLAY (f), cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (x_current_display, nontext_cursor,
+    XRecolorCursor (FRAME_X_DISPLAY (f), nontext_cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (x_current_display, mode_cursor,
+    XRecolorCursor (FRAME_X_DISPLAY (f), mode_cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (x_current_display, cross_cursor,
+    XRecolorCursor (FRAME_X_DISPLAY (f), cross_cursor,
                     &fore_color, &back_color);
   }
 
   if (FRAME_X_WINDOW (f) != 0)
     {
-      XDefineCursor (XDISPLAY FRAME_X_WINDOW (f), cursor);
+      XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
     }
 
   if (cursor != f->display.x->text_cursor && f->display.x->text_cursor != 0)
-      XFreeCursor (XDISPLAY f->display.x->text_cursor);
+    XFreeCursor (FRAME_X_DISPLAY (f), f->display.x->text_cursor);
   f->display.x->text_cursor = cursor;
 
   if (nontext_cursor != f->display.x->nontext_cursor
       && f->display.x->nontext_cursor != 0)
-      XFreeCursor (XDISPLAY f->display.x->nontext_cursor);
+    XFreeCursor (FRAME_X_DISPLAY (f), f->display.x->nontext_cursor);
   f->display.x->nontext_cursor = nontext_cursor;
 
   if (mode_cursor != f->display.x->modeline_cursor
       && f->display.x->modeline_cursor != 0)
-      XFreeCursor (XDISPLAY f->display.x->modeline_cursor);
+    XFreeCursor (FRAME_X_DISPLAY (f), f->display.x->modeline_cursor);
   f->display.x->modeline_cursor = mode_cursor;
   if (cross_cursor != f->display.x->cross_cursor
       && f->display.x->cross_cursor != 0)
-      XFreeCursor (XDISPLAY f->display.x->cross_cursor);
+    XFreeCursor (FRAME_X_DISPLAY (f), f->display.x->cross_cursor);
   f->display.x->cross_cursor = cross_cursor;
 
-  XFlushQueue ();
+  XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
 }
 
@@ -1192,10 +1197,11 @@ x_set_cursor_color (f, arg, oldval)
   unsigned long fore_pixel;
 
   if (!EQ (Vx_cursor_fore_pixel, Qnil))
-    fore_pixel = x_decode_color (Vx_cursor_fore_pixel, WHITE_PIX_DEFAULT);
+    fore_pixel = x_decode_color (f, Vx_cursor_fore_pixel,
+				 WHITE_PIX_DEFAULT (f));
   else
     fore_pixel = f->display.x->background_pixel;
-  f->display.x->cursor_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
+  f->display.x->cursor_pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   
   /* Make sure that the cursor color differs from the background color.  */
   if (f->display.x->cursor_pixel == f->display.x->background_pixel)
@@ -1209,9 +1215,9 @@ x_set_cursor_color (f, arg, oldval)
   if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
-      XSetBackground (x_current_display, f->display.x->cursor_gc,
+      XSetBackground (FRAME_X_DISPLAY (f), f->display.x->cursor_gc,
 		      f->display.x->cursor_pixel);
-      XSetForeground (x_current_display, f->display.x->cursor_gc,
+      XSetForeground (FRAME_X_DISPLAY (f), f->display.x->cursor_gc,
 		      fore_pixel);
       UNBLOCK_INPUT;
 
@@ -1232,7 +1238,7 @@ x_set_cursor_color (f, arg, oldval)
    Note: this is done in two routines because of the way X10 works.
 
    Note: under X11, this is normally the province of the window manager,
-   and so emacs' border colors may be overridden. */
+   and so emacs' border colors may be overridden.  */
 
 void
 x_set_border_color (f, arg, oldval)
@@ -1245,7 +1251,7 @@ x_set_border_color (f, arg, oldval)
   CHECK_STRING (arg, 0);
   str = XSTRING (arg)->data;
 
-    pix = x_decode_color (arg, BLACK_PIX_DEFAULT);
+  pix = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
 
   x_set_border_pixel (f, pix);
 }
@@ -1266,7 +1272,7 @@ x_set_border_pixel (f, pix)
       int mask;
 
       BLOCK_INPUT;
-      XSetWindowBorder (x_current_display, FRAME_X_WINDOW (f),
+      XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
        		 pix);
       UNBLOCK_INPUT;
 
@@ -1331,12 +1337,14 @@ x_set_icon_type (f, arg, oldval)
   /* If the window was unmapped (and its icon was mapped),
      the new icon is not mapped, so map the window in its stead.  */
   if (FRAME_VISIBLE_P (f))
+    {
 #ifdef USE_X_TOOLKIT
-    XtPopup (f->display.x->widget, XtGrabNone);
+      XtPopup (f->display.x->widget, XtGrabNone);
 #endif
-    XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
+      XMapWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+    }
 
-  XFlushQueue ();
+  XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
 }
 
@@ -1422,7 +1430,7 @@ x_set_internal_border_width (f, arg, oldval)
 #if 0
       x_set_resize_hint (f);
 #endif
-      XFlushQueue ();
+      XFlush (FRAME_X_DISPLAY (f));
       UNBLOCK_INPUT;
       SET_FRAME_GARBAGED (f);
     }
@@ -1561,18 +1569,19 @@ x_set_name (f, name, explicit)
 	text.format = 8;
 	text.nitems = XSTRING (name)->size;
 #ifdef USE_X_TOOLKIT
-	XSetWMName (x_current_display, XtWindow (f->display.x->widget), &text);
-	XSetWMIconName (x_current_display, XtWindow (f->display.x->widget),
+	XSetWMName (FRAME_X_DISPLAY (f),
+		    XtWindow (f->display.x->widget), &text);
+	XSetWMIconName (FRAME_X_DISPLAY (f), XtWindow (f->display.x->widget),
 			&text);
 #else /* not USE_X_TOOLKIT */
-	XSetWMName (x_current_display, FRAME_X_WINDOW (f), &text);
-	XSetWMIconName (x_current_display, FRAME_X_WINDOW (f), &text);
+	XSetWMName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
+	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
 #endif /* not USE_X_TOOLKIT */
       }
 #else /* not HAVE_X11R4 */
-      XSetIconName (XDISPLAY FRAME_X_WINDOW (f),
+      XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    XSTRING (name)->data);
-      XStoreName (XDISPLAY FRAME_X_WINDOW (f),
+      XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  XSTRING (name)->data);
 #endif /* not HAVE_X11R4 */
       UNBLOCK_INPUT;
@@ -1697,7 +1706,6 @@ validate_x_resource_name ()
 
 
 extern char *x_get_string_resource ();
-extern XrmDatabase x_load_resources ();
 
 DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 2, 4, 0,
   "Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.\n\
@@ -1772,7 +1780,8 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 	       XSTRING (subclass)->data);
     }
 
-  value = x_get_string_resource (xrdb, name_key, class_key);
+  value = x_get_string_resource (check_x_display_info (Qnil)->xrdb,
+				 name_key, class_key);
 
   if (value != (char *) 0)
     return build_string (value);
@@ -1802,7 +1811,8 @@ x_get_resource_string (attribute, class)
 	   attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
-  return x_get_string_resource (xrdb, name_key, class_key);
+  return x_get_string_resource (FRAME_X_DISPLAY_INFO (selected_frame)->xrdb,
+				name_key, class_key);
 }
 
 /* Types we might convert a resource string into.  */
@@ -1992,7 +2002,7 @@ x_figure_window_size (f, parms)
 
   /* Default values if we fall through.
      Actually, if that happens we should get
-     window manager prompting. */
+     window manager prompting.  */
   f->width = DEFAULT_COLS;
   f->height = DEFAULT_ROWS;
   /* Window managers expect that if program-specified
@@ -2126,7 +2136,8 @@ XSetWMProtocols (dpy, w, protocols, count)
    for example, but Xt doesn't).  */
 
 static void
-hack_wm_protocols (widget)
+hack_wm_protocols (f, widget)
+     FRAME_PTR f;
      Widget widget;
 {
   Display *dpy = XtDisplay (widget);
@@ -2142,7 +2153,8 @@ hack_wm_protocols (widget)
     unsigned long nitems = 0;
     unsigned long bytes_after;
 
-    if (Success == XGetWindowProperty (dpy, w, Xatom_wm_protocols,
+    if (Success == XGetWindowProperty (dpy, w,
+				       FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
 				       0, 100, False, XA_ATOM,
 				       &type, &format, &nitems, &bytes_after,
 				       (unsigned char **) &atoms)
@@ -2150,20 +2162,27 @@ hack_wm_protocols (widget)
       while (nitems > 0)
 	{
 	  nitems--;
- 	  if (atoms[nitems] == Xatom_wm_delete_window)      need_delete = 0;
-	  else if (atoms[nitems] == Xatom_wm_take_focus)    need_focus = 0;
-	  else if (atoms[nitems] == Xatom_wm_save_yourself) need_save = 0;
+ 	  if (atoms[nitems] == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window)
+	    need_delete = 0;
+	  else if (atoms[nitems] == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_take_focus)
+	    need_focus = 0;
+	  else if (atoms[nitems] == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself)
+	    need_save = 0;
 	}
     if (atoms) XFree ((char *) atoms);
   }
   {
     Atom props [10];
     int count = 0;
-    if (need_delete) props[count++] = Xatom_wm_delete_window;
-    if (need_focus)  props[count++] = Xatom_wm_take_focus;
-    if (need_save)   props[count++] = Xatom_wm_save_yourself;
+    if (need_delete)
+      props[count++] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window;
+    if (need_focus)
+      props[count++] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_take_focus;
+    if (need_save)
+      props[count++] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
     if (count)
-      XChangeProperty (dpy, w, Xatom_wm_protocols, XA_ATOM, 32, PropModeAppend,
+      XChangeProperty (dpy, w, FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
+		       XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
   }
   UNBLOCK_INPUT;
@@ -2294,11 +2313,12 @@ x_window (f, window_prompting, minibuffer_only)
   validate_x_resource_name ();
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = EMACS_CLASS;
-  XSetClassHint (x_current_display, XtWindow (shell_widget), &class_hints);
+  XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
   f->display.x->wm_hints.input = True;
   f->display.x->wm_hints.flags |= InputHint;
-  XSetWMHints (x_current_display, FRAME_X_WINDOW (f), &f->display.x->wm_hints);
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->display.x->wm_hints);
 
   hack_wm_protocols (shell_widget);
 
@@ -2311,7 +2331,8 @@ x_window (f, window_prompting, minibuffer_only)
      be initialized to something relevant to the time we created the window.
      */
   XChangeProperty (XtDisplay (frame_widget), XtWindow (frame_widget),
-		   Xatom_wm_protocols, XA_ATOM, 32, PropModeAppend,
+		   FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
+		   XA_ATOM, 32, PropModeAppend,
 		   (unsigned char*) NULL, 0);
 
  /* Make all the standard events reach the Emacs frame.  */
@@ -2336,7 +2357,7 @@ x_window (f, window_prompting, minibuffer_only)
     x_set_name (f, name, explicit);
   }
 
-  XDefineCursor (XDISPLAY FRAME_X_WINDOW (f),
+  XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 f->display.x->text_cursor);
 
   UNBLOCK_INPUT;
@@ -2371,36 +2392,38 @@ x_window (f)
 
   BLOCK_INPUT;
   FRAME_X_WINDOW (f)
-    = XCreateWindow (x_current_display, ROOT_WINDOW,
+    = XCreateWindow (FRAME_X_DISPLAY (f),
+		     FRAME_X_DISPLAY_INFO (f)->root_window,
 		     f->display.x->left_pos,
 		     f->display.x->top_pos,
 		     PIXEL_WIDTH (f), PIXEL_HEIGHT (f),
 		     f->display.x->border_width,
 		     CopyFromParent, /* depth */
 		     InputOutput, /* class */
-		     screen_visual, /* set in Fx_open_connection */
+		     FRAME_X_DISPLAY_INFO (f)->visual,
 		     attribute_mask, &attributes);
 
   validate_x_resource_name ();
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = EMACS_CLASS;
-  XSetClassHint (x_current_display, FRAME_X_WINDOW (f), &class_hints);
+  XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
 
   /* This indicates that we use the "Passive Input" input model.
      Unless we do this, we don't get the Focus{In,Out} events that we
      need to draw the cursor correctly.  Accursed bureaucrats.
-   XWhipsAndChains (x_current_display, IronMaiden, &TheRack);  */
+   XWhipsAndChains (FRAME_X_DISPLAY (f), IronMaiden, &TheRack);  */
 
   f->display.x->wm_hints.input = True;
   f->display.x->wm_hints.flags |= InputHint;
-  XSetWMHints (x_current_display, FRAME_X_WINDOW (f), &f->display.x->wm_hints);
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->display.x->wm_hints);
 
   /* Request "save yourself" and "delete window" commands from wm.  */
   {
     Atom protocols[2];
-    protocols[0] = Xatom_wm_delete_window;
-    protocols[1] = Xatom_wm_save_yourself;
-    XSetWMProtocols (x_current_display, FRAME_X_WINDOW (f), protocols, 2);
+    protocols[0] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window;
+    protocols[1] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
+    XSetWMProtocols (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), protocols, 2);
   }
 
   /* x_set_name normally ignores requests to set the name if the
@@ -2417,7 +2440,7 @@ x_window (f)
     x_set_name (f, name, explicit);
   }
 
-  XDefineCursor (XDISPLAY FRAME_X_WINDOW (f),
+  XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 f->display.x->text_cursor);
 
   UNBLOCK_INPUT;
@@ -2430,7 +2453,7 @@ x_window (f)
 
 /* Handle the icon stuff for this window.  Perhaps later we might
    want an x_set_icon_position which can be called interactively as
-   well. */
+   well.  */
 
 static void
 x_icon (f, parms)
@@ -2440,7 +2463,7 @@ x_icon (f, parms)
   Lisp_Object icon_x, icon_y;
 
   /* Set the position of the icon.  Note that twm groups all
-     icons in an icon window. */
+     icons in an icon window.  */
   icon_x = x_get_arg (parms, Qicon_left, 0, 0, number);
   icon_y = x_get_arg (parms, Qicon_top, 0, 0, number);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
@@ -2495,16 +2518,16 @@ x_make_gc (f)
   gc_values.foreground = f->display.x->foreground_pixel;
   gc_values.background = f->display.x->background_pixel;
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
-  f->display.x->normal_gc = XCreateGC (x_current_display,
+  f->display.x->normal_gc = XCreateGC (FRAME_X_DISPLAY (f),
 				       FRAME_X_WINDOW (f),
 				       GCLineWidth | GCFont
 				       | GCForeground | GCBackground,
 				       &gc_values);
 
-  /* Reverse video style. */
+  /* Reverse video style.  */
   gc_values.foreground = f->display.x->background_pixel;
   gc_values.background = f->display.x->foreground_pixel;
-  f->display.x->reverse_gc = XCreateGC (x_current_display,
+  f->display.x->reverse_gc = XCreateGC (FRAME_X_DISPLAY (f),
 					FRAME_X_WINDOW (f),
 					GCFont | GCForeground | GCBackground
 					| GCLineWidth,
@@ -2515,10 +2538,11 @@ x_make_gc (f)
   gc_values.background = f->display.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
   gc_values.stipple
-    = XCreateBitmapFromData (x_current_display, ROOT_WINDOW,
+    = XCreateBitmapFromData (FRAME_X_DISPLAY (f),
+			     FRAME_X_DISPLAY_INFO (f)->root_window,
 			     cursor_bits, 16, 16);
   f->display.x->cursor_gc
-    = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
+    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 (GCFont | GCForeground | GCBackground
 		  | GCFillStyle | GCStipple | GCLineWidth),
 		 &gc_values);
@@ -2528,11 +2552,12 @@ x_make_gc (f)
      this must be done on a per-frame basis.  */
   f->display.x->border_tile
     = (XCreatePixmapFromBitmapData
-       (x_current_display, ROOT_WINDOW, 
+       (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window, 
 	gray_bits, gray_width, gray_height,
 	f->display.x->foreground_pixel,
 	f->display.x->background_pixel,
-	DefaultDepth (x_current_display, XDefaultScreen (x_current_display))));
+	DefaultDepth (FRAME_X_DISPLAY (f),
+		      XScreenNumberOfScreen (FRAME_X_SCREEN (f)))));
 
   UNBLOCK_INPUT;
 }
@@ -2557,8 +2582,15 @@ be shared by the new frame.")
   int width, height;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
+  Lisp_Object display;
+  struct x_display_info *dpyinfo;
 
   check_x ();
+
+  display = x_get_arg (parms, Qdisplay, 0, 0, 0);
+  if (EQ (display, Qunbound))
+    display = Qnil;
+  dpyinfo = check_x_display_info (display);
 
   name = x_get_arg (parms, Qname, "title", "Title", string);
   if (!STRINGP (name)
@@ -2605,9 +2637,8 @@ be shared by the new frame.")
   bzero (f->display.x, sizeof (struct x_display));
   f->display.x->icon_bitmap = -1;
 
-  FRAME_X_SCREEN (f) = &the_x_screen;
-  FRAME_X_SCREEN (f)->reference_count++;
-  the_x_screen.x_display_value = x_current_display;
+  FRAME_X_DISPLAY_INFO (f) = dpyinfo;
+  FRAME_X_DISPLAY_INFO (f)->reference_count++;
 
   /* Note that the frame has no physical cursor right now.  */
   f->phys_cursor_x = -1;
@@ -2662,7 +2693,7 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qt,
 		       "verticalScrollBars", "ScrollBars", boolean);
 
-  /* Also do the stuff which must be set before the window exists. */
+  /* Also do the stuff which must be set before the window exists.  */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
 		       "foreground", "Foreground", string);
   x_default_parameter (f, parms, Qbackground_color, build_string ("white"),
@@ -2679,7 +2710,7 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", number);
 
-  f->display.x->parent_desc = ROOT_WINDOW;
+  f->display.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   window_prompting = x_figure_window_size (f, parms);
 
   if (window_prompting & XNegative)
@@ -2722,7 +2753,7 @@ be shared by the new frame.")
 
   /* Dimensions, especially f->height, must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height. */
+     f->height.  */
   width = f->width;
   height = f->height;
   f->height = f->width = 0;
@@ -2840,10 +2871,8 @@ even if they match PATTERN and FACE.")
   CHECK_STRING (pattern, 0);
   if (!NILP (face))
     CHECK_SYMBOL (face, 1);
-  if (!NILP (frame))
-    CHECK_LIVE_FRAME (frame, 2);
 
-  f = NILP (frame) ? selected_frame : XFRAME (frame);
+  f = check_x_frame (frame);
 
   /* Determine the width standard for comparison with the fonts we find.  */
 
@@ -2871,7 +2900,7 @@ even if they match PATTERN and FACE.")
     }
 
   /* See if we cached the result for this particular query.  */
-  list = Fassoc (pattern, FRAME_X_SCREEN (f)->font_list_cache);
+  list = Fassoc (pattern, FRAME_X_DISPLAY_INFO (f)->font_list_cache);
 
   /* We have info in the cache for this PATTERN.  */
   if (!NILP (list))
@@ -2892,13 +2921,13 @@ even if they match PATTERN and FACE.")
 	{
 	  XFontStruct *thisinfo;
 
-          thisinfo = XLoadQueryFont (x_current_display,
+          thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f),
 				     XSTRING (XCONS (tem)->car)->data);
 
           if (thisinfo && same_size_fonts (thisinfo, size_ref))
 	    newlist = Fcons (XCONS (tem)->car, newlist);
 
-	  XFreeFont (x_current_display, thisinfo);
+	  XFreeFont (FRAME_X_DISPLAY (f), thisinfo);
         }
 
       UNBLOCK_INPUT;
@@ -2910,12 +2939,12 @@ even if they match PATTERN and FACE.")
 
   /* Solaris 2.3 has a bug in XListFontsWithInfo.  */
 #ifdef BROKEN_XLISTFONTSWITHINFO
-  names = XListFonts (x_current_display,
+  names = XListFonts (FRAME_X_DISPLAY (f),
                       XSTRING (pattern)->data,
                       2000, /* maxnames */
                       &num_fonts); /* count_return */
 #else
-  names = XListFontsWithInfo (x_current_display,
+  names = XListFontsWithInfo (FRAME_X_DISPLAY (f),
 			      XSTRING (pattern)->data,
 			      2000, /* maxnames */
 			      &num_fonts, /* count_return */
@@ -2935,9 +2964,9 @@ even if they match PATTERN and FACE.")
       full_list = Qnil;
       for (i = 0; i < num_fonts; i++)
 	full_list = Fcons (build_string (names[i]), full_list);
-      FRAME_X_SCREEN (f)->font_list_cache
+      FRAME_X_DISPLAY_INFO (f)->font_list_cache
 	= Fcons (Fcons (pattern, full_list),
-		 FRAME_X_SCREEN (f)->font_list_cache);
+		 FRAME_X_DISPLAY_INFO (f)->font_list_cache);
 
       /* Make a list of the fonts that have the right width.  */
       list = Qnil;
@@ -2947,7 +2976,7 @@ even if they match PATTERN and FACE.")
 
 #ifdef BROKEN_XLISTFONTSWITHINFO
           BLOCK_INPUT;
-          thisinfo = XLoadQueryFont (x_current_display, names[i]);
+          thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f), names[i]);
           UNBLOCK_INPUT;
 #else
 	  thisinfo = &info[i];
@@ -2971,35 +3000,35 @@ even if they match PATTERN and FACE.")
 }
 
 
-DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 1, 0,
-  "Return non-nil if the X display supports the color named COLOR.")
-  (color)
-     Lisp_Object color;
+DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
+  "Return non-nil color COLOR is supported on frame FRAME.")
+  (color, frame)
+     Lisp_Object color, frame;
 {
-  Color foo;
-  
-  check_x ();
-  CHECK_STRING (color, 0);
+  XColor foo;
+  FRAME_PTR f = check_x_frame (frame);
 
-  if (defined_color (XSTRING (color)->data, &foo, 0))
+  CHECK_STRING (color, 1);
+
+  if (defined_color (f, XSTRING (color)->data, &foo, 0))
     return Qt;
   else
     return Qnil;
 }
 
-DEFUN ("x-color-values", Fx_color_values, Sx_color_values, 1, 1, 0,
-  "Return a description of the color named COLOR.\n\
+DEFUN ("x-color-values", Fx_color_values, Sx_color_values, 1, 2, 0,
+  "Return a description of the color named COLOR on frame FRAME.\n\
 The value is a list of integer RGB values--(RED GREEN BLUE).\n\
 These values appear to range from 0 to 65280; white is (65280 65280 65280).")
-  (color)
-     Lisp_Object color;
+  (color, frame)
+     Lisp_Object color, frame;
 {
-  Color foo;
-  
-  check_x ();
-  CHECK_STRING (color, 0);
+  XColor foo;
+  FRAME_PTR f = check_x_frame (frame);
 
-  if (defined_color (XSTRING (color)->data, &foo, 0))
+  CHECK_STRING (color, 1);
+
+  if (defined_color (f, XSTRING (color)->data, &foo, 0))
     {
       Lisp_Object rgb[3];
 
@@ -3012,16 +3041,17 @@ These values appear to range from 0 to 65280; white is (65280 65280 65280).")
     return Qnil;
 }
 
-DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 0, 0,
-  "Return t if the X screen currently in use supports color.")
-  ()
+DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 1, 0,
+  "Return t if the X screen FRAME is on supports color.")
+  (frame)
+     Lisp_Object frame;
 {
-  check_x ();
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
 
-  if (x_screen_planes <= 2)
+  if (dpyinfo->n_planes <= 2)
     return Qnil;
 
-  switch (screen_visual->class)
+  switch (dpyinfo->visual->class)
     {
     case StaticColor:
     case PseudoColor:
@@ -3035,15 +3065,19 @@ DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 0, 0,
 }
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
-  0, 0, 0,
-  "Return t if the X screen currently in use supports grayscale.")
-  ()
+  0, 1, 0,
+  "Return t if the X screen FRAME is on supports grayscale.")
+  (frame)
+     Lisp_Object frame;
 {
-  check_x ();
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
 
-  return (x_screen_planes > 1
-	  && (screen_visual->class == StaticGray
-	      || screen_visual->class == GrayScale));
+  if (dpyinfo->n_planes <= 2)
+    return Qnil;
+
+  return (dpyinfo->n_planes > 1
+	  && (dpyinfo->visual->class == StaticGray
+	      || dpyinfo->visual->class == GrayScale));
 }
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
@@ -3052,9 +3086,9 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
   (frame)
      Lisp_Object frame;
 {
-  Display *dpy = x_current_display;
-  check_x ();
-  return make_number (DisplayWidth (dpy, DefaultScreen (dpy)));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (dpyinfo->width);
 }
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
@@ -3063,9 +3097,9 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
   (frame)
      Lisp_Object frame;
 {
-  Display *dpy = x_current_display;
-  check_x ();
-  return make_number (DisplayHeight (dpy, DefaultScreen (dpy)));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (dpyinfo->height);
 }
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
@@ -3074,9 +3108,9 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
   (frame)
      Lisp_Object frame;
 {
-  Display *dpy = x_current_display;
-  check_x ();
-  return make_number (DisplayPlanes (dpy, DefaultScreen (dpy)));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (dpyinfo->n_planes);
 }
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
@@ -3085,9 +3119,10 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
   (frame)
      Lisp_Object frame;
 {
-  Display *dpy = x_current_display;
-  check_x ();
-  return make_number (DisplayCells (dpy, DefaultScreen (dpy)));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (DisplayCells (dpyinfo->display,
+				    XScreenNumberOfScreen (dpyinfo->screen)));
 }
 
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
@@ -3097,9 +3132,9 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
   (frame)
      Lisp_Object frame;
 {
-  Display *dpy = x_current_display;
-  check_x ();
-  return make_number (MAXREQUEST (dpy));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (MAXREQUEST (dpyinfo->display));
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
@@ -3107,10 +3142,9 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
   (frame)
      Lisp_Object frame;
 {
-  Display *dpy = x_current_display;
-  char *vendor;
-  check_x ();
-  vendor = ServerVendor (dpy);
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  char *vendor = ServerVendor (dpyinfo->display);
+
   if (! vendor) vendor = "";
   return build_string (vendor);
 }
@@ -3123,9 +3157,9 @@ number.  See also the variable `x-server-vendor'.")
   (frame)
      Lisp_Object frame;
 {
-  Display *dpy = x_current_display;
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  Display *dpy = dpyinfo->display;
 
-  check_x ();
   return Fcons (make_number (ProtocolVersion (dpy)),
 		Fcons (make_number (ProtocolRevision (dpy)),
 		       Fcons (make_number (VendorRelease (dpy)), Qnil)));
@@ -3136,8 +3170,9 @@ DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
   (frame)
      Lisp_Object frame;
 {
-  check_x ();
-  return make_number (ScreenCount (x_current_display));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (ScreenCount (dpyinfo->display));
 }
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
@@ -3145,8 +3180,9 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
   (frame)
      Lisp_Object frame;
 {
-  check_x ();
-  return make_number (HeightMMOfScreen (x_screen));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (HeightMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
@@ -3154,8 +3190,9 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
   (frame)
      Lisp_Object frame;
 {
-  check_x ();
-  return make_number (WidthMMOfScreen (x_screen));
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
+
+  return make_number (WidthMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
@@ -3165,9 +3202,9 @@ The value may be `always', `when-mapped', or `not-useful'.")
   (frame)
      Lisp_Object frame;
 {
-  check_x ();
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
 
-  switch (DoesBackingStore (x_screen))
+  switch (DoesBackingStore (dpyinfo->screen))
     {
     case Always:
       return intern ("always");
@@ -3185,15 +3222,15 @@ The value may be `always', `when-mapped', or `not-useful'.")
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
   Sx_display_visual_class, 0, 1, 0,
-  "Returns the visual class of the display `screen' is on.\n\
+  "Returns the visual class of the display FRAME is on.\n\
 The value is one of the symbols `static-gray', `gray-scale',\n\
 `static-color', `pseudo-color', `true-color', or `direct-color'.")
-	(screen)
-     Lisp_Object screen;
+	(frame)
+     Lisp_Object frame;
 {
-  check_x ();
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
 
-  switch (screen_visual->class)
+  switch (dpyinfo->visual->class)
     {
     case StaticGray:  return (intern ("static-gray"));
     case GrayScale:   return (intern ("gray-scale"));
@@ -3212,43 +3249,54 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
   (frame)
      Lisp_Object frame;
 {
-  check_x ();
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
 
-  if (DoesSaveUnders (x_screen) == True)
+  if (DoesSaveUnders (dpyinfo->screen) == True)
     return Qt;
   else
     return Qnil;
 }
 
+int
 x_pixel_width (f)
      register struct frame *f;
 {
   return PIXEL_WIDTH (f);
 }
 
+int
 x_pixel_height (f)
      register struct frame *f;
 {
   return PIXEL_HEIGHT (f);
 }
 
+int
 x_char_width (f)
      register struct frame *f;
 {
   return FONT_WIDTH (f->display.x->font);
 }
 
+int
 x_char_height (f)
      register struct frame *f;
 {
   return f->display.x->line_height;
+}
+
+int
+x_screen_planes (frame)
+     Lisp_Object frame;
+{
+  return FRAME_X_DISPLAY_INFO (XFRAME (frame))->n_planes;
 }
 
 #if 0  /* These no longer seem like the right way to do things.  */
 
 /* Draw a rectangle on the frame with left top corner including
    the character specified by LEFT_CHAR and TOP_CHAR.  The rectangle is
-   CHARS by LINES wide and long and is the color of the cursor. */
+   CHARS by LINES wide and long and is the color of the cursor.  */
 
 void
 x_rectangle (f, gc, left_char, top_char, chars, lines)
@@ -3272,7 +3320,7 @@ x_rectangle (f, gc, left_char, top_char, chars, lines)
   else
     height = f->display.x->line_height * lines;
 
-  XDrawRectangle (x_current_display, FRAME_X_WINDOW (f),
+  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  gc, left, top, width, height);
 }
 
@@ -3333,7 +3381,7 @@ X0, Y0, X1, Y1 in the regular background-pixel.")
 {
   register int x0, y0, x1, y1, top, left, n_chars, n_lines;
 
-  CHECK_FRAME (frame, 0);
+  CHECK_LIVE_FRAME (frame, 0);
   CHECK_NUMBER (X0, 0);
   CHECK_NUMBER (Y0, 1);
   CHECK_NUMBER (X1, 2);
@@ -3376,7 +3424,7 @@ X0, Y0, X1, Y1 in the regular background-pixel.")
 
 /* Draw lines around the text region beginning at the character position
    TOP_X, TOP_Y and ending at BOTTOM_X and BOTTOM_Y.  GC specifies the
-   pixel and line characteristics. */
+   pixel and line characteristics.  */
 
 #define line_len(line) (FRAME_CURRENT_GLYPHS (f)->used[(line)])
 
@@ -3402,7 +3450,7 @@ outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
       this_point->y = ibw + (font_h * top_y);
       this_point++;
       if (x == 0)
-	this_point->x = ibw + (font_w / 2); /* Half-size for newline chars. */
+	this_point->x = ibw + (font_w / 2); /* Half-size for newline chars.  */
       else
 	this_point->x = ibw + (font_w * x);
       this_point->y = (this_point - 1)->y;
@@ -3422,7 +3470,7 @@ outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
       this_point->y = (this_point - 1)->y;
     }
 
-  /* Now do the right side. */
+  /* Now do the right side.  */
   while (y < bottom_y)
     {				/* Right vertical edge */
       this_point++;
@@ -3440,7 +3488,7 @@ outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
       this_point->y = (this_point - 1)->y;
     }
 
-  /* Now do the bottom and connect to the top left point. */
+  /* Now do the bottom and connect to the top left point.  */
   this_point->x = ibw + (font_w * (bottom_x + 1));
 
   this_point++;
@@ -3453,7 +3501,7 @@ outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
   this_point->x = pixel_points->x;
   this_point->y = pixel_points->y;
 
-  XDrawLines (x_current_display, FRAME_X_WINDOW (f),
+  XDrawLines (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	      gc, pixel_points,
 	      (this_point - pixel_points + 1), CoordModeOrigin);
 }
@@ -3474,8 +3522,8 @@ selected frame.")
   x0 = XINT (Fcar (Fcar (event)));
   y0 = XINT (Fcar (Fcdr (Fcar (event))));
 
-  /* If the mouse is past the end of the line, don't that area. */
-  /* ReWrite this... */
+  /* If the mouse is past the end of the line, don't that area.  */
+  /* ReWrite this...  */
 
   x1 = f->cursor_x;
   y1 = f->cursor_y;
@@ -3496,7 +3544,7 @@ selected frame.")
 		       x1, y1, (x0 - x1 + 1), 1);
     }
 
-  XFlush (x_current_display);
+  XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
 
   return Qnil;
@@ -3544,7 +3592,7 @@ int contour_npoints;
 
 /* Clip the top part of the contour lines down (and including) line Y_POS.
    If X_POS is in the middle (rather than at the end) of the line, drop
-   down a line at that character. */
+   down a line at that character.  */
 
 static void
 clip_contour_top (y_pos, x_pos)
@@ -3554,7 +3602,7 @@ clip_contour_top (y_pos, x_pos)
   register int npoints;
   register struct display_line *line = selected_frame->phys_lines[y_pos + 1];
 
-  if (x_pos >= line->len - 1)	/* Draw one, straight horizontal line. */
+  if (x_pos >= line->len - 1)	/* Draw one, straight horizontal line.  */
     {
       end = contour_lines[y_pos].top_right;
       npoints = (end - begin + 1);
@@ -3567,7 +3615,7 @@ clip_contour_top (y_pos, x_pos)
 		  contour_erase_gc, begin, 2, CoordModeOrigin);
       XFlush (x_current_display);
 
-      /* Now, update contour_lines structure. */
+      /* Now, update contour_lines structure.  */
     }
 				/* ______.         */
   else				/*       |________*/
@@ -3589,12 +3637,12 @@ clip_contour_top (y_pos, x_pos)
 		  contour_erase_gc, begin, 4, CoordModeOrigin);
       XFlush (x_current_display);
 
-      /* Now, update contour_lines structure. */
+      /* Now, update contour_lines structure.  */
     }
 }
 
 /* Erase the top horizontal lines of the contour, and then extend
-   the contour upwards. */
+   the contour upwards.  */
 
 static void
 extend_contour_top (line)
@@ -3648,7 +3696,7 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 
      if (mouse_below_point)
        {
-	 if (x_mouse_y <= point_y)                /* Flipped. */
+	 if (x_mouse_y <= point_y)                /* Flipped.  */
 	   {
 	     mouse_below_point = 0;
 
@@ -3657,11 +3705,11 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 	     outline_region (f, f->display.x->cursor_gc, x_mouse_x, x_mouse_y,
 			     point_x, point_y);
 	   }
-	 else if (x_mouse_y < x_contour_y)	  /* Bottom clipped. */
+	 else if (x_mouse_y < x_contour_y)	  /* Bottom clipped.  */
 	   {
 	     clip_contour_bottom (x_mouse_y);
 	   }
-	 else if (x_mouse_y > x_contour_y)	  /* Bottom extended. */
+	 else if (x_mouse_y > x_contour_y)	  /* Bottom extended.  */
 	   {
 	     extend_bottom_contour (x_mouse_y);
 	   }
@@ -3671,7 +3719,7 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
        }
      else  /* mouse above or same line as point */
        {
-	 if (x_mouse_y >= point_y)		  /* Flipped. */
+	 if (x_mouse_y >= point_y)		  /* Flipped.  */
 	   {
 	     mouse_below_point = 1;
 
@@ -3680,11 +3728,11 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 	     outline_region (f, f->display.x->cursor_gc, point_x, point_y,
 			     x_mouse_x, x_mouse_y);
 	   }
-	 else if (x_mouse_y > x_contour_y)	  /* Top clipped. */
+	 else if (x_mouse_y > x_contour_y)	  /* Top clipped.  */
 	   {
 	     clip_contour_top (x_mouse_y);
 	   }
-	 else if (x_mouse_y < x_contour_y)	  /* Top extended. */
+	 else if (x_mouse_y < x_contour_y)	  /* Top extended.  */
 	   {
 	     extend_contour_top (x_mouse_y);
 	   }
@@ -3743,18 +3791,18 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
   gc_values.cap_style = CapRound;
   gc_values.join_style = JoinRound;
 
-  line_gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
+  line_gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		       GCLineStyle | GCJoinStyle | GCCapStyle
 		       | GCLineWidth | GCForeground | GCBackground,
 		       &gc_values);
-  XSetDashes (x_current_display, line_gc, 0, dash_list, dashes);
+  XSetDashes (FRAME_X_DISPLAY (f), line_gc, 0, dash_list, dashes);
   gc_values.foreground = f->display.x->background_pixel;
   gc_values.background = f->display.x->foreground_pixel;
-  erase_gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
+  erase_gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		       GCLineStyle | GCJoinStyle | GCCapStyle
 		       | GCLineWidth | GCForeground | GCBackground,
 		       &gc_values);
-  XSetDashes (x_current_display, erase_gc, 0, dash_list, dashes);
+  XSetDashes (FRAME_X_DISPLAY (f), erase_gc, 0, dash_list, dashes);
 #endif
 
   while (1)
@@ -3766,10 +3814,10 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	  previous_y = x_mouse_y;
 	  line = (x_mouse_y + 1) * f->display.x->line_height
 	    + f->display.x->internal_border_width;
-	  XDrawLine (x_current_display, FRAME_X_WINDOW (f),
+	  XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     line_gc, left, line, right, line);
 	}
-      XFlushQueue ();
+      XFlush (FRAME_X_DISPLAY (f));
       UNBLOCK_INPUT;
 
       do
@@ -3781,13 +3829,13 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	      || x_mouse_grabbed)
 	    {
 	      BLOCK_INPUT;
-	      XDrawLine (x_current_display, FRAME_X_WINDOW (f),
+	      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			 erase_gc, left, line, right, line);
 	      UNBLOCK_INPUT;
 	      unread_command_event = obj;
 #if 0
-	      XFreeGC (x_current_display, line_gc);
-	      XFreeGC (x_current_display, erase_gc);
+	      XFreeGC (FRAME_X_DISPLAY (f), line_gc);
+	      XFreeGC (FRAME_X_DISPLAY (f), erase_gc);
 #endif 
 	      return Qnil;
 	    }
@@ -3795,19 +3843,19 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
       while (x_mouse_y == previous_y);
 
       BLOCK_INPUT;
-      XDrawLine (x_current_display, FRAME_X_WINDOW (f),
+      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 erase_gc, left, line, right, line);
       UNBLOCK_INPUT;
     }
 }
 #endif
 
-/* Offset in buffer of character under the pointer, or 0. */
-int mouse_buffer_offset;
-
 #if 0
-/* These keep track of the rectangle following the pointer. */
+/* These keep track of the rectangle following the pointer.  */
 int mouse_track_top, mouse_track_left, mouse_track_width;
+
+/* Offset in buffer of character under the pointer, or 0.  */
+int mouse_buffer_offset;
 
 DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 0, 0, 0,
   "Track the pointer.")
@@ -3824,7 +3872,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 0, 0, 0,
       struct buffer *buf;
 
       current_pointer_shape = f->display.x->nontext_cursor;
-      XDefineCursor (x_current_display,
+      XDefineCursor (FRAME_X_DISPLAY (f),
 		     FRAME_X_WINDOW (f),
 		     current_pointer_shape);
 
@@ -3835,12 +3883,12 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 0, 0, 0,
 	   && (current_pointer_shape != f->display.x->modeline_cursor))
     {
       current_pointer_shape = f->display.x->modeline_cursor;
-      XDefineCursor (x_current_display,
+      XDefineCursor (FRAME_X_DISPLAY (f),
 		     FRAME_X_WINDOW (f),
 		     current_pointer_shape);
     }
 
-  XFlushQueue ();
+  XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
 }
 #endif
@@ -3889,7 +3937,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  if (! FRAME_CURRENT_GLYPHS (f)->enable[x_mouse_y])
 	    break;
 
-	  /* Erase previous rectangle. */
+	  /* Erase previous rectangle.  */
 	  if (mouse_track_width)
 	    {
 	      x_rectangle (f, f->display.x->reverse_gc,
@@ -3908,7 +3956,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  mouse_track_top = x_mouse_y;
 	  mouse_track_width = 0;
 
-	  if (mouse_track_left > len) /* Past the end of line. */
+	  if (mouse_track_left > len) /* Past the end of line.  */
 	    goto draw_or_not;
 
 	  if (mouse_track_top == mode_line_vpos)
@@ -3968,9 +4016,9 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  while (hp <= x_mouse_x);
 
 	draw_or_not:
-	  if (mouse_track_width) /* Over text; use text pointer shape. */
+	  if (mouse_track_width) /* Over text; use text pointer shape.  */
 	    {
-	      XDefineCursor (x_current_display,
+	      XDefineCursor (FRAME_X_DISPLAY (f),
 			     FRAME_X_WINDOW (f),
 			     f->display.x->text_cursor);
 	      x_rectangle (f, f->display.x->cursor_gc,
@@ -3978,16 +4026,16 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 			   mouse_track_width, 1);
 	    }
 	  else if (in_mode_line)
-	    XDefineCursor (x_current_display,
+	    XDefineCursor (FRAME_X_DISPLAY (f),
 			   FRAME_X_WINDOW (f),
 			   f->display.x->modeline_cursor);
 	  else
-	    XDefineCursor (x_current_display,
+	    XDefineCursor (FRAME_X_DISPLAY (f),
 			   FRAME_X_WINDOW (f),
 			   f->display.x->nontext_cursor);
 	}
 
-      XFlush (x_current_display);
+      XFlush (FRAME_X_DISPLAY (f));
       UNBLOCK_INPUT;
 
       obj = read_char (-1, 0, 0, Qnil, 0);
@@ -4014,10 +4062,10 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  x_display_cursor (f, 1);
 	}
     }
-  XDefineCursor (x_current_display,
+  XDefineCursor (FRAME_X_DISPLAY (f),
 		 FRAME_X_WINDOW (f),
 		 f->display.x->nontext_cursor);
-  XFlush (x_current_display);
+  XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
 
   return Qnil;
@@ -4028,7 +4076,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 #include "glyphs.h"
 
 /* Draw a pixmap specified by IMAGE_DATA of dimensions WIDTH and HEIGHT
-   on the frame F at position X, Y. */
+   on the frame F at position X, Y.  */
 
 x_draw_pixmap (f, x, y, image_data, width, height)
      struct frame *f;
@@ -4037,10 +4085,10 @@ x_draw_pixmap (f, x, y, image_data, width, height)
 {
   Pixmap image;
 
-  image = XCreateBitmapFromData (x_current_display,
+  image = XCreateBitmapFromData (FRAME_X_DISPLAY (f),
 				 FRAME_X_WINDOW (f), image_data,
 				 width, height);
-  XCopyPlane (x_current_display, image, FRAME_X_WINDOW (f),
+  XCopyPlane (FRAME_X_DISPLAY (f), image, FRAME_X_WINDOW (f),
 	      f->display.x->normal_gc, 0, 0, width, height, x, y);
 }
 #endif
@@ -4167,7 +4215,8 @@ XScreenNumberOfScreen (scr)
 #endif /* not HAVE_XSCREENNUMBEROFSCREEN */
 
 Visual *
-select_visual (screen, depth)
+select_visual (dpy, screen, depth)
+     Display *dpy;
      Screen *screen;
      unsigned int *depth;
 {
@@ -4185,7 +4234,7 @@ select_visual (screen, depth)
 
   vinfo_template.screen = XScreenNumberOfScreen (screen);
 
-  vinfo = XGetVisualInfo (x_current_display,
+  vinfo = XGetVisualInfo (dpy,
 			  VisualIDMask | VisualScreenMask, &vinfo_template,
 			  &n_visuals);
   if (n_visuals != 1)
@@ -4209,6 +4258,36 @@ select_visual (screen, depth)
   return v;
 }
 
+/* Return the X display structure for the display named NAME.
+   Open a new connection if necessary.  */
+
+struct x_display_info *
+x_display_info_for_name (name)
+     Lisp_Object name;
+{
+  struct x_display_info *dpyinfo;
+
+  CHECK_STRING (name, 0);
+
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+    {
+      Lisp_Object tem;
+      tem = Fstring_equal (dpyinfo->name, name);
+      if (!NILP (name))
+	return dpyinfo;
+    }
+
+  validate_x_resource_name ();
+
+  dpyinfo = x_term_init (name, (unsigned char *)0,
+			 XSTRING (Vx_resource_name)->data);
+
+  x_in_use = 1;
+  XSETFASTINT (Vwindow_system_version, 11);
+
+  return dpyinfo;
+}
+
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 2, 0, "Open a connection to an X server.\n\
 DISPLAY is the name of the display to connect to.\n\
@@ -4218,10 +4297,9 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
 {
   unsigned int n_planes;
   unsigned char *xrm_option;
+  struct x_display_info *dpyinfo;
 
   CHECK_STRING (display, 0);
-  if (x_current_display != 0)
-    error ("X server connection is already initialized");
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string, 1);
 
@@ -4233,118 +4311,79 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
   validate_x_resource_name ();
 
   /* This is what opens the connection and sets x_current_display.
-     This also initializes many symbols, such as those used for input. */
-  x_term_init (XSTRING (display)->data, xrm_option,
-	       XSTRING (Vx_resource_name)->data);
+     This also initializes many symbols, such as those used for input.  */
+  dpyinfo = x_term_init (display, xrm_option,
+			 XSTRING (Vx_resource_name)->data);
+
+  x_in_use = 1;
 
   XSETFASTINT (Vwindow_system_version, 11);
-
-  BLOCK_INPUT;
-  xrdb = x_load_resources (x_current_display, xrm_option,
-			   (char *) XSTRING (Vx_resource_name)->data,
-			   EMACS_CLASS);
-  UNBLOCK_INPUT;
-#ifdef HAVE_XRMSETDATABASE
-  XrmSetDatabase (x_current_display, xrdb);
-#else
-  x_current_display->db = xrdb;
-#endif
-
-  the_x_screen.name = display;
-
-  x_screen = DefaultScreenOfDisplay (x_current_display);
-
-  screen_visual = select_visual (x_screen, &n_planes);
-  x_screen_planes = n_planes;
-  x_screen_height = HeightOfScreen (x_screen);
-  x_screen_width = WidthOfScreen (x_screen);
-
-  /* X Atoms used by emacs. */
-  Xatoms_of_xselect ();
-  BLOCK_INPUT;
-  Xatom_wm_protocols =     XInternAtom (x_current_display, "WM_PROTOCOLS",
-					False);
-  Xatom_wm_take_focus =    XInternAtom (x_current_display, "WM_TAKE_FOCUS",
-					False);
-  Xatom_wm_save_yourself = XInternAtom (x_current_display, "WM_SAVE_YOURSELF",
-					False);
-  Xatom_wm_delete_window = XInternAtom (x_current_display, "WM_DELETE_WINDOW",
-					False);
-  Xatom_wm_change_state =  XInternAtom (x_current_display, "WM_CHANGE_STATE",
-					False);
-  Xatom_wm_configure_denied =  XInternAtom (x_current_display,
-					    "WM_CONFIGURE_DENIED", False);
-  Xatom_wm_window_moved =  XInternAtom (x_current_display, "WM_MOVED",
-					False);
-  Xatom_editres_name =  XInternAtom (x_current_display, "Editres", False);
-  UNBLOCK_INPUT;
   return Qnil;
 }
 
 DEFUN ("x-close-current-connection", Fx_close_current_connection,
        Sx_close_current_connection,
-       0, 0, 0, "Close the connection to the current X server.")
-  ()
+       1, 1, 0, "Close the connection to frame FRAME's X server.")
+  (frame)
+  Lisp_Object frame;
 {
+  Display *dpy;
   /* Note: If we're going to call check_x here, then the fatal error
      can't happen.  For the moment, this check is just for safety,
      so a user won't try out the function and get a crash.  If it's
      really intended only to be called when killing emacs, then there's
      no reason for it to have a lisp interface at all.  */
-  check_x();
+  check_x ();
+  CHECK_LIVE_FRAME (frame, 0);
+  dpy = FRAME_X_DISPLAY (XFRAME (frame));
 
   /* This is ONLY used when killing emacs;  For switching displays
-     we'll have to take care of setting CloseDownMode elsewhere. */
+     we'll have to take care of setting CloseDownMode elsewhere.  */
 
-  if (x_current_display)
+  if (dpy)
     {
       BLOCK_INPUT;
-      XSetCloseDownMode (x_current_display, DestroyAll);
-      XCloseDisplay (x_current_display);
-      x_current_display = 0;
+      XSetCloseDownMode (dpy, DestroyAll);
+      XCloseDisplay (dpy);
+      x_in_use = 0;
     }
   else
-    fatal ("No current X display connection to close\n");
+    error ("No current X display connection to close");
 
   return Qnil;
 }
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize,
-       1, 1, 0, "If ON is non-nil, report X errors as soon as the erring request is made.\n\
+       1, 2, 0, "If ON is non-nil, report X errors as soon as the erring request is made.\n\
 If ON is nil, allow buffering of requests.\n\
 Turning on synchronization prohibits the Xlib routines from buffering\n\
 requests and seriously degrades performance, but makes debugging much\n\
 easier.")
-  (on)
-    Lisp_Object on;
+  (on, frame)
+    Lisp_Object frame, on;
 {
-  check_x ();
+  struct x_display_info *dpyinfo = check_x_display_info (frame);
 
-  XSynchronize (x_current_display, !EQ (on, Qnil));
+  XSynchronize (dpyinfo->display, !EQ (on, Qnil));
 
   return Qnil;
 }
 
-/* Wait for responses to all X commands issued so far for FRAME.  */
+/* Wait for responses to all X commands issued so far for frame F.  */
 
 void
-x_sync (frame)
-     Lisp_Object frame;
+x_sync (f)
+     FRAME_PTR f;
 {
   BLOCK_INPUT;
-  XSync (x_current_display, False);
+  XSync (FRAME_X_DISPLAY (f), False);
   UNBLOCK_INPUT;
 }
 
 syms_of_xfns ()
 {
   /* This is zero if not using X windows.  */
-  x_current_display = 0;
-
-  the_x_screen.font_list_cache = Qnil;
-  the_x_screen.name = Qnil;
-  staticpro (&the_x_screen.font_list_cache);
-  staticpro (&the_x_screen.name);
+  x_in_use = 0;
 
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
@@ -4411,6 +4450,8 @@ syms_of_xfns ()
   staticpro (&Quser_position);
   Quser_size = intern ("user-size");
   staticpro (&Quser_size);
+  Qdisplay = intern ("display");
+  staticpro (&Qdisplay);
   /* This is the end of symbol initialization.  */
 
   Fput (Qundefined_color, Qerror_conditions,
@@ -4423,10 +4464,6 @@ syms_of_xfns ()
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
     "List of directories to search for bitmap files for X.");
   Vx_bitmap_file_path = Fcons (build_string (PATH_BITMAPS), Qnil);
-
-  DEFVAR_INT ("mouse-buffer-offset", &mouse_buffer_offset,
-    "The buffer offset of the character under the pointer.");
-  mouse_buffer_offset = 0;
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
     "The shape of the pointer when over text.\n\
@@ -4469,10 +4506,6 @@ or when you set the mouse color.");
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       "A string indicating the foreground color of the cursor box.");
   Vx_cursor_fore_pixel = Qnil;
-
-  DEFVAR_LISP ("mouse-grabbed", &Vmouse_depressed,
-	       "Non-nil if a mouse button is currently depressed.");
-  Vmouse_depressed = Qnil;
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
 	       "Non-nil if no X window manager is in use.");
