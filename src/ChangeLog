@@ -1,3 +1,11 @@
+2000-09-03  Jason Rumney  <jasonr@gnu.org>
+
+	* ChangeLog: Remove -unix from coding. Let Emacs autodetect, as
+	CVS changes the line-ends when checking in/out on DOS/Windows.
+
+	* makefile.nt (emacs): Do not change directory to run temacs, as
+	the load-path is set relative to current directory.
+
 2000-09-03  Miles Bader  <miles@gnu.org>
 
 	* xterm.c (x_alloc_lighter_color_for_widget): New function.
@@ -6048,5 +6056,5 @@
 See ChangeLog.8 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
