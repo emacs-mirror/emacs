@@ -242,8 +242,7 @@ If it is 'byte, then only byte-level optimizations will be logged.")
 of `message.'")
 
 (defconst byte-compile-warning-types '(redefine callargs free-vars unresolved))
-(defvar byte-compile-warnings (if noninteractive nil
-				(delq 'free-vars byte-compile-warning-types))
+(defvar byte-compile-warnings (not noninteractive)
   "*List of warnings that the byte-compiler should issue (t for all).
 Valid elements of this list are:
 `free-vars' (references to variables not in the
