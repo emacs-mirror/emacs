@@ -2,6 +2,9 @@
 
 	* xmenu.c (popup_get_selection): Only pop down dialogs
 	on C-g and Escape.
+	(popup_get_selection): Remove parameter down_on_keypress.
+	(create_and_show_popup_menu, create_and_show_dialog): Remove 
+	parameter down_on_keypress to popup_get_selection.
 
 2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

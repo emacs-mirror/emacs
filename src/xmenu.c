@@ -116,7 +116,7 @@ extern XtAppContext Xt_app_con;
 
 static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, char **));
 static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
-                                     LWLIB_ID, int, int));
+                                     LWLIB_ID, int));
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 
@@ -1186,18 +1186,15 @@ x_menu_wait_for_event (void *data)
    popped down (deactivated).  This is used for x-popup-menu
    and x-popup-dialog; it is not used for the menu bar.
 
-   If DOWN_ON_KEYPRESS is nonzero, pop down if a key is pressed.
-
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
 static void
-popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
+popup_get_selection (initial_event, dpyinfo, id, do_timers)
      XEvent *initial_event;
      struct x_display_info *dpyinfo;
      LWLIB_ID id;
      int do_timers;
-     int down_on_keypress;
 {
   XEvent event;
 
@@ -1234,7 +1231,6 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
         }
       /* Pop down on C-g and Escape.  */
       else if (event.type == KeyPress
-               && down_on_keypress
                && dpyinfo->display == event.xbutton.display)
         {
           KeySym keysym = XLookupKeysym (&event.xkey, 0);
@@ -2599,7 +2595,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
                                   make_number (menu_id & ~(-1 << (fact)))));
 
     /* Process events that apply to the menu.  */
-    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1, 0);
+    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1);
 
     unbind_to (specpdl_count, Qnil);
   }
@@ -2977,7 +2973,7 @@ create_and_show_dialog (f, first_wv)
                                   make_number (dialog_id & ~(-1 << (fact)))));
 
     popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f),
-                         dialog_id, 1, 1);
+                         dialog_id, 1);
 
     unbind_to (count, Qnil);
   }
