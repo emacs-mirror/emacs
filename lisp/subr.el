@@ -1538,12 +1538,9 @@ configuration."
 	   (fboundp object)
 	   (setq object (indirect-function object))
 	   (eq (car-safe object) 'autoload)
-	   (not (eq (car-safe
-		     (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))
-		    'keymap)))
+	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
       (subrp object) (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)
-      (eq (car-safe object) 'macro)))
+      (eq (car-safe object) 'lambda)))
 
 (defun interactive-form (function)
   "Return the interactive form of FUNCTION.
