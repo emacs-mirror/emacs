@@ -4586,18 +4586,26 @@ and redisplay normally--don't erase and redraw the frame.")
 	{
 	  struct it it;
 	  struct text_pos pt;
-	  int y0, y1, h;
+	  int y0, y1, h, nlines;
 	  
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
 	  y0 = it.current_y;
 
-	  /* The amount of pixels we have to move hack is the window
+	  /* The amount of pixels we have to move back is the window
 	     height minus what's displayed in the line containing PT,
 	     and the lines below.  */
-	  move_it_by_lines (&it, - XINT (arg) - 1, 1);
+	  nlines = - XINT (arg) - 1;
+	  move_it_by_lines (&it, nlines, 1);
+
 	  y1 = it.current_y - y0;
 	  h = line_bottom_y (&it) - y1;
+
+	  /* If we can't move down NLINES lines because we hit
+	     the end of the buffer, count in some empty lines.  */
+	  if (it.vpos < nlines)
+	    y1 += (nlines - it.vpos) * CANON_Y_UNIT (it.f);
+	  
 	  y0 = it.last_visible_y - y1 - h;
 	  
 	  start_display (&it, w, pt);
