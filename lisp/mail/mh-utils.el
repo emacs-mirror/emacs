@@ -1,5 +1,5 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
-;; Time-stamp: <93/12/26 18:50:51 gildea>
+;; Time-stamp: <94/04/11 20:56:35 gildea>
 
 ;; Copyright 1993 Free Software Foundation, Inc.
 
@@ -25,45 +25,21 @@
 
 ;;; Code:
 
-;;; mh-e macros
+;;; Set for local environment:
+;;; mh-progs and mh-lib used to be set in paths.el, which tried to
+;;; figure out at build time which of several possible directories MH
+;;; was installed into.  But if you installed MH after building Emacs,
+;;; this would almost certainly be wrong, so now we do it at run time.
 
-(defmacro with-mh-folder-updating (save-modification-flag-p &rest body)
-  ;; Format is (with-mh-folder-updating (SAVE-MODIFICATION-FLAG-P) &body BODY).
-  ;; Execute BODY, which can modify the folder buffer without having to
-  ;; worry about file locking or the read-only flag, and return its result.
-  ;; If SAVE-MODIFICATION-FLAG-P is non-nil, the buffer's modification
-  ;; flag is unchanged, otherwise it is cleared.
-  (setq save-modification-flag-p (car save-modification-flag-p)) ; CL style
-  (` (let (, (if save-modification-flag-p '((mh-folder-updating-mod-flag (buffer-modified-p)))))
-       (prog1
-	   (let ((buffer-read-only nil)
-		 (buffer-file-name nil)) ; don't let the buffer get locked
-	     (,@ body))
-	 (, (if save-modification-flag-p
-		'(mh-set-folder-modified-p mh-folder-updating-mod-flag)
-	      '(mh-set-folder-modified-p nil)))))))
+(defvar mh-progs nil
+  "Directory containing MH commands, such as inc, repl, and rmm.")
 
-(put 'with-mh-folder-updating 'lisp-indent-hook 1)
+(defvar mh-lib nil
+  "Directory containing the MH library.
+This directory contains, among other things,
+the mhl program and the components file.")
 
-(defmacro mh-in-show-buffer (show-buffer &rest body)
-  ;; Format is (mh-in-show-buffer (show-buffer) &body BODY).
-  ;; Display buffer SHOW-BUFFER in other window and execute BODY in it.
-  ;; Stronger than save-excursion, weaker than save-window-excursion.
-  (setq show-buffer (car show-buffer))	; CL style
-  (` (let ((mh-in-show-buffer-saved-window (selected-window)))
-       (switch-to-buffer-other-window (, show-buffer))
-       (if mh-bury-show-buffer (bury-buffer (current-buffer)))
-       (unwind-protect
-	   (progn
-	     (,@ body))
-	 (select-window mh-in-show-buffer-saved-window)))))
-
-(put 'mh-in-show-buffer 'lisp-indent-hook 1)
-
-(defmacro mh-seq-name (pair) (list 'car pair))
-
-(defmacro mh-seq-msgs (pair) (list 'cdr pair))
-
+;;; User preferences:
 
 (defvar mh-auto-folder-collect t
   "*Whether to start collecting MH folder names immediately in the background.
@@ -164,6 +140,48 @@ NIL means do not use draft folder.")
 If nil, show buffer contains message processed normally.")
 
 
+;;; mh-e macros
+
+(defmacro with-mh-folder-updating (save-modification-flag-p &rest body)
+  ;; Format is (with-mh-folder-updating (SAVE-MODIFICATION-FLAG-P) &body BODY).
+  ;; Execute BODY, which can modify the folder buffer without having to
+  ;; worry about file locking or the read-only flag, and return its result.
+  ;; If SAVE-MODIFICATION-FLAG-P is non-nil, the buffer's modification
+  ;; flag is unchanged, otherwise it is cleared.
+  (setq save-modification-flag-p (car save-modification-flag-p)) ; CL style
+  (` (prog1
+	 (let ((mh-folder-updating-mod-flag (buffer-modified-p))
+	       (buffer-read-only nil)
+	       (buffer-file-name nil))	;don't let the buffer get locked
+	   (prog1
+	       (progn
+		 (,@ body))
+	     (mh-set-folder-modified-p mh-folder-updating-mod-flag)))
+       (,@ (if (not save-modification-flag-p)
+	       '((mh-set-folder-modified-p nil)))))))
+
+(put 'with-mh-folder-updating 'lisp-indent-hook 1)
+
+(defmacro mh-in-show-buffer (show-buffer &rest body)
+  ;; Format is (mh-in-show-buffer (show-buffer) &body BODY).
+  ;; Display buffer SHOW-BUFFER in other window and execute BODY in it.
+  ;; Stronger than save-excursion, weaker than save-window-excursion.
+  (setq show-buffer (car show-buffer))	; CL style
+  (` (let ((mh-in-show-buffer-saved-window (selected-window)))
+       (switch-to-buffer-other-window (, show-buffer))
+       (if mh-bury-show-buffer (bury-buffer (current-buffer)))
+       (unwind-protect
+	   (progn
+	     (,@ body))
+	 (select-window mh-in-show-buffer-saved-window)))))
+
+(put 'mh-in-show-buffer 'lisp-indent-hook 1)
+
+(defmacro mh-seq-name (pair) (list 'car pair))
+
+(defmacro mh-seq-msgs (pair) (list 'cdr pair))
+
+
 ;;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
@@ -181,10 +199,15 @@ The value of mh-show-mode-hook is called when a new message is displayed."
   (if mh-showing (mh-show msg)))
 
 (defun mh-show (&optional msg)
-  "Show MESSAGE (default: displayed message).
-Forces a two-window display with the folder window on top (size
+  "Show MESSAGE (default: message at cursor).
+Force a two-window display with the folder window on top (size
 mh-summary-height) and the show buffer below it.
-If the message is already visible, display the start of the message."
+If the message is already visible, display the start of the message.
+
+Display of the message is controlled by setting the variables
+`mh-clean-message-header' and `mhl-formfile'.  The default behavior is
+to scroll uninteresting headers off the top of the window.
+Type \"\\[mh-header-display]\" to see the message with all its headers."
   (interactive)
   (and mh-showing-with-headers
        (or mhl-formfile mh-clean-message-header)
@@ -451,17 +474,21 @@ Return non-nil if cursor is at message."
   (or (file-exists-p (expand-file-name "inc" mh-progs))
       (setq mh-progs
 	    (or (mh-path-search exec-path "inc")
-		(mh-path-search '("/usr/bin/mh/" ;Ultrix 4.2
+		(mh-path-search '("/usr/local/bin/mh/"
+				  "/usr/local/mh/"
+				  "/usr/bin/mh/" ;Ultrix 4.2
 				  "/usr/new/mh/" ;Ultrix <4.2
-				  "/usr/local/bin/mh/"
-				  "/usr/local/mh/")
+				  "/usr/contrib/mh/bin" ;BSDI
+				  )
 				"inc")
 		"/usr/local/bin/")))
   (or (file-exists-p (expand-file-name "mhl" mh-lib))
       (setq mh-lib
-	    (or (mh-path-search '("/usr/lib/mh/" ;Ultrix 4.2
+	    (or (mh-path-search '("/usr/local/lib/mh/"
+				  "/usr/lib/mh/" ;Ultrix 4.2
 				  "/usr/new/lib/mh/" ;Ultrix <4.2
-				  "/usr/local/lib/mh/")
+				  "/usr/contrib/mh/lib" ;BSDI
+				  )
 				"mhl")
 		(mh-path-search exec-path "mhl") ;unlikely
 		"/usr/local/bin/mh/"))))
