@@ -386,6 +386,7 @@ The above keys, bound in `isearch-mode-map', are often controlled by
  options; do M-x apropos on search-.* to find them.
 Other control and meta characters terminate the search
  and are then executed normally (depending on `search-exit-option').
+Likewise for function keys and mouse button events.
 
 If this function is called non-interactively, it does not return to
 the calling function until the search is done."
