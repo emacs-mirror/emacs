@@ -46,9 +46,10 @@
 
 (define-key menu-bar-file-menu [epatch]
   '("Apply Patch" . menu-bar-epatch-menu))
+(define-key menu-bar-file-menu [ediff-merge]
+  '("Merge" . menu-bar-ediff-merge-menu))
 (define-key menu-bar-file-menu [ediff]
   '("Compare" . menu-bar-ediff-menu))
-(define-key menu-bar-file-menu [emerge] '("Emerge" . menu-bar-emerge-menu))
 
 (define-key menu-bar-file-menu [separator-misc]
   '("--"))
