@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.14) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.15) $
 #
 # Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
 #
@@ -86,39 +86,42 @@ OSffx     = .c.{Variety}.o
 version{OSffx} Ä $OutOfDate
 
 mmsw_{Variety}.o  Ä  ¶
-		version{OSffx} ¶
-		assert{OSffx} ¶
-		ring{OSffx} ¶
-		mpm{OSffx} ¶
-		bt{OSffx} ¶
-		arenacl{OSffx} ¶
-		arenavmx{OSffx} ¶
-		arena{OSffx} ¶
-		pool{OSffx} ¶
-		poolmfs{OSffx} ¶
-		poolmv{OSffx} ¶
-		root{OSffx} ¶
-		format{OSffx} ¶
-		buffer{OSffx} ¶
-		lockan{OSffx} ¶
-		ref{OSffx} ¶
-		trace{OSffx} ¶
-		protsw{OSffx} ¶
-		shield{OSffx} ¶
-		than{OSffx} ¶
-		ssan{OSffx} ¶
-		mpsi{OSffx} ¶
-		ld{OSffx} ¶
-		poolepdl{OSffx} ¶
-		poolepvm{OSffx} ¶
-		poolams{OSffx} ¶
-		action{OSffx} ¶
-		seg{OSffx} ¶
-		event{OSffx} ¶
-		mpsioan{OSffx} ¶
-		dbgpool{OSffx} ¶
-		poolmrg{OSffx} ¶
-		message{OSffx}
+                version{OSffx} ¶
+                assert{OSffx} ¶
+                ring{OSffx} ¶
+                mpm{OSffx} ¶
+                bt{OSffx} ¶
+                arenacl{OSffx} ¶
+                arenavmx{OSffx} ¶
+                arena{OSffx} ¶
+                pool{OSffx} ¶
+                poolmfs{OSffx} ¶
+                poolmv{OSffx} ¶
+                root{OSffx} ¶
+                format{OSffx} ¶
+                buffer{OSffx} ¶
+                lockan{OSffx} ¶
+                ref{OSffx} ¶
+                trace{OSffx} ¶
+                protsw{OSffx} ¶
+                shield{OSffx} ¶
+                than{OSffx} ¶
+                ssan{OSffx} ¶
+                mpsi{OSffx} ¶
+                ld{OSffx} ¶
+                poolepdl{OSffx} ¶
+                poolepvm{OSffx} ¶
+                poolams{OSffx} ¶
+                action{OSffx} ¶
+                seg{OSffx} ¶
+                event{OSffx} ¶
+                mpsioan{OSffx} ¶
+                dbgpool{OSffx} ¶
+                poolmrg{OSffx} ¶
+                poolmvff{OSffx} ¶
+                splay{OSffx} ¶
+                cbs{OSffx} ¶
+                message{OSffx}
 
 mmsw_CI.o  Ä  # .dep.accum
         {MPWCommands97}PPCLink1.5 ¶
@@ -160,11 +163,11 @@ mmsw_ZZ.o  Ä  # .dep.accum
 
 
 cleanall Ä
-	Delete Å.o
+        Delete Å.o
 
 clean Ä
-	Delete Å.c.Å.o
+        Delete Å.c.Å.o
 
 mmsw Ä
-	BuildProgram -d Variety=HE mmsw_HE.o
-	BuildProgram -d Variety=CI mmsw_CI.o
+        BuildProgram -d Variety=HE mmsw_HE.o
+        BuildProgram -d Variety=CI mmsw_CI.o
