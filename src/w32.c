@@ -56,6 +56,7 @@ nt_ctime (const time_t *t)
   return (str ? str : "Sun Jan 01 00:00:00 1970");
 }
 
+#include <config.h>
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -63,7 +64,6 @@ nt_ctime (const time_t *t)
 #include <fcntl.h>
 #include <ctype.h>
 
-#include "config.h"
 #define getwd _getwd
 #include "lisp.h"
 #undef getwd

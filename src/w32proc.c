@@ -21,13 +21,13 @@
      Adapted from alarm.c by Tim Fleehart
 */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <io.h>
 #include <signal.h>
-
-#include "config.h"
 
 #include <windows.h>
 

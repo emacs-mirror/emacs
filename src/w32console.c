@@ -22,11 +22,10 @@
 */
 
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "config.h"
-
 #include <windows.h>
 
 #include "lisp.h"
