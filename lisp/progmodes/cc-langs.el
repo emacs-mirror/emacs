@@ -28,6 +28,8 @@
 ;; Boston, MA 02111-1307, USA.
 
 
+(require 'cc-defs)
+
 ;; Regular expressions and other values which must be parameterized on
 ;; a per-language basis.
 
