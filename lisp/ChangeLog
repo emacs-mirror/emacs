@@ -1,3 +1,11 @@
+2001-03-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-ccl): Call
+	ccl-execute-on-string directly so that CCL program handling
+	multibyte sequence can work correctly.
+	(encoded-kbd-setup-keymap): Fix the default value of `valid-codes'
+	property of the coding system.
+
 2001-03-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-individual-paragraphs-prefix):
