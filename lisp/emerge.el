@@ -290,9 +290,9 @@ displaying a difference."
   :group 'emerge)
 
 (defcustom emerge-temp-file-prefix
-  (concat system-tmp-directory "/emerge")
+  (expand-file-name "emerge" temporary-file-directory)
   "*Prefix to put on Emerge temporary file names.
-Do not start with `~/' or `~user-name/'."
+Do not start with `~/' or `~USERNAME/'."
   :type 'string
   :group 'emerge)
 
