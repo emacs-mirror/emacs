@@ -4,7 +4,7 @@
 
 2004-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* simple.el (next-error-follow-mode)
+	* simple.el (next-error-follow-minor-mode)
 	(next-error-follow-mode-post-command-hook): New functions.
 	(next-error-follow-last-line): New defvar.
 

@@ -253,11 +253,11 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 ;;; Internal variable for `next-error-follow-mode-post-command-hook'.
 (defvar next-error-follow-last-line nil)
 
-(define-minor-mode next-error-follow-mode
+(define-minor-mode next-error-follow-minor-mode
   "Minor mode for compilation, occur and diff modes.
-When turned on, cursor motion in the compilation, occur or diff
-buffer determines the cursor in the corresponding buffer to move
-to the corresponding position.  "
+When turned on, cursor motion in the compilation, grep, occur or diff
+buffer causes automatic display of the corresponding source code
+location."
   nil " Fol" nil
   (if (not next-error-follow-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
