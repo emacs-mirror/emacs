@@ -1365,7 +1365,8 @@ fi
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
-  AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString XScreenNumberOfScreen XSetWMProtocols)
+  AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString \
+XScreenNumberOfScreen XSetWMProtocols)
 fi
 
 AC_ALLOCA
@@ -1373,7 +1374,8 @@ AC_ALLOCA
 # logb and frexp are found in -lm on most systems.
 AC_HAVE_LIBRARY(-lm)
 AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
-random bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror)
+random bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror \
+fpathconf)
 
 ok_so_far=true
 AC_FUNC_CHECK(socket, , ok_so_far=)
