@@ -118,6 +118,7 @@ decimal key must be specified."
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Remove bindings" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 ;;;###autoload
@@ -140,6 +141,7 @@ decimal key must be specified."
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Remove bindings" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 ;;;###autoload
@@ -162,6 +164,7 @@ decimal key must be specified."
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Remove bindings" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 ;;;###autoload
@@ -184,6 +187,7 @@ decimal key must be specified."
 		 (const :tag "Shifted cursor keys" S-cursor)
 		 (const :tag "Remove bindings" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 
