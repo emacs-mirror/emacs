@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.5 2000/02/07 02:01:07 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.6 2000/03/21 16:59:17 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -45,11 +45,16 @@
 
 ;; Todo:
 
-;; - spice up the minor-mode with editing and font-lock support.
-;; - improve narrowed-view support.
-;; - improve the `compile' support (?).
-;; - recognize pcl-cvs' special string for `cvs-execute-single'.
-;; - add support for # comments in diffs
+;; - spice up the minor-mode with font-lock support
+;; - improve narrowed-view support
+;; - improve the `compile' support (?)
+;; - recognize pcl-cvs' special string for `cvs-execute-single'
+;; - support for # comments in context->unified
+;; - diff-apply-hunk
+;; - do a fuzzy search in diff-goto-source
+;; - allow diff.el to use diff-mode
+;; - imenu support
+;; - handle `diff -b' output in context->unified
 
 ;;; Code:
 
@@ -203,10 +208,11 @@ when editing big diffs)."
     ("^[+>].*\n" . diff-added-face)
     ("^[-<].*\n" . diff-removed-face)
     ("^Index: .*\n" . diff-index-face)
+    ("^#.*" . font-lock-string-face)
     ("^[^-=+*!<>].*\n" . font-lock-comment-face)))
 
 (defconst diff-font-lock-defaults
-  '(diff-font-lock-keywords t nil nil nil))
+  '(diff-font-lock-keywords t nil nil nil (font-lock-multiline . nil)))
 
 ;;;;
 ;;;; Compile support
@@ -230,14 +236,15 @@ when editing big diffs)."
 
 (defun diff-end-of-hunk (&optional style)
   (if (looking-at diff-hunk-header-re) (goto-char (match-end 0)))
-  (re-search-forward (case style
-		       (unified "^[^-+ \\]")
-		       (context "^\\([^-+! \\][ \t]\\|--- .+ ----\\)")
-		       (normal "^\\([<>\\][ \t]\\|---\\)")
-		       (t "^[^-+!<> \\]"))
-		     nil 'move)
-  (beginning-of-line)
-  (point))
+  (let ((end (and (re-search-forward (case style
+				       (unified "^[^-+# \\]")
+				       (context "^[^-+#! \\]")
+				       (normal "^[^<>#\\]")
+				       (t "^[^-+#!<> \\]"))
+				     nil t)
+		  (match-beginning 0))))
+    ;; The return value is used by easy-mmode-define-navigation.
+    (goto-char (or end (point-max)))))
 
 (defun diff-beginning-of-hunk ()
   (beginning-of-line)
@@ -256,8 +263,8 @@ when editing big diffs)."
       (error (error "Can't find the beginning of the file")))))
 
 (defun diff-end-of-file ()
-  (re-search-forward "^[-+!<>0-9@* \\]" nil t)
-  (re-search-forward "^[^-+!<>0-9@* \\]" nil 'move)
+  (re-search-forward "^[-+#!<>0-9@* \\]" nil t)
+  (re-search-forward "^[^-+#!<>0-9@* \\]" nil 'move)
   (beginning-of-line))
 
 ;; Define diff-{hunk,file}-{prev,next}
@@ -360,8 +367,6 @@ like \(diff-merge-strings \"b/foo\" \"b/bar\" \"/a/c/foo\")."
 	      (match-string 4 str)
 	      (substring str (match-end 6) (match-end 5))))))
 
-
-
 (defun diff-find-file-name (&optional old)
   "Return the file corresponding to the current patch.
 Non-nil OLD means that we want the old file."
@@ -457,7 +462,7 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
   "Call `ediff-patch-file' on the current buffer."
   (interactive)
   (condition-case err
-      (ediff-patch-file (current-buffer))
+      (ediff-patch-file nil (current-buffer))
     (wrong-number-of-arguments (ediff-patch-file))))
 
 ;;;; 
@@ -483,7 +488,7 @@ else cover the whole bufer."
 		  (< (point) end))
 	(combine-after-change-calls
 	  (if (match-beginning 2)
-	      ;;we matched a file header
+	      ;; we matched a file header
 	      (progn
 		;; use reverse order to make sure the indices are kept valid
 		(replace-match "---" t t nil 3)
@@ -651,7 +656,7 @@ else cover the whole bufer."
 	      (replace-match "" nil nil nil 6)
 	      (forward-line 1)
 	      (let ((half1s (point)))
-		(while (looking-at "[-! \\][ \t]")
+		(while (looking-at "[-! \\][ \t]\\|#")
 		  (when (= (char-after) ?-) (delete-char 1) (insert "+"))
 		  (forward-line 1))
 		(let ((half1 (delete-and-extract-region half1s (point))))
@@ -662,13 +667,13 @@ else cover the whole bufer."
 		    (replace-match lines1 nil nil nil 1)
 		    (forward-line 1)
 		    (let ((half2s (point)))
-		      (while (looking-at "[!+ \\][ \t]")
+		      (while (looking-at "[!+ \\][ \t]\\|#")
 			(when (= (char-after) ?+) (delete-char 1) (insert "-"))
 			(forward-line 1))
 		      (let ((half2 (delete-and-extract-region half2s (point))))
-			(insert half1)
+			(insert (or half1 ""))
 			(goto-char half1s)
-			(insert half2)))
+			(insert (or half2 ""))))
 		    (goto-char pt-lines1)
 		    (insert str1))))))
 	   ;; a unified-diff hunk header
@@ -681,7 +686,7 @@ else cover the whole bufer."
 			   (delete-char 1) (insert "+") t)
 		       (?+ (setq last (or last (point)))
 			   (delete-char 1) (insert "-") t)
-		       (?\\ t)
+		       ((?\\ ?#) t)
 		       (t (when (and first last (< first last))
 			    (let ((str
 				   (save-excursion
@@ -709,7 +714,7 @@ else cover the whole bufer."
 		(?+ (incf plus))
 		(?- (incf minus))
 		(?! (incf bang))
-		(?\\ nil)
+		((?\\ ?#) nil)
 		(t  (setq space 0 plus 0 minus 0 bang 0)))
 	    (cond
 	     ((looking-at "@@ -[0-9]+,\\([0-9]*\\) \\+[0-9]+,\\([0-9]*\\) @@$")
@@ -831,6 +836,18 @@ This mode runs `diff-mode-hook'.
 
 ;;; Change Log:
 ;; $Log: diff-mode.el,v $
+;; Revision 1.6  2000/03/21 16:59:17  monnier
+;; (diff-mode-*-map): use `easy-mmode-defmap'.
+;; (diff-end-of-hunk): Return the end position for use in
+;; `easy-mmode-define-navigation'.
+;; (diff-recenter): Remove.
+;; (diff-(next|prev)-*): Rename `diff-*-(prev|next)' and defined in terms
+;; of `easy-mmode-define-navigation'.
+;; (diff-kill-*): Rename `diff-*-kill' (for consistency with the
+;; previous renaming) and fix to use new names.
+;; (diff-merge-strings): Use \n as separator: simpler, faster.
+;; (diff-mode): Use `define-derived-mode'.
+;;
 ;; Revision 1.5  2000/02/07 02:01:07  monnier
 ;; (diff-kill-junk): New interactive function.
 ;; (diff-reverse-direction): Use delete-and-extract-region.
