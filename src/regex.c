@@ -33,6 +33,14 @@
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 #include <sys/types.h>
 
+/* This is for other GNU distributions with internationalized messages.
+   The GNU C Library itself does not yet support such messages.  */
+#if HAVE_LIBINTL_H
+# include <libintl.h>
+#else
+# define gettext(msgid) (msgid)
+#endif
+
 /* The `emacs' switch turns on certain matching commands
    that make sense only in Emacs. */
 #ifdef emacs
@@ -41,9 +49,6 @@
 #include "buffer.h"
 #include "syntax.h"
 
-/* Emacs uses `NULL' as a predicate.  */
-#undef NULL
-
 #else  /* not emacs */
 
 #ifdef STDC_HEADERS
@@ -51,14 +56,6 @@
 #else
 char *malloc ();
 char *realloc ();
-#endif
-
-/* This is for other GNU distributions with internationalized messages.
-   The GNU C Library itself does not yet support such messages.  */
-#if HAVE_LIBINTL_H
-# include <libintl.h>
-#else
-# define gettext(msgid) (msgid)
 #endif
 
 
