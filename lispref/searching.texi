@@ -318,7 +318,7 @@ example, the regular expression that matches the @samp{\} character is
 @samp{\} is @code{"\\\\"}.@refill
 @end table
 
-@strong{Please note:} for historical compatibility, special characters
+@strong{Please note:} For historical compatibility, special characters
 are treated as ordinary ones if they are in contexts where their special
 meanings make no sense.  For example, @samp{*foo} treats @samp{*} as
 ordinary since there is no preceding expression on which the @samp{*}

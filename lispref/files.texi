@@ -13,6 +13,13 @@ file-related functions of Emacs Lisp, but a few others are described in
 @ref{Buffers}, and those related to backups and auto-saving are
 described in @ref{Backups and Auto-Saving}.
 
+  Many of the file functions take one or more arguments that are file
+names.  A file name is actually a string.  Most of these functions
+expand file name arguments using @code{expand-file-name}, so that
+@file{~} is handled correctly, as are relative file names (including
+@samp{../}).  These functions don't recognize environment variable
+substitutions such as @samp{$HOME}.  @xref{File Name Expansion}.
+
 @menu
 * Visiting Files::           Reading files into Emacs buffers for editing.
 * Saving Buffers::           Writing changed buffers back into files.
@@ -52,7 +59,7 @@ back into the file.
 
   In spite of the distinction between files and buffers, people often
 refer to a file when they mean a buffer and vice-versa.  Indeed, we say,
-``I am editing a file,'' rather than, ``I am editing a buffer which I
+``I am editing a file,'' rather than, ``I am editing a buffer that I
 will soon save as a file of the same name.''  Humans do not usually need
 to make the distinction explicit.  When dealing with a computer program,
 however, it is good to keep the distinction in mind.
@@ -153,7 +160,7 @@ When this command is called interactively, it prompts for
 @end deffn
 
 @deffn Command view-file filename
-This command views @var{filename} in View mode, returning to the
+This command visits @var{filename} in View mode, returning to the
 previous buffer when done.  View mode is a mode that allows you to skim
 rapidly through the file but does not let you modify it.  Entering View
 mode runs the normal hook @code{view-mode-hook}.  @xref{Hooks}.
@@ -256,9 +263,9 @@ Otherwise it does nothing.
 
 @code{save-buffer} is responsible for making backup files.  Normally,
 @var{backup-option} is @code{nil}, and @code{save-buffer} makes a backup
-file only if this is the first save or if the buffer was previously
-modified.  Other values for @var{backup-option} request the making of
-backup files in other circumstances:
+file only if this is the first save since visiting the file.  Other
+values for @var{backup-option} request the making of backup files in
+other circumstances:
 
 @itemize @bullet
 @item
@@ -479,7 +486,7 @@ Normally, @code{write-region} displays a message @samp{Wrote file
 @var{filename}} in the echo area.  If @var{visit} is neither @code{t}
 nor @code{nil} nor a string, then this message is inhibited.  This
 feature is useful for programs that use files for internal purposes,
-files which the user does not need to know about.
+files that the user does not need to know about.
 @end deffn
 
 @node File Locks
@@ -530,7 +537,7 @@ does nothing if the current buffer is not visiting a file.
 
 @defun ask-user-about-lock file other-user
 This function is called when the user tries to modify @var{file}, but it
-is locked by another user name @var{other-user}.  The value it returns
+is locked by another user named @var{other-user}.  The value it returns
 determines what happens next:
 
 @itemize @bullet
@@ -567,19 +574,11 @@ for its usual definition is in @file{userlock.el}.
 @node Information about Files
 @section Information about Files
 
-  The functions described in this section are similar in as much as
-they all operate on strings which are interpreted as file names.  All
-have names that begin with the word @samp{file}.  These functions all
-return information about actual files or directories, so their
-arguments must all exist as actual files or directories unless
-otherwise noted.
-
-  Most of the file-oriented functions take a single argument,
-@var{filename}, which must be a string.  The file name is expanded using
-@code{expand-file-name}, so @file{~} is handled correctly, as are
-relative file names (including @samp{../}).  These functions don't
-recognize environment variable substitutions such as @samp{$HOME}.
-@xref{File Name Expansion}.
+  The functions described in this section all operate on strings that
+designate file names.  All the functions have names that begin with the
+word @samp{file}.  These functions all return information about actual
+files or directories, so their arguments must all exist as actual files
+or directories unless otherwise noted.
 
 @menu
 * Testing Accessibility::   Is a given file readable?  Writable?
@@ -638,11 +637,11 @@ modes permit.
 @end defun
 
 @defun file-writable-p filename
-This function returns @code{t} if the file @var{filename} can be written or
-created by you.  It is writable if the file exists and you can write it.
-It is creatable if the file does not exist, but the specified directory
-does exist and you can write in that directory.  @code{file-writable-p}
-returns @code{nil} otherwise.
+This function returns @code{t} if the file @var{filename} can be written
+or created by you, and @code{nil} otherwise.  A file is writable if the
+file exists and you can write it.  It is creatable if it does not exist,
+but the specified directory does exist and you can write in that
+directory.
 
 In the third example below, @file{foo} is not writable because the
 parent directory does not exist, even though the user could create such
@@ -667,9 +666,10 @@ a directory.
 @c Emacs 19 feature
 @defun file-accessible-directory-p dirname
 This function returns @code{t} if you have permission to open existing
-files in directory @var{dirname}; otherwise (and if there is no such
-directory), it returns @code{nil}.  The value of @var{dirname} may be
-either a directory name or the file name of a directory.
+files in the directory whose name as a file is @var{dirname}; otherwise
+(or if there is no such directory), it returns @code{nil}.  The value
+of @var{dirname} may be either a directory name or the file name of a
+directory.
 
 Example: after the following,
 
@@ -686,14 +686,14 @@ give an error.
 @defun file-newer-than-file-p filename1 filename2
 @cindex file age
 @cindex file modification time
-This functions returns @code{t} if the file @var{filename1} is
+This function returns @code{t} if the file @var{filename1} is
 newer than file @var{filename2}.  If @var{filename1} does not
 exist, it returns @code{nil}.  If @var{filename2} does not exist,
 it returns @code{t}.
 
-In the following example, assume that the file @file{aug-19} was
-written on the 19th, and @file{aug-20} was written on the 20th.  The
-file @file{no-file} doesn't exist at all.
+In the following example, assume that the file @file{aug-19} was written
+on the 19th, @file{aug-20} was written on the 20th, and the file
+@file{no-file} doesn't exist at all.
 
 @example
 @group
@@ -729,8 +729,8 @@ links from ordinary files.
 @cindex file symbolic links
 If the file @var{filename} is a symbolic link, the @code{file-symlink-p}
 function returns the file name to which it is linked.  This may be the
-name of a text file, a directory, or even another symbolic link, or of
-no file at all.
+name of a text file, a directory, or even another symbolic link, or it
+may be a nonexistent file name.
 
 If the file @var{filename} is not a symbolic link (or there is no such file),
 @code{file-symlink-p} returns @code{nil}.  
@@ -822,7 +822,7 @@ and modification.
 This function returns the mode bits of @var{filename}, as an integer.
 The mode bits are also called the file permissions, and they specify
 access control in the usual Unix fashion.  If the low-order bit is 1,
-then the file is executable by all users, if the second lowest-order bit
+then the file is executable by all users, if the second-lowest-order bit
 is 1, then the file is writable by all users, etc.
 
 The highest value returnable is 4095 (7777 octal), meaning that
@@ -920,7 +920,7 @@ The time of last status change as a list of two integers (as above).
 The size of the file in bytes.
 
 @item
-The file's modes, as a string of ten letters or dashes
+The file's modes, as a string of ten letters or dashes,
 as in @samp{ls -l}.
 
 @item
@@ -932,9 +932,9 @@ The file's inode number.
 
 @item
 The file system number of the file system that the file is in.  This
-element together with the file's inode number, give enough information
-to distinguish any two files on the system---no two files can have the
-same values for both of these numbers.
+element and the file's inode number together give enough information to
+distinguish any two files on the system---no two files can have the same
+values for both of these numbers.
 @end enumerate
 
 For example, here are the file attributes for @file{files.texi}:
@@ -1142,9 +1142,9 @@ This command makes a symbolic link to @var{filename}, named
 @var{newname}.  This is like the shell command @samp{ln -s
 @var{filename} @var{newname}}.
 
-In an interactive call, @var{filename} and @var{newname} are read in the
-minibuffer; it requests confirmation if the file @var{newname} already
-exists.
+In an interactive call, this function prompts for @var{filename} and
+@var{newname} in the minibuffer; also, it requests confirmation if
+@var{newname} already exists.
 @end deffn
 
 @defun define-logical-name varname string
@@ -1154,7 +1154,7 @@ This function defines the logical name @var{name} to have the value
 
 @defun set-file-modes filename mode
 This function sets mode bits of @var{filename} to @var{mode} (which must
-be an integer).  Only the 12 low bits of @var{mode} are used.
+be an integer).  Only the low 12 bits of @var{mode} are used.
 @end defun
 
 @c Emacs 19 feature
@@ -1164,7 +1164,7 @@ Emacs and its subprocesses.  Every file created with Emacs initially has
 this protection.  On Unix, the default protection is the bitwise
 complement of the ``umask'' value.
 
-The argument @var{mode} must be an integer.  Only the 9 low bits of
+The argument @var{mode} must be an integer.  Only the low 9 bits of
 @var{mode} are used.
 
 Saving a modified version of an existing file does not count as creating
@@ -1200,10 +1200,10 @@ how to manipulate file names.
 can operate on file names that do not refer to an existing file or
 directory.
 
-  On VMS, all these functions understand both VMS file name syntax and
+  On VMS, all these functions understand both VMS file-name syntax and
 Unix syntax.  This is so that all the standard Lisp libraries can
 specify file names in Unix syntax and work properly on VMS without
-change.  On MS-DOS, these functions understand MS-DOS file name syntax
+change.  On MS-DOS, these functions understand MS-DOS file-name syntax
 as well as Unix syntax.
 
 @menu
@@ -1223,11 +1223,11 @@ as well as Unix syntax.
 @cindex version number (in file name)
 
   The operating system groups files into directories.  To specify a
-file, you must specify the directory, and the file's name in that
-directory.  Therefore, a file name in Emacs is considered to have two
-main parts: the @dfn{directory name} part, and the @dfn{nondirectory}
-part (or @dfn{file name within the directory}).  Either part may be
-empty.  Concatenating these two parts reproduces the original file name.
+file, you must specify the directory and the file's name within that
+directory.  Therefore, Emacs considers a file name as having two main
+parts: the @dfn{directory name} part, and the @dfn{nondirectory} part
+(or @dfn{file name within the directory}).  Either part may be empty.
+Concatenating these two parts reproduces the original file name.
 
   On Unix, the directory part is everything up to and including the last
 slash; the nondirectory part is the rest.  The rules in VMS syntax are
@@ -1327,9 +1327,9 @@ subtle but crucial.  When an Emacs variable or function argument is
 described as being a directory name, a file name of a directory is not
 acceptable.
 
-  These two functions convert between directory names and file names.
-They do nothing special with environment variable substitutions such as
-@samp{$HOME}, and the constructs @samp{~}, and @samp{..}.
+  The following two functions convert between directory names and file
+names.  They do nothing special with environment variable substitutions
+such as @samp{$HOME}, and the constructs @samp{~}, and @samp{..}.
 
 @defun file-name-as-directory filename
 This function returns a string representing @var{filename} in a form
@@ -1510,7 +1510,7 @@ variables; only @code{substitute-in-file-name} does that.
 @c Emacs 19 feature
 @defun file-relative-name filename directory
 This function does the inverse of expansion---it tries to return a
-relative name which is equivalent to @var{filename} when interpreted
+relative name that is equivalent to @var{filename} when interpreted
 relative to @var{directory}.  (If such a relative name would be longer
 than the absolute name, it returns the absolute name instead.)
 
@@ -1598,8 +1598,8 @@ the same name.
 
 @defun make-temp-name string
 This function generates string that can be used as a unique name.  The
-name starts with the prefix @var{string}, and ends with a number that
-is different in each Emacs job.
+name starts with @var{string}, and ends with a number that is different
+in each Emacs job.
 
 @example
 @group
@@ -1756,18 +1756,20 @@ This function returns a list of all versions of the file named
 @end defun
 
 @defun insert-directory file switches &optional wildcard full-directory-p
-This function inserts a directory listing for directory @var{dir},
-formatted with @code{ls} according to @var{switches}.  It leaves point
-after the inserted text.
+This function inserts (in the current buffer) a directory listing for
+directory @var{file}, formatted with @code{ls} according to
+@var{switches}.  It leaves point after the inserted text.
 
-The argument @var{dir} may be either a directory name or a file
+The argument @var{file} may be either a directory name or a file
 specification including wildcard characters.  If @var{wildcard} is
 non-@code{nil}, that means treat @var{file} as a file specification with
 wildcards.
 
 If @var{full-directory-p} is non-@code{nil}, that means @var{file} is a
-directory and switches do not contain @samp{d}, so that a full listing
-is expected.
+directory and switches do not contain @samp{-d}, so that the listing
+should show the full contents of the directory.  (The @samp{-d} option
+to @code{ls} says to describe a directory itself rather than its
+contents.)
 
 This function works by running a directory listing program whose name is
 in the variable @code{insert-directory-program}.  If @var{wildcard} is
@@ -1783,6 +1785,11 @@ for the function @code{insert-directory}.
 @node Create/Delete Dirs
 @section Creating and Deleting Directories
 @c Emacs 19 features
+
+  Most Emacs Lisp file-manipulation functions get errors when used on
+files that are directories.  For example, you cannot delete a directory
+with @code{delete-file}.  These special functions exist to create and
+delete directories.
 
 @defun make-directory dirname
 This function creates a directory named @var{dirname}.
@@ -1801,11 +1808,11 @@ must use @code{delete-directory} in that case.
 @c Emacs 19 feature
 You can implement special handling for certain file names.  This is
 called making those names @dfn{magic}.  You must supply a regular
-expression to define the class of names (all those which match the
+expression to define the class of names (all those that match the
 regular expression), plus a handler that implements all the primitive
 Emacs file operations for file names that do match.
 
-The value of @code{file-name-handler-alist} is a list of handlers,
+The variable @code{file-name-handler-alist} holds a list of handlers,
 together with regular expressions that determine when to apply each
 handler.  Each element has this form:
 
@@ -1836,7 +1843,7 @@ called like this:
 (funcall @var{handler} 'file-exists-p @var{filename})
 @end example
 
-Here are the operations that you can handle for a magic file name:
+Here are the operations that a magic file name handler gets to handle:
 
 @noindent
 @code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
@@ -1853,17 +1860,18 @@ Here are the operations that you can handle for a magic file name:
 @code{file-name-directory}, @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-readable-p}, @code{file-symlink-p}, @code{file-truename},
-@code{file-writable-p},@*
-@code{insert-directory},
+@code{file-writable-p}, @code{insert-directory},@*
 @code{insert-file-contents}, @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{unhandled-file-name-directory},
 @code{verify-visited-file-modtime}, @code{write-region}.
 
 The handler function must handle all of the above operations, and
-possibly others to be added in the future.  Therefore, it should always
-reinvoke the ordinary Lisp primitive when it receives an operation it
-does not recognize.  Here's one way to do this:
+possibly others to be added in the future.  It need not implement all
+these operations itself---when it has nothing special to do for a
+certain operation, it can reinvoke the primitive, to handle the
+operation ``in the usual way''.  It should always reinvoke the primitive
+for an operation it does not recognize.  Here's one way to do this:
 
 @smallexample
 (defun my-file-handler (operation &rest args)
@@ -1874,7 +1882,7 @@ does not recognize.  Here's one way to do this:
         @dots{}
         ;; @r{Handle any operation we don't know about.}
         (t (let ((inhibit-file-name-handlers
-                 (cons 'ange-ftp-file-handler 
+                 (cons 'my-file-handler 
                        (and (eq inhibit-file-name-operation operation)
                             inhibit-file-name-handlers)))
                 (inhibit-file-name-operation operation))
@@ -1909,10 +1917,12 @@ for comparison with @code{inhibit-file-name-operation}.
 @end defun
 
 @defun file-local-copy filename
-This function copies file @var{filename} to the local site, if it isn't
-there already.  If @var{filename} specifies a ``magic'' file name which
-programs outside Emacs cannot directly read or write, this copies the
-contents to an ordinary file and returns that file's name.
+This function copies file @var{filename} to an ordinary non-magic file,
+if it isn't one already.
+
+If @var{filename} specifies a ``magic'' file name, which programs
+outside Emacs cannot directly read or write, this copies the contents to
+an ordinary file and returns that file's name.
 
 If @var{filename} is an ordinary file name, not magic, then this function
 does nothing and returns @code{nil}.
@@ -1936,18 +1946,21 @@ is a good way to come up with one.
 @cindex binary files and text files
 
   Emacs on MS-DOS makes a distinction between text files and binary
-files.  This is necessary because ordinary text files on MS-DOS use two
-characters between lines: carriage-return and linefeed.  Emacs expects
-just a newline character (a linefeed) between lines.  When Emacs reads
-or writes a text file on MS-DOS, it needs to convert the line
-separators.  This means it needs to know which files are text files and
-which are binary.  It makes this decision when visiting a file, and
-records the decision in the variable @code{buffer-file-type} for when
-the file is saved.
+files.  This is necessary because ordinary text files on MS-DOS use a
+two character sequence between lines: carriage-return and linefeed
+(CRLF).  Emacs expects just a newline character (a linefeed) between
+lines.  When Emacs reads or writes a text file on MS-DOS, it needs to
+convert the line separators.  This means it needs to know which files
+are text files and which are binary.  It makes this decision when
+visiting a file, and records the decision in the variable
+@code{buffer-file-type} for use when the file is saved.
+
+  @xref{MS-DOS Subprocesses}, for a related feature for subprocesses.
 
 @defvar buffer-file-type
 This variable, automatically local in each buffer, records the file type
-of the buffer's visited file.
+of the buffer's visited file.  The value is @code{nil} for text,
+@code{t} for binary.
 @end defvar
 
 @defun find-buffer-file-type filename

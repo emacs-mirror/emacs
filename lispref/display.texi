@@ -193,10 +193,14 @@ string.  See @code{format} in @ref{String Conversion}, for the details
 on the conversion specifications.  @code{message} returns the
 constructed string.
 
+In batch mode, @code{message} prints the message text on the standard
+error stream, followed by a newline.
+
 @c Emacs 19 feature
 If @var{string} is @code{nil}, @code{message} clears the echo area.  If
 the minibuffer is active, this brings the minibuffer contents back onto
 the screen immediately.
+
 @example
 @group
 (message "Minibuffer depth is %d."
@@ -881,7 +885,7 @@ The value of @code{blink-paren-function} may be @code{nil}, in which
 case nothing is done.
 
 @quotation
-@strong{Please note:} this variable was named @code{blink-paren-hook} in
+@strong{Please note:} This variable was named @code{blink-paren-hook} in
 older Emacs versions, but since it is not called with the standard
 convention for hooks, it was renamed to @code{blink-paren-function} in
 version 19.

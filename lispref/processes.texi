@@ -93,7 +93,7 @@ supplied to @var{program} as separate command line arguments.  Wildcard
 characters and other shell constructs are not allowed in these strings,
 since they are passed directly to the specified program.  
 
-  @strong{Please note:} the argument @var{program} contains only the
+  @strong{Please note:} The argument @var{program} contains only the
 name of the program; it may not contain any command-line arguments.  You
 must use @var{args} to provide those.
 

@@ -492,7 +492,7 @@ of @var{symbol} to the result, provided @var{value} is given.  If
 @var{symbol} has a buffer-local binding in the current buffer,
 @code{defconst} sets the default value, not the local value.
 
-@strong{Please note:} don't use @code{defconst} for user option
+@strong{Please note:} Don't use @code{defconst} for user option
 variables in libraries that are not standardly preloaded.  The user
 should be able to specify a value for such a variable in the
 @file{.emacs} file, so that it will be in effect if and when the library
@@ -536,7 +536,7 @@ then the variable is a user option.
 the variable.  The property's value is used as if it were the argument
 to @code{interactive}.
 
-  @strong{Warning:} if the @code{defconst} and @code{defvar} special
+  @strong{Warning:} If the @code{defconst} and @code{defvar} special
 forms are used while the variable has a local binding, they set the
 local binding's value; the global binding is not changed.  This is not
 what we really want.  To prevent it, use these special forms at top
@@ -734,7 +734,7 @@ located textually within the function or block that binds the variable.
 
 @cindex CL note---special variables
 @quotation
-@b{Common Lisp note:} variables declared ``special'' in Common Lisp
+@b{Common Lisp note:} Variables declared ``special'' in Common Lisp
 are dynamically scoped, like variables in Emacs Lisp.
 @end quotation
 
@@ -973,7 +973,7 @@ the (default) global binding untouched.  The global value can no longer
 be changed with @code{setq}; you need to use @code{setq-default} to do
 that.
 
-  @strong{Warning:} when a variable has local values in one or more
+  @strong{Warning:} When a variable has local values in one or more
 buffers, you can get Emacs very confused by binding the variable with
 @code{let}, changing to a different current buffer in which a different
 binding is in effect, and then exiting the @code{let}.  This can

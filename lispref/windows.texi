@@ -321,7 +321,7 @@ among all the siblings.)
 This function returns @code{nil} if @var{window} is deleted, and
 @code{t} otherwise.
 
-@strong{Warning:} erroneous information or fatal errors may result from
+@strong{Warning:} Erroneous information or fatal errors may result from
 using a deleted window as if it were live.
 @end defun
 

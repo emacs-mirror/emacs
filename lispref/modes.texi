@@ -1311,10 +1311,10 @@ have very long file names or display the time and load.)
 (add-hook 'text-mode-hook
   (function (lambda ()
               (setq mode-line-format
+@end group
                     '(mode-line-modified
                       "Emacs: %14b"
                       "  "  
-@end group
                       default-directory
                       " "
                       global-mode-string
