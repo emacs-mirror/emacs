@@ -32,6 +32,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "paths.h"
 #include "commands.h"
+#include "keyboard.h"
 #endif
 
 #ifdef lint
@@ -164,20 +165,48 @@ DEFUN ("read-char", Fread_char, Sread_char, 0, 0, 0,
   "Read a character from the command input (keyboard or macro).\n\
 It is returned as a number.\n\
 If the user generates an event which is not a character (i.e. a mouse\n\
-click or function key event), `read-char' signals an error.  If you\n\
-want to read non-character events, or ignore them, call `read-event'\n\
-or `read-char-exclusive' instead.")
+click or function key event), `read-char' signals an error.  As an\n\
+exception, switch-frame events are put off until non-ASCII events can\n\
+be read.\n\
+If you want to read non-character events, or ignore them, call\n\
+`read-event' or `read-char-exclusive' instead.")
   ()
 {
   register Lisp_Object val;
 
 #ifndef standalone
-  val = read_char (0, 0, 0, Qnil, 0);
-  if (XTYPE (val) != Lisp_Int)
-    {
-      unread_command_char = val;
-      error ("Object read was not a character");
-    }
+  {
+    register Lisp_Object delayed_switch_frame;
+
+    delayed_switch_frame = Qnil;
+
+    for (;;)
+      {
+	val = read_char (0, 0, 0, Qnil, 0);
+      
+	/* switch-frame events are put off until after the next ASCII
+	   character.  This is better than signalling an error just
+	   because the last characters were typed to a separate
+	   minibuffer frame, for example.  Eventually, some code which
+	   can deal with switch-frame events will read it and process
+	   it.  */
+	if (EVENT_HAS_PARAMETERS (val)
+	    && EQ (EVENT_HEAD (val), Qswitch_frame))
+	  delayed_switch_frame = val;
+	else
+	  break;
+      }
+      
+    if (! NILP (delayed_switch_frame))
+      unread_switch_frame = delayed_switch_frame;
+
+    /* Only ASCII characters are acceptable.  */
+    if (XTYPE (val) != Lisp_Int)
+      {
+	unread_command_event = val;
+	error ("Object read was not a character");
+      }
+  }
 #else
   val = getchar ();
 #endif
@@ -203,11 +232,34 @@ It is returned as a number.  Non character events are ignored.")
   register Lisp_Object val;
 
 #ifndef standalone
-  do
-    {
-      val = read_char (0, 0, 0, Qnil, 0);
-    }
-  while (XTYPE (val) != Lisp_Int);
+  {
+    Lisp_Object delayed_switch_frame;
+
+    delayed_switch_frame = Qnil;
+
+    for (;;)
+      {
+	val = read_char (0, 0, 0, Qnil, 0);
+
+	if (XTYPE (val) == Lisp_Int)
+	  break;
+
+	/* switch-frame events are put off until after the next ASCII
+	   character.  This is better than signalling an error just
+	   because the last characters were typed to a separate
+	   minibuffer frame, for example.  Eventually, some code which
+	   can deal with switch-frame events will read it and process
+	   it.  */
+	else if (EVENT_HAS_PARAMETERS (val)
+	    && EQ (EVENT_HEAD (val), Qswitch_frame))
+	  delayed_switch_frame = val;
+
+	/* Drop everything else.  */
+      }
+
+    if (! NILP (delayed_switch_frame))
+      unread_switch_frame = delayed_switch_frame;
+  }
 #else
   val = getchar ();
 #endif
