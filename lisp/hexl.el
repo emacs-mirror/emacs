@@ -206,6 +206,19 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 	  ;; if no argument then we guess at hexl-max-address
           (setq max-address (+ (* (/ (1- (buffer-size)) 68) 16) 15))
         (setq max-address (1- (buffer-size)))
+	;; If the buffer's EOL type is -dos, we need to account for
+	;; extra CR characters added when hexlify-buffer writes the
+	;; buffer to a file.
+	(when (eq (coding-system-eol-type buffer-file-coding-system) 1)
+	  (setq max-address (+ (count-lines (point-min) (point-max))
+			       max-address))
+	  ;; But if there's no newline at the last line, we are off by
+	  ;; one; adjust.
+	  (or (eq (char-before (point-max)) ?\n)
+	      (setq max-address (1- max-address)))
+	  (setq original-point (+ (count-lines (point-min) (point))
+				  original-point))
+	  (or (bolp) (setq original-point (1- original-point))))
         (hexlify-buffer)
         (set-buffer-modified-p modified))
       (make-local-variable 'hexl-max-address)
@@ -306,6 +319,12 @@ With arg, don't unhexlify buffer."
 	(dehexlify-buffer)
 	(remove-hook 'write-contents-hooks 'hexl-save-buffer)
 	(set-buffer-modified-p modified)
+	(goto-char original-point)
+	;; Maybe adjust point for the removed CR characters.
+	(when (eq (coding-system-eol-type buffer-file-coding-system) 1)
+	  (setq original-point (- original-point
+				  (count-lines (point-min) (point))))
+	  (or (bobp) (setq original-point (1+ original-point))))
 	(goto-char original-point)))
 
   (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
