@@ -390,6 +390,7 @@ extern int conversion_buffer_size;
 extern char *conversion_buffer, *get_conversion_buffer ();
 extern Lisp_Object Fcheck_coding_system ();
 extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
+extern Lisp_Object Qemacs_mule;
 extern Lisp_Object Qbuffer_file_coding_system;
 extern Lisp_Object Vcoding_category_list;
 
