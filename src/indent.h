@@ -50,8 +50,10 @@ struct position
     int tab_offset;
   };
 
-struct position *compute_motion ();
-struct position *vmotion ();
+struct position *compute_motion P_ ((int, int, int, int, int, int, int,
+				     int, int, int, struct window *));
+struct position *vmotion P_ ((int, int, struct window *));
+int skip_invisible P_ ((int, int *, int, Lisp_Object));
 
 /* Value of point when current_column was called */
 extern int last_known_column_point;
@@ -61,9 +63,11 @@ extern int last_known_column_point;
 /* Return true iff the display table DISPTAB specifies the same widths
    for characters as WIDTHTAB.  We use this to decide when to
    invalidate the buffer's column_cache.  */
-extern int disptab_matches_widthtab ( /* struct Lisp_Vector *disptab,
-                                         struct Lisp_Vector *widthtab */ );
+int disptab_matches_widthtab P_ ((struct Lisp_Char_Table *disptab,
+				  struct Lisp_Vector *widthtab));
 
 /* Recompute BUF's width table, using the display table DISPTAB.  */
-extern void recompute_width_table ( /* struct buffer *buf,
-                                       struct Lisp_Vector *disptab */ );
+void recompute_width_table P_ ((struct buffer *buf,
+				struct Lisp_Char_Table *disptab));
+
+
