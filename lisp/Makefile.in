@@ -198,7 +198,7 @@ $(DONTCOMPILE:.el=.elc):
 # load's in the files being compiled find the right files.
 
 compile-files: subdirs.el doit
-	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
+	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
