@@ -116,6 +116,7 @@ OBJ1 =  $(BLD)\abbrev.obj       \
 	$(BLD)\lread.obj        \
 	$(BLD)\macros.obj       \
 	$(BLD)\marker.obj       \
+        $(BLD)\md5.obj          \
 	$(BLD)\minibuf.obj      \
 	$(BLD)\mocklisp.obj
 
@@ -645,7 +646,8 @@ $(BLD)\fns.obj : \
 	$(SRC)\dispextern.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
-	$(SRC)\composite.h
+	$(SRC)\composite.h \
+        $(SRC)\md5.h
 
 $(BLD)\frame.obj : \
 	$(SRC)\frame.c \
@@ -807,6 +809,10 @@ $(BLD)\marker.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\buffer.h
+
+$(BLD)\md5.obj : \
+        $(SRC)\md5.c \
+        $(SRC)\md5.h
 
 $(BLD)\minibuf.obj : \
 	$(SRC)\minibuf.c \
@@ -976,15 +982,6 @@ $(BLD)\strftime.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h
-
-$(BLD)\sunfns.obj : \
-	$(SRC)\sunfns.c \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\window.h \
-	$(SRC)\buffer.h \
-	$(SRC)\termhooks.h
 
 $(BLD)\syntax.obj : \
 	$(SRC)\syntax.c \
