@@ -36,6 +36,8 @@
 (define-key mule-keymap "t" 'set-terminal-coding-system)
 (define-key mule-keymap "k" 'set-keyboard-coding-system)
 (define-key mule-keymap "p" 'set-buffer-process-coding-system)
+(define-key mule-keymap "x" 'set-selection-coding-system)
+(define-key mule-keymap "X" 'set-next-selection-coding-system)
 (define-key mule-keymap "\C-\\" 'set-input-method)
 (define-key mule-keymap "c" 'universal-coding-system-argument)
 (define-key mule-keymap "l" 'set-language-environment)
@@ -120,18 +122,28 @@
 (define-key-after set-coding-system-map [set-buffer-process-coding-system]
   '("Buffer Process" . set-buffer-process-coding-system)
   t)
-
+(define-key-after set-coding-system-map [set-selection-coding-system]
+  '("X Selection" . set-selection-coding-system)
+  t)
+(define-key-after set-coding-system-map [set-next-selection-coding-system]
+  '("Next X Selection" . set-next-selection-coding-system)
+  t)
 (define-key setup-language-environment-map
   [Default] '("Default" . setup-specified-language-environment))
 
 ;; These are meaningless when running under X.
 (put 'set-terminal-coding-system 'menu-enable
-     '(not (eq window-system 'x)))
+     '(not window-system))
 (put 'set-keyboard-coding-system 'menu-enable
-     '(not (eq window-system 'x)))
+     '(not window-system))
 ;; This is meaningless when the current buffer has no process.
 (put 'set-buffer-process-coding-system 'menu-enable
      '(get-buffer-process (current-buffer)))
+;; These are meaningless when running under terminal.
+(put 'set-selection-coding-system 'menu-enable
+     'window-system)
+(put 'set-next-selection-coding-system 'menu-enable
+     'window-system)
 
 ;; This should be a single character key binding because users use it
 ;; very frequently while editing multilingual text.  Now we can use
@@ -509,14 +521,17 @@ Meaningful values for KEY include
 			This is used to set up the coding system priority
 			list when you switch to this language environment.
   nonascii-translation
-		     value is a translation table to be set to the
+		     value is a translation table to be set in the
 			variable `nonascii-translation-table' in this
-			language environment.
+			language environment, or a character set from
+			which `nonascii-insert-offset' is calculated.
   charset-origin-alist
-		     value is an alist to be set to the variable
+		     value is an alist to be set in the variable
 			`charset-origin-alist' in this language environment.
   input-method       value is a default input method for this language
 			environment.
+  features           value is a list of features requested in this
+			language environment.
 
 The following keys take effect only when multibyte characters are
 globally disabled, i.e. the value of `default-enable-multibyte-characters'
@@ -569,7 +584,7 @@ see `language-info-alist'."
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
 ALIST is an alist of KEY and INFO values.  See the documentation of
-`set-langauge-info' for the meanings of KEY and INFO.
+`set-language-info' for the meanings of KEY and INFO.
 
 Optional arg PARENTS is a list of parent menu names; it specifies
 where to put this language environment in the 
@@ -608,14 +623,12 @@ in the European submenu in each of those two menus."
 	    (setq l (cdr l)))))
 
     ;; Set up menu items for this language env.
-    (let ((doc (assq 'documentation alist))
-	  (setup-function (assq 'setup-function alist)))
+    (let ((doc (assq 'documentation alist)))
       (when doc
 	(define-key-after describe-map (vector (intern lang-env))
-	  (cons lang-env 'describe-specified-language-support) t))
-      (when setup-function
-	(define-key-after setup-map (vector (intern lang-env))
-	  (cons lang-env 'setup-specified-language-environment) t)))
+	  (cons lang-env 'describe-specified-language-support) t)))
+    (define-key-after setup-map (vector (intern lang-env))
+      (cons lang-env 'setup-specified-language-environment) t)
 
     (while alist
       (set-language-info lang-env (car (car alist)) (cdr (car alist)))
