@@ -1,3 +1,8 @@
+2005-01-12  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-on-link-p): Change functionality and doc
+	string to comply with latest description in lisp ref.
+
 2005-01-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-translate, xterm-mouse-event): Enable
