@@ -1,3 +1,8 @@
+2004-04-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ielm.el (ielm-prompt-read-only, ielm-prompt): Expand docstring.
+	(ielm): Only go to the end of the buffer when starting a new process.
+
 2004-04-25  Juanma Barranquero  <lektu@terra.es>
 
 	* ielm.el (inferior-emacs-lisp-mode): Display working buffer on the
