@@ -890,6 +890,10 @@ be indented (i.e. a <<- was used rather than just <<)."
   ;; This looks silly, but it's because `sh-here-doc-re' keeps changing.
   (re-search-forward sh-here-doc-re limit t))
 
+(defun sh-is-quoted-p (pos)
+  (and (eq (char-before pos) ?\\)
+       (not (sh-is-quoted-p (1- pos)))))
+
 (defun sh-font-lock-paren (start)
   (save-excursion
     (goto-char start)
@@ -900,7 +904,9 @@ be indented (i.e. a <<- was used rather than just <<)."
 	  ;; Skip through one pattern
 	  (while
 	      (or (/= 0 (skip-syntax-backward "w_"))
-		  (/= 0 (skip-chars-backward "?*/"))
+		  (/= 0 (skip-chars-backward "?*/\\"))
+		  (and (sh-is-quoted-p (1- (point)))
+		       (goto-char (- (point) 2)))
 		  (when (memq (char-before) '(?\" ?\'))
 		    (condition-case nil (progn (backward-sexp 1) t)
 		      (error nil)))))
@@ -1536,8 +1542,7 @@ in ALIST."
 	    (setcdr elt
 		    (setq val
 			  (eval (if (consp (setq val (cdr val)))
-				    (let ((sh-shell (car (cdr val)))
-					  function)
+				    (let ((sh-shell (car (cdr val))))
 				      (if (assq sh-shell list)
 					  (setcar (cdr val)
 						  (list 'quote
@@ -1947,28 +1952,20 @@ STRING	     This is ignored for the purposes of calculating
 	     what the indentation is based on."
   ;; See comments before `sh-kw'.
   (save-excursion
-    (let ((prev-kw nil)
-	  (prev-stmt nil)
-	  (have-result nil)
-	  depth-bol depth-eol
+    (let ((have-result nil)
 	  this-kw
-	  (state nil)
-	  state-bol
-	  (depth-prev-bol nil)
 	  start
-	  func val
+	  val
 	  (result nil)
-	  prev-lines-indent
-	  (prev-list nil)
-	  (this-list nil)
 	  (align-point nil)
 	  prev-line-end x)
       (beginning-of-line)
       ;; Note: setting result to t means we are done and will return nil.
       ;;(This function never returns just t.)
       (cond
-       ((or (and (boundp 'font-lock-string-face)
-		 (eq (get-text-property (point) 'face) font-lock-string-face))
+       ((or (and (boundp 'font-lock-string-face) (not (bobp))
+		 (eq (get-text-property (1- (point)) 'face)
+		     font-lock-string-face))
 	    (eq (get-text-property (point) 'face) sh-heredoc-face))
 	(setq result t)
 	(setq have-result t))
@@ -2265,11 +2262,8 @@ we go to the end of the previous line and do not check for continuations."
   ;;
   (if (bolp)
       nil
-    (let ((going t)
-	  c n
-	  min-point
-	  (start (point))
-	  (found nil))
+    (let (c min-point
+	  (start (point)))
       (save-restriction
 	(narrow-to-region
 	(if (sh-this-is-a-continuation)
@@ -2558,7 +2552,7 @@ for a new value for it."
   (sh-must-support-indent)
   (let* ((info (sh-get-indent-info))
 	 (var (sh-get-indent-var-for-line info))
-	 val val0 new-val old-val indent-val)
+	 val old-val indent-val)
     (if (stringp var)
 	(message (format "Cannot set indent - %s" var))
       (setq old-val (symbol-value var))
@@ -2753,7 +2747,6 @@ This command can often take a long time to run."
     (let ((learned-var-list nil)
 	  (out-buffer "*indent*")
 	  (num-diffs 0)
-	  last-pos
 	  previous-set-info
 	  (max 17)
 	  vec
@@ -2914,14 +2907,7 @@ This command can often take a long time to run."
 	    (append (list (list 'sh-indent-comment comment-col (point-max)))
 		    learned-var-list))
       (setq sh-indent-comment comment-col)
-      (let ((name (buffer-name))
-	    (lines (if (and (eq (point-min) 1)
-			    (eq (point-max) (1+ (buffer-size))))
-		       ""
-		     (format "lines %d to %d of "
-			     (1+ (count-lines 1 (point-min)))
-			     (1+ (count-lines 1 (point-max))))))
-	    )
+      (let ((name (buffer-name)))
 	(sh-mark-line  "\nLearned variable settings:" nil out-buffer)
 	(if arg
 	    ;; Set learned variables to symbolic rather than numeric
@@ -2966,12 +2952,9 @@ Return values:
   nil		  - we couldn't find a reasonable one."
   (let* ((max (1- (length vec)))
 	 (i 1)
-	 (totals (make-vector max 0))
-	 (return nil)
-	 j)
+	 (totals (make-vector max 0)))
     (while (< i max)
       (aset totals i (+ (aref totals i) (* 4 (aref vec i))))
-      (setq j (/ i 2))
       (if (zerop (% i 2))
 	  (aset totals i (+ (aref totals i) (aref vec (/ i 2)))))
       (if (< (* i 2) max)
