@@ -1,3 +1,10 @@
+2002-04-23  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (MAINT): New variable.
+	(${srcdir}/configure, $(srcdir)/src/stamp-h.in): Depend on this
+	instead of configure.in, to avoid running autoconf and autoheader
+	unless explicitly requested.
+
 2002-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Update for msdos/sed2v2.inp.
