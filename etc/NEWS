@@ -644,6 +644,13 @@ different Emacs window will select that window (minibuffer window can
 be selected only when it is active).  The default is nil, so that this
 feature is not enabled.
 
+** On X, when the window manager requires that you click on a frame to
+select it (give it focus), the selected window and cursor position
+normally changes according to the mouse click position.  If you set
+the variable x-mouse-click-focus-ignore-position to t, the selected
+window and cursor position do not changes when you click on a frame
+to give it focus.
+
 +++
 ** The new command `describe-char' (C-u C-x =) pops up a buffer with
 description various information about a character, including its
