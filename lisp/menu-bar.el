@@ -615,13 +615,13 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-showhide-menu [column-number-mode]
   (menu-bar-make-toggle toggle-column-number-mode column-number-mode
-			"Show Column Number" "Column number mode %s"
-			"Show the current column number in the mode-line"))
+			"Show Column Numbers" "Column number mode %s"
+			"Show the current column number in the mode line"))
 
 (define-key menu-bar-showhide-menu [line-number-mode]
   (menu-bar-make-toggle toggle-line-number-mode line-number-mode
-			"Show Line Number" "Line number mode %s"
-			"Show the current line number in the mode-line"))
+			"Show Line Numbers" "Line number mode %s"
+			"Show the current line number in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
   '("--"))
@@ -638,7 +638,7 @@ Do the same for the keys of the same name."
 				(interactive)
 				(showhide-date-time)
 				(customize-mark-as-set 'display-time-mode))
-	      :help "Display date and time in the mode-line"
+	      :help "Display date and time in the mode line"
 	      :button (:toggle . display-time-mode)))
 
 (define-key menu-bar-showhide-menu [datetime-separator]
@@ -646,7 +646,7 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-showhide-menu [showhide-speedbar]
   '(menu-item "Speedbar" speedbar-frame-mode
-	      :help "Display speedbar"
+	      :help "Display a Speedbar quick-navigation frame"
 	      :button (:toggle
 		       . (and (boundp 'speedbar-frame)
 			      (frame-live-p (symbol-value 'speedbar-frame))
@@ -661,7 +661,7 @@ Do the same for the keys of the same name."
 		(interactive)
 		(customize-set-variable 'scroll-bar-mode 'right))
 	      :help "Scroll-bar on the right side"
-	      :visible window-system
+	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'right))))
 
@@ -671,7 +671,7 @@ Do the same for the keys of the same name."
 		(interactive)
 		(customize-set-variable 'scroll-bar-mode 'left))
 	      :help "Scroll-bar on the left side"
-	      :visible window-system
+	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'left))))
 
@@ -681,13 +681,13 @@ Do the same for the keys of the same name."
 		(interactive)
 		(customize-set-variable 'scroll-bar-mode nil))
 	      :help "Turn off scroll-bar"
-	      :visible window-system
+	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) nil))))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
   (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
-	:visible 'window-system
+	:visible `(display-graphic-p)
 	:help "Select scroll-bar mode"))
 
 (defun showhide-menu-bar ()
@@ -696,33 +696,27 @@ Do the same for the keys of the same name."
   (menu-bar-mode)
   (if menu-bar-mode
       (message "Menu-bar mode enabled.")
-    (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
+    (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
+  (customize-mark-as-set 'menu-bar-mode))
 
 (define-key menu-bar-showhide-menu [showhide-menu-bar]
-  '(menu-item "Menu-bar"
-	      (lambda ()
-		(interactive)
-		(showhide-menu-bar)
-		(customize-mark-as-set 'menu-bar-mode))
+  '(menu-item "Menu-bar" showhide-menu-bar
 	      :help "Toggle menu-bar on/off"
 	      :button (:toggle . menu-bar-mode)))
 
-(defun showhide-tool-bar ()
+(defun showhide-toolbar ()
   "Toggle whether to turn tool-bar on/off."
   (interactive)
   (if (tool-bar-mode)
       (message "Tool-bar mode enabled.")
-    (message "Tool-bar mode disabled.")))
+    (message "Tool-bar mode disabled."))
+  (customize-mark-as-set 'tool-bar-mode))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  '(menu-item "Tool-bar"
-	      (lambda ()
-		(interactive)
-		(showhide-tool-bar)
-		(customize-mark-as-set 'tool-bar-mode))
-	      :help "Turn tool-bar on/off"
-	      :visible window-system
-	      :button (:toggle . tool-bar-mode)))
+  (list 'menu-item "Tool-bar" 'showhide-toolbar
+	:help "Turn tool-bar on/off"
+	:visible `(display-graphic-p)
+	:button `(:toggle . tool-bar-mode)))
 
 (define-key menu-bar-options-menu [showhide]
   (list 'menu-item "Show/Hide" menu-bar-showhide-menu
