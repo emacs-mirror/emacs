@@ -57,6 +57,8 @@ Boston, MA 02111-1307, USA.
 #undef read
 #undef write
 
+#undef strerror
+
 #include "lisp.h"
 
 #include <pwd.h>
@@ -2354,6 +2356,99 @@ static void check_errno ()
 {
   if (h_errno == 0 && winsock_lib != NULL)
     pfn_WSASetLastError (0);
+}
+
+/* Extend strerror to handle the winsock-specific error codes.  */
+struct {
+  int errnum;
+  char * msg;
+} _wsa_errlist[] = {
+  WSAEINTR                , "Interrupted function call",
+  WSAEBADF                , "Bad file descriptor",
+  WSAEACCES               , "Permission denied",
+  WSAEFAULT               , "Bad address",
+  WSAEINVAL               , "Invalid argument",
+  WSAEMFILE               , "Too many open files",
+			
+  WSAEWOULDBLOCK          , "Resource temporarily unavailable",
+  WSAEINPROGRESS          , "Operation now in progress",
+  WSAEALREADY             , "Operation already in progress",
+  WSAENOTSOCK             , "Socket operation on non-socket",
+  WSAEDESTADDRREQ         , "Destination address required",
+  WSAEMSGSIZE             , "Message too long",
+  WSAEPROTOTYPE           , "Protocol wrong type for socket",
+  WSAENOPROTOOPT          , "Bad protocol option",
+  WSAEPROTONOSUPPORT      , "Protocol not supported",
+  WSAESOCKTNOSUPPORT      , "Socket type not supported",
+  WSAEOPNOTSUPP           , "Operation not supported",
+  WSAEPFNOSUPPORT         , "Protocol family not supported",
+  WSAEAFNOSUPPORT         , "Address family not supported by protocol family",
+  WSAEADDRINUSE           , "Address already in use",
+  WSAEADDRNOTAVAIL        , "Cannot assign requested address",
+  WSAENETDOWN             , "Network is down",
+  WSAENETUNREACH          , "Network is unreachable",
+  WSAENETRESET            , "Network dropped connection on reset",
+  WSAECONNABORTED         , "Software caused connection abort",
+  WSAECONNRESET           , "Connection reset by peer",
+  WSAENOBUFS              , "No buffer space available",
+  WSAEISCONN              , "Socket is already connected",
+  WSAENOTCONN             , "Socket is not connected",
+  WSAESHUTDOWN            , "Cannot send after socket shutdown",
+  WSAETOOMANYREFS         , "Too many references",	    /* not sure */
+  WSAETIMEDOUT            , "Connection timed out",
+  WSAECONNREFUSED         , "Connection refused",
+  WSAELOOP                , "Network loop",		    /* not sure */
+  WSAENAMETOOLONG         , "Name is too long",
+  WSAEHOSTDOWN            , "Host is down",
+  WSAEHOSTUNREACH         , "No route to host",
+  WSAENOTEMPTY            , "Buffer not empty",		    /* not sure */
+  WSAEPROCLIM             , "Too many processes",
+  WSAEUSERS               , "Too many users",		    /* not sure */
+  WSAEDQUOT               , "Double quote in host name",    /* really not sure */
+  WSAESTALE               , "Data is stale",		    /* not sure */
+  WSAEREMOTE              , "Remote error",		    /* not sure */
+			
+  WSASYSNOTREADY          , "Network subsystem is unavailable",
+  WSAVERNOTSUPPORTED      , "WINSOCK.DLL version out of range",
+  WSANOTINITIALISED       , "Winsock not initialized successfully",
+  WSAEDISCON              , "Graceful shutdown in progress",
+#ifdef WSAENOMORE
+  WSAENOMORE              , "No more operations allowed",   /* not sure */
+  WSAECANCELLED           , "Operation cancelled",	    /* not sure */
+  WSAEINVALIDPROCTABLE    , "Invalid procedure table from service provider",
+  WSAEINVALIDPROVIDER     , "Invalid service provider version number",
+  WSAEPROVIDERFAILEDINIT  , "Unable to initialize a service provider",
+  WSASYSCALLFAILURE       , "System call failured",
+  WSASERVICE_NOT_FOUND    , "Service not found",	    /* not sure */
+  WSATYPE_NOT_FOUND       , "Class type not found",
+  WSA_E_NO_MORE           , "No more resources available",  /* really not sure */
+  WSA_E_CANCELLED         , "Operation already cancelled",  /* really not sure */
+  WSAEREFUSED             , "Operation refused",	    /* not sure */
+#endif
+			
+  WSAHOST_NOT_FOUND       , "Host not found",
+  WSATRY_AGAIN            , "Authoritative host not found during name lookup",
+  WSANO_RECOVERY          , "Non-recoverable error during name lookup",
+  WSANO_DATA              , "Valid name, no data record of requested type",
+
+  -1, NULL
+};
+
+char *
+sys_strerror(int error_no)
+{
+  int i;
+  static char unknown_msg[40];
+
+  if (error_no >= 0 && error_no < _sys_nerr)
+    return _sys_errlist[error_no];
+
+  for (i = 0; _wsa_errlist[i].errnum >= 0; i++)
+    if (_wsa_errlist[i].errnum == error_no)
+      return _wsa_errlist[i].msg;
+
+  sprintf(unknown_msg, "Unidentified error: %d", error_no);
+  return unknown_msg;
 }
 
 /* [andrewi 3-May-96] I've had conflicting results using both methods,
