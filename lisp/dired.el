@@ -693,10 +693,16 @@ If HDR is non-nil, insert a header line with the directory name."
 	  (setq end (point-marker))
 	  (goto-char opoint)
 	  (while (search-forward "\\" end t)
-	    (replace-match "\\\\" nil t))
+	    (replace-match (apply #'propertize
+				  "\\\\"
+				  (text-properties-at (match-beginning 0)))
+			   nil t))
 	  (goto-char opoint)
 	  (while (search-forward "\^m" end t)
-	    (replace-match "\\015" nil t))
+	    (replace-match (apply #'propertize
+				  "\\015"
+				  (text-properties-at (match-beginning 0)))
+			   nil t))
 	  (set-marker end nil)))
     (dired-insert-set-properties opoint (point))
     ;; If we used --dired and it worked, the lines are already indented.
