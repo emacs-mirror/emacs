@@ -229,8 +229,8 @@ void (*check_window_system_func) P_ ((void));
 
 
 /* Prototype declarations for static functions.  */
-static int fontset_add P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-			    Lisp_Object));
+static Lisp_Object fontset_add P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				    Lisp_Object));
 static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
 static void accumulate_script_ranges P_ ((Lisp_Object, Lisp_Object,
@@ -355,7 +355,7 @@ fontset_ref_and_range (fontset, c, from, to)
 			    Fmake_vector (make_number (1), (elt)))	\
    : fontset_add ((fontset), (range), (elt), (add)))
 
-static int
+static Lisp_Object
 fontset_add (fontset, range, elt, add)
      Lisp_Object fontset, range, elt, add;
 {
@@ -383,7 +383,7 @@ fontset_add (fontset, range, elt, add)
     char_table_set_range (fontset, from, to1, elt1);    
     from = to1 + 1;
   } while (from < to);
-  return 0;
+  return Qnil;
 }
 
 
