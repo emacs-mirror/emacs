@@ -347,6 +347,15 @@ relinquish ()
 	abort ();
     }
 }
+
+/* Return the total size in use by relocating allocator,
+   above where malloc gets space.  */
+
+long
+r_alloc_size_in_use ()
+{
+  return break_value - virtual_break_value;
+}
 
 /* The meat - allocating, freeing, and relocating blocs.  */
 
@@ -890,6 +899,8 @@ r_alloc_free (ptr)
 
   free_bloc (dead_bloc);
   *ptr = 0;
+
+  refill_memory_reserve ();
 }
 
 /* Given a pointer at address PTR to relocatable data, resize it to SIZE.
