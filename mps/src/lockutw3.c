@@ -1,7 +1,7 @@
 /* impl.c.lockutnt
  *                     LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockutnt.c(trunk.2) $
+ * $HopeName: MMsrc!lockutnt.c(trunk.3) $
  */
 
 #include "std.h"
@@ -10,10 +10,12 @@
 #include "lockst.h"
 
 #ifndef MPS_OS_W3
-#error "Relies on NT threads"
+#error "Relies on Win32 threads"
 #endif
 
 #include <windows.h>
+
+SRCID("$HopeName$");
 
 static LockStruct lockStruct;
 unsigned long shared,tmp;
