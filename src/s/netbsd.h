@@ -55,3 +55,7 @@
 
 /* Reread the time zone on startup.  */
 #define LOCALTIME_CACHE
+
+/* sjg@zen.void.oz.au says these are needed.  */
+#define LD_SWITCH_SYSTEM -e __start -Bstatic
+#define HAVE_WAIT_HEADER
