@@ -83,7 +83,7 @@ fine.  Emacsclient has been extended to support opening new tty and X
 frames.  It has been changed open new Emacs frames by default.
 
 The multi-tty branch has been scheduled for inclusion in the next
-major release of Emacs (version 22).  I expect the merge into the
+major release of Emacs (version 23).  I expect the merge into the
 development trunk to occur sometime during next year (2005), after the
 merge of the Unicode branch.
 
@@ -92,6 +92,12 @@ know if you succeed or fail to use it on other platforms---I'll have a
 few tricky test cases for you.
 
 Known problems:
+
+        * GTK support.  If you compile your Emacs with the GTK
+          toolkit, some functionality of multi-tty will be lost.
+          Current releases of GTK have limitations and bugs that
+          prevent full-blown multi-display support in Emacs.  Use the
+          Lucid toolkit if you want to see a complete feature set.
 
         * The single-kboard mode.
 
@@ -142,11 +148,19 @@ Retrieving the latest version of the branch:
 
 This incantation uses my private archive mirror that is hosted on a
 relatively low-bandwidth site; if you are outside Hungary, you will
-probably want to you use the Arch supermirror instead: (Note that the
--f option will overwrite the archive location if you have previously
-registered the Hungarian one.)
+probably want to you use my secondary mirror: (Note that the -f option
+will overwrite the archive location if you have previously registered
+the Hungarian one.)
 
-	tla register-archive -f http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
+	tla register-archive -f http://aszt.inf.elte.hu/~lorentey/mirror/arch/2004
+	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+
+	http://aszt.inf.elte.hu/~lorentey/mirror/arch/2004
+
+The Arch supermirror provides mirroring services for all public Arch
+repositories.  We have a mirror there, too, if you prefer.
+
+	tla register-archive -f http://mirrors.sourcecontrol.net/lorentey%40elte.hu--2004
 	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
 My GPG key id is 0FB27A3F; it is available from
@@ -166,6 +180,22 @@ If you don't have tla, the branch has a homepage from which you can
 download conventional patches against Emacs CVS HEAD:
 
 	http://lorentey.hu/project/emacs.html
+
+DEBIAN PACKAGES
+---------------
+
+If you run Debian, or a distribution based on Debian, you are welcome
+to use our binary packages; put these lines in your /etc/apt/sources.list:
+
+	# Multi-tty Emacs
+	deb http://aszt.inf.elte.hu/~lorentey/mirror/apt ./
+	deb-src http://aszt.inf.elte.hu/~lorentey/mirror/apt ./
+
+Note that these packages are intended solely to provide an easy way to
+test the new multi-tty features.  They are not to be taken as Emacs
+releases, and it's a mistake to expect robust operation or any kind of
+timely support for them.  Do not install them, unless you'd like to
+have your editor crash on you.
 
 
 COMPILATION
