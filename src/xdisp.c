@@ -600,6 +600,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static Lisp_Object unwind_redisplay P_ ((Lisp_Object));
 static int string_char_and_length P_ ((unsigned char *, int, int *));
 static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
 					     struct text_pos));
@@ -6355,6 +6356,7 @@ redisplay_internal (preserve_echo_area)
   int must_finish = 0;
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
+  int count;
 
   /* Non-zero means redisplay has to consider all windows on all
      frames.  Zero means, only selected_window is considered.  */
@@ -6385,10 +6387,16 @@ redisplay_internal (preserve_echo_area)
     return;
 #endif
 
+  /* I don't think this happens but let's be paranoid.  */
   if (redisplaying_p)
     return;
-  ++redisplaying_p;
 
+  /* Record a function that resets redisplaying_p to its old value
+     when we leave this function.  */
+  count = specpdl_ptr - specpdl;
+  record_unwind_protect (unwind_redisplay, make_number (redisplaying_p));
+  ++redisplaying_p;
+  
  retry:
 
   /* If new fonts have been loaded that make a glyph matrix adjustment
@@ -6976,8 +6984,7 @@ update:
 
  end_of_redisplay:;
   
-  if (--redisplaying_p < 0)
-    redisplaying_p = 0;
+  unbind_to (count, Qnil);
 }
 
 
@@ -7006,6 +7013,18 @@ redisplay_preserve_echo_area ()
     }
   else
     redisplay_internal (1);
+}
+
+
+/* Function registered with record_unwind_protect in
+   redisplay_internal.  Clears the flag indicating that a redisplay is
+   in progress.  */
+
+static Lisp_Object
+unwind_redisplay (old_redisplaying_p)
+     Lisp_Object old_redisplaying_p;
+{
+  redisplaying_p = XFASTINT (old_redisplaying_p);
 }
 
 
@@ -8701,14 +8720,11 @@ try_window_reusing_current_matrix (w)
 
       /* Give up if there is no row to reuse.  */
       if (MATRIX_ROW_BOTTOM_Y (first_reusable_row) >= yb
-	  || !first_reusable_row->enabled_p)
+	  || !first_reusable_row->enabled_p
+	  || (MATRIX_ROW_START_CHARPOS (first_reusable_row)
+	      != CHARPOS (new_start)))
 	return 0;
 
-      /* The row we found must start at new_start, or else something
-	 is broken.  */
-      xassert (MATRIX_ROW_START_CHARPOS (first_reusable_row)
-	       == CHARPOS (new_start));
-      
       /* We can reuse fully visible rows beginning with
          first_reusable_row to the end of the window.  Set
          first_row_to_display to the first row that cannot be reused.
