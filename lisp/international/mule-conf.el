@@ -118,10 +118,10 @@
   [2 94 2 0 ?O 0 "JISX0213-1" "JISX0213-1" "JISX0213 Plane 1 (Japanese)"])
 (define-charset 152 'chinese-big5-1
   [2 94 2 0 ?0 0 "Big5 (Level-1)" "Big5 (Level-1) A141-C67F"
-     "Frequentry used part (A141-C67F) of Big5 (Chinese traditional)"])
+     "Frequently used part (A141-C67F) of Big5 (Chinese traditional)"])
 (define-charset 153 'chinese-big5-2
   [2 94 2 0 ?1 0 "Big5 (Level-2)" "Big5 (Level-2) C940-FEFE"
-     "Less frequentry used part (C940-FEFE) of Big5 (Chinese traditional)"])
+     "Less frequently used part (C940-FEFE) of Big5 (Chinese traditional)"])
 
 ;; Additional (private) character sets.  These character sets are
 ;; treated less space-efficiently in the buffer.
