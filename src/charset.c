@@ -1642,7 +1642,7 @@ syms_of_charset ()
 
   update_charset_table (make_number (CHARSET_8_BIT_CONTROL),
 			make_number (1), make_number (96),
-			make_number (1),
+			make_number (4),
 			make_number (0),
 			make_number (-1),
 			make_number (-1),
@@ -1655,7 +1655,7 @@ syms_of_charset ()
 
   update_charset_table (make_number (CHARSET_8_BIT_GRAPHIC),
 			make_number (1), make_number (96),
-			make_number (1),
+			make_number (4),
 			make_number (0),
 			make_number (-1),
 			make_number (-1),
