@@ -37,10 +37,9 @@
 ;;		- buffer-read-only
 ;;		- some local variables
 
-;; To use this, add these lines in the bottom of your .emacs file:
+;; To use this, add these lines to the bottom of your .emacs file:
 ;;
-;;	(desktop-load-default)
-;;	(desktop-read)
+;;      (require 'desktop)
 ;;      (setq desktop-enable t)
 ;;
 ;; Between the first two lines you may wish to add something that updates the

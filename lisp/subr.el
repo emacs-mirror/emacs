@@ -1550,6 +1550,8 @@ BUFFER may be a buffer or a buffer name.  Arguments START and END are
 character numbers specifying the substring.  They default to the
 beginning and the end of BUFFER.  Strip text properties from the
 inserted text according to `yank-excluded-properties'."
+  ;; Since the buffer text should not normally have yank-handler properties,
+  ;; there is no need to handle them here.
   (let ((opoint (point)))
     (insert-buffer-substring buf start end)
     (remove-yank-excluded-properties opoint (point))))
