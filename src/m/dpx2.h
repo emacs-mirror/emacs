@@ -182,7 +182,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * to start a sub-shell rather than suspend-emacs,
  * un-comment out the next line.
  */
-# undef SIGTSTP /* make suspend-emacs spawn a sub-shell */
+/* # undef SIGTSTP /* make suspend-emacs spawn a sub-shell */
 # ifdef NOMULTIPLEJOBS
 #   undef NOMULTIPLEJOBS
 # endif
@@ -226,6 +226,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* we have termios */
 #undef HAVE_TERMIO
 #define HAVE_TERMIOS
+#define HAVE_TCATTR
 
 /* we also have this */
 #define HAVE_PTYS
@@ -239,6 +240,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    enters in an infinite loop. Avoid calling it  */
 #define F_SETOWN_BUG
 
-/* end of dpx2.h */
+/* system closedir sometimes complains about wrong descriptor
+   for no apparent reasons. Use the provided closedir in sysdep.c instead */
+#ifdef HAVE_CLOSEDIR
+#undef HAVE_CLOSEDIR
+#endif
+
+/* Send signals to subprocesses by "typing" signal chars at them.  */
+#define SIGNALS_VIA_CHARACTERS
+
+ /* end of dpx2.h */
 
 
