@@ -1348,7 +1348,7 @@ specifies the value of ERROR-BUFFER."
 		  (setq proc (start-process "Shell" buffer shell-file-name
 					    shell-command-switch command))
 		  (setq mode-line-process '(":%s"))
-		  (shell-mode)
+		  (require 'shell) (shell-mode)
 		  (set-process-sentinel proc 'shell-command-sentinel)
 		  ))
 	    (shell-command-on-region (point) (point) command
