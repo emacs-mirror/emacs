@@ -1141,9 +1141,9 @@ The R column contains a % for buffers that are read-only.")
 {
   Lisp_Object desired_point;
 
-  desired_point =
-    internal_with_output_to_temp_buffer ("*Buffer List*",
-					 list_buffers_1, files);
+  desired_point
+    = internal_with_output_to_temp_buffer ("*Buffer List*",
+					   list_buffers_1, files);
 
   if (NUMBERP (desired_point))
     {
@@ -1153,6 +1153,7 @@ The R column contains a % for buffers that are read-only.")
       SET_PT (XINT (desired_point));
       return unbind_to (count, Qnil);
     }
+  return Qnil;
 }
 
 DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
