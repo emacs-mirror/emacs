@@ -91,12 +91,13 @@ Getting Mail -> Mail Sources
 
 *** Gnus is now a MIME-capable reader.  This affects many parts of
 Gnus, and adds a slew of new commands.  See the manual for details.
+Separate MIME packages like RMIME, SEMI, mime-compose etc., will
+probably no longer work; remove them and use the native facilities.
 
 *** Gnus has also been multilingualized.  This also affects too many
-parts of Gnus to summarize here, and adds many new variables.
-Separate MIME packages like SEMI will not work.  There are built-in
-facilities equivalent to those of gnus-mule.el, which is now just a
-compatibility layer.
+parts of Gnus to summarize here, and adds many new variables.  There
+are built-in facilities equivalent to those of gnus-mule.el, which is
+now just a compatibility layer.
 
 *** gnus-auto-select-first can now be a function to be
 called to position point.
@@ -1823,6 +1824,9 @@ functionality with aliases for the mldrag functions.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
+** Function `md5' calculates the MD5 "message digest"/"checksum",
+currently using the `md5sum' program.
 
 ** Function `delete-frame' runs `delete-frame-hook' before actually
 deleting the frame.  The hook is called with one arg, the frame
