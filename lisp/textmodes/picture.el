@@ -76,13 +76,19 @@ If scan reaches end of buffer, stop there without error."
   "Move cursor right, making whitespace if necessary.
 With argument, move that many columns."
   (interactive "p")
-  (move-to-column-force (+ (current-column) arg)))
+  (let ((target-column (+ (current-column) arg)))
+    (move-to-column-force target-column)
+    ;; Picture mode isn't really suited to multi-column characters,
+    ;; but we might as well let the user move across them.
+    (and (< arg 0)
+	 (> (current-column) target-column)
+	 (forward-char -1))))
 
 (defun picture-backward-column (arg)
   "Move cursor left, making whitespace if necessary.
 With argument, move that many columns."
   (interactive "p")
-  (move-to-column-force (- (current-column) arg)))
+  (picture-forward-column (- arg)))
 
 (defun picture-move-down (arg)
   "Move vertically down, making whitespace if necessary.
