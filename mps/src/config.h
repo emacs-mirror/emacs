@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.37) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!config.h(trunk.38) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
  *
@@ -14,7 +14,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.config.
+ * See design.mps.config.
  */
 
 #ifndef config_h
@@ -142,15 +142,9 @@
 
 #define POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE (64ul * 1024)
 
- 
-/* .prod.arena-size: ARENA_SIZE is currently set larger for the
- * MM/Dylan product as an interim solution.
- * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
+
+/* Arena Configuration -- see impl.c.arena
  *
- * .mac.arena-size: ARENA_SIZE is set to 2Mb when compiling on
- * os.s7 (Mac OS) with the VM Arena, in order to allow development in
- * an environment where real memory is used to simulate memory mapping.
- * 
  * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a
  * "page" (i.e., segment granule) in the client arena.  It's set at 8192
  * with no particular justification.
@@ -163,59 +157,17 @@
  * for non-DL.
  */
 
-
-/* Product Configuration
- *
- * Convert CONFIG_PROD_* defined on compiler command line into
- * internal configuration parameters.  See design.mps.config.prod.
- */
-
-#define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
-#define ARENA_DEFAULT_SEG_HIGH          TRUE
-#define ARENA_DEFAULT_REFSET            BS_UPPER_HALF(RefSet)
-
-#if defined(CONFIG_PROD_EPCORE)
-#define MPS_PROD_STRING         "epcore"
-#define MPS_PROD_EPCORE
-#define ARENA_SIZE              ((Size)2<<20)
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)0)
-/* .nosync.why: ScriptWorks is single-threaded when using the MM. */
-#define THREAD_SINGLE
-#define PROTECTION_NONE
-
-#elif defined(CONFIG_PROD_DYLAN)
-#define MPS_PROD_STRING         "dylan"
-#define MPS_PROD_DYLAN
-#define ARENA_SIZE              ((Size)1<<30)
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
-#define THREAD_MULTI
-#define PROTECTION
-
-#elif defined(CONFIG_PROD_MPS)
-#define MPS_PROD_STRING         "mps"
-#define MPS_PROD_MPS
-#ifdef MPS_OS_S7
-#define ARENA_SIZE              ((Size)2<<20)
-#else
-#define ARENA_SIZE              ((Size)64<<20)
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
-#endif /* MPS_OS_S7 */
-#define THREAD_MULTI
-#define PROTECTION
-
-#else
-#error "No target product configured."
-#endif
-
-
-/* Arena Configuration -- see impl.c.arena */
-
 #define ARENA_CONTROL_EXTENDBY  ((Size)4096)
 #define ARENA_CONTROL_AVGSIZE   ((Size)32)
 #define ARENA_CONTROL_MAXSIZE   ((Size)65536)
 #define ARENA_POLL_MAX          (65536.0)
 #define ARENA_LD_LENGTH         ((Size)4)
 #define ARENA_ZONESHIFT         ((Shift)20)
+
+#define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
+#define ARENA_DEFAULT_SEG_HIGH          TRUE
+#define ARENA_DEFAULT_REFSET            BS_UPPER_HALF(RefSet)
+
 
 /* Stack configuration */
 
@@ -285,6 +237,51 @@
 #define mps_lib_memcmp memcmp
 /* get prototypes for ANSI mem* */
 #include <string.h>
+#endif
+
+
+/* Product Configuration
+ *
+ * Convert CONFIG_PROD_* defined on compiler command line into
+ * internal configuration parameters.  See design.mps.config.prod.
+ */
+
+#if defined(CONFIG_PROD_EPCORE)
+#define MPS_PROD_STRING         "epcore"
+#define MPS_PROD_EPCORE
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)0)
+/* .nosync.why: ScriptWorks is single-threaded when using the MM. */
+#define THREAD_SINGLE
+#define PROTECTION_NONE
+
+#elif defined(CONFIG_PROD_DYLAN)
+#define MPS_PROD_STRING         "dylan"
+#define MPS_PROD_DYLAN
+/* .prod.arena-size: ARENA_SIZE is currently set larger for the
+ * MM/Dylan product as an interim solution.
+ * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
+ */
+#define ARENA_SIZE              ((Size)1<<30)
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+#define THREAD_MULTI
+#define PROTECTION
+
+#elif defined(CONFIG_PROD_CONFIGURA)
+#define MPS_PROD_STRING         "configura"
+#define MPS_PROD_CONFIGURA
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+#define THREAD_SINGLE
+#define PROTECTION
+
+#elif defined(CONFIG_PROD_MPS)
+#define MPS_PROD_STRING         "mps"
+#define MPS_PROD_MPS
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+#define THREAD_MULTI
+#define PROTECTION
+
+#else
+#error "No target product configured."
 #endif
 
 

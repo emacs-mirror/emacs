@@ -1,9 +1,7 @@
 # impl.nmk.w3i3mv: WINDOWS (INTEL) NMAKE FILE
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.65) $
-#
-# Copyright (C) 1999 Harlequin Limited.  All rights reserved.
-#
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.66) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3i3mv
 PFMDEFS = /DWIN32 /D_WINDOWS
@@ -18,13 +16,21 @@ MPM = <assert> <ring> <mpm> <bt> <protocol> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version>
 SW  = <assert> <ring> <mpm> <bt> <protocol> \
       <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
-      <pool> <poolabs> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <lockw3> \
+      <pool> <poolabs> <poolmfs> <poolmv> \
+      <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <thw3i3> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <sac> <poolmrg> <message> <mpsioan> \
       <poolepdl> <poolepvm> <poolams> <dbgpool> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
+CONFIGURA = <assert> <ring> <mpm> <bt> <protocol> \
+      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+      <pool> <poolabs> <poolmfs> <poolmv> \
+      <root> <format> <buffer> <lockw3> \
+      <ref> <trace> <protw3> <proti3> <prmci3w3> <shield> <vmw3> \
+      <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
+      <event> <action> <seg> <sac> <poolmrg> <message> <dbgpool> \
+      <abq> <meter> <cbs> <splay> <version>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams>
@@ -60,6 +66,8 @@ PLINTHOBJ0 = $(PLINTH:<=w3i3mv\he\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\he\)
 SWOBJ = $(SWOBJ0:>=.obj)
+CONFIGURAOBJ0 = $(CONFIGURA:<=w3i3mv\he\)
+CONFIGURAOBJ = $(CONFIGURAOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\he\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\he\)
@@ -91,6 +99,8 @@ PLINTHOBJ0 = $(PLINTH:<=w3i3mv\ce\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\ce\)
 SWOBJ = $(SWOBJ0:>=.obj)
+CONFIGURAOBJ0 = $(CONFIGURA:<=w3i3mv\ce\)
+CONFIGURAOBJ = $(CONFIGURAOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\ce\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\ce\)
@@ -122,6 +132,8 @@ PLINTHOBJ0 = $(PLINTH:<=w3i3mv\hi\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\hi\)
 SWOBJ = $(SWOBJ0:>=.obj)
+CONFIGURAOBJ0 = $(CONFIGURA:<=w3i3mv\hi\)
+CONFIGURAOBJ = $(CONFIGURAOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\hi\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\hi\)
@@ -153,6 +165,8 @@ PLINTHOBJ0 = $(PLINTH:<=w3i3mv\ci\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\ci\)
 SWOBJ = $(SWOBJ0:>=.obj)
+CONFIGURAOBJ0 = $(CONFIGURA:<=w3i3mv\ci\)
+CONFIGURAOBJ = $(CONFIGURAOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\ci\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\ci\)
@@ -184,6 +198,8 @@ PLINTHOBJ0 = $(PLINTH:<=w3i3mv\ti\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\ti\)
 SWOBJ = $(SWOBJ0:>=.obj)
+CONFIGURAOBJ0 = $(CONFIGURA:<=w3i3mv\ti\)
+CONFIGURAOBJ = $(CONFIGURAOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\ti\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\ti\)
@@ -215,6 +231,8 @@ PLINTHOBJ0 = $(PLINTH:<=w3i3mv\wi\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\wi\)
 SWOBJ = $(SWOBJ0:>=.obj)
+CONFIGURAOBJ0 = $(CONFIGURA:<=w3i3mv\wi\)
+CONFIGURAOBJ = $(CONFIGURAOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\wi\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\wi\)
@@ -246,6 +264,8 @@ PLINTHOBJ0 = $(PLINTH:<=w3i3mv\we\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\we\)
 SWOBJ = $(SWOBJ0:>=.obj)
+CONFIGURAOBJ0 = $(CONFIGURA:<=w3i3mv\we\)
+CONFIGURAOBJ = $(CONFIGURAOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\we\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\we\)
