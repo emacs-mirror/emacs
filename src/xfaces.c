@@ -28,6 +28,11 @@ Boston, MA 02111-1307, USA.  */
 
 #include "charset.h"
 
+#include "frame.h"
+
+/* The number of face-id's in use (same for all frames).  */
+static int next_face_id;
+
 #ifdef HAVE_FACES
 
 #ifdef HAVE_X_WINDOWS
@@ -39,7 +44,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #include "buffer.h"
 #include "dispextern.h"
-#include "frame.h"
 #include "blockinput.h"
 #include "window.h"
 #include "intervals.h"
@@ -150,9 +154,6 @@ Boston, MA 02111-1307, USA.  */
    on all frames.  */
 
 /* Definitions and declarations.  */
-
-/* The number of face-id's in use (same for all frames).  */
-static int next_face_id;
 
 /* The number of the face to use to indicate the region.  */
 static int region_face;
@@ -1116,26 +1117,6 @@ recompute_basic_faces (f)
 
 /* Lisp interface. */
 
-DEFUN ("frame-face-alist", Fframe_face_alist, Sframe_face_alist, 1, 1, 0,
-       "")
-     (frame)
-     Lisp_Object frame;
-{
-  CHECK_FRAME (frame, 0);
-  return XFRAME (frame)->face_alist;
-}
-
-DEFUN ("set-frame-face-alist", Fset_frame_face_alist, Sset_frame_face_alist,
-       2, 2, 0, "")
-     (frame, value)
-     Lisp_Object frame, value;
-{
-  CHECK_FRAME (frame, 0);
-  XFRAME (frame)->face_alist = value;
-  return value;
-}
-
-
 DEFUN ("make-face-internal", Fmake_face_internal, Smake_face_internal, 1, 1, 0,
   "Create face number FACE-ID on all frames.")
   (face_id)
@@ -1277,14 +1258,6 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
 
   return Qnil;
 }
-
-DEFUN ("internal-next-face-id", Finternal_next_face_id, Sinternal_next_face_id,
-  0, 0, 0, "")
-  ()
-{
-  return make_number (next_face_id++);
-}
-
 /* Return the face id for name NAME on frame FRAME.
    (It should be the same for all frames,
    but it's as easy to use the "right" frame to look it up
@@ -1305,12 +1278,42 @@ face_name_id_number (f, name)
   CHECK_NUMBER (tem, 0);
   return XINT (tem);
 }
+
+#endif /* HAVE_FACES */
+
+
+DEFUN ("frame-face-alist", Fframe_face_alist, Sframe_face_alist, 1, 1, 0,
+       "")
+     (frame)
+     Lisp_Object frame;
+{
+  CHECK_FRAME (frame, 0);
+  return XFRAME (frame)->face_alist;
+}
+
+DEFUN ("set-frame-face-alist", Fset_frame_face_alist, Sset_frame_face_alist,
+       2, 2, 0, "")
+     (frame, value)
+     Lisp_Object frame, value;
+{
+  CHECK_FRAME (frame, 0);
+  XFRAME (frame)->face_alist = value;
+  return value;
+}
+
+DEFUN ("internal-next-face-id", Finternal_next_face_id, Sinternal_next_face_id,
+  0, 0, 0, "")
+  ()
+{
+  return make_number (next_face_id++);
+}
 
 /* Emacs initialization.  */
 
 void
 syms_of_xfaces ()
 {
+#ifdef HAVE_FACES
   Qface = intern ("face");
   staticpro (&Qface);
   Qmouse_face = intern ("mouse-face");
@@ -1323,14 +1326,15 @@ syms_of_xfaces ()
 The region is highlighted with this face\n\
 when Transient Mark mode is enabled and the mark is active.");
 
+  defsubr (&Smake_face_internal);
+  defsubr (&Sset_face_attribute_internal);
+#endif /* HAVE_FACES */
+
 #ifdef HAVE_X_WINDOWS
   defsubr (&Spixmap_spec_p);
 #endif
+
   defsubr (&Sframe_face_alist);
   defsubr (&Sset_frame_face_alist);
-  defsubr (&Smake_face_internal);
-  defsubr (&Sset_face_attribute_internal);
   defsubr (&Sinternal_next_face_id);
 }
-
-#endif /* HAVE_FACES */
