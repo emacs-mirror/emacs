@@ -1345,6 +1345,19 @@ If FRAME is nil, the current FRAME is used."
 	  ;; Put the geometry parameters at the end.
 	  ;; Copy default-frame-alist so that they go after it.
 	  (setq parameters (append parameters default-frame-alist parsed)))))
+
+  (if default-enable-multibyte-characters
+      ;; If an ASCII font is specified in PARAMETERS, we try to create
+      ;; a fontset from it, and use it for the new frame.
+      (condition-case nil
+	  (let ((font (cdr (assq 'font parameters))))
+	    (if (and font
+		     (not (query-fontset font)))
+		(setq parameters
+		      (cons (cons 'font (create-fontset-from-ascii-font font))
+			    parameters))))
+	(error nil)))
+
   (let (frame)
     (if (null global-face-data)
 	(progn
