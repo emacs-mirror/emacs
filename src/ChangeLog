@@ -1,3 +1,10 @@
+2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* editfns.c (lisp_time_argument): Provide externally.
+
+	* fileio.c (Fset_file_times): New function.
+	(syms_of_fileio): Intern and staticpro it.
+
 2004-04-27  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (x_produce_glyphs): Fix last change; handle newline in

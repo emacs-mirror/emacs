@@ -1,3 +1,12 @@
+2004-04-27  Kevin Ryde  <user42@zip.com.au>
+
+	* eshell/em-alias.el:
+	* eshell/em-dirs.el:
+	* eshell/em-hist.el:
+	* eshell/em-unix.el: Add "(require 'eshell)", to get necessary
+	features when M-x customize-group loads modules before the main
+	eshell.el.
+
 2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
 
 	* subr.el (momentary-string-display): Support EXIT-CHAR that is
