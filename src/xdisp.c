@@ -898,10 +898,12 @@ redisplay ()
 	    }
 	  goto update;
 	}
-      /* If highlighting the region, we can't just move the cursor.  */
+      /* If highlighting the region, or if the cursor is in the echo area,
+	 then we can't just move the cursor.  */
       else if (! (!NILP (Vtransient_mark_mode)
 		  && !NILP (current_buffer->mark_active))
-	       && NILP (w->region_showing))
+	       && NILP (w->region_showing)
+	       && !cursor_in_echo_area)
 	{
 	  pos = *compute_motion (tlbufpos, 0,
 				 XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0,
