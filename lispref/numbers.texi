@@ -39,22 +39,22 @@ where Emacs does not support them.
 @section Integer Basics
 
   The range of values for an integer depends on the machine.  The
-range is @minus{}8388608 to 8388607 (28 bits; i.e.,
+minimum range is @minus{}134217728 to 134217727 (28 bits; i.e.,
 @ifinfo 
 -2**27
 @end ifinfo
 @tex 
-$-2^{27}$ 
+$-2^{27}$
 @end tex
 to 
 @ifinfo 
-2**27 - 1)
+2**27 - 1),
 @end ifinfo
 @tex 
-$2^{27}-1$)
+$2^{27}-1$),
 @end tex
-on most machines, but some machines may have a wider range.  Many
-examples in this chapter assume an integer has 28 bits.
+but some machines may provide a wider range.  Many examples in this
+chapter assume an integer has 28 bits.
 @cindex overflow
 
   The Lisp reader reads an integer as a sequence of digits with optional
@@ -103,7 +103,7 @@ complement} notation.)
 1111  1111 1111  1111 1111  1111 1011
 @end example
 
-  In this implementation, the largest 24-bit binary integer is the
+  In this implementation, the largest 28-bit binary integer is the
 decimal integer 134,217,727.  In binary, it looks like this:
 
 @example
