@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (c) 1986, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu (Steve Gildea and others)
@@ -51,88 +51,144 @@
 
 (defconst fortran-mode-version "version 1.30.6")
 
+(defgroup fortran nil
+  "Fortran mode for Emacs"
+  :group 'languages)
+
+(defgroup fortran-indent nil
+  "Indentation variables in Fortran mode"
+  :prefix "fortran-"
+  :group 'fortran)
+
+(defgroup fortran-comment nil
+  "Comment-handling variables in Fortran mode"
+  :prefix "fortran-"
+  :group 'fortran)
+
+
 ;;;###autoload
-(defvar fortran-tab-mode-default nil
+(defcustom fortran-tab-mode-default nil
   "*Default tabbing/carriage control style for empty files in Fortran mode.
 A value of t specifies tab-digit style of continuation control.
 A value of nil specifies that continuation lines are marked
-with a character in column 6.")
+with a character in column 6."
+  :type 'boolean
+  :group 'fortran-indent)
 
 ;; Buffer local, used to display mode line.
-(defvar fortran-tab-mode-string nil
-  "String to appear in mode line when TAB format mode is on.")
+(defcustom fortran-tab-mode-string nil
+  "String to appear in mode line when TAB format mode is on."
+  :type '(choice (const nil) string)
+  :group 'fortran-indent)
 
-(defvar fortran-do-indent 3
-  "*Extra indentation applied to DO blocks.")
+(defcustom fortran-do-indent 3
+  "*Extra indentation applied to DO blocks."
+  :type 'integer
+  :group 'fortran-indent)
 
-(defvar fortran-if-indent 3
-  "*Extra indentation applied to IF blocks.")
+(defcustom fortran-if-indent 3
+  "*Extra indentation applied to IF blocks."
+  :type 'integer
+  :group 'fortran-indent)
 
-(defvar fortran-structure-indent 3
-  "*Extra indentation applied to STRUCTURE, UNION, MAP and INTERFACE blocks.")
+(defcustom fortran-structure-indent 3
+  "*Extra indentation applied to STRUCTURE, UNION, MAP and INTERFACE blocks."
+  :type 'integer
+  :group 'fortran-indent)
 
-(defvar fortran-continuation-indent 5
-  "*Extra indentation applied to Fortran continuation lines.")
+(defcustom fortran-continuation-indent 5
+  "*Extra indentation applied to Fortran continuation lines."
+  :type 'integer
+  :group 'fortran-indent)
 
-(defvar fortran-comment-indent-style 'fixed
+(defcustom fortran-comment-indent-style 'fixed
   "*nil forces comment lines not to be touched,
 'fixed makes fixed comment indentation to `fortran-comment-line-extra-indent'
 columns beyond `fortran-minimum-statement-indent-fixed' (for
 `indent-tabs-mode' of nil) or `fortran-minimum-statement-indent-tab' (for
 `indent-tabs-mode' of t), and 'relative indents to current
-Fortran indentation plus `fortran-comment-line-extra-indent'.")
+Fortran indentation plus `fortran-comment-line-extra-indent'."
+  :type '(radio (const nil) (const fixed) (const relative))
+  :group 'fortran-indent)
 
-(defvar fortran-comment-line-extra-indent 0
-  "*Amount of extra indentation for text within full-line comments.")
+(defcustom fortran-comment-line-extra-indent 0
+  "*Amount of extra indentation for text within full-line comments."
+  :type 'integer
+  :group 'fortran-indent
+  :group 'fortran-comment)
 
-(defvar comment-line-start nil
-  "*Delimiter inserted to start new full-line comment.")
+(defcustom comment-line-start nil
+  "*Delimiter inserted to start new full-line comment."
+  :type '(choice string (const nil))
+  :group 'fortran-comment)
 
-(defvar comment-line-start-skip nil
-  "*Regexp to match the start of a full-line comment.")
+(defcustom comment-line-start-skip nil
+  "*Regexp to match the start of a full-line comment."
+  :type '(choice string (const nil))
+  :group 'fortran-comment)
 
-(defvar fortran-minimum-statement-indent-fixed 6
-  "*Minimum statement indentation for fixed format continuation style.")
+(defcustom fortran-minimum-statement-indent-fixed 6
+  "*Minimum statement indentation for fixed format continuation style."
+  :type 'integer
+  :group 'fortran-indent)
 
-(defvar fortran-minimum-statement-indent-tab (max tab-width 6)
-  "*Minimum statement indentation for TAB format continuation style.")
+(defcustom fortran-minimum-statement-indent-tab (max tab-width 6)
+  "*Minimum statement indentation for TAB format continuation style."
+  :type 'integer
+  :group 'fortran-indent)
 
 ;; Note that this is documented in the v18 manuals as being a string
 ;; of length one rather than a single character.
 ;; The code in this file accepts either format for compatibility.
-(defvar fortran-comment-indent-char " "
+(defcustom fortran-comment-indent-char " "
   "*Single-character string inserted for Fortran comment indentation.
-Normally a space.")
+Normally a space."
+  :type 'string
+  :group 'fortran-comment)
 
-(defvar fortran-line-number-indent 1
+(defcustom fortran-line-number-indent 1
   "*Maximum indentation for Fortran line numbers.
-5 means right-justify them within their five-column field.")
+5 means right-justify them within their five-column field."
+  :type 'integer
+  :group 'fortran-indent)
 
-(defvar fortran-check-all-num-for-matching-do nil
-  "*Non-nil causes all numbered lines to be treated as possible DO loop ends.")
+(defcustom fortran-check-all-num-for-matching-do nil
+  "*Non-nil causes all numbered lines to be treated as possible DO loop ends."
+  :type 'boolean
+  :group 'fortran)
 
-(defvar fortran-blink-matching-if nil
+(defcustom fortran-blink-matching-if nil
   "*Non-nil causes \\[fortran-indent-line] on ENDIF statement to blink on matching IF.
-Also, from an ENDDO statement blink on matching DO [WHILE] statement.")
+Also, from an ENDDO statement blink on matching DO [WHILE] statement."
+  :type 'boolean
+  :group 'fortran)
 
-(defvar fortran-continuation-string "$"
+(defcustom fortran-continuation-string "$"
   "*Single-character string used for Fortran continuation lines.
 In fixed format continuation style, this character is inserted in
 column 6 by \\[fortran-split-line] to begin a continuation line.
 Also, if \\[fortran-indent-line] finds this at the beginning of a line, it will
 convert the line into a continuation line of the appropriate style.
-Normally $.")
+Normally $."
+  :type 'string
+  :group 'fortran)
 
-(defvar fortran-comment-region "c$$$"
+(defcustom fortran-comment-region "c$$$"
   "*String inserted by \\[fortran-comment-region]\
- at start of each line in region.")
+ at start of each line in region."
+  :type 'string
+  :group 'fortran-comment)
 
-(defvar fortran-electric-line-number t
+(defcustom fortran-electric-line-number t
   "*Non-nil causes line number digits to be moved to the correct column as\
- typed.")
+ typed."
+  :type 'boolean
+  :group 'fortran)
 
-(defvar fortran-startup-message t
-  "*Non-nil displays a startup message when Fortran mode is first called.")
+(defcustom fortran-startup-message t
+  "*Non-nil displays a startup message when Fortran mode is first called."
+  :type 'boolean
+  :group 'fortran)
 
 (defvar fortran-column-ruler-fixed
   "0   4 6  10        20        30        40        5\
@@ -160,8 +216,10 @@ This variable used in TAB format mode.")
   "Number of lines to scan to determine whether to use fixed or TAB format\
  style.")
 
-(defvar fortran-break-before-delimiters t
-  "*Non-nil causes `fortran-fill' to break lines before delimiters.")
+(defcustom fortran-break-before-delimiters t
+  "*Non-nil causes `fortran-fill' to break lines before delimiters."
+  :type 'boolean
+  :group 'fortran)
 
 (if fortran-mode-syntax-table
     ()

@@ -48,16 +48,25 @@
 
 ;;; Code:
 
-(defvar lisp-indent-maximum-backtracking 3
+(defgroup lisp-indent nil
+  "Indentation in Lisp"
+  :group 'lisp)
+
+
+(defcustom lisp-indent-maximum-backtracking 3
   "*Maximum depth to backtrack out from a sublist for structured indentation.
 If this variable is  0, no backtracking will occur and forms such as flet
-may not be correctly indented.")
+may not be correctly indented."
+  :type 'integer
+  :group 'lisp-indent)
 
-(defvar lisp-tag-indentation 1
+(defcustom lisp-tag-indentation 1
   "*Indentation of tags relative to containing list.
-This variable is used by the function `lisp-indent-tagbody'.")
+This variable is used by the function `lisp-indent-tagbody'."
+  :type 'integer
+  :group 'lisp-indent)
 
-(defvar lisp-tag-body-indentation 3
+(defcustom lisp-tag-body-indentation 3
   "*Indentation of non-tagged lines relative to containing list.
 This variable is used by the function `lisp-indent-tagbody' to indent normal
 lines (lines without tags).
@@ -65,7 +74,9 @@ The indentation is relative to the indentation of the parenthesis enclosing
 the special form.  If the value is t, the body of tags will be indented
 as a block at the same indentation as the first s-expression following
 the tag.  In this case, any forms before the first tag are indented
-by `lisp-body-indent'.")
+by `lisp-body-indent'."
+  :type 'integer
+  :group 'lisp-indent)
 
 
 ;;;###autoload

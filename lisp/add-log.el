@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 88, 93, 94, 1997 Free Software Foundation, Inc.
 
 ;; Keywords: maint
 
@@ -27,24 +27,43 @@
 
 ;;; Code:
 
-(defvar change-log-default-name nil
-  "*Name of a change log file for \\[add-change-log-entry].")
+(defgroup change-log nil
+  "Change log maintenance"
+  :group 'tools
+  :prefix "change-log-"
+  :prefix "add-log-")
 
-(defvar add-log-current-defun-function nil
+
+(defcustom change-log-default-name nil
+  "*Name of a change log file for \\[add-change-log-entry]."
+  :type '(choice (const :tag "default" nil)
+		 string)
+  :group 'change-log)
+
+(defcustom add-log-current-defun-function nil
   "\
 *If non-nil, function to guess name of current function from surrounding text.
 \\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
-instead) with no arguments.  It returns a string or nil if it cannot guess.")
+instead) with no arguments.  It returns a string or nil if it cannot guess."
+  :type 'boolean
+  :group 'change-log)
 
 ;;;###autoload
-(defvar add-log-full-name nil
+(defcustom add-log-full-name nil
   "*Full name of user, for inclusion in ChangeLog daily headers.
-This defaults to the value returned by the `user-full-name' function.")
+This defaults to the value returned by the `user-full-name' function."
+  :type '(choice (const :tag "Default" nil)
+		 string)
+  :group 'change-log)
 
 ;;;###autoload
-(defvar add-log-mailing-address nil
+(defcustom add-log-mailing-address nil
   "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
-This defaults to the value of `user-mail-address'.")
+This defaults to the value of `user-mail-address'."
+  :type '(choice (const :tag "Default" nil)
+		 string)
+  :group 'change-log)
+
 
 (defvar change-log-font-lock-keywords
   '(;;
@@ -361,9 +380,11 @@ Prefix arg means justify as well."
     (fill-region beg end justify)
     t))
 
-(defvar add-log-current-defun-header-regexp
+(defcustom add-log-current-defun-header-regexp
   "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[-_a-zA-Z]+\\)[ \t]*[:=]"
-  "*Heuristic regexp used by `add-log-current-defun' for unknown major modes.")
+  "*Heuristic regexp used by `add-log-current-defun' for unknown major modes."
+  :type 'regexp
+  :group 'change-log)
 
 ;;;###autoload
 (defun add-log-current-defun ()

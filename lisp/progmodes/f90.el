@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)
 
-;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>
 ;; Last Change: Oct. 14, 1996
@@ -148,54 +148,96 @@
   "Address of mailing list for F90 mode bugs.")
 
 ;; User options
-(defvar f90-do-indent 3
-  "*Extra indentation applied to DO blocks.")
 
-(defvar f90-if-indent 3
-  "*Extra indentation applied to IF, SELECT CASE, WHERE and FORALL blocks.")
+(defgroup f90 nil
+  "Fortran-90 mode"
+  :group 'fortran)
 
-(defvar f90-type-indent 3
-  "*Extra indentation applied to TYPE, INTERFACE and BLOCK DATA blocks.")
+(defgroup f90-indent nil
+  "Fortran-90 indentation"
+  :prefix "f90-"
+  :group 'f90)
 
-(defvar f90-program-indent 2
-  "*Extra indentation applied to PROGRAM/MODULE/SUBROUTINE/FUNCTION blocks.")
 
-(defvar f90-continuation-indent 5
-  "*Extra indentation applied to F90 continuation lines.")
+(defcustom f90-do-indent 3
+  "*Extra indentation applied to DO blocks."
+  :type 'integer
+  :group 'f90-indent)
 
-(defvar f90-comment-region "!!$"
+(defcustom f90-if-indent 3
+  "*Extra indentation applied to IF, SELECT CASE, WHERE and FORALL blocks."
+  :type 'integer
+  :group 'f90-indent)
+
+(defcustom f90-type-indent 3
+  "*Extra indentation applied to TYPE, INTERFACE and BLOCK DATA blocks."
+  :type 'integer
+  :group 'f90-indent)
+
+(defcustom f90-program-indent 2
+  "*Extra indentation applied to PROGRAM/MODULE/SUBROUTINE/FUNCTION blocks."
+  :type 'integer
+  :group 'f90-indent)
+
+(defcustom f90-continuation-indent 5
+  "*Extra indentation applied to F90 continuation lines."
+  :type 'integer
+  :group 'f90-indent)
+
+(defcustom f90-comment-region "!!$"
   "*String inserted by \\[f90-comment-region]\
- at start of each line in region.")
+ at start of each line in region."
+  :type 'string
+  :group 'f90-indent)
 
-(defvar f90-indented-comment-re "!"
-  "*Regexp saying which comments to be indented like code.")
+(defcustom f90-indented-comment-re "!"
+  "*Regexp saying which comments to be indented like code."
+  :type 'regexp
+  :group 'f90-indent)
 
-(defvar f90-directive-comment-re "!hpf\\$"
-  "*Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented.")
+(defcustom f90-directive-comment-re "!hpf\\$"
+  "*Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
+  :type 'regexp
+  :group 'f90-indent)
 
-(defvar f90-beginning-ampersand t
-  "*t makes automatic insertion of \& at beginning of continuation line.")
+(defcustom f90-beginning-ampersand t
+  "*t makes automatic insertion of \& at beginning of continuation line."
+  :type 'boolean
+  :group 'f90)
 
-(defvar f90-smart-end 'blink
+(defcustom f90-smart-end 'blink
   "*From an END statement, check and fill the end using matching block start.
 Allowed values are 'blink, 'no-blink, and nil, which determine
-whether to blink the matching beginning.")
+whether to blink the matching beginning."
+  :type '(choice (const blink) (const no-blink) (const nil))
+  :group 'f90)
 
-(defvar f90-break-delimiters "[-+\\*/><=,% \t]"
-  "*Regexp holding list of delimiters at which lines may be broken.")
+(defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
+  "*Regexp holding list of delimiters at which lines may be broken."
+  :type 'regexp
+  :group 'f90)
 
-(defvar f90-break-before-delimiters t
-  "*Non-nil causes `f90-do-auto-fill' to break lines before delimiters.")
+(defcustom f90-break-before-delimiters t
+  "*Non-nil causes `f90-do-auto-fill' to break lines before delimiters."
+  :type 'regexp
+  :group 'f90)
 
-(defvar f90-auto-keyword-case nil
+(defcustom f90-auto-keyword-case nil
   "*Automatic case conversion of keywords.
-  The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil")
+  The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil"
+  :type '(choice (const downcase-word) (const upcase-word)
+		 (const capitalize-word) (const nil))
+  :group 'f90)
 
-(defvar f90-leave-line-no nil
-  "*If nil, left-justify linenumbers.")
+(defcustom f90-leave-line-no nil
+  "*If nil, left-justify linenumbers."
+  :type 'boolean
+  :group 'f90)
 
-(defvar f90-startup-message t
-  "*Non-nil displays a startup message when F90 mode is first called.")
+(defcustom f90-startup-message t
+  "*Non-nil displays a startup message when F90 mode is first called."
+  :type 'boolean
+  :group 'f90)
 
 (defconst f90-keywords-re
   ;;("allocate" "allocatable" "assign" "assignment" "backspace" "block"
