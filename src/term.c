@@ -619,12 +619,12 @@ tty_clear_end_of_line (struct frame *f, int first_unused_hpos)
    return value is the number of bytes store in DST.  */
 
 int
-encode_terminal_code (coding, src, dst, src_len, dst_len, consumed)
-     struct coding_system *coding;
-     struct glyph *src;
-     int src_len;
-     unsigned char *dst;
-     int dst_len, *consumed;
+encode_terminal_code (struct coding_system *coding,
+                      struct glyph *src,
+                      unsigned char *dst,
+                      int src_len,
+                      int dst_len,
+                      int *consumed)
 {
   struct glyph *src_start = src, *src_end = src + src_len;
   unsigned char *dst_start = dst, *dst_end = dst + dst_len;
@@ -895,7 +895,8 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 
 	  /* The size of conversion buffer (1024 bytes) is surely
 	     sufficient for just one glyph.  */
-	  produced = encode_terminal_code (glyph, conversion_buffer, 1,
+	  produced = encode_terminal_code (FRAME_TERMINAL_CODING (f),
+                                           glyph, conversion_buffer, 1,
 					   conversion_buffer_size, &consumed);
 	}
 
