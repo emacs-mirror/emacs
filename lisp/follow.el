@@ -7,7 +7,7 @@
 ;; Created: 25 May 1995
 ;; Version: 1.7
 ;; Keywords: display, window, minor-mode
-;; Date: 27 May 1997
+;; Date: 4 Jun 1997
 
 ;; This file is part of GNU Emacs.
 
@@ -1961,7 +1961,7 @@ WINDOW can be an object or a window."
 ;; filter...
 
 (defadvice set-process-filter (before follow-set-process-filter activate)
-  "Ensure process output will be displayed correctly in Follow Mode buffers."
+  "Ensure process output will be displayed correctly in Follow Mode buffers.
 
 Follow Mode inserts its own process filter to do its
 magic stuff before the real process filter is called."
