@@ -39,7 +39,7 @@
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation)
   :charset-list '(ascii japanese-jisx0208-1978 japanese-jisx0208
 			   latin-jisx0201 japanese-jisx0212)
-  :plist '(mime-charset iso-2022-jp))
+  :mime-charset 'iso-2022-jp)
 
 (define-coding-system-alias 'junet 'iso-2022-jp)
 
@@ -59,14 +59,14 @@
 			latin-jisx0201 japanese-jisx0212
 			chinese-gb2312 korean-ksc5601
 			latin-iso8859-1 greek-iso8859-7)
-  :plist '(mime-charset iso-2022-jp-2))
+  :mime-charset 'iso-2022-jp-2)
 
 (define-coding-system 'japanese-shift-jis
   "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)"
   :coding-type 'shift-jis
   :mnemonic ?S
   :charset-list '(ascii katakana-jisx0201 japanese-jisx0208)
-  :plist '(mime-charset shift_jis))
+  :mime-charset 'shift_jis)
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
@@ -94,7 +94,7 @@
   :charset-list '(ascii latin-jisx0201 japanese-jisx0208
 			   japanese-jisx0208-1978
 			   katakana-jisx0201 japanese-jisx0212)
-  :plist '(mime-charset euc-jp))
+  :mime-charset 'euc-jp)
 
 (define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
 (define-coding-system-alias 'euc-japan 'japanese-iso-8bit)

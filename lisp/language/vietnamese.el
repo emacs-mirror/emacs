@@ -33,7 +33,7 @@
   :coding-type 'charset
   :mnemonic ?V
   :charset-list '(viscii)
-  :plist '(mime-charset viscii))
+  :mime-charset 'viscii)
 
 (define-coding-system-alias 'viscii 'vietnamese-viscii)
 

@@ -36,7 +36,7 @@
   :coding-type 'charset
   :mnemonic ?8
   :charset-list '(iso-8859-8)
-  :plist '(mime-charset iso-8859-8))
+  :mime-charset 'iso-8859-8)
 
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 

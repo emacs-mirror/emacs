@@ -44,7 +44,7 @@
 	       nil]
  :flags '(ascii-at-eol ascii-at-cntl 7-bit
 		       designation locking-shift single-shift init-at-bol)
- :plist '(mime-charset . iso-2022-cn))
+ :mime-charset 'iso-2022-cn)
 
 (define-coding-system-alias 'chinese-iso-7bit 'iso-2022-cn)
 
@@ -63,7 +63,7 @@
 		      chinese-cns11643-6 chinese-cns11643-7)]
   :flags '(ascii-at-eol ascii-at-cntl 7-bit
 			designation locking-shift single-shift init-at-bol)
-  :plist '(mime-charset iso-2022-cn-ext))
+  :mime-charset 'iso-2022-cn-ext)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,7 +76,7 @@
   :mnemonic ?c
   :charset-list '(ascii chinese-gb2312)
   :designation [ascii chinese-gb2312 nil nil]
-  :plist '(mime-charset cn-gb))
+  :mime-charset 'cn-gb)
 
 (define-coding-system-alias 'cn-gb-2312 'chinese-iso-8bit)
 (define-coding-system-alias 'euc-china 'chinese-iso-8bit)
@@ -89,7 +89,7 @@
  :coding-type 'utf-8
  :mnemonic ?z
  :charset-list '(ascii chinese-gb2312)
- :plist '(mime-charset hz-gb-2312)
+ :mime-charset 'hz-gb-2312
  :post-read-conversion 'post-read-decode-hz
  :pre-write-conversion 'pre-write-encode-hz)
 
@@ -133,7 +133,7 @@
   :coding-type 'charset
   :mnemonic ?B 
   :charset-list '(ascii big5)
-  :plist '(mime-charset big5))
+  :mime-charset 'big5)
 
 (define-coding-system-alias 'big5 'chinese-big5)
 (define-coding-system-alias 'cn-big5 'chinese-big5)
@@ -171,7 +171,7 @@
 					  chinese-cns11643-5
 					  chinese-cns11643-6
 					  chinese-cns11643-7) nil]
-  :plist '(mime-charset euc-tw))
+  :mime-charset 'euc-tw)
 
 (define-coding-system-alias 'euc-taiwan 'euc-tw)
 

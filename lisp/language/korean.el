@@ -34,7 +34,7 @@
   :mnemonic ?K
   :designation [ascii korean-ksc5601 nil nil]
   :charset-list '(ascii korean-ksc5601)
-  :plist '(mime-charset euc-kr))
+  :mime-charset 'euc-kr)
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
@@ -47,7 +47,7 @@
   :flags '(ascii-at-eol ascii-at-cntl 7-bit designation locking-shift
 			designation-bol)
   :charset-list '(ascii korean-ksc5601)
-  :plist '(mime-charset iso-2022-kr))
+  :mime-charset 'iso-2022-kr)
 
 (define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
 
