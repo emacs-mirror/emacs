@@ -71,6 +71,12 @@ It is useful to set this variable in the site customization file.")
   "*Regexp to match Header fields that Rmail should normally hide.")
 
 ;;;###autoload
+(defvar rmail-displayed-headers nil
+  "*Regexp to match Header fields that Rmail should display.
+If nil, display all header fields except those matched by
+`rmail-ignored-headers'.")
+
+;;;###autoload
 (defvar rmail-retry-ignored-headers nil "\
 *Headers that should be stripped when retrying a failed message.")
 
@@ -948,13 +954,14 @@ It returns t if it got any new messages."
 	    (if (file-directory-p file)
 		(setq file (expand-file-name (user-login-name)
 					     file)))))
-      (if popmail
-	  (message "Getting mail from post office ...")
-	(if (or (and (file-exists-p tofile)
-		     (/= 0 (nth 7 (file-attributes tofile))))
-		(and (file-exists-p file)
-		     (/= 0 (nth 7 (file-attributes file)))))
-	    (message "Getting mail from %s..." file)))
+      (cond (popmail
+	     (message "Getting mail from post office ..."))
+	    ((and (file-exists-p tofile)
+		  (/= 0 (nth 7 (file-attributes tofile))))
+	     (message "Getting mail from %s..." tofile))
+	    ((and (file-exists-p file)
+		  (/= 0 (nth 7 (file-attributes file))))
+	     (message "Getting mail from %s..." file)))
       ;; Set TOFILE if have not already done so, and
       ;; rename or copy the file FILE to TOFILE if and as appropriate.
       (cond ((not renamep)
@@ -1220,22 +1227,42 @@ It returns t if it got any new messages."
       (narrow-to-region (point) (- (buffer-size) delta)))
     (goto-char (point-min))
     (if rmail-message-filter (funcall rmail-message-filter))
-    (if rmail-ignored-headers (rmail-clear-headers))))
+    (if (or rmail-displayed-headers rmail-ignored-headers)
+	(rmail-clear-headers))))
 
 (defun rmail-clear-headers (&optional ignored-headers)
-  (or ignored-headers (setq ignored-headers rmail-ignored-headers))
+  "Delete all header fields that Rmail should not show.
+If the optional argument IGNORED-HEADERS is non-nil,
+delete all header fields whose names match that regexp.
+Otherwise, if `rmail-displayed-headers' is non-nil,
+delete all header fields *except* those whose names match that regexp.
+Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
   (if (search-forward "\n\n" nil t)
-      (save-restriction
-	(narrow-to-region (point-min) (point))
-	(let ((buffer-read-only nil))
-	  (while (let ((case-fold-search t))
-		   (goto-char (point-min))
-		   (re-search-forward ignored-headers nil t))
-	    (beginning-of-line)
-	    (delete-region (point)
-			   (progn (re-search-forward "\n[^ \t]")
-				  (forward-char -1)
-				  (point))))))))
+      (if (and rmail-displayed-headers (null ignored-headers))
+	  (save-restriction
+	    (narrow-to-region (point-min) (point))
+	    (let ((buffer-read-only nil) lim)
+	      (goto-char (point-min))
+	      (while (save-excursion
+		       (re-search-forward "\n[^ \t]")
+		       (and (not (eobp))
+			    (setq lim (1- (point)))))
+		(if (save-excursion
+		      (re-search-forward rmail-displayed-headers lim t))
+		    (goto-char lim)
+		  (delete-region (point) lim))))
+	    (goto-char (point-min)))
+	(or ignored-headers (setq ignored-headers rmail-ignored-headers))
+	(save-restriction
+	  (narrow-to-region (point-min) (point))
+	  (let ((buffer-read-only nil))
+	    (while (let ((case-fold-search t))
+		     (goto-char (point-min))
+		     (re-search-forward ignored-headers nil t))
+	      (beginning-of-line)
+	      (delete-region (point)
+			     (progn (re-search-forward "\n[^ \t]")
+				    (1- (point))))))))))
 
 (defun rmail-toggle-header ()
   "Show original message header if pruned header currently shown, or vice versa."
@@ -1312,8 +1339,8 @@ It returns t if it got any new messages."
       (setq blurb (concat (substring blurb 0 (match-beginning 0)) ","
 			  (substring blurb (match-end 0)))))
     (setq mode-line-process
-	  (concat " " rmail-current-message "/" rmail-total-messages
-		  blurb))))
+	  (format " %d/%d%s"
+		  rmail-current-message rmail-total-messages blurb))))
 
 ;; Turn an attribute of a message on or off according to STATE.
 ;; ATTR is the name of the attribute, as a string.
@@ -2251,8 +2278,13 @@ typically for purposes of moderating a list."
 			       address
 			     (mapconcat 'identity address ",\n\t"))
 		    "\n")
+	    ;; Expand abbrevs in the recipients.
 	    (save-excursion
-	      (expand-mail-aliases before (point))))
+	      (if (featurep 'mailabbrev)
+		  (progn
+		    (mail-abbrevs-setup)
+		    (expand-region-abbrevs before (point) t))
+		(expand-mail-aliases before (point)))))
 	  ;;>> Set up comment, if any.
 	  (if (and (sequencep comment) (not (zerop (length comment))))
 	      (let ((before (point))
