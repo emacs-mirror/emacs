@@ -95,6 +95,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
 extern Widget Xt_app_shell;
+extern void free_frame_menubar ();
 #endif /* USE_X_TOOLKIT */
 
 #ifdef HAVE_X11
@@ -4923,6 +4924,7 @@ x_destroy_window (f)
   XDestroyWindow (XDISPLAY f->display.x->window_desc);
 #ifdef USE_X_TOOLKIT
   XtDestroyWidget (f->display.x->widget);
+  free_frame_menubar (f);
 #endif /* USE_X_TOOLKIT */
 
   free_frame_faces (f);
