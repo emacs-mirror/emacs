@@ -316,7 +316,7 @@ Has a preference of looking backwards."
 		       (skip-chars-forward " ")
 		       (buffer-substring (point)
 					 (progn (forward-sexp 1) (point))))))
-		((and (memq major-mode '(c-mode 'c++-mode))
+		((and (memq major-mode '(c-mode c++-mode c++-c-mode))
 		      (save-excursion (beginning-of-line)
 				      ;; Use eq instead of = here to avoid
 				      ;; error when at bob and char-after
@@ -332,7 +332,7 @@ Has a preference of looking backwards."
 		 (skip-chars-forward " \t")
 		 (buffer-substring (point)
 				   (progn (forward-sexp 1) (point))))
-		((memq major-mode '(c-mode 'c++-mode))
+		((memq major-mode '(c-mode c++-mode c++-c-mode))
 		 (beginning-of-line)
 		 ;; See if we are in the beginning part of a function,
 		 ;; before the open brace.  If so, advance forward.
