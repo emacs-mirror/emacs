@@ -6575,7 +6575,12 @@ realize_default_face (f)
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
   if (NILP (lface))
-    abort ();
+  {
+       Lisp_Object frame;
+       XSETFRAME (frame, f);
+       lface = Finternal_make_lisp_face (Qdefault, frame);
+  }
+
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
