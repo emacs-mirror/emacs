@@ -62,62 +62,62 @@
 (defcustom pong-blank-color "black"
   "*Color used for background."
   :group 'pong
-  :type '(string))
+  :type 'color)
 
 (defcustom pong-bat-color "yellow"
   "*Color used for bats."
   :group 'pong
-  :type '(string))
+  :type 'color)
 
 (defcustom pong-ball-color "red"
   "*Color used for the ball."
   :group 'pong
-  :type '(string))
+  :type 'color)
 
 (defcustom pong-border-color "white"
   "*Color used for pong balls."
   :group 'pong
-  :type '(string))
+  :type 'color)
 
 (defcustom pong-left-key "4"
   "*Alternate key to press for bat 1 to go up (primary one is [left])."
   :group 'pong
-  :type '(vector))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-right-key "6"
   "*Alternate key to press for bat 1 to go down (primary one is [right])."
   :group 'pong
-  :type '(vector))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-up-key "8"
   "*Alternate key to press for bat 2 to go up (primary one is [up])."
   :group 'pong
-  :type '(vector))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-down-key "2"
   "*Alternate key to press for bat 2 to go down (primary one is [down])."
   :group 'pong
-  :type '(vector))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-quit-key "q"
   "*Key to press to quit pong."
   :group 'pong
-  :type '(vector))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-pause-key "p"
   "Key to press to pause pong."
   :group 'pong
-  :type '(vector))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-resume-key "p"
   "*Key to press to resume pong."
   :group 'pong
-  :type '(vector))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-timer-delay 0.1
   "*Time to wait between every cycle."
   :group 'pong
-  :type '(integer))
+  :type 'number)
 
 
 ;;; This is black magic.  Define colors used
