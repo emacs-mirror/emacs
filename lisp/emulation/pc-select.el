@@ -55,7 +55,7 @@
 ;; for additional motif keybindings.
 ;; Thanks to jvromans@squirrel.nl (Johan Vromans) for a bug report
 ;; concerning setting of this-command.
-;; Dan Nicolaescu <done@nexus.sorostm.ro> suggested suppressing the
+;; Dan Nicolaescu <done@ece.arizona.ro> suggested suppressing the
 ;; scroll-up/scroll-down error.
 ;; Eli Barzilay (eli@cs.bgu.ac.il) suggested the sexps functions and
 ;; keybindings. 
@@ -77,22 +77,32 @@
 ;;
 
 ;;;; Customization:
+(defgroup pc-select nil
+  "Emulate pc bindings."
+  :prefix "pc-select"
+  :group 'editing-basics)
 
-(defvar pc-select-override-scroll-error t
+(defcustom pc-select-override-scroll-error t
   "*Non-nil means don't generate error on scrolling past edge of buffer.
 This variable applies in PC Selection mode only.
 The scroll commands normally generate an error if you try to scroll
 past the top or bottom of the buffer.  This is annoying when selecting
 text with these commands.  If you set this variable to non-nil, these
-errors are suppressed.")
+errors are suppressed."
+  :type 'boolean
+  :group 'pc-select)
 
-(defvar pc-select-selection-keys-only nil
+(defcustom pc-select-selection-keys-only nil
   "*Non-nil means only bind the basic selection keys when started.
 Other keys that emulate pc-behavior will be untouched.
-This gives mostly Emacs-like behaviour with only the selection keys enabled.")
+This gives mostly Emacs-like behaviour with only the selection keys enabled."
+  :type 'boolean
+  :group 'pc-select)
 
-(defvar pc-select-meta-moves-sexps nil
-  "*Non-nil means move sexp-wise with Meta key, otherwise move word-wise.")
+(defcustom pc-select-meta-moves-sexps nil
+  "*Non-nil means move sexp-wise with Meta key, otherwise move word-wise."
+  :type 'boolean
+  :group 'pc-select)
 
 ;;;;
 ;; misc
@@ -750,4 +760,18 @@ but before calling pc-selection-mode):
   (setq mark-even-if-inactive t)
   (delete-selection-mode 1)
 )
+
+;;;###autoload
+(defcustom pc-selection-mode nil
+  "Toggle PC Selection mode.
+Change mark behaviour to emulate Motif, MAC or MS-Windows cut and paste style,
+and cursor movement commands.
+This mode enables Delete Selection mode and Transient Mark mode.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	(if value (pc-selection-mode)))
+  :type 'boolean
+  :group 'pc-select
+  :require 'pc-select)
+
 ;;; pc-select.el ends here
