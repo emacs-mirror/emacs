@@ -292,6 +292,12 @@ int fatal_error_code;
 /* Nonzero if handling a fatal error already */
 int fatal_error_in_progress;
 
+/* If non-null, call this function from fata_error_signal before
+   committing suicide.  */
+
+void (*fatal_error_signal_hook) P_ ((void));
+
+
 #ifdef SIGUSR1
 SIGTYPE
 handle_USR1_signal (sig)
@@ -351,6 +357,10 @@ fatal_error_signal (sig)
 #ifndef MSDOS
   sigunblock (sigmask (fatal_error_code));
 #endif
+
+  if (fatal_error_signal_hook)
+    fatal_error_signal_hook ();
+  
   kill (getpid (), fatal_error_code);
 #endif /* not VMS */
 }
@@ -1940,6 +1950,7 @@ This function exists on systems that use HAVE_SHM.")
   extern char my_edata[];
   Lisp_Object tem;
 
+  check_pure_size ();
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -1973,7 +1984,9 @@ You must run Emacs in batch mode in order to dump it.")
   extern char my_edata[];
   Lisp_Object tem;
   Lisp_Object symbol;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
+
+  check_pure_size ();
 
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
