@@ -801,11 +801,12 @@ they print into the buffer named @var{buffer-name}, which is first
 created if necessary, and put into Help mode.  Finally, the buffer is
 displayed in some window, but not selected.
 
-If the @var{forms} do not change the major mode in the output buffer, so
-that it is still Help mode at the end of their execution, then
+If the @var{forms} do not change the major mode in the output buffer,
+so that it is still Help mode at the end of their execution, then
 @code{with-output-to-temp-buffer} makes this buffer read-only at the
-end, and also scans it for function and variable names to make them into
-clickable cross-references.
+end, and also scans it for function and variable names to make them
+into clickable cross-references.  @xref{Documentation Tips, , Tips for
+Documentation Strings}.
 
 The string @var{buffer-name} specifies the temporary buffer, which
 need not already exist.  The argument must be a string, not a buffer.
