@@ -284,7 +284,13 @@ main (argc, argv)
   if (cwd == 0)
     {
       /* getwd puts message in STRING if it fails.  */
-      fprintf (stderr, "%s: %s (%s)\n", argv[0], string, strerror (errno));
+      fprintf (stderr, "%s: %s (%s)\n", argv[0],
+#ifdef BSD_SYSTEM
+	       string,
+#else
+	       "Cannot get current working directory",
+#endif
+	       strerror (errno));
       exit (1);
     }
 
@@ -333,6 +339,8 @@ main (argc, argv)
 #include <sys/msg.h>
 #include <sys/utsname.h>
 #include <stdio.h>
+#include <errno.h>
+extern int errno;
 
 char *getwd (), *getcwd (), *getenv ();
 struct utsname system_name;
@@ -408,7 +416,12 @@ main (argc, argv)
     }
   else
     {
+#ifdef BSD_SYSTEM
       fprintf (stderr, "%s: %s\n", argv[0], cwd);
+#else
+      fprintf (stderr, "%s: Cannot get current working directory: %s\n",
+	       argv[0], strerror (errno));
+#endif
       exit (1);
     }
 
