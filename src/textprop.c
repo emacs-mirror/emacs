@@ -643,6 +643,7 @@ Return t if any property value actually changed, nil otherwise.")
 	  if (got >= len)
 	    return Qnil;
 	  len -= got;
+	  i = next_interval (i);
 	}
       else
 	{
@@ -815,6 +816,7 @@ Return t if any property was actually removed, nil otherwise.")
 	  if (got >= len)
 	    return Qnil;
 	  len -= got;
+	  i = next_interval (i);
 	}
       /* Split away the beginning of this interval; what we don't
 	 want to modify.  */
