@@ -748,7 +748,7 @@ And here is the setup for RefTeX:
 
 If DERIVE is t, RefTeX will try to derive a sensible label from context.
 A section label for example will be derived from the section heading.
-The conversion of the context to a legal label is governed by the
+The conversion of the context to a valid label is governed by the
 specifications given in `reftex-derive-label-parameters'.
 If RefTeX fails to derive a label, it will prompt the user.
 If DERIVE is nil, the label generated will consist of the prefix and a
@@ -791,7 +791,7 @@ e (equation), n (footnote), N (endnote), plus any definitions in
                         (string :tag "selected label types" ""))))
 
 (defcustom reftex-string-to-label-function 'reftex-string-to-label
-  "Function to turn an arbitrary string into a legal label.
+  "Function to turn an arbitrary string into a valid label.
 RefTeX's default function uses the variable `reftex-derive-label-parameters'."
   :group 'reftex-making-and-inserting-labels
   :type 'symbol)
@@ -799,7 +799,7 @@ RefTeX's default function uses the variable `reftex-derive-label-parameters'."
 (defcustom reftex-translate-to-ascii-function 'reftex-latin1-to-ascii
   "Filter function which will process a context string before it is used
 to derive a label from it.  The intended application is to convert ISO or
-Mule characters into something legal in labels.  The default function
+Mule characters into something valid in labels.  The default function
 removes the accents from Latin-1 characters.  X-Symbol (>=2.6) sets this
 variable to the much more general `x-symbol-translate-to-ascii'."
   :group 'reftex-making-and-inserting-labels
@@ -1227,7 +1227,7 @@ phrase buffer.
 
 The final entry may also be a symbol if this entry has a association
 in the variable `reftex-index-macros-builtin' to specify the main
-indexing package you are using.  Legal values are currently
+indexing package you are using.  Valid values are currently
 default         The LaTeX default - unnecessary to specify this one
 multind         The multind.sty package
 index           The index.sty package
@@ -1282,7 +1282,7 @@ DEFAULT-TAG: This is the tag to be used if the macro requires a TAG argument.
 When working with multiple indexes, RefTeX queries for an index tag when
 creating index entries or displaying a specific index.  This variable controls
 the default offered for these queries.  The default can be selected with RET
-during selection or completion.  Legal values of this variable are:
+during selection or completion.  Valid values of this variable are:
 
 nil       Do not provide a default index
 \"tag\"     The default index tag given as a string, e.g. \"idx\".
@@ -1527,9 +1527,9 @@ This is a list of items, each item is like: (TYPE . (DEF-EXT OTHER-EXT ...))
 
 TYPE:       File type like \"bib\" or \"tex\".
 DEF-EXT:    The default extension for that file type, like \".tex\" or \".bib\".
-OTHER-EXT:  Any number of other legal extensions for this file type.
+OTHER-EXT:  Any number of other valid extensions for this file type.
 
-When a files is searched and it does not have any of the legal extensions,
+When a files is searched and it does not have any of the valid extensions,
 we try the default extension first, and then the naked file name.
 
 If you are using AUCTeX, you also need to add new extensions to

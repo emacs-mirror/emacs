@@ -7,6 +7,8 @@
 	* progmodes/cperl-mode.el, progmodes/idlw-shell.el,
 	progmodes/idlwave.el, progmodes/vhdl-mode.el: Replace `legal' with
 	`valid'.
+	* textmodes/reftex-vars.el, textmodes/reftex.el: Replace `legal'
+	with `valid'.
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 

@@ -1425,7 +1425,7 @@ Valid actions are: readable, restore, read, kill, write."
 
 (defun reftex-locate-file (file type master-dir &optional die)
   "Find FILE of type TYPE in MASTER-DIR or on the path associcted with TYPE.
-If the file does not have any of the legal extensions for TYPE,
+If the file does not have any of the valid extensions for TYPE,
 try first the default extension and only then the naked file name.
 When DIE is non-nil, throw an error if file not found."
   (let* ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
