@@ -1212,8 +1212,6 @@ cmd_error_internal (data, context)
      yet, or we're not interactive, it's best to dump this message out
      to stderr and exit.  */
   if (!sf->glyphs_initialized_p
-      /* This is the case of the frame dumped with Emacs, when we're
-	 running under a window system.  */
       || FRAME_INITIAL_P (sf)
       || noninteractive)
     {
