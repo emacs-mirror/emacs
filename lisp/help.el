@@ -453,7 +453,8 @@ With numeric argument, display information on correspondingly older changes."
 (defun view-order-manuals ()
   "Display the Emacs ORDERS file."
   (interactive)
-  (find-file-read-only (expand-file-name "ORDERS" data-directory)))
+  (find-file-read-only (expand-file-name "ORDERS" data-directory))
+  (goto-address))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
