@@ -1,3 +1,8 @@
+2002-09-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* syntax.c (skip_chars): Fix previous change.
+	(skip_syntaxes): Fix previous change.
+
 2002-09-06  Dave Love  <fx@gnu.org>
 
 	* config.in: Restore it.
