@@ -1,3 +1,8 @@
+2000-10-01  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Call
+	`recenter' with an arg to prevent redrawing the display.
+
 2000-09-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Prettier.
