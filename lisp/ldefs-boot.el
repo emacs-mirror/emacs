@@ -78,7 +78,7 @@ name
 
 (autoload (quote ada-mode) "ada-mode" "\
 Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2003/10/02 10:14:54 $.
+This version was built on $Date: 2003/10/04 08:57:35 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
@@ -25890,7 +25890,7 @@ Zone-mode does two things:
 ;;;;;;  "language/malayalam.el" "language/misc-lang.el" "language/romanian.el"
 ;;;;;;  "language/slovak.el" "language/tamil.el" "language/thai.el"
 ;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
-;;;;;;  "loaddefs-boot.el" "loadup.el" "mail/blessmail.el" "mail/mailheader.el"
+;;;;;;  "ldefs-boot.el" "loadup.el" "mail/blessmail.el" "mail/mailheader.el"
 ;;;;;;  "mail/mailpost.el" "mail/mspools.el" "mail/rfc2368.el" "mail/rfc822.el"
 ;;;;;;  "mail/rmail-spam-filter.el" "mail/uce.el" "mail/vms-pmail.el"
 ;;;;;;  "mh-e/mh-alias.el" "mh-e/mh-customize.el" "mh-e/mh-funcs.el"
