@@ -463,7 +463,7 @@ Algebraic manipulation features, including symbolic calculus.
 Moving data to and from regular editing buffers.
 
 @item
-``Embedded mode'' for manipulating Calc formulas and data directly
+Embedded mode for manipulating Calc formulas and data directly
 inside any editing buffer.
 
 @item
@@ -766,7 +766,7 @@ To exit from Calc, press @kbd{q} or @kbd{M-# c} again.
 @noindent
 Calc has several user interfaces that are specialized for
 different kinds of tasks.  As well as Calc's standard interface,
-there are Quick Mode, Keypad Mode, and Embedded Mode.
+there are Quick mode, Keypad mode, and Embedded mode.
 
 @menu
 * Starting Calc::
@@ -801,7 +801,7 @@ doesn't matter for @kbd{M-#}) that says which Calc interface you
 want to use.
 
 To get Calc's standard interface, type @kbd{M-# c}.  To get
-Keypad Mode, type @kbd{M-# k}.  Type @kbd{M-# ?} to get a brief
+Keypad mode, type @kbd{M-# k}.  Type @kbd{M-# ?} to get a brief
 list of the available options, and type a second @kbd{?} to get
 a complete list.
 
@@ -814,7 +814,7 @@ function key twice is just like hitting @kbd{M-# M-#}.)
 
 If @kbd{M-#} doesn't work for you, you can always type explicit
 commands like @kbd{M-x calc} (for the standard user interface) or
-@w{@kbd{M-x calc-keypad}} (for Keypad Mode).  First type @kbd{M-x}
+@w{@kbd{M-x calc-keypad}} (for Keypad mode).  First type @kbd{M-x}
 (that's Meta with the letter @kbd{x}), then, at the prompt,
 type the full command (like @kbd{calc-keypad}) and press Return.
 
@@ -917,11 +917,11 @@ way to switch out of Calc momentarily to edit your file; type
 @subsection Quick Mode (Overview)
 
 @noindent
-@dfn{Quick Mode} is a quick way to use Calc when you don't need the
+@dfn{Quick mode} is a quick way to use Calc when you don't need the
 full complexity of the stack and trail.  To use it, type @kbd{M-# q}
 (@code{quick-calc}) in any regular editing buffer.
 
-Quick Mode is very simple:  It prompts you to type any formula in
+Quick mode is very simple:  It prompts you to type any formula in
 standard algebraic notation (like @samp{4 - 2/3}) and then displays
 the result at the bottom of the Emacs screen (@mathit{3.33333333333}
 in this case).  You are then back in the same editing buffer you
@@ -930,7 +930,7 @@ again to do another quick calculation.  The result of the calculation
 will also be in the Emacs ``kill ring'' so that a @kbd{C-y} command
 at this point will yank the result into your editing buffer.
 
-Calc mode settings affect Quick Mode, too, though you will have to
+Calc mode settings affect Quick mode, too, though you will have to
 go into regular Calc (with @kbd{M-# c}) to change the mode settings.
 
 @c [fix-ref Quick Calculator mode]
@@ -940,12 +940,12 @@ go into regular Calc (with @kbd{M-# c}) to change the mode settings.
 @subsection Keypad Mode (Overview)
 
 @noindent
-@dfn{Keypad Mode} is a mouse-based interface to the Calculator.
+@dfn{Keypad mode} is a mouse-based interface to the Calculator.
 It is designed for use with terminals that support a mouse.  If you
-don't have a mouse, you will have to operate keypad mode with your
+don't have a mouse, you will have to operate Keypad mode with your
 arrow keys (which is probably more trouble than it's worth).
 
-Type @kbd{M-# k} to turn Keypad Mode on or off.  Once again you
+Type @kbd{M-# k} to turn Keypad mode on or off.  Once again you
 get two new windows, this time on the righthand side of the screen
 instead of at the bottom.  The upper window is the familiar Calc
 Stack; the lower window is a picture of a typical calculator keypad.
@@ -981,12 +981,12 @@ Stack; the lower window is a picture of a typical calculator keypad.
                                         |-----+-----+-----+-----+-----+
 @end smallexample
 
-Keypad Mode is much easier for beginners to learn, because there
+Keypad mode is much easier for beginners to learn, because there
 is no need to memorize lots of obscure key sequences.  But not all
 commands in regular Calc are available on the Keypad.  You can
 always switch the cursor into the Calc stack window to use
 standard Calc commands if you need.  Serious Calc users, though,
-often find they prefer the standard interface over Keypad Mode.
+often find they prefer the standard interface over Keypad mode.
 
 To operate the Calculator, just click on the ``buttons'' of the
 keypad using your left mouse button.  To enter the two numbers
@@ -999,13 +999,13 @@ keypad change to show other sets of commands, such as advanced
 math functions, vector operations, and operations on binary
 numbers.
 
-Because Keypad Mode doesn't use the regular keyboard, Calc leaves
+Because Keypad mode doesn't use the regular keyboard, Calc leaves
 the cursor in your original editing buffer.  You can type in
 this buffer in the usual way while also clicking on the Calculator
-keypad.  One advantage of Keypad Mode is that you don't need an
+keypad.  One advantage of Keypad mode is that you don't need an
 explicit command to switch between editing and calculating.
 
-If you press @kbd{M-# b} first, you get a full-screen Keypad Mode
+If you press @kbd{M-# b} first, you get a full-screen Keypad mode
 (@code{full-calc-keypad}) with three windows:  The keypad in the lower
 left, the stack in the lower right, and the trail on top.
 
@@ -1043,7 +1043,7 @@ itself.
 @subsection Embedded Mode (Overview)
 
 @noindent
-@dfn{Embedded Mode} is a way to use Calc directly from inside an
+@dfn{Embedded mode} is a way to use Calc directly from inside an
 editing buffer.  Suppose you have a formula written as part of a
 document like this:
 
@@ -1060,7 +1060,7 @@ is
 @noindent
 and you wish to have Calc compute and format the derivative for
 you and store this derivative in the buffer automatically.  To
-do this with Embedded Mode, first copy the formula down to where
+do this with Embedded mode, first copy the formula down to where
 you want the result to be:
 
 @smallexample
@@ -1099,7 +1099,7 @@ is
 @end smallexample
 
 To make this look nicer, you might want to press @kbd{d =} to center
-the formula, and even @kbd{d B} to use ``big'' display mode.
+the formula, and even @kbd{d B} to use Big display mode.
 
 @smallexample
 @group
@@ -1139,7 +1139,7 @@ righthand label:  Type @kbd{d @} (1) @key{RET}}.
 @end group
 @end smallexample
 
-To leave Embedded Mode, type @kbd{M-# e} again.  The mode line
+To leave Embedded mode, type @kbd{M-# e} again.  The mode line
 and keyboard will revert to the way they were before.  (If you have
 actually been trying this as you read along, you'll want to press
 @kbd{M-# 0} [with the digit zero] now to reset the modes you changed.)
@@ -1154,7 +1154,7 @@ A slope of one-third corresponds to an angle of 1 degrees.
 @end smallexample
 
 Place the cursor on the @samp{1}, then type @kbd{M-# w} to enable
-Embedded Mode on that number.  Now type @kbd{3 /} (to get one-third),
+Embedded mode on that number.  Now type @kbd{3 /} (to get one-third),
 and @kbd{I T} (the Inverse Tangent converts a slope into an angle),
 then @w{@kbd{M-# w}} again to exit Embedded mode.
 
@@ -1221,7 +1221,7 @@ move it out of that window.
 Control whether @kbd{M-# c} and @kbd{M-# k} use the full screen.
 
 @item Q
-Use Quick Mode for a single short calculation.
+Use Quick mode for a single short calculation.
 
 @item K
 Turn Calc Keypad mode on or off.
@@ -1270,7 +1270,7 @@ Yank a value from the Calculator into the current editing buffer.
 @end iftex
 
 @noindent
-Commands for use with Embedded Mode:
+Commands for use with Embedded mode:
 
 @table @kbd
 @item A
@@ -1478,9 +1478,9 @@ to skip on to the rest of this manual.
 
 @c [fix-ref Embedded Mode]
 This tutorial describes the standard user interface of Calc only.
-The ``Quick Mode'' and ``Keypad Mode'' interfaces are fairly
+The Quick mode and Keypad mode interfaces are fairly
 self-explanatory.  @xref{Embedded Mode}, for a description of
-the ``Embedded Mode'' interface.
+the Embedded mode interface.
 
 @ifinfo
 The easiest way to read this tutorial on-line is to have two windows on
@@ -1940,8 +1940,8 @@ entire stack.)
 
 @noindent
 If you are not used to RPN notation, you may prefer to operate the
-Calculator in ``algebraic mode,'' which is closer to the way
-non-RPN calculators work.  In algebraic mode, you enter formulas
+Calculator in Algebraic mode, which is closer to the way
+non-RPN calculators work.  In Algebraic mode, you enter formulas
 in traditional @expr{2+3} notation.
 
 You don't really need any special ``mode'' to enter algebraic formulas.
@@ -2005,15 +2005,15 @@ that @samp{^} is evaluated from right to left.  Thus, @samp{2-3-4} is
 equivalent to @samp{(2-3)-4} or @mathit{-5}, whereas @samp{2^3^4} is equivalent
 to @samp{2^(3^4)} (a very large integer; try it!).
 
-If you tire of typing the apostrophe all the time, there is an
-``algebraic mode'' you can select in which Calc automatically senses
+If you tire of typing the apostrophe all the time, there is
+Algebraic mode, where Calc automatically senses
 when you are about to type an algebraic expression.  To enter this
 mode, press the two letters @w{@kbd{m a}}.  (An @samp{Alg} indicator
 should appear in the Calc window's mode line.)
 
 Press @kbd{m a}, then @kbd{2+3+4} with no apostrophe, then @key{RET}.
 
-In algebraic mode, when you press any key that would normally begin
+In Algebraic mode, when you press any key that would normally begin
 entering a number (such as a digit, a decimal point, or the @kbd{_}
 key), or if you press @kbd{(} or @kbd{[}, Calc automatically begins
 an algebraic entry.
@@ -2028,7 +2028,7 @@ Press the apostrophe, then type @kbd{sqrt(5*2) - 3}.  The result should
 be @expr{0.16227766017}.
 
 Note that if the formula begins with a function name, you need to use
-the apostrophe even if you are in algebraic mode.  If you type @kbd{arcsin}
+the apostrophe even if you are in Algebraic mode.  If you type @kbd{arcsin}
 out of the blue, the @kbd{a r} will be taken as an Algebraic Rewrite
 command, and the @kbd{csin} will be taken as the name of the rewrite
 rule to use!
@@ -2037,7 +2037,7 @@ Some people prefer to enter complex numbers and vectors in algebraic
 form because they find RPN entry with incomplete objects to be too
 distracting, even though they otherwise use Calc as an RPN calculator.
 
-Still in algebraic mode, type:
+Still in Algebraic mode, type:
 
 @smallexample
 @group
@@ -2053,15 +2053,15 @@ Algebraic mode allows us to enter complex numbers without pressing
 an apostrophe first, but it also means we need to press @key{RET}
 after every entry, even for a simple number like @expr{1}.
 
-(You can type @kbd{C-u m a} to enable a special ``incomplete algebraic
-mode'' in which the @kbd{(} and @kbd{[} keys use algebraic entry even
+(You can type @kbd{C-u m a} to enable a special Incomplete Algebraic
+mode in which the @kbd{(} and @kbd{[} keys use algebraic entry even
 though regular numeric keys still use RPN numeric entry.  There is also
-a ``total algebraic mode,'' started by typing @kbd{m t}, in which all
+Total Algebraic mode, started by typing @kbd{m t}, in which all
 normal keys begin algebraic entry.  You must then use the @key{META} key
-to type Calc commands:  @kbd{M-m t} to get back out of total algebraic
+to type Calc commands:  @kbd{M-m t} to get back out of Total Algebraic
 mode, @kbd{M-q} to quit, etc.)
 
-If you're still in algebraic mode, press @kbd{m a} again to turn it off.
+If you're still in Algebraic mode, press @kbd{m a} again to turn it off.
 
 Actual non-RPN calculators use a mixture of algebraic and RPN styles.
 In general, operators of two numbers (like @kbd{+} and @kbd{*})
@@ -2376,7 +2376,7 @@ during entry of a number or algebraic formula.
 @noindent
 Calc has many types of @dfn{modes} that affect the way it interprets
 your commands or the way it displays data.  We have already seen one
-mode, namely algebraic mode.  There are many others, too; we'll
+mode, namely Algebraic mode.  There are many others, too; we'll
 try some of the most common ones here.
 
 Perhaps the most fundamental mode in Calc is the current @dfn{precision}.
@@ -2795,7 +2795,7 @@ and vice-versa.
 @end group
 @end smallexample
 
-Another interesting mode is @dfn{fraction mode}.  Normally,
+Another interesting mode is @dfn{Fraction mode}.  Normally,
 dividing two integers produces a floating-point result if the
 quotient can't be expressed as an exact integer.  Fraction mode
 causes integer division to produce a fraction, i.e., a rational
@@ -2819,7 +2819,7 @@ You can enter a fraction at any time using @kbd{:} notation.
 (Calc uses @kbd{:} instead of @kbd{/} as the fraction separator
 because @kbd{/} is already used to divide the top two stack
 elements.)  Calculations involving fractions will always
-produce exact fractional results; fraction mode only says
+produce exact fractional results; Fraction mode only says
 what to do when dividing two integers.
 
 @cindex Fractions vs. floats
@@ -2830,7 +2830,7 @@ why would you ever use floating-point numbers instead?
 
 Typing @kbd{m f} doesn't change any existing values in the stack.
 In the above example, we had to Undo the division and do it over
-again when we changed to fraction mode.  But if you use the
+again when we changed to Fraction mode.  But if you use the
 evaluates-to operator you can get commands like @kbd{m f} to
 recompute for you.
 
@@ -2846,7 +2846,7 @@ recompute for you.
 @noindent
 In this example, the righthand side of the @samp{=>} operator
 on the stack is recomputed when we change the precision, then
-again when we change to fraction mode.  All @samp{=>} expressions
+again when we change to Fraction mode.  All @samp{=>} expressions
 on the stack are recomputed every time you change any mode that
 might affect their values.
 
@@ -4530,7 +4530,7 @@ with the symbol @code{nan} (for Not A Number).
 
 Dividing by zero is normally treated as an error, but you can get
 Calc to write an answer in terms of infinity by pressing @kbd{m i}
-to turn on ``infinite mode.''
+to turn on Infinite mode.
 
 @smallexample
 @group
@@ -4960,7 +4960,7 @@ formulas.
 @subsection Basic Algebra
 
 @noindent
-If you enter a formula in algebraic mode that refers to variables,
+If you enter a formula in Algebraic mode that refers to variables,
 the formula itself is pushed onto the stack.  You can manipulate
 formulas as regular data objects.
 
@@ -5181,7 +5181,7 @@ polynomial?  (The answer will be unique to within a constant
 multiple; choose the solution where the leading coefficient is one.)
 @xref{Algebra Answer 2, 2}. (@bullet{})
 
-The @kbd{m s} command enables ``symbolic mode,'' in which formulas
+The @kbd{m s} command enables Symbolic mode, in which formulas
 like @samp{sqrt(5)} that can't be evaluated exactly are left in
 symbolic form rather than giving a floating-point approximate answer.
 Fraction mode (@kbd{m f}) is also useful when doing algebra.
@@ -5196,7 +5196,7 @@ Fraction mode (@kbd{m f}) is also useful when doing algebra.
 @end group
 @end smallexample
 
-One more mode that makes reading formulas easier is ``Big mode.''
+One more mode that makes reading formulas easier is Big mode.
 
 @smallexample
 @group
@@ -5344,7 +5344,7 @@ also have used plain @kbd{v x} as follows:  @kbd{v x 10 @key{RET} 9 + .1 *}.)
 
 @noindent
 (If you got wildly different results, did you remember to switch
-to radians mode?)
+to Radians mode?)
 
 Here we have divided the curve into ten segments of equal width;
 approximating these segments as rectangular boxes (i.e., assuming
@@ -5600,7 +5600,7 @@ only once and stores the compiled form along with the variable.  That's
 another good reason to store your rules in variables rather than
 entering them on the fly.
 
-(@bullet{}) @strong{Exercise 1.}  Type @kbd{m s} to get symbolic
+(@bullet{}) @strong{Exercise 1.}  Type @kbd{m s} to get Symbolic
 mode, then enter the formula @samp{@w{(2 + sqrt(2))} / @w{(1 + sqrt(2))}}.
 Using a rewrite rule, simplify this formula by multiplying both
 sides by the conjugate @w{@samp{1 - sqrt(2)}}.  The result will have
@@ -5859,11 +5859,11 @@ so that @expr{2 - 3 (x + y) + x y} is a sum of three terms.)
 @xref{Rewrites Answer 5, 5}. (@bullet{})
 
 (@bullet{}) @strong{Exercise 6.}  Calc considers the form @expr{0^0}
-to be ``indeterminate,'' and leaves it unevaluated (assuming infinite
+to be ``indeterminate,'' and leaves it unevaluated (assuming Infinite
 mode is not enabled).  Some people prefer to define @expr{0^0 = 1},
 so that the identity @expr{x^0 = 1} can safely be used for all @expr{x}.
 Find a way to make Calc follow this convention.  What happens if you
-now type @kbd{m i} to turn on infinite mode?
+now type @kbd{m i} to turn on Infinite mode?
 @xref{Rewrites Answer 6, 6}. (@bullet{})
 
 (@bullet{}) @strong{Exercise 7.}  A Taylor series for a function is an
@@ -6838,7 +6838,7 @@ the result will be zero because Calc uses the general rule that ``zero
 times anything is zero.''
 
 @c [fix-ref Infinities]
-The @kbd{m i} command enables an @dfn{infinite mode} in which @expr{1 / 0}
+The @kbd{m i} command enables an @dfn{Infinite mode} in which @expr{1 / 0}
 results in a special symbol that represents ``infinity.''  If you
 multiply infinity by zero, Calc uses another special new symbol to
 show that the answer is ``indeterminate.''  @xref{Infinities}, for
@@ -7002,7 +7002,7 @@ The result, when converted to an integer, will be off by 106.
 
 Here are two solutions:  Raise the precision enough that the
 floating-point round-off error is strictly to the right of the
-decimal point.  Or, convert to fraction mode so that @expr{123456789 / 2}
+decimal point.  Or, convert to Fraction mode so that @expr{123456789 / 2}
 produces the exact fraction @expr{123456789:2}, which can be rounded
 down by the @kbd{F} command without ever switching to floating-point
 format.
@@ -7015,9 +7015,9 @@ format.
 does a floating-point calculation instead and produces @expr{1.5}.
 
 Calc will find an exact result for a logarithm if the result is an integer
-or the reciprocal of an integer.  But there is no efficient way to search
-the space of all possible rational numbers for an exact answer, so Calc
-doesn't try.
+or (when in Fraction mode) the reciprocal of an integer.  But there is
+no efficient way to search the space of all possible rational numbers
+for an exact answer, so Calc doesn't try.
 
 @node Vector Answer 1, Vector Answer 2, Arithmetic Answer 2, Answers to Exercises
 @subsection Vector Tutorial Exercise 1
@@ -7089,7 +7089,7 @@ matrix as usual.
 @end group
 @end smallexample
 
-This can be made more readable using @kbd{d B} to enable ``big'' display
+This can be made more readable using @kbd{d B} to enable Big display
 mode:
 
 @smallexample
@@ -7100,7 +7100,7 @@ mode:
 @end group
 @end smallexample
 
-Type @kbd{d N} to return to ``normal'' display mode afterwards.
+Type @kbd{d N} to return to Normal display mode afterwards.
 
 @node Matrix Answer 3, List Answer 1, Matrix Answer 2, Answers to Exercises
 @subsection Matrix Tutorial Exercise 3
@@ -8247,7 +8247,7 @@ so it settles for the conservative answer @code{uinf}.
 
 @samp{ln(0) = -inf}.  Here we have an infinite answer to a finite
 input.  As in the @expr{1 / 0} case, Calc will only use infinities
-here if you have turned on ``infinite'' mode.  Otherwise, it will
+here if you have turned on Infinite mode.  Otherwise, it will
 treat @samp{ln(0)} as an error.
 
 @node Types Answer 3, Types Answer 4, Types Answer 2, Answers to Exercises
@@ -8461,7 +8461,7 @@ Calc normally treats division by zero as an error, so that the formula
 @w{@samp{1 / [0 .. 10]}}, also (potentially) divides by zero because zero
 is now a member of the interval.  So Calc leaves this one unevaluated, too.
 
-If you turn on ``infinite'' mode by pressing @kbd{m i}, you will
+If you turn on Infinite mode by pressing @kbd{m i}, you will
 instead get the answer @samp{[0.1 .. inf]}, which includes infinity
 as a possible value.
 
@@ -9124,7 +9124,7 @@ But then:
 @end group
 @end smallexample
 
-Perhaps more surprisingly, this rule still works with infinite mode
+Perhaps more surprisingly, this rule still works with Infinite mode
 turned on.  Calc tries @code{EvalRules} before any built-in rules for
 a function.  This allows you to override the default behavior of any
 Calc feature:  Even though Calc now wants to evaluate @expr{0^0} to
@@ -9889,10 +9889,10 @@ By default this creates a pair of small windows, @samp{*Calculator*}
 and @samp{*Calc Trail*}.  The former displays the contents of the
 Calculator stack and is manipulated exclusively through Calc commands.
 It is possible (though not usually necessary) to create several Calc
-Mode buffers each of which has an independent stack, undo list, and
+mode buffers each of which has an independent stack, undo list, and
 mode settings.  There is exactly one Calc Trail buffer; it records a
 list of the results of all calculations that have been done.  The
-Calc Trail buffer uses a variant of Calc Mode, so Calculator commands
+Calc Trail buffer uses a variant of Calc mode, so Calculator commands
 still work when the trail buffer's window is selected.  It is possible
 to turn the trail window off, but the @samp{*Calc Trail*} buffer itself
 still exists and is updated silently.  @xref{Trail Commands}.
@@ -9906,7 +9906,7 @@ still exists and is updated silently.  @xref{Trail Commands}.
 In most installations, the @kbd{M-# c} key sequence is a more
 convenient way to start the Calculator.  Also, @kbd{M-# M-#} and
 @kbd{M-# #} are synonyms for @kbd{M-# c} unless you last used Calc
-in its ``keypad'' mode.
+in its Keypad mode.
 
 @kindex x
 @kindex M-x
@@ -9978,7 +9978,7 @@ the keys with the mouse to operate the calculator.  @xref{Keypad Mode}.
 @pindex calc-quit
 @cindex Quitting the Calculator
 @cindex Exiting the Calculator
-The @kbd{q} key (@code{calc-quit}) exits Calc Mode and closes the
+The @kbd{q} key (@code{calc-quit}) exits Calc mode and closes the
 Calculator's window(s).  It does not delete the Calculator buffers.
 If you type @kbd{M-x calc} again, the Calculator will reappear with the
 contents of the stack intact.  Typing @kbd{M-# c} or @kbd{M-# M-#}
@@ -10278,7 +10278,7 @@ expressions in this way.  You may want to use @key{DEL} every so often to
 clear previous results off the stack.
 
 You can press the apostrophe key during normal numeric entry to switch
-the half-entered number into algebraic entry mode.  One reason to do this
+the half-entered number into Algebraic entry mode.  One reason to do this
 would be to use the full Emacs cursor motion and editing keys, which are
 available during algebraic entry but not during numeric entry.
 
@@ -10289,7 +10289,7 @@ you complete your half-finished entry in a separate buffer.
 
 @kindex m a
 @pindex calc-algebraic-mode
-@cindex Algebraic mode
+@cindex Algebraic Mode
 If you prefer algebraic entry, you can use the command @kbd{m a}
 (@code{calc-algebraic-mode}) to set Algebraic mode.  In this mode,
 digits and other keys that would normally start numeric entry instead
@@ -10300,7 +10300,7 @@ but you will have to press @key{RET} to terminate every number:
 @kbd{2 @key{RET} 3 @key{RET} * 4 @key{RET} +} would accomplish the same
 thing as @kbd{2*3+4 @key{RET}}.
 
-@cindex Incomplete algebraic mode
+@cindex Incomplete Algebraic Mode
 If you give a numeric prefix argument like @kbd{C-u} to the @kbd{m a}
 command, it enables Incomplete Algebraic mode; this is like regular
 Algebraic mode except that it applies to the @kbd{(} and @kbd{[} keys
@@ -10308,15 +10308,15 @@ only.  Numeric keys still begin a numeric entry in this mode.
 
 @kindex m t
 @pindex calc-total-algebraic-mode
-@cindex Total algebraic mode
+@cindex Total Algebraic Mode
 The @kbd{m t} (@code{calc-total-algebraic-mode}) gives you an even
 stronger algebraic-entry mode, in which @emph{all} regular letter and
 punctuation keys begin algebraic entry.  Use this if you prefer typing
 @w{@kbd{sqrt( )}} instead of @kbd{Q}, @w{@kbd{factor( )}} instead of
 @kbd{a f}, and so on.  To type regular Calc commands when you are in
-``total'' algebraic mode, hold down the @key{META} key.  Thus @kbd{M-q}
+Total Algebraic mode, hold down the @key{META} key.  Thus @kbd{M-q}
 is the command to quit Calc, @kbd{M-p} sets the precision, and
-@kbd{M-m t} (or @kbd{M-m M-t}, if you prefer) turns total algebraic
+@kbd{M-m t} (or @kbd{M-m M-t}, if you prefer) turns Total Algebraic
 mode back off again.  Meta keys also terminate algebraic entry, so
 that @kbd{2+3 M-S} is equivalent to @kbd{2+3 @key{RET} M-S}.  The symbol
 @samp{Alg*} will appear in the mode line whenever you are in this mode.
@@ -10577,7 +10577,7 @@ that you must always press @kbd{w} yourself to see the messages).
 
 @noindent
 @pindex another-calc
-It is possible to have any number of Calc Mode buffers at once.
+It is possible to have any number of Calc mode buffers at once.
 Usually this is done by executing @kbd{M-x another-calc}, which
 is similar to @kbd{M-# c} except that if a @samp{*Calculator*}
 buffer already exists, a new, independent one with a name of the
@@ -10792,7 +10792,7 @@ The Calculator stores integers to arbitrary precision.  Addition,
 subtraction, and multiplication of integers always yields an exact
 integer result.  (If the result of a division or exponentiation of
 integers is not an integer, it is expressed in fractional or
-floating-point form according to the current Fraction Mode.
+floating-point form according to the current Fraction mode.
 @xref{Fraction Mode}.)
 
 A decimal integer is represented as an optional sign followed by a
@@ -10818,7 +10818,7 @@ A @dfn{fraction} is a ratio of two integers.  Fractions are traditionally
 written ``2/3'' but Calc uses the notation @samp{2:3}.  (The @kbd{/} key
 performs RPN division; the following two sequences push the number
 @samp{2:3} on the stack:  @kbd{2 :@: 3 @key{RET}}, or @kbd{2 @key{RET} 3 /}
-assuming Fraction Mode has been enabled.)
+assuming Fraction mode has been enabled.)
 When the Calculator produces a fractional result it always reduces it to
 simplest form, which may in fact be an integer.
 
@@ -10932,7 +10932,7 @@ Complex numbers are entered in stages using incomplete objects.
 Operations on rectangular complex numbers yield rectangular complex
 results, and similarly for polar complex numbers.  Where the two types
 are mixed, or where new complex numbers arise (as for the square root of
-a negative real), the current @dfn{Polar Mode} is used to determine the
+a negative real), the current @dfn{Polar mode} is used to determine the
 type.  @xref{Polar Mode}.
 
 A complex result in which the imaginary part is zero (or the phase angle
@@ -11020,7 +11020,7 @@ infinity, it's just that @emph{which} number it stands for
 cannot be determined.)  In Calc's notation, @samp{0 * inf = nan}
 and @samp{inf / inf = nan}.  A few other common indeterminate
 expressions are @samp{inf - inf} and @samp{inf ^ 0}.  Also,
-@samp{0 / 0 = nan} if you have turned on ``infinite mode''
+@samp{0 / 0 = nan} if you have turned on Infinite mode
 (as described above).
 
 Infinities are especially useful as parts of @dfn{intervals}.
@@ -11586,10 +11586,10 @@ rather than @samp{1 ..@: 0.1e2}.  Add spaces or zeros if you want to
 get the other interpretation.  If you omit the lower or upper limit,
 a default of @samp{-inf} or @samp{inf} (respectively) is furnished.
 
-``Infinite mode'' also affects operations on intervals
+Infinite mode also affects operations on intervals
 (@pxref{Infinities}).  Calc will always introduce an open infinity,
 as in @samp{1 / (0 .. 2] = [0.5 .. inf)}.  But closed infinities,
-@w{@samp{1 / [0 .. 2] = [0.5 .. inf]}}, arise only in infinite mode;
+@w{@samp{1 / [0 .. 2] = [0.5 .. inf]}}, arise only in Infinite mode;
 otherwise they are left unevaluated.  Note that the ``direction'' of
 a zero is not an issue in this case since the zero is always assumed
 to be continuous with the rest of the interval.  For intervals that
@@ -11904,7 +11904,7 @@ Commands that interpret (``parse'') text as algebraic formulas include
 algebraic entry (@kbd{'}), editing commands like @kbd{`} which parse
 the contents of the editing buffer when you finish, the @kbd{M-# g}
 and @w{@kbd{M-# r}} commands, the @kbd{C-y} command, the X window system
-``paste'' mouse operation, and Embedded Mode.  All of these operations
+``paste'' mouse operation, and Embedded mode.  All of these operations
 use the same rules for parsing formulas; in particular, language modes
 (@pxref{Language Modes}) affect them all in the same way.
 
@@ -12313,7 +12313,7 @@ Otherwise, the new mode information is appended to the end of the file.
 @pindex calc-mode-record-mode
 The @kbd{m R} (@code{calc-mode-record-mode}) command tells Calc to
 record the new mode settings (as if by pressing @kbd{m m}) every
-time a mode setting changes.  If Embedded Mode is enabled, other
+time a mode setting changes.  If Embedded mode is enabled, other
 options are available; @pxref{Mode Settings in Embedded Mode}.
 
 @kindex m F
@@ -12494,7 +12494,7 @@ Functions that compute angles produce a number in radians, a number in
 degrees, or an HMS form depending on the current angular mode.  If the
 result is a complex number and the current mode is HMS, the number is
 instead expressed in degrees.  (Complex-number calculations would
-normally be done in radians mode, though.  Complex numbers are converted
+normally be done in Radians mode, though.  Complex numbers are converted
 to degrees by calculating the complex result in radians and then
 multiplying by 180 over @cpi{}.)
 
@@ -12507,7 +12507,7 @@ multiplying by 180 over @cpi{}.)
 The @kbd{m r} (@code{calc-radians-mode}), @kbd{m d} (@code{calc-degrees-mode}),
 and @kbd{m h} (@code{calc-hms-mode}) commands control the angular mode.
 The current angular mode is displayed on the Emacs mode line.
-The default angular mode is degrees.
+The default angular mode is Degrees.
 
 @node Polar Mode, Fraction Mode, Angular Modes, Calculation Modes
 @subsection Polar Mode
@@ -12523,7 +12523,7 @@ number, or by entering @kbd{( 2 @key{SPC} 3 )}.
 @kindex m p
 @pindex calc-polar-mode
 The @kbd{m p} (@code{calc-polar-mode}) command toggles complex-number
-preference between rectangular and polar forms.  In polar mode, all
+preference between rectangular and polar forms.  In Polar mode, all
 of the above example situations would produce polar complex numbers.
 
 @node Fraction Mode, Infinite Mode, Polar Mode, Calculation Modes
@@ -12543,8 +12543,8 @@ even though @kbd{6 @key{RET} 4 /} produces @expr{1.5}.
 To set the Calculator to produce fractional results for normal integer
 divisions, use the @kbd{m f} (@code{calc-frac-mode}) command.
 For example, @expr{8/4} produces @expr{2} in either mode,
-but @expr{6/4} produces @expr{3:2} in Fraction Mode, @expr{1.5} in
-Float Mode.
+but @expr{6/4} produces @expr{3:2} in Fraction mode, @expr{1.5} in
+Float mode.
 
 At any time you can use @kbd{c f} (@code{calc-float}) to convert a
 fraction to a float, or @kbd{c F} (@code{calc-fraction}) to convert a
@@ -12567,25 +12567,25 @@ on and off.  When the mode is off, infinities do not arise except
 in calculations that already had infinities as inputs.  (One exception
 is that infinite open intervals like @samp{[0 .. inf)} can be
 generated; however, intervals closed at infinity (@samp{[0 .. inf]})
-will not be generated when infinite mode is off.)
+will not be generated when Infinite mode is off.)
 
-With infinite mode turned on, @samp{1 / 0} will generate @code{uinf},
+With Infinite mode turned on, @samp{1 / 0} will generate @code{uinf},
 an undirected infinity.  @xref{Infinities}, for a discussion of the
 difference between @code{inf} and @code{uinf}.  Also, @expr{0 / 0}
 evaluates to @code{nan}, the ``indeterminate'' symbol.  Various other
 functions can also return infinities in this mode; for example,
 @samp{ln(0) = -inf}, and @samp{gamma(-7) = uinf}.  Once again,
-note that @samp{exp(inf) = inf} regardless of infinite mode because
+note that @samp{exp(inf) = inf} regardless of Infinite mode because
 this calculation has infinity as an input.
 
-@cindex Positive infinite mode
+@cindex Positive Infinite mode
 The @kbd{m i} command with a numeric prefix argument of zero,
-i.e., @kbd{C-u 0 m i}, turns on a ``positive infinite mode'' in
+i.e., @kbd{C-u 0 m i}, turns on a Positive Infinite mode in
 which zero is treated as positive instead of being directionless.
 Thus, @samp{1 / 0 = inf} and @samp{-1 / 0 = -inf} in this mode.
 Note that zero never actually has a sign in Calc; there are no
 separate representations for @mathit{+0} and @mathit{-0}.  Positive
-infinite mode merely changes the interpretation given to the
+Infinite mode merely changes the interpretation given to the
 single symbol, @samp{0}.  One consequence of this is that, while
 you might expect @samp{1 / -0 = -inf}, actually @samp{1 / -0}
 is equivalent to @samp{1 / 0}, which is equal to positive @code{inf}.
@@ -12604,7 +12604,7 @@ number or a symbolic expression if the argument is an expression:
 
 @kindex m s
 @pindex calc-symbolic-mode
-In @dfn{symbolic mode}, controlled by the @kbd{m s} (@code{calc-symbolic-mode})
+In @dfn{Symbolic mode}, controlled by the @kbd{m s} (@code{calc-symbolic-mode})
 command, functions which would produce inexact, irrational results are
 left in symbolic form.  Thus @kbd{16 Q} pushes 4, but @kbd{2 Q} pushes
 @samp{sqrt(2)}.
@@ -12631,12 +12631,12 @@ variables.)
 @cindex Scalar mode
 Calc sometimes makes assumptions during algebraic manipulation that
 are awkward or incorrect when vectors and matrices are involved.
-Calc has two modes, @dfn{matrix mode} and @dfn{scalar mode}, which
+Calc has two modes, @dfn{Matrix mode} and @dfn{Scalar mode}, which
 modify its behavior around vectors in useful ways.
 
 @kindex m v
 @pindex calc-matrix-mode
-Press @kbd{m v} (@code{calc-matrix-mode}) once to enter matrix mode.
+Press @kbd{m v} (@code{calc-matrix-mode}) once to enter Matrix mode.
 In this mode, all objects are assumed to be matrices unless provably
 otherwise.  One major effect is that Calc will no longer consider
 multiplication to be commutative.  (Recall that in matrix arithmetic,
@@ -12655,18 +12655,18 @@ a true identity matrix of the appropriate size.  On the other hand,
 if it is combined with a scalar (as in @samp{idn(1) + 2}), Calc
 will assume it really was a scalar after all and produce, e.g., 3.
 
-Press @kbd{m v} a second time to get scalar mode.  Here, objects are
+Press @kbd{m v} a second time to get Scalar mode.  Here, objects are
 assumed @emph{not} to be vectors or matrices unless provably so.
 For example, normally adding a variable to a vector, as in
 @samp{[x, y, z] + a}, will leave the sum in symbolic form because
 as far as Calc knows, @samp{a} could represent either a number or
-another 3-vector.  In scalar mode, @samp{a} is assumed to be a
+another 3-vector.  In Scalar mode, @samp{a} is assumed to be a
 non-vector, and the addition is evaluated to @samp{[x+a, y+a, z+a]}.
 
 Press @kbd{m v} a third time to return to the normal mode of operation.
 
 If you press @kbd{m v} with a numeric prefix argument @var{n}, you
-get a special ``dimensioned matrix mode'' in which matrices of
+get a special ``dimensioned'' Matrix mode in which matrices of
 unknown size are assumed to be @var{n}x@var{n} square matrices.
 Then, the function call @samp{idn(1)} will expand into an actual
 matrix rather than representing a ``generic'' matrix.
@@ -12687,11 +12687,11 @@ for @samp{[x, y, z] + [1, 2, 3]}, but that's because you have broken
 your earlier promise to Calc that @samp{a} would be scalar.
 
 Another way to mix scalars and matrices is to use selections
-(@pxref{Selecting Subformulas}).  Use matrix mode when operating on
-your formula normally; then, to apply scalar mode to a certain part
+(@pxref{Selecting Subformulas}).  Use Matrix mode when operating on
+your formula normally; then, to apply Scalar mode to a certain part
 of the formula without affecting the rest just select that part,
-change into scalar mode and press @kbd{=} to resimplify the part
-under this mode, then change back to matrix mode before deselecting.
+change into Scalar mode and press @kbd{=} to resimplify the part
+under this mode, then change back to Matrix mode before deselecting.
 
 @node Automatic Recomputation, Working Message, Matrix Mode, Calculation Modes
 @subsection Automatic Recomputation
@@ -12707,7 +12707,7 @@ are changed.  @xref{Evaluates-To Operator}.
 The @kbd{m C} (@code{calc-auto-recompute}) command turns this
 automatic recomputation on and off.  If you turn it off, Calc will
 not update @samp{=>} operators on the stack (nor those in the
-attached Embedded Mode buffer, if there is one).  They will not
+attached Embedded mode buffer, if there is one).  They will not
 be updated unless you explicitly do so by pressing @kbd{=} or until
 you press @kbd{m C} to turn recomputation back on.  (While automatic
 recomputation is off, you can think of @kbd{m C m C} as a command
@@ -12828,7 +12828,7 @@ A common technique is to set the simplification mode down to the lowest
 amount of simplification you will allow to be applied automatically, then
 use manual commands like @kbd{a s} and @kbd{c c} (@code{calc-clean}) to
 perform higher types of simplifications on demand.  @xref{Algebraic
-Definitions}, for another sample use of no-simplification mode.
+Definitions}, for another sample use of No-Simplification mode.
 
 @node Declarations, Display Modes, Simplification Modes, Mode Settings
 @section Declarations
@@ -13075,8 +13075,8 @@ and @code{y} are known to be vectors or matrices.  (Calc currently
 never distinguishes between @code{vector} and @code{matrix}
 declarations.)
 
-@xref{Matrix Mode}, for a discussion of ``matrix mode'' and
-``scalar mode,'' which are similar to declaring @samp{[All, matrix]}
+@xref{Matrix Mode}, for a discussion of Matrix mode and
+Scalar mode, which are similar to declaring @samp{[All, matrix]}
 or @samp{[All, scalar]} but much more convenient.
 
 One more type symbol that is recognized is used with the @kbd{H a d}
@@ -13228,8 +13228,8 @@ remains unevaluated.
 @tindex dscalar
 The @code{dscalar} function returns 1 if its argument is provably
 scalar, or 0 if its argument is provably non-scalar.  It is left
-unevaluated if this cannot be determined.  (If matrix mode or scalar
-mode are in effect, this function returns 1 or 0, respectively,
+unevaluated if this cannot be determined.  (If Matrix mode or Scalar
+mode is in effect, this function returns 1 or 0, respectively,
 if it has no other information.)  When Calc interprets a condition
 (say, in a rewrite rule) it considers an unevaluated formula to be
 ``false.''  Thus, @samp{dscalar(a)} is ``true'' only if @code{a} is
@@ -13338,7 +13338,7 @@ entirety.)
 @cindex Digit grouping
 Long numbers can be hard to read if they have too many digits.  For
 example, the factorial of 30 is 33 digits long!  Press @kbd{d g}
-(@code{calc-group-digits}) to enable @dfn{grouping} mode, in which digits
+(@code{calc-group-digits}) to enable @dfn{Grouping} mode, in which digits
 are displayed in clumps of 3 or 4 (depending on the current radix)
 separated by commas.
 
@@ -13884,7 +13884,7 @@ line at a time (or several lines with a prefix argument).
 Values on the stack are normally left-justified in the window.  You can
 control this arrangement by typing @kbd{d <} (@code{calc-left-justify}),
 @kbd{d >} (@code{calc-right-justify}), or @kbd{d =}
-(@code{calc-center-justify}).  For example, in right-justification mode,
+(@code{calc-center-justify}).  For example, in Right-Justification mode,
 stack entries are displayed flush-right against the right edge of the
 window.
 
@@ -13905,20 +13905,20 @@ breaking lines are given below.  Notice that the interaction between
 origin and line width is slightly different in each justification
 mode.
 
-In left-justified mode, the line is indented by a number of spaces
+In Left-Justified mode, the line is indented by a number of spaces
 given by the origin (default zero).  If the result is longer than the
 maximum line width, if given, or too wide to fit in the Calc window
 otherwise, then it is broken into lines which will fit; each broken
 line is indented to the origin.
 
-In right-justified mode, lines are shifted right so that the rightmost
+In Right-Justified mode, lines are shifted right so that the rightmost
 character is just before the origin, or just before the current
 window width if no origin was specified.  If the line is too long
 for this, then it is broken; the current line width is used, if
 specified, or else the origin is used as a width if that is
 specified, or else the line is broken to fit in the window.
 
-In centering mode, the origin is the column number of the center of
+In Centering mode, the origin is the column number of the center of
 each stack entry.  If a line width is specified, lines will not be
 allowed to go past that width; Calc will either indent less or
 break the lines if necessary.  If no origin is specified, half the
@@ -13953,13 +13953,13 @@ Give a blank string (with @kbd{d @{ @key{RET}}) to turn the label off.
 The @kbd{d @}} (@code{calc-right-label}) command similarly adds a
 label on the righthand side.  It does not affect positioning of
 the stack entries unless they are right-justified.  Also, if both
-a line width and an origin are given in right-justified mode, the
+a line width and an origin are given in Right-Justified mode, the
 stack entry is justified to the origin and the righthand label is
 justified to the line width.
 
 One application of labels would be to add equation numbers to
 formulas you are manipulating in Calc and then copying into a
-document (possibly using Embedded Mode).  The equations would
+document (possibly using Embedded mode).  The equations would
 typically be centered, and the equation numbers would be on the
 left or right as you prefer.
 
@@ -14061,7 +14061,7 @@ such as powers, quotients, and square roots:
 @noindent
 in place of @samp{sqrt((a+1)/b + c^2)}.
 
-Subscripts like @samp{a_i} are displayed as actual subscripts in ``big''
+Subscripts like @samp{a_i} are displayed as actual subscripts in Big
 mode.  Double subscripts, @samp{a_i_j} (@samp{subscr(subscr(a, i), j)})
 are displayed as @samp{a} with subscripts separated by commas:
 @samp{i, j}.  They must still be entered in the usual underscore
@@ -14134,12 +14134,12 @@ In C mode, vectors and matrices use curly braces instead of brackets.
 Octal and hexadecimal values are written with leading @samp{0} or @samp{0x}
 rather than using the @samp{#} symbol.  Array subscripting is
 translated into @code{subscr} calls, so that @samp{a[i]} in C
-mode is the same as @samp{a_i} in normal mode.  Assignments
+mode is the same as @samp{a_i} in Normal mode.  Assignments
 turn into the @code{assign} function, which Calc normally displays
 using the @samp{:=} symbol.
 
 The variables @code{var-pi} and @code{var-e} would be displayed @samp{pi}
-and @samp{e} in normal mode, but in C mode they are displayed as
+and @samp{e} in Normal mode, but in C mode they are displayed as
 @samp{M_PI} and @samp{M_E}, corresponding to the names of constants
 typically provided in the @file{<math.h>} header.  Functions whose
 names are different in C are translated automatically for entry and
@@ -14181,7 +14181,7 @@ function!).
 
 Underscores are allowed in variable and function names in all of these
 language modes.  The underscore here is equivalent to the @samp{#} in
-normal mode, or to hyphens in the underlying Emacs Lisp variable names.
+Normal mode, or to hyphens in the underlying Emacs Lisp variable names.
 
 FORTRAN and Pascal modes normally do not adjust the case of letters in
 formulas.  Most built-in Calc names use lower-case letters.  If you use a
@@ -14823,7 +14823,7 @@ object.
 @tindex choriz
 The @code{choriz} function takes a vector of objects and composes
 them horizontally.  For example, @samp{choriz([17, a b/c, d])} formats
-as @w{@samp{17a b / cd}} in normal language mode, or as
+as @w{@samp{17a b / cd}} in Normal language mode, or as
 
 @example
 @group
@@ -15086,7 +15086,7 @@ then return a certain measurement of the composition as an integer.
 @tindex cwidth
 The @code{cwidth} function measures the width, in characters, of a
 composition.  For example, @samp{cwidth(a + b)} is 5, and
-@samp{cwidth(a / b)} is 5 in normal mode, 1 in Big mode, and 11 in
+@samp{cwidth(a / b)} is 5 in Normal mode, 1 in Big mode, and 11 in
 @TeX{} mode (for @samp{@{a \over b@}}).  The argument may involve
 the composition functions described in this section.
 
@@ -15262,7 +15262,7 @@ unrelated to the syntax tables described in the Emacs manual.)
 @pindex calc-edit-user-syntax
 The @kbd{Z S} (@code{calc-edit-user-syntax}) command edits the
 syntax table for the current language mode.  If you want your
-syntax to work in any language, define it in the normal language
+syntax to work in any language, define it in the Normal language
 mode.  Type @kbd{M-# M-#} to finish editing the syntax table, or
 @kbd{M-# x} to cancel the edit.  The @kbd{m m} command saves all
 the syntax tables along with the other mode settings;
@@ -15293,7 +15293,7 @@ zero or more expressions separated by commas, and @samp{)}.''
 A @dfn{syntax table} is a list of user-defined @dfn{syntax rules},
 which allow you to specify new patterns to define your own
 favorite input notations.  Calc's parser always checks the syntax
-table for the current language mode, then the table for the normal
+table for the current language mode, then the table for the Normal
 language mode, before it uses its built-in rules to parse an
 algebraic formula you have entered.  Each syntax rule should go on
 its own line; it consists of a @dfn{pattern}, a @samp{:=} symbol,
@@ -15648,7 +15648,7 @@ In this approach, we allow @samp{#2} to equal the whole expression
 @samp{i=1..10}.  Then, we use @code{matches} to break it apart into
 its components.  If the expression turns out not to match the pattern,
 the syntax rule will fail.  Note that @kbd{Z S} always uses Calc's
-normal language mode for editing expressions in syntax rules, so we
+Normal language mode for editing expressions in syntax rules, so we
 must use regular Calc notation for the interval @samp{[b..c]} that
 will correspond to the Maple mode interval @samp{1..10}.
 
@@ -15721,11 +15721,11 @@ Polar mode.  Value is 0 (rectangular) or 1 (polar); default is 0.
 Command is @kbd{m p}.
 
 @item
-Matrix/scalar mode.  Default value is @mathit{-1}.  Value is 0 for scalar
-mode, @mathit{-2} for matrix mode, or @var{N} for 
+Matrix/Scalar mode.  Default value is @mathit{-1}.  Value is 0 for Scalar
+mode, @mathit{-2} for Matrix mode, or @var{N} for 
 @texline @math{N\times N}
 @infoline @var{N}x@var{N} 
-matrix mode.  Command is @kbd{m v}.
+Matrix mode.  Command is @kbd{m v}.
 
 @item
 Simplification mode.  Default is 1.  Value is @mathit{-1} for off (@kbd{m O}),
@@ -15760,7 +15760,7 @@ programming commands.  @xref{Conditionals in Macros}.)
 @cindex Mode line indicators
 This section is a summary of all symbols that can appear on the
 Calc mode line, the highlighted bar that appears under the Calc
-stack window (or under an editing window in Embedded Mode).
+stack window (or under an editing window in Embedded mode).
 
 The basic mode line format is:
 
@@ -15772,7 +15772,7 @@ The @samp{%%} is the Emacs symbol for ``read-only''; it shows that
 regular Emacs commands are not allowed to edit the stack buffer
 as if it were text.
 
-The word @samp{Calc:} changes to @samp{CalcEmbed:} if Embedded Mode
+The word @samp{Calc:} changes to @samp{CalcEmbed:} if Embedded mode
 is enabled.  The words after this describe the various Calc modes
 that are in effect.
 
@@ -15800,7 +15800,7 @@ Symbolic mode (@kbd{m s}; @pxref{Symbolic Mode}).
 Matrix mode (@kbd{m v}; @pxref{Matrix Mode}).
 
 @item Matrix@var{n}
-Dimensioned matrix mode (@kbd{C-u @var{n} m v}).
+Dimensioned Matrix mode (@kbd{C-u @var{n} m v}).
 
 @item Scalar
 Scalar mode (@kbd{m v}; @pxref{Matrix Mode}).
@@ -15815,7 +15815,7 @@ Fraction mode (@kbd{m f}; @pxref{Fraction Mode}).
 Infinite mode (@kbd{m i}; @pxref{Infinite Mode}).
 
 @item +Inf
-Positive infinite mode (@kbd{C-u 0 m i}).
+Positive Infinite mode (@kbd{C-u 0 m i}).
 
 @item NoSimp
 Default simplifications off (@kbd{m O}; @pxref{Simplification Modes}).
@@ -16023,14 +16023,14 @@ to every element of a vector.
 
 If either argument of @kbd{+} is a complex number, the result will in general
 be complex.  If one argument is in rectangular form and the other polar,
-the current Polar Mode determines the form of the result.  If Symbolic
-Mode is enabled, the sum may be left as a formula if the necessary
+the current Polar mode determines the form of the result.  If Symbolic
+mode is enabled, the sum may be left as a formula if the necessary
 conversions for polar addition are non-trivial.
 
 If both arguments of @kbd{+} are HMS forms, the forms are added according to
 the usual conventions of hours-minutes-seconds notation.  If one argument
 is an HMS form and the other is a number, that number is converted from
-degrees or radians (depending on the current Angular Mode) to HMS format
+degrees or radians (depending on the current Angular mode) to HMS format
 and then the two HMS forms are added.
 
 If one argument of @kbd{+} is a date form, the other can be either a
@@ -16182,7 +16182,7 @@ must be positive real number.
 @tindex fdiv
 The @kbd{:} (@code{calc-fdiv}) command [@code{fdiv} function in a formula]
 divides the two integers on the top of the stack to produce a fractional
-result.  This is a convenient shorthand for enabling Fraction Mode (with
+result.  This is a convenient shorthand for enabling Fraction mode (with
 @kbd{m f}) temporarily and using @samp{/}.  Note that during numeric entry
 the @kbd{:} key is interpreted as a fraction separator, so to divide 8 by 6
 you would have to type @kbd{8 @key{RET} 6 @key{RET} :}.  (Of course, in
@@ -16236,7 +16236,7 @@ matrix, it computes the inverse of that matrix.
 @tindex sqrt
 The @kbd{Q} (@code{calc-sqrt}) [@code{sqrt}] command computes the square
 root of a number.  For a negative real argument, the result will be a
-complex number whose form is determined by the current Polar Mode.
+complex number whose form is determined by the current Polar mode.
 
 @kindex f h
 @pindex calc-hypot
@@ -16298,7 +16298,7 @@ The @kbd{f S} (@code{calc-scale-float}) [@code{scf}] function scales a number
 by a given power of ten.  Thus, @samp{scf(mant(x), xpon(x)) = x} for any
 real @samp{x}.  The second argument must be an integer, but the first
 may actually be any numeric value.  For example, @samp{scf(5,-2) = 0.05}
-or @samp{1:20} depending on the current Fraction Mode.
+or @samp{1:20} depending on the current Fraction mode.
 
 @kindex f [
 @kindex f ]
@@ -16482,7 +16482,7 @@ be in the range @mathit{-180} degrees (exclusive) to @mathit{+180} degrees
 The @code{calc-imaginary} command multiplies the number on the
 top of the stack by the imaginary number @expr{i = (0,1)}.  This
 command is not normally bound to a key in Calc, but it is available
-on the @key{IMAG} button in Keypad Mode.
+on the @key{IMAG} button in Keypad mode.
 
 @kindex f r
 @pindex calc-re
@@ -17761,7 +17761,7 @@ formulas below for symbolic arguments only when you use the @kbd{a "}
 integrals or solving equations involving the functions.
 
 @ifinfo
-These formulas are shown using the conventions of ``Big'' display
+These formulas are shown using the conventions of Big display
 mode (@kbd{d B}); for example, the formula for @code{fv} written
 linearly is @samp{pmt * ((1 + rate)^n) - 1) / rate}.
 
@@ -18217,7 +18217,7 @@ to any base.  For example, @kbd{1024 @key{RET} 2 B} produces 10, since
 @infoline @expr{2^10 = 1024}.  
 In certain cases like @samp{log(3,9)}, the result
 will be either @expr{1:2} or @expr{0.5} depending on the current Fraction
-Mode setting.  With the Inverse flag [@code{alog}], this command is
+mode setting.  With the Inverse flag [@code{alog}], this command is
 similar to @kbd{^} except that the order of the arguments is reversed.
 
 @kindex f I
@@ -18273,7 +18273,7 @@ of the current angular mode.  @xref{Basic Operations on Units}.
 Also, the symbolic variable @code{pi} is not ordinarily recognized in
 arguments to trigonometric functions, as in @samp{sin(3 pi / 4)}, but
 the @kbd{a s} (@code{calc-simplify}) command recognizes many such
-formulas when the current angular mode is radians @emph{and} symbolic
+formulas when the current angular mode is Radians @emph{and} Symbolic
 mode is enabled; this example would be replaced by @samp{sqrt(2) / 2}.
 @xref{Symbolic Mode}.  Beware, this simplification occurs even if you
 have stored a different value in the variable @samp{pi}; this is one
@@ -18282,7 +18282,7 @@ the form @expr{x} plus a multiple of @cpiover{2} are also simplified.
 Calc includes similar formulas for @code{cos} and @code{tan}.
 
 The @kbd{a s} command knows all angles which are integer multiples of
-@cpiover{12}, @cpiover{10}, or @cpiover{8} radians.  In degrees mode,
+@cpiover{12}, @cpiover{10}, or @cpiover{8} radians.  In Degrees mode,
 analogous simplifications occur for integer multiples of 15 or 18
 degrees, and for arguments plus multiples of 90 degrees.
 
@@ -18633,7 +18633,7 @@ For @samp{arctanh(z)}:  This is defined by @samp{(ln(1+z) - ln(1-z)) / 2}.
 The branch cuts are on the real axis, less than @mathit{-1} and greater than 1.
 
 The following tables for @code{arcsin}, @code{arccos}, and
-@code{arctan} assume the current angular mode is radians.  The
+@code{arctan} assume the current angular mode is Radians.  The
 hyperbolic functions operate independently of the angular mode.
 
 @smallexample
@@ -19478,7 +19478,7 @@ Note that the prefix argument can have an effect even when the input is
 not a vector.  For example, if the input is the number @mathit{-5}, then
 @kbd{c-u -1 v u} yields @mathit{-5} and 0 (the components of @mathit{-5}
 when viewed as a rectangular complex number); @kbd{C-u -2 v u} yields 5
-and 180 (assuming degrees mode); and @kbd{C-u -10 v u} yields @mathit{-5}
+and 180 (assuming Degrees mode); and @kbd{C-u -10 v u} yields @mathit{-5}
 and 1 (the numerator and denominator of @mathit{-5}, viewed as a rational
 number).  Plain @kbd{v u} with this input would complain that the input
 is not a composite object.
@@ -19608,7 +19608,7 @@ such generic identity matrices, and if one is combined with a matrix
 whose size is known, it is converted automatically to an identity
 matrix of a suitable matching size.  The @kbd{v i} command with an
 argument of zero creates a generic identity matrix, @samp{idn(1)}.
-Note that in dimensioned matrix mode (@pxref{Matrix Mode}), generic
+Note that in dimensioned Matrix mode (@pxref{Matrix Mode}), generic
 identity matrices are immediately expanded to the current default
 dimensions.
 
@@ -21265,11 +21265,11 @@ for anything else'') prefix.
 using regular Emacs editing commands.
 
 When doing algebraic work, you may find several of the Calculator's
-modes to be helpful, including algebraic-simplification mode (@kbd{m A})
-or no-simplification mode (@kbd{m O}),
-algebraic-entry mode (@kbd{m a}), fraction mode (@kbd{m f}), and
-symbolic mode (@kbd{m s}).  @xref{Mode Settings}, for discussions
-of these modes.  You may also wish to select ``big'' display mode (@kbd{d B}).
+modes to be helpful, including Algebraic Simplification mode (@kbd{m A})
+or No-Simplification mode (@kbd{m O}),
+Algebraic entry mode (@kbd{m a}), Fraction mode (@kbd{m f}), and
+Symbolic mode (@kbd{m s}).  @xref{Mode Settings}, for discussions
+of these modes.  You may also wish to select Big display mode (@kbd{d B}).
 @xref{Normal Language Modes}.
 
 @menu
@@ -21323,7 +21323,7 @@ sub-formula, and press @w{@kbd{j s}} (@code{calc-select-here}).  Calc will
 highlight the smallest portion of the formula that contains that
 character.  By default the sub-formula is highlighted by blanking out
 all of the rest of the formula with dots.  Selection works in any
-display mode but is perhaps easiest in ``big'' (@kbd{d B}) mode.
+display mode but is perhaps easiest in Big mode (@kbd{d B}).
 Suppose you enter the following formula:
 
 @smallexample
@@ -21353,7 +21353,7 @@ to
 Every character not part of the sub-formula @samp{b} has been changed
 to a dot.  The @samp{*} next to the line number is to remind you that
 the formula has a portion of it selected.  (In this case, it's very
-obvious, but it might not always be.  If Embedded Mode is enabled,
+obvious, but it might not always be.  If Embedded mode is enabled,
 the word @samp{Sel} also appears in the mode line because the stack
 may not be visible.  @pxref{Embedded Mode}.)
 
@@ -22003,9 +22003,9 @@ but which also substitutes stored values for variables in the formula.
 Use @kbd{a v} if you want the variables to ignore their stored values.
 
 If you give a numeric prefix argument of 2 to @kbd{a v}, it simplifies
-as if in algebraic simplification mode.  This is equivalent to typing
+as if in Algebraic Simplification mode.  This is equivalent to typing
 @kbd{a s}; @pxref{Simplifying Formulas}.  If you give a numeric prefix
-of 3 or more, it uses extended simplification mode (@kbd{a e}).
+of 3 or more, it uses Extended Simplification mode (@kbd{a e}).
 
 If you give a negative prefix argument @mathit{-1}, @mathit{-2}, or @mathit{-3},
 it simplifies in the corresponding mode but only works on the top-level
@@ -22013,7 +22013,7 @@ function call of the formula.  For example, @samp{(2 + 3) * (2 + 3)} will
 simplify to @samp{(2 + 3)^2}, without simplifying the sub-formulas
 @samp{2 + 3}.  As another example, typing @kbd{V R +} to sum the vector
 @samp{[1, 2, 3, 4]} produces the formula @samp{reduce(add, [1, 2, 3, 4])}
-in no-simplify mode.  Using @kbd{a v} will evaluate this all the way to
+in No-Simplify mode.  Using @kbd{a v} will evaluate this all the way to
 10; using @kbd{C-u - a v} will evaluate it only to @samp{1 + 2 + 3 + 4}.
 (@xref{Reducing and Mapping}.)
 
@@ -22021,7 +22021,7 @@ in no-simplify mode.  Using @kbd{a v} will evaluate this all the way to
 @tindex evalvn
 The @kbd{=} command corresponds to the @code{evalv} function, and
 the related @kbd{N} command, which is like @kbd{=} but temporarily
-disables symbolic (@kbd{m s}) mode during the evaluation, corresponds
+disables Symbolic mode (@kbd{m s}) during the evaluation, corresponds
 to the @code{evalvn} function.  (These commands interpret their prefix
 arguments differently than @kbd{a v}; @kbd{=} treats the prefix as
 the number of stack elements to evaluate at once, and @kbd{N} treats
@@ -22196,7 +22196,7 @@ is evaluated to @expr{3}.  Evaluation does not occur if the arguments
 to a function are somehow of the wrong type @expr{@t{tan}([2,3,4])}),
 range (@expr{@t{tan}(90)}), or number (@expr{@t{tan}(3,5)}), 
 or if the function name is not recognized (@expr{@t{f}(5)}), or if
-``symbolic'' mode (@pxref{Symbolic Mode}) prevents evaluation
+Symbolic mode (@pxref{Symbolic Mode}) prevents evaluation
 (@expr{@t{sqrt}(2)}).
 
 Calc simplifies (evaluates) the arguments to a function before it
@@ -22304,7 +22304,7 @@ to @expr{-a}.
 The products @expr{1 a} and @expr{a 1} are simplified to @expr{a};
 @expr{(-1) a} and @expr{a (-1)} are simplified to @expr{-a};
 @expr{0 a} and @expr{a 0} are simplified to @expr{0}, except that
-in matrix mode where @expr{a} is not provably scalar the result
+in Matrix mode where @expr{a} is not provably scalar the result
 is the generic zero matrix @samp{idn(0)}, and that if @expr{a} is
 infinite the result is @samp{nan}.
 
@@ -22330,18 +22330,18 @@ or the implicit one-half of @expr{@t{sqrt}(x)}, and similarly for
 @expr{b}.  The result is written using @samp{sqrt} or @samp{1/sqrt}
 if the sum of the powers is @expr{1/2} or @expr{-1/2}, respectively.
 If the sum of the powers is zero, the product is simplified to
-@expr{1} or to @samp{idn(1)} if matrix mode is enabled.
+@expr{1} or to @samp{idn(1)} if Matrix mode is enabled.
 
 The product of a negative power times anything but another negative
 power is changed to use division:  
 @texline @math{x^{-2} y}
 @infoline @expr{x^(-2) y} 
-goes to @expr{y / x^2} unless matrix mode is
+goes to @expr{y / x^2} unless Matrix mode is
 in effect and neither @expr{x} nor @expr{y} are scalar (in which
 case it is considered unsafe to rearrange the order of the terms).
 
 Finally, @expr{a (b/c)} is rewritten to @expr{(a b)/c}, and also
-@expr{(a/b) c} is changed to @expr{(a c)/b} unless in matrix mode.
+@expr{(a/b) c} is changed to @expr{(a c)/b} unless in Matrix mode.
 
 @tex
 \bigskip
@@ -22368,7 +22368,7 @@ for any power @expr{c}.
 
 Also, @expr{(-a) / b} and @expr{a / (-b)} go to @expr{-(a/b)};
 @expr{(a/b) / c} goes to @expr{a / (b c)}; and @expr{a / (b/c)}
-goes to @expr{(a c) / b} unless matrix mode prevents this
+goes to @expr{(a c) / b} unless Matrix mode prevents this
 rearrangement.  Similarly, @expr{a / (b:c)} is simplified to
 @expr{(c:b) a} for any fraction @expr{b:c}.
 
@@ -22392,7 +22392,7 @@ to @expr{a / (c - b)}, and @expr{(a - b) / (-c)} to @expr{(b - a) / c}.
 @end tex
 
 The formula @expr{x^0} is simplified to @expr{1}, or to @samp{idn(1)}
-in matrix mode.  The formula @expr{0^x} is simplified to @expr{0}
+in Matrix mode.  The formula @expr{0^x} is simplified to @expr{0}
 unless @expr{x} is a negative number or complex number, in which
 case the result is an infinity or an unsimplified formula according
 to the current infinite mode.  Note that @expr{0^0} is an
@@ -22568,7 +22568,7 @@ property that real-valued numbers, interval forms and infinities
 come first, and are sorted into increasing order.  The @kbd{V S}
 command uses the same ordering when sorting a vector.
 
-Sorting of terms of products is inhibited when matrix mode is
+Sorting of terms of products is inhibited when Matrix mode is
 turned on; in this case, Calc will never exchange the order of
 two terms unless it knows at least one of the terms is a scalar.
 
@@ -23176,7 +23176,7 @@ With a numeric prefix argument @var{n}, this command computes the
 @var{n}th derivative.
 
 When working with trigonometric functions, it is best to switch to
-radians mode first (with @w{@kbd{m r}}).  The derivative of @samp{sin(x)}
+Radians mode first (with @w{@kbd{m r}}).  The derivative of @samp{sin(x)}
 in degrees is @samp{(pi/180) cos(x)}, probably not the expected
 answer!
 
@@ -23267,7 +23267,7 @@ due to a different choice of constant of integration.
 
 The Calculator remembers all the integrals it has done.  If conditions
 change in a way that would invalidate the old integrals, say, a switch
-from degrees to radians mode, then they will be thrown out.  If you
+from Degrees to Radians mode, then they will be thrown out.  If you
 suspect this is not happening when it should, use the
 @code{calc-flush-caches} command; @pxref{Caches}.
 
@@ -23626,10 +23626,10 @@ which can be solved for @expr{x^3} using the quadratic equation, and then
 for @expr{x} by taking cube roots.  But in many cases, like
 @expr{x^6 + x + 1}, Calc does not know how to rewrite the polynomial
 into a form it can solve.  The @kbd{a P} command can still deliver a
-list of numerical roots, however, provided that symbolic mode (@kbd{m s})
-is not turned on.  (If you work with symbolic mode on, recall that the
+list of numerical roots, however, provided that Symbolic mode (@kbd{m s})
+is not turned on.  (If you work with Symbolic mode on, recall that the
 @kbd{N} (@code{calc-eval-num}) key is a handy way to reevaluate the
-formula on the stack with symbolic mode temporarily off.)  Naturally,
+formula on the stack with Symbolic mode temporarily off.)  Naturally,
 @kbd{a P} can only provide numerical roots if the polynomial coefficients
 are all numbers (real or complex).
 
@@ -24244,9 +24244,9 @@ Note that since the constant and linear terms are enough to fit the
 data exactly, it's no surprise that Calc chose a tiny contribution
 for @expr{x^2}.  (The fact that it's not exactly zero is due only
 to roundoff error.  Since our data are exact integers, we could get
-an exact answer by typing @kbd{m f} first to get fraction mode.
+an exact answer by typing @kbd{m f} first to get Fraction mode.
 Then the @expr{x^2} term would vanish altogether.  Usually, though,
-the data being fitted will be approximate floats so fraction mode
+the data being fitted will be approximate floats so Fraction mode
 won't help.)
 
 Doing the @kbd{a F 2} fit on the data set with 14 instead of 13
@@ -24271,7 +24271,7 @@ The actual coefficients we get with a precision of 12, like
 @expr{0.0416666663588}, clearly suffer from loss of precision.
 It is a good idea to increase the working precision to several
 digits beyond what you need when you do a fitting operation.
-Or, if your data are exact, use fraction mode to get exact
+Or, if your data are exact, use Fraction mode to get exact
 results.
 
 You can type @kbd{i} instead of a digit at the model prompt to fit
@@ -25942,12 +25942,12 @@ like @samp{(x + y) + (z - w)}, are not tried.
 
 Note that @samp{*} is not commutative when applied to matrices, but
 rewrite rules pretend that it is.  If you type @kbd{m v} to enable
-matrix mode (@pxref{Matrix Mode}), rewrite rules will match @samp{*}
+Matrix mode (@pxref{Matrix Mode}), rewrite rules will match @samp{*}
 literally, ignoring its usual commutativity property.  (In the
 current implementation, the associativity also vanishes---it is as
 if the pattern had been enclosed in a @code{plain} marker; see below.)
 If you are applying rewrites to formulas with matrices, it's best to
-enable matrix mode first to prevent algebraically incorrect rewrites
+enable Matrix mode first to prevent algebraically incorrect rewrites
 from occurring.
 
 The pattern @samp{-x} will actually match any expression.  For example,
@@ -26424,8 +26424,8 @@ You must use @code{apply} for meta-variables with function names
 on both sides of a rewrite rule:  @samp{apply(f, [x]) := f(x+1)}
 is @emph{not} correct, because it rewrites @samp{spam(6)} into
 @samp{f(7)}.  The righthand side should be @samp{apply(f, [x+1])}.
-Also note that you will have to use no-simplify (@kbd{m O})
-mode when entering this rule so that the @code{apply} isn't
+Also note that you will have to use No-Simplify mode (@kbd{m O})
+when entering this rule so that the @code{apply} isn't
 evaluated immediately to get the new rule @samp{f(x) := f(x+1)}.
 Or, use @kbd{s e} to enter the rule without going through the stack,
 or enter the rule as @samp{apply(f, [x]) := apply(f, [x+1]) @w{:: 1}}.
@@ -27160,7 +27160,7 @@ To apply these manually, you could put them in a variable called
 to expand trig functions.  But if instead you store them in the
 variable @code{EvalRules}, they will automatically be applied to all
 sines and cosines of sums.  Then, with @samp{2 x} and @samp{45} on
-the stack, typing @kbd{+ S} will (assuming degrees mode) result in
+the stack, typing @kbd{+ S} will (assuming Degrees mode) result in
 @samp{0.7071 sin(2 x) + 0.7071 cos(2 x)} automatically.
 
 As each level of a formula is evaluated, the rules from
@@ -27236,11 +27236,11 @@ number @expr{(2, 3)}, Calc computes @samp{sqrt(2*2 + 3*3)} by calling
 the multiplication, addition, and square root functions directly rather
 than applying the default simplifications to this formula.  So an
 @code{EvalRules} rule that (perversely) rewrites @samp{sqrt(13) := 6}
-would not apply.  (However, if you put Calc into symbolic mode so that
+would not apply.  (However, if you put Calc into Symbolic mode so that
 @samp{sqrt(13)} will be left in symbolic form by the built-in square
 root function, your rule will be able to apply.  But if the complex
 number were @expr{(3,4)}, so that @samp{sqrt(25)} must be calculated,
-then symbolic mode will not help because @samp{sqrt(25)} can be
+then Symbolic mode will not help because @samp{sqrt(25)} can be
 evaluated exactly to 5.)
 
 One subtle restriction that normally only manifests itself with
@@ -27347,7 +27347,7 @@ A surprisingly useful rewrite rule is @samp{a/(b-c) := a*(b+c)/(b^2-c^2)}.
 This will simplify the formula whenever @expr{b} and/or @expr{c} can
 be made simpler by squaring.  For example, applying this rule to
 @samp{2 / (sqrt(2) + 3)} yields @samp{6:7 - 2:7 sqrt(2)} (assuming
-Symbolic Mode has been enabled to keep the square root from being
+Symbolic mode has been enabled to keep the square root from being
 evaluated to a floating-point approximation).  This rule is also
 useful when working with symbolic complex numbers, e.g.,
 @samp{(a + b i) / (c + d i)}.
@@ -27457,7 +27457,7 @@ formula @samp{1 mm} is ``simplified'' to @samp{mm}.  This is only a
 display anomaly, however; @samp{mm} will work just fine as a
 representation of one millimeter.
 
-You may find that Algebraic Mode (@pxref{Algebraic Entry}) makes working
+You may find that Algebraic mode (@pxref{Algebraic Entry}) makes working
 with units expressions easier.  Otherwise, you will have to remember
 to hit the apostrophe key every time you wish to enter units.
 
@@ -28346,11 +28346,11 @@ including the current simplification mode.  Recall that the
 formula @samp{x + y + x} is not handled by Calc's default
 simplifications, but the @kbd{a s} command will reduce it to
 the simpler form @samp{y + 2 x}.  You can also type @kbd{m A}
-to enable an algebraic-simplification mode in which the
+to enable an Algebraic Simplification mode in which the
 equivalent of @kbd{a s} is used on all of Calc's results.
 If you enter @samp{x + y + x =>} normally, the result will
 be @samp{x + y + x => x + y + x}.  If you change to
-algebraic-simplification mode, the result will be
+Algebraic Simplification mode, the result will be
 @samp{x + y + x => y + 2 x}.  However, just pressing @kbd{a s}
 once will have no effect on @samp{x + y + x => x + y + x},
 because the righthand side depends only on the lefthand side
@@ -28389,13 +28389,13 @@ side effects.
 @pindex calc-assign
 @tindex assign
 @tindex :=
-Embedded Mode also uses @samp{=>} operators.  In embedded mode,
+Embedded mode also uses @samp{=>} operators.  In Embedded mode,
 the lefthand side of an @samp{=>} operator can refer to variables
 assigned elsewhere in the file by @samp{:=} operators.  The
 assignment operator @samp{a := 17} does not actually do anything
-by itself.  But Embedded Mode recognizes it and marks it as a sort
+by itself.  But Embedded mode recognizes it and marks it as a sort
 of file-local definition of the variable.  You can enter @samp{:=}
-operators in algebraic mode, or by using the @kbd{s :}
+operators in Algebraic mode, or by using the @kbd{s :}
 (@code{calc-assign}) [@code{assign}] command which takes a variable
 and value from the stack and replaces them with an assignment.
 
@@ -29096,7 +29096,7 @@ killing GNUPLOT because you think it has gotten stuck.
 The commands in this chapter move information between the Calculator and
 other Emacs editing buffers.
 
-In many cases Embedded Mode is an easier and more natural way to
+In many cases Embedded mode is an easier and more natural way to
 work with Calc from a regular editing buffer.  @xref{Embedded Mode}.
 
 @menu
@@ -29367,7 +29367,7 @@ just by double-clicking on it in the shell, then middle-clicking
 in the Calc window.
 
 @node Keypad Mode, Embedded Mode, Kill and Yank, Introduction
-@chapter ``Keypad'' Mode
+@chapter Keypad Mode
 
 @noindent
 @kindex M-# k
@@ -29376,7 +29376,7 @@ The @kbd{M-# k} (@code{calc-keypad}) command starts the Calculator
 and displays a picture of a calculator-style keypad.  If you are using
 the X window system, you can click on any of the ``keys'' in the
 keypad using the left mouse button to operate the calculator.
-The original window remains the selected window; in keypad mode
+The original window remains the selected window; in Keypad mode
 you can type in your file while simultaneously performing
 calculations with the mouse.
 
@@ -29392,11 +29392,11 @@ the @samp{*Calc Keypad*} window, place the cursor on the desired
 ``key,'' and type @key{SPC} or @key{RET}.  If you think this
 is easier than using Calc normally, go right ahead.
 
-Calc commands are more or less the same in keypad mode.  Certain
+Calc commands are more or less the same in Keypad mode.  Certain
 keypad keys differ slightly from the corresponding normal Calc
 keystrokes; all such deviations are described below.
 
-Keypad Mode includes many more commands than will fit on the keypad
+Keypad mode includes many more commands than will fit on the keypad
 at once.  Click the right mouse button [@code{calc-keypad-menu}]
 to switch to the next menu.  The bottom five rows of the keypad
 stay the same; the top three rows change to a new set of commands.
@@ -29444,7 +29444,7 @@ original buffer.
 @end smallexample
 
 @noindent
-This is the menu that appears the first time you start Keypad Mode.
+This is the menu that appears the first time you start Keypad mode.
 It will show up in a vertical window on the right side of your screen.
 Above this menu is the traditional Calc stack display.  On a 24-line
 screen you will be able to see the top three stack entries.
@@ -29461,7 +29461,7 @@ At other times it changes the sign of the number on the top of the
 stack.
 
 The @key{INV} and @key{HYP} keys modify other keys.  As well as
-having the effects described elsewhere in this manual, Keypad Mode
+having the effects described elsewhere in this manual, Keypad mode
 defines several other ``inverse'' operations.  These are described
 below and in the following sections.
 
@@ -29481,7 +29481,7 @@ The @key{EXEC} key prompts you to enter any keystroke sequence
 that would normally work in Calc mode.  This can include a
 numeric prefix if you wish.  It is also possible simply to
 switch into the Calc window and type commands in it; there is
-nothing ``magic'' about this window when Keypad Mode is active.
+nothing ``magic'' about this window when Keypad mode is active.
 
 The other keys in this display perform their obvious calculator
 functions.  @key{CLN2} rounds the top-of-stack by temporarily
@@ -29760,16 +29760,16 @@ The @key{OVER} key duplicates the second-to-top stack element.
 The @key{STO} and @key{RCL} keys are analogous to @kbd{s t} and
 @kbd{s r} in regular Calc.  @xref{Store and Recall}.  Click the
 @key{STO} or @key{RCL} key, then one of the ten digits.  (Named
-variables are not available in Keypad Mode.)  You can also use,
+variables are not available in Keypad mode.)  You can also use,
 for example, @kbd{STO + 3} to add to register 3.
 
 @node Embedded Mode, Programming, Keypad Mode, Top
 @chapter Embedded Mode
 
 @noindent
-Embedded Mode in Calc provides an alternative to copying numbers
+Embedded mode in Calc provides an alternative to copying numbers
 and formulas back and forth between editing buffers and the Calc
-stack.  In Embedded Mode, your editing buffer becomes temporarily
+stack.  In Embedded mode, your editing buffer becomes temporarily
 linked to the stack and this copying is taken care of automatically.
 
 @menu
@@ -29794,7 +29794,7 @@ are visiting your own files.
 
 Calc normally scans backward and forward in the buffer for the
 nearest opening and closing @dfn{formula delimiters}.  The simplest
-delimiters are blank lines.  Other delimiters that Embedded Mode
+delimiters are blank lines.  Other delimiters that Embedded mode
 understands are:
 
 @enumerate
@@ -30352,15 +30352,15 @@ use @kbd{M-# u} to update the buffer by hand.
 @section Mode Settings in Embedded Mode
 
 @noindent
-Embedded Mode has a rather complicated mechanism for handling mode
+Embedded mode has a rather complicated mechanism for handling mode
 settings in Embedded formulas.  It is possible to put annotations
 in the file that specify mode settings either global to the entire
 file or local to a particular formula or formulas.  In the latter
 case, different modes can be specified for use when a formula
-is the enabled Embedded Mode formula.
+is the enabled Embedded mode formula.
 
-When you give any mode-setting command, like @kbd{m f} (for fraction
-mode) or @kbd{d s} (for scientific notation), Embedded Mode adds
+When you give any mode-setting command, like @kbd{m f} (for Fraction
+mode) or @kbd{d s} (for scientific notation), Embedded mode adds
 a line like the following one to the file just before the opening
 delimiter of the formula.
 
@@ -30413,7 +30413,7 @@ sure the value is of a legal type or range; if you write an
 annotation by hand, be sure to give a proper value or results
 will be unpredictable.  Mode-setting annotations are case-sensitive.
 
-While Embedded Mode is enabled, the word @code{Local} appears in
+While Embedded mode is enabled, the word @code{Local} appears in
 the mode line.  This is to show that mode setting commands generate
 annotations that are ``local'' to the current formula or set of
 formulas.  The @kbd{m R} (@code{calc-mode-record-mode}) command
@@ -30429,7 +30429,7 @@ that look like this, respectively:
 @end example
 
 The first kind of annotation will be used only while a formula
-is enabled in Embedded Mode.  The second kind will be used only
+is enabled in Embedded mode.  The second kind will be used only
 when the formula is @emph{not} enabled.  (Whether the formula
 is ``active'' or not, i.e., whether Calc has seen this formula
 yet, is not relevant here.)
@@ -30471,21 +30471,21 @@ We would have to go down to the other formula and press @kbd{M-# u}
 on it in order to get it to notice the new annotation.
 
 Two more mode-recording modes selectable by @kbd{m R} are @code{Save}
-(which works even outside of Embedded Mode), in which mode settings
+(which works even outside of Embedded mode), in which mode settings
 are recorded permanently in your Emacs startup file @file{~/.emacs}
 rather than by annotating the current document, and no-recording
 mode (where there is no symbol like @code{Save} or @code{Local} in
 the mode line), in which mode-changing commands do not leave any
 annotations at all.
 
-When Embedded Mode is not enabled, mode-recording modes except
+When Embedded mode is not enabled, mode-recording modes except
 for @code{Save} have no effect.
 
 @node Customizing Embedded Mode, , Mode Settings in Embedded Mode, Embedded Mode
 @section Customizing Embedded Mode
 
 @noindent
-You can modify Embedded Mode's behavior by setting various Lisp
+You can modify Embedded mode's behavior by setting various Lisp
 variables described here.  Use @kbd{M-x set-variable} or
 @kbd{M-x edit-options} to adjust a variable on the fly, or
 put a suitable @code{setq} statement in your @file{~/.emacs}
@@ -30495,7 +30495,7 @@ file; @pxref{File Variables, , Local Variables in Files, emacs, the
 Emacs manual}.)
 
 While none of these variables will be buffer-local by default, you
-can make any of them local to any embedded-mode buffer.  (Their
+can make any of them local to any Embedded mode buffer.  (Their
 values in the @samp{*Calculator*} buffer are never used.)
 
 @vindex calc-embedded-open-formula
@@ -30584,7 +30584,7 @@ The default string is @code{"%%% "} (note the trailing space).
 @vindex calc-embedded-close-plain
 The @code{calc-embedded-close-plain} variable is a string which
 ends a ``plain'' formula.  The default is @code{" %%%\n"}.  Without
-the trailing newline here, the first line of a ``big'' mode formula
+the trailing newline here, the first line of a Big mode formula
 that followed might be shifted over with respect to the other lines.
 
 @vindex calc-embedded-open-new-formula
@@ -31045,7 +31045,7 @@ conditional and looping commands.
 @cindex Restoring saved modes
 Keyboard macros sometimes want to operate under known conditions
 without affecting surrounding conditions.  For example, a keyboard
-macro may wish to turn on Fraction Mode, or set a particular
+macro may wish to turn on Fraction mode, or set a particular
 precision, independent of the user's normal setting for those
 modes.
 
@@ -31094,7 +31094,7 @@ for all mode-setting commands inside the macro.
 In fact, @kbd{C-u Z `} is like @kbd{Z `} except that it sets the modes
 listed above to their default values.  As usual, the matching @kbd{Z '}
 will restore the modes to their settings from before the @kbd{C-u Z `}.
-Also, @w{@kbd{Z `}} with a negative prefix argument resets algebraic mode
+Also, @w{@kbd{Z `}} with a negative prefix argument resets the algebraic mode
 to its default (off) but leaves the other modes the same as they were
 outside the construct.
 
@@ -32166,7 +32166,7 @@ If the first argument to @code{calc-eval} is a list whose first
 element is a formula string, then @code{calc-eval} sets all the
 various Calc modes to their default values while the formula is
 evaluated and formatted.  For example, the precision is set to 12
-digits, digit grouping is turned off, and the normal language
+digits, digit grouping is turned off, and the Normal language
 mode is used.
 
 This same principle applies to the other options discussed below.
@@ -32189,7 +32189,7 @@ It's usually best to use this form of @code{calc-eval} unless your
 program actually considers the interaction with Calc's mode settings
 to be a feature.  This will avoid all sorts of potential ``gotchas'';
 consider what happens with @samp{(calc-eval "sqrt(2)" 'num)}
-when the user has left Calc in symbolic mode or no-simplify mode.
+when the user has left Calc in Symbolic mode or No-Simplify mode.
 
 As another example, @samp{(equal (calc-eval '("$<$$") nil a b) "1")}
 checks if the number in string @expr{a} is less than the one in
@@ -32765,7 +32765,7 @@ will be used.
 This function takes a Calc object and ``normalizes'' it.  At the very
 least this involves re-rounding floating-point values according to the
 current precision and other similar jobs.  Also, unless the user has
-selected no-simplify mode (@pxref{Simplification Modes}), this involves
+selected No-Simplify mode (@pxref{Simplification Modes}), this involves
 actually evaluating a formula object by executing the function calls
 it contains, and possibly also doing algebraic simplification, etc.
 @end defun
@@ -33127,13 +33127,13 @@ function call which led here will be left in symbolic form.
 @end defun
 
 @defun inexact-value
-If Symbolic Mode is enabled, this will signal an error that causes
+If Symbolic mode is enabled, this will signal an error that causes
 @code{normalize} to leave the formula in symbolic form, with the message
-``Inexact result.''  (This function has no effect when not in Symbolic Mode.)
-Note that if your function calls @samp{(sin 5)} in Symbolic Mode, the
+``Inexact result.''  (This function has no effect when not in Symbolic mode.)
+Note that if your function calls @samp{(sin 5)} in Symbolic mode, the
 @code{sin} function will call @code{inexact-value}, which will cause your
 function to be left unsimplified.  You may instead wish to call
-@samp{(normalize (list 'calcFunc-sin 5))}, which in Symbolic Mode will
+@samp{(normalize (list 'calcFunc-sin 5))}, which in Symbolic mode will
 return the formula @samp{sin(5)} to your function.
 @end defun
 
@@ -33179,9 +33179,9 @@ number of parameters, or because it returns @code{nil} or calls
 @code{reject-arg} or @code{inexact-result}, @code{normalize} returns
 the formula still in symbolic form.
 
-If the current Simplification Mode is ``none'' or ``numeric arguments
+If the current simplification mode is ``none'' or ``numeric arguments
 only,'' @code{normalize} will act appropriately.  However, the more
-powerful simplification modes (like algebraic simplification) are
+powerful simplification modes (like Algebraic Simplification) are
 not handled by @code{normalize}.  They are handled by @code{calc-normalize},
 which calls @code{normalize} and possibly some other routines, such
 as @code{simplify} or @code{simplify-units}.  Programs generally will
@@ -33369,7 +33369,7 @@ again to 30 digits for use in the present request.
 If the current angular mode is Degrees or HMS, this function returns the
 integer 360.  In Radians mode, this function returns either the
 corresponding value in radians to the current precision, or the formula
-@samp{2*pi}, depending on the Symbolic Mode.  There are also similar
+@samp{2*pi}, depending on the Symbolic mode.  There are also similar
 function @code{half-circle} and @code{quarter-circle}.
 @end defun
 
@@ -33427,12 +33427,12 @@ If @var{a} is a formula, this returns the formula @samp{deg(@var{a})}.
 @end defun
 
 @defun to-radians-2 a
-Like @code{to-radians}, except that in Symbolic Mode a degrees to
+Like @code{to-radians}, except that in Symbolic mode a degrees to
 radians conversion yields a formula like @samp{@var{a}*pi/180}.
 @end defun
 
 @defun from-radians-2 a
-Like @code{from-radians}, except that in Symbolic Mode a radians to
+Like @code{from-radians}, except that in Symbolic mode a radians to
 degrees conversion yields a formula like @samp{@var{a}*180/pi}.
 @end defun
 
