@@ -18,9 +18,8 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;;;###autoload
-(defconst lpr-switches nil
-  "*List of strings to pass as extra switch args to lpr when it is invoked.")
+;;;###autoload (defconst lpr-switches nil
+;;;###autoload   "*List of strings to pass as extra switch args to lpr when it is invoked.")
 
 (defvar lpr-command (if (eq system-type 'usg-unix-v)
 			"lp" "lpr")

@@ -31,6 +31,7 @@
 ;;; after one of the same name in ZMACS, but the code is all-new and the
 ;;; behavior in some situations differs.
 
+;;;###autoload
 (defun reposition-window (&optional arg)
   "Make the current definition and/or comment visible.
 Further invocations move it to the top of the window or toggle the

@@ -20,11 +20,10 @@
 
 (provide 'mail-utils)
 		     
-;;;###autoload
-(defvar mail-use-rfc822 nil
-  "*If non-nil, use a full, hairy RFC822 parser on mail addresses.
-Otherwise, (the default) use a smaller, somewhat faster, and
-often correct parser.")
+;;;###autoload (defvar mail-use-rfc822 nil
+;;;###autoload   "*If non-nil, use a full, hairy RFC822 parser on mail addresses.
+;;;###autoload Otherwise, (the default) use a smaller, somewhat faster, and
+;;;###autoload often correct parser.")
 
 (defun mail-string-delete (string start end)
   "Returns a string containing all of STRING except the part

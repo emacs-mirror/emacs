@@ -22,9 +22,8 @@
   "*File name of mail inbox file, for indicating existence of new mail.
 Default is system-dependent, and is the same as used by Rmail.")
 
-;;;###autoload
-(defconst display-time-day-and-date nil "\
-*Non-nil means \\[display-time] should display day and date as well as time.")
+;;;###autoload (defconst display-time-day-and-date nil
+;;;###autoload "*Non-nil means \\[display-time] should display day and date as well as time.")
 
 (defvar display-time-process nil)
 
