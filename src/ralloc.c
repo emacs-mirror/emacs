@@ -42,7 +42,7 @@ typedef void *POINTER;
 #endif
 
 #undef NULL
-#include "mem_limits.h"
+#include "mem-limits.h"
 #include "getpagesize.h"
 
 #define NIL ((POINTER) 0)
