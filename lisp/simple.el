@@ -2777,7 +2777,7 @@ Setting this variable automatically makes it local to the current buffer."
 		 regexp)
   :group 'fill)
 
-(defvar comment-line-break-function 'indent-new-comment-line
+(defvar comment-line-break-function 'comment-indent-new-line
   "*Mode-specific function which line breaks and continues a comment.
 
 This function is only called during auto-filling of a comment section.
@@ -3527,27 +3527,29 @@ Go to the window from which completion was requested."
   "Move to the next item in the completion list.
 With prefix argument N, move N items (negative N means move backward)."
   (interactive "p")
-  (while (and (> n 0) (not (eobp)))
-    (let ((prop (get-text-property (point) 'mouse-face))
-	  (end (point-max)))
+  (let ((beg (point-min)) (end (point-max)))
+    (while (and (> n 0) (not (eobp)))
       ;; If in a completion, move to the end of it.
-      (if prop
-	  (goto-char (next-single-property-change (point) 'mouse-face nil end)))
+      (when (get-text-property (point) 'mouse-face)
+	(goto-char (next-single-property-change (point) 'mouse-face nil end)))
       ;; Move to start of next one.
-      (goto-char (next-single-property-change (point) 'mouse-face nil end)))
-    (setq n (1- n)))
-  (while (and (< n 0) (not (bobp)))
-    (let ((prop (get-text-property (1- (point)) 'mouse-face))
-	  (end (point-min)))
-      ;; If in a completion, move to the start of it.
-      (if prop
+      (unless (get-text-property (point) 'mouse-face)
+	(goto-char (next-single-property-change (point) 'mouse-face nil end)))
+      (setq n (1- n)))
+    (while (and (< n 0) (not (bobp)))
+      (let ((prop (get-text-property (1- (point)) 'mouse-face)))
+	;; If in a completion, move to the start of it.
+	(when (and prop (eq prop (get-text-property (point) 'mouse-face)))
 	  (goto-char (previous-single-property-change
-		      (point) 'mouse-face nil end)))
-      ;; Move to end of the previous completion.
-      (goto-char (previous-single-property-change (point) 'mouse-face nil end))
-      ;; Move to the start of that one.
-      (goto-char (previous-single-property-change (point) 'mouse-face nil end)))
-    (setq n (1+ n))))
+		      (point) 'mouse-face nil beg)))
+	;; Move to end of the previous completion.
+	(unless (or (bobp) (get-text-property (1- (point)) 'mouse-face))
+	  (goto-char (previous-single-property-change
+		      (point) 'mouse-face nil beg)))
+	;; Move to the start of that one.
+	(goto-char (previous-single-property-change
+		    (point) 'mouse-face nil beg))
+	(setq n (1+ n))))))
 
 (defun choose-completion ()
   "Choose the completion that point is in or next to."
@@ -3926,7 +3928,7 @@ front of the list of recently selected ones."
   (let* ((name (generate-new-buffer-name newname))
 	 (buffer (make-indirect-buffer (current-buffer) name t)))
     (when display-flag
-      (pop-to-buffer buffer))
+      (pop-to-buffer buffer norecord))
     buffer))
 
 
