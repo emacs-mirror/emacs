@@ -1997,7 +1997,7 @@ Some uses of the echo area also raise that frame (since they use it too).");
     "Non-nil means `read-from-miniffer' should not discard text properties.\n\
 This also affects `read-string', but it does not affect `read-minibuffer',\n\
 `read-no-blanks-input', or any of the functions that do minibuffer input\n\
-with completion; they always discard text properties.")
+with completion; they always discard text properties.");
   minibuffer_allow_text_properties = 0;
 
   defsubr (&Sset_minibuffer_window);
