@@ -79,6 +79,7 @@ turn off scroll bars; otherwise, turn on scroll bars."
 
 ;;;; Buffer navigation using the scroll bar.
 
+;;; This was used for up-events on button 2, but no longer.
 (defun scroll-bar-set-window-start (event)
   "Set the window start according to where the scroll bar is dragged.
 EVENT should be a scroll bar click or drag event."
@@ -92,6 +93,34 @@ EVENT should be a scroll bar click or drag event."
 	(goto-char (scroll-bar-scale portion-whole (buffer-size)))
 	(beginning-of-line)
 	(set-window-start window (point))))))
+
+;; Scroll the window to the proper position for EVENT.
+(defun scroll-bar-drag-1 (event)
+  (let* ((start-position (event-start event))
+	 (window (nth 0 start-position))
+	 (portion-whole (nth 2 start-position)))
+    (save-excursion
+      (set-buffer (window-buffer window))
+      (goto-char (scroll-bar-scale portion-whole (buffer-size)))
+      (beginning-of-line)
+      (set-window-start window (point)))))
+
+(defun scroll-bar-drag (event)
+  "Scroll the window by dragging the scroll bar slider.
+If you click outside the slider, the window scrolls to bring the slider there."
+  (interactive "e")
+  (let* (done)
+    (scroll-bar-drag-1 event)
+    (track-mouse
+      (while (not done)
+	(setq event (read-event))
+	(if (eq (car-safe event) 'mouse-movement)
+	    (setq event (read-event)))
+	(cond ((eq (car-safe event) 'scroll-bar-movement)
+	       (scroll-bar-drag-1 event))
+	      (t
+	       ;; Exit when we get the drag event; ignore that event.
+	       (setq done t)))))))
 
 (defun scroll-bar-scroll-down (event)
   "Scroll the window's top line down to the location of the scroll bar click.
@@ -130,9 +159,8 @@ EVENT should be a scroll bar click."
 (global-set-key [vertical-scroll-bar mouse-1] 'scroll-bar-scroll-up)
 (global-set-key [vertical-scroll-bar drag-mouse-1] 'scroll-bar-scroll-up)
 
-(global-set-key [vertical-scroll-bar mouse-2] 'scroll-bar-set-window-start)
-(global-set-key [vertical-scroll-bar drag-mouse-2] 'scroll-bar-set-window-start)
-      
+(global-set-key [vertical-scroll-bar down-mouse-2] 'scroll-bar-drag)
+
 (global-set-key [vertical-scroll-bar mouse-3] 'scroll-bar-scroll-down)
 (global-set-key [vertical-scroll-bar drag-mouse-3] 'scroll-bar-scroll-down)
 
