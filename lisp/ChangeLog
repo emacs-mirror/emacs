@@ -1,3 +1,9 @@
+2002-04-24  Thomas DeWeese <tdeweese@rochester.rr.com>
+
+	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
+	Check if any of the available selection sources has new content
+	and if so it will return that content.
+
 2002-04-24  Miles Bader  <miles@gnu.org>
 
 	* menu-bar.el (buffers-menu-show-directories) 
