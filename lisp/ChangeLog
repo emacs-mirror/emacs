@@ -1,3 +1,8 @@
+2005-03-29  Olive Lin  <olive.lin@versateladsl.be>
+
+	* textmodes/tex-mode.el (tex-send-command): shell-quote-argument
+	on the file name we pass to the inferior shell.
+
 2005-03-29  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
 
 	* progmodes/which-func.el (which-function): Be robust in the face of an

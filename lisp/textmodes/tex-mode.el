@@ -1562,8 +1562,9 @@ Return the process in which TeX is running."
 	    (concat
 	     (if file
 		 (if star (concat (substring cmd 0 star)
-				  file (substring cmd (1+ star)))
-		   (concat cmd " " file))
+				  (shell-quote-argument file)
+				  (substring cmd (1+ star)))
+		   (concat cmd " " (shell-quote-argument file)))
 	       cmd)
 	     (if background "&" ""))))
       ;; Switch to buffer before checking for subproc output in it.
