@@ -3351,8 +3351,26 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	  (if (/= result 0)
 	      ;; We get here if ls failed.
 	      ;; Access the file to get a suitable error.
-	      (access-file file "Reading directory")))))))
-
+	      (access-file file "Reading directory")
+	    ;; Replace "total" with "used", to avoid confusion.
+	    ;; Add in the amount of free space.
+	    (save-excursion
+	      (goto-char (point-min))
+	      (when (re-search-forward "^total" nil t)
+		(replace-match "used")
+		(end-of-line)
+		(let (available)
+		  (with-temp-buffer
+		    (call-process "df" nil t nil ".")
+		    (goto-char (point-min))
+		    (forward-line 1)
+		    (skip-chars-forward "^ \t")
+		    (forward-word 3)
+		    (let ((end (point)))
+		      (forward-word -1)
+		      (setq available (buffer-substring (point) end))))
+		  (insert " available " available))))))))))
+		    
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
 If any of these functions returns nil, killing Emacs is cancelled.
