@@ -1,5 +1,12 @@
 2002-06-12  Richard M. Stallman  <rms@gnu.org>
 
+	* info.el (Info-fontify-node): Compute header line specially
+	if node has no next, previous or up links.
+	Hide the part of the first line that is used in the header.
+	Use Info-next-link-keymap, etc.
+	(Info-next-link-keymap, Info-prev-link-keymap) 
+	(Info-up-link-keymap): New variables.
+
 	* international/mule-diag.el (describe-char-after): Doc fix.
 
 	* view.el (view-mode-enter): Clarify echo area message.
