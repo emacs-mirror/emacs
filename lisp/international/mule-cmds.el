@@ -979,7 +979,7 @@ Each element has the form:
 See the function `register-input-method' for the meanings of the elements.")
 
 (defun register-input-method (input-method lang-env &rest args)
-  "Register INPUT-METHOD as an input method for language environment ENV.
+  "Register INPUT-METHOD as an input method for language environment LANG-ENV.
 INPUT-METHOD and LANG-ENV are symbols or strings.
 
 The remaining arguments are:
