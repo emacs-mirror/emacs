@@ -265,15 +265,28 @@ Return the response string if optional second argument is non-nil."
 		(pop3-quit process)))))
     ))
 
+(defvar pop3-md5-program "md5"
+  "*Program to encode its input in MD5.")
+
+(defun pop3-md5 (string)
+  (with-temp-buffer
+    (insert string)
+    (call-process-region (point-min) (point-max)
+			 (or shell-file-name "/bin/sh")
+			 t (current-buffer) nil
+			 "-c" pop3-md5-program)
+    ;; The meaningful output is the first 32 characters.
+    ;; Don't return the newline that follows them!
+    (buffer-substring (point-min) (+ (point-min) 32))))
+
 (defun pop3-apop (process user)
   "Send alternate authentication information to the server."
-  (if (not (fboundp 'md5)) (autoload 'md5 "md5"))
   (let ((pass pop3-password))
     (if (and pop3-password-required (not pass))
 	(setq pass
 	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
     (if pass
-	(let ((hash (md5 (concat pop3-timestamp pass))))
+	(let ((hash (pop3-md5 (concat pop3-timestamp pass))))
 	  (pop3-send-command process (format "APOP %s %s" user hash))
 	  (let ((response (pop3-read-response process t)))
 	    (if (not (and response (string-match "+OK" response)))
