@@ -44,10 +44,13 @@
 (define-coding-system-alias 'iso-8859-5 'cyrillic-iso-8bit)
 
 (set-language-info-alist
- "Cyrillic-ISO" '((setup-function . setup-cyrillic-iso-environment)
-		  (charset cyrillic-iso8859-5)
+ "Cyrillic-ISO" '((charset cyrillic-iso8859-5)
 		  (coding-system cyrillic-iso-8bit)
 		  (coding-priority cyrillic-iso-8bit)
+		  (input-method . "cyrillic-yawerty")
+		  (nonascii-translation . cyrillic-iso8859-5)
+		  (unibyte-display . cyrillic-iso-8bit)
+		  (features cyril-util)
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		  (documentation . "Support for Cyrillic ISO-8859-5."))
  '("Cyrillic"))
@@ -138,14 +141,16 @@
   "Value of `nonascii-translation-table' in Cyrillic-KOI8 language environment..")
 
 (set-language-info-alist
- "Cyrillic-KOI8" `((setup-function . setup-cyrillic-koi8-environment)
-		   (charset cyrillic-iso8859-5)
-		   (nonascii-translation-table
+ "Cyrillic-KOI8" `((charset cyrillic-iso8859-5)
+		   (nonascii-translation
 		    . ,cyrillic-koi8-r-nonascii-translation-table)
 		   (charset-origin-alist
 		    (cyrillic-iso8859-5 "KOI8-R" cyrillic-encode-koi8-r-char))
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8)
+		   (input-method . "cyrillic-yawerty")
+		   (features cyril-util)
+		   (unibyte-display . cyrillic-koi8)
 		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		   (documentation . "Support for Cyrillic KOI8-R."))
  '("Cyrillic"))
@@ -232,15 +237,17 @@
   "Value of `nonascii-translation-table' in Cyrillic-ALT language environment.")
 
 (set-language-info-alist
- "Cyrillic-ALT" '((setup-function . setup-cyrillic-alternativnyj-environment)
-		  (charset cyrillic-iso8859-5)
-		  (nonascii-translation-table
-		   . cyrillic-alternativnyj-nonascii-translation-table)
+ "Cyrillic-ALT" `((charset cyrillic-iso8859-5)
+		  (nonascii-translation
+		   . ,cyrillic-alternativnyj-nonascii-translation-table)
 		  (charset-origin-alist
 		   (cyrillic-iso8859-5 "ALTERNATIVNYJ"
-				       cyrillic-encode-koi8-char))
+				       cyrillic-encode-koi8-r-char))
 		  (coding-system cyrillic-alternativnyj)
 		  (coding-priority cyrillic-alternativnyj)
+		  (input-method . "cyrillic-yawerty")
+		  (features cyril-util)
+		  (unibyte-display . cyrillic-alternativnyj)
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		  (documentation . "Support for Cyrillic ALTERNATIVNYJ."))
  '("Cyrillic"))

@@ -100,13 +100,14 @@
 (define-coding-system-alias 'tibetan 'tibetan-iso-8bit)
 
 (set-language-info-alist
- "Tibetan" '((setup-function . setup-tibetan-environment)
-	     (charset tibetan tibetan-1-column)
+ "Tibetan" '((charset tibetan tibetan-1-column)
 	     (coding-system tibetan-iso-8bit)
 	     (coding-priority iso-2022-7bit tibetan-iso-8bit)
+	     (input-method . "tibetan-wylie")
+	     (features tibet-util)
 	     (documentation . t)
 	     (sample-text .
-"Tibetan (2$(7"70"]1"2$(8!;2$(7%P`"Q1"2$(8!;(B) 2$(7#RP#SP#S1!>"72$P`"Q1$(8!;2$(7"E0"S1"G$(8!;$(7"72"20"[1$(8!;2$(7"D0"[1"#"G!>2"I0"]0"_1$(8!;2$(7"9`"Q1$(8!;2$(7"/0"S1$(8!;2$(7"5`"Q12#2`#90"[1$(8!;2$(7"H`#A`"U0"c1!>(B")))
+"Tibetan (2$(7"70"](B1$(7"2$(8!;(B2$(7%P`"Q(B1$(7"2$(8!;(B) 2$(7#RP#SP#S(B1$(7!>"7(B2$(7$P`"Q(B1$(8!;(B2$(7"E0"S(B1$(7"G$(8!;$(7"7(B2$(7"20"[(B1$(8!;(B2$(7"D0"[(B1$(7"#"G!>(B2$(7"I0"]0"_(B1$(8!;(B2$(7"9`"Q(B1$(8!;(B2$(7"/0"S(B1$(8!;(B2$(7"5`"Q(B12$(7#2`#90"[(B1$(8!;(B2$(7"H`#A`"U0"c(B1$(7!>(B")))
 
 
 ;;;
@@ -497,11 +498,11 @@
     ("$(7"`(B" . "$(8"`(B")
     ("$(7!;(B" . "$(8!;(B")
     ("$(7!D(B" . "$(8!D(B")
-    ("$(7!>(B $(7!>(B" . "2$(7!>P(B P$(7!>1(B")			; Yes this is dirty. But ...
-    ("$(7!4!5!5(B" . "2$(7#RP#SP#SP#S1(B")
-    ("$(7!4!5(B" . "2$(7#RP#SP#S1(B")
-    ("$(7!6(B" . "2$(7#RP#S_!I1(B")
-    ("$(7!4(B"   . "2$(7#RP#S1(B")))
+    ("$(7!>(B $(7!>(B" . "2$(7!>P(B P$(7!>(B1")			; Yes this is dirty. But ...
+    ("$(7!4!5!5(B" . "2$(7#RP#SP#SP#S(B1")
+    ("$(7!4!5(B" . "2$(7#RP#SP#S(B1")
+    ("$(7!6(B" . "2$(7#RP#S_!I(B1")
+    ("$(7!4(B"   . "2$(7#RP#S(B1")))
 
 (defvar tibetan-regexp
   (let ((l (append tibetan-consonant-transcription-alist

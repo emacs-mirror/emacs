@@ -56,6 +56,8 @@
 	    (tutorial . "TUTORIAL.ko")
 	    (charset korean-ksc5601)
 	    (coding-system iso-2022-kr korean-iso-8bit)
+	    (input-method . "korean-hangul")
+	    (features korea-util)
 	    (coding-priority korean-iso-8bit iso-2022-kr)
 	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")
 	    (documentation . "\

@@ -42,10 +42,13 @@
 
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
-	  (setup-function . setup-thai-environment)
 	  (charset thai-tis620)
 	  (coding-system thai-tis620)
 	  (coding-priority thai-tis620)
+	  (nonascii-translation . thai-tis620)
+	  (input-method . "thai-kesmanee")
+	  (unibyte-display . thai-tis620)
+	  (features thai-util)
 	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ(B0,TGQ(B1,TJ(B0,T4U(B1,T$(B0,TCQ(B1,T:(B, ,TJ(B0,TGQ(B1,TJ(B0,T4U(B10,T$h(B1,TP(B")
 	  (documentation . t)))
 

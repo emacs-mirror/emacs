@@ -42,10 +42,11 @@
 (define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
 (set-language-info-alist
- "Devanagari" '((setup-function . setup-devanagari-environment)
-		(charset indian-is13194 indian-2-column indian-1-column)
+ "Devanagari" '((charset indian-is13194 indian-2-column indian-1-column)
 		(coding-system in-is13194-devanagari)
 		(coding-priority in-is13194-devanagari)
+		(input-method . "devanagari-itrans")
+		(features devan-util)
 		(documentation . "\
 Such languages using Devanagari script as Hindi and Marathi
 are supported in this language environment."))

@@ -112,10 +112,11 @@
     nil))
 
 (set-language-info-alist
- "Chinese-GB" '((setup-function . setup-chinese-gb-environment)
-		(charset chinese-gb2312 chinese-sisheng)
+ "Chinese-GB" '((charset chinese-gb2312 chinese-sisheng)
 		(coding-system chinese-iso-8bit iso-2022-cn chinese-hz)
 		(coding-priority chinese-iso-8bit chinese-big5 iso-2022-cn)
+		(input-method . "chinese-py-punct")
+		(features china-util)
 		(sample-text . "Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B")
 		(documentation . "Support for Chinese GB2312 character set."))
  '("Chinese"))
@@ -152,10 +153,11 @@
       (cons (cons "big5" ccl-encode-big5-font) font-ccl-encoder-alist))
 
 (set-language-info-alist
- "Chinese-BIG5" '((setup-function . setup-chinese-big5-environment)
-		  (charset chinese-big5-1 chinese-big5-2)
+ "Chinese-BIG5" '((charset chinese-big5-1 chinese-big5-2)
 		  (coding-system chinese-big5 chinese-iso-7bit)
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
+		  (input-method . "chinese-py-punct-b5")
+		  (features china-util)
 		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
 		  (documentation . "Support for Chinese Big5 character set."))
  '("Chinese"))
@@ -165,13 +167,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (set-language-info-alist
- "Chinese-CNS" '((setup-function . setup-chinese-cns-environment)
-		 (charset chinese-cns11643-1 chinese-cns11643-2
+ "Chinese-CNS" '((charset chinese-cns11643-1 chinese-cns11643-2
 			  chinese-cns11643-3 chinese-cns11643-4
 			  chinese-cns11643-5 chinese-cns11643-6
 			  chinese-cns11643-7)
 		 (coding-system iso-2022-cn)
 		 (coding-priority iso-2022-cn chinese-big5 chinese-iso-8bit)
+		 (features china-util)
+		 (input-method . "chinese-cns-quick")
 		 (documentation . "Support for Chinese CNS character sets."))
  '("Chinese"))
 

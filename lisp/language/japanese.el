@@ -77,7 +77,7 @@
 (define-coding-system-alias 'euc-jp 'japanese-iso-8bit)
 
 (set-language-info-alist
- "Japanese" '((setup-function . setup-japanese-environment)
+ "Japanese" '((setup-function . setup-japanese-environment-internal)
 	      (exit-function . exit-japanese-environment)
 	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208 japanese-jisx0208-1978
@@ -86,6 +86,8 @@
 			     japanese-shift-jis japanese-iso-7bit-1978-irv)
 	      (coding-priority iso-2022-jp japanese-iso-8bit
 			       japanese-shift-jis)
+	      (input-method . "japanese")
+	      (features japan-util)
 	      (sample-text . "Japanese (日本語)	こんにちは, ｺﾝﾆﾁﾊ")
 	      (documentation . t)))
 

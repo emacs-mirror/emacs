@@ -240,9 +240,8 @@ Both tables are indexed by the position code of Vietnamese characters.")
   "Value of `nonascii-translation-table' in Vietnamese language environment.")
 
 (set-language-info-alist
- "Vietnamese" `((setup-function . setup-vietnamese-environment)
-		(charset vietnamese-viscii-lower vietnamese-viscii-upper)
-		(nonascii-translation-table
+ "Vietnamese" `((charset vietnamese-viscii-lower vietnamese-viscii-upper)
+		(nonascii-translation
 		 . ,viet-viscii-nonascii-translation-table)
 		(charset-origin-alist
 		 (vietnamese-viscii-lower "VISCII" viet-encode-viscii-char)
@@ -250,6 +249,9 @@ Both tables are indexed by the position code of Vietnamese characters.")
 		(coding-system vietnamese-viscii vietnamese-vscii
 			       vietnamese-viqr)
 		(coding-priority vietnamese-viscii)
+		(input-method . "vietnamese-viqr")
+		(unibyte-display . vietnamese-viscii)
+		(features viet-util)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
 For Vietnamese, Emacs uses special charasets internally.

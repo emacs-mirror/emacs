@@ -32,11 +32,13 @@
  '((safe-charsets ascii lao)))
 
 (set-language-info-alist
- "Lao" '((setup-function . setup-lao-environment)
-	 (charset lao)
+ "Lao" '((charset lao)
 	 (coding-system lao)
 	 (coding-priority lao)
-	 (sample-text . "Lao((1>RJRERG(B)            (1JP:R-04U1(B, 0(1"i1M-`0;Q190$[19ERG(B")
+	 (input-method . "lao")
+	 (nonascii-translation . lao)
+	 (unibyte-display . lao)
+	 (features lao-util)
 	 (documentation . t)))
 
 (aset use-default-ascent ?(1;(B t)
