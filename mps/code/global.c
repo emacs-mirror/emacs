@@ -274,7 +274,7 @@ Res GlobalsInit(Globals arenaGlobals)
 
   for (i=0; i < TraceLIMIT; i++) {
     /* design.mps.arena.trace.invalid */
-    arena->trace[i].sig = SigInvalid;  
+    arena->trace[i].sig = SigInvalid;
   }
   for(rank = 0; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
@@ -556,16 +556,27 @@ void ArenaPoll(Globals globals)
 
   globals->insidePoll = TRUE;
 
-  TracePoll(globals);
-
-  size = globals->fillMutatorSize;
-  globals->pollThreshold = size + ArenaPollALLOCTIME;
-  AVER(globals->pollThreshold > size); /* enough precision? */
+  (void)ArenaStep(globals, 0.0);
 
   globals->insidePoll = FALSE;
 }
 #endif
 
+Bool ArenaStep(Globals globals, double interval)
+{
+  double size;
+  Bool b;
+
+  AVERT(Globals, globals);
+
+  b = TracePoll(globals);
+
+  size = globals->fillMutatorSize;
+  globals->pollThreshold = size + ArenaPollALLOCTIME;
+  AVER(globals->pollThreshold > size); /* enough precision? */
+
+  return b;
+}
 
 /* ArenaFinalize -- registers an object for finalization
  *
@@ -678,7 +689,7 @@ Ref ArenaRead(Arena arena, Addr addr)
   Seg seg;
 
   AVERT(Arena, arena);
- 
+
   b = SegOfAddr(&seg, arena, addr);
   AVER(b == TRUE);
 
@@ -748,7 +759,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
                  NULL);
     if (res != ResOK) return res;
   }
- 
+
   res = WriteF(stream,
                "    [note: indices are raw, not rotated]\n"
                "    prehistory = $B\n", (WriteFB)arena->prehistory,

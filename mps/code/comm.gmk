@@ -281,7 +281,7 @@ endif
 all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
      finalcv arenacv bttest teletest \
-     abqtest cbstest btcv mv2test messtest \
+     abqtest cbstest btcv mv2test messtest steptest \
      eventcnv mps.a
 
 swall: mmsw.a epvmss replaysw epdss
@@ -292,7 +292,7 @@ swall: mmsw.a epvmss replaysw epdss
 #   mv2test cannot be run because MV2 is broken
 testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
          mpsicv lockcov poolncv locv qs finalcv arenacv \
-         abqtest cbstest btcv messtest
+         abqtest cbstest btcv messtest steptest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
@@ -309,7 +309,7 @@ mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   awluthe mpsicv lockcov poolncv locv qs apss \
   finalcv arenacv bttest teletest epvmss epdss \
   abqtest cbstest btcv mv2test \
-  messtest \
+  messtest steptest \
   eventcnv replay replaysw \
   mps.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
@@ -444,6 +444,9 @@ $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 
 $(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
