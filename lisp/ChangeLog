@@ -1,5 +1,32 @@
 2001-05-09  John Wiegley  <johnw@gnu.org>
 
+	* eshell/esh-arg.el (eshell-parse-argument-hook): If a number is
+	encountered as an argument, don't convert it right away, but tag
+	the first character of the string with the text properties
+	`number', which signifies to `eshell-lisp-command' that the
+	argument should be passed through `string-to-number' if it is
+	actually used in the call to a Lisp function.
+
+	* eshell/esh-cmd.el (eshell-lisp-command): Before calling a Lisp
+	function, convert any string arguments that have been tagged as
+	"numbers", by calling string-to-number.
+
+	* eshell/esh-util.el (eshell-number-regexp): Now that number
+	conversions only happen for Lisp function calls, the number regexp
+	should now match all integer and floating point forms.
+
+	* eshell/esh-proc.el: Disable `eshell-stop-process' and
+	`eshell-continue-process', since they are both nonfunctional at
+	the moment.
+	(eshell-proc-initialize): Don't bind keys for
+	`eshell-stop-process' or `eshell-continue-process'.
+
+	* eshell/em-unix.el (eshell-shuffle-files): Apply
+	`directory-file-name' before calling `file-name-directory'.
+
+	* eshell/em-hist.el (eshell-add-to-history): Reference to
+	`eshell-history-ring' needed to be `eshell-history-index'.
+
 	* calendar/timeclock.el (timeclock-find-discrep): Initialize
 	`elapsed' to 0.
 	(timeclock-find-discrep): Set `timeclock-last-event-workday' if
