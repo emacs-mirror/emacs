@@ -57,6 +57,7 @@ to return to regular RMAIL:
 	(rmail-summary-disable)))
   (run-hooks 'text-mode-hook 'rmail-edit-mode-hook))
 
+;;;###autoload
 (defun rmail-edit-current-message ()
   "Edit the contents of this message."
   (interactive)
