@@ -966,7 +966,9 @@ If `enable-local-variables' is nil, this function does not check for a
 		 ;; Find all specifications for the `mode:' variable
 		 ;; and execute them left to right.
 		 (while (let ((case-fold-search t))
-			  (search-forward "mode:" end t))
+			  (or (and (looking-at "mode:")
+				   (goto-char (match-end 0)))
+			      (re-search-forward "[ \t;]mode:" end t)))
 		   (skip-chars-forward " \t")
 		   (setq beg (point))
 		   (if (search-forward ";" end t)
