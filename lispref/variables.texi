@@ -32,8 +32,8 @@ variable.
 * Local Variables::       Variable values that exist only temporarily.
 * Void Variables::        Symbols that lack values.
 * Defining Variables::    A definition says a symbol is used as a variable.
-* Tips for Defining::     How to avoid bad results from quitting
-                            within the code to initialize a variable.
+* Tips for Defining::     Things you should think about when you
+                            define a variable.
 * Accessing Variables::   Examining values of variables whose names
                             are known only at run time.
 * Setting Variables::     Storing new values in variables.
@@ -41,6 +41,7 @@ variable.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
 * Frame-Local Variables::   Variable values in effect only in one frame.
 * Future Local Variables::  New kinds of local values we might add some day.
+* File Local Variables::  Handling local variable lists in files.
 @end menu
 
 @node Global Variables
@@ -572,12 +573,56 @@ this feature is largely obsoleted by @code{defcustom}
   @strong{Warning:} If the @code{defconst} and @code{defvar} special
 forms are used while the variable has a local binding, they set the
 local binding's value; the global binding is not changed.  This is not
-what we really want.  To prevent it, use these special forms at top
+what you usually want.  To prevent it, use these special forms at top
 level in a file, where normally no local binding is in effect, and make
 sure to load the file before making a local binding for the variable.
 
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
+
+  When you define a variable whose value is a function, or a list of
+functions, use a name that ends in @samp{-function} or
+@samp{-functions}, respectively.
+
+  There are several other variable name conventions;
+here is a complete list:
+
+@table @samp
+@item @dots{}-hook
+The variable is a normal hook (@pxref{Hooks}).
+
+@item @dots{}-function
+The value is a function.
+
+@item @dots{}-functions
+The value is a list of functions.
+
+@item @dots{}-form
+The value is a form (an expression).
+
+@item @dots{}-functions
+The value is a list of forms (expressions).
+
+@item @dots{}-predicate
+The value is a predicate---a function of one argument that returns
+non-@code{nil} for ``good'' arguments and @code{nil} for ``bad''
+arguments.
+
+@item @dots{}-flag
+The value is significant only as to whether it is @code{nil} or not.
+
+@item @dots{}-program
+The value is a program name.
+
+@item @dots{}-command
+The value is a whole shell command.
+
+@item @samp{}-switches
+The value specifies options for a command.
+@end table
+
+  When you define a variable, always cvonsider whether you should mark
+it as ``risky''; see @ref{File Local Variables}.
 
   When defining and initializing a variable that holds a complicated
 value (such as a keymap with bindings in it), it's best to put the
@@ -1605,4 +1650,55 @@ bindings offer a way to handle these situations more robustly.
   If sufficient application is found for either of these two kinds of
 local bindings, we will provide it in a subsequent Emacs version.
 
+@node File Local Variables
+@section File Local Variables
 
+  This section describes the functions and variables that affect
+processing of local variables lists in files.
+
+@defopt enable-local-variables
+This variable controls whether to process file local variables lists.  A
+value of @code{t} means process the local variables lists
+unconditionally; @code{nil} means ignore them; anything else means ask
+the user what to do for each file.  The default value is @code{t}.
+@end defopt
+
+@defun hack-local-variables &optional force
+This function parses, and binds or evaluates as appropriate, any local
+variables specified by the contents of the current buffer.  The variable
+@code{enable-local-variables} has its effect here.
+
+The argument @var{force} usually comes from the argument @var{find-file}
+given to @code{normal-mode}.
+@end defun
+
+  If a file local variable list could specify the a function that will
+be called later, or an expression that will be executed later, simply
+visiting a file could take over your Emacs.  To prevent this, Emacs
+takes care not to allow local variable lists to set such variables.
+
+  For one thing, any variable whose name ends in @samp{-function},
+@samp{-functions}, @samp{-hook}, @samp{-hooks}, @samp{-form},
+@samp{-forms}, @samp{-program}, @samp{-command} or @samp{-predicate}
+cannot be set in a local variable list.  In general, you should use such
+a name whenever it is appropriate for the variable's meaning.
+
+  In addition, any variable whose name has a non-@code{nil}
+@code{risky-local-variable} property is also ignored.  So are
+all variables listed in @code{ignored-local-variables}:
+
+@defvar ignored-local-variables
+This variable holds a list of variables that should not be
+set by a file's local variables list.  Any value specified
+for one of these variables is ignored.
+@end defvar
+
+  The @samp{Eval:} ``variable'' is also a potential loophole, so Emacs
+normally asks for confirmation before handling it.
+
+@defopt enable-local-eval
+This variable controls processing of @samp{Eval:} in local variables
+lists in files being visited.  A value of @code{t} means process them
+unconditionally; @code{nil} means ignore them; anything else means ask
+the user what to do for each file.  The default value is @code{maybe}.
+@end defopt
