@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.30 2000/10/17 12:12:00 eliz Exp $
+;; Revision: $Id: diff-mode.el,v 1.31 2000/10/17 15:55:09 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -169,9 +169,9 @@ when editing big diffs)."
 
 (defface diff-header-face
   '((((type tty pc) (class color) (background light))
-     (:foreground "lightblue"))
+     (:foreground "blue1" :bold t))
     (((type tty pc) (class color) (background dark))
-     (:foreground "green"))
+     (:foreground "green" :bold t))
     (((class color) (background light))
      (:background "grey85"))
     (((class color) (background dark))
@@ -183,9 +183,9 @@ when editing big diffs)."
 
 (defface diff-file-header-face
   '((((type tty pc) (class color) (background light))
-     (:foreground "yellow"))
+     (:foreground "yellow" :bold t))
     (((type tty pc) (class color) (background dark))
-     (:foreground "cyan"))
+     (:foreground "cyan" :bold t))
     (((class color) (background light))
      (:background "grey70" :bold t))
     (((class color) (background dark))
@@ -221,13 +221,19 @@ when editing big diffs)."
 
 (defface diff-changed-face
   '((((type tty pc) (class color) (background light))
-     (:foreground "magenta"))
+     (:foreground "magenta" :bold t :italic t))
     (((type tty pc) (class color) (background dark))
-     (:foreground "yellow"))
+     (:foreground "yellow" :bold t :italic t))
     (t ()))
   "`diff-mode' face used to highlight changed lines."
   :group 'diff-mode)
 (defvar diff-changed-face 'diff-changed-face)
+
+(defface diff-function-face
+  '((t (:inherit diff-context-face)))
+  "`diff-mode' face used to highlight function names produced by \"diff -p\"."
+  :group 'diff-mode)
+(defvar diff-function-face 'diff-function-face)
 
 (defface diff-context-face
   '((((class color) (background light))
@@ -242,12 +248,12 @@ when editing big diffs)."
 (defvar diff-font-lock-keywords
   '(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$" ;unified
      (1 diff-hunk-header-face)
-     (2 diff-context-face))
+     (2 diff-function-face))
     ("^--- .+ ----$"		;context
      . diff-hunk-header-face)
     ("\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
      (1 diff-hunk-header-face)
-     (2 diff-context-face))
+     (2 diff-function-face))
     ("^\\*\\*\\* .+ \\*\\*\\*\\*". diff-hunk-header-face) ;context
     ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)\\(.*[^*-]\\)?\n"
      (0 diff-header-face) (2 diff-file-header-face prepend))
