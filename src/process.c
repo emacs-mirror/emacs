@@ -6074,7 +6074,7 @@ init_process ()
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
-#ifndef TERM
+#if !defined(TERM) && (defined(O_NONBLOCK) || defined(O_NDELAY))
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
 #ifdef SO_BINDTODEVICE
