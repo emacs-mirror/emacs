@@ -1,3 +1,8 @@
+2000-04-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* gud.el (gud-jdb-build-source-files-list): Change file-exists-p
+	to file-directory-p.
+
 2000-04-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* gud.el (gud-jdb-build-source-files-list): Check that directory
