@@ -334,10 +334,10 @@ nil for FUNCTION means all messages."
 			(if (or (not mch) (<= len 25))
 			    (substring from (max 0 (- len 25)))
 			  (substring from
-				     (setq lo (cond ((< (- mch 9) 0) 0)
-						    ((< len (+ mch 16))
+				     (setq lo (cond ((< (- mch 14) 0) 0)
+						    ((< len (+ mch 11))
 						     (- len 25))
-						    (t (- mch 9))))
+						    (t (- mch 14))))
 				     (min len (+ lo 25))))))))
 	  "  #"
 	  (if (re-search-forward "^Subject:" nil t)
