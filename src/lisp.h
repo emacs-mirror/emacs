@@ -668,14 +668,28 @@ typedef unsigned char UCHAR;
    pretty quickly.  */
 #define GLYPH unsigned int
 
+#ifdef HAVE_X_WINDOWS
+/* The FAST macros assume that we already know we're in an X window.  */
+
 /* Given a character code and a face ID, return the appropriate glyph.  */
-#define MAKE_GLYPH(char, face) ((char) | ((face) << 8))
+#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << 8))
 
 /* Return a glyph's character code.  */
-#define GLYPH_CHAR(glyph) ((glyph) & 0xff)
+#define FAST_GLYPH_CHAR(glyph) ((glyph) & 0xff)
 
 /* Return a glyph's face ID.  */
-#define GLYPH_FACE(glyph) (((glyph) >> 8) & ((1 << 24) - 1))
+#define FAST_GLYPH_FACE(glyph) (((glyph) >> 8) & ((1 << 24) - 1))
+
+/* Slower versions that test the frame type first.  */
+#define MAKE_GLYPH(f, char, face) (FRAME_TERMCAP_P (f) ? (char) \
+				   : FAST_MAKE_GLYPH (char, face))
+#define GLYPH_CHAR(f, g) (FRAME_TERMCAP_P (f) ? (g) : FAST_GLYPH_CHAR (g))
+#define GLYPH_FACE(f, g) (FRAME_TERMCAP_P (f) ? (0) : FAST_GLYPH_FACE (g))
+#else
+#define MAKE_GLYPH(f, char, face) (char)
+#define GLYPH_CHAR(f, g) (g)
+#define GLYPH_FACE(f, g) (g)
+#endif
 
 /* The ID of the mode line highlighting face.  */
 #define GLYPH_MODE_LINE_FACE 1
