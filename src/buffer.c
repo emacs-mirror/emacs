@@ -4217,12 +4217,29 @@ init_buffer_once ()
 void
 init_buffer ()
 {
-  char buf[MAXPATHLEN+1];
+  char buf[MAXPATHLEN + 1];
   char *pwd;
   struct stat dotstat, pwdstat;
   Lisp_Object temp;
   int rc;
 
+#ifdef REL_ALLOC_MMAP
+ {
+   /* When using the ralloc implementation based on mmap(2), buffer
+      text pointers will have been set to null in the dumped Emacs.
+      Map new memory.  */
+   struct buffer *b;
+   
+   BLOCK_INPUT;
+   for (b = all_buffers; b; b = b->next)
+     if (b->text->beg == NULL)
+       BUFFER_REALLOC (BUF_BEG_ADDR (b),
+		       (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b)
+			+ BUF_GAP_SIZE (b) + 1));
+   UNBLOCK_INPUT;
+ }
+#endif /* REL_ALLOC_MMAP */
+  
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
   if (NILP (buffer_defaults.enable_multibyte_characters))
     Fset_buffer_multibyte (Qnil);
