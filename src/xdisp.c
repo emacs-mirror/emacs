@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,99, 2000, 2001, 2002, 2003
+   Copyright (C) 1985,86,87,88,93,94,95,97,98,99,2000,01,02,03
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -14927,8 +14927,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
   int literal = 0;
 
  tail_recurse:
-  if (depth > 10)
-    goto invalid;
+  if (depth > 100)
+    elt = build_string ("*too-deep*");
 
   depth++;
 
@@ -15283,14 +15283,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 
     default:
     invalid:
-      if (frame_title_ptr)
-	n += store_frame_title ("*invalid*", 0, precision - n);
-      else if (!NILP (mode_line_string_list))
-	n += store_mode_line_string ("*invalid*", Qnil, 0, 0, precision - n, Qnil);
-      else
-	n += display_string ("*invalid*", Qnil, Qnil, 0, 0, it, 0,
-			     precision - n, 0, 0);
-      return n;
+      elt = build_string ("*invalid*");
+      goto tail_recurse;
     }
 
   /* Pad to FIELD_WIDTH.  */
