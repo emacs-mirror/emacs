@@ -1299,21 +1299,27 @@ struct standard_args
 
 struct standard_args standard_args[] =
 {
-  { "-version", "--version", 110, 0 },
-  { "-help", "--help", 110, 0 },
-  { "-nl", "--no-shared-memory", 100, 0 },
-#ifdef VMS
-  { "-map", "--map-data", 100, 0 },
+  { "-version", "--version", 150, 0 },
+#ifdef HAVE_SHM
+  { "-nl", "--no-shared-memory", 140, 0 },
 #endif
-  { "-t", "--terminal", 90, 1 },
+#ifdef VMS
+  { "-map", "--map-data", 130, 0 },
+#endif
+  { "-t", "--terminal", 120, 1 },
+  { "-nw", "--no-windows", 110, 0 },
+  { "-batch", "--batch", 100, 0 },
+  { "-help", "--help", 90, 0 },
   { "-d", "--display", 80, 1 },
   { "-display", 0, 80, 1 },
-  { "-nw", "--no-windows", 70, 0 },
-  { "-no-unibyte", "--no-unibyte", 66, 0 },
-  { "-multibyte", "--multibyte", 66, 0 },
-  { "-unibyte", "--unibyte", 65, 0 },
-  { "-no-multibyte", "--no-multibyte", 65, 0 },
-  { "-batch", "--batch", 60, 0 },
+  { "-no-unibyte", "--no-unibyte", 71, 0 },
+  { "-multibyte", "--multibyte", 71, 0 },
+  { "-unibyte", "--unibyte", 70, 0 },
+  { "-no-multibyte", "--no-multibyte", 70, 0 },
+#ifdef CANNOT_DUMP
+  { "-nl", "--no-loadup", 60, 0 },
+#endif
+  /* Now for the options handled in startup.el.  */
   { "-q", "--no-init-file", 50, 0 },
   { "-no-init-file", 0, 50, 0 },
   { "-no-site-file", "--no-site-file", 40, 0 },
