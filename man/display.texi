@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Display, Search, Registers, Top
 @chapter Controlling the Display
@@ -338,13 +338,13 @@ their graphics (assuming your terminal supports them).
 users should skip it.
 
 @vindex mode-line-inverse-video
-  The variable @code{mode-line-inverse-video} controls whether the mode
-line is displayed in inverse video (assuming the terminal supports it);
-@code{nil} means don't do so.  @xref{Mode Line}.  If you specify the
-foreground color for the @code{modeline} face, and
-@code{mode-line-inverse-video} is non-@code{nil}, then the default
-background color for that face is the usual foreground color.
-@xref{Faces}.
+  The variable @code{mode-line-inverse-video} is an obsolete way of
+controlling whether the mode line is displayed in inverse video; the
+preferred way of doing this is to change the @code{mode-line} face.
+@xref{Mode Line}.  If you specify the foreground color for the
+@code{mode-line} face, and @code{mode-line-inverse-video} is
+non-@code{nil}, then the default background color for that face is the
+usual foreground color.  @xref{Faces}.
 
 @vindex inverse-video
   If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
