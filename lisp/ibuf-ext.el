@@ -688,11 +688,10 @@ See also `ibuffer-kill-filter-group'."
 ;;;###autoload
 (defun ibuffer-yank-filter-group (name)
   "Yank the last killed filter group before group named NAME."
-  (interactive (list (progn
-		       (unless ibuffer-filter-group-kill-ring
-			 (error "ibuffer-filter-group-kill-ring is empty"))
-		       (ibuffer-read-filter-group-name
-			"Yank filter group before group: "))))
+  (interactive (list (ibuffer-read-filter-group-name
+			"Yank filter group before group: ")))
+  (unless ibuffer-filter-group-kill-ring
+    (error "The Ibuffer filter group kill-ring is empty"))
   (save-excursion
     (ibuffer-forward-line 0)
     (ibuffer-insert-filter-group-before (pop ibuffer-filter-group-kill-ring)
