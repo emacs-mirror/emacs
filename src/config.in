@@ -224,6 +224,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_TOUCHLOCK
 
 #undef HAVE_ALLOCA_H
+#undef HAVE_PTY_H
 
 #undef HAVE_DEV_PTMX
 
@@ -317,7 +318,8 @@ Boston, MA 02111-1307, USA.  */
 
 #undef HAVE_WORKING_VFORK
 #undef vfork
-#undef size_t
+#undef HAVE_SIZE_T
+#undef HAVE_LANGINFO_CODESET
 
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
