@@ -3112,8 +3112,8 @@ read_process_output (proc, channel)
       if (NILP (current_buffer->enable_multibyte_characters)
 	  != ! STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
-		? Fstring_as_unibyte (text)
-		: Fstring_as_multibyte (text));
+		? string_make_unibyte (text)
+		: string_make_multibyte (text));
       nbytes = STRING_BYTES (XSTRING (text));
       nchars = XSTRING (text)->size;
       insert_from_string_before_markers (text, 0, 0, nchars, nbytes, 0);
