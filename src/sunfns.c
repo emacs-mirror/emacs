@@ -1,6 +1,16 @@
 /* Functions for Sun Windows menus and selection buffer.
    Copyright (C) 1987 Free Software Foundation, Inc.
 
+This file is probably totally obsolete.  In any case, the FSF is
+unwilling to support it.  We agreed to include it in our distribution
+only on the understanding that we would spend no time at all on it.
+
+If you have complaints about this file, send them to peck@sun.com.
+If no one at Sun wants to maintain this, then consider it not
+maintained at all.  It would be a bad thing for the GNU project if
+this file took our effort away from higher-priority things.
+
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
@@ -17,7 +27,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-Author: Jeff Peck, Sun Microsystems, Inc. <peck@sun.com>
+/* Author: Jeff Peck, Sun Microsystems, Inc. <peck@sun.com>
 Original ideas by David Kastan and Eric Negaard, SRI International
 Major help from: Steve Greenbaum, Reasoning Systems, Inc.
  		    <froud@kestrel.arpa>
