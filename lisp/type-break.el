@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.15 1998/04/20 02:43:44 done Exp rms $
+;; $Id: type-break.el,v 1.16 1998/05/13 01:46:28 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -374,11 +374,11 @@ Finally, the command `type-break-statistics' prints interesting things."
      (type-break-mode
       (or global-mode-string
           (setq global-mode-string '("")))
-      (or (memq 'type-break-mode-line-format
-                (default-value 'global-mode-string))
-          (setq-default global-mode-string
-                        (nconc (default-value 'global-mode-string)
-                               '(type-break-mode-line-format))))
+      (or (assq 'type-break-mode-line-message-mode
+		minor-mode-alist)
+	  (setq minor-mode-alist
+		(cons type-break-mode-line-format
+		      minor-mode-alist)))
       (type-break-keystroke-reset)
       (type-break-mode-line-countdown-or-break nil)
       (type-break-schedule)
