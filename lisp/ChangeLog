@@ -1,5 +1,8 @@
 2002-07-08  Kim F. Storm  <storm@cua.dk>
 
+	* files.el (after-find-file): Don't check for read-only status
+	of files just created (and not yet saved on disk).
+
 	* ido.el (ido-completion-help): Changed xemacs specific code to
 	avoid byte compiler warning in GNU emacs.                                                                            
 	(ido-set-matches1): Use regexp-quote instead of identity.
