@@ -141,6 +141,7 @@
 ;;  comint-scroll-to-bottom-on-output	symbol	...
 ;;  comint-scroll-show-maximum-output	boolean	...	
 ;;  comint-accum-marker			maker	  For comint-accumulate
+;;  comint-last-output-overlay          overlay
 ;;
 ;; Comint mode non-buffer local variables:
 ;;  comint-completion-addsuffix		boolean/cons	For file name
@@ -160,10 +161,12 @@
   :prefix "comint-"
   :group 'comint)
 
-
 (defvar comint-prompt-regexp "^"
   "Regexp to recognise prompts in the inferior process.
 Defaults to \"^\", the null string at BOL.
+
+This variable is only used if the variable
+`comint-use-prompt-regexp-instead-of-fields' is non-nil.
 
 Good choices:
   Canonical Lisp: \"^[^> \\n]*>+:? *\" (Lucid, franz, kcl, T, cscheme, oaklisp)
@@ -309,10 +312,12 @@ This is used by `comint-watch-for-password-prompt'."
 ;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
   "Function that returns old text in comint mode.
-This function is called when return is typed while the point is in old text.
-It returns the text to be submitted as process input.  The default is
-`comint-get-old-input-default', which grabs the current line, and strips off
-leading text matching `comint-prompt-regexp'.")
+This function is called when return is typed while the point is in old
+text.  It returns the text to be submitted as process input.  The
+default is `comint-get-old-input-default', which either grabs the
+current input field or grabs the current line and strips off leading
+text matching `comint-prompt-regexp', depending on the value of
+`comint-use-prompt-regexp-instead-of-fields'.")
 
 (defvar comint-dynamic-complete-functions
   '(comint-replace-by-expanded-history comint-dynamic-complete-filename)
@@ -356,6 +361,18 @@ This is called from the user command `comint-send-input'.")
 (defcustom comint-eol-on-send t
   "*Non-nil means go to the end of the line before sending input.
 See `comint-send-input'."
+  :type 'boolean
+  :group 'comint)
+
+;; Note: If it is decided to purge comint-prompt-regexp from the source
+;; entirely, searching for uses of this variable will help to identify
+;; places that need attention.
+(defcustom comint-use-prompt-regexp-instead-of-fields nil
+  "*If non-nil, use `comint-prompt-regexp' to distinguish prompts from user-input.
+If nil, then program output and user-input are given different `field'
+properties, which emacs commands can use to distinguish them (in
+particular, common movement commands such as begining-of-line respect
+field boundaries in a natural way)."
   :type 'boolean
   :group 'comint)
 
@@ -462,6 +479,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (set-marker comint-last-input-end (point-min))
   (make-local-variable 'comint-last-output-start)
   (setq comint-last-output-start (make-marker))
+  (make-local-variable 'comint-last-output-overlay)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
   (make-local-variable 'comint-input-ring)
@@ -1070,8 +1088,13 @@ Returns t if successful."
   (interactive)
   (if (and comint-input-autoexpand
 	   (string-match "!\\|^\\^" (funcall comint-get-old-input))
-	   (save-excursion (beginning-of-line)
-			   (looking-at comint-prompt-regexp)))
+	   (if comint-use-prompt-regexp-instead-of-fields
+	       ;; Use comint-prompt-regexp
+	       (save-excursion (beginning-of-line)
+			       (looking-at comint-prompt-regexp))
+	     ;; Use input fields.  User input that hasn't been entered
+	     ;; yet, at the end of the buffer, has a nil `field' property.
+	     (null (get-char-property (point) 'field))))
       ;; Looks like there might be history references in the command.
       (let ((previous-modified-tick (buffer-modified-tick)))
 	(comint-replace-by-expanded-history-before-point silent start)
@@ -1086,15 +1109,11 @@ If the optional argument START is non-nil, that specifies the
 start of the text to scan for history references, rather
 than the logical beginning of line."
   (save-excursion
-    (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
-	  (start (or start (progn (comint-bol nil) (point)))))
+    (let ((toend (- (line-end-position) (point)))
+	  (start (comint-line-beginning-position)))
       (while (progn
-	       (skip-chars-forward "^!^"
-				   (save-excursion
-				     (end-of-line nil) (- (point) toend)))
-	       (< (point)
-		  (save-excursion
-		    (end-of-line nil) (- (point) toend))))
+	       (skip-chars-forward "^!^" (- (line-end-position) toend))
+	       (< (point) (- (line-end-position) toend)))
 	;; This seems a bit complex.  We look for references such as !!, !-num,
 	;; !foo, !?foo, !{bar}, !?{bar}, ^oh, ^my^, ^god^it, ^never^ends^.
 	;; If that wasn't enough, the plings can be suffixed with argument
@@ -1317,8 +1336,10 @@ The values of `comint-get-old-input', `comint-input-filter-functions', and
 in the buffer.  E.g.,
 
 If the interpreter is the csh,
-    comint-get-old-input is the default: take the current line, discard any
-        initial string matching regexp comint-prompt-regexp.
+    comint-get-old-input is the default: either return the current
+        field, or take the current line and discard any
+        initial string matching regexp `comint-prompt-regexp', depending
+	on the value of `comint-use-prompt-regexp-instead-of-fields'.
     comint-input-filter-functions monitors input for \"cd\", \"pushd\", and
         \"popd\" commands. When it sees one, it cd's the buffer.
     comint-input-filter is the default: returns t if the input isn't all white
@@ -1360,9 +1381,11 @@ Similarly for Soar, Scheme, etc."
 			    (insert input)
 			    (delete-region pmark start)
 			    copy))))
+
           (if comint-process-echoes
               (delete-region pmark (point))
 	    (insert-before-markers ?\n))
+
 	  (if (and (funcall comint-input-filter history)
 		   (or (null comint-input-ignoredups)
 		       (not (ring-p comint-input-ring))
@@ -1370,17 +1393,33 @@ Similarly for Soar, Scheme, etc."
 		       (not (string-equal (ring-ref comint-input-ring 0)
 					  history))))
 	      (ring-insert comint-input-ring history))
+
 	  (run-hook-with-args 'comint-input-filter-functions
 			      (concat input "\n"))
+
 	  (let ((beg (marker-position pmark))
 		(end (1- (point))))
-	    (when (and comint-highlight-input
-		       ;; handle a special case
-		       (not (> beg end)))
+	    (when (not (> beg end))	; handle a special case
+	      ;; Make an overlay for the input field
 	      (let ((over (make-overlay beg end)))
-		(overlay-put over 'face comint-highlight-face)
-		(overlay-put over 'mouse-face 'highlight)		
+		(unless comint-use-prompt-regexp-instead-of-fields
+		  ;; Give old user input a field property of `input', to
+		  ;; distinguish it from both process output and unsent
+		  ;; input.  The terminating newline is put into a special
+		  ;; `boundary' field to make cursor movement between input
+		  ;; and output fields smoother.
+		  (overlay-put over 'field 'input)
+		  (overlay-put over 'front-sticky t))
+		(when comint-highlight-input
+		  (overlay-put over 'face comint-highlight-face)
+		  (overlay-put over 'mouse-face 'highlight)
+		  (overlay-put over 'evaporate t))))
+	    (unless comint-use-prompt-regexp-instead-of-fields
+	      ;; Make an overlay for the terminating newline
+	      (let ((over (make-overlay end (1+ end))))
+		(overlay-put over 'field 'boundary)
 		(overlay-put over 'evaporate t))))
+
 	  (setq comint-save-input-ring-index comint-input-ring-index)
 	  (setq comint-input-ring-index nil)
 	  ;; Update the markers before we send the input
@@ -1408,6 +1447,11 @@ the last function is the text that is actually inserted in the
 redirection buffer.
 
 This variable is permanent-local.")
+
+;; When non-nil, this is the last overlay used for output.
+;; It is kept around so that we can extend it instead of creating
+;; multiple contiguous overlays for multiple contiguous output chunks.
+(defvar comint-last-output-overlay nil)
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
@@ -1439,6 +1483,23 @@ This variable is permanent-local.")
 	    (if (<= (point) oend)
 		(setq oend (+ oend nchars)))
 	    (insert-before-markers string)
+
+	    (unless comint-use-prompt-regexp-instead-of-fields
+	      ;; We check to see if the last overlay used for output has
+	      ;; already been extended to include STRING (because it was
+	      ;; inserted with insert-before-markers?), and only make
+	      ;; a new overlay if it hasn't.
+	      (unless (and comint-last-output-overlay
+			   (= (overlay-end comint-last-output-overlay)
+			      (point)))
+		;; Create a new overlay
+		(let ((over (make-overlay ostart (point))))
+		  (overlay-put over 'field 'output)
+		  (overlay-put over 'rear-nonsticky t)
+		  (overlay-put over 'inhibit-line-move-field-capture t)
+		  (overlay-put over 'evaporate t)
+		  (setq comint-last-output-overlay over))))
+
 	    ;; Don't insert initial prompt outside the top of the window.
 	    (if (= (window-start (selected-window)) (point))
 		(set-window-start (selected-window) (- (point) (length string))))
@@ -1552,14 +1613,19 @@ This function could be on `comint-output-filter-functions' or bound to a key."
 
 (defun comint-get-old-input-default ()
   "Default for `comint-get-old-input'.
-Take the current line, and discard any initial text matching
-`comint-prompt-regexp'."
-  (save-excursion
-    (beginning-of-line)
-    (comint-skip-prompt)
-    (let ((beg (point)))
-      (end-of-line)
-      (buffer-substring beg (point)))))
+Returns either the current field, or the current line with any initial
+text matching `comint-prompt-regexp' stripped off, depending on the
+value of `comint-use-prompt-regexp-instead-of-fields'."
+  (if comint-use-prompt-regexp-instead-of-fields
+      (save-excursion
+	(beginning-of-line)
+	(comint-skip-prompt)
+	(let ((beg (point)))
+	  (end-of-line)
+	  (buffer-substring beg (point))))
+    ;; Return the contents of the field at the current point.
+    (field-string)))
+
 
 (defun comint-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited.
@@ -1592,15 +1658,38 @@ set the hook `comint-input-sender'."
   (comint-send-string proc string)
   (comint-send-string proc "\n"))
 
-(defun comint-bol (arg)
-  "Goes to the beginning of line, then skips past the prompt, if any.
-If prefix argument is given (\\[universal-argument]) the prompt is not skipped. 
+(defun comint-line-beginning-position ()
+  "Returns the buffer position of the beginning of the line, after any prompt.
+If `comint-use-prompt-regexp-instead-of-fields' is non-nil, then the
+prompt skip is done by skipping text matching the regular expression
+`comint-prompt-regexp', a buffer local variable."
+  (if comint-use-prompt-regexp-instead-of-fields
+      ;; Use comint-prompt-regexp
+      (save-excursion
+	(beginning-of-line)
+	(comint-skip-prompt)
+	(point))
+    ;; Use input fields.  Note that, unlike the behavior of
+    ;; `line-beginning-position' inside a field, this function will
+    ;; return the position of the end of a prompt, even if the point is
+    ;; already inside the prompt.  In order to do this, it assumes that
+    ;; if there are two fields on a line, then the first one is the
+    ;; prompt, and the second one is an input field, and is front-sticky
+    ;; (as input fields should be).
+    (constrain-to-field (line-beginning-position) (line-end-position))))
 
-The prompt skip is done by skipping text matching the regular expression
+(defun comint-bol (&optional arg)
+  "Goes to the beginning of line, then skips past the prompt, if any.
+If prefix argument is given (\\[universal-argument]) the prompt is not skipped.
+If `comint-use-prompt-regexp-instead-of-fields' is non-nil, then the
+prompt skip is done by skipping text matching the regular expression
 `comint-prompt-regexp', a buffer local variable."
   (interactive "P")
-  (beginning-of-line)
-  (if (null arg) (comint-skip-prompt)))
+  (if arg
+      ;; Disregard prompt
+      (let ((inhibit-field-text-motion t))
+	(beginning-of-line))
+    (goto-char (comint-line-beginning-position))))
 
 ;; These three functions are for entering text you don't want echoed or
 ;; saved -- typically passwords to ftp, telnet, or somesuch.
@@ -1721,11 +1810,16 @@ Does not delete the prompt."
 Sets mark to the value of point when this command is run."
   (interactive)
   (push-mark)
-  (let ((pos (point)))
-    (goto-char (or (marker-position comint-last-input-end) (point-max)))
-    (beginning-of-line 0)
-    (set-window-start (selected-window) (point))
-    (comint-skip-prompt)))
+  (let ((pos (or (marker-position comint-last-input-end) (point-max))))
+    (cond (comint-use-prompt-regexp-instead-of-fields
+	   (goto-char pos)
+	   (beginning-of-line 0)
+	   (set-window-start (selected-window) (point))
+	   (comint-skip-prompt))
+	  (t
+	   (goto-char (field-beginning pos))
+	   (set-window-start (selected-window) (point))))))
+
 
 (defun comint-interrupt-subjob ()
   "Interrupt the current subjob.
@@ -1793,24 +1887,42 @@ Sends an EOF only if point is at the end of the buffer and there is no input."
 
 
 (defun comint-backward-matching-input (regexp arg)
-  "Search backward through buffer for match for REGEXP.
-Matches are searched for on lines that match `comint-prompt-regexp'.
+  "Search backward through buffer for input fields that match REGEXP.
+If `comint-use-prompt-regexp-instead-of-fields' is non-nil, then input
+fields are identified by lines that match `comint-prompt-regexp'.
+
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive (comint-regexp-arg "Backward input matching (regexp): "))
-  (let* ((re (concat comint-prompt-regexp ".*" regexp))
-	 (pos (save-excursion (end-of-line (if (> arg 0) 0 1))
-			      (if (re-search-backward re nil t arg)
-				  (point)))))
-    (if (null pos)
-	(progn (message "Not found")
-	       (ding))
-      (goto-char pos)
-      (comint-bol nil))))
+  (if comint-use-prompt-regexp-instead-of-fields
+      ;; Use comint-prompt-regexp
+      (let* ((re (concat comint-prompt-regexp ".*" regexp))
+	     (pos (save-excursion (end-of-line (if (> arg 0) 0 1))
+				  (if (re-search-backward re nil t arg)
+				      (point)))))
+	(if (null pos)
+	    (progn (message "Not found")
+		   (ding))
+	  (goto-char pos)
+	  (comint-bol nil)))
+    ;; Use input fields
+    (let* ((dir (if (< arg 0) -1 1))
+	   (pos
+	    (save-excursion
+	      (while (/= arg 0)
+		(unless (re-search-backward regexp nil t dir)
+		  (error "Not found"))
+		(when (eq (get-char-property (point) 'field) 'input)
+		  (setq arg (- arg dir))))
+	      (field-beginning))))
+      (goto-char pos))))
+
 
 (defun comint-forward-matching-input (regexp arg)
-  "Search forward through buffer for match for REGEXP.
-Matches are searched for on lines that match `comint-prompt-regexp'.
+  "Search forward through buffer for input fields that match REGEXP.
+If `comint-use-prompt-regexp-instead-of-fields' is non-nil, then input
+fields are identified by lines that match `comint-prompt-regexp'.
+
 With prefix argument N, search for Nth following match.
 If N is negative, find the previous or Nth previous match."
   (interactive (comint-regexp-arg "Forward input matching (regexp): "))
@@ -1819,16 +1931,39 @@ If N is negative, find the previous or Nth previous match."
 
 (defun comint-next-prompt (n)
   "Move to end of Nth next prompt in the buffer.
-See `comint-prompt-regexp'."
+If `comint-use-prompt-regexp-instead-of-fields' is nil, then this means
+the beginning of the Nth next `input' field, otherwise, it means the Nth
+occurance of text matching `comint-prompt-regexp'."
   (interactive "p")
-  (let ((paragraph-start comint-prompt-regexp))
-    (end-of-line (if (> n 0) 1 0))
-    (forward-paragraph n)
-    (comint-skip-prompt)))
+  (if comint-use-prompt-regexp-instead-of-fields
+      ;; Use comint-prompt-regexp
+      (let ((paragraph-start comint-prompt-regexp))
+	(end-of-line (if (> n 0) 1 0))
+	(forward-paragraph n)
+	(comint-skip-prompt))
+    ;; Use input fields
+    (let ((pos (point))
+	  (input-pos nil))
+      (while (/= n 0)
+	(setq pos
+	      (if (> n 0)
+		  (next-single-char-property-change pos 'field)
+		(previous-single-char-property-change pos 'field)))
+	(cond ((null pos)
+	       ;; Ran off the end of the buffer.
+	       (setq n 0))
+	      ((eq (get-char-property pos 'field) 'input)
+	       (setq n (if (< n 0) (1+ n) (1- n)))
+	       (setq input-pos pos))))
+      (when input-pos
+	(goto-char input-pos)))))
+
 
 (defun comint-previous-prompt (n)
   "Move to end of Nth previous prompt in the buffer.
-See `comint-prompt-regexp'."
+If `comint-use-prompt-regexp-instead-of-fields' is nil, then this means
+the beginning of the Nth previous `input' field, otherwise, it means the Nth
+occurance of text matching `comint-prompt-regexp'."
   (interactive "p")
   (comint-next-prompt (- n)))
 
@@ -2467,6 +2602,10 @@ the process mark is at the beginning of the accumulated input."
 ;; indefinitely. The code now does a sanity check to ensure that it can find
 ;; a prompt in the comint buffer; however, it is still important to ensure that
 ;; this prompt is set correctly.
+;;
+;; XXX: This doesn't work so well unless comint-prompt-regexp is set;
+;; perhaps it should prompt for a terminating string (with an
+;; appropriate magic default by examining what we think is the prompt)?
 ;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
