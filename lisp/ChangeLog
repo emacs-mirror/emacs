@@ -1,5 +1,8 @@
 2001-03-16  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-cmds.el (select-safe-coding-system): Fix
+	typo: symbol-name -> symbol-value.
+
 	* mail/rmail.el (rmail-insert-inbox-text): Call expand-file-name
 	before substitute-in-file-name to handle double slashes in FILE
 	correctly.
