@@ -858,13 +858,19 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	    }
 	  
 	  encode_coding (coding, buf, dst, len, dst_end - dst);
-	  if (coding->consumed < len)
-	    /* We get a carryover because the remaining output
-	       buffer is too short.  We must break the loop here
-	       without increasing SRC so that the next call of
-	       this function start from the same glyph.  */
-	    break;
+	  len -= coding->consumed;
 	  dst += coding->produced;
+	  if (len > 0)
+	    {
+	      if (len > dst_end - dst)
+		/* The remaining output buffer is too short.  We must
+		   break the loop here without increasing SRC so that
+		   the next call of this function start from the same
+		   glyph.  */
+		break;
+	      buf += len;
+	      while (len--) *dst++ = *buf++;
+	    }
 	}
       src++;
     }
