@@ -77,6 +77,7 @@ struct catchtag
   int lisp_eval_depth;
   int pdlcount;
   int poll_suppress_count;
+  int interrupt_input_blocked;
   struct byte_stack *byte_stack;
 };
 
@@ -1103,6 +1104,7 @@ internal_catch (tag, func, arg)
   c.lisp_eval_depth = lisp_eval_depth;
   c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
+  c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
   catchlist = &c;
@@ -1144,6 +1146,7 @@ unwind_to_catch (catch, value)
 
   /* Restore the polling-suppression count.  */
   set_poll_suppress_count (catch->poll_suppress_count);
+  interrupt_input_blocked = catch->interrupt_input_blocked;
 
   do
     {
@@ -1270,6 +1273,7 @@ usage: (condition-case VAR BODYFORM HANDLERS...)  */)
   c.lisp_eval_depth = lisp_eval_depth;
   c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
+  c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
@@ -1319,12 +1323,8 @@ internal_condition_case (bfun, handlers, hfun)
   struct catchtag c;
   struct handler h;
 
-#if 0 /* Can't do this check anymore because realize_basic_faces has
-	 to BLOCK_INPUT, and can call Lisp.  What's really needed is a
-	 flag indicating that we're currently handling a signal.  */
-  /* Since Fsignal resets this to 0, it had better be 0 now
-     or else we have a potential bug.  */
-  if (interrupt_input_blocked != 0)
+#if 0 /* We now handle interrupt_input_blocked properly.
+	 What we still do not handle is exiting a signal handler.  */
     abort ();
 #endif
 
@@ -1335,6 +1335,7 @@ internal_condition_case (bfun, handlers, hfun)
   c.lisp_eval_depth = lisp_eval_depth;
   c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
+  c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
@@ -1355,7 +1356,7 @@ internal_condition_case (bfun, handlers, hfun)
   return val;
 }
 
-/* Like internal_condition_case but call HFUN with ARG as its argument.  */
+/* Like internal_condition_case but call BFUN with ARG as its argument.  */
 
 Lisp_Object
 internal_condition_case_1 (bfun, arg, handlers, hfun)
@@ -1375,6 +1376,7 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
   c.lisp_eval_depth = lisp_eval_depth;
   c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
+  c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
@@ -1396,7 +1398,7 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
 }
 
 
-/* Like internal_condition_case but call HFUN with NARGS as first,
+/* Like internal_condition_case but call BFUN with NARGS as first,
    and ARGS as second argument.  */
 
 Lisp_Object
@@ -1418,6 +1420,7 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
   c.lisp_eval_depth = lisp_eval_depth;
   c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
+  c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
@@ -1473,8 +1476,6 @@ See also the function `condition-case'.  */)
   immediate_quit = handling_signal = 0;
   if (gc_in_progress || waiting_for_input)
     abort ();
-
-  TOTALLY_UNBLOCK_INPUT;
 
   if (NILP (error_symbol))
     real_error_symbol = Fcar (data);
