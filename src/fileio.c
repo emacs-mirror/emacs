@@ -3984,7 +3984,7 @@ syms_of_fileio ()
   staticpro (&Qunhandled_file_name_directory);
   staticpro (&Qfile_name_as_directory);
   staticpro (&Qcopy_file);
-  staticpro (&Qmake_directory);
+  staticpro (&Qmake_directory_internal);
   staticpro (&Qdelete_directory);
   staticpro (&Qdelete_file);
   staticpro (&Qrename_file);
