@@ -778,6 +778,9 @@ Here is a hypothetical example:
 (define-key hypertext-mode-map
   [down-mouse-3] 'do-hyper-link)
 @end example
+
+Do not write an @code{interactive} spec in the definition;
+@code{define-derived-mode} does that automatically.
 @end defmac
 
 @node Minor Modes
