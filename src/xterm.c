@@ -6252,7 +6252,8 @@ note_mouse_highlight (f, x, y)
     return;
 #endif
 
-  if (disable_mouse_highlight)
+  if (disable_mouse_highlight
+      || !f->glyphs_initialized_p)
     return;
 
   dpyinfo->mouse_face_mouse_x = x;
