@@ -1,3 +1,8 @@
+2001-03-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* hi-lock.el (hi-lock-line-face-buffer): Wrap the regexp in a group
+	so ^, $, *, ? and + are interpreted correctly.
+
 2001-03-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* help.el (string-key-binding): Renamed from
