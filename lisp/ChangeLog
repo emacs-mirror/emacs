@@ -1,3 +1,8 @@
+2002-07-09  Miles Bader  <miles@gnu.org>
+
+	* hexl.el (hexl-find-file): Bind `completion-ignored-extensions'
+	to nil when prompting for a filename.
+
 2002-07-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* files.el (insert-directory): Be sure to bind
