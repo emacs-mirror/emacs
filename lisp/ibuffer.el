@@ -842,14 +842,21 @@ width and the longest string in LIST."
 	(forward-line 1))
       (decf arg))))
 
-(defun ibuffer-visit-buffer ()
-  "Visit the buffer on this line."
-  (interactive)
+(defun ibuffer-visit-buffer (&optional single)
+  "Visit the buffer on this line.
+
+If optional argument SINGLE is non-nil, then also ensure there is only
+one window."
+  (interactive "P")
   (let ((buf (ibuffer-current-buffer)))
-    (unless (buffer-live-p buf)
-      (error "Buffer %s has been killed!" buf))
+    (if (bufferp buf)
+	(unless (buffer-live-p buf)
+	  (error "Buffer %s has been killed!" buf))
+      (error "No buffer on this line"))
     (bury-buffer (current-buffer))
-    (switch-to-buffer buf)))
+    (switch-to-buffer buf)
+    (when single
+      (delete-other-windows))))
 
 (defun ibuffer-visit-buffer-other-window (&optional noselect)
   "Visit the buffer on this line in another window."
@@ -881,11 +888,7 @@ width and the longest string in LIST."
 (defun ibuffer-visit-buffer-1-window ()
   "Visit the buffer on this line, and delete other windows."
   (interactive)
-  (let ((buf (ibuffer-current-buffer)))
-    (unless (buffer-live-p buf)
-      (error "Buffer %s has been killed!" buf))
-    (switch-to-buffer buf)
-    (delete-other-windows)))
+  (ibuffer-visit-buffer t))
 
 (defun ibuffer-bury-buffer ()
   "Bury the buffer on this line."
@@ -1668,15 +1671,22 @@ current mark symbol, and the beginning and ending line positions."
 		      (car e)))
 		(ibuffer-current-state-list))))
 
-(defun ibuffer-current-state-list ()
-  "Return a list like (BUF . MARK) of all buffers in an ibuffer."
+(defun ibuffer-current-state-list (&optional pos)
+  "Return a list like (BUF . MARK) of all buffers in an ibuffer.
+If POS is non-nil, return a list like (BUF MARK POINT), where POINT is
+the value of point at the beginning of the line for that buffer."
   (let ((ibuffer-current-state-list-tmp '()))
     ;; ah, if only we had closures.  I bet this will mysteriously
     ;; break later.  Don't blame me.
-    (ibuffer-map-lines-nomodify
-     #'(lambda (buf mark)
-	 (when (buffer-live-p buf)
-	   (push (cons buf mark) ibuffer-current-state-list-tmp))))
+    (if pos
+	(ibuffer-map-lines-nomodify
+	 #'(lambda (buf mark)
+	     (when (buffer-live-p buf)
+	       (push (list buf mark (point)) ibuffer-current-state-list-tmp))))
+      (ibuffer-map-lines-nomodify
+       #'(lambda (buf mark)
+	   (when (buffer-live-p buf)
+	     (push (cons buf mark) ibuffer-current-state-list-tmp)))))
     (nreverse ibuffer-current-state-list-tmp)))
 
 (defun ibuffer-current-buffers-with-marks (curbufs)
