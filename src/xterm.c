@@ -4374,8 +4374,10 @@ x_connection_closed (display, error_message)
       Lisp_Object minibuf_frame;
       minibuf_frame
 	= WINDOW_FRAME (XWINDOW (FRAME_MINIBUF_WINDOW (XFRAME (frame))));
-      if (! EQ (frame, minibuf_frame)
-	  && FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+      if (FRAME_X_P (XFRAME (frame))
+	  && FRAME_X_P (XFRAME (minibuf_frame))
+	  && ! EQ (frame, minibuf_frame)
+	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
 	Fdelete_frame (frame, Qt);
     }
 
@@ -4383,7 +4385,8 @@ x_connection_closed (display, error_message)
      We are now sure none of these is used as the minibuffer
      for another frame that we need to delete.  */
   FOR_EACH_FRAME (tail, frame)
-    if (FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+    if (FRAME_X_P (XFRAME (frame))
+	&& FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
       Fdelete_frame (frame, Qt);
 
   x_delete_display (dpyinfo);
