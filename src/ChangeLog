@@ -1,3 +1,8 @@
+2000-09-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_make_frame_visible): Try harder to make the frame
+	visible.
+
 2000-09-28  Dave Love  <fx@gnu.org>
 
 	* m/alpha.h (XUINT) [REL_ALLOC && _MALLOC_INTERNAL]: Don't declare

@@ -1,3 +1,8 @@
+2000-09-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* basic.texi (Continuation Lines): Add description of
+	toggle-truncate-lines.
+
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in: Remove/comment speedbar stuff.
