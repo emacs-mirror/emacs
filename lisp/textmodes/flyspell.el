@@ -133,7 +133,7 @@ Each function is given two arguments: the beginning and the end
 of the incorrect region."
   :group 'flyspell)
 
-(defcustom flyspell-multi-language-p t
+(defcustom flyspell-multi-language-p nil
   "*Non-nil means that Flyspell can be used with multiple languages.
 This mode works by starting a separate Ispell process for each buffer,
 so that each buffer can use its own language."
@@ -289,14 +289,17 @@ flyspell-region checks all words inside a region.
 
 flyspell-buffer checks the whole buffer."
   (interactive "P")
-  ;; we set the mode on or off
-  (setq flyspell-mode (not (or (and (null arg) flyspell-mode)
-			       (<= (prefix-numeric-value arg) 0))))
-  (if flyspell-mode
-      (flyspell-mode-on)
-    (flyspell-mode-off))
-  ;; we force the modeline re-printing
-  (set-buffer-modified-p (buffer-modified-p)))
+  (let ((old-flyspell-mode flyspell-mode))
+    ;; Mark the mode as on or off.
+    (setq flyspell-mode (not (or (and (null arg) flyspell-mode)
+				 (<= (prefix-numeric-value arg) 0))))
+    ;; Do the real work.
+    (unless (eq flyspell-mode old-flyspell-mode)
+      (if flyspell-mode
+	  (flyspell-mode-on)
+	(flyspell-mode-off))
+      ;; Force modeline redisplay.
+      (set-buffer-modified-p (buffer-modified-p)))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-mode-on ...                                             */
