@@ -5620,7 +5620,7 @@ Run gnus-open-server-hook just before opening news server."
 	  ((gnus-open-server gnus-nntp-server gnus-nntp-service)
 	   (message ""))
 	  (t
-	   (error
+	   (error "%s"
 	    (gnus-nntp-message
 	     (format "Cannot open NNTP server on %s" gnus-nntp-server)))))
     ))
