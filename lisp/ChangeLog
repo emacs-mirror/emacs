@@ -1,3 +1,11 @@
+2002-07-03  Juanma Barranquero  <lektu@terra.es>
+
+	* textmodes/reftex-vars.el (reftex-label-alist): Fix typo.
+
+	* play/dunnet.el (dun-physobj-desc): Likewise.
+
+	* mail/reporter.el (reporter-submit-bug-report): Likewise.
+
 2002-07-02  Juanma Barranquero  <lektu@terra.es>
 
 	* mail/rmailsum.el (rmail-user-mail-address-regexp): Fix typo.

@@ -1,3 +1,7 @@
+2002-07-03  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-sum.el (gnus-summary-highlight): Fix typo.
+
 2002-06-12  Juanma Barranquero  <lektu@terra.es>
 
 	* pop3.el (pop3-open-server): Fix typo.
@@ -33,13 +37,13 @@
 
 2002-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* gnus-art.el (article-wash-html): Bind url-gateway-unplugged. 
+	* gnus-art.el (article-wash-html): Bind url-gateway-unplugged.
 	* mm-view.el (mm-w3-prepare-buffer): Ditto.
 	(mm-inline-text): Ditto.
 	Suggested by  Dave Love <fx@gnu.org>.
 
 	* mml.el (mml-preview): Disable local map.
-	
+
 	* mml.el (mml-preview): Bind `q'.
 	From: Karl Kleinpaste <karl@charcoal.com>
 
@@ -62,7 +66,7 @@
 
 	* gnus-start.el (gnus-read-init-file): Don't force coding system
 	for ~/.gnus.  From Dave Love <fx@gnu.org>.
-	
+
 2002-01-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-to-coding-system): Don't setq charset.
@@ -128,12 +132,12 @@
 
 	* mm-util.el (mm-iso-8859-15-compatible): Fix doc.
 	(mm-hack-charsets): Fix doc.
-	
+
 	* mm-util.el (mm-iso-8859-15-compatible): Add inconvertible chars.
 	(mm-iso-8859-x-to-15-table): Ditto.
 	(mm-iso-8859-x-to-15-region): Ditto.
 	(mm-find-mime-charset-region): Ditto.
-	
+
 	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
 	(gnus-summary-limit-to-author): Ditto.
 	(gnus-summary-limit-to-extra): Ditto.
