@@ -337,7 +337,7 @@ Lisp_Object Qbuffer_file_coding_system;
 Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 Lisp_Object Qno_conversion, Qundecided;
 Lisp_Object Qcoding_system_history;
-Lisp_Object Qsafe_charsets;
+Lisp_Object Qsafe_chars;
 Lisp_Object Qvalid_codes;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
@@ -470,6 +470,28 @@ Lisp_Object Vdefault_process_coding_system;
    is set to 1 temporarily while such functions are running.  This is
    to avoid infinite recursive call.  */
 static int inhibit_pre_post_conversion;
+
+/* Char-table containing safe coding systems of each character.  */
+Lisp_Object Vchar_coding_system_table;
+Lisp_Object Qchar_coding_system;
+
+/* Return `safe-chars' property of coding system CODING.  Don't check
+   validity of CODING.  */
+
+Lisp_Object
+coding_safe_chars (coding)
+     struct coding_system *coding;
+{
+  Lisp_Object coding_spec, plist, safe_chars;
+  
+  coding_spec = Fget (coding->symbol, Qcoding_system);
+  plist = XVECTOR (coding_spec)->contents[3];
+  safe_chars = Fplist_get (XVECTOR (coding_spec)->contents[3], Qsafe_chars);
+  return (CHAR_TABLE_P (safe_chars) ? safe_chars : Qt);
+}
+
+#define CODING_SAFE_CHAR_P(safe_chars, c) \
+  (EQ (safe_chars, Qt) || !NILP (CHAR_TABLE_REF (safe_chars, c)))
 
 
 /*** 2. Emacs internal format (emacs-mule) handlers ***/
@@ -797,12 +819,14 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 
 enum iso_code_class_type iso_code_class[256];
 
-#define CHARSET_OK(idx, charset)				\
-  (coding_system_table[idx]					\
-   && (coding_system_table[idx]->safe_charsets[charset]		\
-       || (CODING_SPEC_ISO_REQUESTED_DESIGNATION		\
-            (coding_system_table[idx], charset)			\
-           != CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION)))
+#define CHARSET_OK(idx, charset, c)					\
+  (coding_system_table[idx]						\
+   && (charset == CHARSET_ASCII						\
+       || (safe_chars = coding_safe_chars (coding_system_table[idx]),	\
+	   CODING_SAFE_CHAR_P (safe_chars, c)))				\
+   && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding_system_table[idx],	\
+					      charset)			\
+       != CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
 
 #define SHIFT_OUT_OK(idx) \
   (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding_system_table[idx], 1) >= 0)
@@ -830,6 +854,7 @@ detect_coding_iso2022 (src, src_end)
   /* Dummy for ONE_MORE_BYTE.  */
   struct coding_system dummy_coding;
   struct coding_system *coding = &dummy_coding;
+  Lisp_Object safe_chars;
 
   reg[0] = CHARSET_ASCII, reg[1] = reg[2] = reg[3] = -1;
   while (mask && src < src_end)
@@ -890,19 +915,20 @@ detect_coding_iso2022 (src, src_end)
 
 	  /* We found a valid designation sequence for CHARSET.  */
 	  mask &= ~CODING_CATEGORY_MASK_ISO_8BIT;
-	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_7, charset))
+	  c = MAKE_CHAR (charset, 0, 0);
+	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_7, charset, c))
 	    mask_found |= CODING_CATEGORY_MASK_ISO_7;
 	  else
 	    mask &= ~CODING_CATEGORY_MASK_ISO_7;
-	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_7_TIGHT, charset))
+	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_7_TIGHT, charset, c))
 	    mask_found |= CODING_CATEGORY_MASK_ISO_7_TIGHT;
 	  else
 	    mask &= ~CODING_CATEGORY_MASK_ISO_7_TIGHT;
-	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_7_ELSE, charset))
+	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_7_ELSE, charset, c))
 	    mask_found |= CODING_CATEGORY_MASK_ISO_7_ELSE;
 	  else
 	    mask &= ~CODING_CATEGORY_MASK_ISO_7_ELSE;
-	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_8_ELSE, charset))
+	  if (CHARSET_OK (CODING_CATEGORY_IDX_ISO_8_ELSE, charset, c))
 	    mask_found |= CODING_CATEGORY_MASK_ISO_8_ELSE;
 	  else
 	    mask &= ~CODING_CATEGORY_MASK_ISO_8_ELSE;
@@ -1042,16 +1068,17 @@ detect_coding_iso2022 (src, src_end)
 /* Set designation state into CODING.  */
 #define DECODE_DESIGNATION(reg, dimension, chars, final_char)		   \
   do {									   \
-    int charset;							   \
+    int charset, c;							   \
     									   \
     if (final_char < '0' || final_char >= 128)				   \
       goto label_invalid_code;						   \
     charset = ISO_CHARSET_TABLE (make_number (dimension),		   \
 				 make_number (chars),			   \
 				 make_number (final_char));		   \
+    c = MAKE_CHAR (charset, 0, 0);					   \
     if (charset >= 0							   \
 	&& (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) == reg \
-	    || coding->safe_charsets[charset]))				   \
+	    || CODING_SAFE_CHAR_P (safe_chars, c)))			   \
       {									   \
 	if (coding->spec.iso2022.last_invalid_designation_register == 0	   \
 	    && reg == 0							   \
@@ -1238,6 +1265,9 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
   unsigned char *src_base;
   int c, charset;
   Lisp_Object translation_table;
+  Lisp_Object safe_chars;
+
+  safe_chars = coding_safe_chars (coding);
 
   if (NILP (Venable_character_translation))
     translation_table = Qnil;
@@ -1684,16 +1714,6 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	*dst++ = c1 | 0x80;						\
 	break;								\
       }									\
-    else if (coding->flags & CODING_FLAG_ISO_SAFE			\
-	     && !coding->safe_charsets[charset])			\
-      {									\
-	/* We should not encode this character, instead produce one or	\
-	   two `?'s.  */						\
-	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			\
-	if (CHARSET_WIDTH (charset) == 2)				\
-	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		\
-	break;								\
-      }									\
     else								\
       /* Since CHARSET is not yet invoked to any graphic planes, we	\
 	 must invoke it, or, at first, designate it to some graphic	\
@@ -1727,16 +1747,6 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	*dst++ = c1 | 0x80, *dst++= c2 | 0x80;				\
 	break;								\
       }									\
-    else if (coding->flags & CODING_FLAG_ISO_SAFE			\
-	     && !coding->safe_charsets[charset])			\
-      {									\
-	/* We should not encode this character, instead produce one or	\
-	   two `?'s.  */						\
-	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			\
-	if (CHARSET_WIDTH (charset) == 2)				\
-	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		\
-	break;								\
-      }									\
     else								\
       /* Since CHARSET is not yet invoked to any graphic planes, we	\
 	 must invoke it, or, at first, designate it to some graphic	\
@@ -1745,34 +1755,46 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       dst = encode_invocation_designation (charset, coding, dst);	\
   } while (1)
 
-#define ENCODE_ISO_CHARACTER(charset, c1, c2)				\
-  do {									\
-    int alt_charset = charset;						\
-    									\
-    if (CHARSET_DEFINED_P (charset))					\
-      {									\
-	if (CHARSET_DIMENSION (charset) == 1)				\
-	  {								\
-	    if (charset == CHARSET_ASCII				\
-		&& coding->flags & CODING_FLAG_ISO_USE_ROMAN)		\
-	      alt_charset = charset_latin_jisx0201;			\
-	    ENCODE_ISO_CHARACTER_DIMENSION1 (alt_charset, c1);		\
-	  }								\
-	else								\
-	  {								\
-	    if (charset == charset_jisx0208				\
-		&& coding->flags & CODING_FLAG_ISO_USE_OLDJIS)		\
-	      alt_charset = charset_jisx0208_1978;			\
-	    ENCODE_ISO_CHARACTER_DIMENSION2 (alt_charset, c1, c2);	\
-	  }								\
-      }									\
-    else								\
-      {									\
-	*dst++ = c1;							\
-	if (c2 >= 0)							\
-	  *dst++ = c2;							\
-      }									\
+#define ENCODE_ISO_CHARACTER(c)					\
+  do {								\
+    int charset, c1, c2;					\
+    								\
+    SPLIT_CHAR (c, charset, c1, c2);				\
+    if (CHARSET_DEFINED_P (charset))				\
+      {								\
+	if (CHARSET_DIMENSION (charset) == 1)			\
+	  {							\
+	    if (charset == CHARSET_ASCII			\
+		&& coding->flags & CODING_FLAG_ISO_USE_ROMAN)	\
+	      charset = charset_latin_jisx0201;			\
+	    ENCODE_ISO_CHARACTER_DIMENSION1 (charset, c1);	\
+	  }							\
+	else							\
+	  {							\
+	    if (charset == charset_jisx0208			\
+		&& coding->flags & CODING_FLAG_ISO_USE_OLDJIS)	\
+	      charset = charset_jisx0208_1978;			\
+	    ENCODE_ISO_CHARACTER_DIMENSION2 (charset, c1, c2);	\
+	  }							\
+      }								\
+    else							\
+      {								\
+	*dst++ = c1;						\
+	if (c2 >= 0)						\
+	  *dst++ = c2;						\
+      }								\
   } while (0)
+
+
+/* Instead of encoding character C, produce one or two `?'s.  */
+
+#define ENCODE_UNSAFE_CHARACTER(c)					\
+  do {									\
+    ENCODE_ISO_CHARACTER (CODING_INHIBIT_CHARACTER_SUBSTITUTION);	\
+    if (CHARSET_WIDTH (CHAR_CHARSET (c)) > 1)				\
+      ENCODE_ISO_CHARACTER (CODING_INHIBIT_CHARACTER_SUBSTITUTION);	\
+  } while (0)
+
 
 /* Produce designation and invocation codes at a place pointed by DST
    to use CHARSET.  The element `spec.iso2022' of *CODING is updated.
@@ -1997,6 +2019,9 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
   unsigned char *src_base;
   int c;
   Lisp_Object translation_table;
+  Lisp_Object safe_chars;
+
+  safe_chars = coding_safe_chars (coding);
 
   if (NILP (Venable_character_translation))
     translation_table = Qnil;
@@ -2011,8 +2036,6 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
   coding->errors = 0;
   while (1)
     {
-      int charset, c1, c2;
-
       src_base = src;
 
       if (dst >= (dst_bytes ? adjusted_dst_end : (src - 19)))
@@ -2065,8 +2088,11 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		    }
 		  else
 		    {
-		      SPLIT_CHAR (c, charset, c1, c2);
-		      ENCODE_ISO_CHARACTER (charset, c1, c2);
+		      if (coding->flags & CODING_FLAG_ISO_SAFE
+			  && ! CODING_SAFE_CHAR_P (safe_chars, c))
+			ENCODE_UNSAFE_CHARACTER (c);
+		      else
+			ENCODE_ISO_CHARACTER (c);
 		      if (coding->composing == COMPOSITION_WITH_RULE_ALTCHARS)
 			coding->composition_rule_follows = 1;
 		    }
@@ -2125,17 +2151,17 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	    }
 	}
       else if (ASCII_BYTE_P (c))
-	ENCODE_ISO_CHARACTER (CHARSET_ASCII, c, /* dummy */ c1);
+	ENCODE_ISO_CHARACTER (c);
       else if (SINGLE_BYTE_CHAR_P (c))
 	{
 	  *dst++ = c;
 	  coding->errors++;
 	}
+      else if (coding->flags & CODING_FLAG_ISO_SAFE
+	       && ! CODING_SAFE_CHAR_P (safe_chars, c))
+	ENCODE_UNSAFE_CHARACTER (c);
       else
-	{
-	  SPLIT_CHAR (c, charset, c1, c2);
-	  ENCODE_ISO_CHARACTER (charset, c1, c2);
-	}
+	ENCODE_ISO_CHARACTER (c);
 
       coding->consumed_char++;
     }
@@ -2970,23 +2996,6 @@ setup_coding_system (coding_system, coding)
   else
     goto label_invalid_coding_system;
   
-  val = Fplist_get (plist, Qsafe_charsets);
-  if (EQ (val, Qt))
-    {
-      for (i = 0; i <= MAX_CHARSET; i++)
-	coding->safe_charsets[i] = 1;
-    }
-  else
-    {
-      bzero (coding->safe_charsets, MAX_CHARSET + 1);
-      while (CONSP (val))
-	{
-	  if ((i = get_charset_id (XCAR (val))) >= 0)
-	    coding->safe_charsets[i] = 1;
-	  val = XCDR (val);
-	}
-    }
-
   /* If the coding system has non-nil `composition' property, enable
      composition handling.  */
   val = Fplist_get (plist, Qcomposition);
@@ -5542,6 +5551,160 @@ highest priority.")
 			       !NILP (highest));
 }
 
+/* Return an intersection of lists L1 and L2.  */
+
+static Lisp_Object
+intersection (l1, l2)
+     Lisp_Object l1, l2;
+{
+  Lisp_Object val;
+
+  for (val = Qnil; CONSP (l1); l1 = XCDR (l1))
+    {
+      if (!NILP (Fmemq (XCAR (l1), l2)))
+	val = Fcons (XCAR (l1), val);
+    }
+  return val;
+}
+
+
+/*  Subroutine for Fsafe_coding_systems_region_internal.
+
+    Return a list of coding systems that safely encode the multibyte
+    text between P and PEND.  SAFE_CODINGS, if non-nil, is a list of
+    possible coding systems.  If it is nil, it means that we have not
+    yet found any coding systems.
+
+    WORK_TABLE is a copy of the char-table Vchar_coding_system_table.  An
+    element of WORK_TABLE is set to t once the element is looked up.
+
+    If a non-ASCII single byte char is found, set
+    *single_byte_char_found to 1.  */
+
+static Lisp_Object
+find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
+     unsigned char *p, *pend;
+     Lisp_Object safe_codings, work_table;
+     int *single_byte_char_found;
+{
+  int c, len, idx;
+  Lisp_Object val;
+
+  while (p < pend)
+    {
+      c = STRING_CHAR_AND_LENGTH (p, pend - p, len);
+      p += len;
+      if (ASCII_BYTE_P (c))
+	/* We can ignore ASCII characters here.  */
+	continue;
+      if (SINGLE_BYTE_CHAR_P (c))
+	*single_byte_char_found = 1;
+      if (NILP (safe_codings))
+	continue;
+      /* Check the safe coding systems for C.  */
+      val = char_table_ref_and_index (work_table, c, &idx);
+      if (EQ (val, Qt))
+	/* This element was already checked.  Ignore it.  */
+	continue;
+      /* Remember that we checked this element.  */
+      CHAR_TABLE_SET (work_table, idx, Qt);
+
+      /* If there are some safe coding systems for C and we have
+	 already found the other set of coding systems for the
+	 different characters, get the intersection of them.  */
+      if (!EQ (safe_codings, Qt) && !NILP (val))
+	val = intersection (safe_codings, val);
+      safe_codings = val;
+    }
+  return safe_codings;
+}
+
+
+/* Return a list of coding systems that safely encode the text between
+   START and END.  If the text contains only ASCII or is unibyte,
+   return t.  */
+
+DEFUN ("find-coding-systems-region-internal",
+       Ffind_coding_systems_region_internal,
+       Sfind_coding_systems_region_internal, 2, 2, 0,
+  "Internal use only.")
+  (start, end)
+     Lisp_Object start, end;
+{
+  Lisp_Object work_table, safe_codings;
+  int non_ascii_p = 0;
+  int single_byte_char_found = 0;
+  unsigned char *p1, *p1end, *p2, *p2end, *p;
+  Lisp_Object args[2];
+
+  if (STRINGP (start))
+    {
+      if (!STRING_MULTIBYTE (start))
+	return Qt;
+      p1 = XSTRING (start)->data, p1end = p1 + STRING_BYTES (XSTRING (start));
+      p2 = p2end = p1end;
+      if (XSTRING (start)->size != STRING_BYTES (XSTRING (start)))
+	non_ascii_p = 1;
+    }
+  else
+    {
+      int from, to, stop;
+
+      CHECK_NUMBER_COERCE_MARKER (start, 0);
+      CHECK_NUMBER_COERCE_MARKER (end, 1);
+      if (XINT (start) < BEG || XINT (end) > Z || XINT (start) > XINT (end))
+	args_out_of_range (start, end);
+      if (NILP (current_buffer->enable_multibyte_characters))
+	return Qt;
+      from = CHAR_TO_BYTE (XINT (start));
+      to = CHAR_TO_BYTE (XINT (end));
+      stop = from < GPT_BYTE && GPT_BYTE < to ? GPT_BYTE : to;
+      p1 = BYTE_POS_ADDR (from), p1end = p1 + (stop - from);
+      if (stop == to)
+	p2 = p2end = p1end;
+      else
+	p2 = BYTE_POS_ADDR (stop), p2end = p2 + (to - stop);
+      if (XINT (end) - XINT (start) != to - from)
+	non_ascii_p = 1;
+    }
+
+  if (!non_ascii_p)
+    {
+      /* We are sure that the text contains no multibyte character.
+	 Check if it contains eight-bit-graphic.  */
+      p = p1;
+      for (p = p1; p < p1end && ASCII_BYTE_P (*p); p++);
+      if (p == p1end)
+	{
+	  for (p = p2; p < p2end && ASCII_BYTE_P (*p); p++);	  
+	  if (p == p2end)
+	    return Qt;
+	}
+    }
+
+  /* The text contains non-ASCII characters.  */
+  work_table = Fcopy_sequence (Vchar_coding_system_table);
+  safe_codings = find_safe_codings (p1, p1end, Qt, work_table,
+				    &single_byte_char_found);
+  if (p2 < p2end)
+    safe_codings = find_safe_codings (p2, p2end, safe_codings, work_table,
+				      &single_byte_char_found);
+
+  if (!single_byte_char_found)
+    {
+      /* Append generic coding systems.  */
+      Lisp_Object args[2];
+      args[0] = safe_codings;
+      args[1] = Fchar_table_extra_slot (Vchar_coding_system_table,
+					make_number (0));
+      safe_codings = Fappend (make_number (2), args);
+    }
+  else
+    safe_codings = Fcons (Qraw_text, Fcons (Qemacs_mule, safe_codings));
+  return safe_codings;
+}
+
+
 Lisp_Object
 code_convert_region1 (start, end, coding_system, encodep)
      Lisp_Object start, end, coding_system;
@@ -6196,8 +6359,18 @@ syms_of_coding ()
   Qtranslation_table_for_encode = intern ("translation-table-for-encode");
   staticpro (&Qtranslation_table_for_encode);
 
-  Qsafe_charsets = intern ("safe-charsets");
-  staticpro (&Qsafe_charsets);
+  Qsafe_chars = intern ("safe-chars");
+  staticpro (&Qsafe_chars);
+
+  Qchar_coding_system = intern ("char-coding-system");
+  staticpro (&Qchar_coding_system);
+
+  /* Intern this now in case it isn't already done.
+     Setting this variable twice is harmless.
+     But don't staticpro it here--that is done in alloc.c.  */
+  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Fput (Qsafe_chars, Qchar_table_extra_slots, make_number (0));
+  Fput (Qchar_coding_system, Qchar_table_extra_slots, make_number (1));
 
   Qvalid_codes = intern ("valid-codes");
   staticpro (&Qvalid_codes);
@@ -6214,6 +6387,7 @@ syms_of_coding ()
   defsubr (&Scheck_coding_system);
   defsubr (&Sdetect_coding_region);
   defsubr (&Sdetect_coding_string);
+  defsubr (&Sfind_coding_systems_region_internal);
   defsubr (&Sdecode_coding_region);
   defsubr (&Sencode_coding_region);
   defsubr (&Sdecode_coding_string);
@@ -6416,6 +6590,12 @@ coding system used in each operation can't encode the text.\n\
 \n\
 The default value is `select-safe-coding-system' (which see).");
   Vselect_safe_coding_system_function = Qnil;
+
+  DEFVAR_LISP ("char-coding-system-table", &Vchar_coding_system_table,
+    "Char-table containing safe coding systems of each characters.\n\
+Each element doesn't include such generic coding systems that can\n\
+encode any characters.   They are in the first extra slot.");
+  Vchar_coding_system_table = Fmake_char_table (Qchar_coding_system, Qnil);
 
   DEFVAR_BOOL ("inhibit-iso-escape-detection",
 	       &inhibit_iso_escape_detection,
