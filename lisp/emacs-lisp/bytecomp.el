@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.107 $")
+(defconst byte-compile-version "$Revision: 2.108 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1206,7 +1206,8 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 (defun byte-compile-find-cl-functions ()
   (unless byte-compile-cl-functions
     (dolist (elt load-history)
-      (when (string-match "^cl\\>" (car elt))
+      (when (and (stringp (car elt))
+		 (string-match "^cl\\>" (car elt)))
 	(setq byte-compile-cl-functions
 	      (append byte-compile-cl-functions
 		      (cdr elt)))))
