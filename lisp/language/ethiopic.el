@@ -54,7 +54,7 @@
 	      (charset ethiopic)
 	      (coding-system iso-2022-7bit)
 	      (coding-priority iso-2022-7bit)
-	      (sample-text . "$(3$O#U!.(B")
+	      (sample-text . "$(3$Q#U!.(B")
 	      (documentation . t)))
 
 ;;; ethiopic.el ends here
