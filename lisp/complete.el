@@ -228,7 +228,7 @@ See `PC-complete' for details."
 	   (if (or (eq flag 'complete)
 		   (not minibuffer-completion-confirm))
 	       (exit-minibuffer)
-	     (PC-temp-minibuffer-message " (Confirm)"))))))
+	     (PC-temp-minibuffer-message " [Confirm]"))))))
 
 
 (defun PC-completion-help ()
@@ -400,10 +400,10 @@ See `PC-complete' for details."
 	      (PC-do-completion 'word))
 	  (beep)
 	  (PC-temp-minibuffer-message (if ambig
-					  " (Ambiguous dir name)"
+					  " [Ambiguous dir name]"
 					(if (eq mode 'help)
-					    " (No completions)"
-					  " (No match)")))
+					    " [No completions]"
+					  " [No match]")))
 	  nil))
 
        ;; More than one valid completion found
@@ -441,12 +441,12 @@ See `PC-complete' for details."
 	(while (and p
 		    (not (equal (car p) basestr)))
 	  (setq p (cdr p)))
-	(if p
-
-	    (progn
-	      (if (null mode)
-		  (PC-temp-minibuffer-message " (Complete, but not unique)"))
-	      t)
+	(and p (null mode)
+	     (PC-temp-minibuffer-message " [Complete, but not unique]"))
+	(if (and p
+		 (not (and (null mode)
+			   (eq this-command last-command))))
+	    t
 
 	  ;; If ambiguous, try for a partial completion
 	  (let ((improved nil)
@@ -539,14 +539,14 @@ See `PC-complete' for details."
 			;; so that choosing a completion from the list
 			;; knows how much old text to replace.
 			(setq completion-base-size dirlength)))
-		  (PC-temp-minibuffer-message " (Next char not unique)"))
+		  (PC-temp-minibuffer-message " [Next char not unique]"))
 		nil)))))
 
        ;; Only one possible completion
        (t
 	(if (equal basestr (car poss))
 	    (if (null mode)
-		(PC-temp-minibuffer-message " (Sole completion)"))
+		(PC-temp-minibuffer-message " [Sole completion]"))
 	  (delete-region beg end)
 	  (insert (format "%s"
 			  (if filename
