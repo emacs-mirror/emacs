@@ -1111,19 +1111,25 @@ With optional ARG, move across that many fields."
   "Go to beginning of field or beginning of line, whichever is first."
   (interactive)
   (let* ((field (widget-field-find (point)))
-	 (start (and field (widget-field-start field))))
-    (if (and start (not (eq start (point))))
-	(goto-char start)
-      (call-interactively 'beginning-of-line))))
+	 (start (and field (widget-field-start field)))
+         (bol (save-excursion
+                (beginning-of-line)
+                (point))))
+    (goto-char (if start
+                   (max start bol)
+                 bol))))
 
 (defun widget-end-of-line ()
   "Go to end of field or end of line, whichever is first."
   (interactive)
   (let* ((field (widget-field-find (point)))
-	 (end (and field (widget-field-end field))))
-    (if (and end (not (eq end (point))))
-	(goto-char end)
-      (call-interactively 'end-of-line))))
+	 (end (and field (widget-field-end field)))
+         (eol (save-excursion
+                (end-of-line)
+                (point))))
+    (goto-char (if end
+                   (min end eol)
+                 eol))))
 
 (defun widget-kill-line ()
   "Kill to end of field or end of line, whichever is first."
