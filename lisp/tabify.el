@@ -40,12 +40,19 @@ The variable `tab-width' controls the spacing of tab stops."
       (narrow-to-region (point-min) end)
       (goto-char start)
       (while (search-forward "\t" nil t)	; faster than re-search
+	(forward-char -1)
 	(let ((tab-beg (point))
-	      (column (current-column))
-	      (indent-tabs-mode nil))
-	  (skip-chars-backward "\t" start)
+	      (indent-tabs-mode nil)
+	      column)
+	  (skip-chars-forward "\t")
+	  (setq column (current-column))
 	  (delete-region tab-beg (point))
 	  (indent-to column))))))
+
+(defvar tabify-regexp "[ \t][ \t]+"
+  "Regexp matching whitespace that tabify should consider.
+Usually this will be \"[ \\t][ \\t]+\" to match two or more spaces or tabs.
+\"^[ \\t]+\" is also useful, for tabifying only initial whitespace.")
 
 ;;;###autoload
 (defun tabify (start end)
@@ -64,7 +71,7 @@ The variable `tab-width' controls the spacing of tab stops."
       (beginning-of-line)
       (narrow-to-region (point) end)
       (goto-char start)
-      (while (re-search-forward "[ \t][ \t][ \t]*" nil t)
+      (while (re-search-forward tabify-regexp nil t)
 	(let ((column (current-column))
 	      (indent-tabs-mode t))
 	  (delete-region (match-beginning 0) (point))
