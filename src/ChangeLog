@@ -1,3 +1,8 @@
+2005-04-04  Kim F. Storm  <storm@cua.dk>
+
+	* eval.c (Ffuncall): Always call CHECK_CONS_LIST on entry.
+	Call it again after autoload.
+
 2005-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* alloc.c (allocate_string_data): Call BLOCK_INPUT before calling
