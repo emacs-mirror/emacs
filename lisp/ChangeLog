@@ -1,5 +1,8 @@
 2000-01-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/mail-utils.el (rmail-dont-reply-to): Replace matched
+	userids differently.
+
 	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
 	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
 	progmodes/ebnf-yac.el: New files.
