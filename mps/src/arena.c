@@ -1379,6 +1379,17 @@ Res ArenaFinalize(Arena arena, Ref obj)
 }
 
 
+/* Has Addr */
+
+Bool ArenaHasAddr(Arena arena, Addr addr)
+{
+  Seg seg;
+
+  AVERT(Arena, arena);
+  return SegOfAddr(&seg, arena, addr);
+}
+
+
 /* Peek / Poke */
 
 Ref ArenaPeek(Arena arena, Addr addr)
