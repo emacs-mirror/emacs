@@ -287,6 +287,13 @@ buffer.  For example, @kbd{M-h} (@code{mark-paragraph}) moves point to
 the beginning of the paragraph that surrounds or follows point, and puts
 the mark at the end of that paragraph (@pxref{Paragraphs}).  It prepares
 the region so you can indent, case-convert, or kill a whole paragraph.
+The command also accepts a prefix argument.  If the prefix argument
+is positive, @kbd{M-h} marks that many paragraphs, the paragraph
+surrounding point plus some following paragraphs.  If the prefix
+argument is negative, @kbd{M-h} also marks that many paragraphs, but
+the preceding instead of the following paragraphs.  (With a positive
+argument, point is put at the beginning and mark at end, with a
+negative argument, point is at end and mark at the beginning.)
 
   @kbd{C-M-h} (@code{mark-defun}) similarly puts point before, and the
 mark after, the current (or following) major top-level definition, or

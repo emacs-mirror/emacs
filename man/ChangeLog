@@ -1,3 +1,7 @@
+2001-12-01  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* mark.texi (Marking Objects): `M-h' accepts prefix arg.
+
 2001-11-25  Jason Rumney  <jasonr@gnu.org>
 
 	* frames.texi (Tooltips): Remove MS-Windows exceptions.
