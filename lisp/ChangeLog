@@ -1,3 +1,30 @@
+2000-04-13  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/trace.el: Change maintainer.  Use new backquote
+	syntax.
+
+	* emacs-lisp/cl-specs.el: Remove when, unless.
+
+	* emacs-lisp/cl-extra.el: Don't quote keywords.
+	(cl-old-mapc): New variable.
+	(mapc): Use it.
+	(cl-map-intervals): Use with-current-buffer.  Don't check for
+	next-property-change.
+	(cl-map-overlays): Use with-current-buffer.
+	(cl-expt): Remove.
+	(copy-tree, remprop): Define unconditionally.
+
+	* emacs-lisp/cl-compat.el (keywordp): Remove.
+
+	* emacs-lisp/edebug.el (edebug-keywordp): Remove.  Change callers
+	to use keywordp.
+	(edebug-spec): Enable keywordp.
+
+	* cus-edit.el (custom-sort-items): Avoid symbol-name with new
+	string-lessp.
+
+	* cus-start.el: Use keywordp.
+
 2000-04-13  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
 	* diary-lib.el (include-other-diary-files): Fix the fix of
