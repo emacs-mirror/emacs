@@ -3603,8 +3603,20 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
   /* Do these in separate statements,
      then compare the variables.
      because of the way DOWNCASE uses temp variables.  */
-  i1 = DOWNCASE (XFASTINT (c1));
-  i2 = DOWNCASE (XFASTINT (c2));
+  i1 = XFASTINT (c1);
+  if (NILP (current_buffer->enable_multibyte_characters)
+      && ! ASCII_CHAR_P (i1))
+    {
+      MAKE_CHAR_MULTIBYTE (i1);
+    }
+  i2 = XFASTINT (c2);
+  if (NILP (current_buffer->enable_multibyte_characters)
+      && ! ASCII_CHAR_P (i2))
+    {
+      MAKE_CHAR_MULTIBYTE (i2);
+    }
+  i1 = DOWNCASE (i1);
+  i2 = DOWNCASE (i2);
   return (i1 == i2 ? Qt :  Qnil);
 }
 
