@@ -696,8 +696,10 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "\M-{" 'dired-prev-marked-file)
   (define-key dired-mode-map "\M-}" 'dired-next-marked-file)
   ;; Make all regexp commands share a `%' prefix:
-  (defalias 'dired-regexp-prefix (make-sparse-keymap))
-  (define-key dired-mode-map "%" 'dired-regexp-prefix)
+  ;; We used to get to the submap via a symbol dired-regexp-prefix,
+  ;; but that seems to serve little purpose, and copy-keymap
+  ;; does a better job without it.
+  (define-key dired-mode-map "%" nil)
   (define-key dired-mode-map "%u" 'dired-upcase)
   (define-key dired-mode-map "%l" 'dired-downcase)
   (define-key dired-mode-map "%d" 'dired-flag-files-regexp)
