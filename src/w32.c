@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.
 #include <ctype.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <sys/utime.h>
 
 /* must include CRT headers *before* config.h */
 #include "config.h"
@@ -1501,7 +1502,11 @@ sys_rmdir (const char * path)
 int
 sys_unlink (const char * path)
 {
-  return _unlink (map_w32_filename (path, NULL));
+  path = map_w32_filename (path, NULL);
+
+  /* On Unix, unlink works without write permission. */
+  _chmod (path, 0666);
+  return _unlink (path);
 }
 
 static FILETIME utc_base_ft;
@@ -1540,8 +1545,6 @@ convert_time (FILETIME ft)
   return (time_t) (ret * 1e-7);
 }
 
-#if 0
-/* in case we ever have need of this */
 void
 convert_from_time_t (time_t time, FILETIME * pft)
 {
@@ -1569,9 +1572,8 @@ convert_from_time_t (time_t time, FILETIME * pft)
   /* time in 100ns units since 1-Jan-1601 */
   tmp = (long double) time * 1e7 + utc_base;
   pft->dwHighDateTime = (DWORD) (tmp / (4096.0 * 1024 * 1024));
-  pft->dwLowDateTime = (DWORD) (tmp - pft->dwHighDateTime);
+  pft->dwLowDateTime = (DWORD) (tmp - (4096.0 * 1024 * 1024) * pft->dwHighDateTime);
 }
-#endif
 
 #if 0
 /* No reason to keep this; faking inode values either by hashing or even
@@ -1808,6 +1810,143 @@ stat (const char * path, struct stat * buf)
 
   buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
 
+  return 0;
+}
+
+/* Provide fstat and utime as well as stat for consistent handling of
+   file timestamps. */
+int
+fstat (int desc, struct stat * buf)
+{
+  HANDLE fh = (HANDLE) _get_osfhandle (desc);
+  BY_HANDLE_FILE_INFORMATION info;
+  DWORD fake_inode;
+  int permission;
+
+  switch (GetFileType (fh) & ~FILE_TYPE_REMOTE)
+    {
+    case FILE_TYPE_DISK:
+      buf->st_mode = _S_IFREG;
+      if (!GetFileInformationByHandle (fh, &info))
+	{
+	  errno = EACCES;
+	  return -1;
+	}
+      break;
+    case FILE_TYPE_PIPE:
+      buf->st_mode = _S_IFIFO;
+      goto non_disk;
+    case FILE_TYPE_CHAR:
+    case FILE_TYPE_UNKNOWN:
+    default:
+      buf->st_mode = _S_IFCHR;
+    non_disk:
+      memset (&info, 0, sizeof (info));
+      info.dwFileAttributes = 0;
+      info.ftCreationTime = utc_base_ft;
+      info.ftLastAccessTime = utc_base_ft;
+      info.ftLastWriteTime = utc_base_ft;
+    }
+
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+      buf->st_mode = _S_IFDIR;
+      buf->st_nlink = 2;	/* doesn't really matter */
+      fake_inode = 0;		/* this doesn't either I think */
+    }
+  else
+    {
+      buf->st_nlink = info.nNumberOfLinks;
+      /* Might as well use file index to fake inode values, but this
+	 is not guaranteed to be unique unless we keep a handle open
+	 all the time (even then there are situations where it is
+	 not unique).  Reputedly, there are at most 48 bits of info
+      (on NTFS, presumably less on FAT). */
+      fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
+    }
+
+  /* MSVC defines _ino_t to be short; other libc's might not.  */
+  if (sizeof (buf->st_ino) == 2)
+    buf->st_ino = fake_inode ^ (fake_inode >> 16);
+  else
+    buf->st_ino = fake_inode;
+
+  /* consider files to belong to current user */
+  buf->st_uid = 0;
+  buf->st_gid = 0;
+
+  buf->st_dev = info.dwVolumeSerialNumber;
+  buf->st_rdev = info.dwVolumeSerialNumber;
+
+  buf->st_size = info.nFileSizeLow;
+
+  /* Convert timestamps to Unix format. */
+  buf->st_mtime = convert_time (info.ftLastWriteTime);
+  buf->st_atime = convert_time (info.ftLastAccessTime);
+  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
+  buf->st_ctime = convert_time (info.ftCreationTime);
+  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+
+  /* determine rwx permissions */
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+    permission = _S_IREAD;
+  else
+    permission = _S_IREAD | _S_IWRITE;
+  
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    permission |= _S_IEXEC;
+  else
+    {
+#if 0 /* no way of knowing the filename */
+      char * p = strrchr (name, '.');
+      if (p != NULL &&
+	  (stricmp (p, ".exe") == 0 ||
+	   stricmp (p, ".com") == 0 ||
+	   stricmp (p, ".bat") == 0 ||
+	   stricmp (p, ".cmd") == 0))
+	permission |= _S_IEXEC;
+#endif
+    }
+
+  buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
+
+  return 0;
+}
+
+int
+utime (const char *name, struct utimbuf *times)
+{
+  struct utimbuf deftime;
+  HANDLE fh;
+  FILETIME mtime;
+  FILETIME atime;
+
+  if (times == NULL)
+    {
+      deftime.modtime = deftime.actime = time (NULL);
+      times = &deftime;
+    }
+
+  /* Need write access to set times.  */
+  fh = CreateFile (name, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		   0, OPEN_EXISTING, 0, NULL);
+  if (fh)
+    {
+      convert_from_time_t (times->actime, &atime);
+      convert_from_time_t (times->modtime, &mtime);
+      if (!SetFileTime (fh, NULL, &atime, &mtime))
+	{
+	  CloseHandle (fh);
+	  errno = EACCES;
+	  return -1;
+	}
+      CloseHandle (fh);
+    }
+  else
+    {
+      errno = EINVAL;
+      return -1;
+    }
   return 0;
 }
 
