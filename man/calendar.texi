@@ -763,7 +763,7 @@ Move to a date specified in the ISO commercial calendar
 Move to a date specified in the Julian calendar
 (@code{calendar-goto-julian-date}).
 @item g a
-Move to a date specified in astronomical (Julian) day number
+Move to a date specified by astronomical (Julian) day number
 (@code{calendar-goto-astro-day-number}).
 @item g h
 Move to a date specified in the Hebrew calendar
@@ -1178,9 +1178,9 @@ date; you can then type the rest of the diary entry.
 the week, select that day of the week (any occurrence will do) and type
 @kbd{i w}.  This inserts the day-of-week as a generic date; you can then
 type the rest of the diary entry.  You can make a monthly diary entry in
-the same fashion.  Select the day of the month, use the @kbd{i m}
-command, and type rest of the entry.  Similarly, you can insert a yearly
-diary entry with the @kbd{i y} command.
+the same fashion: select the day of the month, use the @kbd{i m}
+command, and type the rest of the entry.  Similarly, you can insert a
+yearly diary entry with the @kbd{i y} command.
 
   All of the above commands make marking diary entries by default.  To
 make a nonmarking diary entry, give a numeric argument to the command.
