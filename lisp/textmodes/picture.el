@@ -509,6 +509,7 @@ Picture mode is invoked by the command \\[picture-mode].")
 (defvar picture-mode-old-local-map)
 (defvar picture-mode-old-mode-name)
 (defvar picture-mode-old-major-mode)
+(defvar picture-mode-old-truncate-lines)
 
 ;;;###autoload
 (defun picture-mode ()
@@ -586,6 +587,8 @@ they are not defaultly assigned to keys."
     (setq picture-tab-chars (default-value 'picture-tab-chars))
     (make-local-variable 'picture-vertical-step)
     (make-local-variable 'picture-horizontal-step)
+    (make-local-variable 'picture-mode-old-truncate-lines)
+    (setq picture-mode-old-truncate-lines truncate-lines)
     (setq truncate-lines t)
     (picture-set-motion 0 1)
 
@@ -611,6 +614,7 @@ With no argument strips whitespace from end of every line in Picture buffer
     (use-local-map picture-mode-old-local-map)
     (setq major-mode picture-mode-old-major-mode)
     (kill-local-variable 'tab-stop-list)
+    (setq truncate-lines picture-mode-old-truncate-lines)
     ;; Kludge - force the mode line to be updated.  Is there a better
     ;; way to do this?
     (set-buffer-modified-p (buffer-modified-p))))
