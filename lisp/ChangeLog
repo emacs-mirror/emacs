@@ -1,3 +1,24 @@
+2002-06-02  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add selection-coding-system.
+
+	* language/hebrew.el ("Hebrew"): Add windows-1255, cp862 coding
+	systems.
+
+	* language/china-util.el (post-read-decode-hz) 
+	(pre-write-encode-hz): Moved from chinese.el.
+	(big5-to-flat-code, flat-code-to-big5, euc-to-flat-code)
+	(flat-code-to-euc, expand-euc-big5-alist, big5-to-cns): Deleted.
+
+	* language/chinese.el (post-read-decode-hz)
+	(pre-write-encode-hz): Moved to china-util.el.
+
+	* case-table.el (set-case-syntax-pair): Test again for equal byte
+	lengths of the pair.
+
+	* international/characters.el: Add Vietnamese category to
+	equivalent unicodes.
+
 2002-05-31  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (chinese-sisheng, ipa) 
