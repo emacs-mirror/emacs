@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 94/11/15 19:41:36 $|$Revision: 1.78 $
+;; |$Date: 1994/12/05 19:34:52 $|$Revision: 1.79 $
 
 ;; This file is part of GNU Emacs.
 
@@ -204,11 +204,24 @@ Default value, nil, means edit the string instead.")
 	(define-key map (vector i) 'isearch-printing-char)
 	(setq i (1+ i)))
 
+      ;; To handle local bindings with meta char prefix keys, define
+      ;; another full keymap.  This must be done for any other prefix
+      ;; keys as well, one full keymap per char of the prefix key.  It
+      ;; would be simpler to disable the global keymap, and/or have a
+      ;; default local key binding for any key not otherwise bound.
+      (let ((meta-map (make-sparse-keymap)))
+	(define-key map (char-to-string meta-prefix-char) meta-map)
+	(define-key map [escape] meta-map))
+      (define-key map (vector meta-prefix-char t) 'isearch-other-meta-char)
+
       ;; Several non-printing chars change the searching behavior.
       (define-key map "\C-s" 'isearch-repeat-forward)
       (define-key map "\C-r" 'isearch-repeat-backward)
       (define-key map "\177" 'isearch-delete-char)
       (define-key map "\C-g" 'isearch-abort)
+      ;; This assumes \e is the meta-prefix-char.
+      (or (= ?\e meta-prefix-char)
+	  (error "Inconsistency in isearch.el"))
       (define-key map "\e\e\e" 'isearch-cancel)
       (define-key map  [escape escape escape] 'isearch-cancel)
     
@@ -262,16 +275,6 @@ Default value, nil, means edit the string instead.")
 ;;; Turned off because I find I expect to get the global definition--rms.
 ;;;      ;; Instead bind C-h to special help command for isearch-mode.
 ;;;      (define-key map "\C-h" 'isearch-mode-help)
-
-      ;; To handle local bindings with meta char prefix keys, define
-      ;; another full keymap.  This must be done for any other prefix
-      ;; keys as well, one full keymap per char of the prefix key.  It
-      ;; would be simpler to disable the global keymap, and/or have a
-      ;; default local key binding for any key not otherwise bound.
-      (let ((meta-map (make-sparse-keymap)))
-	(define-key map (char-to-string meta-prefix-char) meta-map)
-	(define-key map [escape] meta-map))
-      (define-key map (vector meta-prefix-char t) 'isearch-other-meta-char)
 
       (define-key map "\M-n" 'isearch-ring-advance)
       (define-key map "\M-p" 'isearch-ring-retreat)
