@@ -821,7 +821,7 @@
 (defun calc-macro-edit-variable (&optional no-cmd)
   (let ((str "") ch)
     (or no-cmd (insert (symbol-name key-symbol) "\n"))
-    (if (memq (MacEdit-peek-char) '(?\+ ?\- ?\* ?\/ ?\^ ?\|))
+    (if (memq (MacEdit-peek-char) '(?\+ ?\- ?\* ?\/ ?^ ?\|))
 	(setq str (char-to-string (MacEdit-read-char))))
     (if (and (setq ch (MacEdit-peek-char))
 	     (>= ch ?0) (<= ch ?9))
