@@ -2,7 +2,7 @@
  *
  *                          QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.2) $
+ *  $HopeName: MMsrc!qs.c(trunk.3) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -40,18 +40,19 @@ static mps_addr_t skip(mps_addr_t object);
 static void move(mps_addr_t object, mps_addr_t to);
 static mps_addr_t isMoved(mps_addr_t object);
 static void copy(mps_addr_t object, mps_addr_t to);
+static void pad(mps_addr_t base, size_t size);
 
 struct mps_fmt_A_s fmt_A_s =
   {
     (mps_align_t)4,
     scan, skip, copy,
     move, isMoved,
-    (mps_fmt_pad_t)NULL
+    pad
   };
 
 
 /* Tags used by object format */
-enum {QSInt, QSRef, QSEvac};
+enum {QSInt, QSRef, QSEvac, QSPadOne, QSPadMany};
 
 typedef struct QSCellStruct *QSCell;
 typedef struct QSCellStruct
@@ -67,6 +68,8 @@ static mps_fmt_t format;
 static mps_pool_t pool;     /* automatic pool */
 static mps_ap_t ap;         /* AP for above */
 static mps_pool_t mpool;    /* manual pool */
+static mps_root_t regroot;
+static mps_root_t actroot;
 
 /*  list holds an array that we qsort(), listl is its length */
 static mps_word_t *list;
@@ -374,6 +377,11 @@ main(void)
   die(mps_pool_create(&pool, space, mps_class_amc(), format),
       "AMCCreate");
   die(mps_ap_create(&ap, pool), "APCreate");
+  die(mps_root_create_table(&regroot, space, MPS_RANK_AMBIG, 0,
+      (mps_addr_t *)reg, NREGS), "RootCreateTable");
+  die(mps_root_create_table(&actroot, space, MPS_RANK_AMBIG, 0,
+      (mps_addr_t *)&activationStack, sizeof(QSCell)/sizeof(mps_addr_t)),
+      "RootCreateTable");
 
   /* makes a random list */
   makerndlist(1000);
@@ -388,6 +396,8 @@ main(void)
   printlist(stdout);
   validate();
 
+  mps_root_destroy(regroot);
+  mps_root_destroy(actroot);
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
@@ -399,7 +409,22 @@ main(void)
 
 /*  Machine Object Format  */
 
-/* neither scan nor skip cope with forwarded objects */
+static
+void
+pad(mps_addr_t base, size_t size)
+{
+  mps_word_t *object = base;
+  assert(size >= sizeof(mps_word_t));
+  if(size == sizeof(mps_word_t)) {
+    object[0] = QSPadOne;
+    return;
+  }
+  assert(size >= 2*sizeof(mps_word_t));
+  object[0] = QSPadMany;
+  object[1] = size;
+  return;
+}
+
 static
 mps_res_t
 scan1(mps_ss_t ss, mps_addr_t *objectIO)
@@ -433,6 +458,15 @@ scan1(mps_ss_t ss, mps_addr_t *objectIO)
     case QSEvac:
       /* skip */
       break;
+
+    case QSPadOne:
+      *objectIO = (mps_addr_t)((mps_word_t *)cell+1);
+      return MPS_RES_OK;
+
+    case QSPadMany:
+      *objectIO = (mps_addr_t)((mps_word_t)cell+((mps_word_t *)cell)[1]);
+      return MPS_RES_OK;
+
     default:
       assert(0);
       return MPS_RES_OK;
@@ -467,7 +501,18 @@ static
 mps_addr_t
 skip(mps_addr_t object)
 {
-  return (mps_addr_t)((QSCell)object + 1);
+  QSCell cell = (QSCell)object;
+  switch(cell->tag)
+  {
+  case QSPadOne:
+    return (mps_addr_t)((mps_word_t *)cell+1);
+    return MPS_RES_OK;
+
+  case QSPadMany:
+    return (mps_addr_t)((mps_word_t)cell+((mps_word_t *)cell)[1]);
+  default:
+    return (mps_addr_t)((QSCell)object + 1);
+  }
 }
 
 static
