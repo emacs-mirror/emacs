@@ -347,6 +347,8 @@ x_window_to_frame (dpyinfo, wdesc)
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
+      if (f->output_data.x->busy_window == wdesc)
+	return f;
 #ifdef USE_X_TOOLKIT
       if ((f->output_data.x->edit_widget 
 	   && XtWindow (f->output_data.x->edit_widget) == wdesc)
@@ -374,34 +376,40 @@ x_any_window_to_frame (dpyinfo, wdesc)
      int wdesc;
 {
   Lisp_Object tail, frame;
-  struct frame *f;
+  struct frame *f, *found;
   struct x_output *x;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  found = NULL;
+  for (tail = Vframe_list; GC_CONSP (tail) && !found; tail = XCDR (tail))
     {
       frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
+      
       f = XFRAME (frame);
-      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
-	continue;
-      x = f->output_data.x;
-      /* This frame matches if the window is any of its widgets.  */
-      if (x->widget)
+      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
-	  if (wdesc == XtWindow (x->widget) 
-	      || wdesc == XtWindow (x->column_widget) 
-	      || wdesc == XtWindow (x->edit_widget))
-	    return f;
-	  /* Match if the window is this frame's menubar.  */
-	  if (lw_window_is_in_menubar (wdesc, x->menubar_widget))
-	    return f;
+	  /* This frame matches if the window is any of its widgets.  */
+	  x = f->output_data.x;
+	  if (x->busy_window == wdesc)
+	    found = f;
+	  else if (x->widget)
+	    {
+	      if (wdesc == XtWindow (x->widget) 
+		  || wdesc == XtWindow (x->column_widget) 
+		  || wdesc == XtWindow (x->edit_widget))
+		found = f;
+	      /* Match if the window is this frame's menubar.  */
+	      else if (lw_window_is_in_menubar (wdesc, x->menubar_widget))
+		found = f;
+	    }
+	  else if (FRAME_X_WINDOW (f) == wdesc)
+	    /* A tooltip frame.  */
+	    found = f;
 	}
-      else if (FRAME_X_WINDOW (f) == wdesc)
-	/* A tooltip frame.  */
-	return f;
     }
-  return 0;
+  
+  return found;
 }
 
 /* Likewise, but exclude the menu bar widget.  */
@@ -425,7 +433,9 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
 	continue;
       x = f->output_data.x;
       /* This frame matches if the window is any of its widgets.  */
-      if (x->widget)
+      if (x->busy_window == wdesc)
+	return f;
+      else if (x->widget)
 	{
 	  if (wdesc == XtWindow (x->widget) 
 	      || wdesc == XtWindow (x->column_widget) 
