@@ -1,3 +1,8 @@
+2002-05-03  John Wiegley  <johnw@gnu.org>
+
+	* eshell/em-cmpl.el (eshell-command-completions-alist): Improved
+	default completion targets for objdump, nm and readelf.
+
 2002-05-03  Colin Walters  <walters@verbum.org>
 
 	* play/gamegrid.el (gamegrid-user-score-file-directory): New
