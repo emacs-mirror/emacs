@@ -1541,13 +1541,11 @@ If no minibuffer is active, return nil.")
 
 DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
   Sminibuffer_prompt_width, 0, 0, 0,
-  "Return the horizontal position after the minibuffer prompt.\n\
-This may be less than the actual display width of the minibuffer prompt,\n\
-or even negative, if horizontal scrolling is in effect in the minibuffer.")
+  "Return the display width of the minibuffer prompt.")
   ()
 {
   Lisp_Object width;
-  XSET (width, Lisp_Int, minibuf_prompt_width);
+  XFASTINT (width) = minibuf_prompt_width;
   return width;
 }
 
