@@ -3917,8 +3917,8 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			  ;; `identity' means just return the first arg
 			  ;; as stripped of its quoting.
 			  (substitute-in-file-name . identity)
-			  (file-name-completion 0 1)
-			  (file-name-all-completions 0 1)
+			  (file-name-completion 1)
+			  (file-name-all-completions 1)
 			  (rename-file 0 1)
 			  (copy-file 0 1)
 			  (make-symbolic-link 0 1)
@@ -3941,12 +3941,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	(setq file-arg-indices (cdr file-arg-indices))))
     (if (eq file-arg-indices 'identity)
 	(car arguments)
-      (let ((value (apply operation arguments)))
-	(cond ((memq operation '(file-name-completion))
-	       (and value (if (eq value t) t (concat "/:" value))))
-	      ((memq operation '(file-name-all-completions))
-	       (mapcar (lambda (name) (concat "/:" name)) value))
-	      (t value))))))
+      (apply operation arguments))))
 
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)
