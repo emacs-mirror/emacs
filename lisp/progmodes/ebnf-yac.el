@@ -1,12 +1,13 @@
 ;;; ebnf-yac.el --- parser for Yacc/Bison
 
-;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Free Sofware Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/02/22 14:24:17 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:47:04 jbarranquero>
-;; Version: 1.2
+;; Version: 1.2.1
 
 ;; This file is part of GNU Emacs.
 
@@ -42,7 +43,9 @@
 ;;
 ;; YACC = { YACC-Definitions }* "%%" { YACC-Rule }* [ "%%" [ YACC-Code ] ].
 ;;
-;; YACC-Definitions = "%token" [ "<" Name ">" ] Name-List
+;; YACC-Definitions = ( "%token" | "%left" | "%right" | "%nonassoc" )
+;;                    [ "<" Name ">" ] Name-List
+;;                  | "%prec" Name
 ;;                  | "any other Yacc definition"
 ;;                  .
 ;;
@@ -66,6 +69,19 @@
 ;;
 ;; Comment = "/*" "any character, but the sequence \"*/\"" "*/"
 ;;         | "//" "any character" "\\n".
+;;
+;;
+;; In other words, a valid Name begins with a letter (upper or lower case)
+;; followed by letters, decimal digits, underscore (_) or point (.).  For
+;; example: this_is_a_valid.name, Another_EXAMPLE, mIxEd.CaSe.
+;;
+;;
+;; Acknowledgements
+;; ----------------
+;;
+;; Thanks to Matthew K. Junker <junker@alum.mit.edu> for the suggestion to deal
+;; with %right, %left and %prec pragmas.  His suggestion was extended to deal
+;; with %nonassoc pragma too.
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -126,7 +142,9 @@
     syntax-list))
 
 
-;;; YACC-Definitions = "%token" [ "<" Name ">" ] Name-List
+;;; YACC-Definitions = ( "%token" | "%left" | "%right" | "%nonassoc" )
+;;;                    [ "<" Name ">" ] Name-List
+;;;                  | "%prec" Name
 ;;;                  | "any other Yacc definition"
 ;;;                  .
 
@@ -135,7 +153,8 @@
     (while (not (memq token '(yac-separator end-of-input)))
       (setq token
 	    (cond
-	     ;; "%token" [ "<" Name ">" ] Name-List
+	     ;; ( "%token" | "%left" | "%right" | "%nonassoc" )
+	     ;; [ "<" Name ">" ] Name-List
 	     ((eq token 'yac-token)
 	      (setq token (ebnf-yac-lex))
 	      (when (eq token 'open-angle)
@@ -148,7 +167,12 @@
 		    ebnf-yac-token-list (nconc (cdr token)
 					       ebnf-yac-token-list))
 	      (car token))
-	     ;; "any other Yacc definition"
+	     ;;  "%prec" Name
+	     ((eq token 'yac-prec)
+	      (or (eq (ebnf-yac-lex) 'non-terminal)
+		  (error "Missing prec name"))
+	      (ebnf-yac-lex))
+	     ;;  "any other Yacc definition"
 	     (t
 	      (ebnf-yac-lex))
 	     )))
@@ -360,9 +384,13 @@ See documentation for variable `ebnf-yac-lex'."
 	 ((eq (following-char) ?%)
 	  (forward-char)
 	  'yac-separator)
-	 ;; %TOKEN
-	 ((string= (upcase (ebnf-buffer-substring "0-9A-Za-z_")) "TOKEN")
-	  'yac-token)
+	 ;; %TOKEN, %RIGHT, %LEFT,  %PREC, %NONASSOC
+	 ((cdr (assoc (upcase (ebnf-buffer-substring "0-9A-Za-z_"))
+		      '(("TOKEN"    . yac-token)
+			("RIGHT"    . yac-token)
+			("LEFT"     . yac-token)
+			("NONASSOC" . yac-token)
+			("PREC"     . yac-prec)))))
 	 ;; other Yacc pragmas
 	 (t
 	  'yac-pragma)

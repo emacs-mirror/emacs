@@ -8243,7 +8243,7 @@ x_put_x_image (f, ximg, pixmap, width, height)
  ***********************************************************************/
 
 static Lisp_Object x_find_image_file P_ ((Lisp_Object));
-static char *slurp_file P_ ((char *, int *));
+static unsigned char *slurp_file P_ ((char *, int *));
 
 
 /* Find image file FILE.  Look in data-directory, then
@@ -8279,13 +8279,13 @@ x_find_image_file (file)
    with xmalloc holding FILE's contents.  Value is null if an error
    occurred.  *SIZE is set to the size of the file.  */
 
-static char *
+static unsigned char *
 slurp_file (file, size)
      char *file;
      int *size;
 {
   FILE *fp = NULL;
-  char *buf = NULL;
+  unsigned char *buf = NULL;
   struct stat st;
 
   if (stat (file, &st) == 0
@@ -8316,13 +8316,13 @@ slurp_file (file, size)
 			      XBM images
  ***********************************************************************/
 
-static int xbm_scan P_ ((char **, char *, char *, int *));
+static int xbm_scan P_ ((unsigned char **, unsigned char *, char *, int *));
 static int xbm_load P_ ((struct frame *f, struct image *img));
 static int xbm_load_image P_ ((struct frame *f, struct image *img,
-			       char *, char *));
+			       unsigned char *, unsigned char *));
 static int xbm_image_p P_ ((Lisp_Object object));
-static int xbm_read_bitmap_data P_ ((char *, char *, int *, int *,
-				     unsigned char **));
+static int xbm_read_bitmap_data P_ ((unsigned char *, unsigned char *,
+				     int *, int *, unsigned char **));
 static int xbm_file_p P_ ((Lisp_Object));
 
 
@@ -8511,11 +8511,11 @@ xbm_image_p (object)
 
 static int
 xbm_scan (s, end, sval, ival)
-     char **s, *end;
+     unsigned char **s, *end;
      char *sval;
      int *ival;
 {
-  int c;
+  unsigned int c;
 
  loop:
 
@@ -8645,11 +8645,11 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
 
 static int
 xbm_read_bitmap_data (contents, end, width, height, data)
-     char *contents, *end;
+     unsigned char *contents, *end;
      int *width, *height;
      unsigned char **data;
 {
-  char *s = contents;
+  unsigned char *s = contents;
   char buffer[BUFSIZ];
   int padding_p = 0;
   int v10 = 0;
@@ -8827,7 +8827,7 @@ static int
 xbm_load_image (f, img, contents, end)
      struct frame *f;
      struct image *img;
-     char *contents, *end;
+     unsigned char *contents, *end;
 {
   int rc;
   unsigned char *data;
@@ -8915,7 +8915,7 @@ xbm_load (f, img)
   if (STRINGP (file_name))
     {
       Lisp_Object file;
-      char *contents;
+      unsigned char *contents;
       int size;
       struct gcpro gcpro1;
 

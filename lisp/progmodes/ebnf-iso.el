@@ -1,12 +1,13 @@
 ;;; ebnf-iso.el --- parser for ISO EBNF
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/02/22 14:24:55 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003/08/12 21:29:14 vinicius>
-;; Version: 1.6
+;; Version: 1.7
 
 ;; This file is part of GNU Emacs.
 
@@ -112,7 +113,7 @@
 ;; ISO EBNF accepts the characters given by <character> production above,
 ;; HORIZONTAL TAB (^I), VERTICAL TAB (^K), NEWLINE (^J or ^M) and FORM FEED
 ;; (^L), any other characters are illegal.  But ebnf2ps accepts also the
-;; european 8-bit accentuated characters (from \240 to \377).
+;; european 8-bit accentuated characters (from \240 to \377) and underscore.
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -346,6 +347,7 @@
     ;; Override form feed character:
     (aset table ?\f 'form-feed)		; [FF] form feed
     ;; Override other lexical characters:
+    (aset table ?_  'non-terminal)
     (aset table ?\" 'double-terminal)
     (aset table ?\' 'single-terminal)
     (aset table ?\? 'special)
@@ -390,7 +392,7 @@
 
 ;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-iso-non-terminal-chars
-  (ebnf-range-regexp " 0-9A-Za-z" ?\240 ?\377))
+  (ebnf-range-regexp " 0-9A-Za-z_" ?\240 ?\377))
 
 
 (defun ebnf-iso-lex ()
@@ -439,9 +441,9 @@ See documentation for variable `ebnf-iso-lex'."
 	'integer)
        ;; special: ?special?
        ((eq token 'special)
-	(setq ebnf-iso-lex (concat "?"
+	(setq ebnf-iso-lex (concat (and ebnf-special-show-delimiter "?")
 				   (ebnf-string " ->@-~" ?\? "special")
-				   "?"))
+				   (and ebnf-special-show-delimiter "?")))
 	'special)
        ;; terminal: "string"
        ((eq token 'double-terminal)
