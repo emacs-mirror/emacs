@@ -836,166 +836,104 @@ cached information about equivalent key sequences.")
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
   "Pop up a dialog box and return user's selection.\n\
-POSITION is a position specification.  This is either a mouse button event\n\
-or a list ((XOFFSET YOFFSET) WINDOW)\n\
-where XOFFSET and YOFFSET are positions in characters from the top left\n\
-corner of WINDOW's frame.  (WINDOW may be a frame object instead of a window.)\n\
-This controls the position of the center of the first line\n\
-in the first pane of the menu, not the top left of the menu as a whole.\n\
-If POSITION is t, it means to use the current mouse position.\n\
+POSITION specifies which frame to use.\n\
+This is normally a mouse button event or a window or frame.\n\
+If POSITION is t, it means to use the frame the mouse is on.\n\
+The dialog box appears in the middle of the specified frame.\n\
 \n\
-MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.\n\
-The menu items come from key bindings that have a menu string as well as\n\
-a definition; actually, the \"definition\" in such a key binding looks like\n\
-\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into\n\
-the keymap as a top-level element.\n\n\
-You can also use a list of keymaps as MENU.\n\
-  Then each keymap makes a separate pane.\n\
-When MENU is a keymap or a list of keymaps, the return value\n\
-is a list of events.\n\n\
-Alternatively, you can specify a menu of multiple panes\n\
-  with a list of the form (TITLE PANE),\n\
-where PANE is a list of form (TITLE ITEM1 ITEM2...).\n\
-Each ITEM is normally a cons cell (STRING . VALUE);\n\
-but a string can appear as an item--that makes a nonselectable line\n\
-in the menu.\n\
-Dialog boxes do not support multiple panes.\n\
-With this form of menu, the return value is VALUE from the chosen item.\n\
-\n\
-If POSITION is nil, don't display the menu at all, just precalculate the\n\
-cached information about equivalent key sequences.")
-  (position, menu)
-     Lisp_Object position, menu;
+CONTENTS specifies the alternatives to display in the dialog box.\n\
+It is a list of the form (TITLE ITEM1 ITEM2...).\n\
+Each ITEM is a cons cell (STRING . VALUE).\n\
+The return value is VALUE from the chosen item.")
+  (position, contents)
+     Lisp_Object position, contents;
 {
-#ifndef USE_X_TOOLKIT
-  return Fx_popup_menu (position, menu);
-#else
-  int number_of_panes, panes;
-  Lisp_Object keymap, tem;
-  int xpos, ypos;
-  Lisp_Object title;
-  char *error_name;
-  Lisp_Object selection;
-  int i, j;
   FRAME_PTR f;
-  Lisp_Object x, y, window;
-  int keymaps = 0;
-  int menubarp = 0;
-  struct gcpro gcpro1;
+  Lisp_Object window;
 
   check_x ();
 
-  if (! NILP (position))
+  /* Decode the first argument: find the window or frame to use.  */
+  if (EQ (position, Qt))
     {
-      /* Decode the first argument: find the window and the coordinates.  */
-      if (EQ (position, Qt))
-	{
-	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f = 0;
-	  Lisp_Object bar_window;
-	  int part;
-	  unsigned long time;
+      /* Use the mouse's current position.  */
+      FRAME_PTR new_f = 0;
+      Lisp_Object bar_window;
+      int part;
+      unsigned long time;
+      Lisp_Object x, y;
 
-	  (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
+      (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
 
-	  if (new_f != 0)
-	    XSET (window, Lisp_Frame, new_f);
-	  else
-	    {
-	      window = selected_window;
-	      XFASTINT (x) = 0;
-	      XFASTINT (y) = 0;
-	    }
-	}
+      if (new_f != 0)
+	XSET (window, Lisp_Frame, new_f);
+      else
+	window = selected_window;
+    }
+  else if (CONSP (position))
+    {
+      Lisp_Object tem;
+      tem = Fcar (position);
+      if (XTYPE (tem) == Lisp_Cons)
+	window = Fcar (Fcdr (position));
       else
 	{
-	  tem = Fcar (position);
-	  if (XTYPE (tem) == Lisp_Cons)
-	    {
-	      window = Fcar (Fcdr (position));
-	      x = Fcar (tem);
-	      y = Fcar (Fcdr (tem));
-	    }
-	  else
-	    {
-	      tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
-	      window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-	      tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
-	      x = Fcar (tem);
-	      y = Fcdr (tem);
-
-	      /* Determine whether this menu is handling a menu bar click.  */
-	      tem = Fcar (Fcdr (Fcar (Fcdr (position))));
-	      if (XTYPE (Fcar (position)) != Lisp_Cons
-		  && CONSP (tem)
-		  && EQ (Fcar (tem), Qmenu_bar))
-		menubarp = 1;
-	    }
+	  tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+	  window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	}
-
-      CHECK_NUMBER (x, 0);
-      CHECK_NUMBER (y, 0);
-
-      /* Decode where to put the menu.  */
-
-      if (XTYPE (window) == Lisp_Frame)
-	{
-	  f = XFRAME (window);
-
-	  xpos = 0;
-	  ypos = 0;
-	}
-      else if (XTYPE (window) == Lisp_Window)
-	{
-	  CHECK_LIVE_WINDOW (window, 0);
-	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-
-	  xpos = (FONT_WIDTH (f->display.x->font) * XWINDOW (window)->left);
-	  ypos = (FONT_HEIGHT (f->display.x->font) * XWINDOW (window)->top);
-	}
-      else
-	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
-	   but I don't want to make one now.  */
-	CHECK_WINDOW (window, 0);
-
-      xpos += XINT (x);
-      ypos += XINT (y);
     }
+  else if (WINDOWP (position) || FRAMEP (position))
+    window = position;
 
-  title = Qnil;
-  GCPRO1 (title);
+  /* Decode where to put the menu.  */
 
-  /* Decode the dialog items from what was specified.  */
+  if (XTYPE (window) == Lisp_Frame)
+    f = XFRAME (window);
+  else if (XTYPE (window) == Lisp_Window)
     {
-      /* We were given an old-fashioned menu.  */
-      title = Fcar (menu);
-      CHECK_STRING (title, 1);
-
-      list_of_panes (Fcdr (menu));
-
-      keymaps = 0;
+      CHECK_LIVE_WINDOW (window, 0);
+      f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
     }
-  
-  if (NILP (position))
-    {
-      discard_menu_items ();
-      UNGCPRO;
-      return Qnil;
-    }
+  else
+    /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
+       but I don't want to make one now.  */
+    CHECK_WINDOW (window, 0);
 
-  /* Display them in a dialog box.  */
-  BLOCK_INPUT;
+#ifndef USE_X_TOOLKIT
+  /* Display a menu with these alternatives
+     in the middle of frame F.  */
+  {
+    Lisp_Object x, y, frame, newpos;
+    XSET (frame, Lisp_Frame, f);
+    XSET (x, Lisp_Int, x_pixel_width (f) / 2);
+    XSET (y, Lisp_Int, x_pixel_height (f) / 2);
+    newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
 
-  selection = xdialog_show (f, xpos, ypos, menubarp,
-			    keymaps, title, &error_name);
-  UNBLOCK_INPUT;
+    return Fx_popup_menu (newpos,
+			  Fcons (Fcar (contents), Fcons (contents, Qnil)));
+  }
+#else
+  {
+    Lisp_Object title;
+    char *error_name;
+    Lisp_Object selection;
 
-  discard_menu_items ();
+    /* Decode the dialog items from what was specified.  */
+    title = Fcar (contents);
+    CHECK_STRING (title, 1);
 
-  UNGCPRO;
+    list_of_panes (Fcons (contents, Qnil));
 
-  if (error_name) error (error_name);
-  return selection;
+    /* Display them in a dialog box.  */
+    BLOCK_INPUT;
+    selection = xdialog_show (f, 0, 0, title, &error_name);
+    UNBLOCK_INPUT;
+
+    discard_menu_items ();
+
+    if (error_name) error (error_name);
+    return selection;
+  }
 #endif
 }
 
@@ -1753,10 +1691,8 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-xdialog_show (f, x, y, menubarp, keymaps, title, error)
+xdialog_show (f, menubarp, keymaps, title, error)
      FRAME_PTR f;
-     int x;
-     int y;
      int menubarp;
      int keymaps;
      Lisp_Object title;
