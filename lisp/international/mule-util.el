@@ -384,10 +384,15 @@ basis, this may not be accurate."
 		 ;; Now FONT-PATTERN is a string or a cons of family
 		 ;; field pattern and registry field pattern.
 		 (or (stringp font-pattern)
-		     (setq font-pattern (concat "-"
-						(or (car font-pattern) "*")
-						"-*-"
-						(cdr font-pattern))))
+		     (let ((family (or (car font-pattern) "*"))
+			   (registry (or (cdr font-pattern) "*")))
+		       (or (string-match "-" family)
+			   (setq family (concat "*-" family)))
+		       (or (string-match "-" registry)
+			   (setq registry (concat registry "-*")))
+		       (setq font-pattern
+			     (format "-%s-*-*-*-*-*-*-*-*-*-*-%s"
+				     family registry))))
 		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
 	(t
 	 (let ((coding (terminal-coding-system)))
