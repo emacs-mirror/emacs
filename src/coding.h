@@ -546,7 +546,7 @@ struct coding_system
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 
 /* Extern declarations.  */
-extern Lisp_Object make_conversion_work_buffer P_ ((int, int));
+extern Lisp_Object code_conversion_save P_ ((int, int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void setup_coding_system P_ ((Lisp_Object, struct coding_system *));
