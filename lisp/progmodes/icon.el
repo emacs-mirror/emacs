@@ -129,7 +129,7 @@ with no args, if that value is non-nil."
   (setq local-abbrev-table icon-mode-abbrev-table)
   (set-syntax-table icon-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
+  (setq paragraph-start (concat "$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'indent-line-function)
