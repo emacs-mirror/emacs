@@ -1,12 +1,20 @@
 2000-06-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (setup_echo_area_for_printing): Call
+	message_log_maybe_newline if message_buf_print is not set.
+
+	* print.c (printchar, strout): Don't check message_buf_print
+	before calling setup_echo_area_for_printing because that 
+	function does something useful even when message_buf_print is
+	already set.
+
 	* xdisp.c (message_truncate_lines, Qmessage_truncate_lines): New
 	variables.
 	(ensure_echo_area_buffers): Initialize echo buffer's
 	truncate lines setting to nil.
 	(with_echo_area_buffer): Don't set the echo buffer's truncate
 	lines setting here.
-	(set_message_1): Set it here, instead, based on the value
+	(set_message_1): Set it here instead, based on the value
 	of message_truncate_lines.
 	(resize_mini_window): Handle case that lines are truncated.
 	(syms_of_xdisp): Initialize Qmessage_truncate_lines.  DEFVAR_BOOL
