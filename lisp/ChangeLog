@@ -1,3 +1,8 @@
+2005-04-03  Lute Kamstra  <lute@gnu.org>
+
+	* desktop.el (desktop-no-desktop-file-hook)
+	(desktop-after-read-hook): Fix docstring.
+
 2005-04-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (visible-mode): Use explicit :group keyword.
