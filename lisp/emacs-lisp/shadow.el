@@ -88,7 +88,7 @@ See the documentation for `list-load-path-shadows' for further information."
 	  (or noninteractive
 	      (and (car path)
 		   (not (string= (car path) "."))
-		   (message "Ignoring redundant directory '%s'." (car path))))
+		   (message "Ignoring redundant directory %s" (car path))))
 	
 	(setq true-names (append true-names (list dir)))
 	(setq dir (or (car path) "."))
@@ -96,7 +96,7 @@ See the documentation for `list-load-path-shadows' for further information."
                                (directory-files dir nil ".\\.elc?$" t)))
 	(and curr-files
 	     (not noninteractive)
-	     (message "Checking %d files in '%s' ..." (length curr-files) dir))
+	     (message "Checking %d files in %s..." (length curr-files) dir))
 	
 	(setq files-seen-this-dir nil)
 
@@ -176,26 +176,27 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
   (interactive)
   (let* ((shadows (find-emacs-lisp-shadows))
 	 (n (/ (length shadows) 2))
-	 (msg (format "%s Emacs Lisp load-path shadowing%s found."
+	 (msg (format "%s Emacs Lisp load-path shadowing%s found"
 		      (if (zerop n) "No" (concat "\n" (number-to-string n)))
 		      (if (= n 1) " was" "s were"))))
-	(if (interactive-p)
-	  (save-excursion
-	    ;; We are interactive.
-	    ;; Create the *Shadows* buffer and display shadowings there.
-	    (let ((output-buffer (get-buffer-create "*Shadows*")))
-	      (display-buffer output-buffer)
-	      (set-buffer output-buffer)
-	      (erase-buffer)
-	      (while shadows
-		(insert (format "%s shadows %s\n" (car shadows) (car (cdr shadows))))
-		(setq shadows (cdr (cdr shadows))))
-	      (insert msg "\n")))
-	  ;; We are non-interactive, print shadows via message.
-	  (while shadows
-	    (message "%s shadows %s" (car shadows) (car (cdr shadows)))
-	    (setq shadows (cdr (cdr shadows))))
-	  (message "%s" msg))))
+    (if (interactive-p)
+	(save-excursion
+	  ;; We are interactive.
+	  ;; Create the *Shadows* buffer and display shadowings there.
+	  (let ((output-buffer (get-buffer-create "*Shadows*")))
+	    (display-buffer output-buffer)
+	    (set-buffer output-buffer)
+	    (erase-buffer)
+	    (while shadows
+	      (insert (format "%s hides %s\n" (car shadows)
+			      (car (cdr shadows))))
+	      (setq shadows (cdr (cdr shadows))))
+	    (insert msg "\n")))
+      ;; We are non-interactive, print shadows via message.
+      (while shadows
+	(message "%s hides %s" (car shadows) (car (cdr shadows)))
+	(setq shadows (cdr (cdr shadows))))
+      (message "%s" msg))))
 
 (provide 'shadow)
 
