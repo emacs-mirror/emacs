@@ -3117,8 +3117,6 @@ and (2) it puts less data in the undo list.")
   if (!NILP (replace))
     {
       replace = Qnil;
-      XSETFASTINT (beg, 0);
-      XSETFASTINT (end, st.st_size);
       del_range_1 (BEGV, ZV, 0);
     }
 #else /* not DOS_NT */
@@ -3128,6 +3126,13 @@ and (2) it puts less data in the undo list.")
       int same_at_start = BEGV;
       int same_at_end = ZV;
       int overlap;
+
+      if (XINT (beg) != 0)
+	{
+	  if (lseek (fd, XINT (beg), 0) < 0)
+	    report_file_error ("Setting file position",
+			       Fcons (filename, Qnil));
+	}
 
       immediate_quit = 1;
       QUIT;
@@ -3155,7 +3160,7 @@ and (2) it puts less data in the undo list.")
       immediate_quit = 0;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
-      if (same_at_start - BEGV == st.st_size)
+      if (same_at_start - BEGV == XINT (end))
 	{
 	  close (fd);
 	  specpdl_ptr--;
@@ -3172,7 +3177,7 @@ and (2) it puts less data in the undo list.")
 	  int total_read, nread, bufpos, curpos, trial;
 
 	  /* At what file position are we now scanning?  */
-	  curpos = st.st_size - (ZV - same_at_end);
+	  curpos = XINT (end) - (ZV - same_at_end);
 	  /* If the entire file matches the buffer tail, stop the scan.  */
 	  if (curpos == 0)
 	    break;
@@ -3216,8 +3221,8 @@ and (2) it puts less data in the undo list.")
 	same_at_end += overlap;
 
       /* Arrange to read only the nonmatching middle part of the file.  */
-      XSETFASTINT (beg, same_at_start - BEGV);
-      XSETFASTINT (end, st.st_size - (ZV - same_at_end));
+      XSETFASTINT (beg, XINT (beg) + (same_at_start - BEGV));
+      XSETFASTINT (end, XINT (end) - (ZV - same_at_end));
 
       del_range_1 (same_at_start, same_at_end, 0);
       /* Insert from the file at the proper position.  */
