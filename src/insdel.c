@@ -683,10 +683,6 @@ prepare_to_modify_buffer (start, end)
   if (current_buffer->intervals != 0)
     verify_interval_modification (current_buffer, start, end);
 
-  if (!NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after))
-    verify_overlay_modification (start, end);
-
 #ifdef CLASH_DETECTION
   if (!NILP (current_buffer->filename)
       && current_buffer->save_modified >= MODIFF)
@@ -809,13 +805,19 @@ signal_before_change (start, end)
 	}
       unbind_to (count, Qnil);
     }
+
+  if (!NILP (current_buffer->overlays_before)
+      || !NILP (current_buffer->overlays_after))
+    verify_overlay_modification (start, end, 0, start, end, Qnil);
 }
 
 /* Signal a change immediately after it happens.
    POS is the address of the start of the changed text.
    LENDEL is the number of characters of the text before the change.
    (Not the whole buffer; just the part that was changed.)
-   LENINS is the number of characters in the changed text.  */
+   LENINS is the number of characters in the changed text.
+
+   (Hence POS + LENINS - LENDEL is the position after the changed text.)  */
 
 signal_after_change (pos, lendel, lenins)
      int pos, lendel, lenins;
@@ -871,4 +873,12 @@ signal_after_change (pos, lendel, lenins)
 	}
       unbind_to (count, Qnil);
     }
+
+  if (!NILP (current_buffer->overlays_before)
+      || !NILP (current_buffer->overlays_after))
+    verify_overlay_modification (make_number (pos),
+				 make_number (pos + lenins - lendel),
+				 1,
+				 make_number (pos), make_number (pos + lenins),
+				 make_number (lendel));
 }
