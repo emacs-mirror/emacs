@@ -7,7 +7,7 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
-;; Time-stamp: <2001/08/07 13:50:53 vinicius>
+;; Time-stamp: <2001/08/15 15:34:11 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -242,11 +242,11 @@ Any other value is treated as nil."
 	  (+ (* (car rule) 12) (cdr rule)))
 	(defun find-composition (pos &rest ignore)
 	  (let ((ch (char-after pos)))
-	    (if (eq (char-charset ch) 'composition)
-		(let ((components (decompose-composite-char ch 'vector t)))
-		  (list pos (ps-mule-next-point pos) components
-			(integerp (aref components 1)) nil
-			(char-width ch)))))))
+	    (and ch (eq (char-charset ch) 'composition)
+		 (let ((components (decompose-composite-char ch 'vector t)))
+		   (list pos (ps-mule-next-point pos) components
+			 (integerp (aref components 1)) nil
+			 (char-width ch)))))))
     ;; mule package isn't loaded
     (or (fboundp 'encode-composition-rule)
 	(defun encode-composition-rule (rule)
@@ -1130,10 +1130,10 @@ the sequence."
 	} ifelse } ifelse } ifelse
     } forall ] /components exch def
     grestore
-    
+
     %% Reflect special effects.
     SpecialEffect
-    
+
     %% Draw components while ignoring effects other than shadow and outline.
     components ShowComponents
 
