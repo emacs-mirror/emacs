@@ -1,3 +1,20 @@
+2003-10-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Creating Strings): Argument START to `substring'
+	can not be `nil'.  Expand description of
+	`substring-no-properties'.  Correct description of `split-string',
+	especially with respect to empty matches.  Prevent very bad line
+	break in definition of `split-string-default-separators'.
+	(Text Comparison): `string=' and `string<' also accept symbols as
+	arguments.
+	(String Conversion): More completely describe argument BASE in
+	`string-to-number'.
+	(Formatting Strings): `%s' and `%S" in `format' do require
+	corresponding object.  Clarify behavior of numeric prefix after
+	`%' in `format'.
+	(Case Conversion): The argument to `upcase-initials' can be a
+	character.
+
 2003-10-27  Kenichi Handa  <handa@m17n.org>
 
 	* display.texi (Fontsets): Fix texinfo usage.
