@@ -163,8 +163,8 @@ condition.  Two file items are considered to match if they are equal
 	(unless (let ((list list2))
 		  (while (and list
 			      (not (let* ((file2 (car list))
-					  (fa1 (caddr file1))
-					  (fa2 (caddr file2))
+					  (fa1 (car (cddr file1)))
+					  (fa2 (car (cddr file2)))
 					  (size1 (nth 7 fa1))
 					  (size2 (nth 7 fa2))
 					  (mtime1 (float-time (nth 5 fa1)))
