@@ -438,7 +438,7 @@ Advising Functions
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Subr Arguments::          Accessing arguments when advising a primitive.
+* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
