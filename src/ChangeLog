@@ -1,6 +1,11 @@
+2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* xmenu.c (update_submenu_strings): YAILOM.
+	(set_frame_menubar): Make sure last_i is initialized.
+
 2004-09-03  Jason Rumney  <jasonr@gnu.org>
 
-	* w32menu.c (_widget_value): Added lname and lkey.
+	* w32menu.c (_widget_value): Add lname and lkey.
 	(digest_single_submenu): Set lname and lkey in widget_value
 	instead of name and key.
 	(update_submenu_strings): New function.
@@ -12,7 +17,7 @@
 	UTF-8 if Unicode API is available.
 	(utf8to16): New function.
 	(add_menu_item): Use it when calling Unicode API.
-	
+
 2004-09-03  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_cursor_from_row): Look for non-nil `cursor' property
@@ -22,14 +27,14 @@
 2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (x_real_positions): Save the current window port and
-	set a new one before obtaining the global coordinate.  Use
-	FRAME_MAC_WINDOW.
-	(x_set_name, x_set_title): Encode title to UTF8.  Use
-	SetWindowTitleWithCFString.
+	set a new one before obtaining the global coordinate.
+	Use FRAME_MAC_WINDOW.
+	(x_set_name, x_set_title): Encode title to UTF8.
+	Use SetWindowTitleWithCFString.
 	(Fx_server_version): Get correct OS version.
 
-	* macmenu.c (add_menu_item): Remove unused variable `i'.  Don't
-	let separator items destroy refence constants of other menu items.
+	* macmenu.c (add_menu_item): Remove unused variable `i'.
+	Don't let separator items destroy refence constants of other menu items.
 
 	* macterm.c (x_update_end): Move SetPortWindowPort to inside
 	BLOCK_INPUT.
@@ -40,8 +45,8 @@
 
 	* s/darwin.h (LIBS_CARBON): New define to specify libraries for
 	Carbon support.
-	(LD_SWITCH_SYSTEM_TEMACS): Don't link with unused libstdc++.  Use
-	LIBS_CARBON.
+	(LD_SWITCH_SYSTEM_TEMACS): Don't link with unused libstdc++.
+	Use LIBS_CARBON.
 
 2004-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -56,7 +61,7 @@
 
 2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* macmenu.c (_widget_value): Added lname and lkey.
+	* macmenu.c (_widget_value): Add lname and lkey.
 	(single_submenu): Set lname and lkey in widget_value
 	instead of name and key.
 	(update_submenu_strings): New function.
