@@ -1731,8 +1731,6 @@ push_key_description (c, p)
       *p++ = 'P';
       *p++ = 'C';
     }
-  else if (c < 128)
-    *p++ = c;
   else if (c < 256)
     *p++ = c;
   else if (c < 512)
