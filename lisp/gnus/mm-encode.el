@@ -162,7 +162,10 @@ The encoding used is returned."
 	(incf n8bit)
 	(forward-char 1)
 	(skip-chars-forward "\x20-\x7f\r\n\t" limit))
-      (if (< (* 6 n8bit) (- limit (point-min)))
+      (if (or (< (* 6 n8bit) (- limit (point-min)))
+	      ;; Don't base64, say, a short line with a single
+	      ;; non-ASCII char when splitting parts by charset.
+	      (= n8bit 1))
 	  'quoted-printable
 	'base64))))
 
