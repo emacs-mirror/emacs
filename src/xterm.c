@@ -7494,6 +7494,15 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 
 	    /* Is win one of our frames?  */
 	    f1 = x_any_window_to_frame (FRAME_X_DISPLAY_INFO (*fp), win);
+
+#ifdef USE_X_TOOLKIT
+	    /* If we end up with the menu bar window, say it's not
+	       on the frame.  */
+	    if (f1 != NULL
+		&& f1->output_data.x->menubar_widget
+		&& win == XtWindow (f1->output_data.x->menubar_widget))
+	      f1 = NULL;
+#endif /* USE_X_TOOLKIT */
 	  }
 
 	if (x_had_errors_p (FRAME_X_DISPLAY (*fp)))
