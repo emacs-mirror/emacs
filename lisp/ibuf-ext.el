@@ -212,7 +212,6 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
 				  major-mode)))))
   (ibuffer-update nil t))
 
-;;;###autoload
 (define-ibuffer-op shell-command-pipe (command)
   "Pipe the contents of each marked buffer to shell command COMMAND."
   (:interactive "sPipe to shell command: "
@@ -222,7 +221,6 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
    (point-min) (point-max) command
    (get-buffer-create "* ibuffer-shell-output*")))
 
-;;;###autoload
 (define-ibuffer-op shell-command-pipe-replace (command)
   "Replace the contents of marked buffers with output of pipe to COMMAND."
   (:interactive "sPipe to shell command (replace): "
@@ -234,7 +232,6 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
     (shell-command-on-region (point-min) (point-max)
 			     command nil t)))
 
-;;;###autoload
 (define-ibuffer-op shell-command-file (command)
   "Run shell command COMMAND separately on files of marked buffers."
   (:interactive "sShell command on buffer's file: "
@@ -247,7 +244,6 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
 			    (make-temp-file
 			     (substring (buffer-name) 0 (min 10 (length (buffer-name))))))))))
 			  
-;;;###autoload
 (define-ibuffer-op eval (form)
   "Evaluate FORM in each of the buffers.
 Does not display the buffer during evaluation. See
@@ -257,7 +253,6 @@ Does not display the buffer during evaluation. See
    :modifier-p :maybe)
   (eval form))
 
-;;;###autoload
 (define-ibuffer-op view-and-eval (form)
   "Evaluate FORM while displaying each of the marked buffers.
 To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
@@ -272,14 +267,12 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	  (eval form))
       (switch-to-buffer ibuffer-buf))))
 
-;;;###autoload
 (define-ibuffer-op rename-uniquely ()
   "Rename marked buffers as with `rename-uniquely'."
   (:opstring "renamed"
    :modifier-p t)
   (rename-uniquely))
 
-;;;###autoload
 (define-ibuffer-op revert ()
   "Revert marked buffers as with `revert-buffer'."
   (:dangerous t
@@ -288,7 +281,6 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
    :modifier-p :maybe)
   (revert-buffer t t))
 
-;;;###autoload
 (define-ibuffer-op replace-regexp (from-str to-str)
   "Perform a `replace-regexp' in marked buffers."
   (:interactive
@@ -308,7 +300,6 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	  (replace-match to-str))))
     t))
 
-;;;###autoload
 (define-ibuffer-op query-replace (&rest args)
   "Perform a `query-replace' in marked buffers."
   (:interactive
@@ -324,7 +315,6 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	(apply #'query-replace args)))
     t))
 
-;;;###autoload
 (define-ibuffer-op query-replace-regexp (&rest args)
   "Perform a `query-replace-regexp' in marked buffers."
   (:interactive
@@ -340,7 +330,6 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	(apply #'query-replace-regexp args)))
     t))
 
-;;;###autoload
 (define-ibuffer-op print ()
   "Print marked buffers as with `print-buffer'."
   (:opstring "printed"
@@ -580,7 +569,6 @@ of replacing the current filters."
   
 ;;; Extra operation definitions
 
-;;;###autoload
 (define-ibuffer-filter mode 
   "Toggle current view to buffers with major mode QUALIFIER."
   (:description "major mode"
@@ -598,7 +586,6 @@ of replacing the current filters."
 			 "")))))
   (eq qualifier (with-current-buffer buf major-mode)))
 
-;;;###autoload
 (define-ibuffer-filter name 
   "Toggle current view to buffers with name matching QUALIFIER."
   (:description "buffer name"
@@ -606,7 +593,6 @@ of replacing the current filters."
    (read-from-minibuffer "Filter by name (regexp): "))
   (string-match qualifier (buffer-name buf)))
 
-;;;###autoload
 (define-ibuffer-filter filename
   "Toggle current view to buffers with filename matching QUALIFIER."
   (:description "filename"
@@ -615,7 +601,6 @@ of replacing the current filters."
   (ibuffer-awhen (buffer-file-name buf)
     (string-match qualifier it)))
 
-;;;###autoload
 (define-ibuffer-filter size-gt 
   "Toggle current view to buffers with size greater than QUALIFIER."
   (:description "size greater than"
@@ -624,7 +609,6 @@ of replacing the current filters."
   (> (with-current-buffer buf (buffer-size))
      qualifier))
 
-;;;###autoload
 (define-ibuffer-filter size-lt 
    "Toggle current view to buffers with size less than QUALIFIER."
   (:description "size less than"
@@ -633,7 +617,6 @@ of replacing the current filters."
   (< (with-current-buffer buf (buffer-size))
      qualifier))
   
-;;;###autoload
 (define-ibuffer-filter content
    "Toggle current view to buffers whose contents match QUALIFIER."
   (:description "content"
@@ -644,7 +627,6 @@ of replacing the current filters."
       (goto-char (point-min))
       (re-search-forward qualifier nil t))))
 
-;;;###autoload
 (define-ibuffer-filter predicate
    "Toggle current view to buffers for which QUALIFIER returns non-nil."
   (:description "predicate"
@@ -688,7 +670,6 @@ Possible sorting modes are:
 	     "normal"))
   (ibuffer-redisplay t))
 
-;;;###autoload
 (define-ibuffer-sorter major-mode
   "Sort the buffers by major modes.
 Ordering is lexicographic."
@@ -702,7 +683,6 @@ Ordering is lexicographic."
 				  (car b)
 				major-mode)))))
 
-;;;###autoload
 (define-ibuffer-sorter alphabetic
   "Sort the buffers by their names.
 Ordering is lexicographic."
@@ -711,7 +691,6 @@ Ordering is lexicographic."
    (buffer-name (car a))
    (buffer-name (car b))))
 
-;;;###autoload
 (define-ibuffer-sorter size
  "Sort the buffers by their size."
   (:description "size")
