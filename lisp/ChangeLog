@@ -5,6 +5,10 @@
 
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* net/ange-ftp.el (ange-ftp-process-handle-line) 
+	(ange-ftp-set-xfer-size): If the file's size is a float, divide
+	by 1024 instead of using ash.
+
 	* international/mule-cmds.el (select-safe-coding-system): State
 	the buffer's name in the message popped in the *Warning* buffer,
 	and make sure the offending buffer is displayed.
