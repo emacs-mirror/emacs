@@ -1,6 +1,6 @@
 ;;; msb.el --- customizable buffer-selection with multiple menus
 
-;; Copyright (C) 1993, 94, 95, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1993, 94, 95, 97, 98, 99, 2000, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <lars.lindberg@home.se>
@@ -1132,7 +1132,7 @@ variable `msb-menu-cond'."
 ;; C-down-mouse-1).
 (defvar msb-mode-map
   (let ((map (make-sparse-keymap "Msb")))
-    (substitute-key-definition 'mouse-buffer-menu 'msb map global-map)
+    (define-key map [remap mouse-buffer-menu] 'msb)
     map))
 
 ;;;###autoload
