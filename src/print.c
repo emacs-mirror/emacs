@@ -1083,7 +1083,7 @@ A value of nil means no limit.");
   Vprint_level = Qnil;
 
   DEFVAR_BOOL ("print-escape-newlines", &print_escape_newlines,
-    "Non-nil means print newlines in strings as backslash-n.
+    "Non-nil means print newlines in strings as backslash-n.\n\
 Also print formfeeds as backslash-f.");
   print_escape_newlines = 0;
 
