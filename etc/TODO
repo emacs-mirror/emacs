@@ -173,6 +173,12 @@ Other features we would like:
 * Port the conservative stack marking code of Emacs' garbage collector
   to more systems, so that we can completely get rid of GCPROs.
 
+* Reorder defcustom's in each package so that the more important
+  options come first in the Customize buffers.  This could be done by
+  either rearranging the file (since options are shown in the order
+  they appear in the *.el files), or by adding a few :set-after
+  attributes.
+
 * Maybe document the features of libraries missing from the manual (or
   ancillary manuals, including the Lisp manual in some cases).
   This is not worth doing for all of these packages and we need not
