@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; $Id: rlogin.el,v 1.33 1996/06/14 21:30:41 rms Exp friedman $
+;; $Id: rlogin.el,v 1.34 1996/06/20 17:30:41 friedman Exp friedman $
 
 ;;; Commentary:
 
@@ -192,7 +192,7 @@ variable."
       (if (fboundp 'make-local-hook)
           (make-local-hook 'comint-output-filter-functions)
         (make-local-variable 'comint-output-filter-functions))
-      (add-hook 'comint-output-filter-functions 'ftelnet-carriage-filter)
+      (add-hook 'comint-output-filter-functions 'rlogin-carriage-filter)
 
       (rlogin-mode)
 
