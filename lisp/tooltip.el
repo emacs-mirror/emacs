@@ -76,6 +76,13 @@ Do so after `tooltip-short-delay'."
   :group 'tooltip)
 
 
+(defcustom tooltip-hide-delay 5
+  "Hide tooltips automatically after this many seconds."
+  :tag "Hide delay"
+  :type 'number
+  :group 'tooltip)
+
+
 (defcustom tooltip-x-offset nil
   "Specify an X offset for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
@@ -338,7 +345,7 @@ change the existing association.  Value is the resulting alist."
 	  (x-show-tip (propertize text 'face 'tooltip)
 		      (selected-frame)
 		      params
-		      nil
+		      tooltip-hide-delay
 		      tooltip-x-offset
 		      tooltip-y-offset))
       (error 
