@@ -1,5 +1,8 @@
 2002-06-29  Dave Love  <fx@gnu.org>
 
+	* emacs-lisp/bytecomp.el (batch-byte-compile-if-not-done): Add
+	autoload cookie.
+
 	* international/ja-dic-cnv.el (skkdic-convert): Add coding tag.
 
 2002-06-28  Dave Love  <fx@gnu.org>
