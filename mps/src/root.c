@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.23) $
+ * $HopeName: MMsrc!root.c(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.23) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.24) $");
 
 
 /* RootVarCheck -- check a Root union discriminator
@@ -265,10 +265,13 @@ Res RootScan(ScanState ss, Root root)
   if(TraceSetInter(root->grey, ss->traces) == TraceSetEMPTY)
     return ResOK;
 
+  AVER(ScanStateSummary(ss) == RefSetEMPTY);
+
   switch(root->var) {
     case RootTABLE:
     res = TraceScanArea(ss, root->the.table.base, root->the.table.limit);
-    if(res != ResOK) return res;
+    if(res != ResOK)
+      return res;
     break;
 
     case RootTABLE_MASKED:
@@ -276,7 +279,8 @@ Res RootScan(ScanState ss, Root root)
                               root->the.tableMasked.base,
                               root->the.tableMasked.limit,
                               root->the.tableMasked.mask);
-    if(res != ResOK) return res;
+    if(res != ResOK)
+      return res;
     break;
 
     case RootFUN:
@@ -304,6 +308,8 @@ Res RootScan(ScanState ss, Root root)
   }
 
   root->grey = TraceSetDiff(root->grey, ss->traces);
+  root->summary = ScanStateSummary(ss);
+  EVENT_PWW(RootScan, root, ss->traces, ScanStateSummary(ss));
 
   return ResOK;
 }
