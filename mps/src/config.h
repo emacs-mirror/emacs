@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.31) $
+ * $HopeName: MMsrc!config.h(trunk.32) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -204,8 +204,9 @@
 /* Stack configuration */
 
 /* Currently StackProbe has a useful implementation only on
- * Intel platforms */
-#ifdef MPS_ARCH_I3
+ * Intel platforms and only when using Microsoft build tools
+ * (builder.mv) */
+#if defined(MPS_ARCH_I3) && defined(MPS_BUILD_MV)
 #define STACK_PROBE_DEPTH       ((Word)500)
 #else
 #define STACK_PROBE_DEPTH       ((Word)0)
