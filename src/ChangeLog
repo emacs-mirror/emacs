@@ -1,3 +1,46 @@
+2003-05-30  Kenichi Handa  <handa@etlken2>
+
+	* regex.c (GET_CHAR_BEFORE_2): Check multibyte, not
+	target_multibyte.  Even in a unibyte case, return a converted
+	multibyte char.
+	(GET_CHAR_AFTER): New macro.
+	(PATFETCH): Translate via multibyte char.
+	(HANDLE_UNIBYTE_RANGE): Delete this macro.
+	(SETUP_MULTIBYTE_RANGE): New macro.
+	(regex_compile): Setup compiled code so that its multibyteness
+	matches that of a target.  Fix the handling of "[X-YZ]" using
+	SETUP_MULTIBYTE_RANGE.
+	(analyse_first) <charset>: For filling fastmap for all multibyte
+	characters, don't check by BASE_LEADING_CODE_P.
+	(re_search_2): Don't check RE_TARGET_MULTIBYTE_P (bufp).  It is
+	the same as RE_MULTIBYTE_P (bufp) now.
+	(mutually_exclusive_p): Check by (! multibyte ||
+	IS_REAL_ASCII (c)).
+	(TARGET_CHAR_AND_LENGTH): Delete this macro.
+	(TRANSLATE_VIA_MULTIBYTE): New macro.
+	(re_match_2_internal): Don't check RE_TARGET_MULTIBYTE_P (bufp).
+	It is the same as RE_MULTIBYTE_P (bufp) now.
+	<exactn>: Translate via multibyte.
+	<anychar>: Fetch a character by RE_STRING_CHAR_AND_LENGTH.  Don't
+	translate it.
+	<charset, charset_not>: Fetch a character by
+	RE_STRING_CHAR_AND_LENGTH.  Translate via multibyte.
+	<duplicate>: Call bcmp_translate with the last arg `multibyte'.
+	<wordbound, notwordbound, wordbeg, wordend, syntaxspec,
+	notsyntaxspec, categoryspec, notcategoryspec> Fetch a character
+	by GET_CHAR_AFTER.
+	(bcmp_translate):  Likewise.
+	
+	* search.c (compile_pattern): Check the member target_multibyte,
+	not the member multibyte of buf.
+
+	* lread.c (read1): While reading a string, set force_singlebyte
+	and force_multibyte correctly.
+
+	* charset.c (Fset_unibyte_charset): Fix setting up of
+	unibyte_to_multibyte_table.
+	(init_charset_once): Likewise.
+
 2003-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (setup_coding_system): If coding has

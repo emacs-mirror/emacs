@@ -1,3 +1,22 @@
+2003-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-designations-alist):
+	Exclude entries for iso8859-1[03456].  Fix docstring.
+	(ctext-pre-write-conversion): Make it work for the case that FROM
+	is a string.  Don't do unnecessary save-restriction and
+	narrow-to-region.
+
+2003-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Renamed from non-standard-icccm-encodings-alist.
+	(ctext-non-standard-encodings-regexp): New variable
+	(ctext-post-read-conversion): Full rewrite.
+	(ctext-non-standard-designations-alist): Renamed from
+	non-standard-designations-alist.
+	(ctext-pre-write-conversion): Full rewrite.
+	(define-coding-system): Doc fix (escape '"' by '\').
+
 2003-05-24  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (utf-16le, utf-16be-16be) 
