@@ -1,3 +1,7 @@
+2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist (tempdir): Copy AUTHORS as well.
+
 2001-11-06  Sam Steingold  <sds@gnu.org>
 
 	* configure.in: Added a check for <nlist.h>
