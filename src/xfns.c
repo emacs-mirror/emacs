@@ -2227,22 +2227,24 @@ fonts), even if they match PATTERN and FACE.")
 			      &info); /* info_return */
   UNBLOCK_INPUT;
 
-  {
-    Lisp_Object *tail;
-    int i;
+  list = Qnil;
 
-    list = Qnil;
-    tail = &list;
-    for (i = 0; i < num_fonts; i++)
-      if (! size_ref 
-	  || same_size_fonts (&info[i], size_ref))
-	{
-	  *tail = Fcons (build_string (names[i]), Qnil);
-	  tail = &XCONS (*tail)->cdr;
-	}
+  if (names)
+    {
+      Lisp_Object *tail;
+      int i;
 
-    XFreeFontInfo (names, info, num_fonts);
-  }
+      tail = &list;
+      for (i = 0; i < num_fonts; i++)
+	if (! size_ref 
+	    || same_size_fonts (&info[i], size_ref))
+	  {
+	    *tail = Fcons (build_string (names[i]), Qnil);
+	    tail = &XCONS (*tail)->cdr;
+	  }
+
+      XFreeFontInfo (names, info, num_fonts);
+    }
 
   return list;
 }
