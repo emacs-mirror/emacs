@@ -3,6 +3,10 @@
 /* Get most of the stuff from bsd4.3 */
 #include "bsd4-3.h"
 
+#ifdef __alpha__
+#define NO_SHARED_LIBS
+#endif
+
 /* For mem-limits.h.  */
 #define BSD4_2
 
