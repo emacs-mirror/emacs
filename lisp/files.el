@@ -1145,6 +1145,10 @@ If `enable-local-variables' is nil, this function does not check for a
 (put 'buffer-file-name 'risky-local-variable t)
 (put 'buffer-auto-save-file-name 'risky-local-variable t)
 (put 'buffer-file-truename 'risky-local-variable t)
+(put 'exec-path 'risky-local-variable t)
+(put 'load-path 'risky-local-variable t)
+(put 'exec-directory 'risky-local-variable t)
+(put 'process-environment 'risky-local-variable t)
 
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
@@ -1160,7 +1164,7 @@ If `enable-local-variables' is nil, this function does not check for a
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
 	((or (get var 'risky-local-variable)
-	     (string-match "-hooks?$\\|-functions?$\\|-forms?$"
+	     (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$"
 			   (symbol-name var)))
 	 ;; Permit evaling a put of a harmless property
 	 ;; if the args do nothing tricky.
