@@ -255,7 +255,11 @@ call_debugger (arg)
   specbind (intern ("debugger-may-continue"),
 	    debug_while_redisplaying ? Qnil : Qt);
   specbind (Qinhibit_redisplay, Qnil);
+
+#if 0 /* Binding this prevents execution of Lisp code during
+	 redisplay, which necessarily leads to display problems.  */
   specbind (Qinhibit_eval_during_redisplay, Qt);
+#endif
   
   val = apply1 (Vdebugger, arg);
 
