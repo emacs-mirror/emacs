@@ -532,7 +532,11 @@ the user from the mailer."
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:\\([ \t]*\n\\)+\\b" delimline t)
-		(replace-match ""))
+		(replace-match "")
+	      ;; This one matches a Subject just before the header delimiter.
+	      (if (and (re-search-forward "^Subject:\\([ \t]*\n\\)+" delimline t)
+		       (= (match-end 0) delimline))
+		  (replace-match "")))
 	    ;; Put the "From:" field in unless for some odd reason
 	    ;; they put one in themselves.
 	    (goto-char (point-min))
