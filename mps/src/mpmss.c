@@ -1,7 +1,7 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.12) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ *  $HopeName: MMsrc!mpmss.c(trunk.13) $
+ * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
 
@@ -13,6 +13,7 @@
 #include "mps.h"
 #include "mpscmv.h"
 #include "mpslib.h"
+#include "mpsavm.h"
 #include "testlib.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
@@ -23,11 +24,12 @@
 extern mps_class_t PoolClassMFS(void);
 
 
+#define testArenaSIZE   ((size_t)16<<20)
 #define TEST_SET_SIZE 200
 #define TEST_LOOPS 10
 
 
-static mps_res_t stress(mps_class_t class, mps_space_t space,
+static mps_res_t stress(mps_class_t class, mps_arena_t arena,
                         size_t (*size)(int i), ...)
 {
   mps_res_t res;
@@ -38,7 +40,7 @@ static mps_res_t stress(mps_class_t class, mps_space_t space,
   size_t ss[TEST_SET_SIZE];
 
   va_start(arg, size);
-  res = mps_pool_create_v(&pool, space, class, arg);
+  res = mps_pool_create_v(&pool, arena, class, arg);
   va_end(arg);
   if(res != MPS_RES_OK) return res;
 
@@ -116,22 +118,23 @@ static size_t fixedSize(int i)
 
 int main(void)
 {
-  mps_space_t space;
+  mps_arena_t arena;
 
   srand(time(NULL));
 
-  die(mps_space_create(&space), "SpaceInit");
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+      "mps_arena_create");
 
   fixedSizeSize = 13;
   die(stress(PoolClassMFS(),
-             space, fixedSize, (size_t)100000, fixedSizeSize),
+             arena, fixedSize, (size_t)100000, fixedSizeSize),
       "stress MFS");
 
   die(stress(mps_class_mv(),
-             space, randomSize, (size_t)65536,
+             arena, randomSize, (size_t)65536,
              (size_t)32, (size_t)65536), "stress MV");
 
-  mps_space_destroy(space);
+  mps_arena_destroy(arena);
 
   return 0;
 }
