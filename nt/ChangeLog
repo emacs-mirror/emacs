@@ -1,3 +1,9 @@
+2000-10-17  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (recompile): New target to recompile lisp
+	directory.
+	(recompile-CMD, recompile-SH): New support targets.
+
 2000-09-24  Jason Rumney  <jasonr@gnu.org>
 
 	* config.nt (NO_RETURN): Define it.
