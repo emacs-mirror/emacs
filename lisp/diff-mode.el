@@ -260,7 +260,7 @@ when editing big diffs)."
      (1 diff-hunk-header-face)
      (2 diff-function-face))
     ("^--- .+ ----$" . diff-hunk-header-face) ;context
-    ("\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
+    ("^\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
      (1 diff-hunk-header-face)
      (2 diff-function-face))
     ("^\\*\\*\\* .+ \\*\\*\\*\\*". diff-hunk-header-face) ;context
