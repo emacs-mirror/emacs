@@ -1,5 +1,8 @@
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* tooltip.el (tooltip-mode): Signal an error if x-show-tip
+	isn't fboundp.
+
 	* server.el (server-buffer-done): Bury the buffer before
 	killing it.
 
