@@ -636,7 +636,7 @@ to run it every morning at 1am."
 
 
 (defun diary-name-pattern (string-array &optional fullname)
-  "Convert an STRING-ARRAY, an array of strings to a pattern.
+  "Convert a STRING-ARRAY, an array of strings to a pattern.
 The pattern will match any of the strings, either entirely or abbreviated
 to three characters.  An abbreviated form will match with or without a period;
 If the optional FULLNAME is t, abbreviations will not match, just the full
