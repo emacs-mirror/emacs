@@ -349,6 +349,8 @@ Has a preference of looking backwards."
 		 (skip-chars-forward " \t")
 		 (buffer-substring (point)
 				   (progn (forward-sexp 1) (point))))
+		((and (eq major-mode 'objc-mode)
+		      (get-method-definition)))
 		((memq major-mode '(c-mode c++-mode c++-c-mode))
 		 (beginning-of-line)
 		 ;; See if we are in the beginning part of a function,
@@ -470,6 +472,31 @@ Has a preference of looking backwards."
 		       (buffer-substring (match-beginning 1)
 					 (match-end 1))))))))
     (error nil)))
+
+;; Subroutine used within get-method-definition.
+;; Add the last match in the buffer to the end of `md',
+;; followed by the string END; move to the end of that match.
+(defun get-method-definition-1 (end)
+  (setq md (concat md 
+		   (buffer-substring (match-beginning 1) (match-end 1))
+		   end))
+  (goto-char (match-end 0)))
+
+;; For objective C, return the method name if we are in a method.
+(defun get-method-definition ()
+  (let ((md "["))
+    (save-excursion
+      (if (re-search-backward "^@implementation \\(.*\\)$" nil t)
+	  (get-method-definition-1 " ")))
+    (save-excursion
+      (cond
+       ((re-search-backward "^\\([-+]\\)[ \t\n\f\r]*\\(([^)]*)\\)?" nil t)
+	(get-method-definition-1 "")
+	(while (not (looking-at "[{;]"))
+	  (looking-at
+	   "\\([^ ;{:\t\n\f\r]*:?\\)\\(([^)]*)\\)?[^ ;{:\t\n\f\r]*[ \t\n\f\r]*")
+	  (get-method-definition-1 ""))
+	(concat md "]"))))))
 
 
 (provide 'add-log)
