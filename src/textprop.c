@@ -729,7 +729,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   temp = Fnext_overlay_change (position);
   if (! NILP (limit))
     {
-      CHECK_NUMBER (limit);
+      CHECK_NUMBER_COERCE_MARKER (limit);
       if (XINT (limit) < XINT (temp))
 	temp = limit;
     }
@@ -754,7 +754,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   temp = Fprevious_overlay_change (position);
   if (! NILP (limit))
     {
-      CHECK_NUMBER (limit);
+      CHECK_NUMBER_COERCE_MARKER (limit);
       if (XINT (limit) > XINT (temp))
 	temp = limit;
     }
@@ -787,7 +787,10 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  if (NILP (limit))
 	    position = make_number (SCHARS (object));
 	  else
-	    position = limit;
+	    {
+	      CHECK_NUMBER (limit);
+	      position = limit;
+	    }
 	}
     }
   else
@@ -803,6 +806,8 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 	  Fset_buffer (object);
 	}
+
+      CHECK_NUMBER_COERCE_MARKER (position);
 
       initial_value = Fget_char_property (position, prop, object);
 
@@ -856,7 +861,10 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  if (NILP (limit))
 	    position = make_number (SCHARS (object));
 	  else
-	    position = limit;
+	    {
+	      CHECK_NUMBER (limit);
+	      position = limit;
+	    }
 	}
     }
   else
@@ -871,6 +879,8 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 	  Fset_buffer (object);
 	}
+
+      CHECK_NUMBER_COERCE_MARKER (position);
 
       if (NILP (limit))
 	XSETFASTINT (limit, BUF_BEGV (current_buffer));

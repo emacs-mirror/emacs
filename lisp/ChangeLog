@@ -1,3 +1,255 @@
+2005-03-23  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled): 
+	Remove tty-specific variants, as they're no longer needed.
+
+2005-03-23  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el: Code cleanup: make arguments constant whenever
+	possible.
+	(installshield-statement-keyword-list)
+	(installshield-system-functions-list)
+	(installshield-system-variables-list, installshield-types-list)
+	(installshield-funarg-constants-list): Make them constants.
+
+	* generic.el (generic-make-keywords-list): Add autoload cookie.
+
+	* calendar/time-date.el: Add comment on time value formats.  Don't
+	require parse-time.
+	(with-decoded-time-value): New macro.
+	(encode-time-value): New function.
+	(time-to-seconds, time-less-p, time-subtract, time-add): Use them.
+	(days-to-time): Return a valid time value when arg is huge.
+	(time-since): Use time-subtract.
+	(time-to-number-of-days): Use time-to-seconds.
+
+2005-03-23  David Ponce  <david@dponce.com>
+
+	* recentf.el: (recentf-keep): New option.
+	(recentf-menu-action): Default to `find-file'.
+	(recentf-keep-non-readable-files-flag)
+	(recentf-keep-non-readable-files-p)
+	(recentf-file-readable-p, recentf-find-file)
+	(recentf-cleanup-remote): Remove.
+	(recentf-include-p): More robust.
+	(recentf-keep-p): New function.
+	(recentf-remove-if-non-kept): Rename from
+	`recentf-remove-if-non-readable'. Use `recentf-keep-p'. All
+	callers updated.
+	(recentf-menu-items-for-commands): Fix help string.
+	(recentf-track-closed-file): Update. Doc fix.
+	(recentf-cleanup): Update. Count removed files. Doc fix.
+
+2005-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
+	Don't inherit from fringe face (now happens automatically).
+
+2005-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show-help-function): Ignore negative mouse
+	position values.
+
+2005-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (showhide-date-time): Remove.
+	(menu-bar-showhide-menu): Use menu-bar-make-mm-toggle.
+	(menu-bar-make-mm-toggle): Simplify.
+
+2005-03-22  JUAN-LEON Lahoz Garcia <juanleon1@gmail.com>
+
+	* progmodes/perl-mode.el (perl-font-lock-keywords-2):
+	Accept qualified variable and function names.
+
+2005-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* bindings.el (completion-ignored-extensions):
+	Remove ".lis" for `vax-vms'.
+
+2005-03-22  Andreas Schwab  <schwab@suse.de>
+
+	* generic-x.el: Revert last change.
+	* ldefs-boot.el: Update.
+
+2005-03-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed (calc-embedded-original-modes): New variable.
+	(calc-embedded-save-original-modes)
+	(calc-embedded-restore-original-modes): New functions.
+	(calc-do-embedded): Save original modes when entering embedded mode
+	and restore when leaving embedded mode.
+	(calc-embedded-modes-change): Change the value of
+	calc-embedded-original-modes to reflect permanent changes.
+
+2005-03-22  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el: Require generic again.
+
+2005-03-22  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
+	Tweak details to look good on both ttys and bitmap displays, light
+	or dark background, etc.
+
+2005-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show-help-function): Check car and cdr of
+	mouse position.
+
+2005-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el: Don't forcibly turn on the mode upon load.
+	(icomplete-mode): Use define-minor-mode.
+	(icomplete-eoinput): Default to nil.
+	(icomplete-minibuffer-setup): Remove autoload.
+	(icomplete-tidy): Simplify.
+	(icomplete-exhibit): Use buffer-undo-list to determine if we're still
+	in the initial state or if the user has modified the field.
+	Fix handling of icomplete-max-delay-chars.
+	Remove code that handles the oddball case where
+	minibuffer-completion-table is an integer.
+	Wrap icomplete-completions in while-no-input in case building
+	completions takes more time than expected.
+	(icomplete-completions): Simplify.
+
+2005-03-21  Richard M. Stallman  <rms@gnu.org>
+
+	* jka-compr.el (jka-compr-really-do-compress):
+	Make variable buffer-local.
+
+	* image-mode.el: Handle .xpm files too.
+	(image-toggle-display): Preserve modification flag.
+
+	* help.el (where-is): Don't mention aliases with no key bindings.
+
+2005-03-21  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el: Fix commentary section.  Don't require cl for
+	compilation.
+	(generic-mode-list): Add autoload cookie.
+	(generic-use-find-file-hook, generic-lines-to-scan)
+	(generic-find-file-regexp, generic-ignore-files-regexp)
+	(generic-mode, generic-mode-find-file-hook)
+	(generic-mode-ini-file-find-file-hook): Fix docstrings.
+	(define-generic-mode): Make it a defmacro.  Fix docstring.
+	(generic-mode-internal): Code cleanup.  Add autoload cookie.
+	(generic-mode-set-comments): Code cleanup.
+	* generic-x.el: Don't prevent compilation.  Don't require generic.
+	Follow coding conventions.  Minor code cleanup.
+	(etc-fstab-generic-mode): Add some keywords.
+	* font-lock.el (lisp-font-lock-keywords-1): Font lock a call to
+	define-generic-mode like a function declaration.
+
+2005-03-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-do-embedded): Put data on stack before
+	changing modes.
+
+2005-03-21  Sam Steingold  <sds@gnu.org>
+
+	* add-log.el (add-log-current-defun): Support more C DEFUN forms.
+
+2005-03-21  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/dcl-mode.el (dcl-font-lock-keywords):
+	Add underscore to "f$ lexicals" regexp.
+
+2005-03-20  Juri Linkov  <juri@jurta.org>
+
+	* subr.el (progress-reporter-do-update): When `min-value' is equal
+	to `max-value', set `percentage' to 0 and prevent division by zero.
+
+2005-03-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.48.
+
+	* tramp.el (all): Change all addresses to .gnu.org.
+	(tramp-append-tramp-buffers): New defun.
+	(tramp-bug): Apply `tramp-append-tramp-buffers' as post-hook.
+	Catch `dont-send' signal.
+	(tramp-set-auto-save-file-modes): Set always permissions, because
+	there might be an old auto-saved file belonging to another
+	original file.  This could be a security threat.  Reported by
+	Kjetil Kjernsmo <kjetil@kjernsmo.net>.
+	Check for Emacs 21.3.50 removed.
+
+	* tramp-smb.el (all): Remove debug construct for
+	`with-parsed-tramp-file-name'.
+	(tramp-smb-prompt): Prompt can contain spaces inside directory
+	names.
+	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file):
+	No error message if DIRECTORY or FILENAME doesn't exist.
+	(tramp-smb-open-connection): Check existence of
+	`tramp-smb-program'.
+
+2005-03-20  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Use breakpoint faces
+	in text-mode too.  Change to new face names.
+	(breakpoint-enabled): Renamed from `breakpoint-enabled-bitmap-face'.
+	Add `:weight bold' attribute.
+	(breakpoint-disabled): Renamed from `breakpoint-disabled-bitmap-face'.
+
+2005-03-19  Juri Linkov  <juri@jurta.org>
+
+	* files.el (auto-mode-alist): Add comment.  Optimize jar/ear/war.
+
+	* international/mule.el (auto-coding-alist): Sync with
+	`auto-mode-alist' by adding upper case archive file extensions
+	and adding ear/war to jar extension.
+
+2005-03-19  David Casperson  <casper@unbc.ca>  (tiny change)
+
+	* textmodes/tex-mode.el (tex-view): If tex-shell process is not
+	running, restart it.
+
+2005-03-19  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny changes)
+
+	* finder.el (finder-current-item): Throw an error on an empty
+	line.
+
+	* man.el (Man-follow-manual-reference): If current-word returns
+	nil, use "".
+
+2005-03-19  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* simple.el (goto-line): Doc fix.
+
+2005-03-19  Aaron Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
+
+	* files.el (save-buffer): Doc fix.
+
+2005-03-19  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* recentf.el (recentf-cleanup-remote): New variable.
+	(recentf-cleanup): Use it to conditionally check availablity of
+	remote files.
+
+2005-03-19  Joe Edmonds <joe-bugs-debian-org@elem.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Recognize `@' in
+	function names.
+
+2005-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* language/thai-word.el: New file.
+
+2005-03-19  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+
+	* files.el (backup-buffer): If the file's directory is not
+	writable, use copy instead of move to backup the file.
+
+2005-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* obsolete/keyswap.el: Moved to obsolete/ from term/.
+
+2005-03-19  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-generate-string-list, ps-generate-header-line): Use
+	functionp instead of symbolp and fboundp.  Reported by Drkm
+	<darkman_spam@yahoo.fr>.
+	(ps-print-version): New version 6.6.6.
+
 2005-03-18  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* textmodes/table.el (table--line-column-position): New idiom.

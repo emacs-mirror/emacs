@@ -104,6 +104,7 @@ setting the variable `image-library-alist'.
    choose one of them in case your language setup doesn't automatically
    select the right one.
 
+---
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
 when you run configure.  This requires Gtk+ 2.0 or newer.  This port
 provides a way to display multilingual text in menus (with some caveats).
@@ -111,6 +112,7 @@ provides a way to display multilingual text in menus (with some caveats).
 ---
 ** Emacs can now be built without sound support.
 
+---
 ** The `emacsserver' program has been removed, replaced with elisp code.
 
 ---
@@ -149,6 +151,7 @@ together with the Emacs User Manual, into the Info directory.  A menu
 item was added to the menu bar that makes it easy accessible
 (Help->More Manuals->Introduction to Emacs Lisp).
 
+---
 ** Support for Cygwin was added.
 
 ---
@@ -164,6 +167,7 @@ See the files mac/README and mac/INSTALL for build instructions.
 ---
 ** Support for GNU/Linux systems on X86-64 machines was added.
 
+---
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
 create non-Carbon build by specifying `NonCarbon' as a target.  See
 the files mac/README and mac/INSTALL for build instructions.
@@ -178,6 +182,7 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
++++
 ** The commands copy-file, rename-file, make-symbolic-link and
 add-name-to-file, when given a directory as the "new name" argument,
 convert it to a file name by merging in the within-directory part of
@@ -185,27 +190,34 @@ the existing file's name.  (This is the same convention that shell
 commands cp, mv, and ln follow.)  Thus, M-x copy-file RET ~/foo RET
 /tmp RET copies ~/foo to /tmp/foo.
 
++++
 ** M-o now is the prefix key for setting text properties;
 M-o M-o requests refontification.
 
++++
 ** M-g is now a prefix key.  M-g g and M-g M-g run goto-line.
 
++++
 ** font-lock-lines-before specifies a number of lines before the
 current line that should be refontified when you change the buffer.
 The default value is 1.
 
++++
 ** C-u M-x goto-line now switches to the most recent previous buffer,
 and goes to the specified line in that buffer.
 
 When goto-line starts to execute, if there's a number in the buffer at
 point then it acts as the default argument for the minibuffer.
 
-** Emacs now responds to mouse-clicks on the mode-line, header-line
-and display margin, when run in an xterm.
+---
+** Emacs now responds to mouse-clicks on the mode-line, header-line and
+display margin, when run in an xterm.
 
++++
 ** M-SPC (just-one-space) when given a numeric argument N
 converts whitespace around point to N spaces.
 
++++
 ** Control characters and escape glyphs are now shown in the new
 escape-glyph face.
 
@@ -219,8 +231,10 @@ and if so, doesn't store any data across sessions.  This is handy if
 you don't want the .type-break file in your home directory or are
 annoyed by the need for interaction when you kill Emacs.
 
+---
 ** display-battery has been replaced by display-battery-mode.
 
+---
 ** calculator.el now has radix grouping mode, which is available when
 `calculator-output-radix' is non-nil.  In this mode a separator
 character is used every few digits, making it easier to see byte
@@ -280,6 +294,7 @@ modes do.
 (beyond the value of `undo-outer-limit'), Emacs discards it and warns
 you about it.
 
++++
 ** line-move-ignore-invisible now defaults to t.
 
 ** In Outline mode, hide-body no longer hides lines at the top
@@ -315,6 +330,7 @@ existing values.  For example:
 will start up Emacs on an initial frame of 100x20 with red background,
 irrespective of geometry or background setting on the Windows registry.
 
+---
 ** The terminal emulation code in term.el has been improved, it can
 run most curses applications now.
 
@@ -324,21 +340,26 @@ run most curses applications now.
 *** The function `eval-defun' (C-M-x) called on defface reinitializes
 the face to the value specified in the defface expression.
 
++++
 *** Typing C-x C-e twice prints the value of the integer result
 in additional formats (octal, hexadecimal, character) specified
 by the new function `eval-expression-print-format'.  The same
 function also defines the result format for `eval-expression' (M-:),
 `eval-print-last-sexp' (C-j) and some edebug evaluation functions.
 
+---
 ** New input method chinese-sisheng for inputting Chinese Pinyin
 characters.
 
++++
 ** New command quail-show-key shows what key (or key sequence) to type
 in the current input method to input a character at point.
 
++++
 ** Convenient commands to switch buffers in a cyclic order are C-x <left>
 (prev-buffer) and C-x <right> (next-buffer).
 
+---
 ** Commands winner-redo and winner-undo, from winner.el, are now bound to
 C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
@@ -385,13 +406,16 @@ cursor, and the fancy startup screen.
 ** New command line option -nbc or --no-blinking-cursor disables
 the blinking cursor on graphical terminals.
 
++++
 ** C-h v and C-h f commands now include a hyperlink to the C source for
 variables and functions defined in C (if the C source is available).
 
+---
 ** When used interactively, `format-write-file' now asks for confirmation
 before overwriting an existing file, unless a prefix argument is
 supplied.  This behavior is analogous to `write-file'.
 
++++
 ** You can now use Auto Revert mode to `tail' a file.
 If point is at the end of a file buffer before reverting, Auto Revert
 mode keeps it at the end after reverting.  Similarly if point is
@@ -406,6 +430,7 @@ then you can tail the file more efficiently by using the new minor
 mode Auto Revert Tail mode.  The function `auto-revert-tail-mode'
 toggles this mode.
 
++++
 ** Auto Revert mode is now more careful to avoid excessive reverts and
 other potential problems when deciding which non-file buffers to
 revert.  This matters especially if Global Auto Revert mode is enabled
@@ -422,10 +447,12 @@ control number in the mode line), in all version controlled buffers in
 which it is active.  If the option is nil, the default, then this info
 only gets updated whenever the buffer gets reverted.
 
++++
 ** New command `Buffer-menu-toggle-files-only' toggles display of file
 buffers only in the Buffer Menu.  It is bound to `T' in Buffer Menu
 mode.
 
+---
 ** M-x compile has become more robust and reliable
 
 Quite a few more kinds of messages are recognized.  Messages that are
@@ -455,23 +482,28 @@ subprocesses inherit.
 
 ** Grep has been decoupled from compilation mode setup.
 
+---
 *** There's a new separate package grep.el.
 
+---
 *** M-x grep has been adapted to new compile
 
 Hits are fontified in green, and hits in binary files in orange.  Grep buffers
 can be saved and automatically revisited with the new Grep mode.
 
+---
 *** Grep commands now have their own submenu and customization group.
 
 +++
 *** `grep-find' is now also available under the name `find-grep' where
 people knowing `find-grep-dired' would probably expect it.
 
+---
 *** The new variables `grep-window-height', `grep-auto-highlight', and
 `grep-scroll-output' can be used to override the corresponding
 compilation mode settings for grep commands.
 
++++
 *** New option `grep-highlight-matches' highlightes matches in *grep*
 buffer.  It uses a special feature of some grep programs which accept
 --color option to output markers around matches.  When going to the next
@@ -479,6 +511,7 @@ match with `next-error' the exact match is highlighted in the source
 buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
 source line is highlighted.
 
++++
 *** New key bindings in grep output window:
 SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
 previous match in the grep window.  RET jumps to the source line of
@@ -487,10 +520,12 @@ other window, but does not switch buffer.  `{' and `}' jumps to the
 previous or next file in the grep output.  TAB also jumps to the next
 file.
 
++++
 ** New options `next-error-highlight' and `next-error-highlight-no-select'
 specify the method of highlighting of the corresponding source line
 in new face `next-error'.
 
++++
 ** A new minor mode `next-error-follow-minor-mode' can be used in
 compilation-mode, grep-mode, occur-mode, and diff-mode (i.e. all the
 modes that can use `next-error').  In this mode, cursor motion in the
@@ -498,8 +533,10 @@ buffer causes automatic display in another window of the corresponding
 matches, compilation errors, etc.  This minor mode can be toggled with
 C-c C-f.
 
++++
 ** M-x diff uses diff-mode instead of compilation-mode.
 
++++
 ** M-x compare-windows now can automatically skip non-matching text to
 resync points in both windows.
 
@@ -520,13 +557,16 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 +++
 ** Desktop package
 
++++
 *** Desktop saving is now a minor mode, desktop-save-mode. Variable
 desktop-enable is obsolete. Customize desktop-save-mode to enable desktop
 saving.
 
+---
 *** Buffers are saved in the desktop file in the same order as that in the
 buffer list.
 
++++
 *** The desktop package can be customized to restore only some buffers immediately,
 remaining buffers are restored lazily (when Emacs is idle).
 
@@ -552,6 +592,7 @@ remaining buffers are restored lazily (when Emacs is idle).
   - desktop-lazy-verbose. Verbose reporting of lazily created buffers.
   - desktop-lazy-idle-delay. Idle delay before starting to create buffers.
 
++++
 *** New command line option --no-desktop
 
 *** New hooks:
@@ -631,6 +672,7 @@ hyperlinks to Info anchors (or nodes) if the anchor (or node) name is
 enclosed in single quotes and preceded by `info anchor' or `Info
 anchor' (in addition to earlier `info node' and `Info node').
 
++++
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
@@ -716,6 +758,7 @@ with special modes such as Tar mode.
 
 ** Enhancements to apropos commands:
 
++++
 *** The apropos commands now accept a list of words to match.
 When more than one word is specified, at least two of those words must
 be present for an item to match.  Regular expression matching is still
@@ -737,17 +780,20 @@ the operating system or your X server.
 When enabled, it makes all invisible text visible.  When disabled, it
 restores the previous value of `buffer-invisibility-spec'.
 
+---
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
 ** New commands to operate on pairs of open and close characters:
 `insert-pair', `delete-pair', `raise-sexp'.
 
++++
 ** A prefix argument of C-M-q in Emacs Lisp mode pretty-printifies the
 list starting after point.
 
 ** Dired mode:
 
+---
 *** New faces dired-header, dired-mark, dired-marked, dired-flagged,
 dired-ignored, dired-directory, dired-symlink, dired-warning
 introduced for Dired mode instead of font-lock faces.
@@ -767,6 +813,7 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
++++
 *** In Dired, the w command now copies the current line's file name
 into the kill ring.  With a zero prefix arg, copies absolute file names.
 
@@ -801,9 +848,11 @@ multiple files, and C-x d passes it to `dired'.
 
 ** Info mode:
 
++++
 *** A numeric prefix argument of `info' selects an Info buffer
 with the number appended to the *info* buffer name (e.g. "*info*<2>").
 
+---
 *** isearch in Info uses Info-search and searches through multiple nodes.
 Before leaving the initial Info node isearch fails once with the error
 message [initial node], and with subsequent C-s/C-r continues through
@@ -856,6 +905,7 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 ---
 *** Info-index offers completion.
 
+---
 ** Support for the SQLite interpreter has been added to sql.el by calling
 'sql-sqlite'.
 
@@ -903,10 +953,12 @@ in multiple BibTeX files.
 *** The new command bibtex-copy-summary-as-kill pushes summary
 of BibTeX entry to kill ring (bound to C-c C-t).
 
++++
 ** When display margins are present in a window, the fringes are now
 displayed between the margins and the buffer's text area, rather than
 at the edges of the window.
 
++++
 ** A window may now have individual fringe and scroll-bar settings,
 in addition to the individual display margin settings.
 
@@ -919,11 +971,12 @@ or when the frame is resized.
 These functions return the current locations of the vertical and
 horizontal scroll bars in a frame or window.
 
----
++++
 ** Emacs now supports drag and drop for X.  Dropping a file on a window
    opens it, dropping text inserts the text.  Dropping a file on a dired
    buffer copies or moves the file to that directory.
 
++++
 ** Under X, mouse-wheel-mode is turned on by default.
 
 ** The X resource useXIM can be used to turn off use of XIM, which may
@@ -932,16 +985,20 @@ speed up Emacs with slow networking to the X server.
 If the configure option `--without-xim' was used to turn off use of
 XIM by default, the X resource useXIM can be used to turn it on.
 
++++
 ** `undo-only' does an undo which does not redo any previous undo.
 
 ** `uniquify-strip-common-suffix' tells uniquify to prefer
 `file|dir1' and `file|dir2' to `file|dir1/subdir' and `file|dir2/subdir'.
 
++++
 ** If the user visits a file larger than `large-file-warning-threshold',
 Emacs prompts her for confirmation.
 
+---
 ** A UTF-7 coding system is available in the library `utf-7'.
 
+---
 ** GUD mode has its own tool bar for controlling execution of the inferior
 and other common debugger commands.
 
@@ -951,25 +1008,30 @@ The recent file list is now automatically cleanup when recentf mode is
 enabled.  The new option `recentf-auto-cleanup' controls when to do
 automatic cleanup.
 
+The `recentf-keep' option replaces `recentf-keep-non-readable-files-p'
+and provides a more general mechanism to customize which file names to
+keep in the recent list.
+
 With the more advanced option: `recentf-filename-handler', you can
 specify a function that transforms filenames handled by recentf.  For
 example, if set to `file-truename', the same file will not be in the
 recent list with different symbolic links.
 
-To follow naming convention, `recentf-keep-non-readable-files-flag'
-and `recentf-menu-append-commands-flag' respectively replace the
-misnamed options `recentf-keep-non-readable-files-p' and
-`recentf-menu-append-commands-p'.  The old names remain available as
-aliases, but have been marked obsolete.
+To follow naming convention, `recentf-menu-append-commands-flag'
+replaces the misnamed option `recentf-menu-append-commands-p'.  The
+old name remains available as alias, but has been marked obsolete.
 
++++
 ** The default for the paper size (variable ps-paper-type) is taken
 from the locale.
 
++++
 ** Init file changes
 
 You can now put the init files .emacs and .emacs_SHELL under
 ~/.emacs.d or directly under ~.  Emacs will find them in either place.
 
+---
 ** partial-completion-mode now does partial completion on directory names.
 
 ** skeleton.el now supports using - to mark the skeleton-point without
@@ -989,6 +1051,7 @@ version 5.0.2; see MH-E-NEWS for details.
 `--display' which tell Emacs respectively to evaluate the given elisp
 expression and to use the given display when visiting files.
 
++++
 ** User option `server-mode' can be used to start a server process.
 
 +++
@@ -996,6 +1059,7 @@ expression and to use the given display when visiting files.
 When the file is maintained under version control, that information
 appears between the position information and the major mode.
 
++++
 ** C-x s (save-some-buffers) now offers an option `d' to diff a buffer
 against its file, so you can see what changes you would be saving.
 
@@ -1018,6 +1082,7 @@ read-only, the Emacs buffer is now read-only too.  Type C-x C-q if you
 want to make the buffer writable.  (As root, you can in fact alter the
 file.)
 
++++
 ** The new command `revert-buffer-with-coding-system' (C-x RET r)
 revisits the current file using a coding system that you specify.
 
@@ -1055,12 +1120,14 @@ now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
 faces.
 
+---
 ** New language environments: French, Ukrainian, Tajik,
 Bulgarian, Belarusian, Ukrainian, UTF-8, Windows-1255, Welsh, Latin-6,
 Latin-7, Lithuanian, Latvian, Swedish, Slovenian, Croatian, Georgian,
 Italian, Russian, Malayalam, Tamil, Russian, Chinese-EUC-TW.  (Set up
 automatically according to the locale.)
 
+---
 ** Indian support has been updated.
 The in-is13194 coding system is now Unicode-based.  CDAC fonts are
 assumed.  There is a framework for supporting various
@@ -1088,6 +1155,7 @@ obsolete and is used only in the MS-DOS port of Emacs.  windows-1252
 and windows-1251 are preloaded since the former is so common and the
 latter is used by GNU locales.
 
+---
 ** The utf-8/16 coding systems have been enhanced.
 By default, untranslatable utf-8 sequences are simply composed into
 single quasi-characters.  User option `utf-translate-cjk-mode' (it is
@@ -1101,13 +1169,16 @@ coding system now also encodes characters from most of Emacs's
 one-dimensional internal charsets, specifically the ISO-8859 ones.
 The utf-16 coding system is affected similarly.
 
+---
 ** New variable `utf-translate-cjk-unicode-range' controls which
 Unicode characters to translate in `utf-translate-cjk-mode'.
 
+---
 ** iso-10646-1 (`Unicode') fonts can be used to display any range of
 characters encodable by the utf-8 coding system.  Just specify the
 fontset appropriately.
 
+---
 ** New command `ucs-insert' inserts a character specified by its
 unicode.
 
@@ -1131,6 +1202,7 @@ into Unicode characters (from the latin-iso8859-1 and
 mule-unicode-0100-24ff charsets) on decoding.  Note that this mode
 will often effectively clobber data with an iso-2022 encoding.
 
+---
 ** There is support for decoding Greek and Cyrillic characters into
 either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
 when possible.  The latter are more space-efficient.  This is
@@ -1222,12 +1294,15 @@ The variable `automatic-hscrolling' was renamed to
 `auto-hscroll-mode'.  The old name is still available as an alias.
 
 ** TeX modes:
+
 *** C-c C-c prompts for a command to run, and tries to offer a good default.
+
 +++
 *** The user option `tex-start-options-string' has been replaced
 by two new user options: `tex-start-options', which should hold
 command-line options to feed to TeX, and `tex-start-commands' which should hold
 TeX commands to use at startup.
+
 *** verbatim environments are now highlighted in courier by font-lock
 and super/sub-scripts are made into super/sub-scripts.
 
@@ -1270,6 +1345,7 @@ in Indented-Text mode.
 `query-replace' and related functions simply ignore
 a match if part of it has a read-only property.
 
++++
 ** When used interactively, the commands `query-replace-regexp' and
 `replace-regexp' allow \,expr to be used in a replacement string,
 where expr is an arbitrary Lisp expression evaluated at replacement
@@ -1280,9 +1356,11 @@ All regular expression replacement commands now allow `\?' in the
 replacement string to specify a position where the replacement string
 can be edited for each replacement.
 
++++
 ** query-replace uses isearch lazy highlighting when the new user option
 `query-replace-lazy-highlight' is non-nil.
 
+---
 ** The current match in query-replace is highlighted in new face
 `query-replace' which by default inherits from isearch face.
 
@@ -1508,6 +1586,7 @@ the previous value becomes the "backup value" of the variable.
 You can go back to that backup value by selecting "Use Backup Value"
 under the "[State]" button.
 
+---
 ** The new customization type `float' specifies numbers with floating
 point (no integers are allowed).
 
@@ -1618,6 +1697,7 @@ C-g.
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
 
++++
 ** Movement commands `beginning-of-buffer', `end-of-buffer',
 `beginning-of-defun', `end-of-defun' do not set the mark if the mark
 is already active in Transient Mark mode.
@@ -1648,6 +1728,7 @@ directory listing into a buffer.
 ** mouse-wheels can now scroll a specific fraction of the window
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 
+---
 ** Unexpected yanking of text due to accidental clicking on the mouse
 wheel button (typically mouse-2) during wheel scrolling is now avoided.
 This behavior can be customized via the mouse-wheel-click-event and
@@ -1675,6 +1756,7 @@ according to the value of `save-abbrevs'.
 of `cursor-in-non-selected-windows' in the buffer that the cursor
 appears in.
 
++++
 ** The variable `cursor-in-non-selected-windows' can now be set to any
 of the recognized cursor types.
 
@@ -1727,6 +1809,7 @@ the new function `appt-activate'. The new variable
 `appt-display-format' controls how reminders are displayed, replacing
 appt-issue-message, appt-visible, and appt-msg-window.
 
++++
 ** The new functions `diary-from-outlook', `diary-from-outlook-gnus',
 and `diary-from-outlook-rmail' can be used to import diary entries
 from Outlook-format appointments in mail messages.  The variable
@@ -1754,6 +1837,7 @@ means they are inserted before the command name.  For example, this
 allows you to specify a compression level using the "-z#" option for
 CVS.
 
++++
 *** New backends for Subversion and Meta-CVS.
 
 ** EDiff changes.
@@ -2141,6 +2225,7 @@ line is left untouched.
 The function c-toggle-syntactic-indentation can be used to toggle
 syntactic indentation.
 
++++
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
 
@@ -2188,10 +2273,11 @@ from the file name or buffer contents.
 Adapt this to match the format of any compiler directives you use.
 Lines that match are never indented, and are given distinctive font-locking.
 
----
++++
 ** F90 mode has new navigation commands `f90-end-of-block',
 `f90-beginning-of-block', `f90-next-block', `f90-previous-block'.
 
+---
 ** F90 mode now has support for hs-minor-mode (hideshow).
 It cannot deal with every code format, but ought to handle a sizeable
 majority.
@@ -2227,6 +2313,7 @@ candidate is a directory.
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
+---
 ** Enhanced visual feedback in *Completions* buffer.
 
 Completions lists use faces to highlight what all completions
@@ -2604,6 +2691,10 @@ configuration files.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
+** The new interactive-specification `G' reads a file name
+much like `F', but if the input is a directory name (even defaulted),
+it returns just the directory name.
+
 +++
 ** `suppress-keymap' now works by remapping `self-insert-command' to
 the command `undefined'.  (In earlier Emacs versions, it used
@@ -2616,11 +2707,6 @@ the command `undefined'.  (In earlier Emacs versions, it used
 `risky-local-variable' property is nil.
 
 * Lisp Changes in Emacs 22.1
-
-+++
-** The new interactive-specification `G' reads a file name
-much like `F', but if the input is a directory name (even defaulted),
-it returns just the directory name.
 
 +++
 ** An element of buffer-undo-list can now have the form (apply FUNNAME
@@ -2767,12 +2853,14 @@ example,
 
 (kbd "C-x C-f") => "\^x\^f"
 
++++
 ** The sentinel is now called when a network process is deleted with
 delete-process.  The status message passed to the sentinel for a
 deleted network process is "deleted".  The message passed to the
 sentinel when the connection is closed by the remote peer has been
 changed to "connection broken by remote peer".
 
++++
 ** If the buffer's undo list for the current command gets longer than
 undo-outer-limit, garbage collection empties it.  This is to prevent
 it from using up the available memory and choking Emacs.
@@ -2786,14 +2874,17 @@ current input method to input a character.
 click-event-style position information for a given visible buffer
 position or for a given window pixel coordinate.
 
++++
 ** skip-chars-forward and skip-chars-backward now handle
 character classes such as [:alpha:], along with individual characters
 and ranges.
 
++++
 ** Function pos-visible-in-window-p now returns the pixel coordinates
 and partial visiblity state of the corresponding row, if the PARTIALLY
 arg is non-nil.
 
++++
 ** The function `eql' is now available without requiring the CL package.
 
 +++
@@ -2858,6 +2949,7 @@ the line-spacing variable.
 If the line-spacing property may be a float or cons, the line spacing
 is calculated as specified above for the line-height property.
 
++++
 ** The buffer local line-spacing variable may now have a float value,
 which is used as a height relative to the default frame line height.
 
@@ -2924,6 +3016,7 @@ text property string that may be present at the current window
 position.  The cursor may now be placed on any character of such
 strings by giving that character a non-nil `cursor' text property.
 
++++
 ** New macro with-local-quit temporarily sets inhibit-quit to nil for use
 around potentially blocking or long-running code in timers
 and post-command-hooks.
@@ -2954,9 +3047,9 @@ identifing the bitmap such as `left-truncation or `continued-line'.
 previously created bitmap, or restore a built-in bitmap.
 
 *** New function 'set-fringe-bitmap-face' can now be used to set a
-specific face to be used for a specific fringe bitmap.  Normally,
-this should be a face derived from the `fringe' face, specifying
-the foreground color as the desired color of the bitmap.
+specific face to be used for a specific fringe bitmap.  The face is
+automatically merged with the `fringe' face, so normally, the face
+should only specify the foreground color of the bitmap.
 
 *** There are new display properties, left-fringe and right-fringe,
 that can be used to show a specific bitmap in the left or right fringe
@@ -2965,11 +3058,13 @@ bitmap of the display line.
 Format is 'display '(left-fringe BITMAP [FACE]), where BITMAP is a
 symbol identifying a fringe bitmap, either built-in or defined with
 `define-fringe-bitmap', and FACE is an optional face name to be used
-for displaying the bitmap.
+for displaying the bitmap instead of the default `fringe' face.
+When specified, FACE is automatically merged with the `fringe' face.
 
 *** New function `fringe-bitmaps-at-pos' returns the current fringe
 bitmaps in the display line at a given buffer position.
 
++++
 ** Multiple overlay arrows can now be defined and managed via the new
 variable `overlay-arrow-variable-list'.  It contains a list of
 varibles which contain overlay arrow position markers, including
@@ -3018,6 +3113,7 @@ the first one is kept.
 ** `declare' is now a macro.  This change was made mostly for
 documentation purposes and should have no real effect on Lisp code.
 
++++
 ** The new hook `before-save-hook' is invoked by `basic-save-buffer'
 before saving buffers.  This allows packages to perform various final
 tasks, for example; it can be used by the copyright package to make
@@ -3076,13 +3172,16 @@ mouse event, e.g. [area4 mouse-1] if the hot-spot's ID is `area4'.
 
 ** Mouse event enhancements:
 
++++
 *** Mouse clicks on fringes now generates left-fringe or right-fringes
 events, rather than a text area click event.
 
++++
 *** Mouse clicks in the left and right marginal areas now includes a
 sensible buffer position corresponding to the first character in the
 corresponding text row.
 
++++
 *** Function `mouse-set-point' now works for events outside text area.
 
 +++
@@ -3118,6 +3217,7 @@ the top left corner of the object (image or character) clicked on.
 click, the x and y pixel coordinates relative to the top left corner
 of that object, and the total width and height of that object.
 
++++
 ** New function `force-window-update' can initiate a full redisplay of
 one or all windows.  Normally, this is not needed as changes in window
 contents are detected automatically.  However, certain implicit
@@ -3415,6 +3515,7 @@ can start with this line:
 
    #!/usr/bin/emacs --script
 
++++
 ** The option --directory DIR now modifies `load-path' immediately.
 Directories are added to the front of `load-path' in the order they
 appear on the command line.  For example, with this command line:
@@ -3798,10 +3899,12 @@ by `yank-pop' to undo the insertion of the current object.  It is
 called with two arguments, the start and end of the current region.
 FUNCTION may set `yank-undo-function' to override the UNDO value.
 
++++
 *** The functions kill-new, kill-append, and kill-region now have an
 optional argument to specify the yank-handler text property to put on
 the killed text.
 
++++
 *** The function yank-pop will now use a non-nil value of the variable
 `yank-undo-function' (instead of delete-region) to undo the previous
 yank or yank-pop command (or a call to insert-for-yank).  The function
@@ -3865,6 +3968,7 @@ integer, also inhibit running timers.  This feature is generally not
 recommended, but may be necessary for specific applications, such as
 speech synthesis.
 
+---
 *** Adaptive read buffering of subprocess output.
 
 On some systems, when emacs reads the output from a subprocess, the
@@ -3960,6 +4064,7 @@ status, and other information about a specific network interface.
 +++
 ** New function `call-process-shell-command'.
 
++++
 ** New function `process-file'.
 
 This is similar to `call-process', but obeys file handlers.  The file
@@ -4169,6 +4274,7 @@ refontification of `bar' whenever the `e' is added/removed.
 ** describe-vector now takes a second argument `describer' which is
 called to print the entries' values.  It defaults to `princ'.
 
++++
 ** defcustom and other custom declarations now use a default group
 (the last prior group defined in the same file) when no :group was given.
 
@@ -4311,6 +4417,7 @@ hold the largest and smallest possible integer values.
 The Windows specific variable w32-system-coding-system, which was
 formerly used for that purpose is now an alias for locale-coding-system.
 
+---
 ** Functions y-or-n-p, read-char, read-key-sequence and the like, that
 display a prompt but don't use the minibuffer, now display the prompt
 using the text properties (esp. the face) of the prompt string.
@@ -4318,6 +4425,7 @@ using the text properties (esp. the face) of the prompt string.
 ** New function x-send-client-message sends a client message when
 running under X.
 
++++
 ** Arguments for remove-overlays are now optional, so that you can remove
 all overlays in the buffer by just calling (remove-overlay).
 

@@ -1,10 +1,9 @@
 ;;; make-mms-derivative.el --- framework to do horrible things for VMS support
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2005 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Keywords: maint build vms mms makefile levitte autoconf war-is-a-lose
-;; Favorite-TV-Game-Show: L'Eredità
 
 ;; This file is part of GNU Emacs.
 
@@ -25,29 +24,48 @@
 
 ;;; Commentary:
 
-;; Under OpenVMS the standard make-like program is called MMS, which
-;; looks for an input file in the default directory named DESCRIP.MMS
-;; and runs the DCL command rules therein.  As of 2003, the build
-;; process requires a hand translation of the Makefile.in and related
-;; Emacs-specific methodology to DCL and TPU commands, so to alleviate
-;; this pain, we provide `make-mms-derivative', which given a source
-;; FILENAME (under `make-mms-derivative-root-dir'), inserts the file
-;; contents in a new buffer and loads FILENAME-2mms.  The elisp in the
-;; -2mms file can (do whatever -- it's emacs -- and) arrange to write
-;; out the modified buffer after FILENAME-2mms loading by using:
+;; Under VMS the standard make-like program is called MMS, which looks
+;; for an input file in the default directory named DESCRIP.MMS and runs
+;; the DCL command rules therein.  As of 2005, the build process
+;; requires a hand translation of the Makefile.in and Emacs-specific
+;; methodology to DCL and TPU commands, so to alleviate this pain, we
+;; provide `make-mms-derivative', which given a source FILENAME, inserts
+;; the file contents in a new buffer and loads FILENAME-2mms.  The lisp
+;; code in the -2mms file can (do whatever -- it's emacs -- and), as
+;; long as it arranges to write out the modified buffer after loading by
+;; specifying, on a line of its own, the directive:
 ;;
-;;  (make-mms-derivative-data 'write-under-root RELATIVE-FILENAME)
+;;  :output RELATIVE-OUTPUT
 ;;
-;; where RELATIVE-FILENAME is something like "src/descrip.mms_in_in".
-;; Over the long run, the convenience procedures provided (see source)
+;; where RELATIVE-OUTPUT is a filename (a string) relative to FILENAME's
+;; directory, typically something simple like "descrip.mms_in_in".  Only
+;; the first :output directive is recognized.
+;;
+;; The only other special directive at this time has the form:
+;;
+;;  :gigo NAME
+;;  ;;blah blah blah
+;;  ;;(more text here)
+;;
+;; NAME is anything distinguishable w/ `eq' (number, symbol or keyword).
+;; This associates NAME with the block of text starting immediately below
+;; the :gigo directive and ending at the first line that does not begin
+;; with two semicolons (which are stripped from each line in the block).
+;; To insert this block of text, pass NAME to `make-mms-derivative-gigo'.
+;;
+;; Directives are scanned before normal evaluation, so their placement
+;; in the file is not important.  During loading, plain strings are
+;; displayed in the echo area, prefixed with the current line number.
+;;
+;; Over the long run, the convenience functions provided (see source)
 ;; will be augmented by factoring maximally the -2mms files, squeezing
 ;; as much algorithm out of those nasty heuristics as possible.  What
 ;; makes them nasty is not that they rely on the conventions of the
 ;; Emacs makefiles; that's no big deal.  What makes them nasty is that
 ;; they rely on the conventions of separately maintained tools (namely
-;; Autoconf 1.11 under OpenVMS and the rest of GNU), and the separation
-;; of conventions is how people drift apart, dragging their software
-;; behind mercilessly.
+;; Autoconf for VMS and GNU Autoconf), and the separation of conventions
+;; is how people drift apart, dragging their software behind
+;; mercilessly.
 ;;
 ;; In general, codified thought w/o self-synchronization is doomed.
 ;; That a generation would eat its young (most discriminatingly, even)
@@ -55,80 +73,66 @@
 
 ;;; Code:
 
-(defvar make-mms-derivative-root-dir "AXPA:[TTN.EMACS.EMACS212_3]"
-  "Source tree root directory.")
-
 (defvar make-mms-derivative-data nil
-  "Alist of data specific to `make-mms-derivative'.")
+  "Plist of data specific to `make-mms-derivative'.")
 
 (defun make-mms-derivative-data (key &optional newval)
-  (if newval
-      (setq make-mms-derivative-data
-            (cons (cons key newval) make-mms-derivative-data))
-    (cdr (assq key make-mms-derivative-data))))
+  (if newval (setq make-mms-derivative-data
+		   (plist-put make-mms-derivative-data key newval))
+    (plist-get make-mms-derivative-data key)))
 
-(defun make-mms-derivative-write-under-root (rel-filename)
-  (write-file (expand-file-name rel-filename make-mms-derivative-root-dir)))
+(defun make-mms-derivative-gigo (name)
+  "Insert the text associated with :gigo NAME."
+  (insert (cdr (assq name (make-mms-derivative-data :gigo)))))
 
-(defmacro make-mms-derivative-progn (msg &rest body)
-  `(progn
-     (message "(%s) %s" (point) ,msg)
-     ,@body))
-
-(put 'make-mms-derivative-progn 'lisp-indent-function 1)
-
-(defun make-mms-derivative-load-edits-file (name)
-  (make-mms-derivative-data 'edits-filename name)
-  (let (raw-data
-	(cur (current-buffer))
-	(wbuf (get-buffer-create "*make-mms-derivative-load-edits-file work")))
-    (set-buffer wbuf)
-    (insert-file-contents name)
-    (keep-lines "^;;;[0-9]+;;")
-    (goto-char (point-max))
-    (while (re-search-backward "^;;;\\([0-9]+\\);;\\(.*\\)$" (point-min) t)
-      (let* ((i (string-to-number (match-string 1)))
-	     (line (match-string 2))
-	     (look (assq i raw-data)))
-	(if look
-	    (setcdr look (cons line (cdr look)))
-	  (setq raw-data (cons (list i line) raw-data)))))
-    (kill-buffer wbuf)
-    (set-buffer cur)
-    (mapcar '(lambda (ent)
-	       (setcdr ent (mapconcat '(lambda (line)
-					 (concat line "\n"))
-				      (cdr ent)
-				      "")))
-	    raw-data)
-    (make-mms-derivative-data 'raw-data raw-data))
-  (load name))
-
-(defun make-mms-derivative-insert-raw-data (n)
-  (insert (cdr (assq n (make-mms-derivative-data 'raw-data)))))
-
-(defun make-mms-derivative (file)
+(defun make-mms-derivative (filename)
+  "Take FILENAME contents, load FILENAME-2mms, and write out the result.
+The output file is specified by the :output directive in FILENAME-2mms.
+See commentary of make-mms-derivative.el for full documentation."
   (interactive "fSource File: ")
-  (let ((root (expand-file-name make-mms-derivative-root-dir))
-        (file (expand-file-name file)))
-    (when (file-name-absolute-p (file-relative-name file root))
-      (error "Not under root (%s)" root))
-    (let ((edits-filename (concat file "-2mms")))
-      (unless (file-exists-p edits-filename)
-        (error "Could not find %s" edits-filename))
-      (let ((buf (get-buffer-create
-		  (format "*mms-derivative: %s"
-			  (file-relative-name file root)))))
-        (message "Munging ...")
-        (switch-to-buffer buf)
-        (erase-buffer)
-        (make-variable-buffer-local 'make-mms-derivative-data)
-        (insert-file file)
-        (make-mms-derivative-load-edits-file edits-filename)
-        (let ((out (make-mms-derivative-data 'write-under-root)))
-          (when out (make-mms-derivative-write-under-root out))
-          (kill-buffer buf)
-          (unless out (message "Munging ... done")))))))
+  (let* ((todo (let ((fn (concat filename "-2mms")))
+		 (unless (file-exists-p fn)
+		   (error "Could not find %s" fn))
+		 (set-buffer (get-buffer-create " *make-mms-derivative todo*"))
+		 (insert-file-contents fn)
+		 (current-buffer)))
+	 (deriv (get-buffer-create (format "*mms-derivative: %s"
+					   (file-relative-name filename))))
+	 output gigo form)
+    (set-buffer todo)
+    (re-search-forward "^:output")
+    (setq output (expand-file-name (read (current-buffer))
+				   (file-name-directory filename)))
+    (goto-char (point-min))
+    (while (re-search-forward "^:gigo" (point-max) t)
+      (let ((name (read (current-buffer)))
+	    (p (progn (forward-line 1) (point))))
+	(while (looking-at ";;")
+	  (delete-char 2)
+	  (forward-line 1))
+	(setq gigo (cons (cons name (buffer-substring p (point))) gigo))
+	(delete-region p (point))))
+    (message "Munging...")
+    (switch-to-buffer deriv)
+    (erase-buffer)
+    (insert-file-contents filename)
+    (set (make-local-variable 'make-mms-derivative-data)
+	 (list :gigo gigo))
+    (set-buffer todo)
+    (goto-char (point-min))
+    (while (condition-case nil
+	       (setq form (read (current-buffer)))
+	     (end-of-file nil))
+      (if (stringp form)
+	  (message "%d: %s" (count-lines (point-min) (point)) form)
+	(save-excursion
+	  (set-buffer deriv)
+	  (eval form))))
+    (set-buffer deriv)
+    (message "Munging...done")
+    (write-file output)
+    (kill-buffer todo)
+    (kill-buffer deriv)))
 
 (provide 'make-mms-derivative)
 

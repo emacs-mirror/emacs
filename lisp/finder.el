@@ -301,11 +301,13 @@ FILE should be in a form suitable for passing to `locate-library'."
     (finder-summary)))
 
 (defun finder-current-item ()
-  (if (and finder-headmark (< (point) finder-headmark))
-      (error "No keyword or filename on this line")
-    (save-excursion
-      (beginning-of-line)
-      (current-word))))
+  (let ((key (save-excursion
+	       (beginning-of-line)
+	       (current-word))))
+    (if (or (and finder-headmark (< (point) finder-headmark))
+	    (= (length key) 0))
+	(error "No keyword or filename on this line")
+      key)))
 
 (defun finder-select ()
   "Select item on current line in a finder buffer."

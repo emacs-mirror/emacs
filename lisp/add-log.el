@@ -812,7 +812,7 @@ Has a preference of looking backwards."
 				 (looking-at "[ \t\n]"))
 		       (forward-line -1))
 		     ;; See if this is using the DEFUN macro used in Emacs,
-		     ;; or the DEFUN macro used by the C library.
+		     ;; or the DEFUN macro used by the C library:
 		     (if (condition-case nil
 			     (and (save-excursion
 				    (end-of-line)
@@ -824,16 +824,20 @@ Has a preference of looking backwards."
 				    (looking-at "DEFUN\\b"))
 				  (>= location tem))
 			   (error nil))
+                         ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
+                         ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
 			 (progn
 			   (goto-char tem)
 			   (down-list 1)
-			   (if (= (char-after (point)) ?\")
-			       (progn
-				 (forward-sexp 1)
-				 (skip-chars-forward " ,")))
+			   (when (= (char-after (point)) ?\")
+                             (forward-sexp 1)
+                             (search-forward ","))
+                           (skip-syntax-forward " ")
 			   (buffer-substring-no-properties
 			    (point)
-			    (progn (forward-sexp 1)
+			    (progn (search-forward ",")
+                                   (forward-char -1)
+                                   (skip-syntax-backward " ")
 				   (point))))
 		       (if (looking-at "^[+-]")
 			   (change-log-get-method-definition)

@@ -88,7 +88,7 @@ combination of @command{rsh} and @command{rcp} or other work-alike
 programs, such as @command{ssh}/@command{scp}.
 
 You can find the latest version of this document on the web at
-@uref{http://www.freesoftware.fsf.org/tramp/}.
+@uref{http://www.gnu.org/software/tramp/}.
 
 @c Pointer to the other Emacs flavor is necessary only in case of
 @c standalone installation.
@@ -111,18 +111,18 @@ Japanese translation}.
 @end ifset
 
 The latest release of @value{tramp} is available for
-@uref{http://savannah.nongnu.org/download/tramp/, download}, or you
-may see @ref{Obtaining Tramp} for more details, including the CVS
-server details.
+@uref{http://ftp.gnu.org/gnu/tramp/, download}, or you may see
+@ref{Obtaining Tramp} for more details, including the CVS server
+details.
 
-@value{tramp} also has a @uref{http://savannah.nongnu.org/projects/tramp/,
+@value{tramp} also has a @uref{http://savannah.gnu.org/projects/tramp/,
 Savannah Project Page}.
 @end ifhtml
 
 There is a mailing list for @value{tramp}, available at
-@email{tramp-devel@@mail.freesoftware.fsf.org}, and archived at
-@uref{http://savannah.nongnu.org/mail/?group=tramp, Savannah Mail
-Archive}.
+@email{tramp-devel@@gnu.org}, and archived at
+@uref{http://lists.gnu.org/archive/html/tramp-devel/, the
+@value{tramp} Mail Archive}.
 @ifhtml
 Older archives are located at
 @uref{http://sourceforge.net/mailarchive/forum.php?forum=tramp-devel,
@@ -377,14 +377,14 @@ behind the scenes when you open a file with @value{tramp}.
 @chapter Obtaining Tramp.
 @cindex obtaining Tramp
 
-@value{tramp} is freely available on the Internet and the latest release
-may be downloaded from
-@uref{http://savannah.nongnu.org/download/tramp/}. This
-release includes the full documentation and code for @value{tramp},
-suitable for installation.  But Emacs (22.1 or later) includes
-@value{tramp} already, and there is a @value{tramp} package for XEmacs, as well.
-So maybe it is easier to just use those.  But if you want the bleeding
-edge, read on@dots{...}
+@value{tramp} is freely available on the Internet and the latest
+release may be downloaded from
+@uref{http://ftp.gnu.org/gnu/tramp/}. This release includes the full
+documentation and code for @value{tramp}, suitable for installation.
+But GNU Emacs (22 or later) includes @value{tramp} already, and there
+is a @value{tramp} package for XEmacs, as well.  So maybe it is easier
+to just use those.  But if you want the bleeding edge, read
+on@dots{...}
 
 For the especially brave, @value{tramp} is available from CVS.  The CVS
 version is the latest version of the code and may contain incomplete
@@ -396,7 +396,7 @@ following URL and then clicking on the CVS link in the navigation bar
 at the top.
 
 @noindent
-@uref{http://savannah.nongnu.org/projects/tramp/}
+@uref{http://savannah.gnu.org/projects/tramp/}
 
 @noindent
 Or follow the example session below:
@@ -404,7 +404,7 @@ Or follow the example session below:
 @example
 ] @strong{cd ~/@value{emacsdir}}
 ] @strong{export CVS_RSH="ssh"}
-] @strong{cvs -z3 -d:ext:anoncvs@@savannah.nongnu.org:/cvsroot/tramp co tramp}
+] @strong{cvs -z3 -d:ext:anoncvs@@savannah.gnu.org:/cvsroot/tramp co tramp}
 @end example
 
 @noindent
@@ -1112,7 +1112,9 @@ might like the @code{plink} method which uses the PuTTY implementation
 of @code{ssh}.  Or you use Kerberos and thus like @code{krlogin}.
 
 For the special case of editing files on the local host as another
-user, see the @code{su} or @code{sudo} method.
+user, see the @code{su} or @code{sudo} method.  It offers shortened
+syntax for the @samp{root} account, like
+@file{@value{prefix}su@value{postfixsinglehop}@value{postfix}/etc/motd}.
 
 People who edit large files may want to consider @code{scp} instead of
 @code{ssh}, or @code{pscp} instead of @code{plink}.  These out-of-band
@@ -1603,7 +1605,7 @@ directory an auto-saved file should go.  By default, it is initialized
 for @value{tramp} files to the local temporary directory.
 
 On some versions of @value{emacsname}, namely the version built for
-Debian Linux, the variable @code{auto-save-file-name-transforms}
+Debian GNU/Linux, the variable @code{auto-save-file-name-transforms}
 contains the directory where @value{emacsname} was built.  A
 workaround is to manually set the variable to a sane value.
 
@@ -1924,13 +1926,13 @@ The @value{tramp} mailing list is a great place to get information on working
 with @value{tramp}, solving problems and general discussion and advice on topics
 relating to the package.
 
-The  mailing list is at @email{tramp-devel@@mail.freesoftware.fsf.org}.
-Messages sent to this address go to all the subscribers. This is
-@emph{not} the address to send subscription requests to.
+The mailing list is at @email{tramp-devel@@gnu.org}.  Messages sent to
+this address go to all the subscribers. This is @emph{not} the address
+to send subscription requests to.
 
-For help on subscribing to the list, send mail to the administrative
-address, @email{tramp-devel-request@@mail.freesoftware.fsf.org}, with the
-subject @samp{help}.
+Subscribing to the list is performed via
+@uref{http://lists.gnu.org/mailman/listinfo/tramp-devel/,
+the @value{tramp} Mail Subscription Page}.
 
 To report a bug in @value{tramp}, you should execute @kbd{M-x tramp-bug}. This
 will automatically generate a buffer with the details of your system and
@@ -1956,20 +1958,21 @@ Where can I get the latest @value{tramp}?
 @value{tramp} is available under the URL below.
 
 @noindent
-@uref{http://savannah.nongnu.org/download/tramp/}
+@uref{http://ftp.gnu.org/gnu/tramp/}
 
 @noindent
 There is also a Savannah project page.
 
 @noindent
-@uref{http://savannah.nongnu.org/projects/tramp/}
+@uref{http://savannah.gnu.org/projects/tramp/}
 
 @item
 Which systems does it work on?
 
-The package has been used successfully on Emacs 20 and Emacs 21, as well
-as XEmacs 21.  XEmacs 20 is more problematic, see the notes in
-@file{tramp.el}.  I don't think anybody has really tried it on Emacs 19.
+The package has been used successfully on GNU Emacs 20, GNU Emacs 21
+and GNU Emacs 22, as well as XEmacs 21.  XEmacs 20 is more
+problematic, see the notes in @file{tramp.el}.  I don't think anybody
+has really tried it on GNU Emacs 19.
 
 The package was intended to work on Unix, and it really expects a
 Unix-like system on the remote end (except the @option{smb} method),
@@ -2336,9 +2339,9 @@ emulation macro to @value{tramp}, but if somebody who uses XEmacs 20 steps
 forward and wishes to implement and test it, please contact me or the
 mailing list.
 
-@item The @value{tramp} filename syntax differs between Emacs and XEmacs.
+@item The @value{tramp} filename syntax differs between GNU Emacs and XEmacs.
 
-The Emacs maintainers wish to use a unified filename syntax for
+The GNU Emacs maintainers wish to use a unified filename syntax for
 Ange-FTP and @value{tramp} so that users don't have to learn a new
 syntax.  It is sufficient to learn some extensions to the old syntax.
 

@@ -3729,7 +3729,8 @@ handle_single_display_spec (it, spec, object, position,
       if (CONSP (XCDR (XCDR (spec))))
 	{
 	  Lisp_Object face_name = XCAR (XCDR (XCDR (spec)));
-	  int face_id2 = lookup_named_face (it->f, face_name, 0);
+	  int face_id2 = lookup_derived_face (it->f, face_name,
+					      FRINGE_FACE_ID, 0);
 	  if (face_id2 >= 0)
 	    face_id = face_id2;
 	}

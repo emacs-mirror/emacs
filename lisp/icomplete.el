@@ -1,7 +1,7 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992, 1993, 1994, 1997, 1999, 2001
-;;;  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997, 1999, 2001, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
 ;; Maintainer: Ken Manheimer <klm@i.am>
@@ -69,19 +69,6 @@
   :prefix "icomplete-"
   :group 'minibuffer)
 
-(defcustom icomplete-mode nil
-  "*Toggle incremental minibuffer completion.
-As text is typed into the minibuffer, prospective completions are indicated
-in the minibuffer.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `icomplete-mode'."
-  :set (lambda (symbol value)
-	 (icomplete-mode (if value 1 -1)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'icomplete
-  :require 'icomplete)
-
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-length 80
   "*Length of string displaying the prospects."
@@ -131,8 +118,8 @@ icompletion is occurring."
 ;;;_* Initialization
 
 ;;;_ + Internal Variables
-;;;_  = icomplete-eoinput 1
-(defvar icomplete-eoinput 1
+;;;_  = icomplete-eoinput nil
+(defvar icomplete-eoinput nil
   "Point where minibuffer input ends and completion info begins.")
 (make-variable-buffer-local 'icomplete-eoinput)
 ;;;_  = icomplete-pre-command-hook
@@ -173,18 +160,15 @@ is minibuffer."
 
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
-(defun icomplete-mode (&optional arg)
+(define-minor-mode icomplete-mode
   "Toggle incremental minibuffer completion for this Emacs session.
 With a numeric argument, turn Icomplete mode on iff ARG is positive."
-  (interactive "P")
-  (let ((on-p (if (null arg)
-		  (not icomplete-mode)
-		(> (prefix-numeric-value arg) 0))))
-    (setq icomplete-mode on-p)
-    (when on-p
+  :global t :group 'icomplete
+  (if icomplete-mode
       ;; The following is not really necessary after first time -
       ;; no great loss.
-      (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))))
+      (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
+    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)))
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
@@ -193,29 +177,28 @@ With a numeric argument, turn Icomplete mode on iff ARG is positive."
 Conditions are:
    the selected window is a minibuffer,
    and not in the middle of macro execution,
-   and minibuffer-completion-table is not a symbol (which would
+   and `minibuffer-completion-table' is not a symbol (which would
        indicate some non-standard, non-simple completion mechanism,
        like file-name and other custom-func completions)."
 
   (and (window-minibuffer-p (selected-window))
        (not executing-kbd-macro)
-       (not (symbolp minibuffer-completion-table))))
+       minibuffer-completion-table
+       ;; (or minibuffer-completing-file-name
+       (not (functionp minibuffer-completion-table)))) ;; )
 
 ;;;_ > icomplete-minibuffer-setup ()
-;;;###autoload
 (defun icomplete-minibuffer-setup ()
   "Run in minibuffer on activation to establish incremental completion.
 Usually run by inclusion in `minibuffer-setup-hook'."
-  (cond ((and icomplete-mode (icomplete-simple-completing-p))
-	 (add-hook 'pre-command-hook
-		   (function (lambda ()
-			       (run-hooks 'icomplete-pre-command-hook)))
-		   nil t)
-	 (add-hook 'post-command-hook
-		   (function (lambda ()
-			       (run-hooks 'icomplete-post-command-hook)))
-		   nil t)
-	 (run-hooks 'icomplete-minibuffer-setup-hook))))
+  (when (and icomplete-mode (icomplete-simple-completing-p))
+    (add-hook 'pre-command-hook
+	      (lambda () (run-hooks 'icomplete-pre-command-hook))
+	      nil t)
+    (add-hook 'post-command-hook
+	      (lambda () (run-hooks 'icomplete-post-command-hook))
+	      nil t)
+    (run-hooks 'icomplete-minibuffer-setup-hook)))
 ;
 
 
@@ -226,60 +209,47 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   "Remove completions display \(if any) prior to new user input.
 Should be run in on the minibuffer `pre-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
-  (if (icomplete-simple-completing-p)
-      (if (and (boundp 'icomplete-eoinput)
-	       icomplete-eoinput)
+  (when icomplete-eoinput
 
-	  (if (> icomplete-eoinput (point-max))
-	      ;; Oops, got rug pulled out from under us - reinit:
-	      (setq icomplete-eoinput (point-max))
-	    (let ((buffer-undo-list buffer-undo-list )) ; prevent entry
-	      (delete-region icomplete-eoinput (point-max))))
+    (unless (>= icomplete-eoinput (point-max))
+      (let ((buffer-undo-list t)) ; prevent entry
+	(delete-region icomplete-eoinput (point-max))))
 
-	;; Reestablish the local variable 'cause minibuffer-setup is weird:
-	(make-local-variable 'icomplete-eoinput)
-	(setq icomplete-eoinput 1))))
+    ;; Reestablish the safe value.
+    (setq icomplete-eoinput nil)))
 
 ;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
   "Insert icomplete completions display.
 Should be run via minibuffer `post-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
-  (if (icomplete-simple-completing-p)
-      (let ((contents (buffer-substring (minibuffer-prompt-end)(point-max)))
-	    (buffer-undo-list t))
-	(save-excursion
-	  (goto-char (point-max))
-                                        ; Register the end of input, so we
-                                        ; know where the extra stuff
-                                        ; (match-status info) begins:
-	  (if (not (boundp 'icomplete-eoinput))
-	      ;; In case it got wiped out by major mode business:
-	      (make-local-variable 'icomplete-eoinput))
-	  (setq icomplete-eoinput (point))
+  (when (icomplete-simple-completing-p)
+    (save-excursion
+      (goto-char (point-max))
+      ;; Register the end of input, so we know where the extra stuff
+      ;; (match-status info) begins:
+      (setq icomplete-eoinput (point))
                                         ; Insert the match-status information:
-	  (if (and (> (point-max) (minibuffer-prompt-end))
-		   (or
-		    ;; Don't bother with delay after certain number of chars:
-		    (> (point-max) icomplete-max-delay-chars)
-		    ;; Don't delay if alternatives number is small enough:
-		    (if minibuffer-completion-table
-			(cond ((numberp minibuffer-completion-table)
-			       (< minibuffer-completion-table
-				  icomplete-delay-completions-threshold))
-			      ((sequencep minibuffer-completion-table)
-			       (< (length minibuffer-completion-table)
-				  icomplete-delay-completions-threshold))
-			      ))
-		    ;; Delay - give some grace time for next keystroke, before
-		    ;; embarking on computing completions:
-		    (sit-for icomplete-compute-delay)))
-	      (insert
-	       (icomplete-completions contents
-				      minibuffer-completion-table
-				      minibuffer-completion-predicate
-				      (not
-				       minibuffer-completion-confirm))))))))
+      (if (and (> (point-max) (minibuffer-prompt-end))
+	       buffer-undo-list		; Wait for some user input.
+	       (or
+		;; Don't bother with delay after certain number of chars:
+		(> (- (point) (field-beginning)) icomplete-max-delay-chars)
+		;; Don't delay if alternatives number is small enough:
+		(and (sequencep minibuffer-completion-table)
+		     (< (length minibuffer-completion-table)
+			icomplete-delay-completions-threshold))
+		;; Delay - give some grace time for next keystroke, before
+		;; embarking on computing completions:
+		(sit-for icomplete-compute-delay)))
+	  (let ((text (while-no-input
+			(icomplete-completions
+			 (field-string)
+			 minibuffer-completion-table
+			 minibuffer-completion-predicate
+			 (not minibuffer-completion-confirm))))
+		(buffer-undo-list t))
+	    (if text (insert text)))))))
 
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)
@@ -322,9 +292,7 @@ are exhibited within the square braces.)"
 			  (concat open-bracket-determined
 				  (substring most (length name))
 				  close-bracket-determined)))
-	     (open-bracket-prospects "{")
-	     (close-bracket-prospects "}")
-                                        ;"-prospects" - more than one candidate
+	     ;;"-prospects" - more than one candidate
 	     (prospects-len 0)
 	     prospects most-is-exact comp)
 	(if (eq most-try t)
@@ -338,30 +306,25 @@ are exhibited within the square braces.)"
 			   prospects-len (+ (length comp) 1 prospects-len))))))
 	(if prospects
 	    (concat determ
-		    open-bracket-prospects
+		    "{"
 		    (and most-is-exact ",")
 		    (mapconcat 'identity
 			       (sort prospects (function string-lessp))
 			       ",")
 		    (and comps ",...")
-		    close-bracket-prospects)
+		    "}")
 	  (concat determ
 		  " [Matched"
 		  (let ((keys (and icomplete-show-key-bindings
 				   (commandp (intern-soft most))
 				   (icomplete-get-keys most))))
-		    (if keys
-			(concat "; " keys)
-		      ""))
+		    (if keys (concat "; " keys) ""))
 		  "]"))))))
-
-(if icomplete-mode
-    (icomplete-mode 1))
 
 ;;;_* Local emacs vars.
 ;;;Local variables:
 ;;;outline-layout: (-2 :)
 ;;;End:
 
-;;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f
+;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f
 ;;; icomplete.el ends here

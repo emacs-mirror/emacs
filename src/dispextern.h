@@ -2777,7 +2777,7 @@ int lookup_non_ascii_face P_ ((struct frame *, int, struct face *));
 int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
 int smaller_face P_ ((struct frame *, int, int));
 int face_with_height P_ ((struct frame *, int, int));
-int lookup_derived_face P_ ((struct frame *, Lisp_Object, int));
+int lookup_derived_face P_ ((struct frame *, Lisp_Object, int, int));
 void init_frame_faces P_ ((struct frame *));
 void free_frame_faces P_ ((struct frame *));
 void recompute_basic_faces P_ ((struct frame *));

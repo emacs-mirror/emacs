@@ -5912,10 +5912,11 @@ face_with_height (f, face_id, height)
    default face.  FACE_ID is assumed to be already realized.  */
 
 int
-lookup_derived_face (f, symbol, face_id)
+lookup_derived_face (f, symbol, face_id, signal_p)
      struct frame *f;
      Lisp_Object symbol;
      int face_id;
+     int signal_p;
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
@@ -5924,7 +5925,7 @@ lookup_derived_face (f, symbol, face_id)
   if (!default_face)
     abort ();
 
-  get_lface_attributes (f, symbol, symbol_attrs, 1);
+  get_lface_attributes (f, symbol, symbol_attrs, signal_p);
   bcopy (default_face->lface, attrs, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs);
@@ -7925,7 +7926,7 @@ merge_faces (f, face_name, face_id, base_face_id)
       if (face_id < 0 || face_id >= lface_id_to_name_size)
 	return base_face_id;
       face_name = lface_id_to_name[face_id];
-      face_id = lookup_derived_face (f, face_name, base_face_id);
+      face_id = lookup_derived_face (f, face_name, base_face_id, 1);
       if (face_id >= 0)
 	return face_id;
       return base_face_id;

@@ -1,3 +1,124 @@
+2005-03-23  Lute Kamstra  <lute@gnu.org>
+
+	* search.texi (Non-ASCII Isearch): Rename from Non-Ascii Isearch.
+
+2005-03-23  Richard M. Stallman  <rms@gnu.org>
+
+	* url.texi (HTTP language/coding): Improve last change.
+
+	* search.texi: Delete explicit node pointers.
+	(Incremental Search): New menu.
+	(Basic Isearch, Repeat Isearch, Error in Isearch)
+	(Non-Ascii Isearch, Isearch Yank, Highlight Isearch, Isearch Scroll)
+	(Slow Isearch): New subnodes.
+	(Configuring Scrolling): Node deleted.
+	(Search Case): Doc default-case-fold-search.
+	(Regexp Replace): Move replace-regexp doc here.
+
+	* rmail.texi (Movemail): Put commas inside closequotes.
+
+	* picture.texi (Insert in Picture): Document C-c arrow combos.
+	(Basic Picture): Clarify erasure.
+
+	* display.texi (Font Lock): Put commas inside closequotes.
+
+	* cmdargs.texi (General Variables): Put commas inside closequotes.
+
+2005-03-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Stack Buffer): Mention reverse contrast for
+	*selected* frame (might not be current frame).
+
+2005-03-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Embedded Mode): Add new information on changing
+	modes.
+
+2005-03-21  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Starting GUD): Add bashdb.
+
+2005-03-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Moving Point): Add M-g M-g binding.
+	(Undo): Document undo-only.
+	(Position Info): Document M-g M-g and C-u M-g M-g.
+
+	* building.texi (Building): Put Grep Searching after Compilation
+	Shell.
+	(Compilation Mode): Document M-n, M-p, M-}, M-{, and C-c C-f bindings.
+	Document next-error-highlight.
+	(Grep Searching): Document grep-highlight-matches.
+	(Lisp Eval): Typing C-x C-e twice prints integers specially.
+
+	* calendar.texi (Importing Diary): Rename node from iCalendar.
+	Document diary-from-outlook.
+
+	* dired.texi (Misc Dired Features): Rename node from Misc Dired
+	Commands.
+	Mention effect of X drag and drop on Dired buffers.
+
+	* files.texi (Visiting): Document large-file-warning-threshold.
+	Move paragraph on file-selection dialog.
+	Mention visiting files using X drag and drop.
+	(Reverting): Mention using Auto-Revert mode to tail files.
+	Document auto-revert-tail-mode.
+	(Version Systems): Minor correction.
+	(Comparing Files): Diff-mode is no longer based on Compilation
+	mode.
+	Document compare-ignore-whitespace.
+	(Misc File Ops): Explain passing a directory to rename-file.
+	Likewise for copy-file and make-symbolic-link.
+
+	* frames.texi (Wheeled Mice): Mouse wheel support on by default.
+	Document mouse-wheel-progressive speed.
+
+	* help.texi (Misc Help): Document numeric argument for C-h i.
+	Correctly explain the effect of just C-u as argument.
+
+	* killing.texi (Deletion): Document numeric argument for
+	just-one-space.
+
+	* mini.texi (Completion): Completion acts on text before point.
+
+	* misc.texi (Saving Emacs Sessions): Document desktop-restore-eager.
+	(Emulation): CUA mode replaces pc-bindings-mode,
+	pc-selection-mode, and s-region.
+
+	* mule.texi (Input Methods): Leim is now built-in.
+	(Select Input Method): Document quail-show-key.
+	(Specify Coding): Document revert-buffer-with-coding-system.
+
+	* programs.texi (Fortran Motion): Document f90-next-statement,
+	f90-previous-statement, f90-next-block, f90-previous-block,
+	f90-end-of-block, and f90-beginning-of-block.
+
+	* text.texi (Format Faces): Replace old M-g key prefix with M-o.
+
+	* emacs.texi (Acknowledgments): Updated.
+
+	* anti.texi: Total rewrite.
+
+2005-03-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.48.
+
+	* trampver.texi.in: Replace "Emacs" by "GNU Emacs".
+
+	* tramp.texi: Replace "Emacs" by "GNU Emacs".  Replace "Linux" by
+	"GNU/Linux".  Change all addresses to .gnu.org.
+	(Default Method): Offer shortened syntax for "su" and "sudo"
+	methods.
+
+2005-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ack.texi (Acknowledgments): Update.
+
+2005-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* anti.texi (Antinews): Refer to Emacs 21.4, not 21.3.  Update
+	copyright years.
+
 2005-03-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Commands of GUD): Move paragraph on setting
@@ -37,7 +158,7 @@
 	(Rmail Display): Mention Mouse-1.
 	(Movemail): Clarify two movemail versions.
 	Clarify rmail-movemail-program.
-	
+
 	* pcl-cvs.texi (About PCL-CVS): Get rid of "Emacs 21".
 	(Installation): Node deleted.
 

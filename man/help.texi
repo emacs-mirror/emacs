@@ -456,11 +456,15 @@ system will be available.  Type @kbd{h} after entering Info to run
 a tutorial on using Info.
 
 @cindex find Info manual by its file name
-  If you specify a numeric argument, @kbd{C-h i} prompts for the name of
-a documentation file.  This way, you can browse a file which doesn't
+  With a numeric argument, @kbd{C-h i} selects an Info buffer with the
+number appended to the default @samp{*info*} buffer name
+(e.g. @samp{*info*<2>}).  This is useful if you want to browse
+multiple Info manuals simultaneously.  If you specify just @kbd{C-u}
+as the prefix argument, @kbd{C-h i} prompts for the name of a
+documentation file.  This way, you can browse a file which doesn't
 have an entry in the top-level Info menu.  It is also handy when you
-need to get to the documentation quickly, and you know the exact name of
-the file.
+need to get to the documentation quickly, and you know the exact name
+of the file.
 
 @kindex C-h F
 @kindex C-h K

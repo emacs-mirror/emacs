@@ -11425,10 +11425,29 @@ keys_of_keyboard ()
 
   initial_define_lispy_key (Vspecial_event_map, "delete-frame",
 			    "handle-delete-frame");
+  /* Here we used to use `ignore-event' which would simple set prefix-arg to
+     current-prefix-arg, as is done in `handle-switch-frame'.
+     But `handle-switch-frame is not run from the special-map.
+     Commands from that map are run in a special way that automatically
+     preserves the prefix-arg.  Restoring the prefix arg here is not just
+     redundant but harmful:
+     - C-u C-x v =
+     - current-prefix-arg is set to non-nil, prefix-arg is set to nil.
+     - after the first prompt, the exit-minibuffer-hook is run which may
+       iconify a frame and thus push a `iconify-frame' event.
+     - after running exit-minibuffer-hook, current-prefix-arg is
+       restored to the non-nil value it had before the prompt.
+     - we enter the second prompt.
+       current-prefix-arg is non-nil, prefix-arg is nil.
+     - before running the first real event, we run the special iconify-frame
+       event, but we pass the `special' arg to execute-command so
+       current-prefix-arg and prefix-arg are left untouched.
+     - here we foolishly copy the non-nil current-prefix-arg to prefix-arg.
+     - the next key event will have a spuriously non-nil current-prefix-arg.  */
   initial_define_lispy_key (Vspecial_event_map, "iconify-frame",
-			    "ignore-event");
+			    "ignore");
   initial_define_lispy_key (Vspecial_event_map, "make-frame-visible",
-			    "ignore-event");
+			    "ignore");
   /* Handling it at such a low-level causes read_key_sequence to get
    * confused because it doesn't realize that the current_buffer was
    * changed by read_char.

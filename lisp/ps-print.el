@@ -1,7 +1,7 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;; 2003, 2004 Free Software Foundation, Inc.
+;; 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2004/07/21 23:12:05 vinicius>
-;; Version: 6.6.5
+;; Time-stamp: <2005/03/19 00:40:12 vinicius>
+;; Version: 6.6.6
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6.5"
-  "ps-print.el, v 6.6.5 <2004/07/21 vinicius>
+(defconst ps-print-version "6.6.6"
+  "ps-print.el, v 6.6.6 <2005/03/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -4833,12 +4833,12 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
    ;; Functions are called -- they should return strings; they will be inserted
    ;; as strings and the PS string delimiters added.
-   ((and (symbolp content) (fboundp content))
-     (if (fboundp ps-encode-header-string-function)
-	 (dolist (l (funcall ps-encode-header-string-function
-			     (funcall content) fonttag))
-	   (ps-output-string l))
-    (ps-output-string (funcall content))))
+   ((fboundp content)
+    (if (fboundp ps-encode-header-string-function)
+	(dolist (l (funcall ps-encode-header-string-function
+			    (funcall content) fonttag))
+	  (ps-output-string l))
+      (ps-output-string (funcall content))))
 
    ;; Variables will have their contents inserted.  They should contain
    ;; strings, and will be inserted as strings.
