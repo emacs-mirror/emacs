@@ -48,7 +48,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@bbn.com
-(defconst mh-e-RCS-id "$Header: /home/fsf/rms/e19/lisp/RCS/mh-e.el,v 1.12 1993/06/09 11:54:27 jimb Exp rms $")
+(defconst mh-e-RCS-id "$Header: /home/fsf/rms/e19/lisp/RCS/mh-e.el,v 1.13 1993/06/20 22:45:13 rms Exp rms $")
 
 ;;; Code:
 
@@ -99,7 +99,7 @@ It is passed three arguments: TO recipients, SUBJECT, and CC recipients.")
     (save-excursion
       (goto-char (point))
       (or (bolp) (forward-line 1))
-      (while (< (point) (mark))
+      (while (< (point) (mark t))
 	(insert mh-ins-string)
 	(forward-line 1))))
   "Hook to run citation function.
@@ -1409,7 +1409,7 @@ Assumes mh-e has already been initialized."
     (set-buffer (get-buffer-create " *mh-temp*"))
     (erase-buffer)
     (mh-exec-cmd-output "mhpath" nil mh-draft-folder "new")
-    (buffer-substring (point) (1- (mark)))))
+    (buffer-substring (point) (1- (mark t)))))
 
 
 (defun mh-next-msg ()
