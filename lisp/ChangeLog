@@ -1,5 +1,7 @@
 2004-10-16  Kim F. Storm  <storm@cua.dk>
 
+	* fringe.el (fringe-bitmaps): Only initialize when defined.
+
 	* pcvs.el (cvs-mode-view-file, cvs-mode-view-file-other-window): Add.
 	(cvs-mode-find-file): Add optional `view' arg to enter view mode.
 
