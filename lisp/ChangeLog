@@ -7,6 +7,13 @@
 
 2002-11-01  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/tex-mode.el (tex-common-initialization):
+	comment-start-skip shouldn't match on the next line.
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Use match-string.
+	Don't bother making paragraph-start a superset of paragraph-separate.
+	Use line-beginning-position.
+
 	* textmodes/sgml-mode.el (sgml-skip-tag-backward)
 	(sgml-skip-tag-forward): Deal with xml-style <foo/> empty tags.
 
