@@ -1,3 +1,29 @@
+2002-02-26  Kim F. Storm  <storm@cua.dk>
+
+	The following changes add a new Vminibuf_selected_window variable
+	which is similar to Vminibuf_scroll_window, but which is only set
+	on entry to the minibuffer (from a non-minibuffer window):
+	
+	* window.c: (Vminibuf_selected_window): New variable.
+	(struct save_window_data): New member minibuf_selected_window.
+	(Fset_window_configuration): Restore Vminibuf_selected_window.
+	(Fcurrent_window_configuration): Save Vminibuf_selected_window.
+	Set minibuf_scroll_window member to nil if minibuf_level is 0.
+	(compare_window_configurations): Compare minibuf_selected_window.
+
+	* window.h: (Vminibuf_selected_window): Declare extern.
+
+	* minibuf.c (read_minibuf): Set Vminibuf_selected_window on first
+	entry to minibuffer or on entry from a non-minibuffer window.
+
+	* dispextern.h (CURRENT_MODE_LINE_FACE_ID_3): Compare with
+	Vminibuf_selected_window instead of Vminibuf_scroll_window.
+
+	* xdisp.c (init_iterator): Compare with Vminibuf_selected_window
+	instead of Vminibuf_scroll_window when deciding in which window
+	the region should be highlighted.  Consequently, the region remains
+	highlighteded even when a completion buffer is also displayed.
+
 2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Fsubstitute_in_file_name): Fix the change from
