@@ -452,6 +452,9 @@ wrote many of its parts.
 Andrew Innes contributed extensively to the MS-Windows support.
 
 @item
+Seiichiro Inoue improved Emacs' XIM support.
+
+@item
 Kyle Jones wrote @file{life.el}, a package to play Conway's ``life'' game,
 and @file{mldrag.el}, a package which allows the user to resize windows
 by dragging mode lines and vertical window separators with the mouse.
@@ -1041,9 +1044,6 @@ Randal Schwartz wrote @file{pp.el}, a pretty-printer for lisp objects.
 @item
 Oliver Seidel wrote @file{todo-mode.el}, a package for maintaining
 @file{TODO} list files.
-
-@item
-Seiichiro Inoue improved Emacs' XIM support.
 
 @item
 Manuel Serrano contributed the Flyspell package that does spell checking
