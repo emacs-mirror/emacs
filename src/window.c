@@ -744,6 +744,14 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
   else
     set_marker_restricted (w->pointm, pos, w->buffer);
 
+  /* If mini-window is resized, make it not restore its saved window
+     configuration.  This function being called indicates that the
+     current window configuration is being changed.  These changes
+     would be undone if resize_mini_window would restore its saved
+     configuration.  */
+  if (resize_mini_frame == XFRAME (w->frame))
+    Vresize_mini_config = Qnil;
+  
   return pos;
 }
 
@@ -767,6 +775,15 @@ from overriding motion of point in order to display at this exact start.")
   XSETFASTINT (w->last_overlay_modified, 0);
   if (!EQ (window, selected_window))
     windows_or_buffers_changed++;
+
+  /* If mini-window is resized, make it not restore its saved window
+     configuration.  This function being called indicates that the
+     current window configuration is being changed.  These changes
+     would be undone if resize_mini_window would restore its saved
+     configuration.  */
+  if (resize_mini_frame == XFRAME (w->frame))
+    Vresize_mini_config = Qnil;
+  
   return pos;
 }
 
@@ -2339,6 +2356,14 @@ set_window_buffer (window, buffer, run_hooks_p)
 
   w->buffer = buffer;
 
+  /* If mini-window is resized, make it not restore its saved window
+     configuration.  This function being called indicates that the
+     current window configuration is being changed.  These changes
+     would be undone if resize_mini_window would restore its saved
+     configuration.  */
+  if (resize_mini_frame == XFRAME (w->frame))
+    Vresize_mini_config = Qnil;
+  
   if (EQ (window, selected_window))
     b->last_selected_window = window;
 
