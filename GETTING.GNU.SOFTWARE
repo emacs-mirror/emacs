@@ -1,6 +1,6 @@
 -*- text -*-
-		  Getting GNU Software, 19 Sep 90
-Copyright (C) 1986, 1987, 1988, 1989, 1990 Free Software Foundation, Inc.
+		  Getting GNU Software, 20 Jan 92
+Copyright (C) 1986, 1987, 1988, 1989, 1990, 1992 Free Software Foundation, Inc.
 
 	Permission is granted to anyone to make or distribute
 	verbatim copies of this document provided that the
@@ -15,11 +15,11 @@ The Free Software Foundation has the following goals:
 permission to copy and redistribute.
 
 Further information on the rationale for GNU is in file
-/pub/gnu/etc/GNU (All files referred to are on the Internet host
+/pub/gnu/GNUinfo/GNU (All files referred to are on the Internet host
 prep.ai.mit.edu.
 
 Information on GNU Internet mailing lists and gnUSENET newsgroupscan
-be found in file /pub/gnu/etc/MAILINGLISTS.
+be found in file /pub/gnu/GNUinfo/MAILINGLISTS.
 
 * How To Get The Software
 
@@ -27,12 +27,12 @@ The easiest way to get a copy of the distribution is from someone else
 who has it.  You need not ask for permission to do so, or tell any one
 else; just copy it.  The second easiest is to ftp it over the
 Internet.  The third easiest way is to uucp it.  Ftp and uucp
-information is in file /pub/gnu/etc/FTP.
+information is in file /pub/gnu/GNUinfo/FTP.
 
 If you cannot get a copy any of these ways, or if you would feel more
 confident getting copies straight from us, or if you would like to get
 some funds to us to help in our efforts, you can order one from the
-Free Software Foundation.  See file /pub/gnu/etc/DISTRIB.
+Free Software Foundation.  See file /pub/gnu/GNUinfo/DISTRIB.
 
 * Available Software
 
@@ -42,7 +42,7 @@ The GNU Emacs distribution includes:
 	- manual source in TeX format.
 	- an enhanced regex (regular expression) library.
 
-See file /pub/gnu/etc/MACHINES for the status of porting Emacs to
+See file /pub/gnu/GNUinfo/MACHINES for the status of porting Emacs to
 various machines and operating systems.
 
 ** C Scheme - a block structured dialect of LISP.
@@ -62,7 +62,7 @@ general mailing lists: <scheme@mc.lcs.mit.edu> and
 ** Other GNU Software
 
 A fuller list of available software are in the files
-/pub/gnu/etc/DISTRIB and /pub/gnu/etc/FTP.
+/pub/gnu/GNUinfo/DISTRIB and /pub/gnu/GNUinfo/FTP.
 
 * No Warranties
 
@@ -81,4 +81,4 @@ efforts successful, including a complete development and operating
 system, called GNU (Gnu's Not Un*x), which will run Un*x user
 programs.  For more information on GNU and the Foundation, contact us
 at Internet address <gnu@prep.ai.mit.edu> or the foundation's US Mail
-address found in file /pub/gnu/etc/DISTRIB.
+address found in file /pub/gnu/GNUinfo/DISTRIB.
