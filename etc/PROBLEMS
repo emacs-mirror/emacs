@@ -1,8 +1,15 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
-* The W3 package (from the CVS sources) currently (2000-12-14) doesn't
-work properly with Emacs 21 and needs work.
+* Large file support is disabled on HP-UX.  See the comments in
+src/s/hpux10.h.
+
+* Crashes when displaying uncompressed GIFs with version
+libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
+
+* The W3 package (either from from the CVS sources or the last
+release) currently (2000-12-14) doesn't run properly with Emacs 21 and
+needs work.
 
 * On AIX, if linking fails because libXbsd isn't found, check if you
 are compiling with the system's `cc' and CFLAGS containing `-O5'.  If

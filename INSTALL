@@ -94,6 +94,9 @@ URLs where they can be found:
   . libungif for GIF: 
       http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
 
+[libungif-4.1.0 can crash Emacs with uncompressed GIFs -- use
+libungif-4.1.0b1.]
+
 Emacs will configure itself to build with these libraries if configure
 finds them on your system unless you supply the appropriate
 --without-LIB option.  See below for more details.
