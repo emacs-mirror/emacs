@@ -1939,6 +1939,19 @@ kbd_buffer_get_event ()
 	  abort ();
 #endif
 	}
+#ifdef HAVE_X11
+      else if (event->kind == delete_window_event)
+	{
+	  Lisp_Object value;
+
+	  Fdelete_frame (event->frame_or_window, Qt);
+	  kbd_fetch_ptr = event + 1;
+
+	  value = Fvisible_frame_list ();
+	  if (! CONSP (value))
+	    kill (getpid (), SIGHUP);
+	}
+#endif
       /* Just discard these, by returning nil.
 	 (They shouldn't be found in the buffer,
 	 but on some machines it appears they do show up.)  */
