@@ -386,6 +386,7 @@ by `lisp-body-indent'."
 	   (defsetf     (4 (&whole 4 &rest 1) 4 &body))
 	   (defun       (4 (&whole 4 &rest 1) &body))
 	   (defmacro . defun) (deftype . defun)
+	   (defpackage  (4 2))
 	   (defstruct   ((&whole 4 &rest (&whole 2 &rest 1))
 			 &rest (&whole 2 &rest 1)))
 	   (destructuring-bind
