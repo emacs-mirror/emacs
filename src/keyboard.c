@@ -3113,7 +3113,8 @@ DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
   "Evaluate BODY with mouse movement events enabled.\n\
 Within a `track-mouse' form, mouse motion generates input events that\n\
 you can read with `read-event'.\n\
-Normally, mouse motion is ignored.")
+Normally, mouse motion is ignored.\n\
+usage: (track-mouse BODY ...)")
   (args)
      Lisp_Object args;
 {
