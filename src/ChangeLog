@@ -1,3 +1,21 @@
+2000-06-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (handle_stop): Initialize it->add_overlay_start to zero.
+	(handle_invisible_prop): Record the start of invisible text in
+	it->add_overlay_start.
+	(struct overlay_entry): Add member `overlay'.
+	(handle_overlay_change): Simplify.
+	(next_overlay_string): After having processed overlay strings at the
+	end of the buffer, record that fact in
+	it->overlay_strings_at_end_processed_p.
+	(compare_overlay_entries): If before- and after-strings come
+	from the same overlay, let before-strings come first.
+	(RECORD_OVERLAY_STRING): Record the overlay that strings come from.
+	(load_overlay_strings): Take it->add_overlay_start into account
+	when adding overlay strings.
+
+	* dispextern.h (struct it): Add member add_overlay_start.
+
 2000-06-22  Dave Love  <fx@gnu.org>
 
 	* s/isc3-0.h (C_SWITCH_SYSTEM): Define _XOPEN_SOURCE=500.
