@@ -12327,7 +12327,8 @@ display_menu_bar (w)
     }
 
   /* Make the first line of the menu bar appear in reverse video.  */
-  it.glyph_row->inverse_p = mode_line_inverse_video != 0;
+  if (mode_line_inverse_video)
+    it.glyph_row->inverse_p = 1;
 
   /* Display all items of the menu bar.  */
   items = FRAME_MENU_BAR_ITEMS (it.f);
