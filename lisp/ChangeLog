@@ -1,3 +1,9 @@
+2001-01-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-setup-header-line): If the node header includes
+	either Next: or Prev: links, don't show the File: and Node: parts
+	in the header line.
+
 2001-01-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* comint.el (comint-goto-process-mark): Don't print a message
