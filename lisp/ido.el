@@ -685,16 +685,17 @@ Obsolete.  Set 3rd element of `ido-decorations' instead."
   :type '(choice string (const nil))
   :group 'ido)
 
-(defcustom ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]")
+(defcustom ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]" " [Not readable]")
   "*List of strings used by ido to display the alternatives in the minibuffer.
-There are 8 elements in this list, each is a pair of strings:
+There are 9 elements in this list:
 1st and 2nd elements are used as brackets around the prospect list,
 3rd element is the separator between prospects (ignored if ido-separator is set),
 4th element is the string inserted at the end of a truncated list of prospects,
 5th and 6th elements are used as brackets around the common match string which
 can be completed using TAB,
 7th element is the string displayed when there are a no matches, and
-8th element displayed if there is a single match (and faces are not used)."
+8th element is displayed if there is a single match (and faces are not used).
+9th element is displayed when the current directory is non-readable."
   :type '(repeat string)
   :group 'ido)
 
@@ -930,6 +931,9 @@ it doesn't interfere with other minibuffer usage.")
 ;; Stores the list of items which are ignored when building
 ;; `ido-cur-list'.  It is in no specific order.
 (defvar ido-ignored-list)
+
+;; Remember if current directory is non-readable (so we cannot do completion).
+(defvar ido-directory-nonreadable)
 
 ;; Keep current item list if non-nil.
 (defvar ido-keep-item-list)
@@ -1406,6 +1410,7 @@ This function also adds a hook to the minibuffer."
     (setq ido-current-directory dir)
     (if (get-buffer ido-completion-buffer)
 	(kill-buffer ido-completion-buffer))
+    (setq ido-directory-nonreadable (not (file-readable-p dir)))
     t))
 
 (defun ido-set-current-home (&optional dir)
@@ -1812,7 +1817,8 @@ PROMPT is the prompt to give to the user.  DEFAULT if given is the default
 buffer to be selected, which will go to the front of the list.
 If REQUIRE-MATCH is non-nil, an existing-buffer must be selected.
 If INITIAL is non-nil, it specifies the initial input string."
-  (let ((ido-current-directory nil))
+  (let ((ido-current-directory nil)
+	(ido-directory-nonreadable nil))
     (ido-read-internal 'buffer prompt 'ido-buffer-history default require-match initial)))
 
 (defun ido-record-work-directory (&optional dir)
@@ -1851,12 +1857,18 @@ If INITIAL is non-nil, it specifies the initial input string."
     (if (> (length ido-work-file-list) ido-max-work-file-list)
 	(setcdr (nthcdr (1- ido-max-work-file-list) ido-work-file-list) nil))))
 
+(defun ido-expand-directory (dir)
+  ;; Expand DIR or use DEFAULT-DIRECTORY if nil.
+  ;; Add final slash to result in case it was missing from DEFAULT-DIRECTORY.
+  (ido-final-slash (expand-file-name (or dir default-directory)) t))
+
 (defun ido-file-internal (method &optional fallback default prompt item initial)
   ;; Internal function for ido-find-file and friends
   (unless item
     (setq item 'file))
-  (let ((ido-current-directory (expand-file-name (or default default-directory)))
-	filename)
+  (let* ((ido-current-directory (ido-expand-directory default))
+	 (ido-directory-nonreadable (not (file-readable-p ido-current-directory)))
+	 filename)
 
     (cond
      ((or (not ido-mode) (ido-is-slow-ftp-host))
@@ -2693,30 +2705,33 @@ for first matching file."
     (setq ido-temp-list items)))
 
 (defun ido-file-name-all-completions1 (dir)
-  (if (and ido-enable-tramp-completion
-	   (string-match "\\`/\\([^/:]+:\\([^/:@]+@\\)?\\)\\'" dir))
+  (cond
+   ((not (file-readable-p dir)) '())
+   ((and ido-enable-tramp-completion
+	 (string-match "\\`/\\([^/:]+:\\([^/:@]+@\\)?\\)\\'" dir))
 
-      ;; Trick tramp's file-name-all-completions handler to DTRT, as it
-      ;; has some pretty obscure requirements.  This seems to work...
-      ;; /ftp:		=> (f-n-a-c "/ftp:" "")
-      ;; /ftp:kfs:	=> (f-n-a-c "" "/ftp:kfs:")
-      ;; /ftp:kfs@      => (f-n-a-c "ftp:kfs@" "/")
-      ;; /ftp:kfs@kfs:  => (f-n-a-c "" "/ftp:kfs@kfs:")
-      ;; Currently no attempt is made to handle multi: stuff.
+    ;; Trick tramp's file-name-all-completions handler to DTRT, as it
+    ;; has some pretty obscure requirements.  This seems to work...
+    ;; /ftp:		=> (f-n-a-c "/ftp:" "")
+    ;; /ftp:kfs:	=> (f-n-a-c "" "/ftp:kfs:")
+    ;; /ftp:kfs@      => (f-n-a-c "ftp:kfs@" "/")
+    ;; /ftp:kfs@kfs:  => (f-n-a-c "" "/ftp:kfs@kfs:")
+    ;; Currently no attempt is made to handle multi: stuff.
 
-      (let* ((prefix (match-string 1 dir))
-	     (user-flag (match-beginning 2))
-	     (len (and prefix (length prefix)))
-	     compl)
-	(if user-flag
-	    (setq dir (substring dir 1)))
-	(require 'tramp nil t)
-	(ido-trace "tramp complete" dir)
-	(setq compl (file-name-all-completions dir (if user-flag "/" "")))
-	(if (> len 0)
-	    (mapcar (lambda (c) (substring c len)) compl)
-	  compl))
-    (file-name-all-completions "" dir)))
+    (let* ((prefix (match-string 1 dir))
+	   (user-flag (match-beginning 2))
+	   (len (and prefix (length prefix)))
+	   compl)
+      (if user-flag
+	  (setq dir (substring dir 1)))
+      (require 'tramp nil t)
+      (ido-trace "tramp complete" dir)
+      (setq compl (file-name-all-completions dir (if user-flag "/" "")))
+      (if (> len 0)
+	  (mapcar (lambda (c) (substring c len)) compl)
+	compl)))
+   (t
+    (file-name-all-completions "" dir))))
 
 (defun ido-file-name-all-completions (dir)
   ;; Return name of all files in DIR
@@ -3518,6 +3533,11 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 		 (expand-file-name "/" ido-current-directory)
 	       "/"))
 	    (setq refresh t))
+	   ((and ido-directory-nonreadable
+		 (file-directory-p (concat ido-current-directory (file-name-directory contents))))
+	    (ido-set-current-directory 
+	     (concat ido-current-directory (file-name-directory contents)))
+	    (setq refresh t))
 	   (t
 	    (ido-trace "try single dir")
 	    (setq try-single-dir-match t))))
@@ -3574,6 +3594,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	  (exit-minibuffer))
 
 	(when (and (not ido-matches)
+		   (not ido-directory-nonreadable)
 		   ;; ido-rescan ?
 		   ido-process-ignore-lists
 		   ido-ignored-list)
@@ -3596,7 +3617,8 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	       (memq ido-cur-item '(file dir))
 	       (not (ido-is-root-directory))
 	       (> (length contents) 1)
-	       (not (string-match "[$]" contents)))
+	       (not (string-match "[$]" contents))
+	       (not ido-directory-nonreadable))
 	  (ido-trace "merge?")
 	  (if ido-use-merged-list
 	      (ido-undo-merge-work-directory contents nil)
@@ -3658,9 +3680,12 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	  (setq comps (cons first (cdr comps)))))
 
     (cond ((null comps)
-	   (if ido-report-no-match
-	       (nth 6 ido-decorations)  ;; [No Match]
-	     ""))
+	   (cond
+	    (ido-directory-nonreadable
+	     (or (nth 8 ido-decorations) " [Not readable]"))
+	    (ido-report-no-match
+	     (nth 6 ido-decorations))  ;; [No match]
+	    (t "")))
 
 	  ((null (cdr comps))		;one match
 	   (concat (if (> (length (ido-name (car comps))) (length name))
@@ -3771,13 +3796,14 @@ See `read-file-name' for additional parameters."
    (ido-read-directory-name prompt dir default-filename mustmatch initial))
   ((and (not (memq this-command ido-read-file-name-non-ido))
 	(or (null predicate) (eq predicate 'file-exists-p)))
-   (let (filename
-	 ido-saved-vc-hb
-	 (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
-	 (ido-current-directory (expand-file-name (or dir default-directory)))
-	 (ido-work-directory-index -1)
-	 (ido-work-file-index -1)
-	 (ido-find-literal nil))
+   (let* (filename
+	  ido-saved-vc-hb
+	  (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
+	  (ido-current-directory (ido-expand-directory dir))
+	  (ido-directory-nonreadable (not (file-readable-p ido-current-directory)))
+	  (ido-work-directory-index -1)
+	  (ido-work-file-index -1)
+	  (ido-find-literal nil))
      (setq filename
 	   (ido-read-internal 'file prompt 'ido-file-history default-filename mustmatch initial))
      (if filename
@@ -3790,11 +3816,12 @@ See `read-file-name' for additional parameters."
 (defun ido-read-directory-name (prompt &optional dir default-dirname mustmatch initial)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
 See `read-file-name' for additional parameters."
-  (let (filename
-	ido-saved-vc-hb
-	(ido-current-directory (expand-file-name (or dir default-directory)))
-	(ido-work-directory-index -1)
-	(ido-work-file-index -1))
+  (let* (filename
+	 ido-saved-vc-hb
+	 (ido-current-directory (ido-expand-directory dir))
+	 (ido-directory-nonreadable (not (file-readable-p ido-current-directory)))
+	 (ido-work-directory-index -1)
+	 (ido-work-file-index -1))
     (setq filename
 	  (ido-read-internal 'dir prompt 'ido-file-history default-dirname mustmatch initial))
     (if filename
