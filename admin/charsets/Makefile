@@ -293,6 +293,10 @@ CNS-7.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
 	# Generating $@...
 	@mapconv $< '/^C7/' KANJI-DATABASE compact.awk > $@
 
+CNS-F.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
+	# Generating $@...
+	@mapconv $< '/^<.*\/x8e\/xaf/ s,/x8e/xaf,,' GLIBC-2-7 compact.awk > $@
+
 # General target to produce map files for mule charsets.
 MULE-%.map: mule-charsets.el
 	# Generating $@...
