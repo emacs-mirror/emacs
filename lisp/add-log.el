@@ -73,7 +73,8 @@ being a simple string, this value can also be a list.  All elements
 will be recognized as referring to the same user; when creating a new
 ChangeLog entry, one element will be chosen at random."
   :type '(choice (const :tag "Default" nil)
-		 (repeat string))
+		 (string :tag "String")
+		 (repeat :tag "List of Strings" string))
   :group 'change-log)
 
 (defcustom add-log-time-format 'add-log-iso8601-time-string
