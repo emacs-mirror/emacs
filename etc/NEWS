@@ -88,6 +88,22 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** M-x compile has been completely overhauled
+
+It now uses font-lock for turning compiler output into hypertext.  Quite a few
+more kinds of messages are recognized.  Messages that are recognized as
+warnings or informational come in orange or green, instead of red. 
+Informational messages are by default skipped with `next-error'.
+
+The new file etc/compilation.txt gives examples of each type of message.
+
+** M-x grep has been adapted to new compile
+
+Hits are fontified in green, and hits in binary files in orange.  Grep buffers
+can be saved and will again be loaded with the new `grep-mode'.
+
+** M-x diff uses diff-mode instead of compilation-mode.
+
 ---
 ** The saveplace.el package now filters out unreadable files.
 When you exit Emacs, the saved positions in visited files no longer
