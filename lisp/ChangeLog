@@ -1,3 +1,8 @@
+2002-06-17  Eli Zaretskii <eliz@is.elta.co.il>
+
+	* international/mule.el (ctext-pre-write-conversion): Fix the values
+	of FROM and TO if we create a new buffer.
+
 2002-06-17  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* comint.el (comint-insert-clicked-input): Insert clicked-on
