@@ -149,7 +149,7 @@ Any property that is neither on this list nor dealt with by
 ;;; Internal variables
 
 (defvar enriched-mode nil
-  "True if `enriched-mode' is in use.")
+  "True if Enriched mode is in use.")
 (make-variable-buffer-local 'enriched-mode)
 
 (if (not (assq 'enriched-mode minor-mode-alist))
@@ -157,10 +157,10 @@ Any property that is neither on this list nor dealt with by
 	  (cons '(enriched-mode " Enriched")
 		minor-mode-alist)))
 
-(defvar enriched-mode-hooks nil
-  "Functions to run when entering `enriched-mode'.
+(defvar enriched-mode-hook nil
+  "Functions to run when entering Enriched mode.
 If you set variables in this hook, you should arrange for them to be restored
-to their old values if enriched-mode is left.  One way to do this is to add
+to their old values if you leave Enriched mode.  One way to do this is to add
 them and their old values to `enriched-old-bindings'.")
 
 (defvar enriched-old-bindings nil
@@ -180,9 +180,9 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
   "Minor mode for editing text/enriched files.
 These are files with embedded formatting information in the MIME standard
 text/enriched format.
-Turning the mode on runs `enriched-mode-hooks'.
+Turning the mode on runs `enriched-mode-hook'.
 
-More information about enriched-mode is available in the file 
+More information about Enriched mode is available in the file 
 etc/enriched.doc  in the Emacs distribution directory.
 
 Commands:
@@ -208,7 +208,7 @@ Commands:
 		 (setq buffer-file-format 
 		       (cons 'text/enriched buffer-file-format)))
 	     ;; Save old variable values before we change them.
-	     ;; These will be restored if we exit enriched-mode.
+	     ;; These will be restored if we exit Enriched mode.
 	     (setq enriched-old-bindings
 		   (list 'buffer-display-table buffer-display-table
 			 'indent-line-function indent-line-function
@@ -230,7 +230,7 @@ Commands:
 		   (setq default-text-properties
 			 (plist-put default-text-properties
 				    'front-sticky sticky))))
-	     (run-hooks 'enriched-mode-hooks)))
+	     (run-hooks 'enriched-mode-hook)))
     (set-buffer-modified-p mod)
     (force-mode-line-update)))
 
@@ -239,7 +239,7 @@ Commands:
 ;;;
 
 (defvar enriched-mode-map nil
-  "Keymap for `enriched-mode'.")
+  "Keymap for Enriched mode.")
 
 (if (null enriched-mode-map)
     (fset 'enriched-mode-map (setq enriched-mode-map (make-sparse-keymap))))
