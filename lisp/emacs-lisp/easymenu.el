@@ -142,7 +142,7 @@ is a list of menu items, as above."
 		 (if (and (symbolp keyword)
 			  (= ?: (aref (symbol-name keyword) 0)))
 		     (let ((count 2)
-			   style selected active keys
+			   style selected active keys active-specified
 			   arg)
 		       (while (> (length item) count)
 			 (setq keyword (aref item count))
@@ -151,7 +151,8 @@ is a list of menu items, as above."
 			 (cond ((eq keyword ':keys)
 				(setq keys arg))
 			       ((eq keyword ':active)
-				(setq active arg))
+				(setq active (or arg ''nil)
+				      active-specified t))
 			       ((eq keyword ':suffix)
 				(setq item-string
 				      (concat item-string " " arg)))
@@ -185,8 +186,10 @@ is a list of menu items, as above."
 			       (setcar (car old-items)
 				       (concat "    " (car (car old-items))))
 			       (setq old-items (cdr old-items)))))
-		       (if active (put command 'menu-enable active)))
-		   (put command 'menu-enable keyword)))
+		       (if active-specified (put command 'menu-enable active)))
+		   ;; If the third element is nil,
+		   ;; make this command always disabled.
+		   (put command 'menu-enable (or keyword ''nil))))
 	       (if (symbolp callback)
 		   (fset command callback)
 		 (fset command (list 'lambda () '(interactive) callback)))
