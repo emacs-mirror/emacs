@@ -1,5 +1,8 @@
 2004-06-14  Kenichi Handa  <handa@m17n.org>
 
+	* international/code-pages.el (windows-1256, cp1125): Fix tables
+	for several characters.
+
 	* international/utf-8.el (ccl-encode-mule-utf-8): Fix previous
 	change.
 
