@@ -347,12 +347,17 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	   ;; since we used it.
 	   (eval (cons 'and
 		       (mapcar '(lambda (elt)
-				  (equal (cdr elt)
-					 (file-attributes (car elt))))
+				  (let ((curr (file-attributes (car elt))))
+				    ;; Don't compare the access time.
+				    (if curr (setcar (nthcdr 4 curr) 0))
+				    (setcar (nthcdr 4 (cdr elt)) 0)
+				    (equal (cdr elt) curr)))
 			       Info-dir-file-attributes))))
       (insert Info-dir-contents)
     (let ((dirs Info-directory-list)
 	  buffers buffer others nodes dirs-done)
+
+      (setq Info-dir-file-attributes nil)
 
       ;; Search the directory list for the directory file.
       (while dirs
@@ -361,32 +366,33 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (member (directory-file-name truename) dirs-done)
 	      ;; Try several variants of specified name.
 	      ;; Try upcasing, appending `.info', or both.
-	      (let* (temp
-		     (buffer
-		      (cond
-		       ((progn (setq temp (expand-file-name "DIR" (car dirs)))
-			       (file-exists-p temp))
-			(find-file-noselect temp))
-		       ((progn (setq temp (expand-file-name "dir" (car dirs)))
-			       (file-exists-p temp))
-			(find-file-noselect temp))
-		       ((progn (setq temp (expand-file-name "DIR.INFO" (car dirs)))
-			       (file-exists-p temp))
-			(find-file-noselect temp))
-		       ((progn (setq temp (expand-file-name "dir.info" (car dirs)))
-			       (file-exists-p temp))
-			(find-file-noselect temp)))))
+	      (let* (file
+		     (attrs
+		      (or
+		       (progn (setq file (expand-file-name "dir" truename))
+			      (file-attributes file))
+		       (progn (setq file (expand-file-name "DIR" truename))
+			      (file-attributes file))
+		       (progn (setq file (expand-file-name "dir.info" truename))
+			      (file-attributes file))
+		       (progn (setq file (expand-file-name "DIR.INFO" truename))
+			      (file-attributes file)))))
 		(setq dirs-done
 		      (cons truename
 			    (cons (directory-file-name truename)
 				  dirs-done)))
-		(if buffer (setq buffers (cons buffer buffers)
-				 Info-dir-file-attributes
-				 (cons (cons (buffer-file-name buffer)
-					     (file-attributes (buffer-file-name buffer)))
-				       Info-dir-file-attributes))))))
-	(setq dirs (cdr dirs)))
-
+		(if attrs
+		    (save-excursion
+		      (or buffers
+			  (message "Composing main Info directory..."))
+		      (set-buffer (generate-new-buffer "info dir"))
+		      (insert-file-contents file)
+		      (setq buffers (cons (current-buffer) buffers)
+			    Info-dir-file-attributes
+			    (cons (cons file attrs)
+				  Info-dir-file-attributes))))))
+	  (setq dirs (cdr dirs))))
+      
       (or buffers
 	  (error "Can't find the info directory node"))
       ;; Distinguish the dir file that comes with Emacs from all the
@@ -466,7 +472,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
       ;; Kill all the buffers we just made.
       (while buffers
 	(kill-buffer (car buffers))
-	(setq buffers (cdr buffers))))
+	(setq buffers (cdr buffers)))
+      (message "Composing main Info directory...done"))
     (setq Info-dir-contents (buffer-string)))
   (setq default-directory Info-dir-contents-directory))
 
