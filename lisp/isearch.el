@@ -1899,8 +1899,6 @@ since they have special meaning in a regexp."
 ;;;  - the variable `isearch-invalid-regexp' is expected to be true
 ;;;    iff `isearch-string' is an invalid regexp.
 
-(require 'timer)
-
 (defgroup isearch-lazy-highlight nil
   "Lazy highlighting feature for incremental search."
   :prefix "isearch-lazy-highlight-"
