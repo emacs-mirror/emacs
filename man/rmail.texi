@@ -976,7 +976,7 @@ means to show the reformatted header, and a zero or negative argument
 means to show the full header.
 
 @vindex rmail-highlighted-headers
-  When used with a window system that supports multiple fonts, Rmail
+  When used with a terminal that supports multiple fonts, Rmail
 highlights certain header fields that are especially interesting---by
 default, the @samp{From} and @samp{Subject} fields.  The variable
 @code{rmail-highlighted-headers} holds a regular expression that
@@ -991,6 +991,11 @@ highlighting as well.  @xref{Faces}, for how to do this.
 
   To turn off highlighting entirely in Rmail, set
 @code{rmail-highlighted-headers} to @code{nil}.
+
+@findex goto-addr
+URLs in messages may be highlighted and activated for following with the
+mouse or keyboard by using the Goto-address package.  Customize the hook
+@code{rmail-show-message-hook} to add @code{goto-addr}.
 
 @node Rmail Editing
 @section Editing Within a Message
