@@ -101,8 +101,9 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef USE_X_TOOLKIT
 
-extern void free_frame_menubar ();
-extern FRAME_PTR x_menubar_window_to_frame ();
+extern void free_frame_menubar P_ ((struct frame *));
+extern struct frame *x_menubar_window_to_frame P_ ((struct x_display_info *,
+						    int));
 
 #if (XtSpecificationRelease >= 5) && !defined(NO_EDITRES)
 #define HACK_EDITRES
@@ -384,8 +385,8 @@ extern int extra_keyboard_modifiers;
 
 static Lisp_Object Qvendor_specific_keysyms;
 
-extern XrmDatabase x_load_resources ();
-extern Lisp_Object x_icon_type ();
+extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
+extern Lisp_Object x_icon_type P_ ((struct frame *));
 
 
 /* Enumeration for overriding/changing the face to use for drawing
@@ -474,7 +475,13 @@ static int x_phys_cursor_in_rect_p P_ ((struct window *, XRectangle *));
 static void x_draw_row_bitmaps P_ ((struct window *, struct glyph_row *));
 static void note_overwritten_text_cursor P_ ((struct window *, int, int));
 static void x_flush P_ ((struct frame *f));
-     
+static void x_update_begin P_ ((struct frame *));
+static void x_update_window_begin P_ ((struct window *));
+static void x_draw_vertical_border P_ ((struct window *));
+static void x_after_update_window_line P_ ((struct glyph_row *));
+static INLINE void take_vertical_position_into_account P_ ((struct it *));
+static void x_produce_stretch_glyph P_ ((struct it *));
+
 
 /* Flush display of frame F, or of all frames if F is null.  */
 

@@ -106,17 +106,6 @@ Boston, MA 02111-1307, USA.  */
    | EnterWindowMask		\
    | VisibilityChangeMask)
 
-/* This checks to make sure we have a display.  */
-extern void check_x ();
-
-extern struct frame *x_window_to_frame ();
-
-#ifdef USE_X_TOOLKIT
-extern struct frame *x_any_window_to_frame ();
-extern struct frame *x_non_menubar_window_to_frame ();
-extern struct frame *x_top_window_to_frame ();
-#endif
-
 enum text_cursor_kinds
 {
   NO_CURSOR = -1,
@@ -352,6 +341,17 @@ struct x_display_info
 #endif
 };
 
+/* This checks to make sure we have a display.  */
+extern void check_x P_ ((void));
+
+extern struct frame *x_window_to_frame P_ ((struct x_display_info *, int));
+
+#ifdef USE_X_TOOLKIT
+extern struct frame *x_any_window_to_frame P_ ((struct x_display_info *, int));
+extern struct frame *x_non_menubar_window_to_frame P_ ((struct x_display_info *, int));
+extern struct frame *x_top_window_to_frame P_ ((struct x_display_info *, int));
+#endif
+
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
 
@@ -367,15 +367,17 @@ extern Lisp_Object Vx_pixel_size_width_font_regexp;
 /* A flag to control how to display unibyte 8-bit character.  */
 extern int unibyte_display_via_language_environment;
 
-struct x_display_info *x_display_info_for_display P_ ((Display *));
-struct x_display_info *x_display_info_for_name ();
+extern struct x_display_info *x_display_info_for_display P_ ((Display *));
+extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 
-extern struct x_display_info *x_term_init ();
+extern struct x_display_info *x_term_init P_ ((Lisp_Object, char *, char *));
 
 extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 extern void select_visual P_ ((struct x_display_info *));
-extern struct font_info *x_get_font_info(), *x_load_font (), *x_query_font ();
-extern void x_find_ccl_program();
+extern struct font_info *x_get_font_info P_ ((struct frame *f, int));
+extern struct font_info *x_load_font P_ ((struct frame *, char *, int));
+extern struct font_info *x_query_font P_ ((struct frame *, char *));
+extern void x_find_ccl_program P_ ((struct font_info *));
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
