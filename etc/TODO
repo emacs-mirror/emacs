@@ -129,7 +129,7 @@
   `defalias' for functions.  The implementation should not slow down
   Emacs, and it shouldn't use additional memory, at least not much. 
 
-* Port Emacs to GTK+.
+* Port Emacs to GTK+.  (Relevant work has been done already.)
 
 * Make the Lucid menu widget display multilingual text.
 
@@ -137,3 +137,5 @@
   when the mouse enters it.
 
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
+
+* Implement some variety of (non-gtk) drag-and-drop support under X.

@@ -1,14 +1,10 @@
+2000-12-07  Dave Love  <fx@gnu.org>
+
+	* CODINGS, CHARSETS: Removed.  (Mule 2.3 relics.)
+
 2000-11-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps: Eliminated the line number font predefinition.
-
-2000-11-19  Jason Rumney  <jasonr@gnu.org>
-
-	* PROBLEMS: Added note about subprocesses on Windows 9x.
-
-2000-11-16  Andre Spiegel  <spiegel@gnu.org>
-
-	* NEWS: Updated VC news.
 
 2000-11-09  Kenichi Handa  <handa@etl.go.jp>
 
@@ -19,10 +15,6 @@
 
 	* ONEWS.1, ONEWS.2, ONEWS.3, ONEWS.4: Renamed from NEWS.*.
 
-2000-10-18  John Wiegley  <johnw@gnu.org>
-
-	* NEWS: Added text for pcomplete.el.
-
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* 3B-MAXMEM, AIX.DUMP, SUN-SUPPORT: Removed.
@@ -30,10 +22,6 @@
 	* tasks.texi: Updated to the version from /gd/gnuorg.
 
 	* FTP: Refer to the GNU web site.
-
-2000-10-13  John Wiegley  <johnw@gnu.org>
-
-	* NEWS: Added a note about Eshell.
 
 2000-10-12  Dave Love  <fx@gnu.org>
 

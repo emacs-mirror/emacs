@@ -1,3 +1,9 @@
+2000-12-07  Dave Love  <fx@gnu.org>
+
+	* jka-compr.el (jka-compr-compression-info-list): Fix :type.
+
+	* facemenu.el (facemenu-unlisted-faces): Fix value.
+
 2000-12-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (font-lock-default-fontify-region):
