@@ -163,7 +163,7 @@ CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
 all: ${UTILITIES} ${INSTALLABLES}
 
 #ifdef MOVEMAIL_NEEDS_BLESSING
-blessmail: ../src/emacs
+blessmail:
 	../src/emacs -batch -l ../lisp/blessmail.el
 	chmod +x blessmail
 #endif
