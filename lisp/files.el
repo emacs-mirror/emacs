@@ -1857,9 +1857,8 @@ Local Variables section of the file; for that, use `hack-local-variables'.
 If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag.
 
-If the optional argument KEEP-MODE-IF-SAME is non-nil,
-then we do not set anything but the major mode,
-and we don't even do that unless it would come from the file name."
+If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
+only set the major mode, if that would change it."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes xml)
     ;; Find a -*- mode tag
@@ -1891,12 +1890,13 @@ and we don't even do that unless it would come from the file name."
 		   modes))))
     ;; If we found modes to use, invoke them now, outside the save-excursion.
     (if modes
-	(dolist (mode (nreverse modes))
-	  (if (not (functionp mode))
-	      (message "Ignoring unknown mode `%s'" mode)
-	    (setq done t)
-	    (unless (if keep-mode-if-same (eq mode major-mode))
-	      (funcall mode))))
+	(catch 'nop
+	  (dolist (mode (nreverse modes))
+	    (if (not (functionp mode))
+		(message "Ignoring unknown mode `%s'" mode)
+	      (setq done t)
+	      (or (set-auto-mode-0 mode)
+		  (throw 'nop)))))
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
       ;; finds the interpreter anywhere in $PATH.
@@ -1910,9 +1910,7 @@ and we don't even do that unless it would come from the file name."
 	    done (assoc (file-name-nondirectory mode)
 			interpreter-mode-alist))
       ;; If we found an interpreter mode to use, invoke it now.
-      (and done
-	   (not (if keep-mode-if-same (eq mode major-mode)))
-	   (funcall (cdr done))))
+      (if done (set-auto-mode-0 (cdr done))))
     (if (and (not done) buffer-file-name)
 	(let ((name buffer-file-name))
 	  ;; Remove backup-suffixes from file name.
@@ -1930,19 +1928,31 @@ and we don't even do that unless it would come from the file name."
 		(setq name)))
 	    (when mode
 	      (if xml (or (memq mode xml-based-modes)
-			  (setq mode 'sgml-mode))) ; alias to xml-mode for `eq'
-	      ;; When KEEP-MODE-IF-SAME is set, we are working on behalf of
-	      ;; set-visited-file-name.  In that case, if the major mode
-	      ;; specified is the same one we already have, don't actually
-	      ;; reset it.  We don't want to lose minor modes such as Font
-	      ;; Lock.
-	      (unless (if keep-mode-if-same (eq mode major-mode))
-		(funcall mode))
+			  (setq mode 'xml-mode)))
+	      (set-auto-mode-0 mode)
 	      (setq done t)))))
-    (and (not done)
-	 xml
-	 (not (if keep-mode-if-same (eq 'sgml-mode major-mode)))
-	 (xml-mode))))
+    (and xml
+	 (not done)
+	 (set-auto-mode-0 'xml-mode))))
+
+
+;; When `keep-mode-if-same' is set, we are working on behalf of
+;; set-visited-file-name.  In that case, if the major mode specified is the
+;; same one we already have, don't actually reset it.  We don't want to lose
+;; minor modes such as Font Lock.
+(defun set-auto-mode-0 (mode)
+  "Apply MODE and return it.
+If `keep-mode-if-same' is non-nil MODE is chased of any aliases and
+compared to current major mode.  If they are the same, do nothing
+and return nil."
+  (when keep-mode-if-same
+    (while (symbolp (symbol-function mode))
+      (setq mode (symbol-function mode)))
+    (if (eq mode major-mode)
+	(setq mode)))
+  (when mode
+    (funcall mode)
+    mode))
 
 
 (defun set-auto-mode-1 ()
