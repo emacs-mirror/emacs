@@ -267,7 +267,8 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	(exit-status 0)
 	(tempname (make-temp-name
 		   (expand-file-name "cmacexp"
-				     temporary-file-directory))))
+				     (or small-temporary-file-directory
+					 temporary-file-directory)))))
     (unwind-protect
 	(save-excursion
 	  (save-restriction
