@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.105 1998/04/05 18:44:35 spiegel Exp done $
+;; $Id: vc-hooks.el,v 1.106 1998/04/20 02:00:00 done Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -307,40 +307,41 @@ similarly for other version control systems."
 	   (error "Couldn't find version control information")))
     exec-status))
 
-(defun vc-parse-cvs-status (&optional file)
+(defun vc-parse-cvs-status (&optional full)
   ;; Parse output of "cvs status" command in the current buffer and
-  ;; set file properties accordingly.  If argument FILE is given, it
-  ;; must be the name of the file to which the status output applies,
-  ;; otherwise FILE is derived from the status output itself.
-  (or file
-      (progn (goto-char (point-min))
-             (re-search-forward "^File: \\([^ \t]+\\)" nil t)
-             (setq file (concat default-directory (match-string 1)))))
-  (vc-parse-buffer     
-   ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
-   ;; and CVS 1.4a1 says "Repository revision:".
-   '(("\\(RCS Version\\|RCS Revision\\|Repository revision\\):[\t ]+\\([0-9.]+\\)" 2)
-     ("^File: [^ \t]+[ \t]+Status: \\(.*\\)" 1))
-   file
-   '(vc-latest-version vc-cvs-status))
-  ;; Translate those status values that we understand into symbols.
-  ;; Any other value is converted to nil.
-  (let ((status (vc-file-getprop file 'vc-cvs-status)))
-    (cond 
-     ((string-match "Up-to-date" status)
-      (vc-file-setprop file 'vc-cvs-status 'up-to-date)
-      (vc-file-setprop file 'vc-checkout-time 
-                       (nth 5 (file-attributes file))))
-     ((vc-file-setprop file 'vc-cvs-status
-       (cond 
-        ((string-match "Locally Modified"    status) 'locally-modified)
-        ((string-match "Needs Merge"         status) 'needs-merge)
-        ((string-match "Needs \\(Checkout\\|Patch\\)" status) 
-         'needs-checkout)
-        ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
-        ((string-match "Locally Added"       status) 'locally-added)
-        ((string-match "New file!"           status) 'locally-added)
-        (t 'unknown)))))))
+  ;; set file properties accordingly.  Unless FULL is t, parse only
+  ;; essential information.
+  (let (file status)
+    (goto-char (point-min))
+    (if (re-search-forward "^File: " nil t)
+        (cond 
+         ((looking-at "no file") nil)
+         ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
+          (setq file (concat default-directory (match-string 1)))
+          (vc-file-setprop file 'vc-backend 'CVS)
+          (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
+              (setq status "Unknown")
+            (setq status (match-string 1)))
+          (if (and full 
+                   (re-search-forward 
+  "\\(RCS Version\\|RCS Revision\\|Repository revision\\):[\t ]+\\([0-9.]+\\)"
+                    nil t))
+              (vc-file-setprop file 'vc-latest-version (match-string 2)))
+          (cond 
+           ((string-match "Up-to-date" status)
+            (vc-file-setprop file 'vc-cvs-status 'up-to-date)
+            (vc-file-setprop file 'vc-checkout-time 
+                             (nth 5 (file-attributes file))))
+           ((vc-file-setprop file 'vc-cvs-status
+             (cond 
+              ((string-match "Locally Modified"    status) 'locally-modified)
+              ((string-match "Needs Merge"         status) 'needs-merge)
+              ((string-match "Needs \\(Checkout\\|Patch\\)" status) 
+               'needs-checkout)
+              ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
+              ((string-match "Locally Added"       status) 'locally-added)
+              ((string-match "New file!"           status) 'locally-added)
+              (t 'unknown))))))))))
 
 (defun vc-fetch-master-properties (file)
   ;; Fetch those properties of FILE that are stored in the master file.
@@ -405,7 +406,7 @@ similarly for other version control systems."
         (let ((default-directory (file-name-directory file)))
           (vc-simple-command 0 "cvs" (file-name-nondirectory file) "status"))
 	(set-buffer (get-buffer "*vc-info*"))
-        (vc-parse-cvs-status file))))
+        (vc-parse-cvs-status t))))
     (if (get-buffer "*vc-info*")
 	(kill-buffer (get-buffer "*vc-info*")))))
 
