@@ -256,6 +256,9 @@ Otherwise, it saves all modified buffers without asking.")
   '(("^\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
+;; The system null device. (Should reference NULL_DEVICE from C.)
+(defvar grep-null-device "/dev/null" "The system null device.")
+
 ;; Use zgrep if available, to work nicely with compressed files.
 ;; Otherwise, use ordinary grep.
 (defvar grep-program
@@ -406,9 +409,6 @@ to a function that generates a unique name."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal compile-command "No more errors"))
-
-;; The system null device. (Should reference NULL_DEVICE from C.)
-(defvar grep-null-device "/dev/null" "The system null device.")
 
 (defun grep-process-setup ()
   "Set up `compilation-exit-message-function' for `grep'."
