@@ -1210,7 +1210,7 @@ where they were found."
 ;; Return non-nil iff the current buffer is a valid etags TAGS file.
 (defun etags-verify-tags-table ()
   ;; Use eq instead of = in case char-after returns nil.
-  (eq (char-after 1) ?\f))
+  (eq (char-after (point-min)) ?\f))
 
 (defun etags-file-of-tag ()
   (save-excursion
@@ -1254,7 +1254,7 @@ where they were found."
 	;; the beginning of the file.
 	(setq tag-text t
 	      line nil
-	      startpos 1)
+	      startpos (point-min))
 
       ;; Find the end of the tag and record the whole tag text.
       (search-forward "\177")
@@ -1336,7 +1336,7 @@ where they were found."
     (beginning-of-line)))
 
 (defun etags-list-tags (file)
-  (goto-char 1)
+  (goto-char (point-min))
   (when (search-forward (concat "\f\n" file ",") nil t)
     (forward-line 1)
     (while (not (or (eobp) (looking-at "\f")))
@@ -1401,7 +1401,7 @@ where they were found."
     (princ "Tags in file `")
     (tags-with-face 'highlight (princ buffer-file-name))
     (princ "':\n\n"))
-  (goto-char 1)
+  (goto-char (point-min))
   (while (re-search-forward string nil t)
     (beginning-of-line)
     (let ((tag (buffer-substring (point)
@@ -1841,7 +1841,7 @@ see the doc of that variable if you want to add names to the list."
       (prin1 (car set-list) (current-buffer)) ;invisible
       (insert "\n")
       (setq set-list (delete (car set-list) set-list)))
-    (goto-char 1)
+    (goto-char (point-min))
     (insert-before-markers
      "Type `t' to select a tags table or set of tags tables:\n\n")
     (if desired-point
