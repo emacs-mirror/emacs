@@ -2,6 +2,8 @@
 
 	* composite.el (decompose-composite-char): Fix docstring.
 
+	* select.el (x-set-cut-buffer): Likewise.
+
 2003-01-27  Juanma Barranquero  <lektu@terra.es>
 
 	* progmodes/cc-vars.el (c-offsets-alist): Fix typo.
