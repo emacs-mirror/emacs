@@ -180,6 +180,7 @@ xlw_create_popup_menu (instance)
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
   XtAddCallback (widget, XtNhighlightCallback, highlight_hook,
 		 (XtPointer)instance);
+
   return popup_shell;
 }
 
@@ -251,7 +252,6 @@ xlw_popup_menu (widget, event)
      Widget widget;
      XEvent *event;
 {
-  XButtonPressedEvent dummy;
   XlwMenuWidget mw;
 
   if (!XtIsShell (widget))
@@ -260,21 +260,24 @@ xlw_popup_menu (widget, event)
   mw = (XlwMenuWidget)((CompositeWidget)widget)->composite.children [0];
 
   if (event)
-    pop_up_menu (mw, (XButtonPressedEvent*) event);
+    XtCallActionProc ((Widget) mw, "start", event, NULL, 0);
   else
     {
-      dummy.type = ButtonPress;
-      dummy.serial = 0;
-      dummy.send_event = 0;
-      dummy.display = XtDisplay (widget);
-      dummy.window = XtWindow (XtParent (widget));
-      dummy.time = CurrentTime;
-      dummy.button = 0;
-      XQueryPointer (dummy.display, dummy.window, &dummy.root,
-		     &dummy.subwindow, &dummy.x_root, &dummy.y_root,
-		     &dummy.x, &dummy.y, &dummy.state);
+      XEvent dummy;
+      XButtonPressedEvent *bd = &dummy.xbutton;
 
-      pop_up_menu (mw, &dummy);
+      bd->type = ButtonPress;
+      bd->serial = 0;
+      bd->send_event = 0;
+      bd->display = XtDisplay (widget);
+      bd->window = XtWindow (XtParent (widget));
+      bd->time = CurrentTime;
+      bd->button = 0;
+      XQueryPointer (bd->display, bd->window, &bd->root,
+		     &bd->subwindow, &bd->x_root, &bd->y_root,
+		     &bd->x, &bd->y, &bd->state);
+
+      XtCallActionProc ((Widget) mw, "start", &dummy, NULL, 0);
     }
 }
 

@@ -1035,6 +1035,33 @@ activate_button (widget, closure, call_data)
 
 /* creation functions */
 
+/* Called for key press in dialogs.  Used to pop down dialog on ESC.  */
+static void
+dialog_key_cb (widget, closure, event, continue_to_dispatch)
+     Widget widget;
+     XtPointer closure;
+     XEvent *event;
+     Boolean *continue_to_dispatch;
+{
+  KeySym sym = 0;
+  Modifiers modif_ret;
+  
+  XtTranslateKeycode (event->xkey.display, event->xkey.keycode, 0,
+                      &modif_ret, &sym);
+                      
+  if (sym == osfXK_Cancel)
+    {
+      Widget w = *((Widget *) closure);
+
+      while (w && ! XtIsShell (w))
+        w = XtParent (w);
+
+      if (XtIsShell (w)) XtPopdown (w);
+    }
+
+  *continue_to_dispatch = TRUE;
+}
+
 /* dialogs */
 static Widget
 make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
@@ -1123,6 +1150,8 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
       XtSetArg(al[ac], XmNmarginWidth, 10); ac++;
       XtSetArg(al[ac], XmNnavigationType, XmTAB_GROUP); ac++;
       children [n_children] = XmCreatePushButton (row, button_name, al, ac);
+      XtAddEventHandler (children [n_children],
+                         KeyPressMask, False, dialog_key_cb, result);
 
       if (i == 0)
 	{
@@ -1149,6 +1178,9 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
       XtSetArg(al[ac], XmNmarginWidth, 10); ac++;
       XtSetArg(al[ac], XmNnavigationType, XmTAB_GROUP); ac++;
       children [n_children] = XmCreatePushButton (row, button_name, al, ac);
+      XtAddEventHandler (children [n_children],
+                         KeyPressMask, False, dialog_key_cb, result);
+
       if (! button) button = children [n_children];
       n_children++;
     }
@@ -1491,6 +1523,7 @@ xm_create_dialog (instance)
 
   XtAddCallback (widget, XmNpopdownCallback, xm_nosel_callback,
 		 (XtPointer) instance);
+
   return widget;
 }
 
