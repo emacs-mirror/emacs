@@ -219,11 +219,15 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
       {						\
 	*dst++ = 0xA0, *dst++ = (c) | 0x80;	\
 	coding->composed_chars++;		\
+	if (((c) | 0x80) < 0xA0)		\
+	  coding->fake_multibyte = 1;		\
       }						\
     else					\
       {						\
 	*dst++ = (c);				\
 	coding->produced_char++;		\
+	if ((c) >= 0x80)			\
+	  coding->fake_multibyte = 1;		\
       }						\
   } while (0)
 
@@ -246,6 +250,8 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
     if (leading_code = CHARSET_LEADING_CODE_EXT (charset))		\
       *dst++ = leading_code;						\
     *dst++ = (c) | 0x80;						\
+    if (((c) | 0x80)  < 0xA0)						\
+      coding->fake_multibyte = 1; 					\
   } while (0)
 
 /* Decode one DIMENSION2 character whose charset is CHARSET and whose
@@ -255,6 +261,8 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
   do {							\
     DECODE_CHARACTER_DIMENSION1 (charset, c1);		\
     *dst++ = (c2) | 0x80;				\
+    if (((c2) | 0x80) < 0xA0)				\
+      coding->fake_multibyte = 1;			\
   } while (0)
 
 
@@ -2022,7 +2030,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
    ASCII		0x00 .. 0x7F
    KATAKANA-JISX0201	0xA0 .. 0xDF
    JISX0208 (1st byte)	0x80 .. 0x9F and 0xE0 .. 0xEF
-	    (2nd byte)	0x40 .. 0xFF
+	    (2nd byte)	0x40 .. 0x7E and 0x80 .. 0xFC
    -------------------------------
 
 */
@@ -2275,7 +2283,7 @@ decode_coding_sjis_big5 (coding, source, destination,
 		{
 		  /* SJIS -> JISX0208 */
 		  ONE_MORE_BYTE (c2);
-		  if (c2 >= 0x40)
+		  if (c2 >= 0x40 && c2 != 0x7F && c2 <= 0xFC)
 		    {
 		      DECODE_SJIS (c1, c2, c3, c4);
 		      DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
