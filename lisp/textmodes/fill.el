@@ -120,6 +120,9 @@ This function is used when `adaptive-fill-regexp' does not match."
   :type 'function
   :group 'fill)
 
+(defvar fill-indent-according-to-mode nil
+  "Whether or not filling should try to use the major mode's indentation.")
+
 (defun current-fill-column ()
   "Return the fill-column to use for this line.
 The fill-column to use for a buffer is stored in the variable `fill-column',
@@ -193,7 +196,7 @@ Remove indentation from each line."
 (defun fill-common-string-prefix (s1 s2)
   "Return the longest common prefix of strings S1 and S2, or nil if none."
   (let ((cmp (compare-strings s1 nil nil s2 nil nil)))
-    (if (eq cmp t) 
+    (if (eq cmp t)
 	s1
       (setq cmp (1- (abs cmp)))
       (unless (zerop cmp)
@@ -380,10 +383,10 @@ space does not end a sentence, so don't break a line there."
 	(backward-char 1)
 	(setq oneleft t)))
     (setq to (point))
-;;;     ;; If there was no newline, and there is text in the paragraph, then
-;;;     ;; create a newline.
-;;;     (if (and (not oneleft) (> to from-plus-indent))
-;;; 	(newline))
+    ;; ;; If there was no newline, and there is text in the paragraph, then
+    ;; ;; create a newline.
+    ;; (if (and (not oneleft) (> to from-plus-indent))
+    ;; 	(newline))
     (goto-char from-plus-indent))
 
   (if (not (> to (point)))
@@ -642,7 +645,13 @@ space does not end a sentence, so don't break a line there."
 		  ;; Give newline the properties of the space(s) it replaces
 		  (set-text-properties (1- (point)) (point)
 				       (text-properties-at (point)))
-		  (indent-to-left-margin)
+		  (if (or fill-prefix
+			  (not fill-indent-according-to-mode)
+			  (memq indent-line-function
+				;; Brain dead "indenting" functions.
+				'(indent-relative-maybe indent-relative)))
+		      (indent-to-left-margin)
+		    (indent-according-to-mode))
 		  ;; Insert the fill prefix after indentation.
 		  ;; Set prefixcol so whitespace in the prefix won't get lost.
 		  (and fill-prefix (not (equal fill-prefix ""))
