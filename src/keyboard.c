@@ -2143,6 +2143,22 @@ Lisp_Object *scroll_bar_parts[] = {
 
 static Lisp_Object button_down_location;
 
+/* Information about the most recent up-going button event:  Which
+   button, what location, and what time. */
+
+static int button_up_button;
+static int button_up_x;
+static int button_up_y;
+static unsigned long button_up_time;
+
+/* The minimum time between clicks to make a double-click. */
+
+int double_click_time;
+
+/* The number of clicks in this multiple-click. */
+
+int double_click_count;
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
@@ -2176,12 +2192,14 @@ make_lispy_event (event)
 	c |= (event->modifiers
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier));
+	button_up_time = 0;
 	return c;
       }
 
       /* A function key.  The symbol may need to have modifier prefixes
 	 tacked onto it.  */
     case non_ascii_keystroke:
+      button_up_time = 0;
       return modify_event_symbol (XFASTINT (event->code), event->modifiers,
 				  Qfunction_key,
 				  lispy_function_keys, &func_key_syms,
@@ -2316,10 +2334,36 @@ make_lispy_event (event)
 		   pair.  */
 		Lisp_Object down = Fnth (make_number (2), start_pos);
 
-		event->modifiers |= ((EQ (event->x, XCONS (down)->car)
-				      && EQ (event->y, XCONS (down)->cdr))
-				     ? click_modifier
-				     : drag_modifier);
+		if (EQ (event->x, XCONS (down)->car)
+		    && EQ (event->y, XCONS (down)->cdr))
+		  {
+		    if (button == button_up_button
+			&& XINT (event->x) == button_up_x
+			&& XINT (event->y) == button_up_y
+			&& button_up_time != 0
+			&& ((int)(event->timestamp - button_up_time)
+			    < double_click_time))
+		      {
+			double_click_count++;
+			event->modifiers |= ((double_click_count > 2)
+					     ? triple_modifier
+					     : double_modifier);
+		      }
+		    else
+		      {
+			double_click_count = 1;
+			event->modifiers |= click_modifier;
+		      }
+		    button_up_button = button;
+		    button_up_x = XINT (event->x);
+		    button_up_y = XINT (event->y);
+		    button_up_time = event->timestamp;
+		  }
+		else
+		  {
+		    button_up_time = 0;
+		    event->modifiers |= drag_modifier;
+		  }
 	      }
 	  }
 	else
@@ -2341,6 +2385,11 @@ make_lispy_event (event)
 	    return Fcons (head,
 			  Fcons (start_pos,
 				 Fcons (position,
+					Qnil)));
+	  else if (event->modifiers & (double_modifier | triple_modifier))
+	    return Fcons (head,
+			  Fcons (position,
+				 Fcons (make_number (double_click_count),
 					Qnil)));
 	  else
 	    return Fcons (head,
@@ -2498,6 +2547,24 @@ parse_modifiers_uncached (symbol, modifier_end)
 	    modifiers |= down_modifier;
 	    i += 5;
 	  }
+	else if (i + 7 <= name->size
+		 && ! strncmp (name->data + i, "double-", 7))
+	  {
+	    modifiers |= double_modifier;
+	    i += 7;
+	  }
+	else
+	  goto no_more_modifiers;
+	break;
+
+      case 't':
+	if (i + 7 > name->size)
+	  goto no_more_modifiers;
+	if (! strncmp (name->data + i, "triple-", 7))
+	  {
+	    modifiers |= triple_modifier;
+	    i += 7;
+	  }
 	else
 	  goto no_more_modifiers;
 	break;
@@ -2510,7 +2577,8 @@ parse_modifiers_uncached (symbol, modifier_end)
  no_more_modifiers:
 
   /* Should we include the `click' modifier?  */
-  if (! (modifiers & (down_modifier | drag_modifier))
+  if (! (modifiers & (down_modifier | drag_modifier
+		      | double_modifier | triple_modifier))
       && i + 7 == name->size
       && strncmp (name->data + i, "mouse-", 6) == 0
       && ('0' <= name->data[i + 6] && name->data[i + 6] <= '9'))
@@ -2536,7 +2604,7 @@ apply_modifiers_uncached (modifiers, base, base_len)
      to use Fintern, which expects a genuine Lisp_String, and keeps a
      reference to it.  */
   char *new_mods =
-    (char *) alloca (sizeof ("A-C-H-M-S-s-down-drag-"));
+    (char *) alloca (sizeof ("A-C-H-M-S-s-down-drag-double-triple-"));
   int mod_len;
 
   {
@@ -2555,6 +2623,8 @@ apply_modifiers_uncached (modifiers, base, base_len)
     if (modifiers & super_modifier) { *p++ = 's'; *p++ = '-'; }
     if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
     if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
+    if (modifiers & double_modifier)  { strcpy (p, "double-");  p += 7; }
+    if (modifiers & triple_modifier)  { strcpy (p, "triple-");  p += 7; }
     /* The click modifier is denoted by the absence of other modifiers.  */
 
     *p = '\0';
@@ -2575,7 +2645,7 @@ apply_modifiers_uncached (modifiers, base, base_len)
 
 static char *modifier_names[] =
 {
-  "up", "down", "drag", "click", 0, 0, 0, 0,
+  "up", "down", "drag", "click", "double", "triple", 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, "alt", "super", "hyper", "shift", "control", "meta"
 };
@@ -3525,8 +3595,10 @@ follow_key (key, nmaps, current, defs, next)
    function key's sequence.  If so, we try to read the whole function
    key, and substitute its symbolic name into the key sequence.
 
-   We ignore unbound `down-' mouse clicks.  We turn unbound `drag-'
-   events into similar click events, if that would make them bound.
+   We ignore unbound `down-' mouse clicks.  We turn unbound `drag-' and
+   `double-' events into similar click events, if that would make them
+   bound.  We try to turn `triple-' events first into `double-' events,
+   then into clicks.
 
    If we get a mouse click in a mode line, vertical divider, or other
    non-text area, we treat the click as if it were prefixed by the
@@ -3947,29 +4019,41 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	      /* We turn unbound `drag-' events into `click-'
 		 events, if the click would be bound.  */
-	      else if (modifiers & drag_modifier)
+	      else if (modifiers & (drag_modifier | double_modifier
+				    | triple_modifier))
 		{
-		  Lisp_Object new_head =
-		    apply_modifiers (modifiers & ~drag_modifier,
-				     XCONS (breakdown)->car);
-		  Lisp_Object new_click =
-		    Fcons (new_head, Fcons (EVENT_START (key), Qnil));
+		  while (modifiers & (drag_modifier | double_modifier
+				      | triple_modifier))
+		    {
+		      Lisp_Object new_head, new_click;
+		      if (modifiers & triple_modifier)
+			modifiers ^= (double_modifier | triple_modifier);
+		      else
+			modifiers &= ~(drag_modifier | double_modifier);
+		      new_head =
+			apply_modifiers (modifiers, XCONS (breakdown)->car);
+		      new_click =
+			Fcons (new_head, Fcons (EVENT_START (key), Qnil));
 
-		  /* Look for a binding for this new key.  follow_key
-		     promises that it didn't munge submaps the
-		     last time we called it, since key was unbound.  */
-		  first_binding =
-		    (follow_key (new_click,
-				 nmaps   - local_first_binding,
-				 submaps + local_first_binding,
-				 defs    + local_first_binding,
-				 submaps + local_first_binding)
-		     + local_first_binding);
+		      /* Look for a binding for this new key.  follow_key
+			 promises that it didn't munge submaps the
+			 last time we called it, since key was unbound.  */
+		      first_binding =
+			(follow_key (new_click,
+				     nmaps   - local_first_binding,
+				     submaps + local_first_binding,
+				     defs    + local_first_binding,
+				     submaps + local_first_binding)
+			 + local_first_binding);
 
-		  /* If that click is bound, go for it.  */
-		  if (first_binding < nmaps)
-		    key = new_click;
-		  /* Otherwise, we'll leave key set to the drag event.  */
+		      /* If that click is bound, go for it.  */
+		      if (first_binding < nmaps)
+			{
+			  key = new_click;
+			  break;
+			}
+		      /* Otherwise, we'll leave key set to the drag event.  */
+		    }
 		}
 	    }
 	}
@@ -4093,10 +4177,10 @@ of the selected window as normal.\n\
 \n\
 `read-key-sequence' drops unbound button-down events, since you normally\n\
 only care about the click or drag events which follow them.  If a drag\n\
-event is unbound, but the corresponding click event would be bound,\n\
-`read-key-sequence' turns the drag event into a click event at the\n\
+or multi-click event is unbound, but the corresponding click event would\n\
+be bound, `read-key-sequence' turns the event into a click event at the\n\
 drag's starting position.  This means that you don't have to distinguish\n\
-between click and drag events unless you want to.\n\
+between click and drag, double, or triple events unless you want to.\n\
 \n\
 `read-key-sequence' prefixes mouse events on mode lines, the vertical\n\
 lines separating windows, and scroll bars with imaginary keys\n\
@@ -4979,6 +5063,13 @@ Polling is needed only when using X windows and SIGIO does not work.\n\
 Polling is automatically disabled in all other cases.");
   polling_period = 2;
   
+  DEFVAR_INT ("double-click-time", &double_click_time,
+    "*Maximum time between mouse clicks to make a double-click.\n\
+Measured in milliseconds.  Zero means disable double-click recognition;\n\
+a large number means double-clicks have no time limit and are detected\n\
+by position only.");
+  double_click_time = 500;
+
   DEFVAR_INT ("num-input-keys", &num_input_keys,
     "*Number of complete keys read from the keyboard so far.");
   num_input_keys = 0;

@@ -286,10 +286,11 @@ struct input_event {
    is a mouse click lacking the click and drag modifiers.
 
    The window-system independent code turns all up_modifier events
-   bits into either drag_modifier or click_modifier events.  The
-   click_modifier has no written representation in the names of the
-   symbols used as event heads, but it does appear in the
-   Qevent_symbol_components property of the event heads.  */
+   bits into drag_modifier, click_modifier, double_modifier, or
+   triple_modifier events.  The click_modifier has no written
+   representation in the names of the symbols used as event heads,
+   but it does appear in the Qevent_symbol_components property of the
+   event heads.  */
 enum {
   up_modifier	=   1,		/* Only used on mouse buttons - always
 				   turned into a click or a drag modifier
@@ -299,6 +300,8 @@ enum {
 				   queue; it's only used internally by
 				   the window-system-independent code.  */
   click_modifier=   8,		/* See drag_modifier.  */
+  double_modifier= 16,          /* See drag_modifier.  */
+  triple_modifier= 32,          /* See drag_modifier.  */
 
   /* The next four modifier bits are used also in keyboard events at
      the Lisp level.
