@@ -35,7 +35,6 @@
 (require 'add-log)			; for all the ChangeLog goodies
 (require 'pcvs-util)
 (require 'ring)
-(require 'vc)
 
 ;;;;
 ;;;; Global Variables
@@ -54,28 +53,21 @@
 
 ;; The main keymap
 
-;; Initialization code, to be done just once at load-time
-(defvar vc-log-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\M-n" 'vc-next-comment)
-    (define-key map "\M-p" 'vc-previous-comment)
-    (define-key map "\M-r" 'vc-comment-search-reverse)
-    (define-key map "\M-s" 'vc-comment-search-forward)
-    (define-key map "\C-c\C-c" 'vc-finish-logentry)
-    map))
-;; Compatibility with old name.  Should we bother ?
-(defvar vc-log-entry-mode vc-log-mode-map)
-
 (easy-mmode-defmap log-edit-mode-map
   `(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
     ("\C-c\C-f" . log-edit-show-files)
-    ("\C-c?" . log-edit-mode-help))
+    ("\M-n"	. vc-next-comment)
+    ("\M-p"	. vc-previous-comment)
+    ("\M-r"	. vc-comment-search-reverse)
+    ("\M-s"	. vc-comment-search-forward)
+    ("\C-c?"	. log-edit-mode-help))
   "Keymap for the `log-edit-mode' (to edit version control log messages)."
-  :group 'log-edit
-  :inherit (if (boundp 'vc-log-entry-mode) vc-log-entry-mode
-	     (if (boundp 'vc-log-mode-map) vc-log-mode-map)))
+  :group 'log-edit)
+
+;; Compatibility with old names.  Should we bother ?
+(defvar vc-log-mode-map log-edit-mode-map)
+(defvar vc-log-entry-mode vc-log-mode-map)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -205,7 +197,8 @@ With a numeric prefix ARG, go back ARG comments."
   (let ((len (ring-length vc-comment-ring)))
     (if (<= len 0)
 	(progn (message "Empty comment ring") (ding))
-      (erase-buffer)
+      ;; Don't use `erase-buffer' because we don't want to `widen'.
+      (delete-region (point-min) (point-max))
       (setq vc-comment-ring-index (vc-new-comment-index arg len))
       (message "Comment %d" (1+ vc-comment-ring-index))
       (insert (ring-ref vc-comment-ring vc-comment-ring-index)))))
@@ -242,6 +235,8 @@ when going through the comment ring."
    (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
   (vc-comment-search-reverse str -1))
 
+
+
 (defun vc-comment-to-change-log (&optional whoami file-name)
   "Enter last VC comment into the change log for the current file.
 WHOAMI (interactive prefix) non-nil means prompt for user name
@@ -253,9 +248,6 @@ automatically."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
-  ;; Make sure the defvar for add-log-current-defun-function has been executed
-  ;; before binding it.
-  (require 'add-log)
   (let (;; Extract the comment first so we get any error before doing anything.
 	(comment (ring-ref vc-comment-ring 0))
 	;; Don't let add-change-log-entry insert a defun name.
@@ -279,8 +271,7 @@ automatically."
 	  (indent-to indentation))
 	(setq end (point))))
     ;; Fill the inserted text, preserving open-parens at bol.
-    (let ((paragraph-separate (concat paragraph-separate "\\|\\s *\\s("))
-	  (paragraph-start (concat paragraph-start "\\|\\s *\\s(")))
+    (let ((paragraph-start (concat paragraph-start "\\|\\s *\\s(")))
       (beginning-of-line)
       (fill-region (point) end))
     ;; Canonicalize the white space at the end of the entry so it is
