@@ -1114,6 +1114,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
       if (ans == 7 || ans == '\035')
 	Vquit_flag = Qt;
       QUIT;
+      Vquit_flag = Qnil;
       if (ans >= 0)
 	ans = DOWNCASE (ans);
       if (ans == 'y' || ans == ' ')
