@@ -1623,7 +1623,7 @@ This function takes some pains to conform to `ls -lR' output."
       (dired-insert-subdir-newpos dirname)) ; else compute new position
     (dired-insert-subdir-doupdate
      dirname elt (dired-insert-subdir-doinsert dirname switches))
-    (if switches-have-R (dired-build-subdir-alist))
+    (if switches-have-R (dired-build-subdir-alist switches))
     (dired-initial-position dirname)
     (save-excursion (dired-mark-remembered mark-alist))))
 
