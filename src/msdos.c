@@ -591,7 +591,8 @@ IT_set_face (int face)
   else
     fp = intern_face (selected_frame, FRAME_COMPUTED_FACES (foo)[face]);
   if (termscript)
-    fprintf (termscript, "<FACE:%d:%d>", FACE_FOREGROUND (fp), FACE_BACKGROUND (fp));
+    fprintf (termscript, "<FACE %d: %d/%d>",
+	     face, FACE_FOREGROUND (fp), FACE_BACKGROUND (fp));
   screen_face = face;
   ScreenAttrib = (FACE_BACKGROUND (fp) << 4) | FACE_FOREGROUND (fp);
 }
@@ -2708,10 +2709,12 @@ init_environment (argc, argv, skip_args)
   while (len > 0 && root[len] != '/' && root[len] != ':')
     len--;
   root[len] = '\0';
-  if (len > 4 && strcmp (root + len - 4, "/bin") == 0)
+  if (len > 4
+      && (strcmp (root + len - 4, "/bin") == 0
+	  || strcmp (root + len - 4, "/src") == 0)) /* under a debugger */
     root[len - 4] = '\0';
   else
-    strcpy (root, "c:/emacs");  /* Only under debuggers, I think.  */
+    strcpy (root, "c:/emacs");  /* let's be defensive */
   len = strlen (root);
   strcpy (emacsroot, root);
 
