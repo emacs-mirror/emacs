@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.16 2001/07/16 12:22:59 pj Exp $
+;; $Id: whitespace.el,v 1.17 2001/08/20 10:05:03 gerd Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "3.0" "Version of the whitespace library.")
+(defvar whitespace-version "3.1" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -136,7 +136,7 @@ It can be overriden by setting a buffer local variable
   :type 'regexp
   :group 'whitespace)
 
-(defcustom whitespace-check-indent-whitespace t
+(defcustom whitespace-check-indent-whitespace indent-tabs-mode
   "Flag to check indentation whitespace. This is the global for the system.
 It can be overriden by setting a buffer local variable
 `whitespace-check-buffer-indent'"
@@ -163,6 +163,13 @@ It can be overriden by setting a buffer local variable
 (defcustom whitespace-errbuf "*Whitespace Errors*"
   "The name of the buffer where whitespace related messages will be logged."
   :type 'string
+  :group 'whitespace)
+
+(defcustom whitespace-abort-on-error nil
+  "While writing a file, abort if the file is unclean. If
+`whitespace-auto-cleanup' is set, that takes precedence over this
+variable."
+  :type  'boolean
   :group 'whitespace)
 
 (defcustom whitespace-auto-cleanup nil
@@ -561,7 +568,7 @@ whitespace problems."
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward regexp nil t)
-	(setq whitespace-retval (format "%s %s " whitespace-retval
+	(setq whitespace-retval (format "%s %s" whitespace-retval
 					(match-beginning 0))))
       (if (equal "" whitespace-retval)
 	  nil
@@ -714,9 +721,25 @@ When this mode is active, `whitespace-buffer' is added to
   (if arg
       (progn
 	(add-hook 'find-file-hooks 'whitespace-buffer)
+	(add-hook 'local-write-file-hooks 'whitespace-write-file-hook)
 	(add-hook 'kill-buffer-hook 'whitespace-buffer))
     (remove-hook 'find-file-hooks 'whitespace-buffer)
+    (remove-hook 'local-write-file-hooks 'whitespace-write-file-hook)
     (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
+
+;;;###autoload
+(defun whitespace-write-file-hook ()
+  "The local-write-file-hook to be called on the buffer when
+whitespace check is enabled."
+  (interactive)
+  (let ((werr nil))
+    (if whitespace-auto-cleanup
+	(whitespace-cleanup)
+      (setq werr (whitespace-buffer)))
+    (if (and whitespace-abort-on-error werr)
+	(error (concat "Abort write due to whitespaces in "
+		       buffer-file-name))))
+  nil)
 
 ;;;###autoload
 (defun whitespace-describe ()
@@ -776,6 +799,7 @@ whitespaces during the process of your editing)."
 
 (defun whitespace-unload-hook ()
   (remove-hook 'find-file-hooks 'whitespace-buffer)
+  (remove-hook 'local-write-file-hooks 'whitespace-write-file-hook)
   (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
 (provide 'whitespace)

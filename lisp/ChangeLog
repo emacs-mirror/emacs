@@ -1,3 +1,25 @@
+2001-08-20  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-abort-on-error): Add custom variable
+	to whitespace to abort a write-file if whitespace is detected in
+	file.
+
+	* whitespace.el (whitespace-write-file-hook): Hook to be called
+	when writing a file. If `whitespace-abort-on-error' is set, the
+	write will abort on detecting whitespaces. If
+	`whitespace-auto-cleanup' is set, the file will be cleaned
+	automatically prior to writing.
+
+	* whitespace.el (whitespace-buffer-search): Let's not insert bogus
+	whitespaces in the error output!
+
+	* whitespace.el (whitespace-check-indent-whitespace): defaults to
+	`indent-tabs-mode', since the latter notes user preferences on
+	TABs anyway.
+
+	* whitespace.el (whitespace-version): 3.1. All of the above issues
+	were raised by Fran,Ag(Bois Pinard, which led to the fixes described.
+
 2001-08-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/texnfo-upd.el (texinfo-every-node-update): Remove
@@ -33,8 +55,8 @@
 2001-08-16  Miles Bader  <miles@gnu.org>
 
 	* simple.el (line-move): Undo previous change.
-	
-	* comint.el (comint-send-input): Add `inhibit-line-move-field-capture' 
+
+	* comint.el (comint-send-input): Add `inhibit-line-move-field-capture'
 	property to input-terminating `boundary' overlays to avoid
 	line-move wierdness.
 
@@ -79,11 +101,11 @@
 	(toplevel): Set it as `common-lisp-indent-function' for
 	`defmethod'.
 
-	* ediff-mult.el (ediff-get-meta-info): Fix the condition 
+	* ediff-mult.el (ediff-get-meta-info): Fix the condition
 	of a while-loop.
 
 	* Makefile.in (DONTCOMPILE): Remove sc.el.
-	
+
 	* Makefile.in (finder_setwins): Renamed from nonobsolete_setwins.
 	Don't include term/.
 
@@ -158,7 +180,7 @@
 	* subr.el (add-minor-mode): Use mode-line-minor-mode-keymap for
 	the minor mode name.
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Use 
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Use
 	mode-line-minor-mode-keymap for the minor mode name.
 
 	* calendar/calendar.el (calendar-mode-line-format): Use
@@ -206,13 +228,13 @@
 	* textmodes/paragraphs.el (forward-sentence): Avoid building
 	a regexp from sentence-end.  From Kenichi Handa <handa@etl.go.jp>.
 
-	* progmodes/executable.el (executable-set-magic): If 
+	* progmodes/executable.el (executable-set-magic): If
 	executable-find returns a quoted file name, unquote it before
 	inserting it.
 
 	* image.el (image-type-regexps): For JPEG files, use a regexp
 	derived from the JFIF spec.
-	
+
 	* image.el (image-type-regexps): Use `\`' instead of `^' in
 	most regular expressions.
 
