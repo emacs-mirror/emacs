@@ -1,5 +1,12 @@
 2002-03-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* cus-start.el: Rename automatic-hscroll-step and
+	automatic-hscroll-margin into hscroll-step and hscroll-margin.
+
+	* frame.el (auto-hscroll-mode): Renamed from
+	automatic-hscrolling.
+	(automatic-hscrolling): Now a defvaralias for auto-hscroll-mode.
+
 	* mouse.el (mouse-region-delete-keys): Add deletechar.
 
 2002-03-03  Sam Steingold  <sds@gnu.org>

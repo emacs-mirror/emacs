@@ -1,3 +1,12 @@
+2002-03-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode>: Renamed from
+	automatic-hscrolling.  Users changed.
+	<hscroll-margin>: Renamed from automatic-hscroll-margin.  Users
+	changed.
+	<hscroll-step>: Renamed from automatic-hscroll-step.  Users
+	changed.
+
 2002-03-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* buffer.c (syms_of_buffer) <buffer-file-coding-system>: Doc fix.
