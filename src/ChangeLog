@@ -2,10 +2,10 @@
 
 	* process.c (connect_wait_mask, num_pending_connects): Only
 	declare and use them if NON_BLOCKING_CONNECT is defined.
+	(init_process): Initialize them if NON_BLOCKING_CONNECT defined.
 	(IF_NON_BLOCKING_CONNECT): New helper macro.
 	(wait_reading_process_output): Only declare and use local vars
 	Connecting and check_connect when NON_BLOCKING_CONNECT is defined.
-	(init_process): Initialize them if NON_BLOCKING_CONNECT defined.
 
 2004-11-01  Andy Petrusenco  <Igrek@star-sw.com>  (tiny change)
 
