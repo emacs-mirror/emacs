@@ -1,3 +1,11 @@
+2004-05-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* yow.c: Conditionally include various headers.
+	Use "epaths.h", not <../src/epaths.h>.
+	(yow): Cast result of malloc and realloc.
+	(malloc, realloc): Declarations deleted.
+	(main): Use time_t, not long, to avoid a compiler warning.
+
 2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* cvtmail.c, yow.c: Include config.h.
