@@ -1109,30 +1109,31 @@ argument causes us to read a file name and use that file as the inbox."
 	(omin (point-min-marker))
 	(buffer-read-only nil))
     (or msgnum (setq msgnum rmail-current-message))
-    (unwind-protect
-	(save-excursion
-	  (widen)
-	  (goto-char (+ 3 (rmail-msgbeg msgnum)))
-	  (let ((curstate
-		 (not
-		  (null (search-backward (concat ", " attr ",")
-					 (prog1 (point) (end-of-line)) t)))))
-	    (or (eq curstate (not (not state)))
-		(if curstate
-		    (delete-region (point) (1- (match-end 0)))
-		  (beginning-of-line)
-		  (forward-char 2)
-		  (insert " " attr ","))))
-	  (if (string= attr "deleted")
-	      (rmail-set-message-deleted-p msgnum state)))
-      ;; Note: we don't use save-restriction because that does not work right
-      ;; if changes are made outside the saved restriction
-      ;; before that restriction is restored.
-      (narrow-to-region omin omax)
-      (set-marker omin nil)
-      (set-marker omax nil)
-      (if (= msgnum rmail-current-message)
-	  (rmail-display-labels)))))
+    (if (> msgnum 0)
+	(unwind-protect
+	    (save-excursion
+	      (widen)
+	      (goto-char (+ 3 (rmail-msgbeg msgnum)))
+	      (let ((curstate
+		     (not
+		      (null (search-backward (concat ", " attr ",")
+					     (prog1 (point) (end-of-line)) t)))))
+		(or (eq curstate (not (not state)))
+		    (if curstate
+			(delete-region (point) (1- (match-end 0)))
+		      (beginning-of-line)
+		      (forward-char 2)
+		      (insert " " attr ","))))
+	      (if (string= attr "deleted")
+		  (rmail-set-message-deleted-p msgnum state)))
+	  ;; Note: we don't use save-restriction because that does not work right
+	  ;; if changes are made outside the saved restriction
+	  ;; before that restriction is restored.
+	  (narrow-to-region omin omax)
+	  (set-marker omin nil)
+	  (set-marker omax nil)
+	  (if (= msgnum rmail-current-message)
+	      (rmail-display-labels))))))
 
 ;; Return t if the attributes/keywords line of msg number MSG
 ;; contains a match for the regexp LABELS.
