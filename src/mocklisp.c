@@ -25,24 +25,6 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 
-/* Now in lisp code ("macrocode...")
-* DEFUN ("ml-defun", Fml_defun, Sml_defun, 0, UNEVALLED, 0,
-*  "Define mocklisp functions")
-*  (args)
-*     Lisp_Object args;
-* {
-*  Lisp_Object elt;
-*
-*   while (!NILP (args))
-*     {
-*       elt = Fcar (args);
-*       Ffset (Fcar (elt), Fcons (Qmocklisp, Fcdr (elt)));
-*       args = Fcdr (args);
-*     }
-*   return Qnil;
-* }
-*/
-
 DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0,
        doc: /* Mocklisp version of `if'.
 usage: (ml-if COND THEN ELSE...)  */)
@@ -70,32 +52,10 @@ usage: (ml-if COND THEN ELSE...)  */)
   return val;
 }
 
-#if 0 /* Now converted to regular "while" by hairier conversion code.  */
-/**/DEFUN ("ml-while", Fml_while, Sml_while, 1, UNEVALLED, 0, "while  for mocklisp programs")
-  (args)
-     Lisp_Object args;
-{
-  Lisp_Object test, body, tem;
-  struct gcpro gcpro1, gcpro2;
-
-  GCPRO2 (test, body);
-
-  test = Fcar (args);
-  body = Fcdr (args);
-  while (tem = Feval (test), XINT (tem))
-    {
-      QUIT;
-      Fprogn (body);
-   }
-
-  UNGCPRO;
-  return Qnil;
-}
-#endif
 
 /* This is the main entry point to mocklisp execution.
- When eval sees a mocklisp function being called, it calls here
- with the unevaluated argument list */
+   When eval sees a mocklisp function being called, it calls here
+   with the unevaluated argument list.  */
 
 Lisp_Object
 ml_apply (function, args)
@@ -181,26 +141,6 @@ DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_
   return Qnil;
 }
 
-#if 0 /* Now in mlsupport.el */
-
-DEFUN ("ml-substr", Fml_substr, Sml_substr, 3, 3, 0,
-       doc: /* Return a substring of STRING, starting at index FROM and of length LENGTH.
-If either FROM or LENGTH is negative, the length of STRING is added to it.  */)
-     (string, from, to)
-     Lisp_Object string, from, to;
-{
-  CHECK_STRING (string);
-  CHECK_NUMBER (from);
-  CHECK_NUMBER (to);
-
-  if (XINT (from) < 0)
-    XSETINT (from, XINT (from) + XSTRING (string)->size);
-  if (XINT (to) < 0)
-    XSETINT (to, XINT (to) + XSTRING (string)->size);
-  XSETINT (to, XINT (to) + XINT (from));
-  return Fsubstring (string, from, to);
-}
-#endif /* 0 */
 DEFUN ("insert-string", Finsert_string, Sinsert_string, 0, MANY, 0,
        doc: /* Mocklisp-compatibility insert function.
 Like the function `insert' except that any argument that is a number
@@ -238,14 +178,11 @@ syms_of_mocklisp ()
   Qmocklisp = intern ("mocklisp");
   staticpro (&Qmocklisp);
 
-/*defsubr (&Sml_defun);*/
   defsubr (&Sml_if);
-/*defsubr (&Sml_while);*/
   defsubr (&Sml_arg);
   defsubr (&Sml_nargs);
   defsubr (&Sml_interactive);
   defsubr (&Sml_provide_prefix_argument);
   defsubr (&Sml_prefix_argument_loop);
-/*defsubr (&Sml_substr);*/
   defsubr (&Sinsert_string);
 }
