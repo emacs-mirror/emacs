@@ -1,4 +1,3 @@
-
 ;;; x-dnd.el --- drag and drop support for X.
 
 ;; Copyright (C) 2004
@@ -601,5 +600,4 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 (provide 'x-dnd)
 
-;;; arch-tag: ???
 ;;; x-dnd.el ends here
