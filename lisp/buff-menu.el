@@ -79,12 +79,12 @@
   "Face used to highlight buffer name."
   :group 'font-lock-highlighting-faces)
 
-(defcustom Buffer-menu-buffer+size-width 21
+(defcustom Buffer-menu-buffer+size-width 26
   "*How wide to jointly make the buffer name and size columns."
   :type 'number
   :group 'Buffer-menu)
 
-(defcustom Buffer-menu-mode-width 11
+(defcustom Buffer-menu-mode-width 16
   "*How wide to make the mode name column."
   :type 'number
   :group 'Buffer-menu)
