@@ -5508,7 +5508,7 @@ foreach_window_1 (w, fn, user_data)
 }
 
 
-/* Freeze or unfreeze the window start of W if unless it is a
+/* Freeze or unfreeze the window start of W unless it is a
    mini-window or the selected window.  FREEZE_P non-null means freeze
    the window start.  */
 
