@@ -456,7 +456,9 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
 \\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
-\\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC)."
+\\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC).
+Turning on Mail mode runs the normal hooks `text-mode-hook' and
+`mail-mode-hook' (in that order)."
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'mail-reply-action)
