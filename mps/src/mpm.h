@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.76) $
+ * $HopeName: MMsrc!mpm.h(trunk.77) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -725,7 +725,14 @@ extern void (ShieldFlush)(Arena arena);
 #endif
 
 
-/* Protection Interface -- see impl.c.prot* */
+/* Protection Interface
+ *
+ * See design.mps.prot for the design of the generic interface including
+ * the contracts for these functions.
+ *
+ * This interface has several different implementations, typically one
+ * per platform, see impl.c.prot* for the various implementations, and
+ * design.mps.prot* for the corresponding designs. */
 
 extern void ProtSetup(void);
 
@@ -733,6 +740,8 @@ extern void ProtSet(Addr base, Addr limit, AccessSet mode);
 extern void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
                       void *p, size_t s);
 extern void ProtSync(Arena arena);
+extern Bool ProtCanStepInstruction(MutatorFaultContext context);
+extern Res ProtStepInstruction(MutatorFaultContext context);
 
 
 /* Location Dependency -- see impl.c.ld */
