@@ -2,7 +2,7 @@
  *
  *           MALLOC-BASED PSUEDO-VIRTUAL MEMORY MAPPING
  *
- *  $HopeName: MMsrc/!vman.c(trunk.2)$
+ *  $HopeName: MMsrc/!vman.c(trunk.3)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -94,7 +94,7 @@ Error VMCreate(VM *vmReturn, Addr size)
 
   vm->base  = AlignUp(VMAN_GRAIN, (Addr)vm->block);
   vm->limit = vm->base + size;
-  AVER(vm->limit < (Addr)block + size + VMAN_GRAIN);
+  AVER(vm->limit < (Addr)vm->block + size + VMAN_GRAIN);
 
   memset((void *)vm->base, VMAN_JUNKBYTE, (size_t)size);
 
