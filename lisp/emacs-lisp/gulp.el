@@ -30,24 +30,36 @@
 ;; update.
 
 ;;; Code:
+(defgroup gulp nil
+  "Ask for updates for Lisp packages."
+  :prefix "-"
+  :group 'maint)
 
-(defvar gulp-discard "^;+ *Maintainer: *FSF *$"
-  "*The regexp matching the packages not requiring the request for updates.")
+(defcustom gulp-discard "^;+ *Maintainer: *FSF *$"
+  "*The regexp matching the packages not requiring the request for updates."
+  :type 'regexp
+  :group 'gulp)
 
-(defvar gulp-tmp-buffer "*gulp*" "The name of the temporary buffer.")
+(defcustom gulp-tmp-buffer "*gulp*" "The name of the temporary buffer."
+  :type 'string
+  :group 'gulp)
 
-(defvar gulp-max-len 2000
-  "*Distance into a Lisp source file to scan for keywords.")
+(defcustom gulp-max-len 2000
+  "*Distance into a Lisp source file to scan for keywords."
+  :type 'integer
+  :group 'gulp)
 
-(defvar gulp-request-header
+(defcustom gulp-request-header
   (concat
    "This message was created automatically.
 I'm going to start pretesting a new version of GNU Emacs soon, so I'd
 like to ask if you have any updates for the Emacs packages you work on.
 You're listed as the maintainer of the following package(s):\n\n")
-  "*The starting text of a gulp message.")
+  "*The starting text of a gulp message."
+  :type 'string
+  :group 'gulp)
 
-(defvar gulp-request-end
+(defcustom gulp-request-end
   (concat
    "\nIf you have any changes since the version in the previous release ("
    (format "%d.%d" emacs-major-version emacs-minor-version)
@@ -61,7 +73,9 @@ please use lisp/ChangeLog as a guide for the style and for what kinds
 of information to include.
 
 Thanks.")
-  "*The closing text in a gulp message.")
+  "*The closing text in a gulp message."
+  :type 'string
+  :group 'gulp)
 
 (defun gulp-send-requests (dir &optional time)
   "Send requests for updates to the authors of Lisp packages in directory DIR.

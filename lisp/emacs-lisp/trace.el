@@ -164,9 +164,16 @@
 
 (require 'advice)
 
+(defgroup trace nil
+  "Tracing facility for Emacs Lisp functions"
+  :prefix "trace-"
+  :group 'lisp)
+
 ;;;###autoload
-(defvar trace-buffer "*trace-output*"
-  "*Trace output will by default go to that buffer.")
+(defcustom trace-buffer "*trace-output*"
+  "*Trace output will by default go to that buffer."
+  :type 'string
+  :group 'trace)
 
 ;; Current level of traced function invocation:
 (defvar trace-level 0)

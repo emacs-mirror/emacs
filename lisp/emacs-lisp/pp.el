@@ -22,9 +22,15 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Code:
+(defgroup pp nil
+  "Pretty printer for Emacs Lisp."
+  :prefix "pp-"
+  :group 'lisp)
 
-(defvar pp-escape-newlines t 
-  "*Value of print-escape-newlines used by pp-* functions.")
+(defcustom pp-escape-newlines t 
+  "*Value of `print-escape-newlines' used by pp-* functions."
+  :type 'boolean
+  :group 'pp)
 
 (defun pp-to-string (object)
   "Return a string containing the pretty-printed representation of OBJECT,

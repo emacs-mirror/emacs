@@ -69,17 +69,27 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 
 (defalias 'backquote-list* (symbol-function 'backquote-list*-macro))
 
+(defgroup backquote nil
+  "Implement the ` Lisp construct."
+  :prefix "backquote-"
+  :group 'lisp)
+
 ;; A few advertised variables that control which symbols are used
 ;; to represent the backquote, unquote, and splice operations.
+(defcustom backquote-backquote-symbol '\`
+  "*Symbol used to represent a backquote or nested backquote (e.g. `)."
+  :type 'symbol
+  :group 'backquote)
 
-(defvar backquote-backquote-symbol '\`
-  "*Symbol used to represent a backquote or nested backquote (e.g. `).")
+(defcustom backquote-unquote-symbol ',
+  "*Symbol used to represent an unquote (e.g. `,') inside a backquote."
+  :type 'symbol
+  :group 'backquote)
 
-(defvar backquote-unquote-symbol ',
-  "*Symbol used to represent an unquote (e.g. `,') inside a backquote.")
-
-(defvar backquote-splice-symbol ',@
-  "*Symbol used to represent a splice (e.g. `,@') inside a backquote.")
+(defcustom backquote-splice-symbol ',@
+  "*Symbol used to represent a splice (e.g. `,@') inside a backquote."
+  :type 'symbol
+  :group 'backquote)
 
 ;;;###autoload
 (defmacro backquote (arg)

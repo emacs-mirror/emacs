@@ -117,7 +117,12 @@
 
 ;;; Variables:
 
-(defvar lm-header-prefix "^;;*[ \t]+\\(@\(#\)\\)?[ \t]*\\([\$]\\)?"
+(defgroup lisp-mnt nil
+  "Minor mode for Emacs Lisp maintainers."
+  :prefix "lm-"
+  :group 'maint)
+
+(defcustom lm-header-prefix "^;;*[ \t]+\\(@\(#\)\\)?[ \t]*\\([\$]\\)?"
   "Prefix that is ignored before the tag.
 For example, you can write the 1st line synopsis string and headers like this
 in your Lisp package:
@@ -127,16 +132,24 @@ in your Lisp package:
    ;; @(#) $Maintainer:   Person Foo Bar $
 
 The @(#) construct is used by unix what(1) and
-then $identifier: doc string $ is used by GNU ident(1)")
+then $identifier: doc string $ is used by GNU ident(1)"
+  :type 'regexp
+  :group 'lisp-mnt)
 
-(defvar lm-comment-column 16
-  "Column used for placing formatted output.")
+(defcustom lm-comment-column 16
+  "Column used for placing formatted output."
+  :type 'integer
+  :group 'lisp-mnt)
 
-(defvar lm-commentary-header "Commentary\\|Documentation"
-  "Regexp which matches start of documentation section.")
+(defcustom lm-commentary-header "Commentary\\|Documentation"
+  "Regexp which matches start of documentation section."
+  :type 'regexp
+  :group 'lisp-mnt)
 
-(defvar lm-history-header "Change Log\\|History"
-  "Regexp which matches the start of code log section.")
+(defcustom lm-history-header "Change Log\\|History"
+  "Regexp which matches the start of code log section."
+  :type 'regexp
+  :group 'lisp-mnt)
 
 ;;; Functions:
 

@@ -1831,10 +1831,15 @@
 ;; @@ Variable definitions:
 ;; ========================
 
+(defgroup advice nil
+  "An overloading mechanism for Emacs Lisp functions."
+  :prefix "ad-"
+  :group 'lisp)
+
 (defconst ad-version "2.14")
 
 ;;;###autoload
-(defvar ad-redefinition-action 'warn
+(defcustom ad-redefinition-action 'warn
   "*Defines what to do with redefinitions during Advice de/activation.
 Redefinition occurs if a previously activated function that already has an
 original definition associated with it gets redefined and then de/activated.
@@ -1843,17 +1848,23 @@ original definition, discard the current definition and replace it with the
 old original, or keep it and raise an error.  The values `accept', `discard',
 `error' or `warn' govern what will be done.  `warn' is just like `accept' but
 it additionally prints a warning message.  All other values will be
-interpreted as `error'.")
+interpreted as `error'."
+  :type '(choice (const accept) (const discard) (const error) (const warn))
+  :group 'advice)
 
 ;;;###autoload
-(defvar ad-default-compilation-action 'maybe
+(defcustom ad-default-compilation-action 'maybe
   "*Defines whether to compile advised definitions during activation.
 A value of `always' will result in unconditional compilation, `never' will
 always avoid compilation, `maybe' will compile if the byte-compiler is already
 loaded, and `like-original' will compile if the original definition of the
 advised function is compiled or a built-in function. Every other value will
 be interpreted as `maybe'. This variable will only be considered if the 
-COMPILE argument of `ad-activate' was supplied as nil.")
+COMPILE argument of `ad-activate' was supplied as nil."
+  :type '(choice (const always) (const never) (const maybe)
+		 (const like-original))
+  :group 'advice)
+
 
 
 ;; @@ Some utilities:

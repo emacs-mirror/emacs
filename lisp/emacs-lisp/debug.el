@@ -28,15 +28,26 @@
 
 ;;; Code:
 
-(defvar debugger-mode-hook  nil
-  "*Hooks run when `debugger-mode' is turned on.")
+(defgroup debugger nil
+  "Debuggers and related commands for Emacs."
+  :prefix "debugger-"
+  :group 'debug)
+
+(defcustom debugger-mode-hook nil
+  "*Hooks run when `debugger-mode' is turned on."
+  :type 'hook
+  :group 'debugger)
 
 
-(defvar debug-function-list nil
-  "List of functions currently set for debug on entry.")
+(defcustom debug-function-list nil
+  "List of functions currently set for debug on entry."
+  :type '(repeat function)
+  :group 'debugger)
 
-(defvar debugger-step-after-exit nil
-  "Non-nil means \"single-step\" after the debugger exits.")
+(defcustom debugger-step-after-exit nil
+  "Non-nil means \"single-step\" after the debugger exits."
+  :type 'boolean
+  :group 'debugger)
 
 (defvar debugger-value nil
   "This is the value for the debugger to return, when it returns.")
@@ -398,8 +409,10 @@ Applies to the frame whose line point is on in the backtrace."
     ))
 
 
-(defvar debugger-record-buffer "*Debugger-record*"
-  "*Buffer name for expression values, for \\[debugger-record-expression].")
+(defcustom debugger-record-buffer "*Debugger-record*"
+  "*Buffer name for expression values, for \\[debugger-record-expression]."
+  :type 'string
+  :group 'debugger)
 
 (defun debugger-record-expression  (exp)
   "Display a variable's value and record it in `*Backtrace-record*' buffer."

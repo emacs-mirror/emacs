@@ -68,14 +68,25 @@
 
 ;;; Code:
 
+(defgroup profile nil
+  "Generate run time measurements of Emacs Lisp functions."
+  :prefix "profile-"
+  :group 'lisp)
+
 ;;;
 ;;;  User modifiable VARIABLES
 ;;;
 
-(defvar profile-functions-list nil "*List of functions to profile.")
-(defvar profile-timer-program
+(defcustom profile-functions-list nil 
+  "*List of functions to profile."
+  :type '(repeat function)
+  :group 'profile)
+
+(defcustom profile-timer-program
   (concat exec-directory "profile")
-  "*Name of the profile timer program.")
+  "*Name of the profile timer program."
+  :type 'file
+  :group 'profile)
 
 ;;;
 ;;; V A R I A B L E S
@@ -90,7 +101,10 @@ Both how many times invoked and real time of start.")
 (defvar profile-max-fun-name 0 "Max length of name of any function profiled.")
 (defvar profile-temp-result- nil "Should NOT be used anywhere else.")
 (defvar profile-time (cons 0 0) "Used to return result from a filter.")
-(defvar profile-buffer "*profile*" "Name of profile buffer.")
+(defcustom profile-buffer "*profile*" 
+  "Name of profile buffer."
+  :type 'string
+  :group 'profile)
 
 (defconst profile-million 1000000)
 
