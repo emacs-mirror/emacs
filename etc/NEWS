@@ -734,6 +734,12 @@ eval-expression-print-length, and eval-expression-debug-on-error.
 *** The function `eval-defun' (M-C-x) now loads Edebug and instruments
 code when called with a prefix argument.
 
+** Ispell changes
+
+*** The command `ispell' new spell-checks a region if
+transient-mark-mode is on, and the mark is active.  Otherise it
+spell-checks the current buffer.
+
 ** Dired changes
 
 *** New variable `dired-recursive-deletes' determines if the delete
@@ -1325,6 +1331,10 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** If `display-buffer-reuse-frames' is set, function `display-buffer'
+will raise frames displaying a buffer, instead of creating a new
+frame or window.
+
 ** Two new functions for removing elements from lists/sequences
 were added
 
@@ -1399,8 +1409,9 @@ ALL-FRAMES = t means include windows on all frames including invisible frames.
 If ALL-FRAMES is a frame, it means include windows on that frame.
 Anything else means restrict to the selected frame.
 
-** The function `single-key-description' now encloses function key
-and event names in angle brackets.
+** The function `single-key-description' now encloses function key and
+event names in angle brackets.  When called with a second optional
+argument non-nil, angle brackets won't be printed.
 
 ** If the variable `message-truncate-lines' is bound to t around a
 call to `message', the echo area will not be resized to display that

@@ -1,3 +1,19 @@
+2000-08-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* replace.el (occur): Set tab-width in the *Occur* buffer to the
+	value of tab-width in the original buffer.  Choose a line number
+	format that's a multiple of the original buffer's tab width, so
+	that lines appear right.
+
+	* textmodes/ispell.el (ispell): New function, replacing an alias.
+	Spell-check active region if in transient-mark-mode and mark
+	is active; otherwise spell-check buffer.
+
+2000-08-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-mule.el: Fix a customization problem on
+	ps-mule-font-info-database-default.
+
 2000-08-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/ebrowse.el (ebrowse-tree-mode-map): Use

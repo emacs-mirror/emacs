@@ -1,3 +1,25 @@
+2000-08-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (lisp_malloc, lisp_free): Use size_t and POINTER_TYPE.
+	(xrealloc, xmalloc): Use size_t.  Some callers adjusted.
+
+	* lisp.h (Fsingle_key_description, xmalloc, xrealloc): Change
+	prototype.
+
+	* keyboard.c (read_char_minibuf_menu_prompt): Add new parameter
+	in call to Fsingle_key_description.
+
+	* keymap.c (Fsingle_key_description): Add parameter NO_ANGLES.
+	Callers changed.
+
+2000-08-02  Colin Walters <walters@cis.ohio-state.edu>
+
+	* window.c (display_buffer_reuse_frames): New variable.
+	(Fdisplay_buffer): If display_buffer_reuse_frames is set, reuse
+	frames displaying BUFFER.
+	(syms_of_window): Define Lisp variable
+	display-buffer-reuse-frames.
+
 2000-08-01  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (Fconstrain_to_field): Fix the conditions for deciding
