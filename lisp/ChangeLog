@@ -1,3 +1,11 @@
+2004-12-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-comb.el (var-RandSeed): Don't initially bind it.
+	(math-init-random-base, math-random-digit): Check to see if
+	var-RandSeed is bound.
+	(math-random-last): Declare it.
+	(math-random-digit): Don't make math-random-last local.
+
 2004-12-16  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* play/zone.el (zone): Fix omission bug: Use a self-disabling
