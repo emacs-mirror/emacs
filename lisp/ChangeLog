@@ -1,3 +1,13 @@
+2003-08-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el: Don't require mule-diag.
+
+	* international/mule-diag.el (non-iso-charset-alist): Add
+	autoload cookie.
+
+	* language/devan-util.el (dev-glyph-order): Add an entry for the
+	glyph code #xC4.
+
 2003-08-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (diary-file, diary-file-name-prefix)
