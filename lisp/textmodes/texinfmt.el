@@ -37,7 +37,7 @@
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
 
-(defvar texinfmt-version "2.38 of 3 July 1998")
+(defvar texinfmt-version "2.39 of 24 Nov 2002")
 
 (defun texinfmt-version (&optional here)
   "Show the version of texinfmt.el in the minibuffer.
