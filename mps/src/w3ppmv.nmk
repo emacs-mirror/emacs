@@ -1,23 +1,23 @@
 # ==== NTPPMV NMAKE FILE ====
 #
-# $HopeName: MMsrc!ntppmv.nmk(trunk.10) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.11) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
-PFM = ntppmv
+PFM = w3ppmv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
 MPM = <assert> <ring> <mpsliban> <mpm> <bt> \
-      <arenavm> <vmnt> <space> <pool> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <locknt> \
-      <ref> <trace> <protnt> <shield> \
-      <than> <ssan> <mpsi> <mpsint> <ld> \
+      <arenavm> <vmw3> <space> <pool> <poolmfs> \
+      <poolmv> <root> <format> <buffer> <lockw3> \
+      <ref> <trace> <protw3> <shield> \
+      <than> <ssan> <mpsi> <mpsiw3> <ld> \
       <mpsioan> <event> <action> <seg>
 SW  = <assert> <ring> <mpm> \
       <arenacl> <space> <pool> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <locknt> \
-      <ref> <trace> <protnt> <shield> \
-      <than> <ssan> <mpsisw> <mpsint> <ld> <poolepdl> \
+      <poolmv> <root> <format> <buffer> <lockw3> \
+      <ref> <trace> <protw3> <shield> \
+      <than> <ssan> <mpsisw> <mpsiw3> <ld> <poolepdl> \
       <action> <seg>
 AMC = <amc>
 LO  = <lo>
@@ -42,114 +42,114 @@ TESTLIB = <testlib>
 CFLAGS=$(CFLAGSCOMMON) $(CFDF)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDF)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDF)
-MPMOBJ0 = $(MPM:<=ntppmv\df\)
+MPMOBJ0 = $(MPM:<=w3ppmv\df\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=ntppmv\df\)
+SWOBJ0 = $(SW:<=w3ppmv\df\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=ntppmv\df\)
+AMCOBJ0 = $(AMC:<=w3ppmv\df\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=ntppmv\df\)
+LOOBJ0 = $(LO:<=w3ppmv\df\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=ntppmv\df\)
+MRGOBJ0 = $(MRG:<=w3ppmv\df\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=ntppmv\df\)
+DWOBJ0 = $(DW:<=w3ppmv\df\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=ntppmv\df\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\df\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "dp"
 CFLAGS=$(CFLAGSCOMMON) $(CFDP)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDP)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDP)
-MPMOBJ0 = $(MPM:<=ntppmv\dp\)
+MPMOBJ0 = $(MPM:<=w3ppmv\dp\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=ntppmv\dp\)
+SWOBJ0 = $(SW:<=w3ppmv\dp\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=ntppmv\dp\)
+AMCOBJ0 = $(AMC:<=w3ppmv\dp\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=ntppmv\dp\)
+LOOBJ0 = $(LO:<=w3ppmv\dp\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=ntppmv\dp\)
+MRGOBJ0 = $(MRG:<=w3ppmv\dp\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=ntppmv\dp\)
+DWOBJ0 = $(DW:<=w3ppmv\dp\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=ntppmv\dp\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\dp\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ds"
 CFLAGS=$(CFLAGSCOMMON) $(CFDS)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDS)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDS)
-MPMOBJ0 = $(MPM:<=ntppmv\ds\)
+MPMOBJ0 = $(MPM:<=w3ppmv\ds\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=ntppmv\ds\)
+SWOBJ0 = $(SW:<=w3ppmv\ds\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=ntppmv\ds\)
+AMCOBJ0 = $(AMC:<=w3ppmv\ds\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=ntppmv\ds\)
+LOOBJ0 = $(LO:<=w3ppmv\ds\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=ntppmv\ds\)
+MRGOBJ0 = $(MRG:<=w3ppmv\ds\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=ntppmv\ds\)
+DWOBJ0 = $(DW:<=w3ppmv\ds\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=ntppmv\ds\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ds\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "dl"
 CFLAGS=$(CFLAGSCOMMON) $(CFDL)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDL)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDL)
-MPMOBJ0 = $(MPM:<=ntppmv\dl\)
+MPMOBJ0 = $(MPM:<=w3ppmv\dl\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=ntppmv\dl\)
+SWOBJ0 = $(SW:<=w3ppmv\dl\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=ntppmv\dl\)
+AMCOBJ0 = $(AMC:<=w3ppmv\dl\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=ntppmv\dl\)
+LOOBJ0 = $(LO:<=w3ppmv\dl\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=ntppmv\dl\)
+MRGOBJ0 = $(MRG:<=w3ppmv\dl\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=ntppmv\dl\)
+DWOBJ0 = $(DW:<=w3ppmv\dl\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=ntppmv\dl\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\dl\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ro"
 CFLAGS=$(CFLAGSCOMMON) $(CFRO)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRO)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRO)
-MPMOBJ0 = $(MPM:<=ntppmv\ro\)
+MPMOBJ0 = $(MPM:<=w3ppmv\ro\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=ntppmv\ro\)
+SWOBJ0 = $(SW:<=w3ppmv\ro\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=ntppmv\ro\)
+AMCOBJ0 = $(AMC:<=w3ppmv\ro\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=ntppmv\ro\)
+LOOBJ0 = $(LO:<=w3ppmv\ro\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=ntppmv\ro\)
+MRGOBJ0 = $(MRG:<=w3ppmv\ro\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=ntppmv\ro\)
+DWOBJ0 = $(DW:<=w3ppmv\ro\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=ntppmv\ro\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ro\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "cv"
 CFLAGS=$(CFLAGSCOMMON) $(CFCV)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
-MPMOBJ0 = $(MPM:<=ntppmv\cv\)
+MPMOBJ0 = $(MPM:<=w3ppmv\cv\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=ntppmv\cv\)
+SWOBJ0 = $(SW:<=w3ppmv\cv\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=ntppmv\cv\)
+AMCOBJ0 = $(AMC:<=w3ppmv\cv\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=ntppmv\cv\)
+LOOBJ0 = $(LO:<=w3ppmv\cv\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=ntppmv\cv\)
+MRGOBJ0 = $(MRG:<=w3ppmv\cv\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=ntppmv\cv\)
+DWOBJ0 = $(DW:<=w3ppmv\cv\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=ntppmv\cv\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\cv\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ENDIF
