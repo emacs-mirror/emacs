@@ -114,6 +114,11 @@ Lisp_Object Voverlay_arrow_position;
 /* String to display for the arrow.  */
 Lisp_Object Voverlay_arrow_string;
 
+/* Values of those variables at last redisplay.
+   However, if Voverlay_arrow_position is a marker,
+   last_arrow_position is its numerical position.  */
+static Lisp_Object last_arrow_position, last_arrow_string;
+
 /* Like mode-line-format, but for the titlebar on a visible frame.  */
 Lisp_Object Vframe_title_format;
 
@@ -124,9 +129,6 @@ Lisp_Object Vicon_title_format;
    functions get one arg, a frame on which one or more windows' sizes
    have changed.  */
 static Lisp_Object Vwindow_size_change_functions;
-
-/* Values of those variables at last redisplay.  */
-static Lisp_Object last_arrow_position, last_arrow_string;
 
 Lisp_Object Qmenu_bar_update_hook;
 
@@ -247,6 +249,9 @@ static int line_number_display_limit;
 /* Number of lines to keep in the message log buffer.
    t means infinite.  nil means don't log at all.  */
 Lisp_Object Vmessage_log_max;
+
+#define COERCE_MARKER(X)	\
+  (MARKERP ((X)) ? make_number (marker_position (X)) : (X))
 
 /* Output a newline in the *Messages* buffer if "needs" one.  */
 
@@ -953,7 +958,7 @@ redisplay_internal (preserve_echo_area)
 
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
-  if (! EQ (Voverlay_arrow_position, last_arrow_position)
+  if (! EQ (COERCE_MARKER (Voverlay_arrow_position), last_arrow_position)
       || ! EQ (Voverlay_arrow_string, last_arrow_string))
     all_windows = 1;
 
@@ -1296,7 +1301,7 @@ update:
 			       : Qnil);
 
 	  w->window_end_valid = w->buffer;
-	  last_arrow_position = Voverlay_arrow_position;
+	  last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
 	  last_arrow_string = Voverlay_arrow_string;
 	  if (do_verify_charstarts)
 	    verify_charstarts (w);
@@ -1417,7 +1422,7 @@ mark_window_display_accurate (window, flag)
 
   if (flag)
     {
-      last_arrow_position = Voverlay_arrow_position;
+      last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
       last_arrow_string = Voverlay_arrow_string;
     }
   else
@@ -1829,7 +1834,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       /* If end pos is out of date, scroll bar and percentage will be wrong */
       && INTEGERP (w->window_end_vpos)
       && XFASTINT (w->window_end_vpos) < XFASTINT (w->height)
-      && !EQ (window, minibuf_window))
+      && !EQ (window, minibuf_window)
+      && current_buffer != XMARKER (Voverlay_arrow_position)->buffer)
     {
       int this_scroll_margin = scroll_margin;
       int last_point_y = w->last_point_y - XINT (w->top);
@@ -1923,7 +1929,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	      doesn't display as the end of a line.  */
 	   && !(dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, '\n')))
 	   && NILP (w->region_showing)
-	   && EQ (last_arrow_position, Voverlay_arrow_position)
+	   && EQ (last_arrow_position, COERCE_MARKER (Voverlay_arrow_position))
 	   && EQ (last_arrow_string, Voverlay_arrow_string)
 	   && (tem = try_window_id (FRAME_SELECTED_WINDOW (f)))
 	   && tem != -2)
