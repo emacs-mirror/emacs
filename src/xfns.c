@@ -2443,10 +2443,15 @@ x_window (f, window_prompting, minibuffer_only)
 	left = -left;
       if (yneg)
 	top = -top;
-      sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
-	       PIXEL_HEIGHT (f) + menubar_size,
-	       (xneg ? '-' : '+'), left,
-	       (yneg ? '-' : '+'), top);
+
+      if (window_prompting & USPosition)
+	sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
+		 PIXEL_HEIGHT (f) + menubar_size,
+		 (xneg ? '-' : '+'), left,
+		 (yneg ? '-' : '+'), top);
+      else
+	sprintf (shell_position, "=%dx%d", PIXEL_WIDTH (f), 
+		 PIXEL_HEIGHT (f) + menubar_size);
     }
 
     len = strlen (shell_position) + 1;
@@ -2512,6 +2517,12 @@ x_window (f, window_prompting, minibuffer_only)
 
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 f->display.x->text_cursor);
+
+  /* If we have a program-specified position, communicate it to
+     the window manager thus.  */
+  if (FRAME_X_WINDOW (f))
+    XMoveWindow (FRAME_X_DISPLAY (f), XtWindow (f->display.x->widget),
+		 f->display.x->left_pos, f->display.x->top_pos);
 
   UNBLOCK_INPUT;
 
