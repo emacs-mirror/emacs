@@ -1335,12 +1335,12 @@ command_loop_1 ()
   Lisp_Object keybuf[30];
   int i;
   int no_direct;
-  int prev_modiff;
+  int prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
 #endif
-  int already_adjusted;
+  int already_adjusted = 0;
 
   current_kboard->Vprefix_arg = Qnil;
   current_kboard->Vlast_prefix_arg = Qnil;
@@ -6610,9 +6610,8 @@ static int
 read_avail_input (expected)
      int expected;
 {
-  register int i;
   int nread = 0;
-  int err;
+  int err = 0;
   struct display *d;
 
   /* Loop through the available displays, and call their input hooks. */
@@ -6623,7 +6622,6 @@ read_avail_input (expected)
 
       if (d->read_socket_hook)
         {
-          int discard = 0;
           int nr;
 
           struct input_event hold_quit;
