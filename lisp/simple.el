@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 1998
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999
 ;;        Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1184,7 +1184,8 @@ will be intermixed in the output stream.")
 				      error-buffer)
   "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer `*Shell Command Output*';
-Prefix arg means replace the region with it.
+Prefix arg means replace the region with it.  Return the exit code of
+COMMAND.
 
 To specify a coding system for converting non-ASCII characters
 in the input and output to the shell command, use \\[universal-coding-system-argument]
@@ -1239,7 +1240,8 @@ of ERROR-BUFFER."
 	 (if error-buffer 
 	     (concat (file-name-directory temp-file-name-pattern)
 		     (make-temp-name "scor"))
-	   nil)))
+	   nil))
+	exit-status)
     (if (or replace
 	    (and output-buffer
 		 (not (or (bufferp output-buffer) (stringp output-buffer))))
@@ -1249,11 +1251,12 @@ of ERROR-BUFFER."
 	  ;; Don't muck with mark unless REPLACE says we should.
 	  (goto-char start)
 	  (and replace (push-mark))
-	  (call-process-region start end shell-file-name t
-			       (if error-file
-				   (list t error-file)
-				 t)
-			       nil shell-command-switch command)
+	  (setq exit-status
+		(call-process-region start end shell-file-name t
+				     (if error-file
+					 (list t error-file)
+				       t)
+				     nil shell-command-switch command))
 	  (let ((shell-buffer (get-buffer "*Shell Command Output*")))
 	    (and shell-buffer (not (eq shell-buffer (current-buffer)))
 		 (kill-buffer shell-buffer)))
@@ -1263,8 +1266,7 @@ of ERROR-BUFFER."
       ;; replacing its entire contents.
       (let ((buffer (get-buffer-create
 		     (or output-buffer "*Shell Command Output*")))
-	    (success nil)
-	    (exit-status nil))
+	    (success nil))
 	(unwind-protect
 	    (if (eq buffer (current-buffer))
 		;; If the input is the same buffer as the output,
@@ -1279,9 +1281,10 @@ of ERROR-BUFFER."
 						  (if error-file
 						      (list t error-file)
 						    t)
-						  nil shell-command-switch command))
-		       (setq success t))
-	      ;; Clear the output buffer, then run the command with output there.
+						  nil shell-command-switch
+						  command)))
+	      ;; Clear the output buffer, then run the command with
+	      ;; output there.
 	      (save-excursion
 		(set-buffer buffer)
 		(setq buffer-read-only nil)
@@ -1291,8 +1294,8 @@ of ERROR-BUFFER."
 					 (if error-file
 					     (list buffer error-file)
 					   buffer)
-					 nil shell-command-switch command))
-	      (setq success t))
+					 nil shell-command-switch command)))
+	  (setq success (zerop exit-status))
 	  ;; Report the amount of output.
 	  (let ((lines (save-excursion
 			 (set-buffer buffer)
@@ -1323,7 +1326,8 @@ of ERROR-BUFFER."
 	  (set-buffer (get-buffer-create error-buffer))
 	  ;; Do no formatting while reading error file, for fear of looping.
 	  (format-insert-file error-file nil)
-	  (delete-file error-file)))))
+	  (delete-file error-file)))
+    exit-status))
        
 (defun shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string."
