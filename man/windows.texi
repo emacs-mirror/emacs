@@ -176,6 +176,11 @@ next window in the standard cyclic order.)
 buffers visible in two windows, by moving through them to the next
 mismatch.  @xref{Comparing Files}, for details.
 
+@vindex mouse-autoselect-window
+  If you set @code{mouse-autoselect-window} to a non-@code{nil} value,
+moving the mouse into a different window selects that window.  This
+feature is off by default.
+
 @node Pop Up Window
 @section Displaying in Another Window
 
