@@ -487,8 +487,7 @@ relock:
 	(cd src; $(MAKE) $(MFLAGS) relock)
 
 TAGS tags:	lib-src
-	(cd ${srcdir}/src; \
-	 ../lib-src/etags *.[ch] ../lisp/*.el ../lisp/term/*.el)
+	cd ${srcdir}/src; $(MAKE) tags
 
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
