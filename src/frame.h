@@ -35,6 +35,9 @@ extern int message_buf_print;
 enum output_method
 { output_termcap, output_x_window, output_msdos_raw, output_win32 };
 
+enum vertical_scroll_bar_type
+{ vertical_scroll_bar_none, vertical_scroll_bar_left, vertical_scroll_bar_right };
+
 struct frame
 {
   EMACS_INT size;
@@ -247,7 +250,7 @@ struct frame
 
   /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
-  char has_vertical_scroll_bars;
+  enum vertical_scroll_bar_type vertical_scroll_bar_type;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   char auto_raise;
@@ -359,9 +362,27 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) (f)->focus_frame
 #define FRAME_CAN_HAVE_SCROLL_BARS(f) ((f)->can_have_scroll_bars)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((f)->has_vertical_scroll_bars)
+#define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((f)->vertical_scroll_bar_type)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) \
+     ((f)->vertical_scroll_bar_type != vertical_scroll_bar_none)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) \
+     ((f)->vertical_scroll_bar_type == vertical_scroll_bar_left)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) \
+     ((f)->vertical_scroll_bar_type == vertical_scroll_bar_right)
 #define FRAME_SCROLL_BAR_PIXEL_WIDTH(f) ((f)->scroll_bar_pixel_width)
 #define FRAME_SCROLL_BAR_COLS(f) ((f)->scroll_bar_cols)
+#define FRAME_LEFT_SCROLL_BAR_WIDTH(f) \
+     (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f) \
+      ? FRAME_SCROLL_BAR_COLS (f) \
+      : 0)
+#define FRAME_SCROLL_BAR_WIDTH(f) \
+     (FRAME_HAS_VERTICAL_SCROLL_BARS (f) \
+      ? FRAME_SCROLL_BAR_COLS (f) \
+      : 0)
+#define FRAME_WINDOW_WIDTH_ARG(f, width) \
+     ((width) + FRAME_SCROLL_BAR_WIDTH (f))
+#define FRAME_WINDOW_WIDTH(f) ((f)->width + FRAME_SCROLL_BAR_WIDTH (f))
+#define SET_FRAME_WIDTH(f,val) ((f)->width = (val))
 #define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
@@ -448,11 +469,13 @@ extern Lisp_Object Vterminal_frame;
    we have extra space allocated for it.  Otherwise, the scroll bar
    takes over the window's rightmost columns.  */
 #define WINDOW_VERTICAL_SCROLL_BAR_COLUMN(w) \
-  (((XINT ((w)->left) + XINT ((w)->width)) \
-    < FRAME_WIDTH (XFRAME (WINDOW_FRAME (w)))) \
-   ? (XINT ((w)->left) + XINT ((w)->width) \
-      - FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (w)))) \
-   : FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
+  (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (XFRAME (WINDOW_FRAME (w))) ? \
+    (((XINT ((w)->left) + XINT ((w)->width)) \
+      < FRAME_WIDTH (XFRAME (WINDOW_FRAME (w)))) \
+     ? (XINT ((w)->left) + XINT ((w)->width) \
+       - FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (w)))) \
+     : FRAME_WIDTH (XFRAME (WINDOW_FRAME (w)))) \
+  : XINT ((w)->left))
 
 /* Return the height in lines of the vertical scroll bar in w.  If the
    window has a mode line, don't make the scroll bar extend that far.  */
