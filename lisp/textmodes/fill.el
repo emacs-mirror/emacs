@@ -244,6 +244,7 @@ act as a paragraph-separator."
 It removes any paragraph breaks in the region and extra newlines at the end,
 indents and fills lines between the margins given by the
 `current-left-margin' and `current-fill-column' functions.
+\(In most cases, the variable `fill-column' controls the width.)
 It leaves point at the beginning of the line following the paragraph.
 
 Normally performs justification according to the `current-justification'
@@ -519,6 +520,7 @@ space does not end a sentence, so don't break a line there."
   "Fill paragraph at or after point.  Prefix arg means justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there.
+the variable `fill-column' controls the width for filling.
 
 If `fill-paragraph-function' is non-nil, we call it (passing our
 argument to it), and if it returns non-nil, we simply return its value."
@@ -543,6 +545,7 @@ argument to it), and if it returns non-nil, we simply return its value."
 (defun fill-region (from to &optional justify nosqueeze to-eop)
   "Fill each of the paragraphs in the region.
 Prefix arg (non-nil third arg, if called from program) means justify as well.
+Ordinarily the variable `fill-column' controls the width.
 
 Noninteractively, fourth arg NOSQUEEZE non-nil means to leave
 whitespace other than line breaks untouched, and fifth arg TO-EOP
