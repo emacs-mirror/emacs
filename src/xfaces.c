@@ -3099,7 +3099,7 @@ merge_face_heights (from, to, invalid, gcpro)
 
       args[0] = from;
       args[1] = to;
-      height = call_function (2, args);
+      height = safe_call (2, args);
 
       UNGCPRO;
 
