@@ -164,8 +164,13 @@ case "${canonical}" in
     machine=alliant-2800 opsys=bsd4-3
   ;;
 
+  ;; Alpha (DEC) machines.
   alpha-dec-osf* )
     machine=alpha opsys=osf1
+  ;;
+
+  alpha-*-linux* )
+    machine=alpha opsys=linux
   ;;
 
   ## Altos 3068
@@ -1095,18 +1100,18 @@ configure___ system_malloc=no
 
 /* Get the CFLAGS for tests in configure.  */
 #ifdef __GNUC__
-configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${CFLAGS}'
+configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
 #else
-configure___ CFLAGS=C_DEBUG_SWITCH '${CFLAGS}'
+configure___ CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
 #endif
 
 #else /* not THIS_IS_CONFIGURE */
 
 /* Get the CFLAGS for real compilation.  */
 #ifdef __GNUC__
-configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${CFLAGS}'
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
 #else
-configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${CFLAGS}'
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
 #endif
 
 #endif /* not THIS_IS_CONFIGURE */
