@@ -574,10 +574,11 @@ Return the result of evaluation."
 (defun eval-defun (edebug-it)
   "Evaluate the top-level form containing point, or after point.
 
-If the current defun is actually a call to `defvar', then reset the
-variable using its initial value expression even if the variable
-already has some other value.  (Normally `defvar' does not change the
-variable's value if it already has a value.)
+If the current defun is actually a call to `defvar' or `defcustom',
+evaluating it this way resets the variable using its initial value
+expression even if the variable already has some other value.
+\(Normally `defvar' and `defcustom' do not alter the value if there
+already is one.)
 
 With a prefix argument, instrument the code for Edebug.
 
