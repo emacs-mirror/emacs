@@ -1745,6 +1745,13 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
+(defvar Info-title-face-alist
+  '((?* bold underline)
+    (?= bold-italic underline)
+    (?- italic underline))
+  "*Alist of face or list of faces to use for pseudo-underlined titles.
+The alist key is the character the title is underlined with (?*, ?= or ?-).")
+
 (defun Info-fontify-node ()
   (save-excursion
     (let ((buffer-read-only nil))
@@ -1759,6 +1766,14 @@ the variable `Info-file-list-for-emacs'."
 				 'face 'info-xref)
 	      (put-text-property (match-beginning 1) (match-end 1)
 				 'mouse-face 'highlight))))
+      (goto-char (point-min))
+      (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\)$"
+				 nil t)
+	(put-text-property (match-beginning 1) (match-end 1)
+			   'face
+			   (assq (preceding-char) Info-title-face-alist))
+	(put-text-property (match-end 1) (match-end 2)
+			   'invisible t))
       (goto-char (point-min))
       (while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
 	(if (= (char-after (1- (match-beginning 0))) ?\") ; hack
