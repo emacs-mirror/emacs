@@ -1743,9 +1743,9 @@ XSetWMProtocols (dpy, w, protocols, count)
 
 #ifdef USE_X_TOOLKIT
 
-/* If the WM_PROTOCOLS property does not already contain WM_TAKE_FOCUS
-   and WM_DELETE_WINDOW, then add them.  (They may already be present
-   because of the toolkit (Motif adds them, for example, but Xt doesn't).  */
+/* WM_DELETE_WINDOW, and WM_SAVE_YOURSELF, then add them.  (They may
+   already be present because of the toolkit (Motif adds some of them,
+   for example, but Xt doesn't).  */
 
 static void
 hack_wm_protocols (widget)
@@ -1755,6 +1755,7 @@ hack_wm_protocols (widget)
   Window w = XtWindow (widget);
   int need_delete = 1;
   int need_focus = 1;
+  int need_save = 1;
 
   BLOCK_INPUT;
   {
@@ -1771,16 +1772,18 @@ hack_wm_protocols (widget)
       while (nitems > 0)
 	{
 	  nitems--;
-	  if (atoms [nitems] == Xatom_wm_delete_window)   need_delete = 0;
-	  else if (atoms [nitems] == Xatom_wm_take_focus) need_focus = 0;
+ 	  if (atoms[nitems] == Xatom_wm_delete_window)      need_delete = 0;
+	  else if (atoms[nitems] == Xatom_wm_take_focus)    need_focus = 0;
+	  else if (atoms[nitems] == Xatom_wm_save_yourself) need_save = 0;
 	}
     if (atoms) XFree ((char *) atoms);
   }
   {
     Atom props [10];
     int count = 0;
-    if (need_delete) props [count++] = Xatom_wm_delete_window;
-    if (need_focus)  props [count++] = Xatom_wm_take_focus;
+    if (need_delete) props[count++] = Xatom_wm_delete_window;
+    if (need_focus)  props[count++] = Xatom_wm_take_focus;
+    if (need_save)   props[count++] = Xatom_wm_save_yourself;
     if (count)
       XChangeProperty (dpy, w, Xatom_wm_protocols, XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
