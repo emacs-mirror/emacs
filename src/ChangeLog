@@ -1,5 +1,7 @@
 2001-10-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* lread.c (to_multibyte): Fix computation of new read_buffer_size.
+
 	* xfaces.c (realize_x_face): If C is not a single-byte character,
 	set the face's colors_copied_bitwise_p instead of the defaulted_p
 	members which have a different meaning.
