@@ -1,5 +1,11 @@
 2004-09-13  Francesco Potort,Al(B  <pot@gnu.org>
 
+	* etags.c (main): When relative file names are given as argument,
+	make them relative to the current working dir, rather than
+	relative to the output tags file, if the latter is in /dev.
+
+2004-09-13  Francesco Potort,Al(B  <pot@gnu.org>
+
 	* etags.c [EXIT_SUCCESS, EXIT_FAILURE]: Define them when no
 	<stdlib.h> is available.
 	(enum sym_type): New st_C_attribute value for parsing
