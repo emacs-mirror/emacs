@@ -865,7 +865,7 @@ scan_lists (from, count, depth, sexpflag)
   Lisp_Object val;
   register int stop;
   register int c;
-  char stringterm;
+  unsigned char stringterm;
   int quoted;
   int mathexit = 0;
   register enum syntaxcode code;
