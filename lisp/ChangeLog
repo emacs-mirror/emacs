@@ -1,3 +1,7 @@
+2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/sendmail.el (mail-mode): Fix ordering in adaptive-fill-regexp.
+
 2001-10-27  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* net/ange-ftp.el (ange-ftp-send-cmd): Call fix-name-func for
@@ -26,11 +30,10 @@
 	(ps-mode-print-buffer, ps-mode-print-region): Use `funcall'
 	instead of `eval'.
 	(ps-mode-print-region): Use `with-temp-buffer'.
-	(ps-run-start): Use of `mapconcat'.  Use `apply' instead of
-	`eval'.
+	(ps-run-start): Use of `mapconcat'.  Use `apply' instead of	`eval'.
 	(numerous places): Add back-tick and tick around names in
 	docstrings, fix punctuation in docstrings, remove trailing spaces.
-	
+
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (normal-top-level): Check for frame-initial-frame
@@ -61,7 +64,7 @@
 
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* info.el (Info-fontify-node): Bind doun-mouse-{1,2} instead
+	* info.el (Info-fontify-node): Bind down-mouse-{1,2} instead
 	of mouse-{1,2} since dragging is on the down event.
 
 	* play/doctor.el (make-doctor-variables): Remove a '($ please)'.
