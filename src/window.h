@@ -436,6 +436,10 @@ extern int clip_changed;
 
 extern int windows_or_buffers_changed;
 
+/* Nonzero means a frame's cursor type has been changed.  */
+
+extern int cursor_type_changed;
+
 /* Number of windows displaying the selected buffer.  Normally this is
    1, but it can be more.  */
 
