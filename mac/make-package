@@ -385,9 +385,9 @@ echo "CompressedSize ${compressedSize}" >> ${sizesfile}
 cat ${sizesfile}
 
 echo "Creating Disc Image"
-## Allocate an extra 5000 sectors (about 2.5 mg)
-## Note a sector appears to be 512k
-sectorsAlloced=`echo 2*${compressedSize}+20|bc`
+## From hdiutil man page, a sector is 512k.  Allocate an extra 5% for
+## directories and partition tables.
+sectorsAlloced=`echo 2.1*${compressedSize}|bc`
 hdiutil create -ov ${builddir}/mac/EmacsRW -sectors ${sectorsAlloced}
 ## Need to format the disc image before mounting
 mountLoc=`hdid -nomount ${builddir}/mac/EmacsRW.dmg | grep HFS | cut -f1`
