@@ -808,7 +808,7 @@ signal_before_change (start, end)
 
   if (!NILP (current_buffer->overlays_before)
       || !NILP (current_buffer->overlays_after))
-    verify_overlay_modification (start, end, 0, start, end, Qnil);
+    report_overlay_modification (start, end, 0, start, end, Qnil);
 }
 
 /* Signal a change immediately after it happens.
@@ -876,7 +876,7 @@ signal_after_change (pos, lendel, lenins)
 
   if (!NILP (current_buffer->overlays_before)
       || !NILP (current_buffer->overlays_after))
-    verify_overlay_modification (make_number (pos),
+    report_overlay_modification (make_number (pos),
 				 make_number (pos + lenins - lendel),
 				 1,
 				 make_number (pos), make_number (pos + lenins),
