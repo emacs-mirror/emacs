@@ -229,7 +229,10 @@ invoked."
   "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
 
 (defvar jka-compr-really-do-compress nil
-  "Non-nil in a buffer whose visited file was uncompressed on visiting it.")
+  "Non-nil in a buffer whose visited file was uncompressed on visiting it.
+This means compress the data on writing the file, even if the
+data appears to be compressed already.")
+(make-variable-buffer-local 'jka-compr-really-do-compress)
 (put 'jka-compr-really-do-compress 'permanent-local t)
 
 ;;; Functions for accessing the return value of jka-compr-get-compression-info
