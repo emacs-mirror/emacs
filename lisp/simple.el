@@ -3336,7 +3336,7 @@ when it is off screen)."
 ;; Quitting out of a program does not go through here;
 ;; that happens in the QUIT macro at the C code level.
 (defun keyboard-quit ()
-  "Signal a  quit  condition.
+  "Signal a `quit' condition.
 During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
