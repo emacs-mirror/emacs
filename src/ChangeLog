@@ -1,3 +1,29 @@
+2002-02-23  Kim F. Storm  <no-spam@cua.dk>
+
+	The following changes rework my patch of 2002-02-06 which 
+	added command remapping by entering the commands directly into
+	the keymaps.  Now, command remapping uses an explicit `remap'
+	prefix in the keymaps, i.e. [remap COMMAND].
+	
+	* keymap.c (Qremap, remap_command_vector): New variables.
+	(is_command_symbol): Removed function.
+	(Fdefine_key): No longer accept a symbol for KEY.  Added
+	validation of [remap COMMAND] argument for KEY.  The DEF is no
+	longer required to be a symbol when remapping a command.
+	(Fremap_command): New function to remap command through keymaps.
+	(Flookup_key): Perform command remapping initiated by
+	Fremap_command directly for speed.
+	(Fkey_binding): Use Fremap_command for command remapping.
+	(where_is_internal): Handle new command remapping representation.
+	(syms_of_keymap): Intern Qremap, initialize remap_command_vector,
+	staticpro them.  Defsubr Fremap_command.
+
+	* keymap.h (Fremap_command): Declare extern.
+	(is_command_symbol): Remove extern.
+	
+	* keyboard.c (command_loop_1): Use Fremap_command for command
+	remapping; now try command remapping for all symbols.
+
 2002-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* coding.h (run_pre_post_conversion_on_str): Add prototype.
