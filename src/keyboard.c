@@ -755,8 +755,11 @@ static void
 unlock_display ()
 {
   if (CONSP (Vunread_command_events))
-    current_perdisplay->kbd_queue
-      = nconc2 (Vunread_command_events, current_perdisplay->kbd_queue);
+    {
+      current_perdisplay->kbd_queue
+	= nconc2 (Vunread_command_events, current_perdisplay->kbd_queue);
+      current_perdisplay->kbd_queue_has_data = 1;
+    }
   Vunread_command_events = Qnil;
   current_perdisplay = 0;
   display_locked = 0;
@@ -1786,12 +1789,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Check for something on one of the side queues.  Give priority to
 	 the current display, but if we're not locked, then check the other
 	 displays as well.  */
-      if (current_perdisplay && CONSP (current_perdisplay->kbd_queue))
+      if (current_perdisplay && current_perdisplay->kbd_queue_has_data)
 	perd = current_perdisplay;
       else if (!display_locked)
 	{
 	  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
-	    if (CONSP (perd->kbd_queue))
+	    if (perd->kbd_queue_has_data)
 	      break;
 	}
       else
@@ -1803,8 +1806,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 try again.  */
       if (perd)
 	{
+	  if (!CONSP (perd->kbd_queue))
+	    abort ();
 	  c = XCONS (perd->kbd_queue)->car;
 	  perd->kbd_queue = XCONS (perd->kbd_queue)->cdr;
+	  if (NILP (perd->kbd_queue))
+	    perd->kbd_queue_has_data = 0;
 	  input_pending = readable_events ();
 #ifdef MULTI_FRAME
 	  if (EVENT_HAS_PARAMETERS (c)
@@ -1834,18 +1841,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	      if (!NILP (*tailp))
 		abort ();
 	      *tailp = Fcons (c, Qnil);
+	      perd->kbd_queue_has_data = 1;
 	      goto wrong_display;
 	    }
 	}
 #ifdef MULTI_PERDISPLAY
-      if (!current_perdisplay)
-	current_perdisplay = perd;
       if (perd != current_perdisplay)
 	{
 	  /* We shouldn't get here if we were locked onto one display!  */
 	  if (display_locked)
 	    abort ();
 	  perd->kbd_queue = Fcons (c, perd->kbd_queue);
+	  perd->kbd_queue_has_data = 1;
 	  current_perdisplay = perd;
 	  longjmp (wrong_display_jmpbuf, 1);
 	}
@@ -2129,14 +2136,14 @@ readable_events ()
 #endif
   if (display_locked)
     {
-      if (CONSP (current_perdisplay->kbd_queue))
+      if (current_perdisplay->kbd_queue_has_data)
 	return 1;
     }
   else
     {
       PERDISPLAY *perd;
       for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
-	if (CONSP (perd->kbd_queue))
+	if (perd->kbd_queue_has_data)
 	  return 1;
     }
   return 0;
@@ -6357,6 +6364,7 @@ init_perdisplay (perd)
   perd->prefix_sign = 1;
   perd->prefix_partial = 0;
   perd->kbd_queue = Qnil;
+  perd->kbd_queue_has_data = 0;
   perd->immediate_echo = 0;
   perd->echoptr = perd->echobuf;
   perd->echo_after_prompt = -1;
