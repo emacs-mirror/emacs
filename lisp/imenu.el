@@ -146,6 +146,7 @@ For emacs-lisp-mode for example PATTERN would look like:
 
 The variable is buffer-local.")
 
+;;;###autoload
 (make-variable-buffer-local 'imenu-generic-expression)
 
 ;;;; Hooks
