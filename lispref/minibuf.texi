@@ -1060,8 +1060,12 @@ A flag specifying the type of operation.
 @item
 @code{nil} specifies @code{try-completion}.  The completion function
 should return the completion of the specified string, or @code{t} if the
-string is an exact match already, or @code{nil} if the string matches no
-possibility.
+string is a unique and exact match already, or @code{nil} if the string
+matches no possibility.
+
+If the string is an exact match for one possibility, but also matches
+other longer possibilities, the function shuold return the string, not
+@code{t}.
 
 @item
 @code{t} specifies @code{all-completions}.  The completion function
