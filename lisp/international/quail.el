@@ -259,6 +259,7 @@ LEIM is available from the same ftp directory as Emacs."))
     (define-key map "\C-@" 'quail-select-current)
     (define-key map "\C-c" 'quail-abort-translation)
     (define-key map "\C-h" 'quail-translation-help)
+    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
     (define-key map [tab] 'quail-completion)
     (define-key map [delete] 'quail-delete-last-char)
     (define-key map [backspace] 'quail-delete-last-char)
@@ -284,6 +285,7 @@ This map is activated while translation region is active.")
     (define-key map "\C-d" 'quail-conversion-delete-char)
     (define-key map "\C-h" 'quail-conversion-help)
     (define-key map "\C-\\" 'quail-inactivate)
+    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
     (define-key map "\177" 'quail-conversion-backward-delete-char)
     (define-key map [delete] 'quail-conversion-backward-delete-char)
     (define-key map [backspace] 'quail-conversion-backward-delete-char)
@@ -548,10 +550,12 @@ The current translation and conversion are terminated."
 
 (defconst quail-keyboard-layout-standard
   "\
+                              \
   1!2@3#4$5%6^7&8*9(0)-_=+`~  \
   qQwWeErRtTyYuUiIoOpP[{]}    \
   aAsSdDfFgGhHjJkKlL;:'\"\\|    \
-  zZxXcCvVbBnNmM,<.>/?        "
+  zZxXcCvVbBnNmM,<.>/?        \
+                              "
   "Standard keyboard layout of printable characters Quail assumes.
 See the documentation of `quail-keyboard-layout' for this format.
 This layout is almost the same as that of VT100,
@@ -560,26 +564,30 @@ This layout is almost the same as that of VT100,
 
 (defvar quail-keyboard-layout quail-keyboard-layout-standard
   "A string which represents physical key layout of a particular keyboard.
-We assume there are four rows and each row has 15 keys (columns),
-	the first column of the first row is left of key '1',
-	the first column of the second row is left of key `q',
-	the first column of the third row is left of key `a',
-	the first column of the fourth row is left of key `z'.
+We assume there are six rows and each row has 15 keys (columns),
+	the first row is above the `1' - `0' row,
+	the first column of the second row is left of key `1',
+	the first column of the third row is left of key `q',
+	the first column of the fourth row is left of key `a',
+	the first column of the fifth row is left of key `z',
+	the sixth row is below the `z' - `/' row.
 Nth (N is even) and (N+1)th characters in the string are non-shifted
  and shifted characters respectively at the same location.
 The location of Nth character is row (N / 30) and column ((N mod 30) / 2).")
 
-(defconst quail-keyboard-layout-len 120)
+(defconst quail-keyboard-layout-len 180)
 
 ;; Here we provide several examples of famous keyboard layouts.
 
 (defvar quail-keyboard-layout-alist
   (list
    '("sun-type3" . "\
+                              \
   1!2@3#4$5%6^7&8*9(0)-_=+\\|`~\
   qQwWeErRtTyYuUiIoOpP[{]}    \
   aAsSdDfFgGhHjJkKlL;:'\"      \
-  zZxXcCvVbBnNmM,<.>/?        ")
+  zZxXcCvVbBnNmM,<.>/?        \
+                              ")
    (cons "standard" quail-keyboard-layout-standard))
   "Alist of keyboard names and corresponding layout strings.
 See the documentation of `quail-keyboard-layout' for the format of
