@@ -1162,16 +1162,18 @@ current_minor_maps (modeptr, mapptr)
 	    {
 	      Lisp_Object *newmodes, *newmaps;
 
+	      /* Use malloc/realloc here.  See the comment above
+		 this function.  */
 	      if (cmm_maps)
 		{
 		  BLOCK_INPUT;
 		  cmm_size *= 2;
 		  newmodes
 		    = (Lisp_Object *) realloc (cmm_modes,
-					       cmm_size * sizeof (Lisp_Object));
+						cmm_size * sizeof *newmodes);
 		  newmaps
 		    = (Lisp_Object *) realloc (cmm_maps,
-					       cmm_size * sizeof (Lisp_Object));
+						cmm_size * sizeof *newmaps);
 		  UNBLOCK_INPUT;
 		}
 	      else
@@ -1179,18 +1181,18 @@ current_minor_maps (modeptr, mapptr)
 		  BLOCK_INPUT;
 		  cmm_size = 30;
 		  newmodes
-		    = (Lisp_Object *) xmalloc (cmm_size * sizeof (Lisp_Object));
+		    = (Lisp_Object *) malloc (cmm_size * sizeof *newmodes);
 		  newmaps
-		    = (Lisp_Object *) xmalloc (cmm_size * sizeof (Lisp_Object));
+		    = (Lisp_Object *) malloc (cmm_size * sizeof *newmaps);
 		  UNBLOCK_INPUT;
 		}
 
-	      if (newmaps && newmodes)
-		{
-		  cmm_modes = newmodes;
-		  cmm_maps = newmaps;
-		}
-	      else
+	      if (newmodes)
+		cmm_modes = newmodes;
+	      if (newmaps)
+		cmm_maps = newmaps;
+	      
+	      if (newmodes == NULL || newmaps == NULL)
 		break;
 	    }
 
