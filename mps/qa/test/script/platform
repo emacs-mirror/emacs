@@ -138,7 +138,7 @@ sub identify {
  %identify = ();
  if ($PLATFORM =~ /^nt/) {
   &identify_nt;
- } elsif ($PLATFORM =~ /^unix/) {
+ } elsif ($PLATFORM =~ /__unix/) {
   &identify_unix;
  }
  $identify{"time"} = localtime;
@@ -153,7 +153,7 @@ sub envvar {
 
 sub comvar {
  my ($var, $com, $pat) = @_;
- if (open(COM, $com)) {
+ if (open(COM, $com." 2>&1 |")) {
   while (<COM>) {
    chop;
    if ($pat eq "" || /$pat/) {
@@ -170,13 +170,13 @@ sub identify_nt {
  &envvar("user", "USERNAME");
  &envvar("OS", "OS");
  &envvar("arch", "PROCESSOR_ARCHITECTURE");
- &comvar("c_version", "cl /? 2>&1 |", "");
+ &comvar("c_version", "cl /?", "");
 }
 
 sub identify_unix {
  &comvar("machine", "uname -n", "");
  &comvar("user", "whoami", "");
- &comvar("c_version", "gcc -v 2>&1 |", "version");
+ &comvar("c_version", "gcc -v", "version");
  &comvar("OS", "uname", "");
  &comvar("arch", "arch", "");
 }
