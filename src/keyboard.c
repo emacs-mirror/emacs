@@ -3259,8 +3259,27 @@ readable_events (do_timers_now)
   if (do_timers_now)
     timer_check (do_timers_now);
 
+  /* If the buffer contains only FOCUS_IN_EVENT events,
+     report it as empty.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
-    return 1;
+    {
+      struct input_event *event;
+
+      event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
+	       ? kbd_fetch_ptr
+	       : kbd_buffer);
+
+      while (event->kind == FOCUS_IN_EVENT)
+	{
+	  event++;
+	  if (event == kbd_buffer + KBD_BUFFER_SIZE)
+	    event = kbd_buffer;
+	  if (event == kbd_store_ptr)
+	    return 0;
+	}
+      return 1;
+    }
+
 #ifdef HAVE_MOUSE
   if (!NILP (do_mouse_tracking) && some_mouse_moved ())
     return 1;
