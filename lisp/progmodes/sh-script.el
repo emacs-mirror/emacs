@@ -1031,44 +1031,44 @@ region, clear header."
 
 (define-skeleton sh-case
   "Insert a case/switch statement.  See `sh-feature'."
-  ((csh "expression: "
-	"switch( " str " )" \n
-	> "case " (read-string "pattern: ") ?: \n
-	> _ \n
-	"breaksw" \n
-	( "other pattern, %s: "
-	  < "case " str ?: \n
-	  > _ \n
-	  "breaksw" \n)
-	< "default:" \n
-	> _ \n
-	resume:
-	< < "endsw")
-   (es)
-   (rc "expression: "
-       "switch( " str " ) {" \n
-       > "case " (read-string "pattern: ") \n
+  (csh "expression: "
+       "switch( " str " )" \n
+       > "case " (read-string "pattern: ") ?: \n
        > _ \n
+       "breaksw" \n
        ( "other pattern, %s: "
-	 < "case " str \n
-	 > _ \n)
-       < "case *" \n
-       > _ \n
-       resume:
-       < < ?})
-   (sh "expression: "
-       "case " str " in" \n
-       > (read-string "pattern: ") ?\) \n
-       > _ \n
-       ";;" \n
-       ( "other pattern, %s: "
-	 < str ?\) \n
+	 < "case " str ?: \n
 	 > _ \n
-	 ";;" \n)
-       < "*)" \n
+	 "breaksw" \n)
+       < "default:" \n
        > _ \n
        resume:
-       < < "esac")))
+       < < "endsw")
+  (es)
+  (rc "expression: "
+      "switch( " str " ) {" \n
+      > "case " (read-string "pattern: ") \n
+      > _ \n
+      ( "other pattern, %s: "
+	< "case " str \n
+	> _ \n)
+      < "case *" \n
+      > _ \n
+      resume:
+      < < ?})
+  (sh "expression: "
+      "case " str " in" \n
+      > (read-string "pattern: ") ?\) \n
+      > _ \n
+      ";;" \n
+      ( "other pattern, %s: "
+	< str ?\) \n
+	> _ \n
+	";;" \n)
+      < "*)" \n
+      > _ \n
+      resume:
+      < < "esac"))
 
 (define-skeleton sh-for
   "Insert a for loop.  See `sh-feature'."
