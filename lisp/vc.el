@@ -1727,7 +1727,10 @@ A prefix argument means do not revert the buffer afterwards."
     (if oldbuf
 	(save-excursion
 	  (set-buffer oldbuf)
-	  (set-visited-file-name new)
+	  (let ((buffer-read-only buffer-read-only))
+	    (set-visited-file-name new))
+	  (vc-backend new)
+	  (vc-mode-line new)
 	  (set-buffer-modified-p nil))))
   ;; This had FILE, I changed it to OLD. -- rms.
   (vc-backend-dispatch old
