@@ -1,6 +1,6 @@
 2001-10-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* emulation/tpu-edt.el: use defalias instead of fset for
+	* emulation/tpu-edt.el: Use defalias instead of fset for
 	user-visible commands.  From Rob Riepel
 	<riepel@Networking.Stanford.EDU>.
 
