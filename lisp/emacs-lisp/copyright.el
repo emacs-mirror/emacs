@@ -27,7 +27,8 @@
 
 ;; Allows updating the copyright year and above mentioned GPL version manually
 ;; or when saving a file.
-;; Do (add-hook 'write-file-functions 'copyright-update).
+;; Do (add-hook 'before-save-hook 'copyright-update), or use
+;; M-x customize-variable RET before-save-hook RET.
 
 ;;; Code:
 

@@ -3,6 +3,9 @@
 	* files.el (before-save-hook): Add.
 	(basic-save-buffer): Use before-save-hook.
 
+	* emacs-lisp/copyright.el: Fix comment to recommend
+	before-save-hook instead of write-file-functions.
+
 2004-01-05  Richard M. Stallman  <rms@gnu.org>
 
 	* finder.el (finder-commentary): Call delete-other-windows.
