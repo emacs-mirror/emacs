@@ -772,10 +772,10 @@ map_char_table (c_function, function, table, arg)
 {
   Lisp_Object range, val;
   int c, i;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   range = Fcons (make_number (0), Qnil);
-  GCPRO1 (range);
+  GCPRO3 (table, arg, range);
   val = XCHAR_TABLE (table)->ascii;
   if (SUB_CHAR_TABLE_P (val))
     val = XSUB_CHAR_TABLE (val)->contents[0];
