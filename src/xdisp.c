@@ -1780,10 +1780,11 @@ display_mode_line (w)
 
   if (FRAME_IS_X (f)
       && ! FRAME_MINIBUF_ONLY_P (f)
-      && w == XWINDOW (f->selected_window)
-      && XINT (Flength (Vframe_list)) > 1
-      && (NILP (Fstring_equal (XBUFFER (w->buffer)->name, f->name))))
-    x_set_name (f, XBUFFER (w->buffer)->name, Qnil);
+      && w == XWINDOW (f->selected_window))
+    x_set_name (f, ((XINT (Flength (Vframe_list)) > 1)
+		    ? XBUFFER (w->buffer)->name
+		    : Qnil),
+		Qnil);
 #endif
 }
 
