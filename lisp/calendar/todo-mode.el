@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.23 1997/10/24 17:30:54 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.24 1997/10/28 19:41:53 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -72,7 +72,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.23 1997/10/24 17:30:54 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.24 1997/10/28 19:41:53 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -124,7 +124,8 @@
 ;;          q  to save the list and exit the buffer
 ;;          r  to raise the current entry's priority
 ;;          s  to save the list
-;;	    t  show top priority items for each category
+;;          S  to save the list of top priorities
+;;          t  show top priority items for each category
 ;;
 ;;	When you add a new entry, you are asked for the text and then
 ;;	for the category.  I for example have categories for things
@@ -170,6 +171,12 @@
 ;;	even blend in with the EMACS diary package.  So anyway, this
 ;;	variable holds the name of the file for the filed todo-items.
 ;;
+;;  Variable todo-file-top
+;;
+;;      File storing the top priorities of your TODO list when
+;;      todo-save-top-priorities is non-nil.  Nice to include in your
+;;      diary instead of the complete TODO list.
+;;
 ;;  Variable todo-mode-hook
 ;;
 ;;	Just like other modes, too, this mode offers to call your
@@ -202,9 +209,6 @@
 ;;      These originally were my ideas, but now also include all the
 ;;      suggestions that I included before forgetting them:
 ;;
-;;      o   Automatic save of top-priorities to file, for inclusion in
-;;          .diary, at save of .todo-do, ref. automatic save of .bbdb
-;;          in gnus
 ;;      o   Fancy fonts for todo/top-priority buffer
 ;;      o   Remove todo-prefix option in todo-top-priorities
 ;;      o   Rename category
@@ -245,6 +249,10 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.24  1997/10/28 19:41:53  os10000
+;; Added fix from Frank Ridderbusch <ridderbusch.pad@sni.de>,
+;; an apostrophe was missing.
+;;
 ;; Revision 1.23  1997/10/24  17:30:54  os10000
 ;; Added three suggestions from Carsten
 ;; Dominik <dominik@strw.LeidenUniv.nl>:
@@ -412,6 +420,10 @@
 (defvar todo-edit-mode-hook nil         "*TODO Edit mode hooks.")
 (defvar todo-insert-threshold 0         "*TODO mode insertion accuracy.")
 (defvar todo-edit-buffer " *TODO Edit*" "TODO Edit buffer name.")
+(defvar todo-file-top "~/.todo-top"
+  "*TODO mode top priorities file.
+Not in TODO format, but diary compatible.
+Automatically generated when `todo-save-top-priorities' is non-nil.")
 
 (defvar todo-print-function 'ps-print-buffer-with-faces
   "*Function to print the current buffer.")
@@ -424,7 +436,9 @@
 (defvar todo-remove-separator t
   "*Non-nil removes category separators in
  \\[todo-top-priorities] and \\[todo-print].")
-
+(defvar todo-save-top-priorities-too t
+  "*Non-nil makes todo-save automatically save top-priorities in
+`todo-file-top'.")
 
 ;; Thanks for the ISO time stamp format go to Karl Eichwalder <ke@suse.de>
 ;; My format string for the appt.el package is "%3b %2d, %y, %02I:%02M%p".
@@ -434,12 +448,21 @@
   "TODO mode time string format for done entries.
 For details see the variable `time-stamp-format'.")
 
-(defvar todo-entry-prefix-function 'todo-entry-timestamp-initials
-  "*Function producing text to insert at start of todo entry.")
+(defvar todo-entry-prefix-function nil
+  "*Function producing text to insert at start of todo entry.
+
+See `todo-entry-prefix-function' as an example:
+(defun todo-entry-timestamp-initials ()
+  \"Prepend timestamp and your initials to the head of a TODO entry.\"
+  (let ((time-stamp-format todo-time-string-format))
+    (concat (time-stamp-string) \" \" todo-initials \": \")))
+")
+
 (defvar todo-initials (or (getenv "INITIALS") (user-login-name))
   "*Initials of todo item author.")
 
 (defun todo-entry-timestamp-initials ()
+  "Prepend timestamp and your initials to the head of a TODO entry."
   (let ((time-stamp-format todo-time-string-format))
     (concat (time-stamp-string) " " todo-initials ": ")))
 
@@ -462,6 +485,7 @@ TODO categories. Use `todo-categories' instead.")
 (defvar todo-mode-map           nil     "TODO mode keymap.")
 (defvar todo-category-number    0       "TODO category number.")
 
+(defvar todo-tmp-buffer-name "*Tmp*")
 
 (defvar todo-category-sep (make-string 75 ?-)
   "Category separator.")
@@ -496,6 +520,7 @@ TODO categories. Use `todo-categories' instead.")
     (define-key map "q" 'todo-quit)
     (define-key map "r" 'todo-raise-item)
     (define-key map "s" 'todo-save)
+    (define-key map "S" 'todo-save-top-priorities)
     (define-key map "t" 'todo-top-priorities)
     (setq todo-mode-map map)))
 
@@ -549,13 +574,15 @@ TODO categories. Use `todo-categories' instead.")
 
 (defun todo-save () "Save the TODO list."
   (interactive)
-  (save-buffer))
+  (save-buffer)
+  (if todo-save-top-priorities-too (todo-save-top-priorities))
+  )
 (defalias 'todo-cmd-save 'todo-save)
 
 (defun todo-quit () "Done with TODO list for now."
   (interactive)
   (widen)
-  (save-buffer)
+  (todo-save)
   (message "")
   (bury-buffer))
 (defalias 'todo-cmd-done 'todo-quit)
@@ -638,7 +665,7 @@ TODO categories. Use `todo-categories' instead.")
       (beginning-of-line))
     (insert new-item "\n")
     (todo-backward-item)
-    (save-buffer)
+    (todo-save)
     (message "")))
 
 ;;;### autoload
@@ -649,18 +676,18 @@ TODO categories. Use `todo-categories' instead.")
   (let* ((new-item (concat todo-prefix " "
 			   (read-from-minibuffer
                             "New TODO entry: "
-                                 (if todo-entry-prefix-function
-                                     (funcall todo-entry-prefix-function)))))
+			    (if todo-entry-prefix-function
+				(funcall todo-entry-prefix-function)))))
          (categories todo-categories)
          (history (cons 'categories (1+ todo-category-number)))
 	 (current-category (nth todo-category-number todo-categories))
 	 (category 
 	  (if ARG
 	      current-category
-	      (completing-read 
-                    (concat "Category ["
-                            current-category "]: ")
-                    (todo-category-alist) nil nil nil history))))
+	    (completing-read 
+	     (concat "Category ["
+		     current-category "]: ")
+	     (todo-category-alist) nil nil nil history))))
     (todo-add-item-non-interactively new-item category)))
 
 (defalias 'todo-cmd-inst 'todo-insert-item)
@@ -764,9 +791,7 @@ between each category."
   (or nof-priorities (setq nof-priorities todo-show-priorities))
   (if (listp nof-priorities)            ;universal argument
       (setq nof-priorities (car nof-priorities)))
-  (let ((todo-print-buffer-name "*Tmp*")
-        ;;(todo-print-category-number 0)
-        (todo-category-break (if category-pr-page "" ""))
+  (let ((todo-category-break (if category-pr-page "" ""))
         (cat-end
          (concat
           (if todo-remove-separator
@@ -778,8 +803,8 @@ between each category."
     (save-excursion
       (save-restriction
         (widen)
-        (copy-to-buffer todo-print-buffer-name (point-min) (point-max))
-        (set-buffer todo-print-buffer-name)
+        (copy-to-buffer todo-tmp-buffer-name (point-min) (point-max))
+        (set-buffer todo-tmp-buffer-name)
         (goto-char (point-min))
         (if (re-search-forward (regexp-quote todo-header) nil t)
             (progn
@@ -800,16 +825,32 @@ between each category."
           (setq beg (point))
           (delete-region beg end)
           (widen))
+        (and (looking-at "") (replace-match "")) ;Remove trailing form-feed.
         (goto-char (point-min))         ;Due to display buffer
         ))
     ;; Could have used switch-to-buffer as it has a norecord argument,
     ;; which is nice when we are called from e.g. todo-print.
-    ;; Else we could have used pop-to-buffer should be used.
-    (display-buffer todo-print-buffer-name)
-    ;;(switch-to-buffer todo-print-buffer-name t)
+    ;; Else we could have used pop-to-buffer.
+    (display-buffer todo-tmp-buffer-name)
     (message "Type C-x 1 to remove %s window.  M-C-v to scroll the help."
-             todo-print-buffer-name)
+             todo-tmp-buffer-name)
     ))
+
+;;;###autoload
+(defun todo-save-top-priorities (&optional nof-priorities)
+  "Save top priorities for each category in `todo-file-top'.
+
+Number of entries for each category is given by NOF-PRIORITIES which
+defaults to `todo-show-priorities'."
+  (interactive "P")
+  (save-window-excursion
+    (save-excursion
+      (save-restriction
+        (todo-top-priorities nof-priorities)
+        (set-buffer todo-tmp-buffer-name)
+        (write-file todo-file-top)
+        (kill-this-buffer)
+        ))))
 
 ;;;###autoload
 (defun todo-print (&optional category-pr-page)
@@ -820,18 +861,20 @@ between each category.
 Number of entries for each category is given by
 \'todo-print-priorities\'."
   (interactive "P")
+  (if todo-print-function
+      (progn
   (save-window-excursion
   (save-excursion
     (save-restriction
       (todo-top-priorities todo-print-priorities
                                     category-pr-page)
-      (if todo-print-function
-          (progn
-            (funcall todo-print-function)
+              (set-buffer todo-tmp-buffer-name)
+              (and (funcall todo-print-function)
+                   (kill-this-buffer))
             (message "Todo printing done."))
-            (message "")                ; To get rid of message from
-                                        ; todo-top-priorities.
-            )))))
+            )))
+    (message "todo-print-function undefinded")
+    ))
 
 (defun todo-jump-to-category ()
   "Jump to a category.  Default is previous category."
@@ -955,6 +998,7 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
                     ["Previous item"        todo-backward-item t]
                     "---"
                     ["Save"                 todo-save t]
+                    ["Save Top Priorities"  todo-save-top-priorities t]
                     "---"
                     ["Quit"                 todo-quit t]
                     ))
