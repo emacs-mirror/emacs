@@ -273,6 +273,11 @@ case "${canonical}" in
     machine=apollo opsys=bsd4-3
   ;;
 
+  ## ARM, GNU/Linux
+  arm*-*-linux-gnu* )
+    machine=arm opsys=gnu-linux
+  ;;
+
   ## AT&T 3b2, 3b5, 3b15, 3b20
   we32k-att-sysv* )
     machine=att3b opsys=usg5-2-2
