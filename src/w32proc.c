@@ -664,9 +664,11 @@ compare_env (const void *strp1, const void *strp2)
 
   while (*str1 && *str2 && *str1 != '=' && *str2 != '=')
     {
-      if (tolower (*str1) > tolower (*str2))
+      /* Sort order in command.com/cmd.exe is based on uppercasing
+         names, so do the same here.  */
+      if (toupper (*str1) > toupper (*str2))
 	return 1;
-      else if (tolower (*str1) < tolower (*str2))
+      else if (toupper (*str1) < toupper (*str2))
 	return -1;
       str1++, str2++;
     }
