@@ -1,3 +1,8 @@
+2005-02-27  Andreas Schwab  <schwab@suse.de>
+
+	* net/tramp.el (tramp-file-name-for-operation): Fix misapplied
+	change from sync with Tramp 2.0.47.
+
 2005-02-27  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-change-dictionary): Doc fix.
