@@ -299,6 +299,10 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
   ac = 0;
   XtSetArg (av[ac], XtNtitle, shell_title); ac++;
   XtSetArg (av[ac], XtNallowShellResize, True); ac++;
+
+  /* Don't allow any geometry request from the user.  */
+  XtSetArg (av[ac], XtNgeometry, 0); ac++;
+
   shell = XtCreatePopupShell ("dialog", transientShellWidgetClass,
 			      parent, av, ac);
   XtOverrideTranslations (shell, override);
