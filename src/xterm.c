@@ -6108,6 +6108,30 @@ x_term_init (display_name, xrm_option, resource_name)
     init_sigio (connection);
 #endif /* ! defined (SIGIO) */
 
+#ifdef USE_LUCID
+  /* Make sure that we have a valid font for dialog boxes
+     so that Xt does not crash.  */
+  {
+    Display *dpy = dpyinfo->display;
+    XrmValue d, fr, to;
+    Font font;
+    
+    d.addr = (XPointer)&dpy;
+    d.size = sizeof (Display *);
+    fr.addr = XtDefaultFont;
+    fr.size = sizeof (XtDefaultFont);
+    to.size = sizeof (Font *);
+    to.addr = (XPointer)&font;
+    x_catch_errors (dpy);
+    if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
+      abort ();
+    if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
+      XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
+    x_uncatch_errors (dpy);
+  }
+#endif
+
+
   UNBLOCK_INPUT;
 
   return dpyinfo;
