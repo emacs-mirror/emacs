@@ -1387,7 +1387,10 @@
     print-escape-nonascii print-quoted scroll-preserve-screen-position
     system-uses-terminfo truncate-partial-width-windows
     unibyte-display-via-language-environment use-dialog-box
-    visible-bell vms-stmlf-recfm words-include-escapes)
+    visible-bell vms-stmlf-recfm words-include-escapes redisplay-dont-pause
+    w32-use-full-screen-buffer w32-strict-fontnames w32-enable-unicode-output
+    auto-resize-toolbars auto-raise-toolbar-buttons display-busy-cursor
+    x-stretch-cursor x-toolkit-scroll-bars-p)
   "DEFVAR_BOOL variables.  Giving these any non-nil value sets them to t.
 If this does not enumerate all DEFVAR_BOOL variables, the byte-optimizer
 may generate incorrect code.")
