@@ -45,9 +45,9 @@
   (let ((description (make-char-table 'case-table)))
     (map-char-table
      (function (lambda (key value)
-		 (set-char-table-range
+		 (aset
 		  description key
-		  (cond ((null key)
+		  (cond ((not (natnump value))
 			 "case-invariant")
 			((/= key (downcase key))
 			 (concat "uppercase, matches "
