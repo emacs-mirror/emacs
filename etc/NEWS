@@ -3176,6 +3176,30 @@ overrides this as it does on Unix, except that the bar cursor is
 horizontal rather than vertical (since the MS-DOS display doesn't
 support a vertical-bar cursor).
 ^L
+* Emacs 20.7 is a bug-fix release with few user-visible changes
+
+** It is now possible to use CCL-based coding systems for keyboard
+input.
+
+** ange-ftp now handles FTP security extensions, like Kerberos.
+
+** Rmail has been extended to recognize more forms of digest messages.
+
+** Now, most coding systems set in keyboard coding system work not
+only for character input, but also in incremental search.  The
+exceptions are such coding systems that handle 2-byte character sets
+(e.g euc-kr, euc-jp) and that use ISO's escape sequence
+(e.g. iso-2022-jp).  They are ignored in incremental search.
+
+** Support for Macintosh PowerPC-based machines running GNU/Linux has
+been added.
+
+^L
+* Emacs 20.6 is a bug-fix release with one user-visible change
+
+** Support for ARM-based non-RISCiX machines has been added.
+
+^L
 * Emacs 20.5 is a bug-fix release with no user-visible changes.
 
 ** Not new, but not mentioned before:
