@@ -48,7 +48,7 @@
 ;;   - Hiding blocks of code
 ;;   - Alignment functions
 ;;   - Easy customization
-;;   - Works under GNU Emacs and XEmacs
+;;   - Works under Emacs and XEmacs
 
 ;; ############################################################################
 ;; Usage
@@ -333,18 +333,20 @@ Overrides local variable `font-lock-keywords-case-fold-search'."
   :type 'boolean
   :group 'vhdl-highlight)
 
-(defcustom vhdl-use-default-colors nil
-  "*If non-nil, the default colors are taken for syntax highlighting.
-If nil, all colors are customized in VHDL Mode for better matching with the
-additional signal colors."
+(defcustom vhdl-customize-colors nil
+  "*If non-nil, colors are customized to go with the additional signal colors.
+NOTE: this alters the behavior of Emacs for *all* modes,
+so it is not enabled by default."
   :type 'boolean
   :group 'vhdl-highlight)
 
-(defcustom vhdl-use-default-faces nil
-  "*If non-nil, the default faces are taken for syntax highlighting.
-If nil, all faces are customized for better matching with the additional faces
-used in VHDL Mode. This variable comes only into effect if no colors are used
-for highlighting or printing (i.e. variable `ps-print-color-p' is nil)."
+(defcustom vhdl-customize-faces t
+  "*If non-nil, faces are customized to work better with VHDL Mode.
+This variable comes only into effect if no colors are used
+for highlighting or printing (i.e. variable `ps-print-color-p' is nil).
+
+NOTE: this alters the behavior of Emacs for *all* modes,
+so it is not enabled by default."
   :type 'boolean
   :group 'vhdl-highlight)
 
@@ -1419,9 +1421,9 @@ Usage:
   prompts are highlighted using different colors. Unit and subprogram names
   as well as labels are highlighted if variable `vhdl-highlight-names' is
   non-nil. The default colors from `font-lock.el' are used if variable
-  `vhdl-use-default-colors' is non-nil. Otherwise, an optimized set of colors
+  `vhdl-customize-colors' is nil. Otherwise, an optimized set of colors
   is taken, which uses bright colors for signals and muted colors for
-  everything else. Variable `vhdl-use-default-faces' does the same on
+  everything else. Variable `vhdl-customize-faces' does the same on
   monochrome monitors.
 
   Signal highlighting allows distinction between clock, reset,
@@ -1457,8 +1459,8 @@ Usage:
   (not in XEmacs).
 
 - PRINTING: Postscript printing with different fonts (`ps-print-color-p' is
-  nil, default faces from `font-lock.el' used if `vhdl-use-default-faces' is
-  non-nil) or colors (`ps-print-color-p' is non-nil) is possible using the
+  nil, default faces from `font-lock.el' used if `vhdl-customize-faces' is
+  nil) or colors (`ps-print-color-p' is non-nil) is possible using the
   standard Emacs postscript printing commands. Variable `vhdl-print-two-column'
   defines appropriate default settings for nice landscape two-column printing.
   The paper format can be set by variable `ps-paper-type'.
@@ -5824,8 +5826,8 @@ This does highlighting of signal names with specific syntax.")
 		(if (and vhdl-highlight-signals (x-display-color-p))
 		    vhdl-font-lock-keywords-3)))
   (if (x-display-color-p)
-      (if (not vhdl-use-default-colors) (vhdl-set-face-foreground))
-    (if (not vhdl-use-default-faces) (vhdl-set-face-grayscale))
+      (if vhdl-customize-colors (vhdl-set-face-foreground))
+    (if vhdl-customize-faces (vhdl-set-face-grayscale))
   ))
 
 ;; ############################################################################
@@ -5834,7 +5836,7 @@ This does highlighting of signal names with specific syntax.")
 (defun vhdl-ps-init ()
   "Initializes face and page settings for postscript printing."
   (require 'ps-print)
-  (unless (or vhdl-use-default-faces
+  (unless (or (not vhdl-customize-faces)
 	      ps-print-color-p)
     (set (make-local-variable 'ps-bold-faces)
 	 '(font-lock-keyword-face
@@ -6077,8 +6079,8 @@ Used for compilers with no file name in the error messages.")
      'vhdl-highlight-keywords
      'vhdl-highlight-signals
      'vhdl-highlight-case-sensitive
-     'vhdl-use-default-colors
-     'vhdl-use-default-faces
+     'vhdl-customize-colors
+     'vhdl-customize-faces
      'vhdl-clock-signal-syntax
      'vhdl-reset-signal-syntax
      'vhdl-control-signal-syntax
