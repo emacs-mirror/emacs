@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/03/17 17:17:05 $|$Revision: 1.26 $
+;; |$Date: 1993/03/21 05:50:17 $|$Revision: 1.27 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,12 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.26 1993/03/17 17:17:05 eric Exp jimb $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.27 1993/03/21 05:50:17 jimb Exp rms $
 ;;; $Log: isearch.el,v $
+; Revision 1.27  1993/03/21  05:50:17  jimb
+; 	* isearch.el (isearch-switch-frame-handler): Call
+; 	handle-switch-frame instead of select-frame; it has been renamed.
+;
 ; Revision 1.26  1993/03/17  17:17:05  eric
 ; Add standard library headers.
 ;
@@ -349,16 +353,9 @@ Default value, nil, means edit the string instead.")
       (define-key map "?" 'isearch-*-char)
       (define-key map "|" 'isearch-|-char)
 
-      ;; You can reenable global keys by binding them locally to nil.
-      ;; For the help char this doesnt work quite as expected because
-      ;; isearch-mode is not a major mode.  Also the echo area is not
-      ;; restored after the help command while isearch-mode is
-      ;; still active.  Furthermore, we should not assume that the
-      ;; help-command is on C-h.  But here is how it would be done:
-      ;; (define-key map "\C-h" nil)
-
-      ;; Instead bind C-h to special help command for isearch-mode.
-      (define-key map "\C-h" 'isearch-mode-help)
+;;; Turned off because I find I expect to get the global definition--rms.
+;;;      ;; Instead bind C-h to special help command for isearch-mode.
+;;;      (define-key map "\C-h" 'isearch-mode-help)
 
       ;; To handle local bindings with meta char prefix keys, define
       ;; another full keymap.  This must be done for any other prefix
