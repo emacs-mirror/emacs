@@ -4509,7 +4509,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 {
   int len = to - from, len_byte = to_byte - from_byte;
   int require, inserted, inserted_byte;
-  int head_skip, tail_skip, total_skip;
+  int head_skip, tail_skip, total_skip = 0;
   Lisp_Object saved_coding_symbol;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int first = 1;
