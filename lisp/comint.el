@@ -574,7 +574,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 ;;; the appropriate environment.
 
 (defun comint-exec-1 (name buffer command switches)
-  (let ((process-environment process-environment))
+  (let ((process-environment (copy-sequence process-environment)))
     (setenv "TERMCAP" (format "emacs:co#%d:tc=unknown" (frame-width)))
     (setenv "TERM" "emacs")
     (setenv "EMACS" "t")
