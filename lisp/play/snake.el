@@ -82,7 +82,7 @@
 (defvar snake-score-y snake-height
   "Y position of score.")
 
-(defvar snake-score-file "/tmp/snake-scores"
+(defvar snake-score-file (concat temporary-file-directory "snake-scores")
   "File for holding high scores.")
 
 ;; ;;;;;;;;;;;;; display options ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
