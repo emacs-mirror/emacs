@@ -2637,12 +2637,15 @@ window_internal_width (w)
 }
 
 
-/* Scroll contents of window WINDOW up N lines.  */
+/* Scroll contents of window WINDOW up N lines.
+   If WHOLE is nonzero, it means we wanted to scroll
+   by entire screenfuls.  */
 
-void
-window_scroll (window, n, noerror)
+static void
+window_scroll (window, n, whole, noerror)
      Lisp_Object window;
      int n;
+     int whole;
      int noerror;
 {
   register struct window *w = XWINDOW (window);
@@ -2653,6 +2656,16 @@ window_scroll (window, n, noerror)
   int lose;
   Lisp_Object bolp, nmoved;
   int startpos;
+  struct position posit;
+  int original_vpos;
+
+  startpos = marker_position (w->start);
+
+  posit = *compute_motion (startpos, 0, 0, 0,
+			   PT, ht, 0,
+			   window_internal_width (w), XINT (w->hscroll),
+			   0, w);
+  original_vpos = posit.vpos;
 
   XSETFASTINT (tem, PT);
   tem = Fpos_visible_in_window_p (tem, window);
@@ -2662,8 +2675,6 @@ window_scroll (window, n, noerror)
       Fvertical_motion (make_number (- (ht / 2)), window);
       startpos = PT;
     }
-  else
-    startpos = marker_position (w->start);
 
   SET_PT (startpos);
   lose = n < 0 && PT == BEGV;
@@ -2702,29 +2713,54 @@ window_scroll (window, n, noerror)
 	 the window-scroll-functions.  */
       w->force_start = Qt;
 
+      if (whole)
+	{
+	  SET_PT (pos);
+	  Fvertical_motion (make_number (original_vpos), window);
+	}
       /* If we scrolled forward, put point enough lines down
 	 that it is outside the scroll margin.  */
-      if (n > 0 && this_scroll_margin > 0)
+      else if (n > 0)
 	{
-	  SET_PT (pos);
-	  Fvertical_motion (make_number (this_scroll_margin), window);
-	  pos = PT;
-	}
+	  int top_margin;
 
-      if (pos > opoint)
-	{
-	  SET_PT (pos);
+	  if (this_scroll_margin > 0)
+	    {
+	      SET_PT (pos);
+	      Fvertical_motion (make_number (this_scroll_margin), window);
+	      top_margin = PT;
+	    }
+	  else
+	    top_margin = pos;
+
+	  if (top_margin <= opoint)
+	    SET_PT (opoint);
+	  else
+	    {
+	      SET_PT (pos);
+	      Fvertical_motion (make_number (original_vpos), window);
+	    }
 	}
-      if (n < 0)
+      else if (n < 0)
 	{
+	  int bottom_margin;
+
 	  /* If we scrolled backward, put point near the end of the window
 	     but not within the scroll margin.  */
 	  SET_PT (pos);
 	  tem = Fvertical_motion (make_number (ht - this_scroll_margin), window);
-	  if (PT > opoint || XFASTINT (tem) < ht - this_scroll_margin)
+	  if (XFASTINT (tem) == ht - this_scroll_margin)
+	    bottom_margin = PT;
+	  else
+	    bottom_margin = PT + 1;
+
+	  if (bottom_margin > opoint)
 	    SET_PT (opoint);
 	  else
-	    Fvertical_motion (make_number (-1), window);
+	    {
+	      SET_PT (pos);
+	      Fvertical_motion (make_number (original_vpos), window);
+	    }
 	}
     }
   else
@@ -2759,13 +2795,13 @@ scroll_command (n, direction)
   defalt = direction * (defalt < 1 ? 1 : defalt);
 
   if (NILP (n))
-    window_scroll (selected_window, defalt, 0);
+    window_scroll (selected_window, defalt, 1, 0);
   else if (EQ (n, Qminus))
-    window_scroll (selected_window, - defalt, 0);
+    window_scroll (selected_window, - defalt, 1, 0);
   else
     {
       n = Fprefix_numeric_value (n);
-      window_scroll (selected_window, XINT (n) * direction, 0);
+      window_scroll (selected_window, XINT (n) * direction, 0, 0);
     }
 
   unbind_to (count, Qnil);
@@ -2869,15 +2905,15 @@ showing that buffer, popping the buffer up if necessary.")
   SET_PT (marker_position (w->pointm));
 
   if (NILP (arg))
-    window_scroll (window, defalt, 1);
+    window_scroll (window, defalt, 1, 1);
   else if (EQ (arg, Qminus))
-    window_scroll (window, -defalt, 1);
+    window_scroll (window, -defalt, 1, 1);
   else
     {
       if (CONSP (arg))
 	arg = Fcar (arg);
       CHECK_NUMBER (arg, 0);
-      window_scroll (window, XINT (arg), 1);
+      window_scroll (window, XINT (arg), 0, 1);
     }
 
   Fset_marker (w->pointm, make_number (PT), Qnil);
