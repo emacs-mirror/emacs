@@ -150,7 +150,7 @@ window @var{window} remains the selected window, but occupies only
 part of its former screen area.  The rest is occupied by a newly created
 window which is returned as the value of this function.
 
-  If @var{horizontal} is non-@code{nil}, then @var{window} splits into
+If @var{horizontal} is non-@code{nil}, then @var{window} splits into
 two side by side windows.  The original window @var{window} keeps the
 leftmost @var{size} columns, and gives the rest of the columns to the
 new window.  Otherwise, it splits into windows one above the other, and
@@ -159,13 +159,17 @@ lines to the new window.  The original window is therefore the
 left-hand or upper of the two, and the new window is the right-hand or
 lower.
 
-  If @var{window} is omitted or @code{nil}, then the selected window is
+If @var{window} is omitted or @code{nil}, then the selected window is
 split.  If @var{size} is omitted or @code{nil}, then @var{window} is
 divided evenly into two parts.  (If there is an odd line, it is
 allocated to the new window.)  When @code{split-window} is called
 interactively, all its arguments are @code{nil}.
 
-  The following example starts with one window on a screen that is 50
+If splitting would result in making a window that is smaller than
+@code{window-min-height} or @code{window-min-width}, the function
+signals an error and does not split the window at all.
+
+The following example starts with one window on a screen that is 50
 lines high by 80 columns wide; then the window is split.
 
 @smallexample
