@@ -492,7 +492,7 @@ Any other key combination is executed normally."
   (save-excursion
     (set-buffer (get-buffer-create "*Abbrevs*"))
     (erase-buffer)
-    (insert-abbrev-table-description fortran-mode-abbrev-table t)
+    (insert-abbrev-table-description 'fortran-mode-abbrev-table t)
     (goto-char (point-min))
     (set-buffer-modified-p nil)
     (edit-abbrevs-mode))
