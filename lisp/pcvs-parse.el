@@ -457,12 +457,12 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 		 (type (if nofile '(UP-TO-DATE . REMOVED) 'UP-TO-DATE)))
       (cvs-match "File had conflicts on merge$" (type 'MODIFIED))
       (cvs-match ".*[Cc]onflict.*$"	(type 'CONFLICT))
-      (cvs-match "Locally Added$"		(type 'ADDED))
+      (cvs-match "Locally Added$"	(type 'ADDED))
       (cvs-match "Locally Removed$"	(type 'REMOVED))
       (cvs-match "Locally Modified$"	(type 'MODIFIED))
       (cvs-match "Needs Merge$"		(type 'NEED-MERGE))
       (cvs-match "Entry Invalid"	(type '(NEED-MERGE . REMOVED)))
-      (cvs-match "Unknown$"		(type 'UNKNOWN)))
+      (cvs-match ".*$"			(type 'UNKNOWN)))
      (cvs-match "$")
      (cvs-or
       (cvs-match " *Version:[ \t]*\\([0-9.]+\\).*$" (base-rev 1))
@@ -475,12 +475,15 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       (cvs-match " *Repository revision:[ \t]*\\([0-9.]+\\)[ \t]*\\(.*\\)$"
 		 (head-rev 1))
       (cvs-match " *Repository revision:.*"))
+     (cvs-or (cvs-match " *Expansion option:.*") t)  ;Optional CVSNT thingie.
+     (cvs-or (cvs-match " *Commit Identifier:.*") t) ;Optional CVSNT thingie.
      (cvs-or
-      (and;;sometimes those fields are missing
-       (cvs-match " *Sticky Tag:[ \t]*\\(.*\\)$") ; FIXME: use it
-       (cvs-match " *Sticky Date:[ \t]*\\(.*\\)$") ; FIXME: use it
-       (cvs-match " *Sticky Options:[ \t]*\\(.*\\)$")) ; FIXME: use it
+      (and ;; Sometimes those fields are missing.
+       (cvs-match " *Sticky Tag:[ \t]*\\(.*\\)$")      ; FIXME: use it.
+       (cvs-match " *Sticky Date:[ \t]*\\(.*\\)$")     ; FIXME: use it.
+       (cvs-match " *Sticky Options:[ \t]*\\(.*\\)$")) ; FIXME: use it.
       t)
+     (cvs-or (cvs-match " *Merge From:.*") t) ;Optional CVSNT thingie.
      (cvs-match "$")
      ;; ignore the tags-listing in the case of `status -v'
      (cvs-or (cvs-match " *Existing Tags:\n\\(\t.*\n\\)*$") t)
