@@ -1,5 +1,14 @@
 2005-03-07  Kim F. Storm  <storm@cua.dk>
 
+	* simple.el (move-beginning-of-line): New command.
+
+	* bindings.el (global-map): Bind C-a to move-beginning-of-line.
+
+	* reveal.el (reveal-mode-map): Bind C-a to beginning-of-line.
+
+	* emulation/cua-base.el: Put CUA move property on move-end-of-line
+	and move-beginning-of-line.
+
 	* apropos.el (apropos-print): Omit command from M-x ... RET.
 
 2005-03-07  Nick Roberts  <nickrob@snap.net.nz>

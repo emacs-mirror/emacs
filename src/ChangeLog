@@ -1,5 +1,7 @@
 2005-03-07  Kim F. Storm  <storm@cua.dk>
 
+	* blockinput.h (TOTALLY_UNBLOCK_INPUT): Avoid dangling else.
+
 	* xdisp.c (notice_overwritten_cursor): Check that phys_cursor.vpos
 	is valid.  If not, clear phys_cursor_on_p and return.
 
