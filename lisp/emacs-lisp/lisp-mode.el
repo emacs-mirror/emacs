@@ -742,7 +742,7 @@ and initial semicolons."
 	 (save-excursion
 	   (while (and (zerop (forward-line -1))
 		       (looking-at "^[ \t]*;")))
-	   ;; We may have gone to far.  Go forward again.
+	   ;; We may have gone too far.  Go forward again.
 	   (or (looking-at ".*;")
 	       (forward-line 1))
 	   (point))
@@ -756,7 +756,7 @@ and initial semicolons."
 	(let ((paragraph-start (concat paragraph-start "\\|[ \t;]*$"))
 	      (paragraph-separate (concat paragraph-start "\\|[ \t;]*$"))
 	      (fill-prefix comment-fill-prefix))
-	  (fill-region (point-min) (point-max) justify t))))
+	  (fill-paragraph justify))))
     t))
 
 
