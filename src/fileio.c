@@ -1584,6 +1584,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
   int count = specpdl_ptr - specpdl;
+  Lisp_Object args[6];
 
   GCPRO2 (filename, newname);
   CHECK_STRING (filename, 0);
@@ -1594,12 +1595,12 @@ A prefix arg makes KEEP-TIME non-nil.")
   /* If the input file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
-  if (!NILP (handler))
-    return call3 (handler, Qcopy_file, filename, newname);
   /* Likewise for output file name.  */
-  handler = Ffind_file_name_handler (newname);
+  if (NILP (handler))
+    handler = Ffind_file_name_handler (newname);
   if (!NILP (handler))
-    return call3 (handler, Qcopy_file, filename, newname);
+    return call5 (handler, Qcopy_file, filename, newname,
+		  ok_if_already_exists, keep_date);
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
@@ -1747,6 +1748,8 @@ This is what happens in interactive use with M-x.")
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
+  if (NILP (handler))
+    handler = Ffind_file_name_handler (newname);
   if (!NILP (handler))
     return call4 (handler, Qrename_file,
 		  filename, newname, ok_if_already_exists);
@@ -1808,7 +1811,8 @@ This is what happens in interactive use with M-x.")
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
   if (!NILP (handler))
-    return call3 (handler, Qadd_name_to_file, filename, newname);
+    return call4 (handler, Qadd_name_to_file, filename, newname,
+		  ok_if_already_exists);
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
@@ -1859,7 +1863,8 @@ This happens for interactive use with M-x.")
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
   if (!NILP (handler))
-    return call3 (handler, Qmake_symbolic_link, filename, linkname);
+    return call4 (handler, Qmake_symbolic_link, filename, linkname,
+		  ok_if_already_exists);
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
@@ -2317,6 +2322,8 @@ otherwise, if FILE2 does not exist, the answer is t.")
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (abspath1);
+  if (NILP (handler))
+    handler = Ffind_file_name_handler (abspath2);
   if (!NILP (handler))
     return call3 (handler, Qfile_newer_than_file_p, abspath1, abspath2);
 
@@ -2554,16 +2561,9 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   if (!NILP (handler))
     {
-      Lisp_Object args[7];
       Lisp_Object val;
-      args[0] = handler;
-      args[1] = Qwrite_region;
-      args[2] = start;
-      args[3] = end;
-      args[4] = filename;
-      args[5] = append;
-      args[6] = visit;
-      val = Ffuncall (7, args);
+      val = call6 (handler, Qwrite_region, start, end,
+		   filename, append, visit);
 
       /* Do this before reporting IO error
 	 to avoid a "file has changed on disk" warning on
