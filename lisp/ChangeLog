@@ -1,3 +1,11 @@
+2001-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* jka-compr.el (jka-compr-partial-uncompress): Support
+	an alternative of not using dd.
+	(jka-compr-dd-program): Use defcustom to define this.
+	(jka-compr-load-suffixes): Use defcustom.
+	(jka-compr-mode-alist-additions): Use defcustom.
+
 2001-11-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (font-lock-match-c-style-declaration-item-and-skip-to-next):
