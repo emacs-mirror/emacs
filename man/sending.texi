@@ -696,7 +696,16 @@ buffer, and their commands are different as well.
 @section Sending via SMTP
 @cindex SMTP
 
-  Emacs includes a package for sending your mail to a SMTP server and
+   On the Internet, mail is sent from host to host using the simple
+mail transfer protocol (SMTP).  When you read and write mail you are
+using a mail program that does not use SMTP -- it just reads mails
+from files.  This is called a mail user agent (MUA).  The mail
+transfer agent (MTA) is the program that accepts mails via SMTP and
+stores them in files.  You also need a mail transfer agent when you
+send mails.  Your mail program has to send its mail to a MTA that can
+pass it on using SMTP.
+
+   Emacs includes a package for sending your mail to a SMTP server and
 have it take care of delivering it to the final destination, rather
 than letting the MTA on your local system take care of it.  This can
 be useful if you don't have a MTA set up on your host, or if your
