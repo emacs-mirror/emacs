@@ -9,6 +9,46 @@
 	(texinfo-mode) <doc-spec>: Add space to suffix to find command
 	definitions with argument separated by space.
 
+2004-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (next-error group, face): Move before first use.
+	(next-error-highlight, next-error-highlight-no-select): Likewise.
+	(line-move-invisible-p): Renamed from line-move-invisible.
+	(line-move): New args NOERROR and TO-END.
+	Return t if if succeed in moving specified number of lines.
+	(move-end-of-line): New function.
+	(beginning-of-buffer-other-window, end-of-buffer-other-window): 
+	Use with-no-warnings.
+
+	* simple.el (line-move-ignore-invisible): Default to t.
+
+	* subr.el (syntax-after): Return the syntax letter, not the raw code.
+
+	* emacs-lisp/elp.el (elp-results): Delete wasteful beginning-of-buffer.
+
+	* international/iso-cvt.el (iso-cvt-define-menu): 
+	menu-bar-files-menu renamed to menu-bar-file-menu.
+
+	* net/browse-url.el (browse-url-gnome-moz-program)
+	(browse-url-gnome-moz-arguments): Move up before first use.
+
+	* net/tramp.el (tramp group): Add :version.
+
+	* progmodes/ada-xref.el (ada-gdb-application): 
+	Use goto-char instead of beginning-of-buffer.
+
+	* progmodes/cperl-mode.el (cperl-info-on-command): 
+	Use goto-char instead of beginning-of-buffer.
+
+	* progmodes/idlw-shell.el (idlwave-shell-examine-map): 
+	Move up before first use.
+	(idlwave-shell-temp-pro-file): Likewise.
+	(idlwave-shell-temp-rinfo-save-file): Likewise.
+	(idlwave-shell-temp-file): Minor doc fix.
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Use goto-char instead of beginning-of-buffer.
+
 2004-11-06  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el (tramp-coding-commands): Additionally try "uudecode
