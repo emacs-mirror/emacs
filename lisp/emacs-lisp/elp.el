@@ -38,7 +38,7 @@
 ;; elp-reset-all.
 ;;
 ;; You can also instrument all functions in a package, provided that
-;; the package follows the GNU coding standard of a common textural
+;; the package follows the GNU coding standard of a common textual
 ;; prefix.  Use M-x elp-instrument-package for this.
 ;;
 ;; If you want to sort the results, set elp-sort-by-function to some
