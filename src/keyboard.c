@@ -184,11 +184,20 @@ static jmp_buf getcjmp;
 int waiting_for_input;
 
 /* True while displaying for echoing.   Delays C-g throwing.  */
+
 static int echoing;
 
-/* True means we can start echoing at the next input pause
-   even though there is something in the echo area.  */
-static char *ok_to_echo_at_next_pause;
+/* Non-null means we can start echoing at the next input pause even
+   though there is something in the echo area.  */
+
+static struct kboard *ok_to_echo_at_next_pause;
+
+/* The kboard currently echoing, or null for none.  Set in echo_now to
+   the kboard echoing.  Reset to 0 in cancel_echoing.  If non-null,
+   and a current echo area message exists, we know that it comes from
+   echoing.  */
+
+static struct kboard *echo_kboard;
 
 /* Nonzero means disregard local maps for the menu bar.  */
 static int inhibit_local_menu_bar_menus;
@@ -738,9 +747,9 @@ echo_now ()
     }
 
   echoing = 1;
+  echo_kboard = current_kboard;
   message2_nolog (current_kboard->echobuf, strlen (current_kboard->echobuf),
 		  ! NILP (current_buffer->enable_multibyte_characters));
-
   echoing = 0;
 
   if (waiting_for_input && !NILP (Vquit_flag))
@@ -756,6 +765,7 @@ cancel_echoing ()
   current_kboard->echoptr = current_kboard->echobuf;
   current_kboard->echo_after_prompt = -1;
   ok_to_echo_at_next_pause = 0;
+  echo_kboard = 0;
 }
 
 /* Return the length of the current echo string.  */
@@ -1025,8 +1035,7 @@ cmd_error_internal (data, context)
 
   Vquit_flag = Qnil;
   Vinhibit_quit = Qt;
-  echo_area_glyphs = 0;
-  echo_area_message = Qnil;
+  clear_message (1, 0);
 
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, it's best to dump this message out
@@ -1239,7 +1248,7 @@ command_loop_1 ()
 	 wait 2 sec and redraw minibuffer.  */
 
       if (minibuf_level
-	  && (echo_area_glyphs || STRINGP (echo_area_message))
+	  && !NILP (echo_area_buffer[0])
 	  && EQ (minibuf_window, echo_area_window))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
@@ -1950,12 +1959,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Message turns off echoing unless more keystrokes turn it on again. */
-  if (echo_area_glyphs 
-      && *echo_area_glyphs
-      && echo_area_glyphs != current_kboard->echobuf
-      && ok_to_echo_at_next_pause != echo_area_glyphs)
-    cancel_echoing ();
-  else if (STRINGP (echo_area_message))
+  if (/* There is a current message.  */
+      !NILP (echo_area_buffer[0])
+      /* And we're not echoing from this kboard.  */
+      && echo_kboard != current_kboard
+      /* And it's either not ok to echo (ok_to_echo == NULL), or the
+	 last char echoed was from a different kboard.  */
+      && ok_to_echo_at_next_pause != echo_kboard)
     cancel_echoing ();
   else
     /* If already echoing, continue.  */
@@ -2034,12 +2044,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && this_command_key_count > 0
       && ! noninteractive
       && echo_keystrokes > 0
-      && !STRINGP (echo_area_message)
-      && (echo_area_glyphs == 0 || *echo_area_glyphs == 0
-	  || ok_to_echo_at_next_pause == echo_area_glyphs))
+      && (/* No message.  */
+	  NILP (echo_area_buffer[0])
+	  /* Or empty message.  */
+	  || (BUF_BEG (XBUFFER (echo_area_buffer[0]))
+	      == BUF_Z (XBUFFER (echo_area_buffer[0])))
+	  /* Or already echoing from same kboard.  */
+	  || (echo_kboard && ok_to_echo_at_next_pause == echo_kboard)
+	  /* Or not echoing before and echoing allowed.  */
+	  || (!echo_kboard && ok_to_echo_at_next_pause)))
     {
       Lisp_Object tem0;
-
+      
       /* After a mouse event, start echoing right away.
 	 This is because we are probably about to display a menu,
 	 and we don't want to delay before doing so.  */
@@ -2361,10 +2377,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Now wipe the echo area.  */
-  if (echo_area_glyphs || STRINGP (echo_area_message))
+  if (!NILP (echo_area_buffer[0]))
     safe_run_hooks (Qecho_area_clear_hook);
-  echo_area_glyphs = 0;
-  echo_area_message = Qnil;
+  clear_message (1, 0);
 
  reread_for_input_method:
  from_macro:
@@ -2384,7 +2399,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       /* Save the echo status.  */
       int saved_immediate_echo = current_kboard->immediate_echo;
-      char *saved_ok_to_echo = ok_to_echo_at_next_pause;
+      struct kboard *saved_ok_to_echo = ok_to_echo_at_next_pause;
       int saved_echo_after_prompt = current_kboard->echo_after_prompt;
 
       if (before_command_restore_flag)
@@ -2409,10 +2424,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       this_command_key_count = 0;
 
       /* Now wipe the echo area.  */
-      if (echo_area_glyphs || STRINGP (echo_area_message))
+      if (!NILP (echo_area_buffer[0]))
 	safe_run_hooks (Qecho_area_clear_hook);
-      echo_area_glyphs = 0;
-      echo_area_message = Qnil;
+      clear_message (1, 0);
       echo_truncate (0);
 
       /* If we are not reading a key sequence,
@@ -2491,7 +2505,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	    echo_char (also_record);
 	  /* Once we reread a character, echoing can happen
 	     the next time we pause to read a new one.  */
-	  ok_to_echo_at_next_pause = echo_area_glyphs;
+	  ok_to_echo_at_next_pause = current_kboard;
 	}
 
       /* Record this character as part of the current key.  */
@@ -2544,8 +2558,7 @@ record_menu_key (c)
      Lisp_Object c;
 {
   /* Wipe the echo area.  */
-  echo_area_glyphs = 0;
-  echo_area_message = Qnil;
+  clear_message (1, 0);
 
   record_char (c);
 
@@ -8643,7 +8656,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
     {
       /* But first wait, and skip the message if there is input.  */
       int delay_time;
-      if (echo_area_glyphs != 0 || STRINGP (echo_area_message))
+      if (!NILP (echo_area_buffer[0]))
 	/* This command displayed something in the echo area;
 	   so wait a few seconds, then display our suggestion message.  */
 	delay_time = (NUMBERP (Vsuggest_key_bindings)
@@ -8658,10 +8671,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	{
 	  Lisp_Object binding;
 	  char *newmessage;
-	  char *oldmessage = echo_area_glyphs;
-	  Lisp_Object oldmessage_string = echo_area_message;
-	  int oldmessage_len = echo_area_glyphs_length;
-	  int oldmultibyte = message_enable_multibyte;
+	  int message_p = push_message ();
 
 	  binding = Fkey_description (bindings);
 
@@ -8677,14 +8687,11 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 			  STRING_MULTIBYTE (binding));
 	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
 				? Vsuggest_key_bindings : make_number (2)),
-			       Qnil, Qnil)))
-	    {
-	      if (STRINGP (oldmessage_string))
-		message3_nolog (oldmessage_string, oldmessage_len,
-				oldmultibyte);
-	      else
-		message2_nolog (oldmessage, oldmessage_len, oldmultibyte);
-	    }
+			       Qnil, Qnil))
+	      && message_p)
+	    restore_message ();
+
+	  pop_message ();
 	}
     }
 
@@ -8997,7 +9004,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
      with a window system; but suspend should be disabled in that case.  */
   get_frame_size (&width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (selected_frame, height, width, 0, 0);
+    change_frame_size (selected_frame, height, width, 0, 0, 0);
 
   /* Run suspend-resume-hook.  */
   if (!NILP (Vrun_hooks))
