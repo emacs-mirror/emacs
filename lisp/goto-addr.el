@@ -145,6 +145,7 @@ and `goto-address-fontify-p'."
 ;;; code to find and goto addresses; much of this has been blatantly
 ;;; snarfed from browse-url.el
 
+;;;###autoload
 (defun goto-address-at-mouse (event)
   "Send to the e-mail address or load the URL clicked with the mouse.
 Send mail to address at position of mouse click.  See documentation for
@@ -164,6 +165,7 @@ there, then load the URL at or before the position of the mouse click."
 		(funcall browse-url-browser-function url)))
 	  (funcall goto-address-mail-method address))))))
 
+;;;###autoload
 (defun goto-address-at-point ()
   "Send to the e-mail address or load the URL at point.
 Send mail to address at point.  See documentation for
