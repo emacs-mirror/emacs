@@ -385,7 +385,7 @@ A replacement function for `newline-and-indent', aligning as it goes." t nil)
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "net/ange-ftp.el" (15768 1743))
+;;;;;;  "net/ange-ftp.el" (15797 2281))
 ;;; Generated autoloads from net/ange-ftp.el
  (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
 
@@ -1164,8 +1164,8 @@ seconds." t nil)
 
 ;;;***
 
-;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (15735
-;;;;;;  20648))
+;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (15797
+;;;;;;  2282))
 ;;; Generated autoloads from textmodes/bibtex.el
 
 (autoload (quote bibtex-mode) "bibtex" "\
@@ -2666,7 +2666,7 @@ Infodock (based on XEmacs) has an additional symbol on this list:
 
 ;;;### (autoloads (ccl-execute-with-args check-ccl-program define-ccl-program
 ;;;;;;  declare-ccl-program ccl-dump ccl-compile) "ccl" "international/ccl.el"
-;;;;;;  (15186 41421))
+;;;;;;  (15797 2281))
 ;;; Generated autoloads from international/ccl.el
 
 (autoload (quote ccl-compile) "ccl" "\
@@ -2865,7 +2865,7 @@ ASSIGNMENT_OPERATOR :=
 	;; (REG <8= ARG) is the same as:
 	;;	((REG <<= 8)
 	;;	 (REG |= ARG))
-	| <8= 
+	| <8=
 
 	;; (REG >8= ARG) is the same as:
 	;;	((r7 = (REG & 255))
@@ -3293,7 +3293,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored." t nil)
 ;;;### (autoloads (next-error compilation-minor-mode compilation-shell-minor-mode
 ;;;;;;  compilation-mode grep-find grep compile compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (15768 1743))
+;;;;;;  "compile" "progmodes/compile.el" (15799 61614))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -3697,7 +3697,7 @@ Insert a copyright by $ORGANIZATION notice at cursor." t nil)
 ;;;***
 
 ;;;### (autoloads (cperl-mode) "cperl-mode" "progmodes/cperl-mode.el"
-;;;;;;  (15735 20647))
+;;;;;;  (15797 2282))
 ;;; Generated autoloads from progmodes/cperl-mode.el
 
 (autoload (quote cperl-mode) "cperl-mode" "\
@@ -3948,7 +3948,7 @@ INHERIT-INPUT-METHOD." nil nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (15735 20643))
+;;;;;;  (15788 9334))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -4624,7 +4624,7 @@ Decompose Devanagari characters in the region to IS 13194 characters." t nil)
 ;;;***
 
 ;;;### (autoloads (diary-mail-entries diary) "diary-lib" "calendar/diary-lib.el"
-;;;;;;  (15611 31353))
+;;;;;;  (15797 2280))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload (quote diary) "diary-lib" "\
@@ -4648,7 +4648,7 @@ emacs -batch \\
 -eval \"(setq diary-mail-days 3 \\
              european-calendar-style t \\
              diary-mail-addr \\\"user@host.name\\\" )\" \\
--l diary-lib -f diary-mail-entries 
+-l diary-lib -f diary-mail-entries
 at -f diary-rem.sh 0200 tomorrow
 
 You may have to tweak the syntax of the `at' command to suit your
@@ -5224,7 +5224,7 @@ Play sounds in message buffers." t nil)
 
 ;;;### (autoloads (easy-mmode-defsyntax easy-mmode-defmap easy-mmode-define-keymap
 ;;;;;;  easy-mmode-define-global-mode define-minor-mode) "easy-mmode"
-;;;;;;  "emacs-lisp/easy-mmode.el" (15778 47714))
+;;;;;;  "emacs-lisp/easy-mmode.el" (15799 61614))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias (quote easy-mmode-define-minor-mode) (quote define-minor-mode))
@@ -5525,7 +5525,7 @@ It returns the old style symbol." t nil)
 ;;;;;;  ebrowse-back-in-position-stack ebrowse-tags-search-member-use
 ;;;;;;  ebrowse-tags-query-replace ebrowse-tags-loop-continue ebrowse-tags-complete-symbol
 ;;;;;;  ebrowse-electric-choose-tree ebrowse-tree-mode) "ebrowse"
-;;;;;;  "progmodes/ebrowse.el" (15611 31359))
+;;;;;;  "progmodes/ebrowse.el" (15797 2282))
 ;;; Generated autoloads from progmodes/ebrowse.el
 
 (autoload (quote ebrowse-tree-mode) "ebrowse" "\
@@ -5543,7 +5543,7 @@ Return a buffer containing a tree or nil if no tree found or canceled." t nil)
 
 (autoload (quote ebrowse-tags-complete-symbol) "ebrowse" "\
 Perform completion on the C++ symbol preceding point.
-A second call of this function without changing point inserts the next match. 
+A second call of this function without changing point inserts the next match.
 A call with prefix PREFIX reads the symbol to insert from the minibuffer with
 completion." t nil)
 
@@ -5621,7 +5621,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing." t nil)
 ;;;***
 
 ;;;### (autoloads (edebug-eval-top-level-form def-edebug-spec edebug-all-forms
-;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (15735 20645))
+;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (15797 2280))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -5852,7 +5852,7 @@ With optional NODE, goes to that node." t nil)
 ;;;***
 
 ;;;### (autoloads (ediff-show-registry) "ediff-mult" "ediff-mult.el"
-;;;;;;  (15611 31343))
+;;;;;;  (15797 2278))
 ;;; Generated autoloads from ediff-mult.el
 
 (autoload (quote ediff-show-registry) "ediff-mult" "\
@@ -6022,7 +6022,7 @@ This is suitable as an entry on `find-file-hooks' or appropriate mode hooks." t 
 ;;;***
 
 ;;;### (autoloads (elint-initialize) "elint" "emacs-lisp/elint.el"
-;;;;;;  (15611 31353))
+;;;;;;  (15797 2280))
 ;;; Generated autoloads from emacs-lisp/elint.el
 
 (autoload (quote elint-initialize) "elint" "\
@@ -6614,12 +6614,12 @@ Transcribe Ethiopic characters in ASCII depending on the file extension." nil ni
 
 ;;;### (autoloads (eudc-load-eudc eudc-query-form eudc-expand-inline
 ;;;;;;  eudc-get-phone eudc-get-email eudc-set-server) "eudc" "net/eudc.el"
-;;;;;;  (15761 38862))
+;;;;;;  (15797 2281))
 ;;; Generated autoloads from net/eudc.el
 
 (autoload (quote eudc-set-server) "eudc" "\
 Set the directory server to SERVER using PROTOCOL.
-Unless NO-SAVE is non-nil, the server is saved as the default 
+Unless NO-SAVE is non-nil, the server is saved as the default
 server for future sessions." t nil)
 
 (autoload (quote eudc-get-email) "eudc" "\
@@ -6631,14 +6631,14 @@ Get the phone field of NAME from the directory server." t nil)
 (autoload (quote eudc-expand-inline) "eudc" "\
 Query the directory server, and expand the query string before point.
 The query string consists of the buffer substring from the point back to
-the preceding comma, colon or beginning of line.  
-The variable `eudc-inline-query-format' controls how to associate the 
+the preceding comma, colon or beginning of line.
+The variable `eudc-inline-query-format' controls how to associate the
 individual inline query words with directory attribute names.
-After querying the server for the given string, the expansion specified by 
+After querying the server for the given string, the expansion specified by
 `eudc-inline-expansion-format' is inserted in the buffer at point.
 If REPLACE is non nil, then this expansion replaces the name in the buffer.
 `eudc-expansion-overwrites-query' being non nil inverts the meaning of REPLACE.
-Multiple servers can be tried with the same query until one finds a match, 
+Multiple servers can be tried with the same query until one finds a match,
 see `eudc-inline-expansion-servers'" t nil)
 
 (autoload (quote eudc-query-form) "eudc" "\
@@ -6763,15 +6763,15 @@ This is used only in conjunction with `expand-add-abbrevs'." t nil)
 
 ;;;***
 
-;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (15735 20647))
+;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (15797 2282))
 ;;; Generated autoloads from progmodes/f90.el
 
 (autoload (quote f90-mode) "f90" "\
 Major mode for editing Fortran 90 code in free format.
 
 \\[f90-indent-new-line] corrects current indentation and creates new indented line.
-\\[f90-indent-line] indents the current line correctly. 
-\\[f90-indent-subprogram] indents the current subprogram. 
+\\[f90-indent-line] indents the current line correctly.
+\\[f90-indent-subprogram] indents the current subprogram.
 
 Type `? or `\\[help-command] to display a list of built-in abbrevs for F90 keywords.
 
@@ -6792,7 +6792,7 @@ Variables controlling indentation style and extra features:
  f90-continuation-indent
     Extra indentation applied to continuation lines.  (default 5)
  f90-comment-region
-    String inserted by \\[f90-comment-region] at start of each line in 
+    String inserted by \\[f90-comment-region] at start of each line in
     region.  (default \"!!!$\")
  f90-indented-comment-re
     Regexp determining the type of comment to be intended like code.
@@ -6806,9 +6806,9 @@ Variables controlling indentation style and extra features:
  f90-break-before-delimiters
     Non-nil causes `f90-do-auto-fill' to break lines before delimiters.
     (default t)
- f90-beginning-ampersand 
+ f90-beginning-ampersand
     Automatic insertion of & at beginning of continuation lines. (default t)
- f90-smart-end 
+ f90-smart-end
     From an END statement, check and fill the end using matching block start.
     Allowed values are 'blink, 'no-blink, and nil, which determine
     whether to blink the matching beginning.) (default 'blink)
@@ -6996,7 +6996,7 @@ Unconditionally turn on Fast Lock mode." nil nil)
 
 ;;;### (autoloads (feedmail-queue-reminder feedmail-run-the-queue
 ;;;;;;  feedmail-run-the-queue-global-prompt feedmail-run-the-queue-no-prompts
-;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (15611 31356))
+;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (15797 2281))
 ;;; Generated autoloads from mail/feedmail.el
 
 (autoload (quote feedmail-send-it) "feedmail" "\
@@ -7355,7 +7355,7 @@ to get the effect of a C-q." nil nil)
 
 ;;;### (autoloads (flyspell-buffer flyspell-region flyspell-mode-off
 ;;;;;;  flyspell-mode flyspell-prog-mode flyspell-mode-line-string)
-;;;;;;  "flyspell" "textmodes/flyspell.el" (15611 31360))
+;;;;;;  "flyspell" "textmodes/flyspell.el" (15797 2282))
 ;;; Generated autoloads from textmodes/flyspell.el
 
 (defvar flyspell-mode-line-string " Fly" "\
@@ -7373,7 +7373,7 @@ Ispell is automatically spawned on background for each entered words.
 The default flyspell behavior is to highlight incorrect words.
 With no argument, this command toggles Flyspell mode.
 With a prefix argument ARG, turn Flyspell minor mode on iff ARG is positive.
-  
+
 Bindings:
 \\[ispell-word]: correct words (using Ispell).
 \\[flyspell-auto-correct-word]: automatically correct word.
@@ -7411,7 +7411,7 @@ Flyspell whole buffer." t nil)
 
 ;;;### (autoloads (follow-delete-other-windows-and-split follow-mode
 ;;;;;;  turn-off-follow-mode turn-on-follow-mode) "follow" "follow.el"
-;;;;;;  (15611 31344))
+;;;;;;  (15797 2278))
 ;;; Generated autoloads from follow.el
 
 (autoload (quote turn-on-follow-mode) "follow" "\
@@ -8225,7 +8225,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful." nil nil)
 ;;;***
 
 ;;;### (autoloads (jdb pdb perldb xdb dbx sdb gdb) "gud" "gud.el"
-;;;;;;  (15611 31344))
+;;;;;;  (15799 61612))
 ;;; Generated autoloads from gud.el
 
 (autoload (quote gdb) "gud" "\
@@ -8527,7 +8527,7 @@ be found in variable `hi-lock-interactive-patterns'." t nil)
 ;;;***
 
 ;;;### (autoloads (hide-ifdef-lines hide-ifdef-read-only hide-ifdef-initially
-;;;;;;  hide-ifdef-mode) "hideif" "progmodes/hideif.el" (15611 31359))
+;;;;;;  hide-ifdef-mode) "hideif" "progmodes/hideif.el" (15797 2282))
 ;;; Generated autoloads from progmodes/hideif.el
 
 (defvar hide-ifdef-mode nil "\
@@ -8546,7 +8546,7 @@ hide-ifdef-env
 	is used.
 
 hide-ifdef-define-alist
-	An association list of defined symbol lists.  
+	An association list of defined symbol lists.
         Use `hide-ifdef-set-define-alist' to save the current `hide-ifdef-env'
         and `hide-ifdef-use-define-alist' to set the current `hide-ifdef-env'
         from one of the lists in `hide-ifdef-define-alist'.
@@ -9466,7 +9466,7 @@ This will add a speedbar major display mode." t nil)
 
 ;;;### (autoloads (info-complete-file info-complete-symbol info-lookup-file
 ;;;;;;  info-lookup-symbol info-lookup-reset) "info-look" "info-look.el"
-;;;;;;  (15735 20644))
+;;;;;;  (15792 45955))
 ;;; Generated autoloads from info-look.el
 
 (autoload (quote info-lookup-reset) "info-look" "\
@@ -10550,7 +10550,7 @@ and then select the region of un-tablified names and use
 ;;;***
 
 ;;;### (autoloads (what-domain mail-extract-address-components) "mail-extr"
-;;;;;;  "mail/mail-extr.el" (15611 31356))
+;;;;;;  "mail/mail-extr.el" (15797 2281))
 ;;; Generated autoloads from mail/mail-extr.el
 
 (autoload (quote mail-extract-address-components) "mail-extr" "\
@@ -10779,7 +10779,7 @@ Previous contents of that buffer are killed first." t nil)
 
 ;;;***
 
-;;;### (autoloads (man-follow man) "man" "man.el" (15611 31351))
+;;;### (autoloads (man-follow man) "man" "man.el" (15792 45957))
 ;;; Generated autoloads from man.el
 
 (defalias (quote manual-entry) (quote man))
@@ -11882,7 +11882,7 @@ startup file, `~/.emacs-octave'." t nil)
 ;;;***
 
 ;;;### (autoloads (octave-mode) "octave-mod" "progmodes/octave-mod.el"
-;;;;;;  (15611 31360))
+;;;;;;  (15797 2282))
 ;;; Generated autoloads from progmodes/octave-mod.el
 
 (autoload (quote octave-mode) "octave-mod" "\
@@ -11997,7 +11997,7 @@ The Custom feature is intended to make this obsolete." t nil)
 ;;;***
 
 ;;;### (autoloads (outline-minor-mode outline-mode) "outline" "textmodes/outline.el"
-;;;;;;  (15611 31360))
+;;;;;;  (15799 61614))
 ;;; Generated autoloads from textmodes/outline.el
 
 (autoload (quote outline-mode) "outline" "\
@@ -14586,7 +14586,7 @@ Prefix arg means just kill any existing server communications subprocess." t nil
 ;;;***
 
 ;;;### (autoloads (html-mode sgml-mode) "sgml-mode" "textmodes/sgml-mode.el"
-;;;;;;  (15611 31361))
+;;;;;;  (15797 2282))
 ;;; Generated autoloads from textmodes/sgml-mode.el
 
 (autoload (quote sgml-mode) "sgml-mode" "\
@@ -14648,7 +14648,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (15761 38863))
+;;;;;;  (15797 2282))
 ;;; Generated autoloads from progmodes/sh-script.el
 
 (put (quote sh-mode) (quote mode-class) (quote special))
@@ -17279,7 +17279,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME." t nil)
 ;;;;;;  vc-resolve-conflicts vc-merge vc-insert-headers vc-version-other-window
 ;;;;;;  vc-diff vc-register vc-next-action vc-do-command edit-vc-file
 ;;;;;;  with-vc-file vc-before-checkin-hook vc-checkin-hook vc-checkout-hook)
-;;;;;;  "vc" "vc.el" (15735 20644))
+;;;;;;  "vc" "vc.el" (15792 45958))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -17543,7 +17543,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 ;;;***
 
 ;;;### (autoloads (vhdl-mode) "vhdl-mode" "progmodes/vhdl-mode.el"
-;;;;;;  (15761 38864))
+;;;;;;  (15792 45959))
 ;;; Generated autoloads from progmodes/vhdl-mode.el
 
 (autoload (quote vhdl-mode) "vhdl-mode" "\
@@ -18295,7 +18295,7 @@ With arg, turn widget mode on if and only if arg is positive." t nil)
 ;;;***
 
 ;;;### (autoloads (widget-delete widget-create widget-prompt-value)
-;;;;;;  "wid-edit" "wid-edit.el" (15611 31352))
+;;;;;;  "wid-edit" "wid-edit.el" (15797 2280))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload (quote widget-prompt-value) "wid-edit" "\
