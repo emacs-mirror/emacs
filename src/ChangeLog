@@ -1,5 +1,8 @@
 2000-10-12  Kenichi Handa  <handa@etl.go.jp>
 
+	* xterm.c (x_produce_glyphs): Handle
+	unibyte_display_via_language_environment correctly.
+
 	* regex.c (regex_compile): Change the way of handling a range from
 	unibyte char to multibyte char.
 
