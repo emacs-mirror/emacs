@@ -654,6 +654,11 @@ case "${canonical}" in
     NON_GNU_CPP="/usr/ccs/lib/cpp" # cc -E tokenizes macro expansion.
   ;;
 
+  ## Macintosh PowerPC
+  powerpc*-*-linux-gnu* )
+    machine=macppc opsys=gnu-linux
+  ;;
+
   ## Masscomp machines
   m68*-masscomp-rtu* )
     machine=masscomp opsys=rtu
