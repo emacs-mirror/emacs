@@ -52,8 +52,6 @@ static Lisp_Object point_marker;
 void
 clear_prefix_arg ()
 {
-  if (!current_perdisplay)
-    abort ();
   Vprefix_arg = Qnil;
   if (!current_prefix_partial)
     {
