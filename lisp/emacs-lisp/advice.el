@@ -2471,7 +2471,7 @@ will clear the cache."
 		   defun defvar function if interactive let let*
 		   or prog1 prog2 progn quote save-current-buffer
 		   save-excursion save-restriction save-window-excursion
-		   setq setq-default track-mouse unwind-protect while
+		   setq setq-default unwind-protect while
 		   with-output-to-temp-buffer)))
     ;; track-mouse could be void in some configurations.
     (if (fboundp 'track-mouse)
