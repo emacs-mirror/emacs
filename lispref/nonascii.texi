@@ -176,9 +176,11 @@ If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
 @defun string-make-unibyte string
 This function converts the text of @var{string} to unibyte
 representation, if it isn't already, and returns the result.  If
-@var{string} is a unibyte string, it is returned unchanged.
-Multibyte character codes are converted to unibyte
-by using just the low 8 bits.
+@var{string} is a unibyte string, it is returned unchanged.  Multibyte
+character codes are converted to unibyte according to
+@code{nonascii-translation-table} or, if that is @code{nil}, using
+@code{nonascii-insert-offset}.  If the lookup in the translation table
+fails, this function takes just the low 8 bits of each character.
 @end defun
 
 @defun string-make-multibyte string
