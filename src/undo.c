@@ -639,11 +639,13 @@ which includes both saved text and other data.  */);
   DEFVAR_LISP ("undo-outer-limit", &Vundo_outer_limit,
 	      doc: /* Outer limit on size of undo information for one command.
 At garbage collection time, if the current command has produced
-more than this much undo information, it asks you whether to delete
-the information.  This is a last-ditch limit to prevent memory overflow.
+more than this much undo information, it discards the info and displays
+a warning.  This is a last-ditch limit to prevent memory overflow.
 
-The size is counted as the number of bytes occupied,
-which includes both saved text and other data.
+The size is counted as the number of bytes occupied, which includes
+both saved text and other data.  A value of nil means no limit.  In
+this case, accumulating one huge undo entry could make Emacs crash as
+a result of memory overflow.
 
 In fact, this calls the function which is the value of
 `undo-outer-limit-function' with one argument, the size.
