@@ -3059,8 +3059,6 @@ static Lisp_Object menu_bar_one_keymap ();
 Lisp_Object
 menu_bar_items ()
 {
-  int count = specpdl_ptr - specpdl;
-
   /* The number of keymaps we're scanning right now, and the number of
      keymaps we have allocated space for.  */
   int nmaps;
@@ -3074,12 +3072,16 @@ menu_bar_items ()
   Lisp_Object result;
 
   int mapno;
+  Lisp_Object oquit;
 
   /* In order to build the menus, we need to call the keymap
      accessors.  They all call QUIT.  But this function is called
      during redisplay, during which a quit is fatal.  So inhibit
-     quitting while building the menus.  */
-  specbind (Qinhibit_quit, Qt);
+     quitting while building the menus.
+     We do this instead of specbind because (1) errors will clear it anyway
+     and (2) this avoids risk of specpdl overflow.  */
+  oquit = Vinhibit_quit;
+  Vinhibit_quit = Qt; 
 
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
@@ -3116,7 +3118,8 @@ menu_bar_items ()
 	result = menu_bar_one_keymap (def, result);
     }
 
-  return unbind_to (count, Fnreverse (result));
+  Vinhibit_quit = oquit;
+  return Fnreverse (result);
 }
 
 /* Scan one map KEYMAP, accumulating any menu items it defines
