@@ -39,7 +39,7 @@
 	Also, added a comment describing how to greatly speedup Eshell
 	loadup time, by concatenating together all of Eshell's .elc files.
 
-2001-06-18  John Wiegley  <johnw@gnu.org>
+2001-06-19  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-mode.el: Disabled a test that often yields false
 	failures.
@@ -209,7 +209,6 @@
 	* server.el (server-process, server-buffer-clients): Doc fix.
 	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
->>>>>>> 1.2419
 2001-06-09  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-cmd.el (eshell-exit-success-p): Use a string-match to
