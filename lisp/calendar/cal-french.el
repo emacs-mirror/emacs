@@ -190,39 +190,23 @@ Defaults to today's date if DATE is not given."
 (defun calendar-print-french-date ()
   "Show the French Revolutionary calendar equivalent of the selected date."
   (interactive)
-  (let ((f (calendar-french-date-string (calendar-cursor-to-date t)))
-	(enable-multibyte-characters t))
+  (let ((f (calendar-french-date-string (calendar-cursor-to-date t))))
     (if (string-equal f "")
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
-
-;; Convert a multibyte string to a singlebyte string
-;; that represents the same characters in Latin-1.
-(defun calendar-french-single-byteify (string)
-  (if enable-multibyte-characters
-      string
-    (apply 'concat-chars
-	   (mapcar (function (lambda (char) (logand char 255)))
-		   (let ((enable-multibyte-characters t))
-		     (string-to-list string))))))
 
 (defun calendar-goto-french-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is t."
   (interactive
-   (let ((oldval enable-multibyte-characters)
-	 (accents (french-calendar-accents))
+   (let ((accents (french-calendar-accents))
 	 (months (french-calendar-month-name-array))
 	 (special-days (french-calendar-special-days-array)))
-     (setq months (mapcar 'calendar-french-single-byteify months))
-     (setq special-days
-	   (mapcar 'calendar-french-single-byteify special-days))
      (let* ((year
 	     (progn
 	       (calendar-read
 		(if accents
-		    (calendar-french-single-byteify
-		     "Année de la Révolution (>0): ")
+	            "Année de la Révolution (>0): "
 		   "Anne'e de la Re'volution (>0): ")
 		'(lambda (x) (> x 0))
 		(int-to-string
@@ -259,8 +243,7 @@ Echo French Revolutionary date unless NOECHO is t."
 			1
 		      (calendar-read
 		       (if accents
-			   (calendar-french-single-byteify
-			    "Décade (1-3): ")
+			   "Décade (1-3): "
 			 "De'cade (1-3): ")
 		       '(lambda (x) (memq x '(1 2 3))))))
 	    (day (if (> month 12)
