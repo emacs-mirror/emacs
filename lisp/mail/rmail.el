@@ -68,6 +68,10 @@ It is useful to set this variable in the site customization file.")
 *Regexp to match Header fields that rmail should normally hide.")
 
 ;;;###autoload
+(defvar rmail-highlighted-headers "^From:\\|^Subject:" "\
+*Regexp to match Header fields that rmail should normally highlight.")
+
+;;;###autoload
 (defvar rmail-delete-after-output nil "\
 *Non-nil means automatically delete a message that is copied to a file.")
 
@@ -1389,6 +1393,28 @@ If summary buffer is currently displayed, update current message there also."
 	  (narrow-to-region (point) end))
 	(goto-char (point-min))
 	(rmail-display-labels)
+	;; Find all occurrences of certain fields, and highlight them.
+	(save-excursion
+	  (search-forward "\n\n" nil 'move)
+	  (save-restriction
+	    (narrow-to-region (point-min) (point))
+	    (let ((case-fold-search t)
+		  (inhibit-read-only t)
+		  ;; Highlight with boldface if that is available.
+		  ;; Otherwise use the `highlight' face.
+		  (face (if (face-differs-from-default-p 'bold)
+			    'bold 'highlight)))
+	      (goto-char (point-min))
+	      (while (re-search-forward rmail-highlighted-headers nil t)
+		(skip-syntax-forward " ")
+		(let ((beg (point)))
+		  (while (progn (forward-line 1)
+				(looking-at "[ \t]")))
+		  ;; Back up over newline, then trailing spaces or tabs
+		  (forward-char -1)
+		  (while (member (preceding-char) '(?  ?\t))
+		    (forward-char -1))
+		  (put-text-property beg (point) 'face face))))))
 	(run-hooks 'rmail-show-message-hook)
 	;; If there is a summary buffer, try to move to this message
 	;; in that buffer.  But don't complain if this message
