@@ -99,8 +99,10 @@ and `current-time-string' are two valid values."
     ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
     ;;
     ;; Acknowledgements.
-    ("^\t\\(From\\|Patch by\\|Reported by\\)" 1 font-lock-comment-face)
-    )
+    ("^\t\\(From\\|Patch\\(es\\)? by\\|Reported by\\)"
+     1 font-lock-comment-face)
+    ("  \\(From\\|Patch\\(es\\)? by\\|Reported by\\)"
+     1 font-lock-comment-face))
   "Additional expressions to highlight in Change Log mode.")
 
 (defvar change-log-mode-map nil
