@@ -1,7 +1,7 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.84) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpmtypes.h(trunk.85) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
  *
@@ -36,21 +36,22 @@ typedef Word Count;                     /* design.mps.type.count */
 typedef Word Index;                     /* design.mps.type.index */
 typedef Word Align;                     /* design.mps.type.align */
 typedef unsigned Shift;                 /* design.mps.type.shift */
+typedef unsigned Serial;                /* design.mps.type.serial */
 typedef Addr Ref;                       /* design.mps.type.ref */
 typedef void *Pointer;                  /* design.mps.type.pointer */
 typedef Word RefSet;                    /* design.mps.refset */
-typedef unsigned Rank;                  /* design.mps.ref */
+typedef Word ZoneSet;                   /* design.mps.refset */
+typedef unsigned Rank;
 typedef unsigned RankSet;
 typedef unsigned RootMode;
 typedef Size Epoch;                     /* design.mps.ld */
-typedef unsigned TraceId;               /* design.mps.tracer */
-typedef unsigned TraceSet;              /* design.mps.tracer */
-typedef unsigned TraceState;            /* design.mps.tracer */
+typedef unsigned TraceId;               /* design.mps.trace */
+typedef unsigned TraceSet;              /* design.mps.trace */
+typedef unsigned TraceState;            /* design.mps.trace */
 typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef unsigned FormatVariety;         
 typedef int RootVar;                    /* design.mps.type.rootvar */
-typedef unsigned Serial;                /* design.mps.type.serial */
 typedef Word *BT;                       /* design.mps.bt */
 typedef struct BootBlockStruct *BootBlock; /* impl.c.boot */
 typedef struct BufferStruct *Buffer;    /* design.mps.buffer */
@@ -72,8 +73,9 @@ typedef PoolClass AbstractBufferPoolClass; /* impl.c.poolabs */
 typedef PoolClass AbstractSegBufPoolClass; /* impl.c.poolabs */
 typedef PoolClass AbstractScanPoolClass; /* impl.c.poolabs */
 typedef PoolClass AbstractCollectPoolClass; /* impl.c.poolabs */
-typedef struct TraceStruct *Trace;      /* design.mps.tracer */
-typedef struct ScanStateStruct *ScanState; /* design.mps.tracer */
+typedef struct TraceStruct *Trace;      /* design.mps.trace */
+typedef struct ScanStateStruct *ScanState; /* design.mps.trace */
+typedef struct ChainStruct *Chain;      /* design.mps.trace */
 typedef struct TractStruct *Tract;      /* design.mps.arena */
 typedef struct ChunkStruct *Chunk;      /* impl.c.tract */
 typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* impl.c.tract */
@@ -265,12 +267,14 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
 #define AccessMAX       ((Size)2)
-#define TraceIdNONE     ((TraceId)-1)   /* design.mps.tracer */
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
-#define TraceSetEMPTY   BS_EMPTY(TraceSet) /* design.mps.tracer */
+#define ZoneSetEMPTY    BS_EMPTY(ZoneSet)
+#define ZoneSetUNIV     BS_UNIV(ZoneSet)
+#define TraceSetEMPTY   BS_EMPTY(TraceSet)
+#define TraceSetUNIV    ((TraceSet)((1u<<TRACE_MAX)-1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
-#define RankSetUNIV     ((1uL<<RankMAX)-1)
+#define RankSetUNIV     ((RankSet)((1u<<RankMAX)-1))
 #define AttrFMT         ((Attr)(1<<0))  /* design.mps.type.attr */
 #define AttrSCAN        ((Attr)(1<<1))
 #define AttrPM_NO_READ  ((Attr)(1<<2))
@@ -383,7 +387,7 @@ enum {
 };
 
 
-/* TraceStates -- see design.mps.tracer */
+/* TraceStates -- see design.mps.trace */
 
 enum {
   TraceINIT = 1,
