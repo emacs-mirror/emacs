@@ -84,6 +84,12 @@ boxes instead of characters; see @ref{Fontsets}.
   The command @kbd{M-x list-charset-chars} prompts for a name of a
 character set, and displays all the characters in that character set.
 
+@findex describe-character-set
+@cindex character set, description
+  The command @kbd{M-x describe-character-set} prompts for a character
+set name and displays information about that character set, including
+its internal representation within Emacs.
+
   Keyboards, even in the countries where these character sets are used,
 generally don't have keys for all the characters in them.  So Emacs
 supports various @dfn{input methods}, typically one for each script or
