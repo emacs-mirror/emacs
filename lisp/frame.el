@@ -236,7 +236,9 @@ These supercede the values given in `default-frame-alist'.")
 				  (> (minibuffer-depth) 0)
 				  t)))
 
-(defun new-frame (&optional parameters)
+;; Alias, kept temporarily.
+(fset 'new-frame 'make-frame)
+(defun make-frame (&optional parameters)
   "Create a new frame, displaying the current buffer.
 
 Optional argument PARAMETERS is an alist of parameters for the new
