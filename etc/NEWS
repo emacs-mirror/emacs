@@ -105,7 +105,7 @@ in the current input method to input a character at point.
 ** Commands winner-redo and winner-undo, from winner.el, are now bound to
 C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
-** Help commands `describe-funcion' and `describe-key' now show function
+** Help commands `describe-function' and `describe-key' now show function
 arguments in lowercase italics on displays that support it.  To change the
 default, customize face `help-argument-name' or redefine the function
 `help-default-arg-highlight'.
