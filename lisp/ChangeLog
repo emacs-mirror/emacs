@@ -1,3 +1,8 @@
+2001-03-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* help.el (view-lossage): Mention open-dribble-file in the doc
+	string.  Suggested by Riku Saikkonen <rjs@lloke.dna.fi>.
+
 2001-03-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* skeleton.el (skeleton-internal-list): Fix bogus logic.
