@@ -3561,7 +3561,10 @@ We assume the output has the format of `df'.
 The value of this variable must be just a command name or file name;
 if you want to specify options, use `directory-free-space-args'.
 
-A value of nil disables this feature."
+A value of nil disables this feature.
+
+If the function `file-system-info' is defined, it is always used in
+preference to the program given by this variable."
   :type '(choice (string :tag "Program") (const :tag "None" nil))
   :group 'dired)
 
@@ -3569,6 +3572,42 @@ A value of nil disables this feature."
   "*Options to use when running `directory-free-space-program'."
   :type 'string
   :group 'dired)
+
+(defun get-free-disk-space (dir)
+  "Return the mount of free space on directory DIR's file system.
+The result is a string that gives the number of free 1KB blocks,
+or nil if the system call or the program which retrieve the infornmation
+fail.
+
+This function calls `file-system-info' if it is available, or invokes the
+program specified by `directory-free-space-program' if that is non-nil."
+  ;; Try to find the number of free blocks.  Non-Posix systems don't
+  ;; always have df, but might have an equivalent system call.
+  (if (fboundp 'file-system-info)
+      (let ((fsinfo (file-system-info dir)))
+	(if fsinfo
+	    (format "%.0f" (/ (nth 2 fsinfo) 1024))))
+    (save-match-data
+      (with-temp-buffer
+	(when (and directory-free-space-program
+		   (zerop (call-process directory-free-space-program
+					nil t nil
+					directory-free-space-args
+					dir)))
+	  ;; Usual format is a header line followed by a line of
+	  ;; numbers.
+	  (goto-char (point-min))
+	  (forward-line 1)
+	  (if (not (eobp))
+	      (progn
+		;; Move to the end of the "available blocks" number.
+		(skip-chars-forward "^ \t")
+		(forward-word 3)
+		;; Copy it into AVAILABLE.
+		(let ((end (point)))
+		  (forward-word -1)
+		  (buffer-substring (point) end)))))))))
+
 
 ;; insert-directory
 ;; - must insert _exactly_one_line_ describing FILE if WILDCARD and
@@ -3689,38 +3728,12 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	    (goto-char (point-min))
 	    ;; First find the line to put it on.
 	    (when (re-search-forward "^total" nil t)
-	      ;; Try to find the number of free blocks.
-	      ;; Non-Posix systems don't always have df,
-	      ;; but might have an equivalent system call.
-	      (if (fboundp 'file-system-info)
-		  (let ((fsinfo (file-system-info ".")))
-		    (if fsinfo
-			(setq available (format "%.0f" (/ (nth 2 fsinfo) 1024)))))
-		(save-match-data
-		  (with-temp-buffer
-		    (when (and directory-free-space-program
-			       (zerop (call-process directory-free-space-program
-						    nil t nil
-						    directory-free-space-args
-						    ".")))
-		      ;; Usual format is a header line
-		      ;; followed by a line of numbers.
-		      (goto-char (point-min))
-		      (forward-line 1)
-		      (if (not (eobp))
-			  (progn
-			    ;; Move to the end of the "available blocks" number.
-			    (skip-chars-forward "^ \t")
-			    (forward-word 3)
-			    ;; Copy it into AVAILABLE.
-			    (let ((end (point)))
-			      (forward-word -1)
-			      (setq available (buffer-substring (point) end)))))))))
-	      (when available
-		;; Replace "total" with "used", to avoid confusion.
-		(replace-match "used")
-		(end-of-line)
-		(insert " available " available)))))))))
+	      (let ((available (get-free-disk-space ".")))
+		(when available
+		  ;; Replace "total" with "used", to avoid confusion.
+		  (replace-match "used")
+		  (end-of-line)
+		  (insert " available " available))))))))))
 
 (defun insert-directory-safely (file switches
 				     &optional wildcard full-directory-p)
