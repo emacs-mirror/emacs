@@ -295,7 +295,7 @@ chapter."
     ("@\\(file\\|kbd\\|key\\|url\\|email\\){\\([^}]+\\)" 2 font-lock-string-face)
     ("@\\(samp\\|code\\|var\\|math\\){\\([^}]+\\)"
      2 font-lock-variable-name-face)
-    ("@\\(cite\\|xref\\|pxref\\){\\([^}]+\\)" 2 font-lock-constant-face)
+    ("@\\(cite\\|x?ref\\|pxref\\){\\([^}]+\\)" 2 font-lock-constant-face)
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-function-name-face keep)
     )
   "Additional expressions to highlight in TeXinfo mode.")
