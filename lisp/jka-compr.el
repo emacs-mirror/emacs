@@ -502,13 +502,18 @@ There should be no more than seven characters after the final `/'")
 							(if (and beg end)
 							    (- end beg)
 							  end))
-			(jka-compr-call-process uncompress-program
-						(concat uncompress-message
-							" " base-name)
-						local-file
-						t
-						nil
-						uncompress-args))
+			;; If visiting, bind off buffer-file-name so that
+			;; file-locking will not ask whether we should
+			;; really edit the buffer.
+			(let ((buffer-file-name
+			       (if visit nil buffer-file-name)))
+			  (jka-compr-call-process uncompress-program
+						  (concat uncompress-message
+							  " " base-name)
+						  local-file
+						  t
+						  nil
+						  uncompress-args)))
 		      (setq size (- (point) start))
 		      (if replace
 			  (let* ((del-beg (point))
