@@ -62,13 +62,13 @@ record_insert (beg, length)
 
   /* If this is following another insertion and consecutive with it
      in the buffer, combine the two.  */
-  if (XTYPE (current_buffer->undo_list) == Lisp_Cons)
+  if (CONSP (current_buffer->undo_list))
     {
       Lisp_Object elt;
       elt = XCONS (current_buffer->undo_list)->car;
-      if (XTYPE (elt) == Lisp_Cons
-	  && XTYPE (XCONS (elt)->car) == Lisp_Int
-	  && XTYPE (XCONS (elt)->cdr) == Lisp_Int
+      if (CONSP (elt)
+	  && INTEGERP (XCONS (elt)->car)
+	  && INTEGERP (XCONS (elt)->cdr)
 	  && XINT (XCONS (elt)->cdr) == XINT (beg))
 	{
 	  XSETINT (XCONS (elt)->cdr, XINT (beg) + XINT (length));
@@ -249,8 +249,7 @@ truncate_undo_list (list, minsize, maxsize)
      Skip, skip, skip the undo, skip, skip, skip the undo,
      Skip, skip, skip the undo, skip to the undo bound'ry. 
      (Get it?  "Skip to my Loo?")  */
-  if (XTYPE (next) == Lisp_Cons
-      && NILP (XCONS (next)->car))
+  if (CONSP (next) && NILP (XCONS (next)->car))
     {
       /* Add in the space occupied by this element and its chain link.  */
       size_so_far += sizeof (struct Lisp_Cons);
@@ -259,18 +258,17 @@ truncate_undo_list (list, minsize, maxsize)
       prev = next;
       next = XCONS (next)->cdr;
     }
-  while (XTYPE (next) == Lisp_Cons
-	 && ! NILP (XCONS (next)->car))
+  while (CONSP (next) && ! NILP (XCONS (next)->car))
     {
       Lisp_Object elt;
       elt = XCONS (next)->car;
 
       /* Add in the space occupied by this element and its chain link.  */
       size_so_far += sizeof (struct Lisp_Cons);
-      if (XTYPE (elt) == Lisp_Cons)
+      if (CONSP (elt))
 	{
 	  size_so_far += sizeof (struct Lisp_Cons);
-	  if (XTYPE (XCONS (elt)->car) == Lisp_String)
+	  if (STRINGP (XCONS (elt)->car))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
 			    + XSTRING (XCONS (elt)->car)->size);
 	}
@@ -279,10 +277,10 @@ truncate_undo_list (list, minsize, maxsize)
       prev = next;
       next = XCONS (next)->cdr;
     }
-  if (XTYPE (next) == Lisp_Cons)
+  if (CONSP (next))
     last_boundary = prev;
 
-  while (XTYPE (next) == Lisp_Cons)
+  while (CONSP (next))
     {
       Lisp_Object elt;
       elt = XCONS (next)->car;
@@ -302,10 +300,10 @@ truncate_undo_list (list, minsize, maxsize)
 
       /* Add in the space occupied by this element and its chain link.  */
       size_so_far += sizeof (struct Lisp_Cons);
-      if (XTYPE (elt) == Lisp_Cons)
+      if (CONSP (elt))
 	{
 	  size_so_far += sizeof (struct Lisp_Cons);
-	  if (XTYPE (XCONS (elt)->car) == Lisp_String)
+	  if (STRINGP (XCONS (elt)->car))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
 			    + XSTRING (XCONS (elt)->car)->size);
 	}
@@ -369,9 +367,9 @@ Return what remains of the list.")
 	  if (NILP (next))
 	    break;
 	  /* Handle an integer by setting point to that value.  */
-	  if (XTYPE (next) == Lisp_Int)
+	  if (INTEGERP (next))
 	    SET_PT (clip_to_bounds (BEGV, XINT (next), ZV));
-	  else if (XTYPE (next) == Lisp_Cons)
+	  else if (CONSP (next))
 	    {
 	      Lisp_Object car, cdr;
 
@@ -412,7 +410,7 @@ Return what remains of the list.")
 		  Fput_text_property (beg, end, prop, val, Qnil);
 		}
 #endif /* USE_TEXT_PROPERTIES */
-	      else if (XTYPE (car) == Lisp_Int && XTYPE (cdr) == Lisp_Int)
+	      else if (INTEGERP (car) && INTEGERP (cdr))
 		{
 		  /* Element (BEG . END) means range was inserted.  */
 		  Lisp_Object end;
@@ -425,7 +423,7 @@ Return what remains of the list.")
 		  Fgoto_char (car);
 		  Fdelete_region (car, cdr);
 		}
-	      else if (XTYPE (car) == Lisp_String && XTYPE (cdr) == Lisp_Int)
+	      else if (STRINGP (car) && INTEGERP (cdr))
 		{
 		  /* Element (STRING . POS) means STRING was deleted.  */
 		  Lisp_Object membuf;
