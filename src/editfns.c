@@ -2794,7 +2794,7 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
 DEFUN ("propertize", Fpropertize, Spropertize, 3, MANY, 0,
        "Return a copy of STRING with text properties added.\n\
 First argument is the string to copy.\n\
-Remaining arguments are sequences of PROPERTY VALUE pairs for text\n\
+Remaining arguments form a sequence of PROPERTY VALUE pairs for text\n\
 properties to add to the result ")
   (nargs, args)
      int nargs;
