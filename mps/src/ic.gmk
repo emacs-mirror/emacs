@@ -1,21 +1,21 @@
 # impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX CC (IRIX 4 OR 5)
 #
-# $HopeName: MMsrc!ic.gmk(trunk.2) $
-# Copyright (C) 1996 Harlequin Group, all rights reserved
+# $HopeName: MMsrc!ic.gmk(trunk.3) $
+# Copyright (C) 1996, 1998 Harlequin Group, all rights reserved
 #
 # This file is included by platform makefiles that use the IRIX CC
 # compiler.  It defines the compiler specific variables that the
 # common makefile fragment (impl.gmk.comm) requires.
 
-# We need a symbol for a non-empty defintion with empty value
+# We need a symbol for a non-empty definition with empty value
 ifdef MPS_EMPTY
 error "ic.gmk: MPS_EMPTY defined"
 endif
 
 CC = cc
-CFLAGSHOT = -O
-CFLAGSCOOL = $(MPS_EMPTY)
-CFLAGSINTERNAL = -g
-CFLAGSEXTERNAL = $(MPS_EMPTY)
+CFLAGSCOMPILER = $(MPS_EMPTY)
+CFLAGSDEBUG = -g
+CFLAGSOPT = -O -g
+CFLAGSOPTNODEBUG = -O
 
 include comm.gmk
