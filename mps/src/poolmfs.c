@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.18) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.19) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
@@ -35,7 +35,7 @@
 #include "mpm.h"
 #include "poolmfs.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.18) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.19) $");
 
 
 /*  == Round up ==
@@ -122,7 +122,7 @@ static void MFSFinish(Pool pool)
 
   seg = mfs->segList;
   while(seg != NULL) {
-    Seg nextSeg = (Seg)seg->p;   /* .seg.chain */
+    Seg nextSeg = (Seg)SegP(seg);   /* .seg.chain */
     PoolSegFree(pool, seg);
     seg = nextSeg;
   }
@@ -170,8 +170,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     if(res != ResOK)
       return res;
 
-    /* .seg.chain: chain segs through seg->p */
-    seg->p = (void *)mfs->segList;
+    /* .seg.chain: chain segs through SegP(seg) */
+    SegSetP(seg, (void *)mfs->segList);
     mfs->segList = seg;
 
     /* Sew together all the new empty units in the segment, working down */

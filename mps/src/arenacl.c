@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.4) $
+ * $HopeName: MMsrc!arenacl.c(trunk.5) $
  * 
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
@@ -41,7 +41,7 @@
 #error "Client arena not configured"
 #endif
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.4) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.5) $");
 
 Bool ArenaCheck(Arena arena)
 {
@@ -54,7 +54,7 @@ Bool ArenaCheck(Arena arena)
 }
 
 typedef struct ChunkStruct *Chunk;      /* chunk type */
-typedef struct PageStruct *Page;        /* page type */
+typedef struct PageStruct *Page;         /* page type */
 typedef Word *ABT;                      /* bool table type */
 
 #define ChunkSig        ((Sig)0x519C804c) /* SIGnature CHUNK */
@@ -73,22 +73,28 @@ typedef struct ChunkStruct {    /* chunk structure */
   ABT freeTable;                /* page free table */
 } ChunkStruct;
 
+
 /* PageStruct -- page structure
  *
  * The page table is lifted entirely from arenavm. See
- * design.mps.arenavm.table.* */
+ * design.mps.arenavm.table.*.
+ *
+ * .page: The "pool" field must be the first field of the "tail"
+ * field of this union, so that it shares a common prefix with the
+ * SegStruct.  See impl.h.mpmst.seg.pool.
+ */
 
-typedef struct PageStruct {     /* page structure */
+typedef struct PageStruct {      /* page structure */
   union {
-    SegStruct head;             /* segment */
+    SegStruct segStruct;          /* segment */
     struct {
-      Pool pool;                /* .page: NULL, must be first field
-                                 * see impl.h.mpmst.seg.pool */
-      Seg seg;                  /* segment at base page of run */
-      Addr limit;               /* limit of segment */
-    } tail;                     /* tail page */
+      Pool pool;                  /* NULL, must be first field (.page) */
+      Seg seg;                    /* segment at base page of run */
+      Addr limit;                 /* limit of segment */
+    } tail;
   } the;
 } PageStruct;
+
 
 static Bool ChunkCheck(Chunk chunk)
 {
@@ -138,6 +144,7 @@ static Bool ChunkCheck(Chunk chunk)
 /* would like to be able to write a PageCheck, but Pages don't even
  * have a signature */
 
+
 /* Page Index to Base address mapping
  *
  * See design.mps.arenavm.table.linear
@@ -145,6 +152,19 @@ static Bool ChunkCheck(Chunk chunk)
 
 #define PageBase(chunk, pi) \
   AddrAdd((chunk)->pageBase, ((pi) << (chunk)->arena->pageShift))
+
+
+/* PageSeg -- segment descriptor of a page */
+
+#define PageSeg(page)           (&(page)->the.segStruct)
+
+/* PageTail -- tail descriptor of a page */
+
+#define PageTail(page)          (&(page)->the.tail)
+
+/* PageOfSeg -- page descriptor from segment */
+
+#define PageOfSeg(seg)          PARENT(PageStruct, the.segStruct, seg)
 
 
 /* Index Types
@@ -570,7 +590,7 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages, Pool pool,
 
 found:
   /* Initialize the generic segment structure. */
-  seg = &chunk->pageTable[base].the.head;
+  seg = PageSeg(&chunk->pageTable[base]);
   SegInit(seg, pool);
 
   /* Allocate the first page, and, if there is more than one page,
@@ -581,16 +601,16 @@ found:
   ABTSet(chunk->freeTable, base, FALSE);
   if(pages > 1) {
     Addr limit = PageBase(chunk, base + pages);
-    seg->single = FALSE;
+    SegSetSingle(seg, FALSE);
     for(pi = base + 1; pi < base + pages; ++pi) {
       AVER(ABTGet(chunk->freeTable, pi));
       ABTSet(chunk->freeTable, pi, FALSE);
-      chunk->pageTable[pi].the.tail.pool = NULL;
-      chunk->pageTable[pi].the.tail.seg = seg;
-      chunk->pageTable[pi].the.tail.limit = limit;
+      PageTail(&chunk->pageTable[pi])->pool = NULL;
+      PageTail(&chunk->pageTable[pi])->seg = seg;
+      PageTail(&chunk->pageTable[pi])->limit = limit;
     }
   } else {
-    seg->single = TRUE;
+    SegSetSingle(seg, TRUE);
   }
   chunk->freePages -= pages;
   
@@ -648,7 +668,7 @@ static Res SegChunk(Chunk *chunkReturn, PI *piReturn, Seg seg, Arena arena)
   AVERT(Seg, seg);
   AVERT(Arena, arena);
 
-  page = PARENT(PageStruct, the.head, seg);
+  page = PageOfSeg(seg);
 
   RING_FOR(node, &arena->chunkRing) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
@@ -761,11 +781,11 @@ Addr SegLimit(Space space, Seg seg)
   arena = SpaceArena(space);
   AVERT(Arena, arena);
 
-  if(seg->single)
+  if(SegSingle(seg))
     return AddrAdd(SegBase(space, seg), arena->pageSize);
   else {
-    page = PARENT(PageStruct, the.head, seg);
-    return page[1].the.tail.limit;
+    page = PageOfSeg(seg);
+    return PageTail(page+1)->limit;
   }
 }
 
@@ -808,10 +828,10 @@ Bool SegOfAddr(Seg *segReturn, Space space, Addr addr)
       PI pi = AddrOffset(chunk->pageBase, addr) >> arena->pageShift;
       if(!ABTGet(chunk->freeTable, pi)) {
         Page page = &chunk->pageTable[pi];
-        if(page->the.head.pool != NULL)
-          *segReturn = &page->the.head;
+        if(SegPool(PageSeg(page)) != NULL)
+          *segReturn = PageSeg(page);
         else
-          *segReturn = page->the.tail.seg;
+          *segReturn = PageTail(page)->seg;
         return TRUE;
       }
     }
@@ -837,11 +857,11 @@ static Seg SegSearchChunk(Chunk chunk, PI pi)
 
   while(pi < chunk->pages &&
         (ABTGet(chunk->freeTable, pi) ||
-         chunk->pageTable[pi].the.head.pool == NULL))
+         SegPool(PageSeg(&chunk->pageTable[pi])) == NULL))
     ++pi;
   
   if(pi < chunk->pages)
-    return &chunk->pageTable[pi].the.head;
+    return PageSeg(&chunk->pageTable[pi]);
   
   AVER(pi == chunk->pages);
   return NULL;

@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.26) $
+ * $HopeName: MMsrc!trace.c(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.26) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.27) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -128,9 +128,9 @@ static Res TraceStart(Trace trace, Action action)
   node = RingNext(ring);
   while(node != ring) {
     Ring next = RingNext(node);
-    seg = RING_ELT(Seg, poolRing, node);
+    seg = SegOfPoolRing(node);
 
-    AVER(!TraceSetIsMember(seg->white, trace->ti)); /* .start.black */
+    AVER(!TraceSetIsMember(SegWhite(seg), trace->ti)); /* .start.black */
 
     /* Give the pool the opportunity to turn the segment white. */
     /* If it fails, unwind. */
@@ -139,7 +139,7 @@ static Res TraceStart(Trace trace, Action action)
 
     /* Add the segment to the approximation of the white set the */
     /* pool made it white. */
-    if(TraceSetIsMember(seg->white, trace->ti))
+    if(TraceSetIsMember(SegWhite(seg), trace->ti))
       trace->white = RefSetUnion(trace->white, RefSetOfSeg(space, seg));
 
     node = next;
@@ -170,21 +170,21 @@ static Res TraceStart(Trace trace, Action action)
     do {
       base = SegBase(space, seg);
       /* Segment should be either black or white by now. */
-      AVER(!TraceSetIsMember(seg->grey, trace->ti));
+      AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
       /* A segment can only be grey if it contains some references. */
       /* This is indicated by the rankSet begin non-empty.  Such */
       /* segments may only belong to scannable pools. */
-      if(seg->rankSet != RankSetEMPTY) {
+      if(SegRankSet(seg) != RankSetEMPTY) {
 	/* Segments with ranks may only belong to scannable pools. */
-	AVER((seg->pool->class->attr & AttrSCAN) != 0);
+	AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
 
 	/* Turn the segment grey if there might be a reference in it */
 	/* to the white set.  This is done by seeing if the summary */
 	/* of references in the segment intersects with the approximation */
 	/* to the white set. */
-	if(RefSetInter(seg->summary, trace->white) != RefSetEMPTY)
-	  PoolGrey(seg->pool, trace, seg);
+	if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY)
+	  PoolGrey(SegPool(seg), trace, seg);
       }
     } while(SegNext(&seg, space, base));
   }
@@ -212,8 +212,8 @@ failCondemn:
   node = RingNext(ring);
   while(node != ring) {
     Ring next = RingNext(node);
-    seg = RING_ELT(Seg, poolRing, node);
-    seg->white = TraceSetDel(seg->white, trace->ti);
+    seg = SegOfPoolRing(node);
+    SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
     node = next;
   }
 
@@ -330,12 +330,12 @@ void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
   AVERT(Seg, seg);
   AVER(TraceSetCheck(ts));
 
-  grey = seg->grey;
+  grey = SegGrey(seg);
   grey = TraceSetUnion(grey, ts);
-  if(grey != seg->grey &&
+  if(grey != SegGrey(seg) &&
      TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY)
     ShieldRaise(space, seg, AccessREAD);
-  seg->grey = grey;
+  SegSetGrey(seg, grey);
   EVENT3(TraceSegGreyen, space, seg, ts);
 }
 
@@ -393,13 +393,13 @@ void TraceSetSummary(Space space, Seg seg, RefSet summary)
   AVERT(Seg, seg);
 
   if(summary == RefSetUNIV) {
-    seg->summary = summary;             /* NB summary == RefSetUNIV */
-    if(seg->sm & AccessWRITE)
+    SegSetSummary(seg, summary);             /* NB summary == RefSetUNIV */
+    if(SegSM(seg) & AccessWRITE)
       ShieldLower(space, seg, AccessWRITE);
   } else {
-    if(!(seg->sm & AccessWRITE))
+    if(!(SegSM(seg) & AccessWRITE))
       ShieldRaise(space, seg, AccessWRITE);
-    seg->summary = summary;
+    SegSetSummary(seg, summary);
   }
 }
 
@@ -506,12 +506,12 @@ static void TraceReclaim(Trace trace)
       base = SegBase(space, seg);
 
       /* There shouldn't be any grey stuff left for this trace. */
-      AVER(!TraceSetIsMember(seg->grey, trace->ti));
+      AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
-      if(TraceSetIsMember(seg->white, trace->ti)) {
-	AVER((seg->pool->class->attr & AttrGC) != 0);
+      if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
+	AVER((SegPool(seg)->class->attr & AttrGC) != 0);
 
-	PoolReclaim(seg->pool, trace, seg);
+	PoolReclaim(SegPool(seg), trace, seg);
       }
     } while(SegNext(&seg, space, base));
   }
@@ -548,8 +548,8 @@ static Bool FindGrey(Seg *segReturn, Rank *rankReturn,
       Addr base;
       do {
 	base = SegBase(space, seg);
-	if(RankSetIsMember(seg->rankSet, rank) &&
-	   TraceSetIsMember(seg->grey, ti)) {
+	if(RankSetIsMember(SegRankSet(seg), rank) &&
+	   TraceSetIsMember(SegGrey(seg), ti)) {
 	  *segReturn = seg;
 	  *rankReturn = rank;
 	  return TRUE;
@@ -582,8 +582,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
   AVERT(Seg, seg);
   
   /* The reason for scanning a segment is that it's grey. */
-  AVER(TraceSetInter(ts, seg->grey) != TraceSetEMPTY);
-
+  AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
   EVENT5(TraceScan, ts, rank, space, seg, &ss);
 
   ss.rank = rank;
@@ -604,7 +603,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
   /* Expose the segment to make sure we can scan it. */
   ShieldExpose(space, seg);
 
-  res = PoolScan(&ss, seg->pool, seg);
+  res = PoolScan(&ss, SegPool(seg), seg);
   if(res != ResOK) {
     ShieldCover(space, seg);
     return res;
@@ -612,7 +611,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
 
   /* The summary of references seen by scan must be a subset of */
   /* the ones we thought were there before. */
-  AVER(RefSetSub(ss.summary, seg->summary));
+  AVER(RefSetSub(ss.summary, SegSummary(seg)));
   TraceSetSummary(space, seg,
                   TraceSetUnion(ss.fixed,
                                 TraceSetDiff(ss.summary, ss.white)));
@@ -620,11 +619,11 @@ static Res TraceScan(TraceSet ts, Rank rank,
   ss.sig = SigInvalid;			/* just in case */
 
   /* The segment has been scanned, so remove the greyness from it. */
-  seg->grey = TraceSetDiff(seg->grey, ts);
+  SegSetGrey(seg, TraceSetDiff(SegGrey(seg), ts));
 
   /* If the segment is no longer grey for any flipped trace it */
   /* doesn't need to be behind the read barrier. */  
-  if(TraceSetInter(seg->grey, space->flippedTraces) == TraceSetEMPTY)
+  if(TraceSetInter(SegGrey(seg), space->flippedTraces) == TraceSetEMPTY)
     ShieldLower(space, seg, AccessREAD);
 
   /* Cover the segment again, now it's been scanned. */
@@ -644,10 +643,10 @@ void TraceAccess(Space space, Seg seg, AccessSet mode)
 
   EVENT3(TraceAccess, space, seg, mode);
 
-  if((mode & seg->sm & AccessREAD) != 0) {     /* read barrier? */
+  if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
     /* In this case, the segment must be grey for a trace which is */
     /* flipped. */
-    AVER(TraceSetInter(seg->grey, space->flippedTraces) != TraceSetEMPTY);
+    AVER(TraceSetInter(SegGrey(seg), space->flippedTraces) != TraceSetEMPTY);
 
     /* scan.conservative: At the moment we scan at RankEXACT.  Really */
     /* we should be scanning at the "phase" of the trace, which is the */
@@ -661,15 +660,15 @@ void TraceAccess(Space space, Seg seg, AccessSet mode)
     /* The pool should've done the job of removing the greyness that */
     /* was causing the segment to be protected, so that the mutator */
     /* can go ahead and access it. */
-    AVER(TraceSetInter(seg->grey, space->flippedTraces) == TraceSetEMPTY);
+    AVER(TraceSetInter(SegGrey(seg), space->flippedTraces) == TraceSetEMPTY);
   }
 
-  if((mode & seg->sm & AccessWRITE) != 0) {    /* write barrier? */
-    AVER(seg->summary != RefSetUNIV);
+  if((mode & SegSM(seg) & AccessWRITE) != 0) {    /* write barrier? */
+    AVER(SegSummary(seg) != RefSetUNIV);
     TraceSetSummary(space, seg, RefSetUNIV);
   }
 
-  AVER((mode & seg->sm) == AccessSetEMPTY);
+  AVER((mode & SegSM(seg)) == AccessSetEMPTY);
 }
 
 
@@ -686,7 +685,7 @@ static Res TraceRun(Trace trace)
   space = trace->space;
 
   if(FindGrey(&seg, &rank, space, trace->ti)) {
-    AVER((seg->pool->class->attr & AttrSCAN) != 0);
+    AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
     res = TraceScan(TraceSetSingle(trace->ti), rank,
                     space, seg);
     if(res != ResOK) return res;
@@ -769,16 +768,16 @@ Res TraceFix(ScanState ss, Ref *refIO)
   AVER(refIO != NULL);
 
   ref = *refIO;
+
   EVENT4(TraceFix, ss, refIO, ref, ss->rank);
   if(SegOfAddr(&seg, ss->space, ref)) {
     EVENT1(TraceFixSeg, seg);
-    if(TraceSetInter(seg->white, ss->traces) != TraceSetEMPTY) {
+    if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
       EVENT0(TraceFixWhite);
-      pool = seg->pool;
+      pool = SegPool(seg);
       return PoolFix(pool, ss, seg, refIO);
     }
-
-    ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
+  ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
   }
 
   return ResOK;

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.24) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -131,6 +131,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define AccessSetEMPTY  ((AccessSet)0) /* design.mps.type.access-set */
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
+#define AccessMAX	((Size)2)
 #define RingNONE        ((Ring)0)       /* design.mps.ring */
 #define TraceIdNONE     ((TraceId)-1)   /* design.mps.tracer */
 #define RefSetEMPTY     BS_EMPTY(RefSet)
@@ -153,8 +154,8 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
                          AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
                          AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
                          AttrGC | AttrINCR_RB | AttrINCR_WB)
-#define SegPrefHigh     ((SegPrefKind) 0)
-#define SegPrefLow      ((SegPrefKind) 1)
+#define SegPrefHigh     ((SegPrefKind)0)
+#define SegPrefLow      ((SegPrefKind)1)
 #define SegPrefRefSet	((SegPrefKind)2)
 
 

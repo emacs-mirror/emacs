@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.29) $
+ * $HopeName: MMsrc!pool.c(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.29) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.30) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -268,7 +268,7 @@ Res PoolCondemn(Pool pool, Trace trace, Seg seg, Action action)
   AVERT(Seg, seg);
   AVERT(Action, action);
   AVER(pool->space == trace->space);
-  AVER(seg->pool == pool);
+  AVER(SegPool(seg) == pool);
   return (*pool->class->condemn)(pool, trace, seg, action);
 }
 
@@ -278,7 +278,7 @@ void PoolGrey(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
   AVER(pool->space == trace->space);
-  AVER(seg->pool == pool);
+  AVER(SegPool(seg) == pool);
   (*pool->class->grey)(pool, trace, seg);
 }
 
@@ -290,20 +290,20 @@ Res PoolScan(ScanState ss, Pool pool, Seg seg)
   AVER(ss->space == pool->space);
 
   /* The segment must belong to the pool. */
-  AVER(pool == seg->pool);
+  AVER(pool == SegPool(seg));
 
   /* Should only scan for a rank for which there are references */
   /* in the segment.  (not true) */
   /* We actually want to check that the rank we are scanning at */
   /* (ss->rank) is at least as big as all the ranks in */
-  /* the segment (seg->rankSet).  It is tricky to check that, */
+  /* the segment (SegRankSet(seg)).  It is tricky to check that, */
   /* so we only check that either ss->rank is in the segment's */
   /* ranks, or that ss->rank is exact. */
   /* See impl.c.trace.scan.conservative */
-  AVER(ss->rank == RankEXACT || RankSetIsMember(seg->rankSet, ss->rank));
+  AVER(ss->rank == RankEXACT || RankSetIsMember(SegRankSet(seg), ss->rank));
 
   /* Should only scan segments which contain grey objects. */
-  AVER(TraceSetInter(seg->grey, ss->traces) != TraceSetEMPTY);
+  AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
 
   return (*pool->class->scan)(ss, pool, seg);
 }
@@ -314,11 +314,11 @@ Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   AVERT(Pool, pool);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
-  AVER(pool == seg->pool);
+  AVER(pool == SegPool(seg));
   AVER(refIO != NULL);
 
   /* Should only be fixing references to white segments. */
-  AVER(TraceSetInter(seg->white, ss->traces) != TraceSetEMPTY);
+  AVER(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
 
   return PoolFix(pool, ss, seg, refIO);
 }
@@ -329,13 +329,13 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
   AVER(pool->space == trace->space);
-  AVER(seg->pool == pool);
+  AVER(SegPool(seg) == pool);
 
   /* There shouldn't be any grey things left for this trace. */
-  AVER(!TraceSetIsMember(seg->grey, trace->ti));
+  AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
   /* Should only be reclaiming segments which are still white. */
-  AVER(TraceSetIsMember(seg->white, trace->ti));
+  AVER(TraceSetIsMember(SegWhite(seg), trace->ti));
 
   (*pool->class->reclaim)(pool, trace, seg);
 }
@@ -431,7 +431,7 @@ Res PoolSegAlloc(Seg *segReturn, SegPref pref, Pool pool, Size size)
   res = SegAlloc(&seg, pref, space, size, pool);
   if(res != ResOK) return res;
 
-  RingAppend(&pool->segRing, &seg->poolRing);
+  RingAppend(&pool->segRing, SegPoolRing(seg));
 
   *segReturn = seg;
   return ResOK;
@@ -450,13 +450,13 @@ void PoolSegFree(Pool pool, Seg seg)
 
   AVERT(Pool, pool);
   AVERT(Seg, seg);
-  AVER(seg->pool == pool);
+  AVER(SegPool(seg) == pool);
 
   space = PoolSpace(pool);
 
   ShieldFlush(space); /* See impl.c.shield.shield.flush */
 
-  RingRemove(&seg->poolRing);
+  RingRemove(SegPoolRing(seg));
 
   SegFree(space, seg);
 }
@@ -470,7 +470,7 @@ Bool PoolOfAddr(Pool *poolReturn, Space space, Addr addr)
   /* Cannot AVERT space here, because PoolOfAddr is called under SpaceCheck */
 
   if(SegOfAddr(&seg, space, addr)) {
-    *poolReturn = seg->pool;
+    *poolReturn = SegPool(seg);
     return TRUE;
   }
 
@@ -702,8 +702,8 @@ void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
   /* with the mutator colour.  For the moment we assume */
   /* a read-barrier collector. */
 
-  if(!TraceSetIsMember(seg->white, trace->ti)) {
-    seg->grey = TraceSetAdd(seg->grey, trace->ti);
+  if(!TraceSetIsMember(SegWhite(seg), trace->ti)) {
+    SegGrey(seg) = TraceSetAdd(SegGrey(seg), trace->ti);
     ShieldRaise(trace->space, seg, AccessREAD);
   }
 }

@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.9) $
+ * $HopeName: MMsrc!config.h(trunk.10) $
  */
 
 #ifndef config_h
@@ -111,7 +111,9 @@
 
 /* Shield Configuration -- see impl.c.shield */
 
-#define SHIELD_CACHE_SIZE ((Size)2)
+#define SHIELD_CACHE_SIZE       ((Size)2)
+#define SHIELD_DEPTH_WIDTH	((Size)4)
+#define SHIELD_DEPTH		((Count)1<<SHIELD_DEPTH_WIDTH)
 
 
 /* VM Configuration -- see impl.c.vm* */
