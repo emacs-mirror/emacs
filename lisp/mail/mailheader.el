@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1996 by Free Software Foundation, Inc.
 
-;; Author: Erik Naggum <erik@arcana.naggum.no>
+;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: tools, mail, news
 
 ;; This file is part of GNU Emacs.
