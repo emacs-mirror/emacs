@@ -828,7 +828,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 		  (require 'shell) (shell-mode)
 		  (set-process-sentinel proc 'shell-command-sentinel)
 		  ))
-	    (shell-command-on-region (point) (point) command nil)
+	    (shell-command-on-region (point) (point) command output-buffer)
 	    ))))))
 
 ;; We have a sentinel to prevent insertion of a termination message
