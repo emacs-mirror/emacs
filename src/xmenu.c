@@ -1545,7 +1545,6 @@ update_frame_menubar (f)
 
   /* Force the pane widget to resize itself with the right values.  */
   EmacsFrameSetCharSize (x->edit_widget, columns, rows);
-
   UNBLOCK_INPUT;
 }
 
@@ -1789,8 +1788,8 @@ set_frame_menubar (f, first_time, deep_p)
     f->output_data.x->menubar_height = menubar_size;
   }
   
+  x_set_menu_resources_from_menu_face (f, f->output_data.x->menubar_widget);
   free_menubar_widget_value_tree (first_wv);
-
   update_frame_menubar (f);
 
   UNBLOCK_INPUT;
@@ -2135,6 +2134,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
+  x_set_menu_resources_from_menu_face (f, menu);
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
