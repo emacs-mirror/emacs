@@ -311,11 +311,14 @@ matches both @samp{]} and @samp{-}.
 To include @samp{^} in a character alternative, put it anywhere but at
 the beginning.
 
-The beginning and end of a range of multibyte characters must be in the
-same character set (@pxref{Character Sets}).  Thus, @samp{[\x8e0-\x97c]}
-is invalid because character 0x8e0 (@samp{a} with grave accent) is in
-the Emacs character set for Latin-1 but the character 0x97c (@samp{u}
-with diaeresis) is in the Emacs character set for Latin-2.
+The beginning and end of a range of multibyte characters must be in
+the same character set (@pxref{Character Sets}).  Thus,
+@code{"[\x8e0-\x97c]"} is invalid because character 0x8e0 (@samp{a}
+with grave accent) is in the Emacs character set for Latin-1 but the
+character 0x97c (@samp{u} with diaeresis) is in the Emacs character
+set for Latin-2.  (We use Lisp string syntax to write that example,
+and a few others in the next few paragraphs, in order to include hex
+escape sequences in them.)
 
 If a range starts with a unibyte character @var{c} and ends with a
 multibyte character @var{c2}, the range is divided into two parts: one
@@ -324,10 +327,10 @@ is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
 belongs.
  
 You cannot always match all non-@sc{ascii} characters with the regular
-expression @samp{[\200-\377]}.  This works when searching a unibyte
+expression @code{"[\200-\377]"}.  This works when searching a unibyte
 buffer or string (@pxref{Text Representations}), but not in a multibyte
 buffer or string, because many non-@sc{ascii} characters have codes
-above octal 0377.  However, the regular expression @samp{[^\000-\177]}
+above octal 0377.  However, the regular expression @code{"[^\000-\177]"}
 does match all non-@sc{ascii} characters (see below regarding @samp{^}),
 in both multibyte and unibyte representations, because only the
 @sc{ascii} characters are excluded.
@@ -361,7 +364,7 @@ match anything.  Thus, @samp{^foo} matches a @samp{foo} that occurs at
 the beginning of a line.
 
 When matching a string instead of a buffer, @samp{^} matches at the
-beginning of the string or after a newline character @samp{\n}.
+beginning of the string or after a newline character.
 
 For historical compatibility reasons, @samp{^} can be used only at the
 beginning of the regular expression, or after @samp{\(} or @samp{\|}.
@@ -373,7 +376,7 @@ is similar to @samp{^} but matches only at the end of a line.  Thus,
 @samp{x+$} matches a string of one @samp{x} or more at the end of a line.
 
 When matching a string instead of a buffer, @samp{$} matches at the end
-of the string or before a newline character @samp{\n}.
+of the string or before a newline character.
 
 For historical compatibility reasons, @samp{$} can be used only at the
 end of the regular expression, or before @samp{\)} or @samp{\|}.
