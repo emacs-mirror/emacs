@@ -1956,10 +1956,17 @@ Transposing beyond buffer boundaries is an error.")
 void
 syms_of_editfns ()
 {
-  staticpro (&Vuser_name);
-  staticpro (&Vuser_full_name);
-  staticpro (&Vuser_real_name);
-  staticpro (&Vsystem_name);
+  DEFVAR_LISP ("system-name", &Vsystem_name,
+	       "The name of the machine Emacs is running on.");
+  
+  DEFVAR_LISP ("user-full-name", &Vuser_full_name,
+	       "The full name of the user logged in.");
+
+  DEFVAR_LISP ("user-name", &Vuser_name,
+	       "The user's name, taken from environment variables if possible.");
+
+  DEFVAR_LISP ("user-real-name", &Vuser_real_name,
+	       "The user's name, based upon the real uid only.");
 
   defsubr (&Schar_equal);
   defsubr (&Sgoto_char);
