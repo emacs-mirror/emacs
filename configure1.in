@@ -876,7 +876,7 @@ case "${canonical}" in
   mips-siemens-sysv* )
     machine=mips-siemens opsys=usg5-4
     NON_GNU_CC=/usr/ccs/bin/cc
-    NON_GNU_CPP="/usr/ccs/bin/cc -E"
+    NON_GNU_CPP=/usr/ccs/lib/cpp
   ;;
 
   ## Silicon Graphics machines
