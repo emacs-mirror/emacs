@@ -1,0 +1,46 @@
+EBNF (Extended Backus Normal Form) description of the format of the tags
+file created by etags.c and interpreted by etags.el
+Francesco Potorti` <pot@gnu.org> 2002
+================================================================
+
+FF ::= #x0c				   /* form feed */
+
+LF ::= #x0a				   /* line feed */
+
+PATTERM ::= #x80			   /* pattern terminator */
+
+NAMTERM ::= #x01			   /* name terminator */
+
+regchar ::= [^#x0a#x0c#x80]		   /* regular character */
+
+regstring ::= { regchar }		   /* regular string */
+
+unsint ::= [0-9] { [0-9] }		   /* non-negative integer */
+
+
+
+tagfile ::= { tagsection }		   /* a tags file */
+
+tagsection ::= FF LF ( includesec | regularsec ) LF
+
+includesec ::= filename ",include" [ LF fileprop ]
+
+regularsec ::= filename "," [ unsint ] [ LF fileprop ] { LF tag }
+
+filename ::= regchar regstring		   /* a file name */
+
+fileprop ::= PATTERM "(" regstring ")"
+
+tag ::= directtag | patterntag
+
+directtag ::= PATTERM realposition
+
+patterntag ::= pattern PATTERM [ tagname NAMTERM ] position
+
+pattern ::= regstring			   /* a tag pattern */
+
+tagname ::= regchar regstring		   /* a tag name */
+
+position ::= realposition | ","
+
+realposition ::= "," unsint | unsint "," | unsint "," unsint
