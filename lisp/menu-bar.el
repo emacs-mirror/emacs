@@ -281,34 +281,39 @@ and selects that window."
 ;;;	       mode-name
 ;;;	       (or (buffer-file-name) ""))))))
 
-(defvar menu-bar-mode nil)
-
 (defun menu-bar-mode (flag)
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is negative,
 turn off menu bars; otherwise, turn on menu bars."
-  (interactive "P")
-  (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
-			  (or (not (numberp flag)) (>= flag 0))))
-  (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
-    (if (consp parameter)
-	(setcdr parameter (if menu-bar-mode 1 0))
-      (setq default-frame-alist
-	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		  default-frame-alist))))
-  (let ((frames (frame-list)))
-    (while frames
-      ;; Turn menu bar on or off in existing frames.
-      ;; (Except for minibuffer-only frames.)
-      (or (eq 'only (cdr (assq 'minibuffer (frame-parameters (car frames)))))
-	  (modify-frame-parameters
-	   (car frames)
-	   (list (if menu-bar-mode
-		     '(menu-bar-lines . 1)
-		   '(menu-bar-lines . 0)))))
-      (setq frames (cdr frames)))))
+ (interactive "P")
+ (if flag (setq flag (prefix-numeric-value flag)))
+
+ ;; Obtain the current setting by looking at default-frame-alist.
+ (let ((menu-bar-mode
+	(not (zerop (let ((assq (assq 'menu-bar-lines default-frame-alist)))
+		      (if assq (cdr assq) 0))))))
+
+   ;; Tweedle it according to the argument.
+   (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
+			 (or (not (numberp flag)) (>= flag 0))))
+
+   ;; Apply it to default-frame-alist.
+   (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
+     (if (consp parameter)
+	 (setcdr parameter (if menu-bar-mode 1 0))
+       (setq default-frame-alist
+	     (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		   default-frame-alist))))
+
+   ;; Apply it to existing frames.
+   (let ((frames (frame-list)))
+     (while frames
+       (modify-frame-parameters (car frames)
+				(list (cons 'menu-bar-lines
+					    (if menu-bar-mode 1 0))))
+       (setq frames (cdr frames))))))
 
 ;; Make frames created from now on have a menu bar.
 (if window-system
