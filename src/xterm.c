@@ -4128,6 +4128,17 @@ x_term_init (display_name)
   extern int old_fcntl_owner;
 #endif /* ! defined (F_SETOWN) */
   
+  {
+    fprintf (stderr, "\
+Hey!  The Emacs 19 sources currently contain incomplete changes
+for scrollbars, and don't run properly under X!
+
+It is supposed to work under termcap, though.
+
+-JimB");
+  }
+
+
   x_focus_frame = x_highlight_frame = 0;
 
   x_current_display = XOpenDisplay (display_name);
