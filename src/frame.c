@@ -1963,26 +1963,6 @@ the rightmost or bottommost possible position (that stays within the screen).")
 }
 
 
-/* Put minibuf on currently selected frame's minibuffer.
-   We do this whenever the user starts a new minibuffer
-   or when a minibuffer exits.  */
-
-choose_minibuf_frame ()
-{
-  if (selected_frame != 0
-      && !EQ (minibuf_window, selected_frame->minibuffer_window))
-    {
-      /* I don't think that any frames may validly have a null minibuffer
-	 window anymore.  */
-      if (NILP (selected_frame->minibuffer_window))
-	abort ();
-
-      Fset_window_buffer (selected_frame->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer);
-      minibuf_window = selected_frame->minibuffer_window;
-    }
-}
-
 syms_of_frame ()
 {
   syms_of_frame_1 ();
@@ -2387,6 +2367,15 @@ DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
      Lisp_Object frame, alist;
 {
   Lisp_Object tail, elt, prop, val;
+  FRAME_PTR f;
+
+  if (NILP (frame))
+    f = selected_frame;
+  else
+    {
+      CHECK_LIVE_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
 
 #ifdef MSDOS
   if (FRAME_X_P (frame))
@@ -2433,7 +2422,7 @@ DEFUN ("frame-list", Fframe_list, Sframe_list, 0, 0, 0,
 {
   return Fcons (Fselected_frame (), Qnil);
 }
-
+
 syms_of_frame ()
 {
   syms_of_frame_1 ();
