@@ -570,15 +570,15 @@ found."
 			       (if (apropos-macrop symbol)
 				   "Macro"
 				 "Function"))
-			     do-keys)
+			     t)
 	  (if (get symbol 'custom-type)
 	      (apropos-print-doc 'customize-variable-other-window 2
-				 "User Option" do-keys)
+				 "User Option" t)
 	    (apropos-print-doc 'describe-variable 2
-			       "Variable" do-keys))
-	  (apropos-print-doc 'customize-group-other-window 6 "Group" do-keys)
-	  (apropos-print-doc 'customize-face-other-window 5 "Face" do-keys)
-	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" do-keys)
+			       "Variable" t))
+	  (apropos-print-doc 'customize-group-other-window 6 "Group" t)
+	  (apropos-print-doc 'customize-face-other-window 5 "Face" t)
+	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" t)
 	  (apropos-print-doc 'apropos-describe-plist 3
 			     "Plist" nil)))))
   (prog1 apropos-accumulator
