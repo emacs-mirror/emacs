@@ -12165,13 +12165,14 @@ With ARG, turn tracing on if and only if ARG is positive.")
 }
 
 
-DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, 1, "",
-   "Print STRING to stderr.")
-   (string)
-     Lisp_Object string;
+DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
+   "Like `format', but print result to stderr.")
+   (nargs, args)
+     int nargs;
+     Lisp_Object *args;
 {
-  CHECK_STRING (string, 0);
-  fprintf (stderr, "%s", XSTRING (string)->data);
+  Lisp_Object s = Fformat (nargs, args);
+  fprintf (stderr, "%s", XSTRING (s)->data);
   return Qnil;
 }
 	
