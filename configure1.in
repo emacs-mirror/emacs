@@ -676,13 +676,13 @@ case "${canonical}" in
 
   ## HP 9000 series 700 and 800, running HP/UX
   hppa*-hp-hpux7* )
-    machine=hp9000s800 opsys=hpux
+    machine=hp800 opsys=hpux
   ;;
   hppa*-hp-hpux8* )
-    machine=hp9000s800 opsys=hpux8
+    machine=hp800 opsys=hpux8
   ;;
   hppa*-hp-hpux9* )
-    machine=hp9000s800 opsys=hpux9
+    machine=hp800 opsys=hpux9
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
@@ -691,10 +691,10 @@ case "${canonical}" in
     case "`uname -r`" in
       ## Someone's system reports A.B8.05 for this.
       ## I wonder what other possibilities there are.
-      *.B8.* ) machine=hp9000s800 opsys=hpux8 ;;
-      *.08.* ) machine=hp9000s800 opsys=hpux8 ;;
-      *.09.* ) machine=hp9000s800 opsys=hpux9 ;;
-      *) machine=hp9000s800 opsys=hpux ;;
+      *.B8.* ) machine=hp800 opsys=hpux8 ;;
+      *.08.* ) machine=hp800 opsys=hpux8 ;;
+      *.09.* ) machine=hp800 opsys=hpux9 ;;
+      *) machine=hp800 opsys=hpux ;;
     esac
   ;;
 
