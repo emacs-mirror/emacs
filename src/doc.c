@@ -648,10 +648,12 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
 	  Lisp_Object firstkey;
+	  int start_idx;
 
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
 	  start = strp;
+	  start_idx = start - XSTRING (string)->data;
 
 	  while ((strp - (unsigned char *) XSTRING (string)->data
 		  < STRING_BYTES (XSTRING (string)))
@@ -664,7 +666,12 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  /* Save STRP in IDX.  */
 	  idx = strp - (unsigned char *) XSTRING (string)->data;
 	  tem = Fintern (make_string (start, length_byte), Qnil);
+
+	  /* Note the Fwhere_is_internal can GC, so we have to take
+	     relocation of string contents into account.  */
 	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil);
+	  strp = XSTRING (string)->data + idx;
+	  start = XSTRING (string)->data + start_idx;
 
 	  /* Disregard menu bar bindings; it is positively annoying to
 	     mention them when there's no menu bar, and it isn't terribly
@@ -701,10 +708,12 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<'))
 	{
 	  struct buffer *oldbuf;
+	  int start_idx;
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
 	  start = strp;
+	  start_idx = start - XSTRING (string)->data;
 
 	  while ((strp - (unsigned char *) XSTRING (string)->data
 		  < XSTRING (string)->size)
@@ -726,7 +735,12 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	    {
 	      tem = Fsymbol_value (name);
 	      if (! NILP (tem))
-		tem = get_keymap_1 (tem, 0, 1);
+		{
+		  tem = get_keymap_1 (tem, 0, 1);
+		  /* Note that get_keymap_1 can GC.  */
+		  strp = XSTRING (string)->data + idx;
+		  start = XSTRING (string)->data + start_idx;
+		}
 	    }
 
 	  /* Now switch to a temp buffer.  */
