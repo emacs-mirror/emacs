@@ -93,7 +93,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    The alternative is that a lock file named
    /usr/spool/mail/$USER.lock.  */
 
-/* #define MAIL_USE_FLOCK */
+#define MAIL_USE_FLOCK
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify

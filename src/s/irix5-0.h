@@ -102,3 +102,11 @@ char *_getpty();
 #ifdef __GNUC__
 #define LD_SWITCH_SYSTEM -G 0
 #endif
+
+/* define MAIL_USE_FLOCK if the mailer uses flock
+   to interlock access to /usr/spool/mail/$USER.
+   The alternative is that a lock file named
+   /usr/spool/mail/$USER.lock.  */
+
+#define MAIL_USE_FLOCK
+
