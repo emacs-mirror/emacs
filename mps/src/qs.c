@@ -1,8 +1,8 @@
 /*  impl.c.qs:                QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.11) $
+ *  $HopeName: MMsrc!qs.c(trunk.12) $
  *
- *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
+ *  Copyright (C) 1995,1996, 1998 Harlequin Group, all rights reserved
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other
@@ -24,6 +24,7 @@
 
 #include "testlib.h"
 #include "mps.h"
+#include "mpsavm.h"
 #include "mpscamc.h"
 #include "mpscmv.h"
 #ifdef MPS_OS_SU
@@ -33,6 +34,9 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+
+#define testArenaSIZE   ((size_t)16<<20)
 
 
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
@@ -62,7 +66,7 @@ typedef struct QSCellStruct {
 } QSCellStruct;
 
 
-static mps_space_t space;
+static mps_arena_t arena;
 static mps_fmt_t format;
 static mps_pool_t pool;     /* automatic pool */
 static mps_ap_t ap;         /* AP for above */
@@ -186,6 +190,7 @@ static void print(QSCell a, FILE *stream)
   fprintf(stream, ")\n");
 }
 
+
 /* swaps reg[0] with reg[1], destroys reg[2] */
 static void swap(void)
 {
@@ -253,6 +258,7 @@ static void part(mps_word_t p)
     reg[2]=(mps_word_t)((QSCell)reg[2])->tail;
   }
 }
+
 
 /* applies the quicksort algorithm to sort reg[0] */
 static void qs(void)
@@ -362,18 +368,18 @@ static void *go(void *p, size_t s)
   testlib_unused(p);
   testlib_unused(s);
 
-  die(mps_pool_create(&mpool, space, mps_class_mv(), 
+  die(mps_pool_create(&mpool, arena, mps_class_mv(), 
                       (size_t)65536, sizeof(QSCellStruct) * 1000,
                       (size_t)65536),
       "MVCreate");
-  die(mps_fmt_create_A(&format, space, &fmt_A_s), "FormatCreate");
-  die(mps_pool_create(&pool, space, mps_class_amc(), format),
+  die(mps_fmt_create_A(&format, arena, &fmt_A_s), "FormatCreate");
+  die(mps_pool_create(&pool, arena, mps_class_amc(), format),
       "AMCCreate");
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
-  die(mps_root_create_table(&regroot, space, MPS_RANK_AMBIG, 0,
+  die(mps_root_create_table(&regroot, arena, MPS_RANK_AMBIG, 0,
       (mps_addr_t *)reg, NREGS),
       "RootCreateTable");
-  die(mps_root_create_table(&actroot, space, MPS_RANK_AMBIG, 0,
+  die(mps_root_create_table(&actroot, arena, MPS_RANK_AMBIG, 0,
       (mps_addr_t *)&activationStack, sizeof(QSCell)/sizeof(mps_addr_t)),
       "RootCreateTable");
 
@@ -537,9 +543,10 @@ static void copy(mps_addr_t object, mps_addr_t to)
 int main(void)
 {
   void *r;
-  die(mps_space_create(&space), "SpaceCreate");
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+      "mps_arena_create");
   mps_tramp(&r, &go, NULL, 0);
-  mps_space_destroy(space);
+  mps_arena_destroy(arena);
 
   return 0;
 }
