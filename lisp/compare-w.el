@@ -1,6 +1,6 @@
 ;;; compare-w.el --- compare text between windows for Emacs.
 
-;; Copyright (C) 1986, 1989, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1989, 1993, 1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -98,7 +98,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 	       (goto-char p2)
 	       (setq result2 (funcall skip-func opoint2))
 	       (setq p2a (point))
-	       (if (or (stringp skip-whitespace)
+	       (if (or (stringp compare-windows-whitespace)
 		       (and result1 result2 (eq result1 result2)))
 		   (setq p1 p1a
 			 p2 p2a)))))
