@@ -126,10 +126,7 @@ The function is called with one parameter, which is the generated part.")
 		warn t))
 	(setq raw (cdr (assq 'raw tag))
 	      point (point)
-	      contents (if raw
-			   (mm-with-unibyte-current-buffer
-			     (mml-read-part (eq 'mml (car tag))))
-			 (mml-read-part (eq 'mml (car tag))))
+	      contents (mml-read-part (eq 'mml (car tag)))
 	      charsets (if raw nil 
 			 (mm-find-mime-charset-region point (point))))
 	(when (and (not raw) (memq nil charsets))
@@ -352,8 +349,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		  coded (buffer-string))))
 	(mml-insert-mime-headers cont type charset encoding)
 	(insert "\n")
-	(mm-with-unibyte-current-buffer
-	  (insert coded))))
+	(insert coded)))
      ((eq (car cont) 'external)
       (insert "Content-Type: message/external-body")
       (let ((parameters (mml-parameter-string
@@ -852,7 +848,12 @@ If RAW, don't highlight the article."
 	(replace-match "\n"))
     (mml-to-mime)
     (if raw
-	(mm-disable-multibyte)
+	(when (fboundp 'set-buffer-multibyte)
+	  (let ((s (buffer-string)))
+	    ;; Insert the content into unibyte buffer.
+	    (erase-buffer)
+	    (mm-disable-multibyte)
+	    (insert s)))
       (let ((gnus-newsgroup-charset (car message-posting-charset)))
 	(run-hooks 'gnus-article-decode-hook)
 	(let ((gnus-newsgroup-name "dummy"))

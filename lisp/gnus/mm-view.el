@@ -260,11 +260,11 @@
 		(error nil))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
-(defun mm-display-patch-inline (handle)
+(defun mm-display-inline-fontify (handle mode)
   (let (text)
     (with-temp-buffer
       (mm-insert-part handle)
-      (diff-mode)
+      (funcall mode)
       (font-lock-fontify-buffer)
       (when (fboundp 'extent-list)
 	(map-extents (lambda (ext ignored)
@@ -273,6 +273,12 @@
 		     nil nil nil nil nil 'text-prop))
       (setq text (buffer-string)))
     (mm-insert-inline handle text)))
+
+(defun mm-display-patch-inline (handle)
+  (mm-display-inline-fontify handle 'diff-mode))
+
+(defun mm-display-elisp-inline (handle)
+  (mm-display-inline-fontify handle 'emacs-lisp-mode))
 
 (provide 'mm-view)
 
