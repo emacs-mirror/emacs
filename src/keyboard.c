@@ -1263,15 +1263,16 @@ static void
 safe_run_hooks (hook)
      Lisp_Object hook;
 {
+  Lisp_Object value;
   int count = specpdl_ptr - specpdl;
   specbind (Qinhibit_quit, Qt);
 
   /* We read and set the variable with functions,
      in case it's buffer-local.  */
-  Vcommand_hook_internal = Fsymbol_value (hook);
+  value = Vcommand_hook_internal = Fsymbol_value (hook);
   Fset (hook, Qnil);
   call1 (Vrun_hooks, Qcommand_hook_internal);
-  Fset (hook, Vcommand_hook_internal);
+  Fset (hook, value);
 
   unbind_to (count, Qnil);
 }
@@ -2186,7 +2187,9 @@ kbd_buffer_get_event ()
 	    obj = make_lispy_switch_frame (frame);
 	  internal_last_event_frame = frame;
 	}
+#endif
 
+#if defined(MULTI_FRAME) || defined(HAVE_MOUSE)
       /* If we didn't decide to make a switch-frame event, go ahead and 
 	 return a mouse-motion event.  */
       if (NILP (obj))
@@ -2820,7 +2823,7 @@ make_lispy_event (event)
     }
 }
 
-#ifdef MULTI_FRAME
+#if defined(MULTI_FRAME) || defined(HAVE_MOUSE)
 
 static Lisp_Object
 make_lispy_movement (frame, bar_window, part, x, y, time)
@@ -2830,6 +2833,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
      Lisp_Object x, y;
      unsigned long time;
 {
+#ifdef MULTI_FRAME
   /* Is it a scroll bar movement?  */
   if (frame && ! NILP (bar_window))
     {
@@ -2848,13 +2852,18 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 
   /* Or is it an ordinary mouse movement?  */
   else
+#endif /* MULTI_FRAME */
     {
       int area;
       Lisp_Object window;
       Lisp_Object posn;
       int column, row;
 
+#ifdef MULTI_FRAME
       if (frame)
+#else
+      if (1)
+#endif
 	{
 	  /* It's in a frame; which window on that frame?  */
 	  pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row, 0, 1);
@@ -2880,11 +2889,13 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	    XSET (posn, Lisp_Int,
 		  buffer_posn_from_coords (XWINDOW (window), column, row));
 	}
+#ifdef MULTI_FRAME
       else if (frame != 0)
 	{
 	  XSET (window, Lisp_Frame, frame);
 	  posn = Qnil;
 	}
+#endif
       else
 	{
 	  window = Qnil;
@@ -2903,7 +2914,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
     }
 }
 
-#endif /* MULTI_FRAME */
+#endif /* neither MULTI_FRAME nor HAVE_MOUSE */
 
 /* Construct a switch frame event.  */
 static Lisp_Object
