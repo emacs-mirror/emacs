@@ -332,7 +332,10 @@ mark ring."
 No arg means whole window full, or number of lines set by \\[View-scroll-lines-forward-set-scroll-size].
 Arg is number of lines to scroll."
   (interactive "P")
-  (if (pos-visible-in-window-p (point-max))
+  (if (and (pos-visible-in-window-p (point-max))
+	   ;; Allow scrolling backward at the end of the buffer.
+	   (or (null lines)
+	       (> lines 0)))
       (view-exit)
     (setq lines
 	  (if lines (prefix-numeric-value lines)
