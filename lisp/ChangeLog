@@ -1,3 +1,42 @@
+2004-11-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (calc-init-extensions):  Remove old code.
+
+	* calc/calc-ext.el (math-expr-data, math-mt-many, math-mt-func)
+	(calc-z-prefix-buf, calc-z-prefix-msgs):  New variables. 
+	(calc-z-prefix-help, calc-user-function-list):  Use declared
+	variables calc-z-prefix-buf, calc-z-prefix-msgs. 
+	(math-map-tree, math-map-tree-rec):  Use declared variables
+	math-mt-many, math-mt-func.  
+	(math-read-expression, math-read-string):  Use declared variable
+	math-expr-data. 
+	
+	* calc/calc-ext.el (math-normalize-nonstandard):  Use declared
+	variable math-normalize-a. 
+
+	* calc/calc.el (math-normalize-a):  New variable.
+	(math-normalize):  Use declared variable math-normalize-a.
+
+	* calc/calc-poly.el (math-expand-form):  Use declared variable
+	math-mt-many. 
+
+	* calc/calc-rewr.el (math-rewrite, math-rewrite-phase):  Use
+	declared variable math-mt-many. 
+	(math-rewrite):  Use declared variable math-mt-func.
+
+	* calc/calc-vec.el (math-read-brackets, math-read-vector)
+	(math-read-matrix):  Use declared variable math-expr-data. 
+
+	* calc/calc-lang.el (math-parse-fortran-vector)
+	(math-parse-fortran-vector-end, math-parse-tex-sum)
+	(math-parse-eqn-matrix, math-parse-eqn-prime)
+	(math-read-math-subscr):  Use declared variable math-expr-data. 
+
+	* calc/calc-aent.el (math-read-exprs, math-read-expr-list)
+	(math-read-expr-level, math-read-token, calc-check-user-syntax)
+	(calc-match-user-syntax, math-read-if, math-factor-after)
+	(math-read-factor):  Use declared variable math-expr-data.  
+
 2004-11-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (diary-from-outlook)
