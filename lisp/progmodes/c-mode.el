@@ -122,7 +122,7 @@ This is in addition to c-continued-statement-offset.")
   "*Non-nil means automatically newline before and after braces,
 and after colons and semicolons, inserted in C code.
 If you do not want a leading newline before braces then use:
-  (define-key c-mode-map "{" 'electric-c-semi)")
+  (define-key c-mode-map \"{\" 'electric-c-semi)")
 
 (defconst c-tab-always-indent t
   "*Non-nil means TAB in C mode should always reindent the current line,
@@ -544,7 +544,7 @@ Returns nil if line starts inside a string, t if in a comment."
 			  ;; Recognize the DEFUN macro in Emacs.
 			  (if (save-excursion
 				;; Move down to the (putative) argnames line.
-				(while (not (looking-at " *("))
+				(while (not (looking-at " *[({}]"))
 				  (forward-line 1))
 				;; Go back to the DEFUN, if it is one.
 				(condition-case nil
