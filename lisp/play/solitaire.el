@@ -333,20 +333,18 @@ list containing three numbers: starting field, skipped field (from
 which a stone will be taken away) and target."
 
   (save-excursion
-    (let (move)
-      (fset 'move movesymbol)
-      (if (memq movesymbol solitaire-valid-directions)
-	  (let ((start (point))
-		(skip (progn (move) (point)))
-		(target (progn (move) (point))))
-	    (if (= skip target)
-		"Off Board!"
-	      (if (or (/= ?o (char-after start))
-		      (/= ?o (char-after skip))
-		      (/= ?. (char-after target)))
-		  "Wrong move!"
-		(list start skip target))))
-	"Not a valid direction"))))
+    (if (memq movesymbol solitaire-valid-directions)
+	(let ((start (point))
+	      (skip (progn (funcall movesymbol) (point)))
+	      (target (progn (funcall movesymbol) (point))))
+	  (if (= skip target)
+	      "Off Board!"
+	    (if (or (/= ?o (char-after start))
+		    (/= ?o (char-after skip))
+		    (/= ?. (char-after target)))
+		"Wrong move!"
+	      (list start skip target))))
+      "Not a valid direction")))
 
 (defun solitaire-move (dir)
   "Pseudo-prefix command to move a stone in Solitaire."
