@@ -5685,14 +5685,17 @@ update_frame_line (f, vpos)
 		   X/Y Position -> Buffer Position
  ***********************************************************************/
 
-/* Return the character position of the character at window relative
-   pixel position (*X, *Y).  *X and *Y are adjusted to character
-   boundaries.  */
+/* Determine what's under window-relative pixel position (*X, *Y).
+   Return in *OBJECT the object (string or buffer) that's there.
+   Return in *POS the position in that object. Adjust *X and *Y
+   to character boundaries.  */
 
-int
-buffer_posn_from_coords (w, x, y)
+void
+buffer_posn_from_coords (w, x, y, object, pos)
      struct window *w;
      int *x, *y;
+     Lisp_Object *object;
+     struct display_pos *pos;
 {
   struct it it;
   struct buffer *old_current_buffer = current_buffer;
@@ -5712,7 +5715,9 @@ buffer_posn_from_coords (w, x, y)
   *x = it.current_x - it.first_visible_x + left_area_width;
   *y = it.current_y;
   current_buffer = old_current_buffer;
-  return IT_CHARPOS (it);
+
+  *object = STRINGP (it.string) ? it.string : w->buffer;
+  *pos = it.current;
 }
 
 
