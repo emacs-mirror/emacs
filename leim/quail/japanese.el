@@ -485,9 +485,24 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
  nil t t nil nil nil nil nil
  'quail-japanese-hankaku-update-translation)
 
-;; Use the same map as that of `japanese'.
-(setcar (cdr (cdr quail-current-package))
-	(nth 2 (assoc "japanese" quail-package-alist)))
+(dolist (elt quail-japanese-transliteration-rules)
+  (quail-defrule (car elt)
+		 (let ((trans (nth 1 elt)))
+		   (when (or (stringp trans) (vectorp trans))
+		     (let ((s (japanese-hankaku (if (stringp trans)
+						    trans
+						  (aref trans 0)))))
+		       ;; If the result of the conversion is a string
+		       ;; containing more than one character, make the
+		       ;; result a vector, so that quail-defrule
+		       ;; recognizes the whole string is the
+		       ;; translation, instead of interpreting
+		       ;; individual characters as alternative
+		       ;; translations.
+		       (if (and (stringp s) (> (length s) 1))
+			   (setq trans (vector s))
+			 (setq trans s))))
+		   trans)))
 
 (quail-define-package
  "japanese-hiragana" "Japanese" "あ"
@@ -520,9 +535,9 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
 (dolist (elt quail-japanese-transliteration-rules)
   (quail-defrule (car elt)
 		 (let ((trans (nth 1 elt)))
-		   (cond((stringp trans)
-			 (japanese-katakana trans))
-			((vectorp trans)
-			 (vector (japanese-katakana (aref trans 0))))
-			(t trans)))))
+		   (cond ((stringp trans)
+			  (japanese-katakana trans))
+			 ((vectorp trans)
+			  (vector (japanese-katakana (aref trans 0))))
+			 (t trans)))))
 
