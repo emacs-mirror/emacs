@@ -183,25 +183,33 @@ Otherwise, that behavior is invoked via a prefix argument."
        (point)))))
 
 ;;;###autoload
-(defun locate (arg search-string &optional filter)
+(defun locate (search-string &optional filter)
   "Run the program `locate', putting results in `*Locate*' buffer.
 With prefix arg, prompt for the locate command to run."
   (interactive
       (list
-       current-prefix-arg
-       (if (or (and current-prefix-arg       (not locate-prompt-for-command))
+       (if (or (and current-prefix-arg
+		    (not locate-prompt-for-command))
 	       (and (not current-prefix-arg) locate-prompt-for-command))
-	   (read-from-minibuffer "Run locate command: "
-				 nil nil nil 'locate-history-list)
-	 (read-from-minibuffer "Locate: " (locate-word-at-point) nil
-			       nil 'locate-history-list)
+	   (let ((locate-cmd (funcall locate-make-command-line "")))
+	     (read-from-minibuffer
+	      "Run locate (like this): "
+	      (cons
+	       (concat (car locate-cmd) "  "
+		       (mapconcat 'identity (cdr locate-cmd) " "))
+		       (+ 2 (length (car locate-cmd))))
+	      nil nil 'locate-history-list))
+	 (read-from-minibuffer
+	  "Locate: "
+	  (locate-word-at-point)
+	  nil nil 'locate-history-list)
 	 )))
   (let* ((locate-cmd-list (funcall locate-make-command-line search-string))
 	 (locate-cmd (car locate-cmd-list))
 	 (locate-cmd-args (cdr locate-cmd-list))
 	 (run-locate-command
-	  (or (and arg (not locate-prompt-for-command))
-	      (and (not arg) locate-prompt-for-command)))
+	  (or (and current-prefix-arg (not locate-prompt-for-command))
+	      (and (not current-prefix-arg) locate-prompt-for-command)))
 	 )
 
     ;; Find the Locate buffer
@@ -219,7 +227,7 @@ With prefix arg, prompt for the locate command to run."
       (and filter
 	  (locate-filter-output filter))
 
-      (locate-do-setup)
+      (locate-do-setup search-string)
       )
     (and (not (string-equal (buffer-name) locate-buffer-name))
 	(switch-to-buffer-other-window locate-buffer-name))
@@ -240,7 +248,7 @@ shown; this is often useful to constrain a big search."
 			       nil 'locate-history-list)
 	 (read-from-minibuffer "Filter: " nil nil
 			       nil 'locate-grep-history-list)))
-  (locate nil search-string filter))
+  (locate search-string filter))
 
 (defun locate-filter-output (filter)
   "Filter output from the locate command."
@@ -339,26 +347,26 @@ shown; this is often useful to constrain a big search."
   (setq revert-buffer-function 'locate-update)
   (run-hooks 'locate-mode-hook))
 
-(defun locate-do-setup ()
-  (let ((search-string (car locate-history-list)))
-    (goto-char (point-min))
-    (save-excursion
+(defun locate-do-setup (search-string)
+  (goto-char (point-min))
+  (save-excursion
 
-      ;; Nothing returned from locate command?
-      (and (eobp)
-	   (progn
-	     (kill-buffer locate-buffer-name)
-	     (if locate-current-filter
-		 (error "Locate: no match for %s in database using filter %s"
-			search-string locate-current-filter)
-	       (error "Locate: no match for %s in database" search-string))))
+    ;; Nothing returned from locate command?
+    (and (eobp)
+	 (progn
+	   (kill-buffer locate-buffer-name)
+	   (if locate-current-filter
+	       (error "Locate: no match for %s in database using filter %s"
+		      search-string locate-current-filter)
+	     (error "Locate: no match for %s in database" search-string))))
 
-      (locate-insert-header search-string)
+    (locate-insert-header search-string)
 
-      (while (not (eobp))
-	(insert-char ?\  locate-filename-indentation t)
-	(locate-set-properties)
-	(forward-line 1)))))
+    (while (not (eobp))
+      (insert-char ?\  locate-filename-indentation t)
+      (locate-set-properties)
+      (forward-line 1)))
+  (goto-char (point-min)))
 
 (defun locate-set-properties ()
   (save-excursion
@@ -430,7 +438,7 @@ Database is updated using the shell command in `locate-update-command'."
   (let ((str (car locate-history-list)))
     (cond ((yes-or-no-p "Update locate database (may take a few seconds)? ")
 	   (shell-command locate-update-command)
-	   (locate nil str)))))
+	   (locate str)))))
 
 ;;; Modified three functions from `dired.el':
 ;;;   dired-find-directory,
@@ -496,7 +504,7 @@ Database is updated using the shell command in `locate-update-command'."
 			   (list (concat "--database="
 					 (expand-file-name database))
 				 string))))))
-    (locate nil search-string)))
+    (locate search-string)))
 
 (provide 'locate)
 
