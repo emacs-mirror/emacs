@@ -2000,36 +2000,38 @@ This variable is non-@code{nil} when Emacs is running in batch mode.
 
 @node Session Management
 @section Session Management
-@cindex session management
-@cindex X session management protocol
+@cindex session manager
 
-X has defined the X Session Management Protocol to handle start and
-restart of applications.  There is one session manager who has the
-responsibility to keep track of the applications that are running 
-when the window system shuts down, so the session manager later can 
-restart them.
+Emacs supports the X Session Management Protocol for suspension and
+restart of applications.  In the X Window System, a program called the
+@dfn{session manager} has the responsibility to keep track of the
+applications that are running.  During shutdown, the session manager
+asks applications to save their state, and delays the actual shutdown
+until they respond.  An application can also cancel the shutdown.
 
-Before the session manager shuts down the window system it informs
-applications that they should save their state.  When the applications
-are restarted, the applications will restore their state.
+When the session manager restarts a suspended session, it directs
+these applications to individually reload their saved state.  It does
+this by specifying a special command-line argument that says what
+saved session to restore.  For Emacs, this argument is @samp{--smid
+@var{session}}.
 
 @defvar emacs-save-session-functions
 @tindex emacs-save-session-functions
 Emacs supports saving state by using a hook called
 @code{emacs-save-session-functions}.  Each function in this hook is
 called when the session manager tells Emacs that the window system is
-shutting down.  The functions are called with the current buffer set to
-a temporary buffer.  Functions can use @code{insert} to add lisp code
-to this buffer.  The buffer will then be saved in a lisp file that is
-loaded when Emacs is restarted.
+shutting down.  The functions are called with the current buffer set
+to a temporary buffer.  Each functions can use @code{insert} to add
+Lisp code to this buffer.  At the end, Emacs saves the buffer in a
+file that Emacs will load in order to restart the saved session.
 
-If a function in @code{emacs-save-session-functions} returns non-nil
-Emacs will inform the session manager that the window system shutdown
-shall be cancelled.
+If a function in @code{emacs-save-session-functions} returns
+non-@code{nil}, Emacs tells the session manager to cancel the
+shutdown.
 @end defvar
 
-Here is an example that just inserts some text into *scratch* when Emacs
-is restarted by the session manager.
+Here is an example that just inserts some text into *scratch* when
+Emacs is restarted by the session manager.
 
 @example
 @group
@@ -2038,11 +2040,9 @@ is restarted by the session manager.
 
 @group
 (defun save-yourself-test ()
-  (progn
-    (insert
-     "(save-excursion
-        (switch-to-buffer \"*scratch*\")
-        (insert \"I am restored\"))")
-   @result{} nil))
+  (insert "(save-excursion
+  (switch-to-buffer \"*scratch*\")
+  (insert \"I am restored\"))")
+  nil)
 @end group
 @end example
