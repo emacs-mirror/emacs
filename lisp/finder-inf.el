@@ -886,165 +886,414 @@
     ("calcsel2.el"
         "selection functions for Calc"
         nil)
-    ("em-alias.el"
-        "creation and management of command aliases"
+    ("binhex.el"
+        "elisp native binhex decode"
+        (binhex news))
+    ("earcon.el"
+        "sound effects for messages"
         nil)
-    ("em-banner.el"
-        "sample module that displays a login banner"
+    ("flow-fill.el"
+        "interprete RFC2646 \"flowed\" text"
+        (mail))
+    ("format-spec.el"
+        "functions for formatting arbitrary formatting strings"
+        (tools))
+    ("gnus-agent.el"
+        "unplugged support for Gnus"
         nil)
-    ("em-basic.el"
-        "basic shell builtin commands"
-        nil)
-    ("em-cmpl.el"
-        "completion using the TAB key"
-        nil)
-    ("em-dirs.el"
-        "directory navigation commands"
-        nil)
-    ("em-glob.el"
-        "extended file name globbing"
-        nil)
-    ("em-hist.el"
-        "history list management"
-        nil)
-    ("em-ls.el"
-        "implementation of ls in Lisp"
-        nil)
-    ("em-pred.el"
-        "argument predicates and modifiers (ala zsh)"
-        nil)
-    ("em-prompt.el"
-        "command prompts"
-        nil)
-    ("em-rebind.el"
-        "rebind keys when point is at current input"
-        nil)
-    ("em-script.el"
-        "Eshell script files"
-        nil)
-    ("em-smart.el"
-        "smart display of output"
-        nil)
-    ("em-term.el"
-        "running visual commands"
-        nil)
-    ("em-unix.el"
-        "UNIX command aliases"
-        nil)
-    ("em-xtra.el"
-        "extra alias functions"
-        nil)
-    ("esh-arg.el"
-        "argument processing"
-        nil)
-    ("esh-cmd.el"
-        "command invocation"
-        nil)
-    ("esh-ext.el"
-        "commands external to Eshell"
-        nil)
-    ("esh-groups.el"
-        nil
-        nil)
-    ("esh-io.el"
-        "I/O management"
-        nil)
-    ("esh-maint.el"
-        "init code for building eshell"
-        nil)
-    ("esh-mode.el"
-        "user interface"
-        nil)
-    ("esh-module.el"
-        "Eshell modules"
-        (processes))
-    ("esh-opt.el"
-        "command options processing"
-        nil)
-    ("esh-proc.el"
-        "process management"
-        nil)
-    ("esh-test.el"
-        "Eshell test suite"
-        nil)
-    ("esh-util.el"
-        "general utilities"
-        nil)
-    ("esh-var.el"
-        "handling of variables"
-        nil)
-    ("eshell.el"
-        "the Emacs command shell"
-        (processes))
-    ("ange-ftp.el"
-        "transparent FTP support for GNU Emacs"
-        (comm))
-    ("browse-url.el"
-        "pass a URL to a WWW browser"
-        (hypertext  hypermedia  mouse))
-    ("eudc-bob.el"
-        "Binary Objects Support for EUDC"
-        (comm))
-    ("eudc-export.el"
-        "functions to export EUDC query results"
-        (comm))
-    ("eudc-hotlist.el"
-        "hotlist management for EUDC"
-        (comm))
-    ("eudc-vars.el"
-        "Emacs Unified Directory Client"
-        (comm))
-    ("eudc.el"
-        "Emacs Unified Directory Client"
-        (comm))
-    ("eudcb-bbdb.el"
-        "Emacs Unified Directory Client - BBDB Backend"
-        (comm))
-    ("eudcb-ldap.el"
-        "Emacs Unified Directory Client - LDAP Backend"
-        (comm))
-    ("eudcb-ph.el"
-        "Emacs Unified Directory Client - CCSO PH/QI Backend"
-        (comm))
-    ("goto-addr.el"
-        "click to browse URL or to send to e-mail address"
-        (mh-e  www  mouse  mail))
-    ("ldap.el"
-        "client interface to LDAP for Emacs"
-        (comm))
-    ("net-utils.el"
-        "network functions"
-        (network comm))
-    ("netrc.el"
-        ".netrc parsing functionality"
+    ("gnus-art.el"
+        "article mode commands for Gnus"
         (news))
-    ("quickurl.el"
-        "insert an URL based on text at point in buffer"
-        (hypermedia))
-    ("rcompile.el"
-        "run a compilation on a remote machine"
-        (tools  processes))
-    ("rlogin.el"
-        "remote login interface"
-        (unix  comm))
-    ("snmp-mode.el"
-        "SNMP & SNMPv2 MIB major mode"
-        (data))
-    ("telnet.el"
-        "run a telnet session from within an Emacs buffer"
-        (unix  comm))
-    ("tramp-vc.el"
-        "Version control integration for TRAMP.el"
-        (comm  processes))
-    ("tramp.el"
-        "Transparent Remote Access, Multiple Protocol"
-        (comm  processes))
-    ("webjump.el"
-        "programmable Web hotlist"
-        (comm www))
-    ("zone-mode.el"
-        "major mode for editing DNS zone files"
-        (dns  languages))
+    ("gnus-async.el"
+        "asynchronous support for Gnus"
+        (news))
+    ("gnus-audio.el"
+        "sound effects for Gnus"
+        (news  mail  multimedia))
+    ("gnus-bcklg.el"
+        "backlog functions for Gnus"
+        (news))
+    ("gnus-cache.el"
+        "cache interface for Gnus"
+        (news))
+    ("gnus-cite.el"
+        "parse citations in articles for Gnus"
+        nil)
+    ("gnus-cus.el"
+        "customization commands for Gnus"
+        (news))
+    ("gnus-demon.el"
+        "daemonic Gnus behaviour"
+        (news))
+    ("gnus-draft.el"
+        "draft message support for Gnus"
+        (news))
+    ("gnus-dup.el"
+        "suppression of duplicate articles in Gnus"
+        (news))
+    ("gnus-eform.el"
+        "a mode for editing forms for Gnus"
+        (news))
+    ("gnus-ems.el"
+        "functions for making Gnus work under different Emacsen"
+        (news))
+    ("gnus-gl.el"
+        "an interface to GroupLens for Gnus"
+        (news  score))
+    ("gnus-group.el"
+        "group mode commands for Gnus"
+        (news))
+    ("gnus-int.el"
+        "backend interface functions for Gnus"
+        (news))
+    ("gnus-kill.el"
+        "kill commands for Gnus"
+        (news))
+    ("gnus-logic.el"
+        "advanced scoring code for Gnus"
+        (news))
+    ("gnus-mh.el"
+        "mh-e interface for Gnus"
+        (news))
+    ("gnus-ml.el"
+        "mailing list minor mode for Gnus"
+        (news))
+    ("gnus-mlspl.el"
+        "a group params-based mail splitting mechanism"
+        (news  mail))
+    ("gnus-move.el"
+        "commands for moving Gnus from one server to another"
+        (news))
+    ("gnus-msg.el"
+        "mail and post interface for Gnus"
+        (news))
+    ("gnus-mule.el"
+        "provide backward compatibility function to GNUS"
+        (news  i18n))
+    ("gnus-nocem.el"
+        "NoCeM pseudo-cancellation treatment"
+        (news))
+    ("gnus-range.el"
+        "range and sequence functions for Gnus"
+        (news))
+    ("gnus-salt.el"
+        "alternate summary mode interfaces for Gnus"
+        (news))
+    ("gnus-score.el"
+        "scoring code for Gnus"
+        (news))
+    ("gnus-setup.el"
+        "initialization & setup for Gnus 5"
+        (news))
+    ("gnus-soup.el"
+        "SOUP packet writing support for Gnus"
+        (news  mail))
+    ("gnus-spec.el"
+        "format spec functions for Gnus"
+        (news))
+    ("gnus-srvr.el"
+        "virtual server support for Gnus"
+        (news))
+    ("gnus-start.el"
+        "startup functions for Gnus"
+        (news))
+    ("gnus-sum.el"
+        "summary mode commands for Gnus"
+        (news))
+    ("gnus-topic.el"
+        "a folding minor mode for Gnus group buffers"
+        (news))
+    ("gnus-undo.el"
+        "minor mode for undoing in Gnus"
+        (news))
+    ("gnus-util.el"
+        "utility functions for Gnus"
+        (news))
+    ("gnus-uu.el"
+        "extract (uu)encoded files in Gnus"
+        nil)
+    ("gnus-vm.el"
+        "vm interface for Gnus"
+        (news  mail))
+    ("gnus-win.el"
+        "window configuration functions for Gnus"
+        (news))
+    ("gnus.el"
+        "a newsreader for GNU Emacs"
+        (news  mail))
+    ("ietf-drums.el"
+        "functions for parsing RFC822bis headers"
+        nil)
+    ("imap.el"
+        "imap library"
+        (mail))
+    ("mail-parse.el"
+        "interface functions for parsing mail"
+        nil)
+    ("mail-prsvr.el"
+        "interface variables for parsing mail"
+        nil)
+    ("mail-source.el"
+        "functions for fetching mail"
+        (news  mail))
+    ("mailcap.el"
+        "MIME media types configuration"
+        (news  mail  multimedia))
+    ("message.el"
+        "composing mail and news messages"
+        (mail  news))
+    ("messcompat.el"
+        "making message mode compatible with mail mode"
+        (mail  news))
+    ("mm-bodies.el"
+        "functions for decoding MIME things"
+        nil)
+    ("mm-decode.el"
+        "functions for decoding MIME things"
+        nil)
+    ("mm-encode.el"
+        "functions for encoding MIME things "
+        nil)
+    ("mm-partial.el"
+        "showing message/partial"
+        (message partial))
+    ("mm-util.el"
+        "Utility functions for Mule and low level things"
+        nil)
+    ("mm-uu.el"
+        "return uu stuff as mm handles"
+        (postscript uudecode binhex shar forward news))
+    ("mm-view.el"
+        "functions for viewing MIME objects"
+        nil)
+    ("mml.el"
+        "package for parsing and validating MML documents"
+        nil)
+    ("nnagent.el"
+        "offline backend for Gnus"
+        (news  mail))
+    ("nnbabyl.el"
+        "rmail mbox access for Gnus"
+        (news  mail))
+    ("nndir.el"
+        "single directory newsgroup access for Gnus"
+        (news))
+    ("nndoc.el"
+        "single file access for Gnus"
+        (news))
+    ("nndraft.el"
+        "draft article access for Gnus"
+        (news))
+    ("nneething.el"
+        "arbitrary file access for Gnus"
+        (news  mail))
+    ("nnfolder.el"
+        "mail folder access for Gnus"
+        (mail))
+    ("nngateway.el"
+        "posting news via mail gateways"
+        (news  mail))
+    ("nnheader.el"
+        "header access macros for Gnus and its backends"
+        (news))
+    ("nnimap.el"
+        "imap backend for Gnus"
+        (mail))
+    ("nnkiboze.el"
+        "select virtual news access for Gnus"
+        (news))
+    ("nnlistserv.el"
+        "retrieving articles via web mailing list archives"
+        (news  mail))
+    ("nnmail.el"
+        "mail support functions for the Gnus mail backends"
+        (news  mail))
+    ("nnmbox.el"
+        "mail mbox access for Gnus"
+        (news  mail))
+    ("nnmh.el"
+        "mhspool access for Gnus"
+        (news  mail))
+    ("nnml.el"
+        "mail spool access for Gnus"
+        (news  mail))
+    ("nnoo.el"
+        "OO Gnus Backends"
+        (news))
+    ("nnslashdot.el"
+        "interfacing with Slashdot"
+        (news))
+    ("nnsoup.el"
+        "SOUP access for Gnus"
+        (news  mail))
+    ("nnspool.el"
+        "spool access for GNU Emacs"
+        (news))
+    ("nntp.el"
+        "nntp access for Gnus"
+        (news))
+    ("nnultimate.el"
+        "interfacing with the Ultimate Bulletin Board system"
+        (news))
+    ("nnvirtual.el"
+        "virtual newsgroups access for Gnus"
+        (news))
+    ("nnwarchive.el"
+        "interfacing with web archives"
+        (news egroups mail-archive))
+    ("nnweb.el"
+        "retrieving articles via web search engines"
+        (news))
+    ("pop3.el"
+        "Post Office Protocol (RFC 1460) interface"
+        (mail))
+    ("qp.el"
+        "Quoted-Printable functions"
+        (mail  extensions))
+    ("rfc1843.el"
+        "HZ (rfc1843) decoding"
+        (news hz hz+ mail i18n))
+    ("rfc2045.el"
+        "functions for decoding rfc2045 headers"
+        nil)
+    ("rfc2047.el"
+        "functions for encoding and decoding rfc2047 messages"
+        nil)
+    ("rfc2104.el"
+        "RFC2104 Hashed Message Authentication Codes"
+        (mail))
+    ("rfc2231.el"
+        "functions for decoding rfc2231 headers"
+        nil)
+    ("score-mode.el"
+        "mode for editing Gnus score files"
+        (news  mail))
+    ("smiley-ems.el"
+        "displaying smiley faces"
+        (news mail multimedia))
+    ("starttls.el"
+        "STARTTLS functions"
+        (tls  ssl  openssl  mail  news))
+    ("utf7.el"
+        "UTF-7 encoding/decoding for Emacs"
+        (mail))
+    ("uudecode.el"
+        "elisp native uudecode"
+        (uudecode news))
+    ("webmail.el"
+        "interface of web mail"
+        (hotmail netaddress my-deja netscape))
+    ("blessmail.el"
+        "decide whether movemail needs special privileges"
+        (internal))
+    ("emacsbug.el"
+        "command to report Emacs bugs to appropriate mailing list"
+        (maint mail))
+    ("feedmail.el"
+        "assist other email packages to massage outgoing messages"
+        (email  queue  mail  sendmail  message  spray  smtp  draft))
+    ("footnote.el"
+        "footnote support for message mode"
+        (mail  news))
+    ("mail-extr.el"
+        "extract full name and address from RFC 822 mail header"
+        (mail))
+    ("mail-hist.el"
+        "headers and message body history for outgoing mail"
+        (mail  history))
+    ("mail-utils.el"
+        "utility functions used both by rmail and rnews"
+        (mail  news))
+    ("mailabbrev.el"
+        "abbrev-expansion of mail aliases"
+        (mail))
+    ("mailalias.el"
+        "expand and complete mailing address aliases"
+        (mail))
+    ("mailheader.el"
+        "mail header parsing, merging, formatting"
+        (tools  mail  news))
+    ("mailpost.el"
+        "RMAIL coupler to /usr/uci/post mailer"
+        (mail))
+    ("metamail.el"
+        "Metamail interface for GNU Emacs"
+        (mail  news  mime  multimedia))
+    ("mh-comp.el"
+        "mh-e functions for composing messages"
+        (mail))
+    ("mh-e.el"
+        "GNU Emacs interface to the MH mail system"
+        (mail))
+    ("mh-funcs.el"
+        "mh-e functions not everyone will use right away"
+        nil)
+    ("mh-mime.el"
+        "mh-e support for composing MIME messages"
+        nil)
+    ("mh-pick.el"
+        "make a search pattern and search for a message in mh-e"
+        nil)
+    ("mh-seq.el"
+        "mh-e sequences support"
+        nil)
+    ("mh-utils.el"
+        "mh-e code needed for both sending and reading"
+        nil)
+    ("mspools.el"
+        "show mail spools waiting to be read"
+        (mail))
+    ("reporter.el"
+        "customizable bug reporting of lisp programs"
+        (maint mail tools))
+    ("rfc2368.el"
+        "support for rfc2368"
+        (mail))
+    ("rfc822.el"
+        "hairy rfc822 parser for mail and news and suchlike"
+        (mail))
+    ("rmail.el"
+        "main code of \"RMAIL\" mail reader for Emacs"
+        (mail))
+    ("rmailedit.el"
+        "\"RMAIL edit mode\"  Edit the current message"
+        (mail))
+    ("rmailkwd.el"
+        "part of the \"RMAIL\" mail reader for Emacs"
+        (mail))
+    ("rmailmsc.el"
+        "miscellaneous support functions for the RMAIL mail reader"
+        (mail))
+    ("rmailout.el"
+        "\"RMAIL\" mail reader for Emacs: output message to a file"
+        (mail))
+    ("rmailsort.el"
+        "Rmail: sort messages"
+        (mail))
+    ("rmailsum.el"
+        "make summary buffers for the mail reader"
+        (mail))
+    ("sendmail.el"
+        "mail sending commands for Emacs."
+        (mail))
+    ("smtpmail.el"
+        "simple SMTP protocol (RFC 821) for sending mail"
+        (mail))
+    ("supercite.el"
+        "minor mode for citing mail and news replies"
+        (mail  news))
+    ("uce.el"
+        "facilitate reply to unsolicited commercial email"
+        (uce  unsolicited commercial email))
+    ("undigest.el"
+        "digest-cracking support for the RMAIL mail reader"
+        (mail))
+    ("unrmail.el"
+        "convert Rmail files to mailbox files"
+        (mail))
+    ("vms-pmail.el"
+        "use Emacs as the editor within VMS mail"
+        (vms))
     ("appt.el"
         "appointment notification functions"
         (calendar))
@@ -1345,303 +1594,96 @@
     ("ws-mode.el"
         "WordStar emulation mode for GNU Emacs"
         (emulations))
-    ("binhex.el"
-        "elisp native binhex decode"
-        (binhex news))
-    ("earcon.el"
-        "sound effects for messages"
+    ("em-alias.el"
+        "creation and management of command aliases"
         nil)
-    ("flow-fill.el"
-        "interprete RFC2646 \"flowed\" text"
-        (mail))
-    ("format-spec.el"
-        "functions for formatting arbitrary formatting strings"
-        (tools))
-    ("gnus-agent.el"
-        "unplugged support for Gnus"
+    ("em-banner.el"
+        "sample module that displays a login banner"
         nil)
-    ("gnus-art.el"
-        "article mode commands for Gnus"
-        (news))
-    ("gnus-async.el"
-        "asynchronous support for Gnus"
-        (news))
-    ("gnus-audio.el"
-        "sound effects for Gnus"
-        (news  mail  multimedia))
-    ("gnus-bcklg.el"
-        "backlog functions for Gnus"
-        (news))
-    ("gnus-cache.el"
-        "cache interface for Gnus"
-        (news))
-    ("gnus-cite.el"
-        "parse citations in articles for Gnus"
+    ("em-basic.el"
+        "basic shell builtin commands"
         nil)
-    ("gnus-cus.el"
-        "customization commands for Gnus"
-        (news))
-    ("gnus-demon.el"
-        "daemonic Gnus behaviour"
-        (news))
-    ("gnus-draft.el"
-        "draft message support for Gnus"
-        (news))
-    ("gnus-dup.el"
-        "suppression of duplicate articles in Gnus"
-        (news))
-    ("gnus-eform.el"
-        "a mode for editing forms for Gnus"
-        (news))
-    ("gnus-ems.el"
-        "functions for making Gnus work under different Emacsen"
-        (news))
-    ("gnus-gl.el"
-        "an interface to GroupLens for Gnus"
-        (news  score))
-    ("gnus-group.el"
-        "group mode commands for Gnus"
-        (news))
-    ("gnus-int.el"
-        "backend interface functions for Gnus"
-        (news))
-    ("gnus-kill.el"
-        "kill commands for Gnus"
-        (news))
-    ("gnus-logic.el"
-        "advanced scoring code for Gnus"
-        (news))
-    ("gnus-mh.el"
-        "mh-e interface for Gnus"
-        (news))
-    ("gnus-ml.el"
-        "mailing list minor mode for Gnus"
-        (news))
-    ("gnus-mlspl.el"
-        "a group params-based mail splitting mechanism"
-        (news  mail))
-    ("gnus-move.el"
-        "commands for moving Gnus from one server to another"
-        (news))
-    ("gnus-msg.el"
-        "mail and post interface for Gnus"
-        (news))
-    ("gnus-mule.el"
-        "provide backward compatibility function to GNUS"
-        (news  i18n))
-    ("gnus-nocem.el"
-        "NoCeM pseudo-cancellation treatment"
-        (news))
-    ("gnus-range.el"
-        "range and sequence functions for Gnus"
-        (news))
-    ("gnus-salt.el"
-        "alternate summary mode interfaces for Gnus"
-        (news))
-    ("gnus-score.el"
-        "scoring code for Gnus"
-        (news))
-    ("gnus-setup.el"
-        "initialization & setup for Gnus 5"
-        (news))
-    ("gnus-soup.el"
-        "SOUP packet writing support for Gnus"
-        (news  mail))
-    ("gnus-spec.el"
-        "format spec functions for Gnus"
-        (news))
-    ("gnus-srvr.el"
-        "virtual server support for Gnus"
-        (news))
-    ("gnus-start.el"
-        "startup functions for Gnus"
-        (news))
-    ("gnus-sum.el"
-        "summary mode commands for Gnus"
-        (news))
-    ("gnus-topic.el"
-        "a folding minor mode for Gnus group buffers"
-        (news))
-    ("gnus-undo.el"
-        "minor mode for undoing in Gnus"
-        (news))
-    ("gnus-util.el"
-        "utility functions for Gnus"
-        (news))
-    ("gnus-uu.el"
-        "extract (uu)encoded files in Gnus"
+    ("em-cmpl.el"
+        "completion using the TAB key"
         nil)
-    ("gnus-vm.el"
-        "vm interface for Gnus"
-        (news  mail))
-    ("gnus-win.el"
-        "window configuration functions for Gnus"
-        (news))
-    ("gnus.el"
-        "a newsreader for GNU Emacs"
-        (news  mail))
-    ("ietf-drums.el"
-        "functions for parsing RFC822bis headers"
+    ("em-dirs.el"
+        "directory navigation commands"
         nil)
-    ("imap.el"
-        "imap library"
-        (mail))
-    ("mail-parse.el"
-        "interface functions for parsing mail"
+    ("em-glob.el"
+        "extended file name globbing"
         nil)
-    ("mail-prsvr.el"
-        "interface variables for parsing mail"
+    ("em-hist.el"
+        "history list management"
         nil)
-    ("mail-source.el"
-        "functions for fetching mail"
-        (news  mail))
-    ("mailcap.el"
-        "MIME media types configuration"
-        (news  mail  multimedia))
-    ("message.el"
-        "composing mail and news messages"
-        (mail  news))
-    ("messcompat.el"
-        "making message mode compatible with mail mode"
-        (mail  news))
-    ("mm-bodies.el"
-        "functions for decoding MIME things"
+    ("em-ls.el"
+        "implementation of ls in Lisp"
         nil)
-    ("mm-decode.el"
-        "functions for decoding MIME things"
+    ("em-pred.el"
+        "argument predicates and modifiers (ala zsh)"
         nil)
-    ("mm-encode.el"
-        "functions for encoding MIME things "
+    ("em-prompt.el"
+        "command prompts"
         nil)
-    ("mm-partial.el"
-        "showing message/partial"
-        (message partial))
-    ("mm-util.el"
-        "Utility functions for Mule and low level things"
+    ("em-rebind.el"
+        "rebind keys when point is at current input"
         nil)
-    ("mm-uu.el"
-        "return uu stuff as mm handles"
-        (postscript uudecode binhex shar forward news))
-    ("mm-view.el"
-        "functions for viewing MIME objects"
+    ("em-script.el"
+        "Eshell script files"
         nil)
-    ("mml.el"
-        "package for parsing and validating MML documents"
+    ("em-smart.el"
+        "smart display of output"
         nil)
-    ("nnagent.el"
-        "offline backend for Gnus"
-        (news  mail))
-    ("nnbabyl.el"
-        "rmail mbox access for Gnus"
-        (news  mail))
-    ("nndir.el"
-        "single directory newsgroup access for Gnus"
-        (news))
-    ("nndoc.el"
-        "single file access for Gnus"
-        (news))
-    ("nndraft.el"
-        "draft article access for Gnus"
-        (news))
-    ("nneething.el"
-        "arbitrary file access for Gnus"
-        (news  mail))
-    ("nnfolder.el"
-        "mail folder access for Gnus"
-        (mail))
-    ("nngateway.el"
-        "posting news via mail gateways"
-        (news  mail))
-    ("nnheader.el"
-        "header access macros for Gnus and its backends"
-        (news))
-    ("nnimap.el"
-        "imap backend for Gnus"
-        (mail))
-    ("nnkiboze.el"
-        "select virtual news access for Gnus"
-        (news))
-    ("nnlistserv.el"
-        "retrieving articles via web mailing list archives"
-        (news  mail))
-    ("nnmail.el"
-        "mail support functions for the Gnus mail backends"
-        (news  mail))
-    ("nnmbox.el"
-        "mail mbox access for Gnus"
-        (news  mail))
-    ("nnmh.el"
-        "mhspool access for Gnus"
-        (news  mail))
-    ("nnml.el"
-        "mail spool access for Gnus"
-        (news  mail))
-    ("nnoo.el"
-        "OO Gnus Backends"
-        (news))
-    ("nnslashdot.el"
-        "interfacing with Slashdot"
-        (news))
-    ("nnsoup.el"
-        "SOUP access for Gnus"
-        (news  mail))
-    ("nnspool.el"
-        "spool access for GNU Emacs"
-        (news))
-    ("nntp.el"
-        "nntp access for Gnus"
-        (news))
-    ("nnultimate.el"
-        "interfacing with the Ultimate Bulletin Board system"
-        (news))
-    ("nnvirtual.el"
-        "virtual newsgroups access for Gnus"
-        (news))
-    ("nnwarchive.el"
-        "interfacing with web archives"
-        (news egroups mail-archive))
-    ("nnweb.el"
-        "retrieving articles via web search engines"
-        (news))
-    ("pop3.el"
-        "Post Office Protocol (RFC 1460) interface"
-        (mail))
-    ("qp.el"
-        "Quoted-Printable functions"
-        (mail  extensions))
-    ("rfc1843.el"
-        "HZ (rfc1843) decoding"
-        (news hz hz+ mail i18n))
-    ("rfc2045.el"
-        "functions for decoding rfc2045 headers"
+    ("em-term.el"
+        "running visual commands"
         nil)
-    ("rfc2047.el"
-        "functions for encoding and decoding rfc2047 messages"
+    ("em-unix.el"
+        "UNIX command aliases"
         nil)
-    ("rfc2104.el"
-        "RFC2104 Hashed Message Authentication Codes"
-        (mail))
-    ("rfc2231.el"
-        "functions for decoding rfc2231 headers"
+    ("em-xtra.el"
+        "extra alias functions"
         nil)
-    ("score-mode.el"
-        "mode for editing Gnus score files"
-        (news  mail))
-    ("smiley-ems.el"
-        "displaying smiley faces"
-        (news mail multimedia))
-    ("starttls.el"
-        "STARTTLS functions"
-        (tls  ssl  openssl  mail  news))
-    ("utf7.el"
-        "UTF-7 encoding/decoding for Emacs"
-        (mail))
-    ("uudecode.el"
-        "elisp native uudecode"
-        (uudecode news))
-    ("webmail.el"
-        "interface of web mail"
-        (hotmail netaddress my-deja netscape))
+    ("esh-arg.el"
+        "argument processing"
+        nil)
+    ("esh-cmd.el"
+        "command invocation"
+        nil)
+    ("esh-ext.el"
+        "commands external to Eshell"
+        nil)
+    ("esh-groups.el"
+        nil
+        nil)
+    ("esh-io.el"
+        "I/O management"
+        nil)
+    ("esh-maint.el"
+        "init code for building eshell"
+        nil)
+    ("esh-mode.el"
+        "user interface"
+        nil)
+    ("esh-module.el"
+        "Eshell modules"
+        (processes))
+    ("esh-opt.el"
+        "command options processing"
+        nil)
+    ("esh-proc.el"
+        "process management"
+        nil)
+    ("esh-test.el"
+        "Eshell test suite"
+        nil)
+    ("esh-util.el"
+        "general utilities"
+        nil)
+    ("esh-var.el"
+        "handling of variables"
+        nil)
+    ("eshell.el"
+        "the Emacs command shell"
+        (processes))
     ("ccl.el"
         "CCL (Code Conversion Language) compiler"
         (ccl  mule  multilingual  character set  coding-system))
@@ -1747,6 +1789,9 @@
     ("ucs-tables.el"
         "translation to, from and via Unicode"
         (i18n))
+    ("utf-16.el"
+        "UTF-16 encoding/decoding"
+        (unicode  utf-16  i18n))
     ("utf-8-subst.el"
         "translation of untranslatable utf-8 to CJK"
         (i18n))
@@ -1849,117 +1894,75 @@
     ("vietnamese.el"
         "support for Vietnamese"
         (multilingual  vietnamese))
-    ("blessmail.el"
-        "decide whether movemail needs special privileges"
-        (internal))
-    ("emacsbug.el"
-        "command to report Emacs bugs to appropriate mailing list"
-        (maint mail))
-    ("feedmail.el"
-        "assist other email packages to massage outgoing messages"
-        (email  queue  mail  sendmail  message  spray  smtp  draft))
-    ("footnote.el"
-        "footnote support for message mode"
-        (mail  news))
-    ("mail-extr.el"
-        "extract full name and address from RFC 822 mail header"
-        (mail))
-    ("mail-hist.el"
-        "headers and message body history for outgoing mail"
-        (mail  history))
-    ("mail-utils.el"
-        "utility functions used both by rmail and rnews"
-        (mail  news))
-    ("mailabbrev.el"
-        "abbrev-expansion of mail aliases"
-        (mail))
-    ("mailalias.el"
-        "expand and complete mailing address aliases"
-        (mail))
-    ("mailheader.el"
-        "mail header parsing, merging, formatting"
-        (tools  mail  news))
-    ("mailpost.el"
-        "RMAIL coupler to /usr/uci/post mailer"
-        (mail))
-    ("metamail.el"
-        "Metamail interface for GNU Emacs"
-        (mail  news  mime  multimedia))
-    ("mh-comp.el"
-        "mh-e functions for composing messages"
-        (mail))
-    ("mh-e.el"
-        "GNU Emacs interface to the MH mail system"
-        (mail))
-    ("mh-funcs.el"
-        "mh-e functions not everyone will use right away"
-        nil)
-    ("mh-mime.el"
-        "mh-e support for composing MIME messages"
-        nil)
-    ("mh-pick.el"
-        "make a search pattern and search for a message in mh-e"
-        nil)
-    ("mh-seq.el"
-        "mh-e sequences support"
-        nil)
-    ("mh-utils.el"
-        "mh-e code needed for both sending and reading"
-        nil)
-    ("mspools.el"
-        "show mail spools waiting to be read"
-        (mail))
-    ("reporter.el"
-        "customizable bug reporting of lisp programs"
-        (maint mail tools))
-    ("rfc2368.el"
-        "support for rfc2368"
-        (mail))
-    ("rfc822.el"
-        "hairy rfc822 parser for mail and news and suchlike"
-        (mail))
-    ("rmail.el"
-        "main code of \"RMAIL\" mail reader for Emacs"
-        (mail))
-    ("rmailedit.el"
-        "\"RMAIL edit mode\"  Edit the current message"
-        (mail))
-    ("rmailkwd.el"
-        "part of the \"RMAIL\" mail reader for Emacs"
-        (mail))
-    ("rmailmsc.el"
-        "miscellaneous support functions for the RMAIL mail reader"
-        (mail))
-    ("rmailout.el"
-        "\"RMAIL\" mail reader for Emacs: output message to a file"
-        (mail))
-    ("rmailsort.el"
-        "Rmail: sort messages"
-        (mail))
-    ("rmailsum.el"
-        "make summary buffers for the mail reader"
-        (mail))
-    ("sendmail.el"
-        "mail sending commands for Emacs."
-        (mail))
-    ("smtpmail.el"
-        "simple SMTP protocol (RFC 821) for sending mail"
-        (mail))
-    ("supercite.el"
-        "minor mode for citing mail and news replies"
-        (mail  news))
-    ("uce.el"
-        "facilitate reply to unsolicited commercial email"
-        (uce  unsolicited commercial email))
-    ("undigest.el"
-        "digest-cracking support for the RMAIL mail reader"
-        (mail))
-    ("unrmail.el"
-        "convert Rmail files to mailbox files"
-        (mail))
-    ("vms-pmail.el"
-        "use Emacs as the editor within VMS mail"
-        (vms))
+    ("ange-ftp.el"
+        "transparent FTP support for GNU Emacs"
+        (comm))
+    ("browse-url.el"
+        "pass a URL to a WWW browser"
+        (hypertext  hypermedia  mouse))
+    ("eudc-bob.el"
+        "Binary Objects Support for EUDC"
+        (comm))
+    ("eudc-export.el"
+        "functions to export EUDC query results"
+        (comm))
+    ("eudc-hotlist.el"
+        "hotlist management for EUDC"
+        (comm))
+    ("eudc-vars.el"
+        "Emacs Unified Directory Client"
+        (comm))
+    ("eudc.el"
+        "Emacs Unified Directory Client"
+        (comm))
+    ("eudcb-bbdb.el"
+        "Emacs Unified Directory Client - BBDB Backend"
+        (comm))
+    ("eudcb-ldap.el"
+        "Emacs Unified Directory Client - LDAP Backend"
+        (comm))
+    ("eudcb-ph.el"
+        "Emacs Unified Directory Client - CCSO PH/QI Backend"
+        (comm))
+    ("goto-addr.el"
+        "click to browse URL or to send to e-mail address"
+        (mh-e  www  mouse  mail))
+    ("ldap.el"
+        "client interface to LDAP for Emacs"
+        (comm))
+    ("net-utils.el"
+        "network functions"
+        (network comm))
+    ("netrc.el"
+        ".netrc parsing functionality"
+        (news))
+    ("quickurl.el"
+        "insert an URL based on text at point in buffer"
+        (hypermedia))
+    ("rcompile.el"
+        "run a compilation on a remote machine"
+        (tools  processes))
+    ("rlogin.el"
+        "remote login interface"
+        (unix  comm))
+    ("snmp-mode.el"
+        "SNMP & SNMPv2 MIB major mode"
+        (data))
+    ("telnet.el"
+        "run a telnet session from within an Emacs buffer"
+        (unix  comm))
+    ("tramp-vc.el"
+        "Version control integration for TRAMP.el"
+        (comm  processes))
+    ("tramp.el"
+        "Transparent Remote Access, Multiple Protocol"
+        (comm  processes))
+    ("webjump.el"
+        "programmable Web hotlist"
+        (comm www))
+    ("zone-mode.el"
+        "major mode for editing DNS zone files"
+        (dns  languages))
     ("5x5.el"
         "simple little puzzle game"
         (games puzzles))
@@ -2326,6 +2329,9 @@
     ("spell.el"
         "spelling correction interface for Emacs"
         (wp  unix))
+    ("table.el"
+        "create and edit WYSIWYG text based embedded tables"
+        (wp  convenience))
     ("tex-mode.el"
         "TeX, LaTeX, and SliTeX mode commands"
         (tex))
