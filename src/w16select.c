@@ -481,9 +481,9 @@ static char system_error_msg[] =
   "(Clipboard interface failure; clipboard data not set.)";
 
 DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_data, 1, 2, 0,
-       "This sets the clipboard data to the given text.")
-    (string, frame)
-    Lisp_Object string, frame;
+       doc: /* This sets the clipboard data to the given text.  */)
+     (string, frame)
+     Lisp_Object string, frame;
 {
   unsigned ok = 1, put_status = 0;
   int nbytes;
@@ -592,7 +592,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 }
 
 DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_data, 0, 1, 0,
-       "This gets the clipboard data in text format.")
+       doc: /* This gets the clipboard data in text format.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -691,14 +691,14 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
 /* Support checking for a clipboard selection. */
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-  0, 1, 0,
-  "Whether there is an owner for the given X Selection.\n\
-The arg should be the name of the selection in question, typically one of\n\
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names, since that's what X expects.)\n\
-For convenience, the symbol nil is the same as `PRIMARY',\n\
-and t is the same as `SECONDARY'.")
-  (selection)
+       0, 1, 0,
+       doc: /* Whether there is an owner for the given X Selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.  */)
+     (selection)
      Lisp_Object selection;
 {
   CHECK_SYMBOL (selection);
@@ -741,18 +741,18 @@ syms_of_win16select ()
   defsubr (&Sx_selection_exists_p);
 
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
-    "Coding system for communicating with other X clients.\n\
-When sending or receiving text via cut_buffer, selection, and clipboard,\n\
-the text is encoded or decoded by this coding system.\n\
-A default value is `iso-latin-1-dos'");
+	       doc: /* Coding system for communicating with other X clients.
+When sending or receiving text via cut_buffer, selection, and clipboard,
+the text is encoded or decoded by this coding system.
+A default value is `iso-latin-1-dos'.  */);
   Vselection_coding_system=intern ("iso-latin-1-dos");
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
-    "Coding system for the next communication with other X clients.\n\
-Usually, `selection-coding-system' is used for communicating with\n\
-other X clients.   But, if this variable is set, it is used for the\n\
-next communication only.   After the communication, this variable is\n\
-set to nil.");
+	       doc: /* Coding system for the next communication with other X clients.
+Usually, `selection-coding-system' is used for communicating with
+other X clients.   But, if this variable is set, it is used for the
+next communication only.   After the communication, this variable is
+set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);

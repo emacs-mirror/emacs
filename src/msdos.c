@@ -189,11 +189,11 @@ mouse_setup_buttons (int n_buttons)
 
 DEFUN ("msdos-set-mouse-buttons", Fmsdos_set_mouse_buttons, Smsdos_set_mouse_buttons,
        1, 1, "NSet number of mouse buttons to: ",
-  "Set the number of mouse buttons to use by Emacs.\n\
-This is useful with mice that report the number of buttons inconsistently,\n\
-e.g., if the number of buttons is reported as 3, but Emacs only sees 2 of\n\
-them.  This happens with wheeled mice on Windows 9X, for example.")
-  (nbuttons)
+       doc: /* Set the number of mouse buttons to use by Emacs.
+This is useful with mice that report the number of buttons inconsistently,
+e.g., if the number of buttons is reported as 3, but Emacs only sees 2 of
+them.  This happens with wheeled mice on Windows 9X, for example.  */)
+     (nbuttons)
      Lisp_Object nbuttons;
 {
   int n;
@@ -2290,7 +2290,7 @@ IT_set_terminal_window (int foo)
    default colors for newly-created frames.  */
 DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
        Smsdos_remember_default_colors, 1, 1, 0,
-  "Remember the screen colors of the current frame.")
+       doc: /* Remember the screen colors of the current frame.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -3124,9 +3124,9 @@ int total_doskeys;		/* Total number of elements stored into recent_doskeys */
 Lisp_Object recent_doskeys; /* A vector, holding the last 100 keystrokes */
 
 DEFUN ("recent-doskeys", Frecent_doskeys, Srecent_doskeys, 0, 0, 0,
-  "Return vector of last 100 keyboard input values seen in dos_rawgetc.\n\
-Each input key receives two values in this vector: first the ASCII code,\n\
-and then the scan code.")
+       doc: /* Return vector of last 100 keyboard input values seen in dos_rawgetc.
+Each input key receives two values in this vector: first the ASCII code,
+and then the scan code.  */)
      ()
 {
   Lisp_Object *keys = XVECTOR (recent_doskeys)->contents;
@@ -4336,9 +4336,9 @@ int _rename(const char *old, const char *new)
 #endif /* __DJGPP__ == 2 && __DJGPP_MINOR__ == 0 */
 
 DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
-  0, 0, 0,
-  "Return non-nil if long file names are supported on MSDOS.")
-  ()
+       0, 0, 0,
+       doc: /* Return non-nil if long file names are supported on MSDOS.  */)
+     ()
 {
   return (_USE_LFN ? Qt : Qnil);
 }
@@ -4369,11 +4369,11 @@ msdos_downcase_filename (p)
 
 DEFUN ("msdos-downcase-filename", Fmsdos_downcase_filename, Smsdos_downcase_filename,
        1, 1, 0,
-  "Convert alphabetic characters in FILENAME to lower case and return that.\n\
-When long filenames are supported, doesn't change FILENAME.\n\
-If FILENAME is not a string, returns nil.\n\
-The argument object is never altered--the value is a copy.")
-  (filename)
+       doc: /* Convert alphabetic characters in FILENAME to lower case and return that.
+When long filenames are supported, doesn't change FILENAME.
+If FILENAME is not a string, returns nil.
+The argument object is never altered--the value is a copy.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object tem;
@@ -5297,13 +5297,13 @@ syms_of_msdos ()
   help_echo_pos = -1;
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
-    "List of directories to search for bitmap files for X.");
+	       doc: /* List of directories to search for bitmap files for X.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
-    "*Non-nil means draw block cursor as wide as the glyph under it.\n\
-For example, if a block cursor is over a tab, it will be drawn as\n\
-wide as that tab on the display.  (No effect on MS-DOS.)");
+	       doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
+For example, if a block cursor is over a tab, it will be drawn as
+wide as that tab on the display.  (No effect on MS-DOS.)  */);
   x_stretch_cursor_p = 0;
 
   /* The following two are from xfns.c:  */
@@ -5315,15 +5315,15 @@ wide as that tab on the display.  (No effect on MS-DOS.)");
   staticpro (&Qreverse);
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
-   "*Glyph to display instead of chars not supported by current codepage.\n\
-\n\
-This variable is used only by MSDOS terminals.");
-    Vdos_unsupported_char_glyph = '\177';
+	       doc: /* *Glyph to display instead of chars not supported by current codepage.
+
+This variable is used only by MSDOS terminals.  */);
+  Vdos_unsupported_char_glyph = '\177';
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
-    "*Non-nil means delete processes immediately when they exit.\n\
-nil means don't delete them until `list-processes' is run.");
+	       doc: /* *Non-nil means delete processes immediately when they exit.
+nil means don't delete them until `list-processes' is run.  */);
   delete_exited_processes = 0;
 #endif
 

@@ -56,13 +56,13 @@ extern Lisp_Object real_this_command;
 Lisp_Object Fexecute_kbd_macro ();
 
 DEFUN ("start-kbd-macro", Fstart_kbd_macro, Sstart_kbd_macro, 1, 1, "P",
-  "Record subsequent keyboard input, defining a keyboard macro.\n\
-The commands are recorded even as they are executed.\n\
-Use \\[end-kbd-macro] to finish recording and make the macro available.\n\
-Use \\[name-last-kbd-macro] to give it a permanent name.\n\
-Non-nil arg (prefix arg) means append to last macro defined;\n\
-this begins by re-executing that macro as if you typed it again.")
-  (append)
+       doc: /* Record subsequent keyboard input, defining a keyboard macro.
+The commands are recorded even as they are executed.
+Use \\[end-kbd-macro] to finish recording and make the macro available.
+Use \\[name-last-kbd-macro] to give it a permanent name.
+Non-nil arg (prefix arg) means append to last macro defined;
+this begins by re-executing that macro as if you typed it again.  */)
+     (append)
      Lisp_Object append;
 {
   if (!NILP (current_kboard->defining_kbd_macro))
@@ -129,16 +129,16 @@ this begins by re-executing that macro as if you typed it again.")
 }
 
 DEFUN ("end-kbd-macro", Fend_kbd_macro, Send_kbd_macro, 0, 1, "p",
-  "Finish defining a keyboard macro.\n\
-The definition was started by \\[start-kbd-macro].\n\
-The macro is now available for use via \\[call-last-kbd-macro],\n\
-or it can be given a name with \\[name-last-kbd-macro] and then invoked\n\
-under that name.\n\
-\n\
-With numeric arg, repeat macro now that many times,\n\
-counting the definition just completed as the first repetition.\n\
-An argument of zero means repeat until error.")
-  (repeat)
+       doc: /* Finish defining a keyboard macro.
+The definition was started by \\[start-kbd-macro].
+The macro is now available for use via \\[call-last-kbd-macro],
+or it can be given a name with \\[name-last-kbd-macro] and then invoked
+under that name.
+
+With numeric arg, repeat macro now that many times,
+counting the definition just completed as the first repetition.
+An argument of zero means repeat until error.  */)
+     (repeat)
      Lisp_Object repeat;
 {
   if (NILP (current_kboard->defining_kbd_macro))
@@ -210,8 +210,8 @@ finalize_kbd_macro_chars ()
 
 DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
        Scancel_kbd_macro_events, 0, 0, 0,
-  "Cancel the events added to a keyboard macro for this command.")
-  ()
+       doc: /* Cancel the events added to a keyboard macro for this command.  */)
+     ()
 {
   current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
   return Qnil;
@@ -219,8 +219,8 @@ DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
 
 DEFUN ("store-kbd-macro-event", Fstore_kbd_macro_event,
        Sstore_kbd_macro_event, 1, 1, 0,
-  "Store EVENT into the keyboard macro being defined.")
-  (event)
+       doc: /* Store EVENT into the keyboard macro being defined.  */)
+     (event)
      Lisp_Object event;
 {
   store_kbd_macro_char (event);
@@ -228,14 +228,14 @@ DEFUN ("store-kbd-macro-event", Fstore_kbd_macro_event,
 }
 
 DEFUN ("call-last-kbd-macro", Fcall_last_kbd_macro, Scall_last_kbd_macro,
-  0, 1, "p",
-  "Call the last keyboard macro that you defined with \\[start-kbd-macro].\n\
-\n\
-A prefix argument serves as a repeat count.  Zero means repeat until error.\n\
-\n\
-To make a macro permanent so you can call it even after\n\
-defining others, use \\[name-last-kbd-macro].")
-  (prefix)
+       0, 1, "p",
+       doc: /* Call the last keyboard macro that you defined with \\[start-kbd-macro].
+
+A prefix argument serves as a repeat count.  Zero means repeat until error.
+
+To make a macro permanent so you can call it even after
+defining others, use \\[name-last-kbd-macro].  */)
+     (prefix)
      Lisp_Object prefix;
 {
   /* Don't interfere with recognition of the previous command
@@ -276,10 +276,10 @@ pop_kbd_macro (info)
 }
 
 DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 2, 0,
-  "Execute MACRO as string of editor command characters.\n\
-If MACRO is a symbol, its function definition is used.\n\
-COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
-  (macro, count)
+       doc: /* Execute MACRO as string of editor command characters.
+If MACRO is a symbol, its function definition is used.
+COUNT is a repeat count, or nil for once, or 0 for infinite loop.  */)
+     (macro, count)
      Lisp_Object macro, count;
 {
   Lisp_Object final;
@@ -354,14 +354,14 @@ syms_of_macros ()
   defsubr (&Sstore_kbd_macro_event);
 
   DEFVAR_KBOARD ("defining-kbd-macro", defining_kbd_macro,
-    "Non-nil while a keyboard macro is being defined.  Don't set this!");
+		 doc: /* Non-nil while a keyboard macro is being defined.  Don't set this!  */);
 
   DEFVAR_LISP ("executing-macro", &Vexecuting_macro,
-    "Currently executing keyboard macro (string or vector); nil if none executing.");
+	       doc: /* Currently executing keyboard macro (string or vector); nil if none executing.  */);
 
   DEFVAR_LISP_NOPRO ("executing-kbd-macro", &Vexecuting_macro,
-    "Currently executing keyboard macro (string or vector); nil if none executing.");
+		     doc: /* Currently executing keyboard macro (string or vector); nil if none executing.  */);
 
   DEFVAR_KBOARD ("last-kbd-macro", Vlast_kbd_macro,
-    "Last kbd macro defined, as a string or vector; nil if none defined.");
+		 doc: /* Last kbd macro defined, as a string or vector; nil if none defined.  */);
 }
