@@ -81,8 +81,9 @@ faster.  On modern machines, it is usually not advisable.
 
   After @file{loadup.el} reads @file{site-load.el}, it finds the
 documentation strings for primitive and preloaded functions (and
-variables) in the file @file{etc/DOC} where they are stored, by calling
-@code{Snarf-documentation} (@pxref{Accessing Documentation}).
+variables) in the file @file{etc/DOC} where they are stored, by
+calling @code{Snarf-documentation} (@pxref{Definition of
+Snarf-documentation,, Accessing Documentation}).
 
 @cindex @file{site-init.el}
   You can specify other Lisp expressions to execute just before dumping
@@ -151,10 +152,10 @@ preload additional libraries or add features to the standard ones.
 @defun purecopy object
 This function makes a copy in pure storage of @var{object}, and returns
 it.  It copies a string by simply making a new string with the same
-characters in pure storage.  It recursively copies the contents of
-vectors and cons cells.  It does not make copies of other objects such
-as symbols, but just returns them unchanged.  It signals an error if
-asked to copy markers.
+characters, but without text properties, in pure storage.  It
+recursively copies the contents of vectors and cons cells.  It does
+not make copies of other objects such as symbols, but just returns
+them unchanged.  It signals an error if asked to copy markers.
 
 This function is a no-op except while Emacs is being built and dumped;
 it is usually called only in the file @file{emacs/lisp/loaddefs.el}, but
@@ -367,7 +368,7 @@ until the subsequent garbage collection, at which time
 @code{garbage-collect} will set the threshold back to 10,000.
 @end defopt
 
-  The value return by @code{garbage-collect} describes the amount of
+  The value returned by @code{garbage-collect} describes the amount of
 memory used by Lisp data, broken down by data type.  By contrast, the
 function @code{memory-limit} provides information on the total amount of
 memory Emacs is currently using.
@@ -595,9 +596,9 @@ protected in the current function.  It is necessary to do this explicitly.
 GC-protected; as long as the object is not recycled, all pointers to
 it remain valid.  So if you are sure that a local variable points to
 an object that will be preserved by some other pointer, that local
-variable does not need a GCPRO.  (Formerly, strings were an exception
-to this rule; in older Emacs versions, every pointer to a string
-needed to be marked by GC.)
+variable does not need a @code{GCPRO}.  (Formerly, strings were an
+exception to this rule; in older Emacs versions, every pointer to a
+string needed to be marked by GC.)
 
   The macro @code{GCPRO1} protects just one local variable.  If you
 want to protect two, use @code{GCPRO2} instead; repeating
@@ -612,7 +613,7 @@ Alas, we can't explain all the tricky details here.
 accept two arguments at the C level: the number of Lisp arguments, and
 a @code{Lisp_Object *} pointer to a C vector containing those Lisp
 arguments.  This C vector may be part of a Lisp vector, but it need
-not be.  The responsibility for using GCPRO to protecting the Lisp
+not be.  The responsibility for using @code{GCPRO} to protect the Lisp
 arguments from GC if necessary rests with the caller in this case,
 since the caller allocated or found the storage for them.
 
@@ -651,6 +652,7 @@ file, add to it a @code{syms_of_@var{filename}} (e.g.,
 of these functions are called, and add a call to
 @code{syms_of_@var{filename}} there.
 
+@anchor{Defining Lisp variables in C}
 @vindex byte-boolean-vars
   The function @code{syms_of_@var{filename}} is also the place to define
 any C variables that are to be visible as Lisp variables.
@@ -761,9 +763,9 @@ knows about it.
 data are stored in a heap and the only access that programs have to it
 is through pointers.  Pointers are thirty-two bits wide in most
 implementations.  Depending on the operating system and type of machine
-for which you compile Emacs, twenty-eight bits are used to address the
-object, and the remaining four bits are used for a GC mark bit and the
-tag that identifies the object's type.
+for which you compile Emacs, twenty-nine bits are used to address the
+object, and the remaining three bits are used for the tag that
+identifies the object's type.
 
   Because Lisp objects are represented as tagged pointers, it is always
 possible to determine the Lisp data type of any object.  The C data type
