@@ -24,7 +24,7 @@
 
 ;;; Emacs lisp functions to convert Texinfo files to Info files.
 
-(defvar texinfmt-version "2.31 of 10 November 1993")
+(defvar texinfmt-version "2.32 of 19 November 1993")
 
 ;;; Variable definitions
 
@@ -2825,7 +2825,9 @@ The command  `@value{foo}'  expands to the value."
                               (point))))
      ((eq (get (car (read-from-string arg)) 'texinfo-whether-setp)
           nil)
-      (error  "@ifset flag `%s' is not defined by @set or @clear." arg)))))
+      ;; In this case flag is neither set nor cleared.  
+      ;; Act as if set, i.e. do nothing.
+      ()))))
 
 (put 'ifclear 'texinfo-end 'texinfo-discard-command)
 (put 'ifclear 'texinfo-format 'texinfo-if-clear)
@@ -2845,7 +2847,9 @@ The command  `@value{foo}'  expands to the value."
       ())
      ((eq (get (car (read-from-string arg)) 'texinfo-whether-setp)
           nil)
-      (error  "@ifclear flag `%s' is not defined by @clear or @set." arg)))))
+      ;; In this case flag is neither set nor cleared.  
+      ;; Act as if clear, i.e. do nothing.
+      ()))))
 
 
 ;;; Process included files:  `@include' command
