@@ -67,7 +67,7 @@ top_srcdir := $(subst \,/,$(shell cd))
 # Find out which version of Emacs this is.
 version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
 
-all:	lib-src src man lispref lispintro
+all:	maybe_bootstrap lib-src src man lispref lispintro
 
 lib-src: FRC
 	cd lib-src
