@@ -44,39 +44,54 @@
 
 ;;; Code:
 
-;;;###autoload
-(defun enable-flow-control ()
-  "Enable use of flow control; let user type C-s as C-\\ and C-q as C-^."
-  (interactive)
-  ;; Tell emacs to pass C-s and C-q to OS.
-  (set-input-mode nil t (nth 2 (current-input-mode)))
-  ;; Initialize translate table, saving previous mappings, if any.
-  (let ((the-table (make-string 128 0)))
-    (let ((i 0)
-	  (j (length keyboard-translate-table)))
-      (while (< i j)
-	(aset the-table i (elt keyboard-translate-table i))
-	(setq i (1+ i)))
-      (while (< i 128)
-	(aset the-table i i)
-	(setq i (1+ i))))
-    (setq keyboard-translate-table the-table))
-  ;; Swap C-s and C-\
-  (aset keyboard-translate-table ?\034 ?\^s)
-  (aset keyboard-translate-table ?\^s ?\034)
-  ;; Swap C-q and C-^
-  (aset keyboard-translate-table ?\036 ?\^q)
-  (aset keyboard-translate-table ?\^q ?\036)
-  (message (concat 
-             "XON/XOFF adjustment for " 
-             (getenv "TERM") 
-             ":  use C-\\ for C-s  and  use C-^ for C-q."))
-  (sleep-for 2)) ; Give user a chance to see message.
+(defvar flow-control-c-s-replacement ?\034
+  "Character that replaces C-s, when flow control handling is enabled.")
+(defvar flow-control-c-q-replacement ?\036
+  "Character that replaces C-q, when flow control handling is enabled.")
 
-(defun enable-flow-control-memstr= (e s)
-  (cond ((null s) nil)
-	((string= e (car s)) t)
-	(t (enable-flow-control-memstr= e (cdr s)))))
+;;;###autoload
+(defun enable-flow-control (&optional argument)
+  "Toggle flow control handling.
+When handling is enabled, user can type C-s as C-\\, and C-q as C-^.
+With arg, enable flow control mode if arg is positive, otherwise disable."
+  (interactive "P")
+  (if (if argument
+	  ;; Argument means enable if arg is positive.
+	  (<= (prefix-numeric-value argument) 0)
+	;; No arg means toggle.
+	(nth 1 (current-input-mode)))
+      (progn
+	;; Turn flow control off, and stop exchanging chars.
+	(set-input-mode t nil (nth 2 (current-input-mode)))
+	(aset keyboard-translate-table flow-control-c-s-replacement nil)
+	(aset keyboard-translate-table ?\^s nil)
+	(aset keyboard-translate-table flow-control-c-q-replacement nil)
+	(aset keyboard-translate-table ?\^q nil))
+    ;; Turn flow control on.
+    ;; Tell emacs to pass C-s and C-q to OS.
+    (set-input-mode nil t (nth 2 (current-input-mode)))
+    ;; Initialize translate table, saving previous mappings, if any.
+    (let ((the-table (make-string 128 0)))
+      (let ((i 0)
+	    (j (length keyboard-translate-table)))
+	(while (< i j)
+	  (aset the-table i (elt keyboard-translate-table i))
+	  (setq i (1+ i)))
+	(while (< i 128)
+	  (aset the-table i i)
+	  (setq i (1+ i))))
+      (setq keyboard-translate-table the-table))
+    ;; Swap C-s and C-\
+    (aset keyboard-translate-table flow-control-c-s-replacement ?\^s)
+    (aset keyboard-translate-table ?\^s flow-control-c-s-replacement)
+    ;; Swap C-q and C-^
+    (aset keyboard-translate-table flow-control-c-q-replacement ?\^q)
+    (aset keyboard-translate-table ?\^q flow-control-c-q-replacement)
+    (message (concat 
+	      "XON/XOFF adjustment for " 
+	      (getenv "TERM") 
+	      ":  use C-\\ for C-s  and  use C-^ for C-q."))
+    (sleep-for 2)))			; Give user a chance to see message.
 
 ;;;###autoload
 (defun enable-flow-control-on (&rest losing-terminal-types)
@@ -90,7 +105,7 @@ to get the effect of a C-q."
     ;; Strip off hyphen and what follows
     (while (setq hyphend (string-match "[-_][^-_]+$" term))
       (setq term (substring term 0 hyphend)))
-    (and (enable-flow-control-memstr= term losing-terminal-types)
+    (and (member term losing-terminal-types)
 	 (enable-flow-control))))
 
 (provide 'flow-ctrl)
