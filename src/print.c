@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -460,11 +460,15 @@ print_string (string, printcharfun)
     {
       int chars;
 
+      if (print_escape_nonascii)
+	string = string_escape_byte8 (string);
+
       if (STRING_MULTIBYTE (string))
 	chars = XSTRING (string)->size;
-      else if (EQ (printcharfun, Qt)
-	       ? ! NILP (buffer_defaults.enable_multibyte_characters)
-	       : ! NILP (current_buffer->enable_multibyte_characters))
+      else if (! print_escape_nonascii
+	       && (EQ (printcharfun, Qt)
+		   ? ! NILP (buffer_defaults.enable_multibyte_characters)
+		   : ! NILP (current_buffer->enable_multibyte_characters)))
 	{
 	  /* If unibyte string STRING contains 8-bit codes, we must
 	     convert STRING to a multibyte string containing the same
@@ -1409,10 +1413,7 @@ print_object (obj, printcharfun, escapeflag)
 		{
 		  c = STRING_CHAR_AND_LENGTH (str + i_byte,
 					      size_byte - i_byte, len);
-		  if (CHAR_VALID_P (c, 0))
-		    i_byte += len;
-		  else
-		    c = str[i_byte++];
+		  i_byte += len;
 		}
 	      else
 		c = str[i_byte++];
@@ -1430,12 +1431,16 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('f');
 		}
 	      else if (multibyte && ! ASCII_BYTE_P (c)
-		       && print_escape_multibyte)
+		       && (print_escape_multibyte || CHAR_BYTE8_P (c)))
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.  */
 		  unsigned char outbuf[50];
-		  sprintf (outbuf, "\\x%x", c);
+
+		  if (CHAR_BYTE8_P (c))
+		    sprintf (outbuf, "\\%03o", CHAR_TO_BYTE8 (c));
+		  else
+		    sprintf (outbuf, "\\x%04x", c);
 		  strout (outbuf, -1, -1, printcharfun, 0);
 		  need_nonhex = 1;
 		}
@@ -1787,7 +1792,7 @@ print_object (obj, printcharfun, escapeflag)
 	      PRINTCHAR ('#');
 	      size &= PSEUDOVECTOR_SIZE_MASK;
 	    }
-	  if (CHAR_TABLE_P (obj))
+	  if (CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj))
 	    {
 	      /* We print a char-table as if it were a vector,
 		 lumping the parent and default slots in with the
