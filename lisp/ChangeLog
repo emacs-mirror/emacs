@@ -1,3 +1,23 @@
+2004-04-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-file, Info-find-node-2): Add history and toc.
+	(Info-find-node-2): Simplify error message.
+	(Info-insert-dir): Use Info-following-node-name.
+	(Info-goto-node): Remove *info-history* and *info-toc*.
+	(Info-history): Create a node of the virtual history file.
+	(Info-toc): Create a node of the virtual toc file.
+	(Info-insert-toc): New arg `curr-file' for reference file names.
+	(info-apropos): Remove redundant var binding for temp-file.
+	(Info-index, Info-index-next, Info-mode): Doc fix.
+	(Info-goto-emacs-command-node): Don't jump to *info* from
+	non-*info* Info buffers.
+	(Info-fontify-node): Don't show the file name of external
+	references if `Info-hide-note-references' is `hide'.  Don't hide
+	newlines at the end of paragraphs.
+
+	* international/mule-diag.el (list-input-methods):
+	Fix args to help-xref-button.
+
 2004-04-18  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/compile.el (compilation-start): Set window start to
