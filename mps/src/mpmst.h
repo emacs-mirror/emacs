@@ -259,6 +259,9 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
   Sig sig;                      /* impl.h.misc.sig */
   Bool high;                    /* high or low */
   RefSet refSet;                /* preferred RefSetOfSeg */
+  Bool isCollected;             /* whether segment will be collected */
+  Bool isGen;                   /* whether gen is set */
+  Serial gen;                   /* associated geneation */
 } SegPrefStruct;
 
 
@@ -509,7 +512,7 @@ typedef struct TraceStruct {
   TraceId ti;                   /* index into TraceSets */
   Arena arena;                  /* owning arena */
   RefSet white;                 /* superset of refs in white set */
-  RefSet mayMove;		/* superset of refs in moving set */
+  RefSet mayMove;               /* superset of refs in moving set */
   TraceState state;             /* current state of trace */
   Bool emergency;               /* true iff ran out of memory during trace */
   Size condemned;               /* condemned bytes */
