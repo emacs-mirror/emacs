@@ -119,7 +119,7 @@
 ;;
 ;; Efficient regexps for use as MATCHERs for `font-lock-keywords' and
 ;; `font-lock-syntactic-keywords' can be generated via the function
-;; `regexp-opt', and their depth counted via the function `regexp-opt-depth'.
+;; `regexp-opt'.
 
 ;;; Adding patterns for modes that already support Font Lock:
 
@@ -332,10 +332,10 @@ MATCH-HIGHLIGHT should be of the form:
 where MATCHER can be either the regexp to search for, or the function name to
 call to make the search (called with one argument, the limit of the search) and
 return non-nil if it succeeds (and set `match-data' appropriately).
-MATCHER regexps can be generated via the function `regexp-opt'.  MATCH is the
-subexpression of MATCHER to be highlighted.  MATCH can be calculated via the
-function `regexp-opt-depth'.  FACENAME is an expression whose value is the face
-name to use.  Face default attributes can be modified via \\[customize].
+MATCHER regexps can be generated via the function `regexp-opt'.  MATCH is
+the subexpression of MATCHER to be highlighted.  FACENAME is an expression
+whose value is the face name to use.  Face default attributes can be
+modified via \\[customize].
 
 OVERRIDE and LAXMATCH are flags.  If OVERRIDE is t, existing fontification can
 be overwritten.  If `keep', only parts not already fontified are highlighted.
@@ -638,6 +638,7 @@ Major/minor modes can set this variable if they know which option applies.")
 	 (when (and (not modified) (buffer-modified-p))
 	   (set-buffer-modified-p nil)))))
   (put 'save-buffer-state 'lisp-indent-function 1)
+  (def-edebug-spec save-buffer-state let)
   ;;
   ;; Shut up the byte compiler.
   (defvar global-font-lock-mode)	; Now a defcustom.
@@ -1577,9 +1578,10 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 	(put-text-property (point) limit 'font-lock-multiline t)))
     (save-match-data
       ;; Find an occurrence of `matcher' before `limit'.
-      (while (if (stringp matcher)
-		 (re-search-forward matcher limit t)
-	       (funcall matcher limit))
+      (while (and (< (point) limit)
+		  (if (stringp matcher)
+		      (re-search-forward matcher limit t)
+		    (funcall matcher limit)))
 	;; Apply each highlight to this instance of `matcher'.
 	(setq highlights lowdarks)
 	(while highlights
