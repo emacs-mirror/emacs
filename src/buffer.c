@@ -590,10 +590,9 @@ reset_buffer (b)
   b->last_selected_window = Qnil;
   XSETINT (b->display_count, 0);
   b->display_time = Qnil;
-  b->extra2 = Qnil;
-  b->extra3 = Qnil;
   b->enable_multibyte_characters = buffer_defaults.enable_multibyte_characters;
   b->cursor_type = buffer_defaults.cursor_type;
+  b->extra_line_spacing = buffer_defaults.extra_line_spacing;
 }
 
 /* Reset buffer B's local variables info.
@@ -3976,6 +3975,7 @@ init_buffer_once ()
   buffer_defaults.ctl_arrow = Qt;
   buffer_defaults.direction_reversed = Qnil;
   buffer_defaults.cursor_type = Qt;
+  buffer_defaults.extra_line_spacing = Qnil;
 
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
@@ -4056,6 +4056,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
   XSETFASTINT (buffer_local_flags.cursor_type, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.extra_line_spacing, idx); ++idx;
 
   /* Need more room? */
   if (idx >= MAX_PER_BUFFER_VARS)
@@ -4214,6 +4215,11 @@ This is the same as (default-value 'header-line-format).");
   DEFVAR_LISP_NOPRO ("default-cursor-type", &buffer_defaults.cursor_type,
     "Default value of `cursor-type' for buffers that don't override it.\n\
 This is the same as (default-value 'cursor-type).");
+
+  DEFVAR_LISP_NOPRO ("default-line-spacing",
+		     &buffer_defaults.extra_line_spacing,
+    "Default value of `line-spacing' for buffers that don't override it.\n\
+This is the same as (default-value 'line-spacing).");
 
   DEFVAR_LISP_NOPRO ("default-abbrev-mode",
 	      &buffer_defaults.abbrev_mode,
@@ -4801,6 +4807,11 @@ Values are interpreted as follows:\n\
   `bar'		display a bar cursor with default width\n\
   (bar . WIDTH)	display a bar cursor with width WIDTH\n\
   others	display a box cursor.");
+
+  DEFVAR_PER_BUFFER ("line-spacing",
+		     &current_buffer->extra_line_spacing, Qnil,
+    "Additional space to put between lines when displaying a buffer.\n\
+The space is measured in pixels, and put below lines on window systems.");
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
     "List of functions called with no args to query before killing a buffer.");
