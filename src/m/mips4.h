@@ -33,7 +33,12 @@ NOTE-END  */
 #define START_FILES pre-crt0.o /lib/crt1.o
 /* Used to have -lisode, but jlp@math.byu.edu says remove it
    (for RISCOS 4.52).  */
-#define LIB_STANDARD -lmld -lc /lib/crtn.o
+/* ethanb@ptolemy.astro.washington.edu says crtn.o uses _ctype
+   and therefore we must search libc again after crtn.o.
+   The -L is used to force second -lc to find the sysv version
+   of libc.a, which is needed because the BSD libc.a
+   doesn't have _ctype.  */
+#define LIB_STANDARD -lmld -lc /lib/crtn.o -L/usr/lib -lc
 
 
 #define COFF
