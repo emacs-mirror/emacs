@@ -34,6 +34,17 @@
   :group 'mail)
 
 
+(defcustom display-time-mode nil
+  "Toggle display of time, load level, and mail flag in mode lines.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (display-time-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'display-time
+  :require 'time)
+
+
 (defcustom display-time-mail-file nil
   "*File name of mail inbox file, for indicating existence of new mail.
 Non-nil and not a string means don't check for mail.  nil means use
@@ -95,6 +106,7 @@ This runs the normal hook `display-time-hook' after each update."
   (let ((on (if (null arg)
 		(not display-time-timer)
 	      (> (prefix-numeric-value arg) 0))))
+    (setq display-time-mode on)
     (and display-time-timer (cancel-timer display-time-timer))
     (setq display-time-timer nil)
     (setq display-time-string "")
@@ -240,6 +252,9 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 (defun display-time-file-nonempty-p (file)
   (and (file-exists-p file)
        (< 0 (nth 7 (file-attributes (file-chase-links file))))))
+
+(if display-time-mode
+    (display-time-mode t))
 
 (provide 'time)
 
