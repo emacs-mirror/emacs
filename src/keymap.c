@@ -307,6 +307,7 @@ DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
   return Qnil;
 }
 
+
 /* Set the parent keymap of MAP to PARENT.  */
 
 DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
@@ -323,7 +324,18 @@ PARENT should be nil or another keymap.")
   GCPRO1 (keymap);
   
   if (!NILP (parent))
-    parent = get_keymap_1 (parent, 1, 1);
+    {
+      Lisp_Object k;
+      
+      parent = get_keymap_1 (parent, 1, 1);
+
+      /* Check for cycles.  */
+      k = parent;
+      while (KEYMAPP (k) && !EQ (keymap, k))
+	k = Fkeymap_parent (k);
+      if (EQ (keymap, k))
+	error ("Cyclic keymap inheritance");
+    }
 
   /* Skip past the initial element `keymap'.  */
   prev = keymap;
