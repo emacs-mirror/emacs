@@ -59,23 +59,22 @@
 ;;; Set up faces & display table
 ;;;
 
-;; A slight cheat - all emacs's faces are fixed-width.  
-;; The idea is just to pick one that looks different from the default.
-(if (internal-find-face 'fixed)
-    nil
-  (make-face 'fixed)
-  (if window-system
-      (set-face-font 'fixed
-		     (car (or (x-list-fonts "*fixed-medium*" 
-					    'default (selected-frame))
-			      (x-list-fonts "*fixed*" 
-					    'default (selected-frame)))))))
-			      
-(if (internal-find-face 'excerpt)
-    nil
-  (make-face 'excerpt)
-  (if window-system
-      (make-face-italic 'excerpt nil t)))
+;; Emacs doesn't have a "fixed" face by default, since all faces currently
+;; have to be fixed-width.  So we just pick one that looks different from the
+;; default.
+(defface fixed
+  '((t (:bold t)))
+  "Face used for text that must be shown in fixed width.
+Currently, emacs can only display fixed-width fonts, but this may change.
+This face is used for text specifically marked as fixed-width, for example
+in text/enriched files."
+  :group 'enriched)
+
+(defface excerpt
+  '((t (:italic t)))
+  "Face used for text that is an excerpt from another document.
+This is used in enriched-mode for text explicitly marked as an excerpt."
+  :group 'enriched)
 
 (defconst enriched-display-table (or (copy-sequence standard-display-table)
 				     (make-display-table)))
