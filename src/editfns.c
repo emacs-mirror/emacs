@@ -1218,7 +1218,7 @@ If POS is out of range, the value is nil.  */)
 DEFUN ("user-login-name", Fuser_login_name, Suser_login_name, 0, 1, 0,
        doc: /* Return the name under which the user logged in, as a string.
 This is based on the effective uid, not the real uid.
-Also, if the environment variable LOGNAME or USER is set,
+Also, if the environment variables LOGNAME or USER are set,
 that determines the value of this function.
 
 If optional argument UID is an integer, return the login name of the user
@@ -1430,7 +1430,7 @@ lisp_time_argument (specified_time, result, usec)
 
 DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
        doc: /* Return the current time, as a float number of seconds since the epoch.
-If an argument is given, it specifies a time to convert to float
+If SPECIFIED-TIME is given, it is the time to convert to float
 instead of the current time.  The argument should have the forms:
  (HIGH . LOW) or (HIGH LOW USEC) or (HIGH LOW . USEC).
 Thus, you can use times obtained from `current-time'
@@ -1660,7 +1660,7 @@ are used as SECOND through YEAR, and the *last* argument is used as ZONE.
 The intervening arguments are ignored.
 This feature lets (apply 'encode-time (decode-time ...)) work.
 
-Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;
+Out-of-range values for SECOND, MINUTE, HOUR, DAY, or MONTH are allowed;
 for example, a DAY of 0 means the day preceding the given month.
 Year numbers less than 100 are treated just like other year numbers.
 If you want them to stand for years in this century, you must do that yourself.
@@ -1745,8 +1745,8 @@ The format is `Sun Sep 16 01:03:52 1973'.
 However, see also the functions `decode-time' and `format-time-string'
 which provide a much more powerful and general facility.
 
-If an argument is given, it specifies a time to format
-instead of the current time.  The argument should have the form:
+If SPECIFIED-TIME is given, it is a time to format instead
+of the current time.  The argument should have the form:
   (HIGH . LOW)
 or the form:
   (HIGH LOW . IGNORED).
@@ -1801,7 +1801,7 @@ This returns a list of the form (OFFSET NAME).
 OFFSET is an integer number of seconds ahead of UTC (east of Greenwich).
     A negative value means west of Greenwich.
 NAME is a string giving the name of the time zone.
-If an argument is given, it specifies when the time zone offset is determined
+If SPECIFIED-TIME is given, the time zone offset is determined from it
 instead of using the current time.  The argument should have the form:
   (HIGH . LOW)
 or the form:
@@ -2349,8 +2349,8 @@ DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_subst
        1, 3, 0,
        doc: /* Insert before point a substring of the contents of BUFFER.
 BUFFER may be a buffer or a buffer name.
-Arguments START and END are character numbers specifying the substring.
-They default to the beginning and the end of BUFFER.  */)
+Arguments START and END are character positions specifying the substring.
+They default to the values of (point-min) and (point-max) in BUFFER.  */)
      (buffer, start, end)
      Lisp_Object buffer, start, end;
 {
@@ -2827,6 +2827,7 @@ It returns the number of characters changed.  */)
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
        doc: /* Delete the text between point and mark.
+
 When called from a program, expects two arguments,
 positions (integers or markers) specifying the stretch to be deleted.  */)
      (start, end)
@@ -3875,11 +3876,11 @@ transpose_markers (start1, end1, start2, end2,
 }
 
 DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5, 0,
-       doc: /* Transpose region START1 to END1 with START2 to END2.
+       doc: /* Transpose region STARTR1 to ENDR1 with STARTR2 to ENDR2.
 The regions may not be overlapping, because the size of the buffer is
 never changed in a transposition.
 
-Optional fifth arg LEAVE_MARKERS, if non-nil, means don't update
+Optional fifth arg LEAVE-MARKERS, if non-nil, means don't update
 any markers that happen to be located in the regions.
 
 Transposing beyond buffer boundaries is an error.  */)
