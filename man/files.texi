@@ -2519,14 +2519,14 @@ using the watch feature.
 @cindex remote repositories (CVS)
   When a file's repository is on a remote machine, VC tries to keep
 network interactions to a minimum.  This is controlled by the variable
-@var{vc-cvs-stay-local}.  If it is @code{t}, then VC uses only the
-entry in the local CVS subdirectory to determine the file's state (and
-possibly information returned by previous CVS commands).  One
-consequence of this is that when you have modified a file, and
-somebody else has already checked in other changes to the file, you
-are not notified of it until you actually try to commit.  (But you can
-try to pick up any recent changes from the repository first, using
-@kbd{C-x v m RET}, @pxref{Merging}).
+@var{vc-cvs-stay-local}.  If it is @code{t} (the default), then VC uses
+only the entry in the local CVS subdirectory to determine the file's
+state (and possibly information returned by previous CVS commands).  One
+consequence of this is that when you have modified a file, and somebody
+else has already checked in other changes to the file, you are not
+notified of it until you actually try to commit.  (But you can try to
+pick up any recent changes from the repository first, using @kbd{C-x v m
+RET}, @pxref{Merging}).
 
   When @var{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are
