@@ -559,6 +559,10 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (set-buffer (get-buffer "*scratch*"))
 		 (erase-buffer)
 		 (set-buffer-modified-p nil)))))
+    ;; Delay 2 seconds after the init file error message
+    ;; was displayed, so user can read it.
+    (if init-file-had-error
+	(sit-for 2))
     (let ((dir command-line-default-directory)
 	  (file-count 0)
 	  first-file-buffer
