@@ -1333,8 +1333,10 @@ command_loop_1 ()
 	 update the whole window properly.  */
       if (!NILP (XWINDOW (selected_window)->force_start))
 	{
+	  struct buffer *b;
 	  XWINDOW (selected_window)->force_start = Qnil;
-	  beg_unchanged = end_unchanged = 0;
+	  b = XBUFFER (XWINDOW (selected_window)->buffer);
+	  BUF_BEG_UNCHANGED (b) = BUF_END_UNCHANGED (b) = 0;
 	}
 
       cmd = read_key_sequence_cmd;
