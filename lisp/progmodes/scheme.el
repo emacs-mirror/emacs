@@ -42,6 +42,17 @@
 ;; the `cmuscheme' package and also the implementation-specific
 ;; `xscheme' package.
 
+;; Here's a recipe to generate a TAGS file for DSSSL, by the way:
+;; etags --lang=scheme --regex='/[ \t]*(\(mode\|element\)[ \t
+;; ]+\([^ \t(
+;; ]+\)/\2/' --regex='/[ \t]*(element[ \t
+;; ]*([^)]+[ \t
+;; ]+\([^)]+\)[ \t
+;; ]*)/\1/' --regex='/(declare[^ \t
+;; ]*[ \t
+;; ]+\([^ \t
+;; ]+\)/\1/' "$@"
+
 ;;; Code:
 
 (require 'lisp-mode)
@@ -166,15 +177,19 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
   (let ((map (make-sparse-keymap "Scheme")))
     (setq scheme-mode-map
 	  (nconc (make-sparse-keymap) shared-lisp-mode-map))
-    (define-key scheme-mode-map "\e\t" 'lisp-complete-symbol)
     (define-key scheme-mode-map [menu-bar] (make-sparse-keymap))
     (define-key scheme-mode-map [menu-bar scheme]
       (cons "Scheme" map))
     (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
+    (define-key map [uncomment-region]
+      '("Uncomment Out Region" . (lambda (beg end)
+                                   (interactive "r")
+                                   (comment-region beg end '(4)))))
     (define-key map [comment-region] '("Comment Out Region" . comment-region))
     (define-key map [indent-region] '("Indent Region" . indent-region))
     (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
     (put 'comment-region 'menu-enable 'mark-active)
+    (put 'uncomment-region 'menu-enable 'mark-active)
     (put 'indent-region 'menu-enable 'mark-active)))
 
 ;; Used by cmuscheme
@@ -226,9 +241,23 @@ Set this to nil if you normally use another dialect."
   "<!DOCTYPE style-sheet PUBLIC \"-//James Clark//DTD DSSSL Style Sheet//EN\">
 "
   "*An SGML declaration for the DSSSL file.
-This will be inserted into an empty buffer in dsssl-mode if it is
-defined as a string.  It is typically James Clark's style-sheet
+If it is defined as a string this will be inserted into an empty buffer
+which is in dsssl-mode.  It is typically James Clark's style-sheet
 doctype, as required for Jade."
+  :type '(choice (string :tag "Specified string") 
+                 (const :tag "None" :value nil))
+  :group 'scheme)
+
+(defcustom scheme-mode-hook nil
+  "*Normal hook (list of functions) run when entering scheme-mode.
+See `run-hooks'."
+  :type 'hook
+  :group 'scheme)
+
+(defcustom dsssl-mode-hook nil
+  "*Normal hook (list of functions) run when entering dsssl-mode.
+See `run-hooks'."
+  :type 'hook
   :group 'scheme)
 
 (defvar dsssl-imenu-generic-expression
@@ -401,7 +430,11 @@ if that value is non-nil and inserts the value of
 (put 'let 'scheme-indent-function 'scheme-let-indent)
 (put 'let* 'scheme-indent-function 1)
 (put 'letrec 'scheme-indent-function 1)
-(put 'sequence 'scheme-indent-function 0)
+(put 'sequence 'scheme-indent-function 0) ; SICP, not r4rs
+(put 'let-syntax 'scheme-indent-function 1)
+(put 'letrec-syntax 'scheme-indent-function 1)
+(put 'syntax-rules 'scheme-indent-function 1)
+
 
 (put 'call-with-input-file 'scheme-indent-function 1)
 (put 'with-input-from-file 'scheme-indent-function 1)
@@ -409,6 +442,8 @@ if that value is non-nil and inserts the value of
 (put 'call-with-output-file 'scheme-indent-function 1)
 (put 'with-output-to-file 'scheme-indent-function 1)
 (put 'with-output-to-port 'scheme-indent-function 1)
+(put 'call-with-values 'scheme-indent-function 1) ; r5rs?
+(put 'dynamic-wind 'scheme-indent-function 3) ; r5rs?
 
 ;;;; MIT Scheme specific indentation.
 
@@ -416,7 +451,6 @@ if that value is non-nil and inserts the value of
     (progn
       (put 'fluid-let 'scheme-indent-function 1)
       (put 'in-package 'scheme-indent-function 1)
-      (put 'let-syntax 'scheme-indent-function 1)
       (put 'local-declare 'scheme-indent-function 1)
       (put 'macro 'scheme-indent-function 1)
       (put 'make-environment 'scheme-indent-function 0)
