@@ -124,7 +124,13 @@ get_boot_time ()
   EMACS_GET_TIME (time_before);
 
   /* Try calculating the last boot time
-     from the uptime as obtained from /proc/uptime.  */
+     from the uptime as obtained from /proc/uptime.
+
+     This has a disadvantage in that if the system time has been
+     changed (say to correct the clock),
+     then current_time - uptime != wtmp_boot_time.
+     However, the speedup from doing this can be so great
+     that I think it is worth that problem occasionally.  */
 
   while ((fd = open ("/proc/uptime", O_RDONLY)) >= 0)
     {
