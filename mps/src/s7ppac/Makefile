@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.6) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.7) $
 #
 # Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
 #
@@ -18,14 +18,14 @@
 #  BuildProgram -d Variety clean
 
 COptions    = -ansi strict -proto strict -typecheck strict -w error ¶
-              -d CONFIG_VAR_{Variety} -d CONFIG_PROD_EPCORE -sym full
+              -d CONFIG_VAR_{Variety} -d CONFIG_PROD_EPCORE -sym full -i "{CIncludes96}"
 
 ":" Ä "::"
 
 OSffx     = .c.{Variety}.o
 
 {OSffx} 	Ä	.c
-	MrC {DepDir}{Default}.c -o {TargDir}{Default}{OSffx} {COptions}
+	{MPWCommands96}MrC1.0 {DepDir}{Default}.c -o {TargDir}{Default}{OSffx} {COptions}
 
 mmsw_{Variety}.o Ä assert{OSffx} ring{OSffx} mpm{OSffx} bt{OSffx} ¶
                    arenacl{OSffx} arena{OSffx} pool{OSffx} poolmfs{OSffx} ¶
@@ -34,7 +34,7 @@ mmsw_{Variety}.o Ä assert{OSffx} ring{OSffx} mpm{OSffx} bt{OSffx} ¶
                    shield{OSffx} than{OSffx} ssan{OSffx} mpsi{OSffx} ld{OSffx} ¶
                    poolepdl{OSffx} poolepvm{OSffx} action{OSffx} seg{OSffx} ¶
                    poolmrg{OSffx} message{OSffx}
-	PPCLink {Deps} -xm l -o {Targ} -sym on
+	{MPWCommands96}PPCLink {Deps} -xm l -o {Targ} -sym on "{SharedLibraries96}InterfaceLib"
 
 cleanall Ä
 	Delete Å.o
