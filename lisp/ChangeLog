@@ -1,3 +1,8 @@
+2001-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (toggle-debug-on-quit, toggle-debug-on-error): Doc
+	fix.
+
 2001-06-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* toolbar/tool-bar.el (tool-bar-setup): Remove the EXIT button.
