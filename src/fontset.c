@@ -1194,8 +1194,8 @@ generate_ascii_font_name (name, ascii_spec)
 }
 
 static void
-set_fontset_font (range, arg)
-     Lisp_Object range, arg;
+set_fontset_font (arg, range)
+     Lisp_Object arg, range;
 {
   Lisp_Object fontset, font_def, add;
 
