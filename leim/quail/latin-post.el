@@ -1374,10 +1374,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 (quail-define-package
  "turkish-postfix" "Turkish" "TR<" t
  "Turkish (Türkçe) input method with postfix modifiers.
-
-This is for those who use Latin-5 (ISO-8859-9) for Turkish.  If you
-use Latin-3 (ISO-8859-3), you should use \"turkish-latin-3-postfix\"
-instead.
+turkish-latin-3-postfix is an obsolete alias for turkish-postfix.
 
 Note for I, ı, İ, i.
 
@@ -1436,8 +1433,8 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 
 ;; Backwards compatibility.
 (push (cons "turkish-latin-3-postfix"
-	    (cdr (assoc "turkish-postfix" input-method-alist)))
-      input-method-alist)
+	    (cdr (assoc "turkish-postfix" quail-package-alist)))
+      quail-package-alist)
 
 (quail-define-package
  "british" "Latin-1" "£@" t
