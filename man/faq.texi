@@ -1217,7 +1217,7 @@ and on @code{xterm} with @kbd{emacs -nw}.
 @cindex Init file, setting up
 @cindex Customization file, setting up
 
-@inforef{Init File, Init File, emacs}
+@inforef{Init File, Init File, emacs}.
 
 In general, new Emacs users should not have @file{.emacs} files, because
 it causes confusing non-standard behavior.  Then they send questions to
@@ -2061,7 +2061,7 @@ support it.  (@xref{VIPER}.)
 @cindex X resources
 @cindex Setting X resources
 
-@inforef{Resources X, Resources X, emacs}.
+@inforef{X Resources, X Resources, emacs}.
 
 You can also use a resource editor, such as editres (for X11R5 and
 onwards), to look at the resource names for the menu bar, assuming Emacs
@@ -2189,7 +2189,7 @@ If you need to repeat a command a small number of times, you can use
 @cindex Suspending Emacs
 
 @kbd{C-z} iconifies Emacs when running under X and suspends Emacs
-otherwise.  @inforef{Misc X, Misc X, emacs}.
+otherwise.  @inforef{Frame Commands, Frame Commands, emacs}.
 
 @node Using regular expressions, Replacing text across multiple files, Forcing Emacs to iconify itself, Common requests
 @section How do I use regexps (regular expressions) in Emacs?

@@ -2103,8 +2103,7 @@ There are three actions that can change this: scrolling the window,
 switching buffers in the window, and changing the size of the window.
 The first two actions run @code{window-scroll-functions}; the last runs
 @code{window-size-change-functions}.  The paradigmatic use of these
-hooks is in the implementation of Lazy Lock mode; see @ref{Support
-Modes, Lazy Lock, Font Lock Support Modes, emacs, The GNU Emacs Manual}.
+hooks is in the implementation of Lazy Lock mode; see @file{lazy-lock.el}.
 
 @defvar window-scroll-functions
 This variable holds a list of functions that Emacs should call before

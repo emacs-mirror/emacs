@@ -216,7 +216,7 @@ way you can change it with real effect is to do so before dumping
 Emacs.
 @end defvar
 
-  @xref{Init File Examples,,, emacs, The GNU Emacs Manual}, for
+  @xref{Init Examples,, Init File Examples, emacs, The GNU Emacs Manual}, for
 examples of how to make various commonly desired customizations in your
 @file{.emacs} file.
 
@@ -400,8 +400,7 @@ arguments is in @code{command-line-args}.)
 
 The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Command
-Switches, , Command Line Switches and Arguments, emacs, The GNU Emacs
-Manual}.
+Arguments, , Command Line Arguments, emacs, The GNU Emacs Manual}.
 @end defvar
 
 @defvar command-line-args

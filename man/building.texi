@@ -73,7 +73,7 @@ containing a default command line, which is the command you used the
 last time you did @kbd{M-x compile}.  If you type just @key{RET}, the
 same command line is used again.  For the first @kbd{M-x compile}, the
 default is @samp{make -k}, which is correct most of the time for
-nontrivial programs.  (@xref{Make,, Make, make, GNU Make Manual}.)
+nontrivial programs.  (@xref{Top,, Make, make, GNU Make Manual}.)
 The default compilation command comes from the variable
 @code{compile-command}; if the appropriate compilation command for a
 file is something other than @samp{make -k}, it can be useful for the
