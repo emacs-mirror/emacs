@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.10 $")
+(defconst ange-ftp-version "$Revision: 1.11 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1017,7 +1017,7 @@ Optional DEFAULT is password to start with."
 	  (if (> (length pass) 0)
 	      (setq pass (substring pass 0 -1))))))
     (message "")
-;;    (ange-ftp-repaint-minibuffer)
+    (ange-ftp-repaint-minibuffer)
     pass))
 
 (defmacro ange-ftp-generate-passwd-key (host user)
@@ -1302,20 +1302,9 @@ replace the name component with NAME."
 ;; (setq ange-ftp-tmp-keymap (make-sparse-keymap))
 ;; (define-key ange-ftp-tmp-keymap "\C-m" 'exit-minibuffer)
 
-;; (defun ange-ftp-repaint-minibuffer ()
-;;   "Gross hack to set minibuf_message = 0, so that the contents of the
-;; minibuffer will show."
-;;   (if (eq (selected-window) (minibuffer-window))
-;;       (if (fboundp 'allocate-event)
-;; 	  ;; lemacs
-;; 	  (let ((unread-command-event (character-to-event ?\C-m
-;; 							  (allocate-event)))
-;; 		(enable-recursive-minibuffers t))
-;; 	    (read-from-minibuffer "" nil ange-ftp-tmp-keymap nil))
-;; 	;; v18 GNU Emacs
-;; 	(let ((unread-command-char ?\C-m)
-;; 	      (enable-recursive-minibuffers t))
-;; 	  (read-from-minibuffer "" nil ange-ftp-tmp-keymap nil)))))
+(defun ange-ftp-repaint-minibuffer ()
+  "Clear any existing minibuffer message; let the minibuffer contents show."
+  (message nil))
 
 (defun ange-ftp-ftp-process-buffer (host user)
   "Return the name of the buffer that collects output from the ftp process
@@ -1525,7 +1514,7 @@ on to ange-ftp-process-handle-line to deal with."
 			     ange-ftp-process-result)
 			(progn
 			  (ange-ftp-message "%s...done" ange-ftp-process-msg)
-;;			  (ange-ftp-repaint-minibuffer)
+			  (ange-ftp-repaint-minibuffer)
 			  (setq ange-ftp-process-msg nil)))
 		    
 		    ;; is there a continuation we should be calling?  if so,
