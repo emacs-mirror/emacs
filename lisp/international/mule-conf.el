@@ -806,7 +806,6 @@
   :iso-final-char ?5
   :emacs-mule-id 225
   :code-space [33 126]
-  :unify-map "is13194"
   :code-offset #x180000)
 
 (define-charset 'devanagari-glyph
@@ -845,7 +844,7 @@
 
 ;; Actual Glyph for 1-column width.
 (define-charset 'indian-1-column
-  "Indian charset for 1-column width glyphs"
+  "Indian charset for 1-column width glyphs."
   :short-name "Indian 1-col"
   :long-name "Indian 1 Column"
   :iso-final-char ?6
@@ -855,13 +854,13 @@
 
 ;; Actual Glyph for 2-column width.
 (define-charset 'indian-2-column
-  "Indian charset for 2-column width glyphs"
+  "Indian charset for 2-column width glyphs."
   :short-name "Indian 2-col"
   :long-name "Indian 2 Column"
   :iso-final-char ?5
   :emacs-mule-id  251
   :code-space [33 126 33 126]
-  :superset '(indian-1-column))
+  :code-offset #x184000)
 
 (define-charset 'tibetan
   "Tibetan characters"
@@ -1054,7 +1053,6 @@
 ;; Fixme: unifying sucks in the charset tables, which may be large.
 ;; (Can we avoid that and do it anyhow (with lazy loading)?)
 (unify-charset 'chinese-sisheng)
-(unify-charset 'indian-is13194)
 (unify-charset 'korean-ksc5601)
 (unify-charset 'ipa)
 (unify-charset 'tibetan)
