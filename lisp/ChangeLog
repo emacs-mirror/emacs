@@ -1,3 +1,11 @@
+2002-04-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mouse-drag.el (mouse-drag-throw, mouse-drag-drag): Push reconstructed
+	events onto unread-command-events rather than looking them up manually.
+
+	* textmodes/flyspell.el (flyspell-mode-map): Don't bind mouse-2.
+	It's bound via text-properties already.
+
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term.el (term-emulate-terminal): Fix last change.
@@ -41,7 +49,7 @@
 
 2002-03-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern): 
+	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern):
 	Use the other-window instead of the other-frame functions when
 	the window is dedicated.
 
