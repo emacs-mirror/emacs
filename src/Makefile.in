@@ -30,11 +30,11 @@
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
+top_srcdir=@top_srcdir@
 VPATH=@srcdir@
 CC=@CC@
 CPP=@CPP@
 CFLAGS=@CFLAGS@
-CPPFLAGS=@CPPFLAGS@
 LDFLAGS=@LDFLAGS@
 LN_S=@LN_S@
 EXEEXT=@EXEEXT@
@@ -73,6 +73,12 @@ SHELL=/bin/sh
 #define NO_SHORTNAMES
 #define NOT_C_CODE
 #include "config.h"
+
+#ifdef BOEHM_GC
+CPPFLAGS=@CPPFLAGS@ -I$(top_srcdir)/gc/include
+#else
+CPPFLAGS=@CPPFLAGS@
+#endif
 
 /* We won't really call alloca;
    don't let the file name alloca.c get messed up.  */
@@ -621,7 +627,11 @@ gmallocobj = gmalloc.o
 rallocobj = ralloc.o
 #endif
 
-mallocobj = $(gmallocobj) $(rallocobj) vm-limit.o
+#ifdef BOEHM_GC
+gclib = $(top_srcdir)/gc/.libs/libgc.a
+#endif
+
+mallocobj = $(gmallocobj) $(rallocobj) $(gclib) vm-limit.o
 
 #endif /* SYSTEM_MALLOC */
 
@@ -1315,7 +1325,7 @@ ctagsfiles2 = [a-wA-W]*.[hc]
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 	../lib-src/etags --include=TAGS-LISP --include=${lwlibdir}/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
+	   $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f ${lispdir}Makefile TAGS-LISP ETAGS=../lib-src/etags
