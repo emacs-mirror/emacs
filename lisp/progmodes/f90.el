@@ -664,12 +664,12 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 (defun f90-add-imenu-menu ()
   "Add an imenu menu to the menubar."
   (interactive)
-  (if (not f90-imenu)
-      (progn
-	(imenu-add-to-menubar "F90-imenu")
-	(redraw-frame (selected-frame))
-	(setq f90-imenu t))
-    (message "%s" "F90-imenu already exists.")))
+  (if f90-imenu
+      (message "%s" "F90-imenu already exists.")
+    (imenu-add-to-menubar "F90-imenu")
+    (redraw-frame (selected-frame))
+    (setq f90-imenu t)))
+
 (put 'f90-add-imenu-menu 'menu-enable '(not f90-imenu))
 
 
@@ -899,13 +899,12 @@ If optional argument NO-LINE-NUMBER is nil, jump over a possible line-number."
 (defsubst f90-get-present-comment-type ()
   (save-excursion
     (let ((type nil) (eol (line-end-position)))
-      (if (f90-in-comment)
-	  (progn
-	    (beginning-of-line)
-	    (re-search-forward "[!]+" eol)
-	    (while (f90-in-string)
-	      (re-search-forward "[!]+" eol))
-	    (setq type (match-string 0))))
+      (when (f90-in-comment)
+        (beginning-of-line)
+        (re-search-forward "[!]+" eol)
+        (while (f90-in-string)
+          (re-search-forward "[!]+" eol))
+        (setq type (match-string 0)))
       type)))
 
 (defsubst f90-equal-symbols (a b)
@@ -942,21 +941,19 @@ Name is nil if the statement has no label."
 Name is nil if the statement has no label."
   (save-excursion
     (let (struct (label nil))
-      (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(if\\)\\>")
-	  (progn
-	    (setq struct (match-string 3))
-	    (if (looking-at "\\(\\sw+\\)[ \t]*\:")
-		(setq label (match-string 1)))
-	    (let ((pos (scan-lists (point) 1 0)))
-	      (and pos (goto-char pos)))
-	    (skip-chars-forward " \t")
-	    (if (or (looking-at "then\\>")
-		    (if (f90-line-continued)
-			(progn
-			  (f90-next-statement)
-			  (skip-chars-forward " \t0-9&")
-			  (looking-at "then\\>"))))
-		(list struct label)))))))
+      (when (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(if\\)\\>")
+        (setq struct (match-string 3))
+        (if (looking-at "\\(\\sw+\\)[ \t]*\:")
+            (setq label (match-string 1)))
+        (let ((pos (scan-lists (point) 1 0)))
+          (and pos (goto-char pos)))
+        (skip-chars-forward " \t")
+        (if (or (looking-at "then\\>")
+                (when (f90-line-continued)
+                  (f90-next-statement)
+                  (skip-chars-forward " \t0-9&")
+                  (looking-at "then\\>")))
+            (list struct label))))))
 
 (defsubst f90-looking-at-where-or-forall ()
   "Return (kind name) if a where or forall block starts after point.
@@ -1043,11 +1040,11 @@ block[ \t]*data\\)\\>")
 
 (defsubst f90-update-line ()
   (let (bol eol)
-    (if f90-auto-keyword-case
-	(progn (setq bol (line-beginning-position)
-		     eol (line-end-position))
-	       (if f90-auto-keyword-case
-		   (f90-change-keywords f90-auto-keyword-case bol eol))))))
+    (when f90-auto-keyword-case
+      (setq bol (line-beginning-position)
+            eol (line-end-position))
+      (if f90-auto-keyword-case
+          (f90-change-keywords f90-auto-keyword-case bol eol)))))
 
 (defun f90-electric-insert ()
   "Call `f90-do-auto-fill' at each operator insertion."
@@ -1068,17 +1065,16 @@ Does not check type and subprogram indentation."
 		      (looking-at "[ \t]*[0-9]"))))
       (setq icol (current-indentation))
       (beginning-of-line)
-      (if (re-search-forward "\\(if\\|do\\|select\\|where\\|forall\\)"
-			     (line-end-position) t)
-	  (progn
-	    (beginning-of-line) (skip-chars-forward " \t")
-	    (cond ((f90-looking-at-do)
-		   (setq icol (+ icol f90-do-indent)))
-		  ((or (f90-looking-at-if-then)
-		       (f90-looking-at-where-or-forall)
-		       (f90-looking-at-select-case))
-		   (setq icol (+ icol f90-if-indent))))
-	    (end-of-line)))
+      (when (re-search-forward "\\(if\\|do\\|select\\|where\\|forall\\)"
+                               (line-end-position) t)
+        (beginning-of-line) (skip-chars-forward " \t")
+        (cond ((f90-looking-at-do)
+               (setq icol (+ icol f90-do-indent)))
+              ((or (f90-looking-at-if-then)
+                   (f90-looking-at-where-or-forall)
+                   (f90-looking-at-select-case))
+               (setq icol (+ icol f90-if-indent))))
+        (end-of-line))
       (while (re-search-forward
 	      "\\(if\\|do\\|select\\|where\\|forall\\)" epnt t)
 	(beginning-of-line) (skip-chars-forward " \t0-9")
@@ -1453,13 +1449,13 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
   "From `fill-column', search backward for break-delimiter."
   (let ((bol (line-beginning-position)))
     (re-search-backward f90-break-delimiters bol)
-    (if f90-break-before-delimiters
-	(progn (backward-char)
-	       (if (not (looking-at f90-no-break-re))
-		   (forward-char)))
-      (if (looking-at f90-no-break-re)
-	  (forward-char 2)
-	(forward-char)))))
+    (if (not f90-break-before-delimiters)
+        (if (looking-at f90-no-break-re)
+            (forward-char 2)
+          (forward-char))
+      (backward-char)
+      (if (not (looking-at f90-no-break-re))
+          (forward-char)))))
 
 (defun f90-do-auto-fill ()
   "Break line if non-white characters beyond `fill-column'. Also, update line."
@@ -1491,8 +1487,9 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
 	   (skip-chars-forward " \t")
 	   (if (looking-at "\&") (delete-char 1))
 	   (delete-region pos (point))
-	   (if (not (f90-in-string))
-	       (progn (delete-horizontal-space) (insert " ")))
+	   (unless (f90-in-string)
+             (delete-horizontal-space)
+             (insert " "))
 	   (if (and auto-fill-function
 		    (> (save-excursion (end-of-line)
 				       (current-column))
@@ -1561,54 +1558,53 @@ Leave point at the end of line."
   (let ((count 1) (top-of-window (window-start)) (matching-beg nil)
 	(end-point (point)) (case-fold-search t)
 	beg-name end-name beg-block end-block end-struct)
-    (if (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
-			(setq end-struct (f90-looking-at-program-block-end)))
-	(progn
-	  (setq end-block (car end-struct))
-	  (setq end-name  (car (cdr end-struct)))
-	  (save-excursion
-	    (beginning-of-line)
-	    (while 
-		(and (not (zerop count))
-		     (let ((stop nil) notexist)
-		       (while (not stop)
-			 (setq notexist
-			       (not (re-search-backward 
-				     (concat "\\(" f90-blocks-re "\\)") nil t)))
-			 (if notexist
-			     (setq stop t)
-			   (setq stop
-				 (not (or (f90-in-string)
-					  (f90-in-comment))))))
-		       (not notexist)))
-	      (beginning-of-line) (skip-chars-forward " \t0-9")
-	      (cond ((setq matching-beg
-			   (cond
-			    ((f90-looking-at-do))
-			    ((f90-looking-at-if-then))
-			    ((f90-looking-at-where-or-forall))
-			    ((f90-looking-at-select-case))
-			    ((f90-looking-at-type-like))
-			    ((f90-looking-at-program-block-start))))
-		     (setq count (- count 1)))
-		    ((looking-at (concat "end[ \t]*" f90-blocks-re "\\b"))
-		     (setq count (+ count 1)))))
-	    (if (not (zerop count))
-		(message "No matching beginning.")
-	      (f90-update-line)
-	      (if (eq f90-smart-end 'blink)
-		  (if (< (point) top-of-window)
-		      (message "Matches %s: %s"
-			       (what-line)
-			       (buffer-substring
-				(line-beginning-position)
-				(line-end-position)))
-		    (sit-for 1)))
-	      (setq beg-block (car matching-beg))
-	      (setq beg-name (car (cdr matching-beg)))
-	      (goto-char end-point)
-	      (beginning-of-line)
-	      (f90-block-match beg-block beg-name end-block end-name)))))))
+    (when (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
+                          (setq end-struct (f90-looking-at-program-block-end)))
+      (setq end-block (car end-struct))
+      (setq end-name  (car (cdr end-struct)))
+      (save-excursion
+        (beginning-of-line)
+        (while 
+            (and (not (zerop count))
+                 (let ((stop nil) notexist)
+                   (while (not stop)
+                     (setq notexist
+                           (not (re-search-backward 
+                                 (concat "\\(" f90-blocks-re "\\)") nil t)))
+                     (if notexist
+                         (setq stop t)
+                       (setq stop
+                             (not (or (f90-in-string)
+                                      (f90-in-comment))))))
+                   (not notexist)))
+          (beginning-of-line) (skip-chars-forward " \t0-9")
+          (cond ((setq matching-beg
+                       (cond
+                        ((f90-looking-at-do))
+                        ((f90-looking-at-if-then))
+                        ((f90-looking-at-where-or-forall))
+                        ((f90-looking-at-select-case))
+                        ((f90-looking-at-type-like))
+                        ((f90-looking-at-program-block-start))))
+                 (setq count (- count 1)))
+                ((looking-at (concat "end[ \t]*" f90-blocks-re "\\b"))
+                 (setq count (+ count 1)))))
+        (if (not (zerop count))
+            (message "No matching beginning.")
+          (f90-update-line)
+          (if (eq f90-smart-end 'blink)
+              (if (< (point) top-of-window)
+                  (message "Matches %s: %s"
+                           (what-line)
+                           (buffer-substring
+                            (line-beginning-position)
+                            (line-end-position)))
+                (sit-for 1)))
+          (setq beg-block (car matching-beg))
+          (setq beg-name (car (cdr matching-beg)))
+          (goto-char end-point)
+          (beginning-of-line)
+          (f90-block-match beg-block beg-name end-block end-name))))))
 
 (defun f90-insert-end ()
   "Insert a complete end statement matching beginning of present block."
@@ -1697,14 +1693,13 @@ Any other key combination is executed normally."
       (goto-char beg)
       (unwind-protect
 	  (while (re-search-forward keyword-re end t)
-	    (if (progn
-		  (setq state (parse-partial-sexp ref-point (point)))
-		  (or (nth 3 state) (nth 4 state)
-		      (save-excursion	; Check for cpp directive.
-			(beginning-of-line)
-			(skip-chars-forward " \t0-9")
-			(looking-at "#"))))
-		()
+	    (unless (progn
+                      (setq state (parse-partial-sexp ref-point (point)))
+                      (or (nth 3 state) (nth 4 state)
+                          (save-excursion ; Check for cpp directive.
+                            (beginning-of-line)
+                            (skip-chars-forward " \t0-9")
+                            (looking-at "#"))))
 	      (setq ref-point (point)
 		    back-point (save-excursion (backward-word 1) (point)))
 	      (setq saveword (buffer-substring back-point ref-point))
