@@ -1,3 +1,18 @@
+2004-10-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_raise_frame): Add BLOCK_INPUT around SelectWindow
+	(x_lower_frame): Add BLOCK_INPUT around SendBehind
+	(make_mac_frame): Add BLOCK_INPUT around the making of a
+	terminal frame
+	(mac_initialize): Add BLOCK_INPUT around carbon initialization
+	* macgui.h (mktime): Use emacs_mktime
+	* macfns.c (Fx_file_dialog): Add BLOCK_INPUT around more code.
+	Make a cancel file-open dialog be like C-g.
+	* mac.c (mktime): Use emacs_mktime
+	(Fdo_applescript): Add BLOCK_INPUT around do_applescript
+	(Fmac_paste_function): Add better error handling for carbon
+	cut/paste 
+
 2004-10-10  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (timer_resume_idle): New function to resume idle

@@ -5317,7 +5317,11 @@ x_raise_frame (f)
      struct frame *f;
 {
   if (f->async_visible)
-    SelectWindow (FRAME_MAC_WINDOW (f));
+    {
+      BLOCK_INPUT;
+      SelectWindow (FRAME_MAC_WINDOW (f));
+      UNBLOCK_INPUT;
+    }
 }
 
 /* Lower frame F.  */
@@ -5326,7 +5330,11 @@ x_lower_frame (f)
      struct frame *f;
 {
   if (f->async_visible)
-    SendBehind (FRAME_MAC_WINDOW (f), nil);
+    {
+      BLOCK_INPUT;
+      SendBehind (FRAME_MAC_WINDOW (f), nil);
+      UNBLOCK_INPUT;
+    }
 }
 
 static void
@@ -8757,6 +8765,7 @@ make_mac_frame (FRAME_PTR fp)
 
   mwp = fp->output_data.mac;
 
+  BLOCK_INPUT;
   if (making_terminal_window)
     {
       if (!(mwp->mWP = GetNewCWindow (TERM_WINDOW_RESOURCE, NULL,
@@ -8784,9 +8793,8 @@ make_mac_frame (FRAME_PTR fp)
     /* so that update events can find this mac_output struct */
   mwp->mFP = fp;  /* point back to emacs frame */
 
-  SetPortWindowPort (mwp->mWP);
-
   SizeWindow (mwp->mWP, FRAME_PIXEL_WIDTH (fp), FRAME_PIXEL_HEIGHT (fp), false);
+  UNBLOCK_INPUT;
 }
 
 
@@ -9209,6 +9217,7 @@ mac_initialize ()
   signal (SIGPIPE, x_connection_signal);
 #endif
 
+  BLOCK_INPUT;
   mac_initialize_display_info ();
 
 #if TARGET_API_MAC_CARBON
@@ -9227,6 +9236,7 @@ mac_initialize ()
   if (!inhibit_window_system)
     MakeMeTheFrontProcess ();
 #endif
+  UNBLOCK_INPUT;
 }
 
 

@@ -47,6 +47,8 @@ Boston, MA 02111-1307, USA.  */
 #undef realloc
 #undef init_process
 #include <Carbon/Carbon.h>
+#undef mktime
+#define mktime emacs_mktime
 #undef free
 #define free unexec_free
 #undef malloc
@@ -73,6 +75,7 @@ Boston, MA 02111-1307, USA.  */
 #include "process.h"
 #include "sysselect.h"
 #include "systime.h"
+#include "blockinput.h"
 
 Lisp_Object QCLIPBOARD;
 
@@ -2548,7 +2551,9 @@ component.  */)
 
   CHECK_STRING (script);
 
+  BLOCK_INPUT;
   status = do_applescript (SDATA (script), &result);
+  UNBLOCK_INPUT;
   if (status)
     {
       if (!result)
@@ -2618,26 +2623,23 @@ DEFUN ("mac-paste-function", Fmac_paste_function, Smac_paste_function, 0, 0, 0,
      ()
 {
 #if TARGET_API_MAC_CARBON
+  OSStatus err;
   ScrapRef scrap;
   ScrapFlavorFlags sff;
   Size s;
   int i;
   char *data;
 
-  if (GetCurrentScrap (&scrap) != noErr)
-    return Qnil;
-
-  if (GetScrapFlavorFlags (scrap, kScrapFlavorTypeText, &sff) != noErr)
-    return Qnil;
-
-  if (GetScrapFlavorSize (scrap, kScrapFlavorTypeText, &s) != noErr)
-    return Qnil;
-
-  if ((data = (char*) alloca (s)) == NULL)
-    return Qnil;
-
-  if (GetScrapFlavorData (scrap, kScrapFlavorTypeText, &s, data) != noErr
-      || s == 0)
+  BLOCK_INPUT;
+  err = GetCurrentScrap (&scrap);
+  if (err == noErr)
+    err = GetScrapFlavorFlags (scrap, kScrapFlavorTypeText, &sff);
+  if (err == noErr)
+    err = GetScrapFlavorSize (scrap, kScrapFlavorTypeText, &s);
+  if (err == noErr && (data = (char*) alloca (s)))
+    err = GetScrapFlavorData (scrap, kScrapFlavorTypeText, &s, data);
+  UNBLOCK_INPUT;
+  if (err != noErr || s == 0)
     return Qnil;
 
   /* Emacs expects clipboard contents have Unix-style eol's */
@@ -2702,13 +2704,22 @@ DEFUN ("mac-cut-function", Fmac_cut_function, Smac_cut_function, 1, 2, 0,
 #if TARGET_API_MAC_CARBON
   {
     ScrapRef scrap;
+
+    BLOCK_INPUT;
     ClearCurrentScrap ();
     if (GetCurrentScrap (&scrap) != noErr)
-      error ("cannot get current scrap");
+      {
+	UNBLOCK_INPUT;
+	error ("cannot get current scrap");
+      }
 
     if (PutScrapFlavor (scrap, kScrapFlavorTypeText, kScrapFlavorMaskNone, len,
 			buf) != noErr)
-      error ("cannot put to scrap");
+      {
+	UNBLOCK_INPUT;
+	error ("cannot put to scrap");
+      }
+    UNBLOCK_INPUT;
   }
 #else /* not TARGET_API_MAC_CARBON */
   ZeroScrap ();
@@ -2743,9 +2754,11 @@ and t is the same as `SECONDARY'.  */)
       ScrapRef scrap;
       ScrapFlavorFlags sff;
 
+      BLOCK_INPUT;
       if (GetCurrentScrap (&scrap) == noErr)
         if (GetScrapFlavorFlags (scrap, kScrapFlavorTypeText, &sff) == noErr)
           val = Qt;
+      UNBLOCK_INPUT;
 #else /* not TARGET_API_MAC_CARBON */
       Handle my_handle;
       long rc, scrap_offset;
@@ -2769,8 +2782,6 @@ and t is the same as `SECONDARY'.  */)
 
 extern int inhibit_window_system;
 extern int noninteractive;
-
-#include "blockinput.h"
 
 /* When Emacs is started from the Finder, SELECT always immediately
    returns as if input is present when file descriptor 0 is polled for

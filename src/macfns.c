@@ -4247,6 +4247,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
     NavUserAction userAction;
     CFStringRef message=NULL, client=NULL, saveName = NULL;
     
+    BLOCK_INPUT;
     /* No need for a callback function because we are modal */
     NavGetDefaultDialogCreationOptions(&options);
     options.modality = kWindowModalityAppModal;
@@ -4317,9 +4318,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
 	AEDisposeDesc(&defLocAed);
       }
 
-      BLOCK_INPUT;
       status = NavDialogRun(dialogRef);
-      UNBLOCK_INPUT;
     }
 
     if (saveName) CFRelease(saveName);
@@ -4332,9 +4331,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
 	{
 	case kNavUserActionNone:
 	case kNavUserActionCancel:
-	  NavDialogDispose(dialogRef);
-	  Fsignal (Qquit, Qnil);  /* Treat cancel like C-g */
-	  return;
+	  break;		/* Treat cancel like C-g */
 	case kNavUserActionOpen:
 	case kNavUserActionChoose:
 	case kNavUserActionSaveAs:
@@ -4369,6 +4366,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
 			       dir, mustmatch, dir, Qfile_name_history,
 			       default_filename, Qnil);
     }
+    UNBLOCK_INPUT;
   }
 
   UNGCPRO;
