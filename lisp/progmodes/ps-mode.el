@@ -5,7 +5,7 @@
 ;; Author:     Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Maintainer: Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1a, 11 Oct 1999
+;; Version:    1.1b, 18 Oct 1999
 ;; Keywords:   PostScript, languages
 
 ;; This file is part of GNU Emacs.
@@ -29,6 +29,8 @@
 
 
 ;;; Code:
+
+(defconst ps-mode-version "1.1b, 18 Oct 1999")
 
 (require 'easymenu)
 
@@ -101,10 +103,11 @@ When the figure is finished these values should be replaced."
 	  (const :tag "dsheet"      (1584 2448))
 	  (const :tag "esheet"      (2448 3168))))
 
-(defcustom ps-mode-print-function '(lambda ()
-				     (let ((lpr-switches nil)
-					   (lpr-command \"lpr\"))
-				       (lpr-buffer)))
+(defcustom ps-mode-print-function 
+  '(lambda ()
+     (let ((lpr-switches nil)
+	   (lpr-command "lpr"))
+       (lpr-buffer)))
   "*Lisp function to print current buffer as PostScript."
   :group 'PostScript-edit
   :type 'function)
@@ -114,14 +117,19 @@ When the figure is finished these values should be replaced."
   :group 'PostScript-interaction
   :type 'regexp)
 
-(defcustom ps-run-messages
-  '((">>showpage, press <return> to continue<<"
-     (0 font-lock-keyword-face nil nil))
-    ("^\\(Error\\|Can't\\).*"
-     (0 font-lock-warning-face nil nil))
-    ("^\\(Current file position is\\) \\([0-9]+\\)" 
-     (1 font-lock-comment-face nil nil)
-     (2 font-lock-warning-face nil nil)))
+(defcustom ps-run-font-lock-keywords-2
+  (append (unless (string= ps-run-prompt "")
+	    (list (list (if (= ?^ (string-to-char ps-run-prompt))
+			    ps-run-prompt
+			  (concat "^" ps-run-prompt))
+			'(0 font-lock-function-name-face nil nil))))
+	  '((">>showpage, press <return> to continue<<"
+	     (0 font-lock-keyword-face nil nil))
+	    ("^\\(Error\\|Can't\\).*"
+	     (0 font-lock-warning-face nil nil))
+	    ("^\\(Current file position is\\) \\([0-9]+\\)" 
+	     (1 font-lock-comment-face nil nil)
+	     (2 font-lock-warning-face nil nil))))
   "*Medium level highlighting of messages from the PostScript interpreter.
 
 See documentation on font-lock for details."
@@ -150,7 +158,7 @@ See documentation on font-lock for details."
 (defcustom ps-run-init nil
   "*String of commands to send to PostScript to start interactive.
 
-Example: \"executive\\n\"
+Example: \"executive\"
 
 You won't need to set this option for Ghostscript.
 "
@@ -262,8 +270,11 @@ If nil, the following are tried in turn, until success:
 ;; Level 1 font-lock for ps-run-mode
 ;;  - prompt (function name face)
 (defconst ps-run-font-lock-keywords-1
-  (unless (or (not (stringp ps-run-prompt)) (string= "" ps-run-prompt))
-    (list (cons (concat "^" ps-run-prompt) 'font-lock-function-name-face)))
+  (unless (string= "" ps-run-prompt)
+    (list (cons (if (= ?^ (string-to-char ps-run-prompt))
+		    ps-run-prompt
+		  (concat "^" ps-run-prompt))
+		'font-lock-function-name-face)))
   "Subdued level highlighting for PostScript run mode.")
 
 (defconst ps-run-font-lock-keywords ps-run-font-lock-keywords-1
@@ -389,35 +400,36 @@ If nil, the following are tried in turn, until success:
 
 (unless ps-mode-map
   (setq ps-mode-map (make-sparse-keymap))
-  (define-key ps-mode-map [return] 'ps-mode-newline)
-  (define-key ps-mode-map "\r" 'ps-mode-newline)
-  (define-key ps-mode-map "\t" 'ps-mode-tabkey)
-  (define-key ps-mode-map "\177" 'ps-mode-backward-delete-char)
-  (define-key ps-mode-map "}" 'ps-mode-r-brace)
-  (define-key ps-mode-map "]" 'ps-mode-r-angle)
-  (define-key ps-mode-map ">" 'ps-mode-r-gt)
-  (define-key ps-mode-map "\C-c\C-b" 'ps-run-buffer)
-  (define-key ps-mode-map "\C-c\C-c" 'ps-run-clear)
-  (define-key ps-mode-map "\C-c\C-j" 'ps-mode-other-newline)
-  (define-key ps-mode-map "\C-c\C-k" 'ps-run-kill)
-  (define-key ps-mode-map "\C-c\C-o" 'ps-mode-comment-out-region)
-  (define-key ps-mode-map "\C-c\C-p" 'ps-mode-print-buffer)
-  (define-key ps-mode-map "\C-c\C-q" 'ps-run-quit)
-  (define-key ps-mode-map "\C-c\C-r" 'ps-run-region)
-  (define-key ps-mode-map "\C-c\C-s" 'ps-run-start)
-  (define-key ps-mode-map "\C-c\C-t" 'ps-mode-epsf-rich)
-  (define-key ps-mode-map "\C-c\C-u" 'ps-mode-uncomment-region)
+  (define-key ps-mode-map "\C-cv"    'ps-mode-show-version)
   (define-key ps-mode-map "\C-c\C-v" 'ps-run-boundingbox)
+  (define-key ps-mode-map "\C-c\C-u" 'ps-mode-uncomment-region)
+  (define-key ps-mode-map "\C-c\C-t" 'ps-mode-epsf-rich)
+  (define-key ps-mode-map "\C-c\C-s" 'ps-run-start)
+  (define-key ps-mode-map "\C-c\C-r" 'ps-run-region)
+  (define-key ps-mode-map "\C-c\C-q" 'ps-run-quit)
+  (define-key ps-mode-map "\C-c\C-p" 'ps-mode-print-buffer)
+  (define-key ps-mode-map "\C-c\C-o" 'ps-mode-comment-out-region)
+  (define-key ps-mode-map "\C-c\C-k" 'ps-run-kill)
+  (define-key ps-mode-map "\C-c\C-j" 'ps-mode-other-newline)
+  (define-key ps-mode-map "\C-c\C-c" 'ps-run-clear)
+  (define-key ps-mode-map "\C-c\C-b" 'ps-run-buffer)
+  (define-key ps-mode-map ">" 'ps-mode-r-gt)
+  (define-key ps-mode-map "]" 'ps-mode-r-angle)
+  (define-key ps-mode-map "}" 'ps-mode-r-brace)
+  (define-key ps-mode-map "\177" 'ps-mode-backward-delete-char)
+  (define-key ps-mode-map "\t" 'ps-mode-tabkey)
+  (define-key ps-mode-map "\r" 'ps-mode-newline)
+  (define-key ps-mode-map [return] 'ps-mode-newline)
   (easy-menu-define ps-mode-main ps-mode-map "PostScript" ps-mode-menu-main))
 
 (unless ps-run-mode-map
   (setq ps-run-mode-map (make-sparse-keymap))
-  (define-key ps-run-mode-map [return] 'ps-run-newline)
-  (define-key ps-run-mode-map "\r" 'ps-run-newline)
   (define-key ps-run-mode-map "\C-c\C-q" 'ps-run-quit)
   (define-key ps-run-mode-map "\C-c\C-k" 'ps-run-kill)
   (define-key ps-run-mode-map "\C-c\C-e" 'ps-run-goto-error)
-  (define-key ps-run-mode-map [mouse-2] 'ps-run-mouse-goto-error))
+  (define-key ps-run-mode-map [mouse-2] 'ps-run-mouse-goto-error)
+  (define-key ps-run-mode-map "\r" 'ps-run-newline)
+  (define-key ps-run-mode-map [return] 'ps-run-newline))
 
 
 ;; Syntax table.
@@ -476,12 +488,13 @@ be set through the `customize' command:
   ps-mode-tab
   ps-mode-paper-size
   ps-mode-print-function
-  ps-run-tmp-dir
   ps-run-prompt
+  ps-run-font-lock-keywords-2
   ps-run-x
   ps-run-dumb
   ps-run-init
   ps-run-error-line-numbers
+  ps-run-tmp-dir
 
 Type \\[describe-variable] for documentation on these options.
 
@@ -515,6 +528,11 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
   (use-local-map ps-mode-map)
   (set-syntax-table ps-mode-syntax-table)
   (run-hooks 'ps-mode-hook))
+
+(defun ps-mode-show-version ()
+  "Show current version of PostScript mode"
+  (interactive)
+  (message " *** PostScript Mode (ps-mode) Version %s *** " ps-mode-version))
 
 
 ;; Helper functions for font-lock.
@@ -771,7 +789,7 @@ Only one `%' is removed, and it has to be in the first column."
           (backward-char)
           (insert (format "\\%03o" (string-to-char (buffer-substring (point) (1+ (point))))))
           (delete-char 1))
-        (message (format "%d change%s made" i (if (= i 1) "" "s")))
+        (message "%d change%s made" i (if (= i 1) "" "s"))
         (set-marker endm nil)))))
 
 
@@ -953,12 +971,10 @@ This mode is invoked from ps-mode and should not be called directly.
 "
   (kill-all-local-variables)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults (list (list 'ps-run-font-lock-keywords
-				       'ps-run-font-lock-keywords-1
-				       (append
-					ps-run-font-lock-keywords-1
-					ps-run-messages))
-				 t)
+  (setq font-lock-defaults '((ps-run-font-lock-keywords
+			      ps-run-font-lock-keywords-1
+			      ps-run-font-lock-keywords-2)
+			     t)
 	major-mode 'ps-run-mode
 	mode-name  "Interactive PS"
 	mode-line-process '(":%s"))
@@ -978,7 +994,6 @@ This mode is invoked from ps-mode and should not be called directly.
   (let ((command (if (and window-system ps-run-x) ps-run-x ps-run-dumb))
 	(init-file nil)
 	(process-connection-type nil)
-	(oldbuf (current-buffer))
 	(oldwin (selected-window))
 	i)
     (unless command
@@ -987,7 +1002,7 @@ This mode is invoked from ps-mode and should not be called directly.
       (setq ps-run-mark (make-marker)))
     (when ps-run-init
       (setq init-file (ps-run-make-tmp-filename))
-      (write-region ps-run-init 0 init-file)
+      (write-region (concat ps-run-init "\n") 0 init-file)
       (setq init-file (list init-file)))
     (pop-to-buffer "*ps run*")
     (ps-run-mode)
@@ -1137,7 +1152,7 @@ grestore
   (end-of-line)
   (insert "\n")
   (forward-line -1)
-  (when (and (stringp ps-run-prompt) (looking-at ps-run-prompt))
+  (when (looking-at ps-run-prompt)
     (goto-char (match-end 0)))
   (looking-at ".*")
   (goto-char (1+ (match-end 0)))
