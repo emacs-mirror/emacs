@@ -20,7 +20,7 @@
 
 (defun name-last-kbd-macro (symbol)
   "Assign a name to the last keyboard macro defined.
-One arg, a symbol, which is the name to define.
+Argument SYMBOL is the name to define.
 The symbol's function definition becomes the keyboard macro string.
 Such a \"function\" cannot be called from Lisp, but it is a valid command
 definition for the editor command loop."

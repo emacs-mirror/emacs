@@ -27,7 +27,7 @@
 
 (defvar print-region-function nil
   "Function to call to print the region on a printer.
-See definition of print-region-1 for calling conventions.")
+See definition of `print-region-1' for calling conventions.")
 
 (defun lpr-buffer ()
   "Print buffer contents as with Unix command `lpr'.
