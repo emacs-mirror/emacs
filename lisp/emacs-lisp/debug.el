@@ -457,6 +457,11 @@ Use \\[cancel-debug-on-entry] to cancel the effect of this command.
 Redefining FUNCTION also cancels it."
   (interactive "aDebug on entry (to function): ")
   (debugger-reenable)
+  ;; Handle a function that has been aliased to some other function.
+  (if (symbolp (symbol-function function))
+      (fset function `(lambda (&rest debug-on-entry-args)
+			(apply ',(symbol-function function)
+			       debug-on-entry-args))))
   (if (subrp (symbol-function function))
       (error "Function %s is a primitive" function))
   (or (consp (symbol-function function))
