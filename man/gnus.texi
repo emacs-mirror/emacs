@@ -850,8 +850,8 @@ Back End Interface
 * Optional Back End Functions::       Functions that need not be implemented.
 * Error Messaging::                   How to get messages and report errors.
 * Writing New Back Ends::             Extending old back ends.
-* Hooking New Back ends Into Gnus::   What has to be done on the Gnus end.
-* Mail-like Back ends::               Some tips on mail back ends.
+* Hooking New Back Ends Into Gnus::   What has to be done on the Gnus end.
+* Mail-like Back Ends::               Some tips on mail back ends.
 
 Various File Formats
 
