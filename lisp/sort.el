@@ -455,8 +455,12 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
 	  (error "sort-columns does not work with tabs.  Use M-x untabify."))
-      (if (not (eq system-type 'vax-vms))
+      (if (not (or (eq system-type 'vax-vms)
+		   (text-properties-at beg1)
+		   (< (next-property-change beg1 nil end1) end1)))
 	  ;; Use the sort utility if we can; it is 4 times as fast.
+	  ;; Do not use it if there are any properties in the region,
+	  ;; since the sort utility would lose the properties.
 	  (call-process-region beg1 end1 "sort" t t nil
 			       (if reverse "-rt\n" "-t\n")
 			       (concat "+0." col-start)
