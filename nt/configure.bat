@@ -253,7 +253,7 @@ copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
 if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile.in Makefile.unix
-if exist ..\lisp\makefile del /f ..\lisp\makefile
+if exist ..\lisp\makefile rm -f ../lisp/[Mm]akefile
 copy /b config.settings+%MAKECMD%.defs+..\lisp\makefile.w32-in ..\lisp\makefile
 rem   Use the default (no-op) Makefile.in if the nt version is not present.
 if exist ..\leim\makefile.w32-in copy /b config.settings+%MAKECMD%.defs+..\leim\makefile.w32-in ..\leim\makefile
