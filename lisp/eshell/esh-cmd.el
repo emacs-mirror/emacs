@@ -2,6 +2,8 @@
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 
+;; Author: John Wiegley <johnw@gnu.org>
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
