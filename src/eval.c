@@ -89,7 +89,6 @@ int gcpro_level;
 
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
-Lisp_Object Qmocklisp_arguments, Vmocklisp_arguments, Qmocklisp;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 
@@ -191,8 +190,6 @@ Lisp_Object Vsignaling_function;
 int handling_signal;
 
 static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
-/* Apply a mocklisp function to unevaluated argument list.  */
-extern Lisp_Object ml_apply P_ ((Lisp_Object, Lisp_Object));
 
 void
 init_eval_once ()
@@ -406,21 +403,9 @@ usage: (progn BODY ...)  */)
      (args)
      Lisp_Object args;
 {
-  register Lisp_Object val, tem;
+  register Lisp_Object val;
   Lisp_Object args_left;
   struct gcpro gcpro1;
-
-  /* In Mocklisp code, symbols at the front of the progn arglist
-   are to be bound to zero. */
-  if (!EQ (Vmocklisp_arguments, Qt))
-    {
-      val = make_number (0);
-      while (!NILP (args) && (tem = Fcar (args), SYMBOLP (tem)))
-	{
-	  QUIT;
-	  specbind (tem, val), args = Fcdr (args);
-	}
-    }
 
   if (NILP(args))
     return Qnil;
@@ -925,15 +910,14 @@ usage: (while TEST BODY...)  */)
      (args)
      Lisp_Object args;
 {
-  Lisp_Object test, body, tem;
+  Lisp_Object test, body;
   struct gcpro gcpro1, gcpro2;
 
   GCPRO2 (test, body);
 
   test = Fcar (args);
   body = Fcdr (args);
-  while (tem = Feval (test),
-	 (!EQ (Vmocklisp_arguments, Qt) ? XINT (tem) : !NILP (tem)))
+  while (!NILP (Feval (test)))
     {
       QUIT;
       Fprogn (body);
@@ -1795,8 +1779,6 @@ Also, a symbol satisfies `commandp' if its function definition does so.  */)
     return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
   if (EQ (funcar, Qlambda))
     return Fassq (Qinteractive, Fcdr (Fcdr (fun)));
-  if (EQ (funcar, Qmocklisp))
-    return Qt;  /* All mocklisp functions can be called interactively */
   if (EQ (funcar, Qautoload))
     return Fcar (Fcdr (Fcdr (Fcdr (fun))));
   else
@@ -1942,16 +1924,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     abort ();
   
   if (SYMBOLP (form))
-    {
-      if (EQ (Vmocklisp_arguments, Qt))
-        return Fsymbol_value (form);
-      val = Fsymbol_value (form);
-      if (NILP (val))
-	XSETFASTINT (val, 0);
-      else if (EQ (val, Qt))
-	XSETFASTINT (val, 1);
-      return val;
-    }
+    return Fsymbol_value (form);
   if (!CONSP (form))
     return form;
 
@@ -2119,19 +2092,10 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	val = Feval (apply1 (Fcdr (fun), original_args));
       else if (EQ (funcar, Qlambda))
 	val = apply_lambda (fun, original_args, 1);
-      else if (EQ (funcar, Qmocklisp))
-	val = ml_apply (fun, original_args);
       else
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
  done:
-  if (!EQ (Vmocklisp_arguments, Qt))
-    {
-      if (NILP (val))
-	XSETFASTINT (val, 0);
-      else if (EQ (val, Qt))
-	XSETFASTINT (val, 1);
-    }
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
     val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));
@@ -2768,8 +2732,6 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
       if (EQ (funcar, Qlambda))
 	val = funcall_lambda (fun, numargs, args + 1);
-      else if (EQ (funcar, Qmocklisp))
-	val = ml_apply (fun, Flist (numargs, args + 1));
       else if (EQ (funcar, Qautoload))
 	{
 	  do_autoload (fun, args[0]);
@@ -2844,9 +2806,6 @@ funcall_lambda (fun, nargs, arg_vector)
   Lisp_Object val, syms_left, next;
   int count = specpdl_ptr - specpdl;
   int i, optional, rest;
-
-  if (NILP (Vmocklisp_arguments))
-    specbind (Qmocklisp_arguments, Qt);   /* t means NOT mocklisp! */
 
   if (CONSP (fun))
     {
@@ -3349,12 +3308,6 @@ If due to `eval' entry, one arg, t.  */);
 It receives the same arguments that `signal' was given.
 The Edebug package uses this to regain control.  */);
   Vsignal_hook_function = Qnil;
-
-  Qmocklisp_arguments = intern ("mocklisp-arguments");
-  staticpro (&Qmocklisp_arguments);
-  DEFVAR_LISP ("mocklisp-arguments", &Vmocklisp_arguments,
-	       doc: /* While in a mocklisp function, the list of its unevaluated args.  */);
-  Vmocklisp_arguments = Qt;
 
   DEFVAR_LISP ("debug-on-signal", &Vdebug_on_signal,
 	       doc: /* *Non-nil means call the debugger regardless of condition handlers.
