@@ -3842,7 +3842,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
   /* If PT is not visible in WINDOW, move back one half of
      the screen.  */
   XSETFASTINT (tem, PT);
-  tem = Fpos_visible_in_window_p (tem, window, Qt);
+  tem = Fpos_visible_in_window_p (tem, window, Qnil);
   if (NILP (tem))
     {
       /* Move backward half the height of the window.  Performance note:
@@ -3986,7 +3986,7 @@ window_scroll_line_based (window, n, whole, noerror)
   original_vpos = posit.vpos;
 
   XSETFASTINT (tem, PT);
-  tem = Fpos_visible_in_window_p (tem, window, Qt);
+  tem = Fpos_visible_in_window_p (tem, window, Qnil);
 
   if (NILP (tem))
     {
