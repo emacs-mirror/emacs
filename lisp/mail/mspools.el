@@ -1,4 +1,4 @@
-;;; MSPOOLS.EL --- Show mail spools waiting to be read
+;;; mspools.el --- Show mail spools waiting to be read
 
 ;; Copyright (C) 1997 Stephen Eglen
 
