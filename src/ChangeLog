@@ -1,5 +1,10 @@
 2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xdisp.c (update_tool_bar): Pass a copy of f->tool_bar_items to
+	tool_bar_items and assign the result to f->tool_bar_items if
+	not equal.  Move BLOCK/UNBLOCK_INPUT from around call to
+	tool_bar_items to assignment of result.
+
 	* atimer.c (alarm_signal_handler): Do not call set_alarm if
 	pending_atmers is non-zero.
 
