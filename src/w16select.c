@@ -234,11 +234,11 @@ set_clipboard_data (Format, Data, Size, Raw)
   unsigned long xbuf_addr, buf_offset;
   unsigned char *dp = Data, *dstart = dp;
 
-  if (Format != CF_TEXT)
+  if (Format != CF_OEMTEXT)
     return 0;
 
   /* need to know final size after '\r' chars are inserted (the
-     standard CF_TEXT clipboard format uses CRLF line endings,
+     standard CF_OEMTEXT clipboard format uses CRLF line endings,
      while Emacs uses just LF internally).  */
   truelen = Size;
 
@@ -327,7 +327,7 @@ get_clipboard_data (Format, Data, Size, Raw)
   unsigned long xbuf_addr;
   unsigned char *dp = Data;
 
-  if (Format != CF_TEXT)
+  if (Format != CF_OEMTEXT)
     return 0;
 
   if (Size == 0)
@@ -476,7 +476,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
     goto error;
   
   ok = empty_clipboard ()
-    && (ok1 = set_clipboard_data (CF_TEXT, src, nbytes, no_crlf_conversion));
+    && (ok1 = set_clipboard_data (CF_OEMTEXT, src, nbytes, no_crlf_conversion));
 
   if (!no_crlf_conversion)
     Vlast_coding_system_used = Qraw_text;
@@ -532,14 +532,14 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   if (!open_clipboard ())
     goto unblock;
 
-  if ((data_size = get_clipboard_data_size (CF_TEXT)) == 0 ||
+  if ((data_size = get_clipboard_data_size (CF_OEMTEXT)) == 0 ||
       (htext = (unsigned char *)xmalloc (data_size)) == 0)
     goto closeclip;
 
   /* need to know final size after '\r' chars are removed because
      we can't change the string size manually, and doing an extra
      copy is silly */
-  if ((truelen = get_clipboard_data (CF_TEXT, htext, data_size, 0)) == 0)
+  if ((truelen = get_clipboard_data (CF_OEMTEXT, htext, data_size, 0)) == 0)
     goto closeclip;
 
   /* Do we need to decode it?  */
@@ -567,7 +567,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
       setup_coding_system
 	(Fcheck_coding_system (Vclipboard_coding_system), &coding);
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      truelen = get_clipboard_data (CF_TEXT, htext, data_size, 1);
+      truelen = get_clipboard_data (CF_OEMTEXT, htext, data_size, 1);
       bufsize = decoding_buffer_size (&coding, truelen);
       buf = (unsigned char *) xmalloc (bufsize);
       decode_coding (&coding, htext, buf, truelen, bufsize);
@@ -633,7 +633,7 @@ and t is the same as `SECONDARY'.")
 
       if (open_clipboard ())
 	{
-	  if (get_clipboard_data_size (CF_TEXT))
+	  if (get_clipboard_data_size (CF_OEMTEXT))
 	    val = Qt;
 	  close_clipboard ();
 	}
