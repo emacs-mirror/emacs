@@ -64,6 +64,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/IntrinsicP.h>
 #include <X11/CoreP.h>
 #include <X11/StringDefs.h>
+#include <X11/Shell.h>
 #include <X11/Xaw/Paned.h>
 #include "../lwlib/lwlib.h"
 #include "../lwlib/xlwmenuP.h"
@@ -1391,6 +1392,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   int menu_id;
   Widget menu;
   XlwMenuWidget menubar = (XlwMenuWidget) f->display.x->menubar_widget;
+  Arg av [2];
+  int ac = 0;
 
   /* This is the menu bar item (if any) that led to this menu.  */
   widget_value *menubar_item = 0;
@@ -1574,6 +1577,11 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
 			   f->display.x->widget, 1, 0,
 			   popup_selection_callback, popup_down_callback);
+
+  /* Don't allow any geometry request from the user.  */
+  XtSetArg (av[ac], XtNgeometry, 0); ac++;
+  XtSetValues (menu, av, ac);
+
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
 
