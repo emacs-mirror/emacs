@@ -24,7 +24,7 @@
 
 ;;; Emacs lisp functions to convert Texinfo files to Info files.
 
-(defvar texinfmt-version "2.30 of 18 May 1993")
+(defvar texinfmt-version "2.31 of 10 November 1993")
 
 ;;; Variable definitions
 
@@ -150,12 +150,12 @@ converted to Info is stored in a temporary buffer."
                  ;; Either copy header text.
                  (and 
                   (prog1 
-                      (search-forward texinfo-start-of-header search-end t)
+                      (search-forward tex-start-of-header search-end t)
                     (forward-line 1)
                     ;; Mark beginning of header.
                     (setq header-beginning (point)))
                   (prog1 
-                      (search-forward texinfo-end-of-header nil t)
+                      (search-forward tex-end-of-header nil t)
                     (beginning-of-line)
                     ;; Mark end of header
                     (setq header-end (point))))
