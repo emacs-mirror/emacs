@@ -155,6 +155,16 @@ DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
 {
   current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
 }
+
+DEFUN ("store-kbd-macro-event", Fstore_kbd_macro_event,
+       Sstore_kbd_macro_event, 1, 1, 0,
+  "Store EVENT into the keyboard macro being defined.")
+  (event)
+     Lisp_Object event;
+{
+  store_kbd_macro_char (event);
+  return Qnil;
+}
 
 DEFUN ("call-last-kbd-macro", Fcall_last_kbd_macro, Scall_last_kbd_macro,
   0, 1, "p",
@@ -247,6 +257,7 @@ syms_of_macros ()
   defsubr (&Scall_last_kbd_macro);
   defsubr (&Sexecute_kbd_macro);
   defsubr (&Scancel_kbd_macro_events);
+  defsubr (&Sstore_kbd_macro_event);
 
   DEFVAR_KBOARD ("defining-kbd-macro", defining_kbd_macro,
     "Non-nil while a keyboard macro is being defined.  Don't set this!");
