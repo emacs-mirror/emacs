@@ -212,7 +212,10 @@ is also allowed as an element.")
    Functions like Faccessible_keymaps which scan entire keymap trees
    shouldn't load every autoloaded keymap.  I'm not sure about this,
    but it seems to me that only read_key_sequence, Flookup_key, and
-   Fdefine_key should cause keymaps to be autoloaded.  */
+   Fdefine_key should cause keymaps to be autoloaded.
+
+   This function can GC when AUTOLOAD is non-zero, because it calls
+   do_autoload which can GC.  */
 
 Lisp_Object
 get_keymap_1 (object, error, autoload)
@@ -305,9 +308,12 @@ PARENT should be nil or another keymap.")
      Lisp_Object keymap, parent;
 {
   Lisp_Object list, prev;
+  struct gcpro gcpro1;
   int i;
 
   keymap = get_keymap_1 (keymap, 1, 1);
+  GCPRO1 (keymap);
+  
   if (!NILP (parent))
     parent = get_keymap_1 (parent, 1, 1);
 
@@ -323,7 +329,7 @@ PARENT should be nil or another keymap.")
 	  /* If we already have the right parent, return now
 	     so that we avoid the loops below.  */
 	  if (EQ (XCDR (prev), parent))
-	    return parent;
+	    RETURN_UNGCPRO (parent);
 
 	  XCDR (prev) = parent;
 	  break;
@@ -360,7 +366,7 @@ PARENT should be nil or another keymap.")
 	}
     }
 
-  return parent;
+  RETURN_UNGCPRO (parent);
 }
 
 /* EVENT is defined in MAP as a prefix, and SUBMAP is its definition.
@@ -635,7 +641,8 @@ get_keyelt (object, autoload)
       /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
       else
 	{
-	  register Lisp_Object map;
+	  Lisp_Object map;
+	  
 	  map = get_keymap_1 (Fcar_safe (object), 0, autoload);
 	  if (NILP (map))
 	    /* Invalid keymap */
@@ -2203,7 +2210,6 @@ indirect definition itself.")
 			    Fcons (Fcons (this, last),
 				   Fcons (make_number (nomenus),
 					  make_number (last_is_meta))));
-
 	      map_char_table (where_is_internal_2, Qnil, elt, args,
 			      0, indices);
 	      sequences = XCDR (XCDR (XCAR (args)));
@@ -2265,7 +2271,10 @@ indirect definition itself.")
     .
     ((THIS . LAST) . (NOMENUS . LAST_IS_META)))
    Since map_char_table doesn't really use the return value from this function,
-   we the result append to RESULT, the slot in ARGS.  */
+   we the result append to RESULT, the slot in ARGS.
+
+   This function can GC because it calls where_is_internal_1 which can
+   GC.  */
 
 static void
 where_is_internal_2 (args, key, binding)
@@ -2274,7 +2283,9 @@ where_is_internal_2 (args, key, binding)
   Lisp_Object definition, noindirect, keymap, this, last;
   Lisp_Object result, sequence;
   int nomenus, last_is_meta;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
+  GCPRO3 (args, key, binding);
   result = XCDR (XCDR (XCAR (args)));
   definition = XCAR (XCAR (XCAR (args)));
   noindirect = XCDR (XCAR (XCAR (args)));
@@ -2288,9 +2299,14 @@ where_is_internal_2 (args, key, binding)
 				  this, last, nomenus, last_is_meta);
 
   if (!NILP (sequence))
-    XCDR (XCDR (XCAR (args)))
-      = Fcons (sequence, result);
+    XCDR (XCDR (XCAR (args))) = Fcons (sequence, result);
+
+  UNGCPRO;
 }
+
+
+/* This function can GC.because Flookup_key calls get_keymap_1 with
+   non-zero argument AUTOLOAD.  */
 
 static Lisp_Object
 where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
@@ -2300,6 +2316,7 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
 {
   Lisp_Object sequence;
   int keymap_specified = !NILP (keymap);
+  struct gcpro gcpro1, gcpro2;
 
   /* Search through indirections unless that's not wanted.  */
   if (NILP (noindirect))
@@ -2360,6 +2377,7 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
 
      Either nil or number as value from Flookup_key
      means undefined.  */
+  GCPRO2 (sequence, binding);
   if (keymap_specified)
     {
       binding = Flookup_key (keymap, sequence, Qnil);
@@ -2370,21 +2388,21 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
 	      Lisp_Object tem;
 	      tem = Fequal (binding, definition);
 	      if (NILP (tem))
-		return Qnil;
+		RETURN_UNGCPRO (Qnil);
 	    }
 	  else
 	    if (!EQ (binding, definition))
-	      return Qnil;
+	      RETURN_UNGCPRO (Qnil);
 	}
     }
   else
     {
       binding = Fkey_binding (sequence, Qnil);
       if (!EQ (binding, definition))
-	return Qnil;
+	RETURN_UNGCPRO (Qnil);
     }
 
-  return sequence;
+  RETURN_UNGCPRO (sequence);
 }
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */
