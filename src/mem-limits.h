@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef MSDOS
+#include <dpmi.h>
+#endif
+
 #ifdef _LIBC
 
 #include <sys/resource.h>
@@ -24,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #else
 
-#if defined(__osf__) && (defined(__mips) || defined(mips))
+#if defined (__osf__) && (defined (__mips) || defined (mips))
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
@@ -35,7 +39,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef BSD4_2
 #ifndef USG
+#ifndef MSDOS
 #include <sys/vlimit.h>
+#endif /* not MSDOS */
 #endif /* not USG */
 #else /* if BSD4_2 */
 #include <sys/time.h>
@@ -113,13 +119,24 @@ get_lim_data ()
 }
 
 #else /* not USG */
-#if !defined(BSD4_2) && !defined(__osf__)
+#if !defined (BSD4_2) && !defined (__osf__)
 
+#ifdef MSDOS
+void
+get_lim_data ()
+{
+  _go32_dpmi_meminfo info;
+
+  _go32_dpmi_get_free_memory_information (&info);
+  lim_data = info.available_memory;
+}
+#else /* not MSDOS */
 static void
 get_lim_data ()
 {
   lim_data = vlimit (LIM_DATA, -1);
 }
+#endif /* not MSDOS */
 
 #else /* BSD4_2 */
 
