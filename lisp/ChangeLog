@@ -1,5 +1,10 @@
 2001-07-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* net/browse-url.el (browse-url-default-windows-browser): Support
+	the MS-DOS port when it runs on Windows.
+	(browse-url-browser-function) [ms-dos]: Default to
+	browse-url-default-windows-browser.
+
 	* help.el (locate-library): Enable code that looks for compressed
 	libraries if auto-compression-mode is on.
 
