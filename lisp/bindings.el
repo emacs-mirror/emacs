@@ -78,7 +78,21 @@ Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-process)
 
-(defvar mode-line-modified (purecopy '("%1*%1+"))
+(defconst mode-line-modified
+  (let ((s "%1*%1+")
+	(map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2]
+      (lambda (event)
+	(interactive "e")
+	(save-selected-window
+	  (select-window (posn-window (event-start event)))
+	  (toggle-read-only))))
+    (set-text-properties 0 (length s)
+			 (list 'help-echo
+			       "Read-only status: mouse-2 toggles it"
+			       'local-map map)
+			 s)
+    (list s))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
@@ -92,7 +106,7 @@ Normally nil in most modes, since there is no process to display.")
    (purecopy "   ")
    'global-mode-string
    (purecopy "   %[(")
-   'mode-name 'mode-line-process 'minor-mode-alist
+   '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
    (purecopy "%n")
    (purecopy ")%]--")
    '(which-func-mode ("" which-func-format "--"))
@@ -114,6 +128,119 @@ is okay.  See `mode-line-format'.")
 			 (auto-fill-function " Fill")
 			 ;; not really a minor mode...
 			 (defining-kbd-macro " Def")))
+
+(defvar mode-line-buffer-identification-keymap nil
+  "Keymap for what is displayed by `mode-line-buffer-identification'.")
+
+(defvar mode-line-minor-mode-keymap nil
+  "Keymap for what is displayed by `mode-line-mode-name'.")
+
+(defvar mode-line-mode-menu-keymap nil
+  "Keymap for mode operations menu in the mode line.")
+
+(defun mode-line-unbury-buffer ()
+  "Switch to the last buffer in the buffer list that is not hidden."
+  (interactive)
+  (let ((list (reverse (buffer-list))))
+    (while (eq (sref (buffer-name (car list)) 0) ? )
+      (setq list (cdr list)))
+    (switch-to-buffer (car list))))
+
+(defun mode-line-other-buffer ()
+  "Switch to the most recently selected buffer other than the current one."
+  (interactive)
+  (switch-to-buffer (other-buffer)))
+
+(defun mode-line-mode-menu-1 (event)
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (let* ((selection (mode-line-mode-menu event))
+	   (binding (and selection (lookup-key mode-line-mode-menu
+					       (vector (car selection))))))
+      (if binding
+	  (call-interactively binding)))))
+
+(defun mode-line-mode-name ()
+  "Return a string to display in the mode line for the current mode name."
+  (let (length (result mode-name))
+    (when mode-line-mouse-sensitive-p
+      (let ((local-map (get-text-property 0 'local-map result))
+	    (help-echo (get-text-property 0 'help-echo result)))
+	(setq result (copy-sequence result))
+	;; Add `local-map' property if there isn't already one.
+	(when (and (null local-map)
+		   (null (next-single-property-change 0 'local-map result)))
+	  (put-text-property 0 (length result)
+			     'local-map mode-line-minor-mode-keymap result))
+	;; Add `help-echo' property if there isn't already one.
+	(when (and (null help-echo)
+		   (null (next-single-property-change 0 'help-echo result)))
+	  (put-text-property 0 (length result)
+			     'help-echo "mouse-3: minor mode menu" result))))
+    result))
+
+(defvar mode-line-mouse-sensitive-p nil
+  "Non-nil means mode line has been made mouse-sensitive.")
+
+(defun make-mode-line-mouse-sensitive ()
+  (when (and window-system
+	     (not mode-line-mouse-sensitive-p))
+    (setq mode-line-mouse-sensitive-p t)
+    (require 'easymenu)
+    (easy-menu-define mode-line-mode-menu mode-line-mode-menu-keymap
+       "Menu of mode operations in the mode line."
+       '("Minor Modes"
+	 ["Abbrev" abbrev-mode :active t :style toggle
+	  :selected abbrev-mode]
+	 ["Auto revert" auto-revert-mode :active t :style toggle
+	  :selected auto-revert-mode]
+	 ["Auto-fill" auto-fill-mode :active t :style toggle
+	  :selected auto-fill-function]
+	 ["Column number" column-number-mode :active t :style toggle
+	  :selected column-number-mode]
+	 ["Flyspell" flyspell-mode :active t :style toggle
+	  :selected flyspell-mode]
+	 ["Font-lock" font-lock-mode :active t :style toggle
+	  :selected font-lock-mode]
+	 ["Hide ifdef" hide-ifdef-mode :active t :style toggle
+	  :selected hide-ifdef-mode]
+	 ["Highlight changes" highlight-changes-mode :active t :style toggle
+	  :selected highlight-changes-mode]
+	 ["Line number" line-number-mode :active t :style toggle
+	  :selected line-number-mode]
+	 ["Outline" outline-minor-mode :active t :style toggle
+	  :selected outline-minor-mode]
+	 ["Overwrite" overwrite-mode :active t :style toggle
+	  :selected overwrite-mode]))
+
+    ;; Add menu of buffer operations to the buffer identification part
+    ;; of the mode line.
+    (let ((map (make-sparse-keymap))
+	  (s (copy-sequence "%12b")))
+      (define-key map [mode-line mouse-1] 'mode-line-other-buffer)
+      (define-key map [top-line mouse-1] 'mode-line-other-buffer)
+      (define-key map [mode-line M-mouse-2] 'mode-line-unbury-buffer)
+      (define-key map [top-line M-mouse-2] 'mode-line-unbury-buffer)
+      (define-key map [mode-line mouse-2] 'bury-buffer)
+      (define-key map [top-line mouse-2] 'bury-buffer)
+      (define-key map [mode-line down-mouse-3] 'mouse-buffer-menu)
+      (define-key map [top-line down-mouse-3] 'mouse-buffer-menu)
+      (setq mode-line-buffer-identification-keymap map)
+      (setq-default mode-line-buffer-identification (list s))
+      (put-text-property 0 (length s) 'face '(:weight bold) s)
+      (put-text-property 0 (length s) 'help-echo
+			 "mouse-1: other buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu" s)
+      (put-text-property 0 (length s) 'local-map map s))
+
+    ;; Menu of minor modes.
+    (let ((map (make-sparse-keymap)))
+      (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+      (define-key map [top-line down-mouse-3] 'mode-line-mode-menu-1)
+      (setq mode-line-minor-mode-keymap map))
+    
+    (force-mode-line-update)))
+
 
 ;; These variables are used by autoloadable packages.
 ;; They are defined here so that they do not get overridden
