@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.30 2002/11/12 19:46:47 rost Exp $
+;; $Id: vc-rcs.el,v 1.31 2002/11/13 12:38:20 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -400,12 +400,24 @@ whether to remove it."
 		   ;; the writable workfile.
 		   (if (eq (vc-checkout-model file) 'implicit) "-f")
 		   (if editable "-l")
-		   (if rev (concat "-r" rev)
-		     ;; if no explicit revision was specified,
-		     ;; check out that of the working file
-		     (let ((workrev (vc-workfile-version file)))
-		       (if workrev (concat "-r" workrev)
-			 nil)))
+                   (if (stringp rev)
+                       ;; a literal revision was specified
+                       (concat "-r" rev)
+                     (let ((workrev (vc-workfile-version file)))
+                       (if workrev
+                           (concat "-r" 
+                                   (if (not rev)
+                                       ;; no revision specified:
+                                       ;; use current workfile version
+                                       workrev
+                                     ;; REV is t ...
+                                     (if (vc-branch-p workrev)
+                                         ;; ... go to head of current branch
+                                         (vc-branch-part workrev)
+                                       ;; ... go to head of trunk
+                                       (vc-rcs-set-default-branch file
+                                                                  nil)
+                                       ""))))))
 		   switches)
 	    ;; determine the new workfile version
 	    (with-current-buffer "*vc*"
