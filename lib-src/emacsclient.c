@@ -90,7 +90,7 @@ decode_options (argc, argv)
 	  break;
 
 	case 'V':
-	  fprintf (stderr, "Version %s\n", VERSION);
+	  fprintf (stderr, "emacsclient %s\n", VERSION);
 	  exit (1);
 	  break;
 
@@ -108,7 +108,7 @@ print_help_and_exit ()
 	   "Usage: %s [-n] [--no-wait] [+LINENUMBER] FILENAME\n",
 	   progname);
   fprintf (stderr,
-	   "Report bugs to bug-gnu-emacs@prep.ai.mit.edu.\n");
+	   "Report bugs to bug-gnu-emacs@gnu.org.\n");
   exit (1);
 }
 
