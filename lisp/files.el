@@ -3024,7 +3024,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 
 (defcustom before-save-hook nil
   "Normal hook that is run before a buffer is saved to its file."
-  :options '(copyright-update)
+  :options '(copyright-update time-stamp)
   :type 'hook
   :group 'files)
 
