@@ -222,10 +222,10 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 (defun iso-transl-define-keys (alist)
   (while alist
     (let ((translated-vec
-	   (if enable-multibyte-characters
-	       (vector (+ (aref (cdr (car alist)) 0)
-			  nonascii-insert-offset))
-	     (cdr (car alist)))))
+	   (let ((val (cdr (car alist))))
+	     (if (and enable-multibyte-characters (>= (aref val 0) ?\200))
+		 (vector (+ (aref val 0) nonascii-insert-offset))
+	       val))))
       (define-key iso-transl-ctl-x-8-map (car (car alist)) translated-vec)
       (let ((inchar (aref (car (car alist)) 0))
 	    (vec (vconcat (car (car alist))))
