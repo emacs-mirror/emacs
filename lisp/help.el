@@ -56,6 +56,9 @@
 (define-key help-map "\C-n" 'view-emacs-news)
 (define-key help-map "n" 'view-emacs-news)
 
+(define-key help-map "p" 'finder-by-keyword)
+(autoload 'finder-by-keyword "finder.el")
+
 (define-key help-map "s" 'describe-syntax)
 
 (define-key help-map "t" 'help-with-tutorial)
@@ -216,6 +219,7 @@ L  view-lossage.  Shows last 100 characters you typed.
 M  describe-mode.  Print documentation of current major mode,
 	      which describes the commands peculiar to it.
 N  view-emacs-news.  Shows emacs news file.
+P  finder-by-keyword. Find packages matching a given topic keyword.
 S  describe-syntax.  Display contents of syntax table, plus explanations
 T  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
 V  describe-variable.  Type name of a variable;
@@ -228,7 +232,7 @@ C-n print news of recent Emacs changes.
 C-w print information on absence of warranty for GNU Emacs."
   (interactive)
   (message (substitute-command-keys
- "A B C F I K L M N S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "))
+ "A B C F I K L M N P S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "))
   (let ((char (read-char)))
     (if (or (= char help-char) (= char ??))
 	(save-window-excursion
@@ -242,7 +246,7 @@ C-w print information on absence of warranty for GNU Emacs."
 		(scroll-up))
 	    (if (memq char '(?\177 ?\M-v))
 		(scroll-down))
-	    (message "A B C F I K L M N S T V W C-c C-d C-n C-w%s: "
+	    (message "A B C F I K L M N P S T V W C-c C-d C-n C-w%s: "
 		     (if (pos-visible-in-window-p (point-max))
 			 "" " or Space to scroll"))
 	    (let ((cursor-in-echo-area t))
