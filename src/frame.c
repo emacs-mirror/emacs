@@ -166,6 +166,7 @@ make_frame (mini_p)
   f->scroll_bars = Qnil;
   f->condemned_scroll_bars = Qnil;
   f->face_alist = Qnil;
+  f->menu_bar_items = Qnil;
 
   root_window = make_window ();
   if (mini_p)
