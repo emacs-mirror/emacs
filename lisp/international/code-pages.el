@@ -139,11 +139,6 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
        cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))))
 )					; eval-after-load
 
-;; For `non-iso-charset-alist'.  Do this after redefining
-;; `cp-supported-codepages', which is called through loading
-;; mule-diag.
-(require 'mule-diag)
-
 ;; Macro to allow ccl compilation at byte-compile time, avoiding
 ;; loading ccl.
 ;;;###autoload
