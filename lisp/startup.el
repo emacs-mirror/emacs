@@ -296,12 +296,12 @@ is less convenient."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization)
 
-(defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-49]\\)"
+(defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-49]\\)\\>"
   "Regexp that specifies when to enable an ISO 8859-N character set.
 We do that if this regexp matches the locale name
 specified by the LC_ALL, LC_CTYPE and LANG environment variables.
 The paren group in the regexp should match the specific character
-set number, N.")
+set number, N.  Currently only Latin-[12345] is supported.")
 
 (defcustom mail-host-address nil
   "*Name of this machine, for purposes of naming users."
