@@ -1,3 +1,8 @@
+2002-12-08  Dave Love  <fx@gnu.org>
+
+	* international/ucs-tables.el: Add latin-jisx0201 characters.  Fix
+	translation-table-for-input for lao, thai, tibetan.
+
 2002-12-08  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (insert-directory): Insert free space only when
@@ -284,8 +289,9 @@
 
 2002-12-02  Fran,Ag(Bois Pinard  <pinard@iro.umontreal.ca>
 
-	* (makefile-font-lock-keywords): Highlight more make keywords:
-	defined, endef, override, export, unexport and vpath.
+	* progmodes/make-mode.el (makefile-font-lock-keywords): Highlight
+	more make keywords:  defined, endef, override, export, unexport
+	and vpath.
 
 2002-12-02  Dave Love  <fx@gnu.org>
 
