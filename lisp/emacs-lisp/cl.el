@@ -604,7 +604,7 @@ Keywords supported:  :test :test-not :key"
 	  ("cl-macs" t
 	   defun* defmacro* function* destructuring-bind eval-when
 	   load-time-value case ecase typecase etypecase
-	   block return return-from loop do do* do-symbols
+	   block return return-from loop do do* dolist dotimes do-symbols
 	   do-all-symbols psetq progv flet labels macrolet symbol-macrolet
 	   lexical-let lexical-let* multiple-value-bind multiple-value-setq
 	   locally the declare define-setf-method defsetf define-modify-macro
