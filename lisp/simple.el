@@ -2606,6 +2606,15 @@ Setting this variable automatically makes it local to the current buffer."
 		 regexp)
   :group 'fill)
 
+(defvar comment-line-break-function 'indent-new-comment-line
+  "*Mode-specific function which line breaks and continues a comment.
+
+This function is only called during auto-filling of a comment section.
+The function should take a single optional argument, which is a flag
+indicating whether it should use soft newlines.
+
+Setting this variable automatically makes it local to the current buffer.")
+
 ;; This function is the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
 ;; It returns t if it really did any work.
@@ -2705,10 +2714,10 @@ Setting this variable automatically makes it local to the current buffer."
 		(if (save-excursion
 		      (skip-chars-backward " \t")
 		      (= (point) fill-point))
-		    (indent-new-comment-line t)
+		    (funcall comment-line-break-function t)
 		  (save-excursion
 		    (goto-char fill-point)
-		    (indent-new-comment-line t)))
+		    (funcall comment-line-break-function t)))
 		;; Now do justification, if required
 		(if (not (eq justify 'left))
 		    (save-excursion 
