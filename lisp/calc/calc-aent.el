@@ -690,7 +690,7 @@ in Calc algebraic input.")
                           math-exp-pos)
 		      (or (eq math-exp-pos 0)
 			  (and (memq calc-language '(nil flat big unform
-							 tex eqn))
+							 tex latex eqn))
 			       (eq (string-match "[^])}\"a-zA-Z0-9'$]_"
 						 math-exp-str (1- math-exp-pos))
 				   (1- math-exp-pos))))))
@@ -746,7 +746,7 @@ in Calc algebraic input.")
 	       (setq math-exp-token 'string
 		     math-expr-data (math-match-substring math-exp-str 1)
 		     math-exp-pos (match-end 0))))
-	    ((and (= ch ?\\) (eq calc-language 'tex)
+	    ((and (= ch ?\\) (memq calc-language '(tex latex))
 		  (< math-exp-pos (1- (length math-exp-str))))
 	     (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}" 
                                math-exp-str math-exp-pos)
@@ -800,11 +800,11 @@ in Calc algebraic input.")
 	     (setq math-exp-pos (match-end 0))
 	     (math-read-token))
 	    (t
-	     (if (and (eq ch ?\{) (memq calc-language '(tex eqn)))
+	     (if (and (eq ch ?\{) (memq calc-language '(tex latex eqn)))
 		 (setq ch ?\())
-	     (if (and (eq ch ?\}) (memq calc-language '(tex eqn)))
+	     (if (and (eq ch ?\}) (memq calc-language '(tex latex eqn)))
 		 (setq ch ?\)))
-	     (if (and (eq ch ?\&) (eq calc-language 'tex))
+	     (if (and (eq ch ?\&) (memq calc-language '(tex latex)))
 		 (setq ch ?\,))
 	     (setq math-exp-token 'punc
 		   math-expr-data (char-to-string ch)
