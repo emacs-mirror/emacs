@@ -101,6 +101,7 @@ struct buffer buffer_local_types;
 Lisp_Object Fset_buffer ();
 void set_buffer_internal ();
 static void call_overlay_mod_hooks ();
+static void swap_out_buffer_local_variables ();
 
 /* Alist of all buffer names vs the buffers. */
 /* This used to be a variable, but is no longer,
@@ -1010,6 +1011,13 @@ with `delete-process'.")
       /* Perhaps we should explicitly free the interval tree here... */
     }
 
+  /* Reset the local variables, so that this buffer's local values
+     won't be protected from GC.  They would be protected
+     if they happened to remain encached in their symbols.
+     This gets rid of them for certain.  */
+  swap_out_buffer_local_variables (b);
+  reset_buffer_local_variables (b);
+
   b->name = Qnil;
 
   BLOCK_INPUT;
@@ -1445,37 +1453,10 @@ the normal hook `change-major-mode-hook'.")
     call1 (Vrun_hooks, intern ("change-major-mode-hook"));
   oalist = current_buffer->local_var_alist;
 
-  /* Make sure no local variables remain set up with this buffer
-     for their current values.  */
+  /* Make sure none of the bindings in oalist
+     remain swapped in, in their symbols.  */
 
-  for (alist = oalist; !NILP (alist); alist = XCONS (alist)->cdr)
-    {
-      sym = XCONS (XCONS (alist)->car)->car;
-
-      /* Need not do anything if some other buffer's binding is now encached.  */
-      tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car;
-      if (XBUFFER (tem) == current_buffer)
-	{
-	  /* Symbol is set up for this buffer's old local value.
-	     Set it up for the current buffer with the default value.  */
-
-	  tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->cdr;
-	  /* Store the symbol's current value into the alist entry
-	     it is currently set up for.  This is so that, if the
-	     local is marked permanent, and we make it local again below,
-	     we don't lose the value.  */
-	  XCONS (XCONS (tem)->car)->cdr
-	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car);
-	  /* Switch to the symbol's default-value alist entry.  */
-	  XCONS (tem)->car = tem;
-	  /* Mark it as current for the current buffer.  */
-	  XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car
-	    = Fcurrent_buffer ();
-	  /* Store the current value into any forwarding in the symbol.  */
-	  store_symval_forwarding (sym, XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car,
-				   XCONS (tem)->cdr);
-	}
-    }
+  swap_out_buffer_local_variables (current_buffer);
 
   /* Actually eliminate all local bindings of this buffer.  */
 
@@ -1504,6 +1485,48 @@ the normal hook `change-major-mode-hook'.")
   update_mode_lines++;
 
   return Qnil;
+}
+
+/* Make sure no local variables remain set up with buffer B
+   for their current values.  */
+
+static void
+swap_out_buffer_local_variables (b)
+     struct buffer *b;
+{
+  Lisp_Object oalist, alist, sym, tem, buffer;
+
+  XSETBUFFER (buffer, b);
+  oalist = b->local_var_alist;
+
+  for (alist = oalist; !NILP (alist); alist = XCONS (alist)->cdr)
+    {
+      sym = XCONS (XCONS (alist)->car)->car;
+
+      /* Need not do anything if some other buffer's binding is now encached.  */
+      tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car;
+      if (XBUFFER (tem) == current_buffer)
+	{
+	  /* Symbol is set up for this buffer's old local value.
+	     Set it up for the current buffer with the default value.  */
+
+	  tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->cdr;
+	  /* Store the symbol's current value into the alist entry
+	     it is currently set up for.  This is so that, if the
+	     local is marked permanent, and we make it local again
+	     later in Fkill_all_local_variables, we don't lose the value.  */
+	  XCONS (XCONS (tem)->car)->cdr
+	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car);
+	  /* Switch to the symbol's default-value alist entry.  */
+	  XCONS (tem)->car = tem;
+	  /* Mark it as current for buffer B.  */
+	  XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car
+	    = buffer;
+	  /* Store the current value into any forwarding in the symbol.  */
+	  store_symval_forwarding (sym, XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car,
+				   XCONS (tem)->cdr);
+	}
+    }
 }
 
 /* Find all the overlays in the current buffer that contain position POS.
