@@ -1,3 +1,8 @@
+2002-03-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* help.el (describe-key-briefly, describe-key): Interpret
+	`undefined' like not defined at all.
+
 2002-03-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/sgml-mode.el: Change maintainer to FSF.
