@@ -1,5 +1,27 @@
 1999-12-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* msdos.c (dos_set_window_size) [__DJGPP__ > 1]: If the frame
+	dimensions changed, invalidate the mouse highlight info.
+	(disable_mouse_highlight, help_echo, previous_help_echo): New
+	variables.
+	(IT_set_mouse_pointer, show_mouse_face, clear_mouse_face)
+	(fast_find_position, IT_note_mode_line_highlight)
+	(IT_note_mouse_highlight): New functions.
+	(IT_update_begin): If the redisplay affects the window where the
+	mouse highlight is, clear the highlight.  If the frame where the
+	highlight was displayed was killed, invalidate the highlight
+	info.
+	(IT_update_end): Reset the highlight flag.  Reset the mouse
+	highlight-defer flag.
+	(IT_frame_up_to_date): New function, if mouse highlight was
+	deferred due to GC, do it now.
+	(internal_terminal_init): Initialize mouse-highlight related
+	members of the_only_x_display.  Assign IT_frame_up_to_date to
+	frame_up_to_date_hook.
+	(dos_rawgetc): If the mouse moved, update mouse highlight.  If
+	help_echo changed value, generate a HELP_EVENT event.
+	(syms_of_msdos): Staticpro help_echo and previous_help_echo.
+
 	* msdos.h (struct display_info): New.
 	(struct x_output): Add the display_info member.
 	(FRAME_X_DISPLAY_INFO): New macro.

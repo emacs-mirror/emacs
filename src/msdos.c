@@ -60,6 +60,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "buffer.h"
 #include "commands.h"
+#include "blockinput.h"
 #include <go32.h>
 #include <pc.h>
 #include <ctype.h>
@@ -611,6 +612,23 @@ dos_set_window_size (rows, cols)
   *rows = ScreenRows ();
   *cols = ScreenCols ();
 
+#if __DJGPP__ > 1
+  /* If the dimensions changed, the mouse highlight info is invalid.  */
+  if (current_rows != *rows || current_cols != *cols)
+    {
+      struct frame *f = SELECTED_FRAME();
+      struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      Lisp_Object window = dpyinfo->mouse_face_window;
+
+      if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
+	{
+	  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+	  dpyinfo->mouse_face_window = Qnil;
+	}
+    }
+#endif
+
   /* Enable bright background colors.  */
   bright_bg ();
 
@@ -930,6 +948,548 @@ IT_write_glyphs (struct glyph *str, int str_len)
     }
 }
 
+/************************************************************************
+			  Mouse Highlight (and friends..)
+ ************************************************************************/
+
+/* This is used for debugging, to turn off note_mouse_highlight.  */
+int disable_mouse_highlight;
+
+/* If a string, dos_rawgetc generates an event to display that string.
+   (The display is done in keyboard.c:read_char.)  */
+static Lisp_Object help_echo;
+static Lisp_Object previous_help_echo; /* a helper temporary variable */
+
+static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
+
+/* Set the mouse pointer shape according to whether it is in the
+   area where the mouse highlight is in effect.  */
+static void
+IT_set_mouse_pointer (int mode)
+{
+  /* A no-op for now.  DOS text-mode mouse pointer doesn't offer too
+     many possibilities to change its shape, and the available
+     functionality pretty much sucks (e.g., almost every reasonable
+     shape will conceal the character it is on).  Since the color of
+     the pointer changes in the highlighted area, it is not clear to
+     me whether anything else is required, anyway.  */
+}
+
+/* Display the active region described by mouse_face_*
+   in its mouse-face if HL > 0, in its normal face if HL = 0.  */
+static void
+show_mouse_face (struct display_info *dpyinfo, int hl)
+{
+  struct window *w = XWINDOW (dpyinfo->mouse_face_window);
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  int i;
+  struct face *fp;
+
+  
+  /* If window is in the process of being destroyed, don't bother
+     doing anything.  */
+  if (w->current_matrix == NULL)
+    goto set_cursor_shape;
+
+  /* Recognize when we are called to operate on rows that don't exist
+     anymore.  This can happen when a window is split.  */
+  if (dpyinfo->mouse_face_end_row >= w->current_matrix->nrows)
+    goto set_cursor_shape;
+
+  /* There's no sense to do anything if the mouse face isn't realized.  */
+  if (hl > 0)
+    {
+      fp = FACE_FROM_ID (SELECTED_FRAME(), dpyinfo->mouse_face_face_id);
+      if (!fp)
+	goto set_cursor_shape;
+    }
+
+  /* Note that mouse_face_beg_row etc. are window relative.  */
+  for (i = dpyinfo->mouse_face_beg_row;
+       i <= dpyinfo->mouse_face_end_row;
+       i++)
+    {
+      int start_hpos, end_hpos;
+      struct glyph_row *row = MATRIX_ROW (w->current_matrix, i);
+
+      /* Don't do anything if row doesn't have valid contents.  */
+      if (!row->enabled_p)
+	continue;
+
+      /* For all but the first row, the highlight starts at column 0.  */
+      if (i == dpyinfo->mouse_face_beg_row)
+	start_hpos = dpyinfo->mouse_face_beg_col;
+      else
+	start_hpos = 0;
+
+      if (i == dpyinfo->mouse_face_end_row)
+	end_hpos = dpyinfo->mouse_face_end_col;
+      else
+	end_hpos = row->used[TEXT_AREA];
+
+      if (end_hpos <= start_hpos)
+	continue;
+      if (hl > 0)
+	{
+	  int vpos = row->y + WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
+	  int kstart = start_hpos + WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
+	  int nglyphs = end_hpos - start_hpos;
+	  int offset = ScreenPrimary + 2*(vpos*screen_size_X + kstart) + 1;
+	  int start_offset = offset;
+
+	  if (termscript)
+	    fprintf (termscript, "\n<MH+ %d-%d:%d>",
+		     kstart, kstart + nglyphs - 1, vpos);
+
+	  mouse_off ();
+	  IT_set_face (dpyinfo->mouse_face_face_id);
+	  /* Since we are going to change only the _colors_ of the
+	     displayed text, there's no need to go through all the
+	     pain of generating and encoding the text from the glyphs.
+	     Instead, we simply poke the attribute byte of each
+	     affected position in video memory with the colors
+	     computed by IT_set_face!  */
+	  _farsetsel (_dos_ds);
+	  while (nglyphs--)
+	    {
+	      _farnspokeb (offset, ScreenAttrib);
+	      offset += 2;
+	    }
+	  if (screen_virtual_segment)
+	    dosv_refresh_virtual_screen (start_offset, end_hpos - start_hpos);
+	  mouse_on ();
+	}
+      else
+	{
+	  /* We are removing a previously-drawn mouse highlight.  The
+	     safest way to do so is to redraw the glyphs anew, since
+	     all kinds of faces and display tables could have changed
+	     behind our back.  */
+	  int nglyphs = end_hpos - start_hpos;
+	  int save_x = new_pos_X, save_y = new_pos_Y;
+
+	  if (end_hpos >= row->used[TEXT_AREA])
+	    nglyphs = row->used[TEXT_AREA] - start_hpos;
+
+	  /* IT_write_glyphs writes at cursor position, so we need to
+	     temporarily move cursor coordinates to the beginning of
+	     the highlight region.  */
+	  new_pos_X = start_hpos + WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
+	  new_pos_Y = row->y + WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
+
+	  if (termscript)
+	    fprintf (termscript, "<MH- %d-%d:%d>",
+		     new_pos_X, new_pos_X + nglyphs - 1, new_pos_Y);
+	  IT_write_glyphs (row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
+	  if (termscript)
+	    fputs ("\n", termscript);
+	  new_pos_X = save_x;
+	  new_pos_Y = save_y;
+	}
+    }
+
+ set_cursor_shape:
+  
+  /* Change the mouse pointer shape.  */
+  IT_set_mouse_pointer (hl);
+}
+
+/* Clear out the mouse-highlighted active region.
+   Redraw it un-highlighted first.  */
+static void
+clear_mouse_face (struct display_info *dpyinfo)
+{
+  if (! NILP (dpyinfo->mouse_face_window))
+    show_mouse_face (dpyinfo, 0);
+
+  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+  dpyinfo->mouse_face_window = Qnil;
+}
+
+/* Find the glyph matrix position of buffer position POS in window W.
+   *HPOS and *VPOS are set to the positions found.  W's current glyphs
+   must be up to date.  If POS is above window start return (0, 0).
+   If POS is after end of W, return end of last line in W.  */
+static int
+fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
+{
+  int i;
+  int lastcol;
+  int maybe_next_line_p = 0;
+  int line_start_position;
+  int yb = window_text_bottom_y (w);
+  struct glyph_row *row = MATRIX_ROW (w->current_matrix, 0);
+  struct glyph_row *best_row = row;
+
+  while (row->y < yb)
+    {
+      if (row->used[TEXT_AREA])
+	line_start_position = row->glyphs[TEXT_AREA]->charpos;
+      else
+	line_start_position = 0;
+
+      if (line_start_position > pos)
+	break;
+      /* If the position sought is the end of the buffer,
+	 don't include the blank lines at the bottom of the window.  */
+      else if (line_start_position == pos
+	       && pos == BUF_ZV (XBUFFER (w->buffer)))
+	{
+	  maybe_next_line_p = 1;
+	  break;
+	}
+      else if (line_start_position > 0)
+	best_row = row;
+      
+      ++row;
+    }
+  
+  /* Find the right column within BEST_ROW.  */
+  lastcol = 0;
+  row = best_row;
+  for (i = 0; i < row->used[TEXT_AREA]; i++)
+    {
+      struct glyph *glyph = row->glyphs[TEXT_AREA] + i;
+      int charpos;
+
+      charpos = glyph->charpos;
+      if (charpos == pos)
+	{
+	  *hpos = i;
+	  *vpos = row->y;
+	  return 1;
+	}
+      else if (charpos > pos)
+	break;
+      else if (charpos > 0)
+	lastcol = i;
+    }
+
+  /* If we're looking for the end of the buffer,
+     and we didn't find it in the line we scanned,
+     use the start of the following line.  */
+  if (maybe_next_line_p)
+    {
+      ++row;
+      lastcol = 0;
+    }
+
+  *vpos = row->y;
+  *hpos = lastcol + 1;
+  return 0;
+}
+
+/* Take proper action when mouse has moved to the mode or top line of
+   window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
+   mode line.  X is relative to the start of the text display area of
+   W, so the width of bitmap areas and scroll bars must be subtracted
+   to get a position relative to the start of the mode line.  */
+static void
+IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
+{
+  struct frame *f = XFRAME (w->frame);
+  struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct glyph_row *row;
+
+  if (mode_line_p)
+    row = MATRIX_MODE_LINE_ROW (w->current_matrix);
+  else
+    row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
+  
+  if (row->enabled_p)
+    {
+      extern Lisp_Object Qhelp_echo;
+      struct glyph *glyph, *end;
+      Lisp_Object help, map;
+      
+      /* Find the glyph under X.  */
+      glyph = row->glyphs[TEXT_AREA]
+	+ x - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f);
+      end = glyph + row->used[TEXT_AREA];
+      if (glyph < end
+	  && STRINGP (glyph->object)
+	  && XSTRING (glyph->object)->intervals
+	  && glyph->charpos >= 0
+	  && glyph->charpos < XSTRING (glyph->object)->size)
+	{
+	  /* If we're on a string with `help-echo' text property,
+	     arrange for the help to be displayed.  This is done by
+	     setting the global variable help_echo to the help string.  */
+	  help = Fget_text_property (make_number (glyph->charpos),
+				     Qhelp_echo, glyph->object);
+	  if (STRINGP (help))
+	    help_echo = help;
+	}
+    }
+}
+
+/* Take proper action when the mouse has moved to position X, Y on
+   frame F as regards highlighting characters that have mouse-face
+   properties.  Also de-highlighting chars where the mouse was before.
+   X and Y can be negative or out of range.  */
+static void
+IT_note_mouse_highlight (struct frame *f, int x, int y)
+{
+  struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int portion;
+  Lisp_Object window;
+  struct window *w;
+
+  /* When a menu is active, don't highlight because this looks odd.  */
+  if (mouse_preempted)
+    return;
+
+  if (disable_mouse_highlight)
+    return;
+
+  dpyinfo->mouse_face_mouse_x = x;
+  dpyinfo->mouse_face_mouse_y = y;
+  dpyinfo->mouse_face_mouse_frame = f;
+
+  if (dpyinfo->mouse_face_defer)
+    return;
+
+  if (gc_in_progress)
+    {
+      dpyinfo->mouse_face_deferred_gc = 1;
+      return;
+    }
+
+  /* Which window is that in?  */
+  window = window_from_coordinates (f, x, y, &portion, 0);
+
+  /* If we were displaying active text in another window, clear that.  */
+  if (! EQ (window, dpyinfo->mouse_face_window))
+    clear_mouse_face (dpyinfo);
+
+  /* Not on a window -> return.  */
+  if (!WINDOWP (window))
+    return;
+
+  /* Convert to window-relative coordinates.  */
+  w = XWINDOW (window);
+  x -= WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
+  y -= WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
+
+  if (portion == 1 || portion == 3)
+    {
+      /* Mouse is on the mode or top line.  */
+      IT_note_mode_line_highlight (w, x, portion == 1);
+      return;
+    }
+  else
+    IT_set_mouse_pointer (0);
+
+  /* Are we in a window whose display is up to date?
+     And verify the buffer's text has not changed.  */
+  if (/* Within text portion of the window.  */
+      portion == 0
+      && EQ (w->window_end_valid, w->buffer)
+      && XFASTINT (w->last_modified) == BUF_MODIFF (XBUFFER (w->buffer))
+      && (XFASTINT (w->last_overlay_modified)
+	  == BUF_OVERLAY_MODIFF (XBUFFER (w->buffer))))
+    {
+      int pos, i, area;
+      struct glyph_row *row;
+      struct glyph *glyph;
+
+      /* Find the glyph under X/Y.  */
+      glyph = NULL;
+      if (y < w->current_matrix->nrows)
+	{
+	  row = MATRIX_ROW (w->current_matrix, y);
+	  if (row->enabled_p
+	      && row->displays_text_p
+	      && x <  window_box_width (w, TEXT_AREA))
+	    {
+	      glyph = row->glyphs[TEXT_AREA];
+	      if (x >= row->used[TEXT_AREA])
+		glyph = NULL;
+	      else
+		{
+		  glyph += x;
+		  if (!BUFFERP (glyph->object))
+		    glyph = NULL;
+		}
+	    }
+	}
+
+      /* Clear mouse face if X/Y not over text.  */
+      if (glyph == NULL)
+	{
+	  clear_mouse_face (dpyinfo);
+	  return;
+	}
+
+      if (!BUFFERP (glyph->object))
+	abort ();
+      pos = glyph->charpos;
+
+      /* Check for mouse-face and help-echo.  */
+      {
+	extern Lisp_Object Qmouse_face;
+	Lisp_Object mouse_face, overlay, position;
+	Lisp_Object *overlay_vec;
+	int len, noverlays;
+	struct buffer *obuf;
+	int obegv, ozv;
+
+	/* If we get an out-of-range value, return now; avoid an error.  */
+	if (pos > BUF_Z (XBUFFER (w->buffer)))
+	  return;
+
+	/* Make the window's buffer temporarily current for
+	   overlays_at and compute_char_face.  */
+	obuf = current_buffer;
+	current_buffer = XBUFFER (w->buffer);
+	obegv = BEGV;
+	ozv = ZV;
+	BEGV = BEG;
+	ZV = Z;
+
+	/* Is this char mouse-active or does it have help-echo?  */
+	XSETINT (position, pos);
+
+	/* Put all the overlays we want in a vector in overlay_vec.
+	   Store the length in len.  If there are more than 10, make
+	   enough space for all, and try again.  */
+	len = 10;
+	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL);
+	if (noverlays > len)
+	  {
+	    len = noverlays;
+	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL);
+	  }
+	  
+	noverlays = sort_overlays (overlay_vec, noverlays, w);
+
+	/* Check mouse-face highlighting.  */
+	if (! (EQ (window, dpyinfo->mouse_face_window)
+	       && y >= dpyinfo->mouse_face_beg_row
+	       && y <= dpyinfo->mouse_face_end_row
+	       && (y > dpyinfo->mouse_face_beg_row
+		   || x >= dpyinfo->mouse_face_beg_col)
+	       && (y < dpyinfo->mouse_face_end_row
+		   || x < dpyinfo->mouse_face_end_col
+		   || dpyinfo->mouse_face_past_end)))
+	  {
+	    /* Clear the display of the old active region, if any.  */
+	    clear_mouse_face (dpyinfo);
+
+	    /* Find highest priority overlay that has a mouse-face prop.  */
+	    overlay = Qnil;
+	    for (i = 0; i < noverlays; i++)
+	      {
+		mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
+		if (!NILP (mouse_face))
+		  {
+		    overlay = overlay_vec[i];
+		    break;
+		  }
+	      }
+
+	    /* If no overlay applies, get a text property.  */
+	    if (NILP (overlay))
+	      mouse_face = Fget_text_property (position, Qmouse_face,
+					       w->buffer);
+
+	    /* Handle the overlay case.  */
+	    if (! NILP (overlay))
+	      {
+		/* Find the range of text around this char that
+		   should be active.  */
+		Lisp_Object before, after;
+		int ignore;
+
+		before = Foverlay_start (overlay);
+		after = Foverlay_end (overlay);
+		/* Record this as the current active region.  */
+		fast_find_position (w, XFASTINT (before),
+				    &dpyinfo->mouse_face_beg_col,
+				    &dpyinfo->mouse_face_beg_row);
+		dpyinfo->mouse_face_past_end
+		  = !fast_find_position (w, XFASTINT (after),
+					 &dpyinfo->mouse_face_end_col,
+					 &dpyinfo->mouse_face_end_row);
+		dpyinfo->mouse_face_window = window;
+		dpyinfo->mouse_face_face_id
+		  = face_at_buffer_position (w, pos, 0, 0,
+					     &ignore, pos + 1, 1);
+
+		/* Display it as active.  */
+		show_mouse_face (dpyinfo, 1);
+	      }
+	    /* Handle the text property case.  */
+	    else if (! NILP (mouse_face))
+	      {
+		/* Find the range of text around this char that
+		   should be active.  */
+		Lisp_Object before, after, beginning, end;
+		int ignore;
+
+		beginning = Fmarker_position (w->start);
+		XSETINT (end, (BUF_Z (XBUFFER (w->buffer))
+			       - XFASTINT (w->window_end_pos)));
+		before
+		  = Fprevious_single_property_change (make_number (pos + 1),
+						      Qmouse_face,
+						      w->buffer, beginning);
+		after
+		  = Fnext_single_property_change (position, Qmouse_face,
+						  w->buffer, end);
+		/* Record this as the current active region.  */
+		fast_find_position (w, XFASTINT (before),
+				    &dpyinfo->mouse_face_beg_col,
+				    &dpyinfo->mouse_face_beg_row);
+		dpyinfo->mouse_face_past_end
+		  = !fast_find_position (w, XFASTINT (after),
+					 &dpyinfo->mouse_face_end_col,
+					 &dpyinfo->mouse_face_end_row);
+		dpyinfo->mouse_face_window = window;
+		dpyinfo->mouse_face_face_id
+		  = face_at_buffer_position (w, pos, 0, 0,
+					     &ignore, pos + 1, 1);
+
+		/* Display it as active.  */
+		show_mouse_face (dpyinfo, 1);
+	      }
+	  }
+
+	/* Look for a `help-echo' property.  */
+	{
+	  Lisp_Object help;
+	  extern Lisp_Object Qhelp_echo;
+
+	  /* Check overlays first.  */
+	  help = Qnil;
+	  for (i = 0; i < noverlays && !STRINGP (help); ++i)
+	    help = Foverlay_get (overlay_vec[i], Qhelp_echo); 
+	    
+	  /* Try text properties.  */
+	  if (!STRINGP (help)
+	      && ((STRINGP (glyph->object)
+		   && glyph->charpos >= 0
+		   && glyph->charpos < XSTRING (glyph->object)->size)
+		  || (BUFFERP (glyph->object)
+		      && glyph->charpos >= BEGV
+		      && glyph->charpos < ZV)))
+	    help = Fget_text_property (make_number (glyph->charpos),
+				       Qhelp_echo, glyph->object);
+
+	  if (STRINGP (help))
+	    help_echo = help;
+	}
+	  
+	BEGV = obegv;
+	ZV = ozv;
+	current_buffer = obuf;
+      }
+    }
+}
+
 static void
 IT_clear_end_of_line (int first_unused)
 {
@@ -1117,14 +1677,81 @@ IT_change_line_highlight (int new_highlight, int y, int vpos, int first_unused_h
 }
 
 static void
-IT_update_begin (struct frame *foo)
+IT_update_begin (struct frame *f)
 {
+  struct display_info *display_info = FRAME_X_DISPLAY_INFO (f);
+  
   highlight = 0;
+
+  BLOCK_INPUT;
+
+  if (f == display_info->mouse_face_mouse_frame)
+    {
+      /* Don't do highlighting for mouse motion during the update.  */
+      display_info->mouse_face_defer = 1;
+
+      /* If F needs to be redrawn, simply forget about any prior mouse
+	 highlighting.  */
+      if (FRAME_GARBAGED_P (f))
+	display_info->mouse_face_window = Qnil;
+
+      /* Can we tell that this update does not affect the window
+	 where the mouse highlight is?  If so, no need to turn off.
+	 Likewise, don't do anything if the frame is garbaged;
+	 in that case, the frame's current matrix that we would use
+	 is all wrong, and we will redisplay that line anyway.  */
+      if (!NILP (display_info->mouse_face_window))
+	{
+	  struct window *w = XWINDOW (display_info->mouse_face_window);
+	  int i;
+
+	  for (i = 0; i < w->desired_matrix->nrows; ++i)
+	    if (MATRIX_ROW_ENABLED_P (w->desired_matrix, i))
+	      break;
+
+	  if (i < w->desired_matrix->nrows)
+	    clear_mouse_face (display_info);
+	}
+    }
+  else if (!FRAME_LIVE_P (display_info->mouse_face_mouse_frame))
+    {
+      /* If the frame with mouse highlight was deleted, invalidate the
+	 highlight info.  */
+      display_info->mouse_face_beg_row = display_info->mouse_face_beg_col = -1;
+      display_info->mouse_face_end_row = display_info->mouse_face_end_col = -1;
+      display_info->mouse_face_window = Qnil;
+      display_info->mouse_face_deferred_gc = 0;
+      display_info->mouse_face_mouse_frame = NULL;
+    }
+
+  UNBLOCK_INPUT;
 }
 
 static void
-IT_update_end (struct frame *foo)
+IT_update_end (struct frame *f)
 {
+  highlight = 0;
+  FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
+}
+
+static void
+IT_frame_up_to_date (struct frame *f)
+{
+  struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  if (dpyinfo->mouse_face_deferred_gc
+      || f == dpyinfo->mouse_face_mouse_frame)
+    {
+      BLOCK_INPUT;
+      if (dpyinfo->mouse_face_mouse_frame)
+	IT_note_mouse_highlight (dpyinfo->mouse_face_mouse_frame,
+				 dpyinfo->mouse_face_mouse_x,
+				 dpyinfo->mouse_face_mouse_y);
+      dpyinfo->mouse_face_deferred_gc = 0;
+      UNBLOCK_INPUT;
+    }
+
+  IT_cmgoto (f);  /* position cursor when update is done */
 }
 
 /* Copy LEN glyphs displayed on a single line whose vertical position
@@ -1581,6 +2208,17 @@ internal_terminal_init ()
     }
   the_only_x_display.line_height = 1;
   the_only_x_display.font = (XFontStruct *)1;   /* must *not* be zero */
+  the_only_x_display.display_info.mouse_face_mouse_frame = NULL;
+  the_only_x_display.display_info.mouse_face_deferred_gc = 0;
+  the_only_x_display.display_info.mouse_face_beg_row =
+    the_only_x_display.display_info.mouse_face_beg_col = -1;
+  the_only_x_display.display_info.mouse_face_end_row =
+    the_only_x_display.display_info.mouse_face_end_col = -1;
+  the_only_x_display.display_info.mouse_face_face_id = DEFAULT_FACE_ID;
+  the_only_x_display.display_info.mouse_face_window = Qnil;
+  the_only_x_display.display_info.mouse_face_mouse_x =
+    the_only_x_display.display_info.mouse_face_mouse_y = 0;
+  the_only_x_display.display_info.mouse_face_defer = 0;
 
   init_frame_faces (sf);
 
@@ -1596,7 +2234,7 @@ internal_terminal_init ()
   update_begin_hook = IT_update_begin;
   update_end_hook = IT_update_end;
   reassert_line_highlight_hook = IT_reassert_line_highlight;
-  frame_up_to_date_hook = IT_cmgoto; /* position cursor when update is done */
+  frame_up_to_date_hook = IT_frame_up_to_date;
 
   /* These hooks are called by term.c without being checked.  */
   set_terminal_modes_hook = IT_set_terminal_modes;
@@ -2150,7 +2788,6 @@ and then the scan code.")
 /* Get a char from keyboard.  Function keys are put into the event queue.  */
 
 extern void kbd_buffer_store_event (struct input_event *);
-static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
 static int
 dos_rawgetc ()
@@ -2381,9 +3018,29 @@ dos_rawgetc ()
   if (have_mouse > 0 && !mouse_preempted)
     {
       int but, press, x, y, ok;
+      int mouse_prev_x = mouse_last_x, mouse_prev_y = mouse_last_y;
 
       /* Check for mouse movement *before* buttons.  */
       mouse_check_moved ();
+
+      /* If the mouse moved from the spot of its last sighting, we
+         might need to update mouse highlight.  */
+      if (mouse_last_x != mouse_prev_x || mouse_last_y != mouse_prev_y)
+	{
+	  previous_help_echo = help_echo;
+	  help_echo = Qnil;
+	  IT_note_mouse_highlight (SELECTED_FRAME(),
+				   mouse_last_x, mouse_last_y);
+	  /* If the contents of the global variable help_echo has
+	     changed, generate a HELP_EVENT.  */
+	  if (STRINGP (help_echo) || STRINGP (previous_help_echo))
+	    {
+	      event.kind = HELP_EVENT;
+	      event.frame_or_window = Fcons (selected_frame, help_echo);
+	      event.timestamp = event_timestamp ();
+	      kbd_buffer_store_event (&event);
+	    }
+	}
 
       for (but = 0; but < NUM_MOUSE_BUTTONS; but++)
 	for (press = 0; press < 2; press++)
@@ -4173,6 +4830,11 @@ syms_of_msdos ()
   recent_doskeys = Fmake_vector (make_number (NUM_RECENT_DOSKEYS), Qnil);
   staticpro (&recent_doskeys);
 #ifndef HAVE_X_WINDOWS
+  staticpro (&help_echo);
+  help_echo = Qnil;
+  staticpro (&previous_help_echo);
+  previous_help_echo = Qnil;
+
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
     "List of directories to search for bitmap files for X.");
   Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
