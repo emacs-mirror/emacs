@@ -105,7 +105,9 @@ Alternatively, you can use Up/Down keys (or your History keys) to change
 the item in the minibuffer, and press RET when you are done, or press the 
 marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
 "
-  "What insert on top of completion buffer.")
+  "String to insert at top of completion buffer.
+If this is nil, delete even the usual help text
+and show just the alternatives.")
 
 ;;;###autoload
 (defun tmm-prompt (menu &optional in-popup default-item)
@@ -277,7 +279,11 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	  (display-completion-list completions)))
       (set-buffer "*Completions*")
       (goto-char 1)
-      (insert tmm-completion-prompt)
+      (if tmm-completion-prompt
+	  (insert tmm-completion-prompt)
+	;; Delete even the usual help info that all completion buffers have.
+	(goto-char 1)
+	(delete-region 1 (search-forward "Possible completions are:\n")))
       )
     (save-excursion
       (other-window 1)			; Electric-pop-up-window does
