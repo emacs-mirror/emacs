@@ -5575,73 +5575,6 @@ x_scroll_bar_clear (f)
 }
 
 
-/* Define a queue to save up SelectionRequest events for later handling.  */
-
-struct selection_event_queue
-  {
-    XEvent event;
-    struct selection_event_queue *next;
-  };
-
-static struct selection_event_queue *queue;
-
-/* Nonzero means queue up certain events--don't process them yet.  */
-
-static int x_queue_selection_requests;
-
-/* Queue up an X event *EVENT, to be processed later.  */
-
-static void
-x_queue_event (f, event)
-     FRAME_PTR f;
-     XEvent *event;
-{
-  struct selection_event_queue *queue_tmp
-    = (struct selection_event_queue *) xmalloc (sizeof (struct selection_event_queue));
-
-  if (queue_tmp != NULL)
-    {
-      queue_tmp->event = *event;
-      queue_tmp->next = queue;
-      queue = queue_tmp;
-    }
-}
-
-/* Take all the queued events and put them back
-   so that they get processed afresh.  */
-
-static void
-x_unqueue_events (display)
-     Display *display;
-{
-  while (queue != NULL)
-    {
-      struct selection_event_queue *queue_tmp = queue;
-      XPutBackEvent (display, &queue_tmp->event);
-      queue = queue_tmp->next;
-      xfree ((char *)queue_tmp);
-    }
-}
-
-/* Start queuing SelectionRequest events.  */
-
-void
-x_start_queuing_selection_requests (display)
-     Display *display;
-{
-  x_queue_selection_requests++;
-}
-
-/* Stop queuing SelectionRequest events.  */
-
-void
-x_stop_queuing_selection_requests (display)
-     Display *display;
-{
-  x_queue_selection_requests--;
-  x_unqueue_events (display);
-}
-
 /* The main X event-reading loop - XTread_socket.  */
 
 #if 0
@@ -6019,11 +5952,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       if (!x_window_to_frame (dpyinfo, event.xselectionrequest.owner))
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
-      if (x_queue_selection_requests)
-        x_queue_event (x_window_to_frame (dpyinfo, event.xselectionrequest.owner),
-                       &event);
-      else
-        {
+      {
           XSelectionRequestEvent *eventp
             = (XSelectionRequestEvent *) &event;
 
@@ -6035,7 +5964,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           SELECTION_EVENT_PROPERTY (&inev) = eventp->property;
           SELECTION_EVENT_TIME (&inev) = eventp->time;
           inev.frame_or_window = Qnil;
-        }
+      }
       break;
 
     case PropertyNotify:
@@ -7619,7 +7548,11 @@ x_catch_errors_unwind (old_val)
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
   if (x_display_info_for_display (dpy) != 0)
-    XSync (dpy, False);
+    {
+      BLOCK_INPUT;
+      XSync (dpy, False);
+      UNBLOCK_INPUT;
+    }
 
   x_error_message_string = XCDR (old_val);
   return Qnil;
