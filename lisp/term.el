@@ -480,7 +480,7 @@ surrounding them, and also be regarded as arguments in their own right (unlike
 whitespace).  See `term-arguments'.
 Defaults to the empty list.
 
-For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?;).
+For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?\\;).
 
 This is a good thing to set in mode hooks.")
 
@@ -2877,7 +2877,7 @@ See `term-prompt-regexp'."
 		     (cond ((and (>= char ?0) (<= char ?9))
 			    (setq term-terminal-parameter
 				  (+ (* 10 term-terminal-parameter) (- char ?0))))
-			   ((eq char ?\073 ) ; ?;
+			   ((eq char ?\;)
 ;;; Some modifications to cope with multiple settings like ^[[01;32;43m -mm
 			    (setq term-terminal-more-parameters 1)
 			    (setq term-terminal-previous-parameter-4
