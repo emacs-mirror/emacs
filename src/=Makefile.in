@@ -23,7 +23,7 @@ distclean:
 	-rm -f paths.h config.h machine.h system.h emacs-* temacs xemacs xmakefile core *~ m/*~ s/*~ \#* *.o
 
 clean:
-	-rm -f temacs xemacs xmakefile* core \#* *.o
+	-rm -f temacs xemacs prefix-args xmakefile* core \#* *.o
 
 xemacs: doxemacs
 
