@@ -258,8 +258,131 @@ get_keymap (object)
 {
   return get_keymap_1 (object, 1, 0);
 }
+
+/* Return the parent map of the keymap MAP, or nil if it has none.
+   We assume that MAP is a valid keymap.  */
 
+DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
+  "Return the parent keymap of KEYMAP.")
+  (keymap)
+     Lisp_Object keymap;
+{
+  Lisp_Object list;
 
+  keymap = get_keymap_1 (keymap, 1, 1);
+
+  /* Skip past the initial element `keymap'.  */
+  list = XCONS (keymap)->cdr;
+  for (; CONSP (list); list = XCONS (list)->cdr)
+    {
+      /* See if there is another `keymap'.  */
+      if (EQ (Qkeymap, XCONS (list)->car))
+	return list;
+    }
+
+  return Qnil;
+}
+
+/* Set the parent keymap of MAP to PARENT.  */
+
+DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
+  "Modify KEYMAP to set its parent map to PARENT.\n\
+PARENT should be nil or another keymap.")
+  (keymap, parent)
+     Lisp_Object keymap, parent;
+{
+  Lisp_Object list, prev;
+  int i;
+
+  keymap = get_keymap_1 (keymap, 1, 1);
+  if (!NILP (parent))
+    parent = get_keymap_1 (parent, 1, 1);
+
+  /* Skip past the initial element `keymap'.  */
+  prev = keymap;
+  while (1)
+    {
+      list = XCONS (prev)->cdr;
+      /* If there is a parent keymap here, replace it.
+	 If we came to the end, add the parent in PREV.  */
+      if (! CONSP (list) || EQ (Qkeymap, XCONS (list)->car))
+	{
+	  XCONS (prev)->cdr = parent;
+	  break;
+	}
+      prev = list;
+    }
+
+  /* Scan through for submaps, and set their parents too.  */
+
+  for (list = XCONS (keymap)->cdr; CONSP (list); list = XCONS (list)->cdr)
+    {
+      /* Stop the scan when we come to the parent.  */
+      if (EQ (XCONS (list)->car, Qkeymap))
+	break;
+
+      /* If this element holds a prefix map, deal with it.  */
+      if (CONSP (XCONS (list)->car)
+	  && CONSP (XCONS (XCONS (list)->car)->cdr))
+	fix_submap_inheritance (keymap, XCONS (XCONS (list)->car)->car,
+				XCONS (XCONS (list)->car)->cdr);
+
+      if (VECTORP (XCONS (list)->car))
+	for (i = 0; i < XVECTOR (XCONS (list)->car)->size; i++)
+	  if (CONSP (XVECTOR (XCONS (list)->car)->contents[i]))
+	    fix_submap_inheritance (keymap, make_number (i),
+				    XVECTOR (XCONS (list)->car)->contents[i]);
+    }
+
+  return parent;
+}
+
+/* EVENT is defined in MAP as a prefix, and SUBMAP is its definition.
+   if EVENT is also a prefix in MAP's parent,
+   make sure that SUBMAP inherits that definition as its own parent.  */
+
+fix_submap_inheritance (map, event, submap)
+     Lisp_Object map, event, submap;
+{
+  Lisp_Object map_parent, parent_entry;
+
+  /* SUBMAP is a cons that we found as a key binding.
+     Discard the other things found in a menu key binding.  */
+
+  if (CONSP (submap)
+      && STRINGP (XCONS (submap)->car))
+    {
+      submap = XCONS (submap)->cdr;
+      /* Also remove a menu help string, if any,
+	 following the menu item name.  */
+      if (CONSP (submap) && STRINGP (XCONS (submap)->car))
+	submap = XCONS (submap)->cdr;
+      /* Also remove the sublist that caches key equivalences, if any.  */
+      if (CONSP (submap)
+	  && CONSP (XCONS (submap)->car))
+	{
+	  Lisp_Object carcar;
+	  carcar = XCONS (XCONS (submap)->car)->car;
+	  if (NILP (carcar) || VECTORP (carcar))
+	    submap = XCONS (submap)->cdr;
+	}
+    }
+
+  /* If it isn't a keymap now, there's no work to do.  */
+  if (! CONSP (submap)
+      || ! EQ (XCONS (submap)->car, Qkeymap))
+    return;
+
+  map_parent = Fkeymap_parent (map);
+  if (! NILP (map_parent))
+    parent_entry = access_keymap (map_parent, event, 0, 0);
+  else
+    parent_entry = Qnil;
+
+  if (! EQ (parent_entry, submap))
+    Fset_keymap_parent (submap, parent_entry);
+}
+
 /* Look up IDX in MAP.  IDX may be any sort of event.
    Note that this does only one level of lookup; IDX must be a single
    event, not a sequence. 
@@ -320,6 +443,8 @@ access_keymap (map, idx, t_ok, noinherit)
 		val = XCONS (binding)->cdr;
 		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
 		  return Qnil;
+		if (CONSP (val))
+		  fix_submap_inheritance (map, idx, val);
 		return val;
 	      }
 	    if (t_ok && EQ (XCONS (binding)->car, Qt))
@@ -332,6 +457,8 @@ access_keymap (map, idx, t_ok, noinherit)
 		val = XVECTOR (binding)->contents[XFASTINT (idx)];
 		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
 		  return Qnil;
+		if (CONSP (val))
+		  fix_submap_inheritance (map, idx, val);
 		return val;
 	      }
 	  }
@@ -759,6 +886,20 @@ define_as_prefix (keymap, c)
      make it a prefix in this map, and make its definition
      inherit the other prefix definition.  */
   inherit = access_keymap (keymap, c, 0, 0);
+#if 0
+  /* This code is needed to do the right thing in the following case:
+     keymap A inherits from B,
+     you define KEY as a prefix in A,
+     then later you define KEY as a prefix in B.
+     We want the old prefix definition in A to inherit from that in B.
+     It is hard to do that retroactively, so this code
+     creates the prefix in B right away.
+
+     But it turns out that this code causes problems immediately
+     when the prefix in A is defined: it causes B to define KEY
+     as a prefix with no subcommands.
+
+     So I took out this code.  */
   if (NILP (inherit))
     {
       /* If there's an inherited keymap
@@ -773,6 +914,7 @@ define_as_prefix (keymap, c)
       if (!NILP (tail))
 	inherit = define_as_prefix (tail, c);
     }
+#endif
 
   cmd = nconc2 (cmd, inherit);
   store_in_keymap (keymap, c, cmd);
@@ -2648,6 +2790,8 @@ and applies even for keys that have ordinary bindings.");
   staticpro (&Qnon_ascii);
 
   defsubr (&Skeymapp);
+  defsubr (&Skeymap_parent);
+  defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
   defsubr (&Scopy_keymap);
