@@ -205,10 +205,6 @@
   (setq x-switches-specified (append x-switches-specified
 				     initial-screen-alist
 				     screen-default-alist))
-  (and (string-equal (user-real-login-name) "mtr")
-       (setq x-switches-specified
-	     (append (list '(name . "Die, Yuppie SCUM!!!"))
-		     x-switches-specified)))
   ;; see screen.el for this function
   (pop-initial-screen x-switches-specified)
   (delete-screen terminal-screen))
@@ -516,7 +512,7 @@
   '(lambda nil (interactive)
      (insert "\n")))
 
-(define-function-key global-function-map 'xk-kp-f1 'rmail)
+(define-function-key global-function-map 'xk-kp-f1 nil)
 (define-function-key global-function-map 'xk-kp-f2 nil)
 (define-function-key global-function-map 'xk-kp-f3 nil)
 (define-function-key global-function-map 'xk-kp-f4 nil)
