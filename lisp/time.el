@@ -136,20 +136,24 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
   ;; Do redisplay right now, if no input pending.
   (sit-for 0)
   (let ((current (current-time))
-	(timer display-time-timer))
-    ;; If the next activation time is already in the past,
+	(timer display-time-timer)
+	;; Compute the time when this timer will run again, next.
+	(next-time (timer-relative-time
+		    (list (aref timer 1) (aref timer 2) (aref timer 3))
+		    (* 5 (aref timer 4)) 0)))
+    ;; If the activation time is far in the past,
     ;; skip executions until we reach a time in the future.
     ;; This avoids a long pause if Emacs has been suspended for hours.
-    (or (> (aref timer 1) (nth 0 current))
-	(and (= (aref timer 1) (nth 0 current))
-	     (> (aref timer 2) (nth 1 current)))
-	(and (= (aref timer 1) (nth 0 current))
-	     (= (aref timer 2) (nth 1 current))
-	     (> (aref timer 3) (nth 2 current)))
+    (or (> (nth 0 next-time) (nth 0 current))
+	(and (= (nth 0 next-time) (nth 0 current))
+	     (> (nth 1 next-time) (nth 1 current)))
+	(and (= (nth 0 next-time) (nth 0 current))
+	     (= (nth 1 next-time) (nth 1 current))
+	     (> (nth 2 next-time) (nth 2 current)))
 	(progn
-	  (cancel-timer timer)
 	  (timer-set-time timer (timer-next-integral-multiple-of-time
-				 current display-time-interval))
+				 current display-time-interval)
+			  display-time-interval)
 	  (timer-activate timer)))))
 
 ;; Update the display-time info for the mode line
