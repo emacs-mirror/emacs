@@ -31,6 +31,13 @@ support 64-bit executables.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
+* The Strokes package has been updated.  If your Emacs has XPM
+support, you can use it for pictographic editing.  In Strokes mode,
+use C-mouse-2 to compose a complex stoke and insert it into the
+buffer.  You can encode or decode a strokes buffer with new commands
+M-x strokes-encode-buffer and M-x strokes-decode-buffer.  There is a
+new command M-x strokes-list-strokes.
+
 +++
 * New command M-x describe-character-set reads a character set name
 and displayes information about that.
@@ -491,6 +498,9 @@ customized.
 
 Emacs supports a tool bar at the top of a frame under X.  For details
 how to define a tool bar, see the page describing Lisp-level changes.
+Toolbar global minor mode controls whether or not it is displayed.  To
+make the toolbar more useful, we need contributions of extra icons for
+specific modes (with copyright assignments).
 
 +++
 ** Mouse-sensitive mode line.
@@ -3342,8 +3352,6 @@ suppresses the tool bar.  If the value is non-zero and
 `auto-resize-tool-bars' is non-nil the tool bar's size will be changed
 automatically so that all tool bar items are visible.
 
-before this facility can be useful, we need people to donate icons.
-
 *** Tool bar item definitions
 
 Tool bar items are defined using `define-key' with a prefix-key
@@ -3400,6 +3408,11 @@ algorithm is used on that image to draw the image in disabled state.
 
 Gives a help string to display for the tool bar item.  This help
 is displayed when the mouse is moved over the item.
+
+The function `toolbar-add-item' is a convenience function for adding
+toolbar items generally, and `toolbar-like-menu-item' can be used to
+define a toolbar item with a binding copied from an item on the menu
+bar.
 
 *** Tool-bar-related variables.
 
