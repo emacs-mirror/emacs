@@ -4705,7 +4705,8 @@ make_lispy_event (event)
 	    int pixcolumn, pixrow;
 	    column -= XINT (XWINDOW (window)->left);
 	    row -= XINT (XWINDOW (window)->top);
-	    glyph_to_pixel_coords (f, column, row, &pixcolumn, &pixrow);
+	    glyph_to_pixel_coords (XWINDOW(window), column, row,
+                                   &pixcolumn, &pixrow);
 	    XSETINT (event->x, pixcolumn);
 	    XSETINT (event->y, pixrow);
 
