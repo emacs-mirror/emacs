@@ -7,20 +7,19 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; GNU Emacs is free software; you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free
+;; Software Foundation; either version 2, or (at your option) any later
+;; version.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful, but WITHOUT ANY
+;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+;; details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; You should have received a copy of the GNU General Public License along with
+;; GNU Emacs; see the file COPYING.  If not, write to the Free Software
+;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -32,50 +31,47 @@
 ;; (setq auto-mode-alist
 ;;       (cons '("\\.\\(pas\\|dpr\\|dpk\\)$" . delphi-mode) auto-mode-alist))
 
+;; To get keyword, comment, and string literal coloring, be sure that font-lock
+;; is running. One can manually do M-x font-lock-mode in a Delphi buffer, or
+;; one can put in .emacs:
+;;
+;; (add-hook 'delphi-mode-hook 'turn-on-font-lock)
+
+;; If font-lock is not loaded by default, you might have to do:
+;; 
+;; (autoload 'font-lock-mode "font-lock")
+;; (autoload 'turn-on-font-lock "font-lock")
+;; (setq font-lock-support-mode 'lazy-lock-mode)
+;;
+;; Lazy lock is very necessary for faster screen updates.
+
+;; For good performance, be sure to byte-compile delphi.el, e.g.
+;;
+;; M-x byte-compile-file <give the path to delphi.el when prompted>
+
+;; This will generate delphi.elc, which will be loaded instead of delphi.el
+;; when delphi-mode is autoloaded.
+
 ;; When you have entered Delphi mode, you may get more info by pressing
 ;; C-h m.
 
-;; This delphi mode implementation is fairly tolerant of syntax
-;; errors, relying as much as possible on the indentation of the
-;; previous statement. This also makes it faster and simpler, since
-;; there is less searching for properly constructed beginnings.
+;; This delphi mode implementation is fairly tolerant of syntax errors, relying
+;; as much as possible on the indentation of the previous statement. This also
+;; makes it faster and simpler, since there is less searching for properly
+;; constructed beginnings.
 
 ;;; Code:
 
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 2.5 $"))
+  (let ((revision "$Revision: 3.0 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
 ;;; $Log: delphi.el,v $
-;;; Revision 2.5  1999/07/24 21:45:22  blaak
-;;; Misc changes to make debugging easier, and to conform to major mode
-;;; standards (i.e. don't require font-lock -- that forces its existence).
-;;;
-;;; Revision 2.3  1999/07/20 07:55:38  blaak
-;;; o One can now undo the effects of delphi-fill-comment.
-;;; o Object declarations are now formatted properly.
-;;;
-;;; Revision 2.2  1999/07/01 04:16:07  blaak
-;;; Handle multiple parameters on a line correctly, e.g.,
-;;;   procedure Foo (arg1 : T; arg2 : T; arg3 : T;
-;;;                  arg3 : T; // should be aligned with arg1,
-;;;                            // not arg2 or arg3
-;;;
-;;; Revision 2.1  1999/05/21 06:37:19  blaak
-;;; Indent properly after simple class declarations, even if they span
-;;; multiple lines. E.g.
-;;;   type TMetaClass = class of TClass;
-;;;   type TSimpleClass = class
-;;;                         (TBaseClass);
-;;;   type TForwardClass = class;
-;;;
-;;; Revision 2.0  1999/05/09 06:31:53  blaak
-;;; Re-release. Pre 2.0 versions considered development versions and their
-;;; histories dropped. Delphi mode is what it is.
-;;;
+;;; Revision 3.0  1999/08/03 04:59:02  blaak
+;;; Re-release as an official Emacs language mode
 ;;;
 
 (eval-and-compile
@@ -506,7 +502,7 @@ routine.")
                 (double-quoted-string . "[\"\n]")))))
 
 (defun delphi-is-literal-start (p)
-  ;; True if the point p is at the end point of a (completed) literal.
+  ;; True if the point p is at the start point of a (completed) literal.
   (let* ((kind (delphi-literal-kind p))
          (pattern (delphi-literal-start-pattern kind)))
     (or (null kind) ; Non-literals are considered as start points.
@@ -826,10 +822,31 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
     (delphi-indent-of last-token offset)))
 
 (defun delphi-stmt-line-indent-of (from-token &optional offset)
-  ;; Like `delphi-line-indent-of' except is also stops on a use clause or ":".
-  (apply #'delphi-line-indent-of 
-         from-token offset `(;colon
-                             ,@delphi-use-clauses)))
+  ;; Like `delphi-line-indent-of' except is also stops on a use clause, and
+  ;; colons that precede statements (i.e. case labels).
+  (let ((token (delphi-previous-token from-token))
+        (last-token from-token)
+        (kind nil))
+    (catch 'done
+      (while token
+        (setq kind (delphi-token-kind token))
+        (cond 
+         ((and (eq 'colon kind)
+               (delphi-is (delphi-token-kind last-token)
+                          `(,@delphi-block-statements 
+                            ,@delphi-expr-statements)))
+          ;; We hit a label followed by a statement. Indent to the statement.
+          (throw 'done nil))
+
+         ;; Skip over ()/[] groups.
+         ((eq 'close-group kind) (setq token (delphi-group-start token)))
+
+         ((delphi-is kind `(newline open-group ,@delphi-use-clauses))
+          ;; Stop at the beginning of the line, an open group, or a use clause
+          (throw 'done nil)))
+        (unless (delphi-is kind delphi-whitespace) (setq last-token token))
+        (setq token (delphi-previous-token token))))
+    (delphi-indent-of last-token offset)))
 
 (defun delphi-open-group-indent (token last-token &optional offset)
   ;; Returns the indent relative to an unmatched ( or [.
@@ -1217,7 +1234,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
          ;; Block and mid block tokens are always enclosing
          ((delphi-is token-kind delphi-begin-enclosing-tokens)
           (throw 'done
-                 (delphi-line-indent-of token delphi-indent-level)))
+                 (delphi-stmt-line-indent-of token delphi-indent-level)))
 
          ;; Declaration sections and routines are delimiters, unless they
          ;; are part of a nested routine.
