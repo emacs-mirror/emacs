@@ -1746,6 +1746,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
 	  BUF_INTERVALS (buffer)->position = BEG;
+	  BUF_INTERVALS (buffer)->up_obj = 1;
 
 	  /* Explicitly free the old tree here?  */
 
@@ -1768,6 +1769,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
     {
       BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
       BUF_INTERVALS (buffer)->position = BEG;
+      BUF_INTERVALS (buffer)->up_obj = 1;
       /* Explicitly free the old tree here.  */
 
       return;
@@ -1823,9 +1825,9 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
   while (! NULL_INTERVAL_P (over))
     {
       /* If UNDER is longer than OVER, split it.  */
-      if (LENGTH (over) < LENGTH (under))
+      if (LENGTH (over) - over_used < LENGTH (under))
 	{
-	  this = split_interval_left (under, LENGTH (over));
+	  this = split_interval_left (under, LENGTH (over) - over_used);
 	  copy_properties (under, this);
 	}
       else
