@@ -3227,7 +3227,7 @@ string_buffer_position (w, string, around_charpos)
       if (!NILP (prop) && display_prop_string_p (prop, string))
 	found = 1;
       else
-	pos = Fnext_single_property_change (pos, Qdisplay, Qnil, limit);
+	pos = Fnext_single_char_property_change (pos, Qdisplay, Qnil, limit);
     }
 
   if (!found)
@@ -3240,8 +3240,8 @@ string_buffer_position (w, string, around_charpos)
 	  if (!NILP (prop) && display_prop_string_p (prop, string))
 	    found = 1;
 	  else
-	    pos = Fprevious_single_property_change (pos, Qdisplay, Qnil,
-						    limit);
+	    pos = Fprevious_single_char_property_change (pos, Qdisplay, Qnil,
+							 limit);
 	}
     }
 
