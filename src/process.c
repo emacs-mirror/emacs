@@ -1290,7 +1290,7 @@ create_process (process, new_argv, current_dir)
 	setpgrp ();
 #endif /* USG */
 #endif /* not HAVE_SETSID */
-#ifdef NTTYDISC
+#if defined (NTTYDISC) || defined (TIOCSETD)
 	if (pty_flag && xforkin >= 0)
 	  {
 	    /* Use new line discipline.  */
