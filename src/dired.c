@@ -78,21 +78,14 @@ extern struct direct *readdir ();
 #include "lisp.h"
 #include "buffer.h"
 #include "commands.h"
-
+#include "charset.h"
+#include "coding.h"
 #include "regex.h"
 
 /* Returns a search buffer, with a fastmap allocated and ready to go.  */
 extern struct re_pattern_buffer *compile_pattern ();
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
-
-/* Encode the file name NAME using the specified coding system
-   for file names, if any.  */
-#define ENCODE_FILE(name)					\
-  (! NILP (Vfile_name_coding_system)				\
-   && XFASTINT (Vfile_name_coding_system) != 0			\
-   ? Fencode_coding_string (name, Vfile_name_coding_system, Qt)	\
-   : name)
 
 /* if system does not have symbolic links, it does not have lstat.
    In that case, use ordinary stat instead.  */
@@ -103,7 +96,7 @@ extern struct re_pattern_buffer *compile_pattern ();
 
 extern int completion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
-extern Lisp_Object Vfile_name_coding_system;
+extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qcompletion_ignore_case;
@@ -231,9 +224,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		}
 	      else
 		name = make_string (dp->d_name, len);
-	      if (! NILP (Vfile_name_coding_system))
-		name = Fdecode_coding_string (name, Vfile_name_coding_system,
-					      Qt);
+	      name = DECODE_FILE (name);
 	      list = Fcons (name, list);
 	    }
 	}
@@ -462,9 +453,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		name = make_string (dp->d_name, len);
 	      if (all_flag)
 		{
-		  if (! NILP (Vfile_name_coding_system))
-		    name = Fdecode_coding_string (name,
-						  Vfile_name_coding_system, Qt);
+		  name = DECODE_FILE (name);
 		  bestmatch = Fcons (name, bestmatch);
 		}
 	      else
@@ -532,10 +521,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
   if (all_flag || NILP (bestmatch))
     {
-      if (! NILP (Vfile_name_coding_system)
-	  && STRINGP (bestmatch))
-	bestmatch = Fdecode_coding_string (bestmatch,
-					   Vfile_name_coding_system, Qt);
+      if (STRINGP (bestmatch))
+	bestmatch = DECODE_FILE (bestmatch);
       return bestmatch;
     }
   if (matchcount == 1 && bestmatchsize == XSTRING (file)->size)
@@ -544,9 +531,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 			  make_number (bestmatchsize));
   /* Now that we got the right initial segment of BESTMATCH,
      decode it from the coding system in use.  */
-  if (! NILP (Vfile_name_coding_system))
-    bestmatch = Fdecode_coding_string (bestmatch,
-				       Vfile_name_coding_system, Qt);
+  bestmatch = DECODE_FILE (bestmatch);
   return bestmatch;
 
  quit:
