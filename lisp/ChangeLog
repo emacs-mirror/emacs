@@ -4,6 +4,8 @@
 	(vc-default-update-changelog): Remove conditional use of
 	`make-temp-name'.
 
+	* vc-cvs.el (vc-cvs-diff-tree): Fix typo in parameter names.
+	
 2002-03-05  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* ediff-init.el: comments.
