@@ -1,3 +1,8 @@
+2003-01-23  Dave Love  <fx@gnu.org>
+
+	* abbrev.el (write-abbrev-file): Simplify, and put a coding cookie
+	in the file.
+
 2003-01-23  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/asm-mode.el (asm-mode): Added syntax table entries for
