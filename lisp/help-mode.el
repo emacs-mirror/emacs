@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -150,8 +150,11 @@ The format is (FUNCTION ARGS...).")
 		   ;; Don't use find-function-noselect because it follows
 		   ;; aliases (which fails for built-in functions).
 		   (let ((location
-			  (if (bufferp file) (cons file fun)
-			    (find-function-search-for-symbol fun nil file))))
+			  (cond
+			   ((bufferp file) (cons file fun))
+			   ((string-match "\\`src/\\(.*\\.c\\)" file)
+			    (help-find-C-source fun (match-string 1 file) 'fun))
+			   (t (find-function-search-for-symbol fun nil file)))))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
@@ -160,7 +163,10 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function (lambda (var &optional file)
 		   (let ((location
-			  (find-variable-noselect var file)))
+			  (cond
+			   ((string-match "\\`src/\\(.*\\.c\\)" file)
+			    (help-find-C-source var (match-string 1 file) 'var))
+			   (t (find-variable-noselect var file)))))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy"mouse-2, RET: find variable's definition"))
@@ -374,8 +380,14 @@ that."
                           (help-xref-button 8 'help-symbol sym))
                          ((and
 			   (boundp sym)
-			   (documentation-property sym
-						   'variable-documentation))
+ 			   (or
+ 			    (documentation-property
+ 			     sym 'variable-documentation)
+ 			    (condition-case nil
+ 				(documentation-property
+ 				 (indirect-variable sym)
+ 				 'variable-documentation)
+ 			      (cyclic-variable-indirection nil))))
 			  (help-xref-button 8 'help-variable sym))
 			 ((fboundp sym)
 			  (help-xref-button 8 'help-function sym)))))))

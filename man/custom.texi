@@ -1060,6 +1060,12 @@ value are @code{t}, @code{nil}, and anything else, just as for
 neither @code{t} nor @code{nil}, so normally Emacs does ask for
 confirmation about file settings for these variables.
 
+@findex safe-local-eval-forms
+  The @code{safe-local-eval-forms} is a customizable list of eval
+forms which are safe to eval, so Emacs should not ask for
+confirmation to evaluate these forms, even if
+@code{enable-local-variables} says to ask for confirmation in general.
+
 @node Key Bindings
 @section Customizing Key Bindings
 @cindex key bindings

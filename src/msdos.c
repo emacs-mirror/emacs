@@ -1329,7 +1329,7 @@ show_mouse_face (struct display_info *dpyinfo, int hl)
 static void
 clear_mouse_face (struct display_info *dpyinfo)
 {
-  if (! NILP (dpyinfo->mouse_face_window))
+  if (!dpyinfo->mouse_face_hidden && ! NILP (dpyinfo->mouse_face_window))
     show_mouse_face (dpyinfo, 0);
 
   dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
@@ -3131,7 +3131,7 @@ dos_rawgetc ()
   union REGS regs;
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (SELECTED_FRAME());
   EVENT_INIT (event);
-  
+
 #ifndef HAVE_X_WINDOWS
   /* Maybe put the cursor where it should be.  */
   IT_cmgoto (SELECTED_FRAME());
@@ -3342,8 +3342,8 @@ dos_rawgetc ()
 
       if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
 	{
-	  dpyinfo->mouse_face_hidden = 1;
 	  clear_mouse_face (dpyinfo);
+	  dpyinfo->mouse_face_hidden = 1;
 	}
 
       if (code >= 0x100)

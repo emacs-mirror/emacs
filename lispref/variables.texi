@@ -1714,6 +1714,9 @@ This function returns @var{base-var}.
 This function returns the variable at the end of the chain of aliases
 of @var{variable}.  If @var{variable} is not a symbol, or if @var{variable} is
 not defined as an alias, the function returns @var{variable}.
+
+This function signals a @code{cyclic-variable-indirection} error if
+there is a loop in the chain of symbols.
 @end defun
 
 @example

@@ -5,9 +5,9 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/29 18:31:33 vinicius>
+;; Time-stamp: <2004/04/03 16:48:52 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.7
+;; Version: 1.8
 
 ;; This file is part of GNU Emacs.
 
@@ -203,17 +203,9 @@
 		(eq token 'catenate))
       (setq seq (cons term seq)))
     (cons token
-	  (cond
-	   ;; null sequence
-	   ((null seq)
-	    term)
-	   ;; sequence with only one element
-	   ((and (null term) (= (length seq) 1))
-	    (car seq))
-	   ;; a real sequence
-	   (t
-	    (ebnf-make-sequence (nreverse (cons term seq))))
-	   ))))
+	  (ebnf-token-sequence (if term
+				   (cons term seq)
+				 seq)))))
 
 
 ;;; term = factor, ['-', exception];

@@ -234,12 +234,11 @@ whether a font for SET is available and don't set the display if it
 is.  If FORCE is non-nil, set up the display regardless."
   (cond
    ((eq set 'latin-2)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,BF(B "'C" "C'")
 	 (?,BP(B "'D" "/D")
 	 (?,B&(B "'S" "S'")
@@ -300,15 +299,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Bk(B "\"e")
 	 (?,B=(B "''" "'")
 	 (?,B7(B "'<")			; Lynx's rendering of caron
-	 ))))
+	 )))
 
    ((eq set 'latin-3)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,C!(B "/H")
 	 (?,C"(B "~`" "'(")
 	 (?,C&(B "^H" "H^")
@@ -336,15 +334,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Cx(B "^g" "g^")
 	 (?,C}(B "~u" "u(")
 	 (?,C~(B "^s" "s^")
-	 (?,C(B "/." "^.")))))
+	 (?,C(B "/." "^."))))
 
    ((eq set 'latin-4)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,D!(B "A," "A;")
 	 (?,D"(B "k/" "kk")
 	 (?,D#(B "R," ",R")
@@ -393,15 +390,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Dy(B "u," "u;")
 	 (?,D}(B "u~" "~u")
 	 (?,D~(B "u-")
-	 (?,D(B "^.")))))
+	 (?,D(B "^."))))
 
    ((eq set 'latin-5)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	 (apply 'latin1-display-char l)))
        '((?,Mp(B "~g" "g(")
 	 (?,MP(B "~G" "G(")
 	 (?,M](B ".I" "I^.")
@@ -410,15 +406,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Mj(B "^e" "e<")			; from latin-post
 	 (?,Ml(B ".e" "e^.")
 	 (?,Mo(B "\"i" "i-")		; from latin-post
-	 (?,M}(B ".i" "i.")))))
+	 (?,M}(B ".i" "i."))))
 
    ((eq set 'latin-8)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,_!(B ".B" "B`")
 	 (?,_"(B ".b" "b`")
 	 (?,_%(B ".c" "c`")
@@ -449,15 +444,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,_W(B ".T" "T`")
 	 (?,_~(B "^y" "y^")
 	 (?,_^(B "^Y" "Y^")
-	 (?,_/(B "\"Y")))))
+	 (?,_/(B "\"Y"))))
 
    ((eq set 'latin-9)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,b((B "~s" "s<")
 	 (?,b&(B "~S" "S<")
 	 (?,b$(B "Euro" "E=")
@@ -465,14 +459,13 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,b4(B "~Z" "Z<")
 	 (?,b>(B "\"Y")
 	 (?,b=(B "oe")
-	 (?,b<(B "OE")))))
+	 (?,b<(B "OE"))))
 
    ((eq set 'greek)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,F!(B "9'")
 	 (?,F"(B "'9")
 	 (?,F/(B "-M")
@@ -531,9 +524,10 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,F|(B "'o")
 	 (?,F}(B "'u")
 	 (?,F~(B "'w")))
-      (mapc
-       (lambda (l)
-	 (aset standard-display-table (car l) (string-to-vector (cadr l))))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (aset standard-display-table (car l) (string-to-vector (cadr l)))))
        '((?,FA(B "A")
 	 (?,FB(B "B")
 	 (?,FE(B "E")
@@ -548,23 +542,22 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,FT(B "T")
 	 (?,FU(B "Y")
 	 (?,FW(B "X")
-	 (?,Fo(B "o")))))
+	 (?,Fo(B "o"))))
 
    ((eq set 'hebrew)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      ;; Don't start with identities, since we don't have definitions
-      ;; for a lot of Hebrew in internal.el.  (Intlfonts is also
-      ;; missing some glyphs.)
-      (let ((i 34))
-	(while (<= i 62)
-	  (aset standard-display-table
-		(make-char 'hebrew-iso8859-8 i)
-		(vector (make-char 'latin-iso8859-1 i)))
-	  (setq i (1+ i))))
-      (mapc
-       (lambda (l)
-	 (aset standard-display-table (car l) (string-to-vector (cadr l))))
+    ;; Don't start with identities, since we don't have definitions
+    ;; for a lot of Hebrew in internal.el.  (Intlfonts is also
+    ;; missing some glyphs.)
+    (let ((i 34))
+      (while (<= i 62)
+	(aset standard-display-table
+	      (make-char 'hebrew-iso8859-8 i)
+	      (vector (make-char 'latin-iso8859-1 i)))
+	(setq i (1+ i))))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (aset standard-display-table (car l) (string-to-vector (cadr l)))))
        '((?,H_(B "=2")
 	 (?,H`(B "A+")
 	 (?,Ha(B "B+")
@@ -592,19 +585,21 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Hw(B "Q+")
 	 (?,Hx(B "R+")
 	 (?,Hy(B "Sh")
-	 (?,Hz(B "T+")))))
+	 (?,Hz(B "T+"))))
 
    ;; Arabic probably isn't so useful in the absence of Arabic
    ;; language support...
    ((eq set 'arabic)
     (setq set 'arabic)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (aset standard-display-table ?,G (B ",A (B")
-      (aset standard-display-table ?,G$(B ",A$(B")
-      (aset standard-display-table ?,G-(B ",A-(B")
-      (mapc (lambda (l)
-	      (apply  'latin1-display-char l))
+    (or (char-displayable-p ?,G (B)
+	(aset standard-display-table ?,G (B ",A (B"))
+    (or (char-displayable-p ?,G$(B)
+	(aset standard-display-table ?,G$(B ",A$(B"))
+    (or (char-displayable-p ?,G-(B)
+	(aset standard-display-table ?,G-(B ",A-(B"))
+    (mapc (lambda (l)
+	    (or (char-displayable-p (car l))
+		(apply  'latin1-display-char l)))
 	    '((?,G,(B ",+")
 	      (?,G;(B ";+")
 	      (?,G?(B "?+")
@@ -652,15 +647,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	      (?,Go(B "'+")
 	      (?,Gp(B "1+")
 	      (?,Gq(B "3+")
-	      (?,Gr(B "0+")))))
+	      (?,Gr(B "0+"))))
 
    ((eq set 'cyrillic)
     (setq set 'cyrillic-iso)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,L"(B "Dj")
 	 (?,L#(B "Gj")
 	 (?,L$(B "IE")
@@ -727,9 +721,10 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,L|(B "kj")
 	 (?,L~(B "v%")
 	 (?,L(B "dzh")))
-      (mapc
-       (lambda (l)
-	 (aset standard-display-table (car l) (string-to-vector (cadr l))))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (aset standard-display-table (car l) (string-to-vector (cadr l)))))
        '((?,L!(B ",AK(B")
 	 (?,L%(B "S")
 	 (?,L&(B "I")
@@ -758,7 +753,7 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Lu(B "s")
 	 (?,Lv(B "i")
 	 (?,Lw(B ",Ao(B")
-	 (?,Lx(B "j")))))
+	 (?,Lx(B "j"))))
 
    (t (error "Unsupported character set: %S" set)))
 

@@ -44,6 +44,17 @@
 ;; seconds.  The check is aborted whenever the user actually uses
 ;; Emacs.  You should never even notice that this package is active
 ;; (except that your buffers will be reverted, of course).
+;;
+;; After reverting a file buffer, Auto Revert Mode normally puts point
+;; at the same position that a regular manual revert would.  However,
+;; there is one exception to this rule.  If point is at the end of the
+;; buffer before reverting, it stays at the end.  Similarly if point
+;; is displayed at the end of a file buffer in any window, it will stay
+;; at the end of the buffer in that window, even if the window is not
+;; selected.  This way, you can use Auto Revert Mode to `tail' a file.
+;; Just put point at the end of the buffer and it will stay there.
+;; These rules apply to file buffers. For non-file buffers, the
+;; behavior may be mode dependent.
 
 ;; Usage:
 ;;
@@ -298,10 +309,10 @@ will use an up-to-date value of `auto-revert-interval'"
   "Revert current buffer, if appropriate.
 This is an internal function used by Auto-Revert Mode."
   (unless (buffer-modified-p)
-    (let (revert)
-      (or (and (buffer-file-name)
-	       (file-readable-p (buffer-file-name))
-	       (not (verify-visited-file-modtime (current-buffer)))
+    (let ((buffer (current-buffer)) revert eob eoblist)
+      (or (and buffer-file-name
+	       (file-readable-p buffer-file-name)
+	       (not (verify-visited-file-modtime buffer))
 	       (setq revert t))
 	  (and (or auto-revert-mode global-auto-revert-non-file-buffers)
 	       revert-buffer-function
@@ -312,7 +323,22 @@ This is an internal function used by Auto-Revert Mode."
 	(when (and auto-revert-verbose
 		   (not (eq revert 'fast)))
 	  (message "Reverting buffer `%s'." (buffer-name)))
-	(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes))
+	;; If point (or a window point) is at the end of the buffer,
+	;; we want to keep it at the end after reverting.  This allows
+	;; to tail a file.
+	(when buffer-file-name
+	  (setq eob (eobp))
+	  (walk-windows
+	   #'(lambda (window)
+	       (and (eq (window-buffer window) buffer)
+		    (= (window-point window) (point-max))
+		    (push window eoblist)))
+	   'no-mini t))
+	(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+	(when buffer-file-name
+	  (when eob (goto-char (point-max)))
+	  (dolist (window eoblist)
+	    (set-window-point window (point-max)))))
       ;; `preserve-modes' avoids changing the (minor) modes.  But we
       ;; do want to reset the mode for VC, so we do it manually.
       (when (or revert auto-revert-check-vc-info)

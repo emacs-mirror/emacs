@@ -658,14 +658,12 @@ Buffer local variable.")
 (put 'term-scroll-show-maximum-output 'permanent-local t)
 (put 'term-ptyp 'permanent-local t)
 
-;; True if running under XEmacs (previously Lucid Emacs).
-(defmacro term-is-xemacs ()  '(string-match "Lucid" emacs-version))
 ;; Do FORM if running under XEmacs (previously Lucid Emacs).
 (defmacro term-if-xemacs (&rest forms)
-  (if (term-is-xemacs) (cons 'progn forms)))
+  (if (featurep 'xemacs) (cons 'progn forms)))
 ;; Do FORM if NOT running under XEmacs (previously Lucid Emacs).
 (defmacro term-ifnot-xemacs (&rest forms)
-  (if (not (term-is-xemacs)) (cons 'progn forms)))
+  (if (not (featurep 'xemacs)) (cons 'progn forms)))
 
 (defmacro term-in-char-mode () '(eq (current-local-map) term-raw-map))
 (defmacro term-in-line-mode () '(not (term-in-char-mode)))
@@ -923,6 +921,14 @@ is buffer-local.")
     (define-key term-raw-map [next] 'term-send-next)))
 
 (term-set-escape-char ?\C-c)
+
+(defun term-window-width ()
+  (if (featurep 'xemacs)
+      (1- (window-width))
+    (if window-system
+	(window-width)
+      (1- (window-width)))))
+
 
 (put 'term-mode 'mode-class 'special)
 
@@ -980,8 +986,10 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-saved-home-marker)
   (make-local-variable 'term-height)
   (make-local-variable 'term-width)
-  (setq term-width (1- (window-width)))
+  (setq term-width (term-window-width))
   (setq term-height (1- (window-height)))
+  (term-ifnot-xemacs
+   (set (make-local-variable 'overflow-newline-into-fringe) nil))
   (make-local-variable 'term-terminal-parameter)
   (make-local-variable 'term-saved-cursor)
   (make-local-variable 'term-last-input-start)
@@ -1116,9 +1124,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 
 (defun term-check-size (process)
   (if (or (/= term-height (1- (window-height)))
-	  (/= term-width (1- (window-width))))
+	  (/= term-width (term-window-width)))
       (progn
-	(term-reset-size (1- (window-height)) (1- (window-width)))
+	(term-reset-size (1- (window-height)) (term-window-width))
 	(set-process-window-size process term-height term-width))))
 
 (defun term-send-raw-string (chars)
