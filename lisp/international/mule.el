@@ -1464,7 +1464,6 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 	 ((coding-system-p encoding) ; need to recode the entire segment...
 	  (decode-coding-region pos (point) 'ctext-no-compositions)
 	  (encode-coding-region pos (point) encoding)
-	  (set-buffer-multibyte nil)
 	  (setq textlen (+ (- (point) pos) (length chset) 1))
 	  (save-excursion
 	    (goto-char pos)
