@@ -10365,7 +10365,44 @@ redisplay_window (window, just_this_one_p)
 	}
 
       if (!make_cursor_line_fully_visible (w))
-	goto try_to_scroll;
+	{
+	  /* CVS rev. 1.761 had changed this to ``goto try_to_scroll''.
+
+	     The intention of the fix -- AFAIU -- was to ensure that 
+	     the cursor didn't end up on a partially visible last (or
+	     first?) line when scrolling.
+
+
+	     But that change causes havoc when scrolling backwards and
+	     a partially visible first (or last?) line is present when
+	     we reach the top of the buffer.  In effect, the text
+	     already in the window is repeated (each line is appended
+	     to the same or another lines in the window)...
+
+	     I changed it back to ``goto need_larger_matrices'' which
+	     in effect mean that we don't go through `try_scrolling'
+	     when the cursor is already at the first line of the buffer,
+	     and there is really only a few pixels [rather than lines]
+	     to scroll backwards.  I guess move_it_by_lines etc. really
+	     isn't the right device for doing that, ref. the code in
+	     make_cursor_line_fully_visible which was also disabled by
+	     CVS rev. 1.761.
+
+	     But how do we know that we are already on the top line of
+	     the window showing the first line in the buffer, so that
+	     scrolling really wont help here?
+
+	     I cannot find a simple fix for this (I tried various
+	     approaches), but I prefer to an occasional partial line
+	     rather than the visual messup, so I reverted this part of
+	     the fix.
+
+	     Someone will need to look into this when time allows.
+
+	     -- 2002-08-22, Kim F. Storm  */
+
+	  goto need_larger_matrices;
+	}
 #if GLYPH_DEBUG
       debug_method_add (w, "forced window start");
 #endif
