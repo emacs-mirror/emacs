@@ -3513,10 +3513,10 @@ all markers unrelocated.
 @section Base 64 Encoding
 @cindex base 64 encoding
 
-  Base 64 code is used in email to encode a sequence of 8-bit bytes as a
-longer sequence of @sc{ascii} graphic characters.  It is defined in RFC
-2045.  This section describes the functions for converting to and from
-this code.
+  Base 64 code is used in email to encode a sequence of 8-bit bytes as
+a longer sequence of @sc{ascii} graphic characters.  It is defined in
+Internet RFC 2045.  This section describes the functions for
+converting to and from this code.
 
 @defun base64-encode-region beg end &optional no-line-break
 @tindex base64-encode-region

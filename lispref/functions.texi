@@ -364,9 +364,11 @@ is @code{nil}.
   There is no way to have required arguments following optional
 ones---it would not make sense.  To see why this must be so, suppose
 that @code{c} in the example were optional and @code{d} were required.
-Suppose three actual arguments are given; which variable would the third
-argument be for?  Similarly, it makes no sense to have any more
-arguments (either required or optional) after a @code{&rest} argument.
+Suppose three actual arguments are given; which variable would the
+third argument be for?  Would it be used for the @var{c}, or for
+@var{d}?  One can argue for both possibilities.  Similarly, it makes
+no sense to have any more arguments (either required or optional)
+after a @code{&rest} argument.
 
   Here are some examples of argument lists and proper calls:
 
