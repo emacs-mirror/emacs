@@ -3782,14 +3782,17 @@ With prefix argument N, move N items (negative N means move backward)."
 ;; that can be found before POINT.
 (defun choose-completion-delete-max-match (string)
   (let ((opoint (point))
-	(len (min (length string)
-		  (- (point) (point-min)))))
-    (goto-char (- (point) (length string)))
+	len)
+    ;; Try moving back by the length of the string.
+    (goto-char (max (- (point) (length string))
+		    (minibuffer-prompt-end)))
+    ;; See how far back we were actually able to move.  That is the
+    ;; upper bound on how much we can match and delete.
+    (setq len (- opoint (point)))
     (if completion-ignore-case
 	(setq string (downcase string)))
     (while (and (> len 0)
-		(let ((tail (buffer-substring (point)
-					      (+ (point) len))))
+		(let ((tail (buffer-substring (point) opoint)))
 		  (if completion-ignore-case
 		      (setq tail (downcase tail)))
 		  (not (string= tail (substring string 0 len)))))
