@@ -1,3 +1,8 @@
+2001-11-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* etags.1: Replace presentation-level troff macros that simulate
+	tables with tbl markup.  From Eric S. Raymond <esr@thyrsus.com>.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
