@@ -31,14 +31,19 @@ rem   + rm and mv (from GNU file utilities).
 rem   + sed (you can use the port that comes with DJGPP).
 rem
 rem   You should be able to get all the above utilities from any SimTel
-rem   repository, e.g. ftp.coast.net, in the directories
-rem   "SimTel/vendors/djgpp" and "SimTel/vendors/gnu/gnuish/dos_only".  As
-rem   usual, please use your local mirroring site to reduce trans-Atlantic
-rem   traffic.
+rem   repository, e.g. ftp.simtel.net, in the directory
+rem   "pub/simtelnet/gnu/djgpp/v2gnu".  As usual, please use your local
+rem   mirroring site to reduce trans-Atlantic traffic.
 rem   ----------------------------------------------------------------------
 set X11=
 set nodebug=
 set djgpp_ver=
+if "%1" == "" goto usage
+rem   ----------------------------------------------------------------------
+rem   See if their environment is large enough.  We need 28 bytes.
+set $foo$=789012345678901234567
+if not "%$foo$%" == "789012345678901234567" goto SmallEnv
+set $foo$=
 :again
 if "%1" == "" goto usage
 if "%1" == "--with-x" goto withx
@@ -218,6 +223,11 @@ copy msdos\mainmake.v2 Makefile >nul
 :mainv1
 If "%DJGPP_VER%" == "1" copy msdos\mainmake Makefile >nul
 rem   ----------------------------------------------------------------------
+goto End
+:SmallEnv
+echo Your environment size is too small.  Please enlarge it and run me again.
+echo For example, type "command.com /e:2048" to have 2048 bytes available.
+set $foo$=
 :end
 set X11=
 set nodebug=
