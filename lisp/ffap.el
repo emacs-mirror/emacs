@@ -35,8 +35,7 @@
 ;; README's, MANIFEST's, and so on.  Submit bugs or suggestions with
 ;; M-x ffap-bug.
 ;;
-;; For the default installation, byte-compile ffap.el somewhere in
-;; your `load-path' and add these two lines to your .emacs file:
+;; For the default installation, add these two lines to your .emacs file:
 ;;
 ;; (require 'ffap)                      ; load the package
 ;; (ffap-bindings)                      ; do default key bindings
@@ -133,12 +132,12 @@ If nil, ffap neither recognizes nor generates such paths."
   :group 'ffap)
 
 (defcustom ffap-url-unwrap-local t
-  "*If non-nil, convert \"file:\" url to local path before prompting."
+  "*If non-nil, convert `file:' url to local path before prompting."
   :type 'boolean
   :group 'ffap)
 
 (defcustom ffap-url-unwrap-remote t
-  "*If non-nil, convert \"ftp:\" url to remote path before prompting.
+  "*If non-nil, convert `ftp:' url to remote path before prompting.
 This is ignored if `ffap-ftp-regexp' is nil."
   :type 'boolean
   :group 'ffap)
@@ -232,7 +231,7 @@ ffap most of the time."
   ;; http://home.netscape.com/newsref/std/x-remote.html
   "*A function of one argument, called by ffap to fetch an URL.
 Reasonable choices are `w3-fetch' or a `browse-url-*' function.
-For a fancy alternative, get ffap-url.el."
+For a fancy alternative, get `ffap-url.el'."
   :type '(choice (const w3-fetch)
 		 (const browse-url)	; in recent versions of browse-url
 		 (const browse-url-netscape)
@@ -334,24 +333,24 @@ Actual search is done by `ffap-next-guess'."
 ;; particular, if `Pinging...' is broken or takes too long on your
 ;; machine, try setting these all to accept or reject.
 (defcustom ffap-machine-p-local 'reject	; this happens often
-  "*A symbol, one of: `ping', `accept', `reject'.
-What `ffap-machine-p' does with hostnames that have no domain."
+  "*What `ffap-machine-p' does with hostnames that have no domain.
+Value should be a symbol, one of `ping', `accept', and `reject'.
   :type '(choice (const ping)
 		 (const accept)
 		 (const reject))
   :group 'ffap)
-(defcustom ffap-machine-p-known 'ping	; 'accept for speed
-  "*A symbol, one of: ping, accept, reject.
-What `ffap-machine-p' does with hostnames that have a known domain
-\(see mail-extr.el for the known domains\)."
+(defcustom ffap-machine-p-known 'ping	; `accept' for higher speed
+  "*What `ffap-machine-p' does with hostnames that have a known domain.
+Value should be a symbol, one of `ping', `accept', and `reject'.
+See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
 		 (const reject))
   :group 'ffap)
 (defcustom ffap-machine-p-unknown 'reject
-  "*A symbol, one of: ping, accept, reject.
-What `ffap-machine-p' does with hostnames that have an unknown domain
-\(see mail-extr.el for the known domains\)."
+  "*What `ffap-machine-p' does with hostnames that have an unknown domain.
+Value should be a symbol, one of `ping', `accept', and `reject'.
+See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
 		 (const reject))
@@ -451,7 +450,7 @@ Returned values:
 ;; (ffap-replace-path-component "/who@foo.com:/whatever" "/new")
 
 (defun ffap-file-suffix (file)
-  "Return trailing \".foo\" suffix of FILE, or nil if none."
+  "Return trailing `.foo' suffix of FILE, or nil if none."
   (let ((pos (string-match "\\.[^./]*\\'" file)))
     (and pos (substring file pos nil))))
 
@@ -463,7 +462,7 @@ Returned values:
   ;; filename, maybe modified by adding a suffix like ".gz".  That
   ;; broke the interface of file-exists-p, so it was later dropped.
   ;; Here we document and simulate the old behavior.
-  "Return FILE \(maybe modified\) if it exists, else nil.
+  "Return FILE (maybe modified) if the file exists, else nil.
 When using jka-compr (a.k.a. `auto-compression-mode'), the returned
 name may have a suffix added from `ffap-compression-suffixes'.
 The optional NOMODIFY argument suppresses the extra search."
@@ -483,7 +482,7 @@ The optional NOMODIFY argument suppresses the extra search."
       ret))))
 
 (defun ffap-file-remote-p (filename)
-  "If FILENAME looks remote, return it \(maybe slightly improved\)."
+  "If FILENAME looks remote, return it (maybe slightly improved)."
   ;; (ffap-file-remote-p "/user@foo.bar.com:/pub")
   ;; (ffap-file-remote-p "/cssun.mathcs.emory.edu://path")
   ;; (ffap-file-remote-p "/ffap.el:80")
@@ -935,8 +934,8 @@ If t, `ffap-tex-init' will initialize this when needed.")
     (math-mode ",-:$+<>@-Z_a-z~`" "<" "@>;.,!?`:")
     )
   "Alist of \(MODE CHARS BEG END\), where MODE is a symbol,
-possibly a `major-mode' or some symbol internal to ffap
-\(such as 'file, 'url, 'machine, and 'nocolon\).
+possibly a major-mode name, or one of the symbol
+`file', `url', `machine', and `nocolon'.
 `ffap-string-at-point' uses the data fields as follows:
 1. find a maximal string of CHARS around point,
 2. strip BEG chars before point from the beginning,
@@ -948,9 +947,9 @@ possibly a `major-mode' or some symbol internal to ffap
 
 (defun ffap-string-at-point (&optional mode)
   "Return a string of characters from around point.
-MODE (defaults to `major-mode') is a symbol used to lookup string
+MODE (defaults to value of `major-mode') is a symbol used to look up string
 syntax parameters in `ffap-string-at-point-mode-alist'.
-If MODE is not found, we fall back on the symbol 'file.
+If MODE is not found, we use `file' instead of MODE.
 Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
   (let* ((args
 	  (cdr
@@ -1412,7 +1411,7 @@ a rebuild.  Searches with `ffap-menu-regexp'."
 Arguments are TITLE, ALIST, and CONT \(a continuation function\).
 This uses either a menu or the minibuffer depending on invocation.
 The TITLE string is used as either the prompt or menu title.
-Each \(string . data\) ALIST entry defines a choice.
+Each ALIST entry looks like (STRING . DATA) and defines one choice.
 Function CONT is applied to the entry chosen by the user."
   ;; Note: this function is used with a different continuation
   ;; by the ffap-url add-on package.
