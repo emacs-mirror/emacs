@@ -2,7 +2,7 @@
 
 ;;; The author has placed this file in the public domain.
 
-;; Author: Dale R. Worley <drw@math.mit.edu>
+;; Author: Dale R. Worley <worley@world.std.com>
 ;; Version: 5fsf
 ;; Keywords: unix, tools
 
