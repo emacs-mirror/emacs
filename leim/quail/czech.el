@@ -1,4 +1,4 @@
-;;; czech.el --- Quail package for inputting Czech
+;;; czech.el --- Quail package for inputting Czech -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 

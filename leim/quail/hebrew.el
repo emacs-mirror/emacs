@@ -1,4 +1,4 @@
-;;; hebrew.el --- Quail package for inputting Hebrew characters
+;;; hebrew.el --- Quail package for inputting Hebrew characters -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1998 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

@@ -1,4 +1,4 @@
-;;; thai.el --- Quail package for inputting Thai characters
+;;; thai.el --- Quail package for inputting Thai characters -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
