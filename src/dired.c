@@ -64,6 +64,10 @@ extern struct direct *readdir ();
 Lisp_Object Vcompletion_ignored_extensions;
 
 Lisp_Object Qcompletion_ignore_case;
+
+Lisp_Object Qdirectory_files;
+Lisp_Object Qfile_name_completion;
+Lisp_Object Qfile_name_all_completions;
 
 DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
   "Return a list of names of files in DIRECTORY.\n\
@@ -78,6 +82,23 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   DIR *d;
   int length;
   Lisp_Object list, name;
+  Lisp_Object handler;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    {
+      Lisp_Object args[6];
+
+      args[0] = handler;
+      args[1] = Qdirectory_files;
+      args[2] = dirname;
+      args[3] = full;
+      args[4] = match;
+      args[5] = nosort;
+      return Ffuncall (6, args);
+    }
 
   if (!NILP (match))
     {
@@ -158,6 +179,7 @@ Returns nil if DIR contains no name starting with FILE.")
   (file, dirname)
      Lisp_Object file, dirname;
 {
+  Lisp_Object handler;
   /* Don't waste time trying to complete a null string.
      Besides, this case happens when user is being asked for
      a directory name and has supplied one ending in a /.
@@ -165,6 +187,13 @@ Returns nil if DIR contains no name starting with FILE.")
      even if there are some unique characters in that directory.  */
   if (XTYPE (file) == Lisp_String && XSTRING (file)->size == 0)
     return file;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qfile_name_completion, file, dirname);
+
   return file_name_completion (file, dirname, 0, 0);
 }
 
@@ -175,6 +204,14 @@ These are all file names in directory DIR which begin with FILE.")
   (file, dirname)
      Lisp_Object file, dirname;
 {
+  Lisp_Object handler;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qfile_name_all_completions, file, dirname);
+
   return file_name_completion (file, dirname, 1, 0);
 }
 
@@ -409,8 +446,16 @@ If file does not exists, returns nil.")
   struct stat s;
   struct stat sdir;
   char modes[10];
+  Lisp_Object handler;
 
   filename = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_attributes, filename);
+
   if (lstat (XSTRING (filename)->data, &s) < 0)
     return Qnil;
 
@@ -457,6 +502,10 @@ If file does not exists, returns nil.")
 
 syms_of_dired ()
 {
+  Qdirectory_files = intern ("directory-files");
+  Qfile_name_completion = intern ("file-name-completion");
+  Qfile_name_all_completions = intern ("file-name-all-completions");
+
   defsubr (&Sdirectory_files);
   defsubr (&Sfile_name_completion);
 #ifdef VMS

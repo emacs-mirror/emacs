@@ -87,6 +87,10 @@ int auto_saving;
    a new file with the same mode as the original */
 int auto_save_mode_bits;
 
+/* Alist of elements (REGEXP . HANDLER) for file names 
+   whose I/O is done with a special handler.  */
+Lisp_Object Vfile_name_handler_alist;
+
 /* Nonzero means, when reading a filename in the minibuffer,
  start out by inserting the default directory into the minibuffer. */
 int insert_default_directory;
@@ -122,6 +126,52 @@ close_file_unwind (fd)
      Lisp_Object fd;
 {
   close (XFASTINT (fd));
+}
+
+Lisp_Object Qcopy_file;
+Lisp_Object Qmake_directory;
+Lisp_Object Qdelete_directory;
+Lisp_Object Qdelete_file;
+Lisp_Object Qrename_file;
+Lisp_Object Qadd_name_to_file;
+Lisp_Object Qmake_symbolic_link;
+Lisp_Object Qfile_exists_p;
+Lisp_Object Qfile_executable_p;
+Lisp_Object Qfile_readable_p;
+Lisp_Object Qfile_symlink_p;
+Lisp_Object Qfile_writable_p;
+Lisp_Object Qfile_directory_p;
+Lisp_Object Qfile_accessible_directory_p;
+Lisp_Object Qfile_modes;
+Lisp_Object Qset_file_modes;
+Lisp_Object Qfile_newer_than_file_p;
+Lisp_Object Qinsert_file_contents;
+Lisp_Object Qwrite_region;
+Lisp_Object Qverify_visited_file_modtime;
+
+/* If FILENAME is handled specially on account of its syntax,
+   return its handler function.  Otherwise, return nil.  */
+
+Lisp_Object
+find_file_handler (filename)
+     Lisp_Object filename;
+{
+  Lisp_Object chain;
+  for (chain = Vfile_handler_alist; XTYPE (chain) == Lisp_Cons;
+       chain = XCONS (chain)->cdr)
+    {
+      Lisp_Object elt;
+      elt = XCONS (chain)->car;
+      if (XTYPE (elt) == Lisp_Cons)
+	{
+	  Lisp_Object string;
+	  string = XCONS (elt)->car;
+	  if (XTYPE (string) == Lisp_String
+	      && fast_string_match (string, filename))
+	    return XCONS (elt)->cdr;
+	}
+    }
+  return Qnil;
 }
 
 DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
@@ -1383,6 +1433,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   int ifd, ofd, n;
   char buf[16 * 1024];
   struct stat st;
+  Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
   int count = specpdl_ptr - specpdl;
 
@@ -1391,6 +1442,13 @@ A prefix arg makes KEEP-TIME non-nil.")
   CHECK_STRING (newname, 1);
   filename = Fexpand_file_name (filename, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qcopy_file, filename, newname);
+
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (newname, "copy to it",
@@ -1452,15 +1510,21 @@ DEFUN ("make-directory", Fmake_directory, Smake_directory, 1, 1, "FMake director
      Lisp_Object dirname;
 {
   unsigned char *dir;
+  Lisp_Object handler;
 
   CHECK_STRING (dirname, 0);
   dirname = Fexpand_file_name (dirname, Qnil);
+
+  handler = find_file_handler (dirname);
+  if (!NILP (handler))
+    return call2 (handler, Qmake_directory, dirname);
+ 
   dir = XSTRING (dirname)->data;
 
   if (mkdir (dir, 0777) != 0)
     report_file_error ("Creating directory", Flist (1, &dirname));
 
-    return Qnil;
+  return Qnil;
 }
 
 DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete directory: ",
@@ -1469,10 +1533,15 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
      Lisp_Object dirname;
 {
   unsigned char *dir;
+  Lisp_Object handler;
 
   CHECK_STRING (dirname, 0);
   dirname = Fexpand_file_name (dirname, Qnil);
   dir = XSTRING (dirname)->data;
+
+  handler = find_file_handler (dirname);
+  if (!NILP (handler))
+    return call2 (handler, Qdelete_directory, dirname);
 
   if (rmdir (dir) != 0)
     report_file_error ("Removing directory", Flist (1, &dirname));
@@ -1486,8 +1555,14 @@ If file has multiple names, it continues to exist with the other names.")
   (filename)
      Lisp_Object filename;
 {
+  Lisp_Object handler;
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
+
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qdelete_file, filename);
+
   if (0 > unlink (XSTRING (filename)->data))
     report_file_error ("Removing old name", Flist (1, &filename));
   return Qnil;
@@ -1507,6 +1582,7 @@ This is what happens in interactive use with M-x.")
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
 #endif
+  Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
   GCPRO2 (filename, newname);
@@ -1514,6 +1590,13 @@ This is what happens in interactive use with M-x.")
   CHECK_STRING (newname, 1);
   filename = Fexpand_file_name (filename, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qrename_file, filename, newname);
+
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (newname, "rename to it",
@@ -1558,6 +1641,7 @@ This is what happens in interactive use with M-x.")
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
 #endif
+  Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
   GCPRO2 (filename, newname);
@@ -1565,6 +1649,13 @@ This is what happens in interactive use with M-x.")
   CHECK_STRING (newname, 1);
   filename = Fexpand_file_name (filename, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qadd_name_to_file, filename, newname);
+
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (newname, "make it a new name",
@@ -1599,6 +1690,7 @@ This happens for interactive use with M-x.")
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
 #endif
+  Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
   GCPRO2 (filename, linkname);
@@ -1608,6 +1700,13 @@ This happens for interactive use with M-x.")
   filename = Fexpand_file_name (filename, Qnil);
 #endif
   linkname = Fexpand_file_name (linkname, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qmake_symbolic_link, filename, newname);
+
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (linkname, "make it a link",
@@ -1714,9 +1813,17 @@ See also `file-readable-p' and `file-attributes'.")
      Lisp_Object filename;
 {
   Lisp_Object abspath;
+  Lisp_Object handler;
 
   CHECK_STRING (filename, 0);
   abspath = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_exists_p, filename);
+
   return (access (XSTRING (abspath)->data, 0) >= 0) ? Qt : Qnil;
 }
 
@@ -1728,9 +1835,17 @@ For directories this means you can change to that directory.")
 
 {
   Lisp_Object abspath;
+  Lisp_Object handler;
 
   CHECK_STRING (filename, 0);
   abspath = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_executable_p, filename);
+
   return (access (XSTRING (abspath)->data, 1) >= 0) ? Qt : Qnil;
 }
 
@@ -1741,9 +1856,17 @@ See also `file-exists-p' and `file-attributes'.")
      Lisp_Object filename;
 {
   Lisp_Object abspath;
+  Lisp_Object handler;
 
   CHECK_STRING (filename, 0);
   abspath = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_readable_p, filename);
+
   return (access (XSTRING (abspath)->data, 4) >= 0) ? Qt : Qnil;
 }
 
@@ -1759,9 +1882,16 @@ Otherwise returns NIL.")
   int bufsize;
   int valsize;
   Lisp_Object val;
+  Lisp_Object handler;
 
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_symlink_p, filename);
 
   bufsize = 100;
   while (1)
@@ -1795,9 +1925,17 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
      Lisp_Object filename;
 {
   Lisp_Object abspath, dir;
+  Lisp_Object handler;
 
   CHECK_STRING (filename, 0);
   abspath = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_writable_p, filename);
+
   if (access (XSTRING (abspath)->data, 0) >= 0)
     return (access (XSTRING (abspath)->data, 2) >= 0) ? Qt : Qnil;
   dir = Ffile_name_directory (abspath);
@@ -1818,8 +1956,15 @@ if the directory so specified exists and really is a directory.")
 {
   register Lisp_Object abspath;
   struct stat st;
+  Lisp_Object handler;
 
   abspath = expand_and_dir_to_file (filename, current_buffer->directory);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_directory_p, filename);
 
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
@@ -1836,6 +1981,14 @@ searchable directory.")
   (filename)
      Lisp_Object filename;
 {
+  Lisp_Object handler;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_accessible_directory_p, filename);
+
   if (NILP (Ffile_directory_p (filename))
       || NILP (Ffile_executable_p (filename)))
     return Qnil;
@@ -1850,8 +2003,15 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 {
   Lisp_Object abspath;
   struct stat st;
+  Lisp_Object handler;
 
   abspath = expand_and_dir_to_file (filename, current_buffer->directory);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_modes, filename);
 
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
@@ -1865,9 +2025,16 @@ Only the 12 low bits of MODE are used.")
      Lisp_Object filename, mode;
 {
   Lisp_Object abspath;
+  Lisp_Object handler;
 
   abspath = Fexpand_file_name (filename, current_buffer->directory);
   CHECK_NUMBER (mode, 1);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qset_file_modes, filename, mode);
 
 #ifndef APOLLO
   if (chmod (XSTRING (abspath)->data, XINT (mode)) < 0)
@@ -1953,23 +2120,29 @@ otherwise, if FILE2 does not exist, the answer is t.")
   (file1, file2)
      Lisp_Object file1, file2;
 {
-  Lisp_Object abspath;
+  Lisp_Object abspath1, abspath2;
   struct stat st;
   int mtime1;
+  Lisp_Object handler;
 
   CHECK_STRING (file1, 0);
   CHECK_STRING (file2, 0);
 
-  abspath = expand_and_dir_to_file (file1, current_buffer->directory);
+  abspath1 = expand_and_dir_to_file (file1, current_buffer->directory);
+  abspath2 = expand_and_dir_to_file (file2, current_buffer->directory);
 
-  if (stat (XSTRING (abspath)->data, &st) < 0)
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (abspath1);
+  if (!NILP (handler))
+    return call3 (handler, Qfile_newer_than_file_p, abspath1, abspath2);
+
+  if (stat (XSTRING (abspath1)->data, &st) < 0)
     return Qnil;
 
   mtime1 = st.st_mtime;
 
-  abspath = expand_and_dir_to_file (file2, current_buffer->directory);
-
-  if (stat (XSTRING (abspath)->data, &st) < 0)
+  if (stat (XSTRING (abspath2)->data, &st) < 0)
     return Qt;
 
   return (mtime1 > st.st_mtime) ? Qt : Qnil;
@@ -1992,13 +2165,26 @@ before the error is signaled.")
   register int how_much;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
-  
+  Lisp_Object handler, val;
+
+  val = Qnil;
+
   GCPRO1 (filename);
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only();
 
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    {
+      val = call3 (handler, Qinsert_file_contents, filename, visit);
+      st.st_mtime = 0;
+      goto handled;
+    }
 
   fd = -1;
 
@@ -2088,6 +2274,7 @@ before the error is signaled.")
 	   XSTRING (filename)->data, err_str (errno));
 
  notfound:
+ handled:
 
   if (!NILP (visit))
     {
@@ -2100,18 +2287,23 @@ before the error is signaled.")
       current_buffer->auto_save_modified = MODIFF;
       XFASTINT (current_buffer->save_length) = Z - BEG;
 #ifdef CLASH_DETECTION
-      if (!NILP (current_buffer->filename))
-	unlock_file (current_buffer->filename);
-      unlock_file (filename);
+      if (NILP (handler))
+	{
+	  if (!NILP (current_buffer->filename))
+	    unlock_file (current_buffer->filename);
+	  unlock_file (filename);
+	}
 #endif /* CLASH_DETECTION */
       current_buffer->filename = filename;
       /* If visiting nonexistent file, return nil.  */
-      if (st.st_mtime == -1)
+      if (current_buffer->modtime == -1)
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
     }
 
   signal_after_change (point, 0, inserted);
   
+  if (!NILP (val))
+    RETURN_UNGCPRO (val);
   RETURN_UNGCPRO (Fcons (filename,
 			 Fcons (make_number (inserted),
 				Qnil)));
@@ -2156,6 +2348,35 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   filename = Fexpand_file_name (filename, Qnil);
   fn = XSTRING (filename)->data;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    {
+      Lisp_Object args[7];
+      Lisp_Object val;
+      args[0] = handler;
+      args[1] = Qwrite_region;
+      args[2] = start;
+      args[3] = end;
+      args[4] = filename;
+      args[5] = append;
+      args[6] = visit;
+      val = Ffuncall (7, args);
+
+      /* Do this before reporting IO error
+	 to avoid a "file has changed on disk" warning on
+	 next attempt to save.  */
+      if (EQ (visit, Qt))
+	{
+	  current_buffer->modtime = 0;
+	  current_buffer->save_modified = MODIFF;
+	  XFASTINT (current_buffer->save_length) = Z - BEG;
+	  current_buffer->filename = filename;
+	}
+      return val;
+    }
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
@@ -2410,12 +2631,19 @@ This means that the file has not been changed since it was visited or saved.")
 {
   struct buffer *b;
   struct stat st;
+  Lisp_Object handler;
 
   CHECK_BUFFER (buf, 0);
   b = XBUFFER (buf);
 
   if (XTYPE (b->filename) != Lisp_String) return Qt;
   if (b->modtime == 0) return Qt;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qverify_visited_file_modtime, filename);
 
   if (stat (XSTRING (b->filename)->data, &st) < 0)
     {
@@ -2456,8 +2684,14 @@ or if the file itself has been changed for some known benign reason.")
   struct stat st;
 
   filename = Fexpand_file_name (current_buffer->filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (filename);
+  if (!NILP (handler))
+    current_buffer->modtime = 0;
   
-  if (stat (XSTRING (filename)->data, &st) >= 0)
+  else if (stat (XSTRING (filename)->data, &st) >= 0)
     current_buffer->modtime = st.st_mtime;
 
   return Qnil;
@@ -2831,6 +3065,27 @@ DIR defaults to current buffer's directory default.")
 
 syms_of_fileio ()
 {
+  Qcopy_file = intern ("copy-file");
+  Qmake_directory = intern ("make-directory");
+  Qdelete_directory = intern ("delete-directory");
+  Qdelete_file = intern ("delete-file");
+  Qrename_file = intern ("rename-file");
+  Qadd_name_to_file = intern ("add-name-to-file");
+  Qmake_symbolic_link = intern ("make-symbolic-link");
+  Qfile_exists_p = intern ("file-exists-p");
+  Qfile_executable_p = intern ("file-executable-p");
+  Qfile_readable_p = intern ("file-readable-p");
+  Qfile_symlink_p = intern ("file-symlink-p");
+  Qfile_writable_p = intern ("file-writable-p");
+  Qfile_directory_p = intern ("file-directory-p");
+  Qfile_accessible_directory_p = intern ("file-accessible-directory-p");
+  Qfile_modes = intern ("file-modes");
+  Qset_file_modes = intern ("set-file-modes");
+  Qfile_newer_than_file_p = intern ("file-newer-than-file-p");
+  Qinsert_file_contents = intern ("insert-file-contents");
+  Qwrite_region = intern ("write-region");
+  Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
+
   Qfile_error = intern ("file-error");
   staticpro (&Qfile_error);
   Qfile_already_exists = intern("file-already-exists");
