@@ -8385,7 +8385,7 @@ parse_image_spec (spec, keywords, nkeywords, type)
 
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
-	if (strcmp (keywords[i].name, XSYMBOL (key)->name->data) == 0)
+	if (strcmp (keywords[i].name, XSTRING (SYMBOL_NAME (key))->data) == 0)
 	  break;
 
       if (i == nkeywords)
@@ -14517,7 +14517,7 @@ w32_parse_hot_key (key)
       c = Fcar (c);
       if (!SYMBOLP (c))
 	abort ();
-      vk_code = lookup_vk_code (XSYMBOL (c)->name->data);
+      vk_code = lookup_vk_code (XSTRING (SYMBOL_NAME (c))->data);
     }
   else if (INTEGERP (c))
     {
