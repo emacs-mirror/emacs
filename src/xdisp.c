@@ -8691,6 +8691,7 @@ redisplay_internal (preserve_echo_area)
       && this_line_buffer == current_buffer
       && current_buffer == XBUFFER (w->buffer)
       && NILP (w->force_start)
+      && NILP (w->optional_new_start)
       /* Point must be on the line that we have info recorded about.  */
       && PT >= CHARPOS (tlbufpos)
       && PT <= Z - CHARPOS (tlendpos)
@@ -9470,9 +9471,9 @@ run_window_scroll_functions (window, startp)
 
 
 /* Modify the desired matrix of window W and W->vscroll so that the
-   line containing the cursor is fully visible.  If this requires
-   larger matrices than are allocated, set fonts_changed_p and return
-   0.  */
+   line containing the cursor is fully visible.
+   A value of 1 means there is nothing to be done or we did it.
+   A value of 0 causes redisplay.  */
 
 static int
 make_cursor_line_fully_visible (w)
@@ -9490,8 +9491,7 @@ make_cursor_line_fully_visible (w)
   matrix = w->desired_matrix;
   row = MATRIX_ROW (matrix, w->cursor.vpos);
 
-  /* If the cursor row is not partially visible, there's nothing
-     to do.  */
+  /* If the cursor row is not partially visible, there's nothing to do.  */
   if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
     return 1;
 
