@@ -531,7 +531,7 @@ space does not end a sentence, so don't break a line there."
 				(progn (forward-char -2) t))
 			   (and fill-nobreak-predicate
 				(funcall fill-nobreak-predicate)
-				(goto-char (match-beginning 0))))
+				(skip-chars-backward " \t")))
 		  (if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
 		      (forward-char 1)))
 		;; If the left margin and fill prefix by themselves
@@ -688,7 +688,7 @@ space does not end a sentence, so don't break a line there."
     (goto-char (match-end 0))))
 
 (defun fill-paragraph (arg)
-  "Fill paragraph at or after point.  Prefix arg means justify as well.
+  "Fill paragraph at or after point.  Prefix ARG means justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there.
 the variable `fill-column' controls the width for filling.
@@ -696,7 +696,7 @@ the variable `fill-column' controls the width for filling.
 If `fill-paragraph-function' is non-nil, we call it (passing our
 argument to it), and if it returns non-nil, we simply return its value.
 
-If `fill-paragraph-function' is nil, return the fill-prefix used for filling."
+If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (if current-prefix-arg 'full))))
@@ -716,7 +716,7 @@ If `fill-paragraph-function' is nil, return the fill-prefix used for filling."
 	  (let ((end (point))
 		(beg (progn (backward-paragraph) (point))))
 	    (goto-char before)
-	    (setq fill-pfx 
+	    (setq fill-pfx
 		  (if use-hard-newlines
 		      ;; Can't use fill-region-as-paragraph, since this
 		      ;; paragraph may still contain hard newlines.  See
