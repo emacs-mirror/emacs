@@ -1,3 +1,7 @@
+2005-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (access_keymap): YAILOM.
+
 2005-01-27  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_phys_cursor_geometry): New function to calculate
@@ -518,8 +522,13 @@
 	(install_window_handler) [TARGET_API_MAC_CARBON]:
 	Register handlers for tracking/receiving drag-and-drop items.
 	(do_ae_open_documents): Generate unibyte strings for filenames.
+<<<<<<< ChangeLog
+	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.
+	Reject only non-filename items.  Set event modifiers and return value.
+=======
 	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.
 	Reject only non-filename items.  Set event modifiers, and return value.
+>>>>>>> 1.4187
 
 2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -629,7 +638,12 @@
 	(x_make_frame_visible) [TARGET_API_MAC_CARBON]: Reposition window
 	if the position is neither user-specified nor program-specified.
 	(x_free_frame_resources): Free size_hints.
+<<<<<<< ChangeLog
+	(x_wm_set_size_hint): Allocate size_hints if needed.
+	Set size_hints.
+=======
 	(x_wm_set_size_hint): Allocate size_hints if needed.  Set size_hints.
+>>>>>>> 1.4187
 	(mac_clear_font_name_table): New function.
 	(mac_do_list_fonts): Initialize font_name_table if needed.
 	(x_list_fonts): Don't initialize font_name_table.  Add BLOCK_INPUT
@@ -681,7 +695,11 @@
 
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
+<<<<<<< ChangeLog
+	* buffer.c (Fbuffer_disable_undo): Delete (moved to simple.el).
+=======
 	* buffer.c (Fbuffer_disable_undo): Delete (move to simple.el).
+>>>>>>> 1.4187
 	(syms_of_buffer): Don't defsubr it.
 
 	* process.c (list_processes_1): Set undo_list instead
