@@ -81,7 +81,7 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defcustom Info-use-header-line t
-  "*Non-nil means to put the beginning-of-node links in an emacs header-line.
+  "*Non-nil means to put the beginning-of-node links in an Emacs header-line.
 A header-line does not scroll with the rest of the buffer."
   :type 'boolean
   :group 'info)
@@ -404,6 +404,11 @@ in all the directories in that path."
     (if (get-buffer "*info*")
 	(pop-to-buffer "*info*")
       (Info-directory))))
+
+;;;###autoload
+(defun info-emacs-manual ()
+  (interactive)
+  (info "emacs"))
 
 ;;;###autoload
 (defun info-standalone ()
