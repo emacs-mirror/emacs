@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.11) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.12) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -13,6 +13,7 @@ MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
       <ref> <trace> <protnt> <shield> \
       <thnti3> <ssnti3> <mpsi> <mpsint>
 AMC = <amc> <amcgroup>
+LO = <lo>
 DW  = <dw> <fmtdy>
 TESTLIB = <testlib>
 
@@ -20,7 +21,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.11) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.12) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -42,6 +43,7 @@ TESTLIB = <testlib>
 #            and surrounded in angle brackets (<>)
 #   MPM      as above for the "mpm" part
 #   AMC      as above for the "amc" part
+#   LO      as above for the "lo" part
 #   DW      as above for the "amc" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
@@ -74,6 +76,9 @@ TESTLIB = <testlib>
 !ENDIF
 !IFNDEF MPM
 !ERROR mv.nmk: MPM not defined
+!ENDIF
+!IFNDEF LO
+!ERROR mv.nmk: LO not defined
 !ENDIF
 !IFNDEF AMC
 !ERROR mv.nmk: AMC not defined
@@ -162,6 +167,8 @@ MPMOBJ0 = $(MPM:<=nti3mv\debug\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\debug\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+LOOBJ0 = $(LO:<=nti3mv\debug\)
+LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\debug\)
 DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\debug\)
@@ -218,13 +225,13 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # %%TARGET: Add the target  to the all dependencies
 
 all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
-     stdcover.exe poolncv.exe std.lib mpm.lib
+     stdcover.exe poolncv.exe locv.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcss.exe lockutnt.exe lockcov.exe stdcover.exe \
-	mpmss.exe protcv.exe poolncv.exe std.lib mpm.lib:
+	mpmss.exe protcv.exe poolncv.exe locv.exe std.lib mpm.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 amcss.cov:
@@ -291,6 +298,9 @@ $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
 	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
+
+$(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
+	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(LOOBJ) $(PFM)\$(VARIETY)\lo.obj
 
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
