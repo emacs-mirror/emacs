@@ -2076,28 +2076,6 @@ face attributes, as determined by face merging, specify most of the
 font choice, but not all.  Part of the choice depends on what character
 it is.
 
-  For multibyte characters, typically each font covers only one
-character set.  So each character set (@pxref{Character Sets}) specifies
-a registry and encoding to use, with the character set's
-@code{x-charset-registry} property.  Its value is a string containing
-the registry and the encoding, with a dash between them:
-
-@example
-(plist-get (charset-plist 'latin-iso8859-1)
-           'x-charset-registry)
-     @result{} "ISO8859-1"
-@end example
-
-  Unibyte text does not have character sets, so displaying a unibyte
-character takes the registry and encoding from the variable
-@code{face-default-registry}.
-
-@defvar face-default-registry
-This variable specifies which registry and encoding to use in choosing
-fonts for unibyte characters.  The value is initialized at Emacs startup
-time from the font the user specified for Emacs.
-@end defvar
-
   If the face specifies a fontset name, that fontset determines a
 pattern for fonts of the given charset.  If the face specifies a font
 family, a font pattern is constructed.
