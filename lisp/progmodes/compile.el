@@ -597,7 +597,7 @@ or \\<compilation-minor-mode-map>\\[compile-goto-error] in the grep \
 output buffer, to go to the lines
 where grep found matches.
 
-This command uses a special history list for its arguments, so you can
+This command uses a special history list for its COMMAND-ARGS, so you can
 easily repeat a grep command.
 
 A prefix argument says to default the argument based upon the current
@@ -617,8 +617,11 @@ if that history list is empty)."
 			    'grep-tag-default))))
 	 (setq grep-default (or (car grep-history) grep-command))
 	 ;; Replace the thing matching for with that around cursor
-	 (if (string-match "[^ ]+\\s +\\(-[^ ]+\\s +\\)*\\(\"[^\"]+\"\\|[^ ]+\\)" grep-default)
-	     (setq grep-default (replace-match tag-default t t
+	 (when (string-match "[^ ]+\\s +\\(-[^ ]+\\s +\\)*\\(\"[^\"]+\"\\|[^ ]+\\)\\(\\s-+\\S-+\\)?" grep-default)
+	   (unless (or (match-beginning 3) (not (stringp buffer-file-name)))
+	     (setq grep-default (concat grep-default "*."
+					(file-name-extension buffer-file-name))))
+	   (setq grep-default (replace-match tag-default t t
 					       grep-default 2)))))
      (list (read-from-minibuffer "Run grep (like this): "
 				 (or grep-default grep-command)
@@ -1405,9 +1408,9 @@ other kinds of prefix arguments are ignored."
 If all the error messages parsed so far have been processed already,
 the message buffer is checked for new ones.
 
-A prefix arg specifies how many error messages to move;
+A prefix ARGP specifies how many error messages to move;
 negative means move back to previous error messages.
-Just C-u as a prefix means reparse the error message buffer
+Just \\[universal-argument] as a prefix means reparse the error message buffer
 and start at the first error.
 
 \\[next-error] normally uses the most recently started compilation or
@@ -1647,8 +1650,8 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 
 (defun compilation-find-file (marker filename dir &rest formats)
   "Find a buffer for file FILENAME.
-Search the directories in compilation-search-path.
-A nil in compilation-search-path means to try the
+Search the directories in `compilation-search-path'.
+A nil in `compilation-search-path' means to try the
 current directory, which is passed in DIR.
 If FILENAME is not found at all, ask the user where to find it.
 Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
@@ -1670,7 +1673,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 	(while (and fmts (null buffer))
 	  (setq name (expand-file-name (format (car fmts) filename) thisdir)
 		buffer (and (file-exists-p name)
-			    (find-file name))
+			    (find-file-noselect name))
 		fmts (cdr fmts)))
 	(setq dirs (cdr dirs)))
       (or buffer
