@@ -418,10 +418,10 @@ extern Lisp_Object Vtransient_mark_mode;
 #define OVERLAY_VALID(OV) (OVERLAYP (OV))
 
 /* Return the marker that stands for where OV starts in the buffer.  */
-#define OVERLAY_START(OV) (XCONS (XCONS ((OV))->car)->car)
+#define OVERLAY_START(OV) (XOVERLAY (OV)->start)
 
 /* Return the marker that stands for where OV ends in the buffer.  */
-#define OVERLAY_END(OV) (XCONS (XCONS ((OV))->car)->cdr)
+#define OVERLAY_END(OV) (XOVERLAY (OV)->end)
 
 /* Return the actual buffer position for the marker P.
    We assume you know which buffer it's pointing into.  */
