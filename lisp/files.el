@@ -1372,6 +1372,7 @@ in that case, this function acts as if `enable-local-variables' were t."
     ;; _emacs following a directory delimiter
     ;; in MsDos syntax
     ("[:/]_emacs\\'" . emacs-lisp-mode)
+    ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
     ("\\.ml\\'" . lisp-mode)
     ("\\.asn$" . snmp-mode)
     ("\\.mib$" . snmp-mode)
