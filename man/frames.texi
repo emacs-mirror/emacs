@@ -486,6 +486,18 @@ frames on your terminal.
 Delete all frames except the selected one.
 @end table
 
+@vindex focus-follows-mouse
+  To make the command @kbd{C-x 5 o} work properly, you must tell Emacs
+how the system (or the window manager) generally handles
+focus-switching between windows.  There are two possibilities: either
+simply moving the mouse onto a window selects it (gives it focus), or
+you have to click on it in a suitable way to do so.  Unfortunately
+there is no way Emacs can find out automatically which way the system
+handles this, so you have to explicitly say, by setting the variable
+@code{focus-follows-mouse}.  If just moving the mouse onto a window
+selects it, that variable should be @code{t}; if a click is necessary,
+the variable should be @code{nil}.
+
 @node Speedbar
 @section Making and Using a Speedbar Frame
 @cindex speedbar
