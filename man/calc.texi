@@ -5859,15 +5859,7 @@ is one or more non-sum terms separated by @samp{+} or @samp{-} signs,
 so that @expr{2 - 3 (x + y) + x y} is a sum of three terms.)
 @xref{Rewrites Answer 5, 5}. (@bullet{})
 
-(@bullet{}) @strong{Exercise 6.}  Calc considers the form @expr{0^0}
-to be ``indeterminate,'' and leaves it unevaluated (assuming Infinite
-mode is not enabled).  Some people prefer to define @expr{0^0 = 1},
-so that the identity @expr{x^0 = 1} can safely be used for all @expr{x}.
-Find a way to make Calc follow this convention.  What happens if you
-now type @kbd{m i} to turn on Infinite mode?
-@xref{Rewrites Answer 6, 6}. (@bullet{})
-
-(@bullet{}) @strong{Exercise 7.}  A Taylor series for a function is an
+(@bullet{}) @strong{Exercise 6.}  A Taylor series for a function is an
 infinite series that exactly equals the value of that function at
 values of @expr{x} near zero.
 
@@ -5913,9 +5905,12 @@ on the stack, we want to be able to type @kbd{*} and get the result
 rearranged or if @kbd{a s} needs to be typed after rewriting.  (This one
 is rather tricky; the solution at the end of this chapter uses 6 rewrite
 rules.  Hint:  The @samp{constant(x)} condition tests whether @samp{x} is
-a number.)  @xref{Rewrites Answer 7, 7}. (@bullet{})
+a number.)  @xref{Rewrites Answer 6, 6}. (@bullet{})
 
-@c [fix-ref Rewrite Rules]
+Just for kicks, try adding the rule @code{2+3 := 6} to @code{EvalRules}.
+What happens?  (Be sure to remove this rule afterward, or you might get
+a nasty surprise when you use Calc to balance your checkbook!)
+
 @xref{Rewrite Rules}, for the whole story on rewrite rules.
 
 @node Programming Tutorial, Answers to Exercises, Algebra Tutorial, Tutorial
@@ -6643,8 +6638,7 @@ This section includes answers to all the exercises in the Calc tutorial.
 * Rewrites Answer 3::      Rewriting opt(a) + opt(b) x
 * Rewrites Answer 4::      Sequence of integers
 * Rewrites Answer 5::      Number of terms in sum
-* Rewrites Answer 6::      Defining 0^0 = 1
-* Rewrites Answer 7::      Truncated Taylor series
+* Rewrites Answer 6::      Truncated Taylor series
 * Programming Answer 1::   Fresnel's C(x)
 * Programming Answer 2::   Negate third stack element
 * Programming Answer 3::   Compute sin(x) / x, etc.
@@ -9094,47 +9088,8 @@ Here we have taken advantage of the fact that earlier rules always
 match before later rules; @samp{nterms(x)} will only be tried if we
 already know that @samp{x} is not a sum.
 
-@node Rewrites Answer 6, Rewrites Answer 7, Rewrites Answer 5, Answers to Exercises
+@node Rewrites Answer 6, Programming Answer 1, Rewrites Answer 5, Answers to Exercises
 @subsection Rewrites Tutorial Exercise 6
-
-Just put the rule @samp{0^0 := 1} into @code{EvalRules}.  For example,
-before making this definition we have:
-
-@smallexample
-@group
-2:  [-2, -1, 0, 1, 2]                1:  [1, 1, 0^0, 1, 1]
-1:  0                                    .
-    .
-
-    v x 5 @key{RET}  3 -  0                    V M ^
-@end group
-@end smallexample
-
-@noindent
-But then:
-
-@smallexample
-@group
-2:  [-2, -1, 0, 1, 2]                1:  [1, 1, 1, 1, 1]
-1:  0                                    .
-    .
-
-    U  ' 0^0:=1 @key{RET} s t EvalRules @key{RET}    V M ^
-@end group
-@end smallexample
-
-Perhaps more surprisingly, this rule still works with Infinite mode
-turned on.  Calc tries @code{EvalRules} before any built-in rules for
-a function.  This allows you to override the default behavior of any
-Calc feature:  Even though Calc now wants to evaluate @expr{0^0} to
-@code{nan}, your rule gets there first and evaluates it to 1 instead.
-
-Just for kicks, try adding the rule @code{2+3 := 6} to @code{EvalRules}.
-What happens?  (Be sure to remove this rule afterward, or you might get
-a nasty surprise when you use Calc to balance your checkbook!)
-
-@node Rewrites Answer 7, Programming Answer 1, Rewrites Answer 6, Answers to Exercises
-@subsection Rewrites Tutorial Exercise 7
 
 @noindent
 Here is a rule set that will do the job:
@@ -9208,7 +9163,7 @@ for a way to do this in Calc, although for something as involved as
 this it would probably be better to write the formatting routine
 in Lisp.)
 
-@node Programming Answer 1, Programming Answer 2, Rewrites Answer 7, Answers to Exercises
+@node Programming Answer 1, Programming Answer 2, Rewrites Answer 6, Answers to Exercises
 @subsection Programming Tutorial Exercise 1
 
 @noindent
