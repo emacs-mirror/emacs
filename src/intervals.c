@@ -656,6 +656,18 @@ adjust_intervals_for_insertion (tree, position, length)
 
   i = find_interval (tree, position);
 
+  /* If in middle of an interval which is not sticky either way,
+     we must not just give its properties to the insertion.
+     So split this interval at the insertion point.  */
+  if (! (position == i->position || eobp)
+      && END_NONSTICKY_P (i)
+      && ! FRONT_STICKY_P (i))
+    {
+      temp = split_interval_right (i, position - i->position);
+      copy_properties (i, temp);
+      i = temp;
+    }
+
   /* If we are positioned between intervals, check the stickiness of
      both of them.  We have to do this too, if we are at BEG or Z.  */
   if (position == i->position || eobp)
@@ -748,12 +760,13 @@ merge_properties_sticky (pleft, pright)
       if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
 	continue;
       
-      if (NILP (Fmemq (sym, lrear)))
+      if (CONSP (lrear) ? NILP (Fmemq (sym, lrear)) : NILP (lrear))
 	{
 	  /* rear-sticky is dominant, we needn't search in PRIGHT.  */
 	  
 	  props = Fcons (sym, Fcons (Fcar (Fcdr (tail1)), props));
-	  if (! NILP (Fmemq (sym, lfront)))
+	  if ((CONSP (lfront) || NILP (lfront))
+	      && ! NILP (Fmemq (sym, lfront)))
 	    front = Fcons (sym, front);
 	}
       else
@@ -763,13 +776,15 @@ merge_properties_sticky (pleft, pright)
 	    if (EQ (sym, Fcar (tail2)))
 	      {
 		
-		if (! NILP (Fmemq (sym, rfront)))
+		if (CONSP (rfront)
+		    ? ! NILP (Fmemq (sym, rfront)) : ! NILP (rfront))
 		  {
 		    /* Nonsticky at the left and sticky at the right,
 		       so take the right one.  */
 		    props = Fcons (sym, Fcons (Fcar (Fcdr (tail2)), props));
 		    front = Fcons (sym, front);
-		    if (! NILP (Fmemq (sym, rrear)))
+		    if ((CONSP (rrear) || NILP (rrear))
+			&& ! NILP (Fmemq (sym, rrear)))
 		      rear = Fcons (sym, rear);
 		  }
 		break;
@@ -786,7 +801,8 @@ merge_properties_sticky (pleft, pright)
 	continue;
 
       /* If it ain't sticky, we don't take it.  */
-      if (NILP (Fmemq (sym, rfront)))
+      if (CONSP (rfront)
+	  ? NILP (Fmemq (sym, rfront)) : NILP (rfront))
 	continue;
       
       /* If sym is in PLEFT we already got it.  */
@@ -798,7 +814,8 @@ merge_properties_sticky (pleft, pright)
 	{
 	  props = Fcons (sym, Fcons (Fcar (Fcdr (tail2)), props));
 	  front = Fcons (sym, front);
-	  if (! NILP (Fmemq (sym, rrear)))
+	  if ((CONSP (rrear) || NILP (rrear))
+	      && ! NILP (Fmemq (sym, rrear)))
 	    rear = Fcons (sym, rear);
 	}
     }
