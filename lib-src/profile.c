@@ -33,7 +33,7 @@
 #include <../src/config.h>
 #include <../src/systime.h>
 
-static struct timeval TV1, TV2;
+static EMACS_TIME TV1, TV2;
 static int watch_not_started = 1; /* flag */
 static char time_string[30];
 
@@ -56,13 +56,8 @@ get_time ()
   if (watch_not_started)
     exit (1);  /* call reset_watch first ! */
   EMACS_GET_TIME (TV2);
-  if (TV1.tv_usec > TV2.tv_usec)
-    {
-      TV2.tv_usec += 1000000;
-      TV2.tv_sec--;
-    }
-  sprintf (time_string, "%lu.%06lu",
-	  TV2.tv_sec - TV1.tv_sec, TV2.tv_usec - TV1.tv_usec);
+  EMACS_SUB_TIME (TV2, TV2, TV1);
+  sprintf (time_string, "%lu.%06lu", EMACS_SECS(TV2), EMACS_USECS(TV2));
   return time_string;
 }
 
