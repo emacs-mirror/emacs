@@ -794,9 +794,9 @@ Return the amount the indentation changed by."
 		  (setq indent (save-excursion
 				 (c-backward-to-start-of-do)
 				 (current-indentation))))
-		 ((= (following-char) ?})
+		 ((= (following-char) ?\})
 		  (setq indent (- indent c-indent-level)))
-		 ((= (following-char) ?{)
+		 ((= (following-char) ?\{)
 		  (setq indent (+ indent c-brace-offset))))))
     (skip-chars-forward " \t")
     (setq shift-amt (- indent (current-column)))
@@ -839,7 +839,7 @@ Returns nil if line starts inside a string, t if in a comment."
 	     ;; in which case this line is the first argument decl.
 	     (goto-char indent-point)
 	     (skip-chars-forward " \t")
-	     (if (= (following-char) ?{)
+	     (if (= (following-char) ?\{)
 		 0   ; Unless it starts a function body
 	       (c-backward-to-noncomment (or parse-start (point-min)))
 	       ;; Look at previous line that's at column 0
@@ -907,7 +907,7 @@ Returns nil if line starts inside a string, t if in a comment."
 ;; 					 (= (current-indentation) 0))
 ;;				     0 c-continued-statement-offset))
 
-	    ((/= (char-after containing-sexp) ?{)
+	    ((/= (char-after containing-sexp) ?\{)
 	     ;; line is expression, not statement:
 	     ;; indent to just after the surrounding open.
 	     (goto-char (1+ containing-sexp))
@@ -958,7 +958,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		      (save-excursion
 			(goto-char indent-point)
 			(skip-chars-forward " \t")
-			(not (= (following-char) ?}))))
+			(not (= (following-char) ?\}))))
 		 ;; This line is continuation of preceding line's statement;
 		 ;; indent  c-continued-statement-offset  more than the
 		 ;; previous line of the statement.
@@ -967,7 +967,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		   (+ c-continued-statement-offset (current-column)
 		      (if (save-excursion (goto-char indent-point)
 					  (skip-chars-forward " \t")
-					  (eq (following-char) ?{))
+					  (eq (following-char) ?\{))
 			  c-continued-brace-offset 0)))
 	       ;; This line starts a new statement.
 	       ;; Position following last unclosed open.
@@ -1124,10 +1124,10 @@ Otherwise return nil and don't move point."
 	    ;; is a close brace.)
 	    (if (save-excursion
 		  (forward-sexp 1)
-		  (or (and (not first) (= (preceding-char) ?}))
+		  (or (and (not first) (= (preceding-char) ?\}))
 		      (search-forward ";" next-start t
 				      (if (and first
-					       (/= (preceding-char) ?}))
+					       (/= (preceding-char) ?\}))
 					  2 1))))
 		(setq done 'fail)
 	      (setq first nil)
@@ -1345,7 +1345,7 @@ If within a string or comment, move by sentences instead of statements."
 	      ;; Yes.
 	      ;; Compute the standard indent for this level.
 	      (let (val)
-		(if (= (char-after (car contain-stack)) ?{)
+		(if (= (char-after (car contain-stack)) ?\{)
 		    (save-excursion
 		      (goto-char (car contain-stack))
 		      (setq val (calculate-c-indent-after-brace)))
@@ -1361,7 +1361,7 @@ If within a string or comment, move by sentences instead of statements."
 	    ;; Adjust indent of this individual line
 	    ;; based on its predecessor.
 	    ;; Handle continuation lines, if, else, while, and so on.
-	    (if (/= (char-after (car contain-stack)) ?{)
+	    (if (/= (char-after (car contain-stack)) ?\{)
 		(setq this-indent (car indent-stack))
 	      ;; Line is at statement level.
 	      ;; Is it a new statement?  Is it an else?
@@ -1370,13 +1370,13 @@ If within a string or comment, move by sentences instead of statements."
 		(setq this-point (point))
 		(setq at-else (and (looking-at "else\\b")
 				   (not (looking-at "else\\s_"))))
-		(setq at-brace (= (following-char) ?{))
+		(setq at-brace (= (following-char) ?\{))
 		(setq at-while (and (looking-at "while\\b")
 				    (not (looking-at "while\\s_"))))
-		(if (= (following-char) ?})
+		(if (= (following-char) ?\})
 		    (setq this-indent (car indent-stack))
 		  (c-backward-to-noncomment opoint)
-		  (if (not (memq (preceding-char) '(0 ?\, ?\; ?} ?: ?{)))
+		  (if (not (memq (preceding-char) '(0 ?\, ?\; ?\} ?: ?\{)))
 		      ;; Preceding line did not end in comma or semi;
 		      ;; indent this line  c-continued-statement-offset
 		      ;; more than previous.
@@ -1403,9 +1403,9 @@ If within a string or comment, move by sentences instead of statements."
 			   (forward-sexp 1)
 			   (looking-at ":"))))
 		(setq this-indent (max 1 (+ this-indent c-label-offset))))
-	    (if (= (following-char) ?})
+	    (if (= (following-char) ?\})
 		(setq this-indent (- this-indent c-indent-level)))
-	    (if (= (following-char) ?{)
+	    (if (= (following-char) ?\{)
 		;; Don't move an open-brace in column 0.
 		;; This is good when constructs such as
 		;; `extern "C" {' surround a function definition
@@ -1437,7 +1437,7 @@ If within a string or comment, move by sentences instead of statements."
 				(parse-partial-sexp beg (point)
 						    nil nil state)))
 			   (and (not (nth 3 new-state)) (not (nth 5 new-state))))
-			 (indent-for-comment)))))))))))))
+			 (indent-for-comment)))))))))))
 
 ;; Look at all comment-start strings in the current line after point.
 ;; Return t if one of them starts a real comment.
