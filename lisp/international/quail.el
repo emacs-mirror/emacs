@@ -293,6 +293,12 @@ LEIM is available from the same ftp directory as Emacs."))
     (define-key map [up] 'quail-prev-translation-block)
     (define-key map "\C-i" 'quail-completion)
     (define-key map "\C-@" 'quail-select-current)
+    ;; Following simple.el, Enter key on numeric keypad selects the
+    ;; current translation just like `C-SPC', and `mouse-2' chooses
+    ;; any completion visible in the *Quail Completions* buffer.
+    (define-key map [kp-enter] 'quail-select-current)
+    (define-key map [mouse-2] 'quail-mouse-choose-completion)
+    (define-key map [down-mouse-2] nil)
     (define-key map "\C-h" 'quail-translation-help)
 ;;; This interferes with handling of escape sequences on non-X terminals.
 ;;;    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
@@ -1661,10 +1667,17 @@ All possible translations of the current key and whole possible longer keys
 ;; List all possible translations of KEY in Quail map MAP with
 ;; indentation INDENT.
 (defun quail-completion-list-translations (map key indent)
-  (let ((translations
+  (let (beg (translations
 	 (quail-get-translation (car map) key (length key))))
     (if (integerp translations)
-	(insert "(1/1) 1." translations "\n")
+	(progn
+	  (insert "(1/1) 1.")
+	  ;; Endow the character `translations' with `mouse-face' text
+	  ;; property to enable `mouse-2' completion.
+	  (setq beg (point))
+	  (insert translations)
+	  (put-text-property beg (point) 'mouse-face 'highlight)
+	  (insert "\n"))
       ;; We need only vector part.
       (setq translations (cdr translations))
       ;; Insert every 10 elements with indices in a line.
@@ -1674,15 +1687,100 @@ All possible translations of the current key and whole possible longer keys
 	(while (< i len)
 	  (when (zerop (% i 10))
 	    (when (>= i 10)
-	      (newline)
+ 	      (insert "\n")
 	      (indent-to indent))
 	    (insert (format "(%d/%d)" (1+ (/ i 10)) (1+ (/ len 10)))))
 	  ;; We show the last digit of FROM while converting
 	  ;; 0,1,..,9 to 1,2,..,0.
 	  (insert (format " %d." (% (1+ i) 10)))
+	  (setq beg (point))
 	  (insert (aref translations i))
+	  ;;  Passing the mouse over a character will highlight.
+	  (put-text-property beg (point) 'mouse-face 'highlight)
 	  (setq i (1+ i)))
-	(newline)))))
+	(insert "\n")))))
+
+;; Choose a completion in *Quail Completions* buffer with mouse-2.
+
+(defun quail-mouse-choose-completion (event)
+  "Click on an alternative in the `*Quail Completions*' buffer to choose it."
+  (interactive "e")
+  ;; This function is an exact copy of the mouse.el function
+  ;; `mouse-choose-completion' except that we: 
+  ;; 1) add two lines from `choose-completion' in simple.el to give
+  ;;    the `mouse-2' click a little more leeway.
+  ;; 2) don't bury *Quail Completions* buffer so comment a section, and 
+  ;; 3) delete/terminate the current quail selection here.
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
+  (let ((buffer (window-buffer))
+        choice
+	base-size)
+    (save-excursion
+      (set-buffer (window-buffer (posn-window (event-start event))))
+      (if completion-reference-buffer
+	  (setq buffer completion-reference-buffer))
+      (setq base-size completion-base-size)
+      (save-excursion
+	(goto-char (posn-point (event-start event)))
+	(let (beg end)
+	  (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
+	      (setq end (point) beg (1+ (point))))
+	  (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
+	      (setq end (1- (point)) beg (point)))
+	  (if (null beg)
+	      (error "No completion here"))
+	  (setq beg (previous-single-property-change beg 'mouse-face))
+	  (setq end (or (next-single-property-change end 'mouse-face)
+			(point-max)))
+	  (setq choice (buffer-substring beg end)))))
+;    (let ((owindow (selected-window)))
+;      (select-window (posn-window (event-start event)))
+;      (if (and (one-window-p t 'selected-frame)
+;	       (window-dedicated-p (selected-window)))
+;	  ;; This is a special buffer's frame
+;	  (iconify-frame (selected-frame))
+;	(or (window-dedicated-p (selected-window))
+;	    (bury-buffer)))
+;      (select-window owindow))
+    (quail-delete-region)
+    (quail-choose-completion-string choice buffer base-size)
+    (quail-terminate-translation)))
+
+;; Modify the simple.el function `choose-completion-string', because
+;; the simple.el function `choose-completion-delete-max-match' breaks
+;; on Mule data, since the semantics of `forward-char' have changed.
+
+(defun quail-choose-completion-string (choice &optional buffer base-size)
+  (let ((buffer (or buffer completion-reference-buffer)))
+    ;; If BUFFER is a minibuffer, barf unless it's the currently
+    ;; active minibuffer.
+    (if (and (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))
+	     (or (not (active-minibuffer-window))
+		 (not (equal buffer
+			     (window-buffer (active-minibuffer-window))))))
+	(error "Minibuffer is not active for completion")
+      ;; Insert the completion into the buffer where completion was requested.
+      (set-buffer buffer)
+;      (if base-size
+;	  (delete-region (+ base-size (point-min)) (point))
+;	(choose-completion-delete-max-match choice))
+      (insert choice)
+      (remove-text-properties (- (point) (length choice)) (point)
+			      '(mouse-face nil))
+      ;; Update point in the window that BUFFER is showing in.
+      (let ((window (get-buffer-window buffer t)))
+	(set-window-point window (point)))
+      ;; If completing for the minibuffer, exit it with this choice.
+      (and (not completion-no-auto-exit)
+	   (equal buffer (window-buffer (minibuffer-window)))
+	   minibuffer-completion-table
+	   ;; If this is reading a file name, and the file name chosen
+	   ;; is a directory, don't exit the minibuffer.
+	   (if (and (eq minibuffer-completion-table 'read-file-name-internal)
+		    (file-directory-p (buffer-string)))
+	       (select-window (active-minibuffer-window))
+	     (exit-minibuffer))))))
 
 (defun quail-help ()
   "Show brief description of the current Quail package."
