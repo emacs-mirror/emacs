@@ -796,22 +796,6 @@ the label types for which it should be true."
   :group 'reftex-referencing-labels
   :type '(integer))
 
-(defcustom reftex-refontify-context 1
-  "*Non-nil means, re-fontify the context in the label menu with font-lock.
-This slightly slows down the creation of the label menu.  It is only necessary
-when you definitely want the context fontified.
-
-This option may have 3 different values:
-nil  Never refontify.
-t    Always refontify.
-1    Refontify when absolutely necessary, e.g. when with the x-symbol package.
-The option is ignored when `reftex-use-fonts' is nil."
-  :group 'reftex-referencing-labels
-  :type '(choice
-          (const :tag "Never" nil)
-          (const :tag "Always" t)
-          (const :tag "When necessary" 1)))
-
 (defcustom reftex-guess-label-type t
   "*Non-nil means, `reftex-reference' will try to guess the label type.
 To do that, RefTeX will look at the word before the cursor and compare it with
@@ -964,6 +948,7 @@ DEFAULT FORMAT, which is taken from `reftex-cite-format'.  The function
 should return the string to insert into the buffer."
   :group 'reftex-citation-support
   :type 'function)
+
 ;; Table of contents configuration --------------------------------------
 
 (defgroup reftex-table-of-contents-browser nil
@@ -1080,6 +1065,96 @@ The value of this variable will only have any effect when
   :group 'reftex-optimizations-for-large-documents
   :type 'boolean)
 
+;; Fontification and Faces ----------------------------------------------
+
+(defgroup reftex-fontification-configurations nil
+  "Options concerning the faces used in RefTeX."
+  :group 'reftex)
+
+(defcustom reftex-use-fonts t
+  "*Non-nil means, use fonts in *toc* and selection buffers.
+Font-lock must be loaded as well to actually get fontified display."
+  :group 'reftex-fontification-configurations
+  :type '(boolean))
+
+(defcustom reftex-refontify-context 1
+  "*Non-nil means, re-fontify the context in the label menu with font-lock.
+This slightly slows down the creation of the label menu.  It is only necessary
+when you definitely want the context fontified.
+
+This option may have 3 different values:
+nil  Never refontify.
+t    Always refontify.
+1    Refontify when absolutely necessary, e.g. when with the x-symbol package.
+The option is ignored when `reftex-use-fonts' is nil."
+  :group 'reftex-fontification-configurations
+  :type '(choice
+          (const :tag "Never" nil)
+          (const :tag "Always" t)
+          (const :tag "When necessary" 1)))
+
+(defcustom reftex-highlight-selection 'cursor
+  "*Non-nil mean, highlight selected text in selection and *toc* buffers.
+Normally, the text near the cursor is the selected text, and it is
+highlighted.  This is the entry most keys in the selction and *toc*
+buffers act on.  However, if you mainly use the mouse to select an
+item, you may find it nice to have mouse-triggered highlighting
+instead or as well. The variable may have one of these values:
+
+   nil      No highlighting.
+   cursor   Highlighting is cursor driven.
+   mouse    Highlighting is mouse driven.
+   both     Both cursor and mouse trigger highlighting."
+  :group 'reftex-fontification-configurations
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "Cursor driven" cursor)
+	  (const :tag "Mouse driven" mouse)
+	  (const :tag "Mouse and Cursor driven." both)))
+
+(defcustom reftex-cursor-selected-face 'highlight
+  "Face name to highlight cursor selected item in toc and selection buffers.
+See also the variable `reftex-highlight-selection'."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-mouse-selected-face 'secondary-selection
+  "Face name to highlight mouse selected item in toc and selection buffers.
+See also the variable `reftex-highlight-selection'."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-file-boundary-face 'font-lock-comment-face
+  "Face name for file boundaries in selection buffer."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-label-face 'font-lock-constant-face
+  "Face name for labels in selection buffer."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-section-heading-face 'font-lock-function-name-face
+  "Face name for section headings in toc and selection buffers."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-toc-header-face 'font-lock-comment-face
+  "Face name for the header of a toc buffer."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-bib-author-face 'font-lock-keyword-face
+  "Face name for author names in bib selection buffer."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-bib-year-face 'font-lock-comment-face
+  "Face name for year in bib selection buffer."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-bib-title-face 'font-lock-function-name-face
+  "Face name for article title in bib selection buffer."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+(defcustom reftex-bib-extra-face 'font-lock-comment-face
+  "Face name for bibliographic information in bib selection buffer."
+  :group 'reftex-fontification-configurations
+  :type 'symbol)
+
 ;; Miscellaneous configurations -----------------------------------------
 
 (defgroup reftex-miscellaneous-configurations nil
@@ -1123,31 +1198,6 @@ may require a restart of Emacs in order to become effective."
                   (boolean :tag "Use reftex-arg-cite  as TeX-arg-cite        ")
                   )))
 
-(defcustom reftex-use-fonts t
-  "*Non-nil means, use fonts in label menu and on-the-fly help.
-Font-lock must be loaded as well to actually get fontified display."
-  :group 'reftex-miscellaneous-configurations
-  :type '(boolean))
-
-(defcustom reftex-highlight-selection 'cursor
-  "*Non-nil mean, highlight selected text in selection and *toc* buffers.
-Normally, the text near the cursor is the selected text, and it is
-highlighted.  This is the entry most keys in the selction and *toc*
-buffers act on.  However, if you mainly use the mouse to select an
-item, you may find it nice to have mouse-triggered highlighting
-instead or as well. The varaiable may have one of these values:
-
-   nil      No highlighting.
-   cursor   Highlighting is cursor driven.
-   mouse    Highlighting is mouse driven.
-   both     Both cursor and mouse trigger highlighting."
-  :group 'reftex-miscellaneous-configurations
-  :type '(choice
-	  (const :tag "Never" nil)
-	  (const :tag "Cursor driven" cursor)
-	  (const :tag "Mouse driven" mouse)
-	  (const :tag "Mouse and Cursor driven." both)))
-
 (defcustom reftex-auto-show-entry 'copy
   "*Non-nil means, do something when context in other window is hidden.
 Some modes like `outline-mode' or `folding-mode' hide parts of buffers.
@@ -1184,7 +1234,7 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-;; This file corresponds to RefTeX version 3.19.0.1
+;; This file corresponds to RefTeX version 3.21
 
 (defvar reftex-mode nil
   "Determines if RefTeX minor mode is active.")
@@ -2667,10 +2717,10 @@ When called with 2 C-u prefix args, disable magic word recognition."
          (context-indent
           (concat ".   "
                   (if toc (make-string (* 7 reftex-level-indent) ?\ ) "")))
-	 (mouse-face 
-	  (cond ((eq reftex-highlight-selection 'mouse) 'highlight)
-		((eq reftex-highlight-selection 'both) 'secondary-selection)
-		(t nil)))
+	 (mouse-face
+	  (if (memq reftex-highlight-selection '(mouse both))
+	      reftex-mouse-selected-face
+	    nil))
          all cell text label typekey note comment master-dir-re
          offset from to docstruct-symbol)
 
@@ -2721,7 +2771,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
                  ((eq (car cell) 'file-error) " was not found\n")))
           (when font
             (put-text-property from (point)
-                               'face 'font-lock-function-name-face))))
+                               'face reftex-file-boundary-face))))
 
        ((eq (car cell) 'toc)
         ;; a table of contents entry
@@ -2756,7 +2806,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
              (- (point) (length label)) (point)
              'face (if comment
                        'font-lock-comment-face
-                     'font-lock-constant-face)))
+                     reftex-label-face)))
 
           (insert (if counter (format " (%d) " cnt) "")
                   (if comment " LABEL IS COMMENTED OUT " "")
@@ -2833,7 +2883,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
     ;; Fontify
     (if (reftex-use-fonts)
         (put-text-property 0 (length text)
-                           'face 'font-lock-comment-face text))
+                           'face reftex-section-heading-face text))
     (list 'toc "toc" text file marker level section-number
           literal (marker-position marker))))
 
@@ -3493,10 +3543,10 @@ When called with a raw C-u prefix, rescan the document first."
 	 (xr-data (assq 'xr all))
 	 (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
          (where (reftex-nearest-section))
-	 (mouse-face 
- 	  (cond ((eq reftex-highlight-selection 'mouse) 'highlight)
-		((eq reftex-highlight-selection 'both) 'secondary-selection)
-		(t nil)))
+	 (mouse-face
+	  (if (memq reftex-highlight-selection '(mouse both))
+	      reftex-mouse-selected-face
+	    nil))
 	 toc1 cell startpos)
 
     (if (get-buffer-window "*toc*")
@@ -3524,7 +3574,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
       (setq startpos (point))
 
       (if (reftex-use-fonts)
-          (put-text-property 1 (point) 'face 'font-lock-keyword-face))
+          (put-text-property 1 (point) 'face reftex-toc-header-face))
       (put-text-property 1 (point) 'intangible t)
       (put-text-property 1 2 'xr-alist xr-alist)
 
@@ -4218,11 +4268,13 @@ During a selection process, these are the local bindings.
          (t ""))))
     (setq authors (reftex-truncate authors 30 t t))
     (when (reftex-use-fonts)
-      (put-text-property 0 (length authors) 'face 'font-lock-keyword-face
+      (put-text-property 0 (length authors) 'face reftex-bib-author-face
                          authors)
-      (put-text-property 0 (length title)   'face 'font-lock-comment-face
+      (put-text-property 0 (length year)    'face reftex-bib-year-face
+                         year)
+      (put-text-property 0 (length title)   'face reftex-bib-title-face
                          title)
-      (put-text-property 0 (length extra)   'face 'font-lock-constant-face
+      (put-text-property 0 (length extra)   'face reftex-bib-extra-face
                          extra))
     (concat key "\n     " authors " " year " " extra "\n     " title "\n\n")))
 
@@ -4257,7 +4309,7 @@ During a selection process, these are the local bindings.
     (setq text (mapconcat 'identity (nreverse lines) "\n     "))
 
     (when (reftex-use-fonts)
-      (put-text-property 0 (length text) 'face 'font-lock-comment-face text))
+      (put-text-property 0 (length text) 'face reftex-bib-author-face text))
     (concat key "\n     " text "\n\n")))
 
 ;; Make a citation
@@ -4369,6 +4421,7 @@ bibliography statement (e.g. if it was changed)."
       (save-window-excursion
 	(delete-other-windows)
 	(let ((default-major-mode 'reftex-select-bib-mode))
+	  (reftex-kill-buffer "*RefTeX Select*")
 	  (switch-to-buffer-other-window "*RefTeX Select*")
 	  (unless (eq major-mode 'reftex-select-bib-mode)
 	    (reftex-select-bib-mode))
@@ -4493,11 +4546,11 @@ bibliography statement (e.g. if it was changed)."
 
 (defun reftex-insert-bib-matches (list)
   ;; Insert the bib matches and number them correctly
-  (let ((mouse-face 
-	 (cond ((eq reftex-highlight-selection 'mouse) 'highlight)
-	       ((eq reftex-highlight-selection 'both) 'secondary-selection)
-	       (t nil)))
-	tmp len)    
+  (let ((mouse-face
+	 (if (memq reftex-highlight-selection '(mouse both))
+	     reftex-mouse-selected-face
+	   nil))
+	tmp len)
     (mapcar 
      (function
       (lambda (x)
@@ -5435,9 +5488,11 @@ With argument, actually select the window showing the cross reference."
 
 ;; Initialize the overlays
 (aset reftex-highlight-overlays 0 (make-overlay 1 1))
-(overlay-put (aref reftex-highlight-overlays 0) 'face 'highlight)
+(overlay-put (aref reftex-highlight-overlays 0) 
+	     'face 'highlight)
 (aset reftex-highlight-overlays 1 (make-overlay 1 1))
-(overlay-put (aref reftex-highlight-overlays 1) 'face 'highlight)
+(overlay-put (aref reftex-highlight-overlays 1)
+	     'face reftex-cursor-selected-face)
 
 ;; Two functions for activating and deactivation highlight overlays
 (defun reftex-highlight (index begin end &optional buffer)
@@ -5897,6 +5952,7 @@ This enforces rescanning the buffer on next use."
 
 ;;; That's it! ----------------------------------------------------------------
 
+(setq reftex-tables-dirty t)  ; in case this file is evaluated by hand
 (provide 'reftex) 
 
 ;;;============================================================================
