@@ -2169,7 +2169,15 @@ internal_equal (o1, o2, depth)
   switch (XTYPE (o1))
     {
     case Lisp_Float:
-      return (extract_float (o1) == extract_float (o2));
+      {
+	double d1, d2;
+
+	d1 = extract_float (o1);
+	d2 = extract_float (o2);
+	/* If d is a NaN, then d != d. Two NaNs should be `equal' even
+	   though they are not =. */
+	return d1 == d2 || (d1 != d1 && d2 != d2);
+      }
 
     case Lisp_Cons:
       if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1))
