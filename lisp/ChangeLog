@@ -1,3 +1,18 @@
+2004-05-03  Michael Mauger  <mmaug@yahoo.com>
+
+	* emacs/lisp/progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
+	(sql-emacs20-p): Remove.
+	(sql-mode-syntax-table): Use shared GNU EMacs/XEmacs syntax.
+	(sql-builtin-face, sql-doc-face): Remove.
+	(sql-mode-ansi-font-lock-keywords)
+	(sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords)
+	(sql-mode-linter-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords): Use standard fonts.
+	(sql-product-font-lock): Fix font-lock reset when font rules change.
+	(sql-highlight-product): Remove incorrect font-lock reset logic.
+
 2004-05-04  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.el (ses-set-parameter): Fix typo.
