@@ -739,7 +739,8 @@ and two version designators specifying which versions to compare."
   (if historic
       (call-interactively 'vc-version-diff)
     (if (or (null buffer-file-name) (null (vc-name buffer-file-name)))
-	(error "There is no version-control master associated with this buffer"))
+	(error
+	 "There is no version-control master associated with this buffer"))
     (let ((file buffer-file-name)
 	  unchanged)
       (or (and file (vc-name file))
@@ -763,12 +764,8 @@ and two version designators specifying which versions to compare."
 	      (setq unchanged t)
 	      (message "No changes to %s since latest version." file))
 	  (goto-char (point-min))
-	  (shrink-window-if-larger-than-buffer)
-	)
-      (not unchanged)
-      )
-    )
-  )
+	  (shrink-window-if-larger-than-buffer)))
+      (not unchanged))))
 
 (defun vc-version-diff (file rel1 rel2)
   "For FILE, report diffs between two stored versions REL1 and REL2 of it.
@@ -954,7 +951,7 @@ on a buffer attached to the file named in the current Dired buffer line."
 	  (shrink-window-if-larger-than-buffer)))
       (message "No files are currently %s under %s"
 	       (if verbose "registered" "locked") default-directory))
-    ))
+    )
 
 (or (boundp 'minor-mode-map-alist)
     (fset 'vc-directory 'vc-directory-18))
