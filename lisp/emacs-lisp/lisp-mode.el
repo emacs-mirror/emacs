@@ -195,6 +195,7 @@
   (setq imenu-generic-expression lisp-imenu-generic-expression)
   (make-local-variable 'multibyte-syntax-as-symbol)
   (setq multibyte-syntax-as-symbol t)
+  (set (make-local-variable 'syntax-begin-function) 'beginning-of-defun)
   (setq font-lock-defaults
 	'((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
@@ -366,6 +367,7 @@ if that value is non-nil."
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
+(defvar lisp-interaction-mode-abbrev-table lisp-mode-abbrev-table)
 (define-derived-mode lisp-interaction-mode emacs-lisp-mode "Lisp Interaction"
   "Major mode for typing and evaluating Lisp forms.
 Like Lisp mode except that \\[eval-print-last-sexp] evals the Lisp expression
@@ -379,8 +381,7 @@ Paragraphs are separated only by blank lines.
 Semicolons start comments.
 \\{lisp-interaction-mode-map}
 Entry to this mode calls the value of `lisp-interaction-mode-hook'
-if that value is non-nil."
-  (setq local-abbrev-table lisp-mode-abbrev-table))
+if that value is non-nil.")
 
 (defun eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer.
@@ -638,13 +639,12 @@ which see."
 (defun lisp-mode-auto-fill ()
   (if (> (current-column) (current-fill-column))
       (if (save-excursion
-	    (nth 4 (parse-partial-sexp (save-excursion
-					 (beginning-of-defun)
-					 (point))
-				       (point))))
+	    (nth 4 (syntax-ppss (point))))
 	  (do-auto-fill)
-	(let ((comment-start nil) (comment-start-skip nil))
-	  (do-auto-fill)))))
+	(unless (and (boundp 'comment-auto-fill-only-comments)
+		     comment-auto-fill-only-comments)
+	  (let ((comment-start nil) (comment-start-skip nil))
+	    (do-auto-fill))))))
 
 (defvar lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns.")
@@ -1079,17 +1079,10 @@ and initial semicolons."
        ;; A line with some code, followed by a comment?  Remember that the
        ;; semi which starts the comment shouldn't be part of a string or
        ;; character.
-       ((condition-case nil
-	    (save-restriction
-	      (narrow-to-region (point-min)
-				(save-excursion (end-of-line) (point)))
-	      (while (not (looking-at ";\\|$"))
-		(skip-chars-forward "^;\n\"\\\\?")
-		(cond
-		 ((eq (char-after (point)) ?\\) (forward-char 2))
-		 ((memq (char-after (point)) '(?\" ??)) (forward-sexp 1))))
-	      (looking-at ";+[\t ]*"))
-	  (error nil))
+       ((let ((state (syntax-ppss (line-end-position))))
+	  (when (nth 4 state)
+	    (goto-char (nth 8 state))
+	    (looking-at ";+[\t ]*")))
 	(setq has-comment t has-code-and-comment t)
 	(setq comment-fill-prefix
 	      (concat (make-string (/ (current-column) tab-width) ?\t)
