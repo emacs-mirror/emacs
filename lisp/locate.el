@@ -154,9 +154,8 @@
 ;;;###autoload
 (defcustom locate-ls-subdir-switches "-al"
   "`ls' switches for inserting subdirectories in `*Locate*' buffers.
-This should contain the \"-l\" switch.
-Use the \"-F\" or \"-b\" switches if and only if you also use
-them for `find-ls-option'."
+This should contain the \"-l\" switch, but not the \"-F\" or
+\"-b\" switches."
   :type 'string
   :group 'locate
   :version "21.4")
