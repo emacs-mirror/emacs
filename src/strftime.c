@@ -834,6 +834,13 @@ my_strftime (s, maxsize, format, tp ut_argument)
             size_t strftime ();
 # endif
 
+#ifdef STRFTIME_NO_POSIX2
+	    /* Some system libraries do not support the POSIX.2 extensions.
+	       In those cases, convert %h to %b, and strip modifiers.  */
+	    modifier = 0;
+	    if (format_char == 'h')
+	      format_char = 'b';
+#endif
             *u++ = '%';
             if (modifier != 0)
               *u++ = modifier;
