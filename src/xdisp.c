@@ -8365,6 +8365,14 @@ reconsider_clip_changes (w, b)
     }
 }
 
+
+#define STOP_POLLING					\
+do { if (! polling_stopped_here) stop_polling ();	\
+       polling_stopped_here = 1; } while (0)
+
+#define RESUME_POLLING					\
+do { if (polling_stopped_here) start_polling ();	\
+       polling_stopped_here = 0; } while (0)
 
 /* If PRESERVE_ECHO_AREA is nonzero, it means this redisplay is not in
    response to any user action; therefore, we should preserve the echo
@@ -8384,6 +8392,7 @@ redisplay_internal (preserve_echo_area)
   int number_of_visible_frames;
   int count;
   struct frame *sf = SELECTED_FRAME ();
+  int polling_stopped_here = 0;
 
   /* Non-zero means redisplay has to consider all windows on all
      frames.  Zero means, only selected_window is considered.  */
@@ -8859,7 +8868,7 @@ redisplay_internal (preserve_echo_area)
 		     error.  */
 		  if (interrupt_input)
 		    unrequest_sigio ();
-		  stop_polling ();
+		  STOP_POLLING;
 
 		  /* Update the display.  */
 		  set_window_update_flags (XWINDOW (f->root_window), 1);
@@ -8910,7 +8919,7 @@ redisplay_internal (preserve_echo_area)
 	 which can cause an apparent I/O error.  */
       if (interrupt_input)
 	unrequest_sigio ();
-      stop_polling ();
+      STOP_POLLING;
 
       if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
 	{
@@ -8985,7 +8994,7 @@ redisplay_internal (preserve_echo_area)
      But it is much hairier to try to do anything about that.  */
   if (interrupt_input)
     request_sigio ();
-  start_polling ();
+  RESUME_POLLING;
 
   /* If a frame has become visible which was not before, redisplay
      again, so that we display it.  Expose events for such a frame
@@ -9027,6 +9036,7 @@ redisplay_internal (preserve_echo_area)
  end_of_redisplay:;
 
   unbind_to (count, Qnil);
+  RESUME_POLLING;
 }
 
 
