@@ -1347,7 +1347,7 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
 
 
 /* Get face and two-byte form of character glyph GLYPH on frame F.
-   The encoding of GLYPH->u.ch.code is returned in *CHAR2B.  Value is
+   The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
    a pointer to a realized face that is ready for display.  */
 
 static INLINE struct face *
@@ -1359,21 +1359,21 @@ x_get_glyph_face_and_encoding (f, glyph, char2b)
   struct face *face;
 
   xassert (glyph->type == CHAR_GLYPH);
-  face = FACE_FROM_ID (f, glyph->u.ch.face_id);
+  face = FACE_FROM_ID (f, glyph->face_id);
 
   if (!glyph->multibyte_p)
     {
       /* Unibyte case.  We don't have to encode, but we have to make
 	 sure to use a face suitable for unibyte.  */
       char2b->byte1 = 0;
-      char2b->byte2 = glyph->u.ch.code;
+      char2b->byte2 = glyph->u.ch;
     }
-  else if (glyph->u.ch.code < 128
-	   && glyph->u.ch.face_id < BASIC_FACE_ID_SENTINEL)
+  else if (glyph->u.ch < 128
+	   && glyph->face_id < BASIC_FACE_ID_SENTINEL)
     {
       /* Case of ASCII in a face known to fit ASCII.  */
       char2b->byte1 = 0;
-      char2b->byte2 = glyph->u.ch.code;
+      char2b->byte2 = glyph->u.ch;
     }
   else
     {
@@ -1381,7 +1381,7 @@ x_get_glyph_face_and_encoding (f, glyph, char2b)
       
       /* Split characters into bytes.  If c2 is -1 afterwards, C is
 	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (glyph->u.ch.code, charset, c1, c2);
+      SPLIT_CHAR (glyph->u.ch, charset, c1, c2);
       if (c2 > 0)
 	char2b->byte1 = c1, char2b->byte2 = c2;
       else
@@ -1394,7 +1394,7 @@ x_get_glyph_face_and_encoding (f, glyph, char2b)
 	    = FONT_INFO_FROM_ID (f, face->font_info_id);
 	  if (font_info)
 	    {
-	      x_encode_char (glyph->u.ch.code, char2b, font_info);
+	      x_encode_char (glyph->u.ch, char2b, font_info);
 	      if (charset == charset_latin_iso8859_1)
 		char2b->byte2 |= 0x80;
 	    }
@@ -1431,8 +1431,8 @@ x_append_glyph (it)
       
       glyph->type = CHAR_GLYPH;
       glyph->pixel_width = it->pixel_width;
-      glyph->u.ch.code = it->char_to_display;
-      glyph->u.ch.face_id = it->face_id;
+      glyph->u.ch = it->char_to_display;
+      glyph->face_id = it->face_id;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       glyph->left_box_line_p = it->start_of_box_run_p;
@@ -1467,8 +1467,8 @@ x_append_composite_glyph (it)
       
       glyph->type = COMPOSITE_GLYPH;
       glyph->pixel_width = it->pixel_width;
-      glyph->u.cmp.id = it->cmp_id;
-      glyph->u.cmp.face_id = it->face_id;
+      glyph->u.cmp_id = it->cmp_id;
+      glyph->face_id = it->face_id;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       glyph->left_box_line_p = it->start_of_box_run_p;
@@ -1552,8 +1552,8 @@ x_produce_image_glyph (it)
       if (glyph < it->glyph_row->glyphs[area + 1])
 	{
 	  glyph->type = IMAGE_GLYPH;
-	  glyph->u.img.id = img->id;
-	  glyph->u.img.face_id = it->face_id;
+	  glyph->u.img_id = img->id;
+	  glyph->face_id = it->face_id;
 	  glyph->pixel_width = it->pixel_width;
 	  glyph->charpos = CHARPOS (it->position);
 	  glyph->object = it->object;
@@ -1590,7 +1590,7 @@ x_append_stretch_glyph (it, object, width, height, ascent)
       glyph->type = STRETCH_GLYPH;
       glyph->u.stretch.ascent = height * ascent;
       glyph->u.stretch.height = height;
-      glyph->u.stretch.face_id = it->face_id;
+      glyph->face_id = it->face_id;
       glyph->pixel_width = width;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = object;
@@ -4138,7 +4138,7 @@ x_fill_glyph_string (s, face_id, start, end, overlaps_p)
 	 && glyph->type == CHAR_GLYPH
 	 && glyph->voffset == voffset
 	 /* Same face id implies same charset, nowadays.  */
-	 && glyph->u.ch.face_id == face_id)
+	 && glyph->face_id == face_id)
     {
       s->face = x_get_glyph_face_and_encoding (s->f, glyph,
 					       s->char2b + s->nchars);
@@ -4179,9 +4179,9 @@ x_fill_image_glyph_string (s)
      struct glyph_string *s;
 {
   xassert (s->first_glyph->type == IMAGE_GLYPH);
-  s->img = IMAGE_FROM_ID (s->f, s->first_glyph->u.img.id);
+  s->img = IMAGE_FROM_ID (s->f, s->first_glyph->u.img_id);
   xassert (s->img);
-  s->face = FACE_FROM_ID (s->f, s->first_glyph->u.img.face_id);
+  s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
   s->font = s->face->font;
   s->width = s->first_glyph->pixel_width;
   
@@ -4197,7 +4197,7 @@ x_fill_stretch_glyph_string (s)
      struct glyph_string *s;
 {
   xassert (s->first_glyph->type == STRETCH_GLYPH);
-  s->face = FACE_FROM_ID (s->f, s->first_glyph->u.stretch.face_id);
+  s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
   s->font = s->face->font;
   s->width = s->first_glyph->pixel_width;
   
@@ -4335,9 +4335,9 @@ x_set_glyph_string_background_width (s, start, last_x)
 	 int c, charset, face_id;					   \
 	 XChar2b *char2b;						   \
 									   \
-	 c = (ROW)->glyphs[AREA][START].u.ch.code;			   \
+	 c = (ROW)->glyphs[AREA][START].u.ch;				   \
 	 charset = CHAR_CHARSET (c);					   \
-	 face_id = (ROW)->glyphs[AREA][START].u.ch.face_id;		   \
+	 face_id = (ROW)->glyphs[AREA][START].face_id;			   \
 									   \
 	 s = (struct glyph_string *) alloca (sizeof *s);		   \
 	 char2b = (XChar2b *) alloca ((END - START) * sizeof *char2b);	   \
@@ -4362,8 +4362,8 @@ x_set_glyph_string_background_width (s, start, last_x)
 
 #define BUILD_COMPOSITE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P)	  \
   do {									  \
-    int cmp_id = (ROW)->glyphs[AREA][START].u.cmp.id;			  \
-    int face_id = (ROW)->glyphs[AREA][START].u.cmp.face_id;		  \
+    int cmp_id = (ROW)->glyphs[AREA][START].u.cmp_id;			  \
+    int face_id = (ROW)->glyphs[AREA][START].face_id;			  \
     struct composition *cmp = composition_table[cmp_id];		  \
     int glyph_len = cmp->glyph_len;					  \
     XChar2b *char2b;							  \
@@ -4376,7 +4376,7 @@ x_set_glyph_string_background_width (s, start, last_x)
     /* At first, fill in `char2b' and `faces'.  */			  \
     for (n = 0; n < glyph_len; n++)					  \
       {									  \
-	int c = FAST_GLYPH_CHAR (COMPOSITION_GLYPH (cmp, n));		  \
+	int c = COMPOSITION_GLYPH (cmp, n);				  \
 	faces[n] = x_get_char_face_and_encoding (XFRAME (w->frame), c,	  \
 						 face_id, char2b + n, 1); \
       }									  \

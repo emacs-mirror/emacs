@@ -10592,11 +10592,11 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 		       'C',
 		       glyph->charpos,
 		       glyph->pixel_width,
-		       glyph->u.ch.code,
-		       (glyph->u.ch.code < 0x80 && glyph->u.ch.code >= ' '
-			? glyph->u.ch.code
+		       glyph->u.ch,
+		       (glyph->u.ch < 0x80 && glyph->u.ch >= ' '
+			? glyph->u.ch
 			: '.'),
-		       glyph->u.ch.face_id,
+		       glyph->face_id,
 		       glyph->left_box_line_p,
 		       glyph->right_box_line_p);
 	    }
@@ -10610,7 +10610,7 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 		       glyph->pixel_width,
 		       0,
 		       '.',
-		       glyph->u.stretch.face_id,
+		       glyph->u.face_id,
 		       glyph->left_box_line_p,
 		       glyph->right_box_line_p);
 	    }
@@ -10622,9 +10622,9 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 		       'I',
 		       glyph->charpos,
 		       glyph->pixel_width,
-		       glyph->u.img.id,
+		       glyph->u.img_id,
 		       '.',
-		       glyph->u.img.face_id,
+		       glyph->u.face_id,
 		       glyph->left_box_line_p,
 		       glyph->right_box_line_p);
 	    }
@@ -10889,6 +10889,8 @@ compute_line_metrics (it)
     for (i = 0; i < row->used[area]; ++i)
       row->hash = ((((row->hash << 4) + (row->hash >> 24)) & 0x0fffffff)
 		   + row->glyphs[area][i].u.val
+		   + row->glyphs[area][i].face_id
+		   + row->glyphs[area][i].padding_p
 		   + (row->glyphs[area][i].type << 2));
 
   it->max_ascent = it->max_descent = 0;
@@ -11010,7 +11012,7 @@ extend_face_to_end_of_line (it)
       if (it->glyph_row->used[TEXT_AREA] == 0)
 	{
 	  it->glyph_row->glyphs[TEXT_AREA][0] = space_glyph;
-	  it->glyph_row->glyphs[TEXT_AREA][0].u.ch.face_id = it->face_id;
+	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = it->face_id;
 	  it->glyph_row->used[TEXT_AREA] = 1;
 	}
     }
@@ -11087,7 +11089,7 @@ highlight_trailing_whitespace (f, row)
       /* Skip over the space glyph inserted to display the
 	 cursor at the end of a line.  */
       if (glyph->type == CHAR_GLYPH
-	  && glyph->u.ch.code == ' '
+	  && glyph->u.ch == ' '
 	  && glyph->object == 0)
 	--glyph;
 
@@ -11098,7 +11100,7 @@ highlight_trailing_whitespace (f, row)
 	  && BUFFERP (glyph->object)
 	  && (glyph->type == STRETCH_GLYPH
 	      || (glyph->type == CHAR_GLYPH
-		  && glyph->u.ch.code == ' '))
+		  && glyph->u.ch == ' '))
 	  && trailing_whitespace_p (glyph->charpos))
 	{
 	  int face_id = lookup_named_face (f, Qtrailing_whitespace,
@@ -11108,14 +11110,8 @@ highlight_trailing_whitespace (f, row)
 		 && BUFFERP (glyph->object)
 		 && (glyph->type == STRETCH_GLYPH
 		     || (glyph->type == CHAR_GLYPH
-			 && glyph->u.ch.code == ' ')))
-	    {
-	      if (glyph->type == STRETCH_GLYPH)
-		glyph->u.stretch.face_id = face_id;
-	      else
-		glyph->u.ch.face_id = face_id;
-	      --glyph;
-	    }
+			 && glyph->u.ch == ' ')))
+	    (glyph--)->face_id = face_id;
 	}
     }
 }
