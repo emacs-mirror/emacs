@@ -47,6 +47,8 @@
 
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
+(define-key menu-bar-edit-menu [choose-selection]
+  '("Choose Next Paste" . mouse-menu-choose-yank))
 (define-key menu-bar-edit-menu [paste] '("Paste" . yank))
 (define-key menu-bar-edit-menu [copy] '("Copy" . kill-ring-save))
 (define-key menu-bar-edit-menu [cut] '("Cut" . kill-region))
@@ -135,10 +137,6 @@ A subsequent \\[yank] yanks the choice just selected."
 	      (message "The next yank will insert the selected text.")
 	    (current-kill 0))))))
 (put 'mouse-menu-choose-yank 'menu-enable 'kill-ring)
-
-(define-key-after menu-bar-edit-menu [choose-selection]
-  '("Choose Pasting Selection" . mouse-menu-choose-yank)
-  'paste)
 
 (define-key global-map [menu-bar buffer] '("Buffers" . mouse-menu-bar-buffers))
 
