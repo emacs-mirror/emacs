@@ -1901,7 +1901,8 @@ RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
 filter and C-g is pressed, this function returns nil rather than a string).
 
 Note that the keystrokes comprising the text can still be recovered
-\(temporarily) with \\[view-lossage].  Some people find this worrysome.
+\(temporarily) with \\[view-lossage].  Some people find this worrysome (see,
+however, `clear-this-command-keys').
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
   (let ((ans "")
@@ -1948,24 +1949,22 @@ by doing (clear-string STRING)."
       (message "")
       ans)))
 
-(defun send-invisible (str)
+(defun send-invisible (&optional prompt)
   "Read a string without echoing.
 Then send it to the process running in the current buffer.
 The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
-\\[view-lossage]."
+\\[view-lossage]; `clear-this-command-keys' can fix that."
   (interactive "P")			; Defeat snooping via C-x ESC ESC
   (let ((proc (get-buffer-process (current-buffer))))
-    (cond ((not proc)
-	   (error "Current buffer has no process"))
-	  ((stringp str)
-	   (comint-snapshot-last-prompt)
-	   (funcall comint-input-sender proc str))
-	  (t
-	   (let ((str (comint-read-noecho "Non-echoed text: " t)))
-	     (if (stringp str)
-		 (send-invisible str)
-	       (message "Warning: text will be echoed")))))))
+    (if proc
+	(let ((str (comint-read-noecho (or prompt "Non-echoed text: ") t)))
+	  (if (stringp str)
+	      (progn
+		(comint-snapshot-last-prompt)
+		(funcall comint-input-sender proc str))
+	    (message "Warning: text will be echoed")))
+      (error "Current buffer has no process"))))
 
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
@@ -1977,8 +1976,7 @@ This function could be in the list `comint-output-filter-functions'."
   (when (string-match comint-password-prompt-regexp string)
     (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
       (setq string (replace-match "" t t string)))
-    (let ((pw (comint-read-noecho string t)))
-      (send-invisible pw))))
+    (send-invisible string)))
 
 ;; Low-level process communication
 
