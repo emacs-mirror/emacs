@@ -464,6 +464,7 @@ extern void evaporate_overlays ();
 extern Lisp_Object Fbuffer_name ();
 extern Lisp_Object Fget_file_buffer ();
 extern Lisp_Object Fnext_overlay_change ();
+extern Lisp_Object Fdelete_overlays ();
 
 /* Functions to call before and after each text change.  */
 extern Lisp_Object Vbefore_change_function;
