@@ -4555,7 +4555,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    else
 #endif /* not emacs */
 	      {
-		buf_ch = *d;
+		buf_ch = (unsigned char) *d;
 		buf_charlen = 1;
 	      }
 
