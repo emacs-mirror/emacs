@@ -1,3 +1,15 @@
+2004-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (basic-save-buffer-1): Set
+	explicit-buffer-file-coding-system to last-coding-system-used.
+	(revert-buffer): Pay attention to
+	explicit-buffer-file-coding-system (not buffer-file-coding-system)
+	on bind coding-system-for-read.
+
+	* international/mule.el (explicit-buffer-file-coding-system): New
+	buffer local variable.
+	(after-insert-file-set-coding): Set it to coding-system-for-read.
+
 2004-12-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-tail-mode): Doc fix for defvar.

@@ -1,3 +1,28 @@
+2004-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Don't use
+	current_buffer->buffer_file_coding_system even if REPLACE is
+	non-nil.  Call Qafter_insert_file_set_coding with the second arg
+	VISIT.
+
+	* fontset.h (struct font_info): New members space_width and
+	average_width.
+
+	* frame.h (struct frame): New member space_width.
+	(FRAME_SPACE_WIDTH): New macro.
+
+	* xterm.h (struct x_display_info): New member Xatom_AVERAGE_WIDTH.
+
+	* xterm.c (x_new_font): Set FRAME_COLUMN_WIDTH to
+	fontp->average_width, not FONT_WIDTH.  Set FRAME_SPACE_WIDTH to
+	fontp-?space_width..
+	(x_load_font): Calculate fontp->space_width and
+	fontp->average_width.
+	(x_term_init): Initialize dpyinfo->Xatom_AVERAGE_WIDTH.
+
+	* xdisp.c (x_produce_glyphs): Calculate tab width by
+	FRAME_SPACE_WIDTH, not FRAME_COLUMN_WIDTH.
+
 2004-12-29  Sanghyuk Suh  <han9kin@mac.com>
 
 	* macterm.c (SelectionRange): Add Xcode position apple event struct.
