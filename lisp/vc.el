@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.363 2004/01/21 11:05:51 uid65624 Exp $
+;; $Id: vc.el,v 1.365 2004/01/23 11:20:55 uid65624 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2816,9 +2816,6 @@ Uses `rcs2log' which only works for RCS and CVS."
 (defvar vc-annotate-parent-file nil)
 (defvar vc-annotate-parent-rev nil)
 (defvar vc-annotate-parent-display-mode nil)
-(make-local-variable 'vc-annotate-parent-file)
-(make-local-variable 'vc-annotate-parent-rev)
-(make-local-variable 'vc-annotate-parent-display-mode)
 
 (defconst vc-annotate-font-lock-keywords
   ;; The fontification is done by vc-annotate-lines instead of font-lock.
@@ -3038,9 +3035,10 @@ colors. `vc-annotate-background' specifies the background color."
                        vc-annotate-version))
     (save-excursion
       (set-buffer temp-buffer-name)
-      (setq vc-annotate-parent-file bfn)
-      (setq vc-annotate-parent-rev vc-annotate-version)
-      (setq vc-annotate-parent-display-mode vc-annotate-display-mode))
+      (set (make-local-variable 'vc-annotate-parent-file) bfn)
+      (set (make-local-variable 'vc-annotate-parent-rev) vc-annotate-version)
+      (set (make-local-variable 'vc-annotate-parent-display-mode)
+	   vc-annotate-display-mode))
 	   
     ;; Don't use the temp-buffer-name until the buffer is created
     ;; (only after `with-output-to-temp-buffer'.)
@@ -3135,19 +3133,6 @@ versions after."
 	    (vc-version-diff vc-annotate-parent-file prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 
-(defun vc-current-line ()
-  "Return the current buffer's line number."
-  (let ((oldpoint (point)) start)
-    (save-excursion
-      (save-restriction
-	(goto-char (point-min))
-	(widen)
-	(forward-line 0)
-	(setq start (point))
-	(goto-char oldpoint)
-	(forward-line 0)
-	(1+ (count-lines (point-min) (point)))))))
-
 (defun vc-annotate-warp-version (revspec)
   "Annotate the version described by REVSPEC.
 
@@ -3159,7 +3144,7 @@ string, then it describes a revision number, so warp to that
 revision."
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let* ((oldline (vc-current-line))
+    (let* ((oldline (line-at-pos))
 	   (revspeccopy revspec)
 	   (newrev nil))
       (cond
@@ -3191,7 +3176,7 @@ revision."
 	(switch-to-buffer (car (car (last vc-annotate-buffers))))
 	(goto-line (min oldline (progn (goto-char (point-max))
 				       (previous-line)
-				       (vc-current-line))))))))
+				       (line-at-pos))))))))
 
 (defun vc-annotate-car-last-cons (a-list)
   "Return car of last cons in association list A-LIST."

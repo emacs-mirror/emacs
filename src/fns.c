@@ -5454,12 +5454,18 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
     }
   else
     {
+      struct buffer *prev = current_buffer;
+
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
       CHECK_BUFFER (object);
 
       bp = XBUFFER (object);
+      if (bp != current_buffer)
+	set_buffer_internal (bp);
 
       if (NILP (start))
-	b = BUF_BEGV (bp);
+	b = BEGV;
       else
 	{
 	  CHECK_NUMBER_COERCE_MARKER (start);
@@ -5467,7 +5473,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
 
       if (NILP (end))
-	e = BUF_ZV (bp);
+	e = ZV;
       else
 	{
 	  CHECK_NUMBER_COERCE_MARKER (end);
@@ -5477,7 +5483,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
       if (b > e)
 	temp = b, b = e, e = temp;
 
-      if (!(BUF_BEGV (bp) <= b && e <= BUF_ZV (bp)))
+      if (!(BEGV <= b && e <= ZV))
 	args_out_of_range (start, end);
 
       if (NILP (coding_system))
@@ -5544,6 +5550,11 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
 
       object = make_buffer_string (b, e, 0);
+      if (prev != current_buffer)
+	set_buffer_internal (prev);
+      /* Discard the unwind protect for recovering the current
+	 buffer.  */
+      specpdl_ptr--;
 
       if (STRING_MULTIBYTE (object))
 	object = code_convert_string1 (object, coding_system, Qnil, 1);
