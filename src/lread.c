@@ -95,6 +95,9 @@ Lisp_Object Vload_history;
 /* This is used to build the load history. */
 Lisp_Object Vcurrent_load_list;
 
+/* List of files that were preloaded.  */
+Lisp_Object Vpreloaded_file_list;
+
 /* Name of file actually being read by `load'.  */
 Lisp_Object Vload_file_name;
 
@@ -500,6 +503,9 @@ Return t if file exists.")
       close (fd);
       error ("Failure to create stdio stream for %s", XSTRING (file)->data);
     }
+
+  if (! NILP (Vpurify_flag))
+    Vpreloaded_file_list = Fcons (file, Vpreloaded_file_list);
 
   if (NILP (nomessage))
     {
@@ -2720,6 +2726,10 @@ You cannot count on them to still be there!");
   Vsource_directory
     = Fexpand_file_name (build_string ("../"),
 			 Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH)));
+
+  DEFVAR_LISP ("preloaded-file-list", &Vpreloaded_file_list,
+     "List of files that were preloaded (when dumping Emacs).");
+  Vpreloaded_file_list = Qnil;
 
   /* Vsource_directory was initialized in init_lread.  */
 
