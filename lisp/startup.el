@@ -123,7 +123,7 @@
 (setq top-level '(normal-top-level))
 
 (defvar command-line-processed nil
-  "Non-nil once command line has been processed")
+  "Non-nil once command line has been processed.")
 
 (defgroup initialization nil
   "Emacs start-up procedure"
@@ -344,7 +344,7 @@ from being initialized."
 More precisely, this uses only the subdirectories whose names
 start with letters or digits; it excludes any subdirectory named `RCS'
 or `CVS', and any subdirectory that contains a file named `.nosearch'."
-  (let (dirs 
+  (let (dirs
 	attrs
 	(pending (list default-directory)))
     ;; This loop does a breadth-first tree walk on DIR's subtree,
@@ -463,7 +463,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			      (make-directory
 			       (file-name-directory auto-save-list-file-prefix)
 			       t)
-			      (concat 
+			      (concat
 			       (make-temp-name
 				(expand-file-name
 				 auto-save-list-file-prefix))
@@ -848,7 +848,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
-    (if site-run-file 
+    (if site-run-file
 	(load site-run-file t t))
 
     ;; Sites should not disable this.  Only individuals should disable
@@ -868,28 +868,28 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	      (lambda ()
 		(if init-file-user
 		    (let ((user-init-file-1
-			   (cond 
+			   (cond
 			    ((eq system-type 'ms-dos)
 			     (concat "~" init-file-user "/_emacs"))
 			    ((eq system-type 'windows-nt)
 			     (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
 				 "~/.emacs"
 			       "~/_emacs"))
-			    ((eq system-type 'vax-vms) 
+			    ((eq system-type 'vax-vms)
 			     "sys$login:.emacs")
-			    (t 
+			    (t
 			     (concat "~" init-file-user "/.emacs")))))
 		      ;; This tells `load' to store the file name found
 		      ;; into user-init-file.
 		      (setq user-init-file t)
 		      (load user-init-file-1 t t)
-		      
+
 		      ;; If we did not find the user's init file,
 		      ;; set user-init-file conclusively to nil;
 		      ;; don't let it be set from default.el.
 		      (if (eq user-init-file t)
 			  (setq user-init-file nil))
-		      
+
 		      ;; If we loaded a compiled file, set
 		      ;; `user-init-file' to the source version if that
 		      ;; exists.
@@ -907,7 +907,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 				       source user-init-file)
 			      (sit-for 1))
 			    (setq user-init-file source))))
-		      
+
 		      (or inhibit-default-init
 			  (let ((inhibit-startup-message nil))
 			    ;; Users are supposed to be told their rights.
@@ -966,7 +966,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; originally done before unibyte was set and is sensitive to
 	;; unibyte (display table, terminal coding system &c).
 	(set-language-environment current-language-environment)))
-    
+
     ;; Do this here in case the init file sets mail-host-address.
     (or user-mail-address
 	(setq user-mail-address (concat (user-login-name) "@"
@@ -980,7 +980,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		 (eq font-list-limit old-font-list-limit)
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
-    
+
   (run-hooks 'after-init-hook)
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
@@ -989,7 +989,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(set-buffer "*scratch*")
 	(if (eq major-mode 'fundamental-mode)
 	    (funcall initial-major-mode))))
-  
+
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (and term-file-prefix (not noninteractive) (not window-system)
@@ -1181,7 +1181,10 @@ where FACE is a valid face specification, as it can be used with
 
 
 (defun fancy-splash-default-action ()
-  "Default action for events in the splash screen buffer."
+  "Stop displaying the splash screen buffer.
+This is an internal function used to turn off the splash screen after
+the user caused an input event by hitting a key or clicking with the
+mouse."
   (interactive)
   (push last-command-event unread-command-events)
   (throw 'exit nil))
@@ -1207,7 +1210,7 @@ where FACE is a valid face specification, as it can be used with
 		  display-hourglass nil
 		  minor-mode-map-alist nil
 		  buffer-undo-list t
-		  mode-line-format (propertize "---- %b %-" 
+		  mode-line-format (propertize "---- %b %-"
 					       'face '(:weight bold))
 		  fancy-splash-stop-time (+ (float-time)
 					    (max 60 fancy-splash-max-time))
@@ -1301,11 +1304,11 @@ where FACE is a valid face specification, as it can be used with
 	     (when window-setup-hook
 	       (run-hooks 'window-setup-hook)
 	       (setq window-setup-hook nil))
-	     
+
  	     (when (display-popup-menus-p)
  	       (precompute-menubar-bindings))
  	     (setq menubar-bindings-done t)
-	     
+
 	     ;; Do this now to avoid an annoying delay if the user
 	     ;; clicks the menu bar during the sit-for.
 	     (when (= (buffer-size) 0)
@@ -1322,9 +1325,9 @@ where FACE is a valid face specification, as it can be used with
 		       (if (eq system-type 'gnu/linux)
 			   (insert ", one component of a Linux-based GNU system."))
 		       (insert "\n")
-		       
+
 		       (if (assq 'display (frame-parameters))
-			   
+
 			   (if (use-fancy-splash-screens-p)
 			       (progn
 				 (setq wait-for-input nil)
@@ -1348,7 +1351,7 @@ Ordering Manuals	How to order manuals from the FSF.
 			       (insert "\n\n" (emacs-version)
 				       "
 Copyright (C) 2001 Free Software Foundation, Inc.")))
-			 
+
 			 ;; If keys have their default meanings,
 			 ;; use precomputed string to save lots of time.
 			 (if (and (eq (key-binding "\C-h") 'help-command)
@@ -1414,7 +1417,7 @@ Copyright (C) 2001 Free Software Foundation, Inc.")
 			 (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 				  (eq (key-binding "\C-h\C-d") 'describe-distribution)
 				  (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-			     (insert 
+			     (insert
 			      "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
@@ -1431,13 +1434,13 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (set-buffer-modified-p nil)
 		       (when wait-for-input
 			 (sit-for 120)))
-		   
+
 		   (with-current-buffer (get-buffer "*scratch*")
 		     (erase-buffer)
 		     (when initial-scratch-message
 		       (insert initial-scratch-message))
 		     (set-buffer-modified-p nil)))))))
-    
+
     ;; Delay 2 seconds after the init file error message
     ;; was displayed, so user can read it.
     (if init-file-had-error
@@ -1505,7 +1508,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 			    (cons argval command-line-args-left)))
 		       (funcall (cdr tem) argi))
 		   (funcall (cdr tem) argi)))
-		
+
 		((or (string-equal argi "-f") ;what the manual claims
 		     (string-equal argi "-funcall")
 		     (string-equal argi "-e")) ; what the source used to say
@@ -1516,7 +1519,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (if (arrayp (symbol-function tem))
 		     (command-execute tem)
 		   (funcall tem)))
-		
+
 		((or (string-equal argi "-eval")
 		     (string-equal argi "-execute"))
 		 (if argval
@@ -1525,7 +1528,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		   (setq command-line-args-left (cdr command-line-args-left)))
 		 (eval (read tem)))
 		;; Set the default directory as specified in -L.
-		
+
 		((or (string-equal argi "-L")
 		     (string-equal argi "-directory"))
 		 (if argval
@@ -1537,7 +1540,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (cons (expand-file-name tem) extra-load-path))
 		 (setq load-path (append (nreverse extra-load-path)
 					 initial-load-path)))
-		
+
 		((or (string-equal argi "-l")
 		     (string-equal argi "-load"))
 		 (if argval
@@ -1550,7 +1553,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		   (if (file-exists-p (expand-file-name file))
 		       (setq file (expand-file-name file)))
 		   (load file nil t)))
-		
+
 		((string-equal argi "-insert")
 		 (if argval
 		     (setq tem argval)
@@ -1559,13 +1562,13 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (or (stringp tem)
 		     (error "File name omitted from `-insert' option"))
 		 (insert-file-contents (command-line-normalize-file-name tem)))
-		
+
 		((string-equal argi "-kill")
 		 (kill-emacs t))
-		
+
 		((string-match "^\\+[0-9]+\\'" argi)
 		 (setq line (string-to-int argi)))
-		
+
 		((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
 		 (setq line (string-to-int (match-string 1 argi))
 		       column (string-to-int (match-string 2 argi))))
@@ -1574,7 +1577,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 ;; Ignore X-windows options and their args if not using X.
 		 (setq command-line-args-left
 		       (nthcdr (nth 1 tem) command-line-args-left)))
-		
+
 		((or (string-equal argi "-find-file")
 		     (string-equal argi "-file")
 		     (string-equal argi "-visit"))
@@ -1597,7 +1600,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (unless (< column 1)
 		   (move-to-column (1- column)))
 		 (setq column 0))
-		
+
 		((equal argi "--")
 		 (setq just-files t))
 		(t

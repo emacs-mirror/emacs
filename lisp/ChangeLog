@@ -1,3 +1,8 @@
+2003-05-10  Oliver Scholz  <alkibiades@gmx.de>
+
+	* startup.el (fancy-splash-default-action): Fix docstring.
+	(command-line-processed): Fix typo.
+
 2003-05-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
 	* files.el (insert-file-contents-literally): Allow it to be called
