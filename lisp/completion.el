@@ -5,14 +5,6 @@
 
 ;;; Commentary:
 
-;;; This file is very badly designed in that it redefines
-;;; standard functions of Emacs.  This is bad design, because
-;;; this file cannot be updated to correspond to the latest
-;;; versions of those functions.  Therefore, you must expect
-;;; it to produce unpredictable and undesirable results.
-;;; This file needs to be redesigned to work in a modular fashion.
-;;;  -- rms.
-
 ;;; This is a Completion system for GNU Emacs
 ;;;
 ;;;  E-Mail: 
