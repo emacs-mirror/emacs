@@ -349,8 +349,9 @@ __main ()
    enough information to do it right.  */
 
 static int
-argmatch (argv, sstr, lstr, minlen, valptr, skipptr)
+argmatch (argv, argc, sstr, lstr, minlen, valptr, skipptr)
      char **argv;
+     int argc;
      char *sstr;
      char *lstr;
      int minlen;
@@ -359,7 +360,13 @@ argmatch (argv, sstr, lstr, minlen, valptr, skipptr)
 {
   char *p;
   int arglen;
-  char *arg = argv[*skipptr+1];
+  char *arg;
+
+  /* Don't access argv[argc]; give up in advance.  */
+  if (argc <= *skipptr + 1)
+    return 0;
+
+  arg = argv[*skipptr+1];
   if (arg == NULL)
     return 0;
   if (strcmp (arg, sstr) == 0)
@@ -415,7 +422,7 @@ main (argc, argv, envp)
 
 /* Map in shared memory, if we are using that.  */
 #ifdef HAVE_SHM
-  if (argmatch (argv, "-nl", "--no-shared-memory", 6, NULL, &skip_args))
+  if (argmatch (argv, argc, "-nl", "--no-shared-memory", 6, NULL, &skip_args))
     {
       map_in_data (0);
       /* The shared memory was just restored, which clobbered this.  */
@@ -442,7 +449,7 @@ main (argc, argv, envp)
   /* If -map specified, map the data file in */
   {
     char *file;
-    if (argmatch (argv, "-map", "--map-data", 3, &mapin_file, &skip_args))
+    if (argmatch (argv, argc, "-map", "--map-data", 3, &mapin_file, &skip_args))
       mapin_data (file);
   }
 
@@ -521,7 +528,7 @@ main (argc, argv, envp)
   /* Handle the -t switch, which specifies filename to use as terminal */
   {
     char *term;
-    if (argmatch (argv, "-t", "--terminal", 4, &term, &skip_args))
+    if (argmatch (argv, argc, "-t", "--terminal", 4, &term, &skip_args))
       {
 	int result;
 	close (0);
@@ -545,16 +552,16 @@ main (argc, argv, envp)
 #endif
       }
   }
-  if (argmatch (argv, "-nw", "--no-windows", 6, NULL, &skip_args))
+  if (argmatch (argv, argc, "-nw", "--no-windows", 6, NULL, &skip_args))
     inhibit_window_system = 1;
 
   /* Handle the -batch switch, which means don't do interactive display.  */
   noninteractive = 0;
-  if (argmatch (argv, "-batch", "--batch", 5, NULL, &skip_args))
+  if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args))
     noninteractive = 1;
 
   /* Handle the --help option, which gives a usage message..  */
-  if (argmatch (argv, "-help", "--help", 3, NULL, &skip_args))
+  if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
     {
       printf ("\
 Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
@@ -575,9 +582,9 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
     int i;
     int count_before = skip_args;
 
-    if (argmatch (argv, "-d", "--display", 3, &displayname, &skip_args))
+    if (argmatch (argv, argc, "-d", "--display", 3, &displayname, &skip_args))
       display_arg = 1;
-    else if (argmatch (argv, "-display", 0, 3, &displayname, &skip_args))
+    else if (argmatch (argv, argc, "-display", 0, 3, &displayname, &skip_args))
       display_arg = 1;
 
     /* If we have the form --display=NAME,
@@ -849,12 +856,12 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
     {
       char *file;
       /* Handle -l loadup-and-dump, args passed by Makefile. */
-      if (argmatch (argv, "-l", "--load", 3, &file, &skip_args))
+      if (argmatch (argv, argc, "-l", "--load", 3, &file, &skip_args))
 	Vtop_level = Fcons (intern ("load"),
 			    Fcons (build_string (file), Qnil));
 #ifdef CANNOT_DUMP
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
-      if (!argmatch (argv, "-nl", "--no-loadup", 6, NULL, &skip_args))
+      if (!argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args))
 	Vtop_level = Fcons (intern ("load"),
 			    Fcons (build_string ("loadup.el"), Qnil));
 #endif /* CANNOT_DUMP */
@@ -872,7 +879,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #endif /* defined (sun) || defined (LOCALTIME_CACHE) */
 
   /* Handle the GNU standard option --version.  */
-  if (argmatch (argv, "-version", "--version", 3, NULL, &skip_args))
+  if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
     {
       Lisp_Object ver;
       ver = call0 (intern ("emacs-version"));
