@@ -91,7 +91,7 @@ unread articles in the groups.
 
 If nil, no groups are permanently visible."
   :group 'gnus-group-listing
-  :type 'regexp)
+  :type '(choice regexp (const nil)))
 
 (defcustom gnus-list-groups-with-ticked-articles t
   "*If non-nil, list groups that have only ticked articles.
