@@ -48,12 +48,12 @@ and be replaced by its expansion."
 
 (defcustom abbrev-mode nil
   "Toggle abbrev mode.
-In abbrev mode, inserting an abbreviation causes it to expand
-and be replaced by its expansion.
-This variable should be set only with \\[customize], which is equivalent
-to using the function `abbrev-mode'."
-  :set (lambda (symbol value)
-	 (abbrev-mode (if value 1 0)))
+Non-nil means automatically expand abbrevs as they are inserted.
+
+This variable automatically becomes buffer-local when set in any fashion.
+Changing it with \\[customize] sets the default value.
+Use the command `abbrev-mode' to enable or disable Abbrev mode in the current
+buffer."
   :type 'boolean
   :group 'abbrev-mode)
 
