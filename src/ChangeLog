@@ -33,7 +33,6 @@
 	(syms_of_msdos): Don't intern and don't staticpro
 	Qbackground_color and Qforeground_color.
 
->>>>>>> 1.946
 2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fframe_parameter): For non-windowed frames, if
