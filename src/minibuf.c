@@ -215,7 +215,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     }
 
 #ifdef MULTI_FRAME
-  Fredirect_frame_focus (Fselected_frame (), mini_frame);
+  if (XFRAME (mini_frame) != selected_frame)
+    Fredirect_frame_focus (Fselected_frame (), mini_frame);
 #endif
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
