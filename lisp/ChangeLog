@@ -1,3 +1,10 @@
+2000-06-19  Dave Love  <fx@gnu.org>
+
+	* menu-bar.el (menu-bar-options-save): New function.
+	(menu-bar-options-menu): Use it.
+	(menu-bar-options-menu) <toggle-global-lazy-font-lock-mode>:
+	Simplify.
+
 2000-06-19  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/etags.el (tags-query-replace): Put new parameters
