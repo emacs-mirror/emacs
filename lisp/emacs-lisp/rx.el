@@ -61,9 +61,9 @@
 ;; "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
 ;; (rx (and line-start
 ;;          "content-transfer-encoding:"
-;;          (+ (? ?\n) blank)
+;;          (+ (? ?\n)) blank
 ;;	    "quoted-printable"
-;;	    (+ (? ?\n) blank))
+;;	    (+ (? ?\n)) blank))
 ;;
 ;; (concat "^\\(?:" something-else "\\)")
 ;; (rx (and line-start (eval something-else))), statically or
@@ -78,11 +78,11 @@
 ;;         (and line-start ?\n)))
 ;;
 ;; "\\$[I]d: [^ ]+ \\([^ ]+\\) "
-;; (rx (and "$Id": " 
+;; (rx (and "$Id: " 
 ;;          (1+ (not (in " "))) 
 ;;          " "
 ;;          (submatch (1+ (not (in " "))))
-;;          " ")))
+;;          " "))
 ;;
 ;; "\\\\\\\\\\[\\w+"
 ;; (rx (and ?\\ ?\\ ?\[ (1+ word)))
@@ -272,7 +272,11 @@ See also `rx-constituents'."
   "Parse and produce code from FORM.
 FORM is of the form `(and FORM1 ...)'."
   (rx-check form)
-  (mapconcat #'rx-to-string (cdr form) nil))
+  (concat "\\(?:"
+	  (mapconcat
+	   (function (lambda (x) (rx-to-string x 'no-group)))
+	   (cdr form) nil)
+	  "\\)"))
 
 
 (defun rx-or (form)
@@ -384,8 +388,10 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
 
 (defun rx-submatch (form)
   "Parse and produce code from FORM, which is `(submatch ...)'."
-  (concat "\\(" (mapconcat #'rx-to-string (cdr form) nil) "\\)"))
-
+  (concat "\\("
+	  (mapconcat (function (lambda (x) (rx-to-string x 'no-group)))
+		     (cdr form) nil)
+	  "\\)"))
 
 (defun rx-kleene (form)
   "Parse and produce code from FORM.
@@ -402,9 +408,44 @@ is non-nil."
 		      (t "?")))
 	(op (cond ((memq (car form) '(* *? 0+ zero-or-more)) "*")
 		  ((memq (car form) '(+ +? 1+ one-or-more))  "+")
-		  (t "?"))))
-    (format "\\(?:%s\\)%s%s" (rx-to-string (cadr form) 'no-group) 
-	    op suffix)))
+		  (t "?")))
+	(result (rx-to-string (cadr form) 'no-group)))
+    (if (not (rx-atomic-p result))
+	(setq result (concat "\\(?:" result "\\)")))
+    (concat result op suffix)))
+
+(defun rx-atomic-p (r)
+  "Return non-nil if regexp string R is atomic.
+An atomic regexp R is one such that a suffix operator
+appended to R will apply to all of R.  For example, \"a\"
+\"[abc]\" and \"\\(ab\\|ab*c\\)\" are atomic and \"ab\",
+\"[ab]c\", and \"ab\\|ab*c\" are not atomic.
+
+This function may return false negatives, but it will not
+return false positives.  It is nevertheless useful in
+situations where an efficiency shortcut can be taken iff a
+regexp is atomic.  The function can be improved to detect
+more cases of atomic regexps.  Presently, this function
+detects the following categories of atomic regexp;
+
+  a group or shy group:  \\(...\\)
+  a character class:     [...]
+  a single character:    a
+
+On the other hand, false negatives will be returned for
+regexps that are atomic but end in operators, such as
+\"a+\".  I think these are rare.  Probably such cases could
+be detected without much effort.  A guarantee of no false
+negatives would require a theoretic specification of the set
+of all atomic regexps."
+  (let ((l (length r)))
+    (or (equal l 1)
+	(and (>= l 6)
+	     (equal (substring r 0 2) "\\(")
+	     (equal (substring r -2) "\\)"))
+	(and (>= l 2)
+	     (equal (substring r 0 1) "[")
+	     (equal (substring r -1) "]")))))
 
 
 (defun rx-syntax (form)
