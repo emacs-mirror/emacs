@@ -171,9 +171,9 @@ struct frame
   enum output_method output_method;
 
   /* A structure of auxiliary data used for displaying the contents.
-     struct x_display is used for X window frames;
+     struct x_output is used for X window frames;
      it is defined in xterm.h.  */
-  union display { struct x_display *x; int nothing; } display;
+  union output_data { struct x_output *x; int nothing; } output_data;
 
 #ifdef MULTI_KBOARD
   /* A pointer to the kboard structure associated with this frame.
@@ -300,7 +300,7 @@ typedef struct frame *FRAME_PTR;
 
 #define WINDOW_FRAME(w) (w)->frame
 
-#define FRAME_LIVE_P(f) ((f)->display.nothing != 0)
+#define FRAME_LIVE_P(f) ((f)->output_data.nothing != 0)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_MINIBUF_ONLY_P(f) \
