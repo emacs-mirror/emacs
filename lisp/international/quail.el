@@ -729,6 +729,11 @@ you type is correctly handled."
 		char)
 	    ch))))))
 
+(defun quail-keyseq-translate (keyseq)
+  (apply 'string
+	 (mapcar (function (lambda (x) (quail-keyboard-translate x)))
+		 keyseq)))
+
 ;; Insert the visual keyboard layout table according to KBD-LAYOUT.
 ;; The format of KBD-LAYOUT is the same as `quail-keyboard-layout'.
 (defun quail-insert-kbd-layout (kbd-layout)
@@ -1349,7 +1354,7 @@ The returned value is a Quail map specific to KEY."
 	  generated-events))
 
     ;; Since KEY doesn't start any translation, just return it.
-    ;; But, translate KEY if necessary.
+    ;; But translate KEY if necessary.
     (if (and (integerp key)
 	     (quail-kbd-translate))
 	(setq key (quail-keyboard-translate key)))
@@ -1433,7 +1438,7 @@ The returned value is a Quail map specific to KEY."
 	  generated-events))
 
     ;; Since KEY doesn't start any translation, just return it.
-    ;; But, translate KEY if necessary.
+    ;; But translate KEY if necessary.
     (if (and (integerp key)
 	     (quail-kbd-translate))
 	(setq key (quail-keyboard-translate key)))
@@ -1464,28 +1469,28 @@ The returned value is a Quail map specific to KEY."
   (let ((func (quail-update-translation-function)))
     (if func
 	(setq control-flag (funcall func control-flag))
-      (if (numberp control-flag)
-	  (let ((len (length quail-current-key)))
-	    (if (= len 1)
-		(setq control-flag t
-		      quail-current-str quail-current-key)
-	      (if input-method-exit-on-first-char
-		  (setq len control-flag)
-		(while (> len control-flag)
-		  (setq len (1- len))
-		  (setq unread-command-events
-			(cons (aref quail-current-key len)
-			      unread-command-events))))
-	      (if quail-current-str
-		  (if input-method-exit-on-first-char
-		      (setq control-flag t))
-		(setq quail-current-str
-		      (substring quail-current-key 0 len)))))
-	(if quail-current-str
-	    (if (and input-method-exit-on-first-char
-		     (quail-simple))
-		(setq control-flag t))
-	  (setq quail-current-str quail-current-key)))))
+      (cond ((numberp control-flag)
+	     (let ((len (length quail-current-key)))
+	       (if (= control-flag 0)
+		   (setq quail-current-str
+			 (if (quail-kbd-translate)
+			     (quail-keyseq-translate quail-current-key)
+			   quail-current-key)))
+	       (or input-method-exit-on-first-char
+		   (while (> len control-flag)
+		     (setq len (1- len))
+		     (setq unread-command-events
+			   (cons (aref quail-current-key len)
+				 unread-command-events))))))
+	    ((null control-flag)
+	     (unless quail-current-str
+	       (setq quail-current-str
+		     (if (quail-kbd-translate)
+			 (quail-keyseq-translate quail-current-key)
+		       quail-current-key))
+	       (if (and input-method-exit-on-first-char
+			(quail-simple))
+		   (setq control-flag t)))))))
   (or input-method-use-echo-area
       (progn
 	(quail-delete-region)
@@ -1956,6 +1961,8 @@ or in a newly created frame (if the selected frame has no other windows)."
 	      ((null guidance)
 	       ;; Show the current input keys.
 	       (let ((key quail-current-key))
+		 (if (quail-kbd-translate)
+		     (setq key (quail-keyseq-translate key)))
 		 (save-excursion
 		   (set-buffer quail-guidance-buf)
 		   (erase-buffer)
@@ -2415,27 +2422,36 @@ package to describe."
 	    (insert "
 KEYBOARD LAYOUT
 ---------------
-This input method is designed to pretend you are using a keyboard
-with the following \"virtual\" layout:
-")
-	    (setq done-list
-		  (quail-insert-kbd-layout quail-keyboard-layout))
-	    (insert "\
-The input method implements that result by assuming you have
-a `")
+This input method works by translating individual input characters.
+Assuming that your actual keyboard has the `")
 	    (help-insert-xref-button
 	     quail-keyboard-layout-type
 	     #'quail-show-keyboard-layout quail-keyboard-layout-type
 	     "mouse-2, RET: show this layout")
-	    (insert "' keyboard layout, and translating characters accordingly.
-If the layout is different from your keyboard, or you see the
-different characters when you type keys according to this layout,
-adjust the variable `quail-keyboard-layout-type' ")
+	    (insert "' layout,
+translation results in the following \"virtual\" keyboard layout:
+")
+	    (setq done-list
+		  (quail-insert-kbd-layout quail-keyboard-layout))
+	    (insert "If your keyboard has a different layout, rearranged from
+`")
 	    (help-insert-xref-button
-	     "[customize it]"
+	     "standard"
+	     #'quail-show-keyboard-layout "standard"
+	     "mouse-2, RET: show this layout")
+	    (insert "', the \"virtual\" keyboard you get with this input method
+will be rearranged in the same way.
+
+You can set the variable `quail-keyboard-layout-type' to specify
+the physical layout of your keyboard; the tables shown in
+documentation of input methods including this one are based on the
+physical keyboard layout as specified with that variable.
+")
+	    (help-insert-xref-button
+	     "[customize the keyboard layout]"
 	     #'customize-variable 'quail-keyboard-layout-type
 	     "mouse-2, RET: set keyboard layout type")
-	    (insert ".\n"))
+	    (insert "\n"))
 
 	  ;; Show key sequences.
 	  (let ((decode-map (list 'decode-map))
