@@ -1707,8 +1707,8 @@ arith_driver (code, nargs, args)
 {
   register Lisp_Object val;
   register int argnum;
-  register int accum;
-  register int next;
+  register EMACS_INT accum;
+  register EMACS_INT next;
 
   switch (SWITCH_ENUM_CAST (code))
     {
@@ -1917,7 +1917,7 @@ Both X and Y must be numbers or markers.")
      register Lisp_Object num1, num2;
 {
   Lisp_Object val;
-  int i1, i2;
+  EMACS_INT i1, i2;
 
 #ifdef LISP_FLOAT_TYPE
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1, 0);
