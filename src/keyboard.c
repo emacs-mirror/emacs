@@ -1583,6 +1583,10 @@ command_loop_1 ()
 		    = window_display_table (XWINDOW (selected_window));
 		  lose = FETCH_CHAR (PT_BYTE);
 		  SET_PT (PT + 1);
+		  if (! NILP (Vpost_command_hook))
+		    /* Put this before calling adjust_point_for_property
+		       so it will only get called once in any case.  */
+		    goto directly_done;
 		  adjust_point_for_property (last_point_position);
 		  already_adjusted = 1;
 		  if (PT == last_point_position + 1
@@ -1615,6 +1619,8 @@ command_loop_1 ()
 		    = window_display_table (XWINDOW (selected_window));
 		  SET_PT (PT - 1);
 		  lose = FETCH_CHAR (PT_BYTE);
+		  if (! NILP (Vpost_command_hook))
+		    goto directly_done;
 		  adjust_point_for_property (last_point_position);
 		  already_adjusted = 1;
 		  if (PT == last_point_position - 1
@@ -1643,9 +1649,9 @@ command_loop_1 ()
 		       && NATNUMP (last_command_char)
 		       && CHAR_VALID_P (XFASTINT (last_command_char), 0))
 		{
-		  unsigned int c =
-		    translate_char (Vtranslation_table_for_input,
-				    XFASTINT (last_command_char), 0, 0, 0);
+		  unsigned int c
+		    = translate_char (Vtranslation_table_for_input,
+				      XFASTINT (last_command_char), 0, 0, 0);
 		  int value;
 		  if (NILP (Vexecuting_macro)
 		      && !EQ (minibuf_window, selected_window))
