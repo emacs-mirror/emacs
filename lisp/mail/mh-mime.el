@@ -1,5 +1,5 @@
 ;;; mh-mime --- mh-e support for composing MIME messages
-;; Time-stamp: <94/11/18 17:48:19 gildea>
+;; Time-stamp: <95/04/20 19:16:22 gildea>
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
@@ -27,7 +27,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.2 1995/04/09 22:30:35 kwzh Exp kwzh $
+;; $Id: mh-mime.el,v 1.3 1995/04/10 00:20:00 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -53,6 +53,7 @@ MH profile.")
 (defvar mh-edit-mhn-hook nil
   "Invoked on the formatted letter by \\<mh-letter-mode-map>\\[mh-edit-mhn].")
 
+;;;###autoload
 (defvar mh-mime-content-types
   '(("text/plain") ("text/richtext")
     ("multipart/mixed") ("multipart/alternative") ("multipart/digest")
@@ -62,10 +63,10 @@ MH profile.")
     ("image/jpeg") ("image/gif")
     ("audio/basic")
     ("video/mpeg"))
-  "Legal MIME content types.")
+  "Legal MIME content types.  See documentation for \\[mh-edit-mhn].")
 
 (defun mh-mhn-compose-insertion (pathname type description)
-  "Add a directive to insert a message part from a file.
+  "Add a directive to insert a MIME message part from a file.
 This is the typical way to insert non-text parts in a message.
 Arguments are PATHNAME, which tells where to find the file, TYPE, the
 MIME content type, and DESCRIPTION, a line of text for the
@@ -93,7 +94,7 @@ Content-description header.  See also \\[mh-edit-mhn]."
 
 
 (defun mh-mhn-compose-anon-ftp (host pathname type description)
-  "Add a directive for an anonymous ftp external body part.
+  "Add a directive for a MIME anonymous ftp external body part.
 This directive tells MH to include a reference to a
 message/external-body part retrievable by anonymous FTP.  Arguments
 are HOST and PATHNAME, which tell where to find the file, TYPE, the
@@ -109,7 +110,7 @@ Content-description header.  See also \\[mh-edit-mhn]."
 				type description))
 
 (defun mh-mhn-compose-external-compressed-tar (host pathname description)
-  "Add a directive to include a reference to a compressed tar file.
+  "Add a directive to include a MIME reference to a compressed tar file.
 The file should be available via anonymous ftp.  This directive
 tells MH to include a reference to a message/external-body part.
 Arguments are HOST and PATHNAME, which tell where to find the file, and
@@ -148,10 +149,10 @@ See also \\[mh-edit-mhn]."
   (insert "\n"))
 
 (defun mh-mhn-compose-forw (&optional description folder messages)
-  "Add a forw directive to this message.
+  "Add a forw directive to this message, to forward a message with MIME.
 This directive tells MH to include the named messages in this one.
 Arguments are DESCRIPTION, a line of text for the Content-description header,
-FOLDER and MESSAGES, which name the message(s) to be forwarded.
+and FOLDER and MESSAGES, which name the message(s) to be forwarded.
 See also \\[mh-edit-mhn]."
   (interactive (list
 		(read-string "Forw Content-description: ")
