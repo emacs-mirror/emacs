@@ -966,22 +966,34 @@ Value is a property list of attribute names and new values."
 			       result))))))
 
     
-(defun modify-face (&optional frame)
+(defun modify-face (&optional face foreground background stipple
+			      bold-p italic-p underline-p inverse-p frame)
   "Modify attributes of faces interactively.
 If optional argument FRAME is nil or omitted, modify the face used
-for newly created frame, i.e. the global face."
+for newly created frame, i.e. the global face.
+For non-interactive use, `set-face-attribute' is preferred.
+When called from elisp, if FACE is nil, all arguments but FRAME are ignored
+and the face and its settings are obtained by querying the user."
   (interactive)
-  (let ((face (read-face-name "Modify face")))
+  (if face
+      (set-face-attribute face frame
+			  :foreground (or foreground 'unspecified)
+			  :background (or background 'unspecified)
+			  :stipple stipple
+			  :bold bold-p
+			  :italic italic-p
+			  :underline underline-p
+			  :inverse-video inverse-p)
+    (setq face (read-face-name "Modify face"))
     (apply #'set-face-attribute face frame
 	   (read-all-face-attributes face frame))))
-
 
 (defun read-face-and-attribute (attribute &optional frame)
   "Read face name and face attribute value.
 ATTRIBUTE is the attribute whose new value is read.
 FRAME nil or unspecified means read attribute value of global face.
 Value is a list (FACE NEW-VALUE) where FACE is the face read
-(a symbol), and NEW-VALUE is value read."
+\(a symbol), and NEW-VALUE is value read."
   (cond ((eq attribute :font)
 	 (let* ((prompt "Set font-related attributes of face")
 		(face (read-face-name prompt))
@@ -1273,7 +1285,7 @@ If there is no default for FACE, return nil."
 
 (defsubst face-user-default-spec (face)
   "Return the user's customized face-spec for FACE, or the default if none.
-If there is neither a user setting or a default for FACE, return nil."
+If there is neither a user setting nor a default for FACE, return nil."
   (or (get face 'saved-face)
       (face-default-spec face)))
 
