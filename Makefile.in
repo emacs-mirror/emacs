@@ -223,7 +223,7 @@ SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile src/Makefile oldXMenu/Makefile 
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
-all: ${SUBDIR} leim
+all: maybe_bootstrap ${SUBDIR} leim
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
@@ -663,6 +663,12 @@ dvi:
 ### used to compile Lisp files.  The last step is a "normal" make.
 
 .PHONY: bootstrap bootstrap-lisp-1 boostrap-src bootstrap-lisp bootstrap-clean
+.PHONY: maybe_bootstrap
+
+maybe_bootstrap:
+	if [ ! -f $(srcdir)/lisp/abbrev.elc ]; then \
+	  $(MAKE) $(MFLAGS) bootstrap; \
+	fi
 
 bootstrap: clean bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean all info
 
