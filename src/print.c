@@ -1418,14 +1418,20 @@ print (obj, printcharfun, escapeflag)
 	  {
 	    register int i = 0;
 	    register int print_length = 0;
+	    Lisp_Object halftail = obj;
 
 	    if (INTEGERP (Vprint_length))
 	      print_length = XINT (Vprint_length);
-	    /* Could recognize circularities in cdrs here,
-	       but that would make printing of long lists quadratic.
-	       It's not worth doing.  */
 	    while (CONSP (obj))
 	      {
+		/* Detect circular list.  */
+		if (i != 0 && EQ (obj, halftail))
+		  {
+		    sprintf (buf, " . #%d", i / 2);
+		    strout (buf, -1, -1, printcharfun, 0);
+		    obj = Qnil;
+		    break;
+		  }
 		if (i++)
 		  PRINTCHAR (' ');
 		if (print_length && i > print_length)
@@ -1435,6 +1441,8 @@ print (obj, printcharfun, escapeflag)
 		  }
 		print (XCAR (obj), printcharfun, escapeflag);
 		obj = XCDR (obj);
+		if (!(i & 1))
+		  halftail = XCDR (halftail);
 	      }
 	  }
 	  if (!NILP (obj))
