@@ -917,9 +917,9 @@ of replacing the current filters."
 (defun ibuffer-format-filter-group-data (filter)
   (if (equal filter "Default")
       ""
-    (concat "Filter: " (mapconcat #'ibuffer-format-qualifier
-				  (cdr (assq filter ibuffer-filter-groups))
-				  " ") "\n")))
+    (concat "Filter:" (mapconcat #'ibuffer-format-qualifier
+				 (cdr (assq filter ibuffer-filter-groups))
+				 " "))))
 
 (defun ibuffer-format-qualifier (qualifier)
   (if (eq (car-safe qualifier) 'not)
