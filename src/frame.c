@@ -464,6 +464,33 @@ DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
   return XWINDOW (window)->frame;
 }
 
+DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
+  "Returns the topmost, leftmost window of FRAME.\n\
+If omitted, FRAME defaults to the currently selected frame.")
+  (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object w;
+
+  if (NILP (frame))
+    w = selected_frame->root_window;
+  else
+    {
+      CHECK_LIVE_FRAME (frame, 0);
+      w = XFRAME (frame)->root_window;
+    }
+  while (NILP (XWINDOW (w)->buffer))
+    {
+      if (! NILP (XWINDOW (w)->hchild))
+	w = XWINDOW (w)->hchild;
+      else if (! NILP (XWINDOW (w)->vchild))
+	w = XWINDOW (w)->vchild;
+      else
+	abort ();
+    }
+  return w;
+}
+
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
        "Returns the root-window of FRAME.\n\
 If omitted, FRAME defaults to the currently selected frame.")
