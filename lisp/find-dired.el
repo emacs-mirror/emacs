@@ -7,8 +7,8 @@
 ;; Maintainer: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.11 $" 11 -2)
-  "$Id: find-dired.el,v 1.11 1993/03/17 15:24:18 eric Exp eric $")
+(defconst find-dired-version (substring "$Revision: 1.12 $" 11 -2)
+  "$Id: find-dired.el,v 1.12 1993/04/23 06:51:38 eric Exp roland $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 ;;    find-dired|Roland McGrath, Sebastian Kremer
 ;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
 ;;    |Run a `find' command and dired the output
-;;    |$Date: 1993/03/17 15:24:18 $|$Revision: 1.11 $|
+;;    |$Date: 1993/04/23 06:51:38 $|$Revision: 1.12 $|
 
 ;; INSTALLATION ======================================================
 
@@ -198,7 +198,22 @@ Thus ARG can also contain additional grep options."
     (if (buffer-name buf)
 	(save-excursion
 	  (set-buffer buf)
-	  (setq mode-line-process nil)
+	  (let ((buffer-read-only nil))
+	    (save-excursion
+	      (goto-char (point-max))
+	      (insert "\nfind " state)
+	      (forward-char -1)		;Back up before \n at end of STATE.
+	      (insert " at " (substring (current-time-string) 0 19))
+	      (forward-char 1)
+	      (setq mode-line-process
+		    (concat ": "
+			    (symbol-name (process-status proc))))
+	      ;; Since the buffer and mode line will show that the
+	      ;; process is dead, we can delete it now.  Otherwise it
+	      ;; will stay around until M-x list-processes.
+	      (delete-process proc)
+	      ;; Force mode line redisplay soon.
+	      (set-buffer-modified-p (buffer-modified-p))))
 	  (message "find-dired %s finished." (current-buffer))))))
 
 (or (fboundp 'start-process-shell-command)
