@@ -1,3 +1,8 @@
+1999-11-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (syms_of_buffer): Extend documentation of
+	mode-line-format.
+
 1999-11-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* editfns.c (Fdelete_field): Renamed from Ferase_field.
