@@ -1,5 +1,6 @@
 /* String search routines for GNU Emacs.
-   Copyright (C) 1985, 86,87,93,94,97,98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,87,93,94,97,98, 1999, 2004
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2582,7 +2583,7 @@ match_limit (num, beginningp)
   CHECK_NUMBER (num);
   n = XINT (num);
   if (n < 0)
-    args_out_of_range (num, 0);
+    args_out_of_range (num, make_number (0));
   if (search_regs.num_regs <= 0)
     error ("No match data, because no search succeeded");
   if (n >= search_regs.num_regs
@@ -2682,10 +2683,9 @@ Return value is undefined if the last search failed.  */)
 	data[2 * i] = data [2 * i + 1] = Qnil;
     }
 
-  if (BUFFERP(last_thing_searched)
-      && ! NILP (integers))
+  if (BUFFERP (last_thing_searched) && !NILP (integers))
     {
-      XSETBUFFER(data[len], last_thing_searched);
+      data[len] = last_thing_searched;
       len++;
     }
 
@@ -2765,9 +2765,9 @@ LIST should have been created by calling `match-data' previously.  */)
     for (i = 0;; i++)
       {
 	marker = Fcar (list);
-	if (BUFFERP(marker))
+	if (BUFFERP (marker))
 	  {
-	    XSETBUFFER(last_thing_searched, marker);
+	    last_thing_searched = marker;
 	    break;
 	  }
 	if (i >= length)

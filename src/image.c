@@ -675,7 +675,7 @@ define_image_type (type, loaded)
       success = Qt;
     }
 
-  CACHE_IMAGE_TYPE(*type->type, success);
+  CACHE_IMAGE_TYPE (*type->type, success);
   return success;
 }
 
@@ -690,7 +690,7 @@ lookup_image_type (symbol)
   struct image_type *type;
 
   /* We must initialize the image-type if it hasn't been already.  */
-  if (NILP (Finit_image_library (symbol)))
+  if (NILP (Finit_image_library (symbol, Qnil)))
     return 0;			/* unimplemented */
 
   for (type = image_types; type; type = type->next)
@@ -7927,10 +7927,10 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
 #ifdef HAVE_NTGUI
 /* Image types that rely on external libraries are loaded dynamically
    if the library is available.  */
-#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn) \
+#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn, libraries) \
   define_image_type (image_type, init_lib_fn (libraries))
 #else
-#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn) \
+#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn, libraries) \
   define_image_type (image_type, TRUE)
 #endif /* HAVE_NTGUI */
 
@@ -7940,8 +7940,9 @@ Return non-nil if TYPE is a supported image type.
 
 Image types pbm and xbm are prebuilt; other types are loaded here.
 Libraries to load are specified in alist LIBRARIES (usually, the value
-of `image-library-alist', which see.  */)
+of `image-library-alist', which see).  */)
   (type, libraries)
+  Lisp_Object type, libraries;
 {
   Lisp_Object tested;
 
@@ -7952,36 +7953,36 @@ of `image-library-alist', which see.  */)
 
 #if defined (HAVE_XPM) || defined (MAC_OS)
   if (EQ (type, Qxpm))
-    return CHECK_LIB_AVAILABLE(&xpm_type, init_xpm_functions);
+    return CHECK_LIB_AVAILABLE (&xpm_type, init_xpm_functions, libraries);
 #endif
 
 #if defined (HAVE_JPEG) || defined (MAC_OS)
   if (EQ (type, Qjpeg))
-    return CHECK_LIB_AVAILABLE(&jpeg_type, init_jpeg_functions);
+    return CHECK_LIB_AVAILABLE (&jpeg_type, init_jpeg_functions, libraries);
 #endif
 
 #if defined (HAVE_TIFF) || defined (MAC_OS)
   if (EQ (type, Qtiff))
-    return CHECK_LIB_AVAILABLE(&tiff_type, init_tiff_functions);
+    return CHECK_LIB_AVAILABLE (&tiff_type, init_tiff_functions, libraries);
 #endif
 
 #if defined (HAVE_GIF) || defined (MAC_OS)
   if (EQ (type, Qgif))
-    return CHECK_LIB_AVAILABLE(&gif_type, init_gif_functions);
+    return CHECK_LIB_AVAILABLE (&gif_type, init_gif_functions, libraries);
 #endif
 
 #if defined (HAVE_PNG) || defined (MAC_OS)
   if (EQ (type, Qpng))
-    return CHECK_LIB_AVAILABLE(&png_type, init_png_functions);
+    return CHECK_LIB_AVAILABLE (&png_type, init_png_functions, libraries);
 #endif
 
 #ifdef HAVE_GHOSTSCRIPT
   if (EQ (type, Qpostscript))
-    return CHECK_LIB_AVAILABLE(&gs_type, init_gs_functions);
+    return CHECK_LIB_AVAILABLE (&gs_type, init_gs_functions, libraries);
 #endif
 
   /* If the type is not recognized, avoid testing it ever again.  */
-  CACHE_IMAGE_TYPE(type, Qnil);
+  CACHE_IMAGE_TYPE (type, Qnil);
   return Qnil;
 }
 

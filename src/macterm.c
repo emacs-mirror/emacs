@@ -8854,8 +8854,21 @@ mac_initialize_display_info ()
   dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
 #ifdef MAC_OSX
   /* HasDepth returns true if it is possible to have a 32 bit display,
-     but this may not be what is actually used.  Mac OSX can do better.  */
-  dpyinfo->n_planes = CGDisplayBitsPerPixel (CGMainDisplayID ());
+     but this may not be what is actually used.  Mac OSX can do better.
+     CGMainDisplayID is only available on OSX 10.2 and higher, but the
+     header for CGGetActiveDisplayList says that the first display returned
+     is the active one, so we use that.  */
+  {
+    CGDirectDisplayID disp_id[1];
+    CGDisplayCount disp_count;
+    CGDisplayErr error_code;
+
+    error_code = CGGetActiveDisplayList (1, disp_id, &disp_count);
+    if (error_code != 0)
+      error ("No display found, CGGetActiveDisplayList error %d", error_code);
+
+    dpyinfo->n_planes = CGDisplayBitsPerPixel (disp_id[0]);
+  }
 #else
   for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
     if (HasDepth (main_device_handle, dpyinfo->n_planes,

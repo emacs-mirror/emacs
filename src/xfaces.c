@@ -5986,7 +5986,7 @@ x_supports_face_attributes_p (f, attrs, def_face)
       face = FACE_FROM_ID (f, face_id);
 
       if (! face)
-	signal_error ("cannot make face", 0);
+	error ("cannot make face");
 
       /* If the font is the same, then not supported.  */
       if (face->font == def_face->font)
@@ -6021,7 +6021,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
      Lisp_Object *attrs;
      struct face *def_face;
 {
-  int weight, i;
+  int weight;
   Lisp_Object val, fg, bg;
   XColor fg_tty_color, fg_std_color;
   XColor bg_tty_color, bg_std_color;
@@ -6243,7 +6243,7 @@ face for italic. */)
   if (def_face == NULL)
     {
       if (! realize_basic_faces (f))
-	signal_error ("Cannot realize default face", 0);
+	error ("Cannot realize default face");
       def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
     }
 

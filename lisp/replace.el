@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997, 2000, 2001, 2002,
-;;   2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996, 1997, 2000, 2001, 2002,
+;;   2003, 2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -36,11 +36,9 @@
 
 (defvar query-replace-history nil)
 
-(defcustom query-replace-interactive nil
+(defvar query-replace-interactive nil
   "Non-nil means `query-replace' uses the last search string.
-That becomes the \"string to replace\"."
-  :type 'boolean
-  :group 'matching)
+That becomes the \"string to replace\".")
 
 (defcustom query-replace-from-history-variable 'query-replace-history
   "History list to use for the FROM argument of `query-replace' commands.
@@ -66,35 +64,56 @@ strings or patterns."
   :group 'matching
   :version "21.4")
 
-(defun query-replace-read-args (string regexp-flag &optional noerror)
-  (unless noerror
-    (barf-if-buffer-read-only))
-  (let (from to)
-    (if query-replace-interactive
-	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
-      ;; The save-excursion here is in case the user marks and copies
-      ;; a region in order to specify the minibuffer input.
-      ;; That should not clobber the region for the query-replace itself.
-      (save-excursion
-	(setq from (read-from-minibuffer (format "%s: " string)
-					 nil nil nil
-					 query-replace-from-history-variable
-					 nil t)))
-      ;; Warn if user types \n or \t, but don't reject the input.
-      (and regexp-flag
-	   (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
-	   (let ((match (match-string 3 from)))
-	     (cond
-	      ((string= match "\\n")
-	       (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
-	      ((string= match "\\t")
-	       (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
-	     (sit-for 2))))
+(defun query-replace-descr (string)
+  (mapconcat 'isearch-text-char-description string ""))
 
-    (save-excursion
-      (setq to (read-from-minibuffer (format "%s %s with: " string from)
-				     nil nil nil
-				     query-replace-to-history-variable from t)))
+(defun query-replace-read-from (string regexp-flag)
+  "Query and return the `from' argument of a query-replace operation.
+The return value can also be a pair (FROM . TO) indicating that the user
+wants to replace FROM with TO."
+  (if query-replace-interactive
+      (car (if regexp-flag regexp-search-ring search-ring))
+    (let* ((lastfrom (car (symbol-value query-replace-from-history-variable)))
+	   (lastto (car (symbol-value query-replace-to-history-variable)))
+	   (from
+	    ;; The save-excursion here is in case the user marks and copies
+	    ;; a region in order to specify the minibuffer input.
+	    ;; That should not clobber the region for the query-replace itself.
+	    (save-excursion
+	      (when (equal lastfrom lastto)
+		;; Typically, this is because the two histlists are shared.
+		(setq lastfrom (cadr (symbol-value
+				      query-replace-from-history-variable))))
+	      (read-from-minibuffer
+	       (if (and lastto lastfrom)
+		   (format "%s (default %s -> %s): " string
+			   (query-replace-descr lastfrom)
+			   (query-replace-descr lastto))
+		 (format "%s: " string))
+	       nil nil nil
+	       query-replace-from-history-variable
+	       nil t))))
+      (if (and (zerop (length from)) lastto lastfrom)
+	  (cons lastfrom lastto)
+	;; Warn if user types \n or \t, but don't reject the input.
+	(and regexp-flag
+	     (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
+	     (let ((match (match-string 3 from)))
+	       (cond
+		((string= match "\\n")
+		 (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
+		((string= match "\\t")
+		 (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
+	       (sit-for 2)))
+	from))))
+
+(defun query-replace-read-to (from string regexp-flag)
+  "Query and return the `from' argument of a query-replace operation."
+  (let ((to (save-excursion
+	      (read-from-minibuffer
+	       (format "%s %s with: " string (query-replace-descr from))
+	       nil nil nil
+	       query-replace-to-history-variable from t))))
     (when (and regexp-flag
 	       (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to))
       (let (pos list char)
@@ -109,14 +128,19 @@ strings or patterns."
 		    ((eq char ?\,)
 		     (setq pos (read-from-string to))
 		     (push `(replace-quote ,(car pos)) list)
-		     (setq to (substring
-			       to (+ (cdr pos)
-				     ;; Swallow a space after a symbol
-				     ;; if there is a space.
-				     (if (string-match
-                                          "^[^])\"] "
-                                          (substring to (1- (cdr pos))))
-					 1 0))))))
+		     (let ((end
+			    ;; Swallow a space after a symbol
+			    ;; if there is a space.
+			    (if (and (or (symbolp (car pos))
+					 ;; Swallow a space after 'foo
+					 ;; but not after (quote foo).
+					 (and (eq (car-safe (car pos)) 'quote)
+					      (not (= ?\( (aref to 0)))))
+				     (eq (string-match " " to (cdr pos))
+					 (cdr pos)))
+				(1+ (cdr pos))
+			      (cdr pos))))
+		       (setq to (substring to end)))))
 	      (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to)))
 	(setq to (nreverse (delete "" (cons to list)))))
       (replace-match-string-symbols to)
@@ -124,6 +148,14 @@ strings or patterns."
 		     (if (> (length to) 1)
 			 (cons 'concat to)
 		       (car to)))))
+    to))
+
+(defun query-replace-read-args (string regexp-flag &optional noerror)
+  (unless noerror
+    (barf-if-buffer-read-only))
+  (let* ((from (query-replace-read-from string regexp-flag))
+	 (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
+	       (query-replace-read-to from string regexp-flag))))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional delimited start end)
@@ -199,7 +231,7 @@ In interactive calls, the replacement text can contain `\\,'
 followed by a Lisp expression.  Each
 replacement evaluates that expression to compute the replacement
 string.  Inside of that expression, `\\&' is a string denoting the
-whole match as a sting, `\\N' for a partial match, `\\#&' and `\\#N'
+whole match as a string, `\\N' for a partial match, `\\#&' and `\\#N'
 for the whole or a partial match converted to a number with
 `string-to-number', and `\\#' itself for the number of replacements
 done so far (starting with zero).
@@ -255,16 +287,17 @@ Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to)
-     (if query-replace-interactive
-         (setq from (car regexp-search-ring))
-       (setq from (read-from-minibuffer "Query replace regexp: "
-                                        nil nil nil
-                                        query-replace-from-history-variable
-                                        nil t)))
-     (setq to (list (read-from-minibuffer
-                     (format "Query replace regexp %s with eval: " from)
-                     nil nil t query-replace-to-history-variable from t)))
+   (barf-if-buffer-read-only)
+   (let* ((from
+	   ;; Let-bind the history var to disable the "foo -> bar" default.
+	   ;; Maybe we shouldn't disable this default, but for now I'll
+	   ;; leave it off.  --Stef
+	   (let ((query-replace-to-history-variable nil))
+	     (query-replace-read-from "Query replace regexp" t)))
+	  (to (list (read-from-minibuffer
+		     (format "Query replace regexp %s with eval: "
+			     (query-replace-descr from))
+		     nil nil t query-replace-to-history-variable from t))))
      ;; We make TO a list because replace-match-string-symbols requires one,
      ;; and the user might enter a single token.
      (replace-match-string-symbols to)
@@ -297,17 +330,16 @@ A prefix argument N says to use each replacement string N times
 before rotating to the next.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to)
-     (setq from (if query-replace-interactive
+   (let* ((from (if query-replace-interactive
 		    (car regexp-search-ring)
 		  (read-from-minibuffer "Map query replace (regexp): "
 					nil nil nil
 					'query-replace-history nil t)))
-     (setq to (read-from-minibuffer
+	  (to (read-from-minibuffer
 	       (format "Query replace %s with (space-separated strings): "
-		       from)
+		       (query-replace-descr from))
 	       nil nil nil
-	       'query-replace-history from t))
+	       'query-replace-history from t)))
      (list from to
 	   (and current-prefix-arg
 		(prefix-numeric-value current-prefix-arg))
@@ -748,7 +780,7 @@ If the value is nil, don't highlight the buffer names specially."
 		(read-from-minibuffer
 		 (if default
 		     (format "List lines matching regexp (default `%s'): "
-			     default)
+			     (query-replace-descr default))
 		   "List lines matching regexp: ")
 		 nil
 		 nil
@@ -911,7 +943,6 @@ See also `multi-occur'."
 	  (let ((matches 0)	;; count of matched lines
 		(lines 1)	;; line count
 		(matchbeg 0)
-		(matchend 0)
 		(origpt nil)
 		(begpt nil)
 		(endpt nil)
@@ -931,8 +962,7 @@ See also `multi-occur'."
 		  (setq origpt (point))
 		  (when (setq endpt (re-search-forward regexp nil t))
 		    (setq matches (1+ matches)) ;; increment match count
-		    (setq matchbeg (match-beginning 0)
-			  matchend (match-end 0))
+		    (setq matchbeg (match-beginning 0))
 		    (setq begpt (save-excursion
 				  (goto-char matchbeg)
 				  (line-beginning-position)))
@@ -1528,5 +1558,5 @@ make, or the user didn't cancel the call."
 		      (if (facep 'query-replace)
 			  'query-replace 'region)))))
 
-;;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
+;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
 ;;; replace.el ends here

@@ -1,3 +1,32 @@
+2004-07-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* os.texi: Update copyright.
+	(Session Management): Grammar fix.
+	Clarify which Emacs does the restarting.
+	Use @samp for *scratch* buffer.
+
+2004-07-04  Alan Mackenzie  <acm@muc.de>
+
+	* frames.texi (Input Focus): Add documentation for
+	`select-frame-set-input-focus'.  Replace refs to non-existent
+	`switch-frame' with `select-frame'.  Minor corrections and tidying
+	up of text-only terminal stuff.
+
+2004-07-02  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Saving Buffers): Cleanup write-contents-function.
+	(Magic File Names): Cleanup file-remote-p.
+
+2004-07-02  Kai Grossjohann  <kai@emptydomain.de>
+
+	* files.texi (Magic File Names): `file-remote-p' returns an
+	identifier of the remote system, not just t.
+
+2004-07-02  David Kastrup  <dak@gnu.org>
+
+	* searching.texi (Entire Match Data): Add explanation about new
+	match-data behavior when @var{integers} is non-nil.
+
 2004-06-24  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Misc Events): Describe usr1-signal, usr2-signal event.

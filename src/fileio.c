@@ -206,6 +206,9 @@ Lisp_Object Vread_file_name_function;
 /* Current predicate used by read_file_name_internal.  */
 Lisp_Object Vread_file_name_predicate;
 
+/* Nonzero means completion ignores case when reading file name.  */
+int read_file_name_completion_ignore_case;
+
 /* Nonzero means, when reading a filename in the minibuffer,
  start out by inserting the default directory into the minibuffer. */
 int insert_default_directory;
@@ -6197,10 +6200,8 @@ provides a file dialog box.  */)
     }
 
   count = SPECPDL_INDEX ();
-#if defined VMS || defined DOS_NT || defined MAC_OSX
-  specbind (intern ("completion-ignore-case"), Qt);
-#endif
-
+  specbind (intern ("completion-ignore-case"),
+	    read_file_name_completion_ignore_case ? Qt : Qnil);
   specbind (intern ("minibuffer-completing-file-name"), Qt);
   specbind (intern ("read-file-name-predicate"),
 	    (NILP (predicate) ? Qfile_exists_p : predicate));
@@ -6435,6 +6436,14 @@ same format as a regular save would use.  */);
   DEFVAR_LISP ("read-file-name-predicate", &Vread_file_name_predicate,
 	       doc: /* Current predicate used by `read-file-name-internal'.  */);
   Vread_file_name_predicate = Qnil;
+
+  DEFVAR_BOOL ("read-file-name-completion-ignore-case", &read_file_name_completion_ignore_case,
+	       doc: /* *Non-nil means when reading a file name completion ignores case.  */);
+#if defined VMS || defined DOS_NT || defined MAC_OS
+  read_file_name_completion_ignore_case = 1;
+#else
+  read_file_name_completion_ignore_case = 0;
+#endif
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
 	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.

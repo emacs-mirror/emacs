@@ -1202,48 +1202,52 @@ static char *magick[] = {
   (interactive)
   (save-excursion
     (beginning-of-line 1)
-    (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
-	(error "Not recognized as break/watchpoint line")
-      (gdb-enqueue-input
-       (list
-	(concat
-	 (if (eq ?y (char-after (match-beginning 2)))
-	     (concat gdb-server-prefix "disable ")
-	   (concat gdb-server-prefix "enable "))
-	 (match-string 1) "\n")
-	'ignore)))))
+    (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	    (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)")
+	  (looking-at
+      "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
+	(gdb-enqueue-input
+	 (list
+	  (concat gdb-server-prefix
+		  (if (eq ?y (char-after (match-beginning 2)))
+		      "disable "
+		    "enable ")
+		  (match-string 1) "\n") 'ignore))
+      (error "Not recognized as break/watchpoint line"))))
 
 (defun gdb-delete-breakpoint ()
   "Delete the breakpoint at current line."
   (interactive)
   (beginning-of-line 1)
-  (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
-      (error "Not recognized as break/watchpoint line")
-    (gdb-enqueue-input
-     (list (concat gdb-server-prefix "delete " (match-string 1) "\n") 'ignore))))
+  (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	  (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)")
+	(looking-at
+	 "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
+      (gdb-enqueue-input
+       (list
+	(concat gdb-server-prefix "delete " (match-string 1) "\n") 'ignore))
+    (error "Not recognized as break/watchpoint line")))
 
 (defun gdb-goto-breakpoint ()
   "Display the breakpoint location specified at current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
-    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	(progn
-	  (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
-	  (looking-at "\\(\\S-*\\):\\([0-9]+\\)"))
-    (looking-at
-     "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)")))
-  (if (match-string 2)
-      (let ((line (match-string 2))
-	    (file (match-string 1)))
-	(save-selected-window
-	  (let* ((buf (find-file-noselect (if (file-exists-p file)
-					      file
-					    (expand-file-name file gdb-cdir))))
-		 (window (gdb-display-buffer buf)))
-		 (with-current-buffer buf
-		   (goto-line (string-to-number line))
-		   (set-window-point window (point))))))))
+    (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	    (looking-at ".*in\\s-+\\S-+\\s-+at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
+	  (looking-at
+     "[0-9]+\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)"))
+	(let ((line (match-string 2))
+	      (file (match-string 1)))
+	  (save-selected-window
+	    (let* ((buf (find-file-noselect (if (file-exists-p file)
+						file
+					      (expand-file-name file gdb-cdir))))
+		   (window (gdb-display-buffer buf)))
+	      (with-current-buffer buf
+		(goto-line (string-to-number line))
+		(set-window-point window (point))))))
+      (error "Not recognized as break/watchpoint line"))))
 
 (defun gdb-mouse-goto-breakpoint (event)
   "Display the breakpoint location that you click on."

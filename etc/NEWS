@@ -1000,10 +1000,11 @@ a match if part of it has a read-only property.
 `replace-regexp' allow \,expr to be used in a replacement string,
 where expr is an arbitrary Lisp expression evaluated at replacement
 time.  In many cases, this will be more convenient than using
-`query-replace-regexp-eval'.  All regular expression replacement
-commands now allow `\?' in the replacement string to specify a
-position where the replacement string can be edited for each
-replacement.
+`query-replace-regexp-eval'.  `\#' in a replacement string now refers
+to the count of replacements already made by the replacement command.
+All regular expression replacement commands now allow `\?' in the
+replacement string to specify a position where the replacement string
+can be edited for each replacement.
 
 +++
 ** Emacs normally highlights mouse sensitive text whenever the mouse
@@ -1160,6 +1161,16 @@ to new-kill-line, these commands now report:
 making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
 bind C-w to `isearch-yank-word' in `isearch-mode-map'.
+
++++
+** C-M-w deletes and C-M-y grabs a character in isearch mode.
+Another method to grab a character is to enter the minibuffer by `M-e'
+and to type `C-f' at the end of the search string in the minibuffer.
+
++++
+** M-% and C-M-% typed in isearch mode invoke `query-replace' and
+`query-replace-regexp' with the current search string inserted
+in the minibuffer as initial input for the string to replace.
 
 +++
 ** Yanking text now discards certain text properties that can
@@ -1910,6 +1921,8 @@ subprocesses inherit.
 
 ** Grep has been decoupled from compilation mode setup.
 
+*** There's a new separate package grep.el.
+
 *** Grep commands now have their own submenu and customization group.
 
 *** The new variables `grep-window-height', `grep-auto-highlight', and
@@ -2002,6 +2015,12 @@ to view diffs or log entries directly from vc-annotate-mode:
 ** In pcl-cvs mode, there is a new `d y' command to view the diffs
 between the local version of the file and yesterday's head revision
 in the repository.
+
++++
+** In pcl-cvs mode, there is a new `d r' command to view the changes
+anyone has committed to the repository since you last executed
+"checkout", "update" or "commit".  That means using cvs diff options
+-rBASE -rHEAD.
 
 
 * New modes and packages in Emacs 21.4
@@ -2279,6 +2298,10 @@ arg is non-nil.
 ** The new primitive `set-file-times' sets a file's access and
 modification times.  Magic file name handlers can handle this
 operation.
+
+** file-remote-p now returns an identifier for the remote system,
+if the file is indeed remote.  (Before, the return value was t in
+this case.)
 
 ** The display space :width and :align-to text properties are now
 supported on text terminals.

@@ -1,3 +1,105 @@
+2004-07-05  Stefan  <monnier@iro.umontreal.ca>
+
+	* replace.el (query-replace-descr): New fun.
+	(query-replace-read-from, query-replace-read-args): Default to the
+	previous from&to.
+	(query-replace-read-to): Quote the `from' string when displaying it.
+	(query-replace-regexp-eval): Immediately check read-only status.
+	Use query-replace-read-from to get the \n checking.
+	Quote the `from' string when displaying it.
+	(map-query-replace-regexp, occur-read-primary-args):
+	Quote the `from' string when displaying it.
+
+	* isearch.el (isearch-query-replace): Pass the regexp-ness and
+	delimited-ness of the search to query-replace.
+
+	* replace.el (query-replace-read-from, query-replace-read-to):
+	New funs extracted from query-replace-read-args.
+	(query-replace-read-args): Use them.
+
+	* replace.el (query-replace-interactive, query-replace-read-args):
+	Remove the `initial' special value.
+	(query-replace-regexp-eval, map-query-replace-regexp): Simplify.
+	(occur-engine): Remove unused var `matchend'.
+
+	* isearch.el (isearch-query-replace, isearch-query-replace-regexp):
+	Use the search string without prompting.
+
+2004-07-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (decode-coding-inserted-region):
+	Set last-coding-system-used only when coding is nil.
+
+2004-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults, grep-command)
+	(grep-program, find-program, grep-find-use-xargs, grep-history)
+	(grep-find-history, grep-tag-default, grep-find-command)
+	(grep-regexp-alist, grep-process-setup, grep-compute-defaults):
+	Add autoload cookies, for unbundled packages that load `compile'
+	and expect all grep-related symbols to become defined.
+
+2004-07-03  KOSEKI Yoshinori  <kose@meadowy.org>
+
+	* iimage.el (turn-on-iimage-mode, iimage-mode): Add autoload cookies.
+	(iimage-mode-image-search-path): New user option to search the
+	image file.
+	(iimage-locate-file): New funcion.  Emacs21.3 or earlier does not
+	have locate-file.
+	(iimage-mode-buffer): Use it.
+
+2004-07-03  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint): String match more
+	carefully.
+	(gdb-delete-breakpoint, gdb-toggle-breakpoint): Handle gdbmi.
+
+2004-07-03  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-args): Swallow space after 'foo,
+	not after (quote foo).  Match space only immediately after symbol,
+	not anywhere in the whole string.
+
+2004-07-02  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (query-replace-read-args): Swallow space after
+	symbols, not after closeparens.  But avoid error if string ends there.
+
+	* progmodes/python.el (python-beginning-of-statement):
+	Exit the loop if backward-up-list gets error.
+
+	* textmodes/enriched.el (enriched-encode): Bind inhibit-read-only.
+
+2004-07-02  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-checkout-model): Look at the version headers
+	only if vc-consult-headers is non-nil.
+
+2004-07-02  Juri Linkov  <juri@jurta.org>
+
+	* pcvs.el (cvs-mode-diff-repository): New command.
+
+	* pcvs-defs.el (cvs-mode-diff-map): Bind r to cvs-mode-diff-repository.
+
+2004-07-01  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind C-M-w to isearch-del-char,
+	C-M-y to isearch-yank-char.  Bind M-% to isearch-query-replace,
+	C-M-% to isearch-query-replace-regexp.
+	(minibuffer-local-isearch-map): Add arrow key bindings.
+	Bind C-f to isearch-yank-char-in-minibuffer.
+	(isearch-forward): Doc fix.
+	(isearch-edit-string): Doc fix.
+	(isearch-query-replace, isearch-query-replace-regexp): New funs.
+	(isearch-del-char): Add optional arg.  Set isearch-yank-flag to t.
+	(isearch-yank-char): Add optional arg.
+	(isearch-yank-char-in-minibuffer): New fun.
+
+	* replace.el (query-replace-interactive): Change type from boolean
+	to choice.  Add value `initial'.
+	(query-replace-read-args): Handle value `initial' of
+	query-replace-interactive.
+
 2004-06-29  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/gdb-ui.el (breakpoint-enabled-bitmap-face)
@@ -14,6 +116,11 @@
 	everything except )]" which in most cases means after a symbol.
 
 	* emacs-lisp/pp.el (pp-buffer): Add autoload.
+
+2004-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-fontify-syntactic-keywords-region):
+	More changes to go with previous change in font-lock.el.
 
 2004-06-26  David Kastrup  <dak@gnu.org>
 
@@ -72,12 +179,11 @@
 	(replace-regexp): Explain `\,', `\#' and `\?'.
 	(replace-match-data): New function for thorough reuse/destruction
 	of old match-data.
-	(replace-match-maybe-edit): Function for implementing `\?'
-	editing.
+	(replace-match-maybe-edit): Function for implementing `\?' editing.
 	(perform-replace): Fix maintaining of the match stack including
 	already matched regions, implement `\?', fix various problems
 	with regions while editing and other stuff.
-	(replace-highlight): Simplified.
+	(replace-highlight): Simplify.
 
 2004-06-24  Daniel Pfeiffer  <occitan@esperanto.org>
 
@@ -104,8 +210,7 @@
 
 2004-06-21  Juanma Barranquero  <lektu@terra.es>
 
-	* image.el (image-library-alist): Rewrite docstring in active
-	voice.
+	* image.el (image-library-alist): Rewrite docstring in active voice.
 
 2004-06-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -132,8 +237,8 @@
 
 2004-06-18  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Update
-	docstring.
+	* autorevert.el (global-auto-revert-non-file-buffers):
+	Update docstring.
 
 2004-06-19  Daniel Pfeiffer  <occitan@esperanto.org>
 
@@ -154,7 +259,7 @@
 	escaped character is n or t.
 	(query-replace-regexp): Add \, and \# interpretation to
 	interactive call and document it.
-	(query-replace-regexp-eval, replace-match-string-symbols): add \#
+	(query-replace-regexp-eval, replace-match-string-symbols): Add \#
 	as shortkey for replace-count.
 	(replace-quote): New function for doubling backslashes.
 
@@ -184,8 +289,8 @@
 	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
 	Add hyperlink to emacs-xtra manual to docstring.
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Add
-	hyperlink to emacs-xtra manual to docstring, as well as an
+	* autorevert.el (global-auto-revert-non-file-buffers):
+	Add hyperlink to emacs-xtra manual to docstring, as well as an
 	info-link.
 
 2004-06-14  Juanma Barranquero  <lektu@terra.es>
@@ -204,8 +309,7 @@
 	* international/code-pages.el (windows-1256, cp1125): Fix tables
 	for several characters.
 
-	* international/utf-8.el (ccl-encode-mule-utf-8): Fix previous
-	change.
+	* international/utf-8.el (ccl-encode-mule-utf-8): Fix previous change.
 
 2004-06-13  Richard M. Stallman  <rms@gnu.org>
 
@@ -251,14 +355,13 @@
 
 2004-06-13  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Fix previous
-	change.
+	* international/utf-8.el (ccl-decode-mule-utf-8): Fix previous change.
 	(ccl-untranslated-to-ucs): Fix typo.
 
 2004-06-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
 
-	* progmodes/python.el (python-open-block-statement-p): Fix
-	indentation after a block opening that contains a comment.
+	* progmodes/python.el (python-open-block-statement-p):
+	Fix indentation after a block opening that contains a comment.
 
 2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>  (tiny change)
 
@@ -274,11 +377,10 @@
 
 2004-06-12  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-language-environment): Load
-	subst tables if necessary.
+	* international/mule-cmds.el (set-language-environment):
+	Load subst tables if necessary.
 
-	* international/mule.el (decode-char): Load subst tables if
-	necessary.
+	* international/mule.el (decode-char): Load subst tables if necessary.
 	(encode-char): Likewise.
 
 	* international/utf-16.el (utf-16-decode-ucs): Handle a surrogate
@@ -294,18 +396,17 @@
 	(utf-16-decode-to-ucs): Handle pre-read character.
 	(utf-16le-encode-loop): Handle surrogate pair.
 	(utf-16be-encode-loop): Likewise.
-	(ccl-encode-mule-utf-16le-with-signature): Adjusted for the change
+	(ccl-encode-mule-utf-16le-with-signature): Adjust for the change
 	of utf-16le-encode-loop.
-	(ccl-encode-mule-utf-16be-with-signature): Adjusted for the change
+	(ccl-encode-mule-utf-16be-with-signature): Adjust for the change
 	of utf-16be-encode-loop.
-	(mule-utf-16-post-read-conversion): Call
-	utf-8-post-read-conversion at first.
-	(mule-utf-16[{le|be}], mule-utf-16{le|be}-with-signature): Include
-	CJK charsets in safe-charsets if utf-translate-cjk-mode is on.
+	(mule-utf-16-post-read-conversion):
+	Call utf-8-post-read-conversion at first.
+	(mule-utf-16[{le|be}], mule-utf-16{le|be}-with-signature):
+	Include CJK charsets in safe-charsets if utf-translate-cjk-mode is on.
 	Add post-read-conversion and pre-write-conversion.
 
-	* international/utf-8.el (utf-translate-cjk-charsets): New
-	variable.
+	* international/utf-8.el (utf-translate-cjk-charsets): New variable.
 	(utf-translate-cjk-unicode-range): New variable.
 	(utf-translate-cjk-load-tables): New function.
 	(utf-lookup-subst-table-for-decode): New function.
@@ -320,10 +421,10 @@
 	(ccl-untranslated-to-ucs): Handle 2-byte encoding.  Set r1 to the
 	length of encoding.  Don't return r0.
 	(utf-8-compose): New arg hash-table.  Handle 2-byte encoding.
-	(utf-8-post-read-conversion): Narrow to region properly.  If
-	utf-translate-cjk-mode is on, load tables if necessary.  Call
-	utf-8-compose with hash-table arg if necessary.  Call
-	XXX-compose-region instead of XXX-post-read-convesion.
+	(utf-8-post-read-conversion): Narrow to region properly.
+	If utf-translate-cjk-mode is on, load tables if necessary.
+	Call utf-8-compose with hash-table arg if necessary.
+	Call XXX-compose-region instead of XXX-post-read-convesion.
 	(utf-8-pre-write-conversion): New function.
 	(mule-utf-8): Include CJK charsets in safe-charsets if
 	utf-translate-cjk-mode is on.  Add pre-write-conversion.
@@ -331,8 +432,8 @@
 	* international/characters.el: Temporarily set
 	utf-translate-cjk-mode to nil.
 
-	* language/devan-util.el (devanagari-compose-region): Add
-	autoload cookie.
+	* language/devan-util.el (devanagari-compose-region):
+	Add autoload cookie.
 
 	* international/ccl.el (ccl-dump-call): Fix printing the
 	subroutine name.
@@ -342,13 +443,12 @@
 	* dired.el (dired-revert): If buffer is marked unmodified before
 	reverting, keep it marked unmodified.
 	Adapt to new conventions for commenting out code.
-	(dired-make-relative): Adapt to new conventions for commenting out
-	code.
+	(dired-make-relative): Adapt to new conventions for commenting out code.
 
 2004-06-10  Miles Bader  <miles@gnu.ai.mit.edu>
 
-	* eshell/esh-module.el (eshell-load-defgroups): Bind
-	`vc-handled-backends' to nil when opening files.
+	* eshell/esh-module.el (eshell-load-defgroups):
+	Bind `vc-handled-backends' to nil when opening files.
 
 2004-06-11  Juanma Barranquero  <lektu@terra.es>
 
@@ -431,15 +531,15 @@
 	or incorrect, autoloads.
 
 	* dired-aux.el (dired-kill-tree): Do not kill DIRNAME, even if it
-	does not end in a slash.  Add optional argument KILL-ROOT.  Update
-	docstring.
+	does not end in a slash.  Add optional argument KILL-ROOT.
+	Update docstring.
 	(dired-do-touch, dired-clean-directory, dired-run-shell-command)
 	(dired-query): Add autoloads.
 
 2004-06-08  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* progmodes/compile.el (compilation-set-window-height): Rearrange
-	the save-* functions because a buffer can have several current
+	* progmodes/compile.el (compilation-set-window-height):
+	Rearrange the save-* functions because a buffer can have several current
 	point in different windows.
 	(compilation-error-regexp-alist-alist): Recognize {standard input}
 	GNU messages (for gcc --pipe) and more kinds of Oracle messages.
@@ -479,8 +579,7 @@
 
 	* format.el (format-insert-annotations)
 	(format-annotate-location): Doc fixes.
-	(format-subtract-regions): Make arguments match their use in
-	docstring.
+	(format-subtract-regions): Make arguments match their use in docstring.
 
 	* simple.el (kill-region): Doc fix.
 
@@ -566,8 +665,7 @@
 	Handle `dired-subdir-switches'.
 	(dired-hide-subdir, dired-hide-all): Do not mark buffer modified.
 
-	* dired.el (dired-subdir-switches, dired-switches-alist):
-	New vars.
+	* dired.el (dired-subdir-switches, dired-switches-alist): New vars.
 	(dired-insert-old-subdirs): Do not repeatedly delete and reinsert
 	subdirs if -R switch is used for a subdir.
 	(dired-mode): Set `dired-switches-alist'.
@@ -600,7 +698,7 @@
 
 2004-06-04  Mario Lang  <mlang@delysid.org>
 
-	* battery.el (battery-linux-proc-acpi): mA was hardcored, but some
+	* battery.el (battery-linux-proc-acpi): `mA' was hardcored, but some
 	systems appear to use mW, make the code handle this.  Fix a
 	division-by-zero bug while at it, and handle kernels with
 	a slightly different layout in /proc/acpi.
@@ -610,7 +708,7 @@
 	* vc-svn.el (vc-svn-checkin): Use 'nconc' instead of 'list*',
 	because the latter is a CL-ism.  This fixes the bug reported by
 	Shawn Boyette <mdxi@collapsar.net> in
-        http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
+	http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
@@ -647,8 +745,8 @@
 
 	* subr.el (read-number): Use canonical format for default in prompt.
 
-	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps): Add
-	regexp for " [...]" style defaults.
+	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps):
+	Add regexp for " [...]" style defaults.
 
 2004-06-02  Romain Francoise  <romain@orebokech.com>
 
@@ -671,13 +769,27 @@
 	empty docstring.
 
 	* international/mule.el (register-char-codings): Make alias for
-	`ignore'.  Move docstring to obsolescence info and remove
-	redundancy.
+	`ignore'.  Move docstring to obsolescence info and remove redundancy.
 
 2004-06-02  Kim F. Storm  <storm@cua.dk>
 
 	* frame.el (blink-cursor-start): Turn cursor off initially so blink
 	starts after blink-cursor-delay rather than 2*blink-cursor-delay.
+
+2004-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-replace-by-expanded-history-before-point):
+	Obey `start' as the docstring says.
+	(comint-send-input, comint-snapshot-last-prompt, comint-output-filter)
+	(comint-update-fence): Prevent font-lock from running unnecessarily.
+	(comint-dynamic-list-completions): Use with-current-buffer.
+
+2004-06-01  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-format-entry): Fix regexps.
+	(bibtex-parse-strings): Bugfix, use assoc instead of assoc-string.
+	(bibtex-entry-update): Handle alternatives and optional fields.
+	(bibtex-parse-entry): Bugfix, handle empty key.
 
 2004-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2763,26 +2875,6 @@
 
 2004-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* url/url-util.el (url-debug): Use with-current-buffer.
-
-	* url/url-nfs.el (url-nfs-file-attributes): Add id-format parameter.
-	(url-nfs-create-wrapper): Use new backquote syntax.
-
-	* url/url-https.el (url-https-file-attributes): Add id-format param.
-
-	* url/url-http.el (url-http-head-file-attributes)
-	(url-http-file-attributes): Add id-format parameter.
-
-	* url/url-handlers.el: Use new find-file-hook.
-	(url-file-attributes): Add id-format parameter.
-
-	* url/url-file.el (url-file-create-wrapper): Use new backquote syntax.
-	(url-file-file-attributes): Add id-format parameter.
-
-	* url/url-dav.el: Use with-current-buffer.
-	(url-dav-process-response): Fix regexps and spurious quote.
-	(url-dav-file-attributes): Add id-format param.
-
 	* diff-mode.el (diff-end-of-hunk): Be more careful with unified hunks.
 
 2004-04-16  Andre Spiegel  <spiegel@gnu.org>
@@ -2955,14 +3047,6 @@
 	* progmodes/compile.el (compile-goto-error): Select the buffer/window
 	corresponding to the event.
 
-	* url/url.el (url-retrieve): Use with-current-buffer.
-
-	* url/url-http.el (url-http-parse-headers, url-http-file-exists-p):
-	Remove unused var `version'.
-
-	* url/url-handlers.el (url-handler-mode): New minor mode.
-	(url-setup-file-name-handlers): Remove.
-
 2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
 
 	* loadup.el: Add cygwin to system-type list, for unexec() support.
@@ -2978,9 +3062,6 @@
 	(ibuffer): Save window configuration before showing Ibuffer buffer.
 
 	* help.el (describe-mode): Doc fix.
-
-	* url/url-cookie.el (url-cookie-handle-set-cookie): Replace calls
-	to obsolete `assoc-ignore-case' with calls to `assoc-string'.
 
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3000,42 +3081,6 @@
 	* info.el (Info-follow-reference): Allow multiline reference name.
 
 2004-04-11  Dave Love  <fx@gnu.org>
-
-	* url/url-mailto.el (url-mailto):
-	* url/url-history.el (url-history-setup-save-timer):
-	* url/url-cookie.el (url-cookie-setup-save-timer): Avoid warnings.
-
-	* url/url-file.el (url-file-build-filename): Don't use
-	directory-sep-char.
-
-	* url/url-auth.el (url-register-auth-scheme): Fix `format' call.
-
-	* url/url-about.el (url-scheme-registry): Defvar.
-	(url-about): Use text/plain.
-
-	* url/url-vars.el (cl): Don't require.
-	(url): Add :version.
-	(url-bug-address): Use bug-gnu-emacs.
-
-	* url/url-util.el (url-hexify-string): Don't give multibyte error
-	for char <16.
-	(mail-header-extract): Autoload.
-
-	* url/url-parse.el: Doc fixes.
-
-	* url/url-ldap.el (ldap): Require.
-	(url-ldap): Fix `format' call.
-	(url-ldap-certificate-formatter): Avoid warning.
-
-	* url/url-https.el (url-https-create-secure-wrapper): Use modern
-	backquotes.
-
-	* url/url-dav.el (url-dav-rename-file): Fix args of `signal'.
-	(url-intersection): New.
-	(url-dav-supported-p): Use it.
-	(url-dav-save-resource): Declare url-http-response-status special.
-
-	* url/url-cache.el (url-util): Require.
 
 	* emacs-lisp/bytecomp.el (byte-compile-cond): Fix last change.
 
@@ -3083,9 +3128,6 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-version): Variable removed.
 	(byte-compile-insert-header): Don't use `byte-compile-version'.
-	* url/url-vars.el (url-version): Use the constant string "Emacs"
-	instead of calculating something from the RCS `State' keyword
-	[the latter is almost entirely useless anyway].
 	* forms.el (forms-version): Variable removed.
 	(forms-mode): Don't use `forms-version'.
 	* recentf.el (recentf-version): Variable removed.
@@ -3335,10 +3377,7 @@
 
 2004-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* url: Import the URL package from its repository.
-
-	* url/url-methods.el:
-	* url/url-parse.el: Don't require url-auto.
+	* url/: New dir.  Import the URL package from its repository.
 
 2004-04-03  Andreas Schwab  <schwab@suse.de>
 

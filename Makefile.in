@@ -415,6 +415,7 @@ install-arch-indep: mkdir info
 		rm -rf $${subdir}/RCS ; \
 		rm -rf $${subdir}/CVS ; \
 		rm -f  $${subdir}/.cvsignore ; \
+		rm -f  $${subdir}/.arch-inventory ; \
 		rm -f  $${subdir}/\#* ; \
 		rm -f  $${subdir}/.\#* ; \
 		rm -f  $${subdir}/*~ ; \

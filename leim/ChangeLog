@@ -1,3 +1,13 @@
+2004-07-01  David Kastrup  <dak@gnu.org>
+
+	* quail/greek.el ("((") ("))"): add quotation mark shorthands.
+
+2004-06-30  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (${CHINESE-TIT:.elc=.el}): Depend on changed.tit to
+	serialize parallel builds.
+	(${MISC:.elc=.el}): Depend on changed.misc.
+
 2004-06-05  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (leim-list.el): Depend on leim-ext.el.  Append the

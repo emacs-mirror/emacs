@@ -2348,6 +2348,7 @@ extern void init_fringe P_ ((void));
 extern void init_fringe_once P_ ((void));
 
 /* Defined in image.c */
+EXFUN (Finit_image_library, 2);
 extern void syms_of_image P_ ((void));
 extern void init_image P_ ((void));
 
