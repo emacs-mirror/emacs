@@ -3074,6 +3074,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 (make-obsolete-variable 'meta-flag "Use the set-input-mode function instead.")
 
 (provide 'byte-compile)
+(provide 'bytecomp)
 
 
 ;;; report metering (see the hacks in bytecode.c)
