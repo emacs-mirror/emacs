@@ -136,8 +136,6 @@ static Lisp_Object xmenu_show P_ ((struct frame *, int, int, int, int,
 static void keymap_panes P_ ((Lisp_Object *, int, int));
 static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				     int, int));
-static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object *,
-				  int, int, int *));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
 
@@ -410,6 +408,17 @@ keymap_panes (keymaps, nmaps, notreal)
   finish_menu_items ();
 }
 
+/* Args passed between single_keymap_panes and single_menu_item.  */
+struct skp
+  {
+     Lisp_Object pending_maps;
+     int maxdepth, notreal;
+     int notbuttons;
+  };
+
+static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				  struct skp*));
+
 /* This is a recursive subroutine of keymap_panes.
    It handles one keymap, KEYMAP.
    The other arguments are passed along
@@ -427,10 +436,13 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      int notreal;
      int maxdepth;
 {
-  Lisp_Object pending_maps = Qnil;
-  Lisp_Object tail, item;
-  struct gcpro gcpro1, gcpro2;
-  int notbuttons = 0;
+  struct skp skp;
+  struct gcpro gcpro1;
+
+  skp.pending_maps = Qnil;
+  skp.maxdepth = maxdepth;
+  skp.notreal = notreal;
+  skp.notbuttons = 0;
 
   if (maxdepth <= 0)
     return;
@@ -442,68 +454,44 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      add a prefix when (if) we see the first button.  After that, notbuttons
      is set to 0, to mark that we have seen a button and all non button
      items need a prefix.  */
-  notbuttons = menu_items_used;
+  skp.notbuttons = menu_items_used;
 #endif
 
-  for (tail = keymap; CONSP (tail); tail = XCDR (tail))
-    {
-      GCPRO2 (keymap, pending_maps);
-      /* Look at each key binding, and if it is a menu item add it
-	 to this menu.  */
-      item = XCAR (tail);
-      if (CONSP (item))
-	single_menu_item (XCAR (item), XCDR (item),
-			  &pending_maps, notreal, maxdepth, &notbuttons);
-      else if (VECTORP (item))
-	{
-	  /* Loop over the char values represented in the vector.  */
-	  int len = XVECTOR (item)->size;
-	  int c;
-	  for (c = 0; c < len; c++)
-	    {
-	      Lisp_Object character;
-	      XSETFASTINT (character, c);
-	      single_menu_item (character, XVECTOR (item)->contents[c],
-				&pending_maps, notreal, maxdepth, &notbuttons);
-	    }
-	}
-      UNGCPRO;
-    }
+  GCPRO1 (skp.pending_maps);
+  map_keymap (keymap, single_menu_item, Qnil, &skp, 1);
+  UNGCPRO;
 
   /* Process now any submenus which want to be panes at this level.  */
-  while (!NILP (pending_maps))
+  while (CONSP (skp.pending_maps))
     {
       Lisp_Object elt, eltcdr, string;
-      elt = Fcar (pending_maps);
+      elt = XCAR (skp.pending_maps);
       eltcdr = XCDR (elt);
       string = XCAR (eltcdr);
       /* We no longer discard the @ from the beginning of the string here.
 	 Instead, we do this in xmenu_show.  */
       single_keymap_panes (Fcar (elt), string,
 			   XCDR (eltcdr), notreal, maxdepth - 1);
-      pending_maps = Fcdr (pending_maps);
+      skp.pending_maps = XCDR (skp.pending_maps);
     }
 }
 
 /* This is a subroutine of single_keymap_panes that handles one
    keymap entry.
    KEY is a key in a keymap and ITEM is its binding.
-   PENDING_MAPS_PTR points to a list of keymaps waiting to be made into
+   SKP->PENDING_MAPS_PTR is a list of keymaps waiting to be made into
    separate panes.
-   If NOTREAL is nonzero, only check for equivalent key bindings, don't
+   If SKP->NOTREAL is nonzero, only check for equivalent key bindings, don't
    evaluate expressions in menu items and don't make any menu.
-   If we encounter submenus deeper than MAXDEPTH levels, ignore them.
-   NOTBUTTONS_PTR is only used when simulating toggle boxes and radio
-   buttons.  It points to variable notbuttons in single_keymap_panes,
-   which keeps track of if we have seen a button in this menu or not.  */
+   If we encounter submenus deeper than SKP->MAXDEPTH levels, ignore them.
+   SKP->NOTBUTTONS is only used when simulating toggle boxes and radio
+   buttons.  It keeps track of if we have seen a button in this menu or
+   not.  */
 
 static void
-single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
-		  notbuttons_ptr)
-     Lisp_Object key, item;
-     Lisp_Object *pending_maps_ptr;
-     int maxdepth, notreal;
-     int *notbuttons_ptr;
+single_menu_item (key, item, dummy, skp)
+     Lisp_Object key, item, dummy;
+     struct skp *skp;
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
@@ -511,19 +499,19 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
-  res = parse_menu_item (item, notreal, 0);
+  res = parse_menu_item (item, skp->notreal, 0);
   UNGCPRO;
   if (!res)
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-
-  if (notreal)
+  
+  if (skp->notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
 	 precompute equivalent key bindings.  */
       if (!NILP (map))
-	single_keymap_panes (map, Qnil, key, 1, maxdepth - 1);
+	single_keymap_panes (map, Qnil, key, 1, skp->maxdepth - 1);
       return;
     }
 
@@ -534,8 +522,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
-	*pending_maps_ptr = Fcons (Fcons (map, Fcons (item_string, key)),
-				   *pending_maps_ptr);
+	skp->pending_maps = Fcons (Fcons (map, Fcons (item_string, key)),
+				   skp->pending_maps);
       return;
     }
 
@@ -550,10 +538,10 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 	Lisp_Object selected
 	  = XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
 
-	if (*notbuttons_ptr)
+	if (skp->notbuttons)
 	  /* The first button. Line up previous items in this menu.  */
 	  {
-	    int index = *notbuttons_ptr; /* Index for first item this menu.  */
+	    int index = skp->notbuttons; /* Index for first item this menu.  */
 	    int submenu = 0;
 	    Lisp_Object tem;
 	    while (index < menu_items_used)
@@ -583,7 +571,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 		    index += MENU_ITEMS_ITEM_LENGTH;
 		  }
 	      }
-	    *notbuttons_ptr = 0;
+	    skp->notbuttons = 0;
 	  }
 
 	/* Calculate prefix, if any, for this item.  */
@@ -593,7 +581,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 	  prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
       }
     /* Not a button. If we have earlier buttons, then we need a prefix.  */
-    else if (!*notbuttons_ptr && SREF (item_string, 0) != '\0'
+    else if (!skp->notbuttons && SREF (item_string, 0) != '\0'
 	     && SREF (item_string, 0) != '-')
       prefix = build_string ("    ");
 
@@ -620,7 +608,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
   if (! (NILP (map) || NILP (enabled)))
     {
       push_submenu_start ();
-      single_keymap_panes (map, Qnil, key, 0, maxdepth - 1);
+      single_keymap_panes (map, Qnil, key, 0, skp->maxdepth - 1);
       push_submenu_end ();
     }
 #endif
