@@ -1,3 +1,9 @@
+2003-02-07  Kenichi Handa  <handa@m17n.org>
+
+	* quail/cyrillic.el: Update quail-package-alist (not
+	input-method-alist) to make "cyrillic-jcuken" an alias of
+	"russian-typewriter".  Add cookie for quail-update-leim-list-file.
+
 2003-02-05  David Kastrup  <dak@gnu.org>
 
 	* quail/greek.el: fix iota accent typos in greek-babel
