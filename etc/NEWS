@@ -1015,6 +1015,12 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
+** The option --script FILE runs Emacs in batch mode and loads FILE.
+It is useful for writing Emacs Lisp shell script files, because they
+can start with
+
+   #!/usr/bin/emacs --script
+
 ** A function's docstring can now hold the function's usage info on
 its last line.  It should match the regexp "\n\n(fn.*)\\'".
 
