@@ -1,3 +1,7 @@
+2000-01-10  Dave Love  <fx@gnu.org>
+
+	* elide-head.el (elide-head): Use point-marker, not point.
+
 2000-01-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc-hooks.el (vc-parse-buffer): Handle mixtures of dates
@@ -83,8 +87,8 @@
 
 2000-01-08  Dave Love  <fx@gnu.org>
 
-	* backquote.el: Remove inappropriate customization (allowing
-	custom.el to use backquote).
+	* emacs-lisp/backquote.el: Remove inappropriate customization
+	(allowing custom.el to use backquote).
 
 2000-01-07  Dave Love  <fx@gnu.org>
 
