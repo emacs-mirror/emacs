@@ -1,3 +1,18 @@
+2001-04-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs-defs.el (cvs-mode-map): Bind C-o like in dired.
+	(cvs-menu): Add a few entries.
+
+	* pcvs.el (cvs-addto-collection): Don't merge MESSAGE fileinfos.
+	(cvs-update-filter): Only advertise `cvs-mode-delete-lock' if the
+	lock file appears to be reachable from Emacs.
+	(cvs-mode-mark-on-state, cvs-mode-display-file): New functions.
+	(cvs-mode-find-file): Look for cvs-header-face rather than
+	cvs-dirname-face (which doesn't exist).
+	(cvs-mode-find-file): Allow `other' to be set to `dont-select'.
+
+	* pcvs-parse.el (cvs-parse-run-table): Remove misleading text.
+
 2001-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emulation/pc-select.el (pc-selection-mode): Don't turn on
@@ -11,23 +26,23 @@
 
 2001-04-11  John Wiegley  <johnw@gnu.org>
 
-	* eshell/em-ls.el (eshell-ls-insert-directory): Set
-	font-lock-defaults to nil, to prevent fontification in dired
+	* eshell/em-ls.el (eshell-ls-insert-directory):
+	Set font-lock-defaults to nil, to prevent fontification in dired
 	buffers, if Eshell's ls is being used.
 
 2001-04-11  John Wiegley  <johnw@gnu.org>
 
-	* calendar/timeclock.el (timeclock-completing-read): new function.
-	(timeclock-ask-for-project, timeclock-ask-for-reason): Call
-	`timeclock-completing-read'.
+	* calendar/timeclock.el (timeclock-completing-read): New function.
+	(timeclock-ask-for-project, timeclock-ask-for-reason):
+	Call `timeclock-completing-read'.
 
 	* eshell/em-alias.el (eshell-command-aliased-p): `assoc' was
 	required where `member' was being used.
 
 2001-04-11  Colin Walters  <walters@cis.ohio-state.edu>
 
-	* eshell/em-hist.el (eshell-previous-matching-input): Don't
-	display "History item" if the the minibuffer is active.
+	* eshell/em-hist.el (eshell-previous-matching-input):
+	Don't display "History item" if the the minibuffer is active.
 
 2001-04-11  Gerd Moellmann  <gerd@gnu.org>
 
@@ -36,26 +51,24 @@
 
 2001-04-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* textmodes/texinfo.el (texinfo-font-lock-keywords): Add
-	fontification for @value, @dfn, @dmn, @acronym, @anchor, and
+	* textmodes/texinfo.el (texinfo-font-lock-keywords):
+	Add fontification for @value, @dfn, @dmn, @acronym, @anchor, and
 	@inforef.  Add an OVERRIDE of `keep' to highlight specs of
 	keywords whose arguments routinely include @@.
 
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/advice.el (ad-make-advised-definition): Construct
-	advice for subrs differently.
+	* emacs-lisp/advice.el (ad-make-advised-definition):
+	Construct advice for subrs differently.
 
 	* textmodes/paragraphs.el (forward-sentence): Put the sentence-end
-	regexp in parentheses when building the regexp for searching
-	backwards.
+	regexp in parentheses when building the regexp for searching backwards.
 
 	* simple.el (completion-list-mode-finish): New function.
-	(toplevel): Add completion-list-mode-finish to
-	temp-buffer-show-hook.
+	(toplevel): Add completion-list-mode-finish to temp-buffer-show-hook.
 
 	* language/european.el ("Polish"): Change sample text.
-	From: jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
+	From jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
 
 	* progmodes/sh-script.el (sh-indent-line): Add optional PREFIX-ARG
 	parameter.
@@ -76,15 +89,15 @@
 	(ps-footer-pad, ps-footer-font-size-internal): New internal vars for
 	footers.
 	(ps-setup, ps-get-page-dimensions, ps-generate-header-line)
-	(ps-generate-header, ps-begin-file, ps-begin-job, ps-begin-page): Code
-	fix.
+	(ps-generate-header, ps-begin-file, ps-begin-job, ps-begin-page):
+	Code fix.
 	(ps-prologue-file): Indentation fix.
 	(ps-print-quote): Fun eliminated.
 	(ps-value, ps-get, ps-put, ps-del): New funs for alist handling.
 	(ps-output-frame-properties): New fun.
 	(ps-fonts, ps-font-number, ps-rgb-color, ps-end-page, ps-next-page)
 	(ps-skip-newline): Replace defun by defsubst.
-	
+
 2001-04-05  Colin Walters <walters@cis.ohio-state.edu>
 
 	* eshell/eshell.el (eshell-command): Needed a "%s" format
