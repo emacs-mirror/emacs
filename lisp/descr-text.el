@@ -217,7 +217,7 @@ otherwise."
 (defcustom describe-char-unicodedata-file nil
   "Location of Unicode data file.
 This is the UnicodeData.txt file from the Unicode consortium, used for
-diagnostics.  If it is non-nil `describe-char-after' will print data
+diagnostics.  If it is non-nil `describe-char' will print data
 looked up from it.  This facility is mostly of use to people doing
 multilingual development.
 
