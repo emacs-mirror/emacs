@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- buffer menu main function and support functions
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000, 2001, 2002
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000, 2001, 2002, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -529,7 +529,9 @@ For more information, see the function `buffer-menu'."
 				 (- Buffer-menu-buffer+size-width
 				    (max (length size) 3)
 				    2))
-		      ":"))))		; narrow ellipsis
+		      ":")))		; narrow ellipsis
+    ;; Don't put properties on (buffer-name).
+    (setq name (copy-sequence name)))
   (add-text-properties 0 (length name) name-props name)
   (add-text-properties 0 (length size) size-props size)
   (concat name
