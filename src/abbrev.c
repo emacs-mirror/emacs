@@ -331,7 +331,7 @@ Returns the abbrev symbol, if expansion took place.  */)
   if (INTEGERP (XSYMBOL (sym)->plist))
     XSETINT (XSYMBOL (sym)->plist,
 	     XINT (XSYMBOL (sym)->plist) + 1);
-  else if (!NILP (tem = Fget (sym, Qcount)))
+  else if (INTEGERP (tem = Fget (sym, Qcount)))
     Fput (sym, Qcount, make_number (XINT (tem) + 1));
 
   /* If this abbrev has an expansion, delete the abbrev
