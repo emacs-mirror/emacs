@@ -1,3 +1,30 @@
+2002-01-26  Evgeny Roubinchtein  <evgenyr@cs.washington.edu>
+
+	* pc-select.el (pc-selection-mode-hook)
+	(pc-select-saved-settings-alist, pc-select-map)
+	(pc-select-saved-global-map, pc-select-key-bindings-alist)
+	(pc-select-default-key-bindings, pc-select-extra-key-bindings)
+	(pc-select-meta-moves-sexps-key-bindings)
+	(pc-select-tty-key-bindings, pc-select-old-M-delete-binding):
+	New variables.
+	(pc-select-define-keys, pc-select-restore-keys): New functions.
+	(pc-select-add-to-alist, pc-select-save-and-set-var)
+	(pc-select-save-and-set-mode, pc-select-restore-var)
+	(pc-select-restore-mode): New macros.
+	(pc-selection-mode): Completely rewrote the body of the function;
+	the main goal was to make pc-selection-mode "turn-off"-able, like
+	other minor modes.  Use define-minore-mode instead of just a
+	defun.  Store the key bindings into four alists:
+	pc-select-default-key-bindings, pc-select-extra-key-bindings,
+	pc-select-meta-moves-sexps-key-bindings, and
+	pc-select-tty-key-bindings; then have the pc-select-define-keys
+	function walk those alists instead of calling define-key
+	repeatedly.  When the mode is turned on, set the
+	keybindings in global-map and remember the old keybindings; when
+	the mode is turned off, restore the previously-saved keybindings.
+	(pc-selection-mode defcustom): Reflect the fact that the mode is
+	now "turn-off"-able.
+
 2002-01-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/esh-cmd.el (eshell-eval-command): If eshell-resume-eval

@@ -396,6 +396,11 @@ SQL buffer.
 distinct colors supported by a character terminal.
 
 +++
+*** The meanings of scroll-up-aggressively and scroll-down-aggressively
+have been interchanged, so that the former now controls scrolling up,
+and the latter now controls scrolling down.
+
++++
 ** New function window-body-height.
 
 This is like window-height but does not count the mode line
