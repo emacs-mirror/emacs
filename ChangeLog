@@ -1,3 +1,9 @@
+2001-02-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* configure.in: Use AC_EGREP_CPP to check if the C preprocessor
+	converts `..' to `. .'.  If it converts, set CPP_NEED_TRADITIONAL
+	to `yes'.  Later in AC_OUTPUT, check this variable.
+
 2001-02-09  Dave Love  <fx@gnu.org>
 
 	* AUTHORS: Updated.

@@ -8866,6 +8866,27 @@ test "${prefix}" != NONE &&
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 
+## Check if the C preprocessor will convert `..' to `. .'.  If so, set
+## CPP_NEED_TRADITIONAL to `yes' so that the code to generate Makefile
+## from Makefile.c can correctly provide the arg `-traditional' to the
+## C preprocessor.
+
+cat > conftest.$ac_ext <<EOF
+#line 8876 "configure"
+#include "confdefs.h"
+yes..yes
+EOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  egrep "yes..yes" >/dev/null 2>&1; then
+  rm -rf conftest*
+  CPP_NEED_TRADITIONAL=no
+else
+  rm -rf conftest*
+  CPP_NEED_TRADITIONAL=yes
+fi
+rm -f conftest*
+
+
 trap '' 1 2 15
 cat > confcache <<\EOF
 # This file is a shell script that caches the results of configure
@@ -9253,7 +9274,7 @@ fi; done
 
 EOF
 cat >> $CONFIG_STATUS <<EOF
-GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"
+GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 
@@ -9284,7 +9305,7 @@ make epaths-force
 # As of 2000-11-19, newest development versions of GNU cpp preprocess
 # `..' to `. .'  unless invoked with -traditional
 
-if test "x$GCC" = xyes && test "x$NON_GNU_CPP" = x; then
+if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
   CPPFLAGS="$CPPFLAGS -traditional"
 fi
 
