@@ -104,7 +104,7 @@ main (argc, argv)
   long now;
   int tem;
   char *lockname, *p;
-  char tempname[40];
+  char *tempname;
   int desc;
 #endif /* not MAIL_USE_FLOCK */
 
@@ -182,6 +182,7 @@ main (argc, argv)
      to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
 
   lockname = concat (inname, ".lock", "");
+  tempname = (char *) xmalloc (strlen (inname) + 20);
   strcpy (tempname, inname);
   p = tempname + strlen (tempname);
   while (p != tempname && p[-1] != '/')
