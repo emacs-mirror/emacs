@@ -35,7 +35,7 @@
 
 ;;;###autoload
 (defvar lpr-command
-  (if (memq system-type '(usg-unix-v dgux-unix hpux silicon-graphics-unix))
+  (if (memq system-type '(usg-unix-v dgux-unix hpux irix))
       "lp" "lpr")
   "*Shell command for printing a file")
 
