@@ -1434,7 +1434,7 @@ the inserted text.  Value is always t."
                  'copy-region-as-kill 'downcase-region 'upcase-region
                  'capitalize-region 'write-region)))
     (while (car l)
-      (let ((k (where-is-internal (car l))))
+      (let ((k (where-is-internal (car l) '(keymap))))
         (while (car k)
           (define-key calendar-mode-map (car k) 'calendar-not-implemented)
           (setq k (cdr k)))
