@@ -112,7 +112,7 @@ An argument of zero means repeat until error.")
      Lisp_Object repeat;
 {
   if (NILP (current_kboard->defining_kbd_macro))
-    error ("Not defining kbd macro.");
+    error ("Not defining kbd macro");
 
   if (NILP (repeat))
     XSETFASTINT (repeat, 1);
@@ -261,7 +261,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 
   final = indirect_function (macro);
   if (!STRINGP (final) && !VECTORP (final))
-    error ("Keyboard macros must be strings or vectors.");
+    error ("Keyboard macros must be strings or vectors");
 
   XSETFASTINT (tem, executing_macro_index);
   tem = Fcons (Vexecuting_macro, tem);
