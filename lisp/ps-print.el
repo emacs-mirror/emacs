@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2002/09/06 20:11:00 vinicius>
-;; Version: 6.5.6
+;; Time-stamp: <2002/09/11 15:52:39 vinicius>
+;; Version: 6.5.7
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.6"
-  "ps-print.el, v 6.5.6 <2002/09/06 vinicius>
+(defconst ps-print-version "6.5.7"
+  "ps-print.el, v 6.5.7 <2002/09/11 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1514,7 +1514,32 @@ Please send all bug fixes and enhancements to
     (cond ((string-match "XEmacs" emacs-version) 'xemacs)
 	  ((string-match "Lucid" emacs-version) 'lucid)
 	  ((string-match "Epoch" emacs-version) 'epoch)
-	  (t 'emacs))))
+	  (t 'emacs)))
+
+  (or (memq ps-print-emacs-type '(lucid xemacs))
+      (require 'faces))			; face-font, face-underline-p,
+					; x-font-regexp
+
+  (defun ps-xemacs-color-name (color)
+    (if (ps-x-color-specifier-p color)
+	(ps-x-color-name color)
+      color))
+
+
+  (cond ((eq ps-print-emacs-type 'emacs) ; emacs
+	 (defvar mark-active nil)
+	 (defun ps-mark-active-p ()
+	   mark-active)
+	 (defalias 'ps-face-foreground-name 'face-foreground)
+	 (defalias 'ps-face-background-name 'face-background)
+	 )
+	(t				; xemacs, lucid, epoch
+	 (defalias 'ps-mark-active-p 'region-active-p)
+	 (defun ps-face-foreground-name (face)
+	   (ps-xemacs-color-name (face-foreground face)))
+	 (defun ps-face-background-name (face)
+	   (ps-xemacs-color-name (face-background face)))
+	 )))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2866,9 +2891,7 @@ uses the fonts resident in your printer."
 ;;                widget to work.
 ;;;###autoload
 (defcustom ps-print-color-p
-  (or (and (fboundp 'color-values)	; Emacs
-	   (ps-e-color-values "Green"))
-      (fboundp 'x-color-values)		; Emacs
+  (or (fboundp 'x-color-values)		; Emacs
       (fboundp 'color-instance-rgb-components))
 					; XEmacs
   "*Specify how buffer's text color is printed.
@@ -2890,7 +2913,8 @@ Any other value is treated as t."
 		 (const :tag "Print Black/White Color" black-white))
   :group 'ps-print-color)
 
-(defcustom ps-default-fg '(0.0 0.0 0.0)
+(defcustom ps-default-fg (or (ps-face-foreground-name 'default)
+			     '(0.0 0.0 0.0)) ; black
   "*RGB values of the default foreground color.  Defaults to black."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
 		 :tag "Default Foreground Gray/Color"
@@ -2902,7 +2926,8 @@ Any other value is treated as t."
 		       (number :tag "Blue")))
   :group 'ps-print-color)
 
-(defcustom ps-default-bg '(1.0 1.0 1.0)
+(defcustom ps-default-bg (or (ps-face-background-name 'default)
+			     '(1.0 1.0 1.0)) ; white
   "*RGB values of the default background color.  Defaults to white."
   :type '(choice :menu-tag "Default Background Gray/Color"
 		 :tag "Default Background Gray/Color"
@@ -3617,13 +3642,11 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 
 (eval-and-compile
-  (if (memq ps-print-emacs-type '(lucid xemacs))
-      ;; XEmacs change: Need to check for emacs-major-version too.
-      (if (or (< emacs-major-version 19)
-	      (and (= emacs-major-version 19) (< emacs-minor-version 12)))
-	  (setq ps-print-color-p nil))
-    (require 'faces))			; face-font, face-underline-p,
-					; x-font-regexp
+  (and (memq ps-print-emacs-type '(lucid xemacs))
+       ;; XEmacs change: Need to check for emacs-major-version too.
+       (or (< emacs-major-version 19)
+	   (and (= emacs-major-version 19) (< emacs-minor-version 12)))
+       (setq ps-print-color-p nil))
 
 
   ;; Return t if the device (which can be changed during an emacs session)
@@ -3664,11 +3687,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	   (case-fold-search t))
       (and kind-spec (string-match kind-regex kind-spec))))
 
-  (defun ps-xemacs-color-name (color)
-    (if (ps-x-color-specifier-p color)
-	(ps-x-color-name color)
-      color))
-
   (cond ((eq ps-print-emacs-type 'emacs) ; emacs
 
 	 (defun ps-color-values (x-color)
@@ -3680,9 +3698,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	    (t
 	     (error "No available function to determine X color values"))))
 
-	 (defalias 'ps-face-foreground-name 'face-foreground)
-	 (defalias 'ps-face-background-name 'face-background)
-
 	 (defun ps-face-bold-p (face)
 	   (or (ps-e-face-bold-p face)
 	       (memq face ps-bold-faces)))
@@ -3691,9 +3706,8 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	   (or (ps-e-face-italic-p face)
 	       (memq face ps-italic-faces)))
 	 )
-					; xemacs
-					; lucid
-	(t				; epoch
+
+	(t				; xemacs, lucid, epoch
 
 	 ;; to avoid XEmacs compilation gripes
 	 (defvar coding-system-for-write   nil)
@@ -3717,12 +3731,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 		  (ps-x-make-color-instance color))))
 	      (t
 	       (error "No available function to determine X color values")))))
-
-	 (defun ps-face-foreground-name (face)
-	   (ps-xemacs-color-name (face-foreground face)))
-
-	 (defun ps-face-background-name (face)
-	   (ps-xemacs-color-name (face-background face)))
 
 	 (defun ps-face-bold-p (face)
 	   (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
@@ -4430,10 +4438,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 
 (defun ps-print-preprint-region (prefix-arg)
-  (or (and (fboundp 'mark-active)
-	   (mark-active))
-      (and (fboundp 'region-active-p)
-	   (region-active-p))
+  (or (ps-mark-active-p)
       (error "The mark is not set now"))
   (list (point) (mark) (ps-print-preprint prefix-arg)))
 
