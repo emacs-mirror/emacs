@@ -3,7 +3,7 @@
 ;; Copyright (c) 1989, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Dick King <king@reasoning.com>
-;; Maintainer: Michael Ernst <mernst@cs.washington.edu>
+;; Maintainer: Michael Ernst <mernst@alum.mit.edu>
 ;; Created: 15 May 86
 
 ;; This file is part of GNU Emacs.
@@ -42,7 +42,6 @@
 ;; A version of uniquify.el that works under Emacs 18, Emacs 19, XEmacs,
 ;; and InfoDock is available from the maintainer.
 
-;; Doesn't correctly handle buffer names created by M-x write-file in Emacs 18.
 ;; Doesn't work under NT when backslash is used as a path separator (forward
 ;;   slash path separator works fine).  To fix, check system-type against
 ;;   'windows-nt, write a routine that breaks paths down into components.
@@ -125,7 +124,7 @@ other buffer names are changed."
   :group 'uniquify)
 
 (defcustom uniquify-min-dir-content 0
-  "*Minimum parts of directory name included in buffer name."
+  "*Minimum number of directory name components included in buffer name."
   :type 'integer
   :group 'uniquify)
 
@@ -194,11 +193,11 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 				  (directory-file-name newbuffile)
 			       newbuffile)))
 		      (uniquify-buffer-file-name buffer)))
-	       (rawname (and bfn (file-name-nondirectory bfn)))
+	       (rawname (and bfn (uniquify-file-name-nondirectory bfn)))
 	       (deserving (and rawname
 			       (or (not newbuffile)
 				   (equal rawname
-					  (file-name-nondirectory newbuffile))))))
+					  (uniquify-file-name-nondirectory newbuffile))))))
 	  (if deserving
 	      (uniquify-push (list rawname bfn buffer nil) fix-list)
 	    (uniquify-push (list (buffer-name buffer))
@@ -220,22 +219,23 @@ Works on dired buffers and ordinary file-visiting buffers, but no others."
       (and (featurep 'dired)
       (save-excursion
 	(set-buffer buffer)
-	(when (eq major-mode 'dired-mode) ; do nothing if not a dired buffer
-	  (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
-		  (and list-buffers-directory
-		       (directory-file-name list-buffers-directory))
-	    ;; don't use default-directory if dired-directory is nil
-	    (and dired-directory
-		 (expand-file-name
-		  (directory-file-name
-		   (if (consp dired-directory)
-		       (car dired-directory)
-		     dired-directory))))))))))
+	(and
+	 (eq major-mode 'dired-mode)	; do nothing if not a dired buffer
+	 (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
+	     (and list-buffers-directory
+		  (directory-file-name list-buffers-directory))
+	   ;; don't use default-directory if dired-directory is nil
+	   (and dired-directory
+		(expand-file-name
+		 (directory-file-name
+		  (if (consp dired-directory)
+		      (car dired-directory)
+		    dired-directory))))))))))
 
 ;; This examines the filename components in reverse order.
 (defun uniquify-filename-lessp (s1 s2)
-  (let ((s1f (file-name-nondirectory s1))
-	(s2f (file-name-nondirectory s2)))
+  (let ((s1f (uniquify-file-name-nondirectory s1))
+	(s2f (uniquify-file-name-nondirectory s2)))
     (and (not (equal s2f ""))
 	 (or (string-lessp s1f s2f)
 	     (and (equal s1f s2f)
@@ -248,7 +248,7 @@ Works on dired buffers and ordinary file-visiting buffers, but no others."
 			      (substring s2d 0 -1))))))))))
 
 (defun uniquify-rationalize-a-list (fix-list depth)
-  (let (conflicting-sublist
+  (let (conflicting-sublist	; all elements have the same proposed name
 	(old-name "")
 	proposed-name uniquify-possibly-resolvable)
     (while fix-list
@@ -361,8 +361,6 @@ Works on dired buffers and ordinary file-visiting buffers, but no others."
 
 
 ;;; Hooks from the rest of Emacs
-
-;; Emacs 19 (Emacs or XEmacs)
 
 ;; The logical place to put all this code is in generate-new-buffer-name.
 ;; It's written in C, so we would add a generate-new-buffer-name-function
