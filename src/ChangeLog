@@ -1,5 +1,13 @@
 2000-08-09  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* buffer.c (overlays_at): Add CHANGE_REQ parameter.
+	(Foverlays_at, Fnext_overlay_change, Fprevious_overlay_change): Use it.
+	* buffer.h (overlays_at): Update prototype.
+	* xdisp.c (next_overlay_change): Update call to overlays_at.
+	* xfaces.c (face_at_buffer_position): Likewise.
+	* textprop.c (Fget_char_property): Likewise.
+	* xterm.c (note_mouse_highlight): Likewise.
+
 	* minibuf.c (do_completion): Don't consider a simple change of
 	case as `completion'.
 
