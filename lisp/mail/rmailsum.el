@@ -1072,14 +1072,13 @@ advance to the next message."
 		(rmail-summary-next-msg (or dist 1)))
 	    (let ((other-window-scroll-buffer rmail-buffer))
 	      (scroll-other-window dist)))
-	;; This forces rmail-buffer to be sized correctly later.
-	(display-buffer rmail-buffer)
-	(setq rmail-current-message nil)))))
+	;; If it isn't visible at all, show the beginning.
+	(rmail-summary-beginning-of-message)))))
 
 (defun rmail-summary-scroll-msg-down (&optional dist)
   "Scroll the Rmail window backward.
-If the Rmail window is displaying the beginning of a message,
-advance to the previous message."
+If the Rmail window is now displaying the beginning of a message,
+move to the previous message."
   (interactive "P")
   (if (eq dist '-)
       (rmail-summary-scroll-msg-up nil)
@@ -1099,14 +1098,23 @@ advance to the previous message."
 		(rmail-summary-previous-msg (or dist 1)))
 	    (let ((other-window-scroll-buffer rmail-buffer))
 	      (scroll-other-window-down dist)))
-	;; This forces rmail-buffer to be sized correctly later.
-	(display-buffer rmail-buffer)
-	(setq rmail-current-message nil)))))
+	;; If it isn't visible at all, show the beginning.
+	(rmail-summary-beginning-of-message)))))
 
 (defun rmail-summary-beginning-of-message ()
   "Show current message from the beginning."
   (interactive)
-  (pop-to-buffer rmail-buffer)
+  (if (and (one-window-p) (not pop-up-frames))
+      ;; If there is just one window, put the summary on the top.
+      (let ((buffer rmail-buffer))
+	(split-window (selected-window) rmail-summary-window-size)
+	(select-window (frame-first-window))
+	(pop-to-buffer rmail-buffer)
+	;; If pop-to-buffer did not use that window, delete that
+	;; window.  (This can happen if it uses another frame.)
+	(or (eq buffer (window-buffer (next-window (frame-first-window))))
+	    (delete-other-windows)))
+    (pop-to-buffer rmail-buffer))
   (beginning-of-buffer)
   (pop-to-buffer rmail-summary-buffer))
 
