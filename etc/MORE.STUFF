@@ -18,9 +18,8 @@ listed here fail.
 * The LCD archive
 
 There is a large collection of Emacs Lisp code available for FTP at
-ftp.cis.ohio-state.edu and various mirrors.  Unfortunately its
-maintenance is currently very slow.  A project to replace it is
-underway; see <URL:http://www.emacs.org/>.
+<URL:ftp://ftp.cis.ohio-state.edu> and various mirrors.  At this time,
+serious maintenance is resuming after a long hiatus.  
 
 To get started using this archive, do:
 
@@ -41,8 +40,12 @@ The lispdir.el package will help you search for useful packages in the
 LCD-datafile, which is a list of the archive constants.  It will even
 fetch them for you on command.
 
+* A project previously meant to replace the LCD is at
+  <URL:http://www.emacs.org/> but also seems to have maintenance
+  problems at present.
+
 * The `Emacs Lisp List' at
-  <URL:http://www.anc.ed.ac.uk/~stephen/emacs/ell.html> has pointers
+  <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/ell.html> has pointers
   to sources of a large number of packages.
 
 * gnu.emacs.sources
@@ -55,7 +58,7 @@ engine) or retrievable from general Usenet archive services.
 
 You might find bug-fixes or enhancements in these places.
 
- * Ada: <URL:http://ada.eu.org/ada-mode/>
+ * Ada: <URL:http://www.ada-france.org/ada-mode>
 
  * Autorevert, CWarn and Follow:
    <URL:http://www.andersl.com/emacs/>
@@ -73,12 +76,14 @@ You might find bug-fixes or enhancements in these places.
 
  * CPerl: <URL:ftp://ftp.math.ohio-state.edu/pub/users/ilya>
 
- * Ediff and Viper: <URL:ftp://ftp.ca.sunysb.edu/pub/techreports/kifer/>
+ * Ediff and Viper: <URL:ftp://ftp.cs.sunysb.edu/pub/TechReports/kifer/>
 
- * Eldoc, Rlogin and Rsz-mini:
+ * Eldoc and Rlogin:
    <URL:ftp://ftp.splode.com/pub/users/friedman/packages/>
 
- * EUDC: <URL:http://lspwww.epfl.ch/~figueire/Software/eudc/>
+ * EShell: <URL:http://www.gci-net.com/users/j/johnw/emacs.html>
+
+ * EUDC: <URL:http://lspwww.epfl.ch/%7Efigueire/Software/eudc/>
 
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
 
@@ -89,10 +94,9 @@ You might find bug-fixes or enhancements in these places.
 
  * Flyspell: <URL:http://kaolin.unice.fr/%7Eserrano/emacs/flyspell>
 
- * Fortune: <URL:http://www.coling.uni-freiburg.de/~%7Eschauer/emacs.html>
+ * Fortune: <URL:http://www.coling.uni-freiburg.de/%7Eschauer/emacs.html>
 
- * Gnus home page: <URL:http://www.gnus.org/>
-   Native MIME support is in development at the time of writing.
+ * Gnus: <URL:http://www.gnus.org/>
 
  * Ffap: <URL:http://www.mathcs.emory.edu/%7Emic/ftp/emacs/>
    (And some addons for it.)
@@ -107,7 +111,7 @@ You might find bug-fixes or enhancements in these places.
 
  * PCL-CVS: <URL:ftp://rum.cs.yale.edu/pub/monnier/pcl-cvs>
 
- * PS mode: <URL:http://odur.let.rug.nl/~kleiweg/postscript/>
+ * PS mode: <URL:http://odur.let.rug.nl/%7Ekleiweg/postscript/>
 
  * PS-print: <URL:ftp://ftp.cpqd.com.br/pub/users/vinicius/>
 
@@ -132,8 +136,8 @@ You might find bug-fixes or enhancements in these places.
    * Scheme: <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm/r5rs.info.tar.gz>
    * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
        latex2e.texi> (or CTAN mirrors)
-   * Perl: <URL:ftp://ftp.funet.fi/pub/languages/perl/CPAN/doc/manual/
-       texinfo/perl5/> (or CPAN mirrors)
+   * Perl: <URL:ftp://ftp.cpan.org/CPAN/doc/manual/texinfo/perl5/> (or
+   CPAN mirrors)
 
 * Packages and add-ons not bundled with Emacs
 
@@ -142,15 +146,21 @@ Emacs for various reasons, sometimes because their authors haven't made
 a copyright assignment to the FSF.  Some of them may be integrated in
 the future.
 
+You might like to check whether they are packaged for your system.
+Several are for Debian GNU/Linux in particular.
+
  * AUCTeX: fancy (La)TeX support: <URL:http://sunsite.auc.dk/auctex/>
    There's an AUCTeX mail list/newsgroup:
    <URL:news://sunsite.auc.dk/emacs.auctex>.
 
  * BBDB: personal Info Rolodex integrated with mail/news:
    <URL:http://bbdb.sourceforge.net/>
+   [You might want to set the coding system of your .bbdb file to
+   emacs-mule, say by adding `("\\.bbdb\\'" . emacs-mule)' to
+   `file-coding-system-alist' for non-ASCII characters.]
 
  * Calc: computer algebra and numerical calculations:
-   <URL:http:www.gnu.org/software/calc/calc.html>
+   <URL:http://www.gnu.org/software/calc/calc.html>
    From GNU distribution mirrors.
 
  * CJK-emacs: Converting MULE-encoded text to TeX:
@@ -172,7 +182,8 @@ the future.
    Version 1.16 is said not to work properly with Emacs 20.
 
  * Elib library: <URL:http://www.gnu.org/software/elib/elib.html>
-   From GNU distribution mirrors.
+   From GNU distribution mirrors.  (Much of this functionality is now
+   in Emacs.)
 
  * Emacspeak -- A Speech Output Subsystem For Emacs:
    <URL:http://emacspeak.sourceforge.net/>
@@ -196,22 +207,21 @@ the future.
    process running some form of Lisp.
 
  * JDE: <URL:http://sunsite.auc.dk/jde/>
-   Wrapper around Java development tools.
+   Provides a Java-specific `Integrated Development Environment'.
 
- * MULE-UCS: Universal enCoding System:
+ * Mule-UCS: Universal enCoding System:
    <URL:ftp://ftp.m17n.org/pub/mule/Mule-UCS/>
-   Extended coding systems for MULE, specifically for reading and
+   Extended coding systems for Mule, specifically for reading and
    writing UTF-8 encoded Unicode.
 
    An alternative system for using UTF-8 is at
-   <URL:http://www.cs.ust.hk/%7Eotfried/Mule/>.  This includes an
+   <URL:http://www.cs.uu.nl/%7Eotfried/Mule/>.  This includes an
    external program for (partial) inter-conversion of UTF-8.
 
  * Mailcrypt:
    <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU
-   Privacy Guard, is under development as a free replacement
-   <URL:http://www.gnupg.org/>.
+   Privacy Guard, is a free replacement <URL:http://www.gnupg.org/>.
 
  * Pointers to MIME packages:
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
@@ -234,11 +244,6 @@ the future.
    Web browser.  There's a W3 mail list/newsgroup
    <URL:news://sunsite.auc.dk/emacs.w3> and a W3 development mail
    list/newsgroup <URL:news://sunsite.auc.dk/emacs.w3.dev>.
-
-* Unpacked Emacs sources
-
-An unpacked current source tree may be available from
-<URL:ftp://ftp.emacs.org/pub/>.
 
 
 Local Variables:
