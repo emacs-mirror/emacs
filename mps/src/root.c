@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(MMdevel_action2.4) $
+ * $HopeName: MMsrc!root.c(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(MMdevel_action2.4) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.20) $");
 
 
 /* RootCheck -- check the consistency of a root structure
@@ -262,6 +262,8 @@ Res RootScan(ScanState ss, Root root)
 /* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
 Space RootSpace(Root root)
 {
+  /* Can't AVER root as that would not be thread-safe */
+  /* AVERT(Root, root); */
   return root->space;
 }
 
