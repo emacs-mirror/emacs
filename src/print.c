@@ -221,7 +221,7 @@ printchar (ch, fun)
     }
 #endif /* not standalone */
 
-  XFASTINT (ch1) = ch;
+  XSETFASTINT (ch1, ch);
   call1 (fun, ch1);
 }
 
