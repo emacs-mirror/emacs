@@ -6518,7 +6518,7 @@ If ALL is non-nil, limit strictly to unread articles."
 
 (defalias 'gnus-summary-delete-marked-with 'gnus-summary-limit-exclude-marks)
 (make-obsolete 'gnus-summary-delete-marked-with
-	       'gnus-summary-limit-exlude-marks)
+	       'gnus-summary-limit-exclude-marks)
 
 (defun gnus-summary-limit-exclude-marks (marks &optional reverse)
   "Exclude articles that are marked with MARKS (e.g. \"DK\").

@@ -1,3 +1,7 @@
+2002-04-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-sum.el (gnus-summary-delete-marked-with): Fix typo.
+
 2002-04-02  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-group.el (gnus-group-make-tool-bar): Load tool-bar first.
