@@ -7,7 +7,7 @@
 @c Versino of the manual.
 @set VERSION 2.8
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Elisp: (elisp).	The Emacs Lisp Reference Manual.
 @end direntry
