@@ -1,3 +1,7 @@
+2000-08-10  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-output-filter): Doc fixes & misc code cleanup.
+
 2000-08-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-file-list-for-emacs): More elements for the
