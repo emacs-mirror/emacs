@@ -3802,7 +3802,7 @@ actually used.  */)
 	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
 	      coding_systems = Ffind_operation_coding_system (6, args);
 	      if (CONSP (coding_systems))
-		val = XCAR (coding_systems);
+		coding_system = XCAR (coding_systems);
 	    }
 	}
 
@@ -4412,7 +4412,8 @@ actually used.  */)
 	current_buffer->enable_multibyte_characters = Qnil;
     }
 
-  if ((CODING_REQUIRE_DETECTION (&coding)
+  if ((! NILP (current_buffer->enable_multibyte_characters)
+       || CODING_REQUIRE_DETECTION (&coding)
        || CODING_REQUIRE_DECODING (&coding))
       && (inserted > 0 || CODING_REQUIRE_FLUSHING (&coding)))
     {
