@@ -605,7 +605,16 @@ If you use ada-xref.el:
             nil t
             ((?\_ . "w")(?\. . "w"))
             beginning-of-line
-            (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords))))
+            (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
+
+    ;; Set up support for find-file.el.
+    (make-variable-buffer-local 'ff-other-file-alist)
+    (make-variable-buffer-local 'ff-search-directories)
+    (setq ff-other-file-alist   'ada-other-file-alist
+          ff-search-directories 'ada-search-directories
+          ff-pre-load-hooks     'ff-which-function-are-we-in
+          ff-post-load-hooks    'ff-set-point-accordingly
+          ff-file-created-hooks 'ada-make-body))
 
   (setq major-mode 'ada-mode)
   (setq mode-name "Ada")
