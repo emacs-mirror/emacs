@@ -624,7 +624,23 @@ x_consider_frame_title (frame)
 
   if (!FRAME_X_P (f) || FRAME_MINIBUF_ONLY_P (f) || f->explicit_name)
     return;
-  multiple_frames = !EQ (Fnext_frame (frame, Qnil), frame);
+
+  /* Do we have more than one visible frame on this X display?  */
+  {
+    Lisp_Object tail;
+
+    for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+      {
+	FRAME_PTR tf = XFRAME (XCONS (tail)->car);
+
+	if (tf != f && tf->kboard == f->kboard && !FRAME_MINIBUF_ONLY_P (tf)
+	    && (FRAME_VISIBLE_P (tf) || FRAME_ICONIFIED_P (tf)))
+	  break;
+      }
+
+    multiple_frames = CONSP (tail);
+  }
+
   obuf = current_buffer;
   Fset_buffer (XWINDOW (f->selected_window)->buffer);
   fmt = (FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format);
@@ -4001,8 +4017,10 @@ If this is zero, point is always centered after it moves off frame.");
   highlight_nonselected_windows = 1;
 
   DEFVAR_BOOL ("multiple-frames", &multiple_frames,
-    "Non-nil means more than one frame is in use, not counting minibuffer frames.\n\
-Not guaranteed to be accurate except while parsing frame-title-format.");
+    "Non-nil if more than one frame is visible on this display.\n\
+Minibuffer-only frames don't count, but iconified frames do.\n\
+This variable is not guaranteed to be accurate except while parsing\n\
+frame-title-format.");
 
   DEFVAR_LISP ("frame-title-format", &Vframe_title_format,
     "Template for displaying the titlebar of visible frames.\n\
