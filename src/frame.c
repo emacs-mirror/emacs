@@ -502,15 +502,8 @@ make_terminal_frame ()
   Vframe_list = Fcons (frame, Vframe_list);
 
   terminal_frame_count++;
-  if (terminal_frame_count == 1)
-    {
-      f->name = build_string ("Emacs");
-    }
-  else
-    {
-      sprintf (name, "Emacs-%d", terminal_frame_count);
-      f->name = build_string (name);
-    }
+  sprintf (name, "F%d", terminal_frame_count);
+  f->name = build_string (name);
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
