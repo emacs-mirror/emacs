@@ -1,3 +1,9 @@
+2002-04-14  Andreas Schwab  <schwab@suse.de>
+
+	* update-game-score.c (read_score): Fix type of second parameter
+	of getdelim to be of type size_t instead of int.  Use 0 instead of
+	ESUCCES.
+
 2002-04-10  Colin Walters  <walters@verbum.org>
 
 	* update-game-score.c: (toplevel): Include stdarg.h.
