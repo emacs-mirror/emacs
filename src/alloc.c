@@ -483,7 +483,6 @@ uninterrupt_malloc ()
 
 /* Interval allocation.  */
 
-#ifdef USE_TEXT_PROPERTIES
 #define INTERVAL_BLOCK_SIZE \
   ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
 
@@ -596,14 +595,6 @@ mark_interval_tree (tree)
      } 								\
 }
 
-#else  /* no interval use */
-
-#define INIT_INTERVALS
-
-#define UNMARK_BALANCE_INTERVALS(i)
-#define MARK_INTERVAL_TREE(i)
-
-#endif /* no interval use */
 
 /* Floating point allocation.  */
 
@@ -1554,9 +1545,7 @@ make_pure_string (data, length, length_byte, multibyte)
 
   /* We must give strings in pure storage some kind of interval.  So we
      give them a null one.  */
-#if defined (USE_TEXT_PROPERTIES)
   XSTRING (new)->intervals = NULL_INTERVAL;
-#endif
   pureptr += size;
   return new;
 }
@@ -1972,12 +1961,8 @@ Garbage collection happens automatically if you cons more than\n\
 		(make_number (0), make_number (0)),
 #endif /* not LISP_FLOAT_TYPE */
 		Fcons (Fcons
-#ifdef USE_TEXT_PROPERTIES
 		       (make_number (total_intervals),
 			make_number (total_free_intervals)),
-#else /* not USE_TEXT_PROPERTIES */
-		       (make_number (0), make_number (0)),
-#endif /* not USE_TEXT_PROPERTIES */
 		       Qnil)))))));
 }
 
@@ -2787,7 +2772,6 @@ gc_sweep ()
   }
 #endif /* LISP_FLOAT_TYPE */
 
-#ifdef USE_TEXT_PROPERTIES
   /* Put all unmarked intervals on free list */
   {
     register struct interval_block *iblk;
@@ -2837,7 +2821,6 @@ gc_sweep ()
     total_intervals = num_used;
     total_free_intervals = num_free;
   }
-#endif /* USE_TEXT_PROPERTIES */
 
   /* Put all unmarked symbols on free list */
   {
@@ -3176,7 +3159,6 @@ compact_strings ()
 	      /* Store the actual size in the size field.  */
 	      newaddr->size = size;
 
-#ifdef USE_TEXT_PROPERTIES
 	      /* Now that the string has been relocated, rebalance its
                  interval tree, and update the tree's parent pointer. */
 	      if (! NULL_INTERVAL_P (newaddr->intervals))
@@ -3185,7 +3167,6 @@ compact_strings ()
 		  XSETSTRING (* (Lisp_Object *) &newaddr->intervals->parent,
 			      newaddr);
 		}
-#endif /* USE_TEXT_PROPERTIES */
 	    }
 	  else if (size_byte < 0)
 	    size_byte = size;

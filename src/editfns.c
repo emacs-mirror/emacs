@@ -1939,7 +1939,6 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
 	 end_byte - start_byte);
 
   /* If desired, update and copy the text properties.  */
-#ifdef USE_TEXT_PROPERTIES
   if (props)
     {
       update_buffer_properties (start, end);
@@ -1951,7 +1950,6 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
 	copy_intervals_to_string (result, current_buffer, start,
 				  end - start);
     }
-#endif
 
   return result;
 }
@@ -1963,7 +1961,6 @@ static void
 update_buffer_properties (start, end)
      int start, end;
 {
-#ifdef USE_TEXT_PROPERTIES
   /* If this buffer has some access functions,
      call them, specifying the range of the buffer being accessed.  */
   if (!NILP (Vbuffer_access_fontify_functions))
@@ -1988,7 +1985,6 @@ update_buffer_properties (start, end)
       else
 	Frun_hook_with_args (3, args);
     }
-#endif
 }
 
 DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
@@ -3341,10 +3337,8 @@ Transposing beyond buffer boundaries is an error.")
   int combined_before_bytes_2, combined_after_bytes_2;
   struct gcpro gcpro1, gcpro2;
 
-#ifdef USE_TEXT_PROPERTIES
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
   cur_intv = BUF_INTERVALS (current_buffer);
-#endif /* USE_TEXT_PROPERTIES */
 
   validate_region (&startr1, &endr1);
   validate_region (&startr2, &endr2);
@@ -3478,12 +3472,10 @@ Transposing beyond buffer boundaries is an error.")
       modify_region (current_buffer, start1, end2);
       record_change (start1, len1 + len2);
 
-#ifdef USE_TEXT_PROPERTIES
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
       tmp_interval2 = copy_intervals (cur_intv, start2, len2);
       Fset_text_properties (make_number (start1), make_number (end2),
 			    Qnil, Qnil);
-#endif /* USE_TEXT_PROPERTIES */
 
       /* First region smaller than second.  */
       if (len1_byte < len2_byte)
@@ -3522,12 +3514,10 @@ Transposing beyond buffer boundaries is an error.")
 	  if (len1_byte > 20000)
 	    free (temp);
         }
-#ifdef USE_TEXT_PROPERTIES
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
                                    len1, current_buffer, 0);
       graft_intervals_into_buffer (tmp_interval2, start1,
                                    len2, current_buffer, 0);
-#endif /* USE_TEXT_PROPERTIES */
     }
   /* Non-adjacent regions, because end1 != start2, bleagh...  */
   else
@@ -3541,14 +3531,12 @@ Transposing beyond buffer boundaries is an error.")
           modify_region (current_buffer, start2, end2);
           record_change (start1, len1);
           record_change (start2, len2);
-#ifdef USE_TEXT_PROPERTIES
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
           Fset_text_properties (make_number (start1), make_number (end1),
 				Qnil, Qnil);
           Fset_text_properties (make_number (start2), make_number (end2),
 				Qnil, Qnil);
-#endif /* USE_TEXT_PROPERTIES */
 
 	  if (len1_byte > 20000)
 	    temp = (unsigned char *) xmalloc (len1_byte);
@@ -3561,12 +3549,10 @@ Transposing beyond buffer boundaries is an error.")
           bcopy (temp, start2_addr, len1_byte);
 	  if (len1_byte > 20000)
 	    free (temp);
-#ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, start2,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval2, start1,
                                        len2, current_buffer, 0);
-#endif /* USE_TEXT_PROPERTIES */
         }
 
       else if (len1_byte < len2_byte)	/* Second region larger than first */
@@ -3574,13 +3560,11 @@ Transposing beyond buffer boundaries is an error.")
         {
           modify_region (current_buffer, start1, end2);
           record_change (start1, (end2 - start1));
-#ifdef USE_TEXT_PROPERTIES
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
           Fset_text_properties (make_number (start1), make_number (end2),
 				Qnil, Qnil);
-#endif /* USE_TEXT_PROPERTIES */
 
 	  /* holds region 2 */
 	  if (len2_byte > 20000)
@@ -3595,14 +3579,12 @@ Transposing beyond buffer boundaries is an error.")
           bcopy (temp, start1_addr, len2_byte);
 	  if (len2_byte > 20000)
 	    free (temp);
-#ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
                                        len_mid, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval2, start1,
                                        len2, current_buffer, 0);
-#endif /* USE_TEXT_PROPERTIES */
         }
       else
 	/* Second region smaller than first.  */
@@ -3610,13 +3592,11 @@ Transposing beyond buffer boundaries is an error.")
           record_change (start1, (end2 - start1));
           modify_region (current_buffer, start1, end2);
 
-#ifdef USE_TEXT_PROPERTIES
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
           Fset_text_properties (make_number (start1), make_number (end2),
 				Qnil, Qnil);
-#endif /* USE_TEXT_PROPERTIES */
 
 	  /* holds region 1 */
 	  if (len1_byte > 20000)
@@ -3631,14 +3611,12 @@ Transposing beyond buffer boundaries is an error.")
           bcopy (temp, start1_addr + len2_byte + len_mid, len1_byte);
 	  if (len1_byte > 20000)
 	    free (temp);
-#ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
                                        len_mid, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval2, start1,
                                        len2, current_buffer, 0);
-#endif /* USE_TEXT_PROPERTIES */
         }
     }
 

@@ -1185,10 +1185,7 @@ with SIGHUP.")
 	  m->chain = Qnil;
 	}
       BUF_MARKERS (b) = Qnil;
-
-#ifdef USE_TEXT_PROPERTIES
       BUF_INTERVALS (b) = NULL_INTERVAL;
-#endif
 
       /* Perhaps we should explicitly free the interval tree here... */
     }
@@ -3826,10 +3823,8 @@ init_buffer_once ()
   /* Prevent GC from getting confused.  */
   buffer_defaults.text = &buffer_defaults.own_text;
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
-#ifdef USE_TEXT_PROPERTIES
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
-#endif
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
