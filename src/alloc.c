@@ -91,6 +91,23 @@ extern __malloc_size_t __malloc_extra_blocks;
 
 #if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
 
+/* When GTK uses the file chooser dialog, different backends can be loaded
+   dynamically.  One such a backend is the Gnome VFS backend that gets loaded
+   if you run Gnome.  That backend creates several threads and also allocates
+   memory with malloc.
+
+   If Emacs sets malloc hooks (! SYSTEM_MALLOC) and the emacs_blocked_*
+   functions below are called from malloc, there is a chance that one
+   of these threads preempts the Emacs main thread and the hook variables
+   end up in a inconsistent state.  So we have a mutex to prevent that (note
+   that the backend handles concurrent access to malloc within its own threads
+   but Emacs code running in the main thread is not included in that control).
+
+   When UNBLOCK_INPUT is called, revoke_input_signal may be called.  If this
+   happens in one of the backend threads we will have two threads that tries
+   to run Emacs code at once, and the code is not prepared for that.
+   To prevent that, we only call BLOCK/UNBLOCK from the main thread.  */
+
 static pthread_mutex_t alloc_mutex;
 pthread_t main_thread;
 

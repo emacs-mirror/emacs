@@ -1,3 +1,7 @@
+2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c: Add comment about the reason for (UN)BLOCK_INPUT_ALLOC.
+
 2004-12-07  Stefan  <monnier@iro.umontreal.ca>
 
 	* eval.c (init_eval_once): Increase max_specpdl_size to 1000.
