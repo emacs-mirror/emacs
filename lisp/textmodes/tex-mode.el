@@ -832,7 +832,12 @@ line numbers for the errors."
       (use-local-map tex-shell-map)
       (run-hooks 'tex-shell-hook)
       (while (zerop (buffer-size))
-          (sleep-for 1)))))
+	(sleep-for 1)))))
+
+(defun tex-display-shell ()
+  "Make the TeX shell buffer visible in a window."
+  (display-buffer (process-buffer (get-process "tex-shell")))
+  (tex-recenter-output-buffer nil))
 
 (defun tex-shell-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
@@ -922,7 +927,6 @@ The value of `tex-command' specifies the command to use to run TeX."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (display-buffer (process-buffer (get-process "tex-shell")))
   (or tex-zap-file
       (setq tex-zap-file (tex-generate-zap-file-name)))
   (let* ((temp-buffer (get-buffer-create " TeX-Output-Buffer"))
@@ -972,6 +976,7 @@ The value of `tex-command' specifies the command to use to run TeX."
     (setq tex-last-temp-file tex-out-file)
     (tex-send-command tex-shell-cd-command zap-directory)
     (tex-send-command tex-command tex-out-file)
+    (tex-display-shell)
     (setq tex-print-file tex-out-file)
     (setq tex-last-buffer-texed (current-buffer))))
 
@@ -997,9 +1002,9 @@ This function is more useful than \\[tex-buffer] when you need the
     (if (tex-shell-running)
         (tex-kill-job)
       (tex-start-shell))
-    (display-buffer (process-buffer (get-process "tex-shell")))
     (tex-send-command tex-shell-cd-command file-dir)
     (tex-send-command tex-command tex-out-file))
+  (tex-display-shell)
   (setq tex-last-buffer-texed (current-buffer))
   (setq tex-print-file (buffer-file-name)))
 
@@ -1119,8 +1124,8 @@ Runs the shell command defined by `tex-show-queue-command'."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (display-buffer (process-buffer (get-process "tex-shell")))
-  (tex-send-command tex-show-queue-command))
+  (tex-send-command tex-show-queue-command)
+  (tex-display-shell))
 
 (defun tex-bibtex-file ()
   "Run BibTeX on the current buffer's file."
@@ -1128,12 +1133,12 @@ Runs the shell command defined by `tex-show-queue-command'."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (display-buffer (process-buffer (get-process "tex-shell")))
   (let ((tex-out-file
          (tex-append (file-name-nondirectory (buffer-file-name)) ""))
 	(file-dir (file-name-directory (buffer-file-name))))
     (tex-send-command tex-shell-cd-command file-dir)
-    (tex-send-command tex-bibtex-command tex-out-file)))
+    (tex-send-command tex-bibtex-command tex-out-file))
+  (tex-display-shell))
 
 (run-hooks 'tex-mode-load-hook)
 
