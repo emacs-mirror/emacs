@@ -824,7 +824,7 @@ Holidays are included if `cal-tex-holidays' is t."
           (cal-tex-nl)
           (setq month (extract-calendar-month date))
           (setq year (extract-calendar-year date)))
-       (cal-tex-e-parbox)% 
+       (cal-tex-e-parbox)
        (if (/= i n)
            (progn
              (run-hooks 'cal-tex-week-hook)
