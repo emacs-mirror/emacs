@@ -434,7 +434,7 @@ If `nil', the value of `cperl-indent-level' will be used."
   :type 'boolean
   :group 'cperl-indentation-details)
 
-(defcustom cperl-under-as-char t
+(defcustom cperl-under-as-char nil
   "*Non-nil means that the _ (underline) should be treated as word char."
   :type 'boolean
   :group 'cperl)
