@@ -632,9 +632,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   format.  Texinfo source for the manual (along with pregenerated Info
   files) is available at
 
-    ftp://gnudist.gnu.org/pub/gnu/emacs/elisp-manual-20-2.5.tar.gz
+    ftp://ftp.gnu.org/pub/gnu/emacs/elisp-manual-20-2.5.tar.gz
 
-  and all mirrors of gnudist.gnu.org (See question 92 for a list).  See
+  and all mirrors of ftp.gnu.org (See question 92 for a list).  See
   question 17 if you want to install the Info files, or question 18 if you
   want to use the Texinfo source to print the manual yourself.
 
@@ -649,9 +649,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   using the stand-alone "makeinfo" program, available as part of the latest
   Texinfo package at
 
-    ftp://gnudist.gnu.org/pub/gnu/texinfo/texinfo-3.12.tar.gz
+    ftp://ftp.gnu.org/pub/gnu/texinfo/texinfo-3.12.tar.gz
 
-  and all mirrors of gnudist.gnu.org (see question 92 for a list).
+  and all mirrors of ftp.gnu.org (see question 92 for a list).
 
   For information about the Texinfo format, read the Texinfo manual which
   comes with Emacs.  This manual also comes installed in Info format, so
@@ -741,9 +741,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   * Xinfo, a stand-alone version of the Info program that runs under X
     Windows.  You can get it at
 
-      ftp://gnudist.gnu.org/pub/gnu/xinfo/xinfo-1.01.01.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/xinfo/xinfo-1.01.01.tar.gz
 
-    and all mirrors of gnudist.gnu.org (See question 92 for a list).
+    and all mirrors of ftp.gnu.org (See question 92 for a list).
 
   * Tkinfo, an Info viewer that runs under X Windows and uses Tcl/Tk.  You
     can get Tkinfo at
@@ -778,7 +778,7 @@ On-line Help, Printed Manuals, Other Sources of Help
 
   Latest versions of some of the above files are also available at
 
-    ftp://gnudist.gnu.org/pub/gnu/GNUinfo/
+    ftp://ftp.gnu.org/pub/gnu/GNUinfo/
 
   More GNU information, including back issues of the "GNU's Bulletin", are at
 
@@ -792,7 +792,7 @@ On-line Help, Printed Manuals, Other Sources of Help
 
   The file etc/SERVICE (see question 4 if you're not sure where that is)
   lists companies and individuals willing to sell you help in installing or
-  using Emacs.  An up-to-date version this file is available on gnudist.gnu.org
+  using Emacs.  An up-to-date version this file is available on ftp.gnu.org
   (see question 20).
 
 22:  Where can I get the latest version of this document (the FAQ list)?
@@ -1568,7 +1568,7 @@ Common Things People Want To Do
 
   If you're tired of seeing backup files whenever you do an "ls" at the
   Unix shell, try GNU ls with the "-B" option.  GNU ls is part of the GNU
-  fileutils package, available at mirrors of gnudist.gnu.org (see question 92).
+  fileutils package, available at mirrors of ftp.gnu.org (see question 92).
 
   To disable or change how backups are made, see "Backup Names" in the
   on-line manual.
@@ -2155,22 +2155,22 @@ Difficulties Building/Installing/Porting Emacs
   from scratch.  You will need:
 
   * Emacs sources.  See question 92 for a list of ftp sites that make them
-    available.  On gnudist.gnu.org, the main GNU distribution site, sources are
+    available.  On ftp.gnu.org, the main GNU distribution site, sources are
     available at
 
-      ftp://gnudist.gnu.org/pub/gnu/emacs/emacs-20.3.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.3.tar.gz
 
     The above will obviously change as new versions of Emacs come out.  For
     instance, when Emacs 20.5 is released, it will most probably be
     available at
 
-      ftp://gnudist.gnu.org/pub/gnu/emacs/emacs-20.4.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.4.tar.gz
 
     Again, you should use one of the mirror sites in question 92 (and
-    adjust the URL accordingly) so as to reduce load on gnudist.gnu.org.
+    adjust the URL accordingly) so as to reduce load on ftp.gnu.org.
 
   * Gzip, the GNU compression utility.  You can get gzip via anonymous ftp
-    at mirrors of gnudist.gnu.org sites; it should compile and install without
+    at mirrors of ftp.gnu.org sites; it should compile and install without
     much trouble on most systems.  Once you have retrieved the Emacs
     sources, you will probably be able to uncompress them with the command
 
@@ -2192,7 +2192,7 @@ Difficulties Building/Installing/Porting Emacs
     two `v's force verbose output, and the `f' tells tar to use a disk
     file, rather than one on tape.
 
-    If you're using GNU tar (available at mirrors of gnudist.gnu.org), you can
+    If you're using GNU tar (available at mirrors of ftp.gnu.org), you can
     combine this step and the previous one by using the command
 
       tar -zxvvf emacs-20.4.tar.gz
@@ -2394,13 +2394,13 @@ Finding/Getting Emacs and Related Packages
 92:  Where can I get other up-to-date GNU stuff?
 
   The most up-to-date official GNU software is normally kept on
-  gnudist.gnu.org and is available at
+  ftp.gnu.org and is available at
 
-    ftp://gnudist.gnu.org/pub/gnu
+    ftp://ftp.gnu.org/pub/gnu
 
   Read the files etc/DISTRIB and etc/FTP for more information.
 
-  A list of sites mirroring gnudist.gnu.org can be found at
+  A list of sites mirroring ftp.gnu.org can be found at
 
     http://www.gnu.org/order/ftp.html
 
@@ -2607,9 +2607,9 @@ Finding/Getting Emacs and Related Packages
 
   If you are on a Unix machine, try using the "nslookup" command, included
   in the Berkeley BIND package.  For example, to find the IP address of
-  "gnudist.gnu.org", you would type
+  "ftp.gnu.org", you would type
 
-    nslookup gnudist.gnu.org
+    nslookup ftp.gnu.org
 
   Your computer should then provide the IP address of that computer.
 
@@ -2665,7 +2665,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   Author: Dave Gillespie <daveg@csvax.cs.caltech.edu>
   Latest version: 2.02f
   Anonymous FTP:
-    ftp://gnudist.gnu.org/pub/gnu/calc/calc-2.02f.tar.gz
+    ftp://ftp.gnu.org/pub/gnu/calc/calc-2.02f.tar.gz
   NOTE: Unlike Wolfram Research, Dave has never threatened to sue
         anyone for having a program with a similar command language to
         Calc.  :-)
