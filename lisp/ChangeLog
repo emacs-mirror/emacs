@@ -1,3 +1,8 @@
+2002-12-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* mwheel.el (mouse-wheel-scroll-amount): Revert previous change -
+	customize type 'float is now defined.
+
 2002-12-09  Dave Love  <fx@gnu.org>
 
 	* international/ucs-tables.el: Fix properly.
@@ -35,7 +40,7 @@
 
 2002-12-07  Richard M. Stallman  <rms@gnu.org>
 
-	* progmodes/compile.el (compilation-enter-directory-regexp-alist) 
+	* progmodes/compile.el (compilation-enter-directory-regexp-alist)
 	(compilation-leave-directory-regexp-alist): Match byte compiler output.
 
 	* emacs-lisp/cl-macs.el: Add local variable list
@@ -71,7 +76,7 @@
 	* cus-edit.el (custom-face-edit-fix-value): Change :reverse-video
 	to :inverse-video.
 
-2002-12-07   Markus Rost  <rost@math.ohio-state.edu>
+2002-12-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* wid-edit.el (define-widget number): Clarify doc and error
 	message.
@@ -106,7 +111,7 @@
 	buffer-local, so that killing the *info* buffer forces the
 	dir-node to be rebuilt.
 
-2002-12-06   Markus Rost  <rost@math.ohio-state.edu>
+2002-12-06  Markus Rost  <rost@math.ohio-state.edu>
 
 	* finder.el (finder-compile-keywords): Don't insert a keyword to
 	the generated file.

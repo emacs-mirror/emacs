@@ -1,3 +1,8 @@
+2002-12-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* configure.in (*-sunos5*, *-solaris*): Revert previous change -
+	use again sol2-6 instead of sol2-8.
+
 2002-12-09  Dave Love  <fx@gnu.org>
 
 	* configure.in: Delete sunos5.8 configuration.
@@ -33,9 +38,9 @@
 	(term.h, X11/Xaw3d/Scrollbar.h): Avoid warning from test.
 	(nlist.h): Move test up.
 
-2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-18  Markus Rost  <rost@math.ohio-state.edu>
 
-	* configure.in (*-sunos5*, *-solaris*): New configuration.
+	* configure.in (*-sunos5*, *-solaris*): Use sol2-8.
 
 2002-11-14  Francesco Potorti`  <pot@gnu.org>
 
