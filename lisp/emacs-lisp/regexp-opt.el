@@ -4,8 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
-;; Keywords: strings, regexps
-;; Version: 1.07
+;; Keywords: strings, regexps, extensions
 
 ;; This file is part of GNU Emacs.
 
