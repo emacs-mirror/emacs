@@ -666,6 +666,9 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 	(modify-syntax-entry ?~ " ")
 	(modify-syntax-entry ?' "w"))
     (set-syntax-table tex-mode-syntax-table))
+  ;; Regexp isearch should accept newline and formfeed as whitespace.
+  (make-local-variable 'search-whitespace-regexp)
+  (setq search-whitespace-regexp "[ \t\r\n\f]+")
   (make-local-variable 'paragraph-start)
   ;; A line containing just $$ is treated as a paragraph separator.
   (setq paragraph-start "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$")
