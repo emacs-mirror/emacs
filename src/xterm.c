@@ -271,6 +271,7 @@ extern Cursor XCreateCursor ();
 extern FONT_TYPE *XOpenFont ();
 
 static void flashback ();
+static void redraw_previous_char ();
 
 #ifndef HAVE_X11
 static void dumpqueue ();
@@ -288,7 +289,7 @@ static int XTclear_end_of_line ();
    of the frame being updated, so that the XT... functions do not
    need to take a frame as argument.  Most of the XT... functions
    should never be called except during an update, the only exceptions
-   being XTcursor_to, XTwrite_char and XTreassert_line_highlight.  */
+   being XTcursor_to, XTwrite_glyphs and XTreassert_line_highlight.  */
 
 extern int mouse_track_top, mouse_track_left, mouse_track_width;
 
@@ -680,7 +681,9 @@ XTclear_end_of_line (first_unused)
 	      CHAR_TO_PIXEL_ROW (f, curs_y),
 	      FONT_WIDTH (f->display.x->font) * (first_unused - curs_x),
 	      FONT_HEIGHT (f->display.x->font), False);
-	      
+#if 0
+  redraw_previous_char (f, curs_x, curs_y);
+#endif
 #else /* ! defined (HAVE_X11) */
   XPixSet (FRAME_X_WINDOW (f),
 	   CHAR_TO_PIXEL_COL (f, curs_x),
@@ -691,6 +694,38 @@ XTclear_end_of_line (first_unused)
 #endif /* ! defined (HAVE_X11) */
 
   UNBLOCK_INPUT;
+}
+
+/* Erase the character (if any) at the position just before X, Y in frame F,
+   then redraw it and the character before it.
+   This is necessary when we erase starting at X,
+   in case the character after X overlaps into the one before X.  */
+
+static void
+redraw_previous_char (f, x, y)
+     FRAME_PTR f;
+     int x, y;
+{
+  /* Erase the character before the new ones, in case
+     what was here before overlaps it.
+     Reoutput that character, and the previous character
+     (in case the previous character overlaps it).  */
+  if (x > 0)
+    {
+      int start_x = x - 2;
+      if (start_x < 0)
+	start_x = 0;
+      XClearArea (x_current_display, FRAME_X_WINDOW (f),
+		  CHAR_TO_PIXEL_COL (f, x - 1),
+		  CHAR_TO_PIXEL_ROW (f, y),
+		  FONT_WIDTH (f->display.x->font),
+		  FONT_HEIGHT (f->display.x->font), False);
+
+      dumpglyphs (f, CHAR_TO_PIXEL_COL (f, start_x),
+		  CHAR_TO_PIXEL_ROW (f, y),
+		  &FRAME_CURRENT_GLYPHS (f)->glyphs[y][start_x],
+		  x - start_x, highlight);
+    }
 }
 
 static
