@@ -601,22 +601,24 @@ static char xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
 	   ((unsigned)(ptr[-4]) << 24))
 
 
-/* The call depth in overrun_check  functions.  Realloc may call both malloc
-   and free.  If realloc calls malloc, this may happen:
-   overrun_check_realloc()
-      -> malloc -> (via hook)_-> emacs_blocked_malloc
-         -> overrun_check_malloc
-            call malloc  (hooks are NULL, so real malloc is called).
-            malloc returns 10000.
-            add overhead, return 10016.
-      <- (back in overrun_check_realloc)
+/* The call depth in overrun_check functions.  For example, this might happen:
+   xmalloc()
+     overrun_check_malloc()
+       -> malloc -> (via hook)_-> emacs_blocked_malloc
+          -> overrun_check_malloc
+             call malloc  (hooks are NULL, so real malloc is called).
+             malloc returns 10000.
+             add overhead, return 10016.
+      <- (back in overrun_check_malloc)
       add overhead again, return 10032
+   xmalloc returns 10032.
 
    (time passes).
 
-   overrun_check_free(10032)
-     decrease overhed
-     free(10016)  <-  crash, because 10000 is the original pointer.  */
+   xfree(10032)
+     overrun_check_free(10032)
+       decrease overhed
+       free(10016)  <-  crash, because 10000 is the original pointer.  */
 
 static int check_depth;
 
