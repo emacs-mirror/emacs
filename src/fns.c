@@ -994,6 +994,8 @@ string_make_multibyte (string)
 {
   unsigned char *buf;
   int nbytes;
+  Lisp_Object ret;
+  USE_SAFE_ALLOCA;
 
   if (STRING_MULTIBYTE (string))
     return string;
@@ -1005,11 +1007,14 @@ string_make_multibyte (string)
   if (nbytes == SBYTES (string))
     return string;
 
-  buf = (unsigned char *) alloca (nbytes);
+  SAFE_ALLOCA (buf, unsigned char *, nbytes);
   copy_text (SDATA (string), buf, SBYTES (string),
 	     0, 1);
 
-  return make_multibyte_string (buf, SCHARS (string), nbytes);
+  ret = make_multibyte_string (buf, SCHARS (string), nbytes);
+  SAFE_FREE (nbytes);
+
+  return ret;
 }
 
 
@@ -1024,6 +1029,8 @@ string_to_multibyte (string)
 {
   unsigned char *buf;
   int nbytes;
+  Lisp_Object ret;
+  USE_SAFE_ALLOCA;
 
   if (STRING_MULTIBYTE (string))
     return string;
@@ -1034,11 +1041,14 @@ string_to_multibyte (string)
   if (nbytes == SBYTES (string))
     return make_multibyte_string (SDATA (string), nbytes, nbytes);
 
-  buf = (unsigned char *) alloca (nbytes);
+  SAFE_ALLOCA (buf, unsigned char *, nbytes);
   bcopy (SDATA (string), buf, SBYTES (string));
   str_to_multibyte (buf, nbytes, SBYTES (string));
 
-  return make_multibyte_string (buf, SCHARS (string), nbytes);
+  ret = make_multibyte_string (buf, SCHARS (string), nbytes);
+  SAFE_FREE (nbytes);
+
+  return ret;
 }
 
 
@@ -1048,23 +1058,22 @@ Lisp_Object
 string_make_unibyte (string)
      Lisp_Object string;
 {
+  int nchars;
   unsigned char *buf;
   Lisp_Object ret;
+  USE_SAFE_ALLOCA;
 
   if (! STRING_MULTIBYTE (string))
     return string;
 
-  /* We can not use alloca here, because string might be very long.
-     For example when selecting megabytes of text and then pasting it to
-     another application.  */
-  buf = (unsigned char *) xmalloc (SCHARS (string));
+  nchars = SCHARS (string);
 
+  SAFE_ALLOCA (buf, unsigned char *, nchars);
   copy_text (SDATA (string), buf, SBYTES (string),
 	     1, 0);
 
-  ret = make_unibyte_string (buf, SCHARS (string));
-
-  xfree (buf);
+  ret = make_unibyte_string (buf, nchars);
+  SAFE_FREE (nchars);
 
   return ret;
 }
@@ -2991,13 +3000,17 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   register Lisp_Object *args;
   register int i;
   struct gcpro gcpro1;
+  int nbytes;
+  Lisp_Object ret;
+  USE_SAFE_ALLOCA;
 
   len = Flength (sequence);
   leni = XINT (len);
   nargs = leni + leni - 1;
   if (nargs < 0) return build_string ("");
 
-  args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
+  nbytes = nargs * sizeof (Lisp_Object);
+  SAFE_ALLOCA (args, Lisp_Object *, nbytes);
 
   GCPRO1 (separator);
   mapcar1 (leni, args, function, sequence);
@@ -3009,7 +3022,10 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   for (i = 1; i < nargs; i += 2)
     args[i] = separator;
 
-  return Fconcat (nargs, args);
+  ret = Fconcat (nargs, args);
+  SAFE_FREE (nbytes);
+
+  return ret;
 }
 
 DEFUN ("mapcar", Fmapcar, Smapcar, 2, 2, 0,
@@ -3022,14 +3038,22 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   register Lisp_Object len;
   register int leni;
   register Lisp_Object *args;
+  int nbytes;
+  Lisp_Object ret;
+  USE_SAFE_ALLOCA;
 
   len = Flength (sequence);
   leni = XFASTINT (len);
-  args = (Lisp_Object *) alloca (leni * sizeof (Lisp_Object));
+
+  nbytes = leni * sizeof (Lisp_Object);
+  SAFE_ALLOCA (args, Lisp_Object *, nbytes);
 
   mapcar1 (leni, args, function, sequence);
 
-  return Flist (leni, args);
+  ret = Flist (leni, args);
+  SAFE_FREE(nbytes);
+
+  return ret;
 }
 
 DEFUN ("mapc", Fmapc, Smapc, 2, 2, 0,
@@ -3644,10 +3668,6 @@ The data read from the system are decoded using `locale-coding-system'.  */)
     }					\
   while (IS_BASE64_IGNORABLE (c))
 
-/* Don't use alloca for regions larger than this, lest we overflow
-   their stack.  */
-#define MAX_ALLOCA 16*1024
-
 /* Table of characters coding the 64 values.  */
 static char base64_value_to_char[64] =
 {
@@ -3713,6 +3733,7 @@ into shorter lines.  */)
   int allength, length;
   int ibeg, iend, encoded_length;
   int old_pos = PT;
+  USE_SAFE_ALLOCA;
 
   validate_region (&beg, &end);
 
@@ -3727,10 +3748,7 @@ into shorter lines.  */)
   allength = length + length/3 + 1;
   allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
-  if (allength <= MAX_ALLOCA)
-    encoded = (char *) alloca (allength);
-  else
-    encoded = (char *) xmalloc (allength);
+  SAFE_ALLOCA (encoded, char *, allength);
   encoded_length = base64_encode_1 (BYTE_POS_ADDR (ibeg), encoded, length,
 				    NILP (no_line_break),
 				    !NILP (current_buffer->enable_multibyte_characters));
@@ -3740,8 +3758,7 @@ into shorter lines.  */)
   if (encoded_length < 0)
     {
       /* The encoding wasn't possible. */
-      if (length > MAX_ALLOCA)
-	xfree (encoded);
+      SAFE_FREE (allength);
       error ("Multibyte character in data for base64 encoding");
     }
 
@@ -3749,8 +3766,7 @@ into shorter lines.  */)
      and delete the old.  (Insert first in order to preserve markers.)  */
   SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert (encoded, encoded_length);
-  if (allength > MAX_ALLOCA)
-    xfree (encoded);
+  SAFE_FREE (allength);
   del_range_byte (ibeg + encoded_length, iend + encoded_length, 1);
 
   /* If point was outside of the region, restore it exactly; else just
@@ -3776,6 +3792,7 @@ into shorter lines.  */)
   int allength, length, encoded_length;
   char *encoded;
   Lisp_Object encoded_string;
+  USE_SAFE_ALLOCA;
 
   CHECK_STRING (string);
 
@@ -3787,10 +3804,7 @@ into shorter lines.  */)
   allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
   /* We need to allocate enough room for decoding the text. */
-  if (allength <= MAX_ALLOCA)
-    encoded = (char *) alloca (allength);
-  else
-    encoded = (char *) xmalloc (allength);
+  SAFE_ALLOCA (encoded, char *, allength);
 
   encoded_length = base64_encode_1 (SDATA (string),
 				    encoded, length, NILP (no_line_break),
@@ -3801,14 +3815,12 @@ into shorter lines.  */)
   if (encoded_length < 0)
     {
       /* The encoding wasn't possible. */
-      if (length > MAX_ALLOCA)
-	xfree (encoded);
+      SAFE_FREE (allength);
       error ("Multibyte character in data for base64 encoding");
     }
 
   encoded_string = make_unibyte_string (encoded, encoded_length);
-  if (allength > MAX_ALLOCA)
-    xfree (encoded);
+  SAFE_FREE (allength);
 
   return encoded_string;
 }
@@ -3921,6 +3933,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   int decoded_length;
   int inserted_chars;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  USE_SAFE_ALLOCA;
 
   validate_region (&beg, &end);
 
@@ -3933,10 +3946,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
      working on a multibyte buffer, each decoded code may occupy at
      most two bytes.  */
   allength = multibyte ? length * 2 : length;
-  if (allength <= MAX_ALLOCA)
-    decoded = (char *) alloca (allength);
-  else
-    decoded = (char *) xmalloc (allength);
+  SAFE_ALLOCA (decoded, char *, allength);
 
   move_gap_both (XFASTINT (beg), ibeg);
   decoded_length = base64_decode_1 (BYTE_POS_ADDR (ibeg), decoded, length,
@@ -3947,8 +3957,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   if (decoded_length < 0)
     {
       /* The decoding wasn't possible. */
-      if (allength > MAX_ALLOCA)
-	xfree (decoded);
+      SAFE_FREE (allength);
       error ("Invalid base64 data");
     }
 
@@ -3956,8 +3965,8 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
      and delete the old.  (Insert first in order to preserve markers.)  */
   TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert_1_both (decoded, inserted_chars, decoded_length, 0, 1, 0);
-  if (allength > MAX_ALLOCA)
-    xfree (decoded);
+  SAFE_FREE (allength);
+
   /* Delete the original text.  */
   del_range_both (PT, PT_BYTE, XFASTINT (end) + inserted_chars,
 		  iend + decoded_length, 1);
@@ -3982,15 +3991,13 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   char *decoded;
   int length, decoded_length;
   Lisp_Object decoded_string;
+  USE_SAFE_ALLOCA;
 
   CHECK_STRING (string);
 
   length = SBYTES (string);
   /* We need to allocate enough room for decoding the text. */
-  if (length <= MAX_ALLOCA)
-    decoded = (char *) alloca (length);
-  else
-    decoded = (char *) xmalloc (length);
+  SAFE_ALLOCA (decoded, char *, length);
 
   /* The decoded result should be unibyte. */
   decoded_length = base64_decode_1 (SDATA (string), decoded, length,
@@ -4002,8 +4009,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   else
     decoded_string = Qnil;
 
-  if (length > MAX_ALLOCA)
-    xfree (decoded);
+  SAFE_FREE (length);
   if (!STRINGP (decoded_string))
     error ("Invalid base64 data");
 
