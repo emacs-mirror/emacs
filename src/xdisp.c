@@ -735,7 +735,7 @@ window_box_width (w, area)
   
   if (!w->pseudo_window_p)
     {
-      width -= FRAME_SCROLL_BAR_WIDTH (f) + 2 * FRAME_FLAGS_AREA_COLS (f);
+      width -= FRAME_SCROLL_BAR_WIDTH (f) + FRAME_FLAGS_AREA_COLS (f);
       
       if (area == TEXT_AREA)
 	{
@@ -792,7 +792,7 @@ window_box_left (w, area)
   if (!w->pseudo_window_p)
     {
       x += (WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f)
-	    + FRAME_FLAGS_AREA_WIDTH (f));
+	    + FRAME_LEFT_FLAGS_AREA_WIDTH (f));
       
       if (area == TEXT_AREA)
 	x += window_box_width (w, LEFT_MARGIN_AREA);
