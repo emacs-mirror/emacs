@@ -862,26 +862,34 @@ selected frame."
 ;; That can't fail, so any subsequent elements after the t are ignored.
 (defun face-try-color-list (function face colors frame)
   (if (stringp colors)
-      (funcall function face colors frame)
+      (if (or (and (not (x-display-color-p)) (not (string= colors "gray")))
+	      (= (x-display-planes) 1))
+	  nil
+	(funcall function face colors frame))
     (if (eq colors t)
 	(invert-face face frame)
       (let (done)
 	(while (and colors (not done))
-	  (if (cdr colors)
-	      ;; If there are more colors to try, catch errors
-	      ;; and set `done' if we succeed.
-	      (condition-case nil
-		  (progn
-		    (if (eq (car colors) t)
-			(invert-face face frame)
-		      (funcall function face (car colors) frame))
-		    (setq done t))
-		(error nil))
-	    ;; If this is the last color, let the error get out if it fails.
-	    ;; If it succeeds, we will exit anyway after this iteration.
-	    (if (eq (car colors) t)
-		(invert-face face frame)
-	      (funcall function face (car colors) frame)))
+	  (if (and (stringp (car colors))
+		   (or (and (not (x-display-color-p))
+			    (not (string= (car colors) "gray")))
+		       (= (x-display-planes) 1)))
+	      nil
+	    (if (cdr colors)
+		;; If there are more colors to try, catch errors
+		;; and set `done' if we succeed.
+		(condition-case nil
+		    (progn
+		      (if (eq (car colors) t)
+			  (invert-face face frame)
+			(funcall function face (car colors) frame))
+		      (setq done t))
+		  (error nil))
+	      ;; If this is the last color, let the error get out if it fails.
+	      ;; If it succeeds, we will exit anyway after this iteration.
+	      (if (eq (car colors) t)
+		  (invert-face face frame)
+		(funcall function face (car colors) frame))))
 	  (setq colors (cdr colors)))))))
 
 ;; If we are already using x-window frames, initialize faces for them.
