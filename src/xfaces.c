@@ -636,10 +636,11 @@ ensure_face_ready (f, id)
     FRAME_PARAM_FACES (f) [id] = allocate_face ();
 }
 
-/* Computing faces appropriate for a given piece of text in a buffer.  */
-
-/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
+/* Return non-zero if FONT1 and FONT2 have the same width.
+   We do not check the height, because we can now deal with
+   different heights.
    We assume that they're both character-cell fonts.  */
+
 int
 same_size_fonts (font1, font2)
      XFontStruct *font1, *font2;
@@ -648,15 +649,6 @@ same_size_fonts (font1, font2)
   XCharStruct *bounds2 = &font2->min_bounds;
 
   return (bounds1->width == bounds2->width);
-/* Checking the following caused bad results in some cases
-   when fonts that should be the same size
-   actually have very slightly different size.
-   It is possible that this reintroduces the bug whereby line positions
-   were not right.  However, the right way to fix that is to change xterm.c
-   so that the vertical positions of lines
-   depend only on the height of the frame's font.
-	  && bounds1->ascent == bounds2->ascent
-	  && bounds1->descent == bounds2->descent);  */
 }
 
 /* Update the line_height of frame F according to the biggest font in
@@ -670,7 +662,8 @@ frame_update_line_height (f)
   int biggest = FONT_HEIGHT (f->display.x->font);
 
   for (i = 0; i < f->display.x->n_param_faces; i++)
-    if (f->display.x->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
+    if (f->display.x->param_faces[i] != 0
+	&& f->display.x->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
       {
 	int height = FONT_HEIGHT (f->display.x->param_faces[i]->font);
 	if (height > biggest)
@@ -683,14 +676,16 @@ frame_update_line_height (f)
   f->display.x->line_height = biggest;
   x_set_window_size (f, 0, f->width, f->height);
 }
-
+
 /* Modify face TO by copying from FROM all properties which have
    nondefault settings.  */
+
 static void 
 merge_faces (from, to)
      struct face *from, *to;
 {
-  /* Only merge the font if it's the same size as the base font.  */
+  /* Only merge the font if it's the same width as the base font.
+     Otherwise ignore it, since we can't handle it properly.  */
   if (from->font != (XFontStruct *) FACE_DEFAULT
       && same_size_fonts (from->font, to->font))
     to->font = from->font;
@@ -706,6 +701,7 @@ merge_faces (from, to)
 
 /* Set up the basic set of facial parameters, based on the frame's
    data; all faces are deltas applied to this.  */
+
 static void
 compute_base_face (f, face)
      FRAME_PTR f;
@@ -724,7 +720,26 @@ compute_base_face (f, face)
   face->cached_index = -1;
 }
 
+/* Return the face ID to use to display a special glyph which selects
+   FACE_CODE as the face ID, assuming that ordinarily the face would
+   be CURRENT_FACE.  F is the frame.  */
 
+int
+compute_glyph_face (f, face_code, current_face)
+     struct frame *f;
+     int face_code, current_face;
+{
+  struct face face;
+
+  face = *FRAME_COMPUTED_FACES (f)[current_face];
+
+  if (face_code >= 0 && face_code < FRAME_N_PARAM_FACES (f)
+      && FRAME_PARAM_FACES (f) [face_code] != 0)
+    merge_faces (FRAME_PARAM_FACES (f) [face_code], &face);
+
+  return intern_computed_face (f, &face);
+}
+
 /* Return the face ID associated with a buffer position POS.
    Store into *ENDPTR the position at which a different face is needed.
    This does not take account of glyphs that specify their own face codes.
@@ -861,28 +876,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
 
   return intern_computed_face (f, &face);
 }
-
-/* Return the face ID to use to display a special glyph which selects
-   FACE_CODE as the face ID, assuming that ordinarily the face would
-   be CURRENT_FACE.  F is the frame.  */
-
-int
-compute_glyph_face (f, face_code, current_face)
-     struct frame *f;
-     int face_code, current_face;
-{
-  struct face face;
-
-  face = *FRAME_COMPUTED_FACES (f)[current_face];
-
-  if (face_code >= 0 && face_code < FRAME_N_PARAM_FACES (f)
-      && FRAME_PARAM_FACES (f) [face_code] != 0)
-    merge_faces (FRAME_PARAM_FACES (f) [face_code], &face);
-
-  return intern_computed_face (f, &face);
-}
-
-
+
 /* Recompute the GC's for the default and modeline faces.
    We call this after changing frame parameters on which those GC's
    depend.  */
