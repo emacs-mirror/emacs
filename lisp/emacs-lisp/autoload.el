@@ -122,72 +122,74 @@ are used."
 	  (setq file (substring file (length default-directory)))))
 
     (message "Generating autoloads for %s..." file)
-    (unwind-protect
-	(progn
-	  (set-buffer (find-file-noselect file))
-	  (save-excursion
-	    (save-restriction
-	      (widen)
-	      (goto-char (point-min))
-	      (while (not (eobp))
-		(skip-chars-forward " \t\n\f")
-		(cond ((looking-at (regexp-quote generate-autoload-cookie))
-		       (search-forward generate-autoload-cookie)
-		       (skip-chars-forward " \t")
-		       (setq done-any t)
-		       (if (eolp)
-			   ;; Read the next form and make an autoload.
-			   (let* ((form (prog1 (read (current-buffer))
-					  (forward-line 1)))
-				  (autoload (make-autoload form load-name))
-				  (doc-string-elt (get (car-safe form)
-						       'doc-string-elt)))
-			     (if autoload
-				 (setq autoloads-done (cons (nth 1 form)
-							    autoloads-done))
-			       (setq autoload form))
-			     (if (and doc-string-elt
-				      (stringp (nth doc-string-elt autoload)))
-				 ;; We need to hack the printing because the
-				 ;; doc-string must be printed specially for
-				 ;; make-docfile (sigh).
-				 (let* ((p (nthcdr (1- doc-string-elt)
-						   autoload))
-					(elt (cdr p)))
-				   (setcdr p nil)
-				   (princ "\n(" outbuf)
-				   (mapcar (function (lambda (elt)
-						       (prin1 elt outbuf)
-						       (princ " " outbuf)))
-					   autoload)
-				   (princ "\"\\\n" outbuf)
-				   (princ (substring
-					   (prin1-to-string (car elt)) 1)
-					  outbuf)
-				   (if (null (cdr elt))
-				       (princ ")" outbuf)
-				     (princ " " outbuf)
-				     (princ (substring
-					     (prin1-to-string (cdr elt))
-					     1)
-					    outbuf))
-				   (terpri outbuf))
-			       (print autoload outbuf)))
-			 ;; Copy the rest of the line to the output.
-			 (let ((begin (point)))
-			   (forward-line 1)
-			   (princ (buffer-substring begin (point)) outbuf))))
-		      ((looking-at ";")
-		       ;; Don't read the comment.
-		       (forward-line 1))
-		      (t
-		       (forward-sexp 1)
-		       (forward-line 1)))))))
-      (or visited
-	  ;; We created this buffer, so we should kill it.
-	  (kill-buffer (current-buffer)))
-      (set-buffer outbuf)
-      (setq output-end (point-marker)))
+    (save-excursion
+      (unwind-protect
+	  (progn
+	    (set-buffer (find-file-noselect file))
+	    (save-excursion
+	      (save-restriction
+		(widen)
+		(goto-char (point-min))
+		(while (not (eobp))
+		  (skip-chars-forward " \t\n\f")
+		  (cond
+		   ((looking-at (regexp-quote generate-autoload-cookie))
+		    (search-forward generate-autoload-cookie)
+		    (skip-chars-forward " \t")
+		    (setq done-any t)
+		    (if (eolp)
+			;; Read the next form and make an autoload.
+			(let* ((form (prog1 (read (current-buffer))
+				       (forward-line 1)))
+			       (autoload (make-autoload form load-name))
+			       (doc-string-elt (get (car-safe form)
+						    'doc-string-elt)))
+			  (if autoload
+			      (setq autoloads-done (cons (nth 1 form)
+							 autoloads-done))
+			    (setq autoload form))
+			  (if (and doc-string-elt
+				   (stringp (nth doc-string-elt autoload)))
+			      ;; We need to hack the printing because the
+			      ;; doc-string must be printed specially for
+			      ;; make-docfile (sigh).
+			      (let* ((p (nthcdr (1- doc-string-elt)
+						autoload))
+				     (elt (cdr p)))
+				(setcdr p nil)
+				(princ "\n(" outbuf)
+				(mapcar (function (lambda (elt)
+						    (prin1 elt outbuf)
+						    (princ " " outbuf)))
+					autoload)
+				(princ "\"\\\n" outbuf)
+				(princ (substring
+					(prin1-to-string (car elt)) 1)
+				       outbuf)
+				(if (null (cdr elt))
+				    (princ ")" outbuf)
+				  (princ " " outbuf)
+				  (princ (substring
+					  (prin1-to-string (cdr elt))
+					  1)
+					 outbuf))
+				(terpri outbuf))
+			    (print autoload outbuf)))
+		      ;; Copy the rest of the line to the output.
+		      (let ((begin (point)))
+			(forward-line 1)
+			(princ (buffer-substring begin (point)) outbuf))))
+			((looking-at ";")
+			 ;; Don't read the comment.
+			 (forward-line 1))
+			(t
+			 (forward-sexp 1)
+			 (forward-line 1)))))))
+	(or visited
+	    ;; We created this buffer, so we should kill it.
+	    (kill-buffer (current-buffer)))
+	(set-buffer outbuf)
+	(setq output-end (point-marker))))
     (if done-any
 	(progn
 	  (insert generate-autoload-section-header)
