@@ -1,5 +1,12 @@
 2002-10-28  Dave Love  <fx@gnu.org>
 
+	* language/thai-util.el (thai-composition-function): Don't use prog1.
+
+	* language/lao-util.el (lao-composition-function): Don't use prog1.
+
+	* language/european.el (diacritic-composition-function): Modify
+	confused prog1 form.
+
 	* international/quail.el (quail-keyboard-layout-alist): Fix
 	pc105-uk.
 	(quail-keyboard-layout): Customize.
