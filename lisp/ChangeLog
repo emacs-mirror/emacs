@@ -1,3 +1,53 @@
+2002-06-20  Emmanuel Briot  <briot@act-europe.fr>
+
+	* progmodes/ada-mode.el: Update copyright notice.
+	Synchronize with GNAT release 3.15a1.
+	Do not attempt to load ada-support, which is only for compatibility
+	with older Emacs versions, and is not needed for Emacs 21.
+	Fix various calls to count-lines, that didn't work correctly when the
+	buffer was narrowed.
+	(ada-continuation-indent): New variable.
+	(ada-contextual-menu): New entry "List local references", faster than
+	"List References".
+	(ada-mode): New alignment rules provided by S. Leake.
+	Add support for which-function-mode.
+	(ada-get-current-indent): Fix indentation of named parameter lists and
+	nested boolean expressions.
+	(ada-indent-on-previous-lines): Fix indentation of labels.
+	(ada-search-prev-end-stmt): Fix searching of the previous
+	end-statement, specially with regards to nested subprograms.
+	(comment-region advice): Initially disabled, for better compatibility
+	with other modes.
+	(ada-fill-comment-paragraph): Fixed (no longer worked with Emacs 21).
+
+	* progmodes/ada-xref.el: Update copyright notice.
+	(ada-xref-create-ali): The default is now not to create automatically
+	the ALI files by compiling the unit, since this isn't always reliable
+	and requires an up-to-date project file.
+	(ada-prj-default-comp-cmd): No longer use gcc directly to compile
+	a file, but use gnatmake instead, since this gives access to the GNAT
+	project files.
+	(ada-xref-search-with-egrep): New variable, suggested by P. Waroquiers.
+	(ada-load-project-hook): New variable, for support of GNAT
+	project files.
+	(ada-update-project-menu): Fix the detection of the project file name.
+	(ada-add-keymap): Change key binding for ada-find-file, that conflicted
+	with another binding in ada-mode.el.
+	(ada-add-menu): New menu "List Local References", to list the reference
+	to the entity only in the current file, instead of looking in the whole
+	project.  Much faster.
+	(ada-find-references): New parameters arg and local-only.
+	(ada-find-any-references): New parameters local-only and append.
+	(ada-goto-declaration): Fix handling of predefined entities in xref.
+	(ada-get-all-references): Updated to the new xref format in GNAT 3.15,
+	still compatible with GNAT 3.14 of course.  Fix various calls to
+	count-lines, that didn't work correctly when the buffer was narrowed.
+
+	* progmodes/ada-prj.el: Update copyright.
+	(ada-prj-load-directory): Make sure we do not use one of the new Emacs
+	21 dialogs to select the file, since we want a directory name only.
+	(ada-customize): Add support for the new GNAT project files.
+
 2002-06-20  Francesco Potorti`  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-implicit-name-match-p): New function.
@@ -3245,8 +3295,8 @@
 2002-04-09  Emmanuel Briot  <briot@act-europe.fr>
 
 	* progmodes/ada-prj.el: Add support for the new project file
-	fields: gnatfind-opt, debug-pre-cmd and debug-post-cmd.  Fix
-	widget handling for Emacs 21.  ada-mode now only supports a single
+	fields: gnatfind-opt, debug-pre-cmd and debug-post-cmd.
+	Fix widget handling for Emacs 21.  ada-mode now only supports a single
 	active project file, instead of one per buffer.  This is far less
 	confusing.
 
