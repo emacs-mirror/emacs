@@ -1,5 +1,10 @@
 1999-10-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile (compile): Compile files one by one.  Set load-path to
+	current directory and subdirectories when compiling.
+	
+1999-10-08  Gerd Moellmann  <gerd@gnu.org>
+
 	* Makefile (EMACSOPT, DONTCOMPILE, EL): New.
 	(emacs): Use it everywhere instead of EMACS.
 	(compile): New target.  Compile all Lisp files from scratch.
