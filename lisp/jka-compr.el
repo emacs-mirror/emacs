@@ -504,6 +504,10 @@ There should be no more than seven characters after the final `/'."
 	      size start
               (coding-system-for-read
 	       (or coding-system-for-read
+		   ;; If multibyte characters are disabled,
+		   ;; don't do that conversion.
+		   (and (null enable-multibyte-characters)
+			'raw-text)
 		   (let ((tail file-coding-system-alist)
 			 (newfile
 			  (jka-compr-byte-compiler-base-file-name file))
