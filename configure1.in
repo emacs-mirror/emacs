@@ -1180,7 +1180,7 @@ dnl checks for UNIX variants that set `DEFS'
 AC_AIX
 
 dnl checks for header files
-AC_HAVE_HEADERS(sys/timeb.h sys/time.h unistd.h)
+AC_HAVE_HEADERS(sys/timeb.h sys/time.h unistd.h utime.h)
 AC_STDC_HEADERS
 AC_TIME_WITH_SYS_TIME
 dnl In Autoconf 1.8 use AC_SYS_SIGLIST_DECLARED instead of this.
@@ -1191,6 +1191,21 @@ AC_COMPILE_CHECK(sys_siglist declaration in signal.h or unistd.h,
 #include <unistd.h>
 #endif], [char *msg = *(sys_siglist + 1);],
 		 AC_DEFINE(SYS_SIGLIST_DECLARED))
+dnl Some systems have utime.h but don't declare the struct anyplace.
+AC_COMPILE_CHECK(struct utimbuf, [#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+#ifdef HAVE_UTIME_H
+#include <utime.h>
+#endif], [static struct utimbuf x; x.actime = x.modtime;],
+		AC_DEFINE(HAVE_STRUCT_UTIMBUF))
 
 dnl checks for typedefs
 AC_RETSIGTYPE
