@@ -155,7 +155,7 @@ clean:
 maybe_bootstrap:
 	@if not exist lisp\abbrevs.elc djecho \
 	 "Some *.elc files are missing.  You should do a `make bootstrap'."
-	@if not exist lisp\abbrevs.elc fail-this-make
+	@if not exist lisp\abbrevs.elc redir -e /dev/null -oe redir fail-this-make.exe
 
 bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
 
