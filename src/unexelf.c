@@ -1,4 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992
+/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -52,11 +52,6 @@ what you give them.   Help stamp out software-hoarding!  */
  * The value you specify may be rounded down to a suitable boundary
  * as required by the machine you are using.
  *
- * Specifying zero for data_start means the boundary between text and data
- * should not be the same as when the program was loaded.
- * If NO_REMAP is defined, the argument data_start is ignored and the
- * segment boundaries are never changed.
- *
  * Bss_start indicates how much of the data segment is to be saved in the
  * a.out file and restored when the program is executed.  It gives the lowest
  * unsaved address, and is rounded up to a page boundary.  The default when 0
@@ -65,9 +60,6 @@ what you give them.   Help stamp out software-hoarding!  */
  * break (2).
  *
  * The new file is set up to start at entry_address.
- *
- * If you make improvements I'd like to get them too.
- * harpo!utah-cs!thomas, thomas@Utah-20
  *
  */
 
@@ -412,6 +404,13 @@ Filesz      Memsz       Flags       Align
 
  */
 
+#ifndef emacs
+#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
+#else
+#include <config.h>
+extern void fatal (char *, ...);
+#endif
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -509,17 +508,18 @@ typedef struct {
 
 #ifndef ElfW
 # ifdef __STDC__
-#  define ElfW(type)	Elf32_##type
+#  define ElfBitsW(bits, type) Elf##bits##_##type
 # else
-#  define ElfW(type)	Elf32_/**/type
+#  define ElfBitsW(bits, type) Elf/**/bits/**/_/**/type
 # endif
-#endif
-
-#ifndef emacs
-#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
-#else
-#include <config.h>
-extern void fatal (char *, ...);
+# ifdef _LP64
+#  define ELFSIZE 64
+# else
+#  define ELFSIZE 32
+# endif
+  /* This macro expands `bits' before invoking ElfBitsW.  */
+# define ElfExpandBitsW(bits, type) ElfBitsW (bits, type)
+# define ElfW(type) ElfExpandBitsW (ELFSIZE, type)
 #endif
 
 #ifndef ELF_BSS_SECTION_NAME
@@ -702,6 +702,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
   old_sbss_index = find_section (".sbss", old_section_names,
 				 old_name, old_file_h, old_section_h, 1);
+  if (old_sbss_index != -1)
+    if (OLD_SECTION_H (old_sbss_index).sh_type == SHT_PROGBITS)
+      old_sbss_index = -1;
 
   if (old_sbss_index == -1)
     {
@@ -958,6 +961,15 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if (NEW_SECTION_H (nn).sh_type != SHT_SYMTAB
 	  && NEW_SECTION_H (nn).sh_type != SHT_DYNSYM)
 	PATCH_INDEX (NEW_SECTION_H (nn).sh_info);
+      
+      if (old_sbss_index != -1)
+	if (!strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".sbss"))
+	  {
+	    NEW_SECTION_H (nn).sh_offset = 
+	      round_up (NEW_SECTION_H (nn).sh_offset,
+			NEW_SECTION_H (nn).sh_addralign);
+	    NEW_SECTION_H (nn).sh_type = SHT_PROGBITS;
+	  }
 
       /* Now, start to copy the content of sections.  */
       if (NEW_SECTION_H (nn).sh_type == SHT_NULL
@@ -977,7 +989,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sdata1")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
-		      ".data1"))
+		      ".data1")
+	  || !strcmp (old_section_names + NEW_SECTION_H (nn).sh_name,
+		      ".sbss"))
 	src = (caddr_t) OLD_SECTION_H (n).sh_addr;
       else
 	src = old_base + OLD_SECTION_H (n).sh_offset;
