@@ -43,8 +43,11 @@
     "turquoise"))
 
 (defvar gnus-face-dark-name-list
-  '("dark blue" "firebrick" "dark green" "OrangeRed" 
-    "dark khaki" "dark violet" "SteelBlue4"))
+  (list
+   ;; Not all servers have dark blue in rgb.txt.
+   (if (x-color-defined-p "dark blue") "dark blue" "royal blue")
+   "firebrick" "dark green" "OrangeRed" 
+   "dark khaki" "dark violet" "SteelBlue4"))
 ; CornflowerBlue SeaGreen OrangeRed SteelBlue4 DeepPink3
 ; DarkOlviveGreen4 
 
@@ -635,7 +638,12 @@ ticked: The number of ticked articles.")
 	       ((and mailp (eq level 2)) .
 		,(custom-face-lookup "HotPink3" nil nil t))
 	       ((and mailp (eq level 3)) .
-		,(custom-face-lookup "dark magenta" nil nil t))
+		,(custom-face-lookup
+		  ;; Not all servers have dark magenta in rgb.txt.
+		  (if (x-color-defined-p "dark magenta")
+		      "dark magenta"
+		    "maroon")
+		  nil nil t))
 	       ((and mailp (eq level 4)) .
 		,(custom-face-lookup "DeepPink4" nil nil t))
 	       ((and mailp (> level 4)) .
