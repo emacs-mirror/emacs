@@ -1100,9 +1100,9 @@ direct_output_for_insert (g)
   }
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
-  XFASTINT (w->last_point) = point;
-  XFASTINT (w->last_point_x) = hpos;
-  XFASTINT (w->last_modified) = MODIFF;
+  XSETFASTINT (w->last_point, point);
+  XSETFASTINT (w->last_point_x, hpos);
+  XSETFASTINT (w->last_modified, MODIFF);
 
   reassert_line_highlight (0, vpos);
   write_glyphs (&current_frame->glyphs[vpos][hpos], 1);
@@ -1147,14 +1147,14 @@ direct_output_forward_char (n)
   /* Don't use direct output next to an invisible character
      since we might need to do something special.  */
 
-  XFASTINT (position) = point;
+  XSETFASTINT (position, point);
   if (XFASTINT (position) < ZV
       && ! NILP (Fget_char_property (position,
 				     Qinvisible,
 				     selected_window)))
     return 0;
 
-  XFASTINT (position) = point - 1;
+  XSETFASTINT (position, point - 1);
   if (XFASTINT (position) >= BEGV
       && ! NILP (Fget_char_property (position,
 				     Qinvisible,
@@ -1163,8 +1163,8 @@ direct_output_forward_char (n)
 #endif
 
   FRAME_CURSOR_X (frame) += n;
-  XFASTINT (w->last_point_x) = FRAME_CURSOR_X (frame);
-  XFASTINT (w->last_point) = point;
+  XSETFASTINT (w->last_point_x, FRAME_CURSOR_X (frame));
+  XSETFASTINT (w->last_point, point);
   cursor_to (FRAME_CURSOR_Y (frame), FRAME_CURSOR_X (frame));
   fflush (stdout);
 
@@ -2048,8 +2048,8 @@ change_frame_size (frame, newheight, newwidth, pretend, delay)
 	  /* Frame has both root and minibuffer.  */
 	  set_window_height (FRAME_ROOT_WINDOW (frame),
 			     newheight - 1 - FRAME_MENU_BAR_LINES (frame), 0);
-	  XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (frame))->top)
-	    = newheight - 1;
+	  XSETFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (frame))->top,
+		       newheight - 1);
 	  set_window_height (FRAME_MINIBUF_WINDOW (frame), 1, 0);
 	}
       else
@@ -2202,7 +2202,7 @@ Emacs was built without floating point support.\n\
   {
     Lisp_Object zero;
 
-    XFASTINT (zero) = 0;
+    XSETFASTINT (zero, 0);
     wait_reading_process_input (sec, usec, zero, 0);
   }
 
