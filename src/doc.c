@@ -83,12 +83,15 @@ static int get_doc_string_buffer_size;
    (A negative integer is used for user variables, so we can distinguish
    them without actually fetching the doc string.)
 
-   If UNIBYTE is nonzero, always return the result as a unibyte string.  */
+   If DEFINITION is nonzero, assume this is for reading
+   a dynamic function definition; convert the bytestring
+   and the constants vector with appropriate byte handling,
+   and return a cons cell.  */
 
 Lisp_Object
-get_doc_string (filepos, unibyte)
+get_doc_string (filepos, definition)
      Lisp_Object filepos;
-     int unibyte;
+     int definition;
 {
   char *from, *to;
   register int fd;
@@ -242,12 +245,39 @@ get_doc_string (filepos, unibyte)
 	*to++ = *from++;
     }
 
-  if (unibyte)
-    return make_unibyte_string (get_doc_string_buffer + offset,
-				to - (get_doc_string_buffer + offset));
-  else
-    return make_string (get_doc_string_buffer + offset,
-			to - (get_doc_string_buffer + offset));
+  if (definition)
+    {
+      char *p = get_doc_string_buffer + offset;
+      char *start_ptr;
+      Lisp_Object bytestring, vector;
+
+      if (*p++ != '(')
+	return Qnil;
+      start_ptr = p;
+      if (*p++ != '"')
+	return Qnil;
+      while (*p != '"')
+	{
+	  if (*p == '\\')
+	    p++;
+	  p++;
+	}
+      p++;
+      bytestring = Fread (make_unibyte_string (start_ptr, p - start_ptr));
+      if (*p++ != ' ')
+	return Qnil;
+      if (*p++ != '.')
+	return Qnil;
+      if (*p++ != ' ')
+	return Qnil;
+      if (to[-1] != ')')
+	return Qnil;
+      vector = Fread (make_string (p, to - p - 1));
+      return Fcons (bytestring, vector);
+    }
+
+  return make_string (get_doc_string_buffer + offset,
+		      to - (get_doc_string_buffer + offset));
 }
 
 /* Get a string from position FILEPOS and pass it through the Lisp reader.
@@ -258,7 +288,7 @@ Lisp_Object
 read_doc_string (filepos)
      Lisp_Object filepos;
 {
-  return Fread (get_doc_string (filepos, 1));
+  return get_doc_string (filepos, 1);
 }
 
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
