@@ -1,12 +1,12 @@
 ;;; ebnf-iso.el --- parser for ISO EBNF
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
-;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2001-07-15 01:03:20 pavel>
-;; Version:    1.5
+;; Keywords: wp, ebnf, PostScript
+;; Time-stamp: <2001/08/15 17:12:51 vinicius>
+;; Version: 1.5
 
 ;; This file is part of GNU Emacs.
 

@@ -1,12 +1,12 @@
 ;;; ebnf-yac.el --- parser for Yacc/Bison
 
-;; Copyright (C) 1999, 2000 Free Sofware Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation, Inc.
 
-;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2001-07-15 01:04:02 pavel>
-;; Version:    1.1
+;; Keywords: wp, ebnf, PostScript
+;; Time-stamp: <2001/08/15 17:15:15 vinicius>
+;; Version: 1.1
 
 ;; This file is part of GNU Emacs.
 

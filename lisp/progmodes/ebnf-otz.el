@@ -1,12 +1,12 @@
 ;;; ebnf-otz.el --- syntatic chart OpTimiZer
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
-;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2001-07-15 01:03:33 pavel>
-;; Version:    1.0
+;; Keywords: wp, ebnf, PostScript
+;; Time-stamp: <2001/08/15 17:13:25 vinicius>
+;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 
