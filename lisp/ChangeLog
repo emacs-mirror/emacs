@@ -1,3 +1,14 @@
+2004-04-06  Kenichi Handa  <handa@m17n.org>
+
+	* language/ethio-util.el (ethio-sera-being-called-by-w3): New
+	variable.
+	(ethio-sera-to-fidel-ethio): Check ethio-sera-being-called-by-w3
+	instead of sera-being-called-by-w3.
+	(ethio-fidel-to-sera-buffer): Likewise.
+	(ethio-find-file): Bind ethio-sera-being-called-by-w3 to t
+	instead of sera-being-called-by-w3.
+	(ethio-write-file): Likewise.
+
 2004-04-05  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer): New option.
