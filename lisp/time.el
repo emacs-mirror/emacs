@@ -52,7 +52,8 @@ use either \\[customize] or the function `display-time-mode'."
   "*File name of mail inbox file, for indicating existence of new mail.
 Non-nil and not a string means don't check for mail.  nil means use
 default, which is system-dependent, and is the same as used by Rmail."
-  :type '(choice (const :tag "Default" nil)
+  :type '(choice (const :tag "(None)" none)
+		 (const :tag "Default" nil)
 		 (file :format "%v"))
   :group 'display-time)
 
