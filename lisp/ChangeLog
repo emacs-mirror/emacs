@@ -1,5 +1,8 @@
 2000-12-13  Kenichi Handa  <handa@etl.go.jp>
 
+	* dired.el (dired-move-to-filename-regexp): Fixed for the case
+	that a Japanese character is not appended after day and year.
+
 	* info.el (Info-suffix-list): Change format for a command that
 	requires arguments.
 	(info-insert-file-contents): Adjusted for the above change.
