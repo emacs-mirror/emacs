@@ -2940,7 +2940,7 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 				     directory nil nil case-fold-search))
 	      ;; We matched within FILENAME's directory part.
 	      ;; Add the rest of FILENAME onto ANCESTOR.
-	      (let ((rest (substring filename (match-end 0))))
+	      (let ((rest (substring filename (length directory))))
 		(if (and (equal ancestor ".") (not (equal rest "")))
 		    ;; But don't bother with ANCESTOR if it would give us `./'.
 		    rest
