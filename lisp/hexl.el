@@ -614,7 +614,7 @@ You may also type up to 3 octal digits, to insert a character with that code"
     (define-key hexl-mode-map "\C-f" 'hexl-forward-char)
 
     (if (not (eq (key-binding (char-to-string help-char)) 'help-command))
-	(define-key hexl-mode-map help-char 'undefined))
+	(define-key hexl-mode-map (char-to-string help-char) 'undefined))
 
     (define-key hexl-mode-map "\C-i" 'hexl-self-insert-command)
     (define-key hexl-mode-map "\C-j" 'hexl-self-insert-command)
