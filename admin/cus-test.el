@@ -234,8 +234,7 @@ The detected problematic options are stored in `cus-test-errors'."
 
 	   ;; Store symbols with a custom-get property.
 	   (when (get symbol 'custom-get)
-	     (add-to-list 'cus-test-vars-with-custom-get
-			  symbol 'append))
+	     (add-to-list 'cus-test-vars-with-custom-get symbol))
 
 	   ;; Changed outside the customize buffer?
 	   ;; This routine is not very much tested.
@@ -246,8 +245,7 @@ The detected problematic options are stored in `cus-test-errors'."
 	     (and (consp c-value)
 		  (boundp symbol)
 		  (not (equal (eval (car c-value)) (symbol-value symbol)))
-		  (add-to-list 'cus-test-vars-with-changed-state
-			       symbol 'append)))
+		  (add-to-list 'cus-test-vars-with-changed-state symbol)))
 
 	   (if mismatch
 	       (push symbol cus-test-errors)))
