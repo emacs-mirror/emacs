@@ -292,6 +292,17 @@ This should be bound to a mouse click event type."
     (if (numberp (posn-point posn))
 	(goto-char (posn-point posn)))))
 
+(defvar mouse-last-region-beg nil)
+(defvar mouse-last-region-end nil)
+(defvar mouse-last-region-tick nil)
+
+(defun mouse-region-match ()
+  "Return non-nil if there's an active region that was set with the mouse."
+  (and (mark t) mark-active
+       (eq mouse-last-region-beg (region-beginning))
+       (eq mouse-last-region-end (region-end))
+       (eq mouse-last-region-tick (buffer-modified-tick))))
+
 (defun mouse-set-region (click)
   "Set the region to the text dragged over, and copy to kill ring.
 This should be bound to a mouse drag event."
@@ -313,7 +324,13 @@ This should be bound to a mouse drag event."
     ;; Don't set this-command to kill-region, so that a following
     ;; C-w will not double the text in the kill ring.
     (let (this-command)
-      (copy-region-as-kill (mark) (point)))))
+      (copy-region-as-kill (mark) (point)))
+    (mouse-set-region-1)))
+
+(defun mouse-set-region-1 ()
+  (setq mouse-last-region-beg (region-beginning))
+  (setq mouse-last-region-end (region-end))
+  (setq mouse-last-region-tick (buffer-modified-tick)))
 
 (defvar mouse-scroll-delay 0.25
   "*The pause between scroll steps caused by mouse drags, in seconds.
@@ -420,16 +437,22 @@ release the mouse button.  Otherwise, it does not."
 	    (if (and (= (mod mouse-selection-click-count 3) 0) (fboundp fun))
 		(progn
 		  (setq this-command fun)
+		  ;; Delete the overlay before calling the function,
+		  ;; because delete-overlay increases buffer-modified-tick.
+		  (delete-overlay mouse-drag-overlay)
 		  (funcall fun event))
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
 		  (let (last-command this-command)
 		    (push-mark (overlay-start mouse-drag-overlay) t t)
 		    (goto-char (overlay-end mouse-drag-overlay))
-		    (copy-region-as-kill (point) (mark t)))
+		    (delete-overlay mouse-drag-overlay)
+		    (copy-region-as-kill (point) (mark t))
+		    (mouse-set-region-1))
 		(goto-char (overlay-end mouse-drag-overlay))
-		(setq this-command 'mouse-set-point)))))
-      (delete-overlay mouse-drag-overlay))))
+		(setq this-command 'mouse-set-point)
+		(delete-overlay mouse-drag-overlay))))
+	(delete-overlay mouse-drag-overlay)))))
 
 ;; Commands to handle xterm-style multiple clicks.
 
@@ -644,6 +667,7 @@ If you do this twice in the same position, the selection is killed."
 		;; Replace it with the extended region.
 		;; (It would be annoying to make a separate entry.)
 		(kill-new (buffer-substring (point) (mark t)) t)
+		(mouse-set-region-1)
 		;; Arrange for a repeated mouse-3 to kill this region.
 		(setq mouse-save-then-kill-posn
 		      (list (car kill-ring) (point) click-posn))
@@ -690,6 +714,7 @@ If you do this twice in the same position, the selection is killed."
 	    (exchange-point-and-mark)
 	    (kill-ring-save (point) (mark t)))
 	  (mouse-show-mark)
+	  (mouse-set-region-1)
 	  (setq mouse-save-then-kill-posn
 		(list (car kill-ring) (point) click-posn)))))))
 
