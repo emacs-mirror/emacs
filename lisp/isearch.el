@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/03/30 19:42:10 $|$Revision: 1.29 $
+;; |$Date: 1993/04/14 19:40:53 $|$Revision: 1.30 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -38,7 +38,7 @@
 ;; isearch-forward, etc, will then use isearch-mode instead of
 ;; isearch.
 
-;; (fset 'isearch 'isearch-mode)
+;; (defalias 'isearch 'isearch-mode)
 ;; (autoload 'isearch-mode "isearch-mode")
 
 ;; For programmed use of isearch-mode, e.g. calling (isearch-forward),
@@ -51,7 +51,7 @@
 ;; of isearch-forward, etc. found in this file instead of those in
 ;; loaddefs.el.  The simplest way to ensure this is to just load
 ;; isearch-mode explicitly in your .emacs instead of using the above
-;; fset and autoload.
+;; defalias and autoload.
 
 ;; (load "isearch-mode")
 
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.29 1993/03/30 19:42:10 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.30 1993/04/14 19:40:53 rms Exp eric $
 ;;; $Log: isearch.el,v $
+; Revision 1.30  1993/04/14  19:40:53  rms
+; Doc fixes.
+;
 ; Revision 1.29  1993/03/30  19:42:10  rms
 ; (isearch-done): Customize the message about mark.
 ;
@@ -472,7 +475,7 @@ Default value, nil, means edit the string instead.")
 ;;;===============================================================
 ;;; Entry points to isearch-mode.
 ;;; These four functions should replace those in loaddefs.el
-;;; An alternative is to fset isearch-forward etc to isearch-mode,
+;;; An alternative is to defalias isearch-forward etc to isearch-mode,
 ;;; and look at this-command to set the options accordingly.
 
 (defun isearch-forward (&optional regexp-p no-recursive-edit)
@@ -1071,7 +1074,7 @@ If no previous match was done, just beep."
   (isearch-process-search-char (isearch-last-command-char)))
 
 
-(fset 'isearch-other-control-char 'isearch-other-meta-char)
+(defalias 'isearch-other-control-char 'isearch-other-meta-char)
 
 (defun isearch-other-meta-char ()
   "Exit the search normally and reread this key sequence.
@@ -1433,14 +1436,14 @@ If there is no completion possible, say so and continue searching."
 	    (set-extent-face isearch-extent 'default)
 	  (isearch-dehighlight t)))))
 
-(fset 'isearch-highlight (symbol-function 'isearch-lemacs-highlight))
-(fset 'isearch-dehighlight (symbol-function 'isearch-lemacs-dehighlight))
+(defalias 'isearch-highlight (symbol-function 'isearch-lemacs-highlight))
+(defalias 'isearch-dehighlight (symbol-function 'isearch-lemacs-dehighlight))
 )
 
 ;;;===========================================================
 ;;; General utilities
 
-;; (fset 'isearch-member-equal (symbol-function 'member)) ; for emacs 19
+;; (defalias 'isearch-member-equal (symbol-function 'member)) ; for emacs 19
 
 (defun isearch-member-equal (item list)
   "Return non-nil if ITEM is `equal' to some item in LIST.
