@@ -758,8 +758,11 @@ Return t if file exists.  */)
 	    {
 	      safe_p = 0;
 	      if (!load_dangerous_libraries)
-		error ("File `%s' was not compiled in Emacs",
-		       XSTRING (found)->data);
+		{
+		  emacs_close (fd);
+		  error ("File `%s' was not compiled in Emacs",
+			 XSTRING (found)->data);
+		}
 	      else if (!NILP (nomessage))
 		message_with_string ("File `%s' not compiled in Emacs", found, 1);
 	    }
@@ -778,9 +781,15 @@ Return t if file exists.  */)
 
 	      if (fd >= 0)
 		emacs_close (fd);
+	      /* load-with-code-conversion currently fails with
+		 emacs-mule non-ASCII doc strings.  */
+	      error ("Can't currently load Emacs 20/1-compiled files: %s",
+		     XSTRING (found)->data);
+#if 0
 	      val = call4 (intern ("load-with-code-conversion"), found, file,
 			   NILP (noerror) ? Qnil : Qt,
 			   NILP (nomessage) ? Qnil : Qt);
+#endif
 	      return unbind_to (count, val);
 	    }
 
