@@ -3255,8 +3255,12 @@ usage: (format STRING &rest OBJECTS)  */)
   /* We may have to change "%S" to "%s". */
   args[0] = Fcopy_sequence (args[0]);
 
+  /* GC should never happen here, so abort if it does.  */
+  abort_on_gc++;
+
   /* If we start out planning a unibyte result,
-     and later find it has to be multibyte, we jump back to retry.  */
+     then discover it has to be multibyte, we jump back to retry.
+     That can only happen from the first large while loop below.  */
  retry:
 
   format = SDATA (args[0]);
@@ -3456,6 +3460,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	total += thissize + 4;
       }
 
+  abort_on_gc--;
+
   /* Now we can no longer jump to retry.
      TOTAL and LONGEST_FORMAT are known for certain.  */
 
@@ -3474,6 +3480,8 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Scan the format and store result in BUF.  */
   format = SDATA (args[0]);
+  format_start = format;
+  end = format + SBYTES (args[0]);
   maybe_combine_byte = 0;
   while (format != end)
     {
