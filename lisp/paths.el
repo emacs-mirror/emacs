@@ -118,13 +118,18 @@ Its name should end with a slash.")
    ;; restricted shell and use remsh for the remote shell.  Let's try to guess
    ;; based on what we actually find out there.  The restricted shell is
    ;; almost certainly in /bin or /usr/bin, so it's probably safe to assume
-   ;; that an rsh found elsewhere is the remote shell program.
+   ;; that an rsh found elsewhere is the remote shell program.  The converse
+   ;; is not true: /usr/bin/rsh could be either one, so check that last.
    ((file-exists-p "/usr/ucb/remsh") "/usr/ucb/remsh")
-   ((file-exists-p "/usr/ucb/rsh") "/usr/ucb/rsh")
+   ((file-exists-p "/usr/bsd/remsh") "/usr/bsd/remsh")
    ((file-exists-p "/bin/remsh") "/bin/remsh")
    ((file-exists-p "/usr/bin/remsh") "/bin/remsh")
+   ((file-exists-p "/usr/local/bin/remsh") "/usr/local/bin/remsh")
+   ((file-exists-p "/usr/ucb/rsh") "/usr/ucb/rsh")
+   ((file-exists-p "/usr/bsd/rsh") "/usr/bsd/rsh")
    ((file-exists-p "/usr/local/bin/rsh") "/usr/local/bin/rsh")
-   ((memq system-type '(hpux usg-unix-v)) "remsh")
+   ((file-exists-p "/bin/rsh") "/bin/rsh")
+   ((file-exists-p "/usr/bin/rsh") "/usr/bin/rsh")
    (t "rsh")))
 
 (defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/")
