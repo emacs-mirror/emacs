@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000, 2003
+;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000, 03, 2004
 ;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -489,8 +489,7 @@ non-nil, otherwise in local time."
 			    (funcall add-log-buffer-file-name-function)
 			  buffer-file-name))
 	 (buffer-file (if buf-file-name (expand-file-name buf-file-name)))
-	 (file-name (expand-file-name
-		     (or file-name (find-change-log file-name buffer-file))))
+	 (file-name (expand-file-name (find-change-log file-name buffer-file)))
 	 ;; Set ITEM to the file name to use in the new item.
 	 (item (add-log-file-name buffer-file file-name))
 	 bound)
