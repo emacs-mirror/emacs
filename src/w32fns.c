@@ -3073,7 +3073,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
   strcat (name_key, ".");
   strcat (name_key, SDATA (attribute));
 
-  value = x_get_string_resource (Qnil,
+  value = x_get_string_resource (check_x_display_info (Qnil)->xrdb,
 				 name_key, class_key);
 
   if (value != (char *) 0)
@@ -3104,7 +3104,8 @@ x_get_resource_string (attribute, class)
 	   attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
-  return x_get_string_resource (sf, name_key, class_key);
+  return x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
+				name_key, class_key);
 }
 
 /* Types we might convert a resource string into.  */
