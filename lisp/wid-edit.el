@@ -915,14 +915,14 @@ Recommended as a parent keymap for modes using widgets.")
 		      ;; until we receive a release event.  Highlight/
 		      ;; unhighlight the button the mouse was initially
 		      ;; on when we move over it.
-		      (let ((track-mouse t))
-			(save-excursion
-			  (when face	; avoid changing around image
-			    (overlay-put overlay
-					 'face widget-button-pressed-face)
-			    (overlay-put overlay
-					 'mouse-face widget-button-pressed-face))
-			  (unless (widget-apply button :mouse-down-action event)
+		      (save-excursion
+			(when face	; avoid changing around image
+			  (overlay-put overlay
+				       'face widget-button-pressed-face)
+			  (overlay-put overlay
+				       'mouse-face widget-button-pressed-face))
+			(unless (widget-apply button :mouse-down-action event)
+			  (let ((track-mouse t))
 			    (while (not (widget-button-release-event-p event))
 			      (setq event (read-event)
 				    pos (widget-event-point event))
@@ -937,13 +937,13 @@ Recommended as a parent keymap for modes using widgets.")
 						 'mouse-face
 						 widget-button-pressed-face))
 				(overlay-put overlay 'face face)
-				(overlay-put overlay 'mouse-face mouse-face))))
+				(overlay-put overlay 'mouse-face mouse-face)))))
 
-			  ;; When mouse is released over the button, run
-			  ;; its action function.
-			  (when (and pos
-				     (eq (get-char-property pos 'button) button))
-			    (widget-apply-action button event))))
+			;; When mouse is released over the button, run
+			;; its action function.
+			(when (and pos
+				   (eq (get-char-property pos 'button) button))
+			  (widget-apply-action button event)))
 		    (overlay-put overlay 'face face)
 		    (overlay-put overlay 'mouse-face mouse-face))))
 
