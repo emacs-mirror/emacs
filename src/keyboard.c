@@ -2210,6 +2210,10 @@ kbd_buffer_get_event ()
       Lisp_Object x, y;
       unsigned long time;
 
+      /* Note that this uses F to determine which display to look at.
+	 If there is no valid info, it does not store anything
+	 so x remains nil.  */
+      x = Qnil;
       (*mouse_position_hook) (&f, &bar_window, &part, &x, &y, &time);
 
       obj = Qnil;
@@ -2218,7 +2222,7 @@ kbd_buffer_get_event ()
       /* Decide if we should generate a switch-frame event.  Don't
 	 generate switch-frame events for motion outside of all Emacs
 	 frames.  */
-      if (f)
+      if (!NILP (x) && f)
 	{
 	  Lisp_Object frame;
 
@@ -2236,7 +2240,7 @@ kbd_buffer_get_event ()
 #if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
       /* If we didn't decide to make a switch-frame event, go ahead and 
 	 return a mouse-motion event.  */
-      if (NILP (obj))
+      if (!NILP (x) && NILP (obj))
 	obj = make_lispy_movement (f, bar_window, part, x, y, time);
 #endif
     }
