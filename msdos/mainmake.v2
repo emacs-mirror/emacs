@@ -1,4 +1,4 @@
-# Top-level Makefile for Emacs under MS-DOS/DJGPP v2.0 or higher.
+# Top-level Makefile for Emacs under MS-DOS/DJGPP v2.0 or higher. -*-makefile-*-
 #
 # make all	to compile and build Emacs.
 # make install	to install it.
