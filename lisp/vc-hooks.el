@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.102 1998/02/27 18:44:41 spiegel Exp spiegel $
+;; $Id: vc-hooks.el,v 1.103 1998/03/20 15:38:48 spiegel Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -306,6 +306,41 @@ similarly for other version control systems."
 	   (error "Couldn't find version control information")))
     exec-status))
 
+(defun vc-parse-cvs-status (&optional file)
+  ;; Parse output of "cvs status" command in the current buffer and
+  ;; set file properties accordingly.  If argument FILE is given, it
+  ;; must be the name of the file to which the status output applies,
+  ;; otherwise FILE is derived from the status output itself.
+  (or file
+      (progn (goto-char (point-min))
+             (re-search-forward "^File: \\([^ \t]+\\)" nil t)
+             (setq file (concat default-directory (match-string 1)))))
+  (vc-parse-buffer     
+   ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
+   ;; and CVS 1.4a1 says "Repository revision:".
+   '(("\\(RCS Version\\|RCS Revision\\|Repository revision\\):[\t ]+\\([0-9.]+\\)" 2)
+     ("^File: [^ \t]+[ \t]+Status: \\(.*\\)" 1))
+   file
+   '(vc-latest-version vc-cvs-status))
+  ;; Translate those status values that we understand into symbols.
+  ;; Any other value is converted to nil.
+  (let ((status (vc-file-getprop file 'vc-cvs-status)))
+    (cond 
+     ((string-match "Up-to-date" status)
+      (vc-file-setprop file 'vc-cvs-status 'up-to-date)
+      (vc-file-setprop file 'vc-checkout-time 
+                       (nth 5 (file-attributes file))))
+     ((vc-file-setprop file 'vc-cvs-status
+       (cond 
+        ((string-match "Locally Modified"    status) 'locally-modified)
+        ((string-match "Needs Merge"         status) 'needs-merge)
+        ((string-match "Needs \\(Checkout\\|Patch\\)" status) 
+         'needs-checkout)
+        ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
+        ((string-match "Locally Added"       status) 'locally-added)
+        ((string-match "New file!"           status) 'locally-added)
+        (t 'unknown)))))))
+
 (defun vc-fetch-master-properties (file)
   ;; Fetch those properties of FILE that are stored in the master file.
   ;; For an RCS file, we don't get vc-latest-version vc-your-latest-version
@@ -369,32 +404,7 @@ similarly for other version control systems."
         (let ((default-directory (file-name-directory file)))
           (vc-simple-command 0 "cvs" (file-name-nondirectory file) "status"))
 	(set-buffer (get-buffer "*vc-info*"))
-	(vc-parse-buffer     
-	 ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
-	 ;; and CVS 1.4a1 says "Repository revision:".
-	 '(("\\(RCS Version\\|RCS Revision\\|Repository revision\\):[\t ]+\\([0-9.]+\\)" 2)
-	   ("^File: [^ \t]+[ \t]+Status: \\(.*\\)" 1))
-	 file
-	 '(vc-latest-version vc-cvs-status))
-	;; Translate those status values that we understand into symbols.
-	;; Any other value is converted to nil.
-	(let ((status (vc-file-getprop file 'vc-cvs-status)))
-	 (cond 
-	  ((string-match "Up-to-date" status)
-	   (vc-file-setprop file 'vc-cvs-status 'up-to-date)
-	   (vc-file-setprop file 'vc-checkout-time 
-			    (nth 5 (file-attributes file))))
-	  ((vc-file-setprop file 'vc-cvs-status
-	    (cond 
-	     ((string-match "Locally Modified"    status) 'locally-modified)
-	     ((string-match "Needs Merge"         status) 'needs-merge)
-	     ((string-match "Needs \\(Checkout\\|Patch\\)" status) 
-                                                          'needs-checkout)
-	     ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
-	     ((string-match "Locally Added"       status) 'locally-added)
-	     ((string-match "New file!"           status) 'locally-added)
-	     (t 'unknown)
-	     ))))))))
+        (vc-parse-cvs-status file))))
     (if (get-buffer "*vc-info*")
 	(kill-buffer (get-buffer "*vc-info*")))))
 
@@ -518,21 +528,26 @@ similarly for other version control systems."
   "Return the master name of a file, nil if it is not registered.
 For CVS, the full name of CVS/Entries is returned."
   (or (vc-file-getprop file 'vc-name)
-      (let ((name-and-type (vc-registered file)))
-	(if name-and-type
-	    (progn
-	      (vc-file-setprop file 'vc-backend (cdr name-and-type))
-	      (vc-file-setprop file 'vc-name (car name-and-type)))))))
+      ;; Use the caching mechanism of vc-backend, below.
+      (if (vc-backend file)
+	  (vc-file-getprop file 'vc-name))))
 
 (defun vc-backend (file)
   "Return the version-control type of a file, nil if it is not registered."
-  (and file
-       (or (vc-file-getprop file 'vc-backend)
-	   (let ((name-and-type (vc-registered file)))
-	     (if name-and-type
-		 (progn
-		   (vc-file-setprop file 'vc-name (car name-and-type))
-		   (vc-file-setprop file 'vc-backend (cdr name-and-type))))))))
+  ;; Note that internally, Emacs remembers unregistered 
+  ;; files by setting the property to `none'.
+  (if file
+      (let ((property (vc-file-getprop file 'vc-backend))
+	    (name-and-type))
+	(cond ((eq property 'none) nil)
+	      (property)
+	      (t (setq name-and-type (vc-registered file))
+		 (if name-and-type
+		     (progn
+		       (vc-file-setprop file 'vc-name (car name-and-type))
+		       (vc-file-setprop file 'vc-backend (cdr name-and-type)))
+		   (vc-file-setprop file 'vc-backend 'none)
+		   nil))))))
 
 (defun vc-checkout-model (file)
   ;; Return `manual' if the user has to type C-x C-q to check out FILE.
@@ -956,13 +971,7 @@ of the buffer.  With prefix argument, ask for version number."
   ;; not locked, and the checkout model for it is `implicit',
   ;; mark it "locked" and redisplay the mode line.
   (let ((file (buffer-file-name)))
-    (and (vc-file-getprop file 'vc-backend)
-	 ;; ...check the property directly, not through the function of the
-	 ;; same name.  Otherwise Emacs would check for a master file
-	 ;; each time a non-version-controlled buffer is saved.
-	 ;; The property is computed when the file is visited, so if it
-	 ;; is `nil' now, it is certain that the file is NOT 
-	 ;; version-controlled.
+    (and (vc-backend file)
 	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
 			 (nth 5 (file-attributes file)))
 		  ;; File has been saved in the same second in which
