@@ -271,8 +271,10 @@ actually occur.")
 	      (1 font-lock-comment-face) (2 font-lock-type-face nil t))
 	    ;; Use EVAL to delay in case `mail-header-separator' gets changed.
 	    '(eval .
-	      (cons (concat "^" (regexp-quote mail-header-separator) "$")
-		    'font-lock-warning-face))
+	      (let ((separator (if (zerop (length mail-header-separator))
+				   " "
+				 (regexp-quote mail-header-separator))))
+		(cons (concat "^" separator "$") 'font-lock-warning-face)))
 	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
 	    `(,cite-chars
 	      (,(concat "\\=[ \t]*"
