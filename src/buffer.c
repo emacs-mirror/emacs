@@ -112,6 +112,11 @@ Lisp_Object Vafter_change_function;
 
 Lisp_Object Vtransient_mark_mode;
 
+/* t means ignore all read-only text properties.
+   A list means ignore such a property if its value is a member of the list.
+   Any non-nil value means ignore buffer-read-only.  */
+Lisp_Object Vinhibit_read_only;
+
 /* List of functions to call before changing an unmodified buffer.  */
 Lisp_Object Vfirst_change_hook;
 Lisp_Object Qfirst_change_hook;
@@ -939,7 +944,8 @@ DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
   "Signal a `buffer-read-only' error if the current buffer is read-only.")
   ()
 {
-  while (!NILP (current_buffer->read_only))
+  if (!NILP (current_buffer->read_only)
+      && NILP (Vinhibit_read_only))
     Fsignal (Qbuffer_read_only, (Fcons (Fcurrent_buffer (), Qnil)));
   return Qnil;
 }
@@ -2312,6 +2318,14 @@ Automatically local in all buffers.");
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
     "*Non-nil means deactivate the mark when the buffer contents change.");
   Vtransient_mark_mode = Qnil;
+
+  DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only
+    "*Non-nil means disregard read-only status of buffers or characters.\n\
+If the value is t, disregard `buffer-read-only' and all `read-only'\n\
+text properties.  If the value is a list, disregard `buffer-read-only'\n\
+and disregard a `read-only' text property if the property value\n\
+is a member of the list.");
+  Vinhibit_read_only = Qnil;
 
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);
