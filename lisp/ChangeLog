@@ -1,5 +1,9 @@
 2001-08-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* hexl.el (hexl-insert-multibyte-char, hexl-insert-char): Remove
+	periods from the end of error message strings.  From Pavel
+	Jan,Bm(Bk <Pavel@Janik.cz>.
+
 	* progmodes/antlr-mode.el: Add Keywords header.  From Pavel
 	Jan,Bm(Bk <Pavel@Janik.cz>.
 
