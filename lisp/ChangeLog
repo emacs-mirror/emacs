@@ -1,5 +1,10 @@
 2001-07-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (last-sexp-print): New function.
+	(eval-last-sexp-1): Give printed text a `keymap' property and bind
+	<mouse-2> and <RET> in that map to a function printing the
+	unabbreviated value.
+
 	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): If standard-output
 	is a buffer, put a text property `printed-value' on the printed
 	representation, with the Lisp object printed as value.
