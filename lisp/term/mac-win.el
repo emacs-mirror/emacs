@@ -205,10 +205,10 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 	 (function
 	  (lambda (key val)
 	    (or (generic-char-p key)
-		(memq (char-charset key)
+		(memq (char-charset val)
 		      '(ascii eight-bit-control eight-bit-graphic))
-		(set-fontset-font "fontset-mac" key monaco-font))))
-	 (get 'mac-roman-encoder 'translation-table)))))
+		(set-fontset-font "fontset-mac" val monaco-font))))
+	 (get 'mac-roman-decoder 'translation-table)))))
 
 (if (eq system-type 'darwin)
     ;; On Darwin filenames are encoded in UTF-8
