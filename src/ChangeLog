@@ -1,3 +1,8 @@
+2000-11-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* s/sol2-5.h: Move #undef USE_MMAP_FOR_BUFFERS out of #if 0
+	... #endif scope.
+
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_create_tip_frame): Use CWSaveUnder only if the 

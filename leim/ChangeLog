@@ -1,6 +1,6 @@
 2000-11-21  Kenichi Handa  <handa@etl.go.jp>
 
-	* Makefile.in (.SUFFIXES): Include .elc .el.
+	* Makefile.in (.SUFFIXES): New target, include .elc .el.
 
 2000-11-17  Kenichi Handa  <handa@etl.go.jp>
 
