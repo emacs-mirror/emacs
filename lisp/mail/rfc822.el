@@ -108,7 +108,7 @@
 	 ;; quoted-string
 	 (or (rfc822-looking-at "\"\\([^\"\\\n]\\|\\\\.\\|\\\\\n\\)*\"")
 	     (rfc822-bad-address "Unterminated quoted string")))
-	((rfc822-looking-at "[^][\000-\037\177-\377 ()<>@,;:\\\".]+")
+	((rfc822-looking-at "[^][\000-\037 ()<>@,;:\\\".]+")
 	 ;; atom
 	 )
 	(t
@@ -125,7 +125,7 @@
 	 ;; domain-ref
 	 (or (rfc822-looking-at "\\[\\([^][\\\n]\\|\\\\.\\|\\\\\n\\)*\\]")
 	     (rfc822-bad-address "Unterminated domain literal [...]")))
-	((rfc822-looking-at "[^][\000-\037\177-\377 ()<>@,;:\\\".]+")
+	((rfc822-looking-at "[^][\000-\037 ()<>@,;:\\\".]+")
 	 ;; domain-literal = atom
 	 )
 	(t
@@ -190,7 +190,7 @@
       ;;  foo bar <foo.bar@baz.zap>
       ;;  "foo bar" <foo.bar@baz.zap>
       ;;  those aren't hacked yet.
-      (if (and (rfc822-looking-at "[^][\000-\037\177-\377 ()<>@,;:\\\"]+\\(\\|@[^][\000-\037\177-\377 ()<>@,;:\\\"]+\\)" t)
+      (if (and (rfc822-looking-at "[^][\000-\037 ()<>@,;:\\\"]+\\(\\|@[^][\000-\037 ()<>@,;:\\\"]+\\)" t)
 	       (progn (or (eobp)
 			  (rfc822-looking-at ?,))))
 	  (progn
@@ -244,7 +244,7 @@
 			 (buffer-substring (if strip start (1- start))
 					   (if strip end (1+ end))))
 		     (rfc822-bad-address "Unterminated <...> address")))))
-	      ((looking-at "[^][\000-\037\177-\377 ()<>@,;:\\.]")
+	      ((looking-at "[^][\000-\037 ()<>@,;:\\.]")
 	       ;; this allows "." to be part of the words preceding
 	       ;; an addr-spec, since many broken mailers output
 	       ;; "Hern K. Herklemeyer III
@@ -256,7 +256,7 @@
                    (rfc822-snarf-words)
                    (setq n (1+ n))
                    (setq again (or (rfc822-looking-at ?.)
-                                   (looking-at "[^][\000-\037\177-\377 ()<>@,;:\\.]"))))))
+                                   (looking-at "[^][\000-\037 ()<>@,;:\\.]"))))))
 	      ((= n 0)
 	       (throw 'address nil))
 	      ((= n 1) ; allow "foo" (losing unix seems to do this)
@@ -271,7 +271,7 @@
 
 			   
 (defun rfc822-addresses (header-text)
-  (if (string-match "\\`[ \t]*\\([^][\000-\037\177-\377 ()<>@,;:\\\".]+\\)[ \t]*\\'"
+  (if (string-match "\\`[ \t]*\\([^][\000-\037 ()<>@,;:\\\".]+\\)[ \t]*\\'"
                     header-text)
       ;; Make very simple case moderately fast.
       (list (substring header-text (match-beginning 1) (match-end 1)))
@@ -299,7 +299,7 @@
 		    (catch 'address ; this is for rfc822-bad-address
 		      (cond ((rfc822-looking-at ?\,)
 			     nil)
-			    ((looking-at "[][\000-\037\177-\377@;:\\.>)]")
+			    ((looking-at "[][\000-\037@;:\\.>)]")
 			     (forward-char)
 			     (rfc822-bad-address
 			       (format "Strange character \\%c found"
