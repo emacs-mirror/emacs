@@ -1380,8 +1380,9 @@ mouse_get_xy (int *x, int *y)
 }
 
 void
-mouse_get_pos (f, bar_window, part, x, y, time)
+mouse_get_pos (f, insist, bar_window, part, x, y, time)
      FRAME_PTR *f;
+     int insist;
      Lisp_Object *bar_window, *x, *y;
      enum scroll_bar_part *part;
      unsigned long *time;
