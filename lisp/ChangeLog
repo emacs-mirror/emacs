@@ -1,3 +1,8 @@
+2002-07-27  Markus Rost  <rost@math.ohio-state.edu>
+
+	* ps-print.el: Update copyright year.
+	(ps-begin-cut-regexp, ps-end-cut-regexp): Fix type.
+
 2002-07-26  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* eshell/eshell.el (eshell): Numeric prefix arg means to switch
