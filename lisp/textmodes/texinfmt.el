@@ -858,8 +858,7 @@ lower types.")
           (if (not (= (following-char) ?\n))
               (insert ? )))
          ;; following char is a carriage return
-         ((= (following-char) ?
-)
+         ((= (following-char) ?\n)
           ;; remove command
           (delete-region (1- (point)) (1+ (point)))
           ;; insert single space if not at end of line;
