@@ -428,9 +428,9 @@ also the same size as FACE on FRAME."
       (let ((fonts (x-list-fonts pattern face frame)))
 	(or fonts
 	    (if face
-		(error "no fonts matching pattern are the same size as `%s'."
+		(error "No fonts matching pattern are the same size as `%s'"
 		       face)
-	      (error "no fonts match `%S'." pattern)))
+	      (error "No fonts match `%s'" pattern)))
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
 
