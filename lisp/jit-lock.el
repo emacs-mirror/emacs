@@ -39,22 +39,21 @@
       `(let ((,modified (buffer-modified-p)))
 	 ,@body
 	 (unless ,modified)
-	   ;; Calling set-buffer-modified causes redisplay to consider
-	   ;; all windows because that function sets update_mode_lines.
-	   (set-buffer-modified-p nil))))
+	   (restore-buffer-modified-p nil))))
   
   (defmacro with-buffer-prepared-for-font-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."
-    `(let ((buffer-undo-list t)
-	   (inhibit-read-only t)
-	   (inhibit-point-motion-hooks t)
-	   before-change-functions
-	   after-change-functions
-	   deactivate-mark
-	   buffer-file-name
-	   buffer-file-truename)
-       ,@body)))
+    `(with-buffer-unmodified
+      (let ((buffer-undo-list t)
+	    (inhibit-read-only t)
+	    (inhibit-point-motion-hooks t)
+	    before-change-functions
+	    after-change-functions
+	    deactivate-mark
+	    buffer-file-name
+	    buffer-file-truename)
+	,@body))))
 
   
 
@@ -249,7 +248,7 @@ the variable `jit-lock-stealth-nice' and `jit-lock-stealth-lines'."
 This function is added to `fontification-functions' when `jit-lock-mode'
 is active."
   (when jit-lock-mode
-    (with-buffer-unmodified (jit-lock-function-1 start))))
+    (jit-lock-function-1 start)))
      
   
 (defun jit-lock-function-1 (start)
@@ -394,33 +393,37 @@ This functions is called after Emacs has been idle for
 				     (concat "JIT stealth lock "
 					     (buffer-name)))
 
-		(with-buffer-unmodified
+		;; Perform deferred unfontification, if any.
+		(when jit-lock-first-unfontify-pos
+		  (save-restriction
+		    (widen)
+		    (when (and (>= jit-lock-first-unfontify-pos (point-min))
+			       (< jit-lock-first-unfontify-pos (point-max)))
+		      (with-buffer-prepared-for-font-lock
+		       (put-text-property jit-lock-first-unfontify-pos
+					  (point-max) 'fontified nil))
+		      (setq jit-lock-first-unfontify-pos nil))))
 
-		 ;; Perform deferred unfontification, if any.
-		 (when jit-lock-first-unfontify-pos
-		   (save-restriction
-		     (widen)
-		     (when (and (>= jit-lock-first-unfontify-pos (point-min))
-				(< jit-lock-first-unfontify-pos (point-max)))
-		       (with-buffer-prepared-for-font-lock
-			(put-text-property jit-lock-first-unfontify-pos
-					   (point-max) 'fontified nil))
-		       (setq jit-lock-first-unfontify-pos nil))))
-		
-		 (let (start
-		       (nice (or jit-lock-stealth-nice 0))
-		       (point (point)))
-		   (while (and (setq start (jit-lock-stealth-chunk-start point))
-			       (sit-for nice))
+		;; In the following code, the `sit-for' calls cause a
+		;; redisplay, so it's required that the
+		;; buffer-modified flag of a buffer that is displayed
+		;; has the right value---otherwise the mode line of
+		;; an unmodified buffer would show a `*'.
+		(let (start
+		      (nice (or jit-lock-stealth-nice 0))
+		      (point (point)))
+		  (while (and (setq start
+				    (jit-lock-stealth-chunk-start point))
+			      (sit-for nice))
 		    
-		     ;; Wait a little if load is too high.
-		     (when (and jit-lock-stealth-load
-				(> (car (load-average)) jit-lock-stealth-load))
-		       (sit-for (or jit-lock-stealth-time 30)))
+		    ;; Wait a little if load is too high.
+		    (when (and jit-lock-stealth-load
+			       (> (car (load-average)) jit-lock-stealth-load))
+		      (sit-for (or jit-lock-stealth-time 30)))
 		    
-		     ;; Unless there's input pending now, fontify.
-		     (unless (input-pending-p)
-		       (jit-lock-function-1 start)))))))))))))
+		    ;; Unless there's input pending now, fontify.
+		    (unless (input-pending-p)
+		      (jit-lock-function-1 start))))))))))))
 
 
 
