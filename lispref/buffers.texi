@@ -646,10 +646,23 @@ begin with a space.  The elements are actual buffers, not their names.
         "buffer.c" "*Help*" "TAGS")
 @end group
 @end example
-
-This list is a copy of a list used inside Emacs; modifying it has no
-effect on the ordering of buffers.
 @end defun
+
+  The list that @code{buffer-list} returns is constructed specifically
+by @code{buffer-list}; it is not an internal Emacs data structure, and
+modifying it has no effect on the order of buffers.  If you want to
+change the order of buffers in the list, here is an easy way:
+
+@example
+(defun reorder-buffer-list (new-list)
+  (while new-list
+    (bury-buffer (car new-list))
+    (setq new-list (cdr new-list))))
+@end example
+
+  With this method, you can specify any order for the list, but there is
+no danger of losing a buffer or adding something that is not a valid
+live buffer.
 
 @defun other-buffer &optional buffer visible-ok
 This function returns the first buffer in the buffer list other than
