@@ -3819,7 +3819,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
              by octal form.  */
 	  int remaining_bytes = len;
 
-	  if (c >= 0400)
+	  if (c >= 0400 && CHAR_VALID_P (c, 0))
 	    {
 	      /* C is a multibyte character.  */
 	      int charset = CHAR_CHARSET (c);
@@ -5249,66 +5249,76 @@ display_string (w, vpos, string, length, hpos, truncate,
 	    *p1 = c ^ 0100;
 	  p1++;
 	}
-      else if (len == 1)
-	{
-	  /* C is a control character or a binary byte data.  */
-	  if (p1 >= start)
-	    *p1 = (fix_glyph
-		   (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
-			&& GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
-			? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-		    0));
-	  p1++;
-	  if (p1 >= start && p1 < end)
-	    *p1 = (c >> 6) + '0';
-	  p1++;
-	  if (p1 >= start && p1 < end)
-	    *p1 = (7 & (c >> 3)) + '0';
-	  p1++;
-	  if (p1 >= start && p1 < end)
-	    *p1 = (7 & c) + '0';
-	  p1++;
-	}
       else
 	{
-	  /* C is a multibyte character.  */	  
-	  int charset = CHAR_CHARSET (c);
-	  int columns = (charset == CHARSET_COMPOSITION
-			 ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
-			 : CHARSET_WIDTH (charset));
+	  /* C is a multibyte character, control character or a binary
+             byte data.  */
+	  int remaining_bytes = len;
 
-	  if (p1 < start)
+	  if (c >= 0400 && CHAR_VALID_P (c, 0))
 	    {
-	      /* Since we can't show the left part of C, fill all
-                 columns with spaces.  */
-	      columns -= start - p1;
-	      p1 = start;
-	      while (columns--)
+	      /* C is a multibyte character.  */	  
+	      int charset = CHAR_CHARSET (c);
+	      int columns = (charset == CHARSET_COMPOSITION
+			     ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
+			     : CHARSET_WIDTH (charset));
+
+	      remaining_bytes -= CHARSET_BYTES (charset);
+	      if (p1 < start)
 		{
-		  if (p1 < end)
-		    *p1 = SPACEGLYPH;
-		  p1++;
+		  /* Since we can't show the left part of C, fill all
+		     columns with spaces.  */
+		  columns -= start - p1;
+		  p1 = start;
+		  while (columns--)
+		    {
+		      if (p1 < end)
+			*p1 = SPACEGLYPH;
+		      p1++;
+		    }
+		}
+	      else if (p1 + columns > end)
+		{
+		  /* Since we can't show the right part of C, fill all
+		     columns with TRUNCATE if TRUNCATE is specified.  */
+		  if (truncate)
+		    {
+		      while (p1 < end)
+			*p1++ = fix_glyph (f, truncate, 0);
+		      /* And tell the line is truncated.  */
+		      truncated = 1;
+		    }
+		  break;
+		}
+	      else
+		{
+		  /* We can show the whole glyph of C.  */
+		  *p1++ = c;
+		  while (--columns)
+		    *p1++ = c | GLYPH_MASK_PADDING;
 		}
 	    }
-	  else if (p1 + columns > end)
+
+	  while (remaining_bytes > 0)
 	    {
-	      /* Since we can't show the right part of C, fill all
-                 columns with TRUNCATE if TRUNCATE is specified.  */
-	      if (truncate)
-		{
-		  while (p1 < end)
-		    *p1++ = fix_glyph (f, truncate, 0);
-		  /* And tell the line is truncated.  */
-		  truncated = 1;
-		}
-	      break;
-	    }
-	  else
-	    {
-	      /* We can show the whole glyph of C.  */
-	      *p1++ = c;
-	      while (--columns)
-		*p1++ = c | GLYPH_MASK_PADDING;
+	      c = *(string - remaining_bytes--);
+
+	      if (p1 >= start)
+		*p1 = (fix_glyph
+		       (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
+			    && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
+			    ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+			0));
+	      p1++;
+	      if (p1 >= start && p1 < end)
+		*p1 = (c >> 6) + '0';
+	      p1++;
+	      if (p1 >= start && p1 < end)
+		*p1 = (7 & (c >> 3)) + '0';
+	      p1++;
+	      if (p1 >= start && p1 < end)
+		*p1 = (7 & c) + '0';
+	      p1++;
 	    }
 	}
     }
