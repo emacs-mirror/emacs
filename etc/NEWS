@@ -99,6 +99,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 +++
+** `set-auto-mode' now gives the interpreter magic line (if present)
+precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
+will give the buffer XML or SGML mode, unless the file name leads to a mode in
+`xml-based-modes'.
+
++++
 ** New function `looking-back' checks whether a regular expression matches
 the text before point.  Specifying the LIMIT argument bounds how far
 back the match can start; this is a way to keep it from taking too long.
