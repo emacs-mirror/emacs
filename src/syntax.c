@@ -130,7 +130,7 @@ update_syntax_table (charpos, count, init, object)
       invalidate = 0;
       if (NULL_INTERVAL_P (i))
 	return;
-      /* interval_of () updates only ->position of the return value,
+      /* interval_of updates only ->position of the return value, so
 	 update the parents manually to speed up update_interval.  */
       while (!NULL_PARENT (i)) 
 	{
@@ -158,7 +158,7 @@ update_syntax_table (charpos, count, init, object)
   else if (charpos < i->position)		/* Move left.  */
     {
       if (count > 0)
-	error ("Error in syntax_table logic for intervals <-.");
+	error ("Error in syntax_table logic for intervals <-");
       /* Update the interval.  */
       i = update_interval (i, charpos);
       if (oldi->position != INTERVAL_LAST_POS (i))
@@ -172,7 +172,7 @@ update_syntax_table (charpos, count, init, object)
   else if (charpos >= INTERVAL_LAST_POS (i)) /* Move right.  */
     {
       if (count < 0)
-	error ("Error in syntax_table logic for intervals ->.");
+	error ("Error in syntax_table logic for intervals ->");
       /* Update the interval.  */
       i = update_interval (i, charpos);
       if (i->position != INTERVAL_LAST_POS (oldi))
@@ -394,6 +394,38 @@ find_defun_start (pos, pos_byte)
   return find_start_value;
 }
 
+/* Return the SYNTAX_COMEND_FIRST of the character before POS, POS_BYTE.  */
+
+static int
+prev_char_comend_first (pos, pos_byte)
+     int pos, pos_byte;
+{
+  int c, val;
+
+  DEC_BOTH (pos, pos_byte);
+  UPDATE_SYNTAX_TABLE_BACKWARD (pos);
+  c = FETCH_CHAR (pos_byte);
+  val = SYNTAX_COMEND_FIRST (c);
+  UPDATE_SYNTAX_TABLE_FORWARD (pos + 1);
+  return val;
+}
+
+/* Return the SYNTAX_COMSTART_FIRST of the character before POS, POS_BYTE.  */
+
+static int
+prev_char_comstart_first (pos, pos_byte)
+     int pos, pos_byte;
+{
+  int c, val;
+
+  DEC_BOTH (pos, pos_byte);
+  UPDATE_SYNTAX_TABLE_BACKWARD (pos);
+  c = FETCH_CHAR (pos_byte);
+  val = SYNTAX_COMSTART_FIRST (c);
+  UPDATE_SYNTAX_TABLE_FORWARD (pos + 1);
+  return val;
+}
+
 /* Checks whether charpos FROM is at the end of a comment.
    FROM_BYTE is the bytepos corresponding to FROM.
    Do not move back before STOP.
@@ -444,7 +476,7 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
      that determines quote parity to the comment-end.  */
   while (from != stop)
     {
-      int temp_byte;
+      int temp_byte, prev_comend_second;
 
       /* Move back and examine a character.  */
       DEC_BOTH (from, from_byte);
@@ -456,23 +488,25 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
       /* If this char is the second of a 2-char comment end sequence,
 	 back up and give the pair the appropriate syntax.  */
       if (from > stop && SYNTAX_COMEND_SECOND (c)
-	  && (temp_byte = dec_bytepos (from_byte),
-	      SYNTAX_COMEND_FIRST (FETCH_CHAR (temp_byte))))
+	  && prev_char_comend_first (from, from_byte))
 	{
 	  code = Sendcomment;
 	  DEC_BOTH (from, from_byte);
-	  /* This is apparently the best we can do: */
 	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	  c = FETCH_CHAR (from_byte);
 	}
 			
       /* If this char starts a 2-char comment start sequence,
 	 treat it like a 1-char comment starter.  */
-      if (from < scanstart && SYNTAX_COMSTART_FIRST (c)
-	  && (temp_byte = inc_bytepos (from_byte),
-	      (SYNTAX_COMSTART_SECOND (FETCH_CHAR (temp_byte))
-	       && comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (temp_byte)))))
-	code = Scomment;
+      if (from < scanstart && SYNTAX_COMSTART_FIRST (c))
+	{
+	  temp_byte = inc_bytepos (from_byte);
+	  UPDATE_SYNTAX_TABLE_FORWARD (from + 1);
+	  if (SYNTAX_COMSTART_SECOND (FETCH_CHAR (temp_byte))
+	      && comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (temp_byte)))
+	    code = Scomment;
+	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
+	}
 
       /* Ignore escaped characters, except comment-enders.  */
       if (code != Sendcomment && char_quoted (from, from_byte))
@@ -1590,6 +1624,8 @@ between them, return t; otherwise return nil.")
     {
       do
 	{
+	  int comstart_first;
+
 	  if (from == stop)
 	    {
 	      SET_PT_BOTH (from, from_byte);
@@ -1599,9 +1635,11 @@ between them, return t; otherwise return nil.")
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
+	  comstart_first = SYNTAX_COMSTART_FIRST (c);
 	  INC_BOTH (from, from_byte);
+	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  comstyle = 0;
-	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
+	  if (from < stop && comstart_first
 	      && (c1 = FETCH_CHAR (from_byte),
 		  SYNTAX_COMSTART_SECOND (c1)))
 	    {
@@ -1649,9 +1687,10 @@ between them, return t; otherwise return nil.")
 	       section.  */
 	    break;
 	  if (from < stop && SYNTAX_COMEND_FIRST (c)
+	      && SYNTAX_COMMENT_STYLE (c) == comstyle
 	      && (c1 = FETCH_CHAR (from_byte),
-		  SYNTAX_COMEND_SECOND (c1))
-	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
+		  UPDATE_SYNTAX_TABLE_FORWARD (from),
+		  SYNTAX_COMEND_SECOND (c1)))
 	    /* we have encountered a comment end of the same style
 	       as the comment sequence which began this comment
 	       section */
@@ -1668,7 +1707,8 @@ between them, return t; otherwise return nil.")
     {
       while (1)
 	{
-	  int quoted;
+	  int quoted, comstart_second;
+
 	  if (from <= stop)
 	    {
 	      SET_PT_BOTH (BEGV, BEGV_BYTE);
@@ -1677,34 +1717,34 @@ between them, return t; otherwise return nil.")
 	    }
 
 	  DEC_BOTH (from, from_byte);
+	  /* char_quoted does UPDATE_SYNTAX_TABLE_BACKWARD (from).  */
 	  quoted = char_quoted (from, from_byte);
 	  if (quoted)
 	    {
 	      DEC_BOTH (from, from_byte);
 	      goto leave;
 	    }
-	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
 	  comstyle = 0;
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
-	  temp_pos = dec_bytepos (from_byte);
+	  comstart_second = SYNTAX_COMSTART_SECOND (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
-	      && (c1 = FETCH_CHAR (temp_pos),
-		  SYNTAX_COMEND_FIRST (c1))
+	      && prev_char_comend_first (from, from_byte)
 	      && !char_quoted (from - 1, temp_pos))
 	    {
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
 		 sequence of the same style.  */
-	      code = Sendcomment;
-	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      DEC_BOTH (from, from_byte);
+	      code = Sendcomment;
+	      /* Calling char_quoted, above, set up global syntax position
+		 at the new value of FROM.  */
+	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte));
 	    }
-	  if (from > stop && SYNTAX_COMSTART_SECOND (c)
-	      && (c1 = FETCH_CHAR (temp_pos),
-		  SYNTAX_COMSTART_FIRST (c1))
+	  if (from > stop && comstart_second
+	      && prev_char_comstart_first (from, from_byte)
 	      && !char_quoted (from - 1, temp_pos))
 	    {
 	      /* We must record the comment style encountered so that
@@ -1798,14 +1838,17 @@ scan_lists (from, count, depth, sexpflag)
     {
       while (from < stop)
 	{
+	  int comstart_first, prefix;
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
+	  comstart_first = SYNTAX_COMSTART_FIRST (c);
+	  prefix = SYNTAX_PREFIX (c);
 	  if (depth == min_depth)
 	    last_good = from;
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
+	  if (from < stop && comstart_first
 	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from_byte))
 	      && parse_sexp_ignore_comments)
 	    {
@@ -1817,10 +1860,10 @@ scan_lists (from, count, depth, sexpflag)
 	      code = Scomment;
 	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte));
 	      INC_BOTH (from, from_byte);
+	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	    }
 	  
-	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  if (SYNTAX_PREFIX (c))
+	  if (prefix)
 	    continue;
 
 	  switch (SWITCH_ENUM_CAST (code))
@@ -1871,6 +1914,7 @@ scan_lists (from, count, depth, sexpflag)
 		    }
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
 		  c = FETCH_CHAR (from_byte);
+		  INC_BOTH (from, from_byte);
 		  if (code == Scomment 
 		      ? (SYNTAX (c) == Sendcomment
 			 && SYNTAX_COMMENT_STYLE (c) == comstyle)
@@ -1879,10 +1923,10 @@ scan_lists (from, count, depth, sexpflag)
 		       as the comment sequence which began this comment
 		       section */
 		    break;
-		  INC_BOTH (from, from_byte);
 		  if (from < stop && SYNTAX_COMEND_FIRST (c)
-		      && SYNTAX_COMEND_SECOND (FETCH_CHAR (from_byte))
 		      && SYNTAX_COMMENT_STYLE (c) == comstyle
+		      && (UPDATE_SYNTAX_TABLE_FORWARD (from),
+			  SYNTAX_COMEND_SECOND (FETCH_CHAR (from_byte)))
 		      && code == Scomment)
 		    /* we have encountered a comment end of the same style
 		       as the comment sequence which began this comment
@@ -1975,25 +2019,22 @@ scan_lists (from, count, depth, sexpflag)
 	  comstyle = 0;
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
-	  temp_pos = from_byte;
-	  if (! NILP (current_buffer->enable_multibyte_characters))
-	    DEC_POS (temp_pos);
-	  else
-	    temp_pos--;
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
-	      && (c1 = FETCH_CHAR (temp_pos), SYNTAX_COMEND_FIRST (c1))
+	      && prev_char_comstart_first (from, from_byte)
 	      && parse_sexp_ignore_comments)
 	    {
-	      /* we must record the comment style encountered so that
+	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
-		 sequence of the same style */
-	      code = Sendcomment;
-	      comstyle = SYNTAX_COMMENT_STYLE (c1);
+		 sequence of the same style.  */
 	      DEC_BOTH (from, from_byte);
+	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
+	      code = Sendcomment;
+	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte));
 	    }
 	  
 	  /* Quoting turns anything except a comment-ender
-	     into a word character.  */
+	     into a word character.  Note that this if cannot be true
+	     if we decremented FROM in the if-statement above.  */
 	  if (code != Sendcomment && char_quoted (from, from_byte))
 	    code = Sword;
 	  else if (SYNTAX_PREFIX (c))
@@ -2192,10 +2233,14 @@ This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
   int pos_byte = PT_BYTE;
   int c;
 
-  if (pos > beg) 
+  if (pos <= beg) 
     {
-      SETUP_SYNTAX_TABLE (pos, -1);
+      SET_PT_BOTH (opoint, opoint_byte);
+
+      return Qnil;
     }
+
+  SETUP_SYNTAX_TABLE (pos, -1);
 
   DEC_BOTH (pos, pos_byte);
 
