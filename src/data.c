@@ -179,7 +179,7 @@ sign_extend_lisp_int (num)
 /* Data type predicates */
 
 DEFUN ("eq", Feq, Seq, 2, 2, 0,
-  "T if the two args are the same Lisp object.")
+  "Return t if the two args are the same Lisp object.")
   (obj1, obj2)
      Lisp_Object obj1, obj2;
 {
@@ -188,7 +188,7 @@ DEFUN ("eq", Feq, Seq, 2, 2, 0,
   return Qnil;
 }
 
-DEFUN ("null", Fnull, Snull, 1, 1, 0, "T if OBJECT is nil.")
+DEFUN ("null", Fnull, Snull, 1, 1, 0, "Return t if OBJECT is nil.")
   (object)
      Lisp_Object object;
 {
@@ -261,7 +261,7 @@ for example, (type-of 1) returns `integer'.")
     }
 }
 
-DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0, "T if OBJECT is a cons cell.")
+DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0, "Return t if OBJECT is a cons cell.")
   (object)
      Lisp_Object object;
 {
@@ -270,7 +270,7 @@ DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0, "T if OBJECT is a cons cell.")
   return Qnil;
 }
 
-DEFUN ("atom", Fatom, Satom, 1, 1, 0, "T if OBJECT is not a cons cell.  This includes nil.")
+DEFUN ("atom", Fatom, Satom, 1, 1, 0, "Return t if OBJECT is not a cons cell.  This includes nil.")
   (object)
      Lisp_Object object;
 {
@@ -279,7 +279,7 @@ DEFUN ("atom", Fatom, Satom, 1, 1, 0, "T if OBJECT is not a cons cell.  This inc
   return Qt;
 }
 
-DEFUN ("listp", Flistp, Slistp, 1, 1, 0, "T if OBJECT is a list.  This includes nil.")
+DEFUN ("listp", Flistp, Slistp, 1, 1, 0, "Return t if OBJECT is a list.  This includes nil.")
   (object)
      Lisp_Object object;
 {
@@ -288,7 +288,7 @@ DEFUN ("listp", Flistp, Slistp, 1, 1, 0, "T if OBJECT is a list.  This includes 
   return Qnil;
 }
 
-DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0, "T if OBJECT is not a list.  Lists include nil.")
+DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0, "Return t if OBJECT is not a list.  Lists include nil.")
   (object)
      Lisp_Object object;
 {
@@ -297,7 +297,7 @@ DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0, "T if OBJECT is not a list.  Lists i
   return Qt;
 }
 
-DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0, "T if OBJECT is a symbol.")
+DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0, "Return t if OBJECT is a symbol.")
   (object)
      Lisp_Object object;
 {
@@ -306,7 +306,7 @@ DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0, "T if OBJECT is a symbol.")
   return Qnil;
 }
 
-DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0, "T if OBJECT is a vector.")
+DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0, "Return t if OBJECT is a vector.")
   (object)
      Lisp_Object object;
 {
@@ -315,7 +315,7 @@ DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0, "T if OBJECT is a vector.")
   return Qnil;
 }
 
-DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0, "T if OBJECT is a string.")
+DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0, "Return t if OBJECT is a string.")
   (object)
      Lisp_Object object;
 {
@@ -324,7 +324,7 @@ DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0, "T if OBJECT is a string.")
   return Qnil;
 }
 
-DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0, "T if OBJECT is a char-table.")
+DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0, "Return t if OBJECT is a char-table.")
   (object)
      Lisp_Object object;
 {
@@ -335,7 +335,7 @@ DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0, "T if OBJECT is a 
 
 DEFUN ("vector-or-char-table-p", Fvector_or_char_table_p,
        Svector_or_char_table_p, 1, 1, 0,
-       "T if OBJECT is a char-table or vector.")
+       "Return t if OBJECT is a char-table or vector.")
   (object)
      Lisp_Object object;
 {
@@ -344,7 +344,7 @@ DEFUN ("vector-or-char-table-p", Fvector_or_char_table_p,
   return Qnil;
 }
 
-DEFUN ("bool-vector-p", Fbool_vector_p, Sbool_vector_p, 1, 1, 0, "T if OBJECT is a bool-vector.")
+DEFUN ("bool-vector-p", Fbool_vector_p, Sbool_vector_p, 1, 1, 0, "Return t if OBJECT is a bool-vector.")
   (object)
      Lisp_Object object;
 {
@@ -353,7 +353,7 @@ DEFUN ("bool-vector-p", Fbool_vector_p, Sbool_vector_p, 1, 1, 0, "T if OBJECT is
   return Qnil;
 }
 
-DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0, "T if OBJECT is an array (string or vector).")
+DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0, "Return t if OBJECT is an array (string or vector).")
   (object)
      Lisp_Object object;
 {
@@ -364,7 +364,7 @@ DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0, "T if OBJECT is an array (string or 
 }
 
 DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
-  "T if OBJECT is a sequence (list or array).")
+  "Return t if OBJECT is a sequence (list or array).")
   (object)
      register Lisp_Object object;
 {
@@ -374,7 +374,7 @@ DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
   return Qnil;
 }
 
-DEFUN ("bufferp", Fbufferp, Sbufferp, 1, 1, 0, "T if OBJECT is an editor buffer.")
+DEFUN ("bufferp", Fbufferp, Sbufferp, 1, 1, 0, "Return t if OBJECT is an editor buffer.")
   (object)
      Lisp_Object object;
 {
@@ -383,7 +383,7 @@ DEFUN ("bufferp", Fbufferp, Sbufferp, 1, 1, 0, "T if OBJECT is an editor buffer.
   return Qnil;
 }
 
-DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0, "T if OBJECT is a marker (editor pointer).")
+DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0, "Return t if OBJECT is a marker (editor pointer).")
   (object)
      Lisp_Object object;
 {
@@ -392,7 +392,7 @@ DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0, "T if OBJECT is a marker (editor 
   return Qnil;
 }
 
-DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0, "T if OBJECT is a built-in function.")
+DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0, "Return t if OBJECT is a built-in function.")
   (object)
      Lisp_Object object;
 {
@@ -402,7 +402,7 @@ DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0, "T if OBJECT is a built-in function.")
 }
 
 DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
-       1, 1, 0, "T if OBJECT is a byte-compiled function object.")
+       1, 1, 0, "Return t if OBJECT is a byte-compiled function object.")
   (object)
      Lisp_Object object;
 {
@@ -412,7 +412,7 @@ DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
 }
 
 DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
-  "T if OBJECT is a character (an integer) or a string.")
+  "Return t if OBJECT is a character (an integer) or a string.")
   (object)
      register Lisp_Object object;
 {
@@ -421,7 +421,7 @@ DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
   return Qnil;
 }
 
-DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0, "T if OBJECT is an integer.")
+DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0, "Return t if OBJECT is an integer.")
   (object)
      Lisp_Object object;
 {
@@ -431,7 +431,7 @@ DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0, "T if OBJECT is an integer.")
 }
 
 DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 0,
-  "T if OBJECT is an integer or a marker (editor pointer).")
+  "Return t if OBJECT is an integer or a marker (editor pointer).")
   (object)
      register Lisp_Object object;
 {
@@ -441,7 +441,7 @@ DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 
 }
 
 DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
-  "T if OBJECT is a nonnegative integer.")
+  "Return t if OBJECT is a nonnegative integer.")
   (object)
      Lisp_Object object;
 {
@@ -451,7 +451,7 @@ DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
 }
 
 DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
-       "T if OBJECT is a number (floating point or integer).")
+       "Return t if OBJECT is a number (floating point or integer).")
   (object)
      Lisp_Object object;
 {
@@ -463,7 +463,7 @@ DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
 
 DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
        Snumber_or_marker_p, 1, 1, 0,
-       "T if OBJECT is a number or a marker.")
+       "Return t if OBJECT is a number or a marker.")
   (object)
      Lisp_Object object;
 {
@@ -474,7 +474,7 @@ DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
 
 #ifdef LISP_FLOAT_TYPE
 DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
-       "T if OBJECT is a floating point number.")
+       "Return t if OBJECT is a floating point number.")
   (object)
      Lisp_Object object;
 {
@@ -571,7 +571,7 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
 
 /* Extract and set components of symbols */
 
-DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0, "T if SYMBOL's value is not void.")
+DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0, "Return t if SYMBOL's value is not void.")
   (symbol)
      register Lisp_Object symbol;
 {
@@ -587,7 +587,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0, "T if SYMBOL's value is not void.")
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
 
-DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0, "T if SYMBOL's function definition is not void.")
+DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0, "Return t if SYMBOL's function definition is not void.")
   (symbol)
      register Lisp_Object symbol;
 {
@@ -1086,7 +1086,7 @@ default_value (symbol)
 }
 
 DEFUN ("default-boundp", Fdefault_boundp, Sdefault_boundp, 1, 1, 0,
-  "Return T if SYMBOL has a non-void default value.\n\
+  "Return t if SYMBOL has a non-void default value.\n\
 This is the value that is seen in buffers that do not have their own values\n\
 for this variable.")
   (symbol)
@@ -1794,7 +1794,7 @@ arithcompare (num1, num2, comparison)
 }
 
 DEFUN ("=", Feqlsign, Seqlsign, 2, 2, 0,
-  "T if two args, both numbers or markers, are equal.")
+  "Return t if two args, both numbers or markers, are equal.")
   (num1, num2)
      register Lisp_Object num1, num2;
 {
@@ -1802,7 +1802,7 @@ DEFUN ("=", Feqlsign, Seqlsign, 2, 2, 0,
 }
 
 DEFUN ("<", Flss, Slss, 2, 2, 0,
-  "T if first arg is less than second arg.  Both must be numbers or markers.")
+  "Return t if first arg is less than second arg.  Both must be numbers or markers.")
   (num1, num2)
      register Lisp_Object num1, num2;
 {
@@ -1810,7 +1810,7 @@ DEFUN ("<", Flss, Slss, 2, 2, 0,
 }
 
 DEFUN (">", Fgtr, Sgtr, 2, 2, 0,
-  "T if first arg is greater than second arg.  Both must be numbers or markers.")
+  "Return t if first arg is greater than second arg.  Both must be numbers or markers.")
   (num1, num2)
      register Lisp_Object num1, num2;
 {
@@ -1818,7 +1818,7 @@ DEFUN (">", Fgtr, Sgtr, 2, 2, 0,
 }
 
 DEFUN ("<=", Fleq, Sleq, 2, 2, 0,
-  "T if first arg is less than or equal to second arg.\n\
+  "Return t if first arg is less than or equal to second arg.\n\
 Both must be numbers or markers.")
   (num1, num2)
      register Lisp_Object num1, num2;
@@ -1827,7 +1827,7 @@ Both must be numbers or markers.")
 }
 
 DEFUN (">=", Fgeq, Sgeq, 2, 2, 0,
-  "T if first arg is greater than or equal to second arg.\n\
+  "Return t if first arg is greater than or equal to second arg.\n\
 Both must be numbers or markers.")
   (num1, num2)
      register Lisp_Object num1, num2;
@@ -1836,14 +1836,14 @@ Both must be numbers or markers.")
 }
 
 DEFUN ("/=", Fneq, Sneq, 2, 2, 0,
-  "T if first arg is not equal to second arg.  Both must be numbers or markers.")
+  "Return t if first arg is not equal to second arg.  Both must be numbers or markers.")
   (num1, num2)
      register Lisp_Object num1, num2;
 {
   return arithcompare (num1, num2, notequal);
 }
 
-DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "T if NUMBER is zero.")
+DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "Return t if NUMBER is zero.")
   (number)
      register Lisp_Object number;
 {
