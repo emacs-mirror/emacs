@@ -21,6 +21,7 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
 [\|\-\-members\|] [\|\-\-output=\fItagfile\fP\|]
 [\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
+[\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 
@@ -33,6 +34,7 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
 [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
+[\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
 [\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
 [\|\-\-update\|] [\|\-\-no\-warn\|]
 [\|\-\-help\|] [\|\-\-version\|]
@@ -142,14 +144,15 @@ Explicit name of file for tag table; overrides default `\|TAGS\|' or
 `\|tags\|'.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
 .TP
 \fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP
-Make tags based on regexp matching for each line of the files
-following this option, in addition to the tags made with the standard
-parsing based on language.  May be freely intermixed with filenames
-and the \fB\-R\fP option.  The regexps are cumulative, i.e. each
-option will add to the previous ones.  The regexps are of the form:
+\fB\-\-ignore\-case\-regex=\fIregexp\fP\
+Make tags based on regexp matching for each line of the files following
+this option, in addition to the tags made with the standard parsing based
+on language.  When using \-\-regex, case is significant, while it is not
+with \-\-ignore\-case\-regex. May be freely intermixed with filenames and
+the \fB\-R\fP option.  The regexps are cumulative, i.e. each option will
+add to the previous ones.  The regexps are of the form:
 .br
-
-		\fB/\fP\fItagregexp\fP[\fB/\fP\fInameregexp\fP]\fB/\fP
+	\fB/\fP\fItagregexp\fP[\fB/\fP\fInameregexp\fP]\fB/\fP
 .br
 
 where \fItagregexp\fP is used to match the lines that must be tagged.
@@ -182,6 +185,20 @@ Tag TCL files (this last example shows the usage of a \fItagregexp\fP):
 .br
 \fI\-\-lang\=none \-\-regex\='/proc[\ \\t]+\\([^\ \\t]+\\)/\\1/'\fP
 
+.br
+A regexp can be preceded by {lang}, thus restriciting it to match lines of
+files of the specified language.  Use \fBetags --help\bP to obtain a list
+of the recognised languages.  This feature is particularly useful inside
+\fBregex files\fB.  A regex file contains one regex per line.  Empty lines,
+and those lines beginning with space or tab are ignored.  Lines beginning
+with @ are references to regex files whose name follows the @ sign.  Other
+lines are considered regular expressions like those following \-\-regex.
+.br
+For example, the command
+.br
+etags \-\-regex=@regex.file *.c
+.br
+reads the regexes contained in the file regex.file.
 .TP
 .B \-R, \-\-no\-regex
 Don't do any more regexp matching on the following files.  May be
