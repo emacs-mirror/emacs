@@ -176,8 +176,10 @@ localtime_r (t, tp)
 #if !defined (memset) && !defined (HAVE_MEMSET) && !defined (_LIBC)
 /* Some systems lack the `memset' function and we don't want to
    introduce additional dependencies.  */
-static const char spaces[16] = "                ";
-static const char zeroes[16] = "0000000000000000";
+/* The SGI compiler reportedly barfs on the trailing null
+   if we use a string constant as the initializer.  28 June 1997, rms.  */
+static const char spaces[16] = { ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '} /* "                "*/ ;
+static const char zeroes[16] = { '0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'} /*"0000000000000000"*/;
 
 # define memset_space(P, Len) \
   do {									      \
