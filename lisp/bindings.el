@@ -739,6 +739,8 @@ language you are using."
 (define-key esc-map "\C-k" 'kill-sexp)
 (define-key global-map [C-M-delete] 'backward-kill-sexp)
 (define-key global-map [C-M-backspace] 'backward-kill-sexp)
+(define-key esc-map [C-delete] 'backward-kill-sexp)
+(define-key esc-map [C-backspace] 'backward-kill-sexp)
 (define-key esc-map "\C-n" 'forward-list)
 (define-key esc-map "\C-p" 'backward-list)
 (define-key esc-map "\C-a" 'beginning-of-defun)
