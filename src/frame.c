@@ -87,8 +87,6 @@ Lisp_Object Qx;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
-
-extern Lisp_Object Vlast_event_frame;
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
   "Return non-nil if OBJECT is a frame.\n\
@@ -159,11 +157,11 @@ make_frame (mini_p)
   f->has_minibuffer = mini_p;
   f->focus_frame = Qnil;
   f->explicit_name = 0;
-  f->can_have_scrollbars = 0;
-  f->has_vertical_scrollbars = 0;
+  f->can_have_scroll_bars = 0;
+  f->has_vertical_scroll_bars = 0;
   f->param_alist = Qnil;
-  f->scrollbars = Qnil;
-  f->condemned_scrollbars = Qnil;
+  f->scroll_bars = Qnil;
+  f->condemned_scroll_bars = Qnil;
 
   root_window = make_window ();
   if (mini_p)
@@ -398,7 +396,7 @@ Changing the selected frame can change focus redirections.  See\n\
      (select-window (frame-root-window (new-frame))) doesn't end up
      with your typing being interpreted in the new frame instead of
      the one you're actually typing in.  */
-  Vlast_event_frame = Qnil;
+  internal_last_event_frame = Qnil;
 
   return frame;
 }
@@ -749,7 +747,7 @@ and nil for X and Y.")
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
-  enum scrollbar_part party_dummy;
+  enum scroll_bar_part party_dummy;
   Lisp_Object x, y;
   unsigned long long_dummy;
 
