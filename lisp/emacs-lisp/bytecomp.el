@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.79.1.1 $")
+(defconst byte-compile-version "$Revision: 2.80 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -793,9 +793,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 
 (defvar byte-compile-current-form nil)
 (defvar byte-compile-dest-file nil)
-
-;; Don't actually bind this.
-(defvar byte-compile-current-file)
+(defvar byte-compile-current-file nil)
 
 (defmacro byte-compile-log (format-string &rest args)
   (list 'and

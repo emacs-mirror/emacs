@@ -3966,4 +3966,12 @@ corresponing syntax code as it is stored in a syntax cell, and
 can be used as value of a `syntax-table' property.
 DESCRIPTION is the descriptive string for the syntax.")
 
+
+;;; Misc
+
+(defun byte-compiling-files-p ()
+  "Return t if currently byte-compiling files."
+  (and (boundp 'byte-compile-current-file)
+       (stringp byte-compile-current-file)))
+   
 ;;; simple.el ends here
