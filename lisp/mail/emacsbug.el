@@ -38,7 +38,10 @@
 (require 'sendmail)
 
 (defvar bug-gnu-emacs "bug-gnu-emacs@prep.ai.mit.edu"
-  "Address of site maintaining mailing list for GNU Emacs bugs.")
+  "Address of mailing list for GNU Emacs bugs.")
+
+(defvar report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.ai.mit.edu"
+  "Address of mailing list for GNU Emacs pretest bugs.")
 
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of bug report.")
@@ -48,7 +51,13 @@
   "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive "sBug Subject: ")
-  (if (mail nil bug-gnu-emacs topic)
+  (if (mail nil
+	    (if (string-match "\\..*\\..*\\." emacs-version)
+		;; If there are four numbers in emacs-version,
+		;; this is a pretest version.
+		report-emacs-bug-pretest-address
+	      bug-gnu-emacs)
+	    topic)
       (let (user-point)
 	;; The rest of this does not execute
 	;; if the user was asked to confirm and said no.
