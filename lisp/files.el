@@ -831,6 +831,8 @@ run `normal-mode' explicitly."
 				  ("\\.p\\'" . pascal-mode)
 				  ("\\.pas\\'" . pascal-mode)
 				  ("\\.mss\\'" . scribe-mode)
+				  ("\\.ada\\'" . ada-mode)
+				  ("\\.icn\\'" . icon-mode)
 				  ("\\.pl\\'" . prolog-mode)
 				  ("\\.cc\\'" . c++-mode)
 				  ("\\.hh\\'" . c++-mode)
