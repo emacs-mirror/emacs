@@ -1,7 +1,7 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(trunk.14) $
- * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!vmsu.c(trunk.15) $
+ * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
  *
@@ -54,7 +54,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.14) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.15) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -82,14 +82,9 @@ typedef struct VMStruct {
 } VMStruct;
 
 
-Align VMAlign(void)
+Align VMAlign(VM vm)
 {
-  Align align;
-
-  align = (Align)getpagesize();
-  AVER(SizeIsP2(align));
-
-  return align;
+  return vm->align;
 }
 
 
@@ -120,10 +115,11 @@ Res VMCreate(VM *vmReturn, Size size)
   int none_fd;
   VM vm;
 
-  align = VMAlign();
-
   AVER(vmReturn != NULL);
-  AVER(SizeIsAligned(size, align));
+
+  align = (Align)getpagesize();
+  AVER(SizeIsP2(align));
+  size = SizeAlignUp(size, align);
   AVER(size != 0);
   AVER(size <= INT_MAX); /* see .assume.size */
 
@@ -159,7 +155,7 @@ Res VMCreate(VM *vmReturn, Size size)
   /* .map.reserve: See .assume.not-last. */
   addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED, none_fd,
               (off_t)0);
-  if((int)addr == -1) {
+  if(addr == (caddr_t)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
     close(none_fd);
@@ -297,4 +293,3 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   vm->mapped -= size;
 }
-
