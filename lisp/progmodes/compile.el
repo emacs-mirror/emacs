@@ -322,6 +322,7 @@ Returns the compilation buffer created."
 					       command)))
 	(set-process-sentinel proc 'compilation-sentinel)
 	(set-process-filter proc 'compilation-filter)
+	(set-marker (process-mark proc) (point) outbuf)
 	(setq compilation-in-progress (cons proc compilation-in-progress))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
