@@ -2163,7 +2163,8 @@ FILES is the list of marked files."
     (with-current-buffer (get-buffer-create bufname)
       (erase-buffer)
       (dired-format-columns-of-files files)
-      (remove-text-properties (point-min) (point-max) '(mouse-face help-echo)))
+      (remove-text-properties (point-min) (point-max)
+			      '(mouse-face nil help-echo nil)))
     (save-window-excursion
       (dired-pop-to-buffer bufname)
       (apply function args))))
