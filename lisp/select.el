@@ -176,8 +176,8 @@ Cut buffers are considered obsolete; you should use selections instead."
 	(if coding
 	    (setq coding (coding-system-base coding))
 	  (setq coding 'raw-text))
-	;; Suppress producing escape sequences for compositions.
 	(let ((inhibit-read-only t))
+	  ;; Suppress producing escape sequences for compositions.
 	  (remove-text-properties 0 (length str) '(composition nil) str)
 	  (cond
 	   ((eq type 'TEXT)
