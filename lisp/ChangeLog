@@ -1,5 +1,11 @@
 2001-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* dired-aux.el (dired-diff): Doc fix.
+
+	* dired.el (dired-diff): Likewise.
+
+2001-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* textmodes/ispell.el (ispell-change-dictionary): Doc fix.
 
 2001-05-02  Stefan Monnier  <monnier@cs.yale.edu>
