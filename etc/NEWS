@@ -1990,6 +1990,11 @@ these properties are active.
 
 ** The change in the treatment of non_ASCII characters in search
 ranges may affect some code.
+
+** A non-nil value for the LOCAL arg of add-hook makes the hook
+buffer-local even if `make-local-hook' hasn't been called, which might
+make a difference to some code.
+
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
@@ -2001,10 +2006,12 @@ alternative font registry names to try when looking for a font.
 ** Function `md5' calculates the MD5 "message digest"/"checksum",
 currently using the `md5sum' program.
 
++++
 ** Function `delete-frame' runs `delete-frame-hook' before actually
 deleting the frame.  The hook is called with one arg, the frame
 being deleted.
 
++++
 ** `add-hook' now makes the hook local if called with a non-nil LOCAL arg.
 
 +++
@@ -2023,9 +2030,11 @@ message.
 ** The new macro `with-auto-compression-mode' allows evaluating an
 expression with auto-compression-mode enabled.
 
++++
 ** In image specifications, `:heuristic-mask' has been replaced
 with the more general `:mask' property.
 
++++
 ** Image specifications accept more `:algorithm's.
 
 ** A `?' can be used in a symbol name without escaping it with a
@@ -2062,6 +2071,7 @@ a list, vector, or string.  The comparison is done with `equal'.
 Return a copy of LIST with all occurences of ELT removed.  The
 comparison is done with `eq'.
 
++++
 ** The function `delete' now also works with vectors and strings.
 
 ** The meaning of the `:weakness WEAK' argument of make-hash-table
@@ -2072,12 +2082,14 @@ has been changed.
 without signaling "Attempt to change char length of a string".  It may
 convert a unibyte string to multibyte if necessary.
 
++++
 ** The value of the `help-echo' text property is called as a function
 or evaluated, if it is not a string already, to obtain a help string.
 
 ** Function `make-obsolete' now has an optional arg to say when the
 function was declared obsolete.
 
++++
 ** Function `plist-member' is renamed from `widget-plist-member' (which is
 retained as an alias).
 
