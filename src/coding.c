@@ -4346,10 +4346,11 @@ decode_coding_charset (coding)
 	    {
 	      charset = CHARSET_FROM_ID (XFASTINT (val));
 	      dim = CHARSET_DIMENSION (charset);
-	      while (len++ < dim)
+	      while (len < dim)
 		{
 		  ONE_MORE_BYTE (c);
 		  code = (code << 8) | c;
+		  len++;
 		}
 	      CODING_DECODE_CHAR (coding, src, src_base, src_end,
 				  charset, code, c);
@@ -4363,10 +4364,11 @@ decode_coding_charset (coding)
 		{
 		  charset = CHARSET_FROM_ID (XFASTINT (XCAR (val)));
 		  dim = CHARSET_DIMENSION (charset);
-		  while (len++ < dim)
+		  while (len < dim)
 		    {
 		      ONE_MORE_BYTE (c);
 		      code = (code << 8) | c;
+		      len++;
 		    }
 		  CODING_DECODE_CHAR (coding, src, src_base,
 				      src_end, charset, code, c);
@@ -7420,9 +7422,9 @@ usage: (define-coding-system-internal ...)  */)
 		{
 		  dim2 = CHARSET_DIMENSION (CHARSET_FROM_ID (XFASTINT (tmp)));
 		  if (dim < dim2)
-		    tmp = Fcons (tmp, Fcons (XCAR (tail), Qnil));
-		  else
 		    tmp = Fcons (XCAR (tail), Fcons (tmp, Qnil));
+		  else
+		    tmp = Fcons (tmp, Fcons (XCAR (tail), Qnil));
 		}
 	      else
 		{
