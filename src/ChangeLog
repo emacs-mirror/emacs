@@ -1,3 +1,9 @@
+2003-08-29  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* xdisp.c (redisplay_internal): Fix change of 2003-04-30.  Don't
+	tell redisplay display is accurate when it's actually been paused
+	for pending input.
+
 2003-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* dispnew.c (adjust_glyph_matrix): Call window_box
