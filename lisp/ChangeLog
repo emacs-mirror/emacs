@@ -1,5 +1,8 @@
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/paragraphs.el (forward-sentence): Avoid building
+	a regexp from sentence-end.  From Kenichi Handa <handa@etl.go.jp>.
+
 	* progmodes/executable.el (executable-set-magic): If 
 	executable-find returns a quoted file name, unquote it before
 	inserting it.
