@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/debugging
-@node Debugging, Streams, Byte Compilation, Top
+@node Debugging, Read and Print, Byte Compilation, Top
 @chapter Debugging Lisp Programs
 
   There are three ways to investigate a problem in an Emacs Lisp program,
