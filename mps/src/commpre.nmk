@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.8) $
+# $HopeName: MMsrc!commpre.nmk(trunk.9) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -110,7 +110,7 @@ CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
 CFLAGSCOMMON = /nologo /W4 /WX $(PFMDEFS) $(CFLAGSTARGET)
 
 # Flags for use in the variety combinations
-CFLAGSHOT = /O2 /DNDEBUG
+CFLAGSHOT = /O2 /DNDEBUG /Oy-
 CFLAGSCOOL = 
 CFLAGSINTERNAL = /Z7
 CFLAGSEXTERNAL = 
