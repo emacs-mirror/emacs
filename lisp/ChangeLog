@@ -1,5 +1,12 @@
 2000-10-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* menu-bar.el (send-mail-item-name): New function.
+	(menu-bar-tools-menu) <compose-mail>: Use it to display the value
+	of mail-user-agent in the menu.  Don't display the "Send Mail"
+	item if mail-user-agent is nil or its value is ignore.
+	(menu-bar-tools-menu) <rmail>: Don't display the "Read Mail" item
+	if read-mail-command is nil or its value is ignore.
+
 	* mouse.el ([header-line mouse-1]): Bind to mouse-select-window.
 
 2000-10-09  Miles Bader  <miles@gnu.org>
