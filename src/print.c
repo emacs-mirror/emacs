@@ -417,23 +417,29 @@ printchar (ch, fun)
 
       /* Convert message to multibyte if we are now adding multibyte text.  */
       if (! NILP (current_buffer->enable_multibyte_characters)
-	  && ! message_enable_multibyte
-	  && printbufidx > 0)
+	  && len > 1
+	  && ! message_enable_multibyte)
 	{
-	  int size = count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
-					      printbufidx);
-	  unsigned char *tembuf = (unsigned char *) alloca (size + 1);
-	  copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
-		     0, 1);
-	  printbufidx = size;
-	  if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
+	  /* If we have already had some message text in the messsage
+             buffer, we must convert it to multibyte.  */
+	  if (printbufidx > 0)
 	    {
-	      printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
-	      /* Rewind incomplete multi-byte form.  */
-	      while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
-		printbufidx--;
+	      int size
+		= count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
+					   printbufidx);
+	      unsigned char *tembuf = (unsigned char *) alloca (size + 1);
+	      copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
+			 0, 1);
+	      printbufidx = size;
+	      if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
+		{
+		  printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
+		  /* Rewind incomplete multi-byte form.  */
+		  while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
+		    printbufidx--;
+		}
+	      bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
 	    }
-	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
 	  message_enable_multibyte = 1;
 	}
 
