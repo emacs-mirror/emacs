@@ -1,10 +1,13 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.5) $
+ * $HopeName: MMsrc!poolams.h(trunk.6) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
  */
+
+#ifndef poolams_h
+#define poolams_h
 
 #include "mpm.h"
 #include <stdarg.h>
@@ -195,3 +198,6 @@ extern void AMSGroupFinish(AMSGroup group);
 extern void AMSGroupDestroy(AMSGroup group);
 extern Bool AMSGroupCheck(AMSGroup group);
 extern Res AMSGroupDescribe(AMSGroup group, mps_lib_FILE *stream);
+
+
+#endif /* poolams_h */
