@@ -1,5 +1,5 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987, 1988, 1993, 1994 Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -225,7 +225,11 @@ MOVE_FLAGS=
 LIBS_MOVE=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
 
 #ifdef HAVE_LIBMAIL
+#ifdef HAVE_LIBLOCKFILE
+LIBS_MAIL=-llockfile
+#else
 LIBS_MAIL=-lmail
+#endif
 #endif
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
