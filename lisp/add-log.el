@@ -49,6 +49,13 @@ This defaults to the value of `user-mail-address'.")
     ("\(\\([^)\n]+\\)\)" 1 font-lock-keyword-face))	; Function name.
   "Additional expressions to highlight in Change Log mode.")
 
+(defvar change-log-mode-map nil
+  "Keymap for Change Log major mode.")
+(if change-log-mode-map
+    nil
+  (setq change-log-mode-map (make-sparse-keymap))
+  (define-key change-log-mode-map "\M-q" 'change-log-fill-paragraph))
+
 (defun change-log-name ()
   (or change-log-default-name
       (if (eq system-type 'vax-vms) 
@@ -268,13 +275,6 @@ Runs `change-log-mode-hook'."
   (set (make-local-variable 'font-lock-defaults)
        '(change-log-font-lock-keywords t))
   (run-hooks 'change-log-mode-hook))
-
-(defvar change-log-mode-map nil
-  "Keymap for Change Log major mode.")
-(if change-log-mode-map
-    nil
-  (setq change-log-mode-map (make-sparse-keymap))
-  (define-key change-log-mode-map "\M-q" 'change-log-fill-paragraph))
 
 ;; It might be nice to have a general feature to replace this.  The idea I
 ;; have is a variable giving a regexp matching text which should not be
