@@ -547,6 +547,47 @@ x_set_frame_parameters (f, alist)
   }
 }
 
+/* Store the positions of frame F into XPTR and YPTR.
+   These are the positions of the containing window manager window,
+   not Emacs's own window.  */
+
+void
+x_real_positions (f, xptr, yptr)
+     FRAME_PTR f;
+     int *xptr, *yptr;
+{
+  int win_x = 0, win_y = 0;
+  Window child;
+
+  /* Find the position of the outside upper-left corner of
+     the inner window, with respect to the outer window.  */
+  if (f->display.x->parent_desc != ROOT_WINDOW)
+    {
+      BLOCK_INPUT;
+      XTranslateCoordinates (x_current_display,
+			       
+			     /* From-window, to-window.  */
+#ifdef USE_X_TOOLKIT
+			     XtWindow (f->display.x->widget),
+#else
+			     f->display.x->window_desc,
+#endif
+			     f->display.x->parent_desc,
+
+			     /* From-position, to-position.  */
+			     0, 0, &win_x, &win_y,
+
+			     /* Child of win.  */
+			     &child);
+      UNBLOCK_INPUT;
+
+      win_x += f->display.x->border_width;
+      win_y += f->display.x->border_width;
+    }
+  *xptr = f->display.x->left_pos - win_x;
+  *yptr = f->display.x->top_pos - win_y;
+}
+
 /* Insert a description of internally-recorded parameters of frame X
    into the parameter alist *ALISTPTR that is to be given to the user.
    Only parameters that are specific to the X window system
