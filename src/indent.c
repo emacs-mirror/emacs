@@ -792,14 +792,14 @@ int
 indented_beyond_p (pos, pos_byte, column)
      int pos, pos_byte, column;
 {
-  Lisp_Object val;
+  int val;
   int opoint = PT, opoint_byte = PT_BYTE;
 
   SET_PT_BOTH (pos, pos_byte);
   while (PT > BEGV && FETCH_BYTE (PT_BYTE) == '\n')
     scan_newline (PT - 1, PT_BYTE - 1, BEGV, BEGV_BYTE, -1, 0);
 
-  XSETFASTINT (val, position_indentation (PT_BYTE));
+  val = position_indentation (PT_BYTE);
   SET_PT_BOTH (opoint, opoint_byte);
   return val;
 }
