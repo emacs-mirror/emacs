@@ -39,9 +39,6 @@ Lisp_Object Vself_insert_face;
 /* This is the command that set up Vself_insert_face.  */
 Lisp_Object Vself_insert_face_command;
 
-/* Offset to add to a non-ASCII value when inserting it.  */
-int nonascii_insert_offset;
-
 extern Lisp_Object Qface;
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
@@ -297,9 +294,8 @@ Whichever character you type to run this command is inserted.")
       /* Add the offset to the character, for Finsert_char.
 	 We pass internal_self_insert the unmodified character
 	 because it itself does this offsetting.  */
-      if (modified_char >= 0200 && modified_char <= 0377
-	  && ! NILP (current_buffer->enable_multibyte_characters))
-	modified_char += nonascii_insert_offset;
+      if (! NILP (current_buffer->enable_multibyte_characters))
+	modified_char = unibyte_char_to_multibyte (modified_char);
 
       XSETFASTINT (n, XFASTINT (n) - 2);
       /* The first one might want to expand an abbrev.  */
@@ -345,9 +341,8 @@ internal_self_insert (c, noautofill)
   int chars_to_delete = 0;
   int spaces_to_insert = 0;
 
-  if (c >= 0200 && c <= 0377
-      && ! NILP (current_buffer->enable_multibyte_characters))
-    c += nonascii_insert_offset;
+  if (! NILP (current_buffer->enable_multibyte_characters))
+    c = unibyte_char_to_multibyte (c);
 
   overwrite = current_buffer->overwrite_mode;
   if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function)
@@ -533,13 +528,6 @@ If `last-command' does not equal this value, we ignore `self-insert-face'.");
     "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
 More precisely, a char with closeparen syntax is self-inserted.");
   Vblink_paren_function = Qnil;
-
-  DEFVAR_INT ("nonascii-insert-offset", &nonascii_insert_offset,
-    "Offset to add to a non-ascii code 0200...0377 when inserting it.\n\
-This applies only when multibyte characters are enabled, and it serves\n\
-to convert a Latin-1 or similar 8-bit character code to the corresponding\n\
-Emacs character code.");
-  nonascii_insert_offset = 0;
 
   defsubr (&Sforward_point);
   defsubr (&Sforward_char);
