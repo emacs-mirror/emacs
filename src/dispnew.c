@@ -1562,7 +1562,7 @@ update_line (frame, vpos)
 	= current_frame->used[vpos]
 	  * FONT_WIDTH (frame->display.x->font);
       current_frame->pix_height[vpos]
-	= FONT_HEIGHT (frame->display.x->font);
+	= frame->display.x->line_height;
     }
 #endif /* HAVE_X_WINDOWS */
 
