@@ -13191,8 +13191,10 @@ x_find_ccl_program (fontp)
       elt = XCAR (list);
       if (CONSP (elt)
 	  && STRINGP (XCAR (elt))
-	  && (fast_c_string_match_ignore_case (XCAR (elt), fontp->name)
-	      >= 0))
+	  && ((fast_c_string_match_ignore_case (XCAR (elt), fontp->name)
+	       >= 0)
+	      || (fast_c_string_match_ignore_case (XCAR (elt), fontp->full_name)
+		  >= 0)))
 	break;
     }
   
