@@ -130,37 +130,62 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User definable variables:
 
-(defvar ff-pre-find-hooks nil
-  "*List of functions to be called before the search for the file starts.")
+(defgroup ff nil
+  "Find a file corresponding to this one given a pattern."
+  :prefix "ff-"
+  :group 'find-file)
 
-(defvar ff-pre-load-hooks nil
-  "*List of functions to be called before the other file is loaded.")
+(defcustom ff-pre-find-hooks nil
+  "*List of functions to be called before the search for the file starts."
+  :type 'hook
+  :group 'ff)
 
-(defvar ff-post-load-hooks nil
-  "*List of functions to be called after the other file is loaded.")
+(defcustom ff-pre-load-hooks nil
+  "*List of functions to be called before the other file is loaded."
+  :type 'hook
+  :group 'ff)
 
-(defvar ff-not-found-hooks nil
-  "*List of functions to be called if the other file could not be found.")
+(defcustom ff-post-load-hooks nil
+  "*List of functions to be called after the other file is loaded."
+  :type 'hook
+  :group 'ff)
 
-(defvar ff-file-created-hooks nil
-  "*List of functions to be called if the other file needs to be created.")
+(defcustom ff-not-found-hooks nil
+  "*List of functions to be called if the other file could not be found."
+  :type 'hook
+  :group 'ff)
 
-(defvar ff-case-fold-search nil
+(defcustom ff-file-created-hooks nil
+  "*List of functions to be called if the other file needs to be created."
+  :type 'hook
+  :group 'ff)
+
+(defcustom ff-case-fold-search nil
   "*Non-nil means ignore cases in matches (see `case-fold-search').
-If you have extensions in different cases, you will want this to be nil.")
+If you have extensions in different cases, you will want this to be nil."
+  :type 'boolean
+  :group 'ff)
 
-(defvar ff-always-in-other-window nil
+(defcustom ff-always-in-other-window nil
   "*If non-nil, find the corresponding file in another window by default.
-To override this, give an argument to `ff-find-other-file'.")
+To override this, give an argument to `ff-find-other-file'."
+  :type 'boolean
+  :group 'ff)
 
-(defvar ff-ignore-include nil
-  "*If non-nil, ignore `#include' lines.")
+(defcustom ff-ignore-include nil
+  "*If non-nil, ignore `#include' lines."
+  :type 'boolean
+  :group 'ff)
 
-(defvar ff-always-try-to-create t
-  "*If non-nil, always attempt to create the other file if it was not found.")
+(defcustom ff-always-try-to-create t
+  "*If non-nil, always attempt to create the other file if it was not found."
+  :type 'boolean
+  :group 'ff)
 
-(defvar ff-quiet-mode nil
-  "*If non-nil, trace which directories are being searched.")
+(defcustom ff-quiet-mode nil
+  "*If non-nil, trace which directories are being searched."
+  :type 'boolean
+  :group 'ff)
 
 (defvar ff-special-constructs 
   '(
@@ -181,16 +206,19 @@ To override this, give an argument to `ff-find-other-file'.")
 constructs such as include files etc, and an associated method for 
 extracting the filename from that construct.")
 
-(defvar ff-other-file-alist 'cc-other-file-alist
+(defcustom ff-other-file-alist 'cc-other-file-alist
   "*Alist of extensions to find given the current file's extension.
 
 This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each
 directory specified in `ff-search-directories'.  If a file is not found,
 a new one is created with the first matching extension (`.cc' yields `.hh').
-This alist should be set by the major mode.")
+This alist should be set by the major mode."
+  :type '(choice (repeat (list regexp (choice (repeat string) function)))
+		 symbol)
+  :group 'ff)
 
-(defvar ff-search-directories 'cc-search-directories
+(defcustom ff-search-directories 'cc-search-directories
   "*List of directories to search for a specific file.
 
 Set by default to `cc-search-directories', expanded at run-time.
@@ -210,13 +238,17 @@ not exist, it is replaced (silently) with an empty string.
 
 The stars are *not* wildcards: they are searched for together with
 the preceding slash.  The star represents all the subdirectories except
-`..', and each of these subdirectories will be searched in turn.")
+`..', and each of these subdirectories will be searched in turn."
+  :type '(choice (repeat directory) symbol)
+  :group 'ff)
 
-(defvar cc-search-directories
+(defcustom cc-search-directories
   '("." "/usr/include" "/usr/local/include/*")
-  "*See the description of the `ff-search-directories' variable.")
+  "*See the description of the `ff-search-directories' variable."
+  :type '(repeat directory)
+  :group 'ff)
 
-(defvar cc-other-file-alist
+(defcustom cc-other-file-alist
   '(
     ("\\.cc$"  (".hh" ".h"))
     ("\\.hh$"  (".cc" ".C"))
@@ -238,14 +270,19 @@ the preceding slash.  The star represents all the subdirectories except
 This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each directory
 specified in `ff-search-directories'.  If a file is not found, a new one
-is created with the first matching extension (`.cc' yields `.hh').")
+is created with the first matching extension (`.cc' yields `.hh')."
+  :type '(repeat (list regexp (choice (repeat string) function)))
+  :group 'ff)
 
-(defvar modula2-other-file-alist
+(defcustom modula2-other-file-alist
   '(
     ("\\.mi$" (".md")) ;; Modula-2 module definition
     ("\\.md$" (".mi")) ;; and implementation.
     )
-  "*See the description for the `ff-search-directories' variable.")
+  "*See the description for the `ff-search-directories' variable."
+  :type '(repeat (list regexp (choice (repeat string) function)))
+  :group 'ff)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; No user definable variables beyond this point!
