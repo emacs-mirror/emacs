@@ -1201,7 +1201,7 @@ build_load_history (stream, source)
 		{
 		  newelt = XCAR (tem2);
 
-		  if (NILP (Fmemq (newelt, tem)))
+		  if (NILP (Fmember (newelt, tem)))
 		    Fsetcar (tail, Fcons (XCAR (tem),
 		     			  Fcons (newelt, XCDR (tem))));
 
@@ -3760,9 +3760,9 @@ when the corresponding call to `provide' is made.  */);
 Each alist element is a list that starts with a file name,
 except for one element (optional) that starts with nil and describes
 definitions evaluated from buffers not visiting files.
-The remaining elements of each list are symbols defined as functions
-or variables, and cons cells `(provide . FEATURE)', `(require . FEATURE)',
-and `(autoload . SYMBOL)'.  */);
+The remaining elements of each list are symbols defined as functions,
+and cons cells of the form `(provide . FEATURE)', `(require . FEATURE)',
+`(defvar . VARIABLE), and `(autoload . SYMBOL)'.  */);
   Vload_history = Qnil;
 
   DEFVAR_LISP ("load-file-name", &Vload_file_name,
