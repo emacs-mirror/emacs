@@ -483,10 +483,14 @@ from being initialized."
 	(if (equal "5" which)
 	    (setq which "9"))
 	(setq charset (concat "latin-" which))
-	;; Set up for this character set in multibyte mode.
 	(if (string-match "latin-[12345]" charset)
-	    (set-language-environment charset))
-	(standard-display-european t charset))))
+	    (if default-enable-multibyte-characters
+		;; Set up for this character set in multibyte mode.
+		(set-language-environment charset)
+	      ;; Set up for this character set in unibyte mode.
+	      (load charset)))
+	(standard-display-european t (and default-enable-multibyte-characters
+					  charset))))))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
