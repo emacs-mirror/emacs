@@ -204,7 +204,7 @@ By default this is the file specified by `mail-personal-alias-file'."
 	(obuf (current-buffer)))
     (unwind-protect
 	(progn
-	  (setq buffer (generate-new-buffer "mailrc"))
+	  (setq buffer (generate-new-buffer " mailrc"))
 	  (buffer-disable-undo buffer)
 	  (set-buffer buffer)
 	  (cond ((get-file-buffer file)
