@@ -1164,7 +1164,7 @@ mark_interval (i, dummy)
 {
   eassert (!i->gcmarkbit);		/* Intervals are never shared.  */
   i->gcmarkbit = 1;
-  mark_object (&i->plist);
+  mark_object (i->plist);
 }
 
 
@@ -3646,7 +3646,7 @@ mark_maybe_object (obj)
 	    zombies[nzombies] = obj;
 	  ++nzombies;
 #endif
-	  mark_object (&obj);
+	  mark_object (obj);
 	}
     }
 }
@@ -3728,7 +3728,7 @@ mark_maybe_pointer (p)
 	}
 
       if (!GC_NILP (obj))
-	mark_object (&obj);
+	mark_object (obj);
     }
 }
 
@@ -4370,7 +4370,7 @@ Garbage collection happens automatically if you cons more than
      For these, we use MARKBIT to avoid double marking of the slot.  */
 
   for (i = 0; i < staticidx; i++)
-    mark_object (staticvec[i]);
+    mark_object (*staticvec[i]);
 
 #if (GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS \
      || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
@@ -4384,7 +4384,7 @@ Garbage collection happens automatically if you cons more than
 	  {
 	    /* Explicit casting prevents compiler warning about
 	       discarding the `volatile' qualifier.  */
-	    mark_object ((Lisp_Object *)&tail->var[i]);
+	    mark_object (tail->var[i]);
 	    XMARK (tail->var[i]);
 	  }
   }
@@ -4394,24 +4394,24 @@ Garbage collection happens automatically if you cons more than
   for (bind = specpdl; bind != specpdl_ptr; bind++)
     {
       /* These casts avoid a warning for discarding `volatile'.  */
-      mark_object ((Lisp_Object *) &bind->symbol);
-      mark_object ((Lisp_Object *) &bind->old_value);
+      mark_object (bind->symbol);
+      mark_object (bind->old_value);
     }
   for (catch = catchlist; catch; catch = catch->next)
     {
-      mark_object (&catch->tag);
-      mark_object (&catch->val);
+      mark_object (catch->tag);
+      mark_object (catch->val);
     }
   for (handler = handlerlist; handler; handler = handler->next)
     {
-      mark_object (&handler->handler);
-      mark_object (&handler->var);
+      mark_object (handler->handler);
+      mark_object (handler->var);
     }
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {
       if (!XMARKBIT (*backlist->function))
 	{
-	  mark_object (backlist->function);
+	  mark_object (*backlist->function);
 	  XMARK (*backlist->function);
 	}
       if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
@@ -4421,7 +4421,7 @@ Garbage collection happens automatically if you cons more than
       for (; i >= 0; i--)
 	if (!XMARKBIT (backlist->args[i]))
 	  {
-	    mark_object (&backlist->args[i]);
+	    mark_object (backlist->args[i]);
 	    XMARK (backlist->args[i]);
 	  }
     }
@@ -4607,7 +4607,7 @@ mark_glyph_matrix (matrix)
 	    for (; glyph < end_glyph; ++glyph)
 	      if (GC_STRINGP (glyph->object)
 		  && !STRING_MARKED_P (XSTRING (glyph->object)))
-		mark_object (&glyph->object);
+		mark_object (glyph->object);
 	  }
       }
 }
@@ -4629,7 +4629,7 @@ mark_face_cache (c)
 	  if (face)
 	    {
 	      for (j = 0; j < LFACE_VECTOR_SIZE; ++j)
-		mark_object (&face->lface[j]);
+		mark_object (face->lface[j]);
 	    }
 	}
     }
@@ -4644,10 +4644,10 @@ static void
 mark_image (img)
      struct image *img;
 {
-  mark_object (&img->spec);
+  mark_object (img->spec);
 
   if (!NILP (img->data.lisp_val))
-    mark_object (&img->data.lisp_val);
+    mark_object (img->data.lisp_val);
 }
 
 
@@ -4670,7 +4670,7 @@ mark_image_cache (f)
    all the references contained in it.  */
 
 #define LAST_MARKED_SIZE 500
-Lisp_Object *last_marked[LAST_MARKED_SIZE];
+Lisp_Object last_marked[LAST_MARKED_SIZE];
 int last_marked_index;
 
 /* For debugging--call abort when we cdr down this many
@@ -4680,11 +4680,10 @@ int last_marked_index;
 int mark_object_loop_halt;
 
 void
-mark_object (argptr)
-     Lisp_Object *argptr;
+mark_object (arg)
+     Lisp_Object arg;
 {
-  Lisp_Object *objptr = argptr;
-  register Lisp_Object obj;
+  register Lisp_Object obj = arg;
 #ifdef GC_CHECK_MARKED_OBJECTS
   void *po;
   struct mem_node *m;
@@ -4692,14 +4691,12 @@ mark_object (argptr)
   int cdr_count = 0;
 
  loop:
-  obj = *objptr;
- loop2:
   XUNMARK (obj);
 
   if (PURE_POINTER_P (XPNTR (obj)))
     return;
 
-  last_marked[last_marked_index++] = objptr;
+  last_marked[last_marked_index++] = obj;
   if (last_marked_index == LAST_MARKED_SIZE)
     last_marked_index = 0;
 
@@ -4804,11 +4801,9 @@ mark_object (argptr)
 	  for (i = 0; i < size; i++) /* and then mark its elements */
 	    {
 	      if (i != COMPILED_CONSTANTS)
-		mark_object (&ptr->contents[i]);
+		mark_object (ptr->contents[i]);
 	    }
-	  /* This cast should be unnecessary, but some Mips compiler complains
-	     (MIPS-ABI + SysVR4, DC/OSx, etc).  */
-	  objptr = (Lisp_Object *) &ptr->contents[COMPILED_CONSTANTS];
+	  obj = ptr->contents[COMPILED_CONSTANTS];
 	  goto loop;
 	}
       else if (GC_FRAMEP (obj))
@@ -4819,28 +4814,28 @@ mark_object (argptr)
 	  VECTOR_MARK (ptr);		      /* Else mark it */
 
 	  CHECK_LIVE (live_vector_p);
-	  mark_object (&ptr->name);
-	  mark_object (&ptr->icon_name);
-	  mark_object (&ptr->title);
-	  mark_object (&ptr->focus_frame);
-	  mark_object (&ptr->selected_window);
-	  mark_object (&ptr->minibuffer_window);
-	  mark_object (&ptr->param_alist);
-	  mark_object (&ptr->scroll_bars);
-	  mark_object (&ptr->condemned_scroll_bars);
-	  mark_object (&ptr->menu_bar_items);
-	  mark_object (&ptr->face_alist);
-	  mark_object (&ptr->menu_bar_vector);
-	  mark_object (&ptr->buffer_predicate);
-	  mark_object (&ptr->buffer_list);
-	  mark_object (&ptr->menu_bar_window);
-	  mark_object (&ptr->tool_bar_window);
+	  mark_object (ptr->name);
+	  mark_object (ptr->icon_name);
+	  mark_object (ptr->title);
+	  mark_object (ptr->focus_frame);
+	  mark_object (ptr->selected_window);
+	  mark_object (ptr->minibuffer_window);
+	  mark_object (ptr->param_alist);
+	  mark_object (ptr->scroll_bars);
+	  mark_object (ptr->condemned_scroll_bars);
+	  mark_object (ptr->menu_bar_items);
+	  mark_object (ptr->face_alist);
+	  mark_object (ptr->menu_bar_vector);
+	  mark_object (ptr->buffer_predicate);
+	  mark_object (ptr->buffer_list);
+	  mark_object (ptr->menu_bar_window);
+	  mark_object (ptr->tool_bar_window);
 	  mark_face_cache (ptr->face_cache);
 #ifdef HAVE_WINDOW_SYSTEM
 	  mark_image_cache (ptr);
-	  mark_object (&ptr->tool_bar_items);
-	  mark_object (&ptr->desired_tool_bar_string);
-	  mark_object (&ptr->current_tool_bar_string);
+	  mark_object (ptr->tool_bar_items);
+	  mark_object (ptr->desired_tool_bar_string);
+	  mark_object (ptr->current_tool_bar_string);
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
       else if (GC_BOOL_VECTOR_P (obj))
@@ -4871,7 +4866,7 @@ mark_object (argptr)
 	  for (i = 0;
 	       (char *) &ptr->contents[i] < (char *) &w->current_matrix;
 	       i++)
-	    mark_object (&ptr->contents[i]);
+	    mark_object (ptr->contents[i]);
 
 	  /* Mark glyphs for leaf windows.  Marking window matrices is
 	     sufficient because frame matrices use the same glyph
@@ -4901,20 +4896,20 @@ mark_object (argptr)
 	     Being in the next_weak chain
 	     should not keep the hash table alive.
 	     No need to mark `count' since it is an integer.  */
-	  mark_object (&h->test);
-	  mark_object (&h->weak);
-	  mark_object (&h->rehash_size);
-	  mark_object (&h->rehash_threshold);
-	  mark_object (&h->hash);
-	  mark_object (&h->next);
-	  mark_object (&h->index);
-	  mark_object (&h->user_hash_function);
-	  mark_object (&h->user_cmp_function);
+	  mark_object (h->test);
+	  mark_object (h->weak);
+	  mark_object (h->rehash_size);
+	  mark_object (h->rehash_threshold);
+	  mark_object (h->hash);
+	  mark_object (h->next);
+	  mark_object (h->index);
+	  mark_object (h->user_hash_function);
+	  mark_object (h->user_cmp_function);
 
 	  /* If hash table is not weak, mark all keys and values.
 	     For weak tables, mark only the vector.  */
 	  if (GC_NILP (h->weak))
-	    mark_object (&h->key_and_value);
+	    mark_object (h->key_and_value);
 	  else
 	    VECTOR_MARK (XVECTOR (h->key_and_value));
 	}
@@ -4931,7 +4926,7 @@ mark_object (argptr)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 
 	  for (i = 0; i < size; i++) /* and then mark its elements */
-	    mark_object (&ptr->contents[i]);
+	    mark_object (ptr->contents[i]);
 	}
       break;
 
@@ -4943,9 +4938,9 @@ mark_object (argptr)
 	if (ptr->gcmarkbit) break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	ptr->gcmarkbit = 1;
-	mark_object ((Lisp_Object *) &ptr->value);
-	mark_object (&ptr->function);
-	mark_object (&ptr->plist);
+	mark_object (ptr->value);
+	mark_object (ptr->function);
+	mark_object (ptr->plist);
 
 	if (!PURE_POINTER_P (XSTRING (ptr->xname)))
 	  MARK_STRING (XSTRING (ptr->xname));
@@ -4957,13 +4952,9 @@ mark_object (argptr)
 	ptr = ptr->next;
 	if (ptr)
 	  {
-	    /* For the benefit of the last_marked log.  */
-	    objptr = (Lisp_Object *)&XSYMBOL (obj)->next;
 	    ptrx = ptr;		/* Use of ptrx avoids compiler bug on Sun */
 	    XSETSYMBOL (obj, ptrx);
-	    /* We can't goto loop here because *objptr doesn't contain an
-	       actual Lisp_Object with valid datatype field.  */
-	    goto loop2;
+	    goto loop;
 	  }
       }
       break;
@@ -4983,13 +4974,13 @@ mark_object (argptr)
 	    /* If the cdr is nil, avoid recursion for the car.  */
 	    if (EQ (ptr->cdr, Qnil))
 	      {
-		objptr = &ptr->realvalue;
+		obj = ptr->realvalue;
 		goto loop;
 	      }
-	    mark_object (&ptr->realvalue);
-	    mark_object (&ptr->buffer);
-	    mark_object (&ptr->frame);
-	    objptr = &ptr->cdr;
+	    mark_object (ptr->realvalue);
+	    mark_object (ptr->buffer);
+	    mark_object (ptr->frame);
+	    obj = ptr->cdr;
 	    goto loop;
 	  }
 
@@ -5011,9 +5002,9 @@ mark_object (argptr)
 	case Lisp_Misc_Overlay:
 	  {
 	    struct Lisp_Overlay *ptr = XOVERLAY (obj);
-	    mark_object (&ptr->start);
-	    mark_object (&ptr->end);
-	    objptr = &ptr->plist;
+	    mark_object (ptr->start);
+	    mark_object (ptr->end);
+	    obj = ptr->plist;
 	    goto loop;
 	  }
 	  break;
@@ -5032,12 +5023,12 @@ mark_object (argptr)
 	/* If the cdr is nil, avoid recursion for the car.  */
 	if (EQ (ptr->cdr, Qnil))
 	  {
-	    objptr = &ptr->car;
+	    obj = ptr->car;
 	    cdr_count = 0;
 	    goto loop;
 	  }
-	mark_object (&ptr->car);
-	objptr = &ptr->cdr;
+	mark_object (ptr->car);
+	obj = ptr->cdr;
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
 	  abort ();
@@ -5095,10 +5086,10 @@ mark_buffer (buf)
 	      && GC_MARKERP (XCAR (ptr->car)))
 	    {
 	      XMARK (XCAR_AS_LVALUE (ptr->car));
-	      mark_object (&XCDR_AS_LVALUE (ptr->car));
+	      mark_object (XCDR (ptr->car));
 	    }
 	  else
-	    mark_object (&ptr->car);
+	    mark_object (ptr->car);
 
 	  if (CONSP (ptr->cdr))
 	    tail = ptr->cdr;
@@ -5106,15 +5097,15 @@ mark_buffer (buf)
 	    break;
 	}
 
-      mark_object (&XCDR_AS_LVALUE (tail));
+      mark_object (XCDR (tail));
     }
   else
-    mark_object (&buffer->undo_list);
+    mark_object (buffer->undo_list);
 
   for (ptr = &buffer->name;
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
-    mark_object (ptr);
+    mark_object (*ptr);
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
