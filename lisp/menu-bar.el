@@ -833,6 +833,10 @@ key (or menu-item)"))
 	      :help "New features of this version"))
 (define-key menu-bar-help-menu [emacs-faq]
   '(menu-item "Emacs FAQ" view-emacs-FAQ))
+(define-key menu-bar-help-menu [emacs-tutorial-language-specific]
+  '(menu-item "Emacs Tutorial (choose language)..."
+	      (lambda () (interactive) (help-with-tutorial t))
+	      :help "Learn how to use Emacs (choose a language)"))
 (define-key menu-bar-help-menu [emacs-tutorial]
   '(menu-item "Emacs Tutorial" help-with-tutorial
 	      :help "Learn how to use Emacs"))
