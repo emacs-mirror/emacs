@@ -122,7 +122,7 @@ This applies when braces are inserted."
   "*Non-nil means TAB in Icon mode should always reindent the current line.
 It will then reindent, regardless of where in the line point is
 when the TAB command is used."
-  :type 'integer
+  :type 'boolean
   :group 'icon)
 
 (defvar icon-imenu-generic-expression
