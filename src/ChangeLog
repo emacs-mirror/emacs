@@ -1,6 +1,6 @@
 2000-02-26  Kenichi Handa  <handa@etl.go.jp>
 
-	* keyboard.c (read_char): Fix the bug of setting `usec'.
+	* keyboard.c (read_char): Set `usec' correctly.
 
 2000-02-25  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
 
