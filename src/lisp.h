@@ -1583,7 +1583,7 @@ EXFUN (Fforward_line, 1);
 /* Defined in coding.c */
 EXFUN (Fcoding_system_p, 1);
 EXFUN (Fcheck_coding_system, 1);
-EXFUN (Fread_coding_system, 1);
+EXFUN (Fread_coding_system, 2);
 EXFUN (Fread_non_nil_coding_system, 1);
 EXFUN (Ffind_operation_coding_system, MANY);
 
