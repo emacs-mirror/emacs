@@ -145,7 +145,7 @@ No arg means split equally."
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
-Do not shrink to less that `window-min-height' lines.
+Do not shrink to less than `window-min-height' lines.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
 or if the window is not the full width of the frame,
