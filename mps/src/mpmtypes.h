@@ -362,7 +362,7 @@ enum {
 /* .message.types: Keep in sync with impl.h.mps.message.types */
 
 enum {
-  MessageTypeFinalization,
+  MessageTypeFinalization = 1, /* avoid 0 for better error checking */
   MessageTypeCollectionStats,
   MessageTypeMAX
 };
