@@ -5825,7 +5825,8 @@ init_font_name_table ()
 /* Return a list of at most MAXNAMES font specs matching the one in
    PATTERN.  Cache matching fonts for patterns in
    dpyinfo->name_list_element to avoid looking them up again by
-   calling mac_font_pattern_match (slow).  */
+   calling mac_font_pattern_match (slow).  Return as many matching
+   fonts as possible if MAXNAMES = -1.  */
 
 Lisp_Object
 x_list_fonts (struct frame *f,
@@ -5868,7 +5869,7 @@ x_list_fonts (struct frame *f,
           newlist = Fcons (build_string (font_name_table[i]), newlist);
 
           n_fonts++;
-          if (n_fonts >= maxnames)
+          if (maxnames > 0 && n_fonts >= maxnames)
             break;
         }
     }

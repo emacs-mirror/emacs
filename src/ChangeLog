@@ -1,3 +1,8 @@
+2003-04-24  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (x_list_fonts): Return all fonts that match if
+	maxnames = -1.
+
 2003-04-25  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_chars): Fix previous change.
