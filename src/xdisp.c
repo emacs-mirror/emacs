@@ -629,12 +629,17 @@ static struct glyph_row *row_containing_pos P_ ((struct window *, int,
 						 struct glyph_row *));
 static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
 static Lisp_Object with_echo_area_buffer_unwind_data P_ ((struct window *));
+static int with_echo_area_buffer P_ ((struct window *, int,
+				      int (*) (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT),
+				      EMACS_INT, EMACS_INT, EMACS_INT,
+				      EMACS_INT));
 static void clear_garbaged_frames P_ ((void));
-static int current_message_1 P_ ((Lisp_Object *));
-static int truncate_message_1 P_ ((int));
-static int set_message_1 P_ ((char *s, Lisp_Object, int, int));
+static int current_message_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
+static int truncate_message_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
+static int set_message_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
 static int display_echo_area P_ ((struct window *));
-static int display_echo_area_1 P_ ((struct window *));
+static int display_echo_area_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
+static int resize_mini_window_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
 static Lisp_Object unwind_redisplay P_ ((Lisp_Object));
 static int string_char_and_length P_ ((unsigned char *, int, int *));
 static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
@@ -5441,7 +5446,7 @@ ensure_echo_area_buffers ()
 }
 
 
-/* Call FN with args A1..A5 with either the current or last displayed
+/* Call FN with args A1..A4 with either the current or last displayed
    echo_area_buffer as current buffer.
 
    WHICH zero means use the current message buffer
@@ -5458,11 +5463,11 @@ ensure_echo_area_buffers ()
    Value is what FN returns. */
 
 static int
-with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
      struct window *w;
      int which;
-     int (*fn) ();
-     int a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
+     int (*fn) P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
+     EMACS_INT a1, a2, a3, a4;
 {
   Lisp_Object buffer;
   int this_one, the_other, clear_buffer_p, rc;
@@ -5528,7 +5533,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
   xassert (BEGV >= BEG);
   xassert (ZV <= Z && ZV >= BEGV);
 
-  rc = fn (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+  rc = fn (a1, a2, a3, a4);
 
   xassert (BEGV >= BEG);
   xassert (ZV <= Z && ZV >= BEGV);
@@ -5699,7 +5704,8 @@ display_echo_area (w)
   
   window_height_changed_p
     = with_echo_area_buffer (w, display_last_displayed_message_p,
-			     (int (*) ()) display_echo_area_1, w);
+			     display_echo_area_1,
+			     (EMACS_INT) w, 0, 0, 0);
 
   if (no_message_p)
     echo_area_buffer[i] = Qnil;
@@ -5710,14 +5716,16 @@ display_echo_area (w)
 
 
 /* Helper for display_echo_area.  Display the current buffer which
-   contains the current echo area message in window W, a mini-window.
+   contains the current echo area message in window W, a mini-window,
+   a pointer to which is passed in A1.  A2..A4 are currently not used.
    Change the height of W so that all of the message is displayed.
    Value is non-zero if height of W was changed.  */
 
 static int
-display_echo_area_1 (w)
-     struct window *w;
+display_echo_area_1 (a1, a2, a3, a4)
+     EMACS_INT a1, a2, a3, a4;
 {
+  struct window *w = (struct window *) a1;
   Lisp_Object window;
   struct text_pos start;
   int window_height_changed_p = 0;
@@ -5748,9 +5756,8 @@ resize_echo_area_axactly ()
       struct window *w = XWINDOW (echo_area_window);
       int resized_p;
       
-      resized_p = with_echo_area_buffer (w, 0,
-					 (int (*) ()) resize_mini_window,
-					 w, 1);
+      resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
+					 (EMACS_INT) w, 0, 0, 0);
       if (resized_p)
 	{
 	  ++windows_or_buffers_changed;
@@ -5758,6 +5765,19 @@ resize_echo_area_axactly ()
 	  redisplay_internal (0);
 	}
     }
+}
+
+
+/* Callback function for with_echo_area_buffer, when used from
+   resize_echo_area_axactly.  A1 contains a pointer to the window to
+   resize, A2 to A4 are not used.  Value is what resize_mini_window
+   returns.  */
+
+static int
+resize_mini_window_1 (a1, a2, a3, a4)
+     EMACS_INT a1, a2, a3, a4;
+{
+  return resize_mini_window ((struct window *) a1, 1);
 }
 
 
@@ -5866,7 +5886,8 @@ current_message ()
     msg = Qnil;
   else
     {
-      with_echo_area_buffer (0, 0, (int (*) ()) current_message_1, &msg);
+      with_echo_area_buffer (0, 0, current_message_1,
+			     (EMACS_INT) &msg, 0, 0, 0);
       if (NILP (msg))
 	echo_area_buffer[0] = Qnil;
     }
@@ -5876,9 +5897,11 @@ current_message ()
 
 
 static int
-current_message_1 (msg)
-     Lisp_Object *msg;
+current_message_1 (a1, a2, a3, a4)
+     EMACS_INT a1, a2, a3, a4;
 {
+  Lisp_Object *msg = (Lisp_Object *) a1;
+  
   if (Z > BEG)
     *msg = make_buffer_string (BEG, Z, 1);
   else
@@ -5958,7 +5981,7 @@ truncate_echo_area (nchars)
     {
       struct frame *sf = SELECTED_FRAME ();
       if (FRAME_MESSAGE_BUF (sf))
-	with_echo_area_buffer (0, 0, (int (*) ()) truncate_message_1, nchars);
+	with_echo_area_buffer (0, 0, truncate_message_1, nchars, 0, 0, 0);
     }
 }
 
@@ -5967,8 +5990,8 @@ truncate_echo_area (nchars)
    message to at most NCHARS characters.  */
 
 static int
-truncate_message_1 (nchars)
-     int nchars;
+truncate_message_1 (nchars, a2, a3, a4)
+     EMACS_INT nchars, a2, a3, a4;
 {
   if (BEG + nchars < Z)
     del_range (BEG + nchars, Z);
@@ -5998,22 +6021,24 @@ set_message (s, string, nbytes, multibyte_p)
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
   
-  with_echo_area_buffer (0, -1, (int (*) ()) set_message_1,
-			 s, string, nbytes, multibyte_p);
+  with_echo_area_buffer (0, -1, set_message_1,
+			 (EMACS_INT) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
 }
 
 
 /* Helper function for set_message.  Arguments have the same meaning
-   as there.  This function is called with the echo area buffer being
+   as there, with A1 corresponding to S and A2 corresponding to STRING
+   This function is called with the echo area buffer being
    current.  */
 
 static int
-set_message_1 (s, string, nbytes, multibyte_p)
-     char *s;
-     Lisp_Object string;
-     int nbytes, multibyte_p;
+set_message_1 (a1, a2, nbytes, multibyte_p)
+     EMACS_INT a1, a2, nbytes, multibyte_p;
 {
+  char *s = (char *) a1;
+  Lisp_Object string = (Lisp_Object) a2;
+  
   xassert (BEG == Z);
   
   /* Change multibyteness of the echo buffer appropriately.  */
