@@ -105,7 +105,7 @@ void globals_of_w32 ();
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
-extern Lisp_Object Vw32_num_mouse_buttons;
+extern int w32_num_mouse_buttons;
 
 
 /*
@@ -1094,7 +1094,7 @@ init_environment (char ** argv)
   /* Determine if there is a middle mouse button, to allow parse_button
      to decide whether right mouse events should be mouse-2 or
      mouse-3. */
-  XSETINT (Vw32_num_mouse_buttons, GetSystemMetrics (SM_CMOUSEBUTTONS));
+  w32_num_mouse_buttons = GetSystemMetrics (SM_CMOUSEBUTTONS);
 
   init_user_info ();
 }
@@ -1627,7 +1627,7 @@ static WIN32_FIND_DATA dir_find_data;
 /* Support shares on a network resource as subdirectories of a read-only
    root directory. */
 static HANDLE wnet_enum_handle = INVALID_HANDLE_VALUE;
-HANDLE open_unc_volume (char *);
+HANDLE open_unc_volume (const char *);
 char  *read_unc_volume (HANDLE, char *, int);
 void   close_unc_volume (HANDLE);
 
@@ -1740,7 +1740,7 @@ readdir (DIR *dirp)
 }
 
 HANDLE
-open_unc_volume (char *path)
+open_unc_volume (const char *path)
 {
   NETRESOURCE nr;
   HANDLE henum;
@@ -1797,7 +1797,7 @@ close_unc_volume (HANDLE henum)
 }
 
 DWORD
-unc_volume_file_attributes (char *path)
+unc_volume_file_attributes (const char *path)
 {
   HANDLE henum;
   DWORD attrs;
