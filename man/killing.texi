@@ -42,6 +42,11 @@ Setting the variable @code{kill-read-only-ok} to a non-@code{nil} value
 overrides that.  To alert you to the fact that you killed read-only
 text, Emacs prints a message to that effect in the echo area.
 
+  When @code{kill-read-only-ok} is @code{nil}, Emacs beeps if you try to
+kill text in a read-only buffers, but it puts the text you wanted to
+kill into the kill ring anyway.  This means you can use kill commands to
+copy text from read-only buffers.
+
   The delete commands include @kbd{C-d} (@code{delete-char}) and
 @key{DEL} (@code{delete-backward-char}), which delete only one character at
 a time, and those commands that delete only spaces or newlines.  Commands
