@@ -187,9 +187,9 @@ mouse_setup_buttons (int n_buttons)
 
 DEFUN ("msdos-set-mouse-buttons", Fmsdos_set_mouse_buttons, Smsdos_set_mouse_buttons,
        1, 1, "NSet number of mouse buttons to: ",
-  "Set the number of mouse buttons to use by Emacs.\n
-This is useful with mice that report the number of buttons inconsistently,\n
-e.g., if the number of buttons is reported as 3, but Emacs only sees 2 of\n
+  "Set the number of mouse buttons to use by Emacs.\n\
+This is useful with mice that report the number of buttons inconsistently,\n\
+e.g., if the number of buttons is reported as 3, but Emacs only sees 2 of\n\
 them.  This happens with wheeled mice on Windows 9X, for example.")
   (nbuttons)
      Lisp_Object nbuttons;
