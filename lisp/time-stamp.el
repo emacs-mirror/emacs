@@ -731,6 +731,10 @@ The first character of DD is space if the value is less than 10."
   "Return the current time as a string in \"HH:MM:SS\" form."
   (format-time-string "%T"))
 
+(defun time-stamp-hhmmss ()
+  "Return the current time as a string in \"HHMMSS\" form."
+  (format-time-string "%H%M%S"))
+
 (defun time-stamp-hhmm ()
   "Return the current time as a string in \"HHMM\" form."
   (format-time-string "%H%M"))
