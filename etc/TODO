@@ -54,7 +54,7 @@
 
 * Document the features of libraries missing from the manual (or
   ancillary manuals, including the Lisp manual in some cases).  Here's
-  a list which is probably not complete/correct: align, allout,
+  a list which is probably not complete/correct: align, allout, artist,
   ansi-color, array, battery, calculator, cdl, cmuscheme, completion,
   delim-col, dirtrack, double, echistory, elide-head, easymenu,
   expand, flow-ctrl, format [format-alist], generic/generic-x [various
@@ -117,3 +117,6 @@
 
 * Investigate using the language environment to set up more things,
   such as the default Ispell dictionary.
+
+* Improve the GC (generational, incremental).  (We may be able to use
+  the Boehm collector.)

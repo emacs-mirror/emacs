@@ -1,5 +1,7 @@
 2000-11-23  Dave Love  <fx@gnu.org>
 
+	* uu-post.pbm, uu-decode.pbm: new files from XPMs.
+
 	* mm-uu.el (uudecode): Require.
 	(uudecode-decode-region, uudecode-decode-region-external): Don't
 	autoload.

@@ -33,7 +33,7 @@ Specification of the font for a face now uses an XLFD font name, for
 compatibility with other X applications.  This means that font
 attributes cannot be merged when combining faces; however, experience
 shows that mergers are bad economics.  Face inheritance has also been
-removed to prevent saving face.
+removed, so no one can accumulate ``too much face''.
 
 @item
 Several face appearance attributes such as 3D appearence,

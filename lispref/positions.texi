@@ -213,8 +213,9 @@ backward until encountering the front of a word, rather than forward.
 In an interactive call, @var{count} is set to the numeric prefix
 argument.
 
-This function is rarely used in programs, as it is more efficient to
-call @code{forward-word} with a negative argument.
+@c [Now optimized by compiler.]
+@c This function is rarely used in programs, as it is more efficient to
+@c call @code{forward-word} with a negative argument.
 @end deffn
 
 @defvar words-include-escapes
