@@ -1,3 +1,8 @@
+2001-04-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* term.c (turn_on_face): Fix reverse video handling on terminals
+	that don't support colors.
+
 2001-04-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* editfns.c (save_excursion_restore): Don't use XBUFFER on
