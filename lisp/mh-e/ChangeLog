@@ -1,3 +1,40 @@
+2004-08-21  Bill Wohler  <wohler@newt.com>
+
+	* Released MH-E version 7.81.
+     
+	* MH-E-NEWS, README: Updated for release 7.81.
+     
+	* mh-e.el (Version, mh-version): Updated for release 7.81.
+
+2004-08-21  Bill Wohler  <wohler@newt.com>
+
+	* release-utils (variable_changes): Check for checked-out
+	directory before proceeding. Remove temporary files. Renamed
+	--variable-update flag to --variable-changes.
+
+2004-08-16  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-mime.el (mh-toggle-mh-decode-mime-flag: New function.
+	* mh-e.el (mh-help-messages): Add [;] help string for it.
+	(mh-folder-mode-map): Add ";" key binding for it.
+
+2004-08-15  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-acros.el (mh-defstruct): Distinguishing structures created
+	by mh-defstruct just based on the number of fields is not
+	sufficient, since both the mh-thread-message and
+	mh-thread-container structures have the same length.
+
+2004-08-15  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-customize.el (mh-identity-handlers): Use ":default" instead of
+	"default" to avoid problems with "Default:" as a user defined field.
+	* mh-identity.el (mh-identity-field-handler): Ditto.
+
+2004-08-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Added +cvs to release number.
+
 2004-08-15  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 7.4.80.

@@ -5,7 +5,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.4.80
+;; Version: 7.81
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -96,7 +96,7 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 
-(defconst mh-version "7.4.80" "Version number of MH-E.")
+(defconst mh-version "7.81" "Version number of MH-E.")
 
 ;;; Autoloads
 (autoload 'Info-goto-node "info")
@@ -2347,6 +2347,7 @@ If INCLUDE-INTERNAL-FLAG non-nil, include MH-E internal sequences in list."
   "'"           mh-toggle-tick
   ","           mh-header-display
   "."           mh-alt-show
+  ";"           mh-toggle-mh-decode-mime-flag
   ">"           mh-write-msg-to-file
   "?"           mh-help
   "E"           mh-extract-rejected-mail
@@ -2496,7 +2497,8 @@ If INCLUDE-INTERNAL-FLAG non-nil, include MH-E internal sequences in list."
 (defvar mh-help-messages
   '((nil "[i]nc, [.]show, [,]show all, [n]ext, [p]revious,\n"
          "[d]elete, [o]refile, e[x]ecute,\n"
-         "[s]end, [r]eply.\n"
+         "[s]end, [r]eply,\n"
+         "[;]toggle MIME decoding.\n"
          "Prefix characters:\n [F]older, [S]equence, [J]unk, MIME [K]eys,"
          "\n [T]hread, [/]limit, e[X]tract, [D]igest, [I]nc spools.")
 

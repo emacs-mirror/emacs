@@ -261,7 +261,7 @@ Display cheat sheet for the commands of the current prefix in minibuffer." t nil
 ;;;;;;  mh-identity-insert-attribution-verb mh-identity-handler-attribution-verb
 ;;;;;;  mh-identity-handler-signature mh-identity-handler-gpg-identity
 ;;;;;;  mh-insert-identity mh-identity-list-set mh-identity-make-menu)
-;;;;;;  "mh-identity" "mh-identity.el" (16665 55172))
+;;;;;;  "mh-identity" "mh-identity.el" (16680 7172))
 ;;; Generated autoloads from mh-identity.el
 
 (autoload (quote mh-identity-make-menu) "mh-identity" "\
@@ -582,7 +582,7 @@ system." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-variants mh-variant-p mh-variant-set) "mh-init"
-;;;;;;  "mh-init.el" (16671 49652))
+;;;;;;  "mh-init.el" (16680 9361))
 ;;; Generated autoloads from mh-init.el
 
 (autoload (quote mh-variant-set) "mh-init" "\
@@ -633,17 +633,18 @@ The `mh-junk-program' option specifies the spam program in use." t nil)
 
 ;;;### (autoloads (mh-display-with-external-viewer mh-mime-inline-part
 ;;;;;;  mh-mime-save-part mh-push-button mh-press-button mh-mime-display
-;;;;;;  mh-decode-message-header mh-mime-save-parts mh-display-emphasis
-;;;;;;  mh-display-smileys mh-add-missing-mime-version-header mh-destroy-postponed-handles
-;;;;;;  mh-mime-cleanup mh-mml-directive-present-p mh-mml-secure-message-signencrypt
-;;;;;;  mh-mml-secure-message-encrypt mh-mml-secure-message-sign
-;;;;;;  mh-mml-unsecure-message mh-mml-attach-file mh-mml-query-cryptographic-method
-;;;;;;  mh-mml-forward-message mh-mml-to-mime mh-mhn-directive-present-p
-;;;;;;  mh-revert-mhn-edit mh-edit-mhn mh-mhn-compose-forw mh-mhn-compose-external-type
+;;;;;;  mh-decode-message-header mh-toggle-mh-decode-mime-flag mh-mime-save-parts
+;;;;;;  mh-display-emphasis mh-display-smileys mh-add-missing-mime-version-header
+;;;;;;  mh-destroy-postponed-handles mh-mime-cleanup mh-mml-directive-present-p
+;;;;;;  mh-mml-secure-message-signencrypt mh-mml-secure-message-encrypt
+;;;;;;  mh-mml-secure-message-sign mh-mml-unsecure-message mh-mml-attach-file
+;;;;;;  mh-mml-query-cryptographic-method mh-mml-forward-message
+;;;;;;  mh-mml-to-mime mh-mhn-directive-present-p mh-revert-mhn-edit
+;;;;;;  mh-edit-mhn mh-mhn-compose-forw mh-mhn-compose-external-type
 ;;;;;;  mh-mhn-compose-external-compressed-tar mh-mhn-compose-anon-ftp
 ;;;;;;  mh-mhn-compose-insertion mh-file-mime-type mh-have-file-command
 ;;;;;;  mh-compose-forward mh-compose-insertion) "mh-mime" "mh-mime.el"
-;;;;;;  (16665 55171))
+;;;;;;  (16680 7172))
 ;;; Generated autoloads from mh-mime.el
 
 (autoload (quote mh-compose-insertion) "mh-mime" "\
@@ -821,6 +822,9 @@ If ARG, prompt for directory, else use that specified by the variable
 mh_profile directives, since this function calls on mhstore or mhn to do the
 actual storing." t nil)
 
+(autoload (quote mh-toggle-mh-decode-mime-flag) "mh-mime" "\
+Toggle whether MH-E should decode MIME or not." t nil)
+
 (autoload (quote mh-decode-message-header) "mh-mime" "\
 Decode RFC2047 encoded message header fields." nil nil)
 
@@ -878,7 +882,7 @@ indexing program specified in `mh-index-program' is used." t nil)
 
 ;;;### (autoloads (mh-print-msg mh-ps-print-toggle-mime mh-ps-print-toggle-color
 ;;;;;;  mh-ps-print-toggle-faces mh-ps-print-msg-show mh-ps-print-msg-file
-;;;;;;  mh-ps-print-msg) "mh-print" "mh-print.el" (16671 49652))
+;;;;;;  mh-ps-print-msg) "mh-print" "mh-print.el" (16680 9361))
 ;;; Generated autoloads from mh-print.el
 
 (autoload (quote mh-ps-print-msg) "mh-print" "\

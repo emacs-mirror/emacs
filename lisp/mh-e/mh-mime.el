@@ -850,6 +850,14 @@ If message has been encoded for transfer take that into account."
                         (car ct))))))
 
 ;;;###mh-autoload
+(defun mh-toggle-mh-decode-mime-flag ()
+  "Toggle whether MH-E should decode MIME or not."
+  (interactive) 
+  (setq mh-decode-mime-flag (not mh-decode-mime-flag))
+  (mh-show nil t)
+  (message (format "(setq mh-decode-mime-flag %s)" mh-decode-mime-flag)))
+
+;;;###mh-autoload
 (defun mh-decode-message-header ()
   "Decode RFC2047 encoded message header fields."
   (when mh-decode-mime-flag
