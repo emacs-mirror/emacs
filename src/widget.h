@@ -96,5 +96,6 @@ extern struct _DisplayContext* display_context;
 
 /* Special entrypoints */
 void EmacsFrameSetCharSize ();
+void widget_store_internal_border P_ ((Widget widget));
 
 #endif /* _EmacsFrame_h */
