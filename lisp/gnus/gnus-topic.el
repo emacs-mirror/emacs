@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
 (require 'gnus-group)
 (require 'gnus-start)
