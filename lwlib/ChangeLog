@@ -2,6 +2,12 @@
 
 	* xlwmenu.c (XlwMenuSetValues): Only frob the display if the menu
 	is actually displayed.
+	(remap_menubar): Only include the menu-margin in the initial X & Y
+	positions for horizontal menu-bars.
+	(fit_to_screen): If moving a sub-menu to the left-side, increment
+	its x-position by the shadow-thickness to make it look more
+	attached to the invoking menu-item (similarly to the way it would
+	be displayed on the right side).
 
 2000-09-03  Miles Bader  <miles@gnu.org>
 
