@@ -1,3 +1,10 @@
+2002-11-27  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl-macs.el: Move `predicates for analyzing Lisp
+	forms' block to top (before uses).
+	(help-fns): Don't require at top level.  (Recursively.)
+	(cl-transform-lambda): Require help-fns.
+
 2002-11-26  Dave Love  <fx@gnu.org>
 
 	* language/european.el (encode-mac-roman): Deal with unencodable
