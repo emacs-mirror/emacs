@@ -1,6 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals
 
-;; Copyright (C) 1994, 95, 97, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 97, 2000, 2004 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.29 2003/09/01 15:45:17 miles Exp $
+;; $Id: type-break.el,v 1.30 2004/03/09 15:27:06 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -277,39 +277,6 @@ It will be either \"seconds\" or \"keystrokes\".")
 (defvar type-break-current-keystroke-warning-interval nil)
 (defvar type-break-time-warning-count 0)
 (defvar type-break-keystroke-warning-count 0)
-
-;; Constant indicating emacs variant.
-;; This can be one of `xemacs', `lucid', `epoch', `mule', etc.
-(defconst type-break-emacs-variant
-  (let ((data (match-data))
-        (version (cond
-                  ((fboundp 'nemacs-version)
-                   (nemacs-version))
-                  (t
-                   (emacs-version))))
-        (alist '(("\\bXEmacs\\b"  . xemacs)
-                 ("\\bLucid\\b"   . lucid)
-                 ("^Nemacs\\b"    . nemacs)
-                 ("^GNU Emacs 19" . standard19)
-                 ("^GNU Emacs 20" . standard19)
-                 ("^GNU Emacs 18" . emacs18)))
-        result)
-    (while alist
-      (cond
-       ((string-match (car (car alist)) version)
-        (setq result (cdr (car alist)))
-        (setq alist nil))
-       (t
-        (setq alist (cdr alist)))))
-    (set-match-data data)
-    (cond ((eq result 'lucid)
-           (and (string= emacs-version "19.8 Lucid")
-                (setq result 'lucid-19-8)))
-          ((memq result '(nemacs emacs18))
-           (signal 'error
-                   "type-break not supported in this version of emacs.")))
-    result))
-
 
 ;;;###autoload
 (defun type-break-mode (&optional prefix)
@@ -954,38 +921,37 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 ;;; for different versions of emacs.
 
 (defun type-break-run-at-time (time repeat function)
-  (cond ((eq type-break-emacs-variant 'standard19)
-         (require 'timer)
-         (funcall 'run-at-time time repeat function))
-        ((eq type-break-emacs-variant 'lucid-19-8)
+  (condition-case nil (or (require 'timer) (require 'itimer)) (error nil))
+  (cond ((fboundp 'run-at-time)
+         (run-at-time time repeat function))
+        ((fboundp 'start-timer)
          (let ((name (if (symbolp function)
                          (symbol-name function)
                        "type-break")))
-           (require 'timer)
-           (funcall 'start-timer name function time repeat)))
-        ((memq type-break-emacs-variant '(xemacs lucid))
+           (start-timer name function time repeat)))
+        ((fboundp 'start-itimer)
          (let ((name (if (symbolp function)
                          (symbol-name function)
                        "type-break")))
-           (require 'itimer)
-           (funcall 'start-itimer name function time repeat)))))
+           (start-itimer name function time repeat)))))
 
+(defvar timer-dont-exit)
 (defun type-break-cancel-function-timers (function)
-  (cond ((eq type-break-emacs-variant 'standard19)
+  (cond ((fboundp 'cancel-function-timers)
          (let ((timer-dont-exit t))
-           (funcall 'cancel-function-timers function)))
-        ((eq type-break-emacs-variant 'lucid-19-8)
+           (cancel-function-timers function)))
+        ((fboundp 'delete-timer)
          (let ((list timer-list))
            (while list
              (and (eq (funcall 'timer-function (car list)) function)
-                  (funcall 'delete-timer (car list)))
+                  (delete-timer (car list)))
              (setq list (cdr list)))))
-        ((memq type-break-emacs-variant '(xemacs lucid))
+        ((fboundp 'delete-itimer)
 	 (with-no-warnings
 	  (let ((list itimer-list))
 	    (while list
 	      (and (eq (funcall 'itimer-function (car list)) function)
-		   (funcall 'delete-itimer (car list)))
+		   (delete-itimer (car list)))
 	      (setq list (cdr list))))))))
 
 

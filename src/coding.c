@@ -1024,9 +1024,26 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	}
       else
 	{
-	  bytes = CHAR_STRING (*src, tmp);
-	  p = tmp;
+	  int i, c;
+
+	  bytes = BYTES_BY_CHAR_HEAD (*src);
 	  src++;
+	  for (i = 1; i < bytes; i++)
+	    {
+	      ONE_MORE_BYTE (c);
+	      if (CHAR_HEAD_P (c))
+		break;
+	    }
+	  if (i < bytes)
+	    {
+	      bytes = CHAR_STRING (*src_base, tmp);
+	      p = tmp;
+	      src = src_base + 1;
+	    }
+	  else
+	    {
+	      p = src_base;
+	    }
 	}
       if (dst + bytes >= (dst_bytes ? dst_end : src))
 	{

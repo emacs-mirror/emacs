@@ -345,6 +345,13 @@ If UNP is non-nil, unquote nested comment markers."
 ;;;; Navigation
 ;;;;
 
+(defvar comment-use-global-state nil
+  "Non-nil means that the global syntactic context is used.
+More specifically, it means that `syntax-ppss' is used to find out whether
+point is within a string or not.  Major modes whose syntax is faithfully
+described by the syntax-tables can set this to non-nil so comment markers
+in strings will not confuse Emacs.")
+
 (defun comment-search-forward (limit &optional noerror)
   "Find a comment start between point and LIMIT.
 Moves point to inside the comment and returns the position of the
@@ -357,8 +364,10 @@ and raises an error or returns nil of NOERROR is non-nil."
 	(unless noerror (error "No comment")))
     (let* ((pt (point))
 	   ;; Assume (at first) that pt is outside of any string.
-	   (s (parse-partial-sexp pt (or limit (point-max)) nil nil nil t)))
-      (when (and (nth 8 s) (nth 3 s))
+	   (s (parse-partial-sexp pt (or limit (point-max)) nil nil
+				  (if comment-use-global-state (syntax-ppss pt))
+				  t)))
+      (when (and (nth 8 s) (nth 3 s) (not comment-use-global-state))
 	  ;; The search ended inside a string.  Try to see if it
 	  ;; works better when we assume that pt is inside a string.
 	  (setq s (parse-partial-sexp
