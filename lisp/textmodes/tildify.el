@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author:     Milan Zamazal <pdm@freesoft.cz>
+;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;; Version:    4.4
 ;; Keywords:   text, TeX, SGML, wp
 

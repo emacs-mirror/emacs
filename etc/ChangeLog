@@ -1,3 +1,8 @@
+2001-08-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* TUTORIAL.cs, TUTORIAL.sk, cs-refcard.tex, sk-refcard.tex: e-mail
+	address of Milan Zamazal changed.
+
 2001-08-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL, TUTORIAL.cs: be consistent when naming CONTROL and META keys.

@@ -1,5 +1,5 @@
 Copyright (c) 1985 Free Software Foundation, Inc;  podmínky viz na konci.
-Do èe¹tiny pøelo¾il Milan Zamazal <pdm@freesoft.cz>.
+Do èe¹tiny pøelo¾il Milan Zamazal <pdm@zamazal.org>.
 
 Máte pøed sebou tutoriál k Emacsu.
 
