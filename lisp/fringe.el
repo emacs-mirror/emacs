@@ -1,6 +1,6 @@
 ;;; fringe.el --- change fringes appearance in various ways
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: FSF
@@ -83,6 +83,7 @@ See `fringe-mode' for possible values and their effect."
 				   fringe-mode))))
       (setq frames (cdr frames)))))
 
+;;;###autoload
 (defcustom fringe-mode nil
   "*Specify appearance of fringes on all frames.
 This variable can be nil (the default) meaning the fringes should have
