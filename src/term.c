@@ -1443,16 +1443,6 @@ calculate_costs (frame)
   FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
   scroll_region_cost = string_cost (f);
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (frame))
-    {
-      do_line_insertion_deletion_costs (frame, 0, ".5*", 0, ".5*",
-					0, 0,
-					x_screen_planes (frame));
-      scroll_region_cost = 0;
-      return;
-    }
-#endif
 
   /* These variables are only used for terminal stuff.  They are allocated
      once for the terminal frame of X-windows emacs, but not used afterwards.
