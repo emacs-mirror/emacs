@@ -3988,7 +3988,7 @@ x_to_win32_font (lpxstr, lplogfont)
   
   memset (lplogfont, 0, sizeof (*lplogfont));
 
-#if 0
+#if 1
   lplogfont->lfOutPrecision = OUT_DEFAULT_PRECIS;
   lplogfont->lfClipPrecision = CLIP_DEFAULT_PRECIS;
   lplogfont->lfQuality = DEFAULT_QUALITY;
