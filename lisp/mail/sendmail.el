@@ -130,6 +130,12 @@ If t, it means to insert the contents of the file `~/.signature'.")
 It is inserted before you edit the message,
 so you can edit or delete these lines.")
 
+(defvar mail-bury-selects-summary t
+  "*If non-nil, try to show RMAIL summary buffer after returning from mail.
+The functions \\[mail-send-on-exit] or \\[mail-dont-send] select
+the RMAIL summary buffer before returning, if it exists and this variable
+is non-nil.")
+
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.
 (defvar mail-mailer-swallows-blank-line
@@ -347,7 +353,8 @@ Prefix arg means don't delete this window."
 	       (set-buffer (window-buffer (next-window (selected-window) 'not)))
 	       (setq rmail-flag (eq major-mode 'rmail-mode))
 	       (setq summary-buffer
-		     (and (boundp 'rmail-summary-buffer)
+		     (and mail-bury-selects-summary
+			  (boundp 'rmail-summary-buffer)
 			  rmail-summary-buffer
 			  (buffer-name rmail-summary-buffer)
 			  (not (get-buffer-window rmail-summary-buffer))
