@@ -1001,7 +1001,8 @@ See documentation of variable `tags-file-name'."
 (defun etags-file-of-tag ()
   (save-excursion
     (re-search-backward "\f\n\\([^\n]+\\),[0-9]*\n")
-    (buffer-substring (match-beginning 1) (match-end 1))))
+    (expand-file-name (buffer-substring (match-beginning 1) (match-end 1))
+		      (file-truename default-directory))))
 
 
 (defun etags-tags-completion-table ()
