@@ -95,7 +95,7 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "tty",	no_argument,       NULL, 't' },
-  { "window-system", no_argument,  NULL, 'w' },
+  { "current-frame", no_argument,  NULL, 'c' },
   { "alternate-editor", required_argument, NULL, 'a' },
   { "socket-name",	required_argument, NULL, 's' },
   { "display",	required_argument, NULL, 'd' },
@@ -112,11 +112,18 @@ decode_options (argc, argv)
 {
   alternate_editor = getenv ("ALTERNATE_EDITOR");
   display = getenv ("DISPLAY");
+  if (strlen (display) == 0)
+    display = NULL;
+  
+  if (display)
+    window_system = 1;
+  else
+    tty = 1;
 
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:s:d:tw", longopts, 0);
+			     "VHnea:s:d:tc", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -158,8 +165,8 @@ decode_options (argc, argv)
           window_system = 0;
           break;
 
-        case 'w':
-          window_system = 1;
+        case 'c':
+          window_system = 0;
           tty = 0;
           break;
           
@@ -192,7 +199,7 @@ The following OPTIONS are accepted:\n\
 -V, --version           Just print a version info and return\n\
 -H, --help              Print this usage information message\n\
 -t, --tty               Open a new Emacs frame on the current terminal\n\
--w, --window-system	Open a new graphical Emacs frame\n\
+-c, --current-frame	Do not create a new frame; use the current Emacs frame\n\
 -n, --no-wait           Don't wait for the server to return\n\
 -e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
 -d, --display=DISPLAY   Visit the file in the given display\n\

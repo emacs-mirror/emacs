@@ -134,6 +134,10 @@ For the NEWS file:
 *** Emacsclient has been extended to support opening a new terminal
     frame (see -t option).
 
+*** The behaviour of Emacsclient has been changed to open a new Emacs
+    frame by default.  Use the -c option to get the old behavior of
+    opening files in the currently selected Emacs frame.
+
 *** A make-frame-on-tty function has been added to make it easier to
     create frames on new terminals.
 
