@@ -1,5 +1,8 @@
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* eval.c (Fcommandp): Doc fix.
+	Change doc-string comments to `new style' [w/`doc:' keyword].
+
 	* frame.c (Fframe_live_p): Doc fix.
 
 	* buffer.c (selective-display-ellipses): Doc fix.
