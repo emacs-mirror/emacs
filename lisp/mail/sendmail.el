@@ -340,6 +340,7 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
 (if mail-mode-map
     nil
   (setq mail-mode-map (nconc (make-sparse-keymap) text-mode-map))
+  (define-key mail-mode-map "\M-\t" 'mail-complete)
   (define-key mail-mode-map "\C-c?" 'describe-mode)
   (define-key mail-mode-map "\C-c\C-f\C-t" 'mail-to)
   (define-key mail-mode-map "\C-c\C-f\C-b" 'mail-bcc)
