@@ -512,21 +512,24 @@ editing and get rid of Emacs.  The command to do this is C-x C-c.
 (Don't worry; it offers to save each changed file before it kills the
 Emacs.)
 
-C-z is the usual way to exit Emacs, because it is always better not to
-kill the Emacs if you are going to do any more editing.  On systems
-which allow it, C-z exits from Emacs to the shell but does not destroy
-the Emacs; if you use the C shell, you can resume Emacs with the `fg'
-command (or, more generally, with `%emacs', which works even if your
-most recent job was some other).  On systems where suspending is not
-possible, C-z creates a subshell running under Emacs to give you the
-chance to run other programs and return to Emacs afterward, but it
-does not truly "exit" from Emacs.  In this case, the shell command
-`exit' is the usual way to get back to Emacs from the subshell.
+C-z is the command to exit Emacs *temporarily*--so that you can go
+back to the same Emacs session afterward.
 
-You would use C-x C-c if you were about to log out.  You would
-also use it to exit an Emacs invoked under mail handling programs
-and other random utilities, since they may not believe you have
-really finished using the Emacs if it continues to exist.
+On systems which allow it, C-z exits from Emacs to the shell but does
+not destroy the Emacs; if you use the C shell, you can resume Emacs
+with the `fg' command (or, more generally, with `%emacs', which works
+even if your most recent job was some other).  On systems which don't
+implement suspending, C-z creates a subshell running under Emacs to
+give you the chance to run other programs and return to Emacs
+afterward; it does not truly "exit" from Emacs.  In this case, the
+shell command `exit' is the usual way to get back to Emacs from the
+subshell.
+
+The time to use C-x C-c is when you are about to log out.  It's also
+the right thing to use to exit an Emacs invoked under mail handling
+programs and other random utilities, since they may not know how to
+cope with suspension of Emacs.  On other occasions, use C-z, and
+resume the Emacs when you have more editing to do.
 
 There are many C-x commands.  The ones you know are:
 
