@@ -1105,7 +1105,7 @@ list_buffers_1 (files)
   other_file_symbol = intern ("list-buffers-directory");
 
   XFASTINT (col1) = 19;
-  XFASTINT (col2) = 25;
+  XFASTINT (col2) = 26;
   XFASTINT (col3) = 40;
   XFASTINT (minspace) = 1;
 
