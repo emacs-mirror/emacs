@@ -1,3 +1,26 @@
+2004-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (calc_pixel_width_or_height): Add prototype.
+
+	* image.c (Qcenter): Move to xdisp.c.
+
+	* xdisp.c (Qcenter): Declare here.
+	(syms_of_xdisp): intern and staticpro it.
+	(handle_single_display_prop): Allow space display property on all
+	platforms.
+	(display_mode_line): Set mode_line_p before displaying line.
+	(calc_pixel_width_or_height): Declare extern.  Add separate :align-to
+	handling.  Remove complex cases for fringes and scroll-bars.
+	Add left, right, and center alignment positions. Add text (area)
+	width/height.  Return width or height for image specs.
+	(produce_stretch_glyph): Improve handling of :align-to.  Is now
+	relative to left of text area by default, but other base offsets
+	can be specified -- also for text lines.
+
+	* term.c (produce_glyphs): Handle IT_STRETCH.
+	(produce_stretch_glyph): New function to handle space width and
+	align-to display properties on non-window systems.
+
 2004-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fread_file_name): Set completion-ignore-case for
