@@ -61,6 +61,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Command line args from shell, as list of strings */
 Lisp_Object Vcommand_line_args;
 
+/* The name under which Emacs was invoked, with any leading directory
+   names discarded.  */
+Lisp_Object Vinvocation_name;
+
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
@@ -155,6 +159,8 @@ init_cmdargs (argc, argv, skip_args)
 {
   register int i;
 
+  Vinvocation_name = Ffile_name_nondirectory (argv[0]);
+
   Vcommand_line_args = Qnil;
 
   for (i = argc - 1; i >= 0; i--)
@@ -164,6 +170,15 @@ init_cmdargs (argc, argv, skip_args)
 	  = Fcons (build_string (argv[i]), Vcommand_line_args);
     }
 }
+
+DEFUN ("invocation-name", Finvocation_name, Sinvocation_name, 0, 0, 0,
+  "Return the program name that was used to run Emacs.\n\
+Any directory names are omitted.")
+  ()
+{
+  return Fcopy_sequence (Vinvocation_name);
+}
+
 
 #ifdef VMS
 #ifdef LINK_CRTL_SHARE
@@ -826,6 +841,8 @@ syms_of_emacs ()
 
   defsubr (&Skill_emacs);
 
+  defsubr (&Sinvocation_name);
+
   DEFVAR_LISP ("command-line-args", &Vcommand_line_args,
     "Args passed by shell to Emacs, as a list of strings.");
 
@@ -849,4 +866,7 @@ This value is effective only if set before Emacs is dumped,\n\
 and only if the Emacs executable is installed with setuid to permit\n\
 it to change priority.  (Emacs sets its uid back to the real uid.)");
   emacs_priority = 0;
+
+  staticpro (&Vinvocation_name);
+  Vinvocation_name = Qnil;
 }

@@ -158,7 +158,6 @@ static FONT_TYPE *icon_font_info;
 
 extern Lisp_Object Vcommand_line_args;
 char *hostname, *x_id_name;
-Lisp_Object invocation_name;
 
 /* This is the X connection that we are using.  */
 
@@ -3613,7 +3612,7 @@ x_text_icon (f, icon_name)
   if (icon_font_info == 0)
     icon_font_info
       = XGetFont (XGetDefault (XDISPLAY
-			       (char *) XSTRING (invocation_name)->data,
+			       (char *) XSTRING (Vinvocation_name)->data,
 			       "BodyFont"));
 
   if (f->display.x->icon_desc)
@@ -4523,8 +4522,6 @@ x_term_init (display_name)
     XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
 
-    invocation_name = Ffile_name_nondirectory (Fcar (Vcommand_line_args));
-
     /* Try to get the host name; if the buffer is too short, try
        again.  Apparently, the only indication gethostname gives of
        whether the buffer was large enough is the presence or absence
@@ -4541,10 +4538,10 @@ x_term_init (display_name)
 	hostname_size <<= 1;
 	hostname = (char *) xrealloc (hostname, hostname_size);
       }
-    x_id_name = (char *) xmalloc (XSTRING (invocation_name)->size
+    x_id_name = (char *) xmalloc (XSTRING (Vinvocation_name)->size
 				+ strlen (hostname)
 				+ 2);
-    sprintf (x_id_name, "%s@%s", XSTRING (invocation_name)->data, hostname);
+    sprintf (x_id_name, "%s@%s", XSTRING (Vinvocation_name)->data, hostname);
   }
 
   /* Figure out which modifier bits mean what.  */
@@ -4642,9 +4639,6 @@ x_term_init (display_name)
 void
 syms_of_xterm ()
 {
-  staticpro (&invocation_name);
-  invocation_name = Qnil;
-
   staticpro (&last_mouse_scroll_bar);
 }
 #endif /* ! defined (HAVE_X11) */

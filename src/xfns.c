@@ -51,7 +51,6 @@ static XrmDatabase xrdb;
 
 /* Title name and application name for X stuff. */
 extern char *x_id_name;
-extern Lisp_Object invocation_name;
 
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline. */
@@ -1296,7 +1295,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     {
       /* Allocate space for the components, the dots which separate them,
 	 and the final '\0'.  */
-      name_key = (char *) alloca (XSTRING (invocation_name)->size
+      name_key = (char *) alloca (XSTRING (Vinvocation_name)->size
 				  + XSTRING (attribute)->size
 				  + 2);
       class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
@@ -1304,7 +1303,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 2);
 
       sprintf (name_key, "%s.%s",
-	       XSTRING (invocation_name)->data,
+	       XSTRING (Vinvocation_name)->data,
 	       XSTRING (attribute)->data);
       sprintf (class_key, "%s.%s",
 	       EMACS_CLASS,
@@ -1312,7 +1311,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     }
   else
     {
-      name_key = (char *) alloca (XSTRING (invocation_name)->size
+      name_key = (char *) alloca (XSTRING (Vinvocation_name)->size
 				  + XSTRING (component)->size
 				  + XSTRING (attribute)->size
 				  + 3);
@@ -1323,7 +1322,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 3);
 
       sprintf (name_key, "%s.%s.%s",
-	       XSTRING (invocation_name)->data,
+	       XSTRING (Vinvocation_name)->data,
 	       XSTRING (component)->data,
 	       XSTRING (attribute)->data);
       sprintf (class_key, "%s.%s",
@@ -1354,13 +1353,13 @@ The defaults are specified in the file `~/.Xdefaults'.")
   CHECK_STRING (arg, 1);
 
   value = (unsigned char *) XGetDefault (XDISPLAY 
-					 XSTRING (invocation_name)->data,
+					 XSTRING (Vinvocation_name)->data,
 					 XSTRING (arg)->data);
   if (value == 0)
     /* Try reversing last two args, in case this is the buggy version of X.  */
     value = (unsigned char *) XGetDefault (XDISPLAY
 					   XSTRING (arg)->data,
-					   XSTRING (invocation_name)->data);
+					   XSTRING (Vinvocation_name)->data);
   if (value != 0)
     return build_string (value);
   else
