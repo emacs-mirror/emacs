@@ -88,7 +88,7 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 		      (list gnus-article-mime-handles))
 		    phandles))
       (save-excursion
-	(set-buffer (generate-new-buffer "*mm*"))
+	(set-buffer (generate-new-buffer " *mm*"))
 	(while (setq phandle (pop phandles))
 	  (setq nn (string-to-number 
 		    (cdr (assq 'number 
