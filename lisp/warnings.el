@@ -34,7 +34,7 @@
     (:error "Error%s: ")
     (:warning "Warning%s: ")
     (:debug "Debug%s: "))
-  "List of severity level definitions for `define-warnings'.
+  "List of severity level definitions for `display-warning'.
 Each element looks like (LEVEL STRING FUNCTION) and
 defines LEVEL as a severity level.  STRING is the description
 to use in the buffer, and FUNCTION (which may be omitted)
@@ -86,7 +86,7 @@ the warning is completely ignored.
 The element must match the first elements of GROUP.
 Thus, (foo bar) as an element matches (foo bar)
 or (foo bar ANYTHING...) as GROUP.
-If GROUP is a symbol FOO, that is equivalent to the list (FOO)
+If GROUP is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it."
   :group 'warnings
   :type '(repeat (repeat symbol))
@@ -121,7 +121,7 @@ the beginning of the warning.")
   (let* ((elt (assq level warning-levels))
 	 (link (memq elt warning-levels)))
     (length link)))
-  
+
 (defvar warning-series nil
   "Non-nil means treat multiple `display-warning' calls as a series.
 An integer is a position in the warnings buffer
@@ -171,7 +171,7 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
 ;;;###autoload
 (defun display-warning (group message &optional level buffer-name)
   "Display a warning message, MESSAGE.
-GROUP should be a custom group name (a symbol).
+GROUP should be a custom group name (a symbol),
 or else a list of symbols whose first element is a custom group name.
 \(The rest of the symbols represent subcategories, for warning purposes
 only, and you can use whatever symbols you like.)
@@ -215,8 +215,8 @@ See also `warning-series', `warning-prefix-function' and
 	  (if warning-prefix-function
 	      (setq level-info (funcall warning-prefix-function
 					level level-info)))
-	  (setq group-string (format warning-group-format groupname))
-	  (insert (format (nth 1 level-info) group-string)
+	  (insert (format (nth 1 level-info)
+                          (format warning-group-format groupname))
 		  message)
 	  (newline)
 	  (when (and warning-fill-prefix (not (string-match "\n" message)))
@@ -238,7 +238,7 @@ See also `warning-series', `warning-prefix-function' and
 	  ;; Interactively, decide whether the warning merits
 	  ;; immediate display.
 	  (or (< (warning-numeric-level level)
-		 (warning-numeric-level warning-minimum-level)) 
+		 (warning-numeric-level warning-minimum-level))
 	      (warning-suppress-p group warning-suppress-types)
 	      (let ((window (display-buffer buffer)))
 		(when warning-series
