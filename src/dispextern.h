@@ -2104,6 +2104,7 @@ int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
 extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int redisplaying_p;
+extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 
 /* Defined in sysdep.c */
