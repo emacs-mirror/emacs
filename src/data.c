@@ -2909,7 +2909,7 @@ lowercase l) for small endian machines.  */)
      ()
 {
   unsigned i = 0x04030201;
-  int order = *(char *)&i == 4 ? 66 : 108;
+  int order = *(char *)&i == 1 ? 108 : 66;
 
   return make_number (order);
 }
