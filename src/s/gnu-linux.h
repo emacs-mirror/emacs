@@ -93,7 +93,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Uncomment this later when other problems are dealt with -mkj */
 
-/* #define HAVE_SOCKETS */
+#define HAVE_SOCKETS
 
 /* Define this symbol if your system has the functions bcopy, etc. */
 
@@ -154,13 +154,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef SIGIO
 #endif
 
+#define HAVE_SETSID
+
 /* This is needed for sysdep.c */
 
 #define HAVE_UNISTD_H	      /* for getpagesize.h */
-#define HAVE_ALLOCA_H	      /* for getdate.y */
 #define NO_SIOCTL_H           /* don't have sioctl.h */
 
-#define HAVE_DUP2             /* is builtin */
 #define HAVE_RANDOM           /* is builtin */
 #define HAVE_CLOSEDIR
 #define HAVE_GETPAGESIZE
