@@ -227,8 +227,8 @@ Other chars following \"%s\" are interpreted as follows:\n"
   (interactive "cSet escape character to: ")
   (let ((o terminal-escape-char))
     (message (if (= o c)
-		 "\"%s\" is escape char"
-	         "\"%s\" is now escape; \"%s\" passes though")
+		 "\"%s\" is the escape char"
+	         "\"%s\" is now the escape; \"%s\" passes through")
 	     (single-key-description c)
 	     (single-key-description o))
     (setq terminal-escape-char c)))
