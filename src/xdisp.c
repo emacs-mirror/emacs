@@ -2617,8 +2617,13 @@ copy_part_of_rope (f, to, s, from, len, face)
   if (! FRAME_TERMCAP_P (f))
     while (n--)
       {
-	int glyph = (INTEGERP (*fp) ? XFASTINT (*fp) : 0);
+	GLYPH glyph = (INTEGERP (*fp) ? XFASTINT (*fp) : 0);
 	int facecode;
+	unsigned int c = FAST_GLYPH_CHAR (glyph);
+
+	if (c > MAX_CHAR)
+	  /* For an invalid character code, use space.  */
+	  c = ' ';
 
 	if (FAST_GLYPH_FACE (glyph) == 0)
 	  /* If GLYPH has no face code, use FACE.  */
@@ -2634,7 +2639,7 @@ copy_part_of_rope (f, to, s, from, len, face)
 	  }
 
 	if (to >= s)
-	  *to = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph), facecode);
+	  *to = FAST_MAKE_GLYPH (c, facecode);
 	++to;
 	++fp;
       }
@@ -2757,8 +2762,10 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
        : default_invis_vector);
 
   GLYPH truncator = (dp == 0 || !INTEGERP (DISP_TRUNC_GLYPH (dp))
+		     || !GLYPH_CHAR_VALID_P (XINT (DISP_TRUNC_GLYPH (dp)))
 		     ? '$' : XINT (DISP_TRUNC_GLYPH (dp)));
   GLYPH continuer = (dp == 0 || !INTEGERP (DISP_CONTINUE_GLYPH (dp))
+		     || !GLYPH_CHAR_VALID_P (XINT (DISP_CONTINUE_GLYPH (dp)))
 		     ? '\\' : XINT (DISP_CONTINUE_GLYPH (dp)));
 
   /* If 1, we must handle multibyte characters.  */
@@ -3224,9 +3231,11 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
       else if (c < 0200 && ctl_arrow)
 	{
 	  if (p1 >= leftmargin)
-	    *p1 = (fix_glyph (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
-				  ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
-			      current_face)
+	    *p1 = (fix_glyph
+		   (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
+			&& GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (dp)))
+			? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
+		    current_face)
 		   | rev_dir_bit);
 	  p1++;
 	  if (p1 >= leftmargin && p1 < endp)
@@ -3237,9 +3246,11 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	{
 	  /* C is not a multibyte character.  */
 	  if (p1 >= leftmargin)
-	    *p1 = (fix_glyph (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
-				  ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-			      current_face)
+	    *p1 = (fix_glyph
+		   (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
+			&& GLYPH_CHAR_VALID_P (DISP_ESCAPE_GLYPH (dp))
+			? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+		    current_face)
 		   | rev_dir_bit);
 	  p1++;
 	  if (p1 >= leftmargin && p1 < endp)
@@ -4596,9 +4607,11 @@ display_string (w, vpos, string, length, hpos, truncate,
       else if (c < 0200 && ! NILP (buffer_defaults.ctl_arrow))
 	{
 	  if (p1 >= start)
-	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
-				 ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
-			     0);
+	    *p1 = (fix_glyph
+		   (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
+			&& GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (dp)))
+			? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
+		    0));
 	  p1++;
 	  if (p1 >= start && p1 < end)
 	    *p1 = c ^ 0100;
@@ -4608,9 +4621,11 @@ display_string (w, vpos, string, length, hpos, truncate,
 	{
 	  /* C is a control character or a binary byte data.  */
 	  if (p1 >= start)
-	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
-				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-			     0);
+	    *p1 = (fix_glyph
+		   (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
+			&& GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
+			? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+		    0));
 	  p1++;
 	  if (p1 >= start && p1 < end)
 	    *p1 = (c >> 6) + '0';
