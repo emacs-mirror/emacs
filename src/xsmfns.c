@@ -106,13 +106,10 @@ Lisp_Object Vx_session_previous_id;
 
 /* Handle any messages from the session manager.  If no connection is
    open to a session manager, just return 0.
-   Otherwise returns the number of events stored in buffer BUFP,
-   which can hold up to *NUMCHARS characters.  At most one event is
-   stored, a SAVE_SESSION_EVENT. */
+   Otherwise returns 1 if SAVE_SESSION_EVENT is stored in buffer BUFP.  */
 int
-x_session_check_input (bufp, numchars)
+x_session_check_input (bufp)
      struct input_event *bufp;
-     int *numchars;
 {
   SELECT_TYPE read_fds;
   EMACS_TIME tmout;
@@ -146,16 +143,11 @@ x_session_check_input (bufp, numchars)
 
   /* Check if smc_interact_CB was called and we shall generate a
      SAVE_SESSION_EVENT. */
-  if (*numchars > 0 && emacs_event.kind != NO_EVENT)
-    {
-      bcopy (&emacs_event, bufp, sizeof (struct input_event));
-      bufp++;
-      (*numchars)--;
+  if (emacs_event.kind == NO_EVENT)
+    return 0;
 
-      return 1;
-    }
-
-  return 0;
+  bcopy (&emacs_event, bufp, sizeof (struct input_event));
+  return 1;
 }
 
 /* Return non-zero if we have a connection to a session manager.*/
