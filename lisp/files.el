@@ -1141,7 +1141,10 @@ Value is a list whose car is the name for the backup file
       (if (not deserve-versions-p)
 	  (list (make-backup-file-name fn))
 	(cons (concat fn ".~" (int-to-string (1+ high-water-mark)) "~")
-	      (if (> number-to-delete 0)
+	      (if (and (> number-to-delete 0)
+                       ;; Delete nothing if there is overflow
+		       ;; in the number of versions to keep.
+		       (>= (+ kept-new-versions kept-old-versions -1) 0))
 		  (mapcar (function (lambda (n)
 				      (concat fn ".~" (int-to-string n) "~")))
 			  (let ((v (nthcdr kept-old-versions versions)))
