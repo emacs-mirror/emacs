@@ -36,6 +36,7 @@
 #      Still more severe - delete backup and autosave files, too.
 
 SHELL = /bin/sh
+MAKE = make  # BSD doesn't have it as a default.
 
 # ==================== Things `configure' Might Edit ====================
 
@@ -201,7 +202,7 @@ src:	lib-src
 .RECURSIVE: ${SUBDIR}
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
-	cd $@; make all ${MFLAGS} \
+	cd $@; $(MAKE) all ${MFLAGS} \
 		CC='${CC}' CFLAGS='${CFLAGS}' \
 		srcdir='${srcdir}/$@' libdir='${libdir}'
 
@@ -265,7 +266,7 @@ install: all mkdir
 	## If we let lib-src do its own installation, that means we
 	## don't have to duplicate the list of utilities to install in
 	## this Makefile as well.
-	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
+	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -300,7 +301,7 @@ install.sysv: all mkdir
 	## If we let lib-src do its own installation, that means we
 	## don't have to duplicate the list of utilities to install in
 	## this Makefile as well.
-	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
+	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -333,7 +334,7 @@ install.xenix: all mkdir
 	## If we let lib-src do its own installation, that means we
 	## don't have to duplicate the list of utilities to install in
 	## this Makefile as well.
-	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
+	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -371,7 +372,7 @@ install.aix: all mkdir
 	## If we let lib-src do its own installation, that means we
 	## don't have to duplicate the list of utilities to install in
 	## this Makefile as well.
-	(cd lib-src; make install ${MFLAGS} bindir=${bindir} libdir=${libdir})
+	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -427,11 +428,11 @@ FRC:
 ###	 recompiling it is rarely necessary and takes a lot of time.
 ### 
 clean mostlyclean:
-	cd src; make clean
-	cd lib-src; make clean
-	cd oldXMenu; make clean
+	cd src; $(MAKE) clean
+	cd lib-src; $(MAKE) clean
+	cd oldXMenu; $(MAKE) clean
 	if [ `(cd ${etcdir} ; /bin/pwd` != `(cd etc; /bin/pwd)` ] ; then \
-	  cd etc; make clean; \
+	  cd etc; $(MAKE) clean; \
 	else true; \
 	fi
 
@@ -440,7 +441,7 @@ clean mostlyclean:
 ###	 configuring or building the program.  This should leave only the
 ###	 files that would be in the distribution.
 distclean:
-	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} distclean); done
+	for i in ${SUBDIR}; do (cd $$i; $(MAKE) ${MFLAGS} distclean); done
 	-(cd lock; rm *)
 	-rm config.status config-tmp-*
 
@@ -450,7 +451,7 @@ distclean:
 ###	 everything deleted by distclean, plus more: C source files
 ###	 produced by Bison, tags tables, info files, and so on.
 realclean:
-	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} realclean); done
+	for i in ${SUBDIR}; do (cd $$i; $(MAKE) ${MFLAGS} realclean); done
 	(cd lock; rm *)
 	rm config.status
 
@@ -459,7 +460,7 @@ realclean:
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
 extraclean:
-	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} extraclean); done
+	for i in ${SUBDIR}; do (cd $$i; $(MAKE) ${MFLAGS} extraclean); done
 	-(cd lock; rm *)
 	-rm config.status config-tmp-*
 	-rm -f *~ \#*
