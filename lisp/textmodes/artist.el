@@ -1116,7 +1116,7 @@ Drawing with the mouse:
 		Flood-fill	Flood-fill		  Flood-fill
 		--------------------------------------------------------------
 
-		* Straight lines can only go horiziontally, vertically
+		* Straight lines can only go horizontally, vertically
 		  or diagonally.
 
 		* Poly-lines are drawn while holding mouse-1 down. When you
