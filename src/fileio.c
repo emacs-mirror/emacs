@@ -3643,6 +3643,8 @@ actually used.")
 	}
 
       setup_coding_system (Fcheck_coding_system (val), &coding);
+      /* Ensure we set Vlast_coding_system_used.  */
+      set_coding_system = 1;
 
       if (NILP (current_buffer->enable_multibyte_characters)
 	  && ! NILP (val))
@@ -3655,9 +3657,6 @@ actually used.")
 	= !NILP (current_buffer->enable_multibyte_characters);
       coding_system_decided = 1;
     }
-
-  /* Ensure we always set Vlast_coding_system_used.  */
-  set_coding_system = 1;
 
   /* If requested, replace the accessible part of the buffer
      with the file contents.  Avoid replacing text at the
@@ -4133,6 +4132,8 @@ actually used.")
     error ("IO error reading %s: %s",
 	   XSTRING (orig_filename)->data, emacs_strerror (errno));
 
+ notfound:
+
   if (! coding_system_decided)
     {
       /* The coding system is not yet decided.  Decide it by an
@@ -4195,6 +4196,8 @@ actually used.")
 	setup_coding_system (val, &temp_coding);
 	bcopy (&temp_coding, &coding, sizeof coding);
       }
+      /* Ensure we set Vlast_coding_system_used.  */
+      set_coding_system = 1;
 
       if (NILP (current_buffer->enable_multibyte_characters)
 	  && ! NILP (val))
@@ -4238,7 +4241,6 @@ actually used.")
     current_buffer->buffer_file_type = Qnil;
 #endif
 
- notfound:
  handled:
 
   if (!NILP (visit))
@@ -4270,10 +4272,6 @@ actually used.")
 	Fsignal (Qfile_error,
 		 Fcons (build_string ("not a regular file"),
 			Fcons (orig_filename, Qnil)));
-
-      /* If visiting nonexistent file, return nil.  */
-      if (current_buffer->modtime == -1)
-	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
     }
 
   /* Decode file format */
@@ -4298,20 +4296,24 @@ actually used.")
       update_compositions (PT, PT, CHECK_BORDER);
     }
 
-  if (inserted > 0)
+  p = Vafter_insert_file_functions;
+  while (!NILP (p))
     {
-      p = Vafter_insert_file_functions;
-      while (!NILP (p))
+      insval = call1 (Fcar (p), make_number (inserted));
+      if (!NILP (insval))
 	{
-	  insval = call1 (Fcar (p), make_number (inserted));
-	  if (!NILP (insval))
-	    {
-	      CHECK_NUMBER (insval, 0);
-	      inserted = XFASTINT (insval);
-	    }
-	  QUIT;
-	  p = Fcdr (p);
+	  CHECK_NUMBER (insval, 0);
+	  inserted = XFASTINT (insval);
 	}
+      QUIT;
+      p = Fcdr (p);
+    }
+
+  if (!NILP (visit)
+      && current_buffer->modtime == -1)
+    {
+      /* If visiting nonexistent file, return nil.  */
+      report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
     }
 
   /* ??? Retval needs to be dealt with in all cases consistently.  */
