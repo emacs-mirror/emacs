@@ -8539,11 +8539,17 @@ redisplay_internal (preserve_echo_area)
    This is useful in situations where you need to redisplay but no
    user action has occurred, making it inappropriate for the message
    area to be cleared.  See tracking_off and
-   wait_reading_process_input for examples of these situations.  */
+   wait_reading_process_input for examples of these situations.
+
+   FROM_WHERE is an integer saying from where this function was
+   called.  This is useful for debugging.  */
 
 void
-redisplay_preserve_echo_area ()
+redisplay_preserve_echo_area (from_where)
+     int from_where;
 {
+  TRACE ((stderr, "redisplay_preserve_echo_area (%d)\n", from_where));
+
   if (!NILP (echo_area_buffer[1]))
     {
       /* We have a previously displayed message, but no current
