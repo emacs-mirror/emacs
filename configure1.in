@@ -1,3 +1,4 @@
+dnl This is an autoconf script.
 [#!/bin/sh
 #### Configuration script for GNU Emacs
 #### Copyright (C) 1992 Free Software Foundation, Inc.
