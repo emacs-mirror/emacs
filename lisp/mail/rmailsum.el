@@ -674,6 +674,12 @@ Commands for sorting the summary:
 (define-key rmail-summary-mode-map [menu-bar classify input-menu]
   '("Input Rmail file (menu)..." . rmail-input-menu))
 
+(define-key rmail-summary-mode-map [menu-bar classify input-menu]
+  '(nil))
+
+(define-key rmail-summary-mode-map [menu-bar classify output-menu]
+  '(nil))
+
 (define-key rmail-summary-mode-map [menu-bar classify output-inbox]
   '("Output (inbox)..." . rmail-summary-output))
 
@@ -1106,7 +1112,7 @@ see the documentation of `rmail-resend'."
 
 ;; Summary output commands.
 
-(defun rmail-summary-output-to-rmail-file ()
+(defun rmail-summary-output-to-rmail-file (&optional file-name)
   "Append the current message to an Rmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
@@ -1115,7 +1121,9 @@ buffer visiting that file."
   (save-excursion
     (set-buffer rmail-buffer)
     (let ((rmail-delete-after-output nil))
-      (call-interactively 'rmail-output-to-rmail-file)))
+      (if file-name
+	  (rmail-output-to-rmail-file file-name)
+	(call-interactively 'rmail-output-to-rmail-file))))
   (if rmail-delete-after-output
       (rmail-summary-delete-forward nil)))
 
@@ -1141,6 +1149,22 @@ The variables `rmail-secondary-file-directory' and
       (call-interactively 'rmail-output)))
   (if rmail-delete-after-output
       (rmail-summary-delete-forward nil)))
+
+(defun rmail-summary-construct-io-menu ()
+  (let ((files (rmail-find-all-files rmail-secondary-file-directory)))
+    (if (listp files)
+	(progn
+	  (define-key rmail-summary-mode-map [menu-bar classify input-menu]
+	    (cons "Input Rmail File" 
+		  (rmail-list-to-menu "Input Rmail File" 
+				      (cdr files) 
+				      'rmail-summary-input)))
+	  (define-key rmail-summary-mode-map [menu-bar classify output-menu]
+	    (cons "Output Rmail File" 
+		  (rmail-list-to-menu "Output Rmail File" 
+				      (cdr files) 
+				      'rmail-summary-output-to-rmail-file)))))))
+
 
 ;; Sorting messages in Rmail Summary buffer.
 
