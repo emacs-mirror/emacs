@@ -11,6 +11,10 @@ For older news, see the file ONEWS
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
 
+** M-x setenv now expands environment variables of the form `$foo' and
+`${foo}' in the specified new value of the environment variable.  To
+include a `$' in the value, use `$$'.
+
 
 * Lisp Changes in Emacs 21.2
 
