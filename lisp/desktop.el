@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 2.08
+;; Version: 2.09
 ;; Keywords: customization
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -59,7 +59,8 @@
 ;;		     (desktop-truncate regexp-search-ring 3)))
 ;;
 ;; which will make sure that no more than three search items are saved.  You
-;; must place this line *after* the (load "desktop") line.
+;; must place this line *after* the (load "desktop") line.  See also the
+;; variable desktop-save-hook.
 
 ;; Start Emacs in the root directory of your "project". The desktop saver
 ;; is inactive by default.  You activate it by M-x desktop-save RET.  When
@@ -78,10 +79,12 @@
 ;; `desktop-globals-to-save' (by default it isn't).  This may result in saving
 ;; things you did not mean to keep.  Use M-x desktop-clear RET.
 
-;; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)     for useful ideas.
-;;            avk@rtsg.mot.com (Andrew V. Klein)    for a dired tip.
-;;            chris@tecc.co.uk (Chris Boucher)      for a mark tip.
-;;            f89-kam@nada.kth.se (Klas Mellbourn)  for a mh-e tip.
+;; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)      for useful ideas.
+;;            avk@rtsg.mot.com (Andrew V. Klein)     for a dired tip.
+;;            chris@tecc.co.uk (Chris Boucher)       for a mark tip.
+;;            f89-kam@nada.kth.se (Klas Mellbourn)   for a mh-e tip.
+;;            kifer@sbkifer.cs.sunysb.edu (M. Kifer) for a bug hunt.
+;;            treese@lcs.mit.edu (Win Treese)        for ange-ftp ftps.
 ;; ---------------------------------------------------------------------------
 ;; TODO:
 ;;
@@ -95,7 +98,8 @@
 ;; Make the compilation more silent
 (eval-when-compile
   ;; We use functions from these modules
-  (mapcar 'require '(info mh-e dired reporter)))
+  ;; We can't (require 'mh-e) since that wants to load something.
+  (mapcar 'require '(info dired reporter)))
 ;; ----------------------------------------------------------------------------
 ;; USER OPTIONS -- settings you might want to play with.
 ;; ----------------------------------------------------------------------------
@@ -130,6 +134,7 @@ Otherwise simply ignore the file.")
 	'fill-column
 	'overwrite-mode
 	'change-log-default-name
+	'line-number-mode
 	)
   "List of local variables to save for each buffer.  The variables are saved
 only when they really are local.")
@@ -141,6 +146,11 @@ only when they really are local.")
 (defvar desktop-buffers-not-to-save
  "\\(^nn\\.a[0-9]+\\|\\.log\\|(ftp)\\|^tags\\|^TAGS\\)$"
  "Regexp identifying buffers that are to be excluded from saving.")
+
+;; Skip ange-ftp files
+(defvar desktop-files-not-to-save
+  "^/[^/:]*:"
+  "Regexp identifying files whose buffers are to be excluded from saving.")
 
 (defvar desktop-buffer-handlers
   '(desktop-buffer-dired
@@ -156,6 +166,10 @@ If the function returns t then the buffer is considered created.")
 
 (defvar desktop-create-buffer-form "(desktop-create-buffer 205"
   "Opening of form for creation of new buffers.")
+
+(defvar desktop-save-hook nil
+  "Hook run before saving the desktop to allow you to cut history lists and
+the like shorter.")
 ;; ----------------------------------------------------------------------------
 (defvar desktop-dirname nil
   "The directory in which the current desktop file resides.")
@@ -177,8 +191,12 @@ If the function returns t then the buffer is considered created.")
 ;; ----------------------------------------------------------------------------
 (defun desktop-clear () "Empty the Desktop."
   (interactive)
-  (setq kill-ring nil)
-  (setq kill-ring-yank-pointer nil)
+  (setq kill-ring nil
+	kill-ring-yank-pointer nil
+	search-ring nil
+	search-ring-yank-pointer nil
+	regexp-search-ring nil
+	regexp-search-ring-yank-pointer nil)
   (mapcar (function kill-buffer) (buffer-list))
   (delete-other-windows))
 ;; ----------------------------------------------------------------------------
@@ -186,8 +204,12 @@ If the function returns t then the buffer is considered created.")
 
 (defun desktop-kill ()
   (if desktop-dirname
-      (progn
-	(desktop-save desktop-dirname))))
+      (condition-case err
+	  (desktop-save desktop-dirname)
+	(file-error
+	 (if (yes-or-no-p "Error while saving the desktop.  Quit anyway? ")
+	     nil
+	   (signal (car err) (cdr err)))))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-internal-v2s (val)
   "Convert VALUE to a pair (quote . txt) where txt is a string that when read
@@ -266,7 +288,7 @@ and evaluated yields value.  quote may be 'may (value may be quoted),
 			" (list 'lambda '() (list 'set-marker mk "
 			pos " (get-buffer " buf ")))) mk)"))))
    (t					; save as text
-    (cons 'may (prin1-to-string val)))))
+    (cons 'may "\"Unprintable entity\""))))
 
 (defun desktop-value-to-string (val)
   "Convert VALUE to a string that when read evaluates to the same value.  Not
@@ -293,14 +315,22 @@ all types of values are supported."
   "Return t if the desktop should record a particular buffer for next startup.
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode."
-  (or (and filename
-	   (not (string-match desktop-buffers-not-to-save bufname)))
-      (and (null filename)
-	   (memq mode '(Info-mode dired-mode rmail-mode)))))
+  (let ((case-fold-search nil))
+    (or (and filename
+	     (not (string-match desktop-buffers-not-to-save bufname))
+	     (not (string-match desktop-files-not-to-save filename)))
+	(and (eq mode 'dired-mode)
+	     (save-excursion
+	       (set-buffer (get-buffer bufname))
+	       (not (string-match desktop-files-not-to-save
+				  default-directory))))
+	(and (null filename)
+	     (memq mode '(Info-mode rmail-mode))))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-save (dirname)
   "Save the Desktop file.  Parameter DIRNAME specifies where to save desktop."
   (interactive "DDirectory to save desktop file in: ")
+  (run-hooks 'desktop-save-hook)
   (save-excursion
     (let ((filename (expand-file-name
 		     (concat dirname desktop-basefilename)))
@@ -313,7 +343,7 @@ MODE is the major mode."
 			       (buffer-name)
 			       major-mode
 			       (list	; list explaining minor modes
-				     (not (null auto-fill-function)))
+				(not (null auto-fill-function)))
 			       (point)
 			       (list (mark t) mark-active)
 			       buffer-read-only
@@ -342,11 +372,11 @@ MODE is the major mode."
 	  (buf (get-buffer-create "*desktop*")))
       (set-buffer buf)
       (erase-buffer)
-      
+
       (insert desktop-header
 	      ";; Created " (current-time-string) "\n"
-		  ";; Emacs version " emacs-version "\n\n"
-		      ";; Global section:\n")
+	      ";; Emacs version " emacs-version "\n\n"
+	      ";; Global section:\n")
       (mapcar (function desktop-outvar) desktop-globals-to-save)
       (if (memq 'kill-ring desktop-globals-to-save)
 	  (insert "(setq kill-ring-yank-pointer (nthcdr "
@@ -377,8 +407,9 @@ MODE is the major mode."
   (interactive)
   (if desktop-dirname
       (let ((filename (concat desktop-dirname desktop-basefilename)))
-	(if (file-exists-p filename) (delete-file filename))
-	(setq desktop-dirname nil))))
+	(setq desktop-dirname nil)
+	(if (file-exists-p filename)
+	    (delete-file filename)))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-read ()
   "Read the Desktop file and the files it specifies."
@@ -428,10 +459,14 @@ autoloaded files."
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
   (if (eq 'dired-mode mam)
-      (progn
-	(dired (car misc))
-	(mapcar (function dired-maybe-insert-subdir) (cdr misc))
-	t)))
+      (if (file-directory-p (directory-file-name (car misc)))
+	  (progn
+	    (dired (car misc))
+	    (mapcar (function dired-maybe-insert-subdir) (cdr misc))
+	    t)
+	(message "Directory %s no longer exists." (car misc))
+	(sit-for 1)
+	'ignored)))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-file () "Load a file."
   (if fn
