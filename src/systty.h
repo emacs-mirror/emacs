@@ -244,14 +244,16 @@ static struct sensemode {
    emacs_tty should contain an element for each parameter struct
    that Emacs may change.
 
-   EMACS_GET_TTY (int FD, struct emacs_tty *P) stores the
-   parameters of the tty on FD in *P.
+   EMACS_GET_TTY (int FD, struct emacs_tty *P) stores the parameters
+   of the tty on FD in *P.  Return zero if all's well, or -1 if we ran
+   into an error we couldn't deal with.
 
    EMACS_SET_TTY (int FD, struct emacs_tty *P, int waitp)
    sets the parameters of the tty on FD according to the contents of
    *P.  If waitp is non-zero, we wait for all queued output to be
    written before making the change; otherwise, we forget any queued
    input and make the change immediately.
+   Return 0 if all went well, and -1 if anything failed.
 
    EMACS_TTY_TABS_OK (struct emacs_tty *P) is false iff the kernel
    expands tabs to spaces upon output; in that case, there is no
@@ -259,13 +261,9 @@ static struct sensemode {
 
 
 /* For each tty parameter structure that Emacs might want to save and restore,
-   - include an element for it in this structure,
-   - define a pair of numbered macros to get and set it and return 
-     true iff the call succeeded,
-   - give alternative definitions for when the component is not implemented
-     which always succeed, and
-   - extend the definition of EMACS_{GET,SET}_TTY_CHARS to include the
-     new macros.  */
+   - include an element for it in this structure, and
+   - extend the emacs_{get,set}_tty functions in sysdep.c to deal with the
+     new members.  */
 
 struct emacs_tty {
 
