@@ -2068,7 +2068,7 @@ nominal         alternate\n\
 	p += sizeof (" Minor Mode Bindings") - 1;
 	*p = 0;
 
-	describe_map_tree (maps[i], 0, shadow, prefix, title, 0, 0, 0);
+	describe_map_tree (maps[i], 1, shadow, prefix, title, 0, 0, 0);
 	shadow = Fcons (maps[i], shadow);
       }
   }
@@ -2083,12 +2083,12 @@ nominal         alternate\n\
 
   if (!NILP (start1))
     {
-      describe_map_tree (start1, 0, shadow, prefix,
+      describe_map_tree (start1, 1, shadow, prefix,
 			 "Major Mode Bindings", 0, 0, 0);
       shadow = Fcons (start1, shadow);
     }
 
-  describe_map_tree (current_global_map, 0, shadow, prefix,
+  describe_map_tree (current_global_map, 1, shadow, prefix,
 		     "Global Bindings", 0, 0, 1);
 
   /* Print the function-key-map translations under this prefix.  */
