@@ -9,6 +9,11 @@
 
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* sound.c (vox_configure): Change order of ioctls.  Don't
+	set SNDCTL_DSP_SPEED from bps, don't set SNDCTL_DSP_SAMPLESIZE.
+	Ignore errors when changing volume.
+	(vox_close): Don't reset the device.
+
 	* process.c (read_process_output): Make sure the process marker's
 	position is valid when the process buffer is changed in
 	after-change functions.  W3 does that.
