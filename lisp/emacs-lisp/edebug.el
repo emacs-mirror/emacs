@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 1997
+;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999
 ;;       Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <dlaliberte@gte.com>
@@ -558,9 +558,14 @@ Otherwise, it prints in the minibuffer."
 	  (let ((edebug-all-forms edebugging)
 		(edebug-all-defs (eq edebug-all-defs (not edebug-it))))
 	    (edebug-read-top-level-form))))
-    (if (and (eq (car form) 'defvar)
-	     (cdr-safe (cdr-safe form)))
-	(setq form (cons 'defconst (cdr form))))
+    (cond ((and (eq (car form) 'defvar)
+		(cdr-safe (cdr-safe form)))
+	   ;; Force variable to be bound.
+	   (setq form (cons 'defconst (cdr form))))
+	  ((and (eq (car form) 'defcustom)
+		(default-boundp (nth 1 form)))
+	   ;; Force variable to be bound.
+	   (set-default (nth 1 form) (eval (nth 2 form)))))
     (setq edebug-result (eval form))
     (if (not edebugging)
 	(princ edebug-result)
