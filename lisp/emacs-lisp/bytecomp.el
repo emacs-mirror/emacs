@@ -1376,7 +1376,7 @@ With argument, insert value in current buffer after the form."
    "\000\000\000\n"
    )
   (insert ";;; compiled by "
-	  (or user-mail-address
+	  (or (and (boundp 'user-mail-address) user-mail-address)
 	      (concat (user-login-name) "@" (system-name)))
 	  " on "
 	  (current-time-string) "\n;;; from file " filename "\n")
