@@ -81,6 +81,8 @@ DONTCOMPILE = \
 	$(lisp)/language/vietnamese.el \
 	$(lisp)/language/cyrillic.el \
 	$(lisp)/language/czech.el \
+	$(lisp)/language/chinese.el \
+	$(lisp)/language/japanese.el \
 	$(lisp)/loaddefs.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
