@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.100) $
+ * $HopeName: MMsrc!mpm.h(trunk.101) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -965,6 +965,8 @@ extern Res CBSInit(Arena arena, CBS cbs,
                    Bool fastFind); 
 extern void CBSFinish(CBS cbs);
 extern Res CBSInsert(CBS cbs, Addr base, Addr limit);
+extern Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
+                                   CBS cbs, Addr base, Addr limit);
 extern Res CBSDelete(CBS cbs, Addr base, Addr limit);
 extern void CBSIterate(CBS cbs, CBSIterateMethod iterate, 
                        void *closureP, unsigned long closureS);
