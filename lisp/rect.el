@@ -29,6 +29,21 @@
 
 ;;; Code:
 
+;;;###autoload
+(defun move-to-column-force (column)
+  "Move point to column COLUMN rigidly in the current line.
+If COLUMN is within a multi-column character, replace it by
+spaces and tab."
+  (let ((col (move-to-column column t)))
+    (if (> col column)
+	(let (pos)
+	  (delete-char -1)
+	  (insert-char ?  (- column (current-column)))
+	  (setq pos (point))
+	  (indent-to col)
+	  (goto-char pos)))
+    column))
+
 ;; extract-rectangle-line stores lines into this list
 ;; to accumulate them for extract-rectangle and delete-extract-rectangle.
 (defvar operate-on-rectangle-lines)
@@ -60,10 +75,14 @@ Point is at the end of the segment of this line within the rectangle."
      (goto-char startlinepos)
      (while (< (point) endlinepos)
        (let (startpos begextra endextra)
-	 (move-to-column startcol coerce-tabs)
+	 (if coerce-tabs
+	     (move-to-column-force startcol)
+	   (move-to-column startcol))
 	 (setq begextra (- (current-column) startcol))
 	 (setq startpos (point))
-	 (move-to-column endcol coerce-tabs)
+	 (if coerce-tabs
+	     (move-to-column-force endcol)
+	   (move-to-column endcol))
 	 ;; If we overshot, move back one character
 	 ;; so that endextra will be positive.
 	 (if (and (not coerce-tabs) (> (current-column) endcol))
@@ -176,7 +195,7 @@ and point is at the lower right corner."
 	  (progn
 	   (forward-line 1)
 	   (or (bolp) (insert ?\n))
-	   (move-to-column insertcolumn t)))
+	   (move-to-column-force insertcolumn)))
       (setq first nil)
       (insert (car lines))
       (setq lines (cdr lines)))))
@@ -197,6 +216,8 @@ but instead winds up to the right of the rectangle."
     (goto-char startpos)
     ;; Column where rectangle begins.
     (let ((begcol (- (current-column) begextra)))
+      (if (> begextra 0)
+	  (move-to-column-force begcol))
       (skip-chars-forward " \t")
       ;; Width of whitespace to be deleted and recreated.
       (setq whitewidth (- (current-column) begcol)))
