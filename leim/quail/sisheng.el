@@ -288,3 +288,5 @@ Example:  nve5    -> nüe
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
+
+;;; arch-tag: 1fa6ba5f-6747-44bc-bf12-30628ad3e8ad
