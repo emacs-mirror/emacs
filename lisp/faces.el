@@ -390,9 +390,12 @@ If NAME is already a face, it is simply returned."
 	    new-stipple-string)))
     (list face (if (equal stipple "") nil stipple))))
 
-(defun make-face (name)
+(defun make-face (name &optional no-resources)
   "Define a new FACE on all frames.  
 You can modify the font, color, etc of this face with the set-face- functions.
+If NO-RESOURCES is non-nil, then we ignore X resources
+and always make a face whose attributes are all nil.
+
 If the face already exists, it is unmodified."
   (interactive "SMake face: ")
   (or (internal-find-face name)
@@ -410,14 +413,22 @@ If the face already exists, it is unmodified."
 					(frame-face-alist (car frames))))
 	    (setq frames (cdr frames)))
 	  (setq global-face-data (cons (cons name face) global-face-data)))
-	;; when making a face after frames already exist
-	(if (memq window-system '(x w32))
-	    (make-face-x-resource-internal face))
-	;; add to menu
+	;; When making a face after frames already exist
+	(or no-resources
+	    (if (memq window-system '(x w32))
+		(make-face-x-resource-internal face)))
+	;; Add to menu of faces.
 	(if (fboundp 'facemenu-add-new-face)
 	    (facemenu-add-new-face name))
 	face))
   name)
+
+(defun make-empty-face (face)
+  "Define a new FACE on all frames, which initially reflects the defaults.
+You can modify the font, color, etc of this face with the set-face- functions.
+If the face already exists, it is unmodified."
+  (interactive "SMake empty face: ")
+  (make-face face t))
 
 ;; Fill in a face by default based on X resources, for all existing frames.
 ;; This has to be done when a new face is made.
