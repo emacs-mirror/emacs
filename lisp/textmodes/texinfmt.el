@@ -391,7 +391,7 @@ converted to Info is stored in a temporary buffer."
 ;;; Handle paragraph filling
 
 (defvar texinfo-no-refill-regexp
-  "^@\\(example\\|smallexample\\|lisp\\|smalllisp\\|display\\|format\\|flushleft\\|flushright\\|menu\\|titlepage\\|iftex\\|tex\\)"
+  "^@\\(example\\|smallexample\\|lisp\\|smalllisp\\|display\\|format\\|flushleft\\|flushright\\|menu\\|titlepage\\|iftex\\|ifhtml\\|tex\\|html\\)"
   "Regexp specifying environments in which paragraphs are not filled.")
 
 (defvar texinfo-part-of-para-regexp
@@ -1054,7 +1054,7 @@ lower types.")
     (insert ?\n)))
 
 
-;;; Space controling commands:  @. and @:   
+;;; Space controlling commands:  @. and @:   
 (put '\. 'texinfo-format 'texinfo-format-\.)
 (defun texinfo-format-\. ()
   (texinfo-discard-command)
@@ -1494,7 +1494,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
     (texinfo-do-itemize (nth 1 stacktop))))
 
 
-;;; @ifinfo,  @iftex, @tex
+;;; @ifinfo,  @iftex, @tex, @ifhtml, @html
 
 (put 'ifinfo 'texinfo-format 'texinfo-discard-line)
 (put 'ifinfo 'texinfo-end 'texinfo-discard-command)
@@ -1505,10 +1505,22 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
                  (progn (re-search-forward "@end iftex[ \t]*\n")
                         (point))))
 
+(put 'ifhtml 'texinfo-format 'texinfo-format-ifhtml)
+(defun texinfo-format-ifhtml ()
+  (delete-region texinfo-command-start
+                 (progn (re-search-forward "@end ifhtml[ \t]*\n")
+                        (point))))
+
 (put 'tex 'texinfo-format 'texinfo-format-tex)
 (defun texinfo-format-tex ()
   (delete-region texinfo-command-start
                  (progn (re-search-forward "@end tex[ \t]*\n")
+                        (point))))
+
+(put 'html 'texinfo-format 'texinfo-format-html)
+(defun texinfo-format-html ()
+  (delete-region texinfo-command-start
+                 (progn (re-search-forward "@end html[ \t]*\n")
                         (point))))
 
 
@@ -1824,6 +1836,11 @@ If used within a line, follow `@minus' with braces."
 (defun texinfo-format-dots ()
   (texinfo-parse-arg-discard)
   (insert "..."))
+
+(put 'enddots 'texinfo-format 'texinfo-format-enddots)
+(defun texinfo-format-enddots ()
+  (texinfo-parse-arg-discard)
+  (insert "...."))
 
 
 ;;; Refilling and indenting:  @refill, @paragraphindent, @noindent
