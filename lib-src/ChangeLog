@@ -2,6 +2,11 @@
 
 	* make-docfile.c (scan_lisp_file): Fix typo causing infloop.
 
+1999-09-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* make-docfile.c (scan_lisp_file): Fix previous changes;
+	swallow CRLF like just CR or just LF.
+
 1999-09-03  Richard Stallman  <rms@gnu.org>
 
 	* make-docfile.c: Include config.h not ../src/config.h.
