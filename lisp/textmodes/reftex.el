@@ -2487,7 +2487,9 @@ IGNORE-WORDS List of words which should be removed from the string."
     "--"
     "MISC"
     ["AUC TeX Interface" reftex-toggle-plug-into-AUCTeX
-     :style toggle :selected reftex-plug-into-AUCTeX])
+     :style toggle :selected reftex-plug-into-AUCTeX]
+    ["isearch whole document" reftex-isearch-minor-mode
+     :style toggle :selected reftex-isearch-minor-mode])
    ("Reference Style"
     ["Default" (setq reftex-vref-is-default nil
                      reftex-fref-is-default nil)

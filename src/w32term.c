@@ -4937,7 +4937,7 @@ x_draw_hollow_cursor (w, row)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   RECT rect;
-  int wd, h;
+  int h;
   struct glyph *cursor_glyph;
   HBRUSH hb = CreateSolidBrush (f->output_data.w32->cursor_pixel);
 
@@ -4947,34 +4947,12 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph == NULL)
     return;
 
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
+  /* Compute frame-relative coordinates for phys cursor.  */
   rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  rect.top = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-              + row->ascent - w->phys_cursor_ascent);
-
-  /* Compute the proper height and ascent of the rectangle, based
-     on the actual glyph.  Using the full height of the row looks
-     bad when there are tall images on that row.  */
-  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
-	   cursor_glyph->ascent + cursor_glyph->descent);
-  if (h < row->height)
-    rect.top += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
-  h--;
-
+  rect.top = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
   rect.bottom = rect.top + h;
+  rect.right = rect.left + w->phys_cursor_width;
 
-  /* Compute the width of the rectangle to draw.  If on a stretch
-     glyph, and `x-stretch-block-cursor' is nil, don't draw a
-     rectangle as wide as the glyph, but use a canonical character
-     width instead.  */
-  wd = cursor_glyph->pixel_width; /* TODO: Why off by one compared with X? */
-  if (cursor_glyph->type == STRETCH_GLYPH
-      && !x_stretch_cursor_p)
-    wd = min (FRAME_COLUMN_WIDTH (f), wd);
-  w->phys_cursor_width = wd;
-
-  rect.right = rect.left + wd;
   hdc = get_frame_dc (f);
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   w32_clip_to_row (w, row, TEXT_AREA, hdc);

@@ -391,25 +391,25 @@ the program.
 @end iftex
 
 @menu
-* Starting Up::                 Finding news can be a pain.
-* Group Buffer::                Selecting, subscribing and killing groups.
-* Summary Buffer::              Reading, saving and posting articles.
-* Article Buffer::              Displaying and handling articles.
-* Composing Messages::          Information on sending mail and news.
-* Select Methods::              Gnus reads all messages from various select methods.
-* Scoring::                     Assigning values to articles.
-* Various::                     General purpose settings.
-* The End::                     Farewell and goodbye.
-* Appendices::                  Terminology, Emacs intro, @acronym{FAQ}, History, Internals.
-* Index::                       Variable, function and concept index.
-* Key Index::                   Key Index.
+* Starting Up::              Finding news can be a pain.
+* Group Buffer::             Selecting, subscribing and killing groups.
+* Summary Buffer::           Reading, saving and posting articles.
+* Article Buffer::           Displaying and handling articles.
+* Composing Messages::       Information on sending mail and news.
+* Select Methods::           Gnus reads all messages from various select methods.
+* Scoring::                  Assigning values to articles.
+* Various::                  General purpose settings.
+* The End::                  Farewell and goodbye.
+* Appendices::               Terminology, Emacs intro, @acronym{FAQ}, History, Internals.
+* Index::                    Variable, function and concept index.
+* Key Index::                Key Index.
 
 Other related manuals
 
-* Message:(message).            Composing messages.
-* Emacs-MIME:(emacs-mime).      Composing messages; @acronym{MIME}-specific parts.
-* Sieve:(sieve).                Managing Sieve scripts in Emacs.
-* PGG:(pgg).                    @acronym{PGP/MIME} with Gnus.
+* Message:(message).         Composing messages.
+* Emacs-MIME:(emacs-mime).   Composing messages; @acronym{MIME}-specific parts.
+* Sieve:(sieve).             Managing Sieve scripts in Emacs.
+* PGG:(pgg).                 @acronym{PGP/MIME} with Gnus.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -951,17 +951,16 @@ If you puzzle at any terms used in this manual, please refer to the
 terminology section (@pxref{Terminology}).
 
 @menu
-* Finding the News::            Choosing a method for getting news.
-* The First Time::              What does Gnus do the first time you start it?
-* The Server is Down::          How can I read my mail then?
-* Slave Gnusae::                You can have more than one Gnus active at a time.
-* Fetching a Group::            Starting Gnus just to read a group.
-* New Groups::                  What is Gnus supposed to do with new groups?
-* Changing Servers::            You may want to move from one server to another.
-* Startup Files::               Those pesky startup files---@file{.newsrc}.
-* Auto Save::                   Recovering from a crash.
-* The Active File::             Reading the active file over a slow line Takes Time.
-* Startup Variables::           Other variables you might change.
+* Finding the News::      Choosing a method for getting news.
+* The First Time::        What does Gnus do the first time you start it?
+* The Server is Down::    How can I read my mail then?
+* Slave Gnusae::          You can have more than one Gnus active at a time.
+* New Groups::            What is Gnus supposed to do with new groups?
+* Changing Servers::      You may want to move from one server to another.
+* Startup Files::         Those pesky startup files---@file{.newsrc}.
+* Auto Save::             Recovering from a crash.
+* The Active File::       Reading the active file over a slow line Takes Time.
+* Startup Variables::     Other variables you might change.
 @end menu
 
 
@@ -992,7 +991,8 @@ If you want to read directly from the local spool, say:
 
 If you can use a local spool, you probably should, as it will almost
 certainly be much faster.  But do not use the local spool if your
-server is running Leafnode; in this case, use @code{(nntp "localhost")}.
+server is running Leafnode (which is a simple, standalone private news
+server); in this case, use @code{(nntp "localhost")}.
 
 @vindex gnus-nntpserver-file
 @cindex NNTPSERVER
@@ -1051,8 +1051,8 @@ you would typically set this variable to
 @section The First Time
 @cindex first time usage
 
-If no startup files exist, Gnus will try to determine what groups should
-be subscribed by default.
+If no startup files exist (@pxref{Startup Files}), Gnus will try to
+determine what groups should be subscribed by default.
 
 @vindex gnus-default-subscribed-newsgroups
 If the variable @code{gnus-default-subscribed-newsgroups} is set, Gnus
@@ -1139,16 +1139,6 @@ file.  If you answer ``yes'', the unsaved changes to the master will be
 incorporated into the slave.  If you answer ``no'', the slave may see some
 messages as unread that have been read in the master.
 
-@node Fetching a Group
-@section Fetching a Group
-@cindex fetching a group
-
-@findex gnus-fetch-group
-It is sometimes convenient to be able to just say ``I want to read this
-group and I don't care whether Gnus has been started or not''.  This is
-perhaps more useful for people who write code than for users, but the
-command @code{gnus-fetch-group} provides this functionality in any case.
-It takes the group name as a parameter.
 
 
 @node New Groups
@@ -1400,8 +1390,10 @@ cache for all groups).
 @cindex .newsrc.el
 @cindex .newsrc.eld
 
-Now, you all know about the @file{.newsrc} file.  All subscription
-information is traditionally stored in this file.
+Most common Unix news readers use a shared startup file called
+@file{.newsrc}.  This file contains all the information about what
+groups are subscribed, and which articles in these groups have been
+read. 
 
 Things got a bit more complicated with @sc{gnus}.  In addition to
 keeping the @file{.newsrc} file updated, it also used a file called
@@ -1426,8 +1418,10 @@ the file and save some space, as well as exiting from Gnus faster.
 However, this will make it impossible to use other newsreaders than
 Gnus.  But hey, who would want to, right?  Similarly, setting
 @code{gnus-read-newsrc-file} to @code{nil} makes Gnus ignore the
-@file{.newsrc} file and any @file{.newsrc-SERVER} files, which is
-convenient if you have a tendency to use Netscape once in a while.
+@file{.newsrc} file and any @file{.newsrc-SERVER} files, which can be
+convenient if you use a different news reader occasionally, and you
+want to read a different subset of the available groups with that
+news reader.
 
 @vindex gnus-save-killed-list
 If @code{gnus-save-killed-list} (default @code{t}) is @code{nil}, Gnus
@@ -15884,7 +15878,7 @@ Use @kbd{G R} from the summary buffer to subscribe to a feed---you
 will be prompted for the location of the feed.
 
 An easy way to get started with @code{nnrss} is to say something like
-the following in the group buffer: @kbd{B nnrss RET y}, then
+the following in the group buffer: @kbd{B nnrss RET RET y}, then
 subscribe to groups.
 
 The following @code{nnrss} variables can be altered:
@@ -20607,6 +20601,7 @@ four days, Gnus will decay the scores four times, for instance.
 * Undo::                        Some actions can be undone.
 * Predicate Specifiers::        Specifying predicates.
 * Moderation::                  What to do if you're a moderator.
+* Fetching a Group::            Starting Gnus just to read a group.
 * Image Enhancements::          Modern versions of Emacs/XEmacs can display images.
 * Fuzzy Matching::              What's the big fuzz?
 * Thwarting Email Spam::        A how-to on avoiding unsolicited commercial email.
@@ -21876,6 +21871,18 @@ To use moderation mode in these two groups, say:
 (setq gnus-moderated-list
       "^nnml:rec.zoofle$\\|^rec.zoofle$")
 @end lisp
+
+
+@node Fetching a Group
+@section Fetching a Group
+@cindex fetching a group
+
+@findex gnus-fetch-group
+It is sometimes convenient to be able to just say ``I want to read this
+group and I don't care whether Gnus has been started or not''.  This is
+perhaps more useful for people who write code than for users, but the
+command @code{gnus-fetch-group} provides this functionality in any case.
+It takes the group name as a parameter.
 
 
 @node Image Enhancements
@@ -26574,6 +26581,12 @@ This means that the group probably doesn't exist (any more).
 The act of asking the server for info on a group and computing the
 number of unread articles is called @dfn{activating the group}.
 Un-activated groups are listed with @samp{*} in the group buffer.
+
+@item spool
+@cindex spool
+News servers store their articles locally in one fashion or other.
+One old-fashioned storage method is to have just one file per
+article.  That's called a ``traditional spool''.
 
 @item server
 @cindex server
