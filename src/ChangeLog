@@ -1,3 +1,7 @@
+2001-10-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* editfns.c (text_property_stickiness): Fix Lisp_Object used as boolean.
+
 2001-10-25  Miles Bader  <miles@gnu.org>
 
 	* xfns.c (png_load): Make sure SPECIFIED_BG is a string.
