@@ -12,44 +12,47 @@
 # inherited from the environment.
 SHELL = /bin/sh
 
-# ==================== Things `configure' might edit ====================
+# ==================== Things `configure' will edit ====================
 
-CC=cc
-CFLAGS=-g
-ALLOCA=
-C_SWITCH_SYSTEM=
-LOADLIBES=
-YACC=yacc
-version=version-not-set
-configname=configuration-name-not-set
+CC=@CC@
+CFLAGS=@CFLAGS@
+ALLOCA=@ALLOCA@
+C_SWITCH_SYSTEM=@c_switch_system@
+LOADLIBES=@libsrc_libs@
+YACC=@YACC@
+version=@version@
+configname=@configuration@
 
 # ==================== Where To Install Things ====================
 
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
-# not need to change them.
-prefix=/usr/local
+# not need to change them.  This is set with the --prefix option to
+@ `../configure'.
+prefix=@prefix@
 
-# Like `prefix', but used for architecture-specific files.
-exec_prefix=${prefix}
+# Like `prefix', but used for architecture-specific files.  This is
+# set with the --exec-prefix option to `../configure'.
+exec_prefix=@exec_prefix@
 
 # Where to install Emacs and other binaries that people will want to
-# run directly (like etags).
-bindir=${exec_prefix}/bin
+# run directly (like etags).  This is set with the --bindir option
+# to `../configure'.
+bindir=@bindir@
 
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
-# data.  ${archlibdir} is usually below this.
-libdir=${exec_prefix}/lib
+# data.  ${archlibdir} is usually below this.  This is set with the
+# --libdir option to `../configure'.
+libdir=@libdir@
 
-# Where to find the source code.  This is
-# set by the configure script's `--srcdir' option.
-# However, the value of ${srcdir} in this makefile
-# is not identical to what was specified with --srcdir.
-# The variable here has `/lib-src' added at the end.
-srcdir=@srcdir@/lib-src
-VPATH=@srcdir@/lib-src
+# Where to find the source code.  This is set by the configure
+# script's `--srcdir' option.  However, the value of ${srcdir} in
+# this makefile is not identical to what was specified with --srcdir,
+# since the variable here has `/lib-src' added at the end.
+srcdir=@srcdir@
+VPATH=@srcdir@
 
 # ==================== Emacs-specific directories ====================
 
@@ -59,26 +62,17 @@ VPATH=@srcdir@/lib-src
 # Where to put executables to be run by Emacs rather than the user.
 # This path usually includes the Emacs version and configuration name,
 # so that multiple configurations for multiple versions of Emacs may
-# be installed at once.
-archlibdir=${libdir}/emacs/${version}/${configname}
-
-# ====================== Developer's configuration =======================
-
-# The following assignments make sense if you're running Emacs on a single
-# machine, one version at a time, and  you want changes to the lisp and etc
-# directories in the source tree to show up immediately in your working
-# environment.  It saves a great deal of disk space by not duplicating the
-# lisp and etc directories.
-#
-# archlibdir=${srcdir}/bin
+# be installed at once.  This can be set with the --archlibdir option
+# to `../configure'.
+archlibdir=@archlibdir@
 
 # ==================== Utility Programs for the Build ====================
 
-# Allow the user to specify the install program.
-INSTALL = install
+@ ../configure figures out the correct values for these.
+INSTALL = @INSTALL@
 INSTALLFLAGS = -c
-INSTALL_PROGRAM = ${INSTALL}
-INSTALL_DATA = ${INSTALL}
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
 
 # ============================= Targets ==============================
 
@@ -123,13 +117,9 @@ ${archlibdir}: all
 	@echo "Installing utilities run internally by Emacs."
 	./make-path ${archlibdir}
 	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
-	  for file in ${UTILITIES} ${INSTALLABLES}; do \
-	    cp $${file} ${archlibdir} ; \
-	    chmod 755 ${archlibdir}/$${file} ; \
-	  done ; \
-	  cd ${srcdir}; for file in ${SCRIPTS} ${INSTALLABLE_SCRIPTS}; do \
-	    cp $${file} ${archlibdir} ; \
-	    chmod 755 ${archlibdir}/$${file} ; \
+	  for file in ${UTILITIES} ${SCRIPTS}; do \
+	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
+	    chmod 755 ${archlibdir}/$$file ; \
 	  done ; \
 	fi
 	@echo
