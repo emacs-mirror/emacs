@@ -827,7 +827,7 @@ Instead, all of the Rmail Mode commands are available, plus:
 (if rmail-summary-edit-map
     nil
   (setq rmail-summary-edit-map
-	(nconc (make-sparse-keymap) (cdr text-mode-map)))
+	(nconc (make-sparse-keymap) text-mode-map))
   (define-key rmail-summary-edit-map "\C-c\C-c" 'rmail-cease-edit)
   (define-key rmail-summary-edit-map "\C-c\C-]" 'rmail-abort-edit))
 
