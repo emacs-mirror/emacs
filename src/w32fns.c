@@ -5172,7 +5172,7 @@ This function is an internal primitive--use `make-frame' instead.")
       }
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_font (f, "-*-Courier New-normal-r-*-*-*-120-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-Courier New-normal-r-*-*-*-100-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
       font = x_new_font (f, "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
@@ -12012,7 +12012,7 @@ x_create_tip_frame (dpyinfo, parms)
     
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_font (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1");
+      font = x_new_font (f, "-*-courier new-normal-r-*-*-*-100-*-*-*-*-iso8859-1");
     if (!STRINGP (font))
       font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
