@@ -38,7 +38,7 @@
   "*Non-nil means Rmail summary scroll commands move between messages.")
 
 ;;;###autoload
-(defvar rmail-summary-line-count-p t
+(defvar rmail-summary-line-count-flag t
   "*Non-nil if Rmail summary should show the number of lines in each message.")
 
 (defvar rmail-summary-font-lock-keywords
@@ -408,7 +408,7 @@ nil for FUNCTION means all messages."
 						     (- len 25))
 						    (t (- mch 14))))
 				     (min len (+ lo 25))))))))
-          (if rmail-summary-line-count-p
+          (if rmail-summary-line-count-flag
 	      (save-excursion
 		(save-restriction
 		  (widen)
