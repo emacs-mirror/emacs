@@ -1,3 +1,11 @@
+1999-10-20  Paul Eggert  <eggert@twinsun.com>
+
+	* disp-table.el (standard-display-european): Remove undocumented
+	arg AUTO; no longer used by startup.el.  Do not attempt to treat
+	all non-English language environments as coding system names.
+	Instead, use the downcased language environment name as a coding
+	system name if it is one; otherwise, use latin-1.
+
 1999-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* dired.el (dired-move-to-filename-regexp): Fix long comment lines
