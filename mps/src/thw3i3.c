@@ -1,10 +1,7 @@
-/*  impl.c.thnti3
+/*  impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- *                  WIN32 THREAD MANAGER
- *
- *  $HopeName: MMsrc!thnti3.c(trunk.16) $
- *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!thw3i3.c(MMdevel_config_thread.2) $
+ *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  *  Implements thread registration, suspension, and stack
  *  scanning.  See design.mps.thread-manager
@@ -56,7 +53,6 @@
  *  .context.sp: sp assumed to be recorded by CONTEXT_CONTROL.
  *  .context.regroots: assumed to be recorded by CONTEXT_INTEGER.
  *  see winnt.h for description of CONTEXT and ContextFlags.
- *
  */
 
 #include "mpm.h"
@@ -67,19 +63,20 @@
 
 #include <windows.h>
 
-SRCID(thnti3, "$HopeName: MMsrc!thnti3.c(trunk.16) $");
+SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(MMdevel_config_thread.2) $");
+
 
 Bool ThreadCheck(Thread thread)
 {
   CHECKS(Thread, thread);
-  CHECKU(Space, thread->space);
-  CHECKL(thread->serial < thread->space->threadSerial);
-  CHECKL(RingCheck(&thread->spaceRing));
+  CHECKU(Arena, thread->arena);
+  CHECKL(thread->serial < thread->arena->threadSerial);
+  CHECKL(RingCheck(&thread->arenaRing));
   return TRUE;
 }
 
 
-Res ThreadRegister(Thread *threadReturn, Space space)
+Res ThreadRegister(Thread *threadReturn, Arena arena)
 {
   Res res;
   Thread thread;
@@ -88,9 +85,9 @@ Res ThreadRegister(Thread *threadReturn, Space space)
   void *p;
 
   AVER(threadReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
 
-  res = SpaceAlloc(&p, space, sizeof(ThreadStruct));
+  res = ArenaAlloc(&p, arena, sizeof(ThreadStruct));
   if(res != ResOK)
     return res;
   thread = (Thread)p; /* avoid pun */
@@ -109,38 +106,38 @@ Res ThreadRegister(Thread *threadReturn, Space space)
 
   thread->id = GetCurrentThreadId();
 
-  RingInit(&thread->spaceRing);
+  RingInit(&thread->arenaRing);
 
   thread->sig = ThreadSig;
-  thread->serial = space->threadSerial;
-  ++space->threadSerial;
-  thread->space = space;
+  thread->serial = arena->threadSerial;
+  ++arena->threadSerial;
+  thread->arena = arena;
 
   AVERT(Thread, thread);
 
-  RingAppend(SpaceThreadRing(space), &thread->spaceRing);
+  RingAppend(ArenaThreadRing(arena), &thread->arenaRing);
 
   *threadReturn = thread;
   return ResOK;
 }
 
-void ThreadDeregister(Thread thread, Space space)
+void ThreadDeregister(Thread thread, Arena arena)
 {
   Bool b;
 
   AVERT(Thread, thread);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
 
-  RingRemove(&thread->spaceRing);
+  RingRemove(&thread->arenaRing);
 
   thread->sig = SigInvalid;
 
-  RingFinish(&thread->spaceRing);
+  RingFinish(&thread->arenaRing);
 
   b = CloseHandle(thread->handle);
   AVER(b); /* .error.close-handle */
 
-  SpaceFree(space, (Addr)thread, sizeof(ThreadStruct));
+  ArenaFree(arena, (Addr)thread, sizeof(ThreadStruct));
 }
 
 
@@ -158,7 +155,7 @@ static void mapThreadRing(Ring ring, void (*f)(Thread thread))
     Ring next = RingNext(node);
     Thread thread;
 
-    thread = RING_ELT(Thread, spaceRing, node);
+    thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
     if(id != thread->id) /* .thread.id */
       (*f)(thread);
@@ -241,11 +238,11 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 }
 
 /* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
-Space ThreadSpace(Thread thread)
+Arena ThreadArena(Thread thread)
 {
   /* Can't AVER thread as that would not be thread-safe */
   /* AVERT(Thread, thread); */
-  return thread->space;
+  return thread->arena;
 }
 
 Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
@@ -254,8 +251,8 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
   
   res = WriteF(stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
-               "  space $P ($U)\n",  
-               (WriteFP)thread->space, (WriteFU)thread->space->serial,
+               "  arena $P ($U)\n",  
+               (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
                "  handle $W\n",      (WriteFW)thread->handle,
                "  id $U\n",          (WriteFU)thread->id,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,

@@ -1,6 +1,6 @@
 /*  impl.c.vmnt: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.18) $
+ *  $HopeName: MMsrc!vmw3.c(trunk.19) $
  *  Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -47,18 +47,29 @@
 #include "mpm.h"
 
 #ifndef MPS_OS_W3
-#error "vmnt.c is Win32 specific, but MPS_OS_W3 is not set"
+#error "vmw3.c is Win32 specific, but MPS_OS_W3 is not set"
 #endif
 #ifdef VM_RM
-#error "vmnt.c compiled with VM_RM set"
+#error "vmw3.c compiled with VM_RM set"
 #endif
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmw3.c(trunk.18) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(MMdevel_config_thread.2) $");
 
 
-#define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
+/* VMStruct -- virtual memory structure */
+
+#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
+
+typedef struct VMStruct {
+  Sig sig;                      /* design.mps.sig */
+  Align align;                  /* page size */
+  Addr base, limit;             /* boundaries of reserved space */
+  Size reserved;                /* total reserved address space */
+  Size mapped;                  /* total mapped memory */
+} VMStruct;
+
 
 Align VMAlign(void)
 {
@@ -89,16 +100,16 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, Size size, Addr base)
+/* VMCreate -- reserve some virtual address space, and create a VM structure */
+
+Res VMCreate(VM *vmReturn, Size size)
 {
   LPVOID vbase;
   Align align;
   VM vm;
-  Space space;
 
-  AVER(spaceReturn != NULL);
+  AVER(vmReturn != NULL);
   AVER(sizeof(LPVOID) == sizeof(Addr));  /* .assume.lpvoid-addr */
-
   /* See .assume.dword-addr */
   AVER(sizeof(DWORD) == sizeof(Addr));
 
@@ -106,16 +117,14 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
   AVER(SizeIsP2(align));    /* see .assume.sysalign */
 
   AVER(SizeIsAligned(size, align));
-  AVER(base == NULL);
 
   /* Allocate some store for the space descriptor.
    * This is likely to be wasteful see issue.vmnt.waste */
-  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(SpaceStruct), align),
-          MEM_COMMIT, PAGE_READWRITE);
+  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), align),
+		       MEM_COMMIT, PAGE_READWRITE);
   if(vbase == NULL)
     return ResMEMORY;
-  space = (Space)vbase;
-  vm = SpaceVM(space);
+  vm = (VM)vbase;
 
   /* Allocate the address space. */
   vbase = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
@@ -135,19 +144,17 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
 
   AVERT(VM, vm);
 
-  EVENT_PPAA(VMCreate, vm, space, vm->base, vm->limit);
+  EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
 
-  *spaceReturn = space;
+  *vmReturn = vm;
   return ResOK;
 }
 
 
-void VMDestroy(Space space)
+void VMDestroy(VM vm)
 {
   BOOL b;
-  VM vm;
 
-  vm = SpaceVM(space);
   AVERT(VM, vm);
   AVER(vm->mapped == 0);
 
@@ -159,51 +166,53 @@ void VMDestroy(Space space)
   b = VirtualFree((LPVOID)vm->base, (DWORD)0, MEM_RELEASE);
   AVER(b != 0);
 
-  b = VirtualFree((LPVOID)space, (DWORD)0, MEM_RELEASE);
+  b = VirtualFree((LPVOID)vm, (DWORD)0, MEM_RELEASE);
   AVER(b != 0);
   EVENT_P(VMDestroy, vm);
 }
 
 
-Addr VMBase(Space space)
-{
-  VM vm = SpaceVM(space);
+/* VMBase -- return the base address of the memory reserved */
 
+Addr VMBase(VM vm)
+{
   AVERT(VM, vm);
+
   return vm->base;
 }
 
-Addr VMLimit(Space space)
-{
-  VM vm = SpaceVM(space);
 
+Addr VMLimit(VM vm)
+{
   AVERT(VM, vm);
+
   return vm->limit;
 }
 
 
-Size VMReserved(Space space)
+Size VMReserved(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
+
   return vm->reserved;
 }
 
-Size VMMapped(Space space)
+
+Size VMMapped(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
+
   return vm->mapped;
 }
 
 
-Res VMMap(Space space, Addr base, Addr limit)
+Res VMMap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
   LPVOID b;
-  Align align = vm->align;
+  Align align;
 
   AVERT(VM, vm);
+  align = vm->align;
   AVER(AddrIsAligned(base, align));
   AVER(AddrIsAligned(limit, align));
   AVER(vm->base <= base);
@@ -228,13 +237,13 @@ Res VMMap(Space space, Addr base, Addr limit)
 }
 
 
-void VMUnmap(Space space, Addr base, Addr limit)
+void VMUnmap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
-  Align align = vm->align;
+  Align align;
   BOOL b;
 
   AVERT(VM, vm);
+  align = vm->align;
   AVER(AddrIsAligned(base, align));
   AVER(AddrIsAligned(limit, align));
   AVER(vm->base <= base);

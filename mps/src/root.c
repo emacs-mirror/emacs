@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.21) $
+ * $HopeName: MMsrc!root.c(trunk.22) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.21) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.22) $");
 
 
 /* RootVarCheck -- check a Root union discriminator
@@ -37,9 +37,9 @@ Bool RootVarCheck(RootVar rootVar)
 Bool RootCheck(Root root)
 {
   CHECKS(Root, root);
-  CHECKU(Space, root->space); 
-  CHECKL(root->serial < root->space->rootSerial);
-  CHECKL(RingCheck(&root->spaceRing));
+  CHECKU(Arena, root->arena); 
+  CHECKL(root->serial < root->arena->rootSerial);
+  CHECKL(RingCheck(&root->arenaRing));
   CHECKL(RankCheck(root->rank));
   CHECKL(TraceSetCheck(root->grey));
   /* Don't need to check var here, because of the switch below */
@@ -86,7 +86,7 @@ Bool RootCheck(Root root)
  * See design.mps.root.init for initial value
  */
 
-static Res create(Root *rootReturn, Space space,
+static Res create(Root *rootReturn, Arena arena,
                   Rank rank, RootVar type,
                   union RootUnion *theUnionP)
 {
@@ -95,44 +95,44 @@ static Res create(Root *rootReturn, Space space,
   void *p;
 
   AVER(rootReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVERT(Rank, rank);
   AVERT(RootVar, type);
 
-  res = SpaceAlloc(&p, space, sizeof(RootStruct));
+  res = ArenaAlloc(&p, arena, sizeof(RootStruct));
   if(res != ResOK)
     return res;
   root = (Root)p; /* Avoid pun */
 
-  root->space = space;
+  root->arena = arena;
   root->rank = rank;
   root->var = type;
   root->the  = *theUnionP;
   root->grey = TraceSetEMPTY;
   root->summary = RefSetUNIV;
 
-  /* See design.mps.space.root-ring */
-  RingInit(&root->spaceRing);
+  /* See design.mps.arena.root-ring */
+  RingInit(&root->arenaRing);
 
-  root->serial = space->rootSerial;
-  ++space->rootSerial;
+  root->serial = arena->rootSerial;
+  ++arena->rootSerial;
   root->sig = RootSig;
 
   AVERT(Root, root);
 
-  RingAppend(SpaceRootRing(space), &root->spaceRing);
+  RingAppend(ArenaRootRing(arena), &root->arenaRing);
 
   *rootReturn = root;
   return ResOK;
 }
 
-Res RootCreateTable(Root *rootReturn, Space space,
+Res RootCreateTable(Root *rootReturn, Arena arena,
                       Rank rank, Addr *base, Addr *limit)
 {
   union RootUnion theUnion;
 
   AVER(rootReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(RankCheck(rank));
   AVER(base != 0);
   AVER(base < limit);  
@@ -140,17 +140,17 @@ Res RootCreateTable(Root *rootReturn, Space space,
   theUnion.table.base = base;
   theUnion.table.limit = limit;
 
-  return create(rootReturn, space, rank, RootTABLE, &theUnion);
+  return create(rootReturn, arena, rank, RootTABLE, &theUnion);
 }
 
-Res RootCreateTableMasked(Root *rootReturn, Space space,
+Res RootCreateTableMasked(Root *rootReturn, Arena arena,
                           Rank rank, Addr *base, Addr *limit,
                           Word mask)
 {
   union RootUnion theUnion;
 
   AVER(rootReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(RankCheck(rank));
   AVER(base != 0);
   AVER(base < limit);
@@ -160,17 +160,17 @@ Res RootCreateTableMasked(Root *rootReturn, Space space,
   theUnion.tableMasked.limit = limit;
   theUnion.tableMasked.mask = mask;
 
-  return create(rootReturn, space, rank, RootTABLE_MASKED, &theUnion);
+  return create(rootReturn, arena, rank, RootTABLE_MASKED, &theUnion);
 }
 
-Res RootCreateReg(Root *rootReturn, Space space,
+Res RootCreateReg(Root *rootReturn, Arena arena,
                     Rank rank, Thread thread,
                     RootScanRegMethod scan, void *p, size_t s)
 {
   union RootUnion theUnion;
 
   AVER(rootReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(RankCheck(rank));
   AVERT(Thread, thread);
   AVER(scan != NULL);
@@ -180,17 +180,17 @@ Res RootCreateReg(Root *rootReturn, Space space,
   theUnion.reg.p = p;
   theUnion.reg.s = s;
 
-  return create(rootReturn, space, rank, RootREG, &theUnion);
+  return create(rootReturn, arena, rank, RootREG, &theUnion);
 }
 
-Res RootCreateFmt(Root *rootReturn, Space space,
+Res RootCreateFmt(Root *rootReturn, Arena arena,
                   Rank rank, FormatScanMethod scan,
                   Addr base, Addr limit)
 {
   union RootUnion theUnion;
 
   AVER(rootReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(RankCheck(rank));
   AVER(FUNCHECK(scan));
   AVER(base != 0);
@@ -200,10 +200,10 @@ Res RootCreateFmt(Root *rootReturn, Space space,
   theUnion.fmt.base = base;
   theUnion.fmt.limit = limit;
 
-  return create(rootReturn, space, rank, RootFMT, &theUnion);
+  return create(rootReturn, arena, rank, RootFMT, &theUnion);
 }
 
-Res RootCreateFun(Root *rootReturn, Space space,
+Res RootCreateFun(Root *rootReturn, Arena arena,
                  Rank rank,
                  RootScanMethod scan,
                  void *p, size_t s)
@@ -211,7 +211,7 @@ Res RootCreateFun(Root *rootReturn, Space space,
   union RootUnion theUnion;
 
   AVER(rootReturn != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(RankCheck(rank));
   AVER(FUNCHECK(scan));
 
@@ -219,25 +219,25 @@ Res RootCreateFun(Root *rootReturn, Space space,
   theUnion.fun.p = p;
   theUnion.fun.s = s;
 
-  return create(rootReturn, space, rank, RootFUN, &theUnion);
+  return create(rootReturn, arena, rank, RootFUN, &theUnion);
 }
 
 void RootDestroy(Root root)
 {
-  Space space;
+  Arena arena;
 
   AVERT(Root, root);
 
-  space = RootSpace(root);
+  arena = RootArena(root);
 
-  AVERT(Space, space);
+  AVERT(Arena, arena);
 
-  RingRemove(&root->spaceRing);
-  RingFinish(&root->spaceRing);
+  RingRemove(&root->arenaRing);
+  RingFinish(&root->arenaRing);
 
   root->sig = SigInvalid;
 
-  SpaceFree(space, (Addr)root, sizeof(RootStruct));
+  ArenaFree(arena, (Addr)root, sizeof(RootStruct));
 }
 
 Rank RootRank(Root root)
@@ -309,11 +309,11 @@ Res RootScan(ScanState ss, Root root)
 }
 
 /* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
-Space RootSpace(Root root)
+Arena RootArena(Root root)
 {
   /* Can't AVER root as that would not be thread-safe */
   /* AVERT(Root, root); */
-  return root->space;
+  return root->arena;
 }
 
 Res RootDescribe(Root root, mps_lib_FILE *stream)
@@ -325,8 +325,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
-               "  space $P ($U)\n", (WriteFP)root->space, 
-               (WriteFU)root->space->serial,
+               "  arena $P ($U)\n", (WriteFP)root->arena, 
+               (WriteFU)root->arena->serial,
                "  rank $U\n", (WriteFU)root->rank,
                "  grey $B\n", (WriteFB)root->grey,
                "  summary $B\n", (WriteFB)root->summary,

@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.2) $
+ * $HopeName: MMsrc!arenacv.c(trunk.3) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * .readership: MPS developers
@@ -11,12 +11,10 @@
  * many different cases then.
  * .improve.gap-below: Could test different-sized gaps below the segment
  * being allocated; this requires using two adjacent zones.
- * .warning.sunOS: Allocating and deallocating too many segments will cause
- * SunOS (4.1.2) to start to return -1 from vmunmap.  I didn't do exhaustive
- * tests, but going over 1000 is dangerous.
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "mpstd.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
@@ -24,27 +22,34 @@
 
 #include "mpm.h"
 #include "testlib.h"
+#include "mpsavm.h"
+#include "mpsacl.h"
+#include "mpsaan.h"
 
 
 #define segsSIZE 500
 
 
-int main(void)
+static void testit(ArenaClass class, ...)
 {
-  Space space; Pool pool;
+  Arena arena; Pool pool;
   Seg offsetSeg, gapSeg, newSeg, topSeg;
   Size pageSize;
   Count segsPerPage, offset, gap, new;
   int i;
   SegPrefStruct pref = *SegPrefDefault();
   RefSet refSet = (RefSet)2;
+  va_list args;
 
-  die(SpaceCreate(&space, (Addr)0, (Size)0), "SpaceCreate");
-  die(PoolCreate(&pool, space, PoolClassMV(),
+  va_start(args, class);
+  die(ArenaCreateV(&arena, class, args), "ArenaCreate");
+  va_end(args);
+
+  die(PoolCreate(&pool, arena, PoolClassMV(),
 		 (Size)65536, (Size)32, (Size)65536),
       "PoolCreate");
 
-  pageSize = ArenaAlign(space);
+  pageSize = ArenaAlign(arena);
   segsPerPage = pageSize / sizeof(SegStruct);
   printf("%ld segments per page in the page table.\n", (long)segsPerPage);
 
@@ -61,29 +66,68 @@ int main(void)
   for(i = 0; i < 2; ++i) { /* zone loop */
     for(offset = 0; offset <= 2*segsPerPage; offset += segsPerPage) {
       if(offset != 0)
-	die(SegAlloc(&offsetSeg, &pref, space, offset * pageSize, pool),
+	die(SegAlloc(&offsetSeg, &pref, arena, offset * pageSize, pool),
 	    "offsetSeg");
       for(gap = segsPerPage+1; gap <= 3 * (segsPerPage+1);
 	  gap += (segsPerPage+1)) {
-	die(SegAlloc(&gapSeg, &pref, space, gap * pageSize, pool),
+	die(SegAlloc(&gapSeg, &pref, arena, gap * pageSize, pool),
 	    "gapSeg");
-	die(SegAlloc(&topSeg, &pref, space, pageSize, pool),
+	die(SegAlloc(&topSeg, &pref, arena, pageSize, pool),
 	    "topSeg");
-	SegFree(space, gapSeg);
+	SegFree(arena, gapSeg);
 	for(new = 1; new <= gap; new += segsPerPage) {
-	  die(SegAlloc(&newSeg, &pref, space, new * pageSize, pool),
+	  Seg seg;
+
+	  die(SegAlloc(&newSeg, &pref, arena, new * pageSize, pool),
 	      "newSeg");
-	  SegFree(space, newSeg);
+
+	  /* Test segment iterators */
+	  die(SegFirst(&seg, arena) ? ResOK : ResFAIL, "first");
+	  die(SegNext(&seg, arena, SegBase(arena, seg)) ? ResOK : ResFAIL,
+	      "second");
+	  die(SegNext(&seg, arena, SegBase(arena, seg)) ? ResOK : ResFAIL,
+	      "third");
+	  /* There are at least three segments */
+	  SegNext(&seg, arena, SegBase(arena, seg));
+
+	  SegFree(arena, newSeg);
 	}
-	SegFree(space, topSeg);
+
+	SegFree(arena, topSeg);
       }
-      if(offset != 0) SegFree(space, offsetSeg);
+      if(offset != 0) {
+	/* Test size functions */
+	Addr base, limit;
+	Size size;
+
+	base = SegBase(arena, offsetSeg);
+	limit = SegLimit(arena, offsetSeg);
+	size = SegSize(arena, offsetSeg);
+	die(size == AddrOffset(base, limit) ? ResOK : ResFAIL, "size");
+
+	SegFree(arena, offsetSeg);
+      }
     }
     SegPrefExpress(&pref, SegPrefRefSet, &refSet);
   }
 
   PoolDestroy(pool);
-  SpaceDestroy(space);
+  ArenaDestroy(arena);
+}
+
+
+int main(void)
+{
+  void *block;
+
+  testit((ArenaClass)mps_arena_class_vm(), ARENA_SIZE);
+
+  testit((ArenaClass)mps_arena_class_an(), ARENA_SIZE);
+
+  block = malloc(ARENA_SIZE);
+  die(block == NULL ? ResFAIL : ResOK, "malloc");
+  testit((ArenaClass)mps_arena_class_cl(), ARENA_SIZE, (Addr)block);
+
   fprintf(stderr, "Conclusion:  Failed to find any defects.\n");
   return 0;
 }

@@ -1,6 +1,6 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName: MMsrc!vmo1.c(trunk.2) $
+ * $HopeName: MMsrc!vmo1.c(trunk.3) $
  * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  * Readership: Any MPS developer
@@ -62,7 +62,7 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.2) $");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.3) $");
 
 
 /* Fix unprototyped system calls
@@ -76,7 +76,19 @@ extern int getpagesize(void);
 #endif
 
 
-#define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
+/* VMStruct -- virtual memory structure */
+
+#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
+
+typedef struct VMStruct {
+  Sig sig;                      /* design.mps.sig */
+  Align align;                  /* page size */
+  Addr base, limit;             /* boundaries of reserved space */
+  Size reserved;                /* total reserved address space */
+  Size mapped;                  /* total mapped memory */
+  int none_fd;                  /* fildes for reserved memory */
+} VMStruct;
+
 
 Align VMAlign(void)
 {
@@ -104,20 +116,20 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, Size size, Addr base)
+/* VMCreate -- reserve some virtual address space, and create a VM structure */
+
+Res VMCreate(VM *vmReturn, Size size)
 {
   void *addr;
   Align align;
   int none_fd;
-  Space space;
   VM vm;
 
   align = VMAlign();
 
-  AVER(spaceReturn != NULL);
+  AVER(vmReturn != NULL);
   AVER(SizeIsAligned(size, align));
   AVER(size != 0);
-  AVER(base == NULL);
 
   none_fd = open("/etc/passwd", O_RDONLY);
   if(none_fd == -1) {
@@ -125,7 +137,7 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
   }
 
   /* Map in a page to store the descriptor on. */
-  addr = mmap(0, (size_t)SizeAlignUp(sizeof(SpaceStruct), align),
+  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE,
               MAP_ANONYMOUS | MAP_PRIVATE | MAP_VARIABLE,
               -1, 0);
@@ -138,8 +150,7 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
     else
       return ResFAIL;
   }
-  space = (Space)addr;
-  vm = SpaceVM(space);
+  vm = (VM)addr;
 
   vm->none_fd = none_fd;
   vm->align = align;
@@ -167,15 +178,16 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
 
   AVERT(VM, vm);
 
-  *spaceReturn = space;
+  EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
+
+  *vmReturn = vm;
   return ResOK;
 }
 
 
-void VMDestroy(Space space)
+void VMDestroy(VM vm)
 {
   int r;
-  VM vm = SpaceVM(space);
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
@@ -189,45 +201,46 @@ void VMDestroy(Space space)
   close(vm->none_fd);
   r = munmap((void *)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
-  r = munmap((void *)space,
-             (size_t)SizeAlignUp(sizeof(SpaceStruct), vm->align));
+  r = munmap((void *)vm,
+             (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
+
+  EVENT_P(VMDestroy, vm);
 }
 
 
-Addr VMBase(Space space)
+Addr VMBase(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
+
   return vm->base;
 }
 
-Addr VMLimit(Space space)
+Addr VMLimit(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
+
   return vm->limit;
 }
 
 
-Size VMReserved(Space space)
+Size VMReserved(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
+
   return vm->reserved;
 }
 
-Size VMMapped(Space space)
+Size VMMapped(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
+
   return vm->mapped;
 }
 
 
-Res VMMap(Space space, Addr base, Addr limit)
+Res VMMap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
   Size size;
 
   AVERT(VM, vm);
@@ -256,9 +269,8 @@ Res VMMap(Space space, Addr base, Addr limit)
 
 
 /* see design.mps.vmo1.fun.unmap */
-void VMUnmap(Space space, Addr base, Addr limit)
+void VMUnmap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
   Size size;
   void *addr;
 
@@ -276,7 +288,7 @@ void VMUnmap(Space space, Addr base, Addr limit)
   addr = mmap((void *)base, (size_t)size,
               PROT_NONE, MAP_FILE | MAP_SHARED | MAP_FIXED,
               vm->none_fd, (off_t)AddrOffset(vm->base, base));
-  AVER(addr != (void *)-1);
+  AVER(addr == (void *)base);
 
   vm->mapped -= size;
 }

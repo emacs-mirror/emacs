@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.29) $
+ * $HopeName: MMsrc!buffer.c(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -10,10 +10,6 @@
  *
  * Several macros forming part of impl.h.mps should be consistent
  * with the macros and functions in this module.
- *
- * Declarations for functions defined here are in impl.h.mpm.
- *
- * Declarations for the relevant structures are in impl.h.mpmst.
  *
  * DESIGN
  *
@@ -29,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.29) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.30) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -38,9 +34,9 @@ Bool BufferCheck(Buffer buffer)
 {
   CHECKS(Buffer, buffer);
   CHECKL(buffer->serial < buffer->pool->bufferSerial); /* .trans.mod */
-  CHECKU(Space, buffer->space);
+  CHECKU(Arena, buffer->arena);
   CHECKU(Pool, buffer->pool);
-  CHECKL(buffer->space == buffer->pool->space);
+  CHECKL(buffer->arena == buffer->pool->arena);
   CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
   CHECKL(RankSetCheck(buffer->rankSet));
   CHECKL(buffer->alignment == buffer->pool->alignment);
@@ -126,7 +122,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
   res = WriteF(stream,
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
-               "  Space $P\n",       (WriteFP)buffer->space,
+               "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
                "  Seg $P\n",         (WriteFP)buffer->seg,
                "  rankSet $U\n",     (WriteFU)buffer->rankSet,
@@ -155,17 +151,17 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
 {
   Res res;
   Buffer buffer;
-  Space space;
+  Arena arena;
   void *p;
 
   AVER(bufferReturn != NULL);
   AVERT(Pool, pool);
   AVER(RankCheck(rank));
 
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
 
   /* Allocate memory for the buffer descriptor structure. */
-  res = SpaceAlloc(&p, space, sizeof(BufferStruct));
+  res = ArenaAlloc(&p, arena, sizeof(BufferStruct));
   if(res != ResOK) goto failAlloc;
   buffer = p;
 
@@ -177,7 +173,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   return ResOK;
 
 failInit:
-  SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
+  ArenaFree(arena, (Addr)buffer, sizeof(BufferStruct));
 failAlloc:
   return res;
 }
@@ -200,7 +196,7 @@ Res BufferInit(Buffer buffer, Pool pool, Rank rank)
   
   /* Initialize the buffer.  See impl.h.mpmst for a definition of */
   /* the structure.  sig and serial comes later .init.sig-serial */
-  buffer->space = PoolSpace(pool);
+  buffer->arena = PoolArena(pool);
   buffer->pool = pool;
   RingInit(&buffer->poolRing);
   buffer->alignment = pool->alignment; /* .trans.mod */
@@ -266,11 +262,11 @@ static void BufferDetach(Buffer buffer, Pool pool)
 
 void BufferDestroy(Buffer buffer)
 {
-  Space space;
+  Arena arena;
   AVERT(Buffer, buffer);
-  space = buffer->space;
+  arena = buffer->arena;
   BufferFinish(buffer);
-  SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
+  ArenaFree(arena, (Addr)buffer, sizeof(BufferStruct));
 }
 
 
@@ -380,7 +376,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
 Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 {
   Res res;
-  Space space;
+  Arena arena;
   Pool pool;
   Seg seg;
   Addr base, limit, next;
@@ -392,7 +388,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   AVER(BufferIsReady(buffer));
 
   pool = BufferPool(buffer);
-  space = BufferSpace(buffer);
+  arena = BufferArena(buffer);
 
   /* If we're here because the buffer was trapped, then the mutator */
   /* must not have been between reserve and commit when flip */
@@ -424,9 +420,9 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 
   AVER(SegCheck(seg));
   AVER(SegBuffer(seg) == NULL);
-  AVER(SegBase(space, seg) <= base);
+  AVER(SegBase(arena, seg) <= base);
   AVER(AddrAdd(base, size) <= limit);
-  AVER(limit <= SegLimit(space, seg));
+  AVER(limit <= SegLimit(arena, seg));
 
   /* Set up the buffer to point at the memory given by the pool */
   /* and do the allocation that was requested by the client. */
@@ -597,11 +593,11 @@ Buffer (BufferOfAP)(AP ap)
 /* design.mps.buffer.method.space */
 /* This method must be thread-safe.  See */
 /* design.mps.interface.c.thread-safety. */
-Space (BufferSpace)(Buffer buffer)
+Arena (BufferArena)(Buffer buffer)
 {
-  /* Can't AVER buffer as that wouldn not be thread safe */
+  /* Can't AVER buffer as that would not be thread-safe. */
   /* AVERT(Buffer, buffer); */
-  return BufferSpace(buffer);
+  return BufferArena(buffer);
 }
 
 Pool (BufferPool)(Buffer buffer)

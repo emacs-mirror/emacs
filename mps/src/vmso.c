@@ -1,6 +1,6 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.6) $
+ * $HopeName: MMsrc!vmso.c(trunk.7) $
  * Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
@@ -30,6 +30,13 @@
  * .assume.mmap.err: ENOMEM is the only error we really expect to
  *   get from mmap.  The others are either caused by invalid params
  *   or features we don't use.  See mmap(2) for details.
+ *
+ * TRANSGRESSIONS
+ *
+ * .fildes.name: VMStruct has two fields whose names violate our
+ * naming conventions.  They are called none_fd and zero_fd to
+ * emphasize that they are file descriptors and this fact is not
+ * reflected in their type.
  */
 
 #include "mpm.h"
@@ -37,9 +44,6 @@
 #ifndef MPS_OS_SO
 #error "vmso.c is Solaris 2.x specific, but MPS_OS_SO is not set"
 #endif
-#ifdef VM_RM
-#error "vmso.c compiled with VM_RM set"
-#endif /* VM_RM */
 
 /* Open sesame magic */
 #define _POSIX_SOURCE
@@ -52,7 +56,7 @@
 /* unistd for _SC_PAGESIZE */
 #include <unistd.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.6) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.7) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -62,7 +66,22 @@ SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.6) $");
 extern int close(int fd);
 extern int munmap(caddr_t addr, size_t len);
 
-#define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
+
+/* VMStruct -- virtual memory structure */
+
+#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
+
+/* The names of zero_fd and none_fd are transgressions, see .fildes.name */
+typedef struct VMStruct {
+  Sig sig;                      /* design.mps.sig */
+  int zero_fd;                  /* fildes for mmap */
+  int none_fd;                  /* fildes for mmap */
+  Align align;                  /* page size */
+  Addr base, limit;             /* boundaries of reserved space */
+  Size reserved;                /* total reserved address space */
+  Size mapped;                  /* total mapped memory */
+} VMStruct;
+
 
 Align VMAlign(void)
 {
@@ -92,22 +111,20 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, Size size, Addr base)
+Res VMCreate(VM *vmReturn, Size size)
 {
   caddr_t addr;
   Align align;
   int zero_fd;
   int none_fd;
-  Space space;
   VM vm;
 
   align = VMAlign();
 
-  AVER(spaceReturn != NULL);
+  AVER(vmReturn != NULL);
   AVER(SizeIsAligned(size, align));
   AVER(size != 0);
   AVER(size <= INT_MAX); /* see .assume.size */
-  AVER(base == NULL);
 
   zero_fd = open("/dev/zero", O_RDONLY);
   if(zero_fd == -1)
@@ -119,10 +136,10 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
   }
 
   /* Map in a page to store the descriptor on. */
-  addr = mmap((caddr_t)0, SizeAlignUp(sizeof(SpaceStruct), align),
+  addr = mmap((caddr_t)0, SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
-  if((int)addr == -1) {
+  if(addr == (caddr_t)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
     close(none_fd);
@@ -132,8 +149,7 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
     else
       return ResFAIL;
   }
-  space = (Space)addr;
-  vm = SpaceVM(space);
+  vm = (VM)addr;
 
   vm->zero_fd = zero_fd;
   vm->none_fd = none_fd;
@@ -141,7 +157,7 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
 
   /* .map.reserve: See .assume.not-last. */
   addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED, none_fd, (off_t)0);
-  if((int)addr == -1) {
+  if(addr == (caddr_t)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
     close(none_fd);
@@ -161,21 +177,22 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
 
   AVERT(VM, vm);
 
-  *spaceReturn = space;
+  EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
+
+  *vmReturn = vm;
   return ResOK;
 }
 
 
-void VMDestroy(Space space)
+void VMDestroy(VM vm)
 {
   int r;
-  VM vm = SpaceVM(space);
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
 
-  /* This appears to be pretty pointless, since the space descriptor */
-  /* page is  about to vanish completely.  However, munmap might fail */
+  /* This appears to be pretty pointless, since the descriptor */
+  /* page is about to vanish completely.  However, munmap might fail */
   /* for some reason, and this would ensure that it was still */
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
@@ -184,45 +201,42 @@ void VMDestroy(Space space)
   close(vm->none_fd);
   r = munmap((caddr_t)vm->base, (int)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
-  r = munmap((caddr_t)space,
-             (int)SizeAlignUp(sizeof(SpaceStruct), vm->align));
+  r = munmap((caddr_t)vm,
+             (int)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
+
+  EVENT_P(VMDestroy, vm);
 }
 
 
-Addr VMBase(Space space)
+Addr VMBase(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->base;
 }
 
-Addr VMLimit(Space space)
+Addr VMLimit(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->limit;
 }
 
 
-Size VMReserved(Space space)
+Size VMReserved(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->reserved;
 }
 
-Size VMMapped(Space space)
+Size VMMapped(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->mapped;
 }
 
 
-Res VMMap(Space space, Addr base, Addr limit)
+Res VMMap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
   Size size;
 
   AVERT(VM, vm);
@@ -242,7 +256,8 @@ Res VMMap(Space space, Addr base, Addr limit)
   if((int)mmap((caddr_t)base, (int)size,
                PROT_READ | PROT_WRITE | PROT_EXEC,
                MAP_PRIVATE | MAP_FIXED,
-               vm->zero_fd, (off_t)0) == -1) {
+               vm->zero_fd, (off_t)0)
+     == -1) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -253,9 +268,8 @@ Res VMMap(Space space, Addr base, Addr limit)
 }
 
 
-void VMUnmap(Space space, Addr base, Addr limit)
+void VMUnmap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
   Size size;
   caddr_t addr;
 
@@ -277,7 +291,7 @@ void VMUnmap(Space space, Addr base, Addr limit)
   addr = mmap((caddr_t)base, (int)size,
               PROT_NONE, MAP_SHARED | MAP_FIXED,
               vm->none_fd, (off_t)AddrOffset(vm->base, base));
-  AVER((int)addr != -1);
+  AVER(addr == (caddr_t)base);
 
   vm->mapped -= size;
 }
