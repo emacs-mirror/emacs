@@ -318,10 +318,10 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; Fixme: we could also put text properties on the permission
    ;; fields with keymaps to frob the permissions, somewhat a la XEmacs.
    (list (concat dired-re-maybe-mark dired-re-inode-size
-		 "[-d]....\\(w\\)..\\(w\\).")	; group writable
-	 '(1 font-lock-warning-face))
+		 "[-d]....\\(w\\)....")	; group writable
+	 '(1 font-lock-comment-face))
    (list (concat dired-re-maybe-mark dired-re-inode-size
-		 "[-d]....\\(w\\)....")	; world writable
+		 "[-d].......\\(w\\).")	; world writable
 	 '(1 font-lock-comment-face))
    ;;
    ;; Subdirectories.
