@@ -1,11 +1,11 @@
 ;;; 5x5.el -- Simple little puzzle game.
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999,2000 Free Software Foundation, Inc.
 
-;; Author: Dave Pearson <davep@hagbard.demon.co.uk>
-;; Maintainer: Dave Pearson <davep@hagbard.demon.co.uk>
+;; Author: Dave Pearson <davep@davep.org>
+;; Maintainer: Dave Pearson <davep@davep.org>
 ;; Created: 1998-10-03
-;; Version: $Revision: 1.2 $
+;; Version: $Revision: 1.20 $
 ;; Keywords: games puzzles
 
 ;; This file is part of GNU Emacs.
@@ -414,15 +414,16 @@ should return a grid vector array that is the new solution."
   "Play a solution on an empty grid. This destroys the current game in
 progress because it is an animated attempt."
   (5x5-new-game)
-  (loop for y from 0 to (1- 5x5-grid-size) do
-        (loop for x from 0 to (1- 5x5-grid-size) do
-              (setq 5x5-y-pos y
-                    5x5-x-pos x)
-              (if (5x5-cell solution y x)
-                  (5x5-flip-current))
-              (5x5-draw-grid (list 5x5-grid solution best))
-              (5x5-position-cursor)
-              (sit-for 5x5-animate-delay)))
+  (let ((inhibit-quit t))
+    (loop for y from 0 to (1- 5x5-grid-size) do
+          (loop for x from 0 to (1- 5x5-grid-size) do
+                (setq 5x5-y-pos y
+                      5x5-x-pos x)
+                (if (5x5-cell solution y x)
+                    (5x5-flip-current))
+                (5x5-draw-grid (list 5x5-grid solution best))
+                (5x5-position-cursor)
+                (sit-for 5x5-animate-delay))))
   5x5-grid)
   
 ;; Keyboard response functions.
