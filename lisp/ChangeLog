@@ -1,3 +1,7 @@
+2002-09-16  Juanma Barranquero  <lektu@terra.es>
+
+	* dired-aux.el (dired-add-entry): Add missing argument to `dired-mark'.
+
 2002-09-16  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* xscheme.el (scheme-interaction-mode): Doc fix.
@@ -20,7 +24,7 @@
 	(menu-bar-adv-search-menu): Removed.
 	(menu-bar-search-menu): Reorganized.
 	(menu-bar-edit-menu): Added "Replace" submenu.
-	
+
 2002-09-15  Markus Rost  <rost@math.ohio-state.edu>
 
 	* dired.el (dired-move-to-filename): Fix previous change.
@@ -28,7 +32,7 @@
 2002-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/keypad.el (keypad-setup, keypad-shifted-setup)
-	(keypad-numlock-setup, keypad-numlock-shifted-setup): 
+	(keypad-numlock-setup, keypad-numlock-shifted-setup):
 	Change `Remove Binding' option to `Unspecified/User-defined'.
 	(keypad-setup): Enhance explanation of setup type `none'.
 
@@ -77,6 +81,11 @@
 	* whitespace.el (whitespace-unload-hook): Call `remove-hook' with
 	three arguments, not four.
 
+2002-09-13  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-keymap): Changed bindings:
+	C-x C-k s to kmacro-start-macro, C-x C-k b to kmacro-bind-to-key.
+
 2002-09-12  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el (universal-coding-system-argument):
@@ -100,11 +109,6 @@
 	(gud-format-command): Don't hardcode point-min==1.
 
 	* derived.el: Require CL when compiling.
-
-2002-09-13  Kim F. Storm  <storm@cua.dk>
-
-	* kmacro.el (kmacro-keymap): Changed bindings:
-	C-x C-k s to kmacro-start-macro, C-x C-k b to kmacro-bind-to-key.
 
 2002-09-12  Simon Josefsson  <jas@extundo.com>
 
@@ -162,11 +166,6 @@
 
 	* mail/smtpmail.el (smtpmail-default-smtp-server): Doc fix.
 
-2002-09-10  Richard M. Stallman  <rms@gnu.org>
-
-	* pcvs-info.el (cvs-check-fileinfo): Don't use boolp.
-	(boolp): Function deleted.
-
 2002-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-call-macro): Rephrase repeat prompt.
@@ -202,6 +201,11 @@
 	* subr.el (define-mail-user-agent): Moved from simple.el.
 
 	* newcomment.el (comment-with-narrowing): Use the `declare' thingy.
+
+2002-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* pcvs-info.el (cvs-check-fileinfo): Don't use boolp.
+	(boolp): Function deleted.
 
 2002-09-10  Dave Love  <fx@gnu.org>
 
@@ -276,11 +280,6 @@
 	* play/doctor.el (doc//): Rename from `//'.  Update callers.
 	(doc$): Rename from `$'.  Update callers.
 
-2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
-
-	* simple.el (transient-mark-mode, line-number-mode)
-	(column-number-mode): Undo previous change because of bootstrapping.
-
 2002-09-10  Miles Bader  <miles@gnu.org>
 
 	* simple.el (do-auto-fill): `fill-indent-according-to-mode' is a
@@ -295,6 +294,11 @@
 
 	* simple.el (keyboard-quit): Set defining-kbd-macro to nil to
 	cancel defining keyboard macro when applicable.
+
+2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* simple.el (transient-mark-mode, line-number-mode)
+	(column-number-mode): Undo previous change because of bootstrapping.
 
 2002-09-09  Stefan Monnier  <monnier@cs.yale.edu>
 
