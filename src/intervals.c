@@ -42,7 +42,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
-#include "screen.h"
 
 /* The rest of the file is within this conditional. */
 #ifdef USE_TEXT_PROPERTIES
