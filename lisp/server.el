@@ -212,11 +212,11 @@ Prefix arg means just kill any existing server communications subprocess."
 		      (setq pos 0)
 		      ;; Undo the quoting that emacsclient does
 		      ;; for certain special characters.
-		      (while (string-match "\\\\." arg pos)
+		      (while (string-match "&." arg pos)
 			(setq pos (1+ (match-beginning 0)))
 			(let ((nextchar (aref arg pos)))
-			  (cond ((= nextchar ?\\)
-				 (setq arg (replace-match "\\" t t arg)))
+			  (cond ((= nextchar ?&)
+				 (setq arg (replace-match "&" t t arg)))
 				((= nextchar ?-)
 				 (setq arg (replace-match "-" t t arg)))
 				(t
