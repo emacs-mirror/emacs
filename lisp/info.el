@@ -600,6 +600,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
       (if trim (setq filename (substring filename 0 trim))))
     (let ((trim (string-match "\\s *\\'" nodename)))
       (if trim (setq nodename (substring nodename 0 trim))))
+    (if transient-mark-mode (deactivate-mark))
     (Info-find-node (if (equal filename "") nil filename)
 		    (if (equal nodename "") "Top" nodename))))
 
@@ -657,6 +658,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 (defun Info-search (regexp)
   "Search for REGEXP, starting from point, and select node it's found in."
   (interactive "sSearch (regexp): ")
+  (if transient-mark-mode (deactivate-mark))
   (if (equal regexp "")
       (setq regexp Info-last-search)
     (setq Info-last-search regexp))
