@@ -358,21 +358,12 @@ See also the variable `leim-list-header'")
   "List of functions to call to update LEIM list file.
 Each function is called with one arg, LEIM directory name.")
 
-(defun update-leim-list-file (dir)
-  "Update LEIM list file in directory DIR."
+(defun update-leim-list-file (&rest dirs)
+  "Update LEIM list file in directories DIRS."
   (let ((functions update-leim-list-functions))
     (while functions
-      (funcall (car functions) (expand-file-name dir))
+      (apply (car functions) dirs)
       (setq functions (cdr functions)))))
-
-(defun update-all-leim-list-files ()
-  "Update all the LEIM list files."
-  (interactive)
-  (let ((l load-path))
-    (while l
-      (if (string-match "leim" (car l))
-	  (update-leim-list-file (car l)))
-      (setq l (cdr l)))))
 
 (defvar current-input-method nil
   "The current input method for multilingual text.
