@@ -73,8 +73,8 @@
 
 ;;; Code:
 
-(defvar server-program "emacsserver"
-  "*The program to use as the edit server")
+(defvar server-program (concat exec-directory "emacsserver")
+  "*The program to use as the edit server.")
 
 (defvar server-visit-hook nil
   "*List of hooks to call when visiting a file for the Emacs server.")
