@@ -208,3 +208,7 @@ NOTE-END */
 #ifdef USG5_4
 #define DATA_SEG_BITS 0x08000000
 #endif
+
+#ifdef MSDOS
+#define NO_REMAP
+#endif
