@@ -2661,7 +2661,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 			     (setq list (cons (substring switches 0 (match-beginning 0))
 					      list)
 				   switches (substring switches (match-end 0))))
-			   (setq list (cons (nreverse switches) list)))))
+			   (setq list (nreverse (cons switches list))))))
 		   (append list
 			   (list
 			    (if full-directory-p
