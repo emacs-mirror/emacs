@@ -409,13 +409,13 @@ a portion of the first word of the diary entry.")
 (defvar european-calendar-display-form
   '((if dayname (concat dayname ", ")) day " " monthname " " year)
   "*Pseudo-pattern governing the way a date appears in the European style.
-See the documentation of calendar-date-display-forms for an explanation.")
+See the documentation of calendar-date-display-form for an explanation.")
 
 ;;;###autoload
 (defvar american-calendar-display-form
   '((if dayname (concat dayname ", ")) monthname " " day ", " year)
   "*Pseudo-pattern governing the way a date appears in the American style.
-See the documentation of calendar-date-display-forms for an explanation.")
+See the documentation of calendar-date-display-form for an explanation.")
 
 (defvar calendar-date-display-form
   (if european-calendar-style
@@ -1387,9 +1387,9 @@ the inserted text.  Value is always t."
         (setq l (cdr l)))))
   (define-key calendar-mode-map "-"     'negative-argument)
   (define-key calendar-mode-map "\C-x>" 'scroll-calendar-right)
-  (define-key calendar-mode-map "\ev"   'scroll-calendar-right-three-months)
+  (define-key calendar-mode-map [prior] 'scroll-calendar-right-three-months)
   (define-key calendar-mode-map "\C-x<" 'scroll-calendar-left)
-  (define-key calendar-mode-map "\C-v"  'scroll-calendar-left-three-months)
+  (define-key calendar-mode-map [next]  'scroll-calendar-left-three-months)
   (define-key calendar-mode-map "\C-b"  'calendar-backward-day)
   (define-key calendar-mode-map "\C-p"  'calendar-backward-week)
   (define-key calendar-mode-map "\e{"   'calendar-backward-month)
@@ -2590,7 +2590,7 @@ weeks start on Monday and end on Sunday.  The first week of the ISO year is
 the first such week in which at least 4 days are in a year.  The ISO
 commercial DATE has the form (week day year) in which week is in the range
 1..52 and day is in the range 0..6 (1 = Monday, 2 = Tuesday, ..., 0 =
-Sunday).  The The Gregorian date Sunday, December 31, 1 BC is imaginary."
+Sunday).  The Gregorian date Sunday, December 31, 1 BC is imaginary."
   (let* ((week (extract-calendar-month date))
          (day (extract-calendar-day date))
          (year (extract-calendar-year date)))
