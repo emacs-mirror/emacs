@@ -1,13 +1,11 @@
-# impl.gmk.lii3gc: BUILD FOR LINUX/INTEL/GCC PLATFORM
+# impl.gmk.lii4gc: BUILD FOR LINUX/INTEL/GCC PLATFORM
 #
-# $HopeName: MMsrc!lii3gc.gmk(trunk.2) $
+# $HopeName: MMsrc!lii4gc.gmk(trunk.3) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
-#
-# This is the GNU makefile for platform.lii3gc.
 
-PFM = lii3gc
+PFM = lii4gc
 
-THREADSRC = lockli.c thlii3.c pthrdext.c
+THREADSRC = lockli.c thlii4.c pthrdext.c
 THREADLIB = -lpthread
 
 PFMDEFS = -D_REENTRANT
