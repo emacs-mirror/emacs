@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001, 2003
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3802,7 +3802,12 @@ pure_alloc (size, type)
 #else
       alignment = sizeof (struct Lisp_Float);
 #endif
-      pure_bytes_used = ALIGN (pure_bytes_used, alignment);
+      /* Make sure beg + pure_bytes_used is correctly aligned for a
+	 Lisp_Float, which might need stricter alignment than
+	 EMACS_INT.  */
+      pure_bytes_used
+	= (ALIGN ((EMACS_UINT) (beg + pure_bytes_used), alignment)
+	   - (EMACS_UINT) beg);
     }
     
   nbytes = ALIGN (size, sizeof (EMACS_INT));

@@ -1,3 +1,8 @@
+2003-01-10  Andreas Schwab  <schwab@suse.de>
+
+	* alloc.c (pure_alloc): Correct alignment for Lisp_Floats.
+	Reported by Berthold Gunreben <b.gunreben@web.de>.
+
 2002-12-09  Dave Love  <fx@gnu.org>
 
 	* s/sol2-8.h: Removed.  (Not necessary.)
