@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:compile(trunk.19) $
+# $HopeName: MMQA_harness!script:compile(trunk.20) $
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.
@@ -16,72 +16,85 @@ sub debug {
  }
 }
 
-%plat_link = ();
-$plat_link{"sol2.4_sparc"} = "-lm";
-
 sub compiler_settings {
  if ($PLATFORM =~ "^nt_") {
-  $dirsep = "\\";
-  $cc_command = "cl";
-  $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /DMMQA_VERS_$INTERFACE_VERSION";
-  $cc_link = "$obj_dir/platform.obj";
-  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:both /pdb:none /debug:full";
-  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
-  $cc_conly = "/c";
-  $cc_obj = "/Fo";
-  $cc_exe = "/Fe";
-  $cc_objandexe = 1;
-  $obj_suffix = ".obj";
-  $try_command = "";
-  if ($PLATFORM eq "nt_x86_cap") {
-   $cc_opts = "$cc_opts /Gh";
-   $cc_link = "$cc_link CAP.lib";
-   $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:mapped,partial";
-  } elsif ($PLATFORM eq "nt_x86_coff") {
-   $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:full";
+  &settings_nt();
+  if ($PLATFORM =~ "^nt_x86_cap") {
+   &settings_nt_cap();
+  } elsif ($PLATFORM =~ "^nt_x86_coff") {
+   &settings_nt_coff();
   }
- } elsif ($PLATFORM =~ "^so") {
-  $dirsep = "/";
-  $cc_link = "$obj_dir/platform.o -lm";
-  $cc_link_opts = "-z muldefs";
-  $cc_command = "gcc";
-  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
-   "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
-   "-Wshadow -Wmissing-prototypes -Wcast-align ".
-   "-O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
-  if ($PLATFORM eq "sos8gp") {
-   $cc_opts = "-pg ".$cc_opts;
+ } elsif ($PLATFORM =~ "^so|^linux") {
+  &settings_unix();
+  if ($PLATFORM =~ "^sos8gp") {
+   &settings_gprof();
   }
-  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
-  $cc_conly = "-c";
-  $cc_obj = "-o ";
-  $cc_exe = "-o ";
-  $cc_objandexe = 0;
-  $obj_suffix = ".o";
-  $try_command = "sh -c ";
+ } elsif ($PLATFORM =~ "::unix") {
+  &logcomment("I don't know anything specific about $PLATFORM --");
+  &logcomment("using generic unix/gcc settings.");
+  &settings_unix();
  } else {
-  die "Sorry: I don't know how to compile on ".$PLATFORM."\n";
+  die "Sorry: I don't know how to use ".$PLATFORM."\n";
  }
 }
 
-sub log_settings {
- if ($PLATFORM =~ "^nt_") {
-  $catcommand = "cat";
-  $comwrap = "\"";
-  $comwrapend = "\"";
-  $stdout_red = ">";
-  $err_red = "2>";
-  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
- } elsif ($PLATFORM =~ "^so") {
-  $catcommand = "cat";
-  $comwrap = "sh -c \"ulimit -c 0; ";
-  $comwrapend = "\"";
-  $stdout_red = ">";
-  $err_red = "2>";
-  $stdout_dup = "| tee";
- } else {
-  die "Sorry: I don't know how to take log files on ".$PLATFORM."n";
- }
+sub settings_nt {
+ $dirsep = "\\";
+ $cc_command = "cl";
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /DMMQA_VERS_$INTERFACE_VERSION";
+ $cc_link = "$obj_dir/platform.obj";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:both /pdb:none /debug:full";
+ $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
+ $cc_conly = "/c";
+ $cc_obj = "/Fo";
+ $cc_exe = "/Fe";
+ $cc_objandexe = 1;
+ $obj_suffix = ".obj";
+ $try_command = "";
+ $catcommand = "cat";
+ $comwrap = "\"";
+ $comwrapend = "\"";
+ $stdout_red = ">";
+ $err_red = "2>";
+ $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
+}
+
+sub settings_nt_cap {
+ $cc_opts = "$cc_opts /Gh";
+ $cc_link = "$cc_link CAP.lib";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:mapped,partial";
+}
+
+sub settings_nt_coff {
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:full";
+}
+
+sub settings_unix {
+ $dirsep = "/";
+ $cc_link = "$obj_dir/platform.o -lm";
+ $cc_link_opts = "-z muldefs";
+ $cc_command = "gcc";
+ $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
+  "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
+  "-Wshadow -Wmissing-prototypes -Wcast-align ".
+  "-O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
+ $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
+ $cc_conly = "-c";
+ $cc_obj = "-o ";
+ $cc_exe = "-o ";
+ $cc_objandexe = 0;
+ $obj_suffix = ".o";
+ $try_command = "sh -c ";
+ $catcommand = "cat";
+ $comwrap = "sh -c \"ulimit -c 0; ";
+ $comwrapend = "\"";
+ $stdout_red = ">";
+ $err_red = "2>";
+ $stdout_dup = "| tee";
+}
+
+sub settings_gprof {
+ $cc_opts = "-pg ".$cc_opts;
 }
 
 sub mysystem {
@@ -94,7 +107,6 @@ sub mysystem {
 sub log_system {
  local ($command, $output, $logfile, $time0, $time1) = @_;
 
- &log_settings;
  $std_log = "$obj_dir/std_log.log";
  $err_log = "$obj_dir/err_log.log";
 
