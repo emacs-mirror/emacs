@@ -891,7 +891,7 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
 
 (defcustom gnus-alter-articles-to-read-function nil
   "Function to be called to alter the list of articles to be selected."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'gnus-summary)
 
 (defcustom gnus-orphan-score nil
