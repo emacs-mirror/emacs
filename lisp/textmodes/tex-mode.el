@@ -1496,6 +1496,7 @@ Mark is left at original location."
        "tex-shell"
        (or tex-shell-file-name (getenv "ESHELL") shell-file-name)
        nil
+       ;; Specify an interactive shell, to make sure it prompts.
        "-i")
     (let ((proc (get-process "tex-shell")))
       (set-process-sentinel proc 'tex-shell-sentinel)
