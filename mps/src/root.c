@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.7) $
+ *  $HopeName: !root.c(trunk.8) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -18,26 +18,24 @@
 #include "mpmconf.h"
 #include "ref.h"
 #include "trace.h"
-#include "spacest.h"
+#include "space.h"
+
+SRCID("$HopeName");
 
 
-#ifdef DEBUG_SIGN
 static SigStruct RootSigStruct;
-#endif
+
 
 
 Bool RootIsValid(Root root, ValidationType validParam)
 {
   AVER(root != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &RootSigStruct));
   AVER(root->sig == &RootSigStruct);
-#endif
   AVER(ISVALIDNESTED(DequeNode, &root->spaceDeque));
   AVER(ISVALIDNESTED(RefRank, root->rank));
-  AVER(ISVALIDNESTED(TraceSet, &root->marked));
-  AVER(root->type == RootTABLE || root->type == RootFUN
-       || root->type == RootREG);
+  AVER(root->type == RootTABLE || root->type == RootFUN ||
+       root->type == RootREG);
   switch(root->type)
   {
     case RootTABLE:
@@ -79,14 +77,12 @@ static Error create(Root *rootReturn, Space space,
   root->rank = rank;
   root->type = type;
   root->the  = theUnion;
-  TraceSetInit(&root->marked);
+  root->marked = TraceSetEmpty;
 
   DequeNodeInit(&root->spaceDeque);
 
-#ifdef DEBUG_SIGN
   SigInit(&RootSigStruct, "Root");
   root->sig = &RootSigStruct;
-#endif
 
   AVER(ISVALID(Root, root));
 
@@ -159,11 +155,7 @@ void RootDestroy(Root root)
   DequeNodeRemove(&root->spaceDeque);
   DequeNodeFinish(&root->spaceDeque);
   
-  TraceSetFinish(&root->marked);
-
-#ifdef DEBUG_SIGN
   root->sig = SigInvalid;
-#endif
 
   PoolFree(SpaceControlPool(space), (Addr)root, sizeof(RootStruct));
 }
@@ -182,7 +174,7 @@ void RootMark(Root root, Trace trace)
   AVER(ISVALID(Root, root));
   AVER(ISVALID(Trace, trace));
   
-  TraceSetAdd(&root->marked, TraceTraceId(trace));
+  root->marked = TraceSetAdd(root->marked, TraceTraceId(trace));
   TraceNoteMarked(trace, root->rank, (Addr)1);
 }
 
@@ -197,7 +189,7 @@ Error RootScan(Root root, Trace trace)
   if(TraceRank(trace) != root->rank)
     return ErrSUCCESS;
 
-  if(!TraceSetIsMember(&root->marked, TraceTraceId(trace)))
+  if(!TraceSetIsMember(root->marked, TraceTraceId(trace)))
     return ErrSUCCESS;
 
   switch(root->type) {
@@ -236,7 +228,7 @@ Error RootScan(Root root, Trace trace)
   }
 
   TraceNoteScanned(trace, (Addr)1);
-  TraceSetDelete(&root->marked, TraceTraceId(trace));
+  root->marked = TraceSetDelete(root->marked, TraceTraceId(trace));
   
   return ErrSUCCESS;
 }
@@ -264,7 +256,7 @@ Error RootDescribe(Root root, LibStream stream)
   for(id = 0; id < TRACE_MAX; ++id)
     LibFormat(stream, "    %2lu %s\n",
               (unsigned long)id,
-              TraceSetIsMember(&root->marked, id) ? 
+              TraceSetIsMember(root->marked, id) ? 
                 "marked" : "not marked");
   
   switch(root->type)
