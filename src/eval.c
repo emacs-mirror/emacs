@@ -1413,7 +1413,6 @@ See also the function `condition-case'.  */)
   Lisp_Object debugger_value;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
-  extern int display_hourglass_p;
   struct backtrace *bp;
 
   immediate_quit = handling_signal = 0;
