@@ -1,5 +1,19 @@
 2000-01-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* net/eudc.el (toplevel): Remove autoloaded code installing
+	menu with easymenu, because that causes build problems.
+
+	* frame.el (frame-notice-user-settings): New variable.
+	(frame-notice-user-settings): Don't modify frame parameters
+	if called a second time.
+
+2000-01-13  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* frame.el (frame-notice-user-settings):
+	Notice default-frame-parameters even for non-window frames.
+
+2000-01-13  Gerd Moellmann  <gerd@gnu.org>
+
 	* net/eudc-bob.el (eudc-bob-play-sound-at-point): Play sounds
 	for Emacs.
 	(eudc-bob-can-display-inline-images): Extend for Emacs.
