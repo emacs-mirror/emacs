@@ -81,7 +81,7 @@
 ;;
 ;;   (define-derived-mode html-mode hypertext-mode "HTML")
 ;;   [various key definitions]
-;; 
+;;
 ;; will add a new major mode for HTML with very little fuss.
 ;;
 ;; Note also the function `derived-mode-p' which can tell if the current
@@ -90,6 +90,24 @@
 ;; be used in place of (eq major-mode 'text-mode).
 
 ;;; Code:
+
+;;; PRIVATE: defsubst must be defined before they are first used
+
+(defsubst derived-mode-hook-name (mode)
+  "Construct the mode hook name based on mode name MODE."
+  (intern (concat (symbol-name mode) "-hook")))
+
+(defsubst derived-mode-map-name (mode)
+  "Construct a map name based on a MODE name."
+  (intern (concat (symbol-name mode) "-map")))
+
+(defsubst derived-mode-syntax-table-name (mode)
+  "Construct a syntax-table name based on a MODE name."
+  (intern (concat (symbol-name mode) "-syntax-table")))
+
+(defsubst derived-mode-abbrev-table-name (mode)
+  "Construct an abbrev-table name based on a MODE name."
+  (intern (concat (symbol-name mode) "-abbrev-table")))
 
 ;; PUBLIC: define a new major mode which inherits from an existing one.
 
@@ -139,14 +157,14 @@ been generated automatically, with a reference to the keymap."
 	(abbrev (derived-mode-abbrev-table-name child))
 	(hook (derived-mode-hook-name child))
 	(docstring (derived-mode-make-docstring parent child docstring)))
-	 
+
     `(progn
        (defvar ,map (make-sparse-keymap))
        (defvar ,syntax (make-syntax-table))
        (defvar ,abbrev)
        (define-abbrev-table ',abbrev nil)
        (put ',child 'derived-mode-parent ',parent)
-     
+
        (defun ,child ()
 	 ,docstring
 	 (interactive)
@@ -175,7 +193,7 @@ been generated automatically, with a reference to the keymap."
 			 (define-abbrev ,abbrev (symbol-name symbol)
 			   (symbol-value symbol) (symbol-function symbol))))
 		   local-abbrev-table))))
-       
+
 	  (use-local-map ,map)
 	  (set-syntax-table ,syntax)
 	  (setq local-abbrev-table ,abbrev)
@@ -211,22 +229,6 @@ this function is not very useful.  Use `derived-mode-p' instead."
 
 ;;; PRIVATE
 
-(defsubst derived-mode-hook-name (mode)
-  "Construct the mode hook name based on mode name MODE."
-  (intern (concat (symbol-name mode) "-hook")))
-
-(defsubst derived-mode-map-name (mode)
-  "Construct a map name based on a MODE name."
-  (intern (concat (symbol-name mode) "-map")))
-
-(defsubst derived-mode-syntax-table-name (mode)
-  "Construct a syntax-table name based on a MODE name."
-  (intern (concat (symbol-name mode) "-syntax-table")))
-
-(defsubst derived-mode-abbrev-table-name (mode)
-  "Construct an abbrev-table name based on a MODE name."
-  (intern (concat (symbol-name mode) "-abbrev-table")))
-
 (defun derived-mode-make-docstring (parent child &optional docstring)
   "Construct a docstring for a new mode if none is provided."
 
@@ -249,7 +251,7 @@ abbrev table and syntax table:
 
 which more-or-less shadow %s's corresponding tables."
 		      parent map abbrev syntax parent))))
-  
+
     (unless (string-match (regexp-quote (symbol-name hook)) docstring)
       ;; Make sure the docstring mentions the mode's hook
       (setq docstring
@@ -264,7 +266,7 @@ which more-or-less shadow %s's corresponding tables."
 		       "might have run,\nthis mode "))
 		    (format "runs the hook `%s'" hook)
 		    ", as the final step\nduring initialization.")))
-    
+
     (unless (string-match "\\\\[{[]" docstring)
       ;; And don't forget to put the mode's keymap
       (setq docstring (concat docstring "\n\n\\{" (symbol-name map) "}")))
@@ -408,7 +410,7 @@ Where the new table already has an entry, nothing is copied from the old one."
 	     (define-abbrev new (symbol-name symbol)
 	       (symbol-value symbol) (symbol-function symbol))))
        old)))
-    
+
 (provide 'derived)
 
 ;;; derived.el ends here
