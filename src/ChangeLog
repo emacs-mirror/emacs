@@ -21,6 +21,8 @@
 
 2001-01-31  Dave Love  <fx@gnu.org>
 
+	* .gdbinit (hook-run): Define to run xreload.
+
 	* textprop.c (Fset_text_properties): Fix newline in doc string.
 
 2001-01-30  Gerd Moellmann  <gerd@gnu.org>
