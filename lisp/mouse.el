@@ -39,15 +39,23 @@
 (defvar mouse-yank-at-point nil
   "*If non-nil, mouse yank commands yank at point instead of at click.")
 
+(defun mouse-minibuffer-check (event)
+  (let ((w (posn-window (event-start event))))
+    (and (window-minibuffer-p w)
+	 (not (minibuffer-window-active-p w))
+	 (error "Minibuffer window is not active"))))
+
 (defun mouse-delete-window (click)
   "Delete the window you click on.
 This must be bound to a mouse click."
   (interactive "e")
+  (mouse-minibuffer-check click)
   (delete-window (posn-window (event-start click))))
 
 (defun mouse-select-window (click)
   "Select the window clicked on; don't move point."
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let ((oframe (selected-frame))
 	(frame (window-frame (posn-window (event-start click)))))
     (select-window (posn-window (event-start click)))
@@ -60,6 +68,7 @@ This must be bound to a mouse click."
 (defun mouse-tear-off-window (click)
   "Delete the window clicked on, and create a new frame displaying its buffer."
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let* ((window (posn-window (event-start click)))
 	 (buf (window-buffer window))
 	 (frame (new-frame)))
@@ -77,6 +86,7 @@ This must be bound to a mouse click."
 The window is split at the line clicked on.
 This command must be bound to a mouse click."
   (interactive "@e")
+  (mouse-minibuffer-check click)
   (let ((start (event-start click)))
     (select-window (posn-window start))
     (let ((new-height (if (eq (posn-point start) 'vertical-scroll-bar)
@@ -95,6 +105,7 @@ This command must be bound to a mouse click."
 The window is split at the column clicked on.
 This command must be bound to a mouse click."
   (interactive "@e")
+  (mouse-minibuffer-check click)
   (let ((start (event-start click)))
     (select-window (posn-window start))
     (let ((new-width (1+ (car (posn-col-row (event-end click)))))
@@ -109,12 +120,10 @@ This command must be bound to a mouse click."
   "Move point to the position clicked on with the mouse.
 This should be bound to a mouse click event type."
   (interactive "e")
+  (mouse-minibuffer-check event)
   ;; Use event-end in case called from mouse-drag-region.
   ;; If EVENT is a click, event-end and event-start give same value.
   (let ((posn (event-end event)))
-    (and (window-minibuffer-p (posn-window posn))
-	 (not (minibuffer-window-active-p (posn-window posn)))
-	 (error "Minibuffer window is not active"))
     (select-window (posn-window posn))
     (if (numberp (posn-point posn))
 	(goto-char (posn-point posn)))))
@@ -123,6 +132,7 @@ This should be bound to a mouse click event type."
   "Set the region to the text dragged over, and copy to kill ring.
 This should be bound to a mouse drag event."
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let ((posn (event-start click))
 	(end (event-end click)))
     (select-window (posn-window posn))
@@ -185,6 +195,7 @@ This must be bound to a button-down mouse event.
 In Transient Mark mode, the highlighting remains once you
 release the mouse button.  Otherwise, it does not."
   (interactive "e")
+  (mouse-minibuffer-check start-event)
   (let* ((start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
@@ -338,6 +349,7 @@ If DIR is positive skip forward; if negative, skip backward."
 ;; Subroutine: set the mark where CLICK happened,
 ;; but don't do anything else.
 (defun mouse-set-mark-fast (click)
+  (mouse-minibuffer-check click)
   (let ((posn (event-start click)))
     (select-window (posn-window posn))
     (if (numberp (posn-point posn))
@@ -367,6 +379,7 @@ This must be bound to a mouse click."
   "Kill the region between point and the mouse click.
 The text is saved in the kill ring, as with \\[kill-region]."
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let ((click-posn (posn-point (event-start click))))
     (if (numberp click-posn)
 	(kill-region (min (point) click-posn)
@@ -443,6 +456,7 @@ selection through the word or line clicked on.  If you do this
 again in a different position, it extends the selection again.
 If you do this twice in the same position, the selection is killed." 
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let ((click-posn (posn-point (event-start click)))
 	;; Don't let a subsequent kill command append to this one:
 	;; prevent setting this-command to kill-region.
@@ -534,6 +548,7 @@ If you do this twice in the same position, the selection is killed."
 Use \\[mouse-secondary-save-then-kill] to set the other end
 and complete the secondary selection."
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let ((posn (event-start click)))
     (save-excursion
       (set-buffer (window-buffer (posn-window posn)))
@@ -550,6 +565,7 @@ and complete the secondary selection."
   "Set the secondary selection to the text that the mouse is dragged over.
 This must be bound to a mouse drag event."
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let ((posn (event-start click))
 	beg
 	(end (event-end click)))
@@ -567,6 +583,7 @@ This must be bound to a mouse drag event."
 Highlight the drag area as you move the mouse.
 This must be bound to a button-down mouse event."
   (interactive "e")
+  (mouse-minibuffer-check start-event)
   (let* ((start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
@@ -712,6 +729,7 @@ selection through the word or line clicked on.  If you do this
 again in a different position, it extends the selection again.
 If you do this twice in the same position, the selection is killed." 
   (interactive "e")
+  (mouse-minibuffer-check click)
   (let ((posn (event-start click))
 	(click-posn (posn-point (event-start click)))
 	;; Don't let a subsequent kill command append to this one:
@@ -816,6 +834,7 @@ If you do this twice in the same position, the selection is killed."
 This switches buffers in the window that you clicked on,
 and selects that window."
   (interactive "e")
+  (mouse-minibuffer-check event)
   (let ((menu
 	 (list "Buffer Menu"
 	       (cons "Select Buffer"
