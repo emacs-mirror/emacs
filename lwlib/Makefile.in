@@ -64,6 +64,7 @@ lwlib-Xaw.o:   lwlib.h lwlib-int.h
 lwlib-Xm.o:    lwlib.h lwlib-int.h lwlib-utils.h
 lwlib-Xol.o:   lwlib.h lwlib-int.h
 lwlib-Xolmb.o: lwlib-Xolmb.h lwlib-XolmbP.h
+xlwmenu.o: xlwmenu.c xlwmenu.h lwlib.h xlwmenuP.h
 
 mostlyclean:
 	$(RM) *.o core errs ,* *~ *.a .emacs_* make.log MakeOut \#*
