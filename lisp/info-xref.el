@@ -205,7 +205,7 @@ should open up the purported top file and see what subfiles it says."
 
 (defun info-xref-check-buffer ()
   "Check external references in the info file in the current buffer.
-This show be the raw file contents, not `Info-mode'."
+This should be the raw file contents, not `Info-mode'."
   (goto-char (point-min))
   (while (re-search-forward
           "\\*[Nn]ote[ \n\t]+[^:]*:[ \n\t]+\\(\\(([^)]+)\\)[^.,]+\\)[.,]"
