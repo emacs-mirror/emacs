@@ -1220,7 +1220,7 @@ VAR may be nil; then you do not get access to the signal information.
 
 The value of the last BODY form is returned from the condition-case.
 See also the function `signal' for more info.
-usage: (condition-case VAR BODYFORM HANDLERS...)  */)
+usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
      (args)
      Lisp_Object args;
 {
@@ -1235,10 +1235,10 @@ usage: (condition-case VAR BODYFORM HANDLERS...)  */)
   handlers = Fcdr (Fcdr (args));
   CHECK_SYMBOL (var);
 
-  for (val = handlers; ! NILP (val); val = Fcdr (val))
+  for (val = handlers; CONSP (val); val = XCDR (val))
     {
       Lisp_Object tem;
-      tem = Fcar (val);
+      tem = XCAR (val);
       if (! (NILP (tem)
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
