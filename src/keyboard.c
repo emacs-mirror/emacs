@@ -2093,7 +2093,10 @@ make_lispy_event (event)
 	if ((event->modifiers & ctrl_modifier)
 	    && c >= 040)
 	  c |= ctrl_modifier;
-	if (XFASTINT (event->code) < 040
+	/* Set the shift modifier for a control char
+	   made from a shifted letter.  But only for letters!  */
+	if (XFASTINT (event->code) >= 'A' - 0100
+	    && XFASTINT (event->code) <= 'Z' - 0100
 	    && (event->modifiers & shift_modifier))
 	  c |= shift_modifier;
 	c |= (event->modifiers
