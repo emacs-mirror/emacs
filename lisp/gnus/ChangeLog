@@ -1,3 +1,8 @@
+2000-10-25  Jason Rumney  <jasonr@gnus.org>
+
+	* gnus-art.el (gnus-signature-face): Use italic on any frame that
+	supports it.
+
 2000-10-18  Dave Love  <fx@gnu.org>
 
 	* mm-bodies.el (mm-uu-decode-function)
