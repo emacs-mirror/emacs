@@ -12413,7 +12413,11 @@ x_destroy_window (f)
       if (FRAME_XIC (f))
 	free_frame_xic (f);
 #endif
-      XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->window_desc);
+      if (FRAME_X_WINDOW (f))
+	{
+	  XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+	  FRAME_X_WINDOW (f) = 0;
+	}
 #ifdef USE_X_TOOLKIT
       if (f->output_data.x->widget)
 	XtDestroyWidget (f->output_data.x->widget);
