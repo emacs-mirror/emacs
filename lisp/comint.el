@@ -1043,7 +1043,7 @@ We assume whitespace separates arguments, except within quotes.
 Also, a run of one or more of a single character
 in `comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
-  (let ((argpart "[^ \"'`]+\\|\\(\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)")
+  (let ((argpart "[^ \n\t\"'`]+\\|\\(\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)")
 	(args ()) (pos 0)
 	(count 0)
 	beg str value quotes)
