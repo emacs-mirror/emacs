@@ -32,6 +32,7 @@
 ;; Get the macro make-help-screen when this is compiled,
 ;; or run interpreted, but not when the compiled code is loaded.
 (eval-when-compile (require 'help-macro))
+(eval-when-compile (require 'view))
 
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
@@ -452,7 +453,8 @@ With numeric argument display information on correspondingly older changes."
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
   (interactive)
-  (find-file-read-only (expand-file-name "FAQ" data-directory)))
+;;;  (find-file-read-only (expand-file-name "FAQ" data-directory))
+  (info "(emacs-faq)"))
 
 (defun view-lossage ()
   "Display last 100 input keystrokes."
