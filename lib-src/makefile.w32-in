@@ -147,7 +147,7 @@ lisp= \
 	$(lispsource)byte-run.elc \
 	$(lispsource)cus-start.elc \
 	$(lispsource)custom.elc \
-	$(lispsource)backquote.elc \
+	$(lispsource)emacs-lisp/backquote.elc \
 	$(lispsource)emacs-lisp/lisp-mode.elc \
 	$(lispsource)emacs-lisp/lisp.elc \
 	$(lispsource)env.elc \
