@@ -244,7 +244,8 @@ columns).  @xref{Text Display}.
 multibyte characters are enabled, you can use any of the non-ASCII
 printing characters that Emacs supports.  They have character codes
 starting at 256, octal 0400, and each one is represented as a sequence
-of two or more bytes.  @xref{International}.
+of two or more bytes.  @xref{International}.  Single byte characters
+with codes 128 through 255 may also appear in multibyte buffers.
 
   If you disable multibyte characters, then you can use only one
 alphabet of non-ASCII characters, but they all fit in one byte.  They
