@@ -159,10 +159,21 @@ actually occur.")
 (defvar mail-mode-syntax-table nil
   "Syntax table used while in mail mode.")
 
-(if (null mail-mode-syntax-table)
+(if (not mail-mode-syntax-table)
     (progn
      (setq mail-mode-syntax-table (copy-syntax-table text-mode-syntax-table))
      (modify-syntax-entry ?% ". " mail-mode-syntax-table)))
+
+(defvar mail-font-lock-keywords
+  (list '("^To:" . font-lock-function-name-face)
+	'("^B?CC:\\|^Reply-To:" . font-lock-keyword-face)
+	'("^Subject:" . font-lock-comment-face)
+	'("^Subject:\\s *\\(.+\\)$" 1 font-lock-type-face)
+	(list (concat "^\\(" mail-header-separator "\\)$") 1
+	      'font-lock-comment-face)
+	'("^[ \t]*\\sw*[>|}].*$" . font-lock-reference-face)	; Citation.
+	'("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*$" . font-lock-string-face))
+  "Additional expressions to highlight in Mail mode.")
 
 (defvar mail-send-hook nil
   "Normal hook run before sending mail, in Mail mode.")
@@ -253,6 +264,8 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   (setq major-mode 'mail-mode)
   (setq mode-name "Mail")
   (setq buffer-offer-save t)
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords mail-font-lock-keywords)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^" mail-header-separator
