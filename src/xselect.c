@@ -2265,9 +2265,9 @@ it merely informs you that they have happened.");
   Vx_sent_selection_hooks = Qnil;
 
   DEFVAR_LISP("clipboard-coding-system", &Vclipboard_coding_system,
-  "Coding system for communicating with other X clients.
-When sending or receiving text via cut_buffer, selection, and clipboard,
-the text is encoded or decoded by this coding system.
+  "Coding system for communicating with other X clients.\n\
+When sending or receiving text via cut_buffer, selection, and clipboard,\n\
+the text is encoded or decoded by this coding system.\n\
 A default value is `iso-latin-1'");
   Vclipboard_coding_system=intern ("iso-latin-1");
   staticpro(&Vclipboard_coding_system);
