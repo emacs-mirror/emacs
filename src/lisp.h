@@ -2841,13 +2841,9 @@ extern int getloadavg P_ ((double *, int));
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
-extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void syms_of_xfns P_ ((void));
 extern void init_xfns P_ ((void));
 EXFUN (Fxw_display_color_p, 1);
-#ifdef HAVE_X_I18N
-extern void free_frame_xic P_ ((struct frame *));
-#endif
 /* Fixme: x_defined_color needs declaring, but needs FRAME_PTR and XColor. */
 #endif /* HAVE_X_WINDOWS */
 
@@ -2859,18 +2855,15 @@ extern void syms_of_xterm P_ ((void));
 
 /* Defined in getloadavg.c */
 extern int getloadavg P_ ((double [], int));
-
-/* Defined in composite.c */
-extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object, Lisp_Object));
+
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
 extern int initialized;
 
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
-extern char *getenv (), *ctime (), *getwd ();
-extern long *xmalloc (), *xrealloc ();
-extern void xfree ();
+extern POINTER_TYPE *xmalloc P_ ((int));
+extern POINTER_TYPE *xrealloc P_ ((POINTER_TYPE *, int));
 extern char *xstrdup P_ ((char *));
 
 extern char *egetenv P_ ((char *));
