@@ -1,7 +1,7 @@
 ;;; isearch.el --- incremental search minor mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999,
-;;   2000, 2001, 2003, 2004  Free Software Foundation, Inc.
+;;   2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -705,7 +705,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
             (if (< isearch-other-end (point)) ; isearch-forward?
                 (isearch-highlight isearch-other-end (point))
               (isearch-highlight (point) isearch-other-end))
-          (isearch-dehighlight nil))
+          (isearch-dehighlight))
         ))
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
@@ -733,7 +733,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq overriding-terminal-local-map nil)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
-  (isearch-dehighlight t)
+  (isearch-dehighlight)
   (isearch-lazy-highlight-cleanup lazy-highlight-cleanup)
   (let ((found-start (window-start (selected-window)))
 	(found-point (point)))
@@ -2220,7 +2220,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
            (overlay-put isearch-overlay 'priority 1) ;higher than lazy overlays
            ))))
 
-(defun isearch-dehighlight (totally)
+(defun isearch-dehighlight ()
   (when isearch-overlay
     (delete-overlay isearch-overlay)))
 
