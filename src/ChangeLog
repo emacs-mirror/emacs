@@ -1,3 +1,8 @@
+1999-11-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.h (struct buffer_text): Add comment about moving
+	buffer text if REL_ALLOC is defined.
+
 1999-11-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* lisp.h (KEY_DESCRIPTION_SIZE): New macro.

@@ -1,10 +1,13 @@
+1999-11-18  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* mail/rmailedit.el (rmail-cease-edit): Run rmail-mode-hook.
+
 1999-11-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* ps-vars.el: Renamed from ps-print-def.el.  Provide ps-vars
 	instead of ps-print-def.
 
 	* ps-print.el: Require ps-vars instead of ps-print-def.
-
 
 	* ps-mule.el: Require ps-vars instead of ps-print-def.
 
