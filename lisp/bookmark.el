@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Maintainer: FSF
 ;; Created: July, 1993
-;; Version: 1.7.2
+;; Version: 1.7.3 (interim)
 ;; Keywords: bookmarks, placeholders
 
 ;; This file is part of GNU Emacs.
@@ -62,6 +62,12 @@
 ;; string-in-front in case the file has changed since the bookmark was
 ;; set.  It will attempt to place the user before the changes, if
 ;; there were any.
+;;
+;; It is not advisable to sort the bookmark list when it is presented
+;; to the user, because it is already sorted in what is probably the
+;; most useful way: order of creation, with most recently created
+;; bookmarks coming first and older ones toward the end (renaming does
+;; not count as creating) -- which is what we want, most of the time.
 
 ;;; Code:
 
@@ -79,7 +85,7 @@
 (defvar bookmark-map nil "This is a keymap containing bookmark
 functions.  It is not bound to any key by default: to bind it so 
 that you have a bookmark prefix, just use global-set-key and bind a
-key of your choice to \'bookmark-map.  All interactive bookmark
+key of your choice to \`bookmark-map\'.  All interactive bookmark
 functions have a binding in this keymap.")
 
 (define-prefix-command 'bookmark-map)
@@ -119,7 +125,7 @@ file easier.")
 (make-variable-buffer-local 'bookmark-current-bookmark)
 
 (defvar bookmark-save-flag t
-  "*Nil means never save bookmarks, except when bookmark-save is
+  "*Nil means never save bookmarks, except when \`bookmark-save\' is
 explicitly called \(\\[bookmark-save]\).
 
 t means save bookmarks when Emacs is killed.
@@ -135,7 +141,7 @@ bookmark is to set this variable to 1 \(or 0, which produces the same
 behavior.\)
 
 To specify the file in which to save them, modify the variable
-bookmark-file, which is \"~/.emacs-bkmrks\" by default.")
+bookmark-file, which is \`~/.emacs-bkmrks\' by default.")
 
 (defvar bookmark-alist-modification-count 0
   "Number of times the bookmark list has been modified since last
@@ -301,59 +307,55 @@ the list of bookmarks.\)"
   
 (defun bookmark-jump (str)
     "Go to the location saved in the bookmark BOOKMARK.  You may have a
-problem using this function if the value of variable bookmark-alist
+problem using this function if the value of variable \`bookmark-alist\'
 is nil.  If that happens, you need to load in some bookmarks.  See
-help on function bookmark-load for more about this."
-    (interactive (progn
-                 (bookmark-try-default-file)
-                 (let ((completion-ignore-case
+help on function \`bookmark-load\' for more about this."
+    (interactive (let ((completion-ignore-case
                         bookmark-completion-ignore-case))
                    (list (completing-read
                           "Jump to bookmark: "
                           bookmark-alist
                           nil
-                          0)))))
-  (let ((whereto-list (car (cdr (assoc str bookmark-alist)))))
-    (let ((file (car whereto-list))
-          (forward-str (car (cdr whereto-list)))
-          (behind-str (car (cdr (cdr whereto-list))))
-          (place (car (cdr (cdr (cdr whereto-list))))))
-      (if (file-exists-p (expand-file-name file))
-          (progn 
-            (find-file (expand-file-name file))
-            (goto-char place)
-            ;; Go searching forward first.  Then, if forward-str exists and
-            ;; was found in the file, we can search backward for behind-str.
-            ;; Rationale is that if text was inserted between the two in the
-            ;; file, it's better to be put before it so you can read it,
-            ;; rather than after and remain perhaps unaware of the changes.
-            (if forward-str
-                (if (search-forward forward-str (point-max) t)
-                    (backward-char bookmark-search-size)))
-            (if behind-str
-                (if (search-backward behind-str (point-min) t)
-                    (forward-char bookmark-search-size)))
-            ;; added by db
-            (setq bookmark-current-bookmark str))
-        (error 
-         (concat "File "
-                 file
-                 " does not exist.  Suggest deleting bookmark \""
-                 str
-                 "\""))))))
+                          0))))
+    (let ((whereto-list (car (cdr (assoc str bookmark-alist)))))
+      (let ((file (car whereto-list))
+            (forward-str (car (cdr whereto-list)))
+            (behind-str (car (cdr (cdr whereto-list))))
+            (place (car (cdr (cdr (cdr whereto-list))))))
+        (if (file-exists-p (expand-file-name file))
+            (progn 
+              (find-file (expand-file-name file))
+              (goto-char place)
+              ;; Go searching forward first.  Then, if forward-str exists and
+              ;; was found in the file, we can search backward for behind-str.
+              ;; Rationale is that if text was inserted between the two in the
+              ;; file, it's better to be put before it so you can read it,
+              ;; rather than after and remain perhaps unaware of the changes.
+              (if forward-str
+                  (if (search-forward forward-str (point-max) t)
+                      (backward-char bookmark-search-size)))
+              (if behind-str
+                  (if (search-backward behind-str (point-min) t)
+                      (forward-char bookmark-search-size)))
+              ;; added by db
+              (setq bookmark-current-bookmark str))
+          (error 
+           (concat "File "
+                   file
+                   " does not exist.  Suggest deleting bookmark \""
+                   str
+                   "\""))))))
 
 (defun bookmark-locate (str)
   "Insert the name of the  file associated with BOOKMARK \(as opposed
 to the contents of that file\)."
-  (interactive (progn
-		 (bookmark-try-default-file)
-                 (let ((completion-ignore-case
-                        bookmark-completion-ignore-case))
-                   (list (completing-read
-                          "Insert bookmark location: "
-                          bookmark-alist
-                          nil
-                          0)))))
+  (interactive (let ((completion-ignore-case
+                      bookmark-completion-ignore-case))
+                 (list (completing-read
+                        "Insert bookmark location: "
+                        bookmark-alist
+                        nil
+                        0))))
   (insert (car (car (cdr (assoc str bookmark-alist))))))
 
 (defun bookmark-rename (old)
@@ -361,14 +363,12 @@ to the contents of that file\)."
 the new name, consecutive C-w\'s will insert consectutive words from
 the text of the buffer into the new bookmark name, and C-v will insert
 the name of the file."
-  (interactive (progn
-		 (bookmark-try-default-file)
-                 (let ((completion-ignore-case
-                        bookmark-completion-ignore-case))
-                   (list (completing-read "Old bookmark name: "
-					  bookmark-alist
-					  nil
-					  0)))))
+  (interactive (let ((completion-ignore-case
+                      bookmark-completion-ignore-case))
+                 (list (completing-read "Old bookmark name: "
+                                        bookmark-alist
+                                        nil
+                                        0))))
   (progn
     (setq bookmark-current-point (point))
     (setq bookmark-yank-point (point))
@@ -395,17 +395,15 @@ the name of the file."
 (defun bookmark-insert (str)
   "Insert the text of the file pointed to by bookmark BOOKMARK.  You
 may have a problem using this function if the value of variable
-bookmark-alist is nil.  If that happens, you need to load in some
-bookmarks.  See help on function bookmark-load for more about this."
-  (interactive (progn
-                 (bookmark-try-default-file)
-                 (let ((completion-ignore-case
-                        bookmark-completion-ignore-case))
-                   (list (completing-read
-                          "Insert bookmark contents: "
-                          bookmark-alist
-                          nil
-                          0)))))
+\`bookmark-alist is nil\'.  If that happens, you need to load in some
+bookmarks.  See help on function \`bookmark-load\' for more about this."
+  (interactive (let ((completion-ignore-case
+                      bookmark-completion-ignore-case))
+                 (list (completing-read
+                        "Insert bookmark contents: "
+                        bookmark-alist
+                        nil
+                        0))))
   (let ((whereto-list (car (cdr (assoc str bookmark-alist)))))
     (let ((file (car whereto-list)))
       (if (file-readable-p (expand-file-name file))
@@ -429,49 +427,29 @@ bookmarks.  See help on function bookmark-load for more about this."
 (defun bookmark-delete (str)
   "Delete the bookmark named NAME from the bookmark list.  Removes
 only the first instance of a bookmark with that name.  If there is
-another bookmark with the same name, it will become \"current\" as
-soon as the old one is removed from the bookmark list.  Defaults to
-the \"current\" bookmark \(that is, the one most recently set or
-jumped to in this file\).
-
-With a prefix argument, deletes all bookmarks \(will prompt for
-confirmation before such a drastic step, however.\)  If you then save
-the empty bookmark list, they will truly be deleted; otherwise you
-will revert to the bookmarks saved in the default bookmark file
-automatically the next time you jump to a bookmark, insert one, rename
-one, or kill Emacs."
+another bookmark with the same name, it will take effect as soon as
+the old one is removed from the bookmark list.  Defaults to the
+\"current\" bookmark \(that is, the one most recently used in this
+file, if any\)."
   (interactive (let ((completion-ignore-case
 		      bookmark-completion-ignore-case))
 		 (list
-		  (if current-prefix-arg
-		      nil
-		    (completing-read
-		     "Delete bookmark: "
-		     bookmark-alist
-		     nil
-		     0
-		     bookmark-current-bookmark)))))
-  (if (null str)
-      (if (y-or-n-p "Delete all bookmarks? ")
-          (progn
-            (setq bookmark-alist nil)
-            (message
-             (if (file-readable-p (expand-file-name bookmark-file))
-                 (format 
-                  "Will revert to bookmarks in %s, unless you save now."
-                  bookmark-file)
-               "All bookmarks deleted.")))
-        (message "No bookmarks deleted."))
-    (let ((will-go (assoc str bookmark-alist)))
-      (setq bookmark-alist (delq will-go bookmark-alist)))
-      ;; Added by db, nil bookmark-current-bookmark if the last
-      ;; occurence has been deleted
+                  (completing-read
+                   "Delete bookmark: "
+                   bookmark-alist
+                   nil
+                   0
+                   bookmark-current-bookmark))))
+  (let ((will-go (assoc str bookmark-alist)))
+    (setq bookmark-alist (delq will-go bookmark-alist))
+    ;; Added by db, nil bookmark-current-bookmark if the last
+    ;; occurence has been deleted
     (or (assoc bookmark-current-bookmark bookmark-alist)
-	(setq bookmark-current-bookmark nil)))
-    (setq bookmark-alist-modification-count
-	  (1+ bookmark-alist-modification-count))
-    (if (bookmark-time-to-save-p)
-	(bookmark-save)))
+        (setq bookmark-current-bookmark nil)))
+  (setq bookmark-alist-modification-count
+        (1+ bookmark-alist-modification-count))
+  (if (bookmark-time-to-save-p)
+      (bookmark-save)))
 
 (defun bookmark-time-to-save-p (&optional last-time)
   ;; By Gregory M. Saunders <saunders@cis.ohio-state.edu>
@@ -492,10 +470,9 @@ one, or kill Emacs."
   (interactive)
   (bookmark-save t))
 
-(defun bookmark-save (&optional parg file)
-  "Saves currently defined bookmarks in the file defined by
-the variable bookmark-file.  With a prefix arg, save it in file
-FILE.
+(defun bookmark-save (&optional parg file) 
+  "Saves currently defined bookmarks in the file defined by the
+variable \`bookmark-file\'.  With a prefix arg, save it in file FILE.
 
 If you are calling this from Lisp, the two arguments are PREFIX-ARG
 and FILE, and if you just want it to write to the default file, then
@@ -503,9 +480,10 @@ pass no arguments.  Or pass in nil and FILE, and it will save in FILE
 instead.  If you pass in one argument, and it is non-nil, then the
 user will be interactively queried for a file to save in.
 
-When you want to load in the bookmarks from a file, use bookmark-load,
-\\[bookmark-load].  That function will prompt you for a file,
-defaulting to the file defined by variable bookmark-file."
+When you want to load in the bookmarks from a file, use
+\\`bookmark-load\\', \\[bookmark-load].  That function will prompt you
+for a file, defaulting to the file defined by variable
+\`bookmark-file\'."
   (interactive "P")
   (cond
    ((and (null parg) (null file))
@@ -544,10 +522,9 @@ means don't display any messages while loading.
 If you load a file that doesn't contain a proper bookmark alist, you
 will corrupt Emacs\' bookmark list.  Generally, you should only load
 in files that were created with the bookmark functions in the first
-place.  If the bookmark alist does become corrupted, just delete all
-bookmarks and your master bookmark-file will be automatically loaded
-next time you try to go to a bookmark \(assuming that your bookmark
-file itself is not corrupt, this will solve the problem\)."
+place.  Your own personal bookmark file, \`~/.emacs-bkmrks\', is
+maintained automatically by Emacs; you should never need to load it
+explicitly."
   (interactive
    (list (read-file-name
           (format "Load bookmarks from: (%s) "
@@ -579,16 +556,16 @@ file itself is not corrupt, this will solve the problem\)."
 	    (message (format "Loading bookmarks from %s... done" file))))
     (error (format "Cannot read bookmark file %s." file))))
 
-;;;; bookmark menu stuff ;;;;
+;;;; bookmark menu bar stuff ;;;;
 
-(defvar bookmark-enable-menus t
+(defvar bookmark-menu-bar-length 70 "*Maximum length of a bookmark name
+displayed on a menu.")
+
+(defvar bookmark-enable-menu-bar t
   "*Non-nil means put a bookmark menu on the menu bar \(assuming that
 you are running Emacs under a windowing system, such as X\).")
 
-(defvar bookmark-menu-length 70 "*Maximum length of a bookmark name
-displayed on a menu.")
-
-(defun bookmark-make-menu-alist ()
+(defun bookmark-make-menu-bar-alist ()
   (if (not bookmark-alist)
       (if (file-readable-p bookmark-file)
 	  (bookmark-load bookmark-file)))
@@ -596,17 +573,19 @@ displayed on a menu.")
       (mapcar (lambda (cell)
 		(let ((str (car cell)))
 		  (cons 
-		   (if (> (length str) bookmark-menu-length)
-		       (substring str 0 bookmark-menu-length)
+		   (if (> (length str) bookmark-menu-bar-length)
+		       (substring str 0 bookmark-menu-bar-length)
 		     str)
 		   str)))
 	      bookmark-alist)
     (error "No bookmarks currently set.")))
 
-(defun bookmark-make-menu-with-function (func-sym menu-label menu-str event)
+(defun bookmark-make-menu-bar-with-function (func-sym 
+                                             menu-label
+                                             menu-str event) 
   ;; help function for making menus that need to apply a bookmark
   ;; function to a string.
-  (let* ((menu (bookmark-make-menu-alist))
+  (let* ((menu (bookmark-make-menu-bar-alist))
 	 (str (x-popup-menu event
 			    (list menu-label
 				  (cons menu-str
@@ -614,65 +593,60 @@ displayed on a menu.")
     (if str
 	(apply func-sym (list str)))))
 
-(defun bookmark-menu-insert (event)
+(defun bookmark-menu-bar-insert (event)
   "Insert the text of the file pointed to by bookmark BOOKMARK.  You
 may have a problem using this function if the value of variable
-bookmark-alist is nil.  If that happens, you need to load in some
-bookmarks.  See help on function bookmark-load for more about this."
+\`bookmark-alist\' is nil.  If that happens, you need to load in some
+bookmarks.  See help on function \`bookmark-load\' for more about this."
   (interactive "e")
-  (bookmark-make-menu-with-function 'bookmark-insert
+  (bookmark-make-menu-bar-with-function 'bookmark-insert
 				    "Bookmark Insert Menu"
 				    "--- Insert Contents ---"
 				    event))
 
-(defun bookmark-menu-jump (event)
+(defun bookmark-menu-bar-jump (event)
   "Go to the location saved in the bookmark BOOKMARK.  You may have a
-problem using this function if the value of variable bookmark-alist
+problem using this function if the value of variable \`bookmark-alist\'
 is nil.  If that happens, you need to load in some bookmarks.  See
-help on function bookmark-load for more about this."
+help on function \`bookmark-load\' for more about this."
   (interactive "e")
-  (bookmark-make-menu-with-function 'bookmark-jump
+  (bookmark-make-menu-bar-with-function 'bookmark-jump
 				    "Bookmark Jump Menu"
 				    "--- Jump to Bookmark ---"
 				    event))
 
-(defun bookmark-menu-locate (event)
+(defun bookmark-menu-bar-locate (event)
   "Insert the name of the  file associated with BOOKMARK \(as opposed
 to the contents of that file\)."
   (interactive "e")
-  (bookmark-make-menu-with-function 'bookmark-locate
+  (bookmark-make-menu-bar-with-function 'bookmark-locate
 				    "Bookmark Locate Menu"
 				    "--- Insert Location ---"
 				    event))
 
-(defun bookmark-menu-rename (event)
+(defun bookmark-menu-bar-rename (event)
   "Change the name of BOOKMARK to NEWNAME.  While you are entering
 the new name, consecutive C-w\'s will insert consectutive words from
 the text of the buffer into the new bookmark name, and C-v will insert
 the name of the file."
   (interactive "e")
-  (bookmark-make-menu-with-function 'bookmark-rename
+  (bookmark-make-menu-bar-with-function 'bookmark-rename
 				    "Bookmark Rename Menu"
 				    "--- Rename Bookmark ---"
 				    event))
 
-(defun bookmark-menu-delete (event)
-  "Delete the bookmark named NAME from the bookmark list.  Removes only
-the first instance of a bookmark with that name.  If there is another
-bookmark with the same name, it will become \"current\" as soon as the
-old one is removed from the bookmark list."
+(defun bookmark-menu-bar-delete (event)
+  "Delete the bookmark named NAME from the bookmark list.  Removes
+only the first instance of a bookmark with that name.  If there is
+another bookmark with the same name, it will take effect as soon as
+the old one is removed from the bookmark list."
   (interactive "e")
-  (bookmark-make-menu-with-function 'bookmark-delete
+  (bookmark-make-menu-bar-with-function 'bookmark-delete
 				    "Bookmark Delete Menu"
 				    "--- Delete Bookmark ---"
 				    event))
 
-(defun bookmark-menu-delete-all ()
-  (interactive)
-  (let ((current-prefix-arg t))
-    (bookmark-delete nil)))
-
-(if (and bookmark-enable-menus window-system)
+(if (and bookmark-enable-menu-bar window-system)
     (progn
       (defvar menu-bar-bookmark-map 
 	(make-sparse-keymap "Bookmark functions"))
@@ -694,83 +668,79 @@ old one is removed from the bookmark list."
 	'("Write \(to another file\)" . bookmark-write))
 
       (define-key menu-bar-bookmark-map [save]
-	'("Save \(in default file\)" . bookmark-save))
+	'("Save  \(in default file\)" . bookmark-save))
       
-      (define-key menu-bar-bookmark-map [delete-all]
-	'(" Delete all bookmarks" . bookmark-menu-delete-all))
-
       (define-key menu-bar-bookmark-map [delete]
-	'("  Delete a bookmark" . bookmark-menu-delete))
+	'("  Delete a bookmark" . bookmark-menu-bar-delete))
       
       (define-key menu-bar-bookmark-map [rename]
-	'("   Rename bookmark" . bookmark-menu-rename))
+	'("   Rename bookmark" . bookmark-menu-bar-rename))
       
       (define-key menu-bar-bookmark-map [locate]
-	'("   Insert location" . bookmark-menu-locate))
+	'("   Insert location" . bookmark-menu-bar-locate))
       
       (define-key menu-bar-bookmark-map [insert]
-	'("   Insert contents" . bookmark-menu-insert))
+	'("   Insert contents" . bookmark-menu-bar-insert))
       
       (define-key menu-bar-bookmark-map [set]
 	'("    Set bookmark" . bookmark-set))
       
       (define-key menu-bar-bookmark-map [jump]
-	'("   Go to bookmark" . bookmark-menu-jump))))
+	'("   Go to bookmark" . bookmark-menu-bar-jump))))
 
 ;; not using properties because they make the menu sluggish in coming
 ;; up -- too many tests to make.  Instead, choosing a useless menu
 ;; item just gets you an error now (see
-;; bookmark-make-menu-with-function) 
+;; bookmark-make-menu-bar-with-function) 
 ;;      
-;;      (put 'bookmark-menu-jump 'menu-enable
+;;      (put 'bookmark-menu-bar-jump 'menu-enable
 ;;	   '(or bookmark-alist 
 ;;		(and (file-readable-p bookmark-file)
 ;;		     (progn (bookmark-load bookmark-file)
 ;;			    bookmark-alist))))
 ;;
-;;      (put 'bookmark-menu-insert 'menu-enable
+;;      (put 'bookmark-menu-bar-insert 'menu-enable
 ;;	   '(or bookmark-alist 
 ;;		(and (file-readable-p bookmark-file)
 ;;		     (progn (bookmark-load bookmark-file)
 ;;			    bookmark-alist))))
 ;;
-;;      (put 'bookmark-menu-locate 'menu-enable
+;;      (put 'bookmark-menu-bar-locate 'menu-enable
 ;;	   '(or bookmark-alist 
 ;;		(and (file-readable-p bookmark-file)
 ;;		     (progn (bookmark-load bookmark-file)
 ;;			    bookmark-alist))))
 ;;
-;;      (put 'bookmark-menu-rename 'menu-enable
+;;      (put 'bookmark-menu-bar-rename 'menu-enable
 ;;	   '(or bookmark-alist 
 ;;		(and (file-readable-p bookmark-file)
 ;;		     (progn (bookmark-load bookmark-file)
 ;;			    bookmark-alist))))
 ;;
-;;      (put 'bookmark-menu-delete 'menu-enable
+;;      (put 'bookmark-menu-bar-delete 'menu-enable
 ;;	   '(or bookmark-alist 
 ;;		(and (file-readable-p bookmark-file)
 ;;		     (progn (bookmark-load bookmark-file)
 ;;			    bookmark-alist))))
 ;;
-;;      (put 'bookmark-menu-save 'menu-enable
+;;      (put 'bookmark-menu-bar-save 'menu-enable
 ;;	   '(or bookmark-alist
 ;;		(and (file-readable-p bookmark-file)
 ;;		     (progn (bookmark-load bookmark-file)
 ;;			    bookmark-alist))))
 ;;
-;;      (put 'bookmark-menu-write 'menu-enable
+;;      (put 'bookmark-menu-bar-write 'menu-enable
 ;;	   '(or bookmark-alist 
 ;;		(and (file-readable-p bookmark-file)
 ;;		     (progn (bookmark-load bookmark-file)
 ;;			    bookmark-alist))))
 
-;;;; end bookmark menu stuff ;;;;
+;;;; end bookmark menu-bar stuff ;;;;
 
 ;; load the default bookmark file, if it exists, and the
 ;; bookmark-alist is nil:
 (bookmark-try-default-file)
 
-
 (provide 'bookmark)
       
-;;; bookmark.el ends here ;;;
+;;; bookmark.el ends here
