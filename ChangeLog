@@ -1,3 +1,23 @@
+2003-06-10  Dave Love  <fx@gnu.org>
+
+	* README.GC: New.
+
+2003-06-06  Dave Love  <fx@gnu.org>
+
+	* gc: New directory.
+
+	* configure.in: Add --enable-boehm-gc arg and corresponding code.
+	Check size of int* and long.
+	(CFLAGS, CPPFLAGS): Move definitions.
+	(LP64): New.
+
+	* Makefile.in: Add gc to sub-makes.
+	(top_srcdir): Define.
+	(SUBDIR): Add @subdirs@.
+	(MAINT): Deleted.
+	(${srcdir}/configure): Depend on configure.in.
+	(gc/Makefile): New target.
+
 2003-05-24  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in (AH_BOTTOM) [MAC_OSX]: Do not redefine bcopy,

@@ -1,0 +1,83 @@
+-*-text-*-
+
+This branch is a preliminary one which allows the GC to be replaced
+with Boehm's fully conservative collector.  (The current GC scans the
+stack conservatively, on the systems where that's been implemented,
+and treats the heap exactly.)  The Boehm collector has the advantage
+of supporting generational, incremental collection on some platforms,
+specifically under Linux.  [Perhaps the GCL GC could be investigated
+as an alternative.]
+
+[`Generational' means that it divides allocated storage into regions
+depending on age of allocation and concentrates on collecting the
+youngest regions, which are assumed to have the highest object
+mortality rate.  `Incremental' means that it spreads the GC work so
+that pauses can be shorter and full collections aren't needed so
+frequently.  The Boehm collector also is generally well tuned, having
+had a lot of effort expended on it.  It doesn't do compaction of
+string storage like the current GC; it remains to be seen whether
+that's leads to important fragmentation in practice, but experience
+elsewhere suggests not.  The conservative marking isn't expected to
+leak significant space when all's said and done, but measurements
+remain to be made as we did for the current conservative stack
+marking.]
+
+Needs a modified gc6.2alpha4 or later, built with
+-DAVOID_MMAP '-DPOINTER_MASK=$valmask'
+where $valmask is the same as VALMASK defined by lisp.h.  (Boehm
+included the pointer preprocessing in this version to cope with the
+Emacs tagging scheme.)
+
+Currently we do the normal sort of GC -- not just in eval/funcall.
+(gc-cons-threshold is ignored.)  Does this need to be reverted given
+that we don't now do compaction, for instance?
+
+xmalloc, xrealloc were replaced by the GC versions when building data
+structures which have a mark_... procedure or are traced from roots in
+Fgarbage_collect (with the corresponding free replaced by GC_FREE).
+The specpdl, catchlist, handerlist and backtrace_list are protected
+by the pointer chain from static storage.
+
+We leak markers because they're kept alive by the buffer's chain.
+Ideally want a weak collection of them per buffer.  The #ifdef'ed out
+clause for GC_MARK_OBJECT in lisp.h should avoid this by masking the
+pointers to markers, but it causes crashes I haven't managed to debug
+yet.  This could use an extra set of eyes.
+
+Weak hash tables don't work.  For completely weak tables, we could
+allocate the buckets with GC_malloc_atomic and use a finalization
+routine which tidied up un-marked entries.  It's probably better to
+treat all cases the same, and hide pointers to objects where they
+should be treated weakly.
+
+It seems best to do allocation via malloc always (c.f. explicit sbrk
+in GC_unix_get_mem).  However, doing that gives random segvs after the
+first GC in a dumped Emacs under x86 lignux.
+
+The mark bit in objects should be dispensed with under Boehm GC.
+(Doing that doubles the range of Lisp integers/heap pointers).
+
+Need to check the buffer undo list stuff in Fgarbage_collect.
+
+Something needs to be done for Gtk -- see xg_mark_data.
+
+We probably need pre- and post-gc hooks in all gc/alloc.c.
+
+There aren't any GC messages.
+
+Messages from the GC need redirecting through Lisp somehow.  Probably
+a bunch of them should just be suppressed.
+
+post-gc-hook is ignored.  Should it be invoked on partial
+collections?  (What use is it?)
+
+GC times aren't accumulated yet.  See conditionals on PRINTTIMES in
+gc/alloc.c.
+
+We could avoid copying string data in places where it's done to avoid
+losing with GC relocation during compaction.
+
+The portable alloca needs to use GC_malloc to have the same effect as
+conservative stack scanning.
+
+Don't know if this can work without NO_UNION_TYPE.
