@@ -1772,11 +1772,12 @@ the inserted text.  Value is always t."
   "Go to the info node for the calendar."
   (interactive)
   (require 'info)
-  (let ((where (Info-find-emacs-command-nodes 'calendar)))
+  (let ((where (save-window-excursion
+		 (Info-find-emacs-command-nodes 'calendar))))
     (if (not where)
         (error "Couldn't find documentation for the calendar.")
-      (save-window-excursion (info))
-      (pop-to-buffer "*info*")
+      (let (same-window-buffer-names)
+	(info))
       (Info-find-node (car (car where)) (car (cdr (car where)))))))
 
 (defun calendar-mode ()
