@@ -56,7 +56,7 @@ extern int unread_command_char;
 /* The command being executed by the command loop.
    Commands may set this, and the value set will be copied into
    current_kboard->Vlast_command instead of the actual command.  */
-extern Lisp_Object this_command;
+extern Lisp_Object Vthis_command;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
