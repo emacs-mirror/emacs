@@ -7469,7 +7469,13 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
        check that your system's configuration file contains a define
        for `NARROWPROTO'.  See s/freebsd.h for an example.  */
     if (NILP (bar->dragging))
-      XawScrollbarSetThumb (widget, top, shown);
+      {
+	float old_top, old_shown;
+	XtVaGetValues (widget, XtNtopOfThumb, &old_top, XtNshown, &old_shown,
+		       NULL);
+	if (top != old_top || shown != old_shown)
+	  XawScrollbarSetThumb (widget, top, shown);
+      }
     else
       {
 	ScrollbarWidget sb = (ScrollbarWidget) widget;
