@@ -351,7 +351,7 @@ space does not end a sentence, so don't break a line there.
 
 If `fill-paragraph-function' is non-nil, we call it (passing our
 argument to it), and if it returns non-nil, we simply return its value."
-  (interactive "P")
+  (interactive (list (if current-prefix-arg 'full)))
   (or (and fill-paragraph-function
 	   (let ((function fill-paragraph-function)
 		 fill-paragraph-function)
@@ -380,7 +380,8 @@ hard newline, if `use-hard-newlines' is on).
 
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
-  (interactive "r\nP")
+  (interactive (list (region-beginning) (region-end)
+		     (if current-prefix-arg 'full)))
   (let (end beg)
     (save-restriction
       (goto-char (max from to))
@@ -716,7 +717,8 @@ When calling from a program, pass range to fill as first two arguments.
 Optional third and fourth arguments JUSTIFY and MAIL-FLAG:
 JUSTIFY to justify paragraphs (prefix arg),
 MAIL-FLAG for a mail message, i. e. don't fill header lines."
-  (interactive "r\nP")
+  (interactive (list (region-beginning) (region-end)
+		     (if current-prefix-arg 'full)))
   (let ((fill-individual-varying-indent t))
     (fill-individual-paragraphs min max justifyp mailp)))
 
@@ -731,7 +733,8 @@ When calling from a program, pass range to fill as first two arguments.
 Optional third and fourth arguments JUSTIFY and MAIL-FLAG:
 JUSTIFY to justify paragraphs (prefix arg),
 MAIL-FLAG for a mail message, i. e. don't fill header lines."
-  (interactive "r\nP")
+  (interactive (list (region-beginning) (region-end)
+		     (if current-prefix-arg 'full)))
   (save-restriction
     (save-excursion
       (goto-char min)
