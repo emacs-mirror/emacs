@@ -1375,6 +1375,11 @@ out of view."
      (format . "(format STRING &rest OBJECTS)")
      (apply . "(apply FUNCTION &rest ARGUMENTS)")
      (run-hooks . "(run-hooks &rest HOOKS)")
+     (run-hook-with-args . "(run-hook-with-args HOOK &rest ARGS)")
+     (run-hook-with-args-until-failure
+      . "(run-hook-with-args-until-failure HOOK &rest ARGS)")
+     (run-hook-with-args-until-success
+      . "(run-hook-with-args-until-success HOOK &rest ARGS)")
      (funcall . "(funcall FUNCTION &rest ARGUMENTS)")
      (append . "(append &rest SEQUENCES)")
      (concat . "(concat &rest SEQUENCES)")
@@ -1409,6 +1414,10 @@ out of view."
      (unwind-protect . "(unwind-protect BODYFORM UNWINDFORMS...)")
      (condition-case . "(condition-case VAR BODYFORM HANDLERS...)")
      (track-mouse . "(track-mouse BOFY ...)")
-     (ml-if . "(ml-if COND THEN ELSE...)"))))
+     (ml-if . "(ml-if COND THEN ELSE...)")
+     (ml-provide-prefix-argument . "(ml-provide-prefix-argument ARG1 ARG2)")
+     (with-output-to-temp-buffer
+	 . "(with-output-to-temp-buffer BUFFNAME BODY ...)")
+     (save-window-excursion . "(save-window-excursion BODY ...)"))))
 
 ;;; help.el ends here
