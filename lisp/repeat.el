@@ -147,14 +147,6 @@ member of that sequence.  If this variable is nil, no re-execution occurs."
 ;; true-last-command by putting something in post-command-hook, but that
 ;; entails a performance hit; the approach taken below avoids that.
 
-;; First cope with (kill-region).  It's straightforward to advise it to save
-;; the true value of this-command before clobbering it.
-
-(require 'advice)
-
-(defvar repeat-last-kill-command nil
-  "True value of `this-command' before (`kill-region') clobbered it.")
-
 ;; Coping with strings of self-insert commands gets hairy when they interact
 ;; with auto-filling.  Most problems are eliminated by remembering what we're
 ;; self-inserting, so we only need to get it from the undo information once.
