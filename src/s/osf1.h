@@ -4,22 +4,8 @@
 
 #define OSF1
 
-/* The following used to be done, but -BSD loses when _XOPEN_SOURCE
-   gets defined by configure, at least on OSF5.  It's possible this
-   will need to be reverted for earlier versions (for which OSF5 isn't
-   defined).  */
-#if 0
 #define C_SWITCH_SYSTEM	-D_BSD
 #define LIBS_SYSTEM	-lbsd
-
-#else
-
-#define C_SWITCH_SYSTEM	-D_OSF_SOURCE
-#define WAIT_USE_INT
-#define SYS_SIGLIST_DECLARED
-#define sys_siglist __sys_siglist
-#define NSIG __sys_nsig
-#endif /* 0 */
 
 #define GETPGRP_NO_ARG
 
@@ -42,6 +28,7 @@
 #define C_DEBUG_SWITCH -g3
 #endif
 
+#ifndef NOT_C_CODE
 #ifndef OSF5			/* fixed in 5.0 */
 /* Hack alert!  For reasons unknown to mankind the string.h file insists
    on defining bcopy etc. as taking char pointers as arguments.  With
@@ -55,4 +42,5 @@
 #undef bcopy
 #undef bzero
 #undef bcmp
+#endif
 #endif
