@@ -1,3 +1,10 @@
+2000-12-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_draw_bitmap): Fix drawing so it does not appear
+	in the wrong colors when the foreground is not black.
+	(expose_window): Don't redraw the window that's currently being
+	updated.
+
 2000-12-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (delete_window): Simplify somewhat.
