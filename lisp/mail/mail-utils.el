@@ -1,6 +1,6 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail, news
@@ -194,7 +194,7 @@ Return a modified address list."
        (while (setq pos (string-match "\\(,\\s-*\\|\\`\\)\\([^,]*<\\([^>,:]*\\)>[^,]*\\)\\(\\s-*,\\|\\'\\)"
 				      address))
 	 (setq address (replace-match (match-string 3 address)
-				      nil nil address 2)))
+				      nil 'literal address 2)))
        address))))
 
 ; rmail-dont-reply-to-names is defined in loaddefs
