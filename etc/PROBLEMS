@@ -1339,6 +1339,14 @@ subdirectory: `is_exec.c' and `sigaction.c'.  Compile them and link
 them into the Emacs executable `temacs'; then they will replace the
 incorrect library functions.
 
+* When compiling with DJGPP on Windows NT, "config msdos" fails.
+
+If the error message is "VDM has been already loaded", this is because
+Windows has a program called `redir.exe' that is incompatible with a
+program by the same name supplied with DJGPP, which is used by
+config.bat.  To resolve this, move the DJGPP's `bin' subdirectory to
+the front of your PATH environment variable.
+
 * When compiling with DJGPP on Windows 95, Make fails for some targets
 like make-docfile.
 
