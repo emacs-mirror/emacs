@@ -1,3 +1,8 @@
+2002-11-03  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-dired-move): Adapt dired-move-to-filename-regexp to
+	its current version in dired.el.
+
 2002-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/autoload.el (generate-file-autoloads)
