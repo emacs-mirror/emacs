@@ -1,3 +1,10 @@
+2005-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* faces.el (escape-glyph, minibuffer-prompt): Add commentary for
+	the reasons we use "type pc" in these faces.
+
+	* button.el (button): Ditto.
+
 2005-02-19  Michael Mauger  <mmaug@yahoo.com>
 
 	* replace.el (query-replace-read-from): Set the value of
