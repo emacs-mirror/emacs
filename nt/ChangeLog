@@ -1,3 +1,7 @@
+2003-01-31  Juanma Barranquero  <lektu@terra.es>
+
+	* configure.bat: Automatically detect giflib.
+
 2003-01-29  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs (CURDIR): Disable cygpath kludge.
@@ -15,11 +19,11 @@
 
 	* configure.bat: Automatically detect libpng.
 
-2003-01-21  Jason Rumney <jasonr@gnu.org>
+2003-01-21  Jason Rumney  <jasonr@gnu.org>
 
 	* icons/hand.cur: New file.
 
-2003-01-21  David Ponce <david@dponce.com>
+2003-01-21  David Ponce  <david@dponce.com>
 
 	* emacs.rc (32649): Declare hand cursor resource.
 
@@ -219,7 +223,7 @@
 	* INSTALL: Add --ldflags to configure line for building with
 	recent versions of Cygwin GCC.
 
-2001-03-05  Eli Zaretskii <eliz@is.elta.co.il>
+2001-03-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.bat: Use correct options when compiling a test program
 	with Cygwin.  From David Ponce <dponce@voila.fr>.
@@ -604,7 +608,7 @@
 	* cmdproxy.c (main): Set environment size only when running
 	command.com.
 
-1998-11-03  Theodore Jump <tjump@tertius.com>
+1998-11-03  Theodore Jump  <tjump@tertius.com>
 
 	* makefile.def (SYS_LDFLAGS): Use swapfile when running from cd or net.
 	(DEL_TREE): Use rd instead of rmdir.
@@ -798,13 +802,13 @@
 	* addpm.c (env_vars): Set SHELL registry entry to value of COMSPEC
  	environment variable.
 
-1996-05-03  Andrew Innes <andrewi@harlequin.co.uk>
+1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* install.bat: Allow for optimized build.
 	* makefile.def [BUILD_TYPE]: Build optimized version in its own dir.
 	(ARCH_CFLAGS) [BUILD_TYPE == spd]: Build optimized version.
 
-1996-05-03  Andrew Innes <andrewi@harlequin.co.uk>
+1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* addpm.c (REG_ROOT): Don't use a trailing backslash.
 	(env_vars): Rename field emacs_path to emacs_dir.
