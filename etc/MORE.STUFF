@@ -1,0 +1,52 @@
+More Neat Stuff for your Emacs			-*-Outline-*-
+
+This file describes GNU Emacs programs and resources that are maintained
+by other people.  Some of these may become part of the Emacs distribution
+in the future.
+
+* The LCD archive
+
+There is a large collection of Emacs Lisp code available for FTP at
+archive.cis.ohio-state.edu; it is actively maintained by Dave Brennan
+<brennan@hal.com> and Dave Sill <de5@ornl.gov>.
+
+To get started using this archive, do:
+
+	ftp archive.cis.ohio-state.edu
+
+Once you're in FTP, do
+
+	cd pub/gnu/emacs/elisp-archive
+	bin
+	get lispdir.el.Z
+	get LCD-datafile.Z
+
+and exit.  Then do:
+
+	compress -d *.Z
+
+The lispdir.el package will help you search for useful packages in the
+LCD-datafile, which is a list of the archive constants.  It will even
+fetch them for you on command.
+
+* Eric Ludlam's etalk system
+
+Eric Ludlam has written a C program and Emacs Lisp code to do Internet talk
+through an Emacs window.  The package also includes Emacs Lisp code which
+assists you in using talk to play a number of different interactive games.
+
+This system seems to be quite nicely put together and is well documented
+with a texinfo file that you can integrate into Emacs's own on-line help.
+It's too large and specialized to include in the Emacs distribution, though.
+
+Sources of this system are available for FTP at
+
+	nic.umass.edu		128.119.166.14
+
+Look under pub/contrib.  As of March 23 1993, there are two relevant files:
+
+	pub/contrib/etalk0.6B.tar.Z	--- sources of the talk system
+	pub/contrib/egames0.6B.tar.Z	--- more game-support files
+
+We don't know whether this can use the additional features in GNU talk.
+
