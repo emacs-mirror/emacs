@@ -1610,7 +1610,7 @@ lisp_data_to_selection_data (display, obj,
       int num;
 
       *format_ret = 8;
-      *size_ret = XSTRING (obj)->size;
+      *size_ret = XSTRING (obj)->size_byte;
       *data_ret = XSTRING (obj)->data;
       bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
       num = ((*size_ret <= 1	/* Check the possibility of short cut.  */
@@ -2133,7 +2133,7 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   buffer_atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (selected_frame),
 				  display, buffer);
   data = (unsigned char *) XSTRING (string)->data;
-  bytes = XSTRING (string)->size;
+  bytes = XSTRING (string)->size_byte;
   bytes_remaining = bytes;
 
   if (! FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized)
