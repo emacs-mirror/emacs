@@ -48,7 +48,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "getopt.h"
 
 extern char *getenv ();
-extern char *getcwd ();
 
 char *etags_index (), *etags_rindex ();
 char *savenstr ();
@@ -246,7 +245,6 @@ char *curfile,			/* current input file name		*/
  *intk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789";
 
 int append_to_tagfile;		/* -a: append to tags */
-int absolute_pathnames;		/* -A: use absolute pathnames in tag file */
 int emacs_tags_format;		/* emacs style output (no -e option any more) */
 /* The following three default to 1 for etags, but to 0 for ctags.  */
 int typedefs;			/* -t: create tags for typedefs */
@@ -267,12 +265,8 @@ int noindentypedefs;		/* -S: ignore indentation in C */
 /* Name this program was invoked with.  */
 char *progname;
 
-/* The current working directory, used if --absolute-pathnames. */
-char *cwd;
-
 struct option longopts[] = {
   { "append",			no_argument,	   NULL, 'a' },
-  { "absolute-pathnames",	no_argument,	   NULL, 'A' },
   { "backward-search",		no_argument,	   NULL, 'B' }, 
   { "c++",			no_argument,	   NULL, 'C' },
   { "cxref",			no_argument,	   NULL, 'x' },
@@ -343,8 +337,6 @@ names from stdin.\n\n", progname);
 
   puts ("-a, --append\n\
         Append tag entries to existing tags file.");
-  puts ("-A, --absolute-pathnames\n\
-        Use absolute pathnames for tagged files.");
 
 #ifdef CTAGS
   puts ("-B, --backward-search\n\
@@ -489,9 +481,6 @@ main (argc, argv)
 	case 'a':
 	  append_to_tagfile++;
 	  break;
-	case 'A':
-	  absolute_pathnames++;
-	  break;
 	case 'C':
 	  cplusplus = 1;
 	  break;
@@ -625,16 +614,6 @@ main (argc, argv)
     }			/* solely to balance out the ifdef'd parens above */
 #endif
 #else
-  if (absolute_pathnames)
-    {
-      cwd = getcwd (NULL, 2*BUFSIZ);
-      if (cwd == NULL)
-	{
-	  perror ("pwd");
-	  exit (BAD);
-	}
-      strcat (cwd, "/");
-    }
   for (; optind < argc; optind++)
     {
       this_file = argv[optind];
@@ -722,9 +701,7 @@ process_file (file)
     }
   if (emacs_tags_format)
     {
-      fprintf (outf, "\f\n%s%s,%d\n",
-	       ((absolute_pathnames && file[0] != '/') ? cwd : ""),
-	       file, total_size_of_entries (head));
+      fprintf (outf, "\f\n%s,%d\n", file, total_size_of_entries (head));
       put_entries (head);
       free_tree (head);
       head = NULL;
@@ -1920,7 +1897,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
     case dignorerest:
       return (FALSE);
     default:
-      error ("internal error: definedef value is %d", definedef);
+      error ("internal error: definedef value.", 0);
     }
 
   /*
