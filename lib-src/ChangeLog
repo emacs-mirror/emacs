@@ -1,3 +1,8 @@
+2002-03-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (add_declarator, skip_initializer): New functions.
+	(declaration): Use them.
+
 2002-03-28  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (lisp): Move backquote.elc into emacs-lisp.
