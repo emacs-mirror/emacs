@@ -1,3 +1,7 @@
+2001-05-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-interaction-mode): Doc fix.
+
 2001-05-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* tar-mode.el (tar-extract): Pay attention to the value of
