@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.4 1999/12/07 07:04:03 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.5 2000/02/07 02:01:07 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -49,6 +49,7 @@
 ;; - improve narrowed-view support.
 ;; - improve the `compile' support (?).
 ;; - recognize pcl-cvs' special string for `cvs-execute-single'.
+;; - add support for # comments in diffs
 
 ;;; Code:
 
@@ -86,29 +87,20 @@ when editing big diffs)."
 ;;;; keymap, menu, ...
 ;;;; 
 
-(defmacro diff-defmap (var bindings doc)
-  `(defvar ,var
-     (let ((m (make-keymap)))
-       (dolist (b ,bindings)
-	 (define-key m (car b) (cdr b)))
-       m)
-     ,doc))
-
-(diff-defmap diff-mode-shared-map
+(easy-mmode-defmap diff-mode-shared-map
   '(;; from Pavel Machek's patch-mode
-    ("n" . diff-next-hunk)
-    ("N" . diff-next-file)
-    ("p" . diff-prev-hunk)
-    ("P" . diff-prev-file)
-    ("k" . diff-kill-hunk)
-    ("K" . diff-kill-file)
+    ("n" . diff-hunk-next)
+    ("N" . diff-file-next)
+    ("p" . diff-hunk-prev)
+    ("P" . diff-file-prev)
+    ("k" . diff-hunk-kill)
+    ("K" . diff-file-kill)
     ;; from compilation-minor-mode
-    ("}" . diff-next-file)
-    ("{" . diff-prev-file)
+    ("}" . diff-file-next)
+    ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
     ;; from XEmacs' diff-mode
     ("W" . widen)
-    ;;("\C-l" . diff-recenter)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
     ("o" . diff-goto-source)		;other-window
@@ -126,9 +118,8 @@ when editing big diffs)."
     ("U" . diff-context->unified)
     ("C" . diff-unified->context))
   "Basic keymap for `diff-mode', bound to various prefix keys.")
-(fset 'diff-mode-shared-map diff-mode-shared-map)
 
-(diff-defmap diff-mode-map
+(easy-mmode-defmap diff-mode-map
   `(("\e" . ,diff-mode-shared-map)
     ;; from compilation-minor-mode
     ("\C-c\C-c" . diff-goto-source))
@@ -151,8 +142,8 @@ when editing big diffs)."
   :group 'diff-mode
   :type '(choice (string "\e") (string "C-cd") string))
 
-(diff-defmap diff-minor-mode-map
-  `((,diff-minor-mode-prefix . diff-mode-shared-map))
+(easy-mmode-defmap diff-minor-mode-map
+  `((,diff-minor-mode-prefix . ,diff-mode-shared-map))
   "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'.")
 
 
@@ -245,7 +236,8 @@ when editing big diffs)."
 		       (normal "^\\([<>\\][ \t]\\|---\\)")
 		       (t "^[^-+!<> \\]"))
 		     nil 'move)
-  (beginning-of-line))
+  (beginning-of-line)
+  (point))
 
 (defun diff-beginning-of-hunk ()
   (beginning-of-line)
@@ -268,58 +260,11 @@ when editing big diffs)."
   (re-search-forward "^[^-+!<>0-9@* \\]" nil 'move)
   (beginning-of-line))
 
-(defun diff-recenter ()
-  "Scroll if necessary to display the current hunk."
-  (interactive)
-  (when (eq (current-buffer) (window-buffer (selected-window)))
-    (let ((endpt (save-excursion (diff-end-of-hunk) (point))))
-      (unless (<= endpt (window-end))
-	(recenter)
-	;;(unless (<= endpt (window-end nil t))
-	;;  (set-window-start (selected-window) (point)))
-	))))
-
-(defun diff-next-hunk (&optional count)
-  "Move to next (COUNT'th) hunk."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (diff-prev-hunk (- count))
-    (when (looking-at diff-hunk-header-re) (incf count))
-    (condition-case ()
-	(re-search-forward diff-hunk-header-re nil nil count)
-      (error (error "Can't find next hunk")))
-    (goto-char (match-beginning 0))
-    (diff-recenter)))
-
-(defun diff-prev-hunk (&optional count)
-  "Move to previous (COUNT'th) hunk."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (diff-next-hunk (- count))
-    (condition-case ()
-	(re-search-backward diff-hunk-header-re nil nil count)
-      (error (error "Can't find previous hunk")))))
-
-(defun diff-next-file (&optional count)
-  "Move to next (COUNT'th) file header."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (diff-prev-file (- count))
-    (when (looking-at diff-file-header-re) (incf count))
-    (condition-case ()
-	(re-search-forward diff-file-header-re nil nil count)
-      (error (error "Can't find next file")))
-    (goto-char (match-beginning 0))
-    (diff-recenter)))
-
-(defun diff-prev-file (&optional count)
-  "Move to (COUNT'th) previous file header."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (diff-next-file (- count))
-    (condition-case ()
-	(re-search-backward diff-file-header-re nil nil count)
-      (error (error "Can't find previous file")))))
+;; Define diff-{hunk,file}-{prev,next}
+(easy-mmode-define-navigation
+ diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk)
+(easy-mmode-define-navigation
+ diff-file diff-file-header-re "file" diff-end-of-hunk)
 
 (defun diff-restrict-view (&optional arg)
   "Restrict the view to the current hunk.
@@ -333,36 +278,36 @@ If the prefix ARG is given, restrict the view to the current file instead."
     (set (make-local-variable 'diff-narrowed-to) (if arg 'file 'hunk))))
 
 
-(defun diff-kill-hunk ()
+(defun diff-hunk-kill ()
   "Kill current hunk."
   (interactive)
   (diff-beginning-of-hunk)
   (let ((start (point))
 	(firsthunk (save-excursion
 		     (ignore-errors
-		       (diff-beginning-of-file) (diff-next-hunk) (point))))
+		       (diff-beginning-of-file) (diff-hunk-next) (point))))
 	(nexthunk  (save-excursion
 		     (ignore-errors
-		       (diff-next-hunk) (point))))
+		       (diff-hunk-next) (point))))
 	(nextfile (save-excursion
 		    (ignore-errors
-		      (diff-next-file) (point)))))
+		      (diff-file-next) (point)))))
     (if (and firsthunk (= firsthunk start)
 	     (or (null nexthunk)
 		 (and nextfile (> nexthunk nextfile))))
 	;; we're the only hunk for this file, so kill the file
-	(diff-kill-file)
+	(diff-file-kill)
       (diff-end-of-hunk)
       (kill-region start (point)))))
 
-(defun diff-kill-file ()
+(defun diff-file-kill ()
   "Kill current file's hunks."
   (interactive)
   (diff-beginning-of-file)
   (let* ((start (point))
 	 (prevhunk (save-excursion
 		     (ignore-errors
-		       (diff-prev-hunk) (point))))
+		       (diff-hunk-prev) (point))))
 	 (index (save-excursion
 		  (re-search-backward "^Index: " prevhunk t))))
     (when index (setq start index))
@@ -396,6 +341,7 @@ If the prefix ARG is given, restrict the view to the current file instead."
 (defun diff-merge-strings (ancestor from to)
   "Merge the diff between ANCESTOR and FROM into TO.
 Returns the merged string if successful or nil otherwise.
+The strings are assumed not to contain any \"\\n\" (i.e. end of line).
 If ANCESTOR = FROM, returns TO.
 If ANCESTOR = TO, returns FROM.
 The heuristic is simplistic and only really works for cases
@@ -404,10 +350,10 @@ like \(diff-merge-strings \"b/foo\" \"b/bar\" \"/a/c/foo\")."
   ;;   AMB ANB CMD -> CND
   ;; but that's ambiguous if `foo' or `bar' is empty:
   ;; a/foo a/foo1 b/foo.c -> b/foo1.c but not 1b/foo.c or b/foo.c1
-  (let ((str (concat ancestor " /|/ " from " /|/ " to)))
+  (let ((str (concat ancestor "\n" from "\n" to)))
     (when (and (string-match (concat
-			      "\\`\\(.*?\\)\\(.*\\)\\(.*\\) /|/ "
-			      "\\1\\(.*\\)\\3 /|/ "
+			      "\\`\\(.*?\\)\\(.*\\)\\(.*\\)\n"
+			      "\\1\\(.*\\)\\3\n"
 			      "\\(.*\\(\\2\\).*\\)\\'") str)
 	       (equal to (match-string 5 str)))
       (concat (substring str (match-beginning 5) (match-beginning 6))
@@ -425,7 +371,7 @@ Non-nil OLD means that we want the old file."
 	  (re-search-forward diff-file-header-re nil t)))
     (let* ((limit (save-excursion
 		   (condition-case ()
-		       (progn (diff-prev-hunk) (point))
+		       (progn (diff-hunk-prev) (point))
 		     (error (point-min)))))
 	   (header-files
 	    (if (looking-at "[-*][-*][-*] \\(\\S-+\\)\\s-.*\n[-+][-+][-+] \\(\\S-+\\)\\s-.*$")
@@ -834,17 +780,12 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 ;;;; 
 
 ;;;###autoload
-(defun diff-mode ()
+(define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
 Supports unified and context diffs as well as (to a lesser extent) normal diffs.
 When the buffer is read-only, the ESC prefix is not necessary.
 This mode runs `diff-mode-hook'.
 \\{diff-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'diff-mode)
-  (setq mode-name "Diff")
-  (use-local-map diff-mode-map)
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   ;; compile support
@@ -867,8 +808,7 @@ This mode runs `diff-mode-hook'.
 	      'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
   (add-to-list (make-local-variable 'minor-mode-overriding-map-alist)
-  	       (cons 'buffer-read-only diff-mode-shared-map))
-  (run-hooks 'diff-mode-hook))
+  	       (cons 'buffer-read-only diff-mode-shared-map)))
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode
@@ -891,6 +831,14 @@ This mode runs `diff-mode-hook'.
 
 ;;; Change Log:
 ;; $Log: diff-mode.el,v $
+;; Revision 1.5  2000/02/07 02:01:07  monnier
+;; (diff-kill-junk): New interactive function.
+;; (diff-reverse-direction): Use delete-and-extract-region.
+;; (diff-post-command-hook): Restrict the area so that the hook also works
+;; outside of any diff hunk.  This is necessary for the minor-mode.
+;; (diff-mode): Use toggle-read-only and minor-mode-overriding-map-alist.
+;; (diff-minor-mode): Setup the hooks for header-hunk rewriting.
+;;
 ;; Revision 1.4  1999/12/07 07:04:03  monnier
 ;; * diff-mode.el (diff-mode-shared-map): fset'd and doc change.
 ;; (diff-minor-mode, diff-minor-mode-prefix, diff-minor-mode-map):
