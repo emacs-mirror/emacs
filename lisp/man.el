@@ -276,6 +276,12 @@ This regular expression should start with a `^' character.")
 
 (defvar Man-reference-regexp
   (concat "\\(" Man-name-regexp "\\)(\\(" Man-section-regexp "\\))")
+  "Regular expression describing a reference to another manpage.")
+
+;; This includes the section as an optional part to catch hyphenated
+;; refernces to manpages.
+(defvar Man-hyphenated-reference-regexp
+  (concat "\\(" Man-name-regexp "\\)\\((\\(" Man-section-regexp "\\))\\)?")
   "Regular expression describing a reference in the SEE ALSO section.")
 
 (defvar Man-switches ""
@@ -887,16 +893,21 @@ The following key bindings are currently in effect in the buffer:
 	    (back-to-indentation)
 	    (while (and (not (eobp)) (/= (point) runningpoint))
 	      (setq runningpoint (point))
-	      (if (re-search-forward Man-reference-regexp end t)
+	      (if (re-search-forward Man-hyphenated-reference-regexp end t)
 		  (let* ((word (Man-match-substring 0))
 			 (len (1- (length word))))
 		    (if hyphenated
 			(setq word (concat hyphenated word)
-			      hyphenated nil))
+			      hyphenated nil
+			      ;; Update len, in case a reference spans
+			      ;; more than two lines (paranoia).
+			      len (1- (length word))))
 		    (if (= (aref word len) ?-)
-			(setq hyphenated (substring word 0 len))
-		      (aput 'Man-refpages-alist word))))
-	      (skip-chars-forward " \t\n,")))))))
+			(setq hyphenated (substring word 0 len)))
+		    (if (string-match Man-reference-regexp word)
+			(aput 'Man-refpages-alist word))))
+	      (skip-chars-forward " \t\n,"))))))
+  (setq Man-refpages-alist (nreverse Man-refpages-alist)))
 
 (defun Man-build-page-list ()
   "Build the list of separate manpages in the buffer."
@@ -1052,6 +1063,26 @@ Actually the section moved to is described by `Man-see-also-regexp'."
       (error (concat "No " Man-see-also-regexp
 		     " section found in the current manpage"))))
 
+(defun Man-possibly-hyphenated-word ()
+  "Return a possibly hyphenated word at point.
+If the word starts at the first non-whitespace column, and the
+previous line ends with a hyphen, return the last word on the previous
+line instead.  Thus, if a reference to \"tcgetpgrp(3V)\" is hyphenated
+as \"tcgetp-grp(3V)\", and point is at \"grp(3V)\", we return
+\"tcgetp-\" instead of \"grp\"."
+  (save-excursion
+    (skip-syntax-backward "w()")
+    (skip-chars-forward " \t")
+    (let ((beg (point))
+	  (word (current-word)))
+      (when (eq beg (save-excursion
+		      (back-to-indentation)
+		      (point)))
+	(end-of-line 0)
+	(if (eq (char-before) ?-)
+	    (setq word (current-word))))
+      word)))
+
 (defun Man-follow-manual-reference (reference)
   "Get one of the manpages referred to in the \"SEE ALSO\" section.
 Specify which REFERENCE to use; default is based on word at point."
@@ -1059,18 +1090,15 @@ Specify which REFERENCE to use; default is based on word at point."
    (if (not Man-refpages-alist)
        (error "There are no references in the current man page")
      (list (let* ((default (or
-			     (car (all-completions
-				   (save-excursion
-				     (skip-syntax-backward "w()")
-				     (skip-chars-forward " \t")
-				     (let ((word (current-word)))
-				       ;; strip a trailing '-':
-				       (if (string-match "-$" word)
-					   (substring word 0
-						      (match-beginning 0))
-					 word)))
-				   Man-refpages-alist))
-			     (aheadsym Man-refpages-alist)))
+			    (car (all-completions
+				  (let ((word (Man-possibly-hyphenated-word)))
+				    ;; strip a trailing '-':
+				    (if (string-match "-$" word)
+					(substring word 0
+						   (match-beginning 0))
+				      word))
+				  Man-refpages-alist))
+			    (aheadsym Man-refpages-alist)))
 		   chosen
 		   (prompt (concat "Refer to: (default " default ") ")))
 	      (setq chosen (completing-read prompt Man-refpages-alist nil t))
