@@ -241,128 +241,100 @@ scientific notation in calc-mode.")
 (defvar calc-loaded-settings-file nil
   "t if `calc-settings-file' has been loaded yet.")
 
-(defvar calc-always-load-extensions)
-(defvar calc-line-numbering)
-(defvar calc-line-breaking)
-(defvar calc-display-just)
-(defvar calc-display-origin)
-(defvar calc-number-radix)
-(defvar calc-leading-zeros)
-(defvar calc-group-digits)
-(defvar calc-group-char)
-(defvar calc-point-char)
-(defvar calc-frac-format)
-(defvar calc-prefer-frac)
-(defvar calc-hms-format)
-(defvar calc-date-format)
-(defvar calc-float-format)
-(defvar calc-full-float-format)
-(defvar calc-complex-format)
-(defvar calc-complex-mode)
-(defvar calc-infinite-mode)
-(defvar calc-display-strings)
-(defvar calc-matrix-just)
-(defvar calc-break-vectors)
-(defvar calc-full-vectors)
-(defvar calc-full-trail-vectors)
-(defvar calc-vector-commas)
-(defvar calc-vector-brackets)
-(defvar calc-matrix-brackets)
-(defvar calc-language)
-(defvar calc-language-option)
-(defvar calc-left-label)
-(defvar calc-right-label)
-(defvar calc-word-size)
-(defvar calc-previous-modulo)
-(defvar calc-simplify-mode)
-(defvar calc-auto-recompute)
-(defvar calc-display-raw)
-(defvar calc-internal-prec)
-(defvar calc-angle-mode)
-(defvar calc-algebraic-mode)
-(defvar calc-incomplete-algebraic-mode)
-(defvar calc-symbolic-mode)
-(defvar calc-matrix-mode)
-(defvar calc-shift-prefix)
-(defvar calc-window-height)
-(defvar calc-display-trail)
-(defvar calc-show-selections)
-(defvar calc-use-selections)
-(defvar calc-assoc-selections)
-(defvar calc-display-working-message)
-(defvar calc-auto-why)
-(defvar calc-timing)
-(defvar calc-mode-save-mode)
-(defvar calc-standard-date-formats)
-(defvar calc-autorange-units)
-(defvar calc-was-keypad-mode)
-(defvar calc-full-mode)
-(defvar calc-user-parse-tables)
-(defvar calc-gnuplot-default-device)
-(defvar calc-gnuplot-default-output)
-(defvar calc-gnuplot-print-device)
-(defvar calc-gnuplot-print-output)
-(defvar calc-gnuplot-geometry)
-(defvar calc-graph-default-resolution)
-(defvar calc-graph-default-resolution-3d)
-(defvar calc-invocation-macro)
-(defvar calc-show-banner)
 
-(defconst calc-mode-var-list '(
-  (calc-always-load-extensions nil
-   "If non-nil, load the calc-ext module automatically when calc is loaded.")
+(defvar calc-mode-var-list '()
+  "List of variables used in customizing GNU Calc.")
 
-  (calc-line-numbering t
-   "If non-nil, display line numbers in Calculator stack.")
+(defmacro defcalcmodevar (var defval &optional doc)
+  `(progn
+     (defvar ,var ,defval ,doc)
+     (add-to-list 'calc-mode-var-list (list (quote ,var) ,defval))))
 
-  (calc-line-breaking t
-   "If non-nil, break long values across multiple lines in Calculator stack.")
+(defun calc-mode-var-list-restore-default-values ()
+  (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
+          calc-mode-var-list))
 
-  (calc-display-just nil
-   "If nil, stack display is left-justified.
+(defun calc-mode-var-list-restore-saved-values ()
+  (let ((newvarlist '()))
+    (save-excursion
+      (let (pos)
+        (set-buffer (find-file-noselect (substitute-in-file-name
+                                         calc-settings-file)))
+        (goto-char (point-min))
+        (when (and (search-forward ";;; Mode settings stored by Calc" nil t)
+                   (progn
+                     (forward-line 1)
+                     (setq pos (point))
+                     (search-forward "\n;;; End of mode settings" nil t)))
+          (beginning-of-line)
+          (calc-mode-var-list-restore-default-values)
+          (eval-region pos (point))
+          (let ((varlist calc-mode-var-list))
+            (while varlist
+              (let ((var (car varlist)))
+                (setq newvarlist
+                      (cons (list (car var) (symbol-value (car var)))
+                            newvarlist)))
+              (setq varlist (cdr varlist)))))))
+    (if newvarlist
+        (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
+                newvarlist)
+      (calc-mode-var-list-restore-default-values))))
+
+(defcalcmodevar calc-always-load-extensions nil
+  "If non-nil, load the calc-ext module automatically when calc is loaded.")
+
+(defcalcmodevar  calc-line-numbering t
+  "If non-nil, display line numbers in Calculator stack.")
+
+(defcalcmodevar calc-line-breaking t
+  "If non-nil, break long values across multiple lines in Calculator stack.")
+
+(defcalcmodevar calc-display-just nil
+  "If nil, stack display is left-justified.
 If `right', stack display is right-justified.
 If `center', stack display is centered.")
 
-  (calc-display-origin nil
-   "Horizontal origin of displayed stack entries.
+(defcalcmodevar calc-display-origin nil
+  "Horizontal origin of displayed stack entries.
 In left-justified mode, this is effectively indentation.  (Default 0).
 In right-justified mode, this is effectively window width.
 In centered mode, center of stack entry is placed here.")
 
-  (calc-number-radix 10
-   "Radix for entry and display of numbers in calc-mode, 2-36.")
+(defcalcmodevar calc-number-radix 10
+  "Radix for entry and display of numbers in calc-mode, 2-36.")
 
-  (calc-leading-zeros nil
-   "If non-nil, leading zeros are provided to pad integers to calc-word-size.")
+(defcalcmodevar calc-leading-zeros nil
+  "If non-nil, leading zeros are provided to pad integers to calc-word-size.")
 
-  (calc-group-digits nil
-   "If non-nil, group digits in large displayed integers by inserting spaces.
+(defcalcmodevar calc-group-digits nil
+  "If non-nil, group digits in large displayed integers by inserting spaces.
 If an integer, group that many digits at a time.
 If t, use 4 for binary and hex, 3 otherwise.")
 
-  (calc-group-char ","
-   "The character (in the form of a string) to be used for grouping digits.
+(defcalcmodevar calc-group-char ","
+  "The character (in the form of a string) to be used for grouping digits.
 This is used only when calc-group-digits mode is on.")
 
-  (calc-point-char "."
-   "The character (in the form of a string) to be used as a decimal point.")
+(defcalcmodevar calc-point-char "."
+  "The character (in the form of a string) to be used as a decimal point.")
   
-  (calc-frac-format (":" nil)
-   "Format of displayed fractions; a string of one or two of \":\" or \"/\".")
+(defcalcmodevar calc-frac-format '(":" nil)
+  "Format of displayed fractions; a string of one or two of \":\" or \"/\".")
 
-  (calc-prefer-frac nil
-   "If non-nil, prefer fractional over floating-point results.")
+(defcalcmodevar calc-prefer-frac nil
+  "If non-nil, prefer fractional over floating-point results.")
 
-  (calc-hms-format "%s@ %s' %s\""
-   "Format of displayed hours-minutes-seconds angles, a format string.
+(defcalcmodevar calc-hms-format "%s@ %s' %s\""
+  "Format of displayed hours-minutes-seconds angles, a format string.
 String must contain three %s marks for hours, minutes, seconds respectively.")
 
-  (calc-date-format ((H ":" mm C SS pp " ")
-                     Www " " Mmm " " D ", " YYYY)
-   "Format of displayed date forms.")
+(defcalcmodevar calc-date-format '((H ":" mm C SS pp " ")
+                                  Www " " Mmm " " D ", " YYYY)
+  "Format of displayed date forms.")
 
-  (calc-float-format (float 0)
-   "Format to use for display of floating-point numbers in calc-mode.
+(defcalcmodevar calc-float-format '(float 0)
+  "Format to use for display of floating-point numbers in calc-mode.
 Must be a list of one of the following forms:
  (float 0)      Floating point format, display full precision.
  (float N)      N > 0: Floating point format, at most N significant figures.
@@ -375,54 +347,54 @@ Must be a list of one of the following forms:
  (eng N)        N > 0: Engineering notation, N significant figures.
  (eng -N)       -N < 0: Engineering notation, calc-internal-prec - N figs.")
 
-  (calc-full-float-format (float 0)
-   "Format to use when full precision must be displayed.")
+(defcalcmodevar calc-full-float-format '(float 0)
+  "Format to use when full precision must be displayed.")
 
-  (calc-complex-format nil
-   "Format to use for display of complex numbers in calc-mode.  Must be one of:
+(defcalcmodevar calc-complex-format nil
+  "Format to use for display of complex numbers in calc-mode.  Must be one of:
   nil            Use (x, y) form.
   i              Use x + yi form.
   j              Use x + yj form.")
 
-  (calc-complex-mode cplx
-   "Preferred form, either `cplx' or `polar', for complex numbers.")
+(defcalcmodevar calc-complex-mode 'cplx
+  "Preferred form, either `cplx' or `polar', for complex numbers.")
 
-  (calc-infinite-mode nil
-   "If nil, 1 / 0 is left unsimplified.
+(defcalcmodevar calc-infinite-mode nil
+  "If nil, 1 / 0 is left unsimplified.
 If 0, 1 / 0 is changed to inf (zeros are considered positive).
 Otherwise, 1 / 0 is changed to uinf (undirected infinity).")
 
-  (calc-display-strings nil
-   "If non-nil, display vectors of byte-sized integers as strings.")
+(defcalcmodevar calc-display-strings nil
+  "If non-nil, display vectors of byte-sized integers as strings.")
 
-  (calc-matrix-just center
-   "If nil, vector elements are left-justified.
+(defcalcmodevar calc-matrix-just 'center
+  "If nil, vector elements are left-justified.
 If `right', vector elements are right-justified.
 If `center', vector elements are centered.")
 
-  (calc-break-vectors nil
-   "If non-nil, display vectors one element per line.")
+(defcalcmodevar calc-break-vectors nil
+  "If non-nil, display vectors one element per line.")
 
-  (calc-full-vectors t
-   "If non-nil, display long vectors in full.  If nil, use abbreviated form.")
+(defcalcmodevar calc-full-vectors t
+  "If non-nil, display long vectors in full.  If nil, use abbreviated form.")
 
-  (calc-full-trail-vectors t
-   "If non-nil, display long vectors in full in the trail.")
+(defcalcmodevar calc-full-trail-vectors t
+  "If non-nil, display long vectors in full in the trail.")
 
-  (calc-vector-commas ","
-   "If non-nil, separate elements of displayed vectors with this string.")
+(defcalcmodevar calc-vector-commas ","
+  "If non-nil, separate elements of displayed vectors with this string.")
 
-  (calc-vector-brackets "[]"
-   "If non-nil, surround displayed vectors with these characters.")
+(defcalcmodevar calc-vector-brackets "[]"
+  "If non-nil, surround displayed vectors with these characters.")
 
-  (calc-matrix-brackets (R O)
-   "A list of code-letter symbols that control \"big\" matrix display.
+(defcalcmodevar calc-matrix-brackets '(R O)
+  "A list of code-letter symbols that control \"big\" matrix display.
 If `R' is present, display inner brackets for matrices.
 If `O' is present, display outer brackets for matrices (above/below).
 If `C' is present, display outer brackets for matrices (centered).")
 
-  (calc-language nil
-   "Language or format for entry and display of stack values.  Must be one of:
+(defcalcmodevar calc-language nil
+  "Language or format for entry and display of stack values.  Must be one of:
   nil		Use standard Calc notation.
   flat		Use standard Calc notation, one-line format.
   big		Display formulas in 2-d notation (enter w/std notation).
@@ -435,23 +407,23 @@ If `C' is present, display outer brackets for matrices (centered).")
   math		Use Mathematica(tm) notation.
   maple		Use Maple notation.")
 
-  (calc-language-option nil
-   "Numeric prefix argument for the command that set `calc-language'.")
+(defcalcmodevar calc-language-option nil
+  "Numeric prefix argument for the command that set `calc-language'.")
 
-  (calc-left-label ""
-   "Label to display at left of formula.")
+(defcalcmodevar calc-left-label ""
+  "Label to display at left of formula.")
 
-  (calc-right-label ""
-   "Label to display at right of formula.")
+(defcalcmodevar calc-right-label ""
+  "Label to display at right of formula.")
 
-  (calc-word-size 32
-   "Minimum number of bits per word, if any, for binary operations in calc-mode.")
+(defcalcmodevar calc-word-size 32
+  "Minimum number of bits per word, if any, for binary operations in calc-mode.")
 
-  (calc-previous-modulo nil
-   "Most recently used value of M in a modulo form.")
+(defcalcmodevar calc-previous-modulo nil
+  "Most recently used value of M in a modulo form.")
 
-  (calc-simplify-mode nil
-   "Type of simplification applied to results.
+(defcalcmodevar calc-simplify-mode nil
+  "Type of simplification applied to results.
 If `none', results are not simplified when pushed on the stack.
 If `num', functions are simplified only when args are constant.
 If nil, only fast simplifications are applied.
@@ -460,69 +432,69 @@ If `alg', `math-simplify' is applied.
 If `ext', `math-simplify-extended' is applied.
 If `units', `math-simplify-units' is applied.")
 
-  (calc-auto-recompute t
-   "If non-nil, recompute evalto's automatically when necessary.")
+(defcalcmodevar calc-auto-recompute t
+  "If non-nil, recompute evalto's automatically when necessary.")
 
-  (calc-display-raw nil
-   "If non-nil, display shows unformatted Lisp exprs.  (For debugging)")
+(defcalcmodevar calc-display-raw nil
+  "If non-nil, display shows unformatted Lisp exprs.(defcalcmodevar For debugging)")
 
-  (calc-internal-prec 12
-   "Number of digits of internal precision for calc-mode calculations.")
+(defcalcmodevar calc-internal-prec 12
+  "Number of digits of internal precision for calc-mode calculations.")
 
-  (calc-angle-mode deg
-   "If deg, angles are in degrees; if rad, angles are in radians.
+(defcalcmodevar calc-angle-mode 'deg
+  "If deg, angles are in degrees; if rad, angles are in radians.
 If hms, angles are in degrees-minutes-seconds.")
 
-  (calc-algebraic-mode nil
-   "If non-nil, numeric entry accepts whole algebraic expressions.
+(defcalcmodevar calc-algebraic-mode nil
+  "If non-nil, numeric entry accepts whole algebraic expressions.
 If nil, algebraic expressions must be preceded by \"'\".")
 
-  (calc-incomplete-algebraic-mode nil
-   "Like calc-algebraic-mode except only affects ( and [ keys.")
+(defcalcmodevar calc-incomplete-algebraic-mode nil
+  "Like calc-algebraic-mode except only affects ( and [ keys.")
 
-  (calc-symbolic-mode nil
-   "If non-nil, inexact numeric computations like sqrt(2) are postponed.
+(defcalcmodevar calc-symbolic-mode nil
+  "If non-nil, inexact numeric computations like sqrt(2) are postponed.
 If nil, computations on numbers always yield numbers where possible.")
 
-  (calc-matrix-mode nil
-   "If `matrix', variables are assumed to be matrix-valued.
+(defcalcmodevar calc-matrix-mode nil
+  "If `matrix', variables are assumed to be matrix-valued.
 If a number, variables are assumed to be NxN matrices.
 If `scalar', variables are assumed to be scalar-valued.
 If nil, symbolic math routines make no assumptions about variables.")
 
-  (calc-shift-prefix nil
-   "If non-nil, shifted letter keys are prefix keys rather than normal meanings.")
+(defcalcmodevar calc-shift-prefix nil
+  "If non-nil, shifted letter keys are prefix keys rather than normal meanings.")
 
-  (calc-window-height 7
-   "Initial height of Calculator window.")
+(defcalcmodevar calc-window-height 7
+  "Initial height of Calculator window.")
 
-  (calc-display-trail t
-   "If non-nil, M-x calc creates a window to display Calculator trail.")
+(defcalcmodevar calc-display-trail t
+  "If non-nil, M-x calc creates a window to display Calculator trail.")
 
-  (calc-show-selections t
-   "If non-nil, selected sub-formulas are shown by obscuring rest of formula.
+(defcalcmodevar calc-show-selections t
+  "If non-nil, selected sub-formulas are shown by obscuring rest of formula.
 If nil, selected sub-formulas are highlighted by obscuring the sub-formulas.")
 
-  (calc-use-selections t
-   "If non-nil, commands operate only on selected portions of formulas.
+(defcalcmodevar calc-use-selections t
+  "If non-nil, commands operate only on selected portions of formulas.
 If nil, selections displayed but ignored.")
 
-  (calc-assoc-selections t
-   "If non-nil, selection hides deep structure of associative formulas.")
+(defcalcmodevar calc-assoc-selections t
+  "If non-nil, selection hides deep structure of associative formulas.")
 
-  (calc-display-working-message lots
-   "If non-nil, display \"Working...\" for potentially slow Calculator commands.")
+(defcalcmodevar calc-display-working-message 'lots
+  "If non-nil, display \"Working...\" for potentially slow Calculator commands.")
 
-  (calc-auto-why maybe
-   "If non-nil, automatically execute a \"why\" command to explain odd results.")
+(defcalcmodevar calc-auto-why 'maybe
+  "If non-nil, automatically execute a \"why\" command to explain odd results.")
 
-  (calc-timing nil
-   "If non-nil, display timing information on each slow command.")
+(defcalcmodevar calc-timing nil
+  "If non-nil, display timing information on each slow command.")
 
-  (calc-mode-save-mode local)
+(defcalcmodevar calc-mode-save-mode 'local)
 
-  (calc-standard-date-formats
-   ("N"
+(defcalcmodevar calc-standard-date-formats
+  '("N"
     "<H:mm:SSpp >Www Mmm D, YYYY"
     "D Mmm YYYY<, h:mm:SS>"
     "Www Mmm BD< hh:mm:ss> YYYY"
@@ -533,40 +505,32 @@ If nil, selections displayed but ignored.")
     "j<, h:mm:SS>"
     "YYddd< hh:mm:ss>"))
 
-  (calc-autorange-units nil)
+(defcalcmodevar calc-autorange-units nil)
   
-  (calc-was-keypad-mode nil)
+(defcalcmodevar calc-was-keypad-mode nil)
   
-  (calc-full-mode nil)
+(defcalcmodevar calc-full-mode nil)
 
-  (calc-user-parse-tables nil)
+(defcalcmodevar calc-user-parse-tables nil)
 
-  (calc-gnuplot-default-device "default")
+(defcalcmodevar calc-gnuplot-default-device "default")
 
-  (calc-gnuplot-default-output "STDOUT")
+(defcalcmodevar calc-gnuplot-default-output "STDOUT")
 
-  (calc-gnuplot-print-device "postscript")
+(defcalcmodevar calc-gnuplot-print-device "postscript")
   
-  (calc-gnuplot-print-output "auto")
+(defcalcmodevar calc-gnuplot-print-output "auto")
 
-  (calc-gnuplot-geometry nil)
+(defcalcmodevar calc-gnuplot-geometry nil)
 
-  (calc-graph-default-resolution 15)
+(defcalcmodevar calc-graph-default-resolution 15)
 
-  (calc-graph-default-resolution-3d 5)
+(defcalcmodevar calc-graph-default-resolution-3d 5)
   
-  (calc-invocation-macro nil)
+(defcalcmodevar calc-invocation-macro nil)
 
-  (calc-show-banner t
-   "*If non-nil, show a friendly greeting above the stack."))
-  "List of variables (and default values) used in customizing GNU Calc.")
-
-(mapcar (function (lambda (v)
-                    (or (boundp (car v))
-                        (set (car v) (nth 1 v)))
-                    (if (nth 2 v)
-                        (put (car v) 'variable-documentation (nth 2 v)))))
-        calc-mode-var-list)
+(defcalcmodevar calc-show-banner t
+  "*If non-nil, show a friendly greeting above the stack.")
 
 (defconst calc-local-var-list '(calc-stack
 				calc-stack-top
