@@ -82,29 +82,52 @@
   (modify-syntax-entry ?| "." icon-mode-syntax-table)
   (modify-syntax-entry ?\' "\"" icon-mode-syntax-table))
 
-(defvar icon-indent-level 4
-  "*Indentation of Icon statements with respect to containing block.")
-(defvar icon-brace-imaginary-offset 0
-  "*Imagined indentation of a Icon open brace that actually follows a statement.")
-(defvar icon-brace-offset 0
-  "*Extra indentation for braces, compared with other text in same context.")
-(defvar icon-continued-statement-offset 4
-  "*Extra indent for lines not starting new statements.")
-(defvar icon-continued-brace-offset 0
-  "*Extra indent for substatements that start with open-braces.
-This is in addition to icon-continued-statement-offset.")
+(defgroup icon nil
+  "Mode for editing Icon code."
+  :group 'languages)
 
-(defvar icon-auto-newline nil
-  "*Non-nil means automatically newline before and after braces
-inserted in Icon code.")
+(defcustom icon-indent-level 4
+  "*Indentation of Icon statements with respect to containing block."
+  :type 'integer
+  :group 'icon)
 
-(defvar icon-tab-always-indent t
-  "*Non-nil means TAB in Icon mode should always reindent the current line,
-regardless of where in the line point is when the TAB command is used.")
+(defcustom icon-brace-imaginary-offset 0
+  "*Imagined indentation of a Icon open brace that actually follows a statement."
+  :type 'integer
+  :group 'icon)
+
+(defcustom icon-brace-offset 0
+  "*Extra indentation for braces, compared with other text in same context."
+  :type 'integer
+  :group 'icon)
+
+(defcustom icon-continued-statement-offset 4
+  "*Extra indent for Icon lines not starting new statements."
+  :type 'integer
+  :group 'icon)
+
+(defcustom icon-continued-brace-offset 0
+  "*Extra indent for Icon substatements that start with open-braces.
+This is in addition to `icon-continued-statement-offset'."
+  :type 'integer
+  :group 'icon)
+
+(defcustom icon-auto-newline nil
+  "*Non-nil means automatically newline before and after braces Icon code.
+This applies when braces are inserted."
+  :type 'boolean
+  :group 'icon)
+
+(defcustom icon-tab-always-indent t
+  "*Non-nil means TAB in Icon mode should always reindent the current line.
+It will then reindent, regardless of where in the line point is
+when the TAB command is used."
+  :type 'integer
+  :group 'icon)
 
 (defvar icon-imenu-generic-expression
       '((nil "^[ \t]*procedure[ \t]*\\(\\sw+\\)[ \t]*("  1))
-  "Imenu expression for Icon-mode.  See `imenu-generic-expression'.")
+  "Imenu expression for Icon mode.  See `imenu-generic-expression'.")
 
 
 
