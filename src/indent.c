@@ -1139,7 +1139,7 @@ vmotion (from, vtarget, w)
 				 lmargin + (XFASTINT (prevline) == BEG
 					    ? start_hpos : 0),
 				 0,
-				 from, 1 << (INTBITS - 2), 0,
+				 from, 1 << (BITS_PER_INT - 2), 0,
 				 width, hscroll, 0, w);
 	  vpos -= pos.vpos;
 	  first = 0;
@@ -1185,7 +1185,7 @@ vmotion (from, vtarget, w)
 			     lmargin + (XFASTINT (prevline) == BEG
 					? start_hpos : 0),
 			     0,
-			     from, 1 << (INTBITS - 2), 0,
+			     from, 1 << (BITS_PER_INT - 2), 0,
 			     width, hscroll, 0, w);
       did_motion = 1;
     }
@@ -1196,7 +1196,7 @@ vmotion (from, vtarget, w)
       did_motion = 0;
     }
   return compute_motion (from, vpos, pos.hpos, did_motion,
-			 ZV, vtarget, - (1 << (INTBITS - 2)),
+			 ZV, vtarget, - (1 << (BITS_PER_INT - 2)),
 			 width, hscroll, pos.vpos * width, w);
 }
 

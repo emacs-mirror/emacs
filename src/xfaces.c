@@ -400,7 +400,7 @@ DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
 	       && XINT (height) > 0
 	       /* The string must have enough bits for width * height.  */
 	       && ((XSTRING (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->car)->size
-		    * (INTBITS / sizeof (int)))
+		    * (BITS_PER_INT / sizeof (int)))
 		   >= XFASTINT (width) * XFASTINT (height))))
 	  ? Qt : Qnil);
 }

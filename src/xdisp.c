@@ -987,7 +987,7 @@ redisplay ()
 	  pos = *compute_motion (tlbufpos, 0,
 				 XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0,
 				 0,
-				 PT, 2, - (1 << (SHORTBITS - 1)),
+				 PT, 2, - (1 << (BITS_PER_SHORT - 1)),
 				 window_internal_width (w) - 1,
 				 XINT (w->hscroll),
 				 pos_tab_offset (w, tlbufpos), w);
@@ -1531,7 +1531,7 @@ redisplay_window (window, just_this_one)
 				  + (hscroll ? 1 - hscroll : 0)),
 				 0,
 				 ZV, height / 2,
-				 - (1 << (SHORTBITS - 1)),
+				 - (1 << (BITS_PER_SHORT - 1)),
 				 width, hscroll, pos_tab_offset (w, startp), w);
 	  BUF_PT (current_buffer) = pos.bufpos;
 	  if (w != XWINDOW (selected_window))
@@ -1967,7 +1967,7 @@ try_window_id (window)
 
   /* Compute the cursor position after that newline.  */
   ep = *compute_motion (pos, vpos, val.hpos, did_motion, tem,
-			height, - (1 << (SHORTBITS - 1)),
+			height, - (1 << (BITS_PER_SHORT - 1)),
 			width, hscroll, pos_tab_offset (w, bp.bufpos), w);
 
   /* If changes reach past the text available on the frame,
@@ -2023,13 +2023,13 @@ try_window_id (window)
 	  if (PT <= xp.bufpos)
 	    {
 	      pp = *compute_motion (ep.bufpos, ep.vpos, ep.hpos, 1,
-				    PT, height, - (1 << (SHORTBITS - 1)),
+				    PT, height, - (1 << (BITS_PER_SHORT - 1)),
 				    width, hscroll, epto, w);
 	    }
 	  else
 	    {
 	      pp = *compute_motion (xp.bufpos, xp.vpos, xp.hpos, 1,
-				    PT, height, - (1 << (SHORTBITS - 1)),
+				    PT, height, - (1 << (BITS_PER_SHORT - 1)),
 				    width, hscroll,
 				    pos_tab_offset (w, xp.bufpos), w);
 	    }
@@ -2250,7 +2250,7 @@ try_window_id (window)
   if (debug_end_pos)
     {
       val = *compute_motion (start, 0, lmargin, 0, ZV,
-			     height, - (1 << (SHORTBITS - 1)),
+			     height, - (1 << (BITS_PER_SHORT - 1)),
 			     width, hscroll, pos_tab_offset (w, start), w);
       if (val.vpos != XFASTINT (w->window_end_vpos))
 	abort ();

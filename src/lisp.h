@@ -102,7 +102,7 @@ enum gdb_lisp_params
 {
   gdb_valbits = VALBITS,
   gdb_gctypebits = GCTYPEBITS,
-  gdb_emacs_intbits = sizeof (EMACS_INT) * INTBITS / sizeof (int),
+  gdb_emacs_intbits = sizeof (EMACS_INT) * BITS_PER_CHAR,
 #ifdef DATA_SEG_BITS
   gdb_data_seg_bits = DATA_SEG_BITS
 #else
@@ -271,7 +271,7 @@ enum pvec_type
 /* Extract the value of a Lisp_Object as a signed integer.  */
 
 #ifndef XINT   /* Some machines need to do this differently.  */
-#define XINT(a) (((a) << (INTBITS-VALBITS)) >> (INTBITS-VALBITS))
+#define XINT(a) (((a) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS))
 #endif
 
 /* Extract the value as an unsigned integer.  This is a basis
@@ -316,7 +316,7 @@ extern int pure_size;
 #define XGCTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
 #endif
 
-#if VALBITS + GCTYPEBITS == INTBITS - 1
+#if VALBITS + GCTYPEBITS == BITS_PER_INT - 1
 /* Make XMARKBIT faster if mark bit is sign bit.  */
 #ifndef XMARKBIT
 #define XMARKBIT(a) ((a) < 0)
@@ -354,7 +354,7 @@ extern int pure_size;
 
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
-#define XINT(a) (((a).i << (INTBITS-VALBITS)) >> (INTBITS-VALBITS))
+#define XINT(a) (((a).i << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS))
 #else
 #define XINT(a) ((a).s.val)
 #endif /* EXPLICIT_SIGN_EXTEND */

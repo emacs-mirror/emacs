@@ -299,7 +299,7 @@ make_gap (increment)
      That won't work because so many places use `int'.  */
      
   if (Z - BEG + GAP_SIZE + increment
-      >= ((unsigned) 1 << (min (INTBITS, VALBITS) - 1)))
+      >= ((unsigned) 1 << (min (BITS_PER_INT, VALBITS) - 1)))
     error ("Buffer exceeds maximum size");
 
   BLOCK_INPUT;

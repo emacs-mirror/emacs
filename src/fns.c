@@ -318,9 +318,8 @@ with the original.")
   if (BOOL_VECTOR_P (arg))
     {
       Lisp_Object val;
-      int bits_per_char = INTBITS / sizeof (int);
       int size_in_chars
-	= (XBOOL_VECTOR (arg)->size + bits_per_char) / bits_per_char;
+	= (XBOOL_VECTOR (arg)->size + BITS_PER_CHAR) / BITS_PER_CHAR;
 
       val = Fmake_bool_vector (Flength (arg), Qnil);
       bcopy (XBOOL_VECTOR (arg)->data, XBOOL_VECTOR (val)->data,
@@ -432,12 +431,11 @@ concat (nargs, args, target_type, last_special)
 		XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
 	      else if (BOOL_VECTOR_P (this))
 		{
-		  int bits_per_char = INTBITS / sizeof (int);
 		  int size_in_chars
-		    = ((XBOOL_VECTOR (this)->size + bits_per_char)
-		       / bits_per_char);
+		    = ((XBOOL_VECTOR (this)->size + BITS_PER_CHAR)
+		       / BITS_PER_CHAR);
 		  int byte;
-		  byte = XBOOL_VECTOR (val)->data[thisindex / bits_per_char];
+		  byte = XBOOL_VECTOR (val)->data[thisindex / BITS_PER_CHAR];
 		  if (byte & (1 << thisindex))
 		    elt = Qt;
 		  else
@@ -1075,9 +1073,8 @@ internal_equal (o1, o2, depth)
 	/* Boolvectors are compared much like strings.  */
 	if (BOOL_VECTOR_P (o1))
 	  {
-	    int bits_per_char = INTBITS / sizeof (int);
 	    int size_in_chars
-	      = (XBOOL_VECTOR (o1)->size + bits_per_char) / bits_per_char;
+	      = (XBOOL_VECTOR (o1)->size + BITS_PER_CHAR) / BITS_PER_CHAR;
 
 	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
 	      return 0;
@@ -1160,9 +1157,8 @@ ARRAY is a vector, string, char-table, or bool-vector.")
   else if (BOOL_VECTOR_P (array))
     {
       register unsigned char *p = XBOOL_VECTOR (array)->data;
-      int bits_per_char = INTBITS / sizeof (int);
       int size_in_chars
-	= (XBOOL_VECTOR (array)->size + bits_per_char) / bits_per_char;
+	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR) / BITS_PER_CHAR;
 
       charval = (! NILP (item) ? -1 : 0);
       for (index = 0; index < size_in_chars; index++)

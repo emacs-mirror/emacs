@@ -1091,7 +1091,7 @@ Both LENGTH and INIT must be numbers.  INIT matters only in whether it is t or n
 
   CHECK_NATNUM (length, 0);
 
-  bits_per_value = sizeof (EMACS_INT) * INTBITS / sizeof (int);
+  bits_per_value = sizeof (EMACS_INT) * BITS_PER_CHAR;
 
   length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
   length_in_chars = length_in_elts * sizeof (EMACS_INT);
@@ -1428,7 +1428,7 @@ inhibit_garbage_collection ()
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object number;
-  int nbits = min (VALBITS, INTBITS);
+  int nbits = min (VALBITS, BITS_PER_INT);
 
   XSETINT (number, ((EMACS_INT) 1 << (nbits - 1)) - 1);
 

@@ -53,13 +53,6 @@ Lisp_Object Qarith_error;
 
 #ifdef LISP_FLOAT_TYPE
 
-#ifdef MSDOS
-/* These are redefined (correctly, but differently) in values.h.  */
-#undef INTBITS
-#undef LONGBITS
-#undef SHORTBITS
-#endif
-
 /* Work around a problem that happens because math.h on hpux 7
    defines two static variables--which, in Emacs, are not really static,
    because `static' is defined as nothing.  The problem is that they are

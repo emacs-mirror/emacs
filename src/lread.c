@@ -50,10 +50,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef MSDOS
 #include "msdos.h"
-/* These are redefined (correctly, but differently) in values.h.  */
-#undef INTBITS
-#undef LONGBITS
-#undef SHORTBITS
 #endif
 
 #include <math.h>
@@ -1203,9 +1199,8 @@ read1 (readcharfun, pch, first_in_list)
 	  if (c == '"')
 	    {
 	      Lisp_Object tmp, val;
-	      int bits_per_char = INTBITS / sizeof (int);
-	      int size_in_chars = ((XFASTINT (length) + bits_per_char)
-				   / bits_per_char);
+	      int size_in_chars = ((XFASTINT (length) + BITS_PER_CHAR)
+				   / BITS_PER_CHAR);
 
 	      UNREAD (c);
 	      tmp = read1 (readcharfun, pch, first_in_list);

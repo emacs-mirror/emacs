@@ -31,13 +31,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "syssignal.h"
 
-#ifdef MSDOS
-/* These are redefined (correctly, but differently) in values.h.  */
-#undef INTBITS
-#undef LONGBITS
-#undef SHORTBITS
-#endif
-
 #ifdef LISP_FLOAT_TYPE
 
 #ifdef STDC_HEADERS
@@ -1532,13 +1525,12 @@ or a byte-code object.  INDEX starts at 0.")
   else if (BOOL_VECTOR_P (array))
     {
       int val;
-      int bits_per_char = INTBITS / sizeof (int);
 
       if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
 	args_out_of_range (array, idx);
 
-      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / bits_per_char];
-      return (val & (1 << (idxval % bits_per_char)) ? Qt : Qnil);
+      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BITS_PER_CHAR];
+      return (val & (1 << (idxval % BITS_PER_CHAR)) ? Qt : Qnil);
     }
   else if (CHAR_TABLE_P (array))
     {
@@ -1639,18 +1631,17 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
   else if (BOOL_VECTOR_P (array))
     {
       int val;
-      int bits_per_char = INTBITS / sizeof (int);
 
       if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
 	args_out_of_range (array, idx);
 
-      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / bits_per_char];
+      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BITS_PER_CHAR];
 
       if (! NILP (newelt))
-	val |= 1 << (idxval % bits_per_char);
+	val |= 1 << (idxval % BITS_PER_CHAR);
       else
-	val &= ~(1 << (idxval % bits_per_char));
-      XBOOL_VECTOR (array)->data[idxval / bits_per_char] = val;
+	val &= ~(1 << (idxval % BITS_PER_CHAR));
+      XBOOL_VECTOR (array)->data[idxval / BITS_PER_CHAR] = val;
     }
   else if (CHAR_TABLE_P (array))
     {

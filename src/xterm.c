@@ -970,7 +970,7 @@ font_char_overlap_left (font, c)
 	{
 	  /* If char is out of range, try the font's default char instead.  */
 	  c = font->default_char;
-	  row = c >> (INTBITS - 8);
+	  row = c >> (BITS_PER_INT - 8);
 	  within = c & 0177;
 	}
       if (!(within >= font->min_char_or_byte2
@@ -1015,7 +1015,7 @@ font_char_overlap_right (font, c)
 	{
 	  /* If char is out of range, try the font's default char instead.  */
 	  c = font->default_char;
-	  row = c >> (INTBITS - 8);
+	  row = c >> (BITS_PER_INT - 8);
 	  within = c & 0177;
 	}
       if (!(within >= font->min_char_or_byte2
