@@ -531,12 +531,24 @@ the minibuffer."
 
 ;;;###autoload
 (defun edebug-eval-top-level-form ()
-  "Evaluate a top level form, such as a defun or defmacro.
-This is like `eval-defun', but the code is always instrumented for Edebug.
-Print its name in the minibuffer and leave point where it is,
-or if an error occurs, leave point after it with mark at the original point."
+  "Evaluate the top level form point is in, stepping through with Edebug.
+This is like `eval-defun' except that it steps the code for Edebug
+before evaluating it.  It displays the value in the echo area
+using `eval-expression' (which see).
+
+If you do this on a function definition
+such as a defun or defmacro, it defines the function and instruments
+its definition for Edebug, so it will do Edebug stepping when called
+later.  It displays `Edebug: FUNCTION' in the echo area to indicate
+that FUNCTION is now instrumented for Edebug.
+
+If the current defun is actually a call to `defvar' or `defcustom',
+evaluating it this way resets the variable using its initial value
+expression even if the variable already has some other value.
+\(Normally `defvar' and `defcustom' do not alter the value if there
+already is one.)"
   (interactive)
-  (eval 
+  (eval-expression
    ;; Bind edebug-all-forms only while reading, not while evalling
    ;; but this causes problems while edebugging edebug.
    (let ((edebug-all-forms t)
