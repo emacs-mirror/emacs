@@ -2,6 +2,8 @@
 
 	* mouse-sel.el (mouse-sel-mode): Specify custom group.
 
+	* simple.el (process-file): Fix logic.
+
 2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* indent.el (set-left-margin, set-right-margin): Delete redundant
