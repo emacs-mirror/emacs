@@ -324,9 +324,9 @@ These hooks have the following distinct roles:
                                 (point) ?\^M ?\n t)
                              (add-to-diary-list
                               date
-                              (buffer-substring-no-properties
+                              (buffer-substring
                                entry-start (point))
-                              (buffer-substring-no-properties
+                              (buffer-substring
                                (1+ date-start) (1- entry-start)))))))
                      (setq d (cdr d)))
                    (or entry-found
