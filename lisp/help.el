@@ -574,42 +574,64 @@ describes the minor mode."
   (with-output-to-temp-buffer (help-buffer)
     (save-excursion
       (when buffer (set-buffer buffer))
-      (when minor-mode-alist
-	(princ "The major mode is described first.
-For minor modes, see following pages.\n\n"))
-      (princ mode-name)
-      (princ " mode:\n")
-      (princ (documentation major-mode))
-      (let ((minor-modes minor-mode-alist))
-	(while minor-modes
-	  (let* ((minor-mode (car (car minor-modes)))
-		 (indicator (car (cdr (car minor-modes)))))
-	    ;; Document a minor mode if it is listed in minor-mode-alist,
-	    ;; bound locally in this buffer, non-nil, and has a function
-	    ;; definition.
-	    (if (and (boundp minor-mode)
-		     (symbol-value minor-mode)
-		     (fboundp minor-mode))
-		(let ((pretty-minor-mode minor-mode))
-		  (if (string-match "\\(-minor\\)?-mode\\'"
-				    (symbol-name minor-mode))
-		      (setq pretty-minor-mode
-			    (capitalize
-			     (substring (symbol-name minor-mode)
-					0 (match-beginning 0)))))
-		  (while (and indicator (symbolp indicator)
-			      (boundp indicator)
-			      (not (eq indicator (symbol-value indicator))))
-		    (setq indicator (symbol-value indicator)))
-		  (princ "\n\f\n")
-		  (princ (format "%s minor mode (%s):\n"
-				 pretty-minor-mode
-				 (if indicator
-				     (format "indicator%s" indicator)
-				   "no indicator")))
-		  (princ (documentation minor-mode)))))
-	  (setq minor-modes (cdr minor-modes))))
+      (let (minor-modes)
+	;; Find enabled minor mode we will want to mention.
+	(dolist (mode minor-mode-list)
+	  ;; Document a minor mode if it is listed in minor-mode-alist,
+	  ;; non-nil, and has a function definition.
+	  (and (boundp mode) (symbol-value mode)
+	       (fboundp mode)
+	       (let ((pretty-minor-mode mode)
+		     indicator)
+		 (if (string-match "\\(-minor\\)?-mode\\'"
+				   (symbol-name mode))
+		     (setq pretty-minor-mode
+			   (capitalize
+			    (substring (symbol-name mode)
+				       0 (match-beginning 0)))))
+		 (setq indicator (cadr (assq mode minor-mode-alist)))
+		 (while (and indicator (symbolp indicator)
+			     (boundp indicator)
+			     (not (eq indicator (symbol-value indicator))))
+		   (setq indicator (symbol-value indicator)))
+		 (push (list pretty-minor-mode mode indicator)
+		       minor-modes))))
+	(if auto-fill-function
+	    (push '("Auto Fill" auto-fill-mode " Fill")
+		  minor-modes))
+	(setq minor-modes
+	      (sort minor-modes
+		    (lambda (a b) (string-lessp (car a) (car b)))))
+	(when minor-modes
+	  (princ "Summary of minor modes:\n")
+	  (dolist (mode minor-modes)
+	    (let ((pretty-minor-mode (nth 0 mode))
+		  (indicator (nth 2 mode)))
+	      (princ (format "  %s minor mode (%s):\n"
+			     pretty-minor-mode
+			     (if indicator
+				 (format "indicator%s" indicator)
+			       "no indicator")))))
+	  (princ "\n(Full information about these minor modes
+follows the description of the major mode.)\n\n"))
+	;; Document the major mode.
+	(princ mode-name)
+	(princ " mode:\n")
+	(princ (documentation major-mode))
+	;; Document the minor modes fully.
+	(dolist (mode minor-modes)
+	  (let ((pretty-minor-mode (nth 0 mode))
+		(mode-function (nth 1 mode))
+		(indicator (nth 2 mode)))
+	    (princ "\n\f\n")
+	    (princ (format "%s minor mode (%s):\n"
+			   pretty-minor-mode
+			   (if indicator
+			       (format "indicator%s" indicator)
+			     "no indicator")))
+	    (princ (documentation mode-function)))))
       (print-help-return-message))))
+
 
 (defun describe-minor-mode (minor-mode)
   "Display documentation of a minor mode given as MINOR-MODE.
