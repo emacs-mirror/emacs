@@ -1,5 +1,9 @@
 2001-09-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (decode_mode_spec): Add parameter MULTIBYTE.
+	(display_mode_element): Display the string from decode_mode_spec
+	depending on its multibyteness.
+
 	* s/netbsd.h (LD_SWITCH_SYSTEM, C_SWITCH_SYSTEM): Add /usr/pkg.
 
 	* m/macppc.h (DATA_SEG_BITS): Also define for GCC 3.
