@@ -685,8 +685,20 @@ char ibuffer[BUFSIZ];
 char obuffer[BUFSIZ];
 char Errmsg[80];
 
-popmail (user, outfile, preserve, password, reverse_order)
-     char *user;
+/*
+ * The full legal syntax for a POP mailbox specification for movemail
+ * is "po:username:hostname".  The ":hostname" is optional; if it is
+ * omitted, the MAILHOST environment variable will be consulted.  Note
+ * that by the time popmail() is called the "po:" has been stripped
+ * off of the front of the mailbox name.
+ *
+ * If the mailbox is in the form "po:username:hostname", then it is
+ * modified by this function -- the second colon is replaced by a
+ * null.
+ */
+
+popmail (mailbox, outfile, preserve, password, reverse_order)
+     char *mailbox;
      char *outfile;
      int preserve;
      char *password;
@@ -699,8 +711,13 @@ popmail (user, outfile, preserve, password, reverse_order)
   char *getenv ();
   popserver server;
   int start, end, increment;
+  char *user, *hostname;
 
-  server = pop_open (0, user, password, POP_NO_GETPASS);
+  user = mailbox;
+  if ((hostname = index(mailbox, ':')))
+    *hostname++ = '\0';
+
+  server = pop_open (hostname, user, password, POP_NO_GETPASS);
   if (! server)
     {
       error ("Error connecting to POP server: %s", pop_error);
