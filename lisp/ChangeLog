@@ -1,5 +1,13 @@
 2001-10-09  Miles Bader  <miles@gnu.org>
 
+	* rfn-eshadow.el (rfn-eshadow-regexp): Deal correctly with escaped
+	dollar-signs.
+
+	* comint.el (comint-insert-previous-argument): New function.
+	(comint-mode-map): Bind `C-c .' to `comint-input-previous-argument'.
+	(comint-insert-previous-argument-last-start-pos) 
+	(comint-insert-previous-argument-last-index): New variables.
+
 	* apropos.el (apropos-next-label-button): Use the presence of a
 	`apropos-label' property to detect label buttons.
 
