@@ -294,7 +294,6 @@ void deactivate_scroll_bars (FRAME_PTR);
 
 static int is_emacs_window (WindowPtr);
 
-extern int image_ascent (struct image *, struct face *);
 int x_bitmap_icon (struct frame *, Lisp_Object);
 void x_make_frame_visible (struct frame *);
 
@@ -311,7 +310,7 @@ XFreePixmap (display, pixmap)
      Display *display;		/* not used */
      Pixmap pixmap;
 {
-  DisposeGWorld (pixmap); 
+  DisposeGWorld (pixmap);
 }
 
 
@@ -1283,7 +1282,7 @@ mac_draw_vertical_window_border (w, x, y0, y1)
      int x, y0, y1;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  
+
   XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
 	     f->output_data.mac->normal_gc, x, y0, x, y1);
 }
@@ -1525,7 +1524,7 @@ x_draw_fringe_bitmap (w, row, p)
 			: face->foreground);
       gcv.background = face->background;
 
-      mac_draw_bitmap (display, window, &gcv, p->x, p->y, 
+      mac_draw_bitmap (display, window, &gcv, p->x, p->y,
 		       p->wd, p->h, bits, p->overlay_p);
     }
 
@@ -1759,7 +1758,8 @@ static void x_draw_image_foreground_1 P_ ((struct glyph_string *, Pixmap));
 static void x_clear_glyph_string_rect P_ ((struct glyph_string *, int,
 					   int, int, int));
 static void x_draw_relief_rect P_ ((struct frame *, int, int, int, int,
-				    int, int, int, int, Rect *));
+				    int, int, int, int, int, int,
+				    Rect *));
 static void x_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, Rect *));
 
@@ -2483,9 +2483,10 @@ x_setup_relief_colors (s)
 
 static void
 x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
-		    raised_p, left_p, right_p, clip_rect)
+		    raised_p, top_p, bot_p, left_p, right_p, clip_rect)
      struct frame *f;
-     int left_x, top_y, right_x, bottom_y, width, left_p, right_p, raised_p;
+     int left_x, top_y, right_x, bottom_y, width;
+     int top_p, bot_p, left_p, right_p, raised_p;
      Rect *clip_rect;
 {
   Display *dpy = FRAME_MAC_DISPLAY (f);
@@ -2500,10 +2501,11 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   mac_set_clip_rectangle (dpy, window, clip_rect);
 
   /* Top.  */
-  for (i = 0; i < width; ++i)
-    XDrawLine (dpy, window, gc,
-	       left_x + i * left_p, top_y + i,
-	       right_x - i * right_p, top_y + i);
+  if (top_p)
+    for (i = 0; i < width; ++i)
+      XDrawLine (dpy, window, gc,
+		 left_x + i * left_p, top_y + i,
+		 right_x - i * right_p, top_y + i);
 
   /* Left.  */
   if (left_p)
@@ -2520,10 +2522,11 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
 			  clip_rect);
 
   /* Bottom.  */
-  for (i = 0; i < width; ++i)
-    XDrawLine (dpy, window, gc,
-	       left_x + i * left_p, bottom_y - i,
-	       right_x - i * right_p, bottom_y - i);
+  if (bot_p)
+    for (i = 0; i < width; ++i)
+      XDrawLine (dpy, window, gc,
+		 left_x + i * left_p, bottom_y - i,
+		 right_x - i * right_p, bottom_y - i);
 
   /* Right.  */
   if (right_p)
@@ -2629,7 +2632,7 @@ x_draw_glyph_string_box (s)
     {
       x_setup_relief_colors (s);
       x_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y,
-			  width, raised_p, left_p, right_p, &clip_rect);
+			  width, raised_p, 1, 1, left_p, right_p, &clip_rect);
     }
 }
 
@@ -2640,21 +2643,22 @@ static void
 x_draw_image_foreground (s)
      struct glyph_string *s;
 {
-  int x;
-  int y = s->ybase - image_ascent (s->img, s->face);
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
-  else
-    x = s->x;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   if (s->img->pixmap)
     {
@@ -2667,11 +2671,12 @@ x_draw_image_foreground (s)
 	  CONVERT_TO_XRECT (clip_rect, nr);
 	  image_rect.x = x;
 	  image_rect.y = y;
-	  image_rect.width = s->img->width;
-	  image_rect.height = s->img->height;
+	  image_rect.width = s->slice.width;
+	  image_rect.height = s->slice.height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
 	    mac_copy_area_with_mask (s->display, s->img->pixmap, s->img->mask,
-				     s->window, s->gc, r.x - x, r.y - y,
+				     s->window, s->gc,
+				     s->slice.x + r.x - x, s->slice.y + r.y - y,
 				     r.width, r.height, r.x, r.y);
 	}
       else
@@ -2683,11 +2688,12 @@ x_draw_image_foreground (s)
 	  CONVERT_TO_XRECT (clip_rect, nr);
 	  image_rect.x = x;
 	  image_rect.y = y;
-	  image_rect.width = s->img->width;
-	  image_rect.height = s->img->height;
+	  image_rect.width = s->slice.width;
+	  image_rect.height = s->slice.height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
 	    mac_copy_area (s->display, s->img->pixmap, s->window, s->gc,
-			   r.x - x, r.y - y, r.width, r.height, r.x, r.y);
+			   s->slice.x + r.x - x, s->slice.y + r.y - y,
+			   r.width, r.height, r.x, r.y);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -2699,15 +2705,17 @@ x_draw_image_foreground (s)
 	    {
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
-	      mac_draw_rectangle (s->display, s->window, s->gc, x - r, y - r,
-				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
+	      mac_draw_rectangle (s->display, s->window, s->gc,
+				  x - r, y - r,
+				  s->slice.width + r*2 - 1,
+				  s->slice.height + r*2 - 1);
 	    }
 	}
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
     mac_draw_rectangle (s->display, s->window, s->gc, x, y,
-		      s->img->width - 1, s->img->height - 1);
+			s->slice.width - 1, s->slice.height - 1);
 }
 
 
@@ -2719,21 +2727,22 @@ x_draw_image_relief (s)
 {
   int x0, y0, x1, y1, thick, raised_p;
   Rect r;
-  int x;
-  int y = s->ybase - image_ascent (s->img, s->face);
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
-  else
-    x = s->x;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
@@ -2749,12 +2758,17 @@ x_draw_image_relief (s)
 
   x0 = x - thick;
   y0 = y - thick;
-  x1 = x + s->img->width + thick - 1;
-  y1 = y + s->img->height + thick - 1;
+  x1 = x + s->slice.width + thick - 1;
+  y1 = y + s->slice.height + thick - 1;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
-  x_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p, 1, 1, &r);
+  x_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p,
+		      s->slice.y == 0,
+		      s->slice.y + s->slice.height == s->img->height,
+		      s->slice.x == 0,
+		      s->slice.x + s->slice.width == s->img->width,
+		      &r);
 }
 
 
@@ -2765,33 +2779,37 @@ x_draw_image_foreground_1 (s, pixmap)
      struct glyph_string *s;
      Pixmap pixmap;
 {
-  int x;
-  int y = s->ybase - s->y - image_ascent (s->img, s->face);
+  int x = 0;
+  int y = s->ybase - s->y - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = abs (s->face->box_line_width);
-  else
-    x = 0;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   if (s->img->pixmap)
     {
       if (s->img->mask)
 	mac_copy_area_with_mask_to_pixmap (s->display, s->img->pixmap,
 					   s->img->mask, pixmap, s->gc,
-					   0, 0, s->img->width, s->img->height,
+					   s->slice.x, s->slice.y,
+					   s->slice.width, s->slice.height,
 					   x, y);
       else
 	{
 	  mac_copy_area_to_pixmap (s->display, s->img->pixmap, pixmap, s->gc,
-		               0, 0, s->img->width, s->img->height, x, y);
+				   s->slice.x, s->slice.y,
+				   s->slice.width, s->slice.height,
+				   x, y);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -2804,15 +2822,15 @@ x_draw_image_foreground_1 (s, pixmap)
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
 	      mac_draw_rectangle (s->display, s->window, s->gc, x - r, y - r,
-				  s->img->width + r*2 - 1,
-				  s->img->height + r*2 - 1);
+				  s->slice.width + r*2 - 1,
+				  s->slice.height + r*2 - 1);
 	    }
 	}
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
     mac_draw_rectangle_to_pixmap (s->display, pixmap, s->gc, x, y,
-				  s->img->width - 1, s->img->height - 1);
+				  s->slice.width - 1, s->slice.height - 1);
 }
 
 
@@ -2869,19 +2887,21 @@ x_draw_image_glyph_string (s)
      taller than image or if image has a clip mask to reduce
      flickering.  */
   s->stippled_p = s->face->stipple != 0;
-  if (height > s->img->height
+  if (height > s->slice.height
       || s->img->hmargin
       || s->img->vmargin
       || s->img->mask
       || s->img->pixmap == 0
       || s->width != s->background_width)
     {
-      if (box_line_hwidth && s->first_glyph->left_box_line_p)
-	x = s->x + box_line_hwidth;
-      else
-	x = s->x;
+      x = s->x;
+      if (s->first_glyph->left_box_line_p
+	  && s->slice.x == 0)
+	x += box_line_hwidth;
 
-      y = s->y + box_line_vwidth;
+      y = s->y;
+      if (s->slice.y == 0)
+	y += box_line_vwidth;
 
       if (s->img->mask)
 	{
@@ -3842,7 +3862,7 @@ glyph_rect (f, x, y, rect)
 
 	    /* x is to the right of the last glyph in the row.  */
 	    rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	    /* Shouldn't this be a pixel value?  
+	    /* Shouldn't this be a pixel value?
 	       WINDOW_RIGHT_EDGE_X (w) seems to be the right value.
 	       ++KFS */
 	    rect->right = WINDOW_RIGHT_EDGE_COL (w);
@@ -3984,7 +4004,7 @@ mac_handle_tool_bar_click (f, button_event)
   if (button_event->what == mouseDown)
     handle_tool_bar_click (f, x, y, 1, 0);
   else
-    handle_tool_bar_click (f, x, y, 0, 
+    handle_tool_bar_click (f, x, y, 0,
 			   x_mac_to_emacs_modifiers (FRAME_MAC_DISPLAY_INFO (f),
 						     button_event->modifiers));
 }
@@ -4933,7 +4953,7 @@ x_new_font (f, fontname)
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
     {
       int wid = FRAME_COLUMN_WIDTH (f);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f) 
+      FRAME_CONFIG_SCROLL_BAR_COLS (f)
 	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid-1) / wid;
     }
   else
@@ -5826,7 +5846,7 @@ decode_mac_font_name (char *name, int size, short scriptcode)
       break;
     case smKorean:
       coding_system = Qeuc_kr;
-      break;        
+      break;
     default:
       return;
     }
@@ -6277,7 +6297,7 @@ mac_do_list_fonts (pattern, maxnames)
 	  if (fast_string_match (pattern_regex, fontname) >= 0)
 	    {
 	      font_list = Fcons (fontname, font_list);
-	      
+
 	      n_fonts++;
 	      if (maxnames > 0 && n_fonts >= maxnames)
 		break;
@@ -6987,7 +7007,7 @@ mac_get_emulated_btn ( UInt32 modifiers )
     if (modifiers & controlKey)
       result = cmdIs3 ? 2 : 1;
     else if (modifiers & optionKey)
-      result = cmdIs3 ? 1 : 2;      
+      result = cmdIs3 ? 1 : 2;
   }
   return result;
 }
@@ -7020,7 +7040,7 @@ mac_get_mouse_btn (EventRef ref)
   switch (result)
     {
     case kEventMouseButtonPrimary:
-      if (Vmac_emulate_three_button_mouse == Qnil) 
+      if (Vmac_emulate_three_button_mouse == Qnil)
 	return 0;
       else {
 	UInt32 mods = 0;
@@ -8189,7 +8209,7 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 	  switch (part_code)
 	    {
 	    case inMenuBar:
-	      if (er.what == mouseDown)  
+	      if (er.what == mouseDown)
 		{
 		  struct frame *f = ((mac_output *)
 				     GetWRefCon (FrontWindow ()))->mFP;
@@ -8269,7 +8289,7 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 		      else
 			mouse_tracking_in_progress = mouse_tracking_none;
 		      window = window_from_coordinates (mwp->mFP, inev.x, inev.y, 0, 0, 0, 1);
-		      
+
 		      if (EQ (window, mwp->mFP->tool_bar_window))
 			{
 			  if (er.what == mouseDown)
@@ -8308,10 +8328,10 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 
 	    case inDrag:
 #if TARGET_API_MAC_CARBON
-              if (er.what == mouseDown)  
+              if (er.what == mouseDown)
 		{
 		  BitMap bm;
-		  
+
 		  GetQDGlobalsScreenBits (&bm);
 		  DragWindow (window_ptr, er.where, &bm.bounds);
 		}
@@ -8331,7 +8351,7 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 
 	    /* window resize handling added --ben */
 	    case inGrow:
-              if (er.what == mouseDown)  
+              if (er.what == mouseDown)
 		{
 		  do_grow_window(window_ptr, &er);
 		  break;
@@ -9185,10 +9205,10 @@ Otherwise the option key is used.  */);
 	    useful for non-standard keyboard layouts.  */);
   Vmac_reverse_ctrl_meta = Qnil;
 
-  DEFVAR_LISP ("mac-emulate-three-button-mouse", 
+  DEFVAR_LISP ("mac-emulate-three-button-mouse",
 	       &Vmac_emulate_three_button_mouse,
     doc: /* t means that when the option-key is held down while pressing the
-    mouse button, the click will register as mouse-2 and while the 
+    mouse button, the click will register as mouse-2 and while the
     command-key is held down, the click will register as mouse-3.
     'reverse means that the the option-key will register for mouse-3
     and the command-key will register for mouse-2.  nil means that
