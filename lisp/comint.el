@@ -1552,6 +1552,7 @@ Make backspaces delete the previous character."
     ;; First do a quick check to see if there are any applicable
     ;; characters, so we can avoid calling save-match-data and
     ;; save-restriction if not.
+    (goto-char start)
     (when (< (skip-chars-forward "^\b\r" end) (- end start))
       (save-match-data
 	(save-restriction
