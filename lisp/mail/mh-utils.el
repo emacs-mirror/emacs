@@ -628,18 +628,16 @@ directory names."
 		  ;; directory:  Strip any trailing `mh' or `bin' path
 		  ;; components, then look for lib/mh or mh/lib.
 		  (or (mh-path-search
-		       (list (expand-file-name "lib/mh" mh-base)
-			     (expand-file-name "etc/nmh" mh-base) ; NetBSD
-			     (expand-file-name "mh/lib" mh-base))
+		       (mapcar (lambda (p) (expand-file-name p mh-base))
+			       '("lib/mh" "etc/nmh" "/etc/nmh" "mh/lib"))
 		       "components"
 		       'file-exists-p))))
 	(or (and mh-lib-progs
 		 (mh-file-command-p (expand-file-name "mhl" mh-lib-progs)))
 	    (setq mh-lib-progs
 		  (or (mh-path-search
-		       (list (expand-file-name "lib/mh" mh-base)
-			     (expand-file-name "libexec/nmh" mh-base) ; NetBSD
-			     (expand-file-name "mh/lib" mh-base))
+		       (mapcar (lambda (p) (expand-file-name p mh-base))
+			       '("lib/mh" "libexec/nmh" "lib/nmh" "mh/lib"))
 		       "mhl")
 		      (mh-path-search '("/usr/local/bin/mh/") "mhl")
 		      (mh-path-search exec-path "mhl") ;unlikely
