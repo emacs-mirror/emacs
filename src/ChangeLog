@@ -1,3 +1,8 @@
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xfaces.c (Fcolor_gray_p): Renamed from face-color-gray-p.
+	(Fcolor_supported_p): Renamed from face-color-supported-p.
+
 2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xfaces.c (tty_defined_color): Pass frame to tty-color-desc.  The

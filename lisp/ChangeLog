@@ -1,5 +1,12 @@
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* term/x-win.el (xw-defined-colors): Call color-supported-p,
+	the new name of face-color-supported-p.
+
+	* term/w32-win.el (xw-defined-colors): Likewise.
+
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* simple.el (completion-setup-function): Count completion-size
 	from minibuffer-prompt-end, not from point-min.
 
