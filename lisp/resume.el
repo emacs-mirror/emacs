@@ -25,66 +25,23 @@
 
 ;;; Commentary:
 
-;; Theory: the first time you start Emacs, command line arguments are
-;; handled normally.  Then, you suspend your emacs job.  When you want to edit
-;; something else, you type "emacs filename" as usual, but instead of
-;; starting a new emacs job, the old job is resumed instead, and the command
-;; line arguments are placed in a file where the old emacs job looks for
-;; them.
+;; The purpose of this library is to handle command line arguments
+;; when you resume an existing Emacs job.
+
+;; In order to use it, you must put this code in your .emacs file.
+
+;; (add-hook 'suspend-hook 'resume-suspend-hook)
+;; (add-hook 'suspend-resume-hook 'resume-process-args)
+
+;; You can't get the benefit of this library by using the `emacs' command,
+;; since that always starts a new Emacs job.  Instead you must run a shell
+;; script which knows how to resume an existing Emacs job if you have one.
+;; Emacs comes with two suitable scripts: etc/emacs.csh for CSH,
+;; and etc/emacs.bash for BASH.  These scripts start an Emacs job
+;; if you do not have one, and resume an Emacs job if you have one.
 
 ;; Stephan Gildea suggested bug fix (gildea@bbn.com).
 ;; Ideas from Michael DeCorte and other people.
-
-;; For csh users, insert the following alias in your .cshrc file
-;; (after removing the leading double semicolons, of course):
-;;
-;;# The following line could be just EMACS_CMD=emacs, but this depends on
-;;# your site.
-;;if (! $?EMACS_CMD) set EMACS_CMD=emacs
-;;set JOBS_FILE=/tmp/jobs.$USER.$$
-;;set ARGS_FILE=~/.emacs_args
-;;set STOP_PATT='^\[[0-9]*\] *[ +-] Stopped ............ '
-;;set SUNVIEW_CMD='emacstool -nw -f emacstool-init -f server-start'
-;;set X_CMD=\'\''$EMACS_CMD -i -f server-start'
-;;alias emacs \
-;;' \\
-;;   jobs >! "$JOBS_FILE" \\
-;;   && grep "$STOP_PATT$EMACS_CMD" "$JOBS_FILE" >& /dev/null \\
-;;   && echo `pwd` \!* >! "$ARGS_FILE" && ""fg %$EMACS_CMD \\
-;;|| if (! -e ~/.emacs_server || -f ~/.emacs_server) set status=1 \\
-;;   && emacsclient \!* \\
-;;|| @ status=1 - $?DISPLAY && eval "$X_CMD -i \!* &" \\
-;;|| @ status=1 - $?WINDOW_PARENT && eval "$SUNVIEW_CMD \!* &" \\
-;;|| ""$EMACS_CMD -nw \!* \\
-;;'
-;;
-;; The alias works as follows:
-;; 1. If there is a suspended Emacs job that is a child of the
-;; current shell, place its arguments in the ~/.emacs_args file and
-;; resume it.
-;; 2. Else if the ~/.emacs_server socket has been created, presume an
-;; Emacs server is running and attempt to connect to it.  If no Emacs
-;; server is listening on the socket, this will fail.
-;; 3. Else if the DISPLAY environment variable is set, presume we are
-;; running under X Windows and start a new GNU Emacs process in the
-;; background as an X client.
-;; 4. Else if the WINDOW_PARENT environment variable is set, presume we
-;; are running under SunView and start an emacstool process in the
-;; background.
-;; 5. Else start a regular Emacs process.
-;;
-;; Notes:
-;; The output of the "jobs" command is not piped directly into "grep"
-;; because that would run the "jobs" command in a subshell.
-;; Before resuming a suspended emacs, the current directory and all
-;; command line arguments are placed in a file name ~/.emacs_args.
-;; The "-nw" switch to Emacs means no windowing system.
-
-;; Insert this in your .emacs file:
-;;(add-hook 'suspend-hook 'resume-suspend-hook)
-
-;; Finally, put the rest in a file named "resume.el" in a lisp library
-;; directory.
 
 ;;; Code:
 
