@@ -1,6 +1,8 @@
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/idlwave.el: Rename idlwave-*.el into idlw-*.el
+	* progmodes/idlw-rinfo.el, progmodes/idlw-shell.el,
+	progmodes/idlw-toolbar.el: Renamed from idlwave-*.el.
 
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
