@@ -5475,7 +5475,7 @@ x_calc_absolute_position (f)
 				&newparent, &newchildren, &nchildren))
 		break;
 
-	      XFree (newchildren);
+	      XFree ((char *) newchildren);
 
 	      f->output_data.x->parent_desc = newparent;
 	    }
