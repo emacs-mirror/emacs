@@ -569,7 +569,7 @@ assq_no_quit (key, list)
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
   "Return non-nil if KEY is `equal' to the car of an element of LIST.\n\
-The value is actually the element of LIST whose car is KEY.")
+The value is actually the element of LIST whose car equals KEY.")
   (key, list)
      register Lisp_Object key;
      Lisp_Object list;
@@ -602,6 +602,26 @@ The value is actually the element of LIST whose cdr is ELT.")
       if (!CONSP (elt)) continue;
       tem = Fcdr (elt);
       if (EQ (key, tem)) return elt;
+      QUIT;
+    }
+  return Qnil;
+}
+
+DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
+  "Return non-nil if KEY is `equal' to the cdr of an element of LIST.\n\
+The value is actually the element of LIST whose cdr equals KEY.")
+  (key, list)
+     register Lisp_Object key;
+     Lisp_Object list;
+{
+  register Lisp_Object tail;
+  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+    {
+      register Lisp_Object elt, tem;
+      elt = Fcar (tail);
+      if (!CONSP (elt)) continue;
+      tem = Fequal (Fcdr (elt), key);
+      if (!NILP (tem)) return elt;
       QUIT;
     }
   return Qnil;
@@ -1464,6 +1484,7 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Sassq);
   defsubr (&Sassoc);
   defsubr (&Srassq);
+  defsubr (&Srassoc);
   defsubr (&Sdelq);
   defsubr (&Sdelete);
   defsubr (&Snreverse);
