@@ -1,3 +1,8 @@
+2000-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* term.el (term-send-raw-meta): Strip modifiers from the keyboard
+	event when deciding what to send to the terminal.
+
 2000-07-12  Dave Love  <fx@gnu.org>
 
 	* cus-start.el: Add optional version as 4th element of specs and
