@@ -1,5 +1,7 @@
 2000-06-09  Kenichi Handa  <handa@etl.go.jp>
 
+	* composite.el (decompose-composite-char): Declare it as obsolete.
+
 	* man.el (Man-fontify-manpage): Pay attention to overstrike
 	pattern for CJK characters (X^H^HX).
 
