@@ -92,9 +92,9 @@ static __malloc_size_t bytes_used_when_full;
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
-#define MARK_STRING(S)		((S)->size |= MARKBIT)
-#define UNMARK_STRING(S)	((S)->size &= ~MARKBIT)
-#define STRING_MARKED_P(S)	((S)->size & MARKBIT)
+#define MARK_STRING(S)		((S)->size |= ARRAY_MARK_FLAG)
+#define UNMARK_STRING(S)	((S)->size &= ~ARRAY_MARK_FLAG)
+#define STRING_MARKED_P(S)	((S)->size & ARRAY_MARK_FLAG)
 
 #define VECTOR_MARK(V)		((V)->size |= ARRAY_MARK_FLAG)
 #define VECTOR_UNMARK(V)	((V)->size &= ~ARRAY_MARK_FLAG)
@@ -106,7 +106,7 @@ static __malloc_size_t bytes_used_when_full;
    strings.  */
 
 #define GC_STRING_BYTES(S)	(STRING_BYTES (S))
-#define GC_STRING_CHARS(S)	((S)->size & ~MARKBIT)
+#define GC_STRING_CHARS(S)	((S)->size & ~ARRAY_MARK_FLAG)
 
 /* Number of bytes of consing done since the last gc.  */
 
@@ -1446,7 +1446,7 @@ int
 string_bytes (s)
      struct Lisp_String *s;
 {
-  int nbytes = (s->size_byte < 0 ? s->size & ~MARKBIT : s->size_byte);
+  int nbytes = (s->size_byte < 0 ? s->size & ~ARRAY_MARK_FLAG : s->size_byte);
   if (!PURE_POINTER_P (s)
       && s->data
       && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
