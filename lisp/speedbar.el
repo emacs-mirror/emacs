@@ -3553,7 +3553,7 @@ expanded.  INDENT is the current indentation level."
 TEXT is the button clicked on.  TOKEN is the directory to follow.
 INDENT is the current indentation level and is unused."
   (if (string-match "^[A-z]:$" token)
-      (setq default-directory (concat token (char-to-string directory-sep-char)))
+      (setq default-directory (concat token "/"))
     (setq default-directory token))
   ;; Because we leave speedbar as the current buffer,
   ;; update contents will change directory without
