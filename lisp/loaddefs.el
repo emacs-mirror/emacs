@@ -1966,7 +1966,7 @@ name of buffer configuration." t nil)
 ;;;;;;  28360))
 ;;; Generated autoloads from button.el
 
-(defvar button-map (let ((map (make-sparse-keymap))) (define-key map "" (quote push-button)) (define-key map [mouse-2] (quote push-button)) map) "\
+(defvar button-map (let ((map (make-sparse-keymap))) (define-key map "" (quote push-button)) (define-key map [mouse-2] (quote push-button)) map) "\
 Keymap used by buttons.")
 
 (defvar button-buffer-map (let ((map (make-sparse-keymap))) (define-key map [9] (quote forward-button)) (define-key map [backtab] (quote backward-button)) map) "\
@@ -10934,75 +10934,6 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'." t nil)
 
 (autoload (quote turn-on-lazy-lock) "lazy-lock" "\
 Unconditionally turn on Lazy Lock mode." nil nil)
-
-;;;***
-
-;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
-;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
-;;;;;;  byte-recompile-directory byte-force-recompile) "lbytecomp"
-;;;;;;  "emacs-lisp/lbytecomp.el" (15348 54632))
-;;; Generated autoloads from emacs-lisp/lbytecomp.el
-
-(autoload (quote byte-force-recompile) "lbytecomp" "\
-Recompile every `.el' file in DIRECTORY that already has a `.elc' file.
-Files in subdirectories of DIRECTORY are processed also." t nil)
-
-(autoload (quote byte-recompile-directory) "lbytecomp" "\
-Recompile every `.el' file in DIRECTORY that needs recompilation.
-This is if a `.elc' file exists but is older than the `.el' file.
-Files in subdirectories of DIRECTORY are processed also.
-
-If the `.elc' file does not exist, normally the `.el' file is *not* compiled.
-But a prefix argument (optional second arg) means ask user,
-for each such `.el' file, whether to compile it.  Prefix argument 0 means
-don't ask and compile the file anyway.
-
-A nonzero prefix argument also means ask about each subdirectory.
-
-If the third argument FORCE is non-nil,
-recompile every `.el' file that already has a `.elc' file." t nil)
-
-(autoload (quote byte-compile-file) "lbytecomp" "\
-Compile a file of Lisp code named FILENAME into a file of byte code.
-The output file's name is made by appending `c' to the end of FILENAME.
-With prefix arg (noninteractively: 2nd arg), LOAD the file after compiling.
-The value is non-nil if there were no errors, nil if errors." t nil)
-
-(autoload (quote compile-defun) "lbytecomp" "\
-Compile and evaluate the current top-level form.
-Print the result in the minibuffer.
-With argument, insert value in current buffer after the form." t nil)
-
-(autoload (quote byte-compile) "lbytecomp" "\
-If FORM is a symbol, byte-compile its function definition.
-If FORM is a lambda or a macro, byte-compile it as a function." nil nil)
-
-(autoload (quote display-call-tree) "lbytecomp" "\
-Display a call graph of a specified file.
-This lists which functions have been called, what functions called
-them, and what functions they call.  The list includes all functions
-whose definitions have been compiled in this Emacs session, as well as
-all functions called by those functions.
-
-The call graph does not include macros, inline functions, or
-primitives that the byte-code interpreter knows about directly (eq,
-cons, etc.).
-
-The call tree also lists those functions which are not known to be called
-\(that is, to which no calls have been compiled), and which cannot be
-invoked interactively." t nil)
-
-(autoload (quote batch-byte-compile) "lbytecomp" "\
-Run `byte-compile-file' on the files remaining on the command line.
-Use this from the command line, with `-batch';
-it won't work in an interactive Emacs.
-Each file is processed even if an error occurred previously.
-For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\"" nil nil)
-
-(autoload (quote batch-byte-recompile-directory) "lbytecomp" "\
-Runs `byte-recompile-directory' on the dirs remaining on the command line.
-Must be used only with `-batch', and kills Emacs on completion.
-For example, invoke `emacs -batch -f batch-byte-recompile-directory .'." nil nil)
 
 ;;;***
 
