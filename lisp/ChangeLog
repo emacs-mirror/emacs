@@ -1,3 +1,10 @@
+2003-02-09  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* progmodes/cc-mode.el (c-basic-common-init): Install
+	`c-fill-paragraph' on `fill-paragraph-function'.  Although
+	it's not the normal way to call it in a CC Mode buffer it
+	makes a direct call to `fill-paragraph' work better.
+
 2003-02-08  Kim F. Storm  <storm@cua.dk>
 
 	* printing.el (pr-get-symbol): Define during compile.
