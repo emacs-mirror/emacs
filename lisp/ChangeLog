@@ -1,5 +1,8 @@
 2001-08-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* recentf.el (recentf-dump-variable): Handle a value of nil
+	correctly.
+
 	* custom.el (custom-set-variables): Set options with :require
 	clauses last.
 	
