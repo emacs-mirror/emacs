@@ -62,23 +62,8 @@
 ;;;
 ;;; In the presence of comments and/or incorrect syntax
 ;;; ada-format-paramlist produces weird results.
-;;;
-;;; Indenting of some tasking constructs is still buggy.
 ;;; -------------------
-;;;   For tagged types the problem comes from the keyword abstract:
-
-;;;   type T2 is abstract tagged record
-;;;   X : Integer;
-;;;   Y : Float;
-;;;   end record;
-;;; -------------------	
-;;; In Emacs FSF 19.28, ada-mode will correctly indent comments at the
-;;; very beginning of the buffer (_before_ any code) when I go M-; but
-;;; when I press TAB I'd expect the comments to be placed at the beginning
-;;; of the line, just as the first line of _code_ would be indented.
-
-;;; This does not happen but the comment stays put :-( I end up going 
-;;; M-; C-a M-\
+;;; Indenting of some tasking constructs is still buggy.
 ;;; -------------------
 ;;; package Test is
 ;;;    -- If I hit return on the "type" line it will indent the next line
@@ -86,27 +71,6 @@
 ;;;    -- tab or return it reindents the line correctly but does not initially.
 ;;;    type Wait_Return is (Read_Success, Read_Timeout, Wait_Timeout,
 ;;;       Nothing_To_Wait_For_In_Wait_List);
-;;;
-;;;    -- The following line will be wrongly reindented after typing it in after
-;;;    -- the initial indent for the line was correct after type return after
-;;;    -- this line. Subsequent lines will show the same problem.
-;;; Unused:    constant Queue_ID := 0;
-;;; -------------------
-;;; -- If I do the following I get 
-;;; -- "no matching procedure/function/task/declare/package"
-;;; -- when I do return (I reverse the mappings of ^j and ^m) after "private".
-;;; package Package1 is
-;;;    package Package1_1 is
-;;;       type The_Type is private;
-;;;       private
-;;; -------------------
-;;; -- But what about this:
-;;; package G is
-;;;    type T1 is new Integer;
-;;;    type T2 is new Integer;  --< incorrect, correct if subtype
-;;;    package H is
-;;;       type T3 is new Integer;
-;;;    type                     --< Indentation is incorrect
 ;;; -------------------
 
 
@@ -279,7 +243,7 @@ type\\|until\\|use\\|when\\|while\\|with\\|xor\\)\\>"
 
 (defconst ada-ident-re 
   "[a-zA-Z0-9_\\.]+"
-  "Regexp matching Ada identifiers.")
+  "Regexp matching Ada (qualified) identifiers.")
 
 (defvar ada-procedure-start-regexp
   "^[ \t]*\\(procedure\\|function\\|task\\)[ \t\n]+\\([a-zA-Z0-9_\\.]+\\)"
@@ -301,8 +265,9 @@ exception\\|loop\\|else\\|\
 (defvar ada-end-stmt-re
   "\\(;\\|=>\\|^[ \t]*separate[ \t]+([a-zA-Z0-9_\\.]+)\\|\
 \\<\\(begin\\|else\\|record\\|loop\\|select\\|do\\|\
-^[ \t]*package[ \ta-zA-Z0-9_\\.]+is\\|\
-^[ \t]*exception\\|declare\\|generic\\|private\\)\\>\\)"
+declare\\|generic\\|private\\)\\>\\|\
+^[ \t]*\\(package\\|procedure\\|function\\)[ \ta-zA-Z0-9_\\.]+is\\|\
+^[ \t]*exception\\>\\)"
   "Regexp of possible ends for a non-broken statement.
 'end' means that there has to start a new statement after these.")
 
@@ -311,7 +276,7 @@ exception\\|loop\\|else\\|\
   "Regexp for the start of a loop.")
 
 (defvar ada-subprog-start-re
-  "\\<\\(procedure\\|protected\\|package[ \t]+body\\|function\\|\
+  "\\<\\(procedure\\|protected\\|package\\|function\\|\
 task\\|accept\\|entry\\)\\>"
   "Regexp for the start of a subprogram.")
 
@@ -924,9 +889,7 @@ In such a case, use 'undo', correct the syntax and try again."
 	  ;; find start of current parameter-list
 	  ;;
 	  (ada-search-ignore-string-comment
-	   (concat "\\<\\("
-		   "procedure\\|function\\|body\\|package\\|task\\|entry\\|accept"
-		   "\\)\\>") t nil)
+           (concat ada-subprog-start-re "\\|\\<body\\>" ) t nil)
 	  (ada-search-ignore-string-comment "(" nil nil t)
 	  (backward-char 1)
 	  (setq begin (point))
@@ -1504,7 +1467,10 @@ This works by two steps:
 		  (setq prev-indent
 			(save-excursion
 			  (funcall (ada-indent-function) line-end))))
-	      (setq prevline nil)))
+              (progn                    ; first line of buffer -> set indent
+                (beginning-of-line)     ; to 0
+                (delete-horizontal-space)
+                (setq prevline nil))))
 
 	  (if prevline
 	      ;;
@@ -1516,9 +1482,11 @@ This works by two steps:
 		;;
 		(back-to-indentation)
 		(setq cur-indent (ada-get-current-indent prev-indent))
+                ;; only reindent if indentation is different then the current
+                (if (= (current-column) cur-indent)
+                    nil
 		(delete-horizontal-space)
-		(indent-to cur-indent)
-
+                  (indent-to cur-indent))
 		;;
 		;; restore position of point
 		;;
@@ -2130,8 +2098,7 @@ This works by two steps:
                 "\\<\\(separate\\|new\\|abstract\\)\\>"
                 nil orgpoint))))
       (goto-char (car match-cons))
-      (ada-search-ignore-string-comment (concat ada-subprog-start-re
-                                                "\\|\\<package\\>") t)
+      (ada-search-ignore-string-comment ada-subprog-start-re t)
       (ada-get-indent-noindent orgpoint))
      ;;
      ;; something follows 'is'
@@ -2421,6 +2388,7 @@ This works by two steps:
   ;; End-statements are defined by 'ada-end-stmt-re'.  Checks for
   ;; certain keywords if they follow 'end', which means they are no
   ;; end-statement there.
+  (interactive) ;; DEBUG
   (let ((match-dat nil)
         (pos nil)
         (found nil))
@@ -2447,7 +2415,7 @@ This works by two steps:
                       (looking-at "\\<end\\>"))))
               (setq found t)
 
-            (backward-word 1)))) ; end of loop
+            (forward-word -1)))) ; end of loop
 
     (if found
         match-dat
@@ -2477,7 +2445,7 @@ This works by two steps:
 
 
 (defun ada-goto-previous-word ()
-  ;; Moves point to the beginning of the previous word of ada-code.
+  ;; Moves point to the beginning of the previous word of Ada code.
   ;; Returns the new position of point or nil if not found.
   (let ((match-cons nil)
         (orgpoint (point)))
@@ -2557,6 +2525,7 @@ This works by two steps:
 (defun ada-goto-matching-decl-start (&optional noerror nogeneric)
   ;; Moves point to the matching declaration start of the current 'begin'.
   ;; If NOERROR is non-nil, it only returns nil if no match was found.
+  (interactive) ;; DEBUG
   (let ((nest-count 1)
         (pos nil)
         (first t)
@@ -2585,7 +2554,8 @@ This works by two steps:
         (setq first nil))
        ;;
        ((looking-at "is")
-        ;; check if it is only a type definition
+        ;; check if it is only a type definition, but not a protected
+        ;; type definition, which should be handled like a procedure.
         (if (save-excursion
               (ada-goto-previous-word)
               (skip-chars-backward "a-zA-Z0-9_.'")
@@ -2598,7 +2568,12 @@ This works by two steps:
                     (skip-chars-backward "a-zA-Z0-9_.'")
                     ))
               (ada-goto-previous-word)
-              (looking-at "\\<type\\>")) ; end of save-excursion
+              (and 
+               (looking-at "\\<type\\>")
+               (save-match-data
+                 (ada-goto-previous-word)
+                 (not (looking-at "\\<protected\\>"))))
+              ); end of save-excursion
             (goto-char (match-beginning 0))
           (progn
             (setq nest-count (1- nest-count))
@@ -2633,7 +2608,7 @@ This works by two steps:
                    ada-subprog-start-re t)
               (looking-at "declare\\|generic")))))
         (if noerror nil
-          (error "no matching procedure/function/task/declare/package"))
+          (error "no matching proc/func/task/declare/package/protected"))
       t)))
 
 
@@ -3202,13 +3177,15 @@ This works by two steps:
 ;;;---------------;;;
 
 (defun ada-remove-trailing-spaces  ()
-;; remove all trailing spaces at the end of lines.
  "remove trailing spaces in the whole buffer."
   (interactive)
+  (save-match-data
   (save-excursion
+      (save-restriction
+        (widen)
     (goto-char (point-min))
-    (while (re-search-forward "[ \t]+$" nil t)
-      (replace-match "" nil nil))))
+        (while (re-search-forward "[ \t]+$" (point-max) t)
+          (replace-match "" nil nil))))))
 
 
 (defun ada-untabify-buffer ()
@@ -3580,7 +3557,7 @@ This does fairly subdued highlighting.")
             "\\)\\>")
     ;;
     ;; Anything following end and not already fontified is a body name.
-    '("\\<\\(end\\)\\>[ \t]+\\(\\sw+\\)?"
+    '("\\<\\(end\\)\\>[ \t]+\\([a-zA-Z0-9_\\.]+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
     ;;
     ;; Variable name plus optional keywords followed by a type name.  Slow.
