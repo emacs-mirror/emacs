@@ -183,7 +183,7 @@ static char *float_error_fn_name;
       if ((x) >= (((EMACS_INT) 1) << (VALBITS-1)) ||			\
 	  (x) <= - (((EMACS_INT) 1) << (VALBITS-1)) - 1)		\
 	range_error (name, num);					\
-      XSET (i, Lisp_Int,  (EMACS_INT)(x));				\
+      XSETINT (i,  (EMACS_INT)(x));					\
     }									\
   while (0)
 #define FLOAT_TO_INT2(x, i, name, num1, num2)				\
@@ -192,7 +192,7 @@ static char *float_error_fn_name;
       if ((x) >= (((EMACS_INT) 1) << (VALBITS-1)) ||			\
 	  (x) <= - (((EMACS_INT) 1) << (VALBITS-1)) - 1)		\
 	range_error2 (name, num1, num2);				\
-      XSET (i, Lisp_Int,  (EMACS_INT)(x));				\
+      XSETINT (i,  (EMACS_INT)(x));					\
     }									\
   while (0)
 
@@ -473,7 +473,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 	      y = (unsigned)y >> 1;
 	    }
 	}
-      XSET (val, Lisp_Int, acc);
+      XSETINT (val, acc);
       return val;
     }
   f1 = FLOATP (arg1) ? XFLOAT (arg1)->data : XINT (arg1);
@@ -709,7 +709,7 @@ This is the same as the exponent of a float.")
 #endif
 #endif
     }
-  XSET (val, Lisp_Int, value);
+  XSETINT (val, value);
   return val;
 }
 
@@ -778,7 +778,7 @@ With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.")
 	    ? (i1 <= 0  ?  -i1 / -i2  :  -1 - ((i1 - 1) / -i2))
 	    : (i1 < 0  ?  -1 - ((-1 - i1) / i2)  :  i1 / i2));
 
-      XSET (arg, Lisp_Int, i1);
+      XSETINT (arg, i1);
       return arg;
     }
 
