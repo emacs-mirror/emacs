@@ -1,3 +1,15 @@
+2000-03-26  Dave Love  <fx@gnu.org>
+
+	* files.el: Doc fixes.
+	(file-truename): Include `[' in wildcard characters.
+	(automount-dir-prefix): Customize.
+	(find-file-wildcards): Add :version.
+	(find-file-noselect): Simplify a mapcar call.
+
+	* emacs-lisp/lisp-mode.el (lisp-eval-defun): Make arglist
+	compatible with inf-lisp version.
+	(eval-defun-1): Fix custom-declare-variable case.
+
 2000-03-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile (COMPILE_FIRST): New macro.
