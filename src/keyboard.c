@@ -1519,18 +1519,18 @@ command_loop_1 ()
 
 #ifdef HAVE_X_WINDOWS
 	  if (display_busy_cursor_p)
-	    {
-	      if (inhibit_busy_cursor != 2)
-		inhibit_busy_cursor = 0;
-	      if (!inhibit_busy_cursor)
-		Fx_show_busy_cursor ();
-	    }
+	    start_busy_cursor ();
 #endif
 
 	  nonundocount = 0;
 	  if (NILP (current_kboard->Vprefix_arg))
 	    Fundo_boundary ();
 	  Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
+
+#ifdef HAVE_X_WINDOWS
+	  if (display_busy_cursor_p)
+	    cancel_busy_cursor ();
+#endif
 	}
     directly_done: ;
       current_kboard->Vlast_prefix_arg = Vcurrent_prefix_arg;
@@ -3627,9 +3627,6 @@ timer_check (do_it_now)
 	    {
 	      int was_locked = single_kboard;
 	      int count = specpdl_ptr - specpdl;
-#ifdef HAVE_WINDOW_SYSTEM
-	      int old_inhibit_busy_cursor = inhibit_busy_cursor;
-#endif
 
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
@@ -3637,16 +3634,8 @@ timer_check (do_it_now)
 
 	      specbind (Qinhibit_quit, Qt);
 
-#ifdef HAVE_WINDOW_SYSTEM
-	      inhibit_busy_cursor = 2;
-#endif
-	      
 	      call1 (Qtimer_event_handler, chosen_timer);
 	      timers_run++;
-
-#ifdef HAVE_WINDOW_SYSTEM
-	      inhibit_busy_cursor = old_inhibit_busy_cursor;
-#endif
 
 	      unbind_to (count, Qnil);
 
@@ -8493,9 +8482,19 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
       this_single_command_key_start = 0;
     }
 
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
+
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0);
+
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    start_busy_cursor ();
+#endif
 
   if (i == -1)
     {
@@ -8538,9 +8537,19 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
       this_single_command_key_start = 0;
     }
 
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
+
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0);
+
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    start_busy_cursor ();
+#endif
 
   if (i == -1)
     {
