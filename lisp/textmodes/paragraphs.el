@@ -210,7 +210,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
   "Kill back from point to start of sentence.
 With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
   (interactive "*p")
-  (kill-region (point) (save-excursion (forward-sentence arg) (point))))
+  (kill-region (point) (save-excursion (backward-sentence arg) (point))))
 
 (defun mark-end-of-sentence (arg)
   "Put mark at end of sentence.  Arg works as in `forward-sentence'."
