@@ -156,7 +156,12 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\\([-a-zA-Z._]+: ?\\)?\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\
+
+    ;; We insist on a non-digit in the file name
+    ;; so that we don't mistake the file name for a command name
+    ;; and take the line number as the file name.
+    ("\\([-a-zA-Z._]+: ?\\)?\
+\\([a-zA-Z]?:?[^:( \t\n]*[^:( \t\n0-9][^:( \t\n]*\\)[:(][ \t]*\\([0-9]+\\)\
 \\([) \t]\\|:\\(\\([0-9]+:\\)\\|[0-9]*[^:0-9]\\)\\)" 2 3 6)
 
     ;; Microsoft C/C++:
