@@ -3356,9 +3356,14 @@ system TYPE.")
       (ange-ftp-real-insert-file-contents filename visit beg end replace))))
 
 (defun ange-ftp-expand-symlink (file dir)
-  (if (file-name-absolute-p file)
-      (ange-ftp-replace-name-component dir file)
-    (expand-file-name file dir)))
+  (let ((res (if (file-name-absolute-p file)
+		 (ange-ftp-replace-name-component dir file)
+	       (expand-file-name file dir))))
+    (if (file-symlink-p res)
+	(ange-ftp-expand-symlink
+	 (ange-ftp-get-file-entry res)
+	 (file-name-directory (directory-file-name res)))
+      res)))
 
 (defun ange-ftp-file-symlink-p (file)
   ;; call ange-ftp-expand-file-name rather than the normal
@@ -3370,11 +3375,7 @@ system TYPE.")
 	     (gethash
 	      (ange-ftp-get-file-part file)
 	      (ange-ftp-get-files (file-name-directory file)))))
-	(if (stringp file-ent)
-	    (if (file-name-absolute-p file-ent)
-		(ange-ftp-replace-name-component
-		 (file-name-directory file) file-ent)
-	      file-ent)))
+	(and (stringp file-ent) file-ent))
     (ange-ftp-real-file-symlink-p file)))
 
 (defun ange-ftp-file-exists-p (name)

@@ -1,3 +1,10 @@
+2003-04-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+	From Michael Albinus <Michael.Albinus@alcatel.de>.
+
+	* net/ange-ftp.el (ange-ftp-expand-symlink): If result of
+	expansion is a symlink, expand again.
+	(ange-ftp-file-symlink-p): Return target of symlink literally.
+
 2003-04-13  Masatake YAMATO  <jet@gyve.org>
 
 	* bindings.el (toplevel): Don't change the face
