@@ -1,7 +1,22 @@
+2005-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer, cvs-mode-kill-process, cvs-buffer-check):
+	Use buffer-live-p.
+	(cvs-mode-run): Don't call cvs-update-header here.
+	(cvs-run-process): Call cvs-update-header.
+	Use process properties for cvs-postprocess and cvs-buffer so that
+	the sentinel can behave better if the temp buffer is killed.
+	Use a pipe rather than a tty, to better handle unexpected prompts.
+	(cvs-sentinel): Rewrite.  Call cvs-update-header.
+
 2005-04-01  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-workfile-unchanged-p): Disable mtime check when
 	we go via Tramp or Ange-FTP.  Suggested by Kai Grossjohann.
+
+2005-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* generic.el (define-generic-mode): Add indentation rule.
 
 2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -25,11 +40,11 @@
 	Handle define-global-minor-mode.
 
 	* emacs-lisp/easy-mmode.el (define-global-minor-mode):
-	Renamed from easy-mmode-define-global-mode.
+	Rename from easy-mmode-define-global-mode.
 	(easy-mmode-define-global-mode): Alias for define-global-minor-mode.
 
-	* progmodes/scheme.el (scheme-mode-syntax-table): Update
-	syntax of | and # for two-character comment syntax.
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	Update syntax of | and # for two-character comment syntax.
 
 2005-03-31  Lute Kamstra  <lute@gnu.org>
 
@@ -122,13 +137,13 @@
 	* org.el (org-agenda-phases-of-moon, org-agenda-sunrise-sunset)
 	(org-agenda-convert-date, org-agenda-goto-calendar): New commands.
 	(org-diary-default-entry): New function.
-	(org-get-entries-from-diary): Better parsing of diary entries
+	(org-get-entries-from-diary): Better parsing of diary entries.
 	(org-agenda-check-no-diary): New function.
 	("diary-lib"): Advice to function `add-to-diary-list', to allow
 	linking to diary entries.
-	(org-agenda-execute-calendar-command): New function
-	(org-agenda): Improved visible section in window.  And
-	use `org-fit-agenda-window'.
+	(org-agenda-execute-calendar-command): New function.
+	(org-agenda): Improve visible section in window.
+	Use `org-fit-agenda-window'.
 	(org-fit-agenda-window): New option.
 	(org-move-subtree-down): Better handling of empty lines
 	at end of subtree.
@@ -137,12 +152,10 @@
 	(org-fontify-done-headline): New option.
 	(org-headline-done-face): New face.
 	(org-set-font-lock-defaults): Use `org-headline-done-face'.
-	(org-table-copy-down): renamed from
-	`org-table-copy-from-above'.  When current field is non-empty, it
-	is copied to next row.
-	(org-table-copy-from-above): Fixed bug which made it
-	impossible to copy fields containing only a single non-white
-	character.
+	(org-table-copy-down): Rename from `org-table-copy-from-above'.
+	When current field is non-empty, it is copied to next row.
+	(org-table-copy-from-above): Fix bug which made it
+	impossible to copy fields containing only a single non-white character.
 
 2005-03-30  Kim F. Storm  <storm@cua.dk>
 
