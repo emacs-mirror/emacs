@@ -1,3 +1,8 @@
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_input): Don't do adaptive read
+	buffering if waiting for a specific process.
+
 2004-02-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* minibuf.c (Fminibufferp, Fread_from_minibuffer)
