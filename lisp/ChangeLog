@@ -1,3 +1,11 @@
+2005-03-01  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el: (texinfo-no-refill-regexp): Comment out
+	inclusion of "itemize\\|", which may be unnecessary, is certainly
+	inelegant, and stops refilling in itemize lists when formatting
+	Japanese Texinfo files to Info.
+	Update copyright to 2005.
+
 2005-03-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-get-location): Use a warning instead
