@@ -666,11 +666,17 @@ parenthesized expressions in REGEXP for the components (in that order)."
 ;; mode and hangs. Have it ignore 550- instead. It will then barf
 ;; when it gets the 550 line, as it should.
 
+;; RFC2228 "FTP Security Extensions" defines extensions to the FTP
+;; protocol which involve the client requesting particular
+;; authentication methods (typically) at connection establishment. Non
+;; security-aware FTP servers should respond to this with a 500 code,
+;; which we ignore.
 (defcustom ange-ftp-skip-msgs
   (concat "^200 \\(PORT\\|Port\\) \\|^331 \\|^150 \\|^350 \\|^[0-9]+ bytes \\|"
 	  "^Connected \\|^$\\|^Remote system\\|^Using\\|^ \\|Password:\\|"
 	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
+          "^500 .*AUTH \\(KERBEROS\\|GSSAPI\\)\\|^KERBEROS\\|"
 	  "^227 .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
   "*Regular expression matching ftp messages that can be ignored."
   :group 'ange-ftp
