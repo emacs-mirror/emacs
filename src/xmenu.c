@@ -46,6 +46,8 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "blockinput.h"
 #include "buffer.h"
+#include "charset.h"
+#include "coding.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -111,9 +113,6 @@ extern XtAppContext Xt_app_con;
 
 static Lisp_Object xdialog_show ();
 void popup_get_selection ();
-#endif
-
-#ifdef USE_X_TOOLKIT
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 
@@ -697,7 +696,7 @@ cached information about equivalent key sequences.  */)
   Lisp_Object title;
   char *error_name;
   Lisp_Object selection;
-  struct frame *f = NULL;
+  FRAME_PTR f = NULL;
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
@@ -767,9 +766,9 @@ cached information about equivalent key sequences.  */)
 	  CHECK_LIVE_WINDOW (window, 0);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-	  xpos = (FONT_WIDTH (f->output_data.x->font)
+	  xpos = (FONT_WIDTH (FRAME_FONT (f))
 		  * XFASTINT (XWINDOW (window)->left));
-	  ypos = (f->output_data.x->line_height
+	  ypos = (FRAME_LINE_HEIGHT (f)
 		  * XFASTINT (XWINDOW (window)->top));
 	}
       else
@@ -899,7 +898,7 @@ on the left of the dialog box and all following items on the right.
      (position, contents)
      Lisp_Object position, contents;
 {
-  struct frame * f = NULL;
+  FRAME_PTR f = NULL;
   Lisp_Object window;
 
   check_x ();
@@ -913,7 +912,7 @@ on the left of the dialog box and all following items on the right.
       /* Use the mouse's current position.  */
       FRAME_PTR new_f = SELECTED_FRAME ();
       Lisp_Object bar_window;
-      int part;
+      enum scroll_bar_part part;
       unsigned long time;
       Lisp_Object x, y;
 
@@ -1449,7 +1448,7 @@ single_submenu (item_key, item_name, maps)
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
-	      pane_name = string_make_unibyte (pane_name);
+	      pane_name = ENCODE_SYSTEM (pane_name);
 	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
 	    }
 #endif
@@ -1500,13 +1499,13 @@ single_submenu (item_key, item_name, maps)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = string_make_unibyte (item_name);
+	      item_name = ENCODE_SYSTEM (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 	  
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = string_make_unibyte (descrip);
+	      descrip = ENCODE_SYSTEM (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1537,8 +1536,10 @@ single_submenu (item_key, item_name, maps)
 
 	  wv->selected = !NILP (selected);
 	  if (STRINGP (help))
-	    wv->help = XSTRING (help)->data;
-		   
+	    wv->help = (char *) XSTRING (help)->data;
+          else
+            wv->help = NULL;
+
 	  prev_wv = wv;
 
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -1617,6 +1618,7 @@ set_frame_menubar (f, first_time, deep_p)
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
+
   LWLIB_ID id;
 
   XSETFRAME (Vmenu_updating_frame, f);
@@ -2040,7 +2042,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
-	      pane_name = string_make_unibyte (pane_name);
+	      pane_name = ENCODE_SYSTEM (pane_name);
 	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
 	    }
 #endif
@@ -2093,13 +2095,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = string_make_unibyte (item_name);
+	      item_name = ENCODE_SYSTEM (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 	  
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = string_make_unibyte (descrip);
+	      descrip = ENCODE_SYSTEM (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -2130,9 +2132,12 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-	  if (STRINGP (help))
-	    wv->help = XSTRING (help)->data;
-	  
+
+          if (STRINGP (help))
+            wv->help = (char *) XSTRING (help)->data;
+          else
+            wv->help = NULL;
+
 	  prev_wv = wv;
 
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -2154,11 +2159,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
-	title = string_make_unibyte (title);
+	title = ENCODE_SYSTEM (title);
 #endif
       
       wv_title->name = (char *) XSTRING (title)->data;
-      wv_title->enabled = True;
+      wv_title->enabled = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->next = wv_sep1;
       first_wv->contents = wv_title;
@@ -2538,7 +2543,7 @@ menu_help_callback (help_string, pane, item)
     pane_name = first_item[MENU_ITEMS_PANE_NAME];
   else if (EQ (first_item[0], Qquote))
     /* This shouldn't happen, see xmenu_show.  */
-    pane_name = build_string ("");
+    pane_name = empty_string;
   else
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
  
