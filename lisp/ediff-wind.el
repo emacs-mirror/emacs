@@ -73,8 +73,8 @@
 					'ediff-setup-windows-multiframe
 				      'ediff-setup-windows-plain)
   "*Function called to set up windows.
-Ediff provides a choice of two functions: ediff-setup-windows-plain, for
-doing everything in one frame, and ediff-setup-windows-multiframe,
+Ediff provides a choice of two functions: `ediff-setup-windows-plain', for
+doing everything in one frame, and `ediff-setup-windows-multiframe',
 which sets the control panel in a separate frame.  Also, if the latter
 function detects that one of the buffers A/B is seen in some other frame,
 it will try to keep that buffer in that frame.
@@ -82,9 +82,9 @@ it will try to keep that buffer in that frame.
 If you don't like the two functions provided---write your own one.
 The basic guidelines:
     1. It should leave the control buffer current and the control window
-       selected. 
-    2. It should set ediff-window-A, ediff-window-B, ediff-window-C,
-       and ediff-control-window to contain window objects that display
+       selected.
+    2. It should set `ediff-window-A', `ediff-window-B', `ediff-window-C',
+       and `ediff-control-window' to contain window objects that display
        the corresponding buffers.
     3. It should accept the following arguments:
        buffer-A, buffer-B, buffer-C, control-buffer
@@ -143,7 +143,7 @@ In this case, Ediff will use those frames to display these buffers."
   :group 'ediff-window)
 
 (defconst ediff-control-frame-parameters
-  (list 
+  (list
    '(name . "Ediff")
    ;;'(unsplittable . t)
    '(minibuffer . nil)
@@ -229,7 +229,7 @@ customization of the default."
 ;; t means Ediff is using wide display
 (ediff-defvar-local ediff-wide-display-p nil "")
 ;; keeps frame config for toggling wide display
-(ediff-defvar-local ediff-wide-display-orig-parameters nil 
+(ediff-defvar-local ediff-wide-display-orig-parameters nil
   "Frame parameters to be restored when the user wants to toggle the wide
 display off.")
 (ediff-defvar-local ediff-wide-display-frame nil
@@ -274,8 +274,8 @@ into icons, regardless of the window manager."
     ))
       
 
-;; Select the lowest window on the frame.
 (defun ediff-select-lowest-window ()
+  "Select the lowest window on the frame."
   (if ediff-xemacs-p
       (select-window (frame-lowest-window))
     (let* ((lowest-window (selected-window))
@@ -317,7 +317,7 @@ into icons, regardless of the window manager."
       (setq ediff-window-setup-function 'ediff-setup-windows-plain))
   
   (or (ediff-keep-window-config control-buffer)
-      (funcall 
+      (funcall
        (ediff-with-current-buffer control-buffer ediff-window-setup-function)
        buffer-A buffer-B buffer-C control-buffer))
   (run-hooks 'ediff-after-setup-windows-hook))
@@ -331,14 +331,14 @@ into icons, regardless of the window manager."
   (if ediff-merge-job
       (ediff-setup-windows-plain-merge
        buffer-A buffer-B buffer-C control-buffer)
-    (ediff-setup-windows-plain-compare 
+    (ediff-setup-windows-plain-compare
      buffer-A buffer-B buffer-C control-buffer)))
      
 (defun ediff-setup-windows-plain-merge (buf-A buf-B buf-C control-buffer)
   ;; skip dedicated and unsplittable frames
   (ediff-destroy-control-frame control-buffer)
   (let ((window-min-height 1)
-	split-window-function 
+	split-window-function
 	merge-window-share merge-window-lines
 	wind-A wind-B wind-C)
     (ediff-with-current-buffer control-buffer
@@ -351,7 +351,7 @@ into icons, regardless of the window manager."
     (ediff-setup-control-buffer control-buffer)
     
     ;; go to the upper window and split it betw A, B, and possibly C
-    (other-window 1) 
+    (other-window 1)
     (setq merge-window-lines
 	  (max 2 (round (* (window-height) merge-window-share))))
     (switch-to-buffer buf-A)
@@ -363,7 +363,7 @@ into icons, regardless of the window manager."
     ;;(if ediff-xemacs-p (sit-for 0))
     
     (split-window-vertically (max 2 (- (window-height) merge-window-lines)))
-    (if (eq (selected-window) wind-A) 
+    (if (eq (selected-window) wind-A)
 	(other-window 1))
     (setq wind-C (selected-window))
     (switch-to-buffer buf-C)
@@ -410,7 +410,7 @@ into icons, regardless of the window manager."
     (ediff-setup-control-buffer control-buffer)
     
     ;; go to the upper window and split it betw A, B, and possibly C
-    (other-window 1) 
+    (other-window 1)
     (switch-to-buffer buf-A)
     (setq wind-A (selected-window))
     (if three-way-comparison
@@ -470,14 +470,14 @@ into icons, regardless of the window manager."
 ;;;   1. Never use frames that have dedicated windows in them---it is bad to
 ;;;      destroy dedicated windows.
 ;;;   2. If A and B are in the same frame but C's frame is different--- use one
-;;;      frame for A and B and use a separate frame for C. 
+;;;      frame for A and B and use a separate frame for C.
 ;;;   3. If C's frame is non-existent, then: if the first suitable
 ;;;      non-dedicated frame  is different from A&B's, then use it for C.
 ;;;      Otherwise, put A,B, and C in one frame.
 ;;;   4. If buffers A, B, C are is separate frames, use them to display these
 ;;;      buffers.
 
-  ;;   Skip dedicated or iconified frames. 
+  ;;   Skip dedicated or iconified frames.
   ;;   Unsplittable frames are taken care of later.
   (ediff-skip-unsuitable-frames 'ok-unsplittable)
   
@@ -489,10 +489,10 @@ into icons, regardless of the window manager."
 	 (frame-B (if wind-B (window-frame wind-B)))
 	 (frame-C (if wind-C (window-frame wind-C)))
 	 ;; on wide display, do things in one frame
-	 (force-one-frame 
+	 (force-one-frame
 	  (ediff-with-current-buffer control-buf ediff-wide-display-p))
 	 ;; this lets us have local versions of ediff-split-window-function
-	 (split-window-function 
+	 (split-window-function
 	  (ediff-with-current-buffer control-buf ediff-split-window-function))
 	 (orig-wind (selected-window))
 	 (orig-frame (selected-frame))
@@ -556,14 +556,14 @@ into icons, regardless of the window manager."
     
     (if (and use-same-frame-for-AB  ; implies wind A and B are suitable
 	     (window-live-p wind-A))
-	(progn 
+	(progn
 	  ;; wind-A must already be displaying buf-A
 	  (select-window wind-A)
 	  (delete-other-windows)
 	  (setq wind-A (selected-window))
 	  
 	  (funcall split-window-function)
-	  (if (eq (selected-window) wind-A) 
+	  (if (eq (selected-window) wind-A)
 	      (other-window 1))
 	  (switch-to-buffer buf-B)
 	  (setq wind-B (selected-window))
@@ -587,7 +587,7 @@ into icons, regardless of the window manager."
 	  
 	  (split-window-vertically
 	   (max 2 (- (window-height) merge-window-lines)))
-	  (if (eq (selected-window) wind-A) 
+	  (if (eq (selected-window) wind-A)
 	      (other-window 1))
 	  (setq wind-C (selected-window))
 	  (switch-to-buffer buf-C)
@@ -595,7 +595,7 @@ into icons, regardless of the window manager."
 	  (select-window wind-A)
 	  
 	  (funcall split-window-function)
-	  (if (eq (selected-window) wind-A) 
+	  (if (eq (selected-window) wind-A)
 	      (other-window 1))
 	  (switch-to-buffer buf-B)
 	  (setq wind-B (selected-window))
@@ -652,7 +652,7 @@ into icons, regardless of the window manager."
 ;; Window setup for all comparison jobs, including 3way comparisons
 (defun ediff-setup-windows-multiframe-compare (buf-A buf-B buf-C control-buf)
 ;;; Algorithm:
-;;;    If a buffer is seen in a frame, use that frame for that buffer.  
+;;;    If a buffer is seen in a frame, use that frame for that buffer.
 ;;;    If it is not seen, use the current frame.
 ;;;    If both buffers are not seen, they share the current frame.  If one
 ;;;    of the buffers is not seen, it is placed in the current frame (where
@@ -677,10 +677,10 @@ into icons, regardless of the window manager."
 	 (ctl-frame-exists-p (ediff-with-current-buffer control-buf
 			       (frame-live-p ediff-control-frame)))
 	 ;; on wide display, do things in one frame
-	 (force-one-frame 
+	 (force-one-frame
 	  (ediff-with-current-buffer control-buf ediff-wide-display-p))
 	 ;; this lets us have local versions of ediff-split-window-function
-	 (split-window-function 
+	 (split-window-function
 	  (ediff-with-current-buffer control-buf ediff-split-window-function))
 	 (three-way-comparison
 	  (ediff-with-current-buffer control-buf ediff-3way-comparison-job))
@@ -702,7 +702,7 @@ into icons, regardless of the window manager."
 			     (and (not (frame-live-p frame-A))
 				  (or ctl-frame-exists-p
 				      (eq frame-B (selected-frame))))))
-	 wind-A-start wind-B-start 
+	 wind-A-start wind-B-start
 	 designated-minibuffer-frame
 	 done-A done-B done-C)
     
@@ -757,7 +757,7 @@ into icons, regardless of the window manager."
 		     3)))
 	  
 	  (funcall split-window-function wind-width-or-height)
-	  (if (eq (selected-window) wind-A) 
+	  (if (eq (selected-window) wind-A)
 	      (other-window 1))
 	  (switch-to-buffer buf-B)
 	  (setq wind-B (selected-window))
@@ -776,7 +776,7 @@ into icons, regardless of the window manager."
     
     (or done-A  ; Buf A to be set in its own frame
 	      ;;; or it was set before because use-same-frame = 1
-	(progn  
+	(progn
 	  ;; Buf-A was not set up yet as it wasn't visible,
 	  ;; and use-same-frame = nil
 	  (select-window orig-wind)
@@ -786,7 +786,7 @@ into icons, regardless of the window manager."
 	  ))
     (or done-B  ; Buf B to be set in its own frame
 	      ;;; or it was set before because use-same-frame = 1
-	(progn  
+	(progn
 	  ;; Buf-B was not set up yet as it wasn't visible,
 	  ;; and use-same-frame = nil
 	  (select-window orig-wind)
@@ -798,7 +798,7 @@ into icons, regardless of the window manager."
     (if three-way-comparison
 	(or done-C  ; Buf C to be set in its own frame
 		  ;;; or it was set before because use-same-frame = 1
-	    (progn  
+	    (progn
 	      ;; Buf-C was not set up yet as it wasn't visible,
 	      ;; and use-same-frame = nil
 	      (select-window orig-wind)
@@ -872,7 +872,7 @@ into icons, regardless of the window manager."
 (defun ediff-window-ok-for-display (wind)
   (and
    (window-live-p wind)
-   (or 
+   (or
     ;; only one window
     (eq wind (next-window wind 'ignore-minibuffer (window-frame wind)))
     ;; none is dedicated
@@ -883,9 +883,9 @@ into icons, regardless of the window manager."
 (defun ediff-setup-control-frame (ctl-buffer designated-minibuffer-frame)
   (let ((window-min-height 1)
 	ctl-frame-iconified-p dont-iconify-ctl-frame deiconify-ctl-frame
-	ctl-frame old-ctl-frame lines 
+	ctl-frame old-ctl-frame lines
 	;; user-grabbed-mouse
-	fheight fwidth adjusted-parameters) 
+	fheight fwidth adjusted-parameters)
 	
     (ediff-with-current-buffer ctl-buffer
       (if ediff-xemacs-p (set-buffer-menubar nil))
@@ -916,7 +916,7 @@ into icons, regardless of the window manager."
     (ediff-setup-control-buffer ctl-buffer)
     (setq dont-iconify-ctl-frame
 	  (not (string= ediff-help-message ediff-brief-help-message)))
-    (setq deiconify-ctl-frame 
+    (setq deiconify-ctl-frame
 	  (and (eq this-command 'ediff-toggle-help)
 	       dont-iconify-ctl-frame))
     
@@ -939,7 +939,7 @@ into icons, regardless of the window manager."
 	      (cons '(auto-raise . nil) adjusted-parameters)))
     
     ;; In XEmacs, buffer menubar needs to be killed before frame parameters
-    ;; are changed. 
+    ;; are changed.
     (if (ediff-has-toolbar-support-p)
 	(progn
 	  (set-specifier top-toolbar-height (list ctl-frame 2))
@@ -1037,7 +1037,7 @@ into icons, regardless of the window manager."
 	   (frame-A-width (frame-width frame-A))
 	   (ctl-frame ediff-control-frame)
 	   horizontal-adjustment upward-adjustment
-	   ctl-frame-top ctl-frame-left) 
+	   ctl-frame-top ctl-frame-left)
       
       ;; Multiple control frames are clipped based on the value of
       ;; ediff-control-buffer-number.  This is done in order not to obscure
@@ -1087,12 +1087,12 @@ The frame to be resized is kept in `ediff-wide-display-frame'.
 This function modifies only the left margin and the width of the display.
 It assumes that it is called from within the control buffer."
   (if (not (fboundp 'ediff-display-pixel-width))
-      (error "Can't determine display width."))
+      (error "Can't determine display width"))
   (let* ((frame-A (window-frame ediff-window-A))
 	 (frame-A-params (frame-parameters frame-A))
 	 (cw (ediff-frame-char-width frame-A))
 	 (wd (- (/ (ediff-display-pixel-width) cw) 5)))
-    (setq ediff-wide-display-orig-parameters 
+    (setq ediff-wide-display-orig-parameters
 	  (list (cons 'left (max 0 (eval (cdr (assoc 'left frame-A-params)))))
 		(cons 'width (cdr (assoc 'width frame-A-params))))
 	  ediff-wide-display-frame frame-A)
@@ -1126,7 +1126,7 @@ It assumes that it is called from within the control buffer."
 				      (if buf-C-state-merge
 					  (concat " " buf-C-state-merge)
 					"")
-				      (if (ediff-get-state-of-ancestor 
+				      (if (ediff-get-state-of-ancestor
 					   ediff-current-difference)
 					  " AncestorEmpty"
 					"")
@@ -1142,7 +1142,7 @@ It assumes that it is called from within the control buffer."
 	      (list "   " mode-line-buffer-identification)
 	    (list "-- " mode-line-buffer-identification "        Quick Help")))
     ;; control buffer id
-    (setq mode-line-buffer-identification 
+    (setq mode-line-buffer-identification
 	  (if (ediff-narrow-control-frame-p)
 	      (ediff-make-narrow-control-buffer-id 'skip-name)
 	    (ediff-make-wide-control-buffer-id)))
@@ -1210,7 +1210,7 @@ It assumes that it is called from within the control buffer."
    (if skip-name
        " "
      (ediff-make-base-title))
-   (cond ((< ediff-current-difference 0) 
+   (cond ((< ediff-current-difference 0)
 	  (format " _/%d" ediff-number-of-differences))
 	 ((>= ediff-current-difference ediff-number-of-differences)
 	  (format " $/%d" ediff-number-of-differences))
