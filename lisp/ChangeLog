@@ -1,3 +1,9 @@
+2005-01-04  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (insert-directory): Only look for error lines in
+	inserted text.  Don't move too far after processing --dired
+	markers.
+
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):
