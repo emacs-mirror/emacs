@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.104 $")
+(defconst byte-compile-version "$Revision: 2.102 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -815,6 +815,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 (defvar byte-compile-current-file nil)
 (defvar byte-compile-current-buffer nil)
 
+;; Log something that isn't a warning.
 (defmacro byte-compile-log (format-string &rest args)
   (list 'and
 	'byte-optimize
@@ -830,8 +831,16 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 			   (if (symbolp x) (list 'prin1-to-string x) x))
 			 args)))))))
 
-(defvar byte-compile-last-warned-form nil)
-(defvar byte-compile-last-logged-file nil)
+;; Log something that isn't a warning.
+(defun byte-compile-log-1 (string)
+  (save-excursion
+    (byte-goto-log-buffer)
+    (goto-char (point-max))
+    (byte-compile-warning-prefix nil nil)
+    (cond (noninteractive
+	   (message " %s" string))
+	  (t
+	   (insert (format "%s\n" string))))))
 
 (defvar byte-compile-read-position nil
   "Character position we began the last `read' from.")
@@ -878,6 +887,10 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	       (or (and allow-previous (not (= last byte-compile-last-position)))
 		   (> last byte-compile-last-position)))))))
 
+(defvar byte-compile-last-warned-form nil)
+(defvar byte-compile-last-logged-file nil)
+
+;; Return non-nil if should say what defun we are in.
 (defun byte-compile-display-log-head-p ()
   (and (not (eq byte-compile-current-form :end))
        (or (and byte-compile-current-file
@@ -892,9 +905,10 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   (unless (eq major-mode 'compilation-mode)
     (compilation-mode)))
 
-;; Log a message STRING in *Compile-Log*.
-;; Also log the current function and file if not already done.
-(defun byte-compile-log-1 (string &optional fill)
+;; This is used as warning-prefix for the compiler.
+(defun byte-compile-warning-prefix (level entry)
+  (save-current-buffer
+    (byte-goto-log-buffer))
   (let* ((file (cond ((stringp byte-compile-current-file)
 		      (format "%s:" byte-compile-current-file))
 		     ((bufferp byte-compile-current-file)
@@ -911,24 +925,16 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 			      (1+ (current-column)))))
 		""))
 	 (form (or byte-compile-current-form "toplevel form")))
-    (cond (noninteractive
-	   (when (byte-compile-display-log-head-p)
-	     (message "%s In %s" file form))
-	   (message "%s%s %s" file pos string))
-	  (t
-	   (save-excursion
-             (byte-goto-log-buffer)
-	     (goto-char (point-max))
-	     (when (byte-compile-display-log-head-p)
-	       (insert (format "\nIn %s" form)))
-	     (insert (format "\n%s%s\n%s\n" file pos string))
-	     (when (and fill (not (string-match "\n" string)))
-	       (let ((fill-prefix "     ") (fill-column 78))
-		 (fill-paragraph nil)))))))
+    (when (byte-compile-display-log-head-p)
+      (insert (format "\nIn %s:\n" form)))
+    (when (and level (not (byte-compile-display-log-head-p)))
+      (insert (format "\n%s%s\n" file pos))))
   (setq byte-compile-last-logged-file byte-compile-current-file
-	byte-compile-last-warned-form byte-compile-current-form))
+	byte-compile-last-warned-form byte-compile-current-form)
+  entry)
 
 ;; Log the start of a file in *Compile-Log*, and mark it as done.
+;; Return the position of the start of the page in the log buffer.
 ;; But do nothing in batch mode.
 (defun byte-compile-log-file ()
   (and byte-compile-current-file
@@ -937,33 +943,36 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
        (save-excursion
 	 (byte-goto-log-buffer)
 	 (goto-char (point-max))
-	 (insert "\n\^L\nCompiling "
-		 (if (stringp byte-compile-current-file)
-		     (concat "file " byte-compile-current-file)
-		   (concat "buffer " (buffer-name byte-compile-current-file)))
-		 " at " (current-time-string) "\n")
-	 (setq byte-compile-last-logged-file byte-compile-current-file))))
+	 (insert "\n")
+	 (let ((pt (point)))
+	   (insert "^L\nCompiling "
+		   (if (stringp byte-compile-current-file)
+		       (concat "file " byte-compile-current-file)
+		     (concat "buffer " (buffer-name byte-compile-current-file)))
+		   " at " (current-time-string) "\n")
+	   (setq byte-compile-last-logged-file byte-compile-current-file)
+	   pt))))
+
+;; Log a message STRING in *Compile-Log*.
+;; Also log the current function and file if not already done.
+(defun byte-compile-log-warning (string &optional fill level)
+  (let ((warning-prefix-function 'byte-compile-warning-prefix)
+	(warning-fill-prefix (if fill "    ")))
+    (display-warning 'bytecomp string level "*Compile-Log*")))
 
 (defun byte-compile-warn (format &rest args)
+  "Issue a byte compiler warning; use (format FORMAT ARGS...) for message."
   (setq format (apply 'format format args))
   (if byte-compile-error-on-warn
       (error "%s" format)		; byte-compile-file catches and logs it
-    (byte-compile-log-1 (concat "warning: " format) t)
-    ;; It is useless to flash warnings too fast to be read.
-    ;; Besides, they will all be shown at the end.
-    ;; (or noninteractive  ; already written on stdout.
-    ;;	   (message "Warning: %s" format))
-    ))
+    (byte-compile-log-warning format t :warning)))
 
-;;; This function should be used to report errors that have halted
-;;; compilation of the current file.
 (defun byte-compile-report-error (error-info)
+  "Report Lisp error in compilation.  ERROR-INFO is the error data."
   (setq byte-compiler-error-flag t)
-  (byte-compile-log-1
-   (concat "error: "
-	   (format (if (cdr error-info) "%s (%s)" "%s")
-		   (downcase (get (car error-info) 'error-message))
-		   (prin1-to-string (cdr error-info))))))
+  (byte-compile-log-warning
+   (error-message-string error-info)
+   nil :error))
 
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
@@ -1304,37 +1313,17 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		)
 	      body)))
 
-(defvar byte-compile-warnings-point-max nil)
 (defmacro displaying-byte-compile-warnings (&rest body)
-  `(let ((byte-compile-warnings-point-max byte-compile-warnings-point-max))
-     ;; Log the file name.
-     (byte-compile-log-file)
-     ;; Record how much is logged now.
-     ;; We will display the log buffer if anything more is logged
-     ;; before the end of BODY.
-     (unless byte-compile-warnings-point-max
-       (save-excursion
-	 (byte-goto-log-buffer)
-	 (setq byte-compile-warnings-point-max (point-max))))
-     (unwind-protect
-	 (let ((--displaying-byte-compile-warnings-fn (lambda ()
-							,@body)))
-	   (if byte-compile-debug
-	       (funcall --displaying-byte-compile-warnings-fn)
-	     (condition-case error-info
-		 (funcall --displaying-byte-compile-warnings-fn)
-	       (error (byte-compile-report-error error-info)))))
-       (with-current-buffer "*Compile-Log*"
-	 ;; If there were compilation warnings, display them.
-	 (unless (= byte-compile-warnings-point-max (point-max))
-	   (select-window
-	    (prog1 (selected-window)
-	      (select-window (display-buffer (current-buffer)))
-	      (goto-char byte-compile-warnings-point-max)
-	      (beginning-of-line)
-	      (forward-line -1)
-	      (recenter 0))))))))
-
+  `(let (warning-series)
+     ;; Log the file name.  Record position of that text.
+     (setq warning-series (byte-compile-log-file))
+     (let ((--displaying-byte-compile-warnings-fn (lambda ()
+						    ,@body)))
+       (if byte-compile-debug
+	   (funcall --displaying-byte-compile-warnings-fn)
+	 (condition-case error-info
+	     (funcall --displaying-byte-compile-warnings-fn)
+	   (error (byte-compile-report-error error-info)))))))
 
 ;;;###autoload
 (defun byte-force-recompile (directory)
