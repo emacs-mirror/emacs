@@ -1,7 +1,7 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.19) $
- * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved.
+ * $HopeName$
+ * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
  *
@@ -12,8 +12,10 @@
  */
 
 #include "mpm.h"
+#include <stdarg.h>
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.19) $");
+
+SRCID(mpm, "$HopeName$");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -173,12 +175,10 @@ Shift SizeFloorLog2(Size size)
   Shift l = 0;
 
   AVER(size != 0);
-
   while(size > 1) {
     ++l;
     size >>= 1;
   }
-
   return l;
 }
 
@@ -236,9 +236,9 @@ Addr (AddrAlignDown)(Addr addr, Align alignment)
 
 /* PointerAdd -- add a size to a pointer */
 
-Pointer (PointerAdd)(Pointer p, Size s)
+void *(PointerAdd)(void *p, size_t s)
 {
-  Pointer next;
+  void *next;
   AVER(p != NULL);
   next = PointerAdd(p, s);
   AVER(next >= p);   /* overflow check */
@@ -248,9 +248,9 @@ Pointer (PointerAdd)(Pointer p, Size s)
 
 /* PointerSub -- subtract a size from a pointer */
 
-Pointer (PointerSub)(Pointer p, Size s)
+void *(PointerSub)(void *p, size_t s)
 {
-  Pointer next;
+  void *next;
   AVER(p != NULL);
   next = PointerSub(p, s);
   AVER(next <= p);   /* overflow check */
@@ -260,7 +260,7 @@ Pointer (PointerSub)(Pointer p, Size s)
 
 /* PointerOffset -- calculate the offset between two addresses */
 
-Size (PointerOffset)(Pointer base, Pointer limit)
+size_t (PointerOffset)(void *base, void *limit)
 {
   AVER(base != NULL);
   AVER(limit != NULL);
@@ -274,7 +274,7 @@ Size (PointerOffset)(Pointer base, Pointer limit)
 /* padded to the given width */
 
 static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, 
-  unsigned width)
+                     unsigned width)
 {
   static const char digit[16] = "0123456789ABCDEF";
   static const char pad = '0'; /* padding character */
@@ -433,15 +433,15 @@ Res WriteF(mps_lib_FILE *stream, ...)
 }
 
 
-/* StringLength -- Substitute for strlen
- */
+/* StringLength -- Slow substitute for strlen */
 
-size_t StringLength(const char *s) {
+size_t StringLength(const char *s)
+{
   size_t i;
+
   AVER(s != NULL);
 
   for(i = 0; s[i] != '\0'; i++) 
     NOOP;
-
   return(i);
 }

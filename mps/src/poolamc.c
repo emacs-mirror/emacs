@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.5) $
+ * $HopeName: MMsrc!poolamc.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group plc. All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.5) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.6) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -639,15 +639,8 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer)
 
 /* AMCBenefit -- calculate benefit of collecting some generation */
 
-/* defined in impl.c.trace */
-extern unsigned long AMCGen0Frequency;
-extern unsigned long AMCGen1Frequency;
-extern unsigned long AMCGen2Frequency;
-extern unsigned long AMCGen2plusFrequencyMultiplier;
-extern Serial AMCGenFinal;
-
 /* defined here, not used elsewhere */
-unsigned long AMCTopGen = 2;
+Serial AMCTopGen = 2;
 
 static double AMCBenefit(Pool pool, Action action)
 {
@@ -808,7 +801,10 @@ static Res AMCAct(Pool pool, Action action)
     if(res != ResOK)
       goto failCondemn;
   }
-  res = TraceStart(trace);
+
+  res = TraceStart(trace, TraceMortalityEstimate,
+                   AMCGen0Frequency * TraceGen0IncrementalityMultiple
+                   * 1024*1024uL);
   if(res != ResOK)
     goto failStart;
 
@@ -1361,8 +1357,6 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
   Align step;
   Size row;
 
-  AVERT(AMC, amc);
-
   step = amc->poolStruct.alignment;
   row = step * 64;
 
@@ -1390,6 +1384,7 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
     if(res != ResOK)
       return res;
 
+    /* @@@@ This needs to describe nailboards as well */
     for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
       if(j >= limit)
         c = ' ';
@@ -1433,7 +1428,7 @@ static void AMCWalk(Pool pool, Seg seg,
   /* White objects might not be alive, and grey objects */
   /* may have pointers to old-space. */
 
-  /* NB segments containing a mix of colours (ie Nailed segs) */
+  /* NB, segments containing a mix of colours (i.e., nailed segs) */
   /* are not handled properly:  No objects are walked @@@@ */
   if(SegWhite(seg) == TraceSetEMPTY &&
      SegGrey(seg) == TraceSetEMPTY &&
@@ -1508,9 +1503,9 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
   AMC amc;
   Ring ring, node, nextNode;
 
-  AVERT(Pool, pool);
+  if(!CHECKT(Pool, pool)) return ResFAIL;
   amc = PoolPoolAMC(pool);
-  AVERT(AMC, amc);
+  if(!CHECKT(AMC, amc)) return ResFAIL;
 
   res = WriteF(stream,
                "AMC $P {\n", (WriteFP)amc,
@@ -1677,10 +1672,7 @@ void mps_amc_apply(mps_pool_t mps_pool,
   ArenaEnter(arena);
   AVERT(Pool, pool);
 
-  closure_s.f = f;
-  closure_s.p = p;
-  closure_s.s = s;
-
+  closure_s.f = f; closure_s.p = p; closure_s.s = s;
   AMCWalkAll(pool, mps_amc_apply_iter, &closure_s, sizeof(closure_s));
 
   ArenaLeave(arena);

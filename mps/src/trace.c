@@ -1,14 +1,15 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.67) $
+ * $HopeName: MMsrc!trace.c(trunk.68) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
 
 #include "mpm.h"
+#include "limits.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.67) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.68) $");
 
 
 /* Types
@@ -20,20 +21,6 @@ enum {TraceAccountingPhaseRootScan,
       TraceAccountingPhaseSegScan,
       TraceAccountingPhaseSingleScan};
 typedef int TraceAccountingPhase;
-
-
-/* Collection control parameters @@@@ */
-/* Defined here, because they are used by more than one module (pool). */
-/* They have the wrong name because they originally came from AMC, and */
-/* binary compatibility is required. */
-
-unsigned long AMCGen0Frequency = 4;
-unsigned long AMCGen1Frequency = 32;
-unsigned long AMCGen2Frequency = 300;
-unsigned long AMCGen2plusFrequencyMultiplier = 1000;
-Serial AMCGenFinal = 0; /* default: no final generation */
-
-double TraceGen0IncrementalityMultiple = 0.5;
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -210,6 +197,21 @@ static void TraceUpdateCounts(Trace trace, ScanState ss,
 }
 
 
+/* Collection control parameters @@@@ */
+/* Defined here, because they are used by more than one module (pool). */
+/* They have the wrong name because they originally came from AMC, and */
+/* binary compatibility is required. */
+
+unsigned long AMCGen0Frequency = 4;
+unsigned long AMCGen1Frequency = 32;
+unsigned long AMCGen2Frequency = 300;
+unsigned long AMCGen2plusFrequencyMultiplier = 1000;
+Serial AMCGenFinal = 0; /* default: no final generation */
+
+double TraceGen0IncrementalityMultiple = 0.5;
+double TraceMortalityEstimate = 0.5;
+
+
 /* TraceAddWhite -- add a segment to the white set of a trace */
 
 Res TraceAddWhite(Trace trace, Seg seg)
@@ -304,10 +306,14 @@ Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
   return ResOK;
 }
 
+
 /* TraceStart -- condemn a set of objects and start collection
  *
- * TraceStart should be passed a trace with state TraceINIT, i.e.
- * recently returned from TraceCreate.
+ * TraceStart should be passed a trace with state TraceINIT, i.e.,
+ * recently returned from TraceCreate, with some condemned segments
+ * added.  mortality is the fraction of the condemned set expected
+ * to survive.  finishingTime is relative to the current polling clock,
+ * see design.mps.arena.poll.clock.
  *
  * .start.black: All segments are black w.r.t. a newly allocated trace.
  * However, if TraceStart initialized segments to black when it
@@ -315,7 +321,7 @@ Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
  * it easy to destroy traces half-way through.
  */
 
-Res TraceStart(Trace trace)
+Res TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Ring ring, node;
   Arena arena;
@@ -324,8 +330,9 @@ Res TraceStart(Trace trace)
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
-
+  AVER(0.0 <= mortality && mortality <= 1.0);
   arena = trace->arena;
+  AVER(finishingTime >= 0.0);
 
   /* If there is nothing white then there can be nothing grey, */
   /* so everything is black and we can finish the trace immediately. */
@@ -383,22 +390,18 @@ Res TraceStart(Trace trace)
     node = next;
   }
 
-  /* Calculate the rate of working.  Assumes that half the condemned */
-  /* set will survive, and calculates a rate of work which will */
-  /* finish the collection by the time that a megabyte has been */
-  /* allocated.  The 4096 is the number of bytes scanned by each */
-  /* TraceStep (approximately) and should be replaced by a parameter. */
-  /* This is a temporary measure for change.dylan.honeybee.170466. */
+  /* Calculate the rate of scanning. */
   {
-    double surviving = trace->condemned / 2;
-    double scan = trace->foundation + surviving;
-    /* double reclaim = trace->condemned - surviving; */
-    double alloc = AMCGen0Frequency * TraceGen0IncrementalityMultiple *
-                   1024*1024uL;
-    /* if(alloc > 0) */
-      trace->rate = 1 + (Size)(scan * ARENA_POLL_MAX / (4096 * alloc));
-    /* else */
-      /* trace->rate = 1 + (Size)(scan / 4096); */
+    Size sSurvivors = (Size)(trace->condemned * (1.0 - mortality));
+    double nPolls = finishingTime / ARENA_POLL_MAX;
+
+    /* There must be at least one poll. */
+    if(nPolls < 1.0) nPolls = 1.0;
+    /* We use casting to long to truncate nPolls down to the nearest */
+    /* integer, so try to make sure it fits. */
+    if(nPolls >= (double)LONG_MAX) nPolls = (double)LONG_MAX;
+    /* rate equals scanning work per number of polls available */
+    trace->rate = (trace->foundation + sSurvivors) / (long)nPolls + 1;
   }
 
   trace->state = TraceUNFLIPPED;
@@ -941,16 +944,22 @@ static Res TraceRun(Trace trace)
 }
 
 
+/* TraceWorkClock -- a measure of the work done for this trace */
+
+static Size TraceWorkClock(Trace trace)
+{
+  AVERT(Trace, trace);
+
+  /* Segment scanning work is the only work that is regulated. */
+  return trace->segScanSize;
+}
+
+
 /* TraceExpedite -- signals an emergency on the trace and */
 /* moves it to the Finished state. */
 static void TraceExpedite(Trace trace)
 {
   AVERT(Trace, trace);
-
-  /* check trace is not in INIT state.  If the trace was in the */
-  /* INIT state, then TraceStep would not progress it so the loop */
-  /* would never terminate (see .step.noprogress) */
-  AVER(trace->state != TraceINIT);
 
   trace->emergency = TRUE;
 
@@ -980,9 +989,6 @@ Res TraceStep(Trace trace)
   case TraceUNFLIPPED:
     /* all traces are flipped in TraceStart at the moment */
     NOTREACHED;
-    res = TraceFlip(trace);
-    if(res != ResOK)
-      return res;
     break;
 
   case TraceFLIPPED:
@@ -993,13 +999,6 @@ Res TraceStep(Trace trace)
 
   case TraceRECLAIM:
     TraceReclaim(trace);
-    break;
-
-  case TraceFINISHED:
-  case TraceINIT:
-    /* .step.noprogress: no progress in either of these two states. */
-    /* @@@@ in fact, should we ever see a trace in the INIT state? */
-    NOOP;
     break;
 
   default:
@@ -1016,17 +1015,22 @@ Res TraceStep(Trace trace)
 void TracePoll(Trace trace)
 {
   Res res;
+  Size pollEnd;
 
   AVERT(Trace, trace);
 
-  res = TraceStep(trace);
-  if(res != ResOK) {
-    /* check res is expected failure code */
-    AVER(res == ResMEMORY ||
-         res == ResRESOURCE);
-    TraceExpedite(trace);
-    AVER(trace->state == TraceFINISHED);
-  }
+  pollEnd = TraceWorkClock(trace) + trace->rate;
+  do {
+    res = TraceStep(trace);
+    if(res != ResOK) {
+      AVER(res == ResMEMORY ||
+           res == ResRESOURCE);
+      TraceExpedite(trace);
+      AVER(trace->state == TraceFINISHED);
+      return;
+    }
+  } while(trace->state != TraceFINISHED
+          && TraceWorkClock(trace) < pollEnd);
 }
 
 

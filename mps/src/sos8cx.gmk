@@ -1,29 +1,20 @@
+# impl.gmk.sos8cx: BUILD FOR SOLARIS/SPARC v8/CXREF PLATFORM
 #
-#     BUILD FOR SOLARIS/SPARC v8/CXREF PLATFORM
-#
-# $HopeName: MMsrc!sos8cx.gmk(trunk.6) $
-# Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+# $HopeName$
+# Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
 #
 # Instead of compiling object files, this platform (using the cxref
 # builder) generates a C cross reference listing.
-#
-# @@ it falls over if you try and build an executable, but this is
-# okay as it we only wanted the C cross references
+# It falls over if you try and build an executable, but this is
+# okay as we only wanted the C cross references.
 #
 
 PFM = sos8cx
 
-MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
-      arenavm.c arenacl.c arena.c pool.c poolmfs.c \
-      poolmv.c root.c format.c buffer.c lockan.c ref.c \
-      trace.c than.c protso.c prmcan.c shield.c mpsi.c ld.c vmso.c \
-      mpsioan.c event.c action.c seg.c message.c poolmrg.c \
-      span.c
+MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
+        protso.c prmcan.c span.c
 DW = fmtdy.c dw.c
-SW = assert.c ring.c mpm.c arenavm.c arenacl.c arena.c pool.c poolmfs.c \
-     poolmv.c root.c format.c buffer.c lockan.c ref.c bt.c \
-     trace.c than.c protsw.c prmcan.c shield.c mpsi.c ld.c ssan.c vmso.c \
-     poolepdl.c poolepvm.c action.c seg.c poolmrg.c message.c
+SWPF = lockan.c than.c vmso.c protsw.c prmcan.c ssan.c
 LIBS = -lm
 
 include cx.gmk

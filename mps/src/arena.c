@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.38) $
+ * $HopeName: MMsrc!arena.c(trunk.39) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.38) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.39) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -91,9 +91,6 @@ Bool ArenaCheck(Arena arena)
   RefSet rs;
   Rank rank;
 
-  /* we check the fields in order. We can't yet check the serials,
-   * pollThreshold, actionInterval, or epoch.  nickb 1997-07-21 */
-
   CHECKS(Arena, arena);
   /* design.mps.arena.static.serial */
   CHECKL(arena->serial < arenaSerial); 
@@ -109,7 +106,6 @@ Bool ArenaCheck(Arena arena)
   CHECKL(BoolCheck(arena->insidePoll));
   CHECKL(BoolCheck(arena->clamped));
 
-  /* no check on arena->actionInterval */
   CHECKL(BoolCheck(arena->bufferLogging));
   CHECKL(arena->fillMutatorSize >= 0.0);
   CHECKL(arena->emptyMutatorSize >= 0.0);
@@ -237,11 +233,9 @@ void ArenaInit(Arena arena, ArenaClass class)
   arena->suspended = FALSE;
   for(i = 0; i < SHIELD_CACHE_SIZE; i++)
     arena->shCache[i] = (Seg)0;
-  arena->pollThreshold = (Size)0;
+  arena->pollThreshold = 0.0;
   arena->insidePoll = FALSE;
   arena->clamped = FALSE;
-  /* design.mps.arena.poll.interval */
-  arena->actionInterval = ARENA_POLL_MAX;  
   arena->epoch = (Epoch)0;              /* impl.c.ld */
   arena->prehistory = RefSetEMPTY;
   for(i = 0; i < ARENA_LD_LENGTH; ++i)
@@ -546,18 +540,15 @@ void (ArenaPoll)(Arena arena)
 #else
 void ArenaPoll(Arena arena)
 {
-  Size size;
-  Count i;
+  double size;
 
   AVERT(Arena, arena);
 
   if(arena->clamped)
     return;
-
-  size = ArenaCommitted(arena);
+  size = arena->fillMutatorSize;
   if(arena->insidePoll || size < arena->pollThreshold)
     return;
-  /* design.mps.arena.poll.when */
 
   arena->insidePoll = TRUE;
 
@@ -565,23 +556,20 @@ void ArenaPoll(Arena arena)
   ActionPoll(arena);
 
   /* Temporary hacky progress control added here and in trace.c */
-  /* for change.dylan.honeybee.170466. */
+  /* for change.dylan.honeybee.170466, and substantially modified */
+  /* for change.epcore.minnow.160062. */
   if(arena->busyTraces != TraceSetEMPTY) {
     Trace trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle((TraceId)0));
-    i = trace->rate;
-    while(i > 0 && TraceSetIsMember(arena->busyTraces, trace->ti)) {
-      TracePoll(trace);
-      if(trace->state == TraceFINISHED) {
-        /* @@@@ Pick up results and use for prediction. */
-        TraceDestroy(trace);
-      }
-      --i;
+    TracePoll(trace);
+    if(trace->state == TraceFINISHED) {
+      TraceDestroy(trace);
     }
   }
 
-  size = ArenaCommitted(arena);
+  size = arena->fillMutatorSize;
   arena->pollThreshold = size + ARENA_POLL_MAX;
+  AVER(arena->pollThreshold > size); /* enough precision? */
 
   arena->insidePoll = FALSE;
 }
@@ -616,12 +604,12 @@ void ArenaPark(Arena arena)
  
         TracePoll(trace);
  
-        /* @@@@ Pick up results and use for prediction. */
         if(trace->state == TraceFINISHED)
           TraceDestroy(trace);
       }
   }
 }
+
  
 Res ArenaCollect(Arena arena)
 {
@@ -651,7 +639,6 @@ Res ArenaCollect(Arena arena)
       RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
         Seg seg = SegOfPoolRing(segNode);
  
-        /* avoid buffered segments and non-auto pools? */
         res = TraceAddWhite(trace, seg);
         if(res != ResOK)
           goto failAddWhite;
@@ -659,7 +646,7 @@ Res ArenaCollect(Arena arena)
     }
   }
  
-  res = TraceStart(trace);
+  res = TraceStart(trace, 0.0, 0.0);
   if(res != ResOK)
     goto failStart;
  
@@ -668,7 +655,6 @@ Res ArenaCollect(Arena arena)
   return ResOK;
  
 failStart:
-  NOTREACHED;
 failAddWhite:
   NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
 failBegin:
@@ -683,15 +669,14 @@ failCreate:
  * See design.mps.describe.
  */
 
-
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
   Ring node, nextNode;
   Index i;
 
-  AVERT(Arena, arena);
-  AVER(stream != NULL);
+  if(!CHECKT(Arena, arena)) return ResFAIL;
+  if(stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
                "Arena $P ($U) {\n",    
@@ -702,24 +687,24 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                "  controlPool $P\n",   
                (WriteFP)&arena->controlPoolStruct,
                "  lock $P\n",          (WriteFP)&arena->lockStruct,
-               "  pollThreshold $U\n", (WriteFU)arena->pollThreshold,
+               "  pollThreshold $U KB\n",
+               (WriteFU)(arena->pollThreshold / 1024),
                "  insidePoll $S\n",    arena->insidePoll ? "YES" : "NO",
-	       "  fillMutatorSize $UKb\n",
+	       "  fillMutatorSize $U KB\n",
 	         (WriteFU)(arena->fillMutatorSize / 1024),
-	       "  emptyMutatorSize $UKb\n",
+	       "  emptyMutatorSize $U KB\n",
 	         (WriteFU)(arena->emptyMutatorSize / 1024),
-	       "  allocMutatorSize $UKb\n",
+	       "  allocMutatorSize $U KB\n",
 	         (WriteFU)(arena->allocMutatorSize / 1024),
-	       "  fillInternalSize $UKb\n",
+	       "  fillInternalSize $U KB\n",
 	         (WriteFU)(arena->fillInternalSize / 1024),
-	       "  emptyInternalSize $UKb\n",
+	       "  emptyInternalSize $U KB\n",
 	         (WriteFU)(arena->emptyInternalSize / 1024),
                NULL);
   if(res != ResOK)
     return res;
 
   res = WriteF(stream,
-               "  actionInterval $U\n", (WriteFU)arena->actionInterval,
                "  zoneShift $U\n", (WriteFU)arena->zoneShift,
                "  alignment $W\n", (WriteFW)arena->alignment,
                "  poolSerial $U\n", (WriteFU)arena->poolSerial,
@@ -805,7 +790,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
  * allocating so that the block can be addressed with a void*.
  */
 
-Res ArenaAlloc(void **baseReturn, Arena arena, Size size)
+Res ArenaAlloc(void **baseReturn, Arena arena, size_t size)
 {
   Addr base;
   Res res;
@@ -816,7 +801,7 @@ Res ArenaAlloc(void **baseReturn, Arena arena, Size size)
   AVER(size > 0);
 
   pool = MVPool(&arena->controlPoolStruct);
-  res = PoolAlloc(&base, pool, size);
+  res = PoolAlloc(&base, pool, (Size)size);
   if(res != ResOK) return res;
 
   *baseReturn = (void *)base; /* see .arenaalloc.addr */
@@ -826,15 +811,16 @@ Res ArenaAlloc(void **baseReturn, Arena arena, Size size)
 
 /* ArenaFree -- free a block allocated using ArenaAlloc */
 
-void ArenaFree(Arena arena, void* base, Size size)
+void ArenaFree(Arena arena, void* base, size_t size)
 {
   Pool pool;
+
   AVERT(Arena, arena);
   AVER(base != NULL);
   AVER(size > 0);
 
   pool = MVPool(&arena->controlPoolStruct);
-  PoolFree(pool, base, size);
+  PoolFree(pool, (Addr)base, (Size)size);
 }
 
 
