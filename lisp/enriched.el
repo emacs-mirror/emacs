@@ -1,5 +1,5 @@
 ;;; enriched.el -- read and save files in text/enriched format
-;; Copyright (c) 1994 Free Software Foundation
+;; Copyright (c) 1994, 1995 Free Software Foundation
 
 ;; Author: Boris Goldowsky <boris@cs.rochester.edu>
 ;; Keywords: wp, faces

@@ -4,7 +4,7 @@
 ;;;                          For GNU Emacs 19
 ;;;
 ;;
-;; Copyright (C) 1986, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992, 1993, 1995 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>
@@ -35,7 +35,7 @@
 ;;;
 ;;;  Revision Information
 ;;;
-(defconst edt-vt100-revision "$Revision: 1.0.1 $"
+(defconst edt-vt100-revision "$Revision: 1.1 $"
     "Revision Number of EDT VT Series Terminal Support.")
 
 ;; Get keyboard function key mapping to EDT keys.

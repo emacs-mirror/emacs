@@ -1,5 +1,5 @@
 ;;; c-mode.el --- C code editing commands for Emacs
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 94, 95 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: c
@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; A smart editing mode for C code.  It knows a lot about C syntax and tries
-;; to position the curser according to C layout conventions.  You can
+;; to position the cursor according to C layout conventions.  You can
 ;; change the details of the layout style with option variables.  Load it
 ;; and do M-x describe-mode for details.
 

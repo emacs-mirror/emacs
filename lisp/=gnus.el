@@ -1,5 +1,5 @@
 ;;; gnus.el --- NNTP-based News Reader for GNU Emacs
-;; Copyright (C) 1987,88,89,90,93,94 Free Software Foundation, Inc.
+;; Copyright (C) 1987,88,89,90,93,94,95 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: news

@@ -2,7 +2,7 @@
 
 ;;;                             For GNU Emacs 19
 
-;; Copyright (C) 1994  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>
@@ -71,7 +71,7 @@
 ;;;
 ;;;  Revision Information
 ;;;
-(defconst edt-mapper-revision "$Revision: 1.1 $"
+(defconst edt-mapper-revision "$Revision: 1.2 $"
     "Revision Number of EDT X-Windows Emacs Key Mapper.")
 
 

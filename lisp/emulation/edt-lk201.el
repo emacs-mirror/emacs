@@ -3,7 +3,7 @@
 ;;;
 ;;;                          For GNU Emacs 19
 ;;
-;; Copyright (C) 1986, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992, 1993, 1995 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>
@@ -34,7 +34,7 @@
 ;;;
 ;;;  Revision Information
 ;;;
-(defconst edt-lk201-revision "$Revision: 1.1 $"
+(defconst edt-lk201-revision "$Revision: 1.2 $"
     "Revision Number of EDT LK-201 Keyboard Support.")
 
 ;;;;

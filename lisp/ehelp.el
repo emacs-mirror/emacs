@@ -1,6 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, extensions
