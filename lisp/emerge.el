@@ -1,575 +1,34 @@
-;;; emerge.el --- merge diffs under Emacs control
+;;; Emacs subsystem to merge two files, version 5 beta
+;;; Written by Dale R. Worley <drw@math.mit.edu>.
 
-;;; The author has placed this file in the public domain.
+;; WARRANTY DISCLAIMER
 
-;; Author: Dale R. Worley <drw@math.mit.edu>
-;; Version: 4.1
-;; Keywords: unix, tools
+;; This software was created by Dale R. Worley and is
+;; distributed free of charge.  It is placed in the public domain and
+;; permission is granted to anyone to use, duplicate, modify and redistribute
+;; it provided that this notice is attached.
 
-;;; Commentary:
+;; Dale R. Worley provides absolutely NO WARRANTY OF ANY KIND
+;; with respect to this software.  The entire risk as to the quality and
+;; performance of this software is with the user.  IN NO EVENT WILL DALE
+;; R. WORLEY BE LIABLE TO ANYONE FOR ANY DAMAGES ARISING OUT THE
+;; USE OF THIS SOFTWARE, INCLUDING, WITHOUT LIMITATION, DAMAGES RESULTING FROM
+;; LOST DATA OR LOST PROFITS, OR FOR ANY SPECIAL, INCIDENTAL OR CONSEQUENTIAL
+;; DAMAGES.
 
-;; This package assists you in reconciling differences between pair of files.
+;; Declare that we've got the subsystem loaded
+(provide 'emerge)
 
-; - Starting
-; 
-; To start Emerge, you must run one of four commands:
-; 
-; 	emerge-files
-; 	emerge-files-with-ancestor
-; 	emerge-buffers
-; 	emerge-buffers-with-ancestor
-; 
-; The "files" versions prompt you for two file names (the "A" and "B"
-; files), the "buffers" versions prompt you for two buffer names (the
-; "A" and "B" buffers).  Emerge then runs a "diff" of the two entities
-; (emerge-buffers writes the buffers into temporary files for input to
-; diff) and digests the output to form a list of the differences between
-; the two files.  Then three buffers are set up: two containing the
-; entities (emerge-files does a find-file (C-x C-f) on the files to get
-; them into buffers), and one, the "merge buffer", which contains the
-; working copy of the merged file that you are constructing.  The three
-; buffers are put up in a nice three-window display, showing the A and B
-; buffers in the upper half and the merge buffer in the lower half.
-; 
-; The versions of the command that say "with-ancestor" ask for a third
-; name, that of an entity which is a common ancestor from which the
-; versions being merged were derived.  These commands use "diff3" to
-; compare all three versions.  If one version of a difference agrees
-; with the ancestor, then it is presumed that the other version is the
-; "correct" version, and is said to be "preferred".
-; 
-; (Note that if you use emerge-files, Emerge attempts to make sure that
-; file on disk and the file in the buffer are the same.  If the file on
-; disk has been changed, Emerge offers to revert the buffer.  If the
-; buffer has been modified, Emerge offers to save the buffer.  If the
-; user declines the offer, or if the file on disk and the buffer have
-; both been modified, Emerge aborts with an error message.  Emerge is
-; careful to widen the buffers containing the files if they have been
-; narrowed.  If you use emerge-buffers, the buffers are not widened --
-; only the visible portion is used.)
-; 
-; During the merge, the A and B buffers are read-only, so you don't
-; damage them.  (This is because the A and B versions of the differences
-; are extracted from these buffers.)  When you quit the merge, the
-; read-only/read-write status and modified flag on the A and B buffers
-; are restored.  In addition, auto-saving of the A and B buffers is
-; suppressed during the merge.  This is because Emerge modifies the A
-; and B buffers to point out the text of the differences, and it would
-; be useless to save these changes.  (Just before suppressing
-; auto-saving, Emerge forces an auto-save.)
-; 
-; If you give a prefix argument to emerge-files or
-; emerge-files-with-ancestor, it prompts you for another file name,
-; which is the file into which the merged file is to be written when you
-; exit Emerge.  The output file name defaults to the A file name.  If
-; you successfully quit Emerge, the merge buffer will be written to the
-; output file, and the buffers for the A, B, and ancestor buffers will
-; be deleted (if they exist and are not modified).  If you abort Emerge,
-; the merge buffer will not be written and the buffers will not be
-; deleted.
-; 
-; You can have any number of merges going at once -- just don't use any
-; one buffer as input to more than one merge at once, since that will
-; cause the read-only/modified/auto-save status save-and-restore to
-; screw up.
-; 
-; Beware that when Emerge starts up, it does a diff or diff3 of the
-; files, which can take many minutes for long files with many
-; differences.  Emacs can't do anything else until diff finishes.
-; 
-; If diff or diff3 produces error messages, Emerge will beep and display
-; the error messages instead of the merge buffer.  There will be a
-; message in the echo area giving the name of the merge buffer.  Note
-; that this is really just an informational message -- you still have
-; switch to the merge buffer and abort the merge to restore the
-; conditions before you ran Emerge.  (Emerge considers any output line
-; that does not match the regexp emerge-diff/diff3-ok-lines to be an
-; error message.)
-; 
-; After the merge has been set up, Emerge runs the hooks in
-; emerge-startup-hook.
-; 
-; - Merging
-; 
-; Once you have started the merge, you manipulate the merge buffer with
-; special commands issued in the merge buffer.  You may also edit the
-; buffer with ordinary Emacs commands.  Emerge keeps track of each
-; difference between the A and B buffers and the corresponding section
-; of the merge buffer.  Initially, all differences show the A version,
-; except those for which B is preferred (because A agrees with the
-; ancestor), which show the B version.  Emerge always has its attention
-; focused on one particular difference, which is marked off in the three
-; buffers by "vvvvvvvvvvvvvvvvvvvv" above and "^^^^^^^^^^^^^^^^^^^^"
-; below.  The number of the difference is shown in the mode line.
-; 
-; A merge buffer can be in two modes: "fast" mode and "edit" mode.  In
-; fast mode, emerge commands are single characters, and ordinary Emacs
-; commands are disabled.  This makes Emerge operations fast, but
-; prevents you from doing more than selecing the A or the B version of
-; differences.  In edit mode, all emerge commands must be prefixed with
-; C-c, and all (non-conflicting) Emacs commands are available.  This
-; allows editing the merge buffer, but slows down Emerge operations.
-; Edit and fast modes are indicated by "F" and "E" in the minor modes in
-; the mode line.
-; 
-; The Emerge commands are:
-; 
-; 	p	go to the previous difference
-; 	n	go to the next difference
-; 	a	select the A version of this difference
-; 	b	select the B version of this difference
-; 	j	go to a particular difference (prefix argument
-; 		specifies which difference) (0j suppresses display of
-; 		the flags)
-; 	q	quit - finish the merge*
-; 	f	go into fast mode
-; 	e	go into edit mode
-; 	s a	set/clear auto-advance mode*
-; 	s s	set/clear skip-prefers mode*
-; 	l	recenter (C-l) all three windows*
-; 	- and 0 through 9
-; 		prefix numeric arguments
-; 	d a	select the A version as the default from here down in
-; 		the merge buffer*
-; 	d b	select the B version as the default from here down in
-; 		the merge buffer*
-; 	c a	copy the A version of the difference into the kill
-; 		ring
-; 	c b	copy the B version of the difference into the kill
-; 		ring
-; 	i a	insert the A version of the difference at the point
-; 	i b	insert the B version of the difference at the point
-; 	m	put the point and mark around the difference region
-; 	^	scroll-down (like M-v) the three windows*
-; 	v	scroll-up (like C-v) the three windows*
-; 	<	scroll-left (like C-x <) the three windows*
-; 	>	scroll-right (like C-x >) the three windows*
-; 	|	reset horizontal scroll on the three windows*
-; 	x 1	shrink the merge window to one line (use C-u l to restore it
-; 		to full size)
-; 	x a	find the difference containing a location in the A buffer*
-; 	x b	find the difference containing a location in the B buffer*
-; 	x c	combine the two versions of this difference*
-; 	x C	combine the two versions of this difference, using a
-; 		register's value as the template*
-; 	x d	find the difference containing a location in the merge buffer*
-; 	x f	show the files/buffers Emerge is operating on in Help window
-; 		(use C-u l to restore windows)
-; 	x j	join this difference with the following one
-; 		(C-u x j joins this difference with the previous one)
-; 	x l	show line numbers of points in A, B, and merge buffers
-; 	x m	change major mode of merge buffer*
-; 	x s	split this difference into two differences
-; 		(first position the point in all three buffers to the places
-; 		to split the difference)
-; 	x t	trim identical lines off top and bottom of difference
-; 		(such lines occur when the A and B versions are
-; 		identical but differ from the ancestor version)
-; 	x x	set the template for the x c command*
-; 
-; * - more details on these commands are given below
-; 
-; emerge-version is a variable giving the version number of Emerge.  It
-; is also a function which displays emerge-version (when called
-; interactively) or returns it (when called from a program).
-; 
-; - Differences and their states
-; 
-; A difference can have one of seven states:
-; 
-; A:  the difference is showing the A version.
-; 
-; B:  the difference is showing the B version.
-; 
-; default-A and default-B: the difference is showing the A or B state,
-; but has never been selected by the user.  All differences start in the
-; default-A state (and thus the merge buffer is a copy of the A buffer),
-; except those for which one buffer or another is preferred.  When the
-; user selects the difference, it changes to the A or B state.
-; 
-; prefer-A and prefer-B: the difference is showing the A or B state.  In
-; addition, the other buffer (that is, for prefer-A, the B buffer; for
-; prefer-B, the A buffer) agrees with the ancestor buffer.  Thus,
-; presumably, the displayed version is the correct one.  The "a" and "b"
-; commands override these states, and turn them into the A and B states.
-; 
-; combined: the difference is showing a combination of the A and B
-; states that was constructed by the "x c" or "x C" commands.  Since
-; this state is neither the A or B states, the "a" and "b" commands
-; won't alter the difference unless they are given a prefix argument.
-; 
-; The state of the currently selected difference is shown in the mode
-; line of the merge window:
-; 
-; 	state		display
-; 
-; 	A		A
-; 	B		B
-; 	prefer-A	A*
-; 	prefer-B	B*
-; 	combined	comb
-; 
-; - Select default commands (d a and d b)
-; 
-; The d a and d b commands change all default-A's to default-B's (or
-; vice-versa) from the selected difference on down to the end of the
-; file to default-A or default-B, respectively.  (Since a difference
-; that has been selected can not have state default-A or default-B, it
-; will never be affected by d a or d b.  This leads to the unexpected
-; result that d a or d b never affects the difference selected at the
-; moment, but prevents differences that you have already looked at from
-; changing unexpectedly.)
-; 
-; If you work your way down from the top of the file, using d a and d b
-; at judicious points, you can effectivly make the A version the default
-; for some sections of the merge buffer and the B version the default
-; for others.
-; 
-; - Exiting (q)
-; 
-; The quit command finishes the merge session by restoring the state of
-; the A and B buffers and removing the markers around the currently
-; selected difference.  It also disables the Emerge commands in the
-; merge buffer, since executing them later could damage the contents of
-; the various buffers.
-; 
-; The action of "q" depends on how Emerge was started and whether "q"
-; was given a prefix argument.  If there was no prefix argument, it is
-; considered a "successful" finish.  If there was a prefix argument, it
-; is considered an "unsuccessful" finish.  In either case, you are asked
-; to cofirm the exit, and the confirmation message tells which sort of
-; exit you are confirming.
-; 
-; If Emerge was started by some other process, success/failure is
-; reported to the caller.
-; 
-; If Emerge was started with emerge-files or emerge-files-with-ancestor,
-; if a prefix argument was given to that command, then you specified a
-; file into which the merge is to be written.  A successful exit writes
-; the merge into the output file and then kills the A, B, and ancestor
-; buffers (so they aren't lying around to confuse you, since they
-; probably all have similar names).
-; 
-; - Auto-advance mode (s a)
-; 
-; If auto-advance mode is set, the "a" and "b" commands perform an "n"
-; (select next difference) afterward.  When auto-advance mode is set,
-; it is indicated by "A" in the minor modes in the mode line.
-; "s a" with a positive argument sets auto-advance, with a non-positive
-; argument clears it, and with no argument toggles it.
-; 
-; - Skip-prefers mode (s s)
-; 
-; If skip-prefers mode is set, the "n" and "p" commands skip over
-; differences with states prefer-A and prefer-B.  Thus you will only see
-; differences for which one version isn't presumed "correct".  When
-; skip-prefers mode is set, it is indicated by "S" in the minor modes in
-; the mode line.  "s s" with a positive argument sets auto-advance, with
-; a non-positive argument clears it, and with no argument toggles it.
-; 
-; - Recenter (l)
-; 
-; The Emerge "l" command causes the selected difference to be brought
-; into view in the three windows, or at least, whichever of the three
-; merge buffers are visible at the moment.  If a prefix argument is
-; given, then the original three-window display is set up before the
-; difference texts are shown.
-; 
-; - Scrolling the text (^, v, <, >, and |)
-; 
-; Emerge has several commands which scroll all three windows by the same
-; amount, thus allowing you to easily compare the versions of the text.
-; The commands are "^" (scroll-up), "v" (scroll-down), "<"
-; (scroll-left), ">" (scroll-right), and "|" (reset horizontal
-; scrolling).  (Remember that Emacs names scrolling commands by the
-; motion of the text with respect to the window, so C-v is called
-; "scroll-up".)
-; 
-; If these commands (except "|") are given an argument, that is the
-; number of lines or characters by which the windows are scrolled.
-; Otherwise, the amount of motion is computed based on the dimensions of
-; the merge buffer window -- the height of the merge buffer window
-; (minus next-frame-context-lines), or half the width of the merge
-; buffer window.  (The A and B version windows are assumed to be as high
-; as the merge window, but half as wide.)  If the argument is just `C-u
-; -', then the scrolling is half the default amount.
-; 
-; - Finding the difference at or near a location (x d, x a, and x b)
-; 
-; The "x d" command selects the difference containing the current point
-; in the merge buffer.  If there is no difference containing the point,
-; an error is given.  An argument can be given to the command to change
-; this behavior: if the argument is positive (e.g., C-u), the next
-; following difference is selected; if the argument is negative (e.g.,
-; C-u -), the previous difference is selected.
-; 
-; The "x a" and "x b" commands select the difference containing the
-; current point in the A and B buffers, respectively.  Otherwise, they
-; act like the "x d" command.  Note that although the point used in the
-; commands is not the merge buffer point, the commands can only be
-; issued in the merge buffer, because it is the only buffer with the
-; Emerge keymap.
-; 
-; - Combining the two versions (x c, x C, and x x)
-; 
-; Sometimes one wants to combine the two versions of a difference.  For
-; instance, when merging two versions of a program, one wants to make
-; something like this:
-; 
-; 	#ifdef NEW
-; 		...new version of code...
-; 	#else /* NEW */
-; 		...old version of code...
-; 	#endif /* NEW */
-; 
-; The "x c" command will make such a combined version.  (Note that any
-; combined version is not the same as either the A or B versions, and so
-; the "a" and "b" commands will refuse to alter it unless they are given
-; a prefix argument.)  The combination is made under control of a
-; template, which is a character string with the following
-; interpolations:
-; 
-; 	%a	the A version of the difference
-; 	%b	the B version of the difference
-; 	%%	the character '%'
-; 
-; Thus, the template used above is 
-; 
-; 	#ifdef NEW\n%b#else /* NEW */\n%a#endif /* NEW */\n
-; 
-; (using \n here to represent newlines).  The template is stored in the
-; variable emerge-combine-versions-template, and its initial value is
-; the one given above.  The template can be set (from the current
-; region) by the "x x" command.  (Be careful to get the newlines in the
-; template in the right places!)  ("x x" was chosen by analogy with "C-x
-; x".)  ("x x" is only available in the merge buffer, of course.
-; Elsewhere, M-x emerge-set-combine-versions-template can be used.)  If
-; "x x" is given a prefix argument, emerge-combine-versions-template is
-; localized in the merge buffer before its value is set, so the "x x"
-; command's effect (and the effect of any later "x x" command in the
-; merge buffer) is only on the merge buffer.
-; 
-; The "x C" command is like "x c", but it prompts for a character
-; which is the register whose value is to be used as the template.
-; This allows one to use multiple templates conveniently.
-; 
-; - Changing the major mode of the edit buffer (x m)
-; 
-; The "x m" command prompts for the name of a major-mode-setting command
-; and executes it.  Ordinarily, major-mode-setting commands change the
-; mode line and local keymap, so the "x m" command then resets the
-; Emerge mode line and the fast or edit mode local keymap, as
-; appropriate.
-; 
-; If you have already changed the major mode of the merge buffer and
-; lost the Emerge keymap, you can use M-x emerge-set-merge-mode to
-; execute this command.
-; 
-; Beware that "x m" accepts any command name, not just
-; major-mode-setting commands.
-; 
-; - Writing the merge buffer manually
-; 
-; Emerge places a wrapper (emerge-query-and-call) on the key bindings of
-; save-buffer (usually "C-x C-s") and write-file (usually "C-x C-w"), in
-; order to protect the user from writing out the merge before it is
-; finished.  Emerge-query-and-call asks the user if he is sure he wants
-; to write out the incomplete merge.  If he answers yes, the buffer is
-; written out.  The flags are suppressed while the write is being done.
-; As a result of this, the displayed portions of the buffers are
-; recentered (equivalent to "l").
-; 
-; - Running Emerge standalone
-; 
-; If you invoke emacs with the following arguments, you can execute
-; Emerge as a standalone program:
-; 
-; 	emacs -l emerge -f emerge-files-command file-a file-b file-out
-; 
-; 	emacs -l emerge -f emerge-files-with-ancestor-command
-; 		file-a file-b file-ancestor file-out
-; 
-; When the user gives the "q" (quit) command, Emerge will write out the
-; merge buffer in file-out and terminate Emacs.  If a prefix argument is
-; given, Emacs will terminate with an unsuccessful return code (1), if
-; not, it will terminate with a successful return code (0).
-; 
-; - Invoking Emerge remotely
-; 
-; If you use the Emacs client/server code that supports remote
-; execution, then you can invoke Emerge remotely by executing one of the
-; Lisp calls:
-; 
-; 	(emerge-files-remote "file A" "file B" "output file")
-; 
-; 	(emerge-files-with-ancestor-remote "file A" "file B"
-; 		"ancestor file" "output file")
-; 
-; Returning a successful/unsuccessful return code is not yet supported
-; by the Emacs client/server code.
-; 
-; Beware that in systems of networked workstations, even though all user
-; directories are shared between all the workstations, the /tmp
-; directory on each workstation is not shared, so writing files into
-; /tmp and then remotely invoking Emerge is not likely to work.
-; 
-; - Effect of merge flags on indenting code
-; 
-; The presence of the flags confuses the indentation code of C and
-; Emacs-Lisp modes.  Starting the flag strings
-; (emerge-{before,after}-flag) with '#' (for C) or ';' (for Lisp)
-; prevents the indentation code from noticing the flags.  Remember to
-; change the flag strings before loading Emerge, or to execute
-; emerge-new-flags after changing them.  But never change the flag
-; strings while a merge is being performed.
-; 
-; - Autoloading
-; 
-; The following autoloads will make all top-level Emerge files
-; autoloading.  Make sure that "emerge" is in a directory on load-path.
-; 
-; (autoload 'emerge-files "emerge"
-; 	  "Run Emerge on two files."
-; 	  t)
-; (autoload 'emerge-files-with-ancestor "emerge"
-; 	  "Run Emerge on two files, giving another file as the ancestor."
-; 	  t)
-; (autoload 'emerge-buffers "emerge"
-; 	  "Run Emerge on two buffers."
-; 	  t)
-; (autoload 'emerge-buffers-with-ancestor "emerge"
-; 	  "Run Emerge on two buffers, giving another buffer as the ancestor."
-; 	  t)
-; (autoload 'emerge-files-command "emerge")
-; (autoload 'emerge-files-with-ancestor-command "emerge")
-; (autoload 'emerge-files-remote "emerge")
-; (autoload 'emerge-files-with-ancestor-remote "emerge")
-; 
-; ================================================================
-
-;;; Change Log:
-
-; - Changes from version 3 to version 4
-; 
-; More configuration variables are marked as user options.
-; 
-; Code is included for an improved version of make-auto-save-file-name
-; which eliminates many problems with the default version.  See the
-; documentation of emerge-make-auto-save-file-name to see how to
-; activate it.
-; 
-; Emerge now works with Gnu diff3, which can produce the groups of lines
-; from the various files in the order 1, 2, 3 or 1, 3, 2.
-; 
-; Added x f command to show what files or buffers are being operated on.
-; 
-; The merge buffer now starts read-only, which being in fast mode it
-; should be.
-; 
-; When merging buffers, Emerge writes their contents into temporary
-; files in the directory $TMPDIR (if it is defined), or /tmp by default.
-; 
-; Added x j command to join two differences.
-; 
-; Added x s command to split a difference into two differences.
-; 
-; Added emerge-version variable and function to report the version of Emerge
-; being run.
-; 
-; Added x t command to trim unchanged lines off top and bottom of
-; difference region.
-; 
-; Added x d, x a, and x b commands to locate the differences at or near
-; a given location in one of the buffers.
-; 
-; Emerge no longer tries to copy the minor modes from the A buffer to
-; the merge buffer, only the major mode.
-; 
-; The programs executed to find the differences between versions of the file
-; are no longer controlled by emerge-diff/diff3-command, but rather by:
-;   emerge-diff-program	      
-;     Variable: *Name of the program which compares two files.
-;   emerge-diff3-program	      
-;     Variable: *Name of the program which compares an ancestor file
-;     (first argument) and two variant files (second and third arguments).
-;   emerge-diff-options	      
-;     Variable: *Options to be passed to emerge-diff/diff3-program.
-; 
-; The names of the files are expanded (see expand-file-name) before being
-; passed to emerge-diff/diff3-program, so diff need not invoked under a shell
-; that understands '~', for instance.
-; 
-; If the diff/diff3 program reports errors, the user is notified and the
-; errors are displayed.
-; 
-; The command "0j" can be used to suppress the flags from showing in the buffers.
-; 
-; A discussion of the effect of the merge flags on indentation of code
-; has been added to the documentation.
-; 
-; If kill-fix.el is loaded, Emerge control variables new have their
-; 'preserved' property set, so setting the major mode in the merge
-; buffer doesn't destroy Emerge's state.
-; 
-; Added x c, x C, and x x commands to allow the A and B versions to be
-; combined into #ifdef - #endif forms.
-; 
-; Replaced calls of "ding" to calls of "error" where appropriate.
-; 
-; Added x m command to allow major mode of merge buffer to be changed.
-; 
-; Added x 1 command to shrink the merge window to one line.
-; 
-; Added emerge-startup-hook to allow customization.
-; 
-; Fixed a bug that is activated when a remote merge request is made when
-; the minibuffer window is selected.
-; 
-; - Changes from version 2 to version 3
-; 
-; The directory into which temporary files are written is now controlled
-; by a user option (emerge-temp-file-prefix).
-; 
-; The A and B versions of the difference can be loaded into the kill
-; ring with the "c a" and "c b" commands.
-; 
-; The A and B versions of the difference can be inserted into the merge
-; buffer with the "i a" and "i b" commands.
-; 
-; The difference region of the merge buffer can be surrounded by the
-; point and mark with the "m" command.
-; 
-; The three windows can be scrolled together with the "^", "v", "<",
-; ">", and "|" commands.
-; 
-; The "s s" and "s a" commands report the state of the option in the
-; echo area.  Similarly, the "f" and "e" commands report what they do in
-; the echo area.
-; 
-; The "q" command has been revamped, and its behavior is now controlled
-; by the manner in which Emerge is started.  In particular, if you wish
-; to write the merge buffer into a file upon exiting, invoke
-; emerge-files[-with-ancestor] with a prefix argument, and it will
-; prompt you for the file name.  Then exiting will write the merge
-; buffer to the file, unless "q" is given a prefix argument.
-; 
-; The "i a" and "i b" commands now work in fast mode.
-; 
-; The modifications that Emerge makes to save-buffer and write-file are
-; described.
-; 
-; Emerge now handles merging narrowed buffers correctly.
-; 
-; Emerge now isn't fooled when the buffer visiting a file is not the
-; same as the file on disk.
-
-;;; Code:
+;; LCD Archive Entry:
+;; emerge|Dale R. Worley|drw@math.mit.edu
+;; |File merge
+;; |92-11-20|version 5 beta|~/packages/emerge.el.Z
 
 ;;; Macros
 
 (defmacro emerge-eval-in-buffer (buffer &rest forms)
   "Macro to switch to BUFFER, evaluate FORMS, returns to original buffer.
-Differs from `save-excursion' in that it doesn't save the point and mark."
+Differs from  save-excursion  in that it doesn't save the point and mark."
   (` (let ((StartBuffer (current-buffer)))
     (unwind-protect
 	(progn
@@ -578,11 +37,10 @@ Differs from `save-excursion' in that it doesn't save the point and mark."
       (set-buffer StartBuffer)))))
 
 (defmacro emerge-defvar-local (var value doc) 
-  "Defines SYMBOL as an advertised variable.  
-Performs a defvar, then executes `make-variable-buffer-local' on
-the variable.  Also sets the 'preserved' property, so that
-`kill-all-local-variables' (called by major-mode setting commands) 
-won't destroy Emerge control variables."
+  "Defines SYMBOL as an advertised variable.  Performs a defvar, then
+executes make-variable-buffer-local on the variable.  Also sets the
+'preserved' property, so that kill-all-local-variables (called by major-mode
+setting commands) won't destroy Emerge control variables."
   (` (progn
        (defvar (, var) (, value) (, doc))
        (make-variable-buffer-local '(, var))
@@ -600,28 +58,28 @@ won't destroy Emerge control variables."
 
 ;; We need to define this function so describe-mode can describe Emerge mode.
 (defun emerge-mode ()
-  "Emerge mode is used by the Emerge file-merging package.
-It is entered only through one of the functions:
-	`emerge-files'
-	`emerge-files-with-ancestor'
-	`emerge-buffers'
-	`emerge-buffers-with-ancestor'
-	`emerge-files-command'
-	`emerge-files-with-ancestor-command'
-	`emerge-files-remote'
-	`emerge-files-with-ancestor-remote'
+  "Emerge mode is used by the Emerge file-merging package.  It is entered only
+through one of the functions:
+	emerge-files
+	emerge-files-with-ancestor
+	emerge-buffers
+	emerge-buffers-with-ancestor
+	emerge-files-command
+	emerge-files-with-ancestor-command
+	emerge-files-remote
+	emerge-files-with-ancestor-remote
 
 Commands:
 \\{emerge-basic-keymap}
 Commands must be prefixed by \\<emerge-fast-keymap>\\[emerge-basic-keymap] in 'edit' mode, but can be invoked directly
 in 'fast' mode.")
 
-(defvar emerge-version "4"
+(defvar emerge-version "5"
   "The version of Emerge.")
 
 (defun emerge-version ()
-  "Return string describing the version of Emerge.
-When called interactively, displays the version."
+  "Return string describing the version of Emerge.  When called interactively,
+displays the version."
   (interactive)
   (if (interactive-p)
       (message "Emerge version %s" (emerge-version))
@@ -660,14 +118,66 @@ Lines that do not match are assumed to be error output.")
   "*Regexp that matches normal output lines from  emerge-diff3-program .
 Lines that do not match are assumed to be error output.")
 
+(defvar emerge-rcs-ci-program "ci"
+  "*Name of the program that checks in RCS revisions.")
+(defvar emerge-rcs-co-program "co"
+  "*Name of the program that checks out RCS revisions.")
+
+(defvar emerge-process-local-variables nil
+  "*Non-nil if Emerge should process the local-variables list in newly created
+merge buffers.  (The local-variables list can be processed manually by
+executing \"(hack-local-variables)\".)")
+(defvar emerge-execute-line-deletions nil
+  "*If non-nil: When emerge-execute-line discovers a situation which
+appears to show that a file has been deleted from one version of the
+files being merged (when an ancestor entry is present, only one
+A or B entry is present, and an output entry is present), no output
+file will be created.
+If nil: In such circumstances, the A or B file that is present will be
+copied to the designated output file.")
+
+;; Hook variables
+
+(defvar emerge-startup-hooks nil
+  "*Hooks to run in the merge buffer after the merge has been set up.")
+(defvar emerge-select-hooks nil
+  "*Hooks to run after a difference has been selected.
+`n' is the (internal) number of the difference.")
+(defvar emerge-unselect-hooks nil
+  "*Hooks to run after a difference has been unselected.
+`n' is the (internal) number of the difference.")
+
+;; Variables to control the default directories of the arguments to
+;; Emerge commands.
+
+(defvar emerge-default-last-directories nil
+  "*If nil, filenames for emerge-files-* commands complete in
+ default-directory  (like an ordinary command).
+If non-nil, filenames complete in the directory of the last argument of the
+same type to an emerge-files-* command.")
+
+(defvar emerge-last-dir-A nil
+  "Last directory for the first file of an emerge-files command.")
+(defvar emerge-last-dir-B nil
+  "Last directory for the second file of an emerge-files command.")
+(defvar emerge-last-dir-ancestor nil
+  "Last directory for the ancestor file of an emerge-files command.")
+(defvar emerge-last-dir-output nil
+  "Last directory for the output file of an emerge-files command.")
+(defvar emerge-last-revision-A nil
+  "Last RCS revision use for the first file of an emerge-revisions command.")
+(defvar emerge-last-revision-B nil
+  "Last RCS revision use for the second file of an emerge-revisions command.")
+(defvar emerge-last-revision-ancestor nil
+  "Last RCS revision use for the ancestor file of an emerge-revisions command.")
+
 ;; The flags used to mark differences in the buffers.
 
 ;; These function definitions need to be up here, because they are used
 ;; during loading.
 (defun emerge-new-flags ()
-  "Function to be called after `emerge-{before,after}-flag'.
-This is called after these functions are changed to compute values that
-depend on the flags."
+  "Function to be called after emerge-{before,after}-flag are changed to
+compute values that depend on the flags."
   (setq emerge-before-flag-length (length emerge-before-flag))
   (setq emerge-before-flag-lines
 	(count-matches-string emerge-before-flag "\n"))
@@ -879,29 +389,57 @@ the next difference.")
 (emerge-defvar-local emerge-skip-prefers nil
   "*If non-nil, differences for which there is a preference are automatically
 skipped.")
-(emerge-defvar-local emerge-startup-hook nil
-  "*Hooks to run in the merge buffer after the merge has been set up.")
-(emerge-defvar-local emerge-quit-hook nil
+(emerge-defvar-local emerge-quit-hooks nil
   "Hooks to run in the merge buffer after the merge has been finished.
 emerge-prefix-argument will be bound to the prefix argument of the emerge-quit
 command.
 This is  not  a user option, since Emerge uses it for its own processing.")
 (emerge-defvar-local emerge-output-description nil
-  "Describes output destination merge, for the use of `emerge-file-names'.")
+  "Describes output destination of the merge, for the use of
+emerge-file-names.")
 
 ;;; Setup functions for two-file mode.
 
 (defun emerge-files-internal (file-A file-B &optional startup-hooks quit-hooks
 				     output-file)
+  (if (not (file-readable-p file-A))
+      (error "File '%s' does not exist or is not readable" file-A))
+  (if (not (file-readable-p file-B))
+      (error "File '%s' does not exist or is not readable" file-B))
   (let ((buffer-A (find-file-noselect file-A))
 	(buffer-B (find-file-noselect file-B)))
+    ;; Record the directories of the files
+    (setq emerge-last-dir-A (file-name-directory file-A))
+    (setq emerge-last-dir-B (file-name-directory file-B))
+    (if output-file
+	(setq emerge-last-dir-output (file-name-directory output-file)))
     ;; Make sure the entire files are seen, and they reflect what is on disk
-    (emerge-eval-in-buffer buffer-A
-			   (widen)
-			   (emerge-verify-file-buffer))
-    (emerge-eval-in-buffer buffer-B
-			   (widen)
-			   (emerge-verify-file-buffer))
+    (emerge-eval-in-buffer 
+     buffer-A
+     (widen)
+     (if (emerge-remote-file-p)
+	 (progn
+	   ;; Store in a local file
+	   (setq file-A (emerge-make-temp-file "A"))
+	   (write-region (point-min) (point-max) file-A nil 'no-message)
+	   (setq startup-hooks
+		 (cons (` (lambda () (delete-file (, file-A))))
+		       startup-hooks)))
+       ;; Verify that the file matches the buffer
+       (emerge-verify-file-buffer)))
+    (emerge-eval-in-buffer
+     buffer-B
+     (widen)
+     (if (emerge-remote-file-p)
+	 (progn
+	   ;; Store in a local file
+	   (setq file-B (emerge-make-temp-file "B"))
+	   (write-region (point-min) (point-max) file-B nil 'no-message)
+	   (setq startup-hooks
+		 (cons (` (lambda () (delete-file (, file-B))))
+		       startup-hooks)))
+       ;; Verify that the file matches the buffer
+       (emerge-verify-file-buffer)))
     (emerge-setup buffer-A file-A buffer-B file-B startup-hooks quit-hooks
 		  output-file)))
 
@@ -937,10 +475,11 @@ This is  not  a user option, since Emerge uses it for its own processing.")
      (setq emerge-number-of-differences (length emerge-difference-list))
      (setq emerge-current-difference -1)
      (setq emerge-quit-hooks quit-hooks)
-     (emerge-remember-buffer-characteristics))
+     (emerge-remember-buffer-characteristics)
+     (emerge-handle-local-variables))
     (emerge-setup-windows buffer-A buffer-B merge-buffer t)
     (emerge-eval-in-buffer merge-buffer
-			   (run-hooks 'startup-hooks 'emerge-startup-hook)
+			   (run-hooks 'startup-hooks 'emerge-startup-hooks)
 			   (setq buffer-read-only t))))
 
 ;; Generate the Emerge difference list between two files
@@ -951,7 +490,9 @@ This is  not  a user option, since Emerge uses it for its own processing.")
    (erase-buffer)
    (shell-command
     (format "%s %s %s %s"
-	    emerge-diff-program emerge-diff-options file-A file-B)
+	    emerge-diff-program emerge-diff-options
+	    (emerge-protect-metachars file-A)
+	    (emerge-protect-metachars file-B))
     t))
   (emerge-prepare-error-list emerge-diff-ok-lines)
   (emerge-convert-diffs-to-markers
@@ -1015,19 +556,61 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 (defun emerge-files-with-ancestor-internal (file-A file-B file-ancestor
 					  &optional startup-hooks quit-hooks
 					  output-file)
+  (if (not (file-readable-p file-A))
+      (error "File '%s' does not exist or is not readable" file-A))
+  (if (not (file-readable-p file-B))
+      (error "File '%s' does not exist or is not readable" file-B))
+  (if (not (file-readable-p file-ancestor))
+      (error "File '%s' does not exist or is not readable" file-ancestor))
   (let ((buffer-A (find-file-noselect file-A))
 	(buffer-B (find-file-noselect file-B))
 	(buffer-ancestor (find-file-noselect file-ancestor)))
+    ;; Record the directories of the files
+    (setq emerge-last-dir-A (file-name-directory file-A))
+    (setq emerge-last-dir-B (file-name-directory file-B))
+    (setq emerge-last-dir-ancestor (file-name-directory file-ancestor))
+    (if output-file
+	(setq emerge-last-dir-output (file-name-directory output-file)))
     ;; Make sure the entire files are seen, and they reflect what is on disk
-    (emerge-eval-in-buffer buffer-A
-			   (widen)
-			   (emerge-verify-file-buffer))
-    (emerge-eval-in-buffer buffer-B
-			   (widen)
-			   (emerge-verify-file-buffer))
-    (emerge-eval-in-buffer buffer-ancestor
-			   (widen)
-			   (emerge-verify-file-buffer))
+    (emerge-eval-in-buffer
+     buffer-A
+     (widen)
+     (if (emerge-remote-file-p)
+	 (progn
+	   ;; Store in a local file
+	   (setq file-A (emerge-make-temp-file "A"))
+	   (write-region (point-min) (point-max) file-A nil 'no-message)
+	   (setq startup-hooks
+		 (cons (` (lambda () (delete-file (, file-A))))
+		       startup-hooks)))
+       ;; Verify that the file matches the buffer
+       (emerge-verify-file-buffer)))
+    (emerge-eval-in-buffer
+     buffer-B
+     (widen)
+     (if (emerge-remote-file-p)
+	 (progn
+	   ;; Store in a local file
+	   (setq file-B (emerge-make-temp-file "B"))
+	   (write-region (point-min) (point-max) file-B nil 'no-message)
+	   (setq startup-hooks
+		 (cons (` (lambda () (delete-file (, file-B))))
+		       startup-hooks)))
+       ;; Verify that the file matches the buffer
+       (emerge-verify-file-buffer)))
+    (emerge-eval-in-buffer
+     buffer-ancestor
+     (widen)
+     (if (emerge-remote-file-p)
+	 (progn
+	   ;; Store in a local file
+	   (Setq file-ancestor (emerge-make-temp-file "anc"))
+	   (write-region (point-min) (point-max) file-ancestor nil 'no-message)
+	   (setq startup-hooks
+		 (cons (` (lambda () (delete-file (, file-ancestor))))
+		       startup-hooks)))
+       ;; Verify that the file matches the buffer
+       (emerge-verify-file-buffer)))
     (emerge-setup-with-ancestor buffer-A file-A buffer-B file-B
 				buffer-ancestor file-ancestor
 				startup-hooks quit-hooks output-file)))
@@ -1067,12 +650,13 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 	   (emerge-make-diff3-list file-A file-B file-ancestor))
      (setq emerge-number-of-differences (length emerge-difference-list))
      (setq emerge-current-difference -1)
-     (setq emerge-quit-hook quit-hooks)
+     (setq emerge-quit-hooks quit-hooks)
      (emerge-remember-buffer-characteristics)
-     (emerge-select-prefer-Bs))
+     (emerge-select-prefer-Bs)
+     (emerge-handle-local-variables))
     (emerge-setup-windows buffer-A buffer-B merge-buffer t)
     (emerge-eval-in-buffer merge-buffer
-			   (run-hooks 'startup-hooks 'emerge-startup-hook)
+			   (run-hooks 'startup-hooks 'emerge-startup-hooks)
 			   (setq buffer-read-only t))))
 
 ;; Generate the Emerge difference list between two files with an ancestor
@@ -1084,7 +668,9 @@ This is  not  a user option, since Emerge uses it for its own processing.")
    (shell-command
     (format "%s %s %s %s %s"
 	    emerge-diff3-program emerge-diff-options
-	    file-ancestor file-A file-B)
+	    (emerge-protect-metachars file-ancestor)
+	    (emerge-protect-metachars file-A)
+	    (emerge-protect-metachars file-B))
     t))
   (emerge-prepare-error-list emerge-diff3-ok-lines)
   (emerge-convert-diffs-to-markers
@@ -1103,11 +689,8 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 	 (if (not (string-equal agreement "1"))
 	     (setq list
 		   (cons 
-		    (let (group-2 group-3 pos)
-		      (setq pos (point))
-		      (setq group-2 (emerge-get-diff3-group "2"))
-		      (goto-char pos)
-		      (setq group-3 (emerge-get-diff3-group "3"))
+		    (let ((group-2 (emerge-get-diff3-group "2"))
+			  (group-3 (emerge-get-diff3-group "3")))
 		      (vector (car group-2) (car (cdr group-2))
 			      (car group-3) (car (cdr group-3))
 			      (cond ((string-equal agreement "2") 'prefer-A)
@@ -1145,19 +728,18 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 
 ;;; Functions to start Emerge on files
 
-;;;###autoload
 (defun emerge-files (arg file-A file-B file-out &optional startup-hooks
 		     quit-hooks)
   "Run Emerge on two files."
   (interactive
    (let (f)
      (list current-prefix-arg
-	   (setq f (read-file-name "File A to merge: " nil nil 'confirm))
-	   (read-file-name "File B to merge: " nil nil 'confirm)
+	   (setq f (emerge-read-file-name "File A to merge" emerge-last-dir-A
+					  nil nil))
+	   (emerge-read-file-name "File B to merge" emerge-last-dir-B nil f)
 	   (and current-prefix-arg
-		(read-file-name
-		 (format "Output file: (default %s) " f)
-		 nil f nil)))))
+		(emerge-read-file-name "Output file" emerge-last-dir-output
+				       f f)))))
   (emerge-files-internal
    file-A file-B startup-hooks
    (if arg
@@ -1166,20 +748,20 @@ This is  not  a user option, since Emerge uses it for its own processing.")
      quit-hooks)
    file-out))
 
-;;;###autoload
 (defun emerge-files-with-ancestor (arg file-A file-B file-ancestor file-out
 				   &optional startup-hooks quit-hooks)
   "Run Emerge on two files, giving another file as the ancestor."
   (interactive
    (let (f)
      (list current-prefix-arg
-	   (setq f (read-file-name "File A to merge: " nil nil 'confirm))
-	   (read-file-name "File B to merge: " nil nil 'confirm)
-	   (read-file-name "Ancestor file: " nil nil 'confirm)
+	   (setq f (emerge-read-file-name "File A to merge" emerge-last-dir-A
+					  nil nil))
+	   (emerge-read-file-name "File B to merge" emerge-last-dir-B nil f)
+	   (emerge-read-file-name "Ancestor file" emerge-last-dir-ancestor
+				  nil f)
 	   (and current-prefix-arg
-		(read-file-name
-		 (format "Output file: (default %s) " f)
-		 nil f nil)))))
+		(emerge-read-file-name "Output file" emerge-last-dir-output
+				       f f)))))
   (emerge-files-with-ancestor-internal
    file-A file-B file-ancestor startup-hooks
    (if arg
@@ -1196,7 +778,6 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 
 ;;; Functions to start Emerge on buffers
 
-;;;###autoload
 (defun emerge-buffers (buffer-A buffer-B &optional startup-hooks quit-hooks)
   "Run Emerge on two buffers."
   (interactive "bBuffer A to merge: \nbBuffer B to merge: ")
@@ -1210,14 +791,13 @@ This is  not  a user option, since Emerge uses it for its own processing.")
      (write-region (point-min) (point-max) emerge-file-B nil 'no-message))
     (emerge-setup (get-buffer buffer-A) emerge-file-A
 		  (get-buffer buffer-B) emerge-file-B
-		  (cons (function (lambda ()
-				    (delete-file emerge-file-A)
-				    (delete-file emerge-file-B)))
+		  (cons (` (lambda ()
+			     (delete-file (, emerge-file-A))
+			     (delete-file (, emerge-file-B))))
 			startup-hooks)
 		  quit-hooks
 		  nil)))
 
-;;;###autoload
 (defun emerge-buffers-with-ancestor (buffer-A buffer-B buffer-ancestor
 					      &optional startup-hooks
 					      quit-hooks)
@@ -1241,18 +821,17 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 				(get-buffer buffer-B) emerge-file-B
 				(get-buffer buffer-ancestor)
 				emerge-file-ancestor
-				(cons (function (lambda ()
-						  (delete-file emerge-file-A)
-						  (delete-file emerge-file-B)
-						  (delete-file
-						   emerge-file-ancestor)))
+				(cons (` (lambda ()
+					   (delete-file (, emerge-file-A))
+					   (delete-file (, emerge-file-B))
+					   (delete-file
+					    (, emerge-file-ancestor))))
 				      startup-hooks)
 				quit-hooks
 				nil)))
 
 ;;; Functions to start Emerge from the command line
 
-;;;###autoload
 (defun emerge-files-command ()
   (let ((file-a (nth 0 command-line-args-left))
 	(file-b (nth 1 command-line-args-left))
@@ -1262,7 +841,6 @@ This is  not  a user option, since Emerge uses it for its own processing.")
      file-a file-b nil
      (list (` (lambda () (emerge-command-exit (, file-out))))))))
 
-;;;###autoload
 (defun emerge-files-with-ancestor-command ()
   (let (file-a file-b file-anc file-out)
     ;; check for a -a flag, for filemerge compatibility
@@ -1290,7 +868,6 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 
 ;;; Functions to start Emerge via remote request
 
-;;;###autoload
 (defun emerge-files-remote (file-a file-b file-out)
   (setq emerge-file-out file-out)
   (emerge-files-internal
@@ -1299,7 +876,6 @@ This is  not  a user option, since Emerge uses it for its own processing.")
    file-out)
   (throw 'client-wait nil))
 
-;;;###autoload
 (defun emerge-files-with-ancestor-remote (file-a file-b file-anc file-out)
   (setq emerge-file-out file-out)
   (emerge-files-with-ancestor-internal
@@ -1312,6 +888,317 @@ This is  not  a user option, since Emerge uses it for its own processing.")
   (emerge-write-and-delete file-out)
   (kill-buffer emerge-merge-buffer)
   (funcall exit-func (if emerge-prefix-argument 1 0)))
+
+;;; Functions to start Emerge on RCS versions
+
+(defun emerge-revisions (arg file revision-A revision-B
+			 &optional startup-hooks quit-hooks)
+  "Emerge two RCS revisions of a file."
+  (interactive
+   (list current-prefix-arg
+	 (read-file-name "File to merge: " nil nil 'confirm)
+	 (read-string "Revision A to merge: " emerge-last-revision-A)
+	 (read-string "Revision B to merge: " emerge-last-revision-B)))
+  (setq emerge-last-revision-A revision-A
+	emerge-last-revision-B revision-B)
+  (emerge-revisions-internal
+   file revision-A revision-B startup-hooks
+   (if arg
+       (cons (` (lambda ()
+		  (shell-command
+		   (, (format "%s %s" emerge-rcs-ci-program file)))))
+	     quit-hooks)
+     quit-hooks)))
+
+(defun emerge-revisions-with-ancestor (arg file revision-A
+					   revision-B ancestor
+					   &optional
+					   startup-hooks quit-hooks)
+  "Emerge two RCS revisions of a file, giving another revision as
+the ancestor."
+  (interactive
+   (list current-prefix-arg
+	 (read-file-name "File to merge: " nil nil 'confirm)
+	 (read-string "Revision A to merge: " emerge-last-revision-A)
+	 (read-string "Revision B to merge: " emerge-last-revision-B)
+	 (read-string "Ancestor: " emerge-last-revision-ancestor)))
+  (setq emerge-last-revision-A revision-A
+	emerge-last-revision-B revision-B
+	emerge-last-revision-ancestor ancestor)
+  (emerge-revision-with-ancestor-internal
+   file revision-A revision-B ancestor startup-hooks
+   (if arg
+       (let ((cmd ))
+	 (cons (` (lambda ()
+		    (shell-command
+		     (, (format "%s %s" emerge-rcs-ci-program file)))))
+	       quit-hooks))
+     quit-hooks)))
+
+(defun emerge-revisions-internal (file revision-A revision-B &optional
+				      startup-hooks quit-hooks output-file)
+  (let ((buffer-A (get-buffer-create (format "%s,%s" file revision-A)))
+	(buffer-B (get-buffer-create (format "%s,%s" file revision-B)))
+	(emerge-file-A (emerge-make-temp-file "A"))
+	(emerge-file-B (emerge-make-temp-file "B")))
+    ;; Get the revisions into buffers
+    (emerge-eval-in-buffer
+     buffer-A
+     (erase-buffer)
+     (shell-command
+      (format "%s -q -p%s %s" emerge-rcs-co-program revision-A file)
+      t)
+     (write-region (point-min) (point-max) emerge-file-A nil 'no-message)
+     (set-buffer-modified-p nil))
+    (emerge-eval-in-buffer
+     buffer-B
+     (erase-buffer)
+     (shell-command
+      (format "%s -q -p%s %s" emerge-rcs-co-program revision-B file)
+      t)
+     (write-region (point-min) (point-max) emerge-file-B nil 'no-message)
+     (set-buffer-modified-p nil))
+    ;; Do the merge
+    (emerge-setup buffer-A emerge-file-A
+		  buffer-B emerge-file-B
+		  (cons (` (lambda ()
+			     (delete-file (, emerge-file-A))
+			     (delete-file (, emerge-file-B))))
+			startup-hooks)
+		  (cons (` (lambda () (emerge-files-exit (, file))))
+			quit-hooks)
+		  nil)))
+
+(defun emerge-revision-with-ancestor-internal (file revision-A revision-B
+						    ancestor
+						    &optional startup-hooks
+						    quit-hooks output-file)
+  (let ((buffer-A (get-buffer-create (format "%s,%s" file revision-A)))
+	(buffer-B (get-buffer-create (format "%s,%s" file revision-B)))
+	(buffer-ancestor (get-buffer-create (format "%s,%s" file ancestor)))
+	(emerge-file-A (emerge-make-temp-file "A"))
+	(emerge-file-B (emerge-make-temp-file "B"))
+	(emerge-ancestor (emerge-make-temp-file "ancestor")))
+    ;; Get the revisions into buffers
+    (emerge-eval-in-buffer
+     buffer-A
+     (erase-buffer)
+     (shell-command
+      (format "%s -q -p%s %s" emerge-rcs-co-program
+	      revision-A file)
+      t)
+     (write-region (point-min) (point-max) emerge-file-A nil 'no-message)
+     (set-buffer-modified-p nil))
+    (emerge-eval-in-buffer
+     buffer-B
+     (erase-buffer)
+     (shell-command
+      (format "%s -q -p%s %s" emerge-rcs-co-program revision-B file)
+      t)
+     (write-region (point-min) (point-max) emerge-file-B nil 'no-message)
+     (set-buffer-modified-p nil))
+    (emerge-eval-in-buffer
+     buffer-ancestor
+     (erase-buffer)
+     (shell-command
+      (format "%s -q -p%s %s" emerge-rcs-co-program ancestor file)
+      t)
+     (write-region (point-min) (point-max) emerge-ancestor nil 'no-message)
+     (set-buffer-modified-p nil))
+    ;; Do the merge
+    (emerge-setup-with-ancestor
+     buffer-A emerge-file-A buffer-B emerge-file-B
+     buffer-ancestor emerge-ancestor
+     (cons (` (lambda ()
+		(delete-file (, emerge-file-A))
+		(delete-file (, emerge-file-B))
+		(delete-file (, emerge-ancestor))))
+	   startup-hooks)
+     (cons (` (lambda () (emerge-files-exit (, file))))
+	   quit-hooks)
+     output-file)))
+
+;;; Function to start Emerge based on a line in a file
+
+(defun emerge-execute-line ()
+  "Process the current line, looking for entries of the form:
+	a=file1
+	b=file2
+	ancestor=file3
+	output=file4
+seperated by whitespace.  Based on entries found, call emerge correctly
+on the files files listed.
+
+In addition, if only one of \"a=file\" or \"b=file\" is present, and \"output=file\"
+is present:
+If emerge-execute-line-deletions is non-nil and \"ancestor=file\" is present,
+it is assumed that the file in question has been deleted, and it is
+not copied to the output file.
+Otherwise, the A or B file present is copied to the output file."
+  (interactive)
+  (let (file-A file-B file-ancestor file-out
+	       (case-fold-search t))
+    ;; Stop if at end of buffer (even though we might be in a line, if
+    ;; the line does not end with newline)
+    (if (eobp)
+	(error "At end of buffer"))
+    ;; Go to the beginning of the line
+    (beginning-of-line)
+    ;; Skip any initial whitespace
+    (if (looking-at "[ \t]*")
+	(goto-char (match-end 0)))
+    ;; Process the entire line
+    (while (not (eolp))
+      ;; Get the next entry
+      (if (looking-at "\\([a-z]+\\)=\\([^ \t\n]+\\)[ \t]*")
+	  ;; Break apart the tab (before =) and the filename (after =)
+	  (let ((tag (downcase
+		      (buffer-substring (match-beginning 1) (match-end 1))))
+		(file (buffer-substring (match-beginning 2) (match-end 2))))
+	    ;; Move point after the entry
+	    (goto-char (match-end 0))
+	    ;; Store the filename in the right variable
+	    (cond
+	     ((string-equal tag "a")
+	      (if file-A
+		  (error "This line has two 'A' entries"))
+	      (setq file-A file))
+	     ((string-equal tag "b")
+	      (if file-B
+		  (error "This line has two 'B' entries"))
+	      (setq file-B file))
+	     ((or (string-equal tag "anc") (string-equal tag "ancestor"))
+	      (if file-ancestor
+		  (error "This line has two 'ancestor' entries"))
+	      (setq file-ancestor file))
+	     ((or (string-equal tag "out") (string-equal tag "output"))
+	      (if file-out
+		  (error "This line has two 'output' entries"))
+	      (setq file-out file))
+	     (t
+	      (error "Unrecognized entry"))))
+	;; If the match on the entry pattern failed
+	(error "Unparseable entry")))
+    ;; Make sure that file-A and file-B are present
+    (if (not (or (and file-A file-B) file-out))
+	(error "Must have both 'A' and 'B' entries"))
+    (if (not (or file-A file-B))
+	(error "Must have 'A' or 'B' entry"))
+    ;; Go to the beginning of the next line, so next execution will use
+    ;; next line in buffer.
+    (beginning-of-line 2)
+    ;; Execute the correct command
+    (cond
+     ;; Merge of two files with ancestor
+     ((and file-A file-B file-ancestor)
+      (message "Merging %s and %s..." file-A file-B)
+      (emerge-files-with-ancestor (not (not file-out)) file-A file-B
+				  file-ancestor file-out
+				  nil
+				  ;; When done, return to this buffer.
+				  (list
+				   (` (lambda ()
+					(switch-to-buffer (, (current-buffer)))
+					(message "Merge done."))))))
+     ;; Merge of two files without ancestor
+     ((and file-A file-B)
+      (message "Merging %s and %s..." file-A file-B)
+      (emerge-files (not (not file-out)) file-A file-B file-out
+		    nil
+		    ;; When done, return to this buffer.
+		    (list 
+		     (` (lambda ()
+			  (switch-to-buffer (, (current-buffer)))
+			  (message "Merge done."))))))
+     ;; There is an output file (or there would have been an error above),
+     ;; but only one input file.
+     ;; The file appears to have been deleted in one version; do nothing.
+     ((and file-ancestor emerge-execute-line-deletions)
+      (message "No action."))
+     ;; The file should be copied from the version that contains it
+     (t (let ((input-file (or file-A file-B)))
+	  (message "Copying...")
+	  (copy-file input-file file-out)
+	  (message "%s copied to %s." input-file file-out))))))
+
+;;; Sample function for creating information for emerge-execute-line
+
+(defvar emerge-merge-directories-filename-regexp "[^.]"
+  "Regexp describing files to be processed by emerge-merge-directories.")
+
+(defun emerge-merge-directories (a-dir b-dir ancestor-dir output-dir)
+  (interactive 
+   (list
+    (read-file-name "A directory: " nil nil 'confirm)
+    (read-file-name "B directory: " nil nil 'confirm)
+    (read-file-name "Ancestor directory (null for none): " nil nil 'confirm)
+    (read-file-name "Output directory (null for none): " nil nil 'confirm)))
+  ;; Check that we're not on a line
+  (if (not (and (bolp) (eolp)))
+      (error "There is text on this line"))
+  ;; Turn null strings into nil to indicate directories not used.
+  (if (and ancestor-dir (string-equal ancestor-dir ""))
+      (setq ancestor-dir nil))
+  (if (and output-dir (string-equal output-dir ""))
+      (setq output-dir nil))
+  ;; Canonicalize the directory names
+  (setq a-dir (expand-file-name a-dir))
+  (if (not (string-equal (substring a-dir -1) "/"))
+      (setq a-dir (concat a-dir "/")))
+  (setq b-dir (expand-file-name b-dir))
+  (if (not (string-equal (substring b-dir -1) "/"))
+      (setq b-dir (concat b-dir "/")))
+  (if ancestor-dir
+      (progn
+	(setq ancestor-dir (expand-file-name ancestor-dir))
+	(if (not (string-equal (substring ancestor-dir -1) "/"))
+	    (setq ancestor-dir (concat ancestor-dir "/")))))
+  (if output-dir
+      (progn
+	(setq output-dir (expand-file-name output-dir))
+	(if (not (string-equal (substring output-dir -1) "/"))
+	    (setq output-dir (concat output-dir "/")))))
+  ;; Set the mark to where we start
+  (push-mark)
+  ;; Find out what files are in the directories.
+  (let* ((a-dir-files
+	  (directory-files a-dir nil emerge-merge-directories-filename-regexp))
+	 (b-dir-files
+	  (directory-files b-dir nil emerge-merge-directories-filename-regexp))
+	 (ancestor-dir-files
+	  (and ancestor-dir
+	       (directory-files ancestor-dir nil
+				emerge-merge-directories-filename-regexp)))
+	 (all-files (sort (nconc (copy-sequence a-dir-files)
+				 (copy-sequence b-dir-files)
+				 (copy-sequence ancestor-dir-files))
+			  (function string-lessp))))
+    ;; Remove duplicates from all-files.
+    (let ((p all-files))
+      (while p
+	(if (and (cdr p) (string-equal (car p) (car (cdr p))))
+	    (setcdr p (cdr (cdr p)))
+	  (setq p (cdr p)))))
+    ;; Generate the control lines for the various files.
+    (while all-files
+      (let ((f (car all-files)))
+	(setq all-files (cdr all-files))
+	(if (and a-dir-files (string-equal (car a-dir-files) f))
+	    (progn
+	      (insert "A=" a-dir f "\t")
+	      (setq a-dir-files (cdr a-dir-files))))
+	(if (and b-dir-files (string-equal (car b-dir-files) f))
+	    (progn
+	      (insert "B=" b-dir f "\t")
+	      (setq b-dir-files (cdr b-dir-files))))
+	(if (and ancestor-dir-files (string-equal (car ancestor-dir-files) f))
+	    (progn
+	      (insert "ancestor=" ancestor-dir f "\t")
+	      (setq ancestor-dir-files (cdr ancestor-dir-files))))
+	(if output-dir
+	    (insert "output=" output-dir f "\t"))
+	(backward-delete-char 1)
+	(insert "\n")))))
 
 ;;; Common setup routines
 
@@ -1375,10 +1262,9 @@ This is  not  a user option, since Emerge uses it for its own processing.")
   (setq emerge-fast-mode t))
 
 (defun emerge-remember-buffer-characteristics ()
-  "Remembers certain properties of the buffers being merged.
-Must be called in the merge buffer.  Remembers read-only, modified,
-auto-save, and saves them in buffer local variables.  Sets the buffers
-read-only and turns off `auto-save-mode'.
+  "Must be called in the merge buffer.  Remembers certain properties of the
+buffers being merged (read-only, modified, auto-save), and saves them in
+buffer local variables.  Sets the buffers read-only and turns off auto-save.
 These characteristics are restored by emerge-restore-buffer-characteristics."
   ;; force auto-save, because we will turn off auto-saving in buffers for the
   ;; duration
@@ -1435,6 +1321,8 @@ emerge-remember-buffer-characteristics."
 	     a-end-marker
 	     b-begin-marker
 	     b-end-marker
+	     merge-begin-marker
+	     merge-end-marker
 	     (a-begin (aref list-element 0))
 	     (a-end (aref list-element 1))
 	     (b-begin (aref list-element 2))
@@ -1486,6 +1374,15 @@ emerge-remember-buffer-characteristics."
       (setq n (1+ n))))
   (emerge-unselect-and-select-difference -1))
 
+;; Process the local-variables list at the end of the merged file, if
+;; requested.
+(defun emerge-handle-local-variables ()
+  (if emerge-process-local-variables
+      (condition-case err
+	  (hack-local-variables t)
+	(error (message "Local-variables error in merge buffer: %s"
+			(prin1-to-string err))))))
+
 ;;; Common exit routines
 
 (defun emerge-write-and-delete (file-out)
@@ -1505,9 +1402,9 @@ emerge-remember-buffer-characteristics."
 ;;; Commands
 
 (defun emerge-recenter (&optional arg)
-  "Bring the highlighted region of all three merge buffers into view.
-This brings the buffers into view if they are in windows.
-If an ARGUMENT is given, the default three-window display is reestablished."
+  "Bring the highlighted region of all three merge buffers into view,
+if they are in windows.  If an ARGUMENT is given, the default three-window
+display is reestablished."
   (interactive "P")
   ;; If there is an argument, rebuild the window structure
   (if arg
@@ -1638,7 +1535,7 @@ size of the merge window."
 (defun emerge-scroll-left (&optional arg)
   "Scroll left all three merge buffers, if they are in windows.
 If an ARGUMENT is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  C-u - alone as argument scrolls half the
+the width of the A and B windows.  `C-u -' alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows
@@ -1666,7 +1563,7 @@ width of the A and B windows."
 (defun emerge-scroll-right (&optional arg)
   "Scroll right all three merge buffers, if they are in windows.
 If an ARGUMENT is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  C-u - alone as argument scrolls half the
+the width of the A and B windows.  `C-u -' alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows
@@ -1692,9 +1589,8 @@ width of the A and B windows."
 	     default-amount)))))))
 
 (defun emerge-scroll-reset ()
-  "Reset horizontal scrolling.
-This resets the horizontal scrolling of all three merge buffers
-to the left margin, if they are in windows."
+  "Reset horizontal scrolling of all three merge buffers to the left margin,
+if they are in windows."
   (interactive)
   (emerge-operate-on-windows
    (function (lambda (x) (set-window-hscroll (selected-window) 0)))
@@ -1723,8 +1619,7 @@ to the left margin, if they are in windows."
       ;; Meanwhile positioning it correctly in case it doesn't fit
       (progn
 	(set-window-start (selected-window) beg)
-	(setq fits (pos-visible-in-window-p end))
-	(if fits
+	(if (pos-visible-in-window-p end)
 	    ;; Determine the number of lines that the region occupies
 	    (let ((lines 0))
 	      (while (> end (progn
@@ -1777,9 +1672,8 @@ to the left margin, if they are in windows."
       (error "Bad difference number"))))
 
 (defun emerge-quit (arg)
-  "Finish an Emerge session.
-Prefix argument means to abort rather than successfully finish.
-The difference depends on how the merge was started,
+  "Finish an Emerge session.  Prefix ARGUMENT means to abort rather than
+successfully finish.  The difference depends on how the merge was started,
 but usually means to not write over one of the original files, or to signal
 to some process which invoked Emerge a failure code.
 
@@ -1824,12 +1718,11 @@ buffer after this will cause serious problems."
   ;; restore mode line
   (kill-local-variable 'mode-line-buffer-identification)
   (let ((emerge-prefix-argument arg))
-    (run-hooks 'emerge-quit-hook)))
+    (run-hooks 'emerge-quit-hooks)))
 
 (defun emerge-select-A (&optional force)
-  "Select the A variant of this difference.  
-Refuses to function if this difference has been edited, i.e., if it
-is neither the A nor the B variant.
+  "Select the A variant of this difference.  Refuses to function if this
+difference has been edited, i.e., if it is neither the A nor the B variant.
 An ARGUMENT forces the variant to be selected even if the difference has
 been edited."
   (interactive "P")
@@ -1856,9 +1749,9 @@ been edited."
    (emerge-refresh-mode-line)))
 
 (defun emerge-select-B (&optional force)
-  "Select the B variant of this difference.
-Refuses to function if this difference has been edited, i.e., if it
-is neither the A nor the B variant.  An ARGUMENT forces the variant to be selected even if the difference has
+  "Select the B variant of this difference.  Refuses to function if this
+difference has been edited, i.e., if it is neither the A nor the B variant.
+An ARGUMENT forces the variant to be selected even if the difference has
 been edited."
   (interactive "P")
   (let ((operate
@@ -1884,8 +1777,7 @@ been edited."
    (emerge-refresh-mode-line)))
 
 (defun emerge-default-A ()
-  "Selects the A variant.
-This selects the A variant for all differences from here down in the buffer
+  "Selects the A variant for all differences from here down in the buffer
 which are still defaulted, i.e., which the user has not selected and for
 which there is no preference."
   (interactive)
@@ -1906,8 +1798,7 @@ which there is no preference."
   (message "Default A set"))
 
 (defun emerge-default-B ()
-  "Selects the B variant.
-This selects the B variant for all differences from here down in the buffer
+  "Selects the B variant for all differences from here down in the buffer
 which are still defaulted, i.e., which the user has not selected and for
 which there is no preference."
   (interactive)
@@ -1928,9 +1819,8 @@ which there is no preference."
   (message "Default B set"))
 
 (defun emerge-fast-mode ()
-  "Set fast mode.
-In this mode ordinary Emacs commands are disabled, and Emerge commands
-are need not be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
+  "Set fast mode, in which ordinary Emacs commands are disabled, and Emerge
+commands are need not be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (interactive)
   (setq buffer-read-only t)
   (use-local-map emerge-fast-keymap)
@@ -1942,9 +1832,8 @@ are need not be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun emerge-edit-mode ()
-  "Set edit mode.
-In this mode ordinary Emacs commands are available, and Emerge commands
-must be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
+  "Set edit mode, in which ordinary Emacs commands are available, and Emerge
+commands must be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (interactive)
   (setq buffer-read-only nil)
   (use-local-map emerge-edit-keymap)
@@ -1956,11 +1845,11 @@ must be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun emerge-auto-advance (arg)
-  "Toggle auto-advance mode.
-This mode causes `emerge-select-A' and `emerge-select-B'  to automatically
-advance to the next difference.  (See `emerge-auto-advance'.)  
-If a positive ARGUMENT is given, it turns on `auto-advance-mode'.
-If a negative ARGUMENT is given, it turns off `auto-advance-mode'."
+  "Toggle auto-advance mode, which causes  emerge-select-A  and
+ emerge-select-B  to automatically advance to the next difference.  (See
+emerge-auto-advance.)  
+If a positive ARGUMENT is given, it turns on auto-advance mode.
+If a negative ARGUMENT is given, it turns off auto-advance mode."
   (interactive "P")
   (setq emerge-auto-advance (if (null arg)
 				(not emerge-auto-advance)
@@ -1972,12 +1861,11 @@ If a negative ARGUMENT is given, it turns off `auto-advance-mode'."
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun emerge-skip-prefers (arg)
-  "Toggle skip-prefers mode.
-This mode causes `emerge-next-difference' and `emerge-previous-difference'
-to automatically skip over differences for which there is a preference.
-(See `emerge-skip-prefers'.)  If a positive ARG is given, it turns on
-`skip-prefers' mode.
-If a negative ARG is given, it turns off `skip-prefers' mode."
+  "Toggle skip-prefers mode, which causes  emerge-next-difference  and
+ emerge-previous-difference  to automatically skip over differences for which
+there is a preference.  (See emerge-skip-prefers.)  
+If a positive ARGUMENT is given, it turns on skip-prefers mode.
+If a negative ARGUMENT is given, it turns off skip-prefers mode."
   (interactive "P")
   (setq emerge-skip-prefers (if (null arg)
 				(not emerge-skip-prefers)
@@ -2070,10 +1958,10 @@ With prefix argument, puts mark before, point after."
 
 (defun emerge-file-names ()
   "Show the names of the buffers or files being operated on by Emerge.
-Use C-u l to reset the windows afterward."
+Use ^U L to reset the windows afterward."
   (interactive)
   (delete-other-windows)
-  (let ((temp-buffer-show-function
+  (let ((temp-buffer-show-hook
 	 (function (lambda (buf)
 		     (split-window-vertically)
 		     (switch-to-buffer buf)
@@ -2110,8 +1998,8 @@ Use C-u l to reset the windows afterward."
       (princ emerge-output-description))))
 
 (defun emerge-join-differences (arg)
-  "Join the selected difference with the following one.
-With a prefix argument, join with the preceeding one."
+  "Join the selected difference with the following one.  With a prefix
+argument, join with the preceeding one."
   (interactive "P")
   (let ((n emerge-current-difference))
     ;; adjust n to be first difference to join
@@ -2225,10 +2113,9 @@ With a prefix argument, join with the preceeding one."
       (emerge-recenter))))
 
 (defun emerge-trim-difference ()
-  "Trim lines off top and bottom of difference that are the same.
-If lines are the same in both the A and the B versions, strip them off.
-(This can happen when the A and B versions have common lines that the
-ancestor version does not share.)"
+  "Trim lines off the top and bottom of a difference that are the same in
+both the A and B versions.  (This can happen when the A and B versions
+have common lines that the ancestor version does not share.)"
   (interactive)
   ;; make sure we are in a real difference
   (emerge-validate-difference)
@@ -2324,8 +2211,8 @@ the nearest previous difference."
   (emerge-find-difference1 arg (point) 4 5))
 
 (defun emerge-find-difference-A (arg)
-  "Find the difference containing the position of the point in the A buffer.
-This command must be executed in the merge buffer.
+  "Find the difference containing the current position of the point in the
+A buffer.  (Nonetheless, this command must be executed in the merge buffer.)
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
 the nearest previous difference."
@@ -2337,8 +2224,8 @@ the nearest previous difference."
 			   0 1))
 
 (defun emerge-find-difference-B (arg)
-  "Find the difference containing the position of the point in the B buffer.
-This command must be executed in the merge buffer.
+  "Find the difference containing the current position of the point in the
+B buffer.  (Nonetheless, this command must be executed in the merge buffer.)
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
 the nearest previous difference."
@@ -2387,8 +2274,7 @@ the nearest previous difference."
 	 (error "No difference contains or preceeds point")))))))
 
 (defun emerge-line-numbers ()
-  "Display the current line numbers.
-This function displays the line numbers of the points in the A, B, and
+  "Display the current line numbers of the points in the A, B, and
 merge buffers."
   (interactive)
   (let* ((valid-diff
@@ -2418,9 +2304,9 @@ merge buffers."
     temp))
 
 (defun emerge-set-combine-versions-template (start end &optional localize)
-  "Copy region into `emerge-combine-versions-template'.
-This controls how `emerge-combine-versions' will combine the two versions.
-With prefix argument, `emerge-combine-versions'  is made local to this
+  "Copy region into  emerge-combine-versions-template  which controls how
+emerge-combine-versions  will combine the two versions.
+With prefix argument,  emerge-combine-versions  is made local to this
 merge buffer.  Localization is permanent for any particular merge buffer."
   (interactive "r\nP")
   (if localize
@@ -2432,21 +2318,22 @@ merge buffer.  Localization is permanent for any particular merge buffer."
      "emerge-set-combine-versions-template set.")))
 
 (defun emerge-combine-versions (&optional force)
-  "Combine versions using the template in `emerge-combine-versions-template'.
+  "Combine the two versions using the template in
+emerge-combine-versions-template.
 Refuses to function if this difference has been edited, i.e., if it is
 neither the A nor the B variant.
-An argument forces the variant to be selected even if the difference has
+An ARGUMENT forces the variant to be selected even if the difference has
 been edited."
   (interactive "P")
   (emerge-combine-versions-internal emerge-combine-versions-template force))
 
 (defun emerge-combine-versions-register (char &optional force)
   "Combine the two versions using the template in register REG.
-See documentation of the variable `emerge-combine-versions-template'
+See documentation of the variable  emerge-combine-versions-template
 for how the template is interpreted.
 Refuses to function if this difference has been edited, i.e., if it is
 neither the A nor the B variant.
-An argument forces the variant to be selected even if the difference has
+An ARGUMENT forces the variant to be selected even if the difference has
 been edited."
   (interactive "cRegister containing template: \nP")
   (let ((template (get-register char)))
@@ -2484,9 +2371,9 @@ been edited."
 		     ((= c ?b) 
 		      (insert-buffer-substring emerge-B-buffer B-begin B-end))
 		     ((= c ?%) 
-		      (insert ?%))
-		     (t
-		      (insert c))))
+		      (insert ?%)
+		      (t
+		       (insert c)))))
 	   (insert c)))
        (setq i (1+ i))))
    (goto-char merge-begin)
@@ -2494,9 +2381,8 @@ been edited."
    (emerge-refresh-mode-line)))
 
 (defun emerge-set-merge-mode (mode)
-  "Set the major mode in a merge buffer.
-Overrides any change that the mode might make to the mode line or local
-keymap.  Leaves merge in fast mode."
+  "Set the major mode in a merge buffer.  Overrides any change that the mode
+might make to the mode line or local keymap.  Leaves merge in fast mode."
   (interactive
    (list (intern (completing-read "New major mode for merge buffer: "
 				  obarray 'commandp t nil))))
@@ -2516,34 +2402,72 @@ keymap.  Leaves merge in fast mode."
 ;; Select a difference by placing the visual flags around the appropriate
 ;; group of lines in the A, B, and merge buffers
 (defun emerge-select-difference (n)
-  (let ((diff-vector (aref emerge-difference-list n)))
-    (emerge-place-flags-in-buffer emerge-A-buffer
-				  (aref diff-vector 0) (aref diff-vector 1))
-    (emerge-place-flags-in-buffer emerge-B-buffer
-				  (aref diff-vector 2) (aref diff-vector 3))
-    (emerge-place-flags-in-buffer emerge-merge-buffer
-				  (aref diff-vector 4) (aref diff-vector 5))))
+  (let ((emerge-globalized-difference-list emerge-difference-list)
+	(emerge-globalized-number-of-differences emerge-number-of-differences))
+    (emerge-place-flags-in-buffer emerge-A-buffer n 0 1)
+    (emerge-place-flags-in-buffer emerge-B-buffer n 2 3)
+    (emerge-place-flags-in-buffer nil n 4 5))
+  (run-hooks 'emerge-select-hooks))
 
-(defun emerge-place-flags-in-buffer (buffer before after)
-  (if (eq buffer emerge-merge-buffer)
-      (emerge-place-flags-in-buffer1 buffer before after)
-    (emerge-eval-in-buffer
-     buffer
-     (emerge-place-flags-in-buffer1 buffer before after))))
+(defun emerge-place-flags-in-buffer (buffer difference before-index
+					    after-index)
+  (if buffer
+      (emerge-eval-in-buffer
+       buffer
+       (emerge-place-flags-in-buffer1 difference before-index after-index))
+    (emerge-place-flags-in-buffer1 difference before-index after-index)))
 
-(defun emerge-place-flags-in-buffer1 (buffer before after)
+(defun emerge-place-flags-in-buffer1 (difference before-index after-index)
   (let ((buffer-read-only nil))
-    ;; insert the flags
-    (goto-char before)
-    (insert-before-markers emerge-before-flag)
-    (goto-char after)
-    (insert emerge-after-flag)
-    ;; put the markers into the flags, so alterations above or below won't move
-    ;; them
-    ;; before marker is one char before the end of the before flag
-    ;; after marker is one char after the beginning of the after flag
-    (set-marker before (1- before))
-    (set-marker after (1+ after))))
+    ;; insert the flag before the difference
+    (let ((before (aref (aref emerge-globalized-difference-list difference)
+			before-index))
+	  here)
+      (goto-char before)
+      ;; insert the flag itself
+      (insert-before-markers emerge-before-flag)
+      (setq here (point))
+      ;; Put the marker(s) referring to this position 1 character before the
+      ;; end of the flag, so it won't be damaged by the user.
+      ;; This gets a bit tricky, as there could be a number of markers
+      ;; that have to be moved.
+      (set-marker before (1- before))
+      (let ((n (1- difference)) after-marker before-marker diff-list)
+	(while (and
+		(>= n 0)
+		(progn
+		  (setq diff-list (aref emerge-globalized-difference-list n)
+			after-marker (aref diff-list after-index))
+		  (= after-marker here)))
+	  (set-marker after-marker (1- after-marker))
+	  (setq before-marker (aref diff-list before-index))
+	  (if (= before-marker here)
+	      (setq before-marker (1- before-marker)))
+	  (setq n (1- n)))))
+    ;; insert the flag after the difference
+    (let* ((after (aref (aref emerge-globalized-difference-list difference)
+			after-index))
+	   (here (marker-position after)))
+      (goto-char here)
+      ;; insert the flag itself
+      (insert emerge-after-flag)
+      ;; Put the marker(s) referring to this position 1 character after the
+      ;; beginning of the flag, so it won't be damaged by the user.
+      ;; This gets a bit tricky, as there could be a number of markers
+      ;; that have to be moved.
+      (set-marker after (1+ after))
+      (let ((n (1+ difference)) before-marker after-marker diff-list)
+	(while (and
+		(< n emerge-globalized-number-of-differences)
+		(progn
+		  (setq diff-list (aref emerge-globalized-difference-list n)
+			before-marker (aref diff-list before-index))
+		  (= before-marker here)))
+	  (set-marker before-marker (1+ before-marker))
+	  (setq after-marker (aref diff-list after-index))
+	  (if (= after-marker here)
+	      (setq after-marker (1+ after-marker)))
+	  (setq n (1+ n)))))))
 
 ;; Unselect a difference by removing the visual flags in the buffers.
 (defun emerge-unselect-difference (n)
@@ -2553,30 +2477,28 @@ keymap.  Leaves merge in fast mode."
     (emerge-remove-flags-in-buffer emerge-B-buffer
 				   (aref diff-vector 2) (aref diff-vector 3))
     (emerge-remove-flags-in-buffer emerge-merge-buffer
-				   (aref diff-vector 4) (aref diff-vector 5))))
+				   (aref diff-vector 4) (aref diff-vector 5)))
+  (run-hooks 'emerge-unselect-hooks))
 
 (defun emerge-remove-flags-in-buffer (buffer before after)
   (emerge-eval-in-buffer
    buffer
    (let ((buffer-read-only nil))
-     ;; put the markers at the beginning of the flags
-     (set-marker before (- before (1- emerge-before-flag-length)))
-     (set-marker after (1- after))
-     ;; remove the flags
-     (goto-char before)
+     ;; remove the flags, if they're there
+     (goto-char (- before (1- emerge-before-flag-length)))
      (if (looking-at emerge-before-flag-match)
 	 (delete-char emerge-before-flag-length)
        ;; the flag isn't there
        (ding)
        (message "Trouble removing flag."))
-     (goto-char after)
+     (goto-char (1- after))
      (if (looking-at emerge-after-flag-match)
 	 (delete-char emerge-after-flag-length)
        ;; the flag isn't there
        (ding)
        (message "Trouble removing flag.")))))
 
-;; Select a difference, removing an flags that exist now.
+;; Select a difference, removing any flags that exist now.
 (defun emerge-unselect-and-select-difference (n &optional suppress-display)
   (if (and (>= emerge-current-difference 0)
 	   (< emerge-current-difference emerge-number-of-differences))
@@ -2626,7 +2548,57 @@ keymap.  Leaves merge in fast mode."
 	    (funcall b-version)
 	  (if (or force (= merge-begin merge-end))
 	      (funcall neither-version)
-	    (error "This difference region has been edited.")))))))
+	    (error "This difference region has been edited")))))))
+
+;; Read a file name, handling all of the various defaulting rules.
+
+(defun emerge-read-file-name (prompt alternative-default-dir default-file
+			      A-file)
+  ;; 'prompt' should not have trailing ": ", so that it can be modified
+  ;; according to context.
+  ;; If alternative-default-dir is non-nil, it should be used as the default
+  ;; directory instead if default-directory, if emerge-default-last-directories
+  ;; is set.
+  ;; If default-file is set, it should be used as the default value.
+  ;; If A-file is set, and its directory is different from
+  ;; alternative-default-dir, and if emerge-default-last-directories is set,
+  ;; the default file should be the last part of A-file in the default
+  ;; directory.  (Overriding default-file.)
+  (cond
+   ;; If this is not the A-file argument (shown by non-nil A-file), and
+   ;; if emerge-default-last-directories is set, and
+   ;; the default directory exists but is not the same as the directory of the
+   ;; A-file,
+   ;; then make the default file have the same name as the A-file, but in
+   ;; the default directory.
+   ((and emerge-default-last-directories
+	 A-file
+	 alternative-default-dir
+	 (not (string-equal alternative-default-dir
+			    (file-name-directory A-file))))
+    (read-file-name (format "%s (default %s): "
+			    prompt (file-name-nondirectory A-file))
+		    alternative-default-dir
+		    (concat alternative-default-dir
+			    (file-name-nondirectory A-file))
+		    'confirm))
+   ;; If there is a default file, use it.
+   (default-file
+     (read-file-name (format "%s (default %s): " prompt default-file)
+		     ;; If emerge-default-last-directories is set, use the
+		     ;; directory from the same argument of the last call of
+		     ;; Emerge as the default for this argument.
+		     (and emerge-default-last-directories
+			  alternative-default-dir)
+		     default-file 'confirm))
+   (t
+    (read-file-name (concat prompt ": ")
+		    ;; If emerge-default-last-directories is set, use the
+		    ;; directory from the same argument of the last call of
+		    ;; Emerge as the default for this argument.
+		    (and emerge-default-last-directories
+			 alternative-default-dir)
+		    nil 'confirm))))
 
 ;; Revise the mode line to display which difference we have selected
 
@@ -2728,14 +2700,14 @@ keymap.  Leaves merge in fast mode."
 
 (defun emerge-query-write-file ()
   "Query the user if he really wants to write out the incomplete merge.
-If he says yes, call `write-file' to do so.  See `emerge-query-and-call'
+If he says yes, call  write-file  to do so.  See  emerge-query-and-call
 for details of the querying process."
   (interactive)
   (emerge-query-and-call 'write-file))
 
 (defun emerge-query-save-buffer ()
   "Query the user if he really wants to write out the incomplete merge.
-If he says yes, call `save-buffer' to do so.  See `emerge-query-and-call'
+If he says yes, call  save-buffer  to do so.  See  emerge-query-and-call
 for details of the querying process."
   (interactive)
   (emerge-query-and-call 'save-buffer))
@@ -2784,6 +2756,16 @@ around the current difference are removed."
       (if (yes-or-no-p (format "Revert file %s? " buffer-file-name))
 	      (revert-buffer t t)
 	(error "Buffer out of sync for file %s" buffer-file-name)))))
+
+;; Returns true if the file visited in the current buffer is not accessible
+;; through its filename, or for some other reason should be stored in a
+;; temporary file for input to diff.
+;; As written, checks whether this is an ange-ftp file.  It may be modified
+;; for customization.
+(defun emerge-remote-file-p ()
+  (and (boundp 'ange-ftp-path-format)
+       ange-ftp-path-format
+       (string-match (car ange-ftp-path-format) buffer-file-name)))
 
 ;; Utilities that might have value outside of Emerge.
 
@@ -2795,7 +2777,7 @@ around the current difference are removed."
 
 ;; Define a key, even if a prefix of it is defined
 (defun emerge-force-define-key (keymap key definition)
-  "Like `define-key', but isn't stopped if a prefix of KEY is a defined 
+  "Like define-key, but is not stopped if a prefix of KEY is a defined 
 command."
   ;; Find out if a prefix of key is defined
   (let ((v (lookup-key keymap key)))
@@ -2812,7 +2794,7 @@ command."
 If optional MINOR is non-nil (or prefix argument is given if interactive),
 display documentation of acive minor modes as well.
 For this to work correctly for a minor mode, the mode's indicator variable
-(listed in `minor-mode-alist') must also be a function whose documentation
+(listed in minor-mode-alist) must also be a function whose documentation
 describes the minor mode."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
@@ -2887,9 +2869,9 @@ including those whose definition is OLDDEF."
 	  (define-key keymap key definition)))))
 
 (defun emerge-recursively-substitute-key-definition (olddef newdef keymap)
-  "Like `substitute-key-definition', but examines and substitutes in all
+  "Like substitute-key-definition, but examines and substitutes in all
 keymaps accessible from KEYMAP.  Make sure that subordinate keymaps aren't
-shared with other keymaps!  (`copy-keymap' will suffice.)"
+shared with other keymaps!  (copy-keymap will suffice.)"
   ;; Loop through all keymaps accessible from keymap
   (let ((maps (accessible-keymaps keymap)))
     (while maps
@@ -2914,11 +2896,11 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
       (if (not (pos-visible-in-window-p))
 	  (let ((echo-keystrokes 0))
 	    (while (and (not (pos-visible-in-window-p))
-			(> (1- (frame-height)) (window-height)))
+			(> (1- (screen-height)) (window-height)))
 	      (enlarge-window 1))
-	    (let ((c (read-event)))
-	      (if (not (eq c 32))
-		  (setq unread-command-events (list c)))))))))
+	    (let ((c (read-char)))
+	      (if (/= c 32)
+		  (setq unread-command-char c))))))))
 
 ;; Improved auto-save file names.
 ;; This function fixes many problems with the standard auto-save file names:
@@ -2997,6 +2979,19 @@ See also auto-save-file-name-p."
       (setq limit (1+ (match-end 0)))))
   s)
 
-(provide 'emerge)
+;; Metacharacters that have to be protected from the shell when executing
+;; a diff/diff3 command.
+(defvar emerge-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
+  "Characters that must be quoted with \\ when used in a shell command
+line, specified as a [...] regexp.")
 
-;;; emerge.el ends here
+;; Quote metacharacters (using \) when executing a diff/diff3 command.
+(defun emerge-protect-metachars (s)
+  (let ((limit 0))
+    (while (string-match emerge-metachars s limit)
+      (setq s (concat (substring s 0 (match-beginning 0))
+		      "\\"
+		      (substring s (match-beginning 0))))
+      (setq limit (1+ (match-end 0)))))
+  s)
+
