@@ -242,6 +242,7 @@ unsigned long last_event_timestamp;
 Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
 Lisp_Object Qbackward_char;
+Lisp_Object Qundefined;
 
 /* read_key_sequence stores here the command definition of the
    key sequence that it reads.  */
@@ -3186,7 +3187,7 @@ menu_bar_items ()
 
   result = Qnil;
 
-  for (mapno = 0; mapno < nmaps; mapno++)
+  for (mapno = nmaps - 1; mapno >= 0; mapno--)
     {
       if (! NILP (maps[mapno]))
 	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1, 0));
@@ -3227,6 +3228,9 @@ menu_bar_one_keymap (keymap, result)
 		result = menu_bar_item (key, item_string,
 					Fcdr (binding), result);
 	    }
+	  else if (EQ (binding, Qundefined))
+	    result = menu_bar_item (key, item_string,
+				    Fcdr (binding), result);
 	}
       else if (XTYPE (item) == Lisp_Vector)
 	{
@@ -3245,6 +3249,9 @@ menu_bar_one_keymap (keymap, result)
 		    result = menu_bar_item (key, item_string,
 					    Fcdr (binding), result);
 		}
+	      else if (EQ (binding, Qundefined))
+		result = menu_bar_item (key, item_string,
+					Fcdr (binding), result);
 	    }
 	}
     }
@@ -3256,8 +3263,16 @@ static Lisp_Object
 menu_bar_item (key, item_string, def, result)
      Lisp_Object key, item_string, def, result;
 {
-  Lisp_Object tem, elt;
+  Lisp_Object tem;
   Lisp_Object enabled;
+
+  if (EQ (def, Qundefined))
+    {
+      /* If a map has an explicit nil as definition,
+	 discard any previously made menu bar item.  */
+      tem = Fassq (key, result);
+      return Fdelq (tem, result);
+    }
 
   /* See if this entry is enabled.  */
   enabled = Qt;
@@ -3273,8 +3288,8 @@ menu_bar_item (key, item_string, def, result)
 
   /* Add an entry for this key and string
      if there is none yet.  */
-  elt = Fassq (key, result);
-  if (!NILP (enabled) && NILP (elt))
+  tem = Fassq (key, result);
+  if (!NILP (enabled) && NILP (tem))
     result = Fcons (Fcons (key, Fcons (item_string, Qnil)), result);
 
   return result;
@@ -4909,6 +4924,9 @@ syms_of_keyboard ()
 
   Qdisabled = intern ("disabled");
   staticpro (&Qdisabled);
+
+  Qundefined = intern ("undefined");
+  staticpro (&Qundefined);
 
   Qpre_command_hook = intern ("pre-command-hook");
   staticpro (&Qpre_command_hook);
