@@ -31,6 +31,7 @@ pertaining to the terminal and the screen.
 * Special Keysyms::     Defining system-specific key symbols for X.
 * Flow Control::        How to turn output flow control on or off.
 * Batch Mode::          Running Emacs without terminal interaction.
+* Session Management::  Saving and restoring state with X Session Management.
 @end menu
 
 @node Starting Up
@@ -1996,3 +1997,52 @@ generates, such as command echoing, is suppressed entirely.)
 @defvar noninteractive
 This variable is non-@code{nil} when Emacs is running in batch mode.
 @end defvar
+
+@node Session Management
+@section Session Management
+@cindex session management
+@cindex X session management protocol
+
+X has defined the X Session Management Protocol to handle start and
+restart of applications.  There is one session manager who has the
+responsibility to keep track of the applications that are running 
+when the window system shuts down, so the session manager later can 
+restart them.
+
+Before the session manager shuts down the window system it informs
+applications that they should save their state.  When the applications
+are restarted, the applications will restore their state.
+
+@defvar emacs-save-session-functions
+@tindex emacs-save-session-functions
+Emacs supports saving state by using a hook called
+@code{emacs-save-session-functions}.  Each function in this hook is
+called when the session manager tells Emacs that the window system is
+shutting down.  The functions are called with the current buffer set to
+a temporary buffer.  Functions can use @code{insert} to add lisp code
+to this buffer.  The buffer will then be saved in a lisp file that is
+loaded when Emacs is restarted.
+
+If a function in @code{emacs-save-session-functions} returns non-nil
+Emacs will inform the session manager that the window system shutdown
+shall be cancelled.
+@end defvar
+
+Here is an example that just inserts some text into *scratch* when Emacs
+is restarted by the session manager.
+
+@example
+@group
+(add-hook 'emacs-save-session-functions 'save-yourself-test)
+@end group
+
+@group
+(defun save-yourself-test ()
+  (progn
+    (insert
+     "(save-excursion
+        (switch-to-buffer \"*scratch*\")
+        (insert \"I am restored\"))")
+   @result{} nil))
+@end group
+@end example
