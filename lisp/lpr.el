@@ -173,4 +173,6 @@ hexadecimal escapes."
 	     (format "\\^%c" (+ c ?@))
 	   (format "\\%02x" c)))))))
 
+(provide 'lpr)
+
 ;;; lpr.el ends here
