@@ -135,7 +135,7 @@ The syntax, more precisely:
 "
   (let ((menu (make-lucid-menu-keymap (car menu-desc) (cdr menu-desc)))
 	(pos (mouse-pixel-position))
-	answer)
+	answer cmd)
     (while menu
       (setq answer (x-popup-menu (list (list (nth 1 pos) (nthcdr 2 pos))
 				       (car pos))
