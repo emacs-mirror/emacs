@@ -332,7 +332,9 @@ on the contents of the region.  Otherwise, operate from point to the
 end of the buffer."
 
   (interactive
-   (keep-lines-read-args "Keep lines (containing match for regexp): "))
+   (progn
+     (barf-if-buffer-read-only)
+     (keep-lines-read-args "Keep lines (containing match for regexp): ")))
   (if rstart
       (progn
 	(goto-char (min rstart rend))
@@ -381,7 +383,9 @@ on the contents of the region.  Otherwise, operate from point to the
 end of the buffer."
 
   (interactive
-   (keep-lines-read-args "Flush lines (containing match for regexp): "))
+   (progn
+     (barf-if-buffer-read-only)
+     (keep-lines-read-args "Flush lines (containing match for regexp): ")))
   (if rstart
       (progn
 	(goto-char (min rstart rend))
