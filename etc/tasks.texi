@@ -459,7 +459,7 @@ LaTeX, Texinfo, or some other format that free software can edit.
 @c People are helping the developer of siff release it as free software.
 
 @item
-A free replacement for siff (sometimes called sif).  THis would be a
+A free replacement for siff (sometimes called sif).  This would be a
 program to find similar files in a large file system, ``similar''
 meaning that the files contain a significant number of common substrings
 that are of a certain size or greater.  You can find some information
