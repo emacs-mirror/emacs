@@ -144,16 +144,8 @@ typedef unsigned long int reg_syntax_t;
    If not set, then the GNU regex operators are recognized. */
 #define RE_NO_GNU_OPS (RE_NO_POSIX_BACKTRACKING << 1)
 
-/* If this bit is set, turn on internal regex debugging.
-   If not set, and debugging was on, turn it off.
-   This only works if regex.c is compiled -DDEBUG.
-   We define this bit always, so that all that's needed to turn on
-   debugging is to recompile regex.c; the calling code can always have
-   this bit set, and it won't affect anything in the normal case. */
-#define RE_DEBUG (RE_NO_GNU_OPS << 1)
-
 /* If this bit is set, then *?, +? and ?? match non greedily. */
-#define RE_FRUGAL (RE_DEBUG << 1)
+#define RE_FRUGAL (RE_NO_GNU_OPS << 1)
 
 /* If this bit is set, then (?:...) is treated as a shy group.  */
 #define RE_SHY_GROUPS (RE_FRUGAL << 1)
@@ -335,10 +327,10 @@ struct re_pattern_buffer
   unsigned char *buffer;
 
 	/* Number of bytes to which `buffer' points.  */
-  unsigned long int allocated;
+  size_t allocated;
 
 	/* Number of bytes actually used in `buffer'.  */
-  unsigned long int used;
+  size_t used;
 
         /* Syntax setting with which the pattern was compiled.  */
   reg_syntax_t syntax;
