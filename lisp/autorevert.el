@@ -297,10 +297,13 @@ Use `auto-revert-mode' to revert a particular buffer."
 
 (defun auto-revert-buffer-p ()
   "Check if current buffer should be reverted."
-  ;;  - Always include dired buffers to list. It would be too expensive
+  ;;  - Always include dired buffers to list.  It would be too expensive
   ;;  to test the "revert" status here each time timer launches.
   ;;  - Same for VC buffers.
-  (or (eq major-mode 'dired-mode)
+  (or (and (eq major-mode 'dired-mode)
+	   (or (and global-auto-revert-mode
+		    global-auto-revert-non-file-buffers)
+	       auto-revert-mode))
       (and (not (buffer-modified-p))
 	   (auto-revert-vc-buffer-p))
       (and (not (buffer-modified-p))
