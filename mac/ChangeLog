@@ -1,3 +1,8 @@
+2002-07-05  Andrew Choi  <akochoi@shaw.ca>
+
+	* make-package: Add ability to handle options --help, --prefix,
+	--no-conf, and --with-x.
+
 2002-07-04  Andrew Choi  <akochoi@shaw.ca>
 
 	* make-package: New file.

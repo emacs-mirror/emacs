@@ -41,11 +41,55 @@
 
 progname="$0"
 ## Default location to place it is /usr/local
-prefix=/usr/local
-if [ $1 ]; then
-    prefix="$1"
-fi
 
+prefix=/usr/local
+with_config=yes
+
+ac_prev=
+display_usage=false;
+config_options=--without-x
+while test $# != 0
+do
+  if test -n "$ac_prev"; then
+     eval "$ac_prev=\$1"
+     ac_prev=
+     continue
+  fi
+  case $1 in
+    -help | --help | --hel | --he | -h)
+       display_usage=yes ;;
+    -p | -prefix | --p | --prefix)
+       ac_prev=prefix ;;
+    -p=* | -prefix=* | --p=* | --prefix=*)
+       prefix=`expr "x$1" : 'x[^=]*=\(.*\)'` ;;
+    -no-configure | -no-conf | --no-configure | --no-conf)
+       with_config=no ;;
+    -with-x | --with-x)
+       config_options= ;;
+  esac
+  shift
+done
+
+if test "$display_usage" = "yes"; then
+  cat <<EOF
+\`make-package' generates a Mac OS X package from an Emacs distribution.
+By default, this first runs ./configure on the emacs directory.  Then 
+make install to create the emacs distribution.  Then some mac-specific
+commands to generate the required information for the mac package.
+
+Usage: $0 [OPTION]
+
+Options:
+  -h, --help              display this help and exit
+      --prefix=DIR        Set install location for the Mac OS X package
+                          of the emacs related file.  By default /usr/local
+      --no-conf           Do not run the configure script before running
+                          make install.
+      --with-x            Setup the install to use X Windows for its 
+                          windowed display, instead of carbon.
+EOF
+  exit 0
+fi
 
 ### Exit if a command fails.
 #set -e
@@ -126,7 +170,11 @@ tempparentfull="`pwd`/${tempparent}"
 
 echo Installing into directory ${tempparentfull} >&2
 
-(cd ..; ./configure --without-x --prefix=${prefix}; make install prefix=${tempparentfull}${prefix})
+if test "$with_config" = yes; then
+    (cd ..; ./configure ${config_options} --prefix=${prefix};)
+fi
+
+(cd ..; make install prefix=${tempparentfull}${prefix})
 
 ### This trap ensures that the staging directory will be cleaned up even
 ### when the script is interrupted in mid-career.
@@ -216,4 +264,3 @@ echo "Cleaning up the staging directory"
 rm -rf Emacs.pkg
 
 ### make-package ends here
-
