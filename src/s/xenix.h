@@ -32,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
 /* #define BSD4_1 */
 /* #define BSD4_2 */
 /* #define BSD4_3 */
-/* #define BSD */
+/* #define BSD_SYSTEM */
 /* #define VMS */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.

@@ -29,7 +29,7 @@ Boston, MA 02111-1307, USA.  */
 /* #define UNIPLUS */
 /* #define USG5 */
 #define USG
-/* #define BSD */
+/* #define BSD_SYSTEM */
 #define LINUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.

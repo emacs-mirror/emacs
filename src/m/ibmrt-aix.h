@@ -121,7 +121,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* AIX has IPC. It also has sockets, and either can be used for client/server.
    I would suggest the client/server code be changed to use HAVE_SOCKETS rather
-   than BSD as the conditional if sockets provide any advantages. */
+   than BSD_SYSTEM as the conditional if sockets provide any advantages. */
 
 #define HAVE_SYSVIPC
 
