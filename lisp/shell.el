@@ -1,30 +1,29 @@
-;; -*-Emacs-Lisp-*- run a shell in an Emacs window
-;; Copyright (C) 1985, 1986, 1987, 1990 Free Software Foundation, Inc.
-  
-;; This file is part of GNU Emacs.
+;;; -*-Emacs-Lisp-*- General command interpreter in a window stuff
+;;; Copyright Olin Shivers (1988).
+;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
+;;; notice appearing here to the effect that you may use this code any
+;;; way you like, as long as you don't charge money for it, remove this
+;;; notice, or hold me liable for its results.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
-;; any later version.
+;;; The changelog is at the end of file.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;;; Please send me bug reports, bug fixes, and extensions, so that I can
+;;; merge them into the master source.
+;;;     - Olin Shivers (shivers@cs.cmu.edu)
 
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
-;;; Hacked from tea.el and shell.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
+;;; This file defines a a shell-in-a-buffer package (shell mode) built
+;;; on top of comint mode.  This shell mode is similar to its
+;;; counterpart in the GNU Emacs 18 release, but is more featureful,
+;;; robust, and uniform than that version.
 
 ;;; Since this mode is built on top of the general command-interpreter-in-
 ;;; a-buffer mode (comint mode), it shares a common base functionality, 
 ;;; and a common set of bindings, with all modes derived from comint mode.
+;;; This makes these modes easier to use.
 
 ;;; For documentation on the functionality provided by comint mode, and
 ;;; the hooks available for customising it, see the file comint.el.
+;;; For further information on shell mode, see the comments below.
 
 ;;; Needs fixin:
 ;;; When sending text from a source file to a subprocess, the process-mark can 
@@ -34,6 +33,118 @@
 
 (require 'comint)
 (provide 'shell)
+
+;; YOUR .EMACS FILE
+;;=============================================================================
+;; Some suggestions for your .emacs file.
+;;
+;; ; If shell lives in some non-standard directory, you must tell emacs
+;; ; where to get it. This may or may not be necessary.
+;; (setq load-path (cons (expand-file-name "~jones/lib/emacs") load-path))
+;;
+;; ; Autoload shell from file shell.el
+;; (autoload 'shell "shell"
+;;           "Run an inferior shell process."
+;;           t)
+;;
+;; ; Define C-c t to run my favorite command in shell mode:
+;; (setq shell-load-hook
+;;       '((lambda () 
+;;           (define-key shell-mode-map "\C-ct" 'favorite-cmd))))
+
+
+;;; Brief Command Documentation:
+;;;============================================================================
+;;; Comint Mode Commands: (common to shell and all comint-derived modes)
+;;;
+;;; m-p	    comint-previous-input    	    Cycle backwards in input history
+;;; m-n	    comint-next-input  	    	    Cycle forwards
+;;; m-c-r   comint-previous-input-matching  Search backwards in input history
+;;; return  comint-send-input
+;;; c-a     comint-bol                      Beginning of line; skip prompt.
+;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
+;;; c-c c-u comint-kill-input	    	    ^u
+;;; c-c c-w backward-kill-word    	    ^w
+;;; c-c c-c comint-interrupt-subjob 	    ^c
+;;; c-c c-z comint-stop-subjob	    	    ^z
+;;; c-c c-\ comint-quit-subjob	    	    ^\
+;;; c-c c-o comint-kill-output		    Delete last batch of process output
+;;; c-c c-r comint-show-output		    Show last batch of process output
+;;;         send-invisible                  Read line w/o echo & send to proc
+;;;         comint-continue-subjob	    Useful if you accidentally suspend
+;;;					        top-level job.
+;;; comint-mode-hook is the comint mode hook.
+
+;;; Shell Mode Commands:
+;;;         shell			    Fires up the shell process.
+;;; tab     comint-dynamic-complete	    Complete a partial file name
+;;; m-?     comint-dynamic-list-completions List completions in help buffer
+;;; 	    dirs    			    Resync the buffer's dir stack.
+;;; 	    dirtrack-toggle                 Turn dir tracking on/off.
+;;;
+;;; The shell mode hook is shell-mode-hook
+;;; The shell-load-hook is run after this file is loaded.
+;;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
+;;; compatibility.
+
+;;; Read the rest of this file for more information.
+
+;;; Emacs 18 SHELL.EL COMPATIBILITY
+;;;
+;;; The below notes were written before this shell package became the
+;;; official shell mode of the standard Emacs distribution, and talk
+;;; about getting this package to work well with the old shell package
+;;; and its users.  This issue isn't quite as relevant now as it was
+;;; then, but the notes below should still be useful for people
+;;; modifying elisp packages that used the old shell mode to use this
+;;; one.  Note that some of the variables referred to have lost their
+;;; `cmu-' prefix.
+;;;
+;;;============================================================================
+;;; In brief: this package should have no trouble coexisting with shell.el.
+;;; 
+;;; Most customising variables -- e.g., explicit-shell-file-name -- are the
+;;; same, so the users shouldn't have much trouble. Hooks have different
+;;; names, however, so you can customise shell mode differently from shell
+;;; mode. You basically just have to remember to type M-x cmushell instead of
+;;; M-x shell.
+;;; 
+;;; It would be nice if this file was completely plug-compatible with the old
+;;; shell package -- if you could just name this file shell.el, and have it
+;;; transparently replace the old one. But you can't.  Several other packages
+;;; (tex-mode, background, dbx, gdb, kermit, monkey, prolog, telnet) are also
+;;; clients of shell mode. These packages assume detailed knowledge of shell
+;;; mode internals in ways that are incompatible with cmushell mode (mostly
+;;; because of cmushell mode's greater functionality).  So, unless we are
+;;; willing to port all of these packages, we can't have this file be a
+;;; complete replacement for shell.el -- that is, we can't name this file
+;;; shell.el, and its main entry point (shell), because dbx.el will break
+;;; when it loads it in and tries to use it.
+;;; 
+;;; There are two ways to fix this. One: rewrite these other modes to use the
+;;; new package. This is a win, but can't be assumed. The other, backwards
+;;; compatible route, is to make this package non-conflict with shell.el, so
+;;; both files can be loaded in at the same time. And *that* is why some
+;;; functions and variables have different names: (cmushell),
+;;; cmushell-mode-map, that sort of thing. All the names have been carefully
+;;; chosen so that shell.el and cmushell.el won't tromp on each other.
+
+;;; Customisation and Buffer Variables
+;;; ===========================================================================
+;;; 
+
+;In loaddefs.el now.
+;(defconst shell-prompt-pattern
+;  "^[^#$%>]*[#$%>] *"
+;  "*Regexp used by Newline command to match subshell prompts.
+;;; Change the doc string for shell-prompt-pattern:
+(put 'shell-prompt-pattern 'variable-documentation
+  "Regexp to match prompts in the inferior shell.
+Defaults to \"^[^#$%>]*[#$%>] *\", which works pretty well.
+This variable is used to initialise comint-prompt-regexp in the 
+shell buffer.
+
+This is a fine thing to set in your .emacs file.")
 
 (defvar shell-popd-regexp "popd"
   "*Regexp to match subshell commands equivalent to popd.")
@@ -56,15 +167,18 @@
   "*Args passed to inferior shell by M-x shell, if the shell is csh.
 Value is a list of strings, which may be nil.")
 
+;;; All the above vars aren't prefixed "shell-" to make them
+;;; backwards compatible w/shell.el and old .emacs files.
+
 (defvar shell-dirstack nil
   "List of directories saved by pushd in this buffer's shell.")
 
 (defvar shell-dirstack-query "dirs"
   "Command used by shell-resync-dirlist to query shell.")
 
-(defvar shell-mode-map ())
+(defvar shell-mode-map '())
 (cond ((not shell-mode-map)
-       (setq shell-mode-map (copy-keymap comint-mode-map))
+       (setq shell-mode-map (full-copy-sparse-keymap comint-mode-map))
        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
        (define-key shell-mode-map "\M-?"  'comint-dynamic-list-completions)))
 
@@ -102,33 +216,34 @@ Variables shell-cd-regexp, shell-pushd-regexp and shell-popd-regexp are used
 to match their respective commands."
   (interactive)
   (comint-mode)
-  (setq major-mode 'shell-mode
-        mode-name "Shell"
-        comint-prompt-regexp shell-prompt-pattern
-        comint-input-sentinel 'shell-directory-tracker)
+  (setq comint-prompt-regexp shell-prompt-pattern)
+  (setq major-mode 'shell-mode)
+  (setq mode-name "shell")
   (use-local-map shell-mode-map)
   (make-local-variable 'shell-dirstack)
-  (set (make-local-variable 'shell-dirtrackp) t)
+  (setq shell-dirstack nil)
+  (make-local-variable 'shell-dirtrackp)
+  (setq shell-dirtrackp t)
+  (setq comint-input-sentinel 'shell-directory-tracker)
   (run-hooks 'shell-mode-hook))
 
 
 (defun shell ()
   "Run an inferior shell, with I/O through buffer *shell*.
 If buffer exists but shell process is not running, make new shell.
-If buffer exists and shell process is running, just switch to buffer *shell*.
-
-The shell to use comes from the first non-nil variable found from these:
-explicit-shell-file-name in Emacs, ESHELL in the environment or SHELL in the
-environment.  If none is found, /bin/sh is used.
-
-If a file ~/.emacs_SHELLNAME exists, it is given as initial input, simulating
-a start-up file for the shell like .profile or .cshrc.  Note that this may
-lose due to a timing error if the shell discards input when it starts up.
-
+If buffer exists and shell process is running, 
+ just switch to buffer *shell*.
+Program used comes from variable explicit-shell-file-name,
+ or (if that is nil) from the ESHELL environment variable,
+ or else from SHELL if there is no ESHELL.
+If a file ~/.emacs_SHELLNAME exists, it is given as initial input
+ (Note that this may lose due to a timing error if the shell
+  discards input when it starts up.)
 The buffer is put in shell-mode, giving commands for sending input
-and controlling the subjobs of the shell.
+and controlling the subjobs of the shell.  See shell-mode.
+See also variable shell-prompt-pattern.
 
-The shell file name, sans directories, is used to make a symbol name
+The shell file name (sans directories) is used to make a symbol name
 such as `explicit-csh-arguments'.  If that symbol is a variable,
 its value is used as a list of arguments when invoking the shell.
 Otherwise, one argument `-i' is passed to the shell.
@@ -139,7 +254,7 @@ Otherwise, one argument `-i' is passed to the shell.
 	 (let* ((prog (or explicit-shell-file-name
 			  (getenv "ESHELL")
 			  (getenv "SHELL")
-			  "/bin/sh"))
+			  "/bin/sh"))		     
 		(name (file-name-nondirectory prog))
 		(startfile (concat "~/.emacs_" name))
 		(xargs-name (intern-soft (concat "explicit-" name "-args"))))
@@ -160,7 +275,7 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;; changes the current directory of the shell buffer accordingly.
 ;;;
 ;;; This is basically a fragile hack, although it's more accurate than
-;;; the original version in shell.el. It has the following failings:
+;;; the released version in shell.el. It has the following failings:
 ;;; 1. It doesn't know about the cdpath shell variable.
 ;;; 2. It only spots the first command in a command sequence. E.g., it will
 ;;;    miss the cd in "ls; cd foo"
@@ -173,7 +288,7 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;; messes it up. You run other processes under the shell; these each have
 ;;; separate working directories, and some have commands for manipulating
 ;;; their w.d.'s (e.g., the lcd command in ftp). Some of these programs have
-;;; commands that do *not* effect the current w.d. at all, but look like they
+;;; commands that do *not* affect the current w.d. at all, but look like they
 ;;; do (e.g., the cd command in ftp).  In shells that allow you job
 ;;; control, you can switch between jobs, all having different w.d.'s. So
 ;;; simply saying %3 can shift your w.d..
@@ -390,3 +505,96 @@ command again."
 	(setq msg (concat msg dir " "))
 	(setq ds (cdr ds))))
     (message msg)))
+
+
+
+;;; Interfacing to client packages (and converting them)
+;;;============================================================================
+;;; Several gnu packages (tex-mode, background, dbx, gdb, kermit, prolog, 
+;;; telnet are some) use the shell package as clients. Most of them would
+;;; be better off using the comint package directly, but they predate it.
+;;; The catch is that most of these packages (dbx, gdb, prolog, telnet)
+;;; assume total knowledge of all the local variables that shell mode
+;;; functions depend on. So they (kill-all-local-variables), then create
+;;; the few local variables that shell.el functions depend on. Alas,
+;;; cmushell.el functions depend on a different set of vars (for example,
+;;; the input history ring is a local variable in cmushell.el's shell mode,
+;;; whereas there is no input history ring in shell.el's shell mode).
+;;; So we have a situation where the greater functionality of cmushell.el
+;;; is biting us -- you can't just replace shell will cmushell.
+;;;
+;;; Altering these packages to use comint mode directly should *greatly*
+;;; improve their functionality, and is actually pretty easy. It's
+;;; mostly a matter of renaming a few variable names. See comint.el for more.
+;;;     -Olin
+
+
+
+;;; Do the user's customisation...
+;;;===============================
+(defvar shell-load-hook nil
+  "This hook is run when shell is loaded in.
+This is a good place to put keybindings.")
+	
+(run-hooks 'shell-load-hook)
+
+;;; Change Log
+;;; ===========================================================================
+;;; Olin 8/88
+;;; Created.
+;;;
+;;; Olin 5/26/90
+;;; - Split cmulisp and cmushell modes into separate files. 
+;;;   Not only is this a good idea, it's apparently the way it'll be rel 19.
+;;; - Souped up the directory tracking; it now can handle pushd, pushd +n, 
+;;;   and popd +n.
+;;; - Added cmushell-dirtrack-toggle command to toggle the directory
+;;;   tracking that cmushell tries to do. This is useful, for example,
+;;;   when you are running ftp -- it prevents the ftp "cd" command from
+;;;   spoofing the tracking machinery. This command is also named 
+;;;   dirtrack-toggle, so you need only type M-x dirtrack to run it.
+;;; - Added cmushell-resync-dirs command. This queries the shell
+;;;   for the current directory stack, and resets the buffer's stack
+;;;   accordingly. This command is also named dirs, so you need only type
+;;;   M-x dirs to run it.
+;;; - Bits of the new directory tracking code were adapted from source
+;;;   contributed by Vince Broman, Jeff Peck, and Barry Warsaw.
+;;; - See also the improvements made to comint.el at the same time.
+;;; - Renamed several variables. Mostly this comprised changing "shell"
+;;;   to "cmushell" in the names. The only variables that are not prefixed
+;;;   with "cmushell-" are the ones that are common with shell.el:
+;;;       explicit-shell-file-name shell-prompt-pattern explicit-csh-args 
+;;;       and shell-cd/popd/pushd-regexp
+;;;   The variables and functions that were changed to have "cmushell-" 
+;;;   prefixes are:
+;;;       shell-directory-stack (v), shell-directory-tracker (f)
+;;;   This should not affect users, only elisp hackers. Hopefully
+;;;   one day shell.el will just go away, and we can drop all this
+;;;   "cmushell" bullshit.
+;;; - Upgraded process sends to use comint-send-string instead of
+;;;   process-send-string.
+;;;
+;;; Olin 6/14/90
+;;; - If your shell is named <shellname>, and a variable named
+;;;   explicit-<shellname>-args exists, cmushell is supposed
+;;;   to use its value as the arglist to the shell invocation.
+;;;   E.g., if you define explicit-csh-args to be 
+;;;   ("-ifx"), then when cmushell cranks up a csh, it execs it
+;;;   as "csh -ifx". This is what is documented. What has actually
+;;;   been the case is that the variable checked is
+;;;   explicit-<shellname>-arguments, not explicit-<shellname>-args.
+;;;   The documentation has been changed to conform to the code (for
+;;;   backwards compatibility with shell.el). This bug is inherited from
+;;;   the same bug in shell.el.
+;;;   This bug reported by Stephen Anderson.
+;;;
+;;; Olin 9/5/90
+;;; - Arguments to cd, popd, and pushd now have their env vars expanded
+;;;   out by the tracking machinery. So if you say "cd $SRCDIR/funs", the
+;;;   $SRCDIR var will be replaced by its value *in emacs' process
+;;;   environment*. If this is different from the shell's binding of the
+;;;   variable, you lose.  Several users needed this feature, fragile
+;;;   though it may be.  The fix was contributed by sk@thp.Uni-Koeln.DE.
+;;;
+;;; Olin 3/12/91
+;;; - Moved comint-dynamic-complete (filename completion) from M-tab to tab.
