@@ -163,16 +163,12 @@
 
      (hebrew (nil . "ISO8859-8"))
 
-     (symbol (nil . "ISO10646-1")
-	     (nil . "GB2312.1980-0")
-	     (nil . "JISX0208*")
-	     (nil . "JISX0212*")
-	     (nil . "big5*"))
-
      (kana (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
 	   (nil . "KSC5601.1987*")
-	   (nil . "JISX0201*"))
+	   (nil . "JISX0201*")
+	   (nil . "JISX0213.2000-1")
+	   (nil . "JISX0213.2004-1"))
 
      (bopomofo (nil . "sisheng_cwnn-0"))
 
@@ -243,18 +239,28 @@
      ;;(devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
      ;;(malayalam-glyph ("altsys-ml_ttkarthika" . "malayalam-cdac"))
      (ipa (nil . "MuleIPA-1"))
+
+     ;; Fallback fonts
+     (nil (nil . "gb2312.1980")
+	  (nil . "jisx0208")
+	  (nil . "ksc5601.1987")
+	  (nil . "cns11643.1992.*1")
+	  (nil . "big5")
+	  (nil . "jisx0213.2000-1")
+	  (nil . "jisx0213.2004-1")
+	  (nil . "jisx0212"))
      ))
 
   ;; Append Unicode fonts.
   ;; This may find fonts with more variants (bold, italic) but which
   ;; don't cover many characters.
-  (set-fontset-font "fontset-default" '(0 . #xFFFF)
+  (set-fontset-font "fontset-default" nil
 		    '(nil . "iso10646-1") nil 'append)
   ;; These may find fonts that cover many characters but with fewer
   ;; variants.
-  (set-fontset-font "fontset-default" '(0 . #xFFFF)
+  (set-fontset-font "fontset-default" nil
 		    '("gnu-unifont" . "iso10646-1") nil 'append)
-  (set-fontset-font "fontset-default" '(0 . #xFFFF)
+  (set-fontset-font "fontset-default" nil
 		    '("mutt-clearlyu" . "iso10646-1") nil 'append))
 
 ;; These are the registered registries/encodings from
