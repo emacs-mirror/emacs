@@ -24,6 +24,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 
+extern long *xmalloc (), *xrealloc ();
+
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
    Output goes in BUFFER, which has room for BUFSIZE chars.
@@ -186,7 +188,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    case 'c':
 	      if (cnt == nargs)
 		error ("not enough arguments for format string");
-	      *charbuf = (int) args[cnt++];
+	      *charbuf = (EMACS_INT) args[cnt++];
 	      string = charbuf;
 	      tem = 1;
 	      if (fmtcpy[1] != 'c')
