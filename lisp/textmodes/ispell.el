@@ -2057,6 +2057,8 @@ warns you if the previous word is incorrectly spelled."
 	       "^#! /bin/[ck]?sh"
 	       ;; Matches context difference listing
 	       "\\(diff -c .*\\)?\n\\*\\*\\* .*\n--- .*\n\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*"
+               ;; Matches reporter.el bug report
+               "^current state:\n==============\n"
 	       ;; Matches "----------------- cut here"
 	       ;; and "------- Start of forwarded message"
 	       "^[-=_]+\\s ?\\(cut here\\|Start of forwarded message\\)")
