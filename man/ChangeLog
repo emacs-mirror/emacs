@@ -1,3 +1,7 @@
+1999-10-07  Emmanuel Briot  <briot@gnat.com>
+
+	* ada-xref.texi: New file.
+	
 1999-09-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Add faq.

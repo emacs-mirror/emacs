@@ -1,3 +1,11 @@
+1999-10-07  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* filecache.el (file-cache-completion-ignore-case): New variable,
+	defaulting to the value of completion-ignore-case.
+	(file-cache-minibuffer-complete): Use it.
+	(file-cache-files-matching, file-cache-files-matching-internal):
+	New functions.
+
 1999-10-07  Emmanuel Briot  <briot@gnat.com>
 
 	* ada-xref.el: New file
