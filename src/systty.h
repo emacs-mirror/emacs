@@ -53,14 +53,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif /* not NO_TERMIO */
+#ifndef INCLUDED_FCNTL
 #define INCLUDED_FCNTL
 #include <fcntl.h>
-#else
+#endif
+#else /* not HAVE_TERMIO */
 #ifdef HAVE_TERMIOS
 #if defined(_AIX) && defined(_I386)
 #include <termios.h>		/* termios.h needs to be before termio.h */
 #include <termio.h>
-#else
+#else /* not HAVE_TERMIOS */
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif
@@ -85,15 +87,9 @@ static struct iosb
 
 extern int waiting_for_ast;
 extern int stop_input;
-#if 0 /* VAX C doeasn't understand initializing declarations */
-extern int input_ef = 0;
-extern int timer_ef = 0;
-extern int process_ef = 0;
-#else
 extern int input_ef;
 extern int timer_ef;
 extern int process_ef;
-#endif
 extern int input_eflist;
 extern int timer_eflist;
 
