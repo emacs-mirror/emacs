@@ -1,3 +1,23 @@
+2002-06-27  Juanma Barranquero  <lektu@terra.es>
+
+	* emacs-lisp/bytecomp.el (baud-rate): Fix obsolescence declaration.
+	(meta-flag): Likewise.
+
+	* international/mule-util.el (string-to-sequence): Likewise.
+
+	* subr.el (char-bytes): Likewise.
+	(make-local-hook): Likewise.
+	(baud-rate): Remove redundant info from docstring.
+
+	* faces.el (frame-update-faces): Fix obsolescence declaration.
+	(internal-get-face): Remove redundant info from docstring and
+	fix obsolescence declaration.
+
+	* rect.el (move-to-column-force): Likewise.
+
+	* help-fns.el (describe-function-1): Use semicolon instead of dot.
+	(describe-variable): Likewise.
+
 2002-06-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* uniquify.el (uniquify-delay-rationalize-file-buffer-names):

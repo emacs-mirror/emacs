@@ -1,3 +1,8 @@
+2002-06-27  Juanma Barranquero  <lektu@terra.es>
+
+	* charset.c (Fchar_bytes): Remove obsolescence info from
+	docstring.
+
 2002-06-26  Juanma Barranquero  <lektu@terra.es>
 
 	* fileio.c (read_file_name_cleanup): Add missing return.
