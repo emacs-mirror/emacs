@@ -90,7 +90,7 @@ Do so after `tooltip-short-delay'."
 
 
 (defcustom tooltip-gud-tips-p nil
-  "Non-nil means show tooltips in GUD sessions."
+  "*Non-nil means show tooltips in GUD sessions."
   :type 'boolean
   :tag "GUD"
   :group 'tooltip)
@@ -373,7 +373,7 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
 
 
 (defun tooltip-gud-toggle-dereference ()
-  "Toggle whether tooltips should show `* exor' or `expr'."
+  "Toggle whether tooltips should show `* expr' or `expr'."
   (interactive)
   (setq tooltip-gud-dereference (not tooltip-gud-dereference))
   (when (interactive-p)
