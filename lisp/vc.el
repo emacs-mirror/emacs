@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.375 2004/04/11 15:05:18 spiegel Exp $
+;; $Id: vc.el,v 1.376 2004/04/16 10:21:24 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2357,11 +2357,11 @@ If FOCUS-REV is non-nil, leave the point at that revision."
        ;; without the optional buffer argument (for backward compatibility).
        ;; Otherwise, resignal.
        (if (or (not (eq (cadr err)
-                        (indirect-function 
-                         (vc-find-backend-function (vc-backend file) 
+                        (indirect-function
+                         (vc-find-backend-function (vc-backend file)
                                                    'print-log))))
                (not (eq (caddr err) 2)))
-           (signal 'wrong-number-of-arguments err)
+           (signal (car err) (cdr err))
          ;; for backward compatibility
          (vc-call print-log file)
          (set-buffer "*vc*"))))
