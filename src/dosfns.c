@@ -34,20 +34,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dosfns.h"
 #include "msdos.h"
 
-static void
-mode_resetsize ()
-{
-  Fset_screen_width (ScreenCols (), Qnil);
-  Fset_screen_height (ScreenRows (), Qnil);
-}
-
-DEFUN ("mode25", Fmode25, Smode25, 0, 0, "",
-  "Set the number of rows to 25.")
+DEFUN ("mode25", Fmode25, Smode25, 0, 0, "", "\
+Changes the number of rows to 25.")
   ()
 {
   union REGS regs;
 
-  if (have_mouse) Mouse_off ();
+#ifdef HAVE_X_WINDOWS
+  if (!inhibit_window_system)
+    return Qnil;
+#endif
+  if (have_mouse) mouse_off ();
   regs.x.ax = 3;
   int86 (0x10, &regs, &regs);
   regs.x.ax = 0x1101;
@@ -58,19 +55,24 @@ DEFUN ("mode25", Fmode25, Smode25, 0, 0, "",
   int86 (0x10, &regs, &regs);
   regs.x.ax = 3;
   int86 (0x10, &regs, &regs);
-  mode_resetsize ();
+  Fset_frame_size (Fselected_frame (), ScreenCols (), ScreenRows ());
   Frecenter (Qnil);
   Fredraw_display ();
-  if (have_mouse) Mouse_init ();
+  if (have_mouse) mouse_init ();
+  return Qnil;
 }
 
-DEFUN ("mode4350", Fmode4350, Smode4350, 0, 0, "",
-  "Set the number of rows to 43 (EGA) or 50 (VGA).")
+DEFUN ("mode4350", Fmode4350, Smode4350, 0, 0, "", "\
+Changes the number of rows to 43 (EGA) or 50 (VGA).")
   ()
 {
   union REGS regs;
 
-  if (have_mouse) Mouse_off ();
+#ifdef HAVE_X_WINDOWS
+  if (!inhibit_window_system)
+    return Qnil;
+#endif
+  if (have_mouse) mouse_off ();
   regs.x.ax = 3;
   int86 (0x10, &regs, &regs);
   regs.x.ax = 0x1112;
@@ -82,10 +84,11 @@ DEFUN ("mode4350", Fmode4350, Smode4350, 0, 0, "",
   regs.x.ax = 0x0100;
   regs.x.cx = 7;
   int86 (0x10, &regs, &regs);
-  mode_resetsize ();
+  Fset_frame_size (Fselected_frame (), ScreenCols (), ScreenRows ());
   Frecenter (Qnil);
   Fredraw_display ();
-  if (have_mouse) Mouse_init ();
+  if (have_mouse) mouse_init ();
+  return Qnil;
 }
 
 DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
@@ -199,14 +202,14 @@ Usually this is the international telephone prefix.");
 
   DEFVAR_INT ("dos-codepage", &dos_codepage,
 	      "The codepage active when Emacs was started.\n\
-The following are known:
-	437	US
-	850	Multilingual
-	852	Slavic/Latin II
-	857	Turkish
-	860	Portugal
-	861	Iceland
-	863	Canada (French)
+The following are known:\n\
+	437	United States\n\
+	850	Multilingual (Latin I)\n\
+	852	Slavic (Latin II)\n\
+	857	Turkish\n\
+	860	Portugal\n\
+	861	Iceland\n\
+	863	Canada (French)\n\
 	865	Norway/Denmark");
 
   DEFVAR_LISP ("dos-version", &Vdos_version,
