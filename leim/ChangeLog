@@ -1,7 +1,15 @@
+2000-08-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* ja-dic: Directory name changed from skkdic.
+
+	* ja-dic/ja-dic.el[c]: Renamed from skkdic.el[c].
+
+	* README: Rename skkdic to ja-dic throughout the file.
+
 2000-08-24  Dave Love  <fx@gnu.org>
 
 	* quail/latin-pre.el ("latin-8-prefix", "latin-9-prefix"): New.
-	("latin-1-prefix""): Add missing symbols.
+	("latin-1-prefix"): Add missing symbols.
 
 2000-08-23  Dave Love  <fx@gnu.org>
 
