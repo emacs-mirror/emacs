@@ -3770,14 +3770,15 @@ DEFUN ("suspend-emacs", Fsuspend_emacs, Ssuspend_emacs, 0, 1, "",
   "Stop Emacs and return to superior process.  You can resume later.\n\
 On systems that don't have job control, run a subshell instead.\n\n\
 If optional arg STUFFSTRING is non-nil, its characters are stuffed\n\
-to be read as terminal input by Emacs's superior shell.\n\
-Before suspending, if `suspend-hook' is bound and value is non-nil\n\
-call the value as a function of no args.  Don't suspend if it returns non-nil.\n\
-Otherwise, suspend normally and after resumption call\n\
+to be read as terminal input by Emacs's parent, after suspension.\n\
+\n\
+Before suspending, call the functions in `suspend-hooks' with no args.\n\
+If any of them returns nil, don't call the rest and don't suspend.\n\
+Otherwise, suspend normally and after resumption run the normal hook\n\
 `suspend-resume-hook' if that is bound and non-nil.\n\
 \n\
 Some operating systems cannot stop the Emacs process and resume it later.\n\
-On such systems, Emacs will start a subshell and wait for it to exit.")
+On such systems, Emacs starts a subshell instead of suspending.")
   (stuffstring)
      Lisp_Object stuffstring;
 {
@@ -3785,21 +3786,25 @@ On such systems, Emacs will start a subshell and wait for it to exit.")
   int count = specpdl_ptr - specpdl;
   int old_height, old_width;
   int width, height;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   extern init_sys_modes ();
 
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring, 0);
-  GCPRO1 (stuffstring);
 
-  /* Call value of suspend-hook
-     if it is bound and value is non-nil.  */
-  if (!NILP (Vrun_hooks))
+  /* Run the functions in suspend-hooks.  */
+  tem = Fsymbol_value (intern ("suspend-hooks"));
+  while (CONSP (tem))
     {
-      tem = call1 (Vrun_hooks, intern ("suspend-hook"));
-      if (!EQ (tem, Qnil)) return Qnil;
+      Lisp_Object val;
+      GCPRO2 (stuffstring, tem);
+      val = call0 (Fcar (tem));
+      UNGCPRO;
+      tem = Fcdr (tem);
+      if (!EQ (val, Qnil)) return Qnil;
     }
 
+  GCPRO1 (stuffstring);
   get_frame_size (&old_width, &old_height);
   reset_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
