@@ -3374,10 +3374,8 @@ x_make_screen_visible (s)
   if (! SCREEN_VISIBLE_P (s))
     {
 #ifdef HAVE_X11
-#if 0
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (s, NormalState);
-#endif
 
       XMapWindow (XDISPLAY s->display.x->window_desc);
       if (s->display.x->v_scrollbar != 0 || s->display.x->h_scrollbar != 0)

@@ -102,7 +102,7 @@ Letters do not insert themselves; instead, they are commands.
 	      (error "No buffer named \"%s\"" string)
 	    nil)))))
 
-(defun buffer-menu (arg)
+(defun buffer-menu (&optional arg)
   "Make a menu of buffers so you can save, delete or select them.
 With argument, show only buffers that are visiting files.
 Type ? after invocation to get help on commands available.

@@ -201,7 +201,39 @@ under the X Window System."
   (let ((screen (selected-screen)))
     (if (eq (screen-visible-p screen) t)
 	(iconify-screen screen)
-      (deiconify-screen screen))))
+      (make-screen-visible screen))))
+
+
+;;;; Screen configurations
+
+(defun current-screen-configuration ()
+  "Return a list describing the positions and states of all screens.
+Each element is a list of the form (SCREEN ALIST WINDOW-CONFIG), where
+SCREEN is a screen object, ALIST is an association list specifying
+some of SCREEN's parameters, and WINDOW-CONFIG is a window
+configuration object for SCREEN."
+  (mapcar (function
+	   (lambda (screen)
+	     (list screen
+		   (screen-parameters screen)
+		   (current-window-configuration screen))))
+	  (screen-list)))
+
+(defun set-screen-configuration (configuration)
+  "Restore the screens to the state described by CONFIGURATION.
+Each screen listed in CONFIGURATION has its position, size, window
+configuration, and other parameters set as specified in CONFIGURATION."
+  (let (screens-to-delete)
+    (mapcar (function
+	     (lambda (screen)
+	       (let ((parameters (assq screen configuration)))
+		 (if parameters
+		     (progn
+		       (modify-screen-parameters screen (nth 1 parameters))
+		       (set-window-configuration (nth 2 parameters)))
+		   (setq screens-to-delete (cons screen screens-to-delete))))))
+	    (screen-list))
+    (mapcar 'delete-screen screens-to-delete)))
 
 
 ;;;; Convenience functions for dynamically changing screen parameters

@@ -641,7 +641,9 @@ WARNING:  If you use this under X, you should do `unfocus-screen' afterwards.")
 
 #if 0
 /* ??? Can this be replaced with a Lisp function?
-   It is used in minibuf.c.  Can we get rid of that?  */
+   It is used in minibuf.c.  Can we get rid of that?
+   Yes.  All uses in minibuf.c are gone, and parallels to these
+   functions have been defined in screen.el.  */
 
 DEFUN ("screen-configuration", Fscreen_configuration, Sscreen_configuration,
        0, 0, 0,
@@ -872,7 +874,7 @@ store_screen_param (s, prop, val)
 	error ("Surrogate minibuffer windows must be minibuffer windows.");
 
       if (SCREEN_HAS_MINIBUF (s) || SCREEN_MINIBUF_ONLY_P (s))
-	error ("Can't change surrogate minibuffer on screens with their own minibuffers.");
+	error ("Can't change the surrogate minibuffer of a screen with its own minibuffer.");
 
       /* Install the chosen minibuffer window, with proper buffer.  */
       s->minibuffer_window = val;
