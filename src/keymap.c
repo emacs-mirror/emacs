@@ -2659,7 +2659,7 @@ You type        Translation\n\
   if (STRINGP (Vkeyboard_translate_table) && !NILP (prefix))
     {
       int c;
-      unsigned char *translate = SDATA (Vkeyboard_translate_table);
+      const unsigned char *translate = SDATA (Vkeyboard_translate_table);
       int translate_len = SCHARS (Vkeyboard_translate_table);
 
       for (c = 0; c < translate_len; c++)
