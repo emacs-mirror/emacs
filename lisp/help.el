@@ -44,6 +44,7 @@
 (define-key help-map "\C-c" 'describe-copying)
 (define-key help-map "\C-d" 'describe-distribution)
 (define-key help-map "\C-w" 'describe-no-warranty)
+(define-key help-map "\C-p" 'describe-project)
 (define-key help-map "a" 'command-apropos)
 
 (define-key help-map "b" 'describe-bindings)
@@ -201,6 +202,13 @@ describes the minor mode."
    (expand-file-name "COPYING" data-directory))
   (goto-char (point-min)))
 
+(defun describe-project ()
+  "Display info on the GNU project."
+  (interactive)
+  (find-file-read-only
+   (expand-file-name "GNU" data-directory))
+  (goto-char (point-min)))
+
 (defun describe-no-warranty ()
   "Display info on all the kinds of warranty Emacs does NOT have."
   (interactive)
@@ -245,8 +253,8 @@ of the key sequence that ran this command."
     (print-help-return-message)))
 
 (make-help-screen help-for-help
-  "a b c f C-f i k C-k l m n p s t v w C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "
-  "You have typed \\[help-for-help], the help character.  Type a Help option:
+  "a b c f C-f i k C-k l m n p s t v w C-c C-d C-n C-w.  Type \\[help-command] again for more help: "
+  "You have typed \\[help-command], the help character.  Type a Help option:
 
 a  command-apropos.  Give a substring, and see a list of commands
 	(functions interactively callable) that contain
@@ -276,6 +284,7 @@ w  where-is.  Type command name; it prints which keystrokes
 C-c print Emacs copying permission (General Public License).
 C-d print Emacs ordering information.
 C-n print news of recent Emacs changes.
+C-p print information about the GNU project.
 C-w print information on absence of warranty for GNU Emacs."
   help-map)
 
