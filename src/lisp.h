@@ -2520,7 +2520,7 @@ extern void syms_of_casetab P_ ((void));
 
 /* defined in keyboard.c */
 
-extern Lisp_Object Qdisabled;
+extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
