@@ -1,3 +1,8 @@
+2005-01-24  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (x_error_quitter): No longer static, and moved after
+	x_error_handler.
+
 2005-01-24  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_by_lines): If we move forward after going too
