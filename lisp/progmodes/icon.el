@@ -295,7 +295,7 @@ Return the amount the indentation changed by."
     (setq beg (point))
     (cond ((eq indent nil)
 	   (setq indent (current-indentation)))
-	  ((looking-at "[ \t]*#")
+	  ((looking-at "^#")
 	   (setq indent 0))
 	  (t
 	   (skip-chars-forward " \t")
@@ -432,7 +432,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		(progn (forward-word -1) (point))
 		(progn (forward-word 1) (point)))
 	       icon-resword-alist)
-      (not (memq ch '(0 ?\; ?\} ?\{ ?\) ?\] ?\" ?\' ?\n))))))
+      (not (memq ch '(0 ?\; ?\} ?\{ ?\) ?\] ?\" ?\' ?\# ?\, ?\. ?\n))))))
 
 (defun icon-backward-to-noncomment (lim)
   (let (opoint stop)
