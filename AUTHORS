@@ -803,7 +803,7 @@ Jim Salem (wrote) completion.el
 Jim Thompson (wrote) ps-print.el
 Jim Wilson (changed) Makefile.in
 Jim Wilson (changed) alloca.c
-Joe Arceneax (wrote) xrdb.c
+Joe Arceneaux (wrote) xrdb.c
 Joe Buehler (changed) gnus-util.el
 Joe Ramey (changed) filelock.c
 Joe Ramey (changed) rmailsum.el
@@ -914,7 +914,7 @@ Josef Arceneaux (changed) xfns.c
 Josef Arceneaux (changed) xterm.c
 Josef Arceneaux (changed) ymakefile
 Joseph Arceneaux (changed) [more than 20 files]
-Joseph Arceoeaux (changed) lread.c
+Joseph Arceneaux (changed) lread.c
 Joseph M. Kelsey (changed) dir.h
 Joseph M. Kelsey (changed) fileio.c
 Joseph M. Kelsey (changed) uaf.h
