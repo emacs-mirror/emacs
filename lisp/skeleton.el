@@ -514,4 +514,6 @@ symmetrical ones, and the same character twice for the others."
 ;;;      (setq i (1+ i))))
 ;;;  (run-hooks 'mirror-mode-hook))
 
+(provide 'skeleton)
+
 ;; skeleton.el ends here
