@@ -1,5 +1,8 @@
 2004-01-29  Kenichi Handa  <handa@m17n.org>
 
+	* fns.c (string_char_to_byte): Optimize for ASCII only string.
+	(string_byte_to_char): Likewise.
+
 	* fileio.c (Finsert_file_contents): Avoid detecting a code twice.
 
 	* coding.c (detect_coding_iso_2022): Fix handling of SS2 and SS3.
