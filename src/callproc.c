@@ -251,7 +251,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_coding_system (nargs + 1, args2);
-	    val = CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil;
+	    if (CONSP (coding_systems))
+	      val = XCONS (coding_systems)->cdr;
+	    else if (CONSP (Vdefault_process_coding_system))
+	      val = XCONS (Vdefault_process_coding_system)->cdr;
 	  }
 	setup_coding_system (Fcheck_coding_system (val), &argument_coding);
       }
@@ -272,7 +275,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 		coding_systems = Ffind_coding_system (nargs + 1, args2);
 	      }
-	    val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
+	    if (CONSP (coding_systems))
+	      val = XCONS (coding_systems)->car;
+	    else if (CONSP (Vdefault_process_coding_system))
+	      val = XCONS (Vdefault_process_coding_system)->car;
 	  }
 	setup_coding_system (Fcheck_coding_system (val), &process_coding);
       }
@@ -775,10 +781,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	args2[0] = Qcall_process_region;
 	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	coding_systems = Ffind_coding_system (nargs + 1, args2);
-	val = CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil;
+	if (CONSP (coding_systems))
+	  val = XCONS (coding_systems)->cdr;
+	else if (CONSP (Vdefault_process_coding_system))
+	  val = XCONS (Vdefault_process_coding_system)->car;
       }
   specbind (intern ("coding-system-for-write"), val);
-  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
+  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil);
 
 #ifdef DOS_NT
   if (NILP (Vbinary_process_input))
