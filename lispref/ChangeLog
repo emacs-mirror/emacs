@@ -1,3 +1,10 @@
+2003-10-07  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Faces for Font Lock): Fix typo.
+	(Hooks): Explain how buffer-local hook variables can refer to
+	global hook variables.
+	Various minor clarifications.
+
 2003-10-06  Lute Kamstra  <lute@gnu.org>
 
 	* tips.texi (Coding Conventions): Mention naming conventions for
@@ -36,7 +43,7 @@
 2003-09-29  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Mode Line Data): Explain when symbols in mode-line
-	constructs should be marked as risky.  
+	constructs should be marked as risky.
 	Change cons cell into proper list.
 	(Mode Line Variables): Change cons cell into proper list.
 
@@ -44,7 +51,7 @@
 
 	* modes.texi (Mode Line Data): Document the :propertize construct.
 	(Mode Line Variables): Reorder the descriptions of the variables
-	to match their order in the default mode-line-format.  
+	to match their order in the default mode-line-format.
 	Describe the new variables mode-line-position and mode-line-modes.
 	Update the default values of mode-line-frame-identification,
 	minor-mode-alist, and default-mode-line-format.
@@ -52,7 +59,7 @@
 
 2003-09-26  Richard M. Stallman  <rms@gnu.org>
 
-	* buffers.texi, commands.texi, debugging.texi, eval.texi: 
+	* buffers.texi, commands.texi, debugging.texi, eval.texi:
 	* loading.texi, minibuf.texi, text.texi, variables.texi:
 	Avoid @strong{Note:}.
 
@@ -94,7 +101,7 @@
 
 	* abbrevs.texi (Defining Abbrevs): Index no-self-insert.
 
-	* variables.texi (Creating Buffer-Local): 
+	* variables.texi (Creating Buffer-Local):
 	Delete duplicate definition of buffer-local-value.
 	(File Local Variables): Explain about discarding text props.
 
