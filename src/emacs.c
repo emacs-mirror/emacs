@@ -843,10 +843,12 @@ decode_env_path (evarname, defalt)
 
 syms_of_emacs ()
 {
+#ifndef CANNOT_DUMP
 #ifdef HAVE_SHM
   defsubr (&Sdump_emacs_data);
 #else
   defsubr (&Sdump_emacs);
+#endif
 #endif
 
   defsubr (&Skill_emacs);
