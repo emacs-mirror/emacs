@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.235 1998/07/09 03:24:06 rms Exp spiegel $
+;; $Id: vc.el,v 1.236 1998/08/04 13:14:41 spiegel Exp fx $
 
 ;; This file is part of GNU Emacs.
 
@@ -1439,7 +1439,7 @@ If `F.~REV~' already exists, it is used instead of being re-created."
 ;;;###autoload
 (defun vc-insert-headers ()
   "Insert headers in a file for use with your version-control system.
-Headers desired are inserted at the start of the buffer, and are pulled from
+Headers desired are inserted at point, and are pulled from
 the variable `vc-header-alist'."
   (interactive)
   (vc-ensure-vc-buffer)
