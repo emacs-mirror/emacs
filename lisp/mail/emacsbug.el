@@ -50,8 +50,12 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (mail nil bug-gnu-emacs topic)
   (goto-char (point-min))
   (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
-  (insert "In " (emacs-version) "\nconfigured using "
-	  system-configuration-options "\n\n")
+  (insert "In " (emacs-version) "\n")
+  (if (and system-configuration-options
+	   (not (equal system-configuration-options "")))
+      (insert "configured using `configure "
+	      system-configuration-options "'\n"))
+  (insert "\n")
   ;; This is so the user has to type something
   ;; in order to send easily.
   (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
