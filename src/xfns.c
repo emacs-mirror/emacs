@@ -116,7 +116,7 @@ static char *x_visual_strings[] =
 Lisp_Object Vmouse_depressed;
 
 extern unsigned int x_mouse_x, x_mouse_y, x_mouse_grabbed;
-extern Lisp_Object unread_command_char;
+extern Lisp_Object unread_command_event;
 
 /* Atom for indicating window state to the window manager. */
 Atom Xatom_wm_change_state;
@@ -3568,7 +3568,7 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
        }
    }
 
- unread_command_char = obj;
+ unread_command_event = obj;
  if (mouse_below_point)
    {
      contour_begin_x = point_x;
@@ -3661,7 +3661,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	      XDrawLine (x_current_display, FRAME_X_WINDOW (f),
 			 erase_gc, left, line, right, line);
 	      UNBLOCK_INPUT;
-	      unread_command_char = obj;
+	      unread_command_event = obj;
 #if 0
 	      XFreeGC (x_current_display, line_gc);
 	      XFreeGC (x_current_display, erase_gc);
@@ -3876,7 +3876,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	 && EQ (Vmouse_window, selected_window)	   /* In this window */
 	 && x_mouse_frame);
 
-  unread_command_char = obj;
+  unread_command_event = obj;
 
   if (mouse_track_width)
     {
