@@ -170,6 +170,7 @@ or if the window is the only window of its frame."
       (if (and (< 1 (count-windows))
 	       (= (window-width) (frame-width))
 	       (pos-visible-in-window-p (point-min) window)
+	       (not (eq mini 'only))
 	       (or (not mini)
 		   (< (nth 3 edges)
 		      (nth 1 (window-edges mini)))
