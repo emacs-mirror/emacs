@@ -1141,6 +1141,7 @@ variables are tagged.
 *** .ss files are Scheme files, .pdb is Postscript with C syntax, .psw is
 for PSWrap.
 
++++
 ** Changes in etags.el
 
 *** The new user-option tags-case-fold-search can be used to make
