@@ -154,14 +154,15 @@ BUFFER should be the buffer that the output originally came from."
 	(with-current-buffer error-buff
 	  (widen)
 	  (erase-buffer))
-    	(if (and (zerop (shell-command-on-region from to method t t
-						 error-buff))
+    	(if (and (zerop (save-window-excursion
+			  (shell-command-on-region from to method t t
+						   error-buff)))
 		 ;; gzip gives zero exit status with bad args, for instance.
 		 (zerop (with-current-buffer error-buff
 			  (buffer-size))))
 	    (bury-buffer error-buff)
 	  (switch-to-buffer-other-window error-buff)
-	  (error "Format decoding failed")))
+	  (error "Format encoding failed")))
     (funcall method from to buffer)))
 
 (defun format-decode-run-method (method from to &optional buffer)
@@ -190,26 +191,32 @@ a Lisp function.  Decoding is done for the given BUFFER."
 	(point))
     (funcall method from to)))
 
-(defun format-annotate-function (format from to orig-buf)
+(defun format-annotate-function (format from to orig-buf format-count)
   "Return annotations for writing region as FORMAT.
 FORMAT is a symbol naming one of the formats defined in `format-alist',
 it must be a single symbol, not a list like `buffer-file-format'.
 FROM and TO delimit the region to be operated on in the current buffer.
 ORIG-BUF is the original buffer that the data came from.
+
+FORMAT-COUNT is an integer specifying how many times this function has
+been called in the process of decoding ORIG-BUF.
+
 This function works like a function on `write-region-annotate-functions':
 it either returns a list of annotations, or returns with a different buffer
-current, which contains the modified text to write.
+current, which contains the modified text to write.  In the latter case,
+this function's value is nil.
 
 For most purposes, consider using `format-encode-region' instead."
-  ;; This function is called by write-region (actually build-annotations)
-  ;; for each element of buffer-file-format.
+  ;; This function is called by write-region (actually
+  ;; build_annotations) for each element of buffer-file-format.
   (let* ((info (assq format format-alist))
 	 (to-fn  (nth 4 info))
 	 (modify (nth 5 info)))
     (if to-fn
 	(if modify
 	    ;; To-function wants to modify region.  Copy to safe place.
-	    (let ((copy-buf (get-buffer-create " *Format Temp*")))
+	    (let ((copy-buf (get-buffer-create (format " *Format Temp %d*"
+						       format-count))))
 	      (copy-to-buffer copy-buf from to)
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
@@ -236,45 +243,52 @@ Returns the new length of the decoded region.
 
 For most purposes, consider using `format-decode-region' instead."
   (let ((mod (buffer-modified-p))
-	 (begin (point))
+	(begin (point))
 	(end (+ (point) length)))
-    (if (null format)
-	;; Figure out which format it is in, remember list in `format'.
-	(let ((try format-alist))
-	  (while try
-	    (let* ((f (car try))
-		   (regexp (nth 2 f))
-		   (p (point)))
-	      (if (and regexp (looking-at regexp)
-		       (< (match-end 0) (+ begin length)))
-		  (progn
-		    (setq format (cons (car f) format))
-		    ;; Decode it
-		    (if (nth 3 f)
-			(setq end (format-decode-run-method (nth 3 f) begin end)))
-		    ;; Call visit function if required
-		    (if (and visit-flag (nth 6 f)) (funcall (nth 6 f) 1))
-		    ;; Safeguard against either of the functions changing pt.
-		    (goto-char p)
-		    ;; Rewind list to look for another format
-		    (setq try format-alist))
-		(setq try (cdr try))))))
-      ;; Deal with given format(s)
-      (or (listp format) (setq format (list format)))
-      (let ((do format) f)
-	(while do
-	  (or (setq f (assq (car do) format-alist))
-	      (error "Unknown format" (car do)))
-	  ;; Decode:
-	  (if (nth 3 f)
-	      (setq end (format-decode-run-method (nth 3 f) begin end)))
-	  ;; Call visit function if required
-	  (if (and visit-flag (nth 6 f)) (funcall (nth 6 f) 1))
-	  (setq do (cdr do)))))
-    (if visit-flag
-	(setq buffer-file-format format))
-    (set-buffer-modified-p mod)
-    ;; Return new length of region
+    (unwind-protect
+	(progn
+	  ;; Don't record undo information for the decoding.
+	  (setq buffer-undo-list t)
+	  
+	  (if (null format)
+	      ;; Figure out which format it is in, remember list in `format'.
+	      (let ((try format-alist))
+		(while try
+		  (let* ((f (car try))
+			 (regexp (nth 2 f))
+			 (p (point)))
+		    (if (and regexp (looking-at regexp)
+			     (< (match-end 0) (+ begin length)))
+			(progn
+			  (setq format (cons (car f) format))
+			  ;; Decode it
+			  (if (nth 3 f)
+			      (setq end (format-decode-run-method (nth 3 f) begin end)))
+			  ;; Call visit function if required
+			  (if (and visit-flag (nth 6 f)) (funcall (nth 6 f) 1))
+			  ;; Safeguard against either of the functions changing pt.
+			  (goto-char p)
+			  ;; Rewind list to look for another format
+			  (setq try format-alist))
+		      (setq try (cdr try))))))
+	    ;; Deal with given format(s)
+	    (or (listp format) (setq format (list format)))
+	    (let ((do format) f)
+	      (while do
+		(or (setq f (assq (car do) format-alist))
+		    (error "Unknown format" (car do)))
+		;; Decode:
+		(if (nth 3 f)
+		    (setq end (format-decode-run-method (nth 3 f) begin end)))
+		;; Call visit function if required
+		(if (and visit-flag (nth 6 f)) (funcall (nth 6 f) 1))
+		(setq do (cdr do)))))
+	  (if visit-flag
+	      (setq buffer-file-format format)))
+      
+      (set-buffer-modified-p mod)
+      (setq buffer-undo-list nil))
+      ;; Return new length of region
     (- end begin)))
 
 ;;;
