@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.49) $
+ * $HopeName: MMsrc!mps.h(trunk.50) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -426,9 +426,10 @@ extern void mps_definalize(mps_arena_t, mps_addr_t *);
 
 /* Telemetry */
 
-mps_word_t mps_telemetry_control(mps_word_t, mps_word_t);
-mps_word_t mps_telemetry_intern(const char *);
-void mps_telemetry_label(mps_addr_t, mps_word_t);
+extern mps_word_t mps_telemetry_control(mps_word_t, mps_word_t);
+extern mps_word_t mps_telemetry_intern(const char *);
+extern void mps_telemetry_label(mps_addr_t, mps_word_t);
+extern void mps_telemetry_flush(void);
 
 
 /* Heap Walking */
@@ -439,6 +440,8 @@ typedef void (*mps_formatted_objects_stepper_t)(mps_addr_t, mps_fmt_t,
 extern void mps_arena_formatted_objects_walk(mps_arena_t,
                                              mps_formatted_objects_stepper_t,
                                              void *, size_t);
+
+
 /* Root Walking */
 
 typedef void (*mps_roots_stepper_t)(mps_addr_t *, 
