@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985,86,87,88,93,94 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,93,94,95 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -121,7 +121,7 @@ disptab_matches_widthtab (disptab, widthtab)
       return 0;
 
   return 1;
-}  
+}
 
 /* Recompute BUF's width table, using the display table DISPTAB.  */
 void
@@ -161,7 +161,7 @@ width_run_cache_on_off ()
     {
       /* It should be on.  */
       if (current_buffer->width_run_cache == 0)
-        { 
+        {
           current_buffer->width_run_cache = new_region_cache ();
           recompute_width_table (current_buffer, buffer_display_table ());
         }
@@ -347,9 +347,9 @@ position_indentation (pos)
   register int tab_width = XINT (current_buffer->tab_width);
   register unsigned char *p;
   register unsigned char *stop;
-  
+
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-  
+
   stop = &FETCH_CHAR (BUFFER_CEILING_OF (pos)) + 1;
   p = &FETCH_CHAR (pos);
   while (1)
@@ -527,7 +527,7 @@ struct position val_compute_motion;
    and the window's upper-left coordinates as FROMVPOS and FROMHPOS.
    Pass the buffer's ZV as TO, to limit the scan to the end of the
    visible section of the buffer, and pass LINE and COL as TOVPOS and
-   TOHPOS.  
+   TOHPOS.
 
    When displaying in window w, a typical formula for WIDTH is:
 
@@ -581,7 +581,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 
   /* For computing runs of characters with similar widths.
      Invariant: width_run_width is zero, or all the characters
-     from width_run_start to width_run_end have a fixed width of 
+     from width_run_start to width_run_end have a fixed width of
      width_run_width.  */
   int width_run_start = from;
   int width_run_end   = from;
@@ -675,7 +675,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
                   run_end      = pos + (tohpos - hpos) / common_width;
                   run_end_hpos = hpos + (run_end - pos) * common_width;
                 }
-            
+
               /* Don't go past the margin.  */
               if (run_end_hpos >= width)
                 {
@@ -712,13 +712,13 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
               else
                 {
                   /* Have we accumulated a run to put in the cache?
-                     (Currently, we only cache runs of width == 1.  */
+                     (Currently, we only cache runs of width == 1).  */
                   if (width_run_start < width_run_end
                       && width_run_width == 1)
                     know_region_cache (current_buffer,
                                        current_buffer->width_run_cache,
                                        width_run_start, width_run_end);
-              
+
                   /* Start recording a new width run.  */
                   width_run_width = width_table[c];
                   width_run_start = pos - 1;
@@ -745,7 +745,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
                 {
                   /* Skip any number of invisible lines all at once */
                   do
-                    pos = find_before_next_newline (pos, to, 1);
+                    pos = find_before_next_newline (pos, to, 1) + 1;
                   while (pos < to
                          && indented_beyond_p (pos, selective));
                   /* Allow for the " ..." that is displayed for them. */
@@ -755,6 +755,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
                       if (hpos >= width)
                         hpos = width;
                     }
+		  --pos;
                   /* We have skipped the invis text, but not the
                      newline after.  */
                 }
@@ -990,7 +991,7 @@ vmotion (from, vtarget, width, hscroll, window)
  retry:
   if (vtarget > vpos)
     {
-      /* Moving downward is simple, but must calculate from beg of line 
+      /* Moving downward is simple, but must calculate from beg of line
 	 to determine hpos of starting point */
       if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
 	{
@@ -1070,7 +1071,7 @@ vmotion (from, vtarget, width, hscroll, window)
       val_vmotion.prevhpos = 0;
       return &val_vmotion;
     }
-  
+
   /* Otherwise find the correct spot by moving down */
   goto retry;
 }
