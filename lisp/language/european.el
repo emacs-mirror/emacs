@@ -34,14 +34,21 @@
   (setup-english-environment)
   (set-language-environment-coding-systems language)
 
-  (if charset
-      (let ((nonascii-offset (- (make-char charset) 128)))
-	;; Set up for insertion of characters in this character set
-	;; when codes 0200 - 0377 are typed in.
-	(setq nonascii-insert-offset nonascii-offset)))
+  (when default-enable-multibyte-characters
+    (or (member (downcase language)
+		'("latin-1" "latin-2" "latin-3" "latin-4" "latin-5"))
+	(error "Language environment `%s' not supported in unibyte mode"))
+    (standard-display-european 1 (downcase language)))
 
-  (if input-method
-      (setq default-input-method input-method))
+  (unless default-enable-multibyte-characters
+    (if charset
+	(let ((nonascii-offset (- (make-char charset) 128)))
+	  ;; Set up for insertion of characters in this character set
+	  ;; when codes 0200 - 0377 are typed in.
+	  (setq nonascii-insert-offset nonascii-offset)))
+
+    (if input-method
+	(setq default-input-method input-method)))
 
   ;; If this is a Latin-N character set, set up syntax for it in
   ;; single-byte mode.  We can't use require because the file
