@@ -174,41 +174,6 @@ Lisp_Object Vx_bitmap_file_path;
 
 Lisp_Object Vx_pixel_size_width_font_regexp;
 
-/* Evaluate this expression to rebuild the section of syms_of_xfns
-   that initializes and staticpros the symbols declared below.  Note
-   that Emacs 18 has a bug that keeps C-x C-e from being able to
-   evaluate this expression.
-
-(progn
-  ;; Accumulate a list of the symbols we want to initialize from the
-  ;; declarations at the top of the file.
-  (goto-char (point-min))
-  (search-forward "/\*&&& symbols declared here &&&*\/\n")
-  (let (symbol-list)
-    (while (looking-at "Lisp_Object \\(Q[a-z_]+\\)")
-      (setq symbol-list
-	    (cons (buffer-substring (match-beginning 1) (match-end 1))
-		  symbol-list))
-      (forward-line 1))
-    (setq symbol-list (nreverse symbol-list))
-    ;; Delete the section of syms_of_... where we initialize the symbols.
-    (search-forward "\n  /\*&&& init symbols here &&&*\/\n")
-    (let ((start (point)))
-      (while (looking-at "^  Q")
-	(forward-line 2))
-      (kill-region start (point)))
-    ;; Write a new symbol initialization section.
-    (while symbol-list
-      (insert (format "  %s = intern (\"" (car symbol-list)))
-      (let ((start (point)))
-	(insert (substring (car symbol-list) 1))
-	(subst-char-in-region start (point) ?_ ?-))
-      (insert (format "\");\n  staticpro (&%s);\n" (car symbol-list)))
-      (setq symbol-list (cdr symbol-list)))))
-
-  */        
-
-/*&&& symbols declared here &&&*/
 Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
 Lisp_Object Qbar;
@@ -243,7 +208,7 @@ Lisp_Object Quser_size;
 extern Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma, Qline_spacing, Qcenter;
-Lisp_Object Qcompound_text;
+Lisp_Object Qcompound_text, Qcancel_timer;
 
 /* The below are defined in frame.c.  */
 
@@ -10805,7 +10770,11 @@ DY added (default is -10).")
 	  
 	  /* Only DX and DY have changed.  */
 	  if (!NILP (tip_timer))
-	    call1 (intern ("cancel-timer"), tip_timer);
+	    {
+	      Lisp_Object timer = tip_timer;
+	      tip_timer = Qnil;
+	      call1 (Qcancel_timer, timer);
+	    }
 
 	  BLOCK_INPUT;
 	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
@@ -10948,7 +10917,7 @@ Value is t is tooltip was open, nil otherwise.")
   specbind (Qinhibit_quit, Qt);
   
   if (!NILP (timer))
-    call1 (intern ("cancel-timer"), timer);
+    call1 (Qcancel_timer, timer);
 
   if (FRAMEP (frame))
     {
@@ -11339,6 +11308,8 @@ syms_of_xfns ()
   staticpro (&Qcenter);
   Qcompound_text = intern ("compound-text");
   staticpro (&Qcompound_text);
+  Qcancel_timer = intern ("cancel-timer");
+  staticpro (&Qcancel_timer);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
