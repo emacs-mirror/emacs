@@ -98,7 +98,7 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
     (setq failures
 	  (dired-bunch-files 10000
 			     (function dired-check-process)
-			     (list operation program new-attribute)
+			     (list operation program new-attribute "--")
 			     files))
     (dired-do-redisplay arg);; moves point if ARG is an integer
     (if failures
