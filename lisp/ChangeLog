@@ -1,3 +1,9 @@
+2002-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (view-todo): New function.
+	(help-map): Bind C-h C-t to view-todo.
+	(help-for-help): Change the text.
+
 2002-05-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el: Yet more doc string, commment and whitespace
