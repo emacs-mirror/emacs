@@ -32,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "disptab.h"
 #include "dispextern.h"
 #include "syntax.h"
@@ -1553,7 +1553,7 @@ command_loop_1 ()
 		       : (lose >= 0x20 && lose < 0x7f))
 		      /* To extract the case of continuation on
                          wide-column characters.  */
-		      && (WIDTH_BY_CHAR_HEAD (FETCH_BYTE (PT_BYTE)) == 1)
+		      && ASCII_BYTE_P (lose)
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
@@ -2699,8 +2699,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	   && XSTRING (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
 	  || (VECTORP (Vkeyboard_translate_table)
 	      && XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
-	  || (CHAR_TABLE_P (Vkeyboard_translate_table)
-	      && CHAR_TABLE_ORDINARY_SLOTS > (unsigned) XFASTINT (c)))
+	  || CHAR_TABLE_P (Vkeyboard_translate_table))
 	{
 	  Lisp_Object d;
 	  d = Faref (Vkeyboard_translate_table, c);
