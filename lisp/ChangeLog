@@ -1,3 +1,7 @@
+2000-04-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/vietnamese.el (viet-vscii-decode-table): Fix a bug.
+
 2000-04-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* jit-lock.el (with-buffer-unmodified): Fix bug introduced by `)'
