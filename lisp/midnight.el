@@ -63,11 +63,6 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
 
 ;;; time conversion
 
-(defun midnight-float-time (&optional tm)
-  "Convert `current-time' to a float number of seconds."
-  (multiple-value-bind (s0 s1 s2) (or tm (current-time))
-    (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))
-
 (defun midnight-time-float (num)
   "Convert the float number of seconds since epoch to the list of 3 integers."
   (let* ((div (ash 1 16)) (1st (floor num div)))
@@ -77,7 +72,7 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
 (defun midnight-buffer-display-time (&optional buf)
   "Return the time-stamp of the given buffer, or current buffer, as float."
   (with-current-buffer (or buf (current-buffer))
-    (when buffer-display-time (midnight-float-time buffer-display-time))))
+    (when buffer-display-time (float-time buffer-display-time))))
 
 ;;; clean-buffer-list stuff
 
@@ -177,7 +172,7 @@ the current date/time, buffer name, how many seconds ago it was
 displayed (can be nil if the buffer was never displayed) and its
 lifetime, i.e., its \"age\" when it will be purged."
   (interactive)
-  (let ((tm (midnight-float-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
+  (let ((tm (float-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
         (bufs (buffer-list)) buf delay cbld bn)
     (while (setq buf (pop bufs))
       (setq bts (midnight-buffer-display-time buf) bn (buffer-name buf)

@@ -1,3 +1,13 @@
+2000-07-26  Sam Steingold  <sds@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-file-newer-than-file-p): New function.
+	(ange-ftp-real-file-newer-than-file-p): New function.
+	(ange-ftp-verify-visited-file-modtime): Use `float-time'.
+	(ange-ftp-dot-to-slash): Removed (use `subst-char-in-string').
+
+	* tooltip.el (tooltip-float-time): Removed (use `float-time').
+	* midnight.el (midnight-float-time): Ditto.
+
 2000-07-26  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (normal-backup-enable-predicate): Correct

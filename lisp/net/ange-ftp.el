@@ -3357,6 +3357,17 @@ system TYPE.")
 		      ))))
       (ange-ftp-real-file-attributes file))))
 
+(defun ange-ftp-file-newer-than-file-p (f1 f2)
+  (let ((f1-parsed (ange-ftp-ftp-name f1))
+        (f2-parsed (ange-ftp-ftp-name f2)))
+    (if (or f1-parsed f2-parsed)
+        (let ((f1-mt (nth 5 (file-attributes f1)))
+              (f2-mt (nth 5 (file-attributes f2))))
+          (cond ((null f1-mt) nil)
+                ((null f2-mt) t)
+                (t (> (float-time f1-mt) (float-time f2-mt)))))
+      (ange-ftp-real-file-newer-than-file-p f1 f2))))
+
 (defun ange-ftp-file-writable-p (file)
   (setq file (expand-file-name file))
   (if (ange-ftp-ftp-name file)
@@ -3417,9 +3428,7 @@ system TYPE.")
         (let ((file-mdtm (ange-ftp-file-modtime name))
               (buf-mdtm (with-current-buffer buf (visited-file-modtime))))
           (or (zerop (car file-mdtm))
-              (< (car file-mdtm) (car buf-mdtm))
-              (and (= (car file-mdtm) (car buf-mdtm))
-                   (< (cadr file-mdtm) (cdr buf-mdtm)))))
+              (< (float-time file-mdtm) (float-time buf-mdtm))))
       (ange-ftp-real-verify-visited-file-modtime buf))))
 
 ;;;; ------------------------------------------------------------
@@ -4164,6 +4173,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'copy-file 'ange-ftp 'ange-ftp-copy-file)
 (put 'rename-file 'ange-ftp 'ange-ftp-rename-file)
 (put 'file-attributes 'ange-ftp 'ange-ftp-file-attributes)
+(put 'file-newer-than-file-p 'ange-ftp 'ange-ftp-file-newer-than-file-p)
 (put 'file-name-all-completions 'ange-ftp 'ange-ftp-file-name-all-completions)
 (put 'file-name-completion 'ange-ftp 'ange-ftp-file-name-completion)
 (put 'insert-directory 'ange-ftp 'ange-ftp-insert-directory)
@@ -4245,6 +4255,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (ange-ftp-run-real-handler 'rename-file args))
 (defun ange-ftp-real-file-attributes (&rest args)
   (ange-ftp-run-real-handler 'file-attributes args))
+(defun ange-ftp-real-file-newer-than-file-p (&rest args)
+  (ange-ftp-run-real-handler 'file-newer-than-file-p args))
 (defun ange-ftp-real-file-name-all-completions (&rest args)
   (ange-ftp-run-real-handler 'file-name-all-completions args))
 (defun ange-ftp-real-file-name-completion (&rest args)
@@ -4727,13 +4739,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;;; VMS support.
 ;;;; ------------------------------------------------------------
 
-(defun ange-ftp-dot-to-slash (string)
-  (mapconcat (lambda (char)
-               (if (= char ?.)
-                   (vector ?/)
-                 (vector char)))
-             string ""))
-
 ;; Convert NAME from UNIX-ish to VMS.  If REVERSE given then convert from VMS
 ;; to UNIX-ish.
 (defun ange-ftp-fix-name-for-vms (name &optional reverse)
@@ -4752,7 +4757,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		  (setq file
 			(substring name (match-beginning 3) (match-end 3))))
 	      (and dir
-		   (setq dir (ange-ftp-dot-to-slash (substring dir 1 -1))))
+		   (setq dir (subst-char-in-string
+                              ?. ?/ (substring dir 1 -1) t)))
 	      (concat (and drive
 			   (concat "/" drive "/"))
 		      dir (and dir "/")
@@ -4765,7 +4771,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		  name (substring name (match-end 0))))
 	(setq tmp (file-name-directory name))
 	(if tmp
-	    (setq dir (ange-ftp-dot-to-slash (substring tmp 0 -1))))
+	    (setq dir (subst-char-in-string ?. ?/ (substring tmp 0 -1) t)))
 	(setq file (file-name-nondirectory name))
 	(concat drive
 		(and dir (concat "[" (if drive nil ".") dir "]"))

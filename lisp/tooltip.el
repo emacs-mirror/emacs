@@ -102,7 +102,7 @@ Do so after `tooltip-short-delay'."
   :tag "GUD modes"
   :group 'tooltip)
 
-  
+
 (defcustom tooltip-gud-display
   '((eq (tooltip-event-buffer tooltip-gud-event)
 	(marker-buffer overlay-arrow-position)))
@@ -195,18 +195,10 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
 
 ;;; Timeout for tooltip display
 
-(defun tooltip-float-time ()
-  "Return the values of `current-time' as a float."
-  (let ((now (current-time)))
-    (+ (* 65536.0 (nth 0 now))
-       (nth 1 now)
-       (/ (nth 2 now) 1000000.0))))
-
-
 (defun tooltip-delay ()
   "Return the delay in seconds for the next tooltip."
   (let ((delay tooltip-delay)
-	(now (tooltip-float-time)))
+	(now (float-time)))
     (when (and tooltip-hide-time
 	       (< (- now tooltip-hide-time) tooltip-recent-seconds))
       (setq delay tooltip-short-delay))
@@ -287,7 +279,7 @@ ACTIVATEP non-nil means activate mouse motion events."
 Value is non-nil if tooltip was open."
   (tooltip-disable-timeout)
   (when (x-hide-tip)
-    (setq tooltip-hide-time (tooltip-float-time))))
+    (setq tooltip-hide-time (float-time))))
 
 
 
@@ -397,7 +389,7 @@ If TOOLTIP-GUD-DEREFERENCE is t, also prepend a `*' to EXPR."
     (xdb (concat "p " expr))
     (sdb (concat expr "/"))
     (perldb expr)))
-    
+
 
 (defun tooltip-gud-tips (event)
   "Show tip for identifier or selection under the mouse.
