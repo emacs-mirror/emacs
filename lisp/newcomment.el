@@ -865,8 +865,8 @@ The strings used as comment starts are built from
 		    (>= (point) beg))
 	     (progn (goto-char end) (end-of-line) (skip-syntax-backward " ")
 		    (<= (point) end))
-	     (or (not (string= "" comment-end)) block)
-	     (progn (goto-char beg) (search-forward "\n" end t)))))
+	     (or block (not (string= "" comment-end)))
+	     (or block (progn (goto-char beg) (search-forward "\n" end t))))))
 
     ;; don't add end-markers just because the user asked for `block'
     (unless (or lines (string= "" comment-end)) (setq block nil))
