@@ -294,6 +294,10 @@ the file is copied to that directory instead of signaling an error.
 ** The variables most-positive-fixnum and most-negative-fixnum
 have been moved from the CL package to the core.
 
+** On MS Windows, locale-coding-system is used to interact with the OS.
+The Windows specific variable w32-system-coding-system, which was
+formerly used for that purpose is now an alias for locale-coding-system.
+
 ** New packages:
 
 *** The new package syntax.el provides an efficient way to find the
