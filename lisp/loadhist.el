@@ -71,7 +71,8 @@ a buffer with no associated file, or an eval-region, return nil."
     ))
 
 (defun file-dependents (file)
-  ;; Return the list of loaded libraries that depend on FILE.
+  "Return the list of loaded libraries that depend on FILE.
+This can include FILE itself."
   (let ((provides (file-provides file)) (dependents nil))
     (mapcar
      (function (lambda (x) 
@@ -90,7 +91,8 @@ is nil, raise an error."
   (if (not (featurep feature))
       (error "%s is not a currently loaded feature." (symbol-name feature)))
   (if (not force)
-      (let* ((file (feature-file feature)) (dependents (file-dependents file)))
+      (let* ((file (feature-file feature))
+	     (dependents (delete file (copy-sequence (file-dependents file)))))
 	(if dependents
 	    (error "Loaded libraries %s depend on %s."
 		   (prin1-to-string dependents) file)
