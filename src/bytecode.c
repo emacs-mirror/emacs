@@ -39,6 +39,11 @@ by Hallvard:
 #include "charset.h"
 #include "syntax.h"
 
+#ifdef CHECK_FRAME_FONT
+#include "frame.h"
+#include "xterm.h"
+#endif
+
 /*
  * define BYTE_CODE_SAFE to enable some minor sanity checking (useful for 
  * debugging the byte compiler...)
@@ -417,6 +422,16 @@ If the third argument is incorrect, Emacs may crash.")
   struct byte_stack stack;
   Lisp_Object *top;
   Lisp_Object result;
+
+#ifdef CHECK_FRAME_FONT
+ {
+   struct frame *f = SELECTED_FRAME ();
+   if (FRAME_X_P (f)
+       && FRAME_FONT (f)->direction != 0
+       && FRAME_FONT (f)->direction != 1)
+     abort ();
+ }
+#endif
 
   CHECK_STRING (bytestr, 0);
   if (!VECTORP (vector))
