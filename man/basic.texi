@@ -686,7 +686,8 @@ displays the character as @samp{@`A}), and which has font-lock-mode
 terminal code: C0
 
 Text properties
-  face: font-lock-variable-name-face  fontified: t
+  face: font-lock-variable-name-face
+  fontified: t
 @end smallexample
 
 @node Arguments
