@@ -1,3 +1,14 @@
+2002-11-11   Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-dep.el: Don't require 'autoload.
+	(custom-make-dependencies):  Handle :version also for autoloaded
+	options.
+
+	* winner.el (defgroup winner): Handle Emacs 19 compatibility so
+	that definition starts at beginning of line.
+
+	* emulation/edt.el: Simplify Emacs 19 compatibility.
+
 2002-11-11  Fabrice Bauzac  <fabrice.bauzac@wanadoo.fr>  (tiny change)
 
 	* dired-aux.el (dired-show-file-type): Format filename with "%s" to
@@ -13,7 +24,8 @@
 
 2002-11-09  Dave Love  <fx@gnu.org>
 
-	* international/mule-cmds.el (current-language-environment): Fix :type.
+	* international/mule-cmds.el (current-language-environment): Fix
+	:type.
 
 	* international/ucs-tables.el: Revert to using
 	translation-table-for-input instead of keyboard-translate-table.
