@@ -406,7 +406,7 @@ redefine parameters used in `./lib-src/movemail.c'.
 
 3) Create src/Makefile and lib-src/Makefile from the corresponding
 `Makefile.in' files.  First copy `Makefile.in' to `Makefile.c',
-then edit in appropriate substituions for the @...@ constructs,
+then edit in appropriate substitutions for the @...@ constructs,
 and then copy the shell commands near the end of `configure'
 that run cpp to construct `Makefile'.
 

@@ -168,7 +168,7 @@ face, which is the same as the `italic' face by default.
 
 </indent></bold></x-color></x-bg-color><indent>
 
-Enriched-mode docuemnts are saved in an extended version of a
+Enriched-mode documents are saved in an extended version of a
 format called <italic>text/enriched</italic>, which is defined as part of the MIME
 standard.  This means that your documents are transportable (even
 through email) to many</indent> <indent>other systems.  In the future other file
