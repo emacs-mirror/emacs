@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons
 
-;; Copyright (C) 1993, 1994, 1995 by Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996 by Free Software Foundation, Inc.
 
 ;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
 ;; Maintainer: FSF
@@ -49,6 +49,16 @@ Typical examples might be `upcase' or `capitalize'.")
      "aTransformation function: ")
 
 
+(defvar skeleton-autowrap t
+  "Controls wrapping behaviour of functions created with `define-skeleton'.
+When the region is visible (due to `transient-mark-mode' or marking a region
+with the mouse) and this is non-`nil' and the function was called without an
+explicit ARG, then the ARG defaults to -1, i.e. wrapping around the visible
+region.
+
+We will probably delete this variable in a future Emacs version
+unless we get a substantial number of complaints about the auto-wrap
+feature.")
 
 (defvar skeleton-end-hook
   (lambda ()
@@ -60,7 +70,7 @@ The variables `v1' and `v2' are still set when calling this.")
 
 ;;;###autoload
 (defvar skeleton-filter 'identity
-  "Function for transforming a skeleton-proxy's aliases' variable value.")
+  "Function for transforming a skeleton proxy's aliases' variable value.")
 
 (defvar skeleton-untabify t
   "When non-`nil' untabifies when deleting backwards with element -ARG.")
@@ -83,7 +93,8 @@ skeleton elements.")
   "*Replacement for %s in prompts of recursive subskeletons.")
 
 
-(defvar skeleton-abbrev-cleanup nil)
+(defvar skeleton-abbrev-cleanup nil
+  "Variable used to delete the character that led to abbrev expansion.")
 
 
 (defvar skeleton-debug nil
@@ -115,6 +126,8 @@ INTERACTOR and ELEMENT ... are as defined under `skeleton-insert'."
 (defun skeleton-proxy (&optional str arg)
   "Insert skeleton defined by variable of same name (see `skeleton-insert').
 Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
+If no ARG was given, and the region is visible, it defaults to -1 depending
+on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
 This command can also be an abbrev expansion (3rd and 4th columns in
 \\[edit-abbrevs]  buffer: \"\"  command-name).
 
@@ -123,7 +136,7 @@ which will be the value of `str' whereas the skeleton's interactor is then
 ignored."
   (interactive "*P\nP")
   (let ((function (nth 1 (backtrace-frame 1))))
-    (if (eq function 'nth)		; uncompiled lisp function
+    (if (eq function 'nth)		; uncompiled Lisp function
 	(setq function (nth 1 (backtrace-frame 5)))
       (if (eq function 'byte-code)	; tracing byte-compiled function
 	  (setq function (nth 1 (backtrace-frame 2)))))
@@ -141,13 +154,16 @@ ignored."
 			 ;; Pretend  C-x a e  passed its prefix arg to us
 			 (if (or arg current-prefix-arg)
 			     (prefix-numeric-value (or arg
-						       current-prefix-arg))))
+						       current-prefix-arg))
+			   (and skeleton-autowrap
+				(or (eq last-command 'mouse-drag-region)
+				    (and transient-mark-mode mark-active))
+			       -1)))
 		       (if (stringp str)
 			   str))
-      (if skeleton-abbrev-cleanup
-	  (setq deferred-action-list t
-		deferred-action-function 'skeleton-abbrev-cleanup
-		skeleton-abbrev-cleanup (point))))))
+      (and skeleton-abbrev-cleanup
+	   (setq skeleton-abbrev-cleanup (point))
+	   (add-hook 'post-command-hook 'skeleton-abbrev-cleanup nil t)))))
 
 
 (defun skeleton-abbrev-cleanup (&rest list)
@@ -155,9 +171,8 @@ ignored."
   (if (integerp skeleton-abbrev-cleanup)
       (progn
 	(delete-region skeleton-abbrev-cleanup (point))
-	(setq deferred-action-list ()
-	      deferred-action-function nil
-	      skeleton-abbrev-cleanup nil))))
+	(setq skeleton-abbrev-cleanup)
+	(remove-hook 'post-command-hook 'skeleton-abbrev-cleanup t))))
 
 
 ;;;###autoload
@@ -200,8 +215,8 @@ a subskeleton is a prompt-string which contains a \".. %s ..\" it is
 formatted with `skeleton-subprompt'.  Such an INTERACTOR may also a list of
 strings with the subskeleton being repeated once for each string.
 
-Quoted lisp-expressions are evaluated evaluated for their side-effect.
-Other lisp-expressions are evaluated and the value treated as above.
+Quoted Lisp expressions are evaluated evaluated for their side-effect.
+Other Lisp expressions are evaluated and the value treated as above.
 Note that expressions may not return `t' since this implies an
 endless loop.  Modes can define other symbols by locally setting them
 to any valid skeleton element.  The following local variables are
@@ -211,7 +226,7 @@ available:
 		then: insert previously read string once more
 	help	help-form during interaction with the user or `nil'
 	input	initial input (string or cons with index) while reading str
-	v1, v2	local variables for memorising anything you want
+	v1, v2	local variables for memorizing anything you want
 
 When done with skeleton, but before going back to `_'-point call
 `skeleton-end-hook' if that is non-`nil'."
@@ -384,17 +399,16 @@ automatically, and you are prompted to fill in the variable parts.")))
 
 ;;;(define-skeleton local-variables-section
 ;;;  "Insert a local variables section.  Use current comment syntax if any."
-;;;  ()
-;;;  '(save-excursion
-;;;     (if (re-search-forward page-delimiter nil t)
-;;;	 (error "Not on last page.")))
-;;;  comment-start "Local Variables:" comment-end \n
-;;;  comment-start "mode: "
 ;;;  (completing-read "Mode: " obarray
 ;;;		   (lambda (symbol)
 ;;;		     (if (commandp symbol)
 ;;;			 (string-match "-mode$" (symbol-name symbol))))
 ;;;		   t)
+;;;  '(save-excursion
+;;;     (if (re-search-forward page-delimiter nil t)
+;;;	 (error "Not on last page.")))
+;;;  comment-start "Local Variables:" comment-end \n
+;;;  comment-start "mode: " str
 ;;;  & -5 | '(kill-line 0) & -1 | comment-end \n
 ;;;  ( (completing-read (format "Variable, %s: " skeleton-subprompt)
 ;;;		     obarray
@@ -470,49 +484,48 @@ symmetrical ones, and the same character twice for the others."
 		      last-command-char)))))))
 
 
-;;; ;; A more serious example can be found in sh-script.el
-;;; ;; The quote before (defun prevents this from being byte-compiled.
+;;; A more serious example can be found in sh-script.el
 ;;;(defun mirror-mode ()
-;;;  "This major mode is an amusing little example of paired insertion.
-;;;All printable characters do a paired self insert, while the other commands
-;;;work normally."
-;;;  (interactive)
-;;;  (kill-all-local-variables)
-;;;  (make-local-variable 'pair)
-;;;  (make-local-variable 'pair-on-word)
-;;;  (make-local-variable 'pair-filter)
-;;;  (make-local-variable 'pair-alist)
-;;;  (setq major-mode 'mirror-mode
-;;;	mode-name "Mirror"
-;;;	pair-on-word t
-;;;	;; in the middle column insert one or none if odd window-width
-;;;	pair-filter (lambda ()
-;;;		      (if (>= (current-column)
-;;;			      (/ (window-width) 2))
-;;;			  ;; insert both on next line
-;;;			  (next-line 1)
-;;;			;; insert one or both?
-;;;			(= (* 2 (1+ (current-column)))
-;;;			   (window-width))))
-;;;	;; mirror these the other way round as well
-;;;	pair-alist '((?) _ ?()
-;;;		     (?] _ ?[)
-;;;		     (?} _ ?{)
-;;;		     (?> _ ?<)
-;;;		     (?/ _ ?\\)
-;;;		     (?\\ _ ?/)
-;;;		     (?` ?` _ "''")
-;;;		     (?' ?' _ "``"))
-;;;	;; in this mode we exceptionally ignore the user, else it's no fun
-;;;	pair t)
-;;;  (let ((map (make-keymap))
-;;;	(i ? ))
-;;;    (use-local-map map)
-;;;    (setq map (car (cdr map)))
-;;;    (while (< i ?\^?)
-;;;      (aset map i 'skeleton-pair-insert-maybe)
-;;;      (setq i (1+ i))))
-;;;  (run-hooks 'mirror-mode-hook))
+;;  "This major mode is an amusing little example of paired insertion.
+;;All printable characters do a paired self insert, while the other commands
+;;work normally."
+;;  (interactive)
+;;  (kill-all-local-variables)
+;;  (make-local-variable 'pair)
+;;  (make-local-variable 'pair-on-word)
+;;  (make-local-variable 'pair-filter)
+;;  (make-local-variable 'pair-alist)
+;;  (setq major-mode 'mirror-mode
+;;	mode-name "Mirror"
+;;	pair-on-word t
+;;	;; in the middle column insert one or none if odd window-width
+;;	pair-filter (lambda ()
+;;		      (if (>= (current-column)
+;;			      (/ (window-width) 2))
+;;			  ;; insert both on next line
+;;			  (next-line 1)
+;;			;; insert one or both?
+;;			(= (* 2 (1+ (current-column)))
+;;			   (window-width))))
+;;	;; mirror these the other way round as well
+;;	pair-alist '((?) _ ?()
+;;		     (?] _ ?[)
+;;		     (?} _ ?{)
+;;		     (?> _ ?<)
+;;		     (?/ _ ?\\)
+;;		     (?\\ _ ?/)
+;;		     (?` ?` _ "''")
+;;		     (?' ?' _ "``"))
+;;	;; in this mode we exceptionally ignore the user, else it's no fun
+;;	pair t)
+;;  (let ((map (make-keymap))
+;;	(i ? ))
+;;    (use-local-map map)
+;;    (setq map (car (cdr map)))
+;;    (while (< i ?\^?)
+;;      (aset map i 'skeleton-pair-insert-maybe)
+;;      (setq i (1+ i))))
+;;  (run-hooks 'mirror-mode-hook))
 
 (provide 'skeleton)
 
