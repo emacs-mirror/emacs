@@ -86,19 +86,25 @@ extern SIGMASKTYPE sigprocmask_set;
       sigprocmask (SIG_BLOCK, &sigprocmask_set, NULL))
 #endif
 
+#ifndef sigunblock
 #define sigunblock(sig)						\
      (sigprocmask_set = SIGFULLMASK & ~(sig),			\
       sigprocmask (SIG_SETMASK, &sigprocmask_set, NULL))
+#endif
 
 #else
 #ifdef USG
 
+#ifndef sigunblock
 #define sigunblock(sig) 
+#endif
 
 #else
 
+#ifndef sigunblock
 #define sigunblock(SIG) \
 { SIGMASKTYPE omask = sigblock (SIGEMPTYMASK); sigsetmask (omask & ~SIG); }
+#endif
 
 #endif /* ! defined (USG) */
 #endif /* ! defined (USG5_4) */
