@@ -1,3 +1,8 @@
+2004-02-24  Michael Mauger <mmaug@yahoo.com>
+
+	* w32fns.c (slurp_file, xbm_scan, xbm_load_image)
+	(xbm_read_bitmap_data): Use unsigned char for image data.
+
 2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* abbrev.c (Finsert_abbrev_table_description): Doc fix.
