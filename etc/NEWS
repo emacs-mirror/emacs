@@ -1511,6 +1511,11 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+*** The special form `save-restriction' now works correctly even if the
+buffer is widened inside the save-restriction and changes made outside
+the original restriction.  Previously, doing this would cause the saved
+restriction to be restored incorrectly.
+
 *** The functions `find-charset-region' and `find-charset-string' include
 `eight-bit-control' and/or `eight-bit-graphic' in the returned list
 when it finds 8-bit characters.  Previously, it included `ascii' in a
