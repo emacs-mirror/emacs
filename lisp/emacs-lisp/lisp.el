@@ -218,6 +218,7 @@ before and after, depending on the surrounding characters."
     (setq arg 0))
   (or (eq arg 0) (skip-chars-forward " \t"))
   (and parens-require-spaces
+       (not (bobp))
        (memq (char-syntax (preceding-char)) '(?w ?_ ?\) ))
        (insert " "))
   (insert ?\()
@@ -225,6 +226,7 @@ before and after, depending on the surrounding characters."
     (or (eq arg 0) (forward-sexp arg))
     (insert ?\))
     (and parens-require-spaces
+	 (not (eobp))
 	 (memq (char-syntax (following-char)) '(?w ?_ ?\( ))
 	 (insert " "))))
 
