@@ -1,3 +1,9 @@
+2000-12-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ffap.el (ffap-bindings): Make interactive and add an autoload
+	cookie.
+	(ffap-bindings): Doc fix, to reflect the above change.
+
 2000-12-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* term.el (term-char-mode): Define all non-ascii self-inserting
