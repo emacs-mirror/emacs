@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.68) $
+ * $HopeName: MMsrc!poolawl.c(trunk.69) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
@@ -44,7 +44,7 @@
 #include "chain.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.68) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.69) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -854,9 +854,9 @@ static Res awlScanObject(Arena arena, ScanState ss,
               && SegOfAddr(&dependentSeg, arena, dependentObject);
 
   if (dependent) {
-    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.expose */
+    /* design.mps.poolawl.fun.scan.pass.object.dependent.expose */
     ShieldExpose(arena, dependentSeg);
-    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.summary */
+    /* design.mps.poolawl.fun.scan.pass.object.dependent.summary */
     SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
@@ -877,11 +877,12 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
                              ScanState ss, Pool pool,
                              Seg seg, Bool scanAllObjects)
 {
-  Addr base, limit;
+  Addr base, limit, bufferScanLimit;
   Addr p;
   Arena arena;
   AWL awl;
   AWLSeg awlseg;
+  Buffer buffer;
 
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
@@ -899,28 +900,29 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   base = SegBase(seg);
   limit = SegLimit(seg);
   p = base;
+  buffer = SegBuffer(seg);
+  if (buffer != NULL && BufferScanLimit(buffer) != BufferLimit(buffer))
+    bufferScanLimit = BufferScanLimit(buffer);
+  else
+    bufferScanLimit = limit;
+
   while(p < limit) {
     Index i;        /* the index into the bit tables corresponding to p */
     Addr objectLimit;
-    /* design.mps.poolawl.fun.scan.buffer */
-    if (SegBuffer(seg)) {
-      Buffer buffer = SegBuffer(seg);
 
-      if (p == BufferScanLimit(buffer)
-          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
-        p = BufferLimit(buffer);
-        continue;
-      }
+    /* design.mps.poolawl.fun.scan.pass.buffer */
+    if (p == bufferScanLimit) {
+      p = BufferLimit(buffer);
+      continue;
     }
+
     i = awlIndexOfAddr(base, awl, p);
-    /* design.mps.poolawl.fun.scan.free */
     if (!BTGet(awlseg->alloc, i)) {
       p = AddrAdd(p, pool->alignment);
       continue;
     }
-    /* design.mps.poolawl.fun.scan.object-end */
     objectLimit = (*pool->format->skip)(p);
-    /* design.mps.poolawl.fun.scan.scan */
+    /* design.mps.poolawl.fun.scan.pass.object */
     if (scanAllObjects
         || (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
       Res res = awlScanObject(arena, ss, pool->format->scan,
