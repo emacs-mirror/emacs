@@ -45,29 +45,13 @@
   (with-output-to-temp-buffer "*Help*"
     (describe-vector vector)))
 
-(defun invert-case (count)
-  "Change the case of the character just after point and move over it.
-With prefix arg, applies to that many chars.
-Negative arg inverts characters before point but does not move."
-  (interactive "p")
-  (if (< count 0)
-      (progn (setq count (min (1- (point)) (- count)))
-	     (forward-char (- count))))
-  (while (> count 0)
-    (let ((oc (following-char)))		; Old character.
-      (cond ((/= (upcase ch) ch)
-	     (replace-char (upcase ch)))
-	    ((/= (downcase ch) ch)
-	     (replace-char (downcase ch)))))
-    (forward-char 1)
-    (setq count (1- count))))
-
-(defun set-case-syntax-delims (l r table)
+(defun set-case-syntax-delims (l r string)
   "Make characters L and R a matching pair of non-case-converting delimiters.
-Sets the entries for L and R in `standard-case-table', `standard-syntax-table',
-and `text-mode-syntax-table' to indicate left and right delimiters."
-  (aset (car table) l l)
-  (aset (car table) r r)
+Sets the entries for L and R in STRING, which is a downcasing table.
+Also modifies `standard-syntax-table', and `text-mode-syntax-table' to
+indicate left and right delimiters."
+  (aset string l l)
+  (aset string r r)
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
 		       (standard-syntax-table))
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
@@ -77,24 +61,24 @@ and `text-mode-syntax-table' to indicate left and right delimiters."
   (modify-syntax-entry r (concat ")" (char-to-string l) "  ")
 		       text-mode-syntax-table))
 
-(defun set-case-syntax-pair (uc lc table)
+(defun set-case-syntax-pair (uc lc string)
   "Make characters UC and LC a pair of inter-case-converting letters.
-Sets the entries for characters UC and LC in `standard-case-table',
-`standard-syntax-table' and `text-mode-syntax-table' to indicate an
+Sets the entries for characters UC and LC in STRING, which is a downcasing table.
+Also modify `standard-syntax-table' and `text-mode-syntax-table' to indicate an
 (uppercase, lowercase) pair of letters."
-
-  (aset (car table) uc lc)
+  (aset string uc lc)
+  (aset (car (cdr (standard-case-table))) lc uc)
   (modify-syntax-entry lc "w   " (standard-syntax-table))
   (modify-syntax-entry lc "w   " text-mode-syntax-table)
   (modify-syntax-entry uc "w   " (standard-syntax-table))
   (modify-syntax-entry uc "w   " text-mode-syntax-table))
 
-(defun set-case-syntax (c syntax table)
+(defun set-case-syntax (c syntax string)
   "Make characters C case-invariant with syntax SYNTAX.
-Sets the entries for character C in `standard-case-table',
-`standard-syntax-table' and `text-mode-syntax-table' to indicate this.
+Sets the entries for character C in STRING, which is the downcasing table.
+Also modify `standard-syntax-table' and `text-mode-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
-  (aset (car table) c c)
+  (aset string c c)
   (modify-syntax-entry c syntax (standard-syntax-table))
   (modify-syntax-entry c syntax text-mode-syntax-table))
 

@@ -19,9 +19,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;; Written by Howard Gayle.  See case-table.el for details.
-
-(require 'case-table)
+;; Written by Howard Gayle.
 
 (defun rope-to-vector (rope)
   (let* ((len (/ (length rope) 2))
@@ -34,13 +32,13 @@
 (defun describe-display-table (DT)
   "Describe the display table DT in a help buffer."
   (with-output-to-temp-buffer "*Help*"
-    (princ "\nTruncation glyf: ")
+    (princ "\nTruncation glyph: ")
     (prin1 (aref dt 256))
-    (princ "\nWrap glyf: ")
+    (princ "\nWrap glyph: ")
     (prin1 (aref dt 257))
-    (princ "\nEscape glyf: ")
+    (princ "\nEscape glyph: ")
     (prin1 (aref dt 258))
-    (princ "\nCtrl glyf: ")
+    (princ "\nCtrl glyph: ")
     (prin1 (aref dt 259))
     (princ "\nSelective display rope: ")
     (prin1 (rope-to-vector (aref dt 260)))
@@ -88,30 +86,28 @@
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
-	(make-rope (create-glyf (concat "\016" (char-to-string sc) "\017")))))
+	(make-rope (create-glyph (concat "\016" (char-to-string sc) "\017")))))
 
 (defun standard-display-graphic (c gc)
   "Display character C as character GC in graphics character set."
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
-	(make-rope (create-glyf (concat "\e(0" (char-to-string gc) "\e(B")))))
+	(make-rope (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
 
 (defun standard-display-underline (c uc)
   "Display character C as character UC plus underlining."
   (or standard-display-table
       (setq standard-display-table (make-vector 261 nil)))
   (aset standard-display-table c
-	(make-rope (create-glyf (concat "\e[4m" (char-to-string uc) "\e[m")))))
+	(make-rope (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m")))))
 
-(defun create-glyf (string)
-  (let ((i 256))
-    (while (and (< i 65536) (aref glyf-table i)
-		(not (string= (aref glyf-table i) string)))
-      (setq i (1+ i)))
-    (if (= i 65536)
-	(error "No free glyf codes remain"))
-    (aset glyf-table i string)))
+;; Allocate a glyph code to display by sending STRING to the terminal.
+(defun create-glyph (string)
+  (if (= (length glyph-table) 65536)
+      (error "No free glyph codes remain"))
+  (setq glyph-table (vconcat glyph-table (list string)))
+  (1- (length glyph-table)))
 
 (provide 'disp-table)
 
