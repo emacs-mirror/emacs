@@ -108,6 +108,9 @@ int next_screen_context_lines;
 /* Incremented for each window created.  */
 static int sequence_number;
 
+/* Nonzero after init_window_once has finished.  */
+static int window_initialized;
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
@@ -1825,6 +1828,14 @@ set_window_width (window, width, nodelete)
 
 int window_select_count;
 
+Lisp_Object
+Fset_window_buffer_unwind (obuf)
+     Lisp_Object obuf;
+{
+  Fset_buffer (obuf);
+  return Qnil;
+}
+
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 2, 0,
   "Make WINDOW display BUFFER as its contents.\n\
 BUFFER can be a buffer or buffer name.")
@@ -1833,6 +1844,7 @@ BUFFER can be a buffer or buffer name.")
 {
   register Lisp_Object tem;
   register struct window *w = decode_window (window);
+  int count = specpdl_ptr - specpdl;
 
   buffer = Fget_buffer (buffer);
   CHECK_BUFFER (buffer, 1);
@@ -1867,11 +1879,25 @@ BUFFER can be a buffer or buffer name.")
   w->force_start = Qnil;
   XSETFASTINT (w->last_modified, 0);
   windows_or_buffers_changed++;
+
+  /* We must select BUFFER for running the window-scroll-functions.
+     If WINDOW is selected, switch permanently.
+     Otherwise, switch but go back to the ambient buffer afterward.  */
   if (EQ (window, selected_window))
     Fset_buffer (buffer);
+  /* We can't check ! NILP (Vwindow_scroll_functions) here
+     because that might itself be a local variable.  */
+  else if (window_initialized)
+    {
+      record_unwind_protect (Fset_window_buffer_unwind, Fcurrent_buffer ());
+      Fset_buffer (buffer);
+    }
+
   if (! NILP (Vwindow_scroll_functions))
     run_hook_with_args_2 (Qwindow_scroll_functions, window,
 			  Fmarker_position (w->start));
+
+  unbind_to (count, Qnil);
 
   return Qnil;
 }
@@ -3464,6 +3490,8 @@ init_window_once ()
      something newer than this.  */
   XSETFASTINT (XWINDOW (selected_window)->use_time, ++window_select_count);
 #endif /* not MULTI_FRAME */
+
+  window_initialized = 1;
 }
 
 syms_of_window ()
