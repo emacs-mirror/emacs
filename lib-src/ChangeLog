@@ -1,3 +1,7 @@
+1999-10-15  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (pop.o): Depend on config.h.
+
 1999-10-11  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
 	* pop.c: Use "pop3" as the POP service name on all platforms,
