@@ -213,7 +213,7 @@ break or step (if we're in the GUD buffer)."
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "sgdb ")
+  (interactive "sRun gdb (like this): gdb ")
   (gud-overload-functions '((gud-debugger-startup . gud-gdb-debugger-startup)
 			    (gud-marker-filter    . gud-gdb-marker-filter)
 			    (gud-find-file        . gud-gdb-find-file)
@@ -284,7 +284,9 @@ and source-file directory for your debugger."
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "ssdb ")
+
+  (interactive "sRun sdb (like this): sdb ")
+
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work."))
@@ -332,7 +334,7 @@ and source-file directory for your debugger."
   "Run dbx on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "sdbx")
+  (interactive "sRun dbx (like this): dbx")
   (gud-overload-functions '((gud-debugger-startup . gud-dbx-debugger-startup)
 			    (gud-marker-filter    . gud-dbx-marker-filter)
 			    (gud-find-file        . gud-dbx-find-file)
