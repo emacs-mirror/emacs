@@ -267,7 +267,8 @@ If FRAME is omitted or nil, use the selected frame."
      (".attributeBackgroundPixmap" . "Face.AttributeBackgroundPixmap"))
     (:bold (".attributeBold" . "Face.AttributeBold"))
     (:italic (".attributeItalic" . "Face.AttributeItalic"))
-    (:font (".attributeFont" . "Face.AttributeFont")))
+    (:font (".attributeFont" . "Face.AttributeFont"))
+    (:inherit (".attributeInherit" . "Face.AttributeInherit")))
   "*List of X resources and classes for face attributes.
 Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
