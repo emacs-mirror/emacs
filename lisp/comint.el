@@ -2756,8 +2756,10 @@ removed, and the filename is made absolute instead of relative.  For expansion
 see `expand-file-name' and `substitute-in-file-name'.  For completion see
 `comint-dynamic-complete-filename'."
   (interactive)
-  (replace-match (expand-file-name (comint-match-partial-filename)) t t)
-  (comint-dynamic-complete-filename))
+  (let ((filename (comint-match-partial-filename)))
+    (when filename
+      (replace-match (expand-file-name filename) t t)
+      (comint-dynamic-complete-filename))))
 
 
 (defun comint-dynamic-simple-complete (stub candidates)
