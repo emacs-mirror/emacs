@@ -9201,7 +9201,20 @@ redisplay_window (window, just_this_one_p)
        && (WINDOW_WANTS_MODELINE_P (w)
 	   || WINDOW_WANTS_HEADER_LINE_P (w)))
     {
+      Lisp_Object old_selected_frame;
+      
+      old_selected_frame = selected_frame;
+      
+      if (!really_switched_buffer)
+	{
+	  set_buffer_temp (old);
+	  set_buffer_internal_1 (XBUFFER (w->buffer));
+	  really_switched_buffer = 1;
+	}
+      
+      XSETFRAME (selected_frame, f);
       display_mode_lines (w);
+      selected_frame = old_selected_frame;
 
       /* If mode line height has changed, arrange for a thorough
 	 immediate redisplay using the correct mode line height.  */
