@@ -3328,7 +3328,10 @@ x_display_bar_cursor (f, on)
 {
   struct frame_glyphs *current_glyphs = FRAME_CURRENT_GLYPHS (f);
 
-  if (! FRAME_VISIBLE_P (f))
+  /* This is pointless on invisible frames, and dangerous on garbaged
+     frames; in the latter case, the frame may be in the midst of
+     changing its size, and curs_x and curs_y may be off the frame.  */
+  if (! FRAME_VISIBLE_P (f) || FRAME_GARBAGED_P (f))
     return;
 
   if (! on && f->phys_cursor_x < 0)
@@ -3394,7 +3397,10 @@ x_display_box_cursor (f, on)
 {
   struct frame_glyphs *current_glyphs = FRAME_CURRENT_GLYPHS (f);
 
-  if (! FRAME_VISIBLE_P (f))
+  /* This is pointless on invisible frames, and dangerous on garbaged
+     frames; in the latter case, the frame may be in the midst of
+     changing its size, and curs_x and curs_y may be off the frame.  */
+  if (! FRAME_VISIBLE_P (f) || FRAME_GARBAGED_P (f))
     return;
 
   /* If cursor is off and we want it off, return quickly.  */
