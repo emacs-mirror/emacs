@@ -1,3 +1,8 @@
+2005-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show-help-function): Check car and cdr of
+	mouse position.
+
 2005-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* icomplete.el: Don't forcibly turn on the mode upon load.
