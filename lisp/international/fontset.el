@@ -83,8 +83,8 @@
 	   (mule-unicode-0100-24ff . (nil . "ISO10646-1"))
 	   (mule-unicode-2500-33ff . (nil . "ISO10646-1"))
 	   (mule-unicode-e000-ffff . (nil . "ISO10646-1"))
-	   (japanese-jisx0213-1 . ("*" . "JISX0213.2000"))
-	   (japanese-jisx0213-2 . ("*" . "JISX0213.2000"))
+	   (japanese-jisx0213-1 . ("*" . "JISX0213.2000-1"))
+	   (japanese-jisx0213-2 . ("*" . "JISX0213.2000-2"))
 	   ))
       charset font-spec arg)
   (while l
