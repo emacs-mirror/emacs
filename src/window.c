@@ -3856,7 +3856,7 @@ mark_window_cursors_off (w)
 }
 
 
-/* Return number of lines of text (not counting mode line) in W.  */
+/* Return number of lines of text (not counting mode lines) in W.  */
 
 int
 window_internal_height (w)
@@ -3864,13 +3864,19 @@ window_internal_height (w)
 {
   int ht = XFASTINT (w->height);
 
-  if (MINI_WINDOW_P (w))
-    return ht;
+  if (!MINI_WINDOW_P (w))
+    {
+      if (!NILP (w->parent)
+	  || !NILP (w->vchild)
+	  || !NILP (w->hchild)
+	  || !NILP (w->next)
+	  || !NILP (w->prev)
+	  || WINDOW_WANTS_MODELINE_P (w))
+	--ht;
 
-  if (!NILP (w->parent) || !NILP (w->vchild) || !NILP (w->hchild)
-      || !NILP (w->next) || !NILP (w->prev)
-      || FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (w))))
-    return ht - 1;
+      if (WINDOW_WANTS_HEADER_LINE_P (w))
+	--ht;
+    }
 
   return ht;
 }
