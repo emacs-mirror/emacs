@@ -86,6 +86,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define if libXaw3d is available.  */
 #undef HAVE_XAW3D
 
+/* Define is DBE extension is available.  */
+#undef HAVE_DBE
+
 /* Define if we should use toolkit scroll bars.  */
 #undef USE_TOOLKIT_SCROLL_BARS
 
