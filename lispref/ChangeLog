@@ -1,3 +1,7 @@
+2004-09-08  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer History): Add `history-delete-duplicates'.
+
 2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* locals.texi (Standard Buffer-Local Variables): Add
