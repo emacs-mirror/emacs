@@ -289,10 +289,14 @@ property of the major mode name.")
 ;*---------------------------------------------------------------------*/
 ;*    Programming mode                                                 */
 ;*---------------------------------------------------------------------*/
+(defvar flyspell-prog-text-faces
+  '(font-lock-string-face font-lock-comment-face font-lock-doc-face)
+  "Faces corresponding to text in programming-mode buffers.")
+
 (defun flyspell-generic-progmode-verify ()
   "Used for `flyspell-generic-check-word-p' in programming modes."
   (let ((f (get-text-property (point) 'face)))
-    (memq f '(font-lock-comment-face font-lock-string-face))))
+    (memq f flyspell-prog-text-faces)))
 
 ;;;###autoload
 (defun flyspell-prog-mode ()
