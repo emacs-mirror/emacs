@@ -3005,19 +3005,15 @@ If mark is active it counts entries in region, if not in whole buffer."
 With prefix argument ARG, show all text."
   (interactive "P")
   (save-excursion
-    (bibtex-beginning-of-first-entry)
     (let ((buffer-read-only nil))
       (if arg
-	  (subst-char-in-region (point) (point-max) ?\r ?\n t)
-        (while (not (eobp))
-          (subst-char-in-region
-           (point)
-           (progn
-             (re-search-forward "[\n\r]@" nil t)
-             (forward-line -1)
-             (point))
-           ?\n ?\r t)
-          (forward-line 1)))
+	  (subst-char-in-region (point-min) (point-max) ?\r ?\n t)
+	(let ((pos (point-max)))
+	  (goto-char (point-max))
+	  (while (re-search-backward "^@" nil t)
+	    (subst-char-in-region (point) pos ?\n ?\r t)
+	    (if (not (bobp)) (forward-char -1))
+	    (setq pos (point)))))
       (setq selective-display (not arg)))))
 
 (defun bibtex-sort-buffer ()
