@@ -86,6 +86,7 @@
 (load "case-table")
 (load "composite")
 (load "international/characters")
+(load "international/charprop.el")
 
 ;; Load language-specific files.
 (load "language/chinese")
