@@ -1016,7 +1016,8 @@ Repeating \\[universal-argument] without digits or minus sign
   (let* ((key (this-command-keys))
 	 (keylist (listify-key-sequence key)))
     (setq unread-command-events
-	  (nthcdr universal-argument-num-events keylist)))
+	  (append (nthcdr universal-argument-num-events keylist)
+		  unread-command-events)))
   (reset-this-command-lengths)
   (setq overriding-terminal-local-map nil))
 
