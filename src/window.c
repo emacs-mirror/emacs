@@ -432,6 +432,34 @@ window_from_coordinates (frame, x, y, part)
   return Qnil;
 }
 
+/* Find the window containing the scrollbar BAR on FRAME.  We need to
+   search for scrollbars, rather than just having a field in the
+   scrollbar saying what window it's attached to, because scrollbars
+   may be deallocated before the events which occurred on them are
+   dequeued.  We can't dereference a scrollbar pointer until we know
+   it's live by finding it in a window structure.  */
+
+Lisp_Object
+window_from_scrollbar (frame, bar)
+     FRAME_PTR frame;
+     struct scrollbar *bar;
+{
+  register Lisp_Object tem, first;
+
+  tem = first = FRAME_SELECTED_WINDOW (frame);
+
+  do
+    {
+      if (WINDOW_VERTICAL_SCROLLBAR (XWINDOW (tem)) == bar)
+	return tem;
+
+      tem = Fnext_window (tem, Qt, Qlambda);
+    }
+  while (! EQ (tem, first));
+  
+  return Qnil;
+}
+
 DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
   "Return window containing row ROW, column COLUMN on FRAME.\n\
 If omitted, FRAME defaults to the currently selected frame.\n\
@@ -2553,7 +2581,10 @@ by `current-window-configuration' (which see).")
       Fselect_window (data->current_window);
 
 #ifdef MULTI_FRAME
-      Fredirect_frame_focus (frame, data->focus_frame);
+      if (NILP (data->focus_frame)
+	  || (XTYPE (data->focus_frame) == Lisp_Frame
+	      && FRAME_LIVE_P (XFRAME (data->focus_frame))))
+	Fredirect_frame_focus (frame, data->focus_frame);
 #endif
 
 #if 0 /* I don't understand why this is needed, and it causes problems
