@@ -420,6 +420,22 @@ main (argc, argv, envp)
 
   sort_args (argc, argv);
 
+  if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
+    {
+      Lisp_Object tem;
+      tem = Fsymbol_value (intern ("emacs-version"));
+      if (!STRINGP (tem))
+	{
+	  fprintf (stderr, "Invalid value of `emacs-version'\n");
+	  exit (1);
+	}
+      else
+	{
+	  printf ("%s\n", XSTRING (tem)->data);
+	  exit (0);
+	}
+    }
+
 /* Map in shared memory, if we are using that.  */
 #ifdef HAVE_SHM
   if (argmatch (argv, argc, "-nl", "--no-shared-memory", 6, NULL, &skip_args))
@@ -604,7 +620,9 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 	argv = new;
 	argc++;
       }
-    else if (displayname != 0 && argv[count_before + 1][1] == '-')
+    /* Change --display to -d, when its arg is separate.  */
+    else if (displayname != 0 && skip_args > count_before
+	     && argv[count_before + 1][1] == '-')
       argv[count_before] = "-d";
 
     /* Don't actually discard this arg.  */
