@@ -310,14 +310,14 @@ this list.")
 ;; variable ELEMENT, and include it in the result
 ;; if CONDITION evaluates non-nil.
 (defmacro dabbrev-filter-elements (element list condition)
-  (` (let (dabbrev-result dabbrev-tail (, element))
-       (setq dabbrev-tail (, list))
-       (while dabbrev-tail
-	 (setq (, element) (car dabbrev-tail))
-	 (if (, condition)
-	     (setq dabbrev-result (cons (, element) dabbrev-result)))
-	 (setq dabbrev-tail (cdr dabbrev-tail)))
-       (nreverse dabbrev-result))))
+  `(let (dabbrev-result dabbrev-tail ,element)
+    (setq dabbrev-tail ,list)
+    (while dabbrev-tail
+      (setq ,element (car dabbrev-tail))
+      (if ,condition
+          (setq dabbrev-result (cons ,element dabbrev-result)))
+      (setq dabbrev-tail (cdr dabbrev-tail)))
+    (nreverse dabbrev-result)))
 
 ;;----------------------------------------------------------------
 ;; Exported functions
@@ -569,7 +569,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		      (equal abbrev (upcase abbrev)))))
 
       ;; Save state for re-expand.
-      (setq dabbrev--last-expansion expansion)	
+      (setq dabbrev--last-expansion expansion)
       (setq dabbrev--last-abbreviation abbrev)
       (setq dabbrev--last-abbrev-location (point-marker))))))
 
@@ -630,7 +630,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     (dabbrev--goto-start-of-abbrev)
     (buffer-substring-no-properties
      dabbrev--last-abbrev-location (point))))
-	
+
 ;;; Initializes all global variables
 (defun dabbrev--reset-global-variables ()
   ;; dabbrev--last-obarray and dabbrev--last-completion-buffer

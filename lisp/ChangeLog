@@ -1,21 +1,25 @@
+1999-11-15  Sam Steingold  <sds@ksp.com>
+
+	* dabbrev.el (dabbrev-filter-elements): Use the new backquote syntax.
+
 1999-02-22  Sam Steingold  <sds@goems.com>
- 
+
 	* goto-addr.el (goto-address-at-mouse,
 	goto-address-find-address-at-point): use compose-mail.
 	(goto-address-mail-method): removed variable.
 	(goto-address-send-using-mh-e, goto-address-send-using-mhe,
 	goto-address-send-using-mail): removed functions.
- 
+
 1998-11-03  Sam Steingold  <sds@goems.com>
- 
+
 	* simple.el (backward-delete-char-untabify):
 	backward-delete-char-untabify-method can be `all' now - to delete
 	hungrily including newlines.
- 
+
 1999-11-15  Sam Steingold  <sds@ksp.com>
 
 	* mail/rnews.el, mail/mh-utils.el: Use the new backquote syntax.
-	
+
 1999-11-15  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (customize-face, customize-face-other-window):
@@ -41,10 +45,10 @@
 
 	* ansi-color.el (ansi-color-apply): Updated regexps to include
 	highlighted face.
-	
+
 1999-01-14  Johan Vromans  <jvromans@squirrel.nl>
 
-	* forms.el (forms--make-format-elt-using-text-properties): 
+	* forms.el (forms--make-format-elt-using-text-properties):
 	Treat `intangible' differently.
 
 	* forms.el: Use new backquote syntax.
@@ -61,7 +65,7 @@
 	(smbclient-prompt-regexp, smbclient-font-lock-keywords): New
 	variables
 	(smbclient, smbclient-list-shares): New functions
-	
+
 1999-11-12  Sam Steingold  <sds@ksp.com>
 
 	* emulation/viper-init.el (viper-deflocalvar, viper-loop)
