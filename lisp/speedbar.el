@@ -397,7 +397,7 @@ tags to insert.  It will then create the speedbar buttons.")
   :type 'boolean)
 
 (defcustom speedbar-sort-tags nil
-  "*If Non-nil, sort tags in the speedbar display.  *Obsolete*."
+  "*If non-nil, sort tags in the speedbar display.  *Obsolete*."
   :group 'speedbar
   :type 'boolean)
 
@@ -704,7 +704,7 @@ This should start with a `.' if it is not a complete file name, and
 the dot should NOT be quoted in with \\.  Other regular expression
 matchers are allowed however.  EXTENSION may be a single string or a
 list of strings."
-  (interactive "sExtionsion: ")
+  (interactive "sExtension: ")
   (if (not (listp extension)) (setq extension (list extension)))
   (while extension
     (if (member (car extension) speedbar-supported-extension-expressions)
@@ -1723,7 +1723,7 @@ This should be bound to a mouse EVENT."
   (speedbar-item-info))
 
 (defun speedbar-generic-item-info ()
-  "Attempt to derive, and then display information about thils line item.
+  "Attempt to derive, and then display information about this line item.
 File style information is displayed with `speedbar-item-info'."
   (save-excursion
     (beginning-of-line)
