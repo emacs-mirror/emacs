@@ -1529,9 +1529,11 @@ or not."
       (unless charset 
 	(setq charset gnus-newsgroup-charset))
       (when (or force
-		(and type (string-match "quoted-printable" (downcase type))))
+		(and type (let ((case-fold-search t))
+			    (string-match "quoted-printable" type))))
 	(article-goto-body)
-	(quoted-printable-decode-region (point) (point-max) charset)))))
+	(quoted-printable-decode-region
+	 (point) (point-max) (mm-charset-to-coding-system charset))))))
 
 (defun article-de-base64-unreadable (&optional force)
   "Translate a base64 article.
@@ -1554,13 +1556,14 @@ If FORCE, decode the article whether it is marked as base64 not."
       (unless charset 
 	(setq charset gnus-newsgroup-charset))
       (when (or force
-		(and type (string-match "base64" (downcase type))))
+		(and type (let ((case-fold-search t))
+			    (string-match "base64" type))))
 	(article-goto-body)
 	(save-restriction
 	  (narrow-to-region (point) (point-max))
 	  (base64-decode-region (point-min) (point-max))
-	  (if (mm-coding-system-p charset)
-	      (mm-decode-coding-region (point-min) (point-max) charset)))))))
+	  (mm-decode-coding-region
+	   (point-min) (point-max) (mm-charset-to-coding-system charset)))))))
 
 (eval-when-compile
   (require 'rfc1843))
