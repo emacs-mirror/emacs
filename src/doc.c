@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG and BSD4_1*/
 
-#ifdef USG5
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
 
