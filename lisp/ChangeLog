@@ -1,3 +1,8 @@
+2004-08-25  John Paul Wallington  <jpw@gnu.org>
+
+	* ielm.el (ielm-tab, ielm-complete-symbol): Doc fix.
+	(inferior-emacs-lisp-mode): Use	`set-process-query-on-exit-flag'.
+
 2004-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-diff): Treat options from vc-svn-diff-switches and
