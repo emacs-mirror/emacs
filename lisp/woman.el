@@ -1728,7 +1728,10 @@ Argument EVENT is the invoking mouse event."
   (woman (current-word t)))
 
 ;; WoMan menu bar and pop-up menu:
-(easy-menu-define woman-menu		; (SYMBOL MAPS DOC MENU)
+(easy-menu-define
+  woman-menu				; (SYMBOL MAPS DOC MENU)
+  ;; That comment was moved after the symbol `woman-menu' to make
+  ;; find-function-search-for-symbol work. -- rost
  woman-mode-map
  "WoMan Menu"
  `("WoMan"
