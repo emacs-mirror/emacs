@@ -10111,7 +10111,11 @@ void
 cancel_busy_cursor ()
 {
   if (busy_cursor_atimer)
-    cancel_atimer (busy_cursor_atimer);
+    {
+      cancel_atimer (busy_cursor_atimer);
+      busy_cursor_atimer = NULL;
+    }
+  
   if (busy_cursor_shown_p)
     hide_busy_cursor ();
 }
