@@ -84,9 +84,8 @@
 
 ;;; Some variables
 (eval-and-compile
-  (unless (boundp 'filesets-running-xemacs)
-    (defvar filesets-running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)
-      "Non-nil means we are running XEmacs.")))
+  (defvar filesets-running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)
+    "Non-nil means we are running XEmacs."))
 
 (defvar filesets-menu-cache nil
   "The whole filesets menu.")
@@ -97,9 +96,8 @@
 
 (defvar filesets-ingroup-cache nil
   "A plist containing files and their ingroup data.")
-(defvar filesets-ingroup-paths nil
-  "A temporary list of path already processed when searching for
-included files.")
+(defvar filesets-ingroup-files nil
+  "List of files already processed when searching for included files.")
 
 (defvar filesets-has-changed-flag t
   "Non-nil means some fileset definition has changed.")
@@ -1018,43 +1016,26 @@ defined in `filesets-ingroup-patterns'."
   :group 'filesets)
 
 
-(defun filesets-error (class &rest args)
-  "`error' wrapper."
-  (error (apply 'concat
-		(mapcar (lambda (x) (format "%s " x))
-			args))))
-
 ;;; Emacs compatibility
 (eval-and-compile
   (if filesets-running-xemacs
       (progn
+	(fset 'filesets-error 'error)
 	(fset 'filesets-add-submenu 'add-submenu))
-    
-    (progn
 
-      (require 'easymenu)
+    (require 'easymenu)
       
-      ;; This should work for 21.1 Emacs
-      (defun filesets-add-submenu (menu-path submenu &optional
-					     before in-menu)
-	"`easy-menu-define' wrapper."
-	(easy-menu-define
-	  filesets-submenu global-map "Filesets menu" submenu))
-      )))
+    (defun filesets-error (class &rest args)
+      "`error' wrapper."
+      (error (mapconcat 'identity args " ")))
 
-;;; helper
-;(defmacro filesets-testing (feature messagep &rest body)
-;  (cond
-;   ((equal filesets-version "testing")
-;    `(progn ,@body))
-;   (messagep
-;    (message "Filestats: feature `%s' is disabled." feature)
-;    nil)
-;   (t
-;    nil)))
-
-;(defun filesets-not-yet-implemented (feature)
-;  (message "Filestats: `%s' is not yet implemented." feature))
+    ;; This should work for 21.1 Emacs
+    (defun filesets-add-submenu (menu-path submenu &optional
+					   before in-menu)
+      "`easy-menu-define' wrapper."
+      (easy-menu-define
+	filesets-submenu global-map "Filesets menu" submenu))
+    ))
 
 (defun filesets-filter-dir-names (lst &optional negative)
   "Remove non-directory names from a list of strings. If NEGATIVE is
@@ -1352,7 +1333,7 @@ not be opened."
 	(filesets-spawn-external-viewer file external-viewer-def)
       (filesets-find-file file))))
 
-(defun fsfind-file-using ()
+(defun filesets-find-file-using ()
   "Select a viewer and call `filesets-find-or-display-file'."
   (interactive)
   (let* ((lst (mapcar (lambda (this)
@@ -2040,7 +2021,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 				 (not (member f flist))
 				 (or (not remdupl-flag)
 				     (not (member*
-					   f filesets-ingroup-paths
+					   f filesets-ingroup-files
 					   :test 'filesets-files-equalp))))
 			(let ((no-stub-flag
 			       (and (not this-stub-flag)
@@ -2049,8 +2030,8 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 				      t))))
 			  (setq count (+ count 1))
 			  (setq flist (cons f flist))
-			  (setq filesets-ingroup-paths
-				(cons f filesets-ingroup-paths))
+			  (setq filesets-ingroup-files
+				(cons f filesets-ingroup-files))
 			  (when no-stub-flag
 			    (filesets-ingroup-cache-put master f))
 			  (setq lst (append lst (list f))))))))
@@ -2121,7 +2102,7 @@ FS is a fileset's name. FLIST is a list returned by
   "Build a :ingroup submenu for file MASTER."
   (if (file-readable-p master)
       (let ((remdupl-flag  (filesets-ingroup-get-remdupl-p master)))
-	(setq filesets-ingroup-paths (list master))
+	(setq filesets-ingroup-files (list master))
 	(filesets-ingroup-collect lookup-name remdupl-flag master))
     (if filesets-be-docile-flag
 	(progn
