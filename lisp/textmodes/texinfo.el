@@ -43,21 +43,21 @@
     nil
   (setq texinfo-mode-map (make-sparse-keymap))
 
-  (define-key texinfo-mode-map "\C-c\C-k"    'tex-kill-job)
-  (define-key texinfo-mode-map "\C-c\C-l"    'tex-recenter-output-buffer)
-  (define-key texinfo-mode-map "\C-c\C-q"    'tex-show-print-queue)
-  (define-key texinfo-mode-map "\C-c\C-p"    'texinfo-tex-print)
-  (define-key texinfo-mode-map "\C-c\C-i"    'texinfo-texindex)
-  (define-key texinfo-mode-map "\C-c\C-t"    'texinfo-tex-buffer)
-  (define-key texinfo-mode-map "\C-c\C-r"    'texinfo-tex-region)
+  (define-key texinfo-mode-map "\C-c\C-t\C-k"    'tex-kill-job)
+  (define-key texinfo-mode-map "\C-c\C-t\C-l"    'tex-recenter-output-buffer)
+  (define-key texinfo-mode-map "\C-c\C-t\C-q"    'tex-show-print-queue)
+  (define-key texinfo-mode-map "\C-c\C-t\C-p"    'texinfo-tex-print)
+  (define-key texinfo-mode-map "\C-c\C-t\C-i"    'texinfo-texindex)
+  (define-key texinfo-mode-map "\C-c\C-t\C-t"    'texinfo-tex-buffer)
+  (define-key texinfo-mode-map "\C-c\C-t\C-r"    'texinfo-tex-region)
 
-  (define-key texinfo-mode-map "\C-c\C-f"    'texinfo-format-region)
-  (define-key texinfo-mode-map "\C-c\C-b"    'texinfo-format-buffer)
+  (define-key texinfo-mode-map "\C-c\C-i\C-r"    'texinfo-format-region)
+  (define-key texinfo-mode-map "\C-c\C-i\C-b"    'texinfo-format-buffer)
 
-  (define-key texinfo-mode-map "\C-c\C-um"   'texinfo-make-menu)
-  (define-key texinfo-mode-map "\C-c\C-un"   'texinfo-update-node)
-  (define-key texinfo-mode-map "\C-c\C-ue"   'texinfo-every-node-update)
-  (define-key texinfo-mode-map "\C-c\C-ua"   'texinfo-all-menus-update)
+  (define-key texinfo-mode-map "\C-c\C-u\C-m"   'texinfo-make-menu)
+  (define-key texinfo-mode-map "\C-c\C-u\C-n"   'texinfo-update-node)
+  (define-key texinfo-mode-map "\C-c\C-u\C-e"   'texinfo-every-node-update)
+  (define-key texinfo-mode-map "\C-c\C-u\C-a"   'texinfo-all-menus-update)
 
   (define-key texinfo-mode-map "\C-c\C-s"     'texinfo-show-structure)
 
