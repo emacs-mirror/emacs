@@ -5173,31 +5173,40 @@ expose_area (w, row, r, area)
     x = (window_box_width (w, LEFT_MARGIN_AREA)
 	 + window_box_width (w, TEXT_AREA));
 
-  /* Find the first glyph that must be redrawn.  */
-  while (first < end
-	 && x + first->pixel_width < r->x)
-    {
-      x += first->pixel_width;
-      ++first;
-    }
-  
-  /* Find the last one.  */
-  last = first;
-  first_x = x;
-  while (last < end
-	 && x < r->x + r->width)
-    {
-      x += last->pixel_width;
-      ++last;
-    }
-      
-  /* Repaint.  */
-  if (last > first)
-    x_draw_glyphs (w, first_x, row, area,
-		   first - row->glyphs[area],
-		   last - row->glyphs[area],
+  if (area == TEXT_AREA && row->fill_line_p)
+    /* If row extends face to end of line write the whole line.  */
+    x_draw_glyphs (w, x, row, area,
+		   0, row->used[area],
 		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
 		   NULL, NULL, 0);
+  else
+    {
+      /* Find the first glyph that must be redrawn.  */
+      while (first < end
+	     && x + first->pixel_width < r->x)
+	{
+	  x += first->pixel_width;
+	  ++first;
+	}
+      
+      /* Find the last one.  */
+      last = first;
+      first_x = x;
+      while (last < end
+	     && x < r->x + r->width)
+	{
+	  x += last->pixel_width;
+	  ++last;
+	}
+      
+      /* Repaint.  */
+      if (last > first)
+	x_draw_glyphs (w, first_x, row, area,
+		       first - row->glyphs[area],
+		       last - row->glyphs[area],
+		       row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
+		       NULL, NULL, 0);
+    }
 }
       
 
