@@ -118,8 +118,7 @@ in case you use it as a menu with `x-popup-menu'.")
   else
     tail = Qnil;
   return Fcons (Qkeymap,
-		Fcons (Fmake_vector (make_number (DENSE_TABLE_SIZE), Qnil),
-		       tail));
+		Fcons (Fmake_char_table (Qkeymap, Qnil), tail));
 }
 
 DEFUN ("make-sparse-keymap", Fmake_sparse_keymap, Smake_sparse_keymap, 0, 1, 0,
@@ -338,6 +337,15 @@ PARENT should be nil or another keymap.")
 	  if (CONSP (XVECTOR (XCONS (list)->car)->contents[i]))
 	    fix_submap_inheritance (keymap, make_number (i),
 				    XVECTOR (XCONS (list)->car)->contents[i]);
+
+      if (CHAR_TABLE_P (XCONS (list)->car))
+	{
+	  Lisp_Object *indices
+	    = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+
+	  map_char_table (fix_submap_inheritance, Qnil, XCONS (list)->car,
+			  keymap, 0, indices);
+	}
     }
 
   return parent;
@@ -473,6 +481,18 @@ access_keymap (map, idx, t_ok, noinherit)
 		return val;
 	      }
 	  }
+	else if (CHAR_TABLE_P (binding))
+	  {
+	    if (NATNUMP (idx))
+	      {
+		val = Faref (binding, idx);
+		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
+		  return Qnil;
+		if (CONSP (val))
+		  fix_submap_inheritance (map, idx, val);
+		return val;
+	      }
+	  }
 
 	QUIT;
       }
@@ -506,8 +526,22 @@ get_keyelt (object, autoload)
       map = get_keymap_1 (Fcar_safe (object), 0, autoload);
       tem = Fkeymapp (map);
       if (!NILP (tem))
-	object = access_keymap (map, Fcdr (object), 0, 0);
-      
+	{
+	  Lisp_Object key;
+	  key = Fcdr (object);
+	  if (INTEGERP (key) && (XINT (key) & meta_modifier))
+	    {
+	      object = access_keymap (map, make_number (meta_prefix_char),
+				      0, 0);
+	      map = get_keymap_1 (object, 0, autoload);
+	      object = access_keymap (map,
+				      make_number (XINT (key) & ~meta_modifier),
+				      0, 0);
+	    }
+	  else
+	    object = access_keymap (map, key, 0, 0);
+	}
+
       /* If the keymap contents looks like (STRING . DEFN),
 	 use DEFN.
 	 Keymap alist elements like (CHAR MENUSTRING . DEFN)
@@ -592,6 +626,15 @@ store_in_keymap (keymap, idx, def)
 	      }
 	    insertion_point = tail;
 	  }
+	else if (CHAR_TABLE_P (elt))
+	  {
+	    if (NATNUMP (idx))
+	      {
+		Faset (elt, idx, def);
+		return def;
+	      }
+	    insertion_point = tail;
+	  }
 	else if (CONSP (elt))
 	  {
 	    if (EQ (idx, XCONS (elt)->car))
@@ -623,6 +666,12 @@ store_in_keymap (keymap, idx, def)
   return def;
 }
 
+Lisp_Object
+copy_keymap_1 (chartable, idx, elt)
+     Lisp_Object chartable, idx, elt;
+{
+  Faset (chartable, idx, Fcopy_keymap (elt));
+}
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
   "Return a copy of the keymap KEYMAP.\n\
@@ -643,7 +692,15 @@ is not copied.")
       Lisp_Object elt;
 
       elt = XCONS (tail)->car;
-      if (VECTORP (elt))
+      if (CHAR_TABLE_P (elt))
+	{
+	  Lisp_Object *indices
+	    = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+
+	  elt = Fcopy_sequence (elt);
+	  map_char_table (copy_keymap_1, Qnil, elt, elt, 0, indices);
+	}
+      else if (VECTORP (elt))
 	{
 	  int i;
 
@@ -653,8 +710,8 @@ is not copied.")
 	  for (i = 0; i < XVECTOR (elt)->size; i++)
 	    if (!SYMBOLP (XVECTOR (elt)->contents[i])
 		&& ! NILP (Fkeymapp (XVECTOR (elt)->contents[i])))
-	      XVECTOR (elt)->contents[i] =
-		Fcopy_keymap (XVECTOR (elt)->contents[i]);
+	      XVECTOR (elt)->contents[i]
+		= Fcopy_keymap (XVECTOR (elt)->contents[i]);
 	}
       else if (CONSP (elt))
 	{
@@ -1268,6 +1325,8 @@ DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_
 
 /* Help functions for describing and documenting keymaps.		*/
 
+static Lisp_Object accessible_keymaps_char_table ();
+
 /* This function cannot GC.  */
 
 DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
@@ -1358,7 +1417,16 @@ then the value includes only maps for prefixes that start with PREFIX.")
 
 	  QUIT;
 
-	  if (VECTORP (elt))
+	  if (CHAR_TABLE_P (elt))
+	    {
+	      Lisp_Object *indices
+		= (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+
+	      map_char_table (accessible_keymaps_char_table, Qnil,
+			      elt, Fcons (maps, Fcons (tail, thisseq)),
+			      0, indices);
+	    }
+	  else if (VECTORP (elt))
 	    {
 	      register int i;
 
@@ -1404,7 +1472,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 			}
 		    }
 		}
-	    }	    
+	    }
 	  else if (CONSP (elt))
 	    {
 	      register Lisp_Object cmd, tem, filter;
@@ -1481,6 +1549,35 @@ then the value includes only maps for prefixes that start with PREFIX.")
   return Fnreverse (good_maps);
 }
 
+static Lisp_Object
+accessible_keymaps_char_table (args, index, cmd)
+     Lisp_Object args, index, cmd;
+{
+  Lisp_Object tem;
+  Lisp_Object maps, tail, thisseq;
+
+  if (NILP (cmd))
+    return Qnil;
+
+  maps = XCONS (args)->car;
+  tail = XCONS (XCONS (args)->cdr)->car;
+  thisseq = XCONS (XCONS (args)->cdr)->cdr;
+
+  tem = Fkeymapp (cmd);
+  if (!NILP (tem))
+    {
+      cmd = get_keymap (cmd);
+      /* Ignore keymaps that are already added to maps.  */
+      tem = Frassq (cmd, maps);
+      if (NILP (tem))
+	{
+	  tem = append_key (thisseq, index);
+	  nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
+	}
+    }
+  return Qnil;
+}
+
 Lisp_Object Qsingle_key_description, Qkey_description;
 
 /* This function cannot GC.  */
@@ -1747,6 +1844,9 @@ ascii_sequence_p (seq)
 
 /* where-is - finding a command in a set of keymaps.			*/
 
+static Lisp_Object where_is_internal_1 ();
+static Lisp_Object where_is_internal_2 ();
+
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
@@ -1769,7 +1869,7 @@ indirect definition itself.")
      Lisp_Object firstonly, noindirect;
 {
   Lisp_Object maps;
-  Lisp_Object found, sequence;
+  Lisp_Object found, sequences;
   int keymap_specified = !NILP (keymap);
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   /* 1 means ignore all menu bindings entirely.  */
@@ -1805,17 +1905,14 @@ indirect definition itself.")
 	}
     }
 
-  GCPRO5 (definition, keymap, maps, found, sequence);
+  GCPRO5 (definition, keymap, maps, found, sequences);
   found = Qnil;
-  sequence = Qnil;
+  sequences = Qnil;
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {
       /* Key sequence to reach map, and the map that it reaches */
       register Lisp_Object this, map;
-
-      /* If Fcar (map) is a VECTOR, the current element within that vector.  */
-      int i = 0;
 
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
@@ -1841,9 +1938,11 @@ indirect definition itself.")
 	     For this reason, if Fcar (map) is a vector, we don't
 	     advance map to the next element until i indicates that we
 	     have finished off the vector.  */
-	  
 	  Lisp_Object elt, key, binding;
 	  elt = XCONS (map)->car;
+	  map = XCONS (map)->cdr;
+
+	  sequences = Qnil;
 
 	  QUIT;
 
@@ -1851,130 +1950,70 @@ indirect definition itself.")
 	     advance map and i to the next binding.  */
 	  if (VECTORP (elt))
 	    {
+	      Lisp_Object sequence;
+	      int i;
 	      /* In a vector, look at each element.  */
-	      binding = XVECTOR (elt)->contents[i];
-	      XSETFASTINT (key, i);
-	      i++;
-
-	      /* If we've just finished scanning a vector, advance map
-		 to the next element, and reset i in anticipation of the
-		 next vector we may find.  */
-	      if (i >= XVECTOR (elt)->size)
+	      for (i = 0; i < XVECTOR (elt)->size; i++)
 		{
-		  map = XCONS (map)->cdr;
-		  i = 0;
+		  binding = XVECTOR (elt)->contents[i];
+		  XSETFASTINT (key, i);
+		  sequence = where_is_internal_1 (binding, key, definition,
+						  noindirect, keymap, this,
+						  last, nomenus, last_is_meta);
+		  if (!NILP (sequence))
+		    sequences = Fcons (sequence, sequences);
 		}
+	    }
+	  else if (CHAR_TABLE_P (elt))
+	    {
+	      Lisp_Object *indices
+		= (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+	      Lisp_Object args;
+	      args = Fcons (Fcons (Fcons (definition, noindirect),
+				   Fcons (keymap, Qnil)),
+			    Fcons (Fcons (this, last),
+				   Fcons (make_number (nomenus),
+					  make_number (last_is_meta))));
+
+	      map_char_table (where_is_internal_2, Qnil, elt, args,
+			      0, indices);
+	      sequences = XCONS (XCONS (XCONS (args)->car)->cdr)->cdr;
 	    }
 	  else if (CONSP (elt))
 	    {
-	      key = Fcar (Fcar (map));
-	      binding = Fcdr (Fcar (map));
+	      Lisp_Object sequence;
 
-	      map = XCONS (map)->cdr;
+	      key = XCONS (elt)->car;
+	      binding = XCONS (elt)->cdr;
+
+	      sequence = where_is_internal_1 (binding, key, definition,
+					      noindirect, keymap, this,
+					      last, nomenus, last_is_meta);
+	      if (!NILP (sequence))
+		sequences = Fcons (sequence, sequences);
 	    }
-	  else
-	    /* We want to ignore keymap elements that are neither
-	       vectors nor conses.  */
+
+
+	  for (; ! NILP (sequences); sequences = XCONS (sequences)->cdr)
 	    {
-	      map = XCONS (map)->cdr;
-	      continue;
+	      Lisp_Object sequence;
+
+	      sequence = XCONS (sequences)->car;
+
+	      /* It is a true unshadowed match.  Record it, unless it's already
+		 been seen (as could happen when inheriting keymaps).  */
+	      if (NILP (Fmember (sequence, found)))
+		found = Fcons (sequence, found);
+
+	      /* If firstonly is Qnon_ascii, then we can return the first
+		 binding we find.  If firstonly is not Qnon_ascii but not
+		 nil, then we should return the first ascii-only binding
+		 we find.  */
+	      if (EQ (firstonly, Qnon_ascii))
+		RETURN_UNGCPRO (sequence);
+	      else if (! NILP (firstonly) && ascii_sequence_p (sequence))
+		RETURN_UNGCPRO (sequence);
 	    }
-
-	  /* Search through indirections unless that's not wanted.  */
-	  if (NILP (noindirect))
-	    {
-	      if (nomenus)
-		{
-		  while (1)
-		    {
-		      Lisp_Object map, tem;
-		      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
-		      map = get_keymap_1 (Fcar_safe (definition), 0, 0);
-		      tem = Fkeymapp (map);
-		      if (!NILP (tem))
-			definition = access_keymap (map, Fcdr (definition), 0, 0);
-		      else
-			break;
-		    }
-		  /* If the contents are (STRING ...), reject.  */
-		  if (CONSP (definition)
-		      && STRINGP (XCONS (definition)->car))
-		    continue;
-		}
-	      else
-		binding = get_keyelt (binding, 0);
-	    }
-
-	  /* End this iteration if this element does not match
-	     the target.  */
-
-	  if (CONSP (definition))
-	    {
-	      Lisp_Object tem;
-	      tem = Fequal (binding, definition);
-	      if (NILP (tem))
-		continue;
-	    }
-	  else
-	    if (!EQ (binding, definition))
-	      continue;
-
-	  /* We have found a match.
-	     Construct the key sequence where we found it.  */
-	  if (INTEGERP (key) && last_is_meta)
-	    {
-	      sequence = Fcopy_sequence (this);
-	      Faset (sequence, last, make_number (XINT (key) | meta_modifier));
-	    }
-	  else
-	    sequence = append_key (this, key);
-
-	  /* Verify that this key binding is not shadowed by another
-	     binding for the same key, before we say it exists.
-
-	     Mechanism: look for local definition of this key and if
-	     it is defined and does not match what we found then
-	     ignore this key.
-
-	     Either nil or number as value from Flookup_key
-	     means undefined.  */
-	  if (keymap_specified)
-	    {
-	      binding = Flookup_key (keymap, sequence, Qnil);
-	      if (!NILP (binding) && !INTEGERP (binding))
-		{
-		  if (CONSP (definition))
-		    {
-		      Lisp_Object tem;
-		      tem = Fequal (binding, definition);
-		      if (NILP (tem))
-			continue;
-		    }
-		  else
-		    if (!EQ (binding, definition))
-		      continue;
-		}
-	    }
-	  else
-	    {
-	      binding = Fkey_binding (sequence, Qnil);
-	      if (!EQ (binding, definition))
-		continue;
-	    }
-
-	  /* It is a true unshadowed match.  Record it, unless it's already
-	     been seen (as could happen when inheriting keymaps).  */
-	  if (NILP (Fmember (sequence, found)))
-	    found = Fcons (sequence, found);
-
-	  /* If firstonly is Qnon_ascii, then we can return the first
-	     binding we find.  If firstonly is not Qnon_ascii but not
-	     nil, then we should return the first ascii-only binding
-	     we find.  */
-	  if (EQ (firstonly, Qnon_ascii))
-	    RETURN_UNGCPRO (sequence);
-	  else if (! NILP (firstonly) && ascii_sequence_p (sequence))
-	    RETURN_UNGCPRO (sequence);
 	}
     }
 
@@ -1989,6 +2028,135 @@ indirect definition itself.")
     return Fcar (found);
     
   return found;
+}
+
+/* This is the function that Fwhere_is_internal calls using map_char_table.
+   ARGS has the form
+   (((DEFINITION . NOINDIRECT) . (KEYMAP . RESULT))
+    .
+    ((THIS . LAST) . (NOMENUS . LAST_IS_META)))
+   Since map_char_table doesn't really use the return value from this function,
+   we the result append to RESULT, the slot in ARGS.  */
+
+static Lisp_Object
+where_is_internal_2 (args, key, binding)
+     Lisp_Object args, key, binding;
+{
+  Lisp_Object definition, noindirect, keymap, this, last;
+  Lisp_Object result, sequence;
+  int nomenus, last_is_meta;
+
+  result = XCONS (XCONS (XCONS (args)->car)->cdr)->cdr;
+  definition = XCONS (XCONS (XCONS (args)->car)->car)->car;
+  noindirect = XCONS (XCONS (XCONS (args)->car)->car)->cdr;
+  keymap = XCONS (XCONS (XCONS (args)->car)->cdr)->car;
+  this = XCONS (XCONS (XCONS (args)->cdr)->car)->car;
+  last = XCONS (XCONS (XCONS (args)->cdr)->car)->cdr;
+  nomenus = XFASTINT (XCONS (XCONS (XCONS (args)->cdr)->cdr)->car);
+  last_is_meta = XFASTINT (XCONS (XCONS (XCONS (args)->cdr)->cdr)->cdr);
+
+  sequence = where_is_internal_1 (binding, key, definition, noindirect, keymap,
+				  this, last, nomenus, last_is_meta);
+
+  if (!NILP (sequence))
+    XCONS (XCONS (XCONS (args)->car)->cdr)->cdr
+      = Fcons (sequence, result);
+
+  return Qnil;
+}
+
+static Lisp_Object
+where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
+		     nomenus, last_is_meta)
+     Lisp_Object binding, key, definition, noindirect, keymap, this, last;
+     int nomenus, last_is_meta;
+{
+  Lisp_Object sequence;
+  int keymap_specified = !NILP (keymap);
+
+  /* Search through indirections unless that's not wanted.  */
+  if (NILP (noindirect))
+    {
+      if (nomenus)
+	{
+	  while (1)
+	    {
+	      Lisp_Object map, tem;
+	      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
+	      map = get_keymap_1 (Fcar_safe (definition), 0, 0);
+	      tem = Fkeymapp (map);
+	      if (!NILP (tem))
+		definition = access_keymap (map, Fcdr (definition), 0, 0);
+	      else
+		break;
+	    }
+	  /* If the contents are (STRING ...), reject.  */
+	  if (CONSP (definition)
+	      && STRINGP (XCONS (definition)->car))
+	    return Qnil;
+	}
+      else
+	binding = get_keyelt (binding, 0);
+    }
+
+  /* End this iteration if this element does not match
+     the target.  */
+
+  if (CONSP (definition))
+    {
+      Lisp_Object tem;
+      tem = Fequal (binding, definition);
+      if (NILP (tem))
+	return Qnil;
+    }
+  else
+    if (!EQ (binding, definition))
+      return Qnil;
+
+  /* We have found a match.
+     Construct the key sequence where we found it.  */
+  if (INTEGERP (key) && last_is_meta)
+    {
+      sequence = Fcopy_sequence (this);
+      Faset (sequence, last, make_number (XINT (key) | meta_modifier));
+    }
+  else
+    sequence = append_key (this, key);
+
+  /* Verify that this key binding is not shadowed by another
+     binding for the same key, before we say it exists.
+
+     Mechanism: look for local definition of this key and if
+     it is defined and does not match what we found then
+     ignore this key.
+
+     Either nil or number as value from Flookup_key
+     means undefined.  */
+  if (keymap_specified)
+    {
+      binding = Flookup_key (keymap, sequence, Qnil);
+      if (!NILP (binding) && !INTEGERP (binding))
+	{
+	  if (CONSP (definition))
+	    {
+	      Lisp_Object tem;
+	      tem = Fequal (binding, definition);
+	      if (NILP (tem))
+		return Qnil;
+	    }
+	  else
+	    if (!EQ (binding, definition))
+	      return Qnil;
+	}
+    }
+  else
+    {
+      binding = Fkey_binding (sequence, Qnil);
+      if (!EQ (binding, definition))
+	return Qnil;
+    }
+
+  return sequence;
 }
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */
@@ -2403,9 +2571,11 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
     {
       QUIT;
 
-      if (VECTORP (XCONS (tail)->car))
+      if (VECTORP (XCONS (tail)->car)
+	  || CHAR_TABLE_P (XCONS (tail)->car))
 	describe_vector (XCONS (tail)->car,
-			 elt_prefix, elt_describer, partial, shadow, map);
+			 elt_prefix, elt_describer, partial, shadow, map,
+			 (int *)0, 0);
       else if (CONSP (XCONS (tail)->car))
 	{
 	  event = XCONS (XCONS (tail)->car)->car;
@@ -2494,7 +2664,8 @@ This is text showing the elements of vector matched against indices.")
 
   specbind (Qstandard_output, Fcurrent_buffer ());
   CHECK_VECTOR_OR_CHAR_TABLE (vector, 0);
-  describe_vector (vector, Qnil, describe_vector_princ, 0, Qnil, Qnil);
+  describe_vector (vector, Qnil, describe_vector_princ, 0,
+		   Qnil, Qnil, (int *)0, 0);
 
   return unbind_to (count, Qnil);
 }
@@ -2504,7 +2675,8 @@ This is text showing the elements of vector matched against indices.")
    in VECTOR.
 
    ELT_PREFIX describes what "comes before" the keys or indices defined
-   by this vector.
+   by this vector.  This is a human-readable string whose size
+   is not necessarily related to the situation.
 
    If the vector is in a keymap, ELT_PREFIX is a prefix key which
    leads to this keymap.
@@ -2522,38 +2694,43 @@ This is text showing the elements of vector matched against indices.")
 
    ENTIRE_MAP is the keymap in which this vector appears.
    If the definition in effect in the whole map does not match
-   the one in this vector, we ignore this one.  */
+   the one in this vector, we ignore this one.
+
+   When describing a sub-char-table, INDICES is a list of
+   indices at higher levels in this char-table,
+   and CHAR_TABLE_DEPTH says how many levels down we have gone.  */
 
 describe_vector (vector, elt_prefix, elt_describer,
-		 partial, shadow, entire_map)
+		 partial, shadow, entire_map,
+		 indices, char_table_depth)
      register Lisp_Object vector;
      Lisp_Object elt_prefix;
      int (*elt_describer) ();
      int partial;
      Lisp_Object shadow;
      Lisp_Object entire_map;
+     int *indices;
+     int char_table_depth;
 {
-  Lisp_Object dummy;
   Lisp_Object definition;
   Lisp_Object tem2;
   register int i;
   Lisp_Object suppress;
   Lisp_Object kludge;
-  Lisp_Object chartable_kludge;
   int first = 1;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   /* Range of elements to be handled.  */
   int from, to;
-  /* The current depth of VECTOR if it is char-table.  */
-  int this_level;
   /* Flag to tell if we should handle multibyte characters.  */
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-  /* Array of indices to access each level of char-table.
-     The elements are charset, code1, and code2.  */
-  int idx[3];
   /* A flag to tell if a leaf in this level of char-table is not a
      generic character (i.e. a complete multibyte character).  */
   int complete_char;
+  int character;
+  int starting_i;
+
+  if (indices == 0)
+    indices = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
 
   definition = Qnil;
 
@@ -2561,57 +2738,45 @@ describe_vector (vector, elt_prefix, elt_describer,
      that is done once per vector element, we don't want to cons up a
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
-  GCPRO4 (elt_prefix, definition, kludge, chartable_kludge);
+  GCPRO3 (elt_prefix, definition, kludge);
 
   if (partial)
     suppress = intern ("suppress-keymap");
 
   if (CHAR_TABLE_P (vector))
     {
-      /* Prepare for handling a nested char-table.  */
-      if (NILP (elt_prefix))
+      if (char_table_depth == 0)
 	{
 	  /* VECTOR is a top level char-table.  */
-	  this_level = 0;
-	  complete_char = 0;
+	  complete_char = 1;
 	  from = 0;
 	  to = CHAR_TABLE_ORDINARY_SLOTS;
 	}
       else
 	{
 	  /* VECTOR is a sub char-table.  */
-	  this_level = XVECTOR (elt_prefix)->size;
-	  if (this_level >= 3)
-	    /* A char-table is not that deep.  */
+	  if (char_table_depth >= 3)
+	    /* A char-table is never that deep.  */
 	    error ("Too deep char table");
 
-	  /* For multibyte characters, the top level index for
-             charsets starts from 256.  */
-	  idx[0] = XINT (XVECTOR (elt_prefix)->contents[0]) - 128;
-	  for (i = 1; i < this_level; i++)
-	    idx[i] = XINT (XVECTOR (elt_prefix)->contents[i]);
 	  complete_char
-	    = (CHARSET_VALID_P (idx[0])
-	       && ((CHARSET_DIMENSION (idx[0]) == 1 && this_level == 1)
-		   || this_level == 2));
+	    = (CHARSET_VALID_P (indices[0])
+	       && ((CHARSET_DIMENSION (indices[0]) == 1
+		    && char_table_depth == 1)
+		   || char_table_depth == 2));
 
 	  /* Meaningful elements are from 32th to 127th.  */
 	  from = 32;
 	  to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
 	}
-      chartable_kludge = Fmake_vector (make_number (this_level + 1), Qnil);
-      if (this_level != 0)
-	bcopy (XVECTOR (elt_prefix)->contents,
-	       XVECTOR (chartable_kludge)->contents,
-	       this_level * sizeof (Lisp_Object));
     }
   else
     {
-      this_level = 0;
-      from = 0;
       /* This does the right thing for ordinary vectors.  */
-      to = XFASTINT (Flength (vector));
-      /* Now, can this be just `XVECTOR (vector)->size'? -- K.Handa  */
+
+      complete_char = 1;
+      from = 0;
+      to = XVECTOR (vector)->size;
     }
 
   for (i = from; i < to; i++)
@@ -2620,10 +2785,15 @@ describe_vector (vector, elt_prefix, elt_describer,
 
       if (CHAR_TABLE_P (vector))
 	{
+	  if (char_table_depth == 0 && i >= CHAR_TABLE_SINGLE_BYTE_SLOTS)
+	    complete_char = 0;
+
 	  if (i >= CHAR_TABLE_SINGLE_BYTE_SLOTS
 	      && !CHARSET_DEFINED_P (i - 128))
 	    continue;
-	  definition = get_keyelt (XCHAR_TABLE (vector)->contents[i], 0);
+
+	  definition
+	    = get_keyelt (XCHAR_TABLE (vector)->contents[i], 0);
 	}
       else
 	definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
@@ -2640,12 +2810,34 @@ describe_vector (vector, elt_prefix, elt_describer,
 	  if (!NILP (tem)) continue;
 	}
 
+      /* Set CHARACTER to the character this entry describes, if any.
+	 Also update *INDICES.  */
+      if (CHAR_TABLE_P (vector))
+	{
+	  indices[char_table_depth] = i;
+
+	  if (char_table_depth == 0)
+	    {
+	      character = i;
+	      indices[0] = i - 128;
+	    }
+	  else if (complete_char)
+	    {
+	      character
+		= MAKE_NON_ASCII_CHAR (indices[0], indices[1], indices[2]);
+	    }
+	  else
+	    character = 0;
+	}
+      else
+	character = i;
+
       /* If this binding is shadowed by some other map, ignore it.  */
-      if (!NILP (shadow))
+      if (!NILP (shadow) && complete_char)
 	{
 	  Lisp_Object tem;
 	  
-	  XVECTOR (kludge)->contents[0] = make_number (i);
+	  XVECTOR (kludge)->contents[0] = make_number (character);
 	  tem = shadow_lookup (shadow, kludge, Qt);
 
 	  if (!NILP (tem)) continue;
@@ -2653,11 +2845,11 @@ describe_vector (vector, elt_prefix, elt_describer,
 
       /* Ignore this definition if it is shadowed by an earlier
 	 one in the same keymap.  */
-      if (!NILP (entire_map))
+      if (!NILP (entire_map) && complete_char)
 	{
 	  Lisp_Object tem;
 
-	  XVECTOR (kludge)->contents[0] = make_number (i);
+	  XVECTOR (kludge)->contents[0] = make_number (character);
 	  tem = Flookup_key (entire_map, kludge, Qt);
 
 	  if (! EQ (tem, definition))
@@ -2666,23 +2858,39 @@ describe_vector (vector, elt_prefix, elt_describer,
 
       if (first)
 	{
-	  if (this_level == 0)
+	  if (char_table_depth == 0)
 	    insert ("\n", 1);
 	  first = 0;
 	}
 
-      /* If VECTOR is a sub char-table, show the depth by indentation.
-	 THIS_LEVEL can be greater than 0 only for char-table.  */
-      if (this_level > 0)
-	insert ("    ", this_level * 2); /* THIS_LEVEL is 1 or 2.  */
+      /* For a sub char-table, show the depth by indentation.
+	 CHAR_TABLE_DEPTH can be greater than 0 only for a char-table.  */
+      if (char_table_depth > 0)
+	insert ("    ", char_table_depth * 2); /* depth is 1 or 2.  */
 
-      /* Get a Lisp object for the character I.  */
-      XSETFASTINT (dummy, i);
+      /* Output the prefix that applies to every entry in this map.  */
+      if (!NILP (elt_prefix))
+	insert1 (elt_prefix);
 
-      if (this_level == 0 && CHAR_TABLE_P (vector))
+      /* Insert or describe the character this slot is for,
+	 or a description of what it is for.  */
+      if (SUB_CHAR_TABLE_P (vector))
 	{
-	  if (i < CHAR_TABLE_SINGLE_BYTE_SLOTS)
-	    insert1 (Fsingle_key_description (dummy));
+	  if (complete_char)
+	    insert_char (character);
+	  else
+	    {
+	      /* We need an octal representation for this block of
+                 characters.  */
+	      char work[5];
+	      sprintf (work, "\\%03o", i & 255);
+	      insert (work, 4);
+	    }
+	}
+      else if (CHAR_TABLE_P (vector))
+	{
+	  if (complete_char)
+	    insert1 (Fsingle_key_description (make_number (character)));
 	  else
 	    {
 	      /* Print the information for this character set.  */
@@ -2695,32 +2903,9 @@ describe_vector (vector, elt_prefix, elt_describer,
 	      insert (">", 1);
 	    }
 	}
-      else if (this_level > 0 && SUB_CHAR_TABLE_P (vector))
-	{
-	  if (complete_char)
-	    {
-	      /* Combine ELT_PREFIX with I to produce a character code,
-		 then insert that character's description.  */
-	      idx[this_level] = i;
-	      insert_char (MAKE_NON_ASCII_CHAR (idx[0], idx[1], idx[2]));
-	    }
-	  else
-	    {
-	      /* We need an octal representation for this block of
-                 characters.  */
-	      char work[5];
-	      sprintf (work, "\\%03o", i & 255);
-	      insert (work, 4);
-	    }
-	}
       else
 	{
-	  /* Output the prefix that applies to every entry in this map.  */
-	  if (!NILP (elt_prefix))
-	    insert1 (elt_prefix);
-
-	  /* Get the string to describe the character DUMMY, and print it.  */
-	  insert1 (Fsingle_key_description (dummy));
+	  insert1 (Fsingle_key_description (make_number (character)));
 	}
 
       /* If we find a sub char-table within a char-table,
@@ -2729,11 +2914,13 @@ describe_vector (vector, elt_prefix, elt_describer,
       if (multibyte && CHAR_TABLE_P (vector) && SUB_CHAR_TABLE_P (definition))
 	{
 	  insert ("\n", 1);
-	  XVECTOR (chartable_kludge)->contents[this_level] = make_number (i);
-	  describe_vector (definition, chartable_kludge, elt_describer,
-			   partial, shadow, entire_map);
+	  describe_vector (definition, elt_prefix, elt_describer,
+			   partial, shadow, entire_map,
+			   indices, char_table_depth + 1);
 	  continue;
 	}
+
+      starting_i = i;
 
       /* Find all consecutive characters that have the same
          definition.  But, for elements of a top level char table, if
@@ -2741,22 +2928,19 @@ describe_vector (vector, elt_prefix, elt_describer,
          if they have the same definition.  */
       if (CHAR_TABLE_P (vector))
 	{
-	  if (this_level == 0)
-	    while (i + 1 < CHAR_TABLE_SINGLE_BYTE_SLOTS
-		   && (tem2
-		       = get_keyelt (XCHAR_TABLE (vector)->contents[i + 1], 0),
-		       !NILP (tem2))
-		   && !NILP (Fequal (tem2, definition)))
-	      i++;
-	  else
-	    while (i + 1 < to
-		   && (tem2 = get_keyelt (XCHAR_TABLE (vector)->contents[i + 1], 0),
-		       !NILP (tem2))
-		   && !NILP (Fequal (tem2, definition)))
-	      i++;
+	  int limit = to;
+
+	  if (char_table_depth == 0)
+	    limit = CHAR_TABLE_SINGLE_BYTE_SLOTS;
+
+	  while (i + 1 < limit
+		 && (tem2 = get_keyelt (XCHAR_TABLE (vector)->contents[i + 1], 0),
+		     !NILP (tem2))
+		 && !NILP (Fequal (tem2, definition)))
+	    i++;
 	}
       else
-	while (i + 1 < CHAR_TABLE_SINGLE_BYTE_SLOTS
+	while (i + 1 < to
 	       && (tem2 = get_keyelt (XVECTOR (vector)->contents[i + 1], 0),
 		   !NILP (tem2))
 	       && !NILP (Fequal (tem2, definition)))
@@ -2766,35 +2950,36 @@ describe_vector (vector, elt_prefix, elt_describer,
       /* If we have a range of more than one character,
 	 print where the range reaches to.  */
 
-      if (i != XINT (dummy))
+      if (i != starting_i)
 	{
 	  insert (" .. ", 4);
+
+	  if (!NILP (elt_prefix))
+	    insert1 (elt_prefix);
+
 	  if (CHAR_TABLE_P (vector))
 	    {
-	      if (complete_char)
+	      if (char_table_depth == 0)
 		{
-		  idx[this_level] = i;
-		  insert_char (MAKE_NON_ASCII_CHAR (idx[0], idx[1], idx[2]));
+		  insert1 (Fsingle_key_description (make_number (i)));
 		}
-	      else if (this_level > 0)
+	      else if (complete_char)
+		{
+		  indices[char_table_depth] = i;
+		  character
+		    = MAKE_NON_ASCII_CHAR (indices[0], indices[1], indices[2]);
+		  insert_char (character);
+		}
+	      else
 		{
 		  char work[5];
 		  sprintf (work, "\\%03o", i & 255);
 		  insert (work, 4);
 		}
-	      else
-		{
-		  XSETFASTINT (dummy, i);
-		  insert1 (Fsingle_key_description (dummy));
-		}
 	    }
 	  else
 	    {
-	      if (!NILP (elt_prefix) && !CHAR_TABLE_P (vector))
-		insert1 (elt_prefix);
-
-	      XSETFASTINT (dummy, i);
-	      insert1 (Fsingle_key_description (dummy));
+	      insert1 (Fsingle_key_description (make_number (i)));
 	    }
 	}
 
@@ -2807,7 +2992,7 @@ describe_vector (vector, elt_prefix, elt_describer,
   /* For (sub) char-table, print `defalt' slot at last.  */
   if (CHAR_TABLE_P (vector) && !NILP (XCHAR_TABLE (vector)->defalt))
     {
-      insert ("    ", this_level * 2);
+      insert ("    ", char_table_depth * 2);
       insert_string ("<<default>>");
       (*elt_describer) (XCHAR_TABLE (vector)->defalt);
     }
@@ -2858,12 +3043,15 @@ syms_of_keymap ()
   Qkeymap = intern ("keymap");
   staticpro (&Qkeymap);
 
-/* Initialize the keymaps standardly used.
-   Each one is the value of a Lisp variable, and is also
-   pointed to by a C variable */
+  /* Now we are ready to set up this property, so we can
+     create char tables.  */
+  Fput (Qkeymap, Qchar_table_extra_slots, make_number (0));
 
-  global_map = Fcons (Qkeymap,
-		      Fcons (Fmake_vector (make_number (0400), Qnil), Qnil));
+  /* Initialize the keymaps standardly used.
+     Each one is the value of a Lisp variable, and is also
+     pointed to by a C variable */
+
+  global_map = Fmake_keymap (Qnil);
   Fset (intern ("global-map"), global_map);
 
   current_global_map = global_map;
