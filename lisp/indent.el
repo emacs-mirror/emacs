@@ -56,7 +56,8 @@
 
 (defun insert-tab (&optional prefix-arg)
   (let ((count (prefix-numeric-value prefix-arg)))
-    (if abbrev-mode
+    (if (and abbrev-mode
+	     (eq (char-syntax (preceding-char)) ?w))
 	(expand-abbrev))
     (if indent-tabs-mode
 	(insert-char ?\t count)
@@ -338,7 +339,9 @@ An indent point is a non-whitespace character following whitespace.
 If the previous nonblank line has no indent points beyond the
 column point starts at, `tab-to-tab-stop' is done instead."
   (interactive "P")
-  (if abbrev-mode (expand-abbrev))
+  (if (and abbrev-mode
+	   (eq (char-syntax (preceding-char)) ?w))
+      (expand-abbrev))
   (let ((start-column (current-column))
 	indent)
     (save-excursion
