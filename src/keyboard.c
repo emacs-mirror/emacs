@@ -733,6 +733,19 @@ recursive_edit_unwind (buffer)
   return Qnil;
 }
 
+#ifdef MULTI_PERDISPLAY
+static void
+unlock_display ()
+{
+  if (CONSP (Vunread_command_events))
+    current_perdisplay->kbd_queue
+      = nconc2 (Vunread_command_events, current_perdisplay->kbd_queue);
+  Vunread_command_events = Qnil;
+  current_perdisplay = 0;
+  display_locked = 0;
+}
+#endif
+
 Lisp_Object
 cmd_error (data)
      Lisp_Object data;
@@ -750,8 +763,7 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #ifdef MULTI_PERDISPLAY
-  current_perdisplay = 0;
-  display_locked = 0;
+  unlock_display ();
 #endif
 
   return make_number (0);
@@ -951,7 +963,7 @@ command_loop_1 ()
   int prev_modiff;
   struct buffer *prev_buffer;
 #ifdef MULTI_PERDISPLAY
-  PERDISPLAY *outer_perdisplay = current_perdisplay;
+  int was_locked = display_locked;
 #endif
 
   Vdeactivate_mark = Qnil;
@@ -1275,8 +1287,8 @@ command_loop_1 ()
 	finalize_kbd_macro_chars ();
 
 #ifdef MULTI_PERDISPLAY
-      current_perdisplay = outer_perdisplay;
-      display_locked = (current_perdisplay != 0);
+      if (!was_locked)
+	unlock_display ();
 #endif
     }
 }
@@ -1600,13 +1612,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto non_reread;
     }
 
-  /* Message turns off echoing unless more keystrokes turn it on again. */
-  if (echo_area_glyphs && *echo_area_glyphs
-      && echo_area_glyphs != current_perdisplay->echobuf)
-    cancel_echoing ();
-  else
-    /* If already echoing, continue.  */
-    echo_dash ();
+  if (current_perdisplay)
+    {
+      /* Message turns off echoing unless more keystrokes turn it on again. */
+      if (echo_area_glyphs && *echo_area_glyphs
+	  && echo_area_glyphs != current_perdisplay->echobuf)
+	cancel_echoing ();
+      else
+	/* If already echoing, continue.  */
+	echo_dash ();
+    }
 
   /* Try reading a character via menu prompting in the minibuf.
      Try this before the sit-for, because the sit-for
@@ -1631,7 +1646,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
-  if (minibuf_level == 0 && !current_perdisplay->immediate_echo
+  if (current_perdisplay
+      && minibuf_level == 0
+      && !current_perdisplay->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
       && echo_keystrokes > 0
