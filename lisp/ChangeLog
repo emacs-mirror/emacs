@@ -29,8 +29,7 @@
 	(desktop-clear-preserve-buffers): Remove redundant info in
 	docstring already shown by the obsolescence message.
 	(desktop-truncate, desktop-internal-v2s)
-	(desktop-value-to-string): Change argument name to match
-	docstring.
+	(desktop-value-to-string): Change argument name to match docstring.
 
 	* emulation/tpu-edt.el (tpu-set-mark): Fix typo in docstring.
 
@@ -49,16 +48,14 @@
 	Version 2.0.39 of Tramp released.
 
 	* net/tramp.el (tramp-handle-file-local-copy)
-	(tramp-handle-write-region, tramp-open-connection-rsh): Variable
-	name typo.  Small change.  From Patrick Tullmann
+	(tramp-handle-write-region, tramp-open-connection-rsh):
+	Variable name typo.  Small change.  From Patrick Tullmann
 	<tullmann@flux.utah.edu>.
 	(tramp-process-connection-type): New variable.
 	(tramp-maybe-open-connection): Use it.
-	(tramp-do-copy-or-rename-via-buffer): Handle KEEP-DATE arg, if
-	possible.
+	(tramp-do-copy-or-rename-via-buffer): Handle KEEP-DATE arg if possible.
 	(tramp-touch): Set last-modified time of a remote file.
-	(tramp-handle-write-region): Say which function is used when
-	encoding.
+	(tramp-handle-write-region): Say which function is used when encoding.
 
 2004-02-29  Michael Albinus  <Michael.Albinus@alcatel.de>
 
@@ -74,7 +71,7 @@
 	output.  If it was received chunkwise, there have been problems.
 	Remove the "prompt not found" error message; it is obvious.
 	Simplify algorithm.
-	(tramp-smb-process-running): Removed.  Since we acknowledge the
+	(tramp-smb-process-running): Remove.  Since we acknowledge the
 	virtual prompt for shares, there's no need for distinction of
 	reading shares (process ends afterwards) and interactive mode of
 	smblient.
@@ -84,23 +81,21 @@
 	(tramp-smb-maybe-open-connection): Set `process-connection-type'
 	to 'pty.  Suggested by Piet van Oostrum <piet@cs.uu.nl>.
 	(top-level): Setting default value in `tramp-default-method-alist'
-	corrected.  Order of USER and HOST have been wrong.  Nobody
-	claimed for months ...
-	(tramp-smb-maybe-open-connection): Use
-	`tramp-process-connection-type'.
-	(tramp-smb-open-connection): Clear password cache if login has
-	failed.
+	corrected.  Order of USER and HOST have been wrong.
+	Nobody complaimed for months ...
+	(tramp-smb-maybe-open-connection): Use `tramp-process-connection-type'.
+	(tramp-smb-open-connection): Clear password cache if login has failed.
 
-	* net/tramp.el (tramp-completion-mode) Don't check for 'xemacs but
+	* net/tramp.el (tramp-completion-mode) Don't check for 'xemacs' but
 	`tramp-unified-filenames'.
 	(tramp-completion-mode): Make test for XEmacs explicitely.
-	`event-to-character' can exists in Emacs packages too.  Reported
-	by Matt Swift <swift@alum.mit.edu>.
+	`event-to-character' can exists in Emacs packages too.
+	Reported by Matt Swift <swift@alum.mit.edu>.
 	(tramp-buffer-name): Buffer name must contain the user if exists.
 	Reported by Adrian Phillips <a.phillips@met.no>.
-	(tramp-do-copy-or-rename-file): Handle out-of-band methods.  Call
-	`tramp-do-copy-or-rename-file-out-of-band' this case.
-	(tramp-do-copy-or-rename-file-out-of-band): Renamed from
+	(tramp-do-copy-or-rename-file): Handle out-of-band methods.
+	Call `tramp-do-copy-or-rename-file-out-of-band' this case.
+	(tramp-do-copy-or-rename-file-out-of-band): Rename from
 	`tramp-do-copy-or-rename-file-one-local', because it handles also
 	the case both files use the same out-of-band method.
 	Implementation added.
@@ -116,16 +111,16 @@
 	(tramp-completion-function-alist): It's a defvar now, because we
 	want to apply the optimized `tramp-set-completion-function'
 	instead of a static list.
-	(tramp-set-completion-function): Implementation tuned.  Avoid
-	double entries, and entries where the function or the
+	(tramp-set-completion-function): Implementation tuned.
+	Avoid double entries, and entries where the function or the
 	file/directory doesn't exist.
 	(tramp-parse-shostkeys, tramp-parse-sknownhosts): New functions
 	for SSH2.
 	(tramp-file-name-handler-alist): Add `dired-compress-file' entry.
 	(tramp-handle-dired-compress-file): New function.
 	(tramp-async-proc): New variable.
-	(tramp-handle-shell-command): Adding asynchronous processes.  They
-	are far from being perfect, but it works at least for
+	(tramp-handle-shell-command): Adding asynchronous processes.
+	They are far from being perfect, but it works at least for
 	`find-grep-dired' and `find-name-dired' in Emacs 21.4.
 	(top-level): Require password.el if visible.  Should be mandatory
 	once No Gnus has found its way into (X)Emacs.
@@ -133,8 +128,8 @@
 	`read-passwd' otherwise. `ange-ftp-read-passwd' isn't used as
 	fallback any longer.
 	(tramp-clear-passwd): New function.
-	(tramp-process-actions, tramp-process-multi-actions): Clear
-	password cache if login has failed.
+	(tramp-process-actions, tramp-process-multi-actions):
+	Clear password cache if login has failed.
 
 	* net/tramp-ftp.el (Commentary): Remove pointer to EFS.  It has
 	its own module.
@@ -165,8 +160,7 @@
 	relative directory names.
 	(dired-at-point-prompter): Treat directories as a directory, get
 	the directory component from files.
-	(ffap-string-at-point): Return string from region if region is
-	active.
+	(ffap-string-at-point): Return string from region if region is active.
 	(ffap-file-at-point): Remove redundant code.
 
 2004-02-28  Kim F. Storm  <storm@cua.dk>
@@ -186,8 +180,8 @@
 	(gdb-put-breakpoint-icon): New defun which displays a breakpoint
 	icon in fringe (if available), or else as icon or text in display
 	margin.  Creates necessary icons in breakpoint-bitmap,
-	breakpoint-enabled-icon, and/or breakpoint-disabled-icon.  Also
-	make left window margin if required.
+	breakpoint-enabled-icon, and/or breakpoint-disabled-icon.
+	Also make left window margin if required.
 	(gdb-remove-breakpoint-icons): New defun to remove breakpoint
 	icons inserted by gdb-put-breakpoint-icon.  Remove left margin if
 	no longer needed.
@@ -198,7 +192,7 @@
 2004-02-27  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el: In scheme-mode symbol regexp, disallow backquote and
-        comma, so that it DTRT in macros.
+	comma, so that it DTRT in macros.
 
 2004-02-27  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
@@ -216,11 +210,10 @@
 
 	* font-lock.el (font-lock-comment-face, font-lock-string-face)
 	(font-lock-keyword-face, font-lock-function-name-face)
-	(font-lock-variable-name-face, font-lock-constant-face): Use
-	`min-colors'.
+	(font-lock-variable-name-face, font-lock-constant-face):
+	Use `min-colors'.
 
-	* isearch.el (isearch, isearch-lazy-highlight-face): Use
-	`min-colors'.
+	* isearch.el (isearch, isearch-lazy-highlight-face): Use `min-colors'.
 
 2004-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -237,8 +230,8 @@
 	* ebnf-abn.el: New file, implements an ABNF parser.
 
 	* ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New arrow shapes:
-	semi-up-hollow, semi-up-full, semi-down-hollow and semi-down-full.  Fix
-	a bug on productions like test = {"test"}* | ( "tt" ["test"] ).
+	semi-up-hollow, semi-up-full, semi-down-hollow and semi-down-full.
+	Fix a bug on productions like test = {"test"}* | ( "tt" ["test"] ).
 	Reported by Markus Dreyer <mdreyer@ix.urz.uni-heidelberg.de>.
 	(ebnf-version): New version number (4.0).
 	(ebnf-print-directory, ebnf-print-file, ebnf-spool-directory)
@@ -284,10 +277,9 @@
 	(gdb-var-delete): Make interactive (really).
 	(gdb-edit-value): Make non-interactive.
 
-	* progmodes/gud.el (gud-install-speedbar-variables): Bind
-	gdb-var-delete to "D".
-	(gud-speedbar-menu-items): Add gdb-var-delete and, indirectly,
-	gdb-edit-value.
+	* progmodes/gud.el (gud-speedbar-menu-items):
+	Add gdb-var-delete and, indirectly, gdb-edit-value.
+	(gud-install-speedbar-variables): Bind gdb-var-delete to "D".
 	(gud-speedbar-buttons): Remove gdb-var-delete from tag-line.
 	(gud-gdb-marker-filter): Add comment for annotations.
 
@@ -306,8 +298,7 @@
 2004-02-21  Stephen Compall  <s11@member.fsf.org>
 
 	* saveplace.el (save-place-forget-unreadable-files)
-	(save-place-save-skipped, save-place-skip-check-regexp): New
-	defcustoms.
+	(save-place-save-skipped, save-place-skip-check-regexp): New vars.
 	(save-place-forget-unreadable-files): New function.
 	(save-place-alist-to-file): Use it to filter out files that are
 	no longer readable.
@@ -339,7 +330,7 @@
 
 2004-02-20  John Wiegley  <johnw@newartisans.com>
 
-	* eshell/em-pred.el (eshell-modifier-alist): Changed the "eval
+	* eshell/em-pred.el (eshell-modifier-alist): Change the "eval
 	again" modifier from 'e' to 'E', since 'e' is also used by the
 	"file extension" modifier.
 
@@ -358,8 +349,8 @@
 
 	* gdb-ui.el (gdb-use-colon-colon-notation): Set default to nil for
 	case of variables defined in compound statements.
-	(gdb-setup-windows, gdb-source-info, gdb-source-info): Simplify
-	constructions using switch-to-buffer.
+	(gdb-setup-windows, gdb-source-info, gdb-source-info):
+	Simplify constructions using switch-to-buffer.
 
 2004-02-19  Simon Josefsson  <jas@extundo.com>
 
@@ -447,7 +438,7 @@
 	* rmail-spam-filter.el: (vm-use-spam-filter)
 	(rsf-min-region-length-added-to-spam-list): New	variables.
 	(rsf-bbdb-auto-delete-spam-bbdb-entries): Rename from
-	rmail-bbdb-auto-delete-spam-entries.  Added cc: to recipients for
+	rmail-bbdb-auto-delete-spam-entries.  Add cc: to recipients for
 	spam testing.  Don't delete spam message if automatic deletion
 	after output via variable rmail-delete-after-output is turned on.
 	(rsf-bbdb-dont-create-entries-for-deleted-messages): Rename from
@@ -617,6 +608,7 @@
 	(diff, diff-backup): Use it.
 	(diff): Clean up the args construction.  Use backquote.
 	Use listp instead of consp to avoid putting a nil arg.
+	(diff): Add a revert-buffer function.
 
 2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
