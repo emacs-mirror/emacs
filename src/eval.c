@@ -3240,14 +3240,19 @@ syms_of_eval ()
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
 	      doc: /* *Limit on number of Lisp variable bindings & unwind-protects.
 If Lisp code tries to make more than this many at once,
-an error is signaled.  */);
+an error is signaled.
+You can safely use a value considerably larger than the default value,
+if that proves inconveniently small.  However, if you increase it too far,
+Emacs could run out of memory trying to make the stack bigger.  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", &max_lisp_eval_depth,
 	      doc: /* *Limit on depth in `eval', `apply' and `funcall' before error.
-This limit is to catch infinite recursions for you before they cause
+
+This limit serves to catch infinite recursions for you before they cause
 actual stack overflow in C, which would be fatal for Emacs.
 You can safely make it considerably larger than its default value,
-if that proves inconveniently small.  */);
+if that proves inconveniently small.  However, if you increase it too far,
+Emacs could overflow the real C stack, and crash.  */);
 
   DEFVAR_LISP ("quit-flag", &Vquit_flag,
 	       doc: /* Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.
