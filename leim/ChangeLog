@@ -1,3 +1,9 @@
+2001-10-25  Francesco Potorti`  <pot@gnu.org>
+
+	* quail/latin-post.el ("italian-postfix"): Euro symbol.
+
+	* quail/latin-alt.el ("italian-alt-postfix"): Euro symbol.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
@@ -17,7 +23,7 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-09-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/greek.el ("greek-mizuochi"): Doc fix.  From David Kastrup
@@ -111,9 +117,9 @@
 2001-04-18  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (EMACSLOADPATH): Define.
-	($(TIT)): 
-	($(MISC_DIC)): 
-	(.el.elc): 
+	($(TIT)):
+	($(MISC_DIC)):
+	(.el.elc):
 	(leim-list.el): Remove stuff to set EMACSLOADPATH.
 
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
@@ -171,7 +177,7 @@
 
 	* quail/tsang-b5.el, quail/tsang-cns.el, quail/quick-b5.el,
 	quail/quick-cns.el: Delete them.
-	
+
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (${TIT}): Fix whitespace.
@@ -303,8 +309,8 @@
 
 	* makefile.nt ($(TIT)): Add $(SUBDIRS) as dependents, instead
 	of conditional invocation of make.
-	(TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5) 
-	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN) 
+	(TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5)
+	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN)
 	(TIBETAN, LATIN, SLAVIC, GREEK, RUSSIAN, MISC): Rename all .el
 	files to .elc.
 	($(TIT)): Adjusted for the above change.
@@ -313,8 +319,8 @@
 
 	* makefile.w32-in ($(TIT)): Add $(SUBDIRS) as dependents, instead
 	of conditional invocation of make.
-	(TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5) 
-	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN) 
+	(TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5)
+	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN)
 	(TIBETAN, LATIN, SLAVIC, GREEK, RUSSIAN, MISC): Rename all .el
 	files to .elc.
 	($(TIT)): Adjusted for the above change.
@@ -566,7 +572,7 @@
 	* latin-alt.el ("latin-1-alt-postfix"): Add a method to enter the
 	small superscript underlined o and a.
 	("italian-alt-postfix"): Change it to something useful and
-	different from italian-postfix. 
+	different from italian-postfix.
 	* latin-post.el ("latin-1-postfix"): Add a method to enter the
 	small superscript underlined o and a.
 	("italian-postfix"): Same as above.
@@ -735,7 +741,7 @@
 
 	* quail/hangul.el: Require 'korea-util.
 	(quail-hangul-switch-to-symbol-ksc): Deleted.
-	
+
 1997-10-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/ethiopic.el: The title string of input method "Ethiopic"
@@ -754,7 +760,7 @@
 	* Version 20.1 released.
 
 	* quail/latin-alt.el (latin-2-postfix): Use : for double-acute again.
-	
+
 1997-09-13  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
 
 	* quail/viqr.el (vietnamese-viqr): Doc fix.
@@ -766,7 +772,7 @@
 1997-09-12  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* quail/latin-post.el: Undo previous change.
-	
+
 1997-09-12  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* quail/latin-post.el (latin-2-postfix):
@@ -1027,7 +1033,7 @@
 	* Makefile.in: Rules re-written to avoid tricky code.
 	(CHINEGE-GB): Include quail/py-punct.elc.
 	(CHINEGE-BIG5): Include quail/py-punct-b5.elc.
-	
+
 
 1997-07-10  Kenichi Handa  <handa@etl.go.jp>
 
