@@ -31,7 +31,11 @@ support 64-bit executables.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
-* The Strokes package has been updated.  If your Emacs has XPM
+** The new user-option `find-file-suppress-same-file-warnings' can be
+set to suppress warnings ``X and Y are the same file'' when visiting a
+file that is already visited under a different name.
+
+** The Strokes package has been updated.  If your Emacs has XPM
 support, you can use it for pictographic editing.  In Strokes mode,
 use C-mouse-2 to compose a complex stoke and insert it into the
 buffer.  You can encode or decode a strokes buffer with new commands
@@ -39,10 +43,10 @@ M-x strokes-encode-buffer and M-x strokes-decode-buffer.  There is a
 new command M-x strokes-list-strokes.
 
 +++
-* New command M-x describe-character-set reads a character set name
+** New command M-x describe-character-set reads a character set name
 and displayes information about that.
 
-* When an error is signaled during the loading of the user's init
+** When an error is signaled during the loading of the user's init
 file, Emacs now pops up the *Messages* buffer.
 
 ** Polish and German translations of Emacs' reference card have been
@@ -1594,6 +1598,8 @@ functionality with aliases for the mldrag functions.
 ** In image specifications, `:heuristic-mask' has been replaced
 with the more general `:mask' property.
 
+** Image specifications accept more `:algorithm's.
+
 ** A `?' can be used in a symbol name without escaping it with a
 backslash.
 
@@ -3055,6 +3061,9 @@ Emboss edge-detection uses a matrix of
   ( 2 -1  0
    -1  0  1
     0  1 -2)
+
+ALGO `disabled' means transform the image so that it looks
+``disabled''.
 
 `:mask MASK'
 

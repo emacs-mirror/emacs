@@ -12,6 +12,11 @@
 	more exactly for the case that font-lock-constant-face is
 	underlined.
 
+2000-09-19  Richard M. Stallman  <rms@gnu.org>
+	
+	* progmodes/sh-script.el (sh-search-word): Rewritten for
+	speed.
+
 2000-09-19  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-revert-buffer): Set vc-checkout-time correctly.
