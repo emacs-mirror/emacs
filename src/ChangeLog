@@ -1,3 +1,151 @@
+2000-03-21  Kenichi HANDA  <handa@etl.go.jp>
+
+	The following changes to make font selection based on characters,
+	not charset.  In addition, they recover fontset facilities while
+	utilizing the new font selection mechanism.
+
+	* dispextern.h (struct glyph): New member glyph_not_available_p.
+	Use 22 bits for face_id.
+	(enum lface_attribute_index): Add LFACE_FONT_INDEX.
+	(struct face): Delete member registry, new member ascii_face.
+	(FACE_SUITABLE_FOR_CHAR_P): Renamed from
+	FACE_SUITABLE_FOR_CHARSET_P.  Caller changed.
+	(FACE_FOR_CHAR): Renamed from FACE_FOR_CHARSET.  Caller changed.
+	(struct it): Delete member charset, new member
+	glyph_not_available_p.
+
+	* fontset.h (FONT_NOT_OPENED, FONT_NOT_FOUND): Macros removed.
+	(struct fontset_info, struct fontset_data): Structs removed.
+	(allloc_fontset_data, free_fontset_data, fs_regiser_fontset,
+	Vglobale_fontset_alist, font_idx_temp): Externs removed.
+	(fs_load_font, fs_query_fontset): Adjusted for new argument.
+	(fs_free_face_fontset, fontset_font_pattern,
+	face_suitable_for_char_p, face_for_char,
+	make_fontset_for_ascii_face): Extern them.
+	(FS_LOAD_FONT): Adjusted for the change of fontset implementation.
+	(FS_LOAD_FACE_FONT): New macro.
+
+	* fontset.c: All codes rewritten or adjusted for the change of
+	fontset implementation.  Now fontset is represented by char table.
+	(Vglobal_fontset_alist, font_idx_temp, my_strcasetbl): Variables
+	removed.
+	(my_strcasecmp): Function removed.
+	(Vfontset_table, next_fontset_id, Vdefault_fontset): New
+	variables.
+	(AREF, ASIZE): New macros.
+	(FONTSET_FROM_ID, FONTSET_ID, FONTSET_NAME, FONTSET_FRAME,
+	FONTSET_ASCII, FONTSET_BASE, BASE_FONTSET_P, FONTSET_REF,
+	FONTSET_REF_VIA_BASE, FONTSET_SET): New macros.
+	(fontset_ref, fontset_ref_via_base, fontset_set, make_fontset,
+	fontset_id_valid_p, font_family_registry, fontset_name,
+	fontset_ascii, free_face_fontset, face_suitable_for_char_p,
+	face_for_char, make_fontset_for_ascii_face, fontset_font_pattern):
+	New functions.
+	(fs_load_font): New arg FACE.  Caller changed.
+	(fs_query_fontset): Argument changed.  Caller changed.
+	(Fquery_fontset): call fs_query_fontset.
+	(fs_register_fontset, alloc_fontset_data, free_fontset_data):
+	Functions removed.
+	(clear_fontset_elements, check_registry_encoding,
+	check_fontset_name): New functions.
+	(syms_of_fontset): Set char-table-extra-slots property of fontset
+	to 3.  Staticpro and initialize Vfontset_table and
+	Vdefault_fontset.  Defsubr fontset_font and fontset_list.
+
+	* frame.h (struct frame): Member `fontset_data' removed.
+	(FRAME_FONTSET_DATA): Macro removed.
+
+	* frame.c (make_frame): Don't allocate f->fontset_data.
+	(Fdelete_frame): Don't free f->fontset_data.
+
+	* xdisp.c (charset_at_position): Function removed.
+	(init_iterator): Don't set member charset of struct `it'.
+	(handle_face_prop, reseat_to_string, set_iterator_to_next,
+	next_element_from_display_vector, insert_left_trunc_glyphs):
+	Likewise.
+	(face_before_or_after_it_pos): Call FACE_FOR_CHAR, not
+	FACE_FOR_CHARSET.
+	(get_next_display_element, append_space,
+	extend_face_to_end_of_line): Likewise.
+
+	* xfaces.c (Qx_charset_registry, Vface_default_registry):
+	Variables removed.
+	(clear_font_table, frame_update_line_height, load_face_font):
+	Adjusted for the change of fontset implementation.
+	(load_face_fontset_font): Function removed.
+	(pixel_point_size): New function.
+	(font_list): Argument type changed.  Caller changed.
+	(LFACE_FONT): New macro.
+	(check_lface_attrs): Check attr[LFACE_FONT_INDEX].
+	(set_lface_from_font_name): Type of arg FONTNAME is changed to
+	Lisp_Object.  Determine the font name by actually loading a font
+	by the specified pattern.  Set LFACE_FONT (lface) to the specified
+	pattern.  Even if a font is not found, don't try alternatives.
+	(Finternal_set_lisp_face_attribute): Handle `font' slot in lface.
+	(set_font_frame_param): If `font' is specified in lface, use it.
+	(Finternal_get_lisp_face_attribute): Handle `font' slot in lface.
+	(lface_same_font_attributes_p): Likewise.
+	(make_realized_face): Arguent changed.  Caller changed.  Set
+	face->ascii_face to face itself.
+	(free_realized_face): Free face->fontset if face is for ASCII.
+	(face_suitable_for_iso8859_1_p, face_suitable_for_charset_p,
+	deduce_unibyte_registry, x_charset_registry): Functions removed.
+	(free_realized_multibyte_face): New function.
+	(lookup_face, lookup_named_face, lookup_derived_face): Argument
+	changed.  Caller changed.
+	(try_font_list): Argument type changed.
+	(face_fontset): Check `font' slot of ATTRS, not `family' slot.
+	(choose_face_font): Argument changed.  Handle fontset properly.
+	(choose_face_fontset_font): Function removed.
+	(realize_default_face, realize_named_face): Don't remove the
+	former face here.
+	(realize_face): Argument changed.  Caller changed.  Remove face
+	with the arg former_face_id in advance.  Load font for the new
+	face.
+	(realize_x_face): Argument changed.  Caller changed.  For a
+	multibyte character, share fontset with base_face.  For a single
+	byte character, make a new realized fontset.  Don't load a font
+	here.
+	(realize_tty_face): Argument changed.  Caller changed.
+	(compute_char_face): Call FACE_FOR_CHAR, not FACE_FOR_CHARSET.
+	(face_at_buffer_position): Don't check multibyte_p for returning
+	DEFAULT_FACE_ID.
+	(face_at_string_position): Call FACE_SUITABLE_FOR_CHAR_P, not
+	FACE_SUITABLE_FOR_CHARSET_P.
+	(syms_of_xfaces): Remove code for Qx_charset_registry and
+	Vface_default_registry.
+
+	* xterm.c: Include fontset.h after dispextern.h.
+	(x_per_char_metric): Don't try FONT->default_char.  Even if
+	pcm->width is zero, glyph bits may exist.
+	(x_encode_char): Always initialize char2b->byte1.
+	(x_get_char_face_and_encoding): Call FACE_FOR_CHAR to get face_id.
+	(x_get_glyph_face_and_encoding): New arg two_byte_p.  Caller
+	changed.
+	(x_append_glyph): Set glyph->glyph_not_available_p.
+	(x_produce_glyphs): Set it->glyph_not_available_p.  Don't set
+	it->charset.  Handle the case that per char metric is not
+	available.  If it->multibyte_p is zero and it->c is a multibyte
+	character, convert it to a unibyte character.
+	(struct glyph_string): Delete member `charset'.
+	(x_set_mouse_face_gc): Call FACE_FOR_CHAR to get face_id.  Handle
+	the case that per char metric is not available correctly.
+	(x_fill_glyph_string): Handle the case that the specific glyph is
+	not available correctly.
+	(BUILD_CHAR_GLYPH_STRINGS): Don't set s->charset.
+	(BUILD_COMPOSITE_GLYPH_STRING): Likewise.
+	(x_new_font): Call FS_LOAD_FONT, not fs_load_font.
+	(x_new_fontset): Call fontset_ascii to get ASCII font name of the
+	fontset.  Don't call FS_LOAD_FONT.
+
+	* xfns.c (Fx_create_frame): Don't cal fs_register_fontset.
+	(x_create_tip_frame): Likewise.
+	(Fx_close_connection): Free full_name of font_info.
+
+	* fns.c (optimize_sub_char_table): New function.
+	(Foptimize_char_table): New function.
+	(syms_of_fns): Defsubr Soptimize_char_table.
+
 2000-03-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (Fset_buffer_modified_p): Set update_mode_lines
