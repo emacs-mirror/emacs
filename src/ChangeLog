@@ -1,5 +1,17 @@
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (freeze_window_starts): Construct last argument for
+	foreach_window differently.
+
+	* xfns.c (x_decode_color): Don't return a Lisp_Object.
+
+	* lisp.h (union Lisp_Object) [!NO_UNION_TYPE]: Use EMACS_INT and
+	EMACS_UINT instead of `int' and `unsigned int'.
+	(XSET) [EXPLICIT_SIGN_EXTEND]: Use EMACS_INT instead of `int'.
+
+	* frame.h (struct frame): Make the `nothing' member of union
+	output_data an EMACS_INT.
+
 	* alloc.c (GC_CHECK_STRING_BYTES): Temporarily define, for bug
 	hunting.
 	(struct sdata) [GC_CHECK_STRING_BYTES]: Always record the string's
