@@ -92,10 +92,6 @@
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard
 
-(define-key global-map [cut] 'clipboard-kill-region)
-(define-key global-map [copy] 'clipboard-kill-ring-save)
-(define-key global-map [paste] 'clipboard-yank)
-
 (put 'clipboard-kill-region 'menu-enable 'mark-active)
 (put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
 (put 'clipboard-yank 'menu-enable
@@ -125,6 +121,11 @@
   (define-key menu-bar-edit-menu [paste] '("Paste" . clipboard-yank))
   (define-key menu-bar-edit-menu [copy] '("Copy" . clipboard-kill-ring-save))
   (define-key menu-bar-edit-menu [cut] '("Cut" . clipboard-kill-region)))
+
+;; Sun expects these commands on these keys, so why not?
+(define-key global-map [f20] 'clipboard-kill-region)
+(define-key global-map [f16] 'clipboard-kill-ring-save)
+(define-key global-map [f18] 'clipboard-yank)
 
 (define-key menu-bar-help-menu [emacs-tutorial]
   '("Emacs Tutorial" . help-with-tutorial))
