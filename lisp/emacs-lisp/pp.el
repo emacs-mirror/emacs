@@ -117,7 +117,7 @@ value."
 	       (goto-char (point-min))
 	       (end-of-line 1)
 	       (if (or (< (1+ (point)) (point-max))
-		       (>= (- (point) (point-min)) (screen-width)))
+		       (>= (- (point) (point-min)) (frame-width)))
 		   (let ((temp-buffer-show-function old-show-function)
 			 (old-selected (selected-window))
 			 (window (display-buffer buf)))
