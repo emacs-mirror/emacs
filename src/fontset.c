@@ -1158,7 +1158,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
   c = FETCH_CHAR (pos_byte);
   if (! CHAR_VALID_P (c, 0))
     return Qnil;
-  window = Fget_buffer_window (Fcurrent_buffer (), Qt);
+  window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   if (NILP (window))
     return Qnil;
   w = XWINDOW (window);
