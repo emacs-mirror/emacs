@@ -1960,7 +1960,7 @@ See also `file-readable-p' and `file-attributes'.")
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
   "Return t if FILENAME can be executed by you.\n\
-For directories this means you can change to that directory.")
+For a directory, this means you can access files in that directory.")
   (filename)
     Lisp_Object filename;
 
