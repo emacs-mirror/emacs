@@ -1086,9 +1086,10 @@ XlwMenuInitialize (request, mw, args, num_args)
 /*  mw->menu.cursor = XCreateFontCursor (display, mw->menu.cursor_shape); */
   mw->menu.cursor = mw->menu.cursor_shape;
   
-  mw->menu.gray_pixmap = XCreatePixmapFromBitmapData (display, window,
-						      gray_bits, gray_width,
-						      gray_height, 1, 0, 1);
+  mw->menu.gray_pixmap
+    = XCreatePixmapFromBitmapData (display, window, gray_bits,
+				   gray_width, gray_height,
+				   (unsigned long)1, (unsigned long)0, 1);
   
   /* I don't understand why this ends up 0 sometimes,
      but it does.  This kludge works around it.
