@@ -34,7 +34,7 @@
 
 (make-coding-system
  'iso-latin-1 2 ?1
- "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)"
+ "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
  '(ascii latin-iso8859-1 nil nil
    nil nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-1)
@@ -76,7 +76,7 @@ Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
 
 (make-coding-system
  'iso-latin-2 2 ?2
- "ISO 2022 based 8-bit encoding (MIME:ISO-8859-2)"
+ "ISO 2022 based 8-bit encoding for Latin-2 (MIME:ISO-8859-2)."
  '(ascii latin-iso8859-2 nil nil
    nil nil nil nil nil nil nil)
  '((safe-charsets ascii latin-iso8859-2)
@@ -110,7 +110,7 @@ We also have specific language environments for the following languages:
 
 (make-coding-system
  'iso-latin-3 2 ?3
- "ISO 2022 based 8-bit encoding (MIME:ISO-8859-3)"
+ "ISO 2022 based 8-bit encoding for Latin-3 (MIME:ISO-8859-3)."
  '(ascii latin-iso8859-3 nil nil
    nil nil nil nil nil nil nil)
  '((safe-charsets ascii latin-iso8859-3)
@@ -138,7 +138,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 
 (make-coding-system
  'iso-latin-4 2 ?4
- "ISO 2022 based 8-bit encoding (MIME:ISO-8859-4)"
+ "ISO 2022 based 8-bit encoding for Latin-4 (MIME:ISO-8859-4)."
  '(ascii latin-iso8859-4 nil nil
    nil nil nil nil nil nil nil)
  '((safe-charsets ascii latin-iso8859-4)
@@ -166,7 +166,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 
 (make-coding-system
  'iso-latin-5 2 ?9
- "ISO 2022 based 8-bit encoding (MIME:ISO-8859-9)"
+ "ISO 2022 based 8-bit encoding for Latin-5 (MIME:ISO-8859-9)."
  '(ascii latin-iso8859-9 nil nil
    nil nil nil nil nil nil nil)
  '((safe-charsets ascii latin-iso8859-9)
@@ -185,8 +185,8 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (input-method . "latin-5-postfix")
 	     (documentation . "\
 These languages are supported with the Latin-5 (ISO-8859-9) character set:
-Bulgarian, Byelorussian, (Slavic) Macedonian, Russian, Serbian and
-Ukranian."))				; says ISO 8859-1
+ Bulgarian, Byelorussian, (Slavic) Macedonian, Russian, Serbian and
+ Ukranian."))				; says ISO 8859-1
  '("European"))
 
 
@@ -195,7 +195,7 @@ Ukranian."))				; says ISO 8859-1
 (make-coding-system
  'iso-latin-8 2 ?W			; `W' for `Welsh', since `C'
 					; for `Celtic' is taken.
- "ISO 2022 based 8-bit encoding for Latin-8 (MIME:ISO-8859-14)"
+ "ISO 2022 based 8-bit encoding for Latin-8 (MIME:ISO-8859-14)."
  '(ascii latin-iso8859-14 nil nil
    nil nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-14)
@@ -217,15 +217,15 @@ Ukranian."))				; says ISO 8859-1
 	     (documentation . "\
 This language environment is a generic one for the Latin-8 (ISO-8859-14)
 character set which supports the Celtic languages, including those not
-covered by other ISO-8859 character sets: Welsh, Manx Gaelic and
-Irish Gaelic (old orthography)."))
+covered by other ISO-8859 character sets:
+ Welsh, Manx Gaelic and Irish Gaelic (old orthography)."))
  '("European"))
 
 ;; Latin-9 (ISO-8859-15)
 
 (make-coding-system
  'iso-latin-9 2 ?0			; `0' for `Latin-0'
- "ISO 2022 based 8-bit encoding for Latin-9 (MIME:ISO-8859-15)"
+ "ISO 2022 based 8-bit encoding for Latin-9 (MIME:ISO-8859-15)."
  '(ascii latin-iso8859-15 nil nil
    nil nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-15)
@@ -266,7 +266,8 @@ German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but the default input method is set to \"german-postfix\"."))
+but the default input method is set to \"german-postfix\".
+Additionally, the tutorial is set to \"TUTORIAL.de\"."))
  '("European"))
 
 (set-language-info-alist
@@ -324,7 +325,7 @@ and it selects the Spanish tutorial."))
 	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
 	   (documentation . "\
 This language environment is almost the same as Latin-1,
-but select's the Dutch tutorial."))
+but the Dutch tutorial is selected."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
@@ -568,7 +569,8 @@ but select's the Dutch tutorial."))
   "CCL program to encode Mac Roman")
 
 (make-coding-system
- 'mac-roman 4 ?M "Mac Roman Encoding"
+ 'mac-roman 4 ?M
+ "Mac Roman Encoding (MIME:MACINTOSH)."
  '(decode-mac-roman . encode-mac-roman)
  '((safe-chars . mac-roman-encoder)
    (valid-codes (0 . 255))

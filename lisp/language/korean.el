@@ -30,7 +30,7 @@
 
 (make-coding-system
  'korean-iso-8bit 2 ?K
- "ISO 2022 based EUC encoding for Korean KSC5601 (MIME:EUC-KR)"
+ "ISO 2022 based EUC encoding for Korean KSC5601 (MIME:EUC-KR)."
  '(ascii korean-ksc5601 nil nil
    nil ascii-eol ascii-cntl)
  '((safe-charsets ascii korean-ksc5601)

@@ -84,7 +84,7 @@
 
 (make-coding-system
  'tibetan-iso-8bit 2 ?Q
- "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)"
+ "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)."
  '(ascii tibetan nil nil
    nil nil)
  '((safe-charsets ascii tibetan)

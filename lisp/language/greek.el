@@ -30,7 +30,7 @@
 
 (make-coding-system
  'greek-iso-8bit 2 ?7
- "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)"
+ "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)."
  '(ascii greek-iso8859-7 nil nil
    nil nil nil nil nil nil nil)
  '((safe-charsets ascii greek-iso8859-7)

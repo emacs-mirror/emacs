@@ -42,7 +42,7 @@
 	   (documentation . "\
 This language environment is almost the same as Latin-2,
 but default input method is set to \"czech\",
-and select's the Czech tutorial."))
+and the Czech tutorial is selected."))
  '("European"))
 
 (provide 'czech)

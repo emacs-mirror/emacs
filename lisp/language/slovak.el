@@ -43,7 +43,7 @@
 	    (documentation . "\
 This language environment is almost the same as Latin-2,
 but default input method is set to \"slovak\",
-and select's the Slovak tutorial."))
+and the Slovak tutorial is selected."))
  '("European"))
 
 (provide 'slovak)

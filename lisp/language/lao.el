@@ -29,7 +29,7 @@
 
 (make-coding-system
  'lao 2 ?L
- "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)"
+ "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)."
  '(ascii lao nil nil
    nil nil)
  '((safe-charsets ascii lao)

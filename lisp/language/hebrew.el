@@ -33,7 +33,7 @@
 
 (make-coding-system
  'hebrew-iso-8bit 2 ?8
- "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)"
+ "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)."
  '(ascii hebrew-iso8859-8 nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil t)
  '((safe-charsets ascii hebrew-iso8859-8)
@@ -62,7 +62,8 @@
  "Windows-1255" '((coding-priority windows-1255)
 		  (coding-system windows-1255)
 		  (features code-pages)
-		  (documentation . "Support for Windows-1255 encoding, e.g. for Yiddish.
+		  (documentation . "\
+Support for Windows-1255 encoding, e.g. for Yiddish.
 Right-to-left writing is not yet supported.")))
 
 (provide 'hebrew)

@@ -36,7 +36,7 @@
 
 (make-coding-system
  'cyrillic-iso-8bit 2 ?5
- "ISO 2022 based 8-bit encoding for Cyrillic script (MIME:ISO-8859-5)"
+ "ISO 2022 based 8-bit encoding for Cyrillic script (MIME:ISO-8859-5)."
  '(ascii cyrillic-iso8859-5  nil nil
    nil nil nil nil nil nil nil)
  '((safe-charsets ascii cyrillic-iso8859-5)
@@ -111,7 +111,8 @@
  ;; but it is also used for Korean.
  ;; So people who use koi8 for languages other than Russian
  ;; will have to forgive us.
- ?R "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)"
+ ?R
+ "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)."
  '(ccl-decode-koi8 . ccl-encode-koi8)
  `((safe-chars . ,(let ((table (make-char-table 'safe-chars))
 			(i 0))
@@ -202,7 +203,7 @@
 	     
 (make-coding-system
  'cyrillic-alternativnyj 4 ?A
- "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
+ "ALTERNATIVNYJ 8-bit encoding for Cyrillic."
  '(ccl-decode-alternativnyj . ccl-encode-alternativnyj)
  `((safe-chars . ,(let ((table (make-char-table 'safe-chars))
 			(i 0))

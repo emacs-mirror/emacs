@@ -31,7 +31,7 @@
 
 (make-coding-system
  'in-is13194 2 ?D
- "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)"
+ "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)."
  '(ascii indian-is13194 nil nil
    nil ascii-eol)
  '((safe-charsets ascii indian-is13194)

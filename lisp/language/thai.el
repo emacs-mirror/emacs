@@ -30,7 +30,7 @@
 
 (make-coding-system
  'thai-tis620 2 ?T
- "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)"
+ "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
  '(ascii thai-tis620 nil nil
    nil ascii-eol)
  '((safe-charsets ascii thai-tis620)

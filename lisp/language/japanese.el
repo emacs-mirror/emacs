@@ -31,7 +31,7 @@
 
 (make-coding-system
  'iso-2022-jp 2 ?J
- "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)"
+ "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)."
  '((ascii japanese-jisx0208-1978 japanese-jisx0208
 	  latin-jisx0201 japanese-jisx0212) nil nil nil
    short ascii-eol ascii-cntl seven)
@@ -43,7 +43,7 @@
 
 (make-coding-system
  'iso-2022-jp-2 2 ?J
- "ISO 2022 based 7bit encoding for CJK, Latin-1, and Greek (MIME:ISO-2022-JP-2)"
+ "ISO 2022 based 7bit encoding for CJK, Latin-1, and Greek (MIME:ISO-2022-JP-2)."
  '((ascii japanese-jisx0208-1978 japanese-jisx0208
 	  latin-jisx0201 japanese-jisx0212
 	  chinese-gb2312 korean-ksc5601) nil
@@ -57,7 +57,7 @@
 
 (make-coding-system
  'japanese-shift-jis 1 ?S
- "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)"
+ "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)."
  nil
  '((safe-charsets ascii japanese-jisx0208 japanese-jisx0208-1978
 		  latin-jisx0201 katakana-jisx0201)
@@ -70,7 +70,7 @@
 
 (make-coding-system
  'japanese-iso-7bit-1978-irv 2 ?j
- "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman"
+ "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman."
  '((ascii japanese-jisx0208-1978 japanese-jisx0208
 	  latin-jisx0201 japanese-jisx0212 katakana-jisx0201 t) nil nil nil
    short ascii-eol ascii-cntl seven nil nil use-roman use-oldjis)
@@ -81,7 +81,7 @@
 
 (make-coding-system
  'japanese-iso-8bit 2 ?E
- "ISO 2022 based EUC encoding for Japanese (MIME:EUC-JP)"
+ "ISO 2022 based EUC encoding for Japanese (MIME:EUC-JP)."
  '(ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212
    short ascii-eol ascii-cntl nil nil single-shift)
  '((safe-charsets ascii latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978

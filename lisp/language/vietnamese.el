@@ -133,7 +133,7 @@
 
 (make-coding-system
  'vietnamese-viscii 4 ?V
- "8-bit encoding for Vietnamese VISCII 1.1 (MIME:VISCII)"
+ "8-bit encoding for Vietnamese VISCII 1.1 (MIME:VISCII)."
  '(ccl-decode-viscii . ccl-encode-viscii)
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
    (mime-charset . viscii)
@@ -143,7 +143,7 @@
 
 (make-coding-system
  'vietnamese-vscii 4 ?v
- "8-bit encoding for Vietnamese VSCII-1"
+ "8-bit encoding for Vietnamese VSCII-1."
  '(ccl-decode-vscii . ccl-encode-vscii)
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
    (valid-codes (0 . 255))))
@@ -152,7 +152,7 @@
 
 (make-coding-system
  'vietnamese-viqr 0 ?q
- "Vietnamese latin transcription (VIQR)"
+ "Encoding for Vietnamese latin transcription (VIQR)."
  nil
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
    (post-read-conversion . viqr-post-read-conversion)
@@ -183,8 +183,8 @@
 		(features viet-util)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
-For Vietnamese, Emacs uses special charasets internally.
-They can be decoded from and encoded to VISCC, VSCII, and VIQR.
+For Vietnamese, Emacs uses special character sets internally.
+They can be decoded from and encoded to VISCII, VSCII, and VIQR.
 Current setting put higher priority to the coding system VISCII than VSCII.
 If you prefer VSCII, please do: (prefer-coding-system 'vietnamese-vscii)")
 		))
