@@ -4412,7 +4412,7 @@ This does code conversion according to the value of\n\
 
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (! NILP (confirm) && confirm != Qexcl)
+  if (! NILP (mustbenew) && mustbenew != Qexcl)
     barf_or_query_if_file_exists (filename, "overwrite", 1, 0, 1);
 
   if (STRINGP (visit))
@@ -4546,11 +4546,12 @@ This does code conversion according to the value of\n\
 #else /* not VMS */
 #ifdef DOS_NT
   desc = open (fn,
-	       O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type,
+	       O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type
+	       | (mustbenew == Qexcl ? O_EXCL : 0),
 	       S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
   desc = open (fn, O_WRONLY | O_TRUNC | O_CREAT
-	       | (confirm == Qexcl ? O_EXCL : 0),
+	       | (mustbenew == Qexcl ? O_EXCL : 0),
 	       auto_saving ? auto_save_mode_bits : 0666);
 #endif /* not DOS_NT */
 #endif /* not VMS */
