@@ -1,3 +1,7 @@
+2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* abbrev.c: Put doc strings in comments.
+
 2001-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (window_loop): Don't check for Fother_buffer returning
