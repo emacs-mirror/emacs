@@ -1178,10 +1178,6 @@ run `normal-mode' explicitly."
     ("\\.tex\\'" . tex-mode)
     ("\\.ltx\\'" . latex-mode)
     ("\\.el\\'" . emacs-lisp-mode)
-    ("\\.mm\\'" . nroff-mode)
-    ("\\.me\\'" . nroff-mode)
-    ("\\.ms\\'" . nroff-mode)
-    ("\\.man\\'" . nroff-mode)
     ("\\.scm\\'" . scheme-mode)
     ("\\.l\\'" . lisp-mode)
     ("\\.lisp\\'" . lisp-mode)
@@ -1228,6 +1224,10 @@ run `normal-mode' explicitly."
     ("\\(/\\|\\`)\\.\\(bash_profile\\|z?login\\|bash_login\\|z?logout\\)\\'" . sh-mode)
     ("\\(/\\|\\`)\\.\\(bash_logout\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
     ("\\(/\\|\\`)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
+    ("\\.mm\\'" . nroff-mode)
+    ("\\.me\\'" . nroff-mode)
+    ("\\.ms\\'" . nroff-mode)
+    ("\\.man\\'" . nroff-mode)
 ;;; The following should come after the ChangeLog pattern
 ;;; for the sake of ChangeLog.1, etc.
 ;;; and after the .scm.[0-9] pattern too.
