@@ -89,7 +89,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.7 $" 11 -2)
+   (substring "$Revision: 1.8 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -405,6 +405,9 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (setq comint-dynamic-complete-functions 
 	'(ielm-tab comint-replace-by-expanded-history ielm-complete-filename ielm-complete-symbol))
   (setq comint-get-old-input 'ielm-get-old-input)
+  (make-local-variable 'comint-completion-addsuffix)
+  (setq comint-completion-addsuffix
+	(cons (char-to-string directory-sep-char) ""))
 
   (setq major-mode 'inferior-emacs-lisp-mode)
   (setq mode-name "IELM")
