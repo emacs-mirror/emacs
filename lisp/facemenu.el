@@ -415,7 +415,7 @@ These special properties include `invisible', `intangible' and `read-only'."
 	       (< (length (setq str (format "Text property at %d:  %s  %S"
 					    p (car props) (car (cdr props)))))
 		  (frame-width)))
-	  (message str)
+	  (message "%s" str)
 	(with-output-to-temp-buffer "*Text Properties*"
 	  (princ (format "Text properties at %d:\n\n" p))
 	  (while props
