@@ -1,3 +1,8 @@
+2001-03-19  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/reftex-dcr.el (reftex-view-crossref): Doc fix.  From
+	Roland Winkler <Roland.Winkler@physik.uni-erlangen.de>.
+
 2001-03-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* language/european.el ("Latin-5", "Latin-4"): Use postfix input
