@@ -186,6 +186,11 @@ Ordinarily the text becomes invisible again at the end of the search."
   :type 'boolean 
   :group 'isearch)
 
+(defcustom isearch-resume-enabled t
+  "*If non-nil, `isearch-resume' commands are added to the command history."
+  :type 'boolean
+  :group 'isearch)
+
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
 
@@ -647,12 +652,13 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq disable-point-adjustment t))
 
 (defun isearch-done (&optional nopush edit)
-  (let ((command `(isearch-resume ,isearch-string ,isearch-regexp
-				  ,isearch-word ,isearch-forward
-				  ,isearch-message
-				  ',isearch-case-fold-search)))
-    (unless (equal (car command-history) command)
-      (setq command-history (cons command command-history))))
+  (if isearch-resume-enabled
+      (let ((command `(isearch-resume ,isearch-string ,isearch-regexp
+				      ,isearch-word ,isearch-forward
+				      ,isearch-message
+				      ',isearch-case-fold-search)))
+	(unless (equal (car command-history) command)
+	  (setq command-history (cons command command-history)))))
 
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
