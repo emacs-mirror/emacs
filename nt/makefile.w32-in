@@ -62,67 +62,145 @@ $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
 
 which-sh:
-		@echo Using $(THE_SHELL) as shell.
+	@echo Using $(THE_SHELL) as shell.
 
 #
 # Build emacs
 #
-all:		which-sh $(BLD) $(ALL) all-other-dirs
+all:	which-sh $(BLD) $(ALL) all-other-dirs-$(SHELLTYPE)
+
+all-other-dirs-CMD:
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) all
+	cd ..\src
+	$(MAKE) $(MFLAGS) all
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) all
+	cd ..\leim
+	$(MAKE) $(MFLAGS) all
+	cd ..\nt
+
+all-other-dirs-SH:
+	$(MAKE) $(MFLAGS) -C ../lib-src all
+	$(MAKE) $(MFLAGS) -C ../src all
+	$(MAKE) $(MFLAGS) -C ../lisp all
+	$(MAKE) $(MFLAGS) -C ../leim all
+
+bootstrap:	$(BLD) $(ALL) bootstrap-$(SHELLTYPE)
+
+bootstrap-CMD:
+	cd ..\src
+	$(MAKE) $(MFLAGS) bootstrap
+	$(MAKE) $(MFLAGS) bootstrap-clean
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) bootstrap
+	cd ..\nt
+
+bootstrap-SH:
+	$(MAKE) $(MFLAGS) -C ../src bootstrap
+	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
+	$(MAKE) $(MFLAGS) -C ../lisp bootstrap
+
+bootstrap-clean: bootstrap-clean-$(SHELLTYPE)
+
+bootstrap-clean-CMD:
+	cd ..\src
+	$(MAKE) $(MFLAGS) bootstrap-clean
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) bootstrap-clean
+
+bootstrap-clean-SH:
+	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
+	$(MAKE) $(MFLAGS) -C ../lisp bootstrap-clean
 
 $(INSTALL_DIR):
-		- mkdir "$(INSTALL_DIR)"
+	- mkdir "$(INSTALL_DIR)"
 
 $(INSTALL_DIR)/bin:
-		- mkdir "$(INSTALL_DIR)/bin"
+	- mkdir "$(INSTALL_DIR)/bin"
 
 #
 # Build and install emacs in INSTALL_DIR
 #
-install:	all $(INSTALL_DIR)/bin install-other-dirs
-		- $(CP) $(BLD)/addpm.exe $(INSTALL_DIR)/bin
-		- $(CP) $(BLD)/ddeclient.exe $(INSTALL_DIR)/bin
-		- $(CP) $(BLD)/cmdproxy.exe $(INSTALL_DIR)/bin
-		- $(CP) $(BLD)/runemacs.exe $(INSTALL_DIR)/bin
-		- $(CP) ../lib-src/fns-*.el $(INSTALL_DIR)/bin
-		- "$(INSTALL_DIR)/bin/addpm" /q
-		- $(DEL) ../same-dir.tst
-		- $(DEL) $(INSTALL_DIR)/same-dir.tst
-		- mkdir "$(INSTALL_DIR)/etc/icons"
-		- $(CP_DIR) icons $(INSTALL_DIR)/etc/icons
-		echo SameDirTest > "$(INSTALL_DIR)/same-dir.tst"
-		$(IFNOTSAMEDIR) $(MAKE) real_install $(ENDIF)
-		- $(DEL) ../same-dir.tst
-		- $(DEL) $(INSTALL_DIR)/same-dir.tst
+install: all $(INSTALL_DIR)/bin install-other-dirs-$(SHELLTYPE)
+	- $(CP) $(BLD)/addpm.exe $(INSTALL_DIR)/bin
+	- $(CP) $(BLD)/ddeclient.exe $(INSTALL_DIR)/bin
+	- $(CP) $(BLD)/cmdproxy.exe $(INSTALL_DIR)/bin
+	- $(CP) $(BLD)/runemacs.exe $(INSTALL_DIR)/bin
+	- $(CP) ../lib-src/fns-*.el $(INSTALL_DIR)/bin
+	- "$(INSTALL_DIR)/bin/addpm" /q
+	- $(DEL) ../same-dir.tst
+	- $(DEL) $(INSTALL_DIR)/same-dir.tst
+	- mkdir "$(INSTALL_DIR)/etc/icons"
+	- $(CP_DIR) icons $(INSTALL_DIR)/etc/icons
+	echo SameDirTest > "$(INSTALL_DIR)/same-dir.tst"
+	$(IFNOTSAMEDIR) $(MAKE) $(MFLAGS) real_install $(ENDIF)
+	- $(DEL) ../same-dir.tst
+	- $(DEL) $(INSTALL_DIR)/same-dir.tst
+
+install-other-dirs-CMD:
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) install
+	cd ..\src
+	$(MAKE) $(MFLAGS) install
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) install
+	cd ..\leim
+	$(MAKE) $(MFLAGS) install
+	cd ..\nt
+
+install-other-dirs-SH:
+	$(MAKE) $(MFLAGS) -C ../lib-src install
+	$(MAKE) $(MFLAGS) -C ../src install
+	$(MAKE) $(MFLAGS) -C ../lisp install
+	$(MAKE) $(MFLAGS) -C ../leim install
 
 real_install:
-		- $(DEL) ../same-dir.tst
-		- $(DEL) $(INSTALL_DIR)/same-dir.tst
-		echo SameDirTest > $(INSTALL_DIR)/same-dir.tst
-		- mkdir "$(INSTALL_DIR)/etc"
-		- mkdir "$(INSTALL_DIR)/info"
-		- mkdir "$(INSTALL_DIR)/lock"
-		- mkdir "$(INSTALL_DIR)/data"
-		- mkdir "$(INSTALL_DIR)/site-lisp"
-		- mkdir "$(INSTALL_DIR)/etc/icons"
-		- $(CP_DIR) icons $(INSTALL_DIR)/etc/icons
-		$(IFNOTSAMEDIR) $(CP_DIR) ../etc $(INSTALL_DIR)/etc $(ENDIF)
-		$(IFNOTSAMEDIR) $(CP_DIR) ../info $(INSTALL_DIR)/info $(ENDIF)
-		- $(DEL) ../same-dir.tst
-		- $(DEL) $(INSTALL_DIR)/same-dir.tst
+	- $(DEL) ../same-dir.tst
+	- $(DEL) $(INSTALL_DIR)/same-dir.tst
+	echo SameDirTest > $(INSTALL_DIR)/same-dir.tst
+	- mkdir "$(INSTALL_DIR)/etc"
+	- mkdir "$(INSTALL_DIR)/info"
+	- mkdir "$(INSTALL_DIR)/lock"
+	- mkdir "$(INSTALL_DIR)/data"
+	- mkdir "$(INSTALL_DIR)/site-lisp"
+	- mkdir "$(INSTALL_DIR)/etc/icons"
+	- $(CP_DIR) icons $(INSTALL_DIR)/etc/icons
+	$(IFNOTSAMEDIR) $(CP_DIR) ../etc $(INSTALL_DIR)/etc $(ENDIF)
+	$(IFNOTSAMEDIR) $(CP_DIR) ../info $(INSTALL_DIR)/info $(ENDIF)
+	- $(DEL) ../same-dir.tst
+	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 
 #
 # Maintenance
 # 
-clean:		clean-other-dirs
-		- $(DEL) *~ *.pdb
-		- $(DEL_TREE) $(OBJDIR)
-		- $(DEL) ../etc/DOC ../etc/DOC-X
+clean:	clean-other-dirs-$(SHELLTYPE)
+	- $(DEL) *~ *.pdb
+	- $(DEL_TREE) $(OBJDIR)
+	- $(DEL) ../etc/DOC ../etc/DOC-X
 
-cleanall:	clean
-		- $(DEL_TREE) obj
-		- $(DEL_TREE) obj-spd
-		- $(DEL_TREE) oo
-		- $(DEL_TREE) oo-spd
+clean-other-dirs-CMD:
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) clean
+	cd ..\src
+	$(MAKE) $(MFLAGS) clean
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) clean
+	cd ..\leim
+	$(MAKE) $(MFLAGS) clean
+	cd ..\nt
 
-realclean:	cleanall
-		- $(DEL_TREE) ../bin
+clean-other-dirs-SH:
+	$(MAKE) $(MFLAGS) -C ../lib-src clean
+	$(MAKE) $(MFLAGS) -C ../src clean
+	$(MAKE) $(MFLAGS) -C ../lisp clean
+	$(MAKE) $(MFLAGS) -C ../leim clean
+
+cleanall: clean
+	 - $(DEL_TREE) obj
+	 - $(DEL_TREE) obj-spd
+	 - $(DEL_TREE) oo
+	 - $(DEL_TREE) oo-spd
+
+realclean: cleanall
+	- $(DEL_TREE) ../bin
