@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; This file ensures that, when the point is in a To:, CC:, BCC:, or From: 
+;; This file ensures that, when the point is in a To:, CC:, BCC:, or From:
 ;; field, word-abbrevs are defined for each of your mail aliases.  These
 ;; aliases will be defined from your .mailrc file (or the file specified by
 ;; the MAILRC environment variable) if it exists.  Your mail aliases will
@@ -41,7 +41,7 @@
 ;; Your mail alias abbrevs will be in effect only when the point is in an
 ;; appropriate header field.  When in the body of the message, or other
 ;; header fields, the mail aliases will not expand.  Rather, the normal
-;; mode-specific abbrev table (mail-mode-abbrev-table) will be used if 
+;; mode-specific abbrev table (mail-mode-abbrev-table) will be used if
 ;; defined.  So if you use mail-mode specific abbrevs, this code will not
 ;; adversely affect you.  You can control which header fields the abbrevs
 ;; are used in by changing the variable mail-abbrev-mode-regexp.
@@ -153,7 +153,7 @@ no aliases, which is represented by this being a table with no entries.)")
   (if (and (not (vectorp mail-abbrevs))
 	   (file-exists-p mail-personal-alias-file))
       (progn
-	(setq mail-abbrev-modtime 
+	(setq mail-abbrev-modtime
 	      (nth 5 (file-attributes mail-personal-alias-file)))
 	(build-mail-abbrevs)))
   (mail-abbrevs-sync-aliases)
@@ -233,7 +233,7 @@ By default this is the file specified by `mail-personal-alias-file'."
 
 (defvar mail-alias-separator-string ", "
   "*A string inserted between addresses in multi-address mail aliases.
-This has to contain a comma, so \", \" is a reasonable value.  You might 
+This has to contain a comma, so \", \" is a reasonable value.  You might
 also want something like \",\\n    \" to get each address on its own line.")
 
 ;; define-mail-abbrev sets this flag, which causes mail-resolve-all-aliases
@@ -329,35 +329,38 @@ If DEFINITION contains multiple addresses, separate them with commas."
   "For use as the fourth arg to `define-abbrev'.
 After expanding a mail-abbrev, if Auto Fill mode is on and we're past the
 fill-column, break the line at the previous comma, and indent the next line."
-  (save-excursion
-    (let ((p (point))
-	  bol comma fp)
-      (beginning-of-line)
-      (setq bol (point))
-      (goto-char p)
-      (while (and auto-fill-function
-		  (>= (current-column) fill-column)
-		  (search-backward "," bol t))
-	(setq comma (point))
-	(forward-char 1)		; Now we are just past the comma.
-	(insert "\n")
-	(delete-horizontal-space)
- 	(setq p (point))
-	(indent-relative)
-	(setq fp (buffer-substring p (point)))
-	;; Go to the end of the new line.
-	(end-of-line)
-	(if (> (current-column) fill-column)
-	    ;; It's still too long; do normal auto-fill.
-	    (let ((fill-prefix (or fp "\t")))
-	      (do-auto-fill)))
-	;; Resume the search.
-	(goto-char comma)
-	))))
+  ;; Disable abbrev mode to avoid recursion in indent-relative expanding
+  ;; part of the abbrev expansion as an abbrev itself.
+  (let ((abbrev-mode nil))
+    (save-excursion
+      (let ((p (point))
+	    bol comma fp)
+	(beginning-of-line)
+	(setq bol (point))
+	(goto-char p)
+	(while (and auto-fill-function
+		    (>= (current-column) fill-column)
+		    (search-backward "," bol t))
+	  (setq comma (point))
+	  (forward-char 1)		; Now we are just past the comma.
+	  (insert "\n")
+	  (delete-horizontal-space)
+	  (setq p (point))
+	  (indent-relative)
+	  (setq fp (buffer-substring p (point)))
+	  ;; Go to the end of the new line.
+	  (end-of-line)
+	  (if (> (current-column) fill-column)
+	      ;; It's still too long; do normal auto-fill.
+	      (let ((fill-prefix (or fp "\t")))
+		(do-auto-fill)))
+	  ;; Resume the search.
+	  (goto-char comma)
+	  )))))
 
 ;;; Syntax tables and abbrev-expansion
 
-(defvar mail-abbrev-mode-regexp 
+(defvar mail-abbrev-mode-regexp
   "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):"
   "*Regexp to select mail-headers in which mail abbrevs should be expanded.
 This string will be handed to `looking-at' with point at the beginning
