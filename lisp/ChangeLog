@@ -1,3 +1,8 @@
+2002-05-23  Colin Walters  <walters@verbum.org>
+
+	* replace.el (occur-engine): Include all text properties except
+	mouse-face on the newline at the end of occurences.
+
 2002-05-23  Kim F. Storm  <storm@cua.dk>
 
 	* apropos.el (apropos-true-hit, apropos-false-hit-symbol)
