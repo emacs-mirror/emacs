@@ -393,7 +393,8 @@ See also variable `vc-consult-headers'.")
 		 (looking-at "[^ ]+ \\([0-9.]+\\) ")))
 	(goto-char (match-end 0))
 	;; if found, store the revision number ...
-	(setq version (buffer-substring (match-beginning 1) (match-end 1)))
+	(setq version (buffer-substring-no-properties (match-beginning 1)
+						      (match-end 1)))
 	;; ... and check for the locking state
 	(cond 
 	 ((looking-at
@@ -409,7 +410,8 @@ See also variable `vc-consult-headers'.")
 	   ;; revision is locked by some user
 	   ((looking-at "\\([^ ]+\\) \\$")
 	    (setq locking-user
-		  (buffer-substring (match-beginning 1) (match-end 1)))
+		  (buffer-substring-no-properties (match-beginning 1)
+						  (match-end 1)))
 	    (setq status 'rev-and-lock))
 	   ;; everything else: false
 	   (nil)))
@@ -422,13 +424,15 @@ See also variable `vc-consult-headers'.")
 				   "Revision: \\([0-9.]+\\) \\$")
 			   nil t)
 	;; if found, store the revision number ...
-	(setq version (buffer-substring (match-beginning 1) (match-end 1)))
+	(setq version (buffer-substring-no-properties (match-beginning 1)
+						      (match-end 1)))
 	;; and see if there's any lock information
 	(goto-char (point-min))
 	(if (re-search-forward (concat "\\$" "Locker:") nil t)
 	    (cond ((looking-at " \\([^ ]+\\) \\$")
-		   (setq locking-user (buffer-substring (match-beginning 1)
-							(match-end 1)))
+		   (setq locking-user (buffer-substring-no-properties
+				       (match-beginning 1)
+				       (match-end 1)))
 		   (setq status 'rev-and-lock))
 		  ((looking-at " *\\$") 
 		   (setq locking-user 'none)
