@@ -217,12 +217,12 @@
   "*For making font-lock use the winner's face for the line.")
 
 (defvar lm-font-lock-face-O
-  (if window-system
+  (if (display-color-p)
       (list (facemenu-get-face 'fg:red) 'bold))
   "*Face to use for Emacs' O.")
 
 (defvar lm-font-lock-face-X
-  (if window-system
+  (if (display-color-p)
       (list (facemenu-get-face 'fg:green) 'bold))
   "*Face to use for your X.")
 
@@ -893,8 +893,7 @@ If the game is finished, this command requests for another game."
 			      ((= value 5) ?W)
 			      ((= value 6) ?^)))
 
-    (and window-system
-	 (zerop value)
+    (and (zerop value)
 	 (put-text-property (1- (point)) (point) 'mouse-face 'highlight))
     (delete-char 1)
     (backward-char 1))
@@ -934,9 +933,8 @@ If the game is finished, this command requests for another game."
 		      (goto-char (point-max))))
 	       (setq point (point))
 	       (insert ?=)
-	       (if window-system
-		   (put-text-property point (point)
-				      'mouse-face 'highlight)))
+	       (put-text-property point (point)
+				  'mouse-face 'highlight))
 	     (> (setq i (1- i)) 0))
       (if (= i (1- m))
 	  (setq opoint point))
