@@ -1,5 +1,8 @@
 2005-03-14  Lute Kamstra  <lute@gnu.org>
 
+	* emacs-lisp/debug.el (debugger-make-xrefs): Docstring fix.
+	Ignore a `*' at the beginning of a line.
+
 	* subr.el (macro-declaration-function): Move to
 	emacs-lisp/byte-run.el.
 	* emacs-lisp/byte-run.el (macro-declaration-function): Move from
