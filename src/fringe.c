@@ -890,13 +890,13 @@ update_window_fringes (w, force_p)
 	  left = row->left_user_fringe_bitmap;
 	  left_face_id = row->left_user_fringe_face_id;
 	}
+      else if (row->truncated_on_left_p)
+	left = LEFT_TRUNCATION_BITMAP;
       else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
 	left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
 		? LEFT_BRACKET_BITMAP : TOP_LEFT_ANGLE_BITMAP);
       else if (row->indicate_eob_p && EQ (boundary_bot, Qleft))
 	left = BOTTOM_LEFT_ANGLE_BITMAP;
-      else if (row->truncated_on_left_p)
-	left = LEFT_TRUNCATION_BITMAP;
       else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
 	left = CONTINUATION_LINE_BITMAP;
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
@@ -916,13 +916,13 @@ update_window_fringes (w, force_p)
 	  right = row->right_user_fringe_bitmap;
 	  right_face_id = row->right_user_fringe_face_id;
 	}
+      else if (row->truncated_on_right_p)
+	right = RIGHT_TRUNCATION_BITMAP;
       else if (row->indicate_bob_p && EQ (boundary_top, Qright))
 	right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
 		 ? RIGHT_BRACKET_BITMAP : TOP_RIGHT_ANGLE_BITMAP);
       else if (row->indicate_eob_p && EQ (boundary_bot, Qright))
 	right = BOTTOM_RIGHT_ANGLE_BITMAP;
-      else if (row->truncated_on_right_p)
-	right = RIGHT_TRUNCATION_BITMAP;
       else if (row->continued_p)
 	right = CONTINUED_LINE_BITMAP;
       else if (row->indicate_top_line_p && EQ (arrow_top, Qright))
