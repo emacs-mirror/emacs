@@ -2,7 +2,7 @@
 
 ;; Copyright 1989, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <1997-06-01 17:02:45 gildea>
+;; Maintainer's Time-stamp: <1997-06-08 16:45:41 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -348,15 +348,15 @@ With arg, turn time stamping on if and only if arg is positive."
 		(time-stamp-conv-warn "%B" "%#B"))
 	    (format-time-string "%#B" time)))
 	 ((eq cur-char ?d)		;day of month, 1-31
-	  (time-stamp-do-number cur-char))
+	  (time-stamp-do-number cur-char alt-form field-width time))
 	 ((eq cur-char ?H)		;hour, 0-23
-	  (time-stamp-do-number cur-char))
+	  (time-stamp-do-number cur-char alt-form field-width time))
 	 ((eq cur-char ?I)		;hour, 1-12
-	  (time-stamp-do-number cur-char))
+	  (time-stamp-do-number cur-char alt-form field-width time))
 	 ((eq cur-char ?m)		;month number, 1-12
-	  (time-stamp-do-number cur-char))
+	  (time-stamp-do-number cur-char alt-form field-width time))
 	 ((eq cur-char ?M)		;minute, 0-59
-	  (time-stamp-do-number cur-char))
+	  (time-stamp-do-number cur-char alt-form field-width time))
 	 ((eq cur-char ?p)		;am or pm
 	  (or change-case
 	      (time-stamp-conv-warn "%p" "%#p"))
@@ -364,7 +364,7 @@ With arg, turn time stamping on if and only if arg is positive."
 	 ((eq cur-char ?P)		;AM or PM
 	  (format-time-string "%p" time))
 	 ((eq cur-char ?S)		;seconds, 00-60
-	  (time-stamp-do-number cur-char))
+	  (time-stamp-do-number cur-char alt-form field-width time))
 	 ((eq cur-char ?w)		;weekday number, Sunday is 0
 	  (format-time-string "%w" time))
 	 ((eq cur-char ?y)		;year
@@ -417,10 +417,11 @@ With arg, turn time stamping on if and only if arg is positive."
       (setq ind (1+ ind)))
     result))
 
-(defun time-stamp-do-number (format-char)
-  ;; Handle compatible cases where only
+(defun time-stamp-do-number (format-char alt-form field-width time)
+  ;; Handle a compatible FORMAT-CHAR where only
   ;; the default width/padding will change.
-  ;; Uses dynamic vars field-width, time.
+  ;; ALT-FORM is whether `#' specified.  FIELD-WIDTH is the string
+  ;; width specification or "".  TIME is the time to convert.
   (let ((format-string (concat "%" (char-to-string format-char))))
     (and (not alt-form) (string-equal field-width "")
 	 (time-stamp-conv-warn format-string
