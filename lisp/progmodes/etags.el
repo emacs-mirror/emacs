@@ -1132,7 +1132,7 @@ See documentation of variable `tags-file-name'."
 					  (point)))))
 	(princ (if (looking-at "[^\n]+\001")
 		   ;; There is an explicit tag name; use that.
-		   (buffer-substring (point)
+		   (buffer-substring (1+ (point)) ;skip \177
 				     (progn (skip-chars-forward "^\001")
 					    (point)))
 		 tag)))
