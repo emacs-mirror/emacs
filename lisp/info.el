@@ -2903,33 +2903,40 @@ the variable `Info-file-list-for-emacs'."
 	      (set-marker m nil))))
 
 	(goto-char (point-min))
-	(if (and (search-forward "\n* Menu:" nil t)
-		 (not (string-match "\\<Index\\>" Info-current-node))
-		 ;; Don't take time to annotate huge menus
-		 (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
-	    (let ((n 0)
-		  cont)
-	      (while (re-search-forward "^\\* +\\([^:\t\n]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:.][ \t]*\\)" nil t)
-		(setq n (1+ n))
-		(if (zerop (% n 3)) ; visual aids to help with 1-9 keys
-		    (put-text-property (match-beginning 0)
-				       (1+ (match-beginning 0))
-				       'font-lock-face 'info-menu-5))
-		(add-text-properties (match-beginning 1) (match-end 1)
-				     '(font-lock-face info-xref
-				       mouse-face highlight
-				       help-echo "mouse-2: go to this node"))
-		(when (eq Info-hide-note-references t)
-		  (add-text-properties (match-beginning 2) (match-end 2)
-				       (list 'display
-					     (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )))
-		  (setq cont (looking-at "[ \t]*[^\n]")))
-		(if (eq Info-hide-note-references t)
-		    (while (and (= (forward-line 1) 0)
-				(looking-at "\\([ \t]+\\)[^*\n]"))
-		      (add-text-properties (match-beginning 1) (match-end 1)
-					   (list 'display (make-string (+ 22 (if cont 4 2)) ? )))
-		      (setq cont t))))))
+	(when (and (search-forward "\n* Menu:" nil t)
+		   (not (string-match "\\<Index\\>" Info-current-node))
+		   ;; Don't take time to annotate huge menus
+		   (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
+	  (let ((n 0)
+		cont)
+	    (while (re-search-forward "^\\* +\\([^:\t\n]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:.]\\([ \t]*\\)\\)" nil t)
+	      (setq n (1+ n))
+	      (if (zerop (% n 3))	; visual aids to help with 1-9 keys
+		  (put-text-property (match-beginning 0)
+				     (1+ (match-beginning 0))
+				     'font-lock-face 'info-menu-5))
+	      (add-text-properties (match-beginning 1) (match-end 1)
+				   '(font-lock-face info-xref
+				     mouse-face highlight
+				     help-echo "mouse-2: go to this node"))
+	      (when (eq Info-hide-note-references t)
+		(put-text-property (match-beginning 2) (match-beginning 4)
+				   'invisible t)
+		;; We need a stretchable space like :align-to but with
+		;; a minimum value.
+		(put-text-property (match-beginning 4) (match-end 4) 'display
+				   (if (>= 22 (- (match-end 1)
+						 (match-beginning 0)))
+				       '(space :align-to 24)
+				     '(space :width 2)))
+		(setq cont (looking-at "."))
+		(while (and (= (forward-line 1) 0)
+			    (looking-at "\\([ \t]+\\)[^*\n]"))
+		  (put-text-property (match-beginning 1) (match-end 1) 'display
+				     (if cont
+					 '(space :align-to 26)
+				       '(space :align-to 24)))
+		  (setq cont t))))))
 
 	(Info-fontify-menu-headers)
 	(set-buffer-modified-p nil)))))
