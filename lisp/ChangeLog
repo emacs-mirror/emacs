@@ -1,3 +1,8 @@
+2001-03-05  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl.el (dotimes, dolist): Undef prior to autoloading
+	new defs.
+
 2001-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/ethio-util.el (ethio-toggle-space): Update
