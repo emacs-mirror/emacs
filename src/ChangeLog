@@ -1,3 +1,8 @@
+2002-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (row_containing_pos): Check more carefully
+	whether charpos is really in the row before returning it.
+
 2002-12-07  Steven Tamm  <steventamm@mac.com>
 
 	* sysdep.c (emacs_read) [HAVE_CARBON]: Have emacs_read use sys_read.

@@ -1,3 +1,8 @@
+2002-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* getopt.c: Do include libintl.h if HAVE_LIBINTL_H.
+	(_): Test only HAVE_LIBINTL_H to decide what to do.
+
 2002-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* getopt.c: Comment out include of libintl.h or gettext.h.
