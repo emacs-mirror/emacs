@@ -319,7 +319,7 @@ possible action from the following list:
   (if arg				; If arg, just indent this line
       (perl-indent-line "\f")
     (if (and (not perl-tab-always-indent)
-	     (<= (current-column) (current-indentation)))
+	     (> (current-column) (current-indentation)))
 	(insert-tab)
       (let (bof lsexp delta (oldpnt (point)))
 	(beginning-of-line) 
