@@ -196,11 +196,6 @@ This is used by `eshell-watch-for-password-prompt'."
   :type 'boolean
   :group 'eshell-mode)
 
-(defvar eshell-non-interactive-p nil
-  "A variable which is non-nil when Eshell is not running interactively.
-Modules should use this variable so that they don't clutter non-interactive
-sessions, such as when using `eshell-command'.")
-
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
 
