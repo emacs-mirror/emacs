@@ -121,8 +121,8 @@
   ;; wordstar-C-o-map
   
   (define-key wordstar-C-o-map " " ())
-  (define-key wordstar-C-o-map "c" 'center-line)
-  (define-key wordstar-C-o-map "\C-c" 'center-line)
+  (define-key wordstar-C-o-map "c" 'wordstar-center-line)
+  (define-key wordstar-C-o-map "\C-c" 'wordstar-center-line)
   (define-key wordstar-C-o-map "b" 'switch-to-buffer)
   (define-key wordstar-C-o-map "\C-b" 'switch-to-buffer)
   (define-key wordstar-C-o-map "j" 'justify-current-line)
@@ -249,7 +249,7 @@ The key bindings are:
   C-k x		kill-emacs
   C-k y		ws-delete-block
 
-  C-o c		center-line
+  C-o c		wordstar-center-line
   C-o b		switch-to-buffer
   C-o j		justify-current-line
   C-o k		kill-buffer
@@ -293,20 +293,20 @@ The key bindings are:
   (setq major-mode 'wordstar-mode))
 
 
-(defun center-paragraph ()
+(defun wordstar-center-paragraph ()
   "Center each line in the paragraph at or after point.
-See center-line for more info."
+See `wordstar-center-line' for more info."
   (interactive)
   (save-excursion
     (forward-paragraph)
     (or (bolp) (newline 1))
     (let ((end (point)))
       (backward-paragraph)
-      (center-region (point) end))))
+      (wordstar-center-region (point) end))))
 
-(defun center-region (from to)
+(defun wordstar-center-region (from to)
   "Center each line starting in the region.
-See center-line for more info."
+See `wordstar-center-line' for more info."
   (interactive "r")
   (if (> from to)
       (let ((tem to))
@@ -316,10 +316,10 @@ See center-line for more info."
       (narrow-to-region from to)
       (goto-char from)
       (while (not (eobp))
-	(center-line)
+	(wordstar-center-line)
 	(forward-line 1)))))
 
-(defun center-line ()
+(defun wordstar-center-line ()
   "Center the line point is on, within the width specified by `fill-column'.
 This means adjusting the indentation to match
 the distance between the end of the text and `fill-column'."
