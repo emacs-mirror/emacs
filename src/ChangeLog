@@ -1,3 +1,9 @@
+2000-07-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xmenu.c (menu_highlight_callback): Call show_help_echo directly
+	if called for a popup menu.
+	(xmenu_show): Store help string in widget values.
+
 2000-07-26  Dave Love  <fx@gnu.org>
 
 	* syswait.h: Move some definitions.
