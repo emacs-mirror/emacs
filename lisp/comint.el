@@ -342,7 +342,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (kill-all-local-variables)
   (setq major-mode 'comint-mode)
   (setq mode-name "Comint")
-  (setq mode-line-process '(": %s"))
+  (setq mode-line-process '(":%s"))
   (use-local-map comint-mode-map)
   (make-local-variable 'comint-last-input-start)
   (setq comint-last-input-start (make-marker))
