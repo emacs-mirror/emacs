@@ -111,8 +111,6 @@ Boston, MA 02111-1307, USA.  */
 #include "composite.h"
 #include "atimer.h"
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal, Qopen, Qclosed;
 Lisp_Object Qlast_nonmenu_event;
@@ -1319,7 +1317,6 @@ create_process (process, new_argv, current_dir)
 #ifndef USE_CRT_DLL
   extern char **environ;
 #endif
-  Lisp_Object buffer = XPROCESS (process)->buffer;
 
   inchannel = outchannel = -1;
 
