@@ -863,7 +863,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      (when marker-char
 		(let ((dired-marker-char
 		       (if (integerp marker-char) marker-char dired-marker-char)))
-		  (dired-mark)))
+		  (dired-mark nil)))
 	      ;; Compensate for a bug in ange-ftp.
 	      ;; It inserts the file's absolute name, rather than
 	      ;; the relative one.  That may be hard to fix since it
