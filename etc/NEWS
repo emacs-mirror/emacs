@@ -1,4 +1,4 @@
-GNU Emacs NEWS -- history of user-visible changes.  2000-08-14
+GNU Emacs NEWS -- history of user-visible changes.  2000-09-17
 Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -30,6 +30,13 @@ support 64-bit executables.  See etc/MACHINES for instructions.
 
 
 * Changes in Emacs 21.1
+
+* When your terminal can't display characters from some of the ISO
+8859 character sets but can display Latin-1, you can display
+more-or-less mnemonic sequences of ASCII/Latin-1 characters instead of
+empty boxes (under a window system) or question marks (not under a
+window system).  Customize the option `latin1-display' to turn this
+on.
 
 ** The new user-option `find-file-suppress-same-file-warnings' can be
 set to suppress warnings ``X and Y are the same file'' when visiting a
@@ -502,9 +509,9 @@ customized.
 
 Emacs supports a tool bar at the top of a frame under X.  For details
 how to define a tool bar, see the page describing Lisp-level changes.
-Toolbar global minor mode controls whether or not it is displayed.  To
-make the toolbar more useful, we need contributions of extra icons for
-specific modes (with copyright assignments).
+Tool-bar global minor mode controls whether or not it is displayed.
+To make the tool bar more useful, we need contributions of extra icons
+for specific modes (with copyright assignments).
 
 +++
 ** Mouse-sensitive mode line.
@@ -3419,9 +3426,9 @@ Gives a help string to display for the tool bar item.  This help
 is displayed when the mouse is moved over the item.
 
 The function `toolbar-add-item' is a convenience function for adding
-toolbar items generally, and `toolbar-like-menu-item' can be used to
-define a toolbar item with a binding copied from an item on the menu
-bar.
+toolbar items generally, and `tool-bar-add-item-from-menu' can be used
+to define a toolbar item with a binding copied from an item on the
+menu bar.
 
 *** Tool-bar-related variables.
 
