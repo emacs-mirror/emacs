@@ -4380,13 +4380,19 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
   (let ((short (ange-ftp-abbreviate-filename file))
-	(parsed (ange-ftp-ftp-name (expand-file-name file))))
+	(parsed (ange-ftp-ftp-name (expand-file-name file)))
+	tem)
     (if parsed
-	(insert
-	 (if wildcard
-	     (let ((default-directory (file-name-directory file)))
-	       (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
-	   (ange-ftp-ls file switches full)))
+	(if (and (not wildcard)
+		 (setq tem (file-symlink-p (directory-file-name file))))
+	    (ange-ftp-insert-directory
+	     (ange-ftp-replace-name-component file tem)
+	     switches wildcard full)
+	  (insert
+	   (if wildcard
+	       (let ((default-directory (file-name-directory file)))
+		 (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
+	     (ange-ftp-ls file switches full))))q
       (ange-ftp-real-insert-directory file switches wildcard full))))
 
 (defun ange-ftp-dired-uncache (dir)
