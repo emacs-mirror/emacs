@@ -85,6 +85,12 @@ Boston, MA 02111-1307, USA.
 #undef gethostbyname
 #undef getservbyname
 #undef shutdown
+#undef setsockopt
+#undef listen
+#undef getsockname
+#undef accept
+#undef recvfrom
+#undef sendto
 #endif
 
 #include "w32.h"
@@ -2421,7 +2427,18 @@ unsigned long (PASCAL *pfn_inet_addr) (const char * cp);
 int (PASCAL *pfn_gethostname) (char * name, int namelen);
 struct hostent * (PASCAL *pfn_gethostbyname) (const char * name);
 struct servent * (PASCAL *pfn_getservbyname) (const char * name, const char * proto);
-  
+
+int (PASCAL *pfn_setsockopt) (SOCKET s, int level, int optname,
+			      const char * optval, int optlen);
+int (PASCAL *pfn_listen) (SOCKET s, int backlog);
+int (PASCAL *pfn_getsockname) (SOCKET s, struct sockaddr * name,
+			       int * namelen);
+SOCKET (PASCAL *pfn_accept) (SOCKET s, struct sockaddr * addr, int * addrlen);
+int (PASCAL *pfn_recvfrom) (SOCKET s, char * buf, int len, int flags,
+		       struct sockaddr * from, int * fromlen);
+int (PASCAL *pfn_sendto) (SOCKET s, const char * buf, int len, int flags,
+			  const struct sockaddr * to, int tolen);
+
 /* SetHandleInformation is only needed to make sockets non-inheritable. */
 BOOL (WINAPI *pfn_SetHandleInformation) (HANDLE object, DWORD mask, DWORD flags);
 #ifndef HANDLE_FLAG_INHERIT
@@ -2491,7 +2508,12 @@ init_winsock (int load_now)
       LOAD_PROC( gethostbyname );
       LOAD_PROC( getservbyname );
       LOAD_PROC( WSACleanup );
-
+      LOAD_PROC( setsockopt );
+      LOAD_PROC( listen );
+      LOAD_PROC( getsockname );
+      LOAD_PROC( accept );
+      LOAD_PROC( recvfrom );
+      LOAD_PROC( sendto );
 #undef LOAD_PROC
 
       /* specify version 1.1 of winsock */
@@ -2662,12 +2684,12 @@ sys_strerror(int error_no)
 #define SOCK_HANDLE(fd) ((SOCKET) fd_info[fd].hnd)
 #endif
 
+int socket_to_fd (SOCKET s);
+
 int
 sys_socket(int af, int type, int protocol)
 {
-  int fd;
-  long s;
-  child_process * cp;
+  SOCKET s;
 
   if (winsock_lib == NULL)
     {
@@ -2678,105 +2700,114 @@ sys_socket(int af, int type, int protocol)
   check_errno ();
 
   /* call the real socket function */
-  s = (long) pfn_socket (af, type, protocol);
+  s = pfn_socket (af, type, protocol);
   
   if (s != INVALID_SOCKET)
+    return socket_to_fd (s);
+
+  set_errno ();
+  return -1;
+}
+
+/* Convert a SOCKET to a file descriptor.  */
+int
+socket_to_fd (SOCKET s)
+{
+  int fd;
+  child_process * cp;
+
+  /* Although under NT 3.5 _open_osfhandle will accept a socket
+     handle, if opened with SO_OPENTYPE == SO_SYNCHRONOUS_NONALERT,
+     that does not work under NT 3.1.  However, we can get the same
+     effect by using a backdoor function to replace an existing
+     descriptor handle with the one we want. */
+
+  /* allocate a file descriptor (with appropriate flags) */
+  fd = _open ("NUL:", _O_RDWR);
+  if (fd >= 0)
     {
-      /* Although under NT 3.5 _open_osfhandle will accept a socket
-	 handle, if opened with SO_OPENTYPE == SO_SYNCHRONOUS_NONALERT,
-	 that does not work under NT 3.1.  However, we can get the same
-	 effect by using a backdoor function to replace an existing
-	 descriptor handle with the one we want. */
-
-      /* allocate a file descriptor (with appropriate flags) */
-      fd = _open ("NUL:", _O_RDWR);
-      if (fd >= 0)
-        {
 #ifdef SOCK_REPLACE_HANDLE
-	  /* now replace handle to NUL with our socket handle */
-	  CloseHandle ((HANDLE) _get_osfhandle (fd));
-	  _free_osfhnd (fd);
-	  _set_osfhnd (fd, s);
-	  /* setmode (fd, _O_BINARY); */
+      /* now replace handle to NUL with our socket handle */
+      CloseHandle ((HANDLE) _get_osfhandle (fd));
+      _free_osfhnd (fd);
+      _set_osfhnd (fd, s);
+      /* setmode (fd, _O_BINARY); */
 #else
-	  /* Make a non-inheritable copy of the socket handle.  Note
-             that it is possible that sockets aren't actually kernel
-             handles, which appears to be the case on Windows 9x when
-             the MS Proxy winsock client is installed.  */
+      /* Make a non-inheritable copy of the socket handle.  Note
+	 that it is possible that sockets aren't actually kernel
+	 handles, which appears to be the case on Windows 9x when
+	 the MS Proxy winsock client is installed.  */
+      {
+	/* Apparently there is a bug in NT 3.51 with some service
+	   packs, which prevents using DuplicateHandle to make a
+	   socket handle non-inheritable (causes WSACleanup to
+	   hang).  The work-around is to use SetHandleInformation
+	   instead if it is available and implemented. */
+	if (pfn_SetHandleInformation)
 	  {
-	    /* Apparently there is a bug in NT 3.51 with some service
-	       packs, which prevents using DuplicateHandle to make a
-	       socket handle non-inheritable (causes WSACleanup to
-	       hang).  The work-around is to use SetHandleInformation
-	       instead if it is available and implemented. */
-	    if (pfn_SetHandleInformation)
-	      {
-		pfn_SetHandleInformation ((HANDLE) s, HANDLE_FLAG_INHERIT, 0);
-	      }
-	    else
-	      {
-		HANDLE parent = GetCurrentProcess ();
-		HANDLE new_s = INVALID_HANDLE_VALUE;
-
-		if (DuplicateHandle (parent,
-				     (HANDLE) s,
-				     parent,
-				     &new_s,
-				     0,
-				     FALSE,
-				     DUPLICATE_SAME_ACCESS))
-		  {
-		    /* It is possible that DuplicateHandle succeeds even
-                       though the socket wasn't really a kernel handle,
-                       because a real handle has the same value.  So
-                       test whether the new handle really is a socket.  */
-		    long nonblocking = 0;
-		    if (pfn_ioctlsocket ((SOCKET) new_s, FIONBIO, &nonblocking) == 0)
-		      {
-			pfn_closesocket (s);
-			s = (SOCKET) new_s;
-		      }
-		    else
-		      {
-			CloseHandle (new_s);
-		      }
-		  } 
-	      }
+	    pfn_SetHandleInformation ((HANDLE) s, HANDLE_FLAG_INHERIT, 0);
 	  }
-	  fd_info[fd].hnd = (HANDLE) s;
+	else
+	  {
+	    HANDLE parent = GetCurrentProcess ();
+	    HANDLE new_s = INVALID_HANDLE_VALUE;
+
+	    if (DuplicateHandle (parent,
+				 (HANDLE) s,
+				 parent,
+				 &new_s,
+				 0,
+				 FALSE,
+				 DUPLICATE_SAME_ACCESS))
+	      {
+		/* It is possible that DuplicateHandle succeeds even
+		   though the socket wasn't really a kernel handle,
+		   because a real handle has the same value.  So
+		   test whether the new handle really is a socket.  */
+		long nonblocking = 0;
+		if (pfn_ioctlsocket ((SOCKET) new_s, FIONBIO, &nonblocking) == 0)
+		  {
+		    pfn_closesocket (s);
+		    s = (SOCKET) new_s;
+		  }
+		else
+		  {
+		    CloseHandle (new_s);
+		  }
+	      } 
+	  }
+      }
+      fd_info[fd].hnd = (HANDLE) s;
 #endif
 
-	  /* set our own internal flags */
-	  fd_info[fd].flags = FILE_SOCKET | FILE_BINARY | FILE_READ | FILE_WRITE;
+      /* set our own internal flags */
+      fd_info[fd].flags = FILE_SOCKET | FILE_BINARY | FILE_READ | FILE_WRITE;
 
-	  cp = new_child ();
-	  if (cp)
+      cp = new_child ();
+      if (cp)
+	{
+	  cp->fd = fd;
+	  cp->status = STATUS_READ_ACKNOWLEDGED;
+
+	  /* attach child_process to fd_info */
+	  if (fd_info[ fd ].cp != NULL)
 	    {
-	      cp->fd = fd;
-	      cp->status = STATUS_READ_ACKNOWLEDGED;
-
-	      /* attach child_process to fd_info */
-	      if (fd_info[ fd ].cp != NULL)
-		{
-		  DebPrint (("sys_socket: fd_info[%d] apparently in use!\n", fd));
-		  abort ();
-		}
-
-	      fd_info[ fd ].cp = cp;
-
-	      /* success! */
-	      winsock_inuse++;	/* count open sockets */
-	      return fd;
+	      DebPrint (("sys_socket: fd_info[%d] apparently in use!\n", fd));
+	      abort ();
 	    }
 
-	  /* clean up */
-	  _close (fd);
-	}
-      pfn_closesocket (s);
-      h_errno = EMFILE;
-    }
-  set_errno ();
+	  fd_info[ fd ].cp = cp;
 
+	  /* success! */
+	  winsock_inuse++;	/* count open sockets */
+	  return fd;
+	}
+
+      /* clean up */
+      _close (fd);
+    }
+  pfn_closesocket (s);
+  h_errno = EMFILE;
   return -1;
 }
 
@@ -2907,6 +2938,137 @@ sys_shutdown (int s, int how)
   if (fd_info[s].flags & FILE_SOCKET)
     {
       int rc = pfn_shutdown (SOCK_HANDLE (s), how);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;
+}
+
+int
+sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_setsockopt (SOCK_HANDLE (s), level, optname,
+			       optval, optlen);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;      
+}
+
+int
+sys_listen (int s, int backlog)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_listen (SOCK_HANDLE (s), backlog);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;      
+}
+
+int
+sys_getsockname (int s, struct sockaddr * name, int * namelen)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_getsockname (SOCK_HANDLE (s), name, namelen);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;      
+}
+
+int
+sys_accept (int s, struct sockaddr * addr, int * addrlen)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return -1;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      SOCKET s = pfn_accept (SOCK_HANDLE (s), addr, addrlen);
+      if (s != INVALID_SOCKET)
+	return socket_to_fd (s);
+
+      set_errno ();
+      return -1;
+    }
+  h_errno = ENOTSOCK;
+  return -1;
+}
+
+int
+sys_recvfrom (int s, char * buf, int len, int flags,
+	  struct sockaddr * from, int * fromlen)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_recvfrom (SOCK_HANDLE (s), buf, len, flags, from, fromlen);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;
+}
+
+int
+sys_sendto (int s, const char * buf, int len, int flags,
+	    const struct sockaddr * to, int tolen)
+{
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_sendto (SOCK_HANDLE (s), buf, len, flags, to, tolen);
       if (rc == SOCKET_ERROR)
 	set_errno ();
       return rc;
