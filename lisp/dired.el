@@ -2716,7 +2716,8 @@ To be called first in body of `dired-sort-other', etc."
 
 (autoload 'dired-diff "dired-aux"
   "Compare file at point with file FILE using `diff'.
-FILE defaults to the file at the mark.
+FILE defaults to the file at the mark.  (That's the mark set by
+\\[set-mark-command], not by Dired's \\[dired-mark] command.)
 The prompted-for file is the first file given to `diff'."
   t)
 
