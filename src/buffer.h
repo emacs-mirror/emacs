@@ -652,6 +652,9 @@ struct buffer
     /* Incremented each time the buffer is displayed in a window.  */
     Lisp_Object display_count;
  
+    /* Time stamp updated each time this buffer is displayed in a window.  */
+    Lisp_Object display_time;
+
     /* These are so we don't have to recompile everything
        the next few times we add a new slot.  */
     Lisp_Object extra2, extra3;
