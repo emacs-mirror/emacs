@@ -512,6 +512,7 @@ run `normal-mode' explicitly."
 				  ("\\.article\\'" . text-mode)
 				  ("\\.letter\\'" . text-mode)
 				  ("\\.texinfo\\'" . texinfo-mode)
+				  ("\\.texi\\'" . texinfo-mode)
 				  ("\\.lsp\\'" . lisp-mode)
 				  ("\\.awk\\'" . awk-mode)
 				  ("\\.prolog\\'" . prolog-mode)

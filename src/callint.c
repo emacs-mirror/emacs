@@ -521,7 +521,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
 
   if (NILP (raw))
     XFASTINT (val) = 1;
-  else if (EQ (val, Qminus))
+  else if (EQ (raw, Qminus))
     XSETINT (val, -1);
   else if (CONSP (raw))
     XSETINT (val, XINT (XCONS (raw)->car));

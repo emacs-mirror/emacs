@@ -1,17 +1,21 @@
-;;; -*- Mode: Emacs-Lisp -*-
-;;; Compilation of Lisp code into byte code.
-;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;;; bytecomp.el --- compilation of Lisp code into byte code.
 
-;; By Jamie Zawinski <jwz@lucid.com> and Hallvard Furuseth <hbf@ulrik.uio.no>.
+;; Author: Jamie Zawinski <jwz@lucid.com>
+;;	Hallvard Furuseth <hbf@ulrik.uio.no>
+;; Last-Modified: 15 Jul 1992
+;; Keywords: internal
+
 ;; Subsequently modified by RMS.
 
 (defconst byte-compile-version "FSF 2.1")
+
+;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -22,6 +26,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 ;;; ========================================================================
 ;;; Entry points:
@@ -757,8 +763,11 @@ otherwise pop it")
   (if byte-compile-error-on-warn
       (error "%s" format)		; byte-compile-file catches and logs it
     (byte-compile-log-1 (concat "** " format))
-    (or noninteractive  ; already written on stdout.
-	(message "Warning: %s" format))))
+;;; It is useless to flash warnings too fast to be read.
+;;; Besides, they will all be shown at the end.
+;;;    (or noninteractive  ; already written on stdout.
+;;;	(message "Warning: %s" format))
+    ))
 
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
@@ -1043,6 +1052,7 @@ otherwise pop it")
 	       (recenter 1))))))))
 
 
+;;;###autoload
 (defun byte-recompile-directory (directory &optional arg)
   "Recompile every `.el' file in DIRECTORY that needs recompilation.
 This is if a `.elc' file exists but is older than the `.el' file.
@@ -1070,6 +1080,7 @@ for each such `.el' file, whether to compile it."
     (message "Done (Total of %d file%s compiled)"
 	     count (if (= count 1) "" "s"))))
 
+;;;###autoload
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
 The output file's name is made by appending `c' to the end of FILENAME.
@@ -1087,8 +1098,8 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
      (list (read-file-name (if current-prefix-arg
 			       "Byte compile and load file: "
 			     "Byte compile file: ")
-			   file-dir file-name nil))
-	   current-prefix-arg))
+			   file-dir file-name nil)
+	   current-prefix-arg)))
   ;; Expand now so we get the current buffer's defaults
   (setq filename (expand-file-name filename))
 
@@ -1142,7 +1153,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 	     (or (eq t byte-compile-generate-call-tree)
 		 (y-or-n-p (format "Report call tree for %s? " filename))))
         (save-excursion
-	  (byte-compile-report-call-tree filename)))
+	  (display-call-tree filename)))
     (if load
 	(load target-file)))
   t)
@@ -1170,6 +1181,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 ;;  t)
 
 ;;; compiling a single function
+;;;###autoload
 (defun compile-defun (&optional arg)
   "Compile and evaluate the current top-level form.
 Print the result in the minibuffer.
@@ -1180,7 +1192,8 @@ With argument, insert value in current buffer after the form."
     (beginning-of-defun)
     (let* ((byte-compile-current-file nil)
 	   (byte-compile-last-warned-form 'nothing)
-	   (value (eval (byte-compile-sexp (read (current-buffer))))))
+	   (value (eval (displaying-byte-compile-warnings
+			 (byte-compile-sexp (read (current-buffer)))))))
       (cond (arg
 	     (message "Compiling from buffer... done.")
 	     (prin1 value (current-buffer))
@@ -1525,6 +1538,7 @@ With argument, insert value in current buffer after the form."
 	  nil)))))
 
 
+;;;###autoload
 (defun byte-compile (form)
   "If FORM is a symbol, byte-compile its function definition.
 If FORM is a lambda or a macro, byte-compile it as a function."
@@ -2725,6 +2739,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 ;; Renamed from byte-compile-report-call-tree
 ;; to avoid interfering with completion of byte-compile-file.
+;;;###autoload
 (defun display-call-tree (&optional filename)
   "Display a call graph of a specified file.
 This lists which functions have been called, what functions called
@@ -2853,6 +2868,7 @@ invoked interactively."
 
 ;;; by crl@newton.purdue.edu
 ;;;  Only works noninteractively.
+;;;###autoload
 (defun batch-byte-compile ()
   "Run `byte-compile-file' on the files remaining on the command line.
 Use this from the command line, with `-batch';
@@ -2959,3 +2975,5 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 		 byte-compile-constant
 		 byte-compile-variable-ref))))
  nil)
+
+;;; bytecomp.el ends here
