@@ -10382,7 +10382,7 @@ hide_hourglass ()
  ***********************************************************************/
 
 static Lisp_Object x_create_tip_frame P_ ((struct x_display_info *,
-					   Lisp_Object));
+					   Lisp_Object, Lisp_Object));
 static void compute_tip_xy P_ ((struct frame *, Lisp_Object, Lisp_Object,
 				Lisp_Object, int *, int *));
      
@@ -10420,7 +10420,8 @@ unwind_create_tip_frame (frame)
 
 
 /* Create a frame for a tooltip on the display described by DPYINFO.
-   PARMS is a list of frame parameters.  Value is the frame.
+   PARMS is a list of frame parameters.  TEXT is the string to
+   display in the tip frame.  Value is the frame.
 
    Note that functions called here, esp. x_default_parameter can
    signal errors, for instance when a specified color name is
@@ -10428,9 +10429,9 @@ unwind_create_tip_frame (frame)
    when this happens.  */
 
 static Lisp_Object
-x_create_tip_frame (dpyinfo, parms)
+x_create_tip_frame (dpyinfo, parms, text)
      struct x_display_info *dpyinfo;
-     Lisp_Object parms;
+     Lisp_Object parms, text;
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -10441,6 +10442,8 @@ x_create_tip_frame (dpyinfo, parms)
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
   int face_change_count_before = face_change_count;
+  Lisp_Object buffer;
+  struct buffer *old_buffer;
 
   check_x ();
 
@@ -10466,6 +10469,15 @@ x_create_tip_frame (dpyinfo, parms)
   GCPRO3 (parms, name, frame);
   f = make_frame (1);
   XSETFRAME (frame, f);
+
+  buffer = Fget_buffer_create (build_string (" *tip*"));
+  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
+  old_buffer = current_buffer;
+  set_buffer_internal_1 (XBUFFER (buffer));
+  Ferase_buffer ();
+  Finsert (1, &text);
+  set_buffer_internal_1 (old_buffer);
+  
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
@@ -10868,7 +10880,7 @@ DY added (default is -10).")
 
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
-  frame = x_create_tip_frame (FRAME_X_DISPLAY_INFO (f), parms);
+  frame = x_create_tip_frame (FRAME_X_DISPLAY_INFO (f), parms, string);
   f = XFRAME (frame);
 
   /* Set up the frame's root window.  Currently we use a size of 80
@@ -10882,12 +10894,8 @@ DY added (default is -10).")
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
-  buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (buffer));
-  Ferase_buffer ();
-  Finsert (1, &string);
+  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
