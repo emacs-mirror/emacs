@@ -680,8 +680,9 @@ Used by `pages-directory' function."
         ;; insert page header
 	(setq inserted-at (point))
 	(insert-buffer-substring target-buffer start end)
-	(put-text-property inserted-at (point) 
-			   'mouse-face 'highlight)
+	(add-text-properties inserted-at (point) 
+			     '(mouse-face highlight
+			       help-echo "mouse-2: go to this page"))
 	(put-text-property inserted-at (point) 'rear-nonsticky 'highlight))
       
       (if count-lines-p
