@@ -146,7 +146,6 @@ quote_file_name (name)
   return copy;
 }
 
-#ifdef C_ALLOCA
 /* Like malloc but get fatal error if memory is exhausted.  */
 
 char *
@@ -161,7 +160,6 @@ xmalloc (size)
   }
   return result;
 }
-#endif /* C_ALLOCA */
 
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 
@@ -194,7 +192,8 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  char system_name[32];
+  char *system_name;
+  int system_name_length;
   int s, i;
   FILE *out, *in;
   struct sockaddr_un server;
@@ -223,10 +222,22 @@ main (argc, argv)
 #ifndef SERVER_HOME_DIR
   {
     struct stat statbfr;
+    system_name_length = 32;
 
-    gethostname (system_name, sizeof (system_name));
-    /* system_name must be null-terminated string */
-    system_name[sizeof (system_name) - 1] = '\0';
+    while (1)
+      {
+	system_name = (char *) xmalloc (system_name_length + 1);
+
+	/* system_name must be null-terminated string.  */
+	system_name[system_name_length] = '\0';
+
+ 	if (gethostname (system_name, system_name_length) == 0)
+	  break;
+
+	free (system_name);
+	system_name_length *= 2;
+      }
+
     sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
 
     if (stat (server.sun_path, &statbfr) == -1)
