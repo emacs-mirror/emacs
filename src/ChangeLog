@@ -1,3 +1,13 @@
+2004-10-10  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (timer_resume_idle): New function to resume idle
+	timer without resetting timers on the idle list.
+	(read_char): Use timer_resume_idle. Remove local var last_idle_start.
+	(timer_start_idle, timer_stop_idle): Declare static.
+	(read_key_sequence): Use timer_resume_idle instead of timer_start_idle.
+
+	* keyboard.h (timer_start_idle, timer_stop_idle): Remove prototypes.
+
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
 	* config.in (HAVE_MALLOC_MALLOC_H): Regenerate
