@@ -152,14 +152,15 @@ the elements themselves."
 	(setq cl-list (cdr cl-list)))
       (nreverse cl-res))))
 
-(defvar cl-old-mapc (symbol-function 'mapc))
+(defvar cl-old-mapc (prog1 (symbol-function 'mapc)
+		      (defalias 'mapc 'cl-mapc)))
 
-(defun mapc (cl-func cl-seq &rest cl-rest)
+(defun cl-mapc (cl-func cl-seq &rest cl-rest)
   "Like `mapcar', but does not accumulate values returned by the function."
   (if cl-rest
       (progn (apply 'map nil cl-func cl-seq cl-rest)
 	     cl-seq)
-    (funcall #'cl-old-mapc cl-func cl-seq)))
+    (funcall cl-old-mapc cl-func cl-seq)))
 
 (defun mapl (cl-func cl-list &rest cl-rest)
   "Like `maplist', but does not accumulate values returned by the function."
