@@ -2424,7 +2424,10 @@ Use %% to put a single % into the output.")
 		     format - this_format_start);
 	      this_format[format - this_format_start] = 0;
 
-	      sprintf (p, this_format, XINT (args[n]));
+	      if (INTEGERP (args[n]))
+		sprintf (p, this_format, XINT (args[n]));
+	      else
+		sprintf (p, this_format, XFLOAT (args[n])->data);
 
 	      this_nchars = strlen (p);
 	      p += this_nchars;
