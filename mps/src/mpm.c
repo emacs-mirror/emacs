@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.11) $
+ * $HopeName: MMsrc!mpm.c(trunk.12) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.11) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.12) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -113,16 +113,26 @@ Bool AlignCheck(Align align)
 
 Bool (WordIsAligned)(Word word, Align align)
 {
-  return (word & (align - 1)) == 0;
+  AVER(AlignCheck(align));
+  return WordIsAligned(word, align);
 }
 
 
-/* WordAlignUp -- round up a word to the nearest aligned value */
+/* WordAlignUp -- round a word up to the nearest aligned value */
 
 Word (WordAlignUp)(Word word, Align align)
 {
   AVER(AlignCheck(align));
-  return (word + align - 1) & ~(align - 1);
+  return WordAlignUp(word, align);
+}
+
+
+/* WordAlignUp -- round a word down to the nearest aligned value */
+
+Word (WordAlignDown)(Word word, Align alignment)
+{
+  AVER(AlignCheck(alignment));
+  return WordAlignDown(word, alignment);
 }
 
 
@@ -190,6 +200,15 @@ Size (AddrOffset)(Addr base, Addr limit)
   AVER(limit != 0);
   AVER(base <= limit);
   return AddrOffset(base, limit);
+}
+
+
+/* AddrAlignDown -- round a word down to the nearest aligned value */
+
+Addr (AddrAlignDown)(Addr addr, Align alignment)
+{
+  AVER(AlignCheck(alignment));
+  return AddrAlignDown(addr, alignment);
 }
 
 

@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(MMdevel_bufferscan.2) $
+ * $HopeName: MMsrc!trace.c(trunk.22) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(MMdevel_bufferscan.2) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.22) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -308,7 +308,7 @@ void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
   grey = TraceSetUnion(grey, ts);
   if(grey != seg->grey &&
      TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY)
-    ShieldRaise(space, seg, AccessREAD | AccessWRITE);
+    ShieldRaise(space, seg, AccessREAD);
   seg->grey = grey;
 }
 
@@ -346,6 +346,38 @@ static void TraceFlipBuffers(Space space)
   }
 }
 
+
+/* TraceSetSummary -- change the summary on a segment
+ *
+ * The order of setting summary and lowering shield is important.
+ * This code preserves the invariant that the segment is write-
+ * shielded whenever the summary is not universal.
+ * See impl.c.seg.check.wb.
+ *
+ * @@@@ In fact, we only need to raise the write barrier if the
+ * summary is strictly smaller than the summary of the unprotectable
+ * data (i.e. the mutator).  We don't maintain such a summary at the
+ * moment, and assume that the mutator's summary is RefSetUNIV.
+ */
+
+void TraceSetSummary(Space space, Seg seg, RefSet summary)
+{
+  AVERT(Space, space);
+  AVERT(Seg, seg);
+
+  if(summary == RefSetUNIV) {
+    seg->summary = summary;             /* NB summary == RefSetUNIV */
+    if(seg->sm & AccessWRITE)
+      ShieldLower(space, seg, AccessWRITE);
+  } else {
+    if(!(seg->sm & AccessWRITE))
+      ShieldRaise(space, seg, AccessWRITE);
+    seg->summary = summary;
+  }
+}
+
+
+/* TraceFlip -- blacken the mutator */
 
 static Res TraceFlip(Trace trace)
 {
@@ -491,7 +523,13 @@ static Bool FindGrey(Seg *segReturn, Rank *rankReturn,
 }
 
 
-/* TraceScan -- scan a segment to remove greyness */
+/* TraceScan -- scan a segment to remove greyness
+ *
+ * @@@@ During scanning, the segment should be write-shielded to
+ * prevent any other threads from updating it while fix is being
+ * applied to it (because fix is not atomic).  At the moment, we
+ * don't bother, because we know that all threads are suspended.
+ */
 
 static Res TraceScan(TraceSet ts, Rank rank,
                      Space space, Seg seg)
@@ -512,6 +550,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
   ss.fix = TraceFix;
   ss.zoneShift = space->zoneShift;
   ss.summary = RefSetEMPTY;
+  ss.fixed = RefSetEMPTY;
   ss.space = space;
   ss.wasMarked = TRUE;
   ss.white = RefSetEMPTY;
@@ -530,6 +569,13 @@ static Res TraceScan(TraceSet ts, Rank rank,
     return res;
   }
 
+  /* The summary of references seen by scan must be a subset of */
+  /* the ones we thought were there before. */
+  AVER(RefSetSub(ss.summary, seg->summary));
+  TraceSetSummary(space, seg,
+                  TraceSetUnion(ss.fixed,
+                                TraceSetDiff(ss.summary, ss.white)));
+
   ss.sig = SigInvalid;			/* just in case */
 
   /* The segment has been scanned, so remove the greyness from it. */
@@ -538,7 +584,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
   /* If the segment is no longer grey for any flipped trace it */
   /* doesn't need to be behind the read barrier. */  
   if(TraceSetInter(seg->grey, space->flippedTraces) == TraceSetEMPTY)
-    ShieldLower(space, seg, AccessREAD | AccessWRITE);
+    ShieldLower(space, seg, AccessREAD);
 
   /* Cover the segment again, now it's been scanned. */
   ShieldCover(space, seg);
@@ -555,25 +601,29 @@ void TraceAccess(Space space, Seg seg, AccessSet mode)
   AVERT(Seg, seg);
   UNUSED(mode);
 
-  /* @@@@ Need to establish what it is necessary to do with the segment. */
-  /* At the moment we're assuming that it must be scanned.  What about */
-  /* write barrier faults? */
-  
-  /* The only reason we protect at the moment is for a read barrier. */
-  /* In this case, the segment must be grey for a trace which is */
-  /* flipped. */
-  AVER(TraceSetInter(seg->grey, space->flippedTraces) != TraceSetEMPTY);
+  if((mode & seg->sm & AccessREAD) != 0) {     /* read barrier? */
+    /* In this case, the segment must be grey for a trace which is */
+    /* flipped. */
+    AVER(TraceSetInter(seg->grey, space->flippedTraces) != TraceSetEMPTY);
 
-  /* design.mps.poolamc.access.multi */
-  res = TraceScan(space->busyTraces,	/* @@@@ Should just be flipped traces? */
-                  RankEXACT,		/* @@@@ Surely this is conservative? */
-                  space, seg);
-  AVER(res == ResOK);			/* design.mps.poolamc.access.error */
+    /* design.mps.poolamc.access.multi */
+    res = TraceScan(space->busyTraces,  /* @@@@ Should just be flipped traces? */
+                    RankEXACT,          /* @@@@ Surely this is conservative? */
+                    space, seg);
+    AVER(res == ResOK);                 /* design.mps.poolamc.access.error */
 
-  /* The pool should've done the job of removing the greyness that */
-  /* was causing the segment to be protected, so that the mutator */
-  /* can go ahead and access it. */
-  AVER(TraceSetInter(seg->grey, space->flippedTraces) == TraceSetEMPTY);
+    /* The pool should've done the job of removing the greyness that */
+    /* was causing the segment to be protected, so that the mutator */
+    /* can go ahead and access it. */
+    AVER(TraceSetInter(seg->grey, space->flippedTraces) == TraceSetEMPTY);
+  }
+
+  if((mode & seg->sm & AccessWRITE) != 0) {    /* write barrier? */
+    AVER(seg->summary != RefSetUNIV);
+    TraceSetSummary(space, seg, RefSetUNIV);
+  }
+
+  AVER((mode & seg->sm) == AccessSetEMPTY);
 }
 
 
@@ -654,11 +704,14 @@ Res TraceFix(ScanState ss, Ref *refIO)
   AVER(refIO != NULL);
 
   ref = *refIO;
-  if(SegOfAddr(&seg, ss->space, ref))
+  if(SegOfAddr(&seg, ss->space, ref)) {
     if(TraceSetInter(seg->white, ss->traces) != TraceSetEMPTY) {
       pool = seg->pool;
       return PoolFix(pool, ss, seg, refIO);
     }
+
+    ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
+  }
 
   return ResOK;
 }
