@@ -889,8 +889,8 @@ LIST is a list of coding categories ordered by priority."
 ;;; FILE I/O
 
 (defvar auto-coding-alist
-  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|tar\\)\\'" . no-conversion)
-    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\|TAR\\)\\'" . no-conversion))
+  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|tar\\|tgz\\)\\'" . no-conversion)
+    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\|TAR\\|TGZ\\)\\'" . no-conversion))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
