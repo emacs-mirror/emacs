@@ -35,6 +35,8 @@ Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
+extern Lisp_Object Vhistory_length;
+
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
 
@@ -345,6 +347,14 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    }
 	  Vcommand_history
 	    = Fcons (Fcons (function, values), Vcommand_history);
+
+	  /* Don't keep command history around forever.  */
+	  if (NUMBERP (Vhistory_length) && XINT (Vhistory_length) > 0)
+	    {
+	      teml = Fnthcdr (Vhistory_length, Vcommand_history);
+	      if (CONSP (teml))
+		XCONS (teml)->cdr = Qnil;
+	    }
 	}
       single_kboard_state ();
       return apply1 (function, specs);
@@ -728,6 +738,13 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	}
       Vcommand_history = Fcons (Flist (count + 1, visargs),
 				Vcommand_history);
+      /* Don't keep command history around forever.  */
+      if (NUMBERP (Vhistory_length) && XINT (Vhistory_length) > 0)
+	{
+	  teml = Fnthcdr (Vhistory_length, Vcommand_history);
+	  if (CONSP (teml))
+	    XCONS (teml)->cdr = Qnil;
+	}
     }
 
   /* If we used a marker to hold point, mark, or an end of the region,
