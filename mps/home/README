@@ -1,14 +1,13 @@
-		   MEMORY MANAGEMENT PROJECT ROBOT
+		   MEMORY MANAGEMENT ROBOT
 
 
-The Memory Management Project Robot is a pseudo-user who performs
-tedious tasks on behalf of the project team and report any problems
-found.  The crontab file used to perform these automatic actions can
-be found in HOMEmm!etc:crontab.
+$HopeName$
 
-For information about the Memory Management Project, see the World
-Wide Web page http://springhost.cam.harlequin.co.uk/~mm/home.html
-or MMdoc_WWW!home.html.
+The Memory Management Robot is a pseudo-user who performs tedious
+tasks on behalf of the MM group and reports any problems found.  The
+crontab files used to perform these automatic actions can be found in
+HOMEmm!etc:*.cron.
 
----
-$Id: README,v 1.1 1994/06/15 12:51:41 mm Exp $
+For information about the Adaptive Memory Management group, see the
+web page <URL:http://webhost/~mm/> or the MM Information database in
+Spring.
