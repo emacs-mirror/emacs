@@ -1485,7 +1485,7 @@ If FILE is nil, try to load a default file.  The default file names are
   ;; If using MS-DOS or Windows, need to load edt-pc.el
   (if (memq system-type '(ms-dos windows-nt))
       (setq edt-term "pc")
-    (setq edt-term (getenv "TERM")))
+    (setq edt-term (or (getenv "TERM") "")))
   ;; All DEC VT series terminals are supported by loading edt-vt100.el
   (if (string-equal "vt" (substring edt-term 0 (min (length edt-term) 2)))
       (setq edt-term "vt100"))
