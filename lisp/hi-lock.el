@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- Minor mode for interactive automatic highlighting.
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman, koppel@ee.lsu.edu
 ;; Keywords: faces, minor-mode, matching, display
@@ -243,7 +243,7 @@ calls."
   "Toggle minor mode for interactively adding font-lock highlighting patterns.
 
 If ARG positive turn hi-lock on.  Issuing a hi-lock command will also
-turn hi-lock on.  When hi-lock turned on an \"Automatic Highlighting\"
+turn hi-lock on.  When hi-lock is turned on an \"Automatic Highlighting\"
 submenu is added to the \"Edit\" menu.  The commands in the submenu,
 which can be called interactively, are:
 
@@ -308,7 +308,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
 \\<minibuffer-local-map>Use \\[next-history-element] and \\[previous-history-element] to retrieve next or previous history item.
-(See info node `Minibuffer History')"
+\(See info node `Minibuffer History')"
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -330,7 +330,7 @@ list maintained for regexps, global history maintained for faces.
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
 \\<minibuffer-local-map>Use \\[next-history-element] and \\[previous-history-element] to retrieve next or previous history item.
-(See info node `Minibuffer History')"
+\(See info node `Minibuffer History')"
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -514,6 +514,7 @@ Optional argument END is maximum excursion."
                 (setq all-patterns (append patterns all-patterns))))))
       (if (and (not hi-lock-mode) all-patterns)
           (hi-lock-mode 1))
+      (unless font-lock-mode (font-lock-mode))
       (if hi-lock-mode (hi-lock-set-file-patterns all-patterns))
       (if (interactive-p)
         (message (format "Hi-lock added %d patterns." (length all-patterns)))))))
