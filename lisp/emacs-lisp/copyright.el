@@ -1,6 +1,6 @@
 ;;; upd-copyr.el --- update the copyright notice in a GNU Emacs Lisp file
 
-;;; Copyright (C) 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: maint
@@ -142,9 +142,7 @@ Put point there and hit \\[exit-recursive-edit]."))
 		(progn
 		  (goto-char (match-beginning 1))
 		  (delete-region (point) (match-end 1))
-		  (insert current-gpl-version))))
-	  (or ask-upd
-	      (error "This buffer contains no copyright notice!"))))))))
+		  (insert current-gpl-version))))))))))
 
 ;;;###autoload
 (defun ask-to-update-copyright ()
