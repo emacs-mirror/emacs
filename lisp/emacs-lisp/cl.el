@@ -514,15 +514,6 @@ Thus, `(list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
       (push (pop list) res))
     (nreverse res)))
 
-(defun copy-list (list)
-  "Return a copy of a list, which may be a dotted list.
-The elements of the list are not copied, just the list structure itself."
-  (if (consp list)
-      (let ((res nil))
-	(while (consp list) (push (pop list) res))
-	(prog1 (nreverse res) (setcdr res list)))
-    (car list)))
-
 (defun cl-maclisp-member (item list)
   (while (and list (not (equal item (car list)))) (setq list (cdr list)))
   list)
