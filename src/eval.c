@@ -1927,8 +1927,6 @@ run_hook_with_args (nargs, args, cond)
   val = find_symbol_value (sym);
   ret = (cond == until_failure ? Qt : Qnil);
 
-  GCPRO2 (sym, val);
-
   if (EQ (val, Qunbound) || NILP (val))
     return ret;
   else if (!CONSP (val) || EQ (XCONS (val)->car, Qlambda))
@@ -1938,6 +1936,8 @@ run_hook_with_args (nargs, args, cond)
     }
   else
     {
+      GCPRO2 (sym, val);
+
       for (;
 	   CONSP (val) && ((cond == to_completion)
 			   || (cond == until_success ? NILP (ret)
@@ -1966,6 +1966,8 @@ run_hook_with_args (nargs, args, cond)
 	      ret = Ffuncall (nargs, args);
 	    }
 	}
+
+      UNGCPRO;
       return ret;
     }
 }
