@@ -143,6 +143,8 @@ Lisp_Object Vdebugger;
 
 void specbind (), record_unwind_protect ();
 
+Lisp_Object run_hook_with_args ();
+
 Lisp_Object funcall_lambda ();
 extern Lisp_Object ml_apply (); /* Apply a mocklisp function to unevaluated argument list */
 
