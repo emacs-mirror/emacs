@@ -1,3 +1,11 @@
+2002-05-07  Miles Bader  <miles@gnu.org>
+
+	* xlwmenu.c (make_drawing_gcs): The scaling factor passed to
+	`x_alloc_lighter_color_for_widget' is a float, not an int, and
+	it's a multiplicative factor, so the name `delta' is inaccurate.
+	Always base disabled foreground on the normal foreground.
+	Don't use the temporary variable `temp'.
+
 2002-05-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xlwmenu.c (xlwMenuResources): New resource.
