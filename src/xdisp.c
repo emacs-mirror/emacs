@@ -515,6 +515,19 @@ message (m, a1, a2, a3)
     }
 }
 
+/* The non-logging version of that function.  */
+void
+message_nolog (m, a1, a2, a3)
+     char *m;
+     EMACS_INT a1, a2, a3;
+{
+  Lisp_Object old_log_max;
+  old_log_max = Vmessage_log_max;
+  Vmessage_log_max = Qnil;
+  message (m, a1, a2, a3);
+  Vmessage_log_max = old_log_max;
+}
+
 void
 update_echo_area ()
 {
