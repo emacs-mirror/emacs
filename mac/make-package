@@ -51,7 +51,7 @@ emapp=Emacs.app
 with_config=yes
 with_app=yes
 with_x=no
-comp_diskimage=yes
+comp_diskimage=no
 self_contained=no
 app_symlink=no
 full_dist=yes
@@ -332,7 +332,11 @@ mkdir ${packagedir}
 mkdir ${packagedir}/Contents
 mkdir ${packagedir}/Contents/Resources
 mkdir ${packagedir}/Contents/Resources/English.lproj
-echo 'pmkrpkg1' > ${packagedir}/Contents/PkgInfo
+echo -n 'pmkrpkg1' > ${packagedir}/Contents/PkgInfo
+
+# Create ReadMe and License files
+cp ${srcdir}/COPYING ${packagedir}/Contents/Resources/License.txt
+cp ${srcdir}/mac/README ${packagedir}/Contents/Resources/ReadMe.txt
 
 infofile=${packagedir}/Contents/Resources/English.lproj/Emacs.info
 
@@ -377,7 +381,7 @@ cat ${sizesfile}
 echo "Creating Disc Image"
 ## Allocate an extra 5000 sectors (about 2.5 mg)
 ## Note a sector appears to be 512k
-sectorsAlloced=`echo 2*${compressedSize}+5000|bc`
+sectorsAlloced=`echo 2*${compressedSize}+20|bc`
 hdiutil create -ov ${builddir}/mac/EmacsRW -sectors ${sectorsAlloced}
 ## Need to format the disc image before mounting
 mountLoc=`hdid -nomount ${builddir}/mac/EmacsRW.dmg | grep HFS | cut -f1`

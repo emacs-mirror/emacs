@@ -1,3 +1,9 @@
+2003-01-01  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Now copies License and ReadMe files into the
+	Resources directory.  Reduces overhead size when creating
+	installer disk image 
+
 2002-12-29  Steven Tamm  <steventamm@mac.com>
 
 	* make-package: Defaults to building the source tree in a
