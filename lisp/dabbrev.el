@@ -4,8 +4,7 @@
 ;; Author: Don Morrison
 ;; Maintainer: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 16 Mars 1992
-;; Version: 4.4.2 beta
-(defun dabbrev--version () "4.4.2 beta")
+;; Lindberg's last update version: 5.2
 ;; Keywords: abbrev expand completion
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -309,13 +308,18 @@ and presents suggestions for completion.
 
 With a prefix argument, it searches all buffers accepted by the
 function pointed out by `dabbrev-friend-buffer-function' to find the
-completions.  \(The argument value does not matter.)
+completions.
+
+If the prefix argument is 16 (which comes from C-u C-u),
+then it searches *all* buffers.
 
 With no prefix argument, it reuses an old completion list
 if there is a suitable one already."
 
   (interactive "*P")
   (let* ((dabbrev-always-check-other-buffers (and arg t))
+	 (dabbrev-check-rest-of-buffers
+	  (and arg (= (prefix-numeric-value arg) 16)))
 	 (abbrev (dabbrev--abbrev-at-point))
 	 (ignore-case-p  (and (eval dabbrev-case-fold-search)
 				(or (not dabbrev-upcase-means-case-search)
