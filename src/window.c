@@ -819,7 +819,7 @@ delete_window (window)
   if (NILP (p->buffer)
       && NILP (p->hchild)
       && NILP (p->vchild))
-    return Qnil;
+    return;
 
   parent = p->parent;
   if (NILP (parent))
@@ -1890,7 +1890,7 @@ BUFFER can be a buffer or buffer name.")
     XBUFFER (w->buffer)->last_selected_window = window;
   if (INTEGERP (XBUFFER (buffer)->display_count))
     XSETINT (XBUFFER (buffer)->display_count,
-	     XBUFFER (buffer)->display_count + 1);
+	     XINT (XBUFFER (buffer)->display_count) + 1);
 
   XSETFASTINT (w->window_end_pos, 0);
   w->window_end_valid = Qnil;
@@ -2237,15 +2237,19 @@ buffer names are handled.")
 	    other = lower = XWINDOW (window)->next, upper = window;
 	  if (!NILP (other)
 	      /* Check that OTHER and WINDOW are vertically arrayed.  */
-	      && XWINDOW (other)->top != XWINDOW (window)->top
-	      && XWINDOW (other)->height > XWINDOW (window)->height)
+	      && !EQ (XWINDOW (other)->top, XWINDOW (window)->top)
+	      && (XFASTINT (XWINDOW (other)->height)
+		  > XFASTINT (XWINDOW (window)->height)))
 	    {
-	      int total = XWINDOW (other)->height + XWINDOW (window)->height;
+	      int total = (XFASTINT (XWINDOW (other)->height)
+			   + XFASTINT (XWINDOW (window)->height));
 	      Lisp_Object old_selected_window;
 	      old_selected_window = selected_window;
 
 	      selected_window = upper;
-	      change_window_height (total / 2 - XWINDOW (upper)->height, 0);
+	      change_window_height ((total / 2
+				     - XFASTINT (XWINDOW (upper)->height)),
+				    0);
 	      selected_window = old_selected_window;
 	    }
 	}
