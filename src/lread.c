@@ -660,7 +660,7 @@ Return t if file exists.  */)
   register FILE *stream;
   register int fd = -1;
   register Lisp_Object lispstream;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object temp;
   struct gcpro gcpro1;
   Lisp_Object found, efound;
@@ -1271,7 +1271,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
 {
   register int c;
   register Lisp_Object val;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
   struct buffer *b = 0;
   int continue_reading_p;
@@ -1313,7 +1313,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
 
       if (!NILP (Vpurify_flag) && c == '(')
 	{
-	  int count1 = specpdl_ptr - specpdl;
+	  int count1 = SPECPDL_INDEX ();
 	  record_unwind_protect (unreadpure, Qnil);
 	  val = read_list (-1, readcharfun);
 	  unbind_to (count1, Qnil);
@@ -1379,7 +1379,7 @@ This function preserves the position of point.  */)
      (buffer, printflag, filename, unibyte, do_allow_print)
      Lisp_Object buffer, printflag, filename, unibyte, do_allow_print;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object tem, buf;
 
   if (NILP (buffer))
@@ -1421,7 +1421,7 @@ This function does not move point.  */)
      (start, end, printflag, read_function)
      Lisp_Object start, end, printflag, read_function;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object tem, cbuf;
 
   cbuf = Fcurrent_buffer ();

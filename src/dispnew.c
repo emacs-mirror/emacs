@@ -5928,7 +5928,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
      int newheight, newwidth, pretend, delay, safe;
 {
   int new_frame_window_width;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   /* If we can't deal with the change now, queue it for later.  */
   if (delay || (redisplaying_p && !safe))

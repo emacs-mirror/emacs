@@ -2371,7 +2371,7 @@ A prefix arg makes KEEP-TIME non-nil.  */)
   struct stat st, out_st;
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int input_file_statable_p;
   Lisp_Object encoded_file, encoded_newname;
 
@@ -4395,7 +4395,7 @@ actually used.  */)
 	     this way, we can run Lisp program safely before decoding
 	     the inserted text.  */
 	  Lisp_Object unwind_data;
-	      int count = specpdl_ptr - specpdl;
+	      int count = SPECPDL_INDEX ();
 
 	  unwind_data = Fcons (current_buffer->enable_multibyte_characters,
 			       Fcons (current_buffer->undo_list,
@@ -4753,7 +4753,7 @@ This does code conversion according to the value of
   unsigned char *fn;
   struct stat st;
   int tem;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int count1;
 #ifdef VMS
   unsigned char *fname = 0;     /* If non-0, original filename (must rename) */
@@ -4825,7 +4825,7 @@ This does code conversion according to the value of
     }
 
   record_unwind_protect (build_annotations_unwind, Fcurrent_buffer ());
-  count1 = specpdl_ptr - specpdl;
+  count1 = SPECPDL_INDEX ();
 
   given_buffer = current_buffer;
 
@@ -5594,7 +5594,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   Lisp_Object oquit;
   FILE *stream;
   Lisp_Object lispstream;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
   int message_p = 0;
 
@@ -5941,7 +5941,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 	{
 	  /* Must do it the hard (and slow) way.  */
 	  GCPRO3 (all, comp, specdir);
-	  count = specpdl_ptr - specpdl;
+	  count = SPECPDL_INDEX ();
 	  record_unwind_protect (read_file_name_cleanup, current_buffer->directory);
 	  current_buffer->directory = realdir;
 	  for (comp = Qnil; CONSP (all); all = XCDR (all))
@@ -6074,7 +6074,7 @@ provides a file dialog box.  */)
       RETURN_UNGCPRO (Ffuncall (7, args));
     }
 
-  count = specpdl_ptr - specpdl;
+  count = SPECPDL_INDEX ();
 #ifdef VMS
   specbind (intern ("completion-ignore-case"), Qt);
 #endif

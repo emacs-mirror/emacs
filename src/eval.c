@@ -231,7 +231,7 @@ call_debugger (arg)
      Lisp_Object arg;
 {
   int debug_while_redisplaying;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object val;
   
   if (lisp_eval_depth + 20 > max_lisp_eval_depth)
@@ -864,7 +864,7 @@ usage: (let* VARLIST BODY...)  */)
      Lisp_Object args;
 {
   Lisp_Object varlist, val, elt;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   GCPRO3 (args, elt, varlist);
@@ -904,7 +904,7 @@ usage: (let VARLIST BODY...)  */)
 {
   Lisp_Object *temps, tem;
   register Lisp_Object elt, varlist;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   register int argnum;
   struct gcpro gcpro1, gcpro2;
 
@@ -1095,7 +1095,7 @@ internal_catch (tag, func, arg)
   c.backlist = backtrace_list;
   c.handlerlist = handlerlist;
   c.lisp_eval_depth = lisp_eval_depth;
-  c.pdlcount = specpdl_ptr - specpdl;
+  c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
@@ -1196,7 +1196,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
      Lisp_Object args;
 {
   Lisp_Object val;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   record_unwind_protect (0, Fcdr (args));
   val = Feval (Fcar (args));
@@ -1262,7 +1262,7 @@ usage: (condition-case VAR BODYFORM HANDLERS...)  */)
   c.backlist = backtrace_list;
   c.handlerlist = handlerlist;
   c.lisp_eval_depth = lisp_eval_depth;
-  c.pdlcount = specpdl_ptr - specpdl;
+  c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
@@ -1327,7 +1327,7 @@ internal_condition_case (bfun, handlers, hfun)
   c.backlist = backtrace_list;
   c.handlerlist = handlerlist;
   c.lisp_eval_depth = lisp_eval_depth;
-  c.pdlcount = specpdl_ptr - specpdl;
+  c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
@@ -1367,7 +1367,7 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
   c.backlist = backtrace_list;
   c.handlerlist = handlerlist;
   c.lisp_eval_depth = lisp_eval_depth;
-  c.pdlcount = specpdl_ptr - specpdl;
+  c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
@@ -1410,7 +1410,7 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
   c.backlist = backtrace_list;
   c.handlerlist = handlerlist;
   c.lisp_eval_depth = lisp_eval_depth;
-  c.pdlcount = specpdl_ptr - specpdl;
+  c.pdlcount = SPECPDL_INDEX ();
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
@@ -1646,7 +1646,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
       || !NILP (Vdebug_on_signal)) /* This says call debugger even if
 				      there is a handler.  */
     {
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
       int debugger_called = 0;
       Lisp_Object sig_symbol, combined_data;
       /* This is set to 1 if we are handling a memory-full error,
@@ -1914,7 +1914,7 @@ void
 do_autoload (fundef, funname)
      Lisp_Object fundef, funname;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object fun, queue, first, second;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
@@ -2860,7 +2860,7 @@ funcall_lambda (fun, nargs, arg_vector)
      register Lisp_Object *arg_vector;
 {
   Lisp_Object val, syms_left, next;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int i, optional, rest;
 
   if (CONSP (fun))
@@ -2953,7 +2953,7 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 void
 grow_specpdl ()
 {
-  register int count = specpdl_ptr - specpdl;
+  register int count = SPECPDL_INDEX ();
   if (specpdl_size >= max_specpdl_size)
     {
       if (max_specpdl_size < 400)

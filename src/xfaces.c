@@ -2844,7 +2844,7 @@ are fixed-pitch.  */)
   struct font_name *fonts;
   Lisp_Object result;
   struct gcpro gcpro1;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int limit;
 
   /* Let's consider all fonts.  Increase the limit for matching

@@ -784,7 +784,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   else
     {
       Lisp_Object initial_value, value;
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
 
       if (! NILP (object))
 	CHECK_BUFFER (object);
@@ -849,7 +849,7 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     }
   else
     {
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
 
       if (! NILP (object))
 	CHECK_BUFFER (object);

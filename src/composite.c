@@ -612,7 +612,7 @@ compose_chars_in_text (start, end, string)
 
   if (STRINGP (string))
     {
-      count = specpdl_ptr - specpdl;
+      count = SPECPDL_INDEX ();
       GCPRO1 (string);
       stop = end;
       ptr = XSTRING (string)->data + string_char_to_byte (string, start);

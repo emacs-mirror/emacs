@@ -3121,7 +3121,7 @@ This is text showing the elements of vector matched against indices.  */)
      (vector, describer)
      Lisp_Object vector, describer;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   if (NILP (describer))
     describer = intern ("princ");
   specbind (Qstandard_output, Fcurrent_buffer ());

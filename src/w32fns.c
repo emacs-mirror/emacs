@@ -14301,7 +14301,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   char filename[MAX_PATH + 1];
   char init_dir[MAX_PATH + 1];

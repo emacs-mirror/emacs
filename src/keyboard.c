@@ -934,7 +934,7 @@ add_command_key (key)
 Lisp_Object
 recursive_edit_1 ()
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object val;
 
   if (command_loop_level > 0)
@@ -1000,7 +1000,7 @@ Alternately, `(throw 'exit t)' makes this function signal an error.
 This function is called by the editor initialization to begin editing.  */)
      ()
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object buffer;
 
   command_loop_level++;
@@ -1407,7 +1407,7 @@ command_loop_1 ()
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
-	  int count = specpdl_ptr - specpdl;
+	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_quit, Qt);
 
 	  Fsit_for (Vminibuffer_message_timeout, Qnil, Qnil);
@@ -1838,7 +1838,7 @@ void
 safe_run_hooks (hook)
      Lisp_Object hook;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   specbind (Qinhibit_quit, hook);
 
   internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
@@ -2813,7 +2813,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       Lisp_Object keys; 
       int key_count;
       struct gcpro gcpro1;
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
 
       /* Save the echo status.  */
       int saved_immediate_echo = current_kboard->immediate_echo;
@@ -2943,7 +2943,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (!NILP (Vhelp_form) && help_char_p (c))
     {
       Lisp_Object tem0;
-      count = specpdl_ptr - specpdl;
+      count = SPECPDL_INDEX ();
 
       record_unwind_protect (Fset_window_configuration,
 			     Fcurrent_window_configuration (Qnil));
@@ -3223,7 +3223,7 @@ usage: (track-mouse BODY ...)  */)
      (args)
      Lisp_Object args;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object val;
 
   record_unwind_protect (tracking_off, do_mouse_tracking);
@@ -6789,7 +6789,7 @@ Lisp_Object
 menu_item_eval_property (sexpr)
      Lisp_Object sexpr;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object val;
   specbind (Qinhibit_redisplay, Qt);
   val = internal_condition_case_1 (Feval, sexpr, Qerror,
@@ -8005,7 +8005,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      int fix_current_buffer;
 {
   volatile Lisp_Object from_string;
-  volatile int count = specpdl_ptr - specpdl;
+  volatile int count = SPECPDL_INDEX ();
 
   /* How many keys there are in the current key sequence.  */
   volatile int t;
@@ -9187,7 +9187,7 @@ will read just one key sequence.  */)
   Lisp_Object keybuf[30];
   register int i;
   struct gcpro gcpro1;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   if (!NILP (prompt))
     CHECK_STRING (prompt);
@@ -9246,7 +9246,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
   Lisp_Object keybuf[30];
   register int i;
   struct gcpro gcpro1;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   if (!NILP (prompt))
     CHECK_STRING (prompt);
@@ -9797,7 +9797,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
      (stuffstring)
      Lisp_Object stuffstring;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int old_height, old_width;
   int width, height;
   struct gcpro gcpro1;

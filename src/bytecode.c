@@ -420,7 +420,7 @@ If the third argument is incorrect, Emacs may crash.  */)
      (bytestr, vector, maxdepth)
      Lisp_Object bytestr, vector, maxdepth;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 #ifdef BYTE_CODE_METER
   int this_op = 0;
   int prev_op;
@@ -728,7 +728,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  op -= Bunbind;
 	dounbind:
 	  BEFORE_POTENTIAL_GC ();
-	  unbind_to (specpdl_ptr - specpdl - op, Qnil);
+	  unbind_to (SPECPDL_INDEX () - op, Qnil);
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
@@ -909,7 +909,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    temp_output_buffer_show (TOP);
 	    TOP = v1;
 	    /* pop binding of standard-output */
-	    unbind_to (specpdl_ptr - specpdl - 1, Qnil);
+	    unbind_to (SPECPDL_INDEX () - 1, Qnil);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
@@ -1725,7 +1725,7 @@ If the third argument is incorrect, Emacs may crash.  */)
   byte_stack_list = byte_stack_list->next;
 
   /* Binds and unbinds are supposed to be compiled balanced.  */
-  if (specpdl_ptr - specpdl != count)
+  if (SPECPDL_INDEX () != count)
 #ifdef BYTE_CODE_SAFE
     error ("binding stack not balanced (serious byte compiler bug)");
 #else

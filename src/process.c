@@ -1292,7 +1292,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   register unsigned char **new_argv;
 #endif
   register int i;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   buffer = args[1];
   if (!NILP (buffer))
@@ -2552,7 +2552,7 @@ usage: (make-network-process &rest ARGS)  */)
   int s = -1, outch, inch;
   struct gcpro gcpro1;
   int retry = 0;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int count1;
   Lisp_Object QCaddress;  /* one of QClocal or QCremote */
   Lisp_Object tem;
@@ -2843,7 +2843,7 @@ usage: (make-network-process &rest ARGS)  */)
     }
 
   /* Do this in case we never enter the for-loop below.  */
-  count1 = specpdl_ptr - specpdl;
+  count1 = SPECPDL_INDEX ();
   s = -1;
 
   for (lres = res; lres; lres = lres->ai_next)
@@ -4348,7 +4348,7 @@ read_process_output (proc, channel)
       /* We inhibit quit here instead of just catching it so that 
 	 hitting ^G when a filter happens to be running won't screw
 	 it up.  */
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
       Lisp_Object odeactivate;
       Lisp_Object obuffer, okeymap;
       Lisp_Object text;
@@ -5734,7 +5734,7 @@ exec_sentinel (proc, reason)
 {
   Lisp_Object sentinel, obuffer, odeactivate, okeymap;
   register struct Lisp_Process *p = XPROCESS (proc);
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int outer_running_asynch_code = running_asynch_code;
   int waiting = waiting_for_user_input_p;
 

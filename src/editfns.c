@@ -851,7 +851,7 @@ usage: (save-excursion &rest BODY)  */)
      Lisp_Object args;
 {
   register Lisp_Object val;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
 
@@ -867,7 +867,7 @@ usage: (save-current-buffer &rest BODY)  */)
      Lisp_Object args;
 {
   Lisp_Object val;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 
@@ -2482,7 +2482,7 @@ Both characters must have the same length of multi-byte form.  */)
   int changed = 0;
   unsigned char fromstr[MAX_MULTIBYTE_LENGTH], tostr[MAX_MULTIBYTE_LENGTH];
   unsigned char *p;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 #define COMBINING_NO	 0
 #define COMBINING_BEFORE 1
 #define COMBINING_AFTER  2
@@ -2894,7 +2894,7 @@ usage: (save-restriction &rest BODY)  */)
      Lisp_Object body;
 {
   register Lisp_Object val;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
   val = Fprogn (body);

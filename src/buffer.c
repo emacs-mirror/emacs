@@ -1297,7 +1297,7 @@ with SIGHUP.  */)
 
   /* Run hooks with the buffer to be killed the current buffer.  */
   {
-    int count = specpdl_ptr - specpdl;
+    int count = SPECPDL_INDEX ();
     Lisp_Object list;
 
     record_unwind_protect (save_excursion_restore, save_excursion_save ());
@@ -1548,7 +1548,7 @@ the current buffer's major mode.  */)
   if (NILP (function) || EQ (function, Qfundamental_mode))
     return Qnil;
 
-  count = specpdl_ptr - specpdl;
+  count = SPECPDL_INDEX ();
 
   /* To select a nonfundamental mode,
      select the buffer temporarily and then call the mode function. */
@@ -3586,7 +3586,7 @@ buffer.  */)
 {
   struct buffer *b, *ob;
   Lisp_Object obuffer;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   CHECK_OVERLAY (overlay);
   if (NILP (buffer))
@@ -3687,7 +3687,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 {
   Lisp_Object buffer;
   struct buffer *b;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   CHECK_OVERLAY (overlay);
 

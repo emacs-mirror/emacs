@@ -409,7 +409,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      int inherit_input_method;
 {
   Lisp_Object val;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
@@ -732,7 +732,7 @@ get_minibuffer (depth)
     }
   else
     {
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
 
       reset_buffer (XBUFFER (buf));
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
@@ -793,7 +793,7 @@ read_minibuf_unwind (data)
 
   /* Erase the minibuffer we were using at this level.  */
   {
-    int count = specpdl_ptr - specpdl;
+    int count = SPECPDL_INDEX ();
     /* Prevent error in erase-buffer.  */
     specbind (Qinhibit_read_only, Qt);
     specbind (Qinhibit_modification_hooks, Qt);
@@ -1528,7 +1528,7 @@ Completion ignores case if the ambient value of
   Lisp_Object val, histvar, histpos, position;
   Lisp_Object init;
   int pos = 0;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
   init = initial_input;

@@ -2935,7 +2935,7 @@ is nil and `use-dialog-box' is non-nil.  */)
   Lisp_Object xprompt;
   Lisp_Object args[2];
   struct gcpro gcpro1, gcpro2;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   specbind (Qcursor_in_echo_area, Qt);
 
@@ -3250,7 +3250,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
   
   if (NILP (tem))
     {
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
       int nesting = 0;
 
       /* This is to make sure that loadup.el gives a clear picture

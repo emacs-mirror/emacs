@@ -144,7 +144,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
   Lisp_Object list, dirfilename, encoded_directory;
   struct re_pattern_buffer *bufp = NULL;
   int needsep = 0;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DIRENTRY *dp;
   int retry_p;
@@ -473,7 +473,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   struct stat st;
   int directoryp;
   int passcount;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   elt = Qnil;

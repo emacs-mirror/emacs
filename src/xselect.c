@@ -414,7 +414,7 @@ x_get_local_selection (selection_symbol, target_type)
       /* Don't allow a quit within the converter.
 	 When the user types C-g, he would be surprised
 	 if by luck it came during a converter.  */
-      count = specpdl_ptr - specpdl;
+      count = SPECPDL_INDEX ();
       specbind (Qinhibit_quit, Qt);
 
       CHECK_SYMBOL (target_type);
@@ -1074,7 +1074,7 @@ wait_for_property_change (location)
      struct prop_location *location;
 {
   int secs, usecs;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object tem;
 
   tem = Fcons (Qnil, Qnil);

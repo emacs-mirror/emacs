@@ -198,7 +198,7 @@ supply if the command inquires which events were used to invoke it.  */)
   Lisp_Object specs;
   Lisp_Object teml;
   Lisp_Object enable;
-  int speccount = specpdl_ptr - specpdl;
+  int speccount = SPECPDL_INDEX ();
 
   /* The index of the next element of this_command_keys to examine for
      the 'e' interactive code.  */
@@ -541,7 +541,7 @@ supply if the command inquires which events were used to invoke it.  */)
 
 	case 'k':		/* Key sequence. */
 	  {
-	    int speccount1 = specpdl_ptr - specpdl;
+	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    args[i] = Fread_key_sequence (build_string (callint_message),
 					  Qnil, Qnil, Qnil, Qnil);
@@ -569,7 +569,7 @@ supply if the command inquires which events were used to invoke it.  */)
 
 	case 'K':		/* Key sequence to be defined. */
 	  {
-	    int speccount1 = specpdl_ptr - specpdl;
+	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    args[i] = Fread_key_sequence (build_string (callint_message),
 					  Qnil, Qt, Qnil, Qnil);

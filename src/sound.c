@@ -402,7 +402,7 @@ Internal use only, use `play-sound' instead.  */)
   struct sound_device sd;
   struct sound s;
   Lisp_Object args[2];
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   file = Qnil;
   GCPRO2 (sound, file);

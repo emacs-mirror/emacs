@@ -5804,7 +5804,7 @@ run_pre_post_conversion_on_str (str, coding, encodep)
      struct coding_system *coding;
      int encodep;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
   int multibyte = STRING_MULTIBYTE (str);
   Lisp_Object buffer;

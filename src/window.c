@@ -2664,7 +2664,7 @@ set_window_buffer (window, buffer, run_hooks_p)
 {
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   w->buffer = buffer;
 
@@ -3174,7 +3174,7 @@ temp_output_buffer_show (buf)
 	      tem = Fsymbol_value (Qtemp_buffer_show_hook);
 	      if (!NILP (tem))
 		{
-		  int count = specpdl_ptr - specpdl;
+		  int count = SPECPDL_INDEX ();
 		  Lisp_Object prev_window;
 		  prev_window = selected_window;
 
@@ -5462,7 +5462,7 @@ usage: (save-window-excursion BODY ...)  */)
      Lisp_Object args;
 {
   register Lisp_Object val;
-  register int count = specpdl_ptr - specpdl;
+  register int count = SPECPDL_INDEX ();
 
   record_unwind_protect (Fset_window_configuration,
 			 Fcurrent_window_configuration (Qnil));

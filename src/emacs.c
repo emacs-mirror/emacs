@@ -425,7 +425,7 @@ init_cmdargs (argc, argv, skip_args)
 {
   register int i;
   Lisp_Object name, dir, tem;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
 
   initial_argv = argv;

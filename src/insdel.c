@@ -2205,7 +2205,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        doc: /* This function is for use internally in `combine-after-change-calls'.  */)
      ()
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int beg, end, change;
   int begpos, endpos;
   Lisp_Object tail;

@@ -172,7 +172,7 @@ call_process_cleanup (fdpid)
 
   if (EMACS_KILLPG (pid, SIGINT) == 0)
     {
-      int count = specpdl_ptr - specpdl;
+      int count = SPECPDL_INDEX ();
       record_unwind_protect (call_process_kill, fdpid);
       message1 ("Waiting for process to die...(type C-g again to kill it instantly)");
       immediate_quit = 1;
@@ -220,7 +220,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   char buf[16384];
   char *bufptr = buf;
   int bufsize = 16384;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   register unsigned char **new_argv
     = (unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
@@ -936,7 +936,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       }
 
     {
-      int post_read_count = specpdl_ptr - specpdl;
+      int post_read_count = SPECPDL_INDEX ();
 
       record_unwind_protect (save_excursion_restore, save_excursion_save ());
       inserted = PT - pt_orig;
@@ -1017,7 +1017,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   struct gcpro gcpro1;
   Lisp_Object filename_string;
   register Lisp_Object start, end;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
   Lisp_Object coding_systems;
   Lisp_Object val, *args2;
@@ -1091,7 +1091,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     }
 
   {
-    int count1 = specpdl_ptr - specpdl;
+    int count1 = SPECPDL_INDEX ();
 
     specbind (intern ("coding-system-for-write"), val);
     Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);

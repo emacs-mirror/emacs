@@ -192,7 +192,7 @@ void print_interval ();
    struct buffer *old = current_buffer;					\
    int old_point = -1, start_point = -1;				\
    int old_point_byte = -1, start_point_byte = -1;			\
-   int specpdl_count = specpdl_ptr - specpdl;				\
+   int specpdl_count = SPECPDL_INDEX ();				\
    int free_print_buffer = 0;						\
    int multibyte = !NILP (current_buffer->enable_multibyte_characters);	\
    Lisp_Object original
@@ -580,7 +580,7 @@ void
 temp_output_buffer_setup (bufname)
     char *bufname;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   register struct buffer *old = current_buffer;
   register Lisp_Object buf;
 
@@ -613,7 +613,7 @@ internal_with_output_to_temp_buffer (bufname, function, args)
      Lisp_Object (*function) P_ ((Lisp_Object));
      Lisp_Object args;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object buf, val;
   struct gcpro gcpro1;
 
@@ -658,7 +658,7 @@ usage: (with-output-to-temp-buffer BUFFNAME BODY ...)  */)
 {
   struct gcpro gcpro1;
   Lisp_Object name;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object buf, val;
 
   GCPRO1(args);

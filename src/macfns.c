@@ -9304,7 +9304,7 @@ x_create_tip_frame (dpyinfo, parms)
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
 
@@ -9562,7 +9562,7 @@ DY added (default is 10).  */)
   unsigned pmask;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   
   specbind (Qinhibit_redisplay, Qt);
 
@@ -9787,7 +9787,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   char filename[MAX_PATH + 1];
   char init_dir[MAX_PATH + 1];

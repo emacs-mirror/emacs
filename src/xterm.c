@@ -12123,7 +12123,7 @@ int
 x_catch_errors (dpy)
      Display *dpy;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   /* Make sure any errors from previous requests have been dealt with.  */
   XSync (dpy, False);
