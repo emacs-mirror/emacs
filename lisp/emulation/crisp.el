@@ -88,8 +88,11 @@ does not load Scroll All.")
 (defvar crisp-load-hook nil
   "Hooks to run after loadint the CRiSP emulator package.")
 
-(defvar crisp-version "crisp.el release 1.1/$Revision: 1.3 $"
+(defvar crisp-version "crisp.el release 1.1/$Revision: 1.4 $"
   "The release number and RCS version for the CRiSP emulator.")
+
+(defvar crisp-last-last-command nil
+  "The command *before* the last command.")
 
 (if (string-match "XEmacs\\Lucid" emacs-version)
     (add-minor-mode 'crisp-mode-enabled crisp-mode-modeline-string)
@@ -177,13 +180,14 @@ consecutive use moves point to beginning of the screen.  Third
 consecutive use moves point to the beginning of the buffer."
   (interactive nil)
   (cond
-    ((and (eq last-command 'crisp-home) (eq last-last-command 'crisp-home))
+    ((and (eq last-command 'crisp-home)
+	  (eq crisp-last-last-command 'crisp-home))
      (goto-char (point-min)))
     ((eq last-command 'crisp-home)
      (move-to-window-line 0))
     (t
      (beginning-of-line)))
-  (setq last-last-command last-command))
+  (setq crisp-last-last-command last-command))
 
 (defun crisp-end ()
   "\"End\" point, the way CRiSP would do it.
@@ -192,14 +196,14 @@ consecutive use moves point to the end of the screen.  Third
 consecutive use moves point to the end of the buffer."
   (interactive nil)
   (cond
-    ((and (eq last-command 'crisp-end) (eq last-last-command 'crisp-end))
+    ((and (eq last-command 'crisp-end) (eq crisp-last-last-command 'crisp-end))
      (goto-char (point-max)))
     ((eq last-command 'crisp-end)
      (move-to-window-line -1)
      (end-of-line))
     (t
      (end-of-line)))
-  (setq last-last-command last-command))
+  (setq crisp-last-last-command last-command))
 
 ;; Now enable the mode
 
