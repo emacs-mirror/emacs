@@ -69,9 +69,8 @@ Boston, MA 02111-1307, USA.  */
 
   4. Raw text
 
-  A coding system to for a text containing random 8-bit code.  Emacs
-  does no code conversion on such a text except for end-of-line
-  format.
+  A coding system for a text containing random 8-bit code.  Emacs does
+  no code conversion on such a text except for end-of-line format.
 
   5. Other
 
@@ -272,7 +271,9 @@ int system_eol_type;
 
 #ifdef emacs
 
-Lisp_Object Qcoding_system_spec, Qcoding_system_p, Qcoding_system_error;
+Lisp_Object Vcoding_system_list, Vcoding_system_alist;
+
+Lisp_Object Qcoding_system_p, Qcoding_system_error;
 
 /* Coding system emacs-mule is for converting only end-of-line format.  */
 Lisp_Object Qemacs_mule;
@@ -2299,7 +2300,8 @@ setup_coding_system (coding_system, coding)
      Lisp_Object coding_system;
      struct coding_system *coding;
 {
-  Lisp_Object type, eol_type;
+  Lisp_Object coding_spec, plist, type, eol_type;
+  Lisp_Object val;
 
   /* At first, set several fields to default values.  */
   coding->require_flushing = 0;
@@ -2314,55 +2316,34 @@ setup_coding_system (coding_system, coding)
 
   Vlast_coding_system_used = coding->symbol = coding_system;
   eol_type = Qnil;
-  /* Get value of property `coding-system' until we get a vector.
-     While doing that, also get values of properties
+
+  /* Get values of property `coding-system' and `eol-type'.
+     Also get values of coding system properties:
      `post-read-conversion', `pre-write-conversion',
      `character-unification-table-for-decode',
-     `character-unification-table-for-encode' and `eol-type'.  */
-  while (!NILP (coding_system) && SYMBOLP (coding_system))
-    {
-      if (NILP (coding->post_read_conversion))
-	coding->post_read_conversion = Fget (coding_system,
-					     Qpost_read_conversion);
-      if (NILP (coding->pre_write_conversion))	
-	coding->pre_write_conversion = Fget (coding_system,
-					     Qpre_write_conversion);
-      if (!inhibit_eol_conversion && NILP (eol_type))
-	eol_type = Fget (coding_system, Qeol_type);
-
-      if (NILP (coding->character_unification_table_for_decode))
-	coding->character_unification_table_for_decode
-	  = Fget (coding_system, Qcharacter_unification_table_for_decode);
-
-      if (NILP (coding->character_unification_table_for_encode))
-	coding->character_unification_table_for_encode
-	  = Fget (coding_system, Qcharacter_unification_table_for_encode);
-
-      coding_system = Fget (coding_system, Qcoding_system);
-    }
-
-  while (!NILP (coding->character_unification_table_for_decode)
-	 && SYMBOLP (coding->character_unification_table_for_decode))
-	coding->character_unification_table_for_decode
-	  = Fget (coding->character_unification_table_for_decode,
-		  Qcharacter_unification_table_for_decode);
-  if (!NILP (coding->character_unification_table_for_decode)
-      && !CHAR_TABLE_P (coding->character_unification_table_for_decode))
-      coding->character_unification_table_for_decode = Qnil;
-
-  while (!NILP (coding->character_unification_table_for_encode)
-	 && SYMBOLP (coding->character_unification_table_for_encode))
-	coding->character_unification_table_for_encode
-	  = Fget (coding->character_unification_table_for_encode,
-		  Qcharacter_unification_table_for_encode);
-  if (!NILP (coding->character_unification_table_for_encode)
-      && !CHAR_TABLE_P (coding->character_unification_table_for_encode))
-      coding->character_unification_table_for_encode = Qnil;
-
-  if (!VECTORP (coding_system)
-      || XVECTOR (coding_system)->size != 5)
+     `character-unification-table-for-encode'.  */
+  coding_spec = Fget (coding_system, Qcoding_system);
+  if (!VECTORP (coding_spec)
+      || XVECTOR (coding_spec)->size != 5
+      || !CONSP (XVECTOR (coding_spec)->contents[3]))
     goto label_invalid_coding_system;
+  if (!inhibit_eol_conversion)
+    eol_type = Fget (coding_system, Qeol_type);
 
+  plist = XVECTOR (coding_spec)->contents[3];
+  coding->post_read_conversion = Fplist_get (plist, Qpost_read_conversion);
+  coding->pre_write_conversion = Fplist_get (plist, Qpre_write_conversion);
+  val = Fplist_get (plist, Qcharacter_unification_table_for_decode);
+  if (SYMBOLP (val))
+    val = Fget (val, Qcharacter_unification_table_for_decode);
+  coding->character_unification_table_for_decode
+    = CHAR_TABLE_P (val) ? val : Qnil;
+  val = Fplist_get (plist, Qcharacter_unification_table_for_encode);
+  if (SYMBOLP (val))
+    val = Fget (val, Qcharacter_unification_table_for_encode);
+  coding->character_unification_table_for_encode
+    = CHAR_TABLE_P (val) ? val : Qnil;
+  
   if (VECTORP (eol_type))
     coding->eol_type = CODING_EOL_UNDECIDED;
   else if (XFASTINT (eol_type) == 1)
@@ -2372,7 +2353,7 @@ setup_coding_system (coding_system, coding)
   else
     coding->eol_type = CODING_EOL_LF;
 
-  type = XVECTOR (coding_system)->contents[0];
+  type = XVECTOR (coding_spec)->contents[0];
   switch (XFASTINT (type))
     {
     case 0:
@@ -2390,7 +2371,7 @@ setup_coding_system (coding_system, coding)
 	Lisp_Object *flags;
 	int i, charset, default_reg_bits = 0;
 
-	val = XVECTOR (coding_system)->contents[4];
+	val = XVECTOR (coding_spec)->contents[4];
 
 	if (!VECTORP (val) || XVECTOR (val)->size != 32)
 	  goto label_invalid_coding_system;
@@ -2536,7 +2517,7 @@ setup_coding_system (coding_system, coding)
     case 3:
       coding->type = coding_type_big5;
       coding->flags
-	= (NILP (XVECTOR (coding_system)->contents[4])
+	= (NILP (XVECTOR (coding_spec)->contents[4])
 	   ? CODING_FLAG_BIG5_HKU
 	   : CODING_FLAG_BIG5_ETEN);
       break;
@@ -2544,7 +2525,7 @@ setup_coding_system (coding_system, coding)
     case 4:
       coding->type = coding_type_ccl;
       {
-	Lisp_Object val = XVECTOR (coding_system)->contents[4];
+	Lisp_Object val = XVECTOR (coding_spec)->contents[4];
 	if (CONSP  (val)
 	    && VECTORP (XCONS (val)->car)
 	    && VECTORP (XCONS (val)->cdr))
@@ -2833,7 +2814,7 @@ detect_eol (coding, src, src_bytes)
      unsigned char *src;
      int src_bytes;
 {
-  Lisp_Object val, coding_system;
+  Lisp_Object val;
   int eol_type = detect_eol_type (src, src_bytes);
 
   if (eol_type == CODING_EOL_UNDECIDED)
@@ -2858,10 +2839,7 @@ detect_eol (coding, src, src_bytes)
       eol_type = CODING_EOL_LF;
     }
 
-  coding_system = coding->symbol;
-  while (!NILP (coding_system)
-	 && NILP (val = Fget (coding_system, Qeol_type)))
-    coding_system = Fget (coding_system, Qcoding_system);
+  val = Fget (coding->symbol, Qeol_type);
   if (VECTORP (val) && XVECTOR (val)->size == 3)
     setup_coding_system (XVECTOR (val)->contents[eol_type], coding);
 }
@@ -3075,26 +3053,20 @@ get_conversion_buffer (size)
 #ifdef emacs
 /*** 7. Emacs Lisp library functions ***/
 
-DEFUN ("coding-system-spec", Fcoding_system_spec, Scoding_system_spec,
-       1, 1, 0,
-  "Return coding-spec of CODING-SYSTEM.\n\
-If CODING-SYSTEM is not a valid coding-system, return nil.")
-  (obj)
-     Lisp_Object obj;
-{
-  while (SYMBOLP (obj) && !NILP (obj))
-    obj = Fget (obj, Qcoding_system);
-  return ((NILP (obj) || !VECTORP (obj) || XVECTOR (obj)->size != 5)
-	  ? Qnil : obj);
-}
-
 DEFUN ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
   "Return t if OBJECT is nil or a coding-system.\n\
 See document of make-coding-system for coding-system object.")
   (obj)
      Lisp_Object obj;
 {
-  return ((NILP (obj) || !NILP (Fcoding_system_spec (obj))) ? Qt : Qnil);
+  if (NILP (obj))
+    return Qt;
+  if (!SYMBOLP (obj))
+    return Qnil;
+  /* Get coding-spec vector for OBJ.  */
+  obj = Fget (obj, Qcoding_system);
+  return ((VECTORP (obj) && XVECTOR (obj)->size == 5)
+	  ? Qt : Qnil);
 }
 
 DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
@@ -3106,8 +3078,8 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
   Lisp_Object val;
   do
     {
-      val = Fcompleting_read (prompt, Vobarray, Qcoding_system_spec,
-			      Qt, Qnil, Qnil, Qnil, Qnil);
+      val = Fcompleting_read (prompt, Vcoding_system_alist, Qnil,
+			      Qt, Qnil, Qcoding_system_history, Qnil, Qnil);
     }
   while (XSTRING (val)->size == 0);
   return (Fintern (val, Qnil));
@@ -3122,7 +3094,7 @@ If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.")
   Lisp_Object val;
   if (SYMBOLP (default_coding_system))
     XSETSTRING (default_coding_system, XSYMBOL (default_coding_system)->name);
-  val = Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
+  val = Fcompleting_read (prompt, Vcoding_system_alist, Qnil,
 			  Qt, Qnil, Qcoding_system_history,
 			  default_coding_system, Qnil);
   return (XSTRING (val)->size == 0 ? Qnil : Fintern (val, Qnil));
@@ -3927,9 +3899,6 @@ syms_of_coding ()
   Qundecided = intern ("undecided");
   staticpro (&Qundecided);
 
-  Qcoding_system_spec = intern ("coding-system-spec");
-  staticpro (&Qcoding_system_spec);
-
   Qcoding_system_p = intern ("coding-system-p");
   staticpro (&Qcoding_system_p);
 
@@ -3971,7 +3940,6 @@ syms_of_coding ()
   Qemacs_mule = intern ("emacs-mule");
   staticpro (&Qemacs_mule);
 
-  defsubr (&Scoding_system_spec);
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
   defsubr (&Sread_non_nil_coding_system);
@@ -3991,6 +3959,24 @@ syms_of_coding ()
   defsubr (&Sset_keyboard_coding_system_internal);
   defsubr (&Skeyboard_coding_system);
   defsubr (&Sfind_operation_coding_system);
+
+  DEFVAR_LISP ("coding-system-list", &Vcoding_system_list,
+    "List of coding systems.\n\
+\n\
+Do not alter the value of this variable manually.  This variable should be\n\
+updated by the functions `make-coding-system' and\n\
+`define-coding-system-alias'.");
+  Vcoding_system_list = Qnil;
+
+  DEFVAR_LISP ("coding-system-alist", &Vcoding_system_alist,
+    "Alist of coding system names.\n\
+Each element is one element list of coding system name.\n\
+This variable is given to `completing-read' as TABLE argument.\n\
+\n\
+Do not alter the value of this variable manually.  This variable should be\n\
+updated by the functions `make-coding-system' and\n\
+`define-coding-system-alias'.");
+  Vcoding_system_alist = Qnil;
 
   DEFVAR_LISP ("coding-category-list", &Vcoding_category_list,
     "List of coding-categories (symbols) ordered by priority.");
