@@ -3509,10 +3509,7 @@ been added.
 with Custom.
 
 ** UTF-16 coding systems are available, encoding the same characters
-as mule-utf-8.  Coding system `utf-16-le-dos' is useful as the value
-of `selection-coding-system' in MS Windows, allowing you to paste
-multilingual text from the clipboard.  Set it interactively with
-C-x RET x or in .emacs with `(set-selection-coding-system 'utf-16-le-dos)'.
+as mule-utf-8.
 
 ** There is a new language environment for UTF-8 (set up automatically
 in UTF-8 locales).
