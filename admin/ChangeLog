@@ -1,3 +1,8 @@
+2002-03-22  Paul Eggert  <eggert@twinsun.com>
+
+	* quick-install-emacs (PRUNED): Avoid "head -1" and "tail +2", as
+	POSIX 1003.1-2001 disallows both usages.
+
 2002-02-11  Andrew Innes  <andrewi@gnu.org>
 
 	* nt/makedist.bat: Don't include elisp/term/*.el files twice.
