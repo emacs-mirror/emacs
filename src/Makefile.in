@@ -107,7 +107,7 @@ CC = C_COMPILER
 #endif
 
 /* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
-   Linux is an exception because it uses a funny variant of GNU libc.  */
+   GNU/Linux is an exception because it uses a funny variant of GNU libc.  */
 #ifdef __GNU_LIBRARY__
 #ifndef GNU_LINUX
 #define ORDINARY_LINK
