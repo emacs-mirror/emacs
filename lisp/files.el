@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -694,7 +694,16 @@ If `enable-local-variables' is nil, this function does not check for a
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
       (if (and enable-local-variables
-	       (search-forward "-*-" (save-excursion (end-of-line) (point)) t)
+	       (search-forward "-*-" (save-excursion
+				       ;; If the file begins with "#!"
+				       ;; (exec interpreter magic), look
+				       ;; for mode frobs in the first two
+				       ;; lines.  You cannot necessarily
+				       ;; put them in the first line of
+				       ;; such a file without screwing up
+				       ;; the interpreter invocation.
+				       (end-of-line (and (looking-at "^#!") 2))
+				       (point)) t)
 	       (progn
 		 (skip-chars-forward " \t")
 		 (setq beg (point))
