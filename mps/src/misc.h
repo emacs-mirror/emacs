@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.13) $
+ * $HopeName: MMsrc!misc.h(trunk.14) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -21,7 +21,7 @@
  * (because LCC does not bother fixing up SunOS's broken header files).
  * We define it here using normal C constructs.  This hack is only
  * required on platform.sus8lc and no other platforms. See
- * change.mps.tracer2.170003.
+ * change.mps.tracer2.170226
  */
 
 #ifdef MPS_PF_SUS8LC
