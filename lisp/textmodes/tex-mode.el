@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 1985, 1986, 1989, 1992, 1994 Free Software Foundation, Inc.
 
-;; Maintainer: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: FSF
 ;; Keywords: tex
 
 ;; Contributions over the years by William F. Schelter, Dick King,
-;; Stephen Gildea, Michael Prange, and Jacob Gore.
+;; Stephen Gildea, Michael Prange, Jacob Gore, and Edward M. Reingold.
 
 ;; This file is part of GNU Emacs.
 
