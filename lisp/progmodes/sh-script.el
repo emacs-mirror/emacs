@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 1997 by Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 97, 1999 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0e
@@ -1344,7 +1344,7 @@ t means to return a list of all possible completions of STRING.
        "tmp = /tmp/" str ".$pid" \n
        "fn sigexit { rm $tmp^* >[2]/dev/null }")
   (sh (file-name-nondirectory (buffer-file-name))
-      "TMP=/tmp/" str ".$$" \n
+      "TMP=${TMPDIR:-/tmp}/" str ".$$" \n
       "trap \"rm $TMP* 2>/dev/null\" " ?0))
 
 
