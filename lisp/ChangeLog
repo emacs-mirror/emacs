@@ -1,3 +1,9 @@
+2001-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff): Don't invoke CVS as
+	an async subprocess if start-process is unavailable.  Suggested by
+	Tim Van Holder <tim.van.holder@pandora.be>.
+
 2001-04-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-additional-directory-list): Doc fix.  Suggested by
