@@ -235,7 +235,7 @@ Enable the Emacs Lisp debugger for errors in the init file.
 @item --unibyte
 @opindex --unibyte
 @cindex unibyte operation, command-line argument
-Set up to do almost everything with single-byte buffers and strings.
+Do almost everything with single-byte buffers and strings.
 All buffers and strings are unibyte unless you (or a Lisp program)
 explicitly ask for a multibyte buffer or string.  (Note that Emacs
 always loads Lisp files in multibyte mode, even if @samp{--unibyte} is
@@ -296,8 +296,8 @@ arguments are not recognized---it's too late to execute them anyway.
 within the shell that is the parent of the Emacs job.  This is why
 @code{edit} is an alias rather than a program or a shell script.  It is
 not possible to implement a resumption command that could be run from
-other subjobs of the shell; no way to define a command that could be
-made the value of @env{EDITOR}, for example.  Therefore, this feature
+other subjobs of the shell; there is no way to define a command that could
+be made the value of @env{EDITOR}, for example.  Therefore, this feature
 does not take the place of the Emacs Server feature (@pxref{Emacs
 Server}).
 
@@ -345,7 +345,7 @@ and here's how to do it in csh or tcsh:
 setenv ORGANIZATION "not very much"
 @end example
 
-  When Emacs is set-up to use the X Window System, it inherits the use
+  When Emacs is uses the X Window System, it inherits the use
 of a large number of environment variables from the X libraries.  See
 the X documentation for more information.
 
@@ -465,7 +465,7 @@ The name of an interpreter used to parse and execute programs run from
 inside Emacs.
 @cindex background mode, on @code{xterm}
 @item TERM
-The name of the terminal that Emacs is running on.  The variable must be
+The type of the terminal that Emacs is using.  The variable must be
 set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 @samp{internal}, which specifies a built-in terminal emulation that
 handles the machine's own display.  If the value of @env{TERM} indicates
@@ -546,7 +546,7 @@ Used when initializing the Sun windows system.
 @cindex @env{DISPLAY} environment variable
 
   The environment variable @env{DISPLAY} tells all X clients, including
-Emacs, where to display their windows.  Its value is set up by default
+Emacs, where to display their windows.  Its value is set by default
 in ordinary circumstances, when you start an X server and run jobs
 locally.  Occasionally you may need to specify the display yourself; for
 example, if you do a remote login and want to run a client program
@@ -790,8 +790,9 @@ text-only terminals as well as on window systems.
 @appendixsec Options for Window Geometry
 @cindex geometry of Emacs window
 @cindex position and size of Emacs frame
+@cindex width and height of Emacs frame
 
-  The @samp{-geometry} option controls the size and position of the
+  The @samp{--geometry} option controls the size and position of the
 initial Emacs frame.  Here is the format for specifying the window
 geometry:
 
@@ -1088,7 +1089,7 @@ as the Emacs frame itself.
 
 If this resource specifies a position, that position applies only to the
 initial Emacs frame (or, in the case of a resource for a specific frame
-name, only that frame).  However, the size if specified here applies to
+name, only that frame).  However, the size, if specified here, applies to
 all frames.
 
 @item @code{iconName} (class @code{Title})
@@ -1097,7 +1098,7 @@ Name to display in the icon.
 @item @code{internalBorder} (class @code{BorderWidth})
 Width in pixels of the internal border.
 
-@item @code{lineSpacing} (class LineSpacing)
+@item @code{lineSpacing} (class @code{LineSpacing})
 @cindex line spacing
 @cindex leading
 Additional space (@dfn{leading}) between lines, in pixels.
@@ -1179,7 +1180,7 @@ yes.
   If the Emacs installed at your site was built to use the X toolkit
 with the Lucid menu widgets, then the menu bar is a separate widget and
 has its own resources.  The resource names contain @samp{pane.menubar}
-(following, as always, the name of the Emacs invocation or @samp{Emacs}
+(following, as always, the name of the Emacs invocation, or @samp{Emacs},
 which stands for all Emacs invocations).  Specify them like this:
 
 @example
@@ -1249,7 +1250,7 @@ menu bar appear like the LessTif/Motif one.
 with the LessTif or Motif widgets, then the menu bar is a separate
 widget and has its own resources.  The resource names contain
 @samp{pane.menubar} (following, as always, the name of the Emacs
-invocation or @samp{Emacs} which stands for all Emacs invocations).
+invocation, or @samp{Emacs}, which stands for all Emacs invocations).
 Specify them like this:
 
 @smallexample
@@ -1345,7 +1346,7 @@ The font to use.
 @itemx marginWidth
 Amount of space to leave around the item, within the border.
 @item borderWidth
-The width of border around the menu item, on all sides.
+The width of the border around the menu item, on all sides.
 @item shadowThickness
 The width of the border shadow.
 @item bottomShadowColor
