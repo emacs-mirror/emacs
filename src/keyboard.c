@@ -985,35 +985,6 @@ command_loop_1 ()
 	  && !NILP (Ffboundp (Qrecompute_lucid_menubar)))
 	call0 (Qrecompute_lucid_menubar);
 
-#if 0 /* This is done in xdisp.c now.  */
-#ifdef MULTI_FRAME
-      for (tem = Vframe_list; CONSP (tem); tem = XCONS (tem)->cdr)
-	{
-	  struct frame *f = XFRAME (XCONS (tem)->car);
-	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
-
-	  /* If the user has switched buffers or windows, we need to
-	     recompute to reflect the new bindings.  But we'll
-	     recompute when update_mode_lines is set too; that means
-	     that people can use force-mode-line-update to request
-	     that the menu bar be recomputed.  The adverse effect on
-	     the rest of the redisplay algorithm is about the same as
-	     windows_or_buffers_changed anyway.  */
-	  if (windows_or_buffers_changed
-	      || update_mode_lines
-	      || (XFASTINT (w->last_modified) < MODIFF
-		  && (XFASTINT (w->last_modified)
-		      <= XBUFFER (w->buffer)->save_modified)))
-	    {
-	      struct buffer *prev = current_buffer;
-	      current_buffer = XBUFFER (w->buffer);
-	      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items ();
-	      current_buffer = prev;
-	    }
-	}
-#endif /* MULTI_FRAME */
-#endif /* 0 */
-
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), Qnil);
 
@@ -2509,26 +2480,32 @@ make_lispy_event (event)
 	    if (row < FRAME_MENU_BAR_LINES (f))
 #endif
 	      {
-		Lisp_Object items;
+		Lisp_Object items, item;
 
 #ifdef USE_X_TOOLKIT
 		/* The click happened in the menubar.
 		   Look for the menu item selected.  */
-		items = map_event_to_object (event, f);
+		item = map_event_to_object (event, f);
 
 		XFASTINT (event->y) = 1;
 #else /* not USE_X_TOOLKIT  */
 		int hpos;
+		int i;
 
 		items = FRAME_MENU_BAR_ITEMS (f);
-		for (; CONSP (items); items = XCONS (items)->cdr)
+		for (i = 0; i < XVECTOR (items)->size; i += 3)
 		  {
 		    Lisp_Object pos, string;
-		    pos = Fcdr (Fcdr (Fcar (items)));
-		    string = Fcar (Fcdr (Fcar (items)));
+		    string = XVECTOR (items)->contents[i + 1];
+		    pos = XVECTOR (items)->contents[i + 2];
+		    if (NILP (string))
+		      break;
 		    if (column >= XINT (pos)
 			&& column < XINT (pos) + XSTRING (string)->size)
-		      break;
+		      {
+			item = XVECTOR (items)->contents[i];
+			break;
+		      }
 		  }
 #endif /* not USE_X_TOOLKIT  */
 
@@ -2539,11 +2516,7 @@ make_lispy_event (event)
 					 Fcons (make_number (event->timestamp),
 						Qnil))));
 
-		if (CONSP (items))
-		  return Fcons (Fcar (Fcar (items)),
-				Fcons (position, Qnil));
-		else
-		  return Fcons (Qnil, Fcons (position, Qnil));
+		return Fcons (item, Fcons (position, Qnil));
 	      }
 
 	    window = window_from_coordinates (f, column, row, &part);
@@ -3476,15 +3449,24 @@ map_prompt (map)
   return Qnil;
 }
 
-static Lisp_Object menu_bar_item ();
-static Lisp_Object menu_bar_one_keymap ();
+static void menu_bar_item ();
+static void menu_bar_one_keymap ();
 
-/* Return a list of menu items for a menu bar, appropriate
-   to the current buffer.
-   The elements have the form (KEY STRING . nil).  */
+/* These variables hold the vector under construction within
+   menu_bar_items and its subroutines, and the current index
+   for storing into that vector.  */
+static Lisp_Object menu_bar_items_vector;
+static Lisp_Object menu_bar_items_index;
+
+/* Return a vector of menu items for a menu bar, appropriate
+   to the current buffer.  Each item has three elements in the vector:
+   KEY STRING nil.
+
+   OLD is an old vector we can optionally reuse, or nil.  */
 
 Lisp_Object
-menu_bar_items ()
+menu_bar_items (old)
+     Lisp_Object old;
 {
   /* The number of keymaps we're scanning right now, and the number of
      keymaps we have allocated space for.  */
@@ -3501,6 +3483,10 @@ menu_bar_items ()
   int mapno;
   Lisp_Object oquit;
 
+  int i;
+
+  struct gcpro gcpro1;
+
   /* In order to build the menus, we need to call the keymap
      accessors.  They all call QUIT.  But this function is called
      during redisplay, during which a quit is fatal.  So inhibit
@@ -3509,6 +3495,14 @@ menu_bar_items ()
      and (2) this avoids risk of specpdl overflow.  */
   oquit = Vinhibit_quit;
   Vinhibit_quit = Qt; 
+
+  if (!NILP (old))
+    menu_bar_items_vector = old;
+  else
+    menu_bar_items_vector = Fmake_vector (make_number (24), Qnil);
+  menu_bar_items_index = 0;
+
+  GCPRO1 (menu_bar_items_vector);
 
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
@@ -3551,29 +3545,63 @@ menu_bar_items ()
 
       tem = Fkeymapp (def);
       if (!NILP (tem))
-	result = menu_bar_one_keymap (def, result);
+	menu_bar_one_keymap (def);
     }
+
+  /* Move to the end those items that should be at the end.  */
 
   for (tail = Vmenu_bar_final_items; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      Lisp_Object elt;
+      int i;
+      int end = menu_bar_items_index;
 
-      elt = Fassq (XCONS (tail)->car, result);
-      if (!NILP (elt))
-	result = Fcons (elt, Fdelq (elt, result));
+      for (i = 0; i < end; i += 3)
+	if (EQ (XCONS (tail)->car, XVECTOR (menu_bar_items_vector)->contents[i]))
+	  {
+	    Lisp_Object tem;
+	    end -= 3;
+#define EXCH(a, b) tem = a, a = b, b = tem
+	    EXCH (XVECTOR (menu_bar_items_vector)->contents[i],
+		  XVECTOR (menu_bar_items_vector)->contents[end]);
+	    EXCH (XVECTOR (menu_bar_items_vector)->contents[i + 1],
+		  XVECTOR (menu_bar_items_vector)->contents[end + 1]);
+	    EXCH (XVECTOR (menu_bar_items_vector)->contents[i + 2],
+		  XVECTOR (menu_bar_items_vector)->contents[end + 2]);
+#undef EXCH
+	    i -= 3;
+	  }
     }
 
-  result = Fnreverse (result);
+  /* Add nil, nil, nil at the end.  */
+  i = menu_bar_items_index;
+  if (i + 3 > XVECTOR (menu_bar_items_vector)->size)
+    {
+      Lisp_Object tem;
+      int newsize = 2 * i;
+      tem = Fmake_vector (make_number (2 * i), Qnil);
+      bcopy (XVECTOR (menu_bar_items_vector)->contents,
+	     XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
+      menu_bar_items_vector = tem;
+    }
+  /* Add this item.  */
+  XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
+  XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
+  XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
+  menu_bar_items_index = i;
+
   Vinhibit_quit = oquit;
-  return result;
+  UNGCPRO;
+  return menu_bar_items_vector;
 }
 
 /* Scan one map KEYMAP, accumulating any menu items it defines
-   that have not yet been seen in RESULT.  Return the updated RESULT.  */
+   that have not yet been seen in RESULT.  Return the updated RESULT.
+   *OLD is the frame's old menu bar list; we swipe elts from that
+   to avoid consing.  */
 
-static Lisp_Object
-menu_bar_one_keymap (keymap, result)
-     Lisp_Object keymap, result;
+static void
+menu_bar_one_keymap (keymap)
+     Lisp_Object keymap;
 {
   Lisp_Object tail, item, key, binding, item_string, table;
 
@@ -3589,12 +3617,10 @@ menu_bar_one_keymap (keymap, result)
 	    {
 	      item_string = XCONS (binding)->car;
 	      if (XTYPE (item_string) == Lisp_String)
-		result = menu_bar_item (key, item_string,
-					Fcdr (binding), result);
+		menu_bar_item (key, item_string, Fcdr (binding));
 	    }
 	  else if (EQ (binding, Qundefined))
-	    result = menu_bar_item (key, item_string,
-				    binding, result);
+	    menu_bar_item (key, item_string, binding);
 	}
       else if (XTYPE (item) == Lisp_Vector)
 	{
@@ -3610,17 +3636,13 @@ menu_bar_one_keymap (keymap, result)
 		{
 		  item_string = XCONS (binding)->car;
 		  if (XTYPE (item_string) == Lisp_String)
-		    result = menu_bar_item (key, item_string,
-					    Fcdr (binding), result);
+		    menu_bar_item (key, item_string, Fcdr (binding));
 		}
 	      else if (EQ (binding, Qundefined))
-		result = menu_bar_item (key, item_string,
-					binding, result);
+		menu_bar_item (key, item_string, binding);
 	    }
 	}
     }
-
-  return result;
 }
 
 /* This is used as the handler when calling internal_condition_case_1.  */
@@ -3632,19 +3654,29 @@ menu_bar_item_1 (arg)
   return Qnil;
 }
 
-static Lisp_Object
-menu_bar_item (key, item_string, def, result)
-     Lisp_Object key, item_string, def, result;
+static void
+menu_bar_item (key, item_string, def)
+     Lisp_Object key, item_string, def;
 {
   Lisp_Object tem;
   Lisp_Object enabled;
+  int i;
 
   if (EQ (def, Qundefined))
     {
       /* If a map has an explicit nil as definition,
 	 discard any previously made menu bar item.  */
-      tem = Fassq (key, result);
-      return Fdelq (tem, result);
+
+      for (i = 0; i < menu_bar_items_index; i += 3)
+	if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
+	  {
+	    if (menu_bar_items_index > i + 3)
+	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 3],
+		     &XVECTOR (menu_bar_items_vector)->contents[i],
+		     (menu_bar_items_index - i - 3) * sizeof (Lisp_Object));
+	    menu_bar_items_index -= 3;
+	    return;
+	  }
     }
 
   /* See if this entry is enabled.  */
@@ -3662,13 +3694,34 @@ menu_bar_item (key, item_string, def, result)
 					     menu_bar_item_1);
     }
 
-  /* Add an entry for this key and string
-     if there is none yet.  */
-  tem = Fassq (key, result);
-  if (!NILP (enabled) && NILP (tem))
-    result = Fcons (Fcons (key, Fcons (item_string, Qnil)), result);
+  /* Ignore this item if it's not enabled.  */
+  if (NILP (enabled))
+    return;
 
-  return result;
+  /* If there's already such an item, don't make another.  */
+  for (i = 0; i < menu_bar_items_index; i += 3)
+    if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
+      break;
+
+  /* If we did not find this item, add it at the end.  */
+  if (i == menu_bar_items_index)
+    {
+      /* If vector is too small, get a bigger one.  */
+      if (i + 3 > XVECTOR (menu_bar_items_vector)->size)
+	{
+	  Lisp_Object tem;
+	  int newsize = 2 * i;
+	  tem = Fmake_vector (make_number (2 * i), Qnil);
+	  bcopy (XVECTOR (menu_bar_items_vector)->contents,
+		 XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
+	  menu_bar_items_vector = tem;
+	}
+      /* Add this item.  */
+      XVECTOR (menu_bar_items_vector)->contents[i++] = key;
+      XVECTOR (menu_bar_items_vector)->contents[i++] = item_string;
+      XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
+      menu_bar_items_index = i;
+    }
 }
 
 /* Read a character using menus based on maps in the array MAPS.
