@@ -1,4 +1,4 @@
-/* machine description file for Iris-4D machines.  Use with s-iris3-6.h
+/* machine description file for Iris-4D machines.  Use with s/iris[45]-*.h.
    Copyright (C) 1987 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -17,10 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-
-/* The following line tells the configuration script what sort of 
-   operating system this machine is likely to run.
-   USUAL-OPSYS="irix3-3"  */
 
 /* The following three symbols give information on
  the size of various data types.  */
@@ -72,6 +68,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
+/* jg@genmagic.genmagic.com (John Giannandrea) says this is unnecessary.  */
+#if 0
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE long	/* This doesn't quite work on the 4D */
@@ -84,6 +82,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #undef KERNEL_FILE
 #define KERNEL_FILE "/unix"
+#endif
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
