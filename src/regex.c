@@ -212,6 +212,7 @@ init_syntax_once ()
 #define RE_STRING_CHAR_AND_LENGTH STRING_CHAR_AND_LENGTH
 #define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2) \
   (c = ((p) == (str2) ? *((end1) - 1) : *((p) - 1)))
+#define MAKE_CHAR(charset, c1, c2) (c1)
 #endif /* not emacs */
 
 #ifndef RE_TRANSLATE
@@ -2443,18 +2444,23 @@ regex_compile (pattern, size, syntax, bufp)
 		    /* Fetch the character which ends the range. */
 		    PATFETCH (c1);
 
-		    if (SINGLE_BYTE_CHAR_P (c)
-			&& ! SINGLE_BYTE_CHAR_P (c1))
+		    if (SINGLE_BYTE_CHAR_P (c))
 		      {
-			/* Handle a range such as \177-\377 in multibyte mode.
-			   Split that into two ranges,,
-			   the low one ending at 0237, and the high one
-			   starting at ...040.  */
-			/*   Unless I'm missing something,
-			     this line is useless.  -sm
-			   int c1_base = (c1 & ~0177) | 040; */
-			SET_RANGE_TABLE_WORK_AREA (range_table_work, c, c1);
-			c1 = 0237;
+			if (! SINGLE_BYTE_CHAR_P (c1))
+			  {
+			    /* Handle a range such as \177-\377 in
+			       multibyte mode.  Split that into two
+			       ranges, the low one ending at 0237, and
+			       the high one starting at the smallest
+			       character in the charset of C1 and
+			       ending at C1.  */
+			    int charset = CHAR_CHARSET (c1);
+			    int c2 = MAKE_CHAR (charset, 0, 0);
+			    
+			    SET_RANGE_TABLE_WORK_AREA (range_table_work,
+						       c2, c1);
+			    c1 = 0237;
+			  }
 		      }
 		    else if (!SAME_CHARSET_P (c, c1))
 		      FREE_STACK_RETURN (REG_ERANGE);
