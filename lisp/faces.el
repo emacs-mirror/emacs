@@ -162,7 +162,7 @@ in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "underline-p" "underlined"))
   (internal-set-face-1 face 'underline underline-p 7 frame))
 
-(defun modify-face-read-string (default name alist)
+(defun modify-face-read-string (face default name alist)
   (let ((value
 	 (completing-read
 	  (if default
@@ -192,12 +192,15 @@ If called interactively, prompts for a face and face attributes."
 			       (apply 'nconc
 				      (mapcar 'directory-files
 					      x-bitmap-file-path))))
-	  (foreground  (modify-face-read-string (face-foreground (intern face))
-						"foreground" colors))
-	  (background  (modify-face-read-string (face-background (intern face))
-						"background" colors))
-	  (stipple     (modify-face-read-string (face-stipple (intern face))
-						"stipple" stipples))
+	  (foreground  (modify-face-read-string
+			face (face-foreground (intern face))
+			"foreground" colors))
+	  (background  (modify-face-read-string
+			face (face-background (intern face))
+			"background" colors))
+	  (stipple     (modify-face-read-string
+			face (face-stipple (intern face))
+			"stipple" stipples))
 	  (bold-p      (y-or-n-p (concat "Set face " face " bold ")))
 	  (italic-p    (y-or-n-p (concat "Set face " face " italic ")))
 	  (underline-p (y-or-n-p (concat "Set face " face " underline "))))
