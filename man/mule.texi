@@ -361,9 +361,10 @@ Select a new input method for the current buffer.
 @kindex C-h I
 @kindex C-h C-\
 Describe the input method @var{method} (@code{describe-input-method}).
-By default, it describes the current input method (if any).
-This description should give you the full details of how to
-use any particular input method.
+By default, it describes the current input method (if any).  This
+description should give you the full details of how to use any
+particular input method once you have selected it but before selecting
+it once you will typically get only a two-line summary.
 
 @item M-x list-input-methods
 Display a list of all the supported input methods.
@@ -1155,7 +1156,9 @@ command names.
 @cindex ISO Accents mode
 @findex iso-accents-mode
 @cindex Latin-1 input mode
-Also for Latin-1 only, @kbd{M-x iso-accents-mode} installs a minor mode
-which provides a facility like the @code{latin-1-prefix} input method
-but independent of the Leim package.  This mode is buffer-local.
+For Latin-1, Latin-2 and Latin-3, @kbd{M-x iso-accents-mode} installs a
+minor mode which provides a facility like the @code{latin-1-prefix}
+input method but independent of the Leim package.  This mode is
+buffer-local.  It can be customized to various languages !  with
+@kbd{M-x iso-accents-customize}.}
 @end itemize
