@@ -479,36 +479,6 @@ extern char *pending_malloc_warning;
 
 static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
 
-/* Vector to GCPRO the Lisp objects referenced from kbd_buffer.
-
-   The interrupt-level event handlers will never enqueue an event on a
-   frame which is not in Vframe_list, and once an event is dequeued,
-   internal_last_event_frame or the event itself points to the frame.
-   So that's all fine.
-
-   But while the event is sitting in the queue, it's completely
-   unprotected.  Suppose the user types one command which will run for
-   a while and then delete a frame, and then types another event at
-   the frame that will be deleted, before the command gets around to
-   it.  Suppose there are no references to this frame elsewhere in
-   Emacs, and a GC occurs before the second event is dequeued.  Now we
-   have an event referring to a freed frame, which will crash Emacs
-   when it is dequeued.
-
-   Similar things happen when an event on a scroll bar is enqueued; the
-   window may be deleted while the event is in the queue.
-
-   So, we use this vector to protect the Lisp_Objects in the event
-   queue.  That way, they'll be dequeued as dead frames or windows,
-   but still valid Lisp objects.
-
-   If kbd_buffer[i].kind != NO_EVENT, then
-
-   AREF (kbd_buffer_gcpro, 2 * i) == kbd_buffer[i].frame_or_window.
-   AREF (kbd_buffer_gcpro, 2 * i + 1) == kbd_buffer[i].arg.  */
-
-static Lisp_Object kbd_buffer_gcpro;
-
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
    This may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the
@@ -3634,7 +3604,6 @@ kbd_buffer_store_event (event)
      Discard the event if it would fill the last slot.  */
   if (kbd_fetch_ptr - 1 != kbd_store_ptr)
     {
-      int idx;
 
 #if 0 /* The SELECTION_REQUEST_EVENT case looks bogus, and it's error
 	 prone to assign individual members for other events, in case
@@ -3664,9 +3633,6 @@ kbd_buffer_store_event (event)
       *kbd_store_ptr = *event;
 #endif
 
-      idx = 2 * (kbd_store_ptr - kbd_buffer);
-      ASET (kbd_buffer_gcpro, idx, event->frame_or_window);
-      ASET (kbd_buffer_gcpro, idx + 1, event->arg);
       ++kbd_store_ptr;
     }
 }
@@ -3782,9 +3748,6 @@ static INLINE void
 clear_event (event)
      struct input_event *event;
 {
-  int idx = 2 * (event - kbd_buffer);
-  ASET (kbd_buffer_gcpro, idx, Qnil);
-  ASET (kbd_buffer_gcpro, idx + 1, Qnil);
   event->kind = NO_EVENT;
 }
 
@@ -10073,7 +10036,6 @@ Also end any kbd macro being defined.  */)
   discard_tty_input ();
 
   kbd_fetch_ptr =  kbd_store_ptr;
-  Ffillarray (kbd_buffer_gcpro, Qnil);
   input_pending = 0;
 
   return Qnil;
@@ -10164,17 +10126,13 @@ stuff_buffered_input (stuffstring)
      Should we ignore anything that was typed in at the "wrong" kboard?  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
-      int idx;
 
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
       if (kbd_fetch_ptr->kind == ASCII_KEYSTROKE_EVENT)
 	stuff_char (kbd_fetch_ptr->code);
 
-      kbd_fetch_ptr->kind = NO_EVENT;
-      idx = 2 * (kbd_fetch_ptr - kbd_buffer);
-      ASET (kbd_buffer_gcpro, idx, Qnil);
-      ASET (kbd_buffer_gcpro, idx + 1, Qnil);
+      clear_event (kbd_fetch_ptr);
     }
 
   input_pending = 0;
@@ -10574,7 +10532,6 @@ init_keyboard ()
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
-  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
 #ifdef HAVE_MOUSE
   do_mouse_tracking = Qnil;
 #endif
@@ -10864,9 +10821,6 @@ syms_of_keyboard ()
   Qextended_command_history = intern ("extended-command-history");
   Fset (Qextended_command_history, Qnil);
   staticpro (&Qextended_command_history);
-
-  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
-  staticpro (&kbd_buffer_gcpro);
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);
