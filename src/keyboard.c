@@ -705,11 +705,17 @@ cmd_error (data)
   Vstandard_output = Qt;
   Vstandard_input = Qt;
   Vexecuting_macro = Qnil;
+  if (!current_perdisplay)
+    abort ();
+  current_perdisplay->Vprefix_arg = Qnil;
   cmd_error_internal (data, 0);
 
   Vquit_flag = Qnil;
 
   Vinhibit_quit = Qnil;
+#ifdef MULTI_PERDISPLAY
+  current_perdisplay = 0;
+#endif
 
   return make_number (0);
 }
@@ -907,8 +913,8 @@ command_loop_1 ()
   int no_direct;
   int prev_modiff;
   struct buffer *prev_buffer;
+  PERDISPLAY *global_perdisplay = current_perdisplay;
 
-  Vprefix_arg = Qnil;
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
   cancel_echoing ();
@@ -932,11 +938,6 @@ command_loop_1 ()
 
   while (1)
     {
-      /* Install chars successfully executed in kbd macro.  */
-
-      if (defining_kbd_macro && NILP (Vprefix_arg))
-	finalize_kbd_macro_chars ();
-
       /* Make sure the current window's buffer is selected.  */
       if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
 	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
@@ -973,7 +974,7 @@ command_loop_1 ()
 	}
 
 #ifdef C_ALLOCA
-	  alloca (0);		/* Cause a garbage collection now */
+      alloca (0);		/* Cause a garbage collection now */
 				/* Since we can free the most stuff here.  */
 #endif /* C_ALLOCA */
 
@@ -995,7 +996,7 @@ command_loop_1 ()
 	call0 (Qrecompute_lucid_menubar);
 
       /* Read next key sequence; i gets its length.  */
-      i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), Qnil, 0);
+      i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0], Qnil, 0);
 
       ++num_input_keys;
 
@@ -1010,7 +1011,7 @@ command_loop_1 ()
 	{
 	  cancel_echoing ();
 	  this_command_key_count = 0;
-	  continue;
+	  goto finalize;
 	}
 
       last_command_char = keybuf[i - 1];
@@ -1057,12 +1058,12 @@ command_loop_1 ()
 	  bitch_at_user ();
 	  defining_kbd_macro = 0;
 	  update_mode_lines = 1;
-	  Vprefix_arg = Qnil;
+	  current_perdisplay->Vprefix_arg = Qnil;
 
 	}
       else
 	{
-	  if (NILP (Vprefix_arg) && ! no_direct)
+	  if (NILP (current_perdisplay->Vprefix_arg) && ! no_direct)
 	    {
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
@@ -1185,7 +1186,7 @@ command_loop_1 ()
 	  /* Here for a command that isn't executed directly */
 
 	  nonundocount = 0;
-	  if (NILP (Vprefix_arg))
+	  if (NILP (current_perdisplay->Vprefix_arg))
 	    Fundo_boundary ();
 	  Fcommand_execute (this_command, Qnil);
 
@@ -1209,7 +1210,7 @@ command_loop_1 ()
 	 3) we want to leave this_command_key_count non-zero, so that
 	 read_char will realize that it is re-reading a character, and
 	 not echo it a second time.  */
-      if (NILP (Vprefix_arg))
+      if (NILP (current_perdisplay->Vprefix_arg))
 	{
 	  last_command = this_command;
 	  cancel_echoing ();
@@ -1226,6 +1227,16 @@ command_loop_1 ()
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
 	}
+
+    finalize:
+      /* Install chars successfully executed in kbd macro.  */
+
+      if (defining_kbd_macro && NILP (current_perdisplay->Vprefix_arg))
+	finalize_kbd_macro_chars ();
+
+#ifdef MULTI_PERDISPLAY
+      current_perdisplay = global_perdisplay;
+#endif
     }
 }
 
@@ -5414,8 +5425,9 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
   struct backtrace backtrace;
   extern int debug_on_next_call;
 
-  prefixarg = Vprefix_arg, Vprefix_arg = Qnil;
-  Vcurrent_prefix_arg = prefixarg;
+  prefixarg = current_perdisplay->Vprefix_arg;
+  current_perdisplay->Vprefix_arg = Qnil;
+  current_perdisplay->Vcurrent_prefix_arg = prefixarg;
   debug_on_next_call = 0;
 
   if (SYMBOLP (cmd))
@@ -5531,7 +5543,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   UNGCPRO;
 
   function = Fintern (function, Qnil);
-  Vprefix_arg = prefixarg;
+  current_perdisplay->Vprefix_arg = prefixarg;
   this_command = function;
 
   return Fcommand_execute (function, Qt);
