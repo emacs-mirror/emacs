@@ -36,13 +36,16 @@
 	
 	* emacs-lisp/cl.el (copy-list): Moved to subr.el.
 
-	* replace.el (occur-mode): Don't set up categories.
+	* replace.el (occur-mode): Don't set up categories.  Do set
+	`font-lock-defaults', and be sure to set `font-lock-core-only'.
 	(occur-1): Pass `list-matching-lines-face' and
 	`list-matching-lines-buffer-name-face'.
 	(occur-engine): Use `font-lock-face' instead of categories.
 
-	* info.el (Info-mode): Don't set up categories.
-	(Info-fontify-menu-headers): Use `font-lock-face' instead of categories.
+	* info.el (Info-mode): Don't set up categories.  Do set
+	`font-lock-defaults', and be sure to set `font-lock-core-only'.
+	(Info-fontify-menu-headers): Use `font-lock-face' instead of
+	categories.
 	(Info-fontify-node): Ditto.
 
 	* ibuffer.el (ibuffer-category-alist): Delete.
@@ -56,7 +59,14 @@
 	`ibuffer-buffer-name-face'.  Don't use categories.
 	(ibuffer-update-title-and-summary): Use `font-lock-face'.
 	(ibuffer-insert-filter-group): Ditto.
-	(ibuffer-mode): Don't set up categories.
+	(ibuffer-mode): Don't set up categories.  Do set
+	`font-lock-defaults', and be sure to set `font-lock-core-only'.
+	(ibuffer-compile-format): Don't pass third argument
+	to column functions.
+	(filename-and-process): Ditto.	
+	
+	* ibuf-macs.el (define-ibuffer-column): Don't create a third
+	argument for the generated function.
 
 	* font-core.el (font-lock-category-alist): Delete.
 	(turn-on-font-lock-if-enabled): Don't use it.
@@ -64,6 +74,8 @@
 	(font-lock-default-function): Use new `char-property-alias-alist'
 	to make `font-lock-face' an alias for `face' when font-lock mode
 	is enabled.
+	(font-lock-core-only): New variable.
+	(font-lock-set-defaults): Use it.
 
 2002-06-08  Richard M. Stallman  <rms@gnu.org>
 
