@@ -1,6 +1,6 @@
 ;;; double.el --- Support for keyboard remapping with double clicking
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994,1997 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: i18n
@@ -49,18 +49,13 @@
 ;; of such mappings, and just supporting the most common would
 ;; increase the size of this nice small file manyfold.
 
-;;; ChangeLog: 
-
-;; * 1994-06-21         Per Abrahamsen
-;;      Added `double-prefix-only'.
-;; * 1994-02-28         Per Abrahamsen
-;;      Use 127 instead of 'delete to delete a character.
-;; * 1994-02-03		Per Abrahamsen
-;;	Created.
-
 ;;; Code:
 
-(defvar double-map
+(defgroup double nil
+  "Remap keyboard, but get original by typing the same key twice."
+  :group 'i18n)
+
+(defcustom double-map
   '((?\; "\346" ";")
     (?\' "\370" "'")
     (?\[ "\345" "[")
@@ -72,12 +67,18 @@
 Each entry is a list with three elements:
 1. The key activating the translation.
 2. The string to be inserted when the key is pressed once.
-3. The string to be inserted when the key is pressed twice.")
+3. The string to be inserted when the key is pressed twice."
+  :group 'double
+  :type '(repeat (list (character :tag "Key")
+		       (string :tag "Once")
+		       (string :tag "Twice"))))
 
-(defvar double-prefix-only t
+(defcustom double-prefix-only t
   "*Non-nil means that Double mode mapping only works for prefix keys.
 That is, for any key `X' in `double-map',  `X' alone will be mapped
-but not `C-u X' or `ESC X' since the X is not the prefix key.")
+but not `C-u X' or `ESC X' since the X is not the prefix key."
+  :group 'double
+  :type 'boolean)
 
 ;;; Read Event
 
