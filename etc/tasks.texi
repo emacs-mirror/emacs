@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 8 Aug 1994
+@set lastupdate 08 November 1994
 @c %**end of header
 
 @setchapternewpage off
@@ -223,6 +223,9 @@ A program to edit dance notation (such as labanotation) and display
 dancers moving on the screen.
 
 @item
+Port the Vibrant toolkit to work on X without using Motif.
+
+@item
 A library for displaying circle-shaped menus with X windows.
 
 @item
@@ -282,9 +285,6 @@ to start with an existing one and add the other features.
 
 @item
 A general ledger program.
-
-@item
-A World-Wide-Web server.
 
 @item
 A single command language that could be suitable for use in a shell, in
