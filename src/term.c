@@ -1281,7 +1281,7 @@ term_get_fkeys (address)
   {
     char fcap[3], fkey[4];
 
-    fcap[0] = 'k'; fcap[2] = '\0';
+    fcap[0] = 'F'; fcap[2] = '\0';
     for (i = 11; i < 64; i++)
       {
 	if (i <= 19)
@@ -1291,13 +1291,16 @@ term_get_fkeys (address)
 	else
 	  fcap[1] = 'a' + i - 11;
 
-	if (tgetstr (fcap, address))
-	  {
-	    (void) sprintf (fkey, "f%d", i);	    
-	    Fdefine_key (Vfunction_key_map,
-			 build_string (fcap),
-			 Fmake_vector (make_number (1), intern (fkey)));
-	  }
+	{
+	  char *sequence = tgetstr (fcap, address);
+	  if (sequence)
+	    {
+	      (void) sprintf (fkey, "f%d", i);	    
+	      Fdefine_key (Vfunction_key_map,
+			   build_string (sequence),
+			   Fmake_vector (make_number (1), intern (fkey)));
+	    }
+	}
       }
    }
 
@@ -1305,11 +1308,15 @@ term_get_fkeys (address)
    * Various mappings to try and get a better fit.
    */
   {
-#define CONDITIONAL_REASSIGN(cap1, cap2, sym)			\
-      if (!tgetstr (cap1, address) && tgetstr (cap2, address))	\
-	Fdefine_key (Vfunction_key_map,				\
-		     build_string (cap2),			\
-		     Fmake_vector (make_number (1), intern (sym)))
+#define CONDITIONAL_REASSIGN(cap1, cap2, sym)				\
+      if (!tgetstr (cap1, address))					\
+	{								\
+	  char *sequence = tgetstr (cap2, address);			\
+	  if (sequence)							\
+	    Fdefine_key (Vfunction_key_map,				\
+			 build_string (sequence),			\
+			 Fmake_vector (make_number (1), intern (sym)));	\
+	}
 	  
       /* if there's no key_next keycap, map key_npage to `next' keysym */
       CONDITIONAL_REASSIGN ("%5", "kN", "next");
