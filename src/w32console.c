@@ -383,7 +383,8 @@ write_glyphs (register GLYPH *string, register int len)
   len = ptr-chars;
   
   /* Fill in the attributes for these characters.  */
-  memset (attrs, char_attr, len*sizeof (*attrs));
+  for (i = 0; i < len; i++)
+    attrs[i] = char_attr;
   
   /* Write the attributes.  */
   if (!WriteConsoleOutputAttribute (cur_screen, attrs, len, cursor_coords, &i))
@@ -490,8 +491,8 @@ set_terminal_modes (void)
 
       SetConsoleActiveScreenBuffer (cur_screen);
 
-      /* make cursor big and visible */
-      cci.dwSize = 100;
+      /* make cursor big and visible (100 on Win95 makes it disappear)  */
+      cci.dwSize = 99;
       cci.bVisible = TRUE;
       (void) SetConsoleCursorInfo (cur_screen, &cci);
     }
