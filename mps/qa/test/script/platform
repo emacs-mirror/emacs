@@ -1,5 +1,6 @@
 # Settings that depend on the platform,
 # including c compiler, command syntax, &c.
+# $Hopename$
 #
 # And the %identify hash of useful information
 # to record in the test results.
@@ -8,11 +9,10 @@
 1;
 
 #
-# Set lots of variable correctly, depending on the platform
+# Set lots of variables correctly, depending on the platform
 # (which was determined in 'options')
 #
-# Currently, it should work correctly on NT, Solaris. Posibly
-# Linux too.
+# Currently, it should work correctly on NT, Solaris, Linux.
 #
 
 sub platform_settings {
@@ -28,6 +28,9 @@ sub platform_settings {
   if ($PLATFORM =~ "^sos8gp") {
    &settings_gprof();
   }
+  if ($PLATFORM =~ "^linux") {
+   &settings_linux();
+  }
  } elsif ($PLATFORM =~ "__unix") {
   &logcomment("I don't know anything specific about $PLATFORM --");
   &logcomment("using generic unix/gcc settings.");
@@ -36,6 +39,7 @@ sub platform_settings {
   die "Sorry: I don't know how to use ".$PLATFORM."\n";
  }
 }
+
 
 sub settings_nt {
  $dirsep = "\\";
@@ -79,6 +83,7 @@ sub settings_nt_coff {
  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBC /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:coff /debug:full";
 }
 
+
 sub settings_unix {
  $dirsep = "/";
  $cc_link = "$obj_dir/platform.o -lm";
@@ -115,9 +120,16 @@ sub settings_unix {
  $exesuff = "";
 }
 
+
 sub settings_gprof {
  $cc_opts = "-pg ".$cc_opts;
 }
+
+
+sub settings_linux {
+ $cc_link = $cc_link . " -lpthread";
+}
+
 
 #
 # Wrapping up strings to quote them in system calls
@@ -157,6 +169,7 @@ sub unix_mailfile {
   "{ echo 'To: $to'; echo 'Subject: $subj'; cat $file; } | /usr/lib/sendmail -t");
 }
 
+
 #
 # %identify records useful information to present in the test results
 # &identify sets it up.
@@ -172,6 +185,7 @@ sub identify {
  $identify{"time"} = localtime;
  $identify{"harness_version"} = $HARNESS_VERSION;
 }
+
 
 sub envvar {
  if (exists $ENV{$_[1]}) {
@@ -193,6 +207,7 @@ sub comvar {
  }
 }
 
+
 sub identify_nt {
  &envvar("machine", "COMPUTERNAME");
  &envvar("user", "USERNAME");
@@ -200,6 +215,7 @@ sub identify_nt {
  &envvar("arch", "PROCESSOR_ARCHITECTURE");
  &comvar("c_version", "cl /?", "");
 }
+
 
 sub identify_unix {
  &comvar("machine", "uname -n", "");
