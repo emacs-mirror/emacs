@@ -2480,8 +2480,12 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 		      add = 1;
 		    }
 
-		  /* Throw dead keys away.  */
-		  if (is_dead_key (msg.msg.wParam))
+		  /* Throw dead keys away.  However, be sure not to
+		     throw away the dead key if it was produced using
+		     AltGr and there is a valid AltGr scan code for
+		     this key.  */
+		  if (is_dead_key (msg.msg.wParam) 
+		      && !((VkKeyScan (bufp->code) & 0xff00) == 0x600))
 		    break;
 
 		  bufp += add;
