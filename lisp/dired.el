@@ -2238,7 +2238,7 @@ A prefix argument says to unflag those files instead."
      "auto save file")))
 
 (defvar dired-garbage-files-regexp
-  "\\.log$\\|\\.toc$\\|.dvi$|\\.bak$\\|\\.orig$\\|\\.rej$" 
+  "\\.log$\\|\\.toc$\\|\\.dvi$|\\.bak$\\|\\.orig$\\|\\.rej$" 
   "*Regular expression to match \"garbage\" files for `dired-flag-garbage-files'.")
 
 (defun dired-flag-garbage-files ()
