@@ -103,8 +103,9 @@ for details.
 
   A keymap is a list whose @sc{car} is the symbol @code{keymap}.  The
 remaining elements of the list define the key bindings of the keymap.
-Use the function @code{keymapp} (see below) to test whether an object is
-a keymap.
+A symbol whose function definition is a keymap is also a keymap.  Use
+the function @code{keymapp} (see below) to test whether an object is a
+keymap.
 
   Several kinds of elements may appear in a keymap, after the symbol
 @code{keymap} that begins it:
@@ -202,11 +203,17 @@ lisp-mode-map
 @defun keymapp object
 This function returns @code{t} if @var{object} is a keymap, @code{nil}
 otherwise.  More precisely, this function tests for a list whose
-@sc{car} is @code{keymap}.
+@sc{car} is @code{keymap}, or for a symbol whose function definition
+satisfies @code{keymapp}.
 
 @example
 @group
 (keymapp '(keymap))
+    @result{} t
+@end group
+@group
+(fset 'foo '(keymap))
+(keymapp 'foo)
     @result{} t
 @end group
 @group
