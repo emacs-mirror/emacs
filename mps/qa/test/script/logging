@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.12) $
+# $HopeName: MMQA_harness!script:logging(MMQA_harness_dev.1) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -73,6 +73,7 @@ sub vdispvals {
  foreach $key (sort keys %vals) {
   $val = $vals{$key};
   $rel = ($rels{$key} || "=");
+  $val =~ s/\n/\n\\ /g;
   print "$key $rel $val\n";
  }
 }
@@ -148,14 +149,22 @@ sub describe_test {
 }
 
 sub dispvals {
- local ($key, $rel, $val);
-
- $~ = "LOGVALS";
+ local ($key, $rel, $val, $line);
 
  foreach $key (sort keys %keyvalues) {
   $val = $keyvalues{$key};
   $rel = ($keyrelations{$key} || "=");
-  write;
+  if (length($val) <= 50 && $val !~ /\n/ ) {
+   $~ = "LOGVALS";
+   write;
+  } else {
+   $~ = "LOGVALSLONG1";
+   write;
+   $~ = "LOGVALSLONG2";
+   foreach $line (split /\n/, $val) {
+    write;
+   }
+  }
  }
 }
 
@@ -264,6 +273,18 @@ format LOGVALS =
 $key, $rel, $val
 ~~                      ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $val
+.
+
+format LOGVALSLONG1 =
+  @<<<<<<<<<<<<<<<<< @<
+$key, $rel
+.
+
+format LOGVALSLONG2 =
+~   ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$line
+~~    ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$line
 .
 
 format LOGCONC =

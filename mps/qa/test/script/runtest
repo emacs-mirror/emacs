@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.20) $
+# $HopeName: MMQA_harness!script:runtest(MMQA_harness_dev.2) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -50,6 +50,9 @@ sub run_exe {
  &mpslibvers($exefile.$exesuff);
  &log_system($exefile, $interact, $testlogfile, $stdin);
  &read_results($testlogfile);
+ if ($compoutput) {
+  $real_results{'cl_out'} = $compoutput;
+ }
  &verdict;
 }
 
@@ -69,6 +72,7 @@ sub setstdin {
 
 sub run_test {
  local ($testfile, $interact, $report_type, $logfile) = @_;
+ my $missingSymbols;
 
  &readheader($testfile, 1);
 
@@ -87,21 +91,44 @@ sub run_test {
      die "-- recompile test libraries (\"qa clib\") before running tests.\n";
     }
    }
-   $stdin = &setstdin;
-   $linkfiles = $test_header{"link"};
-   $objfile = "$obj_dir/tmp_test";
-   if (&compile_and_link($testfile, $objfile, $linkfiles)) {
-    $testlogfile = "$obj_dir/tmp_log.log";
-    &run_exe($objfile, $interact, $stdin);
-   } else {
-    %real_output = 
+   $missingSymbols = &missingTestSymbols($testfile);
+
+   if ($DANGEROUS ne "on" && @$missingSymbols) {
+    my $i;
+
+    %real_output =
      ("seconds", 0,
       "error", "true",
-      "errtext", "compilation failed");
+      "errtext", "missing symbols");
+
+    for ($i = 0; $i < @$missingSymbols; $i++) {
+     $real_output{"missing".($i+1)} = $$missingSymbols[$i];
+    }
+
     $testtimeline = "*";
     $testconclusion = "FAIL";
-    $testconcreason = "compilation failed";
+    $testconcreason = "missing symbols";
+
+   } else {
+
+    $stdin = &setstdin;
+    $linkfiles = $test_header{"link"};
+    $objfile = "$obj_dir/tmp_test";
+    if (&compile_and_link($testfile, $objfile, $linkfiles)) {
+     $testlogfile = "$obj_dir/tmp_log.log";
+     &run_exe($objfile, $interact, $stdin);
+    } else {
+     %real_output = 
+      ("seconds", 0,
+       "error", "true",
+       "cl_out", $compoutput,
+       "errtext", "compilation failed");
+     $testtimeline = "*";
+     $testconclusion = "FAIL";
+     $testconcreason = "compilation failed";
+    }
    }
+
    &describe_test($report_type);
    open(LOG_RESULTS, ">".$logfile);
    &describe_test("verbose", LOG_RESULTS);
@@ -121,6 +148,7 @@ sub run_test {
 
 sub run_from_testset {
  local ($testfile) = @_;
+ my $missingSymbols;
 
  &readheader($testfile, 1);
  if ($test_header{"language"} ne "c") {
@@ -130,29 +158,53 @@ sub run_from_testset {
   &logcomment("Skipping test $testfile: needs newer harness.");
   $testsetresults{$testfile}="/";
  } else {
-  $stdin = &setstdin;
-  $linkfiles = $test_header{"link"};
-  $objfile = "$obj_dir/tmp_test";
-  $testlogfile = "$obj_dir/tmp_log.log";
+  $missingSymbols = &missingTestSymbols($testfile);
 
-  if (&compile_and_link($testfile, $objfile, $linkfiles)) {
-   &run_exe($objfile, "no", $stdin);
-   &describe_test("summary");
-   &describe_test("summary", LOG_SUMMARY);
-   &describe_test("results", LOG_RESULTS);
-   &describe_test("full", LOG_FULL);
-  } else {
-   %real_output = 
+  if ($DANGEROUS ne "on" && @$missingSymbols) {
+   my $i;
+
+   %real_output =
     ("seconds", 0,
      "error", "true",
-     "errtext", "compilation failed");
+     "errtext", "missing symbols");
+
+   for ($i = 0; $i < @$missingSymbols; $i++) {
+    $real_output{"missing".($i+1)} = $$missingSymbols[$i];
+   }
+
    $testtimeline = "*";
    $testconclusion = "FAIL";
-   $testconcreason = "compilation failed";
+   $testconcreason = "missing symbols";
    &describe_test("summary");
    &describe_test("summary", LOG_SUMMARY);
    &describe_test("results", LOG_RESULTS);
    &describe_test("results", LOG_FULL);
+  } else {
+   $stdin = &setstdin;
+   $linkfiles = $test_header{"link"};
+   $objfile = "$obj_dir/tmp_test";
+   $testlogfile = "$obj_dir/tmp_log.log";
+
+   if (&compile_and_link($testfile, $objfile, $linkfiles)) {
+    &run_exe($objfile, "no", $stdin);
+    &describe_test("summary");
+    &describe_test("summary", LOG_SUMMARY);
+    &describe_test("results", LOG_RESULTS);
+    &describe_test("full", LOG_FULL);
+   } else {
+    %real_output = 
+     ("seconds", 0,
+      "error", "true",
+      "cl_out", $compoutput,
+      "errtext", "compilation failed");
+    $testtimeline = "*";
+    $testconclusion = "FAIL";
+    $testconcreason = "compilation failed";
+    &describe_test("summary");
+    &describe_test("summary", LOG_SUMMARY);
+    &describe_test("results", LOG_RESULTS);
+    &describe_test("results", LOG_FULL);
+   }
   }
   if ($testconclusion eq "PASS") {
    $testsetresults{$testfile}=".";
@@ -202,3 +254,11 @@ sub run_testset {
  &mailfile($logsummfile, "$MAIL_SUBJECT summary of test set $testsetfile");
 }
  
+
+sub missingTestSymbols {
+ my ($testfile) = @_;
+
+ &readSymbols();
+ return &missingSymbols(&listFileSymbols($testfile));
+}
+

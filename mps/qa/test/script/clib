@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:clib(trunk.2) $
+# $HopeName: MMQA_harness!script:clib(MMQA_harness_dev.2) $
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
@@ -8,7 +8,9 @@
 1;
 
 sub clib {
- local ($success) = (1);
+ my $success = 1;
+ my $tlfile;
+ my $tlobj;
 
  &objpurge();
  &scrutinize();
@@ -33,7 +35,8 @@ sub clib {
  }
  close(MANIFEST);
  &record_clib($success);
- $success;
+
+ return $success;
 }
 
 
@@ -66,7 +69,7 @@ sub objpurge {
 #  - C-compiler version??
 
 sub record_clib {
- local ($success) = @_;
+ my ($success) = @_;
  unless (open(REC, ">$obj_dir/record")) {
   die "Unable to write clib record.";
  }
@@ -90,7 +93,7 @@ sub record_clib {
 #
 
 sub test_clib {
- local $err = 0;
+ my $err = 0;
 
  if (!open(REC, "$obj_dir/record")) {
   $err = "no test library description found";
@@ -168,7 +171,7 @@ sub linkobjtimes {
 }
 
 sub mod_time {
- local ($file, $modtime) = @_;
+ my ($file, $modtime) = @_;
 
  unless (open(STAT, $file)) {
   die "Couldn't find $file.\n";
@@ -185,6 +188,9 @@ sub mod_time {
 
 
 sub scrutinize {
+ my $command;
+ my $comobj;
+
  %mps_symbols = ();
  %mps_linkable = ();
 
@@ -274,7 +280,9 @@ sub scrutinize {
 }
 
 sub scrutfile {
- local ($infile) = @_;
+ my ($infile) = @_;
+ my $cmd;
+
  unless(open(IN, "$MPS_INCLUDE_DIR/$infile")) {
   die "Whoops! Failed to read $infile.\n";
  }
@@ -301,3 +309,76 @@ sub scrutfile {
  close(IN);
 }
 
+
+sub readSymbols {
+ %mps_symbols = ();
+ %mps_linkable = ();
+ %mps_assumed = ();
+
+ unless (open(SYM, "$obj_dir/mmqasym.h")) {
+  die "Couldn't read symbol list -- recompile test libraries (\"qa clib\").\n";
+ }
+
+ while (<SYM>) {
+  chop;
+  if (/#define MMQA_SYMBOL_(.*)$/) {
+   $mps_symbols{$1} = 1;
+  } elsif (/#define MMQA_DEFINED_(.*)$/) {
+   $mps_linkable{$1} = 1;
+  }
+ }
+ close(SYM);
+
+ unless (open(SYM, "$testlib_dir/assumed")) {
+  die "Couldn't read assumed symbol list. Complain to rit.\n";
+ }
+
+ while (<SYM>) {
+  chop;
+  unless (/^%/) {
+   $mps_assumed{$_} = 1;
+  }
+ }
+}
+ 
+
+#
+# make a list of all the things which look like mps symbols
+# mentioned in a file
+#
+
+sub listFileSymbols {
+ my ($infile) = @_;
+ my @symbols = ();
+
+ unless (open(IN, $infile)) {
+  die "Failed to open $infile.\n";
+ }
+ while (<IN>) {
+  while (s/((mps|MPS)_\w+)/ /) {
+   push @symbols, $1;
+  }
+ }
+ close(IN);
+
+ return \@symbols;
+}
+
+
+#
+# find which symbols in a list are not defined mps symbols
+# Return a reference to a list of them
+#
+
+sub missingSymbols {
+ my ($checklist) = @_;
+ my @missing = ();
+ 
+ foreach (@$checklist) {
+  unless (exists $mps_symbols{$_} || exists $mps_assumed{$_}) {
+   push @missing, $_;
+  }
+ }
+
+ return \@missing;
+}
