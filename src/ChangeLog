@@ -1,3 +1,13 @@
+2002-07-31  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (set_frame_menubar): First parse all submenus,
+	then make widget_value trees from them.
+	Don't allocate any widget_value objects
+	until we are done with the parsing.
+	(parse_single_submenu): New function.
+	(digest_single_submenu): New function.
+	(single_submenu): Function deleted, replaced by those two.
+
 2002-07-30  Juanma Barranquero  <lektu@terra.es>
 
 	* w32proc.c (syms_of_ntproc): Fix docstring of
