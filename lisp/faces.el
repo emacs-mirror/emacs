@@ -1550,7 +1550,7 @@ created."
     (((class color) (background dark))
      (:background "blue"))
     (((class color) (background light))
-     (:background "lightblue"))
+     (:background "light goldenrod yellow"))
     (t (:background "gray")))
   "Basic face for highlighting the region."
   :group 'basic-faces)
