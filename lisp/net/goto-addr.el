@@ -98,7 +98,8 @@ But only if `goto-address-highlight-p' is also non-nil."
   :group 'goto-address)
 
 (defvar goto-address-mail-regexp
-  "[-a-zA-Z0-9._]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
+  ;; Actually pretty much any char could appear in the username part.  -stef
+  "[-a-zA-Z0-9._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
 (defvar goto-address-url-regexp thing-at-point-url-regexp
