@@ -389,9 +389,10 @@ PRE-MATCH-FORM is evaluated, that position is used as the limit of the search.
 It is generally a bad idea to return a position greater than the end of the
 line, i.e., cause the MATCHER search to span lines.
 
-These regular expressions should not match text which spans lines.  While
-\\[font-lock-fontify-buffer] handles multi-line patterns correctly, updating
-when you edit the buffer does not, since it considers text one line at a time.
+These regular expressions can match text which spans lines, although
+it is better to avoid it if possible since updating them while editing
+text is slower, and it is not guaranteed to be always correct when using
+support modes like jit-lock or lazy-lock.
 
 This variable is set by major modes via the variable `font-lock-defaults'.
 Be careful when composing regexps for this list; a poorly written pattern can
@@ -768,11 +769,12 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	 ;; Make sure that `font-lock-removed-keywords-alist' does not
 	 ;; contain the new keywords.
 	 (font-lock-update-removed-keyword-alist mode keywords append))
-	(font-lock-mode
-	 ;; Otherwise if Font Lock mode is on, set or add the keywords now.
-	 (if (eq append 'set)
-	     (setq font-lock-keywords keywords)
-	   (font-lock-remove-keywords mode keywords)
+	(t
+	 ;; Otherwise set or add the keywords now.
+	 (font-lock-set-defaults)
+ 	 (if (eq append 'set)
+ 	     (setq font-lock-keywords keywords)
+	   (font-lock-remove-keywords nil keywords) ;to avoid duplicates
 	   (let ((old (if (eq (car-safe font-lock-keywords) t)
 			  (cdr font-lock-keywords)
 			font-lock-keywords)))
@@ -780,9 +782,9 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 					  (append old keywords)
 					(append keywords old))))))))
 
-(defun font-lock-update-removed-keyword-alist (major-mode keywords append)
+(defun font-lock-update-removed-keyword-alist (mode keywords append)
   ;; Update `font-lock-removed-keywords-alist' when adding new
-  ;; KEYWORDS to MAJOR-MODE.
+  ;; KEYWORDS to MODE.
   ;;
   ;; When font-lock is enabled first all keywords in the list
   ;; `font-lock-keywords-alist' are added, then all keywords in the
@@ -790,7 +792,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
   ;; keyword was once added, removed, and then added again it must be
   ;; removed from the removed-keywords list.  Otherwise the second add
   ;; will not take effect.
-  (let ((cell (assq major-mode font-lock-removed-keywords-alist)))
+  (let ((cell (assq mode font-lock-removed-keywords-alist)))
     (if cell
 	(if (eq append 'set)
 	    ;; A new set of keywords is defined.  Forget all about
@@ -800,7 +802,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	  ;; Delete all previously removed keywords.
 	  (dolist (kword keywords)
 	    (setcdr cell (delete kword (cdr cell))))
-	  ;; Delete the major-mode cell if empty.
+	  ;; Delete the mode cell if empty.
 	  (if (null (cdr cell))
 	      (setq font-lock-removed-keywords-alist
 		    (delq cell font-lock-removed-keywords-alist)))))))
@@ -825,16 +827,16 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 ;;
 ;; (II) The keywords are removed from the current buffer.
 ;;;###autoload
-(defun font-lock-remove-keywords (major-mode keywords)
-  "Remove highlighting KEYWORDS for MAJOR-MODE.
+(defun font-lock-remove-keywords (mode keywords)
+  "Remove highlighting KEYWORDS for MODE.
 
-MAJOR-MODE should be a symbol, the major mode command name, such as `c-mode'
+MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are removed for the current buffer."
-  (dolist (keyword keywords)
-    ;; Remove one keyword at the time.
-    (cond (major-mode
-	   (let ((top-cell (assq major-mode font-lock-keywords-alist)))
-	     ;; If MAJOR-MODE is non-nil, remove the KEYWORD from
+  (cond (mode
+	 ;; Remove one keyword at the time.
+	 (dolist (keyword keywords)
+	   (let ((top-cell (assq mode font-lock-keywords-alist)))
+	     ;; If MODE is non-nil, remove the KEYWORD from
 	     ;; `font-lock-keywords-alist'.
 	     (when top-cell
 	       (dolist (keyword-list-append-pair (cdr top-cell))
@@ -859,19 +861,22 @@ or nil.  If nil, highlighting keywords are removed for the current buffer."
 		   (setq font-lock-keywords-alist
 			 (delq top-cell font-lock-keywords-alist))))
 	     ;; Remember the keyword in case it is not local.
-	     (let ((cell (assq major-mode font-lock-removed-keywords-alist)))
+	     (let ((cell (assq mode font-lock-removed-keywords-alist)))
 	       (if cell
 		   (unless (member keyword (cdr cell))
 		     (nconc cell (list keyword)))
-		 (push (cons major-mode (list keyword))
-		       font-lock-removed-keywords-alist)))))
-	  (font-lock-mode
-	   ;; Otherwise if Font Lock mode is on, remove it immediately.
-	   (setq font-lock-keywords (delete keyword font-lock-keywords))
-	   ;; The keywords might be compiled.
+		 (push (cons mode (list keyword))
+		       font-lock-removed-keywords-alist))))))
+	(t
+	 ;; Otherwise remove it immediately.
+	 (font-lock-set-defaults)
+	 (setq font-lock-keywords (copy-sequence font-lock-keywords))
+	 (dolist (keyword keywords)
 	   (setq font-lock-keywords
-		 (delete (font-lock-compile-keyword keyword)
-			 font-lock-keywords))))))
+		 (delete keyword
+			 ;; The keywords might be compiled.
+			 (delete (font-lock-compile-keyword keyword)
+				 font-lock-keywords)))))))
 
 ;;; Global Font Lock mode.
 
@@ -1412,7 +1417,7 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
     ;; Set LIMIT to value of PRE-MATCH-FORM or the end of line.
     (if (and (numberp pre-match-value) (> pre-match-value (point)))
 	(setq limit pre-match-value)
-      (save-excursion (end-of-line) (setq limit (point))))
+      (setq limit (line-end-position)))
     (save-match-data
       ;; Find an occurrence of `matcher' before `limit'.
       (while (if (stringp matcher)
@@ -1561,14 +1566,14 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 	(pre-match-value (eval (nth 1 keywords))))
     ;; Set LIMIT to value of PRE-MATCH-FORM or the end of line.
     (if (not (and (numberp pre-match-value) (> pre-match-value (point))))
-	(save-excursion (end-of-line) (setq limit (point)))
+	(setq limit (line-end-position))
       (setq limit pre-match-value)
       (when (and font-lock-multiline
 		 (funcall (if (eq font-lock-multiline t) '>= '>)
 			  pre-match-value
 			  (save-excursion (forward-line 1) (point))))
 	;; this is a multiline anchored match
-	(set (make-local-variable 'font-lock-multiline) t)
+	(setq font-lock-multiline t)
 	(put-text-property (point) limit 'font-lock-multiline t)))
     (save-match-data
       ;; Find an occurrence of `matcher' before `limit'.
@@ -1612,7 +1617,7 @@ START should be at the beginning of a line."
 			    (save-excursion (goto-char (match-beginning 0))
 					    (forward-line 1) (point))))
 	  ;; this is a multiline regexp match
-	  (set (make-local-variable 'font-lock-multiline) t)
+	  (setq font-lock-multiline t)
 	  (put-text-property (match-beginning 0) (point)
 			     'font-lock-multiline t))
 	;; Apply each highlight to this instance of `matcher', which may be
@@ -1690,13 +1695,13 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
   "Set fontification defaults appropriately for this mode.
 Sets various variables using `font-lock-defaults' (or, if nil, using
 `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
-  ;; Set fontification defaults.
-  (make-local-variable 'font-lock-fontified)
-  ;; Set iff not previously set.
+  ;; Set fontification defaults iff not previously set.
   (unless font-lock-set-defaults
     (set (make-local-variable 'font-lock-set-defaults)		t)
     (set (make-local-variable 'font-lock-cache-state)		nil)
     (set (make-local-variable 'font-lock-cache-position)	(make-marker))
+    (make-local-variable 'font-lock-fontified)
+    (make-local-variable 'font-lock-multiline)
     (let* ((defaults (or font-lock-defaults
 			 (cdr (assq major-mode font-lock-defaults-alist))))
 	   (keywords
