@@ -1,5 +1,8 @@
 2001-10-09  Miles Bader  <miles@gnu.org>
 
+	* button.el (define-button-type): Respect any `supertype' property.
+	(button-type-subtype-p, button-has-type-p): New functions.
+
 	* rfn-eshadow.el (rfn-eshadow-regexp): Deal correctly with escaped
 	dollar-signs.
 
