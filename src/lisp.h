@@ -1611,6 +1611,7 @@ EXFUN (Fread_non_nil_coding_system, 1);
 EXFUN (Ffind_operation_coding_system, MANY);
 EXFUN (Fencode_coding_string, 3);
 EXFUN (Fdecode_coding_string, 3);
+extern Lisp_Object detect_coding_system P_ ((unsigned char *, int, int));
 
 /* Defined in charset.c */
 EXFUN (Fchar_bytes, 1);
