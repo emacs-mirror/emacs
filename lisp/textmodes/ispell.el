@@ -1922,7 +1922,7 @@ warns you if the previous word is incorrectly spelled."
   (mapconcat (function identity)
 	     '(
 	       ;; Matches postscript files.
-	       "^%!PS-Adobe-2.0"
+	       "^%!PS-Adobe-[23].0"
 	       ;; Matches uuencoded text
 	       "^begin [0-9][0-9][0-9] .*\nM.*\nM.*\nM"
 	       ;; Matches shell files (esp. auto-decoding)
