@@ -343,8 +343,8 @@ update_end (f)
 {
   if (! FRAME_TERMCAP_P (updating_frame))
     {
-      updating_frame = 0;
       (*update_end_hook) (f);
+      updating_frame = 0;
       return;
     }
   turn_off_insert ();
