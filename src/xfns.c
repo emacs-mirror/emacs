@@ -1434,7 +1434,7 @@ x_get_arg (alist, param, attribute, class, type)
 		if (!strcmp (XSTRING (tem)->data, "on")
 		    || !strcmp (XSTRING (tem)->data, "true"))
 		  return Qt;
-		else (!strcmp (XSTRING (tem)->data, "off")
+		else if (!strcmp (XSTRING (tem)->data, "off")
 		      || !strcmp (XSTRING (tem)->data, "false"))
 		  return Qnil;
 		else
