@@ -2673,7 +2673,10 @@ property of a history variable overrides this default.  */);
   Vcompletion_auto_help = Qt;
 
   DEFVAR_BOOL ("completion-ignore-case", &completion_ignore_case,
-	       doc: /* Non-nil means don't consider case significant in completion.  */);
+	       doc: /* Non-nil means don't consider case significant in completion.
+
+See also `read-file-name-completion-ignore-case' concerning case significance
+in completion when reading a file name.  */);
   completion_ignore_case = 0;
 
   DEFVAR_BOOL ("enable-recursive-minibuffers", &enable_recursive_minibuffers,
