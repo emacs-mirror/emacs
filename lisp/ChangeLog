@@ -1,3 +1,8 @@
+2000-11-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (shell-command): Mention the effect of the prefix
+	argument in the doc string.
+
 2000-11-25  Miles Bader  <miles@gnu.org>
 
 	* cus-face.el (custom-face-attributes): Add "None" choice to :stipple.
