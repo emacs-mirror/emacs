@@ -670,8 +670,7 @@ static tr_stack *mapping_stack_pointer;
 	int len = CHAR_STRING (ch, work, str);		\
 	if (dst + len <= (dst_bytes ? dst_end : src))	\
 	  {						\
-	    bcopy (str, dst, len);			\
-	    dst += len;					\
+	    while (len--) *dst++ = *str++;		\
 	  }						\
 	else						\
 	  CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);	\
@@ -750,6 +749,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
   if (ic >= ccl->eof_ic)
     ic = CCL_HEADER_MAIN;
+
+  if (ccl->buf_magnification ==0) /* We can't produce any bytes.  */
+    dst = NULL;
 
 #ifdef CCL_DEBUG
   ccl_backtrace_idx = 0;
@@ -1543,6 +1545,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
       char msg[256];
       int msglen;
 
+      if (!dst)
+	dst = destination;
+
       switch (ccl->status)
 	{
 	case CCL_STAT_INVALID_CMD:
@@ -1554,7 +1559,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    int j;
 
 	    msglen = strlen (msg);
-	    if (dst + msglen <= dst_end)
+	    if (dst + msglen <= (dst_bytes ? dst_end : src))
 	      {
 		bcopy (msg, dst, msglen);
 		dst += msglen;
@@ -1567,14 +1572,15 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  break;
 		sprintf(msg, " %d", ccl_backtrace_table[i]);
 		msglen = strlen (msg);
-		if (dst + msglen > dst_end)
+		if (dst + msglen > (dst_bytes ? dst_end : src))
 		  break;
 		bcopy (msg, dst, msglen);
 		dst += msglen;
 	      }
+	    goto ccl_finish;
 	  }
 #endif
-	  goto ccl_finish;
+	  break;
 
 	case CCL_STAT_QUIT:
 	  sprintf(msg, "\nCCL: Quited.");
@@ -1585,7 +1591,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	}
 
       msglen = strlen (msg);
-      if (dst + msglen <= dst_end)
+      if (dst + msglen <= (dst_bytes ? dst_end : src))
 	{
 	  bcopy (msg, dst, msglen);
 	  dst += msglen;
@@ -1595,7 +1601,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
  ccl_finish:
   ccl->ic = ic;
   if (consumed) *consumed = src - source;
-  return dst - destination;
+  return (dst ? dst - destination : 0);
 }
 
 /* Setup fields of the structure pointed by CCL appropriately for the
