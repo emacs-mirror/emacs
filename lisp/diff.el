@@ -207,8 +207,10 @@ With prefix arg, prompt for diff switches."
 				      (list diff-switches)))
 				  (if (or old-alt new-alt)
 				      (list "-L" old "-L" new))
-				  (list (or old-alt old))
-				  (list (or new-alt new)))
+				  (list
+				   (shell-quote-argument (or old-alt old)))
+				  (list
+				   (shell-quote-argument (or new-alt new))))
 			  " ")))
 	  (setq buf
 		(compile-internal command
