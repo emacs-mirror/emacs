@@ -1,5 +1,12 @@
 2003-03-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_resize_widgets): Don't call xg_frame_cleared.
+	(xg_frame_set_char_size): Calculate scroll bar width before frame
+	width.  Call SET_FRAME_GARBAGED and cancel_mouse_face.
+	(xg_separator_p): Check for all documented separator types.
+	(xg_update_scrollbar_pos): Variable gheight not needed, use height.
+	(update_frame_tool_bar): Don't call gdk_window_process_all_updates.
+
 	* xdisp.c (update_menu_bar): Set w->update_mode_line to Qt
 	so tool bar gets updated.
 

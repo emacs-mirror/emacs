@@ -335,8 +335,6 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
 
       gtk_widget_size_allocate (x->edit_widget, &all);
 
-      xg_frame_cleared (f);
-
       change_frame_size (f, rows, columns, 0, 1, 0);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
@@ -353,7 +351,7 @@ xg_frame_set_char_size (f, cols, rows)
 {
   int pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
-  int pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
+  int pixelwidth;
 
   /* Take into account the size of the scroll bar.  Always use the
      number of columns occupied by the scroll bar here otherwise we
@@ -368,11 +366,18 @@ xg_frame_set_char_size (f, cols, rows)
 
   compute_fringe_widths (f, 0);
 
+  /* CHAR_TO_PIXEL_WIDTH uses vertical_scroll_bar_extra, so call it
+     after calculating that value.  */
+  pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
+
   /* Must resize our top level widget.  Font size may have changed,
      but not rows/cols.  */
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                      pixelwidth, pixelheight);
   xg_resize_widgets (f, pixelwidth, pixelheight);
+
+  SET_FRAME_GARBAGED (f);
+  cancel_mouse_face (f);
 }
 
 /* Convert an X Window WSESC to its corresponding GtkWidget.
@@ -428,7 +433,7 @@ xg_fixed_handle_expose(GtkWidget *widget,
                        gpointer user_data)
 {
   GList *iter;
-  
+
   for (iter = GTK_FIXED (widget)->children; iter; iter = g_list_next (iter))
     {
       GtkFixedChild *child_data = (GtkFixedChild *) iter->data;
@@ -1276,16 +1281,51 @@ make_menu_item (utf8_label, utf8_key, item, group)
   return w;
 }
 
-/* Return non-zero if NAME specifies a separator (GTK only has one
+/* Return non-zero if LABEL specifies a separator (GTK only has one
    separator type)  */
 static int
-xg_separator_p (char *name)
+xg_separator_p (char *label)
 {
-  if (! name) return 0;
+  if (! label) return 0;
+  else if (strlen (label) > 3
+	   && strncmp (label, "--", 2) == 0
+	   && label[2] != '-')
+    {
+      static char* separator_names[] = {
+        "space",
+	"no-line",
+	"single-line",
+	"double-line",
+	"single-dashed-line",
+	"double-dashed-line",
+	"shadow-etched-in",
+	"shadow-etched-out",
+	"shadow-etched-in-dash",
+	"shadow-etched-out-dash",
+	"shadow-double-etched-in",
+	"shadow-double-etched-out",
+	"shadow-double-etched-in-dash",
+	"shadow-double-etched-out-dash",
+        0,
+      };
 
-  return strcmp (name, "--") == 0
-    || strncmp (name, "--:", 3) == 0
-    || strcmp (name, "---") == 0;
+      int i;
+
+      label += 2;
+      for (i = 0; separator_names[i]; ++i)
+	if (strcmp (label, separator_names[i]) == 0)
+          return 1;
+    }
+  else
+    {
+      /* Old-style separator, maybe.  It's a separator if it contains
+	 only dashes.  */
+      while (*label == '-')
+	++label;
+      if (*label == 0) return 1;
+    }
+
+  return 0;
 }
 
 GtkWidget *xg_did_tearoff;
@@ -2571,9 +2611,8 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
   if (wscroll)
     {
       GtkWidget *wfixed = f->output_data.x->edit_widget;
-      int gheight = max (height, 1);
       int winextra = canon_width > width ? (canon_width - width) / 2 : 0;
-      int bottom = top + gheight;
+      int bottom = top + height;
 
       gint slider_width;
       int oldtop, oldleft, oldbottom;
@@ -2630,8 +2669,8 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
 
           if (oldleft != left)
             {
-              gdk_window_clear_area (wfixed->window, xl, top, wbl, gheight);
-              gdk_window_clear_area (wfixed->window, xr, top, wbr, gheight);
+              gdk_window_clear_area (wfixed->window, xl, top, wbl, height);
+              gdk_window_clear_area (wfixed->window, xr, top, wbr, height);
             }
 
           if (oldtop > top)
@@ -2663,8 +2702,8 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
 
       /* Move and resize to new values.  */
       gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
-      gtk_widget_set_size_request (wscroll, width, gheight);
-
+      gtk_widget_set_size_request (wscroll, width, height);
+      
       /* Must force out update so changed scroll bars gets redrawn.  */
       gdk_window_process_all_updates ();
 
@@ -3157,9 +3196,6 @@ update_frame_tool_bar (f)
       xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 
-  /* Must force out update so changed images gets redrawn.  */
-  gdk_window_process_all_updates ();
- 
   if (icon_list) g_list_free (icon_list);
 
   UNBLOCK_INPUT;
