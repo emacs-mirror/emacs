@@ -278,13 +278,17 @@
  (defmacro save-buffer-state (varlist &rest body)
    "Bind variables according to VARLIST and eval BODY restoring buffer state."
    `(let* (,@(append varlist
-                     '((modified (buffer-modified-p)) (buffer-undo-list t)
-                       (inhibit-read-only t) (inhibit-point-motion-hooks t)
-                       before-change-functions after-change-functions
-                       deactivate-mark buffer-file-name buffer-file-truename)))
+		   '((modified (buffer-modified-p))
+		     (buffer-undo-list t)
+		     (inhibit-read-only t)
+		     (inhibit-point-motion-hooks t)
+		     (inhibit-modification-hooks t)
+		     deactivate-mark
+		     buffer-file-name
+		     buffer-file-truename)))
      ,@body
      (when (and (not modified) (buffer-modified-p))
-       (set-buffer-modified-p nil))))
+       (restore-buffer-modified-p nil))))
  (put 'save-buffer-state 'lisp-indent-function 1)
  ;;
  ;; We use this for clarity and speed.  Naughty but nice.
