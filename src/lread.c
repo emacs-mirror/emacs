@@ -2400,7 +2400,7 @@ read_list (flag, readcharfun)
 					      to - start);
 			}
 		      else
-			return get_doc_string (val, 0);
+			return get_doc_string (val, 0, 0);
 		    }
 
 		  return val;
