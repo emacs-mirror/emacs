@@ -832,7 +832,7 @@ Time-stamp: <>
 or like this:
 
 @example
-Time-stamp: ""
+Time-stamp: " "
 @end example
 
   Then add the hook function @code{time-stamp} to the hook
