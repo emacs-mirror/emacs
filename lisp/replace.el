@@ -1214,7 +1214,7 @@ but coerced to the correct value of INTEGERS."
 
 (defun replace-match-maybe-edit (newtext fixedcase literal noedit match-data)
   "Make a replacement with `replace-match', editing `\\?'.
-NEXTEXT, FIXEDCASE, LITERAL are just passed on.  If NOEDIT is true, no
+NEWTEXT, FIXEDCASE, LITERAL are just passed on.  If NOEDIT is true, no
 check for `\\?' is made to save time.  MATCH-DATA is used for the
 replacement.  In case editing is done, it is changed to use markers.
 
@@ -1380,7 +1380,7 @@ make, or the user didn't cancel the call."
 	    (if (not query-flag)
 		(let ((inhibit-read-only
 		       query-replace-skip-read-only))
-		  (unless noedit
+		  (unless (or literal noedit)
 		    (replace-highlight (nth 0 real-match-data)
 				       (nth 1 real-match-data)))
 		  (setq noedit
