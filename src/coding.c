@@ -1031,6 +1031,7 @@ detect_coding_utf_8 (coding, mask)
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   int found = 0;
+  int incomplete;
 
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
@@ -1039,9 +1040,11 @@ detect_coding_utf_8 (coding, mask)
     {
       int c, c1, c2, c3, c4;
 
+      incomplete = 0;
       ONE_MORE_BYTE (c);
       if (UTF_8_1_OCTET_P (c))
 	continue;
+      incomplete = 1;
       ONE_MORE_BYTE (c1);
       if (! UTF_8_EXTRA_OCTET_P (c1))
 	break;
@@ -1080,10 +1083,12 @@ detect_coding_utf_8 (coding, mask)
   return 0;
 
  no_more_source:
-  if (! found)
-    return 0;
-  *mask &= CATEGORY_MASK_UTF_8;
-  return 1;
+  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+    {
+      *mask &= ~CATEGORY_MASK_UTF_8;
+      return 0;
+    }
+  return found;
 }
 
 
@@ -1289,19 +1294,19 @@ detect_coding_utf_16 (coding, mask)
   int consumed_chars = 0;
   int c1, c2;
 
+  *mask &= ~CATEGORY_MASK_UTF_16;
+
   ONE_MORE_BYTE (c1);
   ONE_MORE_BYTE (c2);
 
   if ((c1 == 0xFF) && (c2 == 0xFE))
-    {
-      *mask &= CATEGORY_MASK_UTF_16_LE;
-      return 1;
-    }
+    *mask |= CATEGORY_MASK_UTF_16_LE;
   else if ((c1 == 0xFE) && (c2 == 0xFF))
-    {
-      *mask &= CATEGORY_MASK_UTF_16_BE;
-      return 1;
-    }
+    *mask |= CATEGORY_MASK_UTF_16_BE;
+  else
+    *mask |= CATEGORY_MASK_UTF_16_BE_NOSIG | CATEGORY_MASK_UTF_16_LE_NOSIG;
+  return 1;
+
  no_more_source:
   return 0;
 }
@@ -1643,13 +1648,16 @@ detect_coding_emacs_mule (coding, mask)
   int consumed_chars = 0;
   int c;
   int found = 0;
+  int incomplete;
 
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
   while (1)
     {
+      incomplete = 0;
       ONE_MORE_BYTE (c);
+      incomplete = 1;
 
       if (c == 0x80)
 	{
@@ -1698,10 +1706,12 @@ detect_coding_emacs_mule (coding, mask)
   return 0;
 
  no_more_source:
-  if (!found)
-    return 0;
-  *mask &= CATEGORY_MASK_EMACS_MULE;
-  return 1;
+  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+    {
+      *mask &= ~CATEGORY_MASK_EMACS_MULE;
+      return 0;
+    }
+  return found;
 }
 
 
@@ -2465,6 +2475,7 @@ detect_coding_iso_2022 (coding, mask)
 	  {
 	    int newmask = CATEGORY_MASK_ISO_8_ELSE;
 
+	    mask_8bit_found = 1;
 	    if (inhibit_iso_escape_detection)
 	      break;
 	    if (c != ISO_CODE_CSI)
@@ -2558,7 +2569,8 @@ detect_coding_iso_2022 (coding, mask)
     }
   if (!mask_found)
     return 0;
-  *mask &= mask_iso & mask_found; 
+  *mask &= ~CATEGORY_MASK_ISO;
+  *mask |= mask_iso & mask_found; 
   if (! mask_8bit_found)
     *mask &= ~(CATEGORY_MASK_ISO_8BIT | CATEGORY_MASK_ISO_8_ELSE);
   return 1;
@@ -3658,13 +3670,16 @@ detect_coding_sjis (coding, mask)
   int consumed_chars = 0;
   int found = 0;
   int c;
+  int incomplete;
 
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
   while (1)
     {
+      incomplete = 0;
       ONE_MORE_BYTE (c);
+      incomplete = 1;
       if (c < 0x80)
 	continue;
       if ((c >= 0x81 && c <= 0x9F) || (c >= 0xE0 && c <= 0xEF))
@@ -3683,10 +3698,12 @@ detect_coding_sjis (coding, mask)
   return 0;
 
  no_more_source:
-  if (!found)
-    return 0;
-  *mask &= CATEGORY_MASK_SJIS;
-  return 1;
+  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+    {
+      *mask &= ~CATEGORY_MASK_SJIS;
+      return 0;
+    }
+  return found;
 }
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
@@ -3704,13 +3721,16 @@ detect_coding_big5 (coding, mask)
   int consumed_chars = 0;
   int found = 0;
   int c;
+  int incomplete;
 
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
   while (1)
     {
+      incomplete = 0;
       ONE_MORE_BYTE (c);
+      incomplete = 1;
       if (c < 0x80)
 	continue;
       if (c >= 0xA1)
@@ -3727,10 +3747,12 @@ detect_coding_big5 (coding, mask)
   return 0;
 
  no_more_source:
-  if (!found)
-    return 0;
-  *mask &= CATEGORY_MASK_BIG5;
-  return 1;
+  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+    {
+      *mask &= ~CATEGORY_MASK_BIG5;
+      return 0;
+    }
+  return found;
 }
 
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".
@@ -3754,8 +3776,8 @@ decode_coding_sjis (coding)
 
   val = charset_list;
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
-  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
-  charset_kana = CHARSET_FROM_ID (XINT (XCAR (val)));
+  charset_kana = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
+  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val)));
 
   while (1)
     {
@@ -3802,8 +3824,11 @@ decode_coding_sjis (coding)
 		  charset = charset_kanji;
 		}
 	      else
-		/* SJIS -> JISX0201-Kana */
-		charset = charset_kana;
+		{
+		  /* SJIS -> JISX0201-Kana */
+		  c &= 0x7F;
+		  charset = charset_kana;
+		}
 	    }
 	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
 	}
@@ -4097,10 +4122,7 @@ detect_coding_ccl (coding, mask)
   return 0;
 
  no_more_source:
-  if (!found)
-    return 0;
-  *mask &= CATEGORY_MASK_CCL;
-  return 1;
+  return found;
 }
 
 static void
@@ -4368,7 +4390,6 @@ detect_coding_charset (coding, mask)
   return 0;
 
  no_more_source:
-  *mask &= CATEGORY_MASK_CHARSET;
   return 1;
 }
 
@@ -4894,25 +4915,22 @@ coding_inherit_eol_type (coding_system, parent)
 #define MAX_EOL_CHECK_COUNT 3
 
 static int
-detect_eol (coding, source, src_bytes)
-     struct coding_system *coding;
+detect_eol (source, src_bytes, category)
      unsigned char *source;
      EMACS_INT src_bytes;
+     enum coding_category category;
 {
-  Lisp_Object attrs, coding_type;
   unsigned char *src = source, *src_end = src + src_bytes;
   unsigned char c;
   int total  = 0;
   int eol_seen = EOL_SEEN_NONE;
 
-  attrs = CODING_ID_ATTRS (coding->id);
-  coding_type = CODING_ATTR_TYPE (attrs);
-
-  if (EQ (coding_type, Qccl))
+  if ((1 << category) & CATEGORY_MASK_UTF_16)
     {
       int msb, lsb;
 
-      msb = coding->spec.utf_16.endian == utf_16_little_endian;
+      msb = category == (coding_category_utf_16_le
+			 | coding_category_utf_16_le_nosig);
       lsb = 1 - msb;
 
       while (src + 1 < src_end)
@@ -5039,19 +5057,19 @@ detect_coding (coding)
 	      enum coding_category category = coding_priorities[i];
 	      struct coding_system *this = coding_categories + category;
 
-	      if (category >= coding_category_raw_text
-		  || detected & (1 << category))
-		continue;
-
 	      if (this->id < 0)
 		{
 		  /* No coding system of this category is defined.  */
 		  mask &= ~(1 << category);
 		}
+	      else if (category >= coding_category_raw_text
+		       || detected & (1 << category))
+		continue;
 	      else
 		{
 		  detected |= detected_mask[category];
-		  if ((*(this->detector)) (coding, &mask))
+		  if ((*(this->detector)) (coding, &mask)
+		      && (mask & (1 << category)))
 		    break;
 		}
 	    }
@@ -5081,7 +5099,8 @@ detect_coding (coding)
   if (VECTORP (CODING_ID_EOL_TYPE (coding->id))
       && ! EQ (coding_type, Qccl))
     {
-      int eol_seen = detect_eol (coding, coding->source, coding->src_bytes);
+      int eol_seen = detect_eol (coding->source, coding->src_bytes,
+				 XINT (CODING_ATTR_CATEGORY (attrs)));
 
       if (eol_seen != EOL_SEEN_NONE)
 	adjust_coding_eol_type (coding, eol_seen);
@@ -6245,6 +6264,22 @@ The value of property should be a vector of length 5.  */)
 }
 
 
+/* Detect how the bytes at SRC of length SRC_BYTES are encoded.  If
+   HIGHEST is nonzero, return the coding system of the highest
+   priority among the detected coding systems.  Otherwize return a
+   list of detected coding systems sorted by their priorities.  If
+   MULTIBYTEP is nonzero, it is assumed that the bytes are in correct
+   multibyte form but contains only ASCII and eight-bit chars.
+   Otherwise, the bytes are raw bytes.
+
+   CODING-SYSTEM controls the detection as below:
+
+   If it is nil, detect both text-format and eol-format.  If the
+   text-format part of CODING-SYSTEM is already specified
+   (e.g. `iso-latin-1'), detect only eol-format.  If the eol-format
+   part of CODING-SYSTEM is already specified (e.g. `undecided-unix'),
+   detect only text-format.  */
+
 Lisp_Object
 detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
      unsigned char *src;
@@ -6259,31 +6294,33 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
   Lisp_Object attrs, eol_type;
   Lisp_Object val;
   struct coding_system coding;
+  int id;
 
   if (NILP (coding_system))
     coding_system = Qundecided;
   setup_coding_system (coding_system, &coding);
   attrs = CODING_ID_ATTRS (coding.id);
   eol_type = CODING_ID_EOL_TYPE (coding.id);
+  coding_system = CODING_ATTR_BASE_NAME (attrs);
 
   coding.source = src;
   coding.src_bytes = src_bytes;
   coding.src_multibyte = multibytep;
   coding.consumed = 0;
+  coding.mode |= CODING_MODE_LAST_BLOCK;
 
-  if (XINT (CODING_ATTR_CATEGORY (attrs)) != coding_category_undecided)
+  /* At first, detect text-format if necessary.  */
+  if (XINT (CODING_ATTR_CATEGORY (attrs)) == coding_category_undecided)
     {
-      mask = 1 << XINT (CODING_ATTR_CATEGORY (attrs));
-    }
-  else
-    {
-      coding_system = Qnil;
       for (; src < src_end; src++)
 	{
 	  c = *src;
-	  if (c & 0x80 || (c < 0x20 && (c == ISO_CODE_ESC
-					|| c == ISO_CODE_SI
-					|| c == ISO_CODE_SO)))
+	  if (c & 0x80
+	      || (c < 0x20 && (c == ISO_CODE_ESC
+			       || c == ISO_CODE_SI
+			       || c == ISO_CODE_SO
+			       /* Most UTF-16 text contains '\0'. */
+			       || !c)))
 	    break;
 	}
       coding.head_ascii = src - coding.source;
@@ -6294,84 +6331,122 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
 	    enum coding_category category = coding_priorities[i];
 	    struct coding_system *this = coding_categories + category;
 
-	    if (category >= coding_category_raw_text
-		|| detected & (1 << category))
-	      continue;
-	
 	    if (this->id < 0)
 	      {
 		/* No coding system of this category is defined.  */
 		mask &= ~(1 << category);
 	      }
+	    else if (category >= coding_category_raw_text
+		     || detected & (1 << category))
+	      continue;
 	    else
 	      {
 		detected |= detected_mask[category];
 		if ((*(coding_categories[category].detector)) (&coding, &mask)
-		    && highest)
+		    && highest
+		    && (mask & (1 << category)))
 		  {
-		    mask &= detected_mask[category];
+		    mask = 1 << category;
 		    break;
 		  }
 	      }
 	  }
-    }
 
-  if (!mask)
-    val = Fcons (make_number (coding_category_raw_text), Qnil);
-  else if (mask == CATEGORY_MASK_ANY)
-    val = Fcons (make_number (coding_category_undecided), Qnil);
-  else if (highest)
-    {
-      for (i = 0; i < coding_category_raw_text; i++)
-	if (mask & (1 << coding_priorities[i]))
-	  {
-	    val = Fcons (make_number (coding_priorities[i]), Qnil);
-	    break;
-	  }
-    }	
+      if (!mask)
+	{
+	  id = coding_categories[coding_category_raw_text].id;
+	  val = Fcons (make_number (id), Qnil);
+	}
+      else if (mask == CATEGORY_MASK_ANY)
+	{
+	  id = coding_categories[coding_category_undecided].id;
+	  val = Fcons (make_number (id), Qnil);
+	}
+      else if (highest)
+	{
+	  for (i = 0; i < coding_category_raw_text; i++)
+	    if (mask & (1 << coding_priorities[i]))
+	      {
+		id = coding_categories[coding_priorities[i]].id;
+		val = Fcons (make_number (id), Qnil);
+		break;
+	      }
+	}	
+      else
+	{
+	  val = Qnil;
+	  for (i = coding_category_raw_text - 1; i >= 0; i--)
+	    if (mask & (1 << coding_priorities[i]))
+	      {
+		id = coding_categories[coding_priorities[i]].id;
+		val = Fcons (make_number (id), val);
+	      }
+	}
+    }
   else
     {
-      val = Qnil;
-      for (i = coding_category_raw_text - 1; i >= 0; i--)
-	if (mask & (1 << coding_priorities[i]))
-	  val = Fcons (make_number (coding_priorities[i]), val);
+      mask = 1 << XINT (CODING_ATTR_CATEGORY (attrs));
+      val = Fcons (make_number (coding.id), Qnil);
     }
 
+  /* Then, detect eol-format if necessary.  */
   {
-    int one_byte_eol = -1, two_byte_eol = -1;
+    int normal_eol = -1, utf_16_be_eol = -1, utf_16_le_eol;
     Lisp_Object tail;
+
+    if (VECTORP (eol_type))
+      {
+	if (mask & ~CATEGORY_MASK_UTF_16)
+	  normal_eol = detect_eol (coding.source, src_bytes,
+				   coding_category_raw_text);
+	if (mask & (CATEGORY_MASK_UTF_16_BE | CATEGORY_MASK_UTF_16_BE_NOSIG))
+	  utf_16_be_eol = detect_eol (coding.source, src_bytes,
+				      coding_category_utf_16_be);
+	if (mask & (CATEGORY_MASK_UTF_16_LE | CATEGORY_MASK_UTF_16_LE_NOSIG))
+	  utf_16_le_eol = detect_eol (coding.source, src_bytes,
+				      coding_category_utf_16_le);
+      }
+    else
+      {
+	if (EQ (eol_type, Qunix))
+	  normal_eol = utf_16_be_eol = utf_16_le_eol = EOL_SEEN_LF;
+	else if (EQ (eol_type, Qdos))
+	  normal_eol = utf_16_be_eol = utf_16_le_eol = EOL_SEEN_CRLF;
+	else
+	  normal_eol = utf_16_be_eol = utf_16_le_eol = EOL_SEEN_CR;
+      }
 
     for (tail = val; CONSP (tail); tail = XCDR (tail))
       {
-	struct coding_system *this
-	  = (NILP (coding_system) ? coding_categories + XINT (XCAR (tail))
-	     : &coding);
+	enum coding_category category;
 	int this_eol;
-	
-	attrs = CODING_ID_ATTRS (this->id);
-	eol_type = CODING_ID_EOL_TYPE (this->id);
-	XSETCAR (tail, CODING_ID_NAME (this->id));
+
+	id = XINT (XCAR (tail));
+	attrs = CODING_ID_ATTRS (id);
+	category = XINT (CODING_ATTR_CATEGORY (attrs));
+	eol_type = CODING_ID_EOL_TYPE (id);
 	if (VECTORP (eol_type))
 	  {
-	    if (EQ (CODING_ATTR_TYPE (attrs), Qutf_16))
-	      {
-		if (two_byte_eol < 0)
-		  two_byte_eol = detect_eol (this, coding.source, src_bytes);
-		this_eol = two_byte_eol;
-	      }
+	    if (category == coding_category_utf_16_be
+		|| category == coding_category_utf_16_be_nosig)
+	      this_eol = utf_16_be_eol;
+	    else if (category == coding_category_utf_16_le
+		     || category == coding_category_utf_16_le_nosig)
+	      this_eol = utf_16_le_eol;
 	    else
-	      {
-		if (one_byte_eol < 0)
-		  one_byte_eol =detect_eol (this, coding.source, src_bytes);
-		this_eol = one_byte_eol;
-	      }
+	      this_eol = normal_eol;
+
 	    if (this_eol == EOL_SEEN_LF)
 	      XSETCAR (tail, AREF (eol_type, 0));
 	    else if (this_eol == EOL_SEEN_CRLF)
 	      XSETCAR (tail, AREF (eol_type, 1));
 	    else if (this_eol == EOL_SEEN_CR)
 	      XSETCAR (tail, AREF (eol_type, 2));
+	    else
+	      XSETCAR (tail, CODING_ID_NAME (id));
 	  }
+	else
+	  XSETCAR (tail, CODING_ID_NAME (id));
       }
   }
 
