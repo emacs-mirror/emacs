@@ -1132,7 +1132,7 @@ dnl AC_CHECK_LIB(resolv, gethostbyname)
 dnl FIXME replace main with a function we actually want from this library.
 AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
-AC_CHECK_LIB(pthread, cma_open)
+AC_CHECK_LIB(pthreads, cma_open)
 
 AC_MSG_CHECKING(for XFree86)
 if test -d /usr/X386/include; then
