@@ -2,21 +2,15 @@
 
 	* ietf-drums.el (ietf-drums-remove-whitespace): Fix character constant.
 
-	[Emacs/trunk 2003-02-18]
-
 2004-08-30  Andreas Schwab  <schwab@suse.de>
 
 	* nnlistserv.el (nnlistserv-kk-wash-article): Fix paren nesting.
 
 	* gnus-score.el (gnus-summary-increase-score): Fix format string.
 
-	[Emacs/trunk 2004-02-08]
-	
 2004-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnimap.el (nnimap-demule): Avoid string-as-multibyte.
-
-	[Emacs/trunk 2004-05-06]
 
 2004-08-30  Kim F. Storm  <storm@cua.dk>
 
@@ -24,8 +18,6 @@
 
 	* nnimap.el (nnimap-authinfo-file, nnimap-prune-cache):
 	Add :group 'nnimap.
-
-	[Emacs/trunk 2004-06-29]
 
 2004-08-23  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -55,18 +47,12 @@
 	* imap.el (imap-parse-address-list, imap-parse-body-ext):
 	Disable incorrect use of `assert'.
 
-	[Emacs/trunk 2004-03-22]
-
 	* message.el (message-mode): Set comment-start-skip.
-
-	[Emacs/trunk 2004-03-04]
 
 2004-08-22  Sam Steingold  <sds@gnu.org>
 
 	* pop3.el (pop3-leave-mail-on-server): New user variable.
 	(pop3-movemail): Delete mail only when it is nil.
-
-	[Emacs/trunk 2003-06-11]
 
 2004-08-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -77,8 +63,6 @@
 	* gnus-mule.el, smiley-ems.el: Removed obsolete files.
 
 	* mailcap.el (mailcap-mime-data): Mark as risky.
-
-	[Emacs/trunk 2004-04-21]
 
 	* gnus.el (gnus-group, gnus-summary, gnus-summary-sort): Fix
 	custom-manual entries.
@@ -115,12 +99,6 @@
 	* gnus-cus.el: Merged revisions 7.2 through 7.5 into branch to support
 	gnus-agent.el update and incorporate bug fixes.
 
-2004-08-22 Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* Temporary note: "[Emacs/trunk YYYY-MM-DD]" corresponds to the
-	date when this changes has been applied to the Emacs trunk.  I
-	have added this temporaryly to keep track of the merging easier.
-	
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
