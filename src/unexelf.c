@@ -434,6 +434,10 @@ Filesz      Memsz       Flags       Align
 #define HAS_SBSS_SECTION
 #endif
 
+#if defined (__linux__) && defined (__alpha__)
+#define HAS_SBSS_SECTION
+#endif
+
 #if defined (__alpha__) && !defined (__NetBSD__) && !defined (__OpenBSD__)
 /* Declare COFF debugging symbol table.  This used to be in
    /usr/include/sym.h, but this file is no longer included in Red Hat
