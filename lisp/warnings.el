@@ -263,4 +263,6 @@ this is equivalent to `display-message', using
 `emacs' as the group and `:warning' as the level."
   (display-warning 'emacs (apply 'format message args)))
 
+(provide 'warnings)
+
 ;;; warnings.el ends here
