@@ -97,8 +97,8 @@ See definition of `print-region-1' for calling conventions.")
     (save-excursion
       (message "Spooling...")
       (if (/= tab-width 8)
-	  (progn
-	    (print-region-new-buffer start end)
+	  (let ((new-coords (print-region-new-buffer start end)))
+	    (setq start (car new-coords) end (cdr new-coords))
 	    (setq tab-width width)
 	    (save-excursion
 	      (goto-char end)
@@ -113,7 +113,8 @@ See definition of `print-region-1' for calling conventions.")
 				        lpr-headers-switches)
 				     switches))
 	    ;; Run a separate program to get page headers.
-	    (print-region-new-buffer start end)
+	    (let ((new-coords (print-region-new-buffer start end)))
+	      (setq start (car new-coords) end (cdr new-coords)))
 	    (apply 'call-process-region start end lpr-page-header-program
 				 t t nil
 				 (nconc (and lpr-add-switches
@@ -134,16 +135,18 @@ See definition of `print-region-1' for calling conventions.")
       (message "Spooling...done"))))
 
 ;; This function copies the text between start and end
-;; into a new buffer, makes that buffer current,
-;; and sets start and end to the buffer bounds.
-;; start and end are used free.
+;; into a new buffer, makes that buffer current.
+;; It returns the new range to print from the new current buffer
+;; as (START . END).
+
 (defun print-region-new-buffer (ostart oend)
-  (or (string= (buffer-name) " *spool temp*")
-      (let ((oldbuf (current-buffer)))
-	(set-buffer (get-buffer-create " *spool temp*"))
-	(widen) (erase-buffer)
-	(insert-buffer-substring oldbuf ostart oend)
-	(setq start (point-min) end (point-max)))))
+  (if (string= (buffer-name) " *spool temp*")
+      (cons ostart oend)
+    (let ((oldbuf (current-buffer)))
+      (set-buffer (get-buffer-create " *spool temp*"))
+      (widen) (erase-buffer)
+      (insert-buffer-substring oldbuf ostart oend)
+      (cons (point-min) (point-max)))))
 
 (defun printify-region (begin end)
   "Turn nonprinting characters (other than TAB, LF, SPC, RET, and FF)
