@@ -358,7 +358,12 @@ IT_ring_bell ()
       ScreenVisualBell ();
     }
   else
-    write (1, "\007", 1);
+    {
+      union REGS inregs, outregs;
+      inregs.h.ah = 2;
+      inregs.h.dl = 7;
+      intdos (&inregs, &outregs);
+    }
 }
 
 static void
@@ -1132,6 +1137,35 @@ dos_get_modifiers (keymask)
   return modifiers;
 }
 
+#define NUM_RECENT_DOSKEYS (100)
+int recent_doskeys_index;	/* Index for storing next element into recent_doskeys */
+int total_doskeys;		/* Total number of elements stored into recent_doskeys */
+Lisp_Object recent_doskeys; /* A vector, holding the last 100 keystrokes */
+
+DEFUN ("recent-doskeys", Frecent_doskeys, Srecent_doskeys, 0, 0, 0,
+  "Return vector of last 100 keyboard input values seen in dos_rawgetc.\n\
+Each input key receives two values in this vector: first the ASCII code,\n\
+and then the scan code.")
+     ()
+{
+  Lisp_Object *keys = XVECTOR (recent_doskeys)->contents;
+  Lisp_Object val;
+
+  if (total_doskeys < NUM_RECENT_DOSKEYS)
+    return Fvector (total_doskeys, keys);
+  else
+    {
+      val = Fvector (NUM_RECENT_DOSKEYS, keys);
+      bcopy (keys + recent_doskeys_index,
+	     XVECTOR (val)->contents,
+	     (NUM_RECENT_DOSKEYS - recent_doskeys_index) * sizeof (Lisp_Object));
+      bcopy (keys,
+	     XVECTOR (val)->contents + NUM_RECENT_DOSKEYS - recent_doskeys_index,
+	     recent_doskeys_index * sizeof (Lisp_Object));
+      return val;
+    }
+}
+
 /* Get a char from keyboard.  Function keys are put into the event queue.  */
 static int
 dos_rawgetc ()
@@ -1159,6 +1193,16 @@ dos_rawgetc ()
       int86 (0x16, &regs, &regs);
       c = regs.h.al;
       sc = regs.h.ah;
+
+      total_doskeys += 2;
+      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
+	= make_number (c);
+      if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
+	recent_doskeys_index = 0;
+      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
+	= make_number (sc);
+      if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
+	recent_doskeys_index = 0;
 
       modifiers = dos_get_modifiers (&mask);
       
@@ -1372,9 +1416,7 @@ dos_keyread ()
   else
     return dos_rawgetc ();
 }
-
-
-
+
 #ifndef HAVE_X_WINDOWS
 /* See xterm.c for more info.  */
 void
@@ -2476,5 +2518,13 @@ dos_abort (file, line)
   abort ();
 }
 #endif
+
+syms_of_msdos ()
+{
+  recent_doskeys = Fmake_vector (make_number (NUM_RECENT_DOSKEYS), Qnil);
+  staticpro (&recent_doskeys);
+
+  defsubr (&Srecent_doskeys);
+}
 
 #endif /* MSDOS */
