@@ -1,5 +1,5 @@
 2002-05-21  Colin Walters  <walters@gnu.org>
-	    
+
 	* international/mule.el (make-coding-system): Doc fixes.
 
 	* international/mule.el (auto-coding-functions): New variable.
@@ -7,9 +7,9 @@
 	(set-auto-coding): Update docs.
 	(sgml-xml-auto-coding-function): New function.
 
-	* international/mule-util.el (store-substring): New optional
-	argument `ellipsis'.  Add commented-out test suite, and change
-	coding to iso-2022-7bit.
+	* international/mule-util.el (truncate-string-to-width): New
+	optional argument `ellipsis'.  Add commented-out test suite, and
+	change coding to iso-2022-7bit.
 
 2002-05-21  Colin Walters  <walters@verbum.org>	
 
@@ -33,6 +33,12 @@
 	instead.
 	(occur-fontify-on-property): Deleted.
 	(occur-engine): Use categories from `font-lock-category-alist'.
+
+	* info.el (Info-fontify): Deleted.
+	(Info-select-node): Don't use it.	
+	(Info-mode-hook): New variable.
+	(Info-mode): Set up categories.
+	(Info-fontify-menu-headers, Info-fontify-node): Use categories.
 
 	* ibuffer.el (ibuffer-formats): Update docs.
 	(ibuffer-category-alist): New variable.
