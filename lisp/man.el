@@ -684,6 +684,17 @@ Same for the ANSI bold and normal escape sequences."
 				  (delete-backward-char 4))
 			      (point))
 		       'face Man-overstrike-face))
+  (if (< (buffer-size) (position-bytes (point-max)))
+      ;; Multibyte characters exist.
+      (progn
+	(goto-char (point-min))
+	(while (search-forward "__\b\b" nil t)
+	  (backward-delete-char 4)
+	  (put-text-property (point) (1+ (point)) 'face Man-underline-face))
+	(goto-char (point-min))
+	(while (search-forward "\b\b__" nil t)
+	  (backward-delete-char 2)
+	  (put-text-property (1- (point)) (point) 'face Man-underline-face))))
   (goto-char (point-min))
   (while (search-forward "_\b" nil t)
     (backward-delete-char 2)
