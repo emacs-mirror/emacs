@@ -1,3 +1,18 @@
+2003-09-24  Kenichi Handa  <handa@m17n.org>
+
+	* language/devan-util.el (devanagari-post-read-conversion): Add
+	autoload cookie.
+
+	* language/mlm-util.el (malayalam-post-read-conversion): Add
+	autoload cookie.
+
+	* language/tml-util.el (tamil-post-read-conversion): Add autoload
+	cookie.
+
+	* international/utf-8.el (utf-8-post-read-conversion): Call
+	post-read-conversion functions for Devanagari, Malayalam, and
+	Tamil.
+
 2003-09-23  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (bootstrap-clean): Fix misplaced `!'.
