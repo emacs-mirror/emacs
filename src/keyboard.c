@@ -660,6 +660,11 @@ Lisp_Object Vdisable_point_adjustment;
 
 Lisp_Object Vglobal_disable_point_adjustment;
 
+/* A function to display keyboard-menus, and read the user's response.
+   If nil, keyboard menus are disabled.  */
+
+Lisp_Object Vkey_menu_prompt_function;
+
 /* The time when Emacs started being idle.  */
 
 static EMACS_TIME timer_idleness_start_time;
@@ -1359,7 +1364,7 @@ command_loop_1 ()
   this_command_key_count = 0;
   this_single_command_key_start = 0;
 
-  if (! NILP (Vmemory_full))
+  if (NILP (Vmemory_full))
     {
       /* Make sure this hook runs after commands that get errors and
 	 throw to top level.  */
@@ -7666,12 +7671,6 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   return Qnil ;
 }
 
-/* Buffer in use so far for the minibuf prompts for menu keymaps.
-   We make this bigger when necessary, and never free it.  */
-static char *read_char_minibuf_menu_text;
-/* Size of that buffer.  */
-static int read_char_minibuf_menu_width;
-
 static Lisp_Object
 read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
      int commandflag ;
@@ -7680,32 +7679,19 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 {
   int mapno;
   register Lisp_Object name;
-  int nlength;
-  int width = FRAME_WIDTH (SELECTED_FRAME ()) - 4;
   int idx = -1;
-  int nobindings = 1;
   Lisp_Object rest, vector;
-  char *menu;
+  /* This is a list of the prompt and individual menu entries passed to
+     lisp for formatting and display.  The format is:
+       MENU_LIST : (MENU_PROMPT ENTRY...)
+       ENTRY     : (EVENT PROMPT [BINDING [TOGGLE_TYPE TOGGLE_STATE]])   */
+  Lisp_Object menu_list = Qnil;
 
   vector = Qnil;
   name = Qnil;
 
   if (! menu_prompting)
     return Qnil;
-
-  /* Make sure we have a big enough buffer for the menu text.  */
-  if (read_char_minibuf_menu_text == 0)
-    {
-      read_char_minibuf_menu_width = width + 4;
-      read_char_minibuf_menu_text = (char *) xmalloc (width + 4);
-    }
-  else if (width + 4 > read_char_minibuf_menu_width)
-    {
-      read_char_minibuf_menu_width = width + 4;
-      read_char_minibuf_menu_text
-	= (char *) xrealloc (read_char_minibuf_menu_text, width + 4);
-    }
-  menu = read_char_minibuf_menu_text;
 
   /* Get the menu name from the first map that has one (a prompt string).  */
   for (mapno = 0; mapno < nmaps; mapno++)
@@ -7719,204 +7705,109 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   if (!STRINGP (name))
     return Qnil;
 
-  /* Prompt string always starts with map's prompt, and a space.  */
-  strcpy (menu, XSTRING (name)->data);
-  nlength = STRING_BYTES (XSTRING (name));
-  menu[nlength++] = ':';
-  menu[nlength++] = ' ';
-  menu[nlength] = 0;
-
   /* Start prompting at start of first map.  */
   mapno = 0;
   rest = maps[mapno];
 
-  /* Present the documented bindings, a line at a time.  */
-  while (1)
+  /* Loop over elements of map.  */
+  for (;;)
     {
-      int notfirst = 0;
-      int i = nlength;
-      Lisp_Object obj;
-      int ch;
-      Lisp_Object orig_defn_macro;
+      Lisp_Object elt;
 
-      /* Loop over elements of map.  */
-      while (i < width)
+      /* If reached end of map, start at beginning of next map.  */
+      if (NILP (rest))
 	{
-	  Lisp_Object elt;
-
-	  /* If reached end of map, start at beginning of next map.  */
-	  if (NILP (rest))
-	    {
-	      mapno++;
-	      /* At end of last map, wrap around to first map if just starting,
-		 or end this line if already have something on it.  */
-	      if (mapno == nmaps)
-		{
-		  mapno = 0;
-		  if (notfirst || nobindings) break;
-		}
-	      rest = maps[mapno];
-	    }
-
-	  /* Look at the next element of the map.  */
-	  if (idx >= 0)
-	    elt = XVECTOR (vector)->contents[idx];
-	  else
-	    elt = Fcar_safe (rest);
-
-	  if (idx < 0 && VECTORP (elt))
-	    {
-	      /* If we found a dense table in the keymap,
-		 advanced past it, but start scanning its contents.  */
-	      rest = Fcdr_safe (rest);
-	      vector = elt;
-	      idx = 0;
-	    }
-	  else
-	    {
-	      /* An ordinary element.  */
-	      Lisp_Object event, tem;
-
-	      if (idx < 0)
-		{
-		  event = Fcar_safe (elt); /* alist */
-		  elt = Fcdr_safe (elt);
-		}
-	      else
-		{
-		  XSETINT (event, idx); /* vector */
-		}
-
-	      /* Ignore the element if it has no prompt string.  */
-	      if (INTEGERP (event) && parse_menu_item (elt, 0, -1))
-		{
-		  /* 1 if the char to type matches the string.  */
-		  int char_matches;
-		  Lisp_Object upcased_event, downcased_event;
-		  Lisp_Object desc = Qnil;
-		  Lisp_Object s
-		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
-
-		  upcased_event = Fupcase (event);
-		  downcased_event = Fdowncase (event);
-		  char_matches = (XINT (upcased_event) == XSTRING (s)->data[0]
-				  || XINT (downcased_event) == XSTRING (s)->data[0]);
-		  if (! char_matches)
-		    desc = Fsingle_key_description (event, Qnil);
-
-#if 0  /* It is redundant to list the equivalent key bindings because
-	  the prefix is what the user has already typed.  */
-		  tem
-		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
-		  if (!NILP (tem))
-		    /* Insert equivalent keybinding. */
-		    s = concat2 (s, tem);
-#endif
-		  tem
-		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE];
-		  if (EQ (tem, QCradio) || EQ (tem, QCtoggle))
-		    {
-		      /* Insert button prefix. */
-		      Lisp_Object selected
-			= XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
-		      if (EQ (tem, QCradio))
-			tem = build_string (NILP (selected) ? "(*) " : "( ) ");
-		      else
-			tem = build_string (NILP (selected) ? "[X] " : "[ ] ");
-		      s = concat2 (tem, s);
-		    }
-		  
-
-		  /* If we have room for the prompt string, add it to this line.
-		     If this is the first on the line, always add it.  */
-		  if ((XSTRING (s)->size + i + 2
-		       + (char_matches ? 0 : XSTRING (desc)->size + 3))
-		      < width
-		      || !notfirst)
-		    {
-		      int thiswidth;
-
-		      /* Punctuate between strings.  */
-		      if (notfirst)
-			{
-			  strcpy (menu + i, ", ");
-			  i += 2;
-			}
-		      notfirst = 1;
-		      nobindings = 0 ;
-
-		      /* If the char to type doesn't match the string's
-			 first char, explicitly show what char to type.  */
-		      if (! char_matches)
-			{
-			  /* Add as much of string as fits.  */
-			  thiswidth = XSTRING (desc)->size;
-			  if (thiswidth + i > width)
-			    thiswidth = width - i;
-			  bcopy (XSTRING (desc)->data, menu + i, thiswidth);
-			  i += thiswidth;
-			  strcpy (menu + i, " = ");
-			  i += 3;
-			}
-
-		      /* Add as much of string as fits.  */
-		      thiswidth = XSTRING (s)->size;
-		      if (thiswidth + i > width)
-			thiswidth = width - i;
-		      bcopy (XSTRING (s)->data, menu + i, thiswidth);
-		      i += thiswidth;
-		      menu[i] = 0;
-		    }
-		  else
-		    {
-		      /* If this element does not fit, end the line now,
-			 and save the element for the next line.  */
-		      strcpy (menu + i, "...");
-		      break;
-		    }
-		}
-
-	      /* Move past this element.  */
-	      if (idx >= 0 && idx + 1 >= XVECTOR (vector)->size)
-		/* Handle reaching end of dense table.  */
-		idx = -1;
-	      if (idx >= 0)
-		idx++;
-	      else
-		rest = Fcdr_safe (rest);
-	    }
+	  mapno++;
+	  if (mapno == nmaps)
+	    /* Done with all maps.  */
+	    break;
+	  rest = maps[mapno];
 	}
 
-      /* Prompt with that and read response.  */
-      message2_nolog (menu, strlen (menu), 
-		      ! NILP (current_buffer->enable_multibyte_characters));
-
-      /* Make believe its not a keyboard macro in case the help char
-	 is pressed.  Help characters are not recorded because menu prompting
-	 is not used on replay.
-	 */
-      orig_defn_macro = current_kboard->defining_kbd_macro;
-      current_kboard->defining_kbd_macro = Qnil;
-      do
-	obj = read_char (commandflag, 0, 0, Qt, 0);
-      while (BUFFERP (obj));
-      current_kboard->defining_kbd_macro = orig_defn_macro;
-
-      if (!INTEGERP (obj))
-	return obj;
+      /* Look at the next element of the map.  */
+      if (idx >= 0)
+	elt = AREF (vector, idx);
       else
-	ch = XINT (obj);
+	elt = Fcar_safe (rest);
 
-      if (! EQ (obj, menu_prompt_more_char)
-	  && (!INTEGERP (menu_prompt_more_char)
-	      || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char))))))
+      if (idx < 0 && VECTORP (elt))
 	{
-	  if (!NILP (current_kboard->defining_kbd_macro))
-	    store_kbd_macro_char (obj);
-	  return obj;
+	  /* If we found a dense table in the keymap,
+	     advanced past it, but start scanning its contents.  */
+	  rest = Fcdr_safe (rest);
+	  vector = elt;
+	  idx = 0;
 	}
-      /* Help char - go round again */
+      else
+	{
+	  /* An ordinary element.  */
+	  Lisp_Object event, tem;
+
+	  if (idx < 0)
+	    {
+	      event = Fcar_safe (elt); /* alist */
+	      elt = Fcdr_safe (elt);
+	    }
+	  else
+	    {
+	      XSETINT (event, idx); /* vector */
+	    }
+
+	  /* Ignore the element if it has no prompt string.  */
+	  if (INTEGERP (event) && parse_menu_item (elt, 0, -1))
+	    {
+	      /* The list describing this entry.  */
+	      Lisp_Object entry = Qnil;
+	      Lisp_Object prop_val;
+
+	      prop_val = AREF (item_properties, ITEM_PROPERTY_TYPE);
+	      if (EQ (prop_val, QCradio) || EQ (prop_val, QCtoggle))
+		/* This is a `toggle-able' menu-entry, make the
+		   tail of the list describe it.  */
+		entry
+		  = Fcons (prop_val,
+			   Fcons (AREF (item_properties,
+					ITEM_PROPERTY_SELECTED),
+				  entry));
+
+	      /* Equivalent keybinding.  */
+	      prop_val = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
+	      if (!NILP (entry) || !NILP (prop_val))
+		entry = Fcons (prop_val, entry);
+
+	      /* The string prompt.  */
+	      prop_val = AREF (item_properties, ITEM_PROPERTY_NAME);
+	      entry = Fcons (prop_val, entry);
+
+	      /* Finally, the car of the list is the event.  */
+	      entry = Fcons (event, entry);
+
+	      /* Push this entry on the the list of entries.  */
+	      menu_list = Fcons (entry, menu_list);
+	    }
+
+	  /* Move past this element.  */
+	  if (idx >= 0 && idx + 1 >= XVECTOR (vector)->size)
+	    /* Handle reaching end of dense table.  */
+	    idx = -1;
+	  if (idx >= 0)
+	    idx++;
+	  else
+	    rest = Fcdr_safe (rest);
+	}
     }
+
+  /* Put the entries in the proper order for the display function.  */
+  menu_list = Fnreverse (menu_list);
+
+  /* The car of the entries list is the prompt for the whole menu.  */
+  menu_list = Fcons (name, menu_list);
+
+  /* Display the menu, and prompt for a key.  */
+  if (NILP (Vkey_menu_prompt_function))
+    return Qnil;
+  else
+    return call1 (Vkey_menu_prompt_function, menu_list);
 }
 
 /* Reading key sequences.  */
@@ -11012,6 +10903,23 @@ Used during Emacs' startup.  */);
 	       doc: /* *How long to display an echo-area message when the minibuffer is active.
 If the value is not a number, such messages don't time out.  */);
   Vminibuffer_message_timeout = make_number (2);
+
+  DEFVAR_LISP ("key-menu-prompt-function", &Vkey_menu_prompt_function,
+	       doc: /* A function to display keyboard-menus, and read the user's response.
+If nil, keyboard menus are disabled.
+
+It is called with single argument, which is a list describing the keyboard menu
+and should return the key the user types.
+
+The argument is a list of the prompt and individual menu entries.
+The format is as follows:
+
+       MENU  : (PROMPT ENTRY...)
+       ENTRY : (EVENT PROMPT [BINDING [TOGGLE_TYPE TOGGLE_STATE]])
+
+Note that there is a prompt for the whole menu, and one for each
+individual entry.  */);
+  Vkey_menu_prompt_function = Qnil;
 }
 
 void
