@@ -5,7 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
 ;; Maintainer: Dan Nicolaescu <done@ece.arizona.edu>
 ;; Version: 4.0
-;; Keywords: C C++ java lisp tools editing comments blocks hiding
+;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -69,6 +69,64 @@
 
 ;;;----------------------------------------------------------------------------
 ;;; user-configurable variables
+
+(defgroup hideshow nil
+  "Minor mode for hiding and showing program and comment blocks."
+  :group 'languages)
+
+;;;#autoload
+(defcustom hs-hide-comments-when-hiding-all t 
+  "Hide the comments too when you do an `hs-hide-all'." 
+  :type 'boolean
+  :group 'hideshow)
+
+;;;#autoload
+(defcustom hs-show-hidden-short-form t
+  "Leave only the first line visible in a hidden block.
+If t only the first line is visible when a block is in the hidden state, 
+else both the first line and the last line are showed. Also if t and 
+`hs-adjust-block-beginning' is set, it is used also.
+
+An example of how this works: (in c-mode)
+original:
+                      
+/* My function main
+   some more stuff about main
+*/
+int
+main(void)
+{
+  int x=0;
+  return 0;
+}
+
+
+hidden and hs-show-hidden-short-form is nil
+/* My function main...
+*/                        
+int
+main(void)
+{...
+}
+
+hidden and hs-show-hidden-short-form is t
+/* My function main...
+int                   
+main(void)                  
+{ ...
+
+
+The latest has the disadvantage of not being symetrical, but it saves
+screen lines ..."
+  :type 'boolean
+  :group 'hideshow)
+
+(defcustom hs-minor-mode-hook 'hs-hide-initial-comment-block
+  "Hook called when `hs-minor-mode' is installed.
+A good value for this would be `hs-hide-initial-comment-block' to
+hide all the comments at the beginning of the file."
+  :type 'integer
+  :group 'hideshow)
 
 (defvar hs-unbalance-handler-method 'top-level
   "*Symbol representing how \"unbalanced parentheses\" should be handled.
@@ -154,11 +212,6 @@ If any of those is left nil, hideshow will try to guess some values, see
 
 Note that the regexps should not contain leading or trailing whitespace.")
 
-(defvar hs-minor-mode-hook 'hs-hide-initial-comment-block
-  "Hook called when `hs-minor-mode' is installed.
-A good value for this would be `hs-hide-initial-comment-block' to
-hide all the comments at the beginning of the file.")
-
 (defvar hs-hide-hook nil
   "*Hooks called at the end of `hs-hide-all' and `hs-hide-block'.")
 
@@ -168,50 +221,6 @@ These commands include `hs-show-all', `hs-show-block' and `hs-show-region'.")
 
 (defvar hs-minor-mode-prefix "\C-c"
   "*Prefix key to use for hideshow commands in hideshow minor mode.")
-
-;;;#autoload
-(defvar hs-hide-comments-when-hiding-all t 
-  "Hide the comments too when you do an `hs-hide-all'." )
-
-;;;#autoload
-(defvar hs-show-hidden-short-form t
-  "Leave only the first line visible in a hidden block.
-If t only the first line is visible when a block is in the hidden state, 
-else both the first line and the last line are showed. Also if t and 
-`hs-adjust-block-beginning' is set, it is used also.
-
-An example of how this works: (in c-mode)
-original:
-                      
-/* My function main
-   some more stuff about main
-*/
-int
-main(void)
-{
-  int x=0;
-  return 0;
-}
-
-
-hidden and hs-show-hidden-short-form is nil
-/* My function main...
-*/                        
-int
-main(void)
-{...
-}
-
-hidden and hs-show-hidden-short-form is t
-/* My function main...
-int                   
-main(void)                  
-{ ...
-
-
-The latest has the disadvantage of not being symetrical, but it saves
-screen lines ...
-")
 
 ;;;----------------------------------------------------------------------------
 ;;; internal variables
@@ -472,7 +481,8 @@ Return point, or nil if top-level."
 	(try-again t)
 	(here (point))
 	(both-regexps (concat "\\(" hs-block-start-regexp "\\)\\|\\("
-			      hs-block-end-regexp "\\)")))
+			      hs-block-end-regexp "\\)"))
+	(buf-size (buffer-size)))
     (beginning-of-line)
     ;; A block beginning can span on multiple lines, if the point
     ;; is on one of those lines, trying a regexp search from
@@ -500,7 +510,7 @@ Return point, or nil if top-level."
 		;; inside of a comment!
 		;; Since inside a comment we can have incomplete sexps
 		;; this would have signaled an error.
-		(or (forward-comment (-(buffer-size))) t); `or' is a hack to
+		(or (forward-comment (- buf-size)) t); `or' is a hack to
 							 ; make it return t
 		(re-search-backward both-regexps (point-min) t))
       (if (match-beginning 1)		; start of start-regexp
@@ -593,10 +603,11 @@ If `hs-hide-comments-when-hiding-all' is t also hides the comments."
 			 (message "Hiding ... %d" (setq count (1+ count))))
 		     (goto-char (nth 1 c-reg)))))))
        (let ((count 0)
-	     (top-level-re (concat "^" hs-block-start-regexp)))
+	     (top-level-re (concat "^" hs-block-start-regexp))
+	     (buf-size (buffer-size)))
 	 (while 
 	     (progn
-	       (forward-comment (buffer-size))
+	       (forward-comment buf-size)
 	       (re-search-forward top-level-re (point-max) t))
 	   (goto-char (match-beginning 0))
 	   (hs-hide-block-at-point t)
