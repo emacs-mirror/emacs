@@ -29,7 +29,9 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/file.h>
 
 #include <unistd.h>             /* For isatty. */
-#include <sys/ioctl.h>          /* For TIOCNOTTY. */
+#include <termio.h>		/* For TIOCNOTTY. */
+
+#include <signal.h>
 
 #include "lisp.h"
 #include "termchar.h"
@@ -43,6 +45,8 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "window.h"
 #include "keymap.h"
+#include "syssignal.h"
+#include "systty.h"
 
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
@@ -2306,6 +2310,33 @@ delete_initial_display (struct display *display)
   initial_display = NULL;
 }
 
+/* Drop the controlling terminal if fd is the same device. */
+void
+dissociate_if_controlling_tty (int fd)
+{
+#if defined (USG) && !defined (BSD_PGRPS)
+  int pgid;
+  EMACS_GET_TTY_PGRP (fd, &pgid);
+  if (pgid != -1)
+    {
+      setpgrp ();
+      no_controlling_tty = 1;
+    }
+#else
+#ifdef TIOCNOTTY                /* Try BSD ioctls. */
+  sigblock (sigmask (SIGTTOU));
+  if (ioctl (fd, TIOCNOTTY, 0) != -1)
+    {
+      no_controlling_tty = 1;
+    }
+  sigunblock (sigmask (SIGTTOU));
+#else
+  /* Unknown system. */
+  croak ();
+#endif  /* ! TIOCNOTTY */
+#endif  /* ! USG */
+}
+
 /* Create a termcap display on the tty device with the given name and
    type.
 
@@ -2413,18 +2444,10 @@ term_init (char *name, char *terminal_type, int must_succeed)
       /* Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
          defined on Hurd.  On other systems, we need to dissociate
          ourselves from the controlling tty when we want to open a
-         frame on the same terminal.  The function setsid should be
-         used for this, but it didn't work for me. */
+         frame on the same terminal.  */
 
       fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
-      
-#ifdef TIOCNOTTY
-      /* Drop our controlling tty if it is the same device. */
-      if (ioctl (fd, TIOCNOTTY, 0) != -1)
-        {
-          no_controlling_tty = 1;
-        }
-#endif
+
 #endif /* O_IGNORE_CTTY */
 
       if (fd < 0)
@@ -2438,6 +2461,8 @@ term_init (char *name, char *terminal_type, int must_succeed)
           error ("Not a tty device: %s", name);
         }
 
+      dissociate_if_controlling_tty (fd);
+      
       file = fdopen (fd, "w+");
       tty->name = xstrdup (name);
       tty->input = file;
@@ -2495,7 +2520,13 @@ term_init (char *name, char *terminal_type, int must_succeed)
   Wcm_clear (tty);
 
   buffer = (char *) xmalloc (buffer_size);
+  
+  /* On some systems, tgetent tries to access the controlling
+     terminal. */
+  sigblock (sigmask (SIGTTOU));
   status = tgetent (buffer, terminal_type);
+  sigunblock (sigmask (SIGTTOU));
+  
   if (status < 0)
     {
 #ifdef TERMINFO
@@ -3265,15 +3296,11 @@ device of the currently selected frame. */)
   if (!d->display_info.tty->input)
     {
       fd = emacs_open (d->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
-  
-#ifdef TIOCNOTTY
-      /* Drop our controlling tty if it is the same device. */
-      if (ioctl (fd, TIOCNOTTY, 0) != -1)
-        {
-          no_controlling_tty = 1;
-        }
-#endif
 
+      /* XXX What if open fails? */
+
+      dissociate_if_controlling_tty (fd);
+      
       d->display_info.tty->output = fdopen (fd, "w+");
       d->display_info.tty->input = d->display_info.tty->output;
     
