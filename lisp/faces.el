@@ -601,7 +601,7 @@ If NOERROR is non-nil, return nil on failure."
 
 (defun face-initialize ()
   (make-face 'default)
-;;;  (make-face 'modeline)
+  (make-face 'modeline)
   (make-face 'highlight)
   ;;
   ;; These aren't really special in any way, but they're nice to have around.
@@ -687,6 +687,9 @@ If NOERROR is non-nil, return nil on failure."
 	  (set-face-background 'region "gray" frame)
 	(error (invert-face 'region frame))))
 
+  (or (face-differs-from-default-p 'modeline frame)
+      (invert-face 'modeline frame))
+
   (or (face-differs-from-default-p 'secondary-selection frame)
       (condition-case ()
 	  (condition-case ()
@@ -718,8 +721,7 @@ If NOERROR is non-nil, return nil on failure."
       (x-create-frame parameters)
     (let* ((frame (x-create-frame parameters))
 	   (faces (copy-alist global-face-data))
-	   (rest faces)
-	   default modeline)
+	   (rest faces))
       (set-frame-face-alist frame faces)
 
       ;; Copy the vectors that represent the faces.
@@ -729,20 +731,8 @@ If NOERROR is non-nil, return nil on failure."
 	(make-face-x-resource-internal (cdr (car rest)) frame t)
 	(setq rest (cdr rest)))
 
-      (setq default (internal-get-face 'default frame)
-	    modeline (internal-get-face 'modeline frame))
-
       (x-initialize-frame-faces frame)
 
-  ;;;    ;; Make sure the modeline face is fully qualified.
-  ;;;    (if (and (not (face-font modeline frame)) (face-font default frame))
-  ;;;	(set-face-font modeline (face-font default frame) frame))
-  ;;;    (if (and (not (face-background modeline frame))
-  ;;;	     (face-background default frame))
-  ;;;	(set-face-background modeline (face-background default frame) frame))
-  ;;;    (if (and (not (face-foreground modeline frame))
-  ;;;	     (face-foreground default frame))
-  ;;;	(set-face-foreground modeline (face-foreground default frame) frame))
       frame)))
 
 ;; If we are already using x-window frames, initialize faces for them.
