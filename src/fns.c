@@ -3000,7 +3000,6 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   register Lisp_Object *args;
   register int i;
   struct gcpro gcpro1;
-  int nbytes;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
 
@@ -3009,8 +3008,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   nargs = leni + leni - 1;
   if (nargs < 0) return build_string ("");
 
-  nbytes = nargs * sizeof (Lisp_Object);
-  SAFE_ALLOCA_LISP (args, nbytes);
+  SAFE_ALLOCA_LISP (args, nargs);
 
   GCPRO1 (separator);
   mapcar1 (leni, args, function, sequence);
@@ -3023,7 +3021,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
     args[i] = separator;
 
   ret = Fconcat (nargs, args);
-  SAFE_FREE (nbytes);
+  SAFE_FREE_LISP (nargs);
 
   return ret;
 }
@@ -3038,20 +3036,18 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   register Lisp_Object len;
   register int leni;
   register Lisp_Object *args;
-  int nbytes;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
 
   len = Flength (sequence);
   leni = XFASTINT (len);
 
-  nbytes = leni * sizeof (Lisp_Object);
-  SAFE_ALLOCA_LISP (args, nbytes);
+  SAFE_ALLOCA_LISP (args, leni);
 
   mapcar1 (leni, args, function, sequence);
 
   ret = Flist (leni, args);
-  SAFE_FREE(nbytes);
+  SAFE_FREE_LISP (leni);
 
   return ret;
 }
