@@ -75,9 +75,14 @@ Return t if file exists."
 
 ;; API (Application Program Interface) for charsets.
 
-;; Return t if OBJ is a quoted symbol.
-(defsubst quoted-symbol-p (obj)
-  (and (listp obj) (eq (car obj) 'quote)))
+;; Return t if OBJ is a quoted symbol
+;; and the symbol is the name of a standard charset.
+(defsubst charset-quoted-standard-p (obj)
+  (and (listp obj) (eq (car obj) 'quote)
+       (symbolp (car-safe (cdr obj)))
+       (let ((vector (get (car-safe (cdr obj)) 'charset)))
+	 (and (vectorp vector)
+	      (< (aref vector 0) 160)))))
 
 (defsubst charsetp (object)
   "T is OBJECT is a charset."
@@ -125,91 +130,91 @@ PLIST (property list) may contain any type of information a user
 
 (defmacro charset-id (charset)
   "Return charset identification number of CHARSET."
-  (if (and (listp charset) (eq (car charset) 'quote))
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 0)
     `(aref (charset-info ,charset) 0)))
 
 (defmacro charset-bytes (charset)
   "Return bytes of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 1)
     `(aref (charset-info ,charset) 1)))
 
 (defmacro charset-dimension (charset)
   "Return dimension of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 2)
     `(aref (charset-info ,charset) 2)))
 
 (defmacro charset-chars (charset)
   "Return character numbers contained in a dimension of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 3)
     `(aref (charset-info ,charset) 3)))
 
 (defmacro charset-width (charset)
   "Return width (how many column occupied on a screen) of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 4)
     `(aref (charset-info ,charset) 4)))
 
 (defmacro charset-direction (charset)
   "Return direction of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 5)
     `(aref (charset-info ,charset) 5)))
 
 (defmacro charset-iso-final-char (charset)
   "Return final char of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 8)
     `(aref (charset-info ,charset) 8)))
 
 (defmacro charset-iso-graphic-plane (charset)
   "Return graphic plane of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 9)
     `(aref (charset-info ,charset) 9)))
 
 (defmacro charset-reverse-charset (charset)
   "Return reverse charset of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 10)
     `(aref (charset-info ,charset) 10)))
 
 (defmacro charset-short-name (charset)
   "Return short name of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 11)
     `(aref (charset-info ,charset) 11)))
 
 (defmacro charset-long-name (charset)
   "Return long name of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 12)
     `(aref (charset-info ,charset) 12)))
 
 (defmacro charset-description (charset)
   "Return descriptoin of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 13)
     `(aref (charset-info ,charset) 13)))
 
 (defmacro charset-plist (charset)
   "Return list charset property of CHARSET.
 See the function `charset-info' for more detail."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       `(aref ,(charset-info (nth 1 charset)) 14)
     `(aref (charset-info ,charset) 14)))
 
@@ -223,7 +228,7 @@ CODE1 and CODE2 are optional, but if you don't supply
 sufficient position-codes, return a generic character which stands for
 all characters or group of characters in the character sets.
 A generic character can be used to index a char table (e.g. syntax-table)."
-  (if (quoted-symbol-p charset)
+  (if (charset-quoted-standard-p charset)
       `(make-char-internal ,(charset-id (nth 1 charset)) ,c1 ,c2)
     `(make-char-internal (charset-id ,charset) ,c1 ,c2)))
 
@@ -536,11 +541,13 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command."
   (interactive
-   (list (read-coding-system
-	  (format "Coding system for terminal display (default, %s): "
-		  (if (and (not (terminal-coding-system))
-			   default-terminal-coding-system)
-		      default-terminal-coding-system)))))
+   (list (let ((default (if (and (not (terminal-coding-system))
+				 default-terminal-coding-system)
+			    default-terminal-coding-system)))
+	   (read-coding-system
+	    (format "Coding system for terminal display (default, %s): "
+		    default)
+	    default))))
   (if (and (not coding-system)
 	   (not (terminal-coding-system)))
       (setq coding-system default-terminal-coding-system))
@@ -562,11 +569,13 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command."
   (interactive
-   (list (read-coding-system
-	  (format "Coding system for keyboard input (default, %s): "
-		  (if (and (not (keyboard-coding-system))
-			   default-keyboard-coding-system)
-		      default-keyboard-coding-system)))))
+   (list (let ((default (if (and (not (keyboard-coding-system))
+				 default-keyboard-coding-system)
+			    default-keyboard-coding-system)))
+	   (read-coding-system
+	    (format "Coding system for keyboard input (default, %s): "
+		    default)
+	    default))))
   (if (and (not coding-system)
 	   (not (keyboard-coding-system)))
       (setq coding-system default-keyboard-coding-system))
