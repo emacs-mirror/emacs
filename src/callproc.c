@@ -210,6 +210,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   char *bufptr = buf;
   int bufsize = 16384;
   int count = specpdl_ptr - specpdl;
+
   register unsigned char **new_argv
     = (unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
   struct buffer *old = current_buffer;
@@ -579,7 +580,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       }
 #else /* not MSDOS */
 #ifdef WINDOWSNT
-    pid = child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
+    pid = child_setup (filefd, fd1, fd_error, (char **) new_argv,
+		       0, current_dir);
 #else  /* not WINDOWSNT */
     pid = vfork ();
 
@@ -595,7 +597,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #else
         setpgrp (pid, pid);
 #endif /* USG */
-	child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
+	child_setup (filefd, fd1, fd_error, (char **) new_argv,
+		     0, current_dir);
       }
 #endif /* not WINDOWSNT */
 
