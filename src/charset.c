@@ -221,7 +221,7 @@ char_to_string (c, str)
 	  *p++ = c + 0x20;
 	}
     }
-  else if (c < MAX_CHAR)
+  else if (CHAR_VALID_P (c))
     {
       int charset, c1, c2;
 
@@ -1076,7 +1076,7 @@ char_valid_p (c, genericp)
 {
   int charset, c1, c2;
 
-  if (c < 0)
+  if (c < 0 || c >= MAX_CHAR)
     return 0;
   if (SINGLE_BYTE_CHAR_P (c))
     return 1;
