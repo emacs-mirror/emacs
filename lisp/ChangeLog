@@ -2,7 +2,7 @@
 
 	* calendar/diary-lib.el (diary-from-outlook)
 	(diary-from-outlook-gnus, diary-from-outlook-rmail): Do not use
-	interactive-p; but rather new optional argument DONOTASK.
+	interactive-p; but rather new optional argument NOCONFIRM.
 
 2004-11-09  Stefan  <monnier@iro.umontreal.ca>
 
