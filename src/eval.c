@@ -51,6 +51,24 @@ struct backtrace
 
 struct backtrace *backtrace_list;
 
+/* This structure helps implement the `catch' and `throw' control
+   structure.  A struct catchtag contains all the information needed
+   to restore the state of the interpreter after a non-local jump.
+
+   Handlers for error conditions (represented by `struct handler'
+   structures) just point to a catch tag to do the cleanup required
+   for their jumps.
+
+   catchtag structures are chained together in the C calling stack;
+   the `next' member points to the next outer catchtag.
+
+   A call like (throw TAG VAL) searches for a catchtag whose `tag'
+   member is TAG, and then unbinds to it.  The `val' member is used to
+   hold VAL while the stack is unwound; `val' is returned as the value
+   of the catch form.
+
+   All the other members are concerned with restoring the interpreter
+   state.  */
 struct catchtag
   {
     Lisp_Object tag;
@@ -115,9 +133,13 @@ Lisp_Object Vdebug_on_error;
    is handled by the command loop's error handler. */
 int debug_on_quit;
 
-/* Nonzero means we are trying to enter the debugger.
-   This is to prevent recursive attempts.  */
-int entering_debugger;
+/* The value of num_nonmacro_input_chars as of the last time we
+   started to enter the debugger.  If we decide to enter the debugger
+   again when this is still equal to num_nonmacro_input_chars, then we
+   know that the debugger itself has an error, and we should just
+   signal the error instead of entering an infinite loop of debugger
+   invocations.  */
+int when_entered_debugger;
 
 Lisp_Object Vdebugger;
 
@@ -143,7 +165,7 @@ init_eval ()
   Vquit_flag = Qnil;
   debug_on_next_call = 0;
   lisp_eval_depth = 0;
-  entering_debugger = 0;
+  when_entered_debugger = 0;
 }
 
 Lisp_Object
@@ -155,7 +177,7 @@ call_debugger (arg)
   if (specpdl_size + 40 > max_specpdl_size)
     max_specpdl_size = specpdl_size + 40;
   debug_on_next_call = 0;
-  entering_debugger = 1;
+  when_entered_debugger = num_nonmacro_input_chars;
   return apply1 (Vdebugger, arg);
 }
 
@@ -874,9 +896,18 @@ unbind_catch (catch)
 {
   register int last_time;
 
+  /* Restore the polling-suppression count.  */
+  if (catch->poll_suppress_count > poll_suppress_count)
+    abort ();
+  while (catch->poll_suppress_count < poll_suppress_count)
+    start_polling ();
+
   do
     {
       last_time = catchlist == catch;
+
+      /* Unwind the specpdl stack, and then restore the proper set of
+         handlers.  */
       unbind_to (catchlist->pdlcount, Qnil);
       handlerlist = catchlist->handlerlist;
       catchlist = catchlist->next;
@@ -903,11 +934,6 @@ Both TAG and VALUE are evalled.")
 	  {
 	    if (EQ (c->tag, tag))
 	      {
-		/* Restore the polling-suppression count.  */
-		if (c->poll_suppress_count > poll_suppress_count)
-		  abort ();
-		while (c->poll_suppress_count < poll_suppress_count)
-		  start_polling ();
 		c->val = val;
 		unbind_catch (c);
 		_longjmp (c->jmp, 1);
@@ -966,10 +992,21 @@ See also the function `signal' for more info.")
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
-  register Lisp_Object tem;
+  register Lisp_Object var, bodyform, handlers;
 
-  tem = Fcar (args);
-  CHECK_SYMBOL (tem, 0);
+  var      = Fcar (args);
+  bodyform = Fcar (Fcdr (args));
+  handlers = Fcdr (Fcdr (args));
+  CHECK_SYMBOL (var, 0);
+
+  for (val = handlers; ! NILP (val); val = Fcdr (val))
+    {
+      Lisp_Object tem;
+      tem = Fcar (val);
+      if ((!NILP (tem)) &&
+	  (!CONSP (tem) || (XTYPE (XCONS (tem)->car) != Lisp_Symbol)))
+	error ("Invalid condition handler", tem);
+    }
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -984,28 +1021,23 @@ See also the function `signal' for more info.")
       if (!NILP (h.var))
         specbind (h.var, Fcdr (c.val));
       val = Fprogn (Fcdr (Fcar (c.val)));
+
+      /* Note that this just undoes the binding of h.var; whoever
+	 longjumped to us unwound the stack to c.pdlcount before
+	 throwing. */
       unbind_to (c.pdlcount, Qnil);
       return val;
     }
   c.next = catchlist;
   catchlist = &c;
-  h.var = Fcar (args);
-  h.handler = Fcdr (Fcdr (args));
   
-  for (val = h.handler; ! NILP (val); val = Fcdr (val))
-    {
-      tem = Fcar (val);
-      if ((!NILP (tem)) &&
-	  (!CONSP (tem) || (XTYPE (XCONS (tem)->car) != Lisp_Symbol)))
-	error ("Invalid condition handler", tem);
-    }
-  
+  h.var = var;
+  h.handler = handlers;
   h.next = handlerlist;
-  h.poll_suppress_count = poll_suppress_count;
   h.tag = &c;
   handlerlist = &h;
 
-  val = Feval (Fcar (Fcdr (args)));
+  val = Feval (bodyform);
   catchlist = c.next;
   handlerlist = h.next;
   return val;
@@ -1037,7 +1069,6 @@ internal_condition_case (bfun, handlers, hfun)
   catchlist = &c;
   h.handler = handlers;
   h.var = Qnil;
-  h.poll_suppress_count = poll_suppress_count;
   h.next = handlerlist;
   h.tag = &c;
   handlerlist = &h;
@@ -1095,17 +1126,19 @@ See also the function `condition-case'.")
 	return debugger_value;
 #else
       if (EQ (clause, Qlambda))
+	{
+	  /* We can't return values to code which signalled an error, but we
+	     can continue code which has signalled a quit.  */
+	  if (EQ (sig, Qquit))
+	    return Qnil;
+	  else
 	error ("Returning a value from an error is no longer supported");
+	}
 #endif
 
       if (!NILP (clause))
 	{
 	  struct handler *h = handlerlist;
-	  /* Restore the polling-suppression count.  */
-	  if (h->poll_suppress_count > poll_suppress_count)
-	    abort ();
-	  while (h->poll_suppress_count < poll_suppress_count)
-	    start_polling ();
 	  handlerlist = allhandlers;
 	  unbind_catch (h->tag);
 	  h->tag->val = Fcons (clause, Fcons (sig, data));
@@ -1162,7 +1195,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
     {
       if (wants_debugger (Vstack_trace_on_error, conditions))
 	internal_with_output_to_temp_buffer ("*Backtrace*", Fbacktrace, Qnil);
-      if (!entering_debugger
+      if (when_entered_debugger < num_nonmacro_input_chars
 	  && (EQ (sig, Qquit) ? debug_on_quit
 	      : wants_debugger (Vdebug_on_error, conditions)))
 	{
@@ -2157,8 +2190,6 @@ Output stream used is value of `standard-output'.")
   Lisp_Object tem;
   extern Lisp_Object Vprint_level;
   struct gcpro gcpro1;
-
-  entering_debugger = 0;
 
   XFASTINT (Vprint_level) = 3;
 
