@@ -125,6 +125,11 @@ struct frame *pending_autoraise_frame;
 #ifdef USE_X_TOOLKIT
 /* The application context for Xt use.  */
 XtAppContext Xt_app_con;
+
+static String Xt_default_resources[] =
+{
+  0
+};
 #endif
 
 /* During an update, maximum vpos for ins/del line operations to affect.  */
@@ -6038,6 +6043,7 @@ x_initialize ()
 #ifdef USE_X_TOOLKIT
   XtToolkitInitialize ();
   Xt_app_con = XtCreateApplicationContext ();
+  XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
 #endif
 
   /* Note that there is no real way portable across R3/R4 to get the
