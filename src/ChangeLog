@@ -1,8 +1,13 @@
 2001-03-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (get_overlay_strings): Set iterator's end_charpos.
+	(set_iterator_to_next): If a string from a display property ends,
+	consider the case that this might also be the end of an
+	overlay string having the display property.
+
 	* xdisp.c (handle_display_prop): Fix recognition of subproperty
 	lists.
-	
+
 	* xdisp.c (reseat_to_string): Undo last change.
 
 	* dispnew.c (adjust_glyph_matrix): Don't try to reuse the current
