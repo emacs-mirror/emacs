@@ -3,9 +3,8 @@
 
 ;; Author: David K}gedal <davidk@lysator.liu.se >
 ;; Created: 16 Feb 1994
-;; Version: 1.2.2
+;; K}gedal's last version number: 1.2.3
 ;; Keywords: extensions, languages, tools
-;; $Revision: 1.7 $
 
 ;; This file is part of GNU Emacs.
 
@@ -75,6 +74,9 @@
 ;; The latest tempo.el distribution can be fetched from
 ;; ftp.lysator.liu.se in the directory /pub/emacs
 
+;; There is also a WWW page at
+;; http://www.lysator.liu.se/~davidk/elisp/ which has some information
+
 ;;; Known bugs:
 
 ;; If the 'o is the first element in a template, strange things can
@@ -132,7 +134,9 @@ disappears at the next keypress; otherwise, it remains forever.")
 
 (defvar tempo-insert-string-functions nil
   "List of functions to run when inserting a string.
-Each function is called with a single arg, STRING."  )
+Each function is called with a single arg, STRING and should return
+another string. This could be used for making all strings upcase by
+setting it to '(upcase), for example.")
 
 (defvar tempo-tags nil
   "An association list with tags and corresponding templates")
@@ -239,15 +243,20 @@ The elements in ELEMENTS can be of several types:
  - The symbol 'p. This position is saved in `tempo-marks'.
  - The symbol 'r. If `tempo-insert' is called with ON-REGION non-nil
    the current region is placed here. Otherwise it works like 'p.
- - (p PROMPT <NAME>) If `tempo-interactive' is non-nil, the user is
-   prompted in the minbuffer with PROMPT for a string to be inserted.
-   If the optional parameter NAME is non-nil, the text is saved for
-   later insertion with the `s' tag.
-   If `tempo-interactive' is nil, it works like 'p.
- - (r PROMPT) like the previous, but if `tempo-interactive' is nil
-   and `tempo-insert' is called with ON-REGION non-nil, the current
-   region is placed here. This usually happens when you call the
-   template function with a prefix argument.
+ - (p PROMPT <NAME> <NOINSERT>) If `tempo-interactive' is non-nil, the
+   user is prompted in the minbuffer with PROMPT for a string to be
+   inserted. If the optional parameter NAME is non-nil, the text is
+   saved for later insertion with the `s' tag. If there already is
+   something saved under NAME that value is used instead and no
+   prompting is made. If NOINSERT is provided and non-nil, nothing is
+   inserted, but text is still saved when a NAME is provided. For
+   clarity, the symbol 'noinsert should be used as argument.
+ - (P PROMPT <NAME> <NOINSERT>) Works just like the previous tag, but
+   forces tempo-interactive to be true.
+ - (r PROMPT <NAME> <NOINSERT>) like the previous, but if
+   `tempo-interactive' is nil and `tempo-insert' is called with
+   ON-REGION non-nil, the current region is placed here. This usually
+   happens when you call the template function with a prefix argument.
  - (s NAME) Inserts text previously read with the (p ..) construct.
    Finds the insertion saved under NAME and inserts it. Acts like 'p
    if tempo-interactive is nil.
@@ -259,10 +268,15 @@ The elements in ELEMENTS can be of several types:
  - '> The line is indented using `indent-according-to-mode'. Note that
    you often should place this item after the text you want on the
    line.
+ - 'r> Like r, but it also indents the region.
  - 'n> Inserts a newline and indents line.
  - 'o Like '% but leaves the point before the newline.
  - nil. It is ignored.
- - Anything else. It is evaluated and the result is parsed again."
+ - Anything else. It is evaluated and the result is treated as an
+   element to be inserted. One additional tag is useful for these
+   cases. If an expression returns a list '(l foo bar), the elements
+   after 'l will be inserted according to the usual rules. This makes
+   it possible to return several elements from one expression."
 
   (let* ((template-name (intern (concat "tempo-template-"
 				       name)))
@@ -288,26 +302,31 @@ The elements in ELEMENTS can be of several types:
 TEMPLATE is the template to be inserted.  If ON-REGION is non-nil the
 `r' elements are replaced with the current region. In Transient Mark
 mode, ON-REGION is ignored and assumed true if the region is active."
-  (if (and (boundp 'transient-mark-mode)
-	   transient-mark-mode
-	   mark-active)
-      (setq on-region t))
-  (and on-region
-       (set-marker tempo-region-start (min (mark) (point)))
-       (set-marker tempo-region-stop (max (mark) (point))))
-  (if on-region
-      (goto-char tempo-region-start))
-  (save-excursion
-    (tempo-insert-mark (point-marker))
-    (mapcar (function (lambda (elt)
-			(tempo-insert elt on-region)))
-	    (symbol-value template))
-    (tempo-insert-mark (point-marker)))
-  (tempo-forward-mark)
-  (tempo-forget-insertions)
-  (and (boundp 'transient-mark-mode)
-       transient-mark-mode
-       (deactivate-mark)))
+  (unwind-protect
+      (progn
+	(if (or (and (boundp 'transient-mark-mode) ; For XEmacs
+		     transient-mark-mode
+		     mark-active)
+		(and (boundp 'zmacs-regions) ; For Emacs
+		     zmacs-regions (mark)))
+	    (setq on-region t))
+	(and on-region
+	     (set-marker tempo-region-start (min (mark) (point)))
+	     (set-marker tempo-region-stop (max (mark) (point))))
+	(if on-region
+	    (goto-char tempo-region-start))
+	(save-excursion
+	  (tempo-insert-mark (point-marker))
+	  (mapcar (function (lambda (elt)
+			      (tempo-insert elt on-region)))
+		  (symbol-value template))
+	  (tempo-insert-mark (point-marker)))
+	(tempo-forward-mark))
+    (tempo-forget-insertions)
+    ;; Should I check for zmacs here too???
+    (and (boundp 'transient-mark-mode)
+	 transient-mark-mode
+	 (deactivate-mark))))
 
 ;;;
 ;;; tempo-insert
@@ -320,20 +339,30 @@ elements are replaced with the current region.
 See documentation for `tempo-define-template' for the kind of elements
 possible."
   (cond ((stringp element) (tempo-process-and-insert-string element))
-	((and (consp element) (eq (car element) 'p))
-	 (tempo-insert-prompt (cdr element)))
-	((and (consp element) (eq (car element) 'P))
-	 (let ((tempo-interactive t))
-	   (tempo-insert-prompt (cdr element))))
-	((and (consp element) (eq (car element) 'r))
-	 (if on-region
-	     (goto-char tempo-region-stop)
-	   (tempo-insert-prompt (cdr element))))
-	((and (consp element) (eq (car element) 's))
-	 (tempo-insert-named (car (cdr element))))
-	((and (consp element) (eq (car element) 'l))
-	 (mapcar (function (lambda (elt) (tempo-insert elt on-region)))
-		 (cdr element)))
+	((and (consp element)
+	      (eq (car element) 'p)) (tempo-insert-prompt-compat
+				      (cdr element)))
+	((and (consp element)
+	      (eq (car element) 'P)) (let ((tempo-interactive t))
+				       (tempo-insert-prompt-compat
+					(cdr element))))
+;;;	((and (consp element)
+;;;	      (eq (car element) 'v)) (tempo-save-named
+;;;				      (nth 1 element)
+;;;				      nil
+;;;				      (nth 2 element)))
+	((and (consp element)
+	      (eq (car element) 'r)) (if on-region
+					 (goto-char tempo-region-stop)
+				       (tempo-insert-prompt-compat
+					(cdr element))))
+	((and (consp element)
+	      (eq (car element) 's)) (tempo-insert-named (car (cdr element))))
+	((and (consp element)
+	      (eq (car element) 'l)) (mapcar (function
+					      (lambda (elt)
+						(tempo-insert elt on-region)))
+					     (cdr element)))
 	((eq element 'p) (tempo-insert-mark (point-marker)))
 	((eq element 'r) (if on-region
 			     (goto-char tempo-region-stop)
@@ -373,28 +402,51 @@ possible."
 ;;;
 ;;; tempo-insert-prompt
 
-(defun tempo-insert-prompt (prompt)
+(defun tempo-insert-prompt-compat (prompt)
+  "Compatibility hack for tempo-insert-prompt.
+PROMPT can be either a prompt string, or a list of arguments to
+tempo-insert-prompt, or nil."
+  (if (consp prompt)			; not NIL either
+      (apply 'tempo-insert-prompt prompt)
+    (tempo-insert-prompt prompt)))
+
+(defun tempo-insert-prompt (prompt &optional save-name no-insert)
   "Prompt for a text string and insert it in the current buffer.
 If the variable `tempo-interactive' is non-nil the user is prompted
 for a string in the minibuffer, which is then inserted in the current
 buffer. If `tempo-interactive' is nil, the current point is placed on
 `tempo-mark'.
 
-PROMPT is the prompt string or a list containing the prompt string and
-a name to save the inserted text under."
-  (if tempo-interactive
-      (let ((prompt-string (if (listp prompt)
-			       (car prompt)
-			     prompt))
-	    (save-name (and (listp prompt) (nth 1 prompt)))
-	    inserted-text)
+PROMPT is the prompt string, SAVE-NAME is a name to save the inserted
+text under. If the optional argument NO-INSERT is non-nil, no text i
+inserted. This can be useful when there is a SAVE-NAME.
 
-	(progn
-	  (setq inserted-text (read-string prompt-string))
-	  (insert inserted-text)
-	  (if save-name
-	      (tempo-remember-insertion save-name inserted-text))))
-    (tempo-insert-mark (point-marker))))
+If there already is a value for SAVE-NAME, it is used and the user is
+never prompted."
+  (let (insertion
+	(previous (and save-name
+		       (tempo-lookup-named save-name))))
+    (cond
+     ;; Insert  previous value, unless no-insert is non-nil
+     ((and previous
+	   (not no-insert))
+      (tempo-insert-named save-name)) ; A double lookup here, but who
+				      ; cares
+     ;; If no-insert is non-nil, don't insert the previous value. Just
+     ;; keep it
+     (previous
+      nil)
+     ;; No previous value. Prompt or insert mark
+     (tempo-interactive
+      (if (not (stringp prompt))
+	  (error "tempo: The prompt (%s) is not a string" prompt))
+      (setq insertion (read-string prompt))
+      (or no-insert
+	  (insert insertion))
+      (if save-name
+	  (tempo-save-named save-name insertion)))
+     (t
+      (tempo-insert-mark (point-marker))))))
 
 ;;;
 ;;; tempo-is-user-element
@@ -411,14 +463,6 @@ a name to save the inserted text under."
     (throw 'found nil)))
 
 ;;;
-;;; tempo-remember-insertion
-
-(defun tempo-remember-insertion (save-name string)
-  "Save the text in STRING under the name SAVE-NAME for later retrieval."
-  (setq tempo-named-insertions (cons (cons save-name string)
-				     tempo-named-insertions)))
-
-;;;
 ;;; tempo-forget-insertions
 
 (defun tempo-forget-insertions ()
@@ -426,15 +470,46 @@ a name to save the inserted text under."
   (setq tempo-named-insertions nil))
 
 ;;;
+;;; tempo-save-named
+
+(defun tempo-save-named (name data)	; Had an optional prompt for 'v
+  "Save some data for later insertion
+The contents of DATA is saved under the name NAME.
+
+The data can later be retrieved with `tempo-lookup-named'.
+
+This function returns nil, so it can be used in a template without
+inserting anything."
+  (setq tempo-named-insertions
+	(cons (cons name data)
+	      tempo-named-insertions))
+  nil)
+
+;;;
+;;; tempo-lookup-named
+
+(defun tempo-lookup-named (name)
+  "Lookup some saved data under the name NAME.
+Returns the data if NAME was found, and nil otherwise."
+  (cdr (assq name tempo-named-insertions)))
+
+;;;
 ;;; tempo-insert-named
 
 (defun tempo-insert-named (name)
   "Insert the previous insertion saved under a named specified in NAME.
-If there is no such name saved, a tempo mark is inserted."
-  (let* ((insertion (cdr (assq name tempo-named-insertions))))
-    (if insertion
-	(insert insertion)
-      (tempo-insert-mark (point-marker)))))
+If there is no such name saved, a tempo mark is inserted.
+
+Note that if the data is a string, it will not be run through the string
+processor."
+  (let* ((insertion (tempo-lookup-named name)))
+    (cond ((null insertion)
+	   (tempo-insert-mark (point-marker)))
+	  ((stringp insertion)
+	   (insert insertion))
+	  (t
+	   (tempo-insert insertion nil)))))
+
 
 ;;;
 ;;; tempo-process-and-insert-string
