@@ -40,7 +40,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.4";
+char pot_etags_version[] = "@(#) pot revision number is 17.5";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1314,7 +1314,9 @@ main (argc, argv)
       cwd = concat (oldcwd, "/", "");
       free (oldcwd);
     }
-  if (streq (tagfile, "-"))
+  /* Relative file names are made relative to the current directory. */
+  if (streq (tagfile, "-")
+      || strneq (tagfile, "/dev/", 5))
     tagfiledir = cwd;
   else
     tagfiledir = absolute_dirname (tagfile, cwd);
