@@ -1,3 +1,8 @@
+2004-02-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (kill-new): Put yank-handler property on the entire
+	string.
+
 2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (kill-append): Doc fix.
