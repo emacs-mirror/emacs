@@ -28,9 +28,9 @@
 
 ;;; Code:
 
-;;; The name of the program to run as the timer subprocess.  It should
-;;; be in exec-directory.
-(defconst timer-program "timer")
+(defvar timer-program (expand-file-name "timer" exec-directory)
+  "The name of the program to run as the timer subprocess.
+It should normally be in the exec-directory.")
 
 (defvar timer-process nil)
 (defvar timer-alist ())
@@ -39,6 +39,25 @@
   ;; this is useful for functions which will be doing their own erratic
   ;; rescheduling or people who otherwise expect to use the process frequently
   "If non-nil, don't exit the timer process when no more events are pending.")
+
+;; Error symbols for timers
+(put 'timer-error 'error-conditions '(error timer-error))
+(put 'timer-error 'error-message "Timer error")
+
+(put 'timer-abnormal-termination 
+     'error-conditions 
+     '(error timer-error timer-abnormal-termination))
+(put 'timer-abnormal-termination 
+     'error-message 
+     "Timer exited abnormally--all events cancelled")
+
+(put 'timer-filter-error
+     'error-conditions
+     '(error timer-error timer-filter-error))
+(put 'timer-filter-error
+     'error-message 
+     "Error in timer process filter")
+
 
 ;; This should not be necessary, but on some systems, we get
 ;; unkillable processes without this.
@@ -82,11 +101,7 @@ Relative times may be specified as a series of numbers followed by units:
          (if timer-process (delete-process timer-process))
          (setq timer-process
 	       (let ((process-connection-type nil))
-		 ;; Don't search the exec path for the timer program;
-		 ;; we know exactly which one we want.
-		 (start-process "timer" nil
-				(expand-file-name timer-program
-						  exec-directory)))
+		 (start-process "timer" nil timer-program))
                timer-alist nil)
          (set-process-filter   timer-process 'timer-process-filter)
          (set-process-sentinel timer-process 'timer-process-sentinel)
@@ -127,18 +142,20 @@ will happen at the specified time."
               token (assoc (substring token (match-beginning 3) (match-end 3))
                            timer-alist)
               timer-alist (delq token timer-alist))
-        (ding 'no-terminate) ; using error function in process filters is rude
-        (message "%s for %s; couldn't set at \"%s\"" error (nth 2 token) do))))
+        (error "%s for %s; couldn't set at `%s'" error (nth 2 token) do))))
     (or timer-alist timer-dont-exit (process-send-eof proc))))
 
 (defun timer-process-sentinel (proc str)
   (let ((stat (process-status proc)))
-    (if (eq stat 'stop) (continue-process proc)
+    (if (eq stat 'stop)
+	(continue-process proc)
       ;; if it exited normally, presumably it was intentional.
       ;; if there were no pending events, who cares that it exited?
-      (if (or (not timer-alist) (eq stat 'exit)) ()
-        (ding 'no-terminate)
-        (message "Timer exited abnormally.  All events cancelled."))
+      (or (null timer-alist)
+          (eq stat 'exit)
+          (let ((alist timer-alist))
+            (setq timer-process nil timer-alist nil)
+            (signal 'timer-abnormal-termination (list proc stat str alist))))
       ;; Used to set timer-scratch to "", but nothing uses that var.
       (setq timer-process nil timer-alist nil))))
 
