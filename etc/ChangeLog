@@ -1,3 +1,7 @@
+2001-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* THE-GNU-PROJECT: New file.
+
 2001-02-22  Andrew Innes  <andrewi@gnu.org>
 
 	* MACHINES: Update pointer to MS-Windows install instructions.

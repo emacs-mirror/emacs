@@ -1,5 +1,7 @@
 2001-02-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (describe-project): Display the file THE-GNU-PROJECT.
+	
 	* help.el (view-order-manuals): Use goto-address.
 
 	* startup.el (command-line-1): Add info about ordering manuals
