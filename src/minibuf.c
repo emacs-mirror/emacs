@@ -79,9 +79,10 @@ Lisp_Object Qminibuffer_history;
 
 Lisp_Object Qread_file_name_internal;
 
-/* Normal hook for entry to minibuffer.  */
+/* Normal hooks for entry to and exit from minibuffer.  */
 
 Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
+Lisp_Object Qminibuffer_exit_hook, Vminibuffer_exit_hook;
 
 /* Nonzero means completion ignores case.  */
 
@@ -265,6 +266,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
 /* ??? MCC did redraw_screen here if switching screens.  */
   recursive_edit_1 ();
+
+  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
+      && !NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qminibuffer_exit_hook);
 
   /* If cursor is on the minibuffer line,
      show the user we have exited by putting it in column 0.  */
@@ -1589,9 +1594,16 @@ syms_of_minibuf ()
   Qminibuffer_setup_hook = intern ("minibuffer-setup-hook");
   staticpro (&Qminibuffer_setup_hook);
 
+  Qminibuffer_exit_hook = intern ("minibuffer-exit-hook");
+  staticpro (&Qminibuffer_exit_hook);
+
   DEFVAR_LISP ("minibuffer-setup-hook", &Vminibuffer_setup_hook, 
     "Normal hook run just after entry to minibuffer.");
   Vminibuffer_setup_hook = Qnil;
+
+  DEFVAR_LISP ("minibuffer-exit-hook", &Vminibuffer_exit_hook,
+    "Normal hook run just after exit from minibuffer.");
+  Vminibuffer_exit_hook = Qnil;
 
   DEFVAR_BOOL ("completion-auto-help", &auto_help,
     "*Non-nil means automatically provide help for invalid completion input.");
