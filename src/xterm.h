@@ -896,4 +896,6 @@ extern int popup_activated P_ ((void));
 extern void initialize_frame_menubar P_ ((struct frame *));
 
 /* Defined in widget.c */
+#ifdef USE_X_TOOLKIT
 extern void widget_store_internal_border P_ ((Widget));
+#endif
