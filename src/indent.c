@@ -2070,10 +2070,15 @@ whether or not it is currently displayed in some window.  */)
      we end up with the iterator placed at where it thinks X is 0,
      while the end position is really at some X > 0, the same X that
      PT had.  */
-  reseat_at_previous_visible_line_start (&it);
-  it.current_x = it.hpos = 0;
-  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-  it.vpos = 0;
+  if (XINT (lines) < 0)
+    {
+      reseat_at_previous_visible_line_start (&it);
+      it.current_x = it.hpos = 0;
+      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+      it.vpos = 0;
+    }
+  else
+    move_it_by_lines (&it, 0, 0);
 
   if (XINT (lines) != 0)
     move_it_by_lines (&it, XINT (lines), 0);
