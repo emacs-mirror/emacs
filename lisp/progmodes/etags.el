@@ -484,8 +484,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 			;; Not found in any existing set.
 			(if (and tags-table-list
 				 (or tags-add-tables
-				     (y-or-n-p (concat "Add to current list"
-						       " of tags tables? "))))
+				     (y-or-n-p (concat "Keep current list of"
+						       " tags tables also? "))))
 			    ;; Add it to the current list.
 			    (setq tags-table-list (cons tags-file-name
 							tags-table-list))
@@ -981,7 +981,7 @@ See documentation of variable `tags-file-name'."
 	    offset (* 3 offset)))	; expand search window
     (or found
 	(re-search-forward pat nil t)
-	(error "`%s' not found in %s; time to rerun etags"
+	(error "Rerun etags: `%s' not found in %s"
 	       pat buffer-file-name)))
   ;; Position point at the right place
   ;; if the search string matched an extra Ctrl-m at the beginning.
