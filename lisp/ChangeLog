@@ -1,3 +1,21 @@
+2004-11-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-breakpoints-mode-map)
+	(gdb-frames-mode-map, gdb-threads-mode-map)
+	(gdb-registers-mode-map, gdb-locals-mode-map)
+	(gdb-assembler-mode-map): Bind "q" to kill-this-buffer.
+	(dedicated-switch-to-buffer): Rename to gdb-set-window-buffer.
+
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+	(dedicated-switch-to-buffer): Rework.
+	(gdb-var-evaluate-expression-handler, gdb-put-string):
+	Remove unused variable bindings.
+	(gdb-setup-windows, gdb-display-buffer):
+	Simplify. Use pop-to-buffer.
+	(gdb-view-source-function): Simplify.
+	(gdb-frame-breakpoints-buffer):
+	Use pop-to-buffer, special-display-regexps.
+
 2004-11-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-smart-end)
