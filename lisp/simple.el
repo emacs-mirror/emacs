@@ -321,18 +321,19 @@ that uses or sets the mark."
 This is usually the number of newlines between them,
 but can be one more if START is not equal to END
 and the greater of them is not at the start of a line."
-  (save-excursion
-    (save-restriction
-      (narrow-to-region start end)
-      (goto-char (point-min))
-      (if (eq selective-display t)
-	  (let ((done 0))
-	    (while (re-search-forward "[\n\C-m]" nil t 40)
-	      (setq done (+ 40 done)))
-	    (while (re-search-forward "[\n\C-m]" nil t 1)
-	      (setq done (+ 1 done)))
-	    done)
-	(- (buffer-size) (forward-line (buffer-size)))))))
+  (save-match-data
+    (save-excursion
+      (save-restriction
+	(narrow-to-region start end)
+	(goto-char (point-min))
+	(if (eq selective-display t)
+	    (let ((done 0))
+	      (while (re-search-forward "[\n\C-m]" nil t 40)
+		(setq done (+ 40 done)))
+	      (while (re-search-forward "[\n\C-m]" nil t 1)
+		(setq done (+ 1 done)))
+	      done)
+	  (- (buffer-size) (forward-line (buffer-size))))))))
 
 (defun what-cursor-position ()
   "Print info on cursor position (on screen and within buffer)."
