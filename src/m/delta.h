@@ -149,7 +149,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define bcopy(from,to,bytes)	memcpy(to,from,bytes)
 #define bzero(to,bytes)		memset(to,0,bytes)
 #define bcmp memcmp
-#define memmove safe_bcopy	/* for overlapping copies */
+#define memmove(t,f,s) safe_bcopy(f,t,s) /* for overlapping copies */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
 #undef LDAV_SYMBOL
