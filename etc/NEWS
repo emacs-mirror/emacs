@@ -623,6 +623,19 @@ will lead to undesirable results, so don't let it happen; the first
 change group you start for any given buffer should be the last one
 finished.
 
+** You can now use non-blocking connect to open network streams.
+
+The function open-network-stream has a new optional 7th argument.
+If non-nil, that function will initiate a non-blocking connect and
+return immediately before the connection is established.
+
+It returns nil if the system does not support non-blocking connects;
+the caller may then make a normal (blocking) open-network-stream.
+
+The filter and sentinel functions can now be specified as arguments
+to open-network-stream.  When the non-blocking connect completes, the
+sentinel is called with the status matching "open" or "failed".
+
 ** New function substring-no-properties.
 
 +++
