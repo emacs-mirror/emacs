@@ -4232,7 +4232,7 @@ in the current display table (if there is one).");
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
 		     &current_buffer->enable_multibyte_characters,
 		     make_number (-1),
-    "*Non-nil means the buffer contents are regarded as multi-byte characters.\n\
+    "Non-nil means the buffer contents are regarded as multi-byte characters.\n\
 Otherwise they are regarded as unibyte.  This affects the display,\n\
 file I/O and the behavior of various editing commands.\n\
 \n\
