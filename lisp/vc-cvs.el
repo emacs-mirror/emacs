@@ -1,11 +1,11 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
-;; Copyright (C) 1995,98,99,2000,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1995,98,99,2000,2001,2002  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.46 2002/10/09 15:59:39 rost Exp $
+;; $Id: vc-cvs.el,v 1.47 2002/10/10 08:44:58 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -884,15 +884,15 @@ is non-nil."
     ;; compare checkout time and modification time
     (let ((mtime (nth 5 (file-attributes file))))
       (require 'parse-time)
-      (cond ((equal mtime
-                    (apply 'encode-time
-                           (parse-time-string 
-                            (concat (match-string 2) " +0000"))))
-	     (vc-file-setprop file 'vc-checkout-time mtime)
-	     (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
-	    (t
-	     (vc-file-setprop file 'vc-checkout-time 0)
-	     (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
+      (let ((parsed-time
+	     (parse-time-string (concat (match-string 2) " +0000"))))
+	(cond ((and (car parsed-time)
+		    (equal mtime (apply 'encode-time parsed-time)))
+	       (vc-file-setprop file 'vc-checkout-time mtime)
+	       (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
+	      (t
+	       (vc-file-setprop file 'vc-checkout-time 0)
+	       (if set-state (vc-file-setprop file 'vc-state 'edited)))))))))
 
 (provide 'vc-cvs)
 
