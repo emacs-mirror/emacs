@@ -1,3 +1,8 @@
+2003-08-09  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_string): Fix printing of multibyte string with
+	nontrivial printcharfun.
+
 2003-07-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (xg_set_icon): Rewrite to compile with GTK 2.0 and 2.2.
