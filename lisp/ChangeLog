@@ -1,5 +1,8 @@
 2001-12-27  Richard M. Stallman  <rms@gnu.org>
 
+	* international/mule-diag.el (describe-char-after):
+	Describe the text properties of the char after point.
+
 	* help.el (describe-key): Doc fix.
 
 2001-12-26  Markus Rost  <rost@math.ohio-state.edu>
