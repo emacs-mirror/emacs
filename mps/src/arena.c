@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.7) $
+ * $HopeName: MMsrc!arena.c(trunk.8) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.7) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.8) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1107,8 +1107,13 @@ Word ArenaPeek(Arena arena, Addr addr)
   AVERT(Arena, arena);
 
   b = SegOfAddr(&seg, arena, addr);
-  AVER(b);
-  return ArenaPeekSeg(arena, seg, addr);
+  if(b) {
+    return ArenaPeekSeg(arena, seg, addr);
+  } else {
+    Word w;
+    w = *(Word *)addr;
+    return w;
+  }
 }
 
 Word ArenaPeekSeg(Arena arena, Seg seg, Addr addr)
@@ -1136,8 +1141,11 @@ void ArenaPoke(Arena arena, Addr addr, Word word)
   /* can't check word, will check addr shortly */
 
   b = SegOfAddr(&seg, arena, addr);
-  AVER(b);
-  ArenaPokeSeg(arena, seg, addr, word);
+  if(b) {
+    ArenaPokeSeg(arena, seg, addr, word);
+  } else {
+    *(Word *)addr = word;
+  }
 }
 
 void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word)
