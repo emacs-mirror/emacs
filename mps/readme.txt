@@ -161,8 +161,7 @@ test on FreeBSD:
   gmake -f fri4gc.gmk 'VARIETY=ci' amcss
 
 On Windows platforms you need to run "VCVARS32.BAT" to initialize your
-environment variables, and make sure that MASM (command name ML) is on
-your path.  MASM is available free from Microsoft.  Then type:
+environment variables.  Then type:
 
   nmake /f w3i3mv.nmk
 
@@ -250,6 +249,7 @@ B. DOCUMENT HISTORY
 
 2002-05-20  RB  Created based on template from P4DTI project.
 2002-06-18  NB  Minor updates and corrections.
+2002-06-18  RB  Removed obsolete requirement for MASM.
 
 
 C. COPYRIGHT AND LICENSE
