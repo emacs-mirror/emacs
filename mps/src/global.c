@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.4) $
+ * $HopeName: MMsrc!global.c(trunk.5) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -28,7 +28,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.4) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.5) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -129,7 +129,7 @@ Bool ArenaCheck(Arena arena)
       CHECKL(trace->sig == SigInvalid);
     }
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
-  for(rank = 0; rank < RankMAX; ++rank)
+  for(rank = 0; rank < RankLIMIT; ++rank)
     CHECKL(RingCheck(&arena->greyRing[rank]));
   CHECKL(BoolCheck(arena->clamped));
   CHECKL(RingCheck(&arena->chainRing));
@@ -204,11 +204,11 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->pollThreshold = 0.0;
   arena->insidePoll = FALSE;
   arena->bufferLogging = FALSE;
-  for (i=0; i < TRACE_MAX; i++) {
+  for (i=0; i < TraceLIMIT; i++) {
     /* design.mps.arena.trace.invalid */
     arena->trace[i].sig = SigInvalid;   
   }
-  for(rank = 0; rank < RankMAX; ++rank)
+  for(rank = 0; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
   STATISTIC(arena->writeBarrierHitCount = 0);
   arena->clamped = FALSE;
@@ -271,11 +271,11 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   {
     void *v;
 
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeMAX), FALSE);
+    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
     if (res != ResOK)
       goto failEnabledBTAlloc;
     arena->enabledMessageTypes = v;
-    BTResRange(arena->enabledMessageTypes, 0, MessageTypeMAX);
+    BTResRange(arena->enabledMessageTypes, 0, MessageTypeLIMIT);
   }
 
   /* Add initialized arena to the global list of arenas. */
@@ -320,7 +320,7 @@ void ArenaFinish(Arena arena)
   RingFinish(&arena->rootRing);
   RingFinish(&arena->threadRing);
   RingFinish(&arena->globalRing);
-  for(rank = 0; rank < RankMAX; ++rank)
+  for(rank = 0; rank < RankLIMIT; ++rank)
     RingFinish(&arena->greyRing[rank]);
   ArenaAllocFinish(arena);
 }
@@ -357,7 +357,7 @@ void ArenaDestroy(Arena arena)
   /* throw away the BT used by messages */
   if (arena->enabledMessageTypes != NULL) {
     ControlFree(arena, (void *)arena->enabledMessageTypes, 
-                BTSize(MessageTypeMAX));
+                BTSize(MessageTypeLIMIT));
     arena->enabledMessageTypes = NULL;
   }
 
@@ -553,7 +553,7 @@ void ArenaPoll(Arena arena)
   TracePoll(arena);
 
   size = arena->fillMutatorSize;
-  arena->pollThreshold = size + ARENA_POLL_MAX;
+  arena->pollThreshold = size + ArenaPollALLOCTIME;
   AVER(arena->pollThreshold > size); /* enough precision? */
 
   arena->insidePoll = FALSE;

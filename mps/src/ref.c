@@ -1,6 +1,6 @@
 /* impl.c.ref: REFERENCES
  *
- * $HopeName: MMsrc!ref.c(trunk.10) $
+ * $HopeName: MMsrc!ref.c(trunk.11) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Implement operations on Ref, RefSet, and Rank.
@@ -10,14 +10,14 @@
 
 #include "mpm.h"
 
-SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.10) $");
+SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.11) $");
 
 
 /* RankCheck -- check a rank value */
 
 Bool RankCheck(Rank rank)
 {
-  CHECKL(rank < RankMAX);
+  CHECKL(rank < RankLIMIT);
   UNUSED(rank); /* impl.c.mpm.check.unused */
   return TRUE;
 }
@@ -27,7 +27,7 @@ Bool RankCheck(Rank rank)
 
 Bool RankSetCheck(RankSet rankSet)
 {
-  CHECKL(rankSet < (1uL << RankMAX));
+  CHECKL(rankSet < (1uL << RankLIMIT));
   UNUSED(rankSet); /* impl.c.mpm.check.unused */
   return TRUE;
 }
