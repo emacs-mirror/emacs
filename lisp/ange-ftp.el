@@ -851,7 +851,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.51 $")
+(defconst ange-ftp-version "$Revision: 1.52 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3950,7 +3950,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
   (let ((short (ange-ftp-abbreviate-filename file))
-	(parsed (ange-ftp-ftp-name file)))
+	(parsed (ange-ftp-ftp-name (expand-file-name file))))
     (if parsed
 	(insert
 	 (if wildcard
