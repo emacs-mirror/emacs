@@ -123,15 +123,15 @@ $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
-	$(CONFIGURAOBJ) $(AMCOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
 	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
 	$(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amsss.obj \
-	$(CONFIGURAOBJ) $(AMSOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
+$(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amssshe.obj \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
