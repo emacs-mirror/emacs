@@ -983,12 +983,25 @@ STRING should be given if the last search was by `string-match' on STRING."
 Each match for SEPARATORS is a splitting point.
 The substrings between the splitting points are made into a list
 which is returned.
-If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
+If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\".
+
+If there is match for SEPARATORS at the beginning of STRING, we do not
+include a null substring for that.  Likewise, if there is a match
+at the end of STRING, we don't include a null substring for that."
   (let ((rexp (or separators "[ \f\t\n\r\v]+"))
 	(start 0)
+	notfirst
 	(list nil))
-    (while (string-match rexp string start)
+    (while (and (string-match rexp string
+			      (if (and notfirst
+				       (= start (match-beginning 0))
+				       (< start (length string)))
+				  (1+ start) start))
+		(< (match-beginning 0) (length string)))
+      (setq notfirst t)
       (or (eq (match-beginning 0) 0)
+	  (and (eq (match-beginning 0) (match-end 0))
+	       (eq (match-beginning 0) start))
 	  (setq list
 		(cons (substring string start (match-beginning 0))
 		      list)))
