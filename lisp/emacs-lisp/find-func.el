@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -59,7 +59,8 @@
   ;; (define-skeleton foo ...), (define-generic-mode 'foo ...),
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-\[^cgv\W]\\w+\\*?\\)\\|define-minor-mode\\)\\s-+'?\
+\[^cgv\W]\\w+\\*?\\)\\|define-minor-mode\
+\\|easy-mmode-define-global-mode\\)\\(\\s-\\|\n\\)+'?\
 %s\\(\\s-\\|$\\|\(\\|\)\\)"
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
