@@ -116,6 +116,12 @@ These are symbols with hook-type values whose names don't end in
 `-hook' or `-hooks', from which `unload-feature' tries to remove
 pertinent symbols.")
 
+(defvar unload-hook-features-list nil
+  "List of features of the package being unloaded.
+
+This is meant to be used by FEATURE-unload-hook hooks, see the
+documentation of `unload-feature' for details.")
+
 ;;;###autoload
 (defun unload-feature (feature &optional force)
   "Unload the library that provided FEATURE, restoring all its autoloads.
