@@ -132,6 +132,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef __GNUC__
 #  define ORDINARY_LINK
+#  define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscall.exp
 #else
 #  undef LINKER
 #  define LINKER cc -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp
