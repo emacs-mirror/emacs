@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1125,7 +1125,11 @@ If the third argument is incorrect, Emacs may crash.  */)
 		TOP = v1;
 	      }
 	    else
-	      TOP = Fsub1 (v1);
+	      {
+		BEFORE_POTENTIAL_GC ();
+		TOP = Fsub1 (v1);
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
