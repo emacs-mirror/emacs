@@ -874,7 +874,7 @@ See the manual for details."
 (defcustom gnus-treat-display-xface 
   (and (or (and (fboundp 'image-type-available-p)
 		(image-type-available-p 'xbm))
-	   (and gnus-xemacs (featurep 'xface)))
+	   (and (featurep 'xemacs) (featurep 'xface)))
        'head)
   "Display X-Face headers.
 Valid values are nil, t, `head', `last', an integer or a predicate.
@@ -883,7 +883,7 @@ See the manual for details."
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-display-xface 'highlight t)
 
-(defcustom gnus-treat-display-smileys (if (and gnus-xemacs
+(defcustom gnus-treat-display-smileys (if (and (featurep 'xemacs)
 					       (featurep 'xpm))
 					  t nil)
   "Display smileys.
@@ -893,7 +893,7 @@ See the manual for details."
   :type gnus-article-treat-custom)
 (put 'gnus-treat-display-smileys 'highlight t)
 
-(defcustom gnus-treat-display-picons (if gnus-xemacs 'head nil)
+(defcustom gnus-treat-display-picons (if (featurep 'xemacs) 'head nil)
   "Display picons.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
@@ -3704,7 +3704,7 @@ Argument LINES specifies lines to be scrolled down."
       (set-buffer gnus-article-current-summary)
       (let (gnus-pick-mode)
         (push (or key last-command-event) unread-command-events)
-        (setq keys (if gnus-xemacs
+        (setq keys (if (featurep 'xemacs)
 		       (events-to-keys (read-key-sequence nil))
 		     (read-key-sequence nil)))))
 		     

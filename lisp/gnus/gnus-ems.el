@@ -97,7 +97,7 @@
 
 (defun gnus-ems-redefine ()
   (cond
-   (gnus-xemacs
+   ((featurep 'xemacs)
     (gnus-xmas-redefine))
 
    ((featurep 'mule)
