@@ -31,6 +31,15 @@
 
 ;;; Code:
 
+(defun next-command-event (event)
+  (error "You must rewrite to use `read-command-event' instead of `next-command-event'"))
+
+(defun next-event (event)
+  (error "You must rewrite to use `read-event' instead of `next-event'"))
+
+(defun dispatch-event (event)
+  (error "`dispatch-event' not supported"))
+
 ;; Make events of type eval, menu and timeout
 ;; execute properly.
 
@@ -99,17 +108,6 @@ deallocate events when you are sure that that is safe.
 This emulation does not actually deallocate or reuse events
 except via garbage collection and `cons'."
   nil)
-
-(defun dispatch-event (event)
-  "Given an event object returned by next-event, execute it."
-  (let ((type (car-safe event)))
-    (cond ((eq type 'eval)
-	   (funcall (nth 1 event) (nth 2 event)))
-	  ((eq type 'menu)
-	   (funcall (nth 1 event) (nth 2 event)))
-	  ((eq type 'switch-frame)
-	   (internal-select-frame (nth 1 event)))
-	  (t (error "keyboard and mouse events not allowed in `dispatch-event'")))))
 
 (defun enqueue-eval-event: (function object)
   "Add an eval event to the back of the queue.
@@ -261,31 +259,24 @@ will be returned for events which have no direct ASCII equivalent."
   "True if the argument is a mouse-motion event object."
   (eq (car-safe obj) 'mouse-movement))
 
-(defun next-command-event (event)
-  "Given an event structure, fills it in with the next keyboard, mouse
-press, or mouse release event available from the user.  If there are
-non-command events available (mouse motion, sub-process output, etc) then
-these will be executed (with dispatch-event) and discarded."
-  (while (progn
-	  (next-event event)
-	  (not (or (key-press-event-p event)
-		   (button-press-event-p event)
-		   (button-release-event-p event)
-		   (menu-event-p event))))
-    (dispatch-event event)))
-
-(defun next-event (event &optional ignore)
-  "Given an event structure, fills it in with the next event available
-from the window system or terminal driver.  Pass this object to
-`dispatch-event' to handle it.
-
-See also the function `next-command-event'.
-
-If the second optional argument is non-nil, then this will never return
-key-press and mouse-click events, but will delay them until later.  You
-should probably never need to use this option; it is used for implementing
-the `wait-reading-process-input' function."
-  (read-event))
+(defun read-command-event ()
+  "Return the next keyboard or mouse event; execute other events.
+This is similar to the function `next-command-event' of Lucid Emacs,
+but different in that it returns the event rather than filling in
+an existing event object."
+  (let (event)
+    (while (progn
+	     (setq event (read-event))
+	     (not (or (key-press-event-p event)
+		      (button-press-event-p event)
+		      (button-release-event-p event)
+		      (menu-event-p event))))
+      (let ((type (car-safe event)))
+	(cond ((eq type 'eval)
+	       (funcall (nth 1 event) (nth 2 event)))
+	      ((eq type 'switch-frame)
+	       (internal-select-frame (nth 1 event))))))
+    event))
 
 (defun process-event-p (obj)
   "True if the argument is a process-output event object.
