@@ -113,6 +113,25 @@ See `fringe-mode' for possible values and their effect."
 				   fringe-mode))))
       (setq frames (cdr frames)))))
 
+;; For initialization of fringe-mode, take account of changes
+;; made explicitly to default-frame-alist.
+(defun fringe-mode-initialize (symbol value)
+  (let* ((left-pair (assq 'left-fringe default-frame-alist))
+	 (right-pair (assq 'right-fringe default-frame-alist))
+	 (left (cdr left-pair))
+	 (right (cdr right-pair)))
+    (if (or left-pair right-pair)
+	;; If there's something in default-frame-alist for fringes,
+	;; don't change it, but reflect that into the value of fringe-mode.
+	(progn
+	  (setq fringe-mode (cons left right))
+	  (if (equal fringe-mode '(nil . nil))
+	      (setq fringe-mode nil))
+	  (if (equal fringe-mode '(0 . 0))
+	      (setq fringe-mode 0)))
+      ;; Otherwise impose the user-specified value of fringe-mode.
+      (custom-initialize-reset symbol value))))
+
 ;;;###autoload
 (defcustom fringe-mode nil
   "*Specify appearance of fringes on all frames.
@@ -139,6 +158,7 @@ you can use the interactive function `toggle-fringe'"
 		       (integer :tag "Right width")))
   :group 'frames
   :require 'fringe
+  :initialize 'fringe-mode-initialize
   :set 'set-fringe-mode-1)
 
 (defun fringe-query-style (&optional all-frames)
