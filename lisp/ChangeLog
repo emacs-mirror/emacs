@@ -1,3 +1,8 @@
+2004-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-read-only-cursor-color)
+	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
+
 2004-04-13  Dave Love  <fx@gnu.org>
 
 	* progmodes/python.el: Doc fixes.  Changes for compiler warnings.
