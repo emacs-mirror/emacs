@@ -111,7 +111,7 @@ See the functions `find-function' and `find-variable'."
 (defun find-function-search-for-symbol (symbol variable-p library)
   "Search for SYMBOL.
 If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
-`find-variable-regexp' is used.   The search is done in library LIBRARY."
+`find-variable-regexp' is used.  The search is done in library LIBRARY."
   (if (null library)
       (error "Don't know where `%s' is defined" symbol))
   (save-match-data
