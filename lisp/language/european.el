@@ -263,7 +263,7 @@ German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but default input method is set to \"german-postfix\"."))
+but the default input method is set to \"german-postfix\"."))
  '("European"))
 
 (set-language-info-alist
@@ -291,8 +291,8 @@ but default input method is set to \"german-postfix\"."))
 	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but default input method is set to \"spanish-postfix\",
-and select's the Spanish tutorial."))
+but the default input method is set to \"spanish-postfix\",
+and it selects the Spanish tutorial."))
  '("European"))
 
 (set-language-info-alist
@@ -523,7 +523,8 @@ but select's the Dutch tutorial."))
  'mac-roman 4 ?M "Mac Roman Encoding"
  '(decode-mac-roman . encode-mac-roman)
  '((safe-chars . mac-roman-encoder)
-   (valid-codes (0 . 255))))
+   (valid-codes (0 . 255))
+   (mime-charset . macintosh)))		; per IANA, rfc1345
 
 (provide 'european)
 
