@@ -705,7 +705,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       [-f func] [--funcall func]  [-l file] [--load file]  [--insert file]\n\
       [+linenum] file-to-visit  [--kill]\n\
 Report bugs to bug-gnu-emacs@prep.ai.mit.edu.  First, please see\n\
-the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
+the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       exit (0);
     }
 
