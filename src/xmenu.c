@@ -1102,7 +1102,7 @@ popup_get_selection (initial_event, dpyinfo, id)
       queue_tmp = queue;
       XPutBackEvent (queue_tmp->event.xany.display, &queue_tmp->event);
       queue = queue_tmp->next;
-      free ((char *)queue_tmp);
+      xfree ((char *)queue_tmp);
       /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
       interrupt_input_pending = 1;
     }
