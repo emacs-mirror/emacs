@@ -14,6 +14,8 @@
 /^#undef HAVE_GETHOSTNAME *$/s/undef/define/
 /^#undef HAVE_DUP2 *$/s/undef/define/
 /^#undef HAVE_TM_ZONE *$/s/undef/define/
+/^#undef LOCALTIME_CACHE *$/s/undef/define/
+/^#undef HAVE_TZSET *$/s/undef/define/
 /^#undef TM_IN_SYS_TIME *$/s/undef/define/
 /^#undef TIME_WITH_SYS_TIME *$/s/undef/define/
 /^#undef HAVE_RENAME *$/s/undef/define/
