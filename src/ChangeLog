@@ -1,3 +1,8 @@
+1999-11-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* buffer.c (syms_of_buffer): Add %z, %Z, %m and %& to the doc
+	string of mode-line-format.  Remove the obsolete %t.
+
 1999-11-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (direct_output_for_insert): Increment glyph positions
