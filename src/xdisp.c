@@ -706,9 +706,12 @@ static struct frame *previous_terminal_frame;
 
 int redisplaying_p;
 
-/* Non-zero while redisplay is updating the display.  */
+/* Non-zero means don't free realized faces.  Bound while freeing
+   realized faces is dangerous because glyph matrices might still
+   reference them.  */
 
-int redisplay_updating_p;
+int inhibit_free_realized_faces;
+Lisp_Object Qinhibit_free_realized_faces;
 
 
 /* Function prototypes.  */
@@ -1524,7 +1527,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      free realized faces now because they depend on face definitions
      that might have changed.  Don't free faces while there might be 
      desired matrices pending which reference these faces.  */
-  if (face_change_count && !redisplay_updating_p)
+  if (face_change_count && !inhibit_free_realized_faces)
     {
       face_change_count = 0;
       free_all_realized_faces (Qnil);
@@ -8522,11 +8525,11 @@ redisplay_internal (preserve_echo_area)
   count = SPECPDL_INDEX ();
   record_unwind_protect (unwind_redisplay, make_number (redisplaying_p));
   ++redisplaying_p;
+  specbind (Qinhibit_free_realized_faces, Qnil);
 
  retry:
   pause = 0;
   reconsider_clip_changes (w, current_buffer);
-  redisplay_updating_p = 0;
 
   /* If new fonts have been loaded that make a glyph matrix adjustment
      necessary, do it.  */
@@ -9014,9 +9017,8 @@ redisplay_internal (preserve_echo_area)
 				 redisplay_window_error);
 
       /* Compare desired and current matrices, perform output.  */
-    update:
-      redisplay_updating_p = 1;
       
+    update:
       /* If fonts changed, display again.  */
       if (fonts_changed_p)
 	goto retry;
@@ -9142,7 +9144,6 @@ redisplay_internal (preserve_echo_area)
     goto retry;
 
  end_of_redisplay:
-  redisplay_updating_p = 0;
   unbind_to (count, Qnil);
 }
 
@@ -9180,14 +9181,13 @@ redisplay_preserve_echo_area (from_where)
 /* Function registered with record_unwind_protect in
    redisplay_internal.  Reset redisplaying_p to the value it had
    before redisplay_internal was called, and clear
-   redisplay_updating_p.  */
+   prevent_freeing_realized_faces_p.  */
 
 static Lisp_Object
 unwind_redisplay (old_redisplaying_p)
      Lisp_Object old_redisplaying_p;
 {
   redisplaying_p = XFASTINT (old_redisplaying_p);
-  redisplay_updating_p = 0;
   return Qnil;
 }
 
@@ -15307,6 +15307,8 @@ syms_of_xdisp ()
   staticpro (&Qobject);
   Qrisky_local_variable = intern ("risky-local-variable");
   staticpro (&Qrisky_local_variable);
+  Qinhibit_free_realized_faces = intern ("inhibit-free-realized-faces");
+  staticpro (&Qinhibit_free_realized_faces);
 
   list_of_error = Fcons (intern ("error"), Qnil);
   staticpro (&list_of_error);
@@ -15568,6 +15570,10 @@ Can be used to update submenus whose contents should vary.  */);
   DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay,
     doc: /* Non-nil means don't eval Lisp during redisplay.  */);
   inhibit_eval_during_redisplay = 0;
+
+  DEFVAR_BOOL ("inhibit-free-realized-faces", &inhibit_free_realized_faces,
+    doc: /* Non-nil means don't free realized faces.  Internal use only.  */);
+  inhibit_free_realized_faces = 0;
 
 #if GLYPH_DEBUG
   DEFVAR_BOOL ("inhibit-try-window-id", &inhibit_try_window_id,
