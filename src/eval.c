@@ -658,6 +658,9 @@ for the variable is `*'.")
 {
   Lisp_Object documentation;
   
+  if (!SYMBOLP (variable))
+      return Qnil;
+
   documentation = Fget (variable, Qvariable_documentation);
   if (INTEGERP (documentation) && XINT (documentation) < 0)
     return Qt;
