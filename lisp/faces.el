@@ -498,7 +498,7 @@ If NOERROR is non-nil, return nil on failure."
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
-	    (make-face-bold face (car frames))
+	    (make-face-bold face (car frames) noerror)
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
       (setq font (or (face-font face frame)
@@ -522,7 +522,7 @@ If NOERROR is non-nil, return nil on failure."
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
-	    (make-face-italic face (car frames))
+	    (make-face-italic face (car frames) noerror)
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
       (setq font (or (face-font face frame)
@@ -546,7 +546,7 @@ If NOERROR is non-nil, return nil on failure."
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
-	    (make-face-bold-italic face (car frames))
+	    (make-face-bold-italic face (car frames) noerror)
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
       (setq font (or (face-font face frame)
@@ -586,7 +586,7 @@ If NOERROR is non-nil, return nil on failure."
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
-	    (make-face-unbold face (car frames))
+	    (make-face-unbold face (car frames) noerror)
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
       (setq font1 (or (face-font face frame)
@@ -608,7 +608,7 @@ If NOERROR is non-nil, return nil on failure."
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
-	    (make-face-unitalic face (car frames))
+	    (make-face-unitalic face (car frames) noerror)
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
       (setq font1 (or (face-font face frame)
