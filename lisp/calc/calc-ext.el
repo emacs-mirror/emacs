@@ -2887,22 +2887,22 @@ calc-kill calc-kill-region calc-yank))))
 
 (defvar math-expr-data)
 
-(defun math-read-expr (exp-str)
-  (let ((exp-pos 0)
-	(exp-old-pos 0)
-	(exp-keep-spaces nil)
-	exp-token math-expr-data)
-    (while (setq exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" exp-str))
-      (setq exp-str (concat (substring exp-str 0 exp-token) "\\dots"
-			    (substring exp-str (+ exp-token 2)))))
+(defun math-read-expr (math-exp-str)
+  (let ((math-exp-pos 0)
+	(math-exp-old-pos 0)
+	(math-exp-keep-spaces nil)
+	math-exp-token math-expr-data)
+    (while (setq math-exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" math-exp-str))
+      (setq math-exp-str (concat (substring math-exp-str 0 math-exp-token) "\\dots"
+			    (substring math-exp-str (+ math-exp-token 2)))))
     (math-build-parse-table)
     (math-read-token)
     (let ((val (catch 'syntax (math-read-expr-level 0))))
       (if (stringp val)
-	  (list 'error exp-old-pos val)
-	(if (equal exp-token 'end)
+	  (list 'error math-exp-old-pos val)
+	(if (equal math-exp-token 'end)
 	    val
-	  (list 'error exp-old-pos "Syntax error"))))))
+	  (list 'error math-exp-old-pos "Syntax error"))))))
 
 (defun math-read-plain-expr (exp-str &optional error-check)
   (let* ((calc-language nil)
