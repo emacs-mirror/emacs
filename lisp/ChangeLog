@@ -1,3 +1,8 @@
+2002-06-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-type-def-re): Fix value.
+	(f90-looking-at-type-like): Adapt for new `f90-type-def-re' value.
+
 2002-06-18  Juanma Barranquero  <lektu@terra.es>
 
 	* filesets.el (filesets-update-pre010505): Fix typo.
