@@ -1,3 +1,7 @@
+2004-12-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* faces.el (mode-line, mode-line-inactive): Use min-colors.
+
 2004-12-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el (hs-inside-comment-p): Fix omission bug:
