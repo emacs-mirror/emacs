@@ -1,3 +1,9 @@
+2005-01-01  Stefan  <monnier@iro.umontreal.ca>
+
+	* files.el (hack-local-variables): Cleanup prefix/suffix matching.
+
+	* ses.el (copy-region-as-kill): Deactivate mark.
+
 2005-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (occur-1): If the output buffer is also an input,
@@ -9,7 +15,7 @@
 	for :foreground and :background.
 
 	* dired.el (dired-view-command-alist): Variable deleted.
-	(dired-view-file, dired-mouse-find-file-other-window): 
+	(dired-view-file, dired-mouse-find-file-other-window):
 	Delete the code to use it.
 
 2005-01-01  Kim F. Storm  <storm@cua.dk>
@@ -82,12 +88,11 @@
 2004-12-31  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el	(buffer-file-coding-system-explicit):
-	Renamed for explicit-buffer-file-coding-system.
-	(after-insert-file-set-coding): Adjusted for the above change.
+	Rename for explicit-buffer-file-coding-system.
+	(after-insert-file-set-coding): Adjust for the above change.
 
-	* files.el (revert-buffer): Change
-	explicit-buffer-file-coding-system to
-	buffer-file-coding-system-explicit.
+	* files.el (revert-buffer): Change explicit-buffer-file-coding-system
+	to buffer-file-coding-system-explicit.
 	(basic-save-buffer-1): Likewise.
 
 2004-12-30  Richard M. Stallman  <rms@gnu.org>
@@ -111,9 +116,9 @@
 	(artist-get-first-non-nil-op): New function.
 	(artist-get-last-non-nil-op): New function.
 	(artist-mode-init): Call artist-get-last-non-nil-op to initialize
- 	artist-prev-next-op-alist.
+	artist-prev-next-op-alist.
 	(artist-mode-map): Add binding for C-mouse-4 and C-mouse-5 to
- 	change drawing operation.
+	change drawing operation.
 
 2004-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -125,8 +130,8 @@
 
 2004-12-30  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-store.el (calc-copy-variable):  Fix mistyped variable
-	name.  Change the way a variable is displayed in a message.
+	* calc/calc-store.el (calc-copy-variable): Fix mistyped variable name.
+	Change the way a variable is displayed in a message.
 
 	* calc/calc-prog.el (calc-user-define-edit, calc-finish-macro-edit)
 	(calc-user-define-permanent, calc-execute-kbd-macro):
@@ -134,14 +139,14 @@
 
 2004-12-30  Kenichi Handa  <handa@m17n.org>
 
-	* files.el (basic-save-buffer-1): Set
-	explicit-buffer-file-coding-system to last-coding-system-used.
+	* files.el (basic-save-buffer-1):
+	Set explicit-buffer-file-coding-system to last-coding-system-used.
 	(revert-buffer): Pay attention to
 	explicit-buffer-file-coding-system (not buffer-file-coding-system)
 	on bind coding-system-for-read.
 
-	* international/mule.el (explicit-buffer-file-coding-system): New
-	buffer local variable.
+	* international/mule.el (explicit-buffer-file-coding-system):
+	New buffer local variable.
 	(after-insert-file-set-coding): Set it to coding-system-for-read.
 
 2004-12-29  Luc Teirlinck  <teirllm@auburn.edu>
@@ -166,13 +171,12 @@
 2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Require x-dnd.
-	(mac-drag-n-drop): Sync with W32 version.  Use x-dnd.el
-	functions.
+	(mac-drag-n-drop): Sync with W32 version.  Use x-dnd.el functions.
 
 2004-12-29  David Kastrup  <dak@gnu.org>
 
-	* international/mule.el (decode-coding-inserted-region): Don't
-	barf if `buffer-undo-list' is already set to `t'.
+	* international/mule.el (decode-coding-inserted-region):
+	Don't barf if `buffer-undo-list' is already set to `t'.
 
 2004-12-29  Jay Belanger  <belanger@truman.edu>
 
@@ -225,8 +229,8 @@
 2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Sync with x-win.el.  Rearrange the contents.
-	Call mac-clear-font-name-table if invoked on Mac OS 8/9.  Call
-	x-open-connection on Mac OS X.
+	Call mac-clear-font-name-table if invoked on Mac OS 8/9.
+	Call x-open-connection on Mac OS X.
 
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
@@ -293,7 +297,7 @@
 
 	* simple.el (undo-list-saved): New variable (buffer-local).
 	(undo): Set and test it.
-	(buffer-disable-undo): Moved here from buffer.c.
+	(buffer-disable-undo): Move here from buffer.c.
 	Clear out undo-list-saved.
 
 	* international/mule.el (decode-coding-inserted-region):
@@ -316,7 +320,7 @@
 	`interactive' form as previous-matching-history-element.
 
 	* ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
-        it can appear unencoded and has been seen from yahoo.
+	it can appear unencoded and has been seen from yahoo.
 
 2004-12-27  Sergey Poznyakoff <gray@Mirddin.farlep.net>  (tiny change)
 
@@ -325,8 +329,8 @@
 
 2004-12-27  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (utf-translate-cjk-load-tables): Bind
-	coding-system-for-read to nil while loading subst-*.
+	* international/utf-8.el (utf-translate-cjk-load-tables):
+	Bind coding-system-for-read to nil while loading subst-*.
 
 2004-12-26  Jay Belanger  <belanger@truman.edu>
 
@@ -383,8 +387,8 @@
 
 2004-12-21  Markus Rost  <rost@ias.edu>
 
-	* calendar/diary-lib.el (mark-diary-entries): Set
-	mark-diary-entries-in-calendar only after checking for diary-file.
+	* calendar/diary-lib.el (mark-diary-entries):
+	Set mark-diary-entries-in-calendar only after checking for diary-file.
 
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
@@ -407,32 +411,29 @@
 	(calculator-string-to-number): New function, mostly moved and
 	updated code from calculator-curnum-value.
 	(calculator-curnum-value): Use it.
-	(calculator-paste): Use it, and update grabbing the
-	current-kill.
+	(calculator-paste): Use it, and update grabbing the current-kill.
 	(calculator-rotate-displayer)
 	(calculator-rotate-displayer-back): Toggle digit grouping when
 	in radix mode, use calculator-message.
-	(calculator-displayer-prev, calculator-displayer-next): Change
-	digit group size when in radix mode.
-	(calculator-number-to-string): Renamed from
+	(calculator-displayer-prev, calculator-displayer-next):
+	Change digit group size when in radix mode.
+	(calculator-number-to-string): Rename from
 	calculator-num-to-string.  Now deals with digit grouping in
 	radix mode.
-	(calculator-update-display, calculator-put-value): Use the new
-	name.
+	(calculator-update-display, calculator-put-value): Use the new name.
 	(calculator-fact): Return a floating point number.
 	(calculator-mode): Doc fix.
 
 2004-12-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (view-other-diary-entries): Add autoload.
-	* calendar/diary-lib.el (view-other-diary-entries): Use
-	current-prefix-arg in interactive spec.
+	* calendar/diary-lib.el (view-other-diary-entries):
+	Use current-prefix-arg in interactive spec.
 
 2004-12-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (calcAlg-blank-matching-open):
-	Temporarily adjust the syntax of both delimiters of half-open
-	intervals.
+	Temporarily adjust the syntax of both delimiters of half-open intervals.
 
 2004-12-19  Kim F. Storm  <storm@cua.dk>
 
@@ -542,7 +543,7 @@
 2004-12-16  Juri Linkov  <juri@jurta.org>
 
 	* help.el (function-called-at-point):
-	* help-fns.el (variable-at-point): As a last resort try striping
+	* help-fns.el (variable-at-point): As a last resort try stripping
 	non-word prefixes and suffixes.
 
 	* descr-text.el (describe-property-list): Don't treat syntax-table
@@ -633,13 +634,13 @@
 	* simple.el (inhibit-mark-movement): Remove defvar.
 	(beginning-of-buffer, end-of-buffer): Don't use it.
 
-	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun): Don't
-	use inhibit-mark-movement.
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Don't use inhibit-mark-movement.
 
 	* emulation/cua-base.el (cua--preserve-mark-commands): Remove.
 	(cua--undo-push-mark): Remove.
-	(cua--pre-command-handler, cua--post-command-handler): Don't
-	fiddle with inhibit-mark-movement.
+	(cua--pre-command-handler, cua--post-command-handler):
+	Don't fiddle with inhibit-mark-movement.
 
 2004-12-14  Juri Linkov  <juri@jurta.org>
 
@@ -651,8 +652,7 @@
 
 2004-12-13  Juri Linkov  <juri@jurta.org>
 
-	* simple.el (next-error-buffer-p, next-error-find-buffer):
-	Doc fix.
+	* simple.el (next-error-buffer-p, next-error-find-buffer): Doc fix.
 
 	* mail/supercite.el (sc-cite-frame-alist): Doc fix.
 	(sc-cite-region, sc-uncite-region, sc-recite-region):
