@@ -23,7 +23,10 @@
 
 ;;; Code:
 
-(define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
+;; Don't clobber an existing menu-bar keymap, to preserve any menu-bar key
+;; definitions made in loaddefs.el.
+(or (lookup-key global-map [menu-bar])
+    (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar")))
 (defvar menu-bar-help-menu (make-sparse-keymap "Help"))
 ;; Put Help item last.
 (setq menu-bar-final-items '(help))
