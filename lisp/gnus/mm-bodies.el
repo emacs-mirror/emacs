@@ -28,9 +28,9 @@
   (or (fboundp  'base64-decode-region)
       (require 'base64)))
 
-;; This leads to a recursive load.
-;;(eval-when-compile
-;;  (require 'mm-uu))
+(eval-when-compile
+  (defvar mm-uu-decode-function)
+  (defvar mm-uu-binhex-decode-function))
 
 (require 'mm-util)
 (require 'rfc2047)
