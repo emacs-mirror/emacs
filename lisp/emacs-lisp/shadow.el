@@ -135,12 +135,12 @@ See the documentation for `list-load-path-shadows' for further information."
 ;;;###autoload
 (defun list-load-path-shadows ()
   
-  "Display a list of Emacs Lisp files that create shadows.
+  "Display a list of Emacs Lisp files that shadow other files.
 
 This function lists potential load-path problems.  Directories in the
 `load-path' variable are searched, in order, for Emacs Lisp
-files.  When a previously encountered file name is re-located, a
-message is displayed indicating that the later file is \"shadowed\" by
+files.  When a previously encountered file name is found again, a
+message is displayed indicating that the later file is \"hidden\" by
 the earlier.
 
 For example, suppose `load-path' is set to
