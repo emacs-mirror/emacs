@@ -4511,6 +4511,10 @@ x_connection_closed (display, error_message)
 
   /* Indicate that this display is dead.  */
 
+  #ifdef USE_X_TOOLKIT
+  XtCloseDisplay (display);
+  #endif
+
   dpyinfo->display = 0;
 
   /* First delete frames whose minibuffers are on frames
