@@ -16,6 +16,8 @@
 
 2002-12-29  Markus Rost  <rost@math.ohio-state.edu>
 
+	* button.el (defface button): Add group.
+
 	* cus-edit.el (customize-browse): Call `widget-setup'.
 
 2002-12-29  Andreas Schwab  <schwab@suse.de>
