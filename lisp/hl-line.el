@@ -1,6 +1,6 @@
 ;;; hl-line.el --- highlight the current line
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-13
@@ -24,16 +24,14 @@
 ;;; Commentary:
 
 ;; Provides a global minor mode (toggled by M-x hl-line-mode) to
-;; highlight, in a windowing system, the line on which point is
-;; (except in a minibuffer window) to satisfy a request for a feature
-;; of Lesser Editors.
+;; highlight, on a suitable terminal, the line in the current window
+;; on which point is (except in a minibuffer window).  Done to satisfy
+;; a request for a feature of Lesser Editors.
 
 ;; You probably don't really want this; if the cursor is difficult to
-;; spot, try changing its colour or using a cursor blinking
-;; <URL:http://www.wonderworks.com/download/blinking-cursor.el.gz> or
-;; jiggling <URL:http://www.eskimo.com/%7Eseldon> package.  (Cursor
-;; blinking will be built in to Emacs 21.)  The hookery involved here
-;; might slow Emacs noticeably on a slow machine.
+;; spot, try changing its colour or relying on `blink-cursor-mode' The
+;; hookery involved here might slow Emacs noticeably on a slow
+;; machine.
 
 ;; An overlay is used, active only on the selected window.  Hooks are
 ;; added to `pre-command-hook' and `post-command-hook' to activate and
@@ -53,7 +51,9 @@
 
 ;;;###autoload
 (defcustom hl-line-mode nil
-  "Non-nil if Hl-Line mode is enabled."
+  "Toggle Hl-Line mode.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `hl-line-mode'."
   :set (lambda (symbol value)
 	 (hl-line-mode (or value 0)))
   :initialize 'custom-initialize-default
@@ -87,10 +87,9 @@
 
 ;;;###autoload
 (defun hl-line-mode (&optional arg)
-  "Global minor mode to highlight the line about point.
+  "Global minor mode to highlight the line about point in the current window.
 
 With ARG, turn Hl-Line mode on if ARG is positive, off otherwise.
-Only useful with a windowing system.
 Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
 `pre-command-hook' and `post-command-hook'."
   (interactive "P")
