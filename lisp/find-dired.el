@@ -121,6 +121,8 @@ as the final argument."
 			   ""
 			 (concat "\\( " args " \\) "))
 		       (car find-ls-option)))
+    ;; Start the find process.
+    (shell-command (concat args "&") (current-buffer))
     ;; The next statement will bomb in classic dired (no optional arg allowed)
     (dired-mode dir (cdr find-ls-option))
     (let ((map (make-sparse-keymap)))
@@ -149,8 +151,7 @@ as the final argument."
     ;; ``wildcard'' line.
     (insert "  " args "\n")
     (setq buffer-read-only t)
-    ;; Start the find process.
-    (let ((proc (start-process-shell-command find-dired-find-program (current-buffer) args)))
+    (let ((proc (get-buffer-process (current-buffer))))
       (set-process-filter proc (function find-dired-filter))
       (set-process-sentinel proc (function find-dired-sentinel))
       ;; Initialize the process marker; it is used by the filter.
