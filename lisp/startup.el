@@ -277,10 +277,12 @@ option or by setting `inhibit-default-init' in their own init files,
 but inhibiting `site-start.el' requires `--no-site-file', which
 is less convenient.")
 
-(defconst iso-8859-1-locale-regexp "8859[-_]?1"
-  "Regexp that specifies when to enable the ISO 8859-1 character set.
+(defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-5]\\)"
+  "Regexp that specifies when to enable an ISO 8859-N character set.
 We do that if this regexp matches the locale name
-specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
+specified by the LC_ALL, LC_CTYPE and LANG environment variables.
+The paren group in the regexp should match the specific character
+set number, N.")
 
 (defvar mail-host-address nil
   "*Name of this machine, for purposes of naming users.")
@@ -415,20 +417,28 @@ from being initialized.")
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
-  (if (let ((ctype
-	     ;; Use the first of these three envvars that has a nonempty value.
-	     (or (let ((string (getenv "LC_ALL")))
-		   (and (not (equal string "")) string))
-		 (let ((string (getenv "LC_CTYPE")))
-		   (and (not (equal string "")) string))
-		 (let ((string (getenv "LANG")))
-		   (and (not (equal string "")) string)))))
-	(and ctype
-	     (string-match iso-8859-1-locale-regexp ctype)))
-      (progn 
+  (let ((ctype
+	 ;; Use the first of these three envvars that has a nonempty value.
+	 (or (let ((string (getenv "LC_ALL")))
+	       (and (not (equal string "")) string))
+	     (let ((string (getenv "LC_CTYPE")))
+	       (and (not (equal string "")) string))
+	     (let ((string (getenv "LANG")))
+	       (and (not (equal string "")) string))))
+	charset)
+    (when (and ctype
+	       (string-match iso-8859-n-locale-regexp ctype))
+      (setq charset (concat "latin-" (match-string 1 ctype)))
+      (if (default-value 'enable-multibyte-characters)
+	  (if (string-match "latin-[12345]" charset)
+	      (set-language-environment charset))
+	;; These two lines are ok for any Latin-N character set,
+	;; as long as the terminal displays it.
 	(require 'disp-table)
 	(standard-display-european t)
-	(require 'latin-1)))
+	;; Set up syntax for the chosen character set.
+	(if (string-match "latin-[1234]" charset)
+	    (require (intern charset))))))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
