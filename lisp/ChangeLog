@@ -1,3 +1,12 @@
+2003-01-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el
+	(decode-coding-region-as-inserted-from-file): New function.
+
+	* jka-compr.el (jka-compr-insert-file-contents): Read a process
+	output without decoding.  Decode the result by
+	decode-coding-region-as-inserted-from-file.
+
 2003-01-22  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-make-file-list, ido-make-dir-list): Don't move
