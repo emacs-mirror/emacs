@@ -54,6 +54,7 @@
 ;; * Support any other extensions to f77 grokked by GNU Fortran I've missed.
 
 (eval-when-compile			; silence compiler
+  (defvar dabbrev-case-fold-search)
   (defvar imenu-case-fold-search)
   (defvar imenu-syntax-alist))
 
@@ -773,13 +774,17 @@ With non-nil ARG, uncomments the region."
   "Typing ;\\[help-command] or ;? lists all the Fortran abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
-  (let (c)
-    (insert last-command-char)
-    (if (and abbrev-mode
-             (or (eq (setq c (read-event)) ??) ; insert char if not `?'
-                 (eq c help-char)))
+  (insert last-command-char)
+  (let (char event)
+    (if (fboundp 'next-command-event) ; XEmacs
+        (setq event (next-command-event)
+              char (event-to-character event))
+      (setq event (read-event)
+            char event))
+    ;; Insert char if not equal to `?', or if abbrev-mode is off.
+    (if (and abbrev-mode (or (eq char ??) (eq char help-char)))
 	(fortran-abbrev-help)
-      (setq unread-command-events (list c)))))
+      (setq unread-command-events (list event)))))
 
 (defun fortran-abbrev-help ()
   "List the currently defined abbrevs in Fortran mode."
