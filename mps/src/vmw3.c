@@ -1,6 +1,6 @@
 /* impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- * $HopeName: MMsrc!vmw3.c(trunk.30) $
+ * $HopeName: MMsrc!vmw3.c(trunk.31) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .design: See design.mps.vm.
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.30) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.31) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -136,29 +136,29 @@ static Res VMSetCollectionStrategy(VM vm)
   /* Source: request.dylan.160112.sol.more-asg */
   if (ResOK == res) {
     if (vmRAMSize >= 110*1024*1024) {
-      AMCGen0Frequency = 6000uL;
-      AMCGen1Frequency = 48000uL;
-      AMCGen2Frequency = 576000uL;
-      AMCGen0RampmodeFrequency = 12000uL;
-      AMCGen1RampmodeFrequency = 96000uL;
-      AMCRampGenFrequency = 1152000uL;
-      AMCGen2RampmodeFrequency = 10368000uL;
+      TraceGen0Size = 6000uL;
+      TraceGen1Size = 48000uL;
+      TraceGen2Size = 576000uL;
+      TraceGen0RampmodeSize = 12000uL;
+      TraceGen1RampmodeSize = 96000uL;
+      TraceRampGenSize = 1152000uL;
+      TraceGen2RampmodeSize = 10368000uL;
     } else if (vmRAMSize >= 60*1024*1024) {
-      AMCGen0Frequency = 6000uL;
-      AMCGen1Frequency = 48000uL;
-      AMCGen2Frequency = 480000uL;
-      AMCGen0RampmodeFrequency = 6000uL;
-      AMCGen1RampmodeFrequency = 48000uL;
-      AMCRampGenFrequency = 288000uL;
-      AMCGen2RampmodeFrequency = 1152000uL;
+      TraceGen0Size = 6000uL;
+      TraceGen1Size = 48000uL;
+      TraceGen2Size = 480000uL;
+      TraceGen0RampmodeSize = 6000uL;
+      TraceGen1RampmodeSize = 48000uL;
+      TraceRampGenSize = 288000uL;
+      TraceGen2RampmodeSize = 1152000uL;
     } else {
-      AMCGen0Frequency = 4000uL;
-      AMCGen1Frequency = 20000uL;
-      AMCGen2Frequency = 300000uL;
-      AMCGen0RampmodeFrequency = 4000uL;
-      AMCGen1RampmodeFrequency = 20000uL;
-      AMCRampGenFrequency = 120000uL;
-      AMCGen2RampmodeFrequency = 480000uL;
+      TraceGen0Size = 4000uL;
+      TraceGen1Size = 20000uL;
+      TraceGen2Size = 300000uL;
+      TraceGen0RampmodeSize = 4000uL;
+      TraceGen1RampmodeSize = 20000uL;
+      TraceRampGenSize = 120000uL;
+      TraceGen2RampmodeSize = 480000uL;
     }
   }
   return res;
