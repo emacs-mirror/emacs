@@ -541,7 +541,10 @@ Non-nil third argument means not to show the message."
 	     (end-of-line)
 	     (buffer-substring start (point)))))))
 
-(defvar mail-user-agent 'mh-e-user-agent) ;from reporter.el 3.2
+(defvar mail-user-agent)
+
+(defvar mh-find-path-run nil
+  "Non-nil if `mh-find-path' has been run already.")
 
 (defun mh-find-path ()
   ;; Set mh-progs, mh-lib, and mh-libs-progs
@@ -549,6 +552,9 @@ Non-nil third argument means not to show the message."
   ;; From profile file, set mh-user-path, mh-draft-folder,
   ;; mh-unseen-seq, mh-previous-seq, mh-inbox.
   (mh-find-progs)
+  (unless mh-find-path-run
+    (setq mh-find-path-run t)
+    (setq mail-user-agent 'mh-e-user-agent))
   (save-excursion
     ;; Be sure profile is fully expanded before switching buffers
     (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
@@ -585,7 +591,6 @@ Non-nil third argument means not to show the message."
       (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
       (if mh-previous-seq
 	  (setq mh-previous-seq (intern mh-previous-seq)))
-      (setq mail-user-agent 'mh-e-user-agent)
       (run-hooks 'mh-find-path-hook)))
   (and mh-auto-folder-collect
        (let ((mh-no-install t))		;only get folders if MH installed
