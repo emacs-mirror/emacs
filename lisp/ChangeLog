@@ -17,6 +17,8 @@
 
 2001-09-24  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* vc.el (vc-checkin): Use vc-delete-automatic-version-backups.
+
 	* pcvs-parse.el (cvs-parse-commit): Expand the file name before
 	passing it to VC.
 
