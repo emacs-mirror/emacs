@@ -111,7 +111,7 @@ Completion is performed over known labels when reading."
 
 ;; Commented functions aren't used by RMAIL but might be nice for user
 ;; packages that do stuff with RMAIL.  Note that rmail-message-labels-p
-;; is in rmailsum now.
+;; is in rmail.el now.
 
 ;(defun rmail-message-attribute-p (attribute &optional n)
 ;  "Returns t if ATTRIBUTE on NTH or current message."
@@ -171,14 +171,18 @@ Completion is performed over known labels when reading."
 
 ;; Motion on messages with keywords.
 
-(defun rmail-previous-labeled-message (n label)
-  "Show previous message with LABEL.  Defaults to last labels used.
+(defun rmail-previous-labeled-message (n labels)
+  "Show previous message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
 With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
-  (rmail-next-labeled-message (- n) label))
+  (rmail-next-labeled-message (- n) labels))
 
 (defun rmail-next-labeled-message (n labels)
-  "Show next message with LABEL.  Defaults to last labels used.
+  "Show next message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
 With prefix argument N moves forward N messages with these labels."
   (interactive "p\nsMove to next msg with labels: ")
   (if (string= labels "")
