@@ -41,6 +41,8 @@
 (defvar help-mode-map (make-sparse-keymap)
   "Keymap for help mode.")
 
+(set-keymap-parent help-mode-map button-buffer-map)
+
 (define-key global-map (char-to-string help-char) 'help-command)
 (define-key global-map [help] 'help-command)
 (define-key global-map [f1] 'help-command)
@@ -97,12 +99,8 @@
 
 (define-key help-map "q" 'help-quit)
 
-(define-key help-mode-map [mouse-2] 'help-follow-mouse)
 (define-key help-mode-map "\C-c\C-b" 'help-go-back)
 (define-key help-mode-map "\C-c\C-c" 'help-follow)
-(define-key help-mode-map "\t" 'help-next-ref)
-(define-key help-mode-map [backtab] 'help-previous-ref)
-(define-key help-mode-map [(shift tab)] 'help-previous-ref)
 ;; Documentation only, since we use minor-mode-overriding-map-alist.
 (define-key help-mode-map "\r" 'help-follow)
 
@@ -127,6 +125,70 @@ The format is (FUNCTION ARGS...).")
   :type 'hook
   :group 'help)
 
+
+;; Button types used by help
+
+;; Make some button types that all use the same naming conventions
+(dolist (help-type '("function" "variable" "face"
+		     "coding-system" "input-method" "character-set"))
+  (define-button-type (intern (purecopy (concat "help-" help-type)))
+    'help-function (intern (concat "describe-" help-type))
+    'help-echo (purecopy (concat "mouse-2, RET: describe this " help-type))
+    'action #'help-button-action))
+
+;; make some more ideosyncratic button types
+
+(define-button-type 'help-symbol
+  'help-function #'help-xref-interned
+  'help-echo (purecopy "mouse-2, RET: describe this symbol")
+  'action #'help-button-action)
+
+(define-button-type 'help-back
+  'help-function #'help-xref-go-back
+  'help-echo (purecopy "mouse-2, RET: go back to previous help buffer")
+  'action #'help-button-action)
+
+(define-button-type 'help-info
+  'help-function #'info
+  'help-echo (purecopy"mouse-2, RET: read this Info node")
+  'action #'help-button-action)
+
+(define-button-type 'help-customize-variable
+  'help-function (lambda (v)
+		   (if help-xref-stack
+		       (pop help-xref-stack))
+		   (customize-variable v))
+  'help-echo (purecopy "mouse-2, RET: customize variable")
+  'action #'help-button-action)
+
+(define-button-type 'help-function-def
+  'help-function (lambda (fun file)
+		   (require 'find-func)
+		  ;; Don't use find-function-noselect because it follows
+		   ;; aliases (which fails for built-in functions).
+		   (let* ((location (find-function-search-for-symbol
+				     fun nil file)))
+		     (pop-to-buffer (car location))
+		     (goto-char (cdr location))))
+  'help-echo (purecopy "mouse-2, RET: find function's definition")
+  'action #'help-button-action)
+
+(define-button-type 'help-variable-def
+  'help-function (lambda (arg)
+		   (let ((location
+			  (find-variable-noselect arg)))
+		     (pop-to-buffer (car location))
+		     (goto-char (cdr location))))
+  'help-echo (purecopy"mouse-2, RET: find variable's definition")
+  'action #'help-button-action)
+
+(defun help-button-action (button)
+  "Call this button's help function."
+  (help-do-xref (button-start button)
+		(button-get button 'help-function)
+		(button-get button 'help-args)))
+
+
 (defun help-mode ()
   "Major mode for viewing help text and navigating references in it.
 Entry to this mode runs the normal hook `help-mode-hook'.
@@ -695,8 +757,7 @@ It can also be nil, if the definition is not associated with any file."
       (save-excursion
 	(save-match-data
 	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 #'describe-function def
-				"mouse-2, RET: describe this function")))))
+	      (help-xref-button 1 'help-function def)))))
     (or file-name
 	(setq file-name (symbol-file function)))
     (if file-name
@@ -710,18 +771,7 @@ It can also be nil, if the definition is not associated with any file."
 	  (with-current-buffer "*Help*"
 	    (save-excursion
 	      (re-search-backward "`\\([^`']+\\)'" nil t)
-	      (help-xref-button
-	       1
-	       #'(lambda (fun file)
-		   (require 'find-func)
-		   ;; Don't use find-function-noselect because it follows
-		   ;; aliases (which fails for built-in functions).
-		   (let* ((location (find-function-search-for-symbol
-				     fun nil file)))
-		     (pop-to-buffer (car location))
-		     (goto-char (cdr location))))
-	       (list function file-name)
-	       "mouse-2, RET: find function's definition")))))
+	      (help-xref-button 1 'help-function-def function file-name)))))
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
@@ -818,13 +868,13 @@ Return 0 if there is no such symbol."
 	       ((looking-at "#<") (search-forward ">" nil 'move))
 	       ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
 		(let* ((sym (intern-soft (match-string 1)))
-		       (fn (cond ((fboundp sym) #'describe-function)
+		       (type (cond ((fboundp sym) 'help-function)
 				 ((or (memq sym '(t nil))
 				      (keywordp sym))
 				  nil)
 				 ((and sym (boundp sym))
-				  #'describe-variable))))
-		  (when fn (help-xref-button 1 fn sym)))
+				  'help-variable))))
+		  (when type (help-xref-button 1 type sym)))
 		(goto-char (match-end 1)))
 	       (t (forward-char 1))))))
       (set-syntax-table ost))))
@@ -928,12 +978,7 @@ it is displayed along with the global value."
 		  (save-excursion
 		    (re-search-backward
 		     (concat "\\(" customize-label "\\)") nil t)
-		    (help-xref-button 1 (lambda (v)
-					  (if help-xref-stack
-					      (pop help-xref-stack))
-					  (customize-variable v))
-				      variable
-				      "mouse-2, RET: customize variable")))))
+		    (help-xref-button 1 'help-customize-variable variable)))))
 	  ;; Make a hyperlink to the library if appropriate.  (Don't
 	  ;; change the format of the buffer's initial line in case
 	  ;; anything expects the current format.)
@@ -945,13 +990,7 @@ it is displayed along with the global value."
 	      (with-current-buffer "*Help*"
 		(save-excursion
 		  (re-search-backward "`\\([^`']+\\)'" nil t)
-		  (help-xref-button
-		   1 (lambda (arg)
-		       (let ((location
-			      (find-variable-noselect arg)))
-			 (pop-to-buffer (car location))
-			 (goto-char (cdr location))))
-		   variable "mouse-2, RET: find variable's definition")))))
+		  (help-xref-button 1 'help-variable-def variable)))))
 
 	  (print-help-return-message)
 	  (save-excursion
@@ -1158,8 +1197,7 @@ that."
 		    (save-match-data
 		      (unless (string-match "^([^)]+)" data)
 			(setq data (concat "(emacs)" data))))
-		    (help-xref-button 1 #'info data
-				      "mouse-2, RET: read this Info node"))))
+		    (help-xref-button 1 'help-info data))))
 	      ;; Mule related keywords.  Do this before trying
 	      ;; `help-xref-symbol-regexp' because some of Mule
 	      ;; keywords have variable or function definitions.
@@ -1171,31 +1209,19 @@ that."
 			(cond
 			 ((match-string 3) ; coding system
 			  (and sym (coding-system-p sym)
-			       (help-xref-button
-				7 #'describe-coding-system sym
-				"mouse-2, RET: describe this coding system")))
+			       (help-xref-button 6 'help-coding-system sym)))
 			 ((match-string 4) ; input method
 			  (and (assoc data input-method-alist)
-			       (help-xref-button
-				7 #'describe-input-method data
-				"mouse-2, RET: describe this input method")))
+			       (help-xref-button 7 'help-input-method data)))
 			 ((or (match-string 5) (match-string 6)) ; charset
 			  (and sym (charsetp sym)
-			       (help-xref-button
-				7 #'describe-character-set sym
-				"mouse-2, RET: describe this character set")))
+			       (help-xref-button 7 'help-character-set sym)))
 			 ((assoc data input-method-alist)
-			  (help-xref-button
-			   7 #'describe-input-method data
-			   "mouse-2, RET: describe this input method"))
+			  (help-xref-button 7 'help-character-set data))
 			 ((and sym (coding-system-p sym))
-			  (help-xref-button
-			   7 #'describe-coding-system sym
-			   "mouse-2, RET: describe this coding system"))
+			  (help-xref-button 7 'help-coding-system sym))
 			 ((and sym (charsetp sym))
-			  (help-xref-button
-			   7 #'describe-character-set sym
-			   "mouse-2, RET: describe this character set")))))))
+			  (help-xref-button 7 'help-character-set sym)))))))
               ;; Quoted symbols
               (save-excursion
                 (while (re-search-forward help-xref-symbol-regexp nil t)
@@ -1206,46 +1232,32 @@ that."
                          ((match-string 3) ; `variable' &c
                           (and (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
-                               (help-xref-button
-				8 #'describe-variable sym
-				"mouse-2, RET: describe this variable")))
+                               (help-xref-button 8 'help-variable sym)))
                          ((match-string 4) ; `function' &c
                           (and (fboundp sym) ; similarly
-                               (help-xref-button
-				8 #'describe-function sym
-				"mouse-2, RET: describe this function")))
+                               (help-xref-button 8 'help-function sym)))
 			 ((match-string 5) ; `face'
 			  (and (facep sym)
-			       (help-xref-button 8 #'describe-face sym
-				"mouse-2, RET: describe this face")))
+			       (help-xref-button 8 'help-face sym)))
                          ((match-string 6)) ; nothing for `symbol'
 			 ((match-string 7)
-			  (help-xref-button
-			   8
-			   #'(lambda (arg)
-			       (let ((location
-				      (find-function-noselect arg)))
-				 (pop-to-buffer (car location))
-				 (goto-char (cdr location))))
-			   sym
-			   "mouse-2, RET: find function's definition"))
+;; this used:
+;; 			   #'(lambda (arg)
+;; 			       (let ((location
+;; 				      (find-function-noselect arg)))
+;; 				 (pop-to-buffer (car location))
+;; 				 (goto-char (cdr location))))
+			  (help-xref-button 8 'help-function-def sym))
                          ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
-                          (help-xref-button
-			   8 #'help-xref-interned sym
-			   "mouse-2, RET: describe this symbol"))
+                          (help-xref-button 8 'help-symbol sym))
                          ((boundp sym)
-			  (help-xref-button
-			   8 #'describe-variable sym
-			   "mouse-2, RET: describe this variable"))
+			  (help-xref-button 8 'help-variable sym))
 			 ((fboundp sym)
-			  (help-xref-button
-			   8 #'describe-function sym
-			   "mouse-2, RET: describe this function"))
+			  (help-xref-button 8 'help-function sym))
 			 ((facep sym)
-			  (help-xref-button
-			   8 #'describe-face sym)))))))
+			  (help-xref-button 8 'help-face sym)))))))
               ;; An obvious case of a key substitution:
               (save-excursion
                 (while (re-search-forward
@@ -1254,9 +1266,7 @@ that."
                         "\\<M-x\\s-+\\(\\sw\\(\\sw\\|-\\)+\\)" nil t)
                   (let ((sym (intern-soft (match-string 1))))
                     (if (fboundp sym)
-                        (help-xref-button
-			 1 #'describe-function sym
-			 "mouse-2, RET: describe this command")))))
+                        (help-xref-button 1 'help-function sym)))))
               ;; Look for commands in whole keymap substitutions:
               (save-excursion
 		;; Make sure to find the first keymap.
@@ -1278,9 +1288,7 @@ that."
 					(looking-at "\\(\\sw\\|-\\)+$"))
                                    (let ((sym (intern-soft (match-string 0))))
                                      (if (fboundp sym)
-                                         (help-xref-button
-                                          0 #'describe-function sym
-					  "mouse-2, RET: describe this function"))))
+                                         (help-xref-button 0 'help-function sym))))
 			       (zerop (forward-line)))))))))
           (set-syntax-table stab))
 	;; Delete extraneous newlines at the end of the docstring
@@ -1289,11 +1297,9 @@ that."
 	  (delete-char -1))
         ;; Make a back-reference in this buffer if appropriate.
         (when (and help-xref-following help-xref-stack)
-          (save-excursion
-            (insert "\n\n" help-back-label))
-          ;; Just to provide the match data:
-          (looking-at (concat "\n\n\\(" (regexp-quote help-back-label) "\\)"))
-          (help-xref-button 1 #'help-xref-go-back (current-buffer))))
+	  (insert "\n\n")
+	  (help-insert-xref-button help-back-label 'help-back
+				   (current-buffer))))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
            (list (cons 'view-mode
@@ -1303,44 +1309,25 @@ that."
                          map))))
       (set-buffer-modified-p old-modified))))
 
-(defun help-xref-button (match-number function data &optional help-echo)
+(defun help-xref-button (match-number type &rest args)
   "Make a hyperlink for cross-reference text previously matched.
-
 MATCH-NUMBER is the subexpression of interest in the last matched
-regexp.  FUNCTION is a function to invoke when the button is
-activated, applied to DATA.  DATA may be a single value or a list.
-See `help-make-xrefs'.
-If optional arg HELP-ECHO is supplied, it is used as a help string."
+regexp.  TYPE is the type of button to use.  Any remaining arguments are
+passed to the button's help-function when it is invoked.
+See `help-make-xrefs'."
   ;; Don't mung properties we've added specially in some instances.
-  (unless (get-text-property (match-beginning match-number) 'help-xref)
-    (add-text-properties (match-beginning match-number)
-			 (match-end match-number)
-			 (list 'mouse-face 'highlight  
-			       'help-xref (cons function
-						(if (listp data)
-						    data
-						  (list data)))))
-    (if help-echo
-	(put-text-property (match-beginning match-number)
-			   (match-end match-number)
-			   'help-echo help-echo))
-    (if help-highlight-p
-	(put-text-property (match-beginning match-number)
-			   (match-end match-number)
-			   'face help-highlight-face))))
+  (unless (button-at (match-beginning match-number))
+    (make-text-button (match-beginning match-number)
+		      (match-end match-number)
+		      'type type 'help-args args)))
 
-(defun help-insert-xref-button (string function data &optional help-echo)
+(defun help-insert-xref-button (string type &rest args)
   "Insert STRING and make a hyperlink from cross-reference text on it.
-
-FUNCTION is a function to invoke when the button is activated, applied
-to DATA.  DATA may be a single value or a list.  See `help-make-xrefs'.
-If optional arg HELP-ECHO is supplied, it is used as a help string."
-  (let ((pos (point)))
-    (insert string)
-    (goto-char pos)
-    (search-forward string)
-    (help-xref-button 0 function data help-echo)))
-
+TYPE is the type of button to use.  Any remaining arguments are passed
+to the button's help-function when it is invoked.
+See `help-make-xrefs'."
+  (unless (button-at (point))
+    (insert-text-button string 'type type 'help-args args)))
 
 
 ;; Additional functions for (re-)creating types of help buffers.
@@ -1373,17 +1360,9 @@ help buffer."
   (save-excursion
     (set-buffer buffer)
     (describe-mode)))
+
 
 ;;; Navigation/hyperlinking with xrefs
-
-(defun help-follow-mouse (click)
-  "Follow the cross-reference that you click on."
-  (interactive "e")
-  (let* ((start (event-start click))
-	 (window (car start))
-	 (pos (car (cdr start))))
-    (with-current-buffer (window-buffer window)
-      (help-follow pos))))
 
 (defun help-xref-go-back (buffer)
   "From BUFFER, go back to previous help buffer text using `help-xref-stack'."
@@ -1405,7 +1384,22 @@ help buffer."
 (defun help-go-back ()
   "Invoke the [back] button (if any) in the Help mode buffer."
   (interactive)
-  (help-follow (1- (point-max))))
+  (let ((back-button (button-at (1- (point-max)))))
+    (if back-button
+	(button-activate back-button)
+      (error "No [back] button"))))
+
+(defun help-do-xref (pos function args)
+  "Call the help cross-reference function FUNCTION with args ARGS.
+Things are set up properly so that the resulting help-buffer has
+a proper [back] button."
+  (setq help-xref-stack (cons (cons (cons pos (buffer-name))
+				    help-xref-stack-item)
+			      help-xref-stack))
+  (setq help-xref-stack-item nil)
+  ;; There is a reference at point.  Follow it.
+  (let ((help-xref-following t))
+    (apply function args)))
 
 (defun help-follow (&optional pos)
   "Follow cross-reference at POS, defaulting to point.
@@ -1414,64 +1408,17 @@ For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
   (unless pos
     (setq pos (point)))
-  (let* ((help-data
-	  (or (and (not (= pos (point-max)))
-		   (get-text-property pos 'help-xref))
-	      (and (not (= pos (point-min)))
-		   (get-text-property (1- pos) 'help-xref))
-	      ;; check if the symbol under point is a function or variable
-	      (let ((sym
-		     (intern
-		      (save-excursion
-			(goto-char pos) (skip-syntax-backward "w_")
-			(buffer-substring (point)
-					  (progn (skip-syntax-forward "w_")
-						 (point)))))))
-		(when (or (boundp sym) (fboundp sym))
-		  (list #'help-xref-interned sym)))))
-         (method (car help-data))
-         (args (cdr help-data)))
-    (when help-data
-      (setq help-xref-stack (cons (cons (cons pos (buffer-name))
-					help-xref-stack-item)
-				  help-xref-stack))
-      (setq help-xref-stack-item nil)
-      ;; There is a reference at point.  Follow it.
-      (let ((help-xref-following t))
-	(apply method args)))))
-
-;; For tabbing through buffer.
-(defun help-next-ref ()
-  "Find the next help cross-reference in the buffer."
-  (interactive)
-  (let (pos)
-    (while (not pos) 
-      (if (get-text-property (point) 'help-xref) ; move off reference
-	   (goto-char (or (next-single-property-change (point) 'help-xref)
-                          (point))))
-      (cond ((setq pos (next-single-property-change (point) 'help-xref))
-	     (if pos (goto-char pos)))
-	    ((bobp)
-	     (message "No cross references in the buffer.")
-	     (setq pos t))
-	    (t				; be circular
-	     (goto-char (point-min)))))))
-
-(defun help-previous-ref ()
-  "Find the previous help cross-reference in the buffer."
-  (interactive)
-  (let (pos)
-    (while (not pos) 
-      (if (get-text-property (point) 'help-xref) ; move off reference
-	  (goto-char (or (previous-single-property-change (point) 'help-xref)
-                         (point))))
-      (cond ((setq pos (previous-single-property-change (point) 'help-xref))
-	     (if pos (goto-char pos)))
-	    ((bobp)
-	     (message "No cross references in the buffer.")
-	     (setq pos t))
-	    (t				; be circular
-	     (goto-char (point-max)))))))
+  (unless (push-button pos)
+    ;; check if the symbol under point is a function or variable
+    (let ((sym
+	   (intern
+	    (save-excursion
+	      (goto-char pos) (skip-syntax-backward "w_")
+	      (buffer-substring (point)
+				(progn (skip-syntax-forward "w_")
+				       (point)))))))
+      (when (or (boundp sym) (fboundp sym))
+	(help-do-xref pos #'help-xref-interned (list sym))))))
 
 
 ;;; Automatic resizing of temporary buffers.
