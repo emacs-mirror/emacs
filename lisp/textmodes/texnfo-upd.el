@@ -618,10 +618,11 @@ Point must be located just after the node name.  Point left before description.
 Single argument, END-OF-MENU, is position limiting search."
   (skip-chars-forward "[:.,\t\n ]+")
   ;; don't copy a carriage return at line beginning with asterisk!
+  ;; don't copy @detailmenu or @end menu as descriptions!
   ;; do copy a description that begins with an `@'!
   ;; !! Known bug: does not copy descriptions starting with ^|\{?* etc.
   (if (and (looking-at "\\(\\w+\\|@\\)")
-	   (not (looking-at "\\(^\\* \\|^@end menu\\)")))
+	   (not (looking-at "\\(^\\* \\|^@detailmenu\\|^@end menu\\)")))
       (buffer-substring
        (point)
        (save-excursion
