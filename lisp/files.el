@@ -3011,7 +3011,8 @@ saying what text to write."
   ;; `make-backup-file-name' will get us the right directory for
   ;; ordinary or numeric backups.  It might create a directory for
   ;; backups as a side-effect, according to `backup-directory-alist'.
-  (let* ((filename (make-backup-file-name filename))
+  (let* ((filename (file-name-sans-versions
+		    (make-backup-file-name filename)))
 	 (file (file-name-nondirectory filename))
 	 (dir  (file-name-directory    filename))
 	 (comp (file-name-all-completions file dir))
