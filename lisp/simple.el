@@ -1856,7 +1856,7 @@ If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring.
 
-In lisp code, optional third arg YANK-HANDLER specifies the yank-handler
+In Lisp code, optional third arg YANK-HANDLER specifies the yank-handler
 text property to be set on the killed text.  See `insert-for-yank'." 
   (interactive "r")
   (condition-case nil
@@ -1965,7 +1965,10 @@ The argument is used for internal purposes; do not supply one."
 
 (defvar yank-window-start nil)
 (defvar yank-undo-function nil
-  "If non-nil, function used by `yank-pop' to delete last stretch of yanked text.")
+  "If non-nil, function used by `yank-pop' to delete last stretch of yanked text.
+Function is called with two parameters, START and END corresponding to
+the value of the mark and point; it is guaranteed that START <= END.
+Normally set from the UNDO element of a yank-handler; see `insert-for-yank'.")
 
 (defun yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
