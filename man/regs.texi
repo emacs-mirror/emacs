@@ -12,7 +12,7 @@ once or many times; you can move point to a position saved in a
 register once or many times.
 
 @findex view-register
-  Each register has a name which is a single character.  A register can
+  Each register has a name, which is a single character.  A register can
 store a piece of text, a rectangle, a position, a window configuration,
 or a file name, but only one thing at any given time.  Whatever you
 store in a register remains there until you store something else in that
@@ -266,7 +266,7 @@ saving.)
   Bookmark position values are saved with surrounding context, so that
 @code{bookmark-jump} can find the proper position even if the file is
 modified slightly.  The variable @code{bookmark-search-size} says how
-many characters of context to record, on each side of the bookmark's
+many characters of context to record on each side of the bookmark's
 position.
 
   Here are some additional commands for working with bookmarks:

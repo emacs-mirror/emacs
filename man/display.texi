@@ -254,7 +254,7 @@ beyond which buffer fontification is suppressed.
 @vindex font-lock-beginning-of-syntax-function
   Comment and string fontification (or ``syntactic'' fontification)
 relies on analysis of the syntactic structure of the buffer text.  For
-the purposes of speed, some modes including C mode and Lisp mode rely on
+the purposes of speed, some modes, including C mode and Lisp mode, rely on
 a special convention: an open-parenthesis in the leftmost column always
 defines the @w{beginning} of a defun, and is thus always outside any string
 or comment.  (@xref{Defuns}.)  If you don't follow this convention,
@@ -726,7 +726,7 @@ Alternatively, you could turn off the box attribute in your
 @cindex characters (in text)
 
   ASCII printing characters (octal codes 040 through 0176) in Emacs
-buffers are displayed with their graphics.  So are non-ASCII multibyte
+buffers are displayed with their graphics, as are non-ASCII multibyte
 printing characters (octal codes above 0400).
 
   Some ASCII control characters are displayed in special ways.  The
@@ -790,7 +790,7 @@ keys; its value is the number of seconds of pause required to cause echoing
 to start, or zero meaning don't echo at all.  @xref{Echo Area}.
 
 @vindex ctl-arrow
-  If the variable @code{ctl-arrow} is @code{nil}, control characters in
+  If the variable @code{ctl-arrow} is @code{nil}, all control characters in
 the buffer are displayed with octal escape sequences, except for newline
 and tab.  Altering the value of @code{ctl-arrow} makes it local to the
 current buffer; until that time, the default value is in effect.  The
