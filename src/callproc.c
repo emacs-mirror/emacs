@@ -49,6 +49,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "paths.h"
 #include "process.h"
+#include "syssignal.h"
 
 #ifdef VMS
 extern noshare char **environ;
@@ -77,16 +78,36 @@ int synch_process_retcode;
 
 #ifndef VMS  /* VMS version is in vmsproc.c.  */
 
+static Lisp_Object
+call_process_kill (fdpid)
+     Lisp_Object fdpid;
+{
+  close (XFASTINT (Fcar (fdpid)));
+  EMACS_KILLPG (XFASTINT (Fcdr (fdpid)), SIGKILL);
+  synch_process_alive = 0;
+  return Qnil;
+}
+
 Lisp_Object
 call_process_cleanup (fdpid)
      Lisp_Object fdpid;
 {
-  register Lisp_Object fd, pid;
-  fd = Fcar (fdpid);
-  pid = Fcdr (fdpid);
-  close (XFASTINT (fd));
-  kill (XFASTINT (pid), SIGKILL);
+  register int pid = XFASTINT (Fcdr (fdpid));
+
+  if (EMACS_KILLPG (pid, SIGINT) == 0)
+    {
+      int count = specpdl_ptr - specpdl;
+      record_unwind_protect (call_process_kill, fdpid);
+      message1 ("Waiting for process to die...(type C-g again to kill it instantly)");
+      immediate_quit = 1;
+      QUIT;
+      wait_for_termination (pid);
+      immediate_quit = 0;
+      specpdl_ptr = specpdl + count; /* Discard the unwind protect.  */
+      message1 ("Waiting for process to die...done");
+    }
   synch_process_alive = 0;
+  close (XFASTINT (Fcar (fdpid)));
   return Qnil;
 }
 
@@ -100,7 +121,7 @@ Remaining arguments are strings passed as command arguments to PROGRAM.\n\
 If BUFFER is 0, returns immediately with value nil.\n\
 Otherwise waits for PROGRAM to terminate\n\
 and returns a numeric exit status or a signal description string.\n\
-If you quit, the process is killed with SIGKILL.")
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -312,7 +333,7 @@ Remaining args are passed to PROGRAM at startup as command args.\n\
 If BUFFER is nil, returns immediately with value nil.\n\
 Otherwise waits for PROGRAM to terminate\n\
 and returns a numeric exit status or a signal description string.\n\
-If you quit, the process is killed with SIGKILL.")
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
