@@ -655,7 +655,7 @@ This function acts on multiple buffers; otherwise, it is exactly like
   (occur-1 regexp nlines bufs))
 
 (defun multi-occur-by-filename-regexp (bufregexp regexp &optional nlines)
-  "Show all lines in buffers containing REGEXP, named by BUFREGEXP.
+  "Show all lines matching REGEXP in buffers named by BUFREGEXP.
 See also `multi-occur'."
   (interactive
    (cons
@@ -701,7 +701,6 @@ See also `multi-occur'."
 	(if (> count 0)
 	    (display-buffer occur-buf)
 	  (kill-buffer occur-buf)))
-      (goto-char (point-min))
       (setq occur-revert-properties (list regexp nlines bufs)
 	    buffer-read-only t))))
 
@@ -818,7 +817,7 @@ See also `multi-occur'."
 					  (when title-face
 					    `(face ,title-face))
 					  `(occur-title ,buf))))
-		  (goto-char (point-max)))))))
+		  (goto-char (point-min)))))))
 	;; Return the number of matches
 	globalcount))))
 
