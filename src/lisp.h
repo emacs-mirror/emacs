@@ -2588,13 +2588,13 @@ extern Lisp_Object Vinstallation_directory;
 EXFUN (Fkill_emacs, 1);
 #if HAVE_SETLOCALE
 void fixup_locale P_ ((void));
-void synchronize_messages_locale P_ ((void));
-void synchronize_time_locale P_ ((void));
+void synchronize_system_messages_locale P_ ((void));
+void synchronize_system_time_locale P_ ((void));
 #else
 #define setlocale(category, locale)
 #define fixup_locale()
-#define synchronize_messages_locale()
-#define synchronize_time_locale()
+#define synchronize_system_messages_locale()
+#define synchronize_system_time_locale()
 #endif
 void shut_down_emacs P_ ((int, int, Lisp_Object));
 /* Nonzero means don't do interactive redisplay and don't change tty modes */

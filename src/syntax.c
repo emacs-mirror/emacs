@@ -25,7 +25,6 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "charset.h"
-#include <assert.h>
 
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX_ENTRY_VIA_PROPERTY
@@ -2612,7 +2611,8 @@ do { prev_from = from;				\
 	  goto commentloop;
 
 	case Scomment:
-	  assert (state.incomment != 0); /* state.incomment = -1; */
+	  if (! state.incomment)
+	    abort ();
 	  if (commentstop || boundary_stop) goto done;
 	commentloop:
 	  /* The (from == BEGV) test is to enter the loop in the middle so

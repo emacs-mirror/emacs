@@ -52,9 +52,6 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_X_WINDOWS
 
-#ifndef STDC_HEADERS
-extern void abort ();
-#endif
 #include <ctype.h>
 
 /* On some systems, the character-composition stuff is broken in X11R5.  */

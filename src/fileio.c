@@ -65,8 +65,6 @@ Boston, MA 02111-1307, USA.  */
 extern int errno;
 #endif
 
-extern char *strerror ();
-
 #ifdef APOLLO
 #include <sys/time.h>
 #endif
@@ -249,7 +247,7 @@ report_file_error (string, data)
   Lisp_Object errstring;
   int errorno = errno;
 
-  synchronize_messages_locale ();
+  synchronize_system_messages_locale ();
   errstring = code_convert_string_norecord (build_string (strerror (errorno)),
 					    Vlocale_coding_system, 0);
 

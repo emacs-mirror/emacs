@@ -36,7 +36,7 @@ Cambridge, MA 02139, USA.
 #include <config.h>
 #endif
 
-#if defined (__cplusplus) || (defined (__STDC__) && __STDC__)
+#if defined __cplusplus || (defined (__STDC__) && __STDC__) || defined STDC_HEADERS
 #undef	PP
 #define	PP(args)	args
 #undef	__ptr_t
@@ -44,10 +44,6 @@ Cambridge, MA 02139, USA.
 #else /* Not C++ or ANSI C.  */
 #undef	PP
 #define	PP(args)	()
-#ifndef HAVE_CONFIG_H
-#undef	const
-#define	const
-#endif
 #undef	__ptr_t
 #define	__ptr_t		char *
 #endif /* C++ or ANSI C.  */
@@ -63,12 +59,11 @@ Cambridge, MA 02139, USA.
 #endif
 #endif
 
-#if	defined (__GNU_LIBRARY__) || (defined (__STDC__) && __STDC__)
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
+#endif
 #ifndef CHAR_BIT
 #define	CHAR_BIT	8
-#endif
 #endif
 
 #ifdef	HAVE_UNISTD_H
@@ -83,7 +78,7 @@ extern "C"
 {
 #endif
 
-#if defined (__STDC__) && __STDC__
+#ifdef STDC_HEADERS
 #include <stddef.h>
 #define	__malloc_size_t		size_t
 #define	__malloc_ptrdiff_t	ptrdiff_t
@@ -96,6 +91,10 @@ extern "C"
 #define	NULL	0
 #endif
 
+#ifndef FREE_RETURN_TYPE
+#define FREE_RETURN_TYPE void
+#endif
+
 
 /* Allocate SIZE bytes of memory.  */
 extern __ptr_t malloc PP ((__malloc_size_t __size));
@@ -105,7 +104,7 @@ extern __ptr_t realloc PP ((__ptr_t __ptr, __malloc_size_t __size));
 /* Allocate NMEMB elements of SIZE bytes each, all initialized to 0.  */
 extern __ptr_t calloc PP ((__malloc_size_t __nmemb, __malloc_size_t __size));
 /* Free a block allocated by `malloc', `realloc' or `calloc'.  */
-extern void free PP ((__ptr_t __ptr));
+extern FREE_RETURN_TYPE free PP ((__ptr_t __ptr));
 
 /* Allocate SIZE bytes allocated to ALIGNMENT bytes.  */
 #if ! (defined (_MALLOC_INTERNAL) && __DJGPP__ - 0 == 1) /* Avoid conflict.  */
@@ -1128,7 +1127,8 @@ _free_internal (ptr)
 }
 
 /* Return memory to the heap.  */
-void
+
+FREE_RETURN_TYPE
 free (ptr)
      __ptr_t ptr;
 {

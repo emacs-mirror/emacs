@@ -146,7 +146,6 @@ Lisp_Object Qlast_nonmenu_event;
 extern void set_waiting_for_input P_ ((EMACS_TIME *));
 
 extern int errno;
-extern char *strerror ();
 #ifdef VMS
 extern char *sys_errlist[];
 #endif
@@ -154,50 +153,6 @@ extern char *sys_errlist[];
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
-
-#ifndef HAVE_STRSIGNAL
-#ifndef SYS_SIGLIST_DECLARED
-#ifndef VMS
-#ifndef BSD4_1
-#ifndef WINDOWSNT
-#ifndef LINUX
-extern char *sys_siglist[];
-#endif /* not LINUX */
-#else /* BSD4_1 */
-char *sys_siglist[] =
-  {
-    "bum signal!!",
-    "hangup",
-    "interrupt",
-    "quit",
-    "illegal instruction",
-    "trace trap",
-    "iot instruction",
-    "emt instruction",
-    "floating point exception",
-    "kill",
-    "bus error",
-    "segmentation violation",
-    "bad argument to system call",
-    "write on a pipe with no one to read it",
-    "alarm clock",
-    "software termination signal from kill",
-    "status signal",
-    "sendable stop signal not from tty",
-    "stop signal from tty",
-    "continue a stopped process",
-    "child status has changed",
-    "background read attempted from control tty",
-    "background write attempted from control tty",
-    "input record available at control tty",
-    "exceeded CPU time limit",
-    "exceeded file size limit"
-    };
-#endif /* not WINDOWSNT */
-#endif
-#endif /* VMS */
-#endif /* ! SYS_SIGLIST_DECLARED */
-#endif /* ! HAVE_STRSIGNAL */
 
 /* t means use pty, nil means use a pipe,
    maybe other values to come.  */
@@ -360,7 +315,7 @@ status_message (status)
   if (EQ (symbol, Qsignal) || EQ (symbol, Qstop))
     {
       char *signame;
-      synchronize_messages_locale ();
+      synchronize_system_messages_locale ();
       signame = strsignal (code);
       if (signame == 0)
 	signame = "unknown";
@@ -4254,7 +4209,7 @@ sigchld_handler (signo)
 	      int code = WTERMSIG (w);
 	      char *signame;
 
-	      synchronize_messages_locale ();
+	      synchronize_system_messages_locale ();
 	      signame = strsignal (code);
 
 	      if (signame == 0)

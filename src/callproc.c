@@ -25,7 +25,6 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 
 extern int errno;
-extern char *strerror ();
 
 /* Define SIGCHLD as an alias for SIGCLD.  */
 
@@ -560,7 +559,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       synch_process_retcode = pid;
       if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
 	{
-	  synchronize_messages_locale ();
+	  synchronize_system_messages_locale ();
 	  synch_process_death = strerror (errno);
 	}
 
@@ -588,7 +587,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     synch_process_retcode = pid;
     if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
       {
-	synchronize_messages_locale ();
+	synchronize_system_messages_locale ();
 	synch_process_death = strerror (errno);
       }
 

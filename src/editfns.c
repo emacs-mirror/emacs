@@ -1295,7 +1295,7 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
   if (! tm)
     error ("Specified time is not representable");
 
-  synchronize_time_locale ();
+  synchronize_system_time_locale ();
 
   while (1)
     {

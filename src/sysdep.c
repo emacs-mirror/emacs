@@ -2771,13 +2771,6 @@ sigbit (i)
 
 sigset_t empty_mask, full_mask;
 
-void
-init_signals ()
-{
-  sigemptyset (&empty_mask);
-  sigfillset (&full_mask);
-}
-
 signal_handler_t
 sys_signal (int signal_number, signal_handler_t action)
 {
@@ -2839,6 +2832,185 @@ sys_sigsetmask (sigset_t new_mask)
 }
 
 #endif /* POSIX_SIGNALS */
+
+#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+static char *my_sys_siglist[NSIG];
+# ifdef sys_siglist
+#  undef sys_siglist
+# endif
+# define sys_siglist my_sys_siglist
+#endif
+
+void
+init_signals ()
+{
+#ifdef POSIX_SIGNALS
+  sigemptyset (&empty_mask);
+  sigfillset (&full_mask);
+#endif
+
+#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+  if (! initialized)
+    {
+# ifdef SIGABRT
+      sys_siglist[SIGABRT] = "Aborted";
+# endif
+# ifdef SIGAIO
+      sys_siglist[SIGAIO] = "LAN I/O interrupt";
+# endif
+# ifdef SIGALRM
+      sys_siglist[SIGALRM] = "Alarm clock";
+# endif
+# ifdef SIGBUS
+      sys_siglist[SIGBUS] = "Bus error";
+# endif
+# ifdef SIGCLD
+      sys_siglist[SIGCLD] = "Child status changed";
+# endif
+# ifdef SIGCHLD
+      sys_siglist[SIGCHLD] = "Child status changed";
+# endif
+# ifdef SIGCONT
+      sys_siglist[SIGCONT] = "Continued";
+# endif
+# ifdef SIGDANGER
+      sys_siglist[SIGDANGER] = "Swap space dangerously low";
+# endif
+# ifdef SIGDGNOTIFY
+      sys_siglist[SIGDGNOTIFY] = "Notification message in queue";
+# endif
+# ifdef SIGEMT
+      sys_siglist[SIGEMT] = "Emulation trap";
+# endif
+# ifdef SIGFPE
+      sys_siglist[SIGFPE] = "Arithmetic exception";
+# endif
+# ifdef SIGFREEZE
+      sys_siglist[SIGFREEZE] = "SIGFREEZE";
+# endif
+# ifdef SIGGRANT
+      sys_siglist[SIGGRANT] = "Monitor mode granted";
+# endif
+# ifdef SIGHUP
+      sys_siglist[SIGHUP] = "Hangup";
+# endif
+# ifdef SIGILL
+      sys_siglist[SIGILL] = "Illegal instruction";
+# endif
+# ifdef SIGINT
+      sys_siglist[SIGINT] = "Interrupt";
+# endif
+# ifdef SIGIO
+      sys_siglist[SIGIO] = "I/O possible";
+# endif
+# ifdef SIGIOINT
+      sys_siglist[SIGIOINT] = "I/O intervention required";
+# endif
+# ifdef SIGIOT
+      sys_siglist[SIGIOT] = "IOT trap";
+# endif
+# ifdef SIGKILL
+      sys_siglist[SIGKILL] = "Killed";
+# endif
+# ifdef SIGLOST
+      sys_siglist[SIGLOST] = "Resource lost";
+# endif
+# ifdef SIGLWP
+      sys_siglist[SIGLWP] = "SIGLWP";
+# endif
+# ifdef SIGMSG
+      sys_siglist[SIGMSG] = "Monitor mode data available";
+# endif
+# ifdef SIGPHONE
+      sys_siglist[SIGWIND] = "SIGPHONE";
+# endif
+# ifdef SIGPIPE
+      sys_siglist[SIGPIPE] = "Broken pipe";
+# endif
+# ifdef SIGPOLL
+      sys_siglist[SIGPOLL] = "Pollable event occurred";
+# endif
+# ifdef SIGPROF
+      sys_siglist[SIGPROF] = "Profiling timer expired";
+# endif
+# ifdef SIGPTY
+      sys_siglist[SIGPTY] = "PTY I/O interrupt";
+# endif
+# ifdef SIGPWR
+      sys_siglist[SIGPWR] = "Power-fail restart";
+# endif
+# ifdef SIGQUIT
+      sys_siglist[SIGQUIT] = "Quit";
+# endif
+# ifdef SIGRETRACT
+      sys_siglist[SIGRETRACT] = "Need to relinguish monitor mode";
+# endif
+# ifdef SIGSAK
+      sys_siglist[SIGSAK] = "Secure attention";
+# endif
+# ifdef SIGSEGV
+      sys_siglist[SIGSEGV] = "Segmentation violation";
+# endif
+# ifdef SIGSOUND
+      sys_siglist[SIGSOUND] = "Sound completed";
+# endif
+# ifdef SIGSTOP
+      sys_siglist[SIGSTOP] = "Stopped (signal)";
+# endif
+# ifdef SIGSTP
+      sys_siglist[SIGSTP] = "Stopped (user)";
+# endif
+# ifdef SIGSYS
+      sys_siglist[SIGSYS] = "Bad argument to system call";
+# endif
+# ifdef SIGTERM
+      sys_siglist[SIGTERM] = "Terminated";
+# endif
+# ifdef SIGTHAW
+      sys_siglist[SIGTHAW] = "SIGTHAW";
+# endif
+# ifdef SIGTRAP
+      sys_siglist[SIGTRAP] = "Trace/breakpoint trap";
+# endif
+# ifdef SIGTSTP
+      sys_siglist[SIGTSTP] = "Stopped (user)";
+# endif
+# ifdef SIGTTIN
+      sys_siglist[SIGTTIN] = "Stopped (tty input)";
+# endif
+# ifdef SIGTTOU
+      sys_siglist[SIGTTOU] = "Stopped (tty output)";
+# endif
+# ifdef SIGURG
+      sys_siglist[SIGURG] = "Urgent I/O condition";
+# endif
+# ifdef SIGUSR1
+      sys_siglist[SIGUSR1] = "User defined signal 1";
+# endif
+# ifdef SIGUSR2
+      sys_siglist[SIGUSR2] = "User defined signal 2";
+# endif
+# ifdef SIGVTALRM
+      sys_siglist[SIGVTALRM] = "Virtual timer expired";
+# endif
+# ifdef SIGWAITING
+      sys_siglist[SIGWAITING] = "Process's LWPs are blocked";
+# endif
+# ifdef SIGWINCH
+      sys_siglist[SIGWINCH] = "Window size changed";
+# endif
+# ifdef SIGWIND
+      sys_siglist[SIGWIND] = "SIGWIND";
+# endif
+# ifdef SIGXCPU
+      sys_siglist[SIGXCPU] = "CPU time limit exceeded";
+# endif
+# ifdef SIGXFSZ
+      sys_siglist[SIGXFSZ] = "File size limit exceeded";
+# endif
+    }
+#endif /* !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED */
+}
 
 #ifndef HAVE_RANDOM
 #ifdef random
@@ -3156,95 +3328,6 @@ vfork ()
  *	always negligible.   Fred Fish, Unisoft Systems Inc.
  */
 
-#ifndef HAVE_STRSIGNAL
-#ifndef HAVE_SYS_SIGLIST
-char *sys_siglist[NSIG + 1] =
-{
-#ifdef AIX
-/* AIX has changed the signals a bit */
-  "bogus signal",			/* 0 */
-  "hangup",				/* 1  SIGHUP */
-  "interrupt",				/* 2  SIGINT */
-  "quit",				/* 3  SIGQUIT */
-  "illegal instruction",		/* 4  SIGILL */
-  "trace trap",				/* 5  SIGTRAP */
-  "IOT instruction",			/* 6  SIGIOT */
-  "crash likely",			/* 7  SIGDANGER */
-  "floating point exception",		/* 8  SIGFPE */
-  "kill",				/* 9  SIGKILL */
-  "bus error",				/* 10 SIGBUS */
-  "segmentation violation",		/* 11 SIGSEGV */
-  "bad argument to system call",	/* 12 SIGSYS */
-  "write on a pipe with no one to read it", /* 13 SIGPIPE */
-  "alarm clock",			/* 14 SIGALRM */
-  "software termination signum",	/* 15 SIGTERM */
-  "user defined signal 1",		/* 16 SIGUSR1 */
-  "user defined signal 2",		/* 17 SIGUSR2 */
-  "death of a child",			/* 18 SIGCLD */
-  "power-fail restart",			/* 19 SIGPWR */
-  "bogus signal",			/* 20 */
-  "bogus signal",			/* 21 */
-  "bogus signal",			/* 22 */
-  "bogus signal",			/* 23 */
-  "bogus signal",			/* 24 */
-  "LAN I/O interrupt",			/* 25 SIGAIO */
-  "PTY I/O interrupt",			/* 26 SIGPTY */
-  "I/O intervention required",		/* 27 SIGIOINT */
-#ifdef AIXHFT
-  "HFT grant",				/* 28 SIGGRANT */
-  "HFT retract",			/* 29 SIGRETRACT */
-  "HFT sound done",			/* 30 SIGSOUND */
-  "HFT input ready",			/* 31 SIGMSG */
-#endif
-#else /* not AIX */
-  "bogus signal",			/* 0 */
-  "hangup",				/* 1  SIGHUP */
-  "interrupt",				/* 2  SIGINT */
-  "quit",				/* 3  SIGQUIT */
-  "illegal instruction",		/* 4  SIGILL */
-  "trace trap",				/* 5  SIGTRAP */
-  "IOT instruction",			/* 6  SIGIOT */
-  "EMT instruction",			/* 7  SIGEMT */
-  "floating point exception",		/* 8  SIGFPE */
-  "kill",				/* 9  SIGKILL */
-  "bus error",				/* 10 SIGBUS */
-  "segmentation violation",		/* 11 SIGSEGV */
-  "bad argument to system call",	/* 12 SIGSYS */
-  "write on a pipe with no one to read it", /* 13 SIGPIPE */
-  "alarm clock",			/* 14 SIGALRM */
-  "software termination signum",	/* 15 SIGTERM */
-  "user defined signal 1",		/* 16 SIGUSR1 */
-  "user defined signal 2",		/* 17 SIGUSR2 */
-  "death of a child",			/* 18 SIGCLD */
-  "power-fail restart",			/* 19 SIGPWR */
-#ifdef sun
-  "window size change",			    /* 20 SIGWINCH */
-  "urgent socket condition",		    /* 21 SIGURG */
-  "pollable event occurred",		    /* 22 SIGPOLL */
-  "stop (cannot be caught or ignored)", /*  23 SIGSTOP */
-  "user stop requested from tty",	    /* 24 SIGTSTP */
-  "stopped process has been continued",	/* 25 SIGCONT */
-  "background tty read attempted",	    /* 26 SIGTTIN */
-  "background tty write attempted",    /* 27 SIGTTOU */
-  "virtual timer expired",		    /* 28 SIGVTALRM */
-  "profiling timer expired",		    /* 29 SIGPROF */
-  "exceeded cpu limit",			    /* 30 SIGXCPU */
-  "exceeded file size limit",		    /* 31 SIGXFSZ */
-  "process's lwps are blocked",	    /*  32 SIGWAITING */
-  "special signal used by thread library", /* 33 SIGLWP */
-#ifdef SIGFREEZE
-  "Special Signal Used By CPR",	    /* 34 SIGFREEZE */
-#endif
-#ifdef SIGTHAW
-  "Special Signal Used By CPR",	    /* 35 SIGTHAW */
-#endif
-#endif /* sun */
-#endif /* not AIX */
-  0
-  };
-#endif /* HAVE_SYS_SIGLIST */
-#endif /* HAVE_STRSIGNAL */
-
 /*
  *	Warning, this function may not duplicate 4.2 action properly
  *	under error conditions.
@@ -3395,82 +3478,6 @@ croak (badfunc)
 }
 
 #endif /* USG */
-
-#ifdef DGUX
-
-#ifndef HAVE_STRSIGNAL
-char *sys_siglist[NSIG + 1] =
-{
-  "null signal",			 /*  0 SIGNULL   */
-  "hangup",				 /*  1 SIGHUP    */
-  "interrupt",		       		 /*  2 SIGINT    */
-  "quit",				 /*  3 SIGQUIT   */
-  "illegal instruction",		 /*  4 SIGILL    */
-  "trace trap",				 /*  5 SIGTRAP   */
-  "abort termination",			 /*  6 SIGABRT   */
-  "SIGEMT",				 /*  7 SIGEMT    */
-  "floating point exception",		 /*  8 SIGFPE    */
-  "kill",				 /*  9 SIGKILL   */
-  "bus error",				 /* 10 SIGBUS    */
-  "segmentation violation",		 /* 11 SIGSEGV   */
-  "bad argument to system call",	 /* 12 SIGSYS    */
-  "write on a pipe with no reader",	 /* 13 SIGPIPE   */
-  "alarm clock",			 /* 14 SIGALRM   */
-  "software termination signal",	 /* 15 SIGTERM   */
-  "user defined signal 1",		 /* 16 SIGUSR1   */
-  "user defined signal 2",		 /* 17 SIGUSR2   */
-  "child stopped or terminated",	 /* 18 SIGCLD    */
-  "power-fail restart",			 /* 19 SIGPWR    */
-  "window size changed",		 /* 20 SIGWINCH  */
-  "undefined",				 /* 21           */
-  "pollable event occurred",		 /* 22 SIGPOLL   */
-  "sendable stop signal not from tty",	 /* 23 SIGSTOP   */
-  "stop signal from tty",		 /* 24 SIGSTP    */
-  "continue a stopped process",		 /* 25 SIGCONT   */
-  "attempted background tty read",	 /* 26 SIGTTIN   */
-  "attempted background tty write",	 /* 27 SIGTTOU   */
-  "undefined",				 /* 28           */
-  "undefined",				 /* 29           */
-  "undefined",				 /* 30           */
-  "undefined",				 /* 31           */
-  "undefined",				 /* 32           */
-  "socket (TCP/IP) urgent data arrival", /* 33 SIGURG    */
-  "I/O is possible",			 /* 34 SIGIO     */
-  "exceeded cpu time limit",		 /* 35 SIGXCPU   */
-  "exceeded file size limit",		 /* 36 SIGXFSZ   */
-  "virtual time alarm",			 /* 37 SIGVTALRM */
-  "profiling time alarm",		 /* 38 SIGPROF   */
-  "undefined",				 /* 39           */
-  "file record locks revoked",		 /* 40 SIGLOST   */
-  "undefined",				 /* 41           */
-  "undefined",				 /* 42           */
-  "undefined",				 /* 43           */
-  "undefined",				 /* 44           */
-  "undefined",				 /* 45           */
-  "undefined",				 /* 46           */
-  "undefined",				 /* 47           */
-  "undefined",				 /* 48           */
-  "undefined",				 /* 49           */
-  "undefined",				 /* 50           */
-  "undefined",				 /* 51           */
-  "undefined",				 /* 52           */
-  "undefined",				 /* 53           */
-  "undefined",				 /* 54           */
-  "undefined",				 /* 55           */
-  "undefined",				 /* 56           */
-  "undefined",				 /* 57           */
-  "undefined",				 /* 58           */
-  "undefined",				 /* 59           */
-  "undefined",				 /* 60           */
-  "undefined",				 /* 61           */
-  "undefined",				 /* 62           */
-  "undefined",				 /* 63           */
-  "notification message in mess. queue", /* 64 SIGDGNOTIFY */
-  0
-};
-#endif /* HAVE_STRSIGNAL */
-
-#endif /* DGUX */
 
 /* Directory routines for systems that don't have them. */
 
@@ -6372,33 +6379,6 @@ getenv (const char * name)
   else
     return (NULL);
 }
-
-#ifdef __MRC__
-/* see Interfaces&Libraries:Interfaces:CIncludes:signal.h */
-char *sys_siglist[] =
-{
-  "Zero is not a signal!!!",
-  "Abort",  /* 1 */
-  "Interactive user interrupt",  /* 2 */  "BAD",
-  "Floating point exception",  /* 4 */  "BAD", "BAD", "BAD",
-  "Illegal instruction",  /* 8 */  "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD",
-  "Segment violation",  /* 16 */  "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD", "BAD",
-  "Terminal"  /* 32 */
-};
-#elif __MWERKS__
-char *sys_siglist[] =
-{
-  "Zero is not a signal!!!",
-  "Abort",
-  "Floating point exception",
-  "Illegal instruction",
-  "Interactive user interrupt",
-  "Segment violation",
-  "Terminal"
-};
-#else
-You lose!!!
-#endif
 
 #ifdef __MRC__
 #include <utsname.h>

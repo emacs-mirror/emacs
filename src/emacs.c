@@ -67,7 +67,6 @@ Boston, MA 02111-1307, USA.  */
 extern void malloc_warning ();
 extern void set_time_zone_rule ();
 extern char *index ();
-extern char *strerror ();
 
 /* Command line args from shell, as list of strings */
 Lisp_Object Vcommand_line_args;
@@ -128,10 +127,10 @@ Lisp_Object Vsystem_configuration_options;
 Lisp_Object Qfile_name_handler_alist;
 
 /* Current and previous system locales for messages and time.  */
-Lisp_Object Vmessages_locale;
-Lisp_Object Vprevious_messages_locale;
-Lisp_Object Vtime_locale;
-Lisp_Object Vprevious_time_locale;
+Lisp_Object Vsystem_messages_locale;
+Lisp_Object Vprevious_system_messages_locale;
+Lisp_Object Vsystem_time_locale;
+Lisp_Object Vprevious_system_time_locale;
 
 /* If non-zero, emacs should not attempt to use an window-specific code,
    but instead should use the virtual terminal under which it was started */
@@ -283,7 +282,12 @@ memory_warning_signal (sig)
    MSDOS has its own definition on msdos.c  */
 
 #if ! defined (DOS_NT) && ! defined (NO_ABORT)
-void
+
+#ifndef ABORT_RETURN_TYPE
+#define ABORT_RETURN_TYPE void
+#endif
+
+ABORT_RETURN_TYPE
 abort ()
 {
   kill (getpid (), SIGABRT);
@@ -881,9 +885,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 #endif
     }
 
-#ifdef POSIX_SIGNALS
   init_signals ();
-#endif
 
   /* Don't catch SIGHUP if dumping.  */
   if (1
@@ -1019,8 +1021,8 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   if (do_initial_setlocale)
     {
       fixup_locale ();
-      Vmessages_locale = Vprevious_messages_locale;
-      Vtime_locale = Vprevious_time_locale;
+      Vsystem_messages_locale = Vprevious_system_messages_locale;
+      Vsystem_time_locale = Vprevious_system_time_locale;
     }
 
   init_eval ();
@@ -1905,10 +1907,10 @@ fixup_locale ()
 
 #ifdef LC_MESSAGES
   l = setlocale (LC_MESSAGES, (char *) 0);
-  Vprevious_messages_locale = l ? build_string (l) : Qnil;
+  Vprevious_system_messages_locale = l ? build_string (l) : Qnil;
 #endif
   l = setlocale (LC_TIME, (char *) 0);
-  Vprevious_time_locale = l ? build_string (l) : Qnil;
+  Vprevious_system_time_locale = l ? build_string (l) : Qnil;
 }
 
 static void
@@ -1923,20 +1925,22 @@ synchronize_locale (category, plocale, desired_locale)
     *plocale = desired_locale;
 }
 
-/* Set system time locale to match Vtime_locale, if possible.  */
+/* Set system time locale to match Vsystem_time_locale, if possible.  */
 void
-synchronize_time_locale ()
+synchronize_system_time_locale ()
 {
-  synchronize_locale (LC_TIME, &Vprevious_time_locale, Vtime_locale);
+  synchronize_locale (LC_TIME, &Vprevious_system_time_locale,
+		      Vsystem_time_locale);
 }
 
-/* Set system messages locale to match Vmessages_locale, if possible.  */
+/* Set system messages locale to match Vsystem_messages_locale, if
+   possible.  */
 void
-synchronize_messages_locale ()
+synchronize_system_messages_locale ()
 {
 #ifdef LC_MESSAGES
-  synchronize_locale (LC_MESSAGES, &Vprevious_messages_locale,
-		      Vmessages_locale);
+  synchronize_locale (LC_MESSAGES, &Vprevious_system_messages_locale,
+		      Vsystem_messages_locale);
 #endif
 }
 #endif /* HAVE_SETLOCALE */
@@ -2086,19 +2090,20 @@ installed locations, but we can find them\n\
 near where the Emacs executable was found.");
   Vinstallation_directory = Qnil;
 
-  DEFVAR_LISP ("messages-locale", &Vmessages_locale,
+  DEFVAR_LISP ("system-messages-locale", &Vsystem_messages_locale,
     "System locale for messages.");
-  Vmessages_locale = Qnil;
+  Vsystem_messages_locale = Qnil;
 
-  DEFVAR_LISP ("previous-messages-locale", &Vprevious_messages_locale,
+  DEFVAR_LISP ("previous-system-messages-locale",
+    &Vprevious_system_messages_locale,
     "Most recently used system locale for messages.");
-  Vprevious_messages_locale = Qnil;
+  Vprevious_system_messages_locale = Qnil;
 
-  DEFVAR_LISP ("time-locale", &Vtime_locale,
+  DEFVAR_LISP ("system-time-locale", &Vsystem_time_locale,
     "System locale for time.");
-  Vtime_locale = Qnil;
+  Vsystem_time_locale = Qnil;
 
-  DEFVAR_LISP ("previous-time-locale", &Vprevious_time_locale,
+  DEFVAR_LISP ("previous-system-time-locale", &Vprevious_system_time_locale,
     "Most recently used system locale for time.");
-  Vprevious_time_locale = Qnil;
+  Vprevious_system_time_locale = Qnil;
 }

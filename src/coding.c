@@ -5868,7 +5868,7 @@ emacs_strerror (error_number)
 {
   char *str;
 
-  synchronize_messages_locale ();
+  synchronize_system_messages_locale ();
   str = strerror (error_number);
 
   if (! NILP (Vlocale_coding_system))

@@ -544,7 +544,7 @@ get_result:
 	  int code = WTERMSIG (retval);
 	  char *signame;
 
-	  synchronize_messages_locale ();
+	  synchronize_system_messages_locale ();
 	  signame = strsignal (code);
 
 	  if (signame == 0)
