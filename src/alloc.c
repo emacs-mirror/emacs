@@ -262,7 +262,7 @@ mark_interval_tree (tree)
   if (XMARKBIT (tree->plist))
     return;
 
-  traverse_intervals (tree, 1, &mark_interval);
+  traverse_intervals (tree, 1, 0, &mark_interval);
 }
 
 #define MARK_INTERVAL_TREE(i) \
