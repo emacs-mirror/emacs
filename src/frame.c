@@ -28,19 +28,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "msdos.h"
 #endif
 
-#ifdef MULTI_FRAME
-
-#include "buffer.h"
-
-/* These help us bind and responding to switch-frame events.  */
-#include "commands.h"
-#include "keyboard.h"
-
-Lisp_Object Vemacs_iconified;
-Lisp_Object Vframe_list;
-Lisp_Object Vterminal_frame;
-Lisp_Object Vdefault_frame_alist;
-
 /* Evaluate this expression to rebuild the section of syms_of_frame
    that initializes and staticpros the symbols declared below.  Note
    that Emacs 18 has a bug that keeps C-x C-e from being able to
@@ -74,6 +61,8 @@ Lisp_Object Vdefault_frame_alist;
       (setq symbol-list (cdr symbol-list)))))
   */        
 
+/* We need most of these symbols even if not MULTI_FRAME;
+   easiest to define them all, all of the time.  */
 /*&&& symbols declared here &&&*/
 Lisp_Object Qframep;
 Lisp_Object Qframe_live_p;
@@ -89,6 +78,100 @@ Lisp_Object Qwidth;
 Lisp_Object Qx;
 Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
+
+Lisp_Object Vterminal_frame;
+
+static void
+syms_of_frame_1 ()
+{
+  /*&&& init symbols here &&&*/
+  Qframep = intern ("framep");
+  staticpro (&Qframep);
+  Qframe_live_p = intern ("frame-live-p");
+  staticpro (&Qframe_live_p);
+  Qheight = intern ("height");
+  staticpro (&Qheight);
+  Qicon = intern ("icon");
+  staticpro (&Qicon);
+  Qminibuffer = intern ("minibuffer");
+  staticpro (&Qminibuffer);
+  Qmodeline = intern ("modeline");
+  staticpro (&Qmodeline);
+  Qname = intern ("name");
+  staticpro (&Qname);
+  Qonly = intern ("only");
+  staticpro (&Qonly);
+  Qunsplittable = intern ("unsplittable");
+  staticpro (&Qunsplittable);
+  Qmenu_bar_lines = intern ("menu-bar-lines");
+  staticpro (&Qmenu_bar_lines);
+  Qwidth = intern ("width");
+  staticpro (&Qwidth);
+  Qx = intern ("x");
+  staticpro (&Qx);
+  Qvisible = intern ("visible");
+  staticpro (&Qvisible);
+  Qbuffer_predicate = intern ("buffer-predicate");
+  staticpro (&Qbuffer_predicate);
+}
+
+static void
+set_menu_bar_lines_1 (window, n)
+  Lisp_Object window;
+  int n;
+{
+  struct window *w = XWINDOW (window);
+
+  XSETFASTINT (w->top, XFASTINT (w->top) + n);
+  XSETFASTINT (w->height, XFASTINT (w->height) - n);
+
+  /* Handle just the top child in a vertical split.  */
+  if (!NILP (w->vchild))
+    set_menu_bar_lines_1 (w->vchild, n);
+
+  /* Adjust all children in a horizontal split.  */
+  for (window = w->hchild; !NILP (window); window = w->next)
+    {
+      w = XWINDOW (window);
+      set_menu_bar_lines_1 (window, n);
+    }
+}
+
+static void
+set_menu_bar_lines (f, value, oldval)
+     struct frame *f;
+     Lisp_Object value, oldval;
+{
+  int nlines;
+  int olines = FRAME_MENU_BAR_LINES (f);
+
+  /* Right now, menu bars don't work properly in minibuf-only frames;
+     most of the commands try to apply themselves to the minibuffer
+     frame itslef, and get an error because you can't switch buffers
+     in or split the minibuffer window.  */
+  if (FRAME_MINIBUF_ONLY_P (f))
+    return;
+
+  if (INTEGERP (value))
+    nlines = XINT (value);
+  else
+    nlines = 0;
+
+  FRAME_MENU_BAR_LINES (f) = nlines;
+  set_menu_bar_lines_1 (f->root_window, nlines - olines);
+}
+
+#ifdef MULTI_FRAME
+
+#include "buffer.h"
+
+/* These help us bind and responding to switch-frame events.  */
+#include "commands.h"
+#include "keyboard.h"
+
+Lisp_Object Vemacs_iconified;
+Lisp_Object Vframe_list;
+Lisp_Object Vdefault_frame_alist;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -1546,6 +1629,9 @@ store_frame_param (f, prop, val)
   if (EQ (prop, Qbuffer_predicate))
     f->buffer_predicate = val;
 
+  if (EQ (prop, Qmenu_bar_lines))
+    set_menu_bar_lines (f, val, make_number (FRAME_MENU_BAR_LINES (f)));
+
   if (EQ (prop, Qminibuffer) && WINDOWP (val))
     {
       if (! MINI_WINDOW_P (XWINDOW (val)))
@@ -1888,35 +1974,7 @@ choose_minibuf_frame ()
 
 syms_of_frame ()
 {
-  /*&&& init symbols here &&&*/
-  Qframep = intern ("framep");
-  staticpro (&Qframep);
-  Qframe_live_p = intern ("frame-live-p");
-  staticpro (&Qframe_live_p);
-  Qheight = intern ("height");
-  staticpro (&Qheight);
-  Qicon = intern ("icon");
-  staticpro (&Qicon);
-  Qminibuffer = intern ("minibuffer");
-  staticpro (&Qminibuffer);
-  Qmodeline = intern ("modeline");
-  staticpro (&Qmodeline);
-  Qname = intern ("name");
-  staticpro (&Qname);
-  Qonly = intern ("only");
-  staticpro (&Qonly);
-  Qunsplittable = intern ("unsplittable");
-  staticpro (&Qunsplittable);
-  Qmenu_bar_lines = intern ("menu-bar-lines");
-  staticpro (&Qmenu_bar_lines);
-  Qwidth = intern ("width");
-  staticpro (&Qwidth);
-  Qx = intern ("x");
-  staticpro (&Qx);
-  Qvisible = intern ("visible");
-  staticpro (&Qvisible);
-  Qbuffer_predicate = intern ("buffer-predicate");
-  staticpro (&Qbuffer_predicate);
+  syms_of_frame_1 ();
 
   staticpro (&Vframe_list);
 
@@ -2011,16 +2069,6 @@ keys_of_frame ()
 
 /* If we're not using multi-frame stuff, we still need to provide some
    support functions.  */
-
-Lisp_Object Qheight;
-Lisp_Object Qminibuffer;
-Lisp_Object Qmodeline;
-Lisp_Object Qname;
-Lisp_Object Qunsplittable;
-Lisp_Object Qmenu_bar_lines;
-Lisp_Object Qwidth;
-
-Lisp_Object Vterminal_frame;
 
 /* Unless this function is defined, providing set-frame-height and
    set-frame-width doesn't help compatibility any, since they both
@@ -2317,10 +2365,22 @@ DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
   (frame, alist)
      Lisp_Object frame, alist;
 {
+  Lisp_Object tail, elt, prop, val;
+
 #ifdef MSDOS
   if (FRAME_X_P (frame))
     IT_set_frame_parameters (XFRAME (frame), alist);
+  else
 #endif
+    for (tail = alist; !EQ (tail, Qnil); tail = Fcdr (tail))
+      {
+	elt = Fcar (tail);
+	prop = Fcar (elt);
+	val = Fcdr (elt);
+	if (EQ (prop, Qmenu_bar_lines))
+	  set_menu_bar_lines (f, val, make_number (FRAME_MENU_BAR_LINES (f)));
+      }
+
   return Qnil;
 }
 
@@ -2345,20 +2405,7 @@ DEFUN ("frame-list", Fframe_list, Sframe_list, 0, 0, 0,
 
 syms_of_frame ()
 {
-  Qheight = intern ("height");
-  staticpro (&Qheight);
-  Qminibuffer = intern ("minibuffer");
-  staticpro (&Qminibuffer);
-  Qmodeline = intern ("modeline");
-  staticpro (&Qmodeline);
-  Qname = intern ("name");
-  staticpro (&Qname);
-  Qunsplittable = intern ("unsplittable");
-  staticpro (&Qunsplittable);
-  Qmenu_bar_lines = intern ("menu-bar-lines");
-  staticpro (&Qmenu_bar_lines);
-  Qwidth = intern ("width");
-  staticpro (&Qwidth);
+  syms_of_frame_1 ();
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
   /* Don't confuse make-docfile by having two doc strings for this variable.
