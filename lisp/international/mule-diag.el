@@ -1023,7 +1023,7 @@ but still contains full information about each coding system."
     (setq fontname (cdr (assq 'font (frame-parameters))))
     (if (query-fontset fontname)
 	(setq fontname
-	      (nth 1 (assq 'ascii (fontset-info fontname))))))
+	      (nth 1 (assq 'ascii (aref (fontset-info fontname) 2))))))
   (let ((font-info (font-info fontname)))
     (if (null font-info)
 	(message "No matching font")
@@ -1034,7 +1034,7 @@ but still contains full information about each coding system."
 ;; non-nil, print also names of all opened fonts for FONTSET.  This
 ;; function actually INSERT such information in the current buffer.
 (defun print-fontset (fontset &optional print-fonts)
-  (let ((tail (cdr (fontset-info fontset)))
+  (let ((tail (aref (fontset-info fontset) 2))
 	elt chars font-spec opened prev-charset charset from to)
     (beginning-of-line)
     (insert "Fontset: " fontset "\n")
