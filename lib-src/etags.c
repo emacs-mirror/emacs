@@ -1,5 +1,5 @@
-/* Tags file maker to go with GNU Emacs
-   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98, 99, 2000
+/* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
+   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98, 99, 2000, 2001
    Free Software Foundation, Inc. and Ken Arnold
 
 This file is not considered part of GNU Emacs.
@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot number is $Revision: 13.59 $";
+char pot_etags_version[] = "@(#) pot number is $Revision: 2.79 $";
 
 #define	TRUE	1
 #define	FALSE	0
