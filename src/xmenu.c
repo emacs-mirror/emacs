@@ -163,6 +163,10 @@ With this form of menu, the return value is VALUE from the chosen item.")
       XMenu_xpos = FONT_WIDTH (f->display.x->font) * XWINDOW (window)->left;
       XMenu_ypos = FONT_HEIGHT (f->display.x->font) * XWINDOW (window)->top;
     }
+  else
+    /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
+       but I don't want to make one now.  */
+    CHECK_WINDOW (window, 0);
 
   XMenu_xpos += FONT_WIDTH (f->display.x->font) * XINT (x);
   XMenu_ypos += FONT_HEIGHT (f->display.x->font) * XINT (y);
