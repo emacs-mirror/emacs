@@ -1,3 +1,7 @@
+2003-10-08  Nick Roberts  <nick@nick.uklinux.net>
+
+	* speedbar.texi: Remove paragraph for GUD that is no longer true.
+
 2003-10-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* texinfo.tex:  Replace `%' in arch tagline by @ignore.
