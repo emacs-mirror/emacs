@@ -5,6 +5,11 @@
 	* desktop.el (desktop-save): Add `-*- coding: emacs-mule -*-' to
 	the desktop file.
 
+2001-07-30  Simon Josefsson  <jas@extundo.com>
+
+	* mail/mail-utils.el (mail-strip-quoted-names): Replace text
+	literally.  Reported by Sean Rima <sean@**Delete**.tcob1.net>.
+
 2001-07-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (last-sexp-setup-props): New function.
