@@ -5673,10 +5673,15 @@ x_make_frame_visible (f)
       {
 	x_sync (frame);
 	/* Machines that do polling rather than SIGIO have been observed
-	   to go into a busy-wait here.  Send the alarm signal to let
-	   the handler know that there's something to be read.  */
+	   to go into a busy-wait here.  So we'll fake an alarm signal
+	   to let the handler know that there's something to be read.
+	   We used to raise a real alarm, but it seems that the handler
+	   isn't always enabled here.  This is probably a bug.  */
 #ifndef SIGIO
-	kill (getpid(), SIGALRM);
+	/* It could be confusing if a real alarm arrives while processing
+	   the fake one.  Turn it off and let the handler reset it.  */
+	alarm (0);
+	input_poll_signal ();
 #endif
       }
     FRAME_SAMPLE_VISIBILITY (f);
