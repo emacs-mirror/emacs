@@ -978,6 +978,15 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
++++
+** The last argument of `define-key-after' defaults to t for convenience.
+
+** The new function `replace-regexps-in-string' replaces all matches
+for a regexp in a string.
+
+** `mouse-position' now runs the abnormal hook
+`mouse-position-function'.
+
 ** The function string-to-number now returns a float for numbers
 that don't fit into a Lisp integer.
 
