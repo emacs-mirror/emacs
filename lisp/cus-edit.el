@@ -106,6 +106,10 @@
   :group 'external
   :group 'development)
 
+(defgroup convenience nil
+  "Convenience features for faster editing."
+  :group 'emacs)
+
 (defgroup programming nil
   "Support for programming in other languages."
   :group 'emacs)
