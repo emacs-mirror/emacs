@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.55) $
+ * $HopeName: MMsrc!buffer.c(trunk.56) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.55) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.56) $");
 
 
 /* forward declarations */
@@ -1370,7 +1370,7 @@ static Res segBufInit (Buffer buffer, Pool pool, va_list args)
   segbuf = BufferSegBuf(buffer);
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureBufferClass();
+  super = BUFFER_SUPERCLASS(SegBufClass);
   res = super->init(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -1398,7 +1398,7 @@ static void segBufFinish (Buffer buffer)
   segbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = EnsureBufferClass();
+  super = BUFFER_SUPERCLASS(SegBufClass);
   super->finish(buffer);
 }
 
@@ -1534,7 +1534,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = EnsureBufferClass();
+  super = BUFFER_SUPERCLASS(SegBufClass);
   res = super->describe(buffer, stream);
   if(res != ResOK)
     return res;
@@ -1592,7 +1592,7 @@ static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
   AVER(RankCheck(rank));
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureSegBufClass();
+  super = BUFFER_SUPERCLASS(RankBufClass);
   res = super->init(buffer, pool, args);
   if (res != ResOK)
     return res;
