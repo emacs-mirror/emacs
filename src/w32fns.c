@@ -144,6 +144,8 @@ Lisp_Object Vw32_bdf_filename_alist;
 /* A flag to control how to display unibyte 8-bit character.  */
 int unibyte_display_via_language_environment;
 
+int w32_strict_fontnames;
+
 /* Evaluate this expression to rebuild the section of syms_of_w32fns
    that initializes and staticpros the symbols declared below.  Note
    that Emacs 18 has a bug that keeps C-x C-e from being able to
@@ -4774,7 +4776,7 @@ This function is an internal primitive--use `make-frame' instead.")
         if (STRINGP (tem))
           font = x_new_fontset (f, XSTRING (tem)->data);
         else
-      font = x_new_font (f, XSTRING (font)->data);
+          font = x_new_font (f, XSTRING (font)->data);
       }
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
@@ -4985,7 +4987,7 @@ int size;
 #endif
       fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
     }
-  else
+  else if (w32_strict_fontnames)
     {
       /* If EnumFontFamiliesEx was available, we got a full list of
          fonts back so stop now to avoid the possibility of loading a
@@ -4994,7 +4996,7 @@ int size;
          listed or not. */
       HMODULE gdi32 = GetModuleHandle ("gdi32.dll");
       FARPROC enum_font_families_ex
-        = GetProcAddress ( gdi32, "EnumFontFamiliesExA");
+        = GetProcAddress (gdi32, "EnumFontFamiliesExA");
       if (enum_font_families_ex)
         return NULL;
     }
@@ -7397,6 +7399,16 @@ displayed according to the current fontset.");
                &Vw32_bdf_filename_alist,
                "List of bdf fonts and their corresponding filenames.");
   Vw32_bdf_filename_alist = Qnil;
+
+  DEFVAR_BOOL ("w32-strict-fontnames",
+               &w32_strict_fontnames,
+  "Non-nil means only use fonts that are exact matches for those requested.\n\
+Default is nil, which allows old fontnames that are not XLFD compliant,\n\
+and allows third-party CJK display to work by specifying false charset\n\
+fields to trick Emacs into translating to Big5, SJIS etc.\n\
+Setting this to t will prevent wrong fonts being selected when\n\
+fontsets are automatically created.");
+  w32_strict_fontnames = 0;
 
   defsubr (&Sx_get_resource);
   defsubr (&Sx_list_fonts);
