@@ -1,3 +1,8 @@
+2003-04-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-get-map): Correctly handle
+	non-submap bindings.
+
 2003-04-30  Emmanuel Briot  <briot@gnat.com>
 
 	* progmodes/ada-mode.el (ada-search-directories): Take into account
@@ -10,33 +15,37 @@
 	XEmacs.  All menus that were previously in ada-xref.el and
 	ada-prj.el are now defined in this package, which makes it easier to
 	edit menus.
-	(ada-narrow-to-defun): Add support for `narrow-to-region'.  No
-	longer explicitely load ada-xref.el and ada-prj.el.  Use autoload
+	(ada-narrow-to-defun): Add support for `narrow-to-region'.
+	No longer explicitely load ada-xref.el and ada-prj.el.  Use autoload
 	statements instead.
 
-	* progmodes/ada-xref.el (ada-gnatls-args): New variable.  Add
-	support for specifying arguments to gnatls.
+	* progmodes/ada-xref.el (ada-gnatls-args): New variable.
+	Add support for specifying arguments to gnatls.
 	(ada-initialize-runtime-library): Properly parse "." in the output
 	of gnatls.
-	(ada-add-keymap): Removed, since this is now done in ada-mode.el
-	itself.
+	(ada-add-keymap): Remove since this is now done in ada-mode.el itself.
 	(ada-add-ada-menu): Likewise.
 	(ada-set-default-project-file): New parameter KEEP-EXISTING.
 	(ada-prj-find-prj-file): New parameter FILE.
 	(ada-parse-prj-file): Take into account the ADA_INCLUDE_PATH and
 	ADA_OBJECTS_PATH environment variables.  Minor reorganization of the
 	code
-	(ada-get-all-references): Add support for GNAT 3.16
-	cross-references.
+	(ada-get-all-references): Add support for GNAT 3.16 cross-references.
 
-	* progmodes/ada-prj.el (ada-prj-add-keymap): Moved to ada-mode.el
+	* progmodes/ada-prj.el (ada-prj-add-keymap): Move to ada-mode.el
 	directly.  Add dependency on ada-xref.el to avoid compilation
 	warnings.
-	(ada-prj-get-prj-dir): Removed, no longer needed.
+	(ada-prj-get-prj-dir): Remove, no longer needed.
 
-	* progmodes/ada-stmt.el (ada-stmt-add-to-ada-menu): Moved to
-	ada-mode.el.
-	(ada-template-map): Merged with the keymap handling in ada-mode.el.
+	* progmodes/ada-stmt.el (ada-stmt-add-to-ada-menu):
+	Move to ada-mode.el.
+	(ada-template-map): Merge with the keymap handling in ada-mode.el.
+
+2003-04-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* (isearch-complete1): Don't allocate unnecessarily.
+	(isearch-complete-edit): Adjust to Emacs-21's new minibuffer handling.
+	(isearch-update-ring): Use push.
 
 2003-04-29  Oliver Scholz  <epameinondas@gmx.de>
 
@@ -57,9 +66,9 @@
 
 2003-04-28  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (reset-language-environment): Raise
-	the priority of mule-utf-8, mule-utf-16-be-with-signature and
-	mule-utf-16-le.-with-signature.
+	* international/mule-cmds.el (reset-language-environment):
+	Raise the priority of mule-utf-8, mule-utf-16-be-with-signature and
+	mule-utf-16-le-with-signature.
 
 	* international/mule-conf.el: Set coding-category-utf-16-be to
 	mule-utf-16-be-with-signature, coding-category-utf-16-le to
@@ -77,46 +86,46 @@
 	* recentf.el
 
 	Major rewrite.  The code is reordered, cleaner and faster.
-	Introduced new options to automatically cleanup the recent list,
+	Introduce new options to automatically cleanup the recent list,
 	and to handle filename transformation (for example to use true
 	filenames).
 
 	(recentf-version): New constant.
-	(recentf-save-file-header): Moved.
+	(recentf-save-file-header): Move.
 	(recentf-data-cache): New variable.
-	(recentf-update-menu-p, recentf-initialized-p): Removed.
-	(recentf-menu-customization-changed): Moved.  Doc fix.
+	(recentf-update-menu-p, recentf-initialized-p): Remove.
+	(recentf-menu-customization-changed): Move.  Doc fix.
 	(recentf-max-saved-items): Doc fix.
 	(recentf-save-file): Doc fix.  No more expand filename here.
 	(recentf-exclude, recentf-menu-action)
 	(recentf-menu-filter): Doc fix.
-	(recentf-menu-append-commands-flag): Renamed from...
-	(recentf-menu-append-commands-p): Made obsolete.
-	(recentf-keep-non-readable-files-flag): Renamed from...
-	(recentf-keep-non-readable-files-p): Made obsolete.
+	(recentf-menu-append-commands-flag): Rename from...
+	(recentf-menu-append-commands-p): Make obsolete.
+	(recentf-keep-non-readable-files-flag): Rename from...
+	(recentf-keep-non-readable-files-p): Make obsolete.
 	(recentf-auto-cleanup, recentf-filename-handler): New options.
 	(recentf-string-equal, recentf-string-lessp)
 	(recentf-string-member): New functions.
-	(recentf-trunc-list): Moved.
-	(recentf-dump-variable): Moved.  Better code and output format.
+	(recentf-trunc-list): Move.
+	(recentf-dump-variable): Move.  Better code and output format.
 	(recentf-auto-cleanup-timer): New variable.
 	(recentf-auto-cleanup): New function.
 	(recentf-push, recentf-expand-file-name): New functions.
-	(recentf-add-file): In-lined.  Use above functions.
-	(recentf-remove-if-non-readable): In-lined.  Expand file name.
+	(recentf-add-file): In-line.  Use above functions.
+	(recentf-remove-if-non-readable): In-line.  Expand file name.
 	(recentf-find-file): Use `recentf-remove-if-non-readable'.
-	(recentf-directory-compare): Moved.  Use `recentf-string-equal'
+	(recentf-directory-compare): Move.  Use `recentf-string-equal'
 	and `recentf-string-lessp' to do comparisons.
 	(recentf-menu-items-for-commands)
-	(recentf-menu-filter-commands): Moved.
+	(recentf-menu-filter-commands): Move.
 	(recentf-elements, recentf-make-menu-element)
 	(recentf-menu-element-item, recentf-menu-element-value)
 	(recentf-set-menu-element-item, recentf-set-menu-element-value)
 	(recentf-sub-menu-element-p, recentf-make-default-menu-element)
-	(recentf-menu-elements): In-lined. Some doc fix.
+	(recentf-menu-elements): In-line.  Some doc fix.
 	(recentf-apply-menu-filter): Better code.
-	(recentf-make-menu-items): Doc fix.  Use
-	`recentf-menu-append-commands-flag'.
+	(recentf-make-menu-items): Doc fix.
+	Use `recentf-menu-append-commands-flag'.
 	(recentf-make-menu-item): In-lined.  Better code.
 	(recentf-clear-data): New function.
 	(recentf-sort-ascending, recentf-sort-descending)
@@ -125,30 +134,28 @@
 	(recentf-sort-directories-ascending)
 	(recentf-sort-directories-descending)
 	(recentf-show-basenames-ascending)
-	(recentf-show-basenames-descending: In-lined.  Better code.  Some
-	doc fix.
+	(recentf-show-basenames-descending: In-line.   Better code.  Doc fix.
 	(recentf-show-basenames)
 	(recentf-relative-filter): Better code.  Doc fix.
-	(recentf-arrange-by-rule-subfilter): Doc fix.  Improved :set code.
+	(recentf-arrange-by-rule-subfilter): Doc fix.  Improve :set code.
 	(recentf-match-rule-p): Use filename instead of file-path.
 	(recentf-arrange-by-rule, recentf-build-mode-rules)
 	(recentf-arrange-by-mode, recentf-build-dir-rules)
 	(recentf-file-name-nondir)
 	(recentf-filter-changer-alist): Some doc fix and code cleanup.
-	(recentf-filter-changer-goto-next): Doc fix.  Call
-	`recentf-clear-data'.
+	(recentf-filter-changer-goto-next): Doc fix.
+	Call `recentf-clear-data'.
 	(recentf-filter-changer-get-current)
-	(recentf-filter-changer-get-next): In-lined.  Doc fix and better
-	code.
+	(recentf-filter-changer-get-next): In-line.  Doc fix and better code.
 	(recentf-filter-changer): Doc fix and better code.
 	(recentf-cancel-dialog): Doc fix.
-	(recentf-dialog-mode-map): Initialized in defvar.
+	(recentf-dialog-mode-map): Initialize in defvar.
 	(recentf-dialog-mode): Doc fix.
-	(recentf-track-opened-file): Renamed from...
-	(recentf-add-file-hook): Removed.
-	(recentf-track-closed-file): Renamed from...
-	(recentf-remove-file-hook): Removed.
-	(recentf-update-menu-hook): Removed.  Replaced by...
+	(recentf-track-opened-file): Rename from...
+	(recentf-add-file-hook): Remove.
+	(recentf-track-closed-file): Rename from...
+	(recentf-remove-file-hook): Remove.
+	(recentf-update-menu-hook): Remove.  Replace by...
 	(recentf-update-menu): New.  Better catch unnecessary updates.
 	Display a message on error.
 	(recentf-used-hooks): New constant.
@@ -159,8 +166,8 @@
 	(recentf-edit-list-action)
 	(recentf-open-files-item): Doc fix.  Code cleanup.
 	(recentf-edit-list, recentf-open-files)
-	(recentf-open-more-files): Likewise.  Removed autoload cookie.
-	(recentf-save-list, recentf-cleanup): Likewise.  Moved.
+	(recentf-open-more-files): Likewise.  Remove autoload cookie.
+	(recentf-save-list, recentf-cleanup): Likewise.  Move.
 	(recentf-load-list): New command.
 	(recentf-mode): Better code.  Does nothing if enabling the already
 	enabled mode.
@@ -205,6 +212,12 @@
 
 	* help-mode.el (help-make-xrefs): Remove extra paren.
 
+2003-04-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-normalize-vars): Prompt the user for
+	the comment-start to use rather than signalling an error.  Fix regexp.
+	(uncomment-region): Don't leave half-removed comment markers.
+
 2003-04-23  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/sendmail.el (mail-send-and-exit): Make arg optional.
@@ -229,14 +242,31 @@
 
 2003-04-23  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-cvs.el (vc-cvs-stay-local): Keep the old default.  Simplify
-	doc string.
+	* vc-cvs.el (vc-cvs-stay-local): Keep the old default.
+	Simplify doc string.
 
 2003-04-23  Wolfgang Scherer  <wolfgang.scherer@gmx.de>
 
 	* vc-cvs.el (vc-cvs-stay-local): Allow lists of host regexps.
 	(vc-cvs-stay-local-p): Handle them.
 	(vc-cvs-parse-root): New function, used by the above.
+
+2003-04-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-mcvs.el (vc-mcvs-root): Cache the result.
+	(vc-mcvs-registered): Simplify.  Use file-relative-name.
+	(vc-mcvs-register): Simplify.  Don't burp if MCVS/TYPES doesn't exist.
+	(vc-mcvs-command): Filter F-NN names in the output for diff and log.
+
+2003-04-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-default-dirs): New fun extracted from Info-initialize.
+	(info-initialize): Use it.  Obey the "final :" convention for INFOPATH.
+
+	* textmodes/fill.el (fill-region-as-paragraph):
+	Fix "last line goes to fill-column+1" problem.
+
+	* emacs-lisp/bytecomp.el (byte-compile-defvar): Improve message.
 
 2003-04-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -361,8 +391,8 @@
 	(fortran-break-before-delimiters, fortran-mode-hook)
 	(fortran-end-prog-re, fortran-imenu-generic-expression):
 	Minor doc changes.
+	(fortran-tab-mode-minor-mode-string): New variable.
 	(fortran-tab-mode-string): Now customization is meaningful.
-	Change default value.
 	(fortran-column-ruler-fixed, fortran-column-ruler-tab)
 	(fortran-analyze-depth): Use defcustom.
 	(fortran-if-start-re, fortran-end-prog-re1, fortran-fill)
@@ -375,8 +405,7 @@
 	depth of fortran-type-types has changed.  Remove extra and.
 	(fortran-mode-menu): Minor re-organization.  Use lookup-key.
 	(fortran-mode): Doc changes.  Some re-organization.
-	Use mode-line-process (rather than minor-mode-alist) for tab
-	format.
+	Use fortran-tab-mode-minor-mode-string.
 	(fortran-comment-indent): Add doc string.  Move save-excursion.
 	Use 1+.
 	(fortran-indent-comment, fortran-fill-statement):
@@ -398,8 +427,7 @@
 	(fortran-indent-to-column): Doc change.  Use when, unless.
 	(fortran-find-comment-start-skip): No longer interactive.
 	(fortran-analyze-file-format): Minor doc change.
-	Remove un-needed setq.  Return fortran-tab-mode-default if no
-	match.
+	Remove un-needed setq.
 	(minor-mode-alist): Use add-to-list.
 	(fortran-fill-paragraph): Change interactive spec, doc string.
 
