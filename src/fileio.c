@@ -3477,7 +3477,7 @@ actually used.")
 	      /* Find a coding system specified in the heading two
 		 lines or in the tailing several lines of the file.
 		 We assume that the 1K-byte and 3K-byte for heading
-		 and tailing respectively are sufficient fot this
+		 and tailing respectively are sufficient for this
 		 purpose.  */
 	      int how_many, nread;
 
