@@ -1373,17 +1373,38 @@ Creates a buffer if necessary."
     (select-window (posn-window (event-end event)))
     (find-file-other-window (file-name-sans-versions file t))))
 
+(defcustom dired-view-command-alist
+  '(("[.]ps\\'" . "gv -spartan -color -watch")
+    ("[.]pdf\\'" . "xpdf")
+    ("[.]dvi\\'" . "xdvi -sidemargin 0.5 -topmargin 1"))
+  "Alist specifying how to view special types of files.
+Each element has the form (REGEXP . SHELL-COMMAND).
+When the file name matches REGEXP, `dired-view-file'
+invokes SHELL-COMMAND to view the file, putting the file name
+at the end of the command."
+  :group 'dired
+  :type '(alist :key-type regexp :value-type string)
+  :version 21.4)
+
 (defun dired-view-file ()
   "In Dired, examine a file in view mode, returning to dired when done.
-When file is a directory, show it in this buffer if it is inserted;
-otherwise, display it in another buffer."
+When file is a directory, show it in this buffer if it is inserted.
+Some kinds of files are displayed using external viewer programs;
+see `dired-view-command-alist'.  Otherwise, display it in another buffer."
   (interactive)
   (let ((file (dired-get-file-for-visit)))
     (if (file-directory-p file)
 	(or (and (cdr dired-subdir-alist)
 		 (dired-goto-subdir file))
 	    (dired file))
-      (view-file file))))
+      (let (cmd)
+	;; Look for some other way to view a certain file.
+	(dolist (elt dired-view-command-alist)
+	  (if (string-match (car elt) file)
+	      (setq cmd (cdr elt))))
+	(if cmd
+	    (dired-run-shell-command (concat cmd " " file))
+	  (view-file file))))))
 
 (defun dired-find-file-other-window ()
   "In Dired, visit this file or directory in another window."
@@ -2983,6 +3004,8 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
 true then the type of the file linked to by FILE is printed instead." 
   t)
+
+(autoload 'dired-run-shell-command "dired-aux")
 
 (if (eq system-type 'vax-vms)
     (load "dired-vms"))
