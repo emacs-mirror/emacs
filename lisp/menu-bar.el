@@ -827,8 +827,8 @@ Do the same for the keys of the same name."
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
-With a numeric argument, if the argument is negative,
-turn off menu bars; otherwise, turn on menu bars."
+With a numeric argument, if the argument is positive,
+turn on menu bars; otherwise, turn off menu bars."
  (interactive "P")
 
   ;; Make menu-bar-mode and default-frame-alist consistent.
