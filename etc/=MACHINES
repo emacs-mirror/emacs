@@ -344,7 +344,8 @@ Honeywell XPS100 (-machine=xps100; -opsystem=usg5-2)
 HP 9000 series 200 or 300 (-machine=hp9000s300;
                            -opsystem=hpux or -opsystem=bsd4-3)
 
-  Version 18 works.
+  Version 19 works under BSD.
+
   These machines are 68000-series CPUs running HP-UX
   (a derivative of sysV with some BSD features) or BSD 4.3 ported by Utah.
   The choice of s- file determines which system Emacs is built for.
@@ -376,10 +377,6 @@ HP 9000 series 200 or 300 (-machine=hp9000s300;
   Define the symbol HPUX_NET if you have the optional network features
   that include the `netunam' system call.  This is refered to as
   Network Services (NS/9000) in HP literature.
-
-HP 9000 series 300 running BSD 4.3 (-machine=hp300bsd; -opsystem=bsd4-3)
-
-  Version 19.1 works.
 
 HP 9000 series 500: not supported.
 
