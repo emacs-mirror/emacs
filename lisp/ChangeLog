@@ -1,5 +1,8 @@
 2000-06-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* comint.el (comint-substitute-in-file-name): Call replace-match
+	with second and third arg t.
+
 	* cus-edit.el (custom-button-face, custom-button-pressed-face): 
 	Specify foreground color.
 
@@ -22,6 +25,11 @@
 	* eshell: New subdirectory containing the Eshell package.
 
 	* pcomplete.el: New file.
+
+2000-06-23  Paul Eggert  <eggert@twinsun.com>
+
+	* emerge.el (emerge-make-temp-file): Make sure file has proper
+	permissions from birth.
 
 2000-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
