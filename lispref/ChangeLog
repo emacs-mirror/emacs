@@ -1,3 +1,9 @@
+2003-10-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loading.texi (Library Search): Correct default value of
+	load-suffixes.
+	(Named Features): Fix typo.
+
 2003-10-05  Richard M. Stallman  <rms@gnu.org>
 
 	* loading.texi (Named Features): In `provide',

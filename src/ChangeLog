@@ -1,3 +1,7 @@
+2003-10-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Frequire): Doc fix.
+
 2003-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_send_client_event): New function as a base for
