@@ -673,7 +673,7 @@ it takes to reach a non-prefix command.\n\
 \n\
 Normally, `lookup-key' ignores bindings for t, which act as default\n\
 bindings, used when nothing else in the keymap applies; this makes it\n\
-useable as a general function for probing keymaps.  However, if the\n\
+usable as a general function for probing keymaps.  However, if the\n\
 third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will\n\
 recognize the default bindings, just as `read-key-sequence' does.")
   (keymap, key, accept_default)
@@ -1951,7 +1951,7 @@ nominal         alternate\n\
   return Qnil;
 }
 
-/* Insert a desription of the key bindings in STARTMAP,
+/* Insert a description of the key bindings in STARTMAP,
     followed by those of all maps reachable through STARTMAP.
    If PARTIAL is nonzero, omit certain "uninteresting" commands
     (such as `undefined').
