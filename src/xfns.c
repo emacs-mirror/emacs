@@ -5147,9 +5147,9 @@ terminate Emacs if we can't open the connection.  */
   if (dpyinfo == 0)
     {
       if (!NILP (must_succeed))
-	fatal ("Cannot connect to X server %s.
-Check the DISPLAY environment variable or use `-d'.
-Also use the `xhost' program to verify that it is set to permit
+	fatal ("Cannot connect to X server %s.\n\
+Check the DISPLAY environment variable or use `-d'.\n\
+Also use the `xhost' program to verify that it is set to permit\n\
 connections from your machine.\n",
 	       XSTRING (display)->data);
       else
