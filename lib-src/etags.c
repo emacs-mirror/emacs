@@ -4028,8 +4028,9 @@ Perl_functions (inf)
 
 /*
  * Python support
- * Look for /^def[ \t\n]+[^ \t\n(:]+/ or /^class[ \t\n]+[^ \t\n(:]+/
+ * Look for /^[\t]*def[ \t\n]+[^ \t\n(:]+/ or /^class[ \t\n]+[^ \t\n(:]+/
  * Eric S. Raymond <esr@thyrsus.com> (1997)
+ * More ideas by seb bacon <seb@jamkit.com> (2002)
  */
 static void
 Python_functions (inf)
@@ -4039,6 +4040,7 @@ Python_functions (inf)
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
+      cp = skip_spaces (cp);
       if (*cp++ == 'd'
 	  && *cp++ == 'e'
 	  && *cp++ == 'f' && iswhite (*cp++))
@@ -4050,7 +4052,7 @@ Python_functions (inf)
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
 
-      cp = lb.buffer;
+      cp = skip_spaces (lb.buffer);
       if (*cp++ == 'c'
 	  && *cp++ == 'l'
 	  && *cp++ == 'a'
