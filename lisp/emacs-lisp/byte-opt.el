@@ -1143,44 +1143,63 @@
 ;;;           (foo))
 ;;; Further optimizations will turn (progn (list 1 2 3) 'foo) into 'foo.
 
+;;; Some of these functions have the side effect of allocating memory
+;;; and it would be incorrect to replace two calls with one.
+;;; But we don't try to do those kinds of optimizations,
+;;; so it is safe to list such functions here.
+;;; Some of these functions return values that depend on environment
+;;; state, so that constant folding them would be wrong,
+;;; but we don't do constant folding based on this list.
+
 ;;; I wonder if I missed any :-\)
 (let ((side-effect-free-fns
        '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
 	 assoc assq
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
-	 buffer-substring
+	 buffer-substring byte-code-function-p
 	 capitalize car-less-than-car car cdr ceiling char-after char-before
-	 concat coordinates-in-window-p
-	 char-width copy-marker cos count-lines
-	 default-boundp default-value documentation downcase
-	 elt exp expt fboundp featurep
+	 char-equal char-to-string char-width
+	 compare-strings concat coordinates-in-window-p
+	 copy-alist copy-sequence copy-marker cos count-lines
+	 decode-time default-boundp default-value documentation downcase
+	 elt exp expt encode-time error-message-string
+	 fboundp fceiling featurep ffloor
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
-	 float floor format frame-visible-p
+	 float float-time floor format format-time-string frame-visible-p
+	 fround ftruncate
 	 get gethash get-buffer get-buffer-window getenv get-file-buffer
 	 hash-table-count
-	 int-to-string
+	 int-to-string intern-soft
 	 keymap-parent
 	 length local-variable-if-set-p local-variable-p log log10 logand
 	 logb logior lognot logxor lsh
+	 make-list make-string make-symbol
 	 marker-buffer max member memq min mod
 	 next-window nth nthcdr number-to-string
-	 parse-colon-path prefix-numeric-value previous-window propertize
-	 radians-to-degrees rassq regexp-quote reverse round
+	 parse-colon-path plist-get plist-member
+	 prefix-numeric-value previous-window prin1-to-string propertize
+	 radians-to-degrees rassq rassoc read-from-string regexp-quote
+	 region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp string-to-char
-	 string-to-int string-to-number substring symbol-function symbol-plist
-	 symbol-value
-	 tan unibyte-char-to-multibyte upcase user-variable-p vconcat
+	 string-to-int string-to-number substring sxhash symbol-function
+	 symbol-name symbol-plist symbol-value
+	 tan truncate
+	 unibyte-char-to-multibyte upcase user-full-name
+	 user-login-name user-original-login-name user-variable-p
+	 vconcat
 	 window-buffer window-dedicated-p window-edges window-height
 	 window-hscroll window-minibuffer-p window-width
 	 zerop))
       (side-effect-and-error-free-fns
        '(arrayp atom
-	 bobp bolp buffer-end buffer-list buffer-size buffer-string bufferp
+	 bobp bolp bool-vector-p 
+	 buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
 	 current-buffer current-global-map current-indentation
-	 current-local-map current-minor-mode-maps
-	 dot dot-marker eobp eolp eq equal eventp
+	 current-local-map current-minor-mode-maps current-time
+	 current-time-string current-time-zone
+	 eobp eolp eq equal eventp
 	 floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
@@ -1194,14 +1213,14 @@
 	 one-window-p overlayp
 	 point point-marker point-min point-max preceding-char processp
 	 recent-keys recursion-depth
-	 selected-frame selected-window sequencep stringp subrp symbolp
-	 standard-case-table standard-syntax-table syntax-table-p
+	 safe-length selected-frame selected-window sequencep
+	 standard-case-table standard-syntax-table stringp subrp symbolp
+	 syntax-table syntax-table-p
 	 this-command-keys this-command-keys-vector this-single-command-keys
 	 this-single-command-raw-keys
-	 user-full-name user-login-name user-original-login-name
 	 user-real-login-name user-real-uid user-uid
 	 vector vectorp visible-frame-list
-	 window-configuration-p window-live-p windowp)))
+	 wholenump window-configuration-p window-live-p windowp)))
   (while side-effect-free-fns
     (put (car side-effect-free-fns) 'side-effect-free t)
     (setq side-effect-free-fns (cdr side-effect-free-fns)))
