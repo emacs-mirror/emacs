@@ -8,7 +8,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1996/07/24 16:36:41 $|$Revision: 3.8 $|~/modes/edebug.el|
+;; |$Date: 1996/09/23 04:39:19 $|$Revision: 3.9 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +85,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.8 $"))
+  (let ((raw-version "$Revision: 3.9 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -2200,10 +2200,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 ;;; Handling signals
 
-(if (not (fboundp 'edebug-original-signal))
-    (defalias 'edebug-original-signal (symbol-function 'signal)))
-;; We should use advise for this!!
-
 (defun edebug-signal (edebug-signal-name edebug-signal-data)
   "Signal an error.  Args are SIGNAL-NAME, and associated DATA.
 A signal name is a symbol with an `error-conditions' property
@@ -2223,8 +2219,7 @@ error is signaled again."
       (edebug 'error (cons edebug-signal-name edebug-signal-data)))
   ;; If we reach here without another non-local exit, then send signal again.
   ;; i.e. the signal is not continuable, yet.
-  (edebug-original-signal edebug-signal-name edebug-signal-data))
-  
+  (signal edebug-signal-name edebug-signal-data))
 
 ;;; Entering Edebug
 
@@ -2267,6 +2262,8 @@ error is signaled again."
 		  (executing-kbd-macro 
 		   (if edebug-continue-kbd-macro executing-kbd-macro))
 
+		  (signal-hook-function 'edebug-signal)
+
 		  ;; Disable command hooks.  This is essential when
 		  ;; a hook function is instrumented - to avoid infinite loop.
 		  ;; This may be more than we need, however.
@@ -2276,11 +2273,7 @@ error is signaled again."
 					      edebug-initial-mode 
 					      edebug-execution-mode)
 		    edebug-next-execution-mode nil)
-	      ;; Bind signal to edebug-signal only while Edebug is active.
-	      (fset 'signal 'edebug-signal)
-	      (unwind-protect
-		  (edebug-enter edebug-function edebug-args edebug-body)
-		(fset 'signal (symbol-function 'edebug-original-signal))))
+	      (edebug-enter edebug-function edebug-args edebug-body))
 	  ;; Reset global variables in case outside value was changed.
 	  (setq executing-kbd-macro edebug-outside-executing-macro
 		pre-command-hook edebug-outside-pre-command-hook
@@ -2863,14 +2856,14 @@ MSG is printed after `::::} '."
 	      (message "Break"))
 
 	  (setq buffer-read-only t)
-	  (fset 'signal (symbol-function 'edebug-original-signal))
+	  (setq signal-hook-function nil)
 
 	  (edebug-mode)
 	  (unwind-protect
 	      (recursive-edit)		;  <<<<<<<<<< Recursive edit
 
 	    ;; Do the following, even if quit occurs.
-	    (fset 'signal 'edebug-signal)
+	    (setq signal-hook-function 'edebug-signal)
 	    (if edebug-backtrace-buffer
 		(kill-buffer edebug-backtrace-buffer))
 	    ;; Could be an option to keep eval display up.
@@ -4478,7 +4471,6 @@ Print result in minibuffer."
      edebug-sit-for
      edebug-prin1-to-string 
      edebug-format
-     edebug-original-signal
      ;; lemacs
      zmacs-deactivate-region
      popup-menu
