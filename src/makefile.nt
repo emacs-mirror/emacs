@@ -1100,7 +1100,7 @@ $(BLD)\w32term.obj: \
 	$(SRC)\disptab.h \
 	$(SRC)\buffer.h \
   	$(SRC)\window.h \
-	$(SRC)\.keyboardh \
+	$(SRC)\keyboard.h \
 	$(SRC)\intervals.h
 
 $(BLD)\w32select.obj: \
