@@ -1,3 +1,18 @@
+2000-08-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs.c, callint.c, doc.c, editfns.c
+	(toplevel) [HAVE_STRING_H]: Include string.h.
+	(toplevel) [HAVE_STRINGS_H]: Include strings.h.
+	(index): Remove prototypes which might conflict with non-standard
+	definitions of index/strchr.
+
+	* s/usg5-3.h (index): Define only if not HAVE_INDEX.
+	(rindex): Define only if !HAVE_RINDEX.
+
+	* s/sco5.h (bcopy, bzero, bcmp): Don't define.
+
+	* config.in (HAVE_INDEX, HAVE_RINDEX, HAVE_STRINGS_H): Add undefs.
+
 2000-08-28  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (merge_face_vectors): Clear TO's :font attribute if

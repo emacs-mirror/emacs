@@ -1,3 +1,8 @@
+2000-08-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Check <strings.h>; check `index' and `rindex'
+	functions.
+
 2000-08-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* configure.in <alpha*-dec-osf*>: Move "NON_GNU_CPP='cpp'" before

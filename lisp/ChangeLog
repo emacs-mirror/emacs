@@ -1,3 +1,11 @@
+2000-08-28  Stanislav Shalunov  <shalunov@internet2.edu>
+
+	* uce.el (uce-reply-to-uce): Remove hard-coded "*Article*" from
+	Gnus support code, and use special article copy buffer
+	`(gnus-original-article-buffer)' instead.  This allows to get rid
+	of article-hide-headers usage (which breaks in the latest Gnus
+	version).  Thanks to Detlev Zundel.
+
 2000-08-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-use-package): Hide "... loaded"
