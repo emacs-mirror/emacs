@@ -20,7 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 /*
  * For Emacs in SunView/Sun-Windows: (supported by Sun Unix v3.2 or greater)
- * Insert a notifier filter-function to convert all useful input 
+ * Insert a notifier filter-function to convert all useful input
  * to "key" sequences that emacs can understand.  See: Emacstool(1).
  *
  * Author: Jeff Peck, Sun Microsystems, Inc. <peck@eng.sun.com>
@@ -111,7 +111,7 @@ FILE *console;			/* for debugging: setenv DEBUGEMACSTOOL */
 
 Icon frame_icon;
 /* make an icon_image for the default frame_icon */
-static short default_image[258] = 
+static short default_image[258] =
 {
 #include <images/terminal.icon>
 };
@@ -157,7 +157,7 @@ button_value (event)
  *  we must keep track of the accumulated time.
  *
  *  If someone writes a SUN-SET-INPUT-MASK for emacstool,
- *  That could be used to selectively disable UP events, 
+ *  That could be used to selectively disable UP events,
  *  and then this cruft wouldn't be necessary.
  */
 static long prev_event_sec = 0;
@@ -173,13 +173,13 @@ time_delta (now_sec, now_usec, prev_sec, prev_usec)
 {
   long sec_delta = now_sec - prev_sec;
   long usec_delta = now_usec - prev_usec;
-  
+
   if (usec_delta < 0) {		/* "borrow" a second */
     usec_delta += 1000000;
     --sec_delta;
   }
-  
-  if (sec_delta >= 10) 
+
+  if (sec_delta >= 10)
     return (9999);		/* Infinity */
   else
     return ((sec_delta * 1000) + (usec_delta / 1000));
@@ -215,18 +215,18 @@ input_event_filter_function (window, event, arg, type)
 
   /* UP L5 & L7 is Expose & Open, let them pass to sunview */
   if (event_id(event) == KEY_LEFT(5) || event_id(event) == KEY_LEFT(7))
-    if(event_is_up (event)) 
+    if(event_is_up (event))
       return notify_next_event_func (window, event, arg, type);
     else return NOTIFY_IGNORED;
 
   if (event_is_button (event)) { 	      /* do Mouse Button events */
 /* Commented out so that we send mouse up events too.
-   if (event_is_up (event)) 
+   if (event_is_up (event))
       return notify_next_event_func (window, event, arg, type);
 */
     time_stamp = event_time (event);
     ttysw_input (tty_win, mouse_prefix, m_prefix_length);
-    sprintf (buffer, "(%d %d %d %d)\015", 
+    sprintf (buffer, "(%d %d %d %d)\015",
 	     button_value (event),
 	     (event_x (event) - left_margin) / font_width,
 	     event_y (event) / font_height,
@@ -238,14 +238,14 @@ input_event_filter_function (window, event, arg, type)
     prev_event_usec = time_stamp.tv_usec;
     return NOTIFY_IGNORED;
   }
-  
+
   { /* Do the function key events */
     int d;
     char c = (char) 0;
     if ((event_is_key_left  (event)) ?
-	((d = event_id(event) - KEY_LEFT(1)   + 'a'), c='l') : 
+	((d = event_id(event) - KEY_LEFT(1)   + 'a'), c='l') :
 	((event_is_key_right (event)) ?
-	 ((d = event_id(event) - KEY_RIGHT(1) + 'a'), c='r') : 
+	 ((d = event_id(event) - KEY_RIGHT(1) + 'a'), c='r') :
 	 ((event_is_key_top   (event)) ?
 	  ((d = event_id(event) - KEY_TOP(1)  + 'a'), c='t') : 0)))
       {
@@ -256,14 +256,14 @@ input_event_filter_function (window, event, arg, type)
 	if (event_meta_is_down  (event)) c = c + 128;
 #ifdef WANT_CAPS_LOCK
 /* set a toggle and relabel window so T1 can act like caps-lock */
-	if (event_id(event) == KEY_TOP(1)) 
+	if (event_id(event) == KEY_TOP(1))
 	  {
 	    /* make a frame label with and without CAPS */
-	    strcpy (buffer, Caps); 
+	    strcpy (buffer, Caps);
 	    title = &buffer[CAPS_LEN];
 	    strncpy (title, (char *)window_get (frame, FRAME_LABEL),
 		     BUFFER_SIZE - CAPS_LEN);
-	    buffer[BUFFER_SIZE] = (char) 0;	
+	    buffer[BUFFER_SIZE] = (char) 0;
 	    if (strncmp (title, Caps, CAPS_LEN) == 0)
 	      title += CAPS_LEN; 		 /* already Caps */
 	    caps_lock =  (caps_lock ? 0 : CAPS_LEN);
@@ -278,7 +278,7 @@ input_event_filter_function (window, event, arg, type)
 	return NOTIFY_IGNORED;
       }
   }
-  if ((event_is_ascii(event) || event_is_meta(event)) 
+  if ((event_is_ascii(event) || event_is_meta(event))
       && event_is_up(event)) return NOTIFY_IGNORED;
 #ifdef WANT_CAPS_LOCK
 /* shift alpha chars to upper case if toggle is set */
@@ -302,7 +302,7 @@ main (argc, argv)
      char **argv;
 {
   int error_code;	/* Error codes */
-  
+
 #ifdef JLE
   setlocale(LC_ALL, "");
 #endif JLE
@@ -330,10 +330,10 @@ main (argc, argv)
 	  {fprintf (stderr, "%s: Could not clear TERMCAP\n", argv[0]) ;} ;
       } ;
   } ;
-  
+
   /* find command to run as subprocess in window */
   if (!(argv[0] = (char *)getenv("EMACSTOOL")))	/*  Set emacs command name */
-      argv[0] = emacs_name;			
+      argv[0] = emacs_name;
   /* Emacstool recognizes two special args: -rc <file> and -bold <bold-name> */
   for (argc = 1; argv[argc]; argc++)		/* Use last one on line */
     {
@@ -346,7 +346,7 @@ main (argc, argv)
 	 }
        }
 
-      if (!(strcmp ("-bold", argv[argc]))) 
+      if (!(strcmp ("-bold", argv[argc])))
 	  {int i = argc;
 	   argv[argc--]=0;		/* kill the -bold argument */
 	   if (argv[i+1]) {	/* move to bold_name and squeeze the rest */
@@ -407,9 +407,9 @@ int interpose_on_window(argc,argv)
 
     /* Create a tty with emacs in it */
     tty_win = xv_create (frame, SWTYPE, WIN_IS_CLIENT_PANE,
-			 TTY_QUIT_ON_CHILD_DEATH, TRUE, 
+			 TTY_QUIT_ON_CHILD_DEATH, TRUE,
 			 TTY_BOLDSTYLE, TTYSW_BOLD_INVERT,
-			 TTY_ARGV, argv, 
+			 TTY_ARGV, argv,
 			 0);
 
     if (bold_name) {
@@ -435,15 +435,15 @@ int interpose_on_window(argc,argv)
 
     tty_view = (Xv_Window) xv_get (tty_win, OPENWIN_NTH_VIEW, 0);
     xv_set(tty_view,
-	   WIN_CONSUME_EVENTS, 
+	   WIN_CONSUME_EVENTS,
 	   WIN_MOUSE_BUTTONS, WIN_UP_EVENTS,
 	   ACTION_ADJUST, ACTION_MENU,
-	   WIN_ASCII_EVENTS, 
+	   WIN_ASCII_EVENTS,
 	   WIN_LEFT_KEYS, WIN_TOP_KEYS, WIN_RIGHT_KEYS,
 	   0,
 	   0);
     /* Interpose my event function */
-    return (int) notify_interpose_event_func 
+    return (int) notify_interpose_event_func
 	(tty_view, input_event_filter_function, NOTIFY_SAFE);
 }
 #else
@@ -481,20 +481,20 @@ int interpose_on_window (argc, argv)
 
     tty_view = tty_win;
     window_set(tty_view,
-	       WIN_CONSUME_PICK_EVENTS, 
+	       WIN_CONSUME_PICK_EVENTS,
 	       WIN_STOP,
 	       WIN_MOUSE_BUTTONS, WIN_UP_EVENTS,
 	       /* LOC_WINENTER, LOC_WINEXIT, LOC_MOVE, */
 	       0,
-	       WIN_CONSUME_KBD_EVENTS, 
+	       WIN_CONSUME_KBD_EVENTS,
 	       WIN_STOP,
-	       WIN_ASCII_EVENTS, 
+	       WIN_ASCII_EVENTS,
 	       WIN_LEFT_KEYS, WIN_TOP_KEYS, WIN_RIGHT_KEYS,
 	       /* WIN_UP_ASCII_EVENTS, */
 	       0,
 	       0);
     /* Interpose my event function */
-    return (int) notify_interpose_event_func 
+    return (int) notify_interpose_event_func
 	(tty_view, input_event_filter_function, NOTIFY_SAFE);
 }
 #endif XVIEW
