@@ -674,10 +674,10 @@ This is in addition to the primary selection.")
       (let ((font (or (cdr (assq 'font initial-frame-alist))
 		      (cdr (assq 'font default-frame-alist))
 		      (x-get-resource "font" "Font")))
-	    xlfd-fields)
+	    xlfd-fields resolved-name)
 	(if (and font
 		 (not (query-fontset font))
-		 (x-resolve-font-name font)
+		 (setq resolved-name (x-resolve-font-name font))
 		 (setq xlfd-fields (x-decompose-font-name font)))
 	    (if (string= "fontset"
 			 (aref xlfd-fields xlfd-regexp-registry-subnum))
@@ -703,6 +703,23 @@ This is in addition to the primary selection.")
 		(aset xlfd-fields xlfd-regexp-family-subnum nil)
 		(aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
 		(aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
+		;; The fontset name should have concrete values in
+		;; weight and slant field.
+		(let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
+		      (slant (aref xlfd-fields xlfd-regexp-slant-subnum))
+		      xlfd-temp)
+		  (if (or (not weight) (string-match "[*?]*" weight))
+		      (progn
+			(setq xlfd-temp (x-decompose-font-name resolved-name))
+			(aset xlfd-fields xlfd-regexp-weight-subnum
+			      (aref xlfd-temp xlfd-regexp-weight-subnum))))
+		  (if (or (not slant) (string-match "[*?]*" slant))
+		      (progn
+			(or xlfd-temp
+			    (setq xlfd-temp
+				  (x-decompose-font-name resolved-name)))
+			(aset xlfd-fields xlfd-regexp-slant-subnum
+			      (aref xlfd-temp xlfd-regexp-slant-subnum)))))
 		(setq fontset (x-compose-font-name xlfd-fields))
 		(create-fontset-from-fontset-spec
 		 (concat fontset ", ascii:" font) styles)
