@@ -457,7 +457,7 @@ With numeric argument display information on correspondingly older changes."
 (defalias 'help 'help-for-help)
 (make-help-screen help-for-help
   "a b c C f F C-f i I k C-k l L m n p s t v w C-c C-d C-n C-p C-w; ? for help:"
-  "You have typed \\[help-command], the help character.  Type a Help option:
+  "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
 a  command-apropos.  Give a substring, and see a list of commands
