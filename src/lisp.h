@@ -483,6 +483,26 @@ typedef struct interval *INTERVAL;
 
 #endif /* USE_TEXT_PROPERTIES */
 
+/* All of the per-display objects, packaged together in a struct.  */
+typedef struct
+  {
+    Lisp_Object prefix_arg;
+    Lisp_Object current_prefix_arg;
+    Lisp_Object this_command_keys;
+    Lisp_Object internal_last_event_frame;
+    Lisp_Object kbd_buffer_frame_or_window;
+    struct input_event *kbd_buffer;
+    struct input_event *kbd_fetch_ptr;
+    struct input_event *kbd_store_ptr;
+    int this_command_key_count;
+    int immediate_echo;
+    int echo_after_prompt;
+    char *echoptr;
+    char echobuf[300];
+  } PERD;
+extern PERD the_only_perd;
+#define get_perd(f) (&the_only_perd)
+
 /* In a cons, the markbit of the car is the gc mark bit */
 
 struct Lisp_Cons
