@@ -1,7 +1,7 @@
 2000-03-16  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 	
-	* ps-print0.ps: Change /setduplexmode, /settumble, add
-	/packedarray.
+	* ps-prin0.ps: Define packedarray operator for language level 1, adjust
+	setduplexmode and settumble definitions.
 	
 2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 

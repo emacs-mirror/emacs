@@ -1,3 +1,12 @@
+2000-03-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/etags.el (tags-case-fold-search): New user-option.
+	(tags-loop-eval): New function.  Bind case-fold-search around eval
+	depending on the value of tags-case-fold-search.
+	(tags-loop-continue): Use tags-loop-eval.
+	(find-tag-in-order): Bind case-fold-search depending on the value
+	of tags-case-fold-search.
+
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* derived.el (define-derived-mode): Don't autoload anymore.

@@ -811,6 +811,10 @@ for PSWrap.
 
 ** Changes in etags.el
 
+*** The new user-option tags-case-fold-search can be used to make
+tags operations case-sensitive or case-insensitive.  The default
+is to use the same setting as case-fold-search.
+
 *** You can display additional output with M-x tags-apropos by setting
 the new variable tags-apropos-additional-actions.
 

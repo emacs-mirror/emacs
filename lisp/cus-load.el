@@ -405,7 +405,7 @@
 (put 'archive-zoo 'custom-loads '("arc-mode"))
 (put 'gnus-group-level 'custom-loads '("gnus"))
 (put 'bibtex 'custom-loads '("bibtex"))
-(put 'faces 'custom-loads '("faces" "facemenu" "cus-edit" "font-lock" "hilit-chg" "paren" "ps-print" "speedbar" "wid-edit" "gnus" "message" "fontset" "cwarn" "make-mode"))
+(put 'faces 'custom-loads '("faces" "facemenu" "cus-edit" "font-lock" "hilit-chg" "paren" "ps-print" "speedbar" "wid-edit" "gnus" "message" "cwarn" "make-mode"))
 (put 'fill-comments 'custom-loads '("simple"))
 (put 'gnus-summary-various 'custom-loads '("gnus-sum"))
 (put 'applications 'custom-loads '("calendar" "cus-edit" "uniquify" "spell"))
