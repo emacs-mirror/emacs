@@ -700,7 +700,10 @@ These mean that the FTP process should (or already has) been killed."
   :group 'ange-ftp
   :type 'regexp)
 
-(defcustom ange-ftp-tmp-name-template "/tmp/ange-ftp"
+(defcustom ange-ftp-tmp-name-template
+  (if (memq system-type '(ms-dos windows-nt))
+      (concat (or (getenv "TEMP") (getenv "TMP") "c:/temp") "/ange-ftp")
+    "/tmp/ange-ftp")
   "*Template used to create temporary files."
   :group 'ange-ftp
   :type 'directory)
@@ -1307,11 +1310,11 @@ Optional DEFAULT is password to start with."
 	       (if (looking-at "machine\\>")
 		   ;; Skip `machine' and the machine name that follows.
 		   (progn
-		     (skip-chars-forward "^ \t\n")
-		     (skip-chars-forward " \t\n")
-		     (skip-chars-forward "^ \t\n"))
+		     (skip-chars-forward "^ \t\r\n")
+		     (skip-chars-forward " \t\r\n")
+		     (skip-chars-forward "^ \t\r\n"))
 		 ;; Skip `default'.
-		 (skip-chars-forward "^ \t\n"))
+		 (skip-chars-forward "^ \t\r\n"))
 	       ;; Find start of the next `machine' or `default'
 	       ;; or the end of the buffer.
 	       (if (re-search-forward "machine\\>\\|default\\>" nil t)
@@ -1376,7 +1379,7 @@ Optional DEFAULT is password to start with."
 		(mapcar 'funcall find-file-hooks)
 		(setq buffer-file-name nil)
 		(goto-char (point-min))
-		(skip-chars-forward " \t\n")
+		(skip-chars-forward " \t\r\n")
 		(while (not (eobp))
 		  (ange-ftp-parse-netrc-group))
 		(kill-buffer (current-buffer)))
@@ -3041,6 +3044,8 @@ logged in as user USER and cd'd to directory DIR."
 	   (ange-ftp-real-expand-file-name name))
 	  ((eq (string-to-char name) ?/)
 	   (ange-ftp-canonize-filename name))
+	  ((and (eq system-type 'windows-nt) (string-match "^[a-zA-Z]:" name))
+	   name) ; when on local drive, return it as-is
 	  ((zerop (length name))
 	   (ange-ftp-canonize-filename (or default default-directory)))
 	  ((ange-ftp-canonize-filename
@@ -3116,8 +3121,12 @@ system TYPE.")
 	       (user (nth 1 parsed))
 	       (name (ange-ftp-quote-string (nth 2 parsed)))
 	       (temp (ange-ftp-make-tmp-name host))
+	       ;; What we REALLY need here is a way to determine if the mode
+	       ;; of the transfer is irrelevant, i.e. we can use binary mode
+	       ;; regardless. Maybe a system-type to host-type lookup?
 	       (binary (or (ange-ftp-binary-file filename)
-			   (eq (ange-ftp-host-type host user) 'unix)))
+			   (and (not (eq system-type 'windows-nt))
+				(eq (ange-ftp-host-type host user) 'unix))))
 	       (cmd (if append 'append 'put))
 	       (abbr (ange-ftp-abbreviate-filename filename)))
 	  (unwind-protect
@@ -3180,7 +3189,8 @@ system TYPE.")
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
 		     (binary (or (ange-ftp-binary-file filename)
-				 (eq (ange-ftp-host-type host user) 'unix)))
+				 (and (not (eq system-type 'windows-nt))
+				      (eq (ange-ftp-host-type host user) 'unix))))
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     size)
 		(unwind-protect
@@ -3203,7 +3213,10 @@ system TYPE.")
 			  (setq
 			   size
 			   (nth 1 (ange-ftp-real-insert-file-contents
-				   temp visit beg end replace)))
+				   temp visit beg end replace))
+			   ;; override autodetection of buffer file type
+			   ;; to ensure buffer is saved in DOS format
+			   buffer-file-type binary)
 			(signal 'ftp-error
 				(list
 				 "Opening input file:"
@@ -3462,7 +3475,8 @@ system TYPE.")
 	     (t-abbr (ange-ftp-abbreviate-filename newname filename))
 	     (binary (or (ange-ftp-binary-file filename)
 			 (ange-ftp-binary-file newname)
-			 (and (eq (ange-ftp-host-type f-host f-user) 'unix)
+			 (and (not (eq system-type 'windows-nt))
+			      (eq (ange-ftp-host-type f-host f-user) 'unix)
 			      (eq (ange-ftp-host-type t-host t-user) 'unix))))
 	     temp1
 	     temp2)
@@ -3750,7 +3764,9 @@ system TYPE.")
 		    file))))
 	     completions)))
 
-      (if (string-equal "/" ange-ftp-this-dir)
+      (if (or (and (eq system-type 'windows-nt)
+		   (string-match "[^a-zA-Z]?[a-zA-Z]:[/\]" ange-ftp-this-dir))
+	      (string-equal "/" ange-ftp-this-dir))
 	  (nconc (all-completions file (ange-ftp-generate-root-prefixes))
 		 (ange-ftp-real-file-name-all-completions file
 							  ange-ftp-this-dir))
@@ -4048,18 +4064,24 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; and colon).
 ;;; Don't allow the host name to end in a period--some systems use /.:
 ;;;###autoload
-(or (assoc "^/[^/:]*[^/:.]:" file-name-handler-alist)
-    (setq file-name-handler-alist
-	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
-		file-name-handler-alist)))
+(let ((pattern (if (memq system-type '(ms-dos windows-nt))
+		   "^[a-zA-Z]:/[^/:]*[^/:.]:"
+		 "^/[^/:]*[^/:.]:")))
+  (or (assoc pattern file-name-handler-alist)
+      (setq file-name-handler-alist
+	    (cons (cons pattern ange-ftp-hook-function)
+		  file-name-handler-alist))))
 
 ;;; This regexp recognizes and absolute filenames with only one component,
 ;;; for the sake of hostname completion.
 ;;;###autoload
-(or (assoc "^/[^/:]*\\'" file-name-handler-alist)
-    (setq file-name-handler-alist
-	  (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
-		file-name-handler-alist)))
+(let ((pattern (if (memq system-type '(ms-dos windows-nt))
+		   "^[a-zA-Z]:/[^/:]*\\'"
+		 "^/[^/:]*\\'")))
+  (or (assoc pattern file-name-handler-alist)
+      (setq file-name-handler-alist
+	    (cons (cons pattern ange-ftp-completion-hook-function)
+		  file-name-handler-alist))))
 
 ;;; The above two forms are sufficient to cause this file to be loaded
 ;;; if the user ever uses a file name with a colon in it.
@@ -4138,8 +4160,12 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (ange-ftp-run-real-handler 'file-name-as-directory args))
 (defun ange-ftp-real-directory-file-name (&rest args)
   (ange-ftp-run-real-handler 'directory-file-name args))
+(or (and (eq system-type 'windows-nt)
+	 ;; Windows handler for [A-Z]: drive name on local disks
+	 (defun ange-ftp-real-expand-file-name (&rest args)
+	   (ange-ftp-run-real-handler 'ange-ftp-real-expand-file-name-actual args)))
 (defun ange-ftp-real-expand-file-name (&rest args)
-  (ange-ftp-run-real-handler 'expand-file-name args))
+      (ange-ftp-run-real-handler 'expand-file-name args)))
 (defun ange-ftp-real-make-directory (&rest args)
   (ange-ftp-run-real-handler 'make-directory args))
 (defun ange-ftp-real-delete-directory (&rest args)
@@ -4260,7 +4286,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       ;; Can't use ange-ftp-dired-host-type here because the current
       ;; buffer is *dired-check-process output*
       (condition-case oops
-	  (cond ((equal "chmod" program)
+	  (cond ((equal dired-chmod-program program)
 		 (ange-ftp-call-chmod arguments))
 		;; ((equal "chgrp" program))
 		;; ((equal dired-chown-program program))
@@ -4304,7 +4330,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		(or (car result)
 		    (call-process 
 		     ange-ftp-remote-shell
-		     nil t nil host "chmod" mode name)))))))
+		     nil t nil host dired-chmod-program mode name)))))))
      rest))
   (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.
   0)
@@ -5631,6 +5657,26 @@ Other orders of $ and _ seem to all work just fine.")
 ;;    (setq ange-ftp-dired-get-filename-alist
 ;;	  (cons '(cms . ange-ftp-dired-cms-get-filename)
 ;;		ange-ftp-dired-get-filename-alist)))
+
+;;
+(and (eq system-type 'windows-nt)
+     (setq ange-ftp-disable-netrc-security-check t))
+
+;; If a drive letter has been added, remote it.  Otherwise, if the drive
+;; letter existed before, leave it.
+(defun ange-ftp-real-expand-file-name-actual (&rest args)
+  (setq old-name (car args))
+  (setq new-name (ange-ftp-run-real-handler 'expand-file-name args))
+  (setq drive-letter (substring new-name 0 2))
+  ;; I'd like to distill the following lines into one (if) statement
+  ;;   removing the need for the temp final variable
+  (setq final new-name)
+  (if (not (equal (substring old-name 0 1) "~"))
+      (if (or (< (length old-name) 2)
+	      (not (string-match "/[a-zA-Z]:" old-name)))
+	  (setq final (substring new-name 2))))
+  final)
+
 
 ;;;; ------------------------------------------------------------
 ;;;; Finally provide package.
