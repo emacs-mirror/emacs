@@ -94,7 +94,7 @@ removed from alias expansions."
 
 ;; Called by mail-setup, or similar functions, only if ~/.mailrc exists.
 (defun build-mail-aliases (&optional file)
-  "Read mail aliases from ~/.mailrc and set `mail-aliases'."
+  "Read mail aliases from `~/.mailrc' and set `mail-aliases'."
   (setq file (expand-file-name (or file "~/.mailrc")))
   (let ((buffer nil)
 	(obuf (current-buffer)))
