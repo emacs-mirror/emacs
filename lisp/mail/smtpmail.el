@@ -1,6 +1,6 @@
 ;; Simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Keywords: mail
@@ -45,11 +45,11 @@
 (defvar smtpmail-default-smtp-server nil
   "*Specify default SMTP server.")
 
-(defvar smtpmail-smtp-server (or (getenv "SMTPSERVER")
-				 smtpmail-default-smtp-server)
+(defvar smtpmail-smtp-server 
+  (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
   "*The name of the host running SMTP server.")
 
-(defvar smtpmail-smtp-service "smtp"
+(defvar smtpmail-smtp-service 25
   "*SMTP service port number. smtp or 25 .")
 
 (defvar smtpmail-local-domain nil
@@ -68,6 +68,7 @@ don't define this value.")
 ;;;
 
 (defun smtpmail-send-it ()
+  (require 'mail-utils)
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " smtpmail errors")
 		  0))
@@ -92,6 +93,7 @@ don't define this value.")
 	  (replace-match "\n")
 	  (backward-char 1)
 	  (setq delimline (point-marker))
+;;	  (sendmail-synch-aliases)
 	  (if mail-aliases
 	      (expand-mail-aliases (point-min) delimline))
 	  (goto-char (point-min))
@@ -436,10 +438,10 @@ don't define this value.")
 
 	  (goto-char (point-min))
 	  (let (recipient-address-list)
-	    (while (re-search-forward " [^ ]+ " (point-max) t)
+	    (while (re-search-forward " \\([^ ]+\\) " (point-max) t)
 	      (backward-char 1)
-	      (setq recipient-address-list(cons (buffer-substring (match-beginning 0) (match-end 0))
-						recipient-address-list))
+	      (setq recipient-address-list (cons (buffer-substring (match-beginning 1) (match-end 1))
+						 recipient-address-list))
 	      )
 	    (setq smtpmail-recipient-address-list recipient-address-list))
 
