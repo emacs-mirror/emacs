@@ -1778,6 +1778,9 @@ The same mechanism is used to determine the `face' and `help-echo'
 properties of strings in the mode line.  See `bindings.el' for an
 example.
 
+*** If a mode line element has the form `(:eval FORM)', FORM is
+evaluated and the result is used as mode line element.
+
 +++
 *** You can suppress mode-line display by setting the buffer-local
 variable mode-line-format to nil.
