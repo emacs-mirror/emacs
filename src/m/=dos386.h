@@ -109,4 +109,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_REMAP
 
 /* We need a little extra space, see ../../lisp/loadup.el */
-#define PURESIZE 210000
+#define PURESIZE 220000
+
+/* We have (the code to control) a mouse.  */
+#define HAVE_MOUSE
