@@ -181,7 +181,7 @@ These supersede the values given in `default-frame-alist'."
 	(or (delq terminal-frame (minibuffer-frame-list))
 	    (progn
 	      (setq frame-initial-frame-alist
-		    (append initial-frame-alist default-frame-alist))
+		    (append initial-frame-alist default-frame-alist nil))
 	      (or (assq 'horizontal-scroll-bars frame-initial-frame-alist)
 		  (setq frame-initial-frame-alist
 			(cons '(horizontal-scroll-bars . t)
