@@ -180,6 +180,7 @@ Lisp_Object Qinsert_behind_hooks;
 static void alloc_buffer_text P_ ((struct buffer *, size_t));
 static void free_buffer_text P_ ((struct buffer *b));
 static Lisp_Object copy_overlays P_ ((struct buffer *, Lisp_Object));
+static void modify_overlay P_ ((struct buffer *, int, int));
 
 
 /* For debugging; temporary.  See set_buffer_internal.  */
@@ -3402,13 +3403,11 @@ modify_overlay (buf, start, end)
      struct buffer *buf;
      int start, end;
 {
-  if (start == end)
-    return;
-
   if (start > end)
     {
       int temp = start;
-      start = end; end = temp;
+      start = end;
+      end = temp;
     }
 
   BUF_COMPUTE_UNCHANGED (buf, start, end);
@@ -3547,18 +3546,24 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
     return Qnil;
 
   b = XBUFFER (buffer);
-
   specbind (Qinhibit_quit, Qt);
-
+  
   b->overlays_before = Fdelq (overlay, b->overlays_before);
-  b->overlays_after  = Fdelq (overlay, b->overlays_after);
-
+  b->overlays_after = Fdelq (overlay, b->overlays_after);
   modify_overlay (b,
 		  marker_position (OVERLAY_START (overlay)),
 		  marker_position (OVERLAY_END   (overlay)));
-
   Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
   Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
+
+  /* WHen deleting on overlay with before or after strings, turn off
+     display optimizations for the affected buffer, on the basis that
+     these strings may contain newlines.  This is easier to do than to
+     check for that situation during redisplay.  */
+  if (!windows_or_buffers_changed
+      && (!NILP (Foverlay_get (overlay, Qbefore_string))
+	  || !NILP (Foverlay_get (overlay, Qafter_string))))
+    b->prevent_redisplay_optimizations_p = 1;
 
   return unbind_to (count, Qnil);
 }
@@ -3833,8 +3838,8 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
     {
       if (changed)
 	modify_overlay (XBUFFER (buffer),
-			  marker_position (OVERLAY_START (overlay)),
-			  marker_position (OVERLAY_END   (overlay)));
+			marker_position (OVERLAY_START (overlay)),
+			marker_position (OVERLAY_END   (overlay)));
       if (EQ (prop, Qevaporate) && ! NILP (value)
 	  && (OVERLAY_POSITION (OVERLAY_START (overlay))
 	      == OVERLAY_POSITION (OVERLAY_END (overlay))))
