@@ -81,6 +81,7 @@
 	       (if (symbolp callback)
 		   (fset command callback)
 		 (fset command (list 'lambda () '(interactive) callback)))
+	       (put command 'menu-alias t)
 	       (let ((i 2))
 		 (while (< i (length item))
 		   (cond
