@@ -102,7 +102,13 @@ But only if `goto-address-highlight-p' is also non-nil."
   "[-a-zA-Z0-9._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
-(defvar goto-address-url-regexp thing-at-point-url-regexp
+(defvar goto-address-url-regexp
+  (concat "\\<\\("
+	  (mapconcat 'identity
+		     (delete "mailto:" (copy-sequence thing-at-point-uri-schemes))
+		     "\\|")
+	  "\\)"
+          thing-at-point-url-path-regexp)
   ;; (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
   ;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
   ;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
