@@ -1,3 +1,7 @@
+2003-05-15  John Paul Wallington  <jpw@gnu.org>
+
+	* mail/rmail.el (rmail-ignored-headers): Ignore Face: header.
+
 2003-05-14  Christoph Wedler  <christoph.wedler@sap.com>
 
 	* format.el (format-annotate-function): Copy coding system into the
