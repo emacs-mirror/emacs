@@ -50,7 +50,9 @@
 
 ;; Globals
 
-(defface button '((t :underline t))
+(defface button '((((type pc) (class color))
+		   (:foreground "lightblue"))
+		  (t :underline t))
   "Default face used for buttons.")
 
 ;;;###autoload
