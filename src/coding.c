@@ -1095,6 +1095,8 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	    }
 	  *dst++ = c1;
 	  coding->produced_char++;
+	  if (c1 >= 0x80)
+	    coding->fake_multibyte = 1;
 	  break;
 
 	case ISO_carriage_return:
