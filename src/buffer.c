@@ -487,7 +487,7 @@ static void
 clone_per_buffer_values (from, to)
      struct buffer *from, *to;
 {
-  Lisp_Object to_buffer;
+  Lisp_Object to_buffer, tem;
   int offset;
 
   XSETBUFFER (to_buffer, to);
@@ -514,6 +514,14 @@ clone_per_buffer_values (from, to)
 
   to->overlays_before = copy_overlays (to, from->overlays_before);
   to->overlays_after = copy_overlays (to, from->overlays_after);
+
+  /* Copy the alist of local variables,
+     and all the alist elements too.  */
+  to->local_var_alist
+    = Fcopy_sequence (from->local_var_alist);
+  for (tem = to->local_var_alist; CONSP (tem);
+       tem = XCDR (tem))
+    XSETCAR (tem, Fcons (XCAR (XCAR (tem)), XCDR (XCAR (tem))));
 }
 
 
