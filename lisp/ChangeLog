@@ -1,3 +1,16 @@
+2002-02-20  Deepak Goel  <deego@glue.umd.edu>
+
+	* play/snake.el (snake-velocity-queue, snake-update-velocity)
+	(snake-final-x-velocity, snake-final-y-velocity): 
+	New variable and functions.  Store user's keypresses
+	into a queue and pop from the queue each subsequent turn.
+	(snake-update-game, snake-move-left)
+	(snake-move-right, snake-move-up, snake-move-down, snake-active-p)
+	(snake-start-game): Use that queue.
+	(snake-use-glyphs-flag): Renamed from snake-use-glyphs.
+	(snake-use-color-flag): Likewise.
+	(snake-mode): Rename uses of those variables.  
+
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	Support for ICCCM  Extended Segments in X selections:
@@ -56,6 +69,22 @@
 
 	* textmodes/flyspell.el (flyspell-mode): Autoload the variable
 	since it is used in the menu bar.
+
+2002-02-20  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (shell-command-on-region): Display the exit status
+	when a command fails.
+
+	* subr.el (add-hook): Doc fix.
+
+	* frame.el (other-frame): Doc fix.
+
+	* simple.el (yank): Clear `field' property.
+
+2002-02-20  Tom Tromey  <tromey@cachet>
+
+	* progmodes/tcl.el (tcl-do-fill-paragraph): Find and fill on more
+	natural paragraph boundaries.  Don't fail at beginning of buffer.
 
 2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -145,8 +174,7 @@
 
 2002-02-17  Colin Walters  <walters@verbum.org>
 
-	* ibuf-ext.el (ibuffer-toggle-sorting-mode): Make it work.  Patch
-	from John Paul Wallington <jpw@shootybangbang.com>.
+	* ibuf-ext.el (ibuffer-toggle-sorting-mode): Make it work.
 
 	* ibuffer.el (ibuffer-truncate-lines): New option.
 	  (ibuffer-mode):  Use it.
