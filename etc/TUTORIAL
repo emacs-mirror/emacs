@@ -27,7 +27,7 @@ the text.
 The first thing that you need to know is how to move around from place
 to place in the text.  You already know how to move forward one screen,
 with C-v.  To move backwards one screen, type M-v (hold down the META key
-and type v, or type <ESC>v if you do not have a META or EDIT key).
+and type v, or type <ESC>v if you do not have a META, EDIT, or ALT key).
 
 >>  Try typing M-v and then C-v, a few times.
 
@@ -86,7 +86,8 @@ time, so it would be of great benefit if you learn them now.
 
 Each of text line ends with a Newline character, which serves to
 separate it from the following line.  The last line in your file ought
-to have a Newline at the end (but Emacs does not require have one).
+to have a Newline at the end (but Emacs does not require it to have
+one).
 
 >> Try to C-b at the beginning of a line.  It should move to
    the end of the previous line.  This is because it moves back
@@ -187,9 +188,9 @@ easily learn to use other advanced cursor motion commands as well.
 Most Emacs commands accept a numeric argument; for most commands, this
 serves as a repeat-count.  The way you give a command a repeat count
 is by typing C-u and then the digits before you type the command.  If
-you have a META or EDIT key, there is another alternative way to enter
-a numeric argument: type the digits while holding down the META or
-EDIT key.  We recommend learning the C-u method because it works on
+you have a META (or EDIT or ALT) key, there is another alternative way
+to enter a numeric argument: type the digits while holding down the
+META key.  We recommend learning the C-u method because it works on
 any terminal.
 
 For instance, C-u 8 C-f moves forward eight characters.
@@ -388,7 +389,7 @@ What do you do if you have some text you want to yank back, and then
 you kill something else?  C-y would yank the more recent kill.  But
 the previous text is not lost.  You can get back to it using the M-y
 command.  After you have done C-y to get the most recent kill, typing
-M-Y replaces that yanked text with the previous kill.  Typing M-y
+M-y replaces that yanked text with the previous kill.  Typing M-y
 again and again brings in earlier and earlier kills.  When you have
 reached the text you are looking for, you do not have to do anything to
 keep it.  Just go on with your editing, leaving the yanked text where
@@ -688,7 +689,7 @@ editing modes you are in.  The default mode is Fundamental which is
 what you are using now.  It is an example of a "major mode".  
 
 Emacs has many different major modes.  Some of them are meant for
-editing different languages and or kinds of text, such as Lisp mode,
+editing different languages and/or kinds of text, such as Lisp mode,
 Text mode, etc.  At any time one and only one major mode is active,
 and its name can always be found in the mode line just where
 "Fundamental" is now.
@@ -698,7 +699,7 @@ there are commands for creating comments in a program, and since each
 programming language has a different idea of what a comment should
 look like, each major mode has to insert comments differently.  Each
 major mode is the name of an extended command, which is how you can
-switchto that mode.  For example, M-x fundamental-mode is a command to
+switch to that mode.  For example, M-x fundamental-mode is a command to
 switch to Fundamental mode.
 
 If you are going to be editing English text, such as this file, you
@@ -721,11 +722,11 @@ To view documentation on your current major mode, type C-h m.
 >> Type C-x 1 to remove the documentation from the screen.
 
 Major modes are called major because there are also minor modes.
-Minor modes are not to the major modes, just minor modifications of
-them.  Each minor mode can be turned on or off by itself, independent
-of all other minor modes, and independent of your major mode.  So you
-can use no minor modes, or one minor mode, or any combination of
-several minor modes.
+Minor modes are alternatives not to the major modes, just minor
+modifications of them.  Each minor mode can be turned on or off by
+itself, independent of all other minor modes, and independent of your
+major mode.  So you can use no minor modes, or one minor mode, or any
+combination of several minor modes.
 
 One minor mode which is very useful, especially for editing English
 text, is Auto Fill mode.  When this mode is on, Emacs breaks the line
@@ -938,7 +939,7 @@ very brief documentation--sufficient to remind you of commands you
 have already learned.
 
 Multi-character commands such as C-x C-s and (if you have no META or
-EDIT key) <ESC>v are also allowed after C-h c.
+EDIT or ALT key) <ESC>v are also allowed after C-h c.
 
 To get more information about a command, use C-h k instead of C-h c.
 
@@ -963,7 +964,7 @@ Here are some other useful C-h options:
 		all the commands whose names contain that keyword.
 		These commands can all be invoked with Meta-x.
 		For some commands, Command Apropos will also list a one
-		or two character sequence runs the same command.
+		or two character sequence which runs the same command.
 
 >> Type C-h a file<Return>.
 
