@@ -3,10 +3,7 @@
 ;; Copyright (C) 1998 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@unice.fr>
-;; version 1.2h
-;; new version may be found at:
-;;   
-;;       http://kaolin.unice.fr/~serrano
+;; Keywords: convenience
 
 ;;; This file is part of GNU Emacs.
 
@@ -28,12 +25,7 @@
 ;;; commentary:
 ;;
 ;; Flyspell is a minor Emacs mode performing on-the-fly spelling
-;; checking.  It requires `font-lock' and `ispell'.  It has been
-;; tested on gnu-emacs 19.29, 19.34 and Xemacs 19.15.
-;;                                                                  
-;; To install it, copy the flyspell.el file in your Emacs path and
-;; add to your .emacs file:
-;; `(autoload 'flyspell-mode "flyspell" "On-the-fly Ispell." t)'
+;; checking.
 ;;                                                                  
 ;; To enter the flyspell minor mode, Meta-x flyspell-mode.
 ;;                                                                  
@@ -44,129 +36,13 @@
 ;; Some user variables control the behavior of flyspell.  They are
 ;; those defined under the `User variables' comment.
 ;; 
-;; Note: as suggested by Yaron M.  Minsky, if you use flyspell when
+;; Note: as suggested by Yaron M. Minsky, if you use flyspell when
 ;; sending mails, you should add the following:
 ;;    (add-hook 'mail-send-hook 'flyspell-mode-off)
-;; -------------------------------------------------------------
-;; Release 1.2h:
-;;    - Fix a bug on mouse-2 (yank-at-click) for gnu-emacs.
-;; Release 1.2g:
-;;    - Support for flyspell-generic-check-word-p (has suggested
-;;      by Eric M.  Ludlam).
-;;    - Compliance to emacs-lisp comments.
-;; Release 1.2f:
-;;    - Improved TeX handling.
-;;    - Improved word fetch implementation.
-;;    - flyspell-sort-corrections was not used inside
-;;      flyspell-auto-correct-word.  The consequence was that auto
-;;      corrections where not sorted even if the variable was set
-;;      to non-nil.
-;;    - Support for flyspell-multi-language-p variable.  Setting
-;;      this variable to nil will prevent flyspell to spawn a new
-;;      Ispell process per buffer.
-;; Release 1.2e:
-;;    - Fix two popup bugs on Xemacs.  If no replacement words are
-;;      proposed only the save option is available.  Corrected words
-;;      were not inserted at the correct position in the buffer.
-;;    - Addition of flyspell-region and flyspell-buffer.
-;; Release 1.2d:
-;;    - Make-face-... expressions are now enclosed in
-;;      condition-case expressions.
-;;    - Fix bugs when flyspell-auto-correct-binding is set to nil
-;;      (thanks to Eli Tziperman).
-;; Release 1.2c:
-;;    - Fix the overlay keymap problem for Emacs (it was correctly
-;;      working with Xemacs).
-;;    - Thanks to Didier Remy, flyspell now uses a cache in order
-;;      to improve efficiency and make uses of a pre-command-hook
-;;      in order to check a word when living it.
-;;    - Remaned flyspell-ignore-command into
-;;      flyspell-delay-command.
-;;    - Add the flyspell-issue-welcome (as suggested by Joshua
-;;      Guttman).
-;;    - Ispell process are now killed when the buffer they are
-;;      running in is deleted (thanks to Jeff Miller and Roland
-;;      Rosenfled).
-;;    - When used on a B&W terminal flyspell used boldness instead
-;;      of color for incorrect words.
-;; Release 1.2:
-;;    - Breaks (space or newline) inside incorrect words are now
-;;      better handled.
-;;    - Flyspell sorts the proposed replacement words (thanks to
-;;      Carsten Dominik).  See new variable
-;;      `flyspell-sort-corrections'.
-;;    - The mouse binding to correct mispelled word is now mouse-2
-;;      on an highlighted region.  This enhancement (as well as a
-;;      lot of code cleaning) has been acheived by Carsten Dominik.
-;;    - flyspell-mode arg is now optional.
-;;    - flyspell bindings are better displayed.
-;;    - flyspell nows is able to handle concurent and different
-;;      dictionaries (that each buffer running flyspell uses its
-;;      own (buffer local) Ispell process).
-;;    - default value for flyspell-highlight-property has been
-;;      turned to t.
-;;    - flyspell popup menus now support session and buffer
-;;      dictionaries.
-;;    - corrected words are now correctly unhighlighted (no
-;;      highlighted characters left).
-;;    Note: I think emacs-19.34 has a bug on the overlay event
-;;      handling.  When an overlay (or a text property) has uses a
-;;      local-map, if this map does not include a key binding,
-;;      instead of looking at the enclosing local-map emacs-19.34
-;;      uses the global-map.  I have not tested this with emacs-20.
-;;      I have checked with Xemacs that does contain this error.
-;; Release 1.1:
-;;    - Add an automatic replacement for incorrect word.
-;; Release 1.0:
-;;    - Add popup menu for fast correction.
-;; Release 0.9:
-;;    - Add an Ispell bug workaround.  Now, in french mode, word
-;;      starting by the '-' character does not, any longer, make
-;;      Ispell to fall in infinite loops.
-;; Release 0.8:
-;;    - Better Xemacs support
-;; Release 0.7:
-;;    - Rather than hard-coding the ignored commend I now uses a
-;;      property field to check if a command is ignored.  The
-;;      advantage is that user may now add its own ignored
-;;      commands.
-;; Release 0.6:
-;;    - Fix flyspell mode name (in modeline bar) bug.
-;;    - Fix the bug on flyspell quitting.  Overlays are now really
-;;      removed.
-;; Release 0.5:
-;;    - Persistent hilightings.
-;;    - Refresh of the modeline on flyspell ending
-;;    - Do not hilight text with properties (e.g.  font lock text)
 
 ;;; Code:
 (require 'font-lock)
 (require 'ispell)
-
-;*---------------------------------------------------------------------*/
-;*    defcustom stuff. This ensure that we have the correct custom     */
-;*    library.                                                         */
-;*---------------------------------------------------------------------*/
-(eval-and-compile
-  (condition-case () (require 'custom) (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      ;; We have got what we need
-      (if (not (string-match "XEmacs" emacs-version))
-          ;; suppress warnings
-          (progn
-            ;; This is part of bytecomp.el in 19.35:
-            (put 'custom-declare-variable 'byte-hunk-handler
-                 'byte-compile-file-form-custom-declare-variable)
-            (defun byte-compile-file-form-custom-declare-variable (form)
-	      (if (memq 'free-vars byte-compile-warnings)
-		  (setq byte-compile-bound-variables
-			(cons (nth 1 (nth 1 form))
-			      byte-compile-bound-variables)))
-	      form)))
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args) nil)
-    (defmacro defcustom (var value doc &rest args)
-      (` (defvar (, var) (, value) (, doc))))))
 
 (defgroup flyspell nil
   "Spellchecking on the fly."
@@ -212,7 +88,7 @@
   "*Non-nil means that its value (a binding) will bound to the flyspell
 auto-correct."
   :group 'flyspell
-  :type '(choice (const nil string)))
+  :type '(choice (const nil) string))
 
 (defcustom flyspell-command-hook t
   "*Non-nil means that `post-command-hook' is used to check
@@ -302,11 +178,14 @@ Returns t to continue checking, nil otherwise.")
 (defun mail-mode-flyspell-verify ()
   "Return t if we want flyspell to check the word under point."
   (save-excursion
-    (not (or (re-search-forward mail-header-separator nil t)
-	     (re-search-backward message-signature-separator nil t)
-	     (progn
-	       (beginning-of-line)
-	       (looking-at "[>}|]"))))))
+    (or (progn
+	  (beginning-of-line)
+	  (looking-at "Subject:"))
+	(not (or (re-search-forward mail-header-separator nil t)
+		 (re-search-backward message-signature-separator nil t)
+		 (progn
+		   (beginning-of-line)
+		   (looking-at "[>}|]")))))))
 
 (defun texinfo-mode-flyspell-verify ()
   "Return t if we want flyspell to check the word under point."
@@ -402,11 +281,13 @@ to be a symbol."
     (define-key flyspell-mode-map flyspell-auto-correct-binding
       (function flyspell-auto-correct-word)))
 ;; mouse bindings
-(if (eq flyspell-emacs 'xemacs)
-    (define-key flyspell-mouse-map [(button2)]
-      (function flyspell-correct-word/mouse-keymap))
+(cond
+ ((eq flyspell-emacs 'xemacs)
+  (define-key flyspell-mouse-map [(button2)]
+    (function flyspell-correct-word/mouse-keymap)))
+ (t
   (define-key flyspell-mode-map [(mouse-2)]
-    (function flyspell-correct-word/local-keymap)))
+    (function flyspell-correct-word/local-keymap))))
 
 ;; the name of the overlay property that defines the keymap
 (defvar flyspell-overlay-keymap-property-name
@@ -941,13 +822,19 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
   (interactive "r")
   (save-excursion
     (goto-char beg)
-    (while (< (point) end)
-      (message "Spell Checking...%d%%" (* 100 (/ (float (point)) (- end beg))))
-      (flyspell-word)
-      (let ((cur (point)))
-	(forward-word 1)
-	(if (and (< (point) end) (> (point) (+ cur 1)))
-	    (backward-char 1))))
+    (let ((count 0))
+      (while (< (point) end)
+	(if (= count 100)
+	    (progn
+	      (message "Spell Checking...%d%%"
+		       (* 100 (/ (float (point)) (- end beg))))
+	      (setq count 0))
+	  (setq count (+ 1 count)))
+	(flyspell-word)
+	(let ((cur (point)))
+	  (forward-word 1)
+	  (if (and (< (point) end) (> (point) (+ cur 1)))
+	      (backward-char 1)))))
     (backward-char 1)
     (message "Spell Checking...done")
     (flyspell-word)))
