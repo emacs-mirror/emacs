@@ -22,6 +22,9 @@
 
 ;;; Commentary:
 
+;; RFC 2047 is "MIME (Multipurpose Internet Mail Extensions) Part
+;; Three:  Message Header Extensions for Non-ASCII Text".
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
