@@ -62,7 +62,6 @@ to return to regular RMAIL:
   (rmail-edit-mode)
   (make-local-variable 'rmail-old-text)
   (setq rmail-old-text (buffer-substring (point-min) (point-max)))
-  (put 'rmail-old-text 'permanent-local t)
   (setq buffer-read-only nil)
   (set-buffer-modified-p (buffer-modified-p))
   ;; Make mode line update.
