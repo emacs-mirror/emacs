@@ -60,6 +60,7 @@ such support.
 * Highlight Changes::   Using colors to show where you changed the buffer.
 * Trailing Whitespace:: Showing possibly-spurious trailing whitespace.
 * Tooltips::            Showing `tooltips', AKA `ballon help' for active text.
+* Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Misc X::	        Iconifying and deleting frames.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
@@ -1128,6 +1129,7 @@ the buffer were changed most recently.
 @section Trailing Whitespace
 
 @cindex trailing whitespace
+@cindex whitespace, trailing
 @vindex show-trailing-whitespace
 The option @code{show-trailing-whitespace} can be customized so that
 Emacs displays trailing whitespace in the face
@@ -1137,7 +1139,7 @@ text, trailing whitespace is not displayed if point is at the end of the
 line containing the whitespace.
 
 @node Tooltips
-@section Tooltips (or `Ballon Help')
+@section Tooltips (or `Balloon Help')
 
 @cindex balloon help
 @findex tooltip-mode
@@ -1148,6 +1150,34 @@ help'.)  To use them customize the user option.  @code{tooltip-mode}.
 The customization group @code{tooltip} controls various aspects of their
 display.
 
+@node Mouse Avoidance
+@section Mouse Avoidance
+
+Mouse Avoidance mode keeps the window system mouse pointer away from
+point to avoid obscuring text.  Whenever the mouse is moved, the frame
+is also raised.  To use it, customize the option
+@code{mouse-avoidance-mode}.  You can set this to various values to move
+the mouse in several ways:
+
+@table @code
+@item banish
+Move the mouse to the upper-right corner on any keypress;
+@item exile
+Move the mouse to the corner only if the cursor gets too close,
+and allow it to return once the cursor is out of the way;
+@item jump
+If the cursor gets too close to the mouse, displace the mouse
+a random distance & direction;
+@item animate
+As @code{jump}, but shows steps along the way for illusion of motion;
+@item cat-and-mouse
+The same as @code{animate};
+@item proteus
+As @code{animate}, but changes the shape of the mouse pointer too.
+@end table
+
+You can also use the command @kbd{M-x mouse-avoidance-mode} to turn on
+the mode.
 
 @node Misc X
 @section Miscellaneous X Window Features
@@ -1210,6 +1240,8 @@ when the frame is selected.
 
 @node XTerm Mouse
 @section Using a Mouse in Terminal Emulators
+@cindex xterm, mouse support
+@cindex terminal emulators, mouse support
 
 Some terminal emulators under X support mouse clicks in the terminal
 window.  In a terminal emulator which is compatible with @code{xterm},
