@@ -212,7 +212,7 @@ extern Lisp_Object Vvertical_centering_font_regexp;
    struct font_info of the loaded font.  If loading fails, return
    NULL.  */
 
-#define FS_LOAD_FONT(f, fontname) fs_load_font (f, fontname, charset_ascii)
+#define FS_LOAD_FONT(f, fontname) fs_load_font (f, fontname, -1)
 
 
 /* Return an immutable id for font_info FONT_INFO on frame F.  The
