@@ -1839,6 +1839,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   if (menu_item_selection != 0)
     {
       Lisp_Object prefix, entry;
+      int j = 1;
 
       prefix = entry = Qnil;
       i = 0;
@@ -1860,6 +1861,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	      prefix
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	      i += MENU_ITEMS_PANE_LENGTH;
+	      j += 2;
 	    }
 	  /* Ignore a nil in the item list.
 	     It's meaningful only for dialog boxes.  */
@@ -1869,7 +1871,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    {
 	      entry
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
-	      if (menu_item_selection == i)
+	      if (menu_item_selection == j)
 		{
 		  if (keymaps != 0)
 		    {
@@ -1885,6 +1887,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
+	      j++;
 	    }
 	}
     }
