@@ -1694,7 +1694,7 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
   (unless (consp ibuffer-formats)
     (error "Ibuffer error: No formats!"))
   (setq ibuffer-current-format
-	(if (>= ibuffer-current-format (1- (length (ibuffer-current-formats))))
+	(if (>= ibuffer-current-format (1- (length (ibuffer-current-formats nil))))
 	    0
 	  (1+ ibuffer-current-format)))
   (ibuffer-update-format)
