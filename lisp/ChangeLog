@@ -1,3 +1,7 @@
+2000-05-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el: New file.
+
 2000-05-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (auto-mode-alist): Add pattern for `.shrc'.
