@@ -726,7 +726,7 @@ skip_chars (forwardp, syntaxp, string, lim)
      Lisp_Object string, lim;
 {
   register unsigned char *p, *pend;
-  register unsigned char c;
+  register unsigned int c;
   register int ch;
   unsigned char fastmap[0400];
   /* If SYNTAXP is 0, STRING may contain multi-byte form of characters
