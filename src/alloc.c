@@ -2530,6 +2530,7 @@ make_event_array (nargs, args)
 			   C Stack Marking
  ************************************************************************/
 
+#if GC_MARK_STACK
 /* Initialize this part of alloc.c.  */
 
 static void
@@ -3072,8 +3073,6 @@ live_buffer_p (m, p)
 	  && p == m->start
 	  && !NILP (((struct buffer *) p)->name));
 }
-
-#if GC_MARK_STACK
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 
