@@ -69,6 +69,14 @@ Return t if file exists."
 	    (save-excursion
 	      (set-buffer buffer)
 	      (insert-file-contents fullname)
+	      ;; If the loaded file was inserted with no-conversion or
+	      ;; raw-text coding system, make the buffer unibyte.
+	      ;; Otherwise, eval-buffer might try to interpret random
+	      ;; binary junk as multibyte characters.
+	      (if (and enable-multibyte-characters
+		       (or (eq (coding-system-type last-coding-system-used) 5)
+			   (eq last-coding-system-used 'no-conversion)))
+		  (set-buffer-multibyte nil))
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
 	    ;; Have the original buffer current while we eval.
