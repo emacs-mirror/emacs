@@ -1,3 +1,9 @@
+1999-12-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (next_element_from_buffer): Change assertion at the end
+	because it doesn't hold when there's an overlay string at the end
+	from which we deliver an image.
+
 1999-12-31  William M. Perry <wmperry@gnu.org>
 
 	* xfns.c (enum jpeg_keyword_index): Add JPEG_DATA.
