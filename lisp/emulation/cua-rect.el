@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2002, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2002, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -71,71 +71,28 @@
 
 (defvar cua--virtual-edges-debug nil)
 
-;; Per-buffer CUA mode undo list.
-(defvar cua--undo-list nil)
-(make-variable-buffer-local 'cua--undo-list)
+;; Undo rectangle commands.
 
-;; Record undo boundary for rectangle undo.
+(defvar cua--rect-undo-set-point nil)
+
 (defun cua--rectangle-undo-boundary ()
   (when (listp buffer-undo-list)
-    (if (> (length cua--undo-list) cua-undo-max)
-        (setcdr (nthcdr (1- cua-undo-max) cua--undo-list) nil))
-    (undo-boundary)
-    (setq cua--undo-list
-          (cons (cons (cdr buffer-undo-list) (copy-sequence cua--rectangle)) cua--undo-list))))
+    (let ((s (cua--rect-start-position))
+	  (e (cua--rect-end-position)))
+      (undo-boundary)
+      (push (list 'apply 0 s e
+		  'cua--rect-undo-handler
+		  (copy-sequence cua--rectangle) t s e)
+	  buffer-undo-list))))
 
-(defun cua--rectangle-undo (&optional arg)
-  "Undo some previous changes.
-Knows about CUA rectangle highlighting in addition to standard undo."
-  (interactive "*P")
-  (if cua--rectangle
-      (cua--rectangle-undo-boundary))
-  (undo arg)
-  (let ((l cua--undo-list))
-    (while l
-      (if (eq (car (car l)) pending-undo-list)
-          (setq cua--restored-rectangle
-                (and (vectorp (cdr (car l))) (cdr (car l)))
-                l nil)
-        (setq l (cdr l)))))
-  (setq cua--buffer-and-point-before-command nil))
-
-(defvar cua--tidy-undo-counter 0
-  "Number of times `cua--tidy-undo-lists' have run successfully.")
-
-;; Clean out dangling entries from cua's undo list.
-;; Since this list contains pointers into the standard undo list,
-;; such references are only meningful as undo information if the
-;; corresponding entry is still on the standard undo list.
-
-(defun cua--tidy-undo-lists (&optional clean)
-  (let ((buffers (buffer-list)) (cnt cua--tidy-undo-counter))
-    (while (and buffers (or clean (not (input-pending-p))))
-      (with-current-buffer (car buffers)
-        (when (local-variable-p 'cua--undo-list)
-          (if (or clean (null cua--undo-list) (eq buffer-undo-list t))
-              (progn
-                (kill-local-variable 'cua--undo-list)
-                (setq cua--tidy-undo-counter (1+ cua--tidy-undo-counter)))
-            (let* ((bul buffer-undo-list)
-                   (cul (cons nil cua--undo-list))
-                   (cc (car (car (cdr cul)))))
-              (while (and bul cc)
-                (if (setq bul (memq cc bul))
-                    (setq cul (cdr cul)
-                          cc (and (cdr cul) (car (car (cdr cul)))))))
-              (when cc
-                (if cua--debug
-                    (setq cc (length (cdr cul))))
-                (if (eq (cdr cul) cua--undo-list)
-                    (setq cua--undo-list nil)
-                  (setcdr cul nil))
-                (setq cua--tidy-undo-counter (1+ cua--tidy-undo-counter))
-                (if cua--debug
-                    (message "Clean undo list in %s (%d)"
-                             (buffer-name) cc)))))))
-      (setq buffers (cdr buffers)))
-    (/= cnt cua--tidy-undo-counter)))
+(defun cua--rect-undo-handler (rect on s e)
+  (if (setq on (not on))
+      (setq cua--rect-undo-set-point s)
+    (setq cua--restored-rectangle (copy-sequence rect))
+    (setq cua--buffer-and-point-before-command nil))
+  (push (list 'apply 0 s (if on e s)
+	      'cua--rect-undo-handler rect on s e)
+	buffer-undo-list))
 
 ;;; Rectangle geometry
 
@@ -286,6 +243,27 @@ Knows about CUA rectangle highlighting in addition to standard undo."
 	     (not (bolp)))
 	(backward-char 1))
     ))
+
+(defun cua--rect-start-position ()
+  ;; Return point of top left corner
+  (save-excursion
+    (goto-char (cua--rectangle-top))
+    (and (> (move-to-column (cua--rectangle-left))
+	    (cua--rectangle-left))
+	 (not (bolp))
+	 (backward-char 1))
+    (point)))
+
+(defun cua--rect-end-position ()
+  ;; Return point of bottom right cornet
+  (save-excursion
+    (goto-char (cua--rectangle-bot))
+    (and (= (move-to-column (cua--rectangle-right))
+	    (- (cua--rectangle-right) tab-width))
+	 (not (eolp))
+	 (not (bolp))
+	 (backward-char 1))
+    (point)))
 
 ;;; Rectangle resizing
 
@@ -1394,10 +1372,12 @@ With prefix arg, indent to that column."
 
 (defun cua--rectangle-post-command ()
   (if cua--restored-rectangle
-      (setq cua--rectangle cua--restored-rectangle
-            cua--restored-rectangle nil
-            mark-active t
-            deactivate-mark nil)
+      (progn
+	(setq cua--rectangle cua--restored-rectangle
+	      cua--restored-rectangle nil
+	      mark-active t
+	      deactivate-mark nil)
+	(cua--rectangle-set-corners))
     (when (and cua--rectangle cua--buffer-and-point-before-command
                (equal (car cua--buffer-and-point-before-command) (current-buffer))
                (not (= (cdr cua--buffer-and-point-before-command) (point))))
@@ -1411,19 +1391,15 @@ With prefix arg, indent to that column."
       (if (and mark-active
                (not deactivate-mark))
           (cua--highlight-rectangle)
-        (cua--deactivate-rectangle))))
-
+        (cua--deactivate-rectangle)))
+  (when cua--rect-undo-set-point
+    (goto-char cua--rect-undo-set-point)
+    (setq cua--rect-undo-set-point nil)))
 
 ;;; Initialization
 
 (defun cua--rect-M/H-key (key cmd)
   (cua--M/H-key cua--rectangle-keymap key cmd))
-
-(defun cua--rectangle-on-off (on)
-  (cancel-function-timers 'cua--tidy-undo-lists)
-  (if on
-      (run-with-idle-timer 10 t 'cua--tidy-undo-lists)
-    (cua--tidy-undo-lists t)))
 
 (defun cua--init-rectangles ()
   (unless (face-background 'cua-rectangle-face)

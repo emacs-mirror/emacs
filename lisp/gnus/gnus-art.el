@@ -213,7 +213,7 @@ By default, if you set this t, then Gnus will display citations and
 signatures, but will never scroll down to show you a page consisting
 only of boring text.  Boring text is controlled by
 `gnus-article-boring-faces'."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'gnus-article-hiding)
 
@@ -318,7 +318,7 @@ advertisements.  For example:
 		   (symbol :tag "Item in `gnus-article-banner-alist'" none)
 		   regexp
 		   (const :tag "None" nil))))
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-washing)
 
 (defmacro gnus-emphasis-custom-with-format (&rest body)
@@ -806,7 +806,7 @@ If set, this variable overrides `gnus-unbuttonized-mime-types'.
 To see e.g. security buttons you could set this to
 `(\"multipart/signed\")'.
 This variable is only used when `gnus-inhibit-mime-unbuttonizing' is nil."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-mime
   :type '(repeat regexp))
 
@@ -815,14 +815,14 @@ This variable is only used when `gnus-inhibit-mime-unbuttonizing' is nil."
 When nil (the default value), then some MIME parts do not get buttons,
 as described by the variables `gnus-buttonized-mime-types' and
 `gnus-unbuttonized-mime-types'."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean)
 
 (defcustom gnus-body-boundary-delimiter "_"
   "String used to delimit header and body.
 This variable is used by `gnus-article-treat-body-boundary' which can
 be controlled by `gnus-treat-body-boundary'."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-various
   :type '(choice (item :tag "None" :value nil)
 		 string))
@@ -831,7 +831,7 @@ be controlled by `gnus-treat-body-boundary'."
   "Defines the location of the faces database.
 For information on obtaining this database of pretty pictures, please
 see http://www.cs.indiana.edu/picons/ftp/index.html"
-  :version "21.4"
+  :version "22.1"
   :type '(repeat directory)
   :link '(url-link :tag "download"
 		   "http://www.cs.indiana.edu/picons/ftp/index.html")
@@ -972,7 +972,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Remove carriage returns.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -981,7 +981,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Remove newlines from within URLs.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -990,7 +990,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Remove leading whitespace in headers.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1110,7 +1110,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Display the Date in a format that can be read aloud in English.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-head-custom)
@@ -1186,7 +1186,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Unfold folded header lines.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1195,7 +1195,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Fold headers.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1204,7 +1204,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Fold the Newsgroups and Followup-To headers.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1270,7 +1270,7 @@ Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' and Info node
 `(gnus)X-Face' for details."
   :group 'gnus-article-treat
-  :version "21.4"
+  :version "22.1"
   :link '(custom-manual "(gnus)Customizing Articles")
   :link '(custom-manual "(gnus)X-Face")
   :type gnus-article-treat-head-custom)
@@ -1301,7 +1301,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' and Info node
 `(gnus)Picons' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :group 'gnus-picon
   :link '(custom-manual "(gnus)Customizing Articles")
@@ -1317,7 +1317,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' and Info node
 `(gnus)Picons' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :group 'gnus-picon
   :link '(custom-manual "(gnus)Customizing Articles")
@@ -1333,7 +1333,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' and Info node
 `(gnus)Picons' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :group 'gnus-picon
   :link '(custom-manual "(gnus)Customizing Articles")
@@ -1349,7 +1349,7 @@ See Info node `(gnus)Customizing Articles' and Info node
   "Draw a boundary at the end of the headers.
 Valid values are nil and `head'.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-head-custom)
@@ -1367,7 +1367,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Format as HTML.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1403,7 +1403,7 @@ See Info node `(gnus)Customizing Articles' for details."
 To automatically treat X-PGP-Sig, set it to head.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-treat
   :group 'mime-security
   :link '(custom-manual "(gnus)Customizing Articles")
@@ -1417,7 +1417,7 @@ See Info node `(gnus)Customizing Articles' for details."
 (defcustom gnus-article-encrypt-protocol "PGP"
   "The protocol used for encrypt articles.
 It is a string, such as \"PGP\". If nil, ask user."
-  :version "21.4"
+  :version "22.1"
   :type 'string
   :group 'mime-security)
 
@@ -1429,13 +1429,13 @@ It is a string, such as \"PGP\". If nil, ask user."
 			      (executable-find idna-program))
   "Whether IDNA decoding of headers is used when viewing messages.
 This requires GNU Libidn, and by default only enabled if it is found."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-headers
   :type 'boolean)
 
 (defcustom gnus-article-over-scroll nil
   "If non-nil, allow scrolling the article buffer even when there no more text."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article
   :type 'boolean)
 
@@ -4354,7 +4354,16 @@ are decompressed."
 	  (setq charset
 		(or (cdr (assq arg
 			       gnus-summary-show-article-charset-alist))
-		    (mm-read-coding-system "Charset: ")))))
+		    (mm-read-coding-system "Charset: "))))
+	 (t
+	  (if (mm-handle-undisplayer handle)
+	      (mm-remove-part handle))
+	  (setq contents
+		(if (fboundp 'string-to-multibyte)
+		    (string-to-multibyte contents)
+		  (mapconcat
+		   (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
+		   contents "")))))
 	(forward-line 2)
 	(mm-insert-inline handle
 			  (if (and charset
@@ -4694,7 +4703,7 @@ If t, it overrides nil values of
 
 (defcustom gnus-mime-display-multipart-alternative-as-mixed nil
   "Display \"multipart/alternative\" parts as  \"multipart/mixed\"."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-mime
   :type 'boolean)
 
@@ -4704,7 +4713,7 @@ If t, it overrides nil values of
 If displaying \"text/html\" is discouraged \(see
 `mm-discouraged-alternatives'\) images or other material inside a
 \"multipart/related\" part might be overlooked when this variable is nil."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-mime
   :type 'boolean)
 
@@ -5812,7 +5821,7 @@ groups."
 (defcustom gnus-button-valid-fqdn-regexp
   message-valid-fqdn-regexp
   "Regular expression that matches a valid FQDN."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type 'regexp)
 
@@ -5820,7 +5829,7 @@ groups."
   "Function to use for displaying man pages.
 The function must take at least one argument with a string naming the
 man page."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (function-item :tag "Man" manual-entry)
 		 (function-item :tag "Woman" woman)
 		 (function :tag "Other"))
@@ -5831,7 +5840,7 @@ man page."
 If the default site is too slow, try to find a CTAN mirror, see
 <URL:http://tug.ctan.org/tex-archive/CTAN.sites?action=/index.html>.  See also
 the variable `gnus-button-handle-ctan'."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :link '(custom-manual "(gnus)Group Parameters")
   :type '(choice (const "http://www.tex.ac.uk/tex-archive/")
@@ -5842,14 +5851,14 @@ the variable `gnus-button-handle-ctan'."
 (defcustom gnus-button-ctan-handler 'browse-url
   "Function to use for displaying CTAN links.
 The function must take one argument, the string naming the URL."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (function-item :tag "Browse Url" browse-url)
 		 (function :tag "Other"))
   :group 'gnus-article-buttons)
 
 (defcustom gnus-button-handle-ctan-bogus-regexp "^/?tex-archive/\\|^/"
   "Bogus strings removed from CTAN URLs."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type '(choice (const "^/?tex-archive/\\|/")
 		 (regexp :tag "Other")))
@@ -5863,7 +5872,7 @@ The function must take one argument, the string naming the URL."
    "\\)")
   "Regular expression for ctan directories.
 It should match all directories in the top level of `gnus-ctan-url'."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type 'regexp)
 
@@ -5873,7 +5882,7 @@ It should match all directories in the top level of `gnus-ctan-url'."
 	  gnus-button-valid-fqdn-regexp
 	  ">?\\)\\b")
   "Regular expression that matches a message ID or a mail address."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type 'regexp)
 
@@ -5885,7 +5894,7 @@ message ID or a mail address, respectively.  If this variable is set to the
 symbol `ask', always query the user what do do.  If it is a function, this
 function will be called with the string as it's only argument.  The function
 must return `mid', `mail', `invalid' or `ask'."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type '(choice (function-item :tag "Heuristic function"
 				gnus-button-mid-or-mail-heuristic)
@@ -5949,7 +5958,7 @@ must return `mid', `mail', `invalid' or `ask'."
 
 A negative RATE indicates a message IDs, whereas a positive indicates a mail
 address.  The REGEXP is processed with `case-fold-search' set to nil."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type '(repeat (cons (number :tag "Rate")
 		       (regexp :tag "Regexp"))))
@@ -6134,7 +6143,7 @@ positives are possible.  Note that you can set this variable local to
 specific groups.  Setting it higher in TeX groups is probably a good idea.
 See Info node `(gnus)Group Parameters' and the variable `gnus-parameters' on
 how to set variables in specific groups."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :link '(custom-manual "(gnus)Group Parameters")
   :type 'integer)
@@ -6146,7 +6155,7 @@ positives are possible.  Note that you can set this variable local to
 specific groups.  Setting it higher in Unix groups is probably a good idea.
 See Info node `(gnus)Group Parameters' and the variable `gnus-parameters' on
 how to set variables in specific groups."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :link '(custom-manual "(gnus)Group Parameters")
   :type 'integer)
@@ -6158,7 +6167,7 @@ positives are possible.  Note that you can set this variable local to
 specific groups.  Setting it higher in Emacs or Gnus related groups is
 probably a good idea.  See Info node `(gnus)Group Parameters' and the variable
 `gnus-parameters' on how to set variables in specific groups."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :link '(custom-manual "(gnus)Group Parameters")
   :type 'integer)
@@ -6168,7 +6177,7 @@ probably a good idea.  See Info node `(gnus)Group Parameters' and the variable
 The higher the number, the more buttons will appear and the more false
 positives are possible."
   ;; mail addresses, MIDs, URLs for news, ...
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type 'integer)
 
@@ -6177,7 +6186,7 @@ positives are possible."
 The higher the number, the more buttons will appear and the more false
 positives are possible."
   ;; stuff handled by `browse-url' or `gnus-button-embedded-url'
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-article-buttons
   :type 'integer)
 
@@ -6707,10 +6716,10 @@ specified by `gnus-button-alist'."
   (if (string-match "\\([^#]+\\)#?\\(.*\\)" url)
       (gnus-info-find-node
        (concat "("
-	       (gnus-url-unhex-string 
+	       (gnus-url-unhex-string
 		 (match-string 1 url))
 	       ")"
-	       (or (gnus-url-unhex-string 
+	       (or (gnus-url-unhex-string
 		    (match-string 2 url))
 		   "Top")))
     (error "Can't parse %s" url)))

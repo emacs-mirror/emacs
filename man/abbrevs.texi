@@ -153,14 +153,14 @@ point and you type a self-inserting whitespace or punctuation character
 (@key{SPC}, comma, etc.@:).  More precisely, any character that is not a
 word constituent expands an abbrev, and any word-constituent character
 can be part of an abbrev.  The most common way to use an abbrev is to
-insert it and then insert a punctuation character to expand it.
+insert it and then insert a punctuation or whitespace character to expand it.
 
 @vindex abbrev-all-caps
   Abbrev expansion preserves case; thus, @samp{foo} expands into @samp{find
 outer otter}; @samp{Foo} into @samp{Find outer otter}, and @samp{FOO} into
 @samp{FIND OUTER OTTER} or @samp{Find Outer Otter} according to the
-variable @code{abbrev-all-caps} (a non-@code{nil} value chooses the first
-of the two expansions).
+variable @code{abbrev-all-caps} (setting it non-@code{nil} specifies
+@samp{FIND OUTER OTTER}).
 
   These commands are used to control abbrev expansion:
 

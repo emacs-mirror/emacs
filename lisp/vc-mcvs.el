@@ -70,7 +70,7 @@
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-mcvs-register-switches nil
@@ -82,7 +82,7 @@ A string or list of strings passed to the checkin program by
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-mcvs-diff-switches nil
@@ -92,13 +92,13 @@ A string or list of strings passed to the checkin program by
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-mcvs-header (or (cdr (assoc 'MCVS vc-header-alist))
 			      vc-cvs-header)
   "*Header keywords to be inserted by `vc-insert-headers'."
-  :version "21.4"
+  :version "22.1"
   :type '(repeat string)
   :group 'vc)
 
@@ -107,7 +107,7 @@ A string or list of strings passed to the checkin program by
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 ;;;
@@ -447,7 +447,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; Even if it's empty, it's locally modified.
 	1)
     (let* ((async (and (not vc-disable-async-diff)
-                       (vc-stay-local-p file) 
+                       (vc-stay-local-p file)
                        (fboundp 'start-process)))
 	   ;; Run the command from the root dir so that `mcvs filt' returns
 	   ;; valid relative names.

@@ -282,7 +282,7 @@ search."
 The format of the header is specified by `diary-header-line-format'."
   :group   'diary
   :type    'boolean
-  :version "21.4")
+  :version "22.1")
 
 (defcustom diary-header-line-format
   '(:eval (calendar-string-spread
@@ -295,7 +295,7 @@ before edit/copy"
 Only used if `diary-header-line-flag' is non-nil."
   :group   'diary
   :type    'sexp
-  :version "21.4")
+  :version "22.1")
 
 (defvar diary-saved-point)		; internal
 
@@ -546,7 +546,7 @@ changing the variable `diary-include-string'."
 (defface diary-button-face '((((type pc) (class color))
 		   (:foreground "lightblue")))
   "Default face used for buttons."
-  :version "21.4"
+  :version "22.1"
   :group 'diary)
 
 (define-button-type 'diary-entry
@@ -1938,7 +1938,7 @@ template following the rules above."
 		:value-type (choice
 			     (string :tag "Template for entry")
 			     (function :tag "Unary function providing template")))
-  :version "21.4"
+  :version "22.1"
   :group 'diary)
 
 

@@ -211,7 +211,7 @@ variable is the symbol `default' the default behaviour is
 used (which currently is nil, unless you use a statistical
 spam.el test); if this variable is another non-nil value bodies
 will be downloaded."
-  :version "21.4"
+  :version "22.1"
   :group 'nnimap
   :type '(choice (const :tag "Let system decide" deault)
 		 boolean))
@@ -223,7 +223,7 @@ will be downloaded."
 This means that errors caught by nnimap when closing the mailbox will
 not prevent Gnus from updating the group status, which may be harmful.
 However, it increases speed."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'nnimap)
 
@@ -232,7 +232,7 @@ However, it increases speed."
 This increases the speed of closing mailboxes (quiting group) but may
 decrease the speed of selecting another mailbox later.  Re-selecting
 the same mailbox will be faster though."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'nnimap)
 
@@ -245,7 +245,7 @@ more carefully for new mail.
 
 In summary, the default is O((1-p)*k+p*n) and changing it to nil makes
 it O(n).  If p is small, then the default is probably faster."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'nnimap)
 
@@ -826,7 +826,7 @@ function is generally only called when Gnus is shutting down."
 
 (defun nnimap-make-callback (article gnus-callback buffer)
   "Return a callback function."
-  `(lambda () 
+  `(lambda ()
      (nnimap-callback ,article ,gnus-callback ,buffer)))
 
 (defun nnimap-callback (article gnus-callback buffer)
@@ -876,8 +876,8 @@ function is generally only called when Gnus is shutting down."
 				   (imap-error-text nnimap-server-buffer))
 		(cons group article)))
 	  (add-hook 'imap-fetch-data-hook
-		    (nnimap-make-callback article 
-					  nnheader-callback-function 
+		    (nnimap-make-callback article
+					  nnheader-callback-function
 					  nntp-server-buffer))
 	  (imap-fetch-asynch article part nil nnimap-server-buffer)
 	  (cons group article))))))
@@ -930,7 +930,7 @@ function is generally only called when Gnus is shutting down."
   "Update the unseen count in `nnimap-mailbox-info'."
   (gnus-sethash
    (gnus-group-prefixed-name group server)
-   (let ((old (gnus-gethash-safe (gnus-group-prefixed-name group server) 
+   (let ((old (gnus-gethash-safe (gnus-group-prefixed-name group server)
 				 nnimap-mailbox-info)))
      (list (nth 0 old) (nth 1 old)
 	   (imap-mailbox-status group 'unseen nnimap-server-buffer)
@@ -1043,7 +1043,7 @@ function is generally only called when Gnus is shutting down."
 			     'asyncgroups
 			   'slowgroups)
 			 (list group (imap-mailbox-status-asynch
-				      group '(uidvalidity uidnext unseen) 
+				      group '(uidvalidity uidnext unseen)
 				      nnimap-server-buffer))))
 	  (dolist (asyncgroup asyncgroups)
 	    (let ((group (nth 0 asyncgroup))
@@ -1054,7 +1054,7 @@ function is generally only called when Gnus is shutting down."
 			      (nth 0 (gnus-gethash (gnus-group-prefixed-name
 						    group server)
 						   nnimap-mailbox-info))
-			      (imap-mailbox-get 'uidvalidity group 
+			      (imap-mailbox-get 'uidvalidity group
 						nnimap-server-buffer)))
 			(not (string=
 			      (nth 1 (gnus-gethash (gnus-group-prefixed-name
@@ -1310,7 +1310,7 @@ function is generally only called when Gnus is shutting down."
 			     (let (msgid)
 			       (and (setq msgid
 					  (nnmail-fetch-field "message-id"))
-				    (nnmail-cache-insert msgid 
+				    (nnmail-cache-insert msgid
 							 to-group
 							 (nnmail-fetch-field "subject"))))))
 			 ;; Add the group-art list to the history list.
@@ -1418,12 +1418,12 @@ function is generally only called when Gnus is shutting down."
 			nnmail-expiry-wait)))
 	  (cond ((or force (eq days 'immediate))
 		 (let ((oldarts (imap-search
-				 (concat "UID " 
+				 (concat "UID "
 					 (imap-range-to-message-set artseq)))))
 		   (when oldarts
 		     (nnimap-expiry-target oldarts group server)
 		     (when (imap-message-flags-add
-			    (imap-range-to-message-set 
+			    (imap-range-to-message-set
 			     (gnus-compress-sequence oldarts)) "\\Deleted")
 		       (setq articles (gnus-set-difference
 				       articles oldarts))))))
@@ -1437,9 +1437,9 @@ function is generally only called when Gnus is shutting down."
 		   (when oldarts
 		     (nnimap-expiry-target oldarts group server)
 		     (when (imap-message-flags-add
-			    (imap-range-to-message-set 
+			    (imap-range-to-message-set
 			     (gnus-compress-sequence oldarts)) "\\Deleted")
-		       (setq articles (gnus-set-difference 
+		       (setq articles (gnus-set-difference
 				       articles oldarts)))))))))))
   ;; return articles not deleted
   articles)

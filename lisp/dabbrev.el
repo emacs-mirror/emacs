@@ -168,7 +168,7 @@ This variable has an effect only when the value of
 		 (const :tag "based on `case-replace'" case-replace)
 		 (other :tag "on" t))
   :group 'dabbrev
-  :version "21.4")
+  :version "22.1")
 
 (defcustom dabbrev-case-replace 'case-replace
   "*Whether dabbrev applies the abbreviations's case pattern to the expansion.

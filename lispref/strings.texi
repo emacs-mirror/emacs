@@ -383,8 +383,9 @@ character currently present at that point in @var{string}.
 @code{clear-string}:
 
 @defun clear-string string
-This clears the contents of @var{string} to zeros
-and may change its length.
+This clears the contents of @var{string} to zeros.
+It may also change @var{string}'s length and convert it to
+a unibyte string.
 @end defun
 
 @need 2000
@@ -714,8 +715,8 @@ format specifications correspond to successive values from
 @var{objects}.  Thus, the first format specification in @var{string}
 uses the first such value, the second format specification uses the
 second such value, and so on.  Any extra format specifications (those
-for which there are no corresponding values) cause unpredictable
-behavior.  Any extra values to be formatted are ignored.
+for which there are no corresponding values) cause an error.  Any
+extra values to be formatted are ignored.
 
   Certain format specifications require values of particular types.  If
 you supply a value that doesn't fit the requirements, an error is

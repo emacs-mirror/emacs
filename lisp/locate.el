@@ -157,7 +157,7 @@
 This should contain the \"-l\" switch, but not the \"-F\" or \"-b\" switches."
   :type 'string
   :group 'locate
-  :version "21.4")
+  :version "22.1")
 
 (defcustom locate-update-command "updatedb"
   "The command used to update the locate database."

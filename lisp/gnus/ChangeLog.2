@@ -50,7 +50,7 @@
 	* gnus-sum.el (gnus-select-newsgroup): Use cat.
 
 	* gnus-agent.el (gnus-agent-cat-enable-undownloaded-faces): New
-	cat. 
+	cat.
 
 	* gnus.el (gnus-user-agent): Moved here.
 
@@ -108,7 +108,7 @@
 2003-12-31  Jeremy Maitin-Shepard  <jbms@attbi.com>
 
 	* mml.el (mml-generate-mime-1): Use mml-compute-boundary (tiny
-	change). 
+	change).
 
 2003-12-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -391,7 +391,7 @@
 
 	* gnus-cus.el (gnus-agent-customize-category): Added missing
 	agent-disable-undownloaded-faces parameter.
-	
+
 	* gnus-start.el (gnus-activate-group): Backed out my 2003-11-29
 	patch as it was too late at adjusting the active range.
 	(gnus-get-unread-articles-in-group): Added call to new
@@ -401,7 +401,7 @@
 
 	* message.el (message-get-reply-headers): Narrow to headers.
 
-2003-12-10  Teodor Zlatanov  <tzz@lifelogs.com> 
+2003-12-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* spam.el (spam-disable-spam-split-during-ham-respool): new
 	variable.  From lorentey@elte.hu (L,Bu(Brentey K,Ba(Broly)
@@ -557,7 +557,7 @@
 
 2003-11-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-agent.el (gnus-agent-covered-methods): Remove nil methods. 
+	* gnus-agent.el (gnus-agent-covered-methods): Remove nil methods.
 
 2003-11-29  Kevin Greiner <kgreiner@xpediantsolutions.com>
 	* gnus-start.el (gnus-activate-group): The active range of the
@@ -813,16 +813,16 @@
 	nnmail-cache-insert
 
 	* nnmh.el (nnmh-request-accept-article): pass sender to
-	nnmail-cache-insert 
+	nnmail-cache-insert
 
 	* nnmbox.el (nnmbox-request-accept-article): pass sender to
-	nnmail-cache-insert 
+	nnmail-cache-insert
 
 	* nnfolder.el (nnfolder-request-accept-article): pass sender to
-	nnmail-cache-insert 
+	nnmail-cache-insert
 
 	* nnbabyl.el (nnbabyl-request-accept-article): pass sender to
-	nnmail-cache-insert 
+	nnmail-cache-insert
 
 	* nnmail.el (nnmail-cache-insert): accept sender parameter and
 	pass it to the nnmail-spool-hook
@@ -887,7 +887,7 @@
 	* gnus.el (gnus-group-guess-full-name-from-command-method): new	function
 
 	* gnus-registry.el (gnus-registry-fetch-group): use long names if
-	requested 
+	requested
 	(gnus-registry-split-fancy-with-parent): when long names are in
 	use, strip the name if we're in the native server, or else return nothing
 	(gnus-registry-spool-action, gnus-registry-action): use
@@ -990,7 +990,7 @@
 
 2003-10-27  Romain FRANCOISE  <romain@orebokech.com>
 
-	* gnus-art.el (gnus-article-goto-prev-page): Doc fix. 
+	* gnus-art.el (gnus-article-goto-prev-page): Doc fix.
 
 2003-10-27  Simon Josefsson  <jas@extundo.com>
 
@@ -1069,7 +1069,7 @@
 	building with XEmacs so byte-compile it.
 	(dgnushack-make-load): When building with XEmacs do nothing except
 	byte-compile the autoload file and create a dummy gnus-load.el
-	file. 
+	file.
 
 2003-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1128,7 +1128,7 @@
 2003-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-picon.el (gnus-picon-transform-address): Protect against
-	errors. 
+	errors.
 
 2003-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1140,12 +1140,12 @@
 2003-10-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* spam-report.el (spam-report-url-ping-plain): Include a
-	User-Agent. 
+	User-Agent.
 
 	* gnus-msg.el (gnus-extended-version): Use it.
 
 	* gnus-util.el (gnus-emacs-version): Separated out into own
-	function. 
+	function.
 
 2003-10-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -1181,15 +1181,15 @@
 2003-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* pop3.el (pop3-read-response): Check whether the process is
-	alive. 
+	alive.
 
 	* gnus-sum.el (gnus-summary-refer-article): Strip spaces.
 
 	* rfc2047.el (rfc2047-encode-region): Do error out on invalid
-	strings. 
+	strings.
 
 	* nntp.el (nntp-retrieve-headers-with-xover): Get error messages
-	right. 
+	right.
 
 	* gnus-agent.el (gnus-agent-read-servers): Remove sit-for.
 
@@ -1198,14 +1198,14 @@
 	* message.el (message-field-value): New function.
 	(message-insert-disposition-notification-to): Use Reply-To, too.
 
-	* imap.el (imap-mailbox-status): Upcase STATUS commands. 
+	* imap.el (imap-mailbox-status): Upcase STATUS commands.
 
 	* gnus-sum.el (gnus-remove-odd-characters): New function.
 	(gnus-nov-parse-line): Use it.
 
 2003-10-18  Matt Swift  <swift@alum.mit.edu>
 
-	* mm-decode.el (mm-inline-media-tests): Recognize pjpeg as jpeg. 
+	* mm-decode.el (mm-inline-media-tests): Recognize pjpeg as jpeg.
 
 2003-10-18  Romain FRANCOISE  <romain@orebokech.com>
 
@@ -1269,14 +1269,14 @@
 2003-10-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-enter-digest-group): ogroup, nor
-	group. 
+	group.
 
 	* gnus-msg.el (gnus-inews-insert-archive-gcc): Use the parent
 	name for gcc-self.
 	(gnus-inews-insert-archive-gcc): Paren mistake.
 
 	* gnus-sum.el (gnus-summary-enter-digest-group): Add
-	parent-group. 
+	parent-group.
 
 	* gnus-art.el (gnus-ignored-headers): Add more headers.
 
@@ -1297,7 +1297,7 @@
 	(mail-source-fetch-imap): Use them.
 
 	* nndraft.el (nndraft-request-move-article): Fix infinite
-	recursion. 
+	recursion.
 
 	* gnus-group.el (gnus-group-mark-regexp): Jump to groups.
 
@@ -1310,7 +1310,7 @@
 
 	* message.el (message-inserted-headers): New variable.
 	(message-mode): Make local.
-	(message-mode): Set all the local action variables to nil.	
+	(message-mode): Set all the local action variables to nil.
 
 2003-10-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1368,7 +1368,7 @@
 	found (idea from Adrian Lanz <lanz@fowi.ethz.ch>)
 	(spam-check-bogofilter-headers, spam-check-blackholes, spam-check-BBDB)
 	(spam-from-listed-p): use nnmail-fetch-field instead of message-fetch-field
-	
+
 
 2003-10-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1439,7 +1439,7 @@
 	to MML.  MIME -> MML -> MIME does not work for PGP/MIME.
 
 	* message.el (message-bounce, message-forward-show-mml): do.
-	
+
 2003-09-13  Jesper Harder  <harder@ifa.au.dk>
 
 	* rfc2047.el (rfc2047-charset-encoding-alist): Add viscii.
@@ -1760,7 +1760,7 @@
 
 2003-07-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* spam.el (spam-use-regex-body, spam-regex-body-spam) 
+	* spam.el (spam-use-regex-body, spam-regex-body-spam)
 	(spam-regex-body-ham): new variables, default to nil/empty/empty
 	(spam-install-hooks): added spam-use-regex-body to list or
 	pre-install conditions
@@ -1947,7 +1947,7 @@
 2003-06-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-ems.el (gnus-put-image): Mark the right text segment with
-	gnus-image-category. 
+	gnus-image-category.
 
 	* gnus-srvr.el (gnus-browse-unsubscribe-group): Strip prefix from
 	native groups.
@@ -4809,7 +4809,7 @@
 2003-02-20  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-spec.el (gnus-xmas-format): Use insert instead of
-	insert-string which is obsolete in Emacs 21.4.
+	insert-string which is obsolete in Emacs 22.1.
 
 	* message.el (message-cross-post-followup-to-header): do.
 

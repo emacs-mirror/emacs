@@ -175,7 +175,7 @@ Intended as the value of `indent-line-function'."
     (if (> (- (point-max) pos) (point))
 	(goto-char (- (point-max) pos)))))
 
-;; This doesn't work too well in Emacs 21.2.  See 21.4 development
+;; This doesn't work too well in Emacs 21.2.  See 22.1 development
 ;; code.
 (defun cfengine-fill-paragraph (&optional justify)
   "Fill `paragraphs' in Cfengine code."

@@ -222,10 +222,10 @@ Kill the following balanced expression (@code{kill-sexp}).  @xref{Expressions}.
 Kill through the next occurrence of @var{char} (@code{zap-to-char}).
 @end table
 
-  A kill command which is very general is @kbd{C-w}
-(@code{kill-region}), which kills everything between point and the
-mark.  With this command, you can kill any contiguous sequence of
-characters, if you first set the region around them.
+  The most general kill command is @kbd{C-w} (@code{kill-region}),
+which kills everything between point and the mark.  With this command,
+you can kill any contiguous sequence of characters, if you first set
+the region around them.
 
 @kindex M-z
 @findex zap-to-char
@@ -239,13 +239,6 @@ search backward and kill text before point.
 and @kbd{M-d} (@pxref{Words}); balanced expressions, with @kbd{C-M-k}
 (@pxref{Expressions}); and sentences, with @kbd{C-x @key{DEL}} and
 @kbd{M-k} (@pxref{Sentences}).@refill
-
-  You can use kill commands in read-only buffers.  They don't actually
-change the buffer, and they beep to warn you of that, but they do copy
-the text you tried to kill into the kill ring, so you can yank it into
-other buffers.  Most of the kill commands move point across the text
-they copy in this way, so that successive kill commands build up a
-single kill ring entry as usual.
 
 @node Graphical Kill
 @subsection Killing on Graphical Terminals
@@ -289,7 +282,7 @@ Replace text just yanked with an earlier batch of killed text
 (@code{yank-pop}).
 @item M-w
 Save region as last killed text without actually killing it
-(@code{kill-ring-save}).
+(@code{kill-ring-save}).  Some systems call this ``copying''.
 @item C-M-w
 Append next kill to last batch of killed text (@code{append-next-kill}).
 @end table
@@ -466,7 +459,7 @@ the command @kbd{C-h v kill-ring}.
 
 @cindex accumulating scattered text
   Usually we copy or move text by killing it and yanking it, but there
-are other methods convenient for copying one block of text in many
+are other convenient methods for copying one block of text in many
 places, or for copying many scattered blocks of text into one place.  To
 copy one block to many places, store it in a register
 (@pxref{Registers}).  Here we describe the commands to accumulate

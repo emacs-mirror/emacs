@@ -223,7 +223,7 @@
 
 (defgroup nndiary nil
   "The Gnus Diary backend."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-diary)
 
 (defcustom nndiary-mail-sources
@@ -760,7 +760,7 @@ all.  This may very well take some time.")
   (when (nndiary-schedule)
     (let (result)
       (when nnmail-cache-accepted-message-ids
-	(nnmail-cache-insert (nnmail-fetch-field "message-id") 
+	(nnmail-cache-insert (nnmail-fetch-field "message-id")
 			     group
 			     (nnmail-fetch-field "subject")))
       (if (stringp group)

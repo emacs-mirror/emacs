@@ -1,3 +1,8 @@
+2005-02-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-inline-part): Show the raw contents if a
+	prefix arg is neither nil nor a number, as info specifies.
+
 2005-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el (gnus-article-mode): Turn off the "\ " non-break space.
@@ -1169,7 +1174,7 @@
 	* pgg-gpg.el (pgg-gpg-lookup-all-secret-keys)
 	(pgg-gpg-lookup-key): Use regexp match instead of
 	split-string (split-string is different between emacs 21.2 and
-	21.4).  Reported by ultrasoul@ultrasoul.com (David D. Smith).
+	22.1).  Reported by ultrasoul@ultrasoul.com (David D. Smith).
 
 2004-07-28  Simon Josefsson  <jas@extundo.com>
 

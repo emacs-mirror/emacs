@@ -56,7 +56,7 @@
 (defcustom fill-flowed-display-column 'fill-column
   "Column beyond which format=flowed lines are wrapped, when displayed.
 This can be a Lisp expression or an integer."
-  :version "21.4"
+  :version "22.1"
   :group 'mime-display
   :type '(choice (const :tag "Standard `fill-column'" fill-column)
 		 (const :tag "Fit Window" (- (window-width) 5))
@@ -67,7 +67,7 @@ This can be a Lisp expression or an integer."
   "Column beyond which format=flowed lines are wrapped, in outgoing messages.
 This can be a Lisp expression or an integer.
 RFC 2646 suggests 66 characters for readability."
-  :version "21.4"
+  :version "22.1"
   :group 'mime-display
   :type '(choice (const :tag "Standard fill-column" fill-column)
 		 (const :tag "RFC 2646 default (66)" 66)
@@ -163,19 +163,19 @@ RFC 2646 suggests 66 characters for readability."
   '(
     ;; The syntax of each list element is:
     ;; (INPUT . EXPECTED-OUTPUT)
-    ("> Thou villainous ill-breeding spongy dizzy-eyed 
-> reeky elf-skinned pigeon-egg! 
->> Thou artless swag-bellied milk-livered 
+    ("> Thou villainous ill-breeding spongy dizzy-eyed
+> reeky elf-skinned pigeon-egg!
+>> Thou artless swag-bellied milk-livered
 >> dismal-dreaming idle-headed scut!
->>> Thou errant folly-fallen spleeny reeling-ripe 
+>>> Thou errant folly-fallen spleeny reeling-ripe
 >>> unmuzzled ratsbane!
->>>> Henceforth, the coding style is to be strictly 
+>>>> Henceforth, the coding style is to be strictly
 >>>> enforced, including the use of only upper case.
->>>>> I've noticed a lack of adherence to the coding 
+>>>>> I've noticed a lack of adherence to the coding
 >>>>> styles, of late.
 >>>>>> Any complaints?
 " . "> Thou villainous ill-breeding spongy dizzy-eyed reeky elf-skinned
-> pigeon-egg! 
+> pigeon-egg!
 >> Thou artless swag-bellied milk-livered dismal-dreaming idle-headed
 >> scut!
 >>> Thou errant folly-fallen spleeny reeling-ripe unmuzzled ratsbane!
@@ -186,8 +186,8 @@ RFC 2646 suggests 66 characters for readability."
 ")
 ;    ("
 ;> foo
-;> 
-;> 
+;>
+;>
 ;> bar
 ;" . "
 ;> foo bar

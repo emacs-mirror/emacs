@@ -174,7 +174,7 @@ When non-nil, a message is generated whenever a file is reverted."
 \(When the string is not empty, make sure that it has a leading space.)"
   :group 'auto-revert
   :type 'string
-  :version "21.4")
+  :version "22.1")
 
 (defcustom auto-revert-mode-hook nil
   "Functions to run when Auto-Revert Mode is activated."
@@ -243,7 +243,7 @@ machine, if it does not apply to too many version controlled
 buffers.  CPU usage depends on the version control system"
   :group 'auto-revert
   :type 'boolean
-  :version "21.4")
+  :version "22.1")
 
 (defvar global-auto-revert-ignore-buffer nil
   "*When non-nil, Global Auto-Revert Mode will not revert this buffer.

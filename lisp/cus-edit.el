@@ -34,6 +34,103 @@
 ;; that interferes with completion.  Use `customize-' for commands
 ;; that the user will run with M-x, and `Custom-' for interactive commands.
 
+;; The identity of a customize option is represented by a Lisp symbol.
+;; There is the following values associated with an option.  
+
+;; 0. The current value.
+
+;;    This is the value of the option as seen by "the rest of Emacs".
+
+;;    Usually extracted by 'default-value', but can be extracted with
+;;    different means if the option symbol has the 'custom-get'
+;;    property.  Similarly, set-default (or the 'custom-set' property)
+;;    can set it.
+
+;; 1. The widget value.
+
+;;    This is the value shown in the widget in a customize buffer.  
+
+;; 2. The customized value.
+
+;;    This is the last value given to the option through customize.
+
+;;    It is stored in the 'customized-value' property of the option, in a
+;;    cons-cell whose car evaluate to the customized value.   
+
+;; 3. The saved value.
+
+;;    This is last value saved from customize.
+
+;;    It is stored in the 'saved-value' property of the option, in a
+;;    cons-cell whose car evaluate to the saved value.   
+
+;; 4. The standard value.
+
+;;    This is the value given in the 'defcustom' declaration.
+
+;;    It is stored in the 'standard-value' property of the option, in a
+;;    cons-cell whose car evaluate to the standard value.   
+
+;; 5. The "think" value.
+   
+;;    This is what customize think the current value should be.
+   
+;;    This is the customize value, if any such value exists, otherwise
+;;    the saved value, if that exists, and as a last resort the standard
+;;    value. 
+
+;; The reason for storing values unevaluated: This is so you can have
+;; values that depend on the environment.  For example, you can have a
+;; valiable that has one value when Emacs is running under a window
+;; system, and another value on a tty.  Since the evaluation is only done
+;; when the variable is firsty initialized, this is only relevant for the
+;; saved (and standard) values, but affect others values for
+;; compatibility.
+
+;; You can see (and modify and save) this unevaluated value by selecting
+;; "Show initial Lisp expression" from the Lisp interface.  This will
+;; give you the unevaluated saved value, if any, otherwise the
+;; unevaluated standard value.
+
+;; The possible states for a customize widget are:
+
+;; 0. unknown
+
+;;    The state has not been determined yet.
+
+;; 1. modified
+
+;;    The widget value is different from the current value.
+
+;; 2. changed
+   
+;;    The current value is different from the "think" value.   
+
+;; 3. set
+
+;;    The "think" value is the customized value.
+
+;; 4. saved
+
+;;    The "think" value is the saved value.
+
+;; 5. standard
+
+;;    The "think" value is the standard value.
+
+;; 6. rogue
+
+;;    There are no standard value.
+
+;; 7. hidden
+
+;;    There is no widget value.
+
+;; 8. mismatch
+
+;;    The widget value is not valid member of the :type specified for the
+;;    option. 
+
 ;;; Code:
 
 (require 'cus-face)
@@ -1183,7 +1280,7 @@ links: groups have links to subgroups."
 (defcustom custom-buffer-done-kill nil
   "*Non-nil means exiting a Custom buffer should kill it."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'custom-buffer)
 
 (defcustom custom-buffer-indent 3
@@ -1299,7 +1396,8 @@ Make your editing in this buffer take effect for this session."
   (widget-create 'push-button
 		 :tag "Save for Future Sessions"
 		 :help-echo "\
-Make your editing in this buffer take effect for future Emacs sessions."
+Make your editing in this buffer take effect for future Emacs sessions.
+This updates your Emacs initialization file or creates a new one one."
 		 :action (lambda (widget &optional event)
 			   (Custom-save)))
   (if custom-reset-button-menu

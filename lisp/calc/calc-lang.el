@@ -291,11 +291,20 @@
   (calc-wrapper
    (and n (setq n (prefix-numeric-value n)))
    (calc-set-language 'tex n)
-   (message (if (and n (/= n 0))
-		(if (> n 0)
-		    "TeX language mode with \\hbox{func}(\\hbox{var})"
-		  "TeX language mode with \\func{\\hbox{var}}")
-	      "TeX language mode"))))
+   (cond ((not n)
+          (message "TeX language mode"))
+         ((= n 0)
+          (message "TeX language mode with multiline matrices"))
+         ((= n 1)
+          (message "TeX language mode with \\hbox{func}(\\hbox{var})"))
+         ((> n 1)
+          (message 
+           "TeX language mode with \\hbox{func}(\\hbox{var}) and multiline matrices"))
+         ((= n -1)
+          (message "TeX language mode with \\func(\\hbox{var})"))
+         ((< n -1)
+          (message 
+           "TeX language mode with \\func(\\hbox{var}) and multiline matrices")))))
 
 (defun calc-latex-language (n)
   (interactive "P")

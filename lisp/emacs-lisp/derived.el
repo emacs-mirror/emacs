@@ -249,7 +249,7 @@ is not very useful."
   (while (get mode 'derived-mode-parent)
     (setq mode (get mode 'derived-mode-parent)))
   mode)
-(make-obsolete 'derived-mode-class 'derived-mode-p "21.4")
+(make-obsolete 'derived-mode-class 'derived-mode-p "22.1")
 
 
 ;;; PRIVATE

@@ -3054,7 +3054,7 @@ The frame setup of the calendar.
 The choices are: `one-frame' (calendar and diary together in one separate,
 dedicated frame); `two-frames' (calendar and diary in separate, dedicated
 frames); `calendar-only' (calendar in a separate, dedicated frame); with
-any other value the current frame is used.  Using any of the first 
+any other value the current frame is used.  Using any of the first
 three options overrides the value of `view-diary-entries-initially'.")
 
 (custom-autoload (quote calendar-setup) "calendar")
@@ -10526,7 +10526,7 @@ next enabled. Depends upon the caller to determine whether group deletion is sup
 ;;;;;;  "gnus-delay" "gnus/gnus-delay.el" (16775 26712))
 ;;; Generated autoloads from gnus/gnus-delay.el
 
-(defgroup gnus-delay nil "Arrange for sending postings later." :version "21.4" :group (quote gnus))
+(defgroup gnus-delay nil "Arrange for sending postings later." :version "22.1" :group (quote gnus))
 
 (autoload (quote gnus-delay-article) "gnus-delay" "\
 Delay this article by some time.
@@ -12935,7 +12935,7 @@ The main features of this mode are
    \\i         IF statement template
    \\elif      IF-ELSE statement template
    \\b         BEGIN
-   
+
    For a full list, use \\[idlwave-list-abbrevs].  Some templates also
    have direct keybindings - see the list of keybindings below.
 
@@ -13620,7 +13620,7 @@ for more information.
 ;;; Generated autoloads from language/ind-util.el
 
 (autoload (quote indian-compose-region) "ind-util" "\
-Compose the region according to `composition-function-table'. 
+Compose the region according to `composition-function-table'.
 
 \(fn FROM TO)" t nil)
 
@@ -16361,7 +16361,7 @@ Not documented
 
 (autoload (quote malayalam-composition-function) "mlm-util" "\
 Compose Malayalam characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable 
+Assume that the REGION or STRING must fully match the composable
 PATTERN regexp.
 
 \(fn FROM TO PATTERN &optional STRING)" nil nil)
@@ -16800,7 +16800,7 @@ TYPE should be `list' or `vector'.
 
 \(fn STRING TYPE)" nil nil)
 
-(make-obsolete (quote string-to-sequence) "use `string-to-list' or `string-to-vector'." "21.4")
+(make-obsolete (quote string-to-sequence) "use `string-to-list' or `string-to-vector'." "22.1")
 
 (defsubst string-to-list (string) "\
 Return a list of characters in STRING." (append string nil))
@@ -17521,7 +17521,7 @@ The Custom feature is intended to make this obsolete.
 ;;; Generated autoloads from textmodes/org.el
 
 (autoload (quote org-mode) "org" "\
-Outline-based notes management and organizer, alias 
+Outline-based notes management and organizer, alias
 \"Carstens outline-mode for keeping track of everything.\"
 
 Org-mode develops organizational tasks around a NOTES file which
@@ -25188,7 +25188,7 @@ Not documented
 
 (autoload (quote tamil-composition-function) "tml-util" "\
 Compose Tamil characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable 
+Assume that the REGION or STRING must fully match the composable
 PATTERN regexp.
 
 \(fn FROM TO PATTERN &optional STRING)" nil nil)

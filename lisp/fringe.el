@@ -37,7 +37,7 @@
 
 (defgroup fringe nil
   "Window fringes."
-  :version "21.4"
+  :version "22.1"
   :group 'frames)
 
 ;; Standard fringe bitmaps

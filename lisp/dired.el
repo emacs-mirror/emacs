@@ -291,7 +291,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-type-face)))
   "Face used for directory headers."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-header-face 'dired-header
   "Face name used for directory headers.")
 
@@ -299,7 +299,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-constant-face)))
   "Face used for dired marks."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-mark-face 'dired-mark
   "Face name used for dired marks.")
 
@@ -307,7 +307,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-warning-face)))
   "Face used for marked files."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-marked-face 'dired-marked
   "Face name used for marked files.")
 
@@ -315,7 +315,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-warning-face)))
   "Face used for flagged files."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-flagged-face 'dired-flagged
   "Face name used for flagged files.")
 
@@ -323,7 +323,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-comment-face)))
   "Face used to highlight a part of a buffer that needs user attention."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-warning-face 'dired-warning
   "Face name used for a part of a buffer that needs user attention.")
 
@@ -331,7 +331,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-function-name-face)))
   "Face used for subdirectories."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-directory-face 'dired-directory
   "Face name used for subdirectories.")
 
@@ -339,7 +339,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-keyword-face)))
   "Face used for symbolic links."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-symlink-face 'dired-symlink
   "Face name used for symbolic links.")
 
@@ -347,7 +347,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   '((t (:inherit font-lock-string-face)))
   "Face used for files suffixed with `completion-ignored-extensions'."
   :group 'dired-faces
-  :version "21.4")
+  :version "22.1")
 (defvar dired-ignored-face 'dired-ignored
   "Face name used for files suffixed with `completion-ignored-extensions'.")
 

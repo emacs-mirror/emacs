@@ -131,7 +131,7 @@ background colour is the background of this face.  Set this to
 make the mail indicator stand out on a colour display."
   :group 'faces
   :group 'display-time
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "None" nil) face))
 
 (defvar display-time-mail-icon
@@ -153,7 +153,7 @@ of the mode line.  It is specified by `display-time-mail-icon'."
   "String to use as the mail indicator in `display-time-string-forms'.
 This can use the Unicode letter character if you can display it."
   :group 'display-time
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const "Mail")
 		 ;; Use :tag here because the Lucid menu won't display
 		 ;; multibyte text.

@@ -65,6 +65,41 @@ further.
 I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
 
+** pcvs bug:
+
+In a CVS mode buffer created using the `cvs-examine' command, if I
+commit a file in a subdirectory, after committing the line is not
+updated with the version of the new revision.  Instead, a line is added
+in the buffer in the top directory listing.
+
+Example: I start with this:
+
+,----
+| In directory .:
+|               Unknown                 .htaccess
+|               Unknown                 404.php
+|               Unknown                 rain.jpg
+| In directory include:
+|               Modified                include/foo.include
+`----
+
+I commit the file include/foo.include using `c' on the corresponding
+line.  I get:
+
+,----
+| In directory .:
+|               Unknown                 .htaccess
+|               Unknown                 404.php
+| committed     Up-To-Date  1.13        foo.include
+|               Unknown                 rain.jpg
+| In directory include:
+|               Modified                include/foo.include
+`----
+
+There is no file named foo.include in the top directory. This bug
+appeared sometime before October 2004 and now.
+
+
 
 * GTK RELATED BUGS
 
@@ -178,26 +213,26 @@ people who have checked it.
 
 SECTION             READERS
 -----------------------------
-man/abbrevs.texi
+man/abbrevs.texi    Chong Yidong
 man/anti.texi
-man/basic.texi      "Luc Teirlinck"
+man/basic.texi      "Luc Teirlinck"  Chong Yidong
 man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
 man/calendar.texi    Joakim Verona <joakim@verona.se>
-man/cmdargs.texi
+man/cmdargs.texi    Chong Yidong
 man/commands.texi   "Luc Teirlinck"
-man/custom.texi
+man/custom.texi     Chong Yidong
 man/dired.texi
 man/display.texi    "Luc Teirlinck"
 man/emacs.texi      "Luc Teirlinck"
-man/entering.texi   "Luc Teirlinck"
+man/entering.texi   "Luc Teirlinck"  Chong Yidong
 man/files.texi      "Luc Teirlinck"  Chong Yidong
 man/fixit.texi      "Luc Teirlinck"
 man/frames.texi     "Luc Teirlinck"  Chong Yidong
 man/glossary.texi
 man/help.texi       "Luc Teirlinck"
 man/indent.texi     "Luc Teirlinck"
-man/killing.texi    "Luc Teirlinck"
+man/killing.texi    "Luc Teirlinck"  Chong Yidong
 man/kmacro.texi     "Luc Teirlinck"
 man/macos.texi
 man/maintaining.texi
@@ -210,7 +245,7 @@ man/mule.texi       "Luc Teirlinck"
 man/m-x.texi        "Luc Teirlinck"
 man/picture.texi    Joakim Verona <joakim@verona.se>
 man/programs.texi   "Stephen Eglen"
-man/regs.texi       "Luc Teirlinck"
+man/regs.texi       "Luc Teirlinck"   Chong Yidong
 man/rmail.texi
 man/screen.texi     "Luc Teirlinck"
 man/search.texi     "Luc Teirlinck"
@@ -261,17 +296,17 @@ lispref/macros.texi      "Luc Teirlinck"
 lispref/maps.texi
 lispref/markers.texi     "Luc Teirlinck"
 lispref/minibuf.texi     "Luc Teirlinck"
-lispref/modes.texi
+lispref/modes.texi	 Chong Yidong
 lispref/nonascii.texi    "Luc Teirlinck"
 lispref/numbers.texi	 "Luc Teirlinck"
 lispref/objects.texi	 "Luc Teirlinck"
 lispref/os.texi		 "Luc Teirlinck"
-lispref/positions.texi	 "Luc Teirlinck"
+lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/processes.texi
 lispref/searching.texi	 "Luc Teirlinck"
 lispref/sequences.texi	 "Luc Teirlinck"
 lispref/streams.texi	 "Luc Teirlinck"
-lispref/strings.texi	 "Luc Teirlinck"
+lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/symbols.texi	 "Luc Teirlinck"
 lispref/syntax.texi	 "Luc Teirlinck"
 lispref/text.texi        Chong Yidong

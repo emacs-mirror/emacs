@@ -60,7 +60,7 @@
 
 (defgroup sha1 nil
   "Elisp interface for SHA1 hash computation."
-  :version "21.4"
+  :version "22.1"
   :group 'extensions)
 
 (defcustom sha1-maximum-internal-length 500

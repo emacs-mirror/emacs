@@ -72,7 +72,7 @@
 (defgroup python nil
   "Silly walks in the Python language"
   :group 'languages
-  :version "21.4"
+  :version "22.1"
   :link '(emacs-commentary-link "python"))
 
 ;;;###autoload

@@ -47,7 +47,7 @@ If the server is covered by Gnus agent, the possible values are
 `denied', set the server denied; `offline', set the server offline;
 nil, ask user.  If the server is not covered by Gnus agent, set the
 server denied."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-start
   :type '(choice (const :tag "Ask" nil)
 		 (const :tag "Deny server" denied)
@@ -573,7 +573,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	       (gnus-agent-method-p gnus-command-method))
       (gnus-agent-unfetch-articles group (list article)))
     result))
-    
+
 (defun gnus-request-accept-article (group &optional gnus-command-method last
 					  no-encode)
   ;; Make sure there's a newline at the end of the article.
@@ -596,8 +596,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
       (message-encode-message-body)))
 (let ((gnus-command-method (or gnus-command-method
 				 (gnus-find-method-for-group group)))
-	(result 
-	 (funcall 
+	(result
+	 (funcall
 	  (gnus-get-function gnus-command-method 'request-accept-article)
 	  (if (stringp group) (gnus-group-real-name group) group)
 	  (cadr gnus-command-method)

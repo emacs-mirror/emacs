@@ -340,11 +340,11 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
   (mapcar
    (lambda (x)
      ;; We cannot call `file-attributes' for backward compatibility reasons.
-     ;; Its optional parameter ID-FORMAT is introduced with Emacs 21.4.
+     ;; Its optional parameter ID-FORMAT is introduced with Emacs 22.1.
      (cons x (tramp-smb-handle-file-attributes
 	(if full x (concat (file-name-as-directory directory) x)) id-format)))
    (directory-files directory full match nosort)))
- 
+
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for tramp files."
 ;  (with-parsed-tramp-file-name filename nil
@@ -500,7 +500,7 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
 	     (entries (tramp-smb-get-file-entries user host share file)))
 
 	;; Delete dummy "" entry, useless entries
-	(setq entries 
+	(setq entries
 	      (if (file-directory-p filename)
 		  (delq (assoc "" entries) entries)
 		;; We just need the only and only entry FILENAME.

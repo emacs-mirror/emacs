@@ -165,23 +165,20 @@ minibuffer.
 @c @kindex end-of-buffer
 This function moves point @var{count} characters forward, towards the
 end of the buffer (or backward, towards the beginning of the buffer, if
-@var{count} is negative).  If the function attempts to move point past
-the beginning or end of the buffer (or the limits of the accessible
-portion, when narrowing is in effect), an error is signaled with error
-code @code{beginning-of-buffer} or @code{end-of-buffer}.
+@var{count} is negative).  If @var{count} is @code{nil}, the default
+is 1.
+
+If this attempts to move past the beginning or end of the buffer (or
+the limits of the accessible portion, when narrowing is in effect), it
+signals an error with error symbol @code{beginning-of-buffer} or
+@code{end-of-buffer}.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 @end deffn
 
 @deffn Command backward-char &optional count
-This function moves point @var{count} characters backward, towards the
-beginning of the buffer (or forward, towards the end of the buffer, if
-@var{count} is negative).  If the function attempts to move point past
-the beginning or end of the buffer (or the limits of the accessible
-portion, when narrowing is in effect), an error is signaled with error
-code @code{beginning-of-buffer} or @code{end-of-buffer}.
-
-In an interactive call, @var{count} is the numeric prefix argument.
+This is just like @code{forward-char} except that it moves
+in the opposite direction.
 @end deffn
 
 @node Word Motion
@@ -192,12 +189,15 @@ whether a given character is part of a word.  @xref{Syntax Tables}.
 
 @deffn Command forward-word &optional count
 This function moves point forward @var{count} words (or backward if
-@var{count} is negative).  ``Moving one word'' means moving until point
-crosses a word-constituent character and then encounters a
-word-separator character.  However, this function cannot move point past
-the boundary of the accessible portion of the buffer, or across a field
-boundary (@pxref{Fields}).  The most common case of a field boundary is
-the end of the prompt in the minibuffer.
+@var{count} is negative).  If @var{count} is @code{nil}, it moves
+forward one word.
+
+``Moving one word'' means moving until point crosses a
+word-constituent character and then encounters a word-separator
+character.  However, this function cannot move point past the boundary
+of the accessible portion of the buffer, or across a field boundary
+(@pxref{Fields}).  The most common case of a field boundary is the end
+of the prompt in the minibuffer.
 
 If it is possible to move @var{count} words, without being stopped
 prematurely by the buffer boundary or a field boundary, the value is
@@ -258,22 +258,24 @@ they set the mark and display messages in the echo area.
 @deffn Command beginning-of-buffer &optional n
 This function moves point to the beginning of the buffer (or the limits
 of the accessible portion, when narrowing is in effect), setting the
-mark at the previous position.  If @var{n} is non-@code{nil}, then it
-puts point @var{n} tenths of the way from the beginning of the
-accessible portion of the buffer.
+mark at the previous position (except in Transient Mark mode, if
+the mark is already active, it does not set the mark.)
 
-In an interactive call, @var{n} is the numeric prefix argument,
-if provided; otherwise @var{n} defaults to @code{nil}.
+If @var{n} is non-@code{nil}, then it puts point @var{n} tenths of the
+way from the beginning of the accessible portion of the buffer.  In an
+interactive call, @var{n} is the numeric prefix argument, if provided;
+otherwise @var{n} defaults to @code{nil}.
 
 @strong{Warning:} Don't use this function in Lisp programs!
 @end deffn
 
 @deffn Command end-of-buffer &optional n
-This function moves point to the end of the buffer (or the limits of the
-accessible portion, when narrowing is in effect), setting the mark at
-the previous position.  If @var{n} is non-@code{nil}, then it puts point
-@var{n} tenths of the way from the end of the accessible portion of the
-buffer.
+This function moves point to the end of the buffer (or the limits of
+the accessible portion, when narrowing is in effect), setting the mark
+at the previous position (except in Transient Mark mode when the mark
+is already active).  If @var{n} is non-@code{nil}, then it puts point
+@var{n} tenths of the way from the end of the accessible portion of
+the buffer.
 
 In an interactive call, @var{n} is the numeric prefix argument,
 if provided; otherwise @var{n} defaults to @code{nil}.
@@ -373,7 +375,7 @@ This function moves point forward @var{count} lines, to the beginning of
 the line.  If @var{count} is negative, it moves point
 @minus{}@var{count} lines backward, to the beginning of a line.  If
 @var{count} is zero, it moves point to the beginning of the current
-line.
+line.  If @var{count} is @code{nil}, that means 1.
 
 If @code{forward-line} encounters the beginning or end of the buffer (or
 of the accessible portion) before finding that many lines, it sets point
@@ -703,13 +705,15 @@ This function moves backward across @var{arg} (default 1) balanced expressions.
 @deffn Command beginning-of-defun &optional arg
 This function moves back to the @var{arg}th beginning of a defun.  If
 @var{arg} is negative, this actually moves forward, but it still moves
-to the beginning of a defun, not to the end of one.
+to the beginning of a defun, not to the end of one.  @var{arg} defaults
+to 1.
 @end deffn
 
 @deffn Command end-of-defun &optional arg
 This function moves forward to the @var{arg}th end of a defun.  If
 @var{arg} is negative, this actually moves backward, but it still moves
-to the end of a defun, not to the beginning of one.
+to the end of a defun, not to the beginning of one.  @var{arg} defaults
+to 1.
 @end deffn
 
 @defopt defun-prompt-regexp
@@ -761,12 +765,12 @@ then advances point if the character matches @var{character-set}.  This
 continues until it reaches a character that does not match.  The
 function returns the number of characters moved over.
 
-The argument @var{character-set} is like the inside of a
-@samp{[@dots{}]} in a regular expression except that @samp{]} is never
-special and @samp{\} quotes @samp{^}, @samp{-} or @samp{\}.  Thus,
-@code{"a-zA-Z"} skips over all letters, stopping before the first
-nonletter, and @code{"^a-zA-Z"} skips nonletters stopping before the
-first letter.  @xref{Regular Expressions}.
+The argument @var{character-set} is a string, like the inside of a
+@samp{[@dots{}]} in a regular expression except that @samp{]} does not
+terminate it, and @samp{\} quotes @samp{^}, @samp{-} or @samp{\}.
+Thus, @code{"a-zA-Z"} skips over all letters, stopping before the
+first nonletter, and @code{"^a-zA-Z"} skips nonletters stopping before
+the first letter.  @xref{Regular Expressions}.
 
 If @var{limit} is supplied (it must be a number or a marker), it
 specifies the maximum position in the buffer that point can be skipped

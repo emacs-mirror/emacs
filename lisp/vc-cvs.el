@@ -42,7 +42,7 @@
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-cvs-register-switches nil
@@ -106,7 +106,7 @@ by these regular expressions."
 Format is according to `format-time-string'.  Only used if
 `vc-cvs-sticky-tag-display' is t."
   :type '(string)
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-cvs-sticky-tag-display t
@@ -145,7 +145,7 @@ displayed.  Date and time is displayed for sticky dates.
 
 See also variable `vc-cvs-sticky-date-format-string'."
   :type '(choice boolean function)
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 ;;;
@@ -548,7 +548,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
-    (let* ((async (and (not vc-disable-async-diff) 
+    (let* ((async (and (not vc-disable-async-diff)
                        (vc-stay-local-p file)
                        (fboundp 'start-process)))
 	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")

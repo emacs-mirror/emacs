@@ -115,7 +115,7 @@ The defined renderer types are:
 `lynx' : use lynx;
 `html2text' : use html2text;
 nil    : use external viewer."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const w3)
 		 (const w3m)
 		 (const w3m-standalone)
@@ -134,7 +134,7 @@ It is suggested to customize `mm-text-html-renderer' instead.")
   "If non-nil, Gnus will allow retrieving images in HTML contents with
 the <img> tags.  It has no effect on Emacs/w3.  See also the
 documentation for the `mm-w3m-safe-url-regexp' variable."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'mime-display)
 
@@ -150,14 +150,14 @@ when displaying the image.  The default value is \"\\\\`cid:\" which only
 matches parts embedded to the Multipart/Related type MIME contents and
 Gnus will never connect to the spammer's site arbitrarily.  You may
 set this variable to nil if you consider all urls to be safe."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (regexp :tag "Regexp")
 		 (const :tag "All URLs are safe" nil))
   :group 'mime-display)
 
 (defcustom mm-inline-text-html-with-w3m-keymap t
   "If non-nil, use emacs-w3m command keys in the article buffer."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'mime-display)
 
@@ -167,7 +167,7 @@ set this variable to nil if you consider all urls to be safe."
 If t, all defined external MIME handlers are used.  If nil, files are saved by
 `mailcap-save-binary-file'.  If it is the symbol `ask', you are prompted
 before the external MIME handler is invoked."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))
@@ -283,7 +283,7 @@ type inline."
     "application/pdf" "application/x-dvi")
   "List of media types for which the external viewer will not be killed
 when selecting a different article."
-  :version "21.4"
+  :version "22.1"
   :type '(repeat string)
   :group 'mime-display)
 
@@ -380,13 +380,13 @@ If not set, `default-directory' will be used."
 
 (defcustom mm-attachment-file-modes 384
   "Set the mode bits of saved attachments to this integer."
-  :version "21.4"
+  :version "22.1"
   :type 'integer
   :group 'mime-display)
 
 (defcustom mm-external-terminal-program "xterm"
   "The program to start an external terminal."
-  :version "21.4"
+  :version "22.1"
   :type 'string
   :group 'mime-display)
 
@@ -419,7 +419,7 @@ If not set, `default-directory' will be used."
   "Option of verifying signed parts.
 `never', not verify; `always', always verify;
 `known', only verify known protocols.  Otherwise, ask user."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (item always)
 		 (item never)
 		 (item :tag "only known protocols" known)
@@ -438,7 +438,7 @@ If not set, `default-directory' will be used."
   "Option of decrypting encrypted parts.
 `never', not decrypt; `always', always decrypt;
 `known', only decrypt known protocols.  Otherwise, ask user."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (item always)
 		 (item never)
 		 (item :tag "only known protocols" known)

@@ -77,7 +77,7 @@
 
 (defgroup spam nil
   "Spam configuration."
-  :version "21.4")
+  :version "22.1")
 
 (defcustom spam-directory (nnheader-concat gnus-directory "spam/")
   "Directory for spam whitelists and blacklists."

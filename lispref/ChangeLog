@@ -1,3 +1,39 @@
+2005-02-10  Richard M. Stallman  <rms@gnu.org>
+
+	* objects.texi (Symbol Type): Minor correction.
+
+2005-02-06  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Example Major Modes): Fix typos.
+
+2005-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Margins): fill-nobreak-predicate can be one function.
+
+	* strings.texi (Modifying Strings): clear-string can make unibyte.
+	(Formatting Strings): format gives error if values missing.
+
+	* positions.texi (Character Motion): Mention default arg
+	for forward-char.  backward-char refers to forward-char.
+	(Word Motion): Mention default arg for forward-word.
+	(Buffer End Motion): Mention default arg for beginning-of-buffer.
+	Simplify end-of-buffer.
+	(Text Lines): Mention default arg for forward-line.
+	(List Motion): Mention default arg for beginning/end-of-defun.
+	(Skipping Characters): Minor fixes in explaining character-set.
+
+	* modes.texi (Major Mode Conventions): Mention "system abbrevs".
+	Mode inheritance applies only when default-major-mode is nil.
+	Clarifications.
+	(Example Major Modes): Update Text mode and Lisp mode examples.
+	(Minor Mode Conventions): Mention define-minor-mode at top.
+	(Defining Minor Modes): In Hungry example, don't define C-M-DEL.
+	(Mode Line Format): Update mode line face display info.
+	(Properties in Mode): Mention effect of risky vars.
+	(Imenu): Define imenu-add-to-menubar.
+	(Font Lock Mode): Add descriptions to menu lines.
+	(Faces for Font Lock): Add font-lock-doc-face.
+
 2005-02-05  Lute Kamstra  <lute@gnu.org>
 
 	* text.texi (Maintaining Undo): Remove obsolete function.

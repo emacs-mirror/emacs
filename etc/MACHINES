@@ -651,7 +651,7 @@ Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
 	i386-unknown-isc3.0 as your configuration name.
   Use i386-*-esix for Esix; Emacs runs as of version 19.6.
   Use i386-*-linux-gnu for GNU/Linux systems; Emacs runs as of version 19.26.
-  Use i386-*-cygwin for Cygwin; Emacs builds as of version 21.4, in both X11
+  Use i386-*-cygwin for Cygwin; Emacs builds as of version 22.1, in both X11
   and non-X11 modes.  (The Cygwin site has source and binaries for 21.2.)
   Use i386-intsys-sysv for Integrated Solutions 386 machines.
   It may also be correct for Microport systems.
