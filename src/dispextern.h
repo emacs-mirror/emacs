@@ -2223,7 +2223,7 @@ void prepare_image_for_display P_ ((struct frame *, struct image *));
 int lookup_image P_ ((struct frame *, Lisp_Object));
 extern struct frame *tip_frame;
 extern Window tip_window;
-EXFUN (Fx_show_tip, 4);
+EXFUN (Fx_show_tip, 6);
 EXFUN (Fx_hide_tip, 0);
 extern void start_busy_cursor P_ ((void));
 extern void cancel_busy_cursor P_ ((void));
