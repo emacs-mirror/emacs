@@ -435,6 +435,20 @@ needs to do to use a history list is to initialize it and to pass its
 name to the input functions when you wish.  But it is safe to modify the
 list by hand when the minibuffer input functions are not using it.
 
+  Emacs functions that add a new element to a history list can also
+delete old elements if the list gets too long.  The variable
+@code{history-length} specifies the maximum length for most history
+lists.  To specify a different maximum length for a particular history
+list, put the length in the @code{history-length} property of the
+history list symbol.
+
+@defvar history-length
+The value of this variable specifies the maximum length for all
+history lists that don't specify their own maximum lengths.  If the
+value is @code{t}, that means there no maximum (don't delete old
+elements).
+@end defvar
+
   Here are some of the standard minibuffer history list variables:
 
 @defvar minibuffer-history
