@@ -464,6 +464,12 @@ struct glyph_matrix
   /* A string identifying the method used to display the matrix.  */
   char method[512];
 #endif
+
+  /* The buffer this matrix displays.  Set in redisplay_internal.  */
+  struct buffer *buffer;
+
+  /* Values of BEGV and ZV as of last redisplay.  */
+  int begv, zv;
 };
 
 
