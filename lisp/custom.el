@@ -62,9 +62,11 @@ symbol."
 			  (eval value)))))
 
 (defun custom-initialize-set (symbol value)
-  "Initialize SYMBOL with VALUE.
-Like `custom-initialize-default', but use the function specified by
-`:set' to initialize SYMBOL."
+  "Initialize SYMBOL based on VALUE.
+If the symbol doesn't have a default binding already,
+then set it using its `:set' function (or `set-default' if it has none).
+The value is either the value in the symbol's `saved-value' property,
+if any, or VALUE."
   (unless (default-boundp symbol)
     (funcall (or (get symbol 'custom-set) 'set-default)
 	     symbol 
@@ -73,9 +75,12 @@ Like `custom-initialize-default', but use the function specified by
 	       (eval value)))))
 
 (defun custom-initialize-reset (symbol value)
-  "Initialize SYMBOL with VALUE.
-Like `custom-initialize-set', but use the function specified by
-`:get' to reinitialize SYMBOL if it is already bound."
+  "Initialize SYMBOL based on VALUE.
+Set the symbol, using its `:set' function (or `set-default' if it has none).
+The value is either the symbol's current value
+ \(as obtained using the `:get' function), if any,
+or the value in the symbol's `saved-value' property if any,
+or (last of all) VALUE."
     (funcall (or (get symbol 'custom-set) 'set-default)
 	     symbol 
 	     (cond ((default-boundp symbol)
@@ -89,7 +94,8 @@ Like `custom-initialize-set', but use the function specified by
 (defun custom-initialize-changed (symbol value)
   "Initialize SYMBOL with VALUE.
 Like `custom-initialize-reset', but only use the `:set' function if the 
-not using the standard setting.  Otherwise, use the `set-default'."
+not using the standard setting.
+For the standard setting, use the `set-default'."
   (cond ((default-boundp symbol)
 	 (funcall (or (get symbol 'custom-set) 'set-default)
 		  symbol
@@ -114,7 +120,7 @@ not the default value itself."
     (put symbol 'force-value nil))
   (when doc
     (put symbol 'variable-documentation doc))
-  (let ((initialize 'custom-initialize-set)
+  (let ((initialize 'custom-initialize-reset)
 	(requests nil))
     (while args 
       (let ((arg (car args)))
