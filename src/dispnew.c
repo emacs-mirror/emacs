@@ -960,7 +960,15 @@ verify_charstarts (w)
       for (j = left; j < right; j++)
 	if (charstart[j] > 0)
 	  last = charstart[j];
-      next_line = last + (BUF_ZV (XBUFFER (w->buffer)) != last);
+      /* Record where the next line should start.  */
+      next_line = last;
+      if (BUF_ZV (XBUFFER (w->buffer)) != last)
+	{
+	  /* If there's a newline between the two lines, count that.  */
+	  int endchar = *BUF_CHAR_ADDRESS (XBUFFER (w->buffer), last);
+	  if (endchar == '\n')
+	    next_line++;
+	}
     }
 }
 
