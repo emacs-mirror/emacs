@@ -1,5 +1,5 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
-;; Copyright (C) 1993, 1994, 1995 by Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996 by Free Software Foundation, Inc.
 
 ;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
 ;; Version: 2.0e
@@ -90,8 +90,7 @@ sh		Bourne Shell
 (defvar sh-alias-alist
   (nconc (if (eq system-type 'linux)
 	     '((csh . tcsh)
-	       (ksh . pdksh)
-	       (sh . bash)))
+	       (ksh . pdksh)))
 	 ;; for the time being
 	 '((ksh . ksh88)
 	   (sh5 . sh)))
@@ -100,8 +99,8 @@ Use this where the name of the executable doesn't correspond to the type of
 shell it really is.")
 
 
-(defvar sh-shell-path (or (getenv "SHELL") "/bin/sh")
-  "*The executable of the shell being programmed.")
+(defvar sh-shell-file (or (getenv "SHELL") "/bin/sh")
+  "*The executable file name for the shell being programmed.")
 
 
 (defvar sh-shell-arg
@@ -116,46 +115,51 @@ shell it really is.")
 
 
 
-(defvar sh-shell (or (cdr (assq (intern (file-name-nondirectory sh-shell-path))
-				sh-alias-alist))
-		     (intern (file-name-nondirectory sh-shell-path)))
+(defun sh-canonicalize-shell (shell)
+  "Convert a shell name SHELL to the one we should handle it as."
+  (or (symbolp shell)
+      (setq shell (intern shell)))
+  (or (cdr (assq shell sh-alias-alist))
+      shell))
+
+(defvar sh-shell (sh-canonicalize-shell (file-name-nondirectory sh-shell-file))
   "The shell being programmed.  This is set by \\[sh-set-shell].")
 
+;;; I turned off this feature because it doesn't permit typing commands
+;;; in the usual way without help.
+;;;(defvar sh-abbrevs
+;;;  '((csh eval sh-abbrevs shell
+;;;	 "switch" 'sh-case
+;;;	 "getopts" 'sh-while-getopts)
 
+;;;    (es eval sh-abbrevs shell
+;;;	"function" 'sh-function)
 
-(defvar sh-abbrevs
-  '((csh eval sh-abbrevs shell
-	 "switch" 'sh-case
-	 "getopts" 'sh-while-getopts)
+;;;    (ksh88 eval sh-abbrevs sh
+;;;	   "select" 'sh-select)
 
-    (es eval sh-abbrevs shell
-	"function" 'sh-function)
+;;;    (rc eval sh-abbrevs shell
+;;;	"case" 'sh-case
+;;;	"function" 'sh-function)
 
-    (ksh88 eval sh-abbrevs sh
-	   "select" 'sh-select)
+;;;    (sh eval sh-abbrevs shell
+;;;	"case" 'sh-case
+;;;	"function" 'sh-function
+;;;	"until" 'sh-until
+;;;	"getopts" 'sh-while-getopts)
 
-    (rc eval sh-abbrevs shell
-	"case" 'sh-case
-	"function" 'sh-function)
+;;;    ;; The next entry is only used for defining the others
+;;;    (shell "for" sh-for
+;;;	   "loop" sh-indexed-loop
+;;;	   "if" sh-if
+;;;	   "tmpfile" sh-tmp-file
+;;;	   "while" sh-while)
 
-    (sh eval sh-abbrevs shell
-	"case" 'sh-case
-	"function" 'sh-function
-	"until" 'sh-until
-	"getopts" 'sh-while-getopts)
-
-    ;; The next entry is only used for defining the others
-    (shell "for" sh-for
-	   "loop" sh-indexed-loop
-	   "if" sh-if
-	   "tmpfile" sh-tmp-file
-	   "while" sh-while)
-
-    (zsh eval sh-abbrevs ksh88
-	 "repeat" 'sh-repeat))
-  "Abbrev-table used in Shell-Script mode.  See `sh-feature'.
-Due to the internal workings of abbrev tables, the shell name symbol is
-actually defined as the table for the like of \\[edit-abbrevs].")
+;;;    (zsh eval sh-abbrevs ksh88
+;;;	 "repeat" 'sh-repeat))
+;;;  "Abbrev-table used in Shell-Script mode.  See `sh-feature'.
+;;;Due to the internal workings of abbrev tables, the shell name symbol is
+;;;actually defined as the table for the like of \\[edit-abbrevs].")
 
 
 
@@ -574,7 +578,7 @@ following commands are available, based on the current shell's syntax:
 	Unless quoted with \\, insert the pairs {}, (), [], or '', \"\", ``.
 
 If you generally program a shell different from your login shell you can
-set `sh-shell-path' accordingly.  If your shell's file name doesn't correctly
+set `sh-shell-file' accordingly.  If your shell's file name doesn't correctly
 indicate what shell it is use `sh-alias-alist' to translate.
 
 If your shell gives error messages with line numbers, you can use \\[executable-interpret]
@@ -591,7 +595,7 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'comment-start-skip)
   (make-local-variable 'require-final-newline)
   (make-local-variable 'sh-header-marker)
-  (make-local-variable 'sh-shell-path)
+  (make-local-variable 'sh-shell-file)
   (make-local-variable 'sh-shell)
   (make-local-variable 'skeleton-pair-alist)
   (make-local-variable 'skeleton-pair-filter)
@@ -641,7 +645,7 @@ with your script for an edit-interpret-debug cycle."
   (sh-set-shell
    (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
        (match-string 1)
-     sh-shell-path))
+     sh-shell-file))
   (run-hooks 'sh-mode-hook))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -701,8 +705,8 @@ Calls the value of `sh-set-shell-hook' if set."
   (setq sh-shell (intern (file-name-nondirectory shell))
 	sh-shell (or (cdr (assq sh-shell sh-alias-alist))
 		     sh-shell)
-	sh-shell-path (executable-set-magic shell (sh-feature sh-shell-arg))
-	local-abbrev-table (sh-feature sh-abbrevs)
+	sh-shell-file (executable-set-magic shell (sh-feature sh-shell-arg))
+;;;	local-abbrev-table (sh-feature sh-abbrevs)
 	require-final-newline (sh-feature sh-require-final-newline)
 	font-lock-keywords nil		; force resetting
 	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
@@ -776,36 +780,37 @@ in ALIST."
 
 
 
-(defun sh-abbrevs (ancestor &rest list)
-  "Iff it isn't, define the current shell as abbrev table and fill that.
-Abbrev table will inherit all abbrevs from ANCESTOR, which is either an abbrev
-table or a list of (NAME1 EXPANSION1 ...).  In addition it will define abbrevs
-according to the remaining arguments NAMEi EXPANSIONi ...
-EXPANSION may be either a string or a skeleton command."
-  (or (if (boundp sh-shell)
-	  (symbol-value sh-shell))
-      (progn
-	(if (listp ancestor)
-	    (nconc list ancestor))
-	(define-abbrev-table sh-shell ())
-	(if (vectorp ancestor)
-	    (mapatoms (lambda (atom)
-			(or (eq atom 0)
-			    (define-abbrev (symbol-value sh-shell)
-			      (symbol-name atom)
-			      (symbol-value atom)
-			      (symbol-function atom))))
-		      ancestor))
-	(while list
-	  (define-abbrev (symbol-value sh-shell)
-	    (car list)
-	    (if (stringp (car (cdr list)))
-		(car (cdr list))
-	      "")
-	    (if (symbolp (car (cdr list)))
-		(car (cdr list))))
-	  (setq list (cdr (cdr list)))))
-      (symbol-value sh-shell)))
+;;; I commented this out because nobody calls it -- rms.
+;;;(defun sh-abbrevs (ancestor &rest list)
+;;;  "Iff it isn't, define the current shell as abbrev table and fill that.
+;;;Abbrev table will inherit all abbrevs from ANCESTOR, which is either an abbrev
+;;;table or a list of (NAME1 EXPANSION1 ...).  In addition it will define abbrevs
+;;;according to the remaining arguments NAMEi EXPANSIONi ...
+;;;EXPANSION may be either a string or a skeleton command."
+;;;  (or (if (boundp sh-shell)
+;;;	  (symbol-value sh-shell))
+;;;      (progn
+;;;	(if (listp ancestor)
+;;;	    (nconc list ancestor))
+;;;	(define-abbrev-table sh-shell ())
+;;;	(if (vectorp ancestor)
+;;;	    (mapatoms (lambda (atom)
+;;;			(or (eq atom 0)
+;;;			    (define-abbrev (symbol-value sh-shell)
+;;;			      (symbol-name atom)
+;;;			      (symbol-value atom)
+;;;			      (symbol-function atom))))
+;;;		      ancestor))
+;;;	(while list
+;;;	  (define-abbrev (symbol-value sh-shell)
+;;;	    (car list)
+;;;	    (if (stringp (car (cdr list)))
+;;;		(car (cdr list))
+;;;	      "")
+;;;	    (if (symbolp (car (cdr list)))
+;;;		(car (cdr list))))
+;;;	  (setq list (cdr (cdr list)))))
+;;;      (symbol-value sh-shell)))
 
 
 (defun sh-mode-syntax-table (table &rest list)
@@ -882,9 +887,9 @@ region, clear header."
 	    (shell-command-on-region (point-min)
 				     (setq end (+ sh-header-marker
 						  (- end start)))
-				     sh-shell-path)
+				     sh-shell-file)
 	    (delete-region sh-header-marker end)))
-      (shell-command-on-region start end (concat sh-shell-path " -")))))
+      (shell-command-on-region start end (concat sh-shell-file " -")))))
 
 
 (defun sh-remember-variable (var)
