@@ -365,7 +365,14 @@ nil for FUNCTION means all messages."
 		(if (string-match (concat "^\\("
 					  (regexp-quote (user-login-name))
 					  "\\($\\|@\\)\\|"
-					  (regexp-quote user-mail-address)
+					  (regexp-quote
+					   ;; Don't lose if run from init file
+					   ;; where user-mail-address is not
+					   ;; set yet.
+					   (or user-mail-address
+					       (concat (user-login-name) "@"
+						       (or mail-host-address
+							   (system-name)))))
 					  "\\>\\)")
 				  from)
 		    (save-excursion
