@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include <stdio.h>
 #include <math.h>
+#include <ctype.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

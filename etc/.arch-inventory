@@ -1,6 +1,9 @@
 # Unlike most emacs dirs, etc has a simple non-autoconf-generated makefile
 source ^(Makefile)$
 
+# Generated files (DOC-X is generated on windows)
+backup ^(DOC(|-[0-9.]*|-X))$
+
 # Install-in-place on NT makes this directory, so just ignore it
 backup ^(icons)$
 

@@ -39,15 +39,11 @@
     (when (fboundp 'facep)
       (unless (facep face)
 	;; If the user has already created the face, respect that.
-	(let ((value (or (get face 'saved-face) spec))
-	      (frames (frame-list))
-	      frame)
+	(let ((value (or (get face 'saved-face) spec)))
 	  ;; Create global face.
 	  (make-empty-face face)
 	  ;; Create frame-local faces
-	  (while frames
-	    (setq frame (car frames)
-		  frames (cdr frames))
+	  (dolist (frame (frame-list))
 	    (face-spec-set face value frame)))
 	;; When making a face after frames already exist
 	(if (memq window-system '(x w32))

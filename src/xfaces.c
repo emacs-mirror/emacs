@@ -4912,6 +4912,7 @@ If FRAME is omitted or nil, use the selected frame.  */)
 
 static INLINE int
 face_attr_equal_p (v1, v2)
+     Lisp_Object v1, v2;
 {
   /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
      and the other is specified.  */

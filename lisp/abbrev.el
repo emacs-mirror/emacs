@@ -37,9 +37,9 @@ define global abbrevs instead."
   :group 'convenience)
 
 (defun abbrev-mode (&optional arg)
-  "Toggle abbrev mode.
+  "Toggle Abbrev mode in the current buffer.
 With argument ARG, turn abbrev mode on iff ARG is positive.
-In abbrev mode, inserting an abbreviation causes it to expand
+In Abbrev mode, inserting an abbreviation causes it to expand
 and be replaced by its expansion."
   (interactive "P")
   (setq abbrev-mode
@@ -48,18 +48,19 @@ and be replaced by its expansion."
   (force-mode-line-update))
 
 (defcustom abbrev-mode nil
-  "Toggle abbrev mode.
+  "Enable or disable Abbrev mode.
 Non-nil means automatically expand abbrevs as they are inserted.
 
+Setting this variable with `setq' changes it for the current buffer.
 Changing it with \\[customize] sets the default value.
-Use the command `abbrev-mode' to enable or disable Abbrev mode in the current
-buffer."
+Interactively, use the command `abbrev-mode'
+to enable or disable Abbrev mode in the current buffer."
   :type 'boolean
   :group 'abbrev-mode)
 
 
 (defvar edit-abbrevs-map nil
-  "Keymap used in edit-abbrevs.")
+  "Keymap used in `edit-abbrevs'.")
 (if edit-abbrevs-map
     nil
   (setq edit-abbrevs-map (make-sparse-keymap))

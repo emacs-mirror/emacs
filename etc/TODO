@@ -182,10 +182,6 @@ to the FSF.
 
 ** Make the Custom themes support do useful things.
 
-** Investigate using GNU Lightning or similar system for incremental
-  compilation of selected bytecode functions to subrs.  Converting CCL
-  programs to native code is probably the first thing to try, though.
-
 ** Add support for SVG (Scalable Vector Graphics) rendering to
   Emacs.
 

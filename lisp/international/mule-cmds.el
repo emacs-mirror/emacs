@@ -1834,6 +1834,15 @@ specifies the character set for the major languages of Western Europe."
   (let ((func (get-language-info language-name 'setup-function)))
     (if (functionp func)
 	(funcall func)))
+  (if (and utf-translate-cjk-mode
+	   utf-translate-cjk-lang-env
+	   (not (eq utf-translate-cjk-lang-env language-name))
+	   (catch 'tag
+	     (dolist (charset (get-language-info language-name 'charset))
+	       (if (memq charset utf-translate-cjk-charsets)
+		   (throw 'tag t)))
+	     nil))
+      (utf-translate-cjk-load-tables))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
 

@@ -397,8 +397,8 @@ Marked files are never omitted.
 @findex dired-omit-mode
 (@code{dired-omit-mode}) Toggle between displaying and omitting
 ``uninteresting'' files.
-@item M-O
-@kindex M-O
+@item * O
+@kindex * O
 @findex dired-mark-omitted
 (@code{dired-mark-omitted}) Mark ``uninteresting'' files.
 @end table

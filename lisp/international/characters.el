@@ -33,6 +33,11 @@
 
 ;;; Code:
 
+;; We must set utf-translate-cjk-mode to nil while loading this file
+;; to avoid translating CJK characters in decode-char.
+(defvar saved-utf-translate-cjk-mode utf-translate-cjk-mode)
+(setq utf-translate-cjk-mode nil)
+
 ;;; Predefined categories.
 
 ;; For each character set.
@@ -1276,6 +1281,10 @@
     (aset auto-fill-chars (make-char (car l)) t)
     (put-charset-property (car l) 'nospace-between-words t)
     (setq l (cdr l))))
+
+
+(setq utf-translate-cjk-mode saved-utf-translate-cjk-mode)
+(makunbound 'saved-utf-translate-cjk-mode)
 
 ;;; Local Variables:
 ;;; coding: iso-2022-7bit

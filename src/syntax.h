@@ -68,16 +68,16 @@ enum syntaxcode
 
 #ifdef __GNUC__
 #define SYNTAX_ENTRY_FOLLOW_PARENT(table, c)			\
-  ({ Lisp_Object tbl = table;					\
-     Lisp_Object temp = XCHAR_TABLE (tbl)->contents[(c)];	\
-     while (NILP (temp))					\
+  ({ Lisp_Object _syntax_tbl = (table);				\
+     Lisp_Object _syntax_temp = XCHAR_TABLE (_syntax_tbl)->contents[(c)]; \
+     while (NILP (_syntax_temp))				\
        {							\
-	 tbl = XCHAR_TABLE (tbl)->parent;			\
-	 if (NILP (tbl))					\
+	 _syntax_tbl = XCHAR_TABLE (_syntax_tbl)->parent;	\
+	 if (NILP (_syntax_tbl))				\
 	   break;						\
-	 temp = XCHAR_TABLE (tbl)->contents[(c)];		\
+	 _syntax_temp = XCHAR_TABLE (_syntax_tbl)->contents[(c)]; \
        }							\
-     temp; })
+     _syntax_temp; })
 #else
 extern Lisp_Object syntax_temp;
 extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
@@ -117,24 +117,24 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 
 #ifdef __GNUC__
 #define SYNTAX(c)							\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? (enum syntaxcode) (XINT (XCAR (temp)) & 0xff)		\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? (enum syntaxcode) (XINT (XCAR (_syntax_temp)) & 0xff)		\
       : Swhitespace); })
 
 #define SYNTAX_WITH_FLAGS(c)						\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? XINT (XCAR (temp))					\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? XINT (XCAR (_syntax_temp))					\
       : (int) Swhitespace); })
 
 #define SYNTAX_MATCH(c)							\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? XCDR (temp)						\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? XCDR (_syntax_temp)						\
       : Qnil); })
 #else
 #define SYNTAX(c)							\

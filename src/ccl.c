@@ -626,14 +626,17 @@ do								\
 	  {							\
 	    ccl_prog = ccl_prog_stack_struct[0].ccl_prog;	\
 	    ic = ccl_prog_stack_struct[0].ic;			\
+	    eof_ic = ccl_prog_stack_struct[0].eof_ic;		\
 	  }							\
 	CCL_INVALID_CMD;					\
       }								\
     ccl_prog_stack_struct[stack_idx].ccl_prog = ccl_prog;	\
     ccl_prog_stack_struct[stack_idx].ic = (ret_ic);		\
+    ccl_prog_stack_struct[stack_idx].eof_ic = eof_ic;		\
     stack_idx++;						\
     ccl_prog = called_ccl.prog;					\
     ic = CCL_HEADER_MAIN;					\
+    eof_ic = XFASTINT (ccl_prog[CCL_HEADER_EOF]);		\
     goto ccl_repeat;						\
   }								\
 while (0)
@@ -710,6 +713,8 @@ while (0)
 
 /* Terminate CCL program because of invalid command.  Should not occur
    in the normal case.  */
+#ifndef CCL_DEBUG
+
 #define CCL_INVALID_CMD		     	\
 do					\
   {				     	\
@@ -717,6 +722,19 @@ do					\
     goto ccl_error_handler;	     	\
   }					\
 while(0)
+
+#else
+
+#define CCL_INVALID_CMD		     	\
+do					\
+  {				     	\
+    ccl_debug_hook (this_ic);		\
+    ccl->status = CCL_STAT_INVALID_CMD;	\
+    goto ccl_error_handler;	     	\
+  }					\
+while(0)
+
+#endif
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
@@ -809,7 +827,8 @@ while(0)
       }							\
     else if (ccl->last_block)				\
       {							\
-        ic = ccl->eof_ic;				\
+	REG = -1;					\
+        ic = eof_ic;					\
         goto ccl_repeat;				\
       }							\
     else						\
@@ -854,12 +873,20 @@ while(0)
 #define CCL_DEBUG_BACKTRACE_LEN 256
 int ccl_backtrace_table[CCL_DEBUG_BACKTRACE_LEN];
 int ccl_backtrace_idx;
+
+int
+ccl_debug_hook (int ic)
+{
+  return ic;
+}
+
 #endif
 
 struct ccl_prog_stack
   {
     Lisp_Object *ccl_prog;	/* Pointer to an array of CCL code.  */
     int ic;			/* Instruction Counter.  */
+    int eof_ic;			/* Instruction Counter to jump on EOF.  */
   };
 
 /* For the moment, we only support depth 256 of stack.  */
@@ -888,8 +915,10 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
      sequence.  For that conversion, we remember how many more bytes
      we must keep in DESTINATION in this variable.  */
   int extra_bytes = ccl->eight_bit_control;
+  int eof_ic = ccl->eof_ic;
+  int eof_hit = 0;
 
-  if (ic >= ccl->eof_ic)
+  if (ic >= eof_ic)
     ic = CCL_HEADER_MAIN;
 
   if (ccl->buf_magnification == 0) /* We can't produce any bytes.  */
@@ -1093,15 +1122,18 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  {
 		    ccl_prog = ccl_prog_stack_struct[0].ccl_prog;
 		    ic = ccl_prog_stack_struct[0].ic;
+		    eof_ic = ccl_prog_stack_struct[0].eof_ic;
 		  }
 		CCL_INVALID_CMD;
 	      }
 
 	    ccl_prog_stack_struct[stack_idx].ccl_prog = ccl_prog;
 	    ccl_prog_stack_struct[stack_idx].ic = ic;
+	    ccl_prog_stack_struct[stack_idx].eof_ic = eof_ic;
 	    stack_idx++;
 	    ccl_prog = XVECTOR (AREF (slot, 1))->contents;
 	    ic = CCL_HEADER_MAIN;
+	    eof_ic = XFASTINT (ccl_prog[CCL_HEADER_EOF]);
 	  }
 	  break;
 
@@ -1131,6 +1163,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      stack_idx--;
 	      ccl_prog = ccl_prog_stack_struct[stack_idx].ccl_prog;
 	      ic = ccl_prog_stack_struct[stack_idx].ic;
+	      eof_ic = ccl_prog_stack_struct[stack_idx].eof_ic;
+	      if (eof_hit)
+		ic = eof_ic;
 	      break;
 	    }
 	  if (src)
@@ -1367,7 +1402,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      src--;
 	      if (ccl->last_block)
 		{
-		  ic = ccl->eof_ic;
+		  ic = eof_ic;
+		  eof_hit = 1;
 		  goto ccl_repeat;
 		}
 	      else
