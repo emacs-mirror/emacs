@@ -28,7 +28,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;; LCD Archive Entry
-;; supercite|Barry A. Warsaw|supercite-help@anthem.nlm.nih.gov
+;; supercite|Barry A. Warsaw|supercite-help@python.org
 ;; |Mail and news reply citation package
 ;; |1993/09/22 18:58:46|3.1|
 
@@ -421,7 +421,7 @@ must contain an element of the string \"sc-consult\" for this variable
 to be consulted during attribution selection."
   :type '(repeat (list string (repeat (cons regexp
 					    (choice (repeat (repeat sexp))
-						    symbol)))))
+						    string)))))
   :group 'supercite-attr)
 
 (defcustom sc-attribs-preselect-hook nil
@@ -510,7 +510,9 @@ string."
 (defconst sc-emacs-features
   (let ((version 'v18)
 	(flavor  'GNU))
-    (if (string= (substring emacs-version 0 2) "19")
+    (if (or
+	 (string= (substring emacs-version 0 2) "19")
+	 (string= (substring emacs-version 0 2) "20"))
 	(setq version 'v19))
     (if (string-match "Lucid" emacs-version)
 	(setq flavor 'Lucid))
@@ -647,8 +649,7 @@ In version 18, the HISTORY argument is ignored."
   "Compatibility between Emacs 18 and 19 `read-string'.
 In version 18, the HISTORY argument is ignored."
   (if (memq 'v19 sc-emacs-features)
-      ;; maybe future versions will take a `history' argument:
-      (read-string prompt initial-contents)
+      (read-string prompt initial-contents history)
     (read-string prompt initial-contents)))
 
 (if (fboundp 'match-string)
@@ -765,7 +766,9 @@ the list should be unique."
 		 (thing   (cdr ml-elem)))
 	    (if (string-match regexp infoval)
 		;; we found a match, time to return
-		(setq rtnvalue thing
+		(setq rtnvalue (if (consp thing)
+				   (car thing)
+				 thing)
 		      mlist nil
 		      alist nil)
 	      ;; else we didn't find a match
