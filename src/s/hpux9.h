@@ -50,9 +50,11 @@
 /* HP-UX doesn't supply Xmu.  */
 #define LIBXMU
 
-/* Unfortunately without libXmu we cannot support EditRes.  */
-#define NO_EDITRES
 #endif
+
+/* Assar Westerlund <assar@sics.se> says this is necessary for
+   HP-UX 10.20, and that it works for HP-UX 0 as well.  */
+#define NO_EDITRES
 
 /* zoo@armadillo.com says we don't need -lXext in HPUX 9.  */
 #undef LIBX11_SYSTEM
