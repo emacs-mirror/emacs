@@ -53,18 +53,34 @@
 
   (define-key map "\e[2;2~" [S-insert])
   (define-key map "\e[3;2~" [S-delete])
- 
   (define-key map "\e[5;2~" [S-prior])
   (define-key map "\e[6;2~" [S-next])
+
+  (define-key map "\e[2;5~" [C-insert])
+  (define-key map "\e[3;5~" [C-delete])
+  (define-key map "\e[5;5~" [C-prior])
+  (define-key map "\e[6;5~" [C-next])
+
+  (define-key map "\eOA" [up])
+  (define-key map "\eOB" [down])
+  (define-key map "\eOC" [right])
+  (define-key map "\eOD" [left])
+  (define-key map "\eOF" [end])
+  (define-key map "\eOH" [home])
+
+  (define-key map "\eO2A" [S-up])
+  (define-key map "\eO2B" [S-down])
+  (define-key map "\eO2C" [S-right])
+  (define-key map "\eO2D" [S-left])
   (define-key map "\eO2F" [S-end])
   (define-key map "\eO2H" [S-home])
-  (define-key map "\eO2D" [S-left])
-  (define-key map "\eO2C" [S-right])
 
   (define-key map "\eO5A" [C-up])
   (define-key map "\eO5B" [C-down])
   (define-key map "\eO5C" [C-right])
   (define-key map "\eO5D" [C-left])
+  (define-key map "\eO5F" [C-end])
+  (define-key map "\eO5H" [C-home])
 
   ;; Use inheritance to let the main keymap override those defaults.
   ;; This way we don't override terminfo-derived settings or settings
