@@ -292,6 +292,10 @@ but still shows the full information."
      (ascii cyrillic-iso8859-5)
      cyrillic-alternativnyj-nonascii-translation-table
      ((32 255)))
+    (koi8-u
+     (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
+     cyrillic-koi8-u-nonascii-translation-table
+     ((32 255)))
     (big5
      (ascii chinese-big5-1 chinese-big5-2)
      decode-big5-char
