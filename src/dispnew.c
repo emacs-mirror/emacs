@@ -2134,8 +2134,10 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
   FRAME_NEW_WIDTH  (frame) = 0;
 
   /* If an argument is zero, set it to the current value.  */
-  newheight || (newheight = FRAME_HEIGHT (frame));
-  newwidth  || (newwidth  = FRAME_WIDTH  (frame));
+  if (newheight == 0)
+    newheight = FRAME_HEIGHT (frame);
+  if (newwidth == 0)
+    newwidth  = FRAME_WIDTH  (frame);
 
   /* Round up to the smallest acceptable size.  */
   check_frame_size (frame, &newheight, &newwidth);
