@@ -3634,7 +3634,7 @@ Each action has the form (FUNCTION . ARGS)."
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.")
 
-(defun set-variable (var val)
+(defun set-variable (var val &optional make-local)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
 When using this interactively, enter a Lisp object for VALUE.
 If you want VALUE to be a string, you must surround it with doublequotes.
@@ -3644,7 +3644,9 @@ If VARIABLE has a `variable-interactive' property, that is used as if
 it were the arg to `interactive' (which see) to interactively read VALUE.
 
 If VARIABLE has been defined with `defcustom', then the type information
-in the definition is used to check that VALUE is valid."
+in the definition is used to check that VALUE is valid.
+
+With a prefix argument, set VARIABLE to VALUE buffer-locally."
   (interactive
    (let* ((default-var (variable-at-point))
           (var (if (symbolp default-var)
@@ -3653,7 +3655,13 @@ in the definition is used to check that VALUE is valid."
                  (read-variable "Set variable: ")))
 		      (minibuffer-help-form '(describe-variable var))
 		      (prop (get var 'variable-interactive))
-		      (prompt (format "Set %s to value: " var))
+		      (prompt (format "Set %s%s to value: " var
+				      (cond ((local-variable-p var)
+					     " (buffer-local)")
+					    ((or current-prefix-arg
+						 (local-variable-if-set-p var))
+					     " buffer-locally")
+					    (t " globally"))))
 		      (val (if prop
 			       ;; Use VAR's `variable-interactive' property
 			       ;; as an interactive spec for prompting.
@@ -3663,7 +3671,7 @@ in the definition is used to check that VALUE is valid."
 			     (read
 			      (read-string prompt nil
 					   'set-variable-value-history)))))
-		 (list var val)))
+		 (list var val current-prefix-arg)))
 
   (let ((type (get var 'custom-type)))
     (when type
@@ -3673,6 +3681,10 @@ in the definition is used to check that VALUE is valid."
       (unless (widget-apply type :match val)
 	(error "Value `%S' does not match type %S of %S"
 	       val (car type) var))))
+
+  (if make-local
+      (make-local-variable var))
+	
   (set var val)
 
   ;; Force a thorough redisplay for the case that the variable
