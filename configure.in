@@ -1251,14 +1251,16 @@ esac
 ### Is -lXaw3d available?
 HAVE_XAW3D=no
 if test "${HAVE_X11}" = "yes"; then
-  old_c_flags="${CFLAGS}"
-  CFLAGS="${LD_SWITCH_X_SITE}"
-  AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
-    AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes, , -lX11))
-  CFLAGS="${old_c_flags}"
+  if test "${USE_X_TOOLKIT}" != "none"; then
+    old_c_flags="${CFLAGS}"
+    CFLAGS="${LD_SWITCH_X_SITE}"
+    AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
+	AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes, , -lX11))
+    CFLAGS="${old_c_flags}"
 
-  if test "${HAVE_XAW3D}" = "yes"; then
-    AC_DEFINE(HAVE_XAW3D)
+    if test "${HAVE_XAW3D}" = "yes"; then
+	AC_DEFINE(HAVE_XAW3D)
+    fi
   fi
 fi
   
@@ -1316,7 +1318,7 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_HEADER(tiff34/tiffio.h,
+    AC_CHECK_HEADER(tiffio.h,
       AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
