@@ -1,3 +1,9 @@
+2002-12-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (last_mousemove_x, last_mousemove_y): New variables.
+	(w32_read_socket) <WM_MOUSEMOVE>: Use them to detect non-movement.
+	Be more careful about when help_events are generated.
+
 2002-12-12  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (mac_check_for_quit_char): Correctly set the
