@@ -1,7 +1,7 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.3) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!global.c(trunk.4) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
  * to the functions ArenaEnter and ArenaLeave in this file.
@@ -28,7 +28,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.3) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.4) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -65,6 +65,7 @@ static void arenaReleaseRingLock(void)
 Bool ArenaCheck(Arena arena)
 {
   TraceId ti;
+  Trace trace;
   Index i;
   Size depth;
   RefSet rs;
@@ -81,7 +82,6 @@ Bool ArenaCheck(Arena arena)
 
   /* no check possible on arena->pollThreshold */
   CHECKL(BoolCheck(arena->insidePoll));
-  CHECKL(BoolCheck(arena->clamped));
 
   CHECKL(BoolCheck(arena->bufferLogging));
 
@@ -120,16 +120,19 @@ Bool ArenaCheck(Arena arena)
   CHECKL(TraceSetCheck(arena->flippedTraces));
   CHECKL(TraceSetSuper(arena->busyTraces, arena->flippedTraces));
 
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
+  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     /* design.mps.arena.trace */
-    if (TraceSetIsMember(arena->busyTraces, ti)) {
-      Trace trace = ArenaTrace(arena, ti);
+    if (TraceSetIsMember(arena->busyTraces, trace)) {
       CHECKD(Trace, trace);
     } else {
       /* design.mps.arena.trace.invalid */
-      CHECKL(ArenaTrace(arena,ti)->sig == SigInvalid);
+      CHECKL(trace->sig == SigInvalid);
     }
-  }
+  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
+  for(rank = 0; rank < RankMAX; ++rank)
+    CHECKL(RingCheck(&arena->greyRing[rank]));
+  CHECKL(BoolCheck(arena->clamped));
+  CHECKL(RingCheck(&arena->chainRing));
 
   /* can't write a check for arena->epoch */
 
@@ -149,9 +152,6 @@ Bool ArenaCheck(Arena arena)
   CHECKL(BoolCheck(arenaRingInit));
   CHECKL(RingCheck(&arenaRing));
   /* can't check arenaSerial */
-  
-  for(rank = 0; rank < RankMAX; ++rank)
-    CHECKL(RingCheck(&arena->greyRing[rank]));
 
   return TRUE;
 }
@@ -169,13 +169,17 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   Index i;
   Rank rank;
 
-  /* We do not check the arena argument, because it's _supposed_ to */
-  /* point to an uninitialized block of memory. */
+  /* We do not check the arena argument, because it's uninitialized. */
+  /* Likewise lock. */
   AVERT(ArenaClass, class);
 
   RingInit(&arena->globalRing);
   ArenaAllocInit(arena, class);
   arena->mpsVersionString = MPSVersion();
+
+  LockInit(lock);
+  arena->lock = lock;
+
   RingInit(&arena->poolRing);
   arena->poolSerial = (Serial)0;
   RingInit(&arena->rootRing);
@@ -190,12 +194,6 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* impl.c.trace */
   arena->flippedTraces = TraceSetEMPTY; /* impl.c.trace */
-  for (i=0; i < TRACE_MAX; i++) {
-    /* design.mps.arena.trace.invalid */
-    arena->trace[i].sig = SigInvalid;   
-  }
-  LockInit(lock);
-  arena->lock = lock;
   arena->insideShield = FALSE;          /* impl.c.shield */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
@@ -205,15 +203,21 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
     arena->shCache[i] = NULL;
   arena->pollThreshold = 0.0;
   arena->insidePoll = FALSE;
+  arena->bufferLogging = FALSE;
+  for (i=0; i < TRACE_MAX; i++) {
+    /* design.mps.arena.trace.invalid */
+    arena->trace[i].sig = SigInvalid;   
+  }
+  for(rank = 0; rank < RankMAX; ++rank)
+    RingInit(&arena->greyRing[rank]);
+  STATISTIC(arena->writeBarrierHitCount = 0);
   arena->clamped = FALSE;
+  RingInit(&arena->chainRing);
+
   arena->epoch = (Epoch)0;              /* impl.c.ld */
   arena->prehistory = RefSetEMPTY;
   for(i = 0; i < ARENA_LD_LENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
-  arena->bufferLogging = FALSE;
-  for(rank = 0; rank < RankMAX; ++rank)
-    RingInit(&arena->greyRing[rank]);
-  STATISTIC(arena->writeBarrierHitCount = 0);
 
   arena->sig = ArenaSig;
   arena->serial = arenaSerial;  /* design.mps.arena.static.serial */
@@ -546,20 +550,7 @@ void ArenaPoll(Arena arena)
 
   arena->insidePoll = TRUE;
 
-  /* Poll actions to see if any new action is to be taken. */
-  ActionPoll(arena);
-
-  /* Temporary hacky progress control added here and in trace.c */
-  /* for change.dylan.honeybee.170466, and substantially modified */
-  /* for change.epcore.minnow.160062. */
-  if (arena->busyTraces != TraceSetEMPTY) {
-    Trace trace = ArenaTrace(arena, (TraceId)0);
-    AVER(arena->busyTraces == TraceSetSingle((TraceId)0));
-    TracePoll(trace);
-    if (trace->state == TraceFINISHED) {
-      TraceDestroy(trace);
-    }
-  }
+  TracePoll(arena);
 
   size = arena->fillMutatorSize;
   arena->pollThreshold = size + ARENA_POLL_MAX;
@@ -568,101 +559,6 @@ void ArenaPoll(Arena arena)
   arena->insidePoll = FALSE;
 }
 #endif
-
-
-/* ArenaClamp -- clamp the arena (no new collections) */
-
-void ArenaClamp(Arena arena)
-{
-  AVERT(Arena, arena);
-  arena->clamped = TRUE;
-}
-
-
-/* ArenaRelease -- release the arena (allow new collections) */
-
-void ArenaRelease(Arena arena)
-{
-  AVERT(Arena, arena);
-  arena->clamped = FALSE;
-  ArenaPoll(arena);
-}
-
-
-/* ArenaClamp -- finish all collections and clamp the arena */
- 
-void ArenaPark(Arena arena)
-{
-  TraceId ti;
- 
-  AVERT(Arena, arena);
- 
-  arena->clamped = TRUE;
- 
-  while(arena->busyTraces != TraceSetEMPTY) {
-    /* Poll active traces to make progress. */
-    for(ti = 0; ti < TRACE_MAX; ++ti)
-      if (TraceSetIsMember(arena->busyTraces, ti)) {
-        Trace trace = ArenaTrace(arena, ti);
- 
-        TracePoll(trace);
- 
-        if (trace->state == TraceFINISHED)
-          TraceDestroy(trace);
-      }
-  }
-}
-
-
-/* ArenaCollect -- collect everything */
-
-Res ArenaCollect(Arena arena)
-{
-  Trace trace;
-  Res res;
-  Ring poolNode, nextPoolNode;
-  Bool haveWhiteSegs = FALSE;
-
-  AVERT(Arena, arena);
-  ArenaPark(arena);
-
-  res = TraceCreate(&trace, arena);
-  /* should be a trace available -- we're parked */
-  AVER(res != ResLIMIT);
-  if (res != ResOK)
-    goto failCreate;
-
-  /* Identify the condemned set and turn it white. */
-  RING_FOR(poolNode, ArenaPoolRing(arena), nextPoolNode) {
-    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
-    Ring segNode, nextSegNode;
-
-    if ((pool->class->attr & AttrGC) != 0) {
-      res = PoolTraceBegin(pool, trace);
-      if (res != ResOK)
-        goto failBegin;
-
-      RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
-        Seg seg = SegOfPoolRing(segNode);
-
-        res = TraceAddWhite(trace, seg);
-        if (res != ResOK)
-          goto failBegin;
-        haveWhiteSegs = TRUE;
-      }
-    }
-  }
-
-  TraceStart(trace, 0.0, 0.0);
-  ArenaPark(arena);
-  return ResOK;
-
-failBegin:
-  AVER(!haveWhiteSegs); /* @@@@ Would leave white sets inconsistent. */
-  TraceDestroy(trace);
-failCreate:
-  return res;
-}
 
 
 /* ArenaFinalize -- registers an object for finalization
