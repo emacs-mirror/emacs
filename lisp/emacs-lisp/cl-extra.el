@@ -387,19 +387,8 @@ If so, return the true (non-nil) value returned by PREDICATE."
 (defun floor* (x &optional y)
   "Return a list of the floor of X and the fractional part of X.
 With two arguments, return floor and remainder of their quotient."
-  (if y
-      (if (and (integerp x) (integerp y))
-	  (if (and (>= x 0) (>= y 0))
-	      (list (/ x y) (% x y))
-	    (let ((q (cond ((>= x 0) (- (/ (- x y 1) (- y))))
-			   ((>= y 0) (- (/ (- y x 1) y)))
-			   (t (/ (- x) (- y))))))
-	      (list q (- x (* q y)))))
-	(let ((q (floor (/ x y))))
-	  (list q (- x (* q y)))))
-    (if (integerp x) (list x 0)
-      (let ((q (floor x)))
-	(list q (- x q))))))
+  (let ((q (floor x y)))
+    (list q (- x (if y (* y q) q)))))
 
 (defun ceiling* (x &optional y)
   "Return a list of the ceiling of X and the fractional part of X.
