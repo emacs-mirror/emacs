@@ -1,3 +1,9 @@
+2000-12-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (record_char): Record `help-echo' input events
+	in recent_keys only if they display some help.  Don't record
+	`help-echo' events as macro char.
+
 2000-12-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (struct font_name): New member registry_priority.

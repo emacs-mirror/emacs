@@ -2584,8 +2584,10 @@ are now defined in Emacs Lisp.
       Then return the value of RESULT, or nil if RESULT is omitted.
 
 +++
-** Regular expressions now support Posix character classes such
-as [:alpha:], [:space:] and so on.
+** Regular expressions now support Posix character classes such as
+[:alpha:], [:space:] and so on.  These must be used within a character
+class--for instance, [-[:digit:].+] matches digits or a period
+or a sign.
 
 [:digit:]  matches 0 through 9
 [:cntrl:]  matches ASCII control characters
