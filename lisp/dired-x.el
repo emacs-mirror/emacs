@@ -460,35 +460,6 @@ buffer and try again."
   (interactive)
   (dired-jump t))
 
-;;; COPY NAMES OF MARKED FILES INTO KILL-RING.
-
-(defun dired-copy-filename-as-kill (&optional arg)
-  "Copy names of marked (or next ARG) files into the kill ring.
-The names are separated by a space.
-With a zero prefix arg, use the complete pathname of each marked file.
-With \\[universal-argument], use the relative pathname of each marked file.
-
-If on a subdir headerline, use subdirname instead; prefix arg is ignored
-in this case.
-
-You can then feed the file name(s) to other commands with \\[yank]."
-  (interactive "P")
-  (let ((string
-         (or (dired-get-subdir)
-             (mapconcat (function identity)
-                        (if arg
-                            (cond ((zerop (prefix-numeric-value arg))
-                                   (dired-get-marked-files))
-                                  ((integerp arg)
-                                   (dired-get-marked-files 'no-dir arg))
-                                  (t    ; else a raw arg
-                                   (dired-get-marked-files t)))
-                          (dired-get-marked-files 'no-dir))
-                        " "))))
-    (kill-new string)
-    (message "%s" string)))
-
-
 ;;; OMITTING.
 
 ;;; Enhanced omitting of lines from directory listings.
