@@ -103,9 +103,6 @@ else
 ifeq ($(TARGET),replaysw)
 CFLAGSTARGET = -DCONFIG_PROD_EPCORE
 else
-ifeq ($(TARGET),amcsshe)
-CFLAGSTARGET = -DCONFIG_PROD_CONFIGURA
-else
 ifeq ($(TARGET),mmdw.a)
 CFLAGSTARGET = -DCONFIG_PROD_DYLAN
 else
@@ -272,12 +269,8 @@ all: mpmss apss sacss amcss amsss segsmss awlut mpsicv lockcov poolncv mps.a \
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
-testrun: mpmss apss sacss amcss amsss segsmss awlut mpsicv lockcov \
+testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut mpsicv lockcov \
          poolncv locv qs finalcv arenacv abqtest cbstest btcv messtest
-	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
-
-# Runs the automatic tests that are built with CONFIG_PROD_CONFIGURA
-testruncongif: amcsshe 
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
