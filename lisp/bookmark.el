@@ -73,7 +73,7 @@
 
 ;; Enough with the credits already, get on to the good stuff:
 
-;; FAVORITE CHINESE RESTAURANT: 
+;; FAVORITE CHINESE RESTAURANT:
 ;; Boy, that's a tough one.  Probably Hong Min, or maybe Emperor's
 ;; Choice (both in Chicago's Chinatown).  Well, both.  How about you?
 
@@ -84,7 +84,7 @@
 ;;; Misc comments:
 ;;
 ;; If variable bookmark-use-annotations is non-nil, an annotation is
-;; queried for when setting a bookmark.  
+;; queried for when setting a bookmark.
 ;;
 ;; The bookmark list is sorted lexically by default, but you can turn
 ;; this off by setting bookmark-sort-flag to nil.  If it is nil, then
@@ -212,7 +212,7 @@ following in your `.emacs' file:
 
 ;; This variable is probably obsolete now...
 (or (boundp 'baud-rate)
-    ;; some random value higher than 9600    
+    ;; some random value higher than 9600
     (setq baud-rate 19200))
 
 
@@ -302,7 +302,7 @@ So the cdr of each bookmark is an alist too.
 
 ;; more stuff added by db.
 
-(defvar bookmark-current-bookmark nil 
+(defvar bookmark-current-bookmark nil
   "Name of bookmark most recently used in the current file.
 It is buffer local, used to make moving a bookmark forward
 through a file easier.")
@@ -437,7 +437,7 @@ That is, all information but the name."
 (defun bookmark-get-info-node (bookmark)
   "Get the info node associated with BOOKMARK."
   (cdr (assq 'info-node (bookmark-get-bookmark-record bookmark))))
-  
+
 
 (defun bookmark-set-info-node (bookmark node)
   "Set the Info node of BOOKMARK to NODE."
@@ -451,7 +451,7 @@ That is, all information but the name."
   (message "%S" (assq 'info-node (bookmark-get-bookmark-record bookmark)))
   (sit-for 4)
   )
-  
+
 
 (defvar bookmark-history nil
   "The history list for bookmark functions.")
@@ -485,9 +485,9 @@ the empty string."
   "Put STRING into the bookmark prompt history, if caller non-interactive.
 We need this because sometimes bookmark functions are invoked from
 menus, so `completing-read' never gets a chance to set `bookmark-history'."
-  (` (or
-      (interactive-p)
-      (setq bookmark-history (cons (, string) bookmark-history)))))
+  `(or
+    (interactive-p)
+    (setq bookmark-history (cons ,string bookmark-history))))
 
 
 (defun bookmark-make (name &optional annotation overwrite info-node)
@@ -508,17 +508,17 @@ INFO-NODE, so record this fact in the bookmark's entry."
         ;; no prefix arg means just overwrite old bookmark
         (setcdr (bookmark-get-bookmark stripped-name)
                 (list (bookmark-make-cell annotation info-node)))
-      
+
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either
       ;; case, we want the new bookmark consed onto the alist...)
-      
+
       (setq bookmark-alist
             (cons
-             (list stripped-name 
+             (list stripped-name
                    (bookmark-make-cell annotation info-node))
              bookmark-alist)))
-    
+
     ;; Added by db
     (setq bookmark-current-bookmark stripped-name)
     (setq bookmark-alist-modification-count
@@ -563,8 +563,8 @@ INFO-NODE, so record this fact in the bookmark's entry."
 
     ;; Finally, return the completed record.
     the-record))
-    
-  
+
+
 
 ;;; File format stuff
 
@@ -596,17 +596,17 @@ INFO-NODE, so record this fact in the bookmark's entry."
 ;; risk of interfering with existing ones.
 ;;
 ;; BOOKMARK-NAME is the string the user gives the bookmark and
-;; accesses it by from then on.  
+;; accesses it by from then on.
 ;;
 ;; FILENAME is the location of the file in which the bookmark is set.
 ;;
 ;; STRING-IN-FRONT is a string of `bookmark-search-size' chars of
 ;; context in front of the point at which the bookmark is set.
 ;;
-;; STRING-BEHIND is the same thing, but after the point.  
+;; STRING-BEHIND is the same thing, but after the point.
 ;;
 ;; The context strings exist so that modifications to a file don't
-;; necessarily cause a bookmark's position to be invalidated. 
+;; necessarily cause a bookmark's position to be invalidated.
 ;; bookmark-jump will search for STRING-BEHIND and STRING-IN-FRONT in
 ;; case the file has changed since the bookmark was set.  It will
 ;; attempt to place the user before the changes, if there were any.
@@ -772,7 +772,7 @@ the list of bookmarks.\)"
                  now-map))))
 	 (annotation nil))
     (and (string-equal str "") (setq str default))
-    ;; Ask for an annotation buffer for this bookmark 
+    ;; Ask for an annotation buffer for this bookmark
     (if bookmark-use-annotations
 	(bookmark-read-annotation parg str)
       (bookmark-make str annotation parg (bookmark-info-current-node))
@@ -828,7 +828,7 @@ the bookmark (and file, and point) specified in buffer local variables."
     ;; Actually, bookmark-make-cell should probably be re-written,
     ;; to avoid this need.  Should I handle the error if a buffer is
     ;; killed between "C-x r m" and a "C-c C-c" in the annotation buffer?
-    (save-excursion 
+    (save-excursion
       (pop-to-buffer buf)
       (goto-char pt)
       (bookmark-make bookmark annotation parg (bookmark-info-current-node))
@@ -1026,7 +1026,7 @@ For example, if this is a Info buffer, return the Info file's name."
                          (expand-file-name bookmark-default-file)))
            ;; return t so the `and' will continue...
            t)
-       
+
        (file-readable-p (expand-file-name bookmark-default-file))
        (bookmark-load bookmark-default-file t t)
        (setq bookmarks-already-loaded t)))
@@ -1044,7 +1044,7 @@ For example, if this is a Info buffer, return the Info file's name."
 
 ;;;###autoload
 (defun bookmark-jump (bookmark)
-  "Jump to bookmark BOOKMARK (a point in some file).  
+  "Jump to bookmark BOOKMARK (a point in some file).
 You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
 bookmarks.  See help on function `bookmark-load' for more about
@@ -1070,7 +1070,7 @@ of the old one in the permanent bookmark record."
 (defun bookmark-file-or-variation-thereof (file)
   "Return FILE (a string) if it exists in any reasonable variation, else nil.
 Reasonable variations are FILE.gz, FILE.Z, FILE.info, FILE.info.gz, etc."
-  (cond 
+  (cond
    ((file-exists-p file)                       file)
    ((file-exists-p (concat file ".Z"))         (concat file ".Z"))
    ((file-exists-p (concat file ".gz"))        (concat file ".gz"))
@@ -1132,7 +1132,7 @@ Reasonable variations are FILE.gz, FILE.Z, FILE.info, FILE.info.gz, etc."
             (bookmark-relocate str)
             ;; gasp!  It's a recursive function call in Emacs Lisp!
             (bookmark-jump-noselect str))
-        (message 
+        (message
          "Bookmark not relocated; consider removing it \(%s\)." str)
         nil))))
 
@@ -1166,7 +1166,7 @@ minibuffer history list `bookmark-history'."
     (prog1
 	(insert (bookmark-location bookmark)) ; *Return this line*
       (if (and (display-color-p) (display-mouse-p))
-	  (put-text-property start 
+	  (put-text-property start
 			     (save-excursion (re-search-backward
 					      "[^ \t]")
 					     (1+ (point)))
@@ -1222,7 +1222,7 @@ name."
 
 ;;;###autoload
 (defun bookmark-insert (bookmark)
-  "Insert the text of the file pointed to by bookmark BOOKMARK.  
+  "Insert the text of the file pointed to by bookmark BOOKMARK.
 You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
 bookmarks.  See help on function `bookmark-load' for more about
@@ -1242,7 +1242,7 @@ this."
 
 ;;;###autoload
 (defun bookmark-delete (bookmark &optional batch)
-  "Delete BOOKMARK from the bookmark list.  
+  "Delete BOOKMARK from the bookmark list.
 Removes only the first instance of a bookmark with that name.  If
 there are one or more other bookmarks with the same name, they will
 not be deleted.  Defaults to the \"current\" bookmark \(that is, the
@@ -1276,7 +1276,7 @@ probably because we were called from there."
   ;; bookmark-alist-modification-count.  Returns t if they should be
   ;; saved, nil otherwise.  if last-time is non-nil, then this is
   ;; being called when emacs is killed.
-  (cond (last-time 
+  (cond (last-time
 	 (and (> bookmark-alist-modification-count 0)
 	      bookmark-save-flag))
 	((numberp bookmark-save-flag)
@@ -1295,7 +1295,7 @@ Don't use this in Lisp programs; use `bookmark-save' instead."
 
 
 ;;;###autoload
-(defun bookmark-save (&optional parg file) 
+(defun bookmark-save (&optional parg file)
   "Save currently defined bookmarks.
 Saves by default in the file defined by the variable
 `bookmark-default-file'.  With a prefix arg, save it in file FILE
@@ -1412,7 +1412,7 @@ method buffers use to resolve name collisions."
   (interactive
    (list (read-file-name
           (format "Load bookmarks from: (%s) "
-                  bookmark-default-file)        
+                  bookmark-default-file)
           ;;Default might not be used often,
           ;;but there's no better default, and
           ;;I guess it's better than none at all.
@@ -1442,7 +1442,7 @@ method buffers use to resolve name collisions."
                        (expand-file-name bookmark-default-file)
                        file)
                       (setq bookmarks-already-loaded t))
-                  (bookmark-bmenu-surreptitiously-rebuild-list)) 
+                  (bookmark-bmenu-surreptitiously-rebuild-list))
               (error "Invalid bookmark list in %s" file)))
           (kill-buffer (current-buffer)))
 	(if (and (null no-msg) (>= baud-rate 9600))
@@ -1492,7 +1492,7 @@ method buffers use to resolve name collisions."
   (define-key bookmark-bmenu-mode-map "?" 'describe-mode)
   (define-key bookmark-bmenu-mode-map "u" 'bookmark-bmenu-unmark)
   (define-key bookmark-bmenu-mode-map "m" 'bookmark-bmenu-mark)
-  (define-key bookmark-bmenu-mode-map "l" 'bookmark-bmenu-load) 
+  (define-key bookmark-bmenu-mode-map "l" 'bookmark-bmenu-load)
   (define-key bookmark-bmenu-mode-map "r" 'bookmark-bmenu-rename)
   (define-key bookmark-bmenu-mode-map "t" 'bookmark-bmenu-toggle-filenames)
   (define-key bookmark-bmenu-mode-map "a" 'bookmark-bmenu-show-annotation)
@@ -1501,7 +1501,7 @@ method buffers use to resolve name collisions."
   (define-key bookmark-bmenu-mode-map [mouse-2]
     'bookmark-bmenu-other-window-with-mouse))
 
-  
+
 
 ;; Bookmark Buffer Menu mode is suitable only for specially formatted
 ;; data.
@@ -1509,7 +1509,7 @@ method buffers use to resolve name collisions."
 
 
 ;; todo: need to display whether or not bookmark exists as a buffer in
-;; flag column. 
+;; flag column.
 
 ;; Format:
 ;; FLAGS  BOOKMARK [ LOCATION ]
@@ -1520,7 +1520,7 @@ method buffers use to resolve name collisions."
 Don't affect the buffer ring order."
   (if (get-buffer "*Bookmark List*")
       (save-excursion
-        (save-window-excursion 
+        (save-window-excursion
           (bookmark-bmenu-list)))))
 
 
@@ -1552,7 +1552,7 @@ deletion, or > if it is flagged for displaying."
 	 (let ((start (point)))
 	   (insert (bookmark-name-from-full-record full-record))
 	   (if (and (display-color-p) (display-mouse-p))
-	       (put-text-property start 
+	       (put-text-property start
 				  (save-excursion (re-search-backward
 						   "[^ \t]")
 						  (1+ (point)))
@@ -1591,9 +1591,9 @@ Bookmark names preceded by a \"*\" have annotations.
 \\[bookmark-bmenu-other-window] -- select this bookmark in another window,
   so the bookmark menu bookmark remains visible in its window.
 \\[bookmark-bmenu-switch-other-window] -- switch the other window to this bookmark.
-\\[bookmark-bmenu-rename] -- rename this bookmark \(prompts for new name\).   
+\\[bookmark-bmenu-rename] -- rename this bookmark \(prompts for new name\).
 \\[bookmark-bmenu-delete] -- mark this bookmark to be deleted, and move down.
-\\[bookmark-bmenu-delete-backwards] -- mark this bookmark to be deleted, and move up. 
+\\[bookmark-bmenu-delete-backwards] -- mark this bookmark to be deleted, and move up.
 \\[bookmark-bmenu-execute-deletions] -- delete bookmarks marked with `\\[bookmark-bmenu-delete]'.
 \\[bookmark-bmenu-save] -- save the current bookmark list in the default file.
   With a prefix arg, prompts for a file to save in.
@@ -1679,7 +1679,7 @@ Optional argument SHOW means show them unconditionally."
 		(let ((start (point)))
 		  (insert (car bookmark-bmenu-hidden-bookmarks))
 		  (if (and (display-color-p) (display-mouse-p))
-		      (put-text-property start 
+		      (put-text-property start
 					 (save-excursion (re-search-backward
 							  "[^ \t]")
 							 (1+ (point)))
@@ -1720,8 +1720,8 @@ Optional argument SHOW means show them unconditionally."
       (beginning-of-line)
       (forward-char bookmark-bmenu-bookmark-column)
       (prog1
-          (buffer-substring-no-properties (point) 
-                            (progn 
+          (buffer-substring-no-properties (point)
+                            (progn
                               (end-of-line)
                               (point)))
         ;; well, this is certainly crystal-clear:
@@ -1786,7 +1786,7 @@ You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mar
   (interactive)
   (if (bookmark-bmenu-check-position)
       (let ((bmrk (bookmark-bmenu-bookmark))
-            (menu (current-buffer))	      
+            (menu (current-buffer))
             (others ())
             tem)
         (goto-char (point-min))
@@ -1795,8 +1795,8 @@ You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mar
           (let ((buffer-read-only nil))
             (delete-char -1)
             (insert ?\ ))
-          (or (string-equal tem bmrk) 
-              (member tem others) 
+          (or (string-equal tem bmrk)
+              (member tem others)
               (setq others (cons tem others))))
         (setq others (nreverse others)
               tem (/ (1- (frame-height)) (1+ (length others))))
@@ -1885,7 +1885,7 @@ The current window remains selected."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark))
         (pop-up-windows t)
-        same-window-buffer-names 
+        same-window-buffer-names
         same-window-regexps)
     (if (bookmark-bmenu-check-position)
 	(let* ((pair (bookmark-jump-noselect bookmark))
@@ -2110,7 +2110,7 @@ The number of panes depends on the number of bookmarks."
 
 ;;;###autoload
 (defun bookmark-menu-insert (event)
-  "Insert the text of the file pointed to by bookmark BOOKMARK.  
+  "Insert the text of the file pointed to by bookmark BOOKMARK.
 You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
 bookmarks.  See help on function `bookmark-load' for more about
@@ -2126,7 +2126,7 @@ corresponding bookmark function from Lisp \(the one without the
 
 ;;;###autoload
 (defun bookmark-menu-jump (event)
-  "Jump to bookmark BOOKMARK (a point in some file).  
+  "Jump to bookmark BOOKMARK (a point in some file).
 You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
 bookmarks.  See help on function `bookmark-load' for more about
@@ -2142,7 +2142,7 @@ corresponding bookmark function from Lisp \(the one without the
 
 ;;;###autoload
 (defun bookmark-menu-locate (event)
-  "Insert the name of the file associated with BOOKMARK. 
+  "Insert the name of the file associated with BOOKMARK.
 \(This is not the same as the contents of that file\).
 
 Warning: this function only takes an EVENT as argument.  Use the
@@ -2155,10 +2155,10 @@ corresponding bookmark function from Lisp \(the one without the
 
 ;;;###autoload
 (defun bookmark-menu-rename (event)
-  "Change the name of OLD-BOOKMARK to NEWNAME.  
+  "Change the name of OLD-BOOKMARK to NEWNAME.
 If called from keyboard, prompts for OLD-BOOKMARK and NEWNAME.
 If called from menubar, OLD-BOOKMARK is selected from a menu, and
-prompts for NEWNAME. 
+prompts for NEWNAME.
 If called from Lisp, prompts for NEWNAME if only OLD-BOOKMARK was
 passed as an argument.  If called with two strings, then no prompting
 is done.  You must pass at least OLD-BOOKMARK when calling from Lisp.
@@ -2177,7 +2177,7 @@ corresponding bookmark function from Lisp \(the one without the
 
 ;;;###autoload
 (defun bookmark-menu-delete (event)
-  "Delete the bookmark named NAME from the bookmark list.  
+  "Delete the bookmark named NAME from the bookmark list.
 Removes only the first instance of a bookmark with that name.  If
 there are one or more other bookmarks with the same name, they will
 not be deleted.  Defaults to the \"current\" bookmark \(that is, the
@@ -2207,7 +2207,7 @@ corresponding bookmark function from Lisp \(the one without the
 
 ;; make bookmarks appear toward the right side of the menu.
 (if (boundp 'menu-bar-final-items)
-    (if menu-bar-final-items 
+    (if menu-bar-final-items
         (setq menu-bar-final-items
               (cons 'bookmark menu-bar-final-items)))
   (setq menu-bar-final-items '(bookmark)))
@@ -2249,7 +2249,7 @@ corresponding bookmark function from Lisp \(the one without the
   '("Set Bookmark" . bookmark-set))
 
 ;;;###autoload
-(define-key menu-bar-bookmark-map [jump] 
+(define-key menu-bar-bookmark-map [jump]
   '("Jump to Bookmark" . bookmark-menu-jump))
 
 ;;;; end bookmark menu stuff ;;;;
@@ -2262,7 +2262,7 @@ corresponding bookmark function from Lisp \(the one without the
 ;;; Exit Hook, called from kill-emacs-hook
 (defvar bookmark-exit-hook nil
   "Hook to run when emacs exits")
-     
+
 (defun bookmark-exit-hook-internal ()
   "Save bookmark state, if necessary, at Emacs exit time.
 This also runs `bookmark-exit-hooks'."
@@ -2278,5 +2278,5 @@ This also runs `bookmark-exit-hooks'."
 (run-hooks 'bookmark-load-hook)
 
 (provide 'bookmark)
-      
+
 ;;; bookmark.el ends here

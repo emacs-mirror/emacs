@@ -1,3 +1,8 @@
+2001-01-12  Sam Steingold  <sds@gnu.org>
+
+	* bookmark.el (bookmark-maybe-historicize-string):
+	Use new backquote syntax.
+
 2001-01-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* subr.el (last): Handle a list that doesn't end in nil.
