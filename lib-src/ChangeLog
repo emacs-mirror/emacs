@@ -1,3 +1,14 @@
+2000-02-10  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (iswhite): Redefined not to consider '\0' as white
+	space, and use it throughout in place of isspace, thus preventing a
+	potential signed char to int conversion problem.
+	(MSDOS): #undefine befere redefining
+
+2000-02-04  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* etags.c (many functions): Add prototypes.
+
 2000-02-10  Dave Love  <fx@gnu.org>
 
 	* etags.c (pfnote, new_pfnote, C_entries, prolog_pred)
