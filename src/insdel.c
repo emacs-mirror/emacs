@@ -255,6 +255,7 @@ adjust_markers (from, to, amount)
    current set of intervals.  */
 static void
 adjust_point (amount)
+     int amount;
 {
   BUF_PT (current_buffer) += amount;
 }
