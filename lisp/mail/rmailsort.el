@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.19 1994/03/30 02:21:48 kwzh Exp kwzh $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.20 1994/03/30 02:24:05 kwzh Exp kwzh $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -109,6 +109,33 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			(lambda (msg)
 			  (count-lines (rmail-msgbeg msg)
 				       (rmail-msgend msg))))))
+
+(defun rmail-sort-by-keywords (reverse labels)
+  "Sort messages of current Rmail file by labels.
+If prefix argument REVERSE is non-nil, sort them in reverse order.
+KEYWORDS is a comma-separated list of labels."
+  (interactive "P\nsSort by labels: ")
+  (or (string-match "[^ \t]" labels)
+      (error "No labels specified"))
+  (setq labels (concat (substring labels (match-beginning 0)) ","))
+  (let (labelvec)
+    (while (string-match "[ \t]*,[ \t]*" labels)
+      (setq labelvec (cons 
+		      (concat ", ?\\("
+			      (substring labels 0 (match-beginning 0))
+			      "\\),")
+		      labelvec))
+      (setq labels (substring labels (match-end 0))))
+    (setq labelvec (apply 'vector (nreverse labelvec)))
+    (rmail-sort-messages reverse
+			 (function
+			  (lambda (msg)
+			    (let ((n 0))
+			      (while (and (< n (length labelvec))
+					  (not (rmail-message-labels-p
+						msg (aref labelvec n))))
+				(setq n (1+ n)))
+			      n))))))
 
 ;; Basic functions
 
