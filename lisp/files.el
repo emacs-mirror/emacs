@@ -1355,6 +1355,8 @@ in order to initialize other data structure based on them.")
 (put 'load-path 'risky-local-variable t)
 (put 'exec-directory 'risky-local-variable t)
 (put 'process-environment 'risky-local-variable t)
+(put 'dabbrev-case-fold-search 'risky-local-variable t)
+(put 'dabbrev-case-replace 'risky-local-variable t)
 ;; Don't wait for outline.el to be loaded, for the sake of outline-minor-mode.
 (put 'outline-level 'risky-local-variable t)
 (put 'rmail-output-file-alist 'risky-local-variable t)
