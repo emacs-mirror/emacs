@@ -212,7 +212,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;;;
 
 (defvar smtpmail-mail-address nil
-  "Value of `user-mail-address' in ambient buffer.")
+  "Value to use for envelope-from address for mail from ambient buffer.")
 
 ;;;###autoload
 (defun smtpmail-send-it ()
@@ -223,7 +223,9 @@ This is relative to `smtpmail-queue-dir'.")
 	(case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer))
-	(smtpmail-mail-address user-mail-address)
+	(smtpmail-mail-address
+         (or (and mail-specify-envelope-from (mail-envelope-from))
+             user-mail-address))
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -545,9 +547,6 @@ This is relative to `smtpmail-queue-dir'.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
-	(envelope-from (or (mail-envelope-from)
-			   smtpmail-mail-address
-			   user-mail-address))
 	response-code
 	greeting
 	process-buffer
@@ -697,7 +696,7 @@ This is relative to `smtpmail-queue-dir'.")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-						     envelope-from
+                                                     smtpmail-mail-address
 						     size-part
 						     body-part))
 
