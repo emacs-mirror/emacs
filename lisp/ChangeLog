@@ -1,3 +1,7 @@
+2005-02-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frame.el (blink-cursor-mode): Add :group keyword.
+
 2005-02-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar--decode-isodatetime): New
