@@ -1,3 +1,9 @@
+2003-10-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-make-xrefs): Make sure that if a symbol is
+	followed by the word `face', it gets treated as a face, even if
+	it is also defined as a variable or a function.
+
 2003-10-20  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):  Avoid
