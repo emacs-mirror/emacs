@@ -1,3 +1,16 @@
+2005-01-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-put-string): Copy/create strings so
+	that enable/disabled state of breakpoints is shown correctly in
+	fringe and on ttys.
+	(gdb-put-breakpoint-icon, gdb-info-breakpoints-custom):
+	Add breakpoint information as text properties.
+	(gdb-mouse-toggle-breakpoint): 
+	Rename to gdb-mouse-set-clear-breakpoint.
+	(gdb-mouse-toggle-breakpoint): New function. Enable/disable
+	breakpoints in the margin.
+	(gdb-remove-strings): Simplify.
+
 2005-01-17  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-yank.el (calc-edit-mode): Inhibit read-only when
