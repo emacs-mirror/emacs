@@ -1468,10 +1468,6 @@ If DIRECTION is `backward', search in the reverse direction."
 	  (opoint-max (point-max))
 	  (ostart (window-start))
 	  (osubfile Info-current-subfile))
-      (when Info-search-whitespace-regexp
-        (setq regexp
-              (mapconcat 'identity (split-string regexp "[ \t\n]+")
-                         Info-search-whitespace-regexp)))
       (setq Info-search-case-fold case-fold-search)
       (save-excursion
 	(save-restriction
@@ -1496,12 +1492,14 @@ If DIRECTION is `backward', search in the reverse direction."
 			    (save-excursion
 			      (and (search-backward "\^_" nil t)
 				   (looking-at "\^_\nTag Table"))))))
-	    (if (if backward
-                    (re-search-backward regexp bound t)
-                  (re-search-forward regexp bound t))
-		(setq found (point) beg-found (if backward (match-end 0)
-                                                (match-beginning 0)))
-	      (setq give-up t)))))
+	    (let ((search-whitespace-regexp
+		   Info-search-whitespace-regexp))
+	      (if (if backward
+		      (re-search-backward regexp bound t)
+		    (re-search-forward regexp bound t))
+		  (setq found (point) beg-found (if backward (match-end 0)
+						  (match-beginning 0)))
+		(setq give-up t))))))
       ;; If no subfiles, give error now.
       (if give-up
 	  (if (null Info-current-subfile)
