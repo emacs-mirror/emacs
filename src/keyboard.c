@@ -1110,7 +1110,7 @@ command_loop_1 ()
     {
       if (NILP (Vunread_command_events)
 	  && NILP (Vexecuting_macro)
-	  && !NILP (sit_for (0, post_command_idle_delay, 0, 1)))
+	  && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
 	safe_run_hooks (Qpost_command_idle_hook);
     }
 
@@ -1438,7 +1438,7 @@ command_loop_1 ()
 	{
 	  if (NILP (Vunread_command_events)
 	      && NILP (Vexecuting_macro)
-	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1)))
+	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
 	    safe_run_hooks (Qpost_command_idle_hook);
 	}
 
@@ -1883,7 +1883,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (echo_keystrokes, 0, 1, 1);
+	  tem0 = sit_for (echo_keystrokes, 0, 1, 1, 0);
 	  restore_getcjmp (save_jump);
 	  if (EQ (tem0, Qt))
 	    echo_now ();
@@ -1952,7 +1952,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
 	  tem0 = sit_for (delay_level * XFASTINT (Vauto_save_timeout) / 4,
-			  0, 1, 1);
+			  0, 1, 1, 0);
 	  restore_getcjmp (save_jump);
 
 	  if (EQ (tem0, Qt))
