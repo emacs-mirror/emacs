@@ -612,10 +612,9 @@ Has a preference of looking backwards."
                                           ;; shouldn't take us back before BEG.
                                           (> (point) beg))
 				 (let (end middle)
-				   ;; Don't include any final newline
+				   ;; Don't include any final whitespace
 				   ;; in the name we use.
-				   (if (= (preceding-char) ?\n)
-				       (forward-char -1))
+				   (skip-chars-backward " \t\n")
 				   (setq end (point))
 				   (backward-sexp 1)
 				   ;; Now find the right beginning of the name.
@@ -632,7 +631,7 @@ Has a preference of looking backwards."
 				     (setq middle (point))
 				     (forward-word -1))
 				   (and (bolp)
-					(looking-at "struct \\|union \\|class ")
+					(looking-at "enum \\|struct \\|union \\|class ")
 					(setq middle (point)))
 				   (goto-char end)
 				   (when (eq (preceding-char) ?=)
