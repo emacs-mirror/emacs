@@ -1952,10 +1952,9 @@ static Lisp_Object
 tracking_off (old_value)
      Lisp_Object old_value;
 {
-  if (! XFASTINT (old_value))
+  do_mouse_tracking = old_value;
+  if (NILP (old_value))
     {
-      do_mouse_tracking = Qnil;
-
       /* Redisplay may have been preempted because there was input
 	 available, and it assumes it will be called again after the
 	 input has been processed.  If the only input available was
@@ -6400,7 +6399,7 @@ and the minor mode maps regardless of `overriding-local-map'.");
   Voverriding_local_map_menu_flag = Qnil;
 
 #ifdef HAVE_MOUSE
-  DEFVAR_BOOL ("track-mouse", &do_mouse_tracking,
+  DEFVAR_LISP ("track-mouse", &do_mouse_tracking,
 	       "*Non-nil means generate motion events for mouse motion.");
 #endif
 
