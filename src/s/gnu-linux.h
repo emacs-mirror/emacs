@@ -327,3 +327,12 @@ Boston, MA 02111-1307, USA.  */
 #ifdef DOUG_LEA_MALLOC
 #undef REL_ALLOC
 #endif
+
+/* Tell that garbage collector that setjmp is known to save all
+   registers relevant for conservative garbage collection in the
+   jmp_buf.  */
+/* m68k and alpha aren't tested, but there are Debian packages for SCM
+   and/or Guile on them, so the technique must work.  */
+#if #cpu (i386) || #cpu (sparc) || #cpu (m68k) || #cpu (alpha)
+#define GC_SETJMP_WORKS 1
+#endif
