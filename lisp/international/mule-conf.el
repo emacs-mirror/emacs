@@ -210,9 +210,16 @@
 (define-charset 241 'tibetan-1-column
   [2 94 1 0 ?8 0 "Tibetan 1-col" "Tibetan 1 column" "Tibetan 1 column glyph"])
 
-;; CHARSET-IDs 242 and 243 are not used.
+;; Subsets of Unicode.
 
-;; Subset of Unicode.
+(define-charset 242 'mule-unicode-2500-33ff
+  [2 96 1 0 ?2 0 "Unicode subset 2" "Unicode subset (U+2500..U+33FF)"
+     "Unicode characters of the range U+2500..U+33FF."])
+
+(define-charset 243 'mule-unicode-e000-ffff
+  [2 96 1 0 ?3 0 "Unicode subset 3" "Unicode subset (U+E000+FFFF)"
+     "Unicode characters of the range U+E000..U+FFFF."])
+
 (define-charset 244 'mule-unicode-0100-24ff
   [2 96 1 0 ?1 0 "Unicode subset" "Unicode subset (U+0100..U+24FF)"
      "Unicode characters of the range U+0100..U+24FF."])
