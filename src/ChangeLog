@@ -1,3 +1,7 @@
+2003-08-19  Miles Bader  <miles@gnu.org>
+
+	* xterm.c (x_term_init): Correctly use result of Ffile_readable_p.
+
 2003-08-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (lisp_align_malloc): Check for memory full when

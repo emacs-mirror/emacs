@@ -10194,7 +10194,7 @@ x_term_init (display_name, xrm_option, resource_name)
       s = make_string (file, strlen (file));
       abs_file = Fexpand_file_name(s, Qnil);
 
-      if (! NILP (abs_file) && Ffile_readable_p (abs_file))
+      if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
         gtk_rc_parse (SDATA (abs_file));
 
       UNGCPRO;
