@@ -236,8 +236,8 @@ static void
 x_own_selection (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
-  Display *display = x_current_display;
   Window selecting_window = FRAME_X_WINDOW (selected_frame);
+  Display *display = FRAME_X_DISPLAY (selected_frame);
   Time time = last_event_timestamp;
   Atom selection_atom;
 
@@ -245,10 +245,10 @@ x_own_selection (selection_name, selection_value)
   selection_atom = symbol_to_x_atom (display, selection_name);
 
   BLOCK_INPUT;
-  x_catch_errors ();
+  x_catch_errors (selected_frame);
   XSetSelectionOwner (display, selection_atom, selecting_window, time);
-  x_check_errors ("Can't set selection: %s");
-  x_uncatch_errors ();
+  x_check_errors (selected_frame, "Can't set selection: %s");
+  x_uncatch_errors (selected_frame);
   UNBLOCK_INPUT;
 
   /* Now update the local cache */
@@ -1029,8 +1029,8 @@ static Lisp_Object
 x_get_foreign_selection (selection_symbol, target_type)
      Lisp_Object selection_symbol, target_type;
 {
-  Display *display = x_current_display;
   Window requestor_window = FRAME_X_WINDOW (selected_frame);
+  Display *display = FRAME_X_DISPLAY (selected_frame);
   Time requestor_time = last_event_timestamp;
   Atom target_property = Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (display, selection_symbol);
@@ -1043,7 +1043,7 @@ x_get_foreign_selection (selection_symbol, target_type)
     type_atom = symbol_to_x_atom (display, target_type);
 
   BLOCK_INPUT;
-  x_catch_errors ();
+  x_catch_errors (selected_frame);
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
   XFlushQueue ();
@@ -1052,7 +1052,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   reading_selection_window = requestor_window;
   reading_which_selection = selection_atom;
   XCONS (reading_selection_reply)->car = Qnil;
-  x_start_queuing_selection_requests ();
+  x_start_queuing_selection_requests (selected_frame);
   UNBLOCK_INPUT;
 
   /* This allows quits.  Also, don't wait forever.  */
@@ -1061,9 +1061,9 @@ x_get_foreign_selection (selection_symbol, target_type)
   wait_reading_process_input (secs, usecs, reading_selection_reply, 0);
 
   BLOCK_INPUT;
-  x_check_errors ("Cannot get selection: %s");
-  x_uncatch_errors ();
-  x_stop_queuing_selection_requests ();
+  x_check_errors (selected_frame, "Cannot get selection: %s");
+  x_uncatch_errors (selected_frame);
+  x_stop_queuing_selection_requests (selected_frame);
   UNBLOCK_INPUT;
 
   if (NILP (XCONS (reading_selection_reply)->car))
@@ -1706,12 +1706,13 @@ Disowning it means there is no such selection.")
      Lisp_Object selection;
      Lisp_Object time;
 {
-  Display *display = x_current_display;
   Time timestamp;
   Atom selection_atom;
   XSelectionClearEvent event;
+  Display *display;
 
   check_x ();
+  display = FRAME_X_DISPLAY (selected_frame);
   CHECK_SYMBOL (selection, 0);
   if (NILP (time))
     timestamp = last_event_timestamp;
@@ -1795,8 +1796,10 @@ and t is the same as `SECONDARY'.)")
 {
   Window owner;
   Atom atom;
-  Display *dpy = x_current_display;
+  Display *dpy;
+
   check_x ();
+  dpy = FRAME_X_DISPLAY (selected_frame);
   CHECK_SYMBOL (selection, 0);
   if (!NILP (Fx_selection_owner_p (selection)))
     return Qt;
@@ -1857,8 +1860,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   (buffer)
      Lisp_Object buffer;
 {
-  Display *display = x_current_display;
-  Window window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
+  Window window;
   Atom buffer_atom;
   unsigned char *data;
   int bytes;
@@ -1866,8 +1868,11 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   int format;
   unsigned long size;
   Lisp_Object ret;
+  Display *display;
 
   check_x ();
+  display = FRAME_X_DISPLAY (selected_frame);
+  window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   CHECK_CUT_BUFFER (buffer, 0);
   buffer_atom = symbol_to_x_atom (display, buffer);
 
@@ -1893,16 +1898,22 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   (buffer, string)
      Lisp_Object buffer, string;
 {
-  Display *display = x_current_display;
-  Window window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
+  Window window;
   Atom buffer_atom;
   unsigned char *data;
   int bytes;
   int bytes_remaining;
-  int max_bytes = SELECTION_QUANTUM (display);
-  if (max_bytes > MAX_SELECTION_QUANTUM) max_bytes = MAX_SELECTION_QUANTUM;
+  int max_bytes;
+  Display *display;
 
   check_x ();
+  display = FRAME_X_DISPLAY (selected_frame);
+  window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
+
+  max_bytes = SELECTION_QUANTUM (display);
+  if (max_bytes > MAX_SELECTION_QUANTUM)
+    max_bytes = MAX_SELECTION_QUANTUM;
+
   CHECK_CUT_BUFFER (buffer, 0);
   CHECK_STRING (string, 0);
   buffer_atom = symbol_to_x_atom (display, buffer);
@@ -1943,14 +1954,19 @@ positive means move values forward, negative means backward.")
   (n)
      Lisp_Object n;
 {
-  Display *display = x_current_display;
-  Window window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
-  Atom props [8];
+  Window window;
+  Atom props[8];
+  Display *display;
 
   check_x ();
+  display = FRAME_X_DISPLAY (selected_frame);
+  window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   CHECK_NUMBER (n, 0);
-  if (XINT (n) == 0) return n;
-  if (! cut_buffers_initialized) initialize_cut_buffers (display, window);
+  if (XINT (n) == 0)
+    return n;
+  if (! cut_buffers_initialized)
+    initialize_cut_buffers (display, window);
+
   props[0] = XA_CUT_BUFFER0;
   props[1] = XA_CUT_BUFFER1;
   props[2] = XA_CUT_BUFFER2;
