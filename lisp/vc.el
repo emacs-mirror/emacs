@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.4
@@ -586,17 +586,15 @@ popped up to accept a comment."
 
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
-(defun vc-comment-to-change-log (&optional file)
+(defun vc-comment-to-change-log ()
   "Update change log from VC change comments entered for the current file.
-Optional FILE specifies the change log file name; see `find-change-log'.
 See `vc-update-change-log'."
   (interactive)
-  (let ((log (find-change-log file)))
+  (let ((log (find-change-log)))
     (if log
-	(let ((default-directory (or (file-name-directory log)
-				     default-directory)))
-	  (vc-update-change-log
-	   (file-relative-name buffer-file-name))))))
+	(vc-update-change-log
+	 (file-relative-name buffer-file-name
+			     (file-name-directory (expand-file-name log)))))))
 
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry."
@@ -1126,7 +1124,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		   (setq files (cons (file-relative-name file) files)))
 	      (setq buffers (cdr buffers)))
 	    files))))
-  (find-file-other-window "ChangeLog")
+  (find-file-other-window (find-change-log))
   (barf-if-buffer-read-only)
   (vc-buffer-sync)
   (undo-boundary)
