@@ -1024,10 +1024,18 @@ and only if the Emacs executable is installed with setuid to permit\n\
 it to change priority.  (Emacs sets its uid back to the real uid.)");
   emacs_priority = 0;
 
-  staticpro (&Vinstallation_directory);
-  Vinstallation_directory = Qnil;
+  DEFVAR_LISP ("invocation-name", &Vinvocation_name,
+    "The program name that was used to run Emacs.\n\
+Any directory names are omitted.");
 
-  /* These have already been set, in init_cmdargs, so don't set them here.  */
-  staticpro (&Vinvocation_name);
-  staticpro (&Vinvocation_directory);
+  DEFVAR_LISP ("invocation-directory", &Vinvocation_directory,
+    "The directory in which the Emacs executable was found, to run it.\n\
+The value is nil if that directory's name is not known.");
+
+  DEFVAR_LISP ("installation-directory", &Vinstallation_directory,
+    "A directory within which to look for the `lib-src' and `etc' directories.\n\
+This is non-nil when we can't find those directories in their standard\n\
+installed locations, but we can find them\n\
+near where the Emacs executable was found.");
+  Vinstallation_directory = Qnil;
 }
