@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.56) $
+# $HopeName: MMsrc!comm.gmk(trunk.57) $
 # Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -175,7 +175,8 @@ POOLN = pooln.c
 MVFF = poolmvff.c
 ARENAAN = arenaan.c
 TESTLIB = testlib.c
-FMTDY = fmtdy.c fmtdytst.c
+FMTDY = fmtdy.c
+FMTDYTST = fmtdy.c fmtdytst.c
 FMTPS = fmtpstst.c
 PLINTH = mpsliban.c mpsioan.c
 EVENT = event.c
@@ -236,6 +237,8 @@ TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
+FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTDYTSTDEP = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTPSOBJ = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTPSDEP = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -329,7 +332,7 @@ endif
 ifdef VARIETY
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
 	$(MPMOBJ) $(LOOBJ) $(TESTLIBOBJ)
@@ -350,28 +353,28 @@ $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(MPMOBJ)
 
 $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
         $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ) $(EVENTOBJ)
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(POOLNOBJ) $(ARENAANOBJ)
