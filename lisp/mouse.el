@@ -441,7 +441,68 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 	       (mouse-multiple-insert
 		(- (car relative-coordinate) (current-column)) " "))
 	      ((= (current-column) (car relative-coordinate)) (ding))))))
+
+;; Font selection.
 
+(defvar x-fixed-font-alist
+  '("Font menu"
+    ("Misc"
+     ("fixed" "fixed")
+     ("6x10" "6x10")
+     ("6x12" "6x12")
+     ("6x13" "6x13")
+     ("7x13" "7x13")
+     ("7x14" "7x14")
+     ("8x13" "8x13")
+     ("8x13 bold" "8x13bold")
+     ("8x16" "8x16")
+     ("9x15" "9x15")
+     ("9x15 bold" "9x15bold")
+     ("10x20" "10x20")
+     ("11x18" "11x18")
+     ("12x24" "12x24"))
+;;; We don't seem to have these; who knows what they are.
+;;;    ("fg-18" "fg-18")
+;;;    ("fg-25" "fg-25")
+;;;    ("lucidasanstypewriter-12" "lucidasanstypewriter-12")
+;;;    ("lucidasanstypewriter-bold-14" "lucidasanstypewriter-bold-14")
+;;;    ("lucidasanstypewriter-bold-24" "lucidasanstypewriter-bold-24")
+;;;    ("lucidatypewriter-bold-r-24" "-b&h-lucidatypewriter-bold-r-normal-sans-24-240-75-75-m-140-iso8859-1")
+;;;    ("fixed-medium-20" "-misc-fixed-medium-*-*-*-20-*-*-*-*-*-*-*")
+    ("Courier"
+     ("8" "-adobe-courier-medium-r-normal--8-*-*-*-m-*-iso8859-1")
+     ("10" "-adobe-courier-medium-r-normal--10-*-*-*-m-*-iso8859-1")
+     ("12" "-adobe-courier-medium-r-normal--12-*-*-*-m-*-iso8859-1")
+     ("14" "-adobe-courier-medium-r-normal--14-*-*-*-m-*-iso8859-1")
+     ("18" "-adobe-courier-medium-r-normal--18-*-*-*-m-*-iso8859-1")
+     ("24" "-adobe-courier-medium-r-normal--24-*-*-*-m-*-iso8859-1")
+     ("8 bold" "-adobe-courier-bold-r-normal--8-*-*-*-m-*-iso8859-1")
+     ("10 bold" "-adobe-courier-bold-r-normal--10-*-*-*-m-*-iso8859-1")
+     ("12 bold" "-adobe-courier-bold-r-normal--12-*-*-*-m-*-iso8859-1")
+     ("14 bold" "-adobe-courier-bold-r-normal--14-*-*-*-m-*-iso8859-1")
+     ("18 bold" "-adobe-courier-bold-r-normal--18-*-*-*-m-*-iso8859-1")
+     ("24 bold" "-adobe-courier-bold-r-normal--24-*-*-*-m-*-iso8859-1")
+     ("8 slant" "-adobe-courier-medium-o-normal--8-*-*-*-m-*-iso8859-1")
+     ("10 slant" "-adobe-courier-medium-o-normal--10-*-*-*-m-*-iso8859-1")
+     ("12 slant" "-adobe-courier-medium-o-normal--12-*-*-*-m-*-iso8859-1")
+     ("14 slant" "-adobe-courier-medium-o-normal--14-*-*-*-m-*-iso8859-1")
+     ("18 slant" "-adobe-courier-medium-o-normal--18-*-*-*-m-*-iso8859-1")
+     ("24 slant" "-adobe-courier-medium-o-normal--24-*-*-*-m-*-iso8859-1")
+     ("8 bold slant" "-adobe-courier-bold-o-normal--8-*-*-*-m-*-iso8859-1")
+     ("10 bold slant" "-adobe-courier-bold-o-normal--10-*-*-*-m-*-iso8859-1")
+     ("12 bold slant" "-adobe-courier-bold-o-normal--12-*-*-*-m-*-iso8859-1")
+     ("14 bold slant" "-adobe-courier-bold-o-normal--14-*-*-*-m-*-iso8859-1")
+     ("18 bold slant" "-adobe-courier-bold-o-normal--18-*-*-*-m-*-iso8859-1")
+     ("24 bold slant" "-adobe-courier-bold-o-normal--24-*-*-*-m-*-iso8859-1"))
+    )
+  "X fonts suitable for use in Emacs.")
+
+(defun mouse-set-font (font)
+  "Select an emacs font from a list of known good fonts"
+  (interactive
+   (x-popup-menu last-nonmenu-event x-fixed-font-alist))
+  (modify-frame-parameters (selected-frame)
+			   (list (cons 'font font))))
 
 ;;; Bindings for mouse commands.
 
@@ -456,6 +517,8 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 (global-set-key   [S-mouse-3]	'mouse-kill)
 
 (global-set-key   [C-mouse-1]	'mouse-buffer-menu)
+
+(global-set-key   [C-mouse-3]	'mouse-set-font)
 
 ;; Replaced with dragging mouse-1
 ;; (global-set-key [S-mouse-1]	'mouse-set-mark)
