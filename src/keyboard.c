@@ -1612,9 +1612,9 @@ static jmp_buf wrong_kboard_jmpbuf;
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence.
 
-   If USED_MOUSE_MENU is non-zero, then we set *USED_MOUSE_MENU to 1
+   If USED_MOUSE_MENU is non-null, then we set *USED_MOUSE_MENU to 1
    if we used a mouse menu to read the input, or zero otherwise.  If
-   USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.
+   USED_MOUSE_MENU is null, we don't dereference it.
 
    Value is t if we showed a menu and the user rejected it.  */
 
@@ -1935,7 +1935,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
-      c = kbd_buffer_get_event (&kb);
+      c = kbd_buffer_get_event (&kb, used_mouse_menu);
       restore_getcjmp (save_jump);
 
 #ifdef MULTI_KBOARD
@@ -2397,8 +2397,9 @@ kbd_buffer_store_event (event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event (kbp)
+kbd_buffer_get_event (kbp, used_mouse_menu)
      KBOARD **kbp;
+     int *used_mouse_menu;
 {
   register int c;
   Lisp_Object obj;
@@ -2578,6 +2579,17 @@ kbd_buffer_get_event (kbp)
 	  if (NILP (obj))
 	    {
 	      obj = make_lispy_event (event);
+#ifdef USE_X_TOOLKIT
+	      /* If this was a menu selection, then set the flag to inhibit
+		 writing to last_nonmenu_event.  Don't do this if the event
+		 we're returning is (menu-bar), though; that indicates the
+		 beginning of the menu sequence, and we might as well leave
+		 that as the `event with parameters' for this selection.  */
+	      if (event->kind == menu_bar_event
+		  && !(CONSP (obj) && EQ (XCONS (obj)->car, Qmenu_bar))
+		  && used_mouse_menu)
+		*used_mouse_menu = 1;
+#endif
 
 	      /* Wipe out this event, to catch bugs.  */
 	      event->kind = no_event;
@@ -4570,9 +4582,9 @@ menu_bar_item (key, item_string, def)
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence.
 
-   If USED_MOUSE_MENU is non-zero, then we set *USED_MOUSE_MENU to 1
+   If USED_MOUSE_MENU is non-null, then we set *USED_MOUSE_MENU to 1
    if we used a mouse menu to read the input, or zero otherwise.  If
-   USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.
+   USED_MOUSE_MENU is null, we don't dereference it.
 
    The prompting is done based on the prompt-string of the map
    and the strings associated with various map elements.
