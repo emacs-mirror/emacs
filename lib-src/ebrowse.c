@@ -2075,13 +2075,33 @@ token_string (t)
     case VOID:                  return "void";
     case VOLATILE:              return "volatile";
     case WHILE:                 return "while";
+    case MUTABLE:		return "mutable";
+    case BOOL:			return "bool";
+    case TRUE:			return "true";
+    case FALSE:			return "false";
+    case SIGNATURE:		return "signature";
+    case NAMESPACE:		return "namespace";
+    case EXPLICIT:		return "explicit";
+    case TYPENAME:		return "typename";
+    case CONST_CAST:		return "const_cast";
+    case DYNAMIC_CAST:		return "dynamic_cast";
+    case REINTERPRET_CAST:	return "reinterpret_cast";
+    case STATIC_CAST:		return "static_cast";
+    case TYPEID:		return "typeid";
+    case USING:			return "using";
+    case WCHAR:			return "wchar_t";
     case YYEOF:                 return "EOF";
-    }
 
-  assert (t < 255);
-  b[0] = t;
-  b[1] = '\0';
-  return b;
+    default:
+      if (t < 255)
+	{
+	  b[0] = t;
+	  b[1] = '\0';
+	  return b;
+	}
+      else
+	return "???";
+    }
 }
 
 
@@ -2375,14 +2395,18 @@ parm_list (flags)
         case IDENT:
           if (!type_seen)
             {
-	      char *s;
+	      char *last_id;
 	      unsigned ident_type_hash = 0;
 	      
-	      parse_qualified_param_ident_or_type (&s);
-              for (; *s; ++s)
-                ident_type_hash = (ident_type_hash << 1) ^ *s;
-	      hash = (hash << 1) ^ ident_type_hash;
-	      type_seen = 1;
+	      parse_qualified_param_ident_or_type (&last_id);
+	      if (last_id)
+		{
+		  /* LAST_ID null means something like `X::*'.  */
+		  for (; *last_id; ++last_id)
+		    ident_type_hash = (ident_type_hash << 1) ^ *last_id;
+		  hash = (hash << 1) ^ ident_type_hash;
+		  type_seen = 1;
+		}
             }
 	  else
 	    MATCH ();
@@ -2904,7 +2928,7 @@ parse_qualified_param_ident_or_type (last_id)
   struct sym *cls = NULL;
   static char *id = NULL;
   static int id_size = 0;
-  
+
   while (LOOKING_AT (IDENT))
     {
       int len = strlen (yytext) + 1;
