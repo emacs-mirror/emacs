@@ -96,7 +96,9 @@
 		   ;; before point as well as its matching open.
 		   (progn
 		     (if show-paren-overlay-1
-			 (move-overlay show-paren-overlay-1 (+ (point) dir) (point))
+			 (move-overlay show-paren-overlay-1
+				       (+ (point) dir) (point)
+				       (current-buffer))
 		       (setq show-paren-overlay-1
 			     (make-overlay (- pos dir) pos)))
 		     (overlay-put show-paren-overlay-1 'face face))
@@ -106,7 +108,8 @@
 		      (delete-overlay show-paren-overlay-1)))
 	       ;; Turn on highlighting for the matching paren.
 	       (if show-paren-overlay
-		   (move-overlay show-paren-overlay (- pos dir) pos)
+		   (move-overlay show-paren-overlay (- pos dir) pos
+				 (current-buffer))
 		 (setq show-paren-overlay
 		       (make-overlay (- pos dir) pos)))
 	       (overlay-put show-paren-overlay 'face face))
