@@ -332,41 +332,41 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 (defalias 'rest 'cdr)
 (defalias 'endp 'null)
 
-(defun second (x)
+(defmacro second (x)
   "Return the second element of the list LIST."
-  (car (cdr x)))
+  `(car (cdr ,x)))
 
-(defun third (x)
+(defmacro third (x)
   "Return the third element of the list LIST."
-  (car (cdr (cdr x))))
+  `(car (cdr (cdr ,x))))
 
-(defun fourth (x)
+(defmacro fourth (x)
   "Return the fourth element of the list LIST."
-  (nth 3 x))
+  `(nth 3 ,x))
 
-(defun fifth (x)
+(defmacro fifth (x)
   "Return the fifth element of the list LIST."
-  (nth 4 x))
+  `(nth 4 ,x))
 
-(defun sixth (x)
+(defmacro sixth (x)
   "Return the sixth element of the list LIST."
-  (nth 5 x))
+  `(nth 5 ,x))
 
-(defun seventh (x)
+(defmacro seventh (x)
   "Return the seventh element of the list LIST."
-  (nth 6 x))
+  `(nth 6 ,x))
 
-(defun eighth (x)
+(defmacro eighth (x)
   "Return the eighth element of the list LIST."
-  (nth 7 x))
+  `(nth 7 ,x))
 
-(defun ninth (x)
+(defmacro ninth (x)
   "Return the ninth element of the list LIST."
-  (nth 8 x))
+  `(nth 8 ,x))
 
-(defun tenth (x)
+(defmacro tenth (x)
   "Return the tenth element of the list LIST."
-  (nth 9 x))
+  `(nth 9 ,x))
 
 (defun caaar (x)
   "Return the `car' of the `car' of the `car' of X."
@@ -565,13 +565,17 @@ Keywords supported:  :test :test-not :key"
 (put 'cl-assertion-failed 'error-conditions '(error))
 (put 'cl-assertion-failed 'error-message "Assertion failed")
 
+(defvar cl-fake-autoloads nil
+  "Non-nil means don't make CL functions autoload.")
+
 ;;; Autoload the other portions of the package.
 (mapcar (function
 	 (lambda (set)
-	   (mapcar (function
-		    (lambda (func)
-		      (autoload func (car set) nil nil (nth 1 set))))
-		   (cddr set))))
+	   (let ((file (if cl-fake-autoloads "<none>" (car set))))
+	     (mapcar (function
+		      (lambda (func)
+			(autoload func (car set) nil nil (nth 1 set))))
+		     (cddr set)))))
 	'(("cl-extra" nil
 	   coerce equalp cl-map-keymap maplist mapc mapl mapcan mapcon
 	   cl-map-keymap cl-map-keymap-recursively cl-map-intervals
@@ -585,7 +589,7 @@ Keywords supported:  :test :test-not :key"
 	   cl-hash-table-count cl-progv-before cl-prettyexpand
 	   cl-macroexpand-all)
 	  ("cl-seq" nil
-	   reduce fill replace remq remove remove* remove-if remove-if-not
+	   reduce fill replace remove* remove-if remove-if-not
 	   delete* delete-if delete-if-not remove-duplicates
 	   delete-duplicates substitute substitute-if substitute-if-not
 	   nsubstitute nsubstitute-if nsubstitute-if-not find find-if
