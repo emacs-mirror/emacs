@@ -1291,21 +1291,51 @@ window_loop (type, obj, mini, frames)
 	  case DELETE_BUFFER_WINDOWS:
 	    if (EQ (XWINDOW (w)->buffer, obj))
 	      {
-		/* If we're deleting the buffer displayed in the only window
-		   on the frame, find a new buffer to display there.  */
-		if (NILP (XWINDOW (w)->parent))
+#ifdef MULTI_FRAME
+		FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (w)));
+
+		/* If this window is dedicated, and in a frame of its own,
+		   kill the frame.  */
+		if (EQ (w, FRAME_ROOT_WINDOW (f))
+		    && !NILP (XWINDOW (w)->dedicated)
+		    && other_visible_frames (f))
 		  {
-		    Lisp_Object new_buffer;
-		    new_buffer = Fother_buffer (obj, Qnil);
-		    if (NILP (new_buffer))
-		      new_buffer
-			= Fget_buffer_create (build_string ("*scratch*"));
-		    Fset_window_buffer (w, new_buffer);
-		    if (EQ (w, selected_window))
-		      Fset_buffer (XWINDOW (w)->buffer);
+		    /* Skip the other windows on this frame.
+		       There might be one, the minibuffer!  */
+		    if (! EQ (w, last_window))
+		      while (f == XFRAME (WINDOW_FRAME (XWINDOW (next_window))))
+			{
+			  /* As we go, check for the end of the loop.
+			     We mustn't start going around a second time.  */
+			  if (EQ (next_window, last_window))
+			    {
+			      last_window = w;
+			      break;
+			    }
+			  next_window = Fnext_window (next_window,
+						      mini ? Qt : Qnil,
+						      frame_arg);
+			}
+		    /* Now we can safely delete the frame.  */
+		    Fdelete_frame (WINDOW_FRAME (XWINDOW (w)), Qnil);
 		  }
 		else
-		  Fdelete_window (w);
+#endif
+		  /* If we're deleting the buffer displayed in the only window
+		     on the frame, find a new buffer to display there.  */
+		  if (NILP (XWINDOW (w)->parent))
+		    {
+		      Lisp_Object new_buffer;
+		      new_buffer = Fother_buffer (obj, Qnil);
+		      if (NILP (new_buffer))
+			new_buffer
+			  = Fget_buffer_create (build_string ("*scratch*"));
+		      Fset_window_buffer (w, new_buffer);
+		      if (EQ (w, selected_window))
+			Fset_buffer (XWINDOW (w)->buffer);
+		    }
+		  else
+		    Fdelete_window (w);
 	      }
 	    break;
 
@@ -3309,9 +3339,12 @@ where `pop-up-frame-alist' would hold the default frame parameters.");
     "*List of buffer names that should have their own special frames.\n\
 Displaying a buffer whose name is in this list makes a special frame for it\n\
 using `special-display-function'.\n\
-Instead of a buffer name, the list entries can be cons cells.  In that\n\
-case the car should be a buffer name, and the cdr data to be passed as a\n\
-second argument to `special-display-function'.\n\
+\n\
+An element of the list can be a cons cell instead of just a string.\n\
+Then the car should be a buffer name, and the cdr specifies frame\n\
+parameters for creating the frame for that buffer.\n\
+More precisely, the cdr is passed as the second argument to\n\
+the function found in `special-display-function', when making that frame.\n\
 See also `special-display-regexps'.");
   Vspecial_display_buffer_names = Qnil;
 
@@ -3320,9 +3353,12 @@ See also `special-display-regexps'.");
 If a buffer name matches one of these regexps, it gets its own frame.\n\
 Displaying a buffer whose name is in this list makes a special frame for it\n\
 using `special-display-function'.\n\
-Instead of a buffer name, the list entries can be cons cells.  In that\n\
-case the car should be the regexp, and the cdr data to be passed as a\n\
-second argument to `special-display-function'.\n\
+\n\
+An element of the list can be a cons cell instead of just a string.\n\
+Then the car should be the regexp, and the cdr specifies frame\n\
+parameters for creating the frame for buffers that match.\n\
+More precisely, the cdr is passed as the second argument to\n\
+the function found in `special-display-function', when making that frame.\n\
 See also `special-display-buffer-names'.");
   Vspecial_display_regexps = Qnil;
 
