@@ -457,7 +457,7 @@ MSG is the message number, REGEXP is the regular expression.")
 (defvar rmail-search-mime-header-function nil
   "Function to check if a regexp matches a header of MIME message.
 This function is called if `rmail-enable-mime' is non-nil.
-It is called with four arguments MSG, REGEXP, and LIMIT, where
+It is called with three arguments MSG, REGEXP, and LIMIT, where
 MSG is the message number,
 REGEXP is the regular expression,
 LIMIT is the position specifying the end of header.")
