@@ -1,5 +1,12 @@
 2002-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c: Use new string macros.
+	(update_echo_area): Pass number of bytes to message3 instead of
+	number of chars.
+	(set_message_1): Don't access a string's size_byte directly.
+	(decode_mode_spec_coding): Use number of bytes of eoltype string
+	instead number of chars.
+
 	* lisp.h (SREF, SDATA, SCHARS, SBYTES, SMBP): New macros.
 
 2002-03-08  Juanma Barranquero  <lektu@terra.es>
