@@ -13,6 +13,9 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
+** If your init file is compiled (.emacs.elc), `user-init-file' is set
+to the source name (.emacs.el), if that exists, after loading it.
+
 ** The help string specified for a menu-item whose definition contains
 the property `:help HELP' is now displayed under X either in the echo
 area or with tooltips.
@@ -894,7 +897,9 @@ with extension `.diff', `.diffs', `.patch' and `.rej'.
 *** mldrag.el has been removed.  mouse.el provides the same
 functionality with aliases for the mldrag functions.
 
-*** eval-reg.el has been obsoleted by changes to edebug.el.
+*** eval-reg.el has been obsoleted by changes to edebug.el and removed.
+
+*** ph.el has been obsoleted by EUDC and removed.
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
