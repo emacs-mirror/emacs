@@ -13614,6 +13614,8 @@ display_mode_element (it, depth, field_width, precision, elt, props)
 			       mode_line_proptrans_alist);
 		  }
 	      }
+	    this = XSTRING (elt)->data;
+	    lisp_string = this;
 	  }
 
 	if (literal)
