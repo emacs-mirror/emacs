@@ -913,6 +913,9 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
      register int nchars, nbytes;
      int inherit, prepare, before_markers;
 {
+  if (nchars == 0)
+    return;
+  
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;
 
