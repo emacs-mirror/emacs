@@ -43,6 +43,26 @@
 
 #include <a.out.h>
 
+#ifdef emacs
+#include <config.h>
+#endif
+
+#ifdef HPUX_USE_SHLIBS
+#include <dl.h>
+#endif
+
+/* brk value to restore, stored as a global.
+   This is really used only if we used shared libraries.  */
+static long brk_on_dump = 0;
+      
+/* Called from main, if we use shared libraries.  */
+int
+run_time_remap (ignored)
+     char *ignored;
+{
+  brk (brk_on_dump);
+}
+
 #define roundup(x,n) (((x) + ((n) - 1)) & ~((n) - 1))  /* n is power of 2 */
 #define min(x,y)  (((x) < (y)) ? (x) : (y))
 
@@ -78,6 +98,8 @@ unexec (new_name, old_name, new_end_of_text, dummy1, dummy2)
   
   /* Read the old headers */
   read_header (old, &hdr, &auxhdr);
+
+  brk_on_dump = sbrk (0);
   
   /* Decide how large the new and old data areas are */
   old_size = auxhdr.exec_dsize;
@@ -246,7 +268,7 @@ copy_file (old, new, size)
      int size;
 {
   int len;
-  int buffer[8196];  /* word aligned will be faster */
+  int buffer[8192];  /* word aligned will be faster */
   
   for (; size > 0; size -= len)
     {
