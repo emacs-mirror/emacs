@@ -1304,7 +1304,9 @@ this won't have the expected effect."
 
 
 (defun frame-set-background-mode (frame)
-  "Set up the `background-mode' and `display-type' frame parameters for FRAME."
+  "Set up display-dependent faces on FRAME.
+Display-dependent faces are those which have different definitions
+according to the `background-mode' and `display-type' frame parameters."
   (let* ((bg-resource
 	  (and window-system
 	       (x-get-resource ".backgroundMode" "BackgroundMode")))
@@ -1318,9 +1320,9 @@ this won't have the expected effect."
 		 'dark)
 		;; Unspecified frame background color can only happen
 		;; on tty's.
-		((memq bg-color '("unspecified" "unspecified-bg"))
+		((memq bg-color '(unspecified unspecified-bg))
 		 'dark)
-		((eq bg-color "unspecified-fg") ; inverted colors
+		((eq bg-color 'unspecified-fg) ; inverted colors
 		 'light)
 		((>= (apply '+ (x-color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
