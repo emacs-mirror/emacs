@@ -83,28 +83,13 @@ static void tty_hide_cursor P_ ((void));
 
 Lisp_Object Vring_bell_function;
 
-/* Terminal characteristics that higher levels want to look at.
-   These are all extern'd in termchar.h */
-
-int must_write_spaces;		/* Nonzero means spaces in the text
-				   must actually be output; can't just skip
-				   over some columns to leave them blank.  */
-int min_padding_speed;		/* Speed below which no padding necessary */
-
-int line_ins_del_ok;		/* Terminal can insert and delete lines */
-int char_ins_del_ok;		/* Terminal can insert and delete chars */
-int scroll_region_ok;		/* Terminal supports setting the
-				   scroll window */
-int scroll_region_cost;		/* Cost of setting a scroll window,
-				   measured in characters */
-int memory_below_frame;		/* Terminal remembers lines
-				   scrolled off bottom */
-int fast_clear_end_of_line;	/* Terminal has a `ce' string */
+/* Terminal characteristics that higher levels want to look at. */
+static struct terminal _current_terminal;
+TERMINAL_PTR current_terminal = &_current_terminal;
 
 /* Nonzero means no need to redraw the entire frame on resuming
    a suspended Emacs.  This is useful on terminals with multiple pages,
    where one page is used for Emacs and another for all else. */
-
 int no_redraw_on_reenter;
 
 /* Hook functions that you can set to snap out the functions in this file.
@@ -505,7 +490,7 @@ set_terminal_window (size)
   if (FRAME_TERMCAP_P (updating_frame))
     {
       specified_window = size ? size : FRAME_LINES (updating_frame);
-      if (scroll_region_ok)
+      if (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
 	set_scroll_region (0, specified_window);
     }
   else
@@ -1151,9 +1136,11 @@ ins_del_lines (vpos, n)
   /* If the lines below the deletion are blank lines coming
      out of the end of the window, don't bother,
      as there will be a matching inslines later that will flush them. */
-  if (scroll_region_ok && vpos + i >= specified_window)
+  if (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+      && vpos + i >= specified_window)
     return;
-  if (!memory_below_frame && vpos + i >= FRAME_LINES (sf))
+  if (!TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ())
+      && vpos + i >= FRAME_LINES (sf))
     return;
 
   if (multi)
@@ -1186,7 +1173,9 @@ ins_del_lines (vpos, n)
       set_scroll_region (0, specified_window);
     }
 
-  if (!scroll_region_ok && memory_below_frame && n < 0)
+  if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+      && TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ())
+      && n < 0)
     {
       cursor_to (FRAME_LINES (sf) + n, 0);
       clear_to_end ();
@@ -1317,7 +1306,7 @@ calculate_costs (frame)
 
   FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
-  scroll_region_cost = string_cost (f);
+  TERMINAL_SCROLL_REGION_COST (CURRENT_TERMINAL ()) = string_cost (f);
 
   /* These variables are only used for terminal stuff.  They are allocated
      once for the terminal frame of X-windows emacs, but not used afterwards.
@@ -2185,15 +2174,15 @@ term_init (terminal_type)
   delete_in_insert_mode = 1;
 
   UseTabs = 0;
-  scroll_region_ok = 0;
+  TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()) = 0;
 
   /* Seems to insert lines when it's not supposed to, messing
      up the display.  In doing a trace, it didn't seem to be
      called much, so I don't think we're losing anything by
      turning it off.  */
 
-  line_ins_del_ok = 0;
-  char_ins_del_ok = 1;
+  TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
+  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()) = 1;
 
   baud_rate = 19200;
 
@@ -2346,9 +2335,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
   AutoWrap = MagicWrap || tgetflag ("am");
-  memory_below_frame = tgetflag ("db");
+  TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ()) = tgetflag ("db");
   TF_hazeltine = tgetflag ("hz");
-  must_write_spaces = tgetflag ("in");
+  TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()) = tgetflag ("in");
   meta_key = tgetflag ("km") || tgetflag ("MT");
   TF_insmode_motion = tgetflag ("mi");
   TF_standout_motion = tgetflag ("ms");
@@ -2377,7 +2366,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     fatal ("Screen size %dx%d is too small",
 	   FRAME_LINES (sf), FRAME_COLS (sf));
 
-  min_padding_speed = tgetnum ("pb");
+#if 0  /* This is not used anywhere. */
+  TERMINAL_MIN_PADDING_SPEED (CURRENT_TERMINAL ()) = tgetnum ("pb");
+#endif
+  
   TabWidth = tgetnum ("tw");
 
 #ifdef VMS
@@ -2453,7 +2445,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (!strcmp (terminal_type, "supdup"))
     {
-      memory_below_frame = 1;
+      TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ()) = 1;
       Wcm.cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
@@ -2480,7 +2472,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	    TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */
-      must_write_spaces = 1;
+      TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()) = 1;
       /* :ti string typically fails to have \E^G! in it */
       /* This limits scope of insert-char to one line.  */
       strcpy (area, TS_termcap_modes);
@@ -2543,19 +2535,22 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   UseTabs = tabs_safe_p () && TabWidth == 8;
 
-  scroll_region_ok
+  TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
     = (Wcm.cm_abs
        && (TS_set_window || TS_set_scroll_region || TS_set_scroll_region_1));
 
-  line_ins_del_ok = (((TS_ins_line || TS_ins_multi_lines)
-		      && (TS_del_line || TS_del_multi_lines))
-		     || (scroll_region_ok && TS_fwd_scroll && TS_rev_scroll));
+  TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ())
+    = (((TS_ins_line || TS_ins_multi_lines)
+        && (TS_del_line || TS_del_multi_lines))
+       || (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+           && TS_fwd_scroll && TS_rev_scroll));
+  
+  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ())
+    = ((TS_ins_char || TS_insert_mode
+        || TS_pad_inserted_char || TS_ins_multi_chars)
+       && (TS_del_char || TS_del_multi_chars));
 
-  char_ins_del_ok = ((TS_ins_char || TS_insert_mode
-		      || TS_pad_inserted_char || TS_ins_multi_chars)
-		     && (TS_del_char || TS_del_multi_chars));
-
-  fast_clear_end_of_line = TS_clr_line != 0;
+  TERMINAL_FAST_CLEAR_END_OF_LINE (CURRENT_TERMINAL ()) = TS_clr_line != 0;
 
   init_baud_rate ();
   if (read_socket_hook)		/* Baudrate is somewhat */

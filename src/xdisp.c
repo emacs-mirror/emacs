@@ -12889,7 +12889,7 @@ try_window_id (w)
 
   /* Window must either use window-based redisplay or be full width.  */
   if (!FRAME_WINDOW_P (f)
-      && (!line_ins_del_ok
+      && (!TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ())
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
@@ -13322,7 +13322,7 @@ try_window_id (w)
 
 	      /* On dumb terminals delete dvpos lines at the end
 		 before inserting dvpos empty lines.  */
-	      if (!scroll_region_ok)
+	      if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
 		ins_del_lines (end - dvpos, -dvpos);
 
 	      /* Insert dvpos empty lines in front of
@@ -13343,7 +13343,7 @@ try_window_id (w)
 
 	      /* On a dumb terminal insert dvpos empty lines at the
                  end.  */
-	      if (!scroll_region_ok)
+	      if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
 		ins_del_lines (end + dvpos, -dvpos);
 	    }
 

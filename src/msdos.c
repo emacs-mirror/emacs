@@ -2580,7 +2580,7 @@ internal_terminal_init ()
   set_terminal_modes_hook = IT_set_terminal_modes;
   reset_terminal_modes_hook = IT_reset_terminal_modes;
   set_terminal_window_hook = IT_set_terminal_window;
-  char_ins_del_ok = 0;
+  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
 #endif
 }
 

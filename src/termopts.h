@@ -40,5 +40,10 @@ extern int meta_key;
 /* Nonzero means truncate lines in all windows less wide than the frame */
 extern int truncate_partial_width_windows;
 
+/* Nonzero means no need to redraw the entire frame on resuming a suspended
+   Emacs.  This is useful on terminals with multiple pages, where one page is
+   used for Emacs and another for all else. */
+extern int no_redraw_on_reenter;
+
 /* arch-tag: 35d4d284-dc1a-4fff-97fa-0154a21aebdb
    (do not change this comment) */

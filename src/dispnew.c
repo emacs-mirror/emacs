@@ -1397,7 +1397,7 @@ line_hash_code (row)
 	{
 	  int c = glyph->u.ch;
 	  int face_id = glyph->face_id;
-	  if (must_write_spaces)
+	  if (TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()))
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
@@ -1429,7 +1429,7 @@ line_draw_cost (matrix, vpos)
   int glyph_table_len = GLYPH_TABLE_LENGTH;
 
   /* Ignore trailing and leading spaces if we can.  */
-  if (!must_write_spaces)
+  if (!TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ()))
     {
       /* Skip from the end over trailing spaces.  */
       while (end > beg && CHAR_GLYPH_SPACE_P (*(end - 1)))
@@ -3462,7 +3462,7 @@ direct_output_for_insert (g)
 
   /* If we can't insert glyphs, we can use this method only
      at the end of a line.  */
-  if (!char_ins_del_ok)
+  if (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()))
     if (PT != ZV && FETCH_BYTE (PT_BYTE) != '\n')
       return 0;
 
@@ -5075,7 +5075,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
     }
 
   /* If we cannot insert/delete lines, it's no use trying it.  */
-  if (!line_ins_del_ok)
+  if (!TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ()))
     inhibit_id_p = 1;
 
   /* See if any of the desired lines are enabled; don't compute for
@@ -5293,21 +5293,23 @@ scrolling (frame)
     }
 
   /* If changed lines are few, don't allow preemption, don't scroll.  */
-  if ((!scroll_region_ok && changed_lines < baud_rate / 2400)
+  if ((!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+       && changed_lines < baud_rate / 2400)
       || unchanged_at_bottom == FRAME_LINES (frame))
     return 1;
 
   window_size = (FRAME_LINES (frame) - unchanged_at_top
 		 - unchanged_at_bottom);
 
-  if (scroll_region_ok)
+  if (TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()))
     free_at_end_vpos -= unchanged_at_bottom;
-  else if (memory_below_frame)
+  else if (TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ()))
     free_at_end_vpos = -1;
 
   /* If large window, fast terminal and few lines in common between
      current frame and desired frame, don't bother with i/d calc.  */
-  if (!scroll_region_ok && window_size >= 18 && baud_rate > 2400
+  if (!TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ())
+      && window_size >= 18 && baud_rate > 2400
       && (window_size >=
 	  10 * scrolling_max_lines_saved (unchanged_at_top,
 					  FRAME_LINES (frame) - unchanged_at_bottom,
@@ -5387,7 +5389,7 @@ update_frame_line (f, vpos)
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, vpos);
   int must_write_whole_line_p;
-  int write_spaces_p = must_write_spaces;
+  int write_spaces_p = TERMINAL_MUST_WRITE_SPACES (CURRENT_TERMINAL ());
   int colored_spaces_p = (FACE_FROM_ID (f, DEFAULT_FACE_ID)->background
 			  != FACE_TTY_DEFAULT_BG_COLOR);
 
@@ -5466,7 +5468,7 @@ update_frame_line (f, vpos)
       nlen--;
 
   /* If there's no i/d char, quickly do the best we can without it.  */
-  if (!char_ins_del_ok)
+  if (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()))
     {
       int i, j;
 
@@ -5569,7 +5571,8 @@ update_frame_line (f, vpos)
 
   tem = (nlen - nsp) - (olen - osp);
   if (endmatch && tem
-      && (!char_ins_del_ok || endmatch <= char_ins_del_cost (f)[tem]))
+      && (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ())
+          || endmatch <= char_ins_del_cost (f)[tem]))
     endmatch = 0;
 
   /* nsp - osp is the distance to insert or delete.
@@ -5578,7 +5581,7 @@ update_frame_line (f, vpos)
      Is it worth it?  */
 
   if (nsp != osp
-      && (!char_ins_del_ok
+      && (!TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ())
 	  || begmatch + endmatch <= char_ins_del_cost (f)[nsp - osp]))
     {
       begmatch = 0;

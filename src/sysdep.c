@@ -5126,7 +5126,8 @@ hft_init ()
   }
   /* The HFT system on AIX doesn't optimize for scrolling, so it's really ugly
      at times.  */
-  line_ins_del_ok = char_ins_del_ok = 0;
+  TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
+  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()) = 0;
 }
 
 /* Reset the rubout key to backspace.  */
