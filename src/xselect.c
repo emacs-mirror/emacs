@@ -51,6 +51,9 @@ static Lisp_Object Vx_sent_selection_hooks;
    selection, and clipboard.  */
 static Lisp_Object Vselection_coding_system;
 
+/* Coding system for the next communicating with other X clients.  */
+static Lisp_Object Vnext_selection_coding_system;
+
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
    than this.  The max-request-size is usually around 64k, so if you want
@@ -1504,8 +1507,11 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  unsigned char *buf;
 	  struct coding_system coding;
 
+	  if (NILP (Vnext_selection_coding_system))
+	    Vnext_selection_coding_system = Vselection_coding_system;
 	  setup_coding_system
-            (Fcheck_coding_system(Vselection_coding_system), &coding);
+	    (Fcheck_coding_system(Vnext_selection_coding_system), &coding);
+	  Vnext_selection_coding_system = Qnil;
           coding.mode |= CODING_MODE_LAST_BLOCK;
 	  bufsize = decoding_buffer_size (&coding, size);
 	  buf = (unsigned char *) xmalloc (bufsize);
@@ -1643,8 +1649,11 @@ lisp_data_to_selection_data (display, obj,
 	  unsigned char *buf;
 	  struct coding_system coding;
 
+	  if (NILP (Vnext_selection_coding_system))
+	    Vnext_selection_coding_system = Vselection_coding_system;
 	  setup_coding_system
-            (Fcheck_coding_system (Vselection_coding_system), &coding);
+	    (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+	  Vnext_selection_coding_system = Qnil;
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
 	  bufsize = encoding_buffer_size (&coding, *size_ret);
 	  buf = (unsigned char *) xmalloc (bufsize);
@@ -2287,6 +2296,14 @@ When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
 A default value is `compound-text'");
   Vselection_coding_system = intern ("compound-text");
+
+  DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
+    "Coding system for the next communication with other X clients.\n\
+Usually, `selection-coding-system' is used for communicating with\n\
+other X clients.   But, if this variable is set, it is used for the\n\
+next communication only.   After the communication, this variable is\n\
+set to nil.");
+  Vnext_selection_coding_system = Qnil;
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
     "Number of milliseconds to wait for a selection reply.\n\
