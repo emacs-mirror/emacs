@@ -62,92 +62,74 @@
 
 (provide 'iso-acc)
 
-(defvar iso-accents-list
-  '(((?' ?A) ?\301)
-    ((?' ?E) ?\311)
-    ((?' ?I) ?\315)
-    ((?' ?O) ?\323)
-    ((?' ?U) ?\332)
-    ((?' ?Y) ?\335)
-    ((?' ?a) ?\341)
-    ((?' ?e) ?\351)
-    ((?' ?i) ?\355)
-    ((?' ?o) ?\363)
-    ((?' ?u) ?\372)
-    ((?' ?y) ?\375)
-    ((?' ?') ?\264)
-    ((?' ? ) ?')
-    ((?` ?A) ?\300)
-    ((?` ?E) ?\310)
-    ((?` ?I) ?\314)
-    ((?` ?O) ?\322)
-    ((?` ?U) ?\331)
-    ((?` ?a) ?\340)
-    ((?` ?e) ?\350)
-    ((?` ?i) ?\354)
-    ((?` ?o) ?\362)
-    ((?` ?u) ?\371)
-    ((?` ? ) ?`)
-    ((?` ?`) ?`)		; no special code?
-    ((?^ ?A) ?\302)
-    ((?^ ?E) ?\312)
-    ((?^ ?I) ?\316)
-    ((?^ ?O) ?\324)
-    ((?^ ?U) ?\333)
-    ((?^ ?a) ?\342)
-    ((?^ ?e) ?\352)
-    ((?^ ?i) ?\356)
-    ((?^ ?o) ?\364)
-    ((?^ ?u) ?\373)
-    ((?^ ? ) ?^)
-    ((?^ ?^) ?^)		; no special code?
-    ((?\" ?A) ?\304)
-    ((?\" ?E) ?\313)
-    ((?\" ?I) ?\317)
-    ((?\" ?O) ?\326)
-    ((?\" ?U) ?\334)
-    ((?\" ?a) ?\344)
-    ((?\" ?e) ?\353)
-    ((?\" ?i) ?\357)
-    ((?\" ?o) ?\366)
-    ((?\" ?s) ?\337)
-    ((?\" ?u) ?\374)
-    ((?\" ?y) ?\377)
-    ((?\" ? ) ?\")
-    ((?\" ?\") ?\250)
-    ((?\~ ?A) ?\303)
-    ((?\~ ?C) ?\307)
-    ((?\~ ?D) ?\320)
-    ((?\~ ?N) ?\321)
-    ((?\~ ?O) ?\325)
-    ((?\~ ?T) ?\336)
-    ((?\~ ?a) ?\343)
-    ((?\~ ?c) ?\347)
-    ((?\~ ?d) ?\360)
-    ((?\~ ?n) ?\361)
-    ((?\~ ?o) ?\365)
-    ((?\~ ?t) ?\376)
-    ((?\~ ?>) ?\273)
-    ((?\~ ?<) ?\253)
-    ((?\~ ?!) ?\241)  ;; Inverted exclamation mark
-    ((?\~ ??) ?\277)  ;; Inverted question mark
-    ((?\~ ?\ ) ?\~)
-    ((?\~ ?\~) ?\270) ;; cedilla accent
-    ((?\/ ?A) ?\305) ;; A-with-ring (Norwegian and Danish)
-    ((?\/ ?E) ?\306) ;; AE-ligature (Norwegian and Danish)
-    ((?\/ ?O) ?\330)
-    ((?\/ ?a) ?\345) ;; a-with-ring (Norwegian and Danish)
-    ((?\/ ?e) ?\346) ;; ae-ligature (Norwegian and Danish)
-    ((?\/ ?o) ?\370)
-    ((?\/ ?\ ) ?\/)
-    ((?\/ ?\/) ?\260) ;; ring accent (actually degree sign?)
-    )
-  "Association list for ISO accent combinations.")
+(defvar iso-languages
+  '(("portuguese"
+     (?' ?` ?^ ?\" ?~)
+     (((?' ?A) ?\301) ((?' ?E) ?\311) ((?' ?I) ?\315) ((?' ?O) ?\323)
+      ((?' ?U) ?\332) ((?' ?C) ?\307) ((?' ?a) ?\341) ((?' ?e) ?\351)
+      ((?' ?i) ?\355) ((?' ?o) ?\363) ((?' ?u) ?\372) ((?' ?c) ?\347)
+      ((?' ? ) ?') ((?` ?A) ?\300) ((?` ?a) ?\340) ((?` ? ) ?`)
+      ((?^ ?A) ?\302) ((?^ ?E) ?\312) ((?^ ?O) ?\324) ((?^ ?a) ?\342)
+      ((?^ ?e) ?\352) ((?^ ?o) ?\364) ((?^ ? ) ?^) ((?\" ?U) ?\334)
+      ((?\" ?u) ?\374) ((?\" ? ) ?\") ((?\~ ?A) ?\303) ((?\~ ?O) ?\325)
+      ((?\~ ?a) ?\343) ((?\~ ?o) ?\365) ((?\~ ?\ ) ?\~)))
+    ("french"
+     (?' ?` ?^ ?\" ?~)
+     (((?' ?A) ?\301) ((?' ?E) ?\311) ((?' ?I) ?\315) ((?' ?O) ?\323)
+      ((?' ?U) ?\332) ((?' ?C) ?\307) ((?' ?a) ?\341) ((?' ?e) ?\351)
+      ((?' ?i) ?\355) ((?' ?o) ?\363) ((?' ?u) ?\372) ((?' ?c) ?\347)
+      ((?' ? ) ?') ((?` ?A) ?\300) ((?` ?E) ?\310) ((?` ?a) ?\340)
+      ((?` ?e) ?\350) ((?` ? ) ?`) ((?^ ?A) ?\302) ((?^ ?E) ?\312)
+      ((?^ ?I) ?\316) ((?^ ?O) ?\324) ((?^ ?U) ?\333) ((?^ ?a) ?\342)
+      ((?^ ?e) ?\352) ((?^ ?i) ?\356) ((?^ ?o) ?\364) ((?^ ?u) ?\373)
+      ((?^ ? ) ?^) ((?\" ?U) ?\334) ((?\" ?u) ?\374) ((?\" ? ) ?\")
+      ((?\~ ?A) ?\303) ((?\~ ?O) ?\325) ((?\~ ?a) ?\343) ((?\~ ?o) ?\365)
+      ((?\~ ?\ ) ?\~)))
+    ("default"
+     (?' ?` ?^ ?\" ?~ ?/)
+     (((?' ?A) ?\301) ((?' ?E) ?\311) ((?' ?I) ?\315) ((?' ?O) ?\323)
+      ((?' ?U) ?\332) ((?' ?Y) ?\335) ((?' ?a) ?\341) ((?' ?e) ?\351)
+      ((?' ?i) ?\355) ((?' ?o) ?\363) ((?' ?u) ?\372) ((?' ?y) ?\375)
+      ((?' ?') ?\264) ((?' ? ) ?') ((?` ?A) ?\300) ((?` ?E) ?\310)
+      ((?` ?I) ?\314) ((?` ?O) ?\322) ((?` ?U) ?\331) ((?` ?a) ?\340)
+      ((?` ?e) ?\350) ((?` ?i) ?\354) ((?` ?o) ?\362) ((?` ?u) ?\371)
+      ((?` ? ) ?`) ((?` ?`) ?`) ((?^ ?A) ?\302) ((?^ ?E) ?\312)
+      ((?^ ?I) ?\316) ((?^ ?O) ?\324) ((?^ ?U) ?\333) ((?^ ?a) ?\342)
+      ((?^ ?e) ?\352) ((?^ ?i) ?\356) ((?^ ?o) ?\364) ((?^ ?u) ?\373)
+      ((?^ ? ) ?^) ((?^ ?^) ?^) ((?\" ?A) ?\304) ((?\" ?E) ?\313)
+      ((?\" ?I) ?\317) ((?\" ?O) ?\326) ((?\" ?U) ?\334) ((?\" ?a) ?\344)
+      ((?\" ?e) ?\353) ((?\" ?i) ?\357) ((?\" ?o) ?\366) ((?\" ?s) ?\337)
+      ((?\" ?u) ?\374) ((?\" ?y) ?\377) ((?\" ? ) ?\") ((?\" ?\") ?\250)
+      ((?\~ ?A) ?\303) ((?\~ ?C) ?\307) ((?\~ ?D) ?\320) ((?\~ ?N) ?\321)
+      ((?\~ ?O) ?\325) ((?\~ ?T) ?\336) ((?\~ ?a) ?\343) ((?\~ ?c) ?\347)
+      ((?\~ ?d) ?\360) ((?\~ ?n) ?\361) ((?\~ ?o) ?\365) ((?\~ ?t) ?\376)
+      ((?\~ ?>) ?\273) ((?\~ ?<) ?\253) ((?\~ ?\ ) ?\~) ((?\~ ?\~) ?\270)
+      ((?\/ ?A) ?\305) ((?\/ ?E) ?\306) ((?\/ ?O) ?\330) ((?\/ ?a) ?\345)
+      ((?\/ ?e) ?\346) ((?\/ ?o) ?\370) ((?\/ ?\ ) ?\/) ((?\/ ?\/) ?\260))))
+
+  "List of language-specific customizations for the ISO Accents mode.
+
+Each element of the list is of the form (LANGUAGE ENABLE LIST).
+
+LANGUAGE is a string naming the language.
+
+ENABLE is a list of characters that will be used as accent prefixes.
+It will be the value of the iso-accents-enable variable.
+
+LIST is a list of accent translations.  It will be the value of the
+iso-accents-list variable.")
+
+(defvar iso-language nil
+  "Language for which ISO Accents mode is currently customized.
+Change it with the `iso-accents-customize' function.")
+
+(defvar iso-accents-list nil
+  "Association list for ISO accent combinations, for the chosen language.")
 
 (defvar iso-accents-mode nil
   "*Non-nil enables ISO Accents mode.
 Setting this variable makes it local to the current buffer.
-See function `iso-accents-mode'.")
+See the function `iso-accents-mode'.")
 (make-variable-buffer-local 'iso-accents-mode)
 
 (defun iso-accents-accent-key (prompt)
@@ -191,27 +173,11 @@ See function `iso-accents-mode'.")
       (setq unread-command-events (list second-char))
       (vector first-char))))
 
-(defvar iso-accents-enable '(?' ?` ?^ ?\" ?~ ?/)
+(defvar iso-accents-enable nil
   "*List of accent keys that become prefixes in ISO Accents mode.
 The default is (?' ?` ?^ ?\" ?~ ?/), which contains all the supported
 accent keys.  For certain languages, you might want to remove some of
 those characters that are not actually used.")
-
-(or key-translation-map (setq key-translation-map (make-sparse-keymap)))
-;; For sequences starting with an accent character,
-;; use a function that tests iso-accents-mode.
-(if (memq ?' iso-accents-enable)
-    (define-key key-translation-map "'"  'iso-accents-accent-key))
-(if (memq ?` iso-accents-enable)
-    (define-key key-translation-map "`"  'iso-accents-accent-key))
-(if (memq ?^ iso-accents-enable)
-    (define-key key-translation-map "^"  'iso-accents-accent-key))
-(if (memq ?\" iso-accents-enable)
-    (define-key key-translation-map "\"" 'iso-accents-accent-key))
-(if (memq ?~ iso-accents-enable)
-    (define-key key-translation-map "~" 'iso-accents-accent-key))
-(if (memq ?/ iso-accents-enable)
-    (define-key key-translation-map "/" 'iso-accents-accent-key))
 
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
@@ -258,4 +224,99 @@ and a negative argument disables it."
     ;; Enable electric accents.
     (setq iso-accents-mode t)))
 
+(defun iso-accents-customize (language)
+  "Customize the ISO accents machinery for a particular language.
+It selects the customization based on the specifications in the
+`iso-languages' variable."
+  (interactive (list (completing-read "Language: " iso-languages nil t)))
+  (let ((table (assoc language iso-languages))
+	c)
+    (if (not table)
+	(error "Unknown language")
+      (setq iso-language language)
+      (setq iso-accents-enable (car (cdr table)))
+      (setq iso-accents-list (car (cdr (cdr table))))
+      (if key-translation-map
+	  (substitute-key-definition
+	   'iso-accents-accent-key nil key-translation-map)
+	(setq key-translation-map (make-sparse-keymap)))
+      (setq c iso-accents-enable)
+      (while c
+	(define-key
+	  key-translation-map (char-to-string (car c)) 'iso-accents-accent-key)
+	(setq c (cdr c))))))
+
+(defun iso-accentuate (start end)
+  "Convert two-character sequences in region into accented characters.
+Noninteractively, this operates on text from START to END.
+This uses the same conversion that ISO Accents mode uses for type-in."
+  (interactive "r")
+  (save-excursion
+    (save-restriction
+      (narrow-to-region start end)
+      (goto-char start)
+      (forward-char 1)
+      (let (entry)
+	(while (< (point) end)
+	  (if (and (memq (preceding-char) iso-accents-enable)
+		   (<= ?A (following-char))
+		   (<= (following-char) ?z)
+		   (setq entry (assoc (list (preceding-char) (following-char))
+				     iso-accents-list)))
+	      (progn
+		(forward-char -1)
+		(delete-char 2)
+		(insert (car (cdr entry)))
+		(setq end (1- end)))
+	    (forward-char 1)))))))
+
+(defun iso-accent-rassoc-unit (value alist)
+  (while (and alist
+	      (not (eq (car (cdr (car alist))) value)))
+    (setq alist (cdr alist)))
+  (if alist
+      (car alist)
+    nil))
+
+(defun iso-unaccentuate (start end)
+  "Convert accented characters in the region into two-character sequences.
+Noninteractively, this operates on text from START to END.
+This uses the opposite of the conversion done by ISO Accents mode for type-in."
+  (interactive "r")
+  (save-excursion
+    (save-restriction
+      (narrow-to-region start end)
+      (goto-char start)
+      (let (entry)
+	(while (< (point) end)
+	  (if (and (> (following-char) 127)
+		   (setq entry (iso-accent-rassoc-unit (following-char)
+						       iso-accents-list)))
+	      (progn
+		(delete-char 1)
+		(insert (car (car entry)) (car (cdr (car entry))))
+		(setq end (1+ end)))
+	    (forward-char 1)))))))
+
+(defun iso-deaccentuate (start end)
+  "Convert accented characters in the region into unaccented characters.
+Noninteractively, this operates on text from START to END."
+  (interactive "r")
+  (save-excursion
+    (save-restriction
+      (narrow-to-region start end)
+      (goto-char start)
+      (let (entry)
+	(while (< (point) end)
+	  (if (and (> (following-char) 127)
+		   (setq entry (iso-accent-rassoc-unit (following-char)
+						       iso-accents-list)))
+	      (progn
+		(delete-char 1)
+		(insert (car (cdr (car entry)))))
+	    (forward-char 1)))))))
+
+(iso-customize-accents "default")
+
 ;;; iso-acc.el ends here
+
