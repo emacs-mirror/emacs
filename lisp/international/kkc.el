@@ -52,7 +52,10 @@ This string is shown at mode line when users are in KKC mode.")
 ;; Cash data for `kkc-lookup-key'.  This may be initialized by loading
 ;; a file specified by `kkc-init-file-name'.  If any elements are
 ;; modified, the data is written out to the file when exiting Emacs.
-(defvar kkc-lookup-cache '(kkc-lookup-cache))
+(defvar kkc-lookup-cache nil)
+
+;; Tag symbol of `kkc-lookup-cache'.
+(defconst kkc-lookup-cache-tag 'kkc-lookup-cache-2)
 
 (defun kkc-save-init-file ()
   "Save initial setup code for KKC to a file specified by `kkc-init-file-name'"
@@ -84,6 +87,8 @@ This string is shown at mode line when users are in KKC mode.")
     (define-key map "\C-p" 'kkc-prev)
     (define-key map "\C-i" 'kkc-shorter)
     (define-key map "\C-o" 'kkc-longer)
+    (define-key map "I" 'kkc-shorter-conversion)
+    (define-key map "O" 'kkc-longer-phrase)
     (define-key map "\C-c" 'kkc-cancel)
     (define-key map "\C-?" 'kkc-cancel)
     (define-key map "\C-f" 'kkc-next-phrase)
@@ -147,15 +152,18 @@ This string is shown at mode line when users are in KKC mode.")
 ;; Postfixes are handled only if POSTFIX is non-nil. 
 (defun kkc-lookup-key (len &optional postfix prefer-noun)
   ;; At first, prepare cache data if any.
-  (if (not kkc-init-file-flag)
-      (progn
-	(setq kkc-init-file-flag t)
-	(add-hook 'kill-emacs-hook 'kkc-save-init-file)
-	(if (file-readable-p kkc-init-file-name)
-	    (condition-case nil
-		(load-file "~/.kkcrc")
-	      (error (message "Invalid data in %s" kkc-init-file-name)
-		     (ding))))))
+  (unless kkc-init-file-flag
+    (setq kkc-init-file-flag t
+	  kkc-lookup-cache nil)
+    (add-hook 'kill-emacs-hook 'kkc-save-init-file)
+    (if (file-readable-p kkc-init-file-name)
+	(condition-case nil
+	    (load-file kkc-init-file-name)
+	  (kkc-error "Invalid data in %s" kkc-init-file-name))))
+  (or (and (nested-alist-p kkc-lookup-cache)
+	   (eq (car kkc-lookup-cache) kkc-lookup-cache-tag))
+      (setq kkc-lookup-cache (list kkc-lookup-cache-tag)
+	    kkc-init-file-flag 'kkc-lookup-cache))
   (let ((entry (lookup-nested-alist kkc-current-key kkc-lookup-cache len 0 t)))
     (if (consp (car entry))
 	(setq kkc-length-converted len
@@ -178,6 +186,10 @@ This string is shown at mode line when users are in KKC mode.")
 	    (setq kkc-length-converted 1
 		  kkc-current-conversions-width nil
 		  kkc-current-conversions (cons 0 nil)))))))
+
+(put 'kkc-error 'error-conditions '(kkc-error error))
+(defun kkc-error (&rest args)
+  (signal 'kkc-error (apply 'format args)))
 
 (defvar kkc-converting nil)
 
@@ -207,18 +219,18 @@ and the return value is the length of the conversion."
   (setq kkc-length-head (length kkc-current-key))
   (setq kkc-length-converted 0)
 
-  ;; At first convert the region to the first candidate.
-  (let ((first t))
-    (while (not (kkc-lookup-key kkc-length-head nil first))
-      (setq kkc-length-head (1- kkc-length-head)
-	    first nil))
-    (goto-char to)
-    (kkc-update-conversion 'all))
-
-  ;; Then, ask users to selecte a desirable conversion.
   (unwind-protect
+      ;; At first convert the region to the first candidate.
       (let ((current-input-method-title kkc-input-method-title)
-	    (input-method-function nil))
+	    (input-method-function nil)
+	    (first t))
+	(while (not (kkc-lookup-key kkc-length-head nil first))
+	  (setq kkc-length-head (1- kkc-length-head)
+		first nil))
+	(goto-char to)
+	(kkc-update-conversion 'all)
+
+	;; Then, ask users to selecte a desirable conversion.
 	(force-mode-line-update)
 	(setq kkc-converting t)
 	(while kkc-converting
@@ -356,24 +368,43 @@ and the return value is the length of the conversion."
   "Make the Kana string to be converted shorter."
   (interactive)
   (if (<= kkc-length-head 1)
-      (error "Can't be shorter")
-    (setq kkc-length-head (1- kkc-length-head))
-    (if (> kkc-length-converted kkc-length-head)
-	(let ((len kkc-length-head))
-	  (setq kkc-length-converted 0)
-	  (while (not (kkc-lookup-key len))
-	    (setq len (1- len)))))
-    (kkc-update-conversion 'all)))
+      (kkc-error "Can't be shorter"))
+  (setq kkc-length-head (1- kkc-length-head))
+  (if (> kkc-length-converted kkc-length-head)
+      (let ((len kkc-length-head))
+	(setq kkc-length-converted 0)
+	(while (not (kkc-lookup-key len))
+	  (setq len (1- len)))))
+  (kkc-update-conversion 'all))
 
 (defun kkc-longer ()
   "Make the Kana string to be converted longer."
   (interactive)
   (if (>= kkc-length-head (length kkc-current-key))
-      (error "Can't be longer")
-    (setq kkc-length-head (1+ kkc-length-head))
-    ;; This time, try also entries with postfixes.
-    (kkc-lookup-key kkc-length-head 'postfix)
-    (kkc-update-conversion 'all)))
+      (kkc-error "Can't be longer"))
+  (setq kkc-length-head (1+ kkc-length-head))
+  ;; This time, try also entries with postfixes.
+  (kkc-lookup-key kkc-length-head 'postfix)
+  (kkc-update-conversion 'all))
+
+(defun kkc-shorter-conversion ()
+  "Make the Kana string to be converted shorter."
+  (interactive)
+  (if (<= kkc-length-converted 1)
+      (kkc-error "Can't be shorter"))
+  (let ((len (1- kkc-length-converted)))
+    (setq kkc-length-converted 0)
+    (while (not (kkc-lookup-key len))
+      (setq len (1- len))))
+  (kkc-update-conversion 'all))
+
+(defun kkc-longer-phrase ()
+  "Make the current phrase (BUNSETSU) longer without looking up dictionary."
+  (interactive)
+  (if (>= kkc-length-head (length kkc-current-key))
+      (kkc-error "Can't be longer"))
+  (setq kkc-length-head (1+ kkc-length-head))
+  (kkc-update-conversion 'all))
 
 (defun kkc-next-phrase ()
   "Fix the currently converted string and try to convert the remaining string."
@@ -438,7 +469,7 @@ If the list is already shown, show the next group of conversions,
 and change the current conversion to the first one in the group."
   (interactive)
   (if (< (length kkc-current-conversions) 3)
-      (error "No alternative"))
+      (kkc-error "No alternative"))
   (if kkc-current-conversions-width
       (let ((next-idx (aref (aref kkc-current-conversions-width 0) 1)))
 	(if (< next-idx (length kkc-current-conversions-width))
@@ -455,7 +486,7 @@ If the list is already shown, show the previous group of conversions,
 and change the current conversion to the last one in the group."
   (interactive)
   (if (< (length kkc-current-conversions) 3)
-      (error "No alternative"))
+      (kkc-error "No alternative"))
   (if kkc-current-conversions-width
       (let ((this-idx (aref (aref kkc-current-conversions-width 0) 0)))
 	(if (> this-idx 1)
