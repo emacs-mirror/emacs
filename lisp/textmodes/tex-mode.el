@@ -871,14 +871,20 @@ evaluates to a command string."
       (comint-send-input)
       (setq tex-send-command-modified-tick (buffer-modified-tick buf)))))
 
-(defun tex-delete-last-temp-files ()
-  "Delete any junk files from last temp file."
+(defun tex-delete-last-temp-files (&optional not-all)
+  "Delete any junk files from last temp file.
+If NOT-ALL is non-nil, save the `.dvi' file."
   (if tex-last-temp-file
       (let* ((dir (file-name-directory tex-last-temp-file))
              (list (file-name-all-completions
                     (file-name-nondirectory tex-last-temp-file) dir)))
         (while list
-          (delete-file (concat dir (car list)))
+	  (if not-all
+	      (and
+	       ;; If arg is non-nil, don't delete the .dvi file.
+	       (not (string-match "\\.dvi$" (car list)))
+	       (delete-file (concat dir (car list))))
+	    (delete-file (concat dir (car list))))
           (setq list (cdr list))))))
 
 (add-hook 'kill-emacs-hook 'tex-delete-last-temp-files)
@@ -913,7 +919,7 @@ The value of `tex-command' specifies the command to use to run TeX."
          (zap-directory
           (file-name-as-directory (expand-file-name tex-directory)))
          (tex-out-file (concat zap-directory tex-zap-file)))
-    (tex-delete-last-temp-files)
+    (tex-delete-last-temp-files t)
     ;; Write the new temp file.
     (save-excursion
       (save-restriction
