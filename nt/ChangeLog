@@ -1,3 +1,9 @@
+2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Make sure redirection is preceeded by a blank, to
+	avoid problems with "1>>foo" when CMD.EXE is the shell, which eats
+	up the "1" part.  From Rob Giardina <rob@criticalpointsoftware.com>.
+
 2001-01-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* INSTALL: Copy the table of tested combinations of development

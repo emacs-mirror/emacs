@@ -1,5 +1,8 @@
 2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* emacs-lisp/re-builder.el (reb-update-modestring): Don't use
+	concat for integers.  From Juanma Barranquero <lektu@uol.com.br>.
+
 	* term/w32-win.el (redisplay-dont-pause): Set to t to alleviate
 	display problems.
 
