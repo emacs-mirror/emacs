@@ -693,7 +693,7 @@ with `delete-process'.")
      and give up if so.  */
   if (b == current_buffer)
     {
-      tem = Fother_buffer (buf);
+      tem = Fother_buffer (buf, Qnil);
       Fset_buffer (tem);
       if (b == current_buffer)
 	return Qnil;
@@ -797,7 +797,7 @@ the window-buffer correspondences.")
     error ("Cannot switch buffers in a dedicated window");
 
   if (NILP (bufname))
-    buf = Fother_buffer (Fcurrent_buffer ());
+    buf = Fother_buffer (Fcurrent_buffer (), Qnil);
   else
     buf = Fget_buffer_create (bufname);
   Fset_buffer (buf);
@@ -822,7 +822,7 @@ window even if BUFFER is already visible in the selected window.")
 {
   register Lisp_Object buf;
   if (NILP (bufname))
-    buf = Fother_buffer (Fcurrent_buffer ());
+    buf = Fother_buffer (Fcurrent_buffer (), Qnil);
   else
     buf = Fget_buffer_create (bufname);
   Fset_buffer (buf);
@@ -945,7 +945,7 @@ If BUFFER is omitted, the current buffer is buried.")
 
   /* Remove it from the screen.  */
   if (EQ (buf, XWINDOW (selected_window)->buffer))
-    Fswitch_to_buffer (Fother_buffer (buf), Qnil);
+    Fswitch_to_buffer (Fother_buffer (buf, Qnil), Qnil);
 
   /* Move it to the end of the buffer list.  */
   {
