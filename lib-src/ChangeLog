@@ -1,3 +1,36 @@
+2002-03-05  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: Honour #line directives.
+	(no_line_directive): New global var; set it for old behaviour.
+	(main): Remove some #ifdef in the getopt switch.
+	(add_node, put_entries): Code added to merge different chunks of
+	nodes referring to the same file.  Currently the tags are just
+	appended, without any check for duplicates.
+	(Perl_functions): Do not special case ctags.
+	(readline): Identify #line directives and do the right thing.
+	(nocharno, invalidcharno): New global vars.
+	(process_file): Reset nocharno.
+	(readline): Set nocharno.
+	(pfnote): Read nocharno and maybe put invalidcharno in node.
+	(total_size_of_entries, put_entries): Use invalidcharno.
+
+	* etags.c: Keep the whole tag table in memory, even in etags mode.
+	(main): Call put_entries here even in CTAGS mode.
+	(main, process_file): Check the return values of fclose and pclose.
+	(process_file): Do not call put_entries after parsing each file.
+	(process_file): Canonicalise file names even for ctags.
+	(process_file): Set curfile here...
+	(find_entries): ... not here any more.
+	(add_node): In etags mode, build a linked list of entries (on
+	right pointer) for each file, and link the first entry of each
+	file on left nodes.
+	(put_entries): Print here the name of the file.
+	(put_entries): Print the entries starting from the first file.
+	(number_len, total_size_of_entries): Define these only iin etags
+	mode, make the second work only on the right nodes.
+
+	* etags.c: Make all global variables static.
+
 2002-02-25  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (lisp): Add missing backslash.
