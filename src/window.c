@@ -2382,8 +2382,7 @@ set_window_buffer (window, buffer, run_hooks_p)
     }
 
   /* Set left and right marginal area width from buffer.  */
-  Fset_window_margins (b->left_margin_width, b->right_margin_width,
-		       window);
+  Fset_window_margins (window, b->left_margin_width, b->right_margin_width);
 
   if (run_hooks_p)
     {
@@ -4582,16 +4581,16 @@ First parameter LEFT-WIDTH specifies the number of character\n\
 cells to reserve for the left marginal area.  Second parameter\n\
 RIGHT-WIDTH does the same for the right marginal area.\n\
 A nil width parameter means no margin.")
-  (left, right, window)
+  (window, left, right)
      Lisp_Object window, left, right;
 {
   struct window *w = decode_window (window);
   struct frame *f = XFRAME (w->frame);
 
   if (!NILP (left))
-    CHECK_NUMBER_OR_FLOAT (left, 0);
+    CHECK_NUMBER_OR_FLOAT (left, 1);
   if (!NILP (right))
-    CHECK_NUMBER_OR_FLOAT (right, 0);
+    CHECK_NUMBER_OR_FLOAT (right, 2);
 
   /* Check widths < 0 and translate a zero width to nil.
      Margins that are too wide have to be checked elsewhere.  */
