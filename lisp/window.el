@@ -198,6 +198,9 @@ new mode line."
                  (select-window new-w)))))
     (split-window-save-restore-data new-w old-w)))
 
+;; This is to avoid compiler warnings.
+(defvar view-return-to-alist)
+
 (defun split-window-save-restore-data (new-w old-w)
   (save-excursion
     (set-buffer (window-buffer))
@@ -246,7 +249,8 @@ or if the window is the only window of its frame."
 	       (eq ?\n (char-after (1- (point-max))))))
 	 (params (frame-parameters (window-frame window)))
 	 (mini (cdr (assq 'minibuffer params)))
-	 (edges (window-edges (selected-window))))
+	 (edges (window-edges (selected-window)))
+	 text-height)
     (if (and (< 1 (save-selected-window
 		    (select-window window)
 		    (count-windows)))
@@ -286,6 +290,51 @@ or if the window is the only window of its frame."
 	(delete-window (selected-window))
 	(kill-buffer buffer))
     (error "Aborted")))
+
+(defun quit-window (&optional kill window)
+  "Quit the current buffer.  Bury it, and maybe delete the selected frame.
+\(The frame is deleted if it is contains a dedicated window for the buffer.)
+With a prefix argument, kill the buffer instead.
+
+Noninteractively, if KILL is non-nil, then kill the current buffer,
+otherwise bury it.
+
+If WINDOW is non-nil, it specifies a window; we delete that window,
+and the buffer that is killed or buried is the one in that window."
+  (interactive "P")
+  (let ((buffer (window-buffer window))
+	(frame (if window (window-frame window) (selected-window)))
+	(window-solitary
+	 (save-selected-window
+	   (if window
+	       (select-window window))
+	   (one-window-p t)))
+	window-handled)
+
+    (save-selected-window
+      (if window
+	  (select-window window))
+      (switch-to-buffer (other-buffer)))
+
+    ;; Get rid of the frame, if it has just one dedicated window
+    ;; and other visible frames exist.
+    (and (window-dedicated-p window)
+	 (delq frame (visible-frame-list))
+	 window-solitary
+	 (if (and (eq default-minibuffer-frame frame)
+		  (= 1 (length (minibuffer-frame-list))))
+	     (setq window nil)
+	   (delete-frame frame)
+	   (setq window-handled t)))
+
+    ;; Deal with the buffer.
+    (if kill
+	(kill-buffer buffer)
+      (bury-buffer buffer))
+
+    ;; Maybe get rid of the window.
+    (and window (not window-handled) (not window-solitary)
+	 (delete-window window))))
 
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
