@@ -73,6 +73,11 @@ arguments).  The function should return non-nil only if it recognizes and
 processes argi.  If it does so, it may consume successive arguments by
 altering command-line-args-left to remove them.")
 
+(defvar pre-init-hook nil
+  "Functions to call after handling urgent options but before loading init file.
+The window/screen system uses this to open screens to display messages while
+Emacs loads the user's initialization file.")
+
 (defvar term-setup-hook nil
   "Function to be called after loading terminal-specific lisp code.
 It is called with no arguments.  This variable exists for users to set,
@@ -85,7 +90,10 @@ the proper function and keypad keys for use under X.  It is used in a
 fashion analogous to the environment value TERM.")
 
 (defvar window-setup-hook nil
-  "Function used to initialize window system display, after command line args.
+  "Function called to initialize window system display.
+Emacs calls this after processing the command line arguments and loading
+the user's init file.
+
 Users should not set this variable; use term-setup-hook instead.")
 
 (defconst initial-major-mode 'lisp-interaction-mode
@@ -188,6 +196,9 @@ directory name of the directory where the `.emacs' file was looked for.")
     ;; Re-attach the program name to the front of the arg list.
     (setcdr command-line-args args))
 
+  ;; If the window system asked to, let it set up some initial screens.
+  (if pre-init-hook (funcall pre-init-hook))
+
   ;; Load that user's init file, or the default one, or none.
   (let ((debug-on-error init-file-debug)
 	;; This function actually reads the init files.
@@ -215,6 +226,7 @@ directory name of the directory where the `.emacs' file was looked for.")
 			(get (car error) 'error-message)
 			(if (cdr error) ": ")
 			(mapconcat 'prin1-to-string (cdr error) ", "))))))
+
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")
       (save-excursion
@@ -260,7 +272,7 @@ directory name of the directory where the `.emacs' file was looked for.")
 		 (progn
 		   (insert (emacs-version)
 			   "
-Copyright (C) 1989 Free Software Foundation, Inc.\n\n")
+Copyright (C) 1991 Free Software Foundation, Inc.\n\n")
 		   ;; If keys have their default meanings,
 		   ;; use precomputed string to save lots of time.
 		   (if (and (eq (key-binding "\C-h") 'help-command)
