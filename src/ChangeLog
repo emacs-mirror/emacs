@@ -1,3 +1,7 @@
+2001-03-08  Dave Love  <fx@gnu.org>
+
+	* eval.c (syms_of_eval) <debug-on-error>: DOc fix.
+
 2001-03-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* process.c (Fset_process_window_size): Fix a typo.
