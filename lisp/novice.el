@@ -90,7 +90,8 @@ to future sessions."
   (interactive "CEnable command: ")
   (put command 'disabled nil)
   (save-excursion
-   (set-buffer (find-file-noselect (substitute-in-file-name "~/.emacs")))
+   (set-buffer (find-file-noselect 
+		(substitute-in-file-name user-init-file)))
    (goto-char (point-min))
    (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
        (delete-region
@@ -109,7 +110,8 @@ to future sessions."
   (interactive "CDisable command: ")
   (put command 'disabled t)
   (save-excursion
-   (set-buffer (find-file-noselect (substitute-in-file-name "~/.emacs")))
+   (set-buffer (find-file-noselect 
+		(substitute-in-file-name user-init-file)))
    (goto-char (point-min))
    (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
        (delete-region
