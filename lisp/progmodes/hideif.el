@@ -1,6 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988,1994,2001 Free Software Foundation, Inc.
+;; Copyright (C) 1988,1994,2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -309,7 +309,7 @@ that form should be displayed.")
 ;; pattern to match initial identifier, !, &&, ||, (, or ).
 ;; Added ==, + and -: garyo@avs.com 8/9/94
 (defconst hif-token-regexp
-  "\\(&&\\|||\\|[!=]=\\|!\\|[()+-]\\|[<>]=?\\|\\w+\\)")
+  "\\(&&\\|||\\|[!=]=\\|!\\|[()+?:-]\\|[<>]=?\\|\\w+\\)")
 
 (defun hif-tokenize (start end)
   "Separate string between START and END into a list of tokens."
@@ -342,6 +342,8 @@ that form should be displayed.")
 		     ((string-equal token "<=") 'hif-less-equal)
 		     ((string-equal token "+") 'hif-plus)
 		     ((string-equal token "-") 'hif-minus)
+		     ((string-equal token "?") 'hif-conditional)
+		     ((string-equal token ":") 'hif-colon)
 		     ((string-match "\\`[0-9]*\\'" token)
 		      (string-to-number token))
 		     (t (intern token)))
@@ -368,15 +370,29 @@ that form should be displayed.")
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
-       expr : term | expr '||' term."
-  (let ((result (hif-term)))
+       expr : or-expr | or-expr '?' expr ':' expr."
+  (let ((result (hif-or-expr))
+	middle)
+    (while (eq hif-token 'hif-conditional)
+      (hif-nexttoken)
+      (setq middle (hif-expr))
+      (if (eq hif-token 'hif-colon)
+	  (progn
+	    (hif-nexttoken)
+	    (setq result (list 'hif-conditional result middle (hif-expr))))
+	(error "Error: unexpected token: %s" hif-token)))
+    result))
+
+(defun hif-or-expr ()
+  "Parse n or-expr : and-expr | or-expr '||' and-expr."
+  (let ((result (hif-and-expr)))
     (while (eq hif-token 'or)
       (hif-nexttoken)
-      (setq result (list 'hif-or result (hif-term))))
+      (setq result (list 'hif-or result (hif-and-expr))))
   result))
 
-(defun hif-term ()
-  "Parse a term : eq-expr | term '&&' eq-expr."
+(defun hif-and-expr ()
+  "Parse an and-expr : eq-expr | and-expr '&&' eq-expr."
   (let ((result (hif-eq-expr)))
     (while (eq hif-token 'and)
       (hif-nexttoken)
@@ -449,6 +465,8 @@ that form should be displayed.")
 	((null val) 0)
 	(t val)))
 
+(defun hif-conditional (a b c)
+  (if (not (zerop (hif-mathify a))) (hif-mathify b) (hif-mathify c)))
 (defun hif-and (a b)
   (and (not (zerop (hif-mathify a))) (not (zerop (hif-mathify b)))))
 (defun hif-or (a b)
