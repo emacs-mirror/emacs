@@ -38,6 +38,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+extern void insert_from_buffer ();
+
 /* Some static data, and a function to initialize it for each run */
 
 Lisp_Object Vsystem_name;
@@ -1055,7 +1057,7 @@ They default to the beginning and the end of BUFFER.")
   (buf, b, e)
      Lisp_Object buf, b, e;
 {
-  register int beg, end, temp, len, opoint, start;
+  register int beg, end, temp;
   register struct buffer *bp;
   Lisp_Object buffer;
 
@@ -1082,36 +1084,10 @@ They default to the beginning and the end of BUFFER.")
   if (beg > end)
     temp = beg, beg = end, end = temp;
 
-  /* Move the gap or create enough gap in the current buffer.  */
-
-  if (point != GPT)
-    move_gap (point);
-  if (GAP_SIZE < end - beg)
-    make_gap (end - beg - GAP_SIZE);
-
-  len = end - beg;
-  start = beg;
-  opoint = point;
-
-  if (!(BUF_BEGV (bp) <= beg
-	&& beg <= end
-        && end <= BUF_ZV (bp)))
+  if (!(BUF_BEGV (bp) <= beg && end <= BUF_ZV (bp)))
     args_out_of_range (b, e);
 
-  /* Now the actual insertion will not do any gap motion,
-     so it matters not if BUF is the current buffer.  */
-  if (beg < BUF_GPT (bp))
-    {
-      insert (BUF_CHAR_ADDRESS (bp, beg), min (end, BUF_GPT (bp)) - beg);
-      beg = min (end, BUF_GPT (bp));
-    }
-  if (beg < end)
-    insert (BUF_CHAR_ADDRESS (bp, beg), end - beg);
-
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (copy_intervals (bp->intervals, start, len),
-			       opoint, len, current_buffer, 0);
-
+  insert_from_buffer (bp, beg, end - beg, 0);
   return Qnil;
 }
 
