@@ -149,7 +149,7 @@ struct iso2022_spec
   int initial_designation[4];
 
   /* A graphic register to which each charset should be designated.  */
-  int requested_designation[MAX_CHARSET + 1];
+  unsigned char requested_designation[MAX_CHARSET + 1];
 
   /* Set to 1 temporarily only when graphic register 2 or 3 is invoked
      by single-shift while encoding.  */
@@ -172,6 +172,12 @@ struct iso2022_spec
   coding->spec.iso2022.single_shifting
 #define CODING_SPEC_ISO_BOL(coding) \
   coding->spec.iso2022.bol
+
+/* A value which may appear in
+   coding->spec.iso2022.requested_designation indicating that the
+   corresponding charset does not request any graphic register to be
+   designated.  */
+#define CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION 4
 
 /* Return a charset which is currently designated to the graphic plane
    PLANE in the coding-system CODING.  */
