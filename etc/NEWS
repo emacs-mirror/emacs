@@ -377,6 +377,15 @@ were changed.
 ** On terminals whose erase-char is ^H (Backspace), Emacs
 now uses normal-erase-is-backspace-mode.
 
+** VC Changes
+
+*** There is a new user option `vc-cvs-global-switches' that allows
+you to specify switches that are passed to any CVS command invoked
+by VC.  These switches are used as "global options" for CVS, which
+means they are inserted before the command name.  For example, this
+allows you to specify a compression level using the "-z#" option for
+CVS.
+
 ** EDiff changes.
 
 +++
