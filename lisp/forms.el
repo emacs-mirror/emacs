@@ -301,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.37 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.38 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.37 1999/01/15 16:19:53 rms Exp kwzh $")
+  $Id: forms.el,v 2.38 1999/05/01 01:11:12 kwzh Exp eliz $")
 
 (defcustom forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode."
@@ -1924,19 +1924,32 @@ after writing out the data."
   (interactive "p")
   (forms--checkmod)
   (let ((write-file-filter forms-write-file-filter)
-	(read-file-filter forms-read-file-filter))
+	(read-file-filter forms-read-file-filter)
+	(cur forms--current-record))
     (save-excursion
       (set-buffer forms--file-buffer)
       (let ((inhibit-read-only t))
 	;; Write file hooks are run via local-write-file-hooks.
 	;; (if write-file-filter 
 	;;  (save-excursion 
-	;;   (run-hooks 'write-file-filter))) 
+	;;   (run-hooks 'write-file-filter)))
+
+	;; If they have a write-file-filter, force the buffer to be
+	;; saved even if it doesn't seem to be changed.  First, they
+	;; might have changed the write-file-filter; and second, if
+	;; save-buffer does nothing, write-file-filter won't get run,
+	;; and then read-file-filter will be mightily confused.
+	(or (null write-file-filter)
+	    (set-buffer-modified-p t))
 	(save-buffer args)
 	(if read-file-filter
 	   (save-excursion
 	     (run-hooks 'read-file-filter)))
-	(set-buffer-modified-p nil))))
+	(set-buffer-modified-p nil)))
+    ;; Make sure we end up with the same record number as we started.
+    ;; Since read-file-filter may perform arbitrary transformations on
+    ;; the data buffer contents, save-excursion is not enough.
+    (forms-jump-record cur))
   t)
 
 (defun forms--revert-buffer (&optional arg noconfirm)
