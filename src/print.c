@@ -1136,7 +1136,7 @@ print (obj, printcharfun, escapeflag)
 	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  int size_in_chars
-	    = (XBOOL_VECTOR (obj)->size + BITS_PER_CHAR) / BITS_PER_CHAR;
+	    = (XBOOL_VECTOR (obj)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
 	  GCPRO1 (obj);
 
