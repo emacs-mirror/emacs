@@ -164,7 +164,8 @@ appended."
   ;; `c-lang-defvar'.  They become a big setq in the
   ;; `c-init-lang-defvars' lambda below.
   (defconst c-lang-defvar-init-form (list 'setq))
-  (defconst c-lang-defvar-init-form-tail c-lang-defvar-init-form)
+  (defvar c-lang-defvar-init-form-tail nil)
+  (setq c-lang-defvar-init-form-tail c-lang-defvar-init-form)
 
   (defmacro c-lang-defvar (var val)
     ;; Declares the buffer local variable VAR to get the value VAL at
