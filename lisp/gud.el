@@ -2335,9 +2335,9 @@ Obeying it means displaying in another window the specified file and line."
 (defun gud-refresh (&optional arg)
   "Fix up a possibly garbled display, and redraw the arrow."
   (interactive "P")
-  (recenter arg)
   (or gud-last-frame (setq gud-last-frame gud-last-last-frame))
-  (gud-display-frame))
+  (gud-display-frame)
+  (recenter arg))
 
 ;;; Code for parsing expressions out of C code.  The single entry point is
 ;;; find-c-expr, which tries to return an lvalue expression from around point.
