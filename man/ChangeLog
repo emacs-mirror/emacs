@@ -1,3 +1,8 @@
+2003-08-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* pcl-cvs.texi (Log Edit Mode): Fix typo.  Patch courtesy of
+	Chunyu Wang <spr@db.cs.hit.edu.cn>.
+
 2003-08-05  Richard M. Stallman  <rms@gnu.org>
 
 	* programs.texi (Lisp Indent): Don't describe
