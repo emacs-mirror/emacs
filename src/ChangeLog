@@ -1,3 +1,8 @@
+2000-02-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* minibuf.c (Ftry_completion, Fall_completions): Add a reference to
+	`completion-regexp-list' in the docstring.
+
 2000-02-14  Dave Love  <fx@gnu.org>
 
 	* xfaces.c (tty_defined_color): Declare color_idx unsigned long.

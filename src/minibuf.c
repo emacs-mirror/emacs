@@ -1034,7 +1034,9 @@ If optional third argument PREDICATE is non-nil,\n\
 it is used to test each possible match.\n\
 The match is a candidate only if PREDICATE returns non-nil.\n\
 The argument given to PREDICATE is the alist element\n\
-or the symbol from the obarray.")
+or the symbol from the obarray.\n\
+Additionally to this predicate, `completion-regexp-list'\n\
+is used to further constrain the set of candidates.")
   (string, alist, predicate)
      Lisp_Object string, alist, predicate;
 {
@@ -1281,6 +1283,8 @@ it is used to test each possible match.\n\
 The match is a candidate only if PREDICATE returns non-nil.\n\
 The argument given to PREDICATE is the alist element\n\
 or the symbol from the obarray.\n\
+Additionally to this predicate, `completion-regexp-list'\n\
+is used to further constrain the set of candidates.\n\
 \n\
 If the optional fourth argument HIDE-SPACES is non-nil,\n\
 strings in ALIST that start with a space\n\
