@@ -1,3 +1,8 @@
+2000-11-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el: Make the coding system no-conversion
+	safe for all characters.
+
 2000-11-27  Dave Love  <fx@gnu.org>
 
 	* tooltip.el (tooltip-use-echo-area): Doc fix.
