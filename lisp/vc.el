@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.362 2004/01/20 17:39:09 uid65624 Exp $
+;; $Id: vc.el,v 1.363 2004/01/21 11:05:51 uid65624 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -3135,19 +3135,6 @@ versions after."
 	    (vc-version-diff vc-annotate-parent-file prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 
-(defun vc-current-line ()
-  "Return the current buffer's line number."
-  (let ((oldpoint (point)) start)
-    (save-excursion
-      (save-restriction
-	(goto-char (point-min))
-	(widen)
-	(forward-line 0)
-	(setq start (point))
-	(goto-char oldpoint)
-	(forward-line 0)
-	(1+ (count-lines (point-min) (point)))))))
-
 (defun vc-annotate-warp-version (revspec)
   "Annotate the version described by REVSPEC.
 
@@ -3159,7 +3146,7 @@ string, then it describes a revision number, so warp to that
 revision."
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let* ((oldline (vc-current-line))
+    (let* ((oldline (line-at-pos))
 	   (revspeccopy revspec)
 	   (newrev nil))
       (cond
@@ -3191,7 +3178,7 @@ revision."
 	(switch-to-buffer (car (car (last vc-annotate-buffers))))
 	(goto-line (min oldline (progn (goto-char (point-max))
 				       (previous-line)
-				       (vc-current-line))))))))
+				       (line-at-pos))))))))
 
 (defun vc-annotate-car-last-cons (a-list)
   "Return car of last cons in association list A-LIST."
