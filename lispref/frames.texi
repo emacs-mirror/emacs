@@ -390,6 +390,13 @@ pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
 The width of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
 
+@item fullscreen
+Specify that width, height or both shall be set to the size of the screen.
+The value @code{fullwidth} specifies that width shall be the size of the
+screen.  The value @code{fullheight} specifies that height shall be the
+size of the screen.  The value @code{fullboth} specifies that both the
+width and the height shall be set to the size of the screen.
+
 @item window-id
 The number of the window-system window used by the frame
 to contain the actual Emacs windows.
