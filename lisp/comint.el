@@ -1180,18 +1180,23 @@ We assume whitespace separates arguments, except within quotes.
 Also, a run of one or more of a single character
 in `comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
-  ;; The first line handles ordinary characters and backslash-sequences.
+  ;; The first line handles ordinary characters and backslash-sequences
+  ;; (except with w32 msdos-like shells, where backslashes are valid).
   ;; The second matches "-quoted strings.
   ;; The third matches '-quoted strings.
   ;; The fourth matches `-quoted strings.
   ;; This seems to fit the syntax of BASH 2.0.
-  (let ((argpart "[^ \n\t\"'`\\]+\\|\\\\[\"'`\\]+\\|\
-\\(\"\\([^\"\\]\\|\\\\.\\)*\"\\|\
+  (let* ((first (if (and (eq system-type 'windows-nt) 
+			 (w32-shell-dos-semantics))
+		    "[^ \n\t\"'`]+\\|"
+		  "[^ \n\t\"'`\\]+\\|\\\\[\"'`\\]+\\|"))
+	 (argpart (concat first
+			  "\\(\"\\([^\"\\]\\|\\\\.\\)*\"\\|\
 '[^']*'\\|\
-`[^`]*`\\)") 
-	(args ()) (pos 0)
-	(count 0)
-	beg str value quotes)
+`[^`]*`\\)"))
+	 (args ()) (pos 0)
+	 (count 0)
+	 beg str value quotes)
     ;; Build a list of all the args until we have as many as we want.
     (while (and (or (null mth) (<= count mth))
 		(string-match argpart string pos))
