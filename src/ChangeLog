@@ -1,3 +1,7 @@
+2003-10-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.c (Fdefvaralias): Doc fix.
+
 2003-10-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* data.c (Fsetplist): Doc fix.
