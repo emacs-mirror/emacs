@@ -57,8 +57,6 @@
 
 ;; KOI-8 staff
 
-(eval-and-compile
-
 (defvar cyrillic-koi8-r-decode-table
   [
    0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -79,37 +77,31 @@
    ?,L?(B  ?,LO(B  ?,L@(B  ?,LA(B  ?,LB(B  ?,LC(B  ?,L6(B  ?,L2(B  ?,LL(B  ?,LK(B  ?,L7(B  ?,LH(B  ?,LM(B  ?,LI(B  ?,LG(B  ?,LJ(B ]
   "Cyrillic KOI8-R decoding table.")
 
-(defvar cyrillic-koi8-r-encode-table
-  (let ((table (make-vector 256 32))
-	(i 0))
-    (while (< i 256)
-      (let* ((ch (aref cyrillic-koi8-r-decode-table i))
-	     (split (split-char ch)))
-	(if (eq (car split) 'cyrillic-iso8859-5)
-	    (aset table (logior (nth 1 split) 128) i)
-	  (if (/= ch 32)
-	      (aset table ch i))))
-      (setq i (1+ i)))
-    table)
-  "Cyrillic KOI8-R encoding table.")
-  
-)
+(let ((table (make-translation-table-from-vector
+	      cyrillic-koi8-r-decode-table)))
+  (define-translation-table 'cyrillic-koi8-r-nonascii-translation-table table)
+  (define-translation-table 'cyrillic-koi8-r-encode-table
+    (char-table-extra-slot table 0)))
 
 (define-ccl-program ccl-decode-koi8
   `(3
-    ((read r0)
-     (loop
-      (write-read-repeat r0 ,cyrillic-koi8-r-decode-table))))
+    ((loop
+      (r0 = 0)
+      (read r1)
+      (if (r1 < 128)
+	  (write-repeat r1)
+	((translate-character cyrillic-koi8-r-nonascii-translation-table r0 r1)
+	 (write-multibyte-character r0 r1)
+	 (repeat))))))
   "CCL program to decode KOI8.")
 
 (define-ccl-program ccl-encode-koi8
   `(1
-    ((read r0)
-     (loop
-      (if (r0 != ,(charset-id 'cyrillic-iso8859-5))
-	  (write-read-repeat r0)
-	((read r0)
-	 (write-read-repeat r0 , cyrillic-koi8-r-encode-table))))))
+    ((loop
+      (read-multibyte-character r0 r1)
+      (if (r0 == ,(charset-id 'cyrillic-iso8859-5))
+	  (translate-character cyrillic-koi8-r-encode-table r0 r1))
+      (write-repeat r1))))
   "CCL program to encode KOI8.")
 	     
 (make-coding-system
@@ -131,21 +123,17 @@
 
 (define-ccl-program ccl-encode-koi8-font
   `(0
-    ((r1 |= 128)
-     (r1 = r1 ,cyrillic-koi8-r-encode-table)))
+    ((translate-character cyrillic-koi8-r-encode-table r0 r1)))
   "CCL program to encode Cyrillic chars to KOI font.")
 
 (setq font-ccl-encoder-alist
-      (cons (cons "koi8" ccl-encode-koi8-font) font-ccl-encoder-alist))
-
-(defvar cyrillic-koi8-r-nonascii-translation-table
-  (make-translation-table-from-vector cyrillic-koi8-r-decode-table)
-  "Value of `nonascii-translation-table' in Cyrillic-KOI8 language environment..")
+      (cons '("koi8" . ccl-encode-koi8-font) font-ccl-encoder-alist))
 
 (set-language-info-alist
  "Cyrillic-KOI8" `((charset cyrillic-iso8859-5)
 		   (nonascii-translation
-		    . ,cyrillic-koi8-r-nonascii-translation-table)
+		    . ,(get 'cyrillic-koi8-r-nonascii-translation-table
+			    'translation-table))
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8)
 		   (input-method . "cyrillic-jcuken")
@@ -156,8 +144,6 @@
  '("Cyrillic"))
 
 ;;; ALTERNATIVNYJ staff
-
-(eval-and-compile
 
 (defvar cyrillic-alternativnyj-decode-table
   [
@@ -179,38 +165,34 @@
    ?,L!(B  ?,Lq(B  242 243 244 245 246 247 248 249 250 251 252 253 254 ?,Lp(B]
   "Cyrillic ALTERNATIVNYJ decoding table.")
 
-(defvar cyrillic-alternativnyj-encode-table
-  (let ((table (make-vector 256 32))
-	(i 0))
-    (while (< i 256)
-      (let* ((ch (aref cyrillic-alternativnyj-decode-table i))
-	     (split (split-char ch)))
-	(if (eq (car split) 'cyrillic-iso8859-5)
-	    (aset table (logior (nth 1 split) 128) i)
-	  (if (/= ch 32)
-	      (aset table ch i))))
-      (setq i (1+ i)))
+(let ((table (make-translation-table-from-vector
+	      cyrillic-alternativnyj-decode-table)))
+  (define-translation-table 'cyrillic-alternativnyj-nonascii-translation-table
     table)
-  "Cyrillic ALTERNATIVNYJ encoding table.")
-  
-)
+  (define-translation-table 'cyrillic-alternativnyj-encode-table
+    (char-table-extra-slot table 0)))
 
 
 (define-ccl-program ccl-decode-alternativnyj
   `(3
-    ((read r0)
-     (loop
-      (write-read-repeat r0 ,cyrillic-alternativnyj-decode-table))))
+    ((loop
+      (r0 = 0)
+      (read r1)
+      (if (r1 < 128)
+	  (write-repeat r1)
+	((translate-character cyrillic-alternativnyj-nonascii-translation-table
+			      r0 r1)
+	 (write-multibyte-character r0 r1)
+	 (repeat))))))
   "CCL program to decode Alternativnyj.")
 
 (define-ccl-program ccl-encode-alternativnyj
   `(1
-    ((read r0)
-     (loop
-      (if (r0 != ,(charset-id 'cyrillic-iso8859-5))
-	  (write-read-repeat r0)
-	((read r0)
-	 (write-read-repeat r0 ,cyrillic-alternativnyj-encode-table))))))
+    ((loop
+      (read-multibyte-character r0 r1)
+      (if (r0 == ,(charset-id 'cyrillic-iso8859-5))
+	  (translate-character cyrillic-alternativnyj-encode-table r0 r1))
+      (write-repeat r1))))
   "CCL program to encode Alternativnyj.")
 	     
 (make-coding-system
@@ -227,22 +209,18 @@
 
 (define-ccl-program ccl-encode-alternativnyj-font
   '(0
-    ((r1 |= 128)
-     (r1 = r1 ,cyrillic-alternativnyj-encode-table)))
+    ((translate-character cyrillic-alternativnyj-encode-table r0 r1)))
   "CCL program to encode Cyrillic chars to Alternativnyj font.")
 
 (setq font-ccl-encoder-alist
-      (cons (cons "alternativnyj" ccl-encode-alternativnyj-font)
+      (cons '("alternativnyj" . ccl-encode-alternativnyj-font)
 	    font-ccl-encoder-alist))
-
-(defvar cyrillic-alternativnyj-nonascii-translation-table
-  (make-translation-table-from-vector cyrillic-alternativnyj-decode-table)
-  "Value of `nonascii-translation-table' in Cyrillic-ALT language environment.")
 
 (set-language-info-alist
  "Cyrillic-ALT" `((charset cyrillic-iso8859-5)
 		  (nonascii-translation
-		   . ,cyrillic-alternativnyj-nonascii-translation-table)
+		   . ,(get 'cyrillic-alternativnyj-nonascii-translation-table
+			   'translation-table))
 		  (coding-system cyrillic-alternativnyj)
 		  (coding-priority cyrillic-alternativnyj)
 		  (input-method . "cyrillic-jcuken")
