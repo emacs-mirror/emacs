@@ -10,6 +10,8 @@
 	if the associated variable is non-nil, which requires that all
 	needed functions be already defined.
 
+	* mouse.el (popup-menu): Balance parens.
+
 2000-10-08  Dave Love  <fx@gnu.org>
 
 	* progmodes/ada-mode.el (ada-mode-menu): Add name to menu map.
