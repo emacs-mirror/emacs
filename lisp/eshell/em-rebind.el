@@ -127,7 +127,6 @@ This is default behavior of shells like bash."
     forward-word
     backward-word
     forward-line
-    backward-line
     previous-line
     next-line
     forward-visible-line
