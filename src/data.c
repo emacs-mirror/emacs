@@ -49,6 +49,9 @@ Lisp_Object Qbuffer_or_string_p;
 Lisp_Object Qboundp, Qfboundp;
 Lisp_Object Qcdr;
 
+Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
+Lisp_Object Qoverflow_error, Qunderflow_error;
+
 #ifdef LISP_FLOAT_TYPE
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
@@ -1833,6 +1836,8 @@ DEFUN ("lognot", Flognot, Slognot, 1, 1, 0,
 void
 syms_of_data ()
 {
+  Lisp_Object error_tail, arith_tail;
+
   Qquote = intern ("quote");
   Qlambda = intern ("lambda");
   Qsubr = intern ("subr");
@@ -1884,10 +1889,12 @@ syms_of_data ()
 
   Qcdr = intern ("cdr");
 
+  error_tail = Fcons (Qerror, Qnil);
+
   /* ERROR is used as a signaler for random errors for which nothing else is right */
 
   Fput (Qerror, Qerror_conditions,
-	Fcons (Qerror, Qnil));
+	error_tail);
   Fput (Qerror, Qerror_message,
 	build_string ("error"));
 
@@ -1897,79 +1904,119 @@ syms_of_data ()
 	build_string ("Quit"));
 
   Fput (Qwrong_type_argument, Qerror_conditions,
-	Fcons (Qwrong_type_argument, Fcons (Qerror, Qnil)));
+	Fcons (Qwrong_type_argument, error_tail));
   Fput (Qwrong_type_argument, Qerror_message,
 	build_string ("Wrong type argument"));
 
   Fput (Qargs_out_of_range, Qerror_conditions,
-	Fcons (Qargs_out_of_range, Fcons (Qerror, Qnil)));
+	Fcons (Qargs_out_of_range, error_tail));
   Fput (Qargs_out_of_range, Qerror_message,
 	build_string ("Args out of range"));
 
   Fput (Qvoid_function, Qerror_conditions,
-	Fcons (Qvoid_function, Fcons (Qerror, Qnil)));
+	Fcons (Qvoid_function, error_tail));
   Fput (Qvoid_function, Qerror_message,
 	build_string ("Symbol's function definition is void"));
 
   Fput (Qcyclic_function_indirection, Qerror_conditions,
-	Fcons (Qcyclic_function_indirection, Fcons (Qerror, Qnil)));
+	Fcons (Qcyclic_function_indirection, error_tail));
   Fput (Qcyclic_function_indirection, Qerror_message,
 	build_string ("Symbol's chain of function indirections contains a loop"));
 
   Fput (Qvoid_variable, Qerror_conditions,
-	Fcons (Qvoid_variable, Fcons (Qerror, Qnil)));
+	Fcons (Qvoid_variable, error_tail));
   Fput (Qvoid_variable, Qerror_message,
 	build_string ("Symbol's value as variable is void"));
 
   Fput (Qsetting_constant, Qerror_conditions,
-	Fcons (Qsetting_constant, Fcons (Qerror, Qnil)));
+	Fcons (Qsetting_constant, error_tail));
   Fput (Qsetting_constant, Qerror_message,
 	build_string ("Attempt to set a constant symbol"));
 
   Fput (Qinvalid_read_syntax, Qerror_conditions,
-	Fcons (Qinvalid_read_syntax, Fcons (Qerror, Qnil)));
+	Fcons (Qinvalid_read_syntax, error_tail));
   Fput (Qinvalid_read_syntax, Qerror_message,
 	build_string ("Invalid read syntax"));
 
   Fput (Qinvalid_function, Qerror_conditions,
-	Fcons (Qinvalid_function, Fcons (Qerror, Qnil)));
+	Fcons (Qinvalid_function, error_tail));
   Fput (Qinvalid_function, Qerror_message,
 	build_string ("Invalid function"));
 
   Fput (Qwrong_number_of_arguments, Qerror_conditions,
-	Fcons (Qwrong_number_of_arguments, Fcons (Qerror, Qnil)));
+	Fcons (Qwrong_number_of_arguments, error_tail));
   Fput (Qwrong_number_of_arguments, Qerror_message,
 	build_string ("Wrong number of arguments"));
 
   Fput (Qno_catch, Qerror_conditions,
-	Fcons (Qno_catch, Fcons (Qerror, Qnil)));
+	Fcons (Qno_catch, error_tail));
   Fput (Qno_catch, Qerror_message,
 	build_string ("No catch for tag"));
 
   Fput (Qend_of_file, Qerror_conditions,
-	Fcons (Qend_of_file, Fcons (Qerror, Qnil)));
+	Fcons (Qend_of_file, error_tail));
   Fput (Qend_of_file, Qerror_message,
 	build_string ("End of file during parsing"));
 
+  arith_tail = Fcons (Qarith_error, error_tail);
   Fput (Qarith_error, Qerror_conditions,
-	Fcons (Qarith_error, Fcons (Qerror, Qnil)));
+	arith_tail);
   Fput (Qarith_error, Qerror_message,
 	build_string ("Arithmetic error"));
 
   Fput (Qbeginning_of_buffer, Qerror_conditions,
-	Fcons (Qbeginning_of_buffer, Fcons (Qerror, Qnil)));
+	Fcons (Qbeginning_of_buffer, error_tail));
   Fput (Qbeginning_of_buffer, Qerror_message,
 	build_string ("Beginning of buffer"));
 
   Fput (Qend_of_buffer, Qerror_conditions,
-	Fcons (Qend_of_buffer, Fcons (Qerror, Qnil)));
+	Fcons (Qend_of_buffer, error_tail));
   Fput (Qend_of_buffer, Qerror_message,
 	build_string ("End of buffer"));
 
   Fput (Qbuffer_read_only, Qerror_conditions,
-	Fcons (Qbuffer_read_only, Fcons (Qerror, Qnil)));
+	Fcons (Qbuffer_read_only, error_tail));
   Fput (Qbuffer_read_only, Qerror_message,
 	build_string ("Buffer is read-only"));
+
+#ifdef LISP_FLOAT_TYPE
+  Qrange_error = intern ("range-error");
+  Qdomain_error = intern ("domain-error");
+  Qsingularity_error = intern ("singularity-error");
+  Qoverflow_error = intern ("overflow-error");
+  Qunderflow_error = intern ("underflow-error");
+
+  Fput (Qdomain_error, Qerror_conditions,
+	Fcons (Qdomain_error, arith_tail));
+  Fput (Qdomain_error, Qerror_message,
+	build_string ("Arithmetic domain error"));
+
+  Fput (Qrange_error, Qerror_conditions,
+	Fcons (Qrange_error, arith_tail));
+  Fput (Qrange_error, Qerror_message,
+	build_string ("Arithmetic range error"));
+
+  Fput (Qsingularity_error, Qerror_conditions,
+	Fcons (Qsingularity_error, Fcons (Qdomain_error, arith_tail)));
+  Fput (Qsingularity_error, Qerror_message,
+	build_string ("Arithmetic singularity error"));
+
+  Fput (Qoverflow_error, Qerror_conditions,
+	Fcons (Qoverflow_error, Fcons (Qdomain_error, arith_tail)));
+  Fput (Qoverflow_error, Qerror_message,
+	build_string ("Arithmetic overflow error"));
+
+  Fput (Qunderflow_error, Qerror_conditions,
+	Fcons (Qunderflow_error, Fcons (Qdomain_error, arith_tail)));
+  Fput (Qunderflow_error, Qerror_message,
+	build_string ("Arithmetic underflow error"));
+
+  staticpro (&Qrange_error);
+  staticpro (&Qdomain_error);
+  staticpro (&Qsingularity_error);
+  staticpro (&Qoverflow_error);
+  staticpro (&Qunderflow_error);
+#endif /* LISP_FLOAT_TYPE */
 
   staticpro (&Qnil);
   staticpro (&Qt);
