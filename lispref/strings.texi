@@ -417,8 +417,20 @@ The function @code{string=} ignores the text properties of the two
 strings.  When @code{equal} (@pxref{Equality Predicates}) compares two
 strings, it uses @code{string=}.
 
-If the strings contain non-@acronym{ASCII} characters, and one is unibyte
-while the other is multibyte, then they cannot be equal.  @xref{Text
+For technical reasons, a unibyte and a multibyte string are
+@code{equal} if and only if they contain the same sequence of
+character codes and all these codes are either in the range 0 through
+127 (@acronym{ASCII}) or 160 through 255 (@code{eight-bit-graphic}).
+However, when a unibyte string gets converted to a multibyte string,
+all characters with codes in the range 160 through 255 get converted
+to characters with higher codes, whereas @acronym{ASCII} characters
+remain unchanged.  Thus, a unibyte string and its conversion to
+multibyte are only @code{equal} if the string is all @acronym{ASCII}.
+Character codes 160 through 255 are not entirely proper in multibyte
+text, even though they can occur.  As a consequence, the situation
+where a unibyte and a multibyte string are @code{equal} without both
+being all @acronym{ASCII} is a technical oddity that very few Emacs
+Lisp programmers ever get confronted with.  @xref{Text
 Representations}.
 @end defun
 
@@ -493,9 +505,10 @@ index @var{start2} up to index @var{end2} (@code{nil} means the end of
 the string).
 
 The strings are both converted to multibyte for the comparison
-(@pxref{Text Representations}) so that a unibyte string can be equal to
-a multibyte string.  If @var{ignore-case} is non-@code{nil}, then case
-is ignored, so that upper case letters can be equal to lower case letters.
+(@pxref{Text Representations}) so that a unibyte string and its
+conversion to multibyte are always regarded as equal.  If
+@var{ignore-case} is non-@code{nil}, then case is ignored, so that
+upper case letters can be equal to lower case letters.
 
 If the specified portions of the two strings match, the value is
 @code{t}.  Otherwise, the value is an integer which indicates how many
@@ -506,15 +519,13 @@ portion) is less.
 @end defun
 
 @defun assoc-ignore-case key alist
-This function works like @code{assoc}, except that @var{key} must be a
-string, and comparison is done using @code{compare-strings}, ignoring
-case differences.  @xref{Association Lists}.
-@end defun
-
-@defun assoc-ignore-representation key alist
-This function works like @code{assoc}, except that @var{key} must be a
-string, and comparison is done using @code{compare-strings}.
-Case differences are significant.
+@defunx assoc-ignore-representation key alist
+These functions work like @code{assoc}, except that @var{key} must be
+a string, all elements of @var{alist} must be cons cells whose
+@sc{car} is a string, and comparison is done using
+@code{compare-strings}.  @code{assoc-ignore-case} ignores case
+differences, whereas @code{assoc-ignore-representation} does not.
+@xref{Association Lists}.
 @end defun
 
   See also @code{compare-buffer-substrings} in @ref{Comparing Text}, for
