@@ -77,10 +77,11 @@ DEL or `n' to skip the current %s;
 ! to %s all remaining %s;
 ESC or `q' to exit;\n"
 				      action object object action objects)
-			      (mapconcat (lambda (elt)
-					   (format "%c to %s"
-						   (nth 0 elt)
-						   (nth 2 elt)))
+			      (mapconcat (function
+					  (lambda (elt)
+					    (format "%c to %s"
+						    (nth 0 elt)
+						    (nth 2 elt))))
 					 action-alist
 					 ";\n")
 			      (if action-alist ";\n")
@@ -88,9 +89,10 @@ ESC or `q' to exit;\n"
 the current %s and exit."
 				      action object))))
 	 (user-keys (if action-alist
-			(concat (mapconcat (lambda (elt)
-					     (key-description
-					      (char-to-string (car elt))))
+			(concat (mapconcat (function
+					    (lambda (elt)
+					      (key-description
+					       (char-to-string (car elt)))))
 					   action-alist ", ")
 				" ")
 		      ""))
