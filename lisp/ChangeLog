@@ -1,5 +1,8 @@
 2005-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* uniquify.el (uniquify-rationalize-file-buffer-names):
+	Re-add an interactive spec.
+
 	* isearch.el (isearch-dehighlight): Remove unused arg `totally'.
 	(isearch-update, isearch-done): Adjust calls accordingly.
 

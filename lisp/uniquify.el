@@ -1,6 +1,7 @@
 ;;; uniquify.el --- unique buffer names dependent on file name
 
-;; Copyright (c) 1989,95,96,97,2001,2003  Free Software Foundation, Inc.
+;; Copyright (c) 1989, 1995, 1996, 1997, 2001, 2003, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author: Dick King <king@reasoning.com>
 ;; Maintainer: FSF
@@ -187,7 +188,12 @@ It actually holds the list of `uniquify-item's corresponding to the conflict.")
 If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.
 Arguments BASE, DIRNAME, and NEWBUF specify the new buffer that causes
-this rationaliztion."
+this rationalization."
+  (interactive
+   (list (if uniquify-managed
+	     (uniquify-item-base (car uniquify-managed)) (buffer-name))
+	 (uniquify-buffer-file-name (current-buffer))
+	 (current-buffer)))
   (if (null dirname)
       (with-current-buffer newbuf (setq uniquify-managed nil))
     (setq dirname (expand-file-name (directory-file-name dirname)))
@@ -457,5 +463,5 @@ For use on `kill-buffer-hook'."
 
 (provide 'uniquify)
 
-;;; arch-tag: e763faa3-56c9-4903-8eb8-26e1c45a0065
+;; arch-tag: e763faa3-56c9-4903-8eb8-26e1c45a0065
 ;;; uniquify.el ends here
