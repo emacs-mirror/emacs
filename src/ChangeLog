@@ -1,3 +1,11 @@
+2000-10-20  Andrew Innes  <andrewi@gnu.org>
+
+	* strftime.c [!WINDOWSNT]: Don't apply Solaris 2.5 work-around on
+	Windows.
+	(my_strftime) <macro>: Don't use macro arg list when redefining as
+	_strftime_copytm.
+	(my_strftime) <function>: Supply 0 as ut argument.
+
 2000-10-19  Jason Rumney  <jasonr@altavista.net>
 
 	* w32console.c: Do not undef HAVE_WINDOW_SYSTEM before
