@@ -1,3 +1,7 @@
+2002-09-27  Simon Josefsson  <jas@extundo.com>
+
+	* mail/mail-hist.el (mail-hist-next-input): Fix docstring.
+
 2002-09-26  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/unrmail.el (unrmail): Do the work directly,
