@@ -1,3 +1,22 @@
+/* Unexec for Sunos 4 using shared libraries.
+   Copyright (C) 1990, 1994 Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to
+the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
 /* Contributed by Viktor Dukhovni.  */
 /*
  * Unexec for Berkeley a.out format + SUNOS shared libraries
@@ -35,6 +54,10 @@
    to define things for this file based on what <a.out.h> defines.  */
 #ifdef emacs
 #include <config.h>
+#endif
+
+#ifdef SUNOS4
+#include <link.h>
 #endif
 
 #ifdef HAVE_UNISTD_H
@@ -182,6 +205,56 @@ unexec (new_name, a_name, bndry, bss_start, entry)
    */
   lseek (new, N_TRELOFF (nhdr), L_SET);
   write (new, old + N_TRELOFF (ohdr), stat.st_size - N_TRELOFF (ohdr));
+
+  /* Some other BSD systems use this file.
+     We don't know whether this change is right for them.  */
+#ifdef SUNOS4
+  /* Undo the relocations done at startup by ld.so.
+     It will do these relocations again when we start the dumped Emacs.
+     Doing them twice gives incorrect results.  */
+  {
+    extern struct link_dynamic _DYNAMIC;
+    unsigned long taddr = N_TXTADDR (ohdr);
+    unsigned long rel, erel;
+    unsigned rel_size;
+
+    if (_DYNAMIC.ld_version < 2)
+      {
+	rel = _DYNAMIC.ld_un.ld_1->ld_rel;
+	erel = _DYNAMIC.ld_un.ld_1->ld_hash;
+      }
+    else
+      {
+	rel = _DYNAMIC.ld_un.ld_2->ld_rel;
+	erel = _DYNAMIC.ld_un.ld_2->ld_hash;
+      }
+
+    switch (ohdr.a_machtype)
+      {
+      case M_68010:
+      case M_68020:
+	rel_size = 8;		/* sizeof(struct reloc_info_m68k) */
+	break;
+      case M_SPARC:
+	rel_size = 12;		/* sizeof(struct reloc_info_sparc) */
+	break;
+      case M_OLDSUN2:
+      default:
+	fatal ("unknown machine type in unexec!\n");
+      }
+
+    for (; rel < erel; rel += rel_size)
+      {
+	unsigned long rpos = *(unsigned long *)(taddr + rel) - taddr;
+
+	if (rpos < (unsigned long)&data_start - taddr)
+	    continue;
+
+        lseek (new, N_TXTOFF (nhdr) + rpos, L_SET);
+        write (new, old + N_TXTOFF (ohdr) + rpos, sizeof (unsigned long));
+      }
+  }
+#endif /* SUNOS4 */
 
   fchmod (new, 0755);
 }
