@@ -2171,15 +2171,15 @@ stored in this list is used instead.  Here is an example:
 @subsection Changing Text Properties
 
   The primitives for changing properties apply to a specified range of
-text.  The function @code{set-text-properties} (see end of section) sets
-the entire property list of the text in that range; more often, it is
-useful to add, change, or delete just certain properties specified by
-name.
+text in a buffer or string.  The function @code{set-text-properties}
+(see end of section) sets the entire property list of the text in that
+range; more often, it is useful to add, change, or delete just certain
+properties specified by name.
 
-  Since text properties are considered part of the buffer's contents, and
-can affect how the buffer looks on the screen, any change in the text
-properties is considered a buffer modification.  Buffer text property
-changes are undoable (@pxref{Undo}).
+  Since text properties are considered part of the contents of the
+buffer (or string), and can affect how a buffer looks on the screen, any
+change in buffer text properties mark the buffer as modified.  Buffer
+text property changes are undoable also (@pxref{Undo}).
 
 @defun put-text-property start end prop value &optional object
 This function sets the @var{prop} property to @var{value} for the text
@@ -2228,6 +2228,10 @@ For example, here's how to remove the @code{face} property.
 The return value is @code{t} if the function actually changed some
 property's value; @code{nil} otherwise (if @var{props} is @code{nil} or
 if no character in the specified text had any of those properties).
+
+To remove all text properties from certain text, use
+@code{set-text-properties} and specify @code{nil} for the new property
+list.
 @end defun
 
 @defun set-text-properties start end props &optional object
