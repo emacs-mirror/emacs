@@ -1,3 +1,14 @@
+2004-04-17  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-max-to-show): Added a new config variable
+	which limits the number of names shown in the minibuffer.  Off by
+	default.
+	(iswitchb-completions): Use `iswitchb-max-to-show'.  This speeds
+	up iswitchb for users with a multitude of open buffers by showing
+	only the first and last N/2 buffers in the completion list (which
+	is enough to aid C-s/C-r, and to know that more characters are
+	needed to refine the completion list).
+
 2004-04-17  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (locate-file-completion): Handle nil in path-and-suffixes.
