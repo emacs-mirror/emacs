@@ -12,19 +12,18 @@ If this happens to you, extend the timeout period.
 
 * `expand-file-name' fails to work on any but the machine you dumped Emacs on.
 
-On some systems, if you use any of the functions which look up
-information in the passwd database before dumping Emacs (say, by using
+On Ultrix, if you use any of the functions which look up information
+in the passwd database before dumping Emacs (say, by using
 expand-file-name in site-init.el), then those functions will not work
 in the dumped Emacs on any host but the one Emacs was dumped on.
 
-Apparently, the Yellow Pages (or Network Information Service)
-functions cache information the first time they are called in the
-undumped emacs, this information gets included in the dumped
-executable, and it is then inaccurate if the executable is used on
-another host.
-
 The solution?  Don't use expand-file-name in site-init.el, or in
-anything it loads.  Yuck.
+anything it loads.  Yuck - some solution.
+
+I'm not sure why this happens; if you can find out exactly what is
+going on, and perhaps find a fix or a workaround, please let us know.
+Perhaps the YP functions cache some information, the cache is included
+in the dumped Emacs, and is then inaccurate on any other host.
 
 * On some variants of SVR4, Emacs does not work at all with X.
 
