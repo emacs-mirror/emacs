@@ -1,3 +1,9 @@
+2000-12-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (face-spec-set): Interpret a nil in specs for
+	foreground and background colors as `unspecified', for
+	compatibility with 20.x.
+
 2000-12-18  Dave Love  <fx@gnu.org>
 
 	* mail/sendmail.el (send-mail-function): Customize.

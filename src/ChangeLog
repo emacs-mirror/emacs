@@ -1,3 +1,7 @@
+2000-12-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/hpux10.h (_FILE_OFFSET_BITS): Undef again.
+
 2000-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_set_face): Obey inverse_video.
