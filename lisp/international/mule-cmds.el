@@ -1468,6 +1468,8 @@ specifies the character set for the major languages of Western Europe."
   (force-mode-line-update t))
 
 (define-widget 'charset 'symbol
+  "An Emacs charset."
+  :tag "Charset"
   :complete-function (lambda ()
 		       (interactive)
 		       (lisp-complete-symbol 'charsetp))
