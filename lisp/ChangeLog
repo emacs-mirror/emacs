@@ -1,3 +1,10 @@
+2005-01-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint, gdb-frames-select)
+	(gdb-threads-select): Change to also accept mouse events.
+	(gdb-mouse-goto-breakpoint, gdb-frames-mouse-select)
+	(gdb-threads-mouse-select): Delete.
+
 2005-01-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (insert-directory): Take care of empty directory,
