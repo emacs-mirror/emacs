@@ -84,9 +84,14 @@ struct interval
 #define INT_LISPLIKE(i) (BUFFERP ((Lisp_Object){(EMACS_INT)(i)}) \
 			 || STRINGP ((Lisp_Object){(EMACS_INT)(i)}))
 #endif
+
+#ifdef ENABLE_CHECKING
 #define NULL_INTERVAL_P(i) \
    (CHECK (!INT_LISPLIKE (i), "non-interval"), (i) == NULL_INTERVAL)
 /* old #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL || INT_LISPLIKE (i)) */
+#else
+#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL)
+#endif
 
 /* True if this interval has no right child. */
 #define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
@@ -289,6 +294,7 @@ extern INTERVAL balance_intervals P_ ((INTERVAL));
 extern INLINE void copy_intervals_to_string P_ ((Lisp_Object, struct buffer *,
 						 int, int));
 extern INTERVAL copy_intervals P_ ((INTERVAL, int, int));
+extern int compare_string_intervals P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object textget P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object lookup_char_property P_ ((Lisp_Object, Lisp_Object, int));
 extern void move_if_not_intangible P_ ((int));
