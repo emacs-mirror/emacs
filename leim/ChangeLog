@@ -1,5 +1,11 @@
 2003-02-13  Dave Love  <fx@gnu.org>
 
+	* quail/latin-post.el ("turkish-latin-3-postfix"): Make it
+	just an alias for turkish-postfix.
+
+	* quail/latin-alt.el ("turkish-latin-3-alt-postfix"): Make it
+	just an alias for turkish-alt-postfix.
+
 	* quail/cyrillic.el (ukrainian-computer): Fix duplicate `\'.
 
 2002-11-07  Kenichi Handa  <handa@m17n.org>

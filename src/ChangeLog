@@ -1,3 +1,7 @@
+2003-02-13  Dave Love  <fx@gnu.org>
+
+	* coding.c (Fcheck_coding_systems_region): Fix type errors.
+
 2003-02-04  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XTread_socket): Check Lisp types for Vx_keysym_table
