@@ -546,16 +546,27 @@ Returns nil if line starts inside a string, t if in a comment."
 	       (let ((basic-indent
 		      (save-excursion
 			(re-search-backward "^[^ \^L\t\n#]" nil 'move)
-			(if (and (looking-at "\\sw\\|\\s_")
-				 (looking-at "[^\"\n=]*(")
-				 (progn
-				   (goto-char (1- (match-end 0)))
-				   (forward-sexp 1)
-				   (skip-chars-forward " \t\f")
-				   (and (< (point) indent-point)
-					(not (memq (following-char)
-						   '(?\, ?\;))))))
-			    c-argdecl-indent 0))))
+			(let (comment lim)
+			  (if (and (looking-at "\\sw\\|\\s_")
+				   (looking-at "[^\"\n=]*(")
+				   (progn
+				     (goto-char (1- (match-end 0)))
+				     (setq lim (point))
+				     (forward-sexp 1)
+				     (skip-chars-forward " \t\f")
+				     (and (< (point) indent-point)
+					  (not (memq (following-char)
+						     '(?\, ?\;)))))
+				   ;; Make sure the "function decl" we found
+				   ;; is not inside a comment.
+				   (progn
+				     (beginning-of-line)
+				     (while (and (not comment)
+						 (search-forward "/*" lim t))
+				       (setq comment
+					     (not (search-forward "*/" lim t))))
+				     (not comment)))
+			      c-argdecl-indent 0)))))
 		 basic-indent)))
 
 ;; 		 ;; Now add a little if this is a continuation line.

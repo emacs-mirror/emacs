@@ -1082,6 +1082,8 @@ SEQUENCE may be a list, a vector or a string.")
 
 DEFUN ("y-or-n-p", Fy_or_n_p, Sy_or_n_p, 1, 1, 0,
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".\n\
+Takes one argument, which is the string to display to ask the question.\n\
+It should end in a space; `y-or-n-p' adds `(y or n) ' to it.\n\
 No confirmation of the answer is requested; a single character is enough.\n\
 Also accepts Space to mean yes, or Delete to mean no.")
   (prompt)
@@ -1151,9 +1153,11 @@ do_yes_or_no_p (prompt)
 /* Anything that calls this function must protect from GC!  */
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
-  "Ask user a yes or no question.  Return t if answer is yes.\n\
-The user must confirm the answer with a newline,\n\
-and can rub it out if not confirmed.")
+  "Ask user a yes-or-no question.  Return t if answer is yes.\n\
+Takes one argument, which is the string to display to ask the question.\n\
+It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.\n\
+The user must confirm the answer with RET,\n\
+and can edit it until it as been confirmed.")
   (prompt)
      Lisp_Object prompt;
 {
