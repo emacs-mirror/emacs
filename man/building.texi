@@ -514,7 +514,7 @@ debugger interaction buffer:
 
   This defines a command named @var{function} which sends
 @var{cmdstring} to the debugger process, and gives it the documentation
-string @var{docstring}.  You can then use the command @var{function}\ in any
+string @var{docstring}.  You can then use the command @var{function} in any
 buffer.  If @var{binding} is non-@code{nil}, @code{gud-def} also binds
 the command to @kbd{C-c @var{binding}} in the GUD buffer's mode and to
 @kbd{C-x C-a @var{binding}} generally.
