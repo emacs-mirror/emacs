@@ -795,7 +795,7 @@ Choose the buffer's name using `generate-new-buffer-name'."
   "Regexp to match the automounter prefix in a directory name.")
 
 (defvar abbreviated-home-dir nil
-  "The user's homedir abbreviated according to `directory-abbrev-list'.")
+  "The user's homedir abbreviated according to `directory-abbrev-alist'.")
 
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using `directory-abbrev-alist'.
