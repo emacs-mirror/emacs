@@ -252,8 +252,6 @@ static WINDOWINFO_TYPE windowinfo;
 
 extern int errno;
 
-extern Lisp_Object Vglobal_minibuffer_screen;
-
 extern Display *XOpenDisplay ();
 extern Window XCreateWindow ();
 
@@ -296,7 +294,6 @@ XTupdate_begin (s)
 #ifndef HAVE_X11
   dumpqueue ();
 #endif
-  x_display_cursor (s, 0);
   UNBLOCK_INPUT;
 }
 
@@ -564,16 +561,18 @@ XTwrite_glyphs (start, len)
       curs_y = s->cursor_y;
     }
 
-  /* Clear the cursor if it appears on this line.  */
-  if (curs_y == s->cursor_y)
-    x_display_cursor (s, 0);
-
   dumpglyphs (s,
 	     (curs_x * FONT_WIDTH (s->display.x->font)
 	      + s->display.x->internal_border_width),
 	     (curs_y * FONT_HEIGHT (s->display.x->font)
 	      + s->display.x->internal_border_width),
 	     start, len, highlight, s->display.x->font);
+
+  /* If we drew on top of the cursor, note that it is turned off.  */
+  if (curs_y == s->phys_cursor_y
+      && curs_x <= s->phys_cursor_x
+      && curs_x + len > s->phys_cursor_x)
+    s->phys_cursor_x = -1;
   
   if (updating_screen == 0)
     {
@@ -611,9 +610,11 @@ XTclear_end_of_line (first_unused)
 
   BLOCK_INPUT;
 
-  /* Clear the cursor if it appears on this line.  */
-  if (curs_y == s->cursor_y)
-    x_display_cursor (s, 0);
+  /* Notice if the cursor will be cleared by this operation.  */
+  if (curs_y == s->phys_cursor_y
+      && curs_x <= s->phys_cursor_x
+      && s->phys_cursor_x < first_unused)
+    s->phys_cursor_x = -1;
 
 #ifdef HAVE_X11
   XClearArea (x_current_display, s->display.x->window_desc,
@@ -949,7 +950,7 @@ XTins_del_lines (vpos, n)
   if (updating_screen == 0)
     abort ();
 
-  /* Clear the cursor.  */
+  /* Hide the cursor.  */
   x_display_cursor (updating_screen, 0);
 
   XTcursor_to (vpos, 0);
@@ -1103,7 +1104,7 @@ x_do_pending_expose ()
 	  if (XTYPE (screen) != Lisp_Screen)
 	    continue;
 	  s = XSCREEN (screen);
-	  if (s->output_method != output_x_window)
+	  if (! SCREEN_IS_X (s))
 	    continue;
 	  if (!s->visible)
 	    continue;
@@ -1302,7 +1303,6 @@ extern int mouse_buffer_offset;
 /* Part of the screen the mouse is in. */
 extern Lisp_Object Vmouse_screen_part;
 
-extern void pixel_to_glyph_translation ();
 extern int buffer_posn_from_coords ();
 
 /* Symbols from xfns.c to denote the different parts of a window.  */
@@ -1397,39 +1397,51 @@ notice_mouse_movement (result, motion_event, s, window_type, part)
 }
 #endif
 
-/* Given a pixel position (pix_x, pix_y) on the screen s, return
-   character co-ordinates in (*x, *y).  */
-void
-pixel_to_glyph_translation (s, pix_x, pix_y, x, y)
+
+/* Mouse clicks and mouse movement.  Rah.  */
+#ifdef HAVE_X11
+
+/* Given a pixel position (PIX_X, PIX_Y) on the screen S, return
+   glyph co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle
+   that the glyph at X, Y occupies, if BOUNDS != 0.  */
+static void
+pixel_to_glyph_coords (s, pix_x, pix_y, x, y, bounds)
      SCREEN_PTR s;
      register unsigned int pix_x, pix_y;
      register int *x, *y;
+     XRectangle *bounds;
 {
-  register struct screen_glyphs *s_glyphs = SCREEN_CURRENT_GLYPHS (s);
-  register int line = SCREEN_HEIGHT (s) - 1;
   int ibw = s->display.x->internal_border_width;
+  int width, height;
+  FONT_TYPE *font = s->display.x->font;
+
+  width = FONT_WIDTH (font);
+  height = FONT_HEIGHT (font);
 
   /* What line is it on?  */
-  line = SCREEN_HEIGHT (s) - 1;
-  while (s_glyphs->top_left_y[line] > pix_y)
-    line--;
-  *y = line;
+  if (pix_y < ibw)
+    *y = 0;
+  else if (pix_y > s->display.x->pixel_height - ibw)
+    *y = SCREEN_HEIGHT (s) - 1;
+  else
+    *y = (pix_y - ibw) / height;
 
-  /* Horizontally, is it in the border? */
+  /* And what column?  */
   if (pix_x < ibw)
     *x = 0;
-  
-  /* If it's off the right edge, clip it.  */
   else if (pix_x > s->display.x->pixel_width - ibw)
     *x = SCREEN_WIDTH (s) - 1;
-
-  /* It's in the midst of the screen; assume all the characters are
-     the same width, and figure the column.  */
   else
-    *x = (pix_x - ibw) / FONT_WIDTH (s->display.x->font);
+    *x = (pix_x - ibw) / width;
+
+  if (bounds)
+    {
+      bounds->width = width;
+      bounds->height = height;
+      bounds->x = ibw + (*x * width);
+      bounds->y = ibw + (*y * height);
+    }
 }
-
-#ifdef HAVE_X11
 
 /* Any buttons grabbed. */
 unsigned int x_mouse_grabbed;
@@ -1470,6 +1482,7 @@ construct_mouse_click (result, event, s, part, prefix)
      otherwise.  */
   result->kind = no_event;
   XSET (result->code, Lisp_Int, event->button);
+  XSET (result->timestamp, Lisp_Int, event->time);
   result->modifiers = (x_convert_modifiers (event->state)
 		       | (event->type == ButtonRelease ? up_modifier : 0));
   XSET (result->timestamp, Lisp_Int, (event->time & 0x7fffff));
@@ -1479,11 +1492,11 @@ construct_mouse_click (result, event, s, part, prefix)
     {
       if (! x_mouse_grabbed)
 	Vmouse_depressed = Qt;
-      x_mouse_grabbed |= event->button;
+      x_mouse_grabbed |= (1 << event->button);
     }
   else if (event->type == ButtonRelease)
     {
-      x_mouse_grabbed &= ~(event->button);
+      x_mouse_grabbed &= ~(1 << event->button);
       if (!x_mouse_grabbed)
 	Vmouse_depressed = Qnil;
     }
@@ -1509,10 +1522,7 @@ construct_mouse_click (result, event, s, part, prefix)
     {
       int row, column;
 
-      pixel_to_glyph_translation (s,
-				  event->x, event->y,
-				  &column, &row);
-
+      pixel_to_glyph_coords (s, event->x, event->y, &column, &row, NULL);
       result->kind = mouse_click;
       result->x = column;
       result->y = row;
@@ -1521,6 +1531,135 @@ construct_mouse_click (result, event, s, part, prefix)
 }
 
 
+/* Mouse movement.  Rah.
+
+   In order to avoid asking for motion events and then throwing most
+   of them away or busy-polling the server for mouse positions, we ask
+   the server for pointer motion hints.  This means that we get only
+   one event per group of mouse movements.  "Groups" are delimited by
+   other kinds of events (focus changes and button clicks, for
+   example), or by XQueryPointer calls; when one of these happens, we
+   get another MotionNotify event the next time the mouse moves.  This
+   is at least as efficient than getting motion events when mouse
+   tracking is on, and I suspect only negligibly worse when tracking
+   is off.
+
+   The silly O'Reilly & Associates Nutshell guides barely document
+   pointer motion hints at all (I think you have to infer how they
+   work from an example), and the description of XQueryPointer doesn't
+   mention that calling it causes you to get another motion hint from
+   the server, which is very important.  */
+
+/* Where the mouse was last time we reported a mouse event.  */
+static SCREEN_PTR last_mouse_screen;
+static XRectangle last_mouse_glyph;
+
+/* Function to report a mouse movement to the mainstream Emacs code.
+   The input handler calls this.
+
+   We have received a mouse movement event, which is given in *event.
+   If the mouse is over a different glyph than it was last time, tell
+   the mainstream emacs code by setting mouse_moved.  If not, ask for
+   another motion event, so we can check again the next time it moves.  */
+static void
+note_mouse_position (screen, event)
+     SCREEN_PTR screen;
+     XMotionEvent *event;
+
+{
+  /* Has the mouse moved off the glyph it was on at the last sighting?  */
+  if (event->x < last_mouse_glyph.x
+      || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
+      || event->y < last_mouse_glyph.y
+      || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
+    mouse_moved = 1;
+  else
+    {
+      /* It's on the same glyph.  Call XQueryPointer so we'll get an
+	 event the next time the mouse moves and we can see if it's
+	 *still* on the same glyph.  */
+      int dummy;
+      
+      XQueryPointer (event->display, event->window,
+		     (Window *) &dummy, (Window *) &dummy,
+		     &dummy, &dummy, &dummy, &dummy,
+		     (unsigned int *) &dummy);
+    }
+}
+
+/* Return the current position of the mouse.
+
+   This clears the mouse_moved flag, so we can wait for the next mouse
+   position.  This also calls XQueryPointer, which will cause the
+   server to give us another MotionNotify when the mouse moves again.
+   */
+
+static void
+XTmouse_position (s, x, y, time)
+     SCREEN_PTR *s;
+     Lisp_Object *x, *y;
+     Lisp_Object *time;
+{
+  int ix, iy, dummy;
+  Display *d = x_current_display;
+  Window guess, root, child;
+
+  BLOCK_INPUT;
+
+  /* I would like to have an X function that just told me the
+     innermost window containing the mouse.  
+
+  /* There doesn't seem to be any way to just get the innermost window
+     containing the pointer, no matter what X screen it's on; you have
+     to guess a window, and then X will tell you which one of that
+     window's children it's in.  If the pointer isn't in any of that
+     window's children, it gives you a root window that contains it.
+
+     So we start with the selected screen's window and chase down
+     branches under the guidance of XQueryPointer until we hit a leaf
+     (all of the Emacs windows we care about are leaf windows).  If at
+     any time XQueryPointer returns false, that means that the current
+     window does not contain the pointer any more (perhaps it moved),
+     so we start with the root window XQueryPointer has given us and
+     start again.  */
+
+  guess = selected_screen->display.x->window_desc;
+  for (;;)
+    if (XQueryPointer (d, guess, &root, &child,
+		       &dummy, &dummy, &ix, &iy, (unsigned int *) &dummy))
+      {
+	if (child == None)
+	  /* Guess is a leaf window, and it contains the pointer.  */
+	  break;
+	else 
+	  guess = child;
+      }
+    else
+      /* When XQueryPointer returns False, the pointer isn't in guess
+         anymore, but root is the root window of the screen we should
+         try instead.  */
+      guess = root;
+
+  *s = last_mouse_screen = x_window_to_screen (guess);
+  if (! *s)
+    *x = *y = Qnil;
+  else
+    {
+      pixel_to_glyph_coords (*s, ix, iy, &ix, &iy, &last_mouse_glyph);
+      XSET (*x, Lisp_Int, ix);
+      XSET (*y, Lisp_Int, iy);
+    }
+
+  mouse_moved = 0;
+
+  /* I don't know how to find the time for the last movement; it seems
+   like XQueryPointer ought to return it, but it doesn't.  */
+  *time = Qnil;
+
+  UNBLOCK_INPUT;
+}
+
+
 static char *events[] =
 {
   "0: ERROR!",
@@ -1813,9 +1952,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      || IsFunctionKey (keysym))    /* 0xffbe <= x < 0xffe1 */
 		    {
 		      bufp->kind = non_ascii_keystroke;
-		      bufp->code = (unsigned) keysym - 0xff50;
+		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff50);
 		      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 		      bufp->modifiers = x_convert_modifiers (event.xkey.state);
+		      XSET (bufp->timestamp, Lisp_Int, event.xkey.time);
 		      bufp++;
 		      count++;
 		      numchars--;
@@ -1831,6 +1971,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  bufp->kind = ascii_keystroke;
 			  bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 			  XSET (bufp->code, Lisp_Int, *copy_buffer);
+			  XSET (bufp->timestamp, Lisp_Int, event.xkey.time);
 			  bufp++;
 			}
 		      else
@@ -1838,6 +1979,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  {
 			    bufp->kind = ascii_keystroke;
 			    XSET (bufp->code, Lisp_Int, copy_buffer[i]);
+			    XSET (bufp->timestamp, Lisp_Int, event.xkey.time);
 			    bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 			    bufp++;
 			  }
@@ -1886,6 +2028,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  {
 		    bufp->kind = ascii_keystroke;
 		    XSET (bufp->code, Lisp_Int, where_mapping[i]);
+		    XSET (bufp->time, Lisp_Int, event.xkey.time);
 		    bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 		    bufp++;
 		  }
@@ -2017,15 +2160,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  {
 	    s = x_window_to_screen (event.xmotion.window);
 	    if (s)
-	      {
-		int row, column;
-		
-		pixel_to_glyph_translation (s,
-					    event.xmotion.x, event.xmotion.y,
-					    &column, &row);
-
-		note_mouse_position (s, column, row, event.xmotion.time);
-	      }
+	      note_mouse_position (s, &event.xmotion);
 #if 0
 	    else if ((s = x_window_to_scrollbar (event.xmotion.window,
 						 &part, &prefix)))
@@ -2052,27 +2187,23 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		     - s->display.x->h_scrollbar_height)
 		    / FONT_HEIGHT (s->display.x->font));
 
-	    if (columns != s->width || rows != s->height)
+	    /* Even if the number of character rows and columns has
+	       not changed, the font size may have changed, so we need
+	       to check the pixel dimensions as well.  */
+	    if (columns != s->width
+		|| rows != s->height
+		|| event.xconfigure.width != s->display.x->pixel_width
+		|| event.xconfigure.height != s->display.x->pixel_height)
 	      {
-		XEvent ignored_event;
-
 		change_screen_size (s, rows, columns, 0);
 		x_resize_scrollbars (s);
 		SET_SCREEN_GARBAGED (s);
-#if 0
-		dumprectangle (s, 0, 0, PIXEL_WIDTH (s), PIXEL_HEIGHT (s));
-		/* Throw away the exposures generated by this reconfigure. */
-		while (XCheckWindowEvent (x_current_display,
-					  event.xconfigure.window,
-					  ExposureMask, &ignored_event)
-		       == True);
-#endif
 	      }
 
-	    s->display.x->left_pos = event.xconfigure.x;
-	    s->display.x->top_pos = event.xconfigure.y;
 	    s->display.x->pixel_width = event.xconfigure.width;
 	    s->display.x->pixel_height = event.xconfigure.height;
+	    s->display.x->left_pos = event.xconfigure.x;
+	    s->display.x->top_pos = event.xconfigure.y;
 	    break;
 	  }
 
@@ -2138,11 +2269,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      bufp->kind = ascii_keystroke;
 	      bufp->code = (char) 'X' & 037; /* C-x */
 	      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+	      XSET (bufp->time, Lisp_Int, event.xkey.time);
 	      bufp++;
 
 	      bufp->kind = ascii_keystroke;
 	      bufp->code = (char) 0; /* C-@ */
 	      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+	      XSET (bufp->time, Lisp_Int, event.xkey.time);
 	      bufp++;
 
 	      count += 2;
@@ -2263,37 +2396,6 @@ x_read_exposes ()
 }
 #endif /* HAVE_X11 */
 
-static int
-XTmouse_tracking_enable (enable)
-     int enable;
-{
-  Lisp_Object tail;
-
-  /* Go through the list of screens and turn on/off mouse tracking for
-     each of them.  */
-  for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
-    {
-      if (XTYPE (XCONS (tail)->car) != Lisp_Screen)
-	abort ();
-      if (XSCREEN (XCONS (tail)->car)->output_method == output_x_window)
-	XSelectInput (x_current_display,
-		      XSCREEN (XCONS (tail)->car)->display.x->window_desc,
-		      (enable
-		       ? (STANDARD_EVENT_SET
-			  | PointerMotionMask
-			  | ButtonReleaseMask)
-		       : STANDARD_EVENT_SET));
-    }
-}
-
-
-static Lisp_Object
-XTmouse_position ()
-{
-  
-}
-
-
 
 /* Draw a hollow box cursor.  Don't change the inside of the box.  */
 
@@ -2367,6 +2469,7 @@ clear_cursor (s)
   s->phys_cursor_x = -1;
 }
 
+static void
 x_display_bar_cursor (s, on)
      struct screen *s;
      int on;
@@ -2416,54 +2519,23 @@ x_display_bar_cursor (s, on)
 }
 
 
-/* Redraw the glyph at ROW, COLUMN on screen S, in the style HIGHLIGHT.
-   If there is no character there, erase the area.  HIGHLIGHT is as
-   defined for dumpglyphs.  */
+/* Redraw the glyph at ROW, COLUMN on screen S, in the style
+   HIGHLIGHT.  HIGHLIGHT is as defined for dumpglyphs.  Return the
+   glyph drawn.  */
 
 static void
-x_draw_single_glyph (s, row, column, highlight)
+x_draw_single_glyph (s, row, column, glyph, highlight)
      struct screen *s;
      int row, column;
+     GLYPH glyph;
      int highlight;
 {
-  register struct screen_glyphs *current_screen = SCREEN_CURRENT_GLYPHS (s);
-
-  /* If there is supposed to be a character there, redraw it
-     in that line's normal video.  */
-  if (current_screen->enable[row]
-      && column < current_screen->used[row])
-    dumpglyphs (s,
-		(column * FONT_WIDTH (s->display.x->font)
-		 + s->display.x->internal_border_width),
-		(row * FONT_HEIGHT (s->display.x->font)
-		 + s->display.x->internal_border_width),
-		&current_screen->glyphs[row][column],
-		1, highlight, s->display.x->font);
-  else
-    {
-#ifdef HAVE_X11
-      static GLYPH a_space_glyph = SPACEGLYPH;
-      dumpglyphs (s,
-		  (column * FONT_WIDTH (s->display.x->font)
-		   + s->display.x->internal_border_width),
-		  (row * FONT_HEIGHT (s->display.x->font)
-		   + s->display.x->internal_border_width),
-		  &a_space_glyph, 1, highlight, s->display.x->font);
-#else
-      XPixSet (s->display.x->window_desc,
-	       (column * FONT_WIDTH (s->display.x->font)
-		+ s->display.x->internal_border_width),
-	       (row * FONT_HEIGHT (s->display.x->font)
-		+ s->display.x->internal_border_width),
-	       FONT_WIDTH (s->display.x->font),
-	       FONT_HEIGHT (s->display.x->font),
-	       (highlight == 0
-		? s->display.x->background_pixel
-		: (highlight == 1
-		   ? s->display.x->foreground_pixel
-		   : s->display.x->cursor_pixel)));
-#endif /* HAVE_X11 */
-    }
+  dumpglyphs (s,
+	      (column * FONT_WIDTH (s->display.x->font)
+	       + s->display.x->internal_border_width),
+	      (row * FONT_HEIGHT (s->display.x->font)
+	       + s->display.x->internal_border_width),
+	      &glyph, 1, highlight, s->display.x->font);
 }
 
 /* Turn the displayed cursor of screen S on or off according to ON.
@@ -2475,11 +2547,12 @@ x_display_box_cursor (s, on)
      struct screen *s;
      int on;
 {
+  struct screen_glyphs *current_glyphs = SCREEN_CURRENT_GLYPHS (s);
+
   if (! s->visible)
     return;
 
   /* If cursor is off and we want it off, return quickly.  */
-
   if (!on && s->phys_cursor_x < 0)
     return;
 
@@ -2496,9 +2569,8 @@ x_display_box_cursor (s, on)
     {
       /* Erase the cursor by redrawing the character underneath it.  */
       x_draw_single_glyph (s, s->phys_cursor_y, s->phys_cursor_x,
-			   (SCREEN_CURRENT_GLYPHS (s)
-			    ->highlight[s->phys_cursor_y]));
-
+			   s->phys_cursor_glyph,
+			   current_glyphs->highlight[s->phys_cursor_y]);
       s->phys_cursor_x = -1;
     }
 
@@ -2510,6 +2582,11 @@ x_display_box_cursor (s, on)
 	  || (s->display.x->text_cursor_kind != filled_box_cursor
 	      && s == x_highlight_screen)))
     {
+      s->phys_cursor_glyph
+	= ((current_glyphs->enable[s->cursor_y]
+	    && s->cursor_x < current_glyphs->used[s->cursor_y])
+	   ? current_glyphs->glyphs[s->cursor_y][s->cursor_x]
+	   : SPACEGLYPH);
       if (s != x_highlight_screen)
 	{
 	  x_draw_box (s);
@@ -2517,7 +2594,8 @@ x_display_box_cursor (s, on)
 	}
       else
 	{
-	  x_draw_single_glyph (s, s->cursor_y, s->cursor_x, 2);
+	  x_draw_single_glyph (s, s->cursor_y, s->cursor_x,
+			       s->phys_cursor_glyph, 2);
 	  s->display.x->text_cursor_kind = filled_box_cursor;
 	}
 
@@ -2952,7 +3030,7 @@ x_new_font (s, fontname)
   if (n_matching_fonts == 0)
     return 1;
 
-  /* See if we've already loaded this font. */
+  /* See if we've already loaded a matching font. */
   {
     int i, j;
 
@@ -2969,10 +3047,8 @@ x_new_font (s, fontname)
   
   /* If we have, just return it from the table.  */
   if (already_loaded)
-    {
-      s->display.x->font = x_font_table[already_loaded];
-    }
-
+    s->display.x->font = x_font_table[already_loaded];
+  
   /* Otherwise, load the font and add it to the table.  */
   else
     {
@@ -2993,7 +3069,7 @@ x_new_font (s, fontname)
       /* Do we need to grow the table?  */
       else if (n_fonts >= x_font_table_size)
 	{
-	  x_font_table_size <<= 1;
+	  x_font_table_size *= 2;
 	  x_font_table
 	    = (XFontStruct **) xrealloc (x_font_table,
 					 (x_font_table_size
@@ -3224,40 +3300,34 @@ x_make_screen_visible (s)
 {
   int mask;
 
-  if (s->visible)
-    {
-      BLOCK_INPUT;
-      XRaiseWindow (XDISPLAY s->display.x->window_desc);
-      XFlushQueue ();
-      UNBLOCK_INPUT;
-      return;
-    }
-
   BLOCK_INPUT;
+
+  if (! SCREEN_VISIBLE_P (s))
+    {
 #ifdef HAVE_X11
+      if (! EQ (Vx_no_window_manager, Qt))
+	x_wm_set_window_state (s, NormalState);
 
-  if (! EQ (Vx_no_window_manager, Qt))
-    x_wm_set_window_state (s, NormalState);
-
-  XMapWindow (XDISPLAY s->display.x->window_desc);
-  if (s->display.x->v_scrollbar != 0 || s->display.x->h_scrollbar != 0)
-    XMapSubwindows (x_current_display, s->display.x->window_desc);
-
+      XMapWindow (XDISPLAY s->display.x->window_desc);
+      if (s->display.x->v_scrollbar != 0 || s->display.x->h_scrollbar != 0)
+	XMapSubwindows (x_current_display, s->display.x->window_desc);
 #else
-  XMapWindow (XDISPLAY s->display.x->window_desc);
-  if (s->display.x->icon_desc != 0)
-    XUnmapWindow (s->display.x->icon_desc);
+      XMapWindow (XDISPLAY s->display.x->window_desc);
+      if (s->display.x->icon_desc != 0)
+	XUnmapWindow (s->display.x->icon_desc);
 
-  /* Handled by the MapNotify event for X11 */
-  s->visible = 1;
-  s->iconified = 0;
+      /* Handled by the MapNotify event for X11 */
+      s->visible = 1;
+      s->iconified = 0;
 
-  /* NOTE: this may cause problems for the first screen. */
-  XTcursor_to (0, 0);
-#endif /* not HAVE_X11 */
+      /* NOTE: this may cause problems for the first screen. */
+      XTcursor_to (0, 0);
+#endif				/* not HAVE_X11 */
+    }
 
   XRaiseWindow (XDISPLAY s->display.x->window_desc);
   XFlushQueue ();
+
   UNBLOCK_INPUT;
 }
 
@@ -3667,7 +3737,7 @@ x_term_init (display_name)
   cursor_to_hook = XTcursor_to;
   reassert_line_highlight_hook = XTreassert_line_highlight;
   screen_rehighlight_hook = XTscreen_rehighlight;
-  mouse_tracking_enable_hook = XTmouse_tracking_enable;
+  mouse_position_hook = XTmouse_position;
   
   scroll_region_ok = 1;		/* we'll scroll partial screens */
   char_ins_del_ok = 0;		/* just as fast to write the line */
