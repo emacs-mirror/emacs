@@ -1047,7 +1047,7 @@ read1 (readcharfun)
 	      while (p1 != p && (c = *p1) >= '0' && c <= '9') p1++;
 #ifdef LISP_FLOAT_TYPE
 	      /* Integers can have trailing decimal points.  */
-	      if (p1 < p && *p1 == '.') p1++;
+	      if (p1 > read_buffer && p1 < p && *p1 == '.') p1++;
 #endif
 	      if (p1 == p)
 		/* It is an integer. */
