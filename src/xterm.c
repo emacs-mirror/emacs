@@ -5580,6 +5580,12 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
 
+#ifdef MULTI_PERDISPLAY
+  init_perdisplay (&dpyinfo->perdisplay);
+  dpyinfo->perdisplay.next_perdisplay = all_perdisplays;
+  all_perdisplays = &dpyinfo->perdisplay;
+#endif
+
   /* Put this display on the chain.  */
   dpyinfo->next = x_display_list;
   x_display_list = dpyinfo;
@@ -5755,9 +5761,20 @@ x_delete_display (dpyinfo)
   /* I'm told Xt does this itself.  */
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
-  free (dpyinfo->font_table);
-  free (dpyinfo->x_id_name);
-  free (dpyinfo);
+#ifdef MULTI_PERDISPLAY
+  {
+    PERDISPLAY **perdp;
+    for (perdp = &all_perdisplays; *perdp != &dpyinfo->perdisplay;
+	 perdp = &(*perdp)->next_perdisplay)
+      if (*perdp == NULL)
+	abort ();
+    *perdp = dpyinfo->perdisplay.next_perdisplay;
+  }
+  wipe_perdisplay (&dpyinfo->perdisplay);
+#endif
+  xfree (dpyinfo->font_table);
+  xfree (dpyinfo->x_id_name);
+  xfree (dpyinfo);
 }
 
 /* Set up use of X before we make the first connection.  */
