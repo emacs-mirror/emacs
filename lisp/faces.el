@@ -1924,11 +1924,13 @@ created."
 
 
 (defface cursor '()
-  "Basic face for the cursor color under X."
+  "Basic face for the cursor color under X.
+Note: Other faces cannot inherit from the cursor face."
   :version "21.1"
   :group 'cursor
   :group 'basic-faces)
 
+(put 'cursor 'face-no-inherit t)
 
 (defface mouse '()
   "Basic face for the mouse color under X."
