@@ -1,3 +1,8 @@
+2000-08-23  Dave Love  <fx@gnu.org>
+
+	* quail/latin-pre.el ("latin-1-prefix"): Change ~s to give ,A'(B and
+	add ~p for ,A6(B.
+
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/japanese.el ("japanese"): Fix docstring.
