@@ -845,7 +845,7 @@ swap_in_symval_forwarding (symbol, valcontents)
   tem1 = XBUFFER_LOCAL_VALUE (valcontents)->buffer;
 
   if (NILP (tem1) || current_buffer != XBUFFER (tem1)
-      || selected_frame != XFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame))
+      || !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
     {
       tem1 = XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
       Fsetcdr (tem1,
@@ -856,7 +856,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       if (NILP (tem1))
 	{
 	  if (XBUFFER_LOCAL_VALUE (valcontents)->check_frame)
-	    tem1 = assq_no_quit (symbol, selected_frame->param_alist);
+	    tem1 = assq_no_quit (symbol, XFRAME (selected_frame)->param_alist);
 	  if (! NILP (tem1))
 	    XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 1;
 	  else
@@ -867,7 +867,7 @@ swap_in_symval_forwarding (symbol, valcontents)
 
       XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car = tem1;
       XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, current_buffer);
-      XSETFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame, selected_frame);
+      XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
       store_symval_forwarding (symbol,
 			       XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 			       Fcdr (tem1));
@@ -1014,8 +1014,7 @@ set_internal (symbol, newval, bindflag)
 	 we're looking at the default value, the cache is invalid; we
 	 need to write it out, and find the new CURRENT-ALIST-ELEMENT.  */
       if (current_buffer != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
-	  ||
-	  selected_frame != XFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame)
+	  || !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame)
 	  || (BUFFER_LOCAL_VALUEP (valcontents)
 	      && EQ (XCONS (current_alist_element)->car,
 		     current_alist_element)))
@@ -1044,7 +1043,8 @@ set_internal (symbol, newval, bindflag)
 		  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
 
 		  if (XBUFFER_LOCAL_VALUE (valcontents)->check_frame)
-		    tem1 = Fassq (symbol, selected_frame->param_alist);
+		    tem1 = Fassq (symbol,
+				  XFRAME (selected_frame)->param_alist);
 
 		  if (! NILP (tem1))
 		    XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 1;
@@ -1069,8 +1069,7 @@ set_internal (symbol, newval, bindflag)
 	  /* Set BUFFER and FRAME for binding now loaded.  */
 	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer,
 		      current_buffer);
-	  XSETFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame,
-		     selected_frame);
+	  XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
 	}
       valcontents = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
     }
