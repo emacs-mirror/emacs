@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.12) $
+# $HopeName: MMsrc!comm.gmk(trunk.13) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -207,7 +207,7 @@ endif
 # just a convenient set of targets to build.
 
 all: mpmss amcss awlut dwstress mpsicv lockcov poolncv mps.a \
-     lo.a mrg.a locv qs weakcv mpmconft finalcv
+     lo.a mrg.a locv qs weakcv mpmconft finalcv arenacv
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
@@ -215,7 +215,7 @@ all: mpmss amcss awlut dwstress mpsicv lockcov poolncv mps.a \
 # %%TARGET: Add a pseudo-target for the new target here.
 
 mpmss amcss awlut dwstress mpsicv lockcov poolncv \
-  locv qs weakcv mpmconft finalcv \
+  locv qs weakcv mpmconft finalcv arenacv \
   mps.a lo.a mrg.a awl.a mmsw.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
@@ -279,7 +279,7 @@ $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
 	$(MPMOBJ) $(LOOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
-	$(MPMOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(MPMOBJ)
@@ -305,6 +305,9 @@ $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
 	$(AMCOBJ) $(MPMOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(PFM)/$(VARIETY)/pooln.o
 
