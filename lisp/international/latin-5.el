@@ -34,7 +34,7 @@
 (let ((tbl (standard-case-table))
       (set-case-syntax-offset
        (if set-case-syntax-set-multibyte
-	   (- (make-char 'latin-iso8859-5) 128)
+	   (- (make-char 'latin-iso8859-9) 128)
 	 0)))
   (set-case-syntax 160 " " tbl)		;no-break space
   (set-case-syntax 161 "." tbl)		;inverted exclamation mark
