@@ -2376,8 +2376,9 @@ extern Lisp_Object oblookup P_ ((Lisp_Object, char *, int, int));
 #define LOADHIST_ATTACH(x) \
  if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
 extern Lisp_Object Vcurrent_load_list;
-extern Lisp_Object Vload_history;
-extern int openp P_ ((Lisp_Object, Lisp_Object, char *, Lisp_Object *, int));
+extern Lisp_Object Vload_history, Vload_suffixes;
+extern int openp P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+		      Lisp_Object *, int));
 extern int isfloat_string P_ ((char *));
 extern void map_obarray P_ ((Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
 			     Lisp_Object));
@@ -2839,7 +2840,8 @@ extern void init_process P_ ((void));
 extern void syms_of_process P_ ((void));
 
 /* defined in callproc.c */
-extern Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
+extern Lisp_Object Vexec_path, Vexec_suffixes,
+                   Vexec_directory, Vdata_directory;
 extern Lisp_Object Vdoc_directory;
 EXFUN (Fcall_process, MANY);
 extern int child_setup P_ ((int, int, int, char **, int, Lisp_Object));
