@@ -1162,8 +1162,8 @@ This function runs `rmail-get-new-mail-hook' before saving the updated file."
       (insert str "*** EOOH ***\n")
       (narrow-to-region (point) (- (buffer-size) delta)))
     (goto-char (point-min))
-    (if rmail-ignored-headers (rmail-clear-headers))
-    (if rmail-message-filter (funcall rmail-message-filter))))
+    (if rmail-message-filter (funcall rmail-message-filter))
+    (if rmail-ignored-headers (rmail-clear-headers))))
 
 (defun rmail-clear-headers (&optional ignored-headers)
   (or ignored-headers (setq ignored-headers rmail-ignored-headers))
