@@ -74,14 +74,19 @@ arguments).  The function should return non-nil only if it recognizes and
 processes argi.  If it does so, it may consume successive arguments by
 altering command-line-args-left to remove them.")
 
-(defvar pre-init-hook nil
+(defvar before-init-hook nil
   "Functions to call after handling urgent options but before loading init file.
 The screen system uses this to open screens to display messages while
 Emacs loads the user's initialization file.")
 
+(defvar after-init-hook nil
+  "Functions to call after loading the init file (~/.emacs).
+The call is not protected by a condition-case, so you can set `debug-on-error'
+in .emacs, and put all the actual code on `after-init-hook'.")
+
 (defvar term-setup-hook nil
-  "Function to be called after loading terminal-specific lisp code.
-It is called with no arguments.  This variable exists for users to set,
+  "Functions to be called after loading terminal-specific lisp code.
+See `run-hooks'.  This variable exists for users to set,
 so as to override the definitions made by the terminal-specific file.
 Emacs never sets this variable itself.")
 
@@ -201,7 +206,7 @@ directory name of the directory where the `.emacs' file was looked for.")
     ;; Re-attach the program name to the front of the arg list.
     (setcdr command-line-args args))
 
-  (run-hooks 'pre-init-hook)
+  (run-hooks 'before-init-hook)
 
   ;; Load that user's init file, or the default one, or none.
   (let ((debug-on-error init-file-debug)
@@ -230,6 +235,8 @@ directory name of the directory where the `.emacs' file was looked for.")
 			(get (car error) 'error-message)
 			(if (cdr error) ": ")
 			(mapconcat 'prin1-to-string (cdr error) ", "))))))
+
+  (run-hooks 'after-init-hook)
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")

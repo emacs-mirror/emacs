@@ -62,7 +62,7 @@ These supercede the values given in default-screen-alist.")
 ;;; 3) Once the init file is done, we apply any newly set parameters
 ;;; in initial-screen-alist to the screen.
 
-(add-hook 'pre-init-hook 'screen-initialize)
+(add-hook 'before-init-hook 'screen-initialize)
 (add-hook 'window-setup-hook 'screen-notice-user-settings)
 
 ;;; If we create the initial screen, this is it.
