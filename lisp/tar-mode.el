@@ -36,15 +36,6 @@
 ;;; and re-insert the modified files into the archive.  See the documentation
 ;;; string of tar-mode for more info.
 
-;;; To autoload, add this to your .emacs file:
-;;;
-;;;  (setq auto-mode-alist (cons '("\\.tar$" . tar-mode) auto-mode-alist))
-;;;  (autoload 'tar-mode "tar-mode")
-;;;
-;;; But beware: for certain tar files - those whose very first file has 
-;;; a -*- property line - autoloading won't work.  See the function 
-;;; "tar-normal-mode" to understand why.
-
 ;;; This code now understands the extra fields that GNU tar adds to tar files.
 
 ;;; This interacts correctly with "uncompress.el" in the Emacs library,
@@ -115,6 +106,11 @@ the file never exists on disk.")
 (defvar tar-superior-buffer nil)
 (defvar tar-superior-descriptor nil)
 (defvar tar-subfile-mode nil)
+
+(put 'tar-parse-info 'permanent-local t)
+(put 'tar-header-offset 'permanent-local t)
+(put 'tar-superior-buffer 'permanent-local t)
+(put 'tar-superior-descriptor 'permanent-local t)
 
 ;;; First, duplicate some Common Lisp functions; I used to just (require 'cl)
 ;;; but "cl.el" was messing some people up (also it's really big).
@@ -487,12 +483,17 @@ See also: variables tar-update-datestamp and tar-anal-blocksize.
 \\{tar-mode-map}"
   ;; this is not interactive because you shouldn't be turning this
   ;; mode on and off.  You can corrupt things that way.
+  ;; rms: with permanent locals, it should now be possible to make this work
+  ;; interactively in some reasonable fashion.
+  (kill-all-local-variables)
   (make-local-variable 'tar-header-offset)
   (make-local-variable 'tar-parse-info)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline nil) ; binary data, dude...
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'tar-mode-revert)
+  (make-local-variable 'enable-local-variables)
+  (setq enable-local-variables nil)
   (setq major-mode 'tar-mode)
   (setq mode-name "Tar")
   (use-local-map tar-mode-map)
@@ -505,9 +506,11 @@ See also: variables tar-update-datestamp and tar-anal-blocksize.
   )
 
 
+;; This should be converted to use a minor mode keymap.
+
 (defun tar-subfile-mode (p)
   "Minor mode for editing an element of a tar-file.
-This mode redefines ^X^S to save the current buffer back into its 
+This mode redefines C-x C-s to save the current buffer back into its 
 associated tar-file buffer.  You must save that buffer to actually
 save your changes to disk."
   (interactive "P")
@@ -528,12 +531,12 @@ save your changes to disk."
 	 ;; by all buffers in that mode.
 	 (let ((m (current-local-map)))
 	   (if m (use-local-map (copy-keymap m))))
-	 (local-set-key "\^X\^S" 'tar-subfile-save-buffer)
+	 (local-set-key "\C-X\C-S" 'tar-subfile-save-buffer)
 	 ;; turn off auto-save.
 	 (auto-save-mode nil)
 	 (setq buffer-auto-save-file-name nil)
 	 (run-hooks 'tar-subfile-mode-hook))
-	(t (local-set-key "\^X\^S" 'save-buffer)))
+	(t (local-set-key "\C-X\C-S" 'save-buffer)))
   )
 
 
