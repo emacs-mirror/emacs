@@ -3,14 +3,13 @@
 ;;;
 ;;;                          For GNU Emacs 19
 ;;
-;; Copyright (C) 1986 Free Software Foundation, Inc.
-;; Copyright (C) 1992, 1993 Kevin Gallagher
+;; Copyright (C) 1986, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Keywords: emulations
 
-;; This file is NOT part of GNU Emacs but hopefully it will be soon.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,7 +34,7 @@
 ;;;
 ;;;  Revision Information
 ;;;
-(defconst edt-lk201-revision "$Revision: 1.0 $"
+(defconst edt-lk201-revision "$Revision: 1.1 $"
     "Revision Number of EDT LK-201 Keyboard Support.")
 
 ;;;;
