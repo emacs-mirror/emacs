@@ -1238,10 +1238,10 @@ the window-buffer correspondences.")
 		      : selected_window,
 		      buf);
 
-  3eturn buf;
+  return buf;
 }
 
-DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 2, 0,
+DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 3, 0,
   "Select buffer BUFFER in some window, preferably a different one.\n\
 If BUFFER is nil, then some other buffer is chosen.\n\
 If `pop-up-windows' is non-nil, windows can be split to do this.\n\
