@@ -49,6 +49,8 @@
   (autoload 'gnus-xmas-redefine "gnus-xmas")
   (autoload 'appt-select-lowest-window "appt"))
 
+(autoload 'gnus-smiley-display "smiley-ems") ; override XEmacs version
+
 ;;; Mule functions.
 
 (defun gnus-mule-max-width-function (el max-width)
@@ -64,16 +66,6 @@
       (gnus-xmas-define)
     (defvar gnus-mouse-face-prop 'mouse-face
       "Property used for highlighting mouse regions.")))
-
-(eval-and-compile
-  (cond
-   ((not window-system)
-    (let ((funcs '(mouse-set-point set-face-foreground
-				   set-face-background x-popup-menu)))
-      (while funcs
-	(unless (fboundp (car funcs))
-	  (defalias (car funcs) 'ignore))
-	(setq funcs (cdr funcs)))))))
 
 (eval-and-compile
   (let ((case-fold-search t))
