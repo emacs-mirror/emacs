@@ -810,12 +810,11 @@ string_char_to_byte (string, char_index)
   int best_below, best_below_byte;
   int best_above, best_above_byte;
 
-  if (! STRING_MULTIBYTE (string))
-    return char_index;
-
   best_below = best_below_byte = 0;
   best_above = SCHARS (string);
   best_above_byte = SBYTES (string);
+  if (best_above == best_above_byte)
+    return char_index;
 
   if (EQ (string, string_char_byte_cache_string))
     {
@@ -873,12 +872,11 @@ string_byte_to_char (string, byte_index)
   int best_below, best_below_byte;
   int best_above, best_above_byte;
 
-  if (! STRING_MULTIBYTE (string))
-    return byte_index;
-
   best_below = best_below_byte = 0;
   best_above = SCHARS (string);
   best_above_byte = SBYTES (string);
+  if (best_above == best_above_byte)
+    return byte_index;
 
   if (EQ (string, string_char_byte_cache_string))
     {
