@@ -133,185 +133,189 @@ returns the right thing in the two cases."
 MENU-NAME is a string, the name of the menu.  MENU-ITEMS is a list of items
 possibly preceded by keyword pairs as described in `easy-menu-define'."
   (let ((menu (make-sparse-keymap menu-name))
-	keyword filter have-buttons)
+	prop keyword arg label enable filter visible)
     ;; Look for keywords.
     (while (and menu-items (cdr menu-items)
 		(symbolp (setq keyword (car menu-items)))
 		(= ?: (aref (symbol-name keyword) 0)))
-      (if (eq keyword ':filter) (setq filter (cadr menu-items)))
-      (setq menu-items (cddr menu-items)))
-    (while menu-items
-      (setq have-buttons
-	    (easy-menu-do-add-item menu (car menu-items) have-buttons))
-      (setq menu-items (cdr menu-items)))
-    (when filter
-      (setq menu (easy-menu-make-symbol menu))
-      (put menu 'menu-enable
-	   `(easy-menu-filter (quote ,menu) (quote ,filter))))
-    menu))
+      (setq arg (cadr menu-items))
+      (setq menu-items (cddr menu-items))
+      (cond
+       ((eq keyword ':filter) (setq filter arg))
+       ((eq keyword ':active) (setq enable (or arg ''nil)))
+       ((eq keyword ':label) (setq label arg))
+       ((eq keyword ':visible) (setq visible (or arg ''nil)))))
+    (if (equal visible ''nil) nil	; Invisible menu entry, return nil.
+      (if (and visible (not (easy-menu-always-true visible)))
+	  (setq prop (cons :visible (cons visible prop))))
+      (if (and enable (not (easy-menu-always-true enable)))
+	  (setq prop (cons :enable (cons enable prop))))
+      (if filter (setq prop (cons :filter (cons filter prop))))
+      (if label (setq prop (cons nil (cons label prop))))
+      (while menu-items
+	(easy-menu-do-add-item menu (car menu-items))
+	(setq menu-items (cdr menu-items)))
+      (when prop
+	(setq menu (easy-menu-make-symbol menu))
+	(put menu 'menu-prop prop))
+      menu)))
 
 
 ;; Button prefixes.
 (defvar easy-menu-button-prefix
-  '((radio ?* . "( ) ") (toggle ?X . "[ ] ")))
+  '((radio . :radio) (toggle . :toggle)))
 
-(defun easy-menu-do-add-item (menu item have-buttons &optional before top)
+(defun easy-menu-do-add-item (menu item &optional before)
   ;; Parse an item description and add the item to a keymap.  This is
   ;; the function that is used for item definition by the other easy-menu
   ;; functions.
   ;; MENU is a sparse keymap i.e. a list starting with the symbol `keymap'.
   ;; ITEM defines an item as in `easy-menu-define'.
-  ;; HAVE-BUTTONS is a string or nil.  If not nil, use as item prefix for
-  ;; items that are not toggle or radio buttons to compensate for the
-  ;; button prefix.
-  ;; Optional argument BEFORE is nil or a symbol used as a key in MENU. If
-  ;; BEFORE is not nil put item before BEFORE in MENU, otherwise if item is
-  ;; already present in MENU, just change it, otherwise put it last in MENU.
-  ;; If optional TOP is true, this is an item in the menu bar itself so
-  ;; don't use prefix.  In this case HAVE-BUTTONS will be nil.
-  (let (command name item-string is-button done inserted)
+  ;; Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
+  ;; put item before BEFORE in MENU, otherwise if item is already present in
+  ;; MENU, just change it, otherwise put it last in MENU.
+  (let (name command label prop remove)
     (cond
      ((stringp item)
-      (setq item-string
+      (setq label
 	    (if (string-match	; If an XEmacs separator
 		 "^\\(-+\\|\
 --:\\(\\(no\\|\\(sing\\|doub\\)le\\(Dashed\\)?\\)Line\\|\
 shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 		 item) ""		; use a single line separator.
-	      (concat have-buttons item))))
+	      item)))
      ((consp item)
-      (setq name (setq item-string (car item)))
-      (setq command (if (keymapp (setq item (cdr item))) item
-		      (easy-menu-create-menu name item))))
+      (setq label (setq name (car item)))
+      (setq command (cdr item))
+      (if (not (keymapp command))
+	  (setq command (easy-menu-create-menu name command)))
+      (if (null command)
+	  ;; Invisible menu item. Don't insert into keymap.
+	  (setq remove t)
+	(when (and (symbolp command) (setq prop (get command 'menu-prop)))
+	  (when (null (car prop))
+	    (setq label (cadr prop))
+	    (setq prop (cddr prop)))
+	  (setq command (symbol-function command)))))
      ((vectorp item)
-      (setq name (setq item-string (aref item 0)))
-      (setq command (easy-menu-make-symbol (aref item 1) t))
-      (let ((active (if (> (length item) 2) (aref item 2) t))
-	    (active-specified (> (length item) 2))
-	    (count 2)
-	    style selected)
+      (let ((active (if (> (length item) 2) (or (aref item 2) ''nil) t))
+	    (no-name (not (symbolp (setq command (aref item 1)))))
+	    cache cache-specified
+	    (count 2))
+	(setq label (setq name (aref item 0)))
+	(if no-name (setq command (easy-menu-make-symbol command)))
 	(if (and (symbolp active) (= ?: (aref (symbol-name active) 0)))
-	    (let ((count 2) keyword arg suffix keys)
-	      (setq active-specified nil)
+	    (let ((count 2)
+		  keyword arg suffix visible style selected keys)
+	      (setq active nil)
 	      (while (> (length item) count)
 		(setq keyword (aref item count))
 		(setq arg (aref item (1+ count)))
 		(setq count (+ 2 count))
 		(cond
-		 ((eq keyword ':keys) (setq keys arg))
-		 ((eq keyword ':active) (setq active arg active-specified t))
-		 ((eq keyword ':suffix) (setq suffix (concat " " arg)))
-		 ((eq keyword ':style) (setq style arg))
-		 ((eq keyword ':selected) (setq selected arg))))
-	      (if keys (setq suffix (concat suffix "  (" keys ")")))
-	      (if suffix (setq item-string (concat item-string " " suffix)))
-	      (when (and selected
-			 (setq style (assq style easy-menu-button-prefix)))
-		;; Simulate checkboxes and radio buttons.
-		(setq item-string (concat (cddr style) item-string))
-		(put command 'menu-enable
-		     `(easy-menu-update-button ,item-string
-					       ,(cadr style)
-					       ,selected
-					       ,(or active t)))
-		(setq is-button t)
-		(setq active-specified nil)	; Already taken care of active.
-		(when (not (or have-buttons top))
-		  (setq have-buttons "    ")
-		  ;; Add prefix to menu items defined so far.
-		  (easy-menu-change-prefix menu t))))
-	  (and (null active) active-specified
-	       (setq active ''nil)))
-	(if active-specified (put command 'menu-enable active))))
-     (t "Invalid menu item in easymenu"))
-    (when name
-      (and (not is-button) have-buttons
-	   (setq item-string (concat have-buttons item-string)))
-      (setq name (intern name)))
-    (setq item (cons item-string command))
-    (if before (setq before (intern before)))
-    ;; The following loop is simlar to `define-key-after'. It
-    ;; inserts (name . item) in keymap menu.
-    ;; If name is not nil then delete any duplications.
-    ;; If before is not nil, insert before before. Otherwise
-    ;; if name is not nil and it is found in menu, insert there, else
-    ;; insert at end.
+		 ((eq keyword :visible) (setq visible (or arg ''nil)))
+		 ((eq keyword :key-sequence)
+		  (setq cache arg cache-specified t))
+		 ((eq keyword :keys) (setq keys arg no-name nil))
+		 ((eq keyword :label) (setq label arg))
+		 ((eq keyword :active) (setq active (or arg ''nil)))
+		 ((eq keyword :suffix) (setq suffix arg))
+		 ((eq keyword :style) (setq style arg))
+		 ((eq keyword :selected) (setq selected (or arg ''nil)))))
+	      (if (stringp suffix)
+		  (setq label (if (stringp label) (concat label " " suffix)
+				(list 'concat label (concat " " suffix)))))
+	      (if (and selected
+		       (setq style (assq style easy-menu-button-prefix)))
+		  (setq prop (cons :button
+				   (cons (cons (cdr style) (or selected ''nil))
+					 prop))))
+	      (when (stringp keys)
+		 (if (string-match "^[^\\]*\\(\\\\\\[\\([^]]+\\)]\\)[^\\]*$"
+				   keys)
+		     (let ((prefix
+			    (if (< (match-beginning 0) (match-beginning 1))
+				(substring keys 0 (match-beginning 1))))
+			   (postfix
+			    (if (< (match-end 1) (match-end 0))
+				(substring keys (match-end 1))))
+			   (cmd (intern (substring keys (match-beginning 2)
+						   (match-end 2)))))
+		       (setq keys
+			     (and (or prefix postfix (not (eq command cmd)))
+				  (cons cmd
+					(and (or prefix postfix)
+					     (cons prefix postfix))))))
+		   (setq cache-specified nil))
+		 (if keys (setq prop (cons :keys (cons keys prop)))))
+	      (if (and visible (not (easy-menu-always-true visible)))
+		  (if (equal visible ''nil)
+		      ;; Invisible menu item. Don't insert into keymap.
+		      (setq remove t)
+		    (setq prop (cons :visible (cons visible prop)))))))
+	(if (and active (not (easy-menu-always-true active)))
+	    (setq prop (cons :enable (cons active prop))))
+	(if (and (or no-name cache-specified)
+		 (or (null cache) (stringp cache) (vectorp cache)))
+	    (setq prop (cons :key-sequence (cons cache prop))))))
+     (t (error "Invalid menu item in easymenu.")))
+    (easy-menu-define-key menu (if (stringp name) (intern name) name)
+			  (and (not remove)
+			       (cons 'menu-item
+				     (cons label
+					   (and name (cons command prop)))))
+			  (if (stringp before) (intern before) before))))
+
+(defun easy-menu-define-key (menu key item &optional before)
+  ;; Add binding in MENU for KEY => ITEM.  Similar to `define-key-after'.
+  ;; If KEY is not nil then delete any duplications. If ITEM is nil, then
+  ;; don't insert, only delete.
+  ;; Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
+  ;; put binding before BEFORE in MENU, otherwise if binding is already
+  ;; present in MENU, just change it, otherwise put it last in MENU.
+  (let ((inserted (null item))		; Fake already inserted.
+	done)
     (while (not done)
       (cond
        ((or (setq done (or (null (cdr menu)) (keymapp (cdr menu))))
-	    (and before (eq (car-safe (cadr menu)) before)))
-	;; If name is nil, stop here, otherwise keep going past the
+	    (and before (equal (car-safe (cadr menu)) before)))
+	;; If key is nil, stop here, otherwise keep going past the
 	;; inserted element so we can delete any duplications that come
 	;; later.
-	(if (null name) (setq done t))
+	(if (null key) (setq done t))
 	(unless inserted		; Don't insert more than once.
-	  (setcdr menu (cons (cons name item) (cdr menu)))
+	  (setcdr menu (cons (cons key item) (cdr menu)))
 	  (setq inserted t)
 	  (setq menu (cdr menu))))
-       ((and name (eq (car-safe (cadr menu)) name))
-	(if (and before			; Wanted elsewere and
-		 (not (setq done	; not the last in this keymap.
-			    (or (null (cddr menu)) (keymapp (cddr menu))))))
-	      (setcdr menu (cddr menu))
-	  (setcdr (cadr menu) item) ; Change item.
+       ((and key (equal (car-safe (cadr menu)) key))
+	(if (and (or inserted		; Already inserted or
+		     before)		;  wanted elsewhere and
+		 (or (not (setq done	;  not the last in this keymap.
+				(or (null (cddr menu))
+				    (keymapp (cddr menu)))))
+		     inserted))
+	    ;; The contorted logic above, guarantees `done' has been computed.
+	    (setcdr menu (cddr menu))	; Remove item.
+	  (setcdr (cadr menu) item)	; Change item.
 	  (setq inserted t))))
-      (setq menu (cdr menu)))
-    have-buttons))
+      (setq menu (cdr menu)))))
+
+(defun easy-menu-always-true (x)
+  ;; Return true if X never evaluates to nil.
+  (if (consp x) (and (eq (car x) 'quote) (cadr x))
+    (or (eq x t) (not (symbolp x)))))
 
 (defvar easy-menu-item-count 0)
 
-(defun easy-menu-make-symbol (callback &optional call)
+(defun easy-menu-make-symbol (callback)
   ;; Return a unique symbol with CALLBACK as function value.
-  ;; If CALL is false then this is a keymap, not a function.
-  ;; Else if CALLBACK is a symbol, avoid the indirection when looking for
-  ;; key-bindings in menu.
-  ;; Else make a lambda expression of CALLBACK.
   (let ((command
 	 (make-symbol (format "menu-function-%d" easy-menu-item-count))))
     (setq easy-menu-item-count (1+ easy-menu-item-count))
     (fset command
-	  (cond
-	   ((not call) callback)
-	   ((symbolp callback)
-	    ;; Try find key-bindings for callback instead of for command
-	    (put command 'menu-alias t) ; when displaying menu.
-	    callback)
-	   (t `(lambda () (interactive) ,callback))))
+	  (if (keymapp callback) callback
+	    `(lambda () (interactive) ,callback)))
     command))
-
-(defun easy-menu-filter (name filter)
-  "Used as menu-enable property to filter menus.
-A call to this function is used as the menu-enable property for a menu with
-a filter function.
-NAME is a symbol with a keymap as function value.  Call the function FILTER
-with this keymap as argument.  FILTER must return a keymap which becomes the
-new function value for NAME.  Use `easy-menu-filter-return' to return the
-correct value in a way portable to XEmacs. If the new keymap is `eq' the old,
-then the menu is not updated."
-  (let* ((old (symbol-function name))
-	 (new (funcall filter old)))
-    (or (eq old new)			; No change
-	(and (fset name new)
-	     ;; Make sure the menu gets updated by returning a
-	     ;; different value than last time to cheat the cache. 
-	     (random)))))
-
-(defun easy-menu-update-button (item ch selected active)
-  "Used as menu-enable property to update buttons.
-A call to this function is used as the menu-enable property for buttons.
-ITEM is the item-string into which CH or ` ' is inserted depending on if
-SELECTED is true or not.  The menu entry in enabled iff ACTIVE is true."
-  (let ((new (if selected ch ? ))
-	(old (aref item 1)))
-    (if (eq new old)
-	;; No change, just use the active value.
-	active
-      ;; It has changed.  Update the entry.
-      (aset item 1 new)
-      ;; If the entry is active, make sure the menu gets updated by
-      ;; returning a different value than last time to cheat the cache. 
-      (and active
-	   (random)))))
 
 (defun easy-menu-change (path name items &optional before)
   "Change menu found at PATH as item NAME to contain ITEMS.
@@ -348,22 +352,18 @@ element should be the name of a submenu directly under MENU.  This
 submenu is then traversed recursively with the remaining elements of PATH.
 ITEM is either defined as in `easy-menu-define' or a menu defined earlier
 by `easy-menu-define' or `easy-menu-create-menu'."
-  (let ((top (not (or menu path))))
-    (setq menu (easy-menu-get-map menu path))
-    (if (or (keymapp item)
-	    (and (symbolp item) (keymapp (symbol-value item))))
-	;; Item is a keymap, find the prompt string and use as item name.
-	(let ((tail (easy-menu-get-map item nil)) name)
-	  (if (not (keymapp item)) (setq item tail))
-	  (while (and (null name) (consp (setq tail (cdr tail)))
-		      (not (keymapp tail)))
-	    (if (stringp (car tail)) (setq name (car tail)) ; Got a name.
-	      (setq tail (cdr tail))))
-	  (setq item (cons name item))))
-    (easy-menu-do-add-item menu item
-			   (and (not top) (easy-menu-have-button menu)
-				"    ")
-			   before top)))
+  (setq menu (easy-menu-get-map menu path))
+  (if (or (keymapp item)
+	  (and (symbolp item) (keymapp (symbol-value item))))
+      ;; Item is a keymap, find the prompt string and use as item name.
+      (let ((tail (easy-menu-get-map item nil)) name)
+	(if (not (keymapp item)) (setq item tail))
+	(while (and (null name) (consp (setq tail (cdr tail)))
+		    (not (keymapp tail)))
+	  (if (stringp (car tail)) (setq name (car tail)) ; Got a name.
+	    (setq tail (cdr tail))))
+	(setq item (cons name item))))
+  (easy-menu-do-add-item menu item before))
 
 (defun easy-menu-item-present-p (menu path name)
   "In submenu of MENU with path PATH, return true iff item NAME is present.
@@ -375,21 +375,11 @@ NAME should be a string, the name of the element to be looked for."
   "From submenu of MENU with path PATH remove item NAME.
 MENU and PATH are defined as in `easy-menu-add-item'.
 NAME should be a string, the name of the element to be removed."
-  (let ((item (vector (intern name)))
-	(top (not (or menu path)))
-	tmp)
-    (setq menu (easy-menu-get-map menu path))
-    (when (setq tmp (lookup-key menu item))
-      (define-key menu item nil)
-      (and (not top)
-	   (easy-menu-is-button tmp)	; Removed item was a button and
-	   (not (easy-menu-have-button menu)) ; no buttons left then
-	   ;; remove prefix from items in menu
-	   (easy-menu-change-prefix menu nil)))))
+  (easy-menu-define-key (easy-menu-get-map menu path) (intern name) nil))
 
 (defun easy-menu-get-map (menu path)
   ;; Return a sparse keymap in which to add or remove an item.
-  ;; MENU and PATH are as defined in `easy-menu-remove-item'.
+  ;; MENU and PATH are as defined in `easy-menu-add-item'.
   (if (null menu)
       (setq menu (key-binding (vconcat '(menu-bar) (mapcar 'intern path))))
     (if (and (symbolp menu) (not (keymapp menu)))
@@ -399,50 +389,6 @@ NAME should be a string, the name of the element to be removed."
     (setq menu (symbol-function menu)))
   (or (keymapp menu) (error "Malformed menu in easy-menu: (%s)" menu))
   menu)
-
-(defun easy-menu-is-button (val)
-  ;; VAL is a real menu binding.  Return true iff it is a toggle or
-  ;; radio button.
-  (and (symbolp val)
-       (consp (setq val (get val 'menu-enable)))
-       (eq (car val) 'easy-menu-update-button)))
-
-(defun easy-menu-have-button (map)
-  ;; MAP is a sparse keymap.  Return true iff there is any toggle or radio
-  ;; button in MAP.
-  (let ((have nil) tmp)
-    (while (and (consp map) (not have))
-      (and (consp (setq tmp (car map)))
-	   (consp (setq tmp (cdr tmp)))
-	   (stringp (car tmp))
-	   (setq have (easy-menu-is-button (easy-menu-real-binding tmp))))
-      (setq map (cdr map)))
-    have))
-
-(defun easy-menu-real-binding (val)
-  ;; Val is a menu keymap binding.  Skip item string.
-  ;; Also skip a possible help string and/or key-binding cache.
-  (if (and (consp (setq val (cdr val))) (stringp (car val)))
-      (setq val (cdr val)))		; Skip help string.
-  (if (and (consp val) (consp (car val))
-	   (or (null (caar val)) (vectorp (caar val))))
-      (setq val (cdr val)))		; Skip key-binding cache.
-  val)
-
-(defun easy-menu-change-prefix (map add)
-  ;; MAP is a sparse keymap.
-  ;; If ADD is true add a button compensating prefix to each menu item in MAP.
-  ;; Else remove prefix instead.
-  (let (tmp val)
-    (while (consp map)
-      (when (and (consp (setq tmp (car map)))
-		 (consp (setq tmp (cdr tmp)))
-		 (stringp (car tmp)))
-	(cond
-	 (add (setcar tmp (concat "    " (car tmp))))
-	 ((string-match "$    " (car tmp))
-	  (setcar tmp (substring (car tmp) (match-end 0))))))
-      (setq map (cdr map)))))
 
 (provide 'easymenu)
 
