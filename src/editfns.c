@@ -900,7 +900,9 @@ The state of activation of the mark is also restored.
 This construct does not save `deactivate-mark', and therefore
 functions that change the buffer will still cause deactivation
 of the mark at the end of the command.  To prevent that, bind
-`deactivate-mark' with `let'.  */)
+`deactivate-mark' with `let'.
+
+usage: (save-excursion &rest BODY)  */)
      (args)
      Lisp_Object args;
 {
@@ -915,7 +917,8 @@ of the mark at the end of the command.  To prevent that, bind
 
 DEFUN ("save-current-buffer", Fsave_current_buffer, Ssave_current_buffer, 0, UNEVALLED, 0,
        doc: /* Save the current buffer; execute BODY; restore the current buffer.
-Executes BODY just like `progn'.  */)
+Executes BODY just like `progn'.
+usage: (save-current-buffer &rest BODY)  */)
      (args)
      Lisp_Object args;
 {
@@ -2938,7 +2941,9 @@ The value returned is the value of the last form in BODY.
 
 Note: if you are using both `save-excursion' and `save-restriction',
 use `save-excursion' outermost:
-    (save-excursion (save-restriction ...))  */)
+    (save-excursion (save-restriction ...))
+
+usage: (save-restriction &rest BODY)  */)
      (body)
      Lisp_Object body;
 {
