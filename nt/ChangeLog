@@ -1,3 +1,14 @@
+2001-03-17  Andrew Innes  <andrewi@gnu.org>
+
+	* cmdproxy.c (get_next_token): Fix indefinite loop bug scanning
+	escaped quotes.
+
+	* gmake.defs (DEBUG_LINK): New macro.
+	(LINK_FLAGS): Use it.
+
+	* nmake.defs (DEBUG_LINK): New macro.
+	(LINK_FLAGS): Use it.
+
 2001-03-06  Andrew Innes  <andrewi@gnu.org>
 
 	* INSTALL: Add --ldflags to configure line for building with
