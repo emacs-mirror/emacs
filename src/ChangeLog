@@ -1,5 +1,8 @@
 2002-07-03  Dave Love  <fx@gnu.org>
 
+	* minibuf.c (Fminibuffer_complete_word): Remove unused var.
+	(Fself_insert_and_exit): Use CHARACTERP.
+
 	* callproc.c (Fcall_process): Remove unused vars.
 
 	* xterm.c (XTread_socket): Add extra dead keysyms.
