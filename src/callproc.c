@@ -1,11 +1,11 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -24,9 +24,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <config.h>
 
 extern int errno;
-#ifndef VMS
-extern char *sys_errlist[];
-#endif
+extern char *strerror ();
 
 /* Define SIGCHLD as an alias for SIGCLD.  */
 
@@ -674,9 +672,10 @@ relocate_fd (fd, min)
       if (new == -1)
 	{
 	  char *message1 = "Error while setting up child: ";
+	  char *errmessage = strerror (errno);
 	  char *message2 = "\n";
 	  write (2, message1, strlen (message1));
-	  write (2, sys_errlist[errno], strlen (sys_errlist[errno]));
+	  write (2, errmessage, strlen (errmessage));
 	  write (2, message2, strlen (message2));
 	  _exit (1);
 	}
