@@ -1,8 +1,6 @@
 Tasks needed before the next release.
 
-** Test the mbox branch of Rmail.
-
-** Install the mbox branch of Rmail.
+* DOCUMENTATION
 
 ** Finish updating the Emacs Lisp manual.
 
@@ -16,18 +14,33 @@ Tasks needed before the next release.
 
 ** Update man/info.texi.
 
+
+* NEW FEATURES
+
+** Test the mbox branch of Rmail.
+
+** Install the mbox branch of Rmail.
+
+
+* FATAL ERRORS
+
+** Investigate face cache related crash.
+
+Indications: Face cache seems to have been cleared, but
+redisplay uses an invalidated face_id with FACE_FROM_ID
+which then returns a NULL pointer.  Said to happen with
+isearch faces.
+
+
+* GTK RELATED BUGS
+
 ** Make geometry specifications work correctly for GTK.
 
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
 
 ** Make GTK toolbar look OK on monochrome displays.
 
-
-IMPORTANT BUG FIXES:
-
-** Investigate face cache related crash.
-
-   Indications: Face cache seems to have been cleared, but
-   redisplay uses an invalidated face_id with FACE_FROM_ID
-   which then returns a NULL pointer.  Said to happen with
-   isearch faces.
+
+Local variables:
+mode: outline
+end:
