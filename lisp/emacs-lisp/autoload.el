@@ -402,7 +402,7 @@ For example, invoke \"emacs -batch -f batch-update-autoloads *.el\""
  		(funcall frob (car rest))
  		(setq rest (cdr rest))))
  	  (funcall frob (car args)))
- 	(setq args (cdr args)))
+ 	(setq args (cdr args))))
     (save-some-buffers t)
     (message "Done")
     (kill-emacs (if lost 1 0))))
