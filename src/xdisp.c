@@ -4536,6 +4536,13 @@ reseat_1 (it, pos, set_stop_p)
   IT_STRING_BYTEPOS (*it) = -1;
   it->string = Qnil;
   it->method = next_element_from_buffer;
+  /* RMS: I added this to fix a bug in move_it_vertically_backward
+     where it->area continued to relate to the starting point
+     for the backward motion.  Bug report from
+     Nick Roberts <nick@nick.uklinux.net> on 19 May 2003.
+     However, I am not sure whether reseat still does the right thing
+     in general after this change.  */
+  it->area = TEXT_AREA;
   it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
   it->sp = 0;
   it->face_before_selective_p = 0;
