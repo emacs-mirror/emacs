@@ -524,6 +524,7 @@ See also the function `interactive'.")
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
   Ffset (fn_name, defn);
+  LOADHIST_ATTACH (fn_name);
   return fn_name;
 }
 
@@ -545,6 +546,7 @@ and the result should be a form to be evaluated instead of the original.")
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
   Ffset (fn_name, defn);
+  LOADHIST_ATTACH (fn_name);
   return fn_name;
 }
 
@@ -580,6 +582,7 @@ If INITVALUE is missing, SYMBOL's value is not set.")
 	tem = Fpurecopy (tem);
       Fput (sym, Qvariable_documentation, tem);
     }
+  LOADHIST_ATTACH (sym);
   return sym;
 }
 
@@ -611,6 +614,7 @@ it would override the user's choice.")
 	tem = Fpurecopy (tem);
       Fput (sym, Qvariable_documentation, tem);
     }
+  LOADHIST_ATTACH (sym);
   return sym;
 }
 
@@ -1377,7 +1381,7 @@ do_autoload (fundef, funname)
      Lisp_Object fundef, funname;
 {
   int count = specpdl_ptr - specpdl;
-  Lisp_Object fun, val;
+  Lisp_Object fun, val, queue, first, second;
 
   fun = funname;
   CHECK_SYMBOL (funname, 0);
@@ -1386,6 +1390,19 @@ do_autoload (fundef, funname)
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
   Fload (Fcar (Fcdr (fundef)), Qnil, noninteractive ? Qt : Qnil, Qnil);
+
+  /* Save the old autoloads, in case we ever do an unload. */
+  queue = Vautoload_queue;
+  while (CONSP (queue))
+    {
+      first = Fcar (queue);
+      second = Fcdr (first);
+      first = Fcar (first);
+      if (!EQ (second, Qnil))
+	  Fput(first, Qautoload, (Fcdr (second)));
+      queue = Fcdr (queue);
+    }
+
   /* Once loading finishes, don't undo it.  */
   Vautoload_queue = Qt;
   unbind_to (count, Qnil);
