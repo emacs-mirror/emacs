@@ -4,6 +4,11 @@
 
 	* bs.el: Update from author.
 
+2000-11-28  Milan Zamazal  <pdm@freesoft.cz>
+
+	* textmodes/tildify.el (tildify-string-alist): Add
+	`plain-tex-mode' here.
+
 2000-11-28  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* chistory.el (Command-history-setup): Remove extraneous `keymap'
