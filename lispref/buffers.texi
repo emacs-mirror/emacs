@@ -253,7 +253,8 @@ object, not a name.
 
   Buffers that are ephemeral and generally uninteresting to the user
 have names starting with a space, so that the @code{list-buffers} and
-@code{buffer-menu} commands don't mention them.  A name starting with
+@code{buffer-menu} commands don't mention them (but if such a buffer
+visits a file, it @strong{is} mentioned).  A name starting with
 space also initially disables recording undo information; see
 @ref{Undo}.
 
