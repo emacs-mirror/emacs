@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.34 2001/09/01 21:23:17 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.35 2001/09/27 21:13:44 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -219,6 +219,7 @@ This is obsolete because you might as well use \\[newline-and-indent]."
 	       (goto-char (point-min))
 	       (and (forward-comment 1) (eobp))))))
     ;; comment-padding
+    (unless comment-padding (setq comment-padding 0))
     (when (integerp comment-padding)
       (setq comment-padding (make-string comment-padding ? )))
     ;; comment markers
