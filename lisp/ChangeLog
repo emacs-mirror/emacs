@@ -22,6 +22,8 @@
 	* Makefile.in (finder_setwins): Renamed from nonobsolete_setwins.
 	Don't include term/.
 
+	* mail/sc.el:  Moved to obsolete/.
+
 2001-08-14  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Change error function arguments to follow Emacs
