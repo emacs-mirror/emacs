@@ -242,7 +242,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
      but it's important to save time here in the usual case.  */
-  if (!NILP (Vminibuffer_setup_hook) && !EQ (Vminibuffer_setup_hook, Qunbound))
+  if (!NILP (Vminibuffer_setup_hook) && !EQ (Vminibuffer_setup_hook, Qunbound)
+      && !NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qminibuffer_setup_hook);
 
 /* ??? MCC did redraw_screen here if switching screens.  */
