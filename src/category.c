@@ -364,7 +364,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
   while (start <= end)
     {
       category_set = char_table_ref_and_range (table, start, &from, &to);
-      if (CATEGORY_MEMBER (category, category_set) != NILP (reset))
+      if (CATEGORY_MEMBER (XFASTINT (category), category_set) != NILP (reset))
 	{
 	  category_set = Fcopy_sequence (category_set);
 	  SET_CATEGORY_SET (category_set, category, set_value);
