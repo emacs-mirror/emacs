@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.4) $
+ * $HopeName: MMsrc!misc.h(trunk.5) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * Small general things which are useful for C but aren't part of the
@@ -66,7 +66,7 @@ enum
   FALSE = 0,
   TRUE = 1
 };
-
+#define BoolCheck(b)            ((b) == TRUE || (b) == FALSE)
 
 /* NOOP -- null statement
  *
@@ -137,5 +137,8 @@ enum {
   ResIO                         /* system I/O error */
 };
 
+
+/* Functions - no type */
+#define FunctionCheck(fun)      ((fun) != NULL) /* Could do more ? */
 
 #endif /* misc_h */

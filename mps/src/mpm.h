@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.9) $
+ * $HopeName: MMsrc!mpm.h(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -174,9 +174,10 @@ extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 
 extern void PoolReclaim(Pool pool, Space space, TraceId ti);
 extern void PoolAccess(Pool pool, Seg seg, AccessSet mode);
-extern Size PoolPoll(Pool pool);
 
+extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
+extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
 extern void PoolTrivFree(Pool pool, Addr old, Size size);
 extern Res PoolNoBufferInit(Pool pool, Buffer buf);
@@ -430,5 +431,6 @@ extern void VMUnmap(Space space, Addr base, Addr limit);
 extern Size VMReserved(Space space);
 extern Size VMMapped(Space space);
 
+#define AttrCheck(attr) (((attr) & ~AttrMask) == 0)
 
 #endif /* mpm_h */
