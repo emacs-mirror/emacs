@@ -1,3 +1,28 @@
+2003-06-03  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-1):
+	Add save-excursion.
+
+	* windmove.el (windmove-reference-loc, windmove-frame-edges):
+	Use window-inside-edges.
+	(windmove-do-window-select): Fix error messages.
+
+	* files.el (after-find-file): Simplify msg if nonexistent directory.
+	(make-directory): Doc fix.
+
+	* dabbrev.el (dabbrev--goto-start-of-abbrev):
+	Use minibuffer-prompt-end.
+
+	* comint.el (comint-move-point-for-output): Renamed from
+	comint-scroll-to-bottom-on-output.  Old name is alias.
+	All uses changed.  Doc fix.
+	(comint-scroll-show-maximum-output): Doc fix.
+
+	* comint.el (comint-exec-1): Don't use directory-sep-char.
+	(comint-dynamic-complete-as-filename): Likewise.
+
+	* bindings.el (global-map): Delete C-M-delete and C-M-backspace.
+
 2003-06-03  Markus Rost  <rost@math.ohio-state.edu>
 
 	* progmodes/ps-mode.el (ps-mode): Use autoload cookie in the

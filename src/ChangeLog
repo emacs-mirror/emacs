@@ -1,3 +1,13 @@
+2003-06-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fwindow_edges): Doc fix.
+	(Fwindow_pixel_edges, Fwindow_inside_edges)
+	(Fwindow_inside_pixel_edges): New functions.
+	(syms_of_window): defsubr them.
+
+	* window.h (WINDOW_LEFT_FRINGE_COLS, WINDOW_RIGHT_FRINGE_COLS)
+	(WINDOW_MODE_LINE_LINES, WINDOW_HEADER_LINE_LINES): New macros.
+
 2003-06-02  Dave Love  <fx@gnu.org>
 
 	* callproc.c: Use HAVE_FCNTL_H, not USG5.
