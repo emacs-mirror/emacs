@@ -822,7 +822,7 @@ Defaults to `text-mode-abbrev-table'.")
 (defvar message-font-lock-keywords
   (let* ((cite-prefix "[:alpha:]")
 	 (cite-suffix (concat cite-prefix "0-9_.@-"))
-	 (content "[ \t]*\\(.+\\(\n[ \t].*\\)*\\)"))
+	 (content "[ \t]*\\(.+\\(\n[ \t].*\\)*\\)\n?"))
     `((,(concat "^\\([Tt]o:\\)" content)
        (1 'message-header-name-face)
        (2 'message-header-to-face nil t))
