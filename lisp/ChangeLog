@@ -10,9 +10,8 @@
 
 2003-02-25  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/make-mode.el (makefile-font-lock-keywords): Protect
-	shell variable references by requireing that $ is not preceded by
-	another $.
+	* progmodes/make-mode.el (makefile-font-lock-keywords): Protect shell
+	variable references by requireing that $ is not preceded by another $.
 
 2003-02-25  Kenichi Handa  <handa@m17n.org>
 
@@ -22,14 +21,19 @@
 
 	* language/mlm-util.el (mlm-char-glyph): Fix more rules.
 
+2003-02-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/simula.el: Move abbrev loading to after the fun it uses.
+	(simula-install-standard-abbrevs): Use dolist.
+	Use system-flag when calling define-abbrev.
+
 2003-02-24  Dave Love  <fx@gnu.org>
 
-	* obsolete/cplus-md.el: Deleted.  (Requires removed c-mode.el.)
+	* obsolete/cplus-md.el: Delete.  (Requires removed c-mode.el.)
 
 	* env.el (read-envvar-name): Decode names.
 	(substitute-env-vars): Use eval-when-compile and char class.
-	(setenv): Doc fix.  Encode the data (after checking that's
-	possible).
+	(setenv): Doc fix.  Encode the data (after checking that's possible).
 	(getenv): Encode the name and decode the result.
 
 2003-02-24  Ken Manheimer  <klm@zope.com>
@@ -80,7 +84,7 @@
 
 	* progmodes/cperl-mode.el: Merge changes from CPerl-5.0.
 	(toplevel): Require man.
-	(condition-case): Don't autoload tmm-prompt (it's in loaddefs.el).
+	Don't autoload tmm-prompt (it's in loaddefs.el).
 	(cperl-electric-backspace-untabify): New var.
 	(cperl-electric-backspace): Use it.
 	(cperl-vc-header-alist): Extract numeric version from the Id.

@@ -16,6 +16,10 @@
 	* buffer.c (Fset_buffer_multibyte): Pay attention to the buffer
 	process only when "subprocesses" is defined.
 
+2003-02-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (back_comment): Only check nestedness of 2nd char if needed.
+
 2003-02-24  Juanma Barranquero  <lektu@terra.es>
 
 	* callint.c (fix_command): Declare as static void and move before
@@ -513,8 +517,8 @@
 	(notice_overwritten_cursor): Consider the cursor image erased if
 	the output area intersects the cursor image in y-direction.
 
-	* w32term.c (note_mode_line_or_margin_highlight): Renamed from
-	note_mode_line_highlight and extended.
+	* w32term.c (note_mode_line_or_margin_highlight): Rename from
+	note_mode_line_highlight and extend.
 
 	* w32term.c (last_window): New variable.
 	(w32_read_socket) <WM_MOUSEMOVE>: Generate SELECT_WINDOW_EVENTs.
