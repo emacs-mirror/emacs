@@ -1407,49 +1407,56 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 ;;    (setq list (cdr list))))
 
 (defvar Info-complete-menu-buffer)
+(defvar Info-complete-next-re nil)
+(defvar Info-complete-cache nil)
 
 (defun Info-complete-menu-item (string predicate action)
-  (let ((completion-ignore-case t)
-	(case-fold-search t))
-    (cond ((eq action nil)
-	   (let (completions
-		 (pattern (concat "\n\\* +\\("
-				  (regexp-quote string)
-				  "[^:\t\n]*\\):")))
-	     (save-excursion
-	       (set-buffer Info-complete-menu-buffer)
-	       (goto-char (point-min))
-	       (search-forward "\n* Menu:")
-	       (while (re-search-forward pattern nil t)
-		 (setq completions
-		       (cons (cons (match-string-no-properties 1)
-				   (match-beginning 1))
-			     completions))))
-	     (try-completion string completions predicate)))
-	  ((eq action t)
-	   (let (completions
-		 (pattern (concat "\n\\* +\\("
-				  (regexp-quote string)
-				  "[^:\t\n]*\\):")))
-	     (save-excursion
-	       (set-buffer Info-complete-menu-buffer)
-	       (goto-char (point-min))
-	       (search-forward "\n* Menu:")
-	       (while (re-search-forward pattern nil t)
-		 (setq completions (cons (cons
-					  (match-string-no-properties 1)
-					  (match-beginning 1))
-					 completions))))
-	     (all-completions string completions predicate)))
-	  (t
-	   (save-excursion
-	     (set-buffer Info-complete-menu-buffer)
-	     (goto-char (point-min))
-	     (search-forward "\n* Menu:")
-	     (re-search-forward (concat "\n\\* +"
-					(regexp-quote string)
-					":")
-				nil t))))))
+  (save-excursion
+    (set-buffer Info-complete-menu-buffer)
+    (let ((completion-ignore-case t)
+	  (case-fold-search t)
+	  (orignode Info-current-node)
+	  nextnode)
+      (goto-char (point-min))
+      (search-forward "\n* Menu:")
+      (if (not (memq action '(nil t)))
+	  (re-search-forward
+	   (concat "\n\\* +" (regexp-quote string) ":") nil t)
+	(let ((pattern (concat "\n\\* +\\("
+			       (regexp-quote string)
+			       "[^:\t\n]*\\):"))
+	      completions)
+	  ;; Check the cache.
+	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
+		   (equal (nth 1 Info-complete-cache) Info-current-node)
+		   (equal (nth 2 Info-complete-cache) Info-complete-next-re)
+		   (let ((prev (nth 3 Info-complete-cache)))
+		     (eq t (compare-strings string 0 (length prev)
+					    prev 0 nil t))))
+	      ;; We can reuse the previous list.
+	      (setq completions (nth 4 Info-complete-cache))
+	    ;; The cache can't be used.
+	    (while
+		(progn
+		  (while (re-search-forward pattern nil t)
+		    (push (cons (match-string-no-properties 1)
+				(match-beginning 1))
+			  completions))
+		  ;; Check subsequent nodes if applicable.
+		  (and Info-complete-next-re
+		       (setq nextnode (Info-extract-pointer "next" t))
+		       (string-match Info-complete-next-re nextnode)))
+	      (Info-goto-node nextnode))
+	    ;; Go back to the start node (for the next completion).
+	    (unless (equal Info-current-node orignode)
+	      (Info-goto-node orignode))
+	    ;; Update the cache.
+	    (setq Info-complete-cache
+		  (list Info-current-file Info-current-node
+			Info-complete-next-re string completions)))
+	  (if action
+	      (all-completions string completions predicate)
+	    (try-completion string completions predicate)))))))
 
 
 (defun Info-menu (menu-item &optional fork)
@@ -1817,35 +1824,46 @@ parent node."
 	    (error "No cross references in this node")
 	  (Info-prev-reference t)))))
 
+(defun Info-goto-index ()
+  (Info-goto-node "Top")
+  (or (search-forward "\n* menu:" nil t)
+      (error "No index"))
+  (or (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
+      (error "No index"))
+  (goto-char (match-beginning 1))
+  (Info-goto-node (Info-extract-menu-node-name)))
+
 (defun Info-index (topic)
   "Look up a string TOPIC in the index for this file.
-The index is defined as the first node in the top-level menu whose
+The index is defined as the first node in the top level menu whose
 name contains the word \"Index\", plus any immediately following
 nodes whose names also contain the word \"Index\".
 If there are no exact matches to the specified topic, this chooses
 the first match which is a case-insensitive substring of a topic.
 Use the `,' command to see the other matches.
 Give a blank topic name to go to the Index node itself."
-  (interactive "sIndex topic: ")
+  (interactive
+   (list
+    (let ((Info-complete-menu-buffer (clone-buffer))
+	  (Info-complete-next-re "\\<Index\\>"))
+      (unwind-protect
+	  (with-current-buffer Info-complete-menu-buffer
+	    (Info-goto-index)
+	    (completing-read "Index topic: " 'Info-complete-menu-item))
+	(kill-buffer Info-complete-menu-buffer)))))
   (let ((orignode Info-current-node)
 	(rnode nil)
 	(pattern (format "\n\\* +\\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
 			 (regexp-quote topic)))
 	node
 	(case-fold-search t))
-    (Info-goto-node "Top")
-    (or (search-forward "\n* menu:" nil t)
-	(error "No index"))
-    (or (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
-	(error "No index"))
-    (goto-char (match-beginning 1))
     ;; Here, and subsequently in this function,
     ;; we bind Info-history to nil for internal node-switches
     ;; so that we don't put junk in the history.
     ;; In the first Info-goto-node call, above, we do update the history
     ;; because that is what the user's previous node choice into it.
     (let ((Info-history nil))
-      (Info-goto-node (Info-extract-menu-node-name)))
+      (Info-goto-index))
     (or (equal topic "")
 	(let ((matches nil)
 	      (exact nil)
@@ -2156,8 +2174,7 @@ If no reference to follow, moves to the next node, or up if none."
 	;; Update menu menu.
 	(let* ((Info-complete-menu-buffer (current-buffer))
 	       (items (nreverse (condition-case nil
-				    (Info-complete-menu-item
-				     "" (lambda (e) t) t)
+				    (Info-complete-menu-item "" nil t)
 				  (error nil))))
 	       entries current
 	       (number 0))
