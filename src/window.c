@@ -5861,7 +5861,8 @@ Second parameter WIDTH specifies the pixel width for the scroll bar;
 this is automatically adjusted to a multiple of the frame column width.
 Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
 bar: left, right, or nil.
-A width of nil and type of t means to use the frame's corresponding value.  */)
+If WIDTH is nil, use the frame's scroll-bar width.
+If TYPE is t, use the frame's scroll-bar type.  */)
      (window, width, vertical_type, horizontal_type)
      Lisp_Object window, width, vertical_type, horizontal_type;
 {
@@ -5872,6 +5873,12 @@ A width of nil and type of t means to use the frame's corresponding value.  */)
 
   if (XINT (width) == 0)
     vertical_type = Qnil;
+
+  if (!(EQ (vertical_type, Qnil)
+	|| EQ (vertical_type, Qleft) 
+	|| EQ (vertical_type, Qright)
+	|| EQ (vertical_type, Qt)))
+    error ("Invalid type of vertical scroll bar");
 
   if (!EQ (w->scroll_bar_width, width)
       || !EQ (w->vertical_scroll_bar_type, vertical_type))
