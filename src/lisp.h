@@ -1115,7 +1115,7 @@ struct Lisp_Marker
 
   /* For markers that point somewhere,
      this is used to chain of all the markers in a given buffer.  */
-  Lisp_Object chain;
+  struct Lisp_Marker *next;
   /* This is the char position where the marker points.  */
   int charpos;
   /* This is the byte position.  */
@@ -2741,7 +2741,7 @@ extern void clear_charpos_cache P_ ((struct buffer *));
 extern int charpos_to_bytepos P_ ((int));
 extern int buf_charpos_to_bytepos P_ ((struct buffer *, int));
 extern int buf_bytepos_to_charpos P_ ((struct buffer *, int));
-extern void unchain_marker P_ ((Lisp_Object));
+extern void unchain_marker P_ ((struct Lisp_Marker *marker));
 extern Lisp_Object set_marker_restricted P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object set_marker_both P_ ((Lisp_Object, Lisp_Object, int, int));
 extern Lisp_Object set_marker_restricted_both P_ ((Lisp_Object, Lisp_Object,
