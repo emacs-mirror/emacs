@@ -9576,8 +9576,9 @@ x_list_fonts (f, pattern, size, maxnames)
 	      int average_width = -1, resx = 0, dashes = 0;
 
 	      /* Count the number of dashes in NAMES[I].  If there are
-		 14 dashes, the field value following 9th dash
-		 (RESOLUTION_X) is nonzero, and the field value
+		 14 dashes, the field value following 7th dash
+		 (PIXEL_SIZE) is zero, the field value following 9th
+		 dash (RESOLUTION_X) is nonzero, and the field value
 		 following 12th dash (AVERAGE_WIDTH) is 0, this is a
 		 auto-scaled font which is usually too ugly to be used
 		 for editing.  Let's ignore it.  */
@@ -9594,7 +9595,8 @@ x_list_fonts (f, pattern, size, maxnames)
 		  }
 
 	      if (allow_auto_scaled_font
-		  || dashes < 14 || average_width != 0 || resx == 0)
+		  || dashes < 14
+		  || ! (width == 0 && resx != 0 && average_width == 0))
 		{
 		  tem = build_string (names[i]);
 		  if (NILP (Fassoc (tem, list)))
