@@ -1,3 +1,23 @@
+2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.45.
+
+	* net/tramp.el (top): Apply `def-edebug-spec' only if function is
+	defined.  This is not the case for XEmacs without package
+	"edebug".
+	(tramp-set-auto-save-file-modes): Set permissions of autosaved
+	remote files to the permissions of the original file.  This is not
+	the case for Emacs < 21.3.50 and XEmacs < 21.5.  Add function to
+	`auto-save-hook'.  Reported by Thomas Prokosch <thomas@nadev.net>.
+	(tramp-perl-decode): Fixed an error in Perl implementation.
+	$pending must be cleared every loop.  Reported by Benjamin Place
+	<benjaminplace@sprintmail.com>
+
+	* net/tramp-smb.el (tramp-smb-advice-PC-do-completion): Don't
+	activate advice during definition.  This is done later on,
+	depending on test result of `substitute-in-file-name'.  Suggested
+	by Stefan Monnier <monnier@iro.umontreal.ca>.
+
 2004-10-12  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-edit-list): Update the menu when the recentf
