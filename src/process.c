@@ -54,8 +54,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <client.h>
 #endif
 
-/* DGUX inet_addr returns a 'struct in_addr'. */
-#ifdef DGUX
+/* On some systems, e.g. DGUX, inet_addr returns a 'struct in_addr'. */
+#ifdef HAVE_BROKEN_INET_ADDR
 #define IN_ADDR struct in_addr
 #define NUMERIC_ADDR_ERROR (numeric_addr.s_addr == -1)
 #else
