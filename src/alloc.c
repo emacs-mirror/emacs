@@ -668,7 +668,7 @@ significance.")
 	args[index] = Fpurecopy (args[index]);
       p->contents[index] = args[index];
     }
-  XSETTYPE (val, Lisp_Compiled);
+  XSETCOMPILED (val, val);
   return val;
 }
 
@@ -1523,77 +1523,77 @@ mark_object (objptr)
       break;
 
     case Lisp_Vectorlike:
-    case Lisp_Window:
-    case Lisp_Process:
-      {
-	register struct Lisp_Vector *ptr = XVECTOR (obj);
-	register EMACS_INT size = ptr->size;
-	/* The reason we use ptr1 is to avoid an apparent hardware bug
-	   that happens occasionally on the FSF's HP 300s.
-	   The bug is that a2 gets clobbered by recursive calls to mark_object.
-	   The clobberage seems to happen during function entry,
-	   perhaps in the moveml instruction.
-	   Yes, this is a crock, but we have to do it.  */
-	struct Lisp_Vector *volatile ptr1 = ptr;
-	register int i;
+      if (GC_SUBRP (obj))
+	break;
+      else if (GC_COMPILEDP (obj))
+	/* We could treat this just like a vector, but it is better
+	   to save the COMPILED_CONSTANTS element for last and avoid recursion
+	   there.  */
+	{
+	  register struct Lisp_Vector *ptr = XVECTOR (obj);
+	  register EMACS_INT size = ptr->size;
+	  /* See comment above under Lisp_Vector.  */
+	  struct Lisp_Vector *volatile ptr1 = ptr;
+	  register int i;
 
-	if (size & ARRAY_MARK_FLAG) break; /* Already marked */
-	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
-	if (size & PSEUDOVECTOR_FLAG)
+	  if (size & ARRAY_MARK_FLAG)
+	    break;   /* Already marked */
+	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	  size &= PSEUDOVECTOR_SIZE_MASK;
-	for (i = 0; i < size; i++) /* and then mark its elements */
-	  mark_object (&ptr1->contents[i]);
-      }
-      break;
-
-    case Lisp_Compiled:
-      /* We could treat this just like a vector, but it is better
-	 to save the COMPILED_CONSTANTS element for last and avoid recursion
-	 there.  */
-      {
-	register struct Lisp_Vector *ptr = XVECTOR (obj);
-	register EMACS_INT size = ptr->size;
-	/* See comment above under Lisp_Vector.  */
-	struct Lisp_Vector *volatile ptr1 = ptr;
-	register int i;
-
-	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
-	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
-	for (i = 0; i < size; i++)     /* and then mark its elements */
-	  {
-	    if (i != COMPILED_CONSTANTS)
-	      mark_object (&ptr1->contents[i]);
-	  }
-	/* This cast should be unnecessary, but some Mips compiler complains
-	   (MIPS-ABI + SysVR4, DC/OSx, etc).  */
-	objptr = (Lisp_Object *) &ptr1->contents[COMPILED_CONSTANTS];
-	goto loop;
-      }
-
+	  for (i = 0; i < size; i++) /* and then mark its elements */
+	    {
+	      if (i != COMPILED_CONSTANTS)
+		mark_object (&ptr1->contents[i]);
+	    }
+	  /* This cast should be unnecessary, but some Mips compiler complains
+	     (MIPS-ABI + SysVR4, DC/OSx, etc).  */
+	  objptr = (Lisp_Object *) &ptr1->contents[COMPILED_CONSTANTS];
+	  goto loop;
+	}
 #ifdef MULTI_FRAME
-    case Lisp_Frame:
-      {
-	/* See comment above under Lisp_Vector for why this is volatile.  */
-	register struct frame *volatile ptr = XFRAME (obj);
-	register EMACS_INT size = ptr->size;
+      else if (GC_FRAMEP (obj))
+	{
+	  /* See comment above under Lisp_Vector for why this is volatile.  */
+	  register struct frame *volatile ptr = XFRAME (obj);
+	  register EMACS_INT size = ptr->size;
 
-	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
-	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	  if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
+	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 
-	mark_object (&ptr->name);
-	mark_object (&ptr->focus_frame);
-	mark_object (&ptr->selected_window);
-	mark_object (&ptr->minibuffer_window);
-	mark_object (&ptr->param_alist);
-	mark_object (&ptr->scroll_bars);
-	mark_object (&ptr->condemned_scroll_bars);
-	mark_object (&ptr->menu_bar_items);
-	mark_object (&ptr->face_alist);
-	mark_object (&ptr->menu_bar_vector);
-	mark_object (&ptr->buffer_predicate);
-      }
-      break;
+	  mark_object (&ptr->name);
+	  mark_object (&ptr->focus_frame);
+	  mark_object (&ptr->selected_window);
+	  mark_object (&ptr->minibuffer_window);
+	  mark_object (&ptr->param_alist);
+	  mark_object (&ptr->scroll_bars);
+	  mark_object (&ptr->condemned_scroll_bars);
+	  mark_object (&ptr->menu_bar_items);
+	  mark_object (&ptr->face_alist);
+	  mark_object (&ptr->menu_bar_vector);
+	  mark_object (&ptr->buffer_predicate);
+	}
+      else
 #endif /* MULTI_FRAME */
+	{
+	  register struct Lisp_Vector *ptr = XVECTOR (obj);
+	  register EMACS_INT size = ptr->size;
+	  /* The reason we use ptr1 is to avoid an apparent hardware bug
+	     that happens occasionally on the FSF's HP 300s.
+	     The bug is that a2 gets clobbered by recursive calls to mark_object.
+	     The clobberage seems to happen during function entry,
+	     perhaps in the moveml instruction.
+	     Yes, this is a crock, but we have to do it.  */
+	  struct Lisp_Vector *volatile ptr1 = ptr;
+	  register int i;
+
+	  if (size & ARRAY_MARK_FLAG) break; /* Already marked */
+	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	  if (size & PSEUDOVECTOR_FLAG)
+	    size &= PSEUDOVECTOR_SIZE_MASK;
+	  for (i = 0; i < size; i++) /* and then mark its elements */
+	    mark_object (&ptr1->contents[i]);
+	}
+      break;
 
     case Lisp_Symbol:
       {
@@ -1709,7 +1709,6 @@ mark_object (objptr)
       break;
 
     case Lisp_Int:
-    case Lisp_Subr:
       break;
 
     default:
