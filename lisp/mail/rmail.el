@@ -315,7 +315,7 @@ examples:
   :group 'rmail
   :version "21.1"
   :type '(repeat (sexp :tag "Directive")))
-  
+
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
 
@@ -432,7 +432,7 @@ It is called with no argument.")
 ;;;###autoload
 (defvar rmail-insert-mime-forwarded-message-function nil
   "Function to insert a message in MIME format so it can be forwarded.
-This function is called if `rmail-enable-mime' or 
+This function is called if `rmail-enable-mime' or
 `rmail-enable-mime-composing' is non-nil.
 It is called with one argument FORWARD-BUFFER, which is a
 buffer containing the message to forward.  The current buffer
@@ -546,7 +546,7 @@ The first parenthesized expression should match the MIME-charset name.")
     (let* ((cite-chars "[>|}]")
 	   (cite-prefix "A-Za-z")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
-      (list '("^\\(From\\|Sender\\):" . font-lock-function-name-face)
+      (list '("^\\(From\\|Sender\\|Resent-[Ff]rom\\):" . font-lock-function-name-face)
 	    '("^Reply-To:.*$" . font-lock-function-name-face)
 	    '("^Subject:" . font-lock-comment-face)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
@@ -632,7 +632,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 ;; need code conversion while the buffer is unibyte
 	 ;; (i.e. enable-multibyte-characters is nil).
          (rmail-enable-multibyte
-          (if existed 
+          (if existed
 	      (with-current-buffer existed enable-multibyte-characters)
             (default-value 'enable-multibyte-characters)))
 	 ;; Since the file may contain messages of different encodings
@@ -657,7 +657,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		   (eq major-mode 'rmail-mode))
 	      (progn (rmail-forget-messages)
 		     (rmail-set-message-counters))))
-      (switch-to-buffer 
+      (switch-to-buffer
        (let ((enable-local-variables nil))
 	 (find-file-noselect file-name))))
     (if (eq major-mode 'rmail-edit-mode)
@@ -1269,8 +1269,8 @@ original copy."
 		   (if (consp item)
 		       (progn
 			 (setq command
-			       (rmail-list-to-menu (car item) (cdr item) 
-						   action 
+			       (rmail-list-to-menu (car item) (cdr item)
+						   action
 						   (if full-name
 						       (concat full-name "/"
 							       (car item))
@@ -1278,10 +1278,10 @@ original copy."
 			 (setq name (car item)))
 		     (progn
 		       (setq name item)
-		       (setq command 
+		       (setq command
 			     (list 'lambda () '(interactive)
 				   (list action
-					 (expand-file-name 
+					 (expand-file-name
 					  (if full-name
 					      (concat full-name "/" item)
 					    item)
@@ -1290,7 +1290,7 @@ original copy."
 		     (cons name command)))))
      (reverse l))
     menu))
- 
+
 ;; This command is always "disabled" when it appears in a menu.
 (put 'rmail-disable-menu 'menu-enable ''nil)
 
@@ -1299,13 +1299,13 @@ original copy."
     (if files
 	(progn
 	  (define-key rmail-mode-map [menu-bar classify input-menu]
-	    (cons "Input Rmail File" 
-		  (rmail-list-to-menu "Input Rmail File" 
+	    (cons "Input Rmail File"
+		  (rmail-list-to-menu "Input Rmail File"
 				      files
 				      'rmail-input)))
 	  (define-key rmail-mode-map [menu-bar classify output-menu]
-	    (cons "Output Rmail File" 
-		  (rmail-list-to-menu "Output Rmail File" 
+	    (cons "Output Rmail File"
+		  (rmail-list-to-menu "Output Rmail File"
 				      files
 				      'rmail-output-to-rmail-file))))
 
@@ -1548,13 +1548,13 @@ It returns t if it got any new messages."
 		   (save-excursion
 		     (setq errors (generate-new-buffer " *rmail loss*"))
 		     (buffer-disable-undo errors)
-		     (let ((args 
-			    (append 
+		     (let ((args
+			    (append
 			     (list (or rmail-movemail-program
 				       (expand-file-name "movemail"
 							 exec-directory))
 				   nil errors nil)
-			     (if rmail-preserve-inbox 
+			     (if rmail-preserve-inbox
 				 (list "-p")
 			       nil)
 			     rmail-movemail-flags
@@ -1869,7 +1869,7 @@ It returns t if it got any new messages."
 		      ""
 		    (concat
 		     "Date: \\2, \\4 \\3 \\9 \\5 "
-		    
+
 		     ;; The timezone could be matched by group 7 or group 10.
 		     ;; If neither of them matched, assume EST, since only
 		     ;; Easterners would be so sloppy.
@@ -2312,7 +2312,7 @@ change the invisible header text."
 	    (aset rmail-msgref-vector i (list i))
 	    (setq i (1+ i))))
 	(message "Counting messages...done")))))
-	
+
 (defun rmail-set-message-counters-counter (&optional stop)
   (let ((start (point))
 	next)
@@ -2588,7 +2588,7 @@ With prefix arg N, moves forward N messages, or backward if N is negative."
   "Show previous message whether deleted or not.
 With prefix arg N, moves backward N messages, or forward if N is negative."
   (interactive "p")
-  (rmail-next-message (- n)))  
+  (rmail-next-message (- n)))
 
 (defun rmail-next-undeleted-message (n)
   "Show following non-deleted message.
@@ -2675,7 +2675,7 @@ or forward if N is negative."
 		(forward-line 1))
 	      (setq beg (point))
 	      (narrow-to-region (point) end))
-	    (progn 
+	    (progn
 	      (rfc822-goto-eoh)
 	      (setq end (point)))
 	  (setq beg (point))
@@ -3419,14 +3419,14 @@ specifying headers which should not be copied into the new message."
     (save-excursion
       (goto-char (point-min))
       (let ((case-fold-search t))
-	(if (and content-type 
-		 (string-match 
-		  ";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=? ]+\\)\"?" 
+	(if (and content-type
+		 (string-match
+		  ";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=? ]+\\)\"?"
 		  content-type))
 	    ;; Handle a MIME multipart bounce message.
 	    (let ((codestring
 		   (concat "\n--"
-			   (substring content-type (match-beginning 1) 
+			   (substring content-type (match-beginning 1)
 				      (match-end 1)))))
 	      (unless (re-search-forward mail-mime-unsent-header nil t)
 		(error "Cannot find beginning of header in failed message"))
@@ -3547,7 +3547,7 @@ This has an effect only if a summary buffer exists."
 	 (setq window (get-buffer-window rmail-summary-buffer))
 	 ;; Don't try to change the size if just one window in frame.
 	 (not (eq window (frame-root-window (window-frame window))))
-	 (unwind-protect 
+	 (unwind-protect
 	     (progn
 	       (select-window window)
 	       (enlarge-window (- rmail-summary-window-size (window-height))))
@@ -3706,7 +3706,7 @@ TEXT and INDENT are not used."
   "Set PASSWORD to be used for retrieving mail from a POP server."
   (interactive "sPassword: ")
   (if password
-      (setq rmail-encoded-pop-password 
+      (setq rmail-encoded-pop-password
 	    (rmail-encode-string password (emacs-pid)))
     (setq rmail-pop-password nil)
     (setq rmail-encoded-pop-password nil)))
@@ -3732,7 +3732,7 @@ restarting at the lowest byte of the mask whenever it runs out.
 Returns the encoded string.  Calling the function again with an
 encoded string (and the same mask) will decode the string."
  (setq mask (abs mask))			; doesn't work if negative
- (let* ((string-vector (string-to-vector string)) (i 0) 
+ (let* ((string-vector (string-to-vector string)) (i 0)
 	(len (length string-vector)) (curmask mask) charmask)
    (while (< i len)
      (if (= curmask 0)
