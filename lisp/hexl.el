@@ -84,7 +84,7 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-mode-old-local-map)
 (defvar hexl-mode-old-mode-name)
 (defvar hexl-mode-old-major-mode)
-(defvar hexl-mode-old-write-contents-hooks)
+(defvar hexl-mode-old-isearch-search-fun-function)
 (defvar hexl-mode-old-require-final-newline)
 (defvar hexl-mode-old-syntax-table)
 
@@ -174,7 +174,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
   (unless (eq major-mode 'hexl-mode)
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
-	  (original-point (1- (point)))
+	  (original-point (- (point) (point-min)))
 	  max-address)
       (and (eobp) (not (bobp))
 	   (setq original-point (1- original-point)))
@@ -211,6 +211,11 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq hexl-mode-old-mode-name mode-name)
     (setq mode-name "Hexl")
 
+    (set (make-local-variable 'hexl-mode-old-isearch-search-fun-function)
+	 isearch-search-fun-function)
+    (set (make-local-variable 'isearch-search-fun-function)
+	 'hexl-isearch-search-function)
+
     (make-local-variable 'hexl-mode-old-major-mode)
     (setq hexl-mode-old-major-mode major-mode)
     (setq major-mode 'hexl-mode)
@@ -219,10 +224,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq hexl-mode-old-syntax-table (syntax-table))
     (set-syntax-table (standard-syntax-table))
 
-    (make-local-variable 'hexl-mode-old-write-contents-hooks)
-    (setq hexl-mode-old-write-contents-hooks write-contents-hooks)
-    (make-local-variable 'write-contents-hooks)
-    (add-hook 'write-contents-hooks 'hexl-save-buffer)
+    (add-hook 'write-contents-functions 'hexl-save-buffer nil t)
 
     (make-local-variable 'hexl-mode-old-require-final-newline)
     (setq hexl-mode-old-require-final-newline require-final-newline)
@@ -236,6 +238,19 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
     (if hexl-follow-ascii (hexl-follow-ascii 1)))
   (run-hooks 'hexl-mode-hook))
+
+
+(defun hexl-isearch-search-function ()
+  (if (and (not isearch-regexp) (not isearch-word))
+      (lambda (string &optional bound noerror count)
+	(funcall
+	 (if isearch-forward 're-search-forward 're-search-backward)
+	 (if (> (length string) 80)
+	     (regexp-quote string)
+	   (mapconcat 'string string "\\(?:\n\\(?:[:a-f0-9]+ \\)+ \\)?"))
+	 bound noerror count))
+    (let ((isearch-search-fun-function nil))
+      (isearch-search-fun))))
 
 (defun hexl-after-revert-hook ()
   (setq hexl-max-address (1- (buffer-size)))
@@ -294,7 +309,7 @@ With arg, don't unhexlify buffer."
 	    (inhibit-read-only t)
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-hooks 'hexl-save-buffer)
+	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
 	(set-buffer-modified-p modified)
 	(goto-char original-point)
 	;; Maybe adjust point for the removed CR characters.
@@ -309,9 +324,9 @@ With arg, don't unhexlify buffer."
   (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
   (setq hexl-ascii-overlay nil)
 
-  (setq write-contents-hooks hexl-mode-old-write-contents-hooks)
   (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
+  (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)
   (use-local-map hexl-mode-old-local-map)
   (set-syntax-table hexl-mode-old-syntax-table)
   (setq major-mode hexl-mode-old-major-mode)
@@ -325,21 +340,21 @@ Ask the user for confirmation."
 	    (inhibit-read-only t)
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-hooks 'hexl-save-buffer)
+	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
 	(set-buffer-modified-p modified)
 	(goto-char original-point))))
 
 (defun hexl-current-address (&optional validate)
   "Return current hexl-address."
   (interactive)
-  (let ((current-column (- (% (point) 68) 11))
+  (let ((current-column (- (% (- (point) (point-min) -1) 68) 11))
 	(hexl-address 0))
     (if (< current-column 0)
 	(if validate
 	    (error "Point is not on a character in the file")
 	  (setq current-column 0)))
     (setq hexl-address
-	  (+ (* (/ (point) 68) 16)
+	  (+ (* (/ (- (point) (point-min) -1) 68) 16)
 	     (if (>= current-column 41)
 		 (- current-column 41)
 	       (/ (- current-column  (/ current-column 5)) 2))))
@@ -350,7 +365,7 @@ Ask the user for confirmation."
 (defun hexl-address-to-marker (address)
   "Return buffer position for ADDRESS."
   (interactive "nAddress: ")
-  (+ (* (/ address 16) 68) 11 (/ (* (% address 16) 5) 2)))
+  (+ (* (/ address 16) 68) 10 (point-min) (/ (* (% address 16) 5) 2)))
 
 (defun hexl-goto-address (address)
   "Goto hexl-mode (decimal) address ADDRESS.
@@ -730,11 +745,11 @@ CH must be a unibyte character whose value is between 0 and 255."
     (while (> num 0)
       (let ((hex-position
 	     (+ (* (/ address 16) 68)
-		11
+		10 (point-min)
 		(* 2 (% address 16))
 		(/ (% address 16) 2)))
 	    (ascii-position
-	     (+ (* (/ address 16) 68) 52 (% address 16)))
+	     (+ (* (/ address 16) 68) 51 (point-min) (% address 16)))
 	    at-ascii-position)
 	(if (= (point) ascii-position)
 	    (setq at-ascii-position t))
