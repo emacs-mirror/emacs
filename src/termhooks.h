@@ -268,10 +268,11 @@ enum event_kind
    a window system event.  These get turned into their lispy forms when
    they are removed from the event queue.  */
 
-struct input_event {
+struct input_event
+{
 
   /* What kind of event was this?  */
-  enum event_kind kind;
+  int kind;
   
   /* For an ascii_keystroke, this is the character.
      For a non_ascii_keystroke, this is the keysym code.
@@ -283,6 +284,10 @@ struct input_event {
 
   Lisp_Object x, y;
   unsigned long timestamp;
+
+  /* This is padding just to put the frame_or_window field
+     past the size of struct selection_event.  */
+  int *padding[2];
 
   /* This field is copied into a vector while the event is in the queue,
      so that garbage collections won't kill it.  */
