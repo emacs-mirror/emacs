@@ -483,7 +483,10 @@ element `undecided'."
 
 (defun find-coding-systems-for-charsets (charsets)
   "Return a list of proper coding systems to encode characters of CHARSETS.
-CHARSETS is a list of character sets."
+CHARSETS is a list of character sets.
+It actually checks at most the first 96 characters of each charset.
+So, if a charset of dimension two is included in CHARSETS, the value may
+contain a coding system that can't encode all characters of the charset."
   (cond ((or (null charsets)
 	     (and (= (length charsets) 1)
 		  (eq 'ascii (car charsets))))
@@ -493,21 +496,31 @@ CHARSETS is a list of character sets."
 	 '(raw-text emacs-mule))
 	(t
 	 (let ((codings t)
-	       charset l ll)
+	       charset l str)
 	   (while (and codings charsets)
 	     (setq charset (car charsets) charsets (cdr charsets))
 	     (unless (eq charset 'ascii)
-	       (setq l (aref char-coding-system-table (make-char charset)))
+	       (setq str (make-string 96 32))
+	       (if (= (charset-dimension charset) 1)
+		   (if (= (charset-chars charset) 96)
+		       (dotimes (i 96)
+			 (aset str i (make-char charset (+ i 32))))
+		     (dotimes (i 94)
+		       (aset str i (make-char charset (+ i 33)))))
+		 (if (= (charset-chars charset) 96)
+		     (dotimes (i 96)
+		       (aset str i (make-char charset 32 (+ i 32))))
+		   (dotimes (i 94)
+		     (aset str i (make-char charset 33 (+ i 33))))))
+	       (setq l (find-coding-systems-string str))
 	       (if (eq codings t)
 		   (setq codings l)
 		 (let ((ll nil))
-		   (while codings
-		     (if (memq (car codings) l)
-			 (setq ll (cons (car codings) ll)))
-		     (setq codings (cdr codings)))
+		   (dolist (elt codings)
+		     (if (memq elt l)
+			 (setq ll (cons elt ll))))
 		   (setq codings ll)))))
-	   (append codings
-		   (char-table-extra-slot char-coding-system-table 0))))))
+	   codings))))
 
 (defun find-multibyte-characters (from to &optional maxcount excludes)
   "Find multibyte characters in the region specified by FROM and TO.
