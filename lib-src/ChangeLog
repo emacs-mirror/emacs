@@ -1,5 +1,7 @@
-2002-03-06  Jason Rumney  <jasonr@gnu.org>
+2002-03-12  Francesco Potorti`  <pot@gnu.org>
+	* etags.c (Python_functions): Skip spaces at beginning of lines.
 
+2002-03-06  Jason Rumney  <jasonr@gnu.org>
 	* etags.c (put_entries): Use #if !CTAGS, to fix link error on
 	compilers that don't optimize out dead code.
 
