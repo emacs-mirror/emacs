@@ -1849,15 +1849,14 @@ init_lread ()
       if (! NILP (Fequal (dump_path, Vload_path)))
 	{
 	  Vload_path = decode_env_path (0, normal);
-	  if (!NILP (Vinvocation_directory))
+	  if (!NILP (Vinstallation_directory))
 	    {
-	      /* Add to the path the ../lisp dir of the Emacs executable,
-		 if that dir exists.  */
-	      Lisp_Object tem, tem1;
-	      tem = Fexpand_file_name (build_string ("../lisp"),
-				       Vinvocation_directory);
-	      tem1 = Ffile_exists_p (tem);
-	      if (!NILP (tem1) && NILP (Fmember (tem, Vload_path)))
+	      /* Add to the path the lisp subdir of the
+		 installation dir.  */
+	      Lisp_Object tem;
+	      tem = Fexpand_file_name (build_string ("lisp"),
+				       Vinstallation_directory);
+	      if (NILP (Fmember (tem, Vload_path)))
 		Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
 	    }
 	}
