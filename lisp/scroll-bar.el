@@ -56,8 +56,42 @@ that scroll bar position."
 
 ;;;; Helpful functions for enabling and disabling scroll bars.
 
+(defun set-scroll-bar-mode (ignore value)
+  "Set `scroll-bar-mode' to VALUE and put the new value into effect."
+  (setq scroll-bar-mode value)
+
+  ;; Apply it to default-frame-alist.
+  (let ((parameter (assq 'vertical-scroll-bars default-frame-alist)))
+    (if (consp parameter)
+	(setcdr parameter scroll-bar-mode)
+      (setq default-frame-alist
+	    (cons (cons 'vertical-scroll-bars scroll-bar-mode)
+		  default-frame-alist))))
+
+  ;; Apply it to existing frames.
+  (let ((frames (frame-list)))
+    (while frames
+      (modify-frame-parameters
+       (car frames)
+       (list (cons 'vertical-scroll-bars scroll-bar-mode)))
+      (setq frames (cdr frames)))))
+
+(defcustom scroll-bar-mode 'left
+  "*Specify whether to have vertical scroll bars, and on which side.
+Possible values are nil (no scroll bars), `left' (scroll bars on left)
+and `right' (scroll bars on right).
+When you set the variable in a Lisp program, it takes effect for new frames,
+and for existing frames when `toggle-scroll-bar' is used.
+When you set this with the customization buffer,
+it takes effect immediately for all frames."
+  :type '(choice (const :tag "none (nil)")
+		 (const left)
+		 (const right))
+  :group 'frames
+  :set 'set-scroll-bar-mode)
+
 (defun scroll-bar-mode (flag)
-  "Toggle display of vertical scroll bars on each frame.
+  "Toggle display of vertical scroll bars on all frames.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is negative,
@@ -65,35 +99,34 @@ turn off scroll bars; otherwise, turn on scroll bars."
   (interactive "P")
   (if flag (setq flag (prefix-numeric-value flag)))
 
-  ;; Obtain the current setting by looking at default-frame-alist.
-  (let ((scroll-bar-mode
-	 (let ((assq (assq 'vertical-scroll-bars default-frame-alist)))
-	   (if assq (cdr assq) t))))
+  ;; Tweedle the variable according to the argument.
+  (set-scroll-bar-mode nil
+		       (if (null flag) (not scroll-bar-mode)
+			 (and (or (not (numberp flag)) (>= flag 0))
+			      'left))))
 
-    ;; Tweedle it according to the argument.
-    (setq scroll-bar-mode (if (null flag) (not scroll-bar-mode)
-			    (or (not (numberp flag)) (>= flag 0))))
+(defun toggle-scroll-bar (arg)
+  "Toggle whether or not the selected frame has vertical scroll bars.
+With arg, turn vertical scroll bars on if and only if arg is positive.
+The variable `scroll-bar-mode' controls which side the scroll bars are on
+when they are turned on; if it is nil, they go on the left."
+  (interactive "P")
+  (if (null arg)
+      (setq arg
+	    (if (cdr (assq 'vertical-scroll-bars
+			   (frame-parameters (selected-frame))))
+		-1 1)))
+  (modify-frame-parameters (selected-frame)
+			   (list (cons 'vertical-scroll-bars
+				       (if (> arg 0)
+					   (or scroll-bar-mode 'left))))))
 
-    ;; Apply it to default-frame-alist.
-    (mapcar
-     (function
-      (lambda (param-name)
-	(let ((parameter (assq param-name default-frame-alist)))
-	  (if (consp parameter)
-	      (setcdr parameter scroll-bar-mode)
-	    (setq default-frame-alist
-		  (cons (cons param-name scroll-bar-mode)
-			default-frame-alist))))))
-     '(vertical-scroll-bars horizontal-scroll-bars))
-
-    ;; Apply it to existing frames.
-    (let ((frames (frame-list)))
-      (while frames
-	(modify-frame-parameters
-	 (car frames)
-	 (list (cons 'vertical-scroll-bars scroll-bar-mode)
-	       (cons 'horizontal-scroll-bars scroll-bar-mode)))
-	(setq frames (cdr frames))))))
+(defun toggle-horizontal-scroll-bar (arg)
+  "Toggle whether or not the selected frame has horizontal scroll bars.
+With arg, turn horizontal scroll bars on if and only if arg is positive.
+Horizontal scroll bars aren't implemented yet."
+  (interactive "P")
+  (error "Horizontal scroll bars aren't implemented yet"))
 
 ;;;; Buffer navigation using the scroll bar.
 
