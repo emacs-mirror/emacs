@@ -579,6 +579,8 @@ display margins, fringes, header line, and/or mode line.  */)
    if it is on the window's modeline, return ON_MODE_LINE;
    if it is on the border between the window and its right sibling,
       return ON_VERTICAL_BORDER.
+   if it is on a scroll bar,
+      return ON_SCROLL_BAR.
    if it is on the window's top line, return ON_HEADER_LINE;
    if it is in left or right fringe of the window,
       return ON_LEFT_FRINGE or ON_RIGHT_FRINGE, and convert *X and *Y
@@ -673,7 +675,7 @@ coordinates_in_window (w, x, y)
 
   /* Outside any interesting column?  */
   if (*x < left_x || *x > right_x)
-    return ON_VERTICAL_BORDER;
+    return ON_SCROLL_BAR;
 
   lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
   rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
@@ -817,6 +819,10 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
 
     case ON_RIGHT_MARGIN:
       return Qright_margin;
+
+    case ON_SCROLL_BAR:
+      /* Historically we are supposed to return nil in this case.  */
+      return Qnil;
 
     default:
       abort ();
