@@ -175,17 +175,20 @@
 	"p*" "r*" "*s" "s*" "t*" 117 "f*" "x*" "q*" "w*"
 	"\"i" "\"u" "'o" "'u" "'w" nil]
      )
+    ;; Note: some of the characters undefined according to ISO 8859-8
+    ;; in the ranges 190..220 and 250..255 are replaced with SI 1311-1
+    ;; points (Niqud) and bidi formatting characters
     (hebrew-iso8859-8
      . [255 nil "|c" "Pd" "$$" "Ye" "|" "SE" "\"" "(c)"
 	"*x" "<<" "~" "--" "(R)" "'-" "^o" "+-" "^2" "^3"
 	"'" "u" ".P" "^." "'," "^1" "-:" ">>" "1/4" "1/2"
-	"3/4" nil nil nil nil nil nil nil nil nil
-	nil nil nil nil nil nil nil nil nil nil
-	nil nil nil nil nil nil nil nil nil nil
-	nil nil nil "=2" "A+" "B+" "G+" "D+" "H+" "W+"
+	"3/4" nil ":'" "v:" "-:" "-':" ".'" ".." "v'" "-'"
+	"-," "`." nil "\\." "(.)" "|'" "`-" nil "||" nil
+	nil "::" nil nil nil nil nil nil nil "LRO"
+	"RLO" "PDF" nil "=2" "A+" "B+" "G+" "D+" "H+" "W+"
 	"Z+" "X+" "Tj" "J+" "K%" "K+" "L+" "M%" "M+" "N%"
 	"N+" "S+" "E+" "P%" "P+" "Zj" "ZJ" "Q+" "R+" "Sh"
-	"T+" nil nil nil nil nil]
+	"T+" "LRE" "RLE" "LRM" "RLM" nil]
      )
     (latin-iso8859-9
      . [255 "!I" "|c" "Pd" "$$" "Ye" "|" "SE" "\"" "(c)"
@@ -258,10 +261,10 @@ If TABLE is nil or omitted, `standard-display-table' is used."
 	     glyph)
 	(while (< i veclen)
 	  (setq glyph (aref vector i))
-	  (if (and glyph
-		   (or (not (equal chset built-in-set))
-		       (>= i cp-decoder-len)
-		       (null (aref cp-decoder i))))
+	  (or glyph (setq glyph dos-unsupported-char-glyph))
+	  (if (or (not (equal chset built-in-set))
+		  (>= i cp-decoder-len)
+		  (null (aref cp-decoder i)))
 	      (aset disp-tab (make-char chset (+ i (logand offset 127)))
 		    (vconcat
 		     (if (numberp glyph)
@@ -341,8 +344,12 @@ If TABLE is nil or omitted, `standard-display-table' is used."
 
     (mule-unicode-0100-24ff		; charset
      256				; base
-     1488 1645				; first, last
-     [ "A+" "B+" "G+" "D+" "H+" "W+" "Z+" "X+" "Tj" "J+" ; Hebrew
+     1454 1645				; first, last
+     [ nil nil ":'" "v:" "-:" "-':" ".'" ".." "v'" "-'"
+       "-," "`." nil "\\." "(.)" "|'" "`-" nil "||" nil
+       nil "::"  nil nil nil nil nil nil nil nil
+       nil nil nil nil
+       "A+" "B+" "G+" "D+" "H+" "W+" "Z+" "X+" "Tj" "J+" ; Hebrew
        "K%" "K+" "L+" "M%" "M+" "N%" "N+" "S+" "E+" "P%"
        "P+" "Zj" "ZJ" "Q+" "R+" "Sh" "T+" nil nil nil
        nil nil "WW+" "WJ+" "JJ+" "'+" "\"+" nil nil nil
@@ -569,15 +576,15 @@ is used."
 	     glyph)
 	(while (<= i (- last first))
 	  (setq glyph (aref table i))
-	  (if glyph
-	      (aset disp-tab (make-char chset
-					(+ (/ this 96) 32)
-					(+ (% this 96) 32))
-		    (vconcat
-		     (if (numberp glyph)
-			 (char-to-string glyph)
-		       (if (> (length glyph) 1) (concat "{" glyph "}")
-			 glyph)))))
+	  (or glyph (setq glyph dos-unsupported-char-glyph))
+	  (aset disp-tab (make-char chset
+				    (+ (/ this 96) 32)
+				    (+ (% this 96) 32))
+		(vconcat
+		 (if (numberp glyph)
+		     (char-to-string glyph)
+		   (if (> (length glyph) 1) (concat "{" glyph "}")
+		     glyph))))
 	  (setq i (1+ i) this (1+ this)))))))
 
 (defun dos-cpNNN-setup (codepage)
