@@ -217,9 +217,11 @@ them in the distribution.</indent>
 
 + Create<indent> an aggressive auto-fill function that will keep the
 paragraph properly filled all the time, without slowing down
-editing too much.</indent>
+editing too much.  Refill mode is a start at this, but needs
 
-+ Refill after yank.
+</indent></indent>	<indent>improvment.
+
++ Refill after yank.  [Refill mode does that.]
 
 +<indent> Make deleting a newline also delete the indentation following
 it.</indent>
@@ -230,9 +232,13 @@ it.</indent>
 
 + Deal with the `category' text-property in a smart way.
 
-+ Interface w/ GNUS, VM, RMAIL.  Maybe Info too?
++ Interface w/ Gnus, VM, RMAIL.  Maybe Info too?  </indent>(Gnus 5.9 copes
+
+      with text/enriched incoming mail.)<indent>
 
 + Support more formats: RTF, HTML...
+
++ Use Emacs 21 display features.
 
 </indent>
 
