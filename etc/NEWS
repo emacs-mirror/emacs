@@ -17,6 +17,12 @@ to list them.
 
 ** There is a new configure option `--without-xim' that instructs
 Emacs to not use X Input Methods (XIM), if they these are available.
+
+** There is a new configure option `--disable-largefile' to omit
+Unix-98-style support for large files if that is available.
+
+** You can build a 64-bit Emacs for SPARC/Solaris systems which
+support 64-bit executables.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
@@ -2889,7 +2895,7 @@ If OBJECT is an overlay, that overlay has a `help-echo' property, and
 POS is the position in the overlay's buffer under the mouse.
 
 If OBJECT is a string (an overlay string or a string displayed with
-the `display' property).  POS is the position in that string under the
+the `display' property), POS is the position in that string under the
 mouse.
 
 If the value of the `help-echo' property is neither a function nor a
