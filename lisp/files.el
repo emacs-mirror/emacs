@@ -2235,7 +2235,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	     (or (not active)
 		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
        ;; Query the user for other things, perhaps.
-       (not (run-hook-with-args-until-failure 'kill-emacs-query-functions))
+       (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (kill-emacs)))
 
 (define-key ctl-x-map "\C-f" 'find-file)
