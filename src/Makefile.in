@@ -287,10 +287,10 @@ XOBJ= xterm.o xfns.o xfaces.o xmenu.o xselect.o xrdb.o
    otherwise, use our own copy.  */
 #ifdef HAVE_X11
 #ifdef USE_X_TOOLKIT
-OLDXMENU=liblw.a
+OLDXMENU=${lwlibdir}liblw.a
 LIBXMENU= $(OLDXMENU)
 #else /* not USE_X_TOOLKIT */
-OLDXMENU= libXMenu11.a
+OLDXMENU= ${oldXMenudir}libXMenu11.a
 LIBXMENU= $(OLDXMENU)
 #endif /* not USE_X_TOOLKIT */
 #else /* not HAVE_X11 */
@@ -678,8 +678,6 @@ shortnames:
 #ifdef HAVE_X11
 #ifdef USE_X_TOOLKIT
 $(OLDXMENU): really-lwlib
-	-rm -f $(OLDXMENU) /* We might have a link to an old version.  */
-	${LN_S} ${lwlibdir}liblw.a $(OLDXMENU)
 
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
@@ -702,8 +700,6 @@ really-lwlib:
 #else /* not USE_X_TOOLKIT */
 #ifdef HAVE_X_MENU
 $(OLDXMENU): really-oldXMenu
-	-rm -f $(OLDXMENU) /* We might have a link to an old version.  */
-	${LN_S} ${oldXMenudir}libXMenu11.a $(OLDXMENU)
 
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
@@ -789,7 +785,7 @@ callproc.o: callproc.c paths.h buffer.h commands.h $(config_h) \
 casefiddle.o: casefiddle.c syntax.h commands.h buffer.h $(config_h) 
 casetab.o: casetab.c buffer.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
-cmds.o: cmds.c syntax.h buffer.h commands.h $(config_h) 
+cmds.o: cmds.c syntax.h buffer.h commands.h window.h $(config_h) 
 pre-crt0.o: pre-crt0.c
 crt0.o: crt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/crt0.c
@@ -852,7 +848,7 @@ xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h \
    blockinput.h $(config_h)
 xmenu.o: xmenu.c xterm.h window.h dispextern.h frame.h keyboard.h \
-   blockinput.h $(config_h)
+   blockinput.h puresize.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
   keyboard.h gnu.h sink.h sinkmask.h $(config_h)
