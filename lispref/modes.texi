@@ -1612,7 +1612,7 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
 
 @node Emulating Mode Line
-@section Emulating Mode Line Formating
+@subsection Emulating Mode Line Formating
 
   You can use the function @code{format-mode-line} to compute
 the text that would appear in a mode line or header line
