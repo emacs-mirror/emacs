@@ -1,3 +1,10 @@
+2002-01-14  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c [!defined MAP_ANON]: Define MAP_ANON to MAP_ANONYMOUS
+	if defined, 0 otherwise.
+	(MAP_FAILED): Define if not defined and use it to test mmap failure.
+	(unexec) [!MAP_ANON]: Use /dev/zero as file to map.
+
 2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* sound.c (Fplay_sound): Initialize header_size also for :data
