@@ -2,6 +2,8 @@
 
 	* skeleton.el (skeleton-internal-1): Make sure the first line of
 	the region is also re-indented.
+	(skeleton-end-newline): New var.
+	(skeleton-end-hook): Use it.
 
 2000-12-22  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
