@@ -318,11 +318,10 @@ at the level specified by LEVEL.  Point is left at the end of menu."
 		    (beginning-of-line)
 		    (texinfo-copy-node-name)))
        (new-menu-list (texinfo-make-menu-list beginning end level)))
-    (if (texinfo-old-menu-p beginning first)
-	(progn
-	  (texinfo-incorporate-descriptions new-menu-list)
-	  (texinfo-incorporate-menu-entry-names new-menu-list)
-	  (texinfo-delete-old-menu beginning first)))
+    (when (texinfo-old-menu-p beginning first)
+      (texinfo-incorporate-descriptions new-menu-list)
+      (texinfo-incorporate-menu-entry-names new-menu-list)
+      (texinfo-delete-old-menu beginning first))
     (texinfo-insert-menu new-menu-list node-name)))
 
 (defun texinfo-all-menus-update (&optional update-all-nodes-p)
@@ -339,35 +338,32 @@ nodes in the buffer before updating the menus."
       (goto-char (point-min))
       (message "Checking for a master menu in %s ... "(buffer-name))
       (save-excursion
-	(if (search-forward texinfo-master-menu-header nil t)
-	    (progn
-	      ;; Check if @detailmenu kludge is used;
-	      ;; if so, leave point before @detailmenu.
-	      (search-backward "\n@detailmenu"
-			       (save-excursion (forward-line -3) (point))
-			       t)
-	      ;; Remove detailed master menu listing
-	      (setq master-menu-p t)
-	      (goto-char (match-beginning 0))
-	      (let ((end-of-detailed-menu-descriptions
-		     (save-excursion     ; beginning of end menu line
-		       (goto-char (texinfo-menu-end))
-		       (beginning-of-line) (forward-char -1)
-		       (point))))
-		(delete-region (point) end-of-detailed-menu-descriptions)))))
+	(when (search-forward texinfo-master-menu-header nil t)
+	  ;; Check if @detailmenu kludge is used;
+	  ;; if so, leave point before @detailmenu.
+	  (search-backward "\n@detailmenu"
+			   (save-excursion (forward-line -3) (point))
+			   t)
+	  ;; Remove detailed master menu listing
+	  (setq master-menu-p t)
+	  (goto-char (match-beginning 0))
+	  (let ((end-of-detailed-menu-descriptions
+		 (save-excursion     ; beginning of end menu line
+		   (goto-char (texinfo-menu-end))
+		   (beginning-of-line) (forward-char -1)
+		   (point))))
+	    (delete-region (point) end-of-detailed-menu-descriptions))))
 
-      (if update-all-nodes-p
-	  (progn
-	    (message "Updating all nodes in %s ... " (buffer-name))
-	    (texinfo-update-node (point-min) (point-max))))
+      (when update-all-nodes-p
+	(message "Updating all nodes in %s ... " (buffer-name))
+	(texinfo-update-node (point-min) (point-max)))
 
       (message "Updating all menus in %s ... " (buffer-name))
       (texinfo-make-menu (point-max) (point-min))
 
-      (if master-menu-p
-	  (progn
-	    (message "Updating the master menu in %s... " (buffer-name))
-	    (texinfo-master-menu nil))))
+      (when master-menu-p
+	(message "Updating the master menu in %s... " (buffer-name))
+	(texinfo-master-menu nil)))
 
     (message "Done...updated all the menus.  You may save the buffer.")))
 
@@ -413,18 +409,18 @@ if the match is found there, the value is t and point does not move."
       (if (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" region-end t)
 	  (progn (beginning-of-line) t)))
      (t
-      (if (re-search-forward
-	   (concat
-	    "\\(^@node\\).*\n"              ; match node line
-	    "\\(\\(\\(^@c\\).*\n\\)"        ; match comment line, if any
-	    "\\|"                           ; or
-	    "\\(^@ifinfo[ ]*\n\\)"          ; ifinfo line, if any
-            "\\|"                           ; or
-            "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
-            "\\)?"                          ; end of expression
-	    (eval (cdr (assoc level texinfo-update-menu-higher-regexps))))
-	   region-end t)
-	  (progn (beginning-of-line) t))))))
+      (when (re-search-forward
+	     (concat
+	      "\\(^@node\\).*\n"              ; match node line
+	      "\\(\\(\\(^@c\\).*\n\\)"        ; match comment line, if any
+	      "\\|"                           ; or
+	      "\\(^@ifinfo[ ]*\n\\)"          ; ifinfo line, if any
+	      "\\|"                           ; or
+	      "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
+	      "\\)?"                          ; end of expression
+	      (eval (cdr (assoc level texinfo-update-menu-higher-regexps))))
+	     region-end t)
+	(beginning-of-line) t)))))
 
 
 ;;; Making the list of new menu entries
@@ -443,14 +439,13 @@ element consists only of the node name."
   (goto-char beginning)
   (let (new-menu-list)
     (while (texinfo-menu-locate-entry-p level end)
-      (setq new-menu-list
-	    (cons (cons
-		   (texinfo-copy-node-name)
-		   (prog1 "" (forward-line 1)))
-		   ;; Use following to insert section titles automatically.
-		   ;; (texinfo-copy-section-title))
-		  new-menu-list)))
-    (reverse new-menu-list)))
+      (push (cons
+	     (texinfo-copy-node-name)
+	     (prog1 "" (forward-line 1)))
+	    ;; Use following to insert section titles automatically.
+	    ;; (texinfo-copy-section-title))
+	    new-menu-list))
+    (nreverse new-menu-list)))
 
 (defun texinfo-menu-locate-entry-p (level search-end)
   "Find a node that will be part of menu for this section.
@@ -492,9 +487,7 @@ line.  If there is no node name, returns an empty string."
      (progn (forward-word 1)              ; skip over node command
 	    (skip-chars-forward " \t")    ; and over spaces
 	    (point))
-     (if (search-forward
-	  ","
-	  (save-excursion (end-of-line) (point)) t) ; bound search
+     (if (search-forward "," (line-end-position) t) ; bound search
 	 (1- (point))
        (end-of-line) (point)))))
 
@@ -534,9 +527,9 @@ node within the section.
 If no menu is found, the function inserts two newlines just before the
 end of the section, and leaves point there where a menu ought to be."
   (goto-char beginning)
-  (if (not (re-search-forward "^@menu" first 'goto-end))
-      (progn (insert "\n\n") (forward-line -2) nil)
-    t))
+  (if (re-search-forward "^@menu" first 'goto-end)
+      t
+    (insert "\n\n") (forward-line -2) nil))
 
 (defun texinfo-incorporate-descriptions (new-menu-list)
   "Copy the old menu line descriptions that exist to the new menu.
@@ -551,29 +544,25 @@ pairs in which the first element of the pair is the node name and the
 second element the description.  The new menu is changed destructively.
 The old menu is the menu as it appears in the Texinfo file."
 
-  (let ((new-menu-list-pointer new-menu-list)
-	(end-of-menu (texinfo-menu-end)))
-    (while new-menu-list
-      (save-excursion                   ; keep point at beginning of menu
-	(if (re-search-forward
-	     ;; Existing nodes can have the form
-	     ;;     * NODE NAME:: DESCRIPTION
-	     ;; or
-	     ;;     * MENU ITEM: NODE NAME.     DESCRIPTION.
-	     ;;
-	     ;; Recognize both when looking for the description.
-	     (concat "\\* \\("              ; so only menu entries are found
-		     (regexp-quote (car (car new-menu-list))) "::"
-		     "\\|"
-		     ".*: " (regexp-quote (car (car new-menu-list))) "[.,\t\n]"
-		     "\\)"
-		     )               ; so only complete entries are found
-	     end-of-menu
-	     t)
-	    (setcdr (car new-menu-list)
-		    (texinfo-menu-copy-old-description end-of-menu))))
-      (setq new-menu-list (cdr new-menu-list)))
-    (setq new-menu-list new-menu-list-pointer)))
+  (let ((end-of-menu (texinfo-menu-end)))
+    (dolist (new-menu new-menu-list new-menu-list)
+      (save-excursion			; keep point at beginning of menu
+	(when (re-search-forward
+	       ;; Existing nodes can have the form
+	       ;;     * NODE NAME:: DESCRIPTION
+	       ;; or
+	       ;;     * MENU ITEM: NODE NAME.     DESCRIPTION.
+	       ;;
+	       ;; Recognize both when looking for the description.
+	       (concat "\\* \\("	; so only menu entries are found
+		       (regexp-quote (car new-menu)) "::"
+		       "\\|"
+		       ".*: " (regexp-quote (car new-menu)) "[.,\t\n]"
+		       "\\)"
+		       )		; so only complete entries are found
+	       end-of-menu
+	       t)
+	  (setcdr new-menu (texinfo-menu-copy-old-description end-of-menu)))))))
 
 (defun texinfo-incorporate-menu-entry-names (new-menu-list)
   "Copy any old menu entry names to the new menu.
@@ -594,9 +583,8 @@ name and the cdr is the node name.
 NEW-MENU-LIST is changed destructively.  The old menu is the menu as it
 appears in the texinfo file."
 
-  (let ((new-menu-list-pointer new-menu-list)
-	(end-of-menu (texinfo-menu-end)))
-    (while new-menu-list
+  (let ((end-of-menu (texinfo-menu-end)))
+    (dolist (new-menu new-menu-list new-menu-list)
       (save-excursion                   ; keep point at beginning of menu
 	(if (re-search-forward
 	     ;; Existing nodes can have the form
@@ -606,16 +594,14 @@ appears in the texinfo file."
 	     ;;
 	     ;; We're interested in the second case.
 	     (concat "\\* "              ; so only menu entries are found
-		     "\\(.*\\): " (regexp-quote (car (car new-menu-list)))
+		     "\\(.*\\): " (regexp-quote (car new-menu))
 		     "[.,\t\n]")
 	     end-of-menu
 	     t)
 	    (setcar
-	      (car new-menu-list)  ; replace the node name
+	      new-menu  ; replace the node name
 	      (cons (buffer-substring (match-beginning 1) (match-end 1))
-		    (car (car new-menu-list)))))
-      (setq new-menu-list (cdr new-menu-list))))
-    (setq new-menu-list new-menu-list-pointer)))
+		    (car new-menu))))))))
 
 (defun texinfo-menu-copy-old-description (end-of-menu)
   "Return description field of old menu line as string.
@@ -680,12 +666,12 @@ strings instead of just a string.  In that case, the car of P
 is the menu entry name, and the cdr of P is the node name."
 
   (insert "@menu\n")
-  (while menu-list
+  (dolist (menu menu-list)
     ;; Every menu entry starts with a star and a space.
     (insert "* ")
 
     ;; Insert the node name (and menu entry name, if present).
-    (let ((node-part (car (car menu-list))))
+    (let ((node-part (car menu)))
       (if (stringp node-part)
 	  ;; "Double colon" entry line; menu entry and node name are the same,
 	  (insert (format "%s::" node-part))
@@ -693,17 +679,16 @@ is the menu entry name, and the cdr of P is the node name."
 	(insert (format "%s: %s." (car node-part) (cdr node-part)))))
 
     ;; Insert the description, if present.
-    (if (cdr (car menu-list))
-	(progn
-	  ;; Move to right place.
-	  (indent-to texinfo-column-for-description 2)
-	  ;; Insert description.
-	  (insert (format "%s" (cdr (car menu-list))))))
+    (when (cdr menu)
+      ;; Move to right place.
+      (indent-to texinfo-column-for-description 2)
+      ;; Insert description.
+      (insert (format "%s" (cdr menu))))
 
-    (insert "\n") ; end this menu entry
-    (setq menu-list (cdr menu-list)))
+    (insert "\n")) ; end this menu entry
   (insert "@end menu")
   (message
+   ;; FIXME: `level' is passed by dynamic scoping.
    "Updated \"%s\" level menu following node: %s ... " level node-name))
 
 
@@ -720,14 +705,14 @@ complements the node name rather than repeats it as a title does."
   (interactive)
   (let (beginning end node-name title)
     (save-excursion
-    (beginning-of-line)
+      (beginning-of-line)
       (if (search-forward "* " (save-excursion (end-of-line) (point)) t)
 	  (progn (skip-chars-forward " \t")
 		 (setq beginning (point)))
 	(error "This is not a line in a menu"))
 
       (cond
-	;; "Double colon" entry line; menu entry and node name are the same,
+       ;; "Double colon" entry line; menu entry and node name are the same,
        ((search-forward "::" (save-excursion (end-of-line) (point)) t)
 	(if (looking-at "[ \t]*[^ \t\n]+")
 	    (error "Descriptive text already exists"))
@@ -748,7 +733,7 @@ complements the node name rather than repeats it as a title does."
 	      (setq node-name (buffer-substring beginning (point))))
 	  ;; Menu entry line ends in a return.
 	  (re-search-forward ".*\n"
-			   (save-excursion (forward-line 1) (point)) t)
+			     (save-excursion (forward-line 1) (point)) t)
 	  (skip-chars-backward " \t\n")
 	  (setq node-name (buffer-substring beginning (point)))
 	  (if (= 0 (length node-name))
@@ -760,7 +745,7 @@ complements the node name rather than repeats it as a title does."
 	   (concat
 	    "^@node[ \t]+"
 	    (regexp-quote node-name)
-	    ".*\n"                             ; match node line
+	    ".*\n"			; match node line
 	    "\\("
 	    "\\(\\(^@c \\|^@comment\\).*\n\\)" ; match comment line, if any
 	    "\\|"                              ; or
@@ -770,17 +755,16 @@ complements the node name rather than repeats it as a title does."
             "\\)?"                             ; end of expression
 	    "\\)?")
 	   nil t)
-	  (progn
-	    (setq title
-		  (buffer-substring
-		   ;; skip over section type
-		   (progn (forward-word 1)
-			  ;; and over spaces
-			  (skip-chars-forward " \t")
-			  (point))
-		   (progn (end-of-line)
-			  (skip-chars-backward " \t")
-			  (point)))))
+          (setq title
+		(buffer-substring
+		 ;; skip over section type
+		 (progn (forward-word 1)
+			;; and over spaces
+			(skip-chars-forward " \t")
+			(point))
+		 (progn (end-of-line)
+			(skip-chars-backward " \t")
+			(point))))
 	(error "Cannot find node to match node name in menu entry")))
     ;; Return point to the menu and insert the title.
     (end-of-line)
@@ -829,22 +813,21 @@ leave point on the line before the `@end menu' line.  Does not indent
 second and subsequent lines of a multi-line description."
   (let* ((beginning-of-next-line (point)))
     (while (< beginning-of-next-line
-	      (save-excursion     ; beginning of end menu line
+	      (save-excursion		; beginning of end menu line
 		(goto-char (texinfo-menu-end))
 		(beginning-of-line)
 		(point)))
 
-      (if (re-search-forward  "\\* \\(.*::\\|.*: [^.,\t\n]+[.,\t]\\)"
-	   (texinfo-menu-end)
-	   t)
-	  (progn
-	    (let ((beginning-white-space (point)))
-	      (skip-chars-forward " \t")  ; skip over spaces
-	      (if (looking-at "\\(@\\|\\w\\)+") ; if there is text
-		  (progn
-		    ;; remove pre-existing indentation
-		    (delete-region beginning-white-space (point))
-		    (indent-to-column to-column-number))))))
+      (when (re-search-forward "\\* \\(.*::\\|.*: [^.,\t\n]+[.,\t]\\)"
+			       (texinfo-menu-end)
+			       t)
+	(let ((beginning-white-space (point)))
+	  (skip-chars-forward " \t")	; skip over spaces
+	  (if (looking-at "\\(@\\|\\w\\)+") ; if there is text
+	      (progn
+		;; remove pre-existing indentation
+		(delete-region beginning-white-space (point))
+		(indent-to-column to-column-number)))))
       ;; position point at beginning of next line
       (forward-line 1)
       (setq beginning-of-next-line (point)))))
@@ -974,25 +957,21 @@ However, there does not need to be a title field."
 
   (let (master-menu-list)
     (while (texinfo-locate-menu-p)
-      (setq master-menu-list
-	    (cons (list
-		   (texinfo-copy-menu)
-		   (texinfo-copy-menu-title))
-		  master-menu-list)))
-    (reverse master-menu-list)))
+      (push (list (texinfo-copy-menu) (texinfo-copy-menu-title))
+	    master-menu-list))
+    (nreverse master-menu-list)))
 
 (defun texinfo-insert-master-menu-list (master-menu-list)
   "Format and insert the master menu in the current buffer."
   (goto-char (point-min))
   ;; Insert a master menu only after `Top' node and before next node
   ;; \(or include file if there is no next node\).
-  (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
-      (error "This buffer needs a Top node"))
+  (unless (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t)
+    (error "This buffer needs a Top node"))
   (let ((first-chapter
 	 (save-excursion (re-search-forward "^@node\\|^@include") (point))))
-    (if (not (re-search-forward "^@menu" first-chapter t))
-	(error
-	 "Buffer lacks ordinary `Top' menu in which to insert master")))
+    (unless (re-search-forward "^@menu" first-chapter t)
+      (error "Buffer lacks ordinary `Top' menu in which to insert master")))
   (beginning-of-line)
   (delete-region      ; buffer must have ordinary top menu
    (point)
@@ -1004,13 +983,11 @@ However, there does not need to be a title field."
     (let (master-menu-inserted-p)
       ;; Handle top of menu
       (insert "\n@menu\n")
-      ;; Insert chapter menu entries
-      (setq this-very-menu-list (reverse (car (car master-menu-list))))
-      ;; Tell user what is going on.
-      (message "Inserting chapter menu entry: %s ... " this-very-menu-list)
-      (while this-very-menu-list
-	(insert "* " (car this-very-menu-list) "\n")
-	(setq this-very-menu-list (cdr this-very-menu-list)))
+      ;; Insert chapter menu entries.  Tell user what is going on.
+      (message "Inserting chapter menu entry: %s ... "
+	       (car (car master-menu-list)))
+      (dolist (entry (reverse (car (car master-menu-list))))
+	(insert "* " entry "\n"))
 
       (setq master-menu-list (cdr master-menu-list))
 
@@ -1034,20 +1011,15 @@ However, there does not need to be a title field."
       ;; ((("beta"  "alpha") "title-A")
       ;;  (("delta" "gamma") "title-B"))
 
-      (while master-menu-list
+      (dolist (menu master-menu-list)
 
-	(message
-	 "Inserting menu for %s .... " (car (cdr (car master-menu-list))))
+	(message "Inserting menu for %s .... " (cadr menu))
 	;; insert title of menu section
-	(insert "\n" (car (cdr (car master-menu-list))) "\n\n")
+	(insert "\n" (cadr menu) "\n\n")
 
 	;; insert each menu entry
-	(setq this-very-menu-list (reverse (car (car master-menu-list))))
-	(while this-very-menu-list
-	  (insert "* " (car this-very-menu-list) "\n")
-	  (setq this-very-menu-list (cdr this-very-menu-list)))
-
-	(setq master-menu-list (cdr master-menu-list)))
+	(dolist (entry (reverse (car menu)))
+	  (insert "* " entry "\n")))
 
       ;; Finish menu
 
@@ -1063,7 +1035,7 @@ If found, leave point after word `menu' on the `@menu' line, and return t.
 If a menu is not found, do not move point and return nil."
   (re-search-forward "\\(^@menu\\)" nil t))
 
-(defun texinfo-copy-menu-title  ()
+(defun texinfo-copy-menu-title ()
   "Return the title of the section preceding the menu as a string.
 If such a title cannot be found, return an empty string.  Do not move
 point."
@@ -1101,16 +1073,13 @@ and leave point on the line before the `@end menu' line."
 		      (point))))
     (while (< (point) last-entry)
       (if (re-search-forward  "^\\* " end-of-menu t)
-	  (progn
-	    (setq this-menu-list
-		  (cons
-		   (buffer-substring
-		    (point)
-		    ;; copy multi-line descriptions
-		    (save-excursion
-		      (re-search-forward "\\(^\\* \\|^@e\\)" nil t)
-		      (- (point) 3)))
-		   this-menu-list)))))
+	  (push (buffer-substring
+		 (point)
+		 ;; copy multi-line descriptions
+		 (save-excursion
+		   (re-search-forward "\\(^\\* \\|^@e\\)" nil t)
+		   (- (point) 3)))
+		this-menu-list)))
     this-menu-list))
 
 
@@ -1127,10 +1096,8 @@ error if the node is not the top node and a section is not found."
     (save-excursion
       (cond
        ((re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
-;;; Following search limit by cph but causes a bug
-;;;			 (save-excursion
-;;;			   (end-of-line)
-;;;			   (point))
+			   ;; Following search limit by cph but causes a bug
+			   ;;(line-end-position)
 			   nil
 			   t)
 	"top")
@@ -1149,8 +1116,8 @@ error if the node is not the top node and a section is not found."
 Thus, a subheading or appendixsubsec is of type subsection."
   (let ((case-fold-search t))
     (cadr (assoc
-	  (texinfo-specific-section-type)
-	  texinfo-section-list))))
+	   (texinfo-specific-section-type)
+	   texinfo-section-list))))
 
 
 ;;; Locating the major positions
@@ -1257,14 +1224,13 @@ which menu descriptions are indented. Its default value is 32."
        (list (point) (mark))))
   (if (null beginning)
       ;; Update a single node.
-      (let ((auto-fill-function nil) (auto-fill-hook nil))
+      (let ((auto-fill-function nil))
 	(if (not (re-search-backward "^@node" (point-min) t))
 	    (error "Node line not found before this position"))
 	(texinfo-update-the-node)
 	(message "Done...updated the node.  You may save the buffer."))
     ;; else
-    (let ((auto-fill-function nil)
-	  (auto-fill-hook nil))
+    (let ((auto-fill-function nil))
       (save-excursion
 	(save-restriction
 	  (narrow-to-region beginning end)
@@ -1531,7 +1497,7 @@ Info `g*' command is inadequate."
   (interactive "P")
   (if (not region-p)
       ;; update a single node
-      (let ((auto-fill-function nil) (auto-fill-hook nil))
+      (let ((auto-fill-function nil))
 	(if (not (re-search-backward "^@node" (point-min) t))
 	    (error "Node line not found before this position"))
 	(texinfo-sequentially-update-the-node)
@@ -1539,7 +1505,6 @@ Info `g*' command is inadequate."
 	 "Done...sequentially updated the node .  You may save the buffer."))
     ;; else
     (let ((auto-fill-function nil)
-	  (auto-fill-hook nil)
 	  (beginning (region-beginning))
 	  (end (region-end)))
       (if (= end beginning)
@@ -1607,6 +1572,7 @@ or `Up' pointer."
 	  ((eq direction 'up)
 	   (if (re-search-backward
 		(eval (cdr (assoc level texinfo-update-menu-higher-regexps)))
+		;; FIXME: passed many levels down via dynamic scoping!
 		beginning
 		t)
 	       'normal
@@ -1741,7 +1707,7 @@ node names in pre-existing `@node' lines that lack names."
   (let ((included-file-list (list outer-file))
 	start)
     (save-excursion
-      (switch-to-buffer (find-file-noselect outer-file))
+      (set-buffer (find-file-noselect outer-file))
       (widen)
       (goto-char (point-min))
       (while (re-search-forward "^@include" nil t)
@@ -1813,10 +1779,10 @@ Thus, normally, each included file contains one, and only one, chapter."
 ;; description slot of a menu as a description.
 
   (let ((case-fold-search t)
-	menu-list)
+	menu-list next-node-name previous-node-name)
 
     ;; Find the name of the first node of the first included file.
-    (switch-to-buffer (find-file-noselect (car (cdr files))))
+    (set-buffer (find-file-noselect (car (cdr files))))
     (widen)
     (goto-char (point-min))
     (if (not (re-search-forward "^@node" nil t))
@@ -1825,16 +1791,13 @@ Thus, normally, each included file contains one, and only one, chapter."
     (texinfo-check-for-node-name)
     (setq next-node-name (texinfo-copy-node-name))
 
-    (setq menu-list
-	  (cons (cons
-		 next-node-name
-		 (prog1 "" (forward-line 1)))
-		;; Use following to insert section titles automatically.
-		;; (texinfo-copy-next-section-title)
-		menu-list))
+    (push (cons next-node-name (prog1 "" (forward-line 1)))
+	  ;; Use following to insert section titles automatically.
+	  ;; (texinfo-copy-next-section-title)
+	  menu-list)
 
     ;; Go to outer file
-    (switch-to-buffer (find-file-noselect (car files)))
+    (set-buffer (find-file-noselect (pop files)))
     (goto-char (point-min))
     (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
 	(error "This buffer needs a Top node"))
@@ -1844,7 +1807,6 @@ Thus, normally, each included file contains one, and only one, chapter."
     (insert ", " next-node-name ", (dir), (dir)")
     (beginning-of-line)
     (setq previous-node-name "Top")
-    (setq files (cdr files))
 
     (while files
 
@@ -1853,7 +1815,7 @@ Thus, normally, each included file contains one, and only one, chapter."
 	  (setq next-node-name "")
 	;; Else,
 	;; find the name of the first node in the next file.
-	(switch-to-buffer (find-file-noselect (car (cdr files))))
+	(set-buffer (find-file-noselect (car (cdr files))))
 	(widen)
 	(goto-char (point-min))
 	(if (not (re-search-forward "^@node" nil t))
@@ -1861,16 +1823,13 @@ Thus, normally, each included file contains one, and only one, chapter."
 	(beginning-of-line)
 	(texinfo-check-for-node-name)
 	(setq next-node-name (texinfo-copy-node-name))
-	(setq menu-list
-	      (cons (cons
-		     next-node-name
-		     (prog1 "" (forward-line 1)))
-		    ;; Use following to insert section titles automatically.
-		    ;; (texinfo-copy-next-section-title)
-		    menu-list)))
+	(push (cons next-node-name (prog1 "" (forward-line 1)))
+	      ;; Use following to insert section titles automatically.
+	      ;; (texinfo-copy-next-section-title)
+	      menu-list))
 
       ;; Go to node to be updated.
-      (switch-to-buffer (find-file-noselect (car files)))
+      (set-buffer (find-file-noselect (car files)))
       (goto-char (point-min))
       (if (not (re-search-forward "^@node" nil t))
 	  (error "No `@node' line found in %s" (buffer-name)))
@@ -1882,7 +1841,7 @@ Thus, normally, each included file contains one, and only one, chapter."
       (beginning-of-line)
       (texinfo-delete-existing-pointers)
       (end-of-line)
-      (insert ", " next-node-name ", " previous-node-name ", " up-node-name)
+      (insert ", " next-node-name ", " previous-node-name ", Top")
 
       (beginning-of-line)
       (setq previous-node-name (texinfo-copy-node-name))
@@ -1896,12 +1855,12 @@ Indents the first line of the description, if any, to the value of
 `texinfo-column-for-description'."
 
   (insert "@menu\n")
-  (while menu-list
+  (dolist (entry menu-list)
     ;; Every menu entry starts with a star and a space.
     (insert "* ")
 
     ;; Insert the node name (and menu entry name, if present).
-    (let ((node-part (car (car menu-list))))
+    (let ((node-part (car entry)))
       (if (stringp node-part)
 	  ;; "Double colon" entry line; menu entry and node name are the same,
 	  (insert (format "%s::" node-part))
@@ -1909,15 +1868,13 @@ Indents the first line of the description, if any, to the value of
 	(insert (format "%s: %s." (car node-part) (cdr node-part)))))
 
     ;; Insert the description, if present.
-    (if (cdr (car menu-list))
-	(progn
-	  ;; Move to right place.
-	  (indent-to texinfo-column-for-description 2)
-	  ;; Insert description.
-	  (insert (format "%s" (cdr (car menu-list))))))
+    (when (cdr entry)
+      ;; Move to right place.
+      (indent-to texinfo-column-for-description 2)
+      ;; Insert description.
+      (insert (format "%s" (cdr entry))))
 
-    (insert "\n") ; end this menu entry
-    (setq menu-list (cdr menu-list)))
+    (insert "\n")) ; end this menu entry
   (insert "@end menu"))
 
 (defun texinfo-multi-file-master-menu-list (files-list)
@@ -1928,13 +1885,12 @@ The first file in FILES-LIST must be the outer file; the others must
 be the files included within it.  A main menu must already exist."
   (save-excursion
     (let (master-menu-list)
-      (while files-list
-	(switch-to-buffer (find-file-noselect (car files-list)))
+      (dolist (file files-list)
+	(set-buffer (find-file-noselect file))
 	(message "Working on: %s " (current-buffer))
 	(goto-char (point-min))
 	(setq master-menu-list
-	      (append master-menu-list (texinfo-master-menu-list)))
-	(setq files-list (cdr files-list)))
+	      (append master-menu-list (texinfo-master-menu-list))))
       master-menu-list)))
 
 
@@ -1983,76 +1939,69 @@ chapter."
 		(read-string
 		 "Name of outer `include' file: "
 		 (buffer-file-name))
-		(cond ((not current-prefix-arg)
-		       '(nil nil))
-		      ((listp current-prefix-arg)
-		       '(t nil))   ; make-master-menu
-		      ((numberp current-prefix-arg)
-		       '(t t))     ; update-everything
-		      )))
+		(cond
+		 ((not current-prefix-arg)	'(nil nil))
+		 ((listp current-prefix-arg)	'(t nil)) ; make-master-menu
+		 ((numberp current-prefix-arg)	'(t t))))) ; update-everything
 
   (let* ((included-file-list (texinfo-multi-file-included-list outer-file))
 	 (files included-file-list)
-	 main-menu-list
 	 next-node-name
 	 previous-node-name
-	 (up-node-name "Top"))
+	 ;; Update the pointers and collect the names of the nodes and titles
+	 (main-menu-list (texinfo-multi-file-update files update-everything)))
 
-;;; Update the pointers
-;;; and collect the names of the nodes and titles
-    (setq main-menu-list (texinfo-multi-file-update files update-everything))
+    ;; Insert main menu
 
-;;; Insert main menu
+    ;; Go to outer file
+    (set-buffer (find-file-noselect (car included-file-list)))
+    (if (texinfo-old-menu-p
+	 (point-min)
+	 (save-excursion
+	   (re-search-forward "^@include")
+	   (beginning-of-line)
+	   (point)))
 
-  ;; Go to outer file
-  (switch-to-buffer (find-file-noselect (car included-file-list)))
-  (if (texinfo-old-menu-p
-       (point-min)
-       (save-excursion
-	 (re-search-forward "^@include")
-	 (beginning-of-line)
-	 (point)))
+	;; If found, leave point after word `menu' on the `@menu' line.
+	(progn
+	  (texinfo-incorporate-descriptions main-menu-list)
+	  ;; Delete existing menu.
+	  (beginning-of-line)
+	  (delete-region
+	   (point)
+	   (save-excursion (re-search-forward "^@end menu") (point)))
+	  ;; Insert main menu
+	  (texinfo-multi-files-insert-main-menu main-menu-list))
 
-      ;; If found, leave point after word `menu' on the `@menu' line.
-      (progn
-	(texinfo-incorporate-descriptions main-menu-list)
-	;; Delete existing menu.
-	(beginning-of-line)
-	(delete-region
-	 (point)
-	 (save-excursion (re-search-forward "^@end menu") (point)))
-	;; Insert main menu
-	(texinfo-multi-files-insert-main-menu main-menu-list))
+      ;; Else no current menu; insert it before `@include'
+      (texinfo-multi-files-insert-main-menu main-menu-list))
 
-    ;; Else no current menu; insert it before `@include'
-    (texinfo-multi-files-insert-main-menu main-menu-list))
+    ;; Insert master menu
 
-;;; Insert master menu
+    (if make-master-menu
+	(progn
+	  ;; First, removing detailed part of any pre-existing master menu
+	  (goto-char (point-min))
+	  (if (search-forward texinfo-master-menu-header nil t)
+	      (progn
+		(goto-char (match-beginning 0))
+		;; Check if @detailmenu kludge is used;
+		;; if so, leave point before @detailmenu.
+		(search-backward "\n@detailmenu"
+				 (save-excursion (forward-line -3) (point))
+				 t)
+		;; Remove detailed master menu listing
+		(let ((end-of-detailed-menu-descriptions
+		       (save-excursion	; beginning of end menu line
+			 (goto-char (texinfo-menu-end))
+			 (beginning-of-line) (forward-char -1)
+			 (point))))
+		  (delete-region (point) end-of-detailed-menu-descriptions))))
 
-  (if make-master-menu
-      (progn
-	;; First, removing detailed part of any pre-existing master menu
-	(goto-char (point-min))
-	(if (search-forward texinfo-master-menu-header nil t)
-	    (progn
-	      (goto-char (match-beginning 0))
-	      ;; Check if @detailmenu kludge is used;
-	      ;; if so, leave point before @detailmenu.
-	      (search-backward "\n@detailmenu"
-			       (save-excursion (forward-line -3) (point))
-			       t)
-	      ;; Remove detailed master menu listing
-	      (let ((end-of-detailed-menu-descriptions
-		     (save-excursion     ; beginning of end menu line
-		       (goto-char (texinfo-menu-end))
-		       (beginning-of-line) (forward-char -1)
-		       (point))))
-		(delete-region (point) end-of-detailed-menu-descriptions))))
-
-	;; Create a master menu and insert it
-	(texinfo-insert-master-menu-list
-	 (texinfo-multi-file-master-menu-list
-	  included-file-list)))))
+	  ;; Create a master menu and insert it
+	  (texinfo-insert-master-menu-list
+	   (texinfo-multi-file-master-menu-list
+	    included-file-list)))))
 
   ;; Remove unwanted extra lines.
   (save-excursion
@@ -2060,18 +2009,18 @@ chapter."
 
     (re-search-forward "^@menu")
     (forward-line -1)
-    (insert  "\n") ; Ensure at least one blank line.
+    (insert  "\n")			; Ensure at least one blank line.
     (delete-blank-lines)
 
     (re-search-forward "^@end menu")
     (forward-line 1)
-    (insert  "\n") ; Ensure at least one blank line.
+    (insert  "\n")			; Ensure at least one blank line.
     (delete-blank-lines))
 
   (message "Multiple files updated."))
 
 
-;;; Place `provide' at end of file.
+;; Place `provide' at end of file.
 (provide 'texnfo-upd)
 
 ;;; texnfo-upd.el ends here
