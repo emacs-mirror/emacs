@@ -340,6 +340,8 @@ make_terminal_frame ()
     {
       initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
       init_kboard (initial_kboard);
+      initial_kboard->next_kboard = all_kboards;
+      all_kboards = initial_kboard;
     }
 #endif
 
