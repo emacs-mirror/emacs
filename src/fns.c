@@ -431,12 +431,7 @@ The last argument is not copied, just used as the tail of the new list.")
 DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
   "Concatenate all the arguments and make the result a string.\n\
 The result is a string whose elements are the elements of all the arguments.\n\
-Each argument may be a string or a list or vector of characters (integers).\n\
-\n\
-Do not use individual integers as arguments!\n\
-The behavior of `concat' in that case will be changed later!\n\
-If your program passes an integer as an argument to `concat',\n\
-you should change it right away not to do so.")
+Each argument may be a string or a list or vector of characters (integers).")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -598,9 +593,6 @@ concat (nargs, args, target_type, last_special)
       if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
 	    || COMPILEDP (this) || BOOL_VECTOR_P (this)))
 	{
-	  if (INTEGERP (this))
-            args[argnum] = Fnumber_to_string (this);
-	  else
 	    args[argnum] = wrong_type_argument (Qsequencep, this);
 	}
     }
@@ -2139,6 +2131,7 @@ a character set name, or a character code.")
     }
   else
     error ("Invalid RANGE argument to `char-table-range'");
+  return Qt;
 }
 
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
@@ -4858,6 +4851,7 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Smap_char_table);
   defsubr (&Snconc);
   defsubr (&Smapcar);
+  defsubr (&Smapc);
   defsubr (&Smapconcat);
   defsubr (&Sy_or_n_p);
   defsubr (&Syes_or_no_p);
