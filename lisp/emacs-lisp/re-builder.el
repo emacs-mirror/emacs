@@ -680,4 +680,6 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 	(progn (store-match-data firstmatch)
 	       (reb-show-subexp (or subexp 0))))))
 
+(provide 're-builder)
+
 ;;; re-builder.el ends here
