@@ -8,6 +8,9 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** On terminals whose erase-char is ^H (Backspace), Emacs
+now uses normal-erase-is-backspace-mode.
+
 +++
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
