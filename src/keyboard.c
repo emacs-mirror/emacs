@@ -3474,22 +3474,26 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	kbd_fetch_ptr = event + 1;
       else if (event->kind == HELP_EVENT)
 	{
-	  /* There are always two consecutive HELP_EVENTs in the
-	     input queue.  */
+	  /* There are always two HELP_EVENTs in the input queue.  */
 	  Lisp_Object object, position, help, frame, window;
-	  
+
 	  xassert (event->code == 0);
 	  frame = event->frame_or_window;
 	  object = event->arg;
 	  position = event->x;
-	  xassert ((event + 1)->code == 1);
-	  help = (event + 1)->arg;
-	  window = (event + 1)->frame_or_window;
+
+	  kbd_fetch_ptr = event + 1;
+	  event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
+		   ? kbd_fetch_ptr
+		   : kbd_buffer);
+	  xassert (event->code == 1);
+	  help = event->arg;
+	  window = event->frame_or_window;
 	  if (!WINDOWP (window))
 	    window = Qnil;
 	  obj = Fcons (Qhelp_echo,
 		       list5 (frame, help, window, object, position));
-	  kbd_fetch_ptr = event + 2;
+	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == FOCUS_IN_EVENT)
 	{
