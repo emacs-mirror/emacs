@@ -1,5 +1,11 @@
 2001-02-28  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/ethio-util.el (setup-ethiopic-environment-internal):
+	Change bindings of functions keys to conform to "Emacs Lisp Coding
+	Convention".
+
+	* language/ethiopic.el ("Ethiopic"): Add documentation.
+
 	* international/utf-8.el (mule-utf-8): Set coding-category
 	property to coding-category-utf-8.
 
