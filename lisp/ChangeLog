@@ -1,3 +1,10 @@
+2002-06-01  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (choose-completion-string-functions): New special hook.
+	(choose-completion-string1): Renamed from choose-completion-string.
+	(choose-completion-string): Run choose-completion-string-functions
+	until success, and only call choose-completion-string1 if it fails.
+
 2002-05-31  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--last-deleted-region-pos)
