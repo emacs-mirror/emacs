@@ -809,6 +809,35 @@ visible_bell_3:
 	popl  %eax");
 }
 
+/* At screen position (X,Y), output C characters from string S with
+   attribute A.  Do it fast!  */
+
+static void
+output_string (x, y, s, c, a)
+     int x, y, c;
+     unsigned char *s;
+     unsigned char a;
+{
+  char *t = (char *)ScreenPrimary + 2 * (x + ScreenCols () * y);
+  asm volatile
+    ("  movl   %1,%%eax
+        call   dosmemsetup
+        movl   %%eax,%%edi
+        movb   %0,%%ah
+        movl   %2,%%ecx
+        movl   %3,%%esi
+output_string1:
+        movb   (%%esi),%%al
+        movw   %%ax,%%gs:(%%edi)
+        addl   $2,%%edi
+        incl   %%esi
+        decl   %%ecx
+        jne    output_string1"
+     : /* no output */
+     : "m" (a), "g" (t), "g" (c), "g" (s)
+     : "%eax", "%ecx", /* "%gs",*/ "%esi", "%edi");
+}
+
 static int internal_terminal = 0;
 #undef fflush
 
@@ -816,10 +845,11 @@ int
 internal_flush (f)
      FILE *f;
 {
+  static char spaces[] = "                                                                                ";
   static int x;
   static int y;
-  char c, *cp;
-  int count, i;
+  unsigned char *cp, *cp0;
+  int count, i, j;
 
   if (internal_terminal && f == stdout)
     {
@@ -828,7 +858,7 @@ internal_flush (f)
       count = stdout->_ptr - stdout->_base;
       while (count > 0)
 	{
-	  switch (c = *cp++)
+	  switch (*cp++)
 	    {
 	    case 27:
 	      switch (*cp++)
@@ -852,8 +882,17 @@ internal_flush (f)
 		  count -= 2;
 		  break;
 		case 'E':
-		  for (i = ScreenCols () - 1; i >= x; i--)
-		    ScreenPutChar (' ', ScreenAttrib, i, y);
+		  i = ScreenCols () - x;
+		  j = x;
+		  while (i >= sizeof spaces)
+		    {
+		      output_string (j, y, spaces, sizeof spaces,
+				     ScreenAttrib);
+		      j += sizeof spaces;
+		      i -= sizeof spaces;
+		    }
+		  if (i > 0)
+		    output_string (j, y, spaces, i, ScreenAttrib);
 		  count -= 2;
 		  break;
 		case 'R':
@@ -889,8 +928,12 @@ internal_flush (f)
 	      count--;
 	      break;
 	    default:
-	      ScreenPutChar (c, ScreenAttrib, x++, y);
+	      cp0 = cp - 1;
 	      count--;
+	      while (count > 0 && *cp >= ' ')
+		cp++, count--;
+	      output_string (x, y, cp0, cp - cp0, ScreenAttrib);
+	      x += (cp - cp0);
 	    }
 	}
       fpurge (stdout);
