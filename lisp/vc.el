@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.311 2001/09/24 22:29:15 monnier Exp $
+;; $Id: vc.el,v 1.312 2001/10/21 12:15:22 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -472,10 +472,6 @@ These are passed to the checkin program by \\[vc-register]."
 
 (defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
-
-;; This is duplicated in diff.el.
-(defvar diff-switches "-c"
-  "*A string or list of strings specifying switches to be passed to diff.")
 
 (defcustom vc-diff-switches nil
   "*A string or list of strings specifying switches for diff under VC.
