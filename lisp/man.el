@@ -125,6 +125,8 @@ in all sections.")
 
 (defvar Man-section-translations-alist
   '(("3C++" . "3")
+    ("3X" . "3")                        ; Xlib man pages
+    ("3X11" . "3")
     ("1-UCB" . ""))
   "*Association list of bogus sections to real section numbers.
 Some manpages (e.g. the Sun C++ 2.1 manpages) have section numbers in
