@@ -1,3 +1,8 @@
+2004-11-12  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
+
+	* desktop.el (desktop-create-buffer, desktop-save): Avoid some
+	consing by using mapc instead of mapcar.
+
 2004-11-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el (require): Explain why CL is needed.
