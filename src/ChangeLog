@@ -7,7 +7,7 @@
 	* lisp.h (Fprovide): Update prototype.
 	(Ffeaturep, invisible_p): Remove.
 
-	* xdisp.c (init_iterator): Be more strict with bytepos and charspos.
+	* xdisp.c (init_iterator): Be more strict with bytepos and charpos.
 	(DOLIST, LOOP_PROPVAL): New macros.
 	(invisible_p, invisible_ellipsis_p): Use them.
 	(invisible_noellipsis_p): New function.
