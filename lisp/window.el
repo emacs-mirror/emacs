@@ -83,6 +83,7 @@ This is convenient on slow terminals, but point can move strangely.")
 (defun split-window-vertically (&optional arg)
   "Split current window into two windows, one above the other.
 The uppermost window gets ARG lines and the other gets the rest.
+Negative arg means select the size of the lowermost window instead.
 With no argument, split equally or close to it.
 Both windows display the same buffer now current.
 
@@ -98,8 +99,10 @@ new mode line."
   (interactive "P")
   (let ((old-w (selected-window))
 	(old-point (point))
+	(size (and arg (prefix-numeric-value arg)))
 	new-w bottom switch)
-    (setq new-w (split-window nil (and arg (prefix-numeric-value arg))))
+    (and size (< size 0) (setq size (+ (window-height) size)))
+    (setq new-w (split-window nil size))
     (or split-window-keep-point
 	(progn
 	  (save-excursion
