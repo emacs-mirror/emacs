@@ -1,3 +1,18 @@
+2002-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* info-look.el (info-lookup): Fix error message typo.
+
+	* comint.el (comint-mode): Localy set scroll-conservatively.
+	(comint-postoutput-scroll-to-bottom): comint-scroll-show-maximum-output
+	is active only when point is at end.
+
+	* dired.el (dired-goto-file): Handle \ and ^M quoted by backslash.
+	Fix error message.
+
+	* files.el (find-file-noselect-1): Kill local value of `cursor-type'.
+
+	* simple.el (repeat-complex-command): Signal real error on failure.
+
 2002-12-28  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/make-mode.el (makefile-font-lock-keywords): Highlight
