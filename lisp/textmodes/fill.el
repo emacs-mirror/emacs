@@ -755,9 +755,6 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 			;; fill-region.
 			(fill-region beg end arg)
 		      (fill-region-as-paragraph beg end arg))))))
-	;; See if point ended up inside the fill-prefix, and if so, move
-	;; past it.
-	(skip-line-prefix fill-pfx)
 	fill-pfx)))
 
 (defun fill-comment-paragraph (&optional justify)
