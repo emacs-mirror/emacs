@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
+#include "termhooks.h"
 
 /* All costs measured in characters.
    So no cost can exceed the area of a frame, measured in characters.
@@ -102,7 +103,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
   register int cost, cost1;
 
   int lines_moved = window_size
-    + (TTY_SCROLL_REGION_OK (FRAME_TTY (frame)) ? 0 : lines_below);
+    + (FRAME_SCROLL_REGION_OK (frame) ? 0 : lines_below);
   /* first_insert_cost[I] is the cost of doing the first insert-line
      at the i'th line of the lines we are considering,
      where I is origin 1 (as it is below).  */
@@ -469,7 +470,7 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
      cost of scrolling by a distance of one.  The extra cost is
      added once for consistency with the cost vectors */
   scroll_overhead
-    = TTY_SCROLL_REGION_COST (FRAME_TTY (frame)) + extra_cost;
+    = FRAME_SCROLL_REGION_COST (frame) + extra_cost;
 
   /* initialize the top left corner of the matrix */
   matrix->writecost = 0;
@@ -821,7 +822,7 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
   matrix = ((struct matrix_elt *)
 	    alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix));
 
-  if (TTY_SCROLL_REGION_OK (FRAME_TTY (frame)))
+  if (FRAME_SCROLL_REGION_OK (frame))
     {
       calculate_direct_scrolling (frame, matrix, window_size,
 				  unchanged_at_bottom,
@@ -917,7 +918,7 @@ scroll_cost (frame, from, to, amount)
   if (amount == 0)
     return 0;
 
-  if (! TTY_SCROLL_REGION_OK (FRAME_TTY (frame)))
+  if (! FRAME_SCROLL_REGION_OK (frame))
     limit = height;
   else if (amount > 0)
     limit += amount;

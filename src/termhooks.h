@@ -31,10 +31,45 @@ struct frame;
 #endif
 
 /* Device-local parameters. */
-struct device
+struct display_method
 {
+  /* Terminal characteristics. */
+  
+  int must_write_spaces;	/* Nonzero means spaces in the text must
+				   actually be output; can't just skip over
+				   some columns to leave them blank.  */
+  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string */
+  
+  int line_ins_del_ok;          /* Terminal can insert and delete lines */
+  int char_ins_del_ok;          /* Terminal can insert and delete chars */
+  int scroll_region_ok;         /* Terminal supports setting the scroll
+                                   window */
+  int scroll_region_cost;	/* Cost of setting the scroll window,
+                                   measured in characters. */
+  int memory_below_frame;	/* Terminal remembers lines scrolled
+                                   off bottom */
+
+#if 0  /* These are not used anywhere. */
+  /* EMACS_INT baud_rate; */	/* Output speed in baud */
+  int min_padding_speed;	/* Speed below which no padding necessary. */
+  int dont_calculate_costs;     /* Nonzero means don't bother computing
+                                   various cost tables; we won't use them. */
+#endif
+
+  /* Window-based redisplay interface for this frame (0 for termcap
+     frames). */
+  struct redisplay_interface *rif;
+  
   /* XXX Display hooks will go here. */
 };
+
+#define FRAME_MUST_WRITE_SPACES(f) ((f)->display_method->must_write_spaces)
+#define FRAME_FAST_CLEAR_END_OF_LINE(f) ((f)->display_method->fast_clear_end_of_line)
+#define FRAME_LINE_INS_DEL_OK(f) ((f)->display_method->line_ins_del_ok)
+#define FRAME_CHAR_INS_DEL_OK(f) ((f)->display_method->char_ins_del_ok)
+#define FRAME_SCROLL_REGION_OK(f) ((f)->display_method->scroll_region_ok)
+#define FRAME_SCROLL_REGION_COST(f) ((f)->display_method->scroll_region_cost)
+#define FRAME_MEMORY_BELOW_FRAME(f) ((f)->display_method->memory_below_frame)
 
 /* Text display hooks.  */
 
@@ -432,7 +467,7 @@ enum {
   meta_modifier	=  CHAR_META	/* Under X, the XK_Meta_[LR] keysyms.  */
 };
 
-#endif
+#endif /* CONSP */
 
 /* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d
    (do not change this comment) */

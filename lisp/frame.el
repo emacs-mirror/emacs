@@ -587,7 +587,7 @@ us.)"
     (error "Invalid terminal device"))
   (unless type
     (error "Invalid terminal type"))
-  (make-frame `((tty . ,device) (tty-type . ,type) . ,parameters)))
+  (make-terminal-frame (append (list (cons 'tty device) (cons 'tty-type type)) parameters)))
 
 (defun make-frame-command ()
   "Make a new frame, and select it if the terminal displays only one frame."

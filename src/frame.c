@@ -114,6 +114,7 @@ Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
 Lisp_Object Qface_set_after_frame_default;
 
+Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
@@ -122,8 +123,8 @@ Lisp_Object Vdelete_frame_functions;
 
 static void
 set_menu_bar_lines_1 (window, n)
-  Lisp_Object window;
-  int n;
+     Lisp_Object window;
+     int n;
 {
   struct window *w = XWINDOW (window);
 
@@ -565,6 +566,7 @@ make_terminal_frame (tty_name, tty_type)
         f->output_data.tty->display_info = term_dummy_init ();
       }
     FRAME_TTY (f)->reference_count++;
+    f->display_method = FRAME_TTY (f)->display_method;
   }
   
 #ifdef CANNOT_DUMP
@@ -614,8 +616,10 @@ Note that changing the size of one terminal frame automatically affects all.  */
   if (sf->output_method != output_mac)
     error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
 #else
+#if 0                           /* This should work now! */
   if (sf->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
+#endif
 #endif
 #endif /* not MSDOS */
 
@@ -1909,7 +1913,7 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
 
   XFRAME (frame)->focus_frame = focus_frame;
 
-  if (frame_rehighlight_hook)
+  if (!FRAME_TERMCAP_P (XFRAME (frame)) && frame_rehighlight_hook)
     (*frame_rehighlight_hook) (XFRAME (frame));
 
   return Qnil;
@@ -4136,6 +4140,9 @@ Setting this variable does not affect existing frames, only new ones.  */);
   Qinhibit_default_face_x_resources
     = intern ("inhibit-default-face-x-resources");
   staticpro (&Qinhibit_default_face_x_resources);
+
+  DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
+               doc: /* The initial frame-object, which represents Emacs's stdout.  */);
 
   DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
 	       doc: /* Non-nil if all of emacs is iconified and frame updates are not needed.  */);

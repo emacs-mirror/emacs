@@ -2008,6 +2008,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   XSETWINDOW (it->window, w);
   it->w = w;
   it->f = XFRAME (w->frame);
+  
+  /* XXX rif hack: Make sure the redisplay interface is correctly set. */
+  rif = it->f->display_method->rif;
 
   /* Extra space between lines (on window systems only).  */
   if (base_face_id == DEFAULT_FACE_ID
@@ -12899,7 +12902,7 @@ try_window_id (w)
 
   /* Window must either use window-based redisplay or be full width.  */
   if (!FRAME_WINDOW_P (f)
-      && (!TTY_LINE_INS_DEL_OK (CURTTY ())
+      && (!FRAME_LINE_INS_DEL_OK (f)
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
@@ -13332,7 +13335,7 @@ try_window_id (w)
 
 	      /* On dumb terminals delete dvpos lines at the end
 		 before inserting dvpos empty lines.  */
-	      if (!TTY_SCROLL_REGION_OK (FRAME_TTY (f)))
+	      if (!FRAME_SCROLL_REGION_OK (f))
 		ins_del_lines (end - dvpos, -dvpos);
 
 	      /* Insert dvpos empty lines in front of
@@ -13353,7 +13356,7 @@ try_window_id (w)
 
 	      /* On a dumb terminal insert dvpos empty lines at the
                  end.  */
-	      if (!TTY_SCROLL_REGION_OK (FRAME_TTY (f)))
+	      if (!FRAME_SCROLL_REGION_OK (f))
 		ins_del_lines (end + dvpos, -dvpos);
 	    }
 
@@ -21194,6 +21197,9 @@ expose_frame (f, x, y, w, h)
 
   TRACE ((stderr, "expose_frame "));
 
+  /* XXX rif hack: Make sure redisplay interface is updated. */
+  rif = f->display_method->rif;
+  
   /* No need to redraw if frame will be redrawn soon.  */
   if (FRAME_GARBAGED_P (f))
     {

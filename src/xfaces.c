@@ -6640,7 +6640,8 @@ realize_basic_faces (f)
 	{
 	  FRAME_FACE_CACHE (f)->menu_face_changed_p = 0;
 #ifdef USE_X_TOOLKIT
-	  x_update_menu_appearance (f);
+          if (FRAME_WINDOW_P (f))
+            x_update_menu_appearance (f);
 #endif
 	}
 

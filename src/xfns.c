@@ -3191,6 +3191,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   check_x ();
 
+  /* XXX rif hack:Make sure rif is set to the right value. */
+  rif = x_display_method.rif;
+  
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
@@ -3245,6 +3248,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Note that X Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
+  f->display_method = &x_display_method;
   f->output_method = output_x_window;
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
@@ -9979,6 +9983,8 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
+
+  f->display_method = &x_display_method;
 
   /* By setting the output method, we're essentially saying that
      the frame is live, as per FRAME_LIVE_P.  If we get a signal

@@ -267,6 +267,10 @@ int max_frame_cols;
 
 int max_frame_lines;
 
+/* A template for tty display methods, with common values
+   preinitialized. */
+static struct display_method tty_display_method_template;
+
 /* Frame currently being redisplayed; 0 if not currently redisplaying.
    (Direct output does not count).  */
 
@@ -370,6 +374,8 @@ update_begin (f)
      struct frame *f;
 {
   updating_frame = f;
+  /* XXX rif hack */
+  rif = f->display_method->rif;
   if (!FRAME_TERMCAP_P (f))
     update_begin_hook (f);
 }
@@ -401,7 +407,7 @@ set_terminal_window (size)
     {
       struct tty_display_info *tty = FRAME_TTY (f);
       tty->specified_window = size ? size : FRAME_LINES (f);
-      if (TTY_SCROLL_REGION_OK (tty))
+      if (FRAME_SCROLL_REGION_OK (f))
 	set_scroll_region (0, tty->specified_window);
     }
   else
@@ -537,7 +543,7 @@ cursor_to (vpos, hpos)
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
-  
+
   if (! FRAME_TERMCAP_P (f) && cursor_to_hook)
     {
       (*cursor_to_hook) (vpos, hpos);
@@ -595,7 +601,7 @@ clear_to_end ()
 
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
-  
+
   if (clear_to_end_hook && ! FRAME_TERMCAP_P (f))
     {
       (*clear_to_end_hook) ();
@@ -624,7 +630,7 @@ clear_frame ()
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
-  
+
   if (clear_frame_hook && ! FRAME_TERMCAP_P (f))
     {
       (*clear_frame_hook) ();
@@ -655,9 +661,8 @@ clear_end_of_line (first_unused_hpos)
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
-  
-  if (clear_end_of_line_hook
-      && ! FRAME_TERMCAP_P (f))
+
+  if (clear_end_of_line_hook && ! FRAME_TERMCAP_P (f))
     {
       (*clear_end_of_line_hook) (first_unused_hpos);
       return;
@@ -822,8 +827,7 @@ write_glyphs (string, len)
   unsigned char conversion_buffer[1024];
   int conversion_buffer_size = sizeof conversion_buffer;
 
-  if (write_glyphs_hook
-      && ! FRAME_TERMCAP_P (f))
+  if (write_glyphs_hook && ! FRAME_TERMCAP_P (f))
     {
       (*write_glyphs_hook) (string, len);
       return;
@@ -924,17 +928,18 @@ insert_glyphs (start, len)
   struct glyph *glyph = NULL;
   struct frame *f;
   struct tty_display_info *tty;
-  
+
   if (len <= 0)
     return;
 
-  if (insert_glyphs_hook)
+  f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+
+  if (insert_glyphs_hook && ! FRAME_TERMCAP_P (f))
     {
       (*insert_glyphs_hook) (start, len);
       return;
     }
 
-  f = (updating_frame ? updating_frame : XFRAME (selected_frame));  
   tty = FRAME_TTY (f);
 
   if (tty->TS_ins_multi_chars)
@@ -1034,7 +1039,7 @@ delete_glyphs (n)
       turn_off_insert (tty);
       OUTPUT_IF (tty, tty->TS_delete_mode);
     }
-  
+
   if (tty->TS_del_multi_chars)
     {
       buf = tparam (tty->TS_del_multi_chars, 0, 0, n);
@@ -1066,10 +1071,10 @@ ins_del_lines (vpos, n)
       char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
       char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
       char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
-      
+
       register int i = n > 0 ? n : -n;
       register char *buf;
-      
+
       /* If the lines below the insertion are being pushed
          into the end of the window, this is the same as clearing;
          and we know the lines are already clear, since the matching
@@ -1077,13 +1082,13 @@ ins_del_lines (vpos, n)
       /* If the lines below the deletion are blank lines coming
          out of the end of the window, don't bother,
          as there will be a matching inslines later that will flush them. */
-      if (TTY_SCROLL_REGION_OK (tty)
+      if (FRAME_SCROLL_REGION_OK (f)
           && vpos + i >= tty->specified_window)
         return;
-      if (!TTY_MEMORY_BELOW_FRAME (tty)
+      if (!FRAME_MEMORY_BELOW_FRAME (f)
           && vpos + i >= FRAME_LINES (f))
         return;
-      
+
       if (multi)
         {
           raw_cursor_to (vpos, 0);
@@ -1113,9 +1118,9 @@ ins_del_lines (vpos, n)
             OUTPUTL (tty, scroll, tty->specified_window - vpos);
           set_scroll_region (0, tty->specified_window);
         }
-      
-      if (!TTY_SCROLL_REGION_OK (tty)
-          && TTY_MEMORY_BELOW_FRAME (tty)
+
+      if (!FRAME_SCROLL_REGION_OK (f)
+          && FRAME_MEMORY_BELOW_FRAME (f)
           && n < 0)
         {
           cursor_to (FRAME_LINES (f) + n, 0);
@@ -1243,60 +1248,64 @@ void
 calculate_costs (frame)
      FRAME_PTR frame;
 {
-  struct tty_display_info *tty = FRAME_TTY (frame);
-  register char *f = (tty->TS_set_scroll_region
-		      ? tty->TS_set_scroll_region
-		      : tty->TS_set_scroll_region_1);
-
   FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
   if (FRAME_TERMCAP_P (frame))
-    TTY_SCROLL_REGION_COST (FRAME_TTY (frame)) = string_cost (f);
+    {
+      struct tty_display_info *tty = FRAME_TTY (frame);
+      register char *f = (tty->TS_set_scroll_region
+                          ? tty->TS_set_scroll_region
+                          : tty->TS_set_scroll_region_1);
 
-  /* These variables are only used for terminal stuff.  They are allocated
-     once for the terminal frame of X-windows emacs, but not used afterwards.
+      FRAME_SCROLL_REGION_COST (frame) = string_cost (f);
 
-     char_ins_del_vector (i.e., char_ins_del_cost) isn't used because
-     X turns off char_ins_del_ok. */
+      tty->costs_set = 1;
 
-  max_frame_lines = max (max_frame_lines, FRAME_LINES (frame));
-  max_frame_cols = max (max_frame_cols, FRAME_COLS (frame));
+      /* These variables are only used for terminal stuff.  They are
+         allocated once for the terminal frame of X-windows emacs, but not
+         used afterwards.
 
-  tty->costs_set = 1;
+         char_ins_del_vector (i.e., char_ins_del_cost) isn't used because
+         X turns off char_ins_del_ok. */
 
-  if (char_ins_del_vector != 0)
-    char_ins_del_vector
-      = (int *) xrealloc (char_ins_del_vector,
-			  (sizeof (int)
-			   + 2 * max_frame_cols * sizeof (int)));
-  else
-    char_ins_del_vector
-      = (int *) xmalloc (sizeof (int)
-			 + 2 * max_frame_cols * sizeof (int));
+      max_frame_lines = max (max_frame_lines, FRAME_LINES (frame));
+      max_frame_cols = max (max_frame_cols, FRAME_COLS (frame));
 
-  bzero (char_ins_del_vector, (sizeof (int)
-			       + 2 * max_frame_cols * sizeof (int)));
+      if (char_ins_del_vector != 0)
+        char_ins_del_vector
+          = (int *) xrealloc (char_ins_del_vector,
+                              (sizeof (int)
+                               + 2 * max_frame_cols * sizeof (int)));
+      else
+        char_ins_del_vector
+          = (int *) xmalloc (sizeof (int)
+                             + 2 * max_frame_cols * sizeof (int));
 
-  if (f && (!tty->TS_ins_line && !tty->TS_del_line))
-    do_line_insertion_deletion_costs (frame,
-				      tty->TS_rev_scroll, tty->TS_ins_multi_lines,
-				      tty->TS_fwd_scroll, tty->TS_del_multi_lines,
-				      f, f, 1);
-  else
-    do_line_insertion_deletion_costs (frame,
-				      tty->TS_ins_line, tty->TS_ins_multi_lines,
-				      tty->TS_del_line, tty->TS_del_multi_lines,
-				      0, 0, 1);
+      bzero (char_ins_del_vector, (sizeof (int)
+                                   + 2 * max_frame_cols * sizeof (int)));
 
-  calculate_ins_del_char_costs (frame);
 
-  /* Don't use TS_repeat if its padding is worse than sending the chars */
-  if (tty->TS_repeat && per_line_cost (tty->TS_repeat) * baud_rate < 9000)
-    tty->RPov = string_cost (tty->TS_repeat);
-  else
-    tty->RPov = FRAME_COLS (frame) * 2;
+      if (f && (!tty->TS_ins_line && !tty->TS_del_line))
+        do_line_insertion_deletion_costs (frame,
+                                          tty->TS_rev_scroll, tty->TS_ins_multi_lines,
+                                          tty->TS_fwd_scroll, tty->TS_del_multi_lines,
+                                          f, f, 1);
+      else
+        do_line_insertion_deletion_costs (frame,
+                                          tty->TS_ins_line, tty->TS_ins_multi_lines,
+                                          tty->TS_del_line, tty->TS_del_multi_lines,
+                                          0, 0, 1);
 
-  cmcostinit (FRAME_TTY (frame)); /* set up cursor motion costs */
+      calculate_ins_del_char_costs (frame);
+
+      /* Don't use TS_repeat if its padding is worse than sending the chars */
+      if (tty->TS_repeat && per_line_cost (tty->TS_repeat) * baud_rate < 9000)
+        tty->RPov = string_cost (tty->TS_repeat);
+      else
+        tty->RPov = FRAME_COLS (frame) * 2;
+
+      cmcostinit (FRAME_TTY (frame)); /* set up cursor motion costs */
+    }
 }
 
 struct fkey_table {
@@ -2142,7 +2151,7 @@ DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
      Lisp_Object frame;
 {
   struct frame *f;
-  
+
   if (NILP (frame))
     {
       f = XFRAME (selected_frame);
@@ -2177,7 +2186,9 @@ term_dummy_init (void)
   bzero (tty_list, sizeof (struct tty_display_info));
   tty_list->name = 0;
   tty_list->input = stdin;
-  tty_list->input = stdout;
+  tty_list->output = stdout;
+  tty_list->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+  tty_list->display_method = (struct display_method *) xmalloc (sizeof (struct display_method));
   return tty_list;
 }
 
@@ -2211,7 +2222,18 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
     }
 
   if (! tty->Wcm)
-      tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+    tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+
+  if (! tty->display_method)
+    tty->display_method = (struct display_method *) xmalloc (sizeof (struct display_method));
+
+  /* Initialize the common members in the new display method with our
+     predefined template. */
+  *tty->display_method = tty_display_method_template;
+  f->display_method = tty->display_method;
+
+  /* Termcap-based displays don't support window-based redisplay. */
+  f->display_method->rif = 0;
 
   /* Make sure the frame is live; if an error happens, it must be
      deleted. */
@@ -2219,7 +2241,6 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
   if (! f->output_data.tty)
     abort ();
   f->output_data.tty->display_info = tty;
-  
   if (name)
     {
       int fd;
@@ -2245,7 +2266,7 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
   tty->type = xstrdup (terminal_type);
 
   add_keyboard_wait_descriptor (fileno (tty->input));
-  
+
 #ifdef WINDOWSNT
   initialize_w32_display ();
 
@@ -2253,22 +2274,21 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
 
   area = (char *) xmalloc (2044);
 
-  FrameRows = FRAME_LINES (f);
-  FrameCols = FRAME_COLS (f);
-  specified_window = FRAME_LINES (f);
+  FrameRows (tty) = FRAME_LINES (f);
+  FrameCols (tty) = FRAME_COLS (f);
+  tty->specified_window = FRAME_LINES (f);
 
-  delete_in_insert_mode = 1;
+  f->display_method->delete_in_insert_mode = 1;
 
-  UseTabs = 0;
-  TTY_SCROLL_REGION_OK (tty) = 0;
+  UseTabs (tty) = 0;
+  FRAME_SCROLL_REGION_OK (f) = 0;
 
   /* Seems to insert lines when it's not supposed to, messing
      up the display.  In doing a trace, it didn't seem to be
      called much, so I don't think we're losing anything by
      turning it off.  */
-  TTY_LINE_INS_DEL_OK (tty) = 0;
-
-  TTY_CHAR_INS_DEL_OK (tty) = 1;
+  FRAME_LINE_INS_DEL_OK (f) = 0;
+  FRAME_CHAR_INS_DEL_OK (f) = 1;
 
   baud_rate = 19200;
 
@@ -2449,9 +2469,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
   AutoWrap (tty) = MagicWrap (tty) || tgetflag ("am");
-  TTY_MEMORY_BELOW_FRAME (tty) = tgetflag ("db");
+  FRAME_MEMORY_BELOW_FRAME (f) = tgetflag ("db");
   tty->TF_hazeltine = tgetflag ("hz");
-  TTY_MUST_WRITE_SPACES (tty) = tgetflag ("in");
+  FRAME_MUST_WRITE_SPACES (f) = tgetflag ("in");
   tty->meta_key = tgetflag ("km") || tgetflag ("MT");
   tty->TF_insmode_motion = tgetflag ("mi");
   tty->TF_standout_motion = tgetflag ("ms");
@@ -2489,7 +2509,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     }
 
 #if 0  /* This is not used anywhere. */
-  TTY_MIN_PADDING_SPEED (tty) = tgetnum ("pb");
+  f->display_method->min_padding_speed = tgetnum ("pb");
 #endif
 
   TabWidth (tty) = tgetnum ("tw");
@@ -2567,7 +2587,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (!strcmp (terminal_type, "supdup"))
     {
-      TTY_MEMORY_BELOW_FRAME (tty) = 1;
+      FRAME_MEMORY_BELOW_FRAME (f) = 1;
       tty->Wcm->cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
@@ -2577,7 +2597,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	 This string is not valid in general since it works only
 	 for windows starting at the upper left corner;
 	 but that is all Emacs uses.
-	 
+
 	 This string works only if the frame is using
 	 the top of the video memory, because addressing is memory-relative.
 	 So first check the :ti string to see if that is true.
@@ -2594,7 +2614,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	    tty->TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */
-      TTY_MUST_WRITE_SPACES (tty) = 1;
+      FRAME_MUST_WRITE_SPACES (f) = 1;
       /* :ti string typically fails to have \E^G! in it */
       /* This limits scope of insert-char to one line.  */
       strcpy (area, tty->TS_termcap_modes);
@@ -2649,7 +2669,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 # endif /* TERMINFO */
 #endif /*VMS */
     }
-  
+
   if (FrameRows (tty) <= 0 || FrameCols (tty) <= 0)
     {
       if (name)
@@ -2671,22 +2691,22 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   UseTabs (tty) = tabs_safe_p (fileno (TTY_INPUT (tty))) && TabWidth (tty) == 8;
 
-  TTY_SCROLL_REGION_OK (tty)
+  FRAME_SCROLL_REGION_OK (f)
     = (tty->Wcm->cm_abs
        && (tty->TS_set_window || tty->TS_set_scroll_region || tty->TS_set_scroll_region_1));
 
-  TTY_LINE_INS_DEL_OK (tty)
+  FRAME_LINE_INS_DEL_OK (f)
     = (((tty->TS_ins_line || tty->TS_ins_multi_lines)
         && (tty->TS_del_line || tty->TS_del_multi_lines))
-       || (TTY_SCROLL_REGION_OK (tty)
+       || (FRAME_SCROLL_REGION_OK (f)
            && tty->TS_fwd_scroll && tty->TS_rev_scroll));
 
-  TTY_CHAR_INS_DEL_OK (tty)
+  FRAME_CHAR_INS_DEL_OK (f)
     = ((tty->TS_ins_char || tty->TS_insert_mode
         || tty->TS_pad_inserted_char || tty->TS_ins_multi_chars)
        && (tty->TS_del_char || tty->TS_del_multi_chars));
 
-  TTY_FAST_CLEAR_END_OF_LINE (tty) = tty->TS_clr_line != 0;
+  FRAME_FAST_CLEAR_END_OF_LINE (f) = tty->TS_clr_line != 0;
 
   init_baud_rate (fileno (TTY_INPUT (tty)));
   if (read_socket_hook)		/* Baudrate is somewhat
@@ -2696,14 +2716,22 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
 
+#ifdef AIXHFT
+  /* The HFT system on AIX doesn't optimize for scrolling, so it's
+     really ugly at times.  */
+  FRAME_LINE_INS_DEL_OK (f) = 0;
+  FRAME_CHAR_INS_DEL_OK (f) = 0;
+#endif
+
   /* Don't do this.  I think termcap may still need the buffer. */
   /* xfree (buffer); */
 
+  /* Set the top frame to the first frame on this display. */
   tty->top_frame = frame;
-  
+
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
-  
+
   tty_set_terminal_modes (tty);
 
   return tty;
@@ -2733,7 +2761,7 @@ DEFUN ("delete-tty", Fdelete_tty, Sdelete_tty, 0, 1, 0,
   char *name = 0;
 
   CHECK_STRING (tty);
-  
+
   if (SBYTES (tty) > 0)
     {
       name = (char *) alloca (SBYTES (tty) + 1);
@@ -2745,7 +2773,7 @@ DEFUN ("delete-tty", Fdelete_tty, Sdelete_tty, 0, 1, 0,
 
   if (! t)
     error ("No such tty device: %s", name);
-  
+
   delete_tty (t);
 }
 
@@ -2755,14 +2783,14 @@ void
 delete_tty (struct tty_display_info *tty)
 {
   Lisp_Object tail, frame;
-  
+
   if (deleting_tty)
     /* We get a recursive call when we delete the last frame on this
        tty. */
     return;
 
   deleting_tty = 1;
-  
+
   if (tty == tty_list)
     tty_list = tty->next;
   else
@@ -2782,20 +2810,20 @@ delete_tty (struct tty_display_info *tty)
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && FRAME_TTY (f) == tty)
+      if (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f) && FRAME_TTY (f) == tty)
         {
           Fdelete_frame (frame, Qt);
           f->output_data.tty = 0;
         }
     }
-  
+
   reset_sys_modes (tty);
 
   if (tty->name)
     xfree (tty->name);
   if (tty->type)
     xfree (tty->type);
-  
+
   if (tty->input)
     {
       delete_keyboard_wait_descriptor (fileno (tty->input));
@@ -2806,13 +2834,16 @@ delete_tty (struct tty_display_info *tty)
     fclose (tty->output);
   if (tty->termscript)
     fclose (tty->termscript);
-  
+
   if (tty->old_tty)
     xfree (tty->old_tty);
 
   if (tty->Wcm)
-    xfree (tty->Wcm); 
-  
+    xfree (tty->Wcm);
+
+  if (tty->display_method)
+    xfree (tty->display_method);
+
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
   deleting_tty = 0;
@@ -2865,7 +2896,9 @@ The function should accept no arguments.  */);
   defsubr (&Sframe_tty_name);
   defsubr (&Sframe_tty_type);
   defsubr (&Sdelete_tty);
-  
+
+  /* XXX tty_display_method_template initialization will go here. */
+
   Fprovide (intern ("multi-tty"), Qnil);
 }
 

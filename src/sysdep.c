@@ -1368,7 +1368,7 @@ nil means don't delete them until `list-processes' is run.  */);
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
-  if (!read_socket_hook && EQ (Vwindow_system, Qnil))
+  if (tty_out->input != stdin || (!read_socket_hook && EQ (Vwindow_system, Qnil)))
 #endif
     {
       if (! tty_out->old_tty)
@@ -1400,7 +1400,7 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.main.c_lflag &= ~IEXTEN;	/* Disable other editing characters.  */
 #endif
       tty.main.c_lflag |= ISIG;	/* Enable signals */
-      if (flow_control)
+      if (tty_out->flow_control)
 	{
 	  tty.main.c_iflag |= IXON;	/* Enable start/stop output control */
 #ifdef IXANY
@@ -1454,7 +1454,7 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.main.c_cc[VDISCARD] = CDISABLE;
 #endif /* VDISCARD */
 
-      if (flow_control)
+      if (tty_out->flow_control)
 	{
 #ifdef VSTART
 	  tty.main.c_cc[VSTART] = '\021';
@@ -1490,7 +1490,7 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.main.c_cc[VSUSP] = 255;
       tty.main.c_cc[VDSUSP] = 255;
 #endif /* IBMR2AIX */
-      if (flow_control)
+      if (tty_out->flow_control)
 	{
 #ifdef VSTART
 	  tty.main.c_cc[VSTART] = '\021';
@@ -1511,7 +1511,7 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.main.tt_char |= TT$M_NOECHO;
       if (meta_key)
 	tty.main.tt_char |= TT$M_EIGHTBIT;
-      if (flow_control)
+      if (tty_out->flow_control)
 	tty.main.tt_char |= TT$M_TTSYNC;
       else
 	tty.main.tt_char &= ~TT$M_TTSYNC;
@@ -1538,7 +1538,7 @@ nil means don't delete them until `list-processes' is run.  */);
 	 set this */
       tty.tchars = new_tchars;
       tty.tchars.t_intrc = quit_char;
-      if (flow_control)
+      if (tty_out->flow_control)
 	{
 	  tty.tchars.t_startc = '\021';
 	  tty.tchars.t_stopc = '\023';
@@ -1573,17 +1573,17 @@ nil means don't delete them until `list-processes' is run.  */);
 	 we have an unlocked terminal at the start. */
 
 #ifdef TCXONC
-      if (!flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TCXONC, 1);
+      if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TCXONC, 1);
 #endif
 #ifndef APOLLO
 #ifdef TIOCSTART
-      if (!flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TIOCSTART, 0);
+      if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TIOCSTART, 0);
 #endif
 #endif
 
 #if defined (HAVE_TERMIOS) || defined (HPUX9)
 #ifdef TCOON
-      if (!flow_control) tcflow (fileno (TTY_INPUT (tty_out)), TCOON);
+      if (!tty_out->flow_control) tcflow (fileno (TTY_INPUT (tty_out)), TCOON);
 #endif
 #endif
 
@@ -1658,6 +1658,7 @@ nil means don't delete them until `list-processes' is run.  */);
       Lisp_Object tail, frame;
       FOR_EACH_FRAME (tail, frame)
         {
+          /* XXX This needs to be revised. */
           if (FRAME_TERMCAP_P (XFRAME (frame))
               && FRAME_TTY (XFRAME (frame)) == tty_out)
             init_frame_faces (XFRAME (frame));
@@ -1817,13 +1818,14 @@ reset_sys_modes (tty_out)
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the clean-up code below.  */
-  if (!EQ (Vwindow_system, Qnil)
+  if (tty_out->input != stdin
+      || (!EQ (Vwindow_system, Qnil)
 #ifndef WINDOWSNT
       /* When running in tty mode on NT/Win95, we have a read_socket
 	 hook, but still need the rest of the clean-up code below.  */
       || read_socket_hook
 #endif
-      )
+          ))
     return;
 #endif
 
@@ -5156,10 +5158,6 @@ hft_init (struct tty_display_info *tty_out)
     keymap.hfkey[1].hf_char = 127;
     hftctl (0, HFSKBD, &buf);
   }
-  /* The HFT system on AIX doesn't optimize for scrolling, so it's really ugly
-     at times.  */
-  TTY_LINE_INS_DEL_OK (tty_out) = 0;
-  TTY_CHAR_INS_DEL_OK (tty_out) = 0;
 }
 
 /* Reset the rubout key to backspace.  */

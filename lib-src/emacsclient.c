@@ -720,7 +720,7 @@ init_pty ()
 }
 
 int
-copy_from_to (int in, int out)
+copy_from_to (int in, int out, int sigio)
 {
   static char buf[BUFSIZ];
   int nread = read (in, &buf, BUFSIZ);
@@ -740,6 +740,9 @@ copy_from_to (int in, int out)
       
       if (r < 0)
         return 0;
+
+      if (sigio && emacs_pid)
+        kill (emacs_pid, SIGIO);
     }
   return 1;
 }
@@ -774,7 +777,7 @@ pty_conversation (FILE *in)
         if (FD_ISSET (master, &rset))
           {
             /* Copy Emacs output to stdout. */
-            if (! copy_from_to (master, 0))
+            if (! copy_from_to (master, 0, 0))
               {
                 FD_CLR (master, &set);
               }
@@ -782,7 +785,7 @@ pty_conversation (FILE *in)
         if (FD_ISSET (1, &rset))
           {
             /* Forward user input to Emacs. */
-            if (! copy_from_to (1, master))
+            if (! copy_from_to (1, master, 1))
               {
                 FD_CLR (master, &set);
               }

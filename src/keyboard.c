@@ -617,9 +617,6 @@ int interrupt_input;
 /* Nonzero while interrupts are temporarily deferred during redisplay.  */
 int interrupts_deferred;
 
-/* Nonzero means use ^S/^Q for flow control.  */
-int flow_control;
-
 /* Allow m- file to inhibit use of FIONREAD.  */
 #ifdef BROKEN_FIONREAD
 #undef FIONREAD
@@ -6605,7 +6602,8 @@ read_avail_input (expected)
   if (read_socket_hook)
     /* No need for FIONREAD or fcntl; just say don't wait.  */
     nread = (*read_socket_hook) (buf, KBD_BUFFER_SIZE, expected);
-  else
+
+  if (!nread && tty_list)
     {
       /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
 	 the kbd_buffer can really hold.  That may prevent loss
@@ -10433,7 +10431,8 @@ See also `current-input-mode'.  */)
 
 #ifndef DOS_NT
   /* this causes startup screen to be restored and messes with the mouse */
-  reset_sys_modes (CURTTY ());
+  if (FRAME_TERMCAP_P (SELECTED_FRAME ()))
+    reset_sys_modes (CURTTY ());
 #endif
 
 #ifdef SIGIO
@@ -10459,19 +10458,25 @@ See also `current-input-mode'.  */)
   interrupt_input = 1;
 #endif
 
-  flow_control = !NILP (flow);
-  if (NILP (meta))
-    CURTTY ()->meta_key = 0;
-  else if (EQ (meta, Qt))
-    CURTTY ()->meta_key = 1;
-  else
-    CURTTY ()->meta_key = 2;
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+    {
+      struct tty_display_info *tty = CURTTY ();
+      tty->flow_control = !NILP (flow);
+      if (NILP (meta))
+        tty->meta_key = 0;
+      else if (EQ (meta, Qt))
+        tty->meta_key = 1;
+      else
+        tty->meta_key = 2;
+    }
+  
   if (!NILP (quit))
     /* Don't let this value be out of range.  */
     quit_char = XINT (quit) & (CURTTY ()->meta_key ? 0377 : 0177);
 
 #ifndef DOS_NT
-  init_sys_modes (CURTTY ());
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+    init_sys_modes (CURTTY ());
 #endif
 
 #ifdef POLL_FOR_INPUT
@@ -10498,12 +10503,21 @@ The elements of this list correspond to the arguments of
      ()
 {
   Lisp_Object val[4];
-
+  struct frame *sf = XFRAME (selected_frame);
+  
   val[0] = interrupt_input ? Qt : Qnil;
-  val[1] = flow_control ? Qt : Qnil;
-  val[2] = FRAME_TTY (SELECTED_FRAME ())->meta_key == 2
-    ? make_number (0)
-    : FRAME_TTY (SELECTED_FRAME ())->meta_key == 1 ? Qt : Qnil;
+  if (FRAME_TERMCAP_P (sf))
+    {
+      val[1] = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
+      val[2] = FRAME_TTY (sf)->meta_key == 2
+        ? make_number (0)
+        : CURTTY ()->meta_key == 1 ? Qt : Qnil;
+    }
+  else
+    {
+      val[1] = Qnil;
+      val[2] = Qt;
+    }
   XSETFASTINT (val[3], quit_char);
 
   return Flist (sizeof (val) / sizeof (val[0]), val);

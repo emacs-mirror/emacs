@@ -257,7 +257,7 @@ struct frame
   int line_height;
 
   /* The display hooks to use with this frame. */
-  struct display *display;
+  struct display_method *display_method;
   
   /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
@@ -782,6 +782,8 @@ extern int other_visible_frames P_ ((struct frame *));
 
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
+
+extern Lisp_Object Vterminal_frame;
 
 extern Lisp_Object Vmouse_highlight;
 

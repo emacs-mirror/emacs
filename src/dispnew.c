@@ -297,8 +297,10 @@ int glyph_pool_count;
 
 static struct frame *frame_matrix_frame;
 
-/* Current interface for window-based redisplay.  Set from init_xterm.
-   A null value means we are not using window-based redisplay.  */
+/* Current interface for window-based redisplay.  Set from
+   update_begin.  A null value means we are not using window-based
+   redisplay.  */
+/* XXX this variable causes frequent coredumps */
 
 struct redisplay_interface *rif;
 
@@ -1390,7 +1392,7 @@ line_hash_code (row)
 	{
 	  int c = glyph->u.ch;
 	  int face_id = glyph->face_id;
-	  if (TTY_MUST_WRITE_SPACES (CURTTY ()))
+	  if (FRAME_MUST_WRITE_SPACES (SELECTED_FRAME ())) /* XXX Is SELECTED_FRAME OK here? */
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
@@ -1422,7 +1424,7 @@ line_draw_cost (matrix, vpos)
   int glyph_table_len = GLYPH_TABLE_LENGTH;
 
   /* Ignore trailing and leading spaces if we can.  */
-  if (!TTY_MUST_WRITE_SPACES (CURTTY ()))
+  if (!FRAME_MUST_WRITE_SPACES (SELECTED_FRAME ())) /* XXX Is SELECTED_FRAME OK here? */
     {
       /* Skip from the end over trailing spaces.  */
       while (end > beg && CHAR_GLYPH_SPACE_P (*(end - 1)))
@@ -3317,7 +3319,8 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   clear_frame ();
   clear_current_matrices (f);
   update_end (f);
-  fflush (TTY_OUTPUT (FRAME_TTY (f)));
+  if (FRAME_TERMCAP_P (f))
+    fflush (TTY_OUTPUT (FRAME_TTY (f)));
   windows_or_buffers_changed++;
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
@@ -3457,7 +3460,7 @@ direct_output_for_insert (g)
 
   /* If we can't insert glyphs, we can use this method only
      at the end of a line.  */
-  if (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f)))
+  if (!FRAME_CHAR_INS_DEL_OK (f))
     if (PT != ZV && FETCH_BYTE (PT_BYTE) != '\n')
       return 0;
 
@@ -3654,7 +3657,8 @@ direct_output_for_insert (g)
     rif->update_window_end_hook (w, 1, 0);
   update_end (f);
   updated_row = NULL;
-  fflush (TTY_OUTPUT (CURTTY ()));
+  if (FRAME_TERMCAP_P (f))
+    fflush (TTY_OUTPUT (FRAME_TTY (f)));
 
   TRACE ((stderr, "direct output for insert\n"));
   mark_window_display_accurate (it.window, 1);
@@ -3745,7 +3749,8 @@ direct_output_forward_char (n)
       cursor_to (y, x);
     }
 
-  fflush (TTY_OUTPUT (CURTTY ()));
+  if (FRAME_TERMCAP_P (f))
+    fflush (TTY_OUTPUT (FRAME_TTY (f)));
   redisplay_performed_directly_p = 1;
   return 1;
 }
@@ -5070,7 +5075,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
     }
 
   /* If we cannot insert/delete lines, it's no use trying it.  */
-  if (!TTY_LINE_INS_DEL_OK (FRAME_TTY (f)))
+  if (!FRAME_LINE_INS_DEL_OK (f))
     inhibit_id_p = 1;
 
   /* See if any of the desired lines are enabled; don't compute for
@@ -5288,7 +5293,7 @@ scrolling (frame)
     }
 
   /* If changed lines are few, don't allow preemption, don't scroll.  */
-  if ((!TTY_SCROLL_REGION_OK (FRAME_TTY (frame))
+  if ((!FRAME_SCROLL_REGION_OK (frame)
        && changed_lines < baud_rate / 2400)
       || unchanged_at_bottom == FRAME_LINES (frame))
     return 1;
@@ -5296,14 +5301,14 @@ scrolling (frame)
   window_size = (FRAME_LINES (frame) - unchanged_at_top
 		 - unchanged_at_bottom);
 
-  if (TTY_SCROLL_REGION_OK (FRAME_TTY (frame)))
+  if (FRAME_SCROLL_REGION_OK (frame))
     free_at_end_vpos -= unchanged_at_bottom;
-  else if (TTY_MEMORY_BELOW_FRAME (FRAME_TTY (frame)))
+  else if (FRAME_MEMORY_BELOW_FRAME (frame))
     free_at_end_vpos = -1;
 
   /* If large window, fast terminal and few lines in common between
      current frame and desired frame, don't bother with i/d calc.  */
-  if (!TTY_SCROLL_REGION_OK (FRAME_TTY (frame))
+  if (!FRAME_SCROLL_REGION_OK (frame)
       && window_size >= 18 && baud_rate > 2400
       && (window_size >=
 	  10 * scrolling_max_lines_saved (unchanged_at_top,
@@ -5384,7 +5389,7 @@ update_frame_line (f, vpos)
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, vpos);
   int must_write_whole_line_p;
-  int write_spaces_p = TTY_MUST_WRITE_SPACES (FRAME_TTY (f));
+  int write_spaces_p = FRAME_MUST_WRITE_SPACES (f);
   int colored_spaces_p = (FACE_FROM_ID (f, DEFAULT_FACE_ID)->background
 			  != FACE_TTY_DEFAULT_BG_COLOR);
 
@@ -5463,7 +5468,7 @@ update_frame_line (f, vpos)
       nlen--;
 
   /* If there's no i/d char, quickly do the best we can without it.  */
-  if (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f)))
+  if (!FRAME_CHAR_INS_DEL_OK (f))
     {
       int i, j;
 
@@ -5566,7 +5571,7 @@ update_frame_line (f, vpos)
 
   tem = (nlen - nsp) - (olen - osp);
   if (endmatch && tem
-      && (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f))
+      && (!FRAME_CHAR_INS_DEL_OK (f)
           || endmatch <= char_ins_del_cost (f)[tem]))
     endmatch = 0;
 
@@ -5576,7 +5581,7 @@ update_frame_line (f, vpos)
      Is it worth it?  */
 
   if (nsp != osp
-      && (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f))
+      && (!FRAME_CHAR_INS_DEL_OK (f)
 	  || begmatch + endmatch <= char_ins_del_cost (f)[nsp - osp]))
     {
       begmatch = 0;
@@ -6167,6 +6172,9 @@ Control characters in STRING will have terminal-dependent effects.  */)
 {
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
+  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
+    error ("Current frame is not on a tty device");
+  
   if (TTY_TERMSCRIPT (CURTTY ()))
     {
       fwrite (SDATA (string), 1, SBYTES (string),
@@ -6193,7 +6201,8 @@ terminate any keyboard macro currently executing.  */)
 	putchar (07);
       else
 	ring_bell ();
-      fflush (TTY_OUTPUT (CURTTY ()));
+      if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+        fflush (TTY_OUTPUT (CURTTY ()));
     }
   else
     bitch_at_user ();
@@ -6210,7 +6219,8 @@ bitch_at_user ()
     error ("Keyboard macro terminated by a command ringing the bell");
   else
     ring_bell ();
-  fflush (TTY_OUTPUT (CURTTY ()));
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+    fflush (TTY_OUTPUT (CURTTY ()));
 }
 
 
@@ -6628,7 +6638,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     struct tty_display_info *tty;
     
     tty = term_init (selected_frame, 0, terminal_type);
-    change_frame_size (XFRAME (selected_frame), FrameRows (tty), FrameCols (tty), 0, 0, 0);
+    change_frame_size (XFRAME (selected_frame), FrameRows (tty), FrameCols (tty), 0, 0, 1);
   }
   
   {

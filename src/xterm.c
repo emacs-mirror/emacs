@@ -184,6 +184,10 @@ static Lisp_Object last_window;
 
 int x_use_underline_position_properties;
 
+/* Generic display parameters for X displays. */
+
+struct display_method x_display_method;
+
 /* This is a chain of structures for all the X displays currently in
    use.  */
 
@@ -382,7 +386,8 @@ x_flush (f)
     {
       Lisp_Object rest, frame;
       FOR_EACH_FRAME (rest, frame)
-	x_flush (XFRAME (frame));
+        if (FRAME_X_P (XFRAME (frame)))
+          x_flush (XFRAME (frame));
     }
   else if (FRAME_X_P (f))
     XFlush (FRAME_X_DISPLAY (f));
@@ -468,7 +473,6 @@ x_update_begin (f)
 {
   /* Nothing to do.  */
 }
-
 
 /* Start update of window W.  Set the global variable updated_window
    to the window being updated and set output_cursor to the cursor
@@ -1365,7 +1369,8 @@ x_frame_of_widget (widget)
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     if (GC_FRAMEP (XCAR (tail))
 	&& (f = XFRAME (XCAR (tail)),
-	    (f->output_data.nothing != 1
+	    (FRAME_X_P (f)
+             && f->output_data.nothing != 1
 	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
 	&& f->output_data.x->widget == widget)
       return f;
@@ -3057,6 +3062,9 @@ static void
 frame_highlight (f)
      struct frame *f;
 {
+  /* XXX hack: make sure rif is right. */
+  rif = f->display_method->rif;
+  
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the
@@ -3072,6 +3080,9 @@ static void
 frame_unhighlight (f)
      struct frame *f;
 {
+  /* XXX hack: make sure rif is right. */
+  rif = f->display_method->rif;
+  
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the
@@ -3663,7 +3674,8 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 
       /* Clear the mouse-moved flag for every frame on this display.  */
       FOR_EACH_FRAME (tail, frame)
-	if (FRAME_X_DISPLAY (XFRAME (frame)) == FRAME_X_DISPLAY (*fp))
+	if (FRAME_X_P (XFRAME (frame))
+            && FRAME_X_DISPLAY (XFRAME (frame)) == FRAME_X_DISPLAY (*fp))
 	  XFRAME (frame)->mouse_moved = 0;
 
       last_mouse_scroll_bar = Qnil;
@@ -3877,6 +3889,9 @@ x_window_to_scroll_bar (display, window_id)
       if (! GC_FRAMEP (frame))
 	abort ();
 
+      if (! FRAME_X_P (XFRAME (frame)))
+        continue;
+      
       /* Scan this frame's scroll bar list for a scroll bar with the
          right window ID.  */
       condemned = FRAME_CONDEMNED_SCROLL_BARS (XFRAME (frame));
@@ -3911,11 +3926,14 @@ x_window_to_menu_bar (window)
        XGCTYPE (tail) == Lisp_Cons;
        tail = XCDR (tail))
     {
-      Lisp_Object frame = XCAR (tail);
-      Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
+      if (FRAME_X_P (XFRAME (XCAR (tail))))
+        {
+          Lisp_Object frame = XCAR (tail);
+          Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
 
-      if (menu_bar && xlwmenu_window_p (menu_bar, window))
-	return menu_bar;
+          if (menu_bar && xlwmenu_window_p (menu_bar, window))
+            return menu_bar;
+        }
     }
 
   return NULL;
@@ -8027,7 +8045,7 @@ xim_destroy_callback (xim, client_data, call_data)
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
-      if (FRAME_X_DISPLAY_INFO (f) == dpyinfo)
+      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
 	  FRAME_XIC (f) = NULL;
 	  if (FRAME_XIC_FONTSET (f))
@@ -8130,7 +8148,8 @@ xim_instantiate_callback (display, client_data, call_data)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_X_DISPLAY_INFO (f) == xim_inst->dpyinfo)
+	  if (FRAME_X_P (f)
+              && FRAME_X_DISPLAY_INFO (f) == xim_inst->dpyinfo)
 	    if (FRAME_XIC (f) == NULL)
 	      {
 		create_frame_xic (f);
@@ -10801,43 +10820,41 @@ x_process_timeouts (timer)
 extern frame_parm_handler x_frame_parm_handlers[];
 
 static struct redisplay_interface x_redisplay_interface =
-{
-  x_frame_parm_handlers,
-  x_produce_glyphs,
-  x_write_glyphs,
-  x_insert_glyphs,
-  x_clear_end_of_line,
-  x_scroll_run,
-  x_after_update_window_line,
-  x_update_window_begin,
-  x_update_window_end,
-  x_cursor_to,
-  x_flush,
+  {
+    x_frame_parm_handlers,
+    x_produce_glyphs,
+    x_write_glyphs,
+    x_insert_glyphs,
+    x_clear_end_of_line,
+    x_scroll_run,
+    x_after_update_window_line,
+    x_update_window_begin,
+    x_update_window_end,
+    x_cursor_to,
+    x_flush,
 #ifndef XFlush
-  x_flush,
+    x_flush,
 #else
-  0,  /* flush_display_optional */
+    0,  /* flush_display_optional */
 #endif
-  x_clear_window_mouse_face,
-  x_get_glyph_overhangs,
-  x_fix_overlapping_area,
-  x_draw_fringe_bitmap,
-  x_per_char_metric,
-  x_encode_char,
-  x_compute_glyph_string_overhangs,
-  x_draw_glyph_string,
-  x_define_frame_cursor,
-  x_clear_frame_area,
-  x_draw_window_cursor,
-  x_draw_vertical_window_border,
-  x_shift_glyphs_for_insert
-};
+    x_clear_window_mouse_face,
+    x_get_glyph_overhangs,
+    x_fix_overlapping_area,
+    x_draw_fringe_bitmap,
+    x_per_char_metric,
+    x_encode_char,
+    x_compute_glyph_string_overhangs,
+    x_draw_glyph_string,
+    x_define_frame_cursor,
+    x_clear_frame_area,
+    x_draw_window_cursor,
+    x_draw_vertical_window_border,
+    x_shift_glyphs_for_insert
+  };
 
 void
 x_initialize ()
 {
-  rif = &x_redisplay_interface;
-
   clear_frame_hook = x_clear_frame;
   ins_del_lines_hook = x_ins_del_lines;
   delete_glyphs_hook = x_delete_glyphs;
@@ -10857,13 +10874,13 @@ x_initialize ()
   redeem_scroll_bar_hook = XTredeem_scroll_bar;
   judge_scroll_bars_hook = XTjudge_scroll_bars;
 
-  TERMINAL_SCROLL_REGION_OK (CURRENT_TERMINAL ()) = 1; /* we'll scroll partial frames */
-  TERMINAL_CHAR_INS_DEL_OK (CURRENT_TERMINAL ()) = 1;
-  TERMINAL_LINE_INS_DEL_OK (CURRENT_TERMINAL ()) = 1; /* we'll just blt 'em */
-  TERMINAL_FAST_CLEAR_END_OF_LINE (CURRENT_TERMINAL ()) = 1; /* X does this well */
-  TERMINAL_MEMORY_BELOW_FRAME (CURRENT_TERMINAL ()) = 0; /* we don't remember what
-                                                         scrolls off the
-                                                         bottom */
+  x_display_method.rif = &x_redisplay_interface;
+  x_display_method.scroll_region_ok = 1; /* We'll scroll partial frames. */
+  x_display_method.char_ins_del_ok = 1;
+  x_display_method.line_ins_del_ok = 1; /* We'll just blt 'em. */
+  x_display_method.fast_clear_end_of_line = 1; /* X does this well. */
+  x_display_method.memory_below_frame = 0; /* We don't remember what scrolls off the
+                                              bottom. */
   baud_rate = 19200;
 
   x_noop_count = 0;

@@ -134,6 +134,9 @@ struct x_bitmap_record
   int height, width, depth;
 };
 
+/* Generic parameters for X displays. */
+extern struct display_method x_display_method;
+
 /* For each X display, we have a structure that records
    information about it.  */
 
