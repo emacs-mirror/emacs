@@ -1,3 +1,9 @@
+2001-02-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (x-complement-fontset-spec): In the
+	case that we use ASCII font for the other charsets, use only
+	family and regisry part of it.
+
 2001-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* window.el (fit-window-to-buffer, window-safely-shrinkable-p)

@@ -1,3 +1,8 @@
+2001-02-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (Fnew_fontset): Fix handling of the case that an
+	element of FONTLIST is a cons of family and registry.
+
 2001-02-23  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Don't add FRAME_TOOL_BAR_LINES
