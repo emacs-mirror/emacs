@@ -1,4 +1,4 @@
-;;; iso-cvt.-el -- translate to ISO 8859-1 from/to net/TeX conventions
+;;; iso-cvt.el -- translate to ISO 8859-1 from/to net/TeX conventions
 ;; This file was formerly called gm-lingo.el.
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
@@ -33,7 +33,7 @@
 ; to ISO.
 ;
 ; Calling `iso-german' will turn the net convention for umlauts ("a etc.) 
-; into ISO latin1 umlaute for easy reading.
+; into ISO latin1 umlauts for easy reading.
 ; 'iso-spanish' will turn net conventions for representing spanish 
 ; to ISO latin1. (Note that accents are omitted in news posts most 
 ; of the time, only enye is escaped.)
@@ -50,7 +50,7 @@
 
 ;; TO DO:
 ; The net support should install hooks (like TeX support does) 
-; which recognizes certains news groups and translates all articles from 
+; which recognizes certain news groups and translates all articles from 
 ; those groups. 
 ;
 ; Cover more cases for translation (There is an infinite number of ways to 
@@ -683,7 +683,7 @@ If German TeX is used, German TeX sequences are generated."
 
 (defun iso-fix-tex2iso ()
   "Turn TeX sequences into ISO 8859-1 (aka. ISO Latin-1) characters.
-This function recognices German TeX buffers."
+This function recognizes German TeX buffers."
   (if (or (equal major-mode 'latex-mode)
 	  (equal major-mode 'Latex-mode)) ; AucTeX wants this
       (if (iso-german-tex-p)
