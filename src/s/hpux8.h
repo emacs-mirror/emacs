@@ -15,7 +15,7 @@
    Note GCC automatically passes -a archive to ld, and it has its own
    conflicting -a.  */
 #ifdef __GNUC__
-#define LD_SWITCH_SYSTEM  -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM  -L/usr/lib/X11R4 -static
 
 /* No need to specify roundabout way of linking temacs.  */
 #define ORDINARY_LINK
@@ -29,3 +29,5 @@
 /* Some hpux 8 machines seem to have TIOCGWINSZ,
    and none have sioctl.h, so might as well define this.  */
 #define NO_SIOCTL_H
+
+#define HAVE_RANDOM
