@@ -131,9 +131,10 @@ the beginning of the warning.")
 ;;;###autoload
 (defvar warning-series nil
   "Non-nil means treat multiple `display-warning' calls as a series.
-An integer is a position in the warnings buffer
-which is the start of the current series.
-t means the next warning begins a series (and stores an integer here).
+A marker indicates a position in the warnings buffer
+which is the start of the current series; it means that
+additional warnings in the same buffer should not move point.
+t means the next warning begins a series (and stores a marker here).
 A symbol with a function definition is like t, except
 also call that function before the next warning.")
 (put 'warning-series 'risky-local-variable t)
@@ -227,7 +228,7 @@ See also `warning-series', `warning-prefix-function' and
 	  (goto-char (point-max))
 	  (when (and warning-series (symbolp warning-series))
 	    (setq warning-series
-		  (prog1 (point)
+		  (prog1 (point-marker)
 		    (unless (eq warning-series t)
 		      (funcall warning-series)))))
 	  (unless (bolp)
@@ -245,7 +246,8 @@ See also `warning-series', `warning-prefix-function' and
 		  (fill-column 78))
 	      (fill-region start (point))))
 	  (setq end (point))
-	  (when warning-series
+	  (when (and (markerp warning-series)
+		     (eq (marker-buffer warning-series) buffer))
 	    (goto-char warning-series)))
 	(if (nth 2 level-info)
 	    (funcall (nth 2 level-info)))
@@ -262,7 +264,8 @@ See also `warning-series', `warning-prefix-function' and
 		 (warning-numeric-level warning-minimum-level))
 	      (warning-suppress-p group warning-suppress-types)
 	      (let ((window (display-buffer buffer)))
-		(when warning-series
+		(when (and (markerp warning-series)
+			   (eq (marker-buffer warning-series) buffer))
 		  (set-window-start window warning-series))
 		(sit-for 0)))))))
 
