@@ -161,12 +161,13 @@ no aliases, which is represented by this being a table with no entries.)")
   "The modification time of your mail alias file when it was last examined.")
 
 (defun mail-abbrevs-sync-aliases ()
-  (if (file-exists-p mail-personal-alias-file)
-      (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-	(if (not (equal mail-abbrev-modtime modtime))
-	    (progn
-	      (setq mail-abbrev-modtime modtime)
-	      (build-mail-abbrevs))))))
+  (when mail-personal-alias-file
+    (if (file-exists-p mail-personal-alias-file)
+	(let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+	  (if (not (equal mail-abbrev-modtime modtime))
+	      (progn
+		(setq mail-abbrev-modtime modtime)
+		(build-mail-abbrevs)))))))
 
 ;;;###autoload
 (defun mail-abbrevs-setup ()
