@@ -654,19 +654,29 @@ point.  The output might look like this:
 point=26957 of 26956(100%)  column 0 
 @end smallexample
 
-  @w{@kbd{C-u C-x =}} displays additional information about a character,
-in place of the buffer coordinates and column: the character set name
-and the codes that identify the character within that character set;
-ASCII characters are identified as belonging to the @code{ASCII}
-character set.  In addition, the full character encoding, even if it
-takes more than a single byte, is shown after @samp{ext}.  Here's an
-example for a Latin-1 character A with a grave accent in a buffer whose
-coding system is iso-2022-7bit@footnote{On terminals that support
-Latin-1 characters, the character shown after @samp{Char:} is displayed
-as the actual glyph of A with grave accent.}:
+  @w{@kbd{C-u C-x =}} displays additional information about a
+character, including the character set name and the codes that
+identify the character within that character set; ASCII characters are
+identified as belonging to the @code{ASCII} character set.  It also
+shows the character's syntax, categories, and encodings both
+internally in the buffer and externally if you save the file.  It also
+shows the character's text properties, if any.
+
+  Here's an example showing the Latin-1 character A with grave accent,
+in a buffer whose coding system is @code{iso-2022-7bit} and whose
+terminal coding system is @code{iso-latin-1} (so the terminal actually
+displays the character as @samp{@`A}):
 
 @smallexample
-Char: @`A (04300, 2240, 0x8c0, ext ESC , A @@) (latin-iso8859-1 64)
+    character: @`A (04300, 2240, 0x8c0)
+      charset: latin-iso8859-1
+	       (Right-Hand Part of Latin Alphabet 1@dots{}
+   code point: 64
+       syntax: w 	which means: word
+     category: l:Latin  
+  buffer code: 0x81 0xC0
+    file code: ESC 2C 41 40 (encoded by coding system iso-2022-7bit)
+terminal code: C0
 @end smallexample
 
 @node Arguments
