@@ -1065,7 +1065,7 @@ configuration."
 
 (defun functionp (object)
   "Non-nil if OBJECT is a type of object that can be called as a function."
-  (or (subrp object) (compiled-function-p object)
+  (or (subrp object) (byte-code-function-p object)
       (eq (car-safe object) 'lambda)
       (and (symbolp object) (fboundp object))))
 
