@@ -1,3 +1,7 @@
+2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* processes.texi (Synchronous Processes): Document process-file.
+
 2004-10-22  Kenichi Handa  <handa@m17n.org>
 
 	* text.texi (translate-region): Document that it accepts also a
