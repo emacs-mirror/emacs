@@ -4099,6 +4099,11 @@ mark_stack ()
 #endif
   for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
     mark_memory ((char *) stack_base + i, end);
+  /* Allow for marking a secondary stack, like the register stack on the
+     ia64.  */
+#ifdef GC_MARK_SECONDARY_STACK
+  GC_MARK_SECONDARY_STACK ();
+#endif
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
   check_gcpros ();
