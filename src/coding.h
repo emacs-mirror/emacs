@@ -590,17 +590,17 @@ struct coding_system
 /* Encode the string STR using the specified coding system
    for w32 system functions, if any.  */
 #define ENCODE_SYSTEM(str)						   \
-  (! NILP (Vw32_system_coding_system)					   \
-   && XFASTINT (Vw32_system_coding_system) != 0				   \
-   ? code_convert_string_norecord (str, Vw32_system_coding_system, 1)	   \
+  (! NILP (Vlocale_coding_system)					   \
+   && XFASTINT (Vlocale_coding_system) != 0				   \
+   ? code_convert_string_norecord (str, Vlocale_coding_system, 1)	   \
    : str)
 
 /* Decode the string STR using the specified coding system
    for w32 system functions, if any.  */
 #define DECODE_SYSTEM(name)						   \
-  (! NILP (Vw32_system_coding_system)					   \
-   && XFASTINT (Vw32_system_coding_system) != 0				   \
-   ? code_convert_string_norecord (str, Vw32_system_coding_system, 0)	   \
+  (! NILP (Vlocale_coding_system)					   \
+   && XFASTINT (Vlocale_coding_system) != 0				   \
+   ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 
 #else /* WINDOWSNT */
@@ -707,10 +707,6 @@ extern Lisp_Object Vfile_name_coding_system;
    Vfile_name_coding_system is nil.  */
 extern Lisp_Object Vdefault_file_name_coding_system;
 
-#ifdef WINDOWSNT
-/* Coding system for w32 system strings, or nil if none.  */
-extern Lisp_Object Vw32_system_coding_system;
-#endif
 #endif
 
 /* Error signaled when there's a problem with detecting coding system */
