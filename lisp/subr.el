@@ -448,93 +448,11 @@ Please convert your programs to use the variable `baud-rate' directly."
 
 ;;;; Hook manipulation functions.
 
-(defun run-hooks (&rest hooklist)
-  "Takes hook names and runs each one in turn.  Major mode functions use this.
-Each argument should be a symbol, a hook variable.
-These symbols are processed in the order specified.
-If a hook symbol has a non-nil value, that value may be a function
-or a list of functions to be called to run the hook.
-If the value is a function, it is called with no arguments.
-If it is a list, the elements are called, in order, with no arguments.
-
-To make a hook variable buffer-local, use `make-local-hook', not
-`make-local-variable'."
-  (while hooklist
-    (let ((sym (car hooklist)))
-      (and (boundp sym)
-	   (symbol-value sym)
-	   (let ((value (symbol-value sym)))
-	     (if (and (listp value) (not (eq (car value) 'lambda)))
-		 (while value
-		   (if (eq (car value) t)
-		       ;; t indicates this hook has a local binding;
-		       ;; it means to run the global binding too.
-		       (let ((functions (default-value sym)))
-			 (while functions
-			   (funcall (car functions))
-			   (setq functions (cdr functions))))
-		     (funcall (car value)))
-		   (setq value (cdr value)))
-	       (funcall value)))))
-    (setq hooklist (cdr hooklist))))
-
-(defun run-hook-with-args-until-success (hook &rest args)
-  "Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  Its value should
-be a list of functions.  We call those functions, one by one,
-passing arguments ARGS to each of them, until one of them
-returns a non-nil value.  Then we return that value.
-If all the functions return nil, we return nil.
-
-To make a hook variable buffer-local, use `make-local-hook', not
-`make-local-variable'."
-  (and (boundp hook)
-       (symbol-value hook)
-       (let ((value (symbol-value hook))
-	     success)
-	 (while (and value (not success))
-	   (if (eq (car value) t)
-	       ;; t indicates this hook has a local binding;
-	       ;; it means to run the global binding too.
-	       (let ((functions (default-value hook)))
-		 (while (and functions (not success))
-		   (setq success (apply (car functions) args))
-		   (setq functions (cdr functions))))
-	     (setq success (apply (car value) args)))
-	   (setq value (cdr value)))
-	 success)))
-
-(defun run-hook-with-args-until-failure (hook &rest args)
-  "Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  Its value should
-be a list of functions.  We call those functions, one by one,
-passing arguments ARGS to each of them, until one of them
-returns nil.  Then we return nil.
-If all the functions return non-nil, we return non-nil.
-
-To make a hook variable buffer-local, use `make-local-hook', not
-`make-local-variable'."
-  ;; We must return non-nil if there are no hook functions!
-  (or (not (boundp hook))
-      (not (symbol-value hook))
-      (let ((value (symbol-value hook))
-	    (success t))
-	(while (and value success)
-	  (if (eq (car value) t)
-	      ;; t indicates this hook has a local binding;
-	      ;; it means to run the global binding too.
-	      (let ((functions (default-value hook)))
-		(while (and functions success)
-		  (setq success (apply (car functions) args))
-		  (setq functions (cdr functions))))
-	    (setq success (apply (car value) args)))
-	  (setq value (cdr value)))
-	success)))
-
-;; Tell C code how to call this function.
+;; We used to have this variable so that C code knew how to run hooks.  That
+;; calling convention is made obsolete now the hook running functions are in C.
 (defconst run-hooks 'run-hooks
   "Variable by which C primitives find the function `run-hooks'.
-Don't change it.")
+Don't change it.  Don't use it either; use the hook running C primitives.")
 
 (defun make-local-hook (hook)
   "Make the hook HOOK local to the current buffer.
