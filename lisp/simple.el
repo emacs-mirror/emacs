@@ -760,7 +760,8 @@ See also `minibuffer-history-case-insensitive-variables'."
   (unless (zerop n)
     (if (and (zerop minibuffer-history-position)
 	     (null minibuffer-text-before-history))
-	(setq minibuffer-text-before-history (field-string (point-max))))
+	(setq minibuffer-text-before-history
+	      (minibuffer-contents-no-properties))
     (let ((history (symbol-value minibuffer-history-variable))
 	  (case-fold-search
 	   (if (isearch-no-upper-case-p regexp t) ; assume isearch.el is dumped
@@ -797,9 +798,9 @@ See also `minibuffer-history-case-insensitive-variables'."
 	  (setq n (+ n (if (< n 0) 1 -1)))))
       (setq minibuffer-history-position pos)
       (goto-char (point-max))
-      (delete-field)
+      (delete-minibuffer-contents)
       (insert match-string)
-      (goto-char (+ (field-beginning) match-offset))))
+      (goto-char (+ (minibuffer-prompt-end) match-offset)))))
   (if (or (eq (car (car command-history)) 'previous-matching-history-element)
 	  (eq (car (car command-history)) 'next-matching-history-element))
       (setq command-history (cdr command-history))))
@@ -838,7 +839,8 @@ makes the search case-sensitive."
 	    elt minibuffer-returned-to-present)
 	(if (and (zerop minibuffer-history-position)
 		 (null minibuffer-text-before-history))
-	    (setq minibuffer-text-before-history (field-string (point-max))))
+	    (setq minibuffer-text-before-history
+		  (minibuffer-contents-no-properties)))
 	(if (< narg minimum)
 	    (if minibuffer-default
 		(error "End of history; no next item")
@@ -847,13 +849,13 @@ makes the search case-sensitive."
 	    (error "Beginning of history; no preceding item"))
 	(unless (or (eq last-command 'next-history-element)
 		    (eq last-command 'previous-history-element))
-	  (let ((prompt-end (field-beginning (point-max))))
+	  (let ((prompt-end (minibuffer-prompt-end)))
 	    (set (make-local-variable 'minibuffer-temporary-goal-position)
 		 (cond ((<= (point) prompt-end) prompt-end)
 		       ((eobp) nil)
 		       (t (point))))))
 	(goto-char (point-max))
-	(delete-field)
+	(delete-minibuffer-contents)
 	(setq minibuffer-history-position narg)
 	(cond ((= narg -1)
 	       (setq elt minibuffer-default))
@@ -884,7 +886,7 @@ by the new completion."
   (let ((point-at-start (point)))
     (next-matching-history-element
      (concat
-      "^" (regexp-quote (buffer-substring (field-beginning) (point))))
+      "^" (regexp-quote (buffer-substring (minibuffer-prompt-end) (point))))
      n)
     ;; next-matching-history-element always puts us at (point-min).
     ;; Move to the position we were at before changing the buffer contents.
@@ -899,35 +901,13 @@ by the new completion."
   (interactive "p")
   (next-complete-history-element (- n)))
 
-;; These two functions are for compatibility with the old subrs of the
-;; same name.
-
+;; For compatibility with the old subr of the same name.
 (defun minibuffer-prompt-width ()
   "Return the display width of the minibuffer prompt.
 Return 0 if current buffer is not a mini-buffer."
   ;; Return the width of everything before the field at the end of
   ;; the buffer; this should be 0 for normal buffers.
-  (1- (field-beginning (point-max))))
-
-(defun minibuffer-prompt-end ()
-  "Return the buffer position of the end of the minibuffer prompt.
-Return (point-min) if current buffer is not a mini-buffer."
-  (field-beginning (point-max)))
-
-(defun minibuffer-contents ()
-  "Return the user input in a minbuffer as a string.
-The current buffer must be a minibuffer."
-  (field-string (point-max)))
-
-(defun minibuffer-contents-no-properties ()
-  "Return the user input in a minbuffer as a string, without text-properties.
-The current buffer must be a minibuffer."
-  (field-string-no-properties (point-max)))
-
-(defun delete-minibuffer-contents  ()
-  "Delete all user input in a minibuffer.
-The current buffer must be a minibuffer."
-  (delete-field (point-max)))
+  (1- (minibuffer-prompt-end)))
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
