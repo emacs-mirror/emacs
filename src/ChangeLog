@@ -1,3 +1,8 @@
+2001-09-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_set_background_color): Don't change the colors
+	of the X window of scroll bar widgets.
+
 2001-09-05  Andrew Innes  <andrewi@gnu.org>
 
 	* w32fns.c (w32_createwindow): Undo last change.
