@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.283 2000/10/26 12:38:02 fx Exp $
+;; $Id: vc.el,v 1.284 2000/10/26 20:53:11 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1576,7 +1576,7 @@ If `F.~REV~' already exists, it is used instead of being re-created."
          (manual-backup (vc-version-backup-file-name file version 'manual)))
     (unless (file-exists-p manual-backup)
       (if (file-exists-p automatic-backup)
-          (copy-file automatic-backup manual-backup nil 'keep-date)
+          (rename-file automatic-backup manual-backup nil)
         (vc-call checkout file nil version manual-backup)))
     (find-file-other-window manual-backup)))
 
