@@ -1,3 +1,18 @@
+2002-05-19  Richard M. Stallman  <rms@gnu.org>
+
+	* arc-mode.el (archive-zip-use-pkzip): Variable deleted.
+	(archive-zip-extract, archive-zip-expunge, archive-zip-update) 
+	(archive-zip-update-case): Use locate-file to decide whether
+	to use pkzip.
+	(archive-zip-extract): Test for pkzip in value of archive-zip-extract.
+
+	* files.el (locate-file): Doc fix.
+
+2002-05-19  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* mail/rmail.el (rmail-show-message-hook): Offer `goto-address'
+	as an option.
+
 2002-05-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names):
