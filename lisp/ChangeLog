@@ -1,3 +1,10 @@
+2004-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-move-to-column): New fun.
+	(compilation-internal-error-properties)
+	(compilation-next-error-function): Use it to make sure we don't go past
+	the end of line.
+
 2004-11-15  John Paul Wallington  <jpw@gnu.org>
 
 	* autoinsert.el (auto-insert-alist): Insert the user's name in
@@ -15,10 +22,10 @@
 
 2004-11-15  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calcalg2.el (math-integrate-by-parts):  Removed unused
-	variable var-thing. 
+	* calc/calcalg2.el (math-integrate-by-parts):  Remove unused
+	variable var-thing.
 
-	(math-integ-depth, math-integ-level, math-integral-limit) 
+	(math-integ-depth, math-integ-level, math-integral-limit)
 	(math-enable-subst, math-any-substs, math-integ-msg)
 	(math-prev-parts-v, math-good-parts, math-max-integral-limit)
 	(math-int-threshold, math-int-factors, math-double-roots)
@@ -26,8 +33,8 @@
 	(var-GenCount):  Declare these variables.
 	(calcFunc-integ):  Don't check if var-IntegLimit is bound.
 
-	(math-integral-cache, math-integral-cache-state):  Move
-	declarations to earlier in the file.
+	(math-integral-cache, math-integral-cache-state):
+	Move declarations to earlier in the file.
 
 	(math-deriv-var, math-deriv-total, math-deriv-symb)
 	(math-cur-record, math-has-rules, math-t1, math-t2, math-t3)
@@ -39,13 +46,13 @@
 	(math-integral, math-replace-integral-parts)
 	(math-integrate-by-parts, calc-dump-integral-cache)
 	(math-try-integral, math-do-integral, math-do-integral)
-	(math-do-integral-methods, math-try-solve-for) 
+	(math-do-integral-methods, math-try-solve-for)
 	(math-try-solve-prod, math-solve-poly-funny-powers)
 	(math-solve-crunch-poly, math-decompose-poly)
 	(math-solve-find-root-term, math-find-root-in-prod)
 	(math-integ-try-linear-substitutions)
 	(math-integ-try-substitutions, math-expr-rational-in)
-	(math-expr-rational-in-rec, calcFunc-table, math-scan-for-limits) 
+	(math-expr-rational-in-rec, calcFunc-table, math-scan-for-limits)
 	(math-solve-prod, math-solve-quartic, math-poly-all-roots)
 	(math-solve-for, math-solve-system, math-solve-system-rec)
 	(math-solve-get-sign, math-solve-get-int)
@@ -58,7 +65,7 @@
 
 2004-11-14  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* files.el (auto-mode-alist): handle .gtkrc, and under /etc
+	* files.el (auto-mode-alist): Handle .gtkrc, and under /etc
 	passwd, group, shadow, default/* and pam.d/*.
 
 2004-11-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
@@ -311,6 +318,10 @@
 	Use declared variable math-exp-token.
 
 2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-define-key): Understand the case
+	where the keymap is a symbol.
+	(easy-menu-add-item): Use keymap-prompt.  Simplify.
 
 	* files.el (magic-mode-alist): Reduce backtracking in the HTML regexp.
 
