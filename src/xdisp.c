@@ -5519,7 +5519,8 @@ resize_mini_window (w, exact_p)
       
       /* Find out the height of the text in the window.  */
       move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
-      height = (unit - 1 + it.current_y + last_height) / unit;
+      height = ((unit - 1 + it.current_y + it.max_ascent + it.max_descent)
+		/ unit);
       height = max (1, height);
       
       /* Compute a suitable window start.  */
