@@ -1,6 +1,6 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
 ;; Maintainer: Gernot Heiser <gernot@acm.org>
@@ -196,13 +196,14 @@ found on the last refer-find-entry or refer-find-next-entry."
      ;; if a bibliography file is already displayed in a window, use
      ;; that one, otherwise use any window other than the current one
      (setq new-window
-	   (some-window (lambda (w)
-			  (while (and (not (null (setq file (nth n files))))
-				      (setq n (1+ n))
-				      (not (string-equal file
-							 (buffer-file-name
-							  (window-buffer w))))))
-			  file)))
+	   (get-window-with-predicate
+	    (lambda (w)
+	      (while (and (not (null (setq file (nth n files))))
+			  (setq n (1+ n))
+			  (not (string-equal file
+					     (buffer-file-name
+					      (window-buffer w))))))
+	      file)))
      (unless new-window
        ;; didn't find bib file in any window:
        (when (one-window-p 'nomini)
