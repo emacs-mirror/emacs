@@ -1,3 +1,13 @@
+2003-03-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32gui.h: Use HDC for Display.
+
+	* w32term.c (w32_encode_char): Prevent double-byte chars from
+	crashing Emacs.
+
+	* w32fns.c (jpeg_load, png_load, slurp_file): Read image files
+	as binary.
+
 2003-03-16  Juanma Barranquero  <lektu@terra.es>
 
 	* xdisp.c (x_produce_glyphs): Use FRAME_BASELINE_OFFSET.
