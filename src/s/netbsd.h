@@ -52,3 +52,6 @@
 #define N_BSSADDR(x) (N_ALIGN(x, N_DATADDR(x)+x.a_data))
 #define N_TRELOFF(x) N_RELOFF(x)
 #endif
+
+/* Reread the time zone on startup.  */
+#define LOCALTIME_CACHE
