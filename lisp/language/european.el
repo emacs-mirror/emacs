@@ -28,9 +28,9 @@
 
 ;;; Code:
 
-(define-prefix-command 'describe-european-support-map)
-(define-key-after describe-language-support-map [European]
-  '("European" . describe-european-support-map)
+(define-prefix-command 'describe-european-environment-map)
+(define-key-after describe-language-environment-map [European]
+  '("European" . describe-european-environment-map)
   t)
 
 (define-prefix-command 'setup-european-environment-map)
@@ -51,12 +51,19 @@
 	rmail-file-coding-system coding-system)
 
   (if charset
-      (let ((nonascii-offset (make-char charset)))
-	(setq nonascii-insert-offset nonascii-offset
-	      set-case-syntax-offset nonascii-offset)))
+      (let ((nonascii-offset (- (make-char charset) 128)))
+	;; Set up for insertion of characters in this character set
+	;; when codes 0200 - 0377 are typed in.
+	(setq nonascii-insert-offset nonascii-offset)))
 
   (if input-method
-      (setq default-input-method input-method)))
+      (let ((latin-name (car input-method)))
+	(setq default-input-method input-method)
+	;; If this is a Latin-N character set, set up syntax for it
+	;; in single-byte mode.
+	(when (and latin-name
+		   (string-match "^Latin-\\([1-9]\\)$" latin-name))
+	  (require (intern (downcase latin-name)))))))
 
 ;; Latin-1 (ISO-8859-1)
 
@@ -89,7 +96,7 @@
 These languages are supported with the Latin-1 (ISO-8859-1) character set:
  Danish, Dutch, English, Faeroese, Finnish, French, German, Icelandic,
  Irish, Italian, Norwegian, Portuguese, Spanish, and Swedish.
-" . describe-european-support-map))
+" . describe-european-environment-map))
 	     ))
 
 ;; Latin-2 (ISO-8859-2)
@@ -117,7 +124,7 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 These languages are supported with the Latin-2 (ISO-8859-2) character set:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
  Serbo-Croatian, Slovak, Slovene, and Swedish.
-" . describe-european-support-map))
+" . describe-european-environment-map))
 	     ))
 
 ;; Latin-3 (ISO-8859-3)
@@ -145,7 +152,7 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
 These languages are supported with the Latin-3 (ISO-8859-3) character set:
  Afrikaans, Catalan, Dutch, English, Esperanto, French, Galician,
  German, Italian, Maltese, Spanish, and Turkish.
-" . describe-european-support-map))
+" . describe-european-environment-map))
 	     ))
 
 ;; Latin-4 (ISO-8859-4)
@@ -173,7 +180,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 These languages are supported with the Latin-4 (ISO-8859-4) character set:
  Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
  Latvian, Lithuanian, and Norwegian.
-" . describe-european-support-map))
+" . describe-european-environment-map))
 	     ))
 
 ;; Latin-5 (ISO-8859-9)
@@ -199,7 +206,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (coding-system . (iso-8859-9))
 	     (documentation . ("\
 These languages are supported with the Latin-5 (ISO-8859-9) character set.
-" . describe-european-support-map))
+" . describe-european-environment-map))
 	     ))
 
 (let ((languages '("French" "German" "Spanish" "Italian"
