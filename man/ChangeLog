@@ -1,3 +1,7 @@
+2005-03-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar.texi (iCalendar): No need to require it now.
+
 2005-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Slow/Expensive Connection): Don't abbreviate "very".

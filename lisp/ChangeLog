@@ -1,3 +1,11 @@
+2005-03-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.11.
+	(icalendar-export-file, icalendar-export-region)
+	(icalendar-import-file, icalendar-import-buffer): Add autoload
+	cookies.
+	(icalendar--convert-ical-to-diary): Fix problem with DURATION.
+
 2005-03-04  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a
