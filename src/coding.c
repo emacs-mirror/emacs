@@ -4370,6 +4370,7 @@ detect_coding_charset (coding, mask)
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   Lisp_Object attrs, valids;
+  int found = 0;
 
   coding = &coding_categories[coding_category_charset];
   attrs = CODING_ID_ATTRS (coding->id);
@@ -4385,12 +4386,14 @@ detect_coding_charset (coding, mask)
       ONE_MORE_BYTE (c);
       if (NILP (AREF (valids, c)))
 	break;
+      if (c >= 0x80)
+	found = 1;
     }
   *mask &= ~CATEGORY_MASK_CHARSET;
   return 0;
 
  no_more_source:
-  return 1;
+  return (found || NILP (CODING_ATTR_ASCII_COMPAT (attrs)));
 }
 
 static void
@@ -6323,9 +6326,7 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
 	  if (c & 0x80
 	      || (c < 0x20 && (c == ISO_CODE_ESC
 			       || c == ISO_CODE_SI
-			       || c == ISO_CODE_SO
-			       /* Most UTF-16 text contains '\0'. */
-			       || !c)))
+			       || c == ISO_CODE_SO)))
 	    break;
 	}
       coding.head_ascii = src - coding.source;
@@ -7471,6 +7472,8 @@ usage: (define-coding-system-internal ...)  */)
     XSTRING (safe_charsets)->data[XFASTINT (XCAR (tail))] = 0;
   CODING_ATTR_SAFE_CHARSETS (attrs) = safe_charsets;
 
+  CODING_ATTR_ASCII_COMPAT (attrs) = args[coding_arg_ascii_compatible_p];
+
   val = args[coding_arg_decode_translation_table];
   if (! NILP (val))
     CHECK_CHAR_TABLE (val);
@@ -7525,6 +7528,9 @@ usage: (define-coding-system-internal ...)  */)
 	  int dim = CHARSET_DIMENSION (charset);
 	  int idx = (dim - 1) * 4;
 	  
+	  if (CHARSET_ASCII_COMPATIBLE_P (charset))
+	    CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+
 	  for (i = charset->code_space[idx];
 	       i <= charset->code_space[idx + 1]; i++)
 	    {
@@ -7611,6 +7617,8 @@ usage: (define-coding-system-internal ...)  */)
     {
       Lisp_Object bom, endian;
 
+      CODING_ATTR_ASCII_COMPAT (attrs) = Qnil;
+
       if (nargs < coding_arg_utf16_max)
 	goto short_args;
 
@@ -7651,8 +7659,12 @@ usage: (define-coding-system-internal ...)  */)
 	  val = Faref (initial, make_number (i));
 	  if (! NILP (val))
 	    {
-	      CHECK_CHARSET_GET_ID (val, id);
-	      ASET (initial, i, make_number (id));
+	      struct charset *charset;
+
+	      CHECK_CHARSET_GET_CHARSET (val, charset);
+	      ASET (initial, i, make_number (CHARSET_ID (charset)));
+	      if (i == 0 && CHARSET_ASCII_COMPATIBLE_P (charset))
+		CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
 	    }
 	  else
 	    ASET (initial, i, make_number (-1));
@@ -7713,7 +7725,7 @@ usage: (define-coding-system-internal ...)  */)
     {
       if (EQ (args[coding_arg_charset_list], Qemacs_mule))
 	ASET (attrs, coding_attr_emacs_mule_full, Qt);
-
+      CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
       category = coding_category_emacs_mule;
     }
   else if (EQ (coding_type, Qshift_jis))
@@ -7728,6 +7740,8 @@ usage: (define-coding-system-internal ...)  */)
       if (CHARSET_DIMENSION (charset) != 1)
 	error ("Dimension of charset %s is not one",
 	       XSYMBOL (CHARSET_NAME (charset))->name->data);
+      if (CHARSET_ASCII_COMPATIBLE_P (charset))
+	CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
 
       charset_list = XCDR (charset_list);
       charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
@@ -7755,6 +7769,8 @@ usage: (define-coding-system-internal ...)  */)
       if (CHARSET_DIMENSION (charset) != 1)
 	error ("Dimension of charset %s is not one",
 	       XSYMBOL (CHARSET_NAME (charset))->name->data);
+      if (CHARSET_ASCII_COMPATIBLE_P (charset))
+	CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
 
       charset_list = XCDR (charset_list);
       charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
@@ -7766,9 +7782,15 @@ usage: (define-coding-system-internal ...)  */)
       Vbig5_coding_system = name;
     }
   else if (EQ (coding_type, Qraw_text))
-    category = coding_category_raw_text;
+    {
+      category = coding_category_raw_text;
+      CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+    }
   else if (EQ (coding_type, Qutf_8))
-    category = coding_category_utf_8;
+    {
+      category = coding_category_utf_8;
+      CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+    }
   else if (EQ (coding_type, Qundecided))
     category = coding_category_undecided;
   else
