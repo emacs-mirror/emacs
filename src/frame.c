@@ -2490,8 +2490,10 @@ The `menu-bar-lines' element of the list controls whether new frames\n\
   Vemacs_iconified = Qnil;
 
   DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
-    "If non-nil, function applied to the normal result of `mouse-position'.\n\
-This abnormal hook exists for the benefit of packages like XTerm-mouse\n\
+    "If non-nil, function to transform normal value of `mouse-position'.\n\
+`mouse-position' calls this function, passing its usual return value as\n\
+argument, and returns whatever this function returns.\n\
+This abnormal hook exists for the benefit of packages like `xt-mouse.el'\n\
 which need to do mouse handling at the Lisp level.");
   Vmouse_position_function = Qnil;
 
