@@ -255,6 +255,7 @@ instead."
 	(when (and eshell-ls-use-colors
 		   (featurep 'font-lock))
 	  (font-lock-mode -1)
+	  (setq font-lock-defaults nil)
 	  (if (boundp 'font-lock-buffers)
 	      (set 'font-lock-buffers
 		   (delq (current-buffer)
