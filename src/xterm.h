@@ -904,18 +904,6 @@ void x_handle_property_notify P_ ((XPropertyEvent *));
 
 /* From xfns.c.  */
 
-void x_real_positions P_ ((struct frame *, int *, int *));
-void x_destroy_bitmap P_ ((struct frame *, int));
-int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
-int x_create_bitmap_from_data P_ ((struct frame *, char *, unsigned,
-				   unsigned));
-void x_reference_bitmap P_ ((struct frame *, int));
-void x_sync P_ ((struct frame *));
-int x_bitmap_pixmap P_ ((struct frame *, int));
-void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-int x_bitmap_height P_ ((struct frame *, int));
-int x_bitmap_width P_ ((struct frame *, int));
-int defined_color P_ ((struct frame *, char *, XColor *, int));
 Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
 					Lisp_Object, Lisp_Object,
 					Lisp_Object, Lisp_Object));
@@ -1024,6 +1012,11 @@ extern int x_char_height P_ ((struct frame *));
 extern int x_screen_planes P_ ((struct frame *));
 extern void x_sync P_ ((struct frame *));
 extern enum text_cursor_kinds x_specified_cursor_type P_ ((Lisp_Object, int *));
+extern int x_defined_color P_ ((struct frame *, char *, XColor *, int));
+#ifdef HAVE_X_I18N
+extern void free_frame_xic P_ ((struct frame *));
+#endif
+extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 
 /* Defined in xfaces.c */
 
