@@ -1,3 +1,8 @@
+2002-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/ucs-tables.el (ucs-8859-8-alist): Comment away
+	Hebrew points.
+
 2002-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* jka-compr.el (jka-compr-write-region): If START = nil, use whole buf.
