@@ -652,11 +652,17 @@ for the invalidity you want to see."
       (save-excursion
 	(goto-char (point-max))
 	(while (and (not (input-pending-p)) (not (bobp)))
-	  (let ((end (point)))
+	  (let ((end (point))
+		prev-end)
 	    ;; Scan the previous paragraph for invalidities.
-	    (search-backward "\n\n" nil 'move)
+	    (if (search-backward "\n\n" nil t)
+		(progn
+		  (setq prev-end (point))
+		  (forward-char 2))
+	      (goto-char (setq prev-end (point-min))))
 	    (or (tex-validate-region (point) end)
-		(let* ((end (save-excursion (forward-line 1) (point)))
+		(let* ((oend end)
+		       (end (save-excursion (forward-line 1) (point)))
 		       start tem)
 		  (beginning-of-line)
 		  (setq start (point))
@@ -679,7 +685,8 @@ for the invalidity you want to see."
 		    (setq occur-pos-list (cons tem occur-pos-list))
 		    (insert-buffer-substring buffer start end)
 		    (forward-char (- start end))
-		    (insert (format "%3d: " linenum))))))))
+		    (insert (format "%3d: " linenum)))))
+	    (goto-char prev-end))))
       (save-excursion
 	(set-buffer standard-output)
 	(if (null occur-pos-list)
@@ -701,6 +708,7 @@ area if a mismatch is found."
 	    (while (< 0 (setq max-possible-sexps (1- max-possible-sexps)))
 	      (forward-sexp 1)))
 	(error
+	  (skip-syntax-forward " .>")
 	  (setq failure-point (point)))))
     (if failure-point
 	(progn
