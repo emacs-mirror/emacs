@@ -79,7 +79,7 @@ nil means use indentation.")
 (defvar mail-indentation-spaces 3
   "*Number of spaces to insert at the beginning of each cited line.
 Used by `mail-yank-original' via `mail-yank-cite'.")
-(defvar mail-yank-hooks '(mail-indent-citation)
+(defvar mail-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
 And each hook function should leave point and mark around the citation
@@ -678,7 +678,9 @@ and don't delete any header fields."
 					   mail-indentation-spaces)))
 	    (if mail-citation-hook
 		(run-hooks 'mail-citation-hook)
-	      (run-hooks 'mail-yank-hooks))))
+	      (if mail-yank-hooks
+		  (run-hooks 'mail-yank-hooks)
+		(mail-indent-citation)))))
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
 	;; loop would deactivate the mark because we inserted text.
