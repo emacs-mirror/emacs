@@ -142,6 +142,27 @@ characters, is copied and pasted into a buffer.
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
 
+* The `configure' script doesn't find the jpeg library.
+
+This can happen because the linker by default only looks for shared
+libraries, but jpeg distribution by default doesn't build and doesn't
+install a shared version of the library, `libjpeg.so'.  One system
+where this is known to happen is Compaq/DEC Alpha OSF/1 v4.0, but it
+probably isn't limited to that system alone.
+
+It is possible to build Emacs linked statically, but that makes the
+binary much larger.
+
+If you want to avoid building a statically linked Emacs, configure the
+jpeg library with the `--enable-shared' option and then rebuild
+libjpeg.  This produces a shared version of libjpeg, which you need to
+install.  Finally, rerun the Emacs configure script, which should now
+find the jpeg library.
+
+(If you need the static version of the jpeg library as well, you can
+configure libjpeg with both `--enable-static' and `--enable-shared'
+options.
+
 * Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
