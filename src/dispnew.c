@@ -1657,11 +1657,8 @@ do_pending_window_change ()
 
 	  int height = FRAME_NEW_HEIGHT (f);
 	  int width = FRAME_NEW_WIDTH (f);
-	    
-	  FRAME_NEW_HEIGHT (f) = 0;
-	  FRAME_NEW_WIDTH (f) = 0;
 
-	  if (height != 0)
+	  if (height != 0 || width != 0)
 	    change_frame_size (f, height, width, 0, 0);
 	}
     }
@@ -1693,7 +1690,7 @@ change_frame_size (frame, newheight, newwidth, pretend, delay)
   FRAME_NEW_HEIGHT (frame) = 0;
   FRAME_NEW_WIDTH  (frame) = 0;
 
-  /* If an arguments is zero, set it to the current value.  */
+  /* If an argument is zero, set it to the current value.  */
   newheight || (newheight = FRAME_HEIGHT (frame));
   newwidth  || (newwidth  = FRAME_WIDTH  (frame));
 
