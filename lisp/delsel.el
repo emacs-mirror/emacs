@@ -51,6 +51,15 @@ insertion commands first delete the region and then insert.")
 		       (get this-command 'delete-selection))))
 	(cond ((eq type 'kill)
 	       (delete-active-region t))
+	      ((eq type 'yank)
+	       ;; Before a yank command,
+	       ;; make sure we don't yank the same region
+	       ;; that we are going to delete.
+	       ;; That would make yank a no-op.
+	       (if (string= (buffer-substring (point) (mark))
+			    (car kill-ring))
+		   (current-kill 1))
+	       (delete-active-region nil))
 	      ((eq type 'supersede)
 	       (if (delete-active-region nil)
 		   (setq this-command '(lambda () (interactive)))))
@@ -62,7 +71,7 @@ insertion commands first delete the region and then insert.")
 (put 'self-insert-command 'delete-selection t)
 (put 'self-insert-iso 'delete-selection t)
 
-(put 'yank 'delete-selection t)
+(put 'yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
 
 (put 'delete-backward-char 'delete-selection 'supersede)
