@@ -992,7 +992,7 @@ char_valid_p (c, genericp)
   if (SINGLE_BYTE_CHAR_P (c))
     return 1;
   SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
-  if (!CHARSET_DEFINED_P (charset))
+  if (charset != CHARSET_COMPOSITION && !CHARSET_DEFINED_P (charset))
     return 0;
   return (c < MIN_CHAR_COMPOSITION
 	  ? ((c & CHAR_FIELD1_MASK) /* i.e. dimension of C is two.  */
