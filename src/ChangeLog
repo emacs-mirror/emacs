@@ -1,3 +1,8 @@
+2003-05-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (expose_window): Fix error in calculation of
+	window relative coordinates of area to redisplay.
+
 2003-05-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (GET_WHEEL_DELTA_WPARAM): New macro.
