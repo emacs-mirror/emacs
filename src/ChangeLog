@@ -1,3 +1,16 @@
+2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c: Put empty line between comment and function body.
+	(xg_destroy_widgets): Renamed from remove_from_container.  Just
+	destroy all widgets in list.  Argument wcont removed.
+	(xg_update_menubar, xg_update_submenu): Call xg_destroy_widgets
+	instead of remove_from_container.
+	(xg_display_close, xg_create_tool_bar, update_frame_tool_bar)
+	(free_frame_tool_bar): Add comment.
+
+	* xfns.c (xic_create_xfontset): Check that FRAME_XIC_BASE_FONTNAME
+	is not NULL before strcmp.
+
 2004-10-26  Kim F. Storm  <storm@cua.dk>
 
 	* callint.c (Fcall_interactively): Add 'U' code to get the
