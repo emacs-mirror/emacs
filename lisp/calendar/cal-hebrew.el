@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
-;; Author: Nachum Dershowi <nachum@cs.uiuc.edu>
+;; Author: Nachum Dershowitz <nachum@cs.uiuc.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
 ;; Human-Keywords: Hebrew calendar, calendar, diary
