@@ -3,7 +3,7 @@
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 4.14
+;; Version: 4.15
 ;; Date: $Date: 2002/06/14 19:06:16 $
 ;; Keywords: processes
 
