@@ -1,11 +1,13 @@
 ;;; msb.el --- Customizable buffer-selection with multiple menus.
 
-;; Copyright (C) 1993, 1994, 1995 Lars Lindberg <Lars.Lindberg@sypro.cap.se>
+;; Copyright (C) 1993, 1994, 1995, 1997 Lars Lindberg
+;; <Lars.G.Lindberg@capgemini.se>
+;; <Lars.G.Lindberg@mailbox.swipnet.se>
 
-;; Author: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
+;; Author: Lars Lindberg <Lars.G.Lindberg@capgemini.se>
 ;; Created: 8 Oct 1993
-;; Lindberg's last update version: 3.31
-;; Keywords: mouse buffer menu 
+;; Lindberg's last update version: 3.33
+;; Keywords: mouse buffer menu
 
 ;; This file is part of GNU Emacs.
 
@@ -48,11 +50,11 @@
 ;;   There are some constants for you to try here:
 ;;   msb--few-menus
 ;;   msb--very-many-menus (default)
-;;   
+;;  
 ;;   Look at the variable `msb-item-handling-function' for customization
 ;;   of the appearance of every menu item.  Try for instance setting
 ;;   it to `msb-alon-item-handler'.
-;;   
+;;  
 ;;   Look at the variable `msb-item-sort-function' for customization
 ;;   of sorting the menus.  Set it to t for instance, which means no
 ;;   sorting - you will get latest used buffer first.
@@ -117,7 +119,7 @@
     ((or (memq major-mode '(rmail-mode rmail-edit-mode vm-summary-mode vm-mode mail-mode))
 	 (memq major-mode '(mh-letter-mode
 			    mh-show-mode
-			    mh-folder-mode))	 
+			    mh-folder-mode))	
 	 (memq major-mode '(gnus-summary-mode
 			    news-reply-mode
 			    gnus-group-mode
@@ -155,7 +157,7 @@
 	  (msb-invisible-buffer-p)
 	  'multi)
      1090
-     "Invisible buffers (%d)") 
+     "Invisible buffers (%d)")
     ((eq major-mode 'dired-mode)
      2010
      "Dired (%d)"
@@ -172,7 +174,7 @@
     ((or (memq major-mode '(rmail-mode rmail-edit-mode vm-summary-mode vm-mode mail-mode))
 	 (memq major-mode '(mh-letter-mode
 			    mh-show-mode
-			    mh-folder-mode))	 
+			    mh-folder-mode))	
 	 (memq major-mode '(gnus-summary-mode
 			    news-reply-mode
 			    gnus-group-mode
@@ -212,15 +214,16 @@
 
 (defvar msb-separator-diff 100
   "*Non-nil means use separators.
-The separators will appear between all menus that have a sorting key that differs by this value or more.")
+The separators will appear between all menus that have a sorting key
+that differs by this value or more.")
 
 (defvar msb-files-by-directory-sort-key 0
-  "*The sort key for files sorted by directory")
+  "*The sort key for files sorted by directory.")
 
 (defvar msb-max-menu-items 15
   "*The maximum number of items in a menu.
-If this variable is set to 15 for instance, then the submenu will be split up in minor parts, 15 items each.
-Nil means no limit.")
+If this variable is set to 15 for instance, then the submenu will be
+split up in minor parts, 15 items each.  If nil, there is no limit.")
 
 (defvar msb-max-file-menu-items 10
   "*The maximum number of items from different directories.
@@ -243,10 +246,9 @@ If the value is not a number, then the value 10 is used.")
 
 (defvar msb-most-recently-used-title "Most recently used (%d)"
   "*The title for the most-recently-used menu.")
-  
+ 
 (defvar msb-horizontal-shift-function '(lambda () 0)
-  "*Function that specifies a number of pixels by which the top menu should
-be shifted leftwards.")
+  "*Function that specifies how many pixels to shift the top menu leftwards.")
 
 (defvar msb-display-invisible-buffers-p nil
   "*Show invisible buffers or not.
@@ -262,16 +264,18 @@ where the latter is the max length of all buffer names.
 
 The function should return the string to use in the menu.
 
-When the function is called, BUFFER is the current buffer.
-This function is called for items in the variable `msb-menu-cond' that
-have nil as ITEM-HANDLING-FUNCTION.  See `msb-menu-cond' for more
+When the function is called, BUFFER is the current buffer.  This
+function is called for items in the variable `msb-menu-cond' that have
+nil as ITEM-HANDLING-FUNCTION.  See `msb-menu-cond' for more
 information.")
 
 (defvar msb-item-sort-function 'msb-sort-by-name
   "*The order of items in a buffer menu.
+
 The default function to call for handling the order of items in a menu
-item.  This function is called like a sort function.  The items
-look like (ITEM-NAME . BUFFER).
+item.  This function is called like a sort function.  The items look
+like (ITEM-NAME . BUFFER).
+
 ITEM-NAME is the name of the item that will appear in the menu.
 BUFFER is the buffer, this is not necessarily the current buffer.
 
@@ -288,8 +292,8 @@ The elements in the list should be of this type:
 
 When making the split, the buffers are tested one by one against the
 CONDITION, just like a lisp cond: When hitting a true condition, the
-other criteria are *not* tested and the buffer name will appear in
-the menu with the menu-title corresponding to the true condition.
+other criteria are *not* tested and the buffer name will appear in the
+menu with the menu-title corresponding to the true condition.
 
 If the condition returns the symbol `multi', then the buffer will be
 added to this menu *and* tested for other menus too.  If it returns
@@ -300,15 +304,15 @@ During this test, the buffer in question is the current buffer, and
 the test is surrounded by calls to `save-excursion' and
 `save-match-data'.
 
-The categories are sorted by MENU-SORT-KEY.  Smaller keys are on
-top.  nil means don't display this menu.
+The categories are sorted by MENU-SORT-KEY.  Smaller keys are on top.
+nil means don't display this menu.
 
-MENU-TITLE is really a format.  If you add %d in it, the %d is replaced
-with the number of items in that menu.
+MENU-TITLE is really a format.  If you add %d in it, the %d is
+replaced with the number of items in that menu.
 
-ITEM-HANDLING-FN, is optional.  If it is supplied and is a
-function, than it is used for displaying the items in that particular
-buffer menu, otherwise the function pointed out by
+ITEM-HANDLING-FN, is optional.  If it is supplied and is a function,
+than it is used for displaying the items in that particular buffer
+menu, otherwise the function pointed out by
 `msb-item-handling-function' is used.
 
 ITEM-SORT-FN, is also optional.
@@ -321,8 +325,8 @@ most-recently-used order.
 If it is supplied and non-nil and not t than it is used for sorting
 the items in that particular buffer menu.
 
-Note1: There should always be a `catch-all' as last element,
-in this list.  That is an element like (t TITLE ITEM-HANDLING-FUNCTION).
+Note1: There should always be a `catch-all' as last element, in this
+list.  That is an element like (t TITLE ITEM-HANDLING-FUNCTION).
 Note2: A buffer menu appears only if it has at least one buffer in it.
 Note3: If you have a CONDITION that can't be evaluated you will get an
 error every time you do \\[msb].")
@@ -333,6 +337,13 @@ error every time you do \\[msb].")
 ;;;
 ;;; Internal variables
 ;;;
+
+;; Home directory for the current user
+(defvar msb--home-path
+  (condition-case nil
+      (substitute-in-file-name "$HOME")
+    ;; If $HOME isn't defined, use nil
+    (error nil)))
 
 ;; The last calculated menu.
 (defvar msb--last-buffer-menu nil)
@@ -408,15 +419,17 @@ An item look like (NAME . BUFFER)."
 (defun msb-sort-by-directory (item1 item2)
   "Sorts the items depending on their directory.  Made for dired.
 An item look like (NAME . BUFFER)."
-  (string-lessp (save-excursion (set-buffer (cdr item1)) (msb--dired-directory))
-		(save-excursion (set-buffer (cdr item2)) (msb--dired-directory))))
+  (string-lessp (save-excursion (set-buffer (cdr item1))
+				(msb--dired-directory))
+		(save-excursion (set-buffer (cdr item2))
+				(msb--dired-directory))))
 
 ;;;
 ;;; msb
 ;;;
 ;;; This function can be used instead of (mouse-buffer-menu EVENT)
 ;;; function in "mouse.el".
-;;; 
+;;;
 (defun msb (event)
   "Pop up several menus of buffers for selection with the mouse.
 This command switches buffers in the window that you clicked on, and
@@ -446,45 +459,70 @@ If the argument is left out or nil, then the current buffer is considered."
 ;; Strip one hierarchy level from the end of PATH.
 (defun msb--strip-path (path)
   (save-match-data
-    (if (string-match "\\(.+\\)/[^/]+$" path)
-	(substring path (match-beginning 1) (match-end 1))
-      "/")))
+    (cond
+     ((string-match "^\\([^/]*/.+/\\)[^/]+$" path)
+      (substring path (match-beginning 1) (match-end 1)))
+     ((string-match "^\\([^/]*/\\)" path)
+      (substring path (match-beginning 1) (match-end 1)))
+     (t
+      (error "msb: Path '%s' has an unrecognized format" path)))))
 
 ;; Create an alist with all buffers from LIST that lies under the same
-;; directory will be in the same item as the directory string as
-;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K BUFFER-K+1...)) ...)
+;; directory will be in the same item as the directory string.
+;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K BUFFER-K+1...)) =
+...)
 (defun msb--init-file-alist (list)
   (let ((buffer-alist
+	 ;; Make alist that looks like
+	 ;; ((PATH-1 BUFFER-1) (PATH-2 BUFFER-2) ...)
+	 ;; sorted on PATH-x
 	 (sort (mapcan
 		(function
 		 (lambda (buffer)
-		   (let ((file-name (buffer-file-name buffer)))
+		   (let ((file-name (expand-file-name (buffer-file-name buffer))))	=
+;LGL 971218
 		     (when file-name
 		       (list (cons (msb--strip-path file-name) buffer))))))
 		list)
 	       (function (lambda (item1 item2)
 			   (string< (car item1) (car item2)))))))
+    ;; Now clump buffers togehter that have the same path
     ;; Make alist that looks like
     ;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K)) ...)
     (let ((path nil)
-	  (buffers nil)
-	  (result nil))
-      (append
+	  (buffers nil))
+      (nconc
        (mapcan (function
-	       (lambda (item)
-		 (cond
-		  ((and path
-			(string= path (car item)))
-		   (push (cdr item) buffers)
-		   nil)
-		  (t
-		   (when path
-		     (setq result (cons path buffers)))
-		   (setq path (car item))
-		   (setq buffers (list (cdr item)))
-		   (and result (list result))))))
-	      buffer-alist)
+		(lambda (item)
+		  (cond
+		   ((and path
+			 (string=3D path (car item)))
+		    ;; The same path as earlier: Add to current list of
+		    ;; buffers.
+		    (push (cdr item) buffers)
+		    ;; This item should not be added to list
+		    nil)
+		   (t
+		    ;; New path
+		    (let ((result (and path (cons path buffers))))
+		      (setq path (car item))
+		      (setq buffers (list (cdr item)))
+		      ;; Add the last result the list.
+		      (and result (list result)))))))
+	       buffer-alist)
+       ;; Add the last result to the list
        (list (cons path buffers))))))
+
+;; Format a suitable title for the menu item.
+(defun msb--format-title (top-found-p path number-of-items)
+  (let ((new-path path))
+    (when (and msb--home-path
+	       (string-match (concat "^" msb--home-path) path))
+      (setq new-path (concat "~/"
+			     (substring path (match-end 0)))))
+    (format (if top-found-p "%s... (%d)" "%s (%d)")
+	    new-path number-of-items)))
+
 
 ;; Choose file-menu with respect to directory for every buffer in LIST.
 (defun msb--choose-file-menu (list)
@@ -496,44 +534,54 @@ If the argument is left out or nil, then the current buffer is considered."
 	(top-found-p nil)
 	(last-path nil)
 	first rest path buffers)
-    (setq first (car buffer-alist))
-    (setq rest (cdr buffer-alist))
-    (setq path (car first))
-    (setq buffers (cdr first))
+    ;; Prepare for looping over all items in buffer-alist
+    (setq first (car buffer-alist)
+	  rest (cdr buffer-alist)
+	  path (car first)
+	  buffers (cdr first))
+    ;; This big loop tries to clump buffers together that have a
+    ;; similar name. Remember that buffer-alist is sorted based on the
+    ;; path for the buffers.
     (while rest
       (let ((found-p nil)
 	    (tmp-rest rest)
+	    result
 	    new-path item)
 	(setq item (car tmp-rest))
+	;; Clump together the "rest"-buffers that have a path that is
+	;; a subpath of the current one.
 	(while (and tmp-rest
 		    (<= (length buffers) max-clumped-together)
 		    (>= (length (car item)) (length path))
 		    (string= path (substring (car item) 0 (length path))))
 	  (setq found-p t)
-	  (setq buffers (append buffers (cdr item)))
-	  (setq tmp-rest (cdr tmp-rest))
-	  (setq item (car tmp-rest)))
+	  (setq buffers (append buffers (cdr item))) ;nconc is faster than append
+	  (setq tmp-rest (cdr tmp-rest)
+		item (car tmp-rest)))
 	(cond
 	 ((> (length buffers) max-clumped-together)
+	  ;; Oh, we failed. Too many buffers clumped together.
+	  ;; Just use the original ones for the result.
 	  (setq last-path (car first))
-	  (setq first
-		(cons (format (if top-found-p
-				  "%s/... (%d)"
-				"%s (%d)")
-			      (car first)
-			      (length (cdr first)))
-		      (cdr first)))
+	  (push (cons (msb--format-title top-found-p
+					 (car first)
+					 (length (cdr first)))
+		      (cdr first))
+		final-list)
 	  (setq top-found-p nil)
-	  (push first final-list)
 	  (setq first (car rest)
-		rest (cdr rest))
-	  (setq path (car first)
+		rest (cdr rest)
+		path (car first)
 		buffers (cdr first)))
 	 (t
+	  ;; The first pass of clumping together worked out, go ahead
+	  ;; with this result.
 	  (when found-p
 	    (setq top-found-p t)
 	    (setq first (cons path buffers)
 		  rest tmp-rest))
+	  ;; Now see if we can clump more buffers together if we go up
+	  ;; one step in the file hierarchy.
 	  (setq path (msb--strip-path path)
 		buffers (cdr first))
 	  (when (and last-path
@@ -543,29 +591,26 @@ If the argument is left out or nil, then the current buffer is considered."
 			 (and (< (length path) (length last-path))
 			      (string= path
 				       (substring last-path 0 (length path))))))
-			 
-	    (setq first
-		  (cons (format (if top-found-p
-				    "%s/... (%d)"
-				  "%s (%d)")
-				(car first)
-				(length (cdr first)))
-			(cdr first)))
+	    ;; We have reached the same place in the file hierarchy as
+	    ;; the last result, so we should quit at this point and
+	    ;; take what we have as result.
+	    (push (cons (msb--format-title top-found-p
+					   (car first)
+					   (length (cdr first)))
+			(cdr first))
+		  final-list)
 	    (setq top-found-p nil)
-	    (push first final-list)
 	    (setq first (car rest)
-		  rest (cdr rest))
-	    (setq path (car first)
-		buffers (cdr first)))))))
-    (setq first
-	  (cons (format (if top-found-p
-			    "%s/... (%d)"
-			  "%s (%d)")
-			(car first)
-			(length (cdr first)))
-		(cdr first)))
+		  rest (cdr rest)
+		  path (car first)
+		  buffers (cdr first)))))))
+    ;; Now take care of the last item.
+    (push (cons (msb--format-title top-found-p
+				   (car first)
+				   (length (cdr first)))
+		(cdr first))
+	  final-list)
     (setq top-found-p nil)
-    (push first final-list)
     (nreverse final-list)))
 
 ;; Create a vector as:
@@ -643,7 +688,7 @@ If the argument is left out or nil, then the current buffer is considered."
 			      max-buffer-name-length)
 		     buffer)
 	       (eval list-symbol)))))
-  
+ 
 ;; Selects the appropriate menu for BUFFER.
 ;; This is all side-effects, folks!
 ;; This should be optimized.
@@ -673,7 +718,7 @@ If the argument is left out or nil, then the current buffer is considered."
       (let ((sorter (aref function-info 5)) ;SORTER
 	    (sort-key (aref function-info 2))) ;MENU-SORT-KEY
 	(when sort-key
-	  (cons sort-key	
+	  (cons sort-key
 		(cons (format (aref function-info 3) ;MENU-TITLE
 			      (length buffer-list))
 		      (cond
@@ -773,7 +818,7 @@ If the argument is left out or nil, then the current buffer is considered."
     (let* (menu
 	   (most-recently-used
 	    (msb--most-recently-used-menu max-buffer-name-length))
-	   (others (append file-buffers
+	   (others (nconc file-buffers
 			   (loop for elt
 				 across function-info-vector
 				 for value = (msb--create-sort-item elt)
@@ -799,8 +844,8 @@ If the argument is left out or nil, then the current buffer is considered."
        '(keymap "Select Buffer")
        (msb--make-keymap-menu menu)
        (when msb-separator-diff
-	 (list (list 'separator "---")))
-       (list (cons 'toggle 
+	 (list (list 'separator "--")))
+       (list (cons 'toggle
 		   (cons
 		   (if msb-files-by-directory
 		       "*Files by type*"
@@ -814,7 +859,7 @@ If the argument is left out or nil, then the current buffer is considered."
 
 ;;;
 ;;; Multi purpose function for selecting a buffer with the mouse.
-;;; 
+;;;
 (defun msb--toggle-menu-type ()
   (interactive)
   (setq msb-files-by-directory (not msb-files-by-directory))
@@ -866,7 +911,7 @@ variable `msb-menu-cond'."
       choice)
      (t
       (error "Unknown form for buffer: %s" choice)))))
-		    
+		   
 ;; Add separators
 (defun msb--add-separators (sorted-list)
   (cond
@@ -880,7 +925,7 @@ variable `msb-menu-cond'."
 	(lambda (item)
 	  (cond
 	   ((and msb-separator-diff
-		 last-key 
+		 last-key
 		 (> (- (car item) last-key)
 		    msb-separator-diff))
 	    (setq last-key (car item))
@@ -902,8 +947,8 @@ variable `msb-menu-cond'."
 	(incf count))
     (setq tmp-list (nreverse tmp-list))
     (setq sub-name (concat (car (car tmp-list)) "..."))
-    (push (append (list mcount sub-name
-			'keymap sub-name)
+    (push (nconc (list mcount sub-name
+		       'keymap sub-name)
 		  tmp-list)
 	  result))
     (msb--split-menus-2 list (1+ mcount) result))
@@ -912,12 +957,12 @@ variable `msb-menu-cond'."
    (t
     (let (sub-name)
       (setq sub-name (concat (car (car list)) "..."))
-      (push (append (list mcount sub-name
-			'keymap sub-name)
+      (push (nconc (list mcount sub-name
+			 'keymap sub-name)
 		  list)
 	  result))
     (nreverse result))))
-    
+   
 (defun msb--split-menus (list)
  (msb--split-menus-2 list 0 nil))
 
@@ -928,9 +973,9 @@ variable `msb-menu-cond'."
     (mapcar
      (function
       (lambda (sub-menu)
-	(cond 
+	(cond
 	 ((eq 'separator sub-menu)
-	  (list 'separator "---"))
+	  (list 'separator "--"))
 	 (t
 	  (let ((buffers (mapcar (function
 				  (lambda (item)
@@ -939,7 +984,7 @@ variable `msb-menu-cond'."
 				      (cons (buffer-name buffer)
 					    (cons string end)))))
 				 (cdr sub-menu))))
-	    (append (list (incf mcount) (car sub-menu)
+	    (nconc (list (incf mcount) (car sub-menu)
 			  'keymap (car sub-menu))
 		    (msb--split-menus buffers)))))))
      raw-menu)))
@@ -982,9 +1027,18 @@ variable `msb-menu-cond'."
 	      (if (and buffers-menu frames-menu)
 		  ;; Combine Frame and Buffers menus with separator between
 		  (nconc (list 'keymap "Buffers and Frames" frames-menu
-			       (and msb-separator-diff '(separator "---")))
+			       (and msb-separator-diff '(separator "--")))
 			 (cddr buffers-menu))
 		(or buffers-menu 'undefined)))))))
+
+(when (and (boundp 'menu-bar-update-hook)
+	   (not (fboundp 'frame-or-buffer-changed-p)))
+  (defvar msb--buffer-count 0)
+  (defun frame-or-buffer-changed-p ()
+    (let ((count (length (buffer-list))))
+      (when (/= count msb--buffer-count)
+        (setq msb--buffer-count count)
+        t))))
 
 (unless (or (not (boundp 'menu-bar-update-hook))
 	    (memq 'menu-bar-update-buffers menu-bar-update-hook))
@@ -995,8 +1049,5 @@ variable `msb-menu-cond'."
 
 (provide 'msb)
 (eval-after-load 'msb (run-hooks 'msb-after-load-hooks))
-
-;; Load the cl-extra library now, since we will certainly need it later.
-(mapc 'ignore nil)
 
 ;;; msb.el ends here
