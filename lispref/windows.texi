@@ -1442,14 +1442,16 @@ window:
 @noindent
 The bottom edge is at line 23 because the last line is the echo area.
 
-If @var{window} is at the upper left corner of its frame, @var{right}
-and @var{bottom} are the same as the values returned by
-@code{(window-width)} and @code{(window-height)} respectively, and
-@var{top} and @var{bottom} are zero.  For example, the edges of the
-following window are @w{@samp{0 0 5 8}}.  Assuming that the frame has
-more than 8 columns, the last column of the window (column 7) holds a
-border rather than text.  The last row (row 4) holds the mode line,
-shown here with @samp{xxxxxxxxx}.
+If @var{window} is at the upper left corner of its frame, then
+@var{bottom} is the same as the value of @code{(window-height)},
+@var{right} is almost the same as the value of
+@code{(window-width)}@footnote{They are not exactly equal because
+@var{right} includes the vertical separator line or scroll bar, while
+@code{(window-width)} does not.}, and @var{top} and @var{left} are zero.
+For example, the edges of the following window are @w{@samp{0 0 5 8}}.
+Assuming that the frame has more than 8 columns, the last column of the
+window (column 7) holds a border rather than text.  The last row (row 4)
+holds the mode line, shown here with @samp{xxxxxxxxx}.
 
 @example
 @group
