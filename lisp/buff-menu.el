@@ -185,7 +185,7 @@ Letters do not insert themselves; instead, they are commands.
   (set (make-local-variable 'revert-buffer-function)
        'Buffer-menu-revert-function)
   (set (make-local-variable 'buffer-stale-function)
-       #'(lambda (&optional noconfirm) t))
+       #'(lambda (&optional noconfirm) 'fast))
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (run-hooks 'buffer-menu-mode-hook))
