@@ -1,3 +1,7 @@
+2001-01-25  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-mode-line-string): Doc & comment fix.
+
 2001-01-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* smerge-mode.el (smerge-font-lock-keywords): Relax submatch 1.
@@ -20,7 +24,7 @@
 	* international/mule-conf.el (coding-category-utf-8): Initialize
 	to mule-utf-8.
 
-	* loadup.el: Preload international/utf-8. 
+	* loadup.el: Preload international/utf-8.
 
 	* international/utf-8.el: New file.
 
@@ -33,8 +37,10 @@
 	* dired.el (dired-replace-in-string): Removed.
 	(dired-sort-toggle): Use `replace-regexps-in-string'
 	instead of `dired-replace-in-string'.
+
 	* dired-aux.el (dired-shell-stuff-it, dired-rename-subdir,
 	dired-rename-subdir-2, dired-insert-subdir-doinsert): Ditto.
+
 	* gs.el (gs-replace-in-string): Removed.
 	(gs-options): Use `replace-regexps-in-string'
 	instead of `gs-replace-in-string'.

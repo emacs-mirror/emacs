@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.14 2001/01/08 16:24:56 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.15 2001/01/09 14:48:25 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-;;; 
+;;;
 ;;; Customization options
 ;;;
 
@@ -71,7 +71,7 @@ then VC only stays local for hosts that match it."
   :version "21.1"
   :group 'vc)
 
-
+
 ;;;
 ;;; Internal variables
 ;;;
@@ -82,9 +82,9 @@ then VC only stays local for hosts that match it."
     ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
   "Local association list of month numbers.")
 
-
+
 ;;;
-;;; State-querying functions 
+;;; State-querying functions
 ;;;
 
 ;;;###autoload (defun vc-cvs-registered (f)
@@ -176,11 +176,11 @@ then VC only stays local for hosts that match it."
 (defun vc-cvs-mode-line-string (file)
   "Return string for placement into the modeline for FILE.
 Compared to the default implementation, this function handles the
-special case of a CVS file that is added but not yet comitted."
+special case of a CVS file that is added but not yet committed."
   (let ((state   (vc-state file))
 	(rev     (vc-workfile-version file)))
     (cond ((string= rev "0")
-	   ;; A file that is added but not yet comitted.
+	   ;; A file that is added but not yet committed.
 	   "CVS @@")
 	  ((or (eq state 'up-to-date)
 	       (eq state 'needs-patch))
@@ -205,7 +205,7 @@ special case of a CVS file that is added but not yet comitted."
 		      )))
     (if state (concat "(" state ")"))))
 
-
+
 ;;;
 ;;; State-changing functions
 ;;;
@@ -223,7 +223,7 @@ the CVS command (in that order)."
 		     (if (stringp vc-cvs-register-switches)
 			 (list vc-cvs-register-switches)
 		       vc-cvs-register-switches))))
-    
+
       (apply 'vc-do-command nil 0 "cvs" file
 	     "add"
 	     (and comment (string-match "[^\t\n ]" comment)
@@ -308,11 +308,11 @@ REV is the revision to check out into WORKFILE."
 	  ;; the file in the right place.
 	  (setq default-directory (file-name-directory filename))
 	  (if workfile
-	      (let ((failed t) 
+	      (let ((failed t)
                     (backup-name (if (string= file workfile)
                                      (car (find-backup-file-name filename)))))
                 (when backup-name
-                  (copy-file filename backup-name 
+                  (copy-file filename backup-name
                              'ok-if-already-exists 'keep-date)
                   (unless (file-writable-p filename)
                     (set-file-modes filename
@@ -331,9 +331,9 @@ REV is the revision to check out into WORKFILE."
                                  "-p"
                                  switches)))
 		      (setq failed nil))
-		  (if failed 
+		  (if failed
                       (if backup-name
-                          (rename-file backup-name filename 
+                          (rename-file backup-name filename
                                        'ok-if-already-exists)
                         (if (file-exists-p filename)
                             (delete-file filename)))
@@ -441,7 +441,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
             (error "Couldn't analyze cvs update result")))
       (message "Merging changes into %s...done" file))))
 
-
+
 ;;;
 ;;; History functions
 ;;;
@@ -504,8 +504,8 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
                    (and oldvers (concat "-r" oldvers))
                    (and newvers (concat "-r" newvers))
                    diff-switches-list))
-      (if (vc-cvs-stay-local-p file) 
-          1 ;; async diff, pessimistic assumption 
+      (if (vc-cvs-stay-local-p file)
+          1 ;; async diff, pessimistic assumption
         status))))
 
 (defun vc-cvs-annotate-command (file buffer &optional version)
@@ -541,7 +541,7 @@ Return values are as defined for `current-time'."
 	  (beginning-of-line nil)
 	  (vc-cvs-annotate-difference (point))))))
 
-
+
 ;;;
 ;;; Snapshot system
 ;;;
@@ -586,7 +586,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 		  (vc-resynch-buffer file t t))))
 	  (forward-line 1))))))
 
-
+
 ;;;
 ;;; Miscellaneous
 ;;;
@@ -602,7 +602,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
     (re-search-forward "\\$[A-Za-z\300-\326\330-\366\370-\377]+\
 \\(: [\t -#%-\176\240-\377]*\\)?\\$" nil t)))
 
-
+
 ;;;
 ;;; Internal functions
 ;;;
@@ -731,7 +731,7 @@ is non-nil."
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     (vc-file-setprop file 'vc-checkout-time 0)
     (if set-state (vc-file-setprop file 'vc-state 'edited)))))
-           
+
 (provide 'vc-cvs)
 
 ;;; vc-cvs.el ends here
