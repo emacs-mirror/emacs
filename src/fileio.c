@@ -3370,7 +3370,11 @@ to the file, instead of any buffer contents, and END is ignored.")
   /* mib says that closing the file will try to write as fast as NFS can do
      it, and that means the fsync here is not crucial for autosave files.  */
   if (!auto_saving && fsync (desc) < 0)
-    failure = 1, save_errno = errno;
+    {
+      /* If fsync fails with EINTR, don't treat that as serious.  */
+      if (errno != EINTR)
+	failure = 1, save_errno = errno;
+    }
 #endif
 
   /* Spurious "file has changed on disk" warnings have been 
