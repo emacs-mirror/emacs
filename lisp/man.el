@@ -362,16 +362,18 @@ This is necessary if one wants to dump man.el with emacs."
   (setq Man-fontify-manpage-flag (and Man-fontify-manpage-flag
 				      window-system))
 
-  (setq Man-sed-script
-	(cond
-	 (Man-fontify-manpage-flag
-	  nil)
-	 ((= 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
-	  Man-sysv-sed-script)
-	 ((= 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
-	  Man-berkeley-sed-script)
-	 (t
-	  nil)))
+  ;; Avoid possible error in call-process by using a directory that must exist.
+  (let ((default-directory "/"))
+    (setq Man-sed-script
+	  (cond
+	   (Man-fontify-manpage-flag
+	    nil)
+	   ((= 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
+	    Man-sysv-sed-script)
+	   ((= 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
+	    Man-berkeley-sed-script)
+	   (t
+	    nil))))
 
   (setq Man-filter-list
 	(list
@@ -575,7 +577,9 @@ If a buffer already exists for this man page, it will display immediately."
 	(set-buffer buffer)
 	(setq Man-original-frame (selected-frame))
 	(setq Man-arguments man-args))
-      (let ((process-environment (copy-sequence process-environment)))
+      (let ((process-environment (copy-sequence process-environment))
+	    ;; Avoid possible error by using a directory that always exists.
+	    (default-directory "/"))
 	;; Prevent any attempt to use display terminal fanciness.
 	(setenv "TERM" "dumb")
 	(if (fboundp 'start-process)
