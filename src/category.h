@@ -1,5 +1,4 @@
 /* Declarations having to do with Emacs category tables.
-   Copyright (C) 1995 Free Software Foundation, Inc.
    Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
      Licensed to the Free Software Foundation.
 

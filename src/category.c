@@ -1,7 +1,6 @@
 /* GNU Emacs routines to deal with category tables.
-   Ver.1.0
-   Copyright (C) 1995 Free Software Foundation, Inc.
-   Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
+   Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
 
