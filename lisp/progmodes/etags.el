@@ -1,6 +1,6 @@
 ;;; etags.el --- etags facility for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993
+;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
@@ -359,20 +359,18 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	   (or tags-file-name
 	       (error (substitute-command-keys
 		       (concat "No tags table in use!  "
-			       "Use \\[visit-tags-table] to select one."))))
-	   ;; Set VISIT-TAGS-TABLE-BUFFER-CONT to nil
-	   ;; so the code below will make sure tags-file-name
-	   ;; is in tags-table-list.
-	   (setq visit-tags-table-buffer-cont nil))
+			       "Use \\[visit-tags-table] to select one.")))))
 
 	  (visit-tags-table-buffer-cont
 	   ;; Find the next table.
 	   (if (tags-next-table)
 	       ;; Skip over nonexistent files.
-	       (while (and (let ((file (tags-expand-table-name tags-file-name)))
+	       (let (file)
+		 (while (and (setq file
+				   (tags-expand-table-name tags-file-name))
 			     (not (or (get-file-buffer file)
 				      (file-exists-p file))))
-			   (tags-next-table)))))
+		   (tags-next-table)))))
 
 	  (t
 	   ;; Pick a table out of our hat.
@@ -423,7 +421,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
     ;; Expand the table name into a full file name.
     (setq tags-file-name (tags-expand-table-name tags-file-name))
 
-    (if (and (eq visit-tags-table-buffer-cont t) (null tags-table-list-pointer))
+    (if (and (eq visit-tags-table-buffer-cont t)
+	     (null tags-table-list-pointer))
 	;; All out of tables.
 	nil
 
@@ -457,50 +456,51 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	    ;; doesn't get in the user's way.
 	    (bury-buffer (current-buffer))
 
-	    (if visit-tags-table-buffer-cont
-		;; No list frobbing required.
-		nil
+	    (if (memq visit-tags-table-buffer-cont '(same nil))
+		;; Look in the list for the table we chose.
+		(let ((elt (tags-table-list-member tags-file-name)))
+		  (or elt
+		      ;; The table is not in the current set.
+		      ;; Try to find it in another previously used set.
+		      (let ((sets tags-table-set-list))
+			(while (and sets
+				    (not (setq elt
+					       (tags-table-list-member
+						tags-file-name (car sets)))))
+			  (setq sets (cdr sets)))
+			(if sets
+			    ;; Found in some other set.  Switch to that set.
+			    (progn
+			      (or (memq tags-table-list tags-table-set-list)
+				  ;; Save the current list.
+				  (setq tags-table-set-list
+					(cons tags-table-list
+					      tags-table-set-list)))
+			      (setq tags-table-list (car sets)))
 
-	      ;; Look in the list for the table we chose.
-	      (let ((elt (tags-table-list-member tags-file-name)))
-		(or elt
-		    ;; The table is not in the current set.
-		    ;; Try to find it in another previously used set.
-		    (let ((sets tags-table-set-list))
-		      (while (and sets
-				  (not (setq elt (tags-table-list-member
-						  tags-file-name (car sets)))))
-			(setq sets (cdr sets)))
-		      (if sets
-			  ;; Found in some other set.  Switch to that set.
-			  (progn
+			  ;; Not found in any existing set.
+			  (if (and tags-table-list
+				   (or tags-add-tables
+				       (y-or-n-p
+					(concat "Keep current list of "
+						"tags tables also? "))))
+			      ;; Add it to the current list.
+			      (setq tags-table-list (cons tags-file-name
+							  tags-table-list))
+			    ;; Make a fresh list, and store the old one.
+			    (message "Starting a new list of tags tables")
 			    (or (memq tags-table-list tags-table-set-list)
-				;; Save the current list.
 				(setq tags-table-set-list
 				      (cons tags-table-list
 					    tags-table-set-list)))
-			    (setq tags-table-list (car sets)))
+			    (setq tags-table-list (list tags-file-name)))
+			  (setq elt tags-table-list))))
 
-			;; Not found in any existing set.
-			(if (and tags-table-list
-				 (or tags-add-tables
-				     (y-or-n-p (concat "Keep current list of"
-						       " tags tables also? "))))
-			    ;; Add it to the current list.
-			    (setq tags-table-list (cons tags-file-name
-							tags-table-list))
-			  ;; Make a fresh list, and store the old one.
-			  (message "Starting a new list of tags tables")
-			  (or (memq tags-table-list tags-table-set-list)
-			      (setq tags-table-set-list
-				    (cons tags-table-list tags-table-set-list)))
-			  (setq tags-table-list (list tags-file-name)))
-			(setq elt tags-table-list))))
-
-		;; Set the tags table list state variables to point at the table
-		;; we want to use first.
-		(setq tags-table-list-started-at elt
-		      tags-table-list-pointer elt)))
+		  (or visit-tags-table-buffer-cont
+		      ;; Set the tags table list state variables to point
+		      ;; at the table we want to use first.
+		      (setq tags-table-list-started-at elt
+			    tags-table-list-pointer elt))))
 
 	    ;; Return of t says the tags table is valid.
 	    t)
