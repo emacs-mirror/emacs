@@ -443,7 +443,8 @@ unlike `file-truename'."
   "Switch to buffer BUFFER in another frame."
   (interactive "BSwitch to buffer in other frame: ")
   (let ((pop-up-frames t))
-    (pop-to-buffer buffer t)))
+    (pop-to-buffer buffer t)
+    (raise-frame (window-frame (selected-window)))))
 
 (defun find-file (filename)
   "Edit file FILENAME.
