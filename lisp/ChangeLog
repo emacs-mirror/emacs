@@ -1,3 +1,7 @@
+2000-12-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.el (show-cursor-in-non-selected-windows): Doc fix.
+
 2000-12-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Call delete-key-deletes-forward-mode,
