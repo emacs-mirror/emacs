@@ -38,8 +38,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <config.h>
 
 /* Need syssignal.h for various externs and definitions that may be required
- * by some configurations for calls to signal() later in this source file.
- */
+   by some configurations for calls to signal later in this source file.  */
 #include "syssignal.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -920,9 +919,9 @@ XTflash (f)
 /* Make audible bell.  */
 
 #ifdef HAVE_X11
-#define XRINGBELL XBell(x_current_display, 0)
+#define XRINGBELL XBell (x_current_display, 0)
 #else /* ! defined (HAVE_X11) */
-#define XRINGBELL XFeep(0);
+#define XRINGBELL XFeep (0);
 #endif /* ! defined (HAVE_X11) */
 
 XTring_bell ()
@@ -2002,7 +2001,7 @@ x_window_to_scroll_bar (window_id)
 	   ! GC_NILP (bar) || (bar = condemned,
 			       condemned = Qnil,
 			       ! GC_NILP (bar));
-	   bar = XSCROLL_BAR(bar)->next)
+	   bar = XSCROLL_BAR (bar)->next)
 	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id)
 	  return XSCROLL_BAR (bar);
     }
@@ -4218,7 +4217,7 @@ x_error_catcher (display, error)
 
    Calling x_uncatch_errors resumes the normal error handling.  */
 
-void x_catch_errors(), x_check_errors (), x_uncatch_errors ();
+void x_catch_errors (), x_check_errors (), x_uncatch_errors ();
 
 void
 x_catch_errors ()
@@ -4404,7 +4403,7 @@ x_new_font (f, fontname)
       XSetFont (x_current_display, f->display.x->cursor_gc,
 		f->display.x->font->fid);
 
-      x_set_window_size (f, f->width, f->height);
+      x_set_window_size (f, 0, f->width, f->height);
     }
 
   {
@@ -4436,7 +4435,7 @@ x_new_font (f, newname)
   f->display.x->font = temp;
 
   if (FRAME_X_WINDOW (f) != 0)
-    x_set_window_size (f, f->width, f->height);
+    x_set_window_size (f, 0, f->width, f->height);
 
   return 0;
 }
@@ -4514,15 +4513,19 @@ x_set_offset (f, xoff, yoff)
 	       f->display.x->left_pos, f->display.x->top_pos);
 #endif /* not USE_X_TOOLKIT */
 #ifdef HAVE_X11
-  x_wm_set_size_hint (f, 0, xoff, yoff);
+  x_wm_set_size_hint (f, 0, 1, xoff, yoff);
 #endif /* ! defined (HAVE_X11) */
   UNBLOCK_INPUT;
 }
 
-/* Call this to change the size of frame F's x-window. */
+/* Call this to change the size of frame F's x-window.
+   If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
+   for this size change and subsequent size changes.
+   Otherwise we leave the window gravity unchanged.  */
 
-x_set_window_size (f, cols, rows)
+x_set_window_size (f, change_gravity, cols, rows)
      struct frame *f;
+     int change_gravity;
      int cols, rows;
 {
   int pixelwidth, pixelheight;
@@ -4546,7 +4549,7 @@ x_set_window_size (f, cols, rows)
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
 #ifdef HAVE_X11
-  x_wm_set_size_hint (f, 0, 0, 0);
+  x_wm_set_size_hint (f, 0, change_gravity, 0, 0);
 #endif /* ! defined (HAVE_X11) */
   XChangeWindowSize (FRAME_X_WINDOW (f), pixelwidth, pixelheight);
 
@@ -4749,8 +4752,13 @@ x_make_frame_invisible (f)
 
 #ifdef HAVE_X11R4
 
+#ifdef USE_X_TOOLKIT
+  if (! XWithdrawWindow (x_current_display, XtWindow (f->display.x->widget),
+			 DefaultScreen (x_current_display)))
+#else /* not USE_X_TOOLKIT */
   if (! XWithdrawWindow (x_current_display, FRAME_X_WINDOW (f),
 			 DefaultScreen (x_current_display)))
+#endif /* not USE_X_TOOLKIT */
     {
       UNBLOCK_INPUT_RESIGNAL;
       error ("can't notify window manager of window withdrawal");
@@ -4765,7 +4773,11 @@ x_make_frame_invisible (f)
       XEvent unmap;
 
       unmap.xunmap.type = UnmapNotify;
+#ifdef USE_X_TOOLKIT
+      unmap.xunmap.window = XtWindow (f->display.x->widget);
+#else /* not USE_X_TOOLKIT */
       unmap.xunmap.window = FRAME_X_WINDOW (f);
+#endif /* not USE_X_TOOLKIT */
       unmap.xunmap.event = DefaultRootWindow (x_current_display);
       unmap.xunmap.from_configure = False;
       if (! XSendEvent (x_current_display,
@@ -4780,8 +4792,11 @@ x_make_frame_invisible (f)
     }
 
   /* Unmap the window ourselves.  Cheeky!  */
+#ifdef USE_X_TOOLKIT
+  XUnmapWindow (x_current_display, XtWindow (f->display.x->widget));
+#else /* not USE_X_TOOLKIT */
   XUnmapWindow (x_current_display, FRAME_X_WINDOW (f));
-
+#endif /* not USE_X_TOOLKIT */
 #else /* ! defined (HAVE_X11) */
 
   XUnmapWindow (FRAME_X_WINDOW (f));
@@ -4814,7 +4829,7 @@ x_iconify_frame (f)
 #ifdef USE_X_TOOLKIT
   BLOCK_INPUT;
   result = XIconifyWindow (x_current_display,
-			   XtWindow(f->display.x->widget),
+			   XtWindow (f->display.x->widget),
 			   DefaultScreen (x_current_display));
   UNBLOCK_INPUT;
 
@@ -4990,18 +5005,24 @@ mouse_event_pending_p ()
 
 #ifdef HAVE_X11
 
-/* SPEC_X and SPEC_Y are the specified positions.
-   We look only at their sign, to decide the gravity.  */
+/* Record the gravity used previously, in case CHANGE_GRAVITY is 0.  */
+static int previous_gravity;
 
-x_wm_set_size_hint (f, prompting, spec_x, spec_y)
+/* SPEC_X and SPEC_Y are the specified positions.
+   We look only at their sign, to decide the gravity.
+   If CHANGE_GRAVITY is 0, we ignore SPEC_X and SPEC_Y
+   and leave the gravity unchanged.  */
+
+x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
      struct frame *f;
      long prompting;
+     int change_gravity;
      int spec_x, spec_y;
 {
   XSizeHints size_hints;
 
 #ifdef USE_X_TOOLKIT
-  Window window = XtWindow(f->display.x->widget);
+  Window window = XtWindow (f->display.x->widget);
 #else /* not USE_X_TOOLKIT */
   Window window = FRAME_X_WINDOW (f);
 #endif /* not USE_X_TOOLKIT */
@@ -5072,21 +5093,28 @@ x_wm_set_size_hint (f, prompting, spec_x, spec_y)
 	size_hints.flags |= USSize;
     }
 #if defined (PWinGravity)
-  switch (((spec_x < 0) << 1) + (spec_y < 0))
+  if (change_gravity)
     {
-    case 0:
-      size_hints.win_gravity = NorthWestGravity;
-      break;
-    case 1:
-      size_hints.win_gravity = NorthEastGravity;
-      break;
-    case 2:
-      size_hints.win_gravity = SouthWestGravity;
-      break;
-    case 3:
-      size_hints.win_gravity = SouthEastGravity;
-      break;
+      switch (((spec_x < 0) << 1) + (spec_y < 0))
+	{
+	case 0:
+	  size_hints.win_gravity = NorthWestGravity;
+	  break;
+	case 1:
+	  size_hints.win_gravity = NorthEastGravity;
+	  break;
+	case 2:
+	  size_hints.win_gravity = SouthWestGravity;
+	  break;
+	case 3:
+	  size_hints.win_gravity = SouthEastGravity;
+	  break;
+	}
+      previous_gravity = size_hints.win_gravity;
     }
+  else
+    size_hints.win_gravity = previous_gravity;
+
   size_hints.flags |= PWinGravity;
 #endif /* PWinGravity */
 
@@ -5103,7 +5131,7 @@ x_wm_set_window_state (f, state)
      int state;
 {
 #ifdef USE_X_TOOLKIT
-  Window window = XtWindow(f->display.x->widget);
+  Window window = XtWindow (f->display.x->widget);
 #else /* not USE_X_TOOLKIT */
   Window window = FRAME_X_WINDOW (f);
 #endif /* not USE_X_TOOLKIT */
@@ -5189,7 +5217,7 @@ x_term_init (display_name)
   argv [2] = display_name;
   argc = 3;
   Xt_app_shell = XtAppInitialize (&Xt_app_con, "Emacs",
-				  emacs_options, XtNumber(emacs_options),
+				  emacs_options, XtNumber (emacs_options),
 				  &argc, argv,
 				  NULL, NULL, 0);
   XtFree (argv);
