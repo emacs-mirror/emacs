@@ -101,7 +101,7 @@ Used to grey out relevant toolbar icons.")
     (Info-goto-node "(emacs)Debuggers")))
 
 (easy-mmode-defmap gud-menu-map
-  '(([help]     "Info" . gud-goto-info
+  '(([help]     "Info" . gud-goto-info)
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (and (not gud-running)
