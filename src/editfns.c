@@ -1640,6 +1640,17 @@ transpose_markers (start1, end1, start2, end2)
   register Lisp_Object marker;
   register struct Lisp_Marker *m;
 
+  /* Update point as if it were a marker.
+     Do this before adjusting the start/end values for the gap.  */
+  if (PT < start1)
+    ;
+  else if (PT < end1)
+    TEMP_SET_PT (PT + (end2 - end1));
+  else if (PT < start2)
+    TEMP_SET_PT (PT + (end2 - start2) - (end1 - start1));
+  else if (PT < end2)
+    TEMP_SET_PT (PT - (start2 - start1));
+
   /* Internally, marker positions take the gap into account, so if the
    * gap is before one or both of the regions, the region's limits
    * must be adjusted to compensate.  The caller guaranteed that the
@@ -1939,7 +1950,10 @@ Transposing beyond buffer boundaries is an error.")
      be nicer, and more beneficial in the long run, but would be a
      bunch of work.  Plus the way they're arranged now is nice.  */
   if (NILP (leave_markers))
-    transpose_markers (start1, end1, start2, end2);
+    {
+      transpose_markers (start1, end1, start2, end2);
+      fix_overlays_in_range (start1, end2);
+    }
 
   return Qnil;
 }
