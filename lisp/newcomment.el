@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.45 2002/03/04 01:10:55 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.46 2002/04/08 22:58:27 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -86,13 +86,17 @@ be used to try to determine whether syntax-tables should be trusted
 to understand comments or not in the given buffer.
 Major modes should set this variable.")
 
+(defcustom comment-fill-column nil
+  "Column to use for `comment-indent'.  If nil, use `fill-column' instead."
+  :type '(choice nil integer))
+
 ;;;###autoload
 (defcustom comment-column 32
   "*Column to indent right-margin comments to.
 Each mode establishes a different default value for this variable; you
 can set the value for a particular mode using that mode's hook.
 Comments might be indented to a value smaller than this in order
-not to go beyond `fill-column'."
+not to go beyond `comment-fill-column'."
   :type 'integer)
 (make-variable-buffer-local 'comment-column)
 
@@ -479,7 +483,7 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	  (setq indent
 		(min indent
 		     (+ (current-column)
-			(- fill-column
+			(- (or comment-fill-column fill-column)
 			   (save-excursion (end-of-line) (current-column)))))))
 	(unless (= (current-column) indent)
 	  ;; If that's different from current, change it.
@@ -893,6 +897,20 @@ end- comment markers additionally to what `comment-add' already specifies."
 			   'box-multi 'box)))
     (comment-region beg end (+ comment-add arg))))
 
+
+;;;###autoload
+(defun comment-or-uncomment-region (beg end &optional arg)
+  "Call `comment-region', unless the region only consists of comments,
+in which case call `uncomment-region'.  If a prefix arg is given, it
+is passed on to the respective function."
+  (interactive "*r\nP")
+  (funcall (if (save-excursion ;; check for already commented region
+		 (goto-char beg)
+		 (comment-forward (point-max))
+		 (<= end (point)))
+	       'uncomment-region 'comment-region)
+	   beg end arg))
+
 ;;;###autoload
 (defun comment-dwim (arg)
   "Call the comment command you want (Do What I Mean).
@@ -905,14 +923,7 @@ Else, call `comment-indent'."
   (interactive "*P")
   (comment-normalize-vars)
   (if (and mark-active transient-mark-mode)
-      (let ((beg (min (point) (mark)))
-	    (end (max (point) (mark))))
-	(if (save-excursion ;; check for already commented region
-	      (goto-char beg)
-	      (comment-forward (point-max))
-	      (<= end (point)))
-	    (uncomment-region beg end arg)
-	  (comment-region beg end arg)))
+      (comment-or-uncomment-region (region-beginning) (region-end) arg)
     (if (save-excursion (beginning-of-line) (not (looking-at "\\s-*$")))
 	;; FIXME: If there's no comment to kill on this line and ARG is
 	;; specified, calling comment-kill is not very clever.
@@ -969,13 +980,17 @@ unless optional argument SOFT is non-nil."
 			  (setq comin (point))))))
 
       ;; Now we know we should auto-fill.
-      (delete-horizontal-space)
+      ;; Insert the newline before removing empty space so that markers
+      ;; get preserved better.
       (if soft (insert-and-inherit ?\n) (newline 1))
+      (save-excursion (forward-char -1) (delete-horizontal-space))
+      (delete-horizontal-space)
+
       (if (and fill-prefix (not adaptive-fill-mode))
 	  ;; Blindly trust a non-adaptive fill-prefix.
 	  (progn
 	    (indent-to-left-margin)
-	    (insert-and-inherit fill-prefix))
+	    (insert-before-markers-and-inherit fill-prefix))
 
 	;; If necessary check whether we're inside a comment.
 	(unless (or compos (null comment-start))
