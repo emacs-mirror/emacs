@@ -30,6 +30,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'gnus-util))
 
 (require 'mail-utils)
 (require 'mm-util)
@@ -55,7 +56,7 @@ on your system, you could say something like:
   (autoload 'mail-position-on-field "sendmail")
   (autoload 'message-remove-header "message")
   (autoload 'gnus-point-at-eol "gnus-util")
-  (autoload 'gnus-delete-line "gnus-util")
+  (autoload 'gnus-delete-line "gnus-util" nil nil 'macro)
   (autoload 'gnus-buffer-live-p "gnus-util"))
 
 ;;; Header access macros.
