@@ -3266,6 +3266,11 @@ direct_output_forward_char (n)
   struct window *w = XWINDOW (selected_window);
   struct glyph_row *row;
 
+  /* Give up if point moved out of or into a composition.  */
+  if (check_point_in_composition (current_buffer, w->last_point,
+				  current_buffer, PT))
+    return 0;
+
   /* Give up if face attributes have been changed.  */
   if (face_change_count)
     return 0;
