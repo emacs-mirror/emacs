@@ -1,3 +1,17 @@
+2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* tmm.el (tmm-get-keymap): Honour :visible in `menu-item'.
+	Add Keywords header.  Update Commentary section.
+	Update copyright notice.
+
+	* menu-bar.el (menu-bar-scroll-bar-right)
+	(menu-bar-scroll-bar-left, menu-bar-scroll-bar-none)
+	(showhide-menu-bar): New functions.
+	(menu-bar-showhide-menu): New submenu "Show/Hide".
+	(menu-bar-showhide-scroll-bar-menu): "Scroll-bar" submenu of
+	"Show/Hide".
+	Update copyright notice.
+
 2002-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* lazy-lock.el (lazy-lock-mode): Add a reference to jit-lock.
@@ -100,7 +114,7 @@
 
 2002-01-23  Richard M. Stallman  <rms@gnu.org>
 
-	* play/tetris.el: (tetris): New defgroup.
+	* play/tetris.el (tetris): New defgroup.
 	(tetris-use-glyphs, tetris-use-color, tetris-draw-border-with-glyphs)
 	(tetris-default-tick-period): Convert to defcustom.
 	Added * in docstring to indicate user variable.
