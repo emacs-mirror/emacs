@@ -39,9 +39,10 @@ code intended for widespread use:
 @item
 Since all global variables share the same name space, and all functions
 share another name space, you should choose a short word to distinguish
-your program from other Lisp programs.  Then take care to begin the
-names of all global variables, constants, and functions with the chosen
-prefix.  This helps avoid name conflicts.
+your program from other Lisp programs.@footnote{The benefits of a Common
+Lisp-style package system are considered not to outweigh the costs.}
+Then take care to begin the names of all global variables, constants,
+and functions with the chosen prefix.  This helps avoid name conflicts.
 
 This recommendation applies even to names for traditional Lisp
 primitives that are not primitives in Emacs Lisp---even to
@@ -186,6 +187,8 @@ shift key held down.  These events include @kbd{S-mouse-1},
 users.
 
 @item
+@cindex mouse-2
+@cindex references, following
 Special major modes used for read-only text should usually redefine
 @kbd{mouse-2} and @key{RET} to trace some sort of reference in the text.
 Modes such as Dired, Info, Compilation, and Occur redefine it in this
@@ -197,11 +200,27 @@ good to include a command to enable and disable the feature, Provide a
 command named @code{@var{whatever}-mode} which turns the feature on or
 off, and make it autoload (@pxref{Autoload}).  Design the package so
 that simply loading it has no visible effect---that should not enable
-the feature.  Users will request the feature by invoking the command.
+the feature.@footnote{Consider that the package may be loaded
+arbitrarily by Custom for instance.}  Users will request the feature by
+invoking the command.
 
 @item
 It is a bad idea to define aliases for the Emacs primitives.  Use the
 standard names instead.
+
+@item
+If a package needs to define an alias or a new function for
+compatibility with some other version of Emacs, name if with the package
+prefix, not with the raw name with which it occurs in the other version.
+Here is an example from Gnus, which provides many examples of such
+compatibility issues.
+
+@example
+(defalias 'gnus-point-at-bol
+  (if (fboundp 'point-at-bol)
+      'point-at-bol
+    'line-beginning-position))
+@end example
 
 @item
 Redefining (or advising) an Emacs primitive is discouraged.  It may do
