@@ -4369,11 +4369,17 @@ x_update_menu_appearance (f)
       struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
       char *myname = XSTRING (Vx_resource_name)->data;
       int changed_p = 0;
+#ifdef USE_MOTIF
+      const char *popup_path = "popup_menu";
+#else
+      const char *popup_path = "menu.popup";
+#endif
       
       if (STRINGP (LFACE_FOREGROUND (lface)))
 	{
-	  sprintf (line, "%s.popup_menu*foreground: %s",
-		   myname, XSTRING (LFACE_FOREGROUND (lface))->data);
+	  sprintf (line, "%s.%s*foreground: %s",
+		   myname, popup_path,
+		   XSTRING (LFACE_FOREGROUND (lface))->data);
 	  XrmPutLineResource (&rdb, line);
 	  sprintf (line, "%s.pane.menubar*foreground: %s",
 		   myname, XSTRING (LFACE_FOREGROUND (lface))->data);
@@ -4383,8 +4389,9 @@ x_update_menu_appearance (f)
 
       if (STRINGP (LFACE_BACKGROUND (lface)))
 	{
-	  sprintf (line, "%s.popup_menu*background: %s",
-		   myname, XSTRING (LFACE_BACKGROUND (lface))->data);
+	  sprintf (line, "%s.%s*background: %s",
+		   myname, popup_path,
+		   XSTRING (LFACE_BACKGROUND (lface))->data);
 	  XrmPutLineResource (&rdb, line);
 	  sprintf (line, "%s.pane.menubar*background: %s",
 		   myname, XSTRING (LFACE_BACKGROUND (lface))->data);
