@@ -1,3 +1,15 @@
+2000-07-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* find-dired.el: Update copyright notice.
+	(find-dired): Offer to kill a running `find'.
+
+	* enriched.el (enriched-face-ans): For a `foreground-color'
+	property, return '(("x-color" COLOR))' so that COLOR will be
+	output as a parameter of the x-color annotation.  Likewise for the
+	`background-color' property.  In the case of normal face
+	properties, don't return annotations for unspecified foreground
+	and background face attributes.
+
 2000-07-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/japan-util.el (japanese-katakana-region): Fix handling
