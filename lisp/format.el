@@ -120,8 +120,8 @@ FROM-FN is called to decode files in that format; it gets two args, BEGIN
         and END, and can make any modifications it likes, returning the new
         end.  It must make sure that the beginning of the file no longer
         matches REGEXP, or else it will get called again.
-	Alternatively, FROM-FN can be a shell command (including options)
-	which can be used as a filter to perform the conversion.
+	Alternatively, FROM-FN can be a string, which specifies a shell command
+	(including options) to be used as a filter to perform the conversion.
 
 TO-FN   is called to encode a region into that format; it is passed three
         arguments: BEGIN, END, and BUFFER.  BUFFER is the original buffer that
@@ -129,8 +129,8 @@ TO-FN   is called to encode a region into that format; it is passed three
         example, to find the values of local variables.  TO-FN should either
         return a list of annotations like `write-region-annotate-functions',
         or modify the region and return the new end.
-	Alternatively, TO-FN can be a shell command (including options)
-	which can be used as a filter to perform the conversion.
+	Alternatively, TO-FN can be a string, which specifies a shell command
+	(including options) to be used as a filter to perform the conversion.
 
 MODIFY, if non-nil, means the TO-FN wants to modify the region.  If nil,
         TO-FN will not make any changes but will instead return a list of
