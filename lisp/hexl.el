@@ -600,17 +600,7 @@ This discards the buffer's undo information."
   (setq buffer-undo-list nil)
   ;; Don't decode text in the ASCII part of `hexl' program output.
   (let ((coding-system-for-read 'raw-text)
-	;; If the buffer was read with EOL conversions, be sure to use the
-	;; same conversions when passing the region to the `hexl' program.
-	(coding-system-for-write
-	 (let ((eol-type (coding-system-eol-type buffer-file-coding-system)))
-	   (cond ((eq eol-type 1)
-		  'raw-text-dos)
-		 ((eq eol-type 2)
-		  'raw-text-mac)
-		 ((eq eol-type 0)
-		  'raw-text-unix)
-		 (t 'no-conversion))))
+	(coding-system-for-write buffer-file-coding-system)
 	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) hexlify-command t)
     (if (> (point) (hexl-address-to-marker hexl-max-address))
@@ -625,15 +615,7 @@ This discards the buffer's undo information."
 	   (error "Aborted")))
   (setq buffer-undo-list nil)
   (let ((coding-system-for-write 'raw-text)
-	(coding-system-for-read
-	 (let ((eol-type (coding-system-eol-type buffer-file-coding-system)))
-	   (cond ((eq eol-type 1)
-		  'raw-text-dos)
-		 ((eq eol-type 2)
-		  'raw-text-mac)
-		 ((eq eol-type 0)
-		  'raw-text-unix)
-		 (t 'no-conversion))))
+	(coding-system-for-read buffer-file-coding-system)
 	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
 
