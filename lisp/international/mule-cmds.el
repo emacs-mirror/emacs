@@ -661,43 +661,48 @@ and TO is ignored."
   (let ((codings (find-coding-systems-region from to))
 	(coding-system nil)
 	(bufname (buffer-name))
-	(l default-coding-system))
+	safe rejected unsafe)
     (if (eq (car codings) 'undecided)
 	;; Any coding system is ok.
 	(setq coding-system t)
-      ;; Try the defaults.
-      (while (and l (not coding-system))
-	(if (memq (cdr (car l)) codings)
-	    (setq coding-system (car (car l)))
-	  (setq l (cdr l))))
-      (if (and coding-system accept-default-p)
-	  (or (funcall accept-default-p coding-system)
-	      (setq coding-system (list coding-system)))))
+      ;; Classify the defaults into safe, rejected, and unsafe.
+      (dolist (elt default-coding-system)
+	(if (memq (cdr elt) codings)
+	    (if (and (functionp accept-default-p)
+		     (not (funcall accept-default-p (cdr elt))))
+		(push (car elt) rejected)
+	      (push (car elt) safe))
+	  (push (car elt) unsafe)))
+      (if safe
+	  (setq coding-system (car (last safe)))))
 
+    (setq x (list default-coding-system safe rejected unsafe))
     ;; If all the defaults failed, ask a user.
-    (when (or (not coding-system) (consp coding-system))
-      ;; At first, record at most 11 problematic characters and their
-      ;; positions for each default.
-      (if (stringp from)
-	  (mapc #'(lambda (coding)
-		    (setcdr coding
-			    (mapcar #'(lambda (pos)
-					(cons pos (aref from pos)))
-				    (unencodable-char-position
-				     0 (length from) (car coding) 11 from))))
-		default-coding-system)
-	(mapc #'(lambda (coding)
-		  (setcdr coding
-			  (mapcar #'(lambda (pos)
-				      (cons pos (char-after pos)))
-				  (unencodable-char-position
-				   from to (car coding) 11))))
-	      default-coding-system))
-      ;; If 11 unencodable characters were found, mark the last one as nil.
-      (mapc #'(lambda (coding)
-		(if (> (length coding) 11)
-		    (setcdr (car (last coding)) nil)))
-	    default-coding-system)
+    (when (not coding-system)
+      ;; At first, if some defaults are unsafe, record at most 11
+      ;; problematic characters and their positions for them by turning
+      ;;	(CODING ...)
+      ;; into
+      ;;	((CODING (POS . CHAR) (POS . CHAR) ...) ...)
+      (if unsafe
+	  (if (stringp from)
+	      (setq unsafe
+		    (mapcar #'(lambda (coding)
+				(cons coding
+				      (mapcar #'(lambda (pos)
+						  (cons pos (aref from pos)))
+					      (unencodable-char-position
+					       0 (length from) coding
+					       11 from))))
+			    unsafe))
+	    (setq unsafe 
+		  (mapcar #'(lambda (coding)
+			      (cons coding
+				    (mapcar #'(lambda (pos)
+						(cons pos (char-after pos)))
+					    (unencodable-char-position
+					     from to coding 11))))
+			  unsafe))))
 
       ;; Change each safe coding system to the corresponding
       ;; mime-charset name if it is also a coding system.  Such a name
@@ -722,13 +727,14 @@ and TO is ignored."
 
       (let ((window-configuration (current-window-configuration)))
 	(save-excursion
-	  ;; Make sure the offending buffer is displayed.
-	  (when (and (consp default-coding-system) (not (stringp from)))
+	  ;; If some defaults are unsafe, make sure the offending
+	  ;; buffer is displayed.
+	  (when (and unsafe (not (stringp from)))
 	    (pop-to-buffer bufname)
-	    ;; The `or' is because sometimes (car (cadr x)) is nil.
-	    (goto-char (apply 'min (mapcar #'(lambda (x) (or (car (cadr x)) (point-max)))
-					   default-coding-system))))
-	  ;; Then ask users to select one from CODINGS.
+	    (goto-char (apply 'min (mapcar #'(lambda (x) (car (cadr x)))
+					   unsafe))))
+	  ;; Then ask users to select one from CODINGS while showing
+	  ;; the reason why none of the defaults are not used.
 	  (with-output-to-temp-buffer "*Warning*"
 	    (save-excursion
 	      (set-buffer standard-output)
@@ -747,44 +753,30 @@ and TO is ignored."
 		 ":\n")
 		(let ((pos (point))
 		      (fill-prefix "  "))
-		  (mapcar (function (lambda (x)
-				      (princ "  ") (princ (car x))))
-			  default-coding-system)
+		  (mapc #'(lambda (x) (princ "  ") (princ (car x)))
+			default-coding-system)
 		  (insert "\n")
 		  (fill-region-as-paragraph pos (point)))
-		(if (consp coding-system)
-		    (insert (format "%s safely encodes the target text,\n"
-				    (car coding-system))
-			    "\
+		(when rejected
+		  (insert "These safely encodes the target text,
 but it is not recommended for encoding text in this context,
-e.g., for sending an email message.\n")
-		  (insert "\
-However, each of them encountered these problematic characters:\n")
+e.g., for sending an email message.\n ")
+		  (mapc #'(lambda (x) (princ " ") (princ x)) rejected)
+		  (insert "\n"))
+		(when unsafe
+		  (insert (if rejected "And the others" 
+			    "However, each of them")
+			  " encountered these problematic characters:\n")
 		  (mapc
 		   #'(lambda (coding)
 		       (insert (format "  %s:" (car coding)))
-		       (dolist (elt (cdr coding))
-			 (insert " ")
-			 (if (stringp from)
-			     (insert (or (cdr elt) "..."))
-			   (if (cdr elt)
-			       (insert-text-button
-				(cdr elt)
-				:type 'help-xref
-				'help-echo
-				"mouse-2, RET: jump to this character"
-				'help-function
-				#'(lambda (bufname pos)
-				    (when (buffer-live-p (get-buffer bufname))
-				      (pop-to-buffer bufname)
-				      (goto-char pos)))
-				'help-args (list bufname (car elt)))
-			     (insert-text-button
-			      "..."
-			      :type 'help-xref
-			      'help-echo
-			      "mouse-2, RET: next unencodable character"
-			      'help-function
+		       (let ((i 0)
+			     (func1
+			      #'(lambda (bufname pos)
+				  (when (buffer-live-p (get-buffer bufname))
+				    (pop-to-buffer bufname)
+				    (goto-char pos))))
+			     (func2
 			      #'(lambda (bufname pos coding)
 				  (when (buffer-live-p (get-buffer bufname))
 				    (pop-to-buffer bufname)
@@ -792,16 +784,35 @@ However, each of them encountered these problematic characters:\n")
 					(goto-char pos)
 				      (forward-char 1)
 				      (search-unencodable-char coding)
-				      (forward-char -1))))
-			      'help-args (list bufname (car elt)
-					       (car coding))))))
+				      (forward-char -1))))))
+			 (dolist (elt (cdr coding))
+			   (insert " ")
+			   (if (stringp from)
+			       (insert (if (< i 10) (cdr elt) "..."))
+			     (if (< i 10)
+				 (insert-text-button
+				  (cdr elt)
+				  :type 'help-xref
+				  'help-echo
+				  "mouse-2, RET: jump to this character"
+				  'help-function func1
+				  'help-args (list bufname (car elt)))
+			       (insert-text-button
+				"..."
+				:type 'help-xref
+				'help-echo
+				"mouse-2, RET: next unencodable character"
+				'help-function func2
+				'help-args (list bufname (car elt)
+						 (car coding)))))
+			   (setq i (1+ i))))
 		       (insert "\n"))
-		   default-coding-system)
+		   unsafe)
 		  (insert "\
 The first problematic character is at point in the displayed buffer,\n"
 			  (substitute-command-keys "\
 and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
-	      (insert (if (consp coding-system)
+	      (insert (if safe
 			  "\nSelect the above, or "
 			"\nSelect ")
 		      "\
@@ -814,8 +825,8 @@ one of the following safe coding systems, or edit the buffer:\n")
 		(fill-region-as-paragraph pos (point)))))
 
 	  ;; Read a coding system.
-	  (if (consp coding-system)
-	      (setq codings (cons (car coding-system) codings)))
+	  (if safe
+	      (setq codings (append safe codings)))
 	  (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
 				     codings))
 		 (name (completing-read
