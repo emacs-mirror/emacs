@@ -1,3 +1,7 @@
+2000-04-19  Dave Love  <fx@gnu.org>
+
+	* aclocal.m4 (AC_FUNC_MKTIME): Use AC_SUBST.
+
 2000-04-16  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (${srcdir}/configure): Depend on aclocal.m4.
