@@ -124,7 +124,6 @@
 ;;  comint-save-input-ring-index	number	...
 ;;  comint-input-autoexpand		symbol	...
 ;;  comint-input-ignoredups		boolean	...
-;;  comint-last-input-match		string	...
 ;;  comint-dynamic-complete-functions	hook   For the completion mechanism
 ;;  comint-completion-fignore		list	...
 ;;  comint-file-name-chars		string	...
@@ -692,12 +691,16 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	      default-directory
 	    (char-to-string directory-sep-char)))
 	proc decoding encoding changed)
-    (setq proc (apply 'start-process name buffer command switches))
+    (let ((exec-path (if (file-name-directory command)
+			 ;; If the command has slashes, make sure we
+			 ;; first look relative to the current directory.
+			 (cons default-directory exec-path) exec-path)))
+      (setq proc (apply 'start-process name buffer command switches)))
     (let ((coding-systems (process-coding-system proc)))
       (setq decoding (car coding-systems)
 	    encoding (cdr coding-systems)))
     ;; If start-process decided to use some coding system for decoding
-    ;; data sent form the process and the coding system doesn't
+    ;; data sent from the process and the coding system doesn't
     ;; specify EOL conversion, we had better convert CRLF to LF.
     (if (vectorp (coding-system-eol-type decoding))
 	(setq decoding (coding-system-change-eol-conversion decoding 'dos)
