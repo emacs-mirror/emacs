@@ -839,7 +839,7 @@ one of the following safe coding systems, or edit the buffer:\n")
 		(insert "\n")
 		(fill-region-as-paragraph pos (point)))
 	      (insert "Or specify any other coding system
-on your risk of loosing the problematic characters.\n")))
+on your risk of losing the problematic characters.\n")))
 
 	  ;; Read a coding system.
 	  (setq default-coding-system (or (car safe) (car codings)))
