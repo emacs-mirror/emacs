@@ -1,3 +1,8 @@
+2001-08-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* play/animate.el (animate-string): Handle case that the string is
+	longer than the window is wide.
+
 2001-07-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* desktop.el (desktop-save): Bind coding-system-for-write to
