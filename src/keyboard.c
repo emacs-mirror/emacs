@@ -2711,7 +2711,6 @@ swallow_events ()
 
 /* Caches for modify_event_symbol.  */
 static Lisp_Object accent_key_syms;
-static Lisp_Object system_key_syms;
 static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
 
@@ -3003,13 +3002,14 @@ make_lispy_event (event)
 	{
 	  /* We need to use an alist rather than a vector as the cache
 	     since we can't make a vector long enuf.  */
-	  if (NILP (system_key_syms))
-	    system_key_syms = Fcons (Qnil, Qnil);
+	  if (NILP (current_kboard->system_key_syms))
+	    current_kboard->system_key_syms = Fcons (Qnil, Qnil);
 	  return modify_event_symbol (event->code,
 				      event->modifiers,
 				      Qfunction_key,
 				      current_kboard->Vsystem_key_alist,
-				      0, &system_key_syms, (unsigned)-1);
+				      0, &current_kboard->system_key_syms,
+				      (unsigned)-1);
 	}
 
       return modify_event_symbol (event->code - 0xff00,
@@ -6624,6 +6624,7 @@ init_kboard (kb)
   kb->Vlast_kbd_macro = Qnil;
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
+  kb->system_key_syms = Qnil;
   kb->Vdefault_minibuffer_frame = Qnil;
 }
 
@@ -6870,9 +6871,6 @@ syms_of_keyboard ()
 
   func_key_syms = Qnil;
   staticpro (&func_key_syms);
-
-  system_key_syms = Qnil;
-  staticpro (&system_key_syms);
 
   mouse_syms = Qnil;
   staticpro (&mouse_syms);
