@@ -6703,6 +6703,7 @@ message3 (m, nbytes, multibyte)
   struct gcpro gcpro1;
 
   GCPRO1 (m);
+  clear_message (1,1);
 
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
