@@ -531,18 +531,27 @@ codepage for Emacs to use by setting the variable @code{dos-codepage} in
 your init file.
 
 @cindex language environment, automatic selection on @r{MS-DOS}
-  Multibyte Emacs supports only certain DOS codepages, those that encode
-a single ISO 8859 character set, and it knows which ISO character set
-based on the codepage number.  Emacs automatically creates a coding
-system to support reading and writing files that use the current
-codepage, and uses this coding system by default.  The name of this
-coding system is @code{cp@var{nnn}}, where @var{nnn} is the codepage
-number.@footnote{The standard Emacs coding systems for ISO 8859 are not
-quite right for the purpose, because typically the DOS codepage does not
-match the standard ISO character codes.  For example, the
-letter @samp{@,{c}} (@samp{c} with cedilla) has code 231 in the standard
-Latin-1 character set, but the corresponding DOS codepage 850 uses code
-135 for this glyph.}
+  Multibyte Emacs supports only certain DOS codepages, those which can
+display Far-Eastern scripts, like the Japanese codepage 932, and those
+that encode a single ISO 8859 character set.
+
+  The Far-Eastern codepages can directly display one of the MULE
+character sets for these countries, so Emacs simply sets up to use the
+appropriate terminal coding system that is supported by the codepage.
+The special features described in the rest of this section mostly
+pertain to codepages that encode ISO 8859 character sets.
+
+  For the codepages which correspond to one of the ISO character sets,
+Emacs it knows which ISO character set is that based on the codepage
+number.  Emacs automatically creates a coding system to support reading
+and writing files that use the current codepage, and uses this coding
+system by default.  The name of this coding system is
+@code{cp@var{nnn}}, where @var{nnn} is the codepage number.@footnote{The
+standard Emacs coding systems for ISO 8859 are not quite right for the
+purpose, because typically the DOS codepage does not match the standard
+ISO character codes.  For example, the letter @samp{@,{c}} (@samp{c}
+with cedilla) has code 231 in the standard Latin-1 character set, but
+the corresponding DOS codepage 850 uses code 135 for this glyph.}
 
 @cindex mode line @r{(MS-DOS)}
   All the @code{cp@var{nnn}} coding systems use the letter @samp{D} (for
@@ -550,6 +559,8 @@ Latin-1 character set, but the corresponding DOS codepage 850 uses code
 system and the default coding system for file I/O are set to the proper
 @code{cp@var{nnn}} coding system at startup, it is normal for the mode
 line on MS-DOS to begin with @samp{-DD\-}.  @xref{Mode Line}.
+Far-Eastern DOS terminals do not use the @code{cp@var{nnn}} coding
+systems, and thus their initial mode line looks like on Unix.
 
   Since the codepage number also indicates which script you are using,
 Emacs automatically runs @code{set-language-environment} to select the
