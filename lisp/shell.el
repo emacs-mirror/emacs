@@ -2,6 +2,7 @@
 ;;; Copyright (C) 1988, 1993 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
+;; Adapted-by: Simon Marshall <s.marshall@dcs.hull.ac.uk>
 ;; Keywords: processes
 
 ;;; This file is part of GNU Emacs.
@@ -22,11 +23,10 @@
 
 ;;; Commentary:
 
-;;; The changelog is at the end of file.
-
 ;;; Please send me bug reports, bug fixes, and extensions, so that I can
 ;;; merge them into the master source.
 ;;;     - Olin Shivers (shivers@cs.cmu.edu)
+;;;     - Simon Marshall (s.marshall@dcs.hull.ac.uk)
 
 ;;; This file defines a a shell-in-a-buffer package (shell mode) built
 ;;; on top of comint mode.  This is actually cmushell with things
@@ -62,7 +62,7 @@
 ;;           t)
 ;;
 ;; ; Define C-c t to run my favorite command in shell mode:
-;; (setq shell-load-hook
+;; (setq shell-mode-hook
 ;;       '((lambda () 
 ;;           (define-key shell-mode-map "\C-ct" 'favorite-cmd))))
 
@@ -73,9 +73,13 @@
 ;;;
 ;;; m-p	    comint-previous-input    	    Cycle backwards in input history
 ;;; m-n	    comint-next-input  	    	    Cycle forwards
+;;; m-r     comint-previous-matching-input  Previous input matching a regexp
+;;; m-R     comint-previous-matching-input-from-input -"- matching input
+;;; m-s     comint-next-matching-input      Next input that matches
+;;; m-S     comint-next-matching-input-from-input     -"- matching input
 ;;; m-c-r   comint-previous-input-matching  Search backwards in input history
 ;;; return  comint-send-input
-;;; c-a     comint-bol                      Beginning of line; skip prompt.
+;;; c-a     comint-bol                      Beginning of line; skip prompt
 ;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
 ;;; c-c c-u comint-kill-input	    	    ^u
 ;;; c-c c-w backward-kill-word    	    ^w
@@ -84,20 +88,22 @@
 ;;; c-c c-\ comint-quit-subjob	    	    ^\
 ;;; c-c c-o comint-kill-output		    Delete last batch of process output
 ;;; c-c c-r comint-show-output		    Show last batch of process output
+;;; c-c c-h comint-dynamic-list-input-ring  List input history
 ;;;         send-invisible                  Read line w/o echo & send to proc
 ;;;         comint-continue-subjob	    Useful if you accidentally suspend
-;;;					        top-level job.
+;;;					        top-level job
 ;;; comint-mode-hook is the comint mode hook.
 
 ;;; Shell Mode Commands:
-;;;         shell			    Fires up the shell process.
-;;; tab     comint-dynamic-complete	    Complete a partial file name
-;;; m-?     comint-dynamic-list-completions List completions in help buffer
-;;; 	    dirs    			    Resync the buffer's dir stack.
-;;; 	    dirtrack-toggle                 Turn dir tracking on/off.
+;;;         shell			    Fires up the shell process
+;;; tab     comint-dynamic-complete	    Complete filename/command/history
+;;; m-?     comint-dynamic-list-filename-completions List completions in help buffer
+;;; m-c-f   shell-forward-command           Forward a shell command
+;;; m-c-b   shell-backward-command          Backward a shell command
+;;; 	    dirs    			    Resync the buffer's dir stack
+;;; 	    dirtrack-toggle                 Turn dir tracking on/off
 ;;;
 ;;; The shell mode hook is shell-mode-hook
-;;; The shell-load-hook is run after this file is loaded.
 ;;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
 ;;; compatibility.
 
@@ -156,11 +162,42 @@ on lines which don't start with a prompt.
 
 This is a fine thing to set in your `.emacs' file.")
 
+(defvar shell-delimiter-argument-list '("|" "&" "<" ">" "(" ")" ";")
+  "List of characters to recognise as separate arguments.
+Defaults to \(\"|\" \"&\" \"\(\" \")\" \";\"), which works pretty well.
+This variable is used to initialise `comint-delimiter-argument-list' in the
+shell buffer.
+
+This is a fine thing to set in your `.emacs' file.")
+
+(defvar shell-command-regexp "\\((.*)\\|[^;&|]\\)+"
+  "*Regexp to match shell commands.
+Elements of pipes are considered as separate commands, forks and redirections
+as part of one command.")
+
+(defvar shell-completion-execonly t
+  "*If non-nil, use executable files only for completion candidates.
+This mirrors the optional behaviour of the tcsh.
+
+Detecting executability of files may slow command completion considerably.")
+
 (defvar shell-popd-regexp "popd"
   "*Regexp to match subshell commands equivalent to popd.")
 
 (defvar shell-pushd-regexp "pushd"
   "*Regexp to match subshell commands equivalent to pushd.")
+
+(defvar shell-pushd-tohome nil
+  "*If non-nil, make pushd with no arg behave as \"pushd ~\" (like cd).
+This mirrors the optional behaviour of the tcsh.")
+
+(defvar shell-pushd-dextract nil
+  "*If non-nil, make \"pushd +n\" pop the nth dir to the stack top.
+This mirrors the optional behaviour of the tcsh.")
+
+(defvar shell-pushd-dunique nil
+  "*If non-nil, make pushd only add unique directories to the stack.
+This mirrors the optional behaviour of the tcsh.")
 
 (defvar shell-cd-regexp "cd"
   "*Regexp to match subshell commands equivalent to cd.")
@@ -193,8 +230,11 @@ Thus, this does not include the shell's current directory.")
 (defvar shell-mode-map '())
 (cond ((not shell-mode-map)
        (setq shell-mode-map (full-copy-sparse-keymap comint-mode-map))
+       (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
+       (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
-       (define-key shell-mode-map "\M-?"  'comint-dynamic-list-completions)))
+       (define-key shell-mode-map "\M-?"
+	 'comint-dynamic-list-filename-completions)))
 
 (defvar shell-mode-hook '()
   "*Hook for customising Shell mode.")
@@ -224,31 +264,60 @@ M-x dirtrack-toggle turns directory tracking on and off.
 
 \\{shell-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
-`shell-mode-hook' (in that order).
+`shell-mode-hook' (in that order).  After each shell output, the hooks on
+`comint-output-filter-hook' are run.
 
 Variables `shell-cd-regexp', `shell-pushd-regexp' and `shell-popd-regexp'
-are used to match their respective commands."
+are used to match their respective commands, while `shell-pushd-tohome',
+`shell-pushd-dextract' and `shell-pushd-dunique' control the behaviour of the
+relevant command.
+
+Variables `comint-completion-autolist', `comint-completion-addsuffix' and
+`comint-completion-recexact' control the behaviour of file name, command name
+and variable name completion.  Variable `shell-completion-execonly' controls
+the behaviour of command name completion.
+
+Variables `comint-input-ring-file-name' and `comint-input-autoexpand' control
+the initialisation of the input ring history, and history expansion.
+
+Variables `comint-output-filter-hook', `comint-scroll-to-bottom-on-input', and
+`comint-scroll-to-bottom-on-output' control whether input and output cause the
+window to scroll to the end of the buffer."
   (interactive)
   (comint-mode)
-  (setq comint-prompt-regexp shell-prompt-pattern)
   (setq major-mode 'shell-mode)
   (setq mode-name "Shell")
   (use-local-map shell-mode-map)
+  (setq comint-prompt-regexp shell-prompt-pattern)
+  (setq comint-delimiter-argument-list shell-delimiter-argument-list)
+  (setq comint-after-partial-filename-command 'shell-after-partial-filename)
+  (setq comint-get-current-command 'shell-get-current-command)
+  (setq comint-dynamic-complete-command-command 'shell-dynamic-complete-command)
+  (make-local-variable 'paragraph-start)
+  (setq paragraph-start comint-prompt-regexp)
   (make-local-variable 'shell-dirstack)
   (setq shell-dirstack nil)
   (setq shell-last-dir nil)
   (make-local-variable 'shell-dirtrackp)
   (setq shell-dirtrackp t)
   (setq comint-input-sentinel 'shell-directory-tracker)
-  (run-hooks 'shell-mode-hook))
-
+  ;; shell-dependent assignments.
+  (let ((shell (car (process-command (get-buffer-process (current-buffer))))))
+    (setq comint-input-ring-file-name
+	  (or (getenv "HISTFILE")
+	      (cond ((string-match "csh$" shell) "~/.history")
+		    ((string-match "bash$" shell) "~/.bash_history")
+		    ((string-match "ksh$" shell) "~/.sh_history")
+		    (t "~/.history")))))
+  (run-hooks 'shell-mode-hook)
+  (comint-read-input-ring)
+  (shell-dirstack-message))
 
 ;;;###autoload
 (defun shell ()
   "Run an inferior shell, with I/O through buffer *shell*.
 If buffer exists but shell process is not running, make new shell.
-If buffer exists and shell process is running, 
- just switch to buffer `*shell*'.
+If buffer exists and shell process is running, just switch to buffer `*shell*'.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
  or else from SHELL if there is no ESHELL.
@@ -266,22 +335,21 @@ Otherwise, one argument `-i' is passed to the shell.
 
 \(Type \\[describe-mode] in the shell buffer for a list of commands.)"
   (interactive)
-  (cond ((not (comint-check-proc "*shell*"))
-	 (let* ((prog (or explicit-shell-file-name
-			  (getenv "ESHELL")
-			  (getenv "SHELL")
-			  "/bin/sh"))		     
-		(name (file-name-nondirectory prog))
-		(startfile (concat "~/.emacs_" name))
-		(xargs-name (intern-soft (concat "explicit-" name "-args"))))
-	   (set-buffer (apply 'make-comint "shell" prog
-			      (if (file-exists-p startfile) startfile)
-			      (if (and xargs-name (boundp xargs-name))
-				  (symbol-value xargs-name)
-				  '("-i"))))
-	   (shell-mode))))
+  (if (not (comint-check-proc "*shell*"))
+      (let* ((prog (or explicit-shell-file-name
+		       (getenv "ESHELL")
+		       (getenv "SHELL")
+		       "/bin/sh"))		     
+	     (name (file-name-nondirectory prog))
+	     (startfile (concat "~/.emacs_" name))
+	     (xargs-name (intern-soft (concat "explicit-" name "-args"))))
+	(set-buffer (apply 'make-comint "shell" prog
+			   (if (file-exists-p startfile) startfile)
+			   (if (and xargs-name (boundp xargs-name))
+			       (symbol-value xargs-name)
+			     '("-i"))))
+	(shell-mode)))
   (switch-to-buffer "*shell*"))
-
 
 ;;; Directory tracking
 ;;; ===========================================================================
@@ -293,12 +361,12 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;; This is basically a fragile hack, although it's more accurate than
 ;;; the version in Emacs 18's shell.el. It has the following failings:
 ;;; 1. It doesn't know about the cdpath shell variable.
-;;; 2. It only spots the first command in a command sequence. E.g., it will
-;;;    miss the cd in "ls; cd foo"
-;;; 3. More generally, any complex command (like ";" sequencing) is going to
-;;;    throw it. Otherwise, you'd have to build an entire shell interpreter in
-;;;    emacs lisp.  Failing that, there's no way to catch shell commands where
-;;;    cd's are buried inside conditional expressions, aliases, and so forth.
+;;; 2. It cannot infallibly deal with command sequences, though it does well
+;;;    with these and with ignoring commands forked in another shell with ()s.
+;;; 3. More generally, any complex command is going to throw it. Otherwise,
+;;;    you'd have to build an entire shell interpreter in emacs lisp.  Failing
+;;;    that, there's no way to catch shell commands where cd's are buried
+;;;    inside conditional expressions, aliases, and so forth.
 ;;;
 ;;; The whole approach is a crock. Shell aliases mess it up. File sourcing
 ;;; messes it up. You run other processes under the shell; these each have
@@ -323,12 +391,6 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;; replace it with a process filter that watches for and strips out
 ;;; these messages.
 
-;;; REGEXP is a regular expression. STR is a string. START is a fixnum.
-;;; Returns T if REGEXP matches STR where the match is anchored to start
-;;; at position START in STR. Sort of like LOOKING-AT for strings.
-(defun shell-front-match (regexp str start)
-  (eq start (string-match regexp str start)))
-
 (defun shell-directory-tracker (str)
   "Tracks cd, pushd and popd commands issued to the shell.
 This function is called on each input passed to the shell.
@@ -338,118 +400,107 @@ default directory to track these commands.
 You may toggle this tracking on and off with M-x dirtrack-toggle.
 If emacs gets confused, you can resync with the shell with M-x dirs.
 
-See variables `shell-cd-regexp', `shell-pushd-regexp', and `shell-popd-regexp'.
+See variables `shell-cd-regexp', `shell-pushd-regexp', and `shell-popd-regexp',
+while `shell-pushd-tohome', `shell-pushd-dextract' and `shell-pushd-dunique'
+control the behaviour of the relevant command.
+
 Environment variables are expanded, see function `substitute-in-file-name'."
-  (condition-case err
-    (cond (shell-dirtrackp
-	   (string-match "^\\s *" str) ; skip whitespace
-	   (let ((bos (match-end 0))
-		 (x nil))
-	     (cond ((setq x (shell-match-cmd-w/optional-arg shell-popd-regexp
-							       str bos))
-		    (shell-process-popd (substitute-in-file-name x)))
-		   ((setq x (shell-match-cmd-w/optional-arg shell-pushd-regexp
-							       str bos))
-		    (shell-process-pushd (substitute-in-file-name x)))
-		   ((setq x (shell-match-cmd-w/optional-arg shell-cd-regexp
-							       str bos))
-		    (shell-process-cd (substitute-in-file-name x)))))))
-    (error (message (car (cdr err))))))
+  (if shell-dirtrackp
+      ;; We fail gracefully if we think the command will fail in the shell.
+      (condition-case chdir-failure
+	  (let ((start (progn (string-match "^[;\\s ]*" str) ; skip whitespace
+			      (match-end 0)))
+		end cmd arg1)
+	    (while (string-match shell-command-regexp str start)
+	      (setq end (match-end 0)
+		    cmd (comint-arguments (substring str start end) 0 0)
+		    arg1 (comint-arguments (substring str start end) 1 1))
+	      (cond ((eq (string-match shell-popd-regexp cmd) 0)
+		     (shell-process-popd (substitute-in-file-name arg1)))
+		    ((eq (string-match shell-pushd-regexp cmd) 0)
+		     (shell-process-pushd (substitute-in-file-name arg1)))
+		    ((eq (string-match shell-cd-regexp cmd) 0)
+		     (shell-process-cd (substitute-in-file-name arg1))))
+	      (setq start (progn (string-match "[;\\s ]*" str end) ; skip again
+				 (match-end 0)))))
+	(error (message "Couldn't cd")))))
 
 
-;;; Try to match regexp CMD to string, anchored at position START.
-;;; CMD may be followed by a single argument. If a match, then return
-;;; the argument, if there is one, or the empty string if not. If
-;;; no match, return nil.
-
-(defun shell-match-cmd-w/optional-arg (cmd str start)
-  (and (shell-front-match cmd str start)
-       (let ((eoc (match-end 0))) ; end of command
-	 (cond ((shell-front-match "\\s *\\(\;\\|$\\)" str eoc)
-		"")			; no arg
-	       ((shell-front-match "\\s +\\([^ \t\;]+\\)\\s *\\(\;\\|$\\)"
-				      str eoc)
-		(substring str (match-beginning 1) (match-end 1))) ; arg
-	       (t nil))))) ; something else.
-;;; The first regexp is [optional whitespace, (";" or the end of string)].
-;;; The second regexp is [whitespace, (an arg), optional whitespace,
-;;;     (";" or end of string)].
-
-
-;; Like `cd', but prepends comint-filename-prefix to absolute names.
+;; Like `cd', but prepends comint-file-name-prefix to absolute names.
 (defsubst shell-cd (directory)
   (if (file-name-absolute-p directory)
-      (cd-absolute (concat comint-filename-prefix directory))
+      (cd-absolute (concat comint-file-name-prefix directory))
     (cd directory)))
 
 ;;; popd [+n]
 (defun shell-process-popd (arg)
-  (let ((num (if (zerop (length arg)) 0 ; no arg means +0
-		 (shell-extract-num arg))))
-    (if (and num (< num (length shell-dirstack)))
-	(if (= num 0) ; condition-case because the CD could lose.
-	    (condition-case nil (progn (shell-cd (car shell-dirstack))
-				       (setq shell-dirstack
-					     (cdr shell-dirstack))
-				       (shell-dirstack-message))
-	      (error (message "Couldn't cd.")))
-	    (let* ((ds (cons nil shell-dirstack))
-		   (cell (nthcdr (- num 1) ds)))
-	      (rplacd cell (cdr (cdr cell)))
-	      (setq shell-dirstack (cdr ds))
-	      (shell-dirstack-message)))
-	(message "Bad popd."))))
-
+  (let ((num (or (shell-extract-num arg) 0)))
+    (cond ((and num (= num 0) shell-dirstack)
+	   (shell-cd (car shell-dirstack))
+	   (setq shell-dirstack (cdr shell-dirstack))
+	   (shell-dirstack-message))
+	  ((and num (> num 0) (<= num (length shell-dirstack)))
+	   (let* ((ds (cons nil shell-dirstack))
+		  (cell (nthcdr (1- num) ds)))
+	     (rplacd cell (cdr (cdr cell)))
+	     (setq shell-dirstack (cdr ds))
+	     (shell-dirstack-message)))
+	  (t
+	   (error (message "Couldn't popd."))))))
 
 ;;; cd [dir]
 (defun shell-process-cd (arg)
-  (condition-case nil 
-      (let ((new-dir (cond
-                      ((zerop (length arg)) (getenv "HOME"))
-                      ((string-equal "-" arg) shell-last-dir)
-                      (t arg))))
-       (setq shell-last-dir default-directory)
-       (shell-cd new-dir)
-       (shell-dirstack-message))
-    (error (message "Couldn't cd."))))
+  (let ((new-dir (cond ((zerop (length arg)) (getenv "HOME"))
+		       ((string-equal "-" arg) shell-last-dir)
+		       (t arg))))
+    (setq shell-last-dir default-directory)
+    (shell-cd new-dir)
+    (shell-dirstack-message)))
 
 ;;; pushd [+n | dir]
 (defun shell-process-pushd (arg)
-  (if (zerop (length arg))
-      ;; no arg -- swap pwd and car of shell stack
-      (condition-case nil (if shell-dirstack
-			      (let ((old default-directory))
-				(shell-cd (car shell-dirstack))
-				(setq shell-dirstack
-				      (cons old (cdr shell-dirstack)))
-				(shell-dirstack-message))
-			      (message "Directory stack empty."))
-	(error
-	 (message "Couldn't cd.")))
-
-      (let ((num (shell-extract-num arg)))
-	(if num				; pushd +n
-	    (if (> num (length shell-dirstack))
-		(message "Directory stack not that deep.")
-		(let* ((ds (cons default-directory shell-dirstack))
-		       (dslen (length ds))
-		       (front (nthcdr num ds))
-		       (back (reverse (nthcdr (- dslen num) (reverse ds))))
-		       (new-ds (append front back)))
-		  (condition-case nil
-		      (progn (shell-cd (car new-ds))
-			     (setq shell-dirstack (cdr new-ds))
-			     (shell-dirstack-message))
-		    (error (message "Couldn't cd.")))))
-	       
-	    ;; pushd <dir>
-	    (let ((old-wd default-directory))
-	      (condition-case nil
-		  (progn (shell-cd arg)
-			 (setq shell-dirstack
-			       (cons old-wd shell-dirstack))
-			 (shell-dirstack-message))
-		(error (message "Couldn't cd."))))))))
+  (let ((num (shell-extract-num arg)))
+    (cond ((zerop (length arg))
+	   ;; no arg -- swap pwd and car of stack unless shell-pushd-tohome
+	   (cond (shell-pushd-tohome
+		  (shell-process-pushd "~"))
+		 (shell-dirstack
+		  (let ((old default-directory))
+		    (shell-cd (car shell-dirstack))
+		    (setq shell-dirstack
+			  (cons old (cdr shell-dirstack)))
+		    (shell-dirstack-message)))
+		 (t
+		  (message "Directory stack empty."))))
+	  ((numberp num)
+	   ;; pushd +n
+	   (cond ((> num (length shell-dirstack))
+		  (message "Directory stack not that deep."))
+		 ((= num 0)
+		  (error (message "Couldn't cd.")))
+		 (shell-pushd-dextract
+		  (let ((dir (nth (1- num) shell-dirstack)))
+		    (shell-process-popd arg)
+		    (shell-process-pushd default-directory)
+		    (shell-cd dir)
+		    (shell-dirstack-message)))
+		 (t
+		  (let* ((ds (cons default-directory shell-dirstack))
+			 (dslen (length ds))
+			 (front (nthcdr num ds))
+			 (back (reverse (nthcdr (- dslen num) (reverse ds))))
+			 (new-ds (append front back)))
+		    (shell-cd (car new-ds))
+		    (setq shell-dirstack (cdr new-ds))
+		    (shell-dirstack-message)))))
+	  (t
+	   ;; pushd <dir>
+	   (let ((old-wd default-directory))
+	     (shell-cd arg)
+	     (if (or (null shell-pushd-dunique)
+		     (not (member old-wd shell-dirstack)))
+		 (setq shell-dirstack (cons old-wd shell-dirstack)))
+	     (shell-dirstack-message))))))
 
 ;; If STR is of the form +n, for n>0, return n. Otherwise, nil.
 (defun shell-extract-num (str)
@@ -461,8 +512,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   "Turn directory tracking on and off in a shell buffer."
   (interactive)
   (setq shell-dirtrackp (not shell-dirtrackp))
-  (message "directory tracking %s."
-	   (if shell-dirtrackp "ON" "OFF")))
+  (message "Directory tracking %s" (if shell-dirtrackp "ON" "OFF")))
 
 ;;; For your typing convenience:
 (defalias 'dirtrack-toggle 'shell-dirtrack-toggle)
@@ -495,7 +545,7 @@ command again."
 	(goto-char pt)))
     (goto-char pmark) (delete-char 1) ; remove the extra newline
     ;; That's the dirlist. grab it & parse it.
-    (let* ((dl (buffer-substring (match-beginning 0) (- (match-end 0) 1)))
+    (let* ((dl (buffer-substring (match-beginning 0) (1- (match-end 0))))
 	   (dl-len (length dl))
 	   (ds '())			; new dir stack
 	   (i 0))
@@ -507,7 +557,7 @@ command again."
 	(setq i (match-end 0)))
       (let ((ds (reverse ds)))
 	(condition-case nil
-	    (progn (shell-cd (car ds))
+	    (progn (cd (car ds))
 		   (setq shell-dirstack (cdr ds))
 		   (shell-dirstack-message))
 	  (error (message "Couldn't cd.")))))))
@@ -524,57 +574,145 @@ command again."
 (defun shell-dirstack-message ()
   (let* ((msg "")
 	 (ds (cons default-directory shell-dirstack))
-	 (home (expand-file-name (concat comint-filename-prefix "~/")))
+	 (home (expand-file-name (concat comint-file-name-prefix "~/")))
 	 (homelen (length home)))
     (while ds
       (let ((dir (car ds)))
 	(and (>= (length dir) homelen) (string= home (substring dir 0 homelen))
 	    (setq dir (concat "~/" (substring dir homelen))))
-	;; Strip off comint-filename-prefix if present.
-	(and comint-filename-prefix
-	     (>= (length dir) (length comint-filename-prefix))
-	     (string= comint-filename-prefix
-		      (substring dir 0 (length comint-filename-prefix)))
-	     (setq dir (substring dir (length comint-filename-prefix)))
+	;; Strip off comint-file-name-prefix if present.
+	(and comint-file-name-prefix
+	     (>= (length dir) (length comint-file-name-prefix))
+	     (string= comint-file-name-prefix
+		      (substring dir 0 (length comint-file-name-prefix)))
+	     (setq dir (substring dir (length comint-file-name-prefix)))
 	     (setcar ds dir))
-	(if (string-equal dir "~/") (setq dir "~"))
-	(setq msg (concat msg dir " "))
+	(setq msg (concat msg (directory-file-name dir) " "))
 	(setq ds (cdr ds))))
     (message msg)))
-
-
 
-;;; Interfacing to client packages (and converting them)
-;;; Notes from when this was called cmushell, and was not the standard emacs
-;;; shell package.  Many of the conversions discussed here have been done.
-;;;============================================================================
-;;; Several gnu packages (tex-mode, background, dbx, gdb, kermit, prolog, 
-;;; telnet are some) use the shell package as clients. Most of them would
-;;; be better off using the comint package directly, but they predate it.
-;;; The catch is that most of these packages (dbx, gdb, prolog, telnet)
-;;; assume total knowledge of all the local variables that shell mode
-;;; functions depend on. So they (kill-all-local-variables), then create
-;;; the few local variables that shell.el functions depend on. Alas,
-;;; cmushell.el functions depend on a different set of vars (for example,
-;;; the input history ring is a local variable in cmushell.el's shell mode,
-;;; whereas there is no input history ring in shell.el's shell mode).
-;;; So we have a situation where the greater functionality of cmushell.el
-;;; is biting us -- you can't just replace shell will cmushell.
-;;;
-;;; Altering these packages to use comint mode directly should *greatly*
-;;; improve their functionality, and is actually pretty easy. It's
-;;; mostly a matter of renaming a few variable names. See comint.el for more.
-;;;     -Olin
+(defun shell-forward-command (&optional arg)
+  "Move forward across ARG shell command(s).  Does not cross lines.
+See `shell-command-regexp'."
+  (interactive "p")
+  (let ((limit (save-excursion (end-of-line nil) (point))))
+    (if (re-search-forward (concat shell-command-regexp "\\([;&|][\\s ]*\\)+")
+			   limit 'move arg)
+	(skip-syntax-backward "^\\s "))))
 
 
+(defun shell-backward-command (&optional arg)
+  "Move backward across ARG shell command(s).  Does not cross lines.
+See `shell-command-regexp'."
+  (interactive "p")
+  (let ((limit (save-excursion (comint-bol nil) (point))))
+    (skip-syntax-backward "\\s " limit)
+    (if (re-search-backward
+	 (format "[;&|]+[\\s ]*\\(%s\\)" shell-command-regexp) limit 'move arg)
+	(progn (goto-char (match-beginning 1))
+	       (skip-syntax-backward "^\\s ")))))
 
+
+(defun shell-get-current-command ()
+  "Function that returns the current command including arguments."
+  (save-excursion
+    (if (looking-at "\\s *[^;&|]")
+	(goto-char (match-end 0)))
+    (buffer-substring
+     (progn (shell-backward-command 1) (point))
+     (progn (shell-forward-command 1) (if (eolp) (point) (match-end 1))))))
+
+
+(defun shell-after-partial-filename ()
+  "Returns t if point is after a file name.
+File names are assumed to contain `/'s or not be the first item in the command.
+
+See also `shell-backward-command'."
+  (let ((filename (comint-match-partial-filename)))
+    (or (save-match-data (string-match "/" filename))
+	(not (eq (match-beginning 0)
+		 (save-excursion (shell-backward-command 1) (point)))))))
+
+
+(defun shell-dynamic-complete-command ()
+  "Dynamically complete the command at point.
+This function is similar to `comint-dynamic-complete-filename', except that it
+searches `exec-path' (minus the trailing emacs library path) for completion
+candidates.  Note that this may not be the same as the shell's idea of the
+path.
+
+Completion is dependent on the value of `shell-completion-execonly', plus
+those that effect file completion.  See `comint-dynamic-complete-filename'."
+  (interactive)
+  (let* ((completion-ignore-case nil)
+	 (filename (comint-match-partial-filename))
+	 (pathnondir (file-name-nondirectory filename))
+	 (paths (cdr (reverse exec-path)))
+	 (cwd (file-name-as-directory (expand-file-name default-directory)))
+	 (ignored-extensions
+	  (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
+		     completion-ignored-extensions "\\|"))
+	 (path "") (comps-in-path ()) (file "") (filepath "") (completions ()))
+    ;; Go thru each path in the search path, finding completions.
+    (while paths
+      (setq path (file-name-as-directory (comint-directory (or (car paths) ".")))
+	    comps-in-path (and (file-accessible-directory-p path)
+			       (file-name-all-completions pathnondir path)))
+      ;; Go thru each completion found, to see whether it should be used.
+      (while comps-in-path
+	(setq file (car comps-in-path)
+	      filepath (concat path file))
+	(if (and (not (member file completions))
+		 (not (string-match ignored-extensions file))
+		 (or (string-equal path cwd)
+		     (not (file-directory-p filepath)))
+		 (or (null shell-completion-execonly)
+		     (file-executable-p filepath)))
+	    (setq completions (cons file completions)))
+	(setq comps-in-path (cdr comps-in-path)))
+      (setq paths (cdr paths)))
+    ;; OK, we've got a list of completions.
+    (cond ((null completions)
+ 	   (message "No completions of %s" filename)
+ 	   (ding))
+ 	  ((= 1 (length completions))	; Gotcha!
+ 	   (let ((completion (car completions)))
+ 	     (if (string-equal completion pathnondir)
+ 		 (message "Sole completion")
+ 	       (insert (substring (directory-file-name completion)
+ 				  (length pathnondir)))
+ 	       (message "Completed"))
+ 	     (if comint-completion-addsuffix
+ 		 (insert (if (file-directory-p completion) "/" " ")))))
+ 	  (t				; There's no unique completion.
+ 	   (let ((completion
+ 		  (try-completion pathnondir (mapcar (function (lambda (x)
+ 								 (list x)))
+ 						     completions))))
+ 	     ;; Insert the longest substring.
+ 	     (insert (substring (directory-file-name completion)
+ 				(length pathnondir)))
+ 	     (cond ((and comint-completion-recexact comint-completion-addsuffix
+ 			 (string-equal pathnondir completion)
+ 			 (member completion completions))
+ 		    ;; It's not unique, but user wants shortest match.
+ 		    (insert (if (file-directory-p completion) "/" " "))
+ 		    (message "Completed shortest"))
+ 		   ((or comint-completion-autolist
+ 			(string-equal pathnondir completion))
+ 		    ;; It's not unique, list possible completions.
+ 		    (comint-dynamic-list-completions completions))
+ 		   (t
+ 		    (message "Partially completed"))))))))
+
 ;;; Do the user's customization...
-;;;===============================
-(defvar shell-load-hook nil
-  "This hook is run when shell is loaded in.
-This is a good place to put keybindings.")
-	
-(run-hooks 'shell-load-hook)
+;;;
+;;; Isn't this what eval-after-load is for?
+;;;(defvar shell-load-hook nil
+;;;  "This hook is run when shell is loaded in.
+;;;This is a good place to put keybindings.")
+;;;	
+;;;(run-hooks 'shell-load-hook)
 
 (provide 'shell)
 
