@@ -1,8 +1,11 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.146) $
+ * $HopeName: MMsrc!mpm.h(trunk.147) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
- */
+ *
+ * .trans.bufferinit: The Buffer data structure has an Init field and
+ * an Init method, there's a name clash.  We resolve this by calling the
+ * accessor BufferGetInit. */
 
 #ifndef mpm_h
 #define mpm_h
@@ -30,8 +33,6 @@ extern Bool MPMCheck(void);
 /* Miscellaneous Checks -- see impl.c.mpm */
 
 /* design.mps.type.bool.check */
-extern Bool (BoolCheck)(Bool b);
-/* design.mps.type.bool.check.inline */
 #define BoolCheck(b) ((unsigned)(b) <= 1)
 
 extern Bool FunCheck(Fun f);
@@ -61,49 +62,41 @@ extern Word (WordAlignDown)(Word word, Align align);
 
 #define size_tAlignUp(s, a) ((size_t)WordAlignUp((Word)(s), a))
 
-extern void *(PointerAdd)(void *p, size_t s);
 #define PointerAdd(p, s) ((void *)((char *)(p) + (s)))
-
-extern void *(PointerSub)(void *p, size_t s);
 #define PointerSub(p, s) ((void *)((char *)(p) - (s)))
 
-extern size_t (PointerOffset)(void *base, void *limit);
 #define PointerOffset(base, limit) \
   ((size_t)((char *)(limit) - (char *)(base)))
 
-extern void *(PointerAlignUp)(void *p, size_t s);
 #define PointerAlignUp(p, s) \
   ((void *)WordAlignUp((Word)(p), (Align)(s)))
 
-extern Addr (AddrAdd)(Addr addr, Size size);
-#define AddrAdd(p, s) ((Addr)PointerAdd((void *)(p), (s)))
+#define AddrAdd(p, s) ((Addr)PointerAdd((void *)(p), s))
+#define AddrSub(p, s) ((Addr)PointerSub((void *)(p), s))
 
-extern Addr (AddrSub)(Addr addr, Size size);
-#define AddrSub(p, s) ((Addr)PointerSub((void *)(p), (s)))
-
-extern Size (AddrOffset)(Addr base, Addr limit);
 #define AddrOffset(b, l) \
   ((Size)(PointerOffset((void *)(b), (void *)(l))))
 
 extern Addr (AddrAlignDown)(Addr addr, Align align);
-#define AddrAlignDown(p, a)     ((Addr)WordAlignDown(AddrWord((p)), (a)))
+#define AddrAlignDown(p, a) ((Addr)WordAlignDown((Word)(p), a))
 
-#define AddrWord(a)             ((Word)(a))
-#define SizeWord(s)             ((Word)(s))
-#define IndexWord(s)            ((Word)(s))
 #define AlignWord(s)            ((Word)(s))
-#define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), (a))
-#define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), (a)))
-#define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
-#define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), (a)))
-#define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), (a)))
-#define IndexIsAligned(s, a)    WordIsAligned(IndexWord(s), (a))
-#define IndexAlignUp(s, a)      ((Index)WordAlignUp(IndexWord(s), (a)))
-#define IndexAlignDown(s, a)    ((Index)WordAlignDown(IndexWord(s), (a)))
 
+#define AddrIsAligned(p, a)     WordIsAligned((Word)(p), a)
+#define AddrAlignUp(p, a)       ((Addr)WordAlignUp((Word)(p), a))
+
+#define SizeIsAligned(s, a)     WordIsAligned((Word)(s), a)
+#define SizeAlignUp(s, a)       ((Size)WordAlignUp((Word)(s), a))
+#define SizeAlignDown(s, a)     ((Size)WordAlignDown((Word)(s), a))
 /* r not required to be a power of 2 */
-#define SizeRoundUp(s, r) \
-  ((Size)WordRoundUp(SizeWord(s), (Size)(r)))
+#define SizeRoundUp(s, r)       ((Size)WordRoundUp((Word)(s), (Size)(r)))
+
+#define IndexIsAligned(s, a)    WordIsAligned((Word)(s), a)
+#define IndexAlignUp(s, a)      ((Index)WordAlignUp((Word)(s), a))
+#define IndexAlignDown(s, a)    ((Index)WordAlignDown((Word)(s), a))
+
+#define AlignIsAligned(a1, a2)  WordIsAligned((Word)(a1), a2)
+
 
 extern Addr (AddrSet)(Addr target, Byte value, Size size);
 /* This is one of the places that implements Addr, so it's allowed to */
@@ -118,8 +111,6 @@ extern Addr (AddrCopy)(Addr target, Addr source, Size size);
 extern int (AddrComp)(Addr a, Addr b, Size size);
 #define AddrComp(a, b, size) \
   mps_lib_memcmp(a, b, size)
-
-#define AlignIsAligned(a1, a2) WordIsAligned(AlignWord(a1), a2)
 
 
 /* ADDR_PTR -- turns an Addr into a pointer to the given type */
@@ -494,8 +485,7 @@ extern Res ArenaInit(Arena arena, ArenaClass class);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
-extern Bool ArenaAccess(Addr addr, AccessSet mode,
-			MutatorFaultContext context);
+extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
 
 extern Bool GlobalsCheck(Globals arena);
 extern Res GlobalsInit(Globals arena);
@@ -715,11 +705,13 @@ extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
 
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
                       Bool withReservoirPermit);
+
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 /* macro equivalent for BufferCommit, keep in sync with impl.c.buffer */
 #define BUFFER_COMMIT(buffer, p, size) \
   (BufferAP(buffer)->init = BufferAlloc(buffer), \
    BufferAP(buffer)->limit != 0 || BufferTrip(buffer, p, size))
+
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
 extern void BufferFinish(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
@@ -730,32 +722,36 @@ extern void BufferAttach(Buffer buffer,
                          Addr base, Addr limit, Addr init, Size size);
 extern void BufferDetach(Buffer buffer, Pool pool);
 extern void BufferFlip(Buffer buffer);
-extern Addr BufferScanLimit(Buffer buffer);
+
 extern AP (BufferAP)(Buffer buffer);
 #define BufferAP(buffer)        (&(buffer)->apStruct)
 extern Buffer BufferOfAP(AP ap);
-#define BufferOfAP(ap)          PARENT(BufferStruct, apStruct, (ap))
-extern Arena BufferArena(Buffer buffer);
-#define BufferArena(buffer)     ((buffer)->arena)
-extern Pool (BufferPool)(Buffer buffer);
-#define BufferPool(buffer)      ((buffer)->pool)
+#define BufferOfAP(ap)          PARENT(BufferStruct, apStruct, ap)
+
+#define BufferArena(buffer) ((buffer)->arena)
+#define BufferPool(buffer)  ((buffer)->pool)
+
 extern Seg BufferSeg(Buffer buffer);
+
 extern RankSet BufferRankSet(Buffer buffer);
 extern void BufferSetRankSet(Buffer buffer, RankSet rankset);
-extern Addr (BufferBase)(Buffer buffer);
+
 #define BufferBase(buffer)      ((buffer)->base)
-extern Addr (BufferGetInit)(Buffer buffer);
-#define BufferGetInit(buffer)   (BufferAP(buffer)->init)
-extern Addr (BufferAlloc)(Buffer buffer);
+#define BufferGetInit(buffer) /* see .trans.bufferinit */ \
+  (BufferAP(buffer)->init)
 #define BufferAlloc(buffer)     (BufferAP(buffer)->alloc)
-extern Addr (BufferLimit)(Buffer buffer);
 #define BufferLimit(buffer)     ((buffer)->poolLimit)
+extern Addr BufferScanLimit(Buffer buffer);
+
 extern void BufferReassignSeg(Buffer buffer, Seg seg);
+
 extern Bool BufferIsTrapped(Buffer buffer);
 extern Bool BufferIsTrappedByMutator(Buffer buffer);
+
 extern void BufferRampBegin(Buffer buffer, AllocPattern pattern);
 extern Res BufferRampEnd(Buffer buffer);
 extern void BufferRampReset(Buffer buffer);
+
 extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
 extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
 extern FrameState BufferFrameState(Buffer buffer);

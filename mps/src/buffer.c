@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.62) $
+ * $HopeName: MMsrc!buffer.c(trunk.63) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -26,7 +26,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.62) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.63) $");
 
 
 /* forward declarations */
@@ -937,31 +937,6 @@ void BufferSetRankSet(Buffer buffer, RankSet rankset)
   AVERT(Buffer, buffer);
   AVERT(RankSet, rankset);
   buffer->class->setRankSet(buffer, rankset);
-}
-
-
-Addr (BufferBase)(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return BufferBase(buffer);
-}
-
-Addr (BufferGetInit)(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return BufferGetInit(buffer);
-}
-
-Addr (BufferAlloc)(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return BufferAlloc(buffer);
-}
-
-Addr (BufferLimit)(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return BufferLimit(buffer);
 }
 
 
