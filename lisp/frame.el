@@ -516,7 +516,10 @@ A negative ARG moves in the opposite order."
       (setq arg (1+ arg)))
     (raise-frame frame)
     (select-frame frame)
-    (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
+    ;; Ensure, if possible, that frame gets input focus.
+    (if (eq window-system 'w32)
+	(w32-focus-frame frame)
+      (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
 
 ;;;; Frame configurations
 
