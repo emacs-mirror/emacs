@@ -1256,7 +1256,15 @@ With argument, insert value in current buffer after the form."
 	       (set-buffer (get-buffer-create " *Compiler Output*")))
 	 (erase-buffer)
 	 ;;	 (emacs-lisp-mode)
-	 (setq case-fold-search nil))
+	 (setq case-fold-search nil)
+
+	 ;; This is a kludge.  Some operating systems (OS/2) need to
+	 ;; write files containing binary information specially.
+	 ;; Under most circumstances, such files will be in binary
+	 ;; overwrite mode, so those OS's use that flag to guess how
+	 ;; they should write their data.  Advise them that .elc files
+	 ;; need to be written carefully.
+	 (setq overwrite-mode 'overwrite-mode-binary))
        (displaying-byte-compile-warnings
 	(save-excursion
 	  (set-buffer inbuffer)
