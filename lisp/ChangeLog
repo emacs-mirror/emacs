@@ -1,3 +1,20 @@
+2003-05-15  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* hl-line.el: Rewrote the local minor mode so that it can be
+	sticky as well and made sticky the default.  Reimplemented the
+	global minor mode.  Updated the commentary section to document
+	these changes.
+	(hl-line-sticky-flag): New user option.
+	(hl-line-overlay): Made it buffer-local and gave it a docstring.
+	(global-hl-line-overlay): New variable.
+	(hl-line-mode): Rewritten to use `hl-line-sticky-flag'.
+	(hl-line-highlight): Rewritten to use `hl-line-sticky-flag'.
+	(hl-line-unhighlight): Updated docstring.
+	(global-hl-line-mode): Implemented directly so that is does not
+	depend on `hl-line-mode' any more.
+	(global-hl-line-highlight, global-hl-line-unhighlight): New
+	functions.
+
 2003-05-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el (cyrillic-koi8-t): Alias of koi8-t.
