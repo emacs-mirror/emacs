@@ -361,7 +361,9 @@ Now we have the variable `charset-list'."
     safe
     latin-extra
     composition
-    euc-tw-shift)
+    euc-tw-shift
+    use-roman
+    use-oldjis)
   "List of symbols that control ISO-2022 encoder/decoder.
 
 The value of `:flags' attribute in the argument of the function
