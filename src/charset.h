@@ -449,13 +449,13 @@ extern int width_by_char_head[256];
 
 /* Return a non-ASCII character of which charset is CHARSET and
    position-codes are C1 and C2.  DIMENSION1 character ignores C2.  */
-#define MAKE_NON_ASCII_CHAR(charset, c1, c2)		    	\
-  ((charset) == CHARSET_COMPOSITION			    	\
-   ? MAKE_COMPOSITE_CHAR (((c1) << 7) + (c2))		    	\
-   : (CHARSET_DIMENSION (charset) == 1			    	\
-      ? (((charset) - 0x70) << 7) | (c1)		    	\
-      : ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2	    	\
-	 ? (((charset) - 0x8F) << 14) | ((c1) << 7) | (c2)  	\
+#define MAKE_NON_ASCII_CHAR(charset, c1, c2)				\
+  ((charset) == CHARSET_COMPOSITION					\
+   ? MAKE_COMPOSITE_CHAR (((c1) << 7) + (c2))				\
+   : (! CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1	\
+      ? (((charset) - 0x70) << 7) | (c1)				\
+      : ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2			\
+	 ? (((charset) - 0x8F) << 14) | ((c1) << 7) | (c2)		\
 	 : (((charset) - 0xE0) << 14) | ((c1) << 7) | (c2))))
 
 /* Return a composite character of which CMPCHAR-ID is ID.  */
