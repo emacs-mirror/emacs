@@ -151,13 +151,13 @@ ${SUBDIRS}:
 	mkdir $@
 	touch stamp-subdir
 
-# The rule which generates ${TIT} files creates them all in one go.
-# So we need to prevent parallel execution for that target, otherwise
-# Emacs complains about files being locked.  .NOTPARALLEL is for GNU
-# Make, .NO_PARALLEL is for other Make's.
-.NOTPARALLEL: ${TIT}
+# The rules which generate ${TIT} and ${MISC-DIC} files create them all
+# in one go.  So we need to prevent parallel execution for that target,
+# otherwise Emacs complains about files being locked.  .NOTPARALLEL is
+# for GNU Make, .NO_PARALLEL is for other Make's.
+.NOTPARALLEL: ${TIT} ${MISC-DIC}
 
-.NO_PARALLEL: ${TIT}
+.NO_PARALLEL: ${TIT} ${MISC-DIC}
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
 # The "if [ -f $@ ]; then true; " part prevents parallel Make's
