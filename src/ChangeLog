@@ -1,5 +1,8 @@
 2001-02-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_display_and_set_cursor): Check for the focus
+	frame's selected window instead of selected_window.
+
 	* xdisp.c (try_scrolling): If point is in the line below the
 	window, make sure to move the iterator at least a canonical
 	char height down.
