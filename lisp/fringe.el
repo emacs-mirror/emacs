@@ -35,6 +35,11 @@
 
 ;;; Code:
 
+(defgroup fringe nil
+  "Window fringes."
+  :version "21.4"
+  :group 'frames)
+
 ;; Standard fringe bitmaps
 
 (defmacro fringe-bitmap-p (symbol)
@@ -156,7 +161,7 @@ you can use the interactive function `toggle-fringe'"
 		 (cons :tag "Different left/right sizes"
 		       (integer :tag "Left width")
 		       (integer :tag "Right width")))
-  :group 'frames
+  :group 'fringe
   :require 'fringe
   :initialize 'fringe-mode-initialize
   :set 'set-fringe-mode-1)
@@ -251,6 +256,39 @@ SIDE must be the symbol `left' or `right'."
 			(window-fringes))
 	       0)
            (float (frame-char-width))))
+
+
+;;;###autoload
+(defcustom fringe-indicators nil
+  "Visually indicate buffer boundaries and scrolling.
+Setting this variable, changes `default-indicate-buffer-boundaries'."
+  :type '(choice (const :tag "No indicators" nil)
+		 (const :tag "On left" left)
+		 (const :tag "On right" right)
+		 (const :tag "Opposite, no arrows" box)
+		 (const :tag "Opposite, arrows right" mixed)
+		 (const :tag "Empty lines" empty))
+  :group 'fringe
+  :require 'fringe
+  :set 'set-fringe-indicators-1)
+
+(defun set-fringe-indicators-1 (ignore value)
+  "Set fringe indicators according to VALUE.
+This is usually invoked when setting `fringe-indicators' via customize."
+  (setq fringe-indicators value)
+  (setq default-indicate-empty-lines nil)
+  (setq default-indicate-buffer-boundaries
+	(cond
+	 ((memq value '(left right t))
+	  value)
+	 ((eq value 'box)
+	  '((top . left) (bottom . right)))
+	 ((eq value 'mixed)
+	  '((top . left) (t . right)))
+	 ((eq value 'empty)
+	  (setq default-indicate-empty-lines t)
+	  nil)
+	 (t nil))))
 
 (provide 'fringe)
 
