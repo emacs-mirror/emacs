@@ -74,7 +74,7 @@
 
     ;; FSF, not including Emacs-specific.
     ("GNU Project FTP Archive" .
-     [mirrors "ftp://prep.ai.mit.edu/pub/gnu/"
+     [mirrors "ftp://ftp.gnu.org/pub/gnu/"
               ;; ASIA:
               "ftp://ftp.cs.titech.ac.jp"
               "ftp://tron.um.u-tokyo.ac.jp/pub/GNU/prep"
@@ -126,11 +126,11 @@
               "ftp://ftp.cs.columbia.edu/archives/gnu/prep"
               "ftp://gatekeeper.dec.com/pub/GNU"
               "ftp://ftp.uu.net/systems/gnu"])
-    ("GNU Project Home Page" . "www.gnu.ai.mit.edu")
+    ("GNU Project Home Page" . "www.gnu.org")
 
     ;; Emacs.
     ("Emacs Lisp Archive" .
-     "ftp://ftp.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/")
+     "ftp://ftp.emacs.org/pub/")
 
     ;; Internet search engines.
     ("AltaVista" . 
