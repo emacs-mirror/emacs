@@ -249,6 +249,13 @@
     (aset ccl-program-vector ccl-current-ic data)
     (setq ccl-current-ic (1+ ccl-current-ic))))
 
+;; Embed pair of SYMBOL and PROP where (get SYMBOL PROP) should give
+;; proper index number for SYMBOL.  PROP should be
+;; `translation-table-id', `code-conversion-map-id', or
+;; `ccl-program-idx'.
+(defun ccl-embed-symbol (symbol prop)
+  (ccl-embed-data (cons symbol prop)))
+
 ;; Embed string STR of length LEN in `ccl-program-vector' at
 ;; `ccl-current-ic'.
 (defun ccl-embed-string (len str)
@@ -311,18 +318,6 @@
 ;; Just advance `ccl-current-ic' by INC.
 (defun ccl-increment-ic (inc)
   (setq ccl-current-ic (+ ccl-current-ic inc)))
-
-;;;###autoload
-(defun ccl-program-p (obj)
-  "T if OBJECT is a valid CCL compiled code."
-  (and (vectorp obj)
-       (let ((i 0) (len (length obj)) (flag t))
-	 (if (> len 1)
-	     (progn
-	       (while (and flag (< i len))
-		 (setq flag (integerp (aref obj i)))
-		 (setq i (1+ i)))
-	       flag)))))
 
 ;; If non-nil, index of the start of the current loop.
 (defvar ccl-loop-head nil)
@@ -840,11 +835,8 @@
       (error "CCL: Invalid number of arguments: %s" cmd))
   (if (not (symbolp (nth 1 cmd)))
       (error "CCL: Subroutine should be a symbol: %s" cmd))
-  (let* ((name (nth 1 cmd))
-	 (idx (get name 'ccl-program-idx)))
-    (if (not idx)
-	(error "CCL: Unknown subroutine name: %s" name))
-    (ccl-embed-code 'call 0 idx))
+  (ccl-embed-code 'call 1 0)
+  (ccl-embed-symbol (nth 1 cmd) 'ccl-program-idx)
   nil)
 
 ;; Compile END statement.
@@ -890,7 +882,7 @@
 	       (error "CCL: Invalid translation table %s in %s" Rrr cmd))
 	   (ccl-embed-extended-command 'translate-character-const-tbl
 				       rrr RRR 0)
-	   (ccl-embed-data Rrr))
+	   (ccl-embed-symbol Rrr 'translation-table-id))
 	  (t
 	   (ccl-check-register Rrr cmd)
 	   (ccl-embed-extended-command 'translate-character rrr RRR Rrr))))
@@ -937,7 +929,7 @@
     (ccl-embed-extended-command 'map-single rrr RRR 0)
     (cond ((symbolp map)
 	   (if (get map 'code-conversion-map)
-	       (ccl-embed-data map)
+	       (ccl-embed-symbol map 'code-conversion-map-id)
 	     (error "CCL: Invalid map: %s" map)))
 	  (t
 	   (error "CCL: Invalid type of arguments: %s" cmd))))
@@ -958,7 +950,7 @@
       (setq map (car args))
       (cond ((symbolp map)
 	     (if (get map 'code-conversion-map)
-		 (ccl-embed-data map)
+		 (ccl-embed-symbol map 'code-conversion-map-id)
 	       (error "CCL: Invalid map: %s" map)))
 	    ((numberp map)
 	     (ccl-embed-data map))
@@ -1293,8 +1285,12 @@
 (defmacro declare-ccl-program (name &optional vector)
   "Declare NAME as a name of CCL program.
 
-To compile a CCL program which calls another CCL program not yet
-defined, it must be declared as a CCL program in advance.
+This macro exists for backward compatibility.  In the old version of
+Emacs, to compile a CCL program which calls another CCL program not
+yet defined, it must be declared as a CCL program in advance.  But,
+now CCL program names are resolved not at compile time but before
+execution.
+
 Optional arg VECTOR is a compiled CCL code of the CCL program."
   `(put ',name 'ccl-program-idx (register-ccl-program ',name ,vector)))
 
@@ -1311,20 +1307,16 @@ The compiled code is a vector of integers."
 ;;;###autoload
 (defmacro check-ccl-program (ccl-program &optional name)
   "Check validity of CCL-PROGRAM.
-If CCL-PROGRAM is a symbol denoting a valid CCL program, return
+If CCL-PROGRAM is a symbol denoting a CCL program, return
 CCL-PROGRAM, else return nil.
 If CCL-PROGRAM is a vector and optional arg NAME (symbol) is supplied,
 register CCL-PROGRAM by name NAME, and return NAME."
-  `(let ((result ,ccl-program))
-     (cond ((symbolp ,ccl-program)
-	    (or (numberp (get ,ccl-program 'ccl-program-idx))
-		(setq result nil)))
-	   ((vectorp ,ccl-program)
-	    (setq result ,name)
-	    (register-ccl-program result ,ccl-program))
-	   (t
-	    (setq result nil)))
-     result))
+  `(if (ccl-program-p ,ccl-program)
+       (if (vectorp ,ccl-program)
+	   (progn
+	     (register-ccl-program ,name ,ccl-program)
+	     ,name)
+	 ,ccl-program)))
 
 ;;;###autoload
 (defun ccl-execute-with-args (ccl-prog &rest args)
