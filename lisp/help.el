@@ -1150,10 +1150,9 @@ For the cross-reference format, see `help-make-xrefs'."
 
 (defcustom temp-buffer-resize-mode nil
   "Non-nil means resize windows displaying temporary buffers.
-The window will be resized in order to fit its contents, subject to the
-constraints that it will not be higher than `temp-buffer-max-height'
-nor smaller than `window-min-height'.
-This applies to `help', `apropos' and `completion' buffers and possibly others.
+This makes the window the right height for its contents, but never
+more than `temp-buffer-max-height' nor less than `window-min-height'.
+This applies to `help', `apropos' and `completion' buffers, and some others.
 
 This variable must be modified via \\[customize] in order to have an effect."
   :get (lambda (symbol)
