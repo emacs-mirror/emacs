@@ -274,7 +274,7 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
   ;; put binding before BEFORE in MENU, otherwise if binding is already
   ;; present in MENU, just change it, otherwise put it last in MENU.
   (let ((inserted (null item))		; Fake already inserted.
-	done)
+	tail done)
     (while (not done)
       (cond
        ((or (setq done (or (null (cdr menu)) (keymapp (cdr menu))))
@@ -286,20 +286,20 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 	(unless inserted		; Don't insert more than once.
 	  (setcdr menu (cons (cons key item) (cdr menu)))
 	  (setq inserted t)
-	  (setq menu (cdr menu))))
+	  (setq menu (cdr menu)))
+	(setq menu (cdr menu)))
        ((and key (equal (car-safe (cadr menu)) key))
-	(if (and (or inserted		; Already inserted or
-		     before)		;  wanted elsewhere and
-		 (or (not (setq done	;  not the last in this keymap.
-				(or (null (cddr menu))
-				    (keymapp (cddr menu)))))
-		     inserted))
-	    ;; The contorted logic above, guarantees `done' has been computed.
+	(if (or inserted		; Already inserted or
+		(and before		;  wanted elsewhere and
+		     (setq tail (cddr menu)) ; not last item and not
+		     (not (keymapp tail))
+		     (not (equal (car-safe (car tail)) before)))) ; in position
 	    (setcdr menu (cddr menu))	; Remove item.
 	  (setcdr (cadr menu) item)	; Change item.
-	  (setq inserted t))))
-      (setq menu (cdr menu)))))
-
+	  (setq inserted t)
+	  (setq menu (cdr menu))))
+       (t (setq menu (cdr menu)))))))
+       
 (defun easy-menu-always-true (x)
   ;; Return true if X never evaluates to nil.
   (if (consp x) (and (eq (car x) 'quote) (cadr x))
