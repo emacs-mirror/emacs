@@ -404,7 +404,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    (error "Sending failed; no recipients")))
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
-	(delete-region (point-at-bol) (progn (forward-line 1) (point))))
+	(delete-region (point-at-bol) (point-at-bol 2)))
       (write-region (point-min) (point-max) smtpmail-queue-index))))
 
 ;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
