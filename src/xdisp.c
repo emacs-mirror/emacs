@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "macros.h"
 #include "disptab.h"
 #include "termhooks.h"
+#include "intervals.h"
 
 extern int interrupt_input;
 extern int command_loop_level;
@@ -1131,7 +1132,10 @@ try_window (window, pos)
       if (pos != val.bufpos)
 	last_text_vpos
 	  /* Next line, unless prev line ended in end of buffer with no cr */
-	  = vpos - (val.vpos && FETCH_CHAR (val.bufpos - 1) != '\n');
+	  = vpos - (val.vpos && (FETCH_CHAR (val.bufpos - 1) != '\n'
+				 || ! NILP (Fget_text_property (val.bufpos-1,
+								Qinvisible,
+								Fcurrent_buffer ()))));
       pos = val.bufpos;
     }
 
@@ -1723,6 +1727,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
      to overlays or text property changes.  */
   int next_face_change;
 
+#ifdef USE_TEXT_PROPERTIES
+  /* The next location where the `invisible' property changes */
+  int next_invisible;
+  Lisp_Object prop, position, endpos;
+#endif
+  
   /* The face we're currently using.  */
   int current_face = 0;
 
@@ -1781,6 +1791,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
      or at face change.  */
   pause = pos;
   next_face_change = pos;
+#ifdef USE_TEXT_PROPERTIES
+  next_invisible = pos;
+#endif
   while (p1 < endp)
     {
       p1prev = p1;
@@ -1798,11 +1811,41 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      cursor_hpos = p1 - startp;
 	    }
 
+#ifdef USE_TEXT_PROPERTIES
+	  /* if the `invisible' property is set to t, we can skip to
+	     the next property change */
+	  while (pos == next_invisible && pos < end)
+	  {
+	    XFASTINT (position) = pos;
+	    prop = Fget_text_property (position,
+				       Qinvisible,
+				       Fcurrent_buffer ());
+	    endpos = Fnext_single_property_change (position,
+						   Qinvisible,
+						   Fcurrent_buffer ());
+	    if (INTEGERP (endpos))
+	      next_invisible = XINT (endpos);
+	    else
+	      next_invisible = end;
+	    if (! NILP (prop))
+	    {
+	      if (pos < point && next_invisible >= point)
+	      {
+		cursor_vpos = vpos;
+		cursor_hpos = p1 - startp;
+	      }
+	      pos = next_invisible;
+	    }
+	  }
+	  if (pos >= end)
+	    break;
+#endif
+
 #ifdef HAVE_X_WINDOWS
 	  /* Did we hit a face change?  Figure out what face we should
 	     use now.  We also hit this the first time through the
 	     loop, to see what face we should start with.  */
-	  if (pos == next_face_change && FRAME_X_P (f))
+	  if (pos >= next_face_change && FRAME_X_P (f))
 	    current_face = compute_char_face (f, w, pos,
 					      region_beg, region_end,
 					      &next_face_change);
@@ -1810,6 +1853,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
 	  pause = end;
 
+#ifdef USE_TEXT_PROPERTIES	  
+	  if (pos < next_invisible && next_invisible < pause)
+	    pause = next_invisible;
+#endif
 	  if (pos < next_face_change && next_face_change < pause)
 	    pause = next_face_change;
 
