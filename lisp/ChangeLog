@@ -1,3 +1,7 @@
+2000-09-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* vc.el: Remove `$Id$' tag.
+
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* help.el (help-make-xrefs): Adjusted for the change of
