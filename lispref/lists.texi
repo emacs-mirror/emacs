@@ -1619,10 +1619,10 @@ the associations of one copy without affecting the other:
 @end smallexample
 @end defun
 
-@defun assoc-delete-all key alist
-@tindex assoc-delete-all
+@defun assq-delete-all key alist
+@tindex assq-delete-all
 This function deletes from @var{alist} all the elements whose @sc{car}
-is @var{key}.  It returns the modified alist.
+is @code{eq} to @var{key}.  It returns the modified alist.
 
 @example
 (assoc-delete-all 'foo
