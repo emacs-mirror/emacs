@@ -22178,7 +22178,7 @@ all the functions in the list are called, with the frame as argument.  */);
   Vwindow_size_change_functions = Qnil;
 
   DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
-    doc: /* List of Functions to call before redisplaying a window with scrolling.
+    doc: /* List of functions to call before redisplaying a window with scrolling.
 Each function is called with two arguments, the window
 and its new display-start position.  Note that the value of `window-end'
 is not valid when these functions are called.  */);
