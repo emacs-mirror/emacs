@@ -5,11 +5,13 @@
 	Check the comstyle of single-char comment-starters.
 	(scan_sexps_forward): Don't try to recognize `half comment-enders' if
 	we're just at the beginning of the comment (f.ex with (*) ... (*)).
+	Check the comstyle of single-char comment-starters.
+	Clarify control-flow around the Scomment case.
 
 2000-06-20  Dave Love  <fx@gnu.org>
 
-	* fns.c (make_hash_table, maybe_resize_hash_table): Cast arg of
-	next_almost_prime.
+	* fns.c (make_hash_table, maybe_resize_hash_table):
+	Cast arg of next_almost_prime.
 
 	* tparam.c [emacs]: Include lisp.h. 
 
@@ -60,8 +62,7 @@
 
 	* m/ibmrt-aix.h: Don't declare HAVE_GETTIMEOFDAY, HAVE_VFORK.
 
-	* m/ibmrs6000.h, m/ibmps2-aix.h, m/dpx2.h: Don't declare
-	HAVE_GETWD.
+	* m/ibmrs6000.h, m/ibmps2-aix.h, m/dpx2.h: Don't declare HAVE_GETWD.
 
 	* m/alpha.h: Don't declare xmalloc, xrealloc.
 
