@@ -34,6 +34,7 @@
   :group 'mail)
 
 
+;;;###autoload
 (defcustom display-time-mode nil
   "Toggle display of time, load level, and mail flag in mode lines.
 Setting this variable directly does not take effect;
