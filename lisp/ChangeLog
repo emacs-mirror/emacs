@@ -1,5 +1,10 @@
 2000-06-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (describe-variable): Don't insert a second `'s' in front
+	of the string `value is shown below'.  Since the syntax-table is
+	set to emacs-lisp-mode-syntax-table, forward-sexp skips over
+	an existing `'s', so that this won't be deleted.
+
 	* pcmpl-cvs.el, pcmpl-gnu.el, pcmpl-linux.el, pcmpl-rpm.el:
 	* pcmpl-unix.el: New files.
 
