@@ -618,7 +618,7 @@ When used from an elisp package (such as a minor mode), it is recommended
 to use nil for MODE (and place the call in a loop or on a hook) to avoid
 subtle problems due to details of the implementation.
 
-Note that some modes have specialised support for additional patterns, e.g.,
+Note that some modes have specialized support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 `objc-font-lock-extra-types' and `java-font-lock-extra-types'."
   (cond (mode
