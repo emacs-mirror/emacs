@@ -630,18 +630,33 @@ struct x_output
 #define FRAME_FLAGS_BITMAP_WIDTH(f)	8
 #define FRAME_FLAGS_BITMAP_HEIGHT(f)	8
 
-/* Width of a single area reserved for drawing truncation bitmaps,
+/* Total width of a areas reserved for drawing truncation bitmaps,
    continuation bitmaps and alike.  The width is in canonical char
    units of the frame.  This must currently be the case because window
    sizes aren't pixel values.  If it weren't the case, we wouldn't be
    able to split windows horizontally nicely.  */
 
-#define FRAME_X_FLAGS_AREA_COLS(F)				\
-     ((FRAME_FLAGS_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
+#define FRAME_X_FLAGS_AREA_COLS(F)					\
+     ((2 * FRAME_FLAGS_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
       / CANON_X_UNIT ((F)))
+
+/* Total width of flags areas in pixels.  */
 
 #define FRAME_X_FLAGS_AREA_WIDTH(F) \
      (FRAME_X_FLAGS_AREA_COLS ((F)) * CANON_X_UNIT ((F)))
+
+/* Pixel-width of the left flags area.  */
+
+#define FRAME_X_LEFT_FLAGS_AREA_WIDTH(F) \
+     (FRAME_X_FLAGS_AREA_WIDTH (F) / 2)
+
+/* Pixel-width of the right flags area.  Note that we are doing
+   integer arithmetic here, so don't loose a pixel if the total
+   width is an odd number.  */
+
+#define FRAME_X_RIGHT_FLAGS_AREA_WIDTH(F) 	\
+     (FRAME_X_FLAGS_AREA_WIDTH (F) - FRAME_X_FLAGS_AREA_WIDTH (F) / 2)
+
 
 
 /* X-specific scroll bar stuff.  */
