@@ -1041,7 +1041,7 @@ to make one entry in the kill ring."
    ;; ring to share the same string object.  This code does that.
    ((not (or (eq buffer-undo-list t)
 	     (eq last-command 'kill-region)
-	     (eq beg end)))
+	     (equal beg end)))
     ;; Don't let the undo list be truncated before we can even access it.
     (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100))
 	  (old-list buffer-undo-list)
