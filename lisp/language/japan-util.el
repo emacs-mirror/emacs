@@ -34,9 +34,10 @@
 
 ;;;###autoload
 (defun setup-japanese-environment-internal ()
-  (if (eq system-type 'ms-dos)
-      (prefer-coding-system 'japanese-shift-jis)
-    (setq default-file-name-coding-system 'japanese-iso-8bit))
+  (cond ((eq system-type 'ms-dos)
+	 (prefer-coding-system 'japanese-shift-jis))
+	((eq system-type 'usg-unix-v)
+	 (prefer-coding-system 'japanese-iso-8bit)))
   (setq sentence-end-save sentence-end)
   (setq sentence-end (concat sentence-end "\\|[。？！]")))
 
