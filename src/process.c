@@ -2952,6 +2952,7 @@ read_process_output (proc, channel)
 
       text = decode_coding_string (make_unibyte_string (chars, nbytes),
 				   coding, 0);
+      Vlast_coding_system_used = coding->symbol;
       /* A new coding system might be found.  */
       if (!EQ (p->decode_coding_system, coding->symbol))
 	{
@@ -3064,6 +3065,7 @@ read_process_output (proc, channel)
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       text = decode_coding_string (make_unibyte_string (chars, nbytes),
 				   coding, 0);
+      Vlast_coding_system_used = coding->symbol;
       /* A new coding system might be found.  See the comment in the
 	 similar code in the previous `if' block.  */
       if (!EQ (p->decode_coding_system, coding->symbol))

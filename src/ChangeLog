@@ -1,7 +1,20 @@
 2000-08-04  Kenichi Handa  <handa@etl.go.jp>
 
+	* process.c (read_process_output): Big simplification.  Handle
+	composition and post-read-conversion of coding system correctly.
+	(send_process): Handle composition correctly.
+
+	* callproc.c (Fcall_process): Handle post-read-conversion of
+	coding system if any.
+
 	* coding.c (decode_coding_iso2022): More strict check for handling
 	single shifting.
+	(coding_restore_composition): Pay attention to the case that
+	cmp_data is not set properly (because of invalid code in the
+	source text).
+	(run_pre_post_conversion_on_str): Include text properties in the
+	resulting string.
+	(decode_coding_string): Set members of coding correctly.
 
 2000-08-03  Gerd Moellmann  <gerd@gnu.org>
 
