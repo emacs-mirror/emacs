@@ -2360,7 +2360,8 @@ signal_after_change (charpos, lendel, lenins)
   /* After an insertion, call the text properties
      insert-behind-hooks or insert-in-front-hooks.  */
   if (lendel == 0)
-    report_interval_modification (charpos, charpos + lenins);
+    report_interval_modification (make_number (charpos),
+				  make_number (charpos + lenins));
 }
 
 Lisp_Object
