@@ -1,3 +1,8 @@
+2002-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change indian-2-column chars of Hindi line to Unicode
+	chars.
+
 2002-10-17  Dave Love  <fx@gnu.org>
 
 	* charsets/cp866.map: Deleted (redundant).

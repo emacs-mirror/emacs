@@ -1,3 +1,8 @@
+2002-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Fset_charset_priority): Update
+	Viso_2022_charset_list.
+
 2002-10-29  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Vface_resizing_fonts): New variable.

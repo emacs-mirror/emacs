@@ -1,5 +1,8 @@
 2002-10-30  Kenichi Handa  <handa@m17n.org>
 
+	* international/fontset.el ("fontset-default"): Add an entry for
+	`indian-is13194' charset.
+
 	* international/mule-conf.el (indian-is13194): Delete :unify-map
 	property.  Don't unify this charset.
 	(indian-2-column): Delete :superset property, add :code-offset
