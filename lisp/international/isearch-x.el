@@ -60,6 +60,8 @@
 	       (concat (isearch-message-prefix) isearch-message)
 	       nil
 	       current-input-method))
-    (isearch-process-search-string str str)))
+    (if (and str (> (length str) 0))
+	(isearch-process-search-string str str)
+      (isearch-update))))
 
 ;;; isearch-x.el ends here
