@@ -1,3 +1,10 @@
+2002-09-18  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-mark-pop-up): Doc fix.
+
+	* ediff-hook.el (ediff-cond-compile-for-xemacs-or-emacs): Put the
+	definition straight into loaddefs.el as well as executing it here.
+
 2002-09-18  Colin Walters  <walters@debian.org>
 
 	* calc/calc.el (calc-mode): Add font-lock-defontify to
