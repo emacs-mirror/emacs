@@ -420,6 +420,10 @@ If PATTERN is nil, return the name of the frame's base font, which never
 contains wildcards.
 Given optional arguments FACE and FRAME, try to return a font which is
 also the same size as FACE on FRAME."
+  (or (symbolp face)
+      (setq face (face-name face)))
+  (and (eq frame t)
+       (setq frame nil))
   (if pattern
       (let ((fonts (x-list-fonts pattern face frame)))
 	(or fonts
