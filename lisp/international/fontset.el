@@ -320,10 +320,9 @@ automatically."
     ;; Be sure that ASCII font is available.
     (let ((slot (or (assq 'ascii fontlist) (assq 'ascii new-fontlist)))
 	  ascii-font)
-      (if (setq ascii-font (condition-case nil
-			       (x-resolve-font-name (cdr slot))
-			     (error nil)))
-	  (setcdr slot ascii-font))
+      (setq ascii-font (condition-case nil
+			   (x-resolve-font-name (cdr slot))
+			 (error nil)))
       (if ascii-font
 	  (let ((l x-font-name-charset-alist))
 	    ;; If the ASCII font can also be used for another
