@@ -257,19 +257,20 @@ The expansion is entirely correct because it uses the C preprocessor."
     ("\\$ ?{?^?[_a-zA-Z][_a-zA-Z0-9]*\\('\\)[_a-zA-Z]" (1 "_"))
     ;; format statements
     ("^[ \t]*format.*=[ \t]*\\(\n\\)" (1 '(7)))
-    ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
     ;; Funny things in sub arg specifications like `sub myfunc ($$)'
     ("\\<sub\\s-+\\S-+\\s-*(\\([^)]+\\))" 1 '(1))
     ;; regexp and funny quotes
-    ("[;(=!~{][ \t\n]*\\(/\\)" (1 '(7)))
-    ("[;( =!~{\t\n]\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ("[?:.,;=!~({[][ \t\n]*\\(/\\)" (1 '(7)))
+    ("[?:.,;=!~({[ \t\n]\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m
      ;; \s (appears often in regexps).
      ;; -s file
      (2 (if (assoc (char-after (match-beginning 2))
 		   perl-quote-like-pairs)
-	    '(15) '(7))))))
+	    '(15) '(7))))
+    ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
+    ))
 
 (defvar perl-empty-syntax-table
   (let ((st (copy-syntax-table)))
