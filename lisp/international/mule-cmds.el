@@ -1750,7 +1750,7 @@ specifies the character set for the major languages of Western Europe."
     (if (eq window-system 'pc)
 	(setq nonascii (intern "cp%d" dos-codepage)))
     (or (and (charsetp nonascii)
-	     (= (charset-dimension nonascii) 1))
+	     (get-charset-property nonascii :ascii-compatible-p))
 	(setq nonascii 'iso-8859-1))
     (set-unibyte-charset nonascii))
 
@@ -2441,32 +2441,112 @@ system codeset `%s' for this locale." coding-system codeset))))))))
 		    'a4))))))
   nil)
 
-;;; Character code property
-(put 'char-code-property-table 'char-table-extra-slots 0)
+;;; Character property
+
+;; Each element has the form (PROP . TABLE).
+;; PROP is a symbol representing a character property.
+;; TABLE is a char-table containing the property value for each character.
+;; TABLE may be a name of file to load to build a char-table.
+;; Don't modify this variable directly but use `define-char-code-property'.
+
+(defvar char-code-property-alist nil
+  "Alist of character property name vs char-table containing property values.
+Internal use only.")
+
+(put 'char-code-property-table 'char-table-extra-slots 5)
+
+(defun define-char-code-property (name table &optional docstring)
+  "Define NAME as a character code property given by TABLE.
+TABLE is a char-table of purpose `char-code-property-table' with
+these extra slots:
+  1st: NAME.
+  2nd: Function to call to get a property value of a character.
+    It is called with three arugments CHAR, VAL, and TABLE, where
+    CHAR is a character, VAL is the value of (aref TABLE CHAR).
+  3rd: Function to call to put a property value of a character.
+    It is called with the same arguments as above.
+  4th: Function to call to get a description string of a property value.
+    It is called with one argument VALUE, a property value.
+  5th: Data used by the above functions.
+
+TABLE may be a name of file to load to build a char-table.  The
+file should contain a call of `define-char-code-property' with a
+char-table of the above format as the argument TABLE.
+
+TABLE may also be nil, in which case no property value is pre-assigned.
+
+Optional 3rd argment DOCSTRING is a documentation string of the property.
+
+See also the documentation of `get-char-code-property' and
+`put-char-code-property'."
+  (or (symbolp name)
+      (error "Not a symbol: %s" name))
+  (if (char-table-p table)
+      (or (and (eq (char-table-subtype table) 'char-code-property-table)
+	       (eq (char-table-extra-slot table 0) name))
+	  (error "Invalid char-table: %s" table))
+    (or (stringp table)
+	(error "Not a char-table nor a file name: %s" table)))
+  (let ((slot (assq name char-code-property-alist)))
+    (if slot
+	(setcdr slot table)
+      (setq char-code-property-alist
+	    (cons (cons name table) char-code-property-alist))))
+  (put name 'char-code-property-documentation docstring))
 
 (defvar char-code-property-table
   (make-char-table 'char-code-property-table)
   "Char-table containing a property list of each character code.
-
+This table is used for properties not listed in `char-code-property-alist'.
 See also the documentation of `get-char-code-property' and
 `put-char-code-property'.")
 
 (defun get-char-code-property (char propname)
-  "Return the value of CHAR's PROPNAME property in `char-code-property-table'."
-  (let ((plist (aref char-code-property-table char)))
-    (if (listp plist)
-	(car (cdr (memq propname plist))))))
+  "Return the value of CHAR's PROPNAME property."
+  (let ((slot (assq propname char-code-property-alist)))
+    (if slot
+	(let (table value func)
+	  (if (stringp (cdr slot))
+	      (load (cdr slot)))
+	  (setq table (cdr slot)
+		value (aref table char)
+		func (char-table-extra-slot table 1))
+	  (if (functionp func)
+	      (setq value (funcall func char value table)))
+	  value)
+      (plist-get (aref char-code-property-table char) propname))))
 
 (defun put-char-code-property (char propname value)
-  "Store CHAR's PROPNAME property with VALUE in `char-code-property-table'.
+  "Store CHAR's PROPNAME property with VALUE.
 It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
-  (let ((plist (aref char-code-property-table char)))
-    (if plist
-	(let ((slot (memq propname plist)))
-	  (if slot
-	      (setcar (cdr slot) value)
-	    (nconc plist (list propname value))))
-      (aset char-code-property-table char (list propname value)))))
+  (let ((slot (assq propname char-code-property-alist)))
+    (if slot
+	(let (table func)
+	  (if (stringp (cdr slot))
+	      (load (cdr slot)))
+	  (setq table (cdr slot)
+		func (char-table-extra-slot table 2))
+	  (if (functionp func)
+	      (funcall func char value table)
+	    (aset table char value)))
+      (let* ((plist (aref char-code-property-table char))
+	     (x (plist-put plist propname value)))
+	(or (eq x plist)
+	    (aset char-code-property-table char x))))
+    value))
+
+(defun char-code-property-description (prop value)
+  "Return a description string of character property PROP's value VALUE.
+If there's no description string for VALUE, return nil."
+  (let ((slot (assq prop char-code-property-alist)))
+    (if slot
+	(let (table func)
+	  (if (stringp (cdr slot))
+	      (load (cdr slot)))
+	  (setq table (cdr slot)
+		func (char-table-extra-slot table 3))
+	  (if (functionp func)
+	      (funcall func value))))))
 
 
 ;; Pretty description of encoded string
