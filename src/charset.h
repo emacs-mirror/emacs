@@ -786,6 +786,8 @@ extern int get_charset_id P_ ((Lisp_Object));
 extern int find_charset_in_text P_ ((unsigned char *, int, int, int *,
 				    Lisp_Object));
 extern int strwidth P_ ((unsigned char *, int));
+extern int c_string_width P_ ((unsigned char *, int, int, int *, int *));
+extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
 extern int char_bytes P_ ((int));
 extern int char_valid_p P_ ((int, int));
 
