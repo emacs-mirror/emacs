@@ -1947,7 +1947,7 @@ If END is omitted, it defaults to the length of LIST."
 	(explicit (widget-get widget :explicit-choice))
 	(explicit-value (widget-get widget :explicit-choice-value))
 	current)
-    (if (and explicit (eq value explicit-value))
+    (if (and explicit (equal value explicit-value))
 	(progn
 	  ;; If the user specified the choice for this value,
 	  ;; respect that choice as long as the value is the same.
