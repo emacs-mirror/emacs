@@ -2513,6 +2513,7 @@ EXFUN (Fconstrain_to_field, 5);
 EXFUN (Ffield_string, 1);
 EXFUN (Fdelete_field, 1);
 EXFUN (Ffield_beginning, 2);
+EXFUN (Ffield_end, 2);
 EXFUN (Ffield_string_no_properties, 1);
 extern void set_time_zone_rule P_ ((char *));
 

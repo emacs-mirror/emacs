@@ -1,3 +1,7 @@
+2001-10-07  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (Ffield_end): Declare.
+
 2001-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (parse_modifiers, apply_modifiers): Use VALMASK.
