@@ -47,7 +47,8 @@
  'cyrillic-iso-8bit 2 ?5
  "ISO 2022 based 8-bit encoding for Cyrillic script (MIME:ISO-8859-5)"
  '((ascii t) (cyrillic-iso8859-5 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil))
+   nil ascii-eol ascii-cntl nil nil nil nil)
+ '(ascii cyrillic-iso8859-5))
 
 (define-coding-system-alias 'iso-8859-5 'cyrillic-iso-8bit)
 
@@ -112,7 +113,8 @@
  ;; So people who use koi8 for languages other than Russian
  ;; will have to forgive us.
  ?R "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)"
- (cons ccl-decode-koi8 ccl-encode-koi8))
+ (cons ccl-decode-koi8 ccl-encode-koi8)
+ '(ascii cyrillic-iso8859-5))
 
 (define-coding-system-alias 'koi8-r 'cyrillic-koi8)
 (define-coding-system-alias 'koi8 'cyrillic-koi8)
@@ -190,7 +192,8 @@
 (make-coding-system
  'cyrillic-alternativnyj 4 ?A
  "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
- (cons ccl-decode-alternativnyj ccl-encode-alternativnyj))
+ (cons ccl-decode-alternativnyj ccl-encode-alternativnyj)
+ '(ascii cyrillic-iso8859-5))
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
 

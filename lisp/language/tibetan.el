@@ -92,7 +92,8 @@
  'tibetan 2 ?Q
  "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)"
  '((ascii t) (tibetan t) nil nil
-   nil ascii-eol))
+   nil ascii-eol)
+ '(ascii tibetan))
 
 (coding-system-put 'tibetan 'post-read-conversion
 		   'tibetan-post-read-conversion)

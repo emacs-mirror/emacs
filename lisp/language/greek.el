@@ -32,7 +32,8 @@
  'greek-iso-8bit 2 ?7
  "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)"
  '((ascii t) (greek-iso8859-7 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil))
+   nil ascii-eol ascii-cntl nil nil nil nil)
+ '(ascii greek-iso8859-7))
 
 (define-coding-system-alias 'iso-8859-7 'greek-iso-8bit)
 

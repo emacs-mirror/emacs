@@ -32,7 +32,8 @@
  'hebrew-iso-8bit 2 ?8
  "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)"
  '((ascii t) (hebrew-iso8859-8 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil nil t))
+   nil ascii-eol ascii-cntl nil nil nil nil nil t)
+ '(ascii hebrew-iso8859-8))
 
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 

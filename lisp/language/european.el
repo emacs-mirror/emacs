@@ -67,7 +67,8 @@
  'iso-latin-1 2 ?1
  "ISO 2022 based 8-bit encoding (MIME:ISO-8859-1, Compound Text Encoding)"
  '((ascii t) (latin-iso8859-1 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil nil t))
+   nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil nil t)
+ '(ascii latin-iso8859-1))
 
 (define-coding-system-alias 'iso-8859-1 'iso-latin-1)
 (define-coding-system-alias 'latin-1 'iso-latin-1)
@@ -99,7 +100,8 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
  'iso-latin-2 2 ?2
  "ISO 2022 based 8-bit encoding (MIME:ISO-8859-2)"
  '((ascii t) (latin-iso8859-2 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil))
+   nil ascii-eol ascii-cntl nil nil nil nil)
+ '(ascii latin-iso8859-2))
 
 (define-coding-system-alias 'iso-8859-2 'iso-latin-2)
 (define-coding-system-alias 'latin-2 'iso-latin-2)
@@ -128,7 +130,8 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
  'iso-latin-3 2 ?3
  "ISO 2022 based 8-bit encoding (MIME:ISO-8859-3)"
  '((ascii t) (latin-iso8859-3 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil))
+   nil ascii-eol ascii-cntl nil nil nil nil)
+ '(ascii latin-iso8859-3))
 
 (define-coding-system-alias 'iso-8859-3 'iso-latin-3)
 (define-coding-system-alias 'latin-3 'iso-latin-3)
@@ -157,7 +160,8 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
  'iso-latin-4 2 ?4
  "ISO 2022 based 8-bit encoding (MIME:ISO-8859-4)"
  '((ascii t) (latin-iso8859-4 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil))
+   nil ascii-eol ascii-cntl nil nil nil nil)
+ '(ascii latin-iso8859-4))
 
 (define-coding-system-alias 'iso-8859-4 'iso-latin-4)
 (define-coding-system-alias 'latin-4 'iso-latin-4)
@@ -186,7 +190,8 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
  'iso-latin-5 2 ?9
  "ISO 2022 based 8-bit encoding (MIME:ISO-8859-9)"
  '((ascii t) (latin-iso8859-9 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil))
+   nil ascii-eol ascii-cntl nil nil nil nil)
+ '(ascii latin-iso8859-9))
 
 (define-coding-system-alias 'iso-8859-9 'iso-latin-5)
 (define-coding-system-alias 'latin-5 'iso-latin-5)

@@ -34,7 +34,8 @@
  'in-is13194-devanagari 2 ?D
  "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)"
  '((ascii t) (indian-is13194 t) nil nil
-   nil ascii-eol))
+   nil ascii-eol)
+ '(ascii indian-is13194))
 
 (define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
