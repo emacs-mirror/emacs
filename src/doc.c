@@ -404,7 +404,7 @@ translation.")
       struct gcpro gcpro1;
 
       GCPRO1 (tem);
-      return Fsubstitute_command_keys (tem);
+      tem = Fsubstitute_command_keys (tem);
       UNGCPRO;
     }
   return tem;
