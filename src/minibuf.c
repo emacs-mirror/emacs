@@ -248,7 +248,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
-  extern Lisp_Object Qinvisible, Qintangible, Qread_only, Qfront_sticky;
+  extern Lisp_Object Qread_only, Qfront_sticky;
   extern Lisp_Object Qrear_nonsticky;
 
   specbind (Qminibuffer_default, defalt);
@@ -512,7 +512,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   if (expflag)
     {
       Lisp_Object expr_and_pos;
-      unsigned char *p;
       int pos;
 
       if (STRINGP (val) && XSTRING (val)->size == 0
@@ -891,7 +890,6 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
   (prompt, def, require_match)
      Lisp_Object prompt, def, require_match;
 {
-  Lisp_Object tem;
   Lisp_Object args[4];
   
   if (BUFFERP (def))
@@ -1158,7 +1156,6 @@ scmp (s1, s2, len)
      int len;
 {
   register int l = len;
-  register unsigned char *start = s1;
 
   if (completion_ignore_case)
     {
@@ -1374,7 +1371,6 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
   int pos = 0;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
-  int disable_multibyte = ! NILP (Vminibuffer_completing_file_name); 
 
   GCPRO1 (def);
 
@@ -1512,7 +1508,8 @@ do_completion ()
 
   /* compiler bug */
   tem = Fstring_equal (completion, Fbuffer_string());
-  if (completedp = NILP (tem))
+  completedp = NILP (tem);
+  if (completedp)
     {
       Ferase_buffer ();		/* Some completion happened */
       Finsert (1, &completion);
@@ -1941,7 +1938,7 @@ It can find the completion buffer in `standard-output'.")
 	     don't put another on the same line.  */
 	  if (column > 33 || first
 	      /* If this is really wide, don't put it second on a line.  */
-	      || column > 0 && length > 45)
+	      || (column > 0 && length > 45))
 	    {
 	      Fterpri (Qnil);
 	      column = 0;
