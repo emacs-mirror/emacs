@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.25) $
+ * $HopeName: MMsrc!seg.c(trunk.26) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -8,13 +8,13 @@
  * PURPOSE
  *
  * .purpose: This is the implementation of the generic segment interface.
- * It defines the interface functions and two useful segment classes:-
+ * It defines the interface functions and two useful segment classes:
  * .purpose.class.seg: Class Seg is a class which is as simple
- * as efficiency demands permit. (It includes fields for storing colour
- * for efficiency). It may be subclassed by clients of the module.
+ * as efficiency demands permit.  (It includes fields for storing colour
+ * for efficiency).  It may be subclassed by clients of the module.
  * .purpose.class.seg-gc: Class GCSeg is a concrete class support all
  * all current GC features, and providing full backwards compatibility
- * with "old-style" segments. It may be subclassed by clients of the
+ * with "old-style" segments.  It may be subclassed by clients of the
  *  module. 
  *
  * TRANSGRESSIONS
@@ -23,13 +23,13 @@
  * SegCheck, because I haven't spent time working out the invariants.
  * We should certainly work them out, by studying impl.c.shield, and
  * assert things about shielding, protection, shield cache consistency,
- * etc. richard 1997-04-03
+ * etc.  richard 1997-04-03
  */
 
 #include "tract.h"
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.25) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.26) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -197,11 +197,11 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 
 failInit:
   RingFinish(SegPoolRing(seg));
-  seg->sig = SigInvalid;
   TRACT_FOR(tract, addr, arena, base, limit) {
     AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
     TRACT_UNSET_SEG(tract);
   }
+  seg->sig = SigInvalid;
   return res;
 }
 
