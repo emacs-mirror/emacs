@@ -6238,7 +6238,8 @@ DEFUN ("tty-suppress-bold-inverse-default-colors",
 SUPPRESS non-nil means suppress it.\n\
 This affects bold faces on TTYs whose foreground is the default background\n\
 color of the display and whose background is the default foreground color.\n\
-For such faces, no bold text will be displayed.")
+For such faces, the bold face attribute is ignored if this variable\n\
+is non-nil.")
   (suppress)
      Lisp_Object suppress;
 {
