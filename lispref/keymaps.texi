@@ -1694,7 +1694,12 @@ looks like this:
 @noindent
 The @sc{car}, @var{item-string}, is the string to be displayed in the
 menu.  It should be short---preferably one to three words.  It should
-describe the action of the command it corresponds to.
+describe the action of the command it corresponds to.  Note that it is
+not generally possible to display non-ASCII text in menus.  It will
+work for keyboard menus and will work to a large extent when Emacs is
+built with Gtk+ support.@footnote{In this case, the text is first
+encoded using the @code{utf-8} coding system and then rendered by the
+toolkit as it sees fit.}
 
 You can also supply a second string, called the help string, as follows:
 
