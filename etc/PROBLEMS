@@ -46,7 +46,31 @@ libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
 
 * The W3 package (either from from the CVS sources or the last
 release) currently (2000-12-14) doesn't run properly with Emacs 21 and
-needs work.
+needs work.  This patch is reported to make w3-4.0pre.46 work:
+
+diff -aur --new-file w3-4.0pre.46-orig/lisp/w3-display.el w3-4.0pre.46-new/lisp/w3-display.el
+--- w3-4.0pre.46-orig/lisp/w3-display.el	Sun Nov 14 22:00:12 1999
++++ w3-4.0pre.46-new/lisp/w3-display.el	Thu Dec 14 14:59:15 2000
+@@ -181,7 +181,8 @@
+ 		(dispatch-event (next-command-event)))
+ 	    (error nil))))
+      (t
+-      (if (and (not (sit-for 0)) (input-pending-p))
++      ;; modified for GNU Emacs 21 by bob@rattlesnake.com on 2000 Dec 14
++      (if  (and (not (sit-for 0)) nil)
+ 	  (condition-case ()
+ 	      (progn
+ 		(setq w3-pause-keystroke
+diff -aur --new-file w3-4.0pre.46-orig/lisp/w3-e21.el w3-4.0pre.46-new/lisp/w3-e21.el
+--- w3-4.0pre.46-orig/lisp/w3-e21.el	Thu Jan  1 00:00:00 1970
++++ w3-4.0pre.46-new/lisp/w3-e21.el	Thu Dec 14 14:54:58 2000
+@@ -0,0 +1,5 @@
++;;; w3-e21.el ---   ** required for GNU Emacs 21 **
++;; Added by bob@rattlesnake.com on 2000 Dec 14
++
++(require 'w3-e19)
++(provide 'w3-e21)
+
 
 * On AIX, if linking fails because libXbsd isn't found, check if you
 are compiling with the system's `cc' and CFLAGS containing `-O5'.  If

@@ -1,3 +1,21 @@
+2001-01-08  Dave Love  <fx@gnu.org>
+
+	* mm-encode.el (mm-qp-or-base64): Don't base64 for the sake of a
+	single character.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Add Latin-{8,9}.
+
+	* message.el: Doc and message fixes.
+	(message-send-rename-function)
+	(message-make-forward-subject-function)
+	(message-send-mail-function, message-reply-to-function)
+	(message-wide-reply-to-function, message-followup-to-function)
+	(message-distribution-function, message-auto-save-directory): Fix
+	:type.
+
+	* gnus/mml.el (mml-parse-1): Frob mml-confirmation-set when
+	proceeding after warnings.  Amend multipart warning message.
+
 2001-01-04  Dave Love  <fx@gnu.org>
 
 	* gnus-util.el (nnmail-pathname-coding-system): Defvar when
