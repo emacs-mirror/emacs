@@ -47,7 +47,7 @@
 
 ;; To make a generated skkdic.el smaller.
 (make-coding-system
- 'iso-2022-7-short
+ 'iso-2022-7bit-short
  2 ?J
  "Like `iso-2022-7bit' but no ASCII designation before SPC."
  '(ascii nil nil nil t t nil t))
@@ -364,7 +364,7 @@ the generated \"skkdic.el\" is saved."
 	      "\n\n"
 	      ";;; Comment:\n\n"
 	      ";; Do byte-compile this file again after any modification.\n\n"
-	      ";;; Start of the header of the original TIT dictionary.\n\n")
+	      ";;; Start of the header of the original SKK dictionary.\n\n")
       (set-buffer skkbuf)
       (widen)
       (goto-char 1)
@@ -418,7 +418,7 @@ the generated \"skkdic.el\" is saved."
       ;; Save the working buffer.
       (set-buffer buf)
       (set-visited-file-name (expand-file-name skkdic-filename dirname) t)
-      (set-buffer-file-coding-system 'iso-2022-7-short)
+      (set-buffer-file-coding-system 'iso-2022-7bit-short)
       (save-buffer 0))
     (kill-buffer skkbuf)
     (switch-to-buffer buf)))
@@ -478,7 +478,7 @@ To get complete usage, invoke:
     vec))
 
 (defun skkdic-extract-conversion-data (entry)
-  (string-match "^\\cH+[a-z]* " entry)
+  (string-match "^\\cj+[a-z]* " entry)
   (let ((kana (substring entry (match-beginning 0) (1- (match-end 0))))
 	(i (match-end 0))
 	candidates)
