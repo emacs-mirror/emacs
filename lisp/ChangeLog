@@ -1,5 +1,8 @@
 2002-02-25  Jason Rumney  <jasonr@gnu.org>
 
+	* w32-vars.el (mouse-wheel-scroll-amount): Use same definition as
+	mwheel.el.
+
 	* language/japanese.el (iso-2022-jp-2): Add init-bol flag.
 
 2002-02-25  Andre Spiegel  <spiegel@gnu.org>
