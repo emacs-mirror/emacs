@@ -189,6 +189,7 @@ handle_USR1_signal (sig)
       SIGUSR1_in_progress = 0;
     }
 }
+
 #ifdef SIGUSR2
 int SIGUSR2_in_progress=0;
 SIGTYPE
@@ -255,6 +256,16 @@ memory_warning_signal (sig)
   force_auto_save_soon ();
 }
 #endif
+
+/* We define abort, rather than using it from the library,
+   so that GDB can return from a breakpoint here.  */
+
+void
+abort ()
+{
+  kill (getpid (), SIGABRT);
+}
+
 
 /* Code for dealing with Lisp access to the Unix command line */
 
