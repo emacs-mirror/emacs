@@ -3501,7 +3501,11 @@ The table depends on the current ps-print setup."
      #'ps-print-quote
      (list
       (concat "\n;;; ps-print version " ps-print-version "\n")
+      ";; internal vars"
       (ps-comment-string "ps-print-emacs-type" ps-print-emacs-type)
+      (ps-comment-string "ps-windows-system  " ps-windows-system)
+      (ps-comment-string "ps-lp-system       " ps-lp-system)
+      nil
       '(25 . ps-print-color-p)
       '(25 . ps-lpr-command)
       '(25 . ps-lpr-switches)
