@@ -1492,7 +1492,6 @@ main (argc, argv, envp)
       keys_of_keymap ();
       keys_of_minibuf ();
       keys_of_window ();
-      keys_of_frame ();
     }
 
   if (!noninteractive)
