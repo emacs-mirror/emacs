@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.311.4.2 2001/11/09 15:14:49 spiegel Exp $
+;; $Id: vc.el,v 1.311.4.3 2001/11/14 13:50:58 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -466,7 +466,7 @@ These are passed to the checkin program by \\[vc-register]."
   :version "20.3")
 
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS")
-  "*List of directory names to be ignored while recursively walking file trees."
+  "*List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
 
@@ -491,7 +491,7 @@ VC can handle."
 
 ;;;###autoload
 (defcustom vc-checkout-hook nil
-  "*Normal hook (list of functions) run after a file has been checked out.
+  "*Normal hook (list of functions) run after checking out a file.
 See `run-hooks'."
   :type 'hook
   :group 'vc
@@ -507,7 +507,7 @@ See `run-hooks'."
 
 ;;;###autoload
 (defcustom vc-before-checkin-hook nil
-  "*Normal hook (list of functions) run before a file gets checked in.
+  "*Normal hook (list of functions) run before a file is checked in.
 See `run-hooks'."
   :type 'hook
   :group 'vc)
@@ -545,7 +545,7 @@ Default is eighteen steps using a twenty day increment."
   :group 'vc)
 
 (defcustom vc-annotate-very-old-color "#0046FF"
-  "*Color for lines older than CAR of last cons in `vc-annotate-color-map'."
+  "*Color for lines older than current color range in \\[vc-annotate]]."
   :type 'string
   :group 'vc)
 
@@ -589,7 +589,7 @@ the file's version control type in `vc-header-alist'."
 
 (defcustom vc-comment-alist
   '((nroff-mode ".\\\"" ""))
-  "*Special comment delimiters to be used in generating vc headers only.
+  "*Special comment delimiters for generating VC headers.
 Add an entry in this list if you need to override the normal `comment-start'
 and `comment-end' variables.  This will only be necessary if the mode language
 is sensitive to blank lines."
@@ -599,12 +599,12 @@ is sensitive to blank lines."
 		       (string :tag "Comment End")))
   :group 'vc)
 
-;; Default is to be extra careful for super-user.
-;; TODO: This variable is no longer used; the corresponding checks
-;;       are always done now.  If that turns out to be fast enough,
-;;       the variable can be obsoleted.
 (defcustom vc-checkout-carefully (= (user-uid) 0)
-  "*Non-nil means be extra-careful in checkout.
+  "*This variable is obsolete.
+The corresponding checks are always done now.
+From the old doc string:
+
+Non-nil means be extra-careful in checkout.
 Verify that the file really is not locked
 and that its contents match what the master file says."
   :type 'boolean
@@ -696,10 +696,10 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
   (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
 
 (defmacro with-vc-properties (file form settings)
-  "Execute FORM, then set per-file properties for FILE,
-but only those that have not been set during the execution of FORM.
-SETTINGS is a list of two-element lists, each of which has the
-  form (PROPERTY . VALUE)."
+  "Execute FORM, then maybe set per-file properties for FILE.
+SETTINGS is an association list of property/value pairs.  After
+executing FORM, set those properties from SETTINGS that have not yet
+been updated to their corresponding values."
   `(let ((vc-touched-properties (list t))
 	 (filename ,file))
      ,form
@@ -713,13 +713,14 @@ SETTINGS is a list of two-element lists, each of which has the
 ;; Random helper functions
 
 (defsubst vc-editable-p (file)
+  "Return non-nil if FILE can be edited."
   (or (eq (vc-checkout-model file) 'implicit)
       (memq (vc-state file) '(edited needs-merge))))
 
 ;; Two macros for elisp programming
 ;;;###autoload
 (defmacro with-vc-file (file comment &rest body)
-  "Check out a writable copy of FILE if necessary and execute the body.
+  "Check out a writable copy of FILE if necessary, then execute BODY.
 Check in FILE with COMMENT (a string) after BODY has been executed.
 FILE is passed through `expand-file-name'; BODY executed within
 `save-excursion'.  If FILE is not under version control, or locked by
@@ -777,7 +778,7 @@ The only difference with the default filter is to insert S after markers."
 	(set-marker (process-mark p) (point))))))
 
 (defun vc-setup-buffer (&optional buf)
-  "Prepare BUF for executing a VC command and make it the current buffer.
+  "Prepare BUF for executing a VC command and make it current.
 BUF defaults to \"*vc*\", can be a string and will be created if necessary."
   (unless buf (setq buf "*vc*"))
   (let ((camefrom (current-buffer))
@@ -821,11 +822,11 @@ Else, add CODE to the process' sentinel."
 (defvar vc-post-command-functions nil
   "Hook run at the end of `vc-do-command'.
 Each function is called inside the buffer in which the command was run
-and is passed 3 argument: the COMMAND, the FILE and the FLAGS.")
+and is passed 3 arguments: the COMMAND, the FILE and the FLAGS.")
 
 ;;;###autoload
 (defun vc-do-command (buffer okstatus command file &rest flags)
-  "Execute a version control command, notifying user and checking for errors.
+  "Execute a VC command, notifying user and checking for errors.
 Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
 current buffer if BUFFER is t.  If the destination buffer is not
 already current, set it up properly and erase it.  The command is
@@ -896,7 +897,8 @@ if markers are destroyed or corrupted."
 			  (min (point-max) (+ posn 100)))))
 
 (defun vc-find-position-by-context (context)
-  "Return the position of CONTEXT in the current buffer, or nil if not found."
+  "Return the position of CONTEXT in the current buffer.
+If CONTEXT cannot be found, return nil."
   (let ((context-string (nth 2 context)))
     (if (equal "" context-string)
 	(point-max)
@@ -992,8 +994,8 @@ CONTEXT is that which `vc-buffer-context' returns."
            (if new-mark (set-mark new-mark))))))
 
 (defun vc-revert-buffer1 (&optional arg no-confirm)
-  "Revert buffer, trying to keep point and mark where user expects them.
-Tries to be clever in the face of changes due to expanded version control
+  "Revert buffer, keeping point and mark where user expects them.
+Try to be clever in the face of changes due to expanded version control
 key words.  This is important for typeahead to work as expected.
 ARG and NO-CONFIRM are passed on to `revert-buffer'."
   (interactive "P")
@@ -1021,7 +1023,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 	  (error "Aborted")))))
 
 (defun vc-workfile-unchanged-p (file)
-  "Has FILE changed since last checkout?"
+  "Return non-nil if FILE has not changed since the last checkout."
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
         (lastmod (nth 5 (file-attributes file))))
     (if checkout-time
@@ -1031,12 +1033,14 @@ NOT-URGENT means it is ok to continue if the user says not to save."
         unchanged))))
 
 (defun vc-default-workfile-unchanged-p (backend file)
-  "Default check whether FILE is unchanged: diff against master version."
+  "Check if FILE is unchanged by diffing against the master version.
+Return non-nil if FILE is unchanged."
   (zerop (vc-call diff file (vc-workfile-version file))))
 
 (defun vc-default-latest-on-branch-p (backend file)
-  "Default check whether the current workfile version of FILE is the 
-latest on its branch."
+  "Return non-nil if FILE is the latest on its branch.
+This default implementation always returns non-nil, which means that
+editing non-current versions is not supported by default."
   t)
 
 (defun vc-recompute-state (file)
@@ -1046,7 +1050,7 @@ function `vc-BACKEND-state', not the heuristic."
   (vc-file-setprop file 'vc-state (vc-call state file)))
 
 (defun vc-next-action-on-file (file verbose &optional comment)
-  "Do The Right Thing for a given version-controlled FILE.
+  "Do The Right Thing for a given FILE under version control.
 If COMMENT is specified, it will be used as an admin or checkin comment.
 If VERBOSE is non-nil, query the user rather than using default parameters."
   (let ((visited (get-file-buffer file))
@@ -1203,7 +1207,7 @@ Ignores FILE and REV, but passes on COMMENT."
 
 ;;;###autoload
 (defun vc-next-action (verbose)
-  "Do the next logical checkin or checkout operation on the current file.
+  "Do the next logical version control operation on the current file.
 
 If you call this from within a VC dired buffer with no files marked,
 it will operate on the file in the current line.
@@ -1531,12 +1535,13 @@ Runs the normal hook `vc-checkin-hook'."
    'vc-checkin-hook))
 
 (defun vc-comment-to-change-log (&optional whoami file-name)
-  "Enter last VC comment into change log file for current buffer's file.
-Optional arg (interactive prefix) non-nil means prompt for user name and site.
-Second arg is file name of change log.  \
-If nil, uses `change-log-default-name'.
+  "Enter last VC comment into the change log for the current file.
+WHOAMI (interactive prefix) non-nil means prompt for user name
+and site.  FILE-NAME is the name of the change log; if nil, use
+`change-log-default-name'.
 
-May be useful as a `vc-checkin-hook' to update change logs automatically."
+This may be useful as a `vc-checkin-hook' to update change logs
+automatically."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
@@ -1578,7 +1583,11 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
 	(insert "\n"))))
 
 (defun vc-finish-logentry (&optional nocomment)
-  "Complete the operation implied by the current log entry."
+  "Complete the operation implied by the current log entry.
+Use the contents of the current buffer as a check-in or registration
+comment.  If the optional arg NOCOMMENT is non-nil, then don't check
+the buffer contents as a comment, and don't add it to
+`vc-comment-ring'."
   (interactive)
   ;; Check and record the comment, if any.
   (unless nocomment
@@ -1632,6 +1641,8 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
 ;; Code for access to the comment ring
 
 (defun vc-new-comment-index (stride len)
+  "Return the comment index STRIDE elements from the current one.
+LEN is the length of `vc-comment-ring'."
   (mod (cond
 	(vc-comment-ring-index (+ vc-comment-ring-index stride))
 	;; Initialize the index on the first use of this command
@@ -1642,7 +1653,8 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
        len))
 
 (defun vc-previous-comment (arg)
-  "Cycle backwards through comment history."
+  "Cycle backwards through comment history.
+With a numeric prefix ARG, go back ARG comments."
   (interactive "*p")
   (let ((len (ring-length vc-comment-ring)))
     (if (<= len 0)
@@ -1653,12 +1665,15 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
       (insert (ring-ref vc-comment-ring vc-comment-ring-index)))))
 
 (defun vc-next-comment (arg)
-  "Cycle forwards through comment history."
+  "Cycle forwards through comment history.
+With a numeric prefix ARG, go forward ARG comments."
   (interactive "*p")
   (vc-previous-comment (- arg)))
 
 (defun vc-comment-search-reverse (str &optional stride)
-  "Search backwards through comment history for substring match."
+  "Search backwards through comment history for substring match of STR.
+If the optional argument STRIDE is present, that is a step-width to use
+when going through the comment ring."
   ;; Why substring rather than regexp ?   -sm
   (interactive
    (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
@@ -1676,7 +1691,7 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
     (vc-previous-comment 0)))
 
 (defun vc-comment-search-forward (str)
-  "Search forwards through comment history for substring match."
+  "Search forwards through comment history for a substring match of STR."
   (interactive
    (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
   (vc-comment-search-reverse str -1))
@@ -1686,10 +1701,12 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
 ;;;###autoload
 (defun vc-diff (historic &optional not-urgent)
   "Display diffs between file versions.
-Normally this compares the current file and buffer with the most recent
-checked in version of that file.  This uses no arguments.
-With a prefix argument, it reads the file name to use
-and two version designators specifying which versions to compare."
+Normally this compares the current file and buffer with the most
+recent checked in version of that file.  This uses no arguments.  With
+a prefix argument HISTORIC, it reads the file name to use and two
+version designators specifying which versions to compare.  The
+optional argument NOT-URGENT non-nil means it is ok to say no to
+saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
@@ -1701,9 +1718,11 @@ and two version designators specifying which versions to compare."
 	(vc-version-diff file nil nil)))))
 
 (defun vc-version-diff (file rel1 rel2)
-  "For FILE, report diffs between two stored versions REL1 and REL2 of it.
-If FILE is a directory, generate diffs between versions for all registered
-files in or below it."
+  "List the differences between FILE's versions REL1 and REL2.
+If REL1 is empty or nil it means to use the current workfile version;
+REL2 empty or nil means the current file contents.  FILE may also be
+a directory, in that case, generate diffs between the correponding
+versions of all registered files in or below it."
   (interactive
    (let ((file (expand-file-name
                 (read-file-name (if buffer-file-name
@@ -1806,8 +1825,7 @@ actually call the backend, but performs a local diff."
       (vc-call diff file rel1 rel2))))
 
 (defmacro vc-diff-switches-list (backend)
-  "Make a list of `diff-switches', `vc-diff-switches', 
-and `vc-BACKEND-diff-switches'."
+  "Return the list of switches to use for executing diff under BACKEND."
   `(append 
     (if (listp diff-switches) diff-switches (list diff-switches))
     (if (listp vc-diff-switches) vc-diff-switches (list vc-diff-switches))
@@ -1817,7 +1835,7 @@ and `vc-BACKEND-diff-switches'."
       (if (listp backend-switches) backend-switches (list backend-switches)))))
 
 (defun vc-default-diff-tree (backend dir rel1 rel2)
-  "Default implementation for diffing an entire tree at and below DIR.
+  "List differences for all registered files at and below DIR.
 The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
   ;; This implementation does an explicit tree walk, and calls 
   ;; vc-BACKEND-diff directly for each file.  An optimization
@@ -1851,9 +1869,9 @@ The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
 
 ;;;###autoload
 (defun vc-version-other-window (rev)
-  "Visit version REV of the current buffer in another window.
-If the current buffer is named `F', the version is named `F.~REV~'.
-If `F.~REV~' already exists, it is used instead of being re-created."
+  "Visit version REV of the current file in another window.
+If the current file is named `F', the version is named `F.~REV~'.
+If `F.~REV~' already exists, use it instead of checking it out again."
   (interactive "sVersion to visit (default is workfile version): ")
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
@@ -1872,7 +1890,7 @@ If `F.~REV~' already exists, it is used instead of being re-created."
 
 ;;;###autoload
 (defun vc-insert-headers ()
-  "Insert headers in a file for use with your version control system.
+  "Insert headers into a file for use with a version control system.
 Headers desired are inserted at point, and are pulled from
 the variable `vc-BACKEND-header'."
   (interactive)
@@ -1903,7 +1921,7 @@ the variable `vc-BACKEND-header'."
 
 (defun vc-clear-headers (&optional file)
   "Clear all version headers in the current buffer (or FILE).
-I.e. reset them to the non-expanded form."
+The headers are reset to their non-expanded form."
   (let* ((filename (or file buffer-file-name))
 	 (visited (find-buffer-visiting filename))
 	 (backend (vc-backend filename)))
@@ -2317,7 +2335,7 @@ With prefix arg READ-SWITCHES, specify a value to override
 ;; Named-configuration entry points
 
 (defun vc-snapshot-precondition (dir)
-  "Scan the tree below DIR, looking for non-uptodate files.
+  "Scan the tree below DIR, looking for files not up-to-date.
 If any file is not up-to-date, return the name of the first such file.
 \(This means, neither snapshot creation nor retrieval is allowed.\)
 If one or more of the files are currently visited, return `visited'.
@@ -2430,7 +2448,7 @@ allowed and simply skipped)."
 			       ',(vc-workfile-version file))))))))
 
 (defun vc-default-comment-history (backend file)
-  "Return a string with all log entries that were made under BACKEND for FILE."
+  "Return a string with all log entries stored in BACKEND for FILE."
   (if (vc-find-backend-function backend 'print-log)
       (with-temp-buffer
 	(vc-call print-log file)
@@ -2459,7 +2477,7 @@ it if their logs are not in RCS format."
 
 ;;;###autoload
 (defun vc-revert-buffer ()
-  "Revert the current buffer's file back to the version it was based on.
+  "Revert the current buffer's file to the version it was based on.
 This asks for confirmation if the buffer contents are not identical
 to that version.  This function does not automatically pick up newer
 changes found in the master file; use \\[universal-argument] \\[vc-next-action] to do so."
@@ -2686,7 +2704,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	   templates)))
     (if (or (file-symlink-p oldmaster)
 	    (file-symlink-p (file-name-directory oldmaster)))
-	(error "This unsafe in the presence of symbolic links"))
+	(error "This is unsafe in the presence of symbolic links"))
     (rename-file
      oldmaster
      (catch 'found
@@ -2843,7 +2861,7 @@ Return NIL if no match made.  Associations are made based on
   (cdr (assoc buffer vc-annotate-buffers)))
 
 (define-derived-mode vc-annotate-mode fundamental-mode "Annotate"
-  "Major mode for buffers displaying output from the `annotate' command.
+  "Major mode for output buffers of the `vc-annotate' command.
 
 You can use the mode-specific menu to alter the time-span of the used
 colors.  See variable `vc-annotate-menu-elements' for customizing the
@@ -2959,7 +2977,7 @@ colors. `vc-annotate-background' specifies the background color."
     (car (car a-list))))
 
 (defun vc-annotate-time-span (a-list span &optional quantize)
-  "Apply factor SPAN  to the time-span of association list A-LIST.
+  "Apply factor SPAN to the time-span of association list A-LIST.
 Return the new alist.
 Optionally quantize to the factor of QUANTIZE."
   ;; Apply span to each car of every cons
@@ -2971,9 +2989,9 @@ Optionally quantize to the factor of QUANTIZE."
 					     a-list) span quantize))))
 
 (defun vc-annotate-compcar (threshold a-list)
-  "Test successive cons cells of association list A-LIST against THRESHOLD.
-Return the first cons cell which car is not less than THRESHOLD,
-nil otherwise"
+  "Test successive cons cells of A-LIST against THRESHOLD.
+Return the first cons cell with a car that is not less than THRESHOLD,
+nil if no such cell exists."
  (let ((i 1)
        (tmp-cons (car a-list)))
    (while (and tmp-cons (< (car tmp-cons) threshold))
