@@ -298,9 +298,9 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 	 (node (assoc type url-registered-auth-schemes)))
     (if (not (fboundp function))
 	(url-warn 'security
-		  (format (eval-when-compile
-			    "Tried to register `%s' as an auth scheme"
-			    ", but it is not a function!") function)))
+		  (format (concat
+			   "Tried to register `%s' as an auth scheme"
+			   ", but it is not a function!") function)))
 
     (if node
 	(setcdr node (cons function rating))
