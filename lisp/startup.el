@@ -116,25 +116,38 @@
 
 (setq top-level '(normal-top-level))
 
-(defvar command-line-processed nil "t once command line has been processed")
+(defvar command-line-processed nil
+  "Non-nil once command line has been processed")
 
-(defvar inhibit-startup-message nil
+(defgroup initialization nil
+  "Emacs start-up procedure"
+  :group 'internal)
+
+(defcustom inhibit-startup-message nil
   "*Non-nil inhibits the initial startup message.
 This is for use in your personal init file, once you are familiar
-with the contents of the startup message.")
+with the contents of the startup message."
+  :type 'boolean
+  :group 'initialization)
 
-(defvar inhibit-startup-echo-area-message nil
+(defcustom inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
-Inhibition takes effect only if your `.emacs' file contains
-a line of this form:
+Setting this variable takes effect
+only if you do it with the customization buffer
+or it your `.emacs' file contains a line of this form:
  (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
 If your `.emacs' file is byte-compiled, use the following form instead:
  (eval '(setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\"))
 Thus, someone else using a copy of your `.emacs' file will see
-the startup message unless he personally acts to inhibit it.")
+the startup message unless he personally acts to inhibit it."
+  :type '(choice (const :tag "Don't inhibit")
+		 (string :tag "Enter your user name, to inhibit"))
+  :group 'initialization)
 
-(defvar inhibit-default-init nil
-  "*Non-nil inhibits loading the `default' library.")
+(defcustom inhibit-default-init nil
+  "*Non-nil inhibits loading the `default' library."
+  :type 'boolean
+  :group 'initialization)
 
 (defvar command-switch-alist nil
   "Alist of command-line switches.
@@ -243,10 +256,12 @@ fashion analogous to the environment value TERM.")
 Emacs runs this hook after processing the command line arguments and loading
 the user's init file.")
 
-(defvar initial-major-mode 'lisp-interaction-mode
-  "Major mode command symbol to use for the initial *scratch* buffer.")
+(defcustom initial-major-mode 'lisp-interaction-mode
+  "Major mode command symbol to use for the initial *scratch* buffer."
+  :type 'command
+  :group 'initialization)
 
-(defvar init-file-user nil
+(defcustom init-file-user nil
   "Identity of user whose `.emacs' file is or was read.
 The value is nil if `-q' or `--no-init-file' was specified,
 meaning do not load any init file.
@@ -260,9 +275,11 @@ evaluates to the name of the directory where the `.emacs' file was
 looked for.
 
 Setting `init-file-user' does not prevent Emacs from loading
-`site-start.el'.  The only way to do that is to use `--no-site-file'.")
+`site-start.el'.  The only way to do that is to use `--no-site-file'."
+  :type '(choice (const :tag "none" nil) string)
+  :group 'initialization)
 
-(defvar site-run-file "site-start"
+(defcustom site-run-file "site-start"
   "File containing site-wide run-time initializations.
 This file is loaded at run-time before `~/.emacs'.  It contains inits
 that need to be in place for the entire site, but which, due to their
@@ -275,24 +292,30 @@ Put them in `default.el' instead, so that users can more easily
 override them.  Users can prevent loading `default.el' with the `-q'
 option or by setting `inhibit-default-init' in their own init files,
 but inhibiting `site-start.el' requires `--no-site-file', which
-is less convenient.")
+is less convenient."
+  :type 'string
+  :group 'initialization)
 
-(defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-5]\\)"
+(defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-49]\\)"
   "Regexp that specifies when to enable an ISO 8859-N character set.
 We do that if this regexp matches the locale name
 specified by the LC_ALL, LC_CTYPE and LANG environment variables.
 The paren group in the regexp should match the specific character
 set number, N.")
 
-(defvar mail-host-address nil
-  "*Name of this machine, for purposes of naming users.")
+(defcustom mail-host-address nil
+  "*Name of this machine, for purposes of naming users."
+  :type '(choice (const nil) string)
+  :group 'mail)
 
-(defvar user-mail-address nil
+(defcustom user-mail-address nil
   "*Full mailing address of this user.
 This is initialized based on `mail-host-address',
-after your init file is read, in case it sets `mail-host-address'.")
+after your init file is read, in case it sets `mail-host-address'."
+  :type 'string
+  :group 'mail)
 
-(defvar auto-save-list-file-prefix
+(defcustom auto-save-list-file-prefix
   (if (eq system-type 'ms-dos)
       "~/_s"  ; MS-DOS cannot have initial dot, and allows only 8.3 names
     "~/.saves-")
@@ -301,7 +324,9 @@ This is used after reading your `.emacs' file to initialize
 `auto-save-list-file-name', by appending Emacs's pid and the system name,
 if you have not already set `auto-save-list-file-name' yourself.
 Set this to nil if you want to prevent `auto-save-list-file-name'
-from being initialized.")
+from being initialized."
+  :type 'string
+  :group 'auto-save)
 
 (defvar init-file-debug nil)
 
@@ -424,14 +449,16 @@ from being initialized.")
 	     (let ((string (getenv "LC_CTYPE")))
 	       (and (not (equal string "")) string))
 	     (let ((string (getenv "LANG")))
-	       (and (not (equal string "")) string))))
-	charset)
+	       (and (not (equal string "")) string)))))
     (when (and ctype
 	       (string-match iso-8859-n-locale-regexp ctype))
-      (setq charset (concat "latin-" (match-string 1 ctype)))
-      ;; Set up for this character set in multibyte mode.
-      (if (string-match "latin-[12345]" charset)
-	  (set-language-environment charset))
+      (let (charset (which (match-string 1 ctype)))
+	(if (equal "5" which)
+	    (setq which "9"))
+	(setq charset (concat "latin-" which))
+	;; Set up for this character set in multibyte mode.
+	(if (string-match "latin-[12345]" charset)
+	    (set-language-environment charset)))
       ;; These two lines are ok for any Latin-N character set,
       ;; as long as the terminal displays it.
       (require 'disp-table)
@@ -647,25 +674,31 @@ from being initialized.")
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
       (and inhibit-startup-echo-area-message
-	   (let ((buffer (get-buffer-create " *temp*")))
-	     (prog1
-		 (condition-case nil
-		     (save-excursion
-		       (set-buffer buffer)
-		       (insert-file-contents user-init-file)
-		       (re-search-forward
-			(concat
-			 "([ \t\n]*setq[ \t\n]+"
-			 "inhibit-startup-echo-area-message[ \t\n]+"
-			 (regexp-quote
-			  (prin1-to-string
+	   (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
+		    (equal inhibit-startup-echo-area-message
 			   (if (string= init-file-user "")
 			       (user-login-name)
 			     init-file-user)))
-			 "[ \t\n]*)")
-			nil t))
-		   (error nil))
-	       (kill-buffer buffer))))
+	       ;; Wasn't set with custom; see if .emacs has a setq.
+	       (let ((buffer (get-buffer-create " *temp*")))
+		 (prog1
+		     (condition-case nil
+			 (save-excursion
+			   (set-buffer buffer)
+			   (insert-file-contents user-init-file)
+			   (re-search-forward
+			    (concat
+			     "([ \t\n]*setq[ \t\n]+"
+			     "inhibit-startup-echo-area-message[ \t\n]+"
+			     (regexp-quote
+			      (prin1-to-string
+			       (if (string= init-file-user "")
+				   (user-login-name)
+				 init-file-user)))
+			     "[ \t\n]*)")
+			    nil t))
+		       (error nil))
+		   (kill-buffer buffer)))))
       (message (if (eq (key-binding "\C-h\C-p") 'describe-project)
 		   "For information about the GNU Project and its goals, type C-h C-p."
 		 (substitute-command-keys
