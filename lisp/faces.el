@@ -1533,11 +1533,11 @@ created."
      (:inverse-video t))
     (((class color) (background light))
      (:box (:line-width 1 :style released-button)
-	   :background "grey90"
+	   :background "grey90" :foreground "grey20"
 	   :inherit mode-line))
     (((class color) (background dark))
      (:box (:line-width 1 :style released-button)
-	   :background "grey20"
+	   :background "grey20" :foreground "grey90"
 	   :inherit mode-line))
     (((class mono))
      (:box (:line-width 1 :style released-button)
