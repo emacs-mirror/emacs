@@ -789,16 +789,34 @@ fontset_pattern_regexp (pattern)
       || strcmp (SDATA (pattern), CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
-      char *regex = (char *) alloca (SCHARS (pattern) * 2 + 3);
-      char *p0, *p1 = regex;
+      char *regex, *p0, *p1;
+      int ndashes = 0, nstars = 0;
+      
+      for (p0 = SDATA (pattern); *p0; p0++)
+	{
+	  if (*p0 == '-')
+	    ndashes++;
+	  else if (*p0 == '*')
+	    nstars++;
+	}
 
-      /* Convert "*" to ".*", "?" to ".".  */
+      /* If PATTERN is not full XLFD we conert "*" to ".*".  Otherwise
+	 we convert "*" to "[^-]*" which is much faster in regular
+	 expression matching.  */
+      if (ndashes < 14)
+	p1 = regex = (char *) alloca (SBYTES (pattern) + 2 * nstars + 1);
+      else
+	p1 = regex = (char *) alloca (SBYTES (pattern) + 5 * nstars + 1);
+
       *p1++ = '^';
       for (p0 = (char *) SDATA (pattern); *p0; p0++)
 	{
 	  if (*p0 == '*')
 	    {
-	      *p1++ = '.';
+	      if (ndashes < 14)
+		*p1++ = '.';
+	      else
+		*p1++ = '[', *p1++ = '^', *p1++ = '-', *p1++ = ']';
 	      *p1++ = '*';
 	    }
 	  else if (*p0 == '?')
