@@ -138,7 +138,8 @@ image in pixels."
 		    ((x-display-grayscale-p frame) "Grayscale")
 		    (t "Monochrome"))))
     (x-change-window-property "GHOSTVIEW_COLORS"
-			      (format "%s %s" mode pixel-colors))))
+			      (format "%s %s" mode pixel-colors)
+			      frame)))
 
 
 ;
@@ -151,7 +152,16 @@ and height of the image in pixels.  WINDOW-AND-PIXMAP-ID is a string of
 the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
   (unwind-protect
       (let ((file (plist-get (cdr spec) :file))
-	    gs)
+	    gs
+	    (waiting 0))
+	;; If another ghostscript is running, wait for it to complete.
+	;; Two ghostscript processes running at the same time would
+	;; use the same window properties, and get confused.
+	(while (and (process-status "gs") (< waiting 10))
+	  (sit-for 0 100 t)
+	  (setq waiting (1+ waiting)))
+	(when (process-status "gs")
+	  (kill-process "gs"))
 	(gs-set-ghostview-window-prop frame spec img-width img-height)
 	(gs-set-ghostview-colors-window-prop frame pixel-colors)
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
