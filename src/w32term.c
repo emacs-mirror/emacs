@@ -1,4 +1,4 @@
-/* Implementation of GUI terminal on the Win32 API.
+/* Implementation of GUI terminal on the Microsoft W32 API.
    Copyright (C) 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -89,8 +89,8 @@ static int highlight;
 static int curs_x;
 static int curs_y;
 
-DWORD dwWinThreadId = 0;
-HANDLE hWinThread = NULL;
+DWORD dwWindowsThreadId = 0;
+HANDLE hWindowsThread = NULL;
 DWORD dwMainThreadId = 0;
 HANDLE hMainThread = NULL;
 
@@ -1802,7 +1802,7 @@ my_create_scrollbar (f, bar)
 {
   MSG msg;
   
-  PostThreadMessage (dwWinThreadId, WM_EMACS_CREATESCROLLBAR, (WPARAM) f, 
+  PostThreadMessage (dwWindowsThreadId, WM_EMACS_CREATESCROLLBAR, (WPARAM) f, 
 		     (LPARAM) bar);
   GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
   
@@ -2331,7 +2331,7 @@ is_dead_key (int wparam)
 {
   unsigned int code = MapVirtualKey (wparam, 2);
 
-  /* Win95 returns 0x8000, NT returns 0x80000000.  */
+  /* Windows 95 returns 0x8000, NT returns 0x80000000.  */
   if ((code & 0x8000) || (code & 0x80000000))
     return 1;
   else
@@ -2350,12 +2350,12 @@ is_dead_key (int wparam)
    EXPECTED is nonzero if the caller knows input is available.  
 
    Some of these messages are reposted back to the message queue since the
-   system calls the winproc directly in a context where we cannot return the
-   data nor can we guarantee the state we are in.  So if we dispatch  them
+   system calls the windows proc directly in a context where we cannot return 
+   the data nor can we guarantee the state we are in.  So if we dispatch  them
    we will get into an infinite loop.  To prevent this from ever happening we
    will set a variable to indicate we are in the read_socket call and indicate
-   which message we are processing since the winproc gets called recursively with different
-   messages by the system.
+   which message we are processing since the windows proc gets called 
+   recursively with different messages by the system.
 */
 
 int
@@ -3791,7 +3791,7 @@ x_delete_display (dpyinfo)
 
 /* Set up use of W32.  */
 
-DWORD win_msg_worker ();
+DWORD windows_msg_worker ();
 
 w32_initialize ()
 {
@@ -3846,23 +3846,23 @@ w32_initialize ()
 
     PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE);
 
-    hWinThread = CreateThread (NULL, 0, 
-			       (LPTHREAD_START_ROUTINE) win_msg_worker, 
-			       0, 0, &dwWinThreadId);
+    hWindowsThread = CreateThread (NULL, 0, 
+			       (LPTHREAD_START_ROUTINE) windows_msg_worker, 
+			       0, 0, &dwWindowsThreadId);
 
     GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
   }
   
   /* It is desirable that mainThread should have the same notion of
-     focus window and active window as winThread.  Unfortunately, the
+     focus window and active window as windowsThread.  Unfortunately, the
      following call to AttachThreadInput, which should do precisely what
      we need, causes major problems when Emacs is linked as a console
      program.  Unfortunately, we have good reasons for doing that, so
-     instead we need to send messages to winThread to make some API
+     instead we need to send messages to windowsThread to make some API
      calls for us (ones that affect, or depend on, the active/focus
      window state.  */
 #ifdef ATTACH_THREADS
-  AttachThreadInput (dwMainThreadId, dwWinThreadId, TRUE);
+  AttachThreadInput (dwMainThreadId, dwWindowsThreadId, TRUE);
 #endif
 }
 

@@ -1,4 +1,4 @@
-/* Process support for Windows NT port of GNU EMACS.
+/* Process support for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1992, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -58,7 +58,7 @@ Lisp_Object Vw32_start_process_show_window;
 /* Time to sleep before reading from a subprocess output pipe - this
    avoids the inefficiency of frequently reading small amounts of data.
    This is primarily necessary for handling DOS processes on Windows 95,
-   but is useful for W32 processes on both Win95 and NT as well.  */
+   but is useful for W32 processes on both Windows 95 and NT as well.  */
 Lisp_Object Vw32_pipe_read_delay;
 
 /* Control conversion of upper case file names to lower case.
@@ -1112,7 +1112,7 @@ sys_kill (int pid, int sig)
       /* Kill the process.  On W32 this doesn't kill child processes
 	 so it doesn't work very well for shells which is why it's not
 	 used in every case.  Also, don't try to terminate DOS processes
-	 (on Win95), because this will hang Emacs. */
+	 (on Windows 95), because this will hang Emacs. */
       if (!(cp && cp->is_dos_process)
 	  && !TerminateProcess (proc_hand, 0xff))
         {

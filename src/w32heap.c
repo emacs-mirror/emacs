@@ -1,4 +1,4 @@
-/* Heap management routines for GNU Emacs on Windows NT.
+/* Heap management routines for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -107,12 +107,12 @@ allocate_heap (void)
      the initial default process heap size and the executable image base
      address.  The link settings and the malloc heap base below must all
      correspond; the relationship between these values depends on how NT
-     and Win95 arrange the virtual address space for a process (and on
+     and Windows 95 arrange the virtual address space for a process (and on
      the size of the code and data segments in temacs.exe).
 
      The most important thing is to make base address for the executable
      image high enough to leave enough room between it and the 4MB floor
-     of the process address space on Win95 for the primary thread stack,
+     of the process address space on Windows 95 for the primary thread stack,
      the process default heap, and other assorted odds and ends
      (eg. environment strings, private system dll memory etc) that are
      allocated before temacs has a chance to grab its malloc arena.  The
@@ -132,7 +132,7 @@ allocate_heap (void)
      we will have plenty of room for expansion.
 
      Thus we would like to set the malloc heap base to 20MB.  However,
-     Win95 refuses to allocate the heap starting at this address, so we
+     Windows 95 refuses to allocate the heap starting at this address, so we
      set the base to 27MB to make it happy.  Since Emacs now leaves
      28 bits available for pointers, this lets us use the remainder of
      the region below the 256MB line for our malloc arena - 229MB is

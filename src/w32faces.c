@@ -1,4 +1,4 @@
-/* "Face" primitives under the Win32 API.
+/* "Face" primitives on the Microsoft W32 API.
    Copyright (C) 1993, 1994, 1995 Free Software Foundation.
 
 This file is part of GNU Emacs.

@@ -1,4 +1,4 @@
-/* Selection processing for Emacs using the Win32 API.
+/* Selection processing for Emacs on the Microsoft W32 API.
    Copyright (C) 1993, 1994 Free Software Foundation.
    
 This file is part of GNU Emacs.

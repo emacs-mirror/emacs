@@ -1,4 +1,4 @@
-/* Utility and Unix shadow routines for GNU Emacs on Windows NT.
+/* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1063,17 +1063,17 @@ sys_rename (const char * oldname, const char * newname)
   char temp[MAX_PATH];
   DWORD attr;
 
-  /* MoveFile on Win95 doesn't correctly change the short file name
+  /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
      just by looking at oldname and newname, unfortunately).  In these
      cases, renaming through a temporary name avoids the problem.
 
-     A second problem on Win95 is that renaming through a temp name when
+     A second problem on Windows 95 is that renaming through a temp name when
      newname is uppercase fails (the final long name ends up in
      lowercase, although the short alias might be uppercase) UNLESS the
      long temp name is not 8.3.
 
-     So, on Win95 we always rename through a temp name, and we make sure
+     So, on Windows 95 we always rename through a temp name, and we make sure
      the temp name has a long extension to ensure correct renaming.  */
 
   strcpy (temp, map_w32_filename (oldname, NULL));
@@ -1827,7 +1827,7 @@ sys_close (int fd)
     }
 
   /* Note that sockets do not need special treatment here (at least on
-     NT and Win95 using the standard tcp/ip stacks) - it appears that
+     NT and Windows 95 using the standard tcp/ip stacks) - it appears that
      closesocket is equivalent to CloseHandle, which is to be expected
      because socket handles are fully fledged kernel handles. */
   rc = _close (fd);
@@ -1965,7 +1965,7 @@ _sys_read_ahead (int fd)
       rc = _read (fd, &cp->chr, sizeof (char));
 
       /* Give subprocess time to buffer some more output for us before
-	 reporting that input is available; we need this because Win95
+	 reporting that input is available; we need this because Windows 95
 	 connects DOS programs to pipes by making the pipe appear to be
 	 the normal console stdout - as a result most DOS programs will
 	 write to stdout without buffering, ie.  one character at a

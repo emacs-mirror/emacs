@@ -1,4 +1,4 @@
-/* Functions taken directly from X sources for use with the Win32 API.
+/* Functions taken directly from X sources for use with the Microsoft W32 API.
    Copyright (C) 1989, 1992, 1993, 1994, 1995 Free Software Foundation.
 
 This file is part of GNU Emacs.

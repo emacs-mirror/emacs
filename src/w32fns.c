@@ -1,4 +1,4 @@
-/* Functions for the MS Win32 window system API.
+/* Graphical user interface functions for the Microsoft W32 API.
    Copyright (C) 1989, 92, 93, 94, 95, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2680,7 +2680,7 @@ my_post_msg (wmsg, hwnd, msg, wParam, lParam)
   post_msg (wmsg);
 }
 
-/* GetKeyState and MapVirtualKey on Win95 do not actually distinguish
+/* GetKeyState and MapVirtualKey on Windows 95 do not actually distinguish
    between left and right keys as advertised.  We test for this
    support dynamically, and set a flag when the support is absent.  If
    absent, we keep track of the left and right control and alt keys
@@ -2879,7 +2879,7 @@ map_keypad_keys (unsigned int wparam, unsigned int lparam)
 /* Main message dispatch loop. */
 
 DWORD 
-win_msg_worker (dw)
+windows_msg_worker (dw)
      DWORD dw;
 {
   MSG msg;
@@ -3033,10 +3033,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
       if (windows_translate)
 	{
-	  MSG winmsg = { hwnd, msg, wParam, lParam, 0, {0,0} };
+	  MSG windows_msg = { hwnd, msg, wParam, lParam, 0, {0,0} };
 
-	  winmsg.time = GetMessageTime ();
-	  TranslateMessage (&winmsg);
+	  windows_msg.time = GetMessageTime ();
+	  TranslateMessage (&windows_msg);
 	  goto dflt;
 	}
 
@@ -3257,7 +3257,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
   
     case WM_NCACTIVATE:
       /* Windows doesn't send us focus messages when putting up and
-	 taking down a system popup dialog as for Ctrl-Alt-Del on Win95.
+	 taking down a system popup dialog as for Ctrl-Alt-Del on Windows 95.
 	 The only indication we get that something happened is receiving
 	 this message afterwards.  So this is a good time to reset our
 	 keyboard modifiers' state. */
@@ -3371,7 +3371,7 @@ my_create_window (f)
 {
   MSG msg;
 
-  PostThreadMessage (dwWinThreadId, WM_EMACS_CREATEWINDOW, (WPARAM)f, 0);
+  PostThreadMessage (dwWindowsThreadId, WM_EMACS_CREATEWINDOW, (WPARAM)f, 0);
   GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
 }
 
@@ -3435,7 +3435,7 @@ x_icon (f, parms)
 {
   Lisp_Object icon_x, icon_y;
 
-  /* Set the position of the icon.  Note that win95 groups all
+  /* Set the position of the icon.  Note that Windows 95 groups all
      icons in the tray.  */
   icon_x = x_get_arg (parms, Qicon_left, 0, 0, number);
   icon_y = x_get_arg (parms, Qicon_top, 0, 0, number);
