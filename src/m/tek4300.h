@@ -92,3 +92,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* The entry-point label (start of text segment) is `start', not `__start'.  */
 
 #define DEFAULT_ENTRY_ADDRESS start
+
+/* Use the system's malloc calls, gmalloc.c won't work for us. */
+
+#define SYSTEM_MALLOC
+
+/* In building xmakefile, "cc -E -g" forcibly reads from stdin.  Since we
+   can't remove the CFLAGS from that "cc -E" invocation, make sure we
+   never pass -g.  If you want to debug, remove the following, and fix
+   src/Makefile.in so it doesn't pass ${CFLAGS} when creating xmakefile. */
+
+#define C_DEBUG_SWITCH
