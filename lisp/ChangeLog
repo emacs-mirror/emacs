@@ -1,8 +1,19 @@
+2002-05-04  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* play/mpuz.el (mpuz-switch-to-window): Set buffer-read-only directly.
+
 2002-05-04  Kim F. Storm  <storm@cua.dk>
 
 	* cus-edit.el (custom-buffer-verbose-help): New variable.
 	(custom-buffer-create-internal): Remove verbose introduction
 	in customization buffer when it is nil.
+
+2002-05-03  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	Don't offer coding systems that use locking shift.
+	Ask for confirmation if chosen coding system disagrees with
+	a `coding:' spec in the file.
 
 2002-05-03  John Wiegley  <johnw@gnu.org>
 
