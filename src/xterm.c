@@ -2936,7 +2936,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  if (f != 0)
 	    {
 	      KeySym keysym, orig_keysym;
-	      char copy_buffer[80];
+	      unsigned char copy_buffer[80];
 	      int modifiers;
 
 	      event.xkey.state
@@ -4166,17 +4166,42 @@ x_calc_absolute_position (f)
      struct frame *f;
 {
 #ifdef HAVE_X11
+  Window win, child;
+  int win_x = 0, win_y = 0;
+
+  /* Find the position of the outside upper-left corner of
+     the inner window, with respect to the outer window.  */
+  if (f->display.x->parent_desc != ROOT_WINDOW)
+    {
+      BLOCK_INPUT;
+      XTranslateCoordinates (x_current_display,
+			       
+			     /* From-window, to-window.  */
+			     f->display.x->window_desc,
+			     f->display.x->parent_desc,
+
+			     /* From-position, to-position.  */
+			     0, 0, &win_x, &win_y,
+
+			     /* Child of win.  */
+			     &child);
+      UNBLOCK_INPUT;
+    }
+
+  /* Treat negative positions as relative to the leftmost bottommost
+     position that fits on the screen.  */
   if (f->display.x->left_pos < 0)
     f->display.x->left_pos = (x_screen_width 
-			      - 2 * f->display.x->border_width
+			      - f->display.x->border_width - win_x
 			      - PIXEL_WIDTH (f)
 			      + f->display.x->left_pos);
 
   if (f->display.x->top_pos < 0)
     f->display.x->top_pos = (x_screen_height
-			     - 2 * f->display.x->border_width
+			     - f->display.x->border_width - win_y
 			     - PIXEL_HEIGHT (f)
 			     + f->display.x->top_pos);
+
 #else /* ! defined (HAVE_X11) */
   WINDOWINFO_TYPE parentinfo;
 
@@ -4204,7 +4229,7 @@ x_set_offset (f, xoff, yoff)
   XMoveWindow (XDISPLAY FRAME_X_WINDOW (f),
 	       f->display.x->left_pos, f->display.x->top_pos);
 #ifdef HAVE_X11
-  x_wm_set_size_hint (f, 0);
+  x_wm_set_size_hint (f, 0, xoff, yoff);
 #endif /* ! defined (HAVE_X11) */
   UNBLOCK_INPUT;
 }
@@ -4221,15 +4246,15 @@ x_set_window_size (f, cols, rows)
   BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
-  f->display.x->vertical_scroll_bar_extra =
-    (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-     ? VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f)
-     : 0);
+  f->display.x->vertical_scroll_bar_extra
+    = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+       ? VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f)
+       : 0);
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
 #ifdef HAVE_X11
-  x_wm_set_size_hint (f, 0);
+  x_wm_set_size_hint (f, 0, 0, 0);
 #endif /* ! defined (HAVE_X11) */
   XChangeWindowSize (FRAME_X_WINDOW (f), pixelwidth, pixelheight);
 
@@ -4634,9 +4659,13 @@ mouse_event_pending_p ()
 
 #ifdef HAVE_X11
 
-x_wm_set_size_hint (f, prompting)
+/* SPEC_X and SPEC_Y are the specified positions.
+   We look only at their sign, to decide the gravity.  */
+
+x_wm_set_size_hint (f, prompting, spec_x, spec_y)
      struct frame *f;
      long prompting;
+     int spec_x, spec_y;
 {
   XSizeHints size_hints;
   Window window = FRAME_X_WINDOW (f);
@@ -4706,6 +4735,23 @@ x_wm_set_size_hint (f, prompting)
       if (hints.flags & USSize)
 	size_hints.flags |= USSize;
     }
+
+  switch (((spec_x < 0) << 1) + (spec_y < 0))
+    {
+    case 0:
+      size_hints.win_gravity = NorthWestGravity;
+      break;
+    case 1:
+      size_hints.win_gravity = SouthWestGravity;
+      break;
+    case 2:
+      size_hints.win_gravity = NorthEastGravity;
+      break;
+    case 3:
+      size_hints.win_gravity = SouthEastGravity;
+      break;
+    }
+  size_hints.flags |= PWinGravity;
 
 #ifdef HAVE_X11R4
   XSetWMNormalHints (x_current_display, window, &size_hints);
