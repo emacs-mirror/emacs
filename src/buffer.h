@@ -736,6 +736,9 @@ extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
 
+/* If nonzero, all modification hooks are suppressed.  */
+extern int inhibit_modification_hooks;
+
 extern Lisp_Object Vdeactivate_mark;
 extern Lisp_Object Vtransient_mark_mode;
 
