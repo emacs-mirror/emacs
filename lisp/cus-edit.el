@@ -809,13 +809,15 @@ are shown; the contents of those subgroups are initially hidden."
 		       (completing-read "Customize group: (default emacs) "
 					obarray 
 					(lambda (symbol)
-					  (get symbol 'custom-group))
+					  (or (get symbol 'custom-loads)
+					      (get symbol 'custom-group)))
 					t))))
-
   (when (stringp group)
     (if (string-equal "" group)
 	(setq group 'emacs)
       (setq group (intern group))))
+  (or (get group 'custom-group)
+      (custom-load-symbol group))
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
@@ -2495,7 +2497,7 @@ Optional EVENT is the location for the menu."
 (define-widget 'hook 'list
   "A emacs lisp hook"
   :value-to-internal (lambda (widget value)
-		       (if (symbolp value)
+		       (if (and value (symbolp value))
 			   (list value)
 			 value))
   :match (lambda (widget value)
