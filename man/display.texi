@@ -468,13 +468,13 @@ will be done less frequently.
 by means of a display table.  @xref{Display Tables,, Display Tables,
 elisp, The Emacs Lisp Reference Manual}.
 
-@cindex busy-cursor display
-@vindex busy-cursor-delay
+@cindex hourglass pointer display
+@vindex hourglass-delay
   On a window system, Emacs can optionally display the mouse pointer
 in a special shape to say that Emacs is busy.  To turn this feature on
 or off, customize the group @code{cursor}.  You can also control the
 amount of time Emacs must remain busy before the busy indicator is
-displayed, by setting the variable @code{busy-cursor-delay}.
+displayed, by setting the variable @code{hourglass-delay}.
 
 @node Cursor Display
 @section Displaying the Cursor
