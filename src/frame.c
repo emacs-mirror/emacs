@@ -2514,7 +2514,8 @@ For values specific to the first Emacs frame, see `initial-frame-alist'.
 For values specific to the separate minibuffer frame, see
  `minibuffer-frame-alist'.
 The `menu-bar-lines' element of the list controls whether new frames
- have menu bars; `menu-bar-mode' works by altering this element.  */);
+ have menu bars; `menu-bar-mode' works by altering this element.
+Setting this variable does not affect exsiting frames, only new ones.  */);
   Vdefault_frame_alist = Qnil;
 
   Qinhibit_default_face_x_resources

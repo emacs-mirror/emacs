@@ -1,3 +1,8 @@
+2002-03-05  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* frame.c (default-frame-alist): Explain that setting it doesn't
+	affect existing frames.
+
 2002-03-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* dosfns.c, dosfns.h, dispnew.c, dispextern.h, commands.h, charset.c,
