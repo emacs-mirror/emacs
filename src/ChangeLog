@@ -18,9 +18,11 @@
 
 2001-10-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* syntax.c: Fix argument names and usage.
+	* syntax.c (modify-syntax-entry): Fix argument names (use CHAR
+	instead of C) and usage.
 
-	* editfns.c: Fix argument names and usage.
+	* editfns.c (char-to-string): Fix argument names (use CHAR instead
+	of C) and usage.
 
 	* xfns.c (Fx_show_tip): Remove unused variables `buffer', `top',
 	`left', `max_width' and `max_height'.
