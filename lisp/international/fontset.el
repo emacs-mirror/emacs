@@ -324,14 +324,16 @@ automatically."
 	    name))
       fontset)))
 
-(defun create-fontset-from-fontset-spec (fontset-spec &optional style)
+(defun create-fontset-from-fontset-spec (fontset-spec &optional style noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
 	FONTSET-NAME,CHARSET-NAME0:FONT-NAME0,CHARSET-NAME1:FONT-NAME1, ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 If optional argument STYLE is specified, create a fontset of STYLE
 by modifying FONTSET-SPEC appropriately.  STYLE can be one of `bold',
-`italic', and `bold-italic'."
+`italic', and `bold-italic'.
+If this function attemps to create already existing fontset, error is
+signaled unlress the optional 3rd argument NOERROR is non-nil."
   (if (not (string-match "^[^,]+" fontset-spec))
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
@@ -367,16 +369,18 @@ by modifying FONTSET-SPEC appropriately.  STYLE can be one of `bold',
 	  (setq fontlist
 		(x-complement-fontset-spec xlfd-fields fontlist))))
 
-    ;; Create the fontset, and define the alias if appropriate.
-    (new-fontset name fontlist)
-    (if (and (not style)
-	     (not (assoc name fontset-alias-alist))
-	     (string-match "fontset-.*$" name))
-	(let ((alias (match-string 0 name)))
-	  (or (rassoc alias fontset-alias-alist)
-	      (setq fontset-alias-alist
-		    (cons (cons name alias) fontset-alias-alist)))))
-    ))
+    (if (and noerror (query-fontset name))
+	;; Don't try to create an already existing fontset.
+	nil
+      ;; Create the fontset, and define the alias if appropriate.
+      (new-fontset name fontlist)
+      (if (and (not style)
+	       (not (assoc name fontset-alias-alist))
+	       (string-match "fontset-.*$" name))
+	  (let ((alias (match-string 0 name)))
+	    (or (rassoc alias fontset-alias-alist)
+		(setq fontset-alias-alist
+		      (cons (cons name alias) fontset-alias-alist))))))))
 
 
 ;; Create standard fontset from 16 dots fonts which are the most widely
@@ -409,7 +413,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	fontset-spec)
     (while (setq fontset-spec (x-get-resource (concat "fontset-" idx)
 					      (concat "Fontset-" idx)))
-      (create-fontset-from-fontset-spec fontset-spec)
+      (create-fontset-from-fontset-spec fontset-spec nil 'noerror)
       (setq idx (1+ idx)))))
 
 (defsubst fontset-list ()
