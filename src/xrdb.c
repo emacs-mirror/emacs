@@ -32,7 +32,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#if 0
 #include <X11/Xos.h>
+#endif
 #include <X11/X.h>
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>
@@ -49,7 +51,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 extern char *getenv ();
-extern int getuid ();
+extern short getuid ();		/* If this causes portability problems,
+				   I think we should just delete it; it'll
+				   default to `int' anyway.  */
 extern struct passwd *getpwuid ();
 extern struct passwd *getpwnam ();
 
@@ -96,7 +100,7 @@ file_p (path)
 {
   struct stat status;
 
-  return (access (path, R_OK) == 0		/* exists and is readable */
+  return (access (path, 4) == 0			/* exists and is readable */
 	  && stat (path, &status) == 0		/* get the status */
 	  && (status.st_mode & S_IFDIR) == 0);	/* not a directory */
 }
