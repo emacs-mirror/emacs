@@ -976,7 +976,7 @@ Heuer, Manabu Higashida, Anders Holst, Kurt Hornik, Tom Houlder, Lars
 Ingebrigtsen, Andrew Innes, Michael K. Johnson, Kyle Jones, Tomoji
 Kagatani, Brewster Kahle, David Kaufman, Henry Kautz, Howard Kaye,
 Michael Kifer, Richard King, Larry K. Kolodney, Robert Krawitz,
-Sebastian Kremer, Geoff Kuenning, David K@aa gedal, Daniel LaLiberte,
+Sebastian Kremer, Geoff Kuenning, David K@aa{}gedal, Daniel LaLiberte,
 Aaron Larson, James R. Larus, Frederic Lepied, Lars Lindberg, Eric
 Ludlam, Neil M. Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon
 Marshall, Bengt Martensson, Charlie Martin, Thomas May, Roland McGrath,
