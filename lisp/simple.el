@@ -1387,28 +1387,47 @@ The goal column is stored in the variable `goal-column'."
 	     goal-column))
   nil)
 
+;;; Partial support for horizontal autoscrolling.  Someday, this feature
+;;; will be built into the C level and all the (hscroll-point-visible) calls
+;;; will go away.
+
+(defvar hscroll-step 0
+   "*The number of columns to try scrolling a window by when point moves out.
+If that fails to bring point back on frame, point is centered instead.
+If this is zero, point is always centered after it moves off frame.")
+
+(defun hscroll-point-visible ()
+  "Scrolls the window horizontally to make point visible."
+  (let*  ((min (window-hscroll))
+          (max (- (+ min (window-width)) 2))
+          (here (current-column))
+          (delta (if (zerop hscroll-step) (/ (window-width) 2) hscroll-step))
+          )
+    (if (< here min)
+        (scroll-right (max 0 (+ (- min here) delta)))
+      (if (>= here  max)
+          (scroll-left (- (- here min) delta))
+        ))))
+  
 ;;; Make arrow keys do the right thing for improved terminal support
 ;;; When we implement true horizontal autoscrolling, right-arrow and
 ;;; left-arrow can lose the (if truncate-lines ...) clause and become
-;;; aliases.
+;;; aliases.  These functions are bound to the corresponding keyboard
+;;; events in loaddefs.el.
 
 (defun right-arrow (arg)
   "Move right one character on the screen (with prefix ARG, that many chars).
 Scroll right if needed to keep point horizontally onscreen."
   (interactive "P")
   (forward-char arg)
-  (if truncate-lines
-      (let ((x (current-column)) (w (- (window-width) 2)))
-	(set-window-hscroll (selected-window) (- x (% x w)) ))))
+  (hscroll-point-visible))
 
 (defun left-arrow (arg)
   "Move left one character on the screen (with prefix ARG, that many chars).
 Scroll left if needed to keep point horizontally onscreen."
   (interactive "P")
   (backward-char arg)
-  (if truncate-lines
-      (let ((x (current-column)) (w (- (window-width) 2)))
-	(set-window-hscroll (selected-window) (- x (% x w)) ))))
+  (hscroll-point-visible))
 
 (defun down-arrow (arg)
   "Move down one line on the screen (with prefix ARG, that many lines).
