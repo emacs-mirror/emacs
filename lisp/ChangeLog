@@ -1,5 +1,8 @@
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* info.el (Info-fontify-node): Bind doun-mouse-{1,2} instead
+	of mouse-{1,2} since dragging is on the down event.
+
 	* play/doctor.el (make-doctor-variables): Remove a '($ please)'.
 
 	* mail/mh-utils.el (mh-recenter): Call `recenter' with arg t
