@@ -5502,6 +5502,8 @@ from `bibtex-string-files' are searched.
 
 ** Iso Accents mode now supports Latin-3 as an alternative.
 
+** The commadn next-error now opens blocks hidden by hideshow.
+
 ** The function using-unix-filesystems has been replaced by the
 functions add-untranslated-filesystem and remove-untranslated-filesystem.
 Each of these functions takes the name of a drive letter or directory

@@ -1,3 +1,13 @@
+2000-01-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (reseat_at_next_visible_line_start): Position before
+	newline only if ending up on a newline.
+	(next_element_from_ellipsis): Return success.  Handle case of
+	displaying no ellipsis.  Fix case of ellipsis defined in display
+	table.
+	(next_element_from_buffer): Return 0 if next_element_from_ellipsis
+	returns 0.
+
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xfaces.c (Fcolor_gray_p): Renamed from face-color-gray-p.

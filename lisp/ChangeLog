@@ -1,3 +1,8 @@
+2000-01-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-fill-paragraph): Count number of spaces
+	at comment end, and re-insert them after filling.
+
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/idlwave.el: Rename idlwave-*.el into idlw-*.el
