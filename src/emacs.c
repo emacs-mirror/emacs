@@ -31,10 +31,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <ssdef.h>
 #endif
 
-#ifdef USG5
-#include <fcntl.h>
-#endif
-
 #ifdef BSD
 #include <sys/ioctl.h>
 #endif
