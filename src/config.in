@@ -627,6 +627,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you're using XFree386. */
 #undef HAVE_XFREE386
 
+/* Define to 1 if XIM is available */
+#undef HAVE_XIM
+
 /* Define to 1 if you have the XkbGetKeyboard function. */
 #undef HAVE_XKBGETKEYBOARD
 
