@@ -34,6 +34,7 @@ on file directories.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
 * Remote Files::        Accessing files on other sites.
 * Quoted File Names::   Quoting special characters in file names.
+* File Name Cache::     Completion against a list of files you often use.
 * File Conveniences::   Convenience Features for Finding Files.
 @end menu
 
@@ -97,7 +98,7 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 @xref{Minibuffer File}.
 
   @samp{$} in a file name is used to substitute environment variables.
-For example, if you have used the shell command @samp{export
+For example, if you have used the shell command @command{export
 FOO=rms/hacks} to set up an environment variable named @env{FOO}, then
 you can use @file{/u/$FOO/test.c} or @file{/u/$@{FOO@}/test.c} as an
 abbreviation for @file{/u/rms/hacks/test.c}.  The environment variable
@@ -230,11 +231,11 @@ to try to visit a directory.
 
 @cindex wildcard characters in file names
 @vindex find-file-wildcards
-  If the file name you specify contains @code{sh}-style wildcard
-characters, Emacs visits all the files that match it.  @xref{Quoted File
-Names}, if you want to visit a file whose name actually contains
-wildcard characters.  Wildcards comprise @samp{?}, @samp{*} and
-@samp{[@dots{}]} sequences.  The wildcard feature can be disabled by
+  If the file name you specify contains shell-style wildcard
+characters, Emacs visits all the files that match it.  Wildcards
+comprise @samp{?}, @samp{*} and @samp{[@dots{}]} sequences.
+@xref{Quoted File Names}, for how to visit a file whose name actually
+contains wildcard characters.  You can disable the wildcard feature by
 customizing @code{find-file-wildcards}.
 
   If you visit a file that the operating system won't let you modify,
@@ -281,8 +282,7 @@ seek.  This feature is available only when you are using a window
 system.  @xref{Frames}.
 
 @findex find-file-literally
-@vindex require-final-newline@r{, and }find-file-literally
-  If you wish to edit a file as a sequence of characters with no special
+  If you wish to edit a file as a sequence of ASCII characters with no special
 encoding or conversion, use the @kbd{M-x find-file-literally} command.
 It visits a file, like @kbd{C-x C-f}, but does not do format conversion
 (@pxref{Formatted Text}), character code conversion (@pxref{Coding
@@ -440,7 +440,8 @@ every time a file is saved or written.  The default is @code{nil}.
 * Backup::              How Emacs saves the old version of your file.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
-* Shadowing: File Shadowing. Copying files to `shadows' automatically.
+* Shadowing: File Shadowing.
+                        Copying files to `shadows' automatically.
 * Time Stamps::         Emacs can update time stamps on saved files.
 @end menu
 
@@ -449,7 +450,6 @@ every time a file is saved or written.  The default is @code{nil}.
 @cindex backup file
 @vindex make-backup-files
 @vindex vc-make-backup-files
-@vindex backup-enable-predicate
 
   On most operating systems, rewriting a file automatically destroys all
 record of what the file used to contain.  Thus, saving a file from Emacs
@@ -471,8 +471,9 @@ control system.  @xref{VC Workfile Handling}.
 @vindex temporary-file-directory
 @vindex small-temporary-file-directory
   The default value of the @code{backup-enable-predicate} variable
-prevents backup files being written for files in the directories named
-by @code{temporary-file-directory} or @code{small-temporary-file-directory}.
+prevents backup files being written for files in the directories used
+for temporary files, specified by @code{temporary-file-directory} or
+@code{small-temporary-file-directory}.
 
   At your option, Emacs can keep either a single backup file or a series of
 numbered backup files for each file that you edit.
@@ -513,28 +514,29 @@ be @file{eval.c~}.
   You can change this behaviour by defining the variable
 @code{make-backup-file-name-function} to a suitable function.
 Alternatively you can customize the variable
-@code{backup-directory-alist} to specify that files matching certain
-patterns should be backed up in specific directories.  A typical use is
-to add an element @code{("." . @var{dir})} to make all backups in the
-directory with absolute name @var{dir}; the names will be mangled to
-prevent clashes between files with the same names originating in
-different directories.  Alternatively, adding, say, @code{("." ".~")}
-would make backups in the invisible sub-directory @file{.~} of the
-original file's directory.  The directories are created if necessary
-when the backup is made.
+@var{backup-directory-alist} to specify that files matching certain
+patterns should be backed up in specific directories.
+
+  A typical use is to add an element @code{("." . @var{dir})} to make
+all backups in the directory with absolute name @var{dir}; Emacs
+modifies the backup file names to avoid clashes between files with the
+same names originating in different directories.  Alternatively,
+adding, say, @code{("." ".~")} would make backups in the invisible
+subdirectory @file{.~} of the original file's directory.  Emacs
+creates the directory, if necessary, to make the backup.
+
+  If access control stops Emacs from writing backup files under the usual
+names, it writes the backup file as @file{%backup%~} in your home
+directory.  Only one such file can exist, so only the most recently
+made such backup is available.
 
   If you choose to have a series of numbered backup files, backup file
-names are made by appending @samp{.~}, the number, and another @samp{~}
-to the original file name.  Thus, the backup files of @file{eval.c}
-would be called @file{eval.c.~1~}, @file{eval.c.~2~}, and so on, through
-names like @file{eval.c.~259~} and beyond.  As for single backups,
-@code{backup-directory-alist} can be used to control the location of
-numbered backups.
-
-  If protection stops you from writing backup files under the usual names,
-the backup file is written as @file{%backup%~} in your home directory.
-Only one such file can exist, so only the most recently made such backup is
-available.
+names contain @samp{.~}, the number, and another @samp{~} after the
+original file name.  Thus, the backup files of @file{eval.c} would be
+called @file{eval.c.~1~}, @file{eval.c.~2~}, and so on, all the way
+through names like @file{eval.c.~259~} and beyond.  The variable
+@code{backup-directory-alist} applies to numbered backups just as
+usual.
 
 @vindex version-control
   The choice of single backup or numbered backups is controlled by the
@@ -620,7 +622,7 @@ locally (@pxref{File Variables}).
 @vindex backup-by-copying-when-mismatch
 @vindex backup-by-copying-when-privileged-mismatch
 @cindex file ownership, and backup
-@cindex backup, and user's uid
+@cindex backup, and user-id
   The choice of renaming or copying is controlled by four variables.
 Renaming is the default choice.  If the variable
 @code{backup-by-copying} is non-@code{nil}, copying is used.  Otherwise,
@@ -632,8 +634,8 @@ copying is used if renaming would cause the file's owner or group to
 change.  @code{backup-by-copying-when-mismatch} is @code{t} by default
 if you start Emacs as the superuser.  The fourth variable,
 @code{backup-by-copying-when-privileged-mismatch}, gives the highest
-numeric user id for which @code{backup-by-copying-when-mismatch} will be
-forced on.  This is useful when low-numbered uid's are assigned to
+numeric user-id for which @code{backup-by-copying-when-mismatch} will be
+forced on.  This is useful when low-numbered user-id are assigned to
 special system users, such as @code{root}, @code{bin}, @code{daemon},
 etc., which must maintain ownership of files.
 
@@ -732,43 +734,44 @@ different name, and use @code{diff} to compare the two files.@refill
 @table @kbd
 @item M-x shadow-initialize
 Set up file shadowing.
-@item M-x shadow-define-cluster @key{RET} @var{name} @key{RET}
-Define a shadow file cluster @var{name}.
-@item M-x shadow-define-regexp-group
-Make each of a group of files be shared between hosts.
 @item M-x shadow-define-literal-group
 Declare a single file to be shared between sites.
+@item M-x shadow-define-regexp-group
+Make all files that match each of a group of files be shared between hosts.
+@item M-x shadow-define-cluster @key{RET} @var{name} @key{RET}
+Define a shadow file cluster @var{name}.
 @item M-x shadow-copy-files
 Copy all pending shadow files.
-@item M-x shadow-cancel ()
-Cancel the instruction to copy some files.
+@item M-x shadow-cancel
+Cancel the instruction to shadow some files.
 @end table
 
-You can arrange to keep identical copies of files in more than one
-place---possibly on different machines.  When you save a file, Emacs can
-check whether it is on the list of files with @dfn{shadows}, and if so,
-it tries to copy it when you exit Emacs (or use the @kbd{M-x
-shadow-copy-files} command).
+You can arrange to keep identical @dfn{shadow} copies of certain files
+in more than one place---possibly on different machines.  To do this,
+first you must set up a @dfn{shadow file group}, which is a set of
+identically-named files shared between a list of sites.  The file
+group is permanent and applies to further Emacs sessions as well as
+the current one.  Once the group is set up, every time you exit Emacs,
+it will copy the file you edited to the other files in its group.  You
+can also do the copying without exiting Emacs, by typing @kbd{M-x
+shadow-copy-files}.
 
-A @dfn{cluster} is a group of hosts that share directories, so that
-copying to or from one of them is sufficient to update the file on all
-of them.  Clusters are defined by a name, the network address of a
-primary host (the one we copy files to), and a regular expression that
-matches the hostnames of all the sites in the cluster.  A @dfn{file
-group} is a set of identically-named files shared between a list of
-sites.
+To set up a file group, use @kbd{M-x shadow-define-literal-group} or
+@kbd{M-x shadow-define-regexp-group}.  See their documentation strings
+for further information.
 
-Add clusters (if necessary) and file groups with @kbd{M-x
-shadow-define-cluster}, @kbd{M-x shadow-define-literal-group}, and
-@kbd{M-x shadow-define-regexp-group} (see the documentation for these
-functions for information on how and when to use them).  After doing
-this once, everything should be automatic.  The lists of clusters and
-shadows are remembered from one emacs session to another.
+Before copying a file to its shadows, Emacs asks for confirmation.
+You can answer ``no'' to bypass copying of this file, this time.  If
+you want to cancel the shadowing permanently for a certain file, use
+@kbd{M-x shadow-cancel} to eliminate or change the shadow file group.
 
-If you do not want to copy a particular file, you can answer "no" and be
-asked again next time you hit @kbd{C-x 4 s} or exit Emacs.  If you do
-not want to be asked again, use @kbd{M-x shadow-cancel}, and you will
-not be asked until you change the file and save it again.
+A @dfn{shadow cluster} is a group of hosts that share directories, so
+that copying to or from one of them is sufficient to update the file
+on all of them.  Each shadow cluster has a name, and specifies the
+network address of a primary host (the one we copy files to), and a
+regular expression that matches the hostnames of all the other hosts
+in the cluster.  You can define a shadow cluster with @kbd{M-x
+shadow-define-cluster}.
 
 @node Time Stamps
 @subsection Updating Time Stamps Automatically
@@ -777,27 +780,29 @@ not be asked until you change the file and save it again.
 @cindex modification dates
 @cindex locale, date format
 
-You can arrange to have time stamp text in a file updated
-automatically to reflect the modification time when you save the
-file.  To do this, include in the first eight lines a template like
+You can arrange put a time stamp in a file, so that it will be updated
+automatically each time you edit and save the file.  The time stamp
+has to be in the first eight lines of the file, and you should
+insert it like this:
+
 @example
 Time-stamp: <>
 @end example
+
 @noindent
-or
+or like this:
+
 @example
 Time-stamp: ""
 @end example
-@noindent
-and customize the value of the hook @code{write-file-hooks} to add
-@code{time-stamp}.  Such a template is updated with the current time
-and date when the file is written.  You can also use the command
-@kbd{M-x time-stamp} to update the time stamp manually.
 
-You can customize the form of the template and the time string used
-along with other parameters in the Custom group @code{time-stamp}.
-Note that non-numeric fields in the time stamp are printed according
-to your locale setting.
+  Then add the hook function @code{time-stamp} to the hook
+@code{write-file-hooks}; that hook function will automatically update
+the time stamp, inserting the current date and time when you save the
+file.  You can also use the command @kbd{M-x time-stamp} to update the
+time stamp manually.  For other customizations, see the Custom group
+@code{time-stamp}.  Note that non-numeric fields in the time stamp are
+formatted according to your locale setting (@pxref{Environment}).
 
 @node Reverting
 @section Reverting a Buffer
@@ -986,14 +991,13 @@ recover are present in Emacs buffers.  You should then save them.  Only
 this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
-  Interrupted sessions are recorded for later recovery in files named
+  Emacs records interrupted sessions for later recovery in files named
 @file{~/.emacs.d/auto-save-list/.saves-@var{pid}-@var{hostname}}.  The
 @samp{~/.emacs.d/auto-save-list/.saves-} portion of these names comes
-from the value of @code{auto-save-list-file-prefix}.  You can arrange
-to record sessions in a different place by setting that variable in
-your @file{.emacs} file.  If you set @code{auto-save-list-file-prefix}
-to @code{nil} in your @file{.emacs} file, sessions are not recorded
-for recovery.
+from the value of @code{auto-save-list-file-prefix}.  You can record
+sessions in a different place by customizing that variable.  If you
+set @code{auto-save-list-file-prefix} to @code{nil} in your
+@file{.emacs} file, sessions are not recorded for recovery.
 
 @node File Aliases
 @section File Name Aliases
@@ -1011,18 +1015,14 @@ links point to directories.
 two different buffers, but it warns you about the situation.
 
 @vindex find-file-existing-other-name 
-  Normally, if you visit a file which Emacs is already visiting under a
-different name, Emacs prints a message in the echo area and uses an
-existing buffer, where that file is visited under another name.  This
-can happen on systems that support symbolic links, or if you use a long
-file name on a system which truncates long file names.
-
-  If Emacs should use different buffers when visiting the same file
-under different names, set the variable
-@code{find-file-existing-other-name} to @code{nil}.  A non-@code{nil}
-value, which is the default, means @code{find-file} uses the existing
-buffer visiting the file, no matter which of the file's names you
-specify.
+  Normally, if you visit a file which Emacs is already visiting under
+a different name, Emacs displays a message in the echo area and uses
+the existing buffer visiting that file.  This can happen on systems
+that support symbolic links, or if you use a long file name on a
+system that truncates long file names.  You can disable this feature
+by setting the variable @code{find-file-existing-other-name} to
+@code{nil}.  Then if you visit the same file under two different names,
+you get a separate buffer for each file name.
 
 @vindex find-file-visit-truename
 @cindex truenames of files
@@ -1044,12 +1044,11 @@ such as the creation time of each version, who created it, and a
 description of what was changed in that version.
 
   The Emacs version control interface is called VC.  Its commands work
-with three version control systems---RCS, CVS and SCCS.  The GNU project
-recommends RCS and CVS, which are free software and available from the
-Free Software Foundation.
-@cindex CSSC
-There is a GNU clone of SCCS called CSSC, but RCS is technically
-superior.
+with three version control systems---RCS, CVS and SCCS.  The GNU
+project recommends RCS and CVS, which are free software and available
+from the Free Software Foundation.  We also have free software to
+replace SCCS, known as CSSC; if you are using SCCS and don't want to
+make the incompatible change to RCS or CVS, you can switch to CSSC.
 
 @menu
 * Introduction to VC::  How version control works in general.
@@ -1504,10 +1503,10 @@ with CVS.
 @cindex PCL-CVS
 @pindex cvs
 @cindex CVS Dired Mode
-The VC Dired Mode described here works with all the VC-supported version
-control systems.  There is a similar facility specialized for use with
-CVS, called PCL-CVS.  @xref{Top, , About PCL-CVS, pcl-cvs, PCL-CVS --- The
-Emacs Front-End to CVS}.
+  The VC Dired Mode described here works with all the version control
+systems that VC supports.  Another more powerful facility, designed
+specifically for CVS, is called PCL-CVS.  @xref{Top, , About PCL-CVS,
+pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
 
 @kindex C-x v d
 @findex vc-directory
@@ -2153,16 +2152,6 @@ headers.
   There are many ways of customizing VC.  The options you can set fall
 into four categories, described in the following sections.
 
-@vindex vc-ignore-vc-files
-@cindex Version control, deactivating
-  In addition, it is possible to turn VC on and off generally by setting
-the variable @code{vc-ignore-vc-files}.  Normally VC will notice the
-presence of version control on a file you visit and automatically invoke
-the relevant program to check the file's state.  Change
-@code{vc-ignore-vc-files} if this isn't the right thing, for instance,
-if you edit files under version control but don't have the relevant
-version control programs available.
-
 @menu
 * Backend Options::       Customizing the back-end to your needs.
 * VC Workfile Handling::  Various options concerning working files.
@@ -2173,6 +2162,13 @@ version control programs available.
 
 @node Backend Options
 @subsubsection Options for VC Backends
+
+@vindex vc-handled-backends
+  By default, VC detects automatically which files are managed by RCS,
+which by CVS, and which by SCCS, and it tries to do the right thing in
+all three cases.  If you want VC to ignore one or more of these
+backends, set @code{vc-handled-backends} to the list of backends that
+@emph{should} be handled.
 
 @cindex backend options (VC)
 @cindex locking under version control
@@ -2211,12 +2207,6 @@ make it writable.  VC calls @code{cvs edit} to make the file writeable,
 and CVS takes care to notify other developers of the fact that you
 intend to change the file.  See the CVS documentation for details on
 using the watch feature.
-
-@vindex vc-handle-cvs
-  You can turn off use of VC for CVS-managed files by setting the
-variable @code{vc-handle-cvs} to @code{nil}.  If you do this, Emacs
-treats these files as if they were not registered, and the VC commands
-are not available for them.  You must do all CVS operations manually.
 
 @node VC Workfile Handling
 @subsubsection VC Workfile Handling
@@ -2405,24 +2395,26 @@ non-@code{nil}, it ignores differences in case as well.
 @cindex diffs
 @cindex patches
 @cindex Diff mode
-Differences between versions of files are often distributed as
-@dfn{patches} output by @command{diff} or a version control system.
-@kbd{M-x diff-mode} turns on Diff mode, a major mode for viewing and
-editing patches, either as `unified diffs' or `context diffs'.
-
-  See also @ref{Emerge} and @ref{Top,,, ediff, The Ediff Manual}, for
-convenient facilities for merging two similar files.
+  Differences between versions of files are often distributed as
+@dfn{patches}, which are the output from @command{diff} or a version
+control system that uses @command{diff}.  @kbd{M-x diff-mode} turns on
+Diff mode, a major mode for viewing and editing patches, either as
+``unified diffs'' or ``context diffs.''
 
 @cindex Smerge mode
 @findex smerge-mode
 @cindex failed merges
 @cindex merges, failed
 @pindex diff3
-Use @kbd{M-x smerge-mode} to turn on Smerge mode, a minor mode for
-editing output from the @command{diff3} program.  This is typically the
-result of a failed merge from a version control system `update' outside
-VC, due to conflicting changes to a file.  Smerge mode provides commands
-to resolve conflicts by selecting specific changes.
+  You can use @kbd{M-x smerge-mode} to turn on Smerge mode, a minor
+mode for editing output from the @command{diff3} program.  This is
+typically the result of a failed merge from a version control system
+``update'' outside VC, due to conflicting changes to a file.  Smerge
+mode provides commands to resolve conflicts by selecting specific
+changes.
+
+  See also @ref{Emerge}, and @ref{Top,,, ediff, The Ediff Manual}, for
+convenient facilities for merging two similar files.
 
 @node Misc File Ops
 @section Miscellaneous File Operations
@@ -2530,11 +2522,16 @@ compiling it.
 @cindex Tar mode
 @pindex tar
 
-  If you visit a file with extension @samp{.tar}, it is assumed to be an
-@dfn{archive} made by the @code{tar} program and it is viewed in a Tar
-mode buffer.  This provides a Dired-like listing of the contents.
-@xref{Dired}.  You can move around the component files as in Dired to
-visit and manipulate them.
+  A file whose name ends in @samp{.tar} is normally an @dfn{archive}
+made by the @code{tar} program.  Emacs views these files in a special
+mode called Tar mode which provides a Dired-like list of the contents
+(@pxref{Dired}).  You can move around through the list just as you
+would in Dired, and visit the subfiles contained in the archive.
+However, not all Dired commands are available in Tar mode.
+
+  If you enable Auto Compression mode (@pxref{Compressed Files}), then
+Tar mode is used also for compressed archives---files with extensions
+@samp{.tgz}, @code{.tar.Z} and @code{.tar.gz}.
 
   The keys @kbd{e}, @kbd{f} and @kbd{RET} all extract a component file
 into its own buffer.  You can edit it there and when you save the buffer
@@ -2557,17 +2554,9 @@ name extracts the file into a buffer and displays that buffer.
   Saving the Tar buffer writes a new version of the archive to disk with
 the changes you made to the components.
 
-  If you enable Auto Compression mode (@pxref{Compressed Files}), then
-Tar mode will be used also for compressed archives in files with
-extensions @samp{.tgz}, @code{.tar.Z} and @code{.tar.gz}.
-
-  It is not necessary to have the @code{tar} program available to use
-Tar mode or Archive mode---Emacs reads the archives directly.  For
-compressed archives such as @code{.tar.gz}, you need the appropriate
-uncompress program to be available to Emacs.
-
-It is not necessary to have the @code{tar} program available to use Tar
-mode or Archive mode---Emacs reads the archives directly.
+  You don't need the @code{tar} program to use Tar mode---Emacs reads
+the archives directly.  However, accessing compressed archives
+requires the appropriate uncompression program.
 
 @cindex Archive mode
 @cindex mode, archive
@@ -2584,24 +2573,22 @@ mode or Archive mode---Emacs reads the archives directly.
 @cindex Java class archives
 @cindex unzip archives
   A separate but similar Archive mode is used for archives produced by
-the programs @code{arc}, @code{zip}, @code{lzh} and @code{zoo} which
-have extensions corresponding to the program names.  These archiving
-programs are typically used on MS-DOS and MS-Windows systems.  Java
-class archives with extension @samp{.jar} are also recognized.
+the programs @code{arc}, @code{jar}, @code{lzh}, @code{zip}, and
+@code{zoo}, which have extensions corresponding to the program names.
 
-  The keybindings in Archive mode are similar to those in Tar mode, with
-the addition of the @kbd{m} key which marks a file for subsequent
+  The keybindings of Archive mode are similar to those in Tar mode,
+with the addition of the @kbd{m} key which marks a file for subsequent
 operations, and @kbd{M-@key{DEL}} which unmarks all the marked files.
-Also, the @kbd{a} key toggles the display of file information in those
-archive types where all of of the info is too long to be displayed on a
-single line.  Operations such as @samp{change mode}, @samp{change owner}
-and @samp{rename} are supported only for some of the archive formats.
+Also, the @kbd{a} key toggles the display of detailed file
+information, for those archive types where it won't fit in a single
+line.  Operations such as renaming a subfile, or changing its mode or
+owner, are supported only for some of the archive formats.
 
-  Unlike Tar mode, Archive mode runs the appropriate program to unpack
-and repack archives.  Details of the program names and their options can
-be set in the @samp{Archive} Customize group.  However, you don't need
-these programs to @emph{view} the archive contents, only to extract and
-delete archived files.
+  Unlike Tar mode, Archive mode runs the archiving program to unpack
+and repack archives.  Details of the program names and their options
+can be set in the @samp{Archive} Customize group.  However, you don't
+need these programs to the archive table of contents, only to extract
+or manipulate the subfiles in the archive.
 
 @node Remote Files
 @section Remote Files
@@ -2655,26 +2642,19 @@ for a password as normal.
 @vindex ange-ftp-smart-gateway
 @vindex ange-ftp-gateway-host
   Sometimes you may be unable to access files on a remote machine
-because some machine in between (usually called a @dfn{firewall})
-blocks the connection for security reasons.  However, you might have
-account on another machine, called a @dfn{gateway}, from which the
-target files @strong{are} accessible.  Instead of logging into the
-gateway, downloading the files, then copying them to your local
-machine, you can set the variable @code{ange-ftp-smart-gateway} to a
-non-@code{nil} value, and Emacs will use advanced FTP features to
-access the remote machine.  If this doesn't work, try setting the
-variable @code{ange-ftp-gateway-host} to the name of the gateway
-machine (which is the name you use to log into the gateway).  Then
-Emacs will try to run the FTP process on the gateway for you.  If that
-doesn't work either (because the FTP program on your machine doesn't
-support some of the required features), read the instructions in the
-@file{ange-ftp.el} file about working with gateways.  You can read
-these instructions by typing @kbd{M-x finder-commentary @key{RET}
-ange-ftp @key{RET}}.  Those instructions include various additional
-tips for using @code{ange-ftp}.
+because a @dfn{firewall} in between blocks the connection for security
+reasons.  If you can log in on a @dfn{gateway} machine from which the
+target files @emph{are} accessible, and whose FTP server supports
+gatewaying features, you can still use remote file names; all you have
+to do is specify the name of the gateway machine by setting the
+variable @code{ange-ftp-gateway-host}, and set
+@code{ange-ftp-smart-gateway} to @code{t}.  Otherwise you may be able
+to make remote file names work, but the procedure is complex.  You can
+read the instructions by typing @kbd{M-x finder-commentary @key{RET}
+ange-ftp @key{RET}}.
 
 @vindex file-name-handler-alist
-@cindex disabling ange-ftp
+@cindex disabling remote files
   You can entirely turn off the FTP file name feature by removing the
 entries @var{ange-ftp-completion-hook-function} and
 @var{ange-ftp-hook-function} from the variable
@@ -2712,78 +2692,57 @@ starts with @samp{foo} and ends with @samp{bar} is @file{foo*bar}, then
 specifying @file{/tmp/foo*bar} will visit just @file{/tmp/foo*bar}.
 Another way is to specify @file{/tmp/foo[*]bar}.
 
-@node File Conveniences
-@section Convenience Features for Finding Files
+@node File Name Cache
+@section File Name Cache
 
-@table @kbd
-@item M-x ff-find-other-file
-Find the header or source file corresponding to the current buffer's
-file.
-@item M-x file-cache-add-directory @key{RET} @var{directory} @key{RET}
-Add @var{directory} to the file cache.
-@item M-x locate @key{RET} @var{pattern} @key{RET} 
-Run the program @command{locate} to match @var{pattern} in the database,
-putting results in a buffer.
-@item M-x locate-with-filter @key{RET} @var{pattern} @key{RET} @var{filter} @key{RET}
-Like @code{locate}, but use a @var{filter} on the results.
-@item M-x auto-image-file-mode
-Toggle visiting of image files as images.
-@end table
-
-@findex ff-find-other-file
-@vindex ff-other-file-alist
-The command @kbd{ff-find-other-file} finds a file related to the one
-visited by the current buffer, based on customizable patterns.
-Typically this will be the header file corresponding to a C/C++ source
-file, or vice versa.  The patterns describing the corresponding files
-are customizable via @code{ff-other-file-alist}.
-
-@cindex filename caching
+@cindex file name caching
 @cindex cache of file names
 @pindex find
-@pindex locate
-@vindex file-cache-delete-regexps
+@kindex C-@key{TAB}
+@findex file-cache-minibuffer-complete
+  You can use the @dfn{file name cache} to make it easy to locate a
+file by name, without having to remember exactly where it is located.
+When typing a file name in the minibuffer, @kbd{C-@key{tab}}
+(@code{file-cache-minibuffer-complete}) completes it using the file
+name cache.  If you repeat @kbd{C-@key{tab}}, that cycles through the
+possible completions of what you had originally typed.  Note that the
+@kbd{C-@key{tab}} character cannot be typed on most text-only
+terminals.
+
+  The file name cache does not fill up automatically.  Instead, you
+load file names into the cache using these commands:
+
 @findex file-cache-add-directory
-You can use a cache to make it easy to locate files by name without
-having to remember exactly where they are.  When typing a filename in
-the minibuffer you can @kbd{C-tab} will complete it using the filename
-cache and cycle through possible completions.  (The @kbd{C-tab} key
-can't be distinguished from @kbd{TAB} on all terminals.)  The command
-@kbd{M-x file-cache-add-directory} adds the files in a directory to the
-cache and @kbd{M-x file-cache-add-directory-list} acts on a list of
-directories like @code{load-path} or @code{exec-path}.  @kbd{M-x
-file-cache-add-directory-using-find} uses the @command{find} program to
-add a directory tree to the cache and @kbd{M-x
-file-cache-add-directory-using-locate} uses the @command{locate} program
-to add files matching a pattern.  Use @kbd{M-x file-cache-clear-cache}
-to remove all items from the cache; @kbd{M-x file-cache-delete-regexps}
-and similar functions remove items from it selectively.
+@table @kbd
+@item M-x file-cache-add-directory @key{RET} @var{directory} @key{RET}
+Add each file name in @var{directory} to the file name cache.
+@item M-x file-cache-add-directory-using-find @key{RET} @var{directory} @key{RET}
+Add each file name in @var{directory} and all of its nested
+subdirectories to the file name cache.
+@item M-x file-cache-add-directory-using-locate @key{RET} @var{directory} @key{RET}
+Add each file name in @var{directory} and all of its nested
+subdirectories to the file name cache, using @command{locate} to find
+them all.
+@item M-x file-cache-add-directory-list @key{RET} @var{variable} @key{RET}
+Add each file name in each directory listed in @var{variable}
+to the file name cache.  @var{variable} should be a Lisp variable
+such as @code{load-path} or @code{exec-path}, whose value is a list
+of directory names.
+@item M-x file-cache-clear-cache @key{RET}
+Clear the cache; that is, remove all file names from it.
+@end table
 
-@pindex locate
-@findex locate
-@findex locate-with-filter
-@cindex file database (locate)
-@vindex locate-command
-@kbd{M-x locate} runs an interface to the @code{locate} program for
-searching a pre-built database of file names; most Dired commands are
-avilable for use on the result.  @xref{, ,Find , find, GNU Findutils}.
-@kbd{M-x locate-with-filter} is similar, but keeps only lines matching a
-regular expression.  Customize the option @code{locate-command} to use
-another program than the default, GNU @code{locate}.
-
-The @kbd{M-x ffap} command generalizes @kbd{M-x find-file}. @xref{FFAP}.
-Partial Completion mode offers other features extending @kbd{M-x
-find-file} which can be used with @code{ffap}.  @xref{Completion
-Options}.
+@node File Conveniences
+@section Convenience Features for Finding Files
 
 @findex recentf-mode
 @vindex recentf-mode
 @findex recentf-save-list
 @findex recentf-edit-list
-The command @kbd{M-x recentf-mode} or the Customize option of the same
-name adds to the Files menu a submenu containing a list of recently
-opened files.  @kbd{recentf-save-list} saves the current file list to a
-file and @kbd{recentf-edit-list} edits it.
+  If you enable Recentf mode, with @kbd{M-x recentf-mode}, the
+@samp{Files} menu includes a submenu containing a list of recently
+opened files.  @kbd{M-x recentf-save-list} saves the current
+recent-file-list to a file, and @kbd{M-x recentf-edit-list} edits it.
 
 @findex auto-image-file-mode
 @findex mode, auto-image-file
@@ -2791,11 +2750,15 @@ file and @kbd{recentf-edit-list} edits it.
 @cindex visiting image files
 @vindex image-file-name-regexps
 @vindex image-file-name-extensions
-When Auto-image-file minor mode is enabled, image files are displayed as
-images when they are visited or inserted into buffers if Emacs can
-display the relevant image type.  File names matching
-@code{image-file-name-extensions} or @code{image-file-name-regexps} are
-considered to contain images.  Note that Emacs can only display images
-of the types for which the appropriate support libraries were linked
-into Emacs when it was built.  In particular, the MS-Windows version
-of Emacs doesn't support image files as of version 21.1.
+  When Auto-image-file minor mode is enabled, visiting an image file
+displays it as an image, not as text.  Likewise, inserting an image
+file into a buffer inserts it as an image.  This works only when Emacs
+can display the relevant image type.  The variables
+@code{image-file-name-extensions} or @code{image-file-name-regexps}
+control which file names are recognized as containing images.
+
+  The @kbd{M-x ffap} command generalizes @code{find-file} with more
+powerful heuristic defaults (@pxref{FFAP}), often based on the text at
+point.  Partial Completion mode offers other features extending
+@code{find-file}, which can be used with @code{ffap}.
+@xref{Completion Options}.
