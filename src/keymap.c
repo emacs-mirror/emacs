@@ -2240,6 +2240,8 @@ shadow_lookup (shadow, key, flag)
   return Qnil;
 }
 
+static Lisp_Object Vmenu_events;
+
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
 static Lisp_Object
@@ -2278,7 +2280,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   for (; !NILP (maps); maps = Fcdr (maps))
     {
       /* Key sequence to reach map, and the map that it reaches */
-      register Lisp_Object this, map;
+      register Lisp_Object this, map, tem;
 
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
@@ -2294,7 +2296,8 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
       /* if (nomenus && !ascii_sequence_p (this)) */
       if (nomenus && XINT (last) >= 0
-	  && !INTEGERP (Faref (this, make_number (0))))
+	  && SYMBOLP (tem = Faref (this, make_number (0)))
+	  && !NILP (Fmemq (XCAR (parse_modifiers (tem)), Vmenu_events)))
 	/* If no menu entries should be returned, skip over the
 	   keymaps bound to `menu-bar' and `tool-bar' and other
 	   non-ascii prefixes like `C-down-mouse-2'.  */
@@ -3496,7 +3499,6 @@ Return list of symbols found.  */)
      Lisp_Object regexp, predicate;
 {
   Lisp_Object tem;
-  struct gcpro gcpro1, gcpro2;
   CHECK_STRING (regexp);
   apropos_predicate = predicate;
   apropos_accumulate = Qnil;
@@ -3626,6 +3628,15 @@ key, typing `ESC O P x' would return [f1 x].  */);
 This keymap works like `function-key-map', but comes after that,
 and applies even for keys that have ordinary bindings.  */);
   Vkey_translation_map = Qnil;
+
+  staticpro (&Vmenu_events);
+  Vmenu_events = Fcons (intern ("menu-bar"),
+                       Fcons (intern ("tool-bar"),
+                              Fcons (intern ("mouse-1"),
+                                     Fcons (intern ("mouse-2"),
+                                            Fcons (intern ("mouse-3"),
+                                                   Qnil)))));
+
 
   Qsingle_key_description = intern ("single-key-description");
   staticpro (&Qsingle_key_description);
