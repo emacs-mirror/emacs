@@ -1,6 +1,7 @@
 ;;; frame.el --- multi-frame management independent of window systems.
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1179,34 +1180,26 @@ itself as a pre-command hook."
 
 
 
-;;; Busy-cursor.
+;;; Hourglass pointer
 
-(defcustom busy-cursor t
-  "*Non-nil means show a busy-cursor when running under a window system."
-  :tag "Busy-cursor"
+(defcustom display-hourglass t
+  "*Non-nil means show an hourglass pointer when running under a window system."
+  :tag "Hourglass pointer"
   :type 'boolean
-  :group 'cursor
-  :get #'(lambda (symbol) display-busy-cursor)
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (setq display-busy-cursor value)))
+  :group 'cursor)
 
-(defcustom busy-cursor-delay-seconds 1
-  "*Seconds to wait before displaying a busy-cursor."
-  :tag "Busy-cursor delay"
+(defcustom hourglass-delay 1
+  "*Seconds to wait before displaying an hourglass pointer."
+  :tag "Hourglass delay"
   :type 'number
-  :group 'cursor
-  :get #'(lambda (symbol) busy-cursor-delay)
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (setq busy-cursor-delay value)))
+  :group 'cursor)
 
 
 (defcustom show-cursor-in-non-selected-windows t
   "*Non-nil means show a hollow box cursor in non-selected-windows.
 If nil, don't show a cursor except in the selected window.
 Setting this variable directly has no effect; use custom instead
-(or set the variable `cursor-in-non-selected-windows')."
+\(or set the variable `cursor-in-non-selected-windows')."
   :tag "Cursor in non-selected windows"
   :type 'boolean
   :group 'cursor
