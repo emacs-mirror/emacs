@@ -198,8 +198,27 @@ Arguments are MSG and FIELD."
 				   (match-beginning 1) (match-end 1))))
 	 ;; Time
 	 (substring date (match-beginning 4) (match-end 4)))
+
+      ;; Handles this format Fri May 10 21:51:55 1991
+      (if (string-match
+         " \\([a-z][a-z][a-z]\\) +\\([0-9]+\\) \\([0-9:]+\\) \\([0-9]+\\)" date)
+	  (concat
+	   ;; Year
+	   (rmail-date-full-year 
+	    (substring date (match-beginning 4) (match-end 4)))
+	   ;; Month
+	   (cdr
+	    (assoc
+	     (upcase (substring date (match-beginning 1) (match-end 1))) month))
+	   ;; Day
+	   (format "%2d" (string-to-int
+			  (substring date
+				     (match-beginning 2) (match-end 2))))
+	   ;; Time
+	   (substring date (match-beginning 3) (match-end 3)))
+
       ;; Cannot understand DATE string.
-      date)))
+      date))))
 
 (defun rmail-date-full-year (year-string)
   (if (<= (length year-string) 2)
