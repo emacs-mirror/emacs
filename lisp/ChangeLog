@@ -1,3 +1,9 @@
+2000-10-24  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* faces.el (face-spec-set-match-display): Add `graphic' display
+	type (the inverse of `tty').  Use `display-graphic-p' instead of
+	the window-system variable.
+
 2000-10-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/isearch-x.el (isearch-with-input-method): Call

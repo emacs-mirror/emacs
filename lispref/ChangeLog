@@ -1,3 +1,8 @@
+2000-10-24  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* display.texi (Defining Faces): Document `graphic' display type
+	in face specs.
+
 2000-10-18  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* hooks.texi (Standard Hooks): replace obsolete
