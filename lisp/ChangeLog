@@ -1,3 +1,13 @@
+2000-07-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mouse.el (popup-menu): Run the keymap through indirect-function,
+	in case it was defined with define-prefix-key.  If the menu is a
+	list of keymaps, look up the binding of user's choice in each one
+	of the keymaps.
+	(mouse-popup-menubar): If the global and local menu-bar keymaps
+	don't have a prompt string, create one and insert it into the
+	keymap.  Don't barf if current-local-map returns nil.
+
 2000-07-24  Francis Wright  <fjw@maths.qmw.ac.uk>
 
 	* dired.el (dired-sort-R-check): Added to allow recursive listing
