@@ -1515,7 +1515,7 @@ DIR must be a directory name, not a file name."
 	 ;; (k "[^\x00-\x7f\x80-\xff]")
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
-	 (mm "[ 0-1][0-9]")
+	 (mm "[ 0-1]?[0-9]")
 ;;old	 (dd "[ 0-3][0-9]")
 	 (dd "[ 0-3][0-9][.]?")
 	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
@@ -1533,7 +1533,8 @@ DIR must be a directory name, not a file name."
 			          "\\|" s "?" yyyy
 			     "\\)"))
 	 (japanese
-	  (concat mm k s dd k "?" s "+" "\\(" HH:MM "\\|" yyyy k "?" "\\)")))
+	  (concat mm k "?" s dd k "?" s "+"
+		  "\\(" HH:MM "\\|" yyyy k "?" "\\)")))
 	 ;; The "[0-9]" below requires the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
