@@ -90,6 +90,7 @@ and this notice must be preserved on all copies.  */
 
 /* Some things figured out by the configure script, grouped as they are in
    configure.in.  */
+#undef _ALL_SOURCE
 #undef HAVE_SYS_TIMEB_H
 #undef HAVE_SYS_TIME_H
 #undef HAVE_UNISTD_H
@@ -150,6 +151,9 @@ and this notice must be preserved on all copies.  */
 
 /* Define if `sys_siglist' is declared by <signal.h>.  */
 #undef SYS_SIGLIST_DECLARED
+
+/* Define if `struct utimbuf' is declared by <utime.h>.  */
+#undef HAVE_STRUCT_UTIMBUF
 
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
