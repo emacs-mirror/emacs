@@ -1,3 +1,8 @@
+2000-09-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* menu-bar.el (menu-bar-files-menu): Disable ``Save'' if
+	current buffer has no file name.
+
 2000-09-15  Dave Love  <fx@gnu.org>
 
 	* strokes.el: Sync with maintainer's current version with changes
