@@ -189,6 +189,10 @@ executed once when the buffer is created.")
   "True if communications via pty; false if by pipe.  Buffer local.
 This is to work around a bug in emacs process signalling.")
 
+(defvar comint-last-input-match ""
+  "Last string searched for by comint input history search, for defaulting.
+Buffer local variable.") 
+
 (defvar comint-input-ring nil)
 (defvar comint-last-input-start)
 (defvar comint-last-input-end)
@@ -426,10 +430,6 @@ Answer is guaranteed to be non-negative, and less than m."
   "Cycle forwards through input history."
   (interactive "*p")
   (comint-previous-input (- arg)))
-
-(defvar comint-last-input-match ""
-  "Last string searched for by comint input history search, for defaulting.
-Buffer local variable.") 
 
 (defun comint-previous-input-matching (str)
   "Searches backwards through input history for substring match."
