@@ -1,3 +1,13 @@
+2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): If point (or a window
+	point) is at the end of the buffer, keep it there after
+	reverting.  This allows to tail a file.
+	Mention this in the `Commentary'.
+
+	* format.el (format-write-file): Add optional argument CONFIRM
+	and make it behave like the analogous argument to `write-file'.
+
 2004-04-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* calendar/timeclock.el (timeclock-relative)
