@@ -1,0 +1,232 @@
+# Makefile for leim subdirectory in GNU Emacs.
+# Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
+# Licensed to the Free Software Foundation.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+# Avoid trouble on systems where the `SHELL' variable might be
+# inherited from the environment.
+SHELL = /bin/sh
+
+# Here are the things that we expect ../configure to edit.
+version=@version@
+prefix=@prefix@
+datadir=@datadir@
+lispdir=@lispdir@
+srcdir=@srcdir@
+
+INSTALLDIR=${datadir}/emacs/${version}/leim
+
+EMACS=../src/emacs
+
+TAR=tar
+CP=cp
+
+SUBDIRS=quail skk
+
+CHINESE-GB=\
+	quail/tit/CTLau.elc \
+	quail/tit/CCDOSPY.elc \
+	quail/tit/Punct.elc \
+	quail/tit/PY.elc \
+	quail/tit/QJ.elc \
+	quail/tit/SW.elc \
+	quail/tit/TONEPY.elc \
+	quail/tit/ZIRANMA.elc
+CHINESE-BIG5=\
+	quail/tit/4Corner.elc \
+	quail/tit/ARRAY30.elc \
+	quail/tit/CTLauB.elc \
+	quail/tit/ECDICT.elc \
+	quail/tit/ETZY.elc \
+	quail/tit/Punct-b5.elc \
+	quail/tit/PY-b5.elc \
+	quail/tit/QJ-b5.elc \
+	quail/tit/ZOZY.elc \
+	quail/quick-b5.elc \
+	quail/tsangchi-b5.elc
+CHINESE-CNS=\
+	quail/quick-cns.elc \
+	quail/tsangchi-cns.elc
+
+JAPANESE=quail/japanese.elc skk/skkdic.elc
+
+KOREAN=\
+	quail/hangul.elc \
+	quail/hangul3.elc \
+	quail/hanja.elc \
+	quail/hanja-jis.elc \
+	quail/symbol-ksc.elc
+
+THAI=quail/thai.elc
+
+VIETNAMESE=quail/viqr.elc
+
+LAO=quail/lao.elc quail/lrt.elc
+
+INDIAN=quail/devanagari.elc
+
+TIBETAN=quail/tibetan.elc
+
+LATIN=quail/latin-pre.elc quail/latin-post.elc
+
+GREEK=quail/greek.elc
+
+RUSSIAN=quail/cyrillic.elc
+
+MISC=quail/ethiopic.elc quail/ipa.elc
+
+CHINESE=${CHINESE-GB} ${CHINESE-BIG5} ${CHINESE-CNS}
+EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
+ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN}
+EUROPEAN=${LATIN} ${GREEK} ${RUSSIAN}
+WORLD=${ASIA} ${EUROPEAN} ${MISC}
+
+all: ${SUBDIRS} ${WORLD} leim-list.el
+
+quail:
+	mkdir quail
+	ln -s . quail/tit
+	ln -s ${srcdir}/quail/*.el quail
+
+skk:
+	mkdir skk
+	ln -s ${srcdir}/skk/* skk
+
+quail/tit/%.el: ${srcdir}/CXTERM-DIC/%.tit
+	$(EMACS) -batch -l titdic-cnv -f batch-titdic-convert\
+		-dir quail `dirname $<`
+
+quail/tit/%.elc: quail/tit/%.el
+	$(EMACS) -batch --eval '(byte-recompile-directory "quail" 0)'
+
+quail/%.el:
+	for f in ${srcdir}/quail/*.el; do \
+	  [ -f quail/`basename $$f` ] || (cd quail; ln -s $$f .); \
+	done
+
+quail/%.elc: quail/%.el
+	$(EMACS) -batch --eval '(byte-recompile-directory "quail" 0)'
+
+skk/%.el:
+	ln -s ${srcdir}/$@ $@
+
+skk/%.elc: skk/%.el
+	$(EMACS) -batch -l skkdic-cnv -f batch-byte-compile $<
+
+leim-list.el: ${WORLD}
+	$(EMACS) -batch --eval "(update-leim-list-file \".\")"
+
+# install -- all languages supported by LEIM
+#   install-asia -- all Asian languages
+#     install-eastasia -- all Each Asian languages
+#       install-chinese -- all Chinese Languages
+#         install-chinese-gb -- Chinese (GB)
+#         install-chinese-big5 -- Chinese (BIG5)
+#         install-chinese-cns -- Chinese (CNS)
+#       install-japanese -- Japanese
+#       install-korean -- Korean (hangul and hanja)
+#     install-thai -- Thai
+#     install-vietnamese -- Vietnamese
+#     install-lao -- Lao
+#     install-indian -- Indian (Devanagari script)
+#     install-tibetan -- Tibetan (Devanagari)
+#   install-european -- all European languages
+#     install-latin -- all Latin scripts
+#     install-greek -- Greek
+#     install-russian -- Russian (cyrillic)
+#   install-misc -- Ethiopic and IPA
+
+install: all
+	ELC=`echo ${WORLD} | sed 's,tit/,,g'`; \
+	EL=`echo $$ELC | sed 's/\.elc/.el/g'`; \
+	$(TAR) -cf - $$EL $$ELC | (cd ${INSTALLDIR}; $(TAR) -xvf -)
+	$(EMACS) -batch --eval "(update-leim-list-file \"${INSTALLDIR}\")"
+
+install-asia: ${ASIA}
+	ELSRC=`echo ${ASIA} | sed 's/\.elc/.el/g'`; \
+	$(TAR) -cf - $$ELSRC ${ASIA} | (cd ${INSTALLDIR}; $(TAR) -xvf -)
+	$(EMACS) -batch --eval "(update-leim-list-file \"${INSTALLDIR}\")"
+
+install-eastasia: ${EASTASIA}
+	ELSRC=`echo ${EASTASIA} | sed 's/\.elc/.el/g'`; \
+	$(TAR) -cf - $$ELSRC ${EASTASIA} | (cd ${INSTALLDIR}; $(TAR) -xvf -)
+	$(EMACS) -batch --eval "(update-leim-list-file \"${INSTALLDIR}\")"
+
+install-chinese: install-chinese-gb install-chinese-big5 install-chinese-cns
+
+install-chinese-gb: ${CHINESE-GB}
+	ELSRC=`echo $^ | sed 's/\.elc/.el/g'`; \
+	  $(CP) -fp $$ELSRC $^ ${INSTALLDIR}/quail
+	$(EMACS) -batch --eval "(update-leim-list-file \"${INSTALLDIR}\")"
+
+install-chinese-big5: ${CHINESE-BIG5}
+	ELSRC=`echo $^ | sed 's/\.elc/.el/g'`; \
+	  $(CP) -fp $$ELSRC $^ ${INSTALLDIR}/quail
+	$(EMACS) -batch --eval "(update-leim-list-file \"${INSTALLDIR}\")"
+
+install-chinese-cns: ${CHINESE-CNS}
+	ELSRC=`echo ${CHINESE-CNS} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${CHINESE-CNS} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-japanese: ${JAPANESE}
+	ELSRC=`echo ${JAPANESE} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${JAPANESE} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-korean: ${KOREAN}
+	ELSRC=`echo ${KOREAN} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${KOREAN} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-thai: ${THAI}
+	ELSRC=`echo ${THAI} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${THAI} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-vietnamese: ${VIETNAMESE}
+	ELSRC=`echo ${VIETNAMESE} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${VIETNAMESE} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-lao: ${LAO}
+	ELSRC=`echo ${LAO} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${LAO} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-indian: ${INSTALLDIR} ${INDIAN}
+	ELSRC=`echo ${INDIAN} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${INDIAN} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-tibetan: ${INSTALLDIR} ${TIBETAN}
+	ELSRC=`echo ${INDIAN} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${INDIAN} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-european: install-latin install-greek install-russian
+
+install-latin: ${LATIN}
+	ELSRC=`echo ${LATIN} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${LATIN} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-greek: ${GREEK}
+	ELSRC=`echo ${GREEK} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${GREEK} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-russian: ${RUSSIAN}
+	ELSRC=`echo ${RUSSIAN} | sed 's/\.elc/.el/g'`; \
+	$(TAR) cf - $$ELSRC ${RUSSIAN} | (cd ${INSTALLDIR}; $(TAR) xfBp -)
+
+install-misc: ${MISC}
+	ELSRC=`echo $^ | sed 's/\.elc/.el/g'`; \
+	  $(CP) -fp $$ELSRC $^ ${INSTALLDIR}/quail
+	$(EMACS) -batch --eval "(update-leim-list-file \"${INSTALLDIR}\")"
