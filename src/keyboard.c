@@ -5084,7 +5084,7 @@ make_lispy_event (event)
 	/* Build the position as appropriate for this mouse click.  */
 	if (event->kind == MOUSE_CLICK_EVENT)
 	  {
-	    int part;
+	    enum window_part part;
 	    struct frame *f = XFRAME (event->frame_or_window);
 	    Lisp_Object posn;
 	    Lisp_Object string_info = Qnil;
@@ -5183,26 +5183,26 @@ make_lispy_event (event)
 		XSETINT (event->x, wx);
 		XSETINT (event->y, wy);
 
-		if (part == 1 || part == 3)
+		if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
 		  {
 		    /* Mode line or header line.  Look for a string under
 		       the mouse that may have a `local-map' property.  */
 		    Lisp_Object string;
 		    int charpos;
 
-		    posn = part == 1 ? Qmode_line : Qheader_line;
-		    string = mode_line_string (w, wx, wy, part == 1, &charpos);
+		    posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
+		    string = mode_line_string (w, wx, wy, part, &charpos);
 		    if (STRINGP (string))
 		      string_info = Fcons (string, make_number (charpos));
 		  }
-		else if (part == 2)
+		else if (part == ON_VERTICAL_BORDER)
 		  posn = Qvertical_line;
-		else if (part == 6 || part == 7)
+		else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 		  {
 		    int charpos;
 		    Lisp_Object object = marginal_area_string (w, wx, wy, part,
 							       &charpos);
-		    posn = (part == 6) ? Qleft_margin : Qright_margin;
+		    posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 		    if (STRINGP (object))
 		      string_info = Fcons (object, make_number (charpos));
 		  }
@@ -5494,7 +5494,7 @@ make_lispy_event (event)
 #if defined(WINDOWSNT) || defined(MAC_OSX)
     case MOUSE_WHEEL_EVENT:
       {
-	int part;
+	enum window_part part;
 	FRAME_PTR f = XFRAME (event->frame_or_window);
 	Lisp_Object window;
 	Lisp_Object posn;
@@ -5525,11 +5525,11 @@ make_lispy_event (event)
 	    XSETINT (event->x, pixcolumn);
 	    XSETINT (event->y, pixrow);
 
-	    if (part == 1)
+	    if (part == ON_MODE_LINE)
 	      posn = Qmode_line;
-	    else if (part == 2)
+	    else if (part == ON_VERTICAL_BORDER)
 	      posn = Qvertical_line;
-	    else if (part == 3)
+	    else if (part == ON_HEADER_LINE)
 	      posn = Qheader_line;
 	    else
 	      {
@@ -5567,7 +5567,7 @@ make_lispy_event (event)
 
     case DRAG_N_DROP_EVENT:
       {
-	int part;
+	enum window_part part;
 	FRAME_PTR f;
 	Lisp_Object window;
 	Lisp_Object posn;
@@ -5610,11 +5610,11 @@ make_lispy_event (event)
 	    XSETINT (event->x, wx);
 	    XSETINT (event->y, wy);
 
-	    if (part == 1)
+	    if (part == ON_MODE_LINE)
 	      posn = Qmode_line;
-	    else if (part == 2)
+	    else if (part == ON_VERTICAL_BORDER)
 	      posn = Qvertical_line;
-	    else if (part == 3)
+	    else if (part == ON_HEADER_LINE)
 	      posn = Qheader_line;
 	    else
 	      {
@@ -5710,7 +5710,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
   /* Or is it an ordinary mouse movement?  */
   else
     {
-      int area;
+      enum window_part area;
       Lisp_Object window;
       Lisp_Object posn;
 
@@ -5731,11 +5731,11 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	  XSETINT (x, wx);
 	  XSETINT (y, wy);
 
-	  if (area == 1)
+	  if (area == ON_MODE_LINE)
 	    posn = Qmode_line;
-	  else if (area == 2)
+	  else if (area == ON_VERTICAL_BORDER)
 	    posn = Qvertical_line;
-	  else if (area == 3)
+	  else if (area == ON_HEADER_LINE)
 	    posn = Qheader_line;
 	  else
 	    {
