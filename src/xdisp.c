@@ -8910,12 +8910,12 @@ redisplay_window (window, just_this_one_p)
   
   make_cursor_line_fully_visible (w);
 
+ done:
+
   SET_TEXT_POS_FROM_MARKER (startp, w->start);
   w->start_at_line_beg = ((CHARPOS (startp) == BEGV
 			   || FETCH_BYTE (BYTEPOS (startp) - 1) == '\n')
 			  ? Qt : Qnil);
-
- done:
 
   /* Display the mode line, if we must.  */
   if ((update_mode_line
