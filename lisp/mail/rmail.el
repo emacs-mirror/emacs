@@ -2636,15 +2636,14 @@ ADDRESSES should be a single address, a string consisting of several
 addresses separated by commas, or a list of addresses.
 
 Optional FROM is the address to resend the message from, and
-defaults to the username of the person redistributing the message.
-Optional COMMENT is a string that will be inserted as a comment in the
-resent message.
+defaults from the value of `user-mail-address'.
+Optional COMMENT is a string to insert as a comment in the resent message.
 Optional ALIAS-FILE is alternate aliases file to be used by sendmail,
 typically for purposes of moderating a list."
   (interactive "sResend to: ")
   (require 'sendmail)
   (require 'mailalias)
-  (if (not from) (setq from (user-login-name)))
+  (if (not from) (setq from user-mail-address))
   (let ((tembuf (generate-new-buffer " sendmail temp"))
 	(mail-header-separator "")
 	(case-fold-search nil)
