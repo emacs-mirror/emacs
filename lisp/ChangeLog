@@ -1,3 +1,8 @@
+2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Disable auto-reverting of
+	remote files.
+
 2004-05-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (file-name-non-special): There are more operations
