@@ -1114,46 +1114,63 @@ a value of `safe-charsets' in PLIST."
 	  (put alias 'eol-type (make-subsidiary-coding-system alias)))
       (put alias 'eol-type eol-type))))
 
+(defun merge-coding-systems (first second)
+  "Fill in any unspecified aspects of coding system FIRST from SECOND.
+Return the resulting coding system."
+  (let ((base (coding-system-base second))
+	(eol (coding-system-eol-type second)))
+    ;; If FIRST doesn't specify text conversion, merge with that of SECOND.
+    (if (eq (coding-system-base first) 'undecided)
+	(setq first (coding-system-change-text-conversion first base)))
+    ;; If FIRST doesn't specify eol conversion, merge with that of SECOND.
+    (if (and (vectorp (coding-system-eol-type first))
+	     (numberp eol) (>= eol 0) (<= eol 2))
+	(setq first (coding-system-change-eol-conversion
+		     first eol)))
+    first))
+
 (defun set-buffer-file-coding-system (coding-system &optional force)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
 according to CODING-SYSTEM.  For a list of possible values of CODING-SYSTEM,
 use \\[list-coding-systems].
 
-If the buffer's previous file coding-system value specifies end-of-line
-conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
-merged with the already-specified end-of-line conversion.
-
-If the buffer's previous file coding-system value specifies text
-conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
-merged with the already-specified text conversion.
-
-However, if the optional prefix argument FORCE is non-nil, then
-CODING-SYSTEM is used exactly as specified.
+If CODING-SYSTEM leaves the text conversion unspecified, or if it
+leaves the end-of-line conversion unspecified, FORCE controls what to
+do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
+buffer's previous `buffer-file-coding-system' value (if it is
+specified there).  Otherwise, levae it unspecified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
 don't want to mark the buffer modified, just set the variable
 `buffer-file-coding-system' directly."
-  (interactive "zCoding system for visited file (default, nil): \nP")
+  (interactive "zCoding system for saving file (default, nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
-      (let ((base (coding-system-base buffer-file-coding-system))
-	    (eol (coding-system-eol-type buffer-file-coding-system)))
-	;; If CODING-SYSTEM doesn't specify text conversion, merge
-	;; with that of buffer-file-coding-system.
-	(if (eq (coding-system-base coding-system) 'undecided)
-	    (setq coding-system (coding-system-change-text-conversion
-				 coding-system base)))
-	;; If CODING-SYSTEM doesn't specify eol conversion, merge with
-	;; that of buffer-file-coding-system.
-	(if (and (vectorp (coding-system-eol-type coding-system))
-		 (numberp eol) (>= eol 0) (<= eol 2))
-	    (setq coding-system (coding-system-change-eol-conversion
-				 coding-system eol)))))
+      (setq coding-system
+	    (merge-coding-systems coding-system buffer-file-coding-system)))
   (setq buffer-file-coding-system coding-system)
   (set-buffer-modified-p t)
   (force-mode-line-update))
+
+(defun revert-buffer-with-coding-system (coding-system &optional force)
+  "Visit the current buffer's file again using coding system CODING-SYSTEM.
+For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
+
+If CODING-SYSTEM leaves the text conversion unspecified, or if it
+leaves the end-of-line conversion unspecified, FORCE controls what to
+do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
+buffer's previous `buffer-file-coding-system' value (if it is
+specified there).  Otherwise, determine it from the file contents as
+usual for visiting a file."
+  (interactive "zCoding system for visited file (default, nil): \nP")
+  (check-coding-system coding-system)
+  (if (and coding-system buffer-file-coding-system (null force))
+      (setq coding-system
+	    (merge-coding-systems coding-system buffer-file-coding-system)))
+  (let ((coding-system-for-read coding-system))
+    (revert-buffer)))
 
 (defvar default-terminal-coding-system nil
   "Default value for the terminal coding system.
