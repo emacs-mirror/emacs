@@ -1284,7 +1284,7 @@ where FACE is a valid face specification, as it can be used with
 				      "splash.xpm" "splash.pbm"))))
 	   (image-height (and img (cdr (image-size img))))
 	   (window-height (1- (window-height (selected-window)))))
-      (> window-height (+ image-height 15)))))
+      (> window-height (+ image-height 19)))))
 
 
 (defun normal-splash-screen ()
