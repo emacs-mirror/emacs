@@ -642,9 +642,10 @@ This is an interface to the function `load'."
 
 (defun file-remote-p (file)
   "Test whether FILE specifies a location on a remote system."
-  (let ((handler (find-file-name-handler file 'file-local-copy)))
+  (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
-	(get handler 'file-remote-p))))
+	(funcall handler 'file-remote-p file)
+      nil)))
 
 (defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.
@@ -2903,10 +2904,8 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  (file-name-as-directory (expand-file-name (or directory
 							default-directory))))
     (setq filename (expand-file-name filename))
-    (let ((hf (find-file-name-handler filename 'file-local-copy))
-          (hd (find-file-name-handler directory 'file-local-copy)))
-      (when (and hf (not (get hf 'file-remote-p))) (setq hf nil))
-      (when (and hd (not (get hd 'file-remote-p))) (setq hd nil))
+    (let ((hf (find-file-name-handler filename 'file-remote-p))
+          (hd (find-file-name-handler directory 'file-remote-p)))
       (if ;; Conditions for separate trees
 	  (or
 	   ;; Test for different drives on DOS/Windows
