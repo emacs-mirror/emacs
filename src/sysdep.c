@@ -500,9 +500,26 @@ struct save_signal
 sys_suspend ()
 {
 #ifdef VMS
-  unsigned long parent_id;
+  /* "Foster" parentage allows emacs to return to a subprocess that attached
+     to the current emacs as a cheaper than starting a whole new process.  This
+     is set up by KEPTEDITOR.COM.  */
+  unsigned long parent_id, foster_parent_id;
+  char *fpid_string;
 
-  parent_id = getppid ();
+  fpid_string = getenv ("EMACS_PARENT_PID");
+  if (fpid_string != NULL)
+    {
+      sscanf (fpid_string, "%x", &foster_parent_id);
+      if (foster_parent_id != 0)
+	parent_id = foster_parent_id;
+      else
+	parent_id = getppid ();
+    }
+  else
+    parent_id = getppid ();
+
+  free (fpid_string);		/* On VMS, this was malloc'd */
+
   if (parent_id && parent_id != 0xffffffff)
     {
       SIGTYPE (*oldsig)() = (int) signal (SIGINT, SIG_IGN);
