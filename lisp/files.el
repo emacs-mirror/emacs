@@ -1274,6 +1274,7 @@ run `normal-mode' explicitly."
     ("\\.xml\\'" . sgml-mode)
     ("\\.dtd\\'" . sgml-mode)
     ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
+    ("\\.idl\\'" . idl-mode)
     ;; .emacs following a directory delimiter
     ;; in Unix, MSDOG or VMS syntax.
     ("[]>:/\\]\\..*emacs\\'" . emacs-lisp-mode)
