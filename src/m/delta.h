@@ -205,10 +205,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 # ifdef __STDC__
  /* Compiling with gnucc (not through ccd).  This means -traditional is
     not set.  Let us set it, because gmalloc.c includes <stddef.h>,
-    and we don't have that (as of SYSV68 R3V7).
-    Removing the -finline-functions option to gnucc causes an
-    executable emacs smaller by about 10%. */
-#  define C_SWITCH_MACHINE -mfp0ret -m68881 -traditional -Dconst= -fdelayed-branch -fstrength-reduce -finline-functions -fcaller-saves
+    and we don't have that (as of SYSV68 R3V7). */
+#  define C_SWITCH_MACHINE -mfp0ret -m68881 -traditional -Dconst= -fdelayed-branch -fstrength-reduce -fno-inline -fcaller-saves
 #  define LIB_GCC /lib/gnulib881
 # endif /* __STDC__ */
 
