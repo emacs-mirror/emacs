@@ -70,12 +70,13 @@ you want to erase.  If you do not want to wait for this to happen, use
   When you are satisfied with the place you have reached, you can type
 @key{RET}, which stops searching, leaving the cursor where the search
 brought it.  Also, any command not specially meaningful in searches
-stops the searching and is then executed.  Thus, typing @kbd{C-a} would
-exit the search and then move to the beginning of the line.  @key{RET}
-is necessary only if the next command you want to type is a printing
-character, @key{DEL}, @key{RET}, or another control character that is
+stops the searching and is then executed.  Thus, typing @kbd{C-a}
+would exit the search and then move to the beginning of the line.
+@key{RET} is necessary only if the next command you want to type is a
+printing character, @key{DEL}, @key{RET}, or another character that is
 special within searches (@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s},
-@kbd{C-y}, @kbd{M-y}, @kbd{M-r}, or @kbd{M-s}).
+@kbd{C-y}, @kbd{M-y}, @kbd{M-r}, @kbd{M-s}, and some other
+meta-characters).
 
   Sometimes you search for @samp{FOO} and find it, but not the one you
 expected to find.  There was a second @samp{FOO} that you forgot
@@ -236,7 +237,7 @@ its new position of point.
 @vindex search-slow-speed
   The slow terminal style of display is used when the terminal baud rate is
 less than or equal to the value of the variable @code{search-slow-speed},
-initially 1200.
+initially 1200.  See @code{baud-rate} in @ref{Display Custom}.
 
 @vindex search-slow-window-lines
   The number of lines to use in slow terminal search display is controlled
@@ -503,7 +504,7 @@ set, or put it after a range.  Thus, @samp{[]-]} matches both @samp{]}
 and @samp{-}.
 
 To include @samp{^} in a set, put it anywhere but at the beginning of
-the set.
+the set.  (At the beginning, it complements the set---see below.)
 
 When you use a range in case-insensitive search, you should write both
 ends of the range in upper case, or both in lower case, or both should
@@ -513,7 +514,7 @@ is somewhat ill-defined, and it may change in future Emacs versions.
 @item [^ @dots{} ]
 @samp{[^} begins a @dfn{complemented character set}, which matches any
 character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
-all characters @emph{except} letters and digits.
+all characters @emph{except} ASCII letters and digits.
 
 @samp{^} is not special in a character set unless it is the first
 character.  The character following the @samp{^} is treated as if it
@@ -671,10 +672,9 @@ matches any character that is not a word-constituent.
 
 @item \s@var{c}
 matches any character whose syntax is @var{c}.  Here @var{c} is a
-character that represents a syntax code: thus, @samp{w} for word
-constituent, @samp{-} for whitespace, @samp{(} for open parenthesis,
-etc.  Represent a character of whitespace (which can be a newline) by
-either @samp{-} or a space character.
+character that designates a particular syntax class: thus, @samp{w}
+for word constituent, @samp{-} or @samp{ } for whitespace, @samp{.}
+for ordinary punctuation, etc.  @xref{Syntax}.
 
 @item \S@var{c}
 matches any character whose syntax is not @var{c}.
@@ -696,25 +696,26 @@ matches any character that does @emph{not} belong to category
   The constructs that pertain to words and syntax are controlled by the
 setting of the syntax table (@pxref{Syntax}).
 
-  Here is a complicated regexp, used by Emacs to recognize the end of a
-sentence together with any whitespace that follows.  It is given in Lisp
-syntax to enable you to distinguish the spaces from the tab characters.  In
-Lisp syntax, the string constant begins and ends with a double-quote.
-@samp{\"} stands for a double-quote as part of the regexp, @samp{\\} for a
-backslash as part of the regexp, @samp{\t} for a tab and @samp{\n} for a
-newline.
+  Here is a complicated regexp, stored in @code{sentence-end} and used
+by Emacs to recognize the end of a sentence together with any
+whitespace that follows.  We show it Lisp syntax to distinguish the
+spaces from the tab characters.  In Lisp syntax, the string constant
+begins and ends with a double-quote.  @samp{\"} stands for a
+double-quote as part of the regexp, @samp{\\} for a backslash as part
+of the regexp, @samp{\t} for a tab, and @samp{\n} for a newline.
 
 @example
-"[.?!][]\"')]*\\($\\|\t\\|  \\)[ \t\n]*"
+"[.?!][]\"')]*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
 @end example
 
 @noindent
-This contains four parts in succession: a character set matching period,
-@samp{?}, or @samp{!}; a character set matching close-brackets, quotes,
-or parentheses, repeated any number of times; an alternative in
-backslash-parentheses that matches end-of-line, a tab, or two spaces;
-and a character set matching whitespace characters, repeated any number
-of times.
+This contains four parts in succession: a character set matching
+period, @samp{?}, or @samp{!}; a character set matching
+close-brackets, quotes, or parentheses, repeated zero or more times; a
+set of alternatives within backslash-parentheses that matches either
+end-of-line, a space at the end of a line, a tab, or two spaces; and a
+character set matching whitespace characters, repeated any number of
+times.
 
   To enter the same regexp interactively, you would type @key{TAB} to
 enter a tab, and @kbd{C-j} to enter a newline.  You would also type
@@ -744,7 +745,6 @@ for matching parens.)
 @node Search Case, Replace, Regexps, Search
 @section Searching and Case
 
-@vindex case-fold-search
   Incremental searches in Emacs normally ignore the case of the text
 they are searching through, if you specify the text in lower case.
 Thus, if you specify searching for @samp{foo}, then @samp{Foo} and
@@ -758,6 +758,12 @@ the search case-sensitive.  Thus, searching for @samp{Foo} does not find
 well as to string search.  The effect ceases if you delete the
 upper-case letter from the search string.
 
+  Typing @kbd{M-c} within an incremental search toggles the case
+sensitivity of that search.  The effect does not extend beyond the
+current incremental search to the next one, but it does override the
+effect of including an upper-case letter in the current search.
+
+@vindex case-fold-search
   If you set the variable @code{case-fold-search} to @code{nil}, then
 all letters must match exactly, including case.  This is a per-buffer
 variable; altering the variable affects only the current buffer, but
@@ -906,20 +912,19 @@ Replace some matches for @var{regexp} with @var{newstring}.
 @samp{bar}, not all of them, then you cannot use an ordinary
 @code{replace-string}.  Instead, use @kbd{M-%} (@code{query-replace}).
 This command finds occurrences of @samp{foo} one by one, displays each
-occurrence and asks you whether to replace it.  A numeric argument to
-@code{query-replace} tells it to consider only occurrences that are
-bounded by word-delimiter characters.  This preserves case, just like
-@code{replace-string}, provided @code{case-replace} is non-@code{nil},
-as it normally is.
+occurrence and asks you whether to replace it.  Aside from querying,
+@code{query-replace} works just like @code{replace-string}.  It
+preserves case, like @code{replace-string}, provided
+@code{case-replace} is non-@code{nil}, as it normally is.  A numeric
+argument means consider only occurrences that are bounded by
+word-delimiter characters.
 
 @kindex C-M-%
 @findex query-replace-regexp
-  Aside from querying, @code{query-replace} works just like
-@code{replace-string}, and @code{query-replace-regexp} works just like
-@code{replace-regexp}.  This command is run by @kbd{C-M-%}.
+  @kbd{C-M-%} performs regexp search and replace (@code{query-replace-regexp}).
 
-  The things you can type when you are shown an occurrence of @var{string}
-or a match for @var{regexp} are:
+  The characters you can type when you are shown a match for the string
+or regexp are:
 
 @ignore @c Not worth it.
 @kindex SPC @r{(query-replace)}
