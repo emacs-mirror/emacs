@@ -1,3 +1,11 @@
+2000-12-18  Andrew Innes  <andrewi@gnu.org>
+
+	* w32.c (w32_strerror): New function.
+
+	* w32.h (w32_strerror): New extern.
+
+	* w32fns.c (Fw32_shell_execute): Use it.
+
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/hpux10.h (_FILE_OFFSET_BITS): Undef again.
