@@ -239,7 +239,9 @@ Initialization options:\n\
 Action options:\n\
 \n\
 FILE			visit FILE using find-file\n\
-+LINENUM FILE		visit FILE using find-file, then go to line LINENUM\n\
++LINE FILE		visit FILE using find-file, then go to line LINE\n\
++LINE:COLUMN FILE	visit FILE using find-file, then go to line LINE,\n\
+			    column COLUMN\n\
 --directory, -L DIR	add DIR to variable load-path\n\
 --eval EXPR		evaluate Emacs Lisp expression EXPR\n\
 --execute EXPR		evaluate Emacs Lisp expression EXPR\n\
