@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.14) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.15) $
 test_lib.h
    various handy things for running tests, reporting errors &c.
 */
@@ -17,7 +17,9 @@ test_lib.h
 
 /* Give textual description of mps error code */
 
-const char *err_text(mps_res_t err);
+/* Need typedef to avoid bug in MacOS X Public Beta */
+typedef const char *constant_string_t;
+constant_string_t err_text(mps_res_t err);
 
 
 /* finish, fail: write completed=yes/no to stdout and

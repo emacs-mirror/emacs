@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.22) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.23) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -22,7 +22,8 @@ some useful functions for testing the MPS */
    rely on the representation, which might change
 */
 
-const char *err_text(mps_res_t err) {
+constant_string_t err_text(mps_res_t err)
+{
  switch (err) {
   case MPS_RES_OK: return "OK";
   case MPS_RES_FAIL: return "FAIL";
@@ -47,13 +48,15 @@ const char *err_text(mps_res_t err) {
    report completed=yes and exit(0)
 */
 
-void finish(void) {
+void finish(void)
+{
  report("completed", "yes");
  exit(0);
 }
 
 
-void pass(void) {
+void pass(void)
+{
  finish();
 }
 
@@ -62,7 +65,8 @@ void pass(void) {
    report completed=no and exit(1)
 */   
 
-void fail(void) {
+void fail(void)
+{
  report("completed", "no");
  exit(1);
 }
@@ -72,12 +76,14 @@ void fail(void) {
 */
 
 
-void report_res(const char *str, mps_res_t res) {
+void report_res(const char *str, mps_res_t res)
+{
  report(str, err_text(res));
 }
 
 
-void report(const char *str, const char *format, ...) {
+void report(const char *str, const char *format, ...)
+{
  va_list args;
 
  va_start(args, format);
@@ -86,7 +92,8 @@ void report(const char *str, const char *format, ...) {
 }
 
 
-void vreport(const char *str, const char *format, va_list args) {
+void vreport(const char *str, const char *format, va_list args)
+{
  fprintf(stdout, "!%s=", str);
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
@@ -98,7 +105,8 @@ void vreport(const char *str, const char *format, va_list args) {
    report mps result code, and exit if it's not ok
 */
 
-void cdie(mps_res_t err, const char *str) {
+void cdie(mps_res_t err, const char *str)
+{
  if (err != MPS_RES_OK) {
   error("%s: %s\n", str, err_text(err));
  }
@@ -110,7 +118,8 @@ void cdie(mps_res_t err, const char *str) {
    check mps result code it ok; it not, report and exit 
 */
 
-void die(mps_res_t err, const char *str) {
+void die(mps_res_t err, const char *str)
+{
  if (err != MPS_RES_OK) {
   error("%s: %s\n", str, err_text(err));
  }
@@ -121,7 +130,8 @@ void die(mps_res_t err, const char *str) {
    report mps result code as error, whatever it is
 */
 
-void adie(mps_res_t err, const char *str) {
+void adie(mps_res_t err, const char *str)
+{
  error("%s: %s\n", str, err_text(err));
 }
 
@@ -130,7 +140,8 @@ void adie(mps_res_t err, const char *str) {
    print comment on stdout
 */
 
-void comment(const char *format, ...) {
+void comment(const char *format, ...)
+{
  va_list args;
 
  va_start(args, format);
@@ -139,7 +150,8 @@ void comment(const char *format, ...) {
 }
 
 
-void vcomment(const char *format, va_list args) {
+void vcomment(const char *format, va_list args)
+{
  fprintf(stdout, "%% ");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
@@ -150,7 +162,8 @@ void vcomment(const char *format, va_list args) {
 /* commentif(boolean, "comment")
 */
 
-void commentif(int cond, const char *format, ...) {
+void commentif(int cond, const char *format, ...)
+{
  va_list args;
 
  if (cond) {
@@ -165,7 +178,8 @@ void commentif(int cond, const char *format, ...) {
    print error on stdout and exit
 */
 
-void error(const char *format, ...) {
+void error(const char *format, ...)
+{
  va_list args;
 
  va_start(args, format);
@@ -179,7 +193,8 @@ void myabort(void) {
 }
 
 
-void verror(const char *format, va_list args) {
+void verror(const char *format, va_list args)
+{
  fprintf(stdout, "%% ERROR \n!error=true\n");
  fprintf(stdout, "!errtext=");
  vfprintf(stdout, format, args);
@@ -193,7 +208,8 @@ void verror(const char *format, va_list args) {
    assert, with textual message instead of expr printed
 */
 
-void asserts(int expr, const char *format, ...) {
+void asserts(int expr, const char *format, ...)
+{
  va_list args;
 
  if (!expr) {
@@ -216,7 +232,8 @@ void asserts(int expr, const char *format, ...) {
 */
 
 static void my_assert_handler(const char *cond, const char *id,
-                       const char *file, unsigned line) {
+                              const char *file, unsigned line)
+{
  if (line == 0) {
 /* assertion condition contains condition, file, line, separated
    by newline characters
@@ -262,7 +279,8 @@ static void my_assert_handler(const char *cond, const char *id,
    a function with no arguments returning nothing
 */
 
-static void *call_f(void *p, size_t s) {
+static void *call_f(void *p, size_t s)
+{
  void (**f)(void) = p;
 
  mps_assert_install(my_assert_handler);
@@ -274,13 +292,15 @@ static void *call_f(void *p, size_t s) {
 
 #if defined(MMQA_PROD_epcore)
 
-static void easy_tramp2(void (*f)(void)) {
+static void easy_tramp2(void (*f)(void))
+{
  call_f(&f, (size_t) 0);
 }
 
 #else
 
-static void easy_tramp2(void (*f)(void)) {
+static void easy_tramp2(void (*f)(void))
+{
  void *result;
 
  mps_tramp(&result, call_f, &f, (size_t)0);
@@ -291,7 +311,8 @@ static void easy_tramp2(void (*f)(void)) {
 
 #ifdef MPS_OS_W3
 
-void easy_tramp(void (*f)(void)) {
+void easy_tramp(void (*f)(void))
+{
  __try {
   easy_tramp2(f);
  } __except(mySEHFilter(GetExceptionInformation())) {
@@ -301,7 +322,8 @@ void easy_tramp(void (*f)(void)) {
 
 #else
 
-void easy_tramp(void (*f)(void)) {
+void easy_tramp(void (*f)(void))
+{
  easy_tramp2(f);
 }
 
@@ -311,7 +333,8 @@ void easy_tramp(void (*f)(void)) {
 /* mmqa_pause(n) waits for n seconds
 */
 
-void mmqa_pause(unsigned long sec) {
+void mmqa_pause(unsigned long sec)
+{
  clock_t c;
 
  c = clock();
@@ -328,7 +351,8 @@ void mmqa_pause(unsigned long sec) {
  * good ones are to find.  Communications of the ACM, 31:1192-1201
  */
 
-static unsigned long rnd(void) {
+static unsigned long rnd(void)
+{
   static unsigned long seed = 1;
   double s;
   s = seed;
@@ -338,7 +362,8 @@ static unsigned long rnd(void) {
   return seed;
 }
 
-unsigned long ranint(unsigned long x) {
+unsigned long ranint(unsigned long x)
+{
  unsigned long y;
  unsigned long max;
 
@@ -355,7 +380,8 @@ unsigned long ranint(unsigned long x) {
 }
 
 
-unsigned long ranrange(unsigned long min, unsigned long max) {
+unsigned long ranrange(unsigned long min, unsigned long max)
+{
  return min+ranint(max-min);
 }
 
@@ -367,7 +393,8 @@ unsigned long ranrange(unsigned long min, unsigned long max) {
    F <id> <size>     -- free
 */
 
-int read_event(log_event* event) {
+int read_event(log_event* event)
+{
  int r;
  unsigned long a, b;
  r = scanf("A%lu%lu\n", &a, &b);
@@ -407,7 +434,8 @@ int read_event(log_event* event) {
 
 /* A useful function the MPS doesn't provide */
 
-size_t arena_committed_and_used(mps_arena_t arena) {
+size_t arena_committed_and_used(mps_arena_t arena)
+{
  return mps_arena_committed(arena)-mps_arena_spare_committed(arena);
 }
 
@@ -419,7 +447,9 @@ size_t arena_committed_and_used(mps_arena_t arena) {
 #ifdef MMQA_SYMBOL_mps_arena_t
 
 mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
- mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size) {
+                            mps_arena_class_t arena_class,
+                            size_t chunk_size, size_t limit_size)
+{
  mps_res_t res;
  mps_arena_t arena;
  if ( 0
@@ -470,40 +500,48 @@ mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
    entries.
 */
 
-void TQInit(TimeQueue TQ, TQElt* element, long int size) {
+void TQInit(TimeQueue TQ, TQElt* element, long int size)
+{
  TQ->size = size;
  TQ->used = 0;
  TQ->element = element;
 }
 
-unsigned long TQSize(TimeQueue TQ) {
+unsigned long TQSize(TimeQueue TQ)
+{
  return TQ->size;
 }
 
-unsigned long TQCount(TimeQueue TQ) {
+unsigned long TQCount(TimeQueue TQ)
+{
  return TQ->used;
 }
 
-int TQEmpty(TimeQueue TQ) {
+int TQEmpty(TimeQueue TQ)
+{
  return (TQ->used == 0);
 }
 
-int TQFull(TimeQueue TQ) {
+int TQFull(TimeQueue TQ)
+{
  return (TQ->used == TQ->size);
 }
 
-unsigned long TQTime(TimeQueue TQ) {
+unsigned long TQTime(TimeQueue TQ)
+{
  asserts(!TQEmpty(TQ), "TQTime called on empty TimeQueue");
  return (TQ->element[0].time);
 }
 
-void *TQElement(TimeQueue TQ) {
+void *TQElement(TimeQueue TQ)
+{
  asserts(!TQEmpty(TQ), "TQElement called on empty TimeQueue");
  return (TQ->element[0].ref);
 }
 
 
-void *TQPop(TimeQueue TQ) {
+void *TQPop(TimeQueue TQ)
+{
  void *ref;
  void *nref;
  unsigned long ntime;
