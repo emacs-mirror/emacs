@@ -8,13 +8,42 @@ lisptagsfiles = [a-zA-Z]*.el */[a-zA-Z]*.el
 doit:
 
 custom-deps: doit
-	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies
+	subdirs=`find . -type d -print`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS) ;; \
+		*) wins="$$wins $$file" ;; \
+	   esac; \
+        done; \
+	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies $$wins
 
 finder-data: doit
-	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist
+	subdirs=`find . -type d -print`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS) ;; \
+		*) wins="$$wins $$file" ;; \
+	   esac; \
+        done; \
+	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins
 
 autoloads: doit
-	$(EMACS) -batch -f batch-update-autoloads .
+	subdirs=`find . -type d -print`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS) ;; \
+		*) wins="$$wins $$file" ;; \
+	   esac; \
+        done; \
+	$(EMACS) -batch -f batch-update-autoloads $$wins
+
+updates: doit
+	subdirs=`find . -type d -print`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS) ;; \
+		*) wins="$$wins $$file" ;; \
+	   esac; \
+        done; \
+	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies $$wins \
+	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins \
+	$(EMACS) -batch -f batch-update-autoloads $$wins
 
 TAGS: $(lisptagsfiles)
 	../lib-src/etags $(lisptagsfiles)
