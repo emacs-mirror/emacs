@@ -157,7 +157,7 @@ install: all
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  tar -chf - leim-list.el ${SUBDIRS} \
-		| (cd ${INSTALLDIR}; umask 0; tar -xvf -) ; \
+	       | (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	else true; fi
 
 clean mostlyclean:
