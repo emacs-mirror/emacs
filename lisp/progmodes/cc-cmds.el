@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode 
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Authors:    1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
@@ -102,7 +102,7 @@ nil, or point is inside a literal then the function in the variable
 `c-backspace-function' is called.
 
 See also \\[c-electric-delete]."
-  (interactive "P")
+  (interactive "*P")
   (if (or (not c-hungry-delete-key)
 	  arg
 	  (c-in-literal))
@@ -122,13 +122,14 @@ The behavior of this function depends on the variable
 exist, as in older Emacsen), then this function behaves identical to
 \\[c-electric-backspace].
 
-If `delete-key-deletes-forward' is non-nil, then deletion occurs in
-the forward direction.  So if `c-hungry-delete-key' is non-nil, as
-evidenced by the \"/h\" or \"/ah\" string on the mode line, then all
-following whitespace is consumed.  If however an ARG is supplied, or
-`c-hungry-delete-key' is nil, or point is inside a literal then the
-function in the variable `c-delete-function' is called."
-  (interactive "P")
+If `delete-key-deletes-forward' is non-nil and is supported in your
+Emacs, then deletion occurs in the forward direction.  So if
+`c-hungry-delete-key' is non-nil, as evidenced by the \"/h\" or
+\"/ah\" string on the mode line, then all following whitespace is
+consumed.  If however an ARG is supplied, or `c-hungry-delete-key' is
+nil, or point is inside a literal then the function in the variable
+`c-delete-function' is called."
+  (interactive "*P")
   (if (and (boundp 'delete-key-deletes-forward)
 	   delete-key-deletes-forward)
       (if (or (not c-hungry-delete-key)
@@ -148,7 +149,7 @@ function in the variable `c-delete-function' is called."
 Inserts a `#' character specially depending on the variable
 `c-electric-pound-behavior'.  If a numeric ARG is supplied, or if
 point is inside a literal, nothing special happens."
-  (interactive "P")
+  (interactive "*P")
   (if (or (c-in-literal)
 	  arg
 	  (not (memq 'alignleft c-electric-pound-behavior)))
@@ -174,7 +175,7 @@ after braces based on the value of `c-hanging-braces-alist'.
 Also, the line is re-indented unless a numeric ARG is supplied, there
 are non-whitespace characters present on the line after the brace, or
 the brace is inserted inside a literal."
-  (interactive "P")
+  (interactive "*P")
   (let* ((c-state-cache (c-parse-state))
 	 (safepos (c-safe-position (point) c-state-cache))
 	 (literal (c-in-literal safepos)))
@@ -185,11 +186,19 @@ the brace is inserted inside a literal."
 ;	    (not c-auto-newline)
 	    (not (looking-at "[ \t]*$")))
 	(self-insert-command (prefix-numeric-value arg))
-      (let* ((syms '(class-open class-close defun-open defun-close 
-		     inline-open inline-close brace-list-open brace-list-close
-		     brace-list-intro brace-list-entry block-open block-close
-		     substatement-open statement-case-open
-		     extern-lang-open extern-lang-close))
+      (let* ((syms
+	      ;; This is the list of brace syntactic symbols that can
+	      ;; hang.  If any new ones are added to c-offsets-alist,
+	      ;; they should be added here as well.
+	      '(class-open class-close defun-open defun-close
+		inline-open inline-close
+		brace-list-open brace-list-close
+		brace-list-intro brace-list-entry
+		block-open block-close
+		substatement-open statement-case-open
+		extern-lang-open extern-lang-close
+		namespace-open namespace-close
+		))
 	    ;; we want to inhibit blinking the paren since this will
 	    ;; be most disruptive. we'll blink it ourselves later on
 	    (old-blink-paren blink-paren-function)
@@ -366,7 +375,7 @@ Indent the line as a comment, if:
 
 If numeric ARG is supplied or point is inside a literal, indentation
 is inhibited."
-  (interactive "P")
+  (interactive "*P")
   (let* ((ch (char-before))
 	 (indentp (and (not arg)
 		       (eq last-command-char ?/)
@@ -387,7 +396,7 @@ If the star is the second character of a C style comment introducing
 construct, and we are on a comment-only-line, indent line as comment.
 If numeric ARG is supplied or point is inside a literal, indentation
 is inhibited."
-  (interactive "P")
+  (interactive "*P")
   (self-insert-command (prefix-numeric-value arg))
   ;; if we are in a literal, or if arg is given do not re-indent the
   ;; current line, unless this star introduces a comment-only line.
@@ -416,7 +425,7 @@ is determined.
 When semicolon is inserted, the line is re-indented unless a numeric
 arg is supplied, point is inside a literal, or there are
 non-whitespace characters on the line following the semicolon."
-  (interactive "P")
+  (interactive "*P")
   (let* ((lim (c-most-enclosing-brace (c-parse-state)))
 	 (literal (c-in-literal lim))
 	 (here (point))
@@ -479,10 +488,10 @@ the colon is inserted inside a literal.
 
 This function cleans up double colon scope operators based on the
 value of `c-cleanup-list'."
-  (interactive "P")
+  (interactive "*P")
   (let* ((bod (c-point 'bod))
 	 (literal (c-in-literal bod))
-	 syntax newlines
+	 syntax newlines is-scope-op
 	 ;; shut this up
 	 (c-echo-syntactic-information-p nil))
     (if (or literal
@@ -502,7 +511,9 @@ value of `c-cleanup-list'."
 		   (eq (char-before) ?:))
 		 (not (c-in-literal))
 		 (not (eq (char-after (- (point) 2)) ?:)))
-	    (delete-region (point) (1- here)))
+	    (progn
+	      (delete-region (point) (1- here))
+	      (setq is-scope-op t)))
 	(goto-char (- (point-max) pos)))
       ;; lets do some special stuff with the colon character
       (setq syntax (c-guess-basic-syntax)
@@ -526,6 +537,7 @@ value of `c-cleanup-list'."
       ;; non-hung colons.  However, we don't unhang them because that
       ;; would be a cleanup (and anti-social).
       (if (and (memq 'before newlines)
+	       (not is-scope-op)
 	       (save-excursion
 		 (skip-chars-backward ": \t")
 		 (not (bolp))))
@@ -535,7 +547,8 @@ value of `c-cleanup-list'."
 	    (c-indent-line)
 	    (goto-char (- (point-max) pos))))
       ;; does a newline go after the colon?
-      (if (memq 'after (cdr-safe newlines))
+      (if (and (memq 'after (cdr-safe newlines))
+	       (not is-scope-op))
 	  (progn
 	    (newline)
 	    (c-indent-line)))
@@ -550,7 +563,7 @@ and the buffer is in C++ mode.
 
 The line will also not be re-indented if a numeric argument is
 supplied, or point is inside a literal."
-  (interactive "P")
+  (interactive "*P")
   (let ((indentp (and (not arg)
 		      (eq (char-before) last-command-char)
 		      (not (c-in-literal))))
@@ -590,16 +603,67 @@ forward."
 (defun c-scope-operator ()
   "Insert a double colon scope operator at point.
 No indentation or other \"electric\" behavior is performed."
-  (interactive)
+  (interactive "*")
   (insert "::"))
+
+(defun c-beginning-of-defun (&optional arg)
+  "Move backward to the beginning of a defun.
+With argument, do it that many times.  Negative arg -N
+means move forward to Nth following beginning of defun.
+Returns t unless search stops due to beginning or end of buffer.
+
+Unlike the built-in `beginning-of-defun' this tries to be smarter
+about finding the char with open-parenthesis syntax that starts the
+defun."
+  (interactive "p")
+  (if (< arg 0)
+      (c-end-of-defun (- arg))
+    (while (> arg 0)
+      (let ((state (nreverse (c-parse-state)))
+	    prevbod bod)
+	(while (and state (not bod))
+	  (setq bod (car state)
+		state (cdr state))
+	  (if (consp bod)
+	      (setq prevbod (car bod)
+		    bod nil)))
+	(cond
+	 (bod (goto-char bod))
+	 (prevbod (goto-char prevbod))
+	 (t (goto-char (c-point 'bod)))))
+      (setq arg (1- arg))))
+  (c-keep-region-active))
+
+(defun c-end-of-defun (&optional arg)
+  "Move forward to next end of defun.  With argument, do it that many times.
+Negative argument -N means move back to Nth preceding end of defun.
+
+An end of a defun occurs right after the close-parenthesis that matches
+the open-parenthesis that starts a defun; see `beginning-of-defun'."
+  (interactive "p")
+  (if (< arg 0)
+      (c-beginning-of-defun (- arg))
+    (while (> arg 0)
+      ;; skip down into the next defun-block
+      (while (and (c-safe (down-list 1) t)
+		  (not (eq (char-before) ?{)))
+	(forward-char -1)
+	(forward-sexp))
+      (c-beginning-of-defun 1)
+      (forward-sexp 1)
+      (setq arg (1- arg)))
+    (forward-line 1))
+  (c-keep-region-active))
 
 
 (defun c-beginning-of-statement (&optional count lim sentence-flag)
   "Go to the beginning of the innermost C statement.
 With prefix arg, go back N - 1 statements.  If already at the
-beginning of a statement then go to the beginning of the preceding
-one.  If within a string or comment, or next to a comment (only
-whitespace between), move by sentences instead of statements.
+beginning of a statement then go to the beginning of the closest
+preceding one, moving into nested blocks if necessary (use
+\\[backward-sexp] to skip over a block).  If within a comment, or next
+to a comment (only whitespace between), move by sentences instead of
+statements.
 
 When called from a program, this function takes 3 optional args: the
 repetition count, a buffer position limit which is the farthest back
@@ -607,45 +671,167 @@ to search, and a flag saying whether to do sentence motion when in a
 comment."
   (interactive (list (prefix-numeric-value current-prefix-arg)
 		     nil t))
-  (let ((here (point))
-	(count (or count 1))
-	(lim (or lim (c-point 'bod)))
-	state)
-    (save-excursion
-      (goto-char lim)
-      (setq state (parse-partial-sexp (point) here nil nil)))
-    (if (and sentence-flag
-	     (or (nth 3 state)
-		 (nth 4 state)
-		 ;; skipping forward into a comment?
-		 (and (> 0 count)
-		      (save-excursion
-			(skip-chars-forward " \t\n")
-			(or (eobp)
-			    (looking-at comment-start-skip))))
-		 (and (< 0 count)
-		      (save-excursion
-			(skip-chars-backward " \t\n")
-			(goto-char (- (point) 2))
-			(looking-at "\\*/")))))
-	(forward-sentence (- count))
-      (while (> count 0)
-	(c-beginning-of-statement-1 lim)
-	(setq count (1- count)))
-      (while (< count 0)
-	(c-end-of-statement-1)
-	(setq count (1+ count))))
+  (let* ((count (or count 1))
+	 here
+	 (range (c-collect-line-comments (c-literal-limits lim))))
+    (while (and (/= count 0)
+		(or (not lim) (> (point) lim)))
+      (setq here (point))
+      (if (and (not range) sentence-flag)
+	  (save-excursion
+	    ;; Find the comment next to point if we're not in one.
+	    (if (> count 0)
+		;; Finding a comment backwards is a bit cumbersome
+		;; because `forward-comment' regards every newline as
+		;; a comment when searching backwards (Emacs 19.34).
+		(while (and (progn (skip-chars-backward " \t")
+				   (setq range (point))
+				   (setq range (if (forward-comment -1)
+						   (cons (point) range)
+						 nil)))
+			    (= (char-after) ?\n)))
+	      (skip-chars-forward " \t\n")
+	      (setq range (point))
+	      (setq range (if (forward-comment 1)
+			      (cons range (point))
+			    nil)))
+	    (setq range (c-collect-line-comments range))))
+      (if (and (< count 0) (= here (point-max)))
+	  ;; Special case because eob might be in a literal.
+	  (setq range nil))
+      (if range
+	  (if (and sentence-flag
+		   (/= (char-syntax (char-after (car range))) ?\"))
+	      (progn
+		;; move by sentence, but not past the limit of the literal
+		(save-restriction
+		  (narrow-to-region (save-excursion
+				      (goto-char (car range))
+				      (looking-at comment-start-skip)
+				      (goto-char (match-end 0))
+				      (point))
+				    (save-excursion
+				      (goto-char (cdr range))
+				      (if (save-excursion
+					    (goto-char (car range))
+					    (looking-at "/\\*"))
+					  (backward-char 2))
+				      (skip-chars-backward " \t\n")
+				      (point)))
+		  (c-safe (forward-sentence (if (> count 0) -1 1))))
+		;; See if we should escape the literal.
+		(if (> count 0)
+		    (if (< (point) here)
+			(setq count (1- count))
+		      (goto-char (car range))
+		      (setq range nil))
+		  (if (> (point) here)
+		      (setq count (1+ count))
+		    (goto-char (cdr range))
+		    (setq range nil))))
+	    (goto-char (if (> count 0) (car range) (cdr range)))
+	    (setq range nil))
+	;; Below we do approximately the same as
+	;; c-beginning-of-statement-1 and c-end-of-statement-1 and
+	;; perhaps they should be changed, but that'd likely break a
+	;; lot in cc-engine.
+	(goto-char here)
+	;; Move out of any enclosing non-`{ }' parens.
+	(let ((last (point)))
+	  (while (and (c-safe (progn (up-list 1) t))
+		      (/= (char-before) ?\}))
+	    (setq last (point)))
+	  (goto-char last))
+	(if (> count 0)
+	    (if (condition-case nil
+		    ;; Stop before `{' and after `;', `{', `}' and
+		    ;; `};' when not followed by `}', but on the other
+		    ;; side of the syntactic ws.  Also stop before
+		    ;; `}', but only to catch comments.  Move by sexps
+		    ;; and move into `{ }', but not into any other
+		    ;; other type of paren.
+		    (catch 'done
+		      (let (last)
+			(while t
+			  (setq last (point))
+			  (if (and (looking-at "[{}]")
+				   (/= here last))
+			      (throw 'done (= (char-after) ?{)))
+			  (c-backward-syntactic-ws)
+			  (cond ((bobp) ; Must handle bob specially.
+				 (if (= here last)
+				     (if (= last (point-min))
+					 (throw 'done t)
+				       (goto-char last)
+				       (throw 'done nil))
+				   (goto-char last)
+				   (throw 'done t)))
+				((progn (backward-char)
+					(looking-at "[;{}]"))
+				 (if (or (= here last)
+					 (= (char-after last) ?}))
+				     (if (and (= (char-before) ?})
+					      (= (char-after) ?\;))
+					 (backward-char))
+				   (goto-char last)
+				   (throw 'done t)))
+				((or (= (char-syntax (char-after)) ?\))
+				     (= (char-syntax (char-after)) ?\"))
+				 (forward-char)
+				 (backward-sexp))
+				))))
+		  (error
+		   (goto-char (point-min))
+		   t))
+		(setq count (1- count)))
+	  (if (condition-case nil
+		  ;; Stop before `{' and `}' and after `;', `}' and
+		  ;; `};'.  Also stop after `{', but only to catch
+		  ;; comments.  Move by sexps and move into `{ }', but
+		  ;; not into any other other type of paren.
+		  (catch 'done
+		    (let (last)
+		      (while t
+			(setq last (point))
+			(c-forward-syntactic-ws)
+			(cond ((= (char-after) ?{)
+			       (if (= here last)
+				   (progn (forward-char)
+					  (throw 'done nil))
+				 (goto-char last)
+				 (throw 'done t)))
+			      ((and (= (char-after) ?})
+				    (/= here last))
+			       (goto-char last)
+			       (throw 'done t))
+			      ((looking-at ";\\|};?")
+			       (goto-char (match-end 0))
+			       (throw 'done t))
+			      ((or (= (char-syntax (char-after)) ?\()
+				   (= (char-syntax (char-after)) ?\"))
+			       (forward-sexp))
+			      (t
+			       (forward-char))
+			      ))))
+		(error
+		 (goto-char (point-max))
+		 t))
+	      (setq count (1+ count)))))
+      ;; If we haven't moved we're near a buffer limit.
+      (when (= (point) here)
+	(goto-char (if (> count 0) (point-min) (point-max)))
+	(setq count 0)))
     ;; its possible we've been left up-buf of lim
-    (goto-char (max (point) lim))
-    )
+    (if lim (goto-char (max (point) lim))))
   (c-keep-region-active))
 
 (defun c-end-of-statement (&optional count lim sentence-flag)
   "Go to the end of the innermost C statement.
-
-With prefix arg, go forward N - 1 statements.  Move forward to end of
-the next statement if already at end.  If within a string or comment,
-move by sentences instead of statements.
+With prefix arg, go forward N - 1 statements.  Move forward to the end
+of the next statement if already at end, and move into nested blocks
+\(use \\[forward-sexp] to skip over a block).  If within a comment, or
+next to a comment (only whitespace between), move by sentences instead
+of statements.
 
 When called from a program, this function takes 3 optional args: the
 repetition count, a buffer position limit which is the farthest back
@@ -778,7 +964,7 @@ comment."
 				       "\\)[ \t]+"))
 		   (string-equal (match-string 1) "//"))
 	      ;; line style
-	      (setq leader "// "))
+	      (setq leader (match-string 0)))
 	  (goto-char here)
 	  (delete-region (progn (skip-chars-backward " \t") (point))
 			 (progn (skip-chars-forward " \t") (point)))
@@ -909,7 +1095,7 @@ of the expression are preserved.
   just inserts a tab character, or the equivalent number of spaces,
   depending on the variable `indent-tabs-mode'."
 
-  (interactive "P")
+  (interactive "*P")
   (let ((bod (c-point 'bod)))
     (if whole-exp
 	;; If arg, always indent this line as C
@@ -952,7 +1138,7 @@ of the expression are preserved.
 (defun c-indent-exp (&optional shutup-p)
   "Indent each line in balanced expression following point.
 Optional SHUTUP-P if non-nil, inhibits message printing and error checking."
-  (interactive "P")
+  (interactive "*P")
   (let ((here (point))
 	end progress-p)
     (unwind-protect
@@ -999,13 +1185,11 @@ Optional SHUTUP-P if non-nil, inhibits message printing and error checking."
 
 (defun c-indent-defun ()
   "Re-indents the current top-level function def, struct or class declaration."
-  (interactive)
+  (interactive "*")
   (let ((here (point-marker))
 	(c-echo-syntactic-information-p nil)
 	(brace (c-least-enclosing-brace (c-parse-state))))
-    (if brace
-	(goto-char brace)
-      (beginning-of-defun))
+    (goto-char (or brace (c-point 'bod)))
     ;; if we're sitting at b-o-b, it might be because there was no
     ;; least enclosing brace and we were sitting on the defun's open
     ;; brace.
@@ -1205,7 +1389,7 @@ backslash (if any) at the end of the previous line.
  
 You can put the region around an entire macro definition and use this
 command to conveniently insert and align the necessary backslashes."
-  (interactive "r\nP")
+  (interactive "*r\nP")
   (save-excursion
     (goto-char from)
     (let ((column c-backslash-column)
@@ -1240,8 +1424,7 @@ command to conveniently insert and align the necessary backslashes."
             (c-append-backslash column)
           (c-delete-backslash))
         (forward-line 1))
-      (move-marker endmark nil)))
-  (c-keep-region-active))
+      (move-marker endmark nil))))
 
 (defun c-append-backslash (column)
   (end-of-line)
@@ -1269,7 +1452,7 @@ fill the comment or the paragraph of it that point is in,
 preserving the comment indentation or line-starting decorations.
 
 Optional prefix ARG means justify paragraph as well."
-  (interactive "P")
+  (interactive "*P")
   (let* (comment-start-place
 	 (first-line
 	  ;; Check for obvious entry to comment.
@@ -1308,7 +1491,8 @@ Optional prefix ARG means justify paragraph as well."
 	      (narrow-to-region (c-point 'bol)
 				(save-excursion
 				  (forward-line 1)
-				  (while (looking-at fill-prefix)
+				  (while
+				      (looking-at (regexp-quote fill-prefix))
 				    (forward-line 1))
 				  (point)))
 	      (fill-paragraph arg)
