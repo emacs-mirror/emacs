@@ -144,7 +144,7 @@ static void display_menu_bar ();
 static int display_count_lines ();
 
 /* Prompt to display in front of the minibuffer contents */
-char *minibuf_prompt;
+Lisp_Object minibuf_prompt;
 
 /* Width in columns of current minibuffer prompt.  */
 int minibuf_prompt_width;
@@ -2052,10 +2052,11 @@ display_text_line (w, start, vpos, hpos, taboffset)
   if (MINI_WINDOW_P (w) && start == 1
       && vpos == XFASTINT (w->top))
     {
-      if (minibuf_prompt)
+      if (! NILP (minibuf_prompt))
 	{
 	  minibuf_prompt_width
-	    = (display_string (w, vpos, minibuf_prompt, -1, hpos,
+	    = (display_string (w, vpos, XSTRING (minibuf_prompt)->data,
+			       XSTRING (minibuf_prompt)->size, hpos,
 			       (!truncate ? continuer : truncator),
 			       1, -1, -1)
 	       - hpos);
