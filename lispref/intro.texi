@@ -502,7 +502,7 @@ emacs-build-time
 The value of this variable is the version of Emacs being run.  It is a
 string such as @code{"20.3.1"}.  The last number in this string is not
 really part of the Emacs release version number; it is incremented each
-time you build Emacs in any given directory.  A value with three numeric
+time you build Emacs in any given directory.  A value with four numeric
 components, such as @code{"20.3.9.1"}, indicates an unreleased test
 version.
 @end defvar
