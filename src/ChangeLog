@@ -1,3 +1,8 @@
+2003-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (syms_of_composite): Don't make the compostion hash
+	table week.
+
 2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* intervals.h: Add EXFUN for Fget_char_property_and_overlay.

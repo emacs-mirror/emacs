@@ -109,10 +109,6 @@ preceded by one of the words `variable' or `option'.
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
-** Under XFree86 4, the display table is modified so that `' is
-displayed as balanced quotes, not the ASCII glyphs whose shape has
-been changed generally in the XFree86 fonts.
-
 +++
 ** The -f option, used from the command line to call a function,
 now reads arguments for the function interactively if it is
@@ -1758,7 +1754,7 @@ events, rather than a text area click event.
 *** Function `mouse-set-point' now works for events outside text area.
 
 +++
-*** Ǹew function `posn-area' returns window area clicked on (nil means
+*** New function `posn-area' returns window area clicked on (nil means
 text area).
 
 +++
