@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.82";
+char pot_etags_version[] = "@(#) pot revision number is $Revision: 11.84 $";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -134,7 +134,13 @@ extern int errno;
  *
  * SYNOPSIS:	Type *xnew (int n, Type);
  */
-#define xnew(n,Type)	((Type *) xmalloc ((n) * sizeof (Type)))
+#ifdef chkmalloc
+# include "chkmalloc.h"
+# define xnew(n,Type)	((Type *) trace_xmalloc (__FILE__, __LINE__, \
+						 (n) * sizeof (Type)))
+#else
+# define xnew(n,Type)	((Type *) xmalloc ((n) * sizeof (Type)))
+#endif
 
 typedef int logical;
 
@@ -570,7 +576,7 @@ enum argument_type
   at_filename
 };
 
-/* This structure helps us allow mixing of --lang and filenames. */
+/* This structure helps us allow mixing of --lang and file names. */
 typedef struct
 {
   enum argument_type arg_type;
@@ -592,7 +598,7 @@ typedef struct	{
 
 /*
  v1.05 nmm 26-Jun-86 fn_exp - expand specification of list of file names
- returning in each successive call the next filename matching the input
+ returning in each successive call the next file name matching the input
  spec. The function expects that each in_spec passed
  to it will be processed to completion; in particular, up to and
  including the call following that in which the last matching name
@@ -601,7 +607,7 @@ typedef struct	{
  If an error occurs, on return out_spec contains the value
  of in_spec when the error occurred.
 
- With each successive filename returned in out_spec, the
+ With each successive file name returned in out_spec, the
  function's return value is one. When there are no more matching
  names the function returns zero. If on the first call no file
  matches in_spec, or there is any other error, -1 is returned.
@@ -680,7 +686,7 @@ gfnames (arg, p_error)
 system (cmd)
      char *cmd;
 {
-  fprintf (stderr, "system() function not implemented under VMS\n");
+  error ("%s", "system() function not implemented under VMS");
 }
 #endif
 
@@ -709,11 +715,11 @@ main (argc, argv)
      char *argv[];
 {
   int i;
-  unsigned int nincluded_files = 0;
-  char **included_files = xnew (argc, char *);
+  unsigned int nincluded_files;
+  char **included_files;
   char *this_file;
   argument *argbuffer;
-  int current_arg = 0, file_count = 0;
+  int current_arg, file_count;
   struct linebuffer filename_lb;
 #ifdef VMS
   logical got_err;
@@ -724,6 +730,10 @@ main (argc, argv)
 #endif /* DOS_NT */
 
   progname = argv[0];
+  nincluded_files = 0;
+  included_files = xnew (argc, char *);
+  current_arg = 0;
+  file_count = 0;
 
   /* Allocate enough no matter what happens.  Overkill, but each one
      is small. */
@@ -757,7 +767,7 @@ main (argc, argv)
 	  break;
 
 	case 1:
-	  /* This means that a filename has been seen.  Record it. */
+	  /* This means that a file name has been seen.  Record it. */
 	  argbuffer[current_arg].arg_type = at_filename;
 	  argbuffer[current_arg].what = optarg;
 	  ++current_arg;
@@ -781,8 +791,7 @@ main (argc, argv)
 	case 'o':
 	  if (tagfile)
 	    {
-	      fprintf (stderr, "%s: -%c option may only be given once.\n",
-		       progname, opt);
+	      error ("-%c option may only be given once.", opt);
 	      suggest_asking_for_help ();
 	    }
 	  tagfile = optarg;
@@ -859,7 +868,7 @@ main (argc, argv)
 
   if (nincluded_files == 0 && file_count == 0)
     {
-      fprintf (stderr, "%s: No input files specified.\n", progname);
+      error ("%s", "No input files specified.");
       suggest_asking_for_help ();
     }
 
@@ -1009,8 +1018,7 @@ get_language_from_name (name)
 	  return lang->function;
       }
 
-  fprintf (stderr, "%s: language \"%s\" not recognized.\n",
-	   progname, optarg);
+  error ("language \"%s\" not recognized.", optarg);
   suggest_asking_for_help ();
 
   /* This point should never be reached.  The function should either
@@ -1085,12 +1093,12 @@ process_file (file)
 
   if (stat (file, &stat_buf) == 0 && !S_ISREG (stat_buf.st_mode))
     {
-      fprintf (stderr, "Skipping %s: it is not a regular file.\n", file);
+      error ("Skipping %s: it is not a regular file.", file);
       return;
     }
   if (streq (file, tagfile) && !streq (tagfile, "-"))
     {
-      fprintf (stderr, "Skipping inclusion of %s in self.\n", file);
+      error ("Skipping inclusion of %s in self.", file);
       return;
     }
   inf = fopen (file, "r");
@@ -1108,12 +1116,12 @@ process_file (file)
 
       if (absolutefn (file))
 	{
-	  /* file is an absolute filename.  Canonicalise it. */
+	  /* file is an absolute file name.  Canonicalise it. */
 	  filename = absolute_filename (file, cwd);
 	}
       else
 	{
-	  /* file is a filename relative to cwd.  Make it relative
+	  /* file is a file name relative to cwd.  Make it relative
 	     to the directory of the tags file. */
 	  filename = relative_filename (file, tagfiledir);
 	}
@@ -3973,7 +3981,7 @@ add_regex (regexp_pattern)
 {
   char *name;
   const char *err;
-  struct re_pattern_buffer *patbuf, patbuf_init = { 0 };
+  struct re_pattern_buffer *patbuf;
 
   if (regexp_pattern == NULL)
     {
@@ -4002,7 +4010,10 @@ add_regex (regexp_pattern)
   (void) scan_separators (name);
 
   patbuf = xnew (1, struct re_pattern_buffer);
-  *patbuf = patbuf_init;
+  patbuf->translate = NULL;
+  patbuf->fastmap = NULL;
+  patbuf->buffer = NULL;
+  patbuf->allocated = 0;
 
   err = re_compile_pattern (regexp_pattern, strlen (regexp_pattern), patbuf);
   if (err != NULL)
@@ -4032,52 +4043,40 @@ substitute (in, out, regs)
      char *in, *out;
      struct re_registers *regs;
 {
-  char *result = NULL, *t;
-  int size = 0;
+  char *result, *t;
+  int size, i;
+
+  result = NULL;
+  size = strlen (out);
 
   /* Pass 1: figure out how much size to allocate. */
-  for (t = out; *t; ++t)
-    {
-      if (*t == '\\')
-	{
-	  ++t;
-	  if (!*t)
-	    {
-	      fprintf (stderr, "%s: pattern substitution ends prematurely\n",
-		       progname);
-	      return NULL;
-	    }
-	  if (isdigit (*t))
-	    {
-	      int dig = *t - '0';
-	      size += regs->end[dig] - regs->start[dig];
-	    }
-	}
-    }
+  if (out[strlen (out) - 1] == '\\')
+    fatal ("pattern error in %s", out);
+  for (t = out; *t != '\0'; ++t)
+    if (*t == '\\' && isdigit (*++t))
+      {
+	int dig = *t - '0';
+	size += regs->end[dig] - regs->start[dig] - 2;
+      }
 
   /* Allocate space and do the substitutions. */
   result = xnew (size + 1, char);
-  size = 0;
-  for (; *out; ++out)
+  for (i = 0; *out != '\0'; ++out)
     {
-      if (*out == '\\')
+      if (*out == '\\' && isdigit (*++out))
 	{
-	  ++out;
-	  if (isdigit (*out))
-	    {
-	      /* Using "dig2" satisfies my debugger.  Bleah. */
-	      int dig2 = *out - '0';
-	      strncpy (result + size, in + regs->start[dig2],
-		       regs->end[dig2] - regs->start[dig2]);
-	      size += regs->end[dig2] - regs->start[dig2];
-	    }
-	  else
-	    result[size++] = *out;
+	  /* Using "dig2" satisfies my debugger.  Bleah. */
+	  int dig2 = *out - '0';
+	  int diglen = regs->end[dig2] - regs->start[dig2];
+	  strncpy (result + i, in + regs->start[dig2], diglen);
+	  i += diglen;
 	}
       else
-	result[size++] = *out;
+	result[i++] = *out;
     }
-  result[size] = '\0';
+  result[i] = '\0';
+  if (DEBUG && i > size)
+    abort ();
 
   return result;
 }
@@ -4410,7 +4409,7 @@ etags_getcwd ()
 #endif /* not HAVE_GETCWD */
 }
 
-/* Return a newly allocated string containing the filename
+/* Return a newly allocated string containing the file name
    of FILE relative to the absolute directory DIR (which
    should end with a slash). */
 char *
@@ -4418,6 +4417,7 @@ relative_filename (file, dir)
      char *file, *dir;
 {
   char *fp, *dp, *abs, *res;
+  int i;
 
   /* Find the common root of file and dir (with a trailing slash). */
   abs = absolute_filename (file, cwd);
@@ -4426,27 +4426,28 @@ relative_filename (file, dir)
   while (*fp++ == *dp++)
     continue;
   fp--, dp--;			/* back to the first differing char */
-  do				/* look at the equal chars until / */
+  do				/* look at the equal chars until '/' */
     fp--, dp--;
   while (*fp != '/');
 
-  /* Build a sequence of "../" strings for the resulting relative filename. */
-  for (dp = etags_strchr (dp + 1, '/'), res = "";
-       dp != NULL;
-       dp = etags_strchr (dp + 1, '/'))
-    {
-      res = concat (res, "../", "");
-    }
+  /* Build a sequence of "../" strings for the resulting relative file name. */
+  i = 0;
+  while ((dp = etags_strchr (dp + 1, '/')) != NULL)
+    i += 1;
+  res = xnew (3*i + strlen (fp + 1) + 1, char);
+  res[0] = '\0';
+  while (i-- > 0)
+    strcat (res, "../");
 
-  /* Add the filename relative to the common root of file and dir. */
-  res = concat (res, fp + 1, "");
+  /* Add the file name relative to the common root of file and dir. */
+  strcat (res, fp + 1);
   free (abs);
 
   return res;
 }
 
 /* Return a newly allocated string containing the
-   absolute filename of FILE given CWD (which should
+   absolute file name of FILE given CWD (which should
    end with a slash). */
 char *
 absolute_filename (file, cwd)
@@ -4455,12 +4456,12 @@ absolute_filename (file, cwd)
   char *slashp, *cp, *res;
 
   if (absolutefn (file))
-    res = concat (file, "", "");
+    res = savestr (file);
 #ifdef DOS_NT
-  /* We don't support non-absolute filenames with a drive
+  /* We don't support non-absolute file names with a drive
      letter, like `d:NAME' (it's too much hassle).  */
   else if (file[1] == ':')
-    fatal ("%s: relative filenames with drive letters not supported", file);
+    fatal ("%s: relative file names with drive letters not supported", file);
 #endif
   else
     res = concat (cwd, file, "");
@@ -4478,24 +4479,16 @@ absolute_filename (file, cwd)
 	      do
 		cp--;
 	      while (cp >= res && !absolutefn (cp));
-	      if (*cp == '/')
-		{
-		  strcpy (cp, slashp + 3);
-		}
+	      if (cp < res)
+		cp = slashp;	/* the absolute name begins with "/.." */
 #ifdef DOS_NT
 	      /* Under MSDOS and NT we get `d:/NAME' as absolute
-		 filename, so the luser could say `d:/../NAME'.
+		 file name, so the luser could say `d:/../NAME'.
 		 We silently treat this as `d:/NAME'.  */
-	      else if (cp[1] == ':')
-		strcpy (cp + 3, slashp + 4);
+	      else if (cp[0] != '/')
+		cp = slashp;
 #endif
-	      else		/* else (cp == res) */
-		{
-		  if (slashp[3] != '\0')
-		    strcpy (cp, slashp + 4);
-		  else
-		    return ".";
-		}
+	      strcpy (cp, slashp + 3);
 	      slashp = cp;
 	      continue;
 	    }
@@ -4508,12 +4501,15 @@ absolute_filename (file, cwd)
 
       slashp = etags_strchr (slashp + 1, '/');
     }
-
-  return res;
+  
+  if (res[0] == '\0')
+    return savestr ("/");
+  else
+    return res;
 }
 
 /* Return a newly allocated string containing the absolute
-   filename of dir where FILE resides given CWD (which should
+   file name of dir where FILE resides given CWD (which should
    end with a slash). */
 char *
 absolute_dirname (file, cwd)
@@ -4531,7 +4527,7 @@ absolute_dirname (file, cwd)
 
   slashp = etags_strrchr (file, '/');
   if (slashp == NULL)
-    return cwd;
+    return savestr (cwd);
   save = slashp[1];
   slashp[1] = '\0';
   res = absolute_filename (file, cwd);
