@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.25 2002/08/14 20:25:10 karl Exp $
+@comment $Id: info.texi,v 1.26 2002/10/02 23:24:31 karl Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
@@ -245,9 +245,9 @@ links.
 @samp{>>} in the margin means it is really time to try a command.
 
 @format
->> If you have a mouse, and if you already practiced typing @kbd{n}
-   to get to the next node, click now with the middle mouse button on
-   the @samp{Next} link to do the same ``the mouse way''.
+>> If you are in Emacs and have a mouse, and if you already practiced
+   typing @kbd{n} to get to the next node, click now with the middle
+   mouse button on the @samp{Next} link to do the same ``the mouse way''.
 @end format
 
 @node Help-P, Help-^L, Help, Getting Started
@@ -393,8 +393,8 @@ the list, make it go away by typing a @key{SPC} repeatedly.
 
 @format
 >> Type a @key{?} now.  Press @key{SPC} to see consecutive screenfuls of
-   the list until finished.  Then type @key{SPC} several times, until
-   it goes away.
+   the list until finished.  Then type @key{SPC} several times.  If
+   you are using Emacs, the help will then go away automatically.
 @end format
 
   (If you are using the stand-alone Info reader, type @kbd{C-x 0} to
@@ -1265,10 +1265,10 @@ These directories are not searched for merging the @file{dir} file.
 @item Info-fontify
 When set to a non-@code{nil} value, enables highlighting of Info
 files.  The default is @code{t}.  You can change how the highlighting
-looks by customizing the faces @code{info-node}, @code{info-menu-5},
-@code{info-xref}, @code{info-header-xref}, @code{info-header-node},
-@code{info-title-@var{n}-face} (where @var{n} is the level of the
-section, a number between 1 and 4), and @code{info-menu-header}.  To
+looks by customizing the faces @code{info-node}, @code{info-xref},
+@code{info-header-xref}, @code{info-header-node}, @code{info-menu-5},
+@code{info-menu-header}, and @code{info-title-@var{n}-face} (where
+@var{n} is the level of the section, a number between 1 and 4).  To
 customize a face, type @kbd{M-x customize-face @key{RET} @var{face}
 @key{RET}}, where @var{face} is one of the face names listed here.
 
