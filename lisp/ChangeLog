@@ -1,3 +1,8 @@
+2000-11-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* xml.el (xml-parse-tag): Fix finding opening tag.  A tag name
+	should not contain `\n'.
+
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* hi-lock.el: Update from author.
