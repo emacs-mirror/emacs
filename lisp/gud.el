@@ -870,7 +870,7 @@ comint mode, which see."
   (comint-mode)
   (setq major-mode 'gud-mode)
   (setq mode-name "Debugger")
-  (setq mode-line-process '(": %s"))
+  (setq mode-line-process '(":%s"))
   (use-local-map (copy-keymap comint-mode-map))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
   (make-local-variable 'gud-last-frame)
@@ -968,7 +968,7 @@ comint mode, which see."
 	 (setq overlay-arrow-position nil)
 	 ;; Fix the mode line.
 	 (setq mode-line-process
-	       (concat ": "
+	       (concat ":"
 		       (symbol-name (process-status proc))))
 	 (let* ((obuf (current-buffer)))
 	   ;; save-excursion isn't the right thing if
