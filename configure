@@ -10999,7 +10999,7 @@ if test "${ac_cv_lib_SM_SmcOpenConnection+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lSM  $LIBS"
+LIBS="-lSM -lICE $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -11049,8 +11049,6 @@ echo "$as_me:$LINENO: result: $ac_cv_lib_SM_SmcOpenConnection" >&5
 echo "${ECHO_T}$ac_cv_lib_SM_SmcOpenConnection" >&6
 if test $ac_cv_lib_SM_SmcOpenConnection = yes; then
   HAVE_X_SM=yes
-else
-  -lICE
 fi
 
 fi
