@@ -2240,7 +2240,7 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	       int force_disable)
 {
   Str255 item_name;
-  int pos, i;
+  int pos;
 
   if (name_is_separator (wv->name))
     AppendMenu (menu, "\p-");
@@ -2296,9 +2296,9 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       else
 	SetItemMark (menu, pos, noMark);
       }
-    }
 
-  SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
+      SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
+    }
 
   if (submenu != NULL)
     SetMenuItemHierarchicalID (menu, pos, submenu);
