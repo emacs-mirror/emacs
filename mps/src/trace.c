@@ -2,7 +2,7 @@
  *
  *                GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!trace.c(trunk.3)$
+ *  $HopeName: MMsrc/!trace.c(trunk.4)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -269,6 +269,13 @@ TraceId TraceTraceId(Trace trace)
   return trace->id;
 }
 
+Space TraceSpace(Trace trace)
+{
+  AVER(ISVALID(Trace, trace));
+  return trace->space;
+}
+
+
 void TraceCondemn(Trace trace, RefSig refsig)
 {
   Arena arena;
@@ -337,41 +344,67 @@ Error TraceScanArea(Addr *base, Addr *limit, Trace trace, RefRank rank)
 }
 
 
-Error TraceRun(Trace trace)
+Error TraceRunAtomic(Trace trace)
 {
   Error e;
   RefRank rank;
+  Shield shield;
+
+  AVER(ISVALID(Trace, trace));
+
+  shield = SpaceShield(trace->space);
+
+  /* At the moment we must scan all roots, because we don't have */
+  /* a mechanism for shielding them.  There can't be any weak or */
+  /* final roots either, since we must protect these in order to */
+  /* avoid scanning them too early, before the pool contents. */
+
+  for(rank = RefRankAMBIG; rank <= RefRankEXACT; ++rank) {
+    Deque deque;
+    DequeNode node;
+
+    ShieldEnter(shield);
+
+    deque = SpaceRootDeque(trace->space);
+    node = DequeFirst(deque);
+    while(node != DequeSentinel(deque)) {
+      DequeNode next = DequeNodeNext(node);
+      Root root = DEQUENODEELEMENT(Root, spaceDeque, node);
+
+      AVER(RootRank(root) <= RefRankEXACT); /* see above */
+
+      if(RootRank(root) == rank) {
+        e = RootScan(root, trace, rank);
+        if(e != ErrSUCCESS) return e;
+      }
+
+      node = next;
+    }
+
+    ShieldLeave(shield);
+  }
+
+  return ErrSUCCESS;
+}
+ 
+
+Error TraceRun(Trace trace, Bool *finishedReturn)
+{
+  Error e;
+  RefRank rank;
+  Shield shield;
   
   AVER(ISVALID(Trace, trace));
-  
-  rank = 0;
-  while(rank < RefRankMAX) {
+  AVER(finishedReturn != NULL);
 
+  shield = SpaceShield(trace->space);
+
+  for(rank = 0; rank < RefRankMAX; ++rank) {
     if(trace->work[rank].scanned < trace->work[rank].marked) {
       Deque deque;
       DequeNode node;
 
-      /* It would be correct to scan the roots and pools
-       * in a different order.  Roots will create
-       * work for pools to scan, but not the other way
-       * round, so it makes sense to scan them in this
-       * order.  It is safe to scan roots multiple
-       * times but they are only do scanning work the
-       * first time through
-       */
-      
-      deque = SpaceRootDeque(trace->space);
-      node = DequeFirst(deque);
-      while(node != DequeSentinel(deque)) {
-        DequeNode next = DequeNodeNext(node);
-        Root root = DEQUENODEELEMENT(Root, spaceDeque, node);
-        
-        e = RootScan(root, trace, rank);
-        if(e != ErrSUCCESS)
-          return e;
-        
-        node = next;
-      }
+      ShieldEnter(shield);
 
       deque = SpacePoolDeque(trace->space);
       node = DequeFirst(deque);
@@ -380,27 +413,21 @@ Error TraceRun(Trace trace)
         Pool pool = DEQUENODEELEMENT(Pool, spaceDeque, node);
       
         e = PoolScan(pool, trace, rank);
-        if(e != ErrSUCCESS)
+        if(e != ErrSUCCESS) {
+          ShieldLeave(shield);
           return e;
+        }
 
         node = next;
       }
-      
-      /*  If there was something to scan at RefRank rank
-       *  then this may generate more work at RefRanks 
-       *  less than rank.  rank is set to 0 so that we
-       *  do this work, if generated, before we proceed.
-       */
-      rank = 0;
+
+      ShieldLeave(shield);
+
+      *finishedReturn = FALSE;
+      return ErrSUCCESS;
     }
-    else
-      ++rank;
   }
 
-#ifdef DEBUG_ASSERT
-  for(rank = 0; rank < RefRankMAX; ++rank)
-    AVER(trace->work[rank].scanned == trace->work[rank].marked);
-#endif
-  
+  *finishedReturn = TRUE;
   return ErrSUCCESS;
 }

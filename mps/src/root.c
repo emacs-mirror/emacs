@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!root.c(trunk.3)$
+ *  $HopeName: MMsrc/!root.c(trunk.4)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -161,6 +161,22 @@ void RootDestroy(Root root)
 #endif
 
   PoolFree(SpaceControlPool(space), (Addr)root, sizeof(RootStruct));
+}
+
+
+Bool RootIsAtomic(Root root)
+{
+  AVER(ISVALID(Root, root));
+
+  return (root->mode & RootATOMIC) != 0;
+}
+
+
+RefRank RootRank(Root root)
+{
+  AVER(ISVALID(Root, root));
+
+  return root->rank;
 }
 
 

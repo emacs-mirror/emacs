@@ -2,7 +2,7 @@
  *
  *                         SHIELDING
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!shield.c(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -10,10 +10,13 @@
  *
  *  Invariant: The protected memory is a subset of the shielded memory when
  *             inside the shield, and the same set when outside.
+ *
+ *  HACKY HACKY JOY JOY!
  */
 
 #include "std.h"
 #include "shield.h"
+#include "shieldst.h"
 #include "space.h"
 #include "prot.h"
 #include "poolar.h"
@@ -31,7 +34,7 @@ Bool ShieldIsValid(Shield shield, ValidationType validParam)
   AVER(ISVALIDNESTED(Sig, &ShieldSigStruct));
   AVER(shield->sig == &ShieldSigStruct);
 #endif /* DEBUG_SIGN */
-  AVER(ISVALIDNESTED(Space, shield->space));
+/*  AVER(ISVALIDNESTED(Space, shield->space)); @@@@ */
 /*  AVER(ISVALIDNESTED(Bool, shield->inside)); */
   return TRUE;
 }
@@ -87,7 +90,7 @@ void ShieldRaise(Shield shield, Addr base, Addr limit, ProtMode mode)
   shieldMode |= mode;
   ArenaSetShieldMode(arena, base, shieldMode);
 
-  if(!shield->inside)
+  if(shieldMode >> 2 == 0)
     protect(arena, base, limit, shieldMode);
 }
 
@@ -105,7 +108,8 @@ void ShieldLower(Shield shield, Addr base, Addr limit, ProtMode mode)
   shieldMode &= ~mode;
   ArenaSetShieldMode(arena, base, shieldMode);
 
-  protect(arena, base, limit, shieldMode); /* will only remove protection */
+  if(shieldMode >> 2 == 0)
+    protect(arena, base, limit, shieldMode); /* will only remove protection */
 }
 
 
@@ -136,23 +140,34 @@ void ShieldLeave(Shield shield)
 
 void ShieldExpose(Shield shield, Addr base, Addr limit)
 {
+  ProtMode shieldMode;
+  Arena arena;
+
   AVER(ISVALID(Shield, shield));
   AVER(shield->inside);
-  AVER(ArenaShieldMode(SpaceArena(shield->space), base) != ProtNONE);
 
-  protect(SpaceArena(shield->space), base, limit, ProtNONE);
+  arena = SpaceArena(shield->space);
+  shieldMode = ArenaShieldMode(arena, base);
+  shieldMode += 4;
+  ArenaSetShieldMode(arena, base, shieldMode);
+
+  protect(arena, base, limit, ProtNONE);
 }
 
 void ShieldCover(Shield shield, Addr base, Addr limit)
 {
+  ProtMode shieldMode;
   Arena arena;
 
   AVER(ISVALID(Shield, shield));
-  AVER(ArenaShieldMode(SpaceArena(shield->space), base) != ProtNONE);
   AVER(ArenaProtMode(SpaceArena(shield->space), base) == ProtNONE);
 
-  /* This could be removed if lazy-covering were implemented. */
-  /* See .opt.lazy-cover */
   arena = SpaceArena(shield->space);
-  protect(arena, base, limit, ArenaShieldMode(arena, base));
+  shieldMode = ArenaShieldMode(arena, base);
+  AVER(shieldMode >= 4);
+  shieldMode -= 4;
+  ArenaSetShieldMode(arena, base, shieldMode);
+
+  if(shieldMode >> 2 == 0)
+    protect(arena, base, limit, shieldMode);
 }
