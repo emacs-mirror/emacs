@@ -108,7 +108,7 @@
 ;; a useful function for returning 'nil regardless of argument.
 
 ;; From src/xfns.c
-(defun x-display-color-p () 't)
+(defun x-display-color-p (&optional display) 't)
 (fset 'focus-frame 'ignore)
 (fset 'unfocus-frame 'ignore)
 (defun x-list-fonts (pattern &optional face frame) (list "default"))
