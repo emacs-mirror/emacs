@@ -1,25 +1,26 @@
-Copyright (c) 1985,96,97 Free Software Foundation, Inc;  See end for conditions.
-Emacs. Prvo berilo.
+Prvo berilo za Emacs. Pogoji uporabe in raz¹irjanja so navedeni na koncu.
+Copyright (c) 1985, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
 
 Ukazi v Emacsu v splo¹nem vkljuèujejo tipki CONTROL (vèasih oznaèeni
 CTRL ali CTL) in META (vèasih oznaèena EDIT ali ALT). Namesto, da bi ju
 vedno izpisali s celim imenom, bomo uporabili naslednji okraj¹avi:
 
- C-<chr>  pomeni, da moramo dr¾ati pritisnjeno tipko CONTROL, ko
- 	  vtipkamo znak <chr>. Oznaka C-f tako pomeni: dr¾imo
-	  pritisnjeno tipko CONTROL in pritisnemo tipko f.
- M-<chr>  pomeni, da moramo dr¾ati pritisnjeno tipko META, EDIT ali ALT,
- 	  ko vtipkamo znak <chr>. Èe na tipkovnici ni tipk META, EDIT
-	  ali ALT, pritisnemo tipko ESC, jo spustimo in zatem
-	  pritisnemo tipko <chr>. Tipko ESC bomo oznaèevali z <ESC>.
+ C-<znak> pomeni, da moramo dr¾ati pritisnjeno tipko CONTROL, ko
+ 	  vtipkamo <znak>. Oznaka C-f tako pomeni: dr¾imo pritisnjeno
+ 	  tipko CONTROL in pritisnemo tipko f.
+ M-<znak> pomeni, da moramo dr¾ati pritisnjeno tipko META, EDIT ali
+ 	  ALT, ko vtipkamo <znak>. Èe na tipkovnici ni tipk META, EDIT
+ 	  ali ALT, pritisnemo tipko ESC, jo spustimo in zatem
+ 	  pritisnemo tipko <chr>. Tipko ESC bomo oznaèevali z <ESC>.
 
 Pomembno: Emacs zapustimo z ukazom C-x C-c (dva znaka).
 V uèbeniku so vaje, s katerimi preskusite nove ukaze. Oznaèujeta jih 
-znaka ,>>` ob levem robu. Primer:
-<<help-with-tutorial napolni preostanek s praznimi vrsticami>>
+znaka ,>>` ob levem robu. Zgled:
+<<Blank lines inserted here by startup of help-with-tutorial>>
+[Sredina strani je iz didaktiènih razlogov prazna. Besedilo se nadaljuje spodaj]
 >> Vtipkajte zdaj ukaz C-v (View next screen, Prika¾i naslednji zaslon),
 	da se premaknete na naslednji zaslon (kar poskusite, pritisnite
-	hkrati kontrolno tipko in V). Od zdaj naprej boste morali to
+	hkrati tipko CONTROL in V). Od zdaj naprej boste morali to
 	napraviti sami vsakiè, ko pridete do konca zaslona.
 
 Ste opazili, da sta se dve vrstici s prej¹njega zaslona ponovili? Ta
@@ -43,12 +44,16 @@ Za pregled celega zaslona besedila so uporabni naslednji ukazi:
 	C-v	Premik se za cel zaslon naprej
 	M-v	Premik se za cel zaslon nazaj
 	C-l	Cel zaslon premaknemo tako, da je zdaj po vertikali
-		 centriran okoli besedila, kjer se nahaja kazalèek (znak v
-		 C-l je èrka L, ne ¹tevka 1)
+		 osredninjen okoli besedila, kjer se nahaja kazalèek
+		 (znak v C-l je èrka L, ne ¹tevka 1)
 
 >> Poi¹èite kazalèek na zaslonu in si zapomnite besedilo okoli njega.
    Vtipkajte C-l.
    Ponovno poi¹èite kazalèek. Besedilo okoli njega je ostalo isto.
+
+Za premikanje za cel zaslon naprej ali nazaj lahko tipkovnicah, ki
+imajo ti tipki, uporabljate tudi PageUp in PageDown. Opisan postopek s
+C-v in M-v pa deluje povsod.
 
 
 * PREMIKANJE KAZALÈKA
@@ -59,7 +64,8 @@ pridemo do izbranega mesta na zaslonu?
 
 Naèinov je veè. Najosnovnej¹i je uporaba ukazov C-p, C-b, C-f in
 C-n. Ti po vrsti premaknejo kazalèek v prej¹njo vrstico, znak nazaj,
-znak naprej, in v naslednjo vrstico. Grafièno prikazano:
+znak naprej, in v naslednjo vrstico. Ti ¹tirje ukazi so enakovredni
+kurzorskim tipkam:
 
 			  prej¹nja vrstica, C-p
 				  :
@@ -73,10 +79,10 @@ znak naprej, in v naslednjo vrstico. Grafièno prikazano:
    na diagramu zgoraj. Zatem pritisnite C-l. S tem diagram postavite na
    sredino zaslona.
 
-V angle¹èini ima izbor tipk nazoren pomen. P kot ,previous` (prej¹nji),
-N kot ,next` (naslednji), B kot ,backward` (nazaj) in F kot ,forward`
-(naprej). To so osnovni ukazi za premikanje kazalèka in uporabljali jih
-boste VES ÈAS. Èim prej se jih nauèite, tem bolje.
+V angle¹èini ima izbor tipk nazoren pomen. P kot ,previous`
+(prej¹nji), N kot ,next` (naslednji), B kot ,backward` (nazaj) in F
+kot ,forward` (naprej). Te osnovne ukaze za premikanje kazalèka boste
+uporabljali ves èas.
 
 >> Nekajkrat pritisnite C-n, da pride kazalèek do te vrstice.
 
@@ -108,7 +114,7 @@ katerokoli mesto v besedilu, a vseeno ostanemo na zaslonu.
    kaj se zgodi.
 
 Èe se vam zdi premikanje po en znak prepoèasno, se lahko premikate za
-celo besedo. M-f (Meta-f) premakne kazalèek za eno besedo naprej, M-b
+celo besedo. M-f (META-f) premakne kazalèek za eno besedo naprej, M-b
 pa za besedo nazaj.
 
 >> Poskusite nekajkrat M-f in M-b.
@@ -162,8 +168,8 @@ po besedo in stavek:
 >> Za vajo nekajkrat poskusite vsakega od teh ukazov.
    To so najpogosteje uporabljani ukazi.
 
-©e dva pomembna ukaza za premikanje kazalèka sta M-< (Meta-manj¹i od),
-ki ga premakne na zaèetek datoteke, in M-> (Meta-veèji od), ki ga
+©e dva pomembna ukaza za premikanje kazalèka sta M-< (META-manj¹i od),
+ki ga premakne na zaèetek datoteke, in M-> (META-veèji od), ki ga
 premakne na konec datoteke.
 
 Na ameri¹kih tipkovnicah najdete znak < nad vejico in morate
@@ -182,9 +188,9 @@ in za ukaz M-> morate pritisniti ¹e tipko Shift.
 zaslonu tudi z njimi. Vseeno priporoèamo, da se privadite ukazov C-b,
 C-f, C-n in C-p, in to iz treh razlogov. Prviè, delujejo na èisto vseh
 terminalih. Drugiè, z nekaj prakse v Emacsu boste opazili, da je
-tipkanje ukazov s Control hitrej¹e od tipkanja s kurzorskimi tipkami, ker
+tipkanje ukazov s CONTROL hitrej¹e od tipkanja s kurzorskimi tipkami, ker
 ni treba ves èas premikati desnice s tipkovnice na kurzorske tipke in
-nazaj. In tretjiè, ko se enkrat navadite teh ukazov s Control, se boste
+nazaj. In tretjiè, ko se enkrat navadite teh ukazov s CONTROL, se boste
 enostavneje nauèili tudi bolj zapletenih ukazov za premikanje kazalèka.
 
 Veèini ukazov v Emacsu lahko podamo ¹tevilèni argument; najveèkrat ta
@@ -197,28 +203,29 @@ tipko META. Druga metoda je sicer kraj¹a, priporoèamo pa prvo, ker
 deluje na vseh terminalih. Tak¹en ¹tevilèni argument je ,,prefiksni``
 argument, ker vnesemo argument pred ukazom, na katerega se nana¹a.
 
-Primer: C-u 8 C-f premakne kazalèek za osem znakov naprej.
+Zgled: C-u 8 C-f premakne kazalèek za osem znakov naprej.
 
 >> Poskusite s primernim argumentom za ¹tevilo ponovitev ukaza
    C-n ali C-p priti èim bli¾e tej vrstici v enem samem skoku.
 
 Veèina ukazov, ne pa vsi, uporablja ¹tevilèni argument kot ¹tevilo
-ponovitev ukaza. Nekateri ukazi (nobeden od tistih, ki smo si jih
-ogledali do zdaj) ga uporabljajo kot stikalo: s podanim prefiksnim
+ponovitev ukaza. Nekateri ukazi - nobeden od tistih, ki smo si jih
+ogledali do zdaj - ga uporabljajo kot stikalo: s podanim prefiksnim
 argumentom napravi ukaz nekaj drugega kot obièajno.
 
 Ukaza C-v in M-v sta tudi izjemi, a drugaèni. Èe jima podamo argument,
 premakneta zaslon za navedeno ¹tevilo vrstic, ne pa zaslonov. Ukaz C-u
-4 C-v, na primer, premakne zaslon navzgor za 4 vrstice.
+8 C-v, na primer, premakne zaslon navzgor za 8 vrstic.
 
 >> Poskusite zdaj C-u 8 C-v
 
 To bi moralo zaslon premakniti navzgor za osem vrstic. Èe bi ga radi
 premaknili nazaj, poskusite M-v z istim argumentom.
 
-Èe uporabljate X Windows, imate verjetno ob levem robu Emacsovega
-okna navpièno pravokotno ploskev, imenovano drsnik. Pogled na
-besedilo lahko premikate tudi tako, da z mi¹ko kliknete na drsnik.
+Èe uporabljate grafièni vmesnik, denimo X11 ali MS Windows, imate
+verjetno ob levem robu Emacsovega okna navpièno pravokotno ploskev,
+imenovano drsnik. Pogled na besedilo lahko premikate tudi tako, da z
+mi¹ko kliknete na drsnik.
 
 >> Postavite kazalec na vrh oznaèenega obmoèja na drsniku in pritisnite
    srednji gumb na mi¹ki. To bi moralo premakniti besedilo na mesto,
@@ -261,7 +268,8 @@ res ¾elite izvesti.
 na vpra¹anje. Normalno verjetno ukaza ne ¾elite izvesti, zato na
 vpra¹anje odgovorite z ,n`.
 
->> Vtipkajte <ESC> : (ki je onemogoèen ukaz), zatem odgovorite n.
+>> Vtipkajte C-x C-l (ki je onemogoèen ukaz),
+   zatem na vpra¹anje odgovorite n.
 
 
 * OKNA
@@ -274,21 +282,21 @@ pa izpis kak¹nega drugega programa. Preprosto je:
 
 	C-x 1   Eno okno (torej, zaprimo vsa ostala).
 
-To je Ctrl-x, ki mu sledi ¹tevka 1. Ukaz C-x 1 raztegne èez cel
+To je CONTROL-x, ki mu sledi ¹tevka 1. Ukaz C-x 1 raztegne èez cel
 zaslon okno, v katerem se nahaja kazalèek, ostala pa zapre.
 
 >> Premaknite kazalèek do te vrstice in vtipkajte C-u 0 C-l
->> Vtipkajte Ctrl-h k Ctrl-f.
+>> Vtipkajte CONTROL-h k CONTROL-f.
    Vidite, kako se je to okno skrèilo in odstopilo prostor oknu,
-   ki pojasnjuje ukaz Ctrl-f?
+   ki pojasnjuje ukaz CONTROL-f?
 
 >> Vtipkajte C-x 1 in spodnje okno se bo zaprlo.
 
 Za razliko od ukazov, ki smo se jih nauèili do zdaj, je ta ukaz
-sestavljen iz dveh znakov. Zaène se z znakom Control-x. Cela vrsta
+sestavljen iz dveh znakov. Zaène se z znakom CONTROL-x. Cela vrsta
 ukazov se zaène enako, in mnogi od njih zadevajo delo z datotekami,
 delovnimi podroèji in podobnim. Vsem tem ukazom je skupno, da se
-zaènejo s Control-x, ki mu sledi ¹e en, dva ali trije znaki.
+zaènejo s CONTROL-x, ki mu sledi ¹e en, dva ali trije znaki.
 
 
 * VRIVANJE IN BRISANJE
@@ -300,25 +308,32 @@ vidite, na primer A, 7, * in podobno, razume Emacs kot del besedila in
 jih takoj vrine. S pritiskom na Return (ali Enter) vrinete znak za
 skok v novo vrstico.
 
-Zadnji vtipkani znak lahko izbri¹ete s pritiskom na tipko <Delete>. Na
-nekaterih tipkovnicah je oznaèena z <Del>. Ponekod (ne pa povsod!)
-slu¾i za brisanje tipka <Backspace>.
+Zadnji vtipkani znak lahko izbri¹ete s pritiskom na tipko
+<Delback>. To je tista tipka na tipkovnici, ki jo navadno uporabljate
+za brisanje nazadnje natipkanega znaka. Navadno je to velika tipka
+vrstico ali dve nad tipko <Return>, ki je oznaèena z "Backspace",
+"Delete" ali "Del".
 
-Splo¹no <Delete> pobri¹e znak neposredno pred trenutnim polo¾ajem
+Èe imate na tipkovnici tipko "Backspace", je to tipka <Delback>. Naj
+vas ne zmede, èe imate poleg tega ¹e tipko "Delete" - <Delback> je
+"Backspace".
+
+Splo¹no <Delback> pobri¹e znak neposredno pred trenutnim polo¾ajem
 kazalèka.
 
->> Vtipkajte zdaj nekaj znakov in jih zatem s tipko <Delete> pobri¹ite.
+>> Vtipkajte zdaj nekaj znakov in jih zatem s tipko <Delback> pobri¹ite.
    Niè naj vas ne skrbi, èe se je ta vrstica spremenila. Izvirnika
    tega uèbenika ne boste pokvarili -- tole je samo va¹a osebna kopija.
 
 Ko vrstica postane predolga za zaslon, se ,,nadaljuje`` v naslednji
-vrstici na zaslonu. Obrnjena po¹evnica (znak ,\`) ob desnem robu
-oznaèuje vrstico, ki se nadaljuje v naslednji zaslonski vrstici.
+vrstici na zaslonu. Obrnjena po¹evnica (znak ,\`) ali v grafiènih
+okoljih zavita pu¹èica ob desnem robu oznaèuje vrstico, ki se
+nadaljuje v naslednji zaslonski vrstici.
 
 >> Zdaj zaènite tipkati besedilo, dokler ne dose¾ete desnega roba, in
    ¹e naprej. Opazili boste, da se pojavi znak za nadaljevanje.
 
->> S tipko <Delete> pobri¹ite toliko znakov, da vrstica ne sega
+>> S tipko <Delback> pobri¹ite toliko znakov, da vrstica ne sega
    veè èez ¹irino zaslona. Znak za nadaljevanje v naslednji
    vrstici je izginil.
 
@@ -327,7 +342,7 @@ ko pobri¹emo znak za novo vrstico, zdru¾imo vrstici v eno samo.  Èe bo
 nova vrstica predolga, da bi cela pri¹la na zaslon, bo razdeljena v
 veè zaslonskih vrstic.
 
->> Premaknite kazalèek na zaèetek vrstice in pritisnite <Delete>. To
+>> Premaknite kazalèek na zaèetek vrstice in pritisnite <Delback>. To
    zdru¾i vrstico s prej¹njo.
 
 >> Pritisnite <Return>. S tem ste ponovno vrinili znak za skok v novo
@@ -343,29 +358,39 @@ Zdaj ste se nauèili najpreprostej¹i naèin, da v Emacsu nekaj natipkate
 in popravite. Bri¹ete lahko tudi besede ali vrstice. Tu je povzetek
 ukazov za brisanje:
 
-	<Delete>     pobri¹e znak tik pred kazalèkom (levo od
+	<Delback>    pobri¹e znak tik pred kazalèkom (levo od
 	             oznake za kazalèek)
 	C-d   	     pobri¹e znak tik za kazalèkom (,pod` oznako
 		     za kazalèek)
 
-	M-<Delete>   pobri¹e besedo tik pred kazalèkom
+	M-<Delback>  pobri¹e besedo tik pred kazalèkom
 	M-d	     pobri¹e besedo tik za kazalèkom
 
 	C-k          zavr¾e besedilo desno od kazalèka do konca vrstice
 	M-k          zavr¾e besedilo od polo¾aja kazalèka do konca stavka
 
 Èrka ,d` je iz angle¹ke besede ,delete` (pobrisati), èrka ,k` pa iz
-besede ,kill` (pobiti). Ste opazili, da <Delete> in C-d na eni, ter
-M-<Delete> in M-d na drugi strani nadaljujeta paralelo, ki sta jo zaèela
-C-f in M-f (<Delete> pravzaprav ni kontrolni znak, kar pa naj nas ne 
+besede ,kill` (pobiti). Ste opazili, da <Delback> in C-d na eni, ter
+M-<Delback> in M-d na drugi strani nadaljujeta paralelo, ki sta jo zaèela
+C-f in M-f (<Delback> pravzaprav ni kontrolni znak, kar pa naj nas ne 
 moti).  C-k in M-k sta v enakem sorodu s C-e in M-e: prvi deluje na 
 vrstice, drugi na stavke.
 
-Kadarkoli pobri¹ete kaj veè kot en sam znak naenkrat, si Emacs za vsak
-primer zapomni, kaj ste zavrgli, in lahko zavr¾eno vrnete (angl.
-,,yank`` -- potegniti). Besedilo, ki smo ga zavrgli, lahko vrinemo
-nazaj na isto mesto ali kam drugam. Lahko ga vrinemo tudi veèkrat, in
-tako napravimo veè kopij. Ukaz za vraèanje zavr¾enega besedila je C-y.
+Obstaja tudi splo¹en postopek za brisanje kateregakoli dela delovnega
+podroèja. Kazalèek postavimo na en konec podroèja, ki ga ¾elimo
+izbrisati, in pritisnemo C-@ ali C-SPC (SPC je
+preslednica). Katerikoli od obeh ukazov deluje. Premaknite kazalèek na
+drug konec podroèja, ki ga ¾elite izbrisati, in pritisnite C-w. S tem
+ste zavrgli vse besedilo med obema mejama.
+
+>> Premaknite kazalèek na èrko O, s katero se zaèenja prej¹nji
+   odstavek.
+>> Vtipkajte C-SPC. Emacs prika¾e sporoèilo "Mark set" (slov. Oznaka
+   postavljena) na dnu ekrana.
+>> Premaknite kazalèek na èrko V v "postavimo" v drugi vrstici istega
+   odstavka.
+>> Vtipkajte C-w. S tem zavr¾emo vse besedilo zaèen¹i z O in vse do
+   èrke V.
 
 Razlika med tem, èe zavr¾ete cel odstavek besedila (angl. ,,kill``,
 pobiti) ali pa èe pobri¹ete znak (angl. ,,delete``), je ta, da lahko
@@ -385,15 +410,19 @@ drugaèe: pobri¹e toliko in toliko vrstic z vsebinami vred. To ni zgolj
 ponovitev. C-u 2 C-k pobri¹e dve polni vrstici besedila, kar je nekaj
 drugega, kot èe dvakrat vtipkate C-k.
 
-Besedilo, ki ste ga prej pobrisali, je shranjeno, in ga lahko povrnete
-tja, kjer je trenutno kazalèek, z ukazom C-y.
+Besedilo, ki ste ga prej pobili, lahko povrnete (angl.  ,,yank`` --
+potegniti). Predstavljajte si, kot da potegnete nazaj nekaj, kar vam
+je nekdo odnesel. Pobito besedilo lahko potegnete nazaj na isti ali pa
+na kak¹en drug kraj v besedilu, ali pa celo v kaki drugi
+datoteki. Isto besedilo lahko veèkrat potegnete nazaj, tako da je v
+delovnem podroèju poveèterjeno.
+
+Ukaz za vraèanje pobitega besedila je C-y.
 
 >> Poskusite z ukazom C-y povrniti pobrisano besedilo.
 
-Ukaz C-y si predstavljajte, kot da potegnete nazaj nekaj, kar vam je
-nekdo odnesel. Èe ste uporabili veè zaporednih ukazov C-k, je vse
-pobrisano besedilo shranjeno skupaj, in en sam C-y bo vrnil vse tako
-pobrisane vrstice.
+Èe ste uporabili veè zaporednih ukazov C-k, je vse pobrisano besedilo
+shranjeno skupaj, in en sam C-y bo vrnil vse tako pobrisane vrstice.
 
 >> Poskusite, nekajkrat vtipkajte C-k.
 
@@ -452,6 +481,11 @@ pritisnjeno tipko CONTROL.
 
 Èe podamo ukazu C-_ ali C-x u numerièni argument, je to enako, kot èe
 bi ukaz roèno ponovili tolikokrat, kot pravi argument.
+
+Ukaz za brisanje besedila lahko preklièete in besedilo povrnete,
+enako, kot èe bi besedilo pobili. Razlika med brisanjem in pobijanjem
+besedila je le ta, da le slednje lahko potegnete nazaj z ukazom
+C-y. Preklic ukaza pa velja za eno in drugo.
 
 
 * DATOTEKE
@@ -543,9 +577,9 @@ Tudi èe ste z ukazom C-x C-f poiskali in odprli drugo datoteko, prva
 ostane v Emacsu. Nanjo se vrnete tako, da jo ¹e enkrat ,,poi¹èete`` z
 ukazom C-x C-f. Tako imate lahko v Emacsu hkrati kar precej datotek.
 
->> Ustvarite datoteko z imenom ,,foo`` tako, da vtipkate C-x C-f
-   foo <Return>. Natipkajte nekaj besedila, ga po potrebi popravite, in
-   shranite v datoteko ,,foo`` z ukazom C-x C-s. Ko ste konèali, se
+>> Ustvarite datoteko z imenom ,,bla`` tako, da vtipkate C-x C-f
+   bla <Return>. Natipkajte nekaj besedila, ga po potrebi popravite, in
+   shranite v datoteko ,,bla`` z ukazom C-x C-s. Ko ste konèali, se
    vrnite v uèbenik z ukazom C-x C-f TUTORIAL <Return>.
 
 Emacs hrani besedilo vsake datoteke v takoimenovanem ,,delovnem
@@ -558,13 +592,40 @@ z ukazom:
 >> Poskusite C-x C-b zdaj.
 
 Vidite, da ima vsako delovno podroèje svoje ime, pri nekaterih pa pi¹e
-tudi ime datoteke, katere vsebina se hrani v njem. Druga delovna
-podroèja pa ne pripadajo nobeni datoteki. Podroèje ,,*Buffer List*``,
-na primer, je ¾e eno takih. To delovno podroèje smo ustvarili
-ravnokar, ko smo pognali ukaz C-x C-b. VSAKO besedilo, ki ga vidite v
-katerem od Emacsovih oken, je vedno del kak¹nega delovnega podroèja.
+tudi ime datoteke, katere vsebina se hrani v njem. Vsako besedilo, ki
+ga vidite v katerem od Emacsovih oken, je vedno del kak¹nega delovnega
+podroèja.
 
 >> Z ukazom C-x 1 se znebite seznama delovnih podroèij.
+
+Tudi èe imate veè delovnih podroèij, pa je vedno le eno od njih
+trenutno dejavno. To je tisto delovno podroèje, ki ga popravljate. Èe
+¾elite popravljati drugo delovno podroèje, morate ,,preklopiti``
+nanj. Èe bi radi preklopili na delovno podroèje, ki pripada kak¹ni
+datoteki, ¾e poznate en naèin, kako to storiti: ponovno ,,obi¹èete``
+(odprete) to datoteko z ukazom C-x C-f. Obstaja pa ¹e la¾ji naèin: z
+ukazom C-x b. Pri tem ukazu morate navesti ime delovnega podroèja.
+
+>> Vtipkajte C-x b bla <Return>, s èimer se vrnete v delovno podroèje
+   ,,bla`` z vsebino datoteke ,,bla``, ki ste jo maloprej
+   odprli. Zatem vtipkajte C-x b TUTORIAL <RETURN>, s èimer se vrnete
+   nazaj v ta uèbenik.
+
+Veèinoma se ime delovnega podroèja kar ujema z imenom datoteke (brez
+poti do datoteke), ne pa vedno. Seznam delovnih podroèij, ki ga
+prika¾e ukaz C-x C-b, prika¾e imena vseh delovnih podroèij.
+
+Vsako besedilo, ki ga vidite v katerem od Emacsovih oken, je vedno del
+kak¹nega delovnega podroèja. Nekatera delovna podroèja ne pripadajo
+nobeni datoteki. Podroèje ,,*Buffer List*``, na primer, je ¾e eno
+takih. To delovno podroèje smo ustvarili ravnokar, ko smo pognali ukaz
+C-x C-b, in vsebuje seznam delovnih podroèij. Tudi delovno podroèje
+,,Messages`` ne pripada nobeni datoteki, ampak vsebuje sporoèila, ki
+jih je Emacs izpisoval v odzivnem podroèju na dnu zaslona.
+
+>> Vtipkajte C-x b *Messages* <Return> in si oglejte delovno podroèje
+   s sporoèili, zatem pa vtipkajte C-x b TUTORIAL <Return> in se tako
+   vrnite v uèbenik.
 
 Èe ste spreminjali besedilo ene datoteke, potem pa poiskali drugo, to
 ne shrani spremeb v prvo datoteko. Te ostanejo znotraj Emacsa, na
@@ -625,8 +686,9 @@ Ukazov C-x je veliko. Zaenkrat smo spoznali naslednje:
 
 	C-x C-f		Poi¹èi datoteko.
 	C-x C-s		Shrani datoteko.
-	C-x C-b		Seznam delovnih podroèij.
+	C-x C-b		Prika¾i seznam delovnih podroèij.
 	C-x C-c		Konèaj Emacs.
+	C-x 1		Zapri vsa okna razen enega.
 	C-x u		Preklic zadnjega ukaza.
 
 Poimenovani raz¹irjeni ukazi so ukazi, ki se uporabljajo ¹e bolj
@@ -635,8 +697,9 @@ takih je na primer ukaz replace-string, ki po vsem besedilu zamenja en
 niz znakov z drugim. Ko vtipkate M-x, se to izpi¹e v pogovornem
 vmesniku na dnu zaslona, Emacs pa èaka, da vtipkate ime ukaza, ki ga
 ¾elite priklicati; v tem primeru je to ,,replace-string``. Vtipkajte
-samo ,,repl s<TAB>`` in Emacs bo dopolnil ime. Ukaz vnesete s
-pritiskom na <Return>.
+samo ,,repl s<TAB>`` in Emacs bo dopolnil ime (<TAB> je tabulatorska
+tipka; navadno jo najdemo nad tipko Caps Lock ali Shift na levi strani
+tipkovnice). Ukaz vnesete s pritiskom na <Return>.
 
 Ukaz replace-string potrebuje dva argumenta -- niz, ki ga ¾elite
 zamenjati, in niz, s katerim bi radi zamenjali prvega. Vsakega posebej
@@ -682,7 +745,7 @@ na dnu zaslona odzivno podroèje in v njem sproti prikazuje natipkano.
 Vrstica nad odzivnim podroèjem je statusna vrstica. Ta ka¾e verjetno
 nekaj podobnega kot:
 
---:** TUTORIAL          (Fundamental)--58%----------------------
+--:** TUTORIAL          (Fundamental)--L670--58%----------------------
 
 V njej so izpisani pomembni podatki o stanju Emacsa in besedilu, ki ga
 urejate.
@@ -693,6 +756,9 @@ odstotkov celotne datoteke. Èe je zaèetek datoteke na zaslonu, bo
 namesto --00%-- pisalo --Top--. Podobno bo pisalo --Bot--, èe je
 zadnja vrstica datoteke na zaslonu. Èe je datoteka, ki jo ogledujete,
 tako kratka, da gre vsa na en zaslon, pa bo pisalo --All--.
+
+Èrka L in ¹tevilke za njo ka¾ejo polo¾aj ¹e drugaèe, kot zaporedno
+¹tevilko vrstice, v kateri je kazalèek.
 
 Zvezdice na zaèetku vrstice pomenijo, da ste datoteko ¾e spreminjali.
 Tik po tem, ko ste odprli ali shranili datoteko, ni nobenih zvezdic,
@@ -719,7 +785,7 @@ Fundamental.
 primer tole, boste verjetno izbrali tekstovni naèin (Text).
 >> Vtipkajte M-x text mode<Return>.
 
-Ne skrbite, noben od ukazov, ki ste se jih nauèili, se s tem ne
+Brez skrbi, noben od ukazov Emacsa, ki ste se jih nauèili, se s tem ne
 spremeni kaj dosti. Lahko pa opazite, da Emacs zdaj jemlje opu¹èaje za
 dele besed, ko se premikate z M-f ali M-b. V osnovnem naèinu jih je
 obravnaval kot meje med besedami.
@@ -742,19 +808,19 @@ aktiviramo ali deaktiviramo neodvisno od glavnega naèina in neodvisno
 od ostalih podnaèinov. Tako lahko ne uporabljate nobenega podnaèina,
 en podnaèin, ali kombinacijo veèih podnaèinov.
 
-Podnaèin, ki je zelo uporaben, posebno za pisanje besedil, je Auto
+Podnaèin, ki je zelo uporaben posebno za pisanje besedil, je Auto
 Fill. Ko je vklopljen, Emacs med pisanjem avtomatièno deli vrstice na
 presledkih med besedami, tako da vrstice niso predolge.
 
-Vklopite ga lahko z ukazom M-x auto fill mode<return>. Ko je
+Vklopite ga lahko z ukazom M-x auto fill mode<Return>. Ko je
 vklopljen, ga lahko izklopite z istim ukazom, M-x
-auto fill mode<return>. Z istim ukazom torej preklapljamo
+auto fill mode<Return>. Z istim ukazom torej preklapljamo
 (angl. toggle) med vklopljenim in izklopljenim stanjem.
 
->> Vtipkajte zdaj M-x auto fill mode. Potem zaènite tipkati "asdf asdkl
-   sdjf sdjkf"... dokler ne opazite, da je Emacs razbil vrstico na dve.
-   Med tipkanjem mora biti dovolj presledkov, saj Auto Fill prelamlja
-   vrstice samo na presledkih.
+>> Vtipkajte zdaj M-x auto fill mode<Return>. Potem zaènite tipkati
+   "asdf asdkl sdjf sdjkf"... dokler ne opazite, da je Emacs razbil
+   vrstico na dve.  Med tipkanjem mora biti dovolj presledkov, saj
+   Auto Fill prelamlja vrstice samo na presledkih.
 
 ©irina besedila je navadno postavljena na 70 znakov, kar pa lahko
 spremenite z ukazom C-x f. Novo ¹irino morate podati kot ¹tevilèni
@@ -767,7 +833,7 @@ argument.
 Auto Fill deluje le, kadar pi¹ete novo besedilo, ne pa,
 kadar popravljate ¾e napisan odstavek.
 Tak odstavek lahko poravnate tako, da kazalèek premaknete nekam
-znotraj odstavka in uka¾ete M-q (Meta-q).
+znotraj odstavka in uka¾ete M-q (META-q).
 
 >> Premaknite kazalèek v prej¹nji odstavek in izvedite M-q.
 
@@ -795,7 +861,7 @@ in vas èaka, da zaènete tipkati, kar i¹èete. <Return> zakljuèi iskanje.
    ,,kazalèek``. Za vsako vtipkano èrko se ustavite in si oglejte, kaj
    se je zgodilo s kazalèkom.
 >> ©e enkrat pritisnite C-s, da poi¹èete naslednji ,,kazalèek``.
->> ©estkrat pritisnite <Delete> in opazujte, kako se premika kazalèek.
+>> ©estkrat pritisnite <Delback> in opazujte, kako se premika kazalèek.
 >> Konèajte iskanje s tipko <Return>.
 
 Ste videli, kaj se je zgodilo? Emacs pri inkrementalnem iskanju sku¹a
@@ -811,11 +877,11 @@ ga posredoval programu Emacs. Ekran ,,odtajate`` s pritiskom na
 C-q. Potem si oglejte razdelek ,,Spontaneous Entry to Incremental
 Search`` v priroèniku za nasvet, kako se spopasti s to nev¹eènostjo.
 
-Èe sredi inkrementalnega iskanja pritisnete <Delete>, boste opazili,
+Èe sredi inkrementalnega iskanja pritisnete <Delback>, boste opazili,
 da to pobri¹e zadnji znak v iskanem nizu, kazalèek pa se premakne
 nazaj na mesto v besedilu, kjer je na¹el kraj¹i niz. Na primer,
 predpostavimo, da ste do zdaj natipkali ,,ka`` in je kazalèek na
-mestu, kjer se prviè pojavi ,,ka``. Èe zdaj pritisnete <Delete>, boste
+mestu, kjer se prviè pojavi ,,ka``. Èe zdaj pritisnete <Delback>, boste
 s tem v pogovornem vmesniku izbrisali ,a`, hkrati pa se bo kazalèek
 postavil na mesto, kjer je prviè na¹el ,k`, preden ste natipkali ¹e
 ,a`.
@@ -836,12 +902,13 @@ tudi za C-r, le smer iskanja je obrnjena.
 Ena simpatiènih lastnosti Emacsa je, da zna hkrati prikazati veè oken
 na ekranu, tudi èe ne delamo v grafiènem naèinu.
 
->> Premaknite kazalèek v to vrstico in vtipkajte C-u 0 C-l.
+>> Premaknite kazalèek v to vrstico in vtipkajte C-u 0 C-l (zadnji
+   znak je CONTROL-L, ne CONTROL-1)
 >> Zdaj vtipkajte C-x 2, da razdelite zaslon na dve okni.
    V obeh oknih imate odprt ta priroènik. Kazalèek je ostal v zgornjem
    oknu.
 >> Pritisnite C-M-v za listanje v spodnjem oknu.
-   (Èe nimate tipke Meta, tipkajte ESC C-v).
+   (Èe nimate tipke META, tipkajte ESC C-v).
 >> Vtipkajte C-x o (o kot ,,other``, drugi), da preselite kazalèek v
    spodnje okno.
 >> S C-v in M-v se v spodnjem oknu premikate po vsebini datoteke.
@@ -859,7 +926,7 @@ drugega pa uporabljamo samo za pomoè. Kazalèek ostaja ves èas v oknu,
 v katerem urejamo, po vsebini spodnjega okna pa se vseeno lahko
 premikamo, ne da bi morali venomer skakati iz enega okna v drugega.
 
-C-M-v je primer znaka CONTROL-META. Èe imate v resnici tipko Meta (na
+C-M-v je primer znaka CONTROL-META. Èe imate v resnici tipko META (na
 PC navadno levi Alt), lahko vtipkate C-M-v tako, da dr¾ite pritisnjeni
 tako CONTROL kot META, medtem ko vtipkate v. Ni pomembno, katero od
 tipk, CONTROL ali META, pritisnete prvo, saj obe delujeta ¹ele, ko
@@ -867,8 +934,8 @@ pritisnete znak, ki sledi (v zgornjem primeru ,v`).
 
 Nasprotno pa je vrstni red pritiskanja pomemben, èe nimate tipke META
 in namesto nje uporabljate ESC. V tem primeru morate najprej
-pritisniti ESC, potem pa Control-v. Obratna kombinacija, Control-ESC v ne
-deluje. To je zato, ker je ESC znak sam po sebi, ne pa modifikator,
+pritisniti ESC, potem pa Control-v. Obratna kombinacija, CONTROL-ESC v
+ne deluje. To je zato, ker je ESC znak sam po sebi, ne pa modifikator,
 kot sta CONTROL in META.
 
 >> V zgornjem oknu vtipkajte C-x 1, da se znebite spodnjega okna.
@@ -919,24 +986,24 @@ V tem uvodu smo posku¹ali zbrati dovolj informacij, da lahko zaènete
 Emacs uporabljati. Emacs ponuja toliko, da bi bilo nemogoèe vse to
 zbrati tukaj. Verjetno pa bi se vseeno radi nauèili kaj o ¹tevilnih
 koristnih mo¾nostih, ki jih ¹e ne poznate. Emacs ima ¾e vgrajene
-veliko dokumentacije, do katere lahko pridete s pritiskom na CTRL-h (h
-kot ,,help``, pomoè).
+veliko dokumentacije, do katere lahko pridete s pritiskom na CONTROL-h
+(h kot ,,help``, pomoè).
 
 Za pomoè pritisnete C-h, potem pa vtipkate znak, ki pove, kak¹no pomoè
 ¾elite. Èe ste poplnoma izgubljeni, vtipkajte C-h ? in Emacs vam bo
 povedal, kak¹na pomoè je sploh na voljo. Èe ste vtipkali C-h, pa ste
 si premislili, lahko ukaz preklièete s C-g.
 
-(Ponekod se znak C-h preslika v kaj drugega. To ni dobro, in v takem
-primeru se prito¾ite sistemskemu vzdr¾evalcu. Medtem pa, èe C-h ne
-prika¾e sporoèila o pomoèi na dnu zaslona, namesto tega poskusite
-pritisniti tipko F1 ali pa vtipkajte M-x help <Return>.)
+(Na nekaterih sistemih se znak C-h preslika v kaj drugega. To ni
+dobro, in v takem primeru se prito¾ite sistemskemu vzdr¾evalcu. Medtem
+pa, èe C-h ne prika¾e sporoèila o pomoèi na dnu zaslona, namesto tega
+poskusite pritisniti tipko F1 ali pa vtipkajte M-x help <Return>.)
 
 Najosnovnej¹i tip pomoèi prika¾e C-h c. Pritisnite C-h, tipko c, zatem
 pa ukazni znak ali zaporedje ukaznih znakov, in Emacs bo izpisal
 kratek opis ukaza.
 
->> Vtipkajte C-h c Control-p.
+>> Vtipkajte C-h c C-p.
    Izpi¹e se nekaj takega kot
 
 	C-p runs the command previous-line
@@ -952,7 +1019,7 @@ ali, èe nimate tipke META, <Esc>v.
 
 Za veè informacij o ukazu vtipkajte C-h k namesto C-h c.
 
->> Vtipkajte C-h k Control-p.
+>> Vtipkajte C-h k C-p.
 
 To odpre novo okno in v njem prika¾e dokumentacijo o funkciji, obenem
 z njenim imenom. Ko ste opravili, vtipkajte C-x 1, da se znebite okna
@@ -968,9 +1035,13 @@ Sledi ¹e nekaj uporabnih mo¾nosti, ki jih ponuja pomoè:
 >> Poskusite C-h f previous-line<Return>.
    To izpi¹e vse podatke, ki jih ima Emacs o funkciji, ki izvede ukaz C-p.
 
+Podoben ukaz C-h v izpi¹e dokumentacijo za spremenljivke, s katerimi
+lahko nastavite obna¹anje Emacsa. Ob pozivniku morate vpisati ime
+spremenljivke.
+
    C-h a	 Apropos. Vtipkajte kljuèno besedo in Emacs bo izpisal
 		 vse ukaze, ki vsebujejo to kljuèno besedo. Vse te
-		 ukaze lahko priklièete z Meta-x. Pri nekaterih ukazih
+		 ukaze lahko priklièete z META-x. Pri nekaterih ukazih
 		 bo Apropos izpisal tudi eno ali dvoznakovno
 		 zaporedje, s katerim dose¾ete isti uèinek.
 
@@ -986,6 +1057,41 @@ write-file.
 
 >> Vtipkajte C-x 1, da zaprete okno s pomoèjo.
 
+   C-h i         Priroèniki z navodili za uporabo (tkim. datoteke 
+		 "info"). Ta ukaz vas prestavi v posebno delovno
+		 podroèje, imenovano "info". V njem lahko prebirate
+		 priroènike za programe, ki so name¹èeni v sistemu. Z
+		 ukazom m emacs<Return> denimo dobite priroènik za
+		 urejevalnik Emacs. Èe sistema Info ¹e niste
+		 uporabljali, vtipkajte ? in Emacs vas bo popeljal na
+		 vódeni izlet po naèinu Info in mo¾nostih, ki jih
+		 ponuja. Ko boste zakljuèili z branjem tega prvega
+		 berila, bo priroènik za Emacs v sistemu Info va¹
+		 glavni vir dokumentacije.
+
+
+* DRUGE MO®NOSTI
+----------------
+
+©e veè se lahko nauèite o Emacsu z branjem priroènika, bodisi
+natisnjenega, bodisi na zaslonu v sistemu Info (uporabite menu Help
+ali vtipkajte F10 h r). Dve mo¾nosti, ki vam bosta morda posebej v¹eè,
+sta samodejno zakljuèevanje vrstice, s katerim prihranite nekaj
+tipkanja, in dired, s katerim poenostavimo delo z datotekami.
+
+Samodejno zakljuèevanje vrstic je naèin, s katerim prihranimo nekaj
+tipkanja. Èe ¾elite denimo preklopiti v delovno podroèje *Messages*,
+je dovolj, da vtipkate C-x b *M<Tab> in Emacs bo sam dopolnil
+preostanek imena delovnega podroèja. Samodejno zakljuèevanje je
+opisano v sistemu Info v priroèniku za Emacs, razdelek ,,Completion``.
+
+Dired omogoèa izpis seznama datotek v imeniku (in po mo¾nosti tudi
+podimenikih), premikanje po seznamu, obiskovanje (odpiranje),
+preimenovanje, brisanje in druge operacije z datotekami. Dired je
+opisav v sistemu Info  v priroèniku za Emacs, razdelek ,,Dired``.
+
+Priroènik opisuje tudi mnoge druge mo¾nosti Emacsa.
+
 
 * ZAKLJUÈEK
 -----------
@@ -999,8 +1105,8 @@ Emacsu. Èe se vam kaj ne zdi jasno napisano, ne valite krivde nase -
 prito¾ite se!
 
 
-RAZMNO®EVANJE IN RAZ©IRJANJE
-----------------------------
+* RAZMNO®EVANJE IN RAZ©IRJANJE
+------------------------------
 
 Angle¹ki izvirnik tega uvoda v Emacs je naslednik dolge vrste tovrstnih
 besedil, zaèen¹i s tistim, ki ga je Stuart Cracraft napisal za izvorni
@@ -1009,7 +1115,7 @@ Emacs. V sloven¹èino ga je prevedel Primo¾ Peterlin.
 To besedilo, kot sam GNU Emacs, je avtorsko delo, in njegovo
 razmno¾evanje in raz¹irjanje je dovoljeno pod naslednjimi pogoji:
 
-Copyright (c) 1985, 1996, 1997 Free Software Foundation
+Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
 
    Dovoljeno je izdelovati in raz¹irjati neokrnjene kopije tega spisa
    v kakr¹nikoli obliki pod pogojem, da je ohranjena navedba o

@@ -18,6 +18,7 @@ Dùle¾itá poznámka: práci s Emacsem ukonèíte stiskem C-x C-c (dva znaky).
 Znaky ">>" na levém okraji znaèí místa, kde si máte vyzkou¹et pøíkaz.
 Napøíklad:
 <<Blank lines inserted here by startup of help-with-tutorial>>
+[Prostøední èást obrazovky je prázdná zámìrnì. Text pokraèuje ní¾e.]
 >>  Nyní stisknìte C-v (view next screen) pro posun na dal¹í obrazovku.
         (Smìle do toho, proveïte to pøidr¾ením klávesy CONTROL a stiskem v.)
 	Od této chvíle byste toto mìli provádìt kdykoliv doètete zobrazenou
@@ -258,7 +259,7 @@ Pokud opravdu chcete pøíkaz vyzkou¹et, stisknìte mezerník jako odpovìï
 na tuto otázku.  Obyèejnì, jestli¾e nechcete deaktivovanı pøíkaz
 provést, odpovìzte na tuto otázku pomocí "n".
 
->> Stisknìte <ESC> : (co¾ je deaktivovanı pøíkaz),
+>> Stisknìte C-x C-l (co¾ je deaktivovanı pøíkaz),
    pak na otázku odpovìzte n.
 
 

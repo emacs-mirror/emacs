@@ -263,7 +263,7 @@ Wanneer je het commando echt wilt uitvoeren, type dan Spatie (de
 spatiebalk) als antwoord op de vraag.  Normaliter wil je het commando niet
 uitvoeren en beantwoord je de vraag met "n" (van `no' of `nee').
 
->> Type <ESC> : (een onmogelijk commando),
+>> Type C-x C-l (een onmogelijk commando),
    en type dan n als antwoord op de vraag.
 
 
