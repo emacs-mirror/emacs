@@ -1,10 +1,10 @@
 2001-05-14  Francesco Potorti`  <pot@gnu.org>
 
-	* /cvs/emacs/lib-src/etags.c (add_regex):
-	Reset the whole newly allocated pattern buffer instead of
-	the individual members.  It's safer and works with Xemacs.
+	* etags.c (add_regex): Reset the whole newly allocated pattern
+	buffer instead of the individual members.  It's safer and works
+	with Xemacs.
 
-	* /cvs/emacs/lib-src/etags.1: Markups corrected.
+	* etags.1: Markups corrected.
 
 2001-05-08  Gerd Moellmann  <gerd@gnu.org>
 

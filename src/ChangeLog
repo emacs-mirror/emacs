@@ -1,5 +1,8 @@
 2001-05-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (split_font_name): Handle `[...]' for the right
+	font name fields.
+
 	* ccl.c (ccl_driver): Don't copy remaining bytes in case
 	of CCL_STAT_INVALID_CMD.
 
