@@ -1949,6 +1949,12 @@ yylex ()
 }
 
 
+/* Actually local to matching_regexp.  These variables must be in
+   global scope for the case that `static' get's defined away.  */
+
+static char *matching_regexp_buffer, *matching_regexp_end_buf;
+
+
 /* Value is the string from the start of the line to the current
    position in the input buffer, or maybe a bit more if that string is
    shorter than min_regexp.  */
@@ -1959,15 +1965,14 @@ matching_regexp ()
   char *p;
   char *s;
   char *t;
-  static char *buffer, *end_buf;
 
   if (!f_regexps)
     return NULL;
 
-  if (buffer == NULL)
+  if (matching_regexp_buffer == NULL)
     {
-      buffer = (char *) xmalloc (max_regexp);
-      end_buf = &buffer[max_regexp] - 1;
+      matching_regexp_buffer = (char *) xmalloc (max_regexp);
+      matching_regexp_end_buf = &matching_regexp_buffer[max_regexp] - 1;
     }
 
   /* Scan back to previous newline of buffer start.  */
@@ -1989,7 +1994,8 @@ matching_regexp ()
   /* Copy from end to make sure significant portions are included.
      This implies that in the browser a regular expressing of the form
      `^.*{regexp}' has to be used.  */
-  for (s = end_buf - 1, t = in; s > buffer && t > p;)
+  for (s = matching_regexp_end_buf - 1, t = in;
+       s > matching_regexp_buffer && t > p;)
     {
       *--s = *--t;
 
@@ -1997,7 +2003,7 @@ matching_regexp ()
         *--s = '\\';
     }
 
-  *(end_buf - 1) = '\0';
+  *(matching_regexp_end_buf - 1) = '\0';
   return xstrdup (s);
 }
 
