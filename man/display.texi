@@ -36,6 +36,11 @@ Each face can specify various attributes, such as the height, weight
 and slant of the characters, the foreground and background color, and
 underlining.  But it does not have to specify all of them.
 
+  Emacs on a character terminal supports only part of face attributes.
+Which attributes are supported depends on your display type, but many
+displays support inverse video, bold, and underline attributes, and
+some support colors.
+
   Features which rely on text in multiple faces (such as Font Lock mode)
 will also work on non-windowed terminals that can display more than one
 face, whether by colors or underlining and emboldening.  This includes
