@@ -1219,19 +1219,15 @@ main (argc, argv, envp)
 
   /* Handle --unibyte and the EMACS_UNIBYTE envvar,
      but not while dumping.  */
-  if (
-#ifndef CANNOT_DUMP
-      ! noninteractive || initialized
-#else
-      1
-#endif
-      )
+  if (1)
     {
       int inhibit_unibyte = 0;
 
       /* --multibyte overrides EMACS_UNIBYTE.  */
       if (argmatch (argv, argc, "-no-unibyte", "--no-unibyte", 4, NULL, &skip_args)
-	  || argmatch (argv, argc, "-multibyte", "--multibyte", 4, NULL, &skip_args))
+	  || argmatch (argv, argc, "-multibyte", "--multibyte", 4, NULL, &skip_args)
+	  /* Ignore EMACS_UNIBYTE before dumping.  */
+	  || (!initialized && noninteractive))
 	inhibit_unibyte = 1;
 
       /* --unibyte requests that we set up to do everything with single-byte
@@ -1542,12 +1538,10 @@ main (argc, argv, envp)
       if (argmatch (argv, argc, "-l", "--load", 3, &file, &skip_args))
 	Vtop_level = Fcons (intern ("load"),
 			    Fcons (build_string (file), Qnil));
-#ifdef CANNOT_DUMP
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
       if (! no_loadup)
 	Vtop_level = Fcons (intern ("load"),
 			    Fcons (build_string ("loadup.el"), Qnil));
-#endif /* CANNOT_DUMP */
     }
 
   if (initialized)
@@ -1643,9 +1637,7 @@ struct standard_args standard_args[] =
   { "-multibyte", "--multibyte", 82, 0 },
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
-#ifdef CANNOT_DUMP
   { "-nl", "--no-loadup", 70, 0 },
-#endif
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
