@@ -107,7 +107,6 @@ BODY contains code that will be executed each time the mode is (dis)activated.
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
-	 (togglep t) ;; This should never be nil -- rms.
 	 (group nil)
 	 (extra-args nil)
 	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
@@ -172,16 +171,22 @@ use either \\[customize] or the function `%s'."
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
 Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG " (unless togglep "(or if ARG is nil) ") "turn mode on.
+With universal prefix ARG turn mode on.
 With zero or negative ARG turn mode off.
 \\{%s}") pretty-name keymap-sym))
-	 ;; Make no arg by default in an interactive call,
-	 ;; so that repeating the command toggles again.
-	 (interactive "P")
+	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
+	 ;; repeat-command still does the toggling correctly.
+	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (setq ,mode
-	       (if arg
-		   (> (prefix-numeric-value arg) 0)
-		 ,(if togglep `(not ,mode) t)))
+	       (cond
+		((eq arg 'toggle) (not ,mode))
+		(arg (> (prefix-numeric-value arg) 0))
+		(t
+		 (if (null ,mode) t
+		   (message
+		    "Toggling %s off; better pass an explicit argument."
+		    ',mode)
+		   nil))))
 	 ,@body
 	 ;; The on/off hooks are here for backward compatibility only.
 	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
@@ -266,9 +271,9 @@ in which `%s' turns it on."
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
 	     (progn
-	       (add-hook 'find-file-hooks ',buffers)
+	       (add-hook 'find-file-hook ',buffers)
 	       (add-hook 'change-major-mode-hook ',cmmh))
-	   (remove-hook 'find-file-hooks ',buffers)
+	   (remove-hook 'find-file-hook ',buffers)
 	   (remove-hook 'change-major-mode-hook ',cmmh))
 
 	 ;; Go through existing buffers.
