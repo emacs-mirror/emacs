@@ -92,6 +92,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/sysmacros.h>	/* for "minor" */
 #endif /* not IRIS */
 
+#ifdef HAVE_SYS_WAIT
+#include <sys/wait.h>
+#endif
+
 #include "systime.h"
 #include "systty.h"
 
@@ -234,6 +238,9 @@ static int pty_max_bytes;
 extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 #ifdef HAVE_PTYS
+#ifdef HAVE_PTY_H
+#include <pty.h>
+#endif
 /* The file name of the pty opened by allocate_pty.  */
 
 static char pty_name[24];

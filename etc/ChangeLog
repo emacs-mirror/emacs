@@ -1,9 +1,23 @@
+2002-05-17  Dave Love  <fx@gnu.org>
+
+	* charsets/ebcdic-us.map, charsets/ebcdic-uk.map:
+	* charsets/windows-1253.map, charsets/windows-1254.map:
+	* charsets/windows-1255.map, charsets/windows-1256.map:
+	* charsets/windows-1257.map, charsets/windows-1258.map:
+	* charsets/cp437.map, charsets/cp737.map, charsets/cp775.map:
+	* charsets/cp850.map, charsets/cp851.map, charsets/cp852.map:
+	* charsets/cp855.map, charsets/cp857.map, charsets/cp860.map:
+	* charsets/cp861.map, charsets/cp862.map, charsets/cp863.map:
+	* charsets/cp864.map, charsets/cp865.map, charsets/cp866.map:
+	* charsets/cp869.map, charsets/cp874.map, charsets/next.map: New
+	file.
+
 2002-05-16  Dave Love  <fx@gnu.org>
 
 	* charsets/cp1125.map, charsets/ebcdic-us, charsets/georgian-ps.map:
 	* charsets/koi8-t.map, charsets/koi8-u.map:
 	* charsets/windows-1250.map, charsets/windows-1251.map:
-	* charsets/windows-1252.map: 	New file.
+	* charsets/windows-1252.map: New file.
 
 2002-05-07  Kenichi Handa  <handa@etl.go.jp>
 

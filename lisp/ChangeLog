@@ -1,5 +1,12 @@
 2002-05-17  Dave Love  <fx@gnu.org>
 
+	* international/utf-8.el, international/utf-8-subst.el: Removed.
+
+	* international/mule.el: Doc fixes.
+	(charset-list, generic-char-p, set-coding-priority): Make
+	obsolete.
+	(coding-system-get): Try to convert old-style symbol to keyword.
+
 	* international/mule-diag.el (list-character-sets-2): Avoid
 	charset-bytes.
 	(list-iso-charset-chars, list-non-iso-charset-chars): Deleted.

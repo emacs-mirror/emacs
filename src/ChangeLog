@@ -1,3 +1,36 @@
+2002-05-17  Dave Love  <fx@gnu.org>
+
+	* xterm.c (XSetIMValues): Declare.
+
+	* process.c: Conditionally include sys/wait.h, pty.h.
+
+	* print.c (print_object): Fix print format for 64-bit
+	systems.
+
+	* keyboard.c (modify_event_symbol): Fix print format for 64-bit
+	systems.
+
+	* buffer.c (emacs_strerror): Declare.
+	(MMAP_ALLOCATED_P, mmap_enlarge, syms_of_buffer): Import changes
+	from trunk.
+
+	* fontset.c (Fclear_face_cache): Declare.
+	(accumulate_font_info): Commented-out (unused).
+	(face_for_char, Fset_fontset_font, Ffontset_info): Remove unused
+	variables.
+
+	* character.h (string_escape_byte8): Declare.
+
+	* charset.c (load_charset_map, load_charset_map_from_file): Remove
+	unused vars.
+	(Fdefine_charset_internal, Fsplit_char, syms_of_charset)
+	(Fmap_charset_chars): Doc fix.
+
+	* coding.c (Vchar_coding_system_table, Qchar_coding_system):
+	Removed.
+	(Fset_coding_system_priority, Fset_coding_system_priority) 
+	(Fdefine_coding_system_internal): Doc fix.
+
 2002-05-16  Dave Love  <fx@gnu.org>
 
 	* s/osf5-0.h (C_SWITCH_SYSTEM) [!__GNUC__]: Remove -nointrinsics.
