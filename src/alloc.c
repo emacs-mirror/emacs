@@ -824,7 +824,7 @@ significance.")
 
   XSETFASTINT (len, nargs);
   if (!NILP (Vpurify_flag))
-    val = make_pure_vector (XFASTINT (len));
+    val = make_pure_vector ((EMACS_INT) nargs);
   else
     val = Fmake_vector (len, Qnil);
   p = XVECTOR (val);
