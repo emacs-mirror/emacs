@@ -328,6 +328,9 @@ to the FSF.
   "japanese".  Currently, most Japanese users are using external
   packages (e.g. tamago, anthy) or an input method via XIM.
 
+** Provide the toolbar on ttys. This could map a bit like tmm-menubar
+   for the menubar and buttons could look a bit like those used by customize.
+
 * Internal changes
 
 ** Replace gmalloc.c with the modified Doug Lea code from the current
