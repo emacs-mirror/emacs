@@ -310,10 +310,6 @@ install-arch-dep: mkdir
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
 
-# These lines appeared after the second -set, but should be unnecessary.
-#	 mkdir ${COPYDESTS} ; \
-#	 chmod ugo+rx ${COPYDESTS} ; \
-# The backslash above continues the comment onto this line.  It ends here.
 install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
@@ -323,6 +319,8 @@ install-arch-indep: mkdir
 	   shift ; \
 	 done
 	-set ${COPYDESTS} ; \
+ 	 mkdir ${COPYDESTS} ; \
+ 	 chmod ugo+rx ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
 	   [ -d $${dir} ] \
