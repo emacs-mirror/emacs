@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -128,6 +128,40 @@ See the functions `find-function' and `find-variable'."
 		   (append (find-library-suffixes) '("")))
       (error "Can't find library %s" library)))
 
+(defvar find-function-C-source-directory
+  (let ((dir (expand-file-name "src" source-directory)))
+    (when (and (file-directory-p dir) (file-readable-p dir))
+      dir))
+  "Directory where the C source files of Emacs can be found.
+If nil, do not try to find the source code of functions and variables
+defined in C.")
+
+(defun find-function-C-source (fun-or-var file variable-p)
+  "Find the source location where SUBR-OR-VAR is defined in FILE.
+VARIABLE-P should be non-nil for a variable or nil for a subroutine."
+  (unless find-function-C-source-directory
+    (setq find-function-C-source-directory
+	  (read-directory-name "Emacs C source dir: " nil nil t)))
+  (setq file (expand-file-name file find-function-C-source-directory))
+  (unless (file-readable-p file)
+    (error "The C source file %s is not available"
+	   (file-name-nondirectory file)))
+  (unless variable-p
+    (setq fun-or-var (indirect-function fun-or-var)))
+  (with-current-buffer (find-file-noselect file)
+    (goto-char (point-min))
+    (unless (re-search-forward
+	     (if variable-p
+		 (concat "DEFVAR[A-Z_]*[ \t\n]*([ \t\n]*\""
+			 (regexp-quote (symbol-name fun-or-var))
+			 "\"")
+	       (concat "DEFUN[ \t\n]*([ \t\n]*\""
+		       (regexp-quote (subr-name fun-or-var))
+		       "\""))
+	     nil t)
+      (error "Can't find source for %s" fun-or-var))
+    (cons (current-buffer) (match-beginning 0))))
+
 ;;;###autoload
 (defun find-library (library)
   "Find the elisp source of LIBRARY."
@@ -149,9 +183,10 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
       (error "Don't know where `%s' is defined" symbol))
   ;; Some functions are defined as part of the construct
   ;; that defines something else.
-  (while (get symbol 'definition-name)
+  (while (and (symbolp symbol) (get symbol 'definition-name))
     (setq symbol (get symbol 'definition-name)))
-  (save-match-data
+  (if (string-match "\\`src/\\(.*\\.c\\)\\'" library)
+      (find-function-C-source symbol (match-string 1 library) variable-p)
     (if (string-match "\\.el\\(c\\)\\'" library)
 	(setq library (substring library 0 (match-beginning 1))))
     (let* ((filename (find-library-name library)))
