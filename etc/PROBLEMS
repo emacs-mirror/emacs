@@ -1,6 +1,21 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Building Emacs with GCC 2.9x fails in the `src' directory.
+
+This may happen if you use a development version of GNU `cpp' from one
+of the GCC snapshots between Oct 2000 and Feb 2001, or from a released
+version of GCC newer than 2.95.2 which was prepared around those
+dates.  The preprocessor in those versions expands ".." into ". .",
+which breaks relative file names that reference the parent directory.
+
+The solution is to make sure the preprocessor is run with the
+`-traditional' option.  (The `configure' script does that
+automatically.)
+
+Note that this problem does not pertain to the MS-Windows port of
+Emacs, since it doesn't use the preprocessor to generate Makefiles.
+
 * Building the MS-Windows port with Cygwin GCC can fail.
 
 Emacs may not build using recent Cygwin builds of GCC, such as Cygwin
@@ -997,28 +1012,13 @@ This bug was reported to Sun as
     Gtk apps dump core in ximlocal.so.2:IMCheckIMWindow()
     Bug Reports: 4463537
 
-Installing Solaris 8 patch 108773-12 for Sparc and 108874-12 for x86
+Installing Solaris 8 patch 108773-12 for Sparc and 108774-12 for x86
 reportedly fixes the bug, which appears to be inside the shared
 library xiiimp.so.
 
 Alternatively, you can configure Emacs with `--with-xim=no' to prevent
 the core dump, but will loose X input method support, of course.  (You
 can use Emacs's own input methods instead, if you install Leim.)
-
-* Building Emacs with GCC 2.9x fails in the `src' directory.
-
-This may happen if you use a development version of GNU `cpp' from one
-of the GCC snapshots between Oct 2000 and Feb 2001, or from a released
-version of GCC newer than 2.95.2 which was prepared around those
-dates.  The preprocessor in those versions expands ".." into ". .",
-which breaks relative file names that reference the parent directory.
-
-The solution is to make sure the preprocessor is run with the
-`-traditional' option.  (The `configure' script does that
-automatically.)
-
-Note that this problem does not pertain to the MS-Windows port of
-Emacs, since it doesn't use the preprocessor to generate Makefiles.
 
 * On Solaris 7, Emacs gets a segmentation fault when starting up using X.
 
