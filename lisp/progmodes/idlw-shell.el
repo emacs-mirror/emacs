@@ -6,7 +6,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 4.2
-;; Date: $Date: 2000/06/15 17:58:23 $
+;; Date: $Date: 2000/06/20 12:49:42 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -886,7 +886,9 @@ and if `idlwave-shell-ready' is non-nil."
       (if (and idlwave-shell-ready
                ;; Check for IDL prompt
                (save-excursion
-                 (beginning-of-line)
+		 ;; Using (forward-line 0) instead of beginning-of-line
+		 ;; avoids any field constraints.
+                 (forward-line 0)
                  (looking-at idlwave-shell-prompt-pattern)))
           ;; IDL ready for command
           (if idlwave-shell-pending-commands
