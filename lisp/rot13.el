@@ -1,6 +1,6 @@
 ;;; rot13.el --- display a buffer in rot13
 
-;; Copyright (C) 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1988,2002 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; The single entry point, `rot13-other-window', performs a Caesar cipher
+;; The entry point, `rot13-other-window', performs a Caesar cipher
 ;; encrypt/decrypt on the current buffer and displays the result in another 
 ;; window.  Rot13 encryption is sometimes used on USENET as a read-at-your-
 ;; own-risk wrapper for material some might consider offensive, such as
@@ -32,6 +32,10 @@
 ;;
 ;; Written by Howard Gayle.
 ;; This hack is mainly to show off the char table stuff.
+;;
+;; New entry points, `rot13', `rot13-string', and `rot13-region' that
+;; performs Ceasar cipher encrypt/decrypt on buffers and strings, was
+;; added by Simon Josefsson.
 
 ;;; Code:
 
@@ -44,6 +48,42 @@
       (setq i (1+ i)))
     table)
   "Char table for rot 13 display.")
+
+(defvar rot13-translate-table
+  (let ((str (make-string 127 0))
+	(i 0))
+    (while (< i 127)
+      (aset str i i)
+      (setq i (1+ i)))
+    (setq i 0)
+    (while (< i 26)
+      (aset str (+ i ?a) (+ (% (+ i 13) 26) ?a))
+      (aset str (+ i ?A) (+ (% (+ i 13) 26) ?A))
+      (setq i (1+ i)))
+    str)
+  "String table for rot 13 translation.")
+
+;;;###autoload
+(defun rot13 (object &optional start end)
+  "Return Rot13 encryption of OBJECT, a buffer or string."
+  (if (bufferp object)
+      (with-current-buffer object
+	(rot13-region start end))
+    (rot13-string object)))
+
+;;;###autoload
+(defun rot13-string (string)
+  "Return Rot13 encryption of STRING."
+  (with-temp-buffer
+    (insert string)
+    (rot13-region (point-min) (point-max))
+    (buffer-string)))
+
+;;;###autoload
+(defun rot13-region (start end)
+  "Rot13 encrypt the region between START and END in current buffer."
+  (interactive "r")
+  (translate-region start end rot13-translate-table))
 
 ;;;###autoload
 (defun rot13-other-window ()
