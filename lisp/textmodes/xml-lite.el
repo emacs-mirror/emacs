@@ -43,49 +43,6 @@
 (require 'sgml-mode)
 
 
-;; Variables
-
-(defgroup xml-lite nil
-  "Customizable variables for XML-Lite mode."
-  :group 'languages
-  )
-
-(defcustom xml-lite-basic-offset 2
-  "*Specifies the basic indentation level for `xml-lite-indent-line'."
-  :type 'integer
-  :group 'xml-lite
-  )
-
-(defcustom xml-lite-electric-slash 'close
-  "*If non-nil, inserting a '/' after a '<' behaves electrically.
-If set to `indent', typing '</' just triggers reindentation.
-If set to `close', typing '</' inserts an end-tag for the
-enclosing XML element."
-  :type '(choice (const :tag "Indent" indent)
-
-                 (const :tag "Close" close)
-                 (const :tag "No" nil))
-
-  :group 'xml-lite
-  )
-
-(defcustom xml-lite-mode-line-string " XML"
-  "*String to display in the modeline when `xml-lite-mode' is active.
-Set this to nil if you don't want a modeline indicator for xml-lite-mode."
-  :type 'string
-  :group 'xml-lite)
-
-(defcustom xml-lite-mode-hook nil
-  "*Hook called by `xml-lite-mode'."
-  :type 'hook
-  :group 'xml-lite)
-
-;;;###autoload
-(defvar xml-lite-mode nil
-  "Non-nil if `xml-lite-mode' is enabled.")
-(make-variable-buffer-local 'xml-lite-mode)
-
-
 ;; Syntax analysis
 
 (defsubst xml-lite-at-indentation-p ()
@@ -93,15 +50,6 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
   (save-excursion
     (skip-chars-backward " \t")
     (bolp)))
-
-(defun xml-lite-in-string-p (&optional limit)
-  "Determine whether point is inside a string.  If it is, return the
-position of the character starting the string, else return nil.
-
-Parse begins from LIMIT, which defaults to the preceding occurence of a tag
-at the beginning of a line."
-  (let ((context (sgml-lexical-context limit)))
-    (if (eq (car context) 'string) (cdr context))))
 
 
 ;; Parsing
@@ -222,7 +170,8 @@ immediately enclosing the current position."
     ;;   enclosing start-tags we'll have to ignore.
     (skip-chars-backward " \t\n")      ; Make sure we're not at indentation.
     (while
-	(and (or ignore (not (if full (eq full 'empty) context))
+	(and (or ignore 
+                 (not (if full (eq full 'empty) context))
 		 (not (xml-lite-at-indentation-p))
 		 (and (not sgml-xml-mode) context
 		      (/= (point) (xml-lite-tag-start (car context)))
@@ -233,9 +182,9 @@ immediately enclosing the current position."
       ;; This tag may enclose things we thought were tags.  If so,
       ;; discard them.
       (while (and context
-		  (> (xml-lite-tag-end tag-info)
-		     (xml-lite-tag-end (car context))))
-	(setq context (cdr context)))
+                  (> (xml-lite-tag-end tag-info)
+                     (xml-lite-tag-end (car context))))
+        (setq context (cdr context)))
            
       (cond
 
@@ -289,9 +238,6 @@ If FULL is non-nil, parse back to the beginning of the buffer."
     (pp (save-excursion (xml-lite-get-context full)))))
 
 
-;; Indenting
-
-
 ;; Editing shortcuts
 
 (defun xml-lite-insert-end-tag ()
@@ -339,43 +285,6 @@ Behaves electrically if `xml-lite-electric-slash' is non-nil."
     (xml-lite-insert-end-tag))
    (t
     (insert-char ?/ arg))))
-
-
-;; Keymap
-
-(defvar xml-lite-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c/" 'xml-lite-insert-end-tag)
-    (define-key map "\C-c\C-s" 'xml-lite-show-context)
-    (define-key map "/" 'xml-lite-slash)
-    map)
-  "Key bindings for `xml-lite-mode'.")
-
-
-;; Minor mode
-
-;;;###autoload
-(define-minor-mode xml-lite-mode
-  "Toggle `xml-lite-mode'.
-With ARG, enable xml-lite-mode if and only if ARG is positive.
-
-xml-lite-mode provides indentation for XML tags.  The value of
-`xml-lite-basic-offset' determines the amount of indentation.
-
-Key bindings:
-\\{xml-lite-mode-map}"
-  nil                                   ; initial value
-  " XML"                                ; mode indicator
-  'xml-lite-mode-map                    ; keymap
-  (if xml-lite-mode
-      (progn
-        (if (eq major-mode 'fundamental-mode) (sgml-mode))
-	(set (make-local-variable 'sgml-xml-mode) t)
-        (set (make-local-variable 'xml-lite-orig-indent-line-function)
-	     indent-line-function)
-	(set (make-local-variable 'indent-line-function) 'sgml-indent-line))
-    (kill-local-variable 'sgml-xml-mode)
-    (setq indent-line-function xml-lite-orig-indent-line-function)))
 
 (provide 'xml-lite)
 
