@@ -1783,7 +1783,7 @@ append_glyph (it)
        ++i)
     {
       glyph->type = CHAR_GLYPH;
-      glyph->pixel_width = it->pixel_width;
+      glyph->pixel_width = 1;
       glyph->u.ch = it->c;
       glyph->face_id = it->face_id;
       glyph->padding_p = i > 0;
