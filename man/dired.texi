@@ -465,6 +465,15 @@ on all those files.
 Otherwise, the command operates on the current file only.
 @end itemize
 
+@vindex dired-dwim-target
+@cindex two directories (in Dired)
+  Commands which ask for a destination directory, such as those which
+copy and rename files or create links for them, try to guess the default
+target directory for the operation.  Normally, they suggest the Dired
+buffer's default directory, but if the variable @code{dired-dwim-target}
+is non-@code{nil}, and if there is another Dired buffer displayed in the
+next window, that other buffer's directory is suggested instead.
+
   Here are the file-manipulating commands that operate on files in this
 way.  (Some other Dired commands, such as @kbd{!} and the @samp{%}
 commands, also use these conventions to decide which files to work on.)
