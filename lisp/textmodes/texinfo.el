@@ -291,11 +291,11 @@ chapter."
     ;;("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
     ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face) ;commands
     ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) ;menu items
-    ("@\\(emph\\|strong\\|b\\|i\\){\\([^}]+\\)" 2 font-lock-comment-face)
+    ("@\\(emph\\|strong\\|b\\|i\\|sc\\){\\([^}]+\\)" 2 font-lock-comment-face)
     ("@\\(file\\|kbd\\|key\\|url\\|email\\){\\([^}]+\\)" 2 font-lock-string-face)
-    ("@\\(samp\\|code\\|var\\|math\\){\\([^}]+\\)"
+    ("@\\(samp\\|code\\|var\\|math\\|env\\|command\\|option\\){\\([^}]+\\)"
      2 font-lock-variable-name-face)
-    ("@\\(cite\\|x?ref\\|pxref\\){\\([^}]+\\)" 2 font-lock-constant-face)
+    ("@\\(cite\\|[ux]?ref\\|pxref\\){\\([^}]+\\)" 2 font-lock-constant-face)
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-function-name-face keep)
     )
   "Additional expressions to highlight in TeXinfo mode.")
