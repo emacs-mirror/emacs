@@ -1,5 +1,8 @@
 2001-02-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (read_char): When an event from unread-command-events
+	is from the tool or menu bar, set *USE_MOUSE_MENU to 1.
+
 	* window.c (Fwindow_end): Handle case that WINDOW's buffer is not
 	equal to the current buffer.
 
