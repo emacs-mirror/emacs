@@ -248,6 +248,7 @@ or nil.  KILLED is t if we killed BUFFER (because it was a temp file)."
   (let ((running (eq (process-status server-process) 'run))
 	(next-buffer nil)
 	(killed nil)
+	(first t)
 	(old-clients server-clients))
     (while old-clients
       (let ((client (car old-clients)))
@@ -266,12 +267,13 @@ or nil.  KILLED is t if we killed BUFFER (because it was a temp file)."
 	(if (cdr client) nil
 	  (if running
 	      (progn
-		(send-string server-process 
-			     (format "Close: %s Done\n" (car client)))
-		(server-log (format "Close: %s Done\n" (car client)))
 		;; Don't send emacsserver two commands in close succession.
 		;; It cannot handle that.
-		(sit-for 1)))
+		(or first (sit-for 1))
+		(setq first nil)
+		(send-string server-process 
+			     (format "Close: %s Done\n" (car client)))
+		(server-log (format "Close: %s Done\n" (car client)))))
 	  (setq server-clients (delq client server-clients))))
       (setq old-clients (cdr old-clients)))
     (if (and (bufferp buffer) (buffer-name buffer))
