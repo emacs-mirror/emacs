@@ -1,3 +1,41 @@
+2002-07-16  Dave Love  <fx@gnu.org>
+
+	* casetab.c (init_casetab_once, init_casetab_once): Fix
+	CHAR_TABLE_SET call.
+
+	* category.c (Fmodify_category_entry): Fix CATEGORY_MEMBER call.
+
+	* character.c (syms_of_character): Fix CHAR_TABLE_SET call.
+
+	* charset.c (Fmap_charset_chars): Check args.  Convert Lisp types.
+	(load_charset_map, Fdeclare_equiv_charset, Fencode_char)
+	(Fset_charset_priority, syms_of_charset): Convert Lisp types.
+
+	* charset.h (CHECK_CHARSET_GET_ID): Use XINT on AREF result.
+
+	* coding.c (ENCODE_DESIGNATION, decode_eol)
+	(make_conversion_work_buffer, code_conversion_restore)
+	(Fdefine_coding_system_internal): Convert Lisp types.
+	(code_conversion_restore): Use EQ, not ==.
+	(Fencode_coding_string): Fix code_convert_string call.
+
+	* coding.h (code_convert_region): Fix prototype.
+
+	* dispextern.h (redraw_frame, redraw_garbaged_frames): Removed.
+
+	* fontset.c (fontset_ref, fontset_set, fs_load_font) 
+	(Ffontset_info): Convert Lisp types.
+
+	* syntax.h (SYNTAX_ENTRY_INT): Don't use make_number.
+
+	* xterm.c (note_mouse_movement): Fix call of window_from_coordinates.
+
+	* xdisp.c (display_mode_element): Fix call of Fset_text_properties.
+
+	* chartab.c: Include "...h", not <...h> in some cases.
+
+	* callproc.c (Fcall_process): Remove unused variables.
+
 2002-07-12  Dave Love  <fx@gnu.org>
 
 	* coding.c (Fset_coding_system_priority): Allow null arg list.
