@@ -1,3 +1,9 @@
+2000-12-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* info.el (Info-suffix-list): Change format for a command that
+	requires arguments.
+	(info-insert-file-contents): Adjusted for the above change.
+
 2000-12-12  Andreas Schwab  <schwab@suse.de>
 
 	* tar-mode.el (tar-extract): Base the name of the subfile buffer
