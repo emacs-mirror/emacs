@@ -28,7 +28,7 @@
 ;;; Todo:
 
 ;; - facemenu support.
-;; - command completion. 
+;; - command completion.
 
 ;;; Commentary:
 
@@ -276,6 +276,7 @@ chapter."
     ("unnumberedsubsubsec" 5)
     ("appendix" 2)
     ("appendixsec" 3)
+    ("appendixsection" 3)
     ("appendixsubsec" 4)
     ("appendixsubsubsec" 5)
     ("majorheading" 2)
