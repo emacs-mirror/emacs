@@ -172,9 +172,6 @@ Other features we would like:
 
 * Add a feature to Info similar to "info --apropos SUBJECT".
 
-* If you do an insert-file and that file is currently modified in
-  another buffer but not written yet, print a warning.
-
 * Add support for SVG (Scalable Vector Graphics) rendering to 
   Emacs.
 

@@ -1,3 +1,11 @@
+2002-11-04  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (find-buffer-visiting): Accept new optional PREDICATE
+	argument to return only a buffer that satisfies the predicate.
+	(insert-file-1): New function.
+	(insert-file-literally): Use it.
+	(insert-file): Use it.
+
 2002-11-04  Robert Fenk  <Robert.Fenk@gmx.de>  (tiny change)
 
 	* desktop.el (desktop-relative-file-names): New variable.
