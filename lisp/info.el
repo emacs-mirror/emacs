@@ -234,10 +234,10 @@ Because the SUFFIXes are tried in order, the empty string should
 be last in the list.")
 
 ;; Concatenate SUFFIX onto FILENAME.  SUFFIX should start with a dot.
-;; First, on ms-dos, delete some of the extension in FILENAME
-;; to make room.
-(defun info-insert-file-contents-1 (filename suffix)
-  (if (not (eq system-type 'ms-dos))
+;; First, on MS-DOS with no long file names support, delete some of
+;; the extension in FILENAME to make room.
+(defun info-insert-file-contents-1 (filename suffix lfn)
+  (if lfn	; long file names are supported
       (concat filename suffix)
     (let* ((sans-exts (file-name-sans-extension filename))
 	   ;; How long is the extension in FILENAME (not counting the dot).
@@ -263,8 +263,12 @@ be last in the list.")
 (defun info-insert-file-contents (filename &optional visit)
   "Insert the contents of an info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
-  (let ((tail Info-suffix-list)
-	fullname decoder)
+  (let* ((tail Info-suffix-list)
+	 (lfn (or (not (fboundp 'msdos-long-file-names))
+		  (msdos-long-file-names)))
+	 (check-short (and (fboundp 'msdos-long-file-names)
+			   lfn))
+	 fullname decoder done)
     (if (file-exists-p filename)
 	;; FILENAME exists--see if that name contains a suffix.
 	;; If so, set DECODE accordingly.
@@ -277,14 +281,23 @@ Do the right thing if the file has been compressed or zipped."
 	  (setq fullname filename
 		decoder (cdr (car tail))))
       ;; Try adding suffixes to FILENAME and see if we can find something.
-      (while (and tail
-		  (not (info-file-exists-p (info-insert-file-contents-1
-					    filename (car (car tail))))))
+      (while (and tail (not done))
+	(setq fullname (info-insert-file-contents-1 filename
+						    (car (car tail)) lfn))
+	(if (info-file-exists-p fullname)
+	    (setq done t
+		  ;; If we found a file with a suffix, set DECODER
+		  ;; according to the suffix.
+		  decoder (cdr (car tail)))
+	  ;; When the MS-DOS port runs on Windows, we need to check
+	  ;; the short variant of a long file name as well.
+	  (when check-short
+	    (setq fullname (info-insert-file-contents-1 filename
+							(car (car tail)) nil))
+	    (if (info-file-exists-p fullname)
+		(setq done t
+		      decoder (cdr (car tail))))))
 	(setq tail (cdr tail)))
-      ;; If we found a file with a suffix, set DECODER according to the suffix
-      ;; and set FULLNAME to the file's actual name.
-      (setq fullname (info-insert-file-contents-1 filename (car (car tail)))
-	    decoder (cdr (car tail)))
       (or tail
 	  (error "Can't find %s or any compressed version of it" filename)))
     ;; check for conflict with jka-compr
@@ -459,16 +472,24 @@ it says do not attempt further (recursive) error recovery."
               (setq temp-downcase
                     (expand-file-name (downcase filename) (car dirs)))
               ;; Try several variants of specified name.
-              (let ((suffix-list Info-suffix-list))
+              (let ((suffix-list Info-suffix-list)
+		    (lfn (or (not (fboundp 'msdos-long-file-names))
+			     (msdos-long-file-names))))
                 (while (and suffix-list (not found))
                   (cond ((info-file-exists-p
                           (info-insert-file-contents-1
-                           temp (car (car suffix-list))))
+                           temp (car (car suffix-list)) lfn))
                          (setq found temp))
                         ((info-file-exists-p
                           (info-insert-file-contents-1
-                           temp-downcase (car (car suffix-list))))
-                         (setq found temp-downcase)))
+                           temp-downcase (car (car suffix-list)) lfn))
+                         (setq found temp-downcase))
+			((and (fboundp 'msdos-long-file-names)
+			      lfn
+			      (info-file-exists-p
+			       (info-insert-file-contents-1
+				temp (car (car suffix-list)) nil)))
+			 (setq found temp)))
                   (setq suffix-list (cdr suffix-list))))
               (setq dirs (cdr dirs)))))
         (if found
