@@ -4,7 +4,7 @@
 @c 
 @c Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 @c	Lawrence R. Dodd <dodd@roebling.poly.edu>
-@c Maintainer: Lawrence R. Dodd <dodd@roebling.poly.edu>
+@c [Dodd's address no longer valid.]
 @c Version: 2.52
 @c Date: 1994/08/09 16:51:31
 @c Keywords: dired extensions
@@ -38,7 +38,7 @@
 @ifinfo
 @node Copyright, Top, (dir), (dir)
 @comment  node-name,  next,  previous,  up
-This documents the ``extra'' features for Dired Mode for GNU Emacs 19 found in
+This documents the ``extra'' features for Dired Mode for GNU Emacs found in
 the file @file{dired-x.el}.
 
 Copyright @copyright{} 1993, 1994 Free Software Foundation, Inc.
@@ -76,7 +76,7 @@ notice identical to this one except for the removal of this paragraph
 @c dired-x.el REVISION NUMBER
 @center @titlefont{Dired Extra Version 2}
 @sp 2
-@center @titlefont{For The GNU Emacs 19}
+@center @titlefont{For The GNU Emacs}
 @sp 1
 @center @titlefont{Directory Editor}
 @sp 4
@@ -84,7 +84,7 @@ notice identical to this one except for the removal of this paragraph
 @center 1994/08/09 16:51:31
 @sp 5
 @center Lawrence R@. Dodd
-@center @t{dodd@@roebling.poly.edu}
+@c @center @t{dodd@@roebling.poly.edu}
 @sp 5
 @center (Based on @file{dired.texi} by Sebastian Kremer <sk@@thp.uni-koeln.de>)
 @page
@@ -119,7 +119,7 @@ original work that was altered to make that file was called
 @comment  node-name,  next,  previous,  up
 
 @noindent
-This documents the ``extra'' features for Dired Mode for GNU Emacs 19 that are
+This documents the ``extra'' features for Dired Mode for GNU Emacs that are
 provided by the file @file{dired-x.el}.
 
 @itemize @bullet
@@ -131,16 +131,16 @@ Based on @file{dired.texi} by Sebastian Kremer <sk@@thp.uni-koeln.de>
 @item 
 For @file{dired-x.el} revision 2
 
-@item 
-Revision of this manual: 2.52 (1994/08/09 16:51:31)
+@c @item 
+@c Revision of this manual: 2.52 (1994/08/09 16:51:31)
 
-@item
-Bugs to Lawrence R. Dodd <dodd@@roebling.poly.edu>.  @emph{Please} type
-@kbd{M-x dired-x-submit-report} to submit a bug report (@pxref{Bugs}).
+@c @item
+@c Bugs to Lawrence R. Dodd <dodd@@roebling.poly.edu>.  @emph{Please} type
+@c @kbd{M-x dired-x-submit-report} to submit a bug report (@pxref{Bugs}).
 
-@item
-You can obtain a copy of this package via anonymous ftp in
-@t{/roebling.poly.edu:/pub/packages/dired-x.tar.gz}
+@c @item
+@c You can obtain a copy of this package via anonymous ftp in
+@c @t{/roebling.poly.edu:/pub/packages/dired-x.tar.gz}
 
 @end itemize
 
@@ -170,20 +170,16 @@ You can obtain a copy of this package via anonymous ftp in
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 
-This documents the @emph{extra} features for Dired Mode for GNU Emacs 19.  It
-is derived from version 1.191 of Sebastian Kremer's @file{dired-x.el} and is
-GNU Emacs v19 compatible.
+This documents the @emph{extra} features for Dired Mode for GNU Emacs.  It
+is derived from version 1.191 of Sebastian Kremer's @file{dired-x.el}.
 
 In adopting this @file{dired-x.el} to GNU Emacs v19 some material that has
 been incorporated into @file{dired.el} and @file{dired-aux.el} of the GNU Emacs
 19 distribution has been removed and some material was modified for agreement
 with the functions in @file{dired.el} and @file{dired-aux.el}.  For example,
 the code using @code{gmhist} history functions was replaced with code using
-the mini-buffer history now built into GNU Emacs 19.  Finally, a few other
+the mini-buffer history now built into GNU Emacs.  Finally, a few other
 features have been added and a few more functions have been bound to keys.
-
-Please note that @file{dired-x.el} and this texinfo file @file{dired-x.texi}
-are bundled with GNU Emacs versions 19.23 and later.
 
 @ifinfo
 @menu
@@ -270,11 +266,6 @@ and the following functions from @file{dired-aux.el}
 @code{dired-read-shell-command}
 @end itemize
 
-One drawback is that @file{dired-x.el} will load @file{dired-aux.el} as soon
-as dired is loaded.  Thus, the advantage of separating out non-essential dired
-stuff into @file{dired-aux.el} and only loading when necessary will be lost
-when @file{dired-x.el} is used.
-
 @node Installation, Optional Installation Dired Jump, Technical Details, Top
 @comment  node-name,  next,  previous,  up
 @chapter Installation
@@ -311,7 +302,6 @@ when you first do @kbd{C-x d}).
 @menu
 * Optional Installation Dired Jump::
 * Optional Installation File At Point::
-* Special Notes::
 @end menu
 @end ifinfo
 
@@ -355,7 +345,7 @@ proper auto-loading for @code{dired-jump} so you need only put
 @noindent in your @file{.emacs} file in order to have @kbd{C-x C-j} work
 before @code{dired} is loaded.
 
-@node Optional Installation File At Point, Special Notes, Optional Installation Dired Jump, Installation
+@node Optional Installation File At Point, , Optional Installation Dired Jump, Installation
 @comment  node-name,  next,  previous,  up
 @section Optional Installation File At Point
 
@@ -388,61 +378,7 @@ loaded
             ))
 @end example
 
-@node Special Notes, Omitting Files in Dired, Optional Installation File At Point, Installation
-@comment  node-name,  next,  previous,  up
-@section Special Notes
-
-If @file{dired-x.el} was @emph{not} bundled with the version of GNU Emacs
-installed at your site (i.e., not in the default @file{../lisp} directory)
-then you must put the file @file{dired-x.el} in a directory known to GNU
-Emacs.  Examine the variable @code{load-path} for a list of these directories.
-If you wish to add a new directory on this list of directories use something
-like this in your @file{.emacs} file
-
-@example
-;;; LOAD PATH
-(setq load-path (append
-                 load-path ; default at top
-                 (list 
-                  "/the/directory/where/you/put/dired-x")))
-@end example
-
-@noindent If you wish to put the new directory at the head of the list (where
-it will be found first) then you should use instead
-
-@example
-;;; LOAD PATH
-(setq load-path (append
-                 (list 
-                  "/the/directory/where/you/put/dired-x")
-                 load-path)) ; default at bottom
-@end example
-
-You must also byte compile the file (for example, hitting @kbd{B} in
-@code{dired-mode}).  When byte-compiling @file{dired-x.el} you may get
-messages about functions @code{vm-visit-folder}, @code{Man-notify-when-ready},
-and @code{reporter-submit-bug-report} not being defined.  These are warnings
-and should be ignored.
-
-@noindent CAUTION: If you are using a version of GNU Emacs earlier than 19.20
-than you may have to edit @file{dired.el}.  The copy of @file{dired.el} in GNU
-Emacs versions earlier than 19.20 incorrectly had the call to @code{run-hooks}
-@emph{before} the call to @code{provide}.  In such a case, it is possible that
-byte-compiling and/or loading dired can cause an infinite loop.  To prevent
-this, make sure the line of code
-
-@example
-        (run-hooks 'dired-load-hook)
-@end example
-
-@noindent is the @emph{last} executable line in the file @file{dired.el}.
-That is, make sure it comes @emph{after} the line
-
-@example
-        (provide 'dired)
-@end example
-
-@node Omitting Files in Dired, Omitting Variables, Special Notes, Top
+@node Omitting Files in Dired, Omitting Variables, , Top
 @comment  node-name,  next,  previous,  up
 @chapter Omitting Files in Dired
 
@@ -1346,7 +1282,8 @@ This command also inserts information that the Dired X maintainer can use to
 recreate your exact setup, making it easier to verify your bug or social
 maladjustment.
 
-Lawrence R. Dodd <dodd@@roebling.poly.edu>
+Lawrence R. Dodd 
+@c <dodd@@roebling.poly.edu>
 
 @node     Concept Index, Command Index, Bugs, Top
 @comment  node-name,  next,  previous,  up
@@ -1363,7 +1300,7 @@ Lawrence R. Dodd <dodd@@roebling.poly.edu>
 @unnumbered Key Index
 @printindex ky
 
-@node     Variable Index, , Key Index, Top
+@node     Variable Index,  , Key Index, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Variable Index
 @printindex vr
