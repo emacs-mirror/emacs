@@ -773,7 +773,7 @@ case "${canonical}" in
     # so that, for instance, grepping for `free' in stdlib.h fails and
     # AC_HEADER_STD_C fails.   (MIPSPro 7.2.1.2m compilers, Irix 6.5.3m).
     NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
-    NON_GCC_TEST_OPTIONS="-n32 -G0 -D_LANGUAGE_C"
+    NON_GCC_TEST_OPTIONS="-n32 -D_LANGUAGE_C"
   ;;
   mips-sgi-irix6* )
     machine=iris4d opsys=irix6-0
