@@ -108,6 +108,7 @@
     ((?\" ?e) ?\353)
     ((?\" ?i) ?\357)
     ((?\" ?o) ?\366)
+    ((?\" ?s) ?\337)
     ((?\" ?u) ?\374)
     ((?\" ?y) ?\377)
     ((?\" ? ) ?\")
@@ -208,6 +209,9 @@ letter key so that it inserts an ISO accented letter.
 
 Special combinations: ~c gives a c with cedilla,
 ~d gives a d with dash.
+\"s gives German sharp s.
+/a gives a with ring.
+/e gives an a-e ligature.
 ~< and ~> give guillemets.
 
 With an argument, a positive argument enables ISO-accents mode, 
