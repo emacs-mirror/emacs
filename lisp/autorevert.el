@@ -97,7 +97,10 @@ Never set this variable directly, use the command `auto-revert-mode' instead.")
 (put 'auto-revert-mode 'permanent-local t)
 
 (defcustom auto-revert-interval 5
-  "Time, in seconds, between Auto-Revert Mode file checks."
+  "Time, in seconds, between Auto-Revert Mode file checks.
+Setting this variable has no effect on buffers that are already in
+auto-revert-mode; it only affects buffers that are put into
+auto-revert-mode afterwards."
   :group 'auto-revert
   :type 'integer)
 

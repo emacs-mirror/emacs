@@ -212,13 +212,10 @@ Defaults to the value of `case-fold-search'."
   :group 'file-cache
   )
 
-(defcustom file-cache-assoc-function
-  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
-      'assoc-ignore-case
-    'assoc)
-  "Function to use to check completions in the file cache.
-Defaults to `assoc-ignore-case' on DOS and Windows, and `assoc' on
-other systems."
+(defcustom file-cache-ignore-case
+  (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  "Non-nil means ignore case when checking completions in the file cache.
+Defaults to nil on DOS and Windows, and t on other systems."
   :type 'sexp
   :group 'file-cache
   )
@@ -301,8 +298,9 @@ in each directory, not to the directory list itself."
       (message "File %s does not exist" file)
     (let* ((file-name (file-name-nondirectory file))
 	   (dir-name  (file-name-directory    file))
-	   (the-entry (funcall file-cache-assoc-function
-			       file-name file-cache-alist))
+	   (the-entry (assoc-string
+		       file-name file-cache-alist
+		       file-cache-ignore-case))
 	   )
       ;; Does the entry exist already?
       (if the-entry
@@ -402,7 +400,7 @@ or the optional REGEXP argument."
   (interactive
    (list (completing-read "Delete file from cache: " file-cache-alist)))
   (setq file-cache-alist
-	(delq (funcall file-cache-assoc-function file file-cache-alist)
+	(delq (assoc-string file file-cache-alist file-cache-ignore-case)
 	      file-cache-alist)))
 
 (defun file-cache-delete-file-list (file-list)
@@ -458,8 +456,9 @@ or the optional REGEXP argument."
 
 ;; Returns the name of a directory for a file in the cache
 (defun file-cache-directory-name  (file)
-  (let* ((directory-list (cdr (funcall file-cache-assoc-function
-				       file file-cache-alist)))
+  (let* ((directory-list (cdr (assoc-string
+			       file file-cache-alist
+			       file-cache-ignore-case)))
 	 (len            (length directory-list))
 	 (directory)
 	 (num)
@@ -556,7 +555,8 @@ the name is considered already unique; only the second substitution
       ;; If we've already inserted a unique string, see if the user
       ;; wants to use that one
       (if (and (string= string completion-string)
-	       (funcall file-cache-assoc-function string file-cache-alist))
+	       (assoc-string string file-cache-alist
+			     file-cache-ignore-case))
 	  (if (and (eq last-command this-command)
 		   (string= file-cache-last-completion completion-string))
 	      (progn
@@ -725,7 +725,8 @@ match REGEXP."
   "Debugging function."
   (interactive
    (list (completing-read "File Cache: " file-cache-alist)))
-  (message "%s" (funcall file-cache-assoc-function file file-cache-alist))
+  (message "%s" (assoc-string file file-cache-alist
+			      file-cache-ignore-case))
   )
 
 (defun file-cache-display  ()

@@ -1,3 +1,9 @@
+2003-12-29  Kevin Ryde <user42@zip.com.au>
+
+	* viper.texi (Vi Macros): Fix reference to the Emacs manual.
+
+	* programs.texi (C Modes): Fix the xref.
+
 2003-12-23  Nick Roberts  <nick@nick.uklinux.net>
 
 	* building.texi (Watch Expressions): Update.

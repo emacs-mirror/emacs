@@ -298,27 +298,19 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
+(make-obsolete 'assoc-ignore-case 'assoc-string)
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but ignores differences in case and text representation.
 KEY must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
-  (let (element)
-    (while (and alist (not element))
-      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil t))
-	  (setq element (car alist)))
-      (setq alist (cdr alist)))
-    element))
+  (assoc-string key alist t))
 
+(make-obsolete 'assoc-ignore-representation 'assoc-string)
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
 KEY must be a string.
 Unibyte strings are converted to multibyte for comparison."
-  (let (element)
-    (while (and alist (not element))
-      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil))
-	  (setq element (car alist)))
-      (setq alist (cdr alist)))
-    element))
+  (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
   "Like `member', but ignores differences in case and text representation.
@@ -1563,7 +1555,18 @@ Replaces `category' properties with their defined properties."
 (defvar yank-undo-function)
 
 (defun insert-for-yank (string)
+  "Calls `insert-for-yank-1' repetitively for each `yank-handler' segment.
+
+See `insert-for-yank-1' for more details."
+  (let (to)
+    (while (setq to (next-single-property-change 0 'yank-handler string))
+      (insert-for-yank-1 (substring string 0 to))
+      (setq string (substring string to))))
+  (insert-for-yank-1 string))
+
+(defun insert-for-yank-1 (string)
   "Insert STRING at point, stripping some text properties.
+
 Strip text properties from the inserted text according to
 `yank-excluded-properties'.  Otherwise just like (insert STRING).
 
@@ -1809,6 +1812,7 @@ in BODY."
 (defvar delayed-mode-hooks nil
   "List of delayed mode hooks waiting to be run.")
 (make-variable-buffer-local 'delayed-mode-hooks)
+(put 'delay-mode-hooks 'permanent-local t)
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.

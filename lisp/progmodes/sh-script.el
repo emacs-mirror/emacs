@@ -2052,7 +2052,8 @@ STRING	     This is ignored for the purposes of calculating
 		    (progn
 		      (setq result (append result val))
 		      (setq align-point (point))))
-		(forward-char -1)
+		(or (bobp)
+		    (forward-char -1))
 		(skip-chars-forward "[a-z0-9]*?")
 		)
 	       ((string-match "[])}]" x)

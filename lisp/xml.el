@@ -104,15 +104,22 @@ CHILD-NAME should be a lower case symbol."
 	      (push child match))))
     (nreverse match)))
 
-(defun xml-get-attribute (node attribute)
+(defun xml-get-attribute-or-nil (node attribute)
   "Get from NODE the value of ATTRIBUTE.
-An empty string is returned if the attribute was not found."
-  (if (xml-node-attributes node)
-      (let ((value (assoc attribute (xml-node-attributes node))))
-	(if value
-	    (cdr value)
-	  ""))
-    ""))
+Return `nil' if the attribute was not found.
+
+See also `xml-get-attribute'."
+  (when (xml-node-attributes node)
+    (let ((value (assoc attribute (xml-node-attributes node))))
+      (when value
+	(cdr value)))))
+
+(defsubst xml-get-attribute (node attribute)
+  "Get from NODE the value of ATTRIBUTE.
+An empty string is returned if the attribute was not found.
+
+See also `xml-get-attribute-or-nil'."
+  (or (xml-get-attribute-or-nil node attribute) ""))
 
 ;;*******************************************************************
 ;;**
@@ -286,7 +293,6 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
    attr-list)
   attr-list)
 
-
 (defun xml-intern-attrlist (attr-list)
   "Convert attribute names to symbols for backward compatibility."
   (mapcar (lambda (attr)
@@ -349,12 +355,12 @@ Returns one of:
       (let* ((node-name (match-string 1))
 	     (attr-list (xml-parse-attlist))
 	     (children (if  (consp xml-ns) ;; take care of namespace parsing
-			    (progn 
+			    (progn
 			      (setq xml-ns (xml-ns-parse-ns-attrs
 					    attr-list xml-ns))
-			      (list (xml-ns-expand-attr 
+			      (list (xml-ns-expand-attr
 				     attr-list xml-ns)
-				    (xml-ns-expand-el 
+				    (xml-ns-expand-el
 				     node-name xml-ns)))
 			    (list (xml-intern-attrlist attr-list)
 				  (intern node-name))))

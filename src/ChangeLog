@@ -1,3 +1,46 @@
+2003-12-29  James Clark <jjc@jclark.com>  (tiny change)
+
+	* fns.c (internal_equal): Return t for two NaN arguments.
+
+2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (store_symval_forwarding): Handle setting
+	default-fill-column, etc., by changing the value in
+	buffers that use the default.
+
+	* minibuf.c (Fset_minibuffer_window): Doc fix.
+
+	* fileio.c (choose_write_coding_system): Ignore auto_saving
+	if using the visited file for auto saves.
+	(Fwrite_region): Don't update SAVE_MODIFF
+	if auto-saving in visited file.
+
+2003-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (face_font_available_p): Extern it.
+
+	* fontset.c (Voverriding_fontspec_alist): New variable.
+	(lookup_overriding_fontspec): New function.
+	(fontset_ref_via_base): Call lookup_overriding_fontspec if
+	necessary.
+	(fontset_font_pattern): Likewise.
+	(regulalize_fontname): New function.
+	(Fset_fontset_font): Call regulalize_fontname.
+	(Fset_overriding_fontspec_internal): New function.
+	(syms_of_fontset): Initialize and staticprop
+	Voverriding_fontspec_alist. Defsubr
+	Sset_overriding_fontspec_internal.
+
+	* xfaces.c (face_font_available_p): New function.
+
+2003-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fother_buffer): Don't crash if BUF is nil
+	or if its name is nil.
+
+	* buffer.c (Fkill_buffer): Don't delete auto-save file
+	if it's the same as the visited file.
+
 2003-12-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* coding.c (Fcheck_coding_system): Doc fix.

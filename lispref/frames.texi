@@ -923,8 +923,19 @@ This function returns the window on @var{frame} that is selected within
 @var{frame}.
 @end defun
 
+@defun set-frame-selected-window frame window
+This sets the selected window of frame @var{frame} to @var{window}.
+If @var{frame} is @code{nil}, it operates on the selected frame.  If
+@var{frame} is the selected frame, this makes @var{window} the
+selected window.
+@end defun
+
   Conversely, selecting a window for Emacs with @code{select-window} also
 makes that window selected within its frame.  @xref{Selecting Windows}.
+
+@defun frame-root-window frame
+This function returns the window at the top left corner of @var{frame}.
+@end defun
 
   Another function that (usually) returns one of the windows in a given
 frame is @code{minibuffer-window}.  @xref{Minibuffer Misc}.

@@ -321,7 +321,7 @@ If optional argument QUERY is non-nil, query for the help mode."
   (let* ((completions (info-lookup->completions topic mode))
          (ignore-case (info-lookup->ignore-case topic mode))
          (entry (or (assoc (if ignore-case (downcase item) item) completions)
-                    (assoc-ignore-case item completions)
+                    (assoc-string item completions t)
                     (error "Not documented as a %s: %s" topic (or item ""))))
          (modes (info-lookup->all-modes topic mode))
          (window (selected-window))

@@ -686,7 +686,7 @@
   :prefix "ange-ftp-")
 
 (defcustom ange-ftp-name-format
-  '("^/\\(\\([^@/:]*\\)@\\)?\\([^@/:]*[^@/:.]\\):\\(.*\\)" . (3 2 4))
+  '("^/\\(\\([^/:]*\\)@\\)?\\([^@/:]*[^@/:.]\\):\\(.*\\)" . (3 2 4))
   "*Format of a fully expanded remote file name.
 
 This is a list of the form \(REGEXP HOST USER NAME\),
@@ -694,7 +694,7 @@ where REGEXP is a regular expression matching
 the full remote name, and HOST, USER, and NAME are the numbers of
 parenthesized expressions in REGEXP for the components (in that order)."
   :group 'ange-ftp
-  :type '(list regexp
+  :type '(list (regexp  :tag "Name regexp")
 	       (integer :tag "Host group")
 	       (integer :tag "User group")
 	       (integer :tag "Name group")))
@@ -1918,7 +1918,8 @@ on the gateway machine to do the ftp instead."
     ;; but that doesn't work: ftp never responds.
     ;; Can anyone find a fix for that?
     (let ((process-connection-type t)
-	  (process-environment process-environment)
+	  ;; Copy this so we don't alter it permanently.
+	  (process-environment (copy-tree process-environment))
 	  (buffer (get-buffer-create name)))
       (save-excursion
 	(set-buffer buffer)

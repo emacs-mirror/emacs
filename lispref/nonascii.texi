@@ -210,6 +210,18 @@ multibyte string.  If @var{string} is a multibyte string, it is
 returned unchanged.
 @end defun
 
+@defun multibyte-char-to-unibyte char
+This convert the multibyte character @var{char} to a unibyte
+character, based on @code{nonascii-translation-table} and
+@code{nonascii-insert-offset}.
+@end defun
+
+@defun unibyte-char-to-multibyte char
+This convert the unibyte character @var{char} to a multibyte
+character, based on @code{nonascii-translation-table} and
+@code{nonascii-insert-offset}.
+@end defun
+
 @node Selecting a Representation
 @section Selecting a Representation
 
@@ -700,6 +712,26 @@ interested in.
 
   The variable @code{selection-coding-system} specifies how to encode
 selections for the window system.  @xref{Window System Selections}.
+
+@defvar file-name-coding-system
+The variable @code{file-name-coding-system} specifies the coding
+system to use for encoding file names.  Emacs encodes file names using
+that coding system for all file operations.  If
+@code{file-name-coding-system} is @code{nil}, Emacs uses a default
+coding system determined by the selected language environment.  In the
+default language environment, any non-@acronym{ASCII} characters in
+file names are not encoded specially; they appear in the file system
+using the internal Emacs representation.
+@end defvar
+
+  @strong{Warning:} if you change @code{file-name-coding-system} (or
+the language environment) in the middle of an Emacs session, problems
+can result if you have already visited files whose names were encoded
+using the earlier coding system and are handled differently under the
+new coding system.  If you try to save one of these buffers under the
+visited file name, saving may use the wrong file name, or it may get
+an error.  If such a problem happens, use @kbd{C-x C-w} to specify a
+new file name for that buffer.
 
 @node Lisp and Coding Systems
 @subsection Coding Systems in Lisp

@@ -1890,7 +1890,8 @@ begins.  @xref{Usual Display}.
 
   Column number computations ignore the width of the window and the
 amount of horizontal scrolling.  Consequently, a column value can be
-arbitrarily high.  The first (or leftmost) column is numbered 0.
+arbitrarily high.  The first (or leftmost) column is numbered 0.  They
+also ignore overlays and text properties, aside from invisibility.
 
 @defun current-column
 This function returns the horizontal position of point, measured in
@@ -2409,7 +2410,7 @@ has a category that is a symbol, then @code{get-text-property} returns
 the @var{prop} property of that symbol.
 @end defun
 
-@defun get-char-property pos prop &optional object
+@defun get-char-property position prop &optional object
 This function is like @code{get-text-property}, except that it checks
 overlays first and then text properties.  @xref{Overlays}.
 
@@ -2420,6 +2421,20 @@ are considered.  If @var{object} is a buffer, then all overlays in that
 buffer are considered, as well as text properties.  If @var{object} is a
 string, only text properties are considered, since strings never have
 overlays.
+@end defun
+
+@defun get-char-property-and-overlay position prop &optional object
+This is like @code{get-char-property}, but gives extra information
+about the overlay that the property value comes from.
+
+Its value is a cons cell whose @sc{car} is the property value, the
+same value @code{get-char-property} would return with the same
+arguments.  Its @sc{cdr} is the overlay in which the property was
+found, or @code{nil}, if it was found as a text property or not found
+at all.
+
+If @var{position} is at the end of @var{object}, both the @sc{car} and
+the @sc{cdr} of the value are @code{nil}.
 @end defun
 
 @defvar char-property-alias-alist
@@ -2860,11 +2875,13 @@ The @code{keymap} property specifies an additional keymap for
 commands.  The property's value for the character before point applies
 if it is non-@code{nil} and rear-sticky, and the property's value for
 the character after point applies if it is non-@code{nil} and
-front-sticky.  When the value applies, it is used for key lookup
-before the buffer's local map.  (For mouse clicks, the position of the
-click is used instead of the position of point.)  If the property
-value is a symbol, the symbol's function definition is used as the
-keymap.  @xref{Active Keymaps}.
+front-sticky.  (For mouse clicks, the position of the click is used
+instead of the position of point.)  If the property value is a symbol,
+the symbol's function definition is used as the keymap.
+
+When this keymap applies, it is used for key lookup before the minor
+mode keymaps and before the buffer's local map.  @xref{Active
+Keymaps}.
 
 @item local-map
 @kindex local-map @r{(text property)}

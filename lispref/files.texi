@@ -2165,6 +2165,14 @@ An error is signaled if @var{directory} is not the name of a directory
 that can be read.
 @end defun
 
+@defun directory-files-and-attributes directory &optional full-name match-regexp nosort
+This is similar to @code{directory-files} in deciding which files
+to report on and how to report their names.  However, instead
+of returning a list of file names, it returns for each file a
+list @code{(@var{filename} . @var{attributes})}, where @var{attributes}
+is what @code{file-attributes} would return for that file.
+@end defun
+
 @defun file-name-all-versions file dirname
 This function returns a list of all versions of the file named
 @var{file} in directory @var{dirname}.

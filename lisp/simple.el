@@ -3735,9 +3735,9 @@ See also `read-mail-command' concerning reading mail."
 	    (same-window-buffer-names nil)
 	    (same-window-regexps nil))
 	(funcall switch-function "*mail*")))
-  (let ((cc (cdr (assoc-ignore-case "cc" other-headers)))
-	(in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers)))
-	(body (cdr (assoc-ignore-case "body" other-headers))))
+  (let ((cc (cdr (assoc-string "cc" other-headers t)))
+	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
+	(body (cdr (assoc-string "body" other-headers t))))
     (or (mail continue to subject in-reply-to cc yank-action send-actions)
 	continue
 	(error "Message aborted"))

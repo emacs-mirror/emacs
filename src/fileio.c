@@ -4685,7 +4685,9 @@ choose_write_coding_system (start, end, filename,
 {
   Lisp_Object val;
 
-  if (auto_saving)
+  if (auto_saving
+      && NILP (Fstring_equal (current_buffer->filename,
+			      current_buffer->auto_save_file_name)))
     {
       /* We use emacs-mule for auto saving... */
       setup_coding_system (Qemacs_mule, coding);
@@ -5221,7 +5223,14 @@ This does code conversion according to the value of
       update_mode_lines++;
     }
   else if (quietly)
-    return Qnil;
+    {
+      if (auto_saving
+	  && ! NILP (Fstring_equal (current_buffer->filename,
+				    current_buffer->auto_save_file_name)))
+	SAVE_MODIFF = MODIFF;
+
+      return Qnil;
+    }
 
   if (!auto_saving)
     message_with_string ((INTEGERP (append)
@@ -5776,11 +5785,14 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   minibuffer_auto_raise = 0;
   auto_saving = 1;
 
-  /* First, save all files which don't have handlers.  If Emacs is
-     crashing, the handlers may tweak what is causing Emacs to crash
-     in the first place, and it would be a shame if Emacs failed to
-     autosave perfectly ordinary files because it couldn't handle some
-     ange-ftp'd file.  */
+  /* On first pass, save all files that don't have handlers.
+     On second pass, save all files that do have handlers.
+
+     If Emacs is crashing, the handlers may tweak what is causing
+     Emacs to crash in the first place, and it would be a shame if
+     Emacs failed to autosave perfectly ordinary files because it
+     couldn't handle some ange-ftp'd file.  */
+
   for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
     for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCDR (tail))
       {

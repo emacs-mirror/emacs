@@ -1344,16 +1344,16 @@ Argument 0 is the command name."
 	    ;; Put the previous arg, if there was one, onto ARGS.
 	    (setq str (substring string beg pos)
 		  args (if quotes (cons str args)
-			 (nconc (comint-delim-arg str) args))
-		  count (1+ count)))
+			 (nconc (comint-delim-arg str) args))))
+	(setq count (length args))
 	(setq quotes (match-beginning 1))
 	(setq beg (match-beginning 0))
 	(setq pos (match-end 0))))
     (if beg
 	(setq str (substring string beg pos)
 	      args (if quotes (cons str args)
-		     (nconc (comint-delim-arg str) args))
-	      count (1+ count)))
+		     (nconc (comint-delim-arg str) args))))
+    (setq count (length args))
     (let ((n (or nth (1- count)))
 	  (m (if mth (1- (- count mth)) 0)))
       (mapconcat
@@ -1901,7 +1901,8 @@ RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
 filter and C-g is pressed, this function returns nil rather than a string).
 
 Note that the keystrokes comprising the text can still be recovered
-\(temporarily) with \\[view-lossage].  Some people find this worrysome.
+\(temporarily) with \\[view-lossage].  Some people find this worrysome (see,
+however, `clear-this-command-keys').
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
   (let ((ans "")
@@ -1948,24 +1949,22 @@ by doing (clear-string STRING)."
       (message "")
       ans)))
 
-(defun send-invisible (str)
+(defun send-invisible (&optional prompt)
   "Read a string without echoing.
 Then send it to the process running in the current buffer.
 The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
-\\[view-lossage]."
+\\[view-lossage]; `clear-this-command-keys' can fix that."
   (interactive "P")			; Defeat snooping via C-x ESC ESC
   (let ((proc (get-buffer-process (current-buffer))))
-    (cond ((not proc)
-	   (error "Current buffer has no process"))
-	  ((stringp str)
-	   (comint-snapshot-last-prompt)
-	   (funcall comint-input-sender proc str))
-	  (t
-	   (let ((str (comint-read-noecho "Non-echoed text: " t)))
-	     (if (stringp str)
-		 (send-invisible str)
-	       (message "Warning: text will be echoed")))))))
+    (if proc
+	(let ((str (comint-read-noecho (or prompt "Non-echoed text: ") t)))
+	  (if (stringp str)
+	      (progn
+		(comint-snapshot-last-prompt)
+		(funcall comint-input-sender proc str))
+	    (message "Warning: text will be echoed")))
+      (error "Current buffer has no process"))))
 
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
@@ -1977,8 +1976,7 @@ This function could be in the list `comint-output-filter-functions'."
   (when (string-match comint-password-prompt-regexp string)
     (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
       (setq string (replace-match "" t t string)))
-    (let ((pw (comint-read-noecho string t)))
-      (send-invisible pw))))
+    (send-invisible string)))
 
 ;; Low-level process communication
 
@@ -2084,7 +2082,7 @@ between the process-mark and point."
   (comint-skip-input)
   (interrupt-process nil comint-ptyp)
 ;;  (process-send-string nil "\n")
-  )
+)
 
 (defun comint-kill-subjob ()
   "Send kill signal to the current subjob.
@@ -2553,7 +2551,7 @@ directory tracking functions.")
 (defvar comint-file-name-chars
   (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
-    "~/A-Za-z0-9+@:_.$#%,={}-")
+    "[]~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
 Note that all non-ASCII characters are considered valid in a file name
 regardless of what this variable says.
@@ -2579,15 +2577,19 @@ Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward'),
 plus all non-ASCII characters."
   (save-excursion
-    (let ((non-word-chars (concat "[^\\\\" word-chars "]")) (here (point)))
-      (while (and (re-search-backward non-word-chars nil 'move)
-		  ;;(memq (char-after (point)) shell-file-name-quote-list)
-		  (or (>= (following-char) 128)
-		      (eq (preceding-char) ?\\)))
-	(backward-char 1))
-      ;; Don't go forward over a word-char (this can happen if we're at bob).
-      (when (or (not (bobp)) (looking-at non-word-chars))
-	(forward-char 1))
+    (let ((here (point))
+	  giveup)
+      (while (not giveup)
+	(let ((startpoint (point)))
+	  (skip-chars-backward (concat "\\\\" word-chars))
+	  (if (and (> (- (point) 2) (point-min))
+		   (= (char-after (- (point) 2)) ?\\))
+	      (forward-char -2))
+	  (if (and (> (- (point) 1) (point-min))
+		   (>= (char-after (- (point) 1)) 128))
+	      (forward-char -1))
+	  (if (= (point) startpoint)
+	      (setq giveup t))))
       ;; Set match-data to match the entire string.
       (when (< (point) here)
 	(set-match-data (list (point) here))
@@ -2699,10 +2701,10 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 			   (t
 			    (cdr comint-completion-addsuffix))))
 	 (filename (or (comint-match-partial-filename) ""))
-	 (pathdir (file-name-directory filename))
-	 (pathnondir (file-name-nondirectory filename))
-	 (directory (if pathdir (comint-directory pathdir) default-directory))
-	 (completion (file-name-completion pathnondir directory)))
+	 (filedir (file-name-directory filename))
+	 (filenondir (file-name-nondirectory filename))
+	 (directory (if filedir (comint-directory filedir) default-directory))
+	 (completion (file-name-completion filenondir directory)))
     (cond ((null completion)
 	   (message "No completions of %s" filename)
 	   (setq success nil))
@@ -2716,21 +2718,21 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	   (let ((file (concat (file-name-as-directory directory) completion)))
 	     (insert (comint-quote-filename
 		      (substring (directory-file-name completion)
-				 (length pathnondir))))
+				 (length filenondir))))
 	     (cond ((symbolp (file-name-completion completion directory))
 		    ;; We inserted a unique completion.
 		    (insert (if (file-directory-p file) dirsuffix filesuffix))
 		    (unless minibuffer-p
 		      (message "Completed")))
 		   ((and comint-completion-recexact comint-completion-addsuffix
-			 (string-equal pathnondir completion)
+			 (string-equal filenondir completion)
 			 (file-exists-p file))
 		    ;; It's not unique, but user wants shortest match.
 		    (insert (if (file-directory-p file) dirsuffix filesuffix))
 		    (unless minibuffer-p
 		      (message "Completed shortest")))
 		   ((or comint-completion-autolist
-			(string-equal pathnondir completion))
+			(string-equal filenondir completion))
 		    ;; It's not unique, list possible completions.
 		    (comint-dynamic-list-filename-completions))
 		   (t
@@ -2814,10 +2816,10 @@ See also `comint-dynamic-complete-filename'."
 	 ;; but subsequent changes may have made this unnecessary.  sm.
 	 ;;(file-name-handler-alist nil)
 	 (filename (or (comint-match-partial-filename) ""))
-	 (pathdir (file-name-directory filename))
-	 (pathnondir (file-name-nondirectory filename))
-	 (directory (if pathdir (comint-directory pathdir) default-directory))
-	 (completions (file-name-all-completions pathnondir directory)))
+	 (filedir (file-name-directory filename))
+	 (filenondir (file-name-nondirectory filename))
+	 (directory (if filedir (comint-directory filedir) default-directory))
+	 (completions (file-name-all-completions filenondir directory)))
     (if (not completions)
 	(message "No completions of %s" filename)
       (comint-dynamic-list-completions
@@ -2828,6 +2830,8 @@ See also `comint-dynamic-complete-filename'."
 ;; completions displayed, and is used to detect the case where the same
 ;; command is repeatedly used without the set of completions changing.
 (defvar comint-displayed-dynamic-completions nil)
+
+(defvar comint-dynamic-list-completions-config nil)
 
 (defun comint-dynamic-list-completions (completions)
   "List in help buffer sorted COMPLETIONS.
@@ -2858,30 +2862,35 @@ Typing SPC flushes the help buffer."
 	      (select-window window)
 	      (scroll-up))))
 
-      (let ((conf (current-window-configuration)))
-	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list completions))
-	(message "Type space to flush; repeat completion command to scroll")
-	(let (key first)
-	  (if (save-excursion
-		(set-buffer (get-buffer "*Completions*"))
-		(set (make-local-variable
-		      'comint-displayed-dynamic-completions)
-		     completions)
-		(setq key (read-key-sequence nil)
-		      first (aref key 0))
-		(and (consp first) (consp (event-start first))
-		     (eq (window-buffer (posn-window (event-start first)))
-			 (get-buffer "*Completions*"))
-		     (eq (key-binding key) 'mouse-choose-completion)))
-	      ;; If the user does mouse-choose-completion with the mouse,
-	      ;; execute the command, then delete the completion window.
-	      (progn
-		(mouse-choose-completion first)
-		(set-window-configuration conf))
-	    (if (eq first ?\ )
-		(set-window-configuration conf)
-	      (setq unread-command-events (listify-key-sequence key)))))))))
+      ;; Display a completion list for the first time.
+      (setq comint-dynamic-list-completions-config
+	    (current-window-configuration))
+      (with-output-to-temp-buffer "*Completions*"
+	(display-completion-list completions))
+      (message "Type space to flush; repeat completion command to scroll"))
+
+    ;; Read the next key, to process SPC.
+    (let (key first)
+      (if (save-excursion
+	    (set-buffer (get-buffer "*Completions*"))
+	    (set (make-local-variable
+		  'comint-displayed-dynamic-completions)
+		 completions)
+	    (setq key (read-key-sequence nil)
+		  first (aref key 0))
+	    (and (consp first) (consp (event-start first))
+		 (eq (window-buffer (posn-window (event-start first)))
+		     (get-buffer "*Completions*"))
+		 (eq (key-binding key) 'mouse-choose-completion)))
+	  ;; If the user does mouse-choose-completion with the mouse,
+	  ;; execute the command, then delete the completion window.
+	  (progn
+	    (mouse-choose-completion first)
+	    (set-window-configuration comint-dynamic-list-completions-config))
+	(unless (eq first ?\ )
+	  (setq unread-command-events (listify-key-sequence key)))
+	(unless (eq first ?\t)
+	  (set-window-configuration comint-dynamic-list-completions-config))))))
 
 
 (defun comint-get-next-from-history ()

@@ -1645,6 +1645,14 @@ frame---a frame that has no minibuffer of its own necessarily uses some
 other frame's minibuffer window.
 @end defun
 
+@defun set-minibuffer-window window
+This function specifies @var{window} as the minibuffer window to use.
+This affects where the minibuffer is displayed if you put text in it
+without invoking the usual minibuffer commands.  It has no effect on
+the usual minibuffer input functions because they all start by
+choosing the minibuffer window according to the current frame.
+@end defun
+
 @c Emacs 19 feature
 @defun window-minibuffer-p window
 This function returns non-@code{nil} if @var{window} is a minibuffer window.

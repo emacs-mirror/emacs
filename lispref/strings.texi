@@ -379,6 +379,14 @@ or if any new character requires a different number of bytes from the
 character currently present at that point in @var{string}.
 @end defun
 
+  To clear out a string that contained a password, use
+@code{clear-string}:
+
+@defun clear-string string
+This clears the contents of @var{string} to zeros
+and may change its length.
+@end defun
+
 @need 2000
 @node Text Comparison
 @section Comparison of Characters and Strings
@@ -518,13 +526,10 @@ two strings.  The sign is negative if @var{string1} (or its specified
 portion) is less.
 @end defun
 
-@defun assoc-ignore-case key alist
-@defunx assoc-ignore-representation key alist
-These functions work like @code{assoc}, except that @var{key} must be
-a string, all elements of @var{alist} must be cons cells whose
-@sc{car} is a string, and comparison is done using
-@code{compare-strings}.  @code{assoc-ignore-case} ignores case
-differences, whereas @code{assoc-ignore-representation} does not.
+@defun assoc-string key alist &optional case-fold
+This function works like @code{assoc}, except that @var{key} must be a
+string, and comparison is done using @code{compare-strings}.  If
+@var{case-fold} is non-@code{nil}, it ignores case differences.
 @xref{Association Lists}.
 @end defun
 

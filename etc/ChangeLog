@@ -1,3 +1,7 @@
+2003-12-29  Ognyan Kulev <ogi@fmi.uni-sofia.bg>
+
+	* TUTORIAL.bg: Use windows-1251 encoding.  Fix punctuation errors.
+
 2003-11-21  Lars Hansen  <larsh@math.ku.dk>
 
 	* TODO: Add plans for change of file attributes UID and GID from

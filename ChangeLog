@@ -1,3 +1,8 @@
+2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+
+	* INSTALL.CVS: Renamed from INSTALL-CVS to avoid file-name
+	clashes with install-sh on 8+3 filesystems.
+
 2003-12-08  Miles Bader  <miles@gnu.org>
 
 	* .cvsignore: Add .arch-inventory.

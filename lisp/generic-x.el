@@ -1868,7 +1868,38 @@ you must reload generic-x to enable the specified modes."
   ;;List of comment characters
   (list ?#)
   ;;List of keywords
-  (list "alias" "pre-install" "post-install" "options" "probeall")
+  (list
+   "above"
+   "alias"
+   "below"
+   "define"
+   "depfile"
+   "else"
+   "elseif"
+   "endif"
+   "if"
+   "include"
+   "insmod_opt"
+   "install"
+   "keep"
+   "options"
+   "path"
+   "generic_stringfile"
+   "pcimapfile"
+   "isapnpmapfile"
+   "usbmapfile"
+   "parportmapfile"
+   "ieee1394mapfile"
+   "pnpbiosmapfile"
+   "probe"
+   "probeall"
+   "prune"
+   "post-install"
+   "post-remove"
+   "pre-install"
+   "pre-remove"
+   "remove"
+   "persistdir")
   ;;List of additional font-lock-expressions
   nil
   ;;List of additional automode-alist expressions

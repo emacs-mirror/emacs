@@ -162,11 +162,14 @@ Used to grey out relevant toolbar icons.")
 		     (gud-run . "gud-run")
 		     (gud-until . "gud-until")
 		     (gud-cont . "gud-cont")
-		     (gud-step . "gud-step")
-		     (gud-next . "gud-next")
+		     ;; gud-s, gud-si etc. instead of gud-step,
+		     ;; gud-stepi, to avoid file-name clashes on DOS
+		     ;; 8+3 filesystems.
+		     (gud-step . "gud-s")
+		     (gud-next . "gud-n")
 		     (gud-finish . "gud-finish")
-		     (gud-stepi . "gud-stepi")
-		     (gud-nexti . "gud-nexti")
+		     (gud-stepi . "gud-si")
+		     (gud-nexti . "gud-ni")
 		     (gud-up . "gud-up")
 		     (gud-down . "gud-down"))
 		   map)

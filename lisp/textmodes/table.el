@@ -5,7 +5,7 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: jue jun 05 2003 22:00:02 (Hora de verano romance)
+;; Revised: Tue Dec 09 2003 14:36:50 (PST)
 
 ;; This file is part of GNU Emacs.
 
@@ -836,6 +836,9 @@ simply by any key input."
   "*List of functions to be called after point left a table cell."
   :type 'hook
   :group 'table-hooks)
+
+(defcustom table-yank-handler '(nil nil t nil)
+  "*yank-handler for table.")
 
 (setplist 'table-disable-incompatibility-warning nil)
 
@@ -5228,7 +5231,8 @@ and the right cell border character."
 
 (defun table--put-cell-indicator-property (beg end &optional object)
   "Put cell property which indicates that the location is within a table cell."
-  (put-text-property beg end 'table-cell t object))
+  (put-text-property beg end 'table-cell t object)
+  (put-text-property beg end 'yank-handler table-yank-handler object))
 
 (defun table--put-cell-face-property (beg end &optional object)
   "Put cell face property."

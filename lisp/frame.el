@@ -85,8 +85,9 @@ for pop-up frames."
   :group 'frames)
 
 (setq pop-up-frame-function
-      (function (lambda ()
-		  (make-frame pop-up-frame-alist))))
+      ;; Using `function' here caused some sort of problem.
+      '(lambda ()
+	 (make-frame pop-up-frame-alist)))
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
@@ -335,10 +336,22 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 					   frame-initial-geometry-arguments)))
 		   (top (frame-parameter frame-initial-frame 'top)))
 	      (when (and (consp initial-top) (eq '- (car initial-top)))
-		(setq newparms
-		      (append newparms
-			      `((top . ,(+ top (* lines char-height))))
-			      nil)))
+		(let ((adjusted-top
+		       (cond ((and (consp top)
+				   (eq '+ (car top)))
+			      (list '+
+				    (+ (cadr top)
+				       (* lines char-height))))
+			     ((and (consp top)
+				   (eq '- (car top)))
+			      (list '-
+				    (- (cadr top)
+				       (* lines char-height))))
+			     (t (+ top (* lines char-height))))))
+		  (setq newparms
+			(append newparms
+				`((top . ,adjusted-top))
+				nil))))
 	      (modify-frame-parameters frame-initial-frame newparms)
 	      (tool-bar-mode -1)))))
 

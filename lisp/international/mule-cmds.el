@@ -1006,6 +1006,12 @@ Meaningful values for KEY include
 			environment.
   features           value is a list of features requested in this
 			language environment.
+  ctext-non-standard-encodings
+		     value is a list of non-standard encoding
+		     names used in extended segments of CTEXT.
+		     See the variable
+		     `ctext-non-standard-encodings' for more
+		     detail.
 
 The following keys take effect only when multibyte characters are
 globally disabled, i.e. the value of `default-enable-multibyte-characters'
@@ -1685,7 +1691,12 @@ The default status is as follows:
   ;; (set-keyboard-coding-system-internal nil)
 
   (setq nonascii-translation-table nil
-	nonascii-insert-offset 0))
+	nonascii-insert-offset 0)
+
+  ;; Don't invoke fontset-related functions if fontsets aren't
+  ;; supported in this build of Emacs.
+  (and (fboundp 'fontset-list)
+       (set-overriding-fontspec-internal nil)))
 
 (reset-language-environment)
 
@@ -1791,6 +1802,15 @@ specifies the character set for the major languages of Western Europe."
     (while required-features
       (require (car required-features))
       (setq required-features (cdr required-features))))
+
+  ;; Don't invoke fontset-related functions if fontsets aren't
+  ;; supported in this build of Emacs.
+  (when (fboundp 'fontset-list)
+    (let ((overriding-fontspec (get-language-info language-name 
+						  'overriding-fontspec)))
+      (if overriding-fontspec
+	  (set-overriding-fontspec-internal overriding-fontspec))))
+
   (let ((func (get-language-info language-name 'setup-function)))
     (if (functionp func)
 	(funcall func)))

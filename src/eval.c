@@ -2641,6 +2641,8 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
 #endif /* not NO_ARG_ARRAY */
 }
 
+/* The caller should GCPRO all the elements of ARGS.  */
+
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
        doc: /* Call first argument as a function, passing remaining arguments to it.
 Return the value that function returns.
