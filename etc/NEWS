@@ -556,10 +556,6 @@ finished.
 
 ** New function substring-no-properties.
 
----
-** The new primitive `tty-display-color-cells' returns the number of
-distinct colors supported by a character terminal.
-
 +++
 *** The meanings of scroll-up-aggressively and scroll-down-aggressively
 have been interchanged, so that the former now controls scrolling up,
