@@ -162,7 +162,7 @@ extern short ospeed;		/* Output speed (from sg_ospeed) */
 extern int cost;
 extern int evalcost ();
 
-extern void cmputc ();
+extern int cmputc ();
 extern int cmcostinit ();
 extern int cmgoto ();
 extern int Wcm_clear ();
