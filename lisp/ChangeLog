@@ -1,3 +1,7 @@
+2002-07-17  Juanma Barranquero  <lektu@terra.es>
+
+	* timer.el (timer-set-time-with-usecs): Mark obsolete.
+
 2002-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-default-comment-history): Hard code *vc*.
@@ -68,16 +72,6 @@
 	* compare-w.el (compare-windows-whitespace): Always allow newline
 	even if it does not have whitespace syntax.
 
-2002-07-14  Richard M. Stallman  <rms@gnu.org>
-
-	* files.el (find-alternate-file): Offer to save a modified buffer.
-	Handle kill-buffer-query-functions better.
-
-	* startup.el (normal-splash-screen, fancy-splash-text):
-	Update name of help menu item for ordering printed manuals.
-
-	* emacs-lisp/checkdoc.el: Fix doc typos.
-
 2002-07-16  Juanma Barranquero  <lektu@terra.es>
 
 	* timer.el (timer-set-time, timer-set-time-with-usecs): Fix docstring.
@@ -91,6 +85,16 @@
 
 	* mouse-sel.el (mouse-sel-bindings): Save/restore interprogram
 	cut/paste functions.
+
+2002-07-14  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (find-alternate-file): Offer to save a modified buffer.
+	Handle kill-buffer-query-functions better.
+
+	* startup.el (normal-splash-screen, fancy-splash-text):
+	Update name of help menu item for ordering printed manuals.
+
+	* emacs-lisp/checkdoc.el: Fix doc typos.
 
 2002-07-14  Stefan Monnier  <monnier@cs.yale.edu>
 
