@@ -1,3 +1,7 @@
+2000-02-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (enum mem_type): Compile unconditionally.
+
 2000-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xfaces.c (tty_defined_color): Don't return faulire indication
