@@ -1,8 +1,3 @@
- (changed) gnus-win.el
- (changed) message.el
- (wrote) pcvs.el
-??:??:??  Alexandre Oliva (changed) gnus-mlspl.el
-??:??:??  Alexandre Oliva (changed) gnus.el
 Aaron M. Ucko (changed) mail-source.el
 Aaron M. Ucko (changed) message.el
 Aaron M. Ucko (changed) nnmail.el
@@ -517,6 +512,7 @@ François Pinard (changed) gnus
 François Pinard (changed) gnus-sum.el
 François Pinard (changed) gnus-util.el
 François Pinard (changed) gnus-uu.el
+François Pinard (changed) gnus-win.el
 François Pinard (changed) nndoc.el
 François Pinard (changed) nnmail.el
 François Pinard (changed) rmailsum.el
@@ -764,25 +760,45 @@ John Hughes (changed) term.c
 John Robinson (wrote) bg-mouse.el
 John Tobey (changed) gud.el
 John W. Eaton (changed) octave-mod.el
+John Wiegley (changed) Makefile.in
+John Wiegley (changed) NEWS
 John Wiegley (changed) allout.el
 John Wiegley (changed) compile.el
-John Wiegley (changed) em-cmpl.el
-John Wiegley (changed) em-dirs.el
-John Wiegley (changed) em-ls.el
-John Wiegley (changed) em-rebind.el
-John Wiegley (changed) em-smart.el
-John Wiegley (changed) em-unix.el
-John Wiegley (changed) em-xtra.el
-John Wiegley (changed) esh-cmd.el
-John Wiegley (changed) esh-mode.el
-John Wiegley (changed) esh-util.el
-John Wiegley (changed) esh-var.el
+John Wiegley (changed) desktop.el
+John Wiegley (changed) eshell.texi
 John Wiegley (changed) mail-source.el
 John Wiegley (changed) outline.el
 John Wiegley (changed) pcmpl-gnu.el
 John Wiegley (changed) term.el
 John Wiegley (wrote) align.el
+John Wiegley (wrote) em-alias.el
+John Wiegley (wrote) em-banner.el
+John Wiegley (wrote) em-basic.el
+John Wiegley (wrote) em-cmpl.el
+John Wiegley (wrote) em-dirs.el
+John Wiegley (wrote) em-glob.el
+John Wiegley (wrote) em-hist.el
+John Wiegley (wrote) em-ls.el
+John Wiegley (wrote) em-pred.el
+John Wiegley (wrote) em-prompt.el
+John Wiegley (wrote) em-rebind.el
+John Wiegley (wrote) em-script.el
+John Wiegley (wrote) em-smart.el
+John Wiegley (wrote) em-term.el
+John Wiegley (wrote) em-unix.el
+John Wiegley (wrote) em-xtra.el
+John Wiegley (wrote) esh-arg.el
+John Wiegley (wrote) esh-cmd.el
+John Wiegley (wrote) esh-ext.el
+John Wiegley (wrote) esh-io.el
+John Wiegley (wrote) esh-maint.el
+John Wiegley (wrote) esh-mode.el
 John Wiegley (wrote) esh-module.el
+John Wiegley (wrote) esh-opt.el
+John Wiegley (wrote) esh-proc.el
+John Wiegley (wrote) esh-test.el
+John Wiegley (wrote) esh-util.el
+John Wiegley (wrote) esh-var.el
 John Wiegley (wrote) eshell.el
 John Wiegley (wrote) pcomplete.el
 John Wiegley (wrote) timeclock.el
@@ -831,8 +847,9 @@ Kai Grossjohann (changed) nnheader.el
 Kai Großjohann (changed) gnus-cus.el
 Kai Großjohann (changed) gnus-sum.el
 Kai Großjohann (changed) gnus-util.el
+Kai Großjohann (changed) message.el
+Kai Großjohann (changed) nnimap.el
 Kai Großjohann (changed) nnmail.el
-Kai.Grossjohann@Cs.Uni-Dortmund.De (changed) nnimap.el
 Karl Berry (changed) compile.el
 Karl Berry (changed) dired.c
 Karl Berry (changed) filelock.c
@@ -1718,8 +1735,11 @@ Theodore Jump (changed) makefile.def
 Theodore Jump (changed) makefile.nt
 Theodore Jump (changed) w32-win.el
 Theodore Jump (changed) w32faces.c
+Thien-Thi Nguyen (changed) battery.el
 Thien-Thi Nguyen (changed) compile.el
 Thien-Thi Nguyen (changed) desktop.el
+Thien-Thi Nguyen (changed) vc.el
+Thien-Thi Nguyen (changed) zone.el
 Thien-Thi Nguyen (wrote) hideshow.el
 Thierry Emery (changed) timezone.el
 Thierry Emery (changed) wid-edit.el
@@ -1823,6 +1843,7 @@ Vladimir Volovich (changed) message.el
 Vladimir Volovich (changed) mm-bodies.el
 Wayne Mesard (wrote) hscroll.el
 Werner Benger (changed) keyboard.c
+Werner Lemberg (changed) .cvsignore
 Werner Lemberg (changed) fill.el
 Wes Hardaker (changed) gnus-art.el
 Wes Hardaker (changed) gnus-score.el

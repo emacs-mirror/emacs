@@ -1833,7 +1833,7 @@
 
 	* message.el (message-fetch-field): Fold case.
 
-2000-04-21  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2000-04-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* message.el (message-forward-before-signature): New variable.
 
@@ -1883,7 +1883,7 @@
 	* message.el (message-forward-ignored-headers): Default to
 	removing CTE.
 
-2000-04-21  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2000-04-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* message.el (message-mode): Don't fill headers.
 
@@ -2328,7 +2328,7 @@
 
 	* webmail.el (webmail-hotmail-article): Don't insert message id.
 
-1999-12-28  Kai.Grossjohann@CS.Uni-Dortmund.DE (Kai Gro,A_(Bjohann)
+1999-12-28  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* nnimap.el (nnimap-split-fancy): New variable.
 	(nnimap-split-fancy): New function.
@@ -4383,7 +4383,7 @@
         start with gnus-group-split.
         * gnus.el: Adjust autoload entries.
 
-1999-11-30  ??:??:??  Alexandre Oliva  <oliva@dcc.unicamp.br>
+1999-11-30  Alexandre Oliva  <oliva@dcc.unicamp.br>
 
 	* gnus-mlspl.el: Removed trailing t from comment and provide.
 	Renamed functions and variables to start with gnus-mlsplit.
@@ -5009,7 +5009,7 @@
 	* mail-source.el (mail-source-fetch-pop): Only prompt for password
 	when authentication is 'password.
 
-1999-05-02  <pinard@iro.umontreal.ca>
+1999-05-02  Francois Pinard  <pinard@iro.umontreal.ca>
 
 	* gnus-win.el (gnus-configure-windows): Accept a setting.
 
