@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #include "process.h"
 #include "region-cache.h"
 
-#ifdef HAVE_WINDOW_SYSTEM
+#ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
 

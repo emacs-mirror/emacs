@@ -28,6 +28,8 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
+#endif
+#ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
 #include "frame.h"
