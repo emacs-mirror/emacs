@@ -779,9 +779,9 @@ LIST is a list of coding categories ordered by priority."
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
 
-The settings in this variable have higher priority than `coding:' tag
-in the file contents (see the function `set-auto-coding')
-and the variable `file-coding-system-alist'.")
+The settings in this alist take priority over `coding:' tags
+in the file (see the function `set-auto-coding')
+and the contents of `file-coding-system-alist'.")
 
 (defvar set-auto-coding-for-load nil
   "Non-nil means look for `load-coding' property instead of `coding'.
