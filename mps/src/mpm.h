@@ -1,7 +1,7 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: !mpm.h(trunk.133) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpm.h(MMconfigura_eval_fast.1) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
 #ifndef mpm_h
@@ -823,7 +823,6 @@ extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
                     Bool withReservoirPermit, ...);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream);
-extern RefSet SegSummary(Seg seg);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
@@ -860,10 +859,12 @@ extern Addr (SegLimit)(Seg seg);
 #define SegDepth(seg)           ((unsigned)(seg)->depth)
 #define SegGrey(seg)            ((TraceSet)(seg)->grey)
 #define SegWhite(seg)           ((TraceSet)(seg)->white)
-#define SegNailed(seg)          ((seg)->nailed)
+#define SegNailed(seg)          ((TraceSet)(seg)->nailed)
 #define SegOfPoolRing(node)     (RING_ELT(Seg, poolRing, (node)))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
+
+#define SegSummary(seg)         (((GCSeg)(seg))->summary)
 
 #define SegSetPM(seg, mode)     ((void)((seg)->pm = (mode)))
 #define SegSetSM(seg, mode)     ((void)((seg)->sm = (mode)))
@@ -1010,10 +1011,6 @@ extern RefSet RefSetOfSeg(Arena arena, Seg seg);
 
 
 /* Shield Interface -- see impl.c.shield */
-
-#define AccessSetIsMember(as, a) BS_IS_MEMBER((as), (a))
-#define AccessSetAdd(as, a)      BS_ADD(AccessSet, (as), (a))
-#define AccessSetDel(as, a)      BS_DEL(AccessSet, (as), (a))
 
 extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
