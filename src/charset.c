@@ -1319,11 +1319,12 @@ if CHARSET is designated instead.  */)
      Lisp_Object dimension, chars, final_char, charset;
 {
   int id;
+  int chars_flag;
 
   CHECK_CHARSET_GET_ID (charset, id);
   check_iso_charset_parameter (dimension, chars, final_char);
-
-  ISO_CHARSET_TABLE (XINT (dimension), XINT (chars), XINT (final_char)) = id;
+  chars_flag = XINT (chars) == 96;
+  ISO_CHARSET_TABLE (XINT (dimension), chars_flag, XINT (final_char)) = id;
   return Qnil;
 }
 
@@ -1917,9 +1918,11 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
      Lisp_Object dimension, chars, final_char;
 {
   int id;
+  int chars_flag;
 
   check_iso_charset_parameter (dimension, chars, final_char);
-  id = ISO_CHARSET_TABLE (XFASTINT (dimension), XFASTINT (chars),
+  chars_flag = XFASTINT (chars) == 96;
+  id = ISO_CHARSET_TABLE (XFASTINT (dimension), chars_flag,
 			  XFASTINT (final_char));
   return (id >= 0 ? CHARSET_NAME (CHARSET_FROM_ID (id)) : Qnil);
 }
