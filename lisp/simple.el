@@ -412,7 +412,7 @@ Don't use this command in Lisp programs!
   ;; If we went to a place in the middle of the buffer,
   ;; adjust it to the beginning of a line.
   (cond (arg (forward-line 1))
-	((< (point) (window-end nil t))
+	((> (point) (window-end nil t))
 	 ;; If the end of the buffer is not already on the screen,
 	 ;; then scroll specially to put it near, but not at, the bottom.
 	 (overlay-recenter (point))
