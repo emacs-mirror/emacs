@@ -199,7 +199,9 @@ the manpage buffer.")
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
   "*Regular expression describing a manpage section within parentheses.")
 
-(defvar Man-heading-regexp "^[ \t]*\\([A-Z][A-Z \t]+\\)$"
+;; Unless some system actually adds leading whitespace other than one space,
+;; it is more reliable not to accept any other leading whitespace.
+(defvar Man-heading-regexp "^ ?*\\([A-Z][A-Z \t]+\\)$"
   "*Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
@@ -287,7 +289,7 @@ This regular expression should start with a `^' character.")
 	(setq flist (cdr flist))
 	(if (or (not (stringp pcom))
 		(not (listp pargs)))
-	    (error "malformed Man-filter-list."))
+	    (error "Malformed Man-filter-list"))
 	(setq command (concat command " | " pcom
 			      (mapconcat '(lambda (phrase) phrase)
 					 pargs " ")))))
@@ -437,7 +439,7 @@ overrides this and forces the man page to be regenerated."
 					 default-entry))))))
     (and (string= man-args "")
 	 (if (string= default-entry "")
-	     (error "No man args given.")
+	     (error "No man args given")
 	   (setq man-args default-entry)))
 
     ;; Recognize the subject(section) syntax.
@@ -462,7 +464,7 @@ start a background process even if a buffer already exists and
 	     buffer)
 	(Man-notify-when-ready buffer)
       (require 'env)
-      (message "Invoking %s %s in background." manual-program man-args)
+      (message "Invoking %s %s in background" manual-program man-args)
       (setq buffer (generate-new-buffer bufname))
       (save-excursion
 	(set-buffer buffer)
@@ -742,7 +744,7 @@ Actually the section moved to is described by `Man-see-also-regexp'."
   (interactive)
   (if (not (Man-find-section Man-see-also-regexp))
       (error (concat "No " Man-see-also-regexp
-		     " section found in current manpage."))))
+		     " section found in current manpage"))))
 
 (defun Man-follow-manual-reference (arg reference)
   "Get one of the manpages referred to in the \"SEE ALSO\" section.
@@ -819,23 +821,23 @@ Prefix argument ARG is passed to `Man-getpage-in-background'."
   "Find the next manpage entry in the buffer."
   (interactive)
   (if (= (length Man-page-list) 1)
-      (error "This is the only manpage in the buffer."))
+      (error "This is the only manpage in the buffer"))
   (if (< Man-current-page (length Man-page-list))
       (Man-goto-page (1+ Man-current-page))
     (if Man-circular-pages-p
 	(Man-goto-page 1)
-      (error "You're looking at the last manpage in the buffer."))))
+      (error "You're looking at the last manpage in the buffer"))))
 
 (defun Man-previous-manpage ()
   "Find the previous manpage entry in the buffer."
   (interactive)
   (if (= (length Man-page-list) 1)
-      (error "This is the only manpage in the buffer."))
+      (error "This is the only manpage in the buffer"))
   (if (> Man-current-page 1)
       (Man-goto-page (1- Man-current-page))
     (if Man-circular-pages-p
 	(Man-goto-page (length Man-page-list))
-      (error "You're looking at the first manpage in the buffer."))))
+      (error "You're looking at the first manpage in the buffer"))))
 
 (provide 'man)
 
