@@ -72,7 +72,7 @@ in the displayed three-month calendar."
           (error "Diary file is not readable!"))
       (error "You don't have a diary file!"))))
 
-(defun view-other-diary-entries (arg diary-file)
+(defun view-other-diary-entries (arg d-file)
   "Prepare and display buffer of diary entries from an alternative diary file.
 Prompts for a file name and searches that file for entries that match ARG
 days starting with the date indicated by the cursor position in the displayed
@@ -81,9 +81,9 @@ three-month calendar."
    (list (cond ((null current-prefix-arg) 1)
                ((listp current-prefix-arg) (car current-prefix-arg))
                (t current-prefix-arg))
-         (setq diary-file (read-file-name "Enter diary file name: "
-                                          default-directory nil t))))
-  (view-diary-entries arg))
+         (read-file-name "Enter diary file name: " default-directory nil t)))
+  (let ((diary-file d-file))
+    (view-diary-entries arg)))
 
 (autoload 'check-calendar-holidays "holidays"
   "Check the list of holidays for any that occur on DATE.
