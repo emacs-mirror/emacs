@@ -69,6 +69,7 @@ is a list of menu items, as above."
 
 ;; Return a menu keymap corresponding to a Lucid-style menu list
 ;; MENU-ITEMS, and with name MENU-NAME.
+;;;###autoload
 (defun easy-menu-create-keymaps (menu-name menu-items)
   (let ((menu (make-sparse-keymap menu-name)))
     ;; Process items in reverse order,
