@@ -1,3 +1,31 @@
+2001-02-27  Andrew Choi  <akochoi@i-cable.com>
+
+	* src/macfns.c: Rename everything containing *busy_cursor* and
+	similar to *hourglass*.
+	Change IMAGE_POSITIVE_INTEGER_VALUE to
+	IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR throughout.
+	(x_set_font): If font hasn't changed, avoid recomputing faces and
+	other things, as in xfns.c.
+	(Qcancel_timer): New variable.
+	(syms_of_macfns): Rename x-busy-pointer-shape to
+	x-hourglass-pointer-shape, display-busy-cursor to
+	display-hourglass, busy-cursor-delay to hourglass-delay, as in
+	xfns.c.
+	(x_set_tool_bar_lines): Modify as in xfns.c
+	(x_change_window_heights): New function.
+
+	* inc/macterm.h (struct x_output): Rename busy_cursor to
+	hourglass_cursor, busy_window to hourglass_window, busy_p to
+	hourglass_p, as in xterm.h.
+
+	* src/macmenu.c (set_frame_menubar): Run activate-menu-bar-hook with
+	safe_run_hooks, as in xmenu.c.
+
+	* src/macterm.c (do_check_ram_size): New function.
+
+	* src/Emacs.r: Add ALRT resource #129 for alert when there is over
+	256 MB RAM.
+	
 2001-02-20  Andrew Choi  <akochoi@i-cable.com>
 
 	* mac/INSTALL:

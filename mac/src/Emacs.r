@@ -139,9 +139,42 @@ resource 'DITL' (128, purgeable) {
 		{10, 60, 72, 278},
 		StaticText {
 			disabled,
-			"GNU Emacs 21.0.90 for Mac OS\n"
-                        "(11 October 2000 release)\n"
-                        "Report bugs to akochoi@users.sourceforge.net"
+			"GNU Emacs 21.0.99 for Mac OS\n"
+                        "(27 February 2001 release)\n"
+                        "Report bugs to emacs-pretest-bug@gnu.org"
+		}
+	}
+};
+
+resource 'ALRT' (129, "Ram Too Large", purgeable) {
+	{40, 20, 160, 297},
+	129,
+	{	/* array: 4 elements */
+		/* [1] */
+		OK, visible, silent,
+		/* [2] */
+		OK, visible, silent,
+		/* [3] */
+		OK, visible, silent,
+		/* [4] */
+		OK, visible, silent
+	},
+	centerMainScreen
+};
+
+resource 'DITL' (129, purgeable) {
+	{	/* array DITLarray: 2 elements */
+		/* [1] */
+		{88, 185, 108, 265},
+		Button {
+			enabled,
+			"OK"
+		},
+		/* [2] */
+		{10, 60, 72, 278},
+		StaticText {
+			disabled,
+			"Emacs does not run on a Macintosh with more than 256 MB of physical or virtual memory"
 		}
 	}
 };

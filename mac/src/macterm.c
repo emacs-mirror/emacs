@@ -540,7 +540,7 @@ XDrawLine (display, w, gc, x1, y1, x2, y2)
 
 /* Mac version of XClearArea.  */
 
-static void
+void
 XClearArea (display, w, x, y, width, height, exposures)
      Display *display;
      WindowPtr w;
@@ -11101,6 +11101,7 @@ static long app_sleep_time = WNE_SLEEP_AT_RESUME;
 
 #define ARGV_STRING_LIST_ID 129
 #define ABOUT_ALERT_ID	128
+#define RAM_TOO_LARGE_ALERT_ID 129
 
 Boolean	terminate_flag = false;
 
@@ -11174,6 +11175,22 @@ do_init_managers (void)
      complicated scripts */
   MaxApplZone ();
   MoreMasters ();
+}
+
+
+static void
+do_check_ram_size (void)
+{
+  SInt32 physical_ram_size, logical_ram_size;
+  
+  if (Gestalt (gestaltPhysicalRAMSize, &physical_ram_size) != noErr
+      || Gestalt (gestaltLogicalRAMSize, &logical_ram_size) != noErr
+      || physical_ram_size > 256 * 1024 * 1024
+      || logical_ram_size > 256 * 1024 * 1024)
+    {
+      StopAlert (RAM_TOO_LARGE_ALERT_ID, NULL);
+      exit (1);
+    }
 }
 
 
@@ -11644,6 +11661,8 @@ main (void)
 	
   do_get_menus ();
 	
+  do_check_ram_size ();
+
   init_emacs_passwd_dir ();
 
   init_environ ();

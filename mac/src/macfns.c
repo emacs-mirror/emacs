@@ -102,23 +102,24 @@ unsigned char *gray_bitmap_bits = gray_bits;
 
 Lisp_Object Vx_resource_name;
 
-/* Non nil if no window manager is in use.  */
+/* Non-zero means we're allowed to display an hourglass cursor.  */
 
-Lisp_Object Vx_no_window_manager;
-
-/* Non-zero means we're allowed to display a busy cursor.  */
-
-int display_busy_cursor_p;
+int display_hourglass_p;
 
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_busy_pointer_shape;
+Lisp_Object Vx_hourglass_pointer_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
 Lisp_Object Vx_sensitive_text_pointer_shape;
+
+/* If non-nil, the pointer shape to indicate that windows can be
+   dragged horizontally.  */
+
+Lisp_Object Vx_window_horizontal_drag_shape;
 
 /* Color of chars displayed in cursor box.  */
 
@@ -127,6 +128,10 @@ Lisp_Object Vx_cursor_fore_pixel;
 /* Nonzero if using Windows.  */
 
 static int mac_in_use;
+
+/* Non nil if no window manager is in use.  */
+
+Lisp_Object Vx_no_window_manager;
 
 /* Search path for bitmap files.  */
 
@@ -203,6 +208,7 @@ Lisp_Object Quser_size;
 Lisp_Object Qscreen_gamma;
 Lisp_Object Qline_spacing;
 Lisp_Object Qcenter;
+Lisp_Object Qcancel_timer;
 Lisp_Object Qhyper;
 Lisp_Object Qsuper;
 Lisp_Object Qmeta;
@@ -280,7 +286,7 @@ have_menus_p ()
 }
 
 /* Extract a frame as a FRAME_PTR, defaulting to the selected frame
-   and checking validity for W32.  */
+   and checking validity for Mac.  */
 
 FRAME_PTR
 check_x_frame (frame)
@@ -2128,7 +2134,6 @@ x_set_mouse_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
   int count;
   int mask_color;
@@ -2168,14 +2173,14 @@ x_set_mouse_color (f, arg, oldval)
     nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_left_ptr);
   x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_busy_pointer_shape))
+  if (!EQ (Qnil, Vx_hourglass_pointer_shape))
     {
-      CHECK_NUMBER (Vx_busy_pointer_shape, 0);
-      busy_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
-				       XINT (Vx_busy_pointer_shape));
+      CHECK_NUMBER (Vx_hourglass_pointer_shape, 0);
+      hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
+					    XINT (Vx_hourglass_pointer_shape));
     }
   else
-    busy_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_watch);
+    hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_watch);
   x_check_errors (FRAME_W32_DISPLAY (f), "bad busy pointer cursor: %s");
   
   x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
@@ -2198,6 +2203,17 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     cross_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
+
+  if (!NILP (Vx_window_horizontal_drag_shape))
+    {
+      CHECK_NUMBER (Vx_window_horizontal_drag_shape, 0);
+      horizontal_drag_cursor
+	= XCreateFontCursor (FRAME_X_DISPLAY (f),
+			     XINT (Vx_window_horizontal_drag_shape));
+    }
+  else
+    horizontal_drag_cursor
+      = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_h_double_arrow);
 
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
@@ -2224,7 +2240,7 @@ x_set_mouse_color (f, arg, oldval)
 		    &fore_color, &back_color);
     XRecolorCursor (FRAME_W32_DISPLAY (f), cross_cursor,
                     &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), busy_cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), hourglass_cursor,
                     &fore_color, &back_color);
   }
 
@@ -2240,10 +2256,10 @@ x_set_mouse_color (f, arg, oldval)
     XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->nontext_cursor);
   f->output_data.w32->nontext_cursor = nontext_cursor;
 
-  if (busy_cursor != f->output_data.w32->busy_cursor
-      && f->output_data.w32->busy_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->busy_cursor);
-  f->output_data.w32->busy_cursor = busy_cursor;
+  if (hourglass_cursor != f->output_data.w32->hourglass_cursor
+      && f->output_data.w32->hourglass_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->hourglass_cursor);
+  f->output_data.w32->hourglass_cursor = hourglass_cursor;
 
   if (mode_cursor != f->output_data.w32->modeline_cursor
       && f->output_data.w32->modeline_cursor != 0)
@@ -2510,6 +2526,8 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
+      if (!NILP (Fequal (result, oldval)))
+	return;
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
@@ -2587,6 +2605,36 @@ x_set_visibility (f, value, oldval)
     Fmake_frame_visible (frame);
 }
 
+
+/* Change window heights in windows rooted in WINDOW by N lines.  */
+
+static void
+x_change_window_heights (window, n)
+  Lisp_Object window;
+  int n;
+{
+  struct window *w = XWINDOW (window);
+
+  XSETFASTINT (w->top, XFASTINT (w->top) + n);
+  XSETFASTINT (w->height, XFASTINT (w->height) - n);
+
+  if (INTEGERP (w->orig_top))
+    XSETFASTINT (w->orig_top, XFASTINT (w->orig_top) + n);
+  if (INTEGERP (w->orig_height))
+    XSETFASTINT (w->orig_height, XFASTINT (w->orig_height) - n);
+
+  /* Handle just the top child in a vertical split.  */
+  if (!NILP (w->vchild))
+    x_change_window_heights (w->vchild, n);
+
+  /* Adjust all children in a horizontal split.  */
+  for (window = w->hchild; !NILP (window); window = w->next)
+    {
+      w = XWINDOW (window);
+      x_change_window_heights (window, n);
+    }
+}
+
 void
 x_set_menu_bar_lines (f, value, oldval)
      struct frame *f;
@@ -2636,7 +2684,12 @@ x_set_tool_bar_lines (f, value, oldval)
      struct frame *f;
      Lisp_Object value, oldval;
 {
-  int delta, nlines;
+  int delta, nlines, root_height;
+  Lisp_Object root_window;
+
+  /* Treat tool bars like menu bars.  */
+  if (FRAME_MINIBUF_ONLY_P (f))
+    return;
 
   /* Use VALUE only if an integer >= 0.  */
   if (INTEGERP (value) && XINT (value) >= 0)
@@ -2648,10 +2701,48 @@ x_set_tool_bar_lines (f, value, oldval)
   ++windows_or_buffers_changed;
 
   delta = nlines - FRAME_TOOL_BAR_LINES (f);
+
+  /* Don't resize the tool-bar to more than we have room for.  */
+  root_window = FRAME_ROOT_WINDOW (f);
+  root_height = XINT (XWINDOW (root_window)->height);
+  if (root_height - delta < 1)
+    {
+      delta = root_height - 1;
+      nlines = FRAME_TOOL_BAR_LINES (f) + delta;
+    }
+
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
-  do_pending_window_change (0);
+  x_change_window_heights (root_window, delta);
   adjust_glyphs (f);
+
+  /* We also have to make sure that the internal border at the top of
+     the frame, below the menu bar or tool bar, is redrawn when the
+     tool bar disappears.  This is so because the internal border is
+     below the tool bar if one is displayed, but is below the menu bar
+     if there isn't a tool bar.  The tool bar draws into the area
+     below the menu bar.  */
+  if (FRAME_MAC_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
+    {
+      updating_frame = f;
+      clear_frame ();
+      clear_current_matrices (f);
+      updating_frame = NULL;
+    }
+
+  /* If the tool bar gets smaller, the internal border below it
+     has to be cleared.  It was formerly part of the display
+     of the larger tool bar, and updating windows won't clear it.  */
+  if (delta < 0)
+    {
+      int height = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = PIXEL_WIDTH (f);
+      int y = nlines * CANON_Y_UNIT (f);
+
+      BLOCK_INPUT;
+      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+		    0, y, width, height, 0);
+      UNBLOCK_INPUT;
+    }
 }
 
 
@@ -3538,7 +3629,7 @@ This function is an internal primitive--use `make-frame' instead.")
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct mac_display_info *dpyinfo = NULL;
@@ -4473,6 +4564,7 @@ enum image_value_type
   IMAGE_STRING_VALUE,
   IMAGE_SYMBOL_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE,
+  IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
   IMAGE_NON_NEGATIVE_INTEGER_VALUE,
   IMAGE_ASCENT_VALUE,
   IMAGE_INTEGER_VALUE,
@@ -4576,6 +4668,15 @@ parse_image_spec (spec, keywords, nkeywords, type)
 	  if (!INTEGERP (value) || XINT (value) <= 0)
 	    return 0;
 	  break;
+
+	case IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR:
+	  if (INTEGERP (value) && XINT (value) >= 0)
+	    break;
+	  if (CONSP (value)
+	      && INTEGERP (XCAR (value)) && INTEGERP (XCDR (value))
+	      && XINT (XCAR (value)) >= 0 && XINT (XCDR (value)) >= 0)
+	    break;
+	  return 0;
 
         case IMAGE_ASCENT_VALUE:
 	  if (SYMBOLP (value) && EQ (value, Qcenter))
@@ -5021,10 +5122,10 @@ lookup_image (f, spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
+      BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
       img->load_failed_p = img->type->load (f, img) == 0;
-      xassert (!interrupt_input_blocked);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
@@ -5322,9 +5423,9 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":foreground",	IMAGE_STRING_VALUE,			0},
   {":background",	IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -5912,9 +6013,9 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
@@ -6602,9 +6703,9 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -6958,9 +7059,9 @@ static struct image_keyword png_format[PNG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -7444,9 +7545,9 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -7807,9 +7908,9 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -8126,9 +8227,9 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
 };
@@ -8441,9 +8542,9 @@ static struct image_keyword gs_format[GS_LAST] =
   {":loader",		IMAGE_FUNCTION_VALUE,			0},
   {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -8794,117 +8895,117 @@ value.")
  ***********************************************************************/
 
 /* If non-null, an asynchronous timer that, when it expires, displays
-   a busy cursor on all frames.  */
+   an hourglass cursor on all frames.  */
 
-static struct atimer *busy_cursor_atimer;
+static struct atimer *hourglass_atimer;
 
-/* Non-zero means a busy cursor is currently shown.  */
+/* Non-zero means an hourglass cursor is currently shown.  */
 
-static int busy_cursor_shown_p;
+static int hourglass_shown_p;
 
-/* Number of seconds to wait before displaying a busy cursor.  */
+/* Number of seconds to wait before displaying an hourglass cursor.  */
 
-static Lisp_Object Vbusy_cursor_delay;
+static Lisp_Object Vhourglass_delay;
 
-/* Default number of seconds to wait before displaying a busy
+/* Default number of seconds to wait before displaying an hourglass
    cursor.  */
 
-#define DEFAULT_BUSY_CURSOR_DELAY 1
+#define DEFAULT_HOURGLASS_DELAY 1
 
 /* Function prototypes.  */
 
-static void show_busy_cursor P_ ((struct atimer *));
-static void hide_busy_cursor P_ ((void));
+static void show_hourglass P_ ((struct atimer *));
+static void hide_hourglass P_ ((void));
 
 
-/* Cancel a currently active busy-cursor timer, and start a new one.  */
+/* Cancel a currently active hourglass timer, and start a new one.  */
 
 void
-start_busy_cursor ()
+start_hourglass ()
 {
-#if 0 /* MAC_TODO: cursor shape changes.  */
+#if 0 /* TODO: cursor shape changes.  */
   EMACS_TIME delay;
   int secs, usecs = 0;
   
-  cancel_busy_cursor ();
+  cancel_hourglass ();
 
-  if (INTEGERP (Vbusy_cursor_delay)
-      && XINT (Vbusy_cursor_delay) > 0)
-    secs = XFASTINT (Vbusy_cursor_delay);
-  else if (FLOATP (Vbusy_cursor_delay)
-	   && XFLOAT_DATA (Vbusy_cursor_delay) > 0)
+  if (INTEGERP (Vhourglass_delay)
+      && XINT (Vhourglass_delay) > 0)
+    secs = XFASTINT (Vhourglass_delay);
+  else if (FLOATP (Vhourglass_delay)
+	   && XFLOAT_DATA (Vhourglass_delay) > 0)
     {
       Lisp_Object tem;
-      tem = Ftruncate (Vbusy_cursor_delay, Qnil);
+      tem = Ftruncate (Vhourglass_delay, Qnil);
       secs = XFASTINT (tem);
-      usecs = (XFLOAT_DATA (Vbusy_cursor_delay) - secs) * 1000000;
+      usecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000000;
     }
   else
-    secs = DEFAULT_BUSY_CURSOR_DELAY;
+    secs = DEFAULT_HOURGLASS_DELAY;
   
   EMACS_SET_SECS_USECS (delay, secs, usecs);
-  busy_cursor_atimer = start_atimer (ATIMER_RELATIVE, delay,
-				     show_busy_cursor, NULL);
+  hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
+				   show_hourglass, NULL);
 #endif
 }
 
 
-/* Cancel the busy cursor timer if active, hide a busy cursor if
-   shown.  */
+/* Cancel the hourglass cursor timer if active, hide an hourglass
+   cursor if shown.  */
 
 void
-cancel_busy_cursor ()
+cancel_hourglass ()
 {
-  if (busy_cursor_atimer)
+  if (hourglass_atimer)
     {
-      cancel_atimer (busy_cursor_atimer);
-      busy_cursor_atimer = NULL;
+      cancel_atimer (hourglass_atimer);
+      hourglass_atimer = NULL;
     }
   
-  if (busy_cursor_shown_p)
-    hide_busy_cursor ();
+  if (hourglass_shown_p)
+    hide_hourglass ();
 }
 
 
-/* Timer function of busy_cursor_atimer.  TIMER is equal to
-   busy_cursor_atimer.
+/* Timer function of hourglass_atimer.  TIMER is equal to
+   hourglass_atimer.
 
-   Display a busy cursor on all frames by mapping the frames'
-   busy_window.  Set the busy_p flag in the frames' output_data.x
-   structure to indicate that a busy cursor is shown on the
-   frames.  */
+   Display an hourglass cursor on all frames by mapping the frames'
+   hourglass_window.  Set the hourglass_p flag in the frames'
+   output_data.x structure to indicate that an hourglass cursor is
+   shown on the frames.  */
 
 static void
-show_busy_cursor (timer)
+show_hourglass (timer)
      struct atimer *timer;
 {
 #if 0  /* MAC_TODO: cursor shape changes.  */
   /* The timer implementation will cancel this timer automatically
-     after this function has run.  Set busy_cursor_atimer to null
+     after this function has run.  Set hourglass_atimer to null
      so that we know the timer doesn't have to be canceled.  */
-  busy_cursor_atimer = NULL;
+  hourglass_atimer = NULL;
 
-  if (!busy_cursor_shown_p)
+  if (!hourglass_shown_p)
     {
       Lisp_Object rest, frame;
   
       BLOCK_INPUT;
   
       FOR_EACH_FRAME (rest, frame)
-	if (FRAME_X_P (XFRAME (frame)))
+	if (FRAME_W32_P (XFRAME (frame)))
 	  {
 	    struct frame *f = XFRAME (frame);
 	
-	    f->output_data.w32->busy_p = 1;
+	    f->output_data.w32->hourglass_p = 1;
 	
-	    if (!f->output_data.w32->busy_window)
+	    if (!f->output_data.w32->hourglass_window)
 	      {
 		unsigned long mask = CWCursor;
 		XSetWindowAttributes attrs;
 	    
-		attrs.cursor = f->output_data.w32->busy_cursor;
+		attrs.cursor = f->output_data.w32->hourglass_cursor;
 	    
-		f->output_data.w32->busy_window
+		f->output_data.w32->hourglass_window
 		  = XCreateWindow (FRAME_X_DISPLAY (f),
 				   FRAME_OUTER_WINDOW (f),
 				   0, 0, 32000, 32000, 0, 0,
@@ -8913,24 +9014,25 @@ show_busy_cursor (timer)
 				   mask, &attrs);
 	      }
 	
-	    XMapRaised (FRAME_X_DISPLAY (f), f->output_data.w32->busy_window);
+	    XMapRaised (FRAME_X_DISPLAY (f),
+			f->output_data.w32->hourglass_window);
 	    XFlush (FRAME_X_DISPLAY (f));
 	  }
 
-      busy_cursor_shown_p = 1;
+      hourglass_shown_p = 1;
       UNBLOCK_INPUT;
     }
 #endif
 }
 
 
-/* Hide the busy cursor on all frames, if it is currently shown.  */
+/* Hide the hourglass cursor on all frames, if it is currently shown.  */
 
 static void
-hide_busy_cursor ()
+hide_hourglass ()
 {
-#if 0 /* MAC_TODO: cursor shape changes.  */
-  if (busy_cursor_shown_p)
+#if 0 /* TODO: cursor shape changes.  */
+  if (hourglass_shown_p)
     {
       Lisp_Object rest, frame;
 
@@ -8939,19 +9041,20 @@ hide_busy_cursor ()
 	{
 	  struct frame *f = XFRAME (frame);
       
-	  if (FRAME_X_P (f)
+	  if (FRAME_W32_P (f)
 	      /* Watch out for newly created frames.  */
-	      && f->output_data.x->busy_window)
+	      && f->output_data.x->hourglass_window)
 	    {
-	      XUnmapWindow (FRAME_X_DISPLAY (f), f->output_data.x->busy_window);
-	      /* Sync here because XTread_socket looks at the busy_p flag
-		 that is reset to zero below.  */
+	      XUnmapWindow (FRAME_X_DISPLAY (f),
+			    f->output_data.x->hourglass_window);
+	      /* Sync here because XTread_socket looks at the
+		 hourglass_p flag that is reset to zero below.  */
 	      XSync (FRAME_X_DISPLAY (f), False);
-	      f->output_data.x->busy_p = 0;
+	      f->output_data.x->hourglass_p = 0;
 	    }
 	}
 
-      busy_cursor_shown_p = 0;
+      hourglass_shown_p = 0;
       UNBLOCK_INPUT;
     }
 #endif
@@ -9214,23 +9317,33 @@ x_create_tip_frame (dpyinfo, parms)
   return Qnil;
 }
 
-
+#ifdef TODO /* Tooltip support not complete.  */
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   "Show STRING in a \"tooltip\" window on frame FRAME.\n\
-A tooltip window is a small X window displaying STRING at\n\
-the current mouse position.\n\
+A tooltip window is a small window displaying a string.\n\
+\n\
 FRAME nil or omitted means use the selected frame.\n\
+\n\
 PARMS is an optional list of frame parameters which can be\n\
 used to change the tooltip's appearance.\n\
+\n\
 Automatically hide the tooltip after TIMEOUT seconds.\n\
-TIMEOUT nil means use the default timeout of 5 seconds.")
-  (string, frame, parms, timeout)
-     Lisp_Object string, frame, parms, timeout;
+TIMEOUT nil means use the default timeout of 5 seconds.\n\
+\n\
+If the list of frame parameters PARAMS contains a `left' parameters,\n\
+the tooltip is displayed at that x-position.  Otherwise it is\n\
+displayed at the mouse position, with offset DX added (default is 5 if\n\
+DX isn't specified).  Likewise for the y-position; if a `top' frame\n\
+parameter is specified, it determines the y-position of the tooltip\n\
+window, otherwise it is displayed at the mouse position, with offset\n\
+DY added (default is 10).")
+  (string, frame, parms, timeout, dx, dy)
+     Lisp_Object string, frame, parms, timeout, dx, dy;
 {
   struct frame *f;
   struct window *w;
   Window root, child;
-  Lisp_Object buffer;
+  Lisp_Object buffer, top, left;
   struct buffer *old_buffer;
   struct text_pos pos;
   int i, width, height;
@@ -9251,8 +9364,54 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   else
     CHECK_NATNUM (timeout, 2);
 
+  if (NILP (dx))
+    dx = make_number (5);
+  else
+    CHECK_NUMBER (dx, 5);
+  
+  if (NILP (dy))
+    dy = make_number (-10);
+  else
+    CHECK_NUMBER (dy, 6);
+
+  if (NILP (last_show_tip_args))
+    last_show_tip_args = Fmake_vector (make_number (3), Qnil);
+
+  if (!NILP (tip_frame))
+    {
+      Lisp_Object last_string = AREF (last_show_tip_args, 0);
+      Lisp_Object last_frame = AREF (last_show_tip_args, 1);
+      Lisp_Object last_parms = AREF (last_show_tip_args, 2);
+
+      if (EQ (frame, last_frame)
+	  && !NILP (Fequal (last_string, string))
+	  && !NILP (Fequal (last_parms, parms)))
+	{
+	  struct frame *f = XFRAME (tip_frame);
+	  
+	  /* Only DX and DY have changed.  */
+	  if (!NILP (tip_timer))
+	    {
+	      Lisp_Object timer = tip_timer;
+	      tip_timer = Qnil;
+	      call1 (Qcancel_timer, timer);
+	    }
+
+	  BLOCK_INPUT;
+	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		       root_x, root_y - PIXEL_HEIGHT (f));
+	  UNBLOCK_INPUT;
+	  goto start_timer;
+	}
+    }
+
   /* Hide a previous tip, if any.  */
   Fx_hide_tip ();
+
+  ASET (last_show_tip_args, 0, string);
+  ASET (last_show_tip_args, 1, frame);
+  ASET (last_show_tip_args, 2, parms);
 
   /* Add default values to frame parameters.  */
   if (NILP (Fassq (Qname, parms)))
@@ -9277,8 +9436,8 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
      will loose.  I don't think this is a realistic case.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
   w->left = w->top = make_number (0);
-  w->width = 80;
-  w->height = 40;
+  w->width = make_number (80);
+  w->height = make_number (40);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
@@ -9288,7 +9447,7 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   Ferase_buffer ();
-  Finsert (make_number (1), &string);
+  Finsert (1, &string);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -9330,15 +9489,15 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-#if 0 /* MAC_TODO : Mac specifics */
+  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+
+#if 0 /* TODO : Mac specifics */
   BLOCK_INPUT;
-  XQueryPointer (FRAME_W32_DISPLAY (f), FRAME_W32_DISPLAY_INFO (f)->root_window,
-		 &root, &child, &root_x, &root_y, &win_x, &win_y, &pmask);
-  XMoveResizeWindow (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f),
-		     root_x + 5, root_y - height - 5, width, height);
-  XMapRaised (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f));
+  XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		     root_x, root_y - height, width, height);
+  XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
   UNBLOCK_INPUT;
-#endif /* MAC_TODO */
+#endif /* TODO */
 
   /* Draw into the window.  */
   w->must_be_updated_p = 1;
@@ -9348,6 +9507,7 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   set_buffer_internal_1 (old_buffer);
   windows_or_buffers_changed = old_windows_or_buffers_changed;
 
+ start_timer:
   /* Let the tip disappear after timeout seconds.  */
   tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
 		     intern ("x-hide-tip"));
@@ -9356,49 +9516,42 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   return unbind_to (count, Qnil);
 }
 
+
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
   "Hide the current tooltip window, if there is any.\n\
 Value is t is tooltip was open, nil otherwise.")
   ()
 {
   int count;
-  Lisp_Object deleted;
+  Lisp_Object deleted, frame, timer;
+  struct gcpro gcpro1, gcpro2;
 
   /* Return quickly if nothing to do.  */
-  if (NILP (tip_timer) && !FRAMEP (tip_frame))
+  if (NILP (tip_timer) && NILP (tip_frame))
     return Qnil;
   
+  frame = tip_frame;
+  timer = tip_timer;
+  GCPRO2 (frame, timer);
+  tip_frame = tip_timer = deleted = Qnil;
+  
   count = BINDING_STACK_SIZE ();
-  deleted = Qnil;
   specbind (Qinhibit_redisplay, Qt);
   specbind (Qinhibit_quit, Qt);
   
-  if (!NILP (tip_timer))
-    {
-      Lisp_Object tem;
-      struct gcpro gcpro1;
-      tem = tip_timer;
-      GCPRO1 (tem);
-      tip_timer = Qnil;
-      call1 (intern ("cancel-timer"), tem);
-      UNGCPRO;
-    }
+  if (!NILP (timer))
+    call1 (Qcancel_timer, timer);
 
-  if (FRAMEP (tip_frame))
+  if (FRAMEP (frame))
     {
-      Lisp_Object frame;
-      struct gcpro gcpro1;
-
-      frame = tip_frame;
-      GCPRO1 (frame);
-      tip_frame = Qnil;
       Fdelete_frame (frame, Qnil);
       deleted = Qt;
-      UNGCPRO;
     }
 
+  UNGCPRO;
   return unbind_to (count, deleted);
 }
+#endif
 
 
 
@@ -9620,6 +9773,8 @@ syms_of_macfns ()
   staticpro (&Qline_spacing);
   Qcenter = intern ("center");
   staticpro (&Qcenter);
+  Qcancel_timer = intern ("cancel-timer");
+  staticpro (&Qcancel_timer);
   /* This is the end of symbol initialization.  */
 
   Qhyper = intern ("hyper");
@@ -9678,20 +9833,20 @@ switches, if present.");
 
   Vx_mode_pointer_shape = Qnil;
 
-  DEFVAR_LISP ("x-busy-pointer-shape", &Vx_busy_pointer_shape,
+  DEFVAR_LISP ("x-hourglass-pointer-shape", &Vx_hourglass_pointer_shape,
     "The shape of the pointer when Emacs is busy.\n\
 This variable takes effect when you create a new frame\n\
 or when you set the mouse color.");
-  Vx_busy_pointer_shape = Qnil;
+  Vx_hourglass_pointer_shape = Qnil;
 
-  DEFVAR_BOOL ("display-busy-cursor", &display_busy_cursor_p,
-    "Non-zero means Emacs displays a busy cursor on window systems.");
-  display_busy_cursor_p = 1;
+  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
+    "Non-zero means Emacs displays an hourglass pointer on window systems.");
+  display_hourglass_p = 1;
   
-  DEFVAR_LISP ("busy-cursor-delay", &Vbusy_cursor_delay,
-     "*Seconds to wait before displaying a busy-cursor.\n\
+  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
+     "*Seconds to wait before displaying an hourglass pointer.\n\
 Value must be an integer or float.");
-  Vbusy_cursor_delay = make_number (DEFAULT_BUSY_CURSOR_DELAY);
+  Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
 	      &Vx_sensitive_text_pointer_shape,
@@ -9841,15 +9996,18 @@ meaning don't clear the cache.");
   defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif
-#endif /* MAC_TODO */
+#endif /* TODO */
 
-  busy_cursor_atimer = NULL;
-  busy_cursor_shown_p = 0;
-
+  hourglass_atimer = NULL;
+  hourglass_shown_p = 0;
+#ifdef TODO /* Tooltip support not complete.  */
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
-  staticpro (&tip_timer);
+#endif
   tip_timer = Qnil;
+  staticpro (&tip_timer);
+  tip_frame = Qnil;
+  staticpro (&tip_frame);
 
 #if 0 /* MAC_TODO */
   defsubr (&Sx_file_dialog);
@@ -9863,8 +10021,8 @@ init_xfns ()
   image_types = NULL;
   Vimage_types = Qnil;
 
+#if 0 /* TODO : Image support for W32 */
   define_image_type (&xbm_type);
-#if 0 /* NTEMACS_TODO : Image support for W32 */
   define_image_type (&gs_type);
   define_image_type (&pbm_type);
   
