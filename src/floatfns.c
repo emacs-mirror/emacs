@@ -55,6 +55,9 @@ Lisp_Object Qarith_error;
 
 #include <math.h>
 
+/* These declarations are omitted on some systems, like Ultrix.  */
+extern double logb ();
+
 #if defined(DOMAIN) && defined(SING) && defined(OVERFLOW)
     /* If those are defined, then this is probably a `matherr' machine. */
 # ifndef HAVE_MATHERR
@@ -620,17 +623,23 @@ This is the same as the exponent of a float.")
      (arg)
      Lisp_Object arg;
 {
-#ifdef USG
-  error ("SYSV apparently doesn't have a logb function; what to do?");
-#else
   Lisp_Object val;
   int value;
   double f = extract_float (arg);
 
+#ifdef USG
+  {
+    int exp;  
+
+    IN_FLOAT (frexp (f, &exp), "logb", arg);
+    XSET (val, Lisp_Int, exp-1);
+  }
+#else
   IN_FLOAT (value = logb (f), "logb", arg);
   XSET (val, Lisp_Int, value);
-  return val;
 #endif
+
+  return val;
 }
 
 /* the rounding functions  */
