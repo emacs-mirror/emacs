@@ -50,6 +50,10 @@ main ()
 #undef close
 #endif
 
+#ifdef WINDOWSNT
+#include "ntlib.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
