@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Version:    5.14
+;; Version:    5.15
 ;; Keywords:   c languages oop
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -91,6 +91,13 @@
 
 ;;;###autoload
 (defun c-initialize-cc-mode ()
+  (setq c-buffer-is-cc-mode t)
+  ;; sigh.  give in to the pressure, but make really sure all the
+  ;; definitions we need are here
+  (if (or (not (fboundp 'functionp))
+	  (not (fboundp 'char-before))
+	  (not (c-safe (char-after) t)))
+      (require 'cc-mode-19))
   ;; make sure all necessary components of CC Mode are loaded in.
   (let ((initprop 'cc-mode-is-initialized))
     (require 'cc-vars)
@@ -136,11 +143,10 @@ Key bindings:
   (c-common-init)
   (setq comment-start "/* "
 	comment-end   " */"
-	comment-multi-line t
 	c-conditional-key c-C-conditional-key
 	c-class-key c-C-class-key
 	c-baseclass-key nil
-	c-comment-start-regexp c-C-comment-start-regexp
+	c-comment-start-regexp c-C++-comment-start-regexp
 	imenu-generic-expression cc-imenu-c-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c-mode-hook)
@@ -175,7 +181,6 @@ Key bindings:
   (c-common-init)
   (setq comment-start "// "
 	comment-end ""
-	comment-multi-line nil
 	c-conditional-key c-C++-conditional-key
 	c-comment-start-regexp c-C++-comment-start-regexp
 	c-class-key c-C++-class-key
@@ -216,7 +221,6 @@ Key bindings:
   (c-common-init)
   (setq comment-start "// "
 	comment-end   ""
-	comment-multi-line nil
 	c-conditional-key c-C-conditional-key
 	c-comment-start-regexp c-C++-comment-start-regexp
  	c-class-key c-ObjC-class-key
@@ -259,7 +263,6 @@ Key bindings:
   (c-common-init)
   (setq comment-start "// "
  	comment-end   ""
- 	comment-multi-line nil
  	c-conditional-key c-Java-conditional-key
  	c-comment-start-regexp c-Java-comment-start-regexp
   	c-class-key c-Java-class-key
@@ -305,7 +308,6 @@ Key bindings:
   (c-common-init)
   (setq comment-start "// "
 	comment-end ""
-	comment-multi-line nil
 	c-conditional-key c-C++-conditional-key
 	c-comment-start-regexp c-C++-comment-start-regexp
 	c-class-key c-C++-class-key
@@ -319,7 +321,7 @@ Key bindings:
 
 
 ;; defuns for submitting bug reports
-(defconst c-version "5.14"
+(defconst c-version "5.15"
   "CC Mode version number.")
 
 (defconst c-mode-help-address
