@@ -2996,23 +2996,21 @@ After saving the buffer, this function runs `after-save-hook'."
 
 (defun diff-buffer-with-file (&optional buffer)
   "View the differences between BUFFER and its associated file.
-This requires the external program \"diff\" to be in your `exec-path'."
+This requires the external program `diff' to be in your `exec-path'."
   (interactive "bBuffer: ")
-  (setq buffer (get-buffer (or buffer (current-buffer))))
-  (let ((buf-filename (buffer-file-name buffer)))
-    (unless buf-filename
-      (error "Buffer %s has no associated file" buffer))
-    (let ((tempfile (make-temp-file "buffer-content-")))
-      (unwind-protect
-	  (progn
-	    (with-current-buffer buffer
-	      (save-restriction
-		(widen)
-		(write-region (point-min) (point-max) tempfile nil 'nomessage)))
-	    (diff buf-filename tempfile nil t))
-	(when (file-exists-p tempfile)
-	  (delete-file tempfile)))
-      nil)))
+  (with-current-buffer (get-buffer (or buffer (current-buffer)))
+    (if (null buffer-file-name)
+	(message "Buffer %s has no associated file" (buffer-name))
+      (let ((tempfile (make-temp-file "buffer-content-")))
+	(unwind-protect
+	    (save-restriction
+	      (widen)
+	      (write-region (point-min) (point-max) tempfile nil 'nomessage)
+	      (diff buffer-file-name tempfile nil t)
+	      (sit-for 0))
+	  (when (file-exists-p tempfile)
+	    (delete-file tempfile)))
+	nil))))
 
 (defvar save-some-buffers-action-alist
   '((?\C-r
