@@ -351,19 +351,22 @@ the user during startup."
 
 
 (defun other-frame (arg)
-  "Select the ARG'th different frame, deiconify and raise it.
+  "Select the ARG'th different visible frame, and raise it.
 All frames are arranged in a cyclic order.
 This command selects the frame ARG steps away in that order.
 A negative ARG moves in the opposite order."
   (interactive "p")
   (let ((frame (selected-frame)))
     (while (> arg 0)
-      (setq frame (next-frame frame)
-	    arg (1- arg)))
+      (setq frame (next-frame frame))
+      (while (not (eq (frame-visible-p frame) t))
+	(setq frame (next-frame frame)))
+      (setq arg (1- arg)))
     (while (< arg 0)
-      (setq frame (previous-frame frame)
-	    arg (1- arg)))
-    (make-frame-visible frame)
+      (setq frame (previous-frame frame))
+      (while (not (eq (frame-visible-p frame) t))
+	(setq frame (previous-frame frame)))
+      (setq arg (1- arg)))
     (raise-frame frame)
     (select-frame frame)))
 
