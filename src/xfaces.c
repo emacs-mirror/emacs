@@ -2230,7 +2230,9 @@ xlfd_fixed_p (font)
    72dpi versions, only.)
 
    Value is the real point size of FONT on frame F, or 0 if it cannot
-   be determined.  */
+   be determined.
+
+   By side effect, set FONT->numeric[XLFD_PIXEL_SIZE].  */
 
 static INLINE int
 xlfd_point_size (f, font)
@@ -2269,6 +2271,7 @@ xlfd_point_size (f, font)
   else
     pixel = atoi (pixel_field);
 
+  font->numeric[XLFD_PIXEL_SIZE] = pixel;
   if (pixel == 0)
     real_pt = 0;
   else
