@@ -101,6 +101,9 @@
 ;; --funcall FUNC            and should not be used.  (It's a typo
 ;; -e FUNC                   promoted to a feature.)
 ;;
+;; -eval FORM                Execute Emacs lisp form FORM, and print
+;; --eval FORM               the value it returns.
+;;
 ;; -insert FILE              Insert the contents of FILE into buffer.
 ;; --insert FILE
 ;; -------------------------
@@ -674,7 +677,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	       ;; and long versions of what's on command-switch-alist.
 	       (longopts
 	        (append '(("--funcall") ("--load") ("--insert") ("--kill")
-			  ("--directory"))
+			  ("--directory") ("--eval"))
 			(mapcar '(lambda (elt)
 				   (list (concat "-" (car elt))))
 				command-switch-alist)))
@@ -717,6 +720,12 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (if (arrayp (symbol-function tem))
 		     (command-execute tem)
 		   (funcall tem)))
+		((string-equal argi "-eval")
+		 (if argval
+		     (setq tem argval)
+		   (setq tem (car command-line-args-left))
+		   (setq command-line-args-left (cdr command-line-args-left)))
+		 (print (eval (read tem))))
 		;; Set the default directory as specified in -L.
 		((or (string-equal argi "-L")
 		     (string-equal argi "-directory"))
