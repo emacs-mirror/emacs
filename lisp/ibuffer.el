@@ -1679,19 +1679,14 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
 	     (push (cons buf mark) ibuffer-current-state-list-tmp)))))
     (nreverse ibuffer-current-state-list-tmp)))
 
-(defsubst ibuffer-canonicalize-state-list (bmarklist)
-  "Order BMARKLIST in the same way as the current buffer list."
-  (delq nil
-	(mapcar #'(lambda (buf) (assq buf bmarklist)) (buffer-list))))
-
-(defun ibuffer-current-buffers-with-marks ()
+(defun ibuffer-current-buffers-with-marks (bufs)
   "Return a list like (BUF . MARK) of all open buffers."
   (let ((bufs (ibuffer-current-state-list)))
     (mapcar #'(lambda (buf) (let ((e (assq buf bufs)))
 			      (if e
 				  e
 				(cons buf ? ))))
-	    (buffer-list))))
+	    bufs)))
 
 (defun ibuffer-buf-matches-predicates (buf predicates)
   (let ((hit nil)
@@ -1905,7 +1900,7 @@ Do not display messages if SILENT is non-nil."
 				   (buffer-name (cadr bufs))))
 		    (caddr bufs)
 		  (cadr bufs))
-		(ibuffer-current-buffers-with-marks)
+		(ibuffer-current-buffers-with-marks bufs)
 		arg)))
     (when (null blist)
       (if (and (featurep 'ibuf-ext)
@@ -2048,6 +2043,7 @@ special value `onewindow' means always use another window."
 		(message "Commands: m, u, t, RET, g, k, S, D, Q; q to quit; h for help")))
 	  (select-window owin))))))
 
+(put 'ibuffer-mode 'mode-class 'special)
 (defun ibuffer-mode ()
   "A major mode for viewing a list of buffers.
 In ibuffer, you can conveniently perform many operations on the
