@@ -1260,7 +1260,7 @@ dos_rawgetc ()
 #ifndef HAVE_X_WINDOWS
       if (!NILP (Vdos_display_scancodes))
 	{
-	  char buf[10];
+	  char buf[11];
 	  sprintf (buf, "%02x:%02x*%04x",
 		   (unsigned) (sc&0xff), (unsigned) c, mask);
 	  dos_direct_output (screen_size_Y - 2, screen_size_X - 12, buf, 10);
