@@ -30,7 +30,11 @@
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection, 
 and the argument DATA-TYPE (default `STRING') says
-how to convert the data."
+how to convert the data.
+
+TYPE may be `SECONDARY' or `CLIPBOARD', in addition to `PRIMARY'.
+DATA-TYPE is usually `STRING', but can also be one of the symbols
+in `selection-converter-alist', which see."
   (x-get-selection-internal (or type 'PRIMARY) (or data-type 'STRING)))
 
 (defun x-get-clipboard ()
