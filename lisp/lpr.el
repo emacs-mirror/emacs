@@ -40,7 +40,7 @@
 (defvar lpr-command
   (if (memq system-type '(usg-unix-v dgux hpux irix))
       "lp" "lpr")
-  "*Shell command for printing a file")
+  "*Name of program for printing a file.")
 
 (defvar lpr-headers-switches
   (if (memq system-type '(usg-unix-v dgux hpux irix)) nil "-p")
@@ -49,6 +49,12 @@
 (defvar print-region-function nil
   "Function to call to print the region on a printer.
 See definition of `print-region-1' for calling conventions.")
+
+(defvar lpr-page-header-program "pr"
+  "*Name of program for adding page headers to a file.")
+
+(defvar lpr-page-header-switches nil
+  "*List of strings to use as options for `lpr-page-header-program'.")
 
 ;;;###autoload
 (defun lpr-buffer ()
@@ -103,7 +109,8 @@ See definition of `print-region-1' for calling conventions.")
 				        lpr-headers-switches)
 				     switches))
 	    (print-region-new-buffer start end)
-	    (call-process-region start end "pr" t t nil)
+	    (call-process-region start end lpr-page-header-program
+				 t t lpr-page-header-options)
 	    (setq start (point-min) end (point-max))))
       (apply (or print-region-function 'call-process-region)
 	     (nconc (list start end lpr-command
