@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.73 $
+;; Version: $Revision: 1.74 $
 
 ;; This file is part of GNU Emacs.
 
@@ -549,7 +549,7 @@ Commands:
 	 (parse-sexp-lookup-properties . t)))
 
   (set (make-local-variable 'imenu-generic-expression)
-       'tcl-imenu-generic-expression)
+       tcl-imenu-generic-expression)
 
   ;; Settings for new dabbrev code.
   (set (make-local-variable 'dabbrev-case-fold-search) nil)
