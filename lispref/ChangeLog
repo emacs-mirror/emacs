@@ -1,3 +1,7 @@
+2005-02-05  Lute Kamstra  <lute@gnu.org>
+
+	* text.texi (Maintaining Undo): Remove obsolete function.
+
 2005-02-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Color Names): Add pointer to the X docs about RGB
