@@ -1571,6 +1571,17 @@ Use `switch-to-buffer' or `pop-to-buffer' to switch buffers permanently.")
   set_buffer_internal (XBUFFER (buf));
   return buf;
 }
+
+/* Set the current buffer to BUFFER provided it is alive.  */
+
+Lisp_Object
+set_buffer_if_live (buffer)
+     Lisp_Object buffer;
+{
+  if (! NILP (XBUFFER (buffer)->name))
+    Fset_buffer (buffer);
+  return Qnil;
+}
 
 DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
 				   Sbarf_if_buffer_read_only, 0, 0, 0,
