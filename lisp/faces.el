@@ -383,8 +383,18 @@ If the face already exists, it is unmodified."
 		)
 	   (if fn
 	       (condition-case ()
-		   (set-face-font face fn frame)
-		 (error (message "font `%s' not found for face `%s'" fn name))))
+		   (cond ((string= fn "italic")
+			  (make-face-italic face))
+			 ((string= fn "bold")
+			  (make-face-bold face))
+			 ((string= fn "bold-italic")
+			  (make-face-bold-italic face))
+			 (t
+			  (set-face-font face fn frame)))
+		 (error
+		  (if (member fn '("italic" "bold" "bold-italic"))
+		      (message "no %s version found for face `%s'" fn name)
+		    (message "font `%s' not found for face `%s'" fn name)))))
 	   (if fg
 	       (condition-case ()
 		   (set-face-foreground face fg frame)
@@ -886,6 +896,19 @@ selected frame."
 	  (while faces
 	    (copy-face (car faces) (car faces) frame disp-frame)
 	    (setq faces (cdr faces)))))))
+
+(defun describe-face (face)
+  "Display the properties of face FACE."
+  (interactive (list (read-face-name "Describe face: ")))
+  (with-output-to-temp-buffer "*Help*"
+    (princ "Properties of face `")
+    (princ (face-name face))
+    (princ "':") (terpri)
+    (princ "Foreground: ") (princ (face-foreground face)) (terpri)
+    (princ "Background: ") (princ (face-background face)) (terpri)
+    (princ "      Font: ") (princ (face-font face)) (terpri)
+    (princ "Underlined: ") (princ (if (face-underline-p face) "yes" "no")) (terpri)
+    (princ "   Stipple: ") (princ (or (face-stipple face) "none"))))
 
 ;;; Make the standard faces.
 ;;; The C code knows the default and modeline faces as faces 0 and 1,
