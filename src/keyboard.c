@@ -3170,7 +3170,7 @@ menu_bar_items ()
 #else
     maps[nmaps-2] = current_buffer->keymap;
 #endif
-    maps[nmaps-1] = global_map;
+    maps[nmaps-1] = current_global_map;
   }
 
   /* Look up in each map the dummy prefix key `menu-bar'.  */
@@ -3740,7 +3740,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 #else
     submaps[nmaps-2] = current_buffer->keymap;
 #endif
-    submaps[nmaps-1] = global_map;
+    submaps[nmaps-1] = current_global_map;
   }
 
   /* Find an accurate initial value for first_binding.  */
