@@ -415,7 +415,7 @@ detailed meanings of these arguments."
     (if (= dim 1)
 	(list-block-of-chars charset 0 min max)
       (let ((i min))
-	(while (< i max)
+	(while (<= i max)
 	  (list-block-of-chars charset i min max)
 	  (setq i (1+ i)))))))
 
@@ -449,7 +449,7 @@ detailed meanings of these arguments."
 	  (while row-range
 	    (setq row (car row-range) row-max (nth 1 row-range)
 		  row-range (nthcdr 2 row-range))
-	    (while (< row row-max)
+	    (while (<= row row-max)
 	      (setq col-range (cdr range))
 	      (while col-range
 		(setq col (car col-range) col-max (nth 1 col-range)
