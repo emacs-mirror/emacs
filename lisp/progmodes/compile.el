@@ -1333,6 +1333,7 @@ Does NOT find the source line like \\[next-error]."
 	    (let ((inhibit-read-only t)
 		  (buffer-undo-list t)
 		  deactivate-mark
+                  (buffer-was-modified (buffer-modified-p))
 		  (error-list compilation-error-list))
 	      (while error-list
 		(save-excursion
@@ -1340,7 +1341,8 @@ Does NOT find the source line like \\[next-error]."
 				       (progn (end-of-line) (point))
 				       '(mouse-face highlight help-echo "\
 mouse-2: visit this file and line")))
-		(setq error-list (cdr error-list))))
+		(setq error-list (cdr error-list)))
+              (set-buffer-modified-p buffer-was-modified))
 	    )))))
 
 (defun compile-mouse-goto-error (event)

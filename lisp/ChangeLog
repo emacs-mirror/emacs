@@ -1,3 +1,8 @@
+2002-12-18  Gustav H,Ae(Bllberg  <gustav@virtutech.se>  (tiny change)
+
+	* progmodes/compile.el (compile-reinitialize-errors): Don't mark the
+	buffer as modified unless it really is.
+
 2002-12-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mail/undigest.el (rmail-digest-end-regexps): Simplify.
