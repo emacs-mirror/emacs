@@ -116,6 +116,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     }								\
     return;
 
+
+#if 0 /* Ehud Karni <ehud@unix.simonwiesel.co.il> says that the problem
+	 still exists on m88k-dg-dguxR4.11MU04 and i586-dg-dguxR4.11MU04.  */
 /* The `stop on tty output' problem which occurs when using
    INTERRUPT_INPUT and when Emacs is invoked under X11 using a job
    control shell (csh, ksh, etc.) in the background doesn't look to be
@@ -123,6 +126,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    ksh or zsh.) */
 #undef BROKEN_FIONREAD
 #define INTERRUPT_INPUT
+#endif /* 0 - never */
 
 /* In R4.11 (or maybe R4.10, I don't have a system with that version
    loaded) some of the internal stdio semantics were changed.  One I
