@@ -122,6 +122,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   Lisp_Object encoded_directory;
   Lisp_Object handler;
   struct re_pattern_buffer *bufp;
+  int needsep = 0;
+  struct gcpro gcpro1, gcpro2;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -139,18 +141,14 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
       return Ffuncall (6, args);
     }
 
-  {
-    struct gcpro gcpro1, gcpro2;
-
-    /* Because of file name handlers, these functions might call
+  /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
-    GCPRO1 (match);
-    directory = Fexpand_file_name (directory, Qnil);
-    UNGCPRO;
-    GCPRO2 (match, directory);
-    dirfilename = Fdirectory_file_name (directory);
-    UNGCPRO;
-  }
+  GCPRO1 (match);
+  directory = Fexpand_file_name (directory, Qnil);
+  UNGCPRO;
+  GCPRO2 (match, directory);
+  dirfilename = Fdirectory_file_name (directory);
+  UNGCPRO;
 
   if (!NILP (match))
     {
@@ -188,6 +186,15 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   dirnamelen = XSTRING (encoded_directory)->size;
   re_match_object = Qt;
 
+  /* Decide whether we need to add a directory separator.  */
+#ifndef VMS
+  if (dirnamelen == 0
+      || !IS_ANY_SEP (XSTRING (encoded_directory)->data[dirnamelen - 1]))
+    needsep = 1;
+#endif /* VMS */
+
+  GCPRO2 (encoded_directory, list);
+
   /* Loop reading blocks */
   while (1)
     {
@@ -205,15 +212,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		{
 		  int afterdirindex = dirnamelen;
 		  int total = len + dirnamelen;
-		  int needsep = 0;
 		  int nchars;
-
-		  /* Decide whether we need to add a directory separator.  */
-#ifndef VMS
-		  if (dirnamelen == 0
-		      || !IS_ANY_SEP (XSTRING (encoded_directory)->data[dirnamelen - 1]))
-		    needsep = 1;
-#endif /* VMS */
 
 		  name = make_uninit_string (total + needsep);
 		  bcopy (XSTRING (encoded_directory)->data, XSTRING (name)->data,
@@ -222,7 +221,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		    XSTRING (name)->data[afterdirindex++] = DIRECTORY_SEP;
 		  bcopy (dp->d_name,
 			 XSTRING (name)->data + afterdirindex, len);
-		  nchars = chars_in_text (dp->d_name,
+		  nchars = chars_in_text (XSTRING (name)->data,
 					  afterdirindex + len);
 		  XSTRING (name)->size = nchars;
 		  if (nchars == STRING_BYTES (XSTRING (name)))
@@ -236,6 +235,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	}
     }
   closedir (d);
+  UNGCPRO;
   if (!NILP (nosort))
     return list;
   return Fsort (Fnreverse (list), Qstring_lessp);
