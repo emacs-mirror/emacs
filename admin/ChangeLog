@@ -1,3 +1,7 @@
+2001-12-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-emacs: Add --trace-move.
+
 2001-10-23  Andrew Innes  <andrewi@gnu.org>
 
 	* nt/makedist.bat: Remove remaining obsolete reference to
