@@ -75,7 +75,7 @@ Goto End
 Echo Checking whether 'mv' is available...
 rm -f junk.1 junk.2
 echo foo >junk.1
-mv junk.1 junk.2
+mv junk.1 ./junk.2
 If Exist junk.2 Goto mvOk
 Echo To configure 'Emacs' you need to have 'mv'!
 rm -f junk.1
