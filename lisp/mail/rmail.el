@@ -1769,13 +1769,10 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 (defun rmail-msg-is-pruned ()
   (rmail-maybe-set-message-counters)
   (save-restriction
+    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
     (save-excursion
-  (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
-                 (if (not (or (= ?\n (char-after (point)))
-                              (= ?\n (char-before (1- (point))))))
-                     (insert "\n"))
-    (goto-char (point-min))
-    (forward-line 1)
+      (goto-char (point-min))
+      (forward-line 1)
       (= (following-char) ?1))))
 
 (defun rmail-toggle-header (&optional arg)
