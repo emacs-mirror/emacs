@@ -1,3 +1,47 @@
+2004-11-24  Jay Belanger <belanger@truman.edu>
+
+	* calc/calc-sel.el: Add comment.
+
+	* calc/calc.el (math-stack-value-offset): Replace variables c,
+	wid and off with math-svo-c, math-svo-wid and math-svo-off.
+
+	* calc/calccomp.el (math-comp-sel-tag): Declare it.
+
+	(math-svo-c, math-svo-wid, math-svo-off): New variables.
+	(math-stack-value-offset-fancy): Replace variables c, wid and off
+	by declared variables.
+
+	(math-comp-just, math-comp-comma-spc): New variables.
+	(math-compose-expr, math-compose-matrix): Replace variable `just'
+	by declared variable.
+
+	(math-comp-vector-prec): New variable.
+	(math-compose-expr, math-compose-matrix, math-compose-rows):
+	Replace variable vector-prec by declared variable.
+
+	(math-comp-left-bracket, math-comp-right-bracket)
+	(math-comp-comma): New variables.
+	(math-compose-expr, math-compose-rows): Replace variables
+	left-bracket, right-bracket and comma by declared variables.
+
+	(math-comp-full-width): New variable.
+	(math-comp-to-string-flat, math-comp-to-string-flat-term):
+	Replace variable full-width by declared variable.
+
+	(math-comp-highlight, math-comp-word, math-comp-level)
+	(math-comp-margin, math-comp-pos, math-comp-buf, math-comp-base)
+	(math-comp-hgt, math-comp-tag, math-comp-hpos, math-comp-vpos):
+	New variables.
+	(math-comp-to-string-flat, math-comp-to-string-flat-term)
+	(math-comp-sel-flat-term): Replace variables comp-highlight,
+	comp-word, comp-level, comp-margin, comp-pos and comp-buf by
+	declared variables.
+	(math-comp-simplify, math-comp-simplify-term)
+	(math-comp-add-string, math-comp-add-string-sel):
+	Replace	variables comp-highlight, comp-buf, comp-base,
+	comp-height, comp-tag, comp-hpos and comp-vpos by declared
+	variables.
+
 2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Added x-use-old-gtk-file-dialog.
