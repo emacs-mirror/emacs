@@ -53,8 +53,7 @@ See the documentation of the variable `register-alist' for possible VALUE."
   (let ((aelt (assq register register-alist)))
     (if aelt
 	(setcdr aelt value)
-      (setq aelt (cons register value))
-      (setq register-alist (cons aelt register-alist)))
+      (push (cons register value) register-alist))
     value))
 
 (defun point-to-register (register &optional arg)
@@ -63,6 +62,8 @@ With prefix argument, store current frame configuration.
 Use \\[jump-to-register] to go to that location or restore that configuration.
 Argument is a character, naming the register."
   (interactive "cPoint to register: \nP")
+  ;; Turn the marker into a file-ref if the buffer is killed.
+  (add-hook 'kill-buffer-hook 'register-swap-out nil t)
   (set-register register
 		(if arg (list (current-frame-configuration) (point-marker))
 		  (point-marker))))
@@ -121,20 +122,16 @@ delete any existing frames that the frame configuration doesn't mention.
      (t
       (error "Register doesn't contain a buffer position or configuration")))))
 
-;; Turn markers into file-query references when a buffer is killed.
 (defun register-swap-out ()
+  "Turn markers into file-query references when a buffer is killed."
   (and buffer-file-name
-       (let ((tail register-alist))
-	 (while tail
-	   (and (markerp (cdr (car tail)))
-		(eq (marker-buffer (cdr (car tail))) (current-buffer))
-		(setcdr (car tail)
-			(list 'file-query
-			      buffer-file-name
-			      (marker-position (cdr (car tail))))))
-	   (setq tail (cdr tail))))))
-
-(add-hook 'kill-buffer-hook 'register-swap-out)
+       (dolist (elem register-alist)
+	 (and (markerp (cdr elem))
+	      (eq (marker-buffer (cdr elem)) (current-buffer))
+	      (setcdr elem
+		      (list 'file-query
+			    buffer-file-name
+			    (marker-position (cdr elem))))))))
 
 (defun number-to-register (number register)
   "Store a number in a register.
