@@ -9599,7 +9599,7 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
 DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command.
 However, if the command has called `read-key-sequence', it returns
-the the last key sequence that has been read.
+the last key sequence that has been read.
 The value is a string or a vector.  */)
      ()
 {
@@ -9610,7 +9610,7 @@ The value is a string or a vector.  */)
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command, as a vector.
 However, if the command has called `read-key-sequence', it returns
-the the last key sequence that has been read.  */)
+the last key sequence that has been read.  */)
      ()
 {
   return Fvector (this_command_key_count,
