@@ -1822,6 +1822,8 @@ of buffer-file-coding-system set by this function."
     ("sp" . "Latin-5") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     ("jp" . "Japanese") ; e.g. MS Windows
+    ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
+    ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
     )
   "List of pairs of locale regexps and language names.
 The first element whose locale regexp matches the start of a downcased locale
