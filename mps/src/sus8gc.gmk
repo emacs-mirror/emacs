@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SUNOS/SPARC/GCC PLATFORM
 #
-#  $HopeName: MMsrc!suspgc.gmk(trunk.11) $
+#  $HopeName: MMsrc!suspgc.gmk(trunk.12) $
 #
 #  Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -17,7 +17,7 @@ MPM = poolarvm.c vmsu.c space.c pool.c poolclas.c poolmfs.c \
 MPMS = sssusp.s
 AMC = amc.c amcgroup.c
 LO = lo.c
-DW = dwformat.c dw.c
+DW = fmtdy.c dw.c
 
 TESTLIB = testlib.c
 
