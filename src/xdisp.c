@@ -3382,7 +3382,7 @@ display_string (w, vpos, string, length, hpos, truncate,
 	    {
 	      int i;
 
-	      for (i = 0; i < VERTICAL_SCROLL_BAR_WIDTH; i++)
+	      for (i = 0; i < FRAME_SCROLL_BAR_COLS (f); i++)
 		*end-- = ' ';
 	    }
 	  else
