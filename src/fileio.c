@@ -3166,9 +3166,9 @@ This does code conversion according to the value of\n\
   if (!NILP (replace)
       && (! CODING_REQUIRE_CONVERSION (&coding)
 	  || (coding.type == coding_type_automatic
-	      && ! CODING_REQUIRE_TEXT_CONVERSION (&coding))
+	      && ! CODING_REQUIRE_EOL_CONVERSION (&coding))
 	  || (coding.eol_type == CODING_EOL_AUTOMATIC
-	      && ! CODING_REQUIRE_EOL_CONVERSION (&coding))))
+	      && ! CODING_REQUIRE_TEXT_CONVERSION (&coding))))
     {
       int same_at_start = BEGV;
       int same_at_end = ZV;
@@ -3336,7 +3336,7 @@ This does code conversion according to the value of\n\
       int bufpos;
       /* Make sure that the gap is large enough.  */
       int bufsize = 2 * st.st_size;
-      unsigned char *conversion_buffer = (unsigned char *) malloc (bufsize);
+      unsigned char *conversion_buffer = (unsigned char *) xmalloc (bufsize);
 
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
