@@ -565,8 +565,8 @@ set its foreground and background to the default background and foreground."
   (setq x-font-regexp
 	(concat "\\`\\*?[-?*]"
 		foundry - family - weight\? - slant\? - swidth - adstyle -
-		pixelsize - pointsize - resx - resy - spacing - registry -
-		encoding "[-?*]\\*?\\'"
+		pixelsize - pointsize - resx - resy - spacing - avgwidth -
+		registry - encoding "\\*?\\'"
 		))
   (setq x-font-regexp-head
 	(concat "\\`[-?*]" foundry - family - weight\? - slant\?
