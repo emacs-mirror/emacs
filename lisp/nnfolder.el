@@ -53,7 +53,7 @@
 (defvoo nnfolder-ignore-active-file nil
   "If non-nil, causes nnfolder to do some extra work in order to determine
 the true active ranges of an mbox file.  Note that the active file is still
-saved, but it's values are not used.  This costs some extra time when 
+saved, but its values are not used.  This costs some extra time when 
 scanning an mbox when opening it.")
 
 (defvoo nnfolder-distrust-mbox nil
