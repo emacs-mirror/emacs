@@ -39,7 +39,7 @@
 ;;
 ;; The code contains two, possibly fatal, bugs.  The first is that the
 ;; assignment operator "=" is used as part of the test; the user
-;; probably ment to use the comparison operator "==".
+;; probably meant to use the comparison operator "==".
 ;;
 ;; The second problem is that an extra semicolon is placed after
 ;; closing parenthesis of the test expression.  This makes the body of
@@ -55,7 +55,7 @@
 ;; * C++ functions with reference parameters.
 ;;
 ;; Note that none of the constructions highlighted (especially not C++
-;; reference parameters) are considered errors by the langauage
+;; reference parameters) are considered errors by the language
 ;; definitions.
 
 ;; Usage:
@@ -95,7 +95,7 @@
 ;; * State exactly what you did, what happened, and what you expected
 ;;   to see when you found the bug.
 ;; * If the bug cause an error, set the variable `debug-on-error' to t,
-;;   repreat the operations that triggered the error and include
+;;   repeat the operations that triggered the error and include
 ;;   the backtrace in the letter.
 ;; * If possible, include an example that activates the bug.
 ;; * Should you speculate about the cause of the problem, please
@@ -127,18 +127,6 @@
 
 Never set this variable directly, use the command `cwarn-mode'
 instead.")
-
-(defcustom global-cwarn-mode nil
-  "When on, suspicious C and C++ constructions are highlighted.
-
-Set this variable using \\[customize] or use the command
-`global-cwarn-mode'."
-  :group 'cwarn
-  :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
-	 (global-cwarn-mode (or value 0)))
-  :type 'boolean
-  :require 'cwarn)
 
 (defcustom cwarn-configuration
   '((c-mode (not reference))
@@ -187,26 +175,6 @@ deactivated."
   :group 'cwarn
   :type 'string)
 
-(defcustom cwarn-mode-hook nil
-  "*Functions to run when CWarn mode is activated."
-  :tag "CWarn mode hook"                ; To separate it from `global-...'
-  :group 'cwarn
-  :type 'hook)
-
-(defcustom global-cwarn-mode-text ""
-  "*String to display when Global CWarn mode is active.
-
-The default is nothing since when this mode is active this text doesn't
-vary over time, or between buffers.  Hence mode line text
-would only waste precious space."
-  :group 'cwarn
-  :type 'string)
-
-(defcustom global-cwarn-mode-hook nil
-  "*Hook called when Global CWarn mode is activated."
-  :group 'cwarn
-  :type 'hook)
-
 (defcustom cwarn-load-hook nil
   "*Functions to run when CWarn mode is first loaded."
   :tag "Load Hook"
@@ -217,7 +185,7 @@ would only waste precious space."
 ;;{{{ The modes
 
 ;;;###autoload
-(defun cwarn-mode (&optional arg)
+(define-minor-mode cwarn-mode
   "Minor mode that highlights suspicious C and C++ constructions.
 
 Note, in addition to enabling this minor mode, the major mode must
@@ -225,23 +193,9 @@ be included in the variable `cwarn-configuration'.  By default C and
 C++ modes are included.
 
 With ARG, turn CWarn mode on if and only if arg is positive."
-  (interactive "P")
-  (make-local-variable 'cwarn-mode)
-  (setq cwarn-mode
-	(if (null arg)
-	    (not cwarn-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (if (and cwarn-verbose
-	   (interactive-p))
-      (message "Cwarn mode is now %s."
-	       (if cwarn-mode "on" "off")))
-  (if (not global-cwarn-mode)
-      (if cwarn-mode
-	  (cwarn-font-lock-add-keywords)
-	(cwarn-font-lock-remove-keywords)))
-  (font-lock-fontify-buffer)
-  (if cwarn-mode
-      (run-hooks 'cwarn-mode-hook)))
+  nil cwarn-mode-text nil
+  (cwarn-font-lock-keywords cwarn-mode)
+  (if font-lock-mode (font-lock-fontify-buffer)))
 
 ;;;###autoload
 (defun turn-on-cwarn-mode ()
@@ -250,46 +204,6 @@ With ARG, turn CWarn mode on if and only if arg is positive."
 This function is designed to be added to hooks, for example:
   (add-hook 'c-mode-hook 'turn-on-cwarn-mode)"
   (cwarn-mode 1))
-
-;;;###autoload
-(defun global-cwarn-mode (&optional arg)
-  "Hightlight suspicious C and C++ constructions in all buffers.
-
-With ARG, turn CWarn mode on globally if and only if arg is positive."
-  (interactive "P")
-  (let ((old-global-cwarn-mode global-cwarn-mode))
-    (setq global-cwarn-mode
-	  (if (null arg)
-	      (not global-cwarn-mode)
-	    (> (prefix-numeric-value arg) 0)))
-    (if (and cwarn-verbose
-	     (interactive-p))
-	(message "Global CWarn mode is now %s."
-		 (if global-cwarn-mode "on" "off")))
-    (when (not (eq global-cwarn-mode old-global-cwarn-mode))
-      ;; Update for all future buffers.
-      (dolist (conf cwarn-configuration)
-	(if global-cwarn-mode
-	    (cwarn-font-lock-add-keywords (car conf))
-	  (cwarn-font-lock-remove-keywords (car conf))))
-      ;; Update all existing buffers.
-      (save-excursion
-	(dolist (buffer (buffer-list))
-	  (set-buffer buffer)
-	  ;; Update keywords in alive buffers.
-	  (when (and font-lock-mode
-		     (not cwarn-mode)
-		     (cwarn-is-enabled major-mode))
-	    (if global-cwarn-mode
-		(cwarn-font-lock-add-keywords)
-	      (cwarn-font-lock-remove-keywords))
-	    (font-lock-fontify-buffer))))))
-    ;; Kills all added keywords :-(
-    ;; (font-lock-mode 0)
-    ;; (makunbound 'font-lock-keywords)
-    ;; (font-lock-mode 1))))
-  (when global-cwarn-mode
-    (run-hooks 'global-cwarn-mode-hook)))
 
 ;;}}}
 ;;{{{ Help functions
@@ -320,25 +234,17 @@ The valid features are described by the variable
     (back-to-indentation)
     (eq (char-after) ?#)))
 
-(defun cwarn-font-lock-add-keywords (&optional mode)
-  "Install keywords into major MODE, or into current buffer if nil."
+(defun cwarn-font-lock-keywords (addp)
+  "Install/Remove keywords into current buffer.
+If ADDP is non-nil, install else remove."
   (dolist (pair cwarn-font-lock-feature-keywords-alist)
     (let ((feature (car pair))
 	  (keywords (cdr pair)))
       (if (not (listp keywords))
 	  (setq keywords (symbol-value keywords)))
-      (if (cwarn-is-enabled (or mode major-mode) feature)
-	  (font-lock-add-keywords mode keywords)))))
-
-(defun cwarn-font-lock-remove-keywords (&optional mode)
-  "Remove keywords from major MODE, or from current buffer if nil."
-  (dolist (pair cwarn-font-lock-feature-keywords-alist)
-    (let ((feature (car pair))
-	  (keywords (cdr pair)))
-      (if (not (listp keywords))
-	  (setq keywords (symbol-value keywords)))
-      (if (cwarn-is-enabled (or mode major-mode) feature)
-	  (font-lock-remove-keywords mode keywords)))))
+      (if (cwarn-is-enabled major-mode feature)
+	  (funcall (if addp 'font-lock-add-keywords 'font-lock-remove-keywords)
+		   nil keywords)))))
 
 ;;}}}
 ;;{{{ Backward compatibility
@@ -356,7 +262,7 @@ definition), then nil is returned.  Otherwise, if point is at a
 top-level not enclosed within a class definition, t is returned.
 Otherwise, a 2-vector is returned where the zeroth element is the
 buffer position of the start of the class declaration, and the first
-element is the buffer position of the enclosing class's opening
+element is the buffer position of the enclosing class' opening
 brace."
   (let ((state (c-parse-state)))
     (or (not (c-most-enclosing-brace state))
@@ -375,13 +281,28 @@ brace."
 ;; A match function should act like a normal forward search.  They
 ;; should return non-nil if they found a candidate and the match data
 ;; should correspond to the highlight part of the font-lock keyword.
-;; The functions shold not generate errors, in that case font-lock
+;; The functions should not generate errors, in that case font-lock
 ;; will fail to highlight the buffer.  A match function takes one
 ;; argument, LIMIT, that represent the end of area to be searched.
 ;;
 ;; The variable `cwarn-font-lock-feature-keywords-alist' contains a
 ;; mapping from CWarn features to the font-lock keywords defined
 ;; below.
+
+(defmacro cwarn-font-lock-match (re &rest body)
+  "Match RE but only if BODY holds."
+  `(let ((res nil))
+     (while
+	 (progn
+	   (setq res (re-search-forward ,re limit t))
+	   (and res
+		(save-excursion
+		  (when (match-beginning 1) (goto-char (match-beginning 1)))
+		  (condition-case nil	; In case something barfs.
+		      (not (save-match-data
+			     ,@body))
+		    (error t))))))
+     res))
 
 ;;{{{ Assignment in expressions
 
@@ -391,28 +312,17 @@ brace."
 
 (defun cwarn-font-lock-match-assignment-in-expression (limit)
   "Match assignments inside expressions."
-  (let ((res nil))
-    (while
-	(progn
-	  (setq res (re-search-forward
-		     "[^!<>=]\\(\\([-+*/%&^|]\\|<<\\|>>\\)?=\\)[^=]"
-		     limit t))
-	  (and res
-	       (save-excursion
-		 (goto-char (match-beginning 1))
-		 (condition-case nil    ; In case "backward-up-list" barfs.
-		     (progn
-		       (backward-up-list 1)
-		       (or (not (memq (following-char) '(?\( ?\[)))
-			   (save-match-data
-			     (skip-chars-backward " ")
-			     (skip-chars-backward "a-zA-Z0-9_")
-			     (or
-			      ;; Default parameter of function.
-			      (c-at-toplevel-p)
-			      (looking-at "for\\>")))))
-		   (error t))))))
-      res))
+  (cwarn-font-lock-match
+   "[^!<>=]\\(\\([-+*/%&^|]\\|<<\\|>>\\)?=\\)[^=]"
+   (backward-up-list 1)
+   (and (memq (following-char) '(?\( ?\[))
+	(not (progn
+	       (skip-chars-backward " ")
+	       (skip-chars-backward "a-zA-Z0-9_")
+	       (or
+		;; Default parameter of function.
+		(c-at-toplevel-p)
+		(looking-at "for\\>")))))))
 
 ;;}}}
 ;;{{{ Semicolon
@@ -422,25 +332,17 @@ brace."
 
 (defun cwarn-font-lock-match-dangerous-semicolon (limit)
   "Match semicolons directly after `for', `while', and `if'.
-Tne semicolon after a `do { ... } while (x);' construction is not matched."
-  (let ((res nil))
-    (while
-	(progn
-	  (setq res (search-forward ";" limit t))
-	  (and res
-	       (save-excursion
-		 (condition-case nil    ; In case something barfs.
-		     (save-match-data
-		       (backward-sexp 2) ; Expression and keyword.
-		       (not (or (looking-at "\\(for\\|if\\)\\>")
-				(and (looking-at "while\\>")
-				     (condition-case nil
-					 (progn
-					   (backward-sexp 2) ; Body and "do".
-					   (not (looking-at "do\\>")))
-				       (error t))))))
-		   (error t))))))
-      res))
+The semicolon after a `do { ... } while (x);' construction is not matched."
+  (cwarn-font-lock-match
+   ";"
+   (backward-sexp 2)			; Expression and keyword.
+   (or (looking-at "\\(for\\|if\\)\\>")
+       (and (looking-at "while\\>")
+	    (condition-case nil
+		(progn
+		  (backward-sexp 2)	; Body and "do".
+		  (not (looking-at "do\\>")))
+	      (error t))))))
 
 ;;}}}
 ;;{{{ Reference
@@ -450,42 +352,31 @@ Tne semicolon after a `do { ... } while (x);' construction is not matched."
 
 (defun cwarn-font-lock-match-reference (limit)
   "Font-lock matcher for C++ reference parameters."
-  (let ((res nil))
-    (while
-	(progn
-	  (setq res (re-search-forward "[^&]\\(&\\)[^&=]" limit t))
-	  (and res
-	       (save-excursion
-		 (goto-char (match-beginning 1))
-		 (condition-case nil    ; In case something barfs.
-		     (save-match-data
-		       (backward-up-list 1)
-		       (or (not (eq (following-char) ?\())
-			   (cwarn-inside-macro)
-			   (not (c-at-toplevel-p))))
-		   (error t))))))
-    res))
+  (cwarn-font-lock-match
+   "[^&]\\(&\\)[^&=]"
+   (backward-up-list 1)
+   (and (eq (following-char) ?\()
+	(not (cwarn-inside-macro))
+	(c-at-toplevel-p))))
 
 ;;}}}
 
 ;;}}}
 ;;{{{ The end
 
-(unless (assq 'cwarn-mode minor-mode-alist)
-  (push '(cwarn-mode cwarn-mode-text)
-	minor-mode-alist))
-(unless (assq 'global-cwarn-mode minor-mode-alist)
-  (push '(global-cwarn-mode global-cwarn-mode-text)
-	minor-mode-alist))
+(defun turn-on-cwarn-mode-if-enabled ()
+  "Turn on CWarn mode in the current buffer if applicable.
+The mode is turned if some feature is enabled for the current
+`major-mode' in `cwarn-configuration'."
+  (if (cwarn-is-enabled major-mode) (turn-on-cwarn-mode)))
+
+;;;###autoload
+(easy-mmode-define-global-mode global-cwarn-mode cwarn-mode
+			       turn-on-cwarn-mode-if-enabled)
 
 (provide 'cwarn)
 
 (run-hooks 'cwarn-load-hook)
-
-;; This makes it possible to set Global CWarn mode from
-;; Customize.
-(if global-cwarn-mode
-    (global-cwarn-mode 1))
 
 ;;}}}
 
