@@ -132,8 +132,11 @@ The function is called with one parameter, which is the generated part.")
 			 (mm-find-mime-charset-region point (point))))
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
-		  (y-or-n-p
-		   "Message contains characters with unknown encoding.  Really send?"))
+		  (prog1 (y-or-n-p
+		   "\
+Message contains characters with unknown encoding.  Really send?")
+		    (set (make-local-variable 'mml-confirmation-set)
+			 (push 'unknown-encoding mml-confirmation-set))))
 	      (if (setq use-ascii 
 			(or (memq 'use-ascii mml-confirmation-set)
 			    (y-or-n-p "Use ASCII as charset?")))
@@ -153,10 +156,13 @@ The function is called with one parameter, which is the generated part.")
 	    (when (and warn
 		       (not (memq 'multipart mml-confirmation-set))
 		       (not
-			(y-or-n-p
-			 (format
-			  "Warning: Your message contains more than %d parts.  Really send? "
-			  (length nstruct)))))
+			(prog1 (y-or-n-p
+				(format
+				 "\
+A message part needs to be split into %d charset parts.  Really send? "
+				 (length nstruct)))
+			  (set (make-local-variable 'mml-confirmation-set)
+			       (push 'multipart mml-confirmation-set)))))
 	      (error "Edit your message to use only one charset"))
 	    (setq struct (nconc nstruct struct)))))))
     (unless (eobp)
