@@ -1,5 +1,8 @@
 2000-09-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (Fother_buffer): Consider buffers as invisible when
+	they are displayed in a window on an invisible frame.
+
 	* window.c (window_loop) <GET_LARGEST_WINDOW>: Fix bug making
 	get-largest-window always return nil.
 
