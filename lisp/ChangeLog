@@ -1,3 +1,7 @@
+2003-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el (windows-1252): Fix table (0x8F and 0x9E).
+
 2003-11-05  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el (desktop-locals-to-save): Add buffer-file-coding-system.
