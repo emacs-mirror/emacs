@@ -434,6 +434,7 @@ mostlyclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd man &&   $(MAKE) $(MFLAGS) mostlyclean)
+	(cd leim;     $(MAKE) $(MFLAGS) mostlyclean)
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -449,6 +450,7 @@ clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) clean)
+	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
 ### `distclean'
 ###      Delete all files from the current directory that are created by
@@ -466,6 +468,7 @@ distclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
 	(cd man &&    $(MAKE) $(MFLAGS) distclean)
+	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
 
 ### `maintainer-clean'
@@ -485,6 +488,7 @@ maintainer-clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl
