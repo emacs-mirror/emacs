@@ -68,28 +68,67 @@ Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), and jdb."
 (defun gud-marker-filter (&rest args)
   (apply gud-marker-filter args))
 
+(defvar gud-minor-mode nil)
+(put 'gud-minor-mode 'permanent-local t)
+
+(defun gud-symbol (sym &optional soft minor-mode)
+  "Return the symbol used for SYM in MINOR-MODE.
+MINOR-MODE defaults to `gud-minor-mode.
+The symbol returned is `gud-<MINOR-MODE>-<SYM>'.
+If SOFT is non-nil, returns nil if the symbol doesn't already exist."
+  (unless (or minor-mode gud-minor-mode) (error "Gud internal error"))
+  (funcall (if soft 'intern-soft 'intern)
+	   (format "gud-%s-%s" (or minor-mode gud-minor-mode) sym)))
+
+(defun gud-val (sym &optional minor-mode)
+  "Return the value of `gud-symbol' SYM.  Default to nil."
+  (let ((sym (gud-symbol sym t minor-mode)))
+    (if (boundp sym) (symbol-value sym))))
+
 (defun gud-find-file (file)
   ;; Don't get confused by double slashes in the name that comes from GDB.
   (while (string-match "//+" file)
     (setq file (replace-match "/" t t file)))
-  (funcall gud-find-file file))
+  (let ((minor-mode gud-minor-mode)
+	(buf (funcall gud-find-file file)))
+    (when buf
+      ;; Copy `gud-minor-mode' to the found buffer to turn on the menu.
+      (with-current-buffer buf
+	(set (make-local-variable 'gud-minor-mode) minor-mode))
+      buf)))
 
-;; Keymap definitions for menu bar entries common to all debuggers and
-;; slots for debugger-dependent ones in sensible places.  (Defined here
-;; before use.)
-(defvar gud-menu-map (make-sparse-keymap "Gud") nil)
-(define-key gud-menu-map [refresh] '("Refresh" . gud-refresh))
-(define-key gud-menu-map [remove] '("Remove Breakpoint" . gud-remove))
-(define-key gud-menu-map [tbreak] nil)	; gdb, sdb and xdb
-(define-key gud-menu-map [break] '("Set Breakpoint" . gud-break))
-(define-key gud-menu-map [up] nil)	; gdb, dbx, and xdb
-(define-key gud-menu-map [down] nil)	; gdb, dbx, and xdb
-(define-key gud-menu-map [print] '("Print Expression" . gud-print))
-(define-key gud-menu-map [finish] nil)	; gdb or xdb
-(define-key gud-menu-map [stepi] '("Step Instruction" . gud-stepi))
-(define-key gud-menu-map [step] '("Step Line" . gud-step))
-(define-key gud-menu-map [next] '("Next Line" . gud-next))
-(define-key gud-menu-map [cont] '("Continue" . gud-cont))
+(easy-mmode-defmap gud-menu-map
+  '(([refresh]	"Refresh" . gud-refresh)
+    ([remove]	"Remove Breakpoint" . gud-remove)
+    ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
+			:enable (memq gud-minor-mode '(gdb sdb xdb)))
+    ([break]	"Set Breakpoint" . gud-break)
+    ([up]	menu-item "Up Stack" gud-up
+			:enable (memq gud-minor-mode '(gdb dbx xdb)))
+    ([down]	menu-item "Down Stack" gud-down
+			:enable (memq gud-minor-mode '(gdb dbx xdb)))
+    ([print]	"Print Expression" . gud-print)
+    ([finish]	menu-item "Finish Function" gud-finish
+			:enable (memq gud-minor-mode '(gdb xdb)))
+    ([stepi]	"Step Instruction" . gud-stepi)
+    ([step]	"Step Line" . gud-step)
+    ([next]	"Next Line" . gud-next)
+    ([cont]	"Continue" . gud-cont))
+  "Menu for `gud-mode'."
+  :name "Gud")
+
+(easy-mmode-defmap gud-minor-mode-map
+  `(([menu-bar debug] . ("Gud" . ,gud-menu-map)))
+  "Map used in visited files.")
+
+(let ((m (assq 'gud-minor-mode minor-mode-map-alist)))
+  (if m (setcdr m gud-minor-mode-map)
+    (push (cons 'gud-minor-mode gud-minor-mode-map) minor-mode-map-alist)))
+
+(defvar gud-mode-map
+  ;; Will inherit from comint-mode via define-derived-mode.
+  (make-sparse-keymap)
+  "`gud-mode' keymap.")
 
 ;; ======================================================================
 ;; command definition
@@ -171,7 +210,7 @@ we're in the GUD buffer)."
 ;;
 ;; The job of the find-file method is to visit and return the buffer indicated
 ;; by the car of gud-tag-frame.  This may be a file name, a tag name, or
-;; something else.  It would be good if it also copied the Gud menubar entry.
+;; something else.
 
 ;; ======================================================================
 ;; speedbar support functions and variables.
@@ -330,40 +369,34 @@ off the specialized speedbar mode."
     output))
 
 (defun gud-gdb-find-file (f)
-  (save-excursion
-    (let ((buf (find-file-noselect f 'nowarn)))
-      (set-buffer buf)
-      (gud-make-debug-menu)
-      (local-set-key [menu-bar debug tbreak]
-		     '("Temporary Breakpoint" . gud-tbreak))
-      (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
-      (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
-      (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
-      buf)))
+  (find-file-noselect f 'nowarn))
 
-(defvar gdb-minibuffer-local-map nil
-  "Keymap for minibuffer prompting of gdb startup command.")
-(if gdb-minibuffer-local-map
-    ()
-  (setq gdb-minibuffer-local-map (copy-keymap minibuffer-local-map))
-  (define-key
-    gdb-minibuffer-local-map "\C-i" 'comint-dynamic-complete-filename))
+(easy-mmode-defmap gud-minibuffer-local-map
+  '(("\C-i" . comint-dynamic-complete-filename))
+  "Keymap for minibuffer prompting of gud startup command."
+  :inherit minibuffer-local-map)
+
+(defun gud-query-cmdline (minor-mode &optional init)
+  (let* ((hist-sym (gud-symbol 'history nil minor-mode))
+	 (cmd-name (gud-val 'command-name minor-mode)))
+    (unless (boundp hist-sym) (set hist-sym nil))
+    (read-from-minibuffer
+     (format "Run %s (like this): " minor-mode)
+     (or (car-safe (symbol-value hist-sym))
+	 (concat (or cmd-name (symbol-name minor-mode)) " " init))
+     gud-minibuffer-local-map nil
+     hist-sym)))
 
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive
-   (list (read-from-minibuffer "Run gdb (like this): "
-			       (if (consp gud-gdb-history)
-				   (car gud-gdb-history)
-				 "gdb ")
-			       gdb-minibuffer-local-map nil
-			       'gud-gdb-history)))
+  (interactive (list (gud-query-cmdline 'gdb)))
 
   (gud-common-init command-line 'gud-gdb-massage-args
 		   'gud-gdb-marker-filter 'gud-gdb-find-file)
+  (set (make-local-variable 'gud-minor-mode) 'gdb)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set temporary breakpoint at current line.")
@@ -646,27 +679,15 @@ BUFFER is the GUD buffer in which to run the command."
   string)
 
 (defun gud-sdb-find-file (f)
-  (save-excursion
-    (let ((buf (if gud-sdb-needs-tags
-		   (find-tag-noselect f)
-		 (find-file-noselect f))))
-      (set-buffer buf)
-      (gud-make-debug-menu)
-      (local-set-key [menu-bar debug tbreak] '("Temporary Breakpoint" . gud-tbreak))
-      buf)))
+  (if gud-sdb-needs-tags (find-tag-noselect f) (find-file-noselect f)))
 
 ;;;###autoload
 (defun sdb (command-line)
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive
-   (list (read-from-minibuffer "Run sdb (like this): "
-			       (if (consp gud-sdb-history)
-				   (car gud-sdb-history)
-				 "sdb ")
-			       nil nil
-			       'gud-sdb-history)))
+  (interactive (list (gud-query-cmdline 'sdb)))
+
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name)
 		     (stringp tags-file-name)
@@ -675,6 +696,7 @@ and source-file directory for your debugger."
 
   (gud-common-init command-line 'gud-sdb-massage-args
 		   'gud-sdb-marker-filter 'gud-sdb-find-file)
+  (set (make-local-variable 'gud-minor-mode) 'sdb)
 
   (gud-def gud-break  "%l b" "\C-b"   "Set breakpoint at current line.")
   (gud-def gud-tbreak "%l c" "\C-t"   "Set temporary breakpoint at current line.")
@@ -981,26 +1003,14 @@ This was tested using R4.11.")
   (save-excursion
     (let ((realf (gud-dbx-file-name f)))
       (if realf
-	  (let ((buf (find-file-noselect realf)))
-	    (set-buffer buf)
-	    (gud-make-debug-menu)
-	    (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
-	    (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
-	    buf)
-	nil))))
+	  (find-file-noselect realf)))))
 
 ;;;###autoload
 (defun dbx (command-line)
   "Run dbx on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive
-   (list (read-from-minibuffer "Run dbx (like this): "
-			       (if (consp gud-dbx-history)
-				   (car gud-dbx-history)
-				 "dbx ")
-			       nil nil
-			       'gud-dbx-history)))
+  (interactive (list (gud-query-cmdline 'dbx)))
 
   (cond
    (gud-mips-p
@@ -1015,6 +1025,8 @@ and source-file directory for your debugger."
    (t
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-dbx-marker-filter 'gud-dbx-find-file)))
+
+  (set (make-local-variable 'gud-minor-mode) 'dbx)
 
   (cond
    (gud-mips-p
@@ -1123,17 +1135,7 @@ containing the executable being debugged."
   (save-excursion
     (let ((realf (gud-xdb-file-name f)))
       (if realf
-	  (let ((buf (find-file-noselect realf)))
-	    (set-buffer buf)
-	    (gud-make-debug-menu)
-	    (local-set-key [menu-bar debug tbreak]
-			   '("Temporary Breakpoint" . gud-tbreak))
-	    (local-set-key [menu-bar debug finish]
-			   '("Finish Function" . gud-finish))
-	    (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
-	    (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
-	    buf)
-	nil))))
+	  (find-file-noselect realf)))))
 
 ;;;###autoload
 (defun xdb (command-line)
@@ -1143,16 +1145,11 @@ and source-file directory for your debugger.
 
 You can set the variable 'gud-xdb-directories' to a list of program source
 directories if your program contains sources from more than one directory."
-  (interactive
-   (list (read-from-minibuffer "Run xdb (like this): "
-			       (if (consp gud-xdb-history)
-				   (car gud-xdb-history)
-				 "xdb ")
-			       nil nil
-			       'gud-xdb-history)))
+  (interactive (list (gud-query-cmdline 'xdb)))
 
   (gud-common-init command-line 'gud-xdb-massage-args
 		   'gud-xdb-marker-filter 'gud-xdb-find-file)
+  (set (make-local-variable 'gud-minor-mode) 'xdb)
 
   (gud-def gud-break  "b %f:%l"    "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "b %f:%l\\t" "\C-t"
@@ -1274,11 +1271,7 @@ directories if your program contains sources from more than one directory."
     output))
 
 (defun gud-perldb-find-file (f)
-  (save-excursion
-    (let ((buf (find-file-noselect f)))
-      (set-buffer buf)
-      (gud-make-debug-menu)
-      buf)))
+  (find-file-noselect f))
 
 (defcustom gud-perldb-command-name "perl"
   "File name for executing Perl."
@@ -1291,19 +1284,12 @@ directories if your program contains sources from more than one directory."
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive
-   (list (read-from-minibuffer "Run perldb (like this): "
-			       (if (consp gud-perldb-history)
-				   (car gud-perldb-history)
-				 (concat gud-perldb-command-name
-					 " "
-					 (or (buffer-file-name)
-					     "-e 0")
-					 " "))
-			       nil nil
-			       'gud-perldb-history)))
+   (list (gud-query-cmdline 'perldb
+			    (concat (or (buffer-file-name) "-e 0") " "))))
 
   (gud-common-init command-line 'gud-perldb-massage-args
 		   'gud-perldb-marker-filter 'gud-perldb-find-file)
+  (set (make-local-variable 'gud-minor-mode) 'perldb)
 
   (gud-def gud-break  "b %l"         "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "d %l"         "\C-d" "Remove breakpoint at current line")
@@ -1317,8 +1303,7 @@ and source-file directory for your debugger."
 
   (setq comint-prompt-regexp "^  DB<+[0-9]+>+ ")
   (setq paragraph-start comint-prompt-regexp)
-  (run-hooks 'perldb-mode-hook)
-  )
+  (run-hooks 'perldb-mode-hook))
 
 ;; ======================================================================
 ;; pdb (Python debugger) functions
@@ -1395,22 +1380,7 @@ and source-file directory for your debugger."
     output))
 
 (defun gud-pdb-find-file (f)
-  (save-excursion
-    (let ((buf (find-file-noselect f)))
-      (set-buffer buf)
-      (gud-make-debug-menu)
-      ;; (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
-      ;; (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
-      ;; (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
-      buf)))
-
-(defvar pdb-minibuffer-local-map nil
-  "Keymap for minibuffer prompting of pdb startup command.")
-(if pdb-minibuffer-local-map
-    ()
-  (setq pdb-minibuffer-local-map (copy-keymap minibuffer-local-map))
-  (define-key
-    pdb-minibuffer-local-map "\C-i" 'comint-dynamic-complete-filename))
+  (find-file-noselect f))
 
 (defcustom gud-pdb-command-name "pdb"
   "File name for executing the Python debugger.
@@ -1424,15 +1394,11 @@ This should be an executable on your path, or an absolute file name."
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive
-   (list (read-from-minibuffer "Run pdb (like this): "
-			       (if (consp gud-pdb-history)
-				   (car gud-pdb-history)
-				 (concat gud-pdb-command-name " "))
-			       pdb-minibuffer-local-map nil
-			       'gud-pdb-history)))
+   (list (gud-query-cmdline 'pdb)))
 
   (gud-common-init command-line 'gud-pdb-massage-args
 		   'gud-pdb-marker-filter 'gud-pdb-find-file)
+  (set (make-local-variable 'gud-minor-mode) 'pdb)
 
   (gud-def gud-break  "break %l"     "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %l"     "\C-d" "Remove breakpoint at current line")
@@ -1911,15 +1877,11 @@ the source code display in sync with the debugging session.")
 if there is.  If the \"-classpath\" switch is given, omit all whitespace
 between it and it's value."
   (interactive
-   (list (read-from-minibuffer "Run jdb (like this): "
-			       (if (consp gud-jdb-history)
-				   (car gud-jdb-history)
-				 (concat gud-jdb-command-name " "))
-			       nil nil
-			       'gud-jdb-history)))
+   (list (gud-query-cmdline 'jdb)))
 
   (gud-common-init command-line 'gud-jdb-massage-args
 	   'gud-jdb-marker-filter 'gud-jdb-find-file)
+  (set (make-local-variable 'gud-minor-mode) 'jdb)
 
   (gud-def gud-break  "stop at %F:%l" "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %l" "\C-d" "Remove breakpoint at current line")
@@ -1991,7 +1953,7 @@ between it and it's value."
 
 (put 'gud-mode 'mode-class 'special)
 
-(defun gud-mode ()
+(define-derived-mode gud-mode comint-mode "Debugger"
   "Major mode for interacting with an inferior debugger process.
 
    You start it up with one of the commands M-x gdb, M-x sdb, M-x dbx,
@@ -2045,42 +2007,14 @@ commands.
 
 Other commands for interacting with the debugger process are inherited from
 comint mode, which see."
-  (interactive)
-  (comint-mode)
-  (setq major-mode 'gud-mode)
-  (setq mode-name "Debugger")
   (setq mode-line-process '(":%s"))
-  (use-local-map comint-mode-map)
-  (gud-make-debug-menu)
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
-  (make-local-variable 'gud-last-frame)
-  (setq gud-last-frame nil)
+  (set (make-local-variable 'gud-last-frame) nil)
   (make-local-variable 'comint-prompt-regexp)
   ;; Don't put repeated commands in command history many times.
-  (make-local-variable 'comint-input-ignoredups)
-  (setq comint-input-ignoredups t)
+  (set (make-local-variable 'comint-input-ignoredups) t)
   (make-local-variable 'paragraph-start)
-  (make-local-variable 'gud-delete-prompt-marker)
-  (setq gud-delete-prompt-marker (make-marker))
-  (run-hooks 'gud-mode-hook))
-
-;; Chop STRING into words separated by SPC or TAB and return a list of them.
-(defun gud-chop-words (string)
-  (let ((i 0) (beg 0)
-	(len (length string))
-	(words nil))
-    (while (< i len)
-      (if (memq (aref string i) '(?\t ? ))
-	  (progn
-	    (setq words (cons (substring string beg i) words)
-		  beg (1+ i))
-	    (while (and (< beg len) (memq (aref string beg) '(?\t ? )))
-	      (setq beg (1+ beg)))
-	    (setq i (1+ beg)))
-	(setq i (1+ i))))
-    (if (< beg len)
-	(setq words (cons (substring string beg) words)))
-    (nreverse words)))
+  (set (make-local-variable 'gud-delete-prompt-marker) (make-marker)))
 
 ;; Cause our buffers to be displayed, by default,
 ;; in the selected window.
@@ -2092,7 +2026,7 @@ comint mode, which see."
 ;; The other three args specify the values to use
 ;; for local variables in the debugger buffer.
 (defun gud-common-init (command-line massage-args marker-filter find-file)
-  (let* ((words (gud-chop-words command-line))
+  (let* ((words (split-string command-line))
 	 (program (car words))
 	 ;; Extract the file name from WORDS
 	 ;; and put t in its place.
@@ -2145,12 +2079,11 @@ comint mode, which see."
 
   (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
   (set-process-sentinel (get-buffer-process (current-buffer)) 'gud-sentinel)
-  (gud-set-buffer)
-  )
+  (gud-set-buffer))
 
 (defun gud-set-buffer ()
-  (cond ((eq major-mode 'gud-mode)
-	(setq gud-comint-buffer (current-buffer)))))
+  (when (eq major-mode 'gud-mode)
+    (setq gud-comint-buffer (current-buffer))))
 
 (defvar gud-filter-defer-flag nil
   "Non-nil means don't process anything from the debugger right now.
@@ -2400,21 +2333,6 @@ Obeying it means displaying in another window the specified file and line."
   (or gud-last-frame (setq gud-last-frame gud-last-last-frame))
   (gud-display-frame))
 
-
-(defun gud-new-keymap (map)
-  "Return a new keymap which inherits from MAP and has name `Gud'."
-  (nconc (make-sparse-keymap "Gud") map))
-
-(defun gud-make-debug-menu ()
-  "Make sure the current local map has a [menu-bar debug] submap.
-If it doesn't, replace it with a new map that inherits it,
-and create such a submap in that new map."
-  (use-local-map (gud-new-keymap (current-local-map)))
-  (define-key (current-local-map) [menu-bar]
-    (gud-new-keymap (lookup-key (current-local-map) [menu-bar])))
-  (define-key (current-local-map) [menu-bar debug]
-    (cons "Gud" (gud-new-keymap gud-menu-map))))
-
 ;;; Code for parsing expressions out of C code.  The single entry point is
 ;;; find-c-expr, which tries to return an lvalue expression from around point.
 ;;;
@@ -2445,8 +2363,7 @@ and create such a submap in that new map."
       (setq test-expr (gud-next-expr))
       (while (gud-expr-compound expr test-expr)
 	(setq expr (cons (car expr) (cdr test-expr)))
-	(setq test-expr (gud-next-expr))
-	)
+	(setq test-expr (gud-next-expr)))
       (buffer-substring (car expr) (cdr expr)))))
 
 (defun gud-innermost-expr ()
