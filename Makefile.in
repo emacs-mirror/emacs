@@ -51,6 +51,15 @@
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
+#
+# make bootstrap-build
+#      Recompiles changed Emacs Lisp files using the latest C source,
+#      then rebuilds Emacs.  This is faster than `make bootstrap'
+#      but once in a while an old .elc file can cause trouble.
+#
+# make bootfast
+#      Recompiles all the Emacs Lisp files using the latest source,
+#      then rebuilds Emacs.
 
 SHELL = /bin/sh
 
@@ -755,7 +764,8 @@ bootstrap-build: FRC
 bootstrap-clean-before: bootstrap-clean-before-fast FRC
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
 
-### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
+### Used for `bootfast' to avoid deleting existing dumped Emacs executables
+### and compiled .elc files.
 bootstrap-clean-before-fast: FRC
 	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
