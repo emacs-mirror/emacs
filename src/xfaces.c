@@ -6889,6 +6889,8 @@ face_at_buffer_position (w, pos, region_beg, region_end,
    BASE_FACE_ID is the id of a face to merge with.  For strings coming
    from overlays or the `display' property it is the face at BUFPOS.
 
+   If MOUSE_P is non-zero, use the character's mouse-face, not its face.
+
    Set *ENDPTR to the next position where to check for faces in
    STRING; -1 if the face is constant from POS to the end of the
    string.
@@ -6898,24 +6900,26 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
 int
 face_at_string_position (w, string, pos, bufpos, region_beg,
-			 region_end, endptr, base_face_id)
+			 region_end, endptr, base_face_id, mouse_p)
      struct window *w;
      Lisp_Object string;
      int pos, bufpos;
      int region_beg, region_end;
      int *endptr;
      enum face_id base_face_id;
+     int mouse_p;
 {
   Lisp_Object prop, position, end, limit;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   struct face *base_face;
   int multibyte_p = STRING_MULTIBYTE (string);
+  Lisp_Object prop_name = mouse_p ? Qmouse_face : Qface;
 
   /* Get the value of the face property at the current position within
      STRING.  Value is nil if there is no face property.  */
   XSETFASTINT (position, pos);
-  prop = Fget_text_property (position, Qface, string);
+  prop = Fget_text_property (position, prop_name, string);
 
   /* Get the next position at which to check for faces.  Value of end
      is nil if face is constant all the way to the end of the string.
@@ -6924,7 +6928,7 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
      changes in Fnext_single_property_change.  Strings are usually
      short, so set the limit to the end of the string.  */
   XSETFASTINT (limit, XSTRING (string)->size);
-  end = Fnext_single_property_change (position, Qface, string, limit);
+  end = Fnext_single_property_change (position, prop_name, string, limit);
   if (INTEGERP (end))
     *endptr = XFASTINT (end);
   else
