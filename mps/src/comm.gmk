@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.25) $
+# $HopeName: MMsrc!comm.gmk(trunk.26) $
 # Copyright (C) 1995,1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -11,16 +11,13 @@
 # PARAMETERS
 #
 # Assumes the following variables and definitions:
-# CFLAGSCOMPILER    a list of flags that should be passed
-#                   to the compiler for all compilations
-# CFLAGSHOT         a list of flags that should be passed
-#                   to the compiler for hot varieties
-# CFLAGSCOOL        a list of flags that should be passed
-#                   to the compiler for cool varieties
-# CFLAGSINTERNAL    a list of flags that should be passed
-#                   to the compiler for internal varieties
-# CFLAGSEXTERNAL    a list of flags that should be passed
-#                   to the compiler for external varieties
+# CFLAGSCOMPILER    a list of flags for all compilations
+# CFLAGSDEBUG       a list of flags for compilations with maximum debug
+#                   information, and any optimization possible
+# CFLAGSOPT         a list of flags for compilations with maximum
+#                   optimization, and any debug info possible
+# CFLAGSOPTNODEBUG  a list of flags for compilations with maximum
+#                   optimization, and absolutely no debug info
 # CC                the command for the C compiler
 # LINKFLAGS         a list of flags passed to the linker
 # gendep  optionally defined to be a command sequence for
@@ -59,17 +56,14 @@ endif
 ifndef CFLAGSCOMPILER
 error "comm.gmk: CFLAGSCOMPILER not defined"
 endif
-ifndef CFLAGSHOT
-error "comm.gmk: CFLAGSHOT not defined"
+ifndef CFLAGSDEBUG
+error "comm.gmk: CFLAGSDEBUG not defined"
 endif
-ifndef CFLAGSCOOL
-error "comm.gmk: CFLAGSCOOL not defined"
+ifndef CFLAGSOPT
+error "comm.gmk: CFLAGSOPT not defined"
 endif
-ifndef CFLAGSINTERNAL
-error "comm.gmk: CFLAGSINTERNAL not defined"
-endif
-ifndef CFLAGSEXTERNAL
-error "comm.gmk: CFLAGSEXTERNAL not defined"
+ifndef CFLAGSOPTNODEBUG
+error "comm.gmk: CFLAGSOPTNODEBUG not defined"
 endif
 
 #
@@ -124,12 +118,38 @@ CFLAGSCOMMON = \
 #            variety.
 
 # These flags are added to compilations for the indicated variety.
-CFHI = -DCONFIG_VAR_HI -DNDEBUG $(CFLAGSHOT)  $(CFLAGSINTERNAL)
-CFCI = -DCONFIG_VAR_CI          $(CFLAGSCOOL) $(CFLAGSINTERNAL)
-CFTI = -DCONFIG_VAR_TI          $(CFLAGSCOOL) $(CFLAGSINTERNAL)
-CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSHOT)  $(CFLAGSEXTERNAL) 
-CFCE = -DCONFIG_VAR_CE          $(CFLAGSCOOL) $(CFLAGSEXTERNAL)
-CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSHOT)  $(CFLAGSINTERNAL)
+CFHI = -DCONFIG_VAR_HI -DNDEBUG $(CFLAGSOPT)
+CFCI = -DCONFIG_VAR_CI          $(CFLAGSDEBUG)
+CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
+CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG) 
+CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
+CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSOPT)
+
+# Bind CFLAGS to the appropriate set of flags for the variety.
+# %%VARIETY: Add a test for the variety and set CFLAGS here.
+ifeq ($(VARIETY),ci)
+CFLAGS=$(CFLAGSCOMMON) $(CFCI)
+else
+ifeq ($(VARIETY),hi)
+CFLAGS=$(CFLAGSCOMMON) $(CFHI)
+else
+ifeq ($(VARIETY),ti)
+CFLAGS=$(CFLAGSCOMMON) $(CFTI)
+else
+ifeq ($(VARIETY),ce)
+CFLAGS=$(CFLAGSCOMMON) $(CFCE)
+else
+ifeq ($(VARIETY),he)
+CFLAGS=$(CFLAGSCOMMON) $(CFHE)
+else
+ifeq ($(VARIETY),wi)
+CFLAGS=$(CFLAGSCOMMON) $(CFWI)
+endif
+endif
+endif
+endif
+endif
+endif
 
 
 # == Common definitions ==
@@ -195,32 +215,6 @@ PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTOBJ = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.o)
 EVENTDEP = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.d)
-endif
-
-# Bind CFLAGS to the appropriate set of flags for the variety.
-# %%VARIETY: Add a test for the variety and set CFLAGS here.
-ifeq ($(VARIETY),ci)
-CFLAGS=$(CFLAGSCOMMON) $(CFCI)
-else
-ifeq ($(VARIETY),hi)
-CFLAGS=$(CFLAGSCOMMON) $(CFHI)
-else
-ifeq ($(VARIETY),ti)
-CFLAGS=$(CFLAGSCOMMON) $(CFTI)
-else
-ifeq ($(VARIETY),ce)
-CFLAGS=$(CFLAGSCOMMON) $(CFCE)
-else
-ifeq ($(VARIETY),he)
-CFLAGS=$(CFLAGSCOMMON) $(CFHE)
-else
-ifeq ($(VARIETY),wi)
-CFLAGS=$(CFLAGSCOMMON) $(CFWI)
-endif
-endif
-endif
-endif
-endif
 endif
 
 
