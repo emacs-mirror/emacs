@@ -1,3 +1,25 @@
+2000-08-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.h (struct re_pattern_buffer): Use size_t for used/allocated.
+
+	* regex.c: Merge some changes from GNU libc.  Add prototypes.
+	(bcopy, bcmp, REGEX_REALLOCATE, re_match_2_internal):
+	Use memcmp and memcpy instead of bcopy and bcmp.
+	(init_syntax_once): Use ISALNUM.
+	(PUSH_FAILURE_POINT, re_match_2_internal): Remove failure_id.
+	(REG_UNSET_VALUE): Remove.  Use NULL instead.
+	(REG_UNSET, re_match_2_internal): Use NULL.
+	(SET_HIGH_BOUND, MOVE_BUFFER_POINTER, ELSE_EXTEND_BUFFER_HIGH_BOUND):
+	New macros.
+	(EXTEND_BUFFER): Use them (to work with BOUNDED_POINTERS).
+	(GET_UNSIGNED_NUMBER): Don't use ISDIGIT.
+	(regex_compile): In handle_interval, return an error rather than try to
+	unfetch the interval if we can't find the closing brace.
+	Obey the RE_NO_GNU_OPS syntax bit.
+	(TOLOWER): New macro.
+	(regcomp): Use it.
+	(regexec): Allocate regs.start and regs.end as one block.
+
 2000-08-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (echo_area_display): Check display_completed instead
