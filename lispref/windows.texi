@@ -1490,6 +1490,8 @@ This function sets @var{window}'s vertical scroll position to
 @var{lines}.  The argument @var{lines} should be zero or positive; if
 not, it is taken as zero.
 
+If @var{window} is @code{nil}, the selected window is used.
+
 The actual vertical scroll position must always correspond
 to an integral number of pixels, so the value you specify
 is rounded accordingly.
