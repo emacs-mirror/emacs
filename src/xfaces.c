@@ -724,15 +724,19 @@ sort_overlays (s1, s2)
    F is the frame in use for display, and W is a window displaying
    the current buffer.
 
-   REGION_BEG, REGION_END delimit the region, so it can be highlighted.  */
+   REGION_BEG, REGION_END delimit the region, so it can be highlighted.
+
+   LIMIT is a position not to scan beyond.  That is to limit
+   the time this function can take.  */
 
 int
-compute_char_face (f, w, pos, region_beg, region_end, endptr)
+compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
      struct frame *f;
      struct window *w;
      int pos;
      int region_beg, region_end;
      int *endptr;
+     int limit;
 {
   struct face face;
   Lisp_Object prop, position;
@@ -757,9 +761,10 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
   XFASTINT (position) = pos;
   prop = Fget_text_property (position, Qface, w->buffer);
   {
-    Lisp_Object end;
+    Lisp_Object limit1, end;
 
-    end = Fnext_single_property_change (position, Qface, w->buffer);
+    XFASTINT (limit1) = (limit < endpos ? limit : endpos);
+    end = Fnext_single_property_change (position, Qface, w->buffer, limit1);
     if (INTEGERP (end))
       endpos = XINT (end);
   }
