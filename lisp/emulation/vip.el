@@ -293,9 +293,6 @@ If nil then it is bound to `delete-backward-char'."
 (define-key vip-mode-map "~" 'vip-nil)
 (define-key vip-mode-map "\177" 'vip-delete-backward-char)
 
-(define-key ctl-x-map "3" 'vip-buffer-in-two-windows)
-(define-key ctl-x-map "\C-i" 'insert-file)
-
 (defun vip-version ()
   (interactive)
   (message "VIP version 3.5 of September 15, 1987"))
@@ -303,7 +300,11 @@ If nil then it is bound to `delete-backward-char'."
 
 ;; basic set up
 
-(global-set-key "\C-z" 'vip-change-mode-to-vi)
+;;;###autoload
+(defun vip-setup ()
+  "Set up bindings for C-x 7 and C-z that are useful for VIP users."
+  (define-key ctl-x-map "7" 'vip-buffer-in-two-windows)
+  (global-set-key "\C-z" 'vip-change-mode-to-vi))
 
 (defmacro vip-loop (count body)
   "(COUNT BODY) Execute BODY COUNT times."
