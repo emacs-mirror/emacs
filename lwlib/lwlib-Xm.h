@@ -11,6 +11,9 @@ xm_create_dialog (/* widget_instance* instance */);
 Boolean
 lw_motif_widget_p (/* Widget widget */);
 
+Boolean
+lw_motif_menu_related_event_p (/* XEvent *event */);
+
 void
 xm_update_one_widget (/* widget_instance* instance, Widget widget,
 		      widget_value* val, Boolean deep_p */);
