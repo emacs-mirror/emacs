@@ -823,9 +823,6 @@ the file name using normal read-file-name style."
 (defvar  ido-buffer-history nil
   "History of buffers selected using `ido-switch-buffer'.")
 
-(defvar ido-xemacs  (string-match "XEmacs" (emacs-version))
-  "Non-nil if we are running XEmacs.  Otherwise, assume we are running Emacs.")
-
 (defvar ido-last-directory-list nil
   "List of last selected directory paths.
 See `ido-enable-last-directory-history' for details.")
@@ -2925,7 +2922,7 @@ for first matching file."
 				    (ido-all-completions))
 				   (t
 				    (copy-sequence (or ido-matches ido-cur-list)))))))
-	    (if ido-xemacs 
+	    (if (featurep 'xemacs)
 		;; XEmacs extents are put on by default, doesn't seem to be
 		;; any way of switching them off.
 		;; This obscure code avoids a byte compiler warning in Emacs.
@@ -3003,7 +3000,7 @@ Record command in command-history if optional RECORD is non-nil."
 	    (select-frame-set-input-focus newframe)
 	  (raise-frame newframe)
 	  (select-frame newframe)
-	  (if (not ido-xemacs)
+	  (unless (featurep 'xemacs)
 	    (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
 	(select-window win))
        (t
@@ -3022,13 +3019,10 @@ Record command in command-history if optional RECORD is non-nil."
       (display-buffer buffer))
 
      ((eq method 'otherframe)
-      (progn
-	(switch-to-buffer-other-frame buffer)
-	(if (not ido-xemacs)
-	    (if (fboundp 'select-frame-set-input-focus)
-		(select-frame-set-input-focus (selected-frame))
-	      (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
-	)))))
+      (switch-to-buffer-other-frame buffer)
+      (unless (featurep 'xemacs)
+	(select-frame-set-input-focus (selected-frame)))
+      ))))
 
 
 (defun ido-window-buffer-p  (buffer)
@@ -3570,11 +3564,12 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
   "Minibuffer setup hook for `ido'."
   ;; Copied from `icomplete-minibuffer-setup-hook'.
   (when (and (boundp 'ido-completing-read) 
-	     (or ido-xemacs (= ido-use-mycompletion-depth (minibuffer-depth))))
+	     (or (featurep 'xemacs)
+		 (= ido-use-mycompletion-depth (minibuffer-depth))))
     (add-hook 'pre-command-hook 'ido-tidy nil t)
     (add-hook 'post-command-hook 'ido-exhibit nil t)
     (setq cua-inhibit-cua-keys t)
-    (when ido-xemacs
+    (when (featurep 'xemacs)
       (ido-exhibit)
       (goto-char (point-min)))
     (run-hooks 'ido-minibuffer-setup-hook)))
