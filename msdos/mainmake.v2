@@ -32,7 +32,7 @@
 # Generate a full pathname of the top-level installation directory
 topdir := $(subst \,/,$(shell cd))
 
-all:	lib-src src
+all:	lib-src src man
 
 lib-src: FRC
 	cd lib-src
@@ -54,8 +54,13 @@ src: FRC
 	rm -f gdb.tmp gdb.sed
 	cd ..
 
+man:	FRC
+	cd man
+	$(MAKE)
+	cd ..
+
 install: all
-	if not exist bin\\nul md bin
+	if not exist bin\nul md bin
 	cd lib-src
 	if exist hexl.exe mv -f hexl.exe ../bin
 	if exist etags.exe mv -f etags.exe ../bin
