@@ -1,3 +1,108 @@
+2003-01-31  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: Bug fixes, miscellaneous.
+	(antlr-mode): Make major mode work with cc-mode-5.29 or higher,
+	make it more rubust against changes in cc-mode's style variables
+	by using `boundp' and function `c-init-language-vars' if defined.
+	(antlr-c++-mode-extra): Only ask if language is not "Cpp".
+	(antlr-read-value): With completion, ignore case.
+	(antlr-run-tool-interactive): New function.
+	(antlr-run-tool): Use it for `interactive' specification.
+
+	* antlr-mode.el: Simplify Emacs/XEmacs compatibility.
+	(cond-emacs-xemacs): New compile-time macro.
+	(defunx): New compile-time macro.
+	(ignore-errors-x): New compile-time macro.
+	(save-buffer-state-x): New compile-time macro.
+
+ 	(antlr-scan-sexps, antlr-simple-scan-sexps): Deletia.
+	(antlr-scan-lists, antlr-simple-scan-sexps): Deletia.
+	(antlr-simple-default-directory): Deletia.
+	(antlr-default-directory): Define directly.
+	(antlr-simple-read-shell-command): Deletia.
+	(antlr-read-shell-command): Define directly.
+	(antlr-simple-with-displaying-help-buffer): Deletia.
+	(antlr-with-displaying-help-buffer): Define directly.
+	(antlr-fast-invalidate-context-cache): Deletia.
+	(antlr-slow-invalidate-context-cache): Deletia.
+	(antlr-invalidate-context-cache): Define directly.
+	(antlr-fast-syntactic-context): Deletia.
+	(antlr-slow-syntactic-context): Deletia.
+	(antlr-syntactic-context): Define directly.
+
+	(antlr-mode-menu): Use new macros.
+	(antlr-font-lock-additional-keywords): Ditto.
+	(antlr-skip-sexps): Ditto.
+	(antlr-end-of-rule): Ditto.
+	(antlr-beginning-of-rule): Ditto.
+	(antlr-end-of-body): Ditto.
+	(antlr-beginning-of-body): Ditto.
+	(antlr-hide-actions): Ditto.
+	(antlr-option-kind): Ditto.
+
+	* antlr-mode.el: In Emacs, use face attribute :weight, not :bold.
+	(antlr-font-lock-keyword-face): Use new macros.
+	(antlr-font-lock-syntax-face): Ditto.
+	(antlr-font-lock-ruledef-face): Ditto.
+	(antlr-font-lock-tokendef-face): Ditto.
+	(antlr-font-lock-literal-face): Ditto.
+
+	Changes from 2002-05-24:
+
+	* antlr-mode.el: Version 2.2a.
+
+	Changes from 2002-05-03:
+
+	* antlr-mode.el: Make context parsing faster on Emacs, for faster
+	syntax highlighting, indentation and imenu support.
+	Suggested by Aaron Davies <adavies42@users.sourceforge.net>.
+	(antlr-slow-context-cache): New variable.
+	(antlr-slow-syntactic-context): Use cache.
+	(antlr-slow-cache-enabling-symbol): New internal variable.
+	(antlr-slow-cache-diff-threshold): New variable.
+	(antlr-fast-invalidate-context-cache): Renamed from
+	antlr-xemacs-bug-workaround.
+	(antlr-imenu-create-index-function): Search from beginning.
+
+	* antlr-mode.el: More sophisticated indentation, i.e., use the
+	indentation engine of cc-mode for most actions.
+	(antlr-c-common-init): Allow nil for `antlr-indent-style'.
+	(antlr-indent-line): Use indentation engine of cc-mode more often.
+	(antlr-indent-at-bol-alist): Only used for header actions.
+	(antlr-disabling-cc-syntactic-symbols): New variable.
+	(antlr-indent-item-regexp): Delete stuff for actions.
+	(antlr-indent-at-bol-alist): With language "Java", indent
+	"package" and "import" at column 0 in header part.
+
+	* antlr-mode.el (antlr-simple-default-directory): Define.
+	(antlr-simple-read-shell-command): Define.
+	(antlr-simple-with-displaying-help-buffer): Define.
+	(antlr-simple-scan-sexps, antlr-simple-scan-lists):
+	Renamed from antlr-scan-{sexps,lists}-internal.
+
+	Changes from 2002-02-28:
+
+	* antlr-mode: Version 2.2 is released.
+
+	* antlr-mode.el (antlr): Moved to SourceForge.net
+
+	Changes from 2002-02-28:
+
+	* antlr-mode.el: Minor bug fixes: insert options and indentation.
+	(antlr-option-location): Don't use point as position where to
+	insert options if point is in comment.
+	(antlr-mode): Don't set style here.
+	(antlr-c-common-init): Set style here.  If boundp, set
+	`c-current-comment-prefix' to not break indentation in comments.
+	Hm, I should probably split `c-common-init' from cc-mode into two
+	parts, one of which I could use for antlr-mode.el.
+
+	Changes from 2002-01-31:
+
+	* antlr-mode.el (antlr-font-lock-additional-keywords): Also
+	hightlight `~' with `antlr-font-lock-syntax-face'.
+	Suggested by Helmut Neukirchen <neukirchen@itm.mu-luebeck.de>.
+
 2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
 
 	* comint.el:
