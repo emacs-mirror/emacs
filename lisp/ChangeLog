@@ -1,3 +1,15 @@
+2000-07-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mouse-map): Use `map' instead
+	of flyspell-mouse-map.
+
+	* progmodes/make-mode.el (makefile-mode-abbrev-table): Remove
+	duplicate definition.
+	(makefile-mode): Remove duplicate setting of local-abbrev-table.
+
+	* progmodes/m4-mode.el (m4-mode-abbrev-table): New variable.
+	(m4-mode): Set local-abbrev-table to m4-mode-abbrev-table.
+
 2000-07-25  Sam Steingold  <sds@gnu.org>
 
 	* net/ange-ftp.el: Get modtime over the net.
