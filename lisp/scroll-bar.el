@@ -56,6 +56,8 @@ that scroll bar position."
 
 ;;;; Helpful functions for enabling and disabling scroll bars.
 
+(defvar scroll-bar-mode)
+
 (defun set-scroll-bar-mode (ignore value)
   "Set `scroll-bar-mode' to VALUE and put the new value into effect."
   (setq scroll-bar-mode value)
