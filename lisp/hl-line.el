@@ -53,6 +53,10 @@
 ;; selected window.  (It does so rather than keeping track of changes
 ;; in the selected window).
 
+;; You could make variable `global-hl-line-mode' buffer-local and set
+;; it to nil to avoid highlighting specific buffers, when the global
+;; mode is used.
+
 ;;; Code:
 
 (defgroup hl-line nil
