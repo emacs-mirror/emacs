@@ -2289,7 +2289,7 @@ send_process (proc, buf, len)
 
 	/* Don't send more than pty_max_bytes bytes at a time.  */
 	/* Subtract 1 to leave room for the EOF.  */
-	if (this >= pty_max_bytes && XPROCESS (proc)->pty_flag != 0)
+	if (this >= pty_max_bytes && !NILP (XPROCESS (proc)->pty_flag))
 	  this = pty_max_bytes - 1;
 
 	old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
