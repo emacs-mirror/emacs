@@ -120,7 +120,7 @@ update_syntax_table (charpos, count, init, object)
      Lisp_Object object;
 {
   Lisp_Object tmp_table;
-  int cnt = 0, doing_extra = 0, invalidate = 1;
+  int cnt = 0, invalidate = 1;
   INTERVAL i, oldi;
 
   if (init)
@@ -345,8 +345,6 @@ static int
 find_defun_start (pos, pos_byte)
      int pos, pos_byte;
 {
-  int tem;
-  int shortage;
   int opoint = PT, opoint_byte = PT_BYTE;
 
   /* Use previous finding, if it's valid and applies to this inquiry.  */
@@ -480,7 +478,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
      that determines quote parity to the comment-end.  */
   while (from != stop)
     {
-      int temp_byte, prev_comend_second;
+      int temp_byte;
 
       /* Move back and examine a character.  */
       DEC_BOTH (from, from_byte);
@@ -565,10 +563,12 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	 (because they go with the earlier comment-ender).  */
       if (code == Sendcomment
 	  && SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)) == comstyle)
-	if (comnested)
-	  nesting++;
-	else
-	  break;
+	{
+	  if (comnested)
+	    nesting++;
+	  else
+	    break;
+	}
 
       /* Assume a defun-start point is outside of strings.  */
       if (code == Sopen
@@ -955,7 +955,7 @@ describe_syntax (value)
     Lisp_Object value;
 {
   register enum syntaxcode code;
-  char desc, match, start1, start2, end1, end2, prefix, comstyle;
+  char desc, start1, start2, end1, end2, prefix, comstyle;
   char str[2];
   Lisp_Object first, match_lisp;
 
@@ -1304,7 +1304,6 @@ skip_chars (forwardp, syntaxp, string, lim)
      int forwardp, syntaxp;
      Lisp_Object string, lim;
 {
-  register unsigned char *p, *pend;
   register unsigned int c;
   register int ch;
   unsigned char fastmap[0400];
@@ -1705,16 +1704,18 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style
 	  && (c1 = FETCH_CHAR (from_byte),
 	      SYNTAX_COMEND_SECOND (c1)))
-	if (--nesting <= 0)
-	  /* we have encountered a comment end of the same style
-	     as the comment sequence which began this comment
-	     section */
-	  break;
-	else
-	  {
-	    INC_BOTH (from, from_byte);
-	    UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  }
+	{
+	  if (--nesting <= 0)
+	    /* we have encountered a comment end of the same style
+	       as the comment sequence which began this comment
+	       section */
+	    break;
+	  else
+	    {
+	      INC_BOTH (from, from_byte);
+	      UPDATE_SYNTAX_TABLE_FORWARD (from);
+	    }
+	}
       if (nesting > 0
 	  && from < stop
 	  && SYNTAX_FLAGS_COMSTART_FIRST (syntax)
