@@ -1720,23 +1720,44 @@ spaces are put between sequence elements, etc.")
 	}
       keys = vector;
     }
-  else if (!VECTORP (keys))
-    keys = wrong_type_argument (Qarrayp, keys);
 
-  /* In effect, this computes
-     (mapconcat 'single-key-description keys " ")
-     but we shouldn't use mapconcat because it can do GC.  */
-
-  len = XVECTOR (keys)->size;
-  sep = build_string (" ");
-  /* This has one extra element at the end that we don't pass to Fconcat.  */
-  args = (Lisp_Object *) alloca (len * 2 * sizeof (Lisp_Object));
-
-  for (i = 0; i < len; i++)
+  if (VECTORP (keys))
     {
-      args[i * 2] = Fsingle_key_description (XVECTOR (keys)->contents[i]);
-      args[i * 2 + 1] = sep;
+      /* In effect, this computes
+	 (mapconcat 'single-key-description keys " ")
+	 but we shouldn't use mapconcat because it can do GC.  */
+
+      len = XVECTOR (keys)->size;
+      sep = build_string (" ");
+      /* This has one extra element at the end that we don't pass to Fconcat.  */
+      args = (Lisp_Object *) alloca (len * 2 * sizeof (Lisp_Object));
+
+      for (i = 0; i < len; i++)
+	{
+	  args[i * 2] = Fsingle_key_description (XVECTOR (keys)->contents[i]);
+	  args[i * 2 + 1] = sep;
+	}
     }
+  else if (CONSP (keys))
+    {
+      /* In effect, this computes
+	 (mapconcat 'single-key-description keys " ")
+	 but we shouldn't use mapconcat because it can do GC.  */
+
+      len = XFASTINT (Flength (keys));
+      sep = build_string (" ");
+      /* This has one extra element at the end that we don't pass to Fconcat.  */
+      args = (Lisp_Object *) alloca (len * 2 * sizeof (Lisp_Object));
+
+      for (i = 0; i < len; i++)
+	{
+	  args[i * 2] = Fsingle_key_description (XCONS (keys)->car);
+	  args[i * 2 + 1] = sep;
+	  keys = XCONS (keys)->cdr;
+	}
+    }
+  else
+    keys = wrong_type_argument (Qarrayp, keys);
 
   return Fconcat (len * 2 - 1, args);
 }
@@ -1855,6 +1876,9 @@ Control characters turn into C-whatever, etc.")
   (key)
      Lisp_Object key;
 {
+  if (CONSP (key) && lucid_event_type_list_p (key))
+    key = Fevent_convert_list (key);
+
   key = EVENT_HEAD (key);
 
   if (INTEGERP (key))		/* Normal character */
