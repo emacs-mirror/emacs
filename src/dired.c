@@ -570,7 +570,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		    if (!STRINGP (elt))
 		      continue;
 		    elt_len = XSTRING (elt)->size - 1; /* -1 for trailing / */
-		    if (elt_len == 0)
+		    if (elt_len <= 0)
 		      continue;
 		    p1 = XSTRING (elt)->data;
 		    if (p1[elt_len] != '/')
