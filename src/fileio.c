@@ -2020,9 +2020,20 @@ before the error is signaled.")
 
   record_unwind_protect (close_file_unwind, make_number (fd));
 
+#ifdef S_IFSOCK
+  /* This code will need to be changed in order to work on named
+     pipes, and it's probably just not worth it.  So we should at
+     least signal an error.  */
+  if ((st.st_mode & S_IFMT) == S_IFSOCK)
+    Fsignal (Qfile_error,
+	     Fcons (build_string ("reading from named pipe"),
+		    Fcons (filename, Qnil)));
+#endif
+
   /* Supposedly happens on VMS.  */
   if (st.st_size < 0)
     error ("File size is negative");
+
   {
     register Lisp_Object temp;
 
