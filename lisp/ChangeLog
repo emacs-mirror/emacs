@@ -1,5 +1,7 @@
 2005-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* speedbar.el: Avoid unnecessary use of locate-library.
+
 	* international/mule-cmds.el (standard-display-european-internal):
 	Don't fiddle with latin-1 non-break space any more since it's now
 	special cased in the C code.
