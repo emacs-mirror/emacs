@@ -333,11 +333,12 @@ message."
   (dolist (proc (server-clients-with 'display display))
     (server-log (format "server-handle-suspend-tty, display %s" display) proc)
     (condition-case err
-	(process-send-string proc "-suspend \n")
+	(server-send-string proc "-suspend \n")
       (file-error (condition-case nil (server-delete-client proc) (error nil))))))
 
 (defun server-unquote-arg (arg)
-  "Remove &-quotation from ARG."
+  "Remove &-quotation from ARG.
+See `server-quote-arg' and `server-process-filter'."
   (replace-regexp-in-string
    "&." (lambda (s)
 	  (case (aref s 1)
@@ -350,7 +351,9 @@ message."
 (defun server-quote-arg (arg)
   "In ARG, insert a & before each &, each space, each newline, and -.
 Change spaces to underscores, too, so that the return value never
-contains a space."
+contains a space.
+
+See `server-unquote-arg' and `server-process-filter'."
   (replace-regexp-in-string
    "[-&\n ]" (lambda (s)
 	       (case (aref s 0)
@@ -359,6 +362,11 @@ contains a space."
 		 (?\n "&n")
 		 (?\s "&_")))
    arg t t))
+
+(defun server-send-string (proc string)
+  "A wrapper around `proc-send-string' for logging."
+  (server-log (concat "Sent " string) proc)
+  (process-send-string proc string))
 
 (defun server-ensure-safe-dir (dir)
   "Make sure DIR is a directory with no race-condition issues.
@@ -443,8 +451,99 @@ Server mode runs a process that accepts commands from the
 
 (defun server-process-filter (proc string)
   "Process a request from the server to edit some files.
-PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
-  (server-log string proc)
+PROC is the server process.  STRING consists of a sequence of
+commands prefixed by a dash.  Some commands have arguments; these
+are &-quoted and need to be decoded by `server-unquote-arg'.  The
+filter parses and executes these commands.
+
+To illustrate the protocol, here is an example command that
+emacsclient sends to create a new X frame (note that the whole
+sequence is sent on a single line):
+
+	-version 21.3.50 xterm
+	-env HOME /home/lorentey
+	-env DISPLAY :0.0
+	... lots of other -env commands
+	-display :0.0
+	-window-system
+
+The server normally sends back the single command `-good-version'
+as a response.
+
+The following commands are accepted by the server:
+
+`-version CLIENT-VERSION'
+  Check version numbers between server and client, and signal an
+  error if there is a mismatch.  The server replies with
+  `-good-version' to confirm the match.
+
+`-env NAME VALUE'
+  An environment variable on the client side.
+
+`-nowait'
+  Request that the next frame created should not be
+  associated with this client.
+
+`-display DISPLAY'
+  Set the display name to open X frames on.
+
+`-position LINE[:COLUMN]'
+  Go to the given line and column number
+  in the next file opened.
+
+`-file FILENAME'
+  Load the given file in the current frame.
+
+`-eval EXPR'
+  Evaluate EXPR as a Lisp expression and return the
+  result in -print commands.
+
+`-window-system'
+  Open a new X frame.
+
+`-tty DEVICENAME TYPE'
+  Open a new tty frame at the client.
+
+`-resume'
+  Resume this tty frame. The client sends this string when it
+  gets the SIGCONT signal and it is the foreground process on its
+  controlling tty.
+
+`-suspend'
+  Suspend this tty frame.  The client sends this string in
+  response to SIGTSTP and SIGTTOU.  The server must cease all I/O
+  on this tty until it gets a -resume command.
+
+`-ignore COMMENT'
+  Do nothing, but put the comment in the server
+  log.  Useful for debugging.
+
+
+The following commands are accepted by the client:
+
+`-good-version'
+  Signals a version match between the client and the server.
+
+`-emacs-pid PID'
+  Describes the process id of the Emacs process;
+  used to forward window change signals to it.
+
+`-window-system-unsupported'
+  Signals that the server does not
+  support creating X frames; the client must try again with a tty
+  frame.
+
+`-print STRING'
+  Print STRING on stdout.  Used to send values
+  returned by -eval.
+
+`-error DESCRIPTION'
+  Signal an error (but continue processing).
+
+`-suspend'
+  Suspend this terminal, i.e., stop the client process.  Sent
+  when the user presses C-z."
+  (server-log (concat "Received " string) proc)
   (let ((prev (process-get proc 'previous-string)))
     (when prev
       (setq string (concat prev string))
@@ -483,7 +582,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		    (setq request (substring request (match-end 0)))
 		    (if (equal client-version truncated-emacs-version)
 			(progn
-			  (process-send-string proc "-good-version \n")
+			  (server-send-string proc "-good-version \n")
 			  (server-client-set client 'version client-version))
 		      (error (concat "Version mismatch: Emacs is "
 				     truncated-emacs-version
@@ -502,20 +601,26 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		 ((equal "-window-system" arg)
 		  (unless (server-client-get client 'version)
 		    (error "Protocol error; make sure to use the correct version of emacsclient"))
-		  (setq frame (make-frame-on-display
-			       (or display
-				   (frame-parameter nil 'display)
-				   (getenv "DISPLAY")
-				   (error "Please specify display"))
-			       (list (cons 'client proc))))
-		  ;; XXX We need to ensure the client parameter is
-		  ;; really set because Emacs forgets initialization
-		  ;; parameters for X frames at the moment.
-		  (modify-frame-parameters frame (list (cons 'client proc)))
-		  (select-frame frame)
-		  (server-client-set client 'frame frame)
-		  (server-client-set client 'display (frame-display frame))
-		  (setq dontkill t))
+		  (if (fboundp 'x-create-frame)
+		      (progn
+			(setq frame (make-frame-on-display
+				     (or display
+					 (frame-parameter nil 'display)
+					 (getenv "DISPLAY")
+					 (error "Please specify display"))
+				     (list (cons 'client proc))))
+			;; XXX We need to ensure the client parameter is
+			;; really set because Emacs forgets initialization
+			;; parameters for X frames at the moment.
+			(modify-frame-parameters frame (list (cons 'client proc)))
+			(select-frame frame)
+			(server-client-set client 'frame frame)
+			(server-client-set client 'display (frame-display frame))
+			(setq dontkill t))
+		    ;; This emacs does not support X.
+		    (server-log "Window system unsupported" proc)
+		    (server-send-string proc "-window-system-unsupported \n")
+		    (setq dontkill t)))
 
 		 ;; -resume:  Resume a suspended tty frame.
 		 ((equal "-resume" arg)
@@ -562,7 +667,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		    ;; Set up display for the remote locale.
 		    (configure-display-for-locale)
 		    ;; Reply with our pid.
-		    (process-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
+		    (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
 		    (setq dontkill t)))
 
 		 ;; -position LINE:  Go to the given line in the next file.
@@ -598,12 +703,11 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 			(with-temp-buffer
 			  (let ((standard-output (current-buffer)))
 			    (pp v)
-			    (process-send-string proc "-print ")
-			    (process-send-string
-			     proc (server-quote-arg
-				   (buffer-substring-no-properties (point-min)
-								   (point-max))))
-			    (process-send-string proc "\n")))))
+			    (server-send-string
+			     proc (format "-print %s\n"
+					  (server-quote-arg
+					   (buffer-substring-no-properties (point-min)
+									   (point-max)))))))))
 		    (setq lineno 1
 			  columnno 0)))
 
@@ -657,7 +761,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (process-put proc 'previous-string string)))
     ;; condition-case
     (error (ignore-errors
-	     (process-send-string
+	     (server-send-string
 	      proc (concat "-error " (server-quote-arg (error-message-string err))))
 	     (setq string "")
 	     (server-log (error-message-string err) proc)

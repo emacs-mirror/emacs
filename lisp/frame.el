@@ -584,7 +584,7 @@ The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
   (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
       (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
-  (unless x-initialized
+  (when (and (boundp 'x-initialized) (not x-initialized))
     (setq x-display-name display)
     (x-initialize-window-system))
   (make-frame `((window-system . x) (display . ,display) . ,parameters)))

@@ -704,6 +704,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       }
   }
 
+ retry:
   if (nowait)
     fprintf (out, "-nowait ");
 
@@ -832,14 +833,25 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
       if (strprefix ("-good-version ", str))
         {
-          /* OK, we got the green light. */
+          /* -good-version: The versions match. */
         }
       else if (strprefix ("-emacs-pid ", str))
         {
+          /* -emacs-pid PID: The process id of the Emacs process. */
           emacs_pid = strtol (string + strlen ("-emacs-pid"), NULL, 10);
+        }
+      else if (strprefix ("-window-system-unsupported ", str))
+        {
+          /* -window-system-unsupported: Emacs was compiled without X
+              support.  Try again on the terminal. */
+          window_system = 0;
+          nowait = 0;
+          tty = 1;
+          goto retry;
         }
       else if (strprefix ("-print ", str))
         {
+          /* -print STRING: Print STRING on the terminal. */
           str = unquote_argument (str + strlen ("-print "));
           if (needlf)
             printf ("\n");
@@ -848,6 +860,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
         }
       else if (strprefix ("-error ", str))
         {
+          /* -error DESCRIPTION: Signal an error on the terminal. */
           str = unquote_argument (str + strlen ("-error "));
           if (needlf)
             printf ("\n");
@@ -856,6 +869,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
         }
       else if (strprefix ("-suspend ", str))
         {
+          /* -suspend: Suspend this terminal, i.e., stop the process. */
           if (needlf)
             printf ("\n");
           needlf = 0;
@@ -863,6 +877,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
         }
       else
         {
+          /* Unknown command. */
           if (needlf)
             printf ("\n");
           printf ("*ERROR*: Unknown message: %s", str);
