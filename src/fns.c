@@ -148,13 +148,17 @@ To get the number of bytes, use `string-bytes'")
     XSETFASTINT (val, XVECTOR (sequence)->size & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (sequence))
     {
-      for (i = 0, tail = sequence; !NILP (tail); i++)
+      for (i = 0; CONSP (sequence); ++i)
 	{
-	  QUIT;
-	  tail = Fcdr (tail);
+	  if ((i & 0xff) == 0)
+	    QUIT;
+	  sequence = XCDR (sequence);
 	}
 
-      XSETFASTINT (val, i);
+      if (!NILP (sequence))
+	wrong_type_argument (Qlistp, sequence);
+
+      val = make_number (i);
     }
   else if (NILP (sequence))
     XSETFASTINT (val, 0);
@@ -1314,21 +1318,33 @@ The value is actually the tail of LIST whose car is ELT.")
 }
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
-  "Return non-nil if ELT is an element of LIST.  Comparison done with EQ.\n\
-The value is actually the tail of LIST whose car is ELT.")
+  "Return non-nil if ELT is an element of LIST.\n\
+Comparison done with EQ.  The value is actually the tail of LIST\n\
+whose car is ELT.")
   (elt, list)
-     register Lisp_Object elt;
-     Lisp_Object list;
+     Lisp_Object elt, list;
 {
-  register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  while (1)
     {
-      register Lisp_Object tem;
-      tem = Fcar (tail);
-      if (EQ (elt, tem)) return tail;
+      if (!CONSP (list) || EQ (XCAR (list), elt))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list) || EQ (XCAR (list), elt))
+	break;
+
+      list = XCDR (list);
+      if (!CONSP (list) || EQ (XCAR (list), elt))
+	break;
+
+      list = XCDR (list);
       QUIT;
     }
-  return Qnil;
+
+  if (!CONSP (list) && !NILP (list))
+    list = wrong_type_argument (Qlistp, list);
+
+  return list;
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
@@ -1336,20 +1352,41 @@ DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
 The value is actually the element of LIST whose car is KEY.\n\
 Elements of LIST that are not conses are ignored.")
   (key, list)
-     register Lisp_Object key;
-     Lisp_Object list;
+     Lisp_Object key, list;
 {
-  register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  Lisp_Object result;
+
+  while (1)
     {
-      register Lisp_Object elt, tem;
-      elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-      tem = XCAR (elt);
-      if (EQ (key, tem)) return elt;
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && EQ (XCAR (XCAR (list)), key)))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && EQ (XCAR (XCAR (list)), key)))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && EQ (XCAR (XCAR (list)), key)))
+	break;
+      
+      list = XCDR (list);
       QUIT;
     }
-  return Qnil;
+
+  if (CONSP (list))
+    result = XCAR (list);
+  else if (NILP (list))
+    result = Qnil;
+  else
+    result = wrong_type_argument (Qlistp, list);
+
+  return result;
 }
 
 /* Like Fassq but never report an error and do not allow quits.
@@ -1357,79 +1394,144 @@ Elements of LIST that are not conses are ignored.")
 
 Lisp_Object
 assq_no_quit (key, list)
-     register Lisp_Object key;
-     Lisp_Object list;
+     Lisp_Object key, list;
 {
-  register Lisp_Object tail;
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
-    {
-      register Lisp_Object elt, tem;
-      elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-      tem = XCAR (elt);
-      if (EQ (key, tem)) return elt;
-    }
-  return Qnil;
+  while (CONSP (list)
+	 && (!CONSP (XCAR (list))
+	     || !EQ (XCAR (XCAR (list)), key)))
+    list = XCDR (list);
+
+  return CONSP (list) ? XCAR (list) : Qnil;
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
   "Return non-nil if KEY is `equal' to the car of an element of LIST.\n\
 The value is actually the element of LIST whose car equals KEY.")
   (key, list)
-     register Lisp_Object key;
-     Lisp_Object list;
+     Lisp_Object key, list;
 {
-  register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  Lisp_Object result, car;
+
+  while (1)
     {
-      register Lisp_Object elt, tem;
-      elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-      tem = Fequal (XCAR (elt), key);
-      if (!NILP (tem)) return elt;
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && (car = XCAR (XCAR (list)),
+		  EQ (car, key) || !NILP (Fequal (car, key)))))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && (car = XCAR (XCAR (list)),
+		  EQ (car, key) || !NILP (Fequal (car, key)))))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && (car = XCAR (XCAR (list)),
+		  EQ (car, key) || !NILP (Fequal (car, key)))))
+	break;
+      
+      list = XCDR (list);
       QUIT;
     }
-  return Qnil;
+
+  if (CONSP (list))
+    result = XCAR (list);
+  else if (NILP (list))
+    result = Qnil;
+  else
+    result = wrong_type_argument (Qlistp, list);
+
+  return result;
 }
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
-  "Return non-nil if ELT is `eq' to the cdr of an element of LIST.\n\
-The value is actually the element of LIST whose cdr is ELT.")
+  "Return non-nil if KEY is `eq' to the cdr of an element of LIST.\n\
+The value is actually the element of LIST whose cdr is KEY.")
   (key, list)
      register Lisp_Object key;
      Lisp_Object list;
 {
-  register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  Lisp_Object result;
+
+  while (1)
     {
-      register Lisp_Object elt, tem;
-      elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-      tem = XCDR (elt);
-      if (EQ (key, tem)) return elt;
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && EQ (XCDR (XCAR (list)), key)))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && EQ (XCDR (XCAR (list)), key)))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && EQ (XCDR (XCAR (list)), key)))
+	break;
+      
+      list = XCDR (list);
       QUIT;
     }
-  return Qnil;
+
+  if (NILP (list))
+    result = Qnil;
+  else if (CONSP (list))
+    result = XCAR (list);
+  else
+    result = wrong_type_argument (Qlistp, list);
+
+  return result;
 }
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.\n\
 The value is actually the element of LIST whose cdr equals KEY.")
   (key, list)
-     register Lisp_Object key;
-     Lisp_Object list;
+     Lisp_Object key, list;
 {
-  register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  Lisp_Object result, cdr;
+
+  while (1)
     {
-      register Lisp_Object elt, tem;
-      elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-      tem = Fequal (XCDR (elt), key);
-      if (!NILP (tem)) return elt;
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && (cdr = XCDR (XCAR (list)),
+		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && (cdr = XCDR (XCAR (list)),
+		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
+	break;
+      
+      list = XCDR (list);
+      if (!CONSP (list)
+	  || (CONSP (XCAR (list))
+	      && (cdr = XCDR (XCAR (list)),
+		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
+	break;
+      
+      list = XCDR (list);
       QUIT;
     }
-  return Qnil;
+
+  if (CONSP (list))
+    result = XCAR (list);
+  else if (NILP (list))
+    result = Qnil;
+  else
+    result = wrong_type_argument (Qlistp, list);
+
+  return result;
 }
 
 DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
