@@ -521,8 +521,9 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
       (select-window (next-window nil 'nomini 0)))
   ;; Move to a non-dedicated window, if we have one.
   (when (window-dedicated-p (selected-window))
-    (select-window (some-window (lambda (w) (not (window-dedicated-p w)))
-				'nomini 'visible (selected-window))))
+    (select-window (get-window-with-predicate
+		    (lambda (w) (not (window-dedicated-p w)))
+		    'nomini 'visible (selected-window))))
   (set-window-dedicated-p (selected-window) nil)
   (if next-buffer
       (if (and (bufferp next-buffer)
