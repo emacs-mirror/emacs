@@ -119,7 +119,7 @@ use either M-x customize or the function `scroll-all-mode'."
     (when (> num-windows 1)
 	  (other-window 1)
 	  (while (< count num-windows)
-		(beginning-of-buffer)
+		(call-interactively 'beginning-of-buffer)
 		(other-window 1)
 		(setq count (1+ count))))))
 
@@ -131,7 +131,7 @@ use either M-x customize or the function `scroll-all-mode'."
     (when (> num-windows 1)
 	  (other-window 1)
 	  (while (< count num-windows)
-		(end-of-buffer)
+		(call-interactively 'end-of-buffer)
 		(other-window 1)
 		(setq count (1+ count))))))
 
