@@ -506,8 +506,20 @@ r_alloc_init ()
   extra_bytes = ROUNDUP (50000);
 
   page_break_value = (POINTER) ROUNDUP (break_value);
+
+  /* The extra call to real_morecore guarantees that the end of the
+     address space is a multiple of page_size, even if page_size is
+     not really the page size of the system running the binary in
+     which page_size is stored.  This allows a binary to be built on a
+     system with one page size and run on a system with a smaller page
+     size. */
+  (*real_morecore) (page_break_value - break_value);
+
   /* Clear the rest of the last page; this memory is in our address space
      even though it is after the sbrk value.  */
+  /* Doubly true, with the additional call that explicitly adds the
+     rest of that page to the address space.  */
   bzero (break_value, (page_break_value - break_value));
+  virtual_break_value = break_value = page_break_value;
   use_relocatable_buffers = 1;
 }
