@@ -486,7 +486,7 @@ than 1 and nil will probably not work."
 
 (defcustom cperl-break-one-line-blocks-when-indent t
   "*Non-nil means that one-line if/unless/while/until/for/foreach BLOCKs
-need to be reformated into multiline ones when indenting a region."
+need to be reformatted into multiline ones when indenting a region."
   :type 'boolean
   :group 'cperl-indentation-details)
 
