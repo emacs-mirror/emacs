@@ -2225,7 +2225,7 @@ default directory."
    file
    (vc-do-command nil 0 "prs" file 'MASTER)
    (vc-do-command nil 0 "rlog" file 'MASTER)
-   (vc-do-command nil 0 "cvs" file 'WORKFILE "rlog")))
+   (vc-do-command nil 0 "cvs" file 'WORKFILE "log")))
 
 (defun vc-backend-assign-name (file name)
   ;; Assign to a FILE's latest version a given NAME.
