@@ -361,7 +361,12 @@ Prefix argument means switch to the Lisp buffer afterwards."
 With argument, positions cursor at end of buffer."
   (interactive "P")
   (if (get-buffer inferior-lisp-buffer)
-      (pop-to-buffer inferior-lisp-buffer)
+      (let ((pop-up-frames
+	     ;; Be willing to use another frame
+	     ;; that already has the window in it.
+	     (or pop-up-frames
+		 (get-buffer-window inferior-lisp-buffer t))))
+	(pop-to-buffer inferior-lisp-buffer))
     (error "No current inferior Lisp buffer"))
   (cond (eob-p
 	 (push-mark)
