@@ -1,4 +1,4 @@
-# $HopeName: HOMEmm!etc:crontab(trunk.8) $
+# $HopeName: HOMEmm!etc:crontab(trunk.9) $
 # Obsolete builds
 # 30 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMprod_dw_alloc_0"
 #  0 22  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMprod_dw_alloc"
@@ -11,5 +11,5 @@
  0 21  *  *  *  sh -c ". etc/shenv && overnight checkout"
 15 21  *  *  *  sh -c "./bin/tidy"
 30 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_src_trunk"
- 0  0  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_buffalo"
- 0  2  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_sunflower"
+ 0  1  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_honeybee"
+ 0  4  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_sunflower"
