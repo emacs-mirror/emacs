@@ -28,7 +28,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 10.28";
+char pot_etags_version[] = "@(#) pot revision number is 10.29";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -36,6 +36,10 @@ char pot_etags_version[] = "@(#) pot revision number is 10.28";
 
 #ifdef HAVE_CONFIG_H
 #include <../src/config.h>
+/* On some systems, Emacs defines static as nothing
+   for the sake of unexec.  We don't want that here
+   since we don't use unexec.  */
+#undef static
 #endif
 
 #include <stdio.h>
@@ -3135,7 +3139,7 @@ etags_getcwd ()
 {
   FILE *pipe;
   char *buf;
-  int bufsize;
+  int bufsize = 256;
 
   do
     {
