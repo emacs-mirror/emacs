@@ -1346,30 +1346,37 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  struct x_output *x = f->output_data.x;
+  unsigned long fg, old_fg;
 
-  unload_color (f, f->output_data.x->foreground_pixel);
-  f->output_data.x->foreground_pixel = pixel;
+  fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  old_fg = x->foreground_pixel;
+  x->foreground_pixel = fg;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
-      BLOCK_INPUT;
-      XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
-		      f->output_data.x->foreground_pixel);
-      XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
-		      f->output_data.x->foreground_pixel);
+      Display *dpy = FRAME_X_DISPLAY (f);
       
-      XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
-		      f->output_data.x->foreground_pixel);
-      unload_color (f, f->output_data.x->cursor_pixel);
-      f->output_data.x->cursor_pixel
-	= x_copy_color (f, f->output_data.x->foreground_pixel);
+      BLOCK_INPUT;
+      XSetForeground (dpy, x->normal_gc, fg);
+      XSetBackground (dpy, x->reverse_gc, fg);
 
+      if (x->cursor_pixel == old_fg)
+	{
+	  unload_color (f, x->cursor_pixel);
+	  x->cursor_pixel = x_copy_color (f, fg);
+	  XSetBackground (dpy, x->cursor_gc, x->cursor_pixel);
+	}
+      
       UNBLOCK_INPUT;
+      
       update_face_from_frame_parameter (f, Qforeground_color, arg);
+      
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
+      
+  unload_color (f, old_fg);
 }
 
 void
@@ -1377,34 +1384,33 @@ x_set_background_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned long pixel = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  struct x_output *x = f->output_data.x;
+  unsigned long bg;
 
-  unload_color (f, f->output_data.x->background_pixel);
-  f->output_data.x->background_pixel = pixel;
+  bg = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  unload_color (f, x->background_pixel);
+  x->background_pixel = bg;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
-      BLOCK_INPUT;
-      /* The main frame area.  */
-      XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
-		      f->output_data.x->background_pixel);
-      XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
-		      f->output_data.x->background_pixel);
-      XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
-		      f->output_data.x->background_pixel);
+      Display *dpy = FRAME_X_DISPLAY (f);
+      Lisp_Object bar;
       
-      XSetWindowBackground (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			    f->output_data.x->background_pixel);
-      {
-	Lisp_Object bar;
-	for (bar = FRAME_SCROLL_BARS (f); !NILP (bar);
-	     bar = XSCROLL_BAR (bar)->next)
-	  XSetWindowBackground (FRAME_X_DISPLAY (f),
-				SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
-				f->output_data.x->background_pixel);
-      }
-      UNBLOCK_INPUT;
+      BLOCK_INPUT;
+      XSetBackground (dpy, x->normal_gc, bg);
+      XSetForeground (dpy, x->reverse_gc, bg);
+      XSetWindowBackground (dpy, FRAME_X_WINDOW (f), bg);
+      XSetForeground (dpy, x->cursor_gc, bg);
 
+      for (bar = FRAME_SCROLL_BARS (f);
+	   !NILP (bar);
+	   bar = XSCROLL_BAR (bar)->next)
+	{
+	  Window window = SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar));
+	  XSetWindowBackground (dpy, window, bg);
+	}
+
+      UNBLOCK_INPUT;
       update_face_from_frame_parameter (f, Qbackground_color, arg);
 
       if (FRAME_VISIBLE_P (f))
@@ -1417,149 +1423,141 @@ x_set_mouse_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
+  struct x_output *x = f->output_data.x;
+  Display *dpy = FRAME_X_DISPLAY (f);
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
   Cursor hourglass_cursor, horizontal_drag_cursor;
   int count;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-  unsigned long mask_color = f->output_data.x->background_pixel;
+  unsigned long mask_color = x->background_pixel;
 
   /* Don't let pointers be invisible.  */
-  if (mask_color == pixel
-      && mask_color == f->output_data.x->background_pixel)
+  if (mask_color == pixel)
     {
       x_free_colors (f, &pixel, 1);
-      pixel = x_copy_color (f, f->output_data.x->foreground_pixel);
+      pixel = x_copy_color (f, x->foreground_pixel);
     }
 
-  unload_color (f, f->output_data.x->mouse_pixel);
-  f->output_data.x->mouse_pixel = pixel;
+  unload_color (f, x->mouse_pixel);
+  x->mouse_pixel = pixel;
 
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
-  count = x_catch_errors (FRAME_X_DISPLAY (f));
+  count = x_catch_errors (dpy);
 
-  if (!EQ (Qnil, Vx_pointer_shape))
+  if (!NILP (Vx_pointer_shape))
     {
       CHECK_NUMBER (Vx_pointer_shape, 0);
-      cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XINT (Vx_pointer_shape));
+      cursor = XCreateFontCursor (dpy, XINT (Vx_pointer_shape));
     }
   else
-    cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_xterm);
-  x_check_errors (FRAME_X_DISPLAY (f), "bad text pointer cursor: %s");
+    cursor = XCreateFontCursor (dpy, XC_xterm);
+  x_check_errors (dpy, "bad text pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_nontext_pointer_shape))
+  if (!NILP (Vx_nontext_pointer_shape))
     {
       CHECK_NUMBER (Vx_nontext_pointer_shape, 0);
-      nontext_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f),
-					  XINT (Vx_nontext_pointer_shape));
+      nontext_cursor
+	= XCreateFontCursor (dpy, XINT (Vx_nontext_pointer_shape));
     }
   else
-    nontext_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_left_ptr);
-  x_check_errors (FRAME_X_DISPLAY (f), "bad nontext pointer cursor: %s");
+    nontext_cursor = XCreateFontCursor (dpy, XC_left_ptr);
+  x_check_errors (dpy, "bad nontext pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_hourglass_pointer_shape))
+  if (!NILP (Vx_hourglass_pointer_shape))
     {
       CHECK_NUMBER (Vx_hourglass_pointer_shape, 0);
-      hourglass_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f),
-					    XINT (Vx_hourglass_pointer_shape));
+      hourglass_cursor
+	= XCreateFontCursor (dpy, XINT (Vx_hourglass_pointer_shape));
     }
   else
-    hourglass_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_watch);
-  x_check_errors (FRAME_X_DISPLAY (f), "bad hourglass pointer cursor: %s");
+    hourglass_cursor = XCreateFontCursor (dpy, XC_watch);
+  x_check_errors (dpy, "bad hourglass pointer cursor: %s");
   
-  x_check_errors (FRAME_X_DISPLAY (f), "bad nontext pointer cursor: %s");
-  if (!EQ (Qnil, Vx_mode_pointer_shape))
+  x_check_errors (dpy, "bad nontext pointer cursor: %s");
+  if (!NILP (Vx_mode_pointer_shape))
     {
       CHECK_NUMBER (Vx_mode_pointer_shape, 0);
-      mode_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f),
-				       XINT (Vx_mode_pointer_shape));
+      mode_cursor = XCreateFontCursor (dpy, XINT (Vx_mode_pointer_shape));
     }
   else
-    mode_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_xterm);
-  x_check_errors (FRAME_X_DISPLAY (f), "bad modeline pointer cursor: %s");
+    mode_cursor = XCreateFontCursor (dpy, XC_xterm);
+  x_check_errors (dpy, "bad modeline pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
+  if (!NILP (Vx_sensitive_text_pointer_shape))
     {
       CHECK_NUMBER (Vx_sensitive_text_pointer_shape, 0);
       cross_cursor
-	= XCreateFontCursor (FRAME_X_DISPLAY (f),
-			     XINT (Vx_sensitive_text_pointer_shape));
+	= XCreateFontCursor (dpy, XINT (Vx_sensitive_text_pointer_shape));
     }
   else
-    cross_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_crosshair);
+    cross_cursor = XCreateFontCursor (dpy, XC_crosshair);
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
       CHECK_NUMBER (Vx_window_horizontal_drag_shape, 0);
       horizontal_drag_cursor
-	= XCreateFontCursor (FRAME_X_DISPLAY (f),
-			     XINT (Vx_window_horizontal_drag_shape));
+	= XCreateFontCursor (dpy, XINT (Vx_window_horizontal_drag_shape));
     }
   else
     horizontal_drag_cursor
-      = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_h_double_arrow);
+      = XCreateFontCursor (dpy, XC_sb_h_double_arrow);
 
   /* Check and report errors with the above calls.  */
-  x_check_errors (FRAME_X_DISPLAY (f), "can't set cursor shape: %s");
-  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
+  x_check_errors (dpy, "can't set cursor shape: %s");
+  x_uncatch_errors (dpy, count);
 
   {
     XColor fore_color, back_color;
 
-    fore_color.pixel = f->output_data.x->mouse_pixel;
+    fore_color.pixel = x->mouse_pixel;
     x_query_color (f, &fore_color);
     back_color.pixel = mask_color;
     x_query_color (f, &back_color);
     
-    XRecolorCursor (FRAME_X_DISPLAY (f), cursor,
-		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_X_DISPLAY (f), nontext_cursor,
-		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_X_DISPLAY (f), mode_cursor,
-		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_X_DISPLAY (f), cross_cursor,
-		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_X_DISPLAY (f), hourglass_cursor,
-                    &fore_color, &back_color);
-    XRecolorCursor (FRAME_X_DISPLAY (f), horizontal_drag_cursor,
-                    &fore_color, &back_color);
+    XRecolorCursor (dpy, cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, nontext_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, mode_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, cross_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, hourglass_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, horizontal_drag_cursor, &fore_color, &back_color);
   }
 
   if (FRAME_X_WINDOW (f) != 0)
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
+    XDefineCursor (dpy, FRAME_X_WINDOW (f), cursor);
 
-  if (cursor != f->output_data.x->text_cursor
-      && f->output_data.x->text_cursor != 0)
-    XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->text_cursor);
-  f->output_data.x->text_cursor = cursor;
+  if (cursor != x->text_cursor
+      && x->text_cursor != 0)
+    XFreeCursor (dpy, x->text_cursor);
+  x->text_cursor = cursor;
 
-  if (nontext_cursor != f->output_data.x->nontext_cursor
-      && f->output_data.x->nontext_cursor != 0)
-    XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->nontext_cursor);
-  f->output_data.x->nontext_cursor = nontext_cursor;
+  if (nontext_cursor != x->nontext_cursor
+      && x->nontext_cursor != 0)
+    XFreeCursor (dpy, x->nontext_cursor);
+  x->nontext_cursor = nontext_cursor;
 
-  if (hourglass_cursor != f->output_data.x->hourglass_cursor
-      && f->output_data.x->hourglass_cursor != 0)
-    XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->hourglass_cursor);
-  f->output_data.x->hourglass_cursor = hourglass_cursor;
+  if (hourglass_cursor != x->hourglass_cursor
+      && x->hourglass_cursor != 0)
+    XFreeCursor (dpy, x->hourglass_cursor);
+  x->hourglass_cursor = hourglass_cursor;
 
-  if (mode_cursor != f->output_data.x->modeline_cursor
-      && f->output_data.x->modeline_cursor != 0)
-    XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->modeline_cursor);
-  f->output_data.x->modeline_cursor = mode_cursor;
+  if (mode_cursor != x->modeline_cursor
+      && x->modeline_cursor != 0)
+    XFreeCursor (dpy, f->output_data.x->modeline_cursor);
+  x->modeline_cursor = mode_cursor;
   
-  if (cross_cursor != f->output_data.x->cross_cursor
-      && f->output_data.x->cross_cursor != 0)
-    XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->cross_cursor);
-  f->output_data.x->cross_cursor = cross_cursor;
+  if (cross_cursor != x->cross_cursor
+      && x->cross_cursor != 0)
+    XFreeCursor (dpy, x->cross_cursor);
+  x->cross_cursor = cross_cursor;
 
-  if (horizontal_drag_cursor != f->output_data.x->horizontal_drag_cursor
-      && f->output_data.x->horizontal_drag_cursor != 0)
-    XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->horizontal_drag_cursor);
-  f->output_data.x->horizontal_drag_cursor = horizontal_drag_cursor;
+  if (horizontal_drag_cursor != x->horizontal_drag_cursor
+      && x->horizontal_drag_cursor != 0)
+    XFreeCursor (dpy, x->horizontal_drag_cursor);
+  x->horizontal_drag_cursor = horizontal_drag_cursor;
 
-  XFlush (FRAME_X_DISPLAY (f));
+  XFlush (dpy);
   UNBLOCK_INPUT;
 
   update_face_from_frame_parameter (f, Qmouse_color, arg);
@@ -1572,6 +1570,7 @@ x_set_cursor_color (f, arg, oldval)
 {
   unsigned long fore_pixel, pixel;
   int fore_pixel_allocated_p = 0, pixel_allocated_p = 0;
+  struct x_output *x = f->output_data.x;
 
   if (!NILP (Vx_cursor_fore_pixel))
     {
@@ -1580,13 +1579,13 @@ x_set_cursor_color (f, arg, oldval)
       fore_pixel_allocated_p = 1;
     }
   else
-    fore_pixel = f->output_data.x->background_pixel;
+    fore_pixel = x->background_pixel;
   
   pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   pixel_allocated_p = 1;
 
   /* Make sure that the cursor color differs from the background color.  */
-  if (pixel == f->output_data.x->background_pixel)
+  if (pixel == x->background_pixel)
     {
       if (pixel_allocated_p)
 	{
@@ -1594,7 +1593,7 @@ x_set_cursor_color (f, arg, oldval)
 	  pixel_allocated_p = 0;
 	}
       
-      pixel = f->output_data.x->mouse_pixel;
+      pixel = x->mouse_pixel;
       if (pixel == fore_pixel)
 	{
 	  if (fore_pixel_allocated_p)
@@ -1602,27 +1601,25 @@ x_set_cursor_color (f, arg, oldval)
 	      x_free_colors (f, &fore_pixel, 1);
 	      fore_pixel_allocated_p = 0;
 	    }
-	  fore_pixel = f->output_data.x->background_pixel;
+	  fore_pixel = x->background_pixel;
 	}
     }
 
-  unload_color (f, f->output_data.x->cursor_foreground_pixel);
+  unload_color (f, x->cursor_foreground_pixel);
   if (!fore_pixel_allocated_p)
     fore_pixel = x_copy_color (f, fore_pixel);
-  f->output_data.x->cursor_foreground_pixel = fore_pixel;
+  x->cursor_foreground_pixel = fore_pixel;
 
-  unload_color (f, f->output_data.x->cursor_pixel);
+  unload_color (f, x->cursor_pixel);
   if (!pixel_allocated_p)
     pixel = x_copy_color (f, pixel);
-  f->output_data.x->cursor_pixel = pixel;
+  x->cursor_pixel = pixel;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
-      XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
-		      f->output_data.x->cursor_pixel);
-      XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
-		      fore_pixel);
+      XSetBackground (FRAME_X_DISPLAY (f), x->cursor_gc, x->cursor_pixel);
+      XSetForeground (FRAME_X_DISPLAY (f), x->cursor_gc, fore_pixel);
       UNBLOCK_INPUT;
 
       if (FRAME_VISIBLE_P (f))
