@@ -318,6 +318,10 @@ extern Lisp_Object Qcursor;
 
 Lisp_Object Vshow_trailing_whitespace;
 
+/* Non-nil means escape non-break space and hyphens.  */
+
+Lisp_Object Vshow_nonbreak_escape;
+
 #ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Voverflow_newline_into_fringe;
 
@@ -345,7 +349,6 @@ Lisp_Object Qtrailing_whitespace;
 /* Name and number of the face used to highlight escape glyphs.  */
 
 Lisp_Object Qescape_glyph;
-int escape_glyph_face;
 
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
@@ -3265,6 +3268,7 @@ setup_for_ellipsis (it, len)
 
   it->dpvec_char_len = len;
   it->current.dpvec_index = 0;
+  it->dpvec_face_id = -1;
 
   /* Remember the current face id in case glyphs specify faces.
      IT's face is restored in set_iterator_to_next.  */
@@ -4911,6 +4915,7 @@ get_next_display_element (it)
 		  it->dpvec = v->contents;
 		  it->dpend = v->contents + v->size;
 		  it->current.dpvec_index = 0;
+		  it->dpvec_face_id = -1;
 		  it->saved_face_id = it->face_id;
 		  it->method = next_element_from_display_vector;
 		  it->ellipsis_p = 0;
@@ -4945,8 +4950,8 @@ get_next_display_element (it)
 		       ? ((it->c >= 127
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c)
-			  || it->c == 0x8ad
-			  || it->c == 0x8a0)
+			  || (!NILP (Vshow_nonbreak_escape)
+			      && (it->c == 0x8ad || it->c == 0x8a0)))
 		       : (it->c >= 127
 			  && (!unibyte_display_via_language_environment
 			      || it->c == unibyte_char_to_multibyte (it->c)))))
@@ -4958,21 +4963,8 @@ get_next_display_element (it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
 	      int ctl_len;
-	      int face_id = escape_glyph_face;
-
-	      /* Find the face id if `escape-glyph' unless we recently did.  */
-	      if (face_id < 0)
-		{
-		  Lisp_Object tem = Fget (Qescape_glyph, Qface);
-		  if (INTEGERP (tem))
-		    face_id = XINT (tem);
-		  else
-		    face_id = 0;
-		  /* If there's overflow, use 0 instead.  */
-		  if (FAST_GLYPH_FACE (FAST_MAKE_GLYPH (0, face_id)) != face_id)
-		    face_id = 0;
-		  escape_glyph_face = face_id;
-		}
+	      int face_id, lface_id;
+	      GLYPH escape_glyph;
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
@@ -4980,57 +4972,84 @@ get_next_display_element (it)
 		  if (it->dp
 		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
 		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
-		    g = XINT (DISP_CTRL_GLYPH (it->dp));
+		    {
+		      g = XINT (DISP_CTRL_GLYPH (it->dp));
+		      lface_id = FAST_GLYPH_FACE (g);
+		      if (lface_id)
+			{
+			  g = FAST_GLYPH_CHAR (g);
+			  /* The function returns -1 if lface_id is invalid.  */
+			  face_id = ascii_face_of_lisp_face (it->f, lface_id);
+			  if (face_id >= 0)
+			    face_id = merge_into_realized_face (it->f, Qnil,
+								face_id, it->face_id);
+			}
+		    }
 		  else
-		    g = FAST_MAKE_GLYPH ('^', face_id);
-		  XSETINT (it->ctl_chars[0], g);
+		    {
+		      /* Merge the escape-glyph face into the current face.  */
+		      face_id = merge_into_realized_face (it->f, Qescape_glyph,
+							  0, it->face_id);
+		      g = '^';
+		    }
 
-		  g = FAST_MAKE_GLYPH (it->c ^ 0100, face_id);
+		  XSETINT (it->ctl_chars[0], g);
+		  g = it->c ^ 0100;
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
+		  goto display_control;
 		}
-	      else if (it->c == 0x8a0 || it->c == 0x8ad)
-		{
-		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
-		  if (it->dp
-		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (it->dp))))
-		    g = XINT (DISP_ESCAPE_GLYPH (it->dp));
-		  else
-		    g = FAST_MAKE_GLYPH ('\\', face_id);
-		  XSETINT (it->ctl_chars[0], g);
 
-		  g = FAST_MAKE_GLYPH (it->c == 0x8ad ? '-' : ' ', face_id);
-		  XSETINT (it->ctl_chars[1], g);
-		  ctl_len = 2;
+	      if (it->dp
+		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
+		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
+		{
+		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
+		  lface_id = FAST_GLYPH_FACE (escape_glyph);
+		  if (lface_id)
+		    {
+		      escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
+		      /* The function returns -1 if lface_id is invalid.  */
+		      face_id = ascii_face_of_lisp_face (it->f, lface_id);
+		      if (face_id >= 0)
+			face_id = merge_into_realized_face (it->f, Qnil,
+							    face_id, it->face_id);
+		    }
 		}
 	      else
 		{
-		  unsigned char str[MAX_MULTIBYTE_LENGTH];
-		  int len;
-		  int i;
-		  GLYPH escape_glyph;
+		  /* Merge the escape-glyph face into the current face.  */
+		  face_id = merge_into_realized_face (it->f, Qescape_glyph,
+						      0, it->face_id);
+		  escape_glyph = '\\';
+		}
 
-		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
-		  if (it->dp
-		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
-		    escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
-		  else
-		    escape_glyph = FAST_MAKE_GLYPH ('\\', face_id);
+	      if (it->c == 0x8a0 || it->c == 0x8ad)
+		{
+		  XSETINT (it->ctl_chars[0], escape_glyph);
+		  g = it->c == 0x8ad ? '-' : ' ';
+		  XSETINT (it->ctl_chars[1], g);
+		  ctl_len = 2;
+		  goto display_control;
+		}
 
-		  if (SINGLE_BYTE_CHAR_P (it->c))
-		    str[0] = it->c, len = 1;
-		  else
-		    {
-		      len = CHAR_STRING_NO_SIGNAL (it->c, str);
-		      if (len < 0)
-			{
-			  /* It's an invalid character, which
-			     shouldn't happen actually, but due to
-			     bugs it may happen.  Let's print the char
-			     as is, there's not much meaningful we can
-			     do with it.  */
+	      {
+		unsigned char str[MAX_MULTIBYTE_LENGTH];
+		int len;
+		int i;
+
+		/* Set IT->ctl_chars[0] to the glyph for `\\'.  */
+		if (SINGLE_BYTE_CHAR_P (it->c))
+		  str[0] = it->c, len = 1;
+		else
+		  {
+		    len = CHAR_STRING_NO_SIGNAL (it->c, str);
+		    if (len < 0)
+		      {
+			/* It's an invalid character, which shouldn't
+			   happen actually, but due to bugs it may
+			   happen.  Let's print the char as is, there's
+			   not much meaningful we can do with it.  */
 			  str[0] = it->c;
 			  str[1] = it->c >> 8;
 			  str[2] = it->c >> 16;
@@ -5039,29 +5058,28 @@ get_next_display_element (it)
 			}
 		    }
 
-		  for (i = 0; i < len; i++)
-		    {
-		      XSETINT (it->ctl_chars[i * 4], escape_glyph);
-		      /* Insert three more glyphs into IT->ctl_chars for
-			 the octal display of the character.  */
-		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 1], g);
-		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 2], g);
-		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 3], g);
-		    }
-		  ctl_len = len * 4;
-		}
+		for (i = 0; i < len; i++)
+		  {
+		    XSETINT (it->ctl_chars[i * 4], escape_glyph);
+		    /* Insert three more glyphs into IT->ctl_chars for
+		       the octal display of the character.  */
+		    g = ((str[i] >> 6) & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 1], g);
+		    g = ((str[i] >> 3) & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 2], g);
+		    g = (str[i] & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 3], g);
+		  }
+		ctl_len = len * 4;
+	      }
 
+	    display_control:
 	      /* Set up IT->dpvec and return first character from it.  */
 	      it->dpvec_char_len = it->len;
 	      it->dpvec = it->ctl_chars;
 	      it->dpend = it->dpvec + ctl_len;
 	      it->current.dpvec_index = 0;
+	      it->dpvec_face_id = face_id;
 	      it->saved_face_id = it->face_id;
 	      it->method = next_element_from_display_vector;
 	      it->ellipsis_p = 0;
@@ -5277,7 +5295,6 @@ next_element_from_display_vector (it)
   if (INTEGERP (*it->dpvec)
       && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
     {
-      int lface_id;
       GLYPH g;
 
       g = XFASTINT (it->dpvec[it->current.dpvec_index]);
@@ -5287,13 +5304,18 @@ next_element_from_display_vector (it)
       /* The entry may contain a face id to use.  Such a face id is
 	 the id of a Lisp face, not a realized face.  A face id of
 	 zero means no face is specified.  */
-      lface_id = FAST_GLYPH_FACE (g);
-      if (lface_id)
+      if (it->dpvec_face_id >= 0)
+	it->face_id = it->dpvec_face_id;
+      else
 	{
-	  /* The function returns -1 if lface_id is invalid.  */
-	  int face_id = ascii_face_of_lisp_face (it->f, lface_id);
-	  if (face_id >= 0)
-	    it->face_id = face_id;
+	  int lface_id = FAST_GLYPH_FACE (g);
+	  if (lface_id)
+	    {
+	      /* The function returns -1 if lface_id is invalid.  */
+	      int face_id = ascii_face_of_lisp_face (it->f, lface_id);
+	      if (face_id >= 0)
+		it->face_id = face_id;
+	    }
 	}
     }
   else
@@ -11663,9 +11685,6 @@ redisplay_window (window, just_this_one_p)
 #if GLYPH_DEBUG
   *w->desired_matrix->method = 0;
 #endif
-
-  /* Force this to be looked up again for each redisp of each window.  */
-  escape_glyph_face = -1;
 
   specbind (Qinhibit_point_motion_hooks, Qt);
 
@@ -22338,6 +22357,10 @@ wide as that tab on the display.  */);
     doc: /* *Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
+
+  DEFVAR_LISP ("show-nonbreak-escape", &Vshow_nonbreak_escape,
+    doc: /* *Non-nil means display escape character before non-break space and hyphen.  */);
+  Vshow_trailing_whitespace = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.
