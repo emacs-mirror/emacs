@@ -520,7 +520,7 @@ alphabetically by symbol name; but this function also sets
 	    (insert "If moving the mouse over text changes the text's color,\n"
 		    (substitute-command-keys
 		     "you can click \\[apropos-mouse-follow] on that text to get more information.\n")))
-	(insert "In this buffer, go to the name of the command, or function"
+	(insert "In this buffer, go to the name of the command, or function,"
 		" or variable,\n"
 		(substitute-command-keys
 		 "and type \\[apropos-follow] to get full documentation.\n\n"))
