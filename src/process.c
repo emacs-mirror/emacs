@@ -202,26 +202,7 @@ static int process_tick;
 /* Number of events for which the user or sentinel has been notified.  */
 static int update_tick;
 
-#ifdef FD_SET
-/* We could get this from param.h, but better not to depend on finding that.
-   And better not to risk that it might define other symbols used in this
-   file.  */
-#ifdef FD_SETSIZE
-#define MAXDESC FD_SETSIZE
-#else
-#define MAXDESC 64
-#endif
-#define SELECT_TYPE fd_set
-#else /* no FD_SET */
-#define MAXDESC 32
-#define SELECT_TYPE int
-
-/* Define the macros to access a single-int bitmap of descriptors.  */
-#define FD_SET(n, p) (*(p) |= (1 << (n)))
-#define FD_CLR(n, p) (*(p) &= ~(1 << (n)))
-#define FD_ISSET(n, p) (*(p) & (1 << (n)))
-#define FD_ZERO(p) (*(p) = 0)
-#endif /* no FD_SET */
+#include "sysselect.h"
 
 /* If we support X Windows, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
