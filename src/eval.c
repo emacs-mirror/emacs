@@ -1293,7 +1293,7 @@ See also the function `condition-case'.")
     data = Fcons (error_symbol, data);
 
   string = Ferror_message_string (data);
-  fatal (XSTRING (string)->data, 0, 0);
+  fatal ("%s", XSTRING (string)->data, 0);
 }
 
 /* Return nonzero iff LIST is a non-nil atom or
