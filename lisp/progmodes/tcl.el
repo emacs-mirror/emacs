@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.71 $
+;; Version: $Revision: 1.72 $
 
 ;; This file is part of GNU Emacs.
 
@@ -437,7 +437,7 @@ argument is ignored (for indentation purposes).  The second argument
 is a Tcl expression, and the last argument is Tcl commands.")
 
 (defvar tcl-explain-indentation nil
-  "If not `nil', debugging message will be printed during indentation.")
+  "If non-nil, debugging message will be printed during indentation.")
 
 
 
