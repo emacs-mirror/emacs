@@ -27,6 +27,10 @@
 ;; tcsh are supported.  Structured statements can be inserted with one
 ;; command.
 
+;; Autoloading of these functions is currently turned off
+;; because it's not clear whether this mode is really desirable to use.
+;; -- rms
+
 ;;; Code:
 
 ;; page 1:	variables and settings
@@ -35,7 +39,7 @@
 ;; page 4:	various other commands
 
 
-;;;###autoload
+;;;###dont-autoload
 (setq auto-mode-alist
       ;; matches files
       ;;	- who's path contains /bin/, but not directories
@@ -320,7 +324,7 @@ this one is used.")
 
 ;; mode-command and utility functions
 
-;;;###autoload
+;;;###dont-autoload
 (defun sh-or-other-mode ()
   "Decide whether this is a compiled executable or a script.
 Usually the file-names of scripts and binaries cannot be automatically
@@ -333,7 +337,7 @@ distinguished, so the presence of an executable's magic number is used."
 	       'sh-mode)))
 
 
-;;;###autoload
+;;;###dont-autoload
 (defun sh-mode ()
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
@@ -415,7 +419,7 @@ The following commands are available, based on the current shell's syntax:
        (or (eq sh-find-file-modifies t)
 	   (set-buffer-modified-p nil)))
   (run-hooks 'sh-mode-hook))
-;;;###autoload
+;;;###dont-autoload
 (defalias 'shell-script-mode 'sh-mode)
 
 
