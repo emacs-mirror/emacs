@@ -5,10 +5,6 @@
 /* XPointer is not defined in the older X headers  -- JPff@maths.bath.ac.uk */
 #define XPointer caddr_t
 
-#ifndef NOT_C_CODE
-#include <alloca.h>
-#endif
-
 #undef NEED_SIOCTL
 
 /* Include unistd.h, even though we don't define POSIX.  */

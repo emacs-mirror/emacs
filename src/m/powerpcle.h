@@ -54,11 +54,5 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-#ifndef NOT_C_CODE
-#if __GNUC__ < 2 /* Modern versions of GCC handle alloca directly.  */
-#include <alloca.h>
-#endif
-#endif
-
 /* Control a conditional in unexelf.c.  */
 #define SOLARIS_POWERPC

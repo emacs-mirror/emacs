@@ -59,12 +59,6 @@ NOTE-END  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-#ifndef NOT_C_CODE
-#if __GNUC__ < 2 /* Modern versions of GCC handle alloca directly.  */
-#include <alloca.h>
-#endif
-#endif
-
 /* Mask for address bits within a memory segment */
 
 #define SEGMENT_MASK (SEGSIZ - 1)
