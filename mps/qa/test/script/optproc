@@ -1,4 +1,4 @@
-#!/usr/local/perl
+#!/usr/local/perl -w
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -79,13 +79,13 @@ sub parseoptions {
 
 sub getoption {
  local ($opt) = @_;
- return eval "$".$opt;
+ return eval "\$".$opt;
 }
 
 sub setoption {
  local ($opt, $val) = @_;
  if ($val) {
-  eval "$".$opt." = \$val";
+  eval "\$".$opt." = \$val";
  }
 }
 
