@@ -1,3 +1,8 @@
+2004-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-handle-moz-url, x-dnd-insert-utf16-text): Use
+	utf-16le on little endian machines and utf-16be otherwise.
+
 2004-04-02  David Kastrup  <dak@gnu.org>
 
 	* net/browse-url.el (browse-url-generic): Use call-process
