@@ -12963,7 +12963,10 @@ display_line (it)
 
 		      /* A TAB takes us to the right edge of the window.  */
 		      if (it->c == '\t')
-			it->continuation_lines_width += it->last_visible_x;
+			{
+			  it->continuation_lines_width += it->last_visible_x;
+			  row->ends_in_middle_of_char_p = 1;
+			}
 		      else
 			it->continuation_lines_width += x;
 		      
