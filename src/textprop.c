@@ -485,7 +485,7 @@ If POSITION is at the end of OBJECT, the value is nil.")
   register INTERVAL i;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
@@ -528,7 +528,7 @@ overlays are considered only if they are associated with OBJECT.")
   CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   if (WINDOWP (object))
     {
@@ -590,7 +590,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   register INTERVAL i, next;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   if (!NILP (limit))
     CHECK_NUMBER_COERCE_MARKER (limit, 0);
@@ -622,7 +622,7 @@ property_change_between_p (beg, end)
   register INTERVAL i, next;
   Lisp_Object object, pos;
 
-  XSET (object, Lisp_Buffer, current_buffer);
+  XSETBUFFER (object, current_buffer);
   XFASTINT (pos) = beg;
 
   i = validate_interval_range (object, &pos, &pos, soft);
@@ -663,7 +663,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   register Lisp_Object here_val;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   if (!NILP (limit))
     CHECK_NUMBER_COERCE_MARKER (limit, 0);
@@ -704,7 +704,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
   register INTERVAL i, previous;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   if (!NILP (limit))
     CHECK_NUMBER_COERCE_MARKER (limit, 0);
@@ -751,7 +751,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
   register Lisp_Object here_val;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   if (!NILP (limit))
     CHECK_NUMBER_COERCE_MARKER (limit, 0);
@@ -802,7 +802,7 @@ Return t if any property value actually changed, nil otherwise.")
     return Qnil;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &start, &end, hard);
   if (NULL_INTERVAL_P (i))
@@ -900,7 +900,7 @@ is the string or buffer containing the text.")
   props = validate_plist (props);
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
@@ -995,7 +995,7 @@ Return t if any property was actually removed, nil otherwise.")
   register int s, len, modified = 0;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
@@ -1071,7 +1071,7 @@ containing the text.")
   register int e, pos;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
   i = validate_interval_range (object, &start, &end, soft);
   e = XINT (end);
 
@@ -1105,7 +1105,7 @@ containing the text.")
   register int s, e;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
     return (NILP (value) || EQ (start, end)) ? Qnil : start;
@@ -1142,7 +1142,7 @@ is the string or buffer containing the text.")
   register int s, len, modified;
 
   if (NILP (object))
-    XSET (object, Lisp_Buffer, current_buffer);
+    XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
