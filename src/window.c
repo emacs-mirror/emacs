@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000, 2001, 2002, 2003
+   Copyright (C) 1985,86,87, 1993,94,95,96,97,98, 2000,01,02,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3023,7 +3023,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
        doc: /* Make WINDOW display BUFFER as its contents.
 BUFFER can be a buffer or buffer name.
-Optional third arg KEEP_MARGINS non-nil means that WINDOW's current
+Optional third arg KEEP-MARGINS non-nil means that WINDOW's current
 display margins, fringe widths, and scroll bar settings are maintained;
 the default is to reset these from BUFFER's local settings or the frame
 defaults.  */)
