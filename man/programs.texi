@@ -2385,6 +2385,8 @@ that it does regexp matching instead of substring matching.
 
 @node Tags Search
 @subsection Searching and Replacing with Tags Tables
+@cindex search and replace in several program files
+@cindex multiple-file search and replace (with tag tables)
 
   The commands in this section visit and search all the files listed in the
 selected tags table, one by one.  For these commands, the tags table serves
