@@ -37,6 +37,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "syntax.h"
 #include "intervals.h"
+#include "keymap.h"
 #include "blockinput.h"
 #include "puresize.h"
 #include "systime.h"
@@ -6338,25 +6339,6 @@ reinvoke_input_signal ()
 
 
 
-/* Return the prompt-string of a sparse keymap.
-   This is the first element which is a string.
-   Return nil if there is none.  */
-
-Lisp_Object
-map_prompt (map)
-     Lisp_Object map;
-{
-  while (CONSP (map))
-    {
-      register Lisp_Object tem;
-      tem = Fcar (map);
-      if (STRINGP (tem))
-	return tem;
-      map = Fcdr (map);
-    }
-  return Qnil;
-}
-
 static void menu_bar_item P_ ((Lisp_Object, Lisp_Object));
 static void menu_bar_one_keymap P_ ((Lisp_Object));
 
@@ -7446,7 +7428,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   /* Get the menu name from the first map that has one (a prompt string).  */
   for (mapno = 0; mapno < nmaps; mapno++)
     {
-      name = map_prompt (maps[mapno]);
+      name = Fkeymap_prompt (maps[mapno]);
       if (!NILP (name))
 	break;
     }
@@ -7556,7 +7538,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   /* Get the menu name from the first map that has one (a prompt string).  */
   for (mapno = 0; mapno < nmaps; mapno++)
     {
-      name = map_prompt (maps[mapno]);
+      name = Fkeymap_prompt (maps[mapno]);
       if (!NILP (name))
 	break;
     }
