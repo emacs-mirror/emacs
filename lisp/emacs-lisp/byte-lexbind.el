@@ -583,67 +583,66 @@ Return non-nil if the TOS value was popped."
   ;; dynamic binding, or to put them in a non-stack environment
   ;; vector.
   (let ((vinfo (assq var (byte-compile-lforminfo-vars lforminfo))))
-    (unless (and vinfo (zerop (byte-compile-lvarinfo-numrefs vinfo)))
-      (cond ((and (null vinfo) (eq var (caar init-lexenv)))
-	     ;; VAR is dynamic and is on the top of the
-	     ;; stack, so we can just bind it like usual
+    (cond ((and (null vinfo) (eq var (caar init-lexenv)))
+	   ;; VAR is dynamic and is on the top of the
+	   ;; stack, so we can just bind it like usual
+	   (byte-compile-dynamic-variable-bind var)
+	   t)
+	  ((null vinfo)
+	   ;; VAR is dynamic, but we have to get its
+	   ;; value out of the middle of the stack
+	   (let ((stack-pos (cdr (assq var init-lexenv))))
+	     (byte-compile-stack-ref stack-pos)
 	     (byte-compile-dynamic-variable-bind var)
-	     t)
-	    ((null vinfo)
-	     ;; VAR is dynamic, but we have to get its
-	     ;; value out of the middle of the stack
-	     (let ((stack-pos (cdr (assq var init-lexenv))))
-	       (byte-compile-stack-ref stack-pos)
-	       (byte-compile-dynamic-variable-bind var)
-	       ;; Now we have to store nil into its temporary
-	       ;; stack position to avoid problems with GC
+	     ;; Now we have to store nil into its temporary
+	     ;; stack position to avoid problems with GC
+	     (byte-compile-push-constant nil)
+	     (byte-compile-stack-set stack-pos))
+	   nil)
+	  ((byte-compile-lvarinfo-closed-over-p vinfo)
+	   ;; VAR is lexical, but needs to be in a
+	   ;; heap-allocated environment.
+	   (unless byte-compile-current-heap-environment
+	     (error "No current heap-environment to allocate `%s' in!" var))
+	   (let ((init-stack-pos
+		  ;; nil if the init value is on the top of the stack,
+		  ;; otherwise the position of the init value on the stack.
+		  (and (not (eq var (caar init-lexenv)))
+		       (byte-compile-lexvar-offset (assq var init-lexenv))))
+		 (env-vec-pos
+		  ;; Position of VAR in the environment vector
+		  (byte-compile-lexvar-offset
+		   (assq var byte-compile-lexical-environment)))
+		 (env-vec-stack-pos
+		  ;; Position of the the environment vector on the stack
+		  ;; (the heap-environment must _always_ be available on
+		  ;; the stack!)
+		  (byte-compile-lexvar-offset
+		   (assq byte-compile-current-heap-environment
+			 byte-compile-lexical-environment))))
+	     (unless env-vec-stack-pos
+	       (error "Couldn't find location of current heap environment!"))
+	     (when init-stack-pos
+	       ;; VAR is not on the top of the stack, so get it
+	       (byte-compile-stack-ref init-stack-pos))
+	     (byte-compile-stack-ref env-vec-stack-pos)
+	     ;; Store the variable into the vector
+	     (byte-compile-out 'byte-vec-set env-vec-pos)
+	     (when init-stack-pos
+	       ;; Store nil into VAR's temporary stack
+	       ;; position to avoid problems with GC
 	       (byte-compile-push-constant nil)
-	       (byte-compile-stack-set stack-pos))
-	     nil)
-	    ((byte-compile-lvarinfo-closed-over-p vinfo)
-	     ;; VAR is lexical, but needs to be in a
-	     ;; heap-allocated environment.
-	     (unless byte-compile-current-heap-environment
-	       (error "No current heap-environment to allocate `%s' in!" var))
-	     (let ((init-stack-pos
-		    ;; nil if the init value is on the top of the stack,
-		    ;; otherwise the position of the init value on the stack.
-		    (and (not (eq var (caar init-lexenv)))
-			 (byte-compile-lexvar-offset (assq var init-lexenv))))
-		   (env-vec-pos
-		    ;; Position of VAR in the environment vector
-		    (byte-compile-lexvar-offset
-		     (assq var byte-compile-lexical-environment)))
-		   (env-vec-stack-pos
-		    ;; Position of the the environment vector on the stack
-		    ;; (the heap-environment must _always_ be available on
-		    ;; the stack!)
-		    (byte-compile-lexvar-offset
-		     (assq byte-compile-current-heap-environment
-			   byte-compile-lexical-environment))))
-	       (unless env-vec-stack-pos
-		 (error "Couldn't find location of current heap environment!"))
-	       (when init-stack-pos
-		 ;; VAR is not on the top of the stack, so get it
-		 (byte-compile-stack-ref init-stack-pos))
-	       (byte-compile-stack-ref env-vec-stack-pos)
-	       ;; Store the variable into the vector
-	       (byte-compile-out 'byte-vec-set env-vec-pos)
-	       (when init-stack-pos
-		 ;; Store nil into VAR's temporary stack
-		 ;; position to avoid problems with GC
-		 (byte-compile-push-constant nil)
-		 (byte-compile-stack-set init-stack-pos))
-	       ;; Push a record of VAR's new lexical binding
-	       (push (byte-compile-make-lexvar
-		      var env-vec-pos byte-compile-current-heap-environment)
-		     byte-compile-lexical-environment)
-	       (not init-stack-pos)))
-	    (t
-	     ;; VAR is a simple stack-allocated lexical variable
-	     (push (assq var init-lexenv)
+	       (byte-compile-stack-set init-stack-pos))
+	     ;; Push a record of VAR's new lexical binding
+	     (push (byte-compile-make-lexvar
+		    var env-vec-pos byte-compile-current-heap-environment)
 		   byte-compile-lexical-environment)
-	     nil)))))
+	     (not init-stack-pos)))
+	  (t
+	   ;; VAR is a simple stack-allocated lexical variable
+	   (push (assq var init-lexenv)
+		 byte-compile-lexical-environment)
+	   nil))))
 
 (defun byte-compile-unbind (clauses init-lexenv
 				    &optional lforminfo preserve-body-value)
