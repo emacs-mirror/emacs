@@ -951,6 +951,8 @@ a case-insensitive match is tried."
 	  (info-insert-file-contents lastfilename)
 	  (set-buffer-modified-p nil)
 	  (setq Info-current-subfile lastfilename)))
+    ;; Widen in case we are in the same subfile as before.
+    (widen)
     (goto-char (point-min))
     (if (looking-at "\^_")
 	(forward-char 1)
@@ -1193,7 +1195,6 @@ If FORK is a string, it is the name to use for the new buffer."
 		  (message "Searching subfile %s..." (cdr (car list)))
 		  (Info-read-subfile (car (car list)))
 		  (setq list (cdr list))
-;;;		(goto-char (point-min))
 		  (if (re-search-forward regexp nil t)
 		      (setq found (point) list ())))
 		(if found
