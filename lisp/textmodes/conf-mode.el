@@ -1042,7 +1042,7 @@ For details see `conf-mode'.  Example:
 ;;;###autoload
 (defun conf-ppd-mode ()
   "Conf Mode starter for Adobe/CUPS PPD files.
-Comments start with `!' and \"assignments\" are with `:'.
+Comments start with `*%' and \"assignments\" are with `:'.
 For details see `conf-mode'.  Example:
 
 *% Conf mode font-locks this right with C-c C-p (PPD)
