@@ -51,7 +51,7 @@
 					; MS-Dos stuff
     ("\\.\\(dll\\|drv\\|cpl\\|scr\\vbx\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
 					; Windows stuff
-    ("\\.\\(hlp\\|bmp\\|wav\\|avi\\|mpg\\|jpg\\|tif\\mov\\au\\)" . t)
+    ("\\.\\(hlp\\|bmp\\|wav\\|avi\\|mpg\\|jpg\\|tif\\|mov\\|au\\)" . t)
 					; known binary data files
     ("\\.\\(arc\\|zip\\|pak\\|lzh\\|zoo\\)$" . t)
 					; Packers
