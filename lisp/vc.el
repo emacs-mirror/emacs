@@ -500,8 +500,12 @@ lock steals will raise an error.
 (defun vc-register (&optional override comment)
   "Register the current file into your version-control system."
   (interactive "P")
-  (if (vc-name buffer-file-name)
-      (error "This file is already registered"))
+  (let ((master (vc-name buffer-file-name)))
+    (and master (file-exists-p master)
+	 (error "This file is already registered"))
+    (and master
+	 (not (y-or-n-p "Previous master file has vanished.  Make a new one? "))
+	 (error "This file is already registered")))
   ;; Watch out for new buffers of size 0: the corresponding file
   ;; does not exist yet, even though buffer-modified-p is nil.
   (if (and (not (buffer-modified-p))
