@@ -49,14 +49,48 @@ If it is also not t, RET does not exit if it does non-null completion."
 ;; History list for VALUE argument to setenv.
 (defvar setenv-history nil)
 
-(defun setenv (variable &optional value unset)
+
+(defun substitute-env-vars (string)
+  "Substitute environment variables referred to in STRING.
+`$FOO' where FOO is an environment variable name means to substitute
+the value of that variable.  The variable name should be terminated
+with a character not a letter, digit or underscore; otherwise, enclose
+the entire variable name in braces.  Use `$$' to insert a single 
+dollar sign."
+  (let ((start 0))
+    (while (string-match 
+	    (rx (or (and "$" (submatch (1+ (in "a-zA-Z0-9_"))))
+		    (and "${" (submatch (minimal-match (0+ anything))) "}")
+		    "$$"))
+	    string start)
+      (cond ((match-beginning 1)
+	     (let ((value (getenv (match-string 1 string))))
+	       (setq string (replace-match (or value "") t t string)
+		     start (+ (match-beginning 0) (length value)))))
+	    ((match-beginning 2)
+	     (let ((value (getenv (match-string 2 string))))
+	       (setq string (replace-match (or value "") t t string)
+		     start (+ (match-beginning 0) (length value)))))
+	    (t
+	     (setq string (replace-match "$" t t string)
+		   start (+ (match-beginning 0) 1)))))
+    string))
+
+
+(defun setenv (variable &optional value unset substitute-env-vars)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or is
-`nil', the environment variable VARIABLE will be removed.  
+`nil', the environment variable VARIABLE will be removed.  UNSET
+if non-nil means to remove VARIABLE from the environment.
+SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
+variables in VALUE with `substitute-env-vars', where see.
+Value is the new value if VARIABLE, or nil if removed from the
+environment.
 
 Interactively, a prefix argument means to unset the variable.
 Interactively, the current value (if any) of the variable
 appears at the front of the history list when you type in the new value.
+Interactively, always replace environment variables in the new value.
 
 This function works by modifying `process-environment'."
   (interactive
@@ -67,10 +101,16 @@ This function works by modifying `process-environment'."
        (when value
 	 (push value setenv-history))
        ;; Here finally we specify the args to give call setenv with.
-       (list var (read-from-minibuffer (format "Set %s to value: " var)
-				       nil nil nil 'setenv-history
-				       value)))))
-  (if unset (setq value nil))
+       (list var 
+	     (read-from-minibuffer (format "Set %s to value: " var)
+				   nil nil nil 'setenv-history
+				   value)
+	     nil 
+	     t))))
+  (if unset 
+      (setq value nil)
+    (if substitute-env-vars
+	(setq value (substitute-env-vars value))))
   (if (string-match "=" variable)
       (error "Environment variable name `%s' contains `='" variable)
     (let ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
@@ -91,7 +131,8 @@ This function works by modifying `process-environment'."
 	  (if value
 	      (setq process-environment
 		    (cons (concat variable "=" value)
-			  process-environment)))))))
+			  process-environment))))))
+  value)
 
 (defun getenv (variable)
   "Get the value of environment variable VARIABLE.
