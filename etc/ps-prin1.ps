@@ -343,7 +343,7 @@ StandardEncoding 46 82 getinterval aload pop
 /doColumnZebra{
   /lpc exch def
   gsave
-  ZebraFollow{
+  ZebraFollow 1 and 0 ne{
     /H ZebraHeight zebra-line ZebraHeight mod sub def
     /lpc lpc H sub def
     zebra-line double-zebra mod ZebraHeight lt
@@ -355,8 +355,8 @@ StandardEncoding 46 82 getinterval aload pop
     /zebra-line zebra-line LinesPerColumn add def
   }if
   lpc dup double-zebra idiv{ZebraHeight doZebra 0 yiter rmoveto}repeat
-  double-zebra mod
-  dup 0 le{pop}{dup ZebraHeight gt{pop ZebraHeight}if doZebra}ifelse
+  double-zebra mod dup 0 le{pop}
+  {dup ZebraHeight gt ZebraFollow 2 and 0 ne or{pop ZebraHeight}if doZebra}ifelse
   grestore
 }def
 
