@@ -1,5 +1,8 @@
 2002-11-12   Markus Rost  <rost@math.ohio-state.edu>
 
+	* emulation/edt.el (defgroup edt): Arrange that definition starts
+	at beginning of line.
+
 	* ls-lisp.el (defgroup ls-lisp): Remove autoload cookie.
 
 	* hi-lock.el (defgroup hi-lock-interactive-text-highlighting):
@@ -16,8 +19,8 @@
 	(custom-make-dependencies):  Handle :version also for autoloaded
 	options.
 
-	* winner.el (defgroup winner): Handle Emacs 19 compatibility so
-	that definition starts at beginning of line.
+	* winner.el (defgroup winner): Arrange that definition starts at
+	beginning of line.
 
 	* emulation/edt.el: Simplify Emacs 19 compatibility.
 
