@@ -5568,7 +5568,8 @@ There are three such tables, `file-coding-system-alist',\n\
   Vlast_coding_system_used = Qnil;
 
   DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
-    "*Non-nil inhibit code conversion of end-of-line format in any cases.");
+    "*Non-nil means always inhibit code conversion of end-of-line format.\n\
+See info node `Text and Binary' concerning such conversion.");
   inhibit_eol_conversion = 0;
 
   DEFVAR_BOOL ("inherit-process-coding-system", &inherit_process_coding_system,
