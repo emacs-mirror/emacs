@@ -218,8 +218,12 @@ readchar (readcharfun)
 	  readchar_backlog = bytepos - orig_bytepos;
 	}
 
-      return *(BUF_BEG_ADDR (inbuffer) + XMARKER (readcharfun)->bytepos
-	       - readchar_backlog--);
+      /* We get the address of the byte just passed,
+	 which is the last byte of the character.
+	 The other bytes in this character are consecutive with it,
+	 because the gap can't be in the middle of a character.  */
+      return *(BUF_BYTE_ADDRESS (inbuffer, XMARKER (readcharfun)->bytepos - 1)
+	       - --readchar_backlog);
     }
   if (EQ (readcharfun, Qget_file_char))
     {
