@@ -1732,6 +1732,11 @@ set_frame_menubar (f, first_time, deep_p)
 	  wv->name = (char *) XSTRING (string)->data;
 	  wv->value = 0;
 	  wv->enabled = 1;
+	  /* This prevents lwlib from assuming this
+	     menu item is really supposed to be empty.  */
+	  /* The EMACS_INT cast avoids a warning.
+	     This value just has to be different from small integers.  */
+	  wv->call_data = (void *) (EMACS_INT) (-1);
 
 	  if (prev_wv) 
 	    prev_wv->next = wv;
