@@ -1,3 +1,7 @@
+2000-09-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* splash.xpm: New file.
+
 2000-09-11  Dave Love  <fx@gnu.org>
 
 	* gnus.xbm, gnus.xpm, gnus-pointer.xpm, gnus-pointer.xbm: New

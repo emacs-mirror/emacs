@@ -1,5 +1,18 @@
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* gnus/: Update to emacs-21-branch of the Gnus CVS repository.
+	* gnus/binhex.el, gnus/flow-fill.el, gnus/format-spec.el
+	* gnus/gnus-ml.el, gnus/gnus-mlspl.el, gnus/ietf-drums.el,
+	* gnus/imap.el, gnus/mail-parse.el, gnus/mail-prsvr.el,
+	* gnus/mail-source.el, gnus/mailcap.el, gnus/mm-bodies.el,
+	* gnus/mm-decode.el, gnus/mm-encode.el, gnus/mm-partial.el,
+	* gnus/mm-util.el, gnus/mm-uu.el, gnus/mm-view.el,
+	* gnus/mml.el, gnus/nnimap.el, gnus/nnslashdot.el,
+	* gnus/nnultimate.el, gnus/nnwarchive.el, gnus/qp.el,
+	* gnus/rfc1843.el, gnus/rfc2045.el, gnus/rfc2047.el,
+	* gnus/rfc2104.el, gnus/rfc2231.el, gnus/time-date.el,
+	* gnus/utf7.el, gnsu/uudecode.el, gnus/webmail.el: New files.
+
 	* startup.el (fancy-splash-text): New variable.
 	(fancy-splash-delay, fancy-splash-image): New user-options.
 	(fancy-splash-insert, fancy-splash-head, fancy-splash-tail)
