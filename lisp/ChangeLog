@@ -211,7 +211,7 @@
 	(byte-compile-from-buffer): Bind byte-compile-last-line.
 	(batch-byte-compile): Remove `Done' message.
 
-2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
+2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/copyright.el (copyright): Add final \n.
 
