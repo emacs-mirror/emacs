@@ -2473,6 +2473,7 @@ xdialog_show (f, keymaps, title, error)
 
   return Qnil;
 }
+
 #else /* not USE_X_TOOLKIT */
 
 /* The frame of the last activated non-toolkit menu bar.
@@ -2489,7 +2490,8 @@ static void
 menu_help_callback (help_string)
      char *help_string;
 {
-  show_help_echo (help_string ? build_string (help_string) : Qnil, 1);
+  show_help_echo (help_string ? build_string (help_string) : Qnil,
+		  Qnil, Qnil, 0, 1);
 }
 
 
