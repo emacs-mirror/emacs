@@ -1,6 +1,8 @@
 2000-12-11  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* obsolete/c-mode.el: Moved from progmodes.
+	* obsolete/c-mode.el: Moved from lisp/progmodes.
+	* obsolete/auto-show.el: Moved from lisp.
+	* obsolete/ooutline.el: Moved from lisp/textmodes.
 	
 2000-12-11  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
