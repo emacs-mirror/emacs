@@ -1,5 +1,8 @@
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* menu-bar.el (menu-bar-files-menu): Add menu items for 
+	Postscript printing in black and white.
+
 	* mail/rmail.el (rmail-ignored-headers): Add X-Sign, X-BeenThere,
 	X-Mailman-Version, Precedence, List-Help, List-Post,
 	List-Subscribe, List-Id, List-Unsubscribe, List-Archive,
