@@ -780,25 +780,6 @@ case "${canonical}" in
     machine=i860 opsys=usg5-4
   ;;
 
-  ## Silicon Graphics machines
-  ## Iris 2500 and Iris 2500 Turbo (aka the Iris 3030)
-  m68*-sgi-iris3.5* )
-    machine=irist opsys=iris3-5
-  ;;
-  m68*-sgi-iris3.6* | m68*-sgi-iris*)
-    machine=irist opsys=iris3-6
-  ;;
-  ## Iris 4D
-  mips-sgi-irix3.* )
-    machine=iris4d opsys=irix3-3
-  ;;
-  mips-sgi-irix5.* )
-    machine=iris4d opsys=irix5-0
-  ;;
-  mips-sgi-irix4.* | mips-sgi-irix* )
-    machine=iris4d opsys=irix4-0
-  ;;
-
   ## Masscomp machines
   m68*-masscomp-rtu* )
     machine=masscomp opsys=rtu
@@ -882,6 +863,32 @@ case "${canonical}" in
   ;;
   ns32k-sequent-bsd4.3* )
     machine=sequent opsys=bsd4-3
+  ;;
+
+  ## Siemens Nixdorf
+  mips-siemens-sysv* )
+    machine=mips-siemens opsys=usg5-4
+    NON_GNU_CC=/usr/ccs/bin/cc
+    NON_GNU_CPP=/usr/ccs/bin/cc -E
+  ;;
+
+  ## Silicon Graphics machines
+  ## Iris 2500 and Iris 2500 Turbo (aka the Iris 3030)
+  m68*-sgi-iris3.5* )
+    machine=irist opsys=iris3-5
+  ;;
+  m68*-sgi-iris3.6* | m68*-sgi-iris*)
+    machine=irist opsys=iris3-6
+  ;;
+  ## Iris 4D
+  mips-sgi-irix3.* )
+    machine=iris4d opsys=irix3-3
+  ;;
+  mips-sgi-irix5.* )
+    machine=iris4d opsys=irix5-0
+  ;;
+  mips-sgi-irix4.* | mips-sgi-irix* )
+    machine=iris4d opsys=irix4-0
   ;;
 
   ## SONY machines
@@ -1376,6 +1383,7 @@ LIBS="$libsrc_libs"
 dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
 dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
 AC_HAVE_LIBRARY(-ldnet)
+AC_HAVE_LIBRARY(-lresolv)
 
 AC_HAVE_LIBRARY(-lXbsd, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
@@ -1414,7 +1422,7 @@ fi
 [
 #### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
-	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\)[."].*$/\1/'`
+	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 if [ x"${version}" = x ]; then
   echo "${progname}: can't find current emacs version in
 	\`${srcdir}/lisp/version.el'." >&2
@@ -1455,6 +1463,8 @@ AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(CFLAGS)
 AC_SUBST(X_TOOLKIT_TYPE)
+AC_SUBST(machfile)
+AC_SUBST(opsysfile)
 
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
