@@ -2167,6 +2167,20 @@ x_set_scroll_bar_background (f, value, oldval)
   if (f->output_data.x->scroll_bar_background_pixel != -1)
     unload_color (f, f->output_data.x->scroll_bar_background_pixel);
   
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  /* Scrollbar shadow colors.  */
+  if (f->output_data.x->scroll_bar_top_shadow_pixel != -1)
+    {
+      unload_color (f, f->output_data.x->scroll_bar_top_shadow_pixel);
+      f->output_data.x->scroll_bar_top_shadow_pixel = -1;
+    }
+  if (f->output_data.x->scroll_bar_bottom_shadow_pixel != -1)
+    {
+      unload_color (f, f->output_data.x->scroll_bar_bottom_shadow_pixel);
+      f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
+    }
+#endif /* USE_TOOLKIT_SCROLL_BARS */
+
   f->output_data.x->scroll_bar_background_pixel = pixel;
   if (FRAME_X_WINDOW (f) && FRAME_VISIBLE_P (f))
     {
@@ -4167,6 +4181,10 @@ This function is an internal primitive--use `make-frame' instead.")
   f->output_data.x->fontset = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  f->output_data.x->scroll_bar_top_shadow_pixel = -1;
+  f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
+#endif /* USE_TOOLKIT_SCROLL_BARS */
   record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
@@ -10622,6 +10640,10 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->output_data.x->fontset = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  f->output_data.x->scroll_bar_top_shadow_pixel = -1;
+  f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
+#endif /* USE_TOOLKIT_SCROLL_BARS */
   f->icon_name = Qnil;
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 #if GLYPH_DEBUG
