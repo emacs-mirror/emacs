@@ -62,6 +62,10 @@
 
 2002-11-17  Ben Key <BKey1@tampabay.rr.com>
 
+	This change is my fix for the following entry in etc/PROBLEMS:
+	"Emacs built on Windows 9x/ME crashes at startup on Windows XP,
+	or Emacs builtpart of on XP crashes at startup on Windows 9x/ME."
+
 	* w32.c: Added wrapper functions around the win32 API functions
 	OpenProcessToken, GetTokenInformation, LookupAccountSid, and
 	GetSidIdentifierAuthority.  These wrapper functions serve two
@@ -75,38 +79,25 @@
 	in the 9x branch of Microsoft Windows, the functions do exist in
 	the version of advapi32.dll that is found in the 9x branch of
 	Microsoft Windows.
-	This change is part of my fix for the following entry in
-	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
-	Windows XP, or Emacs built on XP crashes at startup on Windows 9x/ME."
 
 	* w32.c (init_user_info): Replaced the calls to the win32 API
 	functions OpenProcessToken, GetTokenInformation, LookupAccountSid,
 	and GetSidIdentifierAuthority with calls to the newly added
 	wrapper functions.
-	This change is part of my fix for the following entry in
-	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
-	Windows XP, or Emacs built on XP crashes at startup on Windows 9x/ME."
 
 	* w32.h: Added extern declarations for the following functions:
 	syms_of_w32term, syms_of_w32fns, syms_of_w32select,
 	syms_of_w32menu, and void syms_of_fontset.
-	This change is part of my fix for the following entry in
-	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
-	Windows XP, or Emacs built on XP crashes at startup on Windows 9x/ME."
 
 	* w32fns.c (w32_wnd_proc): Added code to reinitialize the
 	function pointer track_mouse_event_fn in the handler for the
 	WM_SETFOCUS message.
-	This change is part of my fix for the following entry in
-	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
-	Windows XP, or Emacs built on XP crashes at startup on Windows 9x/ME."
 
 	* w32menu.c (initialize_frame_menubar):  Added code to
 	reinitialize the function pointers set_menu_item_info and
 	get_menu_item_info.
-	This change is part of my fix for the following entry in
-	etc/PROBLEMS: "Emacs built on Windows 9x/ME crashes at startup on
-	Windows XP, or Emacs built on XP crashes at startup on Windows 9x/ME."
+
+2002-11-17  Ben Key <BKey1@tampabay.rr.com>
 
 	* sound.c: Added a partial implementation of play-sound-internal
 	for Microsoft Windows.  Added various #ifdef / #else / #endif
