@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.35) $
+ * $HopeName: MMsrc!poolamc.c(trunk.36) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.35) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.36) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -566,10 +566,10 @@ static Bool AMCNailGetMark(Seg seg, Ref ref)
 }
 
 
-/* AMCNailGetAndSetMark
+/* AMCNailGetAndSetMark -- set the mark bit for ref in the nail board
  *
- * Set the mark bit for ref in the nail board.
- * Returns the old value. */
+ * Returns the old value.
+ */
 
 static Bool AMCNailGetAndSetMark(Seg seg, Ref ref)
 {
@@ -593,13 +593,16 @@ static Bool AMCNailGetAndSetMark(Seg seg, Ref ref)
 
 /* AMCNailMarkRange -- nail a range in the board
  *
- * We may assume that the range is unmarked.
+ * We nail the objects laying between base and limit, i.e., mark the
+ * bits that correspond to client pointers for them.  We may assume that
+ * the range is unmarked.
  */
 
 static void AMCNailMarkRange(Seg seg, Addr base, Addr limit)
 {
   AMCNailBoard board;
   Index ibase, ilimit;
+  Size headerSize;
 
   AVER(SegBase(seg) <= base && base < SegLimit(seg));
   AVER(SegBase(seg) <= limit && limit <= SegLimit(seg));
@@ -607,8 +610,9 @@ static void AMCNailMarkRange(Seg seg, Addr base, Addr limit)
 
   board = AMCSegNailBoard(seg);
   AVERT(AMCNailBoard, board);
-  ibase = AddrOffset(SegBase(seg), base) >> board->markShift;
-  ilimit = AddrOffset(SegBase(seg), limit) >> board->markShift;
+  headerSize = SegPool(seg)->format->headerSize;
+  ibase = (AddrOffset(SegBase(seg), base) + headerSize) >> board->markShift;
+  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize) >> board->markShift;
   AVER(BTIsResRange(board->mark, ibase, ilimit));
 
   BTSetRange(board->mark, ibase, ilimit);
@@ -617,12 +621,17 @@ static void AMCNailMarkRange(Seg seg, Addr base, Addr limit)
 }
 
 
-/* AMCNailRangeIsMarked -- check that a range in the board is marked */
+/* AMCNailRangeIsMarked -- check that a range in the board is marked
+ *
+ * Like AMCNailMarkRange, we take the arguments as referring to base
+ * pointers and look at the bits of the corresponding client pointers.
+ */
 
 static Bool AMCNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 {
   AMCNailBoard board;
   Index ibase, ilimit;
+  Size headerSize;
 
   AVER(SegBase(seg) <= base && base < SegLimit(seg));
   AVER(SegBase(seg) <= limit && limit <= SegLimit(seg));
@@ -630,8 +639,9 @@ static Bool AMCNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 
   board = AMCSegNailBoard(seg);
   AVERT(AMCNailBoard, board);
-  ibase = AddrOffset(SegBase(seg), base) >> board->markShift;
-  ilimit = AddrOffset(SegBase(seg), limit) >> board->markShift;
+  headerSize = SegPool(seg)->format->headerSize;
+  ibase = (AddrOffset(SegBase(seg), base) + headerSize) >> board->markShift;
+  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize) >> board->markShift;
   return BTIsSetRange(board->mark, ibase, ilimit);
 }
 
@@ -1368,9 +1378,8 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 /* AMCFixInPlace -- fix an reference without moving the object
  *
- * Usually this function is used for ambiguous references,
- * but during emergency tracing may be used for references of
- * any rank.
+ * Usually this function is used for ambiguous references, but during
+ * emergency tracing may be used for references of any rank.
  *
  * If the segment has a nail board then we use that to record the fix.
  * Otherwise we simply grey and nail the entire segment.
@@ -1384,8 +1393,8 @@ static void AMCFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
   UNUSED(pool);
 
   ref = (Addr)*refIO;
-  AVER(SegBase(seg) <= ref);
-  AVER(ref < SegLimit(seg));
+  AVER(AddrAdd(SegBase(seg), pool->format->headerSize) <= ref);
+  AVER(ref < AddrAdd(SegLimit(seg), pool->format->headerSize));
 
   EVENT_0(AMCFixInPlace);
   if(AMCSegHasNailBoard(seg)) {
@@ -1509,6 +1518,8 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
   ref = *refIO;
+  AVER_CRITICAL(SegBase(seg) <= ref);
+  AVER_CRITICAL(ref < SegLimit(seg));
 
   arena = pool->arena;
 
@@ -1676,6 +1687,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
   ref = *refIO;
+  AVER_CRITICAL(AddrAdd(SegBase(seg), pool->format->headerSize) <= ref);
+  AVER_CRITICAL(ref < AddrAdd(SegLimit(seg), pool->format->headerSize));
 
   arena = pool->arena;
 
@@ -1947,6 +1960,7 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
       return res;
 
     /* @@@@ This needs to describe nailboards as well */
+    /* @@@@ This misses a header-sized pad at the end. */
     for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
       if(j >= limit)
         c = ' ';
