@@ -6509,7 +6509,7 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 	    prev = tail;
 	  else
 	    {
-	      /* Exclued this coding system from SAFE_CODINGS.  */
+	      /* Exclude this coding system from SAFE_CODINGS.  */
 	      if (EQ (tail, safe_codings))
 		safe_codings = XCDR (safe_codings);
 	      else
@@ -7553,7 +7553,9 @@ the value of `buffer-file-coding-system' is used.  */);
   Vcoding_system_for_write = Qnil;
 
   DEFVAR_LISP ("last-coding-system-used", &Vlast_coding_system_used,
-	       doc: /* Coding system used in the latest file or process I/O.  */);
+	       doc: /* Coding system used in the latest file or process I/O.
+Also set by `encode-coding-region', `decode-coding-region',
+`encode-coding-string' and `decode-coding-string'.  */);
   Vlast_coding_system_used = Qnil;
 
   DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
