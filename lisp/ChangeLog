@@ -1,5 +1,7 @@
 2000-11-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/5x5.el: Remove version info.
+
 	* toolbar/tool-bar.el (tool-bar-mode): Doc fix.
 
 	* frame.el (blink-cursor-mode): Doc fix.
