@@ -1,3 +1,7 @@
+2005-03-17  Lute Kamstra  <lute@gnu.org>
+
+	* TODO: Remove define-generic-mode entry (DONE).
+
 2005-03-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Explain how to default Tramp to FTP.
