@@ -271,7 +271,7 @@ minibuffer."
 		 (while (not (or (and (>= char ?0) (< char next-digit))
 				 (eq value 'keyboard-quit)))
 		   ;; Unread a SPC to lead to our new menu.
-		   (setq unread-command-events (cons ?\ unread-command-events))
+		   (setq unread-command-events (cons ?\  unread-command-events))
 		   (setq keys (read-key-sequence title))
 		   (setq value
 			 (lookup-key overriding-terminal-local-map keys t)
