@@ -1,5 +1,13 @@
 2002-09-01  Richard M. Stallman  <rms@gnu.org>
 
+	* unexsol.c: New file.
+
+	* xfns.c (Qbox): Declare external, don't define.
+
+	* xdisp.c (redisplay_window) <force-start case>:
+	If point is on semi-visible last line, reposition
+	it at previous line.
+
 	* alloc.c (display_malloc_warning): Use display-warning.
 	(malloc_warning_1): Function deleted.
 

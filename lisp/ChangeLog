@@ -1,3 +1,21 @@
+2002-09-01  Richard M. Stallman  <rms@gnu.org>
+
+	* ruler-mode.el (defgroup ruler-mode): Use `convenience' as parent.
+
+	* dired.el (defgroup dired): Use `files' as parent.
+	(dired-get-filename): Ignore handler if it has safe-magic prop.
+
+	* jka-compr.el (jka-compr-handler): Add safe-magic property.
+
+2002-08-31  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (kill-line): Use end-of-visible-line to determine
+	if rest of line is blank.
+	(end-of-visible-line): Cope if end-of-line moved back over
+	invisible intangible chars at end of line.
+
+	* simple.el (completion-setup-function): Don't use directory-sep-char.
+
 2002-09-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-menu): Remove ":active" keyword where not
