@@ -346,8 +346,8 @@ Attempts to automatically reset if look not available")
   "Options for ispell-look-command")
 
 (defvar ispell-use-ptys-p nil
-  "When t, emacs will use pty's to communicate with ispell.
-When nil, emacs will use pipes.")
+  "When t, Emacs uses pty's to communicate with Ispell.
+When nil, Emacs uses pipes.")
 
 (defvar ispell-following-word nil
   "*If non-nil the \\[ispell-word] command will check the spelling
