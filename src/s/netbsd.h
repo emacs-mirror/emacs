@@ -43,7 +43,7 @@
 
 #define GETPGRP_NO_ARG
 
-#ifndef NO_SHARED_LIBS
+#if !defined (NO_SHARED_LIBS) && ! defined (__ELF__)
 /* These definitions should work for either dynamic or static linking,
    whichever is the default for `cc -nostdlib'.  */
 #define HAVE_TEXT_START		/* No need to define `start_of_text'.  */
@@ -65,3 +65,10 @@
 #define NO_MATHERR
 
 #define AMPERSAND_FULL_NAME
+
+#ifdef __ELF__
+/* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
+   says where to find X windows at run time.  We convert it to a -rpath option
+   which is what OSF1 uses.  */
+#define LD_SWITCH_SYSTEM `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
+#endif /* __ELF__ */
