@@ -1459,4 +1459,5 @@ The document is bounded by `sh-here-document-word'."
       (goto-char (match-end 1))))
 
 (provide 'sh-script)
+
 ;; sh-script.el ends here
