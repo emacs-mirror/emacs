@@ -1494,7 +1494,8 @@ is specified.  */)
 
   dimension = CHARSET_DIMENSION (charsetp);
   if (NILP (code1))
-    code = charsetp->code_space[(dimension - 1) * 4];
+    code = (CHARSET_ASCII_COMPATIBLE_P (charsetp)
+	    ? 0 : CHARSET_MIN_CODE (charsetp));
   else
     {
       CHECK_NATNUM (code1);
