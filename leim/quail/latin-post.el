@@ -1,4 +1,4 @@
-;; Quail packages for inputting various European characters.
+;;; latin-post.el --- Quail packages for inputting various European characters
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -23,6 +23,10 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'quail)
 
@@ -2121,3 +2125,5 @@ Dead accent is right to ,Af(B." nil t t t t nil nil nil nil nil t)
  (">" ?V)
  ("?" ?Z)
  )
+
+;;; latin-post.el ends here

@@ -1,9 +1,9 @@
-;;; quail/czech.el -- Quail package for inputting Czech
+;;; czech.el --- Quail package for inputting Czech
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
-;; Maintainer: Pavel Jan,Al(Bk <Pavel@Janik.cz>
+;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>
 ;; Keywords: multilingual, input method, Czech
 
 ;; This file is part of GNU Emacs.
@@ -566,3 +566,5 @@ All other keys are the same as on standard US keyboard."
  ([kp-9] ?9)
  ([kp-0] ?0)
  ([kp-add] ?+))
+
+;;; czech.el ends here

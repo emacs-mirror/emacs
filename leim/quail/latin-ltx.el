@@ -1,4 +1,4 @@
-;;; quail/latin-ltx.el -- Quail package for TeX-style input -*-coding: iso-2022-7bit-*-
+;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: iso-2022-7bit-*-
 
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -22,6 +22,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -900,3 +902,5 @@ system, including many technical ones.  Examples:
  ("\\mu" ?$,1'<(B)
  ("\\rho" ?$,1'A(B)
 )
+
+;;; latin-ltx.el ends here

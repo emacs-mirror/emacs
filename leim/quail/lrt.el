@@ -1,4 +1,4 @@
-;;; quail/lrt.el --- Quail package for inputting Lao characters by LRT method
+;;; lrt.el --- Quail package for inputting Lao characters by LRT method
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -74,4 +76,4 @@
 	      lao-transcription-tone-alist)
     (t-state lao-transcription-tone-alist))))
 
-;;; quail/lrt.el ends here
+;;; lrt.el ends here

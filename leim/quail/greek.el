@@ -1,4 +1,4 @@
-;;; quail/greek.el -- Quail package for inputting Greek
+;;; greek.el --- Quail package for inputting Greek
 
 ;; Copyright (C) 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -904,3 +906,5 @@ e.g.
  ("Y:" ?,F[(B)
  ("i:;" ?,F@(B)
  ("y:;" ?,F`(B))
+
+;;; greek.el ends here

@@ -1,4 +1,4 @@
-;;; quail/thai.el --- Quail package for inputting Thai characters
+;;; thai.el --- Quail package for inputting Thai characters
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -125,3 +127,5 @@ The difference from the ordinal Thai keyboard:
     ",Ta(B" ",Tg(B" ",TM(B" ",T7(B" ",TC(B" ",T4(B" ",TK(B" ",T5(B"	; p .. w
     ",T;(B" ",Th(B" ",T:(B" ",TO(B" ",Tm(B" ",TF(B" ",T%(B" 0	; x .. DEL
     ]))
+
+;;; thai.el ends here

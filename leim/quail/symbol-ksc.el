@@ -1,4 +1,4 @@
-;;; quail/symbol-ksc.el --- Quail-package for Korean Symbol (KSC5601)
+;;; symbol-ksc.el --- Quail-package for Korean Symbol (KSC5601)
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -26,6 +26,7 @@
 ;;; 94.11.04   Updated for Mule Ver.2.1 (koaunghi.un@zdv.uni-tuebingen.de)
 ;;; 96.09.23   Updated for emacs-19.33-beta (koaunghi.un@zdv.uni-tuebingen.de)
 
+;;; Commentary:
 
 ;;; Code:
 
@@ -196,3 +197,5 @@
  ("kata"	"アィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベホペボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶ")
  ("Russ"	"БВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ")
  ("russ"	"абвгдеёжзйиклмнопрстуфхцчшщъыьэюя"))
+
+;;; symbol-ksc.el ends here

@@ -1,4 +1,4 @@
-;;; quail/cyril-jis.el -- Quail package for inputting JISX0208 Cyrillic letters
+;;; cyril-jis.el --- Quail package for inputting JISX0208 Cyrillic letters
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -140,3 +140,5 @@
 ;; Local Variables:
 ;; buffer-file-coding-system: iso-2022-7bit
 ;; End:
+
+;;; cyril-jis.el ends here

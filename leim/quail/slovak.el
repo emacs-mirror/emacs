@@ -1,10 +1,10 @@
-;;; quail/slovak.el -- Quail package for inputting Slovak
+;;; slovak.el --- Quail package for inputting Slovak
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 
-;; Authors:    Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>,
-;;             Milan Zamazal <pdm@zamazal.org>
-;; Maintainer: Pavel Jan,Al(Bk <Pavel@Janik.cz>
+;; Authors: Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>
+;;	Milan Zamazal <pdm@zamazal.org>
+;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>
 ;; Keywords: multilingual, input method, Slovak
 
 ;; This file is part of GNU Emacs.
@@ -33,7 +33,6 @@
 ;;; Code:
 
 (require 'quail)
-
 
 (quail-define-package
  "slovak" "Slovak" "SK" t
@@ -477,3 +476,5 @@ All other keys are the same as on standard US keyboard."
  ([kp-9] ?9)
  ([kp-0] ?0)
  ([kp-add] ?+))
+
+;;; slovak.el ends here

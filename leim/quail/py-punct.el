@@ -1,4 +1,4 @@
-;; quail/py-punct.el -- Quail packages for Chinese (pinyin + extra symbols)
+;;; py-punct.el --- Quail packages for Chinese (pinyin + extra symbols)
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -23,6 +23,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'quail)
 
@@ -65,3 +69,5 @@ For instance, typing `v' and `%' insert `％'.
 ")
 
 (quail-defrule "v" (nth 2 (assoc "chinese-punct-b5" quail-package-alist)))
+
+;;; py-punct.el ends here

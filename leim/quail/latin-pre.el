@@ -1,4 +1,4 @@
-;;; latin-pre.el -- Quail packages for inputting various European characters.
+;;; latin-pre.el --- Quail packages for inputting various European characters
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -31,8 +31,8 @@
 ;;                 by R.F. Smith <rsmith@xs4all.nl>
 ;;
 ;; polish-slash:
-;;  Author:	W,B3(Bodek Bzyl <matwb@univ.gda.pl>
-;;  Maintainer:	W,B3(Bodek Bzyl <matwb@univ.gda.pl>
+;; Author: W,B3(Bodek Bzyl <matwb@univ.gda.pl>
+;; Maintainer: W,B3(Bodek Bzyl <matwb@univ.gda.pl>
 ;;
 ;; latin-[89]-prefix: Dave Love <fx@gnu.org>
 
@@ -62,7 +62,7 @@
    symbol    |   ^    | ^r -> ,A.(B  ^c -> ,A)(B  ^1 -> ,A9(B  ^2 -> ,A2(B  ^3 -> ,A3(B
 " nil t nil nil nil nil nil nil nil nil t)
 
-;; Fixme: should we have non-break space somehow?  Is so, how?
+;; Fixme: should we have non-break space somehow?  If so, how?
 (quail-define-rules
  ("'A" ?,AA(B)
  ("'E" ?,AI(B)
@@ -979,3 +979,5 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("~$" ?,_#(B)
  ("^r" ?,_.(B)
  ("^c" ?,_)(B))
+
+;;; latin-pre.el ends here

@@ -1,4 +1,4 @@
-;;; quail/tibetan.el -- Quail package for inputting Tibetan characters
+;;; tibetan.el --- Quail package for inputting Tibetan characters
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
@@ -28,6 +28,8 @@
 ;; History:
 ;; 1997.03.13 Support for inputting special signs and punctuations added.
 ;;            (Only Ext. Wylie input)
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -447,3 +449,5 @@
     (s-state (tibetan-subjoined-tibkey-alist . s-state)
 	     (tibetan-vowel-tibkey-alist . m-state))
     (m-state tibetan-modifier-tibkey-alist))))
+
+;;; tibetan.el ends here

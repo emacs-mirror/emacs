@@ -1,4 +1,4 @@
-;; quail/ethiopic.el --- Quail package for inputting Ethiopic characters
+;;; ethiopic.el --- Quail package for inputting Ethiopic characters
 
 ;; Copyright (C) 1997, 1998 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -23,6 +23,8 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -1144,4 +1146,4 @@ C-' or `M-x ethio-gemination'
 		 (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
 		 "ethiopic"))
 
-;;; quail/ethiopic.el ends here
+;;; ethiopic.el ends here

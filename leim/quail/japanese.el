@@ -1,4 +1,4 @@
-;;; quail/japanese.el --- Quail package for inputting Japanese
+;;; japanese.el --- Quail package for inputting Japanese
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -541,3 +543,4 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
 			  (vector (japanese-katakana (aref trans 0))))
 			 (t trans)))))
 
+;;; japanese.el ends here

@@ -1,4 +1,4 @@
-;;; quail/cyrillic.el -- Quail package for inputting Cyrillic characters
+;;; cyrillic.el --- Quail package for inputting Cyrillic characters
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -838,10 +840,8 @@ The only difference with cyrillic-translit is that \"sht\" translates as
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
 )
 
-
-
-
-
 ;; Local Variables:
 ;; buffer-file-coding-system: iso-2022-7bit
 ;; End:
+
+;;; cyrillic.el ends here

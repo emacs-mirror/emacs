@@ -1,4 +1,4 @@
-;; Quail packages for inputting various European characters.
+;;; latin-alt.el --- Quail packages for inputting various European characters
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -23,6 +23,10 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'quail)
 
@@ -1524,3 +1528,5 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
  ("U^^" ["U^"])
  ("u^^" ["u^"])
  )
+
+;;; latin-alt.el ends here

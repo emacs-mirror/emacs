@@ -1,4 +1,4 @@
-;; quail/devanagari.el -- Quail packages for inputting Devanagari
+;;; devanagari.el --- Quail packages for inputting Devanagari
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -667,3 +667,5 @@ Specials   :   Anuswar       M  $(5!"(B     Visarg        H  $(5!#(B
 		      )
 
 (devanagari-hindi-transliteration-quail-define-rules)
+
+;;; devanagari.el ends here

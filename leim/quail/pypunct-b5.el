@@ -1,4 +1,4 @@
-;; quail/pypunct-b5.el -- Quail packages for Chinese (pinyin + extra symbols)
+;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols)
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -24,6 +24,10 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;;; Code:
+
 (require 'quail)
 
 (load "quail/PY-b5")
@@ -48,3 +52,5 @@ For instance, typing `v' and `%' insert `$(0"h(B'.
 	(nth 2 (assoc "chinese-py-b5" quail-package-alist)))
 
 (quail-defrule "v" (nth 2 (assoc "chinese-punct-b5" quail-package-alist)))
+
+;;; pypunct-b5.el ends here

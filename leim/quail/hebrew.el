@@ -1,4 +1,4 @@
-;; Quail package for inputting Hebrew characters.
+;;; hebrew.el --- Quail package for inputting Hebrew characters
 
 ;; Copyright (C) 1998 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'quail)
 
@@ -69,5 +73,6 @@ Hebrew letters are assigned to lowercases.
  ("," ?,Hz(B)
  ("." ?,Hu(B)
  ("/" ?.)
- ("'" ?,)
- )
+ ("'" ?,))
+
+;;; hebrew.el ends here

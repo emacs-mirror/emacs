@@ -1,4 +1,4 @@
-;;; quail/lao.el --- Quail package for inputting Lao characters
+;;; lao.el --- Quail package for inputting Lao characters
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -195,4 +197,4 @@
     (v-state (lao-vowel-key-alist . t-state))
     (t-state lao-tone-key-alist))))
 
-;;; quail/lao.el ends here
+;;; lao.el ends here
