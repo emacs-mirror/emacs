@@ -3135,6 +3135,11 @@ extern void syms_of_xterm P_ ((void));
 
 /* Defined in getloadavg.c */
 extern int getloadavg P_ ((double [], int));
+
+#ifdef MSDOS
+/* Defined in msdos.c */
+EXFUN (Fmsdos_downcase_filename, 1);
+#endif
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
