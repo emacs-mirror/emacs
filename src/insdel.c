@@ -539,7 +539,7 @@ make_gap (nbytes_added)
      That won't work because so many places use `int'.  */
      
   if (Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added
-      >= ((unsigned) 1 << (min (BITS_PER_INT, VALBITS) - 1)))
+      >= MOST_POSITIVE_FIXNUM)
     error ("Buffer exceeds maximum size");
 
   enlarge_buffer_text (current_buffer, nbytes_added);
