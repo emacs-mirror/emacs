@@ -70,8 +70,7 @@ MD5 is defined in RFC 1321."
 	  (unless (eq 0 (call-process-region (or start (point-min))
 					     (or end (point-max))
 					     md5-program nil out-buffer))
-	    (error "Running MD5 command %s failed"
-		   (cons md5-program md5-program-args)))))
+	    (error "Running `md5-program' failed"))))
       ;; The meaningful output is the first 32 characters.
       ;; Don't return the newline that follows them!
       (buffer-substring 1 33))))
