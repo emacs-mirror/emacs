@@ -122,7 +122,7 @@ toggle: A checkbox.
         Prepend the name with `(*) ' or `( ) ' depending on if selected or not.
 radio: A radio button.
        Prepend the name with `[X] ' or `[ ] ' depending on if selected or not.
-button: Surround the name with `[' and `]'. Use this for an item in the
+button: Surround the name with `[' and `]'.  Use this for an item in the
         menu bar itself.
 anything else means an ordinary menu item.
 
@@ -210,7 +210,8 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
        ((eq keyword :help) (setq help arg))
        ((or (eq keyword :included) (eq keyword :visible))
 	(setq visible (or arg ''nil)))))
-    (if (equal visible ''nil) nil	; Invisible menu entry, return nil.
+    (if (equal visible ''nil)
+	nil				; Invisible menu entry, return nil.
       (if (and visible (not (easy-menu-always-true visible)))
 	  (setq prop (cons :visible (cons visible prop))))
       (if (and enable (not (easy-menu-always-true enable)))
@@ -242,25 +243,25 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 (defvar easy-menu-converted-items-table (make-hash-table :test 'equal))
 
 (defun easy-menu-convert-item (item)
-  ;; Memoize easy-menu-convert-item-1.
-  ;; This makes key-shortcut-caching work a *lot* better when this
-  ;; conversion is done from within a filter.
-  ;; This also helps when the NAME of the entry is recreated each time:
-  ;; since the menu is built and traversed separately, the lookup
-  ;; would always fail because the key is `equal' but not `eq'.
+  "Memoize the value returned by `easy-menu-convert-item-1' called on ITEM.
+This makes key-shortcut-caching work a *lot* better when this
+conversion is done from within a filter.
+This also helps when the NAME of the entry is recreated each time:
+since the menu is built and traversed separately, the lookup
+would always fail because the key is `equal' but not `eq'."
   (or (gethash item easy-menu-converted-items-table)
       (puthash item (easy-menu-convert-item-1 item)
 	       easy-menu-converted-items-table)))
 
 (defun easy-menu-convert-item-1 (item)
-  ;; Parse an item description and add the item to a keymap.  This is
-  ;; the function that is used for item definition by the other easy-menu
-  ;; functions.
-  ;; MENU is a sparse keymap i.e. a list starting with the symbol `keymap'.
-  ;; ITEM defines an item as in `easy-menu-define'.
-  ;; Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
-  ;; put item before BEFORE in MENU, otherwise if item is already present in
-  ;; MENU, just change it, otherwise put it last in MENU.
+  "Parse an item description and add the item to a keymap.
+This is the function that is used for item definition by the other easy-menu
+functions.
+MENU is a sparse keymap i.e. a list starting with the symbol `keymap'.
+ITEM defines an item as in `easy-menu-define'.
+Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
+put item before BEFORE in MENU, otherwise if item is already present in
+MENU, just change it, otherwise put it last in MENU."
   (let (name command label prop remove help)
     (cond
      ((stringp item)			; An item or separator.
@@ -357,20 +358,19 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 				     (cons command prop))))))))
 
 (defun easy-menu-define-key-intern (menu key item &optional before)
-  ;; This is the same as easy-menu-define-key, but it interns KEY and
-  ;; BEFORE if they are strings.
+  "Like easy-menu-define-key, but interns KEY and BEFORE if they are strings."
   (easy-menu-define-key menu (if (stringp key) (intern key) key) item
 			(if (stringp before) (intern before) before)))
 
 (defun easy-menu-define-key (menu key item &optional before)
-  ;; Add binding in MENU for KEY => ITEM.  Similar to `define-key-after'.
-  ;; If KEY is not nil then delete any duplications. If ITEM is nil, then
-  ;; don't insert, only delete.
-  ;; Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
-  ;; put binding before BEFORE in MENU, otherwise if binding is already
-  ;; present in MENU, just change it, otherwise put it last in MENU.
-  ;; KEY and BEFORE don't have to be symbols, comparison is done with equal
-  ;; not with eq.
+  "Add binding in MENU for KEY => ITEM.  Similar to `define-key-after'.
+If KEY is not nil then delete any duplications.  If ITEM is nil, then
+don't insert, only delete.
+Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
+put binding before BEFORE in MENU, otherwise if binding is already
+present in MENU, just change it, otherwise put it last in MENU.
+KEY and BEFORE don't have to be symbols, comparison is done with equal
+not with eq."
   (let ((inserted (null item))		; Fake already inserted.
 	tail done)
     (while (not done)
@@ -399,7 +399,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
        (t (setq menu (cdr menu)))))))
 
 (defun easy-menu-always-true (x)
-  ;; Return true if X never evaluates to nil.
+  "Return true if X never evaluates to nil."
   (if (consp x) (and (eq (car x) 'quote) (cadr x))
     (or (eq x t) (not (symbolp x)))))
 
@@ -438,7 +438,7 @@ to implement dynamic menus."
 ;; here easy-menu-remove is a noop and easy-menu-add only precalculates
 ;; equivalent keybindings (if easy-menu-precalculate-equivalent-keybindings
 ;; is on).
-(defun easy-menu-remove (menu))
+(defalias 'easy-menu-remove 'ignore)
 
 (defun easy-menu-add (menu &optional map)
   "Maybe precalculate equivalent key bindings.
@@ -505,9 +505,9 @@ NAME should be a string, the name of the element to be removed."
     ret))
 
 (defun easy-menu-return-item (menu name)
-  ;; In menu MENU try to look for menu item with name NAME.
-  ;; If a menu item is found, return (NAME . item), otherwise return nil.
-  ;; If item is an old format item, a new format item is returned.
+  "In menu MENU try to look for menu item with name NAME.
+If a menu item is found, return (NAME . item), otherwise return nil.
+If item is an old format item, a new format item is returned."
   (let ((item (lookup-key menu (vector (intern name))))
 	ret enable cache label)
     (cond
@@ -535,12 +535,12 @@ NAME should be a string, the name of the element to be removed."
   submap)
 
 (defun easy-menu-get-map (map path &optional to-modify)
-  ;; Return a sparse keymap in which to add or remove an item.
-  ;; MAP and PATH are as defined in `easy-menu-add-item'.
+  "Return a sparse keymap in which to add or remove an item.
+MAP and PATH are as defined in `easy-menu-add-item'.
 
-  ;; TO-MODIFY, if non-nil, is the name of the item the caller
-  ;; wants to modify in the map that we return.
-  ;; In some cases we use that to select between the local and global maps.
+TO-MODIFY, if non-nil, is the name of the item the caller
+wants to modify in the map that we return.
+In some cases we use that to select between the local and global maps."
   (if (null map)
       (let ((local (and (current-local-map)
 			(lookup-key (current-local-map)
