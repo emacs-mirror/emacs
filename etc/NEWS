@@ -98,6 +98,10 @@ it inserts non-ASCII chars if you hit M-i), you will need to add
 
 to your .emacs to revert to the old behavior.
 
+** A new coding system `euc-tw' has been added for traditional Chinese
+in CNS encoding; it accepts both Big 5 and CNS as input; on saving,
+Big 5 is then converted to CNS.
+
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
 automatically at startup, if it exists.  When Emacs offers to save
