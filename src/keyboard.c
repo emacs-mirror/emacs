@@ -363,10 +363,13 @@ Lisp_Object Qevent_symbol_element_mask;
    apply_modifiers.  */
 Lisp_Object Qmodifier_cache;
 
-/* Symbols to use for non-text mouse positions.  */
+/* Symbols to use for parts of windows.  */
 Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 Lisp_Object Qvertical_scroll_bar;
+Lisp_Object Qmenu_bar;
+
+extern Lisp_Object Qmenu_enable;
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
@@ -2004,13 +2007,40 @@ make_lispy_event (event)
 	if (event->kind == mouse_click)
 	  {
 	    int part;
-	    Lisp_Object window =
-	      window_from_coordinates (XFRAME (event->frame_or_window),
-				       XINT (event->x), XINT (event->y),
-				       &part);
+	    struct frame *f = XFRAME (event->frame_or_window);
+	    Lisp_Object window
+	      = window_from_coordinates (f, XINT (event->x), XINT (event->y),
+					 &part);
 	    Lisp_Object posn;
 
-	    if (XTYPE (window) != Lisp_Window)
+	    if (XINT (event->y) < FRAME_MENU_BAR_LINES (f))
+	      {
+		int hpos;
+		Lisp_Object items;
+		items = FRAME_MENU_BAR_ITEMS (f);
+		for (; CONSP (items); items = XCONS (items)->cdr)
+		  {
+		    Lisp_Object pos, string;
+		    pos = Fcdr (Fcdr (Fcar (items)));
+		    string = Fcar (Fcdr (Fcar (items)));
+		    if (XINT (event->x) > XINT (pos)
+			&& XINT (event->x) <= XINT (pos) + XSTRING (string)->size)
+		      break;
+		  }
+		position
+		  = Fcons (event->frame_or_window,
+			   Fcons (Qmenu_bar,
+				  Fcons (Fcons (event->x, event->y),
+					 Fcons (make_number (event->timestamp),
+						Qnil))));
+
+		if (CONSP (items))
+		  return Fcons (Fcar (Fcar (items)),
+				Fcons (position, Qnil));
+		else
+		  return Fcons (Qnil, Fcons (position, Qnil));
+	      }
+	    else if (XTYPE (window) != Lisp_Window)
 	      posn = Qnil;
 	    else
 	      {
@@ -2030,12 +2060,12 @@ make_lispy_event (event)
 						 XINT (event->y)));
 	      }
 
-	    position =
-	      Fcons (window,
-		     Fcons (posn,
-			    Fcons (Fcons (event->x, event->y),
-				   Fcons (make_number (event->timestamp),
-					  Qnil))));
+	    position
+	      = Fcons (window,
+		       Fcons (posn,
+			      Fcons (Fcons (event->x, event->y),
+				     Fcons (make_number (event->timestamp),
+					    Qnil))));
 	  }
 	else
 	  {
@@ -2097,13 +2127,13 @@ make_lispy_event (event)
 
 	{
 	  /* Get the symbol we should use for the mouse click.  */
-	  Lisp_Object head =
-	    modify_event_symbol (button,
-				 event->modifiers,
-				 Qmouse_click,
-				 lispy_mouse_names, &mouse_syms,
-				 (sizeof (lispy_mouse_names)
-				  / sizeof (lispy_mouse_names[0])));
+	  Lisp_Object head
+	    = modify_event_symbol (button,
+				   event->modifiers,
+				   Qmouse_click,
+				   lispy_mouse_names, &mouse_syms,
+				   (sizeof (lispy_mouse_names)
+				    / sizeof (lispy_mouse_names[0])));
 	  
 	  if (event->modifiers & drag_modifier)
 	    return Fcons (head,
@@ -2186,7 +2216,6 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
     }
 }
 
-
 /* Construct a switch frame event.  */
 static Lisp_Object
 make_lispy_switch_frame (frame)
@@ -2194,7 +2223,6 @@ make_lispy_switch_frame (frame)
 {
   return Fcons (Qswitch_frame, Fcons (frame, Qnil));
 }
-
 
 /* Manipulating modifiers.  */
 
@@ -2792,6 +2820,145 @@ map_prompt (map)
   return Qnil;
 }
 
+static Lisp_Object menu_bar_item ();
+static Lisp_Object menu_bar_one_keymap ();
+
+/* Return a list of menu items for a menu bar, appropriate
+   to the current buffer.
+   The elements have the form (KEY STRING . nil).  */
+
+Lisp_Object
+menu_bar_items ()
+{
+  /* The number of keymaps we're scanning right now, and the number of
+     keymaps we have allocated space for.  */
+  int nmaps;
+
+  /* maps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
+     in the current keymaps, or nil where it is not a prefix.  */
+  Lisp_Object *maps;
+
+  Lisp_Object def, tem;
+
+  Lisp_Object result;
+
+  int mapno;
+
+  /* Build our list of keymaps.
+     If we recognize a function key and replace its escape sequence in
+     keybuf with its symbol, or if the sequence starts with a mouse
+     click and we need to switch buffers, we jump back here to rebuild
+     the initial keymaps from the current buffer.  */
+  { 
+    Lisp_Object *tmaps;
+
+    nmaps = current_minor_maps (0, &tmaps) + 2;
+    maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
+    bcopy (tmaps, maps, (nmaps - 2) * sizeof (maps[0]));
+#ifdef USE_TEXT_PROPERTIES
+    maps[nmaps-2] = get_local_map (PT, current_buffer);
+#else
+    maps[nmaps-2] = current_buffer->local_map;
+#endif
+    maps[nmaps-1] = global_map;
+  }
+
+  /* Look up in each map the dummy prefix key `menu-bar'.  */
+
+  result = Qnil;
+
+  for (mapno = 0; mapno < nmaps; mapno++)
+    {
+      if (! NILP (maps[mapno]))
+	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1));
+      else
+	def = Qnil;
+
+      tem = Fkeymapp (def);
+      if (!NILP (tem))
+	result = menu_bar_one_keymap (def, result);
+    }
+
+  return result;
+}
+
+/* Scan one map KEYMAP, accumulating any menu items it defines
+   that have not yet been seen in RESULT.  Return the updated RESULT.  */
+
+static Lisp_Object
+menu_bar_one_keymap (keymap, result)
+     Lisp_Object keymap, result;
+{
+  Lisp_Object tail, item, key, binding, item_string, table;
+
+  /* Loop over all keymap entries that have menu strings.  */
+  for (tail = keymap; XTYPE (tail) == Lisp_Cons; tail = XCONS (tail)->cdr)
+    {
+      item = XCONS (tail)->car;
+      if (XTYPE (item) == Lisp_Cons)
+	{
+	  key = XCONS (item)->car;
+	  binding = XCONS (item)->cdr;
+	  if (XTYPE (binding) == Lisp_Cons)
+	    {
+	      item_string = XCONS (binding)->car;
+	      if (XTYPE (item_string) == Lisp_String)
+		result = menu_bar_item (key, item_string,
+					Fcdr (binding), result);
+	    }
+	}
+      else if (XTYPE (item) == Lisp_Vector)
+	{
+	  /* Loop over the char values represented in the vector.  */
+	  int len = XVECTOR (item)->size;
+	  int c;
+	  for (c = 0; c < len; c++)
+	    {
+	      Lisp_Object character;
+	      XFASTINT (character) = c;
+	      binding = XVECTOR (item)->contents[c];
+	      if (XTYPE (binding) == Lisp_Cons)
+		{
+		  item_string = XCONS (binding)->car;
+		  if (XTYPE (item_string) == Lisp_String)
+		    result = menu_bar_item (key, item_string,
+					    Fcdr (binding), result);
+		}
+	    }
+	}
+    }
+
+  return result;
+}
+
+static Lisp_Object
+menu_bar_item (key, item_string, def, result)
+     Lisp_Object key, item_string, def, result;
+{
+  Lisp_Object tem, elt;
+  Lisp_Object enabled;
+
+  /* See if this entry is enabled.  */
+  enabled = Qt;
+
+  if (XTYPE (def) == Lisp_Symbol)
+    {
+      /* No property, or nil, means enable.
+	 Otherwise, enable if value is not nil.  */
+      tem = Fget (def, Qmenu_enable);
+      if (!NILP (tem))
+	enabled = Feval (tem);
+    }
+
+  /* Add an entry for this key and string
+     if there is none yet.  */
+  elt = Fassq (key, result);
+  if (!NILP (enabled) && NILP (elt))
+    result = Fcons (Fcons (key, Fcons (item_string, Qnil)), result);
+
+  return result;
+}
+
 static int echo_flag;
 static int echo_now;
 
@@ -3389,6 +3556,22 @@ read_key_sequence (keybuf, bufsize, prompt)
 		    {
 		      delayed_switch_frame = key;
 		      goto replay_key;
+		    }
+		}
+	      else
+		{
+		  Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
+
+		  /* Handle menu-bar events:
+		     insert the dummy prefix char `menu-bar'.  */
+		  if (EQ (posn, Qmenu_bar))
+		    {
+		      if (t + 1 >= bufsize)
+			error ("key sequence too long");
+		      keybuf[t] = posn;
+		      keybuf[t+1] = key;
+		      mock_input = t + 2;
+		      goto replay_sequence;
 		    }
 		}
 	    }
@@ -4287,6 +4470,8 @@ syms_of_keyboard ()
   staticpro (&Qvertical_line);
   Qvertical_scroll_bar = intern ("vertical-scroll-bar");
   staticpro (&Qvertical_scroll_bar);
+  Qmenu_bar = intern ("menu-bar");
+  staticpro (&Qmenu_bar);
 
   Qabove_handle = intern ("above-handle");
   staticpro (&Qabove_handle);
