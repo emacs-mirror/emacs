@@ -1249,7 +1249,8 @@ or may be a list of two strings to be printed as if concatenated.")
     set_buffer_internal (XBUFFER (Vstandard_output));
 
   if (NILP (completions))
-    write_string ("There are no possible completions of what you have typed.", -1);
+    write_string ("There are no possible completions of what you have typed.",
+		  -1);
   else
     {
       write_string ("Possible completions are:", -1);
@@ -1304,6 +1305,9 @@ or may be a list of two strings to be printed as if concatenated.")
 	    }
 	}
     }
+
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, intern ("completion-setup-hook"));
 
   if (XTYPE (Vstandard_output) == Lisp_Buffer)
     set_buffer_internal (old);
