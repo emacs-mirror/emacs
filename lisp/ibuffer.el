@@ -45,7 +45,7 @@
 Ibuffer allows you to operate on buffers in a manner much like Dired.
 Operations include sorting, marking by regular expression, and
 the ability to filter the displayed buffers by various criteria."
-  :version "21.4"
+  :version "22.1"
   :group 'convenience)
 
 (defcustom ibuffer-formats '((mark modified read-only " " (name 18 18 :left :elide)
@@ -215,7 +215,7 @@ If a function, it will be called with the buffer as an argument, and
 should return non-nil if this buffer should be shown.
 
 Viewing of buffers hidden because of these predicates may be customized
-via `ibuffer-default-display-maybe-show-predicates' and is toggled by 
+via `ibuffer-default-display-maybe-show-predicates' and is toggled by
 giving a non-nil prefix argument to `ibuffer-update'.
 Note that this specialized filtering occurs before real filtering."
   :type '(repeat (choice regexp function))

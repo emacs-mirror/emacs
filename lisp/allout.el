@@ -69,7 +69,7 @@
   "Extensive outline mode for use alone and with other modes."
   :prefix "allout-"
   :group 'editing
-  :version "21.4")
+  :version "22.1")
 
 ;;;_ + Layout, Mode, and Topic Header Configuration
 

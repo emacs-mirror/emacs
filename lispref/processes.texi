@@ -1314,7 +1314,7 @@ Not all operating systems support waiting periods other than multiples
 of a second; on those that do not, you get an error if you specify
 nonzero @var{millisec}.
 
-@c Emacs 21.4 feature
+@c Emacs 22.1 feature
 If @var{process} is a process, and the argument @var{just-this-one} is
 non-@code{nil}, only output from that process is handled, suspending output
 from other processes until some output has been received from that

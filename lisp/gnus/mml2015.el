@@ -83,7 +83,7 @@
     ("TRUST_FULLY"     . t)
     ("TRUST_ULTIMATE"  . t))
   "Map GnuPG trust output values to a boolean saying if you trust the key."
-  :version "21.4"
+  :version "22.1"
   :group 'mime-security
   :type '(repeat (cons (regexp :tag "GnuPG output regexp")
 		       (boolean :tag "Trust key"))))
@@ -585,7 +585,7 @@
 	;; set up a function to call the correct gpg encrypt routine
 	;; with the right arguments. (FIXME: this should be done
 	;; differently.)
-	(flet ((gpg-encrypt-func 
+	(flet ((gpg-encrypt-func
 		 (sign plaintext ciphertext result recipients &optional
 		       passphrase sign-with-key armor textmode)
 		 (if sign
@@ -656,7 +656,7 @@
 	(if (condition-case err
 		(prog1
 		    (pgg-decrypt-region (point-min) (point-max))
-		  (setq decrypt-status 
+		  (setq decrypt-status
 			(with-current-buffer mml2015-result-buffer
 			  (buffer-string)))
 		  (mm-set-handle-multipart-parameter
@@ -740,7 +740,7 @@
 	  (mm-insert-part signature))
 	(if (condition-case err
 		(prog1
-		    (pgg-verify-region (point-min) (point-max) 
+		    (pgg-verify-region (point-min) (point-max)
 				       signature-file t)
 		  (goto-char (point-min))
 		  (while (search-forward "\r\n" nil t)

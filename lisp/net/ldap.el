@@ -1,9 +1,9 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998, 1999, 2000, 02, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: Pavel Janík <Pavel@Janik.cz>
+;; Maintainer: FSF
 ;; Created: April 1998
 ;; Keywords: comm
 

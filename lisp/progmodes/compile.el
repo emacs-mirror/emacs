@@ -459,7 +459,7 @@ starting the compilation process.")
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
-  :version "21.4")
+  :version "22.1")
 
 (defface compilation-info-face
   '((((class color) (min-colors 16) (background light))
@@ -470,7 +470,7 @@ starting the compilation process.")
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
-  :version "21.4")
+  :version "22.1")
 
 (defvar compilation-message-face nil
   "Face name to use for whole messages.
@@ -1133,7 +1133,7 @@ info, are considered errors."
 		 (const :tag "Info" 1)
 		 (const :tag "None" 0))
   :group 'compilation
-  :version "21.4")
+  :version "22.1")
 
 (defcustom compilation-skip-visited nil
   "*Compilation motion commands skip visited messages if this is t.
@@ -1142,7 +1142,7 @@ to from the current content in the current compilation buffer, even if it was
 from a different message."
   :type 'boolean
   :group 'compilation
-  :version "21.4")
+  :version "22.1")
 
 ;;;###autoload
 (defun compilation-mode (&optional name-of-mode)
@@ -1557,7 +1557,7 @@ region and the first line of the next region."
 If nil, don't scroll the compilation output window."
   :type '(choice integer (const :tag "No window scrolling" nil))
   :group 'compilation
-  :version "21.4")
+  :version "22.1")
 
 (defsubst compilation-set-window (w mk)
   "Align the compilation output window W with marker MK near top."

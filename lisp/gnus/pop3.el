@@ -46,26 +46,26 @@
 			     (getenv "LOGNAME")
 			     (getenv "USER"))
   "*POP3 maildrop."
-  :version "21.4" ;; Oort Gnus
+  :version "22.1" ;; Oort Gnus
   :type 'string
   :group 'pop3)
 
 (defcustom pop3-mailhost (or (getenv "MAILHOST") ;; nil -> mismatch
 			     "pop3")
   "*POP3 mailhost."
-  :version "21.4" ;; Oort Gnus
+  :version "22.1" ;; Oort Gnus
   :type 'string
   :group 'pop3)
 
 (defcustom pop3-port 110
   "*POP3 port."
-  :version "21.4" ;; Oort Gnus
+  :version "22.1" ;; Oort Gnus
   :type 'number
   :group 'pop3)
 
 (defcustom pop3-password-required t
   "*Non-nil if a password is required when connecting to POP server."
-  :version "21.4" ;; Oort Gnus
+  :version "22.1" ;; Oort Gnus
   :type 'boolean
   :group 'pop3)
 
@@ -77,7 +77,7 @@
   "*POP3 authentication scheme.
 Defaults to 'pass, for the standard USER/PASS authentication.  Other valid
 values are 'apop."
-  :version "21.4" ;; Oort Gnus
+  :version "22.1" ;; Oort Gnus
   :type '(choice (const :tag "USER/PASS" pass)
 		 (const :tag "APOP" apop))
   :group 'pop3)
@@ -91,7 +91,7 @@ maintain no state information between sessions, so what the
 client believes is there and what is actually there may not match
 up.  If they do not, then the whole thing can fall apart and
 leave you with a corrupt mailbox."
-  :version "21.4" ;; Oort Gnus
+  :version "22.1" ;; Oort Gnus
   :type 'boolean
   :group 'pop3)
 

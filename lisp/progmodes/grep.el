@@ -44,7 +44,7 @@
   "*Number of lines in a grep window.  If nil, use `compilation-window-height'."
   :type '(choice (const :tag "Default" nil)
 		 integer)
-  :version "21.4"
+  :version "22.1"
   :group 'grep)
 
 (defcustom grep-auto-highlight t
@@ -61,7 +61,7 @@ will be parsed and highlighted as soon as you try to move to them."
   :type '(choice (const :tag "All" t)
 		 (const :tag "None" nil)
 		 (integer :tag "First N lines"))
-  :version "21.4"
+  :version "22.1"
   :group 'grep)
 
 (defcustom grep-highlight-matches 'auto-detect
@@ -81,7 +81,7 @@ call that function before using this variable in your program."
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
 		 (other :tag "Not Set" auto-detect))
-  :version "21.4"
+  :version "22.1"
   :group 'grep)
 
 (defcustom grep-scroll-output nil
@@ -91,7 +91,7 @@ Setting it causes the grep commands to put point at the end of their
 output window so that the end of the output is always visible rather
 than the begining."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'grep)
 
 ;;;###autoload
@@ -141,7 +141,7 @@ The following place holders should be present in the string:
  <R> - the regular expression searched for."
   :type '(choice string
 		 (const :tag "Not Set" nil))
-  :version "21.4"
+  :version "22.1"
   :group 'grep)
 
 (defcustom grep-tree-files-aliases '(
@@ -172,7 +172,7 @@ The following place holders should be present in the string:
 See `compilation-error-screen-columns'"
   :type '(choice (const :tag "Default" nil)
 		 integer)
-  :version "21.4"
+  :version "22.1"
   :group 'grep)
 
 ;;;###autoload
@@ -253,7 +253,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
   '(("^\\(.+?\\)[: \t]+\
 \\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
 \\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[: \t]" 1 (2 . 5) (4 . 6))
-    ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
+    ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(\033\\[K\\)?\\)"
      1 2
      ;; Calculate column positions (beg . end) of first grep match on a line
      ((lambda ()
@@ -293,7 +293,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (1 compilation-warning-face)
       (2 compilation-line-face))
      ;; Highlight grep matches and delete markers
-     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
+     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(\033\\[K\\)?\\)"
       (2 grep-match-face)
       ((lambda (p))
        (progn

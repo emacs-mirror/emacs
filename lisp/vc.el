@@ -573,7 +573,7 @@ if the local changes in the file have not been found and displayed yet."
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
   :group 'vc
-  :version "21.4")
+  :version "22.1")
 
 ;;;###autoload
 (defcustom vc-checkout-hook nil
@@ -1827,7 +1827,7 @@ actually call the backend, but performs a local diff."
 
 ;; Old def for compatibility with Emacs-21.[123].
 (defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
-(make-obsolete 'vc-diff-switches-list 'vc-switches "21.4")
+(make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
 
 (defun vc-default-diff-tree (backend dir rev1 rev2)
   "List differences for all registered files at and below DIR.

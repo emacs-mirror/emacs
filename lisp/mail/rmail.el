@@ -117,7 +117,7 @@
 		 (const :tag "Not Required" nil))
   :set-after '(rmail-pop-password)
   :set #'(lambda (symbol value)
-	   (set-default symbol 
+	   (set-default symbol
 			(if (and (not value)
                                  (boundp 'rmail-pop-password)
 				 rmail-pop-password)
@@ -125,14 +125,14 @@
 			  value))
 	   (setq rmail-pop-password nil))
   :group 'rmail-retrieve
-  :version "21.3.50.1")
+  :version "22.1")
 
 (defcustom rmail-remote-password-required nil
   "*Non-nil if a password is required when reading mail from a remote server."
   :type 'boolean
   :set-after '(rmail-pop-password-required)
   :set #'(lambda (symbol value)
-	   (set-default symbol 
+	   (set-default symbol
 			(if (and (not value)
                                  (boundp 'rmail-pop-password-required)
 				 rmail-pop-password-required)
@@ -140,7 +140,7 @@
 			  value))
 	   (setq rmail-pop-password-required nil))
   :group 'rmail-retrieve
-  :version "21.3.50.1")
+  :version "22.1")
 
 (defcustom rmail-movemail-flags nil
   "*List of flags to pass to movemail.
@@ -1621,7 +1621,7 @@ supplied as a separate argument to `movemail' or nil otherwise, GOT-PASSWORD
 is non-nil if the user has supplied the password interactively.
 "
   (if (string-match "^\\([^:]+\\)://\\(\\([^:@]+\\)\\(:\\([^@]+\\)\\)?@\\)?.*" file)
-      (let (got-password supplied-password 
+      (let (got-password supplied-password
 	    (proto (match-string 1 file))
 	    (user  (match-string 3 file))
 	    (pass  (match-string 5 file))
@@ -1632,7 +1632,7 @@ is non-nil if the user has supplied the password interactively.
 	      (setq got-password (not (rmail-have-password)))
 	      (setq supplied-password (rmail-get-remote-password
 				       (string-equal proto "imap")))))
-			      
+
 	(if (rmail-movemail-variant-p 'emacs)
 	    (if (string-equal proto "pop")
 		(list (concat "po:" user ":" host)
@@ -1671,7 +1671,7 @@ is non-nil if the user has supplied the password interactively.
 		    ;; Generate name to move to from inbox name,
 		    ;; in case of multiple inboxes that need moving.
 		    (concat ".newmail-"
-			    (file-name-nondirectory 
+			    (file-name-nondirectory
 			     (if (memq system-type '(windows-nt cygwin))
 				 ;; cannot have "po:" in file name
 				 (substring file 3)
@@ -1777,14 +1777,14 @@ is non-nil if the user has supplied the password interactively.
 		     (goto-char (point-min))
 		     (when (looking-at "[A-Z][A-Z0-9_]*:")
 		       (delete-region (point-min) (match-end 0))))
-		   
+
 		   (message "movemail: %s"
 			    (buffer-substring (point-min)
 					      (point-max)))
-		       
+
 		   (sit-for 3)
 		   nil)))))
-	       
+
       ;; At this point, TOFILE contains the name to read:
       ;; Either the alternate name (if we renamed)
       ;; or the actual inbox (if not renaming).

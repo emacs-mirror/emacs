@@ -17,8 +17,8 @@ should read the Windows-specific section near the end of this
 document.]
 
 ** When you debug Emacs with GDB, you should start it in the directory
-where you built Emacs.  That directory has a .gdbinit file that defines
-various "user-defined" commands for debugging Emacs.
+where the executable was made.  That directory has a .gdbinit file
+that defines various "user-defined" commands for debugging Emacs.
 
 ** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able

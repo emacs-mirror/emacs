@@ -735,7 +735,7 @@ introduced with Emacs 21.1, could significantly slow down scrolling
 through the buffer, especially scrolling backwards, and also jumping
 to the end of a very large buffer.
 
-Beginning with version 21.4, a parenthesis or a brace in column zero
+Beginning with version 22.1, a parenthesis or a brace in column zero
 is highlighted in bold-red face if it is inside a string or a comment,
 to indicate that it could interfere with Font Lock (and also with
 indentation) and should be moved or escaped with a backslash.
@@ -1553,7 +1553,7 @@ entry that supports color is `xterm-color', so setting TERM's value to
 `xterm-color' might activate the color support on an xterm-compatible
 emulator.
 
-Beginning with version 21.4, Emacs supports the --color command-line
+Beginning with version 22.1, Emacs supports the --color command-line
 option which may be used to force Emacs to use one of a few popular
 modes for getting colors on a tty.  For example, --color=ansi8 sets up
 for using the ANSI-standard escape sequences that support 8 colors.
@@ -2873,7 +2873,7 @@ libraries.
 
 *** HP/UX versions before 11.0
 
-HP/UX 9 was end-of-lifed in December 1998.  
+HP/UX 9 was end-of-lifed in December 1998.
 HP/UX 10 was end-of-lifed in May 1999.
 
 **** HP/UX 9: Emacs crashes with SIGBUS or SIGSEGV after you delete a frame.
@@ -2951,7 +2951,7 @@ the kernel bug.
 
 *** Irix 5 and earlier
 
-Exactly when Irix-5 end-of-lifed is obscure.  But since Irix 6.0 
+Exactly when Irix-5 end-of-lifed is obscure.  But since Irix 6.0
 shipped in 1994, it has been some years.
 
 **** Irix 5.2: unexelfsgi.c can't find cmplrs/stsupport.h.

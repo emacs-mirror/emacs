@@ -186,7 +186,7 @@ Special commands:
       (delete-horizontal-space)
       (tab-to-tab-stop))))
 
-;; Obsolete since Emacs-21.4.
+;; Obsolete since Emacs-22.1.
 (defalias 'asm-newline 'newline-and-indent)
 
 (defun asm-comment ()

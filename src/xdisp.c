@@ -13927,7 +13927,12 @@ try_window_id (w)
 			bottom_vpos, dy);
 
   if (first_unchanged_at_end_row)
-    first_unchanged_at_end_row += dvpos;
+    {
+      first_unchanged_at_end_row += dvpos;
+      if (first_unchanged_at_end_row->y >= it.last_visible_y
+	  || !MATRIX_ROW_DISPLAYS_TEXT_P (first_unchanged_at_end_row))
+	first_unchanged_at_end_row = NULL;
+    }
 
   /* If scrolling up, there may be some lines to display at the end of
      the window.  */
@@ -13984,7 +13989,6 @@ try_window_id (w)
 
   /* Update window_end_pos and window_end_vpos.  */
   if (first_unchanged_at_end_row
-      && first_unchanged_at_end_row->y < it.last_visible_y
       && !last_text_row_at_end)
     {
       /* Window end line if one of the preserved rows from the current
@@ -22235,7 +22239,9 @@ expose_window (w, fr)
 	      || (r.y >= y0 && r.y < y1)
 	      || (r.y + r.height > y0 && r.y + r.height < y1))
 	    {
-	      if (row->overlapping_p)
+	      /* A header line may be overlapping, but there is no need
+		 to fix overlapping areas for them.  KFS 2005-02-12 */
+	      if (row->overlapping_p && !row->mode_line_p)
 		{
 		  if (first_overlapping_row == NULL)
 		    first_overlapping_row = row;

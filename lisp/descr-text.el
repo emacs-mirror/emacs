@@ -246,7 +246,7 @@ This is a fairly large file, not typically present on GNU systems.  At
 the time of writing it is at
 <URL:http://www.unicode.org/Public/UNIDATA/UnicodeData.txt>."
   :group 'mule
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "None" nil)
 		 file))
 

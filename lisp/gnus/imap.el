@@ -228,7 +228,7 @@ pipe, or t or `pty' to use a pty.  The value has no effect if the
 system has no ptys or if all ptys are busy: then a pipe is used
 in any case.  The value takes effect when a IMAP server is
 opened, changing it after that has no effect."
-  :version "21.4"
+  :version "22.1"
   :group 'imap
   :type 'boolean)
 

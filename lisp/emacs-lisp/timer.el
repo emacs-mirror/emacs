@@ -151,7 +151,7 @@ fire repeatedly that many seconds apart."
   timer)
 (make-obsolete 'timer-set-time-with-usecs
                "use `timer-set-time' and `timer-inc-time' instead."
-               "21.4")
+               "22.1")
 
 (defun timer-set-function (timer function &optional args)
   "Make TIMER call FUNCTION with optional ARGS when triggering."

@@ -1598,11 +1598,13 @@ becomes buffer-local when set in any fashion.
 @end defvar
 
 @defvar fill-nobreak-predicate
-This variable gives major modes a way to specify not to break a line at
-certain places.  Its value should be a function.  This function is
-called during filling, with no arguments and with point located at the
-place where a break is being considered.  If the function returns
-non-@code{nil}, then the line won't be broken there.
+This variable gives major modes a way to specify not to break a line
+at certain places.  Its value should be a list of functions, but a
+single function is also supported for compatibility.  Whenever filling
+considers breaking the line at a certain place in the buffer, it calls
+each of these functions with no arguments and with point located at
+that place.  If any of the functions returns non-@code{nil}, then the
+line won't be broken there.
 @end defvar
 
 @node Adaptive Fill
@@ -2884,7 +2886,7 @@ Strictly speaking, @code{font-lock-face} is not a built-in text
 property; rather, it is implemented in Font Lock mode using
 @code{char-property-alias-alist}.  @xref{Examining Properties}.
 
-This property is new in Emacs 21.4.
+This property is new in Emacs 22.1.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}

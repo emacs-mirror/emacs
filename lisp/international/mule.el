@@ -1252,7 +1252,7 @@ use either \\[customize] or \\[set-keyboard-coding-system]."
 	 (if (or value (boundp 'encoded-kbd-mode))
 	     (set-keyboard-coding-system value)
 	   (set-default 'keyboard-coding-system nil))) ; must initialize
-  :version "21.4"
+  :version "22.1"
   :group 'keyboard
   :group 'mule)
 
@@ -1866,7 +1866,7 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	  ;; Otherwise, if we can recognize the undo elt for the insertion,
 	  ;; remove it and get ready to replace it later.
 	  ;; In the mean time, turn off undo recording.
-	  (let ((last (car-safe buffer-undo-list))) 
+	  (let ((last (car-safe buffer-undo-list)))
 	    (if (and (consp last) (eql (car last) from) (eql (cdr last) to))
 		(setq undo-list-saved (cdr buffer-undo-list)
 		      buffer-undo-list t))))

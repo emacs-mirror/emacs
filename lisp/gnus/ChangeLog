@@ -1174,7 +1174,7 @@
 	* pgg-gpg.el (pgg-gpg-lookup-all-secret-keys)
 	(pgg-gpg-lookup-key): Use regexp match instead of
 	split-string (split-string is different between emacs 21.2 and
-	21.4).  Reported by ultrasoul@ultrasoul.com (David D. Smith).
+	22.1).  Reported by ultrasoul@ultrasoul.com (David D. Smith).
 
 2004-07-28  Simon Josefsson  <jas@extundo.com>
 

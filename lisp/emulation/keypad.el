@@ -108,7 +108,7 @@ decimal key must be specified."
 	     (keypad-setup value nil nil value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
@@ -131,7 +131,7 @@ decimal key must be specified."
 	     (keypad-setup value t nil value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
@@ -154,7 +154,7 @@ decimal key must be specified."
 	     (keypad-setup value nil t value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
@@ -177,7 +177,7 @@ decimal key must be specified."
 	     (keypad-setup value t t value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))

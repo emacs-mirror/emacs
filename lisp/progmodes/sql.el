@@ -617,7 +617,7 @@ The program can also specify a TCP connection.  See `make-comint'."
   ;; -w is the linesize
   "*List of additional options for `sql-ms-program'."
   :type '(repeat string)
-  :version "21.4"
+  :version "22.1"
   :group 'SQL)
 
 ;; Customization for Postgres

@@ -1,7 +1,70 @@
+2005-02-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c: If HAVE_FCNTL_H include fcntl.h.
+
+2005-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (expose_window): Don't fix overlaps for mode lines.
+
+2005-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_window_id): Set first_unchanged_at_end_row to NULL
+	if it moves outside window or it doesn't display text.
+
+2005-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* undo.c (Fprimitive_undo): Check that undo function does not
+	switch buffer.
+
+2005-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (selection_data_to_lisp_data): For the special case
+	type == XA_ATOM, data contains array of int, not array of Atom.
+	(x_property_data_to_lisp, selection_data_to_lisp_data): Comment
+	update: data must be array of int for format == 32.
+
+2005-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* undo.c (Fprimitive_undo): Check veracity of delta,start,end.
+
+2005-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_change_window_property): Use long array when format is 32.
+	(Fx_window_property): If format is 32 and long is bigger than 32 bits,
+	convert long array returned from XGetWindowProperty to an int array.
+	(x_set_tool_bar_lines): Check that width and height is greater than
+	zero before clearing area.
+
+	* xselect.c (x_reply_selection_request): Pass long array to
+	XChangeProperty so that 64 bit longs are handeled correctly.
+	(x_get_window_property): If format is 32 and long is bigger than 32
+	bits convert data from XGetWindowProperty from long array to int array.
+	(lisp_data_to_selection_data): When the input is a vector and the
+	format is 32, allocate a long array even if long is bigger than 32 bits.
+	(x_fill_property_data): Use char, short and long as the man page
+	for XChangeProperty specifies.  This way the data returned is OK for
+	both 32 and 64 bit machines.
+	(x_handle_dnd_message): Calculate size correctly even for 64 bit
+	machines.
+	(Fx_send_client_event): Undo change from 2005-02-05,
+	x_fill_property_data now handles that case.
+
+	* xfns.c (Fx_backspace_delete_keys_p): Add comment about the
+	reason for the approach in the code.
+
+2005-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* undo.c (Fprimitive_undo): Record max one dummmy apply element.
+
+2005-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (Frun_hook_with_args)
+	(Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Doc fixes.
+
 2005-02-05  Andreas Schwab  <schwab@suse.de>
 
-	* sysdep.c (sys_subshell): Properly terminate execlp argument
-	list.
+	* sysdep.c (sys_subshell): Properly terminate execlp argument list.
 
 2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -41,8 +104,7 @@
 
 	* macfns.c (x_create_tip_frame): Likewise.
 
-	* macterm.c (mac_draw_string_common, x_make_frame_visible):
-	Likewise.
+	* macterm.c (mac_draw_string_common, x_make_frame_visible): Likewise.
 
 2005-02-03  Richard M. Stallman  <rms@gnu.org>
 
@@ -9915,7 +9977,7 @@
 	* search.c (Fmatch_data): Doc fix.  Explicitly state that
 	match-data is undefined if last search failed.
 
-	* keymap.c (Fcommand_remapping): Renamed from Fremap_command.
+	* keymap.c (Fcommand_remapping): Rename from Fremap_command.
 	All uses changed.
 
 2003-02-12  Juanma Barranquero  <lektu@terra.es>
@@ -10622,7 +10684,7 @@
 	selected frame.
 
 	* keymap.c (apropos_predicate, apropos_accumulate): Make them static.
-	(syms_of_keymap): staticpro them.
+	(syms_of_keymap): Staticpro them.
 	(Fapropos_internal): Initialize them and clear them out.
 	Don't GCPRO them.
 
@@ -12724,9 +12786,9 @@
 	* fns.c (concat): Likewise.
 	* lread.c (read_vector): Likewise.
 
-	* lisp.h (SMBP): Deleted.  All uses changed to STRING_MULTIBYTE.
+	* lisp.h (SMBP): Delete.  All uses changed to STRING_MULTIBYTE.
 	(STRING_SET_UNIBYTE): New macro.
-	(SET_STRING_BYTES): Deleted.  Callers (all of which supplied a
+	(SET_STRING_BYTES): Delete.  Callers (all of which supplied a
 	length of -1) changed to use STRING_SET_UNIBYTE.
 	* abbrev.c, alloc.c, buffer.c, bytecode.c, callint.c, callproc.c,
 	casefiddle.c, category.c, ccl.c, charset.c, charset.h, coding.c,
@@ -12769,7 +12831,7 @@
 2002-07-11  Richard M. Stallman  <rms@gnu.org>
 
 	* alloc.c (Vmemory_full): New variable.
-	(Vmemory_signal_data): Renamed from memory_signal_data.
+	(Vmemory_signal_data): Rename from memory_signal_data.
 	Uses changed.
 	(syms_of_alloc): Defvar them.
 	(memory_full, buffer_memory_full): Set Vmemory_full.
@@ -12787,7 +12849,7 @@
 	(reseat_at_next_visible_line_start, next_element_from_buffer):
 	Use `double', not `float', when calling indented_beyond_p.
 
-	* s/hpux11.h (BROKEN_SA_RESTART): Defined.
+	* s/hpux11.h (BROKEN_SA_RESTART): Define.
 
 	* sysdep.c (sys_signal): Test BROKEN_SA_RESTART.
 
@@ -13545,7 +13607,7 @@
 
 2002-05-11  Kim F. Storm  <storm@cua.dk>
 
-	* keymap.c (current_minor_maps): Fixed resizing of cmm_maps;
+	* keymap.c (current_minor_maps): Fix resizing of cmm_maps;
 	only update cmm_size if realloc actually succeeds.
 	Testing with initial size of 2 elements revealed that using
 	realloc on GNU/Linux would cause a random trap in xmalloc
@@ -14784,7 +14846,7 @@
 
 2002-02-24  Kim F. Storm  <storm@cua.dk>
 
-	* keymap.c (Flookup_key): Fixed problem in 2001-12-28 patch:
+	* keymap.c (Flookup_key): Fix problem in 2001-12-28 patch:
 	The validation of the event type was too strict as it didn't
 	allow string events; buffer names are used in bindings for
 	menu-bar-select-buffer (see `menu-bar-update-buffers').
@@ -14797,7 +14859,7 @@
 	prefix in the keymaps, i.e. [remap COMMAND].
 
 	* keymap.c (Qremap, remap_command_vector): New variables.
-	(is_command_symbol): Removed function.
+	(is_command_symbol): Remove function.
 	(Fdefine_key): No longer accept a symbol for KEY.
 	Added validation of [remap COMMAND] argument for KEY.
 	The DEF is no longer required to be a symbol when remapping a command.
@@ -15155,7 +15217,7 @@
 	Doc updated.  Callers changed.  Pass arg to where_is_internal.
 
 	* keymap.h (Fkey_binding, Fwhere_is_internal): Update prototype.
-	(is_command_symbol): Added prototype.
+	(is_command_symbol): Add prototype.
 
 	* keyboard.c (Vthis_original_command): New variable.
 	(syms_of_keyboard): DEFVAR_LISP it.
@@ -15572,7 +15634,7 @@
 
 2002-01-03  Kim F. Storm  <storm@cua.dk>
 
-	* keyboard.c (read_key_sequence): Fixed cast of submaps arg to bcopy.
+	* keyboard.c (read_key_sequence): Fix cast of submaps arg to bcopy.
 
 2002-01-02  Richard M. Stallman  <rms@gnu.org>
 

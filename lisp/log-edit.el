@@ -281,19 +281,19 @@ automatically."
 
 ;; Compatibility with old names.
 (defvaralias 'vc-comment-ring 'log-edit-comment-ring)
-(make-obsolete-variable 'vc-comment-ring 'log-edit-comment-ring "21.4")
+(make-obsolete-variable 'vc-comment-ring 'log-edit-comment-ring "22.1")
 (defvaralias 'vc-comment-ring-index 'log-edit-comment-ring-index)
-(make-obsolete-variable 'vc-comment-ring-index 'log-edit-comment-ring-index "21.4")
+(make-obsolete-variable 'vc-comment-ring-index 'log-edit-comment-ring-index "22.1")
 (defalias 'vc-previous-comment 'log-edit-previous-comment)
-(make-obsolete 'vc-previous-comment 'log-edit-previous-comment "21.4")
+(make-obsolete 'vc-previous-comment 'log-edit-previous-comment "22.1")
 (defalias 'vc-next-comment 'log-edit-next-comment)
-(make-obsolete 'vc-next-comment 'log-edit-next-comment "21.4")
+(make-obsolete 'vc-next-comment 'log-edit-next-comment "22.1")
 (defalias 'vc-comment-search-reverse 'log-edit-comment-search-backward)
-(make-obsolete 'vc-comment-search-reverse 'log-edit-comment-search-backward "21.4")
+(make-obsolete 'vc-comment-search-reverse 'log-edit-comment-search-backward "22.1")
 (defalias 'vc-comment-search-forward 'log-edit-comment-search-forward)
-(make-obsolete 'vc-comment-search-forward 'log-edit-comment-search-forward "21.4")
+(make-obsolete 'vc-comment-search-forward 'log-edit-comment-search-forward "22.1")
 (defalias 'vc-comment-to-change-log 'log-edit-comment-to-change-log)
-(make-obsolete 'vc-comment-to-change-log 'log-edit-comment-to-change-log "21.4")
+(make-obsolete 'vc-comment-to-change-log 'log-edit-comment-to-change-log "22.1")
 
 ;;;
 ;;; Actual code

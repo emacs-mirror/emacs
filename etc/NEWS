@@ -90,7 +90,7 @@ coding-system-spec
 eight-bit-control/eight-bit-graphic charsets aren't now in the range
 128-255.
 
-* Installation Changes in Emacs 21.4
+* Installation Changes in Emacs 22.1
 
 ** Emacs includes now support for loading image libraries on demand.
 (Currently this feature is only used on MS Windows.)  You can configure
@@ -172,7 +172,7 @@ See the files mac/README and mac/INSTALL for build instructions.
 types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 
-* Changes in Emacs 21.4
+* Changes in Emacs 22.1
 
 ** Emacs now responds to mouse-clicks on the mode-line, header-line and
 display margin, when run in an xterm.
@@ -214,7 +214,7 @@ Depending on the current mode, a Mouse-2 click in Emacs may do much
 more than just follow a link, so the new Mouse-1 behavior is only
 activated for modes which explicitly mark a clickable text as a "link"
 (see the new function `mouse-on-link-p' for details).  The Lisp
-packages that are included in release 21.4 have been adapted to do
+packages that are included in release 22.1 have been adapted to do
 this, but external packages may not yet support this.  However, there
 is no risk in using such packages, as the worst thing that could
 happen is that you get the original Mouse-1 behavior when you click
@@ -2116,8 +2116,11 @@ whose names begin with space are omitted.
 
 +++
 ** You can now customize fill-nobreak-predicate to control where
-filling can break lines.  We provide two sample predicates,
-fill-single-word-nobreak-p and fill-french-nobreak-p.
+filling can break lines.  The value is now normally a list of
+functions, but it can also be a single function, for compatibility.
+
+We provide two sample predicates, fill-single-word-nobreak-p and
+fill-french-nobreak-p, for use in the value of fill-nobreak-predicate.
 
 +++
 ** New user option `add-log-always-start-new-record'.
@@ -2304,7 +2307,7 @@ temporary overlay showing in the course of an isearch operation.
 coding system.
 
 
-* New modes and packages in Emacs 21.4
+* New modes and packages in Emacs 22.1
 
 ** The new package conf-mode.el handles thousands of configuration files, with
 varying syntaxes for comments (;, #, //, /* */ or !), assignment (var = value,
@@ -2548,7 +2551,7 @@ timing measurements of code (including the garbage collection component).
 ** `cfengine-mode' is a major mode for editing GNU Cfengine
 configuration files.
 
-* Incompatible Lisp Changes in Emacs 21.4
+* Incompatible Lisp Changes in Emacs 22.1
 
 +++
 ** `suppress-keymap' now works by remapping `self-insert-command' to
@@ -2561,7 +2564,7 @@ the command `undefined'.  (In earlier Emacs versions, it used
 :propertize and :eval forms in the value of a variable whose
 `risky-local-variable' property is nil.
 
-* Lisp Changes in Emacs 21.4
+* Lisp Changes in Emacs 22.1
 
 ** An element of buffer-undo-list can now have the form (FUNNAME .
 ARGS), where FUNNAME is a symbol other than t or nil.  That stands for

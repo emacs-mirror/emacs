@@ -156,7 +156,7 @@ input sequences."
 (defcustom latin1-display-face 'default
   "Face to use for displaying substituted ASCII sequences."
   :type 'face
-  :version "21.4"
+  :version "22.1"
   :group 'latin1-display)
 
 (defun latin1-display-char (char display &optional alt-display)
@@ -225,7 +225,7 @@ character set: `latin-2', `hebrew' etc."
 
 ;; Backwards compatibility.
 (defalias 'latin1-char-displayable-p 'char-displayable-p)
-(make-obsolete 'latin1-char-displayable-p 'char-displayable-p "21.4")
+(make-obsolete 'latin1-char-displayable-p 'char-displayable-p "22.1")
 
 (defun latin1-display-setup (set &optional force)
   "Set up Latin-1 display for characters in the given SET.

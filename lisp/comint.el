@@ -194,7 +194,7 @@ If you sometimes use comint-mode on text-only terminals or with `emacs-nw',
 you might wish to use another binding for `comint-kill-whole-line'."
   :type 'boolean
   :group 'comint
-  :version "21.4")
+  :version "22.1")
 
 (defvar comint-delimiter-argument-list ()
   "List of characters to recognise as separate arguments in input.
@@ -809,7 +809,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
       ;; Insert the input at point
       (insert (buffer-substring-no-properties
 	       (previous-single-char-property-change (1+ pos) 'field)
-	       (next-single-char-property-change pos 'field)))))) 
+	       (next-single-char-property-change pos 'field))))))
 
 
 ;; Input history processing in a buffer

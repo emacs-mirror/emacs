@@ -51,7 +51,7 @@ the undo info for the current command never gets discarded.
 This should only be chosen under exceptional circumstances,
 since it could result in memory overflow and make Emacs crash."
 					      nil))
-			       "21.4")
+			       "22.1")
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format modeline sexp) ;Hard to do right.
@@ -135,10 +135,10 @@ since it could result in memory overflow and make Emacs crash."
 				    (const :tag "always" t)))
 	     ;; fileio.c
 	     (insert-default-directory minibuffer boolean)
-	     (read-file-name-completion-ignore-case minibuffer boolean "21.4")
+	     (read-file-name-completion-ignore-case minibuffer boolean "22.1")
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
-	     (use-file-dialog menu boolean "21.4")
+	     (use-file-dialog menu boolean "22.1")
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -280,13 +280,13 @@ since it could result in memory overflow and make Emacs crash."
 						     :format "%v")
 					    (other :tag "Unlimited" t)))
 	     (unibyte-display-via-language-environment mule boolean)
-	     (blink-cursor-alist cursor alist "21.4")
+	     (blink-cursor-alist cursor alist "22.1")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
-	     (x-use-old-gtk-file-dialog menu boolean "21.4")
+	     (x-use-old-gtk-file-dialog menu boolean "22.1")
 	     ;; xterm.c
              (mouse-autoselect-window display boolean "21.3")
 	     (x-use-underline-position-properties display boolean "21.3")

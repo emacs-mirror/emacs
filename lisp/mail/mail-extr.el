@@ -231,7 +231,7 @@ we will assume that \"John Q. Smith\" is the fellow's name."
 If true, then when we see an address like \"Idiot <dumb@stupid.com>\"
 we will act as though we couldn't find a full name in the address."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'mail-extr)
 
 (defcustom mail-extr-ignore-realname-equals-mailbox-name t
@@ -1411,7 +1411,7 @@ consing a string.)"
 		    (setq names-match-flag nil))
 		(setq i (1+ i)))
 	      (delete-region (+ (point-min) buffer-length) (point-max))
-	      (and names-match-flag 
+	      (and names-match-flag
 			   mail-extr-ignore-realname-equals-mailbox-name
 			   (narrow-to-region (point) (point)))))
 

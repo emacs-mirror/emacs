@@ -282,7 +282,7 @@ Value of `default-directory' for mail buffers.
 This directory is used for auto-save files of mail buffers."
   :type '(directory :tag "Directory")
   :group 'sendmail
-  :version "21.4")
+  :version "22.1")
 
 (defvar mail-reply-action nil)
 (defvar mail-send-actions nil
@@ -324,7 +324,7 @@ support Delivery Status Notification."
   :type '(repeat (radio (const :tag "Failure" failure)
 			(const :tag "Delay" delay)
 			(const :tag "Success" success)))
-  :version "21.4")
+  :version "22.1")
 
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.

@@ -124,7 +124,7 @@ The text matching the first grouping will be used as a button."
 (defcustom gnus-cite-unsightly-citation-regexp
   "^-----Original Message-----\nFrom: \\(.+\n\\)+\n"
   "Regexp matching Microsoft-type rest-of-message citations."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-cite
   :type 'regexp)
 
@@ -132,7 +132,7 @@ The text matching the first grouping will be used as a button."
   "Non-nil means don't regard lines beginning with \">From \" as cited text.
 Those lines may have been quoted by MTAs in order not to mix up with
 the envelope From line."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-cite
   :type 'boolean)
 
@@ -143,7 +143,7 @@ the envelope From line."
 (defcustom gnus-cite-attribution-face 'gnus-cite-attribution-face
   "Face used for attribution lines.
 It is merged with the face for the cited text belonging to the attribution."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-cite
   :type 'face)
 

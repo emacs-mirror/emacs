@@ -41,7 +41,7 @@
 ;;;###autoload
 (defgroup gnus-delay nil
   "Arrange for sending postings later."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus)
 
 (defcustom gnus-delay-group "delayed"
@@ -61,7 +61,7 @@
 
 (defcustom gnus-delay-default-hour 8
   "*If deadline is given as date, then assume this time of day."
-  :version "21.4"
+  :version "22.1"
   :type 'integer
   :group 'gnus-delay)
 

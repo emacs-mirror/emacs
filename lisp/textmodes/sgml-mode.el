@@ -350,7 +350,7 @@ If this variable is customized, the custom value is used always.
 Otherwise, it is set to be buffer-local when the file has
  a DOCTYPE or an XML declaration."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'sgml)
 
 (defvar sgml-empty-tags nil
@@ -1213,7 +1213,7 @@ not the case, the first tag returned is the one inside which we are."
 		  (if (cdr tmp) (setcdr tmp (cddr tmp)))))
 	    (message "Unmatched tags <%s> and </%s>"
 		     (sgml-tag-name tag-info) (pop stack)))))
-	
+
 	(if (and (null stack) (sgml-unclosed-tag-p (sgml-tag-name tag-info)))
 	    ;; This is a top-level open of an implicitly closed tag, so any
 	    ;; occurrence of such an open tag at the same level can be ignored
