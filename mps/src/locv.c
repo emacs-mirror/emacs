@@ -2,7 +2,7 @@
  *
  *            Leaf Object Pool Class Coverage Test
  *
- *  $HopeName: MMsrc!locv.c(trunk.1) $
+ *  $HopeName: MMsrc!locv.c(trunk.2) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *
@@ -46,7 +46,6 @@ main(void)
 
   die(SpaceCreate(&space), "SpaceCreate");
   die(RootCreateTable(&root, space, RefRankEXACT,
-                      RootFIXABLE || RootMUTABLE || RootATOMIC,
                       roots, roots + (sizeof(roots)/sizeof(*roots))),
       "RootCreate");
 
