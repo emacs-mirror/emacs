@@ -1115,6 +1115,12 @@ popup_get_selection (initial_event, dpyinfo, id)
         {
           dpyinfo->grabbed &= ~(1 << event.xbutton.button);
           popup_activated_flag = 0;
+#ifdef USE_MOTIF /* Pretending that the event came from a 
+		    Btn1Down seems the only way to convince Motif to
+		    activate its callbacks; setting the XmNmenuPost
+		    isn't working. --marcus@sysc.pdx.edu.  */
+	  event.xbutton.button = 1;
+#endif
         }
       /* If the user presses a key, deactivate the menu.
 	 The user is likely to do that if we get wedged.  */
@@ -1873,7 +1879,7 @@ free_frame_menubar (f)
 /* F is the frame the menu is for.
    X and Y are the frame-relative specified position,
    relative to the inside upper left corner of the frame F.
-   FOR_CLICK if this menu was invoked for a mouse click.
+   FOR_CLICK is nonzero if this menu was invoked for a mouse click.
    KEYMAPS is 1 if this menu was specified with keymaps;
     in that case, we return a list containing the chosen item's value
     and perhaps also the pane's prefix.
@@ -2110,7 +2116,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   dummy.send_event = 0;
   dummy.display = FRAME_X_DISPLAY (f);
   dummy.time = CurrentTime;
-  dummy.button = 0;
   dummy.root = FRAME_X_DISPLAY_INFO (f)->root_window;
   dummy.window = dummy.root;
   dummy.subwindow = dummy.root;
@@ -2118,6 +2123,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   dummy.y_root = y;
   dummy.x = x;
   dummy.y = y;
+  dummy.state = (FRAME_X_DISPLAY_INFO (f)->grabbed >> 1) * Button1Mask;
+  dummy.button = 0;
+  for (i = 0; i < 5; i++)
+    if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
+      dummy.button = i;
 
   /* Don't allow any geometry request from the user.  */
   XtSetArg (av[ac], XtNgeometry, 0); ac++;
