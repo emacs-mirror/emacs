@@ -3597,18 +3597,24 @@ read_key_sequence (keybuf, bufsize, prompt)
      recognized a function key, to avoid searching for the function
      key's again in Vfunction_key_map.  */
   int fkey_start = 0, fkey_end = 0;
-  Lisp_Object fkey_map = Vfunction_key_map;
+  Lisp_Object fkey_map;
 
   /* If we receive a ``switch-frame'' event in the middle of a key sequence,
      we put it off for later.  While we're reading, we keep the event here.  */
-  Lisp_Object delayed_switch_frame = Qnil;
+  Lisp_Object delayed_switch_frame;
 
+  Lisp_Object first_event;
+
+  int junk;
+
+  last_nonmenu_event = Qnil;
+
+  delayed_switch_frame = Qnil;
+  fkey_map = Vfunction_key_map;
 
   /* If there is no function key map, turn off function key scanning.  */
   if (NILP (Fkeymapp (Vfunction_key_map)))
     fkey_start = fkey_end = bufsize + 1;
-
-  last_nonmenu_event = Qnil;
 
   if (INTERACTIVE)
     {
@@ -3625,6 +3631,11 @@ read_key_sequence (keybuf, bufsize, prompt)
   if (INTERACTIVE)
     echo_start = echo_length ();
   keys_start = this_command_key_count;
+
+  /* Read the first char of the sequence specially, before setting
+     up any keymaps, in case a filter runs and switches buffers on us.  */
+  first_event = read_char (!prompt, 0, submaps, last_nonmenu_event,
+			   &junk);
 
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
@@ -3724,8 +3735,14 @@ read_key_sequence (keybuf, bufsize, prompt)
 	{
 	  last_real_key_start = t;
 
-	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
-			   &used_mouse_menu);
+	  if (! NILP (first_event))
+	    {
+	      key = first_event;
+	      first_event = Qnil;
+	    }
+	  else
+	    key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
+			     &used_mouse_menu);
 
 	  /* read_char returns -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
