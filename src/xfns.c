@@ -1694,7 +1694,12 @@ x_set_menu_bar_lines (f, value, oldval)
 #ifdef USE_X_TOOLKIT
   FRAME_MENU_BAR_LINES (f) = 0;
   if (nlines)
-    FRAME_EXTERNAL_MENU_BAR (f) = 1;
+    {
+      FRAME_EXTERNAL_MENU_BAR (f) = 1;
+      if (f->output_data.x->menubar_widget == 0)
+	/* Make sure next redisplay shows the menu bar.  */
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+    }
   else
     {
       if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
