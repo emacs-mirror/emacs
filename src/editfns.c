@@ -1896,8 +1896,12 @@ Use %% to put a single % into the output.")
 	    strings[i++] = (unsigned char *) u.half[1];
 	  }
 #endif
-	else
+	else if (i == 0)
+	  /* The first string is treated differently
+	     because it is the format string.  */
 	  strings[i++] = XSTRING (args[n])->data;
+	else
+	  strings[i++] = (unsigned char *) XFASTINT (args[n]);
       }
 
     /* Make room in result for all the non-%-codes in the control string.  */
@@ -1909,7 +1913,8 @@ Use %% to put a single % into the output.")
 	buf = (char *) alloca (total + 1);
 	buf[total - 1] = 0;
 
-	length = doprnt (buf, total + 1, strings[0], end, i-1, strings + 1);
+	length = doprnt_lisp (buf, total + 1, strings[0],
+			      end, i-1, strings + 1);
 	if (buf[total - 1] == 0)
 	  break;
 
