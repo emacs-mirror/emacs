@@ -1452,7 +1452,7 @@ configuration."
 (defun interactive-form (function)
   "Return the interactive form of FUNCTION.
 If function is a command (see `commandp'), value is a list of the form
-\(interactive SPEC).  If function is not a command,return nil."
+\(interactive SPEC).  If function is not a command, return nil."
   (setq function (indirect-function function))
   (when (commandp function)
     (cond ((byte-code-function-p function)
