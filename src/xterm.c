@@ -4836,12 +4836,14 @@ x_set_glyph_string_background_width (s, start, last_x)
   struct face *default_face = FACE_FROM_ID (s->f, DEFAULT_FACE_ID);
   
   if (start == s->row->used[s->area]
-      && s->hl == DRAW_NORMAL_TEXT
       && s->area == TEXT_AREA
-      && (s->row->fill_line_p
-	  || s->face->background != default_face->background
-	  || s->face->stipple != default_face->stipple))
-    s->extends_to_end_of_line_p = 1;
+      && ((s->hl == DRAW_NORMAL_TEXT
+	   && (s->row->fill_line_p
+	       || s->face->background != default_face->background
+	       || s->face->stipple != default_face->stipple
+	       || s->row->mouse_face_p))
+	  || s->hl == DRAW_MOUSE_FACE))
+      s->extends_to_end_of_line_p = 1;
   
   /* If S extends its face to the end of the line, set its
      background_width to the distance to the right edge of the drawing
@@ -7696,9 +7698,9 @@ show_mouse_face (dpyinfo, draw)
 
       if (end_hpos > start_hpos)
 	{
-	  row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
 	  x_draw_glyphs (w, start_x, row, TEXT_AREA, 
 			 start_hpos, end_hpos, draw, NULL, NULL, 0);
+	  row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
 	}
     }
 
