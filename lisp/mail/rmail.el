@@ -2265,8 +2265,7 @@ charset= headers.
 This function assumes that the current message is already decoded
 and displayed in the RMAIL buffer, but the coding system used to
 decode it was incorrect.  It then encodes the message back to its
-original form, and decodes it again, using the coding system you
-supply at the prompt.
+original form, and decodes it again, using the coding system CODING.
 
 Note that if Emacs erroneously auto-detected one of the iso-2022
 encodings in the message, this function might fail because the escape
