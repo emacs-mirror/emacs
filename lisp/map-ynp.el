@@ -153,7 +153,7 @@ Returns the number of actions taken."
 				(setq char (read-event))
 				;; If we get -1, from end of keyboard
 				;; macro, try again.
-				(not (equal char -1))))
+                                (equal char -1)))
 		       ;; Show the answer to the question.
 		       (message "%s(y, n, !, ., q, %sor %s) %s"
 				prompt user-keys
