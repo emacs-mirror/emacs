@@ -119,10 +119,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #define SIGNALS_VIA_CHARACTERS
 #define BROKEN_CLOSEDIR		/* builtin closedir is interruptible */
-#undef HAVE_BCOPY		/* b* functions are just stubs to mem* ones */
-#define bcopy(from,to,bytes)	memcpy(to,from,bytes)
-#define bzero(to,bytes)		memset(to,0,bytes)
-#define bcmp memcmp
 #define memmove(t,f,s) safe_bcopy(f,t,s) /* for overlapping copies */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
@@ -151,8 +147,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef __GNUC__
- /* Use builtin alloca. Also be sure that no other ones are tried out. */
-# define alloca __builtin_alloca
  /* Union lisp objects do not yet work as of 19.15. */
 /* # undef NO_UNION_TYPE */
 
