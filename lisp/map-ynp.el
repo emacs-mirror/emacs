@@ -69,23 +69,25 @@ Returns the number of actions taken."
 	(actions 0)
 	prompt
 	char
+	elt
 	(next (if (or (symbolp list)
 		      (subrp list)
 		      (compiled-function-p list)
 		      (and (consp list)
 			   (eq (car list) 'lambda)))
-		  list
+		  (function (lambda ()
+			      (setq elt (funcall list))))
 		(function (lambda ()
 			    (if list
-				(prog1
-				    (car list)
-				  (setq list (cdr list)))
-			      nil)))))
-	elt)
+				(progn
+				  (setq elt (car list)
+					list (cdr list))
+				  t)
+			      nil))))))
     (if (stringp prompter)
 	(setq prompter (` (lambda (object)
 			    (format (, prompter) object)))))
-    (while (setq elt (funcall next))
+    (while (funcall next)
       (setq prompt (funcall prompter elt))
       (if (stringp prompt)
 	  (progn
