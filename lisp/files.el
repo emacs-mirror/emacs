@@ -586,12 +586,12 @@ If the current buffer now contains an empty file that you just visited
     (if (get-buffer " **lose**")
 	(kill-buffer " **lose**"))
     (rename-buffer " **lose**")
-    (setq buffer-file-name nil)
-    (setq buffer-file-number nil)
-    (setq buffer-file-truename nil)
     (unwind-protect
 	(progn
 	  (unlock-buffer)
+	  (setq buffer-file-name nil)
+	  (setq buffer-file-number nil)
+	  (setq buffer-file-truename nil)
 	  (find-file filename))
       (cond ((eq obuf (current-buffer))
 	     (setq buffer-file-name ofile)
