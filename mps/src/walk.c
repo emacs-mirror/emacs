@@ -1,13 +1,13 @@
 /* impl.c.walk: OBJECT WALKER
  *
- * $HopeName: MMsrc!walk.c(trunk.3) $
+ * $HopeName: MMsrc!walk.c(trunk.4) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.3) $");
+SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.4) $");
 
 
 /* Heap Walking
@@ -244,6 +244,7 @@ static void RootsStepClosureFinish(RootsStepClosure rsc)
   ScanStateFinish(ss);
 }
 
+
 /* RootsWalkTraceStart -- Initialize a minimal trace for root walking */
 
 static Res RootsWalkTraceStart(Trace trace)
@@ -254,9 +255,9 @@ static Res RootsWalkTraceStart(Trace trace)
   AVERT(Trace, trace);
   arena = trace->arena;
 
-  /* Set the white ref set to universal so that the scanner */
-  /* doesn't filter out any references from roots into the arena */
-  trace->white = RefSetUNIV; 
+  /* Set the white set to universal so that the scanner */
+  /* doesn't filter out any references from roots into the arena. */
+  trace->white = ZoneSetUNIV; 
 
   /* Make the roots grey so that they are scanned */
   ring = ArenaRootRing(arena);
@@ -354,10 +355,10 @@ static Res ArenaRootsWalk(Arena arena, mps_roots_stepper_t f,
 
   /* Scan all the roots with a minimal trace. */
   /* Invoke the scanner with a RootsStepClosure, which */
-  /* is a subclass of ScanState and contains the client */
+  /* is a subclass of ScanState and contains the client- */
   /* provided closure. Supply a special fix method */
   /* in order to call the client closure. This fix method */
-  /* must perform no tracing operations of its own */
+  /* must perform no tracing operations of its own. */
 
   res = TraceCreate(&trace, arena);
   /* Have to fail if no trace available. Unlikely due to .assume.parked */
