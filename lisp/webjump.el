@@ -79,7 +79,7 @@
 
 ;;------------------------------------------------------------------- Constants
 
-(defconst-TEST webjump-sample-sites
+(defvar webjump-sample-sites
   '(("AltaVista" . 
      [simple-query
       "www.altavista.digital.com"
@@ -184,7 +184,7 @@
     )
   "Sample hotlist for WebJump.")
 
-(defconst webjump-state-to-postal-alist
+(defvar webjump-state-to-postal-alist
   '(("Alabama" . "al") ("Alaska" . "ak") ("Arizona" . "az") ("Arkansas" . "ar")
     ("California" . "ca") ("Colorado" . "co") ("Connecticut" . "ct")
     ("Delaware" . "de") ("Florida" . "fl") ("Georgia" . "ga") ("Hawaii" . "hi")
