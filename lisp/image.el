@@ -1,6 +1,7 @@
 ;;; image.el --- image API
 
 ;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Keywords: multimedia
 
 ;; This file is part of GNU Emacs.
 
