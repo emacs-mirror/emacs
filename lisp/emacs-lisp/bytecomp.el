@@ -195,17 +195,28 @@
   "*Regexp which matches Emacs Lisp source files.
 You may want to redefine `byte-compile-dest-file' if you change this.")
 
+;; This enables file name handlers such as jka-compr
+;; to remove parts of the file name that should not be copied
+;; through to the output file name.
+(defun byte-compiler-base-file-name (filename)
+  (let ((handler (find-file-name-handler filename
+					 'byte-compiler-base-file-name)))
+    (if handler
+	(funcall handler 'byte-compiler-base-file-name filename)
+      filename)))
+
 (or (fboundp 'byte-compile-dest-file)
     ;; The user may want to redefine this along with emacs-lisp-file-regexp,
     ;; so only define it if it is undefined.
     (defun byte-compile-dest-file (filename)
       "Convert an Emacs Lisp source file name to a compiled file name."
+      (setq filename (byte-compiler-base-file-name filename))
       (setq filename (file-name-sans-versions filename))
       (cond ((eq system-type 'vax-vms)
-	     (concat (substring filename 0 (string-match ";" filename)) "c"))
-	    ((string-match emacs-lisp-file-regexp filename)
-	     (concat (substring filename 0 (match-beginning 0)) ".elc"))
-	    (t (concat filename ".elc")))))
+		 (concat (substring filename 0 (string-match ";" filename)) "c"))
+		((string-match emacs-lisp-file-regexp filename)
+		 (concat (substring filename 0 (match-beginning 0)) ".elc"))
+		(t (concat filename ".elc")))))
 
 ;; This can be the 'byte-compile property of any symbol.
 (autoload 'byte-compile-inline-expand "byte-opt")
