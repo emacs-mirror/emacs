@@ -1649,7 +1649,8 @@ replace_buffer_in_all_windows (buffer)
       window_loop (UNSHOW_BUFFER, buffer, 0, frame);
     }
 
-  Fselect_window (old_selected);
+  if (!NILP (Fwindow_live_p (old_selected)))
+    Fselect_window (old_selected);
 #else
   window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
 #endif
