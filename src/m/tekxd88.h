@@ -112,7 +112,9 @@ and this notice must be preserved on all copies.  */
 #undef sigsetmask	/* XD88 has sigsetmask() */
 
 #ifdef HAVE_X_WINDOWS
+#  if 0 /* autoconf should take care of this.  */
 #  define HAVE_RANDOM	/* Random is in libX11.a */
+#  endif 
 #  undef LIB_X11_LIB	/* Don't use shared libraries defined in usg5-3.h */
 #  undef LIBX11_SYSTEM
 #endif /* HAVE_X_WINDOWS */

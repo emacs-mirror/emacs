@@ -176,7 +176,9 @@ and this notice must be preserved on all copies.  */
 
 #ifdef USG5_4
 #ifdef HAVE_X_WINDOWS
+#if 0 /* autoconf should take care of this. */
 #define HAVE_RANDOM
+#endif
 #else
 #undef BSTRING
 #endif /* HAVE_X_WINDOWS */
