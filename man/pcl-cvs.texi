@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.10 2001/01/02 13:35:10 fx Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.11 2001/02/13 00:00:30 fx Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001  Free Software Foundation, Inc.
@@ -1382,7 +1382,7 @@ default.
 @vindex cvs-marked-face (face)
 
 PCL-CVS adds a few extra features, including menus, mouse bindings, and
-fontification the the @samp{*cvs*} buffer.  The faces defined for
+fontification the @samp{*cvs*} buffer.  The faces defined for
 fontification are listed below:
 
 @table @samp
