@@ -402,7 +402,7 @@ by `lisp-body-indent'."
            (defparameter . defvar)
            (defconst     . defcustom)
            (define-condition  . defclass)
-           (define-modify-macro (4 &body))
+           (define-modify-macro (4 &lambda &body))
            (defsetf     (4 &lambda 4 &body))
            (defun       (4 &lambda &body))
            (define-setf-method . defun)
