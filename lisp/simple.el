@@ -895,9 +895,13 @@ In Transient Mark mode when the mark is active, only undo changes within
 the current region.  Similarly, when not in Transient Mark mode, just C-u
 as an argument limits undo to changes within the current region."
   (interactive "*P")
-  ;; If we don't get all the way thru, make last-command indicate that
-  ;; for the following command.
-  (setq this-command t)
+  ;; Make last-command indicate for the next command that this was an undo.
+  ;; That way, another undo will undo more.
+  ;; If we get to the end of the undo history and get an error,
+  ;; another undo command will find the undo history empty
+  ;; and will get another error.  To begin undoing the undos,
+  ;; you must type some other command.
+  (setq this-command 'undo)
   (let ((modified (buffer-modified-p))
 	(recent-save (recent-auto-save-p)))
     (or (eq (selected-window) (minibuffer-window))
@@ -934,9 +938,7 @@ as an argument limits undo to changes within the current region."
 	(setq prev tail tail (cdr tail))))
 
     (and modified (not (buffer-modified-p))
-	 (delete-auto-save-file-if-necessary recent-save)))
-  ;; If we do get all the way thru, make this-command indicate that.
-  (setq this-command 'undo))
+	 (delete-auto-save-file-if-necessary recent-save))))
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.")
@@ -1186,6 +1188,21 @@ If OUTPUT-BUFFER is not a buffer and not nil,
 insert output in current buffer.  (This cannot be done asynchronously.)
 In either case, the output is inserted after point (leaving mark after it).
 
+If the command terminates without error, but generates output,
+and you did not specify \"insert it in the current buffer\",
+the output can be displayed in the echo area or in its buffer.
+If the output is short enough to display in the echo area
+\(determined by the variable `max-mini-window-height' if
+`resize-mini-windows' is non-nil), it is shown there.  Otherwise,
+the buffer containing the output is displayed.
+
+If there is output and an error, and you did not specify \"insert it
+in the current buffer\", a message about the error goes at the end
+of the output.
+
+If there is no output, or if output is inserted in the current buffer,
+then `*Shell Command Output*' is deleted.
+
 If the optional third argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output.
@@ -1204,6 +1221,7 @@ specifies the value of ERROR-BUFFER."
 	(funcall handler 'shell-command command output-buffer error-buffer)
       (if (and output-buffer
 	       (not (or (bufferp output-buffer)  (stringp output-buffer))))
+	  ;; Output goes in current buffer.
 	  (let ((error-file
 		 (if error-buffer
 		     (make-temp-file
@@ -1244,6 +1262,7 @@ specifies the value of ERROR-BUFFER."
 	    (goto-char (prog1 (mark t)
 			 (set-marker (mark-marker) (point)
 				     (current-buffer)))))
+	;; Output goes in a separate buffer.
 	;; Preserve the match data in case called from a program.
 	(save-match-data
 	  (if (string-match "[ \t]*&[ \t]*$" command)
@@ -1368,13 +1387,19 @@ REPLACE, ERROR-BUFFER.  Noninteractive callers can specify coding
 systems by binding `coding-system-for-read' and
 `coding-system-for-write'.
 
-If the output is short enough to display in the echo area (which is
-determined by the variable `max-mini-window-height' if
-`resize-mini-windows' is non-nil), it is shown there, but it is
-nonetheless available in buffer `*Shell Command Output*' even though
-that buffer is not automatically displayed.  If there is no output, or
-if output is inserted in the current buffer, then `*Shell Command
-Output*' is deleted.
+If the command generates output, the output may be displayed
+in the echo area or in a buffer.
+If the output is short enough to display in the echo area
+\(determined by the variable `max-mini-window-height' if
+`resize-mini-windows' is non-nil), it is shown there.  Otherwise
+it is displayed in the buffer `*Shell Command Output*'.  The output
+is available in that buffer in both cases.
+
+If there is output and an error, a message about the error
+appears at the end of the output.
+
+If there is no output, or if output is inserted in the current buffer,
+then `*Shell Command Output*' is deleted.
 
 If the optional fourth argument OUTPUT-BUFFER is non-nil,
 that says to put the output in some other buffer.
@@ -1471,10 +1496,16 @@ specifies the value of ERROR-BUFFER."
 					   buffer)
 					 nil shell-command-switch command)))
 	  (setq success (and exit-status (equal 0 exit-status)))
-	  ;; Report the amount of output.
+	  ;; Report the output.
 	  (if (with-current-buffer buffer (> (point-max) (point-min)))
 	      ;; There's some output, display it
-	      (display-message-or-buffer buffer)
+	      (progn
+		(if (not success)
+		    (with-current-buffer buffer
+		      (save-excursion
+			(goto-char (point-max))
+			(insert "...Shell command failed"))))
+		(display-message-or-buffer buffer))
 	    ;; No output; error?
 	    (message (if (and error-file
 			      (< 0 (nth 7 (file-attributes error-file))))
