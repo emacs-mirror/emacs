@@ -1,3 +1,11 @@
+2000-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* startup.el (normal-top-level): Use display-popup-menus-p instead
+	of window-system.
+	(command-line): Use display-graphic-p instead of window-system.
+	(command-line-1): Use display-popup-menus-p and display-mouse-p
+	instead of window-system.
+
 2000-10-12  Sam Steingold  <sds@gnu.org>
 
 	* tooltip.el (tooltip-use-echo-area): New user variable.
