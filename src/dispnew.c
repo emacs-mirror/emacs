@@ -24,11 +24,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 
+#include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
 #include "termhooks.h"
 #include "cm.h"
-#include "lisp.h"
 #include "dispextern.h"
 #include "buffer.h"
 #include "frame.h"
