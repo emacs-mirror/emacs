@@ -231,8 +231,8 @@ long linecharno;		/* charno of start of line; not used by C, but
 
 char *curfile,			/* current input file name		*/
  *tagfile,			/* output file				*/
- *white = " \f\t\n",		/* white chars				*/
- *endtk = " \t\n\"'#()[]{}=-+%*/&|^~!<>;,.:?",	/* token ending chars	*/
+ *white = " \f\t\n\013",	/* white chars				*/
+ *endtk = " \t\n\013\"'#()[]{}=-+%*/&|^~!<>;,.:?", /* token ending chars */
 				/* token starting chars			*/
  *begtk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$~",
 				/* valid in-token chars			*/
@@ -333,11 +333,11 @@ names from stdin.\n\n", progname);
 
   if (CTAGS)
     puts ("-d, --defines\n\
-        Create tag entries for C #defines, too.");
+        Create tag entries for constant C #defines, too.");
   else
     puts ("-D, --no-defines\n\
-        Don't create tag entries for C #defines.  This makes the tags\n\
-	file smaller.");
+        Don't create tag entries for constant C #defines.  This makes\n\
+	the tags file smaller.");
 
   if (!CTAGS)
     puts ("-i FILE, --include=FILE\n\
@@ -1413,7 +1413,8 @@ consider_token (c, tokp, c_ext, cblev, is_func)
       return (FALSE);
     case ddefineseen:
       /*
-       * Make a tag for any macro.
+       * Make a tag for any macro, unless it is a constant
+       * and constantypedefs is FALSE.
        */
       definedef = dignorerest;
       *is_func = (c == '(');
@@ -1745,19 +1746,40 @@ C_entries (c_ext, inf)
 	    else
 	      break;
 	  case '#':
-	    if (lp == newlb.buffer + 1 && definedef == dnone)
-	      definedef = dsharpseen;
+	    if (definedef == dnone)
+	      {
+		char *cp;
+		logical cpptoken = TRUE;
+
+		/* Look back on this line.  If all blanks, or nonblanks
+		   followed by an end of comment, this is a preprocessor
+		   token. */
+		for (cp = newlb.buffer; cp < lp-1; cp++)
+		  if (!iswhite (*cp))
+		    {
+		      if (*cp == '*' && *(cp+1) == '/')
+			{
+			  cp++;
+			  cpptoken = TRUE;
+			}
+		      else
+			cpptoken = FALSE;
+		    }
+		if (cpptoken)
+		  definedef = dsharpseen;
+	      } /* if (definedef == dnone) */
+
 	    continue;
 	  } /* switch (c) */
 
 
       /* Consider token only if some complicated conditions are satisfied. */
-      if (((cblev == 0 && structdef != scolonseen)
+      if ((definedef != dnone
+	   || (cblev == 0 && structdef != scolonseen)
 	   || (cblev == 1 && cplpl && structdef == sinbody))
 	  && typdef != tignore
 	  && definedef != dignorerest
-	  && (funcdef != finlist
-	      || definedef != dnone))
+	  && funcdef != finlist)
 	{
 	  if (midtoken)
 	    {
@@ -1766,8 +1788,8 @@ C_entries (c_ext, inf)
 		  if (cplpl && c == ':' && *lp == ':' && begtoken(*(lp + 1)))
 		    {
 		      /*
-		       * This handles :: in the middle, but not at beginning
-		       * of an identifier.
+		       * This handles :: in the middle, but not at the
+		       * beginning of an identifier.
 		       */
 		      lp += 2;
 		      toklen += 3;
@@ -1788,11 +1810,11 @@ C_entries (c_ext, inf)
 			      && is_func)
 			    /* function defined in C++ class body */
 			    {
-			      tok.named = TRUE;
 			      sprintf (nameb, "%s::%.*s",
 				       ((structtag[0] == '\0')
 					? "_anonymous_" : structtag),
 				       tok.len, tok.p);
+			      tok.named = TRUE;
 			    }
 			  else
 			    {
@@ -1800,7 +1822,10 @@ C_entries (c_ext, inf)
 			    }
 
 			  if (structdef == stagseen
-			      || typdef == tend)
+			      || typdef == tend
+			      /* Better not to name the #define's in
+				 order to reduce the TAGS file size.
+			      || definedef == dignorerest */ )
 			    tok.named = TRUE;
 
 			  if (definedef == dnone
@@ -1845,7 +1870,7 @@ C_entries (c_ext, inf)
 		    structdef = snone;
 		  break;
 		case dsharpseen:
-		  /* Take a quick peek ahead for define directive,
+		  /* Take a quick peek ahead for a define directive,
 		     so we can avoid saving the token when not absolutely
 		     necessary. [This is a speed hack.] */
 		  if (c == 'd' && strneq(lp, "efine", 5)
@@ -1938,6 +1963,22 @@ C_entries (c_ext, inf)
 	    break;
 	  switch (funcdef)
 	    {
+	    case fnone:
+	      switch (typdef)
+		{
+		case ttypedseen:
+		case tend:
+		  /* Make sure that the next char is not a '*'.
+		     This handles constructs like:
+		     typedef void OperatorFun (int fun); */
+		  if (*lp != '*')
+		    {
+		      typdef = tignore;
+		      MAKE_TAG_FROM_OTH_LB (FALSE);
+		    }
+		  break;
+		} /* switch (typdef) */
+	      break;
 	    case ftagseen:
 	      funcdef = fstartlist;
 	      break;
