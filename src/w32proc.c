@@ -63,6 +63,11 @@ Lisp_Object Vw32_start_process_show_window;
    consoles also allows Emacs to cleanly terminate process groups.  */
 Lisp_Object Vw32_start_process_share_console;
 
+/* Control whether create_child cause the process to inherit Emacs'
+   error mode setting.  The default is t, to minimize the possibility of
+   subprocesses blocking when accessing unmounted drives.  */
+Lisp_Object Vw32_start_process_inherit_error_mode;
+
 /* Time to sleep before reading from a subprocess output pipe - this
    avoids the inefficiency of frequently reading small amounts of data.
    This is primarily necessary for handling DOS processes on Windows 95,
@@ -304,6 +309,7 @@ create_child (char *exe, char *cmdline, char *env,
   STARTUPINFO start;
   SECURITY_ATTRIBUTES sec_attrs;
   SECURITY_DESCRIPTOR sec_desc;
+  DWORD flags;
   char dir[ MAXPATHLEN ];
   
   if (cp == NULL) abort ();
@@ -334,13 +340,14 @@ create_child (char *exe, char *cmdline, char *env,
   
   strcpy (dir, process_dir);
   unixtodos_filename (dir);
-  
+
+  flags = (!NILP (Vw32_start_process_share_console)
+	   ? CREATE_NEW_PROCESS_GROUP
+	   : CREATE_NEW_CONSOLE);
+  if (NILP (Vw32_start_process_inherit_error_mode))
+    flags |= CREATE_DEFAULT_ERROR_MODE;
   if (!CreateProcess (exe, cmdline, &sec_attrs, NULL, TRUE,
-		      (!NILP (Vw32_start_process_share_console)
-		       ? CREATE_NEW_PROCESS_GROUP
-		       : CREATE_NEW_CONSOLE),
-		      env, dir,
-		      &start, &cp->procinfo))
+		      flags, env, dir, &start, &cp->procinfo))
     goto EH_Fail;
 
   cp->pid = (int) cp->procinfo.dwProcessId;
@@ -2069,19 +2076,26 @@ will be chosen based on the type of the program.");
 
   DEFVAR_LISP ("w32-start-process-show-window",
 	       &Vw32_start_process_show_window,
-    "When nil, processes started via start-process hide their windows.\n\
+    "When nil, new child processes hide their windows.\n\
 When non-nil, they show their window in the method of their choice.");
   Vw32_start_process_show_window = Qnil;
 
   DEFVAR_LISP ("w32-start-process-share-console",
 	       &Vw32_start_process_share_console,
-    "When nil, processes started via start-process are given a new console.\n\
+    "When nil, new child processes are given a new console.\n\
 When non-nil, they share the Emacs console; this has the limitation of\n\
 allowing only only DOS subprocess to run at a time (whether started directly\n\
 or indirectly by Emacs), and preventing Emacs from cleanly terminating the\n\
 subprocess group, but may allow Emacs to interrupt a subprocess that doesn't\n\
 otherwise respond to interrupts from Emacs.");
   Vw32_start_process_share_console = Qnil;
+
+  DEFVAR_LISP ("w32-start-process-inherit-error-mode",
+	       &Vw32_start_process_inherit_error_mode,
+    "When nil, new child processes revert to the default error mode.\n\
+When non-nil, they inherit their error mode setting from Emacs, which stops\n\
+them blocking when trying to access unmounted drives etc.");
+  Vw32_start_process_inherit_error_mode = Qt;
 
   DEFVAR_INT ("w32-pipe-read-delay", &Vw32_pipe_read_delay,
     "Forced delay before reading subprocess output.\n\
