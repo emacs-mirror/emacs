@@ -10236,43 +10236,9 @@ XTread_socket (sd, bufp, numchars, expected)
 
 	    case EnterNotify:
 	      {
-		int from_menu_bar_p = 0;
-		
 		f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
 
-#ifdef LESSTIF_VERSION
-		/* When clicking outside of a menu bar popup to close
-		   it, we get a FocusIn/ EnterNotify sequence of
-		   events.  The flag event.xcrossing.focus is not set
-		   in the EnterNotify event of that sequence because
-		   the focus is in the menu bar,
-		   event.xcrossing.window is the frame's X window.
-		   Unconditionally setting the focus frame to null in
-		   this case is not the right thing, because no event
-		   follows that could set the focus frame to the right
-		   value.
-
-		   This could be a LessTif bug, but I wasn't able to
-		   reproduce the behavior in a simple test program.
-		   On the other hand, Motif seems to not have this
-		   problem.
-
-		   (gerd, LessTif 0.92).  */
-		
-		if (!event.xcrossing.focus
-		    && f
-		    && f->output_data.x->menubar_widget)
-		  {
-		    Window focus;
-		    int revert;
-		    
-		    XGetInputFocus (FRAME_X_DISPLAY (f), &focus, &revert);
-		    if (focus == XtWindow (f->output_data.x->menubar_widget))
-		      from_menu_bar_p = 1;
-		  }
-#endif /* LESSTIF_VERSION */
-
-		if (event.xcrossing.focus || from_menu_bar_p)
+		if (event.xcrossing.focus)
 		  {
 		    /* Avoid nasty pop/raise loops.  */
 		    if (f && (!(f->auto_raise)
@@ -10325,8 +10291,6 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
 	      if (f)
 		{
-		  int from_menu_bar_p = 0;
-		  
 		  if (f == dpyinfo->mouse_face_mouse_frame)
 		    {
 		      /* If we move outside the frame, then we're
@@ -10351,21 +10315,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      bufp += n, count += n, numchars -= n;
 		    }
 
-#ifdef LESSTIF_VERSION
-		  /* Please see the comment at the start of the
-                     EnterNotify case.  */
-		  if (!event.xcrossing.focus
-		      && f->output_data.x->menubar_widget)
-		    {
-		      Window focus;
-		      int revert;
-		      XGetInputFocus (FRAME_X_DISPLAY (f), &focus, &revert);
-		      if (focus == XtWindow (f->output_data.x->menubar_widget))
-			from_menu_bar_p = 1;
-		    }
-#endif /* LESSTIF_VERSION */
-		
-		  if (event.xcrossing.focus || from_menu_bar_p)
+		  if (event.xcrossing.focus)
 		    x_mouse_leave (dpyinfo);
 		  else
 		    {
