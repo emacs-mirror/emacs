@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.10 2000/09/29 03:14:36 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.11 2000/10/05 22:45:59 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1705,9 +1705,7 @@ This command ignores files that are not flagged as `Unknown'."
     (when (ignore-errors
 	    (and buffer-read-only
 		 (eq 'CVS (vc-backend buffer-file-name))
-		 (not (if (fboundp 'vc-editable-p)
-			  (vc-editable-p buffer-file-name)
-			(vc-locking-user buffer-file-name)))))
+		 (not (vc-editable-p buffer-file-name))))
       ;; CVSREAD=on special case
       (vc-toggle-read-only))
     (goto-char (point-max))
@@ -2052,29 +2050,15 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 ;; hook into VC
 ;;
 
-(if (boundp 'vc-post-command-functions)
-    ;; Hook into the new VC.
-    (add-hook 'vc-post-command-functions
-	      (lambda (cmd file flags)
-		(cvs-vc-command-advice (current-buffer) cmd (car flags))))
-  ;; Hook into the old VC.
-  (defadvice vc-simple-command (after pcl-cvs-vc activate)
-    (cvs-vc-command-advice "*vc-info*" (ad-get-arg 1) (ad-get-arg 3)))
-  (defadvice vc-do-command (after pcl-cvs-vc activate)
-    (cvs-vc-command-advice (if (eq t (ad-get-arg 0)) (current-buffer)
-			     (or (ad-get-arg 0) "*vc*"))
-			   (ad-get-arg 2)
-			   (if (stringp (ad-get-arg 4))
-			       (ad-get-arg 4)
-			     (ad-get-arg 5)))))
+(add-hook 'vc-post-command-functions 'cvs-vc-command-advice)
 
-(defun cvs-vc-command-advice (buffer command cvscmd)
-  (when (and (setq buffer (get-buffer buffer))
-	     (equal command "cvs")
+(defun cvs-vc-command-advice (command file flags)
+  (when (and (equal command "cvs")
 	     ;; don't parse output we don't understand.
-	     (member cvscmd cvs-parse-known-commands))
+	     (member (car flags) cvs-parse-known-commands))
     (save-excursion
-      (let ((dir (with-current-buffer buffer default-directory))
+      (let ((buffer (current-buffer))
+	    (dir default-directory)
 	    (cvs-from-vc t))
 	(dolist (cvs-buf (buffer-list))
 	  (set-buffer cvs-buf)
