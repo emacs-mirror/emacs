@@ -13243,6 +13243,9 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
   window_prompting = x_figure_window_size (f, parms);
 
+  /* No fringes on tip frame.  */
+  f->output_data.w32->fringes_extra = 0;
+
   if (window_prompting & XNegative)
     {
       if (window_prompting & YNegative)
@@ -13378,7 +13381,6 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 }
 
 
-#ifdef TEST_TOOLTIPS /* Tooltip support in progress.  */
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* Show STRING in a \"tooltip\" window on frame FRAME.
 A tooltip window is a small window displaying a string.
@@ -13489,6 +13491,10 @@ Text larger than the specified size is clipped.  */)
     parms = Fcons (Fcons (Qbackground_color, build_string ("lightyellow")),
 		   parms);
 
+  /* Block input until the tip has been fully drawn, to avoid crashes
+     when drawing tips in menus.  */
+  BLOCK_INPUT;
+
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
   frame = x_create_tip_frame (FRAME_W32_DISPLAY_INFO (f), parms, string);
@@ -13565,7 +13571,6 @@ Text larger than the specified size is clipped.  */)
      show it.  */
   compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
-  BLOCK_INPUT;
   {
     /* Adjust Window size to take border into account.  */
     RECT rect;
@@ -13584,11 +13589,12 @@ Text larger than the specified size is clipped.  */)
 
     ShowWindow (FRAME_W32_WINDOW (f), SW_SHOWNOACTIVATE);
   }
-  UNBLOCK_INPUT;
 
   /* Draw into the window.  */
   w->must_be_updated_p = 1;
   update_single_window (w, 1);
+
+  UNBLOCK_INPUT;
 
   /* Restore original current buffer.  */
   set_buffer_internal_1 (old_buffer);
@@ -13638,7 +13644,6 @@ Value is t if tooltip was open, nil otherwise.  */)
   UNGCPRO;
   return unbind_to (count, deleted);
 }
-#endif
 
 
 
@@ -14191,6 +14196,11 @@ If the underlying system call fails, value is nil.  */)
   return value;
 }
 
+/***********************************************************************
+			    Initialization
+ ***********************************************************************/
+
+void
 syms_of_w32fns ()
 {
   /* This is zero if not using MS-Windows.  */
@@ -14750,10 +14760,8 @@ versions of Windows) characters.  */);
 
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
-#if TEST_TOOLTIPS /* Tooltip support in progress.  */
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
-#endif
   tip_timer = Qnil;
   staticpro (&tip_timer);
   tip_frame = Qnil;
