@@ -1,3 +1,11 @@
+2001-03-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Clear Vwindow_list.
+
+	* xfns.c (Fx_create_frame): Clear Vwindow_list.
+
+	* lisp.h (Vwindow_list): Declare extern.
+
 2001-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dispnew.c (syms_of_display) <glyph-table>: Doc fix.
