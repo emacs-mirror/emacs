@@ -4245,9 +4245,15 @@ See also variable `default-enable-multibyte-characters' and Info node\n\
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
 		     &current_buffer->buffer_file_coding_system, Qnil,
     "Coding system to be used for encoding the buffer contents on saving.\n\
-If it is nil, the buffer is saved without any code conversion unless\n\
-some coding system is specified in `file-coding-system-alist'\n\
+This variable applies to saving the buffer, and also to `write-region'\n\
+and other functions that use `write-region'.\n\
+It does not apply to sending output to subprocesses, however.\n\
+\n\
+If this is nil, the buffer is saved without any code conversion\n\
+unless some coding system is specified in `file-coding-system-alist'\n\
 for the buffer file.\n\
+\n\
+The variable `coding-system-for-write', if non-nil, overrides this variable.\n\
 \n\
 This variable is never applied to a way of decoding\n\
 a file while reading it.");
