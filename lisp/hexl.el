@@ -171,16 +171,14 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (add-hook 'write-contents-hooks 'hexl-save-buffer)
 
     (let ((modified (buffer-modified-p))
- 	  (read-only buffer-read-only)
+	  (inhibit-read-only t)
 	  (original-point (1- (point))))
       (if (not (or (eq arg 1) (not arg)))
-;; if no argument then we guess at hexl-max-address
+	  ;; if no argument then we guess at hexl-max-address
           (setq hexl-max-address (+ (* (/ (1- (buffer-size)) 68) 16) 15))
-        (setq buffer-read-only nil)
         (setq hexl-max-address (1- (buffer-size)))
         (hexlify-buffer)
         (set-buffer-modified-p modified)
-        (setq buffer-read-only read-only)
         (hexl-goto-address original-point)))))
 
 (defvar hexl-in-save-buffer nil)
