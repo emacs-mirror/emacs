@@ -289,7 +289,7 @@ struct x_display_info
 
   /* More atoms, which are selection types.  */
   Atom Xatom_CLIPBOARD, Xatom_TIMESTAMP, Xatom_TEXT, Xatom_DELETE,
-  Xatom_COMPOUND_TEXT,
+  Xatom_COMPOUND_TEXT, Xatom_UTF8_STRING,
   Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
   Xatom_ATOM_PAIR;
 
