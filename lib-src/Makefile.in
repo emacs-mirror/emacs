@@ -151,8 +151,11 @@ uninstall:
 	(cd ${archlibdir}; \
 	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
 
-clean mostlyclean:
-	-rm -f ${INSTALLABLES} ${UTILITIES} core *.o
+mostlyclean:
+	-rm -f core *.o
+
+clean: mostlyclean
+	-rm -f ${INSTALLABLES} ${UTILITIES}
 
 distclean: clean
 	-rm -f ../etc/DOC* *.tab.c *.tab.h aixcc.c TAGS
