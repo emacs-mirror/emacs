@@ -131,14 +131,17 @@ make_window ()
     Qnil);
   XSETTYPE (val, Lisp_Window);
   p = XWINDOW (val);
-  XFASTINT (p->sequence_number) = ++sequence_number;
-  XFASTINT (p->left) = XFASTINT (p->top)
-    = XFASTINT (p->height) = XFASTINT (p->width)
-      = XFASTINT (p->hscroll) = 0;
-  XFASTINT (p->last_point_x) = XFASTINT (p->last_point_y) = 0;
+  XSETFASTINT (p->sequence_number, ++sequence_number);
+  XSETFASTINT (p->left, 0);
+  XSETFASTINT (p->top, 0);
+  XSETFASTINT (p->height, 0);
+  XSETFASTINT (p->width, 0);
+  XSETFASTINT (p->hscroll, 0);
+  XSETFASTINT (p->last_point_x, 0);
+  XSETFASTINT (p->last_point_y, 0);
   p->start = Fmake_marker ();
   p->pointm = Fmake_marker ();
-  XFASTINT (p->use_time) = 0;
+  XSETFASTINT (p->use_time, 0);
   p->frame = Qnil;
   p->display_table = Qnil;
   p->dedicated = Qnil;
@@ -295,7 +298,7 @@ NCOL should be zero or positive.")
   register struct window *w;
 
   CHECK_NUMBER (ncol, 1);
-  if (XINT (ncol) < 0) XFASTINT (ncol) = 0;
+  if (XINT (ncol) < 0) XSETFASTINT (ncol, 0);
   if (XFASTINT (ncol) >= (1 << (SHORTBITS - 1)))
     args_out_of_range (ncol, Qnil);
   w = decode_window (window);
@@ -560,7 +563,7 @@ from overriding motion of point in order to display at this exact start.")
   if (NILP (noforce))
     w->force_start = Qt;
   w->update_mode_line = Qt;
-  XFASTINT (w->last_modified) = 0;
+  XSETFASTINT (w->last_modified, 0);
   if (!EQ (window, selected_window))
     windows_or_buffers_changed++;
   return pos;
@@ -1599,9 +1602,9 @@ set_window_height (window, height, nodelete)
       return;
     }
 
-  XFASTINT (w->last_modified) = 0;
+  XSETFASTINT (w->last_modified, 0);
   windows_or_buffers_changed++;
-  XFASTINT (w->height) = height;
+  XSETFASTINT (w->height, height);
   if (!NILP (w->hchild))
     {
       for (child = w->hchild; !NILP (child); child = XWINDOW (child)->next)
@@ -1620,7 +1623,7 @@ set_window_height (window, height, nodelete)
 
 	  opos = lastobot + XFASTINT (c->height);
 
-	  XFASTINT (c->top) = lastbot;
+	  XSETFASTINT (c->top, lastbot);
 
 	  pos = (((opos * height) << 1) + oheight) / (oheight << 1);
 
@@ -1660,9 +1663,9 @@ set_window_width (window, width, nodelete)
       return;
     }
 
-  XFASTINT (w->last_modified) = 0;
+  XSETFASTINT (w->last_modified, 0);
   windows_or_buffers_changed++;
-  XFASTINT (w->width) = width;
+  XSETFASTINT (w->width, width);
   if (!NILP (w->vchild))
     {
       for (child = w->vchild; !NILP (child); child = XWINDOW (child)->next)
@@ -1681,7 +1684,7 @@ set_window_width (window, width, nodelete)
 
 	  opos = lastoright + XFASTINT (c->width);
 
-	  XFASTINT (c->left) = lastright;
+	  XSETFASTINT (c->left, lastright);
 
 	  pos = (((opos * width) << 1) + owidth) / (owidth << 1);
 
@@ -1732,9 +1735,9 @@ BUFFER can be a buffer or buffer name.")
     }
 
   w->buffer = buffer;
-  XFASTINT (w->window_end_pos) = 0;
+  XSETFASTINT (w->window_end_pos, 0);
   w->window_end_valid = Qnil;
-  XFASTINT(w->hscroll) = 0;
+  XSETFASTINT(w->hscroll, 0);
   Fset_marker (w->pointm,
 	       make_number (BUF_PT (XBUFFER (buffer))),
 	       buffer);
@@ -1743,7 +1746,7 @@ BUFFER can be a buffer or buffer name.")
 			 buffer);
   w->start_at_line_beg = Qnil;
   w->force_start = Qnil;
-  XFASTINT (w->last_modified) = 0;
+  XSETFASTINT (w->last_modified, 0);
   windows_or_buffers_changed++;
   if (EQ (window, selected_window))
     Fset_buffer (buffer);
@@ -1768,7 +1771,7 @@ before each command.")
   if (NILP (w->buffer))
     error ("Trying to select deleted window or non-leaf window");
 
-  XFASTINT (w->use_time) = ++window_select_count;
+  XSETFASTINT (w->use_time, ++window_select_count);
   if (EQ (window, selected_window))
     return window;
 
@@ -2004,7 +2007,7 @@ temp_output_buffer_show (buf)
 #endif /* MULTI_FRAME */
       Vminibuf_scroll_window = window;
       w = XWINDOW (window);
-      XFASTINT (w->hscroll) = 0;
+      XSETFASTINT (w->hscroll, 0);
       set_marker_restricted (w->start, make_number (1), buf);
       set_marker_restricted (w->pointm, make_number (1), buf);
     }
@@ -2024,7 +2027,7 @@ make_dummy_parent (window)
 
   o = XWINDOW (old);
   p = XWINDOW (new);
-  XFASTINT (p->sequence_number) = ++sequence_number;
+  XSETFASTINT (p->sequence_number, ++sequence_number);
 
   /* Put new into window structure in place of window */
   replace_window (window, new);
@@ -2133,17 +2136,17 @@ and put SIZE columns in the first of the pair.")
     {
       p->height = o->height;
       p->top = o->top;
-      XFASTINT (p->width) = XFASTINT (o->width) - size;
-      XFASTINT (o->width) = size;
-      XFASTINT (p->left) = XFASTINT (o->left) + size;
+      XSETFASTINT (p->width, XFASTINT (o->width) - size);
+      XSETFASTINT (o->width, size);
+      XSETFASTINT (p->left, XFASTINT (o->left) + size);
     }
   else
     {
       p->left = o->left;
       p->width = o->width;
-      XFASTINT (p->height) = XFASTINT (o->height) - size;
-      XFASTINT (o->height) = size;
-      XFASTINT (p->top) = XFASTINT (o->top) + size;
+      XSETFASTINT (p->height, XFASTINT (o->height) - size);
+      XSETFASTINT (o->height, size);
+      XSETFASTINT (p->top, XFASTINT (o->top) + size);
     }
 
   return new;
@@ -2309,7 +2312,7 @@ change_window_height (delta, widthflag)
       (*setsizefun) (parent, opht, 0);
     }
 
-  XFASTINT (p->last_modified) = 0;
+  XSETFASTINT (p->last_modified, 0);
 }
 #undef MINSIZE
 #undef CURBEG
@@ -2381,13 +2384,13 @@ window_scroll (window, n, noerror)
   int lose;
   Lisp_Object bolp, nmoved;
 
-  XFASTINT (tem) = PT;
+  XSETFASTINT (tem, PT);
   tem = Fpos_visible_in_window_p (tem, window);
 
   if (NILP (tem))
     {
       Fvertical_motion (make_number (- (ht / 2)), window);
-      XFASTINT (tem) = PT;
+      XSETFASTINT (tem, PT);
       Fset_marker (w->start, tem, w->buffer);
       w->force_start = Qt;
     }
@@ -2412,7 +2415,7 @@ window_scroll (window, n, noerror)
       set_marker_restricted (w->start, make_number (pos), w->buffer);
       w->start_at_line_beg = bolp;
       w->update_mode_line = Qt;
-      XFASTINT (w->last_modified) = 0;
+      XSETFASTINT (w->last_modified, 0);
       if (pos > opoint)
 	SET_PT (pos);
       if (n < 0)
@@ -2591,7 +2594,7 @@ Default for ARG is window width minus 2.")
 {
 
   if (NILP (arg))
-    XFASTINT (arg) = window_internal_width (XWINDOW (selected_window)) - 2;
+    XSETFASTINT (arg, window_internal_width (XWINDOW (selected_window)) - 2);
   else
     arg = Fprefix_numeric_value (arg);
 
@@ -2608,7 +2611,7 @@ Default for ARG is window width minus 2.")
      register Lisp_Object arg;
 {
   if (NILP (arg))
-    XFASTINT (arg) = window_internal_width (XWINDOW (selected_window)) - 2;
+    XSETFASTINT (arg, window_internal_width (XWINDOW (selected_window)) - 2);
   else
     arg = Fprefix_numeric_value (arg);
 
@@ -2637,11 +2640,11 @@ redraws with point in the center of the current window.")
       extern int frame_garbaged;
 
       SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
-      XFASTINT (n) = ht / 2;
+      XSETFASTINT (n, ht / 2);
     }
   else if (CONSP (n)) /* Just C-u. */
     {
-      XFASTINT (n) = ht / 2;
+      XSETFASTINT (n, ht / 2);
     }
   else
     {
@@ -2680,7 +2683,7 @@ negative means relative to bottom of window.")
   Lisp_Object window;
 
   if (NILP (arg))
-    XFASTINT (arg) = height / 2;
+    XSETFASTINT (arg, height / 2);
   else
     {
       arg = Fprefix_numeric_value (arg);
@@ -2876,7 +2879,7 @@ by `current-window-configuration' (which see).")
 	  w->height = p->height;
 	  w->hscroll = p->hscroll;
 	  w->display_table = p->display_table;
-	  XFASTINT (w->last_modified) = 0;
+	  XSETFASTINT (w->last_modified, 0);
 
 	  /* Reinstall the saved buffer and pointers into it.  */
 	  if (NILP (p->buffer))
@@ -3036,7 +3039,7 @@ save_window_save (window, vector, i)
       p = SAVED_WINDOW_N (vector, i);
       w = XWINDOW (window);
 
-      XFASTINT (w->temslot) = i++;
+      XSETFASTINT (w->temslot, i++);
       p->window = window;
       p->buffer = w->buffer;
       p->left = w->left;
@@ -3123,9 +3126,9 @@ redirection (see `redirect-frame-focus').")
   data = (struct save_window_data *)
            XVECTOR (Fmake_vector (make_number (SAVE_WINDOW_DATA_SIZE),
 				  Qnil));
-  XFASTINT (data->frame_width) = FRAME_WIDTH (f);
-  XFASTINT (data->frame_height) = FRAME_HEIGHT (f);
-  XFASTINT (data->frame_menu_bar_lines) = FRAME_MENU_BAR_LINES (f);
+  XSETFASTINT (data->frame_width, FRAME_WIDTH (f));
+  XSETFASTINT (data->frame_height, FRAME_HEIGHT (f));
+  XSETFASTINT (data->frame_menu_bar_lines, FRAME_MENU_BAR_LINES (f));
 #ifdef MULTI_FRAME
   XSETFRAME (data->selected_frame, selected_frame);
 #endif
@@ -3188,12 +3191,12 @@ init_window_once ()
      just so that there is "something there."
      Correct values are put in in init_xdisp */
 
-  XFASTINT (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->width) = 10;
-  XFASTINT (XWINDOW (minibuf_window)->width) = 10;
+  XSETFASTINT (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->width, 10);
+  XSETFASTINT (XWINDOW (minibuf_window)->width, 10);
 
-  XFASTINT (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->height) = 9;
-  XFASTINT (XWINDOW (minibuf_window)->top) = 9;
-  XFASTINT (XWINDOW (minibuf_window)->height) = 1;
+  XSETFASTINT (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->height, 9);
+  XSETFASTINT (XWINDOW (minibuf_window)->top, 9);
+  XSETFASTINT (XWINDOW (minibuf_window)->height, 1);
 
   /* Prevent error in Fset_window_buffer.  */
   XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->buffer = Qt;
@@ -3209,7 +3212,7 @@ init_window_once ()
      a newly-created, never-selected window.  Increment
      window_select_count so the first selection ever will get
      something newer than this.  */
-  XFASTINT (XWINDOW (selected_window)->use_time) = ++window_select_count;
+  XSETFASTINT (XWINDOW (selected_window)->use_time, ++window_select_count);
 #endif /* not MULTI_FRAME */
 }
 
