@@ -249,6 +249,8 @@ static void do_line_dance ();
 static int XTcursor_to ();
 static int XTclear_end_of_line ();
 static int x_io_error_quitter ();
+void x_catch_errors ();
+void x_uncatch_errors ();
 
 /* Return the struct x_display_info corresponding to DPY.  */
 
@@ -2178,13 +2180,14 @@ static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
 
 /* Return the current position of the mouse.
+   *fp should be a frame which indicates which display to ask about.
 
-   If the mouse movement started in a scroll bar, set *f, *bar_window,
+   If the mouse movement started in a scroll bar, set *fp, *bar_window,
    and *part to the frame, window, and scroll bar part that the mouse
    is over.  Set *x and *y to the portion and whole of the mouse's
    position on the scroll bar.
 
-   If the mouse movement started elsewhere, set *f to the frame the
+   If the mouse movement started elsewhere, set *fp to the frame the
    mouse is on, *bar_window to nil, and *x and *y to the character cell
    the mouse is over.
 
@@ -2254,6 +2257,12 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 
 	win = root;
 
+	/* XTranslateCoordinates can get errors if the window
+	   structure is changing at the same time this function
+	   is running.  So at least we must not crash from them.  */
+
+	x_catch_errors (FRAME_X_DISPLAY (*fp));
+
 	if (FRAME_X_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
 	    && FRAME_LIVE_P (last_mouse_frame))
 	  {
@@ -2308,6 +2317,11 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	    /* Is win one of our frames?  */
 	    f1 = x_any_window_to_frame (FRAME_X_DISPLAY_INFO (*fp), win);
 	  }
+
+	if (x_had_errors_p (FRAME_X_DISPLAY (*fp)))
+	  f1 = 0;
+
+	x_uncatch_errors (FRAME_X_DISPLAY (*fp));
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -3784,55 +3798,17 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    case ConfigureNotify:
 	      f = x_any_window_to_frame (dpyinfo, event.xconfigure.window);
-#ifdef USE_X_TOOLKIT
 	      if (f
-#if 0
-		  && ! event.xconfigure.send_event
+#ifdef USE_X_TOOLKIT
+		  && (event.xconfigure.window == XtWindow (f->display.x->widget))
 #endif
-		  && (event.xconfigure.window == XtWindow (f->display.x->widget)))
+		  )
 		{
-		  Window win, child;
-		  int win_x, win_y;
+#ifndef USE_X_TOOLKIT
+		  /* In the toolkit version, change_frame_size
+		     is called by the code that handles resizing
+		     of the EmacsFrame widget.  */
 
-		  /* Find the position of the outside upper-left corner of
-		     the window, in the root coordinate system.  Don't
-		     refer to the parent window here; we may be processing
-		     this event after the window manager has changed our
-		     parent, but before we have reached the ReparentNotify.  */
-		  XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-					 /* From-window, to-window.  */
-					 XtWindow (f->display.x->widget),
-					 FRAME_X_DISPLAY_INFO (f)->root_window,
-
-					 /* From-position, to-position.  */
-					 -event.xconfigure.border_width,
-					 -event.xconfigure.border_width,
-					 &win_x, &win_y,
-
-					 /* Child of win.  */
-					 &child);
-		  event.xconfigure.x = win_x;
-		  event.xconfigure.y = win_y;
-
-		  f->display.x->pixel_width = event.xconfigure.width;
-		  f->display.x->pixel_height = event.xconfigure.height;
-		  f->display.x->left_pos = event.xconfigure.x;
-		  f->display.x->top_pos = event.xconfigure.y;
-
-		  /* What we have now is the position of Emacs's own window.
-		     Convert that to the position of the window manager window.  */
-		  {
-		    int x, y;
-		    x_real_positions (f, &x, &y);
-		    f->display.x->left_pos = x;
-		    f->display.x->top_pos = y;
-		  }
-		}
-	      goto OTHER;
-#else /* not USE_X_TOOLKIT */
-	      if (f)
-		{
 		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
 		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
 
@@ -3847,8 +3823,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      change_frame_size (f, rows, columns, 0, 1);
 		      SET_FRAME_GARBAGED (f);
 		    }
+#endif
 
-		  if (! event.xconfigure.send_event)
+		  /* Formerly, in the USE_X_TOOLKIT version,
+		     we did not test send_event here.  */
+		  if (1
+#ifndef USE_X_TOOLKIT
+		      && ! event.xconfigure.send_event
+#endif
+		      )
 		    {
 		      Window win, child;
 		      int win_x, win_y;
@@ -3861,7 +3844,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
 					     /* From-window, to-window.  */
-					     f->display.x->window_desc,
+					     event.xconfigure.window,
 					     FRAME_X_DISPLAY_INFO (f)->root_window,
 
 					     /* From-position, to-position.  */
@@ -3887,6 +3870,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    x_real_positions (f, &x, &y);
 		    f->display.x->left_pos = x;
 		    f->display.x->top_pos = y;
+		    /* Formerly we did not do this in the USE_X_TOOLKIT
+		       version.  Let's try making them the same.  */
+/* #ifndef USE_X_TOOLKIT */
 		    if (y != event.xconfigure.y)
 		      {
 			/* Since the WM decorations come below top_pos now,
@@ -3894,10 +3880,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			f->display.x->win_gravity = NorthWestGravity;
 			x_wm_set_size_hint (f, 0, 0);
 		      }
+/* #endif */
 		  }
 		}
-#endif /* not USE_X_TOOLKIT */
+#ifdef USE_X_TOOLKIT
+	      goto OTHER;
+#else
 	      break;
+#endif
 
 	    case ButtonPress:
 	    case ButtonRelease:
@@ -5585,7 +5575,12 @@ x_term_init (display_name, xrm_option, resource_name)
     }
 
 #ifdef USE_X_TOOLKIT
-#ifdef HAVE_X11R5
+  /* weiner@footloose.sps.mot.com reports that this causes
+     errors with X11R5:
+	   X protocol error: BadAtom (invalid Atom parameter)
+	   on protocol request 18skiloaf.
+     So let's not use it until R6.  */
+#ifdef HAVE_X11XTR6
   XtSetLanguageProc (NULL, NULL, NULL);
 #endif
 
