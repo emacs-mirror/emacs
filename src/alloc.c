@@ -2866,10 +2866,6 @@ int marker_block_index;
 
 union Lisp_Misc *marker_free_list;
 
-/* Marker blocks which should be freed at end of GC.  */
-
-struct marker_block *marker_blocks_pending_free;
-
 /* Total number of marker blocks now in use.  */
 
 int n_marker_blocks;
@@ -2880,7 +2876,6 @@ init_marker ()
   marker_block = NULL;
   marker_block_index = MARKER_BLOCK_SIZE;
   marker_free_list = 0;
-  marker_blocks_pending_free = 0;
   n_marker_blocks = 0;
 }
 
@@ -4459,42 +4454,36 @@ returns nil, because real GC can't be done.  */)
   }
 #endif
 
-  gc_sweep ();
-
-  /* Look thru every buffer's undo list for elements that used to
-     contain update markers that were changed to Lisp_Misc_Free
-     objects and delete them.  This may leave a few cons cells
-     unchained, but we will get those on the next sweep.  */
+  /* Everything is now marked, except for the things that require special
+     finalization, i.e. the undo_list.
+     Look thru every buffer's undo list
+     for elements that update markers that were not marked,
+     and delete them.  */
   {
     register struct buffer *nextb = all_buffers;
 
     while (nextb)
       {
 	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  */
+	   turned off in that buffer.  Calling truncate_undo_list on
+	   Qt tends to return NULL, which effectively turns undo back on.
+	   So don't call truncate_undo_list if undo_list is Qt.  */
 	if (! EQ (nextb->undo_list, Qt))
 	  {
-	    Lisp_Object tail, prev, elt, car;
+	    Lisp_Object tail, prev;
 	    tail = nextb->undo_list;
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
-		if ((elt = XCAR (tail), GC_CONSP (elt))
-		    && (car = XCAR (elt), GC_MISCP (car))
-		    && XMISCTYPE (car) == Lisp_Misc_Free)
+		if (GC_CONSP (XCAR (tail))
+		    && GC_MARKERP (XCAR (XCAR (tail)))
+		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
-		    Lisp_Object cdr = XCDR (tail);
-		    /* Do not use free_cons here, as we don't know if
-		       anybody else has a pointer to these conses.  */
-		    XSETCAR (elt, Qnil);
-		    XSETCDR (elt, Qnil);
-		    XSETCAR (tail, Qnil);
-		    XSETCDR (tail, Qnil);
 		    if (NILP (prev))
-		      nextb->undo_list = tail = cdr;
+		      nextb->undo_list = tail = XCDR (tail);
 		    else
 		      {
-			tail = cdr;
+			tail = XCDR (tail);
 			XSETCDR (prev, tail);
 		      }
 		  }
@@ -4505,22 +4494,15 @@ returns nil, because real GC can't be done.  */)
 		  }
 	      }
 	  }
+	/* Now that we have stripped the elements that need not be in the
+	   undo_list any more, we can finally mark the list.  */
+	mark_object (nextb->undo_list);
 
 	nextb = nextb->next;
       }
   }
 
-  /* Undo lists have been cleaned up, so we can free marker blocks now.  */
-
-  {
-    struct marker_block *mblk;
-
-    while ((mblk = marker_blocks_pending_free) != 0)
-      {
-	marker_blocks_pending_free = mblk->next;
-	lisp_free (mblk);
-      }
-  }
+  gc_sweep ();
 
   /* Clear the mark bits that we set in certain root slots.  */
 
@@ -5088,41 +5070,9 @@ mark_buffer (buf)
 
   MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
 
-  if (CONSP (buffer->undo_list))
-    {
-      Lisp_Object tail;
-      tail = buffer->undo_list;
-
-      /* We mark the undo list specially because
-	 its pointers to markers should be weak.  */
-
-      while (CONSP (tail))
-	{
-	  register struct Lisp_Cons *ptr = XCONS (tail);
-
-	  if (CONS_MARKED_P (ptr))
-	    break;
-	  CONS_MARK (ptr);
-	  if (GC_CONSP (ptr->car)
-	      && !CONS_MARKED_P (XCONS (ptr->car))
-	      && GC_MARKERP (XCAR (ptr->car)))
-	    {
-	      CONS_MARK (XCONS (ptr->car));
-	      mark_object (XCDR (ptr->car));
-	    }
-	  else
-	    mark_object (ptr->car);
-
-	  if (CONSP (ptr->cdr))
-	    tail = ptr->cdr;
-	  else
-	    break;
-	}
-
-      mark_object (XCDR (tail));
-    }
-  else
-    mark_object (buffer->undo_list);
+  /* For now, we just don't mark the undo_list.  It's done later in
+     a special way just before the sweep phase, and after stripping
+     some of its elements that are not needed any more.  */
 
   if (buffer->overlays_before)
     {
@@ -5202,6 +5152,16 @@ survives_gc_p (obj)
 static void
 gc_sweep ()
 {
+  /* Remove or mark entries in weak hash tables.
+     This must be done before any object is unmarked.  */
+  sweep_weak_hash_tables ();
+
+  sweep_strings ();
+#ifdef GC_CHECK_STRING_BYTES
+  if (!noninteractive)
+    check_string_bytes (1);
+#endif
+
   /* Put all unmarked conses on free list */
   {
     register struct cons_block *cblk;
@@ -5251,16 +5211,6 @@ gc_sweep ()
     total_conses = num_used;
     total_free_conses = num_free;
   }
-
-  /* Remove or mark entries in weak hash tables.
-     This must be done before any object is unmarked.  */
-  sweep_weak_hash_tables ();
-
-  sweep_strings ();
-#ifdef GC_CHECK_STRING_BYTES
-  if (!noninteractive)
-    check_string_bytes (1);
-#endif
 
   /* Put all unmarked floats on free list */
   {
@@ -5430,7 +5380,6 @@ gc_sweep ()
     register int num_free = 0, num_used = 0;
 
     marker_free_list = 0;
-    marker_blocks_pending_free = 0;
 
     for (mblk = marker_block; mblk; mblk = *mprev)
       {
@@ -5466,13 +5415,8 @@ gc_sweep ()
 	    *mprev = mblk->next;
 	    /* Unhook from the free list.  */
 	    marker_free_list = mblk->markers[0].u_free.chain;
+	    lisp_free (mblk);
 	    n_marker_blocks--;
-
-	    /* It is not safe to free the marker block at this stage,
-	       since there may still be pointers to these markers from
-	       a buffer's undo list.  KFS 2004-05-25.  */
-	    mblk->next = marker_blocks_pending_free;
-	    marker_blocks_pending_free = mblk;
 	  }
 	else
 	  {
