@@ -203,12 +203,12 @@ With zero or negative ARG turn mode off.
 	 (if (interactive-p)
 	     (progn
 	       ,(if globalp `(customize-mark-as-set ',mode))
+	       (unless (current-message)
 	       (message ,(format "%s %%sabled" pretty-name)
-			(if ,mode "en" "dis"))))
+			  (if ,mode "en" "dis")))))
 	 (force-mode-line-update)
 	 ;; Return the new setting.
 	 ,mode)
-
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
        ;; everything up-to-here.
        :autoload-end
@@ -341,7 +341,7 @@ KEY and BINDINGS are suitable for `define-key'.
 Optional NAME is passed to `make-sparse-keymap'.
 Optional map M can be used to modify an existing map.
 ARGS is a list of additional keyword arguments."
-  (let (inherit dense suppress)
+  (let (inherit dense)
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
@@ -350,7 +350,6 @@ ARGS is a list of additional keyword arguments."
 	 (:dense (setq dense val))
 	 (:inherit (setq inherit val))
 	 (:group)
-	 ;;((eq key :suppress) (setq suppress val))
 	 (t (message "Unknown argument %s in defmap" key)))))
     (unless (keymapp m)
       (setq bs (append m bs))
