@@ -20,6 +20,9 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
 #include "lisp.h"
 #include "macros.h"
 #include "commands.h"
@@ -74,7 +77,7 @@ macro before appending to it. */)
     {
       current_kboard->kbd_macro_bufsize = 30;
       current_kboard->kbd_macro_buffer
-	= (Lisp_Object *)xmalloc (30 * sizeof (Lisp_Object));
+	= (Lisp_Object *)XGC_MALLOC (30 * sizeof (Lisp_Object));
     }
   update_mode_lines++;
   if (NILP (append))
@@ -83,8 +86,8 @@ macro before appending to it. */)
 	{
 	  current_kboard->kbd_macro_bufsize = 30;
 	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       30 * sizeof (Lisp_Object));
+	    = (Lisp_Object *)XGC_REALLOC (current_kboard->kbd_macro_buffer,
+					 30 * sizeof (Lisp_Object));
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
@@ -109,8 +112,8 @@ macro before appending to it. */)
 	{
 	  current_kboard->kbd_macro_bufsize = len + 30;
 	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       (len + 30) * sizeof (Lisp_Object));
+	    = (Lisp_Object *)XGC_REALLOC (current_kboard->kbd_macro_buffer,
+					 (len + 30) * sizeof (Lisp_Object));
 	}
 
       /* Must convert meta modifier when copying string to vector.  */
@@ -213,7 +216,7 @@ store_kbd_macro_char (c)
 	  kb->kbd_macro_bufsize *= 2;
 	  nbytes = kb->kbd_macro_bufsize * sizeof *kb->kbd_macro_buffer;
 	  kb->kbd_macro_buffer
-	    = (Lisp_Object *) xrealloc (kb->kbd_macro_buffer, nbytes);
+	    = (Lisp_Object *) XGC_REALLOC (kb->kbd_macro_buffer, nbytes);
 	  kb->kbd_macro_ptr = kb->kbd_macro_buffer + ptr_offset;
 	  kb->kbd_macro_end = kb->kbd_macro_buffer + end_offset;
 	}
