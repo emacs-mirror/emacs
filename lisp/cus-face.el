@@ -30,6 +30,10 @@
 
 ;;; Code:
 
+(defalias 'custom-facep 
+  (if (fboundp 'facep) 'facep
+    '(lambda (face) nil)))
+
 ;;; Declaring a face.
 
 ;;;###autoload
