@@ -72,18 +72,16 @@ against the file name, and TYPE is nil for text, t for binary.")
 	(setq alist (cdr alist)))
       found)))
 
+;; Don't check for untranslated file systems here.
 (defun find-buffer-file-type (filename)
-  ;; First check if file is on an untranslated filesystem, then on the alist.
-  (if (untranslated-file-p filename)
-      t ; for binary
-    (let ((match (find-buffer-file-type-match filename))
-	  (code))
-      (if (not match)
-	  default-buffer-file-type
-	(setq code (cdr match))
-	(cond ((memq code '(nil t)) code)
-	      ((and (symbolp code) (fboundp code))
-	       (funcall code filename)))))))
+  (let ((match (find-buffer-file-type-match filename))
+	(code))
+    (if (not match)
+	default-buffer-file-type
+      (setq code (cdr match))
+      (cond ((memq code '(nil t)) code)
+	    ((and (symbolp code) (fboundp code))
+	     (funcall code filename))))))
 
 (setq-default buffer-file-coding-system 'undecided-dos)
 
@@ -123,26 +121,34 @@ set to the appropriate coding system, and the value of
   (let ((op (nth 0 command))
 	(target)
 	(binary nil) (text nil)
-	(undecided nil))
+	(undecided nil) (undecided-unix nil))
     (cond ((eq op 'insert-file-contents) 
 	   (setq target (nth 1 command))
-	   (if (untranslated-file-p target)
-	       (if (file-exists-p target)
-		   (setq undecided t)
-		 (setq binary t))
-	     (setq binary (find-buffer-file-type target))
-	     (unless binary
-		     (if (find-buffer-file-type-match target)
-			 (setq text t)
-		       (setq undecided (file-exists-p target)))))
+	   ;; First check for a file name that indicates
+	   ;; it is truly binary.
+	   (setq binary (find-buffer-file-type target))
+	   (cond (binary)
+		 ;; Next check for files that MUST use DOS eol conversion.
+		 ((find-buffer-file-type-match target)
+		  (setq text t))
+		 ;; For any other existing file, decide based on contents.
+		 ((file-exists-p target)
+		  (setq undecided t))
+		 ;; Next check for a non-DOS file system.
+		 ((untranslated-file-p target)
+		  (setq undecided-unix t)))
 	   (cond (binary '(no-conversion . no-conversion))
 		 (text '(undecided-dos . undecided-dos))
+		 (undecided-unix '(undecided-unix . undecided-unix))
 		 (undecided '(undecided . undecided))
 		 (t '(undecided-dos . undecided-dos))))
 	  ((eq op 'write-region)
 	   (if buffer-file-coding-system
 	       (cons buffer-file-coding-system
 		     buffer-file-coding-system)
+	     ;; Normally this is used only in a non-file-visiting
+	     ;; buffer, because normally buffer-file-coding-system is non-nil
+	     ;; in a file-visiting buffer.
 	     (if buffer-file-type
 		 '(no-conversion . no-conversion)
 	       '(undecided-dos . undecided-dos)))))))
