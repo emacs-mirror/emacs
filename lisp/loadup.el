@@ -71,9 +71,9 @@
       (garbage-collect)
       (load "mouse")
       (garbage-collect)
-      (load "menu-bar")
       (load "scroll-bar")
       (load "select")))
+(load "menu-bar")
 (garbage-collect)
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (garbage-collect)
