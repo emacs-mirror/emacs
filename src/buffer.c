@@ -2598,7 +2598,7 @@ init_buffer ()
       && strlen (pwd) < MAXPATHLEN)
     strcpy (buf, pwd);
   else if (getwd (buf) == 0)
-    fatal ("`getwd' failed: %s.\n", buf);
+    fatal ("`getwd' failed: %s\n", buf);
 
 #ifndef VMS
   /* Maybe this should really use some standard subroutine
