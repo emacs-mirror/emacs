@@ -1,3 +1,10 @@
+2000-12-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-scroll-prefer-subnodes): New defcustom.
+	(Info-scroll-up): If Info-scroll-prefer-subnodes is nil, don't
+	visit the first subnode until the bottom of the current node is
+	visible.
+
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* format.el (format-decode): Don't change buffer's undo list.
