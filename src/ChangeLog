@@ -12,7 +12,7 @@
 	* fileio.c (choose_write_coding_system): Pass FILE arg to
 	Vselect_safe_coding_system_function.
 
-2002-06-03  Ken Raeburn  <raeburn@raeburn.org>
+2002-06-03  Ken Raeburn  <raeburn@gnu.org>
 
 	* buffer.c (fix_overlays_before): Fix list-walking bug in 05-19
 	change.
