@@ -32,8 +32,6 @@
 ;; This package was written by Dave Gillespie; it is a complete
 ;; rewrite of Cesar Quiroz's original cl.el package of December 1986.
 ;;
-;; This package works with Emacs 18, Emacs 19, and Lucid Emacs 19.
-;;
 ;; Bug reports, comments, and suggestions are welcome!
 
 ;; This file contains the portions of the Common Lisp extensions
@@ -94,12 +92,6 @@
 
 
 ;;; Code:
-
-(defvar cl-emacs-type (cond ((or (and (fboundp 'epoch::version)
-				      (symbol-value 'epoch::version))
-				 (string-lessp emacs-version "19")) 18)
-			    ((string-match "Lucid" emacs-version) 'lucid)
-			    (t 19)))
 
 (or (fboundp 'defalias) (fset 'defalias 'fset))
 
@@ -200,8 +192,7 @@ Keywords supported:  :test :test-not :key"
 ;;; them all the time than to load them from cl-macs.el.
 
 (defun cl-map-extents (&rest cl-args)
-  (if (fboundp 'next-overlay-at) (apply 'cl-map-overlays cl-args)
-    (if (fboundp 'map-extents) (apply 'map-extents cl-args))))
+  (apply 'cl-map-overlays cl-args))
 
 
 ;;; Blocks and exits.
@@ -537,10 +528,6 @@ The elements of the list are not copied, just the list structure itself."
   (while (and list (not (equal item (car list)))) (setq list (cdr list)))
   list)
 
-;;; Define an Emacs 19-compatible `member' for the benefit of Emacs 18 users.
-(or (and (fboundp 'member) (subrp (symbol-function 'member)))
-    (defalias 'member 'cl-maclisp-member))
-
 (defalias 'cl-member 'memq)   ; for compatibility with old CL package
 (defalias 'cl-floor 'floor*)
 (defalias 'cl-ceiling 'ceiling*)
@@ -585,18 +572,6 @@ Keywords supported:  :test :test-not :key"
 (put 'cl-assertion-failed 'error-conditions '(error))
 (put 'cl-assertion-failed 'error-message "Assertion failed")
 
-;;; This is defined in Emacs 19; define it here for Emacs 18 users.
-(defun cl-add-hook (hook func &optional append)
-  "Add to hook variable HOOK the function FUNC.
-FUNC is not added if it already appears on the list stored in HOOK."
-  (let ((old (and (boundp hook) (symbol-value hook))))
-    (and (listp old) (not (eq (car old) 'lambda))
-	 (setq old (list old)))
-    (and (not (member func old))
-	 (set hook (if append (nconc old (list func)) (cons func old))))))
-(or (fboundp 'add-hook) (defalias 'add-hook 'cl-add-hook))
-
-
 ;;; Autoload the other portions of the package.
 (mapcar (function
 	 (lambda (set)
@@ -612,9 +587,9 @@ FUNC is not added if it already appears on the list stored in HOOK."
 	   mod* rem* signum random* make-random-state random-state-p
 	   subseq concatenate cl-mapcar-many map some every notany
 	   notevery revappend nreconc list-length tailp copy-tree get* getf
-	   cl-set-getf cl-do-remf remprop make-hash-table cl-hash-lookup
-	   gethash cl-puthash remhash clrhash maphash hash-table-p
-	   hash-table-count cl-progv-before cl-prettyexpand
+	   cl-set-getf cl-do-remf remprop cl-make-hash-table cl-hash-lookup
+	   cl-gethash cl-puthash cl-remhash cl-clrhash cl-maphash cl-hash-table-p
+	   cl-hash-table-count cl-progv-before cl-prettyexpand
 	   cl-macroexpand-all)
 	  ("cl-seq" nil
 	   reduce fill replace remq remove remove* remove-if remove-if-not
@@ -633,7 +608,7 @@ FUNC is not added if it already appears on the list stored in HOOK."
 	   cl-struct-setf-expander compiler-macroexpand cl-compile-time-init)
 	  ("cl-macs" t
 	   defun* defmacro* function* destructuring-bind eval-when
-	   eval-when-compile load-time-value case ecase typecase etypecase
+	   load-time-value case ecase typecase etypecase
 	   block return return-from loop do do* dolist dotimes do-symbols
 	   do-all-symbols psetq progv flet labels macrolet symbol-macrolet
 	   lexical-let lexical-let* multiple-value-bind multiple-value-setq
@@ -713,8 +688,6 @@ FUNC is not added if it already appears on the list stored in HOOK."
 ;;; will be happy with this one.
 
 (provide 'cl)
-
-(provide 'mini-cl)   ; for Epoch
 
 (run-hooks 'cl-load-hook)
 
