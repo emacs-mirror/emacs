@@ -281,6 +281,10 @@ set their values.  You can also use the customization buffer to save
 settings permanently.  (Not all Emacs user options are included in this
 structure as of yet, but we are adding the rest.)
 
+The appearance of the example buffers in the following is typically
+different under a window system where faces can be used to indicate the
+active fields and other features.
+
 @menu
 * Groups: Customization Groups.
                              How options are classified in a structure.
@@ -434,34 +438,42 @@ field says @samp{[Toggle]}, and it changes to the other value.
 take effect when you use the @samp{Set for Current Session} operation.
 
   Some options have values with complex structure.  For example, the
-value of @code{load-path} is a list of directories.  Here is how it
-appears in the customization buffer:
+value of @code{file-coding-system-alist} is an association list.  Here
+is how it appears in the customization buffer:
 
 @smallexample
-Load Path:
-[INS] [DEL] [Current dir?]: /usr/local/share/emacs/20.3/site-lisp
-[INS] [DEL] [Current dir?]: /usr/local/share/emacs/site-lisp
-[INS] [DEL] [Current dir?]: /usr/local/share/emacs/20.3/leim
-[INS] [DEL] [Current dir?]: /usr/local/share/emacs/20.3/lisp
-[INS] [DEL] [Current dir?]: /build/emacs/e20/lisp
-[INS] [DEL] [Current dir?]: /build/emacs/e20/lisp/gnus
-[INS]
-   [State]: this item has been changed outside the customization buffer.
-List of directories to search for files to load....
+File Coding System Alist: [Hide]
+[INS] [DEL] File regexp: \.elc\'
+            Choice: [Value Menu] Encoding/decoding pair:
+            Decoding: emacs-mule
+            Encoding: emacs-mule
+[INS] [DEL] File regexp: \(\`\|/\)loaddefs.el\'
+            Choice: [Value Menu] Encoding/decoding pair:
+            Decoding: no-conversion
+            Encoding: no-conversion
+[INS] [DEL] File regexp: \.tar\'
+            Choice: [Value Menu] Encoding/decoding pair:
+            Decoding: no-conversion
+            Encoding: no-conversion
+[INS] [DEL] File regexp:
+            Choice: [Value Menu] Encoding/decoding pair:
+            Decoding: undecided
+            Encoding: nil
+[INS
+   [State]: this option is unchanged from its standard setting.
+Alist to decide a coding system to use for a file I/O operation. [Hide]
+@dots{}
 @end smallexample
 
 @noindent
-Each directory in the list appears on a separate line, and each line has
+Each association in the list appears starting on a separate line with
 several editable or active fields.
 
-  You can edit any of the directory names.  To delete a directory from
-the list, invoke @samp{[DEL]} on that line.  To insert a new directory in
-the list, invoke @samp{[INS]} at the point where you want to insert it.
-
-  You can also invoke @samp{[Current dir?]} to switch between including
-a specific named directory in the path, and including @code{nil} in the
-path.  (@code{nil} in a search path means ``try the current
-directory.'')
+  You can edit the regexps and coding systems or select @samp{[Value
+Menu]} to change the choice for the second part of the pair, e.g.@: to a
+function.  To delete an item from the list or to add one after another
+item, invoke @samp{[DEL]} or @samp{[INS]} respectively at that item.  An inserted item appears with some default values.
+Invoke @samp{[+]} to append an extra item to the current list.
 
 @kindex TAB @r{(customization buffer)}
 @kindex S-TAB @r{(customization buffer)}
@@ -549,16 +561,22 @@ the faces in the group appear in the customization buffer.  Here is an
 example of how a face looks:
 
 @smallexample
-Custom Changed Face: (sample)
+Custom Changed Face: (sample) [Hide]
    [State]: this face is unchanged from its standard setting.
-Face used when the customize item has been changed.
-Attributes: [ ] Bold: [toggle] off
-            [X] Italic: [toggle] on
-            [ ] Underline: [toggle] off
-            [ ] Inverse-Video: [toggle] on
-            [ ] Foreground: black (sample)
-            [ ] Background: white (sample)
-            [ ] Stipple:  
+Parent groups: [Custom Magic Faces]
+Attributes: [ ] Font family: [Value Menu] *
+            [ ] Width: [Value Menu] *
+            [ ] Height: [Value Menu] *
+            [ ] Weight: [Value Menu] *
+            [ ] Slant: [Value Menu] *
+            [ ] Underline: [Value Menu] *
+            [ ] Overline: [Value Menu] *
+            [ ] Strike-through: [Value Menu] *
+            [ ] Box around text: [Value Menu] Off
+            [ ] Inverse-video: [Value Menu] *
+            [X] Foreground: [Value Menu] Color: white       (sample)
+            [X] Background: [Value Menu] Color: blue        (sample)
+            [ ] Stipple: [Value Menu] *
 @end smallexample
 
   Each face attribute has its own line.  The @samp{[@var{x}]} field
