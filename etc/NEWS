@@ -32,6 +32,9 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** On X and MS Windows, the blinking cursor's "off" state is now shown
+as a hollow box or a thin bar.
+
 +++
 ** Emacs now supports ICCCM Extended Segments in X selections.
 
@@ -637,6 +640,8 @@ to open-network-stream.  When the non-blocking connect completes, the
 sentinel is called with the status matching "open" or "failed".
 
 ** New function substring-no-properties.
+
+** New function minibuffer-selected-window.
 
 +++
 *** The meanings of scroll-up-aggressively and scroll-down-aggressively
