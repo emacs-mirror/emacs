@@ -1869,11 +1869,14 @@ EndDSCPage\n"))
 	  (message "Printing..."))
       (save-excursion
 	(set-buffer ps-spool-buffer)
-	(if (eq system-type 'ms-dos)
-	    (write-region (point-min) (point-max) "PRN")
-	  (apply 'call-process-region
-		 (point-min) (point-max) ps-lpr-command nil 0 nil
-		 ps-lpr-switches)))
+	(if (and (eq system-type 'ms-dos) (stringp dos-ps-printer))
+	    (write-region (point-min) (point-max) dos-ps-printer t 0)
+	  (let ((binary-process-input t)) ; for MS-DOS
+	    (apply 'call-process-region
+		   (point-min) (point-max) ps-lpr-command nil
+		   (if (fboundp 'start-process) 0 nil)
+		   nil
+		   ps-lpr-switches))))
       (if ps-razzle-dazzle
 	  (message "Printing...done")))
     (kill-buffer ps-spool-buffer)))
