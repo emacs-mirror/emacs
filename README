@@ -8,10 +8,11 @@ in code we don't use often.  See the file BUGS for more information on
 how to report bugs.
 
 See the file etc/NEWS for information on new features and other
-user-visible changes since the last version of Emacs.
+user-visible changes in recent versions of Emacs.
 
 The file INSTALL in this directory says how to bring up GNU Emacs on
-Unix, once you have loaded the entire subtree of this directory.
+various systems, once you have loaded the entire subtree of this
+directory.
 
 The file etc/PROBLEMS contains information on many common problems that
 occur in building, installing and running Emacs.
@@ -23,8 +24,9 @@ in this directory explains how you can find and read that section
 using the Info files that come with Emacs.)  See `etc/MAILINGLISTS'
 for more information on mailing lists relating to GNU packages.
 
-The `etc' subdirectory contains several other files, named in
-capital letters, which you should look at when installing GNU Emacs.
+The `etc' subdirectory contains several other files, named in capital
+letters, which you might consider looking at when installing GNU
+Emacs.
 
 The file `configure' is a shell script to acclimate Emacs to the
 oddities of your processor and operating system.  It creates the file
