@@ -1692,6 +1692,7 @@ the one not current when you type @kbd{@key{F2} d}, is empty,
 @cindex Hexl mode
 @cindex mode, Hexl
 @cindex editing binary files
+@cindex hex editing
   There is a special major mode for editing binary files: Hexl mode.  To
 use it, use @kbd{M-x hexl-find-file} instead of @kbd{C-x C-f} to visit
 the file.  This command converts the file's contents to hexadecimal and
@@ -1734,6 +1735,11 @@ Move to an address specified in decimal.
 Leave Hexl mode, going back to the major mode this buffer had before you
 invoked @code{hexl-mode}.
 @end table
+
+@noindent
+Other Hexl commands let you insert strings (sequences) of binary bytes,
+move by short's or int's, etc.; type @kbd{C-h a hexl- RET} for details.
+
 
 @node Saving Emacs Sessions, Recursive Edit, Editing Binary Files, Top
 @section Saving Emacs Sessions
