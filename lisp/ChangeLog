@@ -1,5 +1,9 @@
 2004-11-02  Kim F. Storm  <storm@cua.dk>
 
+	* ehelp.el (electric-help-map): Reorder Q/q and R/r entries so
+	substitute-command-keys will select lower-case bindings like those
+	used in the static help texts.
+
 	* descr-text.el (describe-text-properties): Don't err if called in
 	the *Help* buffer; output to *Help-2* buffer instead.
 
