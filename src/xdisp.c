@@ -5187,9 +5187,6 @@ set_iterator_to_next (it, reseat_p)
 	  it->dpvec = NULL;
 	  it->current.dpvec_index = -1;
 
-	  /* Recheck faces after display vector */
-	  it->stop_charpos = 0;
-
 	  /* Skip over characters which were displayed via IT->dpvec.  */
 	  if (it->dpvec_char_len < 0)
 	    reseat_at_next_visible_line_start (it, 1);
@@ -5198,6 +5195,9 @@ set_iterator_to_next (it, reseat_p)
 	      it->len = it->dpvec_char_len;
 	      set_iterator_to_next (it, reseat_p);
 	    }
+
+	  /* Recheck faces after display vector */
+	  it->stop_charpos = IT_CHARPOS (*it);
 	}
     }
   else if (it->method == next_element_from_string)
