@@ -2,6 +2,8 @@
 
 	* eval.c (Fdefmacro): Signal an error if NAME is not a symbol.
 
+	* fns.c (Fclear_string): Signal an error if STRING is not a string.
+
 2004-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* macterm.c (mac_initialize_display_info): Use CGGetActiveDisplayList
