@@ -1104,7 +1104,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    {
 	      unsigned char *ovstr;
 	      int ovlen = overlay_strings (pos, win, &ovstr);
-	      hpos += (multibyte ? strwidth (ovstr, ovlen) : ovlen);
+	      hpos += ((multibyte && ovlen > 0)
+		       ? strwidth (ovstr, ovlen) : ovlen);
 	    }
 	  did_motion = 0;
 
@@ -1450,7 +1451,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      ptr = BYTE_POS_ADDR (pos_byte);
 	      MULTIBYTE_BYTES_WIDTH (ptr, c, dp);
 	      pos_byte += bytes;
-	      wide_column_end_hpos = hpos + wide_column;
+	      if (wide_column)
+		wide_column_end_hpos = hpos + wide_column;
 	      hpos += width;
 	    }
 	  else
