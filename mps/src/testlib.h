@@ -1,8 +1,8 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName: MMsrc!testlib.h(trunk.7) $
+ *  $HopeName: MMsrc!testlib.h(trunk.8) $
  *
- *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
+ *  Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
  *
  *  This is a library of functions that unit test developers might find
  *  useful.  We hope they enhance your programming pleasure.
@@ -38,6 +38,29 @@
 #else /* _MSC_VER */
 #error "Expected _MSC_VER to be defined for builder.mv"
 #endif /* _MSC_VER */
+
+
+/* MSVC 10.00 on PowerPC generates erroneous warnings about */
+/* uninitialized local variables, if you take their address. */
+#ifdef MPS_ARCH_PP
+#pragma warning(disable: 4701)
+#endif
+
+/* In white-hot versions, absolutely no checking is done.  This leads to
+ * many spurious warnings because parameters are suddenly unused, etc.
+ * We aren't interested in these.
+ */
+
+#if defined(CONFIG_VAR_WI)
+
+/* "unreferenced formal parameter" */
+#pragma warning(disable: 4100)
+
+/* "unreferenced local function has been removed" */
+#pragma warning(disable: 4505)
+
+#endif
+
 
 #endif /* MPS_BUILD_MV */
 
