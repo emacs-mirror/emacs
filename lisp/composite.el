@@ -164,7 +164,6 @@ First two arguments START and END are positions (integers or markers)
 specifying the region.
 
 Optional 3rd argument COMPONENTS, if non-nil, is a character, a string
-Optional 3rd argument COMPONENTS, if non-nil, is a character, a string
 or a vector or list of integers and rules.
 
 If it is a character, it is an alternate character to display instead
