@@ -1957,7 +1957,7 @@ instead of `dired-actual-switches'."
   (setq file (directory-file-name file)) ; does no harm if no directory
   (let (found case-fold-search dir)
     (setq dir (or (file-name-directory file)
-		  (error "Need absolute pathname for %s" file)))
+		  (error "File name `%s' is not absolute" file)))
     (save-excursion
       ;; The hair here is to get the result of dired-goto-subdir
       ;; without really calling it if we don't have any subdirs.
@@ -1966,11 +1966,17 @@ instead of `dired-actual-switches'."
 	    (and (cdr dired-subdir-alist)
 		 (dired-goto-subdir dir)))
 	  (let ((base (file-name-nondirectory file))
+		search-string
 		(boundary (dired-subdir-max)))
+	    (setq search-string
+		  (replace-regexp-in-string "\^m" "\\^m" base nil t))
+	    (setq search-string
+		  (replace-regexp-in-string "\\\\" "\\\\" search-string nil t))
 	    (while (and (not found)
 			;; filenames are preceded by SPC, this makes
 			;; the search faster (e.g. for the filename "-"!).
- 			(search-forward (concat " " base) boundary 'move))
+ 			(search-forward (concat " " search-string)
+					boundary 'move))
 	      ;; Match could have BASE just as initial substring or
 	      ;; or in permission bits or date or
 	      ;; not be a proper filename at all:
