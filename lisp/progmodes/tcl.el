@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.49 $
+;; Version: $Revision: 1.50 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/12/07 18:27:47 $|$Revision: 1.49 $|~/modes/tcl.el.Z|
+;; $Date: 1996/03/23 05:14:50 $|$Revision: 1.50 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.50  1996/03/23  05:14:50  tromey
+;; (tcl-using-emacs-19): Work with XEmacs 20.0.  From Ben Wing.
+;;
 ;; Revision 1.49  1995/12/07  18:27:47  tromey
 ;; (add-log-tcl-defun): Don't use tcl-beginning-of-defun; just go to end
 ;; of line before searching.
@@ -367,7 +370,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.49 $")
+(defconst tcl-version "$Revision: 1.50 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1098,7 +1101,7 @@ from the following list to take place:
     ;; Indent if in indentation area, otherwise insert TAB.
     (if (<= (current-column) (current-indentation))
 	(tcl-indent-line)
-      (self-insert-command arg)))
+      (insert-tab arg)))
    ((eq tcl-tab-always-indent t)
     ;; Always indent.
     (tcl-indent-line))
