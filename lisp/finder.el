@@ -43,7 +43,7 @@
 
 (defvar finder-known-keywords
   '(
-    (abbrev	. "abbreviation handking, typing shortcuts, macros")
+    (abbrev	. "abbreviation handling, typing shortcuts, macros")
     (bib	. "code related to the bib(1) bibliography processor")
     (c		. "C and C++ language support")
     (calendar	. "calendar and time management support")
