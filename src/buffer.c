@@ -2500,6 +2500,8 @@ BEG and END may be integers or markers.")
   beg = Fset_marker (Fmake_marker (), beg, buffer);
   end = Fset_marker (Fmake_marker (), end, buffer);
 
+  XMARKER (end)->insertion_type = 1;
+
   overlay = allocate_misc ();
   XMISCTYPE (overlay) = Lisp_Misc_Overlay;
   XOVERLAY (overlay)->start = beg;
