@@ -1712,6 +1712,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   int screensize;
   int faces[4], selectface;
   int leave, result, onepane;
+  int title_faces[4];		/* face to display the menu title */
 
   /* Just in case we got here without a mouse present...  */
   if (have_mouse <= 0)
@@ -1736,12 +1737,17 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   faces[2] = compute_glyph_face (&the_only_frame, selectface, faces[0]);
   faces[3] = compute_glyph_face (&the_only_frame, selectface, faces[1]);
 
+  /* Make sure the menu title is always displayed with
+     `msdos-menu-active-face', no matter where the mouse pointer is.  */
+  for (i = 0; i < 4; i++)
+    title_faces[i] = faces[3];
+
   statecount = 1;
   state[0].menu = menu;
   mouse_off ();
   ScreenRetrieve (state[0].screen_behind = xmalloc (screensize));
 
-  IT_menu_display (menu, y0 - 1, x0 - 1, faces); /* display the menu title */
+  IT_menu_display (menu, y0 - 1, x0 - 1, title_faces); /* display menu title */
   if ((onepane = menu->count == 1 && menu->submenu[0]))
     {
       menu->width = menu->submenu[0]->width;
