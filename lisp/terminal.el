@@ -65,9 +65,7 @@ performance.")
 (defvar terminal-more-break-insertion
   "*** More break -- Press space to continue ***")
 
-(defvar terminal-escape-map nil)
 (defvar terminal-map nil)
-(defvar terminal-more-break-map nil)
 (if terminal-map
     nil
   (let ((map (make-keymap)))
@@ -76,7 +74,7 @@ performance.")
     ;  '(lambda () (interactive) (te-pass-through) (redraw-display)))
     (setq terminal-map map)))
 
-;(setq terminal-escape-map nil)
+(defvar terminal-escape-map nil)
 (if terminal-escape-map
     nil
   (let ((map (make-keymap)))
@@ -99,8 +97,7 @@ performance.")
     (define-key map (char-to-string help-char) 'te-escape-help)
     (setq terminal-escape-map map)))
 
-(defvar te-escape-command-alist ())
-;(setq te-escape-command-alist ())
+(defvar te-escape-command-alist nil)
 (if te-escape-command-alist
     nil
   (setq te-escape-command-alist
@@ -124,7 +121,7 @@ performance.")
 	  ("Set Redisplay Interval" . te-set-redisplay-interval)
 	  )))
 
-;(setq terminal-more-break-map nil)
+(defvar terminal-more-break-map nil)
 (if terminal-more-break-map
     nil
   (let ((map (make-keymap)))
@@ -139,6 +136,22 @@ performance.")
 
     (setq terminal-more-break-map map)))
   
+
+;;; Pacify the byte compiler
+(defvar te-process nil)
+(defvar te-log-buffer nil)
+(defvar te-height nil)
+(defvar te-width nil)
+(defvar te-more-count nil)
+(defvar te-redisplay-count nil)
+(defvar te-pending-output nil)
+(defvar te-saved-point)
+(defvar te-more-old-point nil)
+(defvar te-more-old-local-map nil)
+(defvar te-more-old-filter nil)
+(defvar te-more-old-mode-line-format nil)
+(defvar te-pending-output-info nil)
+
 
 ;;;;  escape map
 
@@ -980,7 +993,7 @@ move to start of new line, clear to end of line."
 		 (progn (goto-char (point-max))
 			(recenter -1)))))))
 
-(defvar te-stty-string "stty -nl dec echo"
+(defvar te-stty-string "stty -nl erase ^? kill ^u intr ^c echo"
   "Shell command to set terminal modes for terminal emulator.")
 ;; This used to have `new' in it, but that loses outside BSD
 ;; and it's apparently not needed in BSD.
