@@ -972,11 +972,13 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 		{
 		  len = 1;
 		  buf = " ";
+		  coding->src_multibyte = 0;
 		}
 	      else
 		{
 		  len = CHAR_STRING (src->u.ch, workbuf);
 		  buf = workbuf;
+		  coding->src_multibyte = 1;
 		}
 	    }
 	  else
@@ -993,12 +995,14 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 		  workbuf[0] = FAST_GLYPH_CHAR (g);
 		  len = 1;
 		  buf = workbuf;
+		  coding->src_multibyte = 0;
 		}
 	      else
 		{
 		  /* We have a string in Vglyph_table.  */
 		  len = GLYPH_LENGTH (tbase, g);
 		  buf = GLYPH_STRING (tbase, g);
+		  coding->src_multibyte = STRING_MULTIBYTE (tbase[g]);
 		}
 	    }
 	  
