@@ -42,7 +42,7 @@
 
 ;;;###autoload
 (defcustom rmail-summary-line-count-flag t
-  "*Non-nil if Rmail summary should show the number of lines in each message."
+  "*Non-nil means Rmail summary should show the number of lines in each message."
   :type 'boolean
   :group 'rmail-summary)
 
@@ -513,15 +513,17 @@ messages, or backward if NUMBER is negative."
 				      non-del-msg-found)))
       (setq count (1- count))))
   (beginning-of-line)
-  (display-buffer rmail-view-buffer)
-  )
+  (display-buffer rmail-view-buffer))
 
 (defun rmail-summary-previous-msg (&optional number)
+  "Display previous non-deleted msg from rmail file.
+With optional prefix argument NUMBER, moves backward this number of
+non-deleted messages."
   (interactive "p")
   (rmail-summary-next-msg (- (if number number 1))))
 
 (defun rmail-summary-next-labeled-message (n labels)
-  "Show next message with LABEL.  Defaults to last labels used.
+  "Show next message with LABELS.  Defaults to last labels used.
 With prefix argument N moves forward N messages with these labels."
   (interactive "p\nsMove to next msg with labels: ")
   (let (msg)
@@ -532,7 +534,7 @@ With prefix argument N moves forward N messages with these labels."
     (rmail-summary-goto-msg msg)))
 
 (defun rmail-summary-previous-labeled-message (n labels)
-  "Show previous message with LABEL.  Defaults to last labels used.
+  "Show previous message with LABELS.  Defaults to last labels used.
 With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
   (let (msg)
@@ -1405,7 +1407,7 @@ Completion is performed over known labels when reading."
 ;;;; *** Rmail Summary Mailing Commands ***
 
 (defun rmail-summary-override-mail-send-and-exit ()
-  "Replace bindings to 'mail-send-and-exit with 'rmail-summary-send-and-exit"
+  "Replace bindings to `mail-send-and-exit' with `rmail-summary-send-and-exit'."
   (use-local-map (copy-keymap (current-local-map)))
   (dolist (key (where-is-internal 'mail-send-and-exit))
     (define-key (current-local-map) key 'rmail-summary-send-and-exit)))
@@ -1475,7 +1477,7 @@ see the documentation of `rmail-resend'."
     (rmail-summary-override-mail-send-and-exit)))
 
 (defun rmail-summary-resend ()
-  "Resend current message using 'rmail-resend'."
+  "Resend current message using `rmail-resend'."
   (interactive)
   (save-excursion
     (let ((window (get-buffer-window rmail-buffer)))
