@@ -1059,6 +1059,7 @@ exited abnormally with code %d\n"
     (set-keymap-parent map compilation-minor-mode-map)
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
+    (define-key map "\C-c\C-f" 'next-error-follow-mode)
 
     ;; Set up the menu-bar
     (define-key map [menu-bar compilation]
