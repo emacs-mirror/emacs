@@ -98,7 +98,7 @@ A header-line does not scroll with the rest of the buffer."
 
 (defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
-nil means not yet initialized.  In this case, Info uses the environment
+If nil, meaning not yet initialized, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
 if there is no INFOPATH variable in the environment.
 
