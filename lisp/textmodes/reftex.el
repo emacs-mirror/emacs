@@ -5,7 +5,7 @@
 ;; Version:    4.9
 ;; Keywords:   tex
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
