@@ -1562,6 +1562,13 @@ pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11
 libraries.
 
+* Frames may cover dialogs they created when using CDE.
+
+This can happen if you have "Allow Primary Windows On Top" enabled which
+seems to be the default in the Common Desktop Environment.
+To change, go in to "Desktop Controls" -> "Window Style Manager"
+and uncheck "Allow Primary Windows On Top".
+
 * Emacs does not know your host's fully-qualified domain name.
 
 You need to configure your machine with a fully qualified domain name,
