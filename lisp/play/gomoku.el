@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lifia.imag.fr>
-;; Adapted-By: ESR
+;; Adapted-By: ESR, Daniel.Pfeiffer@Informatik.START.dbp.de
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
@@ -101,7 +101,6 @@
   (define-key gomoku-mode-map "\C-p" 'gomoku-move-up)		; C-p
 
   ;; Key bindings for entering Human moves.
-  ;; If you have a mouse, you may also bind some mouse click ...
   (define-key gomoku-mode-map "X" 'gomoku-human-plays)		; X
   (define-key gomoku-mode-map "x" 'gomoku-human-plays)		; x
   (define-key gomoku-mode-map " " 'gomoku-human-plays)		; SPC
@@ -112,12 +111,21 @@
   (define-key gomoku-mode-map "\C-c\C-e" 'gomoku-emacs-plays)	; C-c C-e
 
   (define-key gomoku-mode-map [kp-enter] 'gomoku-human-plays)
-  (define-key gomoku-mode-map [mouse-2] 'gomoku-click)
   (define-key gomoku-mode-map [insert] 'gomoku-human-plays)
+  (define-key gomoku-mode-map [down-mouse-1] 'gomoku-click)
+  (define-key gomoku-mode-map [drag-mouse-1] 'gomoku-click)
+  (define-key gomoku-mode-map [mouse-1] 'gomoku-click)
+  (define-key gomoku-mode-map [down-mouse-2] 'gomoku-click)
+  (define-key gomoku-mode-map [mouse-2] 'gomoku-mouse-play)
+  (define-key gomoku-mode-map [drag-mouse-2] 'gomoku-mouse-play)
 
   (substitute-key-definition 'previous-line 'gomoku-move-up
 			     gomoku-mode-map (current-global-map))
   (substitute-key-definition 'next-line 'gomoku-move-down
+			     gomoku-mode-map (current-global-map))
+  (substitute-key-definition 'beginning-of-line 'gomoku-beginning-of-line
+			     gomoku-mode-map (current-global-map))
+  (substitute-key-definition 'end-of-line 'gomoku-end-of-line
 			     gomoku-mode-map (current-global-map))
   (substitute-key-definition 'undo 'gomoku-human-takes-back
 			     gomoku-mode-map (current-global-map))
@@ -147,6 +155,7 @@
 
 (put 'gomoku-mode 'front-sticky
      (put 'gomoku-mode 'rear-nonsticky '(intangible)))
+(put 'gomoku-mode 'intangible 1)
 
 (defun gomoku-mode ()
   "Major mode for playing Gomoku against Emacs.
@@ -627,66 +636,58 @@ that DVAL has been added on SQUARE."
 
 (defun gomoku-terminate-game (result)
   "Terminate the current game with RESULT."
-  (let (message)
-    (cond
-     ((eq result 'emacs-won)
-      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
-      (setq message
-	    (cond ((< gomoku-number-of-moves 20)
-		   "This was a REALLY QUICK win.")
-		  (gomoku-human-refused-draw
-		   "I won... Too bad you refused my offer of a draw !")
-		  (gomoku-human-took-back
-		   "I won... Taking moves back will not help you !")
-		  ((not gomoku-emacs-played-first)
-		   "I won... Playing first did not help you much !")
-		  ((and (zerop gomoku-number-of-human-wins)
-			(zerop gomoku-number-of-draws)
-			(> gomoku-number-of-emacs-wins 1))
-		   "I'm becoming tired of winning...")
-		  (t
-		   "I won."))))
-     ((eq result 'human-won)
-      (setq gomoku-number-of-human-wins (1+ gomoku-number-of-human-wins))
-      (setq message
-	    (cond
-	     (gomoku-human-took-back
-	      "OK, you won this one.  I, for one, never take my moves back...")
-	     (gomoku-emacs-played-first
-	      "OK, you won this one... so what ?")
-	     (t
-	      "OK, you won this one.  Now, let me play first just once."))))
-     ((eq result 'human-resigned)
-      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
-      (setq message "So you resign.  That's just one more win for me."))
-     ((eq result 'nobody-won)
-      (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
-      (setq message
-	    (cond
-	     (gomoku-human-took-back
-	      "This is a draw.  I, for one, never take my moves back...")
-	     (gomoku-emacs-played-first
-	      "This is a draw.  Just chance, I guess.")
-	     (t
-	      "This is a draw.  Now, let me play first just once."))))
-     ((eq result 'draw-agreed)
-      (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
-      (setq message
-	    (cond
-	     (gomoku-human-took-back
-	      "Draw agreed.  I, for one, never take my moves back...")
-	     (gomoku-emacs-played-first
-	      "Draw agreed.  You were lucky.")
-	     (t
-	      "Draw agreed.  Now, let me play first just once."))))
-     ((eq result 'crash-game)
-      (setq message
-	    "Sorry, I have been interrupted and cannot resume that game...")))
-
-    (gomoku-display-statistics)
-    (if message (message message))
-    ;;(ding)
-    (setq gomoku-game-in-progress nil)))
+  (message
+   (cond
+    ((eq result 'emacs-won)
+     (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
+     (cond ((< gomoku-number-of-moves 20)
+	    "This was a REALLY QUICK win.")
+	   (gomoku-human-refused-draw
+	    "I won... Too bad you refused my offer of a draw !")
+	   (gomoku-human-took-back
+	    "I won... Taking moves back will not help you !")
+	   ((not gomoku-emacs-played-first)
+	    "I won... Playing first did not help you much !")
+	   ((and (zerop gomoku-number-of-human-wins)
+		 (zerop gomoku-number-of-draws)
+		 (> gomoku-number-of-emacs-wins 1))
+	    "I'm becoming tired of winning...")
+	   ("I won.")))
+    ((eq result 'human-won)
+     (setq gomoku-number-of-human-wins (1+ gomoku-number-of-human-wins))
+     (concat "OK, you won this one."
+	     (cond
+	      (gomoku-human-took-back
+	       "  I, for one, never take my moves back...")
+	      (gomoku-emacs-played-first
+	       ".. so what ?")
+	      ("  Now, let me play first just once."))))
+    ((eq result 'human-resigned)
+     (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
+     "So you resign.  That's just one more win for me.")
+    ((eq result 'nobody-won)
+     (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
+     (concat "This is a draw.  "
+	     (cond
+	      (gomoku-human-took-back
+	       "I, for one, never take my moves back...")
+	      (gomoku-emacs-played-first
+	       "Just chance, I guess.")
+	      ("Now, let me play first just once."))))
+    ((eq result 'draw-agreed)
+     (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
+     (concat "Draw agreed.  "
+	     (cond
+	      (gomoku-human-took-back
+	       "I, for one, never take my moves back...")
+	      (gomoku-emacs-played-first
+	       "You were lucky.")
+	      ("Now, let me play first just once."))))
+    ((eq result 'crash-game)
+     "Sorry, I have been interrupted and cannot resume that game...")))
+  (gomoku-display-statistics)
+  ;;(ding)
+  (setq gomoku-game-in-progress nil))
 
 (defun gomoku-crash-game ()
   "What to do when Emacs detects it has been interrupted."
@@ -704,6 +705,7 @@ that DVAL has been added on SQUARE."
   "Start a Gomoku game between you and Emacs.
 If a game is in progress, this command allow you to resume it.
 If optional arguments N and M are given, an N by M board is used.
+If prefix arg is given for N, M is prompted for.
 
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O. The winner is the first to get five contiguous
@@ -712,12 +714,15 @@ marks horizontally, vertically or in diagonal.
 You play by moving the cursor over the square you choose and hitting
 \\<gomoku-mode-map>\\[gomoku-human-plays].
 Use \\[describe-mode] for more info."
-  (interactive)
+  (interactive (if current-prefix-arg
+		   (list (prefix-numeric-value current-prefix-arg)
+			 (eval (read-minibuffer "Height: ")))))
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
     (gomoku-crash-game))
-   ((not gomoku-game-in-progress)
+   ((or (not gomoku-game-in-progress)
+	(<= gomoku-number-of-moves 2))
     (let ((max-width (gomoku-max-width))
 	  (max-height (gomoku-max-height)))
       (or n (setq n max-width))
@@ -729,8 +734,8 @@ Use \\[describe-mode] for more info."
 	    ((> n max-width)
 	     (error "I cannot display %d columns in that window" n)))
       (if (and (> m max-height)
-	       (not (equal m gomoku-saved-board-height))
-	       ;; Use EQUAL because SAVED-BOARD-HEIGHT may be nil
+	       (not (eq m gomoku-saved-board-height))
+	       ;; Use EQ because SAVED-BOARD-HEIGHT may be nil
 	       (not (y-or-n-p (format "Do you really want %d rows " m))))
 	  (setq m max-height)))
     (message "One moment, please...")
@@ -762,9 +767,8 @@ Use \\[describe-mode] for more info."
 	     (setq score (aref gomoku-score-table square))
 	     (gomoku-play-move square 6)
 	     (cond ((>= score gomoku-winning-threshold)
-		    (gomoku-find-filled-qtuple square 6)
 		    (setq gomoku-emacs-won t) ; for font-lock
-		    (gomoku-cross-winning-qtuple)
+		    (gomoku-find-filled-qtuple square 6)
 		    (gomoku-terminate-game 'emacs-won))
 		   ((zerop score)
 		    (gomoku-terminate-game 'nobody-won))
@@ -775,11 +779,43 @@ Use \\[describe-mode] for more info."
 		   (t
 		    (gomoku-prompt-for-move)))))))))
 
+;; For small square dimensions this is approximate, since though measured in
+;; pixels, event's (X . Y) is a character's top-left corner.
 (defun gomoku-click (click)
+  "Position at the square where you click."
+  (interactive "e")
+  (and (windowp (posn-window (setq click (event-end click))))
+       (numberp (posn-point click))
+       (select-window (posn-window click))
+       (setq click (posn-col-row click))
+       (gomoku-goto-xy
+	(min (max (/ (+ (- (car click)
+			   gomoku-x-offset
+			   1)
+			(window-hscroll)
+			gomoku-square-width
+			(% gomoku-square-width 2)
+			(/ gomoku-square-width 2))
+		     gomoku-square-width)
+		  1)
+	     gomoku-board-width)
+	(min (max (/ (+ (- (cdr click)
+			   gomoku-y-offset
+			   1)
+			(let ((inhibit-point-motion-hooks t))
+			  (count-lines 1 (window-start)))
+			gomoku-square-height
+			(% gomoku-square-height 2)
+			(/ gomoku-square-height 2))
+		     gomoku-square-height)
+		  1)
+	     gomoku-board-height))))
+  
+(defun gomoku-mouse-play (click)
   "Play at the square where you click."
   (interactive "e")
-  (mouse-set-point click)
-  (gomoku-human-plays))
+  (if (gomoku-click click)
+      (gomoku-human-plays)))
 
 (defun gomoku-human-plays ()
   "Signal to the Gomoku program that you have played.
@@ -807,7 +843,6 @@ If the game is finished, this command requests for another game."
 			 ;; detecting wins, it just gives an indication that
 			 ;; we confirm with GOMOKU-FIND-FILLED-QTUPLE.
 			 (gomoku-find-filled-qtuple square 1))
-		    (gomoku-cross-winning-qtuple)
 		    (gomoku-terminate-game 'human-won))
 		   (t
 		    (gomoku-emacs-plays)))))))))
@@ -869,13 +904,12 @@ If the game is finished, this command requests for another game."
   "Ask for another game, and start it."
   (if (y-or-n-p "Another game ")
       (gomoku gomoku-board-width gomoku-board-height)
-  (message "Chicken !")))
+    (message "Chicken !")))
 
 (defun gomoku-offer-a-draw ()
   "Offer a draw and return T if Human accepted it."
   (or (y-or-n-p "I offer you a draw. Do you accept it ")
-      (prog1 (setq gomoku-human-refused-draw t)
-	nil)))
+      (not (setq gomoku-human-refused-draw t))))
 
 ;;;
 ;;; DISPLAYING THE BOARD.
@@ -910,30 +944,18 @@ If the game is finished, this command requests for another game."
 	 ;; 2 instead of 1 because WINDOW-HEIGHT includes the mode line !
 	 gomoku-square-height)))
 
-(defun gomoku-point-x ()
-  "Return the board column where point is, or nil if it is not a board column."
-  (let ((col (- (current-column) gomoku-x-offset)))
-    (if (and (>= col 0)
-	     (zerop (% col gomoku-square-width))
-	     (<= (setq col (1+ (/ col gomoku-square-width)))
-		 gomoku-board-width))
-	col)))
-
 (defun gomoku-point-y ()
-  "Return the board row where point is, or nil if it is not a board row."
-  (let ((row (- (count-lines 1 (point)) gomoku-y-offset 1)))
-    (if (and (>= row 0)
-	     (zerop (% row gomoku-square-height))
-	     (<= (setq row (1+ (/ row gomoku-square-height)))
-		 gomoku-board-height))
-	row)))
+  "Return the board row where point is."
+  (let ((inhibit-point-motion-hooks t))
+    (1+ (/ (- (count-lines 1 (point)) gomoku-y-offset (if (bolp) 0 1))
+	   gomoku-square-height))))
 
 (defun gomoku-point-square ()
-  "Return the index of the square point is on, or nil if not on the board."
-  (let (x y)
-    (and (setq x (gomoku-point-x))
-	 (setq y (gomoku-point-y))
-	 (gomoku-xy-to-index x y))))
+  "Return the index of the square point is on."
+  (let ((inhibit-point-motion-hooks t))
+    (gomoku-xy-to-index (1+ (/ (- (current-column) gomoku-x-offset)
+			       gomoku-square-width))
+			(gomoku-point-y))))
 
 (defun gomoku-goto-square (index)
   "Move point to square number INDEX."
@@ -941,56 +963,76 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-goto-xy (x y)
   "Move point to square at X, Y coords."
-  (goto-line (+ 1 gomoku-y-offset (* gomoku-square-height (1- y))))
+  (let ((inhibit-point-motion-hooks t))
+    (goto-line (+ 1 gomoku-y-offset (* gomoku-square-height (1- y)))))
   (move-to-column (+ gomoku-x-offset (* gomoku-square-width (1- x)))))
 
 (defun gomoku-plot-square (square value)
-  "Draw 'X', 'O' or '.' on SQUARE (depending on VALUE), leave point there."
-  (gomoku-goto-square square)
-  (gomoku-put-char (cond ((= value 1) ?X)
-			 ((= value 6) ?O)
-			 (t	      ?.)))
-  (sit-for 0))	; Display NOW
-
-(defun gomoku-put-char (char)
-  "Draw CHAR on the Gomoku screen."
+  "Draw 'X', 'O' or '.' on SQUARE depending on VALUE, leave point there."
+  (or (= value 1)
+      (gomoku-goto-square square))
   (let ((inhibit-read-only t)
 	(inhibit-point-motion-hooks t))
-    (insert-and-inherit char)
+    (insert-and-inherit (cond ((= value 1) ?X)
+			      ((= value 6) ?O)
+			      (?.)))
     (and window-system
-	 (eq char ?.)
+	 (zerop value)
 	 (put-text-property (1- (point)) (point) 'mouse-face 'highlight))
     (delete-char 1)
-    (backward-char 1)))
+    (backward-char 1))
+  (sit-for 0))	; Display NOW
 
 (defun gomoku-init-display (n m)
   "Display an N by M Gomoku board."
   (buffer-disable-undo (current-buffer))
   (let ((inhibit-read-only t)
-	(string1 (make-string gomoku-x-offset ? ))
-	(string2 (make-string (1- gomoku-square-width) ? ))
-	(point 1)
-	(i m) j)
+	(point 1) opoint
+	(intangible t)
+	(i m) j x)
+    ;; Try to minimize number of chars (because of text properties)
+    (setq tab-width
+	  (if (zerop (% gomoku-x-offset gomoku-square-width))
+	      gomoku-square-width
+	    (max (/ (+ (% gomoku-x-offset gomoku-square-width)
+		       gomoku-square-width 1) 2) 2)))
     (erase-buffer)
-    ;; We do not use gomoku-plot-square which would be too slow for
-    ;; initializing the display.
     (newline gomoku-y-offset)
     (while (progn
-	     (indent-to gomoku-x-offset)
-	     (setq j n)
-	     (while (progn
-		      (put-text-property point (point) 'category 'gomoku-mode)
-		      (put-text-property point (point) 'intangible (point))
-		      (setq point (point))
-		      (insert ?.)
-		      (if window-system
-			  (put-text-property point (point)
-					     'mouse-face 'highlight))
-		      (> (setq j (1- j)) 0))
-	       (insert string2))
+	     (setq j n
+		   x (- gomoku-x-offset gomoku-square-width))
+	     (while (>= (setq j (1- j)) 0)
+	       (insert-char ?\t (/ (- (setq x (+ x gomoku-square-width))
+				      (current-column))
+				   tab-width))
+	       (insert-char ?  (- x (current-column)))
+	       (if (setq intangible (not intangible))
+		   (put-text-property point (point) 'intangible 2))
+	       (and (zerop j)
+		    (= i (- m 2))
+		    (progn
+		      (while (>= i 3)
+			(append-to-buffer (current-buffer) opoint (point))
+			(setq i (- i 2)))
+		      (goto-char (point-max))))
+	       (setq point (point))
+	       (insert ?.)
+	       (if window-system
+		   (put-text-property point (point)
+				      'mouse-face 'highlight)))
 	     (> (setq i (1- i)) 0))
+      (if (= i (1- m))
+	  (setq opoint point))
       (insert-char ?\n gomoku-square-height))
-    (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)))	; center of the board
+    (or (eq (char-after 1) ?.)
+	(put-text-property 1 2 'point-entered
+			   (lambda (x x) (if (bobp) (forward-char)))))
+    (or intangible
+	(put-text-property point (point) 'intangible 2))
+    (put-text-property point (point) 'point-entered
+		       (lambda (x x) (if (eobp) (backward-char))))
+    (put-text-property (point-min) (point) 'category 'gomoku-mode))
+  (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
   (sit-for 0))				; Display NOW
 
 (defun gomoku-display-statistics ()
@@ -998,16 +1040,12 @@ If the game is finished, this command requests for another game."
   ;; We store this string in the mode-line-process local variable.
   ;; This is certainly not the cleanest way out ...
   (setq mode-line-process
-	(cond
-	 ((not (zerop gomoku-number-of-draws))
-	  (format ": Won %d, lost %d, drew %d"
-		  gomoku-number-of-human-wins
-		  gomoku-number-of-emacs-wins
-		  gomoku-number-of-draws))
-	 (t
-	  (format ": Won %d, lost %d"
-		  gomoku-number-of-human-wins
-		  gomoku-number-of-emacs-wins))))
+	(format ": Won %d, lost %d%s"
+		gomoku-number-of-human-wins
+		gomoku-number-of-emacs-wins
+		(if (zerop gomoku-number-of-draws)
+		    ""
+		  (format ", drew %d" gomoku-number-of-draws))))
   (force-mode-line-update))
 
 (defun gomoku-switch-to-window ()
@@ -1015,11 +1053,11 @@ If the game is finished, this command requests for another game."
   (interactive)
   (let ((buff (get-buffer "*Gomoku*")))
     (if buff				; Buffer exists:
-      (switch-to-buffer buff)		;   no problem.
-     (if gomoku-game-in-progress
-	 (gomoku-crash-game))		;   buffer has been killed or something
-     (switch-to-buffer "*Gomoku*")	; Anyway, start anew.
-     (gomoku-mode))))
+	(switch-to-buffer buff)		;   no problem.
+      (if gomoku-game-in-progress
+	  (gomoku-crash-game))		;   buffer has been killed or something
+      (switch-to-buffer "*Gomoku*")	; Anyway, start anew.
+      (gomoku-mode))))
 
 ;;;
 ;;; CROSSING WINNING QTUPLES.
@@ -1030,19 +1068,6 @@ If the game is finished, this command requests for another game."
 ;; squares ! It only knows the square where the last move has been played and
 ;; who won. The solution is to scan the board along all four directions.
 
-(defvar gomoku-winning-qtuple-beg nil
-  "First square of the winning qtuple.")
-
-(defvar gomoku-winning-qtuple-end nil
-  "Last square of the winning qtuple.")
-
-(defvar gomoku-winning-qtuple-dx nil
-  "Direction of the winning qtuple (along the X axis).")
-
-(defvar gomoku-winning-qtuple-dy nil
-  "Direction of the winning qtuple (along the Y axis).")
-
-
 (defun gomoku-find-filled-qtuple (square value)
   "Return T if SQUARE belongs to a qtuple filled with VALUEs."
   (or (gomoku-check-filled-qtuple square value 1 0)
@@ -1052,31 +1077,19 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-check-filled-qtuple (square value dx dy)
   "Return T if SQUARE belongs to a qtuple filled  with VALUEs along DX, DY."
-  ;; And record it in the WINNING-QTUPLE-... variables.
   (let ((a 0) (b 0)
 	(left square) (right square)
-	(depl (gomoku-xy-to-index dx dy))
-	a+4)
+	(depl (gomoku-xy-to-index dx dy)))
     (while (and (> a -4)		; stretch tuple left
 		(= value (aref gomoku-board (setq left (- left depl)))))
       (setq a (1- a)))
-    (setq a+4 (+ a 4))
-    (while (and (< b a+4)		; stretch tuple right
+    (while (and (< b (+ a 4))		; stretch tuple right
 		(= value (aref gomoku-board (setq right (+ right depl)))))
       (setq b (1+ b)))
-    (cond ((= b a+4)			; tuple length = 5 ?
-	   (setq gomoku-winning-qtuple-beg (+ square (* a depl))
-		 gomoku-winning-qtuple-end (+ square (* b depl))
-		 gomoku-winning-qtuple-dx dx
-		 gomoku-winning-qtuple-dy dy)
+    (cond ((= b (+ a 4))		; tuple length = 5 ?
+	   (gomoku-cross-qtuple (+ square (* a depl)) (+ square (* b depl))
+				dx dy)
 	   t))))
-
-(defun gomoku-cross-winning-qtuple ()
-  "Cross winning qtuple, as found by `gomoku-find-filled-qtuple'."
-  (gomoku-cross-qtuple gomoku-winning-qtuple-beg
-		       gomoku-winning-qtuple-end
-		       gomoku-winning-qtuple-dx
-		       gomoku-winning-qtuple-dy))
 
 (defun gomoku-cross-qtuple (square1 square2 dx dy)
   "Cross every square between SQUARE1 and SQUARE2 in the DX, DY direction."
@@ -1092,7 +1105,9 @@ If the game is finished, this command requests for another game."
 	  ((= dy 0)			; Horizontal
 	   (forward-char 1)
 	   (insert-char ?- (1- gomoku-square-width) t)
-	   (delete-char (1- gomoku-square-width)))
+	   (delete-region (point) (progn
+				    (skip-chars-forward " \t")
+				    (point))))
 	  ((= dx 0)			; Vertical
 	   (let ((n 1)
 		 (column (current-column)))
@@ -1102,13 +1117,11 @@ If the game is finished, this command requests for another game."
 	       (indent-to column)
 	       (insert-and-inherit ?|))))
 	  ((= dx -1)			; 1st Diagonal
-	   (backward-char (/ gomoku-square-width 2))
-	   (indent-to (prog1 (current-column)
+	   (indent-to (prog1 (- (current-column) (/ gomoku-square-width 2))
 			(forward-line (/ gomoku-square-height 2))))
 	   (insert-and-inherit ?/))
 	  (t				; 2nd Diagonal
-	   (forward-char (/ gomoku-square-width 2))
-	   (indent-to (prog1 (current-column)
+	   (indent-to (prog1 (+ (current-column) (/ gomoku-square-width 2))
 			(forward-line (/ gomoku-square-height 2))))
 	   (insert-and-inherit ?\\))))))
   (sit-for 0))				; Display NOW
@@ -1120,18 +1133,14 @@ If the game is finished, this command requests for another game."
 (defun gomoku-move-down ()
   "Move point down one row on the Gomoku board."
   (interactive)
-  (let ((y (gomoku-point-y)))
-    (next-line (cond ((null y) 1)
-		     ((< y gomoku-board-height) gomoku-square-height)
-		     (t 0)))))
+  (if (< (gomoku-point-y) gomoku-board-height)
+      (next-line gomoku-square-height)))
 
 (defun gomoku-move-up ()
   "Move point up one row on the Gomoku board."
   (interactive)
-  (let ((y (gomoku-point-y)))
-    (previous-line (cond ((null y) 1)
-			 ((> y 1) gomoku-square-height)
-			 (t 0)))))
+  (if (> (gomoku-point-y) 1)
+      (previous-line gomoku-square-height)))
 
 (defun gomoku-move-ne ()
   "Move point North East on the Gomoku board."
@@ -1156,6 +1165,17 @@ If the game is finished, this command requests for another game."
   (interactive)
   (gomoku-move-down)
   (backward-char))
+
+(defun gomoku-beginning-of-line ()
+  "Move point to first square on the Gomoku board row."
+  (interactive)
+  (move-to-column gomoku-x-offset))
+
+(defun gomoku-end-of-line ()
+  "Move point to last square on the Gomoku board row."
+  (interactive)
+  (move-to-column (+ gomoku-x-offset
+		     (* gomoku-square-width (1- gomoku-board-width)))))
 
 (provide 'gomoku)
 
