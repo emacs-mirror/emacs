@@ -1318,6 +1318,8 @@ If FRAME is nil, the current FRAME is used."
 			((eq req 'background)
 			 (memq (frame-parameter frame 'background-mode)
 			       options))
+			((eq req 'supports)
+			 (display-supports-face-attributes-p options frame))
 			(t (error "Unknown req `%S' with options `%S'"
 				  req options)))))
     match))
@@ -1494,7 +1496,10 @@ any display that can display bold, and a `:foreground \"yellow\"' as long
 as it can display a yellowish color, but `:slant italic' will _not_ be
 satisified by the tty display code's automatic substitution of a `dim'
 face for italic."
-  (let ((frame (car (frames-on-display-list display))))
+  (let ((frame
+	 (if (framep display)
+	     display
+	   (car (frames-on-display-list display)))))
     ;; For now, we assume that non-tty displays can support everything.
     ;; Later, we should add the ability to query about specific fonts,
     ;; colors, etc.
@@ -1938,7 +1943,16 @@ created."
   :group 'basic-faces)
 
 
-(defface italic '((t :slant italic))
+(defface italic
+  '((((supports :slant italic))
+     :slant italic)
+    (((supports :underline t))
+     :underline t)
+    (t
+     ;; default to italic, even it doesn't appear to be supported,
+     ;; because in some cases the display engine will do it's own
+     ;; workaround (to `dim' on ttys)
+     :slant italic))
   "Basic italic font."
   :group 'basic-faces)
 
