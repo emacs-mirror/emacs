@@ -10620,7 +10620,7 @@ The elements of the list are event types that may have menu bar bindings.");
     "Per-terminal keymap that overrides all other local keymaps.\n\
 If this variable is non-nil, it is used as a keymap instead of the\n\
 buffer's local map, and the minor mode keymaps and text property keymaps.\n\
-This variable is intended to let commands such as `universal-argumemnt'\n\
+This variable is intended to let commands such as `universal-argument'\n\
 set up a different keymap for reading the next command.");
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
