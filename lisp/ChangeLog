@@ -1,3 +1,7 @@
+2000-10-28  Dave Love  <fx@gnu.org>
+
+	* info.el (Info-fontify-node): Add help-echo for menu items.
+
 2000-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (normal-top-level): If the value of $TERM indicates
