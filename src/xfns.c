@@ -1506,11 +1506,10 @@ x_set_mouse_color (f, arg, oldval)
     XColor fore_color, back_color;
 
     fore_color.pixel = f->output_data.x->mouse_pixel;
+    x_query_color (f, &fore_color);
     back_color.pixel = mask_color;
-    XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-		 &fore_color);
-    XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-		 &back_color);
+    x_query_color (f, &back_color);
+    
     XRecolorCursor (FRAME_X_DISPLAY (f), cursor,
 		    &fore_color, &back_color);
     XRecolorCursor (FRAME_X_DISPLAY (f), nontext_cursor,
@@ -1518,7 +1517,7 @@ x_set_mouse_color (f, arg, oldval)
     XRecolorCursor (FRAME_X_DISPLAY (f), mode_cursor,
 		    &fore_color, &back_color);
     XRecolorCursor (FRAME_X_DISPLAY (f), cross_cursor,
-                    &fore_color, &back_color);
+		    &fore_color, &back_color);
     XRecolorCursor (FRAME_X_DISPLAY (f), busy_cursor,
                     &fore_color, &back_color);
   }
@@ -7398,7 +7397,7 @@ lookup_pixel_color (f, pixel)
 
       cmap = FRAME_X_COLORMAP (f);
       color.pixel = pixel;
-      XQueryColor (FRAME_X_DISPLAY (f), cmap, &color);
+      x_query_color (f, &color);
       rc = x_alloc_nearest_color (f, cmap, &color);
 
       if (rc)
@@ -7526,8 +7525,7 @@ x_to_xcolors (f, img, rgb_p)
 	p->pixel = XGetPixel (ximg, x, y);
 
       if (rgb_p)
-	XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-		      row, img->width);
+	x_query_colors (f, row, img->width);
     }
 
   XDestroyImage (ximg);
@@ -8541,7 +8539,7 @@ png_load (f, img)
 
 	  cmap = FRAME_X_COLORMAP (f);
 	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
-	  XQueryColor (FRAME_X_DISPLAY (f), cmap, &color);
+	  x_query_color (f, &color);
 
 	  bzero (&frame_background, sizeof frame_background);
 	  frame_background.red = color.red;
