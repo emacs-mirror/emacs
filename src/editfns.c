@@ -735,6 +735,90 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   return Flist (9, list_args);
 }
 
+DEFUN ("encode-time", Fencode_time, Sencode_time, 6, 7, 0,
+  "Convert SEC, MIN, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
+This is the reverse operation of `decode-time', which see.  ZONE defaults
+to the current time zone and daylight savings time if not specified; if
+specified, it can be either a list (as from `current-time-zone') or an
+integer (as from `decode-time'), and is applied without consideration for
+daylight savings time.  If YEAR is less than 100, values in the range 0 to
+37 are interpreted as in the 21st century, all other values arein the 20th
+century.")
+  (sec, min, hour, day, month, year, zone)
+     Lisp_Object sec, min, hour, day, month, year, zone;
+{
+  double universal;
+  int fullyear, mon;
+  static char days[11] = { 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31 };
+
+  CHECK_NATNUM (sec, 0);
+  CHECK_NATNUM (min, 1);
+  CHECK_NATNUM (hour, 2);
+  CHECK_NATNUM (day, 3);
+  CHECK_NATNUM (month, 4);
+  CHECK_NATNUM (year, 5);
+
+  fullyear = XINT (year);
+  if (fullyear < 100)
+    {
+      if (fullyear < 38)		/* end of time: 2038-01-19 03:14:08 */
+	fullyear += 2000;
+      else
+	fullyear += 1900;
+    }
+
+  if (NILP (zone))
+    zone = Fcurrent_time_zone (Qnil);
+  if (CONSP (zone))
+    zone = Fcar (zone);
+
+  CHECK_NUMBER (zone, 6);
+
+  /* all of these should evaluate to compile-time constants. */
+#define MIN 60.0				/*          60 */
+#define HOUR (60*MIN)				/*        3600 */
+#define DAY (24*HOUR)				/*       86400 */
+#define YEAR (365*DAY)				/*    31536000 */
+#define YEAR4 (4*YEAR+DAY)			/*   126230400 */
+#define YEAR100 (25*YEAR4-DAY)			/*  3155673600 */
+#define YEAR400 (4*YEAR100+DAY)			/* 12622780800 */
+#define YEAR1900 (4*YEAR400+3*YEAR100)		/* 59958144000 */
+#define YEAR1970 (YEAR1900+17*YEAR4+2*YEAR)	/* 62167132800 */
+#define LEAPBIAS (59*DAY)			/*     5097600 */
+
+  mon = XINT (month) - 1;
+  fullyear--;
+  mon += 10;
+  fullyear += mon/12;
+  mon %= 12;
+
+  universal = XINT (sec) + XINT (min) * MIN + XINT (hour) * HOUR;
+  while (mon-- > 0)
+    universal += days[mon] * DAY;
+  universal += (XINT (day) - 1) * DAY;
+  universal += YEAR400 * (fullyear/400);
+  fullyear %= 400;
+  universal += YEAR100 * (fullyear/100);
+  fullyear %= 100;
+  universal += YEAR4 * (fullyear/4);
+  fullyear %= 4;
+  universal += YEAR * fullyear;
+  universal -= YEAR1970 - LEAPBIAS;
+
+  return make_time ((int)(universal - XINT (zone)));
+
+#undef MIN
+#undef HOUR
+#undef DAY
+#undef YEAR
+#undef YEAR4
+#undef YEAR100
+#undef YEAR400
+#undef YEAR1900
+#undef YEAR1970
+#undef LEAPBIAS
+}
+
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
   "Return the current time, as a human-readable string.\n\
 Programs can use this function to decode a time,\n\
@@ -2233,6 +2317,7 @@ syms_of_editfns ()
   defsubr (&Scurrent_time);
   defsubr (&Sformat_time_string);
   defsubr (&Sdecode_time);
+  defsubr (&Sencode_time);
   defsubr (&Scurrent_time_string);
   defsubr (&Scurrent_time_zone);
   defsubr (&Ssystem_name);
