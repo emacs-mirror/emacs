@@ -30,7 +30,6 @@ ETAGS = ../lib-src/etags
 #   no point compiling it, although it doesn't hurt.
 
 DONTCOMPILE = \
-	$(lisp)/bindings.el \
 	$(lisp)/cus-load.el \
 	$(lisp)/cus-start.el \
 	$(lisp)/emacs-lisp/cl-specs.el \
