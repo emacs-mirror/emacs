@@ -641,6 +641,7 @@ with your script for an edit-interpret-debug cycle."
 	paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
 	comment-start "# "
+	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
