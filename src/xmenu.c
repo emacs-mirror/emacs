@@ -344,13 +344,17 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
     {
       changed = 1;
       descrip = Qnil;
-      savedkey = Fwhere_is_internal (def, Qnil, Qt, Qnil);
       /* If the command is an alias for another
 	 (such as easymenu.el and lmenu.el set it up),
 	 see if the original command name has equivalent keys.  */
       if (SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function))
 	savedkey = Fwhere_is_internal (XSYMBOL (def)->function,
 				       Qnil, Qt, Qnil);
+      else
+	/* Otherwise look up the specified command itself.
+	   We don't try both, because that makes easymenu menus slow.  */
+	savedkey = Fwhere_is_internal (def, Qnil, Qt, Qnil);
+
 
       if (VECTORP (savedkey)
 	  && EQ (XVECTOR (savedkey)->contents[0], Qmenu_bar))
