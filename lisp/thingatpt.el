@@ -192,7 +192,7 @@ bounds-of-thing-at-point."
 (defun sentence-at-point () (thing-at-point 'sentence))
 
 (defun read-from-whole-string (STR)
-  "Read a lisp expression from STR, signalling an error if the entire string
+  "Read a lisp expression from STR, signaling an error if the entire string
 was not used."
   (let* ((read-data (read-from-string STR))
 	 (more-left 
