@@ -1,3 +1,42 @@
+2000-09-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* help.el (help-make-xrefs): Adjusted for the change of
+	help-xref-mule-regexp.
+	(help-insert-xref-button): New function.
+
+	* international/mule-cmds.el (help-xref-mule-regexp-template):
+	Include the pattern for character set.
+	(leim): New group.
+
+	* international/quail.el: Don't require face.
+	(quail): New group.
+	(quail-other-command): Dummy command to make quail-help works
+	better.
+	(quail-keyboard-layout-alist): Add Keyboard type "jp106".
+	(quail-keyboard-layout-substitution): New variable.
+	(quail-update-keyboard-layout): New function.
+	(quail-keyboard-layout-type): New customizable variable.
+	(quail-set-keyboard-layout): Call quail-update-keyboard-layout.
+	(quail-keyboard-translate): Pay attention to
+	quail-keyboard-layout-substitution.
+	(quail-insert-kbd-layout): New function.
+	(quail-show-keyboard-layout): New function.
+	(quail-get-translation): If the definition is a vector of length
+	1, and the element is a string of lenght 1, return the character
+	in that string.
+	(quail-update-current-translations): Fix the case of
+	relative-index out of range.
+	(quail-build-decode-map, quail-insert-decode-map): New Functions.
+	(quail-help): Show keyboard layout by quail-insert-kbd-layout.
+	Show key sequences for all avairable characters.
+	(quail-help-insert-keymap-description): Don't show such verbose
+	key bindings as quail-self-insert-command.
+
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
+	Format changed, and each element now have extra documentations.
+	(tit-process-header): Delete invalid characters from TIT-PROMPT.
+	Adjusted for the change of quail-cxterm-package-ext-info.
+
 2000-09-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc-hooks.el (toplevel): Don't require `vc' during compilation;

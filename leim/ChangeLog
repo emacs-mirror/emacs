@@ -1,3 +1,27 @@
+2000-09-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/thai.el ("thai-kesmanee", "thai-pattachote"): Use keyboard
+	translation.
+
+	* quail/pypunct-b5.el ("chinese-py-punct-b5"): Docstring modified.
+
+	* quail/py-punct.el ("chinese-py-punct"): Docstring modified.
+	("chinese-tonepy-punct"): New input method.
+
+	* quail/latin-pre.el ("polish-slash"): Don't use keyboard
+	translation.
+
+	* quail/japanese.el ("japanese"): Delete the key sequence for
+	Roman transliteration from the docstring because it's now shonw
+	automatically.
+	("japanese-ascii", "japanese-zenkaku")
+	("japanese-hankaku-kana", "japanese-hiragana")
+	("japanese-katakana"): Docstring modified.
+
+	* quail/czech.el ("czech-qwerty"): Changed to show keyboard layout
+	on describe-input-method.
+	("czech-prog-1", "czech-prog-2", "czech-prog-3"): Likewise.
+
 2000-09-03  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: New file.

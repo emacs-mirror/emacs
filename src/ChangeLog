@@ -1,5 +1,11 @@
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
+	* charset.c: Include composite.h
+	(lisp_string_width): New function.
+	(Fstring_width): Call lisp_string_width instead of strwidth.
+
+	* Makefile.in (charset.o): Depends on composite.h.
+
 	* process.c (read_process_output): Before inserting the decoded
 	text in the buffer, adjust the multibyteness.
 
