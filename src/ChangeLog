@@ -1,5 +1,16 @@
 2001-11-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_frame_parameters): Revert change of 2001-11-07.
+	Some x_set_* function expect to be called even if old and new
+	value are equal.
+
+	* xdisp.c (build_desired_tool_bar_string): Accept zero
+	tool_bar_button_relief.
+
+	* xfns.c (Fx_create_frame): Accept zero tool_bar_button_relief.
+
+	* xterm.c (x_draw_image_relief): Accept zero tool_bar_button_relief.
+	
 	* xterm.c (x_draw_bar_cursor): If the background color of the
 	glyph under the cursor equals the frame's cursor color, use
 	the glyph's foreground color for drawing the bar cursor.
