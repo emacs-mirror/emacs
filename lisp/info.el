@@ -1578,7 +1578,11 @@ FOOTNOTENAME may be an abbreviation of the reference name."
   ;; also look for menu items in subsequent nodes as long as those
   ;; nodes' names match `Info-complete-next-re'.  This feature is currently
   ;; only used for completion in Info-index.
-  (with-current-buffer Info-complete-menu-buffer
+
+  ;; Note that `Info-complete-menu-buffer' could be current already,
+  ;; so we want to save point.
+  (save-excursion
+    (set-buffer Info-complete-menu-buffer)
     (let ((completion-ignore-case t)
 	  (case-fold-search t)
 	  (orignode Info-current-node)
