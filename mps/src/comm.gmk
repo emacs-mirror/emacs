@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.66) $
+# $HopeName: MMsrc!comm.gmk(trunk.67) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -20,6 +20,7 @@
 #                   optimization, and absolutely no debug info
 # CC                the command for the C compiler
 # LINKFLAGS         a list of flags passed to the linker
+# ARFLAGSPFM        platform-specific flags for ar
 # gendep  optionally defined to be a command sequence for
 #         generating the dependency file (.d) from a C file (.c);
 #         it is used in a rule of the form:
@@ -167,6 +168,9 @@ endif
 endif
 endif
 endif
+
+
+ARFLAGS=rc$(ARFLAGSPFM)
 
 
 # == Common definitions ==
@@ -515,7 +519,7 @@ endif
 $(PFM)/$(VARIETY)/%.a:
 	$(ECHO) "$(PFM): $@"
 	rm -f $@
-	ar rc $@ $^
+	$(AR) $(ARFLAGS) $@ $^
 
 # Executable
 
