@@ -1508,7 +1508,7 @@ Please send all bug fixes and enhancements to
   (defconst ps-windows-system
     (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
   (defconst ps-lp-system
-    (memq system-type '(usq-unix-v dgux hpux irix))))
+    (memq system-type '(usg-unix-v dgux hpux irix))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
