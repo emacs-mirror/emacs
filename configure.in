@@ -1928,7 +1928,8 @@ rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
-__fpending mblen mbrlen strsignal setitimer ualarm index rindex gai_strerror)
+__fpending mblen mbrlen strsignal setitimer ualarm index rindex \
+gai_strerror mkstemp)
 
 AC_FUNC_MKTIME
 if test "$ac_cv_func_working_mktime" = no; then
