@@ -584,7 +584,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	  (let ((nodename (car (car nodes))))
 	    (save-excursion
 	      (or (member (downcase nodename) menu-items)
-		  (re-search-forward (concat "^\\* "
+		  (re-search-forward (concat "^\\* +"
 					     (regexp-quote nodename)
 					     "::")
 				     end t)
@@ -1042,7 +1042,7 @@ NAME may be an abbreviation of the reference name."
   (let ((case-fold-search t))
     (cond ((eq action nil)
 	   (let (completions
-		 (pattern (concat "\n\\* \\("
+		 (pattern (concat "\n\\* +\\("
 				  (regexp-quote string)
 				  "[^:\t\n]*\\):")))
 	     (save-excursion
@@ -1059,7 +1059,7 @@ NAME may be an abbreviation of the reference name."
 	     (try-completion string completions predicate)))
 	  ((eq action t)
 	   (let (completions
-		 (pattern (concat "\n\\* \\("
+		 (pattern (concat "\n\\* +\\("
 				  (regexp-quote string)
 				  "[^:\t\n]*\\):")))
 	     (save-excursion
@@ -1079,7 +1079,7 @@ NAME may be an abbreviation of the reference name."
 	     (set-buffer Info-complete-menu-buffer)
 	     (goto-char (point-min))
 	     (search-forward "\n* Menu:")
-	     (re-search-forward (concat "\n\\* "
+	     (re-search-forward (concat "\n\\* +"
 					(regexp-quote string)
 					":")
 				nil t))))))
@@ -1104,7 +1104,7 @@ Completion is allowed, and the menu item point is on is the default."
 	    (save-excursion
 	      (goto-char p)
 	      (end-of-line)
-	      (re-search-backward "\n\\* \\([^:\t\n]*\\):" beg t)
+	      (re-search-backward "\n\\* +\\([^:\t\n]*\\):" beg t)
 	      (setq default (format "%s" (buffer-substring
 					  (match-beginning 1)
 					  (match-end 1)))))))
@@ -1136,8 +1136,8 @@ Completion is allowed, and the menu item point is on is the default."
     (goto-char (point-min))
     (or (search-forward "\n* menu:" nil t)
 	(error "No menu in this node"))
-    (or (re-search-forward (concat "\n\\* " menu-item ":") nil t)
-	(re-search-forward (concat "\n\\* " menu-item) nil t)
+    (or (re-search-forward (concat "\n\\* +" menu-item ":") nil t)
+	(re-search-forward (concat "\n\\* +" menu-item) nil t)
 	(error "No such item in menu"))
     (beginning-of-line)
     (forward-char 2)
@@ -1409,7 +1409,7 @@ Give a blank topic name to go to the Index node itself."
   (interactive "sIndex topic: ")
   (let ((orignode Info-current-node)
 	(rnode nil)
-	(pattern (format "\n\\* \\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
+	(pattern (format "\n\\* +\\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
 			 (regexp-quote topic)))
 	node)
     (Info-goto-node "Top")
@@ -1602,9 +1602,9 @@ If no reference to follow, moves to the next node, or up if none."
      ((setq node (Info-get-token (point) "\\*note[ \n]"
 				 "\\*note[ \n]\\([^:]*\\):"))
       (Info-follow-reference node))
-     ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\)::"))
+     ((setq node (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\)::"))
       (Info-goto-node node))
-     ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\):"))
+     ((setq node (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\):"))
       (Info-menu node))
      ((setq node (Info-get-token (point) "Up: " "Up: \\([^,\n\t]*\\)"))
       (Info-goto-node node))
@@ -1894,7 +1894,7 @@ defines heuristics for which Info manual to try.
 The locations are of the format used in Info-history, i.e.
 \(FILENAME NODENAME BUFFERPOS\)."
   (let ((where '())
-	(cmd-desc (concat "^\\* " (regexp-quote (symbol-name command))
+	(cmd-desc (concat "^\\* +" (regexp-quote (symbol-name command))
 			  ":\\s *\\(.*\\)\\.$"))
 	(info-file "emacs"))		;default
     ;; Determine which info file this command is documented in.
@@ -2033,7 +2033,7 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
 	       ;; Don't take time to annotate huge menus
 	       (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
 	  (let ((n 0))
-	    (while (re-search-forward "^\\* \\([^:\t\n]*\\):" nil t)
+	    (while (re-search-forward "^\\* +\\([^:\t\n]*\\):" nil t)
 	      (setq n (1+ n))
 	      (if (memq n '(5 9))   ; visual aids to help with 1-9 keys
 		  (put-text-property (match-beginning 0)
@@ -2104,8 +2104,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
 	      (cons Info-current-node Info-current-file))
 	(goto-char (point-min))
 	;; Always skip the first one...
-	(re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
-	(while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+	(re-search-forward "\n\\* +\\([^:\t\n]*\\):" nil t)
+	(while (re-search-forward "\n\\* +\\([^:\t\n]*\\):" nil t)
 	  (setq completions (cons (buffer-substring (match-beginning 1)
 						    (match-end 1))
 				  completions))))
