@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96, 97, 98, 1999, 2002
+;; Copyright (C) 1985,86,89,92,94,95,96,97,98,1999,2002,2003
 ;;       Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -285,7 +285,9 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
     (?@ . "_")
     (?* . "_")
     (?\t . " ")
-    (?~ . " ")
+    ;; ~ is printed by TeX as a space, but it's semantics in the syntax
+    ;; of TeX is not `whitespace' (i.e. it's just like \hspace{foo}).
+    (?~ . ".")
     (?$ . "$$")
     (?\\ . "/")
     (?\" . ".")
@@ -763,7 +765,8 @@ Inherits `shell-mode-map' with a few additions.")
 		     (concat
 		      (regexp-opt '("documentstyle" "documentclass"
 				    "begin" "subsection" "section"
-				    "part" "chapter" "newcommand") 'words)
+				    "part" "chapter" "newcommand"
+				    "renewcommand") 'words)
 		      "\\|NeedsTeXFormat{LaTeX")))
 		  (if (looking-at
 		       "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
@@ -776,22 +779,27 @@ Inherits `shell-mode-map' with a few additions.")
 ;; but it's also the function that chooses between those submodes.
 ;; To tell the difference between those two cases where the function
 ;; might be called, we check `delay-mode-hooks'.
-;;;###autoload
 (define-derived-mode tex-mode text-mode "generic-TeX"
   (tex-common-initialization))
-(fset 'tex-mode
-      `(lambda ()
-	 "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
+;; We now move the function and define it again.  This gives a warning
+;; in the byte-compiler :-( but it's difficult to avoid because
+;; `define-derived-mode' will necessarily define the function once
+;; and we need to define it a second time for `autoload' to get the
+;; proper docstring.
+(defalias 'tex-mode-internal (symbol-function 'tex-mode))
+;;;###autoload
+(defun tex-mode ()
+  "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
 Tries to determine (by looking at the beginning of the file) whether
 this file is for plain TeX, LaTeX, or SliTeX and calls `plain-tex-mode',
 `latex-mode', or `slitex-mode', respectively.  If it cannot be determined,
 such as if there are no commands in the file, the value of `tex-default-mode'
 says which mode to use."
-	 (interactive)
-	 (if delay-mode-hooks
-	     ;; We're called from one of the children already.
-	     (funcall ,(symbol-function 'tex-mode))
-	   (tex-guess-mode))))
+  (interactive)
+  (if delay-mode-hooks
+      ;; We're called from one of the children already.
+      (tex-mode-internal)
+    (tex-guess-mode)))
 
 ;;;###autoload
 (defalias 'TeX-mode 'tex-mode)
