@@ -484,13 +484,15 @@ in a directory or in a file.  See the documentation of the user option
 ** The new option `Info-scroll-prefer-subnodes' causes Info to behave
 like the stand-alone Info reader (from the GNU Texinfo package) as far
 as motion between nodes and their subnodes is concerned.  If it is t
-(the default), Emacs behaves as before when you type SPC in a menu: it
-visits the subnode pointed to by the first menu entry.  If this option
-is nil, SPC scrolls to the end of the current node, and only then goes
-to the first menu item, like the stand-alone reader does.
+Emacs behaves as before when you type SPC in a menu: it visits the
+subnode pointed to by the first menu entry.  If this option is nil,
+SPC scrolls to the end of the current node, and only then goes to the
+first menu item, like the stand-alone reader does.
 
-This change was already in Emacs 21.1, but wasn't advertised in the
-NEWS.
+This option was already introduced in Emacs 21.1, but wasn't
+advertised in the NEWS.
+
+The default is now nil.  (Prior to Emacs 21.4, it was t.)
 
 ---
 ** LDAP support now defaults to ldapsearch from OpenLDAP version 2.
