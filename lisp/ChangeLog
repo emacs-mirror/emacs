@@ -1,3 +1,7 @@
+1999-10-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* lpr.el (print-buffer): Doc-string fix.
+
 1999-10-27  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/advice.el: Doc fixes.
