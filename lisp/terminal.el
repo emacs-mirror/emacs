@@ -991,11 +991,10 @@ move to start of new line, clear to end of line."
 	     ;; preemptible output!  Oh my!!
 	     (throw 'te-process-output t)))))
   ;; We must update window-point in every window displaying our buffer
-  (let* ((s (selected-window))
-	 (w s))
-    (while (not (eq s (setq w (next-window w))))
-      (if (eq (window-buffer w) (current-buffer))
-	  (set-window-point w (point))))))
+  (walk-windows (lambda (w)
+		  (when (and (not (eq w (selected-window)))
+			     (eq (window-buffer w) (current-buffer)))
+		    (set-window-point w (point))))))
 
 (defun te-get-char ()
   (if (cdr te-pending-output)
