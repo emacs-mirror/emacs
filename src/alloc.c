@@ -1049,7 +1049,9 @@ allocate_string_data (s, nchars, nbytes)
       size_t size = sizeof *b - sizeof (struct sdata) + needed;
 
 #ifdef DOUG_LEA_MALLOC
-      /* Prevent mmap'ing the chunk (which is potentially very large). */
+      /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
+	 because mapped region contents are not preserved in
+	 a dumped Emacs.  */
       mallopt (M_MMAP_MAX, 0);
 #endif
 
@@ -1838,7 +1840,9 @@ allocate_vectorlike (len)
   size_t nbytes;
 
 #ifdef DOUG_LEA_MALLOC
-  /* Prevent mmap'ing the chunk (which is potentially very large).. */
+  /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
+     because mapped region contents are not preserved in
+     a dumped Emacs.  */
   mallopt (M_MMAP_MAX, 0);
 #endif
   
