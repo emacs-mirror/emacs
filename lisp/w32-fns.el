@@ -63,6 +63,10 @@
 ;; for executing its command line argument (from simple.el).
 (setq shell-command-switch "/c")
 
+;; For appending suffixes to directories and files in shell completions.
+(add-hook 'shell-mode-hook 
+	  '(lambda () (setq comint-completion-addsuffix '("\\" . " "))))
+
 ;; Use ";" instead of ":" as a path separator (from files.el).
 (setq path-separator ";")
 
