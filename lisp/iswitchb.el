@@ -46,7 +46,7 @@
 ;; common to all of the matching buffers as you type.
 
 ;; This code is similar to a couple of other packages.  Michael R Cook
-;; <mcook@cognex.com> wrote a similar buffer switching package, but
+;; <cook@sightpath.com> wrote a similar buffer switching package, but
 ;; does exact matching rather than substring matching on buffer names.
 ;; I also modified a couple of functions from icomplete.el to provide
 ;; the completion feedback in the minibuffer.
@@ -110,6 +110,23 @@
 ;;
 ;;  See the doc string of iswitchb for full keybindings and features.
 ;;  (describe-function 'iswitchb)
+
+;; Case matching: The case of strings when matching can be ignored or
+;; used depending on the value of iswitchb-case (default is the same
+;; as case-fold-search, normally t).  Imagine you have the following
+;; buffers: 
+;;
+;; INBOX *info* *scratch*
+;;
+;; Then these will be the matching buffers, depending on how you type
+;; the two letters `in' and the value of iswitchb-case:
+;;
+;; iswitchb-case   user input  | matching buffers
+;; ----------------------------------------------
+;; nil             in          | *info*         
+;; t               in          | INBOX, *info*  
+;; t               IN          | INBOX          
+;; t               In          | [No match]     
 
 ;;; Customisation
 
@@ -224,7 +241,9 @@
   :link '(emacs-library-link :tag "Lisp File" "iswitchb.el"))
 
 (defcustom iswitchb-case case-fold-search
-  "*Non-nil if searching of buffer names should ignore case."
+  "*Non-nil if searching of buffer names should ignore case.
+If this is non-nil but the user input has any upper case letters, matching
+is temporarily case sensitive."
   :type 'boolean
   :group 'iswitchb)
 
@@ -741,7 +760,7 @@ current frame, rather than all frames, regardless of value of
   "Return buffers matching REGEXP.
 If STRING-FORMAT is nil, consider REGEXP as just a string.
 BUFFER-LIST can be list of buffers or list of strings."
-  (let* ((case-fold-search  iswitchb-case)
+  (let* ((case-fold-search  (iswitchb-case))
 	 ;; need reverse since we are building up list backwards
 	 (list              (reverse buffer-list))
          (do-string         (stringp (car list)))
@@ -793,7 +812,7 @@ BUFFER-LIST can be list of buffers or list of strings."
 (defun iswitchb-word-matching-substring (word)
   "Return part of WORD before 1st match to `iswitchb-change-word-sub'.
 If `iswitchb-change-word-sub' cannot be found in WORD, return nil."
-  (let ((case-fold-search iswitchb-case)) 
+  (let ((case-fold-search (iswitchb-case)))
     (let ((m (string-match iswitchb-change-word-sub word)))
       (if m
           (substring word m)
@@ -814,7 +833,7 @@ If `iswitchb-change-word-sub' cannot be found in WORD, return nil."
     (setq alist (mapcar 'iswitchb-makealist res)) ;; could use an  OBARRAY
 
     ;; try-completion returns t if there is an exact match.
-    (let ((completion-ignore-case iswitchb-case))
+    (let ((completion-ignore-case (iswitchb-case)))
 
     (try-completion subs alist))))
 
@@ -1255,6 +1274,14 @@ This is an example function which can be hooked on to
 				     x))
 			      iswitchb-temp-buflist))))
     (iswitchb-to-end summaries)))
+
+(defun iswitchb-case ()
+  "Return non-nil iff we should ignore case when matching.
+See the variable `iswitchb-case' for details."
+  (if iswitchb-case
+      (if iswitchb-xemacs
+	  (isearch-no-upper-case-p iswitchb-text)
+	(isearch-no-upper-case-p iswitchb-text t))))
 
 (provide 'iswitchb)
 
