@@ -1115,6 +1115,7 @@ A prefix argument means do not revert the buffer afterwards."
 The mark is left at the end of the text prepended to the change log.
 With prefix arg of C-u, only find log entries for the current buffer's file.
 With any numeric prefix arg, find log entries for all files currently visited.
+Otherwise, find log entries for all registered files in the default directory.
 From a program, any arguments are passed to the `rcs2log' script."
   (interactive
    (cond ((consp current-prefix-arg)	;C-u
@@ -1126,9 +1127,18 @@ From a program, any arguments are passed to the `rcs2log' script."
 	    (while buffers
 	      (setq file (buffer-file-name (car buffers)))
 	      (and file (vc-backend-deduce file)
-		   (setq files (cons (file-relative-name file) files)))
+		   (setq files (cons file files)))
 	      (setq buffers (cdr buffers)))
-	    files))))
+	    files))
+	 (t
+	  (let ((RCS (concat default-directory "RCS")))
+	    (and (file-directory-p RCS)
+		 (mapcar (function
+			  (lambda (f)
+			    (if (string-match "\\(.*\\),v$" f)
+				(substring f 0 (match-end 1))
+			      f)))
+			 (directory-files RCS nil "...\\|^[^.]\\|^.[^.]")))))))
   (let ((odefault default-directory))
     (find-file-other-window (find-change-log))
     (barf-if-buffer-read-only)
@@ -1137,10 +1147,17 @@ From a program, any arguments are passed to the `rcs2log' script."
     (goto-char (point-min))
     (push-mark)
     (message "Computing change log entries...")
-    (let ((default-directory odefault))
-      (message "Computing change log entries... %s"
-	       (if (eq 0 (apply 'call-process "rcs2log" nil t nil args))
-		   "done" "failed")))))
+    (message "Computing change log entries... %s"
+	     (if (or (null args)
+		     (eq 0 (apply 'call-process "rcs2log" nil t nil
+				  (mapcar (function
+					   (lambda (f)
+					     (file-relative-name
+					      (if (file-name-absolute-p f)
+						  f
+						(concat odefault f)))))
+					  args))))
+		 "done" "failed"))))
 
 ;; Functions for querying the master and lock files.
 
