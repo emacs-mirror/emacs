@@ -82,7 +82,7 @@ With arg, you are asked to choose which language."
   "Show the precise file name of Emacs library LIBRARY.
 This command searches the directories in `load-path' like `M-x load-library'
 to find the file that `M-x load-library RET LIBRARY RET' would load.
-Optional second arg NOSUFFIX non-nil means don't add suffixes `.elc' or `.el'
+Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
 to the specified name LIBRARY.
 
 If the optional third arg PATH is specified, that list of directories
@@ -94,40 +94,19 @@ and the file name is displayed in the echo area."
   (interactive (list (read-string "Locate library: ")
 		     nil nil
 		     t))
-  (let (result)
-    (catch 'answer
-      (mapc
-       (lambda (dir)
-	 (mapc
-	  (lambda (suf)
-	    (let ((try (expand-file-name (concat library suf) dir)))
-	      (and (file-readable-p try)
-		   (null (file-directory-p try))
-		   (progn
-		     (setq result try)
-		     (throw 'answer try)))))
-	  (if nosuffix
-	      '("")
-	    '(".elc" ".el" "")
-	    (let ((basic '(".elc" ".el" ""))
-		  (compressed '(".Z" ".gz" "")))
-	      ;; If autocompression mode is on,
-	      ;; consider all combinations of library suffixes
-	      ;; and compression suffixes.
-	      (if (rassq 'jka-compr-handler file-name-handler-alist)
-		  (apply 'nconc
-			 (mapcar (lambda (compelt)
-				   (mapcar (lambda (baselt)
-					     (concat baselt compelt))
-					   basic))
-				 compressed))
-		basic)))))
-       (or path load-path)))
-    (and interactive-call
-	 (if result
-	     (message "Library is file %s" result)
-	   (message "No library %s in search path" library)))
-    result))
+  (catch 'answer
+    (dolist (dir (or path load-path))
+      (dolist (suf (append (unless nosuffix load-suffixes) '("")))
+	(let ((try (expand-file-name (concat library suf) dir)))
+	  (and (file-readable-p try)
+	       (null (file-directory-p try))
+	       (progn
+		 (if interactive-call
+		     (message "Library is file %s" (abbreviate-file-name try)))
+		 (throw 'answer try))))))
+    (if interactive-call
+	(message "No library %s in search path" library))
+    nil))
 
 
 ;; Functions
