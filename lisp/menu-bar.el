@@ -235,17 +235,20 @@
       (message "Select a region with the mouse does `copy' automatically")
     (kill-ring-save beg end)))
 
-(put 'fill-region 'menu-enable 'mark-active)
-(put 'kill-region 'menu-enable 'mark-active)
+(put 'fill-region 'menu-enable '(and mark-active (not buffer-read-only)))
+(put 'kill-region 'menu-enable '(and mark-active (not buffer-read-only)))
 (put 'menu-bar-kill-ring-save 'menu-enable 'mark-active)
-(put 'yank 'menu-enable '(x-selection-exists-p))
-(put 'yank-menu 'menu-enable '(cdr yank-menu))
+(put 'yank 'menu-enable '(and (x-selection-exists-p) (not buffer-read-only)))
+(put 'yank-menu 'menu-enable '(and (cdr yank-menu) (not buffer-read-only)))
 (put 'delete-region 'menu-enable '(and mark-active
+				       (not buffer-read-only)
 				       (not (mouse-region-match))))
-(put 'undo 'menu-enable '(if (eq last-command 'undo)
-			     pending-undo-list
-			   (consp buffer-undo-list)))
+(put 'undo 'menu-enable '(and (not buffer-read-only)
+			      (if (eq last-command 'undo)
+				  pending-undo-list
+				(consp buffer-undo-list))))
 (put 'query-replace 'menu-enable '(not buffer-read-only))
+(put 'query-replace-regexp 'menu-enable '(not buffer-read-only))
 
 (autoload 'ispell-menu-map "ispell" nil t 'keymap)
 
@@ -589,6 +592,46 @@ A large number or nil slows down menu responsiveness.")
 ;;;	       size
 ;;;	       mode-name
 ;;;	       (or (buffer-file-name) ""))))))
+
+;;; Set up a menu bar menu for the minibuffer.
+
+(mapcar
+ (function
+  (lambda (map)
+    (define-key map [menu-bar minibuf]
+      (cons "Minibuf" (make-sparse-keymap "Minibuf")))))
+ (list minibuffer-local-ns-map
+       minibuffer-local-must-match-map
+       minibuffer-local-isearch-map
+       minibuffer-local-map
+       minibuffer-local-completion-map))
+
+(mapcar
+ (function
+  (lambda (map)
+    (define-key map [menu-bar minibuf ?\?]
+      '("List Completions" . minibuffer-completion-help))
+    (define-key map [menu-bar minibuf space]
+      '("Complete Word" . minibuffer-complete-word))
+    (define-key map [menu-bar minibuf tab]
+      '("Complete" . 'minibuffer-complete))
+    ))
+ (list minibuffer-local-must-match-map
+       minibuffer-local-completion-map))
+
+(mapcar
+ (function
+  (lambda (map)
+    (define-key map [menu-bar minibuf quit]
+      '("Quit" . keyboard-escape-quit))
+    (define-key map [menu-bar minibuf return]
+      '("Enter" . exit-minibuffer))
+    ))
+ (list minibuffer-local-ns-map
+       minibuffer-local-must-match-map
+       minibuffer-local-isearch-map
+       minibuffer-local-map
+       minibuffer-local-completion-map))
 
 (defvar menu-bar-mode nil)
 
