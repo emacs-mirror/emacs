@@ -29,6 +29,10 @@
 ;; Installation:
 ;; To get the functions in this package bound to keys, do
 ;; (iswitchb-default-keybindings)
+;;
+;; If you want to use the features of iswitchb, but without rebinding
+;; the keys as above, then you need to add the following hook:
+;; (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
 
 ;; As you type in a substring, the list of buffers currently matching
 ;; the substring are displayed as you type.  The list is ordered so
