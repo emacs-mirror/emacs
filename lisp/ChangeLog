@@ -1,3 +1,16 @@
+2005-02-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token): Add local variable.
+
+	* calc/calc-prog.el (calc-user-define-edit): Add local variable.
+	(calc-edit-top): Move declaration to earlier in file.
+	(calc-edit-macro-repeats): Add local variables.
+
+	* calc/calcalg2.el: Add differentiation rule for calcFunc-coth.
+	Adjust differentiation rules for calcFunc-tan, calcFunc-cot,
+	calcFunc-tanh.
+	Adjust integration rule for calcFunc-tan.
+
 2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* viper-cmd.el (viper-prefix-commands): make into a defconst.
