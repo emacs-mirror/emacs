@@ -114,7 +114,7 @@ Lisp_Object
 quotify_arg (exp)
      register Lisp_Object exp;
 {
-  if (XTYPE (exp) != Lisp_Int && XTYPE (exp) != Lisp_String
+  if (!INTEGERP (exp) && !STRINGP (exp)
       && !NILP (exp) && !EQ (exp, Qt))
     return Fcons (Qquote, Fcons (exp, Qnil));
 
@@ -200,7 +200,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
  retry:
 
-  if (XTYPE (function) == Lisp_Symbol)
+  if (SYMBOLP (function))
     enable = Fget (function, Qenable_recursive_minibuffers);
 
   fun = indirect_function (function);
@@ -212,7 +212,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
      or go to `lose' if not interactive, or go to `retry'
      to specify a different function, or set either STRING or SPECS.  */
 
-  if (XTYPE (fun) == Lisp_Subr)
+  if (SUBRP (fun))
     {
       string = (unsigned char *) XSUBR (fun)->prompt;
       if (!string)
@@ -225,7 +225,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	/* Let SPECS (which is nil) be used as the args.  */
 	string = 0;
     }
-  else if (XTYPE (fun) == Lisp_Compiled)
+  else if (COMPILEDP (fun))
     {
       if (XVECTOR (fun)->size <= COMPILED_INTERACTIVE)
 	goto lose;
@@ -253,7 +253,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     goto lose;
 
   /* If either specs or string is set to a string, use it.  */
-  if (XTYPE (specs) == Lisp_String)
+  if (STRINGP (specs))
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
@@ -329,9 +329,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 	  event = XVECTOR (this_command_keys)->contents[next_event];
 	  if (EVENT_HAS_PARAMETERS (event)
-	      && XTYPE (event = XCONS (event)->cdr) == Lisp_Cons
-	      && XTYPE (event = XCONS (event)->car) == Lisp_Cons
-	      && XTYPE (event = XCONS (event)->car) == Lisp_Window)
+	      && (event = XCONS (event)->car, CONSP (event))
+	      && (event = XCONS (event)->car, CONSP (event))
+	      && (event = XCONS (event)->car), WINDOWP (event))
 	    {
 	      if (MINI_WINDOW_P (XWINDOW (event))
 		  && ! (minibuf_level > 0 && EQ (event, minibuf_window)))
@@ -464,7 +464,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'e':		/* The invoking event.  */
 	  if (next_event >= this_command_key_count)
 	    error ("%s must be bound to an event with parameters",
-		   (XTYPE (function) == Lisp_Symbol
+		   (SYMBOLP (function)
 		    ? (char *) XSYMBOL (function)->name->data
 		    : "command"));
 	  args[i] = XVECTOR (this_command_keys)->contents[next_event++];
@@ -554,7 +554,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
       if (varies[i] == 0)
 	arg_from_tty = 1;
 
-      if (NILP (visargs[i]) && XTYPE (args[i]) == Lisp_String)
+      if (NILP (visargs[i]) && STRINGP (args[i]))
 	visargs[i] = args[i];
 
       tem = (unsigned char *) index (tem, '\n');
@@ -609,7 +609,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
     XSETINT (val, -1);
   else if (CONSP (raw))
     XSETINT (val, XINT (XCONS (raw)->car));
-  else if (XTYPE (raw) == Lisp_Int)
+  else if (INTEGERP (raw))
     val = raw;
   else
     XFASTINT (val) = 1;
