@@ -1674,6 +1674,7 @@ mark_object (objptr)
 	case Lisp_Misc_Boolfwd:
 	case Lisp_Misc_Objfwd:
 	case Lisp_Misc_Buffer_Objfwd:
+	case Lisp_Misc_Display_Objfwd:
 	  /* Don't bother with Lisp_Buffer_Objfwd,
 	     since all markable slots in current buffer marked anyway.  */
 	  /* Don't need to do Lisp_Objfwd, since the places they point
