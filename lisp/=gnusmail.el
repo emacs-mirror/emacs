@@ -152,7 +152,8 @@ The command \\[mh-yank-cur-msg] yank the original message into current buffer."
     (save-restriction
       (gnus-article-show-all-headers)	;I don't think this is really needed.
       (setq from (gnus-fetch-field "from")
-	    subject (let ((subject (gnus-fetch-field "subject")))
+	    subject (let ((subject (or (gnus-fetch-field "subject")
+				       "(None)")))
 		      (if (and subject
 			       (not (string-match "^[Rr][Ee]:.+$" subject)))
 			  (concat "Re: " subject) subject))
