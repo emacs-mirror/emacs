@@ -2961,8 +2961,11 @@ decode_mode_spec (w, c, maxwidth)
       return "-";
 
     case '+':
+      /* This differs from %* only for a modified read-only buffer.  */
       if (MODIFF > current_buffer->save_modified)
 	return "*";
+      if (!NILP (current_buffer->read_only))
+	return "%";
       return "-";
 
     case 's':
