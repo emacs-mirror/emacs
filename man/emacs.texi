@@ -12,7 +12,7 @@ This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
 updated for Emacs version @value{EMACSVER}.
 
 Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
-1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1500,9 +1500,9 @@ edit files while running shell commands.
 @include msdog.texi
 @include gnu.texi
 @include glossary.texi
-@ifinfo
+@ifnottex
 @include ack.texi
-@end ifinfo
+@end ifnottex
 
 @c The Option Index is produced only in the on-line version,
 @c because the index entries related to command-line options
