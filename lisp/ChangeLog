@@ -1,3 +1,9 @@
+2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (make-backup-file-name-1): Replace slashes with `!'
+	rather than `|' (which is not allowed on Windows).  Replace the
+	drive letters with a string "drive_X".
+
 2000-05-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/sh-script.el (sh-ancestor-alist): Add `bash2'.
