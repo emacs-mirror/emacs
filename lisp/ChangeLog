@@ -1,3 +1,8 @@
+2004-10-07  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-substitute-special): Limit handling of external
+	entities.
+
 2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-ann3): (Re-)initialise gdb-input-queue.
