@@ -482,7 +482,7 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defvar grep-find-use-xargs nil
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
-If nil, it uses `grep -exec'; if `gnu', it uses `find -print0' and `xargs -0';
+If nil, it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
 if not nil and not `gnu', it uses `find -print' and `xargs'.
 
 This variable's value takes effect when `grep-compute-defaults' is called.")

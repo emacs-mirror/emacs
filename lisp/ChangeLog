@@ -1,3 +1,8 @@
+2002-10-28  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
+	Patch from Matt Swift <swift@alum.mit.edu>.
+
 2002-10-28  Francesco Potorti`  <pot@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp): Synch with main trunk.
