@@ -1434,7 +1434,10 @@ When called interactively, the optional arg INTERACTIVE is non-nil,
 and that means call `sc-select-attribution' too."
   (interactive "r\nP\np")
   (undo-boundary)
-  (let ((frame (or (sc-scan-info-alist sc-cite-frame-alist)
+  (let ((frame (or (sc-scan-info-alist
+		    (if (symbolp sc-cite-frame-alist)
+			(symbol-value sc-cite-frame-alist)
+		      sc-cite-frame-alist))
 		   sc-default-cite-frame))
 	(sc-confirm-always-p (if confirm-p t sc-confirm-always-p)))
     (run-hooks 'sc-pre-cite-hook)
@@ -1447,7 +1450,10 @@ and that means call `sc-select-attribution' too."
 First runs `sc-pre-uncite-hook'."
   (interactive "r")
   (undo-boundary)
-  (let ((frame (or (sc-scan-info-alist sc-uncite-frame-alist)
+  (let ((frame (or (sc-scan-info-alist
+		    (if (symbolp sc-uncite-frame-alist)
+			(symbol-value sc-uncite-frame-alist)
+		      sc-uncite-frame-alist))
 		   sc-default-uncite-frame)))
     (run-hooks 'sc-pre-uncite-hook)
     (regi-interpret frame start end)))
@@ -1459,7 +1465,10 @@ First runs `sc-pre-recite-hook'."
   (let ((sc-confirm-always-p t))
     (sc-select-attribution))
   (undo-boundary)
-  (let ((frame (or (sc-scan-info-alist sc-recite-frame-alist)
+  (let ((frame (or (sc-scan-info-alist
+		    (if (symbolp sc-recite-frame-alist)
+			(symbol-value sc-recite-frame-alist)
+		      sc-recite-frame-alist))
 		   sc-default-recite-frame)))
     (run-hooks 'sc-pre-recite-hook)
     (regi-interpret frame start end)))
