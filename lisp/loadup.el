@@ -81,14 +81,6 @@
 (load "case-table")
 (load "international/characters")
 
-(let ((set-case-syntax-set-multibyte t))
-  (load "international/latin-1")
-  (load "international/latin-2")
-  (load "international/latin-3")
-  (load "international/latin-4")
-  (load "international/latin-5")
-  (load "international/latin-8")
-  (load "international/latin-9"))
 ;; Load language-specific files.
 (load "language/chinese")
 (load "language/cyrillic")
