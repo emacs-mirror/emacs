@@ -1414,7 +1414,7 @@ created."
     (((class color) (background light))
      (:background "lightblue"))
     (t (:background "gray")))
-  "Basic face for highlight the region."
+  "Basic face for highlighting the region."
   :group 'basic-faces)
 
 
