@@ -374,16 +374,7 @@ with RCS)."
 				      (if buffer-error-marked-p buffer))))
 				  (buffer-list)))))))
 
-    (let ((in-font-lock-mode (and (boundp 'font-lock-fontified)
-				  font-lock-fontified)))
-      (if in-font-lock-mode
-	  (font-lock-mode 0))
-
-      ;; the actual revisit
-      (revert-buffer arg no-confirm)
-
-      (if in-font-lock-mode
-	  (font-lock-mode 1)))
+    (revert-buffer arg no-confirm)
 
     ;; Reparse affected compilation buffers.
     (while reparse
