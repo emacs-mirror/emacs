@@ -928,7 +928,8 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 				    "Save file and revisit non-literally? "))
 			(progn
 			  (save-buffer)
-			  (revert-buffer t t))
+			  (find-file-noselect-1 buf filename nowarn
+						rawfile truename number))
 		      (if (y-or-n-p (if rawfile
 					"Discard your edits and revisit file literally? "
 				      "Discard your edits and revisit file non-literally? "))
