@@ -3924,9 +3924,9 @@ x_window_to_scroll_bar (display, window_id)
 {
   Lisp_Object tail;
 
-#ifdef USE_GTK
+#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
   window_id = (Window) xg_get_scroll_id_for_window (display, window_id);
-#endif /* USE_GTK */
+#endif /* USE_GTK  && USE_TOOLKIT_SCROLL_BARS */
 
   for (tail = Vframe_list;
        XGCTYPE (tail) == Lisp_Cons;

@@ -1,5 +1,8 @@
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xterm.c (x_window_to_scroll_bar): Only call
+	xg_get_scroll_id_for_window if toolkit scroll bars are used.
+
 	* gtkutil.c (xg_get_file_with_chooser): Use GTK_STOCK_OK instead
 	of save.
 
