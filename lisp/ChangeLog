@@ -1,3 +1,9 @@
+2004-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el: Don't require cl, comint, gud, gdb-ui for
+	compilation. The resulting compiler warnings appear to be
+	harmless.
+
 2004-11-10  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* textmodes/conf-mode.el: New file.
