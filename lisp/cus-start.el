@@ -272,6 +272,7 @@
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
+	     (x-use-old-gtk-file-dialog menu boolean "21.4")
 	     ;; xterm.c
              (mouse-autoselect-window display boolean "21.3")
 	     (x-use-underline-position-properties display boolean "21.3")

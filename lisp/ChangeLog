@@ -1,5 +1,7 @@
 2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* cus-start.el (all): Added x-use-old-gtk-file-dialog.
+
 	* mail/emacsbug.el (report-emacs-bug): Catch error that x-server-vendor
 	and x-server-version may throw.
 
