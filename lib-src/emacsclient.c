@@ -56,9 +56,9 @@ struct option longopts[] =
 };
 
 /* Decode the options from argv and argc.
-   Return the number of remaining arguments.  */
+   The global variable `optind' will say how many arguments we used up.  */
 
-int
+void
 decode_options (argc, argv)
      int argc;
      char **argv;
@@ -92,8 +92,6 @@ decode_options (argc, argv)
 	  print_help_and_exit ();
 	}
     }
-
-  return argc;
 }
 
 print_help_and_exit ()
@@ -104,6 +102,39 @@ print_help_and_exit ()
   fprintf (stderr,
 	   "Report bugs to bug-gnu-emacs@prep.ai.mit.edu.\n");
   exit (1);
+}
+
+/* Return a copy of NAME, inserting a \
+   before each \, each -, and each space.
+   Change spaces to underscores, too, so that the
+   return value never contains a space.  */
+
+char *
+quote_file_name (name)
+     char *name;
+{
+  char *copy = (char *) malloc (strlen (name) * 2 + 1);
+  char *p, *q;
+
+  p = name;
+  q = copy;
+  while (*p)
+    {
+      if (*p == ' ')
+	{
+	  *q++ = '\\';
+	  *q++ = '_';
+	  p++;
+	}
+      else
+	{
+	  if (*p == '\\' || *p == '-')
+	    *q++ = '\\';
+	  *q++ = *p++;
+	}
+    }
+
+  return copy;
 }
 
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
@@ -143,18 +174,13 @@ main (argc, argv)
   struct sockaddr_un server;
   char *homedir, *cwd, *str;
   char string[BUFSIZ];
-  int args_left;
 
   progname = argv[0];
 
   /* Process options.  */
-  args_left = decode_options (argc, argv);
+  decode_options (argc, argv);
 
-  /* Advance argv and decrement argc for the options that were skipped.  */
-  argv += argc - args_left;
-  argc = args_left;
-
-  if (argc < 2)
+  if (argc - optind < 1)
     print_help_and_exit ();
 
   /* 
@@ -244,19 +270,11 @@ main (argc, argv)
       exit (1);
     }
 
-  for (i = 1; i < argc; i++)
-    {
-      /* If -nowait or --nowait option is used,
-	 report it to the server.  */
-      if (!strcmp (argv[i], "-nowait")
-	  || (!strncmp (argv[i], "--nowait", strlen (argv[i]))
-	      && strlen (argv[i]) >= 3))
-	{
-	  fprintf (out, "-nowait ");
-	  nowait = 1;
-	  continue;
-	}
+  if (nowait)
+    fprintf (out, "-nowait ");
 
+  for (i = optind; i < argc; i++)
+    {
       if (*argv[i] == '+')
 	{
 	  char *p = argv[i] + 1;
@@ -266,7 +284,8 @@ main (argc, argv)
 	}
       else if (*argv[i] != '/')
 	fprintf (out, "%s/", cwd);
-      fprintf (out, "%s ", argv[i]);
+
+      fprintf (out, "%s ", quote_file_name (argv[i]));
     }
   fprintf (out, "\n");
   fflush (out);
@@ -321,13 +340,9 @@ main (argc, argv)
   progname = argv[0];
 
   /* Process options.  */
-  args_left = decode_options (argc, argv);
+  decode_options (argc, argv);
 
-  /* Advance argv and decrement argc for the options that were skipped.  */
-  argv += argc - args_left;
-  argc = args_left;
-
-  if (argc < 2)
+  if (argc - optind < 1)
     print_help_and_exit ();
 
   /*
@@ -381,22 +396,22 @@ main (argc, argv)
 
   msgp->mtext[0] = 0;
   used = 0;
-  argc--; argv++;
+
+  if (nowait)
+    {
+      strcat (msgp->mtext, "-nowait ");
+      used += 8;
+    }
+
+  argc -= optind;
+  argv += optind;
+
   while (argc)
     {
       int need_cwd = 0;
       char *modified_arg = argv[0];
 
-      /* If -nowait or --nowait option is used,
-	 report it to the server.  */
-      if (!strcmp (modified_arg, "-nowait")
-	  || (!strncmp (modified_arg, "--nowait", strlen (modified_arg))
-	      && strlen (modified_arg) >= 3))
-	{
-	  modified_arg = "-nowait";
-	  nowait = 1;
-	}
-      else if (*modified_arg == '+')
+      if (*modified_arg == '+')
 	{
 	  char *p = modified_arg + 1;
 	  while (*p >= '0' && *p <= '9') p++;
@@ -405,6 +420,8 @@ main (argc, argv)
 	}
       else if (*modified_arg != '/')
 	need_cwd = 1;
+
+      modified_arg = quote_file_name (modified_arg);
 
       if (need_cwd)
 	used += strlen (cwd);
