@@ -1,3 +1,35 @@
+2004-08-31  Simon Josefsson  <jas@extundo.com>
+
+	* rfc2231.el (rfc2231-parse-string): Restore whitespace syntax for
+	?* and ?\; (tiny patch).  From Andreas Schwab <schwab@suse.de>.
+
+	* ietf-drums.el (ietf-drums-syntax-table): Set syntax of ?* ?\;
+	and ?\' to symbol instead of whitespace (tiny patch).  From
+	Andreas Schwab <schwab@suse.de>.
+
+2004-08-31  Jesper Harder  <harder@ifa.au.dk>
+
+	* message.el (message-idna-to-ascii-rhs-1): Don't choke on
+	invalid addresses.
+
+2004-08-31  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-idna-to-ascii-rhs-1): Fix typo.
+
+2004-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-idna-to-ascii-rhs-1): Don't use equalp.
+
+2004-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-decode-idna-rhs): Don't use
+	message-idna-inside-rhs-p.
+
+2004-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-idna-inside-rhs-p): Removed.
+	(message-idna-to-ascii-rhs-1): Use proper address parsing.
+
 2004-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-agent.el (gnus-agent-restore-gcc): Use ^ and regexp-quote.
