@@ -789,7 +789,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       else
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
-	  struct specbinding *pdl = specpdl_ptr;
+	  volatile struct specbinding *pdl = specpdl_ptr;
 	  while (--pdl >= specpdl)
 	    {
 	      if (EQ (pdl->symbol, sym) && !pdl->func
