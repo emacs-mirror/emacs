@@ -22,7 +22,7 @@
 #						  9-6-94
 !include makefile.def
 
-ALL		= $(BLD)\addpm.exe $(BLD)\runemacs.exe $(BLD)\cmdproxy.exe
+ALL		= $(BLD)\addpm.exe $(BLD)\ddeclient.exe $(BLD)\runemacs.exe $(BLD)\cmdproxy.exe
 !if $(MSVCNT11)
 TRES		= $(BLD)\emacs.res
 !else
@@ -35,6 +35,12 @@ TRES		= $(BLD)\emacs.rbj
 addpm:		  $(BLD) $(BLD)\addpm.exe
 $(BLD)\addpm.obj: addpm.c
 $(BLD)\addpm.exe: $(BLD)\addpm.obj
+		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
+		  $(SYS_LDFLAGS) $** $(BASE_LIBS) $(ADVAPI32) user32.lib
+
+ddeclient:	  $(BLD) $(BLD)\ddeclient.exe
+$(BLD)\ddeclient.obj: ddeclient.c
+$(BLD)\ddeclient.exe: $(BLD)\ddeclient.obj
 		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
 		  $(SYS_LDFLAGS) $** $(BASE_LIBS) $(ADVAPI32) user32.lib
 
@@ -106,6 +112,7 @@ install:	all emacs.bat debug.bat
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
 		- $(CP) debug.bat $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\ddeclient.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\cmdproxy.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\runemacs.exe $(INSTALL_DIR)\bin
 		- $(ADDPM) $(INSTALL_DIR)
