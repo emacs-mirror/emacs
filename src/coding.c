@@ -260,9 +260,16 @@ int eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
    decided.  */
 int eol_mnemonic_undecided;
 
+/* Format of end-of-line decided by system.  This is CODING_EOL_LF on
+   Unix, CODING_EOL_CRLF on DOS/Windows, and CODING_EOL_CR on Mac.  */
+int system_eol_type;
+
 #ifdef emacs
 
 Lisp_Object Qcoding_system_spec, Qcoding_system_p, Qcoding_system_error;
+
+/* Coding system emacs-mule is for converting only end-of-line format.  */
+Lisp_Object Qemacs_mule;
 
 /* Coding-systems are handed between Emacs Lisp programs and C internal
    routines by the following three variables.  */
@@ -272,6 +279,9 @@ Lisp_Object Vcoding_system_for_read;
 Lisp_Object Vcoding_system_for_write;
 /* Coding-system actually used in the latest I/O.  */
 Lisp_Object Vlast_coding_system_used;
+
+/* Flag to inhibit code conversion of end-of-line format.  */
+int inhibit_eol_conversion;
 
 /* Coding-system of what terminal accept for displaying.  */
 struct coding_system terminal_coding;
@@ -1663,7 +1673,7 @@ encode_coding_iso2022 (coding, source, destination,
 	  {								  \
 	    unsigned char b1, b2;					  \
 									  \
-	    ENCODE_BIG5 (c1, c2, c3, b1, b2);				  \
+	    ENCODE_BIG5 (charset_alt, c1, c2, b1, b2);			  \
 	    *dst++ = b1, *dst++ = b2;					  \
 	  }								  \
 	else								  \
@@ -2183,7 +2193,7 @@ setup_coding_system (coding_system, coding)
       if (NILP (coding->pre_write_conversion))	
 	coding->pre_write_conversion = Fget (coding_system,
 					     Qpre_write_conversion);
-      if (NILP (eol_type))
+      if (!inhibit_eol_conversion && NILP (eol_type))
 	eol_type = Fget (coding_system, Qeol_type);
 
       if (NILP (coding->character_unification_table_for_decode))
@@ -3469,10 +3479,10 @@ DEFUN ("keyboard-coding-system",
 DEFUN ("find-operation-coding-system", Ffind_operation_coding_system,
        Sfind_operation_coding_system,  1, MANY, 0,
   "Choose a coding system for an operation based on the target name.\n\
-The value names a pair of coding systems: (ENCODING-SYSTEM DECODING-SYSTEM).\n\
-ENCODING-SYSTEM is the coding system to use for encoding\n\
-\(in case OPERATION does encoding), and DECODING-SYSTEM is the coding system\n\
-for decoding (in case OPERATION does decoding).\n\
+The value names a pair of coding systems: (DECODING-SYSTEM ENCODING-SYSTEM).\n\
+DECODING-SYSTEM is the coding system to use for decoding\n\
+\(in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system\n\
+for encoding (in case OPERATION does encoding).\n\
 \n\
 The first argument OPERATION specifies an I/O primitive:\n\
   For file I/O, `insert-file-contents' or `write-region'.\n\
@@ -3495,7 +3505,7 @@ or `network-coding-system-alist' depending on OPERATION.\n\
 They may specify a coding system, a cons of coding systems,\n\
 or a function symbol to call.\n\
 In the last case, we call the function with one argument,\n\
-which is a list of all the arguments given to `find-coding-system'.")
+which is a list of all the arguments given to this function.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3601,6 +3611,12 @@ init_coding_once ()
 
   setup_coding_system (Qnil, &keyboard_coding);
   setup_coding_system (Qnil, &terminal_coding);
+
+#if defined (MSDOS) || defined (WINDOWSNT)
+  system_eol_type = CODING_EOL_CRLF;
+#else
+  system_eol_type = CODING_EOL_LF;
+#endif
 }
 
 #ifdef emacs
@@ -3610,23 +3626,29 @@ syms_of_coding ()
   Qtarget_idx = intern ("target-idx");
   staticpro (&Qtarget_idx);
 
+  /* Target FILENAME is the first argument.  */
   Fput (Qinsert_file_contents, Qtarget_idx, make_number (0));
+  /* Target FILENAME is the third argument.  */
   Fput (Qwrite_region, Qtarget_idx, make_number (2));
 
   Qcall_process = intern ("call-process");
   staticpro (&Qcall_process);
+  /* Target PROGRAM is the first argument.  */
   Fput (Qcall_process, Qtarget_idx, make_number (0));
 
   Qcall_process_region = intern ("call-process-region");
   staticpro (&Qcall_process_region);
+  /* Target PROGRAM is the third argument.  */
   Fput (Qcall_process_region, Qtarget_idx, make_number (2));
 
   Qstart_process = intern ("start-process");
   staticpro (&Qstart_process);
+  /* Target PROGRAM is the third argument.  */
   Fput (Qstart_process, Qtarget_idx, make_number (2));
 
   Qopen_network_stream = intern ("open-network-stream");
   staticpro (&Qopen_network_stream);
+  /* Target SERVICE is the fourth argument.  */
   Fput (Qopen_network_stream, Qtarget_idx, make_number (3));
 
   Qcoding_system = intern ("coding-system");
@@ -3656,7 +3678,7 @@ syms_of_coding ()
   Fput (Qcoding_system_error, Qerror_conditions,
 	Fcons (Qcoding_system_error, Fcons (Qerror, Qnil)));
   Fput (Qcoding_system_error, Qerror_message,
-	build_string ("Coding-system error"));
+	build_string ("Invalid coding system"));
 
   Qcoding_category_index = intern ("coding-category-index");
   staticpro (&Qcoding_category_index);
@@ -3684,6 +3706,9 @@ syms_of_coding ()
   Qcharacter_unification_table_for_encode
     = intern ("character-unification-table-for-encode");
   staticpro (&Qcharacter_unification_table_for_encode);
+
+  Qemacs_mule = intern ("emacs-mule");
+  staticpro (&Qemacs_mule);
 
   defsubr (&Scoding_system_spec);
   defsubr (&Scoding_system_p);
@@ -3732,6 +3757,10 @@ If not, an appropriate element in `coding-system-alist' (which see) is used.");
     "Coding-system used in the latest file or process I/O.");
   Vlast_coding_system_used = Qnil;
 
+  DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
+    "*Non-nil inhibit code conversion of end-of-line format in any cases.");
+  inhibit_eol_conversion = 0;
+
   DEFVAR_LISP ("file-coding-system-alist", &Vfile_coding_system_alist,
     "Alist to decide a coding system to use for a file I/O operation.\n\
 The format is ((PATTERN . VAL) ...),\n\
@@ -3744,7 +3773,7 @@ and the cdr part is used for encoding.\n\
 If VAL is a function symbol, the function must return a coding system\n\
 or a cons of coding systems which are used as above.\n\
 \n\
-See also the function `find-coding-system'.");
+See also the function `find-operation-coding-system'.");
   Vfile_coding_system_alist = Qnil;
 
   DEFVAR_LISP ("process-coding-system-alist", &Vprocess_coding_system_alist,
@@ -3759,7 +3788,7 @@ and the cdr part is used for encoding.\n\
 If VAL is a function symbol, the function must return a coding system\n\
 or a cons of coding systems which are used as above.\n\
 \n\
-See also the function `find-coding-system'.");
+See also the function `find-operation-coding-system'.");
   Vprocess_coding_system_alist = Qnil;
 
   DEFVAR_LISP ("network-coding-system-alist", &Vnetwork_coding_system_alist,
@@ -3775,7 +3804,7 @@ and the cdr part is used for encoding.\n\
 If VAL is a function symbol, the function must return a coding system\n\
 or a cons of coding systems which are used as above.\n\
 \n\
-See also the function `find-coding-system'.");
+See also the function `find-operation-coding-system'.");
   Vnetwork_coding_system_alist = Qnil;
 
   DEFVAR_INT ("eol-mnemonic-unix", &eol_mnemonic_unix,
