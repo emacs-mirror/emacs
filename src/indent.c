@@ -526,8 +526,6 @@ current_column_1 ()
   while (scan < opoint)
     {
       int c;
-      EMACS_INT i, n;
-      Lisp_Object charvec;
 
       /* Occasionally we may need to skip invisible text.  */
       while (scan == next_boundary)
@@ -564,36 +562,51 @@ current_column_1 ()
 	  && ! (multibyte && BASE_LEADING_CODE_P (c))
 	  && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
+	  Lisp_Object charvec;
+	  EMACS_INT i, n;
+
+	  /* This character is displayed using a vector of glyphs.
+	     Update the column based on those glyphs.  */
+
 	  charvec = DISP_CHAR_VECTOR (dp, c);
 	  n = ASIZE (charvec);
-	}
-      else
-	{
-	  charvec = Qnil;
-	  n = 1;
-	}
 
-      for (i = n - 1; i >= 0; --i)
-	{
-	  if (VECTORP (charvec))
+	  for (i = 0; i < n; i++)
 	    {
 	      /* This should be handled the same as
 		 next_element_from_display_vector does it.  */
-	      Lisp_Object entry = AREF (charvec, i);
-	      
+	      Lisp_Object entry;
+	      entry = AREF (charvec, i);
+
 	      if (INTEGERP (entry)
 		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
 		c = FAST_GLYPH_CHAR (XFASTINT (entry));
 	      else
 		c = ' ';
+
+	      if (c == '\n')
+		goto endloop;
+	      if (c == '\r' && EQ (current_buffer->selective_display, Qt))
+		goto endloop;
+	      if (c == '\t')
+		{
+		  int prev_col = col;
+		  col += tab_width;
+		  col = col / tab_width * tab_width;
+		}
+	      else
+		++col;
 	    }
-      
+	}
+      else
+	{
+	  /* The display table says nothing for this character.
+	     Display it as itself.  */
+
 	  if (c == '\n')
 	    goto endloop;
 	  if (c == '\r' && EQ (current_buffer->selective_display, Qt))
 	    goto endloop;
-	  scan++;
-	  scan_byte++;
 	  if (c == '\t')
 	    {
 	      int prev_col = col;
@@ -611,8 +624,6 @@ current_column_1 ()
 	      scan_byte += bytes;
 	      col += width;
 	    }
-	  else if (VECTORP (charvec))
-	    ++col;
 	  else if (ctl_arrow && (c < 040 || c == 0177))
 	    col += 2;
 	  else if (c < 040 || c >= 0177)
@@ -620,6 +631,9 @@ current_column_1 ()
 	  else
 	    col++;
 	}
+      scan++;
+      scan_byte++;
+
     }
  endloop:
 
@@ -947,9 +961,6 @@ The return value is the current column.  */)
 
   while (pos < end)
     {
-      Lisp_Object charvec;
-      EMACS_INT i, n;
-      
       while (pos == next_boundary)
 	{
 	  int prev = pos;
@@ -982,49 +993,65 @@ The return value is the current column.  */)
 
       c = FETCH_BYTE (pos_byte);
 
+      /* See if there is a display table and it relates
+	 to this character.  */
+
       if (dp != 0
 	  && ! (multibyte && BASE_LEADING_CODE_P (c))
 	  && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
+	  Lisp_Object charvec;
+	  EMACS_INT i, n;
+
+	  /* This character is displayed using a vector of glyphs.
+	     Update the position based on those glyphs.  */
+
 	  charvec = DISP_CHAR_VECTOR (dp, c);
 	  n = ASIZE (charvec);
-	}
-      else
-	{
-	  charvec = Qnil;
-	  n = 1;
-	}
 
-      for (i = n - 1; i >= 0; --i)
-	{
-	  if (VECTORP (charvec))
+	  for (i = 0; i < n; i++)
 	    {
 	      /* This should be handled the same as
 		 next_element_from_display_vector does it.  */
-	      Lisp_Object entry = AREF (charvec, i);
-	      
+
+	      Lisp_Object entry;
+	      entry = AREF (charvec, i);
+
 	      if (INTEGERP (entry)
 		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
 		c = FAST_GLYPH_CHAR (XFASTINT (entry));
 	      else
 		c = ' ';
-	    }
 
-      
+	      if (c == '\n')
+		goto endloop;
+	      if (c == '\r' && EQ (current_buffer->selective_display, Qt))
+		goto endloop;
+	      if (c == '\t')
+		{
+		  prev_col = col;
+		  col += tab_width;
+		  col = col / tab_width * tab_width;
+		}
+	      else
+		++col;
+	    }
+	}
+      else
+	{
+	  /* The display table doesn't affect this character;
+	     it displays as itself.  */
+
 	  if (c == '\n')
 	    goto endloop;
 	  if (c == '\r' && EQ (current_buffer->selective_display, Qt))
 	    goto endloop;
-	  pos++;
-	  pos_byte++;
 	  if (c == '\t')
 	    {
 	      prev_col = col;
 	      col += tab_width;
 	      col = col / tab_width * tab_width;
 	    }
-	  else if (VECTORP (charvec))
-	    ++col;
 	  else if (ctl_arrow && (c < 040 || c == 0177))
 	    col += 2;
 	  else if (c < 040 || c == 0177)
@@ -1037,15 +1064,17 @@ The return value is the current column.  */)
 	      unsigned char *ptr;
 	      int bytes, width, wide_column;
 
-	      pos_byte--;
 	      ptr = BYTE_POS_ADDR (pos_byte);
 	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
-	      pos_byte += bytes;
+	      pos_byte += bytes - 1;
 	      col += width;
 	    }
 	  else
 	    col += 4;
 	}
+
+      pos++;
+      pos_byte++;
     }
  endloop:
 
