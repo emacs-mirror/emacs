@@ -1238,7 +1238,7 @@ non-nil."
           (error "File %s not in $BIBINPUTS paths" filename)))))
    bibtex-string-files)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start "^[ \f\n\t]*$")
+  (setq paragraph-start "[ \f\n\t]*$")
   (make-local-variable 'comment-start)
   (setq comment-start "%")
   (auto-fill-mode 1)			; nice alignments
