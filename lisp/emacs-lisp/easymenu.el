@@ -187,18 +187,19 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
       (setq name (setq item-string (aref item 0)))
       (setq command (easy-menu-make-symbol (aref item 1) t))
       (let ((active (if (> (length item) 2) (aref item 2) t))
+	    (active-specified (> (length item) 2))
 	    (count 2)
 	    style selected)
 	(if (and (symbolp active) (= ?: (aref (symbol-name active) 0)))
 	    (let ((count 2) keyword arg suffix keys)
-	      (setq active nil)
+	      (setq active-specified nil)
 	      (while (> (length item) count)
 		(setq keyword (aref item count))
 		(setq arg (aref item (1+ count)))
 		(setq count (+ 2 count))
 		(cond
 		 ((eq keyword ':keys) (setq keys arg))
-		 ((eq keyword ':active) (setq active arg))
+		 ((eq keyword ':active) (setq active arg active-specified t))
 		 ((eq keyword ':suffix) (setq suffix (concat " " arg)))
 		 ((eq keyword ':style) (setq style arg))
 		 ((eq keyword ':selected) (setq selected arg))))
@@ -214,13 +215,15 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 					       ,selected
 					       ,(or active t)))
 		(setq is-button t)
-		(setq active nil)	; Already taken care of active.
+		(setq active-specified nil)	; Already taken care of active.
 		(when (not (or have-buttons top))
 		  (setq have-buttons "    ")
 		  ;; Add prefix to menu items defined so far.
-		  (easy-menu-change-prefix menu t)))))
-	(if active (put command 'menu-enable active))))
-     (t "Illegal menu item in easy menu."))
+		  (easy-menu-change-prefix menu t))))
+	  (and (null active) active-specified
+	       (setq active ''nil)))
+	(if active-specified (put command 'menu-enable active))))
+     (t "Invalid menu item in easymenu"))
     (when name
       (and (not is-button) have-buttons
 	   (setq item-string (concat have-buttons item-string)))
