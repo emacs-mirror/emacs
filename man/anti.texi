@@ -177,7 +177,7 @@ current buffer.  (Transient Mark mode is alien to the spirit of Emacs,
 so we are planning to remove it altogether in an earlier version.)
 
 @item
-@kbd{C-down-mouse-3} does not show what would be in the menu bar
+@kbd{C-Down-Mouse-3} does not show what would be in the menu bar
 when the menu bar is not displayed.
 
 @item
@@ -212,7 +212,7 @@ for C and C@t{++} buffer as well.
 
 @item
 Isearch does not highlight other possible matches; it shows only the
-current match, to avoid distracting your attention.  @kbd{mouse-2} in
+current match, to avoid distracting your attention.  @kbd{Mouse-2} in
 the echo area during incremental search now signals an error, instead of
 inserting the current selection into the search string.  But you can
 accomplish more or less the same job by typing @kbd{M-y}.
