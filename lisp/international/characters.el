@@ -138,7 +138,6 @@
 (modify-category-entry (make-char 'chinese-gb2312 37) ?K)
 (modify-category-entry (make-char 'chinese-gb2312 38) ?G)
 (modify-category-entry (make-char 'chinese-gb2312 39) ?Y)
-(modify-category-entry (make-char 'chinese-gb2312 35) ?A)
 (let ((row 48))
   (while (< row 127)
     (modify-category-entry (make-char 'chinese-gb2312 row) ?C)
