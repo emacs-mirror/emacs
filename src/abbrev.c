@@ -75,6 +75,9 @@ Lisp_Object Vlast_abbrev_text;
 
 int last_abbrev_point;
 
+/* Hook to run before expanding any abbrev.  */
+
+Lisp_Object Vpre_abbrev_expand_hook, Qpre_abbrev_expand_hook;
 
 DEFUN ("make-abbrev-table", Fmake_abbrev_table, Smake_abbrev_table, 0, 0, 0,
   "Create a new, empty abbrev table object.")
@@ -217,6 +220,9 @@ Returns t if expansion took place.")
   int uccount = 0, lccount = 0;
   register Lisp_Object sym;
   Lisp_Object expansion, hook, tem;
+
+  if (!NULL (Vrun_hooks))
+    call1 (Vrun_hooks, Qpre_abbrev_expand_hook);
 
   if (XBUFFER (Vabbrev_start_location_buffer) != current_buffer)
     Vabbrev_start_location = Qnil;
@@ -531,6 +537,14 @@ This causes `save-some-buffers' to offer to save the abbrevs.");
   DEFVAR_BOOL ("abbrev-all-caps", &abbrev_all_caps,
     "*Set non-nil means expand multi-word abbrevs all caps if abbrev was so.");
   abbrev_all_caps = 0;
+
+  DEFVAR_LISP ("pre-abbrev-expand-hook", &Vpre_abbrev_expand_hook,
+    "Function or functions to be called before abbrev expansion is done.\n\
+This is the first thing that `expand-abbrev' does, and so this may change\n\
+the current abbrev table before abbrev lookup happens.");
+  Vpre_abbrev_expand_hook = Qnil;
+  Qpre_abbrev_expand_hook = intern ("pre-abbrev-expand-hook");
+  staticpro (&Qpre_abbrev_expand_hook);
 
   defsubr (&Smake_abbrev_table);
   defsubr (&Sclear_abbrev_table);
