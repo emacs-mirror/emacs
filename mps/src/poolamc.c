@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.36) $
+ * $HopeName: MMsrc!poolamc.c(trunk.37) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.36) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.37) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -1393,8 +1393,11 @@ static void AMCFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
   UNUSED(pool);
 
   ref = (Addr)*refIO;
-  AVER(AddrAdd(SegBase(seg), pool->format->headerSize) <= ref);
-  AVER(ref < AddrAdd(SegLimit(seg), pool->format->headerSize));
+  /* An ambiguous reference can point before the header. */
+  AVER(SegBase(seg) <= ref);
+  /* .ref-limit: A reference passed to Fix can't be beyond the segment, */
+  /* because then TraceFix would not have picked this segment. */
+  AVER(ref < SegLimit(seg));
 
   EVENT_0(AMCFixInPlace);
   if(AMCSegHasNailBoard(seg)) {
@@ -1688,7 +1691,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   format = pool->format;
   ref = *refIO;
   AVER_CRITICAL(AddrAdd(SegBase(seg), pool->format->headerSize) <= ref);
-  AVER_CRITICAL(ref < AddrAdd(SegLimit(seg), pool->format->headerSize));
+  AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
 
   arena = pool->arena;
 
