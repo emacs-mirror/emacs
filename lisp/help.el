@@ -970,7 +970,7 @@ that."
               ;; Info references
               (save-excursion
                 (while (re-search-forward help-xref-info-regexp nil t)
-                  (help-xref-button 1 #'Info-goto-node (match-string 1))))
+                  (help-xref-button 1 #'info (match-string 1))))
               ;; An obvious case of a key substitution:
               (save-excursion              
                 (while (re-search-forward 
