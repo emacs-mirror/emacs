@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.31 2001/03/02 20:31:40 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.32 2001/08/21 18:30:59 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -446,8 +446,10 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	  ;; If none, insert one.
 	  (save-excursion
 	    ;; Some comment-indent-function insist on not moving comments that
-	    ;; are in column 0, so we insert a space to avoid this special case
-	    (insert " ")
+	    ;; are in column 0, so we insert a space to avoid this special
+	    ;; case.  The check for (zerop comment-column) is used for cases
+	    ;; where we're called from comment-indent-new-line.
+	    (unless (zerop comment-column) (insert " "))
 	    (setq begpos (point))
 	    (insert starter)
 	    (setq cpos (point-marker))
