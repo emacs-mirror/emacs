@@ -312,9 +312,10 @@ Default value, nil, means edit the string instead."
       (define-key map "\C-\\" 'isearch-toggle-input-method)
       (define-key map "\C-^" 'isearch-toggle-specified-input-method)
 
-      ;; People expect to be able to paste with the mouse.
-      (define-key map [mouse-2] #'isearch-yank-kill)
-      (define-key map [down-mouse-2] nil)
+;;; I think the normal meaning of Mouse-2 is more natural.
+;;;       ;; People expect to be able to paste with the mouse.
+;;;       (define-key map [mouse-2] #'isearch-yank-kill)
+;;;       (define-key map [down-mouse-2] nil)
 
       (setq isearch-mode-map map)
       ))
