@@ -1,5 +1,8 @@
 2002-06-10  Dave Love  <fx@gnu.org>
 
+	* quail/hanja3.el, quail/hanja.el, makefile.nt, Makefile.in: 
+	* quail/vntelex.el: Update from trunk.
+
 	* quail/cyrillic.el: Doc fixes.
 	("cyrillic-beylorussian"): Commented-out.
 	("cyrillic-translit-bulgarian"): Deleted.
