@@ -179,9 +179,7 @@ This variable is buffer-local.")
      
 (defun ielm-indent-line nil
   "Indent the current line as Lisp code if it is not a prompt line."
-  (if (save-excursion
-	(beginning-of-line)
-	(looking-at comint-prompt-regexp)) nil
+  (when (save-excursion (comint-bol) (bolp))
     (lisp-indent-line)))
 
 ;;; Working buffer manipulation
