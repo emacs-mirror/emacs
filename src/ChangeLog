@@ -1,6 +1,7 @@
 2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/sco5.h (sigprocmask_set): Declare as extern SIGMASKTYPE.
+	(SIGMASKTYPE): Define.
 
 	* syssignal.h (sigunblock): Don't define if already defined.
 
