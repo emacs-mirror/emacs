@@ -1,5 +1,12 @@
 2001-07-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (unwind_read): Function removed.
+	(read_non_regular, read_non_regular_quit): New functions.
+	(Finsert_file_contents): When reading from non-regular files,
+	arrange to catch a `quit' and terminate the loop.  Rearrange
+	code so that a `quit' when reading from a regular file doesn't
+	insert text in the buffer.
+
 	* xfaces.c (clear_face_cache): Clear fonts on a display basis.
 	Clear faces afterwards.
 	(clear_font_table): Take a x_display_info parameter.  Don't free

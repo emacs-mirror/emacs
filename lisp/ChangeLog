@@ -1,3 +1,11 @@
+2001-07-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* calendar/cal-islam.el (calendar-goto-islamic-date): Remove
+	autoload cookie.
+
+	* calendar/calendar.el (calendar-goto-islamic-date): Add
+	call to autoload.
+	
 2001-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/ada-mode.el (ada-mode): Avoid unneeded version checks.
