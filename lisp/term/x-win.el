@@ -53,6 +53,8 @@
 ;; -font		*font
 ;; -foreground		*foreground
 ;; -geometry		.geometry
+;; -i			.iconType
+;; -itype		.iconType
 ;; -iconic		.iconic
 ;; -name		.name
 ;; -reverse		*reverseVideo
@@ -94,6 +96,7 @@
 		("-background".	x-handle-switch)
 		("-ms" .	x-handle-switch)
 		("-itype" .	x-handle-switch)
+		("-i" 	.	x-handle-switch)
 		("-iconic" .	x-handle-switch)
 		("-cr" .	x-handle-switch)
 		("-vb" .	x-handle-switch)
@@ -117,6 +120,7 @@
     ("-ms" mouse-color)
     ("-cr" cursor-color)
     ("-itype" icon-type t)
+    ("-i" icon-type t)
     ("-iconic" iconic-startup t)
     ("-vb" vertical-scroll-bars t)
     ("-hb" horizontal-scroll-bars t)
