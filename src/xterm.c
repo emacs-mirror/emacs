@@ -11848,6 +11848,9 @@ x_make_frame_visible (f)
 {
   Lisp_Object type;
   int original_top, original_left;
+  int retry_count = 2;
+
+ retry:
 
   BLOCK_INPUT;
 
@@ -11972,6 +11975,20 @@ x_make_frame_visible (f)
 	/* See if a MapNotify event has been processed.  */
 	FRAME_SAMPLE_VISIBILITY (f);
       }
+
+    /* 2000-09-28: In
+
+       (let ((f (selected-frame)))
+          (iconify-frame f)
+	  (raise-frame f))
+
+       the frame is not raised with various window managers on
+       FreeBSD, Linux and Solaris.  It turns out that, for some
+       unknown reason, the call to XtMapWidget is completely ignored.
+       Mapping the widget a second time works.  */
+    
+    if (!FRAME_VISIBLE_P (f) && --retry_count > 0)
+      goto retry;
   }
 }
 
