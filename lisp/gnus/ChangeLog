@@ -1,5 +1,8 @@
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* gnus.el (gnus-mode-line-buffer-identification)[EMACS]: Fix
+	last change.
+
 	* gnus.el (gnus-mode-line-buffer-identification)[EMACS]: Use
 	`:ascent center'.
 

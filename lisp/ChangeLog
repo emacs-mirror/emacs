@@ -1,3 +1,12 @@
+2000-09-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (startup-echo-area-message): New function.
+	(display-startup-echo-area-message): Use it.
+	(fancy-splash-screens): Rewritten to use keymaps and a timer.
+	(fancy-splash-default-action): New function.
+	(fancy-splash-screens-1): New function.
+	(fancy-splash-head): Put a help-echo and a keymap under the image.
+
 2000-09-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-add-log-file-name): Remove.
