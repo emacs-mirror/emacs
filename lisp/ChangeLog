@@ -1,5 +1,8 @@
 2001-03-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* bookmark.el (bookmark-get-bookmark): Handle case that
+	BOOKMARK is not a string.
+
 	* image.el (image-type-regexps): Change type for PS files
 	to `postscript'.
 
