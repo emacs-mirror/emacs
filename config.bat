@@ -103,8 +103,16 @@ cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
+set MAKEFILEIN=makefile.in-in
+if exist %MAKEFILEIN% goto libsrc1
+set MAKEFILEIN=makefile-in.in
+if exist %MAKEFILEIN% goto libsrc1
+echo makefile: *** The file originally called "lib-src/Makefile.in.in" cannot be found.
+cd ..
+goto end
+:libsrc1
 rem   Create "makefile" from "makefile.in".
-sed -e "s@^# \(Generated.*\)$@/* \1 */@" -e "s@/\*\*/#\(.*\)$@/* \1 */@" <Makefile.in >junk.c
+sed -e "s@^# \(Generated.*\)$@/* \1 */@" -e "s@/\*\*/#\(.*\)$@/* \1 */@" <%MAKEFILEIN% >junk.c
 gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >Makefile.new
 sed -f ../msdos/sed3.inp <makefile.new >makefile
 cd ..
