@@ -900,7 +900,8 @@ the font chosen, covering all the charsets that can be fully represented
 with the font."
   (interactive
    (if w32-use-w32-font-dialog
-       (list (w32-select-font))
+       (let ((chosen-font (w32-select-font)))
+	 (and chosen-font (list chosen-font)))
      (x-popup-menu
       last-nonmenu-event
     ;; Append list of fontsets currently defined.
