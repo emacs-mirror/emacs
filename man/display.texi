@@ -31,10 +31,10 @@ display it.
 @cindex faces
 
   When using Emacs with a window system, you can set up multiple
-styles of displaying characters.  Some of the aspects of style that
-you can control are the type font, the foreground color, the
-background color, and whether or not to underline text, and in which
-color.
+styles of displaying characters.  Each style is called a @dfn{face}.
+Each face can specify various attributes, such as the height, weight
+and slant of the characters, the foreground and background color, and
+underlining.  But it does not have to specify all of them.
 
   Features which rely on text in multiple faces (such as Font Lock mode)
 will also work on non-windowed terminals that can display more than one
@@ -44,35 +44,39 @@ MS-DOS display (@pxref{MS-DOS}), and the MS-Windows version invoked with
 the @option{-nw} option.  Emacs determines automatically whether the
 terminal has this capability.
 
-  The way you control display style is by defining named @dfn{faces}.
-Each face can specify various attributes, like the type font's height,
-weight and slant, foreground and background color, and underlining,
-but it does not have to specify all of them.  By specifying the face
-or faces to use for a given part of the text in the buffer, you
-control how that text appears.
-
-  The style of display used for a given character in the text is
-determined by combining several faces.  Any aspect of the display
-style that isn't specified by overlays or text properties comes from a
-default face which inherits its settings from the frame itself.
+  You control the appearance of a part of the text in the buffer by
+specifying the face or faces to use for it.  The style of display used
+for any given character is determined by combining the attributes of
+all the applicable faces specified for that character.  Any attribute
+that isn't specified by these faces is taken from the default face,
+which embodies the default settings of the frame itself.
 
   Enriched mode, the mode for editing formatted text, includes several
-commands and menus for specifying faces.  @xref{Format Faces}, for how
-to specify the font for text in the buffer.  @xref{Format Colors}, for
-how to specify the foreground and background color.
-
-  To alter the appearance of a face, use the customization buffer.
-@xref{Face Customization}.  You can also use X resources to specify
-attributes of particular faces (@pxref{Resources X}).
+commands and menus for specifying faces for text in the buffer.
+@xref{Format Faces}, for how to specify the font for text in the
+buffer.  @xref{Format Colors}, for how to specify the foreground and
+background color.
 
 @cindex face colors, setting
 @findex set-face-foreground
 @findex set-face-background
-  Alternatively, you can change the foreground and background colors
-of a specific face with @kbd{M-x set-face-foreground} and @kbd{M-x
-set-face-background}.  These commands prompt in the minibuffer for a
-face name and a color name, with completion, and then set that face to
-use the specified color.
+  To alter the appearance of a face, use the customization buffer.
+@xref{Face Customization}.  You can also use X resources to specify
+attributes of particular faces (@pxref{Resources X}).  Alternatively,
+you can change the foreground and background colors of a specific face
+with @kbd{M-x set-face-foreground} and @kbd{M-x set-face-background}.
+These commands prompt in the minibuffer for a face name and a color
+name, with completion, and then set that face to use the specified
+color.
+
+  Emacs 21 can correctly display variable-width fonts, but Emacs
+commands that calculate width and indentation do not know how to
+calculate variable widths.  This can sometimes lead to incorrect
+results when you use variable-width fonts.  In particular, indentation
+commands can give inconsistent results, so we recommend you avoid
+variable-width fonts for editing program source code.  Filling will
+sometimes make lines too long or too short.  We plan to address these
+issues in future Emacs versions.
 
 @findex list-faces-display
   To see what faces are currently defined, and what they look like, type
