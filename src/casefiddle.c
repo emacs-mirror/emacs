@@ -22,10 +22,13 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
+#include "charset.h"
 #include "commands.h"
 #include "syntax.h"
 
 enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
+
+Lisp_Object Qidentity;
 
 Lisp_Object
 casify_object (flag, obj)
@@ -34,6 +37,7 @@ casify_object (flag, obj)
 {
   register int i, c, len;
   register int inword = flag == CASE_DOWN;
+  Lisp_Object tem;
 
   /* If the case table is flagged as modified, rescan it.  */
   if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
@@ -43,13 +47,16 @@ casify_object (flag, obj)
     {
       if (INTEGERP (obj))
 	{
-	  c = XINT (obj);
-	  if (c >= 0 && c <= 0400)
+	  tem = Faref (current_buffer->downcase_table, obj);
+	  if (EQ (tem, Qidentity))
+	    tem = obj;
+	  if (inword)
+	    obj = tem;
+	  else if (EQ (tem, obj))
 	    {
-	      if (inword)
-		XSETFASTINT (obj, DOWNCASE (c));
-	      else if (!UPPERCASEP (c))
-		XSETFASTINT (obj, UPCASE1 (c));
+	      tem = Faref (current_buffer->upcase_table, obj);
+	      if (!EQ (tem, Qidentity))
+		obj = tem;
 	    }
 	  return obj;
 	}
@@ -132,6 +139,7 @@ casify_region (flag, b, e)
   register int c;
   register int inword = flag == CASE_DOWN;
   int start, end;
+  Lisp_Object ch, downch, val;
 
   if (EQ (b, e))
     /* Not modifying because nothing marked */
@@ -147,17 +155,82 @@ casify_region (flag, b, e)
   modify_region (current_buffer, start, end);
   record_change (start, end - start);
 
-  for (i = start; i < end; i++)
+  if (NILP (current_buffer->enable_multibyte_characters))
     {
-      c = FETCH_BYTE (i);
-      if (inword && flag != CASE_CAPITALIZE_UP)
-	c = DOWNCASE (c);
-      else if (!UPPERCASEP (c)
-	       && (!inword || flag != CASE_CAPITALIZE_UP))
-	c = UPCASE1 (c);
-      FETCH_BYTE (i) = c;
-      if ((int) flag >= (int) CASE_CAPITALIZE)
-	inword = SYNTAX (c) == Sword;
+      for (i = start; i < end; i++)
+	{
+	  c = FETCH_BYTE (i);
+	  if (inword && flag != CASE_CAPITALIZE_UP)
+	    c = DOWNCASE (c);
+	  else if (!UPPERCASEP (c)
+		   && (!inword || flag != CASE_CAPITALIZE_UP))
+	    c = UPCASE1 (c);
+	  FETCH_BYTE (i) = c;
+	  if ((int) flag >= (int) CASE_CAPITALIZE)
+	    inword = SYNTAX (c) == Sword;
+	}
+    }
+  else
+    {
+      Lisp_Object down, up;
+      int opoint = PT;
+
+      down = current_buffer->downcase_table;
+      up = current_buffer->upcase_table;
+      for (i = start; i < end;)
+	{
+	  c = FETCH_MULTIBYTE_CHAR (i);
+	  XSETFASTINT (ch, c);
+	  downch = Faref (down, ch);
+	  if (EQ (downch, Qidentity))
+	    downch = ch;
+	  if (inword && flag != CASE_CAPITALIZE_UP)
+	    val = downch;
+	  else if (EQ (downch, ch)
+		   && (!inword || flag != CASE_CAPITALIZE_UP))
+	    {
+	      val = Faref (up, ch);
+	      if (EQ (val, Qidentity))
+		val = ch;
+	    }
+	  else
+	    val = ch;
+	  if (!EQ (val, ch))
+	    {
+	      int fromlen, tolen, j;
+	      char workbuf[4], *str;
+
+	      if (!NATNUMP (val))
+		error ("Inappropriate value found in case table");
+	      /* Handle the most likely case */
+	      if (c < 0400 && XFASTINT (val) < 0400)
+		FETCH_BYTE (i) = XFASTINT (val);
+	      else if (fromlen = CHAR_STRING (c, workbuf, str),
+		       tolen = CHAR_STRING (XFASTINT (val), workbuf, str),
+		       fromlen == tolen)
+		{
+		  for (j = 0; j < tolen; ++j)
+		    FETCH_BYTE (i + j) = str[j];
+		}
+	      else
+		{
+		  error ("Can't casify letters that change length");
+#if 0 /* This is approximately what we'd like to be able to do here */
+		  if (tolen < fromlen)
+		    del_range_1 (i + tolen, i + fromlen, 0);
+		  else if (tolen > fromlen)
+		    {
+		      TEMP_SET_PT (i + fromlen);
+		      insert_1 (str + fromlen, tolen - fromlen, 1, 0);
+		    }
+#endif
+		}
+	    }
+	  if ((int) flag >= (int) CASE_CAPITALIZE)
+	    inword = SYNTAX (XFASTINT (val)) == Sword;
+	  INC_POS (i);
+	}
+      TEMP_SET_PT (opoint);
     }
 
   signal_after_change (start, end - start, end - start);
@@ -287,6 +360,8 @@ With negative argument, capitalize previous words but do not move.")
 
 syms_of_casefiddle ()
 {
+  Qidentity = intern ("identity");
+  staticpro (&Qidentity);
   defsubr (&Supcase);
   defsubr (&Sdowncase);
   defsubr (&Scapitalize);
