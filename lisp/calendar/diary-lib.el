@@ -88,108 +88,83 @@ three-month calendar."
 (autoload 'check-calendar-holidays "holidays"
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
-The holidays are those in the list `calendar-holidays'."
-  t)
+The holidays are those in the list `calendar-holidays'.")
 
 (autoload 'calendar-holiday-list "holidays"
   "Form the list of holidays that occur on dates in the calendar window.
-The holidays are those in the list `calendar-holidays'."
-  t)
+The holidays are those in the list `calendar-holidays'.")
 
 (autoload 'diary-french-date "cal-french"
-  "French calendar equivalent of date diary entry."
-  t)
+  "French calendar equivalent of date diary entry.")
 
 (autoload 'diary-mayan-date "cal-mayan"
-  "Mayan calendar equivalent of date diary entry."
-  t)
+  "Mayan calendar equivalent of date diary entry.")
 
 (autoload 'diary-iso-date "cal-iso"
-  "ISO calendar equivalent of date diary entry."
-  t)
+  "ISO calendar equivalent of date diary entry.")
 
 (autoload 'diary-julian-date "cal-julian"
-  "Julian calendar equivalent of date diary entry."
-  t)
+  "Julian calendar equivalent of date diary entry.")
 
 (autoload 'diary-astro-day-number "cal-julian"
-  "Astronomical (Julian) day number diary entry."
-  t)
+  "Astronomical (Julian) day number diary entry.")
 
 (autoload 'diary-chinese-date "cal-china"
-  "Chinese calendar equivalent of date diary entry."
-  t)
+  "Chinese calendar equivalent of date diary entry.")
 
 (autoload 'diary-islamic-date "cal-islam"
-  "Islamic calendar equivalent of date diary entry."
-  t)
+  "Islamic calendar equivalent of date diary entry.")
 
 (autoload 'list-islamic-diary-entries "cal-islam"
-  "Add any Islamic date entries from the diary file to `diary-entries-list'."
-  t)
+  "Add any Islamic date entries from the diary file to `diary-entries-list'.")
 
 (autoload 'mark-islamic-diary-entries "cal-islam"
-  "Mark days in the calendar window that have Islamic date diary entries."
-  t)
+  "Mark days in the calendar window that have Islamic date diary entries.")
 
 (autoload 'mark-islamic-calendar-date-pattern "cal-islam"
-   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR."
-  t)
+   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.")
 
 (autoload 'diary-hebrew-date "cal-hebrew"
-  "Hebrew calendar equivalent of date diary entry."
-  t)
+  "Hebrew calendar equivalent of date diary entry.")
 
 (autoload 'diary-omer "cal-hebrew"
-  "Omer count diary entry."
-  t)
+  "Omer count diary entry.")
 
 (autoload 'diary-yahrzeit "cal-hebrew"
-  "Yahrzeit diary entry--entry applies if date is yahrzeit or the day before."
-  t)
+  "Yahrzeit diary entry--entry applies if date is yahrzeit or the day before.")
 
 (autoload 'diary-parasha "cal-hebrew"
-  "Parasha diary entry--entry applies if date is a Saturday."
-  t)
+  "Parasha diary entry--entry applies if date is a Saturday.")
 
 (autoload 'diary-rosh-hodesh "cal-hebrew"
-  "Rosh Hodesh diary entry."
-  t)
+  "Rosh Hodesh diary entry.")
 
 (autoload 'list-hebrew-diary-entries "cal-hebrew"
-  "Add any Hebrew date entries from the diary file to `diary-entries-list'."
-  t)
+  "Add any Hebrew date entries from the diary file to `diary-entries-list'.")
 
 (autoload 'mark-hebrew-diary-entries "cal-hebrew"
-  "Mark days in the calendar window that have Hebrew date diary entries."
-  t)
+  "Mark days in the calendar window that have Hebrew date diary entries.")
 
 (autoload 'mark-hebrew-calendar-date-pattern "cal-hebrew"
-   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR."
-  t)
+   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.")
 
 (autoload 'diary-coptic-date "cal-coptic"
-  "Coptic calendar equivalent of date diary entry."
-  t)
+  "Coptic calendar equivalent of date diary entry.")
 
 (autoload 'diary-ethiopic-date "cal-coptic"
-  "Ethiopic calendar equivalent of date diary entry."
-  t)
+  "Ethiopic calendar equivalent of date diary entry.")
 
 (autoload 'diary-persian-date "cal-persia"
-  "Persian calendar equivalent of date diary entry."
-  t)
+  "Persian calendar equivalent of date diary entry.")
 
-(autoload 'diary-phases-of-moon "lunar" "Moon phases diary entry." t)
+(autoload 'diary-phases-of-moon "lunar" "Moon phases diary entry.")
 
 (autoload 'diary-sunrise-sunset "solar"
-  "Local time of sunrise and sunset as a diary entry."
-  t)
+  "Local time of sunrise and sunset as a diary entry.")
 
 (autoload 'diary-sabbath-candles "solar"
   "Local time of candle lighting diary entry--applies if date is a Friday.
-No diary entry if there is no sunset on that date."
-  t)
+No diary entry if there is no sunset on that date.")
 
 (defvar diary-syntax-table (copy-syntax-table (standard-syntax-table))
   "The syntax table used when parsing dates in the diary file.
@@ -808,7 +783,8 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
          (m)
          (y)
          (first-date)
-         (last-date))
+         (last-date)
+         (mark))
     (save-excursion
       (set-buffer calendar-buffer)
       (setq m displayed-month)
@@ -856,10 +832,12 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
           (while (string-match "[\^M]" entry)
             (aset entry (match-beginning 0) ?\n )))
         (calendar-for-loop date from first-date to last-date do
-          (if (diary-sexp-entry sexp entry
-                                (calendar-gregorian-from-absolute date))
+          (if (setq mark (diary-sexp-entry sexp entry
+                                (calendar-gregorian-from-absolute date)))
               (mark-visible-calendar-date
-               (calendar-gregorian-from-absolute date))))))))
+               (calendar-gregorian-from-absolute date) 
+               (if (consp mark)
+                   (car mark)))))))))
 
 (defun mark-included-diary-files ()
   "Mark the diary entries from other diary files with those of the diary file.
@@ -965,9 +943,9 @@ after those with times."
   :version "20.3")
 
 (defun diary-entry-time (s)
-  "Time at the beginning of the string S in a military-style integer.  For
-example, returns 1325 for 1:25pm.  Returns `diary-unknown-time' (default value
--9999) if no time is recognized.  The recognized forms are XXXX, X:XX, or
+  "Return time at the beginning of the string S as a military-style integer.
+For example, returns 1325 for 1:25pm.
+Returns `diary-unknown-time' (default value -9999) if no time is recognized.  The recognized forms are XXXX, X:XX, or
 XX:XX (military time), and XXam, XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm,
 or XX:XXPM."
   (let ((case-fold-search nil))
@@ -1020,29 +998,35 @@ if it is a weekday and the Friday before if the 21st is on a weekend:
 
 A number of built-in functions are available for this type of diary entry:
 
-      %%(diary-date MONTH DAY YEAR) text
+      %%(diary-date MONTH DAY YEAR &optional MARK) text
                   Entry applies if date is MONTH, DAY, YEAR if
                   `european-calendar-style' is nil, and DAY, MONTH, YEAR if
                   `european-calendar-style' is t.  DAY, MONTH, and YEAR
                   can be lists of integers, the constant t, or an integer.
-                  The constant t means all values.
+                  The constant t means all values.  An optional parameter 
+                  MARK specifies a face or single-character string to use
+                  when highlighting the day in the calendar.
 
-      %%(diary-float MONTH DAYNAME N &optional DAY) text
+      %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
                   Entry will appear on the Nth DAYNAME of MONTH.
                   (DAYNAME=0 means Sunday, 1 means Monday, and so on;
                   if N is negative it counts backward from the end of
                   the month.  MONTH can be a list of months, a single
                   month, or t to specify all months. Optional DAY means
                   Nth DAYNAME of MONTH on or after/before DAY.  DAY defaults
-                  to 1 if N>0 and the last day of the month if N<0.
+                  to 1 if N>0 and the last day of the month if N<0.  An 
+                  optional parameter MARK specifies a face or single-character 
+                  string to use when highlighting the day in the calendar.
 
-      %%(diary-block M1 D1 Y1 M2 D2 Y2) text
+      %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
                   Entry will appear on dates between M1/D1/Y1 and M2/D2/Y2,
                   inclusive.  (If `european-calendar-style' is t, the
                   order of the parameters should be changed to D1, M1, Y1,
-                  D2, M2, Y2.)
+                  D2, M2, Y2.)  An optional parameter MARK specifies a face 
+                  or single-character string to use when highlighting the 
+                  day in the calendar.
 
-      %%(diary-anniversary MONTH DAY YEAR) text
+      %%(diary-anniversary MONTH DAY YEAR &optional MARK) text
                   Entry will appear on anniversary dates of MONTH DAY, YEAR.
                   (If `european-calendar-style' is t, the order of the
                   parameters should be changed to DAY, MONTH, YEAR.)  Text
@@ -1050,16 +1034,20 @@ A number of built-in functions are available for this type of diary entry:
                   of years since the MONTH DAY, YEAR and %s will be replaced
                   by the ordinal ending of that number (that is, `st', `nd',
                   `rd' or `th', as appropriate.  The anniversary of February
-                  29 is considered to be March 1 in a non-leap year.
+                  29 is considered to be March 1 in a non-leap year.  An 
+                  optional parameter MARK specifies a face or single-character 
+                  string to use when highlighting the day in the calendar.
 
-      %%(diary-cyclic N MONTH DAY YEAR) text
+      %%(diary-cyclic N MONTH DAY YEAR &optional MARK) text
                   Entry will appear every N days, starting MONTH DAY, YEAR.
                   (If `european-calendar-style' is t, the order of the
                   parameters should be changed to N, DAY, MONTH, YEAR.)  Text
                   can contain %d or %d%s; %d will be replaced by the number
                   of repetitions since the MONTH DAY, YEAR and %s will
                   be replaced by the ordinal ending of that number (that is,
-                  `st', `nd', `rd' or `th', as appropriate.
+                  `st', `nd', `rd' or `th', as appropriate.  An optional 
+                  parameter MARK specifies a face or single-character string 
+                  to use when highlighting the day in the calendar.
 
       %%(diary-remind SEXP DAYS &optional MARKING) text
                   Entry is a reminder for diary sexp SEXP.  DAYS is either a
@@ -1184,8 +1172,12 @@ best if they are nonmarking."
         (let ((diary-entry (diary-sexp-entry sexp entry date)))
           (if diary-entry
               (subst-char-in-region line-start (point) ?\^M ?\n t))
-          (add-to-diary-list date diary-entry specifier)
-          (setq entry-found (or entry-found diary-entry)))))
+          (add-to-diary-list date 
+			     (if (consp diary-entry)
+				 (cdr diary-entry)
+			       diary-entry)
+			     specifier)
+	  (setq entry-found (or entry-found diary-entry)))))
     entry-found))
 
 (defun diary-sexp-entry (sexp entry date)
@@ -1208,18 +1200,21 @@ best if they are nonmarking."
                                     lines)))
                               diary-file sexp)
                      (sleep-for 2))))))
-    (if (stringp result)
-        result
-      (if result
-          entry
-        nil))))
+    (cond ((stringp result) result)
+	  ((and (consp result)
+		(stringp (cdr result))) result)
+	  (result entry)
+          (t nil))))
 
-(defun diary-date (month day year)
+(defun diary-date (month day year &optional mark)
   "Specific date(s) diary entry.
 Entry applies if date is MONTH, DAY, YEAR if `european-calendar-style' is nil,
 and DAY, MONTH, YEAR if `european-calendar-style' is t.  DAY, MONTH, and YEAR
 can be lists of integers, the constant t, or an integer.  The constant t means
-all values."
+all values.
+
+An optional parameter MARK specifies a face or single-character string to 
+use when highlighting the day in the calendar."
   (let* ((dd (if european-calendar-style
                 month
               day))
@@ -1241,12 +1236,16 @@ all values."
              (eq year t)))
         entry)))
 
-(defun diary-block (m1 d1 y1 m2 d2 y2)
+(defun diary-block (m1 d1 y1 m2 d2 y2 &optional mark)
   "Block diary entry.
 Entry applies if date is between, or on one of, two dates.
 The order of the parameters is
 M1, D1, Y1, M2, D2, Y2 if `european-calendar-style' is nil, and
-D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t."
+D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t.
+
+An optional parameter MARK specifies a face or single-character string to 
+use when highlighting the day in the calendar."
+
   (let ((date1 (calendar-absolute-from-gregorian
                 (if european-calendar-style
                     (list d1 m1 y1)
@@ -1257,15 +1256,17 @@ D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t."
                   (list m2 d2 y2))))
         (d (calendar-absolute-from-gregorian date)))
     (if (and (<= date1 d) (<= d date2))
-        entry)))
+        (cons mark entry))))
 
-(defun diary-float (month dayname n &optional day)
+(defun diary-float (month dayname n &optional day mark)
   "Floating diary entry--entry applies if date is the nth dayname of month.
 Parameters are MONTH, DAYNAME, N.  MONTH can be a list of months, the constant
 t, or an integer.  The constant t means all months.  If N is negative, count
 backward from the end of the month.
 
-An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
+An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY.
+Optional MARK specifies a face or single-character string to use when 
+highlighting the day in the calendar."
 ;; This is messy because the diary entry may apply, but the date on which it
 ;; is based can be in a different month/year.  For example, asking for the
 ;; first Monday after December 30.  For large values of |n| the problem is
@@ -1319,10 +1320,10 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
 					    1
 					  (calendar-last-day-of-month m2 y2)))
 				d2)))))
-	     entry))))
+	     (cons mark entry)))))
 
 
-(defun diary-anniversary (month day year)
+(defun diary-anniversary (month day year &optional mark)
   "Anniversary diary entry.
 Entry applies if date is the anniversary of MONTH, DAY, YEAR if
 `european-calendar-style' is nil, and DAY, MONTH, YEAR if
@@ -1330,7 +1331,10 @@ Entry applies if date is the anniversary of MONTH, DAY, YEAR if
 %d will be replaced by the number of years since the MONTH DAY, YEAR and the
 %s will be replaced by the ordinal ending of that number (that is, `st', `nd',
 `rd' or `th', as appropriate.  The anniversary of February 29 is considered
-to be March 1 in non-leap years."
+to be March 1 in non-leap years.
+
+An optional parameter MARK specifies a face or single-character string to 
+use when highlighting the day in the calendar."
   (let* ((d (if european-calendar-style
                 month
               day))
@@ -1343,15 +1347,18 @@ to be March 1 in non-leap years."
         (setq m 3
               d 1))
     (if (and (> diff 0) (calendar-date-equal (list m d y) date))
-        (format entry diff (diary-ordinal-suffix diff)))))
+        (cons mark (format entry diff (diary-ordinal-suffix diff))))))
 
-(defun diary-cyclic (n month day year)
+(defun diary-cyclic (n month day year &optional mark)
   "Cycle diary entry--entry applies every N days starting at MONTH, DAY, YEAR.
 If `european-calendar-style' is t, parameters are N, DAY, MONTH, YEAR.
 ENTRY can contain `%d' or `%d%s'; the %d will be replaced by the number of
 repetitions since the MONTH DAY, YEAR and %s will be replaced by the
 ordinal ending of that number (that is, `st', `nd', `rd' or `th', as
-appropriate."
+appropriate.
+
+An optional parameter MARK specifies a face or single-character string to 
+use when highlighting the day in the calendar."
   (let* ((d (if european-calendar-style
                 month
               day))
@@ -1363,7 +1370,7 @@ appropriate."
                    (list m d year))))
          (cycle (/ diff n)))
     (if (and (>= diff 0) (zerop (% diff n)))
-        (format entry cycle (diary-ordinal-suffix cycle)))))
+        (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
 
 (defun diary-ordinal-suffix (n)
   "Ordinal suffix for N. (That is, `st', `nd', `rd', or `th', as appropriate.)"
