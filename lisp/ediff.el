@@ -501,6 +501,7 @@ the same name in both.  The third argument, REGEXP, is nil or a regular
 expression; only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
 	   (ediff-read-file-name "Directory B to compare:"
@@ -508,11 +509,14 @@ expression; only file names that match the regexp are considered."
 				     ediff-last-dir-B
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string (format
-			 "Filter through regular expression (default %S): "
-			 (eval ediff-default-filtering-regexp))
-			(eval ediff-default-filtering-regexp)
-			'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp 'ediff-files 'ediff-directories
@@ -528,14 +532,19 @@ expression; only file names that match the regexp are considered."
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
+	 )
      (list (ediff-read-file-name
 	    "Directory to compare with revision:" dir-A nil)
-	   (read-string (format
-			 "Filter through regular expression (default %S): "
-			 (eval ediff-default-filtering-regexp))
-			(eval ediff-default-filtering-regexp)
-			'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-revision 'ediff-directory-revisions
@@ -553,6 +562,7 @@ regular expression; only file names that match the regexp are considered."
 
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
 	   (setq f (ediff-read-file-name "Directory B to compare:"
@@ -565,11 +575,14 @@ regular expression; only file names that match the regexp are considered."
 				     ediff-last-dir-C
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string (format
-			 "Filter through regular expression (default %S): "
-			 (eval ediff-default-filtering-regexp))
-			(eval ediff-default-filtering-regexp)
-			'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 dir3 regexp 'ediff-files3 'ediff-directories3
@@ -585,6 +598,7 @@ the same name in both.  The third argument, REGEXP, is nil or a regular
 expression; only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
 	   (ediff-read-file-name "Directory B to merge:"
@@ -592,11 +606,14 @@ expression; only file names that match the regexp are considered."
 				     ediff-last-dir-B
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string (format
-			 "Filter through regular expression (default %S): "
-			 (eval ediff-default-filtering-regexp))
-			(eval ediff-default-filtering-regexp)
-			'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp 'ediff-merge-files 'ediff-merge-directories
@@ -617,6 +634,7 @@ without ancestor.  The fourth argument, REGEXP, is nil or a regular expression;
 only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
 	   (setq f (ediff-read-file-name "Directory B to merge:"
@@ -629,11 +647,14 @@ only file names that match the regexp are considered."
 				     ediff-last-dir-C
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string (format
-			 "Filter through regular expression (default %S): "
-			 (eval ediff-default-filtering-regexp))
-			(eval ediff-default-filtering-regexp)
-			'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 ancestor-dir regexp
@@ -648,14 +669,19 @@ only file names that match the regexp are considered."
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
+	 )
      (list (ediff-read-file-name
 	    "Directory to merge with revisions:" dir-A nil)
-	   (read-string (format
-			 "Filter through regular expression (default %S): "
-			 (eval ediff-default-filtering-regexp))
-			(eval ediff-default-filtering-regexp)
-			'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions 'ediff-merge-directory-revisions
@@ -673,14 +699,19 @@ names.  Only the files that are under revision control are taken into account."
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
+	 )
      (list (ediff-read-file-name
 	    "Directory to merge with revisions and ancestors:" dir-A nil)
-	   (read-string (format
-			 "Filter through regular expression (default %S): "
-			 (eval ediff-default-filtering-regexp))
-			(eval ediff-default-filtering-regexp)
-			'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions-with-ancestor

@@ -1689,6 +1689,7 @@ all marked sessions must be active."
 	 (info (ediff-get-meta-info meta-buf pos))
 	 (session-buf (ediff-get-session-buffer info))
 	 (session-number (ediff-get-session-number-at-pos pos meta-buf))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 merge-autostore-dir file1 file2 file3 regexp)
 
     (setq file1 (ediff-get-session-objA-name info)
@@ -1717,8 +1718,16 @@ all marked sessions must be active."
 	     ;; do ediff/ediff-merge on subdirectories
 	     (if (ediff-buffer-live-p session-buf)
 		 (ediff-show-meta-buffer session-buf)
-	       (setq regexp (read-string "Filter through regular expression: "
-					 nil 'ediff-filtering-regexp-history))
+	       (setq regexp
+		     (read-string
+		      (if (stringp default-regexp)
+			  (format
+			   "Filter through regular expression (default %s): "
+			   default-regexp)
+			"Filter through regular expression: ")
+		      nil
+		      'ediff-filtering-regexp-history
+		      (eval ediff-default-filtering-regexp)))
 	       (ediff-directories-internal
 		file1 file2 file3 regexp
 		ediff-session-action-function

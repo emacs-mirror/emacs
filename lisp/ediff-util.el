@@ -826,7 +826,8 @@ Reestablish the default three-window display."
 		 (eq this-command 'ediff-quit))))
 	  ))
 
-    (ediff-restore-highlighting)
+    (or no-rehighlight
+	(ediff-restore-highlighting))
     (ediff-with-current-buffer control-buf (ediff-refresh-mode-lines))
     ))
 
@@ -2940,6 +2941,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	     ))
 
 	(ediff-install-fine-diff-if-necessary n)
+	;; set current difference here so the hook will be able to refer to it
+	(setq ediff-current-difference n)
 	(run-hooks 'ediff-select-hook))))
 
 
@@ -2991,6 +2994,9 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 	  (or (eq flag 'unselect-only)
 	      (ediff-select-difference n))
+	  ;; need to set current diff here even though it is also set in
+	  ;; ediff-select-difference because ediff-select-difference might not
+	  ;; be called if unselect-only is specified
 	  (setq ediff-current-difference n)
 	  ) ; end protected section
 

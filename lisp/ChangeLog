@@ -1,3 +1,19 @@
+2003-10-12  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-mult.el (ediff-filegroup-action): use
+	ediff-default-filtering-regexp.
+	
+	* ediff-util.el (ediff-recenter): don't call
+	ediff-restore-highlighting twice.
+	(ediff-select-difference): set current difference.
+	(ediff-unselect-and-select-difference): added comment.
+	
+	* ediff.el (ediff-directories,ediff-directory-revisions,
+	ediff-directories3,ediff-merge-directories,
+	ediff-merge-directories-with-ancestor,ediff-merge-directory-revisions,
+	ediff-merge-directory-revisions-with-ancestor): use
+	ediff-default-filtering-regexp.
+	
 2003-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* international/mule-cmds.el (locale-charset-language-names):
