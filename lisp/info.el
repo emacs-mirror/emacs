@@ -2658,7 +2658,8 @@ the variable `Info-file-list-for-emacs'."
   (unless (next-property-change (point-min))
     (save-excursion
       (let ((inhibit-read-only t)
-	    (case-fold-search t))
+	    (case-fold-search t)
+	    paragraph-markers)
 	(goto-char (point-min))
 	(when (looking-at "^\\(File: [^,: \t]+,?[ \t]+\\)?")
 	  (goto-char (match-end 0))
@@ -2732,12 +2733,13 @@ the variable `Info-file-list-for-emacs'."
 	(goto-char (point-min))
 	(while (re-search-forward "\\(\\*Note[ \n\t]*\\)\\([^:]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:]?\n?\\)" nil t)
 	  (unless (= (char-after (1- (match-beginning 0))) ?\") ; hack
-	    (let ((next (point))
+	    (let ((start (match-beginning 0))
+		  (next (point))
 		  (hide-tag Info-hide-note-references)
 		  other-tag)
 	      (when hide-tag
 		;; *Note is often used where *note should have been
-		(goto-char (match-beginning 0))
+		(goto-char start)
 		(skip-syntax-backward " ")
 		(setq other-tag
 		      (cond
@@ -2750,18 +2752,31 @@ the variable `Info-file-list-for-emacs'."
 		(goto-char next))
 	      (if hide-tag
 		  (add-text-properties (match-beginning 1) (match-end 1)
-				       (if other-tag
-					   (list 'display other-tag)
-					 '(invisible t))))
+				       '(invisible t)))
 	      (add-text-properties (match-beginning 2) (match-end 2)
 				   '(font-lock-face info-xref
 						    mouse-face highlight
 						    help-echo "mouse-2: go to this node"))
 	      (when (eq Info-hide-note-references t)
 		(add-text-properties (match-beginning 3) (match-end 3)
-				     (if (string-match "\n" (match-string 0))
-					 '(display "\n")
-				       '(invisible t)))))))
+				     '(invisible t)))
+	      (when other-tag
+		(goto-char (match-beginning 1))
+		(insert other-tag))
+	      (when (or hide-tag (eq Info-hide-note-references t))
+		(setq paragraph-markers (cons (set-marker (make-marker) start)
+					      paragraph-markers))))))
+
+	(let ((fill-nobreak-invisible t))
+	  (goto-char (point-max))
+	  (while paragraph-markers
+	    (let ((m (car paragraph-markers)))
+	      (setq paragraph-markers (cdr paragraph-markers))
+	      (when (< m (point))
+		(goto-char m)
+		(fill-paragraph nil)
+		(backward-paragraph 1))
+	      (set-marker m nil))))
 
 	(goto-char (point-min))
 	(if (and (search-forward "\n* Menu:" nil t)
