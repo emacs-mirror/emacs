@@ -1,3 +1,8 @@
+2003-10-26  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Info Search): echo area, not echo are.  From Debian
+	diff.
+
 2003-10-26  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* widget.texi (Defining New Widgets): Document new beavior of
