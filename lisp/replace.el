@@ -336,7 +336,7 @@ end of the buffer."
 	    ;; Now end is first char preserved by the new match.
 	    (if (< start end)
 		(delete-region start end))))
-	
+
 	(setq start (save-excursion (forward-line 1) (point)))
 	;; If the match was empty, avoid matching again at same place.
 	(and (< (point) rend)
@@ -511,15 +511,15 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (if (not n) (setq n 1))
   (let ((r))
     (while (> n 0)
-    
+
       (setq r (get-text-property (point) 'occur-point))
       (if r (forward-char -1))
-      
+
       (setq r (previous-single-property-change (point) 'occur-point))
       (if r
 	  (goto-char (- r 1))
 	(error "No earlier matches"))
-      
+
       (setq n (1- n)))))
 
 (defcustom list-matching-lines-default-context-lines 0
@@ -699,7 +699,7 @@ the matching is case-sensitive."
 					 (bolp)))
 				     1 0)))
 		  (set-marker text-end (point))
-		  
+
 		  ;; Highlight text that was matched.
 		  (if list-matching-lines-face
 		      (put-text-property
@@ -713,7 +713,7 @@ the matching is case-sensitive."
 		   (+ (marker-position text-beg) match-beg match-len)
 		   (+ (marker-position text-beg) match-beg match-len 1)
 		   'occur-point t)
-		  
+
 		  ;; Now go back to the start of the matching text
 		  ;; adding the space and colon to the start of each line.
 		  (goto-char insertion-start)
@@ -746,14 +746,14 @@ the matching is case-sensitive."
 		    (insert empty ?:)
 		    (forward-line 1)
 		    (setq tem (1+ tem)))
-		  
+
 		  ;; Add text properties.  The `occur' prop is used to
 		  ;; store the marker of the matching text in the
 		  ;; source buffer.
 		  (add-text-properties
 		   (marker-position text-beg) (- (marker-position text-end) 1)
 		   '(mouse-face highlight
-		     help-echo "mouse-2: go to this occurence"))
+		     help-echo "mouse-2: go to this occurrence"))
 		  (put-text-property (marker-position text-beg)
 				     (marker-position text-end)
 				     'occur occur-marker)
@@ -870,7 +870,7 @@ type them."
           (aset data 2 (if (consp next) next (aref data 3))))))
   (car (aref data 2)))
 
-(defun perform-replace (from-string replacements 
+(defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end)
   "Subroutine of `query-replace'.  Its complexity handles interactive queries.
@@ -1086,7 +1086,7 @@ see the documentation of `replace-match' to find out how to simulate
 		       (if (and regexp-flag nonempty-match)
 			   (setq match-again (and (looking-at search-string)
 						  (match-data)))))
-		      
+
 		      ;; Edit replacement.
 		      ((eq def 'edit-replacement)
 		       (setq next-replacement
@@ -1095,7 +1095,7 @@ see the documentation of `replace-match' to find out how to simulate
 		       (or replaced
 			   (replace-match next-replacement nocasify literal))
 		       (setq done t))
-		      
+
 		      ((eq def 'delete-and-edit)
 		       (delete-region (match-beginning 0) (match-end 0))
 		       (set-match-data
@@ -1125,7 +1125,7 @@ see the documentation of `replace-match' to find out how to simulate
       ;; beyond the last replacement.  Undo that.
       (when (and regexp-flag (not match-again) (> replace-count 0))
 	(backward-char 1))
-      
+
       (replace-dehighlight))
     (or unread-command-events
 	(message "Replaced %d occurrence%s"
