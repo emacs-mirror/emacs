@@ -41,7 +41,7 @@
 
 ;;  An instruction screen showing the TPU-edt keypad will be displayed, and
 ;;  you will be prompted to press the TPU-edt editing keys.  Tpu-mapper uses
-;;  the keys you press to create an emacs lisp file that will define a
+;;  the keys you press to create an Emacs Lisp file that will define a
 ;;  TPU-edt keypad for your X server.  You can even re-arrange the standard
 ;;  EDT keypad to suit your tastes (or to cope with those silly Sun and PC
 ;;  keypads).
@@ -59,7 +59,7 @@
 
 ;;  Sometimes, tpu-mapper will ignore a key you press, and just continue to
 ;;  prompt for the same key.  This can happen when your window manager sucks
-;;  up the key and doesn't pass it on to emacs, or it could be an emacs bug.
+;;  up the key and doesn't pass it on to Emacs, or it could be an Emacs bug.
 ;;  Either way, there's nothing that tpu-mapper can do about it.  You must
 ;;  press RETURN, to skip the current key and continue.  Later, you and/or
 ;;  your local X guru can try to figure out why the key is being ignored.
@@ -71,19 +71,11 @@
 ;;;
 (cond
  ((not (and window-system (not (string-lessp emacs-version "19"))))
-  (insert "
-
-    Whoa!  This isn't going to work...
-
-    You must run tpu-mapper.el under X-windows and Emacs version 19.
-
-    Press any key to exit.  ")
-  (sit-for 600)
-  (kill-emacs t)))
+  (error "tpu-mapper requires running in Emacs 19, with an X display")))
 
 
 ;;;
-;;;  Decide whether we're running GNU or Lucid emacs.
+;;;  Decide whether we're running Lucid Emacs or Emacs itself.
 ;;;
 (defconst tpu-lucid-emacs19-p (string-match "Lucid" emacs-version)
   "Non-NIL if we are running Lucid Emacs version 19.")
@@ -133,7 +125,7 @@
 (switch-to-buffer "Directions")
 (insert "
     This program prompts you to press keys to create a custom keymap file
-    for use with the x-windows version of emacs and TPU-edt.
+    for use with the x-windows version of Emacs and TPU-edt.
 
     Start by pressing the RETURN key, and continue by pressing the keys
     specified in the mini-buffer.  You can re-arrange the TPU-edt keypad
@@ -200,7 +192,7 @@
 	 (format "%s" tpu-key)))
   tpu-key)
 
-(defun tpu-gnu-map-key (ident descrip func gold-func)
+(defun tpu-emacs-map-key (ident descrip func gold-func)
   (interactive)
   (message "Press %s%s: " ident descrip)
   (setq tpu-key-seq (read-event))
@@ -217,7 +209,7 @@
 	 (format "%s" tpu-key)))
   tpu-key)
 
-(fset 'tpu-map-key (if tpu-lucid-emacs19-p 'tpu-lucid-map-key 'tpu-gnu-map-key))
+(fset 'tpu-map-key (if tpu-lucid-emacs19-p 'tpu-lucid-map-key 'tpu-emacs-map-key))
 
 
 (set-buffer "Keys")
@@ -371,13 +363,11 @@
 ;;;
 ;;;  Save the key mapping program and blow this pop stand
 ;;;
-(let ((file (if tpu-lucid-emacs19-p "~/.tpu-lucid-keys" "~/.tpu-gnu-keys")))
+(let ((file (if tpu-lucid-emacs19-p "~/.tpu-lucid-keys" "~/.tpu-keys")))
   (set-visited-file-name
    (read-file-name (format "Save key mapping to file (default %s): " file) "" file)))
 (save-buffer)
 
-(message "That's it!  Press any key to exit")
-(sit-for 600)
-(kill-emacs t)
+(message "tpu-mapper done")
 
 ;;; tpu-mapper.el ends here
