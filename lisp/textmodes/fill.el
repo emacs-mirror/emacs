@@ -326,7 +326,9 @@ If `fill-paragraph-function' is non-nil, we call it (passing our
 argument to it), and if it returns non-nil, we simply return its value."
   (interactive "P")
   (or (and fill-paragraph-function
-	   (funcall fill-paragraph-function arg))
+	   (let ((function fill-paragraph-function)
+		 fill-paragraph-function)
+	     (funcall function arg)))
       (let ((before (point)))
 	(save-excursion
 	  (forward-paragraph)
