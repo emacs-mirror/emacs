@@ -1388,7 +1388,7 @@ system, which means that it is divided into many functions that call
 each other, any of which can be redefined in the middle of an editing
 session.  Almost any part of Emacs can be replaced without making a
 separate copy of all of Emacs.  Most of the editing commands of Emacs
-are written in Lisp already; the few exceptions could have been written
+are written in Lisp; the few exceptions could have been written
 in Lisp but are written in C for efficiency.  Although only a programmer
 can write an extension, anybody can use it afterward.  If you want to
 learn Emacs Lisp programming, we recommend the @cite{Introduction to
