@@ -594,10 +594,18 @@
 
 2003-11-01  Mark A. Hershberger  <mah@everybody.org>
 
-	* xml.el: Allow comments following the top-level element.
-	Separate out namespace parsing into special functions.
-	Change namespace parsing to return ('ns-uri . "local-name")
-	instead of '{ns-uri}local-name.
+	* xml.el (xml-parse-region): Allow comments to appear after the
+	topmost element has closed.
+	(xml-ns-parse-ns-attrs, xml-ns-expand-el)
+	(xml-ns-expand-attr): New functions to do namespace handling.	
+	(xml-intern-attrlist): Back-compatible handling of attribute
+	names.
+	(xml-parse-tag): Move namespace handling to seperate functions.
+	Now produces elements in the form ((:ns . "element") (attr-list)
+	children) instead of ('ns:element (attr-list) children).
+	(xml-parse-attlist): Fix attribute parsing.
+	(xml-parse-dtd): Change parsing so that it produces strings
+	instead of interned symbols.
 
 2003-11-01  era@iki.fi  <era@iki.fi>  (tiny change)
 
