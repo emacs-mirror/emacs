@@ -645,7 +645,7 @@ appear on disk when you save the tar-file's buffer."
 
 
 ;; Revert the buffer and recompute the dired-like listing.
-(defun tar-mode-revert (&optional no-autosave no-confirm)
+(defun tar-mode-revert (&optional no-auto-save no-confirm)
   (let ((revert-buffer-function nil)
 	(old-offset tar-header-offset)
 	success)
