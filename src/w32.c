@@ -584,6 +584,7 @@ init_environment ()
     static char * env_vars[] = 
     {
       "HOME",
+      "PRELOAD_WINSOCK",
       "emacs_dir",
       "EMACSLOADPATH",
       "SHELL",
@@ -1389,25 +1390,35 @@ BOOL (WINAPI *pfn_SetHandleInformation) (HANDLE object, DWORD mask, DWORD flags)
 #define HANDLE_FLAG_INHERIT	1
 #endif
 
-static int have_winsock;
-static HANDLE winsock_lib;
+HANDLE winsock_lib;
+static int winsock_inuse;
 
-static void
+BOOL
 term_winsock (void)
 {
-  if (have_winsock)
+  if (winsock_lib != NULL && winsock_inuse == 0)
     {
-      pfn_WSACleanup ();
-      FreeLibrary (winsock_lib);
+      /* Not sure what would cause WSAENETDOWN, or even if it can happen
+	 after WSAStartup returns successfully, but it seems reasonable
+	 to allow unloading winsock anyway in that case. */
+      if (pfn_WSACleanup () == 0 ||
+	  pfn_WSAGetLastError () == WSAENETDOWN)
+	{
+	  if (FreeLibrary (winsock_lib))
+	  winsock_lib = NULL;
+	  return TRUE;
+	}
     }
+  return FALSE;
 }
 
-static void
-init_winsock ()
+BOOL
+init_winsock (int load_now)
 {
   WSADATA  winsockData;
 
-  have_winsock = FALSE;
+  if (winsock_lib != NULL)
+    return TRUE;
 
   pfn_SetHandleInformation = NULL;
   pfn_SetHandleInformation
@@ -1443,16 +1454,36 @@ init_winsock ()
       LOAD_PROC( getservbyname );
       LOAD_PROC( WSACleanup );
 
+#undef LOAD_PROC
+
       /* specify version 1.1 of winsock */
       if (pfn_WSAStartup (0x101, &winsockData) == 0)
         {
-	  have_winsock = TRUE;
-	  return;
+	  if (winsockData.wVersion != 0x101)
+	    goto fail;
+
+	  if (!load_now)
+	    {
+	      /* Report that winsock exists and is usable, but leave
+		 socket functions disabled.  I am assuming that calling
+		 WSAStartup does not require any network interaction,
+		 and in particular does not cause or require a dial-up
+		 connection to be established. */
+
+	      pfn_WSACleanup ();
+	      FreeLibrary (winsock_lib);
+	      winsock_lib = NULL;
+	    }
+	  winsock_inuse = 0;
+	  return TRUE;
 	}
 
     fail:
       FreeLibrary (winsock_lib);
+      winsock_lib = NULL;
     }
+
+  return FALSE;
 }
 
 
@@ -1463,7 +1494,7 @@ int h_errno = 0;
    are already in <sys/socket.h> */
 static void set_errno ()
 {
-  if (!have_winsock)
+  if (winsock_lib == NULL)
     h_errno = EINVAL;
   else
     h_errno = pfn_WSAGetLastError ();
@@ -1484,7 +1515,7 @@ static void set_errno ()
 
 static void check_errno ()
 {
-  if (h_errno == 0 && have_winsock)
+  if (h_errno == 0 && winsock_lib != NULL)
     pfn_WSASetLastError (0);
 }
 
@@ -1507,7 +1538,7 @@ sys_socket(int af, int type, int protocol)
   long s;
   child_process * cp;
 
-  if (!have_winsock)
+  if (winsock_lib == NULL)
     {
       h_errno = ENETDOWN;
       return INVALID_SOCKET;
@@ -1587,6 +1618,7 @@ sys_socket(int af, int type, int protocol)
 	      fd_info[ fd ].cp = cp;
 
 	      /* success! */
+	      winsock_inuse++;	/* count open sockets */
 	      return fd;
 	    }
 
@@ -1605,7 +1637,7 @@ sys_socket(int af, int type, int protocol)
 int
 sys_bind (int s, const struct sockaddr * addr, int namelen)
 {
-  if (!have_winsock)
+  if (winsock_lib == NULL)
     {
       h_errno = ENOTSOCK;
       return SOCKET_ERROR;
@@ -1627,7 +1659,7 @@ sys_bind (int s, const struct sockaddr * addr, int namelen)
 int
 sys_connect (int s, const struct sockaddr * name, int namelen)
 {
-  if (!have_winsock)
+  if (winsock_lib == NULL)
     {
       h_errno = ENOTSOCK;
       return SOCKET_ERROR;
@@ -1648,28 +1680,28 @@ sys_connect (int s, const struct sockaddr * name, int namelen)
 u_short
 sys_htons (u_short hostshort)
 {
-  return (have_winsock) ?
+  return (winsock_lib != NULL) ?
     pfn_htons (hostshort) : hostshort;
 }
 
 u_short
 sys_ntohs (u_short netshort)
 {
-  return (have_winsock) ?
+  return (winsock_lib != NULL) ?
     pfn_ntohs (netshort) : netshort;
 }
 
 unsigned long
 sys_inet_addr (const char * cp)
 {
-  return (have_winsock) ?
+  return (winsock_lib != NULL) ?
     pfn_inet_addr (cp) : INADDR_NONE;
 }
 
 int
 sys_gethostname (char * name, int namelen)
 {
-  if (have_winsock)
+  if (winsock_lib != NULL)
     return pfn_gethostname (name, namelen);
 
   if (namelen > MAX_COMPUTERNAME_LENGTH)
@@ -1684,7 +1716,7 @@ sys_gethostbyname(const char * name)
 {
   struct hostent * host;
 
-  if (!have_winsock)
+  if (winsock_lib == NULL)
     {
       h_errno = ENETDOWN;
       return NULL;
@@ -1702,7 +1734,7 @@ sys_getservbyname(const char * name, const char * proto)
 {
   struct servent * serv;
 
-  if (!have_winsock)
+  if (winsock_lib == NULL)
     {
       h_errno = ENETDOWN;
       return NULL;
@@ -1751,13 +1783,16 @@ sys_close (int fd)
 	    }
 	  if (i == MAXDESC)
 	    {
-#if defined (HAVE_SOCKETS) && !defined (SOCK_REPLACE_HANDLE)
+#ifdef HAVE_SOCKETS
 	      if (fd_info[fd].flags & FILE_SOCKET)
 		{
-		  if (!have_winsock) abort ();
+#ifndef SOCK_REPLACE_HANDLE
+		  if (winsock_lib == NULL) abort ();
 
 		  pfn_shutdown (SOCK_HANDLE (fd), 2);
 		  rc = pfn_closesocket (SOCK_HANDLE (fd));
+#endif
+		  winsock_inuse--; /* count open sockets */
 		}
 #endif
 	      delete_child (cp);
@@ -2010,7 +2045,7 @@ sys_read (int fd, char * buffer, unsigned int count)
 #ifdef HAVE_SOCKETS
 	  else /* FILE_SOCKET */
 	    {
-	      if (!have_winsock) abort ();
+	      if (winsock_lib == NULL) abort ();
 
 	      /* do the equivalent of a non-blocking read */
 	      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
@@ -2070,7 +2105,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 #ifdef HAVE_SOCKETS
   if (fd_info[fd].flags & FILE_SOCKET)
     {
-      if (!have_winsock) abort ();
+      if (winsock_lib == NULL) abort ();
       nchars =  pfn_send (SOCK_HANDLE (fd), buffer, count, 0);
       if (nchars == SOCKET_ERROR)
         {
@@ -2103,8 +2138,19 @@ void
 init_ntproc ()
 {
 #ifdef HAVE_SOCKETS
-  /* initialise the socket interface if available */
-  init_winsock ();
+  /* Initialise the socket interface now if available and requested by
+     the user by defining PRELOAD_WINSOCK; otherwise loading will be
+     delayed until open-network-stream is called (win32-has-winsock can
+     also be used to dynamically load or reload winsock).
+
+     Conveniently, init_environment is called before us, so
+     PRELOAD_WINSOCK can be set in the registry. */
+
+  /* Always initialize this correctly. */
+  winsock_lib = NULL;
+
+  if (getenv ("PRELOAD_WINSOCK") != NULL)
+    init_winsock (TRUE);
 #endif
 
   /* Initial preparation for subprocess support: replace our standard
