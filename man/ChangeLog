@@ -1,3 +1,13 @@
+2005-02-06  Lute Kamstra  <lute@gnu.org>
+
+	* basic.texi (Undo): Fix typo.
+
+	* cmdargs.texi (Emacs Invocation): Fix typo.
+
+	* custom.texi (Init Examples): Fix typo.
+
+	* abbrevs.texi (Expanding Abbrevs): Fix typo.
+
 2005-02-06  Richard M. Stallman  <rms@gnu.org>
 
 	* regs.texi (Registers): Registers can hold numbers, too.
