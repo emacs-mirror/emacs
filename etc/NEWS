@@ -484,7 +484,7 @@ the cursor, for example screen magnifiers and text to speech programs.
 See the Emacs 21.1 NEWS entry for tooltips for details.
 
 ** Some images are now supported on Windows.
-PBM images are supported, other formats which require external
+PBM and XBM images are supported, other formats which require external
 libraries may be supported in future.
 
 ** Pointing devices with more than 3 buttons are now supported on MS Windows.
