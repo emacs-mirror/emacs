@@ -1,5 +1,12 @@
 2000-11-09  Dave Love  <fx@gnu.org>
 
+	* gnus-group.el (gnus-group-make-directory-group) 
+	(gnus-group-fetch-faq): Use expand-file-name.
+	(gnus-group-fetch-faq): Simplify completing-read form.
+
+	* mm-bodies.el (mm-encode-body): Use mm-multibyte-p, don't just
+	test for Mule.
+
 	* message.el (tool-bar-map): Defvar when compiling.
 
 	* gnus-setup.el (running-xemacs, gnus-use-installed-tm)
