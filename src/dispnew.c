@@ -607,6 +607,7 @@ scroll_frame_lines (frame, from, end, amount, newpos)
   register struct frame_glyphs *current_frame
     = FRAME_CURRENT_GLYPHS (frame);
   int pos_adjust;
+  int width = FRAME_WIDTH (frame);
 
   if (!line_ins_del_ok)
     return 0;
@@ -631,28 +632,6 @@ scroll_frame_lines (frame, from, end, amount, newpos)
 		     sizeof (int *) * (end + amount - from),
 		     amount * sizeof (int *));
 
-      /* Adjust the lines by an amount
-	 that puts the first of them at NEWPOS.  */
-      pos_adjust = newpos - current_frame->charstarts[i][0];
-
-      /* Offset each char position in the charstarts lines we moved
-	 by pos_adjust.  */
-      for (i = from + amount; i < end; i++)
-	{
-	  int *line = current_frame->charstarts[i];
-	  int col;
-	  for (col = 0; col < current_frame->used[i]; col++)
-	    line[col] += pos_adjust;
-	}
-      for (i = from; i <= from + amount; i++)
-	{
-	  int *line = current_frame->charstarts[i];
-	  int col;
-	  line[0] = -1;
-	  for (col = 0; col < current_frame->used[i]; col++)
-	    line[col] = 0;
-	}
-
       safe_bcopy (current_frame->used + from,
 		  current_frame->used + from + amount,
 		  (end - from) * sizeof current_frame->used[0]);
@@ -664,6 +643,29 @@ scroll_frame_lines (frame, from, end, amount, newpos)
       safe_bcopy (current_frame->enable + from,
 		  current_frame->enable + from + amount,
 		  (end - from) * sizeof current_frame->enable[0]);
+
+      /* Adjust the lines by an amount
+	 that puts the first of them at NEWPOS.  */
+      pos_adjust = newpos - current_frame->charstarts[from + amount][0];
+
+      /* Offset each char position in the charstarts lines we moved
+	 by pos_adjust.  */
+      for (i = from + amount; i < end + amount; i++)
+	{
+	  int *line = current_frame->charstarts[i];
+	  int col;
+	  for (col = 0; col < width; col++)
+	    if (line[col] > 0)
+	      line[col] += pos_adjust;
+	}
+      for (i = from; i < from + amount; i++)
+	{
+	  int *line = current_frame->charstarts[i];
+	  int col;
+	  line[0] = -1;
+	  for (col = 0; col < width; col++)
+	    line[col] = 0;
+	}
 
       /* Mark the lines made empty by scrolling as enabled, empty and
 	 normal video.  */
@@ -726,28 +728,6 @@ scroll_frame_lines (frame, from, end, amount, newpos)
 		     sizeof (int *) * (end - from - amount),
 		     amount * sizeof (int *));
 
-      /* Adjust the lines by an amount
-	 that puts the first of them at NEWPOS.  */
-      pos_adjust = newpos - current_frame->charstarts[i][0];
-
-      /* Offset each char position in the charstarts lines we moved
-	 by pos_adjust.  */
-      for (i = from + amount; i < end + amount; i++)
-	{
-	  int *line = current_frame->charstarts[i];
-	  int col;
-	  for (col = 0; col < current_frame->used[i]; col++)
-	    line[col] += pos_adjust;
-	}
-      for (i = end + amount; i <= end; i++)
-	{
-	  int *line = current_frame->charstarts[i];
-	  int col;
-	  line[0] = -1;
-	  for (col = 0; col < current_frame->used[i]; col++)
-	    line[col] = 0;
-	}
-
       safe_bcopy (current_frame->used + from,
 		  current_frame->used + from + amount,
 		  (end - from) * sizeof current_frame->used[0]);
@@ -759,6 +739,29 @@ scroll_frame_lines (frame, from, end, amount, newpos)
       safe_bcopy (current_frame->enable + from,
 		  current_frame->enable + from + amount,
 		  (end - from) * sizeof current_frame->enable[0]);
+
+      /* Adjust the lines by an amount
+	 that puts the first of them at NEWPOS.  */
+      pos_adjust = newpos - current_frame->charstarts[from + amount][0];
+
+      /* Offset each char position in the charstarts lines we moved
+	 by pos_adjust.  */
+      for (i = from + amount; i < end + amount; i++)
+	{
+	  int *line = current_frame->charstarts[i];
+	  int col;
+	  for (col = 0; col < width; col++)
+	    if (line[col] > 0)
+	      line[col] += pos_adjust;
+	}
+      for (i = end + amount; i < end; i++)
+	{
+	  int *line = current_frame->charstarts[i];
+	  int col;
+	  line[0] = -1;
+	  for (col = 0; col < width; col++)
+	    line[col] = 0;
+	}
 
       /* Mark the lines made empty by scrolling as enabled, empty and
 	 normal video.  */
@@ -906,7 +909,7 @@ preserve_my_columns (w)
 #endif
 
 /* Adjust by ADJUST the charstart values in window W
-   before vpos VPOS, which counts relative to the frame
+   after vpos VPOS, which counts relative to the frame
    (not relative to W itself).  */
 
 void
@@ -917,11 +920,11 @@ adjust_window_charstarts (w, vpos, adjust)
 {
   int left = XFASTINT (w->left);
   int top = XFASTINT (w->top);
-  int right = left + window_internal_height (w);
-  int height = window_internal_height (w);
+  int right = left + window_internal_width (w);
+  int bottom = top + window_internal_height (w);
   int i;
 
-  for (i = vpos + 1; i < top + height; i++)
+  for (i = vpos + 1; i < bottom; i++)
     {
       int *charstart
 	= FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[i];
@@ -929,6 +932,35 @@ adjust_window_charstarts (w, vpos, adjust)
       for (j = left; j < right; j++)
 	if (charstart[j] > 0)
 	  charstart[j] += adjust;
+    }
+}
+
+verify_charstarts (w)
+     struct window *w;
+{
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
+  int i;
+  int top = XFASTINT (w->top);
+  int bottom = top + window_internal_height (w);
+  int left = XFASTINT (w->left);
+  int right = left + window_internal_width (w);
+  int next_line;
+
+  for (i = top; i < bottom; i++)
+    {
+      int j;
+      int last;
+      int *charstart
+	= FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[i];
+
+      if (i != top)
+	if (charstart[left] != next_line)
+	  abort ();
+
+      for (j = left; j < right; j++)
+	if (charstart[j] > 0)
+	  last = charstart[j];
+      next_line = last + (BUF_ZV (XBUFFER (w->buffer)) != last);
     }
 }
 
