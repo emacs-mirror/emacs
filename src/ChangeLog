@@ -1,3 +1,9 @@
+2000-10-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (fix_submap_inheritance): Use get_keymap_1 on parent_entry
+	rather than KEYMAPP, to allow EQ to work correctly if parent_entry is
+	a symbol.
+
 2000-10-24  Andrew Innes  <andrewi@gnu.org>
 
 	* dired.c (directory_files_internal_unwind): New function.

@@ -1797,6 +1797,8 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** `add-hook' now makes the hook local if called with a non-nil LOCAL arg.
+
 +++
 ** The treatment of non-ASCII characters in search ranges has changed.
 If a range in a regular expression or the arg of
