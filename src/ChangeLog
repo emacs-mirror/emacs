@@ -1,3 +1,26 @@
+2000-03-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.h (RE_TRANSLATE. RE_TRANSLATE_P): Moved to regex.c.
+
+	* regex.c (RE_STRING_CHAR): New macro.
+	(GET_CHAR_AFER_2): Remove.
+	(RE_TRANSLATE, RE_TRANSLATE_P): New macros moved from regex.h.
+	(enum re_opcode_t): Remove on_failure_jump_exclusive.
+	(print_partial_compiled_pattern, re_compile_fastmap)
+	(re_match_2_internal): Remove on_failure_jump_exclusive.
+	(regex_compile): Turn optimizable P+ loops into PP*, so that the
+	optimization only need to work for * (ie. can use of_keep_string_jump).
+	Remove the special case for .*\n since it is now covered by the general
+	optimization.
+	(re_search_2): Don't bother with `room'.
+	(skip_one_char): New function.
+	(skip_noops): Simplify since `memory' is not needed any more.
+	(mutually_exclusive_p): Restructure slightly to use `switch' and
+	add handling for "all" remaining cases.
+	(re_match_2_internal): Change on_failure_jump_smart to use
+	on_failure_keep_string_jump (and redirect the end-of-loop jump)
+	rather than on_failure_jump_exclusive.
+
 2000-03-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (select_visual): Don't set dpyinfo->n_planes to the
