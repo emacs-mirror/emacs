@@ -2805,7 +2805,7 @@ If FRAME is t, search all frames.\n\
 If FRAME is a frame, search only that frame.\n\
 If FRAME is nil, search only the selected frame\n\
  (actually the last nonminibuffer frame),\n\
- unless `pop-up-frames' or `display-reuse-frames' is non-nil,\n\
+ unless `pop-up-frames' or `display-buffer-reuse-frames' is non-nil,\n\
  which means search visible and iconified frames.")
   (buffer, not_this_window, frame)
      register Lisp_Object buffer, not_this_window, frame;
