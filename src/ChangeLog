@@ -1,5 +1,13 @@
 2004-06-15  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (try_cursor_movement): Exclude header line from scroll
+	margin at top of window.
+	(try_window_reusing_current_matrix): Calculate proper cursor position
+	after scrolling up with non-zero scroll margin, as the old cursor
+	position corresponds to value of PT before executing this command.
+	(try_window_id): Consider scroll margin at bottom of window too;
+	otherwise we fail to scroll when hl-line-mode is enabled.
+
 	* syntax.c (skip_chars): Only recognize [:class:] when it has the
 	proper format and class is a lower-case word.
 
