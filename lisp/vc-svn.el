@@ -334,21 +334,22 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-svn-print-log (file)
+(defun vc-svn-print-log (file &optional buffer)
   "Get change log associated with FILE."
   (save-current-buffer
-    (vc-setup-buffer nil)
+    (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-min))
       ;; Add a line to tell log-view-mode what file this is.
       (insert "Working file: " (file-relative-name file) "\n"))
     (vc-svn-command
-     t
+     buffer
      (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
      file "log")))
 
-(defun vc-svn-diff (file &optional oldvers newvers)
+(defun vc-svn-diff (file &optional oldvers newvers buffer)
   "Get a difference report using SVN between two versions of FILE."
+  (unless buffer (setq buffer "*vc-diff*"))
   (if (string= (vc-workfile-version file) "0")
       ;; This file is added but not yet committed; there is no master file.
       (if (or oldvers newvers)
@@ -356,7 +357,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; We regard this as "changed".
 	;; Diff it against /dev/null.
 	;; Note: this is NOT a "svn diff".
-	(apply 'vc-do-command "*vc-diff*"
+	(apply 'vc-do-command buffer
 	       1 "diff" file
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
@@ -365,7 +366,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	   (async (and (vc-stay-local-p file)
 		       (or oldvers newvers) ; Svn diffs those locally.
 		       (fboundp 'start-process))))
-      (apply 'vc-svn-command "*vc-diff*"
+      (apply 'vc-svn-command buffer
 	     (if async 'async 0)
 	     file "diff"
 	     (append
@@ -377,7 +378,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
       (if async 1		      ; async diff => pessimistic assumption
 	;; For some reason `svn diff' does not return a useful
 	;; status w.r.t whether the diff was empty or not.
-	(buffer-size (get-buffer "*vc-diff*"))))))
+	(buffer-size (get-buffer buffer))))))
 
 (defun vc-svn-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
