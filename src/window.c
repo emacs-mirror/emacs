@@ -4216,6 +4216,25 @@ redraws with point in the center of the current window.")
 
   return Qnil;
 }
+
+
+/* Value is the number of lines actually displayed in window W,
+   as opposed to its height.  */
+
+static int
+displayed_window_lines (w)
+     struct window *w;
+{
+  struct it it;
+  struct text_pos start;
+
+  SET_TEXT_POS_FROM_MARKER (start, w->start);
+  start_display (&it, w, start);
+  move_it_vertically (&it, window_box_height (w));
+  return it.vpos;
+}
+
+
 
 DEFUN ("move-to-window-line", Fmove_to_window_line, Smove_to_window_line,
   1, 1, "P",
@@ -4224,26 +4243,17 @@ With no argument, position point at center of window.\n\
 An argument specifies vertical position within the window;\n\
 zero means top of window, negative means relative to bottom of window.")
   (arg)
-     register Lisp_Object arg;
+     Lisp_Object arg;
 {
-  register struct window *w = XWINDOW (selected_window);
-  register int height = window_internal_height (w);
-  register int start;
+  struct window *w = XWINDOW (selected_window);
+  int lines, start;
   Lisp_Object window;
 
-  if (NILP (arg))
-    XSETFASTINT (arg, height / 2);
-  else
-    {
-      arg = Fprefix_numeric_value (arg);
-      if (XINT (arg) < 0)
-	XSETINT (arg, XINT (arg) + height);
-    }
-
+  window = selected_window;
   start = marker_position (w->start);
-  XSETWINDOW (window, w);
   if (start < BEGV || start > ZV)
     {
+      int height = window_internal_height (w);
       Fvertical_motion (make_number (- (height / 2)), window);
       set_marker_both (w->start, w->buffer, PT, PT_BYTE);
       w->start_at_line_beg = Fbolp ();
@@ -4251,6 +4261,16 @@ zero means top of window, negative means relative to bottom of window.")
     }
   else
     Fgoto_char (w->start);
+
+  lines = displayed_window_lines (w);
+  if (NILP (arg))
+    XSETFASTINT (arg, lines / 2);
+  else
+    {
+      arg = Fprefix_numeric_value (arg);
+      if (XINT (arg) < 0)
+	XSETINT (arg, XINT (arg) + lines);
+    }
 
   return Fvertical_motion (arg, window);
 }
