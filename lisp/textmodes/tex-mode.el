@@ -1101,19 +1101,22 @@ so normally SUFFIX starts with one."
   (if (stringp file-name)
       (let ((file (file-name-nondirectory file-name))
 	    trial-name)
-	;; try spliting on first period
+	;; Try spliting on last period.
+	;; The first-period split can get fooled when two files
+	;; named a.tex and a.b.tex are both tex'd;
+	;; the last-period split must be right if it matches at all.
 	(setq trial-name
 	      (concat (file-name-directory file-name)
 		      (substring file 0
-				 (string-match "\\." file))
+				 (string-match "\\.[^.]*$" file))
 		      suffix))
 	(if (or (file-exists-p trial-name)
 		(file-exists-p (concat trial-name ".aux"))) ;for BibTeX files
 	    trial-name
-	  ;; not found, so split on last period
+	  ;; Not found, so split on first period.
 	  (concat (file-name-directory file-name)
 		  (substring file 0
-			     (string-match "\\.[^.]*$" file))
+			     (string-match "\\." file))
 		  suffix)))
     " "))
 
