@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.17 2002/09/03 01:20:20 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.18 2002/10/04 15:25:22 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -417,6 +417,7 @@ The point is moved to the end of the conflict."
 (defvar ediff-buffer-B)
 (defvar ediff-buffer-C)
 
+;;;###autoload
 (defun smerge-ediff (&optional name-mine name-other name-base)
   "Invoke ediff to resolve the conflicts.
 NAME-MINE, NAME-OTHER, and NAME-BASE, if non-nil, are used for the
