@@ -1,9 +1,9 @@
 ;;; ada-stmt.el --- an extension to Ada mode for inserting statement templates
 
-;; Copyright(C) 1987, 1993, 1994, 1996, 1997, 1998, 1999
+;; Copyright(C) 1987, 93, 94, 96, 97, 98, 99, 2000
 ;;   Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.9 $
+;; Ada Core Technologies's version:   $Revision: 1.21 $ 
 
 ;; This file is part of GNU Emacs.
 
@@ -13,11 +13,8 @@
 ;; Rolf Ebert's version: 2.26
 
 ;;; Commentary:
-
-;;
-;; put the following statement in your .emacs:
-;; (require 'ada-stmt)
-;;
+;; This file is now automatically loaded from ada-mode.el, and creates a submenu
+;; in Ada/ on the menu bar.
 
 ;;; History:
 
@@ -113,14 +110,14 @@
 		 ["When" ada-when t])))
     (if ada-xemacs
 	(funcall (symbol-function 'add-submenu)
-		 '("Ada") (append (list "Statements"
+		 '("Ada") (append (list "Templates"
 					:included '(string= mode-name "Ada"))
 				  menu))
 
-      (define-key-after (lookup-key ada-mode-map [menu-bar Ada]) [Statements]
+      (define-key-after (lookup-key ada-mode-map [menu-bar Ada]) [Templates]
 	(list 'menu-item
-	      "Statements"
-	      (easy-menu-create-menu "Statements" menu)
+	      "Templates"
+	      (easy-menu-create-menu "Templates" menu)
 	      :visible '(string= mode-name "Ada"))
 	t))))
 
@@ -132,7 +129,7 @@
   (save-excursion
     (let ((case-fold-search t))
       (if (re-search-backward ada-procedure-start-regexp nil t)
-	  (buffer-substring (match-beginning 2) (match-end 2))
+	  (buffer-substring (match-beginning 3) (match-end 3))
 	"NAME?"))))
 
 (defvar ada-template-map
@@ -236,7 +233,7 @@ Indent for the first line of code."
 (define-skeleton ada-exit
   "Insert an exit statement, prompting for loop name and condition."
   "[name of loop to exit]: "
-  "exit " str & ?\  (ada-exit-1) | -1 ?\;)
+  "exit " str & ?\ (ada-exit-1) | -1 ?\;)
 
 ;;;###autoload
 (defun ada-header ()
@@ -532,7 +529,6 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   "[accept name]: "
   > "accept " str
   (ada-get-param)
-;;;  " (" ("[parameter_specification]: " str "; ") -2 ")"
   " do" \n
   > _ \n
   < "end " str ";" )
@@ -566,7 +562,6 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   > "terminate;")
 
 
-;; ----
 (defun ada-adjust-case-skeleton ()
   "Adjust the case of the text inserted by a skeleton."
   (save-excursion
