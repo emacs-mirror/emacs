@@ -1562,7 +1562,7 @@ The file names should be absolute, or relative to the current directory.")
 ;; given as the regular expression "\\.java$" .
 (defun gud-jdb-build-source-files-list (path extn)
   (apply 'nconc (mapcar (lambda (d)
-			  (when (files-directory-p d)
+			  (when (file-directory-p d)
 			    (directory-files d t extn nil)) path))))
 
 ;; Move point past whitespace.
