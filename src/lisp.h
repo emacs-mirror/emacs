@@ -3078,5 +3078,9 @@ extern Lisp_Object Vdirectory_sep_char;
 
 /* The ubiquitous min and max macros.  */
 
+#ifdef max
+#undef max
+#undef min
+#endif
 #define min(a, b)	((a) < (b) ? (a) : (b))
 #define max(a, b)	((a) > (b) ? (a) : (b))
