@@ -131,8 +131,19 @@ This string is shown at mode line when users are in KKC mode.")
 ;; `kkc-current-conversion'.
 (defvar kkc-current-conversions-width nil)
 
-(defvar kkc-show-conversion-list-count 4
-  "Count of successive `kkc-next' or `kkc-prev' to show conversion list.")
+(defcustom kkc-show-conversion-list-count 4
+  "*Count of successive `kkc-next' or `kkc-prev' to show conversion list.
+When you type SPC or C-p successively this count while using the input
+method `japanese', the conversion candidates are shown in the echo
+area while indicating the current selection by `<N>'."
+  :group 'mule
+  :type 'integer)
+
+;; Count of successive invocations of `kkc-next'.
+(defvar kkc-next-count nil)
+
+;; Count of successive invocations of `kkc-prev'.
+(defvar kkc-prev-count nil)
 
 ;; Provided that `kkc-current-key' is [A B C D E F G H I], the current
 ;; conversion target is [A B C D E F], and the sequence of which
@@ -237,6 +248,10 @@ and the return value is the length of the conversion."
 		first nil))
 	(goto-char to)
 	(kkc-update-conversion 'all)
+	(setq kkc-next-count 1 kkc-prev-count 0)
+	(if (and (>= kkc-next-count kkc-show-conversion-list-count)
+		 (>= (length kkc-current-conversions) 3))
+	    (kkc-show-conversion-list-or-next-group))
 
 	;; Then, ask users to select a desirable conversion.
 	(force-mode-line-update)
@@ -249,7 +264,16 @@ and the return value is the length of the conversion."
 		 (cmd (lookup-key kkc-keymap keyseq)))
 	    (if (commandp cmd)
 		(condition-case err
-		    (call-interactively cmd)
+		    (progn
+		      (cond ((eq cmd 'kkc-next)
+			     (setq kkc-next-count (1+ kkc-next-count)
+				   kkc-prev-count 0))
+			    ((eq cmd 'kkc-prev)
+			     (setq kkc-prev-count (1+ kkc-prev-count)
+				   kkc-next-count 0))
+			    (t
+			     (setq kkc-next-count 0 kkc-prev-count 0)))
+		      (call-interactively cmd))
 		  (kkc-error (message "%s" (cdr err)) (beep)))
 	      ;; KEYSEQ is not defined in KKC keymap.
 	      ;; Let's put the event back.
@@ -288,15 +312,9 @@ and the return value is the length of the conversion."
   (delete-region (point) (overlay-end kkc-overlay-tail))
   (kkc-terminate))
 
-;; Count of successive invocations of `kkc-next'.
-(defvar kkc-next-count nil)
-
 (defun kkc-next ()
   "Select the next candidate of conversion."
   (interactive)
-  (if (eq this-command last-command)
-      (setq kkc-next-count (1+ kkc-next-count))
-    (setq kkc-next-count 1))
   (let ((idx (1+ (car kkc-current-conversions))))
     (if (< idx 0)
 	(setq idx 1))
@@ -313,15 +331,9 @@ and the return value is the length of the conversion."
 	(kkc-show-conversion-list-update))
     (kkc-update-conversion)))
 
-;; Count of successive invocations of `kkc-next'.
-(defvar kkc-prev-count nil)
-
 (defun kkc-prev ()
   "Select the previous candidate of conversion."
   (interactive)
-  (if (eq this-command last-command)
-      (setq kkc-prev-count (1+ kkc-prev-count))
-    (setq kkc-prev-count 1))
   (let ((idx (1- (car kkc-current-conversions))))
     (if (< idx 0)
 	(setq idx (1- (length kkc-current-conversions))))
@@ -541,7 +553,9 @@ and change the current conversion to the last one in the group."
 	      (idx this-idx)
 	      (max-items (length kkc-show-conversion-list-index-chars))
 	      l)
-	  (while (< idx current-idx)
+	  ;; Set THIS-IDX to the first index of conversion to be shown
+	  ;; in MSG, and reflect it in kkc-current-conversions-width.
+	  (while (<= idx current-idx)
 	    (if (and (<= (+ width (aref width-table idx)) max-width)
 		     (< (- idx this-idx) max-items))
 		(setq width (+ width (aref width-table idx)))
@@ -549,6 +563,9 @@ and change the current conversion to the last one in the group."
 	    (setq idx (1+ idx)
 		  l (cdr l)))
 	  (aset first-slot 0 this-idx)
+	  ;; Set NEXT-IDX to the next index of the last conversion
+	  ;; shown in MSG, and reflect it in
+	  ;; kkc-current-conversions-width.
 	  (while (and (< idx len)
 		      (<= (+ width (aref width-table idx)) max-width)
 		      (< (- idx this-idx) max-items))
@@ -557,10 +574,13 @@ and change the current conversion to the last one in the group."
 		  l (cdr l)))
 	  (aset first-slot 1 (setq next-idx idx))
 	  (setq l (nthcdr this-idx kkc-current-conversions))
-	  (setq msg "")
-	  (setq idx this-idx)
+	  (setq msg (format " %c %s"
+			    (aref kkc-show-conversion-list-index-chars 0)
+			    (car l))
+		idx (1+ this-idx)
+		l (cdr l))
 	  (while (< idx next-idx)
-	    (setq msg (format "%s %c %s "
+	    (setq msg (format "%s  %c %s"
 			      msg
 			      (aref kkc-show-conversion-list-index-chars
 				    (- idx this-idx))
