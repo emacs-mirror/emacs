@@ -1029,7 +1029,7 @@ Return t if file exists.  */)
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
-  if (version >= 22)
+  if (! version || version >= 22)
     readevalloop (Qget_file_char, stream, file, Feval, 0, Qnil, Qnil);
   else
     {
