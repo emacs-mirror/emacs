@@ -255,6 +255,8 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   struct gcpro gcpro1;
   int success_count = 0;
 
+  executing_macro_iterations = 0;
+
   if (!NILP (count))
     {
       count = Fprefix_numeric_value (count);
