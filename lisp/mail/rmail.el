@@ -574,7 +574,24 @@ The first parenthesized expression should match the MIME-charset name.")
 
 ;;;; *** Rmail Mode ***
 
+;; This variable is dynamically bound.  The defvar is here to placate
+;; the byte compiler.
+
 (defvar rmail-enable-multibyte nil)
+
+
+(defun rmail-require-mime-maybe ()
+  "Require `rmail-mime-feature' if that is non-nil.
+Signal an error and set `rmail-mime-feature' to nil if the feature
+isn't provided."
+  (when rmail-enable-mime
+    (condition-case err
+	(require rmail-mime-feature)
+      (error
+       (message "Feature `%s' not provided" rmail-mime-feature)
+       (sit-for 1)
+       (setq rmail-enable-mime nil)))))
+
 
 ;;;###autoload
 (defun rmail (&optional file-name-arg)
@@ -591,12 +608,7 @@ have a chance to specify a file name with the minibuffer.
 If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Run rmail on RMAIL file: "))))
-  (if rmail-enable-mime
-      (condition-case err
-	  (require rmail-mime-feature)
-	(error (message "Feature `%s' not provided" rmail-mime-feature)
-	       (sit-for 1)
-	       (setq rmail-enable-mime nil))))
+  (rmail-require-mime-maybe)
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name))
 	 ;; This binding is necessary because we much decide if we
@@ -993,10 +1005,23 @@ Instead, these commands are available:
 \\[rmail-summary-by-topic]   Summarize only messages with subject line regexp(s).
 \\[rmail-toggle-header]	Toggle display of complete header."
   (interactive)
-  (rmail-mode-2)
-  (rmail-set-message-counters)
-  (rmail-show-message rmail-total-messages)
-  (run-hooks 'rmail-mode-hook))
+  (let ((finding-rmail-file (not (eq major-mode 'rmail-mode))))
+    (rmail-mode-2)
+    (when (and finding-rmail-file
+	       (null coding-system-for-read)
+	       default-enable-multibyte-characters)
+      (let ((rmail-enable-multibyte t))
+	(rmail-require-mime-maybe)
+	(rmail-convert-file)
+	(goto-char (point-max))
+	(set-buffer-multibyte t)))
+    (rmail-set-message-counters)
+    (rmail-show-message rmail-total-messages)
+    (when finding-rmail-file
+      (when rmail-display-summary
+	(rmail-summary))
+      (rmail-construct-io-menu))
+    (run-hooks 'rmail-mode-hook)))
 
 (defun rmail-mode-2 ()
   (kill-all-local-variables)
