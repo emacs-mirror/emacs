@@ -26,6 +26,12 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 
+/* Define this temporarily to hunt a bug.  If defined, the size of
+   strings is always recorded in sdata structures so that it can be
+   compared to the sizes recorded in Lisp strings.  */
+
+#define GC_CHECK_STRING_BYTES 1
+
 /* This file is part of the core Lisp implementation, and thus must
    deal with the real data structures.  If the Lisp implementation is
    replaced, this file likely will not be used.  */
@@ -868,6 +874,16 @@ struct sdata
      contents.  */
   struct Lisp_String *string;
 
+#ifdef GC_CHECK_STRING_BYTES
+  
+  EMACS_INT nbytes;
+  unsigned char data[1];
+  
+#define SDATA_NBYTES(S)	(S)->nbytes
+#define SDATA_DATA(S)	(S)->data
+  
+#else /* not GC_CHECK_STRING_BYTES */
+
   union
   {
     /* When STRING in non-null.  */
@@ -876,7 +892,14 @@ struct sdata
     /* When STRING is null.  */
     EMACS_INT nbytes;
   } u;
+  
+
+#define SDATA_NBYTES(S)	(S)->u.nbytes
+#define SDATA_DATA(S)	(S)->u.data
+
+#endif /* not GC_CHECK_STRING_BYTES */
 };
+
 
 /* Structure describing a block of memory which is sub-allocated to
    obtain string data memory for strings.  Blocks for small strings
@@ -949,12 +972,33 @@ static int total_string_size;
    a pointer to the `u.data' member of its sdata structure; the
    structure starts at a constant offset in front of that.  */
    
+#ifdef GC_CHECK_STRING_BYTES
+
+#define SDATA_OF_STRING(S) \
+     ((struct sdata *) ((S)->data - sizeof (struct Lisp_String *) \
+			- sizeof (EMACS_INT)))
+
+#else /* not GC_CHECK_STRING_BYTES */
+
 #define SDATA_OF_STRING(S) \
      ((struct sdata *) ((S)->data - sizeof (struct Lisp_String *)))
+
+#endif /* not GC_CHECK_STRING_BYTES */
 
 /* Value is the size of an sdata structure large enough to hold NBYTES
    bytes of string data.  The value returned includes a terminating
    NUL byte, the size of the sdata structure, and padding.  */
+
+#ifdef GC_CHECK_STRING_BYTES
+
+#define SDATA_SIZE(NBYTES)			\
+     ((sizeof (struct Lisp_String *)		\
+       + (NBYTES) + 1				\
+       + sizeof (EMACS_INT)			\
+       + sizeof (EMACS_INT) - 1)		\
+      & ~(sizeof (EMACS_INT) - 1))
+
+#else /* not GC_CHECK_STRING_BYTES */
 
 #define SDATA_SIZE(NBYTES)			\
      ((sizeof (struct Lisp_String *)		\
@@ -962,6 +1006,7 @@ static int total_string_size;
        + sizeof (EMACS_INT) - 1)		\
       & ~(sizeof (EMACS_INT) - 1))
 
+#endif /* not GC_CHECK_STRING_BYTES */
 
 /* Initialize string allocation.  Called from init_alloc_once.  */
 
@@ -1090,7 +1135,10 @@ allocate_string_data (s, nchars, nbytes)
   
   data = b->next_free;
   data->string = s;
-  s->data = data->u.data;
+  s->data = SDATA_DATA (data);
+#ifdef GC_CHECK_STRING_BYTES
+  SDATA_NBYTES (data) = nbytes;
+#endif
   s->size = nchars;
   s->size_byte = nbytes;
   s->data[nbytes] = '\0';
@@ -1101,7 +1149,7 @@ allocate_string_data (s, nchars, nbytes)
      in it.  */
   if (old_data)
     {
-      old_data->u.nbytes = old_nbytes;
+      SDATA_NBYTES (old_data) = old_nbytes;
       old_data->string = NULL;
     }
 
@@ -1155,7 +1203,12 @@ sweep_strings ()
 		  /* Save the size of S in its sdata so that we know
 		     how large that is.  Reset the sdata's string
 		     back-pointer so that we know it's free.  */
+#ifdef GC_CHECK_STRING_BYTES
+		  if (GC_STRING_BYTES (s) != SDATA_NBYTES (data))
+		    abort ();
+#else
 		  data->u.nbytes = GC_STRING_BYTES (s);
+#endif
 		  data->string = NULL;
 
 		  /* Reset the strings's `data' member so that we
@@ -1255,10 +1308,18 @@ compact_small_strings ()
 	     overwrite data we need to compute it.  */
 	  int nbytes;
 
+#ifdef GC_CHECK_STRING_BYTES
+	  /* Check that the string size recorded in the string is the
+	     same as the one recorded in the sdata structure. */
+	  if (from->string
+	      && GC_STRING_BYTES (from->string) != SDATA_NBYTES (from))
+	    abort ();
+#endif /* GC_CHECK_STRING_BYTES */
+	  
 	  if (from->string)
 	    nbytes = GC_STRING_BYTES (from->string);
 	  else
-	    nbytes = from->u.nbytes;
+	    nbytes = SDATA_NBYTES (from);
 	  
 	  nbytes = SDATA_SIZE (nbytes);
 	  from_end = (struct sdata *) ((char *) from + nbytes);
@@ -1282,7 +1343,7 @@ compact_small_strings ()
 		{
 		  xassert (tb != b || to <= from);
 		  safe_bcopy ((char *) from, (char *) to, nbytes);
-		  to->string->data = to->u.data;
+		  to->string->data = SDATA_DATA (to);
 		}
 
 	      /* Advance past the sdata we copied to.  */
@@ -2934,6 +2995,7 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Int:
+	case Lisp_Type_Limit:
 	  break;
 	}
 
