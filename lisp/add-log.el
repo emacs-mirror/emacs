@@ -173,11 +173,12 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; Conditionals.
     ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
     ;;
+    ;; Function of change.
+    ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 font-lock-variable-name-face))
+    ;;
     ;; Acknowledgements.
-    ("^\t\\(From\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
-     1 font-lock-comment-face)
-    ("  \\(From\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
-     1 font-lock-comment-face))
+    ("\\(^\t\\|  \\)\\(From\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
+     2 font-lock-comment-face))
   "Additional expressions to highlight in Change Log mode.")
 
 (defvar change-log-mode-map (make-sparse-keymap)
@@ -536,7 +537,7 @@ Prefix arg means justify as well."
     t))
 
 (defcustom add-log-current-defun-header-regexp
-  "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[-_a-zA-Z]+\\)[ \t]*[:=]"
+  "^\\([[:upper:]][[:upper:]_ ]*[[:upper:]_]\\|[-_[:alpha:]]+\\)[ \t]*[:=]"
   "*Heuristic regexp used by `add-log-current-defun' for unknown major modes."
   :type 'regexp
   :group 'change-log)
