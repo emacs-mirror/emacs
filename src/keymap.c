@@ -1807,15 +1807,15 @@ nominal         alternate\n\
     /* Print the minor mode maps.  */
     for (i = 0; i < nmaps; i++)
       {
-	/* Tht title for a minor mode keymap
+	/* The title for a minor mode keymap
 	   is constructed at run time.
 	   We let describe_map_tree do the actual insertion
 	   because it takes care of other features when doing so.  */
-	char *title = (char *) alloca (40 + XSYMBOL (modes[i])->name->size);
-	char *p = title;
+	char *title, *p;
 
 	if (XTYPE (modes[i]) == Lisp_Symbol)
 	  {
+	    p = title = (char *) alloca (40 + XSYMBOL (modes[i])->name->size);
 	    *p++ = '`';
 	    bcopy (XSYMBOL (modes[i])->name->data, p,
 		   XSYMBOL (modes[i])->name->size);
@@ -1824,11 +1824,12 @@ nominal         alternate\n\
 	  }
 	else
 	  {
-	    bcopy ("Strangely Named", p, sizeof ("Strangely Named"));
-	    p += sizeof ("Strangely Named");
+	    p = title = (char *) alloca (40 + 20);
+	    bcopy ("Strangely Named", p, sizeof ("Strangely Named") - 1);
+	    p += sizeof ("Strangely Named") - 1;
 	  }
-	bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings"));
-	p += sizeof (" Minor Mode Bindings");
+	bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
+	p += sizeof (" Minor Mode Bindings") - 1;
 	*p = 0;
 
 	describe_map_tree (maps[i], 0, shadow, prefix, title, 0);
