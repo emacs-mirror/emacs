@@ -1,3 +1,9 @@
+2002-08-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* character.h (BYTE8_STRING): New macro.
+
+	* fns.c (base64_decode_1): Insert eight-bit chars correctly.
+
 2002-08-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (get_next_display_element): Don't display unibyte 8-bit
