@@ -1,3 +1,4 @@
+                                                                -*-text-*-
 * Program Enriched mode to read and save in RTF.
 
 * Implement other text formatting properties.
@@ -7,8 +8,8 @@
    same value of this property.
 ** Discretionary hyphens that are not visible when they are at end of line.
 
-* Can Auto-fill mode be extended to something that will refill the
-  whole paragraph so as to keep it filled all the time?
+* Implement something better than the current Refill mode.  This
+  probably needs some primitive support.
 
 * Implement a clean way to use different major modes for
   different parts of a buffer.
@@ -28,10 +29,11 @@
   so that even the functions used within one file have prototypes.
 
 * Replace finder.el with something that generates an Info file
-  which gives the same information through a menu structure.
+  which gives the same information through a menu structure.  [Dave
+  Love started on this.]
 
-* Implement a variant of uncompress.el or jka-compr.el that
-  works with GNU Privacy Guard for encryption.
+* Implement a variant of uncompress.el or jka-compr.el that works with
+  GNU Privacy Guard for encryption.  [Code exists but isn't assigned.]
 
 * Save undo information in files, and reload it when needed
   for undoing.
@@ -48,8 +50,49 @@
 
 * Make Emacs work as a Java Bean.
 
-* Make keymaps a first-class Lisp object (this means a rewrite of 
-keymap.c).
+* Implement the design for Unicode-based internal encoding for Mule.
 
-** Provide real menus on ttys.  The MS-DOS implementation can
-serve as an example how to do part of this.
+* Document the features of libraries missing from the manual (or
+  ancillary manuals, including the Lisp manual in some cases).  Here's
+  a list which is probably not complete/correct: align, allout,
+  ansi-color, array, battery, calculator, cdl, cmuscheme, completion,
+  delim-col, dirtrack, double, echistory, elide-head, easymenu,
+  expand, flow-ctrl, format [format-alist], generic/generic-x [various
+  modes], kermit, log-edit, ledit [obsolete?], makesum, midnight
+  [other than in Kill Buffer node], mouse-copy [?], mouse-drag,
+  mouse-sel, net-utils, rcompile, snmp-mode [?], soundex [should be
+  interactive?], strokes [start from the web page], talk, thingatpt
+  [interactive functions?], type-break, vcursor, xscheme, zone-mode
+  [?], mlconvert [?], iso-cvt, iso-swed, swedish, feedmail [?], uce,
+  bruce, gametree, meese, page-ext, refbib, refer, scribe, sgml-mode,
+  spell, texinfo, underline, cmacexp, hideif, mantemp [obsolete?],
+  pcomplete, assoc; other progmodes, probably in separate manual.
+
+* Get some major packages installed: W3/url (development version needs
+  significant work), PSGML, Mule-UCS, Tramp (?).  Check the
+  assignments file for other packages which might go in and have been
+  missed.
+
+* Make keymaps a first-class Lisp object (this means a rewrite of
+  keymap.c).
+
+* Provide real menus on ttys.  The MS-DOS implementation can serve as
+  an example how to do part of this.
+
+* Implement popular parts of the rest of the CL functions as compiler
+  macros in cl-macs.
+
+* Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).
+
+* Support simultaneous tty and X frames.
+
+* Implement primitive and higher-level functions to allow filling
+  properly with variable-pitch faces.
+
+* Provide MIME support for Rmail using the Gnus MIME library.
+
+* Eliminate the storm of warnings concerning char/unsigned char
+  mismatches that we get with proprietary compilers on various systems.
+  They make it difficult to spot the important warnings.
+
+* Fix anything necessary to use `long long' EMACS_INTs with GCC.
