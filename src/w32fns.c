@@ -141,9 +141,12 @@ Lisp_Object Vx_pixel_size_width_font_regexp;
 /* Alist of bdf fonts and the files that define them.  */
 Lisp_Object Vw32_bdf_filename_alist;
 
+Lisp_Object Vw32_system_coding_system;
+
 /* A flag to control how to display unibyte 8-bit character.  */
 int unibyte_display_via_language_environment;
 
+/* A flag to control whether fonts are matched strictly or not.  */
 int w32_strict_fontnames;
 
 /* Evaluate this expression to rebuild the section of syms_of_w32fns
@@ -5388,24 +5391,33 @@ w32_to_x_font (lplogfont, lpxstr, len)
      char * lpxstr;
      int len;
 {
-  char fontname[50];
+  char *fontname;
   char height_pixels[8];
   char height_dpi[8];
   char width_pixels[8];
   char *fontname_dash;
   int display_resy = one_w32_display_info.height_in;
   int display_resx = one_w32_display_info.width_in;
+  int bufsz;
+  struct coding_system coding;
 
   if (!lpxstr) abort ();
 
   if (!lplogfont)
     return FALSE;
 
-  strncpy (fontname, lplogfont->lfFaceName, 50);
-  fontname[49] = '\0'; /* Just in case */
+  setup_coding_system (Fcheck_coding_system (Vw32_system_coding_system),
+                       &coding);
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  bufsz = decoding_buffer_size (&coding, LF_FACESIZE);
+
+  fontname = alloca(sizeof(*fontname) * bufsz);
+  decode_coding (&coding, lplogfont->lfFaceName, fontname,
+                 strlen(lplogfont->lfFaceName), bufsz - 1);
+  *(fontname + coding.produced) = '\0';
 
   /* Replace dashes with underscores so the dashes are not
-     misinterpreted */
+     misinterpreted.  */
   fontname_dash = fontname;
   while (fontname_dash = strchr (fontname_dash, '-'))
       *fontname_dash = '_';
@@ -5454,8 +5466,10 @@ x_to_w32_font (lpxstr, lplogfont)
      char * lpxstr;
      LOGFONT * lplogfont;
 {
+  struct coding_system coding;
+
   if (!lplogfont) return (FALSE);
-  
+
   memset (lplogfont, 0, sizeof (*lplogfont));
 
   /* Set default value for each field.  */
@@ -5498,8 +5512,12 @@ x_to_w32_font (lpxstr, lplogfont)
 
       if (fields > 0 && name[0] != '*')
         {
-	  strncpy (lplogfont->lfFaceName,name, LF_FACESIZE);
-	  lplogfont->lfFaceName[LF_FACESIZE-1] = 0;
+          setup_coding_system
+            (Fcheck_coding_system (Vw32_system_coding_system), &coding);
+          coding.mode |= CODING_MODE_LAST_BLOCK;
+          encode_coding (&coding, name, lplogfont->lfFaceName,
+                         strlen (name), LF_FACESIZE-1);
+	  lplogfont->lfFaceName[coding.produced] = 0;
 	}
       else
         {
@@ -5695,6 +5713,10 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	lplf->elfLogFont.lfHeight = lpef->logfont.lfHeight;
 	lplf->elfLogFont.lfWidth = lpef->logfont.lfWidth;
       }
+    /* Make sure the height used here is the same as everywhere
+       else (ie character height, not cell height).  */
+    else if (lplf->elfLogFont.lfHeight > 0)
+      lplf->elfLogFont.lfHeight = lptm->tmInternalLeading - lptm->tmHeight;
 
     /* The MaxCharWidth is not valid at this stage for scalable fonts. */
     if (FontType == RASTER_FONTTYPE)
@@ -6869,14 +6891,37 @@ DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
   FRAME_PTR f = check_x_frame (frame);
   CHOOSEFONT cf;
   LOGFONT lf;
+  TEXTMETRIC tm;
+  HDC hdc;
+  HANDLE oldobj;
   char buf[100];
 
   bzero (&cf, sizeof (cf));
+  bzero (&lf, sizeof (lf));
 
   cf.lStructSize = sizeof (cf);
   cf.hwndOwner = FRAME_W32_WINDOW (f);
   cf.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_SCREENFONTS;
   cf.lpLogFont = &lf;
+
+  /* Initialize as much of the font details as we can from the current
+     default font.  */
+  hdc = GetDC (FRAME_W32_WINDOW (f));
+  oldobj = SelectObject (hdc, FRAME_FONT (f)->hfont);
+  GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
+  if (GetTextMetrics (hdc, &tm))
+    {
+      lf.lfHeight = tm.tmInternalLeading - tm.tmHeight;
+      lf.lfWeight = tm.tmWeight;
+      lf.lfItalic = tm.tmItalic;
+      lf.lfUnderline = tm.tmUnderlined;
+      lf.lfStrikeOut = tm.tmStruckOut;
+      lf.lfPitchAndFamily = tm.tmPitchAndFamily;
+      lf.lfCharSet = tm.tmCharSet;
+      cf.Flags |= CF_INITTOLOGFONTSTRUCT;
+    }
+  SelectObject (hdc, oldobj);
+  ReleaseDC (FRAME_W32_WINDOW(f), hdc);
 
   if (!ChooseFont (&cf) || !w32_to_x_font (&lf, buf, 100))
       return Qnil;
@@ -7409,6 +7454,11 @@ fields to trick Emacs into translating to Big5, SJIS etc.\n\
 Setting this to t will prevent wrong fonts being selected when\n\
 fontsets are automatically created.");
   w32_strict_fontnames = 0;
+
+  DEFVAR_LISP ("w32-system-coding-system",
+               &Vw32_system_coding_system,
+  "Coding system used by Windows system functions, such as for font names.");
+  Vw32_system_coding_system = Qnil;
 
   defsubr (&Sx_get_resource);
   defsubr (&Sx_list_fonts);
