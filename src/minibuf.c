@@ -756,9 +756,20 @@ Prompts with PROMPT.  By default, return DEFAULT-VALUE.")
   (prompt, default_value)
      Lisp_Object prompt, default_value;
 {
-  return Fintern (Fcompleting_read (prompt, Vobarray, Qcommandp, Qt,
-				    Qnil, Qnil, default_value, Qnil),
-		  Qnil);
+  Lisp_Object name, default_string;
+
+  if (NILP (default_value))
+    default_string = Qnil;
+  else if (SYMBOLP (default_value))
+    default_string = XSYMBOL (default_value)->name;
+  else
+    default_string = default_value;
+    
+  name = Fcompleting_read (prompt, Vobarray, Qcommandp, Qt,
+			   Qnil, Qnil, default_string, Qnil);
+  if (NILP (name))
+    return name;
+  return Fintern (name, Qnil);
 }
 
 #ifdef NOTDEF
@@ -780,10 +791,21 @@ A user variable is one whose documentation starts with a `*' character.")
   (prompt, default_value)
      Lisp_Object prompt, default_value;
 {
-  return Fintern (Fcompleting_read (prompt, Vobarray,
-				    Quser_variable_p, Qt,
-				    Qnil, Qnil, default_value, Qnil),
-		  Qnil);
+  Lisp_Object name, default_string;
+
+  if (NILP (default_value))
+    default_string = Qnil;
+  else if (SYMBOLP (default_value))
+    default_string = XSYMBOL (default_value)->name;
+  else
+    default_string = default_value;
+    
+  name = Fcompleting_read (prompt, Vobarray,
+			   Quser_variable_p, Qt,
+			   Qnil, Qnil, default_string, Qnil);
+  if (NILP (name))
+    return name;
+  return Fintern (name, Qnil);
 }
 
 DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
