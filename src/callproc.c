@@ -93,6 +93,7 @@ extern char **environ;
 
 #ifdef HAVE_SETPGID
 #if !defined (USG) || defined (BSD_PGRPS)
+#undef setpgrp
 #define setpgrp setpgid
 #endif
 #endif
@@ -879,6 +880,7 @@ delete_temp_file (name)
   /* Use Fdelete_file (indirectly) because that runs a file name handler.
      We did that when writing the file, so we should do so when deleting.  */
   internal_delete_file (name);
+  return Qnil;
 }
 
 DEFUN ("call-process-region", Fcall_process_region, Scall_process_region,
