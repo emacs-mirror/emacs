@@ -402,6 +402,7 @@ This should be bound to a mouse drag event."
     (or transient-mark-mode
 	(eq (framep (selected-frame)) 'x)
 	(eq (framep (selected-frame)) 'pc)
+	(eq (framep (selected-frame)) 'win32)
 	(sit-for 1))
     (push-mark)
     (set-mark (point))
