@@ -1,3 +1,7 @@
+2001-11-14  Sam Steingold  <sds@gnu.org>
+
+	* gnus-score.el: Fixed some doc strings to properly quote symbols.
+
 2001-11-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* gnus.el (gnus-local-domain): Reformat the doc-string to refer to

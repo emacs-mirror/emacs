@@ -59,10 +59,10 @@ Each element of this alist should be of the form
 If the name of a group is matched by REGEXP, the corresponding scorefiles
 will be used for that group.
 The first match found is used, subsequent matching entries are ignored (to
-use multiple matches, see gnus-score-file-multiple-match-alist).
+use multiple matches, see `gnus-score-file-multiple-match-alist').
 
 These score files are loaded in addition to any files returned by
-gnus-score-find-score-files-function (which see)."
+`gnus-score-find-score-files-function'."
   :group 'gnus-score-files
   :type '(repeat (cons regexp (repeat file))))
 
@@ -75,10 +75,10 @@ If the name of a group is matched by REGEXP, the corresponding scorefiles
 will be used for that group.
 If multiple REGEXPs match a group, the score files corresponding to each
 match will be used (for only one match to be used, see
-gnus-score-file-single-match-alist).
+`gnus-score-file-single-match-alist').
 
 These score files are loaded in addition to any files returned by
-gnus-score-find-score-files-function (which see)."
+`gnus-score-find-score-files-function'."
   :group 'gnus-score-files
   :type '(repeat (cons regexp (repeat file))))
 
@@ -101,9 +101,9 @@ files do not actually have to exist.
 
 Predefined values are:
 
-gnus-score-find-single: Only apply the group's own score file.
-gnus-score-find-hierarchical: Also apply score files from parent groups.
-gnus-score-find-bnews: Apply score files whose names matches.
+`gnus-score-find-single': Only apply the group's own score file.
+`gnus-score-find-hierarchical': Also apply score files from parent groups.
+`gnus-score-find-bnews': Apply score files whose names matches.
 
 See the documentation to these functions for more information.
 
@@ -1497,7 +1497,7 @@ THREAD is expected to contain a list of the form `(PARENT [CHILD1
 CHILD2 ...])' where PARENT is a header array and each CHILD is a list
 of the same form as THREAD.  The empty list `nil' is valid.  For each
 article in the tree, the score of the corresponding entry in
-GNUS-NEWSGROUP-SCORED is adjusted by SCORE-ADJUST."
+`gnus-newsgroup-scored' is adjusted by SCORE-ADJUST."
   (while thread
     (let ((head (car thread)))
       (if (listp head)
@@ -1515,7 +1515,7 @@ GNUS-NEWSGROUP-SCORED is adjusted by SCORE-ADJUST."
 A root is an article with no references.  An orphan is an article
 which has references, but is not connected via its references to a
 root article.  This function finds all the orphans, and adjusts their
-score in GNUS-NEWSGROUP-SCORED by SCORE."
+score in `gnus-newsgroup-scored' by SCORE."
   (let ((threads (gnus-make-threads)))
     ;; gnus-make-threads produces a list, where each entry is a "thread"
     ;; as described in the gnus-score-lower-thread docs.  This function
@@ -2678,7 +2678,7 @@ Destroys the current buffer."
 
 (defun gnus-score-find-alist (group)
   "Return list of score files for GROUP.
-The list is determined from the variable gnus-score-file-alist."
+The list is determined from the variable `gnus-score-file-alist'."
   (let ((alist gnus-score-file-multiple-match-alist)
 	score-files)
     ;; if this group has been seen before, return the cached entry
