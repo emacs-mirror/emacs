@@ -1,3 +1,7 @@
+2001-11-21  Richard M. Stallman  <rms@gnu.org>
+
+	* international/encoded-kb.el: Don't alter minor-mode-alist.
+
 2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/tcl.el (tcl-indent-for-comment): Handle the case where

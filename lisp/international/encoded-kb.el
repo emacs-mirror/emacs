@@ -28,12 +28,12 @@
   "Non-nil if in Encoded-kbd minor mode.")
 (put 'encoded-kbd-mode 'permanent-local t)
 
-(let ((slot (assq 'encoded-kbd-mode minor-mode-alist))
-      (name " Encoded-kbd"))
-  (if slot
-      (setcar (cdr slot) name)
-    (setq minor-mode-alist
-	  (cons '(encoded-kbd-mode " Encoded-kbd") minor-mode-alist))))
+;;; (let ((slot (assq 'encoded-kbd-mode minor-mode-alist))
+;;;       (name " Encoded-kbd"))
+;;;   (if slot
+;;;       (setcar (cdr slot) name)
+;;;     (setq minor-mode-alist
+;;; 	  (cons '(encoded-kbd-mode " Encoded-kbd") minor-mode-alist))))
 
 (defconst encoded-kbd-mode-map (make-sparse-keymap)
   "Keymap for Encoded-kbd minor mode.")
