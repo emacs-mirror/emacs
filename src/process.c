@@ -222,15 +222,19 @@ static int update_tick;
 #define POLL_FOR_INPUT
 #endif
 
-/* Mask of bits indicating the descriptors that we wait for input on */
+/* Mask of bits indicating the descriptors that we wait for input on.  */
 
 static SELECT_TYPE input_wait_mask;
+
+/* Mask that excludes keyboard input descriptor (s).  */
+
+static SELECT_TYPE non_keyboard_wait_mask;
 
 /* The largest descriptor currently in use for a process object.  */
 static int max_process_desc;
 
-/* Descriptor to use for keyboard input.  */
-static int keyboard_descriptor;
+/* The largest descriptor currently in use for keyboard input.  */
+static int max_keyboard_desc;
 
 /* Nonzero means delete a process right away if it exits.  */
 static int delete_exited_processes;
@@ -764,9 +768,15 @@ If the process has a filter, its buffer is not used for output.")
 {
   CHECK_PROCESS (proc, 0);
   if (EQ (filter, Qt))
-    FD_CLR (XINT (XPROCESS (proc)->infd), &input_wait_mask);
+    {
+      FD_CLR (XINT (XPROCESS (proc)->infd), &input_wait_mask);
+      FD_CLR (XINT (XPROCESS (proc)->infd), &non_keyboard_wait_mask);
+    }
   else if (EQ (XPROCESS (proc)->filter, Qt))
-    FD_SET (XINT (XPROCESS (proc)->infd), &input_wait_mask);
+    {
+      FD_SET (XINT (XPROCESS (proc)->infd), &input_wait_mask);
+      FD_SET (XINT (XPROCESS (proc)->infd), &non_keyboard_wait_mask);
+    }
   XPROCESS (proc)->filter = filter;
   return filter;
 }
@@ -1277,6 +1287,7 @@ create_process (process, new_argv, current_dir)
 #endif /* SIGCHLD */
 
   FD_SET (inchannel, &input_wait_mask);
+  FD_SET (inchannel, &non_keyboard_wait_mask);
   if (inchannel > max_process_desc)
     max_process_desc = inchannel;
 
@@ -1663,6 +1674,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   XSETINT (XPROCESS (proc)->outfd, outch);
   XPROCESS (proc)->status = Qrun;
   FD_SET (inch, &input_wait_mask);
+  FD_SET (inch, &non_keyboard_wait_mask);
   if (inch > max_process_desc)
     max_process_desc = inch;
 
@@ -1702,6 +1714,7 @@ deactivate_process (proc)
       XSETINT (p->outfd, -1);
       chan_process[inchannel] = Qnil;
       FD_CLR (inchannel, &input_wait_mask);
+      FD_CLR (inchannel, &non_keyboard_wait_mask);
       if (inchannel == max_process_desc)
 	{
 	  int i;
@@ -1968,9 +1981,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Wait till there is something to do */
 
-      Available = input_wait_mask;
       if (! XINT (read_kbd) && wait_for_cell == 0)
-	FD_CLR (keyboard_descriptor, &Available);
+	Available = non_keyboard_wait_mask;
+      else
+	Available = input_wait_mask;
 
       /* If frame size has changed or the window is newly mapped,
 	 redisplay now, before we start to wait.  There is a race
@@ -2036,7 +2050,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	    error("select error: %s", strerror (xerrno));
 	}
 #if defined(sun) && !defined(USG5_4)
-      else if (nfds > 0 && FD_ISSET (keyboard_descriptor, &Available)
+      else if (nfds > 0 && keyboard_bit_set (&Available)
 	       && interrupt_input)
 	/* System sometimes fails to deliver SIGIO.
 
@@ -2073,7 +2087,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 but select says there is input.  */
 
       if (XINT (read_kbd) && interrupt_input
-	  && (FD_ISSET (keyboard_descriptor, &Available)))
+	  && (keyboard_bit_set (&Available)))
 	kill (0, SIGIO);
 #endif
 
@@ -2088,10 +2102,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* Check for data from a process.  */
       /* Really FIRST_PROC_DESC should be 0 on Unix,
 	 but this is safer in the short run.  */
-      for (channel = keyboard_descriptor == 0 ? FIRST_PROC_DESC : 0;
-	   channel <= max_process_desc; channel++)
+      for (channel = 0; channel <= max_process_desc; channel++)
 	{
-	  if (FD_ISSET (channel, &Available))
+	  if (FD_ISSET (channel, &Available)
+	      && FD_ISSET (channel, &non_keyboard_wait_mask))
 	    {
 	      int nread;
 
@@ -3058,7 +3072,10 @@ sigchld_handler (signo)
 	  /* If process has terminated, stop waiting for its output.  */
 	  if (WIFSIGNALED (w) || WIFEXITED (w))
 	    if (XINT (p->infd) >= 0)
-	      FD_CLR (XINT (p->infd), &input_wait_mask);
+	      {
+		FD_CLR (XINT (p->infd), &input_wait_mask);
+		FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
+	      }
 
 	  /* Tell wait_reading_process_input that it needs to wake up and
 	     look around.  */
@@ -3279,6 +3296,60 @@ status_notify ()
   UNGCPRO;
 }
 
+/* The first time this is called, assume keyboard input comes from DESC
+   instead of from where we used to expect it.
+   Subsequent calls mean assume input keyboard can come from DESC
+   in addition to other places.  */
+
+static int add_keyboard_wait_descriptor_called_flag;
+
+void
+add_keyboard_wait_descriptor (desc)
+     int desc;
+{
+  if (! add_keyboard_wait_descriptor_called_flag)
+    FD_CLR (0, &input_wait_mask);
+  add_keyboard_wait_descriptor_called_flag = 1;
+  FD_SET (desc, &input_wait_mask);
+  if (desc > max_keyboard_desc)
+    max_keyboard_desc = desc;
+}
+
+/* From now on, do not expect DESC to give keyboard input.  */
+
+void
+delete_keyboard_wait_descriptor (desc)
+     int desc;
+{
+  int fd;
+  int lim = max_keyboard_desc;
+
+  FD_CLR (desc, &input_wait_mask);
+
+  if (desc == max_keyboard_desc)
+    for (fd = 0; fd < lim; fd++)
+      if (FD_ISSET (fd, &input_wait_mask)
+	  && !FD_ISSET (fd, &non_keyboard_wait_mask))
+	max_keyboard_desc = fd;
+}
+
+/* Return nonzero if *MASK has a bit set
+   that corresponds to one of the keyboard input descriptors.  */
+
+int
+keyboard_bit_set (mask)
+     SELECT_TYPE *mask;
+{
+  int fd;
+
+  for (fd = 0; fd < max_keyboard_desc; fd++)
+    if (FD_ISSET (fd, mask) && FD_ISSET (fd, &input_wait_mask)
+	&& !FD_ISSET (fd, &non_keyboard_wait_mask))
+      return 1;
+
+  return 0;
+}
+
 init_process ()
 {
   register int i;
@@ -3291,10 +3362,10 @@ init_process ()
 #endif
 
   FD_ZERO (&input_wait_mask);
+  FD_ZERO (&non_keyboard_wait_mask);
   max_process_desc = 0;
 
-  keyboard_descriptor = 0;
-  FD_SET (keyboard_descriptor, &input_wait_mask);
+  FD_SET (0, &input_wait_mask);
 
   Vprocess_alist = Qnil;
   for (i = 0; i < MAXDESC; i++)
@@ -3302,17 +3373,6 @@ init_process ()
       chan_process[i] = Qnil;
       proc_buffered_char[i] = -1;
     }
-}
-
-/* From now on, assume keyboard input comes from descriptor DESC.  */
-
-void
-change_keyboard_wait_descriptor (desc)
-     int desc;
-{
-  FD_CLR (keyboard_descriptor, &input_wait_mask);
-  keyboard_descriptor = desc;
-  FD_SET (keyboard_descriptor, &input_wait_mask);
 }
 
 syms_of_process ()
