@@ -734,7 +734,7 @@ This function completes the minibuffer contents as far as possible.
 @deffn Command minibuffer-complete-and-exit
 This function completes the minibuffer contents, and exits if
 confirmation is not required, i.e., if
-@code{minibuffer-completion-confirm} is non-@code{nil}.  If confirmation
+@code{minibuffer-completion-confirm} is @code{nil}.  If confirmation
 @emph{is} required, it is given by repeating this command
 immediately---the command is programmed to work without confirmation
 when run twice in succession.
