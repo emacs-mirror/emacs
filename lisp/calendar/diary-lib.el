@@ -765,18 +765,18 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
                                      (string-to-int y-str)))))
                         (if dd-name
                             (mark-calendar-days-named
-                             (cdr (assoc (capitalize (substring dd-name 0 3))
-                                         (calendar-make-alist
-                                          calendar-day-name-array
-                                          0
-                                          '(lambda (x) (substring x 0 3))))))
+                             (cdr (assoc-ignore-case
+                                   (substring dd-name 0 3)
+                                   (calendar-make-alist
+                                    calendar-day-name-array
+                                    0
+                                    '(lambda (x) (substring x 0 3))))))
                           (if mm-name
                               (if (string-equal mm-name "*")
                                   (setq mm 0)
                                 (setq mm
-                                      (cdr (assoc
-                                            (capitalize
-                                             (substring mm-name 0 3))
+                                      (cdr (assoc-ignore-case
+                                            (substring mm-name 0 3)
                                             (calendar-make-alist
                                              calendar-month-name-array
                                              1
