@@ -1,5 +1,13 @@
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* makefile.w32-in (DONTCOMPILE): Add various term files.
+
+2001-01-26  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (DONTCOMPILE): Add various term files.
+
+2001-01-26  Gerd Moellmann  <gerd@gnu.org>
+
 	* man.el (Man-default-man-entry, Man-mode): Doc fix.
 
 	* startup.el (display-startup-echo-area-message): Make sure
