@@ -458,6 +458,14 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   (remove-hook 'change-major-mode-hook 'view-mode-disable t)
   (and view-overlay (delete-overlay view-overlay))
   (force-mode-line-update)
+  ;; Calling toggle-read-only while View mode is enabled
+  ;; sets view-read-only to t as a buffer-local variable
+  ;; after exiting View mode.  That arranges that the next toggle-read-only
+  ;; will reenable View mode.
+  ;; Cancelling View mode in any other way should cancel that, too,
+  ;; so that View mode stays off if toggle-read-only is called.
+  (if (local-variable-p 'view-read-only)
+      (kill-local-variable 'view-read-only))
   (setq view-mode nil
 	Helper-return-blurb view-old-Helper-return-blurb)
   (if buffer-read-only
