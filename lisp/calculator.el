@@ -94,7 +94,7 @@ documentation for `calculator-mode'."
 Used by the `calculator-standard-display' function - it will use the
 format string \"%.NC\" where this number is N and C is a character given
 at runtime."
-  :type  'string
+  :type  'integer
   :group 'calculator)
 
 (defcustom calculator-remove-zeros t
