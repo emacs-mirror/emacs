@@ -1,3 +1,8 @@
+2001-06-27  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names): Do a
+	preliminary quick reordering.  Can speed things up dramatically.
+
 2001-06-26  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-get-filename): A file name starting with ~
