@@ -122,7 +122,14 @@ Used to grey out relevant toolbar icons.")
 		     :enable (and (not gud-running)
 				  (memq gud-minor-mode
 					'(gdba gdb xdb jdb pdb bashdb))))
-    ([stepi]	"Step Instruction" . gud-stepi)
+    ([stepi]	menu-item "Step Instruction" gud-stepi
+                     :enable (and (not gud-running)
+				  (memq gud-minor-mode
+					'(gdba gdb dbx))))
+    ([nexti]	menu-item "Next Instruction" gud-nexti
+                     :enable (and (not gud-running)
+				  (memq gud-minor-mode
+					'(gdba gdb))))
     ([step]	menu-item "Step Line" gud-step
                      :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
@@ -158,6 +165,8 @@ Used to grey out relevant toolbar icons.")
 		     (gud-step . "gud-step")
 		     (gud-next . "gud-next")
 		     (gud-finish . "gud-finish")
+		     (gud-stepi . "gud-stepi")
+		     (gud-nexti . "gud-nexti")
 		     (gud-up . "gud-up")
 		     (gud-down . "gud-down"))
 		   map)
@@ -465,6 +474,7 @@ and source-file directory for your debugger."
   (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
   (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
   (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
+  (gud-def gud-nexti  "nexti %p"      nil   "Step one instruction (skip functions).")
   (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
   (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
   (gud-def gud-jump   "tbreak %f:%l\njump %f:%l" "\C-j" "Relocate execution address to line at point in source buffer.")
@@ -472,7 +482,7 @@ and source-file directory for your debugger."
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
-  (gud-def gud-until  "until %l"     "\C-u" "Continue up to current line.")
+  (gud-def gud-until  "until %l"     "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
