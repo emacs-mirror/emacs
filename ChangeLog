@@ -1,3 +1,18 @@
+2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	These changes make Leim part of the standard distribution:
+
+	* README: Add info about the `leim' directory
+
+	* INSTALL: Remove text that describes Leim as a separate package.
+
+	* noleim-Makefile.in: File removed.
+
+	* make-dist: Don't copy noleim-Makefile.in to the leim subdirectory.
+	Link Leim files to ${tempdir}/leim, not to real-leim.  Don't move
+	Leim files out of the Emacs tree.  Don't prepare a separate tarball
+	for Leim.
+	
 2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure: Regenerated.
