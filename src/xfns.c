@@ -7421,7 +7421,7 @@ pbm_load (f, img)
 
 #if HAVE_PNG
 
-#include <png.h>
+#include <libpng/png.h>
 
 /* Function prototypes.  */
 
