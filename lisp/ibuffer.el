@@ -2265,6 +2265,12 @@ Filter group commands:
 
   '\\[ibuffer-filters-to-filter-group]' - Create filter group from filters.
   '\\[ibuffer-pop-filter-group]' - Remove top filter group.
+  '\\[ibuffer-forward-filter-group]' - Move to the next filter group.
+  '\\[ibuffer-backward-filter-group]' - Move to the previous filter group.
+  '\\[ibuffer-clear-filter-groups]' - Remove all active filter groups.
+  '\\[ibuffer-save-filter-groups]' - Save the current groups with a name.
+  '\\[ibuffer-switch-to-saved-filter-groups]' - Restore previously saved groups.
+  '\\[ibuffer-delete-saved-filter-groups]' - Delete previously saved groups.
     
 Sorting commands:
 
