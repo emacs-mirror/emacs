@@ -1,5 +1,15 @@
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
+	* abbrev.c: Use the plist of an abbrev for multiple params if nec.
+	(Fdefine_abbrev): New arg SYSTEM-FLAG for a system abbrev.
+	(Fdefine_global_abbrev, Fdefine_mode_abbrev):
+	Update calls to Fdefine_abbrev.
+	(write_abbrev): Update for changed data format.
+	Don't list "system" abbrevs.
+	(Fexpand_abbrev): Update use count with new data format.
+	(describe_abbrev): Update for changed data format.
+	(Fdefine_abbrev_table): Handle the new SYSTEM-FLAG.
+
 	* config.in (HAVE_MBSINIT): Add #undef.
 
 	* strftime.c (mbsinit): Define as no-op if not available.
