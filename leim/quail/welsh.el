@@ -116,7 +116,10 @@
  ;; "hawlfraint" (copyright).  Dyma arwyddlun hawlfraint.
  ("(h)" ?$,1W(B))
 
-;; (quail-define-package
+;; In the following line paren changed  to bracket to avoid an error
+;; message from quail-update-leim-list-file, which doesn't know about
+;; Lisp comments.
+;; [quail-define-package
 ;;  "welsh" "Welsh" "$,1!4(B" t
 ;;  "Welsh postfix input method, using Latin-8"
 ;;  nil t nil nil nil nil nil nil nil nil t)
