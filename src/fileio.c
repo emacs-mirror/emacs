@@ -4199,6 +4199,8 @@ actually used.  */)
 	  /* Truncate the buffer to the size of the file.  */
 	  del_range_byte (same_at_start, same_at_end, 0);
 	  inserted = 0;
+
+	  unbind_to (this_count, Qnil);
 	  goto handled;
 	}
 
