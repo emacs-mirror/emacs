@@ -38,7 +38,7 @@ citations and indices for LaTeX documents with Emacs.@refill
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}@refill
 
-Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim
 copies of this manual provided the copyright notice and
@@ -72,7 +72,7 @@ translation approved by the Free Software Foundation.
 
 @author by Carsten Dominik
 @page
-Copyright @copyright{} 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+Copyright @copyright{} 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 @sp 2
 This is edition @value{EDITION} of the @cite{Ref@TeX{} User Manual} for
@@ -2803,8 +2803,8 @@ command depends upon the version of that program.
 @lisp
 (setq reftex-use-external-file-finders t)
 (setq reftex-external-file-finders
-      '(("tex" "kpsewhich -format=.tex %f")
-        ("bib" "kpsewhich -format=.bib %f")))      
+      '(("tex" . "kpsewhich -format=.tex %f")
+        ("bib" . "kpsewhich -format=.bib %f")))      
 @end lisp
 @end itemize
 
