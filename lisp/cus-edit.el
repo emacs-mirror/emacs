@@ -2116,10 +2116,10 @@ The X11 Window System.")
 					   :sibling-args (:help-echo "\
 OS/2 Presentation Manager.")
 					   pm)
-				    (const :format "Win32 "
+				    (const :format "W32 "
 					   :sibling-args (:help-echo "\
-Windows NT/95/97.")
-					   win32)
+Windows NT/9X.")
+					   w32)
 				    (const :format "DOS "
 					   :sibling-args (:help-echo "\
 Plain MS-DOS.")
