@@ -148,11 +148,14 @@ starting with the current one.  Deleted messages are skipped and don't count."
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
-(defun rmail-output (file-name &optional count)
+(defun rmail-output (file-name &optional count noattribute)
   "Append this message to Unix mail file named FILE-NAME.
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count.
-When called from lisp code, N may be omitted."
+When called from lisp code, N may be omitted.
+
+The optional third argument NOATTRIBUTE, if non-nil, says not
+to set the `filed' attribute, and not to display a message."
   (interactive
    (list (setq rmail-last-file
 	       (read-file-name
@@ -194,10 +197,12 @@ When called from lisp code, N may be omitted."
 	  (while (search-forward "\nFrom " nil t)
 	    (forward-char -5)
 	    (insert ?>))
-	  (append-to-file (point-min) (point-max) file-name))
+	  (write-region (point-min) (point-max) file-name t
+			(if noattribute 'nomsg)))
 	(kill-buffer tembuf))
-      (if (equal major-mode 'rmail-mode)
-	  (rmail-set-attribute "filed" t))
+      (or noattribute
+	  (if (equal major-mode 'rmail-mode)
+	      (rmail-set-attribute "filed" t)))
       (setq count (1- count))
       (if rmail-delete-after-output
 	  (rmail-delete-forward)
