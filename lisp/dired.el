@@ -512,7 +512,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 (defun dired-insert-directory (dir-or-list switches &optional wildcard full-p)
   ;; Do the right thing whether dir-or-list is atomic or not.  If it is,
   ;; inset all files listed in the cdr (the car is the passed-in directory
-  ;; list.
+  ;; list).
   (let ((opoint (point)))
     (if (consp dir-or-list)
 	(progn
