@@ -677,7 +677,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
   '((?\y . y) (?\040 . y)		; `y' or SPC means accept once
     (?n . n) (?\177 . n)		; `n' or DEL skips once
     (?! . yes)				; `!' accepts rest
-    (?q. no) (?\e . no)			; `q' or ESC skips rest
+    (?q . no) (?\e . no)		; `q' or ESC skips rest
     ;; None of these keys quit - use C-g for that.
     ))
 
