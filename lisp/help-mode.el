@@ -64,48 +64,58 @@ The format is (FUNCTION ARGS...).")
 
 ;; Button types used by help
 
+(define-button-type 'help-xref
+  'action #'help-button-action)
+
+(defun help-button-action (button)
+  "Call BUTTON's help function."
+  (help-do-xref (button-start button)
+		(button-get button 'help-function)
+		(button-get button 'help-args)))
+
 ;; Make some button types that all use the same naming conventions
 (dolist (help-type '("function" "variable" "face"
 		     "coding-system" "input-method" "character-set"))
   (define-button-type (intern (purecopy (concat "help-" help-type)))
+    :supertype 'help-xref
     'help-function (intern (concat "describe-" help-type))
-    'help-echo (purecopy (concat "mouse-2, RET: describe this " help-type))
-    'action #'help-button-action))
+    'help-echo (purecopy (concat "mouse-2, RET: describe this " help-type))))
 
 ;; make some more ideosyncratic button types
 
 (define-button-type 'help-symbol
+  :supertype 'help-xref
   'help-function #'help-xref-interned
-  'help-echo (purecopy "mouse-2, RET: describe this symbol")
-  'action #'help-button-action)
+  'help-echo (purecopy "mouse-2, RET: describe this symbol"))
 
 (define-button-type 'help-back
+  :supertype 'help-xref
   'help-function #'help-xref-go-back
-  'help-echo (purecopy "mouse-2, RET: go back to previous help buffer")
-  'action #'help-button-action)
+  'help-echo (purecopy "mouse-2, RET: go back to previous help buffer"))
 
 (define-button-type 'help-info
+  :supertype 'help-xref
   'help-function #'info
-  'help-echo (purecopy"mouse-2, RET: read this Info node")
-  'action #'help-button-action)
+  'help-echo (purecopy"mouse-2, RET: read this Info node"))
 
 (define-button-type 'help-customize-variable
+  :supertype 'help-xref
   'help-function (lambda (v)
 		   (if help-xref-stack
 		       (pop help-xref-stack))
 		   (customize-variable v))
-  'help-echo (purecopy "mouse-2, RET: customize variable")
-  'action #'help-button-action)
+  'help-echo (purecopy "mouse-2, RET: customize variable"))
 
 (define-button-type 'help-customize-face
+  :supertype 'help-xref
   'help-function (lambda (v)
 		   (if help-xref-stack
 		       (pop help-xref-stack))
 		   (customize-face v))
-  'help-echo (purecopy "mouse-2, RET: customize face")
-  'action #'help-button-action)
+  'help-echo (purecopy "mouse-2, RET: customize face"))
 
 (define-button-type 'help-function-def
+  :supertype 'help-xref
   'help-function (lambda (fun file)
 		   (require 'find-func)
 		  ;; Don't use find-function-noselect because it follows
@@ -114,23 +124,16 @@ The format is (FUNCTION ARGS...).")
 				     fun nil file)))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
-  'help-echo (purecopy "mouse-2, RET: find function's definition")
-  'action #'help-button-action)
+  'help-echo (purecopy "mouse-2, RET: find function's definition"))
 
 (define-button-type 'help-variable-def
+  :supertype 'help-xref
   'help-function (lambda (var &optional file)
 		   (let ((location
 			  (find-variable-noselect var file)))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
-  'help-echo (purecopy"mouse-2, RET: find variable's definition")
-  'action #'help-button-action)
-
-(defun help-button-action (button)
-  "Call BUTTON's help function."
-  (help-do-xref (button-start button)
-		(button-get button 'help-function)
-		(button-get button 'help-args)))
+  'help-echo (purecopy"mouse-2, RET: find variable's definition"))
 
 
 ;;;###autoload
