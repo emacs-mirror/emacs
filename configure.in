@@ -795,6 +795,11 @@ case "${canonical}" in
     esac
   ;;
 
+  ## Linux/68k
+  m68k-*-linux* )
+    machine=m68k opsys=linux
+  ;;
+
   * )
     unported=yes
   ;;
