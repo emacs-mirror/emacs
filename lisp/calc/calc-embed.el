@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-embed () nil)
 
 (defun calc-show-plain (n)
   (interactive "P")
@@ -152,6 +149,16 @@ This is not required to be present for user-written mode annotations.")
 ;;; rather than using buffer-local variables because the latter are
 ;;; thrown away when a buffer changes major modes.
 
+;; The variables calc-embed-outer-top, calc-embed-outer-bot, 
+;; calc-embed-top and calc-embed-bot are
+;; local to calc-do-embedded, calc-embedded-mark-formula,
+;; calc-embedded-duplicate, calc-embedded-new-formula and
+;; calc-embedded-make-info, but are used by calc-embedded-find-bounds,
+;; which is called (directly or indirectly) by the above functions.
+(defvar calc-embed-outer-top)
+(defvar calc-embed-outer-bot)
+(defvar calc-embed-top)
+(defvar calc-embed-bot)
 
 (defvar calc-embedded-quiet nil)
 (defun calc-do-embedded (arg end obeg oend)
@@ -204,7 +211,7 @@ This is not required to be present for user-written mode annotations.")
     (let ((modes (list mode-line-buffer-identification
 		       (current-local-map)
 		       truncate-lines))
-	  top bot outer-top outer-bot
+	  calc-embed-top calc-embed-bot calc-embed-outer-top calc-embed-outer-bot
 	  info chg ident)
       (barf-if-buffer-read-only)
       (or calc-embedded-globals
@@ -300,6 +307,8 @@ This is not required to be present for user-written mode annotations.")
      (insert str "\n")))
   (calc-show-edit-buffer))
 
+(defvar calc-original-buffer)
+
 (defun calc-embedded-finish-edit (info)
   (let ((buf (current-buffer))
 	(str (buffer-substring (point) (point-max)))
@@ -320,7 +329,6 @@ This is not required to be present for user-written mode annotations.")
       (aset info 8 val)
       (calc-embedded-update info 14 t t))))
 
-;;;###autoload
 (defun calc-do-embedded-activate (arg cbuf)
   (calc-plain-buffer-only)
   (if arg
@@ -388,11 +396,11 @@ With any prefix argument, marks only the formula itself."
   (interactive "P")
   (and (eq major-mode 'calc-mode)
        (error "This command should be used in a normal editing buffer"))
-  (let (top bot outer-top outer-bot)
+  (let (calc-embed-top calc-embed-bot calc-embed-outer-top calc-embed-outer-bot)
     (save-excursion
       (calc-embedded-find-bounds body-only))
-    (push-mark (if body-only bot outer-bot) t)
-    (goto-char (if body-only top outer-top))))
+    (push-mark (if body-only calc-embed-bot calc-embed-outer-bot) t)
+    (goto-char (if body-only calc-embed-top calc-embed-outer-top))))
 
 (defun calc-embedded-find-bounds (&optional plain)
   ;; (while (and (bolp) (eq (following-char) ?\n))
@@ -407,7 +415,7 @@ With any prefix argument, marks only the formula itself."
     (and (eq (preceding-char) ?\$)  ; backward search for \$\$? won't back
 	 (eq (following-char) ?\$)  ; up over a second $, so do it by hand.
 	 (forward-char -1))
-    (setq outer-top (point))
+    (setq calc-embed-outer-top (point))
     (goto-char (match-end 0))
     (if (eq (following-char) ?\n)
 	(forward-char 1))
@@ -419,21 +427,21 @@ With any prefix argument, marks only the formula itself."
 	    (progn
 	      (goto-char (match-end 0))
 	      (search-forward calc-embedded-close-plain))))
-    (setq top (point))
+    (setq calc-embed-top (point))
     (or (re-search-forward calc-embedded-close-formula nil t)
 	(error "Can't find end of formula"))
     (if (< (point) home)
 	(error "Not inside a formula"))
     (and (eq (following-char) ?\n) (not (bolp))
 	 (forward-char 1))
-    (setq outer-bot (point))
+    (setq calc-embed-outer-bot (point))
     (goto-char (match-beginning 0))
     (if (eq (preceding-char) ?\n)
 	(backward-char 1))
     (or (eolp)
 	(while (eq (preceding-char) ?\ )
 	  (backward-char 1)))
-    (setq bot (point))))
+    (setq calc-embed-bot (point))))
 
 (defun calc-embedded-kill-formula ()
   "Kill the formula surrounding point.
@@ -458,25 +466,26 @@ The command \\[yank] can retrieve it from there."
 (defun calc-embedded-duplicate ()
   (interactive)
   (let ((already calc-embedded-info)
-	top bot outer-top outer-bot new-top)
+	calc-embed-top calc-embed-bot calc-embed-outer-top calc-embed-outer-bot new-top)
     (if calc-embedded-info
 	(progn
-	  (setq top (+ (aref calc-embedded-info 2))
-		bot (+ (aref calc-embedded-info 3))
-		outer-top (+ (aref calc-embedded-info 4))
-		outer-bot (+ (aref calc-embedded-info 5)))
+	  (setq calc-embed-top (+ (aref calc-embedded-info 2))
+		calc-embed-bot (+ (aref calc-embedded-info 3))
+		calc-embed-outer-top (+ (aref calc-embedded-info 4))
+		calc-embed-outer-bot (+ (aref calc-embedded-info 5)))
 	  (calc-embedded nil))
       (calc-embedded-find-bounds))
-    (goto-char outer-bot)
+    (goto-char calc-embed-outer-bot)
     (insert "\n")
     (setq new-top (point))
-    (insert-buffer-substring (current-buffer) outer-top outer-bot)
-    (goto-char (+ new-top (- top outer-top)))
+    (insert-buffer-substring (current-buffer) 
+                             calc-embed-outer-top calc-embed-outer-bot)
+    (goto-char (+ new-top (- calc-embed-top calc-embed-outer-top)))
     (let ((calc-embedded-quiet (if already t 'x)))
-      (calc-embedded (+ new-top (- top outer-top))
-		     (+ new-top (- bot outer-top))
+      (calc-embedded (+ new-top (- calc-embed-top calc-embed-outer-top))
+		     (+ new-top (- calc-embed-bot calc-embed-outer-top))
 		     new-top
-		     (+ new-top (- outer-bot outer-top))))))
+		     (+ new-top (- calc-embed-outer-bot calc-embed-outer-top))))))
 
 (defun calc-embedded-next (arg)
   (interactive "P")
@@ -515,26 +524,26 @@ The command \\[yank] can retrieve it from there."
        (error "This command should be used in a normal editing buffer"))
   (if calc-embedded-info
       (calc-embedded nil))
-  (let (top bot outer-top outer-bot)
+  (let (calc-embed-top calc-embed-bot calc-embed-outer-top calc-embed-outer-bot)
     (if (and (eq (preceding-char) ?\n)
 	     (string-match "\\`\n" calc-embedded-open-new-formula))
 	(progn
-	  (setq outer-top (1- (point)))
+	  (setq calc-embed-outer-top (1- (point)))
 	  (forward-char -1)
 	  (insert (substring calc-embedded-open-new-formula 1)))
-      (setq outer-top (point))
+      (setq calc-embed-outer-top (point))
       (insert calc-embedded-open-new-formula))
-    (setq top (point))
+    (setq calc-embed-top (point))
     (insert " ")
-    (setq bot (point))
+    (setq calc-embed-bot (point))
     (insert calc-embedded-close-new-formula)
     (if (and (eq (following-char) ?\n)
 	     (string-match "\n\\'" calc-embedded-close-new-formula))
 	(delete-char 1))
-    (setq outer-bot (point))
-    (goto-char top)
+    (setq calc-embed-outer-bot (point))
+    (goto-char calc-embed-top)
     (let ((calc-embedded-quiet 'x))
-      (calc-embedded top bot outer-top outer-bot))))
+      (calc-embedded calc-embed-top calc-embed-bot calc-embed-outer-top calc-embed-outer-bot))))
 
 (defun calc-embedded-forget ()
   (interactive)
@@ -542,6 +551,9 @@ The command \\[yank] can retrieve it from there."
 				   calc-embedded-active))
   (calc-embedded-active-state nil))
 
+;; The variables calc-embed-prev-modes is local to calc-embedded-update,
+;; but is used by calc-embedded-set-modes.
+(defvar calc-embed-prev-modes)
 
 (defun calc-embedded-set-modes (gmodes modes local-modes &optional temp)
   (let ((the-language (calc-embedded-language))
@@ -561,9 +573,10 @@ The command \\[yank] can retrieve it from there."
 	    (equal (symbol-value (car (car v))) value))
 	  (progn
 	    (setq changed t)
-	    (if temp (setq prev-modes (cons (cons (car (car v))
-						  (symbol-value (car (car v))))
-					    prev-modes)))
+	    (if temp (setq calc-embed-prev-modes 
+                           (cons (cons (car (car v))
+                                       (symbol-value (car (car v))))
+                                 calc-embed-prev-modes)))
 	    (set (car (car v)) value)))
       (setq v (cdr v)))
     (setq v modes)
@@ -574,9 +587,9 @@ The command \\[yank] can retrieve it from there."
 	  (equal (symbol-value (car (car v))) value)
 	  (progn
 	    (setq changed t)
-	    (if temp (setq prev-modes (cons (cons (car (car v))
+	    (if temp (setq calc-embed-prev-modes (cons (cons (car (car v))
 						  (symbol-value (car (car v))))
-					    prev-modes)))
+					    calc-embed-prev-modes)))
 	    (set (car (car v)) value)))
       (setq v (cdr v)))
     (setq v local-modes)
@@ -585,9 +598,9 @@ The command \\[yank] can retrieve it from there."
 	  (equal (symbol-value (car (car v))) value)
 	  (progn
 	    (setq changed t)
-	    (if temp (setq prev-modes (cons (cons (car (car v))
+	    (if temp (setq calc-embed-prev-modes (cons (cons (car (car v))
 						  (symbol-value (car (car v))))
-					    prev-modes)))
+					    calc-embed-prev-modes)))
 	    (set (car (car v)) value)))
       (setq v (cdr v)))
     (and changed (not (eq temp t))
@@ -704,13 +717,18 @@ The command \\[yank] can retrieve it from there."
     (goto-char save-pt)
     (list modes emodes pmodes)))
 
+;; The variable calc-embed-vars-used is local to calc-embedded-make-info,
+;; calc-embedded-evaluate-expr and calc-embedded-update, but is 
+;; used by calc-embedded-find-vars, which is called by the above functions.
+(defvar calc-embed-vars-used)
 
 (defun calc-embedded-make-info (point cbuf fresh &optional
-				      top bot outer-top outer-bot)
+				      calc-embed-top calc-embed-bot 
+                                      calc-embed-outer-top calc-embed-outer-bot)
   (let* ((bufentry (assq (current-buffer) calc-embedded-active))
 	 (found bufentry)
-	 (force (and fresh top))
-	 (fixed top)
+	 (force (and fresh calc-embed-top))
+	 (fixed calc-embed-top)
 	 (new-info nil)
 	 info str)
     (or found
@@ -729,7 +747,8 @@ The command \\[yank] can retrieve it from there."
       (aset info 1 (or cbuf (save-excursion
 			      (calc-create-buffer)
 			      (current-buffer)))))
-    (if (and (integerp top) (not bot))  ; started with a user-supplied argument
+    (if (and (integerp calc-embed-top) (not calc-embed-bot))  
+                                        ; started with a user-supplied argument
 	(progn
 	  (if (= (setq arg (prefix-numeric-value arg)) 0)
 	      (progn
@@ -741,18 +760,18 @@ The command \\[yank] can retrieve it from there."
 	  (aset info 4 (copy-marker (aref info 2)))
 	  (aset info 5 (copy-marker (aref info 3))))
       (if (aref info 4)
-	  (setq top (aref info 2)
-		fixed top)
-	(if (consp top)
+	  (setq calc-embed-top (aref info 2)
+		fixed calc-embed-top)
+	(if (consp calc-embed-top)
 	    (let ((calc-embedded-open-formula calc-embedded-open-word)
 		  (calc-embedded-close-formula calc-embedded-close-word))
 	      (calc-embedded-find-bounds 'plain))
-	  (or top
+	  (or calc-embed-top
 	      (calc-embedded-find-bounds 'plain)))
-	(aset info 2 (copy-marker (min top bot)))
-	(aset info 3 (copy-marker (max top bot)))
-	(aset info 4 (copy-marker (or outer-top (aref info 2))))
-	(aset info 5 (copy-marker (or outer-bot (aref info 3))))))
+	(aset info 2 (copy-marker (min calc-embed-top calc-embed-bot)))
+	(aset info 3 (copy-marker (max calc-embed-top calc-embed-bot)))
+	(aset info 4 (copy-marker (or calc-embed-outer-top (aref info 2))))
+	(aset info 5 (copy-marker (or calc-embed-outer-bot (aref info 3))))))
     (goto-char (aref info 2))
     (if new-info
 	(progn
@@ -776,7 +795,7 @@ The command \\[yank] can retrieve it from there."
 	  (let* ((open-plain calc-embedded-open-plain)
 		 (close-plain calc-embedded-close-plain)
 		 (pref-len (length open-plain))
-		 (vars-used nil)
+		 (calc-embed-vars-used nil)
 		 suff-pos val temp)
 	    (save-excursion
 	      (set-buffer (aref info 1))
@@ -810,7 +829,7 @@ The command \\[yank] can retrieve it from there."
 			      (nth 1 temp)))
 	    (if (memq (car-safe val) '(calcFunc-evalto calcFunc-assign))
 		(calc-embedded-find-vars val))
-	    (aset info 10 vars-used)
+	    (aset info 10 calc-embed-vars-used)
 	    (aset info 11 nil))))
     (if new-info
 	(progn
@@ -821,8 +840,8 @@ The command \\[yank] can retrieve it from there."
 (defun calc-embedded-find-vars (x)
   (cond ((Math-primp x)
 	 (and (eq (car-safe x) 'var)
-	      (not (assoc x vars-used))
-	      (setq vars-used (cons (list x) vars-used))))
+	      (not (assoc x calc-embed-vars-used))
+	      (setq calc-embed-vars-used (cons (list x) calc-embed-vars-used))))
 	((eq (car x) 'calcFunc-evalto)
 	 (calc-embedded-find-vars (nth 1 x)))
 	((eq (car x) 'calcFunc-assign)
@@ -831,16 +850,16 @@ The command \\[yank] can retrieve it from there."
 	 (and (eq (car x) 'calcFunc-subscr)
 	      (eq (car-safe (nth 1 x)) 'var)
 	      (Math-primp (nth 2 x))
-	      (not (assoc x vars-used))
-	      (setq vars-used (cons (list x) vars-used)))
+	      (not (assoc x calc-embed-vars-used))
+	      (setq calc-embed-vars-used (cons (list x) calc-embed-vars-used)))
 	 (while (setq x (cdr x))
 	   (calc-embedded-find-vars (car x))))))
 
 
 (defun calc-embedded-evaluate-expr (x)
-  (let ((vars-used (aref calc-embedded-info 10)))
-    (or vars-used (calc-embedded-find-vars x))
-    (if vars-used
+  (let ((calc-embed-vars-used (aref calc-embedded-info 10)))
+    (or calc-embed-vars-used (calc-embedded-find-vars x))
+    (if calc-embed-vars-used
 	(let ((active (assq (aref calc-embedded-info 0) calc-embedded-active))
 	      (args nil))
 	  (save-excursion
@@ -850,9 +869,9 @@ The command \\[yank] can retrieve it from there."
 		  (calc-embedded-activate)
 		  (setq active (assq (aref calc-embedded-info 0)
 				     calc-embedded-active))))
-	    (while vars-used
-	      (calc-embedded-eval-get-var (car (car vars-used)) active)
-	      (setq vars-used (cdr vars-used))))
+	    (while calc-embed-vars-used
+	      (calc-embedded-eval-get-var (car (car calc-embed-vars-used)) active)
+	      (setq calc-embed-vars-used (cdr calc-embed-vars-used))))
 	  (calc-embedded-subst x))
       (calc-normalize (math-evaluate-expr-rec x)))))
 
@@ -900,10 +919,10 @@ The command \\[yank] can retrieve it from there."
 
 (defun calc-embedded-update (info which need-eval need-display
 				  &optional str entry old-val)
-  (let* ((prev-modes nil)
+  (let* ((calc-embed-prev-modes nil)
 	 (open-plain calc-embedded-open-plain)
 	 (close-plain calc-embedded-close-plain)
-	 (vars-used nil)
+	 (calc-embed-vars-used nil)
 	 (evalled nil)
 	 (val (aref info 8))
 	 (old-eval (aref info 11)))
@@ -926,7 +945,7 @@ The command \\[yank] can retrieve it from there."
 	  (if (or (eq need-eval 'eval) (eq (car-safe val) 'calcFunc-evalto))
 	      (aset info 8 val))
 	  (aset info 9 nil)
-	  (aset info 10 vars-used)
+	  (aset info 10 calc-embed-vars-used)
 	  (aset info 11 nil)
 	  (if (or need-display (eq (car-safe val) 'calcFunc-evalto))
 	      (let ((extra (if (eq calc-language 'big) 1 0)))
@@ -978,16 +997,17 @@ The command \\[yank] can retrieve it from there."
 	    (if (eq (car-safe old-val) 'calcFunc-assign)
 		(calc-embedded-var-change (nth 1 old-val) (aref info 0)))))
       (set-buffer (aref info 1))
-      (while prev-modes
-	(cond ((eq (car (car prev-modes)) 'the-language)
+      (while calc-embed-prev-modes
+	(cond ((eq (car (car calc-embed-prev-modes)) 'the-language)
 	       (if need-display
-		   (calc-embedded-set-language (cdr (car prev-modes)))))
-	      ((eq (car (car prev-modes)) 'the-display-just)
+		   (calc-embedded-set-language (cdr (car calc-embed-prev-modes)))))
+	      ((eq (car (car calc-embed-prev-modes)) 'the-display-just)
 	       (if need-display
-		   (calc-embedded-set-justify (cdr (car prev-modes)))))
+		   (calc-embedded-set-justify (cdr (car calc-embed-prev-modes)))))
 	      (t
-	       (set (car (car prev-modes)) (cdr (car prev-modes)))))
-	(setq prev-modes (cdr prev-modes))))))
+	       (set (car (car calc-embed-prev-modes)) 
+                    (cdr (car calc-embed-prev-modes)))))
+	(setq calc-embed-prev-modes (cdr calc-embed-prev-modes))))))
 
 
 
@@ -1202,6 +1222,8 @@ The command \\[yank] can retrieve it from there."
 	    (setq p (cdr p))))
 	(setq bp (if buf nil (cdr bp))))
       (or first calc-embedded-quiet (message "")))))
+
+(provide 'calc-embed)
 
 ;;; arch-tag: 1b8f311e-fba1-40d3-b8c3-1d6f68fd26fc
 ;;; calc-embed.el ends here

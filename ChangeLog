@@ -1,3 +1,25 @@
+2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: If $HAVE_GTK_FILE_CHOOSER = yes, check for 
+	pthreads and define HAVE_GTK_AND_PTHREAD.
+	* configure: Regenerate.
+
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (info): Ignore errors building info files.
+
+2004-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: If 8-byte alignment is not supported, define
+	NO_DECL_ALIGN in src/config.h, instead of trivially defining
+	DECL_ALIGN.  Protect & with "" because & is special for cmd.exe;
+	filter through Sed to remove the quotes.
+
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info/.cvsignore: Ignore everything.  It's OK since .cvsignore does
+	not apply to files explicitly `cvs add'ed.
+
 2004-11-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Don't require djecho.exe for the v1.x build.
@@ -18,23 +40,23 @@
 
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* configure.in (HAVE_GTK_FILE_CHOOSER, $HAVE_GTK_FILE_SELECTION): New
-	tests for new and old GTK file dialogs.
+	* configure.in (HAVE_GTK_FILE_CHOOSER, $HAVE_GTK_FILE_SELECTION):
+	New tests for new and old GTK file dialogs.
 	(HAVE_GTK): Only set with_toolkit_scroll_bars if not explicitly set
 	to no.
 
-	* configure: Rebuild
+	* configure: Rebuild.
 
 2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_PERSONALITY_LINUX32): New test if PER_LINUX32
 	can be set.  Remove SETARCH test.
-	* configure: Rebuild
+	* configure: Rebuild.
 
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
 	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
-	* configure: Rebuild
+	* configure: Rebuild.
 
 2004-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -43,7 +65,7 @@
 
 2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 
-	* configure.in (HAVE_RANDOM_HEAPSTART): Renamed HAVE_EXECSHIELD.
+	* configure.in (HAVE_RANDOM_HEAPSTART): Rename HAVE_EXECSHIELD.
 	Run test to see if heap start address is random.
 
 2004-09-29  Miles Bader  <miles@gnu.org>
@@ -71,7 +93,7 @@
 
 2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* Makefile.in (install-arch-indep): Added pgg and sieve.
+	* Makefile.in (install-arch-indep): Add pgg and sieve.
 
 	* info/.cvsignore: Added pgg and sieve.
 

@@ -1899,6 +1899,10 @@ prompt skip is done by skipping text matching the regular expression
       (forward-line 0)
     (goto-char (comint-line-beginning-position))))
 
+;; For compatibility.
+(defun comint-read-noecho (prompt &optional ignore)
+  (read-passwd prompt))
+
 ;; These three functions are for entering text you don't want echoed or
 ;; saved -- typically passwords to ftp, telnet, or somesuch.
 ;; Just enter m-x send-invisible and type in your line.

@@ -2101,7 +2101,11 @@ pasted text.")
   "The value of the PRIMARY X selection last time we selected or
 pasted text.")
 (defvar x-last-selected-text-cut nil
-  "The value of the X cut buffer last time we selected or pasted text.")
+  "The value of the X cut buffer last time we selected or pasted text.
+The actual text stored in the X cut buffer is what encoded from this value.")
+(defvar x-last-selected-text-cut-encoded nil
+  "The value of the X cut buffer last time we selected or pasted text.
+This is the actual text stored in the X cut buffer.")
 
 ;;; It is said that overlarge strings are slow to put into the cut buffer.
 ;;; Note this value is overridden below.
@@ -2124,19 +2128,14 @@ This is in addition to, but in preference to, the primary selection."
   ;; It becomes slow, and if really big it causes errors.
   (cond ((>= (length text) x-cut-buffer-max)
 	 (x-set-cut-buffer "" push)
-	 (setq x-last-selected-text-cut ""))
-	;; Don't store a multibyte string that contains
-	;; eight-bit-control/graphic chars because they can't be
-	;; restored correctly by x-get-cut-buffer.
-	((and (multibyte-string-p text)
-	      (let ((charsets (find-charset-string text)))
-		(or (memq 'eight-bit-control charsets)
-		    (memq 'eight-bit-graphic charsets))))
-	 (x-set-cut-buffer "" push)
-	 (setq x-last-selected-text-cut ""))
+	 (setq x-last-selected-text-cut ""
+	       x-last-selected-text-cut-encoded ""))
 	(t
-	 (x-set-cut-buffer text push)
-	 (setq x-last-selected-text-cut text)))
+	 (setq x-last-selected-text-cut text
+	       x-last-selected-text-cut-encoded
+	       (encode-coding-string text (or locale-coding-system
+					      'iso-latin-1)))
+	 (x-set-cut-buffer x-last-selected-text-cut-encoded push)))
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text-primary text)
   (when x-select-enable-clipboard
@@ -2296,17 +2295,23 @@ order until succeed.")
     ;; from what we remebered them to be last time we did a
     ;; cut/paste operation.
     (setq cut-text
-	  (cond;; check primary selection
+	  (cond;; check cut buffer
 	   ((or (not cut-text) (string= cut-text ""))
 	    (setq x-last-selected-text-cut nil))
-	   ((eq      cut-text x-last-selected-text-cut) nil)
-	   ((string= cut-text x-last-selected-text-cut)
+	   ;; This short cut doesn't work because x-get-cut-buffer
+	   ;; always returns a newly created string.
+	   ;; ((eq      cut-text x-last-selected-text-cut) nil)
+	   ((string= cut-text x-last-selected-text-cut-encoded)
+	    ;; See the comment above.  No need of this recording.
 	    ;; Record the newer string,
 	    ;; so subsequent calls can use the `eq' test.
-	    (setq x-last-selected-text-cut cut-text)
-      nil)
-     (t
-	    (setq x-last-selected-text-cut cut-text))))
+	    ;; (setq x-last-selected-text-cut cut-text)
+	    nil)
+	   (t
+	    (setq x-last-selected-text-cut-encoded cut-text
+		  x-last-selected-text-cut
+		  (decode-coding-string cut-text (or locale-coding-system
+						     'iso-latin-1))))))
 
     ;; As we have done one selection, clear this now.
     (setq next-selection-coding-system nil)

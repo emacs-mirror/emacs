@@ -1509,6 +1509,9 @@ Note that binding the variable with `let', or setting it while
 a `let'-style binding made in this buffer is in effect,
 does not make the variable buffer-local.  Return VARIABLE.
 
+In most cases it is better to use `make-local-variable',
+which makes a variable local in just one buffer.
+
 The function `default-value' gets the default value and `set-default' sets it.  */)
      (variable)
      register Lisp_Object variable;
@@ -1552,7 +1555,7 @@ DEFUN ("make-local-variable", Fmake_local_variable, Smake_local_variable,
 Other buffers will continue to share a common default value.
 \(The buffer-local value of VARIABLE starts out as the same value
 VARIABLE previously had.  If VARIABLE was void, it remains void.\)
-See also `make-variable-buffer-local'.  Return VARIABLE.
+Return VARIABLE.
 
 If the variable is already arranged to become local when set,
 this function causes a local value to exist for this buffer,
@@ -1561,6 +1564,8 @@ just as setting the variable would do.
 This function returns VARIABLE, and therefore
   (set (make-local-variable 'VARIABLE) VALUE-EXP)
 works.
+
+See also `make-variable-buffer-local'.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.  */)

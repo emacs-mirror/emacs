@@ -220,6 +220,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if using GTK. */
 #undef HAVE_GTK
 
+/* Define to 1 if you have GTK and pthread (-lpthread). */
+#undef HAVE_GTK_AND_PTHREAD
+
 /* Define to 1 if GTK has both file selection and chooser dialog. */
 #undef HAVE_GTK_FILE_BOTH
 
@@ -440,6 +443,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
 
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H

@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-frac () nil)
 
 (defun calc-fdiv (arg)
   (interactive "P")
@@ -219,6 +216,8 @@
 	    (math-make-frac (math-trunc a) (math-trunc b)))
 	(math-reject-arg b 'integerp))
     (math-reject-arg a 'integerp)))
+
+(provide 'calc-frac)
 
 ;;; arch-tag: 89d65274-0b3b-42d8-aacd-eaf86da5b4ea
 ;;; calc-frac.el ends here

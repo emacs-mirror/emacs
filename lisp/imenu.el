@@ -62,8 +62,6 @@
 
 ;;; Code:
 
-(require 'newcomment)
-
 (eval-when-compile (require 'cl))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -745,8 +743,8 @@ for modes which use `imenu--generic-function'.  If it is not set, but
 ;;;###autoload
 (make-variable-buffer-local 'imenu-case-fold-search)
 
-;; Originally "Built on some ideas that Erik Naggum <erik@naggum.no>
-;; once posted to comp.emacs" but since substantially re-written.
+;; This function can be called with quitting disabled,
+;; so it needs to be careful never to loop!
 (defun imenu--generic-function (patterns)
   "Return an index of the current buffer as an alist.
 
@@ -800,6 +798,7 @@ depending on PATTERNS."
     (unwind-protect			; for syntax table
 	(save-match-data
 	  (set-syntax-table table)
+
 	  ;; map over the elements of imenu-generic-expression
 	  ;; (typically functions, variables ...)
 	  (dolist (pat patterns)
@@ -808,44 +807,42 @@ depending on PATTERNS."
 		  (index (nth 2 pat))
 		  (function (nth 3 pat))
 		  (rest (nthcdr 4 pat))
-		  start
-		  cs)
+		  start)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
-	      (while (re-search-backward regexp nil t)
+	      (while (and (re-search-backward regexp nil t)
+			  ;; Exit the loop if we get an empty match,
+			  ;; because it means a bad regexp was specified.
+			  (not (= (match-beginning 0) (match-end 0))))
 		(setq start (point))
 		(goto-char (match-end index))
 		(setq beg (match-beginning index))
-		(setq cs (and comment-start-skip
-			      (save-match-data (comment-beginning))))
-		(if cs
-		    (goto-char (min cs beg)) ; skip this one, it's in a comment
-		  (goto-char beg)
-		  (imenu-progress-message prev-pos nil t)
-		  ;; Add this sort of submenu only when we've found an
-		  ;; item for it, avoiding empty, duff menus.
-		  (unless (assoc menu-title index-alist)
-		    (push (list menu-title) index-alist))
-		  (if imenu-use-markers
-		      (setq beg (copy-marker beg)))
-		  (let ((item
-			 (if function
-			     (nconc (list (match-string-no-properties index)
-					  beg function)
-				    rest)
-			   (cons (match-string-no-properties index)
-				 beg)))
-			;; This is the desired submenu,
-			;; starting with its title (or nil).
-			(menu (assoc menu-title index-alist)))
-		    ;; Insert the item unless it is already present.
-		    (unless (member item (cdr menu))
-		      (setcdr menu
-			      (cons item (cdr menu)))))
-		  ;; Move to the start of the entire match,
-		  ;; to ensure we keep moving backwards
-		  ;; as long as the match is nonempty.
-		  (goto-char start)))))
+		(goto-char beg)
+		(imenu-progress-message prev-pos nil t)
+		;; Add this sort of submenu only when we've found an
+		;; item for it, avoiding empty, duff menus.
+		(unless (assoc menu-title index-alist)
+		  (push (list menu-title) index-alist))
+		(if imenu-use-markers
+		    (setq beg (copy-marker beg)))
+		(let ((item
+		       (if function
+			   (nconc (list (match-string-no-properties index)
+					beg function)
+				  rest)
+			 (cons (match-string-no-properties index)
+			       beg)))
+		      ;; This is the desired submenu,
+		      ;; starting with its title (or nil).
+		      (menu (assoc menu-title index-alist)))
+		  ;; Insert the item unless it is already present.
+		  (unless (member item (cdr menu))
+		    (setcdr menu
+			    (cons item (cdr menu)))))
+		;; Move to the start of the entire match,
+		;; to ensure we keep moving backwards
+		;; as long as the match is nonempty.
+		(goto-char start))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.

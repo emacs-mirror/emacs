@@ -711,8 +711,8 @@ It returns t if a desktop file was loaded, nil otherwise."
         ;; `desktop-create-buffer' puts buffers at end of the buffer list.
         ;; We want buffers existing prior to evaluating the desktop (and not reused)
         ;; to be placed at the end of the buffer list, so we move them here.
-        (mapcar 'bury-buffer
-                (nreverse (cdr (memq desktop-first-buffer (nreverse (buffer-list))))))
+        (mapc 'bury-buffer
+              (nreverse (cdr (memq desktop-first-buffer (nreverse (buffer-list))))))
         (switch-to-buffer (car (buffer-list)))
         (run-hooks 'desktop-delay-hook)
         (setq desktop-delay-hook nil)
@@ -855,11 +855,10 @@ directory DIRNAME."
           (setq desktop-buffer-ok-count (1+ desktop-buffer-ok-count))
         (setq desktop-buffer-fail-count (1+ desktop-buffer-fail-count))
         (setq result nil))
-      (unless (bufferp result) (setq result nil))
       ;; Restore buffer list order with new buffer at end. Don't change
       ;; the order for old desktop files (old desktop module behaviour).
       (unless (< desktop-file-version 206)
-        (mapcar 'bury-buffer buffer-list)
+        (mapc 'bury-buffer buffer-list)
         (when result (bury-buffer result)))
       (when result
         (unless (or desktop-first-buffer (< desktop-file-version 206))

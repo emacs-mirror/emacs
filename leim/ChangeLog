@@ -1,3 +1,12 @@
+2004-12-04  Kenichi Handa  <handa@m17n.org>
+
+	* quail/lao.el (lao-key-alist): Declare it by defvar.
+	(lao-key-alist-vector): New variable.
+	(lao-consonant-key-alist, lao-semivowel-key-alist)
+	(lao-vowel-key-alist, lao-voweltone-key-alist)
+	(lao-tone-key-alist, lao-other-key-alist): Initialize them from
+	lao-key-alist-vector.
+
 2004-09-25  Kenichi Handa  <handa@m17n.org>
 
 	* quail/uni-input.el (ucs-input-method): Add error clause to

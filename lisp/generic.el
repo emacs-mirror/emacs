@@ -197,6 +197,7 @@ a one or two character string or a cons pair. If the entry is a character
 or a one-character string, it is added to the mode's syntax table with
 `comment-start' syntax.  If the entry is a cons pair, the elements of the
 pair are considered to be `comment-start' and `comment-end' respectively.
+\(The latter should be nil if you want comments to end at end of line.)
 Note that Emacs has limitations regarding comment characters.
 
 KEYWORD-LIST is a list of keywords to highlight with `font-lock-keyword-face'.
@@ -289,13 +290,15 @@ Some generic modes are defined in `generic-x.el'."
 
     ;; Go through all the comments
     (dolist (start comment-list)
-      (let ((end ?\n) (comstyle ""))
+      (let ((end nil) (comstyle ""))
 	;; Normalize
 	(when (consp start)
 	  (setq end (or (cdr start) end))
 	  (setq start (car start)))
 	(when (char-valid-p start) (setq start (char-to-string start)))
-	(when (char-valid-p end)   (setq end (char-to-string end)))
+	(cond
+	 ((char-valid-p end)   (setq end (char-to-string end)))
+	 ((zerop (length end)) (setq end "\n")))
 
 	;; Setup the vars for `comment-region'
 	(if comment-start
@@ -414,5 +417,5 @@ The regexp is highlighted with FACE."
 
 (provide 'generic)
 
-;;; arch-tag: 239c1fc4-1303-48d9-9ac0-657d655669ea
+;; arch-tag: 239c1fc4-1303-48d9-9ac0-657d655669ea
 ;;; generic.el ends here

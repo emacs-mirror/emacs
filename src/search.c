@@ -2860,7 +2860,7 @@ LIST should have been created by calling `match-data' previously.  */)
 	else
 	  {
 	    int from;
-	    
+
 	    if (MARKERP (marker))
 	      {
 		if (XMARKER (marker)->buffer == 0)
@@ -2868,15 +2868,15 @@ LIST should have been created by calling `match-data' previously.  */)
 		else
 		  XSETBUFFER (last_thing_searched, XMARKER (marker)->buffer);
 	      }
-	    
+
 	    CHECK_NUMBER_COERCE_MARKER (marker);
 	    from = XINT (marker);
 	    list = Fcdr (list);
-	    
+
 	    marker = Fcar (list);
 	    if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
 	      XSETFASTINT (marker, 0);
-	    
+
 	    CHECK_NUMBER_COERCE_MARKER (marker);
 	    search_regs.start[i] = from;
 	    search_regs.end[i] = XINT (marker);
@@ -3013,7 +3013,7 @@ syms_of_search ()
   staticpro (&saved_last_thing_searched);
 
   DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
-      /* doc: Regexp to substitute for bunches of spaces in regexp search.
+      doc: /* Regexp to substitute for bunches of spaces in regexp search.
 Some commands use this for user-specified regexps.
 Spaces that occur inside character classes or repetition operators
 or other such regexp constructs are not replaced with this.

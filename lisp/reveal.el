@@ -151,6 +151,13 @@
 		 (overlay-put ol 'invisible inv))))))))
    (error (message "Reveal: %s" err)))))
 
+(defvar reveal-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Override the default move-end-of-line which skips valuable
+    ;; invisible text.
+    (define-key map [?\C-e] 'end-of-line)
+    map))
+
 ;;;###autoload
 (define-minor-mode reveal-mode
   "Toggle Reveal mode on or off.
@@ -160,6 +167,7 @@ Interactively, with no prefix argument, toggle the mode.
 With universal prefix ARG (or if ARG is nil) turn mode on.
 With zero or negative ARG turn mode off."
   :lighter (global-reveal-mode nil " Reveal")
+  :keymap reveal-mode-map
   (if reveal-mode
       (progn
 	(set (make-local-variable 'search-invisible) t)

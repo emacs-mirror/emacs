@@ -581,8 +581,12 @@ init_cmdargs (argc, argv, skip_args)
   for (i = argc - 1; i >= 0; i--)
     {
       if (i == 0 || i > skip_args)
+	/* For the moment, we keep arguments as is in unibyte strings.
+	   They are decoded in the function command-line after we know
+	   locale-coding-system.  */
 	Vcommand_line_args
-	  = Fcons (build_string (argv[i]), Vcommand_line_args);
+	  = Fcons (make_unibyte_string (argv[i], strlen (argv[i])),
+		   Vcommand_line_args);
     }
 
   unbind_to (count, Qnil);
@@ -745,7 +749,9 @@ malloc_initialize_hook ()
 	}
 
       malloc_set_state (malloc_state_ptr);
+#ifndef XMALLOC_OVERRUN_CHECK
       free (malloc_state_ptr);
+#endif
     }
   else
     {
@@ -2230,6 +2236,12 @@ You must run Emacs in batch mode in order to dump it.  */)
      Meanwhile, my_edata is not valid on Windows.  */
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
+#endif
+#ifdef HAVE_GTK_AND_PTHREAD
+  /* Pthread may call malloc before main, and then we will get an endless
+     loop, because pthread_self (see alloc.c) calls malloc the first time
+     it is called on some systems.  */
+  reset_malloc_hooks ();
 #endif
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();

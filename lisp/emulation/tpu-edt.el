@@ -844,7 +844,7 @@ This is useful for inserting control characters."
 ;;;
 ;;;  Help
 ;;;
-(defconst tpu-help-keypad-map "\f
+(defvar tpu-help-keypad-map "\f
           _______________________    _______________________________
          | HELP  |      Do       |  |       |       |       |       |
          |KeyDefs|               |  |       |       |       |       |
@@ -867,7 +867,7 @@ This is useful for inserting control characters."
                                     |_______________|_______|_______|
 ")
 
-(defconst tpu-help-text "
+(defvar tpu-help-text "
 \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\f
 
       Control Characters
@@ -1706,9 +1706,9 @@ A repeat count means move that many characters."
 ;;;
 ;;;  Movement by word
 ;;;
-(defconst tpu-word-separator-list '()
+(defvar tpu-word-separator-list '()
   "List of additional word separators.")
-(defconst tpu-skip-chars "^ \t"
+(defvar tpu-skip-chars "^ \t"
   "Characters to skip when moving by word.
 Additional word separators are added to this string.")
 

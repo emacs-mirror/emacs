@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-yank () nil)
-
 
 ;;; Kill ring commands.
 
@@ -428,6 +424,13 @@
   (define-key calc-edit-mode-map "\r" 'calc-edit-return)
   (define-key calc-edit-mode-map "\C-c\C-c" 'calc-edit-finish))
 
+(defvar calc-original-buffer)
+(defvar calc-return-buffer)
+(defvar calc-one-window)
+(defvar calc-edit-handler)
+(defvar calc-restore-trail)
+(defvar calc-allow-ret)
+
 (defun calc-edit-mode (&optional handler allow-ret title)
   "Calculator editing mode.  Press RET, LFD, or C-c C-c to finish.
 To cancel the edit, simply kill the *Calc Edit* buffer."
@@ -574,6 +577,8 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 		(if (>= num 0)
 		    (calc-enter-result num "edit" vals)
 		  (calc-enter-result 1 "edit" vals (- num))))))))))
+
+(provide 'calc-yank)
 
 ;;; arch-tag: ca61019e-caca-4daa-b32c-b6afe372d5b5
 ;;; calc-yank.el ends here

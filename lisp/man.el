@@ -1,6 +1,7 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -94,6 +95,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'assoc)
 (require 'button)
 
@@ -150,6 +152,11 @@ the manpage buffer."
 
 (defcustom Man-underline-face 'underline
   "*Face to use when fontifying underlining."
+  :type 'face
+  :group 'man)
+
+(defcustom Man-reverse-face 'highlight
+  "*Face to use when fontifying reverse video."
   :type 'face
   :group 'man)
 
@@ -813,13 +820,39 @@ Same for the ANSI bold and normal escape sequences."
   (interactive)
   (message "Please wait: formatting the %s man page..." Man-arguments)
   (goto-char (point-min))
-  (while (search-forward "\e[1m" nil t)
-    (delete-backward-char 4)
-    (put-text-property (point)
-		       (progn (if (search-forward "\e[0m" nil 'move)
-				  (delete-backward-char 4))
-			      (point))
-		       'face Man-overstrike-face))
+  ;; Fontify ANSI escapes.
+  (let ((faces nil)
+	(start (point)))
+    ;; http://www.isthe.com/chongo/tech/comp/ansi_escapes.html
+    ;; suggests many codes, but we only handle:
+    ;; ESC [ 00 m	reset to normal display
+    ;; ESC [ 01 m	bold
+    ;; ESC [ 04 m	underline
+    ;; ESC [ 07 m	reverse-video
+    ;; ESC [ 22 m	no-bold
+    ;; ESC [ 24 m	no-underline
+    ;; ESC [ 27 m	no-reverse-video
+    (while (re-search-forward "\e\\[0?\\([1470]\\|2\\([247]\\)\\)m" nil t)
+      (if faces (put-text-property start (match-beginning 0) 'face
+				   (if (cdr faces) faces (car faces))))
+      (setq faces
+	    (cond
+	     ((match-beginning 2)
+	      (delq (case (char-after (match-beginning 2))
+		      (?2 Man-overstrike-face)
+		      (?4 Man-underline-face)
+		      (?7 Man-reverse-face))
+		    faces))
+	     ((eq (char-after (match-beginning 1)) ?0) nil)
+	     (t
+	      (cons (case (char-after (match-beginning 1))
+		      (?1 Man-overstrike-face)
+		      (?4 Man-underline-face)
+		      (?7 Man-reverse-face))
+		    faces))))
+      (delete-region (match-beginning 0) (match-end 0))
+      (setq start (point))))
+  ;; Other highlighting.
   (if (< (buffer-size) (position-bytes (point-max)))
       ;; Multibyte characters exist.
       (progn
@@ -1372,5 +1405,5 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (provide 'man)
 
-;;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
+;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
 ;;; man.el ends here

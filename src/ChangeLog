@@ -1,3 +1,315 @@
+2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (Fx_popup_menu): Correct documentation about position.
+	(xmenu_show): Do not call XTranslateCoordinates.  Adjust position
+	if not given by a mouse click to correspond with x-popup-menu
+	documentation.
+
+	* config.in: Regenerate.
+
+	* gtkutil.c: Include signal.h and syssignal.h.
+	(xg_get_file_name): Block and unblock __SIGRTMIN if defined.
+
+	* alloc.c: If HAVE_GTK_AND_PTHREAD, include pthread.h,
+	new variables main_thread and alloc_mutex,
+	define (UN)BLOCK_INPUT_ALLOC to use alloc_mutex to protect
+	emacs_blocked_* calls and only do (UN)BLOCK_INPUT in the main thread.
+	If not HAVE_GTK_AND_PTHREAD, (UN)BLOCK_INPUT_ALLOC is the same as
+	(UN)BLOCK_INPUT.
+	(emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc): Use (UN)BLOCK_INPUT_ALLOC.
+	(uninterrupt_malloc): Initialize main_thread and alloc_mutex.
+	(reset_malloc_hooks): New function.
+
+	* lisp.h: Declare reset_malloc_hooks.
+
+	* emacs.c (Fdump_emacs): Call reset_malloc_hooks.
+
+	* keyboard.c: Conditionally include pthread.h
+	(handle_async_inpu, input_available_signalt): If not in the main
+	thread, block signal, send signal to main thread and return.
+
+	* gtkutil.c (xg_get_file_with_chooser): Handle local files only.
+	Set current folder in file chooser if default_filename is a
+	directory.
+
+2004-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (GET_UNSIGNED_NUMBER): Signal an error when reaching the end.
+	Remove redundant correctness checks.
+	(regex_compile): Fix up error codes for \{..\} expressions.
+
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (regex_compile): Fix end-of-pattern case for space.
+
+2004-12-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (cfstring_create_with_utf8_cstring): Add prototype.
+	* mac.c (cfstring_create_with_utf8_cstring): Add to prevent
+	crashes with invalid characters.
+	* macmenu.c (add_menu_item): Use it.
+	* image.c (image_load_quartz2d): Likewise.
+	* macfns.c (x_set_name, x_set_title): Likewise.
+	(Fx_file_dialog): Likewise.  Use constant CFRefs instead of
+	creating them each time for labels.
+
+2004-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* config.in (RE_TRANSLATE_P): If make_number is not a macro,
+	don't use it here.
+
+	* eval.c (Fcalled_interactively_p): Don't check INTERACTIVE.
+	(interactive_p): Skip Scalled_interactively_p frames
+	like Sinteractive_p frames.
+
+	* data.c (Fmake_variable_buffer_local): Doc fix.
+	(Fmake_local_variable): Doc fix.
+
+	* insdel.c (insert_from_string_before_markers)
+	(insert_from_string): Don't modify buffer on empty insertion.
+
+	* window.c (Fget_lru_window, Fget_largest_window): Doc fixes.
+
+2004-12-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (add_menu_item): Fallback on MacRoman if encoding
+	menu text as UTF8 fails.
+
+2004-12-01  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c: Add commentary for last change.
+	(XMALLOC_PUT_SIZE, XMALLOC_GET_SIZE): New macros to handle
+	sizeof(size_t) != 4.
+	(overrun_check_malloc, overrun_check_realloc, overrun_check_free):
+	Use them.  Also clear header and trailer of freed memory.
+	(GC_STRING_OVERRUN_COOKIE_SIZE): Rename from GC_STRING_EXTRA.
+	(string_overrun_cookie): Rename from string_overrun_pattern.
+	(GC_STRING_EXTRA): Define from GC_STRING_OVERRUN_COOKIE_SIZE.
+
+2004-12-01  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare string_to_multibyte.
+
+2004-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* w32console.c (w32con_write_glyphs): Decide coding here.
+	Adjusted for the change of encode_terminal_code.
+
+	* term.c (encode_terminal_code): Don't make it "static".
+
+2004-11-30  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (encode_terminal_buf, encode_terminal_bufsize): New
+	variables.
+	(encode_terminal_code): Argument changed.  Encode all
+	characters at once, and return a pointer to the result of
+	encoding.
+	(write_glyphs): Decide coding here.  Adjusted for the above
+	change.
+	(insert_glyphs): Likewise.
+	(term_init): Initialize encode_terminal_bufsize to 0.
+
+	* coding.c (Vcode_conversion_workbuf_name): New variable.
+	(syms_of_coding): Initialize and staticpro it.
+	(set_conversion_work_buffer): New function.
+	(run_pre_post_conversion_on_str): Use it.
+	(run_pre_write_conversin_on_c_str): New function.
+
+	* coding.h (run_pre_write_conversin_on_c_str): Extern it.
+
+2004-11-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c: Don't undef SIGIO
+	* s/darwin.h (NO_SOCK_SIGIO): Define NO_SOCK_SIGIO on carbon
+	* Makefile.in (mac.o): Depend on blockinput.h and atimer.h.
+	(macfns.o): Don't depend on ccl.h.
+	* macfns.c (mac_frame_parm_handlers): Set handlers for
+	Qleft_fringe and Qright_fringe.
+	* macterm.c (mac_fill_rectangle_to_pixmap)
+	(mac_draw_rectangle_to_pixmap, mac_copy_area_to_pixmap)
+	(mac_copy_area_with_mask_to_pixmap, x_draw_image_foreground_1):
+	Put in #if 0.
+	(mac_scroll_area) [TARGET_API_MAC_CARBON]: Use ScrollWindowRect.
+	(x_flush) [TARGET_API_MAC_CARBON]: Don't traverse frames.
+	(XFlush) [TARGET_API_MAC_CARBON]: Define to an empty replacement.
+	(x_draw_glyph_string_background, x_draw_glyph_string_foreground)
+	[!MAC_OS8]: Added ifdef'd out code for os8.  Don't use
+	XDrawImageString.  Always draw background and foreground separately.
+	(x_draw_image_foreground): Use clipping instead of computing the
+	intersection rectangle.
+	(x_draw_image_glyph_string): Don't draw an image with mask to a
+	pixmap.
+	(x_redisplay_interface): Set flush_display_optional member to 0.
+	(XTread_socket): Correctly reset the TEConverter
+	object.
+
+2004-11-30  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h: New defines to enable buffer overrun checking.
+	(GC_CHECK_STRING_OVERRUN, GC_CHECK_STRING_FREE_LIST)
+	(XMALLOC_OVERRUN_CHECK, GC_CHECK_CONS_LIST): Add.
+
+	* alloc.c: Add more checks for buffer overruns.
+	(XMALLOC_OVERRUN_CHECK_SIZE, xmalloc_overrun_check_header)
+	xmalloc_overrun_check_trailer, overrun_check_malloc)
+	overrun_check_realloc, overrun_check_free): Add.
+	(GC_STRING_EXTRA, string_overrun_pattern): Add.
+	(check_sblock, allocate_string_data, compact_small_strings):
+	Set and check string_overrun_pattern if GC_CHECK_STRING_OVERRUN.
+	(check_cons_list): Condition on GC_CHECK_CONS_LIST.
+	(check_string_free_list): Add.
+	(allocate_string, sweep_strings): Call check_string_free_list.
+
+	* emacs.c (malloc_initialize_hook): Don't free malloc_state_ptr if
+	XMALLOC_OVERRUN_CHECK to avoid crash during load.
+
+2004-11-29  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (concat): Use SAFE_ALLOCA.
+
+2004-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sysdep.c (emacs_write): Don't use QUIT.
+
+2004-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* buffer.c (init_buffer): Set current_buffer->directory to a
+	multibyte string made by string_to_multibyte.
+
+	* emacs.c (init_cmdargs): Set unibyte strings in Vcommand_line_args.
+
+2004-11-27  Andreas Schwab  <schwab@suse.de>
+
+	* alloc.c (mark_stack): Call GC_MARK_SECONDARY_STACK if defined.
+
+	* s/gnu-linux.h: Enable no-op gcpros on ia64.
+	(GC_MARK_SECONDARY_STACK) [__ia64__]: Define.
+
+	* filelock.c (lock_file_1): Call get_boot_time early.
+	Increase buffer size.
+
+2004-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (DECL_ALIGN): Define non-trivially only if NO_DECL_ALIGN
+	is not defined.
+
+2004-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* search.c (syms_of_search) <search-spaces-regexp>: Move 'doc:'
+	marker out of doc string.
+
+2004-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* s/darwin.h (POSIX_SIGNALS): Undo the removal of 2002-08-25,
+	which was not mentioned in the log.
+
+2004-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Prefer truncation bitmaps over
+	angle bitmaps at top/bottom line.
+
+	* xdisp.c: Undo recent changes for restoring saved_face_id. Instead,
+	set it when it->method is set to next_element_from_display_vector.
+	(setup_for_ellipsis): Add LEN argument.  Callers changed.
+	Set it->saved_face_id.
+	(get_next_display_element): Use loop instead of recursion.
+	Set it->saved_face_id.  Combine duplicate code for ctr chars.
+	(next_element_from_display_vector): Do not set it->saved_face_id.
+	(next_element_from_ellipsis): Use setup_for_ellipsis.
+
+2004-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* eval.c (Fdefvar): Declare pdl from last change as `volatile' to
+	prevent compiler warnings.
+
+2004-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (command_loop_1): Print a message describing the key
+	the user just pressed when this key has no binding.
+
+	* sysdep.c (sys_signal): Don't use SA_RESTART if SYNC_INPUT is set.
+	(emacs_open, emacs_read, emacs_write): Check QUIT when interrupted.
+
+	* lread.c (readchar): Check QUIT when `getc' is interrupted.
+
+2004-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* coding.c (run_pre_post_conversion_on_str): Bind Qinhibit_read_only.
+
+	* buffer.c (syms_of_buffer) <indicate-buffer-boundaries>: Doc fix.
+
+2004-11-24  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to, display_line):
+	Restore saved_face_id also when truncate-lines or hscrolled.
+
+2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_name): Rename use-old-gtk-file-dialog to
+	x-use-old-gtk-file-dialog.
+
+	* xfns.c: Define x_use_old_gtk_file_dialog.
+	(syms_of_xfns): Rename use-old-gtk-file-dialog to x-...  Move it
+	outside ifdef USE_GTK.
+
+2004-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* coding.h (ENCODE_FILE, DECODE_FILE, ENCODE_SYSTEM, DECODE_SYSTEM):
+	Don't use XFASTINT blindly.
+
+	* config.in (RE_TRANSLATE_P): Don't use XFASTINT blindly.
+
+	* indent.c (skip_invisible): Avoid non-idempotent side-effects
+	in macro arguments.
+
+	* keymap.c (Flookup_key): Check INTEGERP before XINT.
+
+	* lread.c (oblookup): Don't use XFASTINT blindly.
+
+	* window.c (Fset_window_scroll_bars): Don't use XINT if it isn't int.
+	(decode_next_window_args, window_loop): Don't use XFASTINT blindly.
+
+2004-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P)
+	(MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P): Not if dpvec_index is zero.
+
+	* xfaces.c (lookup_named_face): Add signal_p arg.  Return -1 if
+	signal_p is zero and face name is unknown.
+	(Fx_list_fonts): Don't signal error in lookup_named_face.
+	(Fface_font): Signal error in lookup_named_face.
+	(ascii_face_of_lisp_face): Likewise.
+
+	* dispextern.h (lookup_named_face): Fix prototype.
+
+	* xdisp.c (handle_single_display_prop): Don't signal error in
+	lookup_named_face for unknown fringe face name.
+	(highlight_trailing_whitespace): Don't signal error in
+	lookup_named_face if trailing-whitespace face unknown.
+	(calc_line_height_property): Don't signal error in
+	lookup_named_face if specified face name is unknown.
+
+	* fringe.c (update_window_fringes): Show top row indicator if
+	window has header-line.  Don't show arrow at bob and eob
+	if the boundary indicators are not used.
+	(Fset_fringe_bitmap_face): Signal error in lookup_named_face.
+
+	* window.c (set_window_buffer): Clear display_error_modiff.
+
+2004-11-22  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Provide sensible fall-back
+	value for non-nil indicate-buffer-boundaries setting.
+
+2004-11-22  Markus Rost  <rost@ias.edu>
+
+	* minibuf.c (Fminibuffer_complete_and_exit): Fix previous change.
+
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvar): Warn when var is let-bound but globally void.
+
 2004-11-21  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (erase_phys_cursor): Clear hollow cursor inside TEXT_AREA.
@@ -11,9 +323,9 @@
 	* macterm.c (x_clip_to_row): Add area arg.  Callers changed.
 	(x_draw_hollow_cursor, x_draw_bar_cursor): Clip to TEXT_AREA.
 
-	* xdisp.c (move_it_in_display_line_to, display_line): Restore
-	saved_face_id if overflow-newline-into-fringe is enabled and line
-	is continued before or in middle of element from display vector.
+	* xdisp.c (move_it_in_display_line_to, display_line):
+	Restore saved_face_id if overflow-newline-into-fringe is enabled and
+	line is continued before or in middle of element from display vector.
 
 	* indent.c (Fvertical_motion): Fix last change.  Use another
 	method to detect if iterator moved too far ahead after reseat.
@@ -27,8 +339,7 @@
 
 2004-11-20  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* fns.c (Fyes_or_no_p): Call Fread_from_minibuffer with extra
-	argument.
+	* fns.c (Fyes_or_no_p): Call Fread_from_minibuffer with extra argument.
 	* callint.c (Fcall_interactively): Ditto.
 
 2004-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -44,7 +355,7 @@
 	(Fread_from_minibuffer): New arg KEEP_ALL.  Callers changed.
 
 	* search.c (Vsearch_spaces_regexp):
-	Renamed from Vsearch_whitespace_regexp.  All uses changed.
+	Rename from Vsearch_whitespace_regexp.  All uses changed.
 
 2004-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -86,8 +397,7 @@
 
 2004-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_get_file_name): Fix typo in
-	HAVE_GTK_FILE_SELECTION_NEW.
+	* gtkutil.c (xg_get_file_name): Typo in HAVE_GTK_FILE_SELECTION_NEW.
 
 	* xmenu.c (x_menu_in_use): Remove.
 	(x_menu_set_in_use): Also set popup_activated_flag.
@@ -6340,7 +6650,7 @@
 
 2003-06-01  David Ponce  <david@dponce.com>
 
-	* termhooks.h (enum event_kind): Added new WHEEL_EVENT event.
+	* termhooks.h (enum event_kind): Add new WHEEL_EVENT event.
 	Declare MOUSE_WHEEL_EVENT only if MAC_OSX defined.
 
 	* keyboard.c (Qmouse_wheel): Declare only if MAC_OSX defined.
@@ -6348,8 +6658,7 @@
 	(discard_mouse_events): Discard WHEEL_EVENT events too.
 	(lispy_wheel_names, wheel_syms): New.
 	(syms_of_keyboard): Init and staticpro `wheel_syms'.  Init and
-	staticpro `Qmouse_wheel' and `mouse_wheel_syms' only if MAC_OSX
-	defined.
+	staticpro `Qmouse_wheel' and `mouse_wheel_syms' only if MAC_OSX defined.
 	(make_lispy_event): Add WHEEL_EVENT handler.
 
 	* w32term.c (construct_mouse_wheel): Construct WHEEL_EVENT.
@@ -6391,8 +6700,7 @@
 
 	* ccl.h (struct ccl_program) <eight_bit_control>: Comment fixed.
 
-	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when it is
-	nonzero.
+	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when it is nonzero.
 	(ccl_driver): Initialize extra_bytes to ccl->eight_bit_control.
 	(setup_ccl_program): Initialize ccl->eight_bit_control to zero.
 
@@ -6408,19 +6716,18 @@
 
 2003-05-28  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (ENCODE_UNSAFE_CHARACTER): Adjusted for the name change
+	* coding.c (ENCODE_UNSAFE_CHARACTER): Adjust for the name change
 	of CODING_REPLACEMENT_CHARACTER.
 	(decode_coding_iso2022): If CODING_FLAG_ISO_SAFE, set
 	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in coding->mode, and
 	check this flag on encoding.
-	(encode_coding_sjis_big5): Check
-	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag of coding->mode.
-	(Fset_terminal_coding_system_internal): Set
-	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in terminal_coding.mode
-	instead of setting CODING_FLAG_ISO_SAFE flag in
-	terminal_coding.flags.
+	(encode_coding_sjis_big5):
+	Check CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag of coding->mode.
+	(Fset_terminal_coding_system_internal):
+	Set CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in terminal_coding.mode
+	instead of setting CODING_FLAG_ISO_SAFE flag in terminal_coding.flags.
 
-	* coding.h (CODING_REPLACEMENT_CHARACTER): Renamed from
+	* coding.h (CODING_REPLACEMENT_CHARACTER): Rename from
 	CODING_INHIBIT_CHARACTER_SUBSTITUTION.
 	(CODING_MODE_INHIBIT_UNENCODABLE_CHAR): New macro.
 
@@ -6562,65 +6869,65 @@
 	(struct frame): New member scroll_bar_actual_width which
 	consolidates and renames the vertical_scroll_bar_extra member of
 	x_output, w32_output, and mac_output structures.  All uses changed.
-	(FRAME_PIXEL_HEIGHT): Renamed from PIXEL_HEIGHT and moved
+	(FRAME_PIXEL_HEIGHT): Rename from PIXEL_HEIGHT and moved
 	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_height.
-	(FRAME_PIXEL_WIDTH): Renamed from PIXEL_WIDTH and moved
+	(FRAME_PIXEL_WIDTH): Rename from PIXEL_WIDTH and moved
 	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_width.
-	(FRAME_LINES): Renamed from FRAME_HEIGHT.  All uses changed.
+	(FRAME_LINES): Rename from FRAME_HEIGHT.  All uses changed.
 	Also change code which referred to f->height.
-	(FRAME_COLS): Renamed from FRAME_WIDTH.  All uses changed.
+	(FRAME_COLS): Rename from FRAME_WIDTH.  All uses changed.
 	Also change code which referred to f->width.
 	(FRAME_NEW_HEIGHT, FRAME_NEW_WIDTH): Remove macros; change uses
 	to update new_text_lines and new_text_cols members directly.
-	(FRAME_CONFIG_SCROLL_BAR_WIDTH): Renamed from
+	(FRAME_CONFIG_SCROLL_BAR_WIDTH): Rename from
 	FRAME_SCROLL_BAR_PIXEL_WIDTH.  All uses changed.
-	(FRAME_CONFIG_SCROLL_BAR_COLS): Renamed from
+	(FRAME_CONFIG_SCROLL_BAR_COLS): Rename from
 	FRAME_SCROLL_BAR_COLS.  All uses changed.
 	(FRAME_LEFT_SCROLL_BAR_COLS, FRAME_RIGHT_SCROLL_BAR_COLS):
-	Renamed from FRAME_LEFT_SCROLL_BAR_WIDTH and
+	Rename from FRAME_LEFT_SCROLL_BAR_WIDTH and
 	FRAME_RIGHT_SCROLL_BAR_WIDTH, resp.  All uses changed.
 	(FRAME_SCROLL_BAR_AREA_WIDTH, FRAME_LEFT_SCROLL_BAR_AREA_WIDTH)
 	(FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH): New macros.
-	(FRAME_TOTAL_COLS): Renamed from FRAME_WINDOW_WIDTH.
-	(SET_FRAME_COLS): Renamed from SET_FRAME_WIDTH.
-	(FRAME_TOTAL_COLS_ARG): Renamed from FRAME_WINDOW_WIDTH_ARG.
+	(FRAME_TOTAL_COLS): Rename from FRAME_WINDOW_WIDTH.
+	(SET_FRAME_COLS): Rename from SET_FRAME_WIDTH.
+	(FRAME_TOTAL_COLS_ARG): Rename from FRAME_WINDOW_WIDTH_ARG.
 	(WINDOW_VERTICAL_SCROLL_BAR_COLUMN): Remove unused macro.
 	(WINDOW_VERTICAL_SCROLL_BAR_HEIGHT): Remove unused macro.
-	(FRAME_LINE_HEIGHT): Renamed from CANON_Y_UNIT.  Unconditionally
-	return line_height member (it now has proper value also for
-	non-window frames).
-	(FRAME_COLUMN_WIDTH): Renamed from CANON_X_UNIT.  Unconditionally
+	(FRAME_LINE_HEIGHT): Rename from CANON_Y_UNIT.
+	Unconditionally return line_height member (it now has proper value
+	also for non-window frames).
+	(FRAME_COLUMN_WIDTH): Rename from CANON_X_UNIT.  Unconditionally
 	return new column_width member (rather than the default font width).
 	(FRAME_FRINGE_COLS, FRAME_LEFT_FRINGE_WIDTH)
-	(FRAME_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_... and moved
+	(FRAME_RIGHT_FRINGE_WIDTH): Rename from FRAME_X_... and moved
 	from x/w32/macterm.h files.  Unconditionally return corresponding
 	member of frame structure (they now have proper values also for
 	non-window frames).
-	(FRAME_TOTAL_FRINGE_WIDTH): Renamed from FRAME_FRINGE_WIDTH.
+	(FRAME_TOTAL_FRINGE_WIDTH): Rename from FRAME_FRINGE_WIDTH.
 	Calculate return value from left and right widths.
 	(FRAME_INTERNAL_BORDER_WIDTH): Unconditionally return
 	internal_border_width member (has proper value for non-window frame).
-	(FRAME_PIXEL_X_FROM_CANON_X): Renamed from PIXEL_X_FROM_CANON_X.
-	(FRAME_PIXEL_Y_FROM_CANON_Y): Renamed from PIXEL_Y_FROM_CANON_Y.
-	(FRAME_CANON_X_FROM_PIXEL_X): Renamed from CANON_X_FROM_PIXEL_X.
-	(FRAME_CANON_Y_FROM_PIXEL_Y): Renamed from CANON_Y_FROM_PIXEL_Y.
-	(FRAME_LINE_TO_PIXEL_Y): Renamed from CHAR_TO_PIXEL_ROW,
+	(FRAME_PIXEL_X_FROM_CANON_X): Rename from PIXEL_X_FROM_CANON_X.
+	(FRAME_PIXEL_Y_FROM_CANON_Y): Rename from PIXEL_Y_FROM_CANON_Y.
+	(FRAME_CANON_X_FROM_PIXEL_X): Rename from CANON_X_FROM_PIXEL_X.
+	(FRAME_CANON_Y_FROM_PIXEL_Y): Rename from CANON_Y_FROM_PIXEL_Y.
+	(FRAME_LINE_TO_PIXEL_Y): Rename from CHAR_TO_PIXEL_ROW,
 	consolidated from xterm.h, macterm.h, and w32term.h.
-	(FRAME_COL_TO_PIXEL_X): Renamed from CHAR_TO_PIXEL_COL,
+	(FRAME_COL_TO_PIXEL_X): Rename from CHAR_TO_PIXEL_COL,
 	consolidated from xterm.h, macterm.h, and w32term.h.
-	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Renamed from
+	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Rename from
 	CHAR_TO_PIXEL_WIDTH consolidated from x/mac/w32term.h.
-	(FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Renamed from
+	(FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Rename from
 	CHAR_TO_PIXEL_HEIGHT consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_Y_TO_LINE): Renamed from PIXEL_TO_CHAR_ROW
+	(FRAME_PIXEL_Y_TO_LINE): Rename from PIXEL_TO_CHAR_ROW
 	consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_X_TO_COL): Renamed from PIXEL_TO_CHAR_COL
+	(FRAME_PIXEL_X_TO_COL): Rename from PIXEL_TO_CHAR_COL
 	consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_WIDTH_TO_TEXT_COLS): Renamed from
+	(FRAME_PIXEL_WIDTH_TO_TEXT_COLS): Rename from
 	PIXEL_TO_CHAR_WIDTH consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_HEIGHT_TO_TEXT_LINES): Renamed from
+	(FRAME_PIXEL_HEIGHT_TO_TEXT_LINES): Rename from
 	PIXEL_TO_CHAR_HEIGHT consolidated from x/mac/w32term.h.
 
 	* window.h (struct window): Rename members left to left_col,
@@ -6642,7 +6949,7 @@
 	referred to XINT (w->height) * canon_y_unit.
 	(WINDOW_LEFT_EDGE_COL): New macro.  Change relevant code that
 	referred to XINT (w->left).
-	(WINDOW_RIGHT_EDGE_COL): Renamed from WINDOW_RIGHT_EDGE.  Change
+	(WINDOW_RIGHT_EDGE_COL): Rename from WINDOW_RIGHT_EDGE.  Change
 	all uses and code that referred to XINT (w->left) + XINT (w->width).
 	(WINDOW_TOP_EDGE_LINE): New macro.  Change relevant code that
 	referred to XINT (w->top).
@@ -6657,14 +6964,14 @@
 	(WINDOW_BOTTOM_EDGE_Y): New macro.  Change relevant code that
 	referred to (XINT (w->top) + XINT (w->height)) * canon_y_unit.
 	(WINDOW_LEFTMOST_P): New macro.
-	(WINDOW_BOX_LEFT_EDGE_COL): Renamed from WINDOW_LEFT_MARGIN.
+	(WINDOW_BOX_LEFT_EDGE_COL): Rename from WINDOW_LEFT_MARGIN.
 	All uses changed.
-	(WINDOW_BOX_RIGHT_EDGE_COL): Renamed from WINDOW_RIGHT_MARGIN.
+	(WINDOW_BOX_RIGHT_EDGE_COL): Rename from WINDOW_RIGHT_MARGIN.
 	All uses changed.
-	(WINDOW_BOX_LEFT_EDGE_X): Renamed from
+	(WINDOW_BOX_LEFT_EDGE_X): Rename from
 	WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X, moved from dispextern.h.
 	Do not exclude left fringe width.
-	(WINDOW_BOX_RIGHT_EDGE_X): Renamed from
+	(WINDOW_BOX_RIGHT_EDGE_X): Rename from
 	WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X, moved from dispextern.h.
 	Do not exclude fringe widths.
 	(WINDOW_LEFT_FRINGE_WIDTH, WINDOW_RIGHT_FRINGE_WIDTH)
@@ -6691,18 +6998,18 @@
 	FRAME_SCROLL_BAR_WIDTH.
 	(WINDOW_SCROLL_BAR_COLS, WINDOW_SCROLL_BAR_AREA_WIDTH)
 	(WINDOW_SCROLL_BAR_AREA_X): New macros.
-	(WINDOW_HEADER_LINE_HEIGHT): Renamed from
+	(WINDOW_HEADER_LINE_HEIGHT): Rename from
 	WINDOW_DISPLAY_HEADER_LINE_HEIGHT, moved from dispextern.h.
-	(WINDOW_BOX_HEIGHT_NO_MODE_LINE): Renamed from
+	(WINDOW_BOX_HEIGHT_NO_MODE_LINE): Rename from
 	WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE, moved from dispextern.h.
-	(WINDOW_BOX_TEXT_HEIGHT): Renamed from
+	(WINDOW_BOX_TEXT_HEIGHT): Rename from
 	WINDOW_DISPLAY_PIXEL_WIDTH, moved from dispextern.h.
 	(WINDOW_TO_FRAME_PIXEL_X, WINDOW_TO_FRAME_PIXEL_Y)
 	(FRAME_TO_WINDOW_PIXEL_X, FRAME_TO_WINDOW_PIXEL_Y)
-	(WINDOW_TEXT_TO_FRAME_PIXEL_X): Moved here from dispextern.h.
-	(WINDOW_LEFT_MARGIN_WIDTH): Renamed from
+	(WINDOW_TEXT_TO_FRAME_PIXEL_X): Move here from dispextern.h.
+	(WINDOW_LEFT_MARGIN_WIDTH): Rename from
 	WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH, moved from dispextern.h.
-	(WINDOW_RIGHT_MARGIN_WIDTH): Renamed from
+	(WINDOW_RIGHT_MARGIN_WIDTH): Rename from
 	WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH, moved from dispextern.h.
 	(window_from_coordinates): Update prototype.
 	(Fset_window_buffer): Update EXFUN.
@@ -6796,7 +7103,7 @@
 	left_margin_cols, right_margin_cols, left_fringe_width,
 	right_fringe_width, fringes_outside_margins, scroll_bar_width,
 	and vertical_scroll_bar_type.
-	(coordinates_in_window): Adapted to new fringe/margin positions
+	(coordinates_in_window): Adapt to new fringe/margin positions
 	and per-window fringes and scroll-bars.
 	Fix bug related to incorrectly adjusting coordinates by
 	frame's internal_border_width (the effect normally negible since
@@ -6831,7 +7138,7 @@
 	narrow.  This fixes a bug which could cause Emacs to trap if the
 	width of the split window was less than the width of the display
 	margins.
-	(window_box_text_cols): Renamed from window_internal_width.
+	(window_box_text_cols): Rename from window_internal_width.
 	All uses changed.  Adapt to per-window fringes and scroll bars.
 	Fix bug that caused vertical separator to be subtracted also on
 	window frames.  Fix another bug that did not reduce the returned
@@ -6863,8 +7170,7 @@
 	the width of the window.
 	(Fset_window_fringes): New defun to allow user to specifically set
 	this window's fringe widths and position vs. display margins.
-	(Fwindow_fringes): New defun to return window's actual fringe
-	settings.
+	(Fwindow_fringes): New defun to return window's actual fringe settings.
 	(Fset_window_scroll_bars): New defun to allow user to specifically
 	set this window's scroll bar width and position.
 	(Fwindow_scroll_bars): New defun to return window's actual scroll
@@ -6931,17 +7237,16 @@
 	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
 	(PIXEL_WIDTH, PIXEL_HEIGHT)
 	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
-	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Move to
 	frame.h and renamed [see frame.h changes].
 	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
-	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Move to frame.h
 	and renamed [see frame.h changes].
 
 	* xterm.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	(x_draw_glyph_string_box): Adapt to per-window fringes and
-	scroll-bars.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and scroll-bars.
 	(scroll_run): Adapt to new fringe position.
 	(glyph_rect): Use window coordinates returned from
 	window_from_coordinates rather than frame_to_window_pixel_xy.
@@ -6965,17 +7270,16 @@
 	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
 	(PIXEL_WIDTH, PIXEL_HEIGHT)
 	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
-	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Move to
 	frame.h and renamed [see frame.h changes].
 	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
-	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Move to frame.h
 	and renamed [see frame.h changes].
 
 	* w32term.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	(x_draw_glyph_string_box): Adapt to per-window fringes and
-	scroll-bars.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and scroll-bars.
 	(glyph_rect): Use window coordinates returned from
 	window_from_coordinates rather than frame_to_window_pixel_xy.
 	(XTset_vertical_scroll_bar): Adapt to per-window fringes and
@@ -7006,17 +7310,16 @@
 	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
 	(PIXEL_WIDTH, PIXEL_HEIGHT)
 	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
-	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Move to
 	frame.h and renamed [see frame.h changes].
 	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
-	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Move to frame.h
 	and renamed [see frame.h changes].
 
 	* macterm.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	(x_draw_glyph_string_box): Adapt to per-window fringes and
-	scroll-bars.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and scroll-bars.
 	(glyph_rect): Use window coordinates returned from
 	window_from_coordinates rather than frame_to_window_pixel_xy.
 	(XTset_vertical_scroll_bar): Adapt to per-window fringes and

@@ -2110,8 +2110,6 @@ a repetition of this command will exit.  */)
       goto exit;
     }
 
-    goto exit;
-
   /* Call do_completion, but ignore errors.  */
   SET_PT (ZV);
   val = internal_condition_case (complete_and_exit_1, Qerror,

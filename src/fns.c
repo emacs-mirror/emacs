@@ -562,6 +562,7 @@ concat (nargs, args, target_type, last_special)
   struct textprop_rec  *textprops = NULL;
   /* Number of elments in textprops.  */
   int num_textprops = 0;
+  USE_SAFE_ALLOCA;
 
   tail = Qnil;
 
@@ -670,8 +671,7 @@ concat (nargs, args, target_type, last_special)
 
   prev = Qnil;
   if (STRINGP (val))
-    textprops
-      = (struct textprop_rec *) alloca (sizeof (struct textprop_rec) * nargs);
+    SAFE_ALLOCA (textprops, struct textprop_rec *, sizeof (struct textprop_rec) * nargs);
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -827,6 +827,8 @@ concat (nargs, args, target_type, last_special)
 	  last_to_end = textprops[argnum].to + SCHARS (this);
 	}
     }
+
+  SAFE_FREE ();
   return val;
 }
 

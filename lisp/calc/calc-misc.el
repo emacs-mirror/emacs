@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc.el.
+
 (require 'calc)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-misc () nil)
-
 
 (defun calc-dispatch-help (arg)
   "M-# is a prefix key; follow it with one of these letters:
@@ -232,6 +228,9 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 
 ;;;; Stack and buffer management.
 
+;; The variable calc-last-why-command is set in calc-do-handly-whys
+;; and used in calc-why (in calc-stuff.el).
+(defvar calc-last-why-command)
 
 (defun calc-do-handle-whys ()
   (setq calc-why (sort calc-next-why
@@ -243,7 +242,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 			(and (eq (car (car calc-why)) '*)
 			     calc-auto-why)))
       (progn
-	(calc-extensions)
+	(require 'calc-ext)
 	(calc-explain-why (car calc-why)
 			  (if (eq calc-auto-why t)
 			      (cdr calc-why)
@@ -329,14 +328,14 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 
 (defun calc-last-args-stub (arg)
   (interactive "p")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-last-args arg))
 
 
 (defun calc-power (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (if (and calc-extensions-loaded
+   (if (and (featurep 'calc-ext)
 	    (calc-is-inverse))
        (calc-binary-op "root" 'calcFunc-nroot arg nil nil)
      (calc-binary-op "^" 'calcFunc-pow arg nil nil '^))))
@@ -418,7 +417,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 When this key is used, calc-ext (the Calculator extensions module) will be
 loaded and the keystroke automatically re-typed."
   (interactive "P")
-  (calc-extensions)
+  (require 'calc-ext)
   (if (keymapp (key-binding (char-to-string last-command-char)))
       (message "%s%c-" (calc-num-prefix-name n) last-command-char))
   (calc-unread-command)
@@ -426,7 +425,7 @@ loaded and the keystroke automatically re-typed."
 
 (defun calc-shift-Y-prefix-help ()
   (interactive)
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-prefix-help calc-Y-help-msgs "other" ?Y))
 
 
@@ -465,7 +464,7 @@ loaded and the keystroke automatically re-typed."
 (defun math-concat (v1 v2)
   (if (stringp v1)
       (concat v1 v2)
-    (calc-extensions)
+    (require 'calc-ext)
     (if (and (or (math-objvecp v1) (math-known-scalarp v1))
 	     (or (math-objvecp v2) (math-known-scalarp v2)))
 	(append (if (and (math-vectorp v1)
@@ -593,31 +592,39 @@ loaded and the keystroke automatically re-typed."
 
 
 ;;; Coerce A to be an integer (by truncation toward zero).  [I N] [Public]
-(defun math-trunc (a &optional prec)
-  (cond (prec
-	 (calc-extensions)
-	 (math-trunc-special a prec))
+
+;; The variable math-trunc-prec is local to math-trunc, but used by
+;; math-trunc-fancy in calc-arith.el, which is called by math-trunc.
+
+(defun math-trunc (a &optional math-trunc-prec)
+  (cond (math-trunc-prec
+	 (require 'calc-ext)
+	 (math-trunc-special a math-trunc-prec))
 	((Math-integerp a) a)
 	((Math-looks-negp a)
 	 (math-neg (math-trunc (math-neg a))))
 	((eq (car a) 'float)
 	 (math-scale-int (nth 1 a) (nth 2 a)))
-	(t (calc-extensions)
+	(t (require 'calc-ext)
 	   (math-trunc-fancy a))))
 (defalias 'calcFunc-trunc 'math-trunc)
 
 ;;; Coerce A to be an integer (by truncation toward minus infinity).  [I N]
-(defun math-floor (a &optional prec)    ;  [Public]
-  (cond (prec
-	 (calc-extensions)
-	 (math-floor-special a prec))
+
+;; The variable math-floor-prec is local to math-floor, but used by
+;; math-floor-fancy in calc-arith.el, which is called by math-floor.
+
+(defun math-floor (a &optional math-floor-prec)    ;  [Public]
+  (cond (math-floor-prec
+	 (require 'calc-ext)
+	 (math-floor-special a math-floor-prec))
 	((Math-integerp a) a)
 	((Math-messy-integerp a) (math-trunc a))
 	((Math-realp a)
 	 (if (Math-negp a)
 	     (math-add (math-trunc a) -1)
 	   (math-trunc a)))
-	(t (calc-extensions)
+	(t (require 'calc-ext)
 	   (math-floor-fancy a))))
 (defalias 'calcFunc-floor 'math-floor)
 
@@ -633,7 +640,7 @@ loaded and the keystroke automatically re-typed."
 (defun calcFunc-inv (m)
   (if (Math-vectorp m)
       (progn
-	(calc-extensions)
+	(require 'calc-ext)
 	(if (math-square-matrixp m)
 	    (or (math-with-extra-prec 2 (math-matrix-inv-raw m))
 		(math-reject-arg m "*Singular matrix"))
@@ -663,7 +670,7 @@ loaded and the keystroke automatically re-typed."
 	 (math-imod a b))
 	((and (Math-anglep a) (Math-anglep b))
 	 (math-sub a (math-mul (math-floor (math-div a b)) b)))
-	(t (calc-extensions)
+	(t (require 'calc-ext)
 	   (math-mod-fancy a b))))
 
 
@@ -676,7 +683,7 @@ loaded and the keystroke automatically re-typed."
 	((Math-zerop a)
 	 (if (and (Math-scalarp b) (Math-posp b))
 	     (if (math-floatp b) (math-float a) a)
-	   (calc-extensions)
+	   (require 'calc-ext)
 	   (math-pow-of-zero a b)))
 	((or (eq a 1) (eq b 1)) a)
 	((or (equal a '(float 1 0)) (equal b '(float 1 0))) a)
@@ -684,7 +691,7 @@ loaded and the keystroke automatically re-typed."
 	 (if (Math-scalarp a)
 	     (if (or (math-floatp a) (math-floatp b))
 		 '(float 1 0) 1)
-	   (calc-extensions)
+	   (require 'calc-ext)
 	   (math-pow-zero a b)))
 	((and (Math-integerp b) (or (Math-numberp a) (Math-vectorp a)))
 	 (if (and (equal a '(float 1 1)) (integerp b))
@@ -692,7 +699,7 @@ loaded and the keystroke automatically re-typed."
 	   (math-with-extra-prec 2
 	     (math-ipow a b))))
 	(t
-	 (calc-extensions)
+	 (require 'calc-ext)
 	 (math-pow-fancy a b))))
 
 (defun math-ipow (a n)   ; [O O I] [Public]
@@ -749,6 +756,8 @@ precise symptoms of the bug.  If possible, include a backtrace by
 doing 'M-x toggle-debug-on-error', then reproducing the bug.
 " )))
 (defalias 'calc-report-bug 'report-calc-bug)
+
+(provide 'calc-misc)
 
 ;;; arch-tag: 7984d9d0-62e5-41dc-afb8-e904b975f250
 ;;; calc-misc.el ends here

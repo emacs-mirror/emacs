@@ -5162,7 +5162,13 @@ init_buffer ()
     }
 #endif /* not VMS */
 
-  current_buffer->directory = build_string (buf);
+  current_buffer->directory = make_unibyte_string (buf, strlen (buf));
+  if (! NILP (buffer_defaults.enable_multibyte_characters))
+    /* At this momemnt, we still don't know how to decode the
+       direcotry name.  So, we keep the bytes in multibyte form so
+       that ENCODE_FILE correctly gets the original bytes.  */
+    current_buffer->directory
+      = string_to_multibyte (current_buffer->directory);
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
@@ -5684,10 +5690,13 @@ scrolled, the top and bottom line of the window are marked with up and down
 arrow bitmaps.
 
 If value is a symbol `left' or `right', both angle and arrow bitmaps
-are displayed in the left or right fringe, resp.
+are displayed in the left or right fringe, resp.  Any other value
+that doesn't look like an alist means displat the angle bitmaps in
+the left fringe but no arrows.
 
-If value is an alist, each element (INDICATOR . POSITION) specifies
-the position of one of the indicators.  INDICATOR is one of `top',
+You can exercise more precise control by using an alist as the
+value.  Each alist element (INDICATOR . POSITION) specifies
+where to show one of the indicators.  INDICATOR is one of `top',
 `bottom', `up', `down', or t, which specifies the default position,
 and POSITION is one of `left', `right', or nil, meaning do not show
 this indicator.

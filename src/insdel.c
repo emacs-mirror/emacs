@@ -1057,6 +1057,10 @@ insert_from_string (string, pos, pos_byte, length, length_byte, inherit)
      int inherit;
 {
   int opoint = PT;
+
+  if (SCHARS (string) == 0)
+    return;
+
   insert_from_string_1 (string, pos, pos_byte, length, length_byte,
 			inherit, 0);
   signal_after_change (opoint, 0, PT - opoint);
@@ -1074,6 +1078,10 @@ insert_from_string_before_markers (string, pos, pos_byte,
      int inherit;
 {
   int opoint = PT;
+
+  if (SCHARS (string) == 0)
+    return;
+
   insert_from_string_1 (string, pos, pos_byte, length, length_byte,
 			inherit, 1);
   signal_after_change (opoint, 0, PT - opoint);

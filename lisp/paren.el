@@ -1,6 +1,6 @@
 ;;; paren.el --- highlight matching paren
 
-;; Copyright (C) 1993, 1996, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: rms@gnu.org
 ;; Maintainer: FSF
@@ -139,8 +139,8 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 (defun show-paren-function ()
   (if show-paren-mode
       (let ((oldpos (point))
-	    (dir (cond ((eq (car (syntax-after (1- (point)))) ?\)) -1)
-		       ((eq (car (syntax-after (point))) ?\() 1)))
+	    (dir (cond ((eq (car (syntax-after (1- (point)))) 5) -1)
+		       ((eq (car (syntax-after (point))) 4) 1)))
 	    pos mismatch face)
 	;;
 	;; Find the other end of the sexp.
@@ -169,11 +169,14 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	      ;; kind of paren to match the one we started at.
 	      (when (integerp pos)
 		(let ((beg (min pos oldpos)) (end (max pos oldpos)))
-		  (when (/= (char-syntax (char-after beg)) ?\$)
+		  (unless (eq (car (syntax-after beg)) 8) ;Not syntax `$'.
 		    (setq mismatch
-			  (not (eq (char-before end)
-				   ;; This can give nil.
-				   (matching-paren (char-after beg)))))))))))
+			  (not (or (eq (char-before end)
+				       ;; This can give nil.
+				       (cdr (syntax-after beg)))
+				   (eq (char-after beg)
+				       ;; This can give nil.
+				       (cdr (syntax-after (1- end)))))))))))))
 	;;
 	;; Highlight the other end of the sexp, or unhighlight if none.
 	(if (not pos)
@@ -246,5 +249,5 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 
 (provide 'paren)
 
-;;; arch-tag: d0969b88-7ac0-4bd0-bd53-e73b892b86a9
+;; arch-tag: d0969b88-7ac0-4bd0-bd53-e73b892b86a9
 ;;; paren.el ends here

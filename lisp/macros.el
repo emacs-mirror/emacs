@@ -63,12 +63,13 @@ bindings.
 
 To save a kbd macro, visit a file of Lisp code such as your `~/.emacs',
 use this command, and then save the file."
-  (interactive (list (intern (completing-read "Insert kbd macro (name): " 
-					      obarray 
+  (interactive (list (intern (completing-read "Insert kbd macro (name): "
+					      obarray
 					      (lambda (elt)
 						(and (fboundp elt)
 						     (or (stringp (symbol-function elt))
-							 (vectorp (symbol-function elt)))))
+							 (vectorp (symbol-function elt))
+							 (get elt 'kmacro))))
 					      t))
 		     current-prefix-arg))
   (let (definition)

@@ -1,3 +1,1000 @@
+2004-12-06  Stefan  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-unfontify-region): Save buffer state.
+	(font-lock-default-unfontify-region): Don't save buffer state any
+	more.
+
+2004-12-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-describe-key):
+	Set calc-summary-indentation even when Calc Summary buffer exists.
+
+2004-12-07  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/holidays.el (holiday-easter-etc): Make arguments
+	optional for backwards compatibility.  Doc fix.
+	Remove un-necessary local vars mandatory, output-list.
+	(holiday-advent):  Make arguments optional for backwards
+	compatibility.  Doc fix.
+
+2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* paren.el (show-paren-function): Fix last change (2004-12-02).
+
+	* international/mule-util.el (char-displayable-p): Return nil for
+	unibyte mode.
+
+	* subr.el (subregexp-context-p): New function.
+
+	* isearch.el (isearch-quote-char): Use it.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Use it.
+	(regexp-opt-not-groupie*-re): Remove.
+	(regexp-opt): Properly handle inputs with duplicate entries.
+
+2004-12-06  Richard M. Stallman  <rms@gnu.org>
+
+	* info-look.el (info-lookup-maybe-add-help cfengine-mode): Regexp typo.
+
+	* cus-edit.el (custom-file): Doc fix.
+
+	* textmodes/org.el: New file.
+
+2004-12-06  Kenichi Handa  <handa@m17n.org>
+
+	* ldefs-boot.el: Update international/mule-util.el section.
+
+2004-12-05  Sam Steingold  <sds@gnu.org>
+
+	* net/tramp.el (tramp-handle-file-accessible-directory-p):
+	Fix `tramp-time-diff' comparison logic.
+
+2004-12-05  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/which-func.el (which-function):
+	Use `run-hook-with-args-until-success' instead of a custom loop.
+	Fixes bug with local hooks.
+
+2004-12-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-font-lock-url-regexp):
+	Use delete-dups when calculating the initial value.
+	(bibtex-autokey-get-title): Use <=.
+	(bibtex-goto-line): New function.
+	(bibtex-reposition-window): Use line numbers instead of point
+	positions.  Use window-body-height.
+	(bibtex-find-crossref): Use bibtex-reposition-window.
+	(bibtex-find-entry): Use bibtex-reposition-window.  Always return
+	position of entry if key is found or nil if not found.
+
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-file): Doc fix.
+
+	* progmodes/sh-script.el (sh-indent-for-then): Change default.
+
+2004-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-matching-open):
+	* textmodes/tex-mode.el (tex-validate-region):
+	Obey syntax-table text properties.
+
+2004-12-02  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-specify-field): Add `real-field' property to
+	boundary.
+	(widget-field-at): Use it.
+
+2004-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cc-mode.el (awk-mode autoload):
+	Supply t meaning interactive function.
+
+	* isearch.el (search-whitespace-regexp): Remove the group.  Doc fix.
+	(isearch-mode-map): No special definition for space.
+	(isearch-whitespace-chars): Command deleted.
+	(isearch-forward-regexp): Doc fix.
+	(isearch-quote-char): When a space is not inside brackets,
+	use `[ ]' instead of just space.
+	(isearch-lazy-highlight-search): Bind search-spaces-regexp.
+
+	* imenu.el (imenu--generic-function): Delete code to exclude
+	matches in comments.
+
+	* man.el (Man-reverse-face): Change default to `highlight'.
+
+	* replace.el (occur-1): Specify t for KEEP-PROPS to occur-engine.
+	(occur-engine): Use `face' prop rather than `font-lock-face'
+	when specifying use of `match-face'.
+	(occur-accumulate-lines): Change arg from NO-PROPS to KEEP-PROPS.
+
+	* emacs-lisp/elint.el (elint-standard-variables): Update list.
+
+	* add-log.el (add-log-current-defun): Handle the case where point
+	is in the header part of a DEFUN construct.
+
+2004-12-02  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (python-font-lock-syntactic-keywords):
+	Fix previous change.
+
+2004-12-02  Richard G Bielawski  <Richard.G.Bielawski@wellsfargo.com>  (tiny change)
+
+	* paren.el (show-paren-function): Check for matching chars
+	specified by text props.
+
+2004-12-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-read-key-sequence): Leave the old message visible
+	when reading a new key sequence.
+
+2004-12-02  Kim F. Storm  <storm@cua.dk>
+
+	* faces.el (escape-glyph): Rename from glyph.
+	(standard-display-table): Set it here.  Add escape-glyph face to
+	extra slot characters.
+
+	* disp-table.el: Undo 2004-12-01 change.  Display table is now
+	setup in faces.el.
+
+2004-12-02  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-parse-dtd): Don't show validity messages when
+	xml-validating-parser is nil.
+	(xml-substitute-special): Fix validity error messages to
+	actually show the unexpandable entity.  Added validity error if &
+	isn't followed by an entity.
+	(xml-parse-tag): Concatenate any string following the a
+	<![CDATA[]]> section to the parsed CDATA.
+	(xml-parse-dtd): Skip parameter entity declarations and use of
+	parameter entities.
+
+2004-12-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.el (kmacro-default-counter-format): New var.
+	(kmacro-set-format): Use it.  Delete `(printf format)' from prompt.
+	(kmacro-display): Remove `nil' from `and' form.  Delete call to
+	`format' inside `message'.
+	(kmacro-start-macro): Use `kmacro-default-counter-format'.
+
+2004-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-header-msg): New function.
+	(cvs-update-header): Use it.  Change calling convention.
+	Correctly handle the case of having simultaneous active processes.
+	(cvs-sentinel): Don't call cvs-update-header any more.
+	(cvs-mode-run): Update call and add cvs-update-header to postproc.
+
+2004-12-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (calc-inverse, calc-hyperbolic):
+	Change message.
+
+2004-12-01  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/prolog.el (prolog-mode-variables):
+	Fix imenu-generic-expression.
+
+2004-12-01  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* faces.el (glyph): New face.
+
+	* disp-table.el: Add an autoloaded table, that doesn't require
+	this library, with glyph face.
+
+	* textmodes/conf-mode.el (conf-ppd-mode-syntax-table): New var.
+	(conf-ppd-mode): New conf-mode wrapper for printer descriptions.
+	(conf-quote-normal): Allow normalizing only ' or ".
+	(conf-mode): Regexp-quote constructed comment-start and don't
+	match section {} where "name" contains braces.
+
+	* files.el (auto-mode-alist): Add conf-ppd-mode, inittab and acpid
+	files.
+
+2004-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-last-selected-text-cut-encoded): New variable.
+	(x-select-text): Don't treat eight-bit-control/graphic chars
+	specially.  Store the encoded text in the X cut buffer.
+	(x-cut-buffer-or-selection-value): Compare the X cut buffer text
+	with x-last-selected-text-cut-encoded.
+
+2004-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-fontify-manpage): Improve handling of ANSI escapes.
+
+2004-11-30  Markus Rost  <rost@ias.edu>
+
+	* textmodes/tex-mode.el (tex-main-file): Add a compatibility with
+	AUCTeX.
+
+2004-11-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-possible-signs): Made stronger checks
+	on signs of intervals.
+	(math-pow-of-zero): Strengthen checks for positive and negative
+	exponents.
+
+	* calc/calc-aent.el, calc/calc-alg.el, calc/calc-arith.el
+	* calc/calc-bin.el, calc/calc-comb.el, calc/calc-cplx.el
+	* calc/calc-embed.el, calc/calc-fin.el, calc/calc-forms.el
+	* calc/calc-frac.el, calc/calc-funcs.el, calc/calc-graph.el
+	* calc/calc-help.el, calc/calc-incom.el, calc/calc-keypd.el
+	* calc/calc-lang.el, calc/calc-map.el, calc/calc-math.el
+	* calc/calc-misc.el, calc/calc-mode.el, calc/calc-mtx.el
+	* calc/calc-poly.el, calc/calc-prog.el, calc/calc-rewr.el
+	* calc/calc-rules.el, calc/calc-sel.el, calc/calc-stat.el
+	* calc/calc-store.el, calc/calc-stuff.el, calc/calc-trail.el
+	* calc/calc-undo.el, calc/calc-units.el, calc/calc-vec.el
+	* calc/calc-yank.el, calc/calcalg2.el, calc/calcalg3.el
+	* calc/calccomp.el, calc/calcsel2.el: Replace dummy autoloaded functions
+	with provide statements.
+
+	* calc/calc-alg.el (math-defsimplify): Move from calc-ext.el.
+
+	* calc/calc-embed.el (calc-do-embedded-activate): Remove from autoloads.
+
+	* calc/calc-ext.el: Remove dummy autoloading functions from autoloads.
+	(calc-load-everything, math-defsimplify): Replace dummy autoloading
+	functions by require statements.
+	(math-defsimplify): Move to calc-alg.el, add to autoloads.
+
+	* calc/calc-graph.el (calc-gnuplot-name, calc-gnuplot-plot-command)
+	(calc-gnuplot-print): Give them values.
+
+	* calc/calc.el: Remove calc-Need-calc-aent and calc-Need-calc-misc from
+	autoloads.
+	Add calc-do-embedded-activate to autoloads.
+	(calc-gnuplot-name, calc-gnuplot-plot-command)
+	(calc-gnuplot-print-command): Move them to calc-graph.el.
+
+2004-11-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (ccl-encode-mac-roman-font)
+	(ccl-encode-mac-cyrillic-font)
+	(ccl-encode-mac-centraleuropean-font, encoder-list)
+	(fontset-add-mac-fonts, create-fontset-from-mac-roman-font):
+	Support Cyrillic, CentralEuropean, and Dingbat font display
+
+2004-11-30  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-recompute-state): Move here from vc.el.
+
+	* vc-cvs.el (vc-cvs-state): Handle the case where vc-state is
+	still nil.
+
+2004-11-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emulation/tpu-edt.el (tpu-help-keypad-map, tpu-help-text)
+	(tpu-word-separator-list, tpu-skip-chars): defconst->defvar.
+
+2004-11-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-pow-of-zero): Take into account different
+	cases of the base and exponent.
+
+2004-11-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* simple.el (next-error-buffer-p): Allow for inclusive and
+	exclusive tests for finding a buffer.
+	(next-error-find-buffer): Pass the exclusive and inclusive tests
+	to next-error-buffer-p.
+
+	* replace.el (occur-next-error): Switch to the Occur buffer when
+	appropriate, use the exclusive filter to next-error-find-buffer to
+	do it.  Use the absolute value of the motion amount.
+
+2004-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* startup.el (command-line): Decode all default-directory by
+	locale-coding-system.
+
+2004-11-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el: Remove unnecessary eval-when-compile.
+	(calc-do-quick-calc, calc-do-calc-eval, calc-alg-entry)
+	(math-read-expr-level, calc-check-user-syntax, math-read-factor):
+	Replace calls to calc-extensions by appropriate require, replace
+	calc-extensions-loaded by appropriate featurep.
+
+	* calc/calc-ext.el: Move require to end of file.
+	Remove redundant loading of calc.el.
+	(calc-extensions-loaded): Remove unnecessary variable.
+	(calc-extensions): Remove unnecessary function.
+	(calc-load-everything): Replace calc-need-macros by appropriate require.
+
+	* calc/calc-macs.el: Move provide to end of file.
+	(calc-need-macros): Remove unnecessary function.
+
+	* calc/calc-misc.el (calc-do-handle-whys, calc-last-args-stub)
+	(calc-missing-key, calc-shift-Y-prefix-help, math-concat)
+	(math-trunc, math-floor, calcFunc-inv, math-mod, math-pow):
+	Replace calc-extensions by appropriate require.
+	(calc-power): Replace calc-extensions-loaded by appropriate featurep.
+
+	* calc/calc-prog.el (calc-user-define-formula, calc-do-defmath):
+	Replace calc-need-macros by appropriate require.
+
+	* calc/calc.el: Move require to end of file.
+	(calc-info-filename, calc-autoload-directory, calc-extensions-loaded):
+	Remove unnecessary variable.
+	(calc-do-dispatch, calc-mode, calc-check-defines, calc-create-buffer)
+	(calc, calc-keypad, full-calc-keypad, calc-do, calc-normalize)
+	(calc-binary-op, calc-unary-op, calcDigit-start, calcDigit-key)
+	(math-normalize, math-add, math-mul, math-div, math-format-stack-value)
+	(math-stack-value-offset, math-format-value, math-format-flat-expr)
+	(math-format-number, math-format-bignum, math-read-number)
+	(calc-grab-region, calc-grab-rectangle, calc-grab-sum-down)
+	(calc-grab-sum-across, calc-embedded, defmath): Replace calc-extensions
+	by appropriate require.
+	(calc-check-defines): Replace calc-need-macros by appropriate require.
+
+2004-11-29  Kim F. Storm  <storm@cua.dk>
+
+	* macros.el (insert-kbd-macro): Handle kmacro functions.
+
+2004-11-28  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-windows-highlight): Attach each overlay
+	to its window to properly highlight differences while comparing
+	two windows of the same buffer.  Fix arguments.
+	(compare-windows-sync-default-function): Fix arguments of
+	`compare-windows-highlight'.
+
+	* emacs-lisp/edebug.el (edebug-set-global-break-condition):
+	Use `read-expression-history'.  Set initial contents only if
+	`edebug-global-break-condition' is non-nil.  Set histpos to 1
+	if initial contents is equal to the last history element.
+	(edebug-set-conditional-breakpoint): Instead of temporarily
+	prepending the current condition to the history, set initial
+	contents to the current condition.  Set histpos to 1 if initial
+	contents is equal to the last history element.
+
+	* info.el (Info-search-whitespace-regexp): Remove shy group.
+	(Info-search): Forward line if search is on the header line.
+	Use search-whitespace-regexp in two other places.
+
+2004-11-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fringe.el (fringe-indicators): Add fake defvar to avoid compiler
+	warning.  Delay real definition, which uses
+	`set-fringe-indicators-1' till after the definition of that function.
+
+2004-11-28  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (fringe): New defgroup.
+	(fringe-mode): Move to fringe group.
+	(fringe-indicators): New defcustom.
+	(set-fringe-indicators-1): New defun.
+
+	* menu-bar.el (menu-bar-options-save): Add fringe-indicators.
+	(menu-bar-showhide-fringe-ind-menu): New keymap.
+	(menu-bar-showhide-fringe-ind-empty)
+	(menu-bar-showhide-fringe-ind-mixed)
+	(menu-bar-showhide-fringe-ind-box)
+	(menu-bar-showhide-fringe-ind-right)
+	(menu-bar-showhide-fringe-ind-left)
+	(menu-bar-showhide-fringe-ind-none): New defuns.
+	(menu-bar-showhide-fringe-menu): Add "Indicators" sub-menu.
+
+2004-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el (comint-read-noecho): Add trivial compatibility definition.
+
+	* generic.el (define-generic-mode): Doc fix.
+
+	* menu-bar.el (menu-bar-options-save): For the options
+	that are toggled with menu-bar-make-mm-toggle, don't check
+	for customized-value prop.
+
+2004-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/supercite.el (sc-cite-region): Handle the case where
+	sc-cite-frame-alist is a symbol.
+	(sc-uncite-region): Handle the case where sc-uncite-frame-alist is
+	a symbol.
+	(sc-recite-region): Handle the case where sc-recite-frame-alist is
+	a symbol.
+
+2004-11-27  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
+
+	* wid-edit.el (widget-narrow-to-field): New function.
+	(widget-complete): Use it.
+
+2004-11-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (calc-eval-error): Declare and initialize the
+	variable.
+	(calc-eval-error): Don't check if the variable calc-eval-error is bound.
+	(calc-buffer, calc-digit-value, math-expr-data): Declare them.
+	(math-alg-inequalities): Move declaration to earlier in the file.
+
+	* calc/calc-ext.el (calc-command-flags, calc-gnuplot-buffer)
+	(calc-gnuplot-input, math-normalize-a, math-integral-cache):
+	Declare them.
+
+	* calc/calc-lang.el (math-expr-data, math-expr-token)
+	(math-exp-old-pos): Declare them.
+
+	* calc/calc-vec.el (math-exp-pos, math-exp-str, math-exp-old-pos)
+	(math-exp-token, math-exp-keep-spaces, math-expr-data):	Declare them.
+
+2004-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/flymake.el: Use (featurep 'xemacs).
+	(flymake-makehash): Change to defsubst.  Use fboundp.
+	(flymake-time-to-float): Remove.
+	(flymake-float-time): Merge code from flymake-time-to-float here.
+	(flymake-replace-regexp-in-string): Change to defsubst.
+	(flymake-split-string-remove-empty-edges):
+	Rename to flymake-split-string.
+	(flymake-split-string): Remove previous defalias.
+	(flymake-get-temp-dir): Change to defsubst.
+	(flymake-make-xemacs-menu, flymake-xemacs-window-edges):
+	Define for xemacs only.
+	(flymake-master-file-count-limit): Change into compiler defvar only.
+	(flymake-find-possible-master-files): Let-bind it dynamically while
+	sorting files using flymake-master-file-compare.
+
+2004-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-compile-keywords): Don't complain if the end
+	of defun-prompt-regexp matches inside a comment/string but the
+	beginning is correctly outside everything.
+
+	* progmodes/tcl.el (tcl-omit-ws-regexp): Avoid the case where { or [
+	appears within a string or a comment.
+
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause, labels): Use gensym
+	rather than make-symbol for symbols which are used in
+	a symbol-macrolet or equivalent.
+
+2004-11-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc-misc.el (calc-last-why-command): Declare it.
+
+	* calc-vec.el (math-grade-vec): New variable.
+	(calcFunc-grade, calcFunc-rgrade, math-grade-beforep):
+	Replace variable grade-vec by declared variable.
+	(math-rb-close): New variable.
+	(math-read-brackets, math-read-vector): Replace variable close by
+	declared variable.
+
+	* calc/calc-yank.el (calc-original-buffer, calc-return-buffer)
+	(calc-one-window, calc-edit-handler, calc-restore-trail)
+	(calc-allow-ret): Declare them.
+
+	* calc/calc-stuff.el (calc-flush-caches): Remove unnecessary variables.
+	(math-lud-cache, math-log2-cache, math-radix-digits-cache)
+	(math-radix-float-cache-tag, math-random-cache)
+	(math-max-digits-cache, math-integral-cache, math-units-table)
+	(math-format-date-cache, math-holidays-cache-tag): Declare them.
+	(math-moc-func): New variable.
+	(math-map-over-constants, math-map-over-constants-rec):
+	Replace variable func by declared variable.
+
+	* calc/calc-store.el (calc-given-value, calc-store-opers):
+	Declare them.
+	(calc-var-name-map): Move declaration to earlier in the file.
+	(calc-pv-pos): New variable.
+	(calc-permanent-variable, calc-insert-permanent-variable):
+	Replace variable pos by declared variable.
+
+	* calc/calc-mtx.el (calc-det-lu): New variable.
+	(math-det-raw, math-det-step): Replace variable lu by declared variable.
+
+	* calc/calc-map.el (math-ms-temp, math-ms-args): New variables.
+	(math-multi-subst, math-multi-subst-rec): Replace variables temp
+	and arg by declared variables.
+	(calcFunc-reducer): Fix incorrect variable.
+	(math-inner-mul-func, math-inner-add-func): New variables.
+	(calcFunc-inner, math-inner-mats): Replace variables mul-func
+	and add-func by declared variables.
+
+	* calc/calc-incom.el (calc-prev-char, calc-prev-prev-char)
+	(calc-digit-value): Declare them.
+
+	* calc/calc-help.el (Info-history): Declare it.
+	(calc-describe-key): Make calc-summary-indentation a local variable.
+	(calc-help-long-names): Move declaration to earlier in file.
+
+	* calc/calc-embed.el (calc-original-buffer): Declare it.
+	(calc-embed-outer-top, calc-embed-outer-bot, calc-embed-top)
+	(calc-embed-bot): New variables.
+	(calc-do-embedded, calc-embedded-mark-formula)
+	(calc-embedded-find-bounds, calc-embedded-duplicate)
+	(calc-embedded-new-formula, calc-embedded-make-info):
+	Replace vars outer-top, outer-bot, bot and top by declared variables.
+	(calc-embed-prev-modes): New variable.
+	(calc-embedded-set-modes, calc-embedded-update): Replace variable
+	prev-modes with declared variable.
+	(calc-embed-vars-used): New variable.
+	(calc-embedded-make-info, calc-embedded-evaluate-expr)
+	(calc-embedded-update, calc-embedded-find-vars): Replace variable
+	vars-used by declared variable.
+
+	* calc/calc-bin.el (math-format-radix-float): Make pos a local variable.
+	(math-format-radix-float): Remove unnecessary setq.
+	(math-radix-float-cache): Declare it.
+
+	* calc/calcsel2.el (calc-keep-selection): Declare it.
+
+	* calc/calc-maint.el: Remove file.
+
+2004-11-26  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-sort-entry-class)
+	(bibtex-comment-start): Use defcustom.
+	(bibtex-entry-field-alist): Use nil if initial content of the
+	field is undefined.  Fix docstring.
+	(bibtex-parse-keys-timeout, bibtex-autokey-additional-names)
+	(bibtex-generate-autokey, bibtex-parse-buffers-stealthily)
+	(bibtex-mode, bibtex-field-list, bibtex-entry-updat)
+	(bibtex-autofill-entry, bibtex-entry-index, bibtex-next-field):
+	Fix docstring.
+	(bibtex-autokey-title-terminators): Use only one regexp.
+	(bibtex-string-maybe-empty-head): New variable.
+	(bibtex-remove-delimiters-string): New function.
+	(bibtex-text-in-field-bounds, bibtex-text-in-string):
+	Use bibtex-remove-delimiters-string.
+	(bibtex-progress-message, bibtex-field-left-delimiter)
+	(bibtex-field-right-delimiter, bibtex-entry-left-delimiter)
+	(bibtex-entry-right-delimiter, bibtex-search-entry): Use eq.
+	(bibtex-insert-kill): Rename from `bibtex-insert-current-kill'.
+	Simplify.
+	(bibtex-format-entry): Use save-excursion for inherited booktitle.
+	Use eq and bibtex-remove-delimiters-string.  For end markers use
+	insertion type so that marker stays after inserted text.
+	(bibtex-autokey-get-names): Return empty string if name is missing.
+	(bibtex-autokey-demangle-name): Call bibtex-autokey-abbrev before
+	calling bibtex-autokey-name-case-convert.
+	(bibtex-autokey-demangle-title):
+	Call bibtex-autokey-titleword-case-convert.  Remove call to
+	bibtex-autokey-titleword-case-convert from bibtex-autokey-get-title.
+	(bibtex-global-key-alist, bibtex-read-string-key): New functions.
+	(bibtex-read-key): New optional arg global.
+	(bibtex-files-expand): New optional arg force.
+	(bibtex-complete-string-cleanup): Expansion of abbrev can be absent.
+	(bibtex-complete-crossref-cleanup): Rename from
+	bibtex-complete-key-cleanup.  Simplify code.
+	(bibtex-copy-summary-as-kill): Remove arg key.  Use looking-at.
+	Operate on current entry.
+	(bibtex-button): Add docstring.
+	(bibtex-entry): Simplify.
+	(bibtex-make-field): Replace optional arg called-by-yank with more
+	specific args move and interactive.
+	(bibtex-end-of-entry): Use forward-sexp.
+	(bibtex-find-entry-globally): Remove.
+	(bibtex-find-crossref): Allow for crossref key located in other buffer.
+	Bound to C-c C-x.
+	(bibtex-find-entry): New optional args global and display.
+	(bibtex-find-text): Fix docstring.  Remove arg as-if-interactive.
+	(bibtex-validate): Use arg force of bibtex-files-expand.
+	(bibtex-clean-entry): Bugfix, clean string entries properly.
+	Always keep point at beginning of entry.
+	(bibtex-complete): Bugfix.  Handle string entries properly.
+	Call cleanup functions only if needed.
+	(bibtex-String): Use bibtex-read-string-key.
+	(bibtex-url): Use bibtex-remove-delimiters-string.  Do not alter
+	case of replacement text.
+
+2004-11-26  Lars Hansen  <larsh@math.ku.dk>
+
+	* tramp.el (tramp-handle-directory-files-and-attributes): New function.
+	(tramp-perl-directory-files-and-attributes): New constant.
+	(tramp-file-name-handler-alist): Delete file-directory-files, add
+	directory-files-and-attributes.
+	(tramp-perl-file-attributes): Surround uid and gid by double
+	quotes. Change parameter id-format from nonnumeric.
+	(tramp-convert-file-attributes): New function.
+	(tramp-handle-file-attributes): Use it.
+	(tramp-maybe-send-perl-script): New function.
+	(tramp-handle-file-attributes-with-perl): Use it. Don't convert
+	file mode. Change parameter id-format from nonnumeric.
+	(tramp-handle-file-attributes-with-ls): Change parameter id-format
+	from nonnumeric.
+	(tramp-post-connection): Don't send tramp-perl-file-attributes
+	script. Reset connection property "perl-scripts".
+	(tramp-handle-insert-directory): Run real handler when ls-lisp is
+	in use.
+
+2004-11-26  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-read): Replace mapcar with mapc.
+	(desktop-create-buffer): Replace mapcar with mapc.
+	Remove redundant piece of code.
+
+2004-11-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-display-line): Use display-buffer
+	for GDB-UI as for GUD.
+
+	* progmodes/gdb-ui.el (gdb-view-source, gdb-selected-view):
+	Delete variables.
+	(gdb-ann3): Don't make GUD buffer dedicated.
+	(gdb-goto-breakpoint, gdb-display-buffer): Don't always dedicate.
+	(gdb-display-source-buffer): Delete function.
+	(gdb-view-source-function, gdb-view-assembler): Delete functions.
+	(menu): Delete menu bindings for viewing source/assembler.
+	(gdb-setup-windows, gdb-restore-windows):
+	Don't dedicate GUD. No assembler now.
+	(gdb-reset): No need to undedicate source buffers now.
+	(gdb-source-info): No assembler now.
+
+2004-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-frame-parameters): Match height and
+	width to those for special frames.
+	(gdb-frame-breakpoints-buffer): Use gdb-frame-parameters.
+	Use display-buffer.
+	(gdb-frame-stack-buffer, gdb-frame-threads-buffer)
+	(gdb-frame-registers-buffer, gdb-frame-locals-buffer)
+	(gdb-frame-assembler-buffer): Rework like
+	gdb-frame-breakpoints-buffer.
+
+2004-11-25  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/flymake.el: Reindent.
+	(flymake-split-string):	Turn into defalias.
+	(flymake-fix-file-name): Rename from flymake-fix-path-name.
+	(flymake-ensure-ends-with-slash): Rename arg to FILENAME.
+	(flymake-get-common-file-prefix): Rename from ...path...  Doc fix.
+	(flymake-build-relative-filename): Rename from ...path.
+	Fix error message.
+
+2004-11-25  Cheng Gao  <chenggao@gmail.com>
+
+	* progmodes/flymake.el: Much whitespace and capitalization change.
+	Move `provide' to end.  Require `compile' only when compiling.
+
+2004-11-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-alg.el: Added comment.
+	(math-polynomial-base): Replace variable mpb-top-expr by
+	math-poly-base-top-expr.
+
+	* calc/calc-poly.el (math-poly-base-top-expr): New variable.
+	(math-polynomial-p1): Replace variable mpb-top-expr by declared
+	variable.
+	(math-poly-base-total-base): New variable.
+	(math-total-polynomial-base, math-polynomial-p1): Replace variable
+	mpb-total-base by declared variable.
+	(math-factored-vars, math-to-list): Declare it.
+	(math-fact-expr): New variable.
+	(calcFunc-factors, calcFunc-factor, math-factor-expr)
+	(math-factor-expr-try, math-factor-expr-part): Replace variable
+	expr by declared variable.
+	(math-fet-x): New variable.
+	(math-factor-expr-try, math-factor-poly-coefs): Replace variable x
+	by declared variable.
+	(math-factor-poly-coefs): Make temp a local variable.
+
+	* calc/calc-units.el (calc-convert-units): Make units a local
+	variable.
+	(calc-num-units, calc-den-units): New variables.
+	(calc-explain-units, calc-explain-units-rec): Replace variables
+	num-units and den-units by declared variables.
+	(math-cu-unit-list): New variable.
+	(math-build-units-table, math-compare-unit-names)
+	(math-convert-units, math-convert-units-rec): Replace variable
+	unit-list by declared variable.
+	(math-fbu-base, math-fbu-entry): New variables.
+	(math-find-base-units, math-find-base-units-rec): Replace variables
+	base and entry by declared variables.
+	(math-which-standard): New variable.
+	(math-to-standard-units, math-to-standard-rec): Replace variable
+	which-standard by declared variable.
+	(math-fcu-u): New variable.
+	(math-find-compatible-unit, math-find-compatible-unit-rec):
+	Replace variable u by declared variable.
+	(math-cu-new-units, math-cu-pure): New variables.
+	(math-convert-units, math-convert-units-rec): Replace variables
+	new-units and pure by declared variables.
+	(math-try-cancel-units): New variable.
+	(math-simplify-units-quotient): Replace variable try-cancel-units by
+	declared variable.
+
+2004-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-check-version):
+	If default-directory is nonexistent, use home dir.
+
+	* progmodes/grep.el (grep-regexp-alist):
+	Don't match parens around line numbers.
+
+	* progmodes/cperl-mode.el (cperl-indent-region)
+	(cperl-imenu--create-perl-index, cperl-xsub-scan):
+	Don't print progress messages.
+
+	* progmodes/compile.el (compilation-mode-map):
+	Don't inherit from compilation-minor-mode-map;
+	copy its bindings instead.  But the menu bar Compile
+	entry now does inherit from compilation-menu-map.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Use with-no-warnings around compiler-macroexpand.
+
+	* imenu.el: Don't always require newcomment.
+	(imenu--generic-function): Call comment-normalize-vars
+	if we have a comment syntax.
+	Exit the loop if REGEXP matches the null string.
+	Test comment-start as well as comment-start-skip
+	when deciding whether to check for comments.
+
+	* tooltip.el (tooltip-mode): Doc fix.
+
+	* term.el (term-escape-char, term-mode): Doc fixes.
+
+2004-11-24  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (python-font-lock-syntactic-keywords):
+	Check for escapes in the regexp.
+	(python-quote-syntax): Don't do it here.
+
+2004-11-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-breakpoints-mode-map)
+	(gdb-frames-mode-map, gdb-threads-mode-map)
+	(gdb-registers-mode-map, gdb-locals-mode-map)
+	(gdb-assembler-mode-map): Bind "q" to kill-this-buffer.
+	(gdb-set-window-buffer): Rename from dedicated-switch-to-buffer.
+
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>:
+	(dedicated-switch-to-buffer): Rework.
+	(gdb-var-evaluate-expression-handler, gdb-put-string):
+	Remove unused variable bindings.
+	(gdb-setup-windows, gdb-display-buffer):
+	Simplify. Use pop-to-buffer.
+	(gdb-view-source-function): Simplify.
+	(gdb-frame-breakpoints-buffer):
+	Use pop-to-buffer, special-display-regexps.
+
+2004-11-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-smart-end)
+	(f90-previous-statement, f90-beginning-of-block): Doc fix.
+	(f90-calculate-indent): Handle un-named PROGRAM blocks.
+	(f90-end-of-block): Doc fix.  Make check of outermost block
+	conditional on value of `f90-smart-end'.
+	(f90-block-match): Hack to deal with un-named PROGRAM blocks.
+	Handle case where END-BLOCK is nil.
+	(f90-match-end): Handle un-named PROGRAM blocks.
+	(f90-backslash-not-special): New function.
+
+2004-11-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-embedded-active): Removed unnecessary
+	declaration.
+	(calc-show-banner): Removed redundant declaration.
+
+	* calc/calc-graph.el (calc-gnuplot-default-device)
+	(calc-gnuplot-default-output, calc-gnuplot-print-device)
+	(calc-gnuplot-print-output, calc-gnuplot-geometry)
+	(calc-graph-default-resolution, calc-graph-default-resolution-3d):
+	Remove redundant initial values.
+
+	* calc/calc-arith.el (math-scalar-functions)
+	(math-nonscalar-functions, math-scalar-if-args-functions)
+	(math-real-functions, math-positive-functions)
+	(math-nonnegative-functions, math-real-scalar-functions)
+	(math-real-if-arg-functions, math-integer-functions)
+	(math-num-integer-functions, math-rounding-functions)
+	(math-float-rounding-functions, math-integer-if-args-functions)
+	(math-super-types): Move declarations to earlier in file.
+	(math-unit-prefixes): Declared it.
+	(math-floor-prec, math-trunc-prec): New variables.
+	(math-trunc-fancy): Replace variable prec by declared variable.
+	(math-floor-fancy): Replace variable prec by declared variable.
+	(math-com-bterms): New variable.
+	(math-commutative-equal, math-commutative-collect):
+	Replace variable bterms by declared variable.
+
+	* calc/calc-misc.el (math-trunc): Replace variable prec by
+	math-trunc-prec.
+	(math-floor): Replace variable prec by math-floor-prec.
+
+	* calc/calc-forms.el (math-fd-date, math-fd-dt, math-fd-year)
+	(math-fd-month, math-fd-day, math-fd-weekday, math-fd-hour)
+	(math-fd-minute, math-fd-second, math-fd-bc-flag): New variables.
+	(math-format-date, math-format-date-part): Replace variables
+	date, dt, year, month, day, weekday, hour, minute, second and
+	bc-flag by declared variables.
+	(math-pd-str): New variable.
+	(math-parse-date, math-parse-date-word, math-parse-standard-date):
+	Replace variable str by declared variable.
+	(math-daylight-savings-hook, math-tzone-names): Move definitions
+	to earlier in the file.
+	(var-TimeZone, math-exp-str, math-exp-pos): Declare them.
+	(math-sh-year): New variable.
+	(math-setup-add-holidays, math-setup-holidays)
+	(math-setup-year-holidays): Replace variable `year' by declared
+	variable.
+
+	* calc/calc-math.el (math-nrf-n, math-nrf-nf, math-nrf-nfm1):
+	New variables.
+	(math-nth-root-float, math-nth-root-float-iter): Replace variables
+	n, nf and nfm1 by declared variables.
+	(math-nri-n): New variable.
+	(math-nth-root-integer, math-nth-root-int-iter): Replace variable
+	n by declared variable.
+	(calcFunc-log): Removed misplaced condition.
+
+2004-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* generic.el (generic-mode-set-comments): Accept an empty comment-end.
+
+2004-11-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (dedicated-switch-to-buffer): New function.
+	(gdb-ann3, gdb-setup-windows, gdb-restore-windows):
+	Dedicate gdb-related windows.
+	(gdb-display-buffer): Dedicate gdb-related windows. Don't grab
+	other frames.
+	(gdb-reset): Remove dedicated property after debugging.
+
+2004-11-24  Jay Belanger <belanger@truman.edu>
+
+	* calc/calc-sel.el: Add comment.
+
+	* calc/calc.el (math-stack-value-offset): Replace variables c,
+	wid and off with math-svo-c, math-svo-wid and math-svo-off.
+
+	* calc/calccomp.el (math-comp-sel-tag): Declare it.
+	(math-svo-c, math-svo-wid, math-svo-off): New variables.
+	(math-stack-value-offset-fancy): Replace variables c, wid and off
+	by declared variables.
+	(math-comp-just, math-comp-comma-spc): New variables.
+	(math-compose-expr, math-compose-matrix): Replace variables `just'
+	and comma-spc by declared variable.
+	(math-comp-vector-prec): New variable.
+	(math-compose-expr, math-compose-matrix, math-compose-rows):
+	Replace variable vector-prec by declared variable.
+	(math-comp-left-bracket, math-comp-right-bracket)
+	(math-comp-comma): New variables.
+	(math-compose-expr, math-compose-rows): Replace variables
+	left-bracket, right-bracket and comma by declared variables.
+	(math-comp-full-width): New variable.
+	(math-comp-to-string-flat, math-comp-to-string-flat-term):
+	Replace variable full-width by declared variable.
+	(math-comp-highlight, math-comp-word, math-comp-level)
+	(math-comp-margin, math-comp-pos, math-comp-buf, math-comp-base)
+	(math-comp-hgt, math-comp-tag, math-comp-hpos, math-comp-vpos):
+	New variables.
+	(math-comp-to-string-flat, math-comp-to-string-flat-term)
+	(math-comp-sel-flat-term): Replace variables comp-highlight,
+	comp-word, comp-level, comp-margin, comp-pos and comp-buf by
+	declared variables.
+	(math-comp-simplify, math-comp-simplify-term)
+	(math-comp-add-string, math-comp-add-string-sel):
+	Replace	variables comp-highlight, comp-buf, comp-base,
+	comp-height, comp-tag, comp-hpos and comp-vpos by declared variables.
+
+2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add x-use-old-gtk-file-dialog.
+
+	* mail/emacsbug.el (report-emacs-bug): Catch error that x-server-vendor
+	and x-server-version may throw.
+
+2004-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (substitute-key-definition-key): Optimize.
+	Don't call indirect-function for nil defn (always signals error).
+
+	* ido.el (ido-read-internal): Fix require-match check when
+	ido-directory-too-big is set.
+
+2004-11-23  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (math-read-replacement-list)
+	(math-read-superscripts): New variables.
+	(math-read-preprocess-string): New function.
+	(math-read-expr): Filter input through math-read-preprocess-string.
+
+	* calc/calc-aent.el (math-read-exprs): Filter input through
+	math-read-preprocess-string.
+
+2004-11-23  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-start): In cd command use
+	substitute-env-vars -- not quite shell compatible but better than
+	nothing.
+	(compilation-error-regexp-alist-alist): Simplify ftnchek to only
+	handle the newer versions messages, which are more parseable.
+
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-mode-map): New var.
+	(reveal-mode): Use it.
+
+2004-11-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-flush-pending-output): New variable.
+	(gdb-send-item, gdb-resync, gud-gdba-marker-filter): Use it.
+
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buff-menu.el (list-buffers-noselect): Re-add the leading space in the
+	header-line when needed.
+	Use fixed-pitch only in the header-line.
+	Build the underline automatically.  Use emdash if available.
+
+2004-11-22  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-recursive-copies): Move from dired-aux.el.
+	* dired-aux.el (dired-recursive-copies): Move to dired.el.
+
+2004-11-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-resync): New function.
+	(gdb-pre-prompt, gdb-prompt, gdb-starting, gdb-stopping)
+	(gdb-frame-begin, gdb-stopped, gdb-post-prompt):
+	Use it to fail more gracefully.
+	(gdb-variables): Delete variable.
+	Re-order variables to reduce byte-compiler warnings.
+
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* descr-text.el (describe-char):
+	* paren.el (show-paren-function):
+	* subr.el (syntax-after): Undo last change.
+
+	* progmodes/python.el (run-python): Don't hard code *Python*.
+	Don't modify global process-environment.
+	(python-send-region, python-load-file): Don't assume that
+	python-buffer == (process-buffer (python-proc)).
+	(python-switch-to-python): Simplify.
+
+	* dired.el (dired-align-file): Don't assume line starts with spaces.
+
+2004-11-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (math-read-big-expr, math-read-big-bigp):
+	Replace variable `lines' by math-read-big-lines.
+	(math-read-big-expr): Replace variables the-baseline, the-h2
+	and err-msg by math-read-big-baseline, math-read-big-h2 and
+	math-read-err-msg.
+	(math-read-big-bigp): Replace variable h2 with math-rb-h2.
+
+	* calc/calc-lang.el (math-read-big-rec): Fix typo.
+	(math-read-big-balance): Replace unbound variable by value.
+	(math-read-big-lines): New variable.
+	(math-read-big-rec, math-read-big-char, math-read-big-emptyp)
+	(math-read-big-error, math-read-big-balance): Replace variable
+	`lines' by declared variable.
+	(math-read-big-baseline, math-read-big-h2): New variables.
+	(math-read-big-rec): Replace variables the-baseline and the-h2
+	by declared variables.
+	(math-rb-h1, math-rb-h2, math-rb-v1, math-rb-v2): New variables.
+	(math-read-big-rec, math-read-big-char, math-read-big-emptyp)
+	(math-read-big-balance): Replace variables h1, h2, v1 and v2 by
+	declared variables.
+	(math-read-big-err-msg): New variable.
+	(math-read-big-error): Replace variable err-msg by declared variable.
+
+2004-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el: Add coding cookie.
+	Fix up docstrings, follow new commenting conventions.
+	(ses-header-line-menu): Fix missing variable rename for header-row.
+	(ses-cell-size): Remove.
+	(ses-make-cell): New function.
+	(ses-cell, ses-insert-row, ses-insert-column): Use it.
+	(ses-calculate-cell): Remove unused var `symbol'.
+	(ses-narrowed-p): New function.
+	(ses-goto-data, undo-more, ses-reconstruct-all): Use it.
+	(ses-initial-file-trailer): Change ;;; to ;; for local vars.
+	(ses-load, ses-reconstruct-all): Adjust string search accordingly.
+	(ses-setup): Use restore-buffer-modified-p.
+	(ses-cleanup): Remove unused var `end'.
+	(ses-header-string-left-offset): Remove.
+	(ses-create-header-string): Adjust to new behavior of `align-to'.
+	Truncate excessively large fields to preserve alignment.
+	(ses-reconstruct-all): Remove unused var `refs'.
+	(ses-read-cell-printer): Remove unused var `prompt'.
+	(ses-delete-row): Remove unused var `pos'.
+	(ses-delete-column): Remove unused var `new'.
+
 2004-11-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Insert :version tag into all defgroup and defcustom.
@@ -12,48 +1009,35 @@
 
 	* calc/calc-prog.el (math-integral-cache-state, calc-lang)
 	(calc-original-buffer): Declare them.
-
 	(calc-user-formula-alist): New variable.
 	(calc-user-define-formula, calc-fix-user-formula)
 	(calc-user-define-composition, calc-finish-formula-edit):
 	Replace variable `alist' by declared variable.
-
 	(var-q0, var-q1, var-q2, var-q3, var-q4, var-q5, var-q6)
 	(var-q7, var-q7, var-q8, var-q9): Declare them.
 	(calc-kbd-push): Don't check to see if var-q0 through var-q9
 	are bound.
-
 	(calcFunc-typeof): Replace undeclared variable by expression.
-
 	(math-exp-env): New variable.
-	(math-define-body, math-define-exp): Replace exp-env by declared
-	variable.
-
+	(math-define-body, math-define-exp): Replace exp-env by declared var.
 	(math-define-exp): Replace misplaced variable by expression.
 
 	* calc/calcalg3.el (calc-curve-nvars, calc-curve-varnames)
 	(calc-curve-model, calc-curve-coefnames): New variables.
 	(calc-curve-fit, calc-get-fit-variables): Replace variables nvars,
 	varnames, model and coefnames by declared variables.
-
 	(math-root-widen): New variable.
 	(math-search-root, math-find-root): Replace variable root-widen by
 	declared variable.
-
 	(var-DUMMY): Declare it.
 	(math-root-vars, math-min-vars): Move the declarations to earlier in
 	the file.
-
 	(math-brent-min): Make d a local variable.
-
 	(math-find-minimum): Replace non-existent variable.
-
 	(math-ninteg-romberg): Remove unnecessary variable.
-
 	(math-ninteg-temp): New variable.
 	(math-ninteg-romberg, math-ninteg-midpoint): Replace variable
 	integ-temp by declared variable.
-
 	(math-fit-first-var, math-fit-first-coef, math-fit-new-coefs):
 	New variables.
 	(math-general-fit): Replace variables first-var, first-coef and
@@ -61,7 +1045,6 @@
 	(calcFunc-fitvar): Replace variable first-var by declared variable.
 	(calcFunc-fitparam): Replace variable first-coef by declared variable.
 	(calcFunc-fitdummy): Replace variable new-coefs by declared variable.
-
 	(math-all-vars-vars, math-all-vars-found): New variables.
 	(math-all-vars-in, math-all-vars-rec): Replace variables vars and
 	found by declared variable math-all-vars-vars.
@@ -72,6 +1055,13 @@
 	of `defconst'.
 
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-mode-map): Don't bind SPC.
+	(isearch-whitespace-chars): Function deleted.
+	(isearch-search): Bind search-spaces-regexp.
+	(isearch-lazy-highlight-search): Likewise.
+	(search-whitespace-regexp): Doc fix.
+	(isearch-forward-regexp): Doc fix.
 
 	* emacs-lisp/bytecomp.el (byte-compile-form):
 	Move the calls to byte-compile-set-symbol-position,
@@ -135,24 +1125,17 @@
 	* calc/calc-sel.el (calc-edit-disp-trail): Declare it.
 	(calc-finish-selection-edit):  Replace variable disp-trail by
 	declared variable.
-
-	(calc-selection-cache-entry): Move declaration to earlier in
-	the file.
-
+	(calc-selection-cache-entry): Move declaration to earlier in the file.
 	(calc-selection-cache-num, calc-selection-cache-comp)
 	(calc-selection-cache-offset, calc-selection-true-num)
 	(calc-final-point-line, calc-final-point-column)
 	(calc-original-buffer): Declare them.
-
 	(calc-fnp-op, calc-fnp-num): New variables.
 	(calc-find-nth-part, calc-find-nth-part-rec)
-	(calc-select-previous): Replace op and num by declared
-	variables.
-
+	(calc-select-previous): Replace op and num by declared variables.
 	(calc-rsf-old, calc-rsf-new): New variables.
 	(calc-replace-sub-formula, calc-replace-sub-formula-rec):
 	Replace variables old and new by declared variables.
-
 	(calc-sel-reselect): New variable.
 	(calc-auto-selection, calc-enter-selection, calc-edit-selection)
 	(calc-sel-evaluate, calc-sel-expand-formula, calc-sel-expand-formula)
@@ -163,39 +1146,29 @@
 	(math-bound-vars, math-conds, math-copy-neg, math-rhs)
 	(math-pattern, math-remembering, math-aliased-vars, math-mt-many)
 	(math-import-list, math-rewrite-phase): Declare them.
-
 	(math-rewrite):  Use let* to declare variables.
-
 	(calc-rewrite-selection): Make rules a local variable.
-
 	(calc-rewr-sel): New variable.
 	(calc-rewrite-selection, calc-locate-selection-marker)
 	(calc-rewrite): Use the declared variable calc-rewr-sel instead
 	of sel.
-
 	(math-rewrite-whole-expr): New variable.
 	(math-rewrite, math-rewrite-phase): Replace variable expr by
 	declared variable.
-
 	(math-rewrite-heads-heads, math-rewrite-heads-skips)
 	(math-rewrite-heads-blanks ): New variables.
 	(math-rewrite-heads, math-rewrite-heads-rec): Replace variables
 	heads, skips and blanks by declared variables.
-
 	(math-rwcomp-subst-old, math-rwcomp-subst-new)
 	(math-rwcomp-subst-old-func, math-rwcomp-subst-new-func):
 	New variables.
 	(math-rwcomp-substitute, math-rwcomp-subst-rec): Replace variables
 	old, new, old-func and new-func by declared variables.
-
 	(math-rwcomp-assoc-args, math-rwcomp-addsub-args):
 	Remove unnecessary variable.
-
 	(math-apply-rw-regs): New variable.
 	(math-apply-rewrites, math-rwapply-replace-regs)
-	(math-rwapply-reg-looks-negp): Replace variable regs by declared
-	variable.
-
+	(math-rwapply-reg-looks-negp): Replace variable regs by declared var.
 	(math-apply-rw-ruleset): New variable.
 	(math-apply-rewrites, math-rwapply-remember): Replace variable
 	ruleset by declared variable.
@@ -218,8 +1191,7 @@
 
 2004-11-18  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-alg.el (math-simplify-divisor): Remove unnecessary
-	variables.
+	* calc/calc-alg.el (math-simplify-divisor): Remove unnecessary vars.
 
 2004-11-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -265,38 +1237,30 @@
 
 	* calc/calc-alg.el (calc-poly-div): Make calc-poly-div-remainder
 	a local variable.
-
 	(math-eval-rules-cache, math-eval-rules-cache-other): Declare them.
-
 	(math-top-only): New variable.
 	(math-simplify, math-simplify-step): Replace variable top-only by
 	declared variable math-top-only.
-
 	(math-simplify-expr): Declare it.
-	Replaced argument expr in all calls of math-defsimplify by
+	Replace argument expr in all calls of math-defsimplify by
 	math-simplify-expr.
 	(math-simplify-plus, math-simplify-times, math-simplify-divide)
 	(math-simplify-divisor, math-simplify-one-divisor)
 	(math-simplify-mod, math-simplify-ineq, math-simplify-sqrt)
 	(math-simplify-pow): Replace variable expr by declared variable
 	math-simplify-expr.
-
 	(math-simplify-divisor): Remove local variables temp and op.
 	(math-simplify-one-divisor): Make temp and op local variables.
-
 	(math-simplify-divisor-nover, math-simplify-divisor-dover):
 	New variables.
 	(math-simplify-divisor, math-simplify-one-divisor):
 	Replace variables nover and dover by declared variables.
-
 	(math-expr-subst-new, math-expr-subst-old): New variables.
 	(math-expr-subst, math-expr-subst-rec): Replace variables new
 	and old by declared variables.
-
 	(math-is-poly-degree, math-is-poly-loose): New variables.
 	(math-is-polynomial, math-is-poly-rec): Replace variables degree
 	and loose by declared variables.
-
 	(math-poly-base-const-ok, math-poly-base-pred): New variables.
 	(math-polynomial-base, math-polynomial-base-rec):
 	Replace variables const-ok and mpb-pred by declared variables.
@@ -326,7 +1290,7 @@
 
 	* progmodes/idlwave.el, progmodes/idlw-toolbar.el
 	* progmodes/idlw-shell.el, progmodes/idlw-rinfo.el:
-	Updated to IDLWAVE version 5.5.  Too many changes to list them here.
+	Update to IDLWAVE version 5.5.  Too many changes to list them here.
 	* progmodes/idlw-help.el: New file.
 
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
@@ -417,7 +1381,6 @@
 
 	* calc/calcalg2.el (math-integrate-by-parts):  Remove unused
 	variable var-thing.
-
 	(math-integ-depth, math-integ-level, math-integral-limit)
 	(math-enable-subst, math-any-substs, math-integ-msg)
 	(math-prev-parts-v, math-good-parts, math-max-integral-limit)
@@ -425,10 +1388,8 @@
 	(math-solve-simplifying, var-IntegLimit, math-solve-sign)
 	(var-GenCount):  Declare these variables.
 	(calcFunc-integ):  Don't check if var-IntegLimit is bound.
-
 	(math-integral-cache, math-integral-cache-state):
 	Move declarations to earlier in the file.
-
 	(math-deriv-var, math-deriv-total, math-deriv-symb)
 	(math-cur-record, math-has-rules, math-t1, math-t2, math-t3)
 	(math-so-far, math-integ-expr, math-expr-parts, calc-low)
@@ -834,6 +1795,11 @@
 	current frame (in case of recursive calls).
 	(gdb-show-changed-values): Add :version keyword.
 
+2004-11-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el: Change coding: tag back to
+	iso-2022-7bit.
+
 2004-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el: Change coding-system to utf-8.
@@ -1160,7 +2126,7 @@
 	Use `flymake-reformat-err-line-patterns-from-compile-el' to convert
 	`compilation-error-regexp-alist-alist' to internal Flymake format.
 
-	* progmodes/flymake.el: eliminated byte-compiler warnings.
+	* progmodes/flymake.el: Eliminate byte-compiler warnings.
 
 2004-11-01  Jay Belanger  <belanger@truman.edu>
 
@@ -2340,7 +3306,7 @@
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-graph.el (calc-graph-add-curve): Moved the call to
+	* calc/calc-graph.el (calc-graph-add-curve): Move the call to
 	`calc-graph-set-styles' so the gnuplot buffer will appear in a
 	separate window.
 
@@ -2360,7 +3326,7 @@
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc.el (calc-mode-var-list): Removed unnecessary quotes.
+	* calc/calc.el (calc-mode-var-list): Remove unnecessary quotes.
 
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -2513,8 +3479,8 @@
 	(calc-invocation-macro, calc-show-banner): Give these values as
 	part of `calc-mode-var-list's initialization after the variables
 	are declared with defvar.
-	(calc-bug-address):  Changed email address to send bug
-	reports to. Also changed the maintainer address at the top.
+	(calc-bug-address):  Change email address to send bug reports to.
+	Change the maintainer address at the top.
 	(calc-mode): Compare `calc-settings-file' to `user-init-file' rather
 	than "\\.emacs" to determine if it is the user-init-file.
 
@@ -3072,9 +4038,9 @@
 	* progmodes/grep.el (grep-default-command): Use find-tag-default.
 	(grep-tag-default): Function deleted.
 
-	* subr.el (find-tag-default): Moved from etags.el.
+	* subr.el (find-tag-default): Move from etags.el.
 
-	* progmodes/etags.el (find-tag-default): Moved to subr.el.
+	* progmodes/etags.el (find-tag-default): Move to subr.el.
 
 	* emacs-lisp/lisp-mode.el (prin1-char): Put `shift' modifier
 	into the basic character if it has an uppercase form.
@@ -3130,7 +4096,7 @@
 	* whitespace.el (global-whitespace-mode): New alias
 	for whitespace-global-mode.
 
-	* speedbar.el (speedbar-file-regexp): Definition moved up.
+	* speedbar.el (speedbar-file-regexp): Move definition up.
 	(speedbar-mode, speedbar-set-mode-line-format):
 	Use with-no-warnings.
 	(speedbar-emacs-popup-kludge): Delete Emacs 19 alternative.
@@ -3368,7 +4334,7 @@
 
 	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
 	Fix bug so that it doesn't go past the closing paren when PAREN-LEVEL
-	is used.  Reordered the syntax checks to get more efficient
+	is used.  Reorder the syntax checks to get more efficient
 	skipping in some situations.
 
 	* progmodes/cc-cmds.el (c-electric-brace): Don't trip up on a line
@@ -3379,7 +4345,7 @@
 
 	* progmodes/cc-fonts.el (c-font-lock-declarators): Handle array
 	size specs correctly.  Only fontify identifiers in front of '('
-	with as functions - don't accept any paren char.  Tightened up
+	with as functions - don't accept any paren char.  Tighten up
 	initializer skipping to stop before function and class blocks.
 
 	* progmodes/cc-engine.el (c-beginning-of-decl-1): Fix bug where
@@ -3713,7 +4679,7 @@
 	functions that are not erroneous if either 1-valued or
 	multi-valued.  Detect functions in this class.
 	(testcover-1value-functions, testcover-compose-functions)
-	(testcover-progn-functions) Added some additional functions to lists.
+	(testcover-progn-functions) Add some additional functions to lists.
 	(testcover-mark): Bugfix when marking up the definition for an
 	empty function.
 
@@ -4379,7 +5345,7 @@
 	* toolbar/lc-saveas.xpm, toolbar/lc-search.xpm
 	* toolbar/lc-spell.xpm, toolbar/lc-undo.xpm
 	* toolbar/lc-up_arrow.xpm:
-	Renamed from *-locol.xpm.
+	Rename from *-locol.xpm.
 
 2004-06-09  Rajesh Vaidheeswarran  <rv@gnu.org>
 
@@ -6878,115 +7844,7 @@
 	(compilation-forget-errors): Don't localize already local
 	compilation-locs and remove FIXME about refontifying.
 
-2004-04-14  Kim F. Storm  <storm@cua.dk>
-
-	* startup.el (emacs-quick-startup): New defvar (set by -Q).
-	(command-line): New option -Q.  Like -q --no-site-file, but
-	in addition it also disables menu-bar, tool-bar, scroll-bars,
-	tool-tips, and the blinking cursor.
-	(command-line-1): Skip startup screen if -Q.
-	(fancy-splash-head): Use ":align-to center" prop to center splash image.
-
-	* emulation/cua-base.el (cua-read-only-cursor-color)
-	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
-
-2004-04-13  Dave Love  <fx@gnu.org>
-
-	* progmodes/python.el: Doc fixes.  Changes for compiler warnings.
-	(syntax): Don't require.
-	(python) <defgroup>: Add :version.
-	(python-quote-syntax): Re-written.
-	(inferior-python-mode): Move stuff here from run-python and add
-	some more.
-	(python-preoutput-continuation, python-preoutput-result)
-	(python-dotty-syntax-table): New.
-	(python-describe-symbol): Use them.
-	(run-python): Move stuff to inferior-python-mode.  Modify code
-	loaded into Python.
-	(python-send-region): Use python-proc, python-send-string.
-	(python-send-string): Send newlines too.  Callers changed.
-	(python-load-file): Re-written.
-	(python-eldoc-function): New.
-	(info-look): Don't require.
-	(python-after-info-look): New.  A modified version of former
-	top-level code for use with eval-after-load.
-	(python-maybe-jython, python-guess-indent): Use widened buffer.
-	(python-fill-paragraph): Re-written.
-	(python-mode): Fix outline-regexp.  Set outline-heading-end-regexp,
-	eldoc-print-current-symbol-info-function.  Add to eldoc-mode-hook.
-
-2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
-	Set compilation-error-regexp-alist earlier.
-
-	* progmodes/compile.el (compilation-minor-mode-map)
-	(compilation-shell-minor-mode-map, compile-mouse-goto-error)
-	(compile-goto-error): Re-merge the mouse and non-mouse commands.
-
-2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* progmodes/compile.el (compile-goto-error): Select the buffer/window
-	corresponding to the event.
-
-2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
-
-	* loadup.el: Add cygwin to system-type list, for unexec() support.
-
-2004-04-12  John Paul Wallington  <jpw@gnu.org>
-
-	* ibuffer.el (ibuffer-delete-window-on-quit): Remove.
-	(ibuffer-restore-window-config-on-quit): New variable to replace
-	`ibuffer-delete-window-on-quit'.  Update all references.
-	(ibuffer-prev-window-config): New variable.
-	(ibuffer-quit): Restore previous window configuration instead of
-	deleting window.
-	(ibuffer): Save window configuration before showing Ibuffer buffer.
-
-	* help.el (describe-mode): Doc fix.
-
-2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
-	not to treat nil as a function.
-
-	* vc-arch.el (vc-arch-root): Be a bit more careful.
-	(vc-arch-register): Save the buffer if we modified it.
-	(vc-arch-delete-rej-if-obsolete): Save excursion.
-	(vc-arch-find-file-hook): Use the simpler after-save-hook.
-	(vc-arch-responsible-p, vc-arch-init-version): New functions.
-
-	* net/ldap.el (ldap-search): Use list*.
-
-2004-04-12  Juri Linkov  <juri@jurta.org>
-
-	* info.el (Info-follow-reference): Allow multiline reference name.
-
-2004-04-11  Dave Love  <fx@gnu.org>
-
-	* emacs-lisp/bytecomp.el (byte-compile-cond): Fix last change.
-
-	* progmodes/python.el: New file.
-
-2004-04-11  Andre Spiegel  <spiegel@gnu.org>
-
-	* vc-hooks.el (vc-arg-list): Function removed.
-	(vc-default-workfile-unchanged-p): Use condition-case to check for
-	backward compatibility.
-
-	* vc.el (vc-print-log): Use condition-case to check for backward
-	compatibility.
-
-2004-04-11  Juri Linkov  <juri@jurta.org>
-
-	* dired.el (dired-faces): New defgroup.
-	(dired-header, dired-mark, dired-marked, dired-flagged)
-	(dired-warning, dired-directory, dired-symlink, dired-ignored):
-	New faces.
-	(dired-header-face, dired-mark-face, dired-marked-face)
-	(dired-flagged-face, dired-warning-face, dired-directory-face)
-	(dired-symlink-face, dired-ignored-face): New face variables.
-	(dired-font-lock-keywords): Use them instead of font-lock faces.
+2004-04-14
 	Split the rule for dired marks into 3 separate rules: for marks,
 	marked file names and flagged file names.
 

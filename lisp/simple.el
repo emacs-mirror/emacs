@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99,
-;;               2000, 01, 02, 03, 2004
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;               2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -123,21 +123,33 @@ to navigate in it.")
 
 (make-variable-buffer-local 'next-error-function)
 
-(defsubst next-error-buffer-p (buffer &optional extra-test)
-  "Test if BUFFER is a next-error capable buffer."
+(defsubst next-error-buffer-p (buffer 
+			       &optional 
+			       extra-test-inclusive 
+			       extra-test-exclusive)
+  "Test if BUFFER is a next-error capable buffer.
+EXTRA-TEST-INCLUSIVE is called to allow extra buffers.
+EXTRA-TEST-INCLUSIVE is called to disallow buffers."
   (with-current-buffer buffer
-    (or (and extra-test (funcall extra-test))
-	next-error-function)))
+    (or (and extra-test-inclusive (funcall extra-test-inclusive))
+	(and (if extra-test-exclusive (funcall extra-test-exclusive) t)
+	 next-error-function))))
 
-(defun next-error-find-buffer (&optional other-buffer extra-test)
-  "Return a next-error capable buffer."
+(defun next-error-find-buffer (&optional other-buffer 
+					 extra-test-inclusive 
+					 extra-test-exclusive)
+  "Return a next-error capable buffer.
+OTHER-BUFFER will disallow the current buffer.
+EXTRA-TEST-INCLUSIVE is called to allow extra buffers.
+EXTRA-TEST-INCLUSIVE is called to disallow buffers."
   (or
    ;; 1. If one window on the selected frame displays such buffer, return it.
    (let ((window-buffers
           (delete-dups
            (delq nil (mapcar (lambda (w)
                                (if (next-error-buffer-p
-                                    (window-buffer w) extra-test)
+                                    (window-buffer w) 
+				    extra-test-inclusive extra-test-exclusive)
                                    (window-buffer w)))
                              (window-list))))))
      (if other-buffer
@@ -147,24 +159,29 @@ to navigate in it.")
    ;; 2. If next-error-last-buffer is set to a live buffer, use that.
    (if (and next-error-last-buffer
             (buffer-name next-error-last-buffer)
-            (next-error-buffer-p next-error-last-buffer extra-test)
+            (next-error-buffer-p next-error-last-buffer 
+				 extra-test-inclusive extra-test-exclusive)
             (or (not other-buffer)
                 (not (eq next-error-last-buffer (current-buffer)))))
        next-error-last-buffer)
    ;; 3. If the current buffer is a next-error capable buffer, return it.
    (if (and (not other-buffer)
-            (next-error-buffer-p (current-buffer) extra-test))
+            (next-error-buffer-p (current-buffer) 
+				 extra-test-inclusive extra-test-exclusive))
        (current-buffer))
    ;; 4. Look for a next-error capable buffer in a buffer list.
    (let ((buffers (buffer-list)))
      (while (and buffers
-                 (or (not (next-error-buffer-p (car buffers) extra-test))
+                 (or (not (next-error-buffer-p 
+			   (car buffers) 
+			   extra-test-inclusive extra-test-exclusive))
                      (and other-buffer (eq (car buffers) (current-buffer)))))
        (setq buffers (cdr buffers)))
      (if buffers
          (car buffers)
        (or (and other-buffer
-                (next-error-buffer-p (current-buffer) extra-test)
+                (next-error-buffer-p (current-buffer) 
+				     extra-test-inclusive extra-test-exclusive)
                 ;; The current buffer is a next-error capable buffer.
                 (progn
                   (if other-buffer
@@ -719,7 +736,7 @@ that uses or sets the mark."
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
   (interactive)
-  (let ((opoint (point)) (start (point-min))
+  (let ((start (point-min))
 	(n (line-number-at-pos)))
     (if (= start 1)
 	(message "Line %d" n)
@@ -3111,8 +3128,7 @@ Outline mode sets this."
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
-	(forward (> arg 0))
-	new line-end line-beg)
+	(forward (> arg 0)))
     (unwind-protect
 	(progn
 	  (if (not (memq last-command '(next-line previous-line)))
@@ -3915,16 +3931,12 @@ when it is off screen)."
 		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
 	   (and blinkpos
-		(save-excursion
-		  (goto-char blinkpos)
-		  (not (looking-at "\\s$")))
+		(not (eq (car (syntax-after blinkpos)) 8)) ;Not syntax '$'.
 		(setq matching-paren
-		      (or (and parse-sexp-lookup-properties
-			       (let ((prop (get-text-property blinkpos 'syntax-table)))
-				 (and (consp prop)
-				      (eq (car prop) 4)
-				      (cdr prop))))
-			  (matching-paren (char-after blinkpos)))
+		      (let ((syntax (syntax-after blinkpos)))
+			(and (consp syntax)
+			     (eq (car syntax) 4)
+			     (cdr syntax)))
 		      mismatch
 		      (or (null matching-paren)
 			  (/= (char-after (1- oldpos))

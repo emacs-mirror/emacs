@@ -1116,12 +1116,6 @@ This default implementation always returns non-nil, which means that
 editing non-current versions is not supported by default."
   t)
 
-(defun vc-recompute-state (file)
-  "Force a recomputation of the version control state of FILE.
-The state is computed using the exact, and possibly expensive
-function `vc-BACKEND-state', not the heuristic."
-  (vc-file-setprop file 'vc-state (vc-call state file)))
-
 (defun vc-next-action-on-file (file verbose &optional comment)
   "Do The Right Thing for a given FILE under version control.
 If COMMENT is specified, it will be used as an admin or checkin comment.

@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,14 +26,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-mode () nil)
-
 
 (defun calc-line-numbering (n)
   (interactive "P")
@@ -671,6 +666,8 @@
      (if bad
 	 (error "Unrecognized character: %c" (aref arg bad)))
      (calc-change-mode 'calc-matrix-brackets code t))))
+
+(provide 'calc-mode)
 
 ;;; arch-tag: ecc70eea-c712-43f2-9085-4205e58d6ddf
 ;;; calc-mode.el ends here

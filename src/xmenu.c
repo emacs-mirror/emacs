@@ -741,8 +741,7 @@ POSITION is a position specification.  This is either a mouse button event
 or a list ((XOFFSET YOFFSET) WINDOW)
 where XOFFSET and YOFFSET are positions in pixels from the top left
 corner of WINDOW's frame.  (WINDOW may be a frame object instead of a window.)
-This controls the position of the center of the first line
-in the first pane of the menu, not the top left of the menu as a whole.
+This controls the position of the top left of the menu as a whole.
 If POSITION is t, it means to use the current mouse position.
 
 MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
@@ -3256,7 +3255,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   char *datap;
   int ulx, uly, width, height;
   int dispwidth, dispheight;
-  int i, j;
+  int i, j, lines, maxlines;
   int maxwidth;
   int dummy_int;
   unsigned int dummy_uint;
@@ -3287,31 +3286,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifdef HAVE_X_WINDOWS
   /* Adjust coordinates to relative to the outer (window manager) window.  */
-  {
-    Window child;
-    int win_x = 0, win_y = 0;
-
-    /* Find the position of the outside upper-left corner of
-       the inner window, with respect to the outer window.  */
-    if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-      {
-	BLOCK_INPUT;
-	XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-			       /* From-window, to-window.  */
-			       f->output_data.x->window_desc,
-			       f->output_data.x->parent_desc,
-
-			       /* From-position, to-position.  */
-			       0, 0, &win_x, &win_y,
-
-			       /* Child of window.  */
-			       &child);
-	UNBLOCK_INPUT;
-	x += win_x;
-	y += win_y;
-      }
-  }
+  x += FRAME_OUTER_TO_INNER_DIFF_X (f);
+  y += FRAME_OUTER_TO_INNER_DIFF_Y (f);
 #endif /* HAVE_X_WINDOWS */
 
   /* Adjust coordinates to be root-window-relative.  */
@@ -3319,7 +3295,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   y += f->top_pos;
 
   /* Create all the necessary panes and their items.  */
-  i = 0;
+  maxlines = lines = i = 0;
   while (i < menu_items_used)
     {
       if (EQ (XVECTOR (menu_items)->contents[i], Qt))
@@ -3328,6 +3304,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
 
+          maxlines = max (maxlines, lines);
+          lines = 0;
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	  pane_string = (NILP (pane_name)
@@ -3420,8 +3398,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
+          lines++;
 	}
     }
+
+  maxlines = max (maxlines, lines);
 
   /* All set and ready to fly.  */
   XMenuRecompute (FRAME_X_DISPLAY (f), menu);
@@ -3445,6 +3426,15 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
     }
   if (ulx < 0) x -= ulx;
   if (uly < 0) y -= uly;
+
+  if (! for_click)
+    {
+      /* If position was not given by a mouse click, adjust so upper left
+         corner of the menu as a whole ends up at given coordinates.  This
+         is what x-popup-menu says in its documentation.  */
+      x += width/2;
+      y += 1.5*height/(maxlines+2);
+    }
 
   XMenuSetAEQ (menu, TRUE);
   XMenuSetFreeze (menu, TRUE);

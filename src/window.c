@@ -1613,7 +1613,7 @@ decode_next_window_args (window, minibuf, all_frames)
 		   : Qnil);
   else if (EQ (*all_frames, Qvisible))
     ;
-  else if (XFASTINT (*all_frames) == 0)
+  else if (EQ (*all_frames, make_number (0)))
     ;
   else if (FRAMEP (*all_frames))
     ;
@@ -1887,7 +1887,7 @@ window_loop (type, obj, mini, frames)
 
   if (f)
     frame_arg = Qlambda;
-  else if (XFASTINT (frames) == 0)
+  else if (EQ (frames, make_number (0)))
     frame_arg = frames;
   else if (EQ (frames, Qvisible))
     frame_arg = frames;
@@ -2099,6 +2099,8 @@ DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
        doc: /* Return the window least recently selected or used for display.
 Return a full-width window if possible.
 A minibuffer window is never a candidate.
+A dedicated window is never a candidate, so if all windows are dedicated,
+the value is nil.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
@@ -2119,6 +2121,8 @@ If FRAME is a frame, search only that frame.  */)
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
        doc: /* Return the largest window in area.
 A minibuffer window is never a candidate.
+A dedicated window is never a candidate, so if all windows are dedicated,
+the value is nil.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
@@ -2696,7 +2700,7 @@ shrink_windows (total, size, nchildren, shrinkable,
             ++nonzero_sizes;
             nonzero_idx = i;
           }
-      
+
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > min_size)
           {
@@ -3013,6 +3017,9 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 
   if (EQ (window, selected_window))
     b->last_selected_window = window;
+
+  /* Let redisplay errors through.  */
+  b->display_error_modiff = 0;
 
   /* Update time stamps of buffer display.  */
   if (INTEGERP (b->display_count))
@@ -6180,10 +6187,12 @@ If TYPE is t, use the frame's scroll-bar type.  */)
   struct window *w = decode_window (window);
 
   if (!NILP (width))
-    CHECK_NATNUM (width);
+    {
+      CHECK_NATNUM (width);
 
-  if (XINT (width) == 0)
-    vertical_type = Qnil;
+      if (XINT (width) == 0)
+	vertical_type = Qnil;
+    }
 
   if (!(EQ (vertical_type, Qnil)
 	|| EQ (vertical_type, Qleft)

@@ -36,6 +36,9 @@ use, but we don't try to list them all here.
 @item buffer-display-table
 @xref{Display Tables}.
 
+@item buffer-display-time
+@xref{Buffers and Windows}.
+
 @item buffer-file-coding-system
 @xref{Encoding and I/O}.
 
@@ -78,6 +81,9 @@ use, but we don't try to list them all here.
 @item ctl-arrow
 @xref{Usual Display}.
 
+@item cursor-type
+@xref{Window Frame Parameters}.
+
 @item comment-column
 @xref{Comments,,, emacs, The GNU Emacs Manual}.
 
@@ -90,11 +96,19 @@ use, but we don't try to list them all here.
 @item desktop-save-buffer
 @xref{Desktop Save Mode}.
 
+@ignore
+@item direction-reversed
+Does not work yet.
+@end ignore
+
 @item enable-multibyte-characters
 @ref{Non-ASCII Characters}.
 
 @item fill-column
 @xref{Auto Filling}.
+
+@item fringes-outside-margins
+@xref{Fringes}.
 
 @item goal-column
 @xref{Moving Point,,, emacs, The GNU Emacs Manual}.
@@ -102,14 +116,24 @@ use, but we don't try to list them all here.
 @item header-line-format
 @xref{Mode Line Data}.
 
+@item indicate-buffer-boundaries
+@xref{Usual Display}.
+
 @item indicate-empty-lines
 @xref{Usual Display}.
+
+@item left-fringe-width
+@xref{Fringes}.
 
 @item left-margin
 @xref{Indentation}.
 
 @item left-margin-width
 @xref{Display Margins}.
+
+@item line-spacing
+@c Cause an error so we will fix this.
+@xref{Yet to be written}.
 
 @item local-abbrev-table
 @xref{Abbrevs}.
@@ -122,9 +146,6 @@ use, but we don't try to list them all here.
 
 @item mark-ring
 @xref{The Mark}.
-
-@item minor-modes
-@xref{Minor Modes}.
 
 @item mode-line-buffer-identification
 @xref{Mode Line Variables}.
@@ -144,20 +165,17 @@ use, but we don't try to list them all here.
 @item overwrite-mode
 @xref{Insertion}.
 
-@item paragraph-separate
-@xref{Standard Regexps}.
-
-@item paragraph-start
-@xref{Standard Regexps}.
-
 @item point-before-scroll
 Used for communication between mouse commands and scroll-bar commands.
 
-@item require-final-newline
-@xref{Insertion}.
+@item right-fringe-width
+@xref{Fringes}.
 
 @item right-margin-width
 @xref{Display Margins}.
+
+@item scroll-bar-width
+@xref{Scroll Bars}.
 
 @item scroll-down-aggressively
 @xref{Textual Scrolling}.
@@ -179,6 +197,9 @@ Used for communication between mouse commands and scroll-bar commands.
 
 @item vc-mode
 @xref{Mode Line Variables}.
+
+@item vertical-scroll-bar
+@xref{Yet to be written}.
 @end table
 
 @ignore

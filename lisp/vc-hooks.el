@@ -461,6 +461,12 @@ For registered files, the value returned is one of:
           (vc-file-setprop file 'vc-state
                            (vc-call state-heuristic file)))))
 
+(defun vc-recompute-state (file)
+  "Recompute the version control state of FILE, and return it.
+This calls the possibly expensive function vc-BACKEND-state,
+rather than the heuristic."
+  (vc-file-setprop file 'vc-state (vc-call state file)))
+
 (defsubst vc-up-to-date-p (file)
   "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
   (eq (vc-state file) 'up-to-date))

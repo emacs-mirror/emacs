@@ -1233,10 +1233,10 @@ abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
   scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
   xterm.o xselect.o sound.o: macgui.h
-mac.o: mac.c process.h sysselect.h systime.h $(config_h)
+mac.o: mac.c process.h sysselect.h blockinput.h atimer.h systime.h $(config_h)
 macfns.o: macfns.c charset.h macterm.h macgui.h frame.h window.h buffer.h \
   dispextern.h macgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
-  atimer.h systime.h epaths.h termhooks.h coding.h ccl.h systime.h $(config_h)
+  atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
 macmenu.o: macmenu.c termhooks.h frame.h window.h dispextern.h macgui.h \
   keyboard.h blockinput.h atimer.h systime.h buffer.h macterm.h $(config_h)
 macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \

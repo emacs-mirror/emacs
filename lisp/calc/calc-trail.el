@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-trail () nil)
-
 
 ;;; Trail commands.
 
@@ -176,6 +172,8 @@
 	(point-max))
        (kill-line n)))
    (calc-trail-here)))
+
+(provide 'calc-trail)
 
 ;;; arch-tag: 59b76655-d882-4aab-a3ee-b83870e530d0
 ;;; calc-trail.el ends here

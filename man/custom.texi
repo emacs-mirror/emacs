@@ -27,6 +27,8 @@ replay sequences of keys.
 @menu
 * Minor Modes::		Each minor mode is one feature you can turn on
 			  independently of any others.
+* Easy Customization::
+                        Convenient way to browse and change user options.
 * Variables::		Many Emacs commands examine Emacs variables
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
@@ -171,132 +173,28 @@ explicitly ``reactivate'' it, before each command that uses the region.
 The advantage of Transient Mark mode is that Emacs can display the
 region highlighted (currently only when using X).  @xref{Mark}.
 
-@node Variables
-@section Variables
-@cindex variable
-@cindex option, user
-@cindex user option
-
-  A @dfn{variable} is a Lisp symbol which has a value.  The symbol's
-name is also called the name of the variable.  A variable name can
-contain any characters that can appear in a file, but conventionally
-variable names consist of words separated by hyphens.  A variable can
-have a documentation string which describes what kind of value it should
-have and how the value will be used.
-
-  Lisp allows any variable to have any kind of value, but most variables
-that Emacs uses require a value of a certain type.  Often the value should
-always be a string, or should always be a number.  Sometimes we say that a
-certain feature is turned on if a variable is ``non-@code{nil},'' meaning
-that if the variable's value is @code{nil}, the feature is off, but the
-feature is on for @emph{any} other value.  The conventional value to use to
-turn on the feature---since you have to pick one particular value when you
-set the variable---is @code{t}.
-
-  Emacs uses many Lisp variables for internal record keeping, as any
-Lisp program must, but the most interesting variables for you are the
-ones that exist for the sake of customization.  Emacs does not (usually)
-change the values of these variables; instead, you set the values, and
-thereby alter and control the behavior of certain Emacs commands.  These
-variables are called @dfn{user options}.  Most user options are
-documented in this manual, and appear in the Variable Index
-(@pxref{Variable Index}).
-
-  One example of a variable which is a user option is @code{fill-column}, which
-specifies the position of the right margin (as a number of characters from
-the left margin) to be used by the fill commands (@pxref{Filling}).
-
-@menu
-* Examining::	        Examining or setting one variable's value.
-* Easy Customization::
-                        Convenient and easy customization of variables.
-* Hooks::	        Hook variables let you specify programs for parts
-		          of Emacs to run on particular occasions.
-* Locals::	        Per-buffer values of variables.
-* File Variables::      How files can specify variable values.
-@end menu
-
-@node Examining
-@subsection Examining and Setting Variables
-@cindex setting variables
-
-@table @kbd
-@item C-h v @var{var} @key{RET}
-Display the value and documentation of variable @var{var}
-(@code{describe-variable}).
-@item M-x set-variable @key{RET} @var{var} @key{RET} @var{value} @key{RET}
-Change the value of variable @var{var} to @var{value}.
-@end table
-
-  To examine the value of a single variable, use @kbd{C-h v}
-(@code{describe-variable}), which reads a variable name using the
-minibuffer, with completion.  It displays both the value and the
-documentation of the variable.  For example,
-
-@example
-C-h v fill-column @key{RET}
-@end example
-
-@noindent
-displays something like this:
-
-@smallexample
-fill-column's value is 70
-
-Documentation:
-*Column beyond which automatic line-wrapping should happen.
-Automatically becomes buffer-local when set in any fashion.
-@end smallexample
-
-@noindent
-The star at the beginning of the documentation indicates that this
-variable is a user option.  @kbd{C-h v} is not restricted to user
-options; it allows any variable name.
-
-@findex set-variable
-  The most convenient way to set a specific user option is with @kbd{M-x
-set-variable}.  This reads the variable name with the minibuffer (with
-completion), and then reads a Lisp expression for the new value using
-the minibuffer a second time.  For example,
-
-@example
-M-x set-variable @key{RET} fill-column @key{RET} 75 @key{RET}
-@end example
-
-@noindent
-sets @code{fill-column} to 75.
-
- @kbd{M-x set-variable} is limited to user option variables, but you can
-set any variable with a Lisp expression, using the function @code{setq}.
-Here is a @code{setq} expression to set @code{fill-column}:
-
-@example
-(setq fill-column 75)
-@end example
-
-  To execute an expression like this one, go to the @samp{*scratch*}
-buffer, type in the expression, and then type @kbd{C-j}.  @xref{Lisp
-Interaction}.
-
-  Setting variables, like all means of customizing Emacs except where
-otherwise stated, affects only the current Emacs session.
-
 @node Easy Customization
-@subsection Easy Customization Interface
+@section Easy Customization Interface
+
+@cindex user option
+  Emacs has many @dfn{user options} which have values that you can set
+in order to customize various commands.  Most user options are
+documented in this manual.  Each user option is actually a Lisp
+variable (@pxref{Variables}), so their names appear in the Variable
+Index (@pxref{Variable Index}).
 
 @findex customize
 @cindex customization buffer
-  A convenient way to find the user option variables that you want to
-change, and then change them, is with @kbd{M-x customize}.  This
-command creates a @dfn{customization buffer} with which you can browse
-through the Emacs user options in a logically organized structure,
-then edit and set their values.  You can also use the customization
-buffer to save settings permanently in your @file{~/.emacs} file
-(@pxref{Init File}).
+  You can browse interactively through the the user options and change
+some of them using @kbd{M-x customize}.  This command creates a
+@dfn{customization buffer}, which offers commands to navigate through
+a logically organized structure of the Emacs user options; you can
+also use it to edit and set their values, and to save settings
+permanently in your @file{~/.emacs} file (@pxref{Init File}).
 
-The appearance of the example buffers in the following is typically
-different under a window system where faces can be used to indicate the
-active fields and other features.
+  The appearance of the example buffers in this section is typically
+different under a window system, since faces are then used to indicate
+the active fields and other features.
 
 @menu
 * Groups: Customization Groups.
@@ -309,7 +207,7 @@ active fields and other features.
 @end menu
 
 @node Customization Groups
-@subsubsection Customization Groups
+@subsection Customization Groups
 @cindex customization groups
 
   For customization purposes, user options are organized into
@@ -389,7 +287,7 @@ that group and its contents, just that option, or just that face.
 This is the way to set values in it.
 
 @node Changing an Option
-@subsubsection Changing an Option
+@subsection Changing an Option
 
   Here is an example of what a user option looks like in the
 customization buffer:
@@ -411,7 +309,7 @@ of the option: in the example above, it says you have not changed the
 option yet.  The word @samp{[State]} at the beginning of this line is
 active; you can get a menu of various operations by invoking it with
 @kbd{Mouse-1} or @key{RET}.  These operations are essential for
-customizing the variable.
+customizing the user option.
 
   The line after the @samp{[State]} line displays the beginning of the
 option's documentation string.  If there are more lines of
@@ -430,7 +328,7 @@ change to say that you have edited the value:
 @end smallexample
 
 @cindex setting option value
-  Editing the value does not actually set the option variable.  To do
+  Editing the value does not actually set the option.  To do
 that, you must @dfn{set} the option.  To do this, invoke the word
 @samp{[State]} and choose @samp{Set for Current Session}.
 
@@ -523,7 +421,7 @@ editable field, use @kbd{C-o} or @kbd{C-q C-j}.
 @dfn{saving} the value changes it for future sessions as well.  To
 save the option, invoke @samp{[State]} and select the @samp{Save for
 Future Sessions} operation.  This works by writing code so as to set
-the option variable again each time you start Emacs (@pxref{Saving
+the option again, each time you start Emacs (@pxref{Saving
 Customizations}).
 
   You can also restore the option to its standard value by invoking
@@ -547,8 +445,8 @@ so that you will get the standard value in future Emacs sessions.
 
 @item Use Backup Value
 This sets the option to a previous value that was set in the
-customization buffer in this session.  If you customize a variable
-and then reset the variable, which discards the customized value,
+customization buffer in this session.  If you customize an option
+and then reset it, which discards the customized value,
 you can get the customized value back again with this operation.
 @end table
 
@@ -583,7 +481,7 @@ reset---on each of the items in the buffer that could meaningfully be
 set, saved or reset.
 
 @node Saving Customizations
-@subsubsection Saving Customizations
+@subsection Saving Customizations
 
 @vindex custom-file
   The customization buffer normally saves customizations in
@@ -615,7 +513,7 @@ saving customizations from such a session would wipe out all the other
 customizations you might have on your init file.
 
 @node Face Customization
-@subsubsection Customizing Faces
+@subsection Customizing Faces
 @cindex customizing faces
 @cindex bold font
 @cindex italic font
@@ -676,7 +574,7 @@ you don't want to change that attribute.  Type @samp{none} if you want
 to clear out the attribute.
 
 @node Specific Customization
-@subsubsection Customizing Specific Items
+@subsection Customizing Specific Items
 
   Instead of finding the options you want to change by moving down
 through the structure of groups, you can specify the particular option,
@@ -704,7 +602,7 @@ have customized but not saved.
 @end table
 
 @findex customize-option
-  If you want to alter a particular user option variable with the
+  If you want to alter a particular user option with the
 customization buffer, and you know its name, you can use the command
 @kbd{M-x customize-option} and specify the option name.  This sets up
 the customization buffer with just one option---the one that you asked
@@ -719,7 +617,7 @@ on the character after point.
 @findex customize-group
   You can also set up the customization buffer with a specific group,
 using @kbd{M-x customize-group}.  The immediate contents of the chosen
-group, including option variables, faces, and other groups, all appear
+group, including user options, faces, and other groups, all appear
 as well.  However, these subgroups' own contents start out hidden.  You
 can show their contents in the usual way, by invoking @samp{[Show]}.
 
@@ -746,6 +644,111 @@ you can use two special commands to revisit your previous changes.  Use
 @kbd{M-x customize-saved} to look at the options and faces that you have
 saved.  Use @kbd{M-x customize-customized} to look at the options and
 faces that you have set but not saved.
+
+@node Variables
+@section Variables
+@cindex variable
+@cindex option, user
+@cindex user option
+
+  A @dfn{variable} is a Lisp symbol which has a value.  The symbol's
+name is also called the name of the variable.  A variable name can
+contain any characters that can appear in a file, but conventionally
+variable names consist of words separated by hyphens.  A variable can
+have a documentation string which describes what kind of value it should
+have and how the value will be used.
+
+  Lisp allows any variable to have any kind of value, but most variables
+that Emacs uses need a value of a certain type.  Often the value should
+always be a string, or should always be a number.  Sometimes we say that a
+certain feature is turned on if a variable is ``non-@code{nil},'' meaning
+that if the variable's value is @code{nil}, the feature is off, but the
+feature is on for @emph{any} other value.  The conventional value to use to
+turn on the feature---since you have to pick one particular value when you
+set the variable---is @code{t}.
+
+  Emacs uses many Lisp variables for internal record keeping, but the
+most interesting variables for a non-programmer user are the @dfn{user
+options}, the variables that are meant for users to change.  Each user
+option that you can set with the customization buffer is, in fact, a
+Lisp variable.  Emacs does not (usually) change the values of these
+variables; instead, you set the values, and thereby alter and control
+the behavior of certain Emacs commands.  Use of the customization
+buffer is explained above; here we describe other aspects of Emacs
+variables.
+
+@menu
+* Examining::	        Examining or setting one variable's value.
+* Hooks::	        Hook variables let you specify programs for parts
+		          of Emacs to run on particular occasions.
+* Locals::	        Per-buffer values of variables.
+* File Variables::      How files can specify variable values.
+@end menu
+
+@node Examining
+@subsection Examining and Setting Variables
+@cindex setting variables
+
+@table @kbd
+@item C-h v @var{var} @key{RET}
+Display the value and documentation of variable @var{var}
+(@code{describe-variable}).
+@item M-x set-variable @key{RET} @var{var} @key{RET} @var{value} @key{RET}
+Change the value of variable @var{var} to @var{value}.
+@end table
+
+  To examine the value of a single variable, use @kbd{C-h v}
+(@code{describe-variable}), which reads a variable name using the
+minibuffer, with completion.  It displays both the value and the
+documentation of the variable.  For example,
+
+@example
+C-h v fill-column @key{RET}
+@end example
+
+@noindent
+displays something like this:
+
+@smallexample
+fill-column's value is 70
+
+Documentation:
+*Column beyond which automatic line-wrapping should happen.
+Automatically becomes buffer-local when set in any fashion.
+@end smallexample
+
+@noindent
+The star at the beginning of the documentation indicates that this
+variable is a user option.  @kbd{C-h v} is not restricted to user
+options; it allows any variable name.
+
+@findex set-variable
+  The most convenient way to set a specific user option is with @kbd{M-x
+set-variable}.  This reads the variable name with the minibuffer (with
+completion), and then reads a Lisp expression for the new value using
+the minibuffer a second time.  For example,
+
+@example
+M-x set-variable @key{RET} fill-column @key{RET} 75 @key{RET}
+@end example
+
+@noindent
+sets @code{fill-column} to 75.
+
+ @kbd{M-x set-variable} is limited to user option variables, but you can
+set any variable with a Lisp expression, using the function @code{setq}.
+Here is a @code{setq} expression to set @code{fill-column}:
+
+@example
+(setq fill-column 75)
+@end example
+
+  To execute an expression like this one, go to the @samp{*scratch*}
+buffer, type in the expression, and then type @kbd{C-j}.  @xref{Lisp
+Interaction}.
+
+  Setting variables, like all means of customizing Emacs except where
+otherwise stated, affects only the current Emacs session.
 
 @node Hooks
 @subsection Hooks
@@ -961,7 +964,8 @@ numeric values:
   You can also specify the coding system for a file in this way: just
 specify a value for the ``variable'' named @code{coding}.  The ``value''
 must be a coding system name that Emacs recognizes.  @xref{Coding
-Systems}.
+Systems}.  @w{@samp{unibyte: t}} specifies unibyte loading for a
+particular Lisp file.  @xref{Enabling Multibyte}.
 
   The @code{eval} pseudo-variable, described below, can be specified in
 the first line as well.
@@ -1022,14 +1026,15 @@ Here's an example of doing this:
 # End:
 @end example
 
-  Two ``variable names'' have special meanings in a local variables
+  Some ``variable names'' have special meanings in a local variables
 list: a value for the variable @code{mode} really sets the major mode,
 and a value for the variable @code{eval} is simply evaluated as an
-expression and the value is ignored.  @code{mode} and @code{eval} are
-not real variables; setting variables named @code{mode} and @code{eval}
-in any other context has no special meaning.  @emph{If @code{mode} is
-used to set a major mode, it should be the first ``variable'' in the
-list.}  Otherwise, the entries that precede it in the list of the local
+expression and the value is ignored.  @code{coding}, @code{unibyte},
+@code{mode} and @code{eval} are not real variables; setting variables
+named @code{coding}, @code{unibyte}, @code{mode} and @code{eval} in any
+other context has no special meaning.  @emph{If @code{mode} is used to
+set a major mode, it should be the first ``variable'' in the list.}
+Otherwise, the entries that precede it in the list of the local
 variables are likely to be ignored, since most modes kill all local
 variables as part of their initialization.
 

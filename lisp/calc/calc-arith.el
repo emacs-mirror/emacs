@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,11 +27,73 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
-(require 'calc-ext)
 
+(require 'calc-ext)
 (require 'calc-macs)
 
-(defun calc-Need-calc-arith () nil)
+;;; The following lists are not exhaustive.
+(defvar math-scalar-functions '(calcFunc-det
+				calcFunc-cnorm calcFunc-rnorm
+				calcFunc-vlen calcFunc-vcount
+				calcFunc-vsum calcFunc-vprod
+				calcFunc-vmin calcFunc-vmax))
+
+(defvar math-nonscalar-functions '(vec calcFunc-idn calcFunc-diag
+				       calcFunc-cvec calcFunc-index
+				       calcFunc-trn
+				       | calcFunc-append
+				       calcFunc-cons calcFunc-rcons
+				       calcFunc-tail calcFunc-rhead))
+
+(defvar math-scalar-if-args-functions '(+ - * / neg))
+
+(defvar math-real-functions '(calcFunc-arg
+			      calcFunc-re calcFunc-im
+			      calcFunc-floor calcFunc-ceil
+			      calcFunc-trunc calcFunc-round
+			      calcFunc-rounde calcFunc-roundu
+			      calcFunc-ffloor calcFunc-fceil
+			      calcFunc-ftrunc calcFunc-fround
+			      calcFunc-frounde calcFunc-froundu))
+
+(defvar math-positive-functions '())
+
+(defvar math-nonnegative-functions '(calcFunc-cnorm calcFunc-rnorm
+				     calcFunc-vlen calcFunc-vcount))
+
+(defvar math-real-scalar-functions '(% calcFunc-idiv calcFunc-abs
+				       calcFunc-choose calcFunc-perm
+				       calcFunc-eq calcFunc-neq
+				       calcFunc-lt calcFunc-gt
+				       calcFunc-leq calcFunc-geq
+				       calcFunc-lnot
+				       calcFunc-max calcFunc-min))
+
+(defvar math-real-if-arg-functions '(calcFunc-sin calcFunc-cos
+				     calcFunc-tan calcFunc-arctan
+				     calcFunc-sinh calcFunc-cosh
+				     calcFunc-tanh calcFunc-exp
+				     calcFunc-gamma calcFunc-fact))
+
+(defvar math-integer-functions '(calcFunc-idiv
+				 calcFunc-isqrt calcFunc-ilog
+				 calcFunc-vlen calcFunc-vcount))
+
+(defvar math-num-integer-functions '())
+
+(defvar math-rounding-functions '(calcFunc-floor
+				  calcFunc-ceil
+				  calcFunc-round calcFunc-trunc
+				  calcFunc-rounde calcFunc-roundu))
+
+(defvar math-float-rounding-functions '(calcFunc-ffloor
+					calcFunc-fceil
+					calcFunc-fround calcFunc-ftrunc
+					calcFunc-frounde calcFunc-froundu))
+
+(defvar math-integer-if-args-functions '(+ - * % neg calcFunc-abs
+					   calcFunc-min calcFunc-max
+					   calcFunc-choose calcFunc-perm))
 
 
 ;;; Arithmetic.
@@ -164,6 +225,19 @@
 ;;;       TYPES is a list of type symbols (any, int, frac, ...)
 ;;;	  RANGE is a sorted vector of intervals describing the range.
 
+(defvar math-super-types
+  '((int numint rat real number)
+    (numint real number)
+    (frac rat real number)
+    (rat real number)
+    (float real number)
+    (real number)
+    (number)
+    (scalar)
+    (matrix vector)
+    (vector)
+    (const)))
+
 (defun math-setup-declarations ()
   (or (eq math-decls-cache-tag (calc-var-value 'var-Decls))
       (let ((p (calc-var-value 'var-Decls))
@@ -213,19 +287,6 @@
 					    math-decls-cache)))))
 		      (error nil)))))
 	(setq math-decls-all (assq 'var-All math-decls-cache)))))
-
-(defvar math-super-types
-  '((int numint rat real number)
-    (numint real number)
-    (frac rat real number)
-    (rat real number)
-    (float real number)
-    (real number)
-    (number)
-    (scalar)
-    (matrix vector)
-    (vector)
-    (const)))
 
 (defun math-known-scalarp (a &optional assume-scalar)
   (math-setup-declarations)
@@ -326,9 +387,12 @@
 	       ((Math-negp a) 1)
 	       ((Math-zerop a) 2)
 	       ((eq (car a) 'intv)
-		(cond ((Math-zerop (nth 2 a)) 6)
-		      ((Math-zerop (nth 3 a)) 3)
-		      (t 7)))
+		(cond 
+                 ((math-known-posp (nth 2 a)) 4)
+                 ((math-known-negp (nth 3 a)) 1)
+                 ((Math-zerop (nth 2 a)) 6)
+                 ((Math-zerop (nth 3 a)) 3)
+                 (t 7)))
 	       ((eq (car a) 'sdev)
 		(if (math-known-realp (nth 1 a)) 7 15))
 	       (t 8)))
@@ -817,71 +881,6 @@
   (if (math-known-scalarp a) 1
     (if (math-known-matrixp a) 0
       (math-reject-arg a 'objectp 'quiet))))
-
-
-;;; The following lists are not exhaustive.
-(defvar math-scalar-functions '(calcFunc-det
-				calcFunc-cnorm calcFunc-rnorm
-				calcFunc-vlen calcFunc-vcount
-				calcFunc-vsum calcFunc-vprod
-				calcFunc-vmin calcFunc-vmax))
-
-(defvar math-nonscalar-functions '(vec calcFunc-idn calcFunc-diag
-				       calcFunc-cvec calcFunc-index
-				       calcFunc-trn
-				       | calcFunc-append
-				       calcFunc-cons calcFunc-rcons
-				       calcFunc-tail calcFunc-rhead))
-
-(defvar math-scalar-if-args-functions '(+ - * / neg))
-
-(defvar math-real-functions '(calcFunc-arg
-			      calcFunc-re calcFunc-im
-			      calcFunc-floor calcFunc-ceil
-			      calcFunc-trunc calcFunc-round
-			      calcFunc-rounde calcFunc-roundu
-			      calcFunc-ffloor calcFunc-fceil
-			      calcFunc-ftrunc calcFunc-fround
-			      calcFunc-frounde calcFunc-froundu))
-
-(defvar math-positive-functions '())
-
-(defvar math-nonnegative-functions '(calcFunc-cnorm calcFunc-rnorm
-				     calcFunc-vlen calcFunc-vcount))
-
-(defvar math-real-scalar-functions '(% calcFunc-idiv calcFunc-abs
-				       calcFunc-choose calcFunc-perm
-				       calcFunc-eq calcFunc-neq
-				       calcFunc-lt calcFunc-gt
-				       calcFunc-leq calcFunc-geq
-				       calcFunc-lnot
-				       calcFunc-max calcFunc-min))
-
-(defvar math-real-if-arg-functions '(calcFunc-sin calcFunc-cos
-				     calcFunc-tan calcFunc-arctan
-				     calcFunc-sinh calcFunc-cosh
-				     calcFunc-tanh calcFunc-exp
-				     calcFunc-gamma calcFunc-fact))
-
-(defvar math-integer-functions '(calcFunc-idiv
-				 calcFunc-isqrt calcFunc-ilog
-				 calcFunc-vlen calcFunc-vcount))
-
-(defvar math-num-integer-functions '())
-
-(defvar math-rounding-functions '(calcFunc-floor
-				  calcFunc-ceil
-				  calcFunc-round calcFunc-trunc
-				  calcFunc-rounde calcFunc-roundu))
-
-(defvar math-float-rounding-functions '(calcFunc-ffloor
-					calcFunc-fceil
-					calcFunc-fround calcFunc-ftrunc
-					calcFunc-frounde calcFunc-froundu))
-
-(defvar math-integer-if-args-functions '(+ - * % neg calcFunc-abs
-					   calcFunc-min calcFunc-max
-					   calcFunc-choose calcFunc-perm))
 
 
 ;;;; Arithmetic.
@@ -1742,23 +1741,35 @@
   (math-normalize (list '^ a b)))
 
 (defun math-pow-of-zero (a b)
-  (if (Math-zerop b)
-      (if calc-infinite-mode
-	  '(var nan var-nan)
-	(math-reject-arg (list '^ a b) "*Indeterminate form"))
-    (if (math-floatp b) (setq a (math-float a)))
-    (if (math-posp b)
-	a
-      (if (math-negp b)
-	  (math-div 1 a)
-	(if (math-infinitep b)
-	    '(var nan var-nan)
-	  (if (and (eq (car b) 'intv) (math-intv-constp b)
-		   calc-infinite-mode)
-	      '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
-	    (if (math-objectp b)
-		(list '^ a b)
-	      a)))))))
+  "Raise A to the power of B, where A is a form of zero."
+  (if (math-floatp b) (setq a (math-float a)))
+  (cond
+   ;; 0^0 = 1
+   ((eq b 0)
+    1)
+   ;; 0^0.0, etc., are undetermined
+   ((Math-zerop b)
+    (if calc-infinite-mode
+        '(var nan var-nan)
+      (math-reject-arg (list '^ a b) "*Indeterminate form")))
+   ;; 0^positive = 0
+   ((math-known-posp b)
+    a)
+   ;; 0^negative is undefined (let math-div handle it)
+   ((math-known-negp b)
+    (math-div 1 a))
+   ;; 0^infinity is undefined
+   ((math-infinitep b)
+    '(var nan var-nan))
+   ;; Some intervals
+   ((and (eq (car b) 'intv)
+         calc-infinite-mode
+         (math-negp (nth 2 b))
+         (math-posp (nth 3 b)))
+    '(intv 3 (neg (var inf var-inf)) (var inf var-inf)))
+   ;; If none of the above, leave it alone.
+   (t
+    (list '^ a b))))
 
 (defun math-pow-zero (a b)
   (if (eq (car-safe a) 'mod)
@@ -2185,6 +2196,10 @@
 
 (defalias 'calcFunc-float 'math-float)
 
+;; The variable math-trunc-prec is local to math-trunc in calc-misc.el, 
+;; but used by math-trunc-fancy which is called by math-trunc.
+(defvar math-trunc-prec)
+
 (defun math-trunc-fancy (a)
   (cond ((eq (car a) 'frac) (math-quotient (nth 1 a) (nth 2 a)))
 	((eq (car a) 'cplx) (math-trunc (nth 1 a)))
@@ -2214,7 +2229,7 @@
 			   (math-trunc (nth 3 a)))))
 	((math-provably-integerp a) a)
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-trunc x prec))) a))
+	 (math-map-vec (function (lambda (x) (math-trunc x math-trunc-prec))) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2251,6 +2266,10 @@
       a
     (math-float (math-trunc a prec))))
 
+;; The variable math-floor-prec is local to math-floor in calc-misc.el,
+;; but used by math-floor-fancy which is called by math-floor.
+(defvar math-floor-prec)
+
 (defun math-floor-fancy (a)
   (cond ((math-provably-integerp a) a)
 	((eq (car a) 'hms)
@@ -2273,7 +2292,7 @@
 			     (math-add (math-floor (nth 3 a)) -1)
 			   (math-floor (nth 3 a)))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-floor x prec))) a))
+	 (math-map-vec (function (lambda (x) (math-floor x math-floor-prec))) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2629,6 +2648,11 @@
 (defvar math-combine-prod-e '(var e var-e))
 
 ;;; The following is expanded out four ways for speed.
+
+;; math-unit-prefixes is defined in calc-units.el,
+;; but used here.
+(defvar math-unit-prefixes)
+
 (defun math-combine-prod (a b inva invb scalar-okay)
   (cond
    ((or (and inva (Math-zerop a))
@@ -2761,23 +2785,28 @@
 	  (math-div a b)
 	(math-mul a b)))))
 
+;; The variable math-com-bterms is local to math-commutative-equal,
+;; but is used by math-commutative collect, which is called by
+;; math-commutative-equal.
+(defvar math-com-bterms)
+
 (defun math-commutative-equal (a b)
   (if (memq (car-safe a) '(+ -))
       (and (memq (car-safe b) '(+ -))
-	   (let ((bterms nil) aterms p)
+	   (let ((math-com-bterms nil) aterms p)
 	     (math-commutative-collect b nil)
-	     (setq aterms bterms bterms nil)
+	     (setq aterms math-com-bterms math-com-bterms nil)
 	     (math-commutative-collect a nil)
-	     (and (= (length aterms) (length bterms))
+	     (and (= (length aterms) (length math-com-bterms))
 		  (progn
 		    (while (and aterms
 				(progn
-				  (setq p bterms)
+				  (setq p math-com-bterms)
 				  (while (and p (not (equal (car aterms)
 							    (car p))))
 				    (setq p (cdr p)))
 				  p))
-		      (setq bterms (delq (car p) bterms)
+		      (setq math-com-bterms (delq (car p) math-com-bterms)
 			    aterms (cdr aterms)))
 		    (not aterms)))))
     (equal a b)))
@@ -2791,7 +2820,9 @@
 	(progn
 	  (math-commutative-collect (nth 1 b) neg)
 	  (math-commutative-collect (nth 2 b) (not neg)))
-      (setq bterms (cons (if neg (math-neg b) b) bterms)))))
+      (setq math-com-bterms (cons (if neg (math-neg b) b) math-com-bterms)))))
+
+(provide 'calc-arith)
 
 ;;; arch-tag: 6c396b5b-14c6-40ed-bb2a-7cc2e8111465
 ;;; calc-arith.el ends here

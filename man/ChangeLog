@@ -1,3 +1,81 @@
+2004-12-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Using Calc): Remove paragraph about installation.
+
+2004-12-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Use more Texinfo macros and less TeX defs.
+	Remove @refill's.
+
+2004-12-06  Richard M. Stallman  <rms@gnu.org>
+
+	* org.texi: New file.
+
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* cmdargs.texi, doclicense.texi, xresources.texi, emacs.texi:
+	* entering.texi: Rename Command Line to Emacs Invocation.
+
+	* Makefile.in (org.dvi, ../info/org): New targets.
+	(INFO_TARGETS): Add ../info/org.
+	(DVI_TARGETS): Add org.dvi.
+	(maintainer-clean): Remove the info files in the info dir.
+
+	* misc.texi (Term Mode): Correcty describe C-c.
+
+	* custom.texi (Easy Customization): Move up to section level,
+	before Variables.  Avoid using the term "variable"; say "option".
+	New initial explanation.
+	(Variables): In initial explanation, connect "variable" to the
+	already-explained "user option".
+
+	* emacs.texi (Top): Fix ref to Command Line.
+	Move reference to Easy Customization.
+
+	* xresources.texi (X Resources): Fix From link.
+
+	* doclicense.texi (GNU Free Documentation License): Fix To link.
+
+	* entering.texi (Entering Emacs): Fix xref, now to Command Line.
+
+	* cmdargs.texi (Command Line): Node renamed from Command Arguments.
+
+2004-12-03  Richard M. Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Initial Options): Clarify batch mode i/o.
+
+2004-12-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi: Several small changes in addition to the following.
+	(Keyboard Macro Ring): Describe behavior of `C-x C-k C-k' when
+	defining a keyboard macro.
+	Mention `kmacro-ring-max'.
+	(Keyboard Macro Counter): Clarify description of
+	`kmacro-insert-counter', `kmacro-set-counter',
+	`kmacro-add-counter' and `kmacro-set-format'.
+
+2004-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* custom.texi (File Variables): Add `unibyte' and make it more
+	clear that `unibyte' and `coding' are special.  Suggested by Simon
+	Krahnke <overlord@gmx.li>.
+
+	* mule.texi (Enabling Multibyte): Refer to File Variables.
+	Suggested by Simon Krahnke <overlord@gmx.li>.
+
+2004-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Rename use-old-gtk-file-dialog to
+	x-use-old-gtk-file-dialog.
+
+2004-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* idlwave.texi: Fix the setfilename directive to put the produced
+	file in ../info.
+	(Continued Statement Indentation): Resurrect Jan D.'s change from
+	2004-11-03 that was lost when a newer version of idlwave.texi was
+	imported.
+
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Fill Prefix): M-q doesn't apply fill prefix to first line.
@@ -45,6 +123,7 @@
 	(Table Misc): New nodes, documenting the Table Mode.
 
 2004-10-21  Jay Belanger  <belanger@truman.edu>
+
 	* calc.texi (Algebraic-Style Calculations): Removed a comment.
 
 2004-10-19  Jason Rumney  <jasonr@gnu.org>

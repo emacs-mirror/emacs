@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,30 +27,35 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-graph () nil)
-
 
 ;;; Graphics
 
-;;; Note that some of the following initial values also occur in calc.el.
+(defvar calc-gnuplot-name "gnuplot"
+  "*Name of GNUPLOT program, for calc-graph features.")
+
+(defvar calc-gnuplot-plot-command nil
+  "*Name of command for displaying GNUPLOT output; %s = file name to print.")
+
+(defvar calc-gnuplot-print-command "lp %s"
+  "*Name of command for printing GNUPLOT output; %s = file name to print.")
+
 (defvar calc-gnuplot-tempfile "calc")
 
-(defvar calc-gnuplot-default-device "default")
-(defvar calc-gnuplot-default-output "STDOUT")
-(defvar calc-gnuplot-print-device "postscript")
-(defvar calc-gnuplot-print-output "auto")
+(defvar calc-gnuplot-default-device)
+(defvar calc-gnuplot-default-output)
+(defvar calc-gnuplot-print-device)
+(defvar calc-gnuplot-print-output)
 (defvar calc-gnuplot-keep-outfile nil)
 (defvar calc-gnuplot-version nil)
 
 (defvar calc-gnuplot-display (getenv "DISPLAY"))
-(defvar calc-gnuplot-geometry nil)
+(defvar calc-gnuplot-geometry)
 
-(defvar calc-graph-default-resolution 15)
-(defvar calc-graph-default-resolution-3d 5)
+(defvar calc-graph-default-resolution)
+(defvar calc-graph-default-resolution-3d)
 (defvar calc-graph-default-precision 5)
 
 (defvar calc-gnuplot-buffer nil)
@@ -1472,6 +1476,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (progn
 	    (goto-char (point-max))
 	    (insert "\n"))))))
+
+(provide 'calc-graph)
 
 ;;; arch-tag: e4b06a52-c386-4d54-a2bb-7c0a0ef533c2
 ;;; calc-graph.el ends here

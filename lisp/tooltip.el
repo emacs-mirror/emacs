@@ -508,7 +508,7 @@ Value is non-nil if this function handled the tip."
 
 ;;;###autoload
 (defcustom tooltip-mode nil
-  "Toggle tooltip-mode.
+  "Non-nil if Tooltip mode is enabled.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `tooltip-mode'."
   :set (lambda (symbol value)

@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98,99,2000,01,03,2004
-      Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997, 1998,
+     1999, 2000, 2001, 2003, 2004  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -323,6 +323,7 @@ readchar (readcharfun)
       /* Interrupted reads have been observed while reading over the network */
       while (c == EOF && ferror (instream) && errno == EINTR)
 	{
+	  QUIT;
 	  clearerr (instream);
 	  c = getc (instream);
 	}
@@ -3277,7 +3278,7 @@ oblookup (obarray, ptr, size, size_byte)
   hash %= obsize;
   bucket = XVECTOR (obarray)->contents[hash];
   oblookup_last_bucket_number = hash;
-  if (XFASTINT (bucket) == 0)
+  if (EQ (bucket, make_number (0)))
     ;
   else if (!SYMBOLP (bucket))
     error ("Bad data in guts of obarray"); /* Like CADR error message */
