@@ -2713,6 +2713,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   (save-excursion
     (ediff-skip-unsuitable-frames))
   (with-output-to-temp-buffer ediff-msg-buffer
+    (ediff-with-current-buffer standard-output
+      (fundamental-mode))
     (raise-frame (selected-frame))
     (princ (ediff-version))
     (princ "\n\n")
@@ -3838,6 +3840,8 @@ Mail anyway? (y or n) ")
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (with-output-to-temp-buffer ediff-debug-buffer
+    (ediff-with-current-buffer standard-output
+      (fundamental-mode))
     (princ (format "\nCtl buffer: %S\n" ediff-control-buffer))
     (ediff-print-diff-vector (intern "ediff-difference-vector-A"))
     (ediff-print-diff-vector (intern "ediff-difference-vector-B"))
@@ -3888,18 +3892,20 @@ Mail anyway? (y or n) ")
       (setq lis1 (cdr lis1)))
     (cdr result)))
 
-(defun ediff-copy-list (list)
-  (if (consp list)
+(if (fboundp 'copy-sequence)
+    (defalias 'ediff-copy-list 'copy-sequence)
+  (defun ediff-copy-list (list)
+    (if (consp list)
       ;;;(let ((res nil))
       ;;;  (while (consp list) (push (pop list) res))
       ;;;  (prog1 (nreverse res) (setcdr res list)))
-      (let (res elt)
-	(while (consp list)
-	  (setq elt (car list)
-		res (cons elt res)
-		list (cdr list)))
-	(nreverse res))
-    (car list)))
+	(let (res elt)
+	  (while (consp list)
+	    (setq elt (car list)
+		  res (cons elt res)
+		  list (cdr list)))
+	  (nreverse res))
+      (car list))))
 
 
 ;; don't report error if version control package wasn't found
