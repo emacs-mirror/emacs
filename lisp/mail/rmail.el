@@ -76,9 +76,9 @@ It is useful to set this variable in the site customisation file.")
 
 ;;;###autoload
 (defconst rmail-primary-inbox-list nil "\
-*List of files which are inboxes for user's primary mail file ~/RMAIL.
-`nil' means the default, which is (\"/usr/spool/mail/$USER\" \"~/mbox\")
-\(the first name varies depending on the operating system,
+*List of files which are inboxes for user's primary mail file `~/RMAIL'.
+`nil' means the default, which is (\"/usr/spool/mail/$USER\")
+\(the name varies depending on the operating system,
 and the value of the environment variable MAIL overrides it).")
 
 ;; These may be altered by site-init.el to match the format of mmdf files
@@ -226,8 +226,7 @@ that file, but does not copy any new mail into the file."
 	   (null file-name-arg)
 	   (setq rmail-inbox-list
 		 (or rmail-primary-inbox-list
-		     (list "~/mbox"
-			   (or (getenv "MAIL")
+		     (list (or (getenv "MAIL")
 			       (concat rmail-spool-directory
 				       (user-original-login-name)))))))
       ;; Convert all or part to Babyl file if possible.
@@ -383,7 +382,7 @@ Instead, these commands are available:
 \\[rmail-expunge-and-save]	Expunge and save the file.
 \\[rmail-quit]       Quit Rmail: expunge, save, then switch to another buffer.
 \\[save-buffer] Save without expunging.
-\\[rmail-get-new-mail]	Move new mail from system spool directory or mbox into this file.
+\\[rmail-get-new-mail]	Move new mail from system spool directory into this file.
 \\[rmail-mail]	Mail a message (same as \\[mail-other-window]).
 \\[rmail-continue]	Continue composing outgoing message started before.
 \\[rmail-reply]	Reply to this message.  Like \\[rmail-mail] but initializes some fields.
@@ -518,8 +517,8 @@ Instead, these commands are available:
   "Move any new mail from this RMAIL file's inbox files.
 The inbox files can be specified with the file's Mail: option.  The
 variable `rmail-primary-inbox-list' specifies the inboxes for your
-primary RMAIL file if it has no Mail: option.  These are normally your
-~/mbox and your /usr/spool/mail/$USER.
+primary RMAIL file if it has no Mail: option.  By default, this is
+your /usr/spool/mail/$USER.
 
 You can also specify the file to get new mail from.  In this case, the
 file of new mail is not changed or deleted.  Noninteractively, you can
