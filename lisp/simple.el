@@ -3245,7 +3245,10 @@ specialization of overwrite-mode, entered by setting the
   "Toggle Line Number mode.
 With arg, turn Line Number mode on iff arg is positive.
 When Line Number mode is enabled, the line number appears
-in the mode line."
+in the mode line.
+
+Line numbers do not appear for very large buffers, see variable
+`line-number-display-limit'."
   (interactive "P")
   (setq line-number-mode
 	(if (null arg) (not line-number-mode)
