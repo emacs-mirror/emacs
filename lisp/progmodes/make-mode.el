@@ -18,7 +18,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.8 1993/05/06 01:30:26 rms Exp jimb $
+;; $Id: makefile.el,v 1.9 1993/06/09 11:54:21 jimb Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -169,7 +169,7 @@ not be enclosed in { } or ( ).")
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
-  "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|(\\.[chy]\\)"
+  "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|\\(\\.[chy]\\)"
   "Regex for filenames that will NOT be included in the target list.")
 
 ;;; ------------------------------------------------------------
@@ -518,7 +518,7 @@ Anywhere else just insert a dot."
   "Complete on a list of known targets, then insert target-ref at (point) ."
   (interactive
    (list
-    (pogn
+    (progn
      (makefile-pickup-targets)
      (completing-read "Refer to target: " makefile-target-table nil nil nil))))
    (if (not (zerop (length target-name)))
