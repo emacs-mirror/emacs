@@ -697,9 +697,9 @@ In the second expression, the local binding of
 
 @defvar print-length
 @cindex printing limits
-The value of this variable is the maximum number of elements of a list
-that will be printed.  If a list being printed has more than this many
-elements, it is abbreviated with an ellipsis.
+The value of this variable is the maximum number of elements of a list,
+vector or bitvector that will be printed.  If an object being printed has
+more than this many elements, it is abbreviated with an ellipsis.
 
 If the value is @code{nil} (the default), then there is no limit.
 
