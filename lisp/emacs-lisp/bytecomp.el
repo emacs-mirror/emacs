@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98.2.2 $")
+(defconst byte-compile-version "$Revision: 2.98.2.3 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -771,7 +771,11 @@ CONST2 may be evaulated multiple times."
 		"Placeholder added by `byte-compile-delay-out' not filled in.")
 	       ))
 	    (t
-	     (setq opcode (symbol-value op))
+	     (if (eq op 'byte-discardN-preserve-tos)
+		 ;; byte-discardN-preserve-tos is a psuedo op, which is actually
+		 ;; the same as byte-discardN with a modified argument
+		 (setq opcode byte-discardN)
+	       (setq opcode (symbol-value op)))
 	     (cond ((memq op byte-goto-ops)
 		    ;; goto
 		    (byte-compile-push-bytecodes opcode nil (cdr off) bytes pc)
@@ -793,9 +797,18 @@ CONST2 may be evaulated multiple times."
 		    (byte-compile-push-bytecode-const2 byte-stack-set2 off
 						       bytes pc))
 		   ((and (>= opcode byte-listN)
-			 (<= opcode byte-discardN))
+			 (< opcode byte-discardN))
 		    ;; These insns all put their operand into one extra byte.
 		    (byte-compile-push-bytecodes opcode off bytes pc))
+		   ((= opcode byte-discardN)
+		    ;; byte-discardN is wierd in that it encodes a flag in the
+		    ;; top bit of its one-byte argument.  If the argument is
+		    ;; too large to fit in 7 bits, the opcode can be repeated.
+		    (let ((flag (if (eq op 'byte-discardN-preserve-tos) #x80 0)))
+		      (while (> off #x7f)
+			(byte-compile-push-bytecodes opcode (logior #x7f flag) bytes pc)
+			(setq off (- off #x7f)))
+		      (byte-compile-push-bytecodes opcode (logior off flag) bytes pc)))
 		   ((null off)
 		    ;; opcode that doesn't use OFF
 		    (byte-compile-push-bytecodes opcode bytes pc))
@@ -2500,6 +2513,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(dolist (var byte-compile-lexical-environment)
 	  (when (byte-compile-lexvar-on-stack-p var)
 	    (setq byte-compile-depth (1+ byte-compile-depth))))
+	;; If there are args, output a tag to record the initial stack-depth for the optimizer
+	(when (> byte-compile-depth 0)
+	  (byte-compile-out-tag (byte-compile-make-tag)))
 	;; If this is the top-level of a lexically bound lambda expression,
 	;; perhaps some parameters on stack need to be copied into a heap
 	;; environment, so check for them, and do so if necessary.

@@ -1,3 +1,18 @@
+2002-08-19  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/byte-opt.el (byte-decompile-bytecode-1): Handle
+	`byte-discardN-preserve-tos' pseudo-op.
+	(byte-compile-side-effect-and-error-free-ops): Add `byte-stack-ref'.
+	(byte-compile-side-effect-free-ops): Add `byte-vec-ref'.
+	(byte-optimize-lapcode): Add some cases for stack-set/ref ops.
+	Add tracking of stack-depth.  Unfinished code to collapse
+	lexical-unbinding sequences.
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Handle
+	`byte-discardN-preserve-tos' pseudo-op.
+	(byte-compile-top-level): If there are lexical args, output a TAG
+	op to record the initial stack-depth for the optimizer.
+
 2002-08-17  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-discardN): Add byte-defop.
