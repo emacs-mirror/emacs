@@ -37,6 +37,7 @@ Display a description of what register @var{r} contains.
 
 @node RegPos
 @section Saving Positions in Registers
+@cindex saving position in a register
 
   Saving a position records a place in a buffer so that you can move
 back there later.  Moving to a saved position switches to that buffer
@@ -70,6 +71,7 @@ that were visiting files.
 
 @node RegText
 @section Saving Text in Registers
+@cindex saving text in a register
 
   When you want to insert a copy of the same piece of text several
 times, it may be inconvenient to yank it from the kill ring, since each
@@ -81,6 +83,10 @@ is to store the text in a register and later retrieve it.
 Copy region into register @var{r} (@code{copy-to-register}).
 @item C-x r i @var{r}
 Insert text from register @var{r} (@code{insert-register}).
+@item M-x append-to-register @key{RET} @var{r}
+Append region to text in register @var{r}.
+@item M-x prepend-to-register @key{RET} @var{r}
+Prepend region to text in register @var{r}.
 @end table
 
 @kindex C-x r s
@@ -92,6 +98,16 @@ the register named @var{r}.  @kbd{C-u C-x r s @var{r}}, the same
 command with a numeric argument, deletes the text from the buffer as
 well; you can think of this as ``moving'' the region text into the register.
 
+@findex append-to-register
+@findex prepend-to-register
+  @kbd{M-x append-to-register @key{RET} @var{r}} appends the copy of
+the text in the region to the text already stored in the register
+named @var{r}.  If invoked with a numeric argument, it deletes the
+region after appending it to the register.  A similar command
+@code{prepend-to-register} works the same, except that it
+@emph{prepends} the region text to the text in the register, rather
+than @emph{appending} it.
+
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
 @var{r}.  Normally it leaves point before the text and places the mark
 after, but with a numeric argument (@kbd{C-u}) it puts point after the
@@ -99,6 +115,7 @@ text and the mark before.
 
 @node RegRect
 @section Saving Rectangles in Registers
+@cindex saving rectangle in a register
 
   A register can contain a rectangle instead of linear text.  The
 rectangle is represented as a list of strings.  @xref{Rectangles}, for
@@ -125,6 +142,7 @@ as sorting a rectangle.  @xref{Sorting}.
 
 @node RegConfig
 @section Saving Window Configurations in Registers
+@cindex saving window configuration in a register
 
 @findex window-configuration-to-register
 @findex frame-configuration-to-register
@@ -151,6 +169,7 @@ instead, use @kbd{C-u C-x r j @var{r}}.
 
 @node RegNumbers
 @section Keeping Numbers in Registers
+@cindex saving number in a register
 
   There are commands to store a number in a register, to insert
 the number in the buffer in decimal, and to increment it.  These commands
@@ -177,6 +196,7 @@ numeric argument stores zero in the register.
 
 @node RegFiles
 @section Keeping File Names in Registers
+@cindex saving fuile name in a register
 
   If you visit certain file names frequently, you can visit them more
 conveniently if you put their names in registers.  Here's the Lisp code
