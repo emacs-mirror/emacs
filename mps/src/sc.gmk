@@ -1,16 +1,19 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR SunPro C
 #
-# $HopeName: MMsrc!sc.gmk(trunk.3) $
+# $HopeName: MMsrc!sc.gmk(trunk.4) $
 #
 # This file is included by platform makefiles that use the SunPro C
 # compiler.  It defines the compiler specific variables that the
 # common makefile fragment (impl.gmk.comm) requires.  See builder.sc for
 # discussion of the various flags.
 
-CC = /opt/SUNWspro/SC4.0/bin/cc
+# if cc isn't on your PATH, try looking in /opt/SUNWspro/bin and
+# /opt/SUNWspro/SC*/bin
+CC = cc
 CFLAGSCOMPILER = -v -Xc
 CFLAGSDEBUG = -g
 # Note that combining -O and -g won't work on HP-UX
+# (so what?  do we expect to use SunPro C on HP-UX? -- drj 1998-02-18)
 CFLAGSOPT = -O -g
 CFLAGSOPTNODEBUG = -O
 
