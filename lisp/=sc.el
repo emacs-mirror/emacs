@@ -119,7 +119,7 @@
 ;;
 ;; (setq sc-load-hook 'my-supercite-hook)
 
-(require 'sc-alist)
+(require 'assoc)
 
 
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
