@@ -2887,6 +2887,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		   (list 'setq var value)
 		 (list 'or (list 'boundp (list 'quote var))
 		       (list 'setq var value))))
+	   ;; Put the defined variable in this library's load-history entry
+	   ;; just as a real defvar would.
+	   (list 'setq 'current-load-list
+		 (list 'cons (list 'quote var)
+		       'current-load-list))
 	   (if string 
 	       (list 'put (list 'quote var) ''variable-documentation string))
 	   (list 'quote var)))))
