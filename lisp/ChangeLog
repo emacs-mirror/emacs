@@ -1,3 +1,8 @@
+2000-12-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* bindings.el (mode-line-mode-menu): Reverse the order
+	of define-keys so that the menu appears in alphabetical order.
+
 2000-12-07  Dave Love  <fx@gnu.org>
 
 	* jka-compr.el (jka-compr-compression-info-list): Fix :type.
