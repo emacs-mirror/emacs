@@ -313,7 +313,8 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
   (calc-slow-wrapper
    (let ((expr (calc-top-n 1))
 	 (uoldname nil)
-	 unew)
+	 unew
+         units)
      (unless (math-units-in-expr-p expr t)
        (let ((uold (or old-units
 		       (progn
@@ -409,20 +410,26 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
    (calc-enter-result 1 "rmun" (math-simplify-units
 				(math-extract-units (calc-top-n 1))))))
 
+;; The variables calc-num-units and calc-den-units are local to 
+;; calc-explain-units, but are used by calc-explain-units-rec,
+;; which is called by calc-explain-units.
+(defvar calc-num-units)
+(defvar calc-den-units)
+
 (defun calc-explain-units ()
   (interactive)
   (calc-wrapper
-   (let ((num-units nil)
-	 (den-units nil))
+   (let ((calc-num-units nil)
+	 (calc-den-units nil))
      (calc-explain-units-rec (calc-top-n 1) 1)
-     (and den-units (string-match "^[^(].* .*[^)]$" den-units)
-	  (setq den-units (concat "(" den-units ")")))
-     (if num-units
-	 (if den-units
-	     (message "%s per %s" num-units den-units)
-	   (message "%s" num-units))
-       (if den-units
-	   (message "1 per %s" den-units)
+     (and calc-den-units (string-match "^[^(].* .*[^)]$" calc-den-units)
+	  (setq calc-den-units (concat "(" calc-den-units ")")))
+     (if calc-num-units
+	 (if calc-den-units
+	     (message "%s per %s" calc-num-units calc-den-units)
+	   (message "%s" calc-num-units))
+       (if calc-den-units
+	   (message "1 per %s" calc-den-units)
 	 (message "No units in expression"))))))
 
 (defun calc-explain-units-rec (expr pow)
@@ -463,11 +470,11 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		 (setq name (concat name "^"
 				    (math-format-number (math-abs pow))))))
 	  (if (math-posp pow)
-	      (setq num-units (if num-units
-				  (concat num-units " " name)
+	      (setq calc-num-units (if calc-num-units
+				  (concat calc-num-units " " name)
 				name))
-	    (setq den-units (if den-units
-				(concat den-units " " name)
+	    (setq calc-den-units (if calc-den-units
+				(concat calc-den-units " " name)
 			      name))))
       (cond ((eq (car-safe expr) '*)
 	     (calc-explain-units-rec (nth 1 expr) pow)
@@ -615,12 +622,18 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
      (save-buffer))))
 
 
+;; The variable math-cu-unit-list is local to math-build-units-table,
+;; but is used by math-compare-unit-names, which is called (indirectly)
+;; by math-build-units-table.
+;; math-cu-unit-list is also local to math-convert-units, but is used
+;; by math-convert-units-rec, which is called by math-convert-units.
+(defvar math-cu-unit-list)
 
 (defun math-build-units-table ()
   (or math-units-table
       (let* ((combined-units (append math-additional-units
 				     math-standard-units))
-	     (unit-list (mapcar 'car combined-units))
+	     (math-cu-unit-list (mapcar 'car combined-units))
 	     tab)
 	(message "Building units table...")
 	(setq math-units-table-buffer-valid nil)
@@ -646,6 +659,12 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	(message "Building units table...done")
 	(setq math-units-table tab))))
 
+;; The variables math-fbu-base and math-fbu-entry are local to
+;; math-find-base-units, but are used by math-find-base-units-rec,
+;; which is called by math-find-base-units.
+(defvar math-fbu-base)
+(defvar math-fbu-entry)
+
 (defun math-find-base-units (entry)
   (if (eq (nth 4 entry) 'boom)
       (error "Circular definition involving unit %s" (car entry)))
@@ -667,7 +686,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	base)))
 
 (defun math-compare-unit-names (a b)
-  (memq (car b) (cdr (memq (car a) unit-list))))
+  (memq (car b) (cdr (memq (car a) math-cu-unit-list))))
 
 (defun math-find-base-units-rec (expr pow)
   (let ((u (math-check-unit-name expr)))
@@ -751,8 +770,12 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 			   (assq (intern (substring name 3))
 				 math-units-table))))))))
 
+;; The variable math-which-standard is local to math-to-standard-units,
+;; but is used by math-to-standard-rec, which is called by
+;; math-to-standard-units.
+(defvar math-which-standard)
 
-(defun math-to-standard-units (expr which-standard)
+(defun math-to-standard-units (expr math-which-standard)
   (math-to-standard-rec expr))
 
 (defun math-to-standard-rec (expr)
@@ -763,7 +786,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	    (progn
 	      (if (nth 1 u)
 		  (setq expr (math-to-standard-rec (nth 1 u)))
-		(let ((st (assq (car u) which-standard)))
+		(let ((st (assq (car u) math-which-standard)))
 		  (if st
 		      (setq expr (nth 1 st))
 		    (setq expr (list 'var (car u)
@@ -842,9 +865,14 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 						unit nil))
 			  t)))
 
+;; The variable math-fcu-u is local to math-find-compatible-unit,
+;; but is used by math-find-compatible-rec which is called by
+;; math-find-compatible-unit.
+(defvar math-fcu-u)
+
 (defun math-find-compatible-unit (expr unit)
-  (let ((u (math-check-unit-name unit)))
-    (if u
+  (let ((math-fcu-u (math-check-unit-name unit)))
+    (if math-fcu-u
 	(math-find-compatible-unit-rec expr 1))))
 
 (defun math-find-compatible-unit-rec (expr pow)
@@ -859,39 +887,47 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	 (math-find-compatible-unit-rec (nth 1 expr) (* pow (nth 2 expr))))
 	(t
 	 (let ((u2 (math-check-unit-name expr)))
-	   (if (equal (nth 4 u) (nth 4 u2))
+	   (if (equal (nth 4 math-fcu-u) (nth 4 u2))
 	       (cons expr pow))))))
 
-(defun math-convert-units (expr new-units &optional pure)
+;; The variables math-cu-new-units and math-cu-pure are local to 
+;; math-convert-units, but are used by math-convert-units-rec, 
+;; which is called by math-convert-units.
+(defvar math-cu-new-units)
+(defvar math-cu-pure)
+
+(defun math-convert-units (expr math-cu-new-units &optional math-cu-pure)
   (math-with-extra-prec 2
-    (let ((compat (and (not pure) (math-find-compatible-unit expr new-units)))
-	  (unit-list nil)
+    (let ((compat (and (not math-cu-pure) 
+                       (math-find-compatible-unit expr math-cu-new-units)))
+	  (math-cu-unit-list nil)
 	  (math-combining-units nil))
       (if compat
 	  (math-simplify-units
 	   (math-mul (math-mul (math-simplify-units
 				(math-div expr (math-pow (car compat)
 							 (cdr compat))))
-			       (math-pow new-units (cdr compat)))
+			       (math-pow math-cu-new-units (cdr compat)))
 		     (math-simplify-units
 		      (math-to-standard-units
-		       (math-pow (math-div (car compat) new-units)
+		       (math-pow (math-div (car compat) math-cu-new-units)
 				 (cdr compat))
 		       nil))))
-	(when (setq unit-list (math-decompose-units new-units))
-	  (setq new-units (nth 2 (car unit-list))))
+	(when (setq math-cu-unit-list (math-decompose-units math-cu-new-units))
+	  (setq math-cu-new-units (nth 2 (car math-cu-unit-list))))
 	(when (eq (car-safe expr) '+)
 	  (setq expr (math-simplify-units expr)))
 	(if (math-units-in-expr-p expr t)
 	    (math-convert-units-rec expr)
 	  (math-apply-units (math-to-standard-units
-			     (list '/ expr new-units) nil)
-			    new-units unit-list pure))))))
+			     (list '/ expr math-cu-new-units) nil)
+			    math-cu-new-units math-cu-unit-list math-cu-pure))))))
 
 (defun math-convert-units-rec (expr)
   (if (math-units-in-expr-p expr nil)
-      (math-apply-units (math-to-standard-units (list '/ expr new-units) nil)
-			new-units unit-list pure)
+      (math-apply-units (math-to-standard-units 
+                         (list '/ expr math-cu-new-units) nil)
+			math-cu-new-units math-cu-unit-list math-cu-pure)
     (if (Math-primp expr)
 	expr
       (cons (car expr)
@@ -1026,10 +1062,12 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		       (setcar unitp pname)
 		       math-simplify-expr)))))))
 
+(defvar math-try-cancel-units)
+
 (math-defsimplify /
   (and math-simplifying-units
        (let ((np (cdr math-simplify-expr))
-	     (try-cancel-units 0)
+	     (math-try-cancel-units 0)
 	     n nn)
 	 (setq n (if (eq (car-safe (nth 2 math-simplify-expr)) '*)
 		     (cdr (nth 2 math-simplify-expr))
@@ -1044,7 +1082,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	   (math-simplify-units-divisor (cdr n) (cdr (cdr math-simplify-expr)))
 	   (setq np (cdr (cdr n))))
 	 (math-simplify-units-divisor np (cdr (cdr math-simplify-expr)))
-	 (if (eq try-cancel-units 0)
+	 (if (eq math-try-cancel-units 0)
 	     (let* ((math-simplifying-units nil)
 		    (base (math-simplify 
                            (math-to-standard-units math-simplify-expr nil))))
@@ -1089,8 +1127,8 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		 (setq ud1 ud)
 		 (while ud1
 		   (and (eq (car (car un)) (car (car ud1)))
-			(setq try-cancel-units
-			      (+ try-cancel-units
+			(setq math-try-cancel-units
+			      (+ math-try-cancel-units
 				 (- (* (cdr (car un)) pow1)
 				    (* (cdr (car ud)) pow2)))))
 		   (setq ud1 (cdr ud1)))
