@@ -2378,22 +2378,24 @@ This command is used in the special Dired buffer created by
 	    (message "No files can be recovered from this session now")))
       (kill-buffer buffer))))
 
-(defun kill-some-buffers ()
-  "For each buffer, ask whether to kill it."
+(defun kill-some-buffers (&optional list)
+  "For each buffer in LIST, ask whether to kill it.
+LIST defaults to all existing live buffers."
   (interactive)
-  (let ((list (buffer-list)))
-    (while list
-      (let* ((buffer (car list))
-	     (name (buffer-name buffer)))
-	(and (not (string-equal name ""))
-	     (/= (aref name 0) ? )
-	     (yes-or-no-p
-	      (format "Buffer %s %s.  Kill? "
-		      name
-		      (if (buffer-modified-p buffer)
-			  "HAS BEEN EDITED" "is unmodified")))
-	     (kill-buffer buffer)))
-      (setq list (cdr list)))))
+  (if (null list)
+      (setq list (buffer-list)))
+  (while list
+    (let* ((buffer (car list))
+	   (name (buffer-name buffer)))
+      (and (not (string-equal name ""))
+	   (/= (aref name 0) ? )
+	   (yes-or-no-p
+	    (format "Buffer %s %s.  Kill? "
+		    name
+		    (if (buffer-modified-p buffer)
+			"HAS BEEN EDITED" "is unmodified")))
+	   (kill-buffer buffer)))
+    (setq list (cdr list))))
 
 (defun auto-save-mode (arg)
   "Toggle auto-saving of contents of current buffer.
