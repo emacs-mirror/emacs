@@ -203,9 +203,10 @@ Triple-clicking selects lines.
 Quad-clicking selects paragraphs.
 
 - Selecting sets the region & X primary selection, but does NOT affect
-the kill-ring.  Because the mouse handlers set the primary selection
-directly, mouse-sel sets the variables interprogram-cut-function
-and interprogram-paste-function to nil.
+the kill-ring, nor do the kill-ring function change the X selection.
+Because the mouse handlers set the primary selection directly,
+mouse-sel sets the variables interprogram-cut-function and
+interprogram-paste-function to nil.
 
 - Clicking mouse-2 inserts the contents of the primary selection at
 the mouse position (or point, if mouse-yank-at-point is non-nil).
