@@ -1,6 +1,6 @@
 2001-03-06  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/quail.el (quail-title): Add autoload cooky.
+	* international/quail.el (quail-title): Add autoload cookie.
 
 2001-03-05  Dave Love  <fx@gnu.org>
 
