@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:compile(trunk.24) $
+# $HopeName: MMQA_harness!script:compile(trunk.25) $
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.
@@ -70,7 +70,7 @@ sub compile_and_link {
 
  $hashdefs = ""; 
  foreach (keys %parmdefs) {
-  $hashdefs .= $cc_def.$_.$cc_defeq.$parmdefs{$_}." ";
+  $hashdefs .= &$quotestring($cc_def.$_.$cc_defeq.$parmdefs{$_})." ";
  }
  chop $hashdefs;
 
