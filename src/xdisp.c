@@ -66,6 +66,10 @@ Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
 
+/* Non-nil means don't actually do any redisplay.  */
+
+Lisp_Object Vinhibit_redisplay, Qinhibit_redisplay;
+
 /* Nonzero means print newline to stdout before next minibuffer message.  */
 
 int noninteractive_need_newline;
@@ -1035,6 +1039,9 @@ redisplay_internal (preserve_echo_area)
   if (popup_activated ())
     return;
 #endif
+
+  if (! NILP (Vinhibit_redisplay))
+    return;
 
  retry:
 
@@ -5400,6 +5407,9 @@ invisible_ellipsis_p (propval, list)
 void
 syms_of_xdisp ()
 {
+  staticpro (&Qinhibit_redisplay);
+  Qinhibit_redisplay = intern ("inhibit-redisplay");
+
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
 
@@ -5422,6 +5432,11 @@ syms_of_xdisp ()
   staticpro (&last_arrow_string);
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
+
+  DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,
+    "Non-nil means don't actually do any redisplay.\n\
+This is used for internal purposes.");
+  Vinhibit_redisplay = Qnil;
 
   DEFVAR_LISP ("global-mode-string", &Vglobal_mode_string,
     "String (or mode line construct) included (normally) in `mode-line-format'.");
