@@ -608,7 +608,6 @@ current_column_1 ()
 	    goto endloop;
 	  if (c == '\t')
 	    {
-	      int prev_col = col;
 	      col += tab_width;
 	      col = col / tab_width * tab_width;
 	    }
