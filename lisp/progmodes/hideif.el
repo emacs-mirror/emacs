@@ -67,7 +67,7 @@
 ;; following example:
 ;;
 ;; (setq hide-ifdef-mode-hook
-;;      '(lambda ()
+;;      (lambda ()
 ;;	 (if (not hide-ifdef-define-alist)
 ;;	     (setq hide-ifdef-define-alist
 ;;		  '((list1 ONE TWO)
@@ -1044,8 +1044,8 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (defun hif-compress-define-list (env)
   "Compress the define list ENV into a list of defined symbols only."
-  (let ((defs (mapcar '(lambda (arg)
-			 (if (hif-lookup (car arg)) (car arg)))
+  (let ((defs (mapcar (lambda (arg)
+			(if (hif-lookup (car arg)) (car arg)))
 		      env))
 	(new-defs nil))
     (while defs
@@ -1067,7 +1067,7 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
   (let ((define-list (assoc name hide-ifdef-define-alist)))
     (if define-list
 	(setq hide-ifdef-env
-	      (mapcar '(lambda (arg) (cons arg t))
+	      (mapcar (lambda (arg) (cons arg t))
 		      (cdr define-list)))
       (error "No define list for %s" name))
     (if hide-ifdef-hiding (hide-ifdefs))))
