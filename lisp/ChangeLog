@@ -1,5 +1,7 @@
 2001-08-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/animate.el (animate-birthday-present): Re-insert.
+
 	* toolbar/tool-bar.el (tool-bar-add-item-from-menu): Handle
 	old-style menu definitions.
 
