@@ -3827,7 +3827,8 @@ do_auto_save_unwind (desc)  /* used as unwind-protect function */
      Lisp_Object desc;
 {
   auto_saving = 0;
-  close (XINT (desc));
+  if (XINT (desc) >= 0)
+    close (XINT (desc));
   return Qnil;
 }
 
@@ -3887,8 +3888,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   
   /* Arrange to close that file whether or not we get an error.
      Also reset auto_saving to 0.  */
-  if (listdesc >= 0)
-    record_unwind_protect (do_auto_save_unwind, make_number (listdesc));
+  record_unwind_protect (do_auto_save_unwind, make_number (listdesc));
 
   auto_saving = 1;
 
