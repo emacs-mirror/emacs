@@ -2182,9 +2182,9 @@ See also `file-exists-p' and `file-attributes'.")
 }
 
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
-  "If file FILENAME is the name of a symbolic link\n\
-returns the name of the file to which it is linked.\n\
-Otherwise returns NIL.")
+  "Return non-nil if file FILENAME is the name of a symbolic link.\n\
+The value is the name of the file to which it is linked.\n\
+Otherwise returns nil.")
   (filename)
      Lisp_Object filename;
 {
