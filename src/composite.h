@@ -2,6 +2,9 @@
    Copyright (C) 1999 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
    Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -25,20 +28,18 @@ Boston, MA 02111-1307, USA.  */
 
 /* Methods to display a sequence of components a composition.  */
 enum composition_method {
-  /* The first two are actually not methods, but used in code
-     conversion to specify the current composing status.  */
-  COMPOSITION_DISABLED,		/* Never handle composition data */
-  COMPOSITION_NO,		/* Not processing composition data */
   /* Compose relatively without alternate characters.  */
   COMPOSITION_RELATIVE,
-  /* Compose by specified composition rule.  This is not used in Emacs
-     21 but we need it to decode files saved in the older versions of
-     Emacs.  */
+  /* Compose by specified composition rules.  This is not used in
+     Emacs 21 but we need it to decode files saved in the older
+     versions of Emacs.  */
   COMPOSITION_WITH_RULE,
   /* Compose relatively with alternate characters.  */
   COMPOSITION_WITH_ALTCHARS,
-  /* Compose by specified composition rule with alternate characters.  */
-  COMPOSITION_WITH_RULE_ALTCHARS
+  /* Compose by specified composition rules with alternate characters.  */
+  COMPOSITION_WITH_RULE_ALTCHARS,
+  /* This is not a method.  */
+  COMPOSITION_NO
 };
 
 /* Maximum number of compoments a single composition can have.  */
