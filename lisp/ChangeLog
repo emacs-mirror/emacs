@@ -1,5 +1,7 @@
 2001-01-10  Kenichi Handa  <handa@etl.go.jp>
 
+	* font-lock.el (c-font-lock-extra-types): Add "Lisp_Object".
+
 	* international/mule-conf.el (latin-extra-code-table): Set to t
 	for \223 and \224.
 
