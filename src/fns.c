@@ -2192,8 +2192,8 @@ internal_equal (o1, o2, depth)
 
     case Lisp_Vectorlike:
       {
-	register int i, size;
-	size = XVECTOR (o1)->size;
+	register int i;
+	EMACS_INT size = XVECTOR (o1)->size;
 	/* Pseudovectors have the type encoded in the size field, so this test
 	   actually checks that the objects have the same type as well as the
 	   same size.  */
@@ -2315,8 +2315,15 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
       charval = (! NILP (item) ? -1 : 0);
-      for (index = 0; index < size_in_chars; index++)
+      for (index = 0; index < size_in_chars - 1; index++)
 	p[index] = charval;
+      if (index < size_in_chars)
+	{
+	  /* Mask out bits beyond the vector size.  */
+	  if (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)
+	    charval &= (1 << (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)) - 1;
+	  p[index] = charval;
+	}
     }
   else
     {
