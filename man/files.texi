@@ -3299,6 +3299,10 @@ Clear the cache; that is, remove all file names from it.
 @node File Conveniences
 @section Convenience Features for Finding Files
 
+  In this section, we introduce some convenient facilities for finding
+recently-opened files, reading file names from a buffer, and viewing
+image files.
+
 @findex recentf-mode
 @vindex recentf-mode
 @findex recentf-save-list
@@ -3309,24 +3313,21 @@ opened files.  @kbd{M-x recentf-save-list} saves the current
 @code{recent-file-list} to a file, and @kbd{M-x recentf-edit-list}
 edits it.
 
-@findex auto-image-file-mode
-@findex mode, auto-image-file
-@cindex images, visiting
-@cindex visiting image files
-@vindex image-file-name-regexps
-@vindex image-file-name-extensions
-  When Auto-image-file minor mode is enabled, visiting an image file
-displays it as an image, not as text.  Likewise, inserting an image
-file into a buffer inserts it as an image.  This works only when Emacs
-can display the relevant image type.  The variables
-@code{image-file-name-extensions} or @code{image-file-name-regexps}
-control which file names are recognized as containing images.
-
   The @kbd{M-x ffap} command generalizes @code{find-file} with more
 powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
+
+@findex thumbs-mode
+@findex mode, thumbs
+  Thumbs mode is a major mode for viewing directories containing many
+image files.  To use it, type @kbd{M-x thumbs} and specify the
+directory to view.  The images in that directory will be displayed in
+a @samp{Thumbs} buffer as @dfn{thumbnails}; type @kbd{RET} on a
+thumbnail to view the full-size image.  Thumbs mode requires the
+@file{convert} program, which is part of the ImageMagick software
+package.
 
 @ignore
    arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
