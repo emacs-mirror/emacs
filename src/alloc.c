@@ -1691,6 +1691,7 @@ mark_object (objptr)
 	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 
 	  mark_object (&ptr->name);
+	  mark_object (&ptr->icon_name);
 	  mark_object (&ptr->focus_frame);
 	  mark_object (&ptr->selected_window);
 	  mark_object (&ptr->minibuffer_window);
