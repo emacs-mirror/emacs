@@ -2294,7 +2294,7 @@ Return an alist of (TYPE MATCH)."
 
 (defun widget-radio-button-notify (widget child &optional event)
   ;; Tell daddy.
-  (widget-apply (widget-get widget :parent) :action event))
+  (widget-apply (widget-get widget :parent) :action widget event))
 
 ;;; The `radio-button-choice' Widget.
 

@@ -1,5 +1,7 @@
 2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mm-view.el (mm-insert-inline): Make it work in read-only buffer.
+
 	* gnus-win.el (gnus-all-windows-visible-p): Don't consider
 	non-visible windows.
 

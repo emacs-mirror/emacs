@@ -1220,7 +1220,6 @@ print (obj, printcharfun, escapeflag)
      register Lisp_Object printcharfun;
      int escapeflag;
 {
-  print_depth = 0;
   old_backquote_output = 0;
 
   /* Reset print_number_index and Vprint_number_table only when
@@ -1240,6 +1239,7 @@ print (obj, printcharfun, escapeflag)
       start = index = print_number_index;
       /* Construct Vprint_number_table.
 	 This increments print_number_index for the objects added.  */
+      print_depth = 0;
       print_preprocess (obj);
 
       /* Remove unnecessary objects, which appear only once in OBJ;
@@ -1264,6 +1264,7 @@ print (obj, printcharfun, escapeflag)
       print_number_index = index;
     }
 
+  print_depth = 0;
   print_object (obj, printcharfun, escapeflag);
 }
 

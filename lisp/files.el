@@ -293,7 +293,7 @@ Normally auto-save files are written under other names."
   :group 'auto-save)
 
 (defcustom auto-save-file-name-transforms
-  `(("\\`/[^/]*:\\(.+/\\)*\\(.*\\)"
+  `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'"
      ;; Don't put "\\2" inside expand-file-name, since it will be
      ;; transformed to "/2" on DOS/Windows.
      ,(concat temporary-file-directory "\\2") t))

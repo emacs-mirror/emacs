@@ -229,6 +229,14 @@
     (modify-category-entry generic-char ?|)
     (setq cns-list (cdr cns-list))))
 
+(let ((parens "$(G!>!?!@!A!B!C!D!E!F!G!H!I!J!K!L!M!N!O!P!Q!R!S!T!U!V!W!X!Y!Z![!\!]!^!_!`!a!b!c(B")
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
+
 ;; Cyrillic character set (ISO-8859-5)
 
 (modify-category-entry (make-char 'cyrillic-iso8859-5) ?y)
@@ -584,16 +592,13 @@
   (while chars
     (modify-syntax-entry (car chars) "w")
     (setq chars (cdr chars))))
-(modify-syntax-entry ?\$B!J(B "($B!K(B")
-(modify-syntax-entry ?\$B!N(B "($B!O(B")
-(modify-syntax-entry ?\$B!P(B "($B!Q(B")
-(modify-syntax-entry ?\$B!V(B "($B!W(B")
-(modify-syntax-entry ?\$B!X(B "($B!Y(B")
-(modify-syntax-entry ?\$B!K(B ")$B!J(B")
-(modify-syntax-entry ?\$B!O(B ")$B!N(B")
-(modify-syntax-entry ?\$B!Q(B ")$B!P(B")
-(modify-syntax-entry ?\$B!W(B ")$B!V(B")
-(modify-syntax-entry ?\$B!Y(B ")$B!X(B")
+(let ((parens "$B!J!K!L!M!N!O!P!Q!R!S!T!U!V!W!X!Y!Z![(B" )
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
 
 (modify-category-entry (make-char 'japanese-jisx0208 35) ?A)
 (modify-category-entry (make-char 'japanese-jisx0208 36) ?H)
@@ -651,6 +656,14 @@
 (modify-category-entry (make-char 'korean-ksc5601 42) ?H)
 (modify-category-entry (make-char 'korean-ksc5601 43) ?K)
 (modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
+
+(let ((parens "$(C!2!3!4!5!6!7!8!9!:!;!<!=(B" )
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
 
 ;; Latin character set (latin-1,2,3,4,5,8,9)
 

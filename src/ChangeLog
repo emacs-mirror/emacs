@@ -1,3 +1,47 @@
+2004-05-19  Jim Blandy  <jimb@redhat.com>
+
+	Add support for new '\_<' and '\_>' regexp operators, matching the
+	beginning and ends of symbols.
+	* regex.c (enum syntaxcode): Add Ssymbol.
+	(init_syntax_once): Set the syntax for '_' to Ssymbol, not Sword.
+	(re_opcode_t): New opcodes `symbeg' and `symend'.
+	(print_partial_compiled_pattern): Print the new opcodes properly.
+	(regex_compile): Parse the new operators.
+	(analyse_first): Skip symbeg and symend (they match only the empty string).
+	(mutually_exclusive_p): `symend' is mutually exclusive with \s_ and
+	\sw; `symbeg' is mutually exclusive with \S_ and \Sw.
+	(re_match_2_internal): Match symbeg and symend.
+
+	* search.c (trivial_regexp_p): \_ is no longer a trivial regexp.
+
+2004-05-19  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (xsymbol): Fix last change.
+
+2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit (xprintstr): New fun.
+	(xstring, xprintsym): Use it.
+
+	* w32proc.c (create_child): Use INTMASK.
+
+	* alloc.c (Fgarbage_collect): Do all the marking before flushing
+	unmarked elements of the undo list.
+
+2004-05-18  David Ponce  <david@dponce.com>
+
+	* print.c (print): Reset print_depth before to call print_object.
+
+2004-05-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c: Prefix RIF functions with w32con_ to avoid
+	namespace clash with functions in term.c and w32term.c.
+
+	* w32menu.c (add_menu_item, w32_menu_display_help)
+	[USE_LISP_UNION_TYPE]: Cast from Lisp_Object using i member.
+
+	* w32term.h (display_x_get_resource, vga_stdcolor_name): Add prototype.
+
 2004-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.h (DECL_ALIGN): Remove restriction on MS-DOS systems.
@@ -97,12 +141,16 @@
 	section to frame.c section.
 	(Fxw_display_color_p, Fx_file_dialog): Declare if
 	HAVE_WINDOW_SYSTEM defined.
+
 	* macfns.c (Fx_create_frame): Fix int/Lisp_Object mixup.
+
 	* macmenu.c (set_frame_menubar): Use NILP to test a lisp value.
+
 	* macterm.c (mac_get_emulated_btn, mac_event_to_emacs_modifiers)
 	(mac_get_mouse_btn): Use NILP and EQ to test/compare lisp values.
 	(XTread_socket): Fix int/Lisp_Object mixup.
 	(mac_check_for_quit_char): Fix pointer/Lisp_Object mixup.
+
 	* macterm.h (struct frame, struct face, struct image)
 	(display_x_get_resource, Fx_display_color_p)
 	(Fx_display_grayscale_p, Fx_display_planes, x_free_gcs):
@@ -246,6 +294,7 @@
 	around call to ReceiveEvent to avoid certain crashes.
 
 2004-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
 	* macterm.c (mac_draw_line_to_pixmap, XCreatePixmapFromBitmapData)
 	(mac_fill_rectangle_to_pixmap, mac_draw_rectangle_to_pixmap)
 	(mac_copy_area_to_pixmap, mac_copy_area_with_mask_to_pixmap):

@@ -3396,15 +3396,14 @@ Setting this variable automatically makes it local to the current buffer.")
 ;; (Actually some major modes use a different auto-fill function,
 ;; but this one is the default one.)
 (defun do-auto-fill ()
-  (let (fc justify bol give-up
+  (let (fc justify give-up
 	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
 	    (null (setq fc (current-fill-column)))
 	    (and (eq justify 'left)
 		 (<= (current-column) fc))
-	    (save-excursion (beginning-of-line)
-			    (setq bol (point))
-			    (and auto-fill-inhibit-regexp
+	    (and auto-fill-inhibit-regexp
+		 (save-excursion (beginning-of-line)
 				 (looking-at auto-fill-inhibit-regexp))))
 	nil ;; Auto-filling not required
       (if (memq justify '(full center right))
@@ -3427,16 +3426,15 @@ Setting this variable automatically makes it local to the current buffer.")
 	;; Determine where to split the line.
 	(let* (after-prefix
 	       (fill-point
-		(let ((opoint (point)))
-		  (save-excursion
-		    (beginning-of-line)
-		    (setq after-prefix (point))
-		    (and fill-prefix
-			 (looking-at (regexp-quote fill-prefix))
-			 (setq after-prefix (match-end 0)))
-		    (move-to-column (1+ fc))
-		    (fill-move-to-break-point after-prefix)
-		    (point)))))
+		(save-excursion
+		  (beginning-of-line)
+		  (setq after-prefix (point))
+		  (and fill-prefix
+		       (looking-at (regexp-quote fill-prefix))
+		       (setq after-prefix (match-end 0)))
+		  (move-to-column (1+ fc))
+		  (fill-move-to-break-point after-prefix)
+		  (point))))
 
 	  ;; See whether the place we found is any good.
 	  (if (save-excursion
@@ -4269,16 +4267,15 @@ of the differing parts is, by contrast, slightly highlighted."
   :group 'completion)
 
 (defun completion-setup-function ()
-  (save-excursion
-    (let ((mainbuf (current-buffer))
-	  (mbuf-contents (minibuffer-contents)))
-      ;; When reading a file name in the minibuffer,
-      ;; set default-directory in the minibuffer
-      ;; so it will get copied into the completion list buffer.
-      (if minibuffer-completing-file-name
-	  (with-current-buffer mainbuf
-	    (setq default-directory (file-name-directory mbuf-contents))))
-      (set-buffer standard-output)
+  (let ((mainbuf (current-buffer))
+	(mbuf-contents (minibuffer-contents)))
+    ;; When reading a file name in the minibuffer,
+    ;; set default-directory in the minibuffer
+    ;; so it will get copied into the completion list buffer.
+    (if minibuffer-completing-file-name
+	(with-current-buffer mainbuf
+	  (setq default-directory (file-name-directory mbuf-contents))))
+    (with-current-buffer standard-output
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
       (setq completion-reference-buffer mainbuf)
@@ -4287,24 +4284,23 @@ of the differing parts is, by contrast, slightly highlighted."
 	  ;; use the number of chars before the start of the
 	  ;; last file name component.
 	  (setq completion-base-size
-		(save-excursion
-		  (set-buffer mainbuf)
-		  (goto-char (point-max))
-		  (skip-chars-backward "^/")
-		  (- (point) (minibuffer-prompt-end))))
+		(with-current-buffer mainbuf
+		  (save-excursion
+		    (goto-char (point-max))
+		    (skip-chars-backward "^/")
+		    (- (point) (minibuffer-prompt-end)))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
-	(save-match-data
-	  (if (minibufferp mainbuf)
-	      (setq completion-base-size 0))))
-       ;; Put faces on first uncommon characters and common parts.
+	(if (minibufferp mainbuf)
+	    (setq completion-base-size 0)))
+      ;; Put faces on first uncommon characters and common parts.
       (when completion-base-size
-	(let* ((common-string-length (length
-				      (substring mbuf-contents
-						 completion-base-size)))
+	(let* ((common-string-length
+		(- (length mbuf-contents) completion-base-size))
 	       (element-start (next-single-property-change
 			       (point-min)
 			       'mouse-face))
-	       (element-common-end (+ element-start common-string-length))
+	       (element-common-end
+		(+ (or element-start nil) common-string-length))
 	       (maxp (point-max)))
 	  (while (and element-start (< element-common-end maxp))
 	    (when (and (get-char-property element-start 'mouse-face)
@@ -4768,5 +4764,5 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 
 (provide 'simple)
 
-;;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
+;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here
