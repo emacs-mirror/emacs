@@ -317,7 +317,7 @@ Default value, nil, means edit the string instead."
     (define-key map "\C-^" 'isearch-toggle-specified-input-method)
 
     ;; People expect to be able to paste with the mouse.
-    (define-key map [mouse-2] #'isearch-mouse-yank)
+    (define-key map [mouse-2] #'isearch-mouse-2)
     (define-key map [down-mouse-2] nil)
 
     ;; Some bindings you may want to put in your isearch-mode-hook.
@@ -1046,16 +1046,26 @@ If no previous match was done, just beep."
   (interactive)
   (isearch-yank-string (x-get-selection)))
 
-(defun isearch-mouse-yank (click arg)
-  "Yank with the mouse in Isearch mode.
+
+(defun isearch-mouse-2 (click arg)
+  "Handle mouse-2 in Isearch mode.
 For a click in the echo area, invoke `isearch-yank-x-selection'.
-Otherwise invoke `mouse-yank-at-click'."
+Otherwise invoke whatever mouse-2 is bound to outside of Isearch."
   (interactive "e\nP")
-  (let ((w (posn-window (event-start click))))
+  (let* ((w (posn-window (event-start click)))
+	 (overriding-terminal-local-map nil)
+	 (key (vector (event-basic-type click)))
+	 (binding (key-binding key)))
     (if (and (window-minibuffer-p w)
 	     (not (minibuffer-window-active-p w))) ; in echo area
 	(isearch-yank-x-selection)
-      (mouse-yank-at-click click arg))))
+      (when binding
+	;; Kluge to allow passing ARG to functions that support it,
+	;; like mouse-yank-at-click.
+	(if (equal (cadr (interactive-form binding)) "e\nP")
+	    (funcall binding click arg)
+	  (funcall binding click))))))
+
 
 (defun isearch-yank-word ()
   "Pull next word from buffer into search string."
