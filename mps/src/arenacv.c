@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(MMdevel_partial_page.2) $
+ * $HopeName: MMsrc!arenacv.c(trunk.2) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * .readership: MPS developers
@@ -39,7 +39,7 @@ int main(void)
   SegPrefStruct pref = *SegPrefDefault();
   RefSet refSet = (RefSet)2;
 
-  die(SpaceCreate(&space, (Addr)0, ARENA_SIZE), "SpaceCreate");
+  die(SpaceCreate(&space, (Addr)0, (Size)0), "SpaceCreate");
   die(PoolCreate(&pool, space, PoolClassMV(),
 		 (Size)65536, (Size)32, (Size)65536),
       "PoolCreate");
