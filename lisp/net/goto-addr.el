@@ -201,7 +201,12 @@ there, then load the URL at or before point."
   (interactive)
   (save-excursion
     (let ((address (save-excursion (goto-address-find-address-at-point))))
-      (if address
+      (if (and address 
+	       (save-excursion
+		 (goto-char (previous-single-char-property-change
+			     (point) 'goto-address nil
+			     (line-beginning-position)))
+		 (not (looking-at goto-address-url-regexp))))
 	  (compose-mail address)
 	(let ((url (browse-url-url-at-point)))
 	  (if url
