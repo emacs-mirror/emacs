@@ -1,0 +1,6 @@
+# -sedlisp.inp-----------------------------------------------------------
+# Configuration script for lisp/Makefile under DJGPP v2.x
+# ----------------------------------------------------------------------
+
+/^lisp=/s|@srcdir@|.|
+/^VPATH=/s|@srcdir@|.|
