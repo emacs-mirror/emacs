@@ -890,7 +890,7 @@ dired."
 ;;;   string.  COMMAND may be a list of commands.
 ;;;
 ;;; * Return this command to `dired-guess-shell-command' which prompts user
-;;;   with it.  The list of commands are temporaily put into the history list.
+;;;   with it.  The list of commands is temporarily put into the history list.
 ;;;   If a command is used successfully then it is stored permanently in
 ;;;   `dired-shell-command-history'.
 
@@ -1144,7 +1144,7 @@ results in
                   ;; `/', so NEXT is *one plus* the result of the
                   ;; string-match.
                   ;; E.g., consider the case of linking "/tmp/a/abc"
-                  ;; to "/tmp/abc" erronously giving "/tmp/a" instead
+                  ;; to "/tmp/abc" erroneously giving "/tmp/a" instead
                   ;; of "/tmp/" as common initial component
                   (string-equal (substring file1 0 next)
                                 (substring file2 0 next)))
@@ -1414,7 +1414,7 @@ PREDICATE is a lisp expression that can refer to the following symbols:
 
     inode  [integer] the inode of the file (only for ls -i output)
     s      [integer] the size of the file for ls -s output
-                     (ususally in blocks or, with -k, in KByte)
+                     (usually in blocks or, with -k, in KByte)
     mode   [string]  file permission bits, e.g. \"-rw-r--r--\"
     nlink  [integer] number of links to file
     uid    [string]  owner
