@@ -29,6 +29,15 @@
 
 ;;; Code:
 
+(defun window-body-height (&optional window)
+  "Return number of lines in window WINDOW for actual buffer text.
+This does not include the mode line (if any) or the header line (if any)."
+  (or window (setq window (selected-window)))
+  (with-current-buffer (window-buffer window)
+    (- (window-height window)
+       (if mode-line-format 1 0)
+       (if header-line-format 1 0))))
+
 (defun one-window-p (&optional nomini all-frames)
   "Return non-nil if the selected window is the only window (in its frame).
 Optional arg NOMINI non-nil means don't count the minibuffer
