@@ -357,7 +357,8 @@ buffer."
 		    ((string-equal shell "ksh") "~/.sh_history")
 		    (t "~/.history"))))
     (if (or (equal comint-input-ring-file-name "")
-	    (equal (file-truename comint-input-ring-file-name) "/dev/null"))
+	    (equal (file-truename comint-input-ring-file-name)
+		   (file-truename "/dev/null")))
 	(setq comint-input-ring-file-name nil))
     (setq shell-dirstack-query
 	  (cond ((string-equal shell "sh") "pwd")
