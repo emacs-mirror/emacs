@@ -121,6 +121,9 @@ These are used for completion in addition to all the variables named
 in `process-environment'.  Each element looks like (VAR . VAR), where
 the car and cdr are the same symbol.")
 
+(defvar sh-shell-variables-initialized nil
+  "Non-nil if `sh-shell-variables' is initialized.")
+
 (defun sh-canonicalize-shell (shell)
   "Convert a shell name SHELL to the one we should handle it as."
   (or (symbolp shell)
@@ -614,6 +617,8 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'skeleton-filter)
   (make-local-variable 'skeleton-newline-indent-rigidly)
+  (make-local-variable 'sh-shell-variables)
+  (make-local-variable 'sh-shell-variables-initialized)
   (setq major-mode 'sh-mode
 	mode-name "Shell-script"
 	indent-line-function 'sh-indent-line
@@ -721,11 +726,9 @@ Calls the value of `sh-set-shell-hook' if set."
 	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
 	mode-line-process (format "[%s]" sh-shell)
 	sh-shell-variables nil
+	sh-shell-variables-initialized nil
 	shell (sh-feature sh-variables))
   (set-syntax-table (sh-feature sh-mode-syntax-table))
-  (save-excursion
-    (while (search-forward "=" nil t)
-      (sh-assignment 0)))
   (while shell
     (sh-remember-variable (car shell))
     (setq shell (cdr shell)))
@@ -1024,17 +1027,55 @@ region, clear header."
       < "done"))
 
 
+(defun sh-shell-initialize-variables ()
+  "Scan the buffer for variable assignments.
+Add these variables to `sh-shell-variables'."
+  (message "Scanning buffer `%s' for variable assignments..." (buffer-name))
+  (save-excursion
+    (goto-char (point-min))
+    (setq sh-shell-variables-initialized t)
+    (while (search-forward "=" nil t)
+      (sh-assignment 0)))
+  (message "Scanning buffer `%s' for variable assignments...done"
+	   (buffer-name)))
+
+(defvar sh-add-buffer)
+
+(defun sh-add-completer (string predicate code)
+  "Do completion using `sh-shell-variables', but initialize it first.
+This function is designed for use as the \"completion table\",
+so it takes three arguments:
+  STRING, the current buffer contents;
+  PREDICATE, the predicate for filtering possible matches;
+  CODE, which says what kind of things to do.
+CODE can be nil, t or `lambda'.
+nil means to return the best completion of STRING, or nil if there is none.
+t means to return a list of all possible completions of STRING.
+`lambda' means to return t if STRING is a valid completion as it stands."
+  (let ((sh-shell-variables
+	 (save-excursion
+	   (set-buffer sh-add-buffer)
+	   (or sh-shell-variables-initialized
+	       (sh-shell-initialize-variables))
+	   (nconc (mapcar (lambda (var)
+			    (let ((name
+				   (substring var 0 (string-match "=" var))))
+			      (cons name name)))
+			  process-environment)
+		  sh-shell-variables))))
+    (cond ((null code)
+	   (try-completion string sh-shell-variables predicate))
+	  ((eq code t)
+	   (all-completions string sh-shell-variables predicate))
+	  ((eq code 'lambda)
+	   (assoc string sh-shell-variables)))))
+
 (defun sh-add (var delta)
   "Insert an addition of VAR and prefix DELTA for Bourne (type) shell."
   (interactive
-   (list (completing-read "Variable: "
-			  (nconc (mapcar (lambda (var)
-					   (let ((name
-						  (substring var 0 (string-match "=" var))))
-					     (cons name name)))
-					 process-environment)
-				 sh-shell-variables))
-	 (prefix-numeric-value current-prefix-arg)))
+   (let ((sh-add-buffer (current-buffer)))
+     (list (completing-read "Variable: " 'sh-add-completer)
+	   (prefix-numeric-value current-prefix-arg))))
   (insert (sh-feature '((bash . "$[ ")
 			(ksh88 . "$(( ")
 			(posix . "$(( ")
