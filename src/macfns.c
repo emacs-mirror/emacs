@@ -3808,8 +3808,10 @@ x_create_tip_frame (dpyinfo, parms, text)
     BLOCK_INPUT;
     SetRect (&r, 0, 0, 1, 1);
     if (CreateNewWindow (kHelpWindowClass,
-			 kWindowNoActivatesAttribute
-			 | kWindowIgnoreClicksAttribute,
+#ifdef MAC_OS_X_VERSION_10_2
+			 kWindowIgnoreClicksAttribute |
+#endif
+			 kWindowNoActivatesAttribute,
 			 &r, &tip_window) == noErr)
       {
 	FRAME_MAC_WINDOW (f) = tip_window;
