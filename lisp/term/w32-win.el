@@ -83,9 +83,6 @@
 ;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
-(defvar mouse-wheel-scroll-amount 4
-  "*Number of lines to scroll per click of the mouse wheel.")
-
 (defun mouse-wheel-scroll-line (event)
   "Scroll the window in which EVENT occurred by `mouse-wheel-scroll-amount'."
   (interactive "e")
@@ -1298,90 +1295,6 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 			      nil nil default))))
     (list face (if (equal value "") nil value))))
 
-;; Redefine the font selection to use the standard W32 dialog
-(defvar w32-use-w32-font-dialog t
-  "*Use the standard font dialog if 't'.
-Otherwise pop up a menu of some standard fonts like X does - including
-fontsets.")
-
-(defvar w32-fixed-font-alist
-  '("Font menu"
-    ("Misc"
-     ;; For these, we specify the pixel height and width.
-     ("fixed" "Fixedsys")
-     ("")
-     ("Terminal 5x4"
-      "-*-Terminal-normal-r-*-*-*-45-*-*-c-40-*-oem")
-     ("Terminal 6x8"
-      "-*-Terminal-normal-r-*-*-*-60-*-*-c-80-*-oem")
-     ("Terminal 9x5"
-      "-*-Terminal-normal-r-*-*-*-90-*-*-c-50-*-oem")
-     ("Terminal 9x7"
-      "-*-Terminal-normal-r-*-*-*-90-*-*-c-70-*-oem")
-     ("Terminal 9x8"
-      "-*-Terminal-normal-r-*-*-*-90-*-*-c-80-*-oem")
-     ("Terminal 12x12"
-      "-*-Terminal-normal-r-*-*-*-120-*-*-c-120-*-oem")
-     ("Terminal 14x10"
-      "-*-Terminal-normal-r-*-*-*-135-*-*-c-100-*-oem")
-     ("Terminal 6x6 Bold"
-      "-*-Terminal-bold-r-*-*-*-60-*-*-c-60-*-oem")
-     ("")
-     ("Lucida Sans Typewriter.8"
-      "-*-Lucida Sans Typewriter-normal-r-*-*-11-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.9"
-      "-*-Lucida Sans Typewriter-normal-r-*-*-12-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.10"
-      "-*-Lucida Sans Typewriter-normal-r-*-*-13-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.11"
-      "-*-Lucida Sans Typewriter-normal-r-*-*-15-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.12"
-      "-*-Lucida Sans Typewriter-normal-r-*-*-16-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.8 Bold"
-      "-*-Lucida Sans Typewriter-semibold-r-*-*-11-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.9 Bold"
-      "-*-Lucida Sans Typewriter-semibold-r-*-*-12-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.10 Bold"
-      "-*-Lucida Sans Typewriter-semibold-r-*-*-13-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.11 Bold"
-      "-*-Lucida Sans Typewriter-semibold-r-*-*-15-*-*-*-c-*-iso8859-1")
-     ("Lucida Sans Typewriter.12 Bold"
-      "-*-Lucida Sans Typewriter-semibold-r-*-*-16-*-*-*-c-*-iso8859-1"))
-    ("Courier"
-     ("Courier 10x8"
-      "-*-Courier-*normal-r-*-*-*-97-*-*-c-80-iso8859-1")
-     ("Courier 12x9"
-      "-*-Courier-*normal-r-*-*-*-120-*-*-c-90-iso8859-1")
-     ("Courier 15x12"
-      "-*-Courier-*normal-r-*-*-*-150-*-*-c-120-iso8859-1")
-     ;; For these, we specify the point height.
-     ("")
-     ("8" "-*-Courier New-normal-r-*-*-11-*-*-*-c-*-iso8859-1")
-     ("9" "-*-Courier New-normal-r-*-*-12-*-*-*-c-*-iso8859-1")
-     ("10" "-*-Courier New-normal-r-*-*-13-*-*-*-c-*-iso8859-1")
-     ("11" "-*-Courier New-normal-r-*-*-15-*-*-*-c-*-iso8859-1")
-     ("12" "-*-Courier New-normal-r-*-*-16-*-*-*-c-*-iso8859-1")
-     ("8 bold" "-*-Courier New-bold-r-*-*-11-*-*-*-c-*-iso8859-1")
-     ("9 bold" "-*-Courier New-bold-r-*-*-12-*-*-*-c-*-iso8859-1")
-     ("10 bold" "-*-Courier New-bold-r-*-*-13-*-*-*-c-*-iso8859-1")
-     ("11 bold" "-*-Courier New-bold-r-*-*-15-*-*-*-c-*-iso8859-1")
-     ("12 bold" "-*-Courier New-bold-r-*-*-16-*-*-*-c-*-iso8859-1")
-     ("8 italic" "-*-Courier New-normal-i-*-*-11-*-*-*-c-*-iso8859-1")
-     ("9 italic" "-*-Courier New-normal-i-*-*-12-*-*-*-c-*-iso8859-1")
-     ("10 italic" "-*-Courier New-normal-i-*-*-13-*-*-*-c-*-iso8859-1")
-     ("11 italic" "-*-Courier New-normal-i-*-*-15-*-*-*-c-*-iso8859-1")
-     ("12 italic" "-*-Courier New-normal-i-*-*-16-*-*-*-c-*-iso8859-1")
-     ("8 bold italic" "-*-Courier New-bold-i-*-*-11-*-*-*-c-*-iso8859-1")
-     ("9 bold italic" "-*-Courier New-bold-i-*-*-12-*-*-*-c-*-iso8859-1")
-     ("10 bold italic" "-*-Courier New-bold-i-*-*-13-*-*-*-c-*-iso8859-1")
-     ("11 bold italic" "-*-Courier New-bold-i-*-*-15-*-*-*-c-*-iso8859-1")
-     ("12 bold italic" "-*-Courier New-bold-i-*-*-16-*-*-*-c-*-iso8859-1")
-     ))
-    "Fonts suitable for use in Emacs.
-Initially this is a list of some fixed width fonts that most people
-will have like Terminal and Courier. These fonts are used in the font
-menu if the variable `w32-use-w32-font-dialog' is nil.")
-
 ;;; Enable Japanese fonts on Windows to be used by default.
 (set-fontset-font t (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
 (set-fontset-font t (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
@@ -1396,7 +1309,8 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
 `w32-fixed-font-alist'."
   (interactive
    (if w32-use-w32-font-dialog
-       (let ((chosen-font (w32-select-font)))
+       (let ((chosen-font (w32-select-font (selected-frame)
+					   w32-list-proportional-fonts)))
 	 (and chosen-font (list chosen-font)))
      (x-popup-menu
       last-nonmenu-event
