@@ -1,3 +1,7 @@
+2003-01-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus.texi: Do not use `path' in several locations.
+
 2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* maintaining.texi (Create Tags Table): Added reference to the new
