@@ -1915,7 +1915,7 @@ x_produce_stretch_glyph (it)
 
 #define VCENTER_BASELINE_OFFSET(FONT, F)			\
  (FONT_DESCENT (FONT)						\
-  + (FRAME_LINE_HEIGHT ((F)) - FONT_HEIGHT ((FONT))) / 2	\
+  + (FRAME_LINE_HEIGHT ((F)) + 1 - FONT_HEIGHT ((FONT))) / 2	\
   - (FONT_DESCENT (FRAME_FONT (F)) - FRAME_BASELINE_OFFSET (F)))
 
 /* Produce glyphs/get display metrics for the display element IT is
