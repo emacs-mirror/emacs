@@ -1,3 +1,11 @@
+2002-11-27  Jason Rumney  <jasonr@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Give a more appropriate error
+	for files bigger than 2Gb when off_t is 32 bit.
+
+	* dired.c (Ffile_attributes): Don't return negative file sizes for
+	files bigger than 2Gb when off_t is 32 bit.
+
 2002-11-27  Dave Love  <fx@gnu.org>
 
 	* s/irix6-0.h (GC_SETJMP_WORKS, GC_MARK_STACK): Define.

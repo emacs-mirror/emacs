@@ -1,3 +1,7 @@
+2002-11-27  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (file-truename): Canonicalize non-existent names on w32.
+
 2002-11-28  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-xemacs): Remove defvar.  All uses changed to
