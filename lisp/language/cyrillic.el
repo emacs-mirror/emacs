@@ -138,6 +138,14 @@
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-coding-system-alias 'cp866u 'cp1125)
 
+(define-coding-system 'cp855
+  "DOS codepage 855 (Russian)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp855)
+  :mime-charset 'cp855)
+(define-coding-system-alias 'ibm855 'cp855)
+
 (provide 'cyrillic)
 
 ;;; cyrillic.el ends here
