@@ -523,8 +523,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	    ;; if it was the name of a directory at all.
 	    (file-name-directory dirname))
       (or switches (setq switches dired-listing-switches))
-      (dired-mode dirname switches)
-      (if mode (funcall mode))
+      (if mode (funcall mode)
+        (dired-mode dirname switches))
       ;; default-directory and dired-actual-switches are set now
       ;; (buffer-local), so we can call dired-readin:
       (let ((failed t))
