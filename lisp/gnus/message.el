@@ -1281,6 +1281,13 @@ C-c C-r  message-caesar-buffer-body (rot13 the message body)."
     (message-setup-toolbar))
   (easy-menu-add message-mode-menu message-mode-map)
   (easy-menu-add message-mode-field-menu message-mode-map)
+  (make-local-variable 'adaptive-fill-regexp)
+  (setq adaptive-fill-regexp
+	(concat "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|" adaptive-fill-regexp))
+  (make-local-variable 'adaptive-fill-first-line-regexp)
+  (setq adaptive-fill-first-line-regexp
+	(concat "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|"
+		adaptive-fill-first-line-regexp))
   ;; Allow mail alias things.
   (when (eq message-mail-alias-type 'abbrev)
     (if (fboundp 'mail-abbrevs-setup)
