@@ -1582,16 +1582,15 @@ mark_object (objptr)
 
 	mark_object (&ptr->name);
 	mark_object (&ptr->focus_frame);
-	mark_object (&ptr->width);
-	mark_object (&ptr->height);
 	mark_object (&ptr->selected_window);
 	mark_object (&ptr->minibuffer_window);
 	mark_object (&ptr->param_alist);
 	mark_object (&ptr->scroll_bars);
 	mark_object (&ptr->condemned_scroll_bars);
 	mark_object (&ptr->menu_bar_items);
-	mark_object (&ptr->menu_bar_vector);
 	mark_object (&ptr->face_alist);
+	mark_object (&ptr->menu_bar_vector);
+	mark_object (&ptr->buffer_predicate);
       }
       break;
 #endif /* MULTI_FRAME */
