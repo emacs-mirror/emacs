@@ -143,6 +143,10 @@ extern int errno;
 #define MAXIOSIZE (32 * PAGESIZE) /* Don't I/O more than 32 blocks at a time */
 #endif /* VMS */
 
+#ifndef VMS
+#include <sys/file.h>
+#endif /* not VMS */
+
 #ifndef BSD4_1
 #ifdef BSD_SYSTEM /* avoid writing defined (BSD_SYSTEM) || defined (USG)
 	      because the vms compiler doesn't grok `defined' */
