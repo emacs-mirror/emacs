@@ -1,3 +1,9 @@
+2004-04-11  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-confirm-unique-completion): New defcustom.
+	(ido-complete): Use it.
+	(ido-write-file): Set it to t unconditionally.
+
 2004-04-10  Miles Bader  <miles@gnu.org>
 
 	RCS keyword removal (only non-comment changes are enumerated here):
