@@ -1,18 +1,18 @@
-;;; ps-print.el --- Print text from the buffer as PostScript
+;;; ps-print.el --- print text from the buffer as PostScript
 
 ;; Copyright (C) 1993,94,95,96,97,98,99,00,2001
 ;; Free Software Foundation, Inc.
 
-;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
-;; Author:	Jacques Duthen (was <duthen@cegelec-red.fr>)
-;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Author:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2001/06/19 11:01:09 vinicius>
-;; Version:	6.5.3
-;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
+;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
+;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
+;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Keywords: wp, print, PostScript
+;; Time-stamp: <2001/06/19 11:01:09 vinicius>
+;; Version: 6.5.3
+;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst ps-print-version "6.5.3"
   "ps-print.el, v 6.5.3 <2001/06/19 vinicius>

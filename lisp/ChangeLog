@@ -1,3 +1,7 @@
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* ps-print.el: Fix Author: header.
+
 2001-07-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* mouse-sel.el (mouse-sel-bindings): Instead of unbinding
