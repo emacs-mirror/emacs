@@ -145,7 +145,7 @@ end
 
 define xsymbol
 print (struct Lisp_Symbol *) ((((int) $) & $valmask) | gdb_data_seg_bits)
-output &$->name->data
+output (char*)&$->name->data
 echo \n
 end
 document xsymbol
