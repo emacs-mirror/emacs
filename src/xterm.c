@@ -296,7 +296,7 @@ Lisp_Object Vx_keysym_table;
 static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 
 static Lisp_Object Qvendor_specific_keysyms;
-static Lisp_Object Qlatin_1, Qutf_8;
+static Lisp_Object Qlatin_1;
 
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 
@@ -7106,7 +7106,6 @@ XTread_socket (sd, bufp, numchars, expected)
 
       while (gtk_events_pending ())
         {
-          static int nr = 0;
           current_count = count;
           current_numcharsp = &numchars;
           current_bufp = &bufp;
