@@ -640,6 +640,102 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
   }
 }
 
+static void
+map_keymap_item (fun, args, key, val, data)
+     map_keymap_function_t fun;
+     Lisp_Object args, key, val;
+     void *data;
+{
+  /* We should maybe try to detect bindings shadowed by previous
+     ones and things like that.  */
+  if (EQ (val, Qt))
+    val = Qnil;
+  (*fun) (key, val, args, data);
+}
+
+static void
+map_keymap_char_table_item (args, key, val)
+     Lisp_Object args, key, val;
+{
+  if (!NILP (val))
+    {
+      map_keymap_function_t fun = XSAVE_VALUE (XCAR (args))->pointer;
+      args = XCDR (args);
+      map_keymap_item (fun, XCDR (args), key, val,
+		       XSAVE_VALUE (XCAR (args))->pointer);
+    }
+}
+
+/* Call FUN for every binding in MAP.
+   FUN is called with 4 arguments: FUN (KEY, BINDING, ARGS, DATA).  */
+void
+map_keymap (map, fun, args, data, autoload)
+     map_keymap_function_t fun;
+     Lisp_Object map, args;
+     void *data;
+     int autoload;
+{
+  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object tail;
+
+  GCPRO3 (map, args, tail);
+  map = get_keymap (map, 1, autoload);
+  for (tail = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;
+       CONSP (tail) || (tail = get_keymap (tail, 0, autoload), CONSP (tail));
+       tail = XCDR (tail))
+    {
+      Lisp_Object binding = XCAR (tail);
+      
+      if (CONSP (binding))
+	map_keymap_item (fun, args, XCAR (binding), XCDR (binding), data);
+      else if (VECTORP (binding))
+	{
+	  /* Loop over the char values represented in the vector.  */
+	  int len = ASIZE (binding);
+	  int c;
+	  abort();
+	  for (c = 0; c < len; c++)
+	    {
+	      Lisp_Object character;
+	      XSETFASTINT (character, c);
+	      map_keymap_item (fun, args, character, AREF (binding, c), data);
+	    }
+	}
+      else if (CHAR_TABLE_P (binding))
+	{
+	  Lisp_Object indices[3];
+	  map_char_table (map_keymap_char_table_item, Qnil, binding,
+			  Fcons (make_save_value (fun, 0),
+				 Fcons (make_save_value (data, 0),
+					args)),
+			  0, indices);
+	}
+    }
+  UNGCPRO;
+}
+
+static void
+map_keymap_call (key, val, fun, dummy)
+     Lisp_Object key, val, fun;
+     void *dummy;
+{
+  call2 (fun, key, val);
+}
+
+DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 2, 0,
+       doc: /* Call FUNCTION for every binding in KEYMAP.
+FUNCTION is called with two arguments: the event and its binding.  */)
+     (function, keymap)
+     Lisp_Object function, keymap;
+{
+  if (INTEGERP (function))
+    /* We have to stop integers early since map_keymap gives them special
+       significance.  */
+    Fsignal (Qinvalid_function, Fcons (function, Qnil));
+  map_keymap (keymap, map_keymap_call, function, NULL, 1);
+  return Qnil;
+}
+
 /* Given OBJECT which was found in a slot in a keymap,
    trace indirect definitions to get the actual definition of that slot.
    An indirect definition is a list of the form
@@ -3653,6 +3749,7 @@ and applies even for keys that have ordinary bindings.  */);
   defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
+  defsubr (&Smap_keymap);
   defsubr (&Scopy_keymap);
   defsubr (&Scommand_remapping);
   defsubr (&Skey_binding);
