@@ -1,3 +1,17 @@
+2003-04-16  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-indent-to, f90-indent-line-no)
+	(f90-no-block-limit, f90-end-of-block, f90-beginning-of-block)
+	(f90-comment-region, f90-indent-line, f90-indent-region)
+	(f90-find-breakpoint, f90-block-match): Trivial simplifications.
+	(f90-looking-at-do, f90-looking-at-select-case)
+	(f90-looking-at-if-then, f90-looking-at-where-or-forall): Drop
+	XEmacs 19 support and simplify.
+	(f90-indent-new-line): No need for case-fold-search.  Simplify.
+	(f90-fill-region): Make marker nil when done.  Simplify.
+	
+	* progmodes/fortran.el (fortran-column-ruler): Minor doc change.
+
 2003-04-16  Richard M. Stallman  <rms@gnu.org>
 
 	* man.el (Man-follow-manual-reference): Don't require match
