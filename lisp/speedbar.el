@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.7.2a
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.12 1998/08/24 00:55:45 zappo Exp zappo $
+;; X-RCS: $Id: speedbar.el,v 1.13 1998/08/24 01:16:09 zappo Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -1005,16 +1005,18 @@ supported at a time.
 				(x-sensitive-text-pointer-shape
 				 x-pointer-hand2))
 			    (make-frame params)))))
-		  (set-frame-position frame
-				      ;; Decide which side to put it
-				      ;; on.  200 is just a buffer
-				      ;; for the left edge of the
-				      ;; screen.  The extra 10 is just
-				      ;; dressings for window decorations.
-				      (if (< cfx 200)
-					  (+ cfx cfw 10)
-					(- cfx (frame-pixel-width frame) 10))
-				      cfy)
+		  (if (and window-system (not (eq window-system 'pc)))
+		      (set-frame-position frame
+					  ;; Decide which side to put it
+					  ;; on.  200 is just a buffer
+					  ;; for the left edge of the
+					  ;; screen.  The extra 10 is just
+					  ;; dressings for window decorations.
+					  (if (< cfx 200)
+					      (+ cfx cfw 10)
+					    (- cfx (frame-pixel-width frame)
+					       10))
+					  cfy))
 		  frame)))
 	;; reset the selection variable
 	(setq speedbar-last-selected-file nil)
