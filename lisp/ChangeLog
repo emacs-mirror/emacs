@@ -1,3 +1,8 @@
+2001-01-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/etags.el (find-tag-noselect): Don't bind 
+	tags-file-name.
+
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* shell.el (shell-unquote-argument): If the shell is one of the
