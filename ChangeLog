@@ -1,3 +1,9 @@
+2004-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Don't require djecho.exe for the v1.x build.
+	Add a test for DECL_ALIGN support, and add a trivial definition to
+	src/config.h if 8-byte alignment is not supported.
+
 2004-11-08  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (bootstrap, bootstrap-clean-before): Remove .elc

@@ -1204,7 +1204,6 @@ If BITMAP already exists, the existing definition is replaced.  */)
   (bitmap, bits, height, width, align)
      Lisp_Object bitmap, bits, height, width, align;
 {
-  Lisp_Object len;
   int n, h, i, j;
   unsigned short *b;
   struct fringe_bitmap fb, *xfb;
@@ -1212,20 +1211,21 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
   CHECK_SYMBOL (bitmap);
 
-  if (!STRINGP (bits) && !VECTORP (bits))
-    bits = wrong_type_argument (Qstringp, bits);
-
-  len = Flength (bits);
+  if (STRINGP (bits))
+    h = SCHARS (bits);
+  else if (VECTORP (bits))
+    h = XVECTOR (bits)->size;
+  else
+    bits = wrong_type_argument (Qsequencep, bits);
 
   if (NILP (height))
-    h = fb.height = XINT (len);
+    fb.height = h;
   else
     {
       CHECK_NUMBER (height);
       fb.height = min (XINT (height), 255);
-      if (fb.height > XINT (len))
+      if (fb.height > h)
 	{
-	  h = XINT (len);
 	  fill1 = (fb.height - h) / 2;
 	  fill2 = fb.height - h - fill1;
 	}

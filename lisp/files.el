@@ -478,7 +478,7 @@ Runs the usual ange-ftp hook, but only for completion operations."
       (apply op args))))
 
 (defun convert-standard-filename (filename)
-  "Convert a standard file's name to something suitable for the current OS.
+  "Convert a standard file's name to something suitable for the OS.
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
 
@@ -487,7 +487,9 @@ the argument.  However, on Windows and DOS, replace invalid
 characters.  On DOS, make sure to obey the 8.3 limitations.  On
 Windows, turn Cygwin names into native names, and also turn
 slashes into backslashes if the shell requires it (see
-`w32-shell-dos-semantics')."
+`w32-shell-dos-semantics').
+
+See Info node `(elisp)Standard File Names' for more details."
   filename)
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
@@ -1763,12 +1765,12 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
      ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
      ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
-     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|permissions\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
-     ("\\`/etc/\\(?:aliases\\|hosts\\..+\\|ksysguarddrc\\|opera6rc\\)\\'" . conf-mode)
+     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
+     ("\\`/etc/\\(?:default/.*\\|aliases\\|group-?\\|hosts\\..+\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\)\\'" . conf-mode)
      ;; either user's dot-files or under /etc or some such
      ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
      ;; alas not all ~/.*rc files are like this
-     ("/\\.\\(?:enigma\\|gltron\\|hxplayer\\|net\\|neverball\\|qt/.+\\|realplayer\\|scummvm\\|sversion\\|sylpheed/.+\\|xmp\\)rc\\'" . conf-mode)
+     ("/\\.\\(?:enigma\\|gltron\\|gtk\\|hxplayer\\|net\\|neverball\\|qt/.+\\|realplayer\\|scummvm\\|sversion\\|sylpheed/.+\\|xmp\\)rc\\'" . conf-mode)
      ("/\\.\\(?:gdbtkinit\\|grip\\|orbital/.+txt\\|rhosts\\|tuxracer/options\\)\\'" . conf-mode)
      ("/\\.?X\\(?:default\\|resource\\|re\\)s\\>" . conf-xdefaults-mode)
      ("/X11.+app-defaults/" . conf-xdefaults-mode)

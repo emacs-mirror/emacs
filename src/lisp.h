@@ -1378,7 +1378,7 @@ typedef unsigned char UCHAR;
 
 /* Data type checking */
 
-#define NILP(x)  (XFASTINT (x) == XFASTINT (Qnil))
+#define NILP(x)  EQ (x, Qnil)
 #define GC_NILP(x) GC_EQ (x, Qnil)
 
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
@@ -2328,6 +2328,7 @@ extern Lisp_Object string_make_multibyte P_ ((Lisp_Object));
 extern Lisp_Object string_make_unibyte P_ ((Lisp_Object));
 EXFUN (Fcopy_alist, 1);
 EXFUN (Fplist_get, 2);
+EXFUN (Fsafe_plist_get, 2);
 EXFUN (Fplist_put, 3);
 EXFUN (Fplist_member, 2);
 EXFUN (Frassoc, 2);

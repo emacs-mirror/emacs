@@ -2410,6 +2410,14 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+---
+** list-buffers-noselect now takes an additional argument, BUFFER-LIST.
+If it is non-nil, it specifies which buffers to list.
+
+---
+** set-buffer-file-coding-system now takes an additional argument,
+NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
+
 +++
 ** The new function syntax-after returns the syntax code
 of the character after a specified buffer position, taking account
@@ -3713,6 +3721,12 @@ or the header line.
 
 This returns the mode-line or header-line of the selected (or a
 specified) window as a string with or without text properties.
+
++++
+** New function safe-plist-get.
+
+This function is like plist-get, but never signals an error for
+a malformed property list.
 
 +++
 ** New functions `lax-plist-get' and `lax-plist-put'.

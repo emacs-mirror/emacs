@@ -1,3 +1,347 @@
+2004-11-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-alg.el (math-simplify-divisor): Remove unnecessary
+	variables.
+
+2004-11-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Eliminate use of interactive-p and eval-and-compile.
+	Use of (featurep 'xemacs) instead of (eq ps-print-emacs-type 'xemacs).
+	Use make-temp-file to generate PostScript files in any situation.
+	(pr-ps-temp-file): Now specify a prefix to generate temporary files.
+	(pr-interactive-p): Eliminated var.
+	(pr-save-interactive): Eliminated macro.
+	(pr-interface, pr-ps-directory-preview)
+	(pr-ps-directory-using-ghostscript, pr-ps-directory-print)
+	(pr-ps-directory-ps-print, pr-ps-buffer-preview)
+	(pr-ps-buffer-using-ghostscript, pr-ps-buffer-print)
+	(pr-ps-buffer-ps-print, pr-ps-region-preview)
+	(pr-ps-region-using-ghostscript, pr-ps-region-print)
+	(pr-ps-region-ps-print, pr-ps-mode-preview)
+	(pr-ps-mode-using-ghostscript, pr-ps-mode-print, pr-ps-mode-ps-print)
+	(pr-printify-directory, pr-txt-directory, pr-despool-preview)
+	(pr-despool-using-ghostscript, pr-despool-print, pr-despool-ps-print)
+	(pr-ps-file-up-preview, pr-ps-file-using-ghostscript)
+	(pr-ps-file-up-ps-print, pr-toggle-file-duplex, pr-toggle-file-tumble)
+	(pr-toggle-file-landscape, pr-toggle-ghostscript, pr-toggle-faces)
+	(pr-toggle-spool, pr-toggle-duplex, pr-toggle-tumble)
+	(pr-toggle-landscape, pr-toggle-upside-down, pr-toggle-line)
+	(pr-toggle-zebra, pr-toggle-header, pr-toggle-header-frame)
+	(pr-toggle-lock, pr-toggle-region, pr-toggle-mode, pr-ps-name)
+	(pr-txt-name, pr-ps-utility, pr-ps-fast-fire, pr-txt-fast-fire)
+	(pr-update-menus, pr-interface-ps-prin, pr-interface-preview):
+	Eliminate pr-save-interactive usage.
+	(pr-menu-lock, pr-ps-utility-args, pr-set-outfilename): Eliminate
+	pr-interactive-p usage.
+	(pr-toggle-file-duplex-menu, pr-toggle-file-tumble-menu)
+	(pr-toggle-file-landscape-menu, pr-toggle-ghostscript-menu)
+	(pr-toggle-faces-menu, pr-toggle-spool-menu, pr-toggle-duplex-menu)
+	(pr-toggle-tumble-menu, pr-toggle-landscape-menu)
+	(pr-toggle-upside-down-menu, pr-toggle-line-menu, pr-toggle-zebra-menu)
+	(pr-toggle-header-menu, pr-toggle-header-frame-menu)
+	(pr-toggle-lock-menu, pr-toggle-region-menu, pr-toggle-mode-menu): New
+	funs.
+	(pr-ps-file): Use make-temp-file to generate a temporary file.
+
+2004-11-17  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-alg.el (calc-poly-div): Make calc-poly-div-remainder
+	a local variable.
+
+	(math-eval-rules-cache, math-eval-rules-cache-other): Declare them.
+
+	(math-top-only): New variable.
+	(math-simplify, math-simplify-step): Replace variable top-only by
+	declared variable math-top-only.
+
+	(math-simplify-expr): Declare it.
+	Replaced argument expr in all calls of math-defsimplify by
+	math-simplify-expr. 
+	(math-simplify-plus, math-simplify-times, math-simplify-divide)
+	(math-simplify-divisor, math-simplify-one-divisor)
+	(math-simplify-mod, math-simplify-ineq, math-simplify-sqrt)
+	(math-simplify-pow): Replace variable expr by declared variable
+	math-simplify-expr.
+
+	(math-simplify-divisor): Remove local variables temp and op.
+	(math-simplify-one-divisor): Make temp and op local variables.
+
+	(math-simplify-divisor-nover, math-simplify-divisor-dover):
+	New variables.
+	(math-simplify-divisor, math-simplify-one-divisor):
+	Replace variables nover and dover by declared variables.
+
+	(math-expr-subst-new, math-expr-subst-old): New variables.
+	(math-expr-subst, math-expr-subst-rec): Replace variables new
+	and old by declared variables.
+
+	(math-is-poly-degree, math-is-poly-loose): New variables.
+	(math-is-polynomial, math-is-poly-rec): Replace variables degree
+	and loose by declared variables.
+
+	(math-poly-base-const-ok, math-poly-base-pred): New variables.
+	(math-polynomial-base, math-polynomial-base-rec):
+	Replace variables const-ok and mpb-pred by declared variables.
+
+	* calc/calc-poly.el (calc-poly-div-remainder): Declare it.
+
+	* calc/calc-ext.el (math-defsimplify): Change the argument in
+	the created function to math-simplify-expr.
+
+	* calc/calc-units.el (math-simplify-expr): Declare it.
+	Replace argument expr in all calls of math-defsimplify by
+	math-simplify-expr. 
+	(math-simplify-units-prod): Replace variable expr by declared
+	variable math-simplify-expr.
+
+2004-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buff-menu.el (list-buffers-noselect): Massage to fit in 80 columns.
+	Replace mapcar->dolist, format->string.
+
+2004-11-17  Miles Bader  <miles@gnu.org>
+
+	* progmodes/idlw-shell.el, progmodes/idlw-toolbar.el
+	* progmodes/idlwave.el: Remove RCS keywords.
+
+2004-11-17  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el, progmodes/idlw-toolbar.el
+	* progmodes/idlw-shell.el, progmodes/idlw-rinfo.el:
+	Updated to IDLWAVE version 5.5.  Too many changes to list them here.
+	* progmodes/idlw-help.el: New file.
+
+2004-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* international/iso-cvt.el (iso-tex2iso-trans-tab):
+	Discard spaces after \i according to TeX rules.
+
+	* international/mule.el (set-buffer-file-coding-system):
+	New arg NOMODIFY.
+	(after-insert-file-set-coding): Pass that new arg.
+	Prevent set-buffer-multibyte from trying to lock the file.
+
+	* buff-menu.el (list-buffers-noselect): New arg BUFFER-LIST.
+
+	* saveplace.el (save-place): Doc fix.
+
+	* dabbrev.el (dabbrev-expand): When handling SPC M-/,
+	temporarily widen before finding the following word to copy.
+
+	* emacs-lisp/lucid.el (map-keymap): Definition deleted.
+	(cl-map-keymap): Definition deleted.
+
+	* subr.el (map-keymap-internal): New function.
+
+2004-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-mouse-map): Pop the menu
+	when pressing rather than when releasing mouse-2.  Simplify.
+
+2004-11-14  Frederic Han  <han@math.jussieu.fr>  (tiny change)
+
+	* international/iso-cvt.el (iso-tex2iso-trans-tab):
+	Discard whitespace after macro \i when converting it.
+
+2004-11-16  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Optimize `define-minor-mode'.  Add `defun-cvs-mode'.
+	Add `deffoo'.  Add `f' to [^cgv] to exclude `defface'.
+	Remove invalid `\W' from [^cgv\W].  Doc fix.
+	(find-function-search-for-symbol): Replace "\\>" with "\\_>".
+
+2004-11-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* play/life.el: Maintainer is now FSF.
+	(life-patterns, life-neighbor-deltas, life-window-start)
+	(life-current-generation, life-generation-string): Use defvar
+	instead of defconst.
+
+2004-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-move-to-column): New fun.
+	(compilation-internal-error-properties)
+	(compilation-next-error-function): Use it to make sure we don't go past
+	the end of line.
+
+2004-11-15  John Paul Wallington  <jpw@gnu.org>
+
+	* autoinsert.el (auto-insert-alist): Insert the user's name in
+	copyright notice, rather than Free Software Foundation, for the
+	Emacs Lisp header case too.
+
+2004-11-15  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el (pr-ps-file-print, pr-toggle-duplex): Fix typos.
+	Reported by Glenn Morris <gmorris+emacs@ast.cam.ac.uk>.
+	(pr-switches-string): If SWITCHES is nil, return nil.  Otherwise,
+	return the list of string in a string.
+	(pr-call-process): Message if calling process returns an error, that
+	is, the exit status is different of zero.
+
+2004-11-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (math-integrate-by-parts):  Remove unused
+	variable var-thing.
+
+	(math-integ-depth, math-integ-level, math-integral-limit)
+	(math-enable-subst, math-any-substs, math-integ-msg)
+	(math-prev-parts-v, math-good-parts, math-max-integral-limit)
+	(math-int-threshold, math-int-factors, math-double-roots)
+	(math-solve-simplifying, var-IntegLimit, math-solve-sign)
+	(var-GenCount):  Declare these variables.
+	(calcFunc-integ):  Don't check if var-IntegLimit is bound.
+
+	(math-integral-cache, math-integral-cache-state):
+	Move declarations to earlier in the file.
+
+	(math-deriv-var, math-deriv-total, math-deriv-symb)
+	(math-cur-record, math-has-rules, math-t1, math-t2, math-t3)
+	(math-so-far, math-integ-expr, math-expr-parts, calc-low)
+	(calc-high, math-solve-var, math-solve-full, math-solve-vars)
+	(math-try-solve-sign, math-solve-b, math-solve-system-vv)
+	(math-solve-res):  New variables
+	(math-derivative, calcFunc-deriv, calcFunc-tderiv)
+	(math-integral, math-replace-integral-parts)
+	(math-integrate-by-parts, calc-dump-integral-cache)
+	(math-try-integral, math-do-integral, math-do-integral)
+	(math-do-integral-methods, math-try-solve-for)
+	(math-try-solve-prod, math-solve-poly-funny-powers)
+	(math-solve-crunch-poly, math-decompose-poly)
+	(math-solve-find-root-term, math-find-root-in-prod)
+	(math-integ-try-linear-substitutions)
+	(math-integ-try-substitutions, math-expr-rational-in)
+	(math-expr-rational-in-rec, calcFunc-table, math-scan-for-limits)
+	(math-solve-prod, math-solve-quartic, math-poly-all-roots)
+	(math-solve-for, math-solve-system, math-solve-system-rec)
+	(math-solve-get-sign, math-solve-get-int)
+	(math-solve-system-subst): Replace undeclared variables with newly
+	declared variables.
+
+2004-11-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (convert-standard-filename): Doc fix.
+
+2004-11-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): Handle .gtkrc, and under /etc
+	passwd, group, shadow, default/* and pam.d/*.
+
+2004-11-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el (pr-menu-spec): Adjust menu specification.
+
+2004-11-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Insert :version tag into all defcustom.
+	Handle interactive-p as is recommended in Emacs Lisp Reference.
+	Set the file permission bits for newly created files.
+	Reported by Glenn Morris <gmorris+emacs@ast.cam.ac.uk>.
+	The printing menu specification (in `pr-menu-spec') was merged.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+	(pr-version): New version number (6.8.3).
+	(pr-file-modes): New option.
+	(pr-interactive-p): New var.
+	(pr-save-interactive, pr-save-file-modes): New macros.
+	(pr-setup): Code fix.
+	(pr-menu-spec): Menu specification merged.
+	(pr-call-process, pr-text2ps): Set file permission bits.
+	(pr-despool-print): Set file permission bits.  Handle interactive-p as
+	is recommended.
+	(pr-interface, pr-ps-directory-preview)
+	(pr-ps-directory-using-ghostscript, pr-ps-directory-print)
+	(pr-ps-directory-ps-print, pr-ps-buffer-preview)
+	(pr-ps-buffer-using-ghostscript, pr-ps-buffer-print)
+	(pr-ps-buffer-ps-print, pr-ps-region-preview)
+	(pr-ps-region-using-ghostscript, pr-ps-region-print)
+	(pr-ps-region-ps-print, pr-ps-mode-preview)
+	(pr-ps-mode-using-ghostscript, pr-ps-mode-print, pr-ps-mode-ps-print)
+	(pr-printify-directory, pr-txt-directory, pr-despool-preview)
+	(pr-despool-using-ghostscript, pr-despool-ps-print)
+	(pr-ps-file-up-preview, pr-ps-file-using-ghostscript)
+	(pr-ps-file-up-ps-print, pr-toggle-file-duplex, pr-toggle-file-tumble)
+	(pr-toggle-file-landscape, pr-toggle-ghostscript, pr-toggle-faces)
+	(pr-toggle-spool, pr-toggle-duplex, pr-toggle-tumble)
+	(pr-toggle-landscape, pr-toggle-upside-down, pr-toggle-line)
+	(pr-toggle-zebra, pr-toggle-header, pr-toggle-header-frame)
+	(pr-toggle-lock, pr-toggle-region, pr-toggle-mode, pr-ps-name)
+	(pr-txt-name, pr-ps-utility, pr-ps-fast-fire, pr-txt-fast-fire)
+	(pr-menu-lock, pr-update-menus, pr-ps-utility-args)
+	(pr-set-outfilename, pr-interface-ps-print, pr-interface-preview):
+	Handle interactive-p as is recommended.
+
+2004-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-inline-handler): Simplify.
+	(byte-decompile-bytecode-1): Remove unused vars `tag' and `retcount'.
+
+	* font-lock.el (font-lock-fontify-syntactically-region): Fix last fix
+	so it doesn't forget to highlight the beginning of the region either.
+
+2004-11-13  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/cc-mode.el (c-basic-common-initc-font-lock-init)
+	(c-font-lock-init): Eliminate obsolete make-local-hook.
+	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode)
+	(awk-mode): Use run-mode-hooks.
+
+	* progmodes/cperl-mode.el (cperl-mode): Use run-mode-hooks.
+
+2004-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-drag-copy-region): Add :version.
+	(mouse-drag-mode-line-1): Let bind mouse-autoselect-window to nil
+	while dragging mode line, so mode line can be dragged downwards.
+	(mouse-drag-region-1): Let bind make-cursor-line-fully-visible
+	while pressing mouse button so window doesn't scroll until we
+	release the mouse if clicking on partially visible line.
+
+2004-11-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-dumb-map):  Declare it.
+	(calc-graph-show-dumb):  Check if calc-dumb-map is non-nil rather
+	than unbound.
+	(calc-graph-name):  Made `end' a local variable.
+	(calc-graph-lookup):  Made `varname' a local variable.
+	(var-DUMMY, var-DUMMY2, var-PlotRejects, calc-gnuplot-trail-mark):
+	Declare them.
+	(calc-graph-format-data):  Don't check if var-PlotRejects is bound.
+	(calc-graph-plot, calc-graph-compute-3d):  Remove references to
+	the unused variable y3vec.
+	(calc-graph-show-dumb):  Remove reference to unused variable found-pt.
+	(calc-graph-kill-hook, calc-graph-plot):  Remove reference to
+	calc-graph-prev-kill-hook.
+	(calc-graph-yvalue, calc-graph-yvec, calc-graph-numsteps)
+	(calc-graph-numsteps3, calc-graph-xvalue, calc-graph-xvec)
+	(calc-graph-xname, calc-graph-yname, calc-graph-xstep)
+	(calc-graph-ycache, calc-graph-ycacheptr, calc-graph-refine)
+	(calc-graph-keep-file, calc-graph-xval, calc-graph-xlow)
+	(calc-graph-xhigh, calc-graph-yval, calc-graph-yp, calc-graph-xp)
+	(calc-graph-zp, calc-graph-yvector, calc-graph-resolution)
+	(calc-graph-y3value, calc-graph-y3name)
+	(calc-graph-y3step, calc-graph-y3step, calc-graph-zval)
+	(calc-graph-stepcount, calc-graph-is-splot)
+	(calc-graph-surprise-splot, calc-graph-blank)
+	(calc-graph-non-blank, calc-graph-curve-num):  New variables.
+	(calc-graph-plot, calc-graph-compute-2d, calc-graph-refine-2d)
+	(calc-graph-recompute-2d, calc-graph-compute-3d)
+	(calc-graph-format-data): Replace undeclared variables with the
+	above newly declared variables.
+
+2004-11-12  Diane Murray  <dsm@muenster.de>  (tiny change)
+
+	* mail/rmail.el (rmail-get-new-mail): Use the renamed variables
+	`rsf-beep' and `rsf-sleep-after-message'.
+
+	* mail/rmail-spam-filter.el (rmail-spam-filter): Only check white
+	list if `message-sender' is non-nil.
+
+2004-11-12  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
+
+	* desktop.el (desktop-create-buffer, desktop-save): Avoid some
+	consing by using mapc instead of mapcar.
+
 2004-11-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el (require): Explain why CL is needed.
@@ -106,12 +450,12 @@
 	(math-read-exprs, math-read-token, math-read-expr-level)
 	(calc-check-user-syntax, calc-match-user-syntax)
 	(match-factor-after, math-read-factor):  Use declared variable
-	math-exp-token. 
+	math-exp-token.
 	(math-read-exprs, math-read-expr-list, math-read-token)
 	(math-read-factor):  Use declared variable math-exp-keep-spaces.
 	(math-read-exprs, math-read-token):  Use declared variable
 	math-exp-str.
-	(calc-match-user-syntax):  Made m a local variable.
+	(calc-match-user-syntax):  Make m a local variable.
 
 	* calc/calc-ext.el (math-read-expr):  Use declared variables
 	math-exp-pos, math-exp-old-pos, math-exp-str, math-exp-token,
@@ -121,7 +465,7 @@
 	variables math-exp-pos, math-exp-str.
 
 	* calc/calc-lang.el (math-parse-tex-sum):  Use declared variable
-	math-exp-old-pos. 
+	math-exp-old-pos.
 	(math-parse-fortran-vector, math-parse-fortran-vector-end)
 	(math-parse-eqn-prime):  Use declared variable math-exp-token.
 
@@ -134,6 +478,10 @@
 	Use declared variable math-exp-token.
 
 2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-define-key): Understand the case
+	where the keymap is a symbol.
+	(easy-menu-add-item): Use keymap-prompt.  Simplify.
 
 	* files.el (magic-mode-alist): Reduce backtracking in the HTML regexp.
 

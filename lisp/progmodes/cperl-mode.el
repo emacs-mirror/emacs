@@ -1544,7 +1544,7 @@ or as help on variables `cperl-tips', `cperl-problems',
        (cperl-msb-fix))
   (if (featurep 'easymenu)
       (easy-menu-add cperl-menu))	; A NOP in Emacs.
-  (run-hooks 'cperl-mode-hook)
+  (run-mode-hooks 'cperl-mode-hook)
   ;; After hooks since fontification will break this
   (if cperl-pod-here-scan
       (or cperl-syntaxify-by-font-lock

@@ -636,7 +636,7 @@ See also `desktop-base-file-name'."
         ";; Desktop file format version " desktop-file-version "\n"
         ";; Emacs version " emacs-version "\n\n"
         ";; Global section:\n")
-      (mapcar (function desktop-outvar) desktop-globals-to-save)
+      (mapc (function desktop-outvar) desktop-globals-to-save)
       (if (memq 'kill-ring desktop-globals-to-save)
         (insert
           "(setq kill-ring-yank-pointer (nthcdr "
@@ -644,15 +644,15 @@ See also `desktop-base-file-name'."
           " kill-ring))\n"))
 
       (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-      (mapcar #'(lambda (l)
-                  (if (apply 'desktop-save-buffer-p l)
-                      (progn
-                        (insert "(desktop-create-buffer " desktop-file-version)
-                        (mapcar #'(lambda (e)
-                                    (insert "\n  " (desktop-value-to-string e)))
-                                l)
-                        (insert ")\n\n"))))
-              info)
+      (mapc #'(lambda (l)
+		(if (apply 'desktop-save-buffer-p l)
+		    (progn
+		      (insert "(desktop-create-buffer " desktop-file-version)
+		      (mapc #'(lambda (e)
+				(insert "\n  " (desktop-value-to-string e)))
+			    l)
+		      (insert ")\n\n"))))
+	    info)
       (setq default-directory dirname)
       (when (file-exists-p filename) (delete-file filename))
       (let ((coding-system-for-write 'utf-8-emacs))
@@ -873,9 +873,9 @@ directory DIRNAME."
               ((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
                (auto-fill-mode 0))
               (t
-               (mapcar #'(lambda (minor-mode)
-                           (when (functionp minor-mode) (funcall minor-mode 1)))
-                       desktop-buffer-minor-modes)))
+               (mapc #'(lambda (minor-mode)
+			 (when (functionp minor-mode) (funcall minor-mode 1)))
+		     desktop-buffer-minor-modes)))
         ;; Even though point and mark are non-nil when written by `desktop-save'
         ;; they may be modified by handlers wanting to set point or mark themselves.
         (when desktop-buffer-point

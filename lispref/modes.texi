@@ -2000,7 +2000,7 @@ variable @code{font-lock-keywords-only}.  If this is non-@code{nil},
 syntactic fontification (of strings and comments) is not performed.
 
 The third element, @var{case-fold}, specifies the value of
-@code{font-lock-case-fold-search}.  If it is non-@code{nil}, Font Lock
+@code{font-lock-keywords-case-fold-search}.  If it is non-@code{nil}, Font Lock
 mode ignores case when searching as directed by
 @code{font-lock-keywords}.
 

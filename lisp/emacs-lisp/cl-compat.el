@@ -1,6 +1,6 @@
 ;;; cl-compat.el --- Common Lisp extensions for GNU Emacs Lisp (compatibility)
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -139,7 +139,7 @@
 ;; Internal routines.
 
 (defun pair-with-newsyms (oldforms)
-  (let ((newsyms (mapcar (function (lambda (x) (gensym))) oldforms)))
+  (let ((newsyms (mapcar (lambda (x) (make-symbol "--cl-var--")) oldforms)))
     (Values (mapcar* 'list newsyms oldforms) newsyms)))
 
 (defun zip-lists (evens odds)
@@ -185,5 +185,5 @@
 
 (provide 'cl-compat)
 
-;;; arch-tag: 9996bb4f-aaf5-4592-b436-bf64759a3163
+;; arch-tag: 9996bb4f-aaf5-4592-b436-bf64759a3163
 ;;; cl-compat.el ends here

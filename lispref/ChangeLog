@@ -1,3 +1,28 @@
+2004-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Separate defvar and require
+	methods to avoid warnings.  Use require only when there are many
+	functions and variables from that package.
+
+	* minibuf.texi (Minibuffer Completion): When ignoring case,
+	predicate must not be case-sensitive.
+
+	* debugging.texi (Function Debugging, Explicit Debug): Clarified.
+	(Test Coverage): Don't talk about "splotches".  Clarified.
+
+2004-11-16  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* frames.texi (Window Frame Parameters): Fix typo.
+
+2004-11-15  Kim F. Storm  <storm@cua.dk>
+
+	* symbols.texi (Other Plists): Note that plist-get may signal error.
+	Add safe-plist-get.
+
+2004-11-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* modes.texi (Font Lock Basics): Fix typo.
+
 2004-11-08  Richard M. Stallman  <rms@gnu.org>
 
 	* syntax.texi (Syntax Table Functions): Add syntax-after.

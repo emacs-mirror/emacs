@@ -1119,7 +1119,7 @@ Return the resulting coding system."
 		     first eol)))
     first))
 
-(defun set-buffer-file-coding-system (coding-system &optional force)
+(defun set-buffer-file-coding-system (coding-system &optional force nomodify)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
 according to CODING-SYSTEM.  For a list of possible values of CODING-SYSTEM,
@@ -1133,8 +1133,9 @@ specified there).  Otherwise, leave it unspecified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
-don't want to mark the buffer modified, just set the variable
-`buffer-file-coding-system' directly."
+don't want to mark the buffer modified, specify t for NOMODIFY.
+If you know exactly what coding system you want to use,
+just set the variable `buffer-file-coding-system' directly."
   (interactive "zCoding system for saving file (default, nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
@@ -1145,7 +1146,8 @@ don't want to mark the buffer modified, just set the variable
   ;; `set-buffer-major-mode-hook' take care of setting the table.
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input))
-  (set-buffer-modified-p t)
+  (unless nomodify
+    (set-buffer-modified-p t))
   (force-mode-line-update))
 
 (defun revert-buffer-with-coding-system (coding-system &optional force)
@@ -1705,11 +1707,13 @@ inserted, as figured in the situation after.  The two numbers can be
 different if the buffer has become unibyte."
   (if last-coding-system-used
       (let ((coding-system
-	     (find-new-buffer-file-coding-system last-coding-system-used))
-	    (modified-p (buffer-modified-p)))
+	     (find-new-buffer-file-coding-system last-coding-system-used)))
 	(when coding-system
-	  (set-buffer-file-coding-system coding-system t)
-	  (set-buffer-modified-p modified-p))))
+	  ;; Tell set-buffer-file-coding-system not to mark the file
+	  ;; as modified; we just read it, and it's supposed to be unmodified.
+	  ;; Marking it modified would try to lock it, which would
+	  ;; check the modtime, and we don't want to do that again now.
+	  (set-buffer-file-coding-system coding-system t t))))
   inserted)
 
 ;; The coding-spec and eol-type of coding-system returned is decided

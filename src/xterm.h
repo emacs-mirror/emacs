@@ -1072,6 +1072,8 @@ extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
 
 /* Defined in xmenu.c */
 
+extern void x_menu_set_in_use P_ ((int));
+extern void x_menu_wait_for_event P_ ((void *data));
 extern void x_activate_menubar P_ ((struct frame *));
 extern int popup_activated P_ ((void));
 extern void initialize_frame_menubar P_ ((struct frame *));

@@ -44,29 +44,24 @@
 (eval-when-compile
   (require 'cl))
 
-(eval-when-compile
-  (cond
-   ((eq (aref (emacs-version) 0) ?X)
-    (defmacro winner-active-region ()
-      '(region-active-p))
-    (defsetf winner-active-region () (store)
-      `(if ,store (zmacs-activate-region)
-	 (zmacs-deactivate-region))))
-   (t (defmacro winner-active-region ()
-	'mark-active)
-      (defsetf winner-active-region () (store)
-	`(setq mark-active ,store)))) )
 
-(eval-and-compile
-  (cond
-   ((eq (aref (emacs-version) 0) ?X)
-    (defalias 'winner-edges 'window-pixel-edges)
-    (defsubst winner-window-list ()
-      (remq (minibuffer-window)
-            (window-list nil 0))))
-   (t (defalias 'winner-edges 'window-edges)
-      (defsubst winner-window-list ()
-        (window-list nil 0)))) )
+(defmacro winner-active-region ()
+  (if (fboundp 'region-active-p)
+      '(region-active-p)
+    'mark-active))
+
+(defsetf winner-active-region () (store)
+  (if (fboundp 'zmacs-activate-region)
+      `(if ,store (zmacs-activate-region)
+	 (zmacs-deactivate-region))
+    `(setq mark-active ,store)))
+
+(defalias 'winner-edges
+  (if (featurep 'xemacs) 'window-pixel-edges 'window-edges))
+(defalias 'winner-window-list
+  (if (featurep 'xemacs)
+      (lambda () (delq (minibuffer-window) (window-list nil 0)))
+    (lambda () (window-list nil 0))))
 
 (require 'ring)
 
@@ -86,8 +81,7 @@
   "Toggle winner-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `winner-mode'."
-  :set #'(lambda (symbol value)
-	   (winner-mode (or value 0)))
+  :set #'(lambda (symbol value) (funcall symbol (or value 0)))
   :initialize 'custom-initialize-default
   :type    'boolean
   :group   'winner
@@ -363,7 +357,12 @@ You may want to include buffer names such as *Help*, *Apropos*,
   :type 'hook
   :group 'winner)
 
-(defvar winner-mode-map nil "Keymap for Winner mode.")
+(defvar winner-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control c) left] 'winner-undo)
+    (define-key map [(control c) right] 'winner-redo)
+    map)
+  "Keymap for Winner mode.")
 
 ;; Check if `window-configuration-change-hook' is working.
 (defun winner-hook-installed-p ()
@@ -389,7 +388,7 @@ With arg, turn Winner mode on if and only if arg is positive."
       (cond
        ((winner-hook-installed-p)
 	(add-hook 'window-configuration-change-hook 'winner-change-fun)
-	(add-hook 'post-command-hook 'winner-save-old-configurations))
+      (add-hook 'post-command-hook 'winner-save-old-configurations))
        (t (add-hook 'post-command-hook 'winner-save-conditionally)))
       (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
       (setq winner-modified-list (frame-list))
@@ -472,17 +471,11 @@ In other words, \"undo\" changes in window configuration."
 
 ;;; To be evaluated when the package is loaded:
 
-(unless winner-mode-map
-  (setq winner-mode-map (make-sparse-keymap))
-  (define-key winner-mode-map [(control c) left] 'winner-undo)
-  (define-key winner-mode-map [(control c) right] 'winner-redo))
-
 (unless (or (assq 'winner-mode minor-mode-map-alist)
 	    winner-dont-bind-my-keys)
   (push (cons 'winner-mode winner-mode-map)
 	minor-mode-map-alist))
 
 (provide 'winner)
-
-;;; arch-tag: 686d1c1b-010e-42ca-a192-b5685112418f
+;; arch-tag: 686d1c1b-010e-42ca-a192-b5685112418f
 ;;; winner.el ends here

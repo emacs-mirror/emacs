@@ -1295,15 +1295,15 @@ START should be at the beginning of a line."
     ;; Find each interesting place between here and `end'.
     (while
 	(progn
-	  (setq state (parse-partial-sexp (point) end nil nil state
-					  'syntax-table))
 	  (when (or (nth 3 state) (nth 4 state))
 	    (setq face (funcall font-lock-syntactic-face-function state))
 	    (setq beg (max (nth 8 state) start))
 	    (setq state (parse-partial-sexp (point) end nil nil state
 					    'syntax-table))
 	    (when face (put-text-property beg (point) 'face face)))
-	  (< (point) end)))))
+	  (< (point) end))
+      (setq state (parse-partial-sexp (point) end nil nil state
+				      'syntax-table)))))
 
 ;;; End of Syntactic fontification functions.
 

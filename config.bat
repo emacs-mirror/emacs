@@ -121,7 +121,9 @@ Goto End
 set djgpp_ver=1
 If ErrorLevel 20 set djgpp_ver=2
 rm -f junk.c junk junk.exe
-rem DJECHO is used by the top-level Makefile
+rem The v1.x build does not need djecho
+if "%DJGPP_VER%" == "1" Goto djechoOk
+rem DJECHO is used by the top-level Makefile in the v2.x build
 Echo Checking whether 'djecho' is available...
 redir -o Nul -eo djecho -o junk.$$$ foo
 If Exist junk.$$$ Goto djechoOk
@@ -156,6 +158,22 @@ goto src42
 :src41
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 :src42
+Rem See if DECL_ALIGN can be supported with this GCC
+rm -f junk.c junk.o junk junk.exe
+echo struct { int i; char *p; } __attribute__((__aligned__(8))) foo;  >junk.c
+rem Two percent signs because it is a special character for COMMAND.COM
+echo int main(void) { return (unsigned long)&foo %% 8; }             >>junk.c
+gcc -o junk junk.c
+if not exist junk.exe coff2exe junk
+junk
+If Not ErrorLevel 1 Goto alignOk
+Echo WARNING: Your GCC does not support 8-byte aligned variables.
+Echo WARNING: Therefore Emacs cannot support buffers larger than 128MB.
+rem The following line disables DECL_ALIGN which in turn disables USE_LSB_TAG
+rem For details see lisp.h where it defines USE_LSB_TAG
+echo #define DECL_ALIGN(type, var) type var >>config.h2
+:alignOk
+rm -f junk.c junk junk.exe
 update config.h2 config.h >nul
 rm -f config.tmp config.h2
 

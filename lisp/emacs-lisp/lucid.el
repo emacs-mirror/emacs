@@ -31,36 +31,6 @@
 
 (defalias 'current-time-seconds 'current-time)
 
-;; In case cl-map-keymap is an alias for map-keymap, avoid circular calls.
-(fset 'cl-map-keymap (indirect-function 'cl-map-keymap))
-
-(defun map-keymap (function keymap &optional sort-first)
-  "Call FUNCTION for every binding in KEYMAP.
-This does not include bindings inherited from a parent keymap.
-FUNCTION receives two arguments each time it is called:
-the character (more generally, the event type) that is bound,
-and the binding it has.
-
-Note that passing the event type directly to `define-key' does not work
-in Emacs 19.  We do not emulate that particular feature of Lucid Emacs.
-If your code does that, modify it to make a vector containing the event
-type that you get.  That will work in both versions of Emacs."
-  (if sort-first
-      (let (list)
-	(cl-map-keymap (lambda (a b) (push (cons a b) list))
-		       keymap)
-	(setq list (sort list
-			 (lambda (a b)
-			   (setq a (car a) b (car b))
-			   (if (integerp a)
-			       (if (integerp b) (< a b)
-				 t)
-			     (if (integerp b) t
-			       (string< a b))))))
-	(dolist (p list)
-	  (funcall function (car p) (cdr p))))
-    (cl-map-keymap function keymap)))
-
 (defun read-number (prompt &optional integers-only)
   "Read a number from the minibuffer.
 Keep reentering the minibuffer until we get suitable input.

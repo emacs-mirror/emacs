@@ -2061,21 +2061,38 @@ whether or not it is currently displayed in some window.  */)
       XSETBUFFER (w->buffer, current_buffer);
     }
 
-  SET_TEXT_POS (pt, PT, PT_BYTE);
-  start_display (&it, w, pt);
+  if (noninteractive)
+    {
+      struct position pos;
+      pos = *vmotion (PT, XINT (lines), w);
+      SET_PT_BOTH (pos.bufpos, pos.bytepos);
+    }
+  else
+    {
+      SET_TEXT_POS (pt, PT, PT_BYTE);
+      start_display (&it, w, pt);
 
-  /* Move to the start of the display line containing PT.  If we don't
-     do this, we start moving with IT->current_x == 0, while PT is
-     really at some x > 0.  The effect is, in continuation lines, that
-     we end up with the iterator placed at where it thinks X is 0,
-     while the end position is really at some X > 0, the same X that
-     PT had.  */
-  move_it_by_lines (&it, 0, 0);
+      /* Scan from the start of the line containing PT.  If we don't
+	 do this, we start moving with IT->current_x == 0, while PT is
+	 really at some x > 0.  The effect is, in continuation lines, that
+	 we end up with the iterator placed at where it thinks X is 0,
+	 while the end position is really at some X > 0, the same X that
+	 PT had.  */
+      reseat_at_previous_visible_line_start (&it);
+      it.current_x = it.hpos = 0;
+      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 
-  if (XINT (lines) != 0)
-    move_it_by_lines (&it, XINT (lines), 0);
+      /* Move back if we got too far.  This may happen if
+	 truncate-lines is on and PT is beyond right margin.  */
+      if (IT_CHARPOS (it) > PT && XINT (lines) > 0)
+	move_it_by_lines (&it, -1, 0);
 
-  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+      it.vpos = 0;
+      if (XINT (lines) != 0)
+	move_it_by_lines (&it, XINT (lines), 0);
+
+      SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+    }
 
   if (BUFFERP (old_buffer))
     w->buffer = old_buffer;
