@@ -85,8 +85,8 @@
       (point-max))))
 
 (defun iso-spanish (from to)
-  "Translate net conventions for Spanish to ISO 8859-1."
-  (interactive)
+  "Translate net conventions for Spanish to ISO 8859-1 in region."
+  (interactive "r")
   (iso-translate-conventions from to iso-spanish-trans-tab))
 
 (defvar iso-aggressive-german-trans-tab
@@ -124,8 +124,8 @@ little.")
   "Currently active translation table for German.")
 
 (defun iso-german (from to)
- "Translate net conventions for German to ISO 8859-1."
- (interactive)
+ "Translate net conventions for German to ISO 8859-1 in region."
+ (interactive "r")
  (iso-translate-conventions from to iso-german-trans-tab))
  
 (defvar iso-iso2tex-trans-tab
@@ -196,8 +196,8 @@ little.")
 
 
 (defun iso-iso2tex (from to)
- "Translate ISO 8859-1 characters to TeX sequences."
- (interactive)
+ "Translate ISO 8859-1 characters to TeX sequences in region."
+ (interactive "r")
  (iso-translate-conventions from to iso-iso2tex-trans-tab))
 
 
@@ -380,8 +380,8 @@ This table is not exhaustive (and due to TeX's power can never be). It only
 contains commonly used sequences.")
 
 (defun iso-tex2iso (from to)
- "Translate TeX sequences to ISO 8859-1 characters."
- (interactive)
+ "Translate TeX sequences to ISO 8859-1 characters in region."
+ (interactive "r")
  (iso-translate-conventions from to iso-tex2iso-trans-tab))
 
 (defvar iso-gtex2iso-trans-tab
@@ -635,14 +635,14 @@ contains commonly used sequences.")
   "Translation table for translating ISO 8859-1 characters to German TeX.")
 
 (defun iso-gtex2iso (from to)
- "Translate German TeX sequences to ISO 8859-1 characters."
- (interactive)
+ "Translate German TeX sequences to ISO 8859-1 characters in region."
+ (interactive "r")
  (iso-translate-conventions from to iso-gtex2iso-trans-tab))
 
 
 (defun iso-iso2gtex (from to)
- "Translate ISO 8859-1 characters to German TeX sequences."
- (interactive)
+ "Translate ISO 8859-1 characters to German TeX sequences in region."
+ (interactive "r")
  (iso-translate-conventions from to iso-iso2gtex-trans-tab))
 
 (defvar iso-iso2duden-trans-tab
@@ -655,8 +655,8 @@ contains commonly used sequences.")
     ("ß" "ss")))
 
 (defun iso-iso2duden (from to)
- "Translate ISO 8859-1 characters to German TeX sequences."
- (interactive)
+ "Translate ISO 8859-1 characters to German TeX sequences in region."
+ (interactive "r")
  (iso-translate-conventions from to iso-iso2duden-trans-tab))
 
 (defun iso-cvt-read-only ()
