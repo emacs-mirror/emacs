@@ -39,6 +39,10 @@
 #undef C_SWITCH_X_SYSTEM
 #undef LD_SWITCH_X_DEFAULT
 /* However, HPUX 9 has Motif includes in a strange place.
-   So search that place.  */
+   So search that place.  These definitions assume that X11R5 is being
+   used -- if X11R4 is used, "s/hpux9-x11r4.h" gets loaded instead.  */
 #define C_SWITCH_X_SYSTEM -I/usr/include/Motif1.2
 #define LD_SWITCH_X_DEFAULT -L/usr/lib/Motif1.2
+
+/* HP-UX doesn't supply nor need Xmu.  */
+#define LIBXMU
