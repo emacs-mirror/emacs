@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Adapted-by: Simon Marshall <s.marshall@dcs.hull.ac.uk>
@@ -1419,7 +1419,7 @@ Does not delete the prompt."
 Also put cursor there if the current position is not visible."
   (interactive)
   (let ((pos (point)))
-    (goto-char comint-last-input-end)
+    (goto-char (or (marker-position comint-last-input-end) (point-max)))
     (beginning-of-line 0)
     (set-window-start (selected-window) (point))
     (if (pos-visible-in-window-p pos)
