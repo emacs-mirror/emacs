@@ -3208,7 +3208,12 @@ at_begline_loc_p (pattern, p, syntax)
        /* After a subexpression?  */
        (*prev == '(' && (syntax & RE_NO_BK_PARENS || prev_prev_backslash))
        /* After an alternative?	 */
-    || (*prev == '|' && (syntax & RE_NO_BK_VBAR || prev_prev_backslash));
+    || (*prev == '|' && (syntax & RE_NO_BK_VBAR || prev_prev_backslash))
+       /* After a shy subexpression?  */
+    || ((syntax & RE_SHY_GROUPS) && prev - 2 >= pattern
+	&& prev[-1] == '?' && prev[-2] == '('
+	&& (syntax & RE_NO_BK_PARENS
+	    || (prev - 3 >= pattern && prev[-3] == '\\')));
 }
 
 
