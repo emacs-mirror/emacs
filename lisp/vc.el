@@ -87,6 +87,8 @@ value of this flag.")
   "*Don't assume that permissions and ownership track version-control status.")
 (defvar vc-checkin-switches nil
   "*Extra switches passed to the checkin program by \\[vc-checkin].")
+(defvar vc-checkout-switches nil
+  "*Extra switches passed to the checkout program by \\[vc-checkout].")
 (defvar vc-path
   (if (file-exists-p "/usr/sccs")
       '("/usr/sccs") nil)
@@ -1686,6 +1688,9 @@ with RCS)."
   ;; Retrieve a copy of a saved version into a workfile
   (let ((filename (or workfile file)))
     (message "Checking out %s..." filename)
+  (save-excursion
+    ;; Change buffers to get local value of vc-checkin-switches.
+    (set-buffer (or (get-file-buffer file) (current-buffer)))
     (vc-backend-dispatch file
      (if workfile ;; SCCS
 	 ;; Some SCCS implementations allow checking out directly to a
@@ -1697,21 +1702,23 @@ with RCS)."
 	       (failed t))
 	   (unwind-protect
 	       (progn
-		   (vc-do-command
-		      0 "/bin/sh" file 'MASTER "-c"
-		      ;; Some shells make the "" dummy argument into $0
-		      ;; while others use the shell's name as $0 and
-		      ;; use the "" as $1.  The if-statement
-		      ;; converts the latter case to the former.
-		      (format "if [ x\"$1\" = x ]; then shift; fi; \
+		   (apply 'vc-do-command
+			  0 "/bin/sh" file 'MASTER "-c"
+			  ;; Some shells make the "" dummy argument into $0
+			  ;; while others use the shell's name as $0 and
+			  ;; use the "" as $1.  The if-statement
+			  ;; converts the latter case to the former.
+			  (format "if [ x\"$1\" = x ]; then shift; fi; \
 			       umask %o; exec >\"$1\" || exit; \
 			       shift; umask %o; exec get \"$@\""
-			      (logand 511 (lognot vc-modes))
-			      (logand 511 (lognot (default-file-modes))))
-		      "" ; dummy argument for shell's $0
-		      filename 
-		      (if writable "-e")
-		      "-p" (and rev (concat "-r" (vc-lookup-triple file rev))))
+				  (logand 511 (lognot vc-modes))
+				  (logand 511 (lognot (default-file-modes))))
+			  ""		; dummy argument for shell's $0
+			  filename 
+			  (if writable "-e")
+			  "-p" (and rev
+				    (concat "-r" (vc-lookup-triple file rev)))
+			  vc-checkout-switches)
 		   (setq failed nil))
 	     (and failed (file-exists-p filename) (delete-file filename))))
        (vc-do-command 0 "get" file 'MASTER	;; SCCS
