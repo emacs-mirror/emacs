@@ -905,9 +905,14 @@ case "${canonical}" in
     esac
   ;;
 
-  ## Linux/68k-based GNU system
+  ## m68k Linux-based GNU system
   m68k-*-linux-gnu* )
     machine=m68k opsys=gnu-linux
+  ;;
+
+  ## Mips Linux-based GNU system
+  mips-*-linux-gnu* )
+    machine=mips opsys=gnu-linux
   ;;
 
   * )
