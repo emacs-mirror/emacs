@@ -1,6 +1,6 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
- * $HopeName: MMsrc!segsmss.c(trunk.5) $
+ * $HopeName: MMsrc!segsmss.c(trunk.6) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amsss.c (because AMS already supports 
@@ -30,8 +30,8 @@
 
 /* Forward declarations */
 
-extern SegClass EnsureAMSTSegClass(void);
-extern PoolClass EnsureAMSTPoolClass(void);
+static SegClass AMSTSegClassGet(void);
+static PoolClass AMSTPoolClassGet(void);
 
 
 /* Start by defining the AMST pool (AMS Test pool) */
@@ -72,10 +72,9 @@ static Bool AMSTCheck(AMST amst)
  *
  * returns TRUE if so.
  */
-
 static Bool AMSTFailOperation(AMST amst)
 {
-  if(amst->failSegs) {
+  if (amst->failSegs) {
     return rnd() % 2;
   } else {
     return FALSE;
@@ -132,7 +131,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   amstseg->next = NULL;
@@ -155,9 +154,9 @@ static void amstSegFinish(Seg seg)
   amstseg = SegAMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
 
-  if(amstseg->next != NULL)
+  if (amstseg->next != NULL)
     amstseg->next->prev = NULL;
-  if(amstseg->prev != NULL)
+  if (amstseg->prev != NULL)
     amstseg->prev->next = NULL;
 
   amstseg->sig = SigInvalid;
@@ -177,7 +176,6 @@ static void amstSegFinish(Seg seg)
  * But we assume here that we won't run out of memory when calling the 
  * anti-method.
  */
-
 static Res amstSegMerge(Seg seg, Seg segHi, 
                         Addr base, Addr mid, Addr limit,
                         Bool withReservoirPermit, va_list args)
@@ -199,10 +197,10 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->merge(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failSuper;
 
-  if(AMSTFailOperation(amst)) {
+  if (AMSTFailOperation(amst)) {
     amst->badMerges++;
     printf("D");
     goto failDeliberate;
@@ -250,10 +248,10 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->split(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failSuper;
 
-  if(AMSTFailOperation(amst)) {
+  if (AMSTFailOperation(amst)) {
     amst->badSplits++;
     printf("B");
     goto failDeliberate;
@@ -300,7 +298,6 @@ DEFINE_SEG_CLASS(AMSTSegClass, class)
  *
  * Picks double the default segment size.
  */
-
 static Res AMSTSegSizePolicy(Size *sizeReturn,
                              Pool pool, Size size, RankSet rankSet)
 {
@@ -315,12 +312,12 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
   arena = PoolArena(pool);
 
   basic = SizeAlignUp(size, ArenaAlign(arena));
-  if(basic == 0) {
+  if (basic == 0) {
     /* overflow */
     return ResMEMORY;
   }
   want = basic + basic;
-  if(want <= basic) {
+  if (want <= basic) {
     /* overflow */
     return ResMEMORY;
   }
@@ -351,7 +348,7 @@ static Res AMSTInit(Pool pool, va_list args)
   amst = PoolPoolAMST(pool);
   ams = PoolPoolAMS(pool);
   ams->segSize = AMSTSegSizePolicy;
-  ams->segClass = EnsureAMSTSegClass;
+  ams->segClass = AMSTSegClassGet;
   amst->chain = chain;
   amst->failSegs = TRUE;
   amst->splits = 0;
@@ -419,7 +416,7 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
   bgrain = AMSGrains(ams, AddrOffset(sbase, base)); 
   lgrain = AMSGrains(ams, AddrOffset(sbase, limit));
 
-  if(amsseg->allocTableInUse) {
+  if (amsseg->allocTableInUse) {
     return BTIsResRange(amsseg->allocTable, bgrain, lgrain);
   } else {
     return amsseg->firstFree <= bgrain;
@@ -432,7 +429,6 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
  * Used as a means of overriding the behaviour of AMSBufferFill.
  * The code is similar to AMSBufferEmpty.
  */
-
 static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
 {
   Pool pool;
@@ -448,19 +444,19 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
   baseIndex = AMS_ADDR_INDEX(seg, base);
   limitIndex = AMS_ADDR_INDEX(seg, limit);
 
-  if(amsseg->allocTableInUse) {
+  if (amsseg->allocTableInUse) {
     /* check that it's allocated */
     AVER(BTIsSetRange(amsseg->allocTable, baseIndex, limitIndex));
     BTResRange(amsseg->allocTable, baseIndex, limitIndex);
   } else {
     /* check that it's allocated */
     AVER(limitIndex <= amsseg->firstFree);
-    if(limitIndex == amsseg->firstFree) /* is it at the end? */ {
+    if (limitIndex == amsseg->firstFree) /* is it at the end? */ {
       amsseg->firstFree = baseIndex;
     } else { /* start using allocTable */
       amsseg->allocTableInUse = TRUE;
       BTSetRange(amsseg->allocTable, 0, amsseg->firstFree);
-      if(amsseg->firstFree < amsseg->grains)
+      if (amsseg->firstFree < amsseg->grains)
         BTResRange(amsseg->allocTable, amsseg->firstFree, amsseg->grains);
       BTResRange(amsseg->allocTable, baseIndex, limitIndex);
     }
@@ -475,7 +471,6 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
  * Used as a means of overriding the behaviour of AMSBufferFill.
  * The code is similar to AMSUnallocateRange.
  */
-
 static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
 {
   Pool pool;
@@ -491,19 +486,19 @@ static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
   baseIndex = AMS_ADDR_INDEX(seg, base);
   limitIndex = AMS_ADDR_INDEX(seg, limit);
 
-  if(amsseg->allocTableInUse) {
+  if (amsseg->allocTableInUse) {
     /* check that it's not allocated */
     AVER(BTIsResRange(amsseg->allocTable, baseIndex, limitIndex));
     BTSetRange(amsseg->allocTable, baseIndex, limitIndex);
   } else {
     /* check that it's not allocated */
     AVER(baseIndex >= amsseg->firstFree);
-    if(baseIndex == amsseg->firstFree) /* is it at the end? */ {
+    if (baseIndex == amsseg->firstFree) /* is it at the end? */ {
       amsseg->firstFree = limitIndex;
     } else { /* start using allocTable */
       amsseg->allocTableInUse = TRUE;
       BTSetRange(amsseg->allocTable, 0, amsseg->firstFree);
-      if(amsseg->firstFree < amsseg->grains)
+      if (amsseg->firstFree < amsseg->grains)
         BTResRange(amsseg->allocTable, amsseg->firstFree, amsseg->grains);
       BTSetRange(amsseg->allocTable, baseIndex, limitIndex);
     }
@@ -528,10 +523,9 @@ static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
  * returns the entire segment, and yet lower half of the segment would 
  * meet the request.
  */
-
 static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
-                   Pool pool, Buffer buffer, Size size,
-                   Bool withReservoirPermit)
+                          Pool pool, Buffer buffer, Size size,
+                          Bool withReservoirPermit)
 {
   PoolClass super;
   Addr base, limit;
@@ -553,23 +547,24 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   super = POOL_SUPERCLASS(AMSTPoolClass);
   res = super->bufferFill(&base, &limit, pool, buffer, size,
                           withReservoirPermit);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   b = SegOfAddr(&seg, arena, base);
   AVER(b);
   amstseg = SegAMSTSeg(seg);
 
-  if(SegLimit(seg) == limit && SegBase(seg) == base) {
-    if(amstseg->prev != NULL) {
+  if (SegLimit(seg) == limit && SegBase(seg) == base) {
+    if (amstseg->prev != NULL) {
       Seg segLo = AMSTSegSeg(amstseg->prev);
-      if(SegBuffer(segLo) == NULL && SegGrey(segLo) == SegGrey(seg)) {
+      if (SegBuffer(segLo) == NULL && SegGrey(segLo) == SegGrey(seg)) {
         /* .merge */
         Seg mergedSeg;
         Res mres;
+
         AMSUnallocateRange(seg, base, limit);
         mres = SegMerge(&mergedSeg, segLo, seg, withReservoirPermit);
-        if(ResOK == mres) { /* successful merge */
+        if (ResOK == mres) { /* successful merge */
           AMSAllocateRange(mergedSeg, base, limit);
           /* leave range as-is */
         } else {            /* failed to merge */
@@ -587,7 +582,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Res sres;
         AMSUnallocateRange(seg, mid, limit);
         sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);        
-        if(ResOK == sres) { /* successful split */
+        if (ResOK == sres) { /* successful split */
           limit = mid;  /* range is lower segment */
         } else {            /* failed to split */
           AVER(amst->failSegs); /* deliberate fails only */
@@ -617,7 +612,6 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
  * correspond to the segment limit, provided that the part of the segment
  * above the buffer is all free.
  */
-
 static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 {
   AMSTSeg amstseg;
@@ -635,14 +629,14 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   amst = PoolPoolAMST(SegPool(seg));
   AVERT(AMST, amst);
 
-  if(amstseg->next != NULL) {
+  if (amstseg->next != NULL) {
     Seg segHi = AMSTSegSeg(amstseg->next);
-    if(AMSSegIsFree(segHi) && SegGrey(segHi) == SegGrey(seg)) {
+    if (AMSSegIsFree(segHi) && SegGrey(segHi) == SegGrey(seg)) {
       /* .bmerge */
       Seg mergedSeg;
       Res res;
       res = SegMerge(&mergedSeg, seg, segHi, FALSE);
-      if(ResOK == res) {
+      if (ResOK == res) {
         amst->bmerges++;
         printf("J");
       } else {
@@ -659,7 +653,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
     Seg segLo, segHi;
     Res res;
     res = SegSplit(&segLo, &segHi, seg, limit, FALSE);
-    if(ResOK == res) {
+    if (ResOK == res) {
       amst->bsplits++;
       printf("C");
     } else {
@@ -689,7 +683,6 @@ DEFINE_POOL_CLASS(AMSTPoolClass, this)
  *
  * Attempt to either split or merge a segment attached to an AP
  */
-
 static void mps_amst_ap_stress(mps_ap_t ap)
 {
   Buffer buffer;
@@ -706,7 +699,7 @@ static void mps_amst_ap_stress(mps_ap_t ap)
 
 static mps_class_t mps_class_amst(void)
 {
-  return (mps_class_t)EnsureAMSTPoolClass();
+  return (mps_class_t)AMSTPoolClassGet();
 }
 
 
@@ -738,10 +731,10 @@ static mps_addr_t make(void)
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
-    if(res)
+    if (res)
       die(res, "MPS_RESERVE_BLOCK");
     res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
-    if(res)
+    if (res)
       die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
 
@@ -794,7 +787,7 @@ static void *test(void *arg, size_t s)
 
   objs = 0;
   while(totalSize < totalSizeMAX) {
-    if(totalSize > lastStep + totalSizeSTEP) {
+    if (totalSize > lastStep + totalSizeSTEP) {
       lastStep = totalSize;
       printf("\nSize %lu bytes, %lu objects.\n",
              (unsigned long)totalSize, objs);
@@ -806,12 +799,12 @@ static void *test(void *arg, size_t s)
     }
 
     r = (size_t)rnd();
-    if(r & 1) {
+    if (r & 1) {
       i = (r >> 1) % exactRootsCOUNT;
-      if(exactRoots[i] != objNULL)
+      if (exactRoots[i] != objNULL)
         cdie(dylan_check(exactRoots[i]), "dying root check");
       exactRoots[i] = make();
-      if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
+      if (exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
                     exactRoots, exactRootsCOUNT);
     } else {
@@ -821,10 +814,10 @@ static void *test(void *arg, size_t s)
       ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
     }
 
-    if(rnd() % stressTestFREQ == 0)
+    if (rnd() % stressTestFREQ == 0)
       mps_amst_ap_stress(ap); /* stress active buffer */
 
-    if(rnd() % initTestFREQ == 0)
+    if (rnd() % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
     ++objs;
