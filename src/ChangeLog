@@ -1,3 +1,10 @@
+2002-04-28  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (Fall_completions, Ftry_completion): New arg to Fcommandp.
+
+	* eval.c (Fcommandp): New arg for_call_interactively.
+	* lisp.h (Fcommandp): Declare new arg.
+
 2002-04-28  Jason Rumney  <jasonr@gnu.org>
 
 	* w32proc.c (syms_of_w32proc): Get true file attributes by default.
