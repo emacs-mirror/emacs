@@ -1,3 +1,7 @@
+2005-01-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-at-pt.el (help-at-pt-display-when-idle): Add autoload cookie.
+
 2005-01-24  Lute Kamstra  <lute@gnu.org>
 
 	* textmodes/ispell.el (ispell-dictionary-alist-4): Rewrite the
