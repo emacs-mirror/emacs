@@ -912,7 +912,7 @@ case "${canonical}" in
     machine=news-risc opsys=bsd4-3
   ;;
   mips-sony-newsos* )
-    machine=mips opsys=newsos5
+    machine=news-risc opsys=newsos5
   ;;
 
   ## Stride
