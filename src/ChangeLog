@@ -1,9 +1,13 @@
+2003-03-16  Juanma Barranquero  <lektu@terra.es>
+
+	* xdisp.c (x_produce_glyphs): Use FRAME_BASELINE_OFFSET.
+
 2003-03-16  Kim F. Storm  <storm@cua.dk>
 
 	The following changes consolidate some of the gui-independent
 	parts of the processing and drawing of "glyph strings" from
 	xterm.c, w32term.c, and macterm.c into xdisp.c.
-	
+
 	* dispextern.h (struct glyph): Reduce face_id member from 22 to
 	21 bits (this reduces number of faces from 4M to 2M).
 	Replace W32 specific w32_font_type member (2 bits) by generic
@@ -42,7 +46,7 @@
 	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE)
 	(STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2):
 	New macros for consolidated code.
- 
+
 	* xterm.c: Remove consolidated defines and code.
 	(x_per_char_metric, x_encode_char)
 	(x_compute_glyph_string_overhangs): Adapt to RIF requirements.
@@ -53,7 +57,7 @@
 	(STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2): New macros.
 
 	* w32term.h (FRAME_X_OUTPUT, FRAME_X_WINDOW, FRAME_X_DISPLAY)
-	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): 
+	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE):
 	New macros for consolidation.
 
 	* w32term.c: Remove consolidated defines and code.
