@@ -50,8 +50,6 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "syssignal.h"
 
-Lisp_Object Qarith_error;
-
 #ifdef LISP_FLOAT_TYPE
 
 /* Work around a problem that happens because math.h on hpux 7
