@@ -4035,6 +4035,7 @@ actually used.  */)
       Lisp_Object conversion_buffer
 	= make_conversion_work_buffer (! NILP (current_buffer
 					       ->enable_multibyte_characters));
+      struct gcpro1;
 
       record_unwind_protect (code_conversion_restore, save_excursion_save ());
 
@@ -4052,6 +4053,7 @@ actually used.  */)
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
 
+      GCPRO1 (conversion_buffer);
       while (how_much < total)
 	{
 	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
@@ -4075,13 +4077,15 @@ actually used.  */)
 
 	  how_much += this;
 
+	  BUF_SET_PT (XBUFFER (conversion_buffer),
+		      BUF_Z (XBUFFER (conversion_buffer)));
 	  decode_coding_c_string (&coding, read_buf, unprocessed + this,
 				  conversion_buffer);
 	  unprocessed = coding.carryover_bytes;
 	  if (coding.carryover_bytes > 0)
 	    bcopy (coding.carryover, read_buf, unprocessed);
 	}	  
-      
+      UNGCPRO;
       emacs_close (fd);
 
       /* At this point, HOW_MUCH should equal TOTAL, or should be <= 0
