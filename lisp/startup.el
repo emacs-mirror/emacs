@@ -1502,6 +1502,9 @@ where FACE is a valid face specification, as it can be used with
 	       ;; has selected another buffer.
 	       (string= (buffer-name) "*scratch*")
 	       ;; Don't display startup screen if init file
+	       ;; has started some sort of server.
+	       (process-list)
+	       ;; Don't display startup screen if init file
 	       ;; has inserted some text in *scratch*.
 	       (= 0 (buffer-size)))
       ;; Display a startup screen, after some preparations.
@@ -1542,11 +1545,14 @@ where FACE is a valid face specification, as it can be used with
       ;; If user typed input during all that work,
       ;; abort the startup screen.  Otherwise, display it now.
       (when (not (input-pending-p))
-	(with-temp-buffer
+	(with-current-buffer (get-buffer-create "GNU Emacs")
 	  (if (and (display-graphic-p)
 		   (use-fancy-splash-screens-p))
 	      (fancy-splash-screens)
-	    (let ((tab-width 8))
+	    (let ((tab-width 8)
+		  (mode-line-format (propertize "---- %b %-" 
+						'face '(:weight bold))))
+
 	      ;; The convention for this piece of code is that
 	      ;; each piece of output starts with one or two newlines
 	      ;; and does not end with any newlines.
@@ -1666,7 +1672,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	      (goto-char (point-min))
 	      (save-window-excursion
 		(switch-to-buffer (current-buffer))
-		(sit-for 120)))))))))
+		(sit-for 120)))))
+	(kill-buffer "GNU Emacs")))))
 
 
 (defun command-line-normalize-file-name (file)
