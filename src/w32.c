@@ -702,6 +702,7 @@ init_environment (char ** argv)
     int i;
     LPBYTE lpval;
     DWORD dwType;
+    char locale_name[32];
 
     static struct env_entry
     {
@@ -721,8 +722,24 @@ init_environment (char ** argv)
 	 is then ignored.  */
       /*  {"INFOPATH", "%emacs_dir%/info"},  */
       {"EMACSDOC", "%emacs_dir%/etc"},
-      {"TERM", "cmd"}
+      {"TERM", "cmd"},
+      {"LANG", NULL},
     };
+
+  /* Get default locale info and use it for LANG.  */
+  if (GetLocaleInfo (LOCALE_USER_DEFAULT,
+                     LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
+                     locale_name, sizeof (locale_name)))
+    {
+      for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
+        {
+          if (strcmp (env_vars[i].name, "LANG") == 0)
+            {
+              env_vars[i].def_value = locale_name;
+              break;
+            }
+        }
+    }
 
 #define SET_ENV_BUF_SIZE (4 * MAX_PATH)	/* to cover EMACSLOADPATH */
 
@@ -752,7 +769,7 @@ init_environment (char ** argv)
 	}
     }
 
-    for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++) 
+    for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
       {
 	if (!getenv (env_vars[i].name))
 	  {
