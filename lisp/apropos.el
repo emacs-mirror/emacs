@@ -558,7 +558,9 @@ alphabetically by symbol name; but this function also sets
 		   (insert
 		    (mapconcat
 		     (lambda (key)
-		       (setq key (key-description key))
+		       (setq key (condition-case () 
+				     (key-description key)
+				   (error)))
 		       (if apropos-keybinding-face
 			   (put-text-property 0 (length key)
 					      'face apropos-keybinding-face
