@@ -5654,7 +5654,7 @@ code_convert_string_norecord (string, coding_system, encodep)
 
   coding.composing = COMPOSITION_DISABLED;
   coding.mode |= CODING_MODE_LAST_BLOCK;
-  return code_convert_string (string, &coding, encodep, Qt);
+  return code_convert_string (string, &coding, encodep, 1);
 }
 
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
