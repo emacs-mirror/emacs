@@ -655,26 +655,6 @@ syms_of_callint ()
   Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
   staticpro (&Qmouse_leave_buffer_hook);
 
-  DEFVAR_DISPLAY ("prefix-arg", Vprefix_arg,
-    "The value of the prefix argument for the next editing command.\n\
-It may be a number, or the symbol `-' for just a minus sign as arg,\n\
-or a list whose car is a number for just one or more C-U's\n\
-or nil if no argument has been specified.\n\
-\n\
-You cannot examine this variable to find the argument for this command\n\
-since it has been set to nil by the time you can look.\n\
-Instead, you should use the variable `current-prefix-arg', although\n\
-normally commands can get this prefix argument with (interactive \"P\").");
-  the_only_perdisplay.Vprefix_arg = Qnil;
-
-  DEFVAR_DISPLAY ("current-prefix-arg", Vcurrent_prefix_arg,
-    "The value of the prefix argument for this editing command.\n\
-It may be a number, or the symbol `-' for just a minus sign as arg,\n\
-or a list whose car is a number for just one or more C-U's\n\
-or nil if no argument has been specified.\n\
-This is what `(interactive \"P\")' returns.");
-  the_only_perdisplay.Vcurrent_prefix_arg = Qnil;
-
   DEFVAR_LISP ("command-history", &Vcommand_history,
     "List of recent commands that read arguments from terminal.\n\
 Each command is represented as a form to evaluate.");
