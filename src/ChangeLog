@@ -1,3 +1,8 @@
+2003-04-03  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (choose_face_font): Make sure *NEEDS_OVERSTRIKE is
+	always set.
+
 2003-04-01  Dave Love  <fx@gnu.org>
 
 	* xfns.c (xpm_lookup_color): Grok "opaque".
