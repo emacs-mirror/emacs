@@ -138,7 +138,7 @@
 (defvar iso-accents-minor-mode nil
   "*Non-nil enables ISO-accents mode.
 Setting this variable makes it local to the current buffer.
-See `iso-accents-mode'."
+See `iso-accents-mode'.")
 (make-variable-buffer-local 'iso-accents-minor-mode)
 
 ;; A minor mode map `iso-accents-prefix-map' is used to activate the
