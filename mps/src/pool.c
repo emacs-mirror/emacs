@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.41) $
+ * $HopeName: MMsrc!pool.c(trunk.42) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.41) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.42) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -40,6 +40,7 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->reclaim));
   CHECKL(FUNCHECK(class->benefit));
   CHECKL(FUNCHECK(class->act));
+  CHECKL(FUNCHECK(class->walk));
   CHECKL(FUNCHECK(class->describe));
   CHECKL(class->endSig == PoolClassSig);
   return TRUE;
@@ -370,6 +371,7 @@ Res PoolAct(Pool pool, Action action)
   AVER(action->pool == pool);
   return (*pool->class->act)(pool, action);
 }
+
 
 
 Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
@@ -808,4 +810,18 @@ failBegin:
   TraceDestroy(trace);
 failCreate:
   return res;
+}
+
+void PoolNoWalk(Pool pool, Seg seg,
+                void (*f)(Addr, void *, unsigned long),
+		void *p, unsigned long s)
+{
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(FunCheck((Fun)f));
+  /* p and s are arbitrary closures, hence can't be checked */
+  UNUSED(p);
+  UNUSED(s);
+
+  NOTREACHED;
 }
