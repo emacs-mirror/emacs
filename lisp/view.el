@@ -34,7 +34,6 @@
   (setq view-mode-map (make-keymap))
   (fillarray (nth 1 view-mode-map) 'View-undefined)
   (define-key view-mode-map "\C-c" 'view-exit)
-  (define-key view-mode-map "\C-z" 'suspend-emacs)
   (define-key view-mode-map "q" 'view-exit)
   (define-key view-mode-map "-" 'negative-argument)
   (define-key view-mode-map "0" 'digit-argument)
