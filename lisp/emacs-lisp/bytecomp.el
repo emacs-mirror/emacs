@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.43 $")
+(defconst byte-compile-version "$Revision: 2.44 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1416,6 +1416,7 @@ With argument, insert value in current buffer after the form."
        ;; need to be written carefully.
        (setq overwrite-mode 'overwrite-mode-binary))
      (displaying-byte-compile-warnings
+      (and filename (byte-compile-insert-header filename inbuffer outbuffer))
       (save-excursion
 	(set-buffer inbuffer)
 	(goto-char 1)
@@ -1434,24 +1435,55 @@ With argument, insert value in current buffer after the form."
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have
 	;; been compiled.
-	(setq byte-compile-unresolved-functions nil)))
-     ;; Insert the header at the front of the output.
-     ;; We do this last, so we can check for the presence
-     ;; of multibyte characters in the compiled code.
-     (and filename (byte-compile-insert-header filename inbuffer outbuffer)))
+	(setq byte-compile-unresolved-functions nil))
+      ;; Fix up the header at the front of the output
+      ;; if the buffer contains multibyte characters.
+      (and filename (byte-compile-fix-header filename inbuffer outbuffer))))
     outbuffer))
+
+(defun byte-compile-fix-header (filename inbuffer outbuffer)
+  (save-excursion
+    (set-buffer outbuffer)
+    (goto-char (point-min))
+    ;; See if the buffer has any multibyte characters.
+    (skip-chars-forward "\0-\377")
+    (when (not (eobp))
+      (when (byte-compile-version-cond byte-compile-compatibility)
+	(error "Version-18 compatibility not valid with multibyte characters"))
+      (goto-char (point-min))
+      ;; Find the comment that describes the version test.
+      (search-forward "\n;;; This file")
+      (beginning-of-line)
+      (narrow-to-region (point) (point-max))
+      ;; Find the line of ballast semicolons.
+      (search-forward ";;;;;;;;;;")
+      (beginning-of-line)
+
+      (narrow-to-region (point-min) (point))
+      (let ((old-header-end (point))
+	    delta)
+	(goto-char (point-min))
+	(delete-region (point) (progn (re-search-forward "^(")
+				      (beginning-of-line)
+				      (point)))
+	(insert ";;; This file contains multibyte non-ASCII characters\n"
+		";;; and therefore cannot be loaded into Emacs 19.\n")
+	;; Replace "19" or "19.29" with "20", twice.
+	(re-search-forward "19\\(\\.[0-9]+\\)")
+	(replace-match "20")
+	(re-search-forward "19\\(\\.[0-9]+\\)")
+	(replace-match "20")
+	;; Now compensate for the change in size,
+	;; to make sure all positions in the file remain valid.
+	(setq delta (- (point-max) old-header-end))
+	(goto-char (point-max))
+	(widen)
+	(delete-char delta)))))
 
 (defun byte-compile-insert-header (filename inbuffer outbuffer)
   (set-buffer inbuffer)
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
-	(dynamic byte-compile-dynamic)
-	(some-multibyte-characters
-	 (save-excursion
-	   (goto-char 1)
-	   ;; See if the buffer has any multibyte characters.
-	   (skip-chars-forward "\0-\377")
-	   (not (eobp)))))
-
+	(dynamic byte-compile-dynamic))
     (set-buffer outbuffer)
     (goto-char 1)
     ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
@@ -1490,31 +1522,27 @@ With argument, insert value in current buffer after the form."
 	      ".\n"))
     (if dynamic
 	(insert ";;; Function definitions are lazy-loaded.\n"))
-    (if (or some-multibyte-characters
-	    dynamic-docstrings
-	    (not (byte-compile-version-cond byte-compile-compatibility)))
+    (if (not (byte-compile-version-cond byte-compile-compatibility))
 	(let (intro-string minimum-version)
 	  ;; Figure out which Emacs version to require,
 	  ;; and what comment to use to explain why.
-	  (if some-multibyte-characters
+	  ;; Note that this fails to take account of whether
+	  ;; the buffer contains multibyte characters.  We may have to
+	  ;; compensate at the end in byte-compile-fix-header.
+	  (if dynamic-docstrings
 	      (setq intro-string
-		    (concat
-		     ";;; This file contains multibyte non-ASCII characters\n"
-		     ";;; and therefore cannot be loaded into Emacs 19.\n")
-		    minimum-version "20")
-	    (if dynamic-docstrings
-		(setq intro-string
-		      ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
-		      minimum-version "19.29")
-	      (setq intro-string
-		    ";;; This file uses opcodes which do not exist in Emacs 18.\n"
-		    minimum-version "19")))
+		    ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
+		    minimum-version "19.29")
+	    (setq intro-string
+		  ";;; This file uses opcodes which do not exist in Emacs 18.\n"
+		  minimum-version "19"))
 	  ;; Now insert the comment and the error check.
 	  (insert
+	   "\n"
 	   intro-string
 	   ;; Have to check if emacs-version is bound so that this works
 	   ;; in files loaded early in loadup.el.
-	   "\n(if (and (boundp 'emacs-version)\n"
+	   "(if (and (boundp 'emacs-version)\n"
 	   ;; If there is a name at the end of emacs-version,
 	   ;; don't try to check the version number.
 	   "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
@@ -1526,8 +1554,16 @@ With argument, insert value in current buffer after the form."
 	   (substring (prin1-to-string (file-name-nondirectory filename))
 		      1 -1)
 	   (format "' was compiled for Emacs %s or later\"))\n\n"
-		   minimum-version)))
+		   minimum-version)
+	   ;; Insert semicolons as ballast, so that byte-compile-fix-header
+	   ;; can delete them so as to keep the buffer positions
+	   ;; constant for the actual compiled code.
+	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
       ;; Here if we want Emacs 18 compatibility.
+      (when dynamic-docstrings
+	(error "Version-18 compatibility doesn't support dynamic doc strings"))
+      (when byte-compile-dynamic
+	(error "Version-18 compatibility doesn't support dynamic byte code"))
       (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
 	      "\n"))))
 
