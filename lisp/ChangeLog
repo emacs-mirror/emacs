@@ -1,12 +1,16 @@
+2000-07-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (TAGS-LISP): Don't use `$(lispsource)'.
+
 2000-07-05  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* ediff-diff.el (ediff-wordify): use syntax table.
-	* ediff-init.el (ediff-has-face-support-p): use
+	* ediff-diff.el (ediff-wordify): Use syntax table.
+	* ediff-init.el (ediff-has-face-support-p): Use
 	ediff-color-display-p.
-	(ediff-color-display-p): use display-color-p, changed to defun
+	(ediff-color-display-p): Use display-color-p, changed to defun
 	from defsubst.
 	Got rid of special cases for NeXT and OS/2.
-	* ediff-wind.el (ediff-setup-control-frame): set proper modeline
+	* ediff-wind.el (ediff-setup-control-frame): Set proper modeline
 	face.
 	
 2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>

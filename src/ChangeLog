@@ -1,3 +1,12 @@
+2000-07-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (Fwindow_list): Reverse list at the end.
+	(candidate_window_p): Add parameter OWINDOW.  ALL_FRAMES nil
+	means allow windows on OWINDOW's frame, only.
+	(window_loop): Simplified; use Fwindow_list.
+
+	* Makefile.in (TAGS-LISP): Don't pass `$(lispsource)' to make.
+
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (XTread_socket): Increment handling_signal at the start,
