@@ -320,7 +320,7 @@ if that value is non-nil."
   (setq mode-name "Emacs-Lisp")
   (lisp-mode-variables)
   (setq imenu-case-fold-search nil)
-  (run-hooks 'emacs-lisp-mode-hook))
+  (run-mode-hooks 'emacs-lisp-mode-hook))
 (put 'emacs-lisp-mode 'custom-mode-group 'lisp)
 
 (defvar lisp-mode-map
@@ -356,7 +356,7 @@ if that value is non-nil."
   (setq font-lock-keywords-case-fold-search t)
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
-  (run-hooks 'lisp-mode-hook))
+  (run-mode-hooks 'lisp-mode-hook))
 
 ;; This will do unless inf-lisp.el is loaded.
 (defun lisp-eval-defun (&optional and-go)
