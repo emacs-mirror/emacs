@@ -1,3 +1,11 @@
+2002-10-14  Andre Spiegel  <spiegel@gnu.org>
+
+	* files.el (insert-directory): Handle //SUBDIRED// lines in
+	recursive listings from ls --dired.
+
+	* vc.el (vc-dired-reformat-line): Simplified.  Handles text
+	properties correctly now.
+
 2002-10-14  Juanma Barranquero  <lektu@terra.es>
 
 	* international/mule.el (set-selection-coding-system): Fix spacing.
