@@ -1868,7 +1868,7 @@ adjust_point_for_property (last_pt, modified)
      int last_pt;
      int modified;
 {
-  int beg, end;
+  EMACS_INT beg, end;
   Lisp_Object val, overlay, tmp;
   int check_composition = 1, check_display = 1, check_invisible = 1;
   int orig_pt = PT;
