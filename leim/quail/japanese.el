@@ -79,22 +79,24 @@
 ;; (Kana Kanji Converter) utility.
 (defun quail-japanese-kanji-kkc ()
   (interactive)
-  (let ((from (overlay-start quail-conv-overlay))
-	(to (overlay-end quail-conv-overlay)))
+  (when (= (char-before (overlay-end quail-conv-overlay)) ?n)
+    ;; The last char is `n'.  We had better convert it to `ん'
+    ;; before kana-kanji conversion.
+    (goto-char (overlay-end quail-conv-overlay))
+    (delete-char -1)
+    (insert ?ん))
+  (let* ((from (copy-marker (overlay-start quail-conv-overlay)))
+	 (len (- (overlay-end quail-conv-overlay) from)))
     (quail-delete-overlays)
     (setq quail-current-str nil)
-    (when (= (char-before to) ?n)
-      ;; The last char is `n'.  We had better convert it to `ん'
-      ;; before kana-kanji conversion.
-      (goto-char to)
-      (delete-char -1)
-      (insert ?ん))
-    (let ((result (kkc-region from to)))
-      (move-overlay quail-conv-overlay from (point))
-      (setq quail-conversion-str (buffer-substring from (point)))
-      (if (= (+ from result) (point))
-	  (setq quail-converting nil))
-      (setq quail-translating nil))))
+    (unwind-protect
+	(let ((result (kkc-region from (+ from len))))
+	  (move-overlay quail-conv-overlay from (point))
+	  (setq quail-conversion-str (buffer-substring from (point)))
+	  (if (= (+ from result) (point))
+	      (setq quail-converting nil))
+	  (setq quail-translating nil))
+      (set-marker from nil))))
 
 (defun quail-japanese-self-insert-and-switch-to-alpha (key idx)
   (quail-delete-region)
