@@ -735,12 +735,14 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
               (<= (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode 1))
 
-  ;; Can't do this init in defcustom because window-system isn't set.
+  ;; Can't do this init in defcustom because the relevant variables
+  ;; are not set.  If you make any changes to the `or' form below,
+  ;; you should also change the corresponding expression in the
+  ;; defcustom in frame.el, or Custom will be badly confused.
   (unless (or noninteractive
 	      emacs-quick-startup
               (eq system-type 'ms-dos)
               (not (memq window-system '(x w32))))
-    (setq-default blink-cursor t)
     (blink-cursor-mode 1))
 
   (unless noninteractive
