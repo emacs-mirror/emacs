@@ -456,15 +456,15 @@ Returns the compilation buffer created."
       (cons "Compile" (make-sparse-keymap "Compile")))
 
     (define-key map [menu-bar compilation-menu compilation-mode-kill-compilation]
-      '("Stop compilation" . kill-compilation))
+      '("Stop Compilation" . kill-compilation))
     (define-key map [menu-bar compilation-menu compilation-mode-separator2]
       '("----" . nil))
     (define-key map [menu-bar compilation-menu compilation-mode-first-error]
-      '("First error" . first-error))
+      '("First Error" . first-error))
     (define-key map [menu-bar compilation-menu compilation-mode-previous-error]
-      '("Previous error" . previous-error))
+      '("Previous Error" . previous-error))
     (define-key map [menu-bar compilation-menu compilation-mode-next-error]
-      '("Next error" . next-error))
+      '("Next Error" . next-error))
     (define-key map [menu-bar compilation-menu compilation-separator2]
       '("----" . nil))
     (define-key map [menu-bar compilation-menu compilation-mode-grep]
