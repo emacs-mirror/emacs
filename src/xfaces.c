@@ -1513,7 +1513,7 @@ face_color_supported_p (f, color_name, background_p)
 
   XSETFRAME (frame, f);
   return
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
     FRAME_WINDOW_P (f)
     ? (!NILP (Fxw_display_color_p (frame))
        || xstricmp (color_name, "black") == 0
