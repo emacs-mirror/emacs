@@ -200,5 +200,22 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define CLASH_DETECTION
 
+/* configure fails to find these two.  */
 
+#define HAVE_RANDOM
+#define HAVE_XSCREENNUMBEROFSCREEN
 
+/* pearce@ll.mit.edu says this is needed.  */
+
+#define BROKEN_FIONREAD
+
+/* No shared X library.  */
+
+#undef LIB_X11_LIB
+#define LIB_X11_LIB -lX11
+
+/* We have no 'pt' library as usg5-3.h expects.  */
+#undef LIBX11_SYSTEM
+#define LIBX11_SYSTEM -lnls -lnsl_s
+
+#undef USG_SHARED_LIBRARIES
