@@ -1,3 +1,12 @@
+2003-05-18  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gud.el (gdb): Define gud-nexti.
+	(gud-menu-map): Add gud-nexti to map.
+	(gud-tool-bar-map): Add gud-nexti and gud-stepi to toolbar.
+	
+	* toolbar/gud-stepi.xpm, toolbar/gud-stepi.pbm, 
+	toolbar/gud-nexti.xpm, toolbar/gud-nexti.pbm: New icons for debugger.
+	
 2003-05-17  John Paul Wallington  <jpw@gnu.org>
 
 	* international/ja-dic-cnv.el (skkdic-okuri-nasi-entries)
