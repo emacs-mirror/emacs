@@ -731,6 +731,57 @@ a better solution in 6.1 upwards.")
 	  (setq result (substring result 0 (match-beginning 0))))))
     (or result "")))
 
+(defvar gud-dgux-p (string-match "-dgux" system-configuration)
+  "Non-nil means to assume the interface approriate for DG/UX dbx.
+This was tested using R4.11.")
+
+;; There are a couple of differences between DG's dbx output and normal
+;; dbx output which make it nontrivial to integrate this into the
+;; standard dbx-marker-filter (mainly, there are a different number of
+;; backreferences).  The markers look like:
+;;
+;;     (0) Stopped at line 10, routine main(argc=1, argv=0xeffff0e0), file t.c
+;;
+;; from breakpoints (the `(0)' there isn't constant, it's the breakpoint
+;; number), and
+;;
+;;     Stopped at line 13, routine main(argc=1, argv=0xeffff0e0), file t.c
+;;
+;; from signals and
+;;
+;;     Frame 21, line 974, routine command_loop(), file keyboard.c
+;;
+;; from up/down/where.
+
+(defun gud-dguxdbx-marker-filter (string)
+  (setq gud-marker-acc (if gud-marker-acc
+			   (concat gud-marker-acc string)
+			 string))
+  (let ((re (concat "^\\(\\(([0-9]+) \\)?Stopped at\\|Frame [0-9]+,\\)"
+		    " line \\([0-9]+\\), routine .*, file \\([^ \t\n]+\\)"))
+	start)
+    ;; Process all complete markers in this chunk.
+    (while (string-match re gud-marker-acc start)
+      (setq gud-last-frame
+	    (cons
+	     (substring gud-marker-acc (match-beginning 4) (match-end 4))
+	     (string-to-int (substring gud-marker-acc
+				       (match-beginning 3) (match-end 3))))
+	    start (match-end 0)))
+
+    ;; Search for the last incomplete line in this chunk
+    (while (string-match "\n" gud-marker-acc start)
+      (setq start (match-end 0)))
+
+    ;; If the incomplete line APPEARS to begin with another marker, keep it
+    ;; in the accumulator.  Otherwise, clear the accumulator to avoid an
+    ;; unnecessary concat during the next call.
+    (setq gud-marker-acc 
+	  (if (string-match "Stopped\\|Frame" gud-marker-acc start)
+	      (substring gud-marker-acc (match-beginning 0))
+	    nil)))
+  string)
+
 (defun gud-dbx-find-file (f)
   (save-excursion
     (let ((realf (gud-dbx-file-name f)))
@@ -763,6 +814,9 @@ and source-file directory for your debugger."
    (gud-irix-p
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-irixdbx-marker-filter 'gud-dbx-find-file))
+   (gud-dgux-p
+    (gud-common-init command-line 'gud-dbx-massage-args
+		     'gud-dguxdbx-marker-filter 'gud-dbx-find-file))
    (t
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-dbx-marker-filter 'gud-dbx-find-file)))
