@@ -1458,8 +1458,10 @@ barrier."
 	  ;; `stack' now refers the most recent valid regexp that is not at
 	  ;; all optional in its last term.  Now dig one level deeper and find
 	  ;; what matched before that.
-	  (let ((last-other-end (or (isearch-other-end-state (car previous))
-				    isearch-barrier)))
+	  (let ((last-other-end
+		 (or (and (car previous)
+			  (isearch-other-end-state (car previous)))
+		     isearch-barrier)))
 	    (goto-char (if isearch-forward
 			   (max last-other-end isearch-barrier)
 			 (min last-other-end isearch-barrier)))
