@@ -5040,13 +5040,13 @@ Return the corresponding character.")
 	XSETFASTINT (val,
 		     MAKE_NON_ASCII_CHAR (charset_katakana_jisx0201, s2, 0));
       else
-	error ("Invalid Shift JIS code: %d", XFASTINT (code));
+	error ("Invalid Shift JIS code: %x", XFASTINT (code));
     }
   else
     {
       if ((s1 < 0x80 || s1 > 0x9F && s1 < 0xE0 || s1 > 0xEF)
 	  || (s2 < 0x40 || s2 == 0x7F || s2 > 0xFC))
-	error ("Invalid Shift JIS code: %d", XFASTINT (code));
+	error ("Invalid Shift JIS code: %x", XFASTINT (code));
       DECODE_SJIS (s1, s2, c1, c2);
       XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset_jisx0208, c1, c2));
     }
@@ -5099,14 +5099,14 @@ Return the corresponding character.")
   if (b1 == 0)
     {
       if (b2 >= 0x80)
-	error ("Invalid BIG5 code: %d", XFASTINT (code));
+	error ("Invalid BIG5 code: %x", XFASTINT (code));
       val = code;
     }
   else
     {
       if ((b1 < 0xA1 || b1 > 0xFE)
 	  || (b2 < 0x40 || (b2 > 0x7E && b2 < 0xA1) || b2 > 0xFE))
-	error ("Invalid BIG5 code: %d", XFASTINT (code));
+	error ("Invalid BIG5 code: %x", XFASTINT (code));
       DECODE_BIG5 (b1, b2, charset, c1, c2);
       XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset, c1, c2));
     }
