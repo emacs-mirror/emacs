@@ -1,3 +1,8 @@
+2003-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* tramp.texi (Top): Undo the previous renaming.
+	(emacs-other-name, emacs-other-dir, emacs-other-file-name): Deleted.
+
 2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* Makefile.in (../info/tramp): Compile Emacs, instead of XEmacs,
