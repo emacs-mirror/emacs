@@ -895,7 +895,7 @@ character.")
   return val;
 }
 
-DEFUN ("count-chars-region", Fcount_chars_region, Scount_chars_region, 2, 2, 0,
+DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
   "Return number of characters between BEG and END.\n\
 When using multibyte characters, this is not the necessarily same as\n\
 (- END BEG); that subtraction gives you the number of bytes, which\n\
@@ -1554,7 +1554,7 @@ syms_of_charset ()
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);
   defsubr (&Schars_in_string);
-  defsubr (&Scount_chars_region);
+  defsubr (&Schars_in_region);
   defsubr (&Schar_boundary_p);
   defsubr (&Sconcat_chars);
   defsubr (&Scmpcharp);
