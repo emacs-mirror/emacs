@@ -1,6 +1,20 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Characters are displayed as empty boxes or with wrong font under X.
+
+This can occur when two different versions of FontConfig are used.
+For example, XFree86 4.3.0 has one version and Gnome usually comes
+with a newer version.  Emacs compiled with --with-gtk will then use
+the newer version.  In most cases the problem can be temporarily
+fixed by stopping the application that has the error (it can be
+Emacs or any other application), removing ~/.fonts.cache-1,
+and then start the application again.
+If removing ~/.fonts.cache-1 and restarting doesn't help, the
+application with problem must be recompiled with the same version
+of FontConfig as the rest of the system uses.  For KDE, it is
+sufficient to recompile Qt.
+
 * Process output truncated on Mac OS X (Carbon) when using pty's.
 
 There appears to be a problem with the implementation of pty's on the

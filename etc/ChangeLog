@@ -1,3 +1,8 @@
+2003-10-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Characters are displayed as empty boxes or
+	with wrong font under X.
+
 2003-09-30  Werner Lemberg  <wl@gnu.org>
 
 	* TUTORIAL.de: Minor updates and grammatical fixes.
