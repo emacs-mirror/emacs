@@ -1,4 +1,6 @@
-Mon Dec  6 18:54:04 1999  Eli Zaretskii  <eliz@is.elta.co.il>
+1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Reduce to 40000.
 
 	* insdel.c (adjust_markers_for_delete): Fix last change.
 
