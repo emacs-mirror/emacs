@@ -1,5 +1,9 @@
 2000-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_scrolling) <PT >= scroll_margin_pos>: Add 1 to the
+	dy obtained from the iterator's y-position after moving from
+	scroll_margin_pos to PT; see comment there.
+	
 	* xdisp.c (safe_eval_handler): Call add_to_log.
 
 	* xfaces.c (resolve_face_name): Handle case that FACE_NAME
