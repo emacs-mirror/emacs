@@ -492,6 +492,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 
 
 ;; Used for compatibility with the old compile.el.
+(defvaralias 'compilation-last-buffer 'next-error-last-buffer)
 (defvar compilation-parsing-end (make-marker))
 (defvar compilation-parse-errors-function nil)
 (defvar compilation-error-list nil)
