@@ -436,7 +436,7 @@ clean: FRC
 ###      `make distclean' should leave only the files that were in the
 ###      distribution.
 top_distclean=\
-	rm -f config.status ; \
+	rm -f config.status config.cache ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
 	(cd lock && rm -f *)
 distclean: FRC
