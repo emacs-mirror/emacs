@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $Id: testlib.h,v 1.1.5.2 1996/03/12 13:04:10 richard Exp $
+ *  $HopeName$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
