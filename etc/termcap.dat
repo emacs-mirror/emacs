@@ -555,7 +555,7 @@ d0|vt200-80|vt200|VT 200 with 80 columns, on VMS:\
 	:cm=%i\E[%d;%dH:co#80:cr=\r:cs=\E[%i%d;%dr:ct=\E[3g:\
 	:dc=\E[P:dl=\E[M:dm=:do=\ED:ec=\E[%dX:ed=:ei=\E[4l:\
 	:ho=\E[H:ic:im=\E[4h:it#8:k1=\EOP:k2=\EOQ:k3=\EOR:\
-	:k4=\EOS:kd=\E[B:ke=\E>:kl=\E[D:kn#4:kr=\E[C:ks=\E=:\
+	:k4=\EOS:kd=\E[B:ke=\E[?1l\E>:kl=\E[D:kn#4:kr=\E[C:ks=\E[?1h\E=:\
 	:ku=\E[A:le=^H:li#24:mb=\E[5m:md=\E[1m:me=\E[0m:mi:\
 	:mr=\E[7m:ms:nd=\E[C:nl=\ED:nw=\EE:pf=\E[?4i:po=\E[?5i:\
 	:ps=\E[i:rc=\E8:sc=\E7:se=\E[27m:sf=1*\ED:so=\E[7m:\
