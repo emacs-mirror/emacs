@@ -3380,17 +3380,36 @@ are defined in the library @file{disp-table}.
 @cindex glyph
   A @dfn{glyph} is a generalization of a character; it stands for an
 image that takes up a single character position on the screen.  Glyphs
-are represented in Lisp as integers, just as characters are.
+are represented in Lisp as integers, just as characters are.  Normally
+Emacs finds glyphs in the display table (@pxref{Display Tables}).
 
-@cindex glyph table
-  The meaning of each integer, as a glyph, is defined by the glyph
-table, which is the value of the variable @code{glyph-table}.
+  A glyph can be @dfn{simple} or it can be defined by the @dfn{glyph
+table}.  A simple glyph is just a way of specifying a character and a
+face to output it in.  The glyph code for a simple glyph, mod 524288,
+is the character to output, and the glyph code divided by 524288
+specifies the face number (@pxref{Face Functions}) to use while
+outputting it.  (524288 is
+@ifnottex
+2**19.)
+@end ifnottex
+@tex
+$2^{19}$.)
+@end tex
+@xref{Faces}.
+
+  On character terminals, you can set up a @dfn{glyph table} to define
+the meaning of glyph codes.  The glyph codes is the value of the
+variable @code{glyph-table}.
 
 @defvar glyph-table
 The value of this variable is the current glyph table.  It should be a
-vector; the @var{g}th element defines glyph code @var{g}.  If the value
-is @code{nil} instead of a vector, then all glyphs are simple (see
-below).  The glyph table is not used on windowed displays.
+vector; the @var{g}th element defines glyph code @var{g}.  
+
+If a glyph code is greater than or equal to the length of the glyph
+table, that code is automatically simple.  If the value of
+@code{glyph-table} is @code{nil} instead of a vector, then all glyphs
+are simple.  The glyph table is not used on graphical displays, only
+on character terminals.  On graphical displays, all glyphs are simple.
 @end defvar
 
   Here are the possible types of elements in the glyph table:
@@ -3403,23 +3422,12 @@ but not under a window system.
 
 @item @var{integer}
 Define this glyph code as an alias for glyph code @var{integer}.  You
-can use an alias to specify a face code for the glyph; see below.
+can use an alias to specify a face code for the glyph and use a small
+number as its code.
 
 @item @code{nil}
-This glyph is simple.  The glyph code mod 524288 is the character to
-output, and the glyph code divided by 524288 specifies the face number
-(@pxref{Face Functions}) to use while outputting it.  (524288 is
-@ifnottex
-2**19.)
-@end ifnottex
-@tex
-$2^{19}$.)
-@end tex
-@xref{Faces}.
+This glyph is simple.
 @end table
-
-  If a glyph code is greater than or equal to the length of the glyph
-table, that code is automatically simple.
 
 @defun create-glyph string
 @tindex create-glyph
