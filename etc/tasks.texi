@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate October 11, 2000
+@set lastupdate January 15, 2001
 @c %**end of header
 
 @setchapternewpage off
@@ -36,6 +36,7 @@ tasks.
 * Encryption Projects::         
 * Other Projects::              
 * Languages::                   
+* Education::                   
 * Games and Recreations::       
 @end menu
 
@@ -97,7 +98,7 @@ high priority projects.
 
 @item 
 A new maintainer is needed for Goose
-@url{http://www.gnu.org/software/goose/goose.html}.
+@uref{http://www.gnu.org/software/goose/goose.html}.
 
 @item
 If you are good at writing documentation, please do that.
@@ -189,6 +190,11 @@ software does not count: we are not free to copy and modify them.
 We do not recommend any non-free materials as documentation.
 
 @itemize @bullet
+
+@item
+A reference document for SQL for use as a standard for implementors of
+free software versions of SQL.
+
 @item
 A manual for libstdc++.
 
@@ -246,7 +252,7 @@ reference documentation can be used as a starting point, but work is
 needed to weld them together into a coherent manual.
 
 @ignore
-@c Bradley Kuhn is working on this. <bkuhn@ebb.org>
+@c Bradley M. Kuhn is working on this. <bkuhn@ebb.org>
 @item
 A good free Perl language tutorial introduction.  The existing Perl
 introductions are published with restrictions on copying and
@@ -376,10 +382,6 @@ destination rather than by original message.  This makes it possible
 to schedule retries coherently for each destination.  Talk to
 @email{tron@@veritas.com} and @email{woods@@weird.com} about this.
 
-@item
-Enhanced cross-reference browsing tools.  (We now have something at
-about the level of @code{cxref}.)  We also could use something like
-@code{ctrace}.  (Some people are now working on this project.)
 @end itemize
 
 @node X Windows Projects, Network Projects, Extensions, Top
@@ -421,10 +423,6 @@ to qualify as free software).
 @c @email{laurent.riesterer@@free.fr}), according to @email{gnueval@@gnu.org},
 @c does the job of displaing dancers but does not allow editing notation.
 
-@item
-A program to edit dance notation (such as labanotation) and display
-dancers moving on the screen.  Gepetto done some of this work.  Contact
-@email{gvc@@gnu.org} if you are interested in helping finish the job.
 
 @item
 Make sure the Vibrant toolkit works with LessTif instead of Motif.
@@ -526,6 +524,7 @@ account receivables, payroll, inventory control, order processing, etc.
 
 @item
 A free replacement for Glimpse, which is not free software.
+Swish does some parts of the job, but not all.
 
 @item
 Software for desktop publishing.  We are extending Emacs into a WYSIWYG
@@ -680,10 +679,13 @@ as character codes.  Work is being done on this, but more help is needed.
 @c The status of these projects is updated in @file{/gd/gnuorg/volunteers}
 
 @item
-A program to scan a line drawing and convert it to Postscript.
+A program to scan a line drawing and convert it to editable Postscript,
+or some other editable format.
 
 @item
-A program to recognize handwriting.
+A program to recognize handwriting (we don't believe PocketLinux's 
+handwriting capability is ready for non-PocketLinux environments, yet).
+
 
 @item
 A program that can translate from one natural language, into another.
@@ -710,7 +712,7 @@ useful yet.)
 
 @end itemize
 
-@node Languages, Games and Recreations, Other Projects, Top
+@node Languages, Education, Other Projects, Top
 @chapter Programming Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
@@ -730,7 +732,25 @@ We would like to have translators from various languages into Scheme.
 These languages include TCL, Python, Perl, Java, Javascript, and Rexx.
 Perhaps Clipper as well.
 
-@node Games and Recreations,  , Languages, Top
+@node Education, Games and Recreations, Languages, Top
+@chapter Education
+
+Programs for studying, teaching or doing administrative tasks in schools.
+See @uref{http://www.gnu.org/education/} for additional information.
+
+@itemize @bullet
+@item
+A programm to organize automatically the schedule of a school given
+constraints about teachers, rooms, times, and students.
+
+@item
+A program to edit dance notation (such as labanotation) and display
+dancers moving on the screen.  Gepetto does some of this work.  Contact
+@email{gvc@@gnu.org} if you are interested in helping finish the job.
+
+@end itemize
+
+@node Games and Recreations,  , Education, Top
 @chapter Games and Recreations
 
 Video-oriented games that work with the X window system.
@@ -744,7 +764,7 @@ An ``empire builder'' system that makes it easy to write various kinds of
 simulation games.
 
 @item
-Improve GnuGo, which is not yet very sophisticated.
+Improve GnuGo @uref{http://www.gnu.org/software/gnugo/gnugo.html}, which is not yet very sophisticated. 
 
 @item
 Network servers and clients for board and card games for which such
@@ -803,4 +823,5 @@ update-date-leading-regexp: "@c This date is automagically updated when you save
 update-date-trailing-regexp: ""
 eval: (load "/gd/gnuorg/update-date.el")
 eval: (add-hook 'write-file-hooks 'update-date)
+compile-command: "make just-tasks"
 End:
