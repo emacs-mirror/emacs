@@ -1,3 +1,14 @@
+2003-04-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-stay-local): Keep the old default.  Simplify
+	doc string.
+
+2003-04-23  Wolfgang Scherer  <wolfgang.scherer@gmx.de>
+
+	* vc-cvs.el (vc-cvs-stay-local): Allow lists of host regexps.
+	(vc-cvs-stay-local-p): Handle them.
+	(vc-cvs-parse-root): New function, used by the above.
+
 2003-04-20  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (kill-line): Doc fix.
