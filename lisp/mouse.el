@@ -188,81 +188,42 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 	 (length (car (cdr pos))))
   (set-window-hscroll (selected-window) 33)))
 
-;; Set up these commands, including the prefix keys for the scroll bar.
+(global-set-key [scroll-bar mouse-1] 'mouse-scroll-up)
+(global-set-key [scroll-bar mouse-2] 'mouse-scroll-absolute)
+(global-set-key [scroll-bar mouse-3] 'mouse-scroll-down)
 
-;;; (fset 'mouse-vertical-scroll-bar-prefix (make-sparse-keymap))
-;;; (define-key global-mouse-map mouse-vertical-scroll-bar-prefix
-;;;   'mouse-vertical-scroll-bar-prefix)
-;;; 
-;;; (defun mouse-scroll-motion (event)
-;;;   (interactive "e")
-;;;   (let ((pos (car (car event)))
-;;; 	(length (car (cdr (car event)))))
-;;;     (message "[%d %d]" pos length)))
-;;; 
-;;; (let ((map (function mouse-vertical-scroll-bar-prefix)))
-;;;   (define-key map mouse-button-right 'mouse-scroll-down)
-;;;   (define-key map mouse-button-left 'mouse-scroll-up)
-;;;   (define-key map mouse-button-middle 'mouse-scroll-absolute)
-;;;   (define-key map mouse-motion 'x-horizontal-line))
-;;; 
-;;; ;(fset 'mouse-vertical-slider-prefix (make-sparse-keymap))
-;;; ;(define-key global-mouse-map mouse-vertical-slider-prefix
-;;; ;  'mouse-vertical-slider-prefix)
-;;; 
-;;; ;(let ((map (function mouse-vertical-slider-prefix)))
-;;; ;  (define-key map mouse-button-right 'mouse-scroll-move-cursor)
-;;; ;  (define-key map mouse-button-left 'mouse-scroll-move-cursor)
-;;; ;  (define-key map mouse-button-middle 'mouse-scroll-move-cursor))
-;;; 
-;;; (fset 'mouse-vertical-thumbup-prefix (make-sparse-keymap))
-;;; (define-key global-mouse-map mouse-vertical-thumbup-prefix
-;;;   'mouse-vertical-thumbup-prefix)
-;;; 
-;;; (let ((map (function mouse-vertical-thumbup-prefix)))
-;;;   (define-key map mouse-button-right 'mouse-scroll-down-full)
-;;;   (define-key map mouse-button-left 'mouse-scroll-down-full)
-;;;   (define-key map mouse-button-middle 'mouse-scroll-down-full))
-;;; 
-;;; (fset 'mouse-vertical-thumbdown-prefix (make-sparse-keymap))
-;;; (define-key global-mouse-map mouse-vertical-thumbdown-prefix
-;;;   'mouse-vertical-thumbdown-prefix)
-;;; 
-;;; (let ((map (function mouse-vertical-thumbdown-prefix)))
-;;;   (define-key map mouse-button-right 'mouse-scroll-up-full)
-;;;   (define-key map mouse-button-left 'mouse-scroll-up-full)
-;;;   (define-key map mouse-button-middle 'mouse-scroll-up-full))
-;;; 
-;;; ;; Horizontal bar
-;;; 
-;;; (fset 'mouse-horizontal-scroll-bar-prefix (make-sparse-keymap))
-;;; (define-key global-mouse-map mouse-horizontal-scroll-bar-prefix
-;;;   'mouse-horizontal-scroll-bar-prefix)
-;;; 
-;;; (let ((map (function mouse-horizontal-scroll-bar-prefix)))
-;;;   (define-key map mouse-button-right 'mouse-scroll-right)
-;;;   (define-key map mouse-button-left 'mouse-scroll-left)
-;;;   (define-key map mouse-button-middle 'mouse-scroll-absolute-horizontally))
-;;; 
-;;; (fset 'mouse-horizontal-thumbleft-prefix (make-sparse-keymap))
-;;; (define-key global-mouse-map mouse-horizontal-thumbleft-prefix
-;;;   'mouse-horizontal-thumbleft-prefix)
-;;; 
-;;; (let ((map (function mouse-horizontal-thumbleft-prefix)))
-;;;   (define-key map mouse-button-right 'mouse-scroll-left-full)
-;;;   (define-key map mouse-button-left 'mouse-scroll-left-full)
-;;;   (define-key map mouse-button-middle 'mouse-scroll-left-full))
-;;; 
-;;; (fset 'mouse-horizontal-thumbright-prefix (make-sparse-keymap))
-;;; (define-key global-mouse-map mouse-horizontal-thumbright-prefix
-;;;   'mouse-horizontal-thumbright-prefix)
-;;; 
-;;; (let ((map (function mouse-horizontal-thumbright-prefix)))
-;;;   (define-key map mouse-button-right 'mouse-scroll-right-full)
-;;;   (define-key map mouse-button-left 'mouse-scroll-right-full)
-;;;   (define-key map mouse-button-middle 'mouse-scroll-right-full))
+(global-set-key [vertical-slider mouse-1] 'mouse-scroll-move-cursor)
+(global-set-key [vertical-slider mouse-2] 'mouse-scroll-move-cursor)
+(global-set-key [vertical-slider mouse-3] 'mouse-scroll-move-cursor)
 
+(global-set-key [thumbup mouse-1] 'mouse-scroll-up-full)
+(global-set-key [thumbup mouse-2] 'mouse-scroll-up-full)
+(global-set-key [thumbup mouse-3] 'mouse-scroll-up-full)
 
+(global-set-key [thumbdown mouse-1] 'mouse-scroll-down-full)
+(global-set-key [thumbdown mouse-2] 'mouse-scroll-down-full)
+(global-set-key [thumbdown mouse-3] 'mouse-scroll-down-full)
+
+(global-set-key [horizontal-scroll-bar mouse-1] 'mouse-scroll-left)
+(global-set-key [horizontal-scroll-bar mouse-2]
+		'mouse-scroll-absolute-horizontally)
+(global-set-key [horizontal-scroll-bar mouse-3] 'mouse-scroll-right)
+
+(global-set-key [horizontal-slider mouse-1]
+		'mouse-scroll-move-cursor-horizontally)
+(global-set-key [horizontal-slider mouse-2]
+		'mouse-scroll-move-cursor-horizontally)
+(global-set-key [horizontal-slider mouse-3]
+		'mouse-scroll-move-cursor-horizontally)
+
+(global-set-key [thumbleft mouse-1] 'mouse-scroll-left-full)
+(global-set-key [thumbleft mouse-2] 'mouse-scroll-left-full)
+(global-set-key [thumbleft mouse-3] 'mouse-scroll-left-full)
+
+(global-set-key [thumbright mouse-1] 'mouse-scroll-right-full)
+(global-set-key [thumbright mouse-2] 'mouse-scroll-right-full)
+(global-set-key [thumbright mouse-3] 'mouse-scroll-right-full)
+
 ;;;;
 ;;;; Here are experimental things being tested.  Mouse events
 ;;;; are of the form:
@@ -484,7 +445,7 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 
 ;;; Bindings for mouse commands.
 
-;; This first won't be needed once the drag and down events
+;; This won't be needed once the drag and down events
 ;; are properly implemented.
 (global-set-key   [mouse-1]	'mouse-set-point)
 
@@ -499,6 +460,8 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 ;; Replaced with dragging mouse-1
 ;; (global-set-key [S-mouse-1]	'mouse-set-mark)
 
+;; Define the mouse help menu tree.
+
 (defvar help-menu-map '(keymap "Help"))
 (global-set-key [C-mouse-2] help-menu-map)
 
