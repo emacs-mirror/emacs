@@ -309,9 +309,9 @@ DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
 
 #ifdef VMS
 #ifdef LINK_CRTL_SHARE
-#ifdef SHAREABLE_LIB_BUG
+#ifdef SHARABLE_LIB_BUG
 extern noshare char **environ;
-#endif /* SHAREABLE_LIB_BUG */
+#endif /* SHARABLE_LIB_BUG */
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
 
@@ -476,7 +476,7 @@ main (argc, argv, envp)
   }
 
 #ifdef LINK_CRTL_SHARE
-#ifdef SHAREABLE_LIB_BUG
+#ifdef SHARABLE_LIB_BUG
   /* Bletcherous shared libraries! */
   if (!stdin)
     stdin = fdopen (0, "r");
@@ -486,7 +486,7 @@ main (argc, argv, envp)
     stderr = fdopen (2, "w");
   if (!environ)
     environ = envp;
-#endif /* SHAREABLE_LIB_BUG */
+#endif /* SHARABLE_LIB_BUG */
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
 
