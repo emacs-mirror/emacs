@@ -4061,7 +4061,7 @@ syms_of_xdisp ()
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
 
   staticpro (&Qoverriding_terminal_local_map);
-  Qoverriding_local_map = intern ("overriding-terminal-local-map");
+  Qoverriding_terminal_local_map = intern ("overriding-terminal-local-map");
 
   staticpro (&Qoverriding_local_map);
   Qoverriding_local_map = intern ("overriding-local-map");
