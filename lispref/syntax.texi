@@ -875,10 +875,10 @@ to each syntactic type.
 @tab
 9 @ @  escape
 @tab
-14 @ @  comment-fence
+14 @ @  generic comment
 @item
 @tab
-15 @  string-fence
+15 @  generic string
 @end multitable
 
   For example, the usual syntax value for @samp{(} is @code{(4 . 41)}.
