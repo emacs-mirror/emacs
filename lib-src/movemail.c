@@ -295,6 +295,9 @@ main (argc, argv)
 
   if (fork () == 0)
     {
+      int lockcount = 0;
+      int status;
+
       setuid (getuid ());
 
 #ifndef MAIL_USE_MMDF
@@ -320,22 +323,53 @@ main (argc, argv)
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
+
+      /* This label exists so we can retry locking
+	 after a delay, if it got EAGAIN or EBUSY.  */
+    retry_lock:
+
+      /* Try to lock it.  */
 #ifdef MAIL_USE_SYSTEM_LOCK
 #ifdef MAIL_USE_LOCKF
-      if (lockf (indesc, F_LOCK, 0) < 0) pfatal_with_name (inname);
+      status = lockf (indesc, F_LOCK, 0);
 #else /* not MAIL_USE_LOCKF */
 #ifdef XENIX
-      if (locking (indesc, LK_RLCK, 0L) < 0) pfatal_with_name (inname);
+      status = locking (indesc, LK_RLCK, 0L);
 #else
 #ifdef WINDOWSNT
-      if (locking (indesc, LK_RLCK, -1L) < 0) pfatal_with_name (inname);
+      status = locking (indesc, LK_RLCK, -1L);
 #else
-      if (flock (indesc, LOCK_EX) < 0) pfatal_with_name (inname);
+      status = flock (indesc, LOCK_EX);
 #endif
 #endif
 #endif /* not MAIL_USE_LOCKF */
 #endif /* MAIL_USE_SYSTEM_LOCK */
 
+      /* If it fails, retry up to 5 times
+	 for certain failure codes.  */
+      if (status < 0)
+	{
+	  if (++lockcount <= 5)
+	    {
+#ifdef EAGAIN
+	      if (errno == EAGAIN)
+		{
+		  sleep (1);
+		  goto retry_lock;
+		}
+#endif
+#ifdef EBUSY
+	      if (errno == EBUSY)
+		{
+		  sleep (1);
+		  goto retry_lock;
+		}
+#endif
+	    }
+
+	  pfatal_with_name (inname);
+	}
+  
       {
 	char buf[1024];
 
