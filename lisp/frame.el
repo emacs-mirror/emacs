@@ -506,14 +506,16 @@ is not considered (see `next-frame')."
   (interactive)
   (select-window (next-window (selected-window)
 			      (> (minibuffer-depth) 0)
-			      t)))
+			      t))
+  (select-frame-set-input-focus (selected-frame)))
 
 (defun previous-multiframe-window ()
   "Select the previous window, regardless of which frame it is on."
   (interactive)
   (select-window (previous-window (selected-window)
 				  (> (minibuffer-depth) 0)
-				  t)))
+				  t))
+  (select-frame-set-input-focus (selected-frame)))
 
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on display DISPLAY.
@@ -631,6 +633,20 @@ the user during startup."
   :group 'frames
   :version "20.3")
 
+(defun select-frame-set-input-focus (frame)
+  "Select FRAME, raise it, and set input focus, if possible."
+    (select-frame frame)
+    (raise-frame frame)
+    ;; Ensure, if possible, that frame gets input focus.
+    (when (eq window-system 'w32)
+      (w32-focus-frame frame))
+    (cond (focus-follows-mouse
+	   (unless (eq window-system 'w32)
+	     (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
+	  (t
+	   (when (eq window-system 'x)
+	     (x-focus-frame frame)))))
+
 (defun other-frame (arg)
   "Select the ARG'th different visible frame, and raise it.
 All frames are arranged in a cyclic order.
@@ -648,17 +664,7 @@ A negative ARG moves in the opposite order."
       (while (not (eq (frame-visible-p frame) t))
 	(setq frame (previous-frame frame)))
       (setq arg (1+ arg)))
-    (select-frame frame)
-    (raise-frame frame)
-    ;; Ensure, if possible, that frame gets input focus.
-    (when (eq window-system 'w32)
-      (w32-focus-frame frame))
-    (cond (focus-follows-mouse
-	   (unless (eq window-system 'w32)
-	     (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
-	  (t
-	   (when (eq window-system 'x)
-	     (x-focus-frame frame))))))
+    (select-frame-set-input-focus frame)))
 
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
