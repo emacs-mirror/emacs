@@ -303,7 +303,7 @@ void
 print_version ()
 {
 #ifdef VERSION
-  printf ("%s for Emacs version %g.\n", (CTAGS) ? "CTAGS" : "ETAGS", VERSION);
+  printf ("%s for Emacs version %s.\n", (CTAGS) ? "CTAGS" : "ETAGS", VERSION);
 #else
   printf ("%s for Emacs version 19.\n", (CTAGS) ? "CTAGS" : "ETAGS");
 #endif  
