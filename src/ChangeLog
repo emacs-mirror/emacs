@@ -1,3 +1,7 @@
+2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* editfns.c (Fformat_time_string): Doc fix.
+
 2001-01-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (Fwhere_is_internal): Use the first valid binding
