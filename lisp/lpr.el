@@ -31,10 +31,14 @@
 
 ;;;###autoload
 (defvar lpr-switches nil 
-  "*List of strings to pass as extra switch args to `lpr' when it is invoked.")
+  "*List of strings to pass as extra options for the printer program.
+See `lpr-command'.")
 
 (defvar lpr-add-switches (eq system-type 'berkeley-unix)
-  "*Non-nil means construct -T and -J options for the `lpr'.")
+  "*Non-nil means construct -T and -J options for the printer program.
+These are made assuming that the program is `lpr';
+if you are using some other incompatible printer program,
+this variable should be nil.")
 
 ;;;###autoload
 (defvar lpr-command
