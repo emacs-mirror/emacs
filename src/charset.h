@@ -655,4 +655,6 @@ extern int n_cmpchars;
 /* Maximum character code currently used.  */
 #define MAX_CHAR (MIN_CHAR_COMPOSITION + n_cmpchars)
 
+extern int unify_char ();
+
 #endif /* _CHARSET_H */
