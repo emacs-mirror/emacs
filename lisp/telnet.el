@@ -60,8 +60,13 @@
  (defvar telnet-interrupt-string "\C-c" "String sent by C-c."))
 
 (defvar telnet-count 0
-  "Number of output strings read from the telnet process
-while looking for the initial password.")
+  "Number of output strings from telnet process while looking for password.")
+(make-variable-buffer-local 'telnet-count)
+
+(defvar telnet-rsh-program
+  (if (memq system-type '(hpux usg-unix-v)) 
+      "remsh" "rsh")
+  "Program to run for opening a remote shell.")
 
 (defvar telnet-initial-count -50
   "Initial value of `telnet-count'.  Should be set to the negative of the
@@ -215,7 +220,7 @@ Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat host "-rsh" )))
-    (switch-to-buffer (make-comint name "rsh" nil host))
+    (switch-to-buffer (make-comint name telnet-rsh-program nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
     (setq telnet-count -16)))
