@@ -1236,24 +1236,34 @@ int
 make_ctrl_char (c)
      int c;
 {
-  /* If it's already a control character, don't mess with it.  */
-  if ((c & 0160) == 0)
-    ;
-  /* Making ? a control character should result in DEL.  */
+  /* Save the upper bits here.  */
+  int upper = c & ~0177;
 
-  else if ((c & 0177) == '?')
-    c |= 0177;
+  c &= 0177;
 
-  /* ASCII control chars are made from letters (both cases),
-     as well as the non-letters within 0100...0137.  */
-  else if ((c & 0137) >= 'A' && (c & 0137) <= 'Z')
-    c = (c & (037 | ~0177));
-  else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
-    c = (c & (037 | ~0177));
+  /* Everything in the columns containing the upper-case letters
+     denotes a control character.  */
+  if (c >= 0100 && c < 0140)
+    {
+      int oc = c;
+      c &= ~0140;
+      /* Set the shift modifier for a control char
+	 made from a shifted letter.  But only for letters!  */
+      if (oc >= 'A' && oc <= 'Z')
+	c |= shift_modifier;
+    }
 
-  /* Anything else must get its high control bit set.  */
-  else
-    c = c | ctrl_modifier;
+  /* The lower-case letters denote control characters too.  */
+  else if (c >= 'a' && c <= 'z')
+    c &= ~0140;
+
+  /* Include the bits for control and shift
+     only if the basic ASCII code can't indicate them.  */
+  else if (c >= ' ')
+    c |= ctrl_modifier;
+
+  /* Replace the high bits.  */
+  c |= (upper & ~ctrl_modifier);
 
   return c;
 }
@@ -2106,23 +2116,11 @@ make_lispy_event (event)
 	/* Turn ASCII characters into control characters
 	   when proper.  */
 	if (event->modifiers & ctrl_modifier)
-	  {
-	    if (c >= 0100 && c < 0140)
-	      {
-		int oc = c;
-		c &= ~0140;
-		/* Set the shift modifier for a control char
-		   made from a shifted letter.  But only for letters!  */
-		if (oc >= 'A' && oc <= 'Z')
-		  c |= shift_modifier;
-	      }
-	    else if (c >= 'a' && c <= 'z')
-	      c &= ~0140;
-	    /* Include the bits for control and shift
-	       only if the basic ASCII code can't indicate them.  */
-	    else
-	      c |= ctrl_modifier;
-	  }
+	  c = make_ctrl_char (c);
+
+	/* Add in the other modifier bits.  We took care of ctrl_modifier
+	   just above, and the shift key was taken care of by the X code,
+	   and applied to control characters by make_ctrl_char.  */
 	c |= (event->modifiers
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier));
