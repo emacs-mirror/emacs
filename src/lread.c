@@ -3471,9 +3471,9 @@ This is useful when the file being loaded is a temporary copy.");
   load_force_doc_strings = 0;
 
   DEFVAR_BOOL ("load-convert-to-unibyte", &load_convert_to_unibyte,
-     "Non-nil means `load' converts strings to unibyte whenever possible.\n\
-This is normally used in `load-with-code-conversion'\n\
-for loading non-compiled files.");
+     "Non-nil means `read' converts strings to unibyte whenever possible.\n\
+This is normally bound by `load' and `eval-buffer' to control `read',\n\
+and is not meant for users to change.");
   load_convert_to_unibyte = 0;
 
   DEFVAR_LISP ("source-directory", &Vsource_directory,
