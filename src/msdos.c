@@ -3579,6 +3579,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	      && menu_help_message != prev_menu_help_message)
 	    {
 	      help_callback (menu_help_message);
+	      IT_display_cursor (0);
 	      prev_menu_help_message = menu_help_message;
 	    }
 	  /* We are busy-waiting for the mouse to move, so let's be nice
