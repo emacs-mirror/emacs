@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.03
-@set update-date 2001 Dec  7
+@set edition-number 2.04
+@set update-date 2001 Dec 17
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -4516,6 +4516,9 @@ same function (a @code{defalias}) is @code{string<}.
 The arguments to @code{string-lessp} must be strings or symbols; the
 ordering is lexicographic, so case is significant.  The print names of
 symbols are used instead of the symbols themselves.
+
+An empty string, @samp{""}, a string with no characters in it, is
+smaller than any string of characters.
 
 @code{string-equal} provides the corresponding test for equality.  Its
 shorter, alternative name is @code{string=}.  There are no string test
