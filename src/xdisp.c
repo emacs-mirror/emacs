@@ -5428,6 +5428,10 @@ resize_mini_window (w)
   int window_height_changed_p = 0;
 
   xassert (MINI_WINDOW_P (w));
+
+  /* Nil means don't try to resize.  */
+  if (NILP (Vmax_mini_window_height))
+    return 0;
   
   if (!FRAME_MINIBUF_ONLY_P (f))
     {
@@ -5445,6 +5449,8 @@ resize_mini_window (w)
 	max_height = XFLOATINT (Vmax_mini_window_height) * total_height;
       else if (INTEGERP (Vmax_mini_window_height))
 	max_height = XINT (Vmax_mini_window_height);
+      else
+	max_height = total_height / 4;
       
       /* Correct that max. height if it's bogus. */
       max_height = max (1, max_height);
@@ -12727,7 +12733,8 @@ displayed according to the current fontset.");
   DEFVAR_LISP ("max-mini-window-height", &Vmax_mini_window_height,
     "*Maximum height for resizing mini-windows.\n\
 If a float, it specifies a fraction of the mini-window frame's height.\n\
-If an integer, it specifies a number of lines.");
+If an integer, it specifies a number of lines.\n\
+If nil, don't resize.");
   Vmax_mini_window_height = make_float (0.25);
 }
 
