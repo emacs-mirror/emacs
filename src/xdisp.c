@@ -211,9 +211,13 @@ int beg_unchanged;
 int end_unchanged;
 
 /* MODIFF as of last redisplay that finished;
-   if it matches MODIFF, beg_unchanged and end_unchanged
+   if it matches MODIFF, and overlay_unchanged_modified
+   matches OVERLAY_MODIFF, that means beg_unchanged and end_unchanged
    contain no useful information */
 int unchanged_modified;
+
+/* OVERLAY_MODIFF as of last redisplay that finished.  */
+int overlay_unchanged_modified;
 
 /* Nonzero if window sizes or contents have changed
    since last redisplay that finished */
@@ -897,7 +901,8 @@ redisplay_internal (preserve_echo_area)
       /* This alternative quickly identifies a common case
 	 where no change is needed.  */
       && !(PT == XFASTINT (w->last_point)
-	   && XFASTINT (w->last_modified) >= MODIFF)
+	   && XFASTINT (w->last_modified) >= MODIFF
+	   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)
       && XFASTINT (w->column_number_displayed) != current_column ())
     w->update_mode_line = Qt; 
 
@@ -944,7 +949,8 @@ redisplay_internal (preserve_echo_area)
       && PT <= Z - tlendpos
       /* All text outside that line, including its final newline,
 	 must be unchanged */
-      && (XFASTINT (w->last_modified) >= MODIFF
+      && ((XFASTINT (w->last_modified) >= MODIFF
+	   && (XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF))
 	  || (beg_unchanged >= tlbufpos - 1
 	      && GPT >= tlbufpos
 	      /* If selective display, can't optimize
@@ -963,6 +969,7 @@ redisplay_internal (preserve_echo_area)
 	/* Former continuation line has disappeared by becoming empty */
 	goto cancel;
       else if (XFASTINT (w->last_modified) < MODIFF
+	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF
 	       || MINI_WINDOW_P (w))
 	{
 	  cursor_vpos = -1;
@@ -1188,6 +1195,7 @@ update:
 
       blank_end_of_window = 0;
       unchanged_modified = BUF_MODIFF (b);
+      overlay_unchanged_modified = BUF_OVERLAY_MODIFF (b);
       beg_unchanged = BUF_GPT (b) - BUF_BEG (b);
       end_unchanged = BUF_Z (b) - BUF_GPT (b);
 
@@ -1202,6 +1210,7 @@ update:
 	  b->clip_changed = 0;
 	  w->update_mode_line = Qnil;
 	  XSETFASTINT (w->last_modified, BUF_MODIFF (b));
+	  XSETFASTINT (w->last_overlay_modified, BUF_OVERLAY_MODIFF (b));
 	  w->last_had_star
 	    = (BUF_MODIFF (XBUFFER (w->buffer)) > BUF_SAVE_MODIFF (XBUFFER (w->buffer))
 	       ? Qt : Qnil);
@@ -1273,6 +1282,8 @@ mark_window_display_accurate (window, flag)
 	{
 	  XSETFASTINT (w->last_modified,
 		       !flag ? 0 : BUF_MODIFF (XBUFFER (w->buffer)));
+	  XSETFASTINT (w->last_overlay_modified,
+		       !flag ? 0 : BUF_OVERLAY_MODIFF (XBUFFER (w->buffer)));
 	  w->last_had_star
 	    = (BUF_MODIFF (XBUFFER (w->buffer)) > BUF_SAVE_MODIFF (XBUFFER (w->buffer))
 	       ? Qt : Qnil);
@@ -1488,7 +1499,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       /* This alternative quickly identifies a common case
 	 where no change is needed.  */
       && !(PT == XFASTINT (w->last_point)
-	   && XFASTINT (w->last_modified) >= MODIFF)
+	   && XFASTINT (w->last_modified) >= MODIFF
+	   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)
       && XFASTINT (w->column_number_displayed) != current_column ())
     update_mode_line = 1; 
 
@@ -1584,6 +1596,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	    }
 	}
       XSETFASTINT (w->last_modified, 0);
+      XSETFASTINT (w->last_overlay_modified, 0);
       if (startp < BEGV) startp = BEGV;
       if (startp > ZV)   startp = ZV;
       try_window (window, startp);
@@ -1633,6 +1646,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
      in redisplay handles the same cases.  */
 
   if (XFASTINT (w->last_modified) >= MODIFF
+      && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF
       && PT >= startp && !current_buffer->clip_changed
       && (just_this_one || XFASTINT (w->width) == FRAME_WIDTH (f))
       /* If force-mode-line-update was called, really redisplay;
@@ -1720,7 +1734,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	       || preserve_echo_area
 #endif
 	       || startp == BEGV
-	       || (XFASTINT (w->last_modified) >= MODIFF)))
+	       || (XFASTINT (w->last_modified) >= MODIFF
+		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
     {
       /* Try to redisplay starting at same place as before */
       /* If point has not moved off frame, accept the results */
@@ -1738,6 +1753,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
     }
 
   XSETFASTINT (w->last_modified, 0);
+  XSETFASTINT (w->last_overlay_modified, 0);
   /* Redisplay the mode line.  Select the buffer properly for that.  */
   if (!update_mode_line)
     {
@@ -2355,76 +2371,6 @@ try_window_id (window)
 
   return 1;
 }
-
-/* Mark a section of BUF as modified, but only for the sake of redisplay.
-   This is useful for recording changes to overlays.
-
-   We increment the buffer's modification timestamp and set the
-   redisplay caches (windows_or_buffers_changed, beg_unchanged, etc)
-   as if the region of text between START and END had been modified;
-   the redisplay code will check this against the windows' timestamps,
-   and redraw the appropriate area of the buffer.
-
-   However, if the buffer is unmodified, we bump the last-save
-   timestamp as well, so that incrementing the timestamp doesn't fool
-   Emacs into thinking that the buffer's text has been modified. 
-
-   Tweaking the timestamps shouldn't hurt the first-modification
-   timestamps recorded in the undo records; those values aren't
-   written until just before a real text modification is made, so they
-   will never catch the timestamp value just before this function gets
-   called.  */
-
-void
-redisplay_region (buf, start, end)
-     struct buffer *buf;
-     int start, end;
-{
-  if (start == end)
-    return;
-
-  if (start > end)
-    {
-      int temp = start;
-      start = end; end = temp;
-    }
-
-  /* If this is a buffer not in the selected window,
-     we must do other windows.  */
-  if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
-    windows_or_buffers_changed = 1;
-  /* If it's not current, we can't use beg_unchanged, end_unchanged for it.  */
-  else if (buf != current_buffer)
-    windows_or_buffers_changed = 1;
-  /* If multiple windows show this buffer, we must do other windows.  */
-  else if (buffer_shared > 1)
-    windows_or_buffers_changed = 1;
-  else
-    {
-      if (unchanged_modified == MODIFF)
-	{
-	  beg_unchanged = start - BEG;
-	  end_unchanged = Z - end;
-	}
-      else
-	{
-	  if (Z - end < end_unchanged)
-	    end_unchanged = Z - end;
-	  if (start - BEG < beg_unchanged)
-	    beg_unchanged = start - BEG;
-	}
-    }
-
-  /* Increment the buffer's time stamp, but also increment the save
-     and autosave timestamps, so as not to screw up that timekeeping.  */
-  if (BUF_MODIFF (buf) == BUF_SAVE_MODIFF (buf))
-    BUF_SAVE_MODIFF (buf)++;
-  if (BUF_MODIFF (buf) == buf->auto_save_modified)
-    buf->auto_save_modified++;
-
-  BUF_MODIFF (buf) ++;
-}
-
 
 /* Copy LEN glyphs starting address FROM to the rope TO.
    But don't actually copy the parts that would come in before S.
