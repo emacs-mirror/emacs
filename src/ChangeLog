@@ -1,5 +1,8 @@
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_display_and_set_cursor): If cursor_in_echo_area,
+	use NO_CURSOR if cursor_in_non_selected_windows is false.
+
 	* xfaces.c (Fface_font): Use UNSPECIFIEDP instead of NILP for
 	the slant attribute if FRAME is t.
 
