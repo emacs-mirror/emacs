@@ -85,7 +85,7 @@ Just `(interactive)' means pass no args when calling interactively.\n\
 a -- Function name: symbol with a function definition.\n\
 b -- Name of existing buffer.\n\
 B -- Name of buffer, possibly nonexistent.\n\
-c -- Character.\n\
+c -- Character (no input method is used).\n\
 C -- Command name: symbol with interactive function definition.\n\
 d -- Value of point as number.  Does not do I/O.\n\
 D -- Directory name.\n\
@@ -498,7 +498,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
         case 'c':		/* Character */
-	  args[i] = Fread_char (build_string (callint_message), Qnil);
+	  args[i] = Fread_char (build_string (callint_message), Qt);
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
