@@ -122,6 +122,10 @@ trouble to write.
   There are several forms of Lisp mode, which differ in the way they
 interface to Lisp execution.  @xref{Executing Lisp}.
 
+  Major modes for programming languages usually provide conveniency
+features such as syntax-sensitive indentation, syntax highlighting
+(@pxref{Font Lock}), movement by blocks and functions, etc.
+
   Each of the programming language major modes defines the @key{TAB} key
 to run an indentation function that knows the indentation conventions of
 that language and updates the current line's indentation accordingly.
@@ -143,6 +147,9 @@ character before point, in these modes.
 blank lines, so that the paragraph commands remain useful.  Auto Fill mode,
 if enabled in a programming language major mode, indents the new lines
 which it creates.
+
+  @xref{Choosing Modes}, for the description of how major modes are
+activated.
 
 @cindex mode hook
 @vindex c-mode-hook
