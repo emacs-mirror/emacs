@@ -1702,13 +1702,12 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   SetPort (FRAME_MAC_WINDOW (f));
   LocalToGlobal (&pos);
 
-  /* No selection has been chosen yet.  */
-  menu_item_selection = 0;
-
   InsertMenu (menu, -1);
 
   /* Display the menu.  */
   menu_item_selection = LoWord (PopUpMenuSelect (menu, pos.v, pos.h, 0));
+
+  GetMenuItemRefCon (menu, menu_item_selection, &menu_item_selection);
 
   DeleteMenu (POPUP_SUBMENU_ID);
   
