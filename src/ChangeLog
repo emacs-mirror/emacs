@@ -1,5 +1,52 @@
 2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
+	* mac.c: Include macterm.h instead of directly including Carbon.h.
+	[TARGET_API_MAC_CARBON] (Qstring, Qnumber, Qboolean, Qdate, Qdata)
+	(Qarray, Qdictionary): New variables.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Initialize them.
+	[TARGET_API_MAC_CARBON] (Qutf_8): Add extern.
+	[TARGET_API_MAC_CARBON] (DECODE_UTF_8): New macro.
+	[TARGET_API_MAC_CARBON] (struct cfdict_context): New struct used
+	in callback for CFDictionaryApplyFunction.
+	[TARGET_API_MAC_CARBON] (cfdata_to_lisp, cfstring_to_lisp)
+	(cfnumber_to_lisp, cfdate_to_lisp, cfboolean_to_lisp)
+	(cfobject_desc_to_lisp, cfdictionary_add_to_list)
+	(cfdictionary_puthash, cfproperty_list_to_lisp): New functions.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference): New function.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Defsubr it.
+	(P, LOOSE_BINDING, SINGLE_COMPONENT, HASHKEY_TERMINAL): New macro.
+	(skip_while_space, parse_comment, parse_include_file)
+	(parse_binding, parse_component, parse_resource_name, parse_value)
+	(parse_resource_line, xrm_create_database, xrm_q_put_resource)
+	(xrm_merge_string_database, xrm_q_get_resource, xrm_get_resource)
+	(xrm_cfproperty_list_to_value, xrm_get_preference_database): New
+	functions.
+
+	* macfns.c (mac_get_rdb_resource): Remove function.
+	(x_get_string_resource): Use xrm_get_resource.
+
+	* macgui.h (XrmDatabase): Typedef to Lisp_Object.
+
+	* macterm.c (x_list_fonts): FONT-LIST-CACHE is now cadr part of
+	name_list_element.
+	(mac_make_rdb): Create resource database from preferences and
+	argument string.
+	(mac_term_init): Save resource database to cddr part of
+	name_list_element.
+
+	* macterm.h (xrm_merge_string_database, xrm_get_resource)
+	(xrm_get_preference_database): Add externs.
+	[TARGET_API_MAC_CARBON] (cfdata_to_lisp, cfstring_to_lisp)
+	(cfnumber_to_lisp, cfdate_to_lisp, cfboolean_to_lisp)
+	(cfobject_desc_to_lisp, cfproperty_list_to_lisp): Likewise.
+
+	* process.c (init_process): Change `#ifdef DARWIN' to `#if
+	defined (DARWIN) || defined (MAC_OSX)'
+
+	* s/darwin.h (DARWIN): Don't define.
+
+2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
 	* macfns.c (Qhyper, Qsuper, Qmeta, Qalt, Qctrl, Qcontrol, Qshift):
 	Remove unused variables.
 	(syms_of_macfns): Don't initialize them.  Likewise for
@@ -7,7 +54,7 @@
 	Vx_window_horizontal_drag_shape.
 	(x_set_mouse_color): Change mouse pointer shape.
 	(mac_window) [!MAC_OSX]: Create root control.
-	(mac_window): Remove initializations of mouse pointer shapes.
+	(Fx_create_frame): Remove initializations of mouse pointer shapes.
 	(hourglass_started): New function (from xfns.c).
 	(start_hourglass, cancel_hourglass): Put function body in #ifdef
 	MAC_OSX.
