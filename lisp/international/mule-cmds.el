@@ -176,7 +176,15 @@ wrong, use this command again to toggle back to the right mode."
 (defun universal-coding-system-argument ()
   "Execute an I/O command using the specified coding system."
   (interactive)
-  (let* ((coding-system (read-coding-system "Coding system for following command: "))
+  (let* ((default (and buffer-file-coding-system
+		       (not (eq (coding-system-type buffer-file-coding-system)
+				t))
+		       buffer-file-coding-system))
+	 (coding-system (read-coding-system
+			 (if default
+			     (format "Coding system for following command (default, %s): " default)
+			   "Coding system for following command: ")
+			 default))
 	 (keyseq (read-key-sequence
 		  (format "Command to execute with %s:" coding-system)))
 	 (cmd (key-binding keyseq)))
@@ -266,11 +274,13 @@ CHARSETS is a list of character sets."
 	       (eq 'ascii (car charsets))))
       '(undecided)
     (let ((l coding-system-list)
-	  (prefered-codings
+	  (charset-prefered-codings
 	   (mapcar (function
 		    (lambda (x)
 		      (get-charset-property x 'prefered-coding-system)))
 		   charsets))
+	  (priorities (mapcar (function (lambda (x) (symbol-value x)))
+			      coding-category-list))
 	  codings coding safe)
       (while l
 	(setq coding (car l) l (cdr l))
@@ -279,15 +289,15 @@ CHARSETS is a list of character sets."
 		 (or (eq safe t)
 		     (subset-p charsets safe)))
 	    ;; We put the higher priority to coding systems included
-	    ;; in PREFERED-CODINGS, and within them, put the higher
-	    ;; priority to coding systems which support smaller
+	    ;; in CHARSET-PREFERED-CODINGS, and within them, put the
+	    ;; higher priority to coding systems which support smaller
 	    ;; number of charsets.
 	    (let ((priority
-		   (logior (if (coding-system-get coding 'mime-charset)
-			       256 0)
-			   (if (memq coding prefered-codings) 128 0)
-			   (if (> (coding-system-type coding) 0) 64 0)
-			   (if (consp safe) (- 64 (length safe)) 0))))
+		   (+ (if (coding-system-get coding 'mime-charset) 4096 0)
+		      (lsh (length (memq coding priorities)) 7)
+		      (if (memq coding charset-prefered-codings) 64 0)
+		      (if (> (coding-system-type coding) 0) 32 0)
+		      (if (consp safe) (- 32 (length safe)) 0))))
 	      (setq codings (cons (cons priority coding) codings)))))
       (mapcar 'cdr
 	      (sort codings (function (lambda (x y) (> (car x) (car y))))))
@@ -318,7 +328,17 @@ and TO is ignored."
 		       safe-coding-systems)))
 	default-coding-system
 
-      ;; Ask a user to select a proper coding system.
+      ;; At first, change each coding system to the corresponding
+      ;; mime-charset name if it is also a coding system.
+      (let ((l safe-coding-systems)
+	    mime-charset)
+	(while l
+	  (setq mime-charset (coding-system-get (car l) 'mime-charset))
+	  (if (and mime-charset (coding-system-p mime-charset))
+	      (setcar l mime-charset))
+	  (setq l (cdr l))))
+
+      ;; Then, ask a user to select a proper coding system.  
       (save-window-excursion
 	;; At first, show a helpful message.
 	(with-output-to-temp-buffer "*Warning*"
@@ -337,14 +357,15 @@ Please select one from the following safe coding systems:\n"
 	      (fill-region-as-paragraph pos (point)))))
 
 	;; Read a coding system.
-	(let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
-				   safe-coding-systems))
-	       (name (completing-read
-		      (format "Select coding system (default %s): "
-			      (car safe-coding-systems))
-		      safe-names nil t nil nil (car (car safe-names)))))
-	  (kill-buffer "*Warning*")
-	  (intern name))))))
+	(unwind-protect
+	    (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
+				       safe-coding-systems))
+		   (name (completing-read
+			  (format "Select coding system (default %s): "
+				  (car safe-coding-systems))
+			  safe-names nil t nil nil (car (car safe-names)))))
+	      (intern name))
+	  (kill-buffer "*Warning*"))))))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
