@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.16) $
+ * $HopeName: MMsrc!arena.c(trunk.17) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.16) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.17) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1196,4 +1196,30 @@ void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word)
   summary = RefSetAdd(arena, summary, (Addr)word);
   SegSetSummary(seg, summary);
   ShieldCover(arena, seg);
+}
+
+/* Read.  This forms part of a software barrier.  It provides
+ * fine-grain access to single words of segments */
+
+Word ArenaRead(Arena arena, Addr addr)
+{
+  Bool b;
+  Seg seg;
+  Res res;
+
+  AVERT(Arena, arena);
+  
+  b = SegOfAddr(&seg, arena, addr);
+  AVER(b == TRUE);
+
+  /* @@@@ The following should scan for just the flipped traces */
+  /* and not all the busy traces. */
+  /* @@@@ Should scan at rank phase-of-trace, not RankEXACT which is */
+  /* conservative */
+  res = TraceScanSingleRef(arena->busyTraces,
+                           arena, seg,
+			   RankEXACT, (Ref *)addr);
+  AVER(res == ResOK);    /* @@@@ We shouldn't assume that this succeeds */
+  /* get the possibly fixed reference */
+  return ArenaPeekSeg(arena, seg, addr);
 }
