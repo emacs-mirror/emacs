@@ -1,3 +1,9 @@
+2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/mule-cmds.el (select-safe-coding-system): State
+	the buffer's name in the message popped in the *Warning* buffer,
+	and make sure the offending buffer is displayed.
+
 2002-02-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* ffap.el (ffap-newsgroup-p): Test for non-nil symbol-value of htb.
