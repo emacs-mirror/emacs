@@ -709,12 +709,9 @@ If the named font is not yet loaded, return nil.")
 
   CHECK_STRING (name, 0);
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 1);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 1);
+  f = XFRAME (frame);
 
   if (!query_font_func)
     error ("Font query function is not supported");
@@ -761,12 +758,9 @@ loading failed.")
 
   CHECK_STRING(name, 0);
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 1);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 1);
+  f = XFRAME (frame);
 
   fontset = fs_query_fontset (f, XSTRING (name)->data);
   if (fontset < 0)
