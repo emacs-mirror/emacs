@@ -288,7 +288,7 @@ the language you choose)."
   (if (and iso-accents-mode
 	   (memq last-input-char iso-accents-enable))
       (iso-accents-compose prompt)
-    (char-to-string last-input-char)))
+    (vector last-input-char)))
 
 (defun iso-accents-compose (prompt)
   (let* ((first-char last-input-char)
