@@ -114,7 +114,7 @@ extern Lisp_Object _temp_category_set;
   ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS					     \
    ? Faref (current_buffer->category_table, make_number ((unsigned char) c)) \
    : Faref (current_buffer->category_table,				     \
-	           COMPOSITE_CHAR_P (c) ? cmpchar_component ((c), 0) : (c))
+	           COMPOSITE_CHAR_P (c) ? cmpchar_component ((c), 0) : (c)))
 #endif   
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
