@@ -5911,12 +5911,12 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Save the status of key translation before each step,
      so that we can restore this after downcasing.  */
   Lisp_Object prev_fkey_map;
-  Lisp_Object prev_fkey_start;
-  Lisp_Object prev_fkey_end;
+  int prev_fkey_start;
+  int prev_fkey_end;
 
   Lisp_Object prev_keytran_map;
-  Lisp_Object prev_keytran_start;
-  Lisp_Object prev_keytran_end;
+  int prev_keytran_start;
+  int prev_keytran_end;
 
   int junk;
 
