@@ -2309,7 +2309,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  if (p1 != p1prev)
 	    {
 	      int *p2x = &charstart[p1prev - p1start];
-	      int *p2 = &charstart[p1 - p1start];
+	      int *p2 = &charstart[(p1 < endp ? p1 : endp) - p1start];
 
 	      /* The window's left column should always
 		 contain a character position.
