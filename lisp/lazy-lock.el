@@ -193,67 +193,6 @@
 ;; Currently XEmacs does not have the features to support this version of
 ;; lazy-lock.el.  Maybe it will one day.
 
-;; History:
-;;
-;; 1.15--2.00:
-;; - Rewrite for Emacs 19.30 and the features rms added to support lazy-lock.el
-;;   so that it could work correctly and efficiently.
-;; - Many thanks to those who reported bugs, fixed bugs, made suggestions or
-;;   otherwise contributed in the version 1 cycle; Jari Aalto, Kevin Broadey,
-;;   Ulrik Dickow, Bill Dubuque, Bob Glickstein, Boris Goldowsky,
-;;   Jonas Jarnestrom, David Karr, Michael Kifer, Erik Naggum, Rick Sladkey,
-;;   Jim Thompson, Ben Wing, Ilya Zakharevich, and Richard Stallman.
-;; 2.00--2.01:
-;; - Made `lazy-lock-fontify-after-command' always `sit-for' and so redisplay
-;; - Use `buffer-name' not `buffer-live-p' (Bill Dubuque hint)
-;; - Made `lazy-lock-install' do `add-to-list' not `setq' of `current-buffer'
-;; - Made `lazy-lock-fontify-after-install' loop over buffer list
-;; - Made `lazy-lock-arrange-before-change' to arrange `window-end' triggering
-;; - Made `lazy-lock-let-buffer-state' wrap both `befter-change-functions'
-;; - Made `lazy-lock-fontify-region' do `condition-case' (Hyman Rosen report)
-;; 2.01--2.02:
-;; - Use `buffer-live-p' as `buffer-name' can barf (Richard Stanton report)
-;; - Made `lazy-lock-install' set `font-lock-fontified' (Kevin Davidson report)
-;; - Made `lazy-lock-install' add hooks only if needed
-;; - Made `lazy-lock-unstall' add `font-lock-after-change-function' if needed
-;; 2.02--2.03:
-;; - Made `lazy-lock-fontify-region' do `condition-case' for `quit' too
-;; - Made `lazy-lock-mode' respect the value of `font-lock-inhibit-thing-lock'
-;; - Added `lazy-lock-after-unfontify-buffer'
-;; - Removed `lazy-lock-fontify-after-install' hack
-;; - Made `lazy-lock-fontify-after-scroll' not `set-buffer' to `window-buffer'
-;; - Made `lazy-lock-fontify-after-trigger' not `set-buffer' to `window-buffer'
-;; - Made `lazy-lock-fontify-after-idle' be interruptible (Scott Burson hint)
-;; 2.03--2.04:
-;; - Rewrite for Emacs 19.31 idle timers
-;; - Renamed `buffer-windows' to `get-buffer-window-list'
-;; - Removed `buffer-live-p'
-;; - Made `lazy-lock-defer-after-change' always save `current-buffer'
-;; - Made `lazy-lock-fontify-after-defer' just process buffers
-;; - Made `lazy-lock-install-hooks' add hooks correctly (Kevin Broadey report)
-;; - Made `lazy-lock-install' cope if `lazy-lock-defer-time' is a list
-;; 2.04--2.05:
-;; - Rewrite for Common Lisp macros
-;; - Added `do-while' macro
-;; - Renamed `lazy-lock-let-buffer-state' macro to `save-buffer-state'
-;; - Returned `lazy-lock-fontify-after-install' hack (Darren Hall hint)
-;; - Added `lazy-lock-defer-on-scrolling' functionality (Scott Byer hint)
-;; - Made `lazy-lock-mode' wrap `font-lock-support-mode'
-;; 2.05--2.06:
-;; - Made `lazy-lock-fontify-after-defer' swap correctly (Scott Byer report)
-;; 2.06--2.07:
-;; - Added `lazy-lock-stealth-load' functionality (Rob Hooft hint)
-;; - Made `lazy-lock-unstall' call `lazy-lock-fontify-region' if needed
-;; - Made `lazy-lock-mode' call `lazy-lock-unstall' only if needed
-;; - Made `lazy-lock-defer-after-scroll' do `set-window-redisplay-end-trigger'
-;; - Added `lazy-lock-defer-contextually' functionality
-;; - Added `lazy-lock-defer-on-the-fly' from `lazy-lock-defer-time'
-;; - Renamed `lazy-lock-defer-driven' to `lazy-lock-defer-on-scrolling'
-;; - Removed `lazy-lock-submit-bug-report' and bade farewell
-;; 2.07--2.08:
-;; - Made `lazy-lock-fontify-conservatively' fontify around `window-point'
-;; - Added Custom support
-
 ;;; Code:
 
 (require 'font-lock)
@@ -269,41 +208,28 @@
   ;; We don't do this at the top-level as idle timers are not necessarily used.
   (require 'timer)
   ;; We don't do this at the top-level as we only use non-autoloaded macros.
-  (require 'cl)
-  ;;
-  ;; Well, shouldn't Lazy Lock mode be as lazy as possible?
-  (setq byte-compile-dynamic t byte-compile-dynamic-docstrings t)
-  ;; But, we make sure that the code is as zippy as can be.
-  (setq byte-optimize t)
-  ;;
-  ;; We use this to preserve or protect things when modifying text properties.
-  (defmacro save-buffer-state (varlist &rest body)
-    "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    (` (let* ((,@ (append varlist
-		   '((modified (buffer-modified-p)) (buffer-undo-list t)
-		     (inhibit-read-only t) (inhibit-point-motion-hooks t)
-		     before-change-functions after-change-functions
-		     deactivate-mark buffer-file-name buffer-file-truename))))
-	 (,@ body)
-	 (when (and (not modified) (buffer-modified-p))
-	   (set-buffer-modified-p nil)))))
-  (put 'save-buffer-state 'lisp-indent-function 1)
-  ;;
-  ;; We use this for clarity and speed.  Naughty but nice.
-  (defmacro do-while (test &rest body)
-    "(do-while TEST BODY...): eval BODY... and repeat if TEST yields non-nil.
+  (require 'cl))
+
+;; We use this to preserve or protect things when modifying text properties.
+(defmacro save-buffer-state (varlist &rest body)
+  "Bind variables according to VARLIST and eval BODY restoring buffer state."
+  (` (let* ((,@ (append varlist
+		 '((modified (buffer-modified-p)) (buffer-undo-list t)
+		   (inhibit-read-only t) (inhibit-point-motion-hooks t)
+		   before-change-functions after-change-functions
+		   deactivate-mark buffer-file-name buffer-file-truename))))
+       (,@ body)
+       (when (and (not modified) (buffer-modified-p))
+	 (set-buffer-modified-p nil)))))
+(put 'save-buffer-state 'lisp-indent-function 1)
+
+;; We use this for clarity and speed.  Naughty but nice.
+(defmacro do-while (test &rest body)
+  "(do-while TEST BODY...): eval BODY... and repeat if TEST yields non-nil.
 The order of execution is thus BODY, TEST, BODY, TEST and so on
 until TEST returns nil."
-    (` (while (progn (,@ body) (, test)))))
-  (put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function))
-  ;;
-  ;; We use this for clarity and speed.  Borrowed from a future Emacs.
-  (or (fboundp 'with-current-buffer)
-      (defmacro with-current-buffer (buffer &rest body)
-	"Execute the forms in BODY with BUFFER as the current buffer.
-The value returned is the value of the last form in BODY."
-	(` (save-excursion (set-buffer (, buffer)) (,@ body)))))
-  (put 'with-current-buffer 'lisp-indent-function 1))
+  (` (while (progn (,@ body) (, test)))))
+(put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function))
 
 ;(defun lazy-lock-submit-bug-report ()
 ;  "Submit via mail a bug report on lazy-lock.el."
