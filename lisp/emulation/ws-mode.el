@@ -293,7 +293,8 @@ The key bindings are:
   (kill-all-local-variables)
   (use-local-map wordstar-mode-map)
   (setq mode-name "WordStar")
-  (setq major-mode 'wordstar-mode))
+  (setq major-mode 'wordstar-mode)
+  (run-hooks 'wordstar-mode-hook))
 
 
 (defun wordstar-center-paragraph ()
