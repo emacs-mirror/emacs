@@ -1,5 +1,9 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-image): Change :type.
+	(fancy-splash-head): Use an XBM image if appropriate.
+	(command-line-1): Show splash screens in more cases.
+
 	* startup.el (fancy-splash-text): Don't quote faces.
 
 	* dired.el (dired-font-lock-keywords): Undo last change.

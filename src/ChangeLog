@@ -1,5 +1,7 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (xbm_scan): Allow C-style comments.
+	
 	* xfns.c (xpm_init_color_cache) [ALLOC_XPM_COLORS]: If color
 	symbols are specified, add color translations to the cache.
 	(xpm_color_bucket, xpm_cache_color) [ALLOC_XPM_COLORS]: New

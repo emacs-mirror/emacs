@@ -1,3 +1,8 @@
+2000-09-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-ems.el (gnus-article-display-xface): Don't convert PBM
+	to XBM; we always have PBM support.
+
 2000-09-14  Dave Love  <fx@gnu.org>
 
 	* gnus.el (gnus-charset): 
