@@ -361,6 +361,7 @@ CC=gcc
    of expediency. */
 
 #define LIB_X11_LIB -lX11
+#define LIB_MOTIF -lXm -lgen
 
 /* Process groups work in the traditional BSD manner.  */
 
