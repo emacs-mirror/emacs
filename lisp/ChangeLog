@@ -1,3 +1,8 @@
+2001-04-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (cursor-in-non-selected-windows): Replaces
+	show-cursor-in-non-selected-windows.
+
 2001-03-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
