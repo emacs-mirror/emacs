@@ -1959,10 +1959,7 @@ wordify (string)
     {
       int c;
       
-      if (STRING_MULTIBYTE (string))
-	FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
-      else
-	c = XSTRING (string)->data[i++];
+      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 
       if (SYNTAX (c) != Sword)
 	{
@@ -1997,13 +1994,7 @@ wordify (string)
       int c;
       int i_byte_orig = i_byte;
       
-      if (STRING_MULTIBYTE (string))
-	FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
-      else
-	{
-	  c = XSTRING (string)->data[i++];
-	  i_byte++;
-	}
+      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 
       if (SYNTAX (c) == Sword)
 	{
@@ -2349,6 +2340,7 @@ since only regular expressions have distinguished subexpressions.")
 	      if (c == '\\')
 		{
 		  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+		      
 		  if (c == '&')
 		    {
 		      substart = search_regs.start[sub];
@@ -2460,7 +2452,7 @@ since only regular expressions have distinguished subexpressions.")
 
 	  if (str_multibyte)
 	    {
-	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+	      FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext, pos, pos_byte);
 	      if (!buf_multibyte)
 		c = multibyte_char_to_unibyte (c, rev_tbl);
 	    }
@@ -2480,7 +2472,8 @@ since only regular expressions have distinguished subexpressions.")
 	    {
 	      if (str_multibyte)
 		{
-		  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
+						      pos, pos_byte);
 		  if (!buf_multibyte && !SINGLE_BYTE_CHAR_P (c))
 		    c = multibyte_char_to_unibyte (c, rev_tbl);
 		}
