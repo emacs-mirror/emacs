@@ -63,7 +63,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing."
   (define-key electric-history-map "\C-c\C-c" 'Electric-history-quit)
   (define-key electric-history-map "\C-]" 'Electric-history-quit)
   (define-key electric-history-map "\C-z" 'suspend-emacs)
-  (define-key electric-history-map "\C-h" 'Helper-help)
+  (define-key electric-history-map help-char 'Helper-help)
   (define-key electric-history-map "?" 'Helper-describe-bindings)
   (define-key electric-history-map "\e>" 'end-of-buffer)
   (define-key electric-history-map "\e<" 'beginning-of-buffer)
@@ -131,7 +131,7 @@ The Command History listing is recomputed each time this mode is invoked."
 (defun Electric-history-undefined ()
   (interactive)
   (ding)
-  (message "Type C-h for help, ? for commands, C-c to quit, Space to execute")
+  (message (substitute-command-keys "Type \\[Help-for-help] for help, ? for commands, C-c to quit, Space to execute"))
   (sit-for 4))
 
 (defun Electric-history-quit ()

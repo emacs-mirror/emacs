@@ -156,7 +156,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
     (fillarray (lookup-key map "\e") 'Electric-buffer-menu-undefined)
     (define-key map "\C-z" 'suspend-emacs)
     (define-key map "v" 'Electric-buffer-menu-mode-view-buffer)
-    (define-key map help-char 'Helper-help)
+    (define-key map (char-to-string help-char) 'Helper-help)
     (define-key map "?" 'Helper-describe-bindings)
     (define-key map "\C-c" nil)
     (define-key map "\C-c\C-c" 'Electric-buffer-menu-quit)

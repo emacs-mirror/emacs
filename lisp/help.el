@@ -26,13 +26,10 @@
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
 
-(defvar help-key "\C-h"
-  "*Key used to invoke electric help.")
-
 (define-key global-map help-key 'help-command)
 (fset 'help-command help-map)
 
-(define-key help-map help-key 'help-for-help)
+(define-key help-map help-char 'help-for-help)
 (define-key help-map "?" 'help-for-help)
 
 (define-key help-map "\C-c" 'describe-copying)
@@ -230,17 +227,17 @@ C-d print Emacs ordering information.
 C-n print news of recent Emacs changes.
 C-w print information on absence of warranty for GNU Emacs."
   (interactive)
-  (message
- "A B C F I K L M N S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: ")
+  (message (substitute-command-keys
+ "A B C F I K L M N S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "))
   (let ((char (read-char)))
-    (if (or (= char ?\C-h) (= char ??))
+    (if (or (= char help-char) (= char ??))
 	(save-window-excursion
 	  (switch-to-buffer "*Help*")
 	  (delete-other-windows)
 	  (erase-buffer)
 	  (insert (documentation 'help-for-help))
 	  (goto-char (point-min))
-	  (while (memq char '(?\C-h ?? ?\C-v ?\  ?\177 ?\M-v))
+	  (while (memq char (cons help-char '(?? ?\C-v ?\  ?\177 ?\M-v)))
 	    (if (memq char '(?\C-v ?\ ))
 		(scroll-up))
 	    (if (memq char '(?\177 ?\M-v))

@@ -67,9 +67,6 @@ and \"-de\" when dehexlfying a buffer.")
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")
 
-(defvar help-key "\C-h"
-  "*Key used to invoke electric help.")
-
 (defvar hexl-mode-map nil)
 
 ;; routines
