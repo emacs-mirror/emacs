@@ -1756,14 +1756,14 @@ news-reply-mode-hook or mail-mode-hook to the following lambda expression:
     (beginning-of-buffer)
     (let* ((internal-messagep 
 	    (search-forward mail-header-separator nil t))
-	   (limit
+	   (limit (copy-marker
 	    (cond
 	     ((not ispell-message-text-end) (point-max))
 	     ((char-or-string-p ispell-message-text-end)
 	      (if (re-search-forward ispell-message-text-end nil t)
 		  (match-beginning 0)
 		(point-max)))
-	     (t (min (point-max) (funcall ispell-message-text-end)))))
+	     (t (min (point-max) (funcall ispell-message-text-end))))))
 	   (cite-regexp			;Prefix of inserted text
 	    (cond
 	     ((featurep 'supercite)	; sc 3.0
@@ -1833,7 +1833,8 @@ news-reply-mode-hook or mail-mode-hook to the following lambda expression:
 			     (match-beginning 0)
 			   limit))))
 	      (ispell-region (point) end)
-	      (goto-char end))))))))
+	      (goto-char end)))))
+    (set-marker limit nil))))
 
 (defun ispell-non-empty-string (string)
   (if (or (not string) (string-equal string ""))
