@@ -196,7 +196,7 @@ there, then load the URL at or before the position of the mouse click."
 	    (let ((url (browse-url-url-at-point)))
 	      (if (string-equal url "")
 		  (error "No e-mail address or URL found")
-		(funcall browse-url-browser-function url)))
+		(browse-url url)))
 	  (funcall goto-address-mail-method address))))))
 
 ;;;###autoload
@@ -212,7 +212,7 @@ there, then load the URL at or before point."
 	  (let ((url (browse-url-url-at-point)))
 	    (if (string-equal url "")
 		(error "No e-mail address or URL found")
-	      (funcall browse-url-browser-function url)))
+	      (browse-url url)))
 	(funcall goto-address-mail-method address)))))
 
 (defun goto-address-find-address-at-point ()
