@@ -119,12 +119,12 @@ extern Lisp_Object _temp_category_set;
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
 #define CATEGORY_DOCSTRING(table, category) \
-  XVECTOR (Fchar_table_extra_slot (table, 0))->contents[(category) - ' ']
+  XVECTOR (Fchar_table_extra_slot (table, make_number (0)))->contents[(category) - ' ']
 
 /* Return the version number of category table TABLE.  Not used for
    the moment.  */
 #define CATEGORY_TABLE_VERSION (table) \
-  Fchar_table_extra_slot (table, 1)
+  Fchar_table_extra_slot (table, make_number (1))
 
 /* Return 1 if there is a word boundary between two word-constituent
    characters C1 and C2 if they appear in this order, else return 0.
