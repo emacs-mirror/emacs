@@ -2790,7 +2790,10 @@ With just C-u prefix arg, uncomment each line in region.
 Numeric prefix arg ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
 Comments are terminated on each line, even for syntax in which newline does
-not end the comment.  Blank lines do not get comments."
+not end the comment.  Blank lines do not get comments.
+
+The strings used as comment starts are build from
+`comment-start' without trailing spaces and `comment-padding'."
   ;; if someone wants it to only put a comment-start at the beginning and
   ;; comment-end at the end then typing it, C-x C-x, closing it, C-x C-x
   ;; is easy enough.  No option is made here for other than commenting
@@ -2800,10 +2803,13 @@ not end the comment.  Blank lines do not get comments."
   (if (> beg end) (let (mid) (setq mid beg beg end end mid)))
   (save-excursion
     (save-restriction
-      (let ((cs comment-start) (ce comment-end)
-	    (cp (when comment-padding
-		  (make-string comment-padding ? )))
-	    numarg)
+      (let* ((comment-start
+	      (substring comment-start 0
+			 (string-match "[ \t]*$" comment-start)))
+	     (cs comment-start) (ce comment-end)
+	     (cp (when comment-padding
+		   (make-string comment-padding ? )))
+	     numarg)
 	(if (consp arg) (setq numarg t)
 	  (setq numarg (prefix-numeric-value arg))
 	  ;; For positive arg > 1, replicate the comment delims now,
