@@ -47,7 +47,6 @@ With ARG, display the tool bar if and only if ARG is positive.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."
-  nil nil nil
   :global t
   :group 'mouse
   :group 'frames
