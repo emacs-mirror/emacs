@@ -2568,7 +2568,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
    and we store only as many overlays as will fit.
    But we still return the total number of overlays.  */
 
-int
+static int
 overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
      int beg, end;
      int extend;
@@ -5362,7 +5362,7 @@ in the current display table (if there is one).  */);
 
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
 		     &current_buffer->enable_multibyte_characters,
-		     make_number (-1),
+		     Qnil,
 		     doc: /* Non-nil means the buffer contents are regarded as multi-byte characters.
 Otherwise they are regarded as unibyte.  This affects the display,
 file I/O and the behavior of various editing commands.
@@ -5372,6 +5372,7 @@ use the function `set-buffer-multibyte' to change a buffer's representation.
 Changing its default value with `setq-default' is supported.
 See also variable `default-enable-multibyte-characters' and Info node
 `(elisp)Text Representations'.  */);
+  XSYMBOL (intern ("enable-multibyte-characters"))->constant = 1;
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
 		     &current_buffer->buffer_file_coding_system, Qnil,
@@ -5676,7 +5677,7 @@ functions; it should only affect their performance.  */);
   DEFVAR_PER_BUFFER ("buffer-file-format", &current_buffer->file_format, Qnil,
 		     doc: /* List of formats to use when saving this buffer.
 Formats are defined by `format-alist'.  This variable is
-set when a file is visited.  Automatically local in all buffers.  */);
+set when a file is visited.  */);
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &current_buffer->invisibility_spec, Qnil,
