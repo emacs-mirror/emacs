@@ -178,8 +178,9 @@ been generated automatically, with a reference to the keymap."
 					; Identify special modes.
 	  ,(when parent
 	     `(progn
-		(if (get (quote ,parent) 'special)
-		    (put (quote ,child) 'special t))
+		(if (get (quote ,parent) 'mode-class)
+		    (put (quote ,child) 'mode-class
+			 (get (quote ,parent) 'mode-class)))
 					; Set up maps and tables.
 		(unless (keymap-parent ,map)
 		  (set-keymap-parent ,map (current-local-map)))
@@ -209,11 +210,12 @@ been generated automatically, with a reference to the keymap."
   "Find the class of a major MODE.
 A mode's class is the first ancestor which is NOT a derived mode.
 Use the `derived-mode-parent' property of the symbol to trace backwards.
-Since major-modes might derive from each other and from `fundamental-mode',
-this function is not very useful.  Use `derived-mode-p' instead."
+Since major-modes might all derive from `fundamental-mode', this function
+is not very useful."
   (while (get mode 'derived-mode-parent)
     (setq mode (get mode 'derived-mode-parent)))
   mode)
+(make-obsolete 'derived-mode-class 'derived-mode-p "21.4")
 
 
 ;;; PRIVATE
