@@ -1,5 +1,8 @@
 2001-11-11  Richard M. Stallman  <rms@gnu.org>
 
+	* calendar/solar.el (solar-sunrise-and-sunset):
+	Exchange the two extreme values of day-length.
+
 	* progmodes/sh-script.el (sh-must-be-shell-mode): 
 	Allow modes derived from sh-mode.
 

@@ -1,5 +1,9 @@
 2001-11-11  Richard M. Stallman  <rms@gnu.org>
 
+	* sysdep.c (child_setup_tty): Don't clear ICRNL or INLCR.
+
+	* lread.c (read_escape): Use end_of_file_error for reporting eof.
+
 	* insdel.c (replace_range): Use adjust_markers_for_replace
 	instead of adjust_markers_for_delete and adjust_markers_for_insert.
 
