@@ -190,11 +190,13 @@ With zero or negative ARG turn mode off.
 	 ,@body
 	 ;; The on/off hooks are here for backward compatibility only.
 	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
-	 ;; Return the new setting.
 	 (if (interactive-p)
-	     (message ,(format "%s %%sabled" pretty-name)
-		      (if ,mode "en" "dis")))
+	     (progn
+	       ,(if globalp `(customize-mark-as-set ',mode))
+	       (message ,(format "%s %%sabled" pretty-name)
+			(if ,mode "en" "dis"))))
 	 (force-mode-line-update)
+	 ;; Return the new setting.
 	 ,mode)
 
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
