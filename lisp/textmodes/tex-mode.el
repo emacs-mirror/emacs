@@ -1147,8 +1147,7 @@ line numbers for the errors."
                                  (not (string-equal last-filename filename))))
                    (error-location
                     (save-excursion
-		      (if (equal filename
-				 (expand-file-name (concat tex-zap-file ".tex")))
+		      (if (equal filename tex-last-temp-file)
 			  (set-buffer tex-last-buffer-texed)
 			(set-buffer (find-file-noselect filename)))
                       (if new-file
