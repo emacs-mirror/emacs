@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.23 $")
+(defconst byte-compile-version "$Revision: 2.24 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1249,7 +1249,9 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 	    (default-major-mode 'emacs-lisp-mode)
 	    (enable-local-eval nil))
         (normal-mode)
-        (setq filename buffer-file-name)))
+        (setq filename buffer-file-name))
+      ;; Set the default directory, in case an eval-when-compile uses it.
+      (setq default-directory (file-name-directory filename)))
     (setq byte-compiler-error-flag nil)
     ;; It is important that input-buffer not be current at this call,
     ;; so that the value of point set in input-buffer
