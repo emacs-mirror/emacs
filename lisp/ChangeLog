@@ -1,3 +1,12 @@
+2002-11-30  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-many-windows): Define as a minor mode.
+	(toggle-gdb-windows): Remove. (Patch from Stefan Monnier)
+
+	* tooltip.el (tooltip-gud-process-output): Handle annotations that
+	are output with gdba in gdb-ui.el.
+	(tooltip-strip-annotations): New function.
+
 2002-11-29  Bill Wohler  <wohler@newt.com>
 
 	* mail/mh-comp.el, mail/mh-e.el, mail/mh-funcs.el,
