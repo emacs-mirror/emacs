@@ -199,11 +199,14 @@ the variable `jit-lock-stealth-nice'."
 
 	;; Turn Just-in-time Lock mode on.
 	(jit-lock-mode
+	 ;; Mark the buffer for refontification
+	 ;; (in case spurious `fontified' text-props were left around).
+	 (jit-lock-fontify-buffer)
+
 	 ;; Setting `font-lock-fontified' makes font-lock believe the
 	 ;; buffer is already fontified, so that it won't highlight
 	 ;; the whole buffer or bail out on a large buffer.
-	 (make-local-variable 'font-lock-fontified)
-	 (setq font-lock-fontified t)
+	 (set (make-local-variable 'font-lock-fontified) t)
 
 	 ;; Setup JIT font-lock-fontify-buffer.
 	 (unless jit-lock-saved-fontify-buffer-function
@@ -259,12 +262,10 @@ the variable `jit-lock-stealth-nice'."
 ;; things like CWarn mode which adds/removes a few keywords and
 ;; does a refontify (which takes ages on large files).
 (defun jit-lock-fontify-buffer ()
-  (if (not (and font-lock-mode jit-lock-mode))
-      (funcall jit-lock-saved-fontify-buffer-function)
-    (with-buffer-prepared-for-font-lock
-     (save-restriction
-       (widen)
-       (add-text-properties (point-min) (point-max) '(fontified nil))))))
+  (with-buffer-prepared-for-font-lock
+   (save-restriction
+     (widen)
+     (add-text-properties (point-min) (point-max) '(fontified nil)))))
 
 
 ;;; On demand fontification.
