@@ -236,6 +236,34 @@ static int x_io_error_quitter ();
 void x_catch_errors ();
 void x_uncatch_errors ();
 
+#if 0
+/* This is a function useful for recording debugging information
+   about the sequence of occurrences in this file.  */
+
+struct record 
+{
+  char *locus;
+  int type;
+};
+
+struct record event_record[100];
+
+int event_record_index;
+
+record_event (locus, type)
+     char *locus;
+     int type;
+{
+  if (event_record_index == sizeof (event_record) / sizeof (struct record))
+    event_record_index = 0;
+
+  event_record[event_record_index].locus = locus;
+  event_record[event_record_index].type = type;
+  event_record_index++;
+}
+
+#endif /* 0 */
+
 /* Return the struct x_display_info corresponding to DPY.  */
 
 struct x_display_info *
@@ -5073,6 +5101,13 @@ XTframe_raise_lower (f, raise)
 
 /* Change of visibility.  */
 
+/* This tries to wait until the frame is really visible.
+   However, if the window manager asks the user where to position
+   the frame, this will return before the user finishes doing that.
+   The frame will not actually be visible at that time,
+   but it will become visible later when the window manager
+   finishes with it.  */
+
 x_make_frame_visible (f)
      struct frame *f;
 {
@@ -5087,8 +5122,15 @@ x_make_frame_visible (f)
 
   if (! FRAME_VISIBLE_P (f))
     {
-      if (! FRAME_ICONIFIED_P (f))
+      /* We test FRAME_GARBAGED_P here to make sure we don't
+	 call x_set_offset a second time
+	 if we get to x_make_frame_visible a second time
+	 before the window gets really visible.  */
+      if (! FRAME_ICONIFIED_P (f)
+	  && ! f->display.x->asked_for_visible)
 	x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
+
+      f->display.x->asked_for_visible = 1;
 
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
