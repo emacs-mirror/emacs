@@ -1,10 +1,10 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Version: 4.4
+;; Version: 4.5
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -77,10 +77,11 @@
 ;;    In some cases, Emacs doesn't support text highlighting, so selected
 ;;    regions are not shown in inverse video.  Emacs uses the concept of "the
 ;;    mark".  The mark is set at one end of a selected region; the cursor is
-;;    at the other.  The letter "M" appears in the mode line when the mark is
-;;    set.  The native emacs command ^X^X (Control-X twice) exchanges the
-;;    cursor with the mark; this provides a handy way to find the location of
-;;    the mark.
+;;    at the other.  In cases where the selected region cannot be shown in
+;;    inverse video an at sign (@) appears in the mode line when mark is set.
+;;    The native emacs command ^X^X (Control-X twice) exchanges the cursor
+;;    with the mark; this provides a handy way to find the location of the
+;;    mark.
 
 ;;    In TPU the cursor can be either bound or free.  Bound means the cursor
 ;;    cannot wander outside the text of the file being edited.  Free means
@@ -275,7 +276,7 @@
 ;;;
 ;;;  Version Information
 ;;;
-(defconst tpu-version "4.4" "TPU-edt version number.")
+(defconst tpu-version "4.5" "TPU-edt version number.")
 
 
 ;;;
@@ -369,11 +370,11 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   "If non-nil, TPU-edt is searching in the forward direction.")
 (defvar tpu-search-last-string ""
   "Last text searched for by the TPU-edt search commands.")
-(defvar tpu-search-overlay (make-overlay 0 0)
+(defvar tpu-search-overlay (make-overlay 1 1)
   "Search highlight overlay.")
 (overlay-put tpu-search-overlay 'face 'bold)
 
-(defvar tpu-replace-overlay (make-overlay 0 0)
+(defvar tpu-replace-overlay (make-overlay 1 1)
   "Replace highlight overlay.")
 (overlay-put tpu-replace-overlay 'face 'highlight)
 
@@ -426,40 +427,21 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 ;;;
 ;;;  Mode Line - Modify the mode line to show the following
 ;;;
-;;;     o  If the mark is set.
+;;;     o  Mark state.
 ;;;     o  Direction of motion.
 ;;;     o  Active rectangle mode.
+;;;     o  Active auto indent mode.
 ;;;
-(defvar tpu-original-mode-line mode-line-format)
 (defvar tpu-original-mm-alist minor-mode-alist)
 
-(defvar tpu-mark-flag " ")
+(defvar tpu-mark-flag "")
 (make-variable-buffer-local 'tpu-mark-flag)
 
 (defun tpu-set-mode-line (for-tpu)
-  "Set the mode for TPU-edt, or reset it to default Emacs."
+  "Set ``minor-mode-alist'' for TPU-edt, or reset it to default Emacs."
   (cond ((not for-tpu)
-	 (setq mode-line-format tpu-original-mode-line)
-	 (setq minor-mode-alist tpu-original-mm-alist))
+         (setq minor-mode-alist tpu-original-mm-alist))
 	(t
-	 (setq-default mode-line-format
-		       (list (purecopy "-")
-			     'mode-line-mule-info
-			     'mode-line-modified
-			     'mode-line-frame-identification
-			     'mode-line-buffer-identification
-			     (purecopy "  ")
-			     'global-mode-string
-			     (purecopy "  ")
-			     'tpu-mark-flag
-			     (purecopy " %[(")
-			     'mode-name 'mode-line-process 'minor-mode-alist
-			     (purecopy "%n")
-			     (purecopy ")%]--")
-			     (purecopy '(line-number-mode "L%l--"))
-			     (purecopy '(column-number-mode "C%c--"))
-			     (purecopy '(-3 . "%p"))
-			     (purecopy "-%-")))
 	 (or (assq 'tpu-newline-and-indent-p minor-mode-alist)
 	     (setq minor-mode-alist
 		   (cons '(tpu-newline-and-indent-p
@@ -472,11 +454,15 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 	 (or (assq 'tpu-direction-string minor-mode-alist)
 	     (setq minor-mode-alist
 		   (cons '(tpu-direction-string tpu-direction-string)
+			 minor-mode-alist)))
+	 (or (assq 'tpu-mark-flag minor-mode-alist)
+	     (setq minor-mode-alist
+		   (cons '(tpu-mark-flag tpu-mark-flag)
 			 minor-mode-alist))))))
 
 (defun tpu-update-mode-line nil
   "Make sure mode-line in the current buffer reflects all changes."
-  (setq tpu-mark-flag (if (tpu-mark) "M" " "))
+  (setq tpu-mark-flag (if transient-mark-mode "" (if (tpu-mark) " @" "  ")))
   (cond (tpu-emacs19-p (force-mode-line-update))
 	(t (set-buffer-modified-p (buffer-modified-p)) (sit-for 0))))
 
@@ -757,7 +743,7 @@ This is useful for inserting control characters."
 (defun tpu-get (file)
   "TPU-like get file"
   (interactive "FFile to get: ")
-  (find-file file))
+  (find-file file find-file-wildcards))
 
 (defun tpu-what-line nil
   "Tells what line the point is on,
@@ -1130,7 +1116,8 @@ kills modified buffers without asking."
   (if (tpu-check-match)
       (move-overlay tpu-search-overlay
                     (tpu-match-beginning) (tpu-match-end) (current-buffer))
-    (move-overlay tpu-search-overlay 0 0 (current-buffer))))
+    (unless (= (overlay-start tpu-search-overlay) (overlay-end tpu-search-overlay))
+      (move-overlay tpu-search-overlay 1 1 (current-buffer)))))
 
 (defun tpu-search nil
   "Search for a string or regular expression.
@@ -1292,6 +1279,7 @@ Used for reversing a search in progress."
 (defun tpu-unselect (&optional quiet)
   "Removes the mark to unselect the current region."
   (interactive "P")
+  (deactivate-mark)
   (setq mark-ring nil)
   (tpu-set-mark nil)
   (tpu-update-mode-line)
@@ -1619,7 +1607,7 @@ A negative argument means replace all occurrences of the search string."
 		   (tpu-unset-match)
 		   (setq doit nil)))))))
 
-    (move-overlay tpu-replace-overlay 0 0 (current-buffer))
+    (move-overlay tpu-replace-overlay 1 1 (current-buffer))
     (message "Replaced %s occurrence%s." strings (if (not (= 1 strings)) "s" ""))))
 
 (defun tpu-emacs-replace (&optional dont-ask)
@@ -1805,7 +1793,7 @@ Prefix argument serves as a repeat count."
 Accepts a prefix argument for the number of lines to move."
   (interactive "p")
   (backward-char 1)
-  (forward-line (- 1 num)))
+  (forward-visible-line (- 1 num)))
 
 (defun tpu-end-of-line (num)
   "Move to the next end of line in the current direction.
@@ -2490,15 +2478,9 @@ If FILE is nil, try to load a default file.  The default file names are
     ;; we use picture-mode functions
     (require 'picture)
     (tpu-set-control-keys)
-    (cond (tpu-emacs19-p
-	   (and window-system (tpu-load-xkeys nil))
-	   (tpu-arrow-history))
-	  (t
-	   ;; define ispell functions
-	   (autoload 'ispell-word "ispell" "Check spelling of word at or before point" t)
-	   (autoload 'ispell-complete-word "ispell" "Complete word at or before point" t)
-	   (autoload 'ispell-buffer "ispell" "Check spelling of entire buffer" t)
-	   (autoload 'ispell-region "ispell" "Check spelling of region" t)))
+    (and window-system (tpu-load-xkeys nil))
+    (tpu-arrow-history)
+    (transient-mark-mode t)
     (add-hook 'post-command-hook 'tpu-search-highlight)
     (tpu-set-mode-line t)
     (tpu-advance-direction)
