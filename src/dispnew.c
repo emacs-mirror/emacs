@@ -976,12 +976,13 @@ clear_window_matrices (w, desired_p)
    changes in the glyph_row structure, i.e. addition or removal of
    structure members.  */
 
+static struct glyph_row null_row;
+
 void
 clear_glyph_row (row)
      struct glyph_row *row;
 {
   struct glyph *p[1 + LAST_AREA];
-  static struct glyph_row null_row;
 
   /* Save pointers.  */
   p[LEFT_MARGIN_AREA] = row->glyphs[LEFT_MARGIN_AREA];
