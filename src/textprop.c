@@ -1030,19 +1030,23 @@ is the string or buffer containing the text.")
 	  if (LENGTH (i) > len)
 	    i = split_interval_left (i, len);
 
-	  if (NULL_INTERVAL_P (prev_changed))
-	    set_properties (props, i, object);
-	  else
+	  /* We have to call set_properties even if we are going to
+	     merge the intervals, so as to make the undo records
+	     and cause redisplay to happen.  */
+	  set_properties (props, i, object);
+	  if (!NULL_INTERVAL_P (prev_changed))
 	    merge_interval_left (i);
 	  return Qt;
 	}
 
       len -= LENGTH (i);
+
+      /* We have to call set_properties even if we are going to
+	 merge the intervals, so as to make the undo records
+	 and cause redisplay to happen.  */
+      set_properties (props, i, object);
       if (NULL_INTERVAL_P (prev_changed))
-	{
-	  set_properties (props, i, object);
-	  prev_changed = i;
-	}
+	prev_changed = i;
       else
 	prev_changed = i = merge_interval_left (i);
 
