@@ -953,79 +953,6 @@ Mark is left at original location."
     (insert "\\end" text)
     (if new-line-needed (insert ?\n))))
 
-(defun tex-compilation-parse-errors ()
-  "Parse the current buffer as error messages.
-This makes a list of error descriptors, compilation-error-list.
-For each source-file, line-number pair in the buffer,
-the source file is read in, and the text location is saved in
-compilation-error-list.  The function `next-error', assigned to
-\\[next-error], takes the next error off the list and visits its location.
-
-This function works on TeX compilations only.  It is necessary for
-that purpose, since TeX does not put file names on the same line as
-line numbers for the errors."
-  (setq compilation-error-list nil)
-  (message "Parsing error messages...")
-  (modify-syntax-entry ?\{ "_")
-  (modify-syntax-entry ?\} "_")
-  (modify-syntax-entry ?\[ "_")
-  (modify-syntax-entry ?\] "_")
-  (let (text-buffer
-	last-filename last-linenum)
-    ;; Don't reparse messages already seen at last parse.
-    (goto-char compilation-parsing-end)
-    ;; Don't parse the first two lines as error messages.
-    ;; This matters for grep.
-    (if (bobp)
-	(forward-line 2))
-    (while (re-search-forward "^l\.[0-9]+ " nil t)
-      (let (linenum filename
-	    error-marker text-marker)
-	;; Extract file name and line number from error message.
-	;; Line number is 2 away from beginning of line: "l.23"
-	(beginning-of-line)
-	(goto-char (+ (point) 2))
-	(setq linenum (read (current-buffer)))
-	;; The file is the one that was opened last and is still open.
-	;; We need to find the last open parenthesis.
-	(insert ?\))
-	(backward-sexp)
-	(forward-char)
-	(setq filename (current-word))
-	;; Locate the erring file and line.
-	(if (and (equal filename last-filename)
-		 (= linenum last-linenum))
-	    nil
-	  (skip-chars-backward "^(")
-	  (backward-char)
-	  (forward-sexp)
-	  (backward-delete-char 1)
-	  (setq error-marker (point-marker))
-	  ;; text-buffer gets the buffer containing this error's file.
-	  (if (not (equal filename last-filename))
-	      (setq text-buffer
-		    (and (file-exists-p (setq last-filename filename))
-			 (find-file-noselect filename))
-		    last-linenum 0))
-	  (if text-buffer
-	      ;; Go to that buffer and find the erring line.
-	      (save-excursion
-		(set-buffer text-buffer)
-		(if (zerop last-linenum)
-		    (progn
-		      (goto-char 1)
-		      (setq last-linenum 1)))
-		(forward-line (- linenum last-linenum))
-		(setq last-linenum linenum)
-		(setq text-marker (point-marker))
-		(setq compilation-error-list
-		      (cons (list error-marker text-marker)
-			    compilation-error-list)))))
-	(forward-line 1)))
-    (setq compilation-parsing-end (point-max)))
-  (message "Parsing error messages...done")
-  (setq compilation-error-list (nreverse compilation-error-list)))
-
 ;;; Invoking TeX in an inferior shell.
 
 ;;; Why use a shell instead of running TeX directly?  Because if TeX
@@ -1082,7 +1009,9 @@ line numbers for the errors."
 Do this in background if optional BACKGROUND is t.  If COMMAND has no *,
 FILE will be appended, preceded by a blank, to COMMAND.  If FILE is nil, no
 substitution will be made in COMMAND.  COMMAND can be any expression that
-evaluates to a command string."
+evaluates to a command string.
+
+Return the process in which TeX is running."
   (save-excursion
     (let* ((cmd (eval command))
 	   (proc (or (get-process "tex-shell") (error "No TeX subprocess")))
@@ -1105,7 +1034,8 @@ evaluates to a command string."
       (goto-char (process-mark proc))
       (insert string)
       (comint-send-input)
-      (setq tex-send-command-modified-tick (buffer-modified-tick buf)))))
+      (setq tex-send-command-modified-tick (buffer-modified-tick buf))
+      proc)))
 
 (defun tex-delete-last-temp-files (&optional not-all)
   "Delete any junk files from last temp file.
@@ -1126,6 +1056,123 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (add-hook 'kill-emacs-hook 'tex-delete-last-temp-files)
 
+(defvar tex-start-tex-marker nil
+  "Marker pointing after last TeX-running command in the TeX shell buffer.")
+
+(defun tex-start-tex (command file)
+  "Start a TeX run, using COMMAND on FILE."
+  (let* ((cmd (concat command " \\\\nonstopmode\\\\input"))
+         (star (string-match "\\*" cmd))
+         (compile-command
+          (if star (concat (substring cmd 0 star)
+                           file (substring cmd (1+ star)))
+            (concat cmd " " file))))
+    (with-current-buffer (process-buffer (tex-send-command compile-command))
+      (save-excursion
+	(forward-line -1)
+	(setq tex-start-tex-marker (point-marker)))
+      (make-local-variable 'compilation-parse-errors-function)
+      (setq compilation-parse-errors-function 'tex-compilation-parse-errors))))
+
+(defun tex-compilation-parse-errors (limit-search find-at-least)
+  "Parse the current buffer as error messages.
+This makes a list of error descriptors, `compilation-error-list'.
+For each source-file, line-number pair in the buffer,
+the source file is read in, and the text location is saved in
+`compilation-error-list'.  The function `next-error', assigned to
+\\[next-error], takes the next error off the list and visits its location.
+
+If LIMIT-SEARCH is non-nil, don't bother parsing past that location.
+If FIND-AT-LEAST is non-nil, don't bother parsing after finding that
+
+This function works on TeX compilations only.  It is necessary for
+that purpose, since TeX does not put file names on the same line as
+line numbers for the errors."
+  (require 'thingatpt)
+  (setq compilation-error-list nil)
+  (message "Parsing error messages...")
+  (let ((old-lc-syntax (char-syntax ?\{))
+        (old-rc-syntax (char-syntax ?\}))
+        (old-lb-syntax (char-syntax ?\[))
+        (old-rb-syntax (char-syntax ?\]))
+        (num-found 0) last-filename last-linenum last-position)
+    (unwind-protect
+        (progn
+          (modify-syntax-entry ?\{ "_")
+          (modify-syntax-entry ?\} "_")
+          (modify-syntax-entry ?\[ "_")
+          (modify-syntax-entry ?\] "_")
+          ;; Don't reparse messages already seen at last parse.
+          (goto-char (max (or compilation-parsing-end 0)
+			  tex-start-tex-marker))
+          ;; Don't parse the first two lines as error messages.
+          ;; This matters for grep.
+          (if (bobp) (forward-line 2))
+          (while (re-search-forward
+                  "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$"
+                  (and (or (null find-at-least)
+                           (>= num-found find-at-least)) limit-search) t)
+            ;; Extract file name and line number from error message.
+            ;; Line number is 2 away from beginning of line: "l.23"
+            ;; The file is the one that was opened last and is still open.
+            ;; We need to find the last open parenthesis.
+            (let* ((linenum (string-to-int (match-string 1)))
+                   (error-text (regexp-quote (match-string 3)))
+                   (filename
+                    (save-excursion
+                      (backward-up-list 1)
+                      (skip-syntax-forward "(_")
+                      (while (not (file-readable-p
+                                   (thing-at-point 'filename)))
+                        (skip-syntax-backward "(_")
+                        (backward-up-list 1)
+                        (skip-syntax-forward "(_"))
+                      (thing-at-point 'filename)))
+                   (error-marker 
+                    (save-excursion
+                      (re-search-backward "^! " nil t)
+                      (point-marker)))
+                   (new-file (or (null last-filename)
+                                 (not (string-equal last-filename filename))))
+                   (error-location
+                    (save-excursion
+		      (if (equal filename
+				 (expand-file-name (concat tex-zap-file ".tex")))
+			  (set-buffer tex-last-buffer-texed)
+			(set-buffer (find-file-noselect filename)))
+                      (if new-file
+			  (goto-line linenum)
+                        (goto-char last-position)
+                        (forward-line (- linenum last-linenum)))
+                                        ;first try a forward search
+                                        ;for the error text, then a
+                                        ;backward search limited by
+                                        ;the last error
+                      (let ((starting-point (point)))
+                        (or (re-search-forward error-text nil t)
+			    (re-search-backward
+			     error-text
+			     (marker-position last-position) t)
+			    (goto-char starting-point)))
+                      (point-marker))))
+              (setq last-filename filename)
+              (if (or new-file
+                      (not (= last-position error-location)))
+                  (progn
+                    (setq num-found (1+ num-found))
+                    (setq last-position error-location)
+                    (setq last-linenum linenum)
+                    (setq compilation-error-list
+                          (nconc compilation-error-list
+                                 (list (cons error-marker
+                                             error-location)))))))))
+      (modify-syntax-entry ?\{ (char-to-string old-lc-syntax))
+      (modify-syntax-entry ?\} (char-to-string old-rc-syntax))
+      (modify-syntax-entry ?\[ (char-to-string old-lb-syntax))
+      (modify-syntax-entry ?\] (char-to-string old-rb-syntax))))
+  (setq compilation-parsing-end (point))
+  (message "Parsing error messages...done"))
+
 ;;; The commands:
 
 (defun tex-region (beg end)
@@ -1208,7 +1255,7 @@ The value of `tex-command' specifies the command to use to run TeX."
     ;; Record the file name to be deleted afterward.
     (setq tex-last-temp-file tex-out-file)
     (tex-send-command tex-shell-cd-command zap-directory)
-    (tex-send-command tex-command tex-out-file)
+    (tex-start-tex tex-command tex-out-file)
     (tex-display-shell)
     (setq tex-print-file tex-out-file)
     (setq tex-last-buffer-texed (current-buffer))))
@@ -1237,7 +1284,7 @@ This function is more useful than \\[tex-buffer] when you need the
         (tex-kill-job)
       (tex-start-shell))
     (tex-send-command tex-shell-cd-command file-dir)
-    (tex-send-command tex-command source-file)
+    (tex-start-tex tex-command source-file)
     (tex-display-shell)
     (setq tex-last-buffer-texed (current-buffer))
     (setq tex-print-file source-file)))
@@ -1311,6 +1358,9 @@ is provided, use the alternative command, `tex-alt-dvi-print-command'."
 	(setq print-file-name-dvi test-name))
     (if (not (file-exists-p print-file-name-dvi))
         (error "No appropriate `.dvi' file could be found")
+      (if (tex-shell-running)
+          (tex-kill-job)
+        (tex-start-shell))
       (tex-send-command
         (if alt tex-alt-dvi-print-command tex-dvi-print-command)
         print-file-name-dvi t))))
