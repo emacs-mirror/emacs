@@ -118,42 +118,33 @@ Completion is performed over known labels when reading."
 ;; packages that do stuff with RMAIL.  Note that rmail-message-labels-p
 ;; is in rmail.el now.
 
-;(defun rmail-message-attribute-p (attribute &optional n)
-;  "Returns t if ATTRIBUTE on NTH or current message."
-;  (rmail-message-labels-p (rmail-make-label attribute t) n))
-
-;(defun rmail-message-keyword-p (keyword &optional n)
-;  "Returns t if KEYWORD on NTH or current message."
-;  (rmail-message-labels-p (rmail-make-label keyword t) n t))
-
 ;(defun rmail-message-label-p (label &optional n)
 ;  "Returns symbol if LABEL (attribute or keyword) on NTH or current message."
-;  (rmail-message-labels-p (rmail-make-label label t) n 'all))
-
-;; Not used by RMAIL but might be nice for user package.
+;  (rmail-message-labels-p (or n rmail-current-message) (regexp-quote label)))
 
 ;(defun rmail-parse-message-labels (&optional n)
 ;  "Returns labels associated with NTH or current RMAIL message.
-;Results is a list of two lists.  The first is the message attributes
-;and the second is the message keywords.  Labels are represented as symbols."
-;  (let ((omin (- (buffer-size) (point-min)))
-;	(omax (- (buffer-size) (point-max)))
-;	(result))	
-;    (unwind-protect
-;	(save-excursion
-;	  (let ((beg (rmail-msgbeg (or n rmail-current-message))))
-;	    (widen)
-;	    (goto-char beg)
-;	    (forward-line 1)
-;	    (if (looking-at "[01],")
-;		(save-restriction
-;		  (narrow-to-region (point) (save-excursion (end-of-line) (point)))
-;		  (rmail-nuke-whitespace)
-;		  (goto-char (1+ (point-min)))
-;		  (list (mail-parse-comma-list) (mail-parse-comma-list))))))
-;      (narrow-to-region (- (buffer-size) omin)
-;    			 (- (buffer-size) omax))
-;      nil)))
+;The result is a list of two lists of strings.  The first is the
+;message attributes and the second is the message keywords."
+;  (let (atts keys)
+;    (save-restriction
+;      (widen)
+;      (goto-char (rmail-msgbeg (or n rmail-current-message)))
+;      (forward-line 1)
+;      (or (looking-at "[01],") (error "Malformed label line"))
+;      (forward-char 2)
+;      (while (looking-at "[ \t]*\\([^ \t\n,]+\\),")
+;	(setq atts (cons (buffer-substring (match-beginning 1) (match-end 1))
+;			  atts))
+;	(goto-char (match-end 0)))
+;      (or (looking-at ",") (error "Malformed label line"))
+;      (forward-char 1)
+;      (while (looking-at "[ \t]*\\([^ \t\n,]+\\),")
+;	(setq keys (cons (buffer-substring (match-beginning 1) (match-end 1))
+;			 keys))
+;	(goto-char (match-end 0)))
+;      (or (looking-at "[ \t]*$") (error "Malformed label line"))
+;      (list (nreverse atts) (nreverse keys)))))
 
 (defun rmail-attribute-p (s)
   (let ((symbol (rmail-make-label s)))
