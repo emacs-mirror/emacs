@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.14 2001/07/31 08:28:43 gerd Exp $
+;; Revision: $Id: smerge-mode.el,v 1.15 2001/11/15 01:25:35 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 ;;   	 (goto-char (point-min))
 ;;   	 (when (re-search-forward "^<<<<<<< " nil t)
 ;;   	   (smerge-mode 1))))
-;;   (add-hook 'find-file-hooks 'sm-try-smerge t)
+;;   (add-hook 'find-file-hook 'sm-try-smerge t)
 
 ;;; Todo:
 

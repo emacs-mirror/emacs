@@ -290,7 +290,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;; hook is run, the major mode is in the process of being changed and we do not
 ;; know what the final major mode will be.  So, `font-lock-change-major-mode'
 ;; only (a) notes the name of the current buffer, and (b) adds our function
-;; `turn-on-font-lock-if-enabled' to the hook variables `find-file-hooks' and
+;; `turn-on-font-lock-if-enabled' to the hook variables `find-file-hook' and
 ;; `post-command-hook' (for buffers that are not visiting files).  By the time
 ;; the functions on the first of these hooks to be run are run, the new major
 ;; mode is assumed to be in place.  This way we get a Font Lock function run

@@ -956,7 +956,7 @@ the entire buffer is forced."
 
 (global-set-key [?\C-\S-l] 'hilit-repaint-command)
 
-(add-hook 'find-file-hooks 'hilit-find-file-hook t)
+(add-hook 'find-file-hook 'hilit-find-file-hook t)
 
 (eval-when-compile (require 'gnus))	; no compilation gripes
 

@@ -352,7 +352,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 ;; generate-new-buffer, which is called only by Lisp functions
 ;; create-file-buffer and rename-uniquely.  Rename-uniquely generally
 ;; isn't used for buffers visiting files, so it's sufficient to hook
-;; rename-buffer and create-file-buffer.  (Setting find-file-hooks isn't
+;; rename-buffer and create-file-buffer.  (Setting find-file-hook isn't
 ;; sufficient.)
 
 (defadvice rename-buffer (after rename-buffer-uniquify activate)

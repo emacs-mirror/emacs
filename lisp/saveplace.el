@@ -230,7 +230,7 @@ To save places automatically in all files, put this in your `.emacs' file:
   (if save-place-loaded
       (save-place-alist-to-file)))
 
-(add-hook 'find-file-hooks 'save-place-find-file-hook t)
+(add-hook 'find-file-hook 'save-place-find-file-hook t)
 
 (add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook)
 
