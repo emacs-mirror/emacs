@@ -32,23 +32,41 @@ extern int errno;
 
 char *prog_name;
 
-int touchy_mkdir (path)
-     char *path;
+/* Create directory DIRNAME if it does not exist already.
+   Then give permission for everyone to read and search it.
+   Return 0 if successful, 1 if not.  */
+
+int
+touchy_mkdir (dirname)
+     char *dirname;
 {
   struct stat buf;
 
-  /* If PATH already exists and is a directory, return success.  */
-  if (stat (path, &buf) >= 0
-      && (buf.st_mode & S_IFMT) == S_IFDIR)
-    return 0;
+  /* If DIRNAME already exists and is a directory, don't create.  */
+  if (! (stat (dirname, &buf) >= 0
+	 && (buf.st_mode & S_IFMT) == S_IFDIR))
+    {
+      /* Otherwise, try to make it.  If DIRNAME exists but isn't a directory,
+	 this will signal an error.  */
+      if (mkdir (dirname, 0777) < 0)
+	{
+	  fprintf (stderr, "%s: ", prog_name);
+	  perror (dirname);
+	  return 1;
+	}
+    }
 
-  /* Otherwise, try to make it.  If PATH exists but isn't a directory,
-     this will signal an error.  */
-  if (mkdir (path, 0777) < 0)
+  /* Make sure everyone can look at this directory.  */
+  if (stat (dirname, &buf) < 0)
     {
       fprintf (stderr, "%s: ", prog_name);
-      perror (path);
+      perror (dirname);
       return 1;
+    }
+  if (chmod (dirname, 0555 | (buf.st_mode & 0777)) < 0)
+    {
+      fprintf (stderr, "%s: ", prog_name);
+      perror (dirname);
     }
 
   return 0;
@@ -63,23 +81,23 @@ main (argc, argv)
 
   for (argc--, argv++; argc > 0; argc--, argv++)
     {
-      char *path = *argv;
+      char *dirname = *argv;
       int i;
 
-      /* Stop at each slash in path and try to create the directory.
+      /* Stop at each slash in dirname and try to create the directory.
 	 Skip any initial slash.  */
-      for (i = (path[0] == '/') ? 1 : 0; path[i]; i++)
-	if (path[i] == '/')
+      for (i = (dirname[0] == '/') ? 1 : 0; dirname[i]; i++)
+	if (dirname[i] == '/')
 	  {
-	    path[i] = '\0';
-	    if (touchy_mkdir (path) < 0)
-	      goto next_pathname;
-	    path[i] = '/';
+	    dirname[i] = '\0';
+	    if (touchy_mkdir (dirname) < 0)
+	      goto next_dirname;
+	    dirname[i] = '/';
 	  }
 
-      touchy_mkdir (path);
+      touchy_mkdir (dirname);
 
-    next_pathname:
+    next_dirname:
       ;
     }
 
