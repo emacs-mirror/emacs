@@ -705,7 +705,7 @@ appear on disk when you save the tar-file's buffer."
 		      (insert-buffer-substring tar-buffer start end)
 		      (set-buffer-multibyte t))
 		  (insert-buffer-substring tar-buffer start end))
-		(goto-char 0)
+		(goto-char (point-min))
 		(setq buffer-file-name
 		      ;; `:' is not allowed on Windows
 		      (expand-file-name (concat tarname "!" name)))
@@ -717,7 +717,7 @@ appear on disk when you save the tar-file's buffer."
 		       (and set-auto-coding-function
 			    (save-excursion
 			      (funcall set-auto-coding-function
-				       name (point-max)))))
+				       name (- (point-max) (point))))))
 		      (multibyte enable-multibyte-characters)
 		      (detected (detect-coding-region
 				 1 (min 16384 (point-max)) t)))
@@ -920,7 +920,7 @@ for this to be permanent."
 	    (multibyte enable-multibyte-characters))
 	(set-buffer-multibyte nil)
 	(save-excursion
-	  (goto-char 0)
+	  (goto-char (point-min))
 	  (while (not (eobp))
 	    (if (looking-at "D")
 		(progn (tar-expunge-internal)
@@ -939,7 +939,7 @@ for this to be permanent."
   "Remove the stars at the beginning of each line."
   (interactive)
   (save-excursion
-    (goto-char 1)
+    (goto-char (point-min))
     (while (< (position-bytes (point)) tar-header-offset)
       (if (not (eq (following-char) ?\ ))
 	  (progn (delete-char 1) (insert " ")))
@@ -1167,7 +1167,7 @@ to make your changes permanent."
 	    ;; alter the descriptor-line...
 	    ;;
 	    (let ((position (- (length tar-parse-info) (length head))))
-	      (goto-char 1)
+	      (goto-char (point-min))
 	      (next-line position)
 	      (beginning-of-line)
 	      (let ((p (point))
