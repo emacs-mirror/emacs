@@ -1,3 +1,13 @@
+2003-03-07  Kenichi Handa  <handa@etlken2>
+
+	* coding.c (CODING_ADD_COMPOSITION_COMPONENT): If the number of
+	composition components reaches the limit, terminate composing.
+	(COMPOSITION_OK): New macro.
+	(detect_coding_iso2022): Use it if an escapse sequence for
+	composition is found.
+	(coding_restore_composition): Adjust the number of composition
+	components if it is not sane.
+
 2003-02-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* process.c (emacs_get_tty_pgrp): New function.

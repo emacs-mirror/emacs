@@ -673,9 +673,16 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 
 /* Record one COMPONENT (alternate character or composition rule).  */
 
-#define CODING_ADD_COMPOSITION_COMPONENT(coding, component)	\
-  (coding->cmp_data->data[coding->cmp_data->used++] = component)
-
+#define CODING_ADD_COMPOSITION_COMPONENT(coding, component)		\
+  do {									\
+    coding->cmp_data->data[coding->cmp_data->used++] = component;	\
+    if (coding->cmp_data->used - coding->cmp_data_start			\
+	== COMPOSITION_DATA_MAX_BUNCH_LENGTH)				\
+      {									\
+	CODING_ADD_COMPOSITION_END (coding, coding->produced_char);	\
+	coding->composing = COMPOSITION_NO;				\
+      }									\
+  } while (0)
 
 /* Get one byte from a data pointed by SRC and increment SRC.  If SRC
    is not less than SRC_END, return -1 without incrementing Src.  */
@@ -1319,6 +1326,9 @@ enum iso_code_class_type iso_code_class[256];
 #define SHIFT_OUT_OK(idx) \
   (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding_system_table[idx], 1) >= 0)
 
+#define COMPOSITION_OK(idx)	\
+  (coding_system_table[idx]->composing != COMPOSITION_DISABLED)
+
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
    Check if a text is encoded in ISO2022.  If it is, return an
    integer in which appropriate flag bits any of:
@@ -1395,7 +1405,30 @@ detect_coding_iso2022 (src, src_end, multibytep)
 	  else if (c >= '0' && c <= '4')
 	    {
 	      /* ESC <Fp> for start/end composition.  */
-	      mask_found |= CODING_CATEGORY_MASK_ISO;
+	      if (COMPOSITION_OK (CODING_CATEGORY_IDX_ISO_7))
+		mask_found |= CODING_CATEGORY_MASK_ISO_7;
+	      else
+		mask &= ~CODING_CATEGORY_MASK_ISO_7;
+	      if (COMPOSITION_OK (CODING_CATEGORY_IDX_ISO_7_TIGHT))
+		mask_found |= CODING_CATEGORY_MASK_ISO_7_TIGHT;
+	      else
+		mask &= ~CODING_CATEGORY_MASK_ISO_7_TIGHT;
+	      if (COMPOSITION_OK (CODING_CATEGORY_IDX_ISO_8_1))
+		mask_found |= CODING_CATEGORY_MASK_ISO_8_1;
+	      else
+		mask &= ~CODING_CATEGORY_MASK_ISO_8_1;
+	      if (COMPOSITION_OK (CODING_CATEGORY_IDX_ISO_8_2))
+		mask_found |= CODING_CATEGORY_MASK_ISO_8_2;
+	      else
+		mask &= ~CODING_CATEGORY_MASK_ISO_8_2;
+	      if (COMPOSITION_OK (CODING_CATEGORY_IDX_ISO_7_ELSE))
+		mask_found |= CODING_CATEGORY_MASK_ISO_7_ELSE;
+	      else
+		mask &= ~CODING_CATEGORY_MASK_ISO_7_ELSE;
+	      if (COMPOSITION_OK (CODING_CATEGORY_IDX_ISO_8_ELSE))
+		mask_found |= CODING_CATEGORY_MASK_ISO_8_ELSE;
+	      else
+		mask &= ~CODING_CATEGORY_MASK_ISO_8_ELSE;
 	      break;
 	    }
 	  else
@@ -5287,6 +5320,9 @@ coding_restore_composition (coding, obj)
 	      int len = data[0] - 4, j;
 	      Lisp_Object args[MAX_COMPOSITION_COMPONENTS * 2 - 1];
 
+	      if (method == COMPOSITION_WITH_RULE_ALTCHARS
+		  && len % 2 == 0)
+		len --;
 	      for (j = 0; j < len; j++)
 		args[j] = make_number (data[4 + j]);
 	      components = (method == COMPOSITION_WITH_ALTCHARS
