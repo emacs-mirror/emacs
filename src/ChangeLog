@@ -1,5 +1,7 @@
 1999-11-18  Dave Love  <fx@gnu.org>
 
+	* filelock.c: Add forward declaration for get_boot_time_1.
+
 	* dispnew.c (Finternal_show_cursor_p): Fix doc string.
 
 1999-11-18  Gerd Moellmann  <gerd@gnu.org>
