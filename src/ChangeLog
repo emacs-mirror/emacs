@@ -1,5 +1,14 @@
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* gmalloc.c (state_protected_p, last_state_size, last_heapinfo)
+	[GC_MALLOC_CHECK && GC_PROTECT_MALLOC_STATE]: New variables.
+	(protect_malloc_state) [GC_MALLOC_CHECK &&
+	GC_PROTECT_MALLOC_STATE]: New function.
+	(PROTECT_MALLOC_STATE): New macro.
+	(__malloc_initialize, morecore, _malloc_internal)
+	(_free_internal) _realloc_internal): Use it to make _heapinfo
+	read-only outside of gmalloc.
+
 	* keymap.c: Update copyright.
 
 	* .gdbinit (xbacktrace): Handle case that $bt->function isn't
