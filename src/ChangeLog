@@ -1,3 +1,8 @@
+2001-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_clear_screen): If the frame's faces are not yet
+	realized, use the initial screen colors to clear the screen.
+
 2001-11-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textprop.c (Fset_text_properties): Remove unused variables
