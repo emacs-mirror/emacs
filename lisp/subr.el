@@ -2189,7 +2189,7 @@ clone should be incorporated in the clone."
     ;;(overlay-put ol2 'face 'underline)
     (overlay-put ol2 'evaporate t)
     (overlay-put ol2 'text-clones dups)))
-
+
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
 The following keywords are recognized:
@@ -2210,5 +2210,40 @@ a system-dependent default device name is used."
   (unless (fboundp 'play-sound-internal)
     (error "This Emacs binary lacks sound support"))
   (play-sound-internal sound))
+
+(defun define-mail-user-agent (symbol composefunc sendfunc
+				      &optional abortfunc hookvar)
+  "Define a symbol to identify a mail-sending package for `mail-user-agent'.
+
+SYMBOL can be any Lisp symbol.  Its function definition and/or
+value as a variable do not matter for this usage; we use only certain
+properties on its property list, to encode the rest of the arguments.
+
+COMPOSEFUNC is program callable function that composes an outgoing
+mail message buffer.  This function should set up the basics of the
+buffer without requiring user interaction.  It should populate the
+standard mail headers, leaving the `to:' and `subject:' headers blank
+by default.
+
+COMPOSEFUNC should accept several optional arguments--the same
+arguments that `compose-mail' takes.  See that function's documentation.
+
+SENDFUNC is the command a user would run to send the message.
+
+Optional ABORTFUNC is the command a user would run to abort the
+message.  For mail packages that don't have a separate abort function,
+this can be `kill-buffer' (the equivalent of omitting this argument).
+
+Optional HOOKVAR is a hook variable that gets run before the message
+is actually sent.  Callers that use the `mail-user-agent' may
+install a hook function temporarily on this hook variable.
+If HOOKVAR is nil, `mail-send-hook' is used.
+
+The properties used on SYMBOL are `composefunc', `sendfunc',
+`abortfunc', and `hookvar'."
+  (put symbol 'composefunc composefunc)
+  (put symbol 'sendfunc sendfunc)
+  (put symbol 'abortfunc (or abortfunc 'kill-buffer))
+  (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
 ;;; subr.el ends here
