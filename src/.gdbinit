@@ -137,13 +137,22 @@ document xsubr
 Print the address of the subr which the Lisp_Object $ points to.
 end
 
+define xscrollbar
+print (struct scrollbar *) (($ & 0x00ffffff) | $data_seg_bits)
+output *$
+echo \n
+end
+document xsubr
+Print $ as a scrollbar pointer.
+end
+
 set print pretty on
 
 unset environment TERMCAP
 unset environment TERM
 echo TERMCAP and TERM environment variables unset.\n
 show environment DISPLAY
-set args -q
+set args -q -geometry +0+0
 
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command below as well.
