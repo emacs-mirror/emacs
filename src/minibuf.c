@@ -1227,6 +1227,7 @@ is used to further constrain the set of candidates.  */)
     return call3 (alist, string, predicate, Qnil);
 
   bestmatch = bucket = Qnil;
+  zero = make_number (0);
 
   /* If ALIST is not a list, set TAIL just for gc pro.  */
   tail = alist;
@@ -1253,7 +1254,7 @@ is used to further constrain the set of candidates.  */)
 	}
       else if (type == 2)
 	{
-	  if (XFASTINT (bucket) != 0)
+	  if (!EQ (bucket, zero))
 	    {
 	      elt = bucket;
 	      eltstring = Fsymbol_name (elt);
@@ -1285,16 +1286,14 @@ is used to further constrain the set of candidates.  */)
 
       if (STRINGP (eltstring)
 	  && SCHARS (string) <= SCHARS (eltstring)
-	  && (tem = Fcompare_strings (eltstring, make_number (0),
+	  && (tem = Fcompare_strings (eltstring, zero,
 				      make_number (SCHARS (string)),
-				      string, make_number (0), Qnil,
+				      string, zero, Qnil,
 				      completion_ignore_case ? Qt : Qnil),
 	      EQ (Qt, tem)))
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
-	  Lisp_Object zero;
-	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  {
@@ -1348,9 +1347,9 @@ is used to further constrain the set of candidates.  */)
 	  else
 	    {
 	      compare = min (bestmatchsize, SCHARS (eltstring));
-	      tem = Fcompare_strings (bestmatch, make_number (0),
+	      tem = Fcompare_strings (bestmatch, zero,
 				      make_number (compare),
-				      eltstring, make_number (0),
+				      eltstring, zero,
 				      make_number (compare),
 				      completion_ignore_case ? Qt : Qnil);
 	      if (EQ (tem, Qt))
@@ -1381,15 +1380,15 @@ is used to further constrain the set of candidates.  */)
 		      ((matchsize == SCHARS (eltstring))
 		       ==
 		       (matchsize == SCHARS (bestmatch))
-		       && (tem = Fcompare_strings (eltstring, make_number (0),
+		       && (tem = Fcompare_strings (eltstring, zero,
 						   make_number (SCHARS (string)),
-						   string, make_number (0),
+						   string, zero,
 						   Qnil,
 						   Qnil),
 			   EQ (Qt, tem))
-		       && (tem = Fcompare_strings (bestmatch, make_number (0),
+		       && (tem = Fcompare_strings (bestmatch, zero,
 						   make_number (SCHARS (string)),
-						   string, make_number (0),
+						   string, zero,
 						   Qnil,
 						   Qnil),
 			   ! EQ (Qt, tem))))
@@ -1476,13 +1475,14 @@ are ignored unless STRING itself starts with a space.  */)
 			   || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
   int bindcount = -1;
-  Lisp_Object bucket, tem;
+  Lisp_Object bucket, tem, zero;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   CHECK_STRING (string);
   if (type == 0)
     return call3 (alist, string, predicate, Qt);
   allmatches = bucket = Qnil;
+  zero = make_number (0);
 
   /* If ALIST is not a list, set TAIL just for gc pro.  */
   tail = alist;
@@ -1509,7 +1509,7 @@ are ignored unless STRING itself starts with a space.  */)
 	}
       else if (type == 2)
 	{
-	  if (XFASTINT (bucket) != 0)
+	  if (!EQ (bucket, zero))
 	    {
 	      elt = bucket;
 	      eltstring = Fsymbol_name (elt);
@@ -1547,9 +1547,9 @@ are ignored unless STRING itself starts with a space.  */)
 	       && SREF (string, 0) == ' ')
 	      || SREF (eltstring, 0) != ' '
 	      || NILP (hide_spaces))
-	  && (tem = Fcompare_strings (eltstring, make_number (0),
+	  && (tem = Fcompare_strings (eltstring, zero,
 				      make_number (SCHARS (string)),
-				      string, make_number (0),
+				      string, zero,
 				      make_number (SCHARS (string)),
 				      completion_ignore_case ? Qt : Qnil),
 	      EQ (Qt, tem)))

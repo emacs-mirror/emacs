@@ -1072,6 +1072,9 @@ clear_font_table (dpyinfo)
 #ifdef WINDOWSNT
       w32_unload_font (dpyinfo, font_info->font);
 #endif
+#ifdef MAC_OS
+      mac_unload_font (dpyinfo, font_info->font);
+#endif
       UNBLOCK_INPUT;
 
       /* Mark font table slot free.  */

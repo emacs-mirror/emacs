@@ -3371,12 +3371,12 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @cindex @code{http}, @b{Ref@TeX{}} home page
 @cindex @code{ftp}, @b{Ref@TeX{}} site
 
-@b{Ref@TeX{}} was written by @i{@value{Carsten Dominik}}
+@b{Ref@TeX{}} was written by @i{Carsten Dominik}
 @email{dominik@@science.uva.nl}, with contributions by @i{Stephen
 Eglen}.  @b{Ref@TeX{}} is currently maintained by @refill
 
 @noindent
-@value{Carsten Dominik} @email{dominik@@science.uva.nl}
+Carsten Dominik @email{dominik@@science.uva.nl}
 
 If you have questions about @b{Ref@TeX{}}, there are several Usenet
 groups which have competent readers: @code{comp.emacs},

@@ -275,6 +275,9 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 (defvar grep-error-face	compilation-error-face
   "Face name to use for grep error messages.")
 
+(defvar grep-match-face	'match
+  "Face name to use for grep matches.")
+
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
      ("^\\([A-Za-z_0-9/\.+-]+\\)[ \t]*:" 1 font-lock-function-name-face)
@@ -291,7 +294,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (2 compilation-line-face))
      ;; Highlight grep matches and delete markers
      ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
-      (2 compilation-column-face)
+      (2 grep-match-face)
       ((lambda (p))
        (progn
 	 ;; Delete markers with `replace-match' because it updates

@@ -734,7 +734,7 @@ determined by DEFINITION.  */)
       && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, symbol));
   definition = Ffset (symbol, definition);
-  LOADHIST_ATTACH (symbol);
+  LOADHIST_ATTACH (Fcons (Qdefun, symbol));
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
   return definition;
@@ -3380,6 +3380,7 @@ arith_error (signo)
   sigsetmask (SIGEMPTYMASK);
 #endif /* not BSD4_1 */
 
+  SIGNAL_THREAD_CHECK (signo);
   Fsignal (Qarith_error, Qnil);
 }
 

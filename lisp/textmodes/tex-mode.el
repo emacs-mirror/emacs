@@ -1351,7 +1351,9 @@ Mark is left at original location."
       (when (eq (char-after) ?{)
 	(let ((newpos (point)))
 	  (when (ignore-errors (backward-sexp 1) t)
-	    (if (looking-at "\\\\end\\>")
+	    (if (or (looking-at "\\\\end\\>")
+		    ;; In case the \\ ends a verbatim section.
+		    (and (looking-at "end\\>") (eq (char-before) ?\\)))
 		(tex-last-unended-begin)
 	      (goto-char newpos))))))))
 

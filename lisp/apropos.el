@@ -96,7 +96,7 @@ turns off mouse highlighting."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-match-face 'secondary-selection
+(defcustom apropos-match-face 'match
   "*Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the regexp; the part that matches gets displayed in this font."
@@ -163,6 +163,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-symbol
   'face apropos-symbol-face
   'help-echo "mouse-2, RET: Display more help on this symbol"
+  'follow-link t
   'action #'apropos-symbol-button-display-help
   'skip t)
 
@@ -174,19 +175,24 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-function
   'apropos-label "Function"
+  'help-echo "mouse-2, RET: Display more help on this function"
+  'follow-link t
   'action (lambda (button)
-	    (describe-function (button-get button 'apropos-symbol)))
-  'help-echo "mouse-2, RET: Display more help on this function")
+	    (describe-function (button-get button 'apropos-symbol))))
+
 (define-button-type 'apropos-macro
   'apropos-label "Macro"
+  'help-echo "mouse-2, RET: Display more help on this macro"
+  'follow-link t
   'action (lambda (button)
-	    (describe-function (button-get button 'apropos-symbol)))
-  'help-echo "mouse-2, RET: Display more help on this macro")
+	    (describe-function (button-get button 'apropos-symbol))))
+
 (define-button-type 'apropos-command
   'apropos-label "Command"
+  'help-echo "mouse-2, RET: Display more help on this command"
+  'follow-link t
   'action (lambda (button)
-	    (describe-function (button-get button 'apropos-symbol)))
-  'help-echo "mouse-2, RET: Display more help on this command")
+	    (describe-function (button-get button 'apropos-symbol))))
 
 ;; We used to use `customize-variable-other-window' instead for a
 ;; customizable variable, but that is slow.  It is better to show an
@@ -196,18 +202,21 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-variable
   'apropos-label "Variable"
   'help-echo "mouse-2, RET: Display more help on this variable"
+  'follow-link t
   'action (lambda (button)
 	    (describe-variable (button-get button 'apropos-symbol))))
 
 (define-button-type 'apropos-face
   'apropos-label "Face"
   'help-echo "mouse-2, RET: Display more help on this face"
+  'follow-link t
   'action (lambda (button)
 	    (describe-face (button-get button 'apropos-symbol))))
 
 (define-button-type 'apropos-group
   'apropos-label "Group"
   'help-echo "mouse-2, RET: Display more help on this group"
+  'follow-link t
   'action (lambda (button)
 	    (customize-group-other-window
 	     (button-get button 'apropos-symbol))))
@@ -215,12 +224,14 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-widget
   'apropos-label "Widget"
   'help-echo "mouse-2, RET: Display more help on this widget"
+  'follow-link t
   'action (lambda (button)
 	    (widget-browse-other-window (button-get button 'apropos-symbol))))
 
 (define-button-type 'apropos-plist
   'apropos-label "Plist"
   'help-echo "mouse-2, RET: Display more help on this plist"
+  'follow-link t
   'action (lambda (button)
 	    (apropos-describe-plist (button-get button 'apropos-symbol))))
 

@@ -42,10 +42,21 @@
 ;;
 ;; ffap-bindings makes the following global key bindings:
 ;;
-;; C-x C-f       find-file-at-point (abbreviated as ffap)
-;; C-x d         dired-at-point
-;; C-x 4 f       ffap-other-window
-;; C-x 5 f       ffap-other-frame
+;; C-x C-f		find-file-at-point (abbreviated as ffap)
+;; C-x C-r		ffap-read-only
+;; C-x C-v		ffap-alternate-file
+;;
+;; C-x d		dired-at-point
+;; C-x C-d		ffap-list-directory
+;;
+;; C-x 4 f		ffap-other-window
+;; C-x 4 r		ffap-read-only-other-window
+;; C-x 4 d		ffap-dired-other-window
+;;
+;; C-x 5 f		ffap-other-frame
+;; C-x 5 r		ffap-read-only-other-frame
+;; C-x 5 d		ffap-dired-other-frame
+;;
 ;; S-mouse-3     ffap-at-mouse
 ;; C-S-mouse-3   ffap-menu
 ;;
@@ -202,13 +213,17 @@ Sensible values are nil, \"news\", or \"mailto\"."
 ;; through this section for features that you like, put an appropriate
 ;; enabler in your .emacs file.
 
-(defcustom ffap-dired-wildcards nil
-  ;; Suggestion from RHOGEE, 07 Jul 1994.  Disabled, dired is still
-  ;; available by "C-x C-d <pattern>", and valid filenames may
-  ;; sometimes contain wildcard characters.
+(defcustom ffap-dired-wildcards "[*?][^/]*\\'"
   "*A regexp matching filename wildcard characters, or nil.
+
 If `find-file-at-point' gets a filename matching this pattern,
-it passes it on to `dired' instead of `find-file'."
+it passes it on to `find-file' with non-nil WILDCARDS argument,
+which expands wildcards and visits multiple files.  To visit
+a file whose name contains wildcard characters you can suppress
+wildcard expansion by setting `find-file-wildcards'.
+
+If `dired-at-point' gets a filename matching this pattern,
+it passes it on to `dired'."
   :type '(choice (const :tag "Disable" nil)
 		 (const :tag "Enable" "[*?][^/]*\\'")
 		 ;; regexp -- probably not useful
@@ -235,6 +250,12 @@ ffap most of the time."
   :type 'function
   :group 'ffap)
 (put 'ffap-file-finder 'risky-local-variable t)
+
+(defcustom ffap-directory-finder 'dired
+  "*The command called by `dired-at-point' to find a directory."
+  :type 'function
+  :group 'ffap)
+(put 'ffap-directory-finder 'risky-local-variable t)
 
 (defcustom ffap-url-fetcher
   (if (fboundp 'browse-url)
@@ -939,9 +960,9 @@ If t, `ffap-tex-init' will initialize this when needed.")
     ;; Slightly controversial decisions:
     ;; * strip trailing "@" and ":"
     ;; * no commas (good for latex)
-    (file "--:$+<>@-Z_a-z~" "<@" "@>;.,!?:")
+    (file "--:$+<>@-Z_a-z~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
-    (url "--:=&?$+@-Z_a-z~#,%;" "^A-Za-z0-9" ":;.,!?")
+    (url "--:=&?$+@-Z_a-z~#,%;*" "^A-Za-z0-9" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
     (nocolon "--9$+<>@-Z_a-z~" "<@" "@>;.,!?")
     ;; A machine:
@@ -1120,8 +1141,8 @@ which may actually result in an url rather than a filename."
 	 (default-directory default-directory))
     (unwind-protect
 	(cond
-	 ;; Immediate rejects (/ and // are too common in C++):
-         ((member name '("" "/" "//" ".")) nil)
+	 ;; Immediate rejects (/ and // and /* are too common in C/C++):
+         ((member name '("" "/" "//" "/*" ".")) nil)
          ;; Immediately test local filenames.  If default-directory is
          ;; remote, you probably already have a connection.
          ((and (not abs) (ffap-file-exists-string name)))
@@ -1187,6 +1208,12 @@ which may actually result in an url rather than a filename."
 			 remote-dir (substring name (match-end 1)))))
 		  (ffap-file-exists-string
 		   (ffap-replace-file-component remote-dir name))))))
+	 ((and ffap-dired-wildcards
+	       (string-match ffap-dired-wildcards name)
+	       abs
+	       (ffap-file-exists-string (file-name-directory
+					 (directory-file-name name)))
+	       name))
          ;; Try all parent directories by deleting the trailing directory
          ;; name until existing directory is found or name stops changing
          ((let ((dir name))
@@ -1227,7 +1254,9 @@ which may actually result in an url rather than a filename."
 	     dir
 	     nil
 	     (if dir (cons guess (length dir)) guess)
-	     (list 'file-name-history))))
+	     (list 'file-name-history)
+	     (and buffer-file-name
+		  (abbreviate-file-name buffer-file-name)))))
     ;; Do file substitution like (interactive "F"), suggested by MCOOK.
     (or (ffap-url-p guess) (setq guess (substitute-in-file-name guess)))
     ;; Should not do it on url's, where $ is a common (VMS?) character.
@@ -1357,10 +1386,12 @@ See <ftp://ftp.mathcs.emory.edu/pub/mic/emacs/> for latest version."
      ((ffap-url-p filename)
       (let (current-prefix-arg)		; w3 2.3.25 bug, reported by KPC
 	(funcall ffap-url-fetcher filename)))
-     ;; This junk more properly belongs in a modified ffap-file-finder:
      ((and ffap-dired-wildcards
-	   (string-match ffap-dired-wildcards filename))
-      (dired filename))
+	   (string-match ffap-dired-wildcards filename)
+	   find-file-wildcards
+	   ;; Check if it's find-file that supports wildcards arg
+	   (memq ffap-file-finder '(find-file find-alternate-file)))
+      (funcall ffap-file-finder (expand-file-name filename) t))
      ((or (not ffap-newfile-prompt)
 	  (file-exists-p filename)
 	  (y-or-n-p "File does not exist, create buffer? "))
@@ -1556,9 +1587,7 @@ Return value:
      )))
 
 
-;;; ffap-other-* commands:
-;;
-;; Requested by KPC.
+;;; ffap-other-*, ffap-read-only-*, ffap-alternate-* commands:
 
 ;; There could be a real `ffap-noselect' function, but we would need
 ;; at least two new user variables, and there is no w3-fetch-noselect.
@@ -1568,23 +1597,70 @@ Return value:
   "Like `ffap', but put buffer in another window.
 Only intended for interactive use."
   (interactive)
-  (switch-to-buffer-other-window
-   (save-window-excursion (call-interactively 'ffap) (current-buffer))))
+  (let (value)
+    (switch-to-buffer-other-window
+     (save-window-excursion
+       (setq value (call-interactively 'ffap))
+       (unless (or (bufferp value) (bufferp (car-safe value)))
+	 (setq value (current-buffer)))
+       (current-buffer)))
+    value))
 
 (defun ffap-other-frame nil
   "Like `ffap', but put buffer in another frame.
 Only intended for interactive use."
   (interactive)
   ;; Extra code works around dedicated windows (noted by JENS, 7/96):
-  (let* ((win (selected-window)) (wdp (window-dedicated-p win)))
+  (let* ((win (selected-window))
+	 (wdp (window-dedicated-p win))
+	 value)
     (unwind-protect
 	(progn
 	  (set-window-dedicated-p win nil)
 	  (switch-to-buffer-other-frame
 	   (save-window-excursion
-	     (call-interactively 'ffap)
+	     (setq value (call-interactively 'ffap))
+	     (unless (or (bufferp value) (bufferp (car-safe value)))
+	       (setq value (current-buffer)))
 	     (current-buffer))))
-      (set-window-dedicated-p win wdp))))
+      (set-window-dedicated-p win wdp))
+    value))
+
+(defun ffap-read-only ()
+  "Like `ffap', but mark buffer as read-only.
+Only intended for interactive use."
+  (interactive)
+  (let ((value (call-interactively 'ffap)))
+    (unless (or (bufferp value) (bufferp (car-safe value)))
+      (setq value (current-buffer)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
+
+(defun ffap-read-only-other-window ()
+  "Like `ffap', but put buffer in another window and mark as read-only.
+Only intended for interactive use."
+  (interactive)
+  (let ((value (ffap-other-window)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
+
+(defun ffap-read-only-other-frame ()
+  "Like `ffap', but put buffer in another frame and mark as read-only.
+Only intended for interactive use."
+  (interactive)
+  (let ((value (ffap-other-frame)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
+
+(defun ffap-alternate-file ()
+  "Like `ffap' and `find-alternate-file'.
+Only intended for interactive use."
+  (interactive)
+  (let ((ffap-file-finder 'find-alternate-file))
+    (call-interactively 'ffap)))
 
 
 ;;; Bug Reporter:
@@ -1665,24 +1741,26 @@ ffap most of the time."
 	       (not current-prefix-arg)
 	     current-prefix-arg))
       (let (current-prefix-arg)		; already interpreted
-	(call-interactively 'dired))
+	(call-interactively ffap-directory-finder))
     (or filename (setq filename (dired-at-point-prompter)))
     (cond
      ((ffap-url-p filename)
       (funcall ffap-url-fetcher filename))
      ((and ffap-dired-wildcards
 	   (string-match ffap-dired-wildcards filename))
-      (dired filename))
+      (funcall ffap-directory-finder filename))
      ((file-exists-p filename)
       (if (file-directory-p filename)
-	  (dired (expand-file-name filename))
-	(dired (concat (expand-file-name filename) "*"))))
+	  (funcall ffap-directory-finder
+		   (expand-file-name filename))
+	(funcall ffap-directory-finder
+		 (concat (expand-file-name filename) "*"))))
      ((and (file-writable-p
             (or (file-name-directory (directory-file-name filename))
                 filename))
            (y-or-n-p "Directory does not exist, create it? "))
       (make-directory filename)
-      (dired filename))
+      (funcall ffap-directory-finder filename))
      ((error "No such file or directory `%s'" filename)))))
 
 (defun dired-at-point-prompter (&optional guess)
@@ -1712,16 +1790,66 @@ ffap most of the time."
 	 (and guess (ffap-highlight))))
     (ffap-highlight t)))
 
+;;; ffap-dired-other-*, ffap-list-directory commands:
+
+(defun ffap-dired-other-window ()
+  "Like `dired-at-point', but put buffer in another window.
+Only intended for interactive use."
+  (interactive)
+  (let (value)
+    (switch-to-buffer-other-window
+     (save-window-excursion
+       (setq value (call-interactively 'dired-at-point))
+       (current-buffer)))
+    value))
+
+(defun ffap-dired-other-frame ()
+  "Like `dired-at-point', but put buffer in another frame.
+Only intended for interactive use."
+  (interactive)
+  ;; Extra code works around dedicated windows (noted by JENS, 7/96):
+  (let* ((win (selected-window))
+	 (wdp (window-dedicated-p win))
+	 value)
+    (unwind-protect
+	(progn
+	  (set-window-dedicated-p win nil)
+	  (switch-to-buffer-other-frame
+	   (save-window-excursion
+	     (setq value (call-interactively 'dired-at-point))
+	     (current-buffer))))
+      (set-window-dedicated-p win wdp))
+    value))
+
+(defun ffap-list-directory ()
+  "Like `dired-at-point' and `list-directory'.
+Only intended for interactive use."
+  (interactive)
+  (let ((ffap-directory-finder 'list-directory))
+    (call-interactively 'dired-at-point)))
+
+
 ;;; Offer default global bindings (`ffap-bindings'):
 
 (defvar ffap-bindings
    '(
      (global-set-key [S-mouse-3] 'ffap-at-mouse)
      (global-set-key [C-S-mouse-3] 'ffap-menu)
+
      (global-set-key "\C-x\C-f" 'find-file-at-point)
+     (global-set-key "\C-x\C-r" 'ffap-read-only)
+     (global-set-key "\C-x\C-v" 'ffap-alternate-file)
+
      (global-set-key "\C-x4f"   'ffap-other-window)
      (global-set-key "\C-x5f"   'ffap-other-frame)
+     (global-set-key "\C-x4r"   'ffap-read-only-other-window)
+     (global-set-key "\C-x5r"   'ffap-read-only-other-frame)
+
      (global-set-key "\C-xd"    'dired-at-point)
+     (global-set-key "\C-x4d"   'ffap-dired-other-window)
+     (global-set-key "\C-x5d"   'ffap-dired-other-frame)
+     (global-set-key "\C-x\C-d" 'ffap-list-directory)
+
      (add-hook 'gnus-summary-mode-hook 'ffap-gnus-hook)
      (add-hook 'gnus-article-mode-hook 'ffap-gnus-hook)
      (add-hook 'vm-mode-hook 'ffap-ro-mode-hook)

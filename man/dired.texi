@@ -89,7 +89,7 @@ so common in Dired that it deserves to be easy to type.)  @key{DEL}
 (move up and unflag) is often useful simply for moving up.
 
 @findex dired-goto-file
-@kindex M-g
+@kindex M-g @r{(Dired)}
   @kbd{M-g} (@code{dired-goto-file}) moves point to the line that
 describes a specified file or directory.
 
@@ -700,25 +700,17 @@ file.
 If the command string contains @samp{?} surrounded by whitespace, the
 current file name is substituted for @samp{?}.  You can use @samp{?}
 this way more than once in the command, and each occurrence is
-replaced.  For instance, here is how to uuencode each file, making the
-output file name by appending @samp{.uu} to the input file name:
-
-@example
-uuencode ? ? > ?.uu
-@end example
+replaced.
 @end itemize
 
 To iterate over the file names in a more complicated fashion, use an
-explicit shell loop.  For example, this shell command is another way
-to uuencode each file:
+explicit shell loop.  For example, here is how to uuencode each file,
+making the output file name by appending @samp{.uu} to the input file
+name:
 
 @example
 for file in * ; do uuencode "$file" "$file" >"$file".uu; done
 @end example
-
-@noindent
-This simple example doesn't require a shell loop (you can do it
-with @samp{?}, but it illustrates the technique.
 
 The working directory for the shell command is the top-level directory
 of the Dired buffer.
@@ -1113,7 +1105,7 @@ and erases all flags and marks.
 @table @kbd
 @item w
 @cindex Adding to the kill ring in Dired.
-@kindex w
+@kindex w @r{(Dired)}
 @findex dired-copy-filename-as-kill
 The @kbd{w} command (@code{dired-copy-filename-as-kill}) puts the
 names of the marked (or next @var{n}) files into the kill ring, as if

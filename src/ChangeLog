@@ -1,3 +1,469 @@
+2004-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Clear area in expose event for GTK.
+
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Only look at
+	Vscroll_preserve_screen_position if the old PT can't be kept.
+	(syms_of_window) <scroll-preserve-screen-position>: Doc fix.
+
+2004-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_line_height_property): New function extracted from
+	original calc_line_height_property.
+	(calc_line_height_property): Rework.  Handle t and (nil . ratio).
+	(x_produce_glyphs): Use them to handle line-height and
+	line-spacing according to new height spec.
+	(Qtotal): Remove.
+	(syms_of_xdisp): Remove intern and staticpro for Qtotal.
+
+2004-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Don't use
+	current_buffer->buffer_file_coding_system even if REPLACE is
+	non-nil.  Call Qafter_insert_file_set_coding with the second arg
+	VISIT.
+
+	* fontset.h (struct font_info): New members space_width and
+	average_width.
+
+	* frame.h (struct frame): New member space_width.
+	(FRAME_SPACE_WIDTH): New macro.
+
+	* xterm.h (struct x_display_info): New member Xatom_AVERAGE_WIDTH.
+
+	* xterm.c (x_new_font): Set FRAME_COLUMN_WIDTH to
+	fontp->average_width, not FONT_WIDTH.  Set FRAME_SPACE_WIDTH to
+	fontp-?space_width..
+	(x_load_font): Calculate fontp->space_width and
+	fontp->average_width.
+	(x_term_init): Initialize dpyinfo->Xatom_AVERAGE_WIDTH.
+
+	* xdisp.c (x_produce_glyphs): Calculate tab width by
+	FRAME_SPACE_WIDTH, not FRAME_COLUMN_WIDTH.
+
+2004-12-29  Sanghyuk Suh  <han9kin@mac.com>
+
+	* macterm.c (SelectionRange): Add Xcode position apple event struct.
+	(do_ae_open_documents): Handle Xcode-style file position open
+	events.
+
+2004-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (syms_of_buffer) <vertical-scroll-bar>: Correct typo.
+
+2004-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer) <vertical-scroll-bar>: Doc fix.
+
+2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (install_window_handler): Modify extern to return OSErr
+	value.
+	(mac_window): Handle return value of install_window_handler.
+
+	* macterm.c (reflect_byte): Remove function.
+	(mac_create_bitmap_from_bitmap_data): Don't call reflect_byte.
+	Lookup table instead.
+	(mac_do_font_lists): Simplify calculation of the longest
+	nonspecial string.
+	(init_mac_drag_n_drop): Remove function	and declaration.
+	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
+	init_mac_drag_n_drop.
+	(mac_do_track_drag): New function and declaration.
+	(install_window_handler): Return OSErr value.
+	(install_window_handler) [TARGET_API_MAC_CARBON]: Register
+	handlers for tracking/receiving drag-and-drop items.
+	(do_ae_open_documents): Generate unibyte strings for filenames.
+	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.  Reject
+	only non-filename items.  Set event modifiers.  Set return value.
+
+2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* coding.c (decode_coding): Fix previous change.
+
+2004-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (back_to_previous_visible_line_start):
+	Don't call handle_display_prop.
+
+2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* coding.c (decode_coding_XXX, decode_composition_emacs_mule)
+	(decode_coding_emacs_mule, encode_coding_emacs_mule)
+	(decode_coding_iso2022, encode_designation_at_bol)
+	(encode_coding_iso2022, decode_coding_sjis_big5, decode_eol)
+	(decode_coding): Constify arguments and local vars.
+
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (popup_get_selection): Only pop down dialogs
+	on C-g and Escape.
+	(popup_get_selection): Remove parameter down_on_keypress.
+	(create_and_show_popup_menu, create_and_show_dialog): Remove
+	parameter down_on_keypress to popup_get_selection.
+
+2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h: Change HAVE_CARBON to MAC_OS.
+	(struct glyph_string): Likewise.
+
+	* emacs.c (main) [MAC_OS8]: Call mac_term_init instead of
+	mac_initialize.
+
+	* fileio.c (Fnext_read_file_uses_dialog_p, Fread_file_name):
+	Change TARGET_API_MAC_CARBON to HAVE_CARBON.
+
+	* fns.c (vector): Change MAC_OSX to MAC_OS.
+
+	* frame.c (x_set_frame_parameters, x_report_frame_params)
+	(x_set_fullscreen): Remove #ifndef HAVE_CARBON.
+	(x_set_border_width, Vdefault_frame_scroll_bars): Change
+	HAVE_CARBON to MAC_OS.
+
+	* image.c [MAC_OS]: Include sys/stat.h.
+	[MAC_OS && !MAC_OSX]: Include sys/param.h, ImageCompression.h, and
+	QuickTimeComponents.h.
+
+	* mac.c [!MAC_OSX] (mac_wait_next_event): Add extern.
+	[!MAC_OSX] (select): Use mac_wait_next_event.
+	[!MAC_OSX] (run_mac_command): Change EXEC_SUFFIXES to
+	Vexec_suffixes.
+	[!MAC_OSX] (select, run_mac_command): Change `#ifdef
+	TARGET_API_MAC_CARBON' to `#if TARGET_API_MAC_CARBON'.
+	(mac_clear_font_name_table): Add extern.
+	(Fmac_clear_font_name_table): New defun.
+	(syms_of_mac): Defsubr it.
+	[MAC_OSX] (SELECT_POLLING_PERIOD_USEC): New define.
+	[MAC_OSX] (select_and_poll_event): New function.
+	[MAC_OSX] (sys_select): Use it.
+	[MAC_OSX && SELECT_USE_CFSOCKET] (socket_callback): New function.
+	[MAC_OSX && SELECT_USE_CFSOCKET]
+	(SELECT_TIMEOUT_THRESHOLD_RUNLOOP, EVENT_CLASS_SOCK): New defines.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Use CFSocket and
+	RunLoop for simultaneously monitoring two kinds of inputs, window
+	events and process outputs, without periodically polling.
+
+	* macfns.c (mac_initialized): Remove extern.
+	(stricmp): Put in #if 0.  All callers changed to use xstricmp in
+	xfaces.c.
+	(strnicmp): Decrement `n' at the end of each loop, not the
+	beginning.
+	(check_mac): Use the term "Mac native windows" instead of "Mac
+	OS".
+	(check_x_display_info, x_display_info_for_name): Sync with xfns.c.
+	(mac_get_rdb_resource): New function (from w32reg.c).
+	(x_get_string_resource): Use it.
+	(install_window_handler): Add extern.
+	(mac_window): New function.
+	(Fx_create_frame): Use it instead of make_mac_frame.  Set
+	parameter for Qfullscreen.  Call x_wm_set_size_hint.
+	(Fx_open_connection, Fx_close_connection): New defuns.
+	(syms_of_macfns): Defsubr them.
+	(x_create_tip_frame) [TARGET_API_MAC_CARBON]: Add
+	kWindowNoUpdatesAttribute to the window attribute.
+	(x_create_tip_frame) [!TARGET_API_MAC_CARBON]: Use NewCWindow.
+	(x_create_tip_frame): Don't call ShowWindow.
+	(Fx_show_tip): Call ShowWindow.
+	(Fx_file_dialog): Change `#ifdef TARGET_API_MAC_CARBON' to `#if
+	TARGET_API_MAC_CARBON'.
+	(mac_frame_parm_handlers): Set handlers for Qfullscreen.
+	(syms_of_macfns) [MAC_OSX]: Initialize mac_in_use to 0.
+
+	* macgui.h [!MAC_OSX]: Don't include Controls.h.  Include
+	Windows.h.
+	(Window): Typedef to WindowPtr and move outside `#if
+	TARGET_API_MAC_CARBON'.
+	(XSizeHints): New struct.
+
+	* macterm.c (x_update_begin, x_update_end)
+	[TARGET_API_MAC_CARBON]: Disable screen updates during update of a
+	frame.
+	(x_draw_glyph_string_background, x_draw_glyph_string_foreground)
+	[MAC_OS8]: Use XDrawImageString/XDrawImageString16.
+	(construct_mouse_click): Put in #if 0.
+	(x_check_fullscreen, x_check_fullscreen_move): Remove decls.
+	(x_scroll_bar_create, x_scroll_bar_handle_click): Change `#ifdef
+	TARGET_API_MAC_CARBON' to `#if TARGET_API_MAC_CARBON'.
+	(activate_scroll_bars, deactivate_scroll_bars)
+	[!TARGET_API_MAC_CARBON]: Use ActivateControl/DeactivateControl.
+	(x_make_frame_visible) [TARGET_API_MAC_CARBON]: Reposition window
+	if the position is neither user-specified nor program-specified.
+	(x_free_frame_resources): Free size_hints.
+	(x_wm_set_size_hint): Allocate size_hints if needed.  Set
+	size_hints.
+	(mac_clear_font_name_table): New function.
+	(mac_do_list_fonts): Initialize font_name_table if needed.
+	(x_list_fonts): Don't initialize font_name_table.  Add BLOCK_INPUT
+	around mac_do_list_fonts.
+	(mac_unload_font): New function.
+	(x_load_font): Add BLOCK_INPUT around XLoadQueryFont.
+	(init_mac_drag_n_drop, mac_do_receive_drag): Enclose declarations
+	and definitions with #if TARGET_API_MAC_CARBON.
+	[USE_CARBON_EVENTS] (mac_handle_window_event): Add decl.
+	(install_window_handler): Add decl.
+	(do_window_update): Add BeginUpdate/EndUpdate for the tooltip
+	window.  Use UpdateControls.  Get the rectangle that should be
+	updated and restrict the target of expose_frame to it.
+	(do_grow_window): Set minimum height/width according to
+	size_hints.
+	(do_grow_window) [TARGET_API_MAC_CARBON]: Use ResizeWindow.
+	(do_zoom_window): Don't use x_set_window_size.
+	[USE_CARBON_EVENTS] (mac_handle_window_event): New function.
+	(install_window_handler): New function.
+	[!USE_CARBON_EVENTS] (mouse_region): New variable.
+	[!USE_CARBON_EVENTS] (mac_wait_next_event): New function.
+	(XTread_socket) [USE_CARBON_EVENTS]: Move call to
+	GetEventDispatcherTarget inside BLOCK_INPUT.
+	(XTread_socket) [!USE_CARBON_EVENTS]: Use mac_wait_next_event.
+	Update mouse_region when mouse is moved.
+	(make_mac_frame): Remove.
+	(make_mac_terminal_frame): Put in #ifdef MAC_OS8.  Initialize
+	mouse pointer shapes.  Change values of f->left_pos and
+	f->top_pos.  Don't use make_mac_frame.  Use NewCWindow.  Don't
+	call ShowWindow.
+	(mac_initialize_display_info) [MAC_OSX]: Create mac_id_name from
+	Vinvocation_name and Vsystem_name.
+	(mac_make_rdb): New function (from w32term.c).
+	(mac_term_init): Use it.  Add BLOCK_INPUT.  Error if display has
+	already been opened.  Don't pass argument to
+	mac_initialize_display_info.  Don't set dpyinfo->height/width.
+	Add entries to x_display_list and x_display_name_list.
+	(x_delete_display): New function.
+	(mac_initialize): Don't call mac_initialize_display_info.
+	(syms_of_macterm) [!MAC_OSX]: Don't call Fprovide.
+
+	* macterm.h (check_mac): Add extern.
+	(struct mac_output): New member size_hints.
+	(FRAME_SIZE_HINTS): New macro.
+	(mac_unload_font): Add extern.
+
+	* xdisp.c (expose_window, expose_frame): Remove kludges for Mac.
+
+	* xfaces.c (clear_font_table) [MAC_OS]: call mac_unload_font.
+
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fbuffer_disable_undo): Deleted (moved to simple.el).
+	(syms_of_buffer): Don't defsubr it.
+
+	* process.c (list_processes_1): Set undo_list instead
+	of calling Fbuffer_disable_undo.
+
+	* xdisp.c (single_display_spec_string_p): Renamed from
+	single_display_prop_string_p.
+	(single_display_spec_intangible_p): Renamed from
+	single_display_prop_intangible_p.
+	(handle_single_display_spec): Renamed from handle_single_display_prop.
+	Rewritten to be easier to understand.
+
+	Change in load-history format.  Functions now get (defun . NAME),
+	and variables get just NAME.
+
+	* data.c (Fdefalias): Use (defun . FN_NAME) in LOADHIST_ATTACH.
+
+	* eval.c (Fdefun, Fdefmacro): Use (defun . FN_NAME) in LOADHIST_ATTACH.
+	(Fdefvaralias, Fdefvar, Fdefconst): Use just SYM in LOADHIST_ATTACH.
+	(Qdefvar): Var deleted.
+	(syms_of_eval): Don't initialze it.
+
+	* lread.c (syms_of_lread) <load-history>: Doc fix.
+
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (popup_get_selection): Pop down on C-g.
+	(set_frame_menubar): Install translations for Lucid/Motif/Lesstif that
+	pops down menu on C-g.
+	(xdialog_show): If dialog popped down and no button in the dialog was
+	pushed, call Fsignal to quit.
+	(xmenu_show): In no toolkit version, if menu returns NO_SELECT call
+	Fsignal to quit.
+
+	* xfns.c (Fx_file_dialog): Motif/Lesstif version:  Pop down on C-g.
+
+	* gtkutil.c (xg_initialize): Install bindings for C-g so that
+	dialogs and menus pop down.
+
+2004-12-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Make the value of
+	tool-bar-button-margin control margins of images in tool bar.
+
+	* alloc.c (check_depth): New variable.
+	(overrun_check_malloc, overrun_check_realloc): Only add
+	overhead and write check pattern if check_depth is 1 (to handle
+	recursive calls).  Increase/decrease check_depth in entry/exit.
+	(overrun_check_free): Only check for overhead if check_depth is 1.
+	Increase/decrease check_depth in entry/exit.
+
+2004-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (input_available_signal): Call SIGNAL_THREAD_CHECK
+	before touching input_available_clear_time, to avoid accessing it
+	from multiple threads.
+
+2004-12-23  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (__WIN32__) [HAVE_NTGUI]: Define for correct behaviour
+	of JPEG library.
+
+2004-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (main): If batch mode, set Vundo_outer_limit to nil.
+
+	* lisp.h (Vundo_outer_limit): Fix decl.
+
+	* undo.c (Vundo_outer_limit): Replaces undo_outer_limit.
+	Uses changed.
+	(syms_of_undo): Initialize appropriately.
+	(truncate_undo_list): If it's nil, there's no limit.
+
+2004-12-22  Kenichi Handa  <handa@m17n.org>
+
+	* xselect.c (Fx_get_cut_buffer_internal): Return a unibyte string.
+
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (unwind_to_catch): Clear immediate_quit.
+
+	* xdisp.c (get_next_display_element): Display codes 8a0 and 8ad
+	specially as `\ ' and `\-'.
+
+	* keyboard.c (kbd_buffer_store_event_hold):
+	In the code for while-no-input, handle immediate_quit.
+
+	* alloc.c (Fgarbage_collect): Update call to truncate_undo_list.
+	Call that at the very start.
+	(undo_limit, undo_strong_limit, undo_outer_limit): Moved to undo.c.
+	(syms_of_alloc): Don't define undo-limit,
+	undo-strong-limit and undo-outer-limit here.
+
+	* undo.c (truncate_undo_list): Return void.
+	Take just one argument, the buffer.
+	Make it current, and inhibit recursive GC.
+	Access and update the undo list directly; return void.
+	Refer to the undo...limit variables directly.
+	Test undo_outer_limit only after counting the whole current command.
+	When it's exceeded, call the function in undo-outer-limit-function.
+	(undo_limit, undo_strong_limit, undo_outer_limit): From alloc.c.
+	(Vundo_outer_limit_function): New variable.
+	(syms_of_undo): Define undo-limit, undo-strong-limit
+	and undo-outer-limit here, and undo-outer-limit-function.
+	Doc fixes.
+
+	* lisp.h (truncate_undo_list): Update decl.
+
+2004-12-21  Piet van Oostrum  <piet@cs.uu.nl>
+
+	* fileio.c (Fread_file_name): Delete duplicates in
+	file-name-history when history_delete_duplicates is true.
+
+2004-12-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_do_list_fonts): Fix memory leak
+
+2004-12-20  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (re_match_2_internal) <symend, wordend>:
+	Fix calls to UPDATE_SYNTAX_TABLE_FORWARD.
+
+2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (endif, x_font_name_to_mac_font_name): Use
+	maccentraleurroman instead of maccentraleuropean
+	(mac_c_string_match, mac_do_list_fonts): Speed up font search by
+	quickly finding a specific font without needing regexps.
+
+2004-12-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* syssignal.h: Declare main_thread.
+	(SIGNAL_THREAD_CHECK): New macro.
+
+	* keyboard.c (input_available_signal): Move thread checking code
+	to macro SIGNAL_THREAD_CHECK and call that macro.
+	(interrupt_signal): Call SIGNAL_THREAD_CHECK.
+
+	* alloc.c (uninterrupt_malloc): Move main_thread to emacs.c.
+
+	* emacs.c: Define main_thread.
+	(main): Initialize main_thread.
+	(handle_USR1_signal, handle_USR2_signal, fatal_error_signal)
+	(memory_warning_signal): Call SIGNAL_THREAD_CHECK.
+
+	* floatfns.c (float_error): Call SIGNAL_THREAD_CHECK.
+
+	* dispnew.c (window_change_signal): Call SIGNAL_THREAD_CHECK.
+
+	* sysdep.c (select_alarm): Call SIGNAL_THREAD_CHECK.
+
+	* process.c (send_process_trap, sigchld_handler): Call
+	SIGNAL_THREAD_CHECK.
+
+	* data.c (arith_error): Call SIGNAL_THREAD_CHECK.
+
+	* atimer.c (alarm_signal_handler): Call SIGNAL_THREAD_CHECK.
+
+	* xterm.c (xg_scroll_callback): Update XG_LAST_SB_DATA before
+	returning when xg_ignore_gtk_scrollbar is true.
+
+2004-12-14  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (read_char): Save and restore echo_string when
+	handling input method.
+
+2004-12-13  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (syms_of_eval) <quit-flag>: Doc fix.
+
+	* keyboard.c (Vthrow_on_input): New variable.
+	(syms_of_keyboard): Defvar and initialize it.
+	(kbd_buffer_store_event_hold): Handle Vthrow_on_input.
+
+	* lisp.h (QUIT): Check for Vthrow_on_input.
+	(Vthrow_on_input): Declare it.
+
+2004-12-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_iterator_to_next): Reset stop_charpos after display
+	vector.
+
+2004-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (Fvertical_motion): Call move_it_by_lines even if LINES = 0.
+
+	* minibuf.c (Fall_completions): Add var `zero' and use it in loop.
+	(Ftry_completion): Really use outer `zero'; eliminate inner one.
+
+2004-12-12  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (encode_terminal_code): Fix previous change.
+
+2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (handle_async_input): Remove pthread mutex handling.
+	(input_available_signal): Move pthread thingy to !SYNC_INPUT branch.
+
+	* syntax.c (Fforward_word): Avoid non-idempotent side-effects
+	in macro arguments.
+
+	* minibuf.c (Ftry_completion, Fall_completions): Don't use
+	XFASTINT blindly.
+
+	* emacs.c (main, Fdump_emacs): Don't touch malloc hooks if SYNC_INPUT.
+
+2004-12-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* w32term.c (x_calc_absolute_position): Remove calculation of
+	difference between inner and outer window.  Don't subtract difference
+	for left and top calculations.
+
+	* xterm.c (x_calc_absolute_position): Don't subtract outer_pixel_diff
+	for left and top calculations.  Remove call to x_real_positions.
+	[Bug report by Drew Adams in November]
+	(x_check_expected_move): Do not set change_gravity to 1 when calling
+	x_set_offset.
+
 2004-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): Use `escape-glyph' for
@@ -17,8 +483,8 @@
 	* emacs.c (Fdump_emacs): Add ! defined (SYSTEM_MALLOC) around
 	reset_malloc_hooks.
 
-	* keyboard.c (handle_async_input, input_available_signal): Add
-	! defined (SYSTEM_MALLOC) around thread code.
+	* keyboard.c (handle_async_input, input_available_signal):
+	Add ! defined (SYSTEM_MALLOC) around thread code.
 
 	* alloc.c: Add comment about the reason for (UN)BLOCK_INPUT_ALLOC.
 
@@ -56,12 +522,11 @@
 	* emacs.c (Fdump_emacs): Call reset_malloc_hooks.
 
 	* keyboard.c: Conditionally include pthread.h
-	(handle_async_inpu, input_available_signalt): If not in the main
+	(handle_async_input, input_available_signalt): If not in the main
 	thread, block signal, send signal to main thread and return.
 
 	* gtkutil.c (xg_get_file_with_chooser): Handle local files only.
-	Set current folder in file chooser if default_filename is a
-	directory.
+	Set current folder in file chooser if default_filename is a directory.
 
 2004-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -92,6 +557,7 @@
 	* eval.c (Fcalled_interactively_p): Don't check INTERACTIVE.
 	(interactive_p): Skip Scalled_interactively_p frames
 	like Sinteractive_p frames.
+	(unwind_to_catch): Clear handling_signal.
 
 	* data.c (Fmake_variable_buffer_local): Doc fix.
 	(Fmake_local_variable): Doc fix.

@@ -575,6 +575,7 @@ down (this *won't* always work)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
+;;;###autoload
 (defun browse-url-url-at-point ()
   (let ((url (thing-at-point 'url)))
     (set-text-properties 0 (length url) nil url)

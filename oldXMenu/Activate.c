@@ -81,6 +81,7 @@
 
 #include <config.h>
 #include "XMenuInt.h"
+#include <X11/keysym.h>
 
 /* For debug, set this to 0 to not grab the keyboard on menu popup */
 int x_menu_grab_keyboard = 1;
@@ -131,6 +132,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
     Window root, child;
     int root_x, root_y, win_x, win_y;
     unsigned int mask;
+    KeySym keysym;
 
     /*
      * Define and allocate a foreign event queue to hold events
@@ -458,6 +460,18 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 		}
 		selection = True;
 		break;
+        case KeyPress:
+        case KeyRelease:
+                keysym = XLookupKeysym (&event.xkey, 0);
+
+                /* Pop down on C-g and Escape.  */
+                if ((keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+                    || keysym == XK_Escape) /* Any escape, ignore modifiers.  */
+                  {
+                    ret_val = XM_NO_SELECT;
+                    selection = True;
+                  }
+               break;
 	    default:
 		/*
 		 * If AEQ mode is enabled then queue the event.

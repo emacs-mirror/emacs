@@ -4283,8 +4283,6 @@ xg_scroll_callback (widget, data)
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (widget));
 
-  if (xg_ignore_gtk_scrollbar) return;
-
   position = gtk_adjustment_get_value (adj);
 
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
@@ -4297,6 +4295,8 @@ xg_scroll_callback (widget, data)
 
   previous = *p;
   *p = position;
+
+  if (xg_ignore_gtk_scrollbar) return;
 
   diff = (int) (position - previous);
 
@@ -4329,7 +4329,7 @@ xg_scroll_callback (widget, data)
     }
 
   if (part >= 0)
-    {
+    { 
       window_being_scrolled = bar->window;
       last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);
@@ -6000,6 +6000,14 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         {
           x_check_fullscreen (f);
 
+#ifdef USE_GTK
+          /* This seems to be needed for GTK 2.6.  */
+          x_clear_area (event.xexpose.display,
+                        event.xexpose.window,
+                        event.xexpose.x, event.xexpose.y,
+                        event.xexpose.width, event.xexpose.height,
+                        FALSE);
+#endif
           if (f->async_visible == 0)
             {
               f->async_visible = 1;
@@ -7838,7 +7846,8 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
-  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);
@@ -8147,20 +8156,11 @@ x_calc_absolute_position (f)
   if (! ((flags & XNegative) || (flags & YNegative)))
     return;
 
-  /* Find the offsets of the outside upper-left corner of
-     the inner window, with respect to the outer window.
-     But do this only if we will need the results.  */
-  if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-    /* This is to get *_pixels_outer_diff.  */
-    x_real_positions (f, &win_x, &win_y);
-
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
     f->left_pos = (FRAME_X_DISPLAY_INFO (f)->width
-                   - 2 * FRAME_X_OUTPUT (f)->x_pixels_outer_diff
-		   - FRAME_PIXEL_WIDTH (f)
-		   + f->left_pos);
+                   - FRAME_PIXEL_WIDTH (f) + f->left_pos);
 
   {
     int height = FRAME_PIXEL_HEIGHT (f);
@@ -8182,15 +8182,7 @@ x_calc_absolute_position (f)
 #endif
 
   if (flags & YNegative)
-    f->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
-                  - FRAME_X_OUTPUT (f)->y_pixels_outer_diff
-
-                  /* Assume the window manager decorations are the same size on
-                     three sides, i.e. left, right and bottom.  This is to
-                     compensate for the bottom part.  */
-                  - FRAME_X_OUTPUT (f)->x_pixels_outer_diff
-		  - height
-		  + f->top_pos);
+    f->top_pos = (FRAME_X_DISPLAY_INFO (f)->height - height + f->top_pos);
   }
 
   /* The left_pos and top_pos
@@ -8306,7 +8298,9 @@ x_check_expected_move (f)
         FRAME_X_OUTPUT (f)->move_offset_left = expect_left - f->left_pos;
         FRAME_X_OUTPUT (f)->move_offset_top = expect_top - f->top_pos;
 
-        x_set_offset (f, expect_left, expect_top, 1);
+        f->left_pos = expect_left;
+        f->top_pos = expect_top;
+        x_set_offset (f, expect_left, expect_top, 0);
       }
     else if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
       FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_B;
@@ -9797,6 +9791,43 @@ x_load_font (f, fontname, size)
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
+    if (font->min_bounds.width == font->max_bounds.width)
+      {
+	/* Fixed width font.  */
+	fontp->average_width = fontp->space_width = font->min_bounds.width;
+      }
+    else
+      {
+	XChar2b char2b;
+	XCharStruct *pcm;
+
+	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
+	pcm = x_per_char_metric (font, &char2b, 0);
+	if (pcm)
+	  fontp->space_width = pcm->width;
+	else
+	  fontp->space_width = FONT_WIDTH (font);
+
+	fontp->average_width
+	  = (XGetFontProperty (font, dpyinfo->Xatom_AVERAGE_WIDTH, &value)
+	     ? (long) value / 10 : 0);
+	if (fontp->average_width < 0)
+	  fontp->average_width = - fontp->average_width;
+	if (fontp->average_width == 0)
+	  {
+	    if (pcm)
+	      {
+		int width = pcm->width;
+		for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+		  if ((pcm = x_per_char_metric (font, &char2b, 0)) != NULL)
+		    width += pcm->width;
+		fontp->average_width = width / 95;
+	      }
+	    else
+	      fontp->average_width = FONT_WIDTH (font);
+	  }
+      }
+
     /* Try to get the full name of FONT.  Put it in FULL_NAME.  */
     full_name = 0;
     if (XGetFontProperty (font, XA_FONT, &value))
@@ -10424,6 +10455,8 @@ x_term_init (display_name, xrm_option, resource_name)
   /* For properties of font.  */
   dpyinfo->Xatom_PIXEL_SIZE
     = XInternAtom (dpyinfo->display, "PIXEL_SIZE", False);
+  dpyinfo->Xatom_AVERAGE_WIDTH
+    = XInternAtom (dpyinfo->display, "AVERAGE_WIDTH", False);
   dpyinfo->Xatom_MULE_BASELINE_OFFSET
     = XInternAtom (dpyinfo->display, "_MULE_BASELINE_OFFSET", False);
   dpyinfo->Xatom_MULE_RELATIVE_COMPOSE

@@ -1167,12 +1167,9 @@ commands given here will actually operate on the *Calculator* stack."
       (exit-recursive-edit)
     (if (eq major-mode 'calc-edit-mode)
 	(calc-edit-finish arg)
-      (if (eq major-mode 'MacEdit-mode)
-	  (MacEdit-finish-edit)
-	(if calc-was-keypad-mode
-	    (calc-keypad)
-	  (calc arg calc-full-mode t))))))
-
+      (if calc-was-keypad-mode
+          (calc-keypad)
+        (calc arg calc-full-mode t)))))
 
 (defun calc-quit (&optional non-fatal interactive)
   (interactive "i\np")
@@ -1183,33 +1180,31 @@ commands given here will actually operate on the *Calculator* stack."
       (exit-recursive-edit))
   (if (eq major-mode 'calc-edit-mode)
       (calc-edit-cancel)
-    (if (eq major-mode 'MacEdit-mode)
-	(MacEdit-cancel-edit)
-      (if (and interactive
-	       calc-embedded-info
-	       (eq (current-buffer) (aref calc-embedded-info 0)))
-	  (calc-embedded nil)
-	(unless (eq major-mode 'calc-mode)
-	  (calc-create-buffer))
-	(run-hooks 'calc-end-hook)
-	(setq calc-undo-list nil calc-redo-list nil)
-	(mapcar (function (lambda (v) (set-default v (symbol-value v))))
-		calc-local-var-list)
-	(let ((buf (current-buffer))
-	      (win (get-buffer-window (current-buffer)))
-	      (kbuf (get-buffer "*Calc Keypad*")))
-	  (delete-windows-on (calc-trail-buffer))
-	  (if (and win
-		   (< (window-height win) (1- (frame-height)))
-		   (= (window-width win) (frame-width))  ; avoid calc-keypad
-		   (not (get-buffer-window "*Calc Keypad*")))
-	      (setq calc-window-height (- (window-height win) 2)))
-	  (progn
-	    (delete-windows-on buf)
-	    (delete-windows-on kbuf))
-	  (bury-buffer buf)
-	  (bury-buffer calc-trail-buffer)
-	  (and kbuf (bury-buffer kbuf)))))))
+    (if (and interactive
+             calc-embedded-info
+             (eq (current-buffer) (aref calc-embedded-info 0)))
+        (calc-embedded nil)
+      (unless (eq major-mode 'calc-mode)
+        (calc-create-buffer))
+      (run-hooks 'calc-end-hook)
+      (setq calc-undo-list nil calc-redo-list nil)
+      (mapcar (function (lambda (v) (set-default v (symbol-value v))))
+              calc-local-var-list)
+      (let ((buf (current-buffer))
+            (win (get-buffer-window (current-buffer)))
+            (kbuf (get-buffer "*Calc Keypad*")))
+        (delete-windows-on (calc-trail-buffer))
+        (if (and win
+                 (< (window-height win) (1- (frame-height)))
+                 (= (window-width win) (frame-width))  ; avoid calc-keypad
+                 (not (get-buffer-window "*Calc Keypad*")))
+            (setq calc-window-height (- (window-height win) 2)))
+        (progn
+          (delete-windows-on buf)
+          (delete-windows-on kbuf))
+        (bury-buffer buf)
+        (bury-buffer calc-trail-buffer)
+        (and kbuf (bury-buffer kbuf))))))
 
 ;;;###autoload
 (defun quick-calc ()

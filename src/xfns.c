@@ -5243,6 +5243,16 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
       XEvent event;
       x_menu_wait_for_event (0);
       XtAppNextEvent (Xt_app_con, &event);
+      if (event.type == KeyPress
+          && FRAME_X_DISPLAY (f) == event.xkey.display)
+        {
+          KeySym keysym = XLookupKeysym (&event.xkey, 0);
+
+          /* Pop down on C-g.  */
+          if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+            XtUnmanageChild (dialog);
+        }
+  
       (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f));
     }
 

@@ -1285,7 +1285,7 @@ COMMAND may result in an alias being executed, or a plain command."
 (defun eshell-find-alias-function (name)
   "Check whether a function called `eshell/NAME' exists."
   (let* ((sym (intern-soft (concat "eshell/" name)))
-	 (file (symbol-file sym)))
+	 (file (symbol-file sym 'defun)))
     ;; If the function exists, but is defined in an eshell module
     ;; that's not currently enabled, don't report it as found
     (if (and file

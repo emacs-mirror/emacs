@@ -399,10 +399,6 @@ problems."
       (type-break-keystroke-reset)
       (type-break-mode-line-countdown-or-break nil)
 
-      (if (boundp 'save-some-buffers-always)
-          (add-to-list 'save-some-buffers-always
-                       (expand-file-name type-break-file-name)))
-
       (setq type-break-time-last-break (type-break-get-previous-time))
 
       ;; schedule according to break time from session file
@@ -437,13 +433,10 @@ problems."
       (do-auto-save)
       (with-current-buffer (find-file-noselect type-break-file-name
                                                'nowarn)
-        (set-buffer-modified-p nil)
+	(setq buffer-save-without-query t)
+	(set-buffer-modified-p nil)
         (unlock-buffer)
         (kill-this-buffer))
-      (if (boundp 'save-some-buffers-always)
-          (setq save-some-buffers-always
-                (remove (expand-file-name type-break-file-name)
-                        save-some-buffers-always)))
       (and (interactive-p)
            (message "Type Break mode is disabled")))))
   type-break-mode)
@@ -515,16 +508,18 @@ variable of the same name."
 (defun type-break-file-keystroke-count ()
   "File keystroke count in `type-break-file-name', unless the file is locked."
   (if (not (stringp (file-locked-p type-break-file-name)))
-      (with-current-buffer (find-file-noselect type-break-file-name
-                                               'nowarn)
-        (save-excursion
-          (let ((inhibit-read-only t))
-            (goto-char (point-min))
-            (forward-line)
-            (delete-region (point) (save-excursion (end-of-line) (point)))
-            (insert (format "%s" type-break-keystroke-count))
-            ;; file saving is left to auto-save
-            )))))
+      ;; Prevent deactivation of the mark in some other buffer.
+      (let (deactivate-mark)
+	(with-current-buffer (find-file-noselect type-break-file-name
+						 'nowarn)
+	  (save-excursion
+	    (let ((inhibit-read-only t))
+	      (goto-char (point-min))
+	      (forward-line)
+	      (delete-region (point) (save-excursion (end-of-line) (point)))
+	      (insert (format "%s" type-break-keystroke-count))
+	      ;; file saving is left to auto-save
+	      ))))))
 
 (defun timep (time)
   "If TIME is in the format returned by `current-time' then

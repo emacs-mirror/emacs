@@ -88,7 +88,6 @@ The list will be on the form
 			 (point) (progn (forward-sexp 1) (point))))))
 	      (error "Invalid header: %s" string))
 	    (setq c (char-after))
-	    (setq encoded nil)
 	    (when (eq c ?*)
 	      (forward-char 1)
 	      (setq c (char-after))
@@ -126,16 +125,22 @@ The list will be on the form
 			   (point) (progn (forward-sexp) (point)))))
 	     (t
 	      (error "Invalid header: %s" string)))
-	    (when encoded
-	      (setq value (rfc2231-decode-encoded-string value)))
 	    (if number
 		(setq prev-attribute attribute
 		      prev-value (concat prev-value value))
-	      (push (cons attribute value) parameters))))
+	      (push (cons attribute
+			  (if encoded
+			      (rfc2231-decode-encoded-string value)
+			    value))
+		    parameters))))
 
 	;; Take care of any final continuations.
 	(when prev-attribute
-	  (push (cons prev-attribute prev-value) parameters))
+	  (push (cons prev-attribute
+		      (if encoded
+			  (rfc2231-decode-encoded-string prev-value)
+			prev-value))
+		parameters))
 
 	(when type
 	  `(,type ,@(nreverse parameters)))))))

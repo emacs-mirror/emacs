@@ -1975,7 +1975,7 @@ SPC:   Accept word this time.
 	      (sit-for 5)
 	      (kill-buffer "*Ispell Help*"))
 	  (unwind-protect
-	      (progn
+	      (let ((resize-mini-windows 'grow-only))
 		(select-window (minibuffer-window))
 		(erase-buffer)
 		(message nil)

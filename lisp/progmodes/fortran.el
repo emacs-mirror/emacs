@@ -674,7 +674,7 @@ with no args, if that value is non-nil."
          (let (fortran-blink-matching-if ; avoid blinking delay
                indent-region-function)
            (indent-region start end nil))))
-  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   ;; The syntax tables don't understand the column-0 comment-markers.
   (set (make-local-variable 'comment-use-syntax) nil)
   (set (make-local-variable 'comment-padding) "$$$")

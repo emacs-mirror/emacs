@@ -2836,7 +2836,7 @@ Uses `rcs2log' which only works for RCS and CVS."
 		     (pop-to-buffer
 		      (set-buffer (get-buffer-create "*vc*")))
 		     (erase-buffer)
-		     (insert-file tempfile)
+		     (insert-file-contents tempfile)
 		     "failed"))
 	       (setq default-directory (file-name-directory changelog))
 	       (delete-file tempfile)))))

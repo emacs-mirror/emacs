@@ -1,6 +1,6 @@
 ;;; mm-bodies.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2003
+;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -139,7 +139,8 @@ If no encoding was done, nil is returned."
     (cond
      ((and (not longp)
 	   (not (and mm-use-ultra-safe-encoding
-		     (save-excursion (re-search-forward "^From " nil t))))
+		     (or (save-excursion (re-search-forward " $" nil t))
+			 (save-excursion (re-search-forward "^From " nil t)))))
 	   (eq bits '7bit))
       bits)
      ((and (not mm-use-ultra-safe-encoding)

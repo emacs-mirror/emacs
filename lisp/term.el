@@ -1402,7 +1402,7 @@ The main purpose is to get rid of the local keymap."
 :kl=\\EOD:kd=\\EOB:kr=\\EOC:ku=\\EOA:kN=\\E[6~:kP=\\E[5~:@7=\\E[4~:kh=\\E[1~\
 :mk=\\E[8m:cb=\\E[1K:op=\\E[39;49m:Co#8:pa#64:AB=\\E[4%%dm:AF=\\E[3%%dm:cr=^M\
 :bl=^G:do=^J:le=^H:ta=^I:se=\E[27m:ue=\E24m\
-:kb=^?:kD=^[[3~:sc=\E7:rc=\E8:"
+:kb=^?:kD=^[[3~:sc=\E7:rc=\E8:r1=\Ec:"
 ;;; : -undefine ic
 ;;; don't define :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
   "termcap capabilities supported")
@@ -2893,6 +2893,10 @@ See `term-prompt-regexp'."
 			      (term-goto (car term-saved-cursor)
 					 (cdr term-saved-cursor)))
 			  (setq term-terminal-state 0))
+			 ((eq char ?c) ;; \Ec - Reset (terminfo: rs1) 
+			  ;; This is used by the "clear" program.
+			  (setq term-terminal-state 0)
+			  (term-reset-terminal))
 			 ;; The \E#8 reset sequence for xterm. We
 			 ;; probably don't need to handle it, but this
 			 ;; is the code to parse it.
@@ -3020,13 +3024,29 @@ See `term-prompt-regexp'."
 	  (set-marker term-home-marker (point))
 	  (setq term-current-row (1- term-height))))))
 
+;;; Reset the terminal, delete all the content and set the face to the
+;;; default one. 
+(defun term-reset-terminal ()
+  (erase-buffer)
+  (setq term-current-row 1)
+  (setq term-current-column 1)
+  (setq term-insert-mode nil)
+  (setq term-current-face nil)
+  (setq term-ansi-current-underline 0)
+  (setq term-ansi-current-bold 0)
+  (setq term-ansi-current-reverse 0)
+  (setq term-ansi-current-color 0)
+  (setq term-ansi-current-invisible 0)
+  (setq term-ansi-face-already-done 1)
+  (setq term-ansi-current-bg-color 0))
+
 ;;; New function to deal with ansi colorized output, as you can see you can
 ;;; have any bold/underline/fg/bg/reverse combination. -mm
 
 (defun term-handle-colors-array (parameter)
   (cond
 
-;;; Bold
+;;; Bold  (terminfo: bold)
    ((eq parameter 1)
     (setq term-ansi-current-bold 1))
 

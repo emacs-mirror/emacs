@@ -123,71 +123,88 @@ to navigate in it.")
 
 (make-variable-buffer-local 'next-error-function)
 
-(defsubst next-error-buffer-p (buffer 
-			       &optional 
-			       extra-test-inclusive 
+(defsubst next-error-buffer-p (buffer
+			       &optional avoid-current
+			       extra-test-inclusive
 			       extra-test-exclusive)
   "Test if BUFFER is a next-error capable buffer.
-EXTRA-TEST-INCLUSIVE is called to allow extra buffers.
-EXTRA-TEST-INCLUSIVE is called to disallow buffers."
-  (with-current-buffer buffer
-    (or (and extra-test-inclusive (funcall extra-test-inclusive))
-	(and (if extra-test-exclusive (funcall extra-test-exclusive) t)
-	 next-error-function))))
 
-(defun next-error-find-buffer (&optional other-buffer 
-					 extra-test-inclusive 
+If AVOID-CURRENT is non-nil, treat the current buffer
+as an absolute last resort only.
+
+The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffer
+that normally would not qualify.  If it returns t, the buffer
+in question is treated as usable.
+
+The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
+that would normally be considered usable.  if it returns nil,
+that buffer is rejected."
+  (and (buffer-name buffer)		;First make sure it's live.
+       (not (and avoid-current (eq buffer (current-buffer))))
+       (with-current-buffer buffer
+	 (if next-error-function   ; This is the normal test.
+	     ;; Optionally reject some buffers.
+	     (if extra-test-exclusive
+		 (funcall extra-test-exclusive)
+	       t)
+	   ;; Optionally accept some other buffers.
+	   (and extra-test-inclusive
+		(funcall extra-test-inclusive))))))
+
+(defun next-error-find-buffer (&optional avoid-current
+					 extra-test-inclusive
 					 extra-test-exclusive)
   "Return a next-error capable buffer.
-OTHER-BUFFER will disallow the current buffer.
-EXTRA-TEST-INCLUSIVE is called to allow extra buffers.
-EXTRA-TEST-INCLUSIVE is called to disallow buffers."
+If AVOID-CURRENT is non-nil, treat the current buffer
+as an absolute last resort only.
+
+The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffers
+that normally would not qualify.  If it returns t, the buffer
+in question is treated as usable.
+
+The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
+that would normally be considered usable.  If it returns nil,
+that buffer is rejected."
   (or
    ;; 1. If one window on the selected frame displays such buffer, return it.
    (let ((window-buffers
           (delete-dups
            (delq nil (mapcar (lambda (w)
                                (if (next-error-buffer-p
-                                    (window-buffer w) 
-				    extra-test-inclusive extra-test-exclusive)
+				    (window-buffer w)
+                                    avoid-current
+                                    extra-test-inclusive extra-test-exclusive)
                                    (window-buffer w)))
                              (window-list))))))
-     (if other-buffer
-         (setq window-buffers (delq (current-buffer) window-buffers)))
      (if (eq (length window-buffers) 1)
          (car window-buffers)))
-   ;; 2. If next-error-last-buffer is set to a live buffer, use that.
+   ;; 2. If next-error-last-buffer is an acceptable buffer, use that.
    (if (and next-error-last-buffer
-            (buffer-name next-error-last-buffer)
-            (next-error-buffer-p next-error-last-buffer 
-				 extra-test-inclusive extra-test-exclusive)
-            (or (not other-buffer)
-                (not (eq next-error-last-buffer (current-buffer)))))
+            (next-error-buffer-p next-error-last-buffer avoid-current
+                                 extra-test-inclusive extra-test-exclusive))
        next-error-last-buffer)
-   ;; 3. If the current buffer is a next-error capable buffer, return it.
-   (if (and (not other-buffer)
-            (next-error-buffer-p (current-buffer) 
-				 extra-test-inclusive extra-test-exclusive))
+   ;; 3. If the current buffer is acceptable, choose it.
+   (if (next-error-buffer-p (current-buffer) avoid-current
+			    extra-test-inclusive extra-test-exclusive)
        (current-buffer))
-   ;; 4. Look for a next-error capable buffer in a buffer list.
+   ;; 4. Look for any acceptable buffer.
    (let ((buffers (buffer-list)))
      (while (and buffers
-                 (or (not (next-error-buffer-p 
-			   (car buffers) 
-			   extra-test-inclusive extra-test-exclusive))
-                     (and other-buffer (eq (car buffers) (current-buffer)))))
+                 (not (next-error-buffer-p
+		       (car buffers) avoid-current
+		       extra-test-inclusive extra-test-exclusive)))
        (setq buffers (cdr buffers)))
-     (if buffers
-         (car buffers)
-       (or (and other-buffer
-                (next-error-buffer-p (current-buffer) 
-				     extra-test-inclusive extra-test-exclusive)
-                ;; The current buffer is a next-error capable buffer.
-                (progn
-                  (if other-buffer
-                      (message "This is the only next-error capable buffer"))
-                  (current-buffer)))
-           (error "No next-error capable buffer found"))))))
+     (car buffers))
+   ;; 5. Use the current buffer as a last resort if it qualifies,
+   ;; even despite AVOID-CURRENT.
+   (and avoid-current
+	(next-error-buffer-p (current-buffer) nil
+			     extra-test-inclusive extra-test-exclusive)
+	(progn
+	  (message "This is the only next-error capable buffer")
+	  (current-buffer)))
+   ;; 6. Give up.
+   (error "No next-error capable buffer found")))
 
 (defun next-error (&optional arg reset)
   "Visit next next-error message and corresponding source code.
@@ -645,9 +662,6 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (skip-chars-forward " \t")
        (constrain-to-field nil orig-pos t)))))
 
-(defvar inhibit-mark-movement nil
-  "If non-nil, \\[beginning-of-buffer] and \\[end-of-buffer] does not set the mark.")
-
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
 With \\[universal-argument] prefix, do not set mark at previous position.
@@ -659,8 +673,9 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (unless (or inhibit-mark-movement (consp arg))
-    (push-mark))
+  (or (consp arg)
+      (and transient-mark-mode mark-active)
+      (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
 		   (+ (point-min)
@@ -683,8 +698,9 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (unless (or inhibit-mark-movement (consp arg))
-    (push-mark))
+  (or (consp arg)
+      (and transient-mark-mode mark-active)
+      (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
 		   (- (point-max)
@@ -1114,11 +1130,13 @@ makes the search case-sensitive."
 					nil
 					minibuffer-local-map
 					nil
-					'minibuffer-history-search-history)))
+					'minibuffer-history-search-history
+ 					(car minibuffer-history-search-history))))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
-	       (setcar minibuffer-history-search-history
-		       (nth 1 minibuffer-history-search-history))
+	       (if minibuffer-history-search-history
+		   (car minibuffer-history-search-history)
+		 (error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (previous-matching-history-element regexp (- n)))
@@ -1238,7 +1256,15 @@ as an argument limits undo to changes within the current region."
     ;; So set `this-command' to something other than `undo'.
     (setq this-command 'undo-start)
 
-    (unless (eq last-command 'undo)
+    (unless (and (eq last-command 'undo)
+		 ;; If something (a timer or filter?) changed the buffer
+		 ;; since the previous command, don't continue the undo seq.
+		 (let ((list buffer-undo-list))
+		   (while (eq (car list) nil)
+		     (setq list (cdr list)))
+		   ;; If the last undo record made was made by undo
+		   ;; it shows nothing else happened in between.
+		   (gethash list undo-equiv-table)))
       (setq undo-in-region
 	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
       (if undo-in-region
@@ -1290,9 +1316,17 @@ as an argument limits undo to changes within the current region."
 	      (setq tail (cdr tail)))
 	    (setq tail nil)))
 	(setq prev tail tail (cdr tail))))
-
+    ;; Record what the current undo list says,
+    ;; so the next command can tell if the buffer was modified in between.
     (and modified (not (buffer-modified-p))
 	 (delete-auto-save-file-if-necessary recent-save))))
+
+(defun buffer-disable-undo (&optional buffer)
+  "Make BUFFER stop keeping undo information.
+No argument or nil as argument means do this for the current buffer."
+  (interactive)
+  (with-current-buffer (if buffer (get-buffer buffer) (current-buffer))
+    (setq buffer-undo-list t)))
 
 (defun undo-only (&optional arg)
   "Undo some previous changes.
@@ -1485,6 +1519,34 @@ is not *inside* the region START...END."
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
+
+(defvar undo-extra-outer-limit nil
+  "If non-nil, an extra level of size that's ok in an undo item.
+We don't ask the user about truncating the undo list until the
+current item gets bigger than this amount.")
+(make-variable-buffer-local 'undo-extra-outer-limit)
+
+;; When the first undo batch in an undo list is longer than undo-outer-limit,
+;; this function gets called to ask the user what to do.
+;; Garbage collection is inhibited around the call,
+;; so it had better not do a lot of consing.
+(setq undo-outer-limit-function 'undo-outer-limit-truncate)
+(defun undo-outer-limit-truncate (size)
+  (when (or (null undo-extra-outer-limit)
+	    (> size undo-extra-outer-limit))
+    ;; Don't ask the question again unless it gets even bigger.
+    ;; This applies, in particular, if the user quits from the question.
+    ;; Such a quit quits out of GC, but something else will call GC
+    ;; again momentarily.  It will call this function again,
+    ;; but we don't want to ask the question again.
+    (setq undo-extra-outer-limit (+ size 50000))
+    (if (let (use-dialog-box)
+	  (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+			       (buffer-name) size)))
+	(progn (setq buffer-undo-list nil)
+	       (setq undo-extra-outer-limit nil)
+	       t)
+      nil)))
 
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
@@ -2987,11 +3049,11 @@ You can also deactivate the mark by typing \\[keyboard-quit] or
 Many commands change their behavior when Transient Mark mode is in effect
 and the mark is active, by acting on the region instead of their usual
 default part of the buffer's text.  Examples of such commands include
-\\[comment-dwim], \\[flush-lines], \\[ispell], \\[keep-lines],
-\\[query-replace], \\[query-replace-regexp], and \\[undo].  Invoke
-\\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
-the prompt, to see the documentation of commands which are sensitive to
-the Transient Mark mode."
+\\[comment-dwim], \\[flush-lines], \\[keep-lines], \
+\\[query-replace], \\[query-replace-regexp], \\[ispell], and \\[undo].
+Invoke \\[apropos-documentation] and type \"transient\" or
+\"mark.*active\" at the prompt, to see the documentation of
+commands which are sensitive to the Transient Mark mode."
   :global t :group 'editing-basics :require nil)
 
 (defun pop-global-mark ()
@@ -3242,7 +3304,7 @@ Outline mode sets this."
 	    (if (if forward
 		    ;; If going forward, don't accept the previous
 		    ;; allowable position if it is before the target line.
-		    (< line-beg (point)) 
+		    (< line-beg (point))
 		  ;; If going backward, don't accept the previous
 		  ;; allowable position if it is still after the target line.
 		  (<= (point) line-end))
@@ -3523,12 +3585,19 @@ With argument, do this that many times."
   (interactive "p")
   (forward-word (- (or arg 1))))
 
-(defun mark-word (arg)
-  "Set mark arg words away from point.
-If this command is repeated, it marks the next ARG words after the ones
-already marked."
-  (interactive "p")
-  (cond ((and (eq last-command this-command) (mark t))
+(defun mark-word (&optional arg allow-extend)
+  "Set mark ARG words away from point.
+The place mark goes is the same place \\[forward-word] would
+move to with the same argument.
+Interactively, if this command is repeated
+or (in Transient Mark mode) if the mark is active, 
+it marks the next ARG words after the ones already marked."
+  (interactive "P\np")
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (and transient-mark-mode mark-active)))
+	 (setq arg (if arg (prefix-numeric-value arg)
+		     (if (< (mark) (point)) -1 1)))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))
@@ -3537,7 +3606,7 @@ already marked."
 	(t
 	 (push-mark
 	  (save-excursion
-	    (forward-word arg)
+	    (forward-word (prefix-numeric-value arg))
 	    (point))
 	  nil t))))
 
@@ -4021,8 +4090,7 @@ or go back to just one window (by deleting all but the selected window)."
 	 (abort-recursive-edit))
 	(current-prefix-arg
 	 nil)
-	((and transient-mark-mode
-	      mark-active)
+	((and transient-mark-mode mark-active)
 	 (deactivate-mark))
 	((> (recursion-depth) 0)
 	 (exit-recursive-edit))

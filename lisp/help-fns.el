@@ -365,7 +365,7 @@ face (according to `face-differs-from-default-p')."
 	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
 	      (help-xref-button 1 'help-function def)))))
     (or file-name
-	(setq file-name (symbol-file function)))
+	(setq file-name (symbol-file function 'defun)))
     (when (equal file-name "loaddefs.el")
       ;; Find the real def site of the preloaded function.
       ;; This is necessary only for defaliases.
@@ -504,8 +504,13 @@ Return 0 if there is no such symbol."
 		(and (symbolp obj) (boundp obj) obj))))
 	(error nil))
       (let* ((str (find-tag-default))
-	     (obj (if str (intern str))))
-	(and (symbolp obj) (boundp obj) obj))
+	     (sym (if str (intern-soft str))))
+	(if (and sym (boundp sym))
+	    sym
+	  (save-match-data
+	    (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
+	      (setq sym (intern-soft (match-string 1 str)))
+	      (and (boundp sym) sym)))))
       0))
 
 ;;;###autoload
@@ -590,6 +595,7 @@ it is displayed along with the global value."
 		  (insert " value is shown ")
 		  (insert-button "below"
 				 'action help-button-cache
+				 'follow-link t
 				 'help-echo "mouse-2, RET: show value")
 		  (insert ".\n\n")))
 	      ;; Add a note for variables that have been make-var-buffer-local.
@@ -634,7 +640,7 @@ it is displayed along with the global value."
 	    ;; Make a hyperlink to the library if appropriate.  (Don't
 	    ;; change the format of the buffer's initial line in case
 	    ;; anything expects the current format.)
-	    (let ((file-name (symbol-file (cons 'defvar variable))))
+	    (let ((file-name (symbol-file variable 'defvar)))
 	      (when (equal file-name "loaddefs.el")
 		;; Find the real def site of the preloaded variable.
 		(let ((location

@@ -3356,12 +3356,37 @@ update_frame_tool_bar (f)
   GList *icon_list;
   GList *iter;
   struct x_output *x = f->output_data.x;
+  int hmargin, vmargin;
 
   if (! FRAME_GTK_WIDGET (f))
     return;
 
   BLOCK_INPUT;
 
+  if (INTEGERP (Vtool_bar_button_margin)
+      && XINT (Vtool_bar_button_margin) > 0)
+    {
+      hmargin = XFASTINT (Vtool_bar_button_margin);
+      vmargin = XFASTINT (Vtool_bar_button_margin);
+    }
+  else if (CONSP (Vtool_bar_button_margin))
+    {
+      if (INTEGERP (XCAR (Vtool_bar_button_margin))
+          && XINT (XCAR (Vtool_bar_button_margin)) > 0)
+        hmargin = XFASTINT (XCAR (Vtool_bar_button_margin));
+
+      if (INTEGERP (XCDR (Vtool_bar_button_margin))
+          && XINT (XCDR (Vtool_bar_button_margin)) > 0)
+        vmargin = XFASTINT (XCDR (Vtool_bar_button_margin));
+    }
+
+  /* The natural size (i.e. when GTK uses 0 as margin) looks best,
+     so take DEFAULT_TOOL_BAR_BUTTON_MARGIN to mean "default for GTK",
+     i.e. zero.  This means that margins less than
+     DEFAULT_TOOL_BAR_BUTTON_MARGIN has no effect.  */
+  hmargin = max (0, hmargin - DEFAULT_TOOL_BAR_BUTTON_MARGIN);
+  vmargin = max (0, vmargin - DEFAULT_TOOL_BAR_BUTTON_MARGIN);
+  
   if (! x->toolbar_widget)
     xg_create_tool_bar (f);
 
@@ -3425,6 +3450,8 @@ update_frame_tool_bar (f)
         {
           GtkWidget *w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
 
+          gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
+
           gtk_toolbar_append_item (GTK_TOOLBAR (x->toolbar_widget),
                                    0, 0, 0,
                                    w,
@@ -3479,6 +3506,8 @@ update_frame_tool_bar (f)
           Pixmap old_img = (Pixmap)g_object_get_data (G_OBJECT (wimage),
                                                       XG_TOOL_BAR_IMAGE_DATA);
           g_list_free (chlist);
+
+          gtk_misc_set_padding (GTK_MISC (wimage), hmargin, vmargin);
 
           if (old_img != img->pixmap)
             (void) xg_get_image_for_pixmap (f, img, x->widget, wimage);
@@ -3549,6 +3578,8 @@ free_frame_tool_bar (f)
 void
 xg_initialize ()
 {
+  GtkBindingSet *binding_set;
+
   xg_ignore_gtk_scrollbar = 0;
   xg_detached_menus = 0;
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
@@ -3571,6 +3602,17 @@ xg_initialize ()
                                     "gtk-key-theme-name",
                                     "Emacs",
                                     EMACS_CLASS);
+
+  /* Make dialogs close on C-g.  Since file dialog inherits from
+     dialog, this works for them also.  */
+  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_DIALOG));
+  gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
+                                "close", 0);
+
+  /* Make menus close on C-g.  */
+  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_MENU_SHELL));
+  gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
+                                "cancel", 0);
 }
 
 #endif /* USE_GTK */

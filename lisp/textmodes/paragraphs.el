@@ -347,7 +347,7 @@ See `forward-paragraph' for more information."
   (or arg (setq arg 1))
   (forward-paragraph (- arg)))
 
-(defun mark-paragraph (&optional arg)
+(defun mark-paragraph (&optional arg allow-extend)
   "Put point at beginning of this paragraph, mark at end.
 The paragraph marked is the one that contains point or follows point.
 
@@ -357,13 +357,16 @@ the number of paragraphs marked equals ARG.
 If ARG is negative, point is put at end of this paragraph, mark is put
 at beginning of this or a previous paragraph.
 
-If this command is repeated, it marks the next ARG paragraphs after (or
-before, if arg is negative) the ones already marked."
-  (interactive "p")
+Interactively, if this command is repeated
+or (in Transient Mark mode) if the mark is active, 
+it marks the next ARG paragraphs after the ones already marked."
+  (interactive "p\np")
   (unless arg (setq arg 1))
   (when (zerop arg)
     (error "Cannot mark zero paragraphs"))
-  (cond ((and (eq last-command this-command) (mark t))
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (and transient-mark-mode mark-active)))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))

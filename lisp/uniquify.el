@@ -188,7 +188,6 @@ If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.
 Arguments BASE, DIRNAME, and NEWBUF specify the new buffer that causes
 this rationaliztion."
-  (interactive)
   (if (null dirname)
       (with-current-buffer newbuf (setq uniquify-managed nil))
     (setq dirname (expand-file-name (directory-file-name dirname)))

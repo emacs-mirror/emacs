@@ -410,31 +410,39 @@ T means abort and give an error message.")
       (exit-minibuffer))))
 
 (defun calcAlg-blink-matching-open ()
-  (let ((oldpos (point))
-	(blinkpos nil))
+  (let ((rightpt (point))
+ 	(leftpt nil)
+        (rightchar (preceding-char))
+        leftchar
+        rightsyntax
+        leftsyntax)
     (save-excursion
       (condition-case ()
-	  (setq blinkpos (scan-sexps oldpos -1))
-	(error nil)))
-    (if (and blinkpos
-	     (> oldpos (1+ (point-min)))
-	     (or (and (= (char-after (1- oldpos)) ?\))
-		      (= (char-after blinkpos) ?\[))
-		 (and (= (char-after (1- oldpos)) ?\])
-		      (= (char-after blinkpos) ?\()))
-	     (save-excursion
-	       (goto-char blinkpos)
-	       (looking-at ".+\\(\\.\\.\\|\\\\dots\\|\\\\ldots\\)")))
-	(let ((saved (aref (syntax-table) (char-after blinkpos))))
-	  (unwind-protect
-	      (progn
-		(aset (syntax-table) (char-after blinkpos)
-		      (+ (logand saved 255)
-			 (lsh (char-after (1- oldpos)) 8)))
-		(blink-matching-open))
-	    (aset (syntax-table) (char-after blinkpos) saved)))
+ 	  (setq leftpt (scan-sexps rightpt -1)
+                leftchar (char-after leftpt))
+  	(error nil)))
+    (if (and leftpt
+ 	     (or (and (= rightchar ?\))
+ 		      (= leftchar ?\[))
+ 		 (and (= rightchar ?\])
+ 		      (= leftchar ?\()))
+ 	     (save-excursion
+ 	       (goto-char leftpt)
+ 	       (looking-at ".+\\(\\.\\.\\|\\\\dots\\|\\\\ldots\\)")))
+ 	(let ((leftsaved (aref (syntax-table) leftchar))
+              (rightsaved (aref (syntax-table) rightchar)))
+ 	  (unwind-protect
+ 	      (progn
+                (cond ((= leftchar ?\[)
+                       (aset (syntax-table) leftchar (cons 4 ?\)))
+                       (aset (syntax-table) rightchar (cons 5 ?\[)))
+                      (t
+                       (aset (syntax-table) leftchar (cons 4 ?\]))
+                       (aset (syntax-table) rightchar (cons 5 ?\())))
+ 		(blink-matching-open))
+            (aset (syntax-table) leftchar leftsaved)
+            (aset (syntax-table) rightchar rightsaved)))
       (blink-matching-open))))
-
 
 (defun calc-alg-digit-entry ()
   (calc-alg-entry

@@ -43,11 +43,11 @@ Boston, MA 02111-1307, USA.  */
 #undef chdir
 
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef MSDOS
 #include <fcntl.h>
 #endif /* MSDOS */
 #ifdef WINDOWSNT
-#include <stdlib.h>
 #include <fcntl.h>
 #include <direct.h>
 #endif /* WINDOWSNT */

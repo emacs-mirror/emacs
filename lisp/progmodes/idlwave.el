@@ -1892,7 +1892,7 @@ The main features of this mode are
   
   (set (make-local-variable 'comment-start-skip) ";+[ \t]*")
   (set (make-local-variable 'comment-start) ";")
-  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'completion-ignore-case) t)
@@ -2571,7 +2571,9 @@ If not in a statement just moves to end of line. Returns position."
   (let ((save-point (point)))
     (when (re-search-forward ".*&" lim t)
       (goto-char (match-end 0))
-      (if (idlwave-quoted) (goto-char save-point)))
+      (if (idlwave-quoted) 
+	  (goto-char save-point)
+	(if (eq (char-after (- (point) 2)) ?&) (goto-char save-point))))
     (point)))
 
 (defun idlwave-skip-label-or-case ()

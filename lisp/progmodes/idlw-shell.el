@@ -841,6 +841,8 @@ IDL has currently stepped.")
 (defvar idlwave-shell-sources-query)
 (defvar idlwave-shell-mode-map)
 (defvar idlwave-shell-calling-stack-index)
+(defvar idlwave-shell-only-prompt-pattern nil)
+(defvar tool-bar-map)
 
 (defun idlwave-shell-mode ()
   "Major mode for interacting with an inferior IDL process.
@@ -994,7 +996,7 @@ IDL has currently stepped.")
   (setq idlwave-shell-hide-output nil)
 
   ;; NB: `make-local-hook' needed for older/alternative Emacs compatibility
-  (make-local-hook 'kill-buffer-hook)
+  ;;(make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'idlwave-shell-kill-shell-buffer-confirm
 	    nil 'local)
   (add-hook 'kill-buffer-hook 'idlwave-shell-delete-temp-files nil 'local)
@@ -1038,7 +1040,7 @@ IDL has currently stepped.")
   (setq abbrev-mode t)
 
   ;; NB: `make-local-hook' needed for older/alternative Emacs compatibility
-  (make-local-hook 'post-command-hook)
+  ;;(make-local-hook 'post-command-hook)
   (add-hook 'post-command-hook 'idlwave-command-hook nil t)
 
   ;; Read the command history?
@@ -1458,7 +1460,6 @@ Otherwise just move the line.  Move down unless UP is non-nil."
   "Return t if the shell process is running."
   (eq (process-status idlwave-shell-process-name) 'run))
 
-(defvar idlwave-shell-only-prompt-pattern nil)
 (defun idlwave-shell-filter-hidden-output (output)
   "Filter hidden output, leaving the good stuff.
 
@@ -1475,6 +1476,7 @@ error messages, etc."
 
 (defvar idlwave-shell-hidden-output-buffer " *idlwave-shell-hidden-output*"
   "Buffer containing hidden output from IDL commands.")
+(defvar idlwave-shell-current-state nil)
   
 (defun idlwave-shell-filter (proc string)
   "Watch for IDL prompt and filter incoming text.
@@ -1627,7 +1629,55 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 	  (run-hooks 'idlwave-shell-sentinel-hook))
       (run-hooks 'idlwave-shell-sentinel-hook))))
 
-(defvar idlwave-shell-current-state nil)
+(defvar idlwave-shell-error-buffer " *idlwave-shell-errors*"
+  "Buffer containing syntax errors from IDL compilations.")
+
+;; FIXME: the following two variables do not currently allow line breaks
+;; in module and file names.  I am not sure if it will be necessary to
+;; change this.  Currently it seems to work the way it is.
+(defvar idlwave-shell-syntax-error
+  "^% Syntax error.\\s-*\n\\s-*At:\\s-*\\(.*\\),\\s-*Line\\s-*\\(.*\\)" 
+  "A regular expression to match an IDL syntax error.  
+The 1st pair matches the file name, the second pair matches the line
+number.")
+
+(defvar idlwave-shell-other-error
+  "^% .*\n\\s-*At:\\s-*\\(.*\\),\\s-*Line\\s-*\\(.*\\)"
+  "A regular expression to match any IDL error.")
+
+(defvar idlwave-shell-halting-error 
+  "^% .*\n\\([^%].*\n\\)*% Execution halted at:\\(\\s-*\\S-+\\s-*[0-9]+\\s-*.*\\)\n"
+  "A regular expression to match errors which halt execution.")
+
+(defvar idlwave-shell-cant-continue-error 
+  "^% Can't continue from this point.\n"
+  "A regular expression to match errors stepping errors.")
+
+(defvar idlwave-shell-file-line-message
+  (concat 
+   "\\("                                 ; program name group (1)
+   "\\$MAIN\\$\\|"                   	 ; main level routine
+   "\\<[a-zA-Z][a-zA-Z0-9_$:]*"          ; start with a letter followed by [..]
+   "\\([ \t]*\n[ \t]*[a-zA-Z0-9_$:]+\\)*"; continuation lines program name (2)
+   "\\)"                                 ; end program name group (1)
+   "[ \t\n]+"                            ; white space
+   "\\("                                 ; line number group (3)
+   "[0-9]+"                              ; the line number (the fix point)
+   "\\([ \t]*\n[ \t]*[0-9]+\\)*"         ; continuation lines number (4)
+   "\\)"                                 ; end line number group (3)
+   "[ \t\n]+"                            ; white space
+   "\\("                                 ; file name group (5)
+   "[^ \t\n]+"                           ; file names can contain any non-white
+   "\\([ \t]*\n[ \t]*[^ \t\n]+\\)*"      ; continuation lines file name (6)
+   "\\)"                                 ; end line number group (5)
+   )
+  "*A regular expression to parse out the file name and line number.
+The 1st group should match the subroutine name.  
+The 3rd group is the line number.
+The 5th group is the file name.
+All parts may contain linebreaks surrounded by spaces.  This is important
+in IDL5 which inserts random linebreaks in long module and file names.")
+
 (defun idlwave-shell-scan-for-state ()
   "Scan for state info.  Looks for messages in output from last IDL
 command indicating where IDL has stopped. The types of messages we are
@@ -1720,55 +1770,6 @@ the above."
 
      ;; Otherwise, no particular state
      (t (setq idlwave-shell-current-state nil)))))
-
-(defvar idlwave-shell-error-buffer " *idlwave-shell-errors*"
-  "Buffer containing syntax errors from IDL compilations.")
-
-;; FIXME: the following two variables do not currently allow line breaks
-;; in module and file names.  I am not sure if it will be necessary to
-;; change this.  Currently it seems to work the way it is.
-(defvar idlwave-shell-syntax-error
-  "^% Syntax error.\\s-*\n\\s-*At:\\s-*\\(.*\\),\\s-*Line\\s-*\\(.*\\)" 
-  "A regular expression to match an IDL syntax error.  
-The 1st pair matches the file name, the second pair matches the line
-number.")
-
-(defvar idlwave-shell-other-error
-  "^% .*\n\\s-*At:\\s-*\\(.*\\),\\s-*Line\\s-*\\(.*\\)"
-  "A regular expression to match any IDL error.")
-
-(defvar idlwave-shell-halting-error 
-  "^% .*\n\\([^%].*\n\\)*% Execution halted at:\\(\\s-*\\S-+\\s-*[0-9]+\\s-*.*\\)\n"
-  "A regular expression to match errors which halt execution.")
-
-(defvar idlwave-shell-cant-continue-error 
-  "^% Can't continue from this point.\n"
-  "A regular expression to match errors stepping errors.")
-
-(defvar idlwave-shell-file-line-message
-  (concat 
-   "\\("                                 ; program name group (1)
-   "\\$MAIN\\$\\|"                   	 ; main level routine
-   "\\<[a-zA-Z][a-zA-Z0-9_$:]*"          ; start with a letter followed by [..]
-   "\\([ \t]*\n[ \t]*[a-zA-Z0-9_$:]+\\)*"; continuation lines program name (2)
-   "\\)"                                 ; end program name group (1)
-   "[ \t\n]+"                            ; white space
-   "\\("                                 ; line number group (3)
-   "[0-9]+"                              ; the line number (the fix point)
-   "\\([ \t]*\n[ \t]*[0-9]+\\)*"         ; continuation lines number (4)
-   "\\)"                                 ; end line number group (3)
-   "[ \t\n]+"                            ; white space
-   "\\("                                 ; file name group (5)
-   "[^ \t\n]+"                           ; file names can contain any non-white
-   "\\([ \t]*\n[ \t]*[^ \t\n]+\\)*"      ; continuation lines file name (6)
-   "\\)"                                 ; end line number group (5)
-   )
-  "*A regular expression to parse out the file name and line number.
-The 1st group should match the subroutine name.  
-The 3rd group is the line number.
-The 5th group is the file name.
-All parts may contain linebreaks surrounded by spaces.  This is important
-in IDL5 which inserts random linebreaks in long module and file names.")
 
 (defun idlwave-shell-parse-line (string &optional skip-main)
   "Parse IDL message for the subroutine, file name and line number.
@@ -2102,8 +2103,8 @@ Change the default directory for the process buffer to concur."
        'hide 'wait)
       ;; If we don't know anything about the class, update shell routines
       (if (and idlwave-shell-get-object-class
-	       (not (assoc-ignore-case idlwave-shell-get-object-class
-				       (idlwave-class-alist))))
+	       (not (assoc-string idlwave-shell-get-object-class
+				  (idlwave-class-alist) t)))
 	  (idlwave-shell-maybe-update-routine-info))
       idlwave-shell-get-object-class)))
 
@@ -2165,9 +2166,10 @@ keywords."
       (idlwave-complete arg)))))
 
 ;; Get rid of opaque dynamic variable passing of link?
+(defvar link) ;dynamic variable
 (defun idlwave-shell-complete-execcomm-help (mode word)
   (let ((word (or (nth 1 idlwave-completion-help-info) word))
-	(entry (assoc-ignore-case word idlwave-executive-commands-alist)))
+	(entry (assoc-string word idlwave-executive-commands-alist t)))
     (cond
      ((eq mode 'test)
       (and (stringp word) entry (cdr entry)))
@@ -2217,6 +2219,7 @@ args of an executive .run, .rnew or .compile."
     (looking-at "\\$")))
 
 ;; Debugging Commands ------------------------------------------------------
+(defvar idlwave-shell-electric-debug-mode) ; defined by easy-mmode
 
 (defun idlwave-shell-redisplay (&optional hide)
   "Tries to resync the display with where execution has stopped.
@@ -3517,6 +3520,7 @@ considered the new breakpoint if the file name of frame matches."
 
 (defvar idlwave-shell-bp-overlays nil
   "Alist of overlays marking breakpoints")
+(defvar idlwave-shell-bp-glyph)
 
 (defun idlwave-shell-update-bp-overlays ()
   "Update the overlays which mark breakpoints in the source code.
@@ -3605,7 +3609,6 @@ Existing overlays are recycled, in order to minimize consumption."
 		  (set-window-buffer win buf))))))))
 
 
-(defvar idlwave-shell-bp-glyph)
 (defun idlwave-shell-make-new-bp-overlay (&optional type disabled help)
   "Make a new overlay for highlighting breakpoints.  
 
@@ -4026,7 +4029,7 @@ Otherwise, just expand the file name."
 		   '(alt))))
        (shift (memq 'shift mod))
        (mod-noshift (delete 'shift (copy-sequence mod)))
-       s k1 c2 k2 cmd cannotshift)
+       s k1 c2 k2 cmd electric only-buffer cannotshift)
   (while (setq s (pop specs))
     (setq k1  (nth 0 s)
 	  c2  (nth 1 s)
@@ -4089,6 +4092,9 @@ Otherwise, just expand the file name."
     (setq idlwave-shell-suppress-electric-debug nil))
   (idlwave-shell-electric-debug-mode))
 
+(defvar idlwave-shell-electric-debug-read-only) 
+(defvar idlwave-shell-electric-debug-buffers nil)
+
 (easy-mmode-define-minor-mode idlwave-shell-electric-debug-mode
   "Toggle Electric Debug mode.
 With no argument, this command toggles the mode. 
@@ -4138,7 +4144,6 @@ idlwave-shell-electric-debug-mode-map)
   (force-mode-line-update))
 
 ;; Turn it off in all relevant buffers
-(defvar idlwave-shell-electric-debug-buffers nil)
 (defun idlwave-shell-electric-debug-all-off ()
   (setq idlwave-shell-suppress-electric-debug nil)
   (let ((buffers idlwave-shell-electric-debug-buffers)

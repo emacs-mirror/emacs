@@ -356,7 +356,7 @@ This is used during Tempo template completion."
 
   ;; Miscellaneous customization
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t))
+  (setq require-final-newline mode-require-final-newline))
 
 
 ;; SNMPv1 MIB Editing Mode.

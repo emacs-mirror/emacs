@@ -1,8 +1,62 @@
+2004-12-27  Simon Josefsson  <jas@extundo.com>
+
+	* mm-bodies.el (mm-body-encoding): Don't permit 7-bit to be used
+	when mm-use-ultra-safe-encoding is enabled (e.g., for PGP/MIME)
+	and we have trailing white space.  Reported by Werner Koch
+	<wk@gnupg.org>.
+
+2004-12-17  Kim F. Storm  <storm@cua.dk>
+
+	* gnus-group.el (gnus-group-mode-map): Map follow-link to mouse-face.
+
+	* gnus-sum.el (gnus-summary-mode-map): Likewise.
+
+2004-12-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-spec.el (gnus-spec-tab): Make a Lisp form which works
+	correctly even if there are wide characters.
+
+2004-12-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Decode encoded value after
+	concatenating segments rather than before concatenating them.
+	Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+
+2004-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-xemacs-find-mime-charset): New macro.
+
+2004-12-17  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* mm-util.el (mm-xemacs-find-mime-charset-1): New function used to
+	unify Latin characters in XEmacs.
+	(mm-find-mime-charset-region): Use it.
+
+2004-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-delete-directory): New function.
+
+	* gnus-agent.el (gnus-agent-delete-group): Use it.
+
+	* gnus-cache.el (gnus-cache-delete-group): Use it.
+
+2004-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el (gnus-narrow-to-page): Don't hardcode point-min.
+
+2004-12-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-make-rss-group): Use
+	gnus-group-make-group instead of gnus-group-unsubscribe-group.
+
+	* gnus-start.el (gnus-setup-news): Honor user's setting to
+	gnus-message-archive-method.  Suggested by Lute Kamstra
+	<Lute.Kamstra@xs4all.nl>.
+
 2004-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-forward-make-body-mml): Remove headers
-	according to message-forward-ignored-headers if a message is
-	decoded.
+	according to message-forward-ignored-headers if a message is decoded.
 
 2004-12-02  Romain Francoise  <romain@orebokech.com>
 
@@ -60,17 +114,16 @@
 
 2004-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* message.el (message-forbidden-properties): Fixed typo in doc
-	string.
+	* message.el (message-forbidden-properties): Fix typo in doc string.
 
 2004-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* message.el (message-strip-forbidden-properties): Bind
-	buffer-read-only (etc) to nil.
+	* message.el (message-strip-forbidden-properties):
+	Bind buffer-read-only (etc) to nil.
 
 2004-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-util.el (gnus-replace-in-string): Added doc string.
+	* gnus-util.el (gnus-replace-in-string): Add doc string.
 
 	* nnmail.el (nnmail-split-header-length-limit): Increase to 2048
 	to avoid problems when splitting mails with many recipients.
@@ -97,8 +150,8 @@
 
 2004-11-14  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-start.el (gnus-convert-old-newsrc): Assign
-	legacy-gnus-agent to 5.10.7.
+	* gnus-start.el (gnus-convert-old-newsrc):
+	Assign legacy-gnus-agent to 5.10.7.
 
 2004-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -894,7 +947,7 @@
 	* gnus-delay.el (gnus-delay-default-hour): Add :version.
 
 	* gnus-cite.el (gnus-cite-blank-line-after-header)
-	(gnus-article-boring-faces): 
+	(gnus-article-boring-faces):
 
 	* gnus-art.el (gnus-buttonized-mime-types)
 	(gnus-inhibit-mime-unbuttonizing)

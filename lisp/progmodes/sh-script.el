@@ -495,10 +495,9 @@ This is buffer-local in every such buffer.")
 
 (defcustom sh-require-final-newline
   '((csh . t)
-    (pdksh . t)
-    (rc . require-final-newline)
-    (sh . require-final-newline))
+    (pdksh . t))
   "*Value of `require-final-newline' in Shell-Script mode buffers.
+\(SHELL . t) means use the value of `mode-require-final-newline' for SHELL.
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (const :tag "require" t)
@@ -1485,8 +1484,8 @@ Calls the value of `sh-set-shell-hook' if set."
 	    (executable-set-magic shell (sh-feature sh-shell-arg)
 				  no-query-flag insert-flag)))
   (let ((tem (sh-feature sh-require-final-newline)))
-    (unless (eq tem 'require-final-newline)
-      (setq require-final-newline tem)))
+    (if (eq tem t)
+	(setq require-final-newline mode-require-final-newline)))
   (setq
 	comment-start-skip "#+[\t ]*"
 	local-abbrev-table sh-mode-abbrev-table

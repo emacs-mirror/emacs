@@ -228,6 +228,8 @@ extern int minibuf_level;
 
 extern int minibuffer_auto_raise;
 
+extern int history_delete_duplicates;
+
 /* These variables describe handlers that have "already" had a chance
    to handle the current operation.
 
@@ -3859,10 +3861,6 @@ actually used.  */)
 
       if (!NILP (Vcoding_system_for_read))
 	val = Vcoding_system_for_read;
-      else if (! NILP (replace))
-	/* In REPLACE mode, we can use the same coding system
-	   that was used to visit the file.  */
-	val = current_buffer->buffer_file_coding_system;
       else
 	{
 	  /* Don't try looking inside a file for a coding system
@@ -4641,7 +4639,8 @@ actually used.  */)
 
   if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
     {
-      insval = call1 (Qafter_insert_file_set_coding, make_number (inserted));
+      insval = call2 (Qafter_insert_file_set_coding, make_number (inserted),
+		      visit);
       if (! NILP (insval))
 	{
 	  CHECK_NUMBER (insval);
@@ -6186,7 +6185,7 @@ The return value is only relevant for a call to `read-file-name' that happens
 before any other event (mouse or keypress) is handeled.  */)
   ()
 {
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (HAVE_CARBON)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && use_file_dialog
@@ -6327,7 +6326,7 @@ and `read-file-name-function'.  */)
 
   GCPRO2 (insdef, default_filename);
 
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (HAVE_CARBON)
   if (! NILP (Fnext_read_file_uses_dialog_p ()))
     {
       /* If DIR contains a file name, split it.  */
@@ -6383,7 +6382,13 @@ and `read-file-name-function'.  */)
   if (replace_in_history)
     /* Replace what Fcompleting_read added to the history
        with what we will actually return.  */
-    XSETCAR (Fsymbol_value (Qfile_name_history), double_dollars (val));
+    {
+       Lisp_Object val1 = double_dollars (val);
+       tem = Fsymbol_value (Qfile_name_history);
+       if (history_delete_duplicates) 
+	 XSETCDR (tem, Fdelete (val1, XCDR(tem)));
+       XSETCAR (tem, val1);
+    }
   else if (add_to_history)
     {
       /* Add the value to the history--but not if it matches
@@ -6391,8 +6396,10 @@ and `read-file-name-function'.  */)
       Lisp_Object val1 = double_dollars (val);
       tem = Fsymbol_value (Qfile_name_history);
       if (! CONSP (tem) || NILP (Fequal (XCAR (tem), val1)))
-	Fset (Qfile_name_history,
-	      Fcons (val1, tem));
+	{
+	  if (history_delete_duplicates) tem = Fdelete (val1, tem);
+	  Fset (Qfile_name_history, Fcons (val1, tem));
+	}
     }
 
   return val;

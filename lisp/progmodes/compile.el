@@ -1044,6 +1044,7 @@ exited abnormally with code %d\n"
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'compile-goto-error)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-m" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
@@ -1073,6 +1074,7 @@ exited abnormally with code %d\n"
 (defvar compilation-button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'compile-goto-error)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-m" 'compile-goto-error)
     map)
   "Keymap for compilation-message buttons.")
@@ -1084,6 +1086,7 @@ exited abnormally with code %d\n"
     ;; because that introduces a menu bar item we don't want.
     ;; That confuses C-down-mouse-3.
     (define-key map [mouse-2] 'compile-goto-error)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-m" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
@@ -1460,8 +1463,8 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 ;; If the current buffer is a compilation buffer, return it.
 ;; Otherwise, look for a compilation buffer and signal an error
 ;; if there are none.
-(defun compilation-find-buffer (&optional other-buffer)
-  (next-error-find-buffer other-buffer 'compilation-buffer-internal-p))
+(defun compilation-find-buffer (&optional avoid-current)
+  (next-error-find-buffer avoid-current 'compilation-buffer-internal-p))
 
 ;;;###autoload
 (defun compilation-next-error-function (n &optional reset)

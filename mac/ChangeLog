@@ -1,3 +1,24 @@
+2004-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW: Add dependencies for fringe.c.x, image.c.x, and
+	lastfile.c.x.
+	(PPCCOptions): Add -alloca.
+	(EmacsObjects): Remove alloca.c.x.  Add fringe.c.x, image.c.x, and
+	lastfile.c.x.
+	(Emacs MPW): Add QuickTimeLib.
+	(EmacsSource): Remove alloca.c.  Add fringe.c, image.c, and
+	lastfile.c.
+	(LispSource): Fix pathnames for byte-run.elc, float-sup.elc, and
+	map-ynp.elc.
+	* inc/config.h (USE_LSB_TAG) [__MRC__]: Define.
+	(UNEXEC_SRC): Close comment.
+	* inc/epaths.h (PATH_BITMAPS, PATH_GAME): New defines.
+	* inc/m-mac.h (HAVE_ALLOCA) [__MRC__]: Define.
+	(C_ALLOCA) [__MRC__]: Don't define.
+	* inc/s-mac.h (X_OK): New define.
+	(DECL_ALIGN) [USE_LSB_TAG && __MRC__]: New macro. 
+	(GC_MARK_STACK): Define to GC_MAKE_GCPROS_NOOPS.
+
 2004-05-29  Steven Tamm  <steventamm@mac.com>
 
 	* INSTALL: Fixing typos

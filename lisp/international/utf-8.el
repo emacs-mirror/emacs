@@ -305,26 +305,30 @@ use either \\[customize] or the function
     ;; Load the files explicitly, to avoid having to keep
     ;; around the large tables they contain (as well as the
     ;; ones which get built).
-    (cond ((string= "Korean" current-language-environment)
-	   (load "subst-jis")
-	   (load "subst-big5")
-	   (load "subst-gb2312")
-	   (load "subst-ksc"))
-	  ((string= "Chinese-BIG5" current-language-environment)
-	   (load "subst-jis")
-	   (load "subst-ksc")
-	   (load "subst-gb2312")
-	   (load "subst-big5"))
-	  ((string= "Chinese-GB" current-language-environment)
-	   (load "subst-jis")
-	   (load "subst-ksc")
-	   (load "subst-big5")
-	   (load "subst-gb2312"))
-	  (t
-	   (load "subst-ksc")
-	   (load "subst-gb2312")
-	   (load "subst-big5")
-	   (load "subst-jis")))	  ; jis covers as much as big5, gb2312
+    ;; Here we bind coding-system-for-read to nil so that coding tags
+    ;; in the files are respected even if the files are not yet
+    ;; byte-compiled
+    (let ((coding-system-for-read nil))
+      (cond ((string= "Korean" current-language-environment)
+	     (load "subst-jis")
+	     (load "subst-big5")
+	     (load "subst-gb2312")
+	     (load "subst-ksc"))
+	    ((string= "Chinese-BIG5" current-language-environment)
+	     (load "subst-jis")
+	     (load "subst-ksc")
+	     (load "subst-gb2312")
+	     (load "subst-big5"))
+	    ((string= "Chinese-GB" current-language-environment)
+	     (load "subst-jis")
+	     (load "subst-ksc")
+	     (load "subst-big5")
+	     (load "subst-gb2312"))
+	    (t
+	     (load "subst-ksc")
+	     (load "subst-gb2312")
+	     (load "subst-big5")
+	     (load "subst-jis")))) ; jis covers as much as big5, gb2312
 
     (when redefined
       (define-translation-hash-table 'utf-subst-table-for-decode

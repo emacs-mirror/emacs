@@ -891,7 +891,7 @@ next enabled. Depends upon the caller to determine whether group deletion is sup
 	 (path           (directory-file-name
 			  (let (gnus-command-method command-method)
 			    (gnus-agent-group-pathname group)))))
-    (gnus-delete-file path)
+    (gnus-delete-directory path)
 
     (let* ((real-group (gnus-group-real-name group)))
       (gnus-agent-save-group-info command-method real-group nil)

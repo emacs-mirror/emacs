@@ -4008,10 +4008,10 @@ when the corresponding call to `provide' is made.  */);
 Each alist element is a list that starts with a file name,
 except for one element (optional) that starts with nil and describes
 definitions evaluated from buffers not visiting files.
-The remaining elements of each list are symbols defined as functions,
+The remaining elements of each list are symbols defined as variables
 and cons cells of the form `(provide . FEATURE)', `(require . FEATURE)',
-`(defvar . VARIABLE), `(autoload . SYMBOL)', and `(t . SYMBOL)'.
-An element `(t . SYMBOL)' precedes an entry that is just SYMBOL,
+`(defun . FUNCTION)', `(autoload . SYMBOL)', and `(t . SYMBOL)'.
+An element `(t . SYMBOL)' precedes an entry `(defun . FUNCTION)',
 and means that SYMBOL was an autoload before this file redefined it
 as a function.  */);
   Vload_history = Qnil;

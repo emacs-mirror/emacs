@@ -464,12 +464,23 @@ by simultaneous editing and requires your immediate attention.
 @xref{Interlocking,, Simultaneous Editing}.
 
 @vindex require-final-newline
-  If the value of the variable @code{require-final-newline} is @code{t},
-Emacs silently puts a newline at the end of any file that doesn't
-already end in one, every time a file is saved or written.  If the value
-is @code{nil}, Emacs leaves the end of the file unchanged; if it's
-neither @code{nil} nor @code{t}, Emacs asks you whether to add a
-newline.  The default is @code{nil}.
+  If the value of the variable @code{require-final-newline} is
+@code{t}, Emacs silently puts a newline at the end of any file that
+doesn't already end in one, every time a file is saved or written.  If
+the value is @code{visit}, Emacs adds a newline at the end of any file
+that doesn't have one, just after it visits the file.  (This marks the
+buffer as modified, and you can undo it.)  If the value is
+@code{visit-save}, that means to add newlines both on visiting and on
+saving.  If the value is @code{nil}, Emacs leaves the end of the file
+unchanged; if it's neither @code{nil} nor @code{t}, Emacs asks you
+whether to add a newline.  The default is @code{nil}.
+
+@vindex mode-require-final-newline
+  Many major modes are designed for specific kinds of files that are
+always supposed to end in newlines.  These major modes set the
+variable @code{require-final-newline} according to
+@code{mode-require-final-newline}.  By setting the latter variable,
+you can control how these modes handle final newlines.
 
 @menu
 * Backup::              How Emacs saves the old version of your file.

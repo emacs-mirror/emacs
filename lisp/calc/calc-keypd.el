@@ -236,9 +236,21 @@
   (define-key calc-keypad-mode-map (kbd "RET") 'calc-keypad-press)
   (define-key calc-keypad-mode-map (kbd "TAB") 'calc-keypad-menu)
   (define-key calc-keypad-mode-map "q" 'calc-keypad-off)
-  (define-key calc-keypad-mode-map [(mouse-3)] 'calc-keypad-right-click)
-  (define-key calc-keypad-mode-map [(mouse-2)] 'calc-keypad-middle-click)
-  (define-key calc-keypad-mode-map [(mouse-1)] 'calc-keypad-left-click)
+  (define-key calc-keypad-mode-map [down-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [drag-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [double-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [triple-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [down-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [drag-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [double-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [triple-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [down-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [drag-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [double-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [triple-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [mouse-3] 'calc-keypad-right-click)
+  (define-key calc-keypad-mode-map [mouse-2] 'calc-keypad-middle-click)
+  (define-key calc-keypad-mode-map [mouse-1] 'calc-keypad-left-click)
   (put 'calc-keypad-mode 'mode-class 'special)
   (make-local-variable 'calc-main-buffer))
 
@@ -529,8 +541,9 @@
 (defun calc-keypad-left-click (event)
   "Handle a left-button mouse click in Calc Keypad window."
   (interactive "e")
-  (goto-char (posn-point (event-start event)))
-  (calc-keypad-press))
+  (with-current-buffer calc-keypad-buffer
+    (goto-char (posn-point (event-start event)))
+    (calc-keypad-press)))
 
 (defun calc-keypad-right-click (event)
   "Handle a right-button mouse click in Calc Keypad window."

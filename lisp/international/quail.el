@@ -1371,11 +1371,12 @@ Return the input string."
 	(while quail-translating
 	  (set-buffer-modified-p modified-p)
 	  (quail-show-guidance)
-	  (let* ((keyseq (read-key-sequence
-			  (and input-method-use-echo-area
-			       (concat input-method-previous-message
-				       quail-current-str))
-			  nil nil t))
+	  (let* ((prompt (if input-method-use-echo-area
+			     (format "%s%s %s" 
+				     (or input-method-previous-message "")
+				     quail-current-str
+				     quail-guidance-str)))
+		 (keyseq (read-key-sequence prompt nil nil t))
 		 (cmd (lookup-key (quail-translation-keymap) keyseq)))
 	    (if (if key
 		    (and (commandp cmd) (not (eq cmd 'quail-other-command)))
@@ -1436,12 +1437,13 @@ Return the input string."
 		      quail-translating t)
 		(quail-setup-overlays nil)))
 	  (quail-show-guidance)
-	  (let* ((keyseq (read-key-sequence
-			  (and input-method-use-echo-area
-			       (concat input-method-previous-message
-				       quail-conversion-str
-				       quail-current-str))
-			  nil nil t))
+	  (let* ((prompt (if input-method-use-echo-area
+			     (format "%s%s%s %s" 
+				     (or input-method-previous-message "")
+				     quail-conversion-str
+				     quail-current-str
+				     quail-guidance-str)))
+		 (keyseq (read-key-sequence prompt nil nil t))
 		 (cmd (lookup-key (quail-conversion-keymap) keyseq)))
 	    (if (if key (commandp cmd) (eq cmd 'quail-self-insert-command))
 		(progn
@@ -1950,10 +1952,10 @@ minibuffer and the selected frame has no other windows)."
 
   ;; Then, show the guidance.
   (when (and (quail-require-guidance-buf)
+	     (not input-method-use-echo-area)
 	     (null unread-command-events)
 	     (null unread-post-input-method-events))
-    (if (or (eq (selected-window) (minibuffer-window))
-	    input-method-use-echo-area)
+    (if (eq (selected-window) (minibuffer-window))
 	(if (eq (minibuffer-window) (frame-root-window))
 	    ;; Use another frame.  It is sure that we are using some
 	    ;; window system.

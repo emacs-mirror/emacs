@@ -735,16 +735,17 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 Compatibility function for \\[next-error] invocations."
   (interactive "p")
   ;; we need to run occur-find-match from within the Occur buffer
-  (with-current-buffer 
+  (with-current-buffer
       (if (next-error-buffer-p (current-buffer))
 	  (current-buffer)
 	(next-error-find-buffer nil nil (lambda() (eq major-mode 'occur-mode))))
-    
-    (when reset
-      (goto-char (point-min)))
+
+    (goto-char (cond (reset (point-min))
+		     ((< argp 0) (line-beginning-position))
+		     ((line-end-position))))
     (occur-find-match
-     (abs (prefix-numeric-value argp))
-     (if (> 0 (prefix-numeric-value argp))
+     (abs argp)
+     (if (> 0 argp)
 	 #'previous-single-property-change
        #'next-single-property-change)
      "No more matches")
@@ -752,6 +753,20 @@ Compatibility function for \\[next-error] invocations."
     (set-window-point (get-buffer-window (current-buffer)) (point))
     (occur-mode-goto-occurrence)))
 
+(defface match
+  '((((class color) (min-colors 88) (background light))
+     :background "Tan")
+    (((class color) (min-colors 88) (background dark))
+     :background "RoyalBlue4")
+    (((class color) (min-colors 8))
+     :background "blue" :foreground "white")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Face used to highlight matches permanently."
+  :group 'matching
+  :version "21.4")
+
 (defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines included around `list-matching-lines' matches.
 A negative number means to include that many lines before the match.
@@ -761,7 +776,7 @@ A positive number means to include that many lines both before and after."
 
 (defalias 'list-matching-lines 'occur)
 
-(defcustom list-matching-lines-face 'bold
+(defcustom list-matching-lines-face 'match
   "*Face used by \\[list-matching-lines] to show the text that matches.
 If the value is nil, don't highlight the matching portions specially."
   :type 'face
@@ -776,18 +791,22 @@ If the value is nil, don't highlight the buffer names specially."
 (defun occur-accumulate-lines (count &optional keep-props)
   (save-excursion
     (let ((forwardp (> count 0))
-	  (result nil))
+	  result beg end)
       (while (not (or (zerop count)
 		      (if forwardp
 			  (eobp)
 			(bobp))))
 	(setq count (+ count (if forwardp -1 1)))
+	(setq beg (line-beginning-position)
+	      end (line-end-position))
+	(if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
+		 (text-property-not-all beg end 'fontified t))
+	    (jit-lock-fontify-now beg end))
 	(push
 	 (funcall (if keep-props
 		      #'buffer-substring
 		    #'buffer-substring-no-properties)
-	  (line-beginning-position)
-	  (line-end-position))
+		  beg end)
 	 result)
 	(forward-line (if forwardp 1 -1)))
       (nreverse result))))
@@ -982,14 +1001,17 @@ See also `multi-occur'."
 		  (when (setq endpt (re-search-forward regexp nil t))
 		    (setq matches (1+ matches)) ;; increment match count
 		    (setq matchbeg (match-beginning 0))
-		    (setq begpt (save-excursion
-				  (goto-char matchbeg)
-				  (line-beginning-position)))
 		    (setq lines (+ lines (1- (count-lines origpt endpt))))
+		    (save-excursion
+		      (goto-char matchbeg)
+		      (setq begpt (line-beginning-position)
+			    endpt (line-end-position)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (setq curstring (buffer-substring begpt
-						      (line-end-position)))
+		    (if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
+			     (text-property-not-all begpt endpt 'fontified t))
+			(jit-lock-fontify-now begpt endpt))
+		    (setq curstring (buffer-substring begpt endpt))
 		    ;; Depropertize the string, and maybe
 		    ;; highlight the matches
 		    (let ((len (length curstring))
@@ -998,17 +1020,15 @@ See also `multi-occur'."
 			(set-text-properties 0 len nil curstring))
 		      (while (and (< start len)
 				  (string-match regexp curstring start))
-			(add-text-properties (match-beginning 0)
-					     (match-end 0)
-					     (append
-					      `(occur-match t)
-					      (when match-face
-						;; Use `face' rather than
-						;; `font-lock-face' here
-						;; so as to override faces
-						;; copied from the buffer.
-						`(face ,match-face)))
-					     curstring)
+			(add-text-properties
+			 (match-beginning 0) (match-end 0)
+			 (append
+			  `(occur-match t)
+			  (when match-face
+			    ;; Use `face' rather than `font-lock-face' here
+			    ;; so as to override faces copied from the buffer.
+			    `(face ,match-face)))
+			 curstring)
 			(setq start (match-end 0))))
 		    ;; Generate the string to insert for this match
 		    (let* ((out-line
@@ -1019,7 +1039,10 @@ See also `multi-occur'."
 				     (when prefix-face
 				       `(font-lock-face prefix-face))
 				     '(occur-prefix t)))
-			     curstring
+			     ;; We don't put `mouse-face' on the newline,
+			     ;; because that loses.  And don't put it
+			     ;; on context lines to reduce flicker.
+			     (propertize curstring 'mouse-face 'highlight)
 			     "\n"))
 			   (data
 			    (if (= nlines 0)
@@ -1043,10 +1066,7 @@ See also `multi-occur'."
 			    (insert "-------\n"))
 			  (add-text-properties
 			   beg end
-			   `(occur-target ,marker help-echo "mouse-2: go to this occurrence"))
-			  ;; We don't put `mouse-face' on the newline,
-			  ;; because that loses.
-			  (add-text-properties beg (1- end) '(mouse-face highlight)))))
+			   `(occur-target ,marker help-echo "mouse-2: go to this occurrence")))))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
@@ -1214,7 +1234,7 @@ but coerced to the correct value of INTEGERS."
 
 (defun replace-match-maybe-edit (newtext fixedcase literal noedit match-data)
   "Make a replacement with `replace-match', editing `\\?'.
-NEXTEXT, FIXEDCASE, LITERAL are just passed on.  If NOEDIT is true, no
+NEWTEXT, FIXEDCASE, LITERAL are just passed on.  If NOEDIT is true, no
 check for `\\?' is made to save time.  MATCH-DATA is used for the
 replacement.  In case editing is done, it is changed to use markers.
 
@@ -1281,6 +1301,9 @@ make, or the user didn't cancel the call."
 	;; (match-data); otherwise it is t if a match is possible at point.
 	(match-again t)
 
+	(isearch-string isearch-string)
+	(isearch-regexp isearch-regexp)
+	(isearch-case-fold-search isearch-case-fold-search)
 	(message
 	 (if query-flag
 	     (substitute-command-keys
@@ -1313,6 +1336,12 @@ make, or the user didn't cancel the call."
 				    (if regexp-flag from-string
 				      (regexp-quote from-string))
 				    "\\b")))
+    (when query-replace-lazy-highlight
+      (setq isearch-string search-string
+	    isearch-regexp (or delimited-flag regexp-flag)
+	    isearch-case-fold-search case-fold-search
+	    isearch-lazy-highlight-last-string nil))
+
     (push-mark)
     (undo-boundary)
     (unwind-protect
@@ -1380,7 +1409,7 @@ make, or the user didn't cancel the call."
 	    (if (not query-flag)
 		(let ((inhibit-read-only
 		       query-replace-skip-read-only))
-		  (unless noedit
+		  (unless (or literal noedit)
 		    (replace-highlight (nth 0 real-match-data)
 				       (nth 1 real-match-data)))
 		  (setq noedit
@@ -1528,7 +1557,16 @@ make, or the user didn't cancel the call."
 			 (setq unread-command-events
 			       (append (listify-key-sequence key)
 				       unread-command-events))
-			 (setq done t))))
+			 (setq done t)))
+		  (when query-replace-lazy-highlight
+		    ;; Restore isearch data for lazy highlighting
+		    ;; in case of isearching during recursive edit
+		    (setq isearch-string search-string
+			  isearch-regexp (or delimited-flag regexp-flag)
+			  isearch-case-fold-search case-fold-search)
+		    ;; Force lazy rehighlighting only after replacements
+		    (if (not (memq def '(skip backup)))
+			(setq isearch-lazy-highlight-last-string nil))))
 		;; Record previous position for ^ when we move on.
 		;; Change markers to numbers in the match data
 		;; since lots of markers slow down editing.
@@ -1564,26 +1602,44 @@ make, or the user didn't cancel the call."
     (and keep-going stack)))
 
 (defcustom query-replace-highlight t
-  "*Non-nil means to highlight words during query replacement."
+  "*Non-nil means to highlight matches during query replacement."
   :type 'boolean
   :group 'matching)
 
+(defcustom query-replace-lazy-highlight t
+  "*Controls the lazy-highlighting during query replacements.
+When non-nil, all text in the buffer matching the current match
+is highlighted lazily using isearch lazy highlighting (see
+`isearch-lazy-highlight-initial-delay' and
+`isearch-lazy-highlight-interval')."
+  :type 'boolean
+  :group 'matching
+  :version "21.4")
+
+(defface query-replace
+  '((t (:inherit isearch)))
+  "Face for highlighting query replacement matches."
+  :group 'matching
+  :version "21.4")
+
 (defvar replace-overlay nil)
 
-(defun replace-dehighlight ()
-  (and replace-overlay
-       (progn
-	 (delete-overlay replace-overlay)
-	 (setq replace-overlay nil))))
+(defun replace-highlight (beg end)
+  (if query-replace-highlight
+      (if replace-overlay
+	  (move-overlay replace-overlay beg end (current-buffer))
+	(setq replace-overlay (make-overlay beg end))
+	(overlay-put replace-overlay 'priority 1) ;higher than lazy overlays
+	(overlay-put replace-overlay 'face 'query-replace)))
+  (if query-replace-lazy-highlight
+      (isearch-lazy-highlight-new-loop)))
 
-(defun replace-highlight (start end)
-  (and query-replace-highlight
-       (if replace-overlay
-	   (move-overlay replace-overlay start end (current-buffer))
-	 (setq replace-overlay (make-overlay start end))
-	 (overlay-put replace-overlay 'face
-		      (if (facep 'query-replace)
-			  'query-replace 'region)))))
+(defun replace-dehighlight ()
+  (when replace-overlay
+    (delete-overlay replace-overlay))
+  (when query-replace-lazy-highlight
+    (isearch-lazy-highlight-cleanup isearch-lazy-highlight-cleanup)
+    (setq isearch-lazy-highlight-last-string nil)))
 
 ;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
 ;;; replace.el ends here

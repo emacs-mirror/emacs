@@ -220,23 +220,6 @@ This is a good function to put in `comint-output-filter-functions'."
 
 ;; Alternative font-lock-unfontify-region-function for Emacs only
 
-
-(eval-when-compile
- ;; We use this to preserve or protect things when modifying text
- ;; properties.  Stolen from lazy-lock and font-lock.  Ugly!!!
- ;; Probably most of this is not needed?
- (defmacro save-buffer-state (varlist &rest body)
-   "Bind variables according to VARLIST and eval BODY restoring buffer state."
-   `(let* (,@(append varlist
-                     '((modified (buffer-modified-p)) (buffer-undo-list t)
-                       (inhibit-read-only t) (inhibit-point-motion-hooks t)
-                       before-change-functions after-change-functions
-                       deactivate-mark buffer-file-name buffer-file-truename)))
-     ,@body
-     (when (and (not modified) (buffer-modified-p))
-       (set-buffer-modified-p nil))))
- (put 'save-buffer-state 'lisp-indent-function 1))
-
 (defun ansi-color-unfontify-region (beg end &rest xemacs-stuff)
   "Replacement function for `font-lock-default-unfontify-region'.
 
@@ -259,21 +242,20 @@ A possible way to install this would be:
 	  \(function (lambda ()
 		      \(setq font-lock-unfontify-region-function
 			    'ansi-color-unfontify-region))))"
-  ;; save-buffer-state is a macro in font-lock.el!
-  (save-buffer-state nil
-    (when (boundp 'font-lock-syntactic-keywords)
-      (remove-text-properties beg end '(syntax-table nil)))
-    ;; instead of just using (remove-text-properties beg end '(face
-    ;; nil)), we find regions with a non-nil face test-property, skip
-    ;; positions with the ansi-color property set, and remove the
-    ;; remaining face test-properties.
-    (while (setq beg (text-property-not-all beg end 'face nil))
-      (setq beg (or (text-property-not-all beg end 'ansi-color t) end))
-      (when (get-text-property beg 'face)
-	(let ((end-face (or (text-property-any beg end 'face nil)
-			    end)))
-	  (remove-text-properties beg end-face '(face nil))
-	  (setq beg end-face))))))
+  ;; Simplified now that font-lock-unfontify-region uses save-buffer-state.
+  (when (boundp 'font-lock-syntactic-keywords)
+    (remove-text-properties beg end '(syntax-table nil)))
+  ;; instead of just using (remove-text-properties beg end '(face
+  ;; nil)), we find regions with a non-nil face test-property, skip
+  ;; positions with the ansi-color property set, and remove the
+  ;; remaining face test-properties.
+  (while (setq beg (text-property-not-all beg end 'face nil))
+    (setq beg (or (text-property-not-all beg end 'ansi-color t) end))
+    (when (get-text-property beg 'face)
+      (let ((end-face (or (text-property-any beg end 'face nil)
+			  end)))
+	(remove-text-properties beg end-face '(face nil))
+	(setq beg end-face)))))
 
 ;; Working with strings
 

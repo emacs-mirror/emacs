@@ -273,13 +273,39 @@ Includes the new backup.  Must be > 0"
   :group 'backup)
 
 (defcustom require-final-newline nil
-  "*Value of t says silently ensure a file ends in a newline when it is saved.
-Non-nil but not t says ask user whether to add a newline when there isn't one.
-nil means don't add newlines."
-  :type '(choice (const :tag "Off" nil)
-		 (const :tag "Add" t)
+  "*Whether to add a newline automatically at the end of the file.
+
+A value of t means do this only when the file is about to be saved.
+A value of `visit' means do this right after the file is visited.
+A value of `visit-save' means do it at both of those times.
+Any other non-nil value means ask user whether to add a newline, when saving.
+nil means don't add newlines.
+
+Certain major modes set this locally to the value obtained
+from `mode-require-final-newline'."
+  :type '(choice (const :tag "When visiting" visit)
+		 (const :tag "When saving" t)
+		 (const :tag "When visiting or saving" visit-save)
+		 (const :tag "Never" nil)
 		 (other :tag "Ask" ask))
   :group 'editing-basics)
+
+(defcustom mode-require-final-newline t
+  "*Whether to add a newline at the end of the file, in certain major modes.
+Those modes set `require-final-newline' to this value when you enable them.
+They do so because they are used for files that are supposed
+to end in newlines, and the question is how to arrange that.
+
+A value of t means do this only when the file is about to be saved.
+A value of `visit' means do this right after the file is visited.
+A value of `visit-save' means do it at both of those times.
+Any other non-nil value means ask user whether to add a newline, when saving."
+  :type '(choice (const :tag "When visiting" visit)
+		 (const :tag "When saving" t)
+		 (const :tag "When visiting or saving" visit-save)
+		 (other :tag "Ask" ask))
+  :group 'editing-basics
+  :version "21.4")
 
 (defcustom auto-save-default t
   "*Non-nil says by default do auto-saving of every file-visiting buffer."
@@ -932,8 +958,7 @@ suppress wildcard expansion by setting `find-file-wildcards'.
 
 To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
-  (interactive
-   (find-file-read-args "Find file: " nil))
+  (interactive (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -955,8 +980,8 @@ expand wildcards (if any) and visit multiple files."
     (if (listp value)
 	(progn
 	  (setq value (nreverse value))
-	  (switch-to-buffer-other-window (car value))
-	  (mapcar 'switch-to-buffer (cdr value)))
+	  (cons (switch-to-buffer-other-window (car value))
+		(mapcar 'switch-to-buffer (cdr value))))
       (switch-to-buffer-other-window value))))
 
 (defun find-file-other-frame (filename &optional wildcards)
@@ -975,8 +1000,8 @@ expand wildcards (if any) and visit multiple files."
     (if (listp value)
 	(progn
 	  (setq value (nreverse value))
-	  (switch-to-buffer-other-frame (car value))
-	  (mapcar 'switch-to-buffer (cdr value)))
+	  (cons (switch-to-buffer-other-frame (car value))
+		(mapcar 'switch-to-buffer (cdr value))))
       (switch-to-buffer-other-frame value))))
 
 (defun find-file-existing (filename &optional wildcards)
@@ -991,35 +1016,53 @@ Like \\[find-file] but only allow files that exists."
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file filename wildcards)
-  (toggle-read-only 1)
-  (current-buffer))
+  (interactive (find-file-read-args "Find file read-only: " nil))
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (find-file filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
 
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only other window: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file-other-window filename wildcards)
-  (toggle-read-only 1)
-  (current-buffer))
+  (interactive (find-file-read-args "Find file read-only other window: " nil))
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (find-file-other-window filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
 
 (defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only other frame: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file-other-frame filename wildcards)
-  (toggle-read-only 1)
-  (current-buffer))
+  (interactive (find-file-read-args "Find file read-only other frame: " nil))
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (find-file-other-frame filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
 
-(defun find-alternate-file-other-window (filename)
+(defun find-alternate-file-other-window (filename &optional wildcards)
   "Find file FILENAME as a replacement for the file in the next window.
-This command does not select that window."
+This command does not select that window.
+
+Interactively, or if WILDCARDS is non-nil in a call from Lisp,
+expand wildcards (if any) and replace the file with multiple files."
   (interactive
    (save-selected-window
      (other-window 1)
@@ -1030,17 +1073,21 @@ This command does not select that window."
 	    (setq file-name (file-name-nondirectory file)
 		  file-dir (file-name-directory file)))
        (list (read-file-name
-	      "Find alternate file: " file-dir nil nil file-name)))))
+	      "Find alternate file: " file-dir nil nil file-name)
+	     t))))
   (if (one-window-p)
-      (find-file-other-window filename)
+      (find-file-other-window filename wildcards)
     (save-selected-window
       (other-window 1)
-      (find-alternate-file filename))))
+      (find-alternate-file filename wildcards))))
 
-(defun find-alternate-file (filename)
+(defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
-\(presumably by mistake), use this command to visit the file you really want."
+\(presumably by mistake), use this command to visit the file you really want.
+
+Interactively, or if WILDCARDS is non-nil in a call from Lisp,
+expand wildcards (if any) and replace the file with multiple files."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
@@ -1049,7 +1096,8 @@ If the current buffer now contains an empty file that you just visited
 	  (setq file-name (file-name-nondirectory file)
 		file-dir (file-name-directory file)))
      (list (read-file-name
-	    "Find alternate file: " file-dir nil nil file-name))))
+	    "Find alternate file: " file-dir nil nil file-name)
+	   t)))
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
   (when (and (buffer-modified-p) (buffer-file-name))
@@ -1077,7 +1125,7 @@ If the current buffer now contains an empty file that you just visited
 	  (setq buffer-file-truename nil)
 	  ;; Likewise for dired buffers.
 	  (setq dired-directory nil)
-	  (find-file filename))
+	  (find-file filename wildcards))
       (when (eq obuf (current-buffer))
 	;; This executes if find-file gets an error
 	;; and does not really find anything.
@@ -1178,7 +1226,8 @@ name to this list as a string."
   "Return the buffer visiting file FILENAME (a string).
 This is like `get-file-buffer', except that it checks for any buffer
 visiting the same file, possibly under a different name.
-If PREDICATE is non-nil, only a buffer satisfying it can be returned.
+If PREDICATE is non-nil, only buffers satisfying it are eligible,
+and others are ignored.
 If there is no such live buffer, return nil."
   (let ((predicate (or predicate #'identity))
         (truename (abbreviate-file-name (file-truename filename))))
@@ -1247,8 +1296,8 @@ Optional first arg NOWARN non-nil means suppress any warning messages.
 Optional second arg RAWFILE non-nil means the file is read literally.
 Optional third arg WILDCARDS non-nil means do wildcard processing
 and visit all the matching files.  When wildcards are actually
-used and expanded, the value is a list of buffers
-that are visiting the various files."
+used and expanded, return a list of buffers that are visiting
+the various files."
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
@@ -1604,6 +1653,15 @@ unless NOMODES is non-nil."
     (when (and view-read-only view-mode)
       (view-mode-disable))
     (normal-mode t)
+    ;; If requested, add a newline at the end of the file.
+    (and (memq require-final-newline '(visit visit-save))
+	 (> (point-max) (point-min))
+	 (/= (char-after (1- (point-max))) ?\n)
+	 (not (and (eq selective-display t)
+		   (= (char-after (1- (point-max))) ?\r)))
+	 (save-excursion
+	   (goto-char (point-max))
+	   (insert "\n")))
     (when (and buffer-read-only
 	       view-read-only
 	       (not (eq (get major-mode 'mode-class) 'special)))
@@ -1757,6 +1815,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ses\\'" . ses-mode)
      ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
      ("\\.docbook\\'" . sgml-mode)
+     ("\\.com\\'" . dcl-mode)
      ("/config\\.\\(?:bat\\|log\\)\\'" . fundamental-mode)
      ;; Windows candidates may be opened case sensitively on Unix
      ("\\.\\(?:[iI][nN][iI]\\|[lL][sS][tT]\\|[rR][eE][gG]\\|[sS][yY][sS]\\)\\'" . conf-mode)
@@ -2159,7 +2218,7 @@ is specified, returning t if it is specified."
 						   buffer-file-name)
 						(concat "buffer "
 							(buffer-name))))))))))
-	  (let (prefix prefixlen suffix beg
+	  (let (prefix suffix beg
 		(enable-local-eval enable-local-eval))
 	    ;; The prefix is what comes before "local variables:" in its line.
 	    ;; The suffix is what comes after "local variables:" in its line.
@@ -2173,8 +2232,7 @@ is specified, returning t if it is specified."
 		      (buffer-substring (point)
 					(progn (beginning-of-line) (point)))))
 
-	    (if prefix (setq prefixlen (length prefix)
-			     prefix (regexp-quote prefix)))
+	    (setq prefix (if prefix (regexp-quote prefix) "^"))
 	    (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
 	    (forward-line 1)
 	    (let ((startpos (point))
@@ -3171,6 +3229,7 @@ Before and after saving the buffer, this function runs
 		   (not (and (eq selective-display t)
 			     (= (char-after (1- (point-max))) ?\r)))
 		   (or (eq require-final-newline t)
+		       (eq require-final-newline 'visit-save)
 		       (and require-final-newline
 			    (y-or-n-p
 			     (format "Buffer %s does not end in newline.  Add one? "
@@ -3215,7 +3274,8 @@ Before and after saving the buffer, this function runs
   (if save-buffer-coding-system
       (let ((coding-system-for-write save-buffer-coding-system))
 	(basic-save-buffer-2))
-    (basic-save-buffer-2)))
+    (basic-save-buffer-2))
+  (setq buffer-file-coding-system-explicit last-coding-system-used))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -3340,6 +3400,10 @@ This requires the external program `diff' to be in your `exec-path'."
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 (put 'save-some-buffers-action-alist 'risky-local-variable t)
 
+(defvar buffer-save-without-query nil
+  "Non-nil means `save-some-buffers' should save this buffer without asking.")
+(make-variable-buffer-local 'buffer-save-without-query)
+
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
 You can answer `y' to save, `n' not to save, `C-r' to look at the
@@ -3357,8 +3421,18 @@ See `save-some-buffers-action-alist' if you want to
 change the additional actions you can take on files."
   (interactive "P")
   (save-window-excursion
-    (let* ((queried nil)
-	   (files-done
+    (let* (queried some-automatic
+	   files-done abbrevs-done)
+      (dolist (buffer (buffer-list))
+	;; First save any buffers that we're supposed to save unconditionally.
+	;; That way the following code won't ask about them.
+	(with-current-buffer buffer
+	  (when (and buffer-save-without-query (buffer-modified-p))
+	    (setq some-automatic t)
+	    (save-buffer))))
+      ;; Ask about those buffers that merit it,
+      ;; and record the number thus saved.
+      (setq files-done
 	    (map-y-or-n-p
 	     (function
 	      (lambda (buffer)
@@ -3387,19 +3461,22 @@ change the additional actions you can take on files."
 	     (buffer-list)
 	     '("buffer" "buffers" "save")
 	     save-some-buffers-action-alist))
-	   (abbrevs-done
-	    (and save-abbrevs abbrevs-changed
-		 (progn
-		   (if (or arg
-			   (eq save-abbrevs 'silently)
-			   (y-or-n-p (format "Save abbrevs in %s? "
-					     abbrev-file-name)))
-		       (write-abbrev-file nil))
-		   ;; Don't keep bothering user if he says no.
-		   (setq abbrevs-changed nil)
-		   t))))
+      ;; Maybe to save abbrevs, and record whether 
+      ;; we either saved them or asked to.
+      (and save-abbrevs abbrevs-changed
+	   (progn
+	     (if (or arg
+		     (eq save-abbrevs 'silently)
+		     (y-or-n-p (format "Save abbrevs in %s? "
+				       abbrev-file-name)))
+		 (write-abbrev-file nil))
+	     ;; Don't keep bothering user if he says no.
+	     (setq abbrevs-changed nil)
+	     (setq abbrevs-done t)))
       (or queried (> files-done 0) abbrevs-done
-	  (message "(No files need saving)")))))
+	  (message (if some-automatic
+		       "(Some special files were saved without asking)"
+		     "(No files need saving)"))))))
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
@@ -3668,11 +3745,11 @@ non-nil, it is called instead of rereading visited file contents."
 			 (unlock-buffer)))
 		   (widen)
 		   (let ((coding-system-for-read
-			  ;; Auto-saved file shoule be read without
-			  ;; any code conversion.
-			  (if auto-save-p 'emacs-mule-unix
+			  ;; Auto-saved file shoule be read by Emacs'
+			  ;; internal coding.
+			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
-				buffer-file-coding-system))))
+				buffer-file-coding-system-explicit))))
 		     ;; This force after-insert-file-set-coding
 		     ;; (called from insert-file-contents) to set
 		     ;; buffer-file-coding-system to a proper value.
@@ -4286,6 +4363,8 @@ program specified by `directory-free-space-program' if that is non-nil."
 		  (buffer-substring (point) end)))))))))
 
 
+(defvar insert-directory-ls-version 'unknown)
+
 ;; insert-directory
 ;; - must insert _exactly_one_line_ describing FILE if WILDCARD and
 ;;   FULL-DIRECTORY-P is nil.
@@ -4395,6 +4474,56 @@ normally equivalent short `-D' option is just passed on to
 				   (concat (file-name-as-directory file) ".")
 				 file))))))))
 
+	  ;; If we got "//DIRED//" in the output, it means we got a real
+	  ;; directory listing, even if `ls' returned nonzero.
+	  ;; So ignore any errors.
+	  (when (if (stringp switches)
+		    (string-match "--dired\\>" switches)
+		  (member "--dired" switches))
+	    (save-excursion
+	      (forward-line -2)
+	      (when (looking-at "//SUBDIRED//")
+		(forward-line -1))
+	      (if (looking-at "//DIRED//")
+		  (setq result 0))))
+
+	  (when (and (not (eq 0 result))
+		     (eq insert-directory-ls-version 'unknown))
+	    ;; The first time ls returns an error,
+	    ;; find the version numbers of ls,
+	    ;; and set insert-directory-ls-version
+	    ;; to > if it is more than 5.2.1, < if it is less, nil if it
+	    ;; is equal or if the info cannot be obtained.
+	    ;; (That can mean it isn't GNU ls.)
+	    (let ((version-out
+		   (with-temp-buffer
+		     (call-process "ls" nil t nil "--version")
+		     (buffer-string))))
+	      (if (string-match "ls (.*utils) \\([0-9.]*\\)$" version-out)
+		  (let* ((version (match-string 1 version-out))
+			 (split (split-string version "[.]"))
+			 (numbers (mapcar 'string-to-int split))
+			 (min '(5 2 1))
+			 comparison)
+		    (while (and (not comparison) (or numbers min))
+		      (cond ((null min)
+			     (setq comparison '>))
+			    ((null numbers)
+			     (setq comparison '<))
+			    ((> (car numbers) (car min))
+			     (setq comparison '>))
+			    ((< (car numbers) (car min))
+			     (setq comparison '<))
+			    (t
+			     (setq numbers (cdr numbers)
+				   min (cdr min)))))
+		    (setq insert-directory-ls-version (or comparison '=)))
+		(setq insert-directory-ls-version nil))))
+
+	  ;; For GNU ls versions 5.2.2 and up, ignore minor errors.
+	  (when (and (eq 1 result) (eq insert-directory-ls-version '>))
+	    (setq result 0))
+
 	  ;; If `insert-directory-program' failed, signal an error.
 	  (unless (eq 0 result)
 	    ;; Delete the error message it may have output.
@@ -4421,23 +4550,39 @@ normally equivalent short `-D' option is just passed on to
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))
               (forward-line -1))
-	    (if (looking-at "//DIRED//")
-		(let ((end (line-end-position)))
-		  (forward-word 1)
-		  (forward-char 3)
-		  (while (< (point) end)
-		    (let ((start (+ beg (read (current-buffer))))
-			  (end (+ beg (read (current-buffer)))))
-		      (if (memq (char-after end) '(?\n ?\ ))
-			  ;; End is followed by \n or by " -> ".
-			  (put-text-property start end 'dired-filename t)
-			;; It seems that we can't trust ls's output as to
-			;; byte positions of filenames.
-			(put-text-property beg (point) 'dired-filename nil)
-			(end-of-line))))
-		  (goto-char end)
-		  (beginning-of-line)
-		  (delete-region (point) (progn (forward-line 2) (point))))
+	    (when (looking-at "//DIRED//")
+	      (let ((end (line-end-position))
+		    (linebeg (point))
+		    error-lines)
+		;; Find all the lines that are error messages,
+		;; and record the bounds of each one.
+		(goto-char (point-min))
+		(while (< (point) linebeg)
+		  (or (eql (following-char) ?\s)
+		      (push (list (point) (line-end-position)) error-lines))
+		  (forward-line 1))
+		(setq error-lines (nreverse error-lines))
+		;; Now read the numeric positions of file names.
+		(goto-char linebeg)
+		(forward-word 1)
+		(forward-char 3)
+		(while (< (point) end)
+		  (let ((start (insert-directory-adj-pos
+				(+ beg (read (current-buffer)))
+				error-lines))
+			(end (insert-directory-adj-pos
+			      (+ beg (read (current-buffer)))
+			      error-lines)))
+		    (if (memq (char-after end) '(?\n ?\ ))
+			;; End is followed by \n or by " -> ".
+			(put-text-property start end 'dired-filename t)
+		      ;; It seems that we can't trust ls's output as to
+		      ;; byte positions of filenames.
+		      (put-text-property beg (point) 'dired-filename nil)
+		      (end-of-line))))
+		(goto-char end)
+		(beginning-of-line)
+		(delete-region (point) (progn (forward-line 2) (point))))
 	      (forward-line 1)
 	      (if (looking-at "//DIRED-OPTIONS//")
 		  (delete-region (point) (progn (forward-line 1) (point)))
@@ -4488,6 +4633,18 @@ normally equivalent short `-D' option is just passed on to
 		      (replace-match "total used in directory" nil nil nil 1)
 		      (end-of-line)
 		      (insert " available " available)))))))))))
+
+(defun insert-directory-adj-pos (pos error-lines)
+  "Convert `ls --dired' file name position value POS to a buffer position.
+File name position values returned in ls --dired output
+count only stdout; they don't count the error messages sent to stderr.
+So this function converts to them to real buffer positions.
+ERROR-LINES is a list of buffer positions of error message lines,
+of the form (START END)."
+  (while (and error-lines (< (caar error-lines) pos))
+    (setq pos (+ pos (- (nth 1 (car error-lines)) (nth 0 (car error-lines)))))
+    (pop error-lines))
+  pos)
 
 (defun insert-directory-safely (file switches
 				     &optional wildcard full-directory-p)

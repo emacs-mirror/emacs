@@ -342,6 +342,14 @@ int fatal_error_in_progress;
 
 void (*fatal_error_signal_hook) P_ ((void));
 
+#ifdef HAVE_GTK_AND_PTHREAD
+/* When compiled with GTK and running under Gnome, multiple threads meay be
+   created.  Keep track of our main thread to make sure signals are delivered
+   to it (see syssignal.h).  */
+
+pthread_t main_thread;
+#endif
+
 
 #ifdef SIGUSR1
 SIGTYPE
@@ -350,6 +358,7 @@ handle_USR1_signal (sig)
 {
   struct input_event buf;
 
+  SIGNAL_THREAD_CHECK (sig);
   bzero (&buf, sizeof buf);
   buf.kind = USER_SIGNAL_EVENT;
   buf.frame_or_window = selected_frame;
@@ -365,6 +374,7 @@ handle_USR2_signal (sig)
 {
   struct input_event buf;
 
+  SIGNAL_THREAD_CHECK (sig);
   bzero (&buf, sizeof buf);
   buf.kind = USER_SIGNAL_EVENT;
   buf.code = 1;
@@ -379,6 +389,7 @@ SIGTYPE
 fatal_error_signal (sig)
      int sig;
 {
+  SIGNAL_THREAD_CHECK (sig);
   fatal_error_code = sig;
   signal (sig, SIG_DFL);
 
@@ -418,6 +429,7 @@ memory_warning_signal (sig)
      int sig;
 {
   signal (sig, memory_warning_signal);
+  SIGNAL_THREAD_CHECK (sig);
 
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
 
@@ -1023,9 +1035,15 @@ main (argc, argv
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
+# ifndef SYNC_INPUT
   /* Arrange to disable interrupt input inside malloc etc.  */
   uninterrupt_malloc ();
+# endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
+
+#ifdef HAVE_GTK_AND_PTHREAD
+  main_thread = pthread_self ();
+#endif /* HAVE_GTK_AND_PTHREAD */
 
 #if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate
@@ -1115,7 +1133,10 @@ main (argc, argv
   /* Handle the -batch switch, which means don't do interactive display.  */
   noninteractive = 0;
   if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args))
-    noninteractive = 1;
+    {
+      noninteractive = 1;
+      Vundo_outer_limit = Qnil;
+    }
   if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
     {
       noninteractive = 1;	/* Set batch mode.  */
@@ -1285,7 +1306,7 @@ main (argc, argv
          creates a full-fledge output_mac type frame.  This does not
          work correctly before syms_of_textprop, syms_of_macfns,
          syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
-         syms_of_frame, mac_initialize, and init_keyboard have already
+         syms_of_frame, mac_term_init, and init_keyboard have already
          been called.  */
       syms_of_textprop ();
       syms_of_macfns ();
@@ -1297,7 +1318,7 @@ main (argc, argv
       syms_of_search ();
       syms_of_frame ();
 
-      mac_initialize ();
+      mac_term_init (build_string ("Mac"), NULL, NULL);
       init_keyboard ();
 #endif
 
@@ -2238,7 +2259,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
 #endif
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+#if !defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */

@@ -98,26 +98,68 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** calculator.el now has radix grouping mode, which is available when
+`calculator-output-radix' is non-nil.  In this mode a separator
+character is used every few digits, making it easier to see byte
+boundries etc.  For more info, see the documentation of the variable
+`calculator-radix-grouping-mode'.
+
+** You can now follow links by clicking Mouse-1 on the link.
+
+Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
+click to follow a link, whereas most other applications use a Mouse-1
+click for both purposes, depending on whether you click outside or
+inside a link.  With release 21.4, the behaviour of a Mouse-1 click
+has been changed to match this context-sentitive dual behaviour.
+
+Depending on the current mode, a Mouse-2 click in Emacs may do much
+more than just follow a link, so the new Mouse-1 behaviour is only
+activated for modes which explicitly mark a clickable text as a "link"
+(see the new function `mouse-on-link-p' for details).  The lisp
+packages that are included in release 21.4 have been adapted to do
+this, but external packages may not yet support this.  However, there
+is no risk in using such packages, as the worst thing that could
+happen is that you get the original Mouse-1 behaviour when you click
+on a link, which typically means that you set point where you click.
+
+If you want to get the original Mouse-1 action also inside a link, you
+just need to press the Mouse-1 button a little longer than a normal
+click (i.e. press and hold the Mouse-1 button for half a second before
+you release it).
+
+Dragging the Mouse-1 inside a link still performs the original
+drag-mouse-1 action, typically copy the text.
+
+You can customize the new Mouse-1 behaviour via the new user option
+`mouse-1-click-follows-link'.
+
++++
+** require-final-newline now has two new possible values:
+
+`visit' means add a newline (as an undoable change) if it's needed
+when visiting the file.
+
+`visit-save' means add a newline (as an undoable change) if it's
+needed when visiting the file, and also add a newline if it's needed
+when saving the file.
+
++++
+** The new option mode-require-final-newline controls how certain
+major modes enable require-final-newline.  Any major mode that's
+designed for a kind of file that should normally end in a newline
+sets require-final-newline based on mode-require-final-newline.
+So you can customize mode-require-final-newline to control what these
+modes do.
+
++++
+** When the undo information of the current command gets really large
+(beyond the value of `undo-outer-limit'), Emacs asks you whether to
+discard it or keep it.
+
 ** line-move-ignore-invisible now defaults to t.
 
 ** In Outline mode, hide-body no longer hides lines at the top
 of the file that precede the first header line.
-
-+++
-** `set-auto-mode' now gives the interpreter magic line (if present)
-precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
-will give the buffer XML or SGML mode, based on the new var
-`magic-mode-alist'.
-
-+++
-** New function `looking-back' checks whether a regular expression matches
-the text before point.  Specifying the LIMIT argument bounds how far
-back the match can start; this is a way to keep it from taking too long.
-
-+++
-** New functions `make-progress-reporter', `progress-reporter-update',
-`progress-reporter-force-update' and `progress-reporter-done' provide
-a simple and efficient way of printing progress messages to the user.
 
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
@@ -596,6 +638,27 @@ command is bound to M-o. A new command dired-mark-omitted, bound to M-O,
 marks omitted files. The variable dired-omit-files-p is obsoleted, use the
 mode toggling function instead.
 
++++
+** find-file-read-only visits multiple files in read-only mode,
+when the file name contains wildcard characters.
+
++++
+** find-alternate-file replaces the current file with multiple files,
+when the file name contains wildcard characters.
+
+** FFAP
+
++++
+*** New ffap commands and keybindings: C-x C-r (`ffap-read-only'),
+C-x C-v (`ffap-alternate-file'), C-x C-d (`ffap-list-directory'),
+C-x 4 r (`ffap-read-only-other-window'), C-x 4 d (`ffap-dired-other-window'),
+C-x 5 r (`ffap-read-only-other-frame'), C-x 5 d (`ffap-dired-other-frame').
+
+---
+*** FFAP accepts wildcards in a file name by default.  C-x C-f passes
+it to `find-file' with non-nil WILDCARDS argument, which visits
+multiple files, and C-x d passes it to `dired'.
+
 ** Info mode:
 
 *** A numeric prefix argument of `info' selects an Info buffer
@@ -942,6 +1005,9 @@ be navigated with the arrow keys (like Gtk+, Mac and W32).
 ESC, like they do for Gtk+, Mac and W32.
 
 ---
+**  Dialogs and menus pop down when pressing C-g.
+
+---
 ** The menu item "Open File..." has been split into two items, "New File..."
 and "Open File...".  "Open File..." now opens only existing files.  This is
 to support existing GUI file selection dialogs better.
@@ -1063,6 +1129,12 @@ to the count of replacements already made by the replacement command.
 All regular expression replacement commands now allow `\?' in the
 replacement string to specify a position where the replacement string
 can be edited for each replacement.
+
+** query-replace uses isearch lazy highlighting when the new user option
+`query-replace-lazy-highlight' is non-nil.
+
+** The current match in query-replace is highlighted in new face
+`query-replace' which by default inherits from isearch face.
 
 +++
 ** Emacs normally highlights mouse sensitive text whenever the mouse
@@ -1368,7 +1440,10 @@ you hit M-C-SPC (mark-sexp), M-@ (mark-word), M-h (mark-paragraph), or
 C-M-h (mark-defun) repeatedly, the marked region extends each time, so
 you can mark the next two sexps with M-C-SPC M-C-SPC, for example.
 This feature also works for mark-end-of-sentence, if you bind that to
-a key.
+a key.  It also extends the region when the mark is active in Transient
+Mark mode, regardless of the last command.  To start a new region with
+one of marking commands in Transient Mark mode, you can deactivate the
+active region with C-g, or set the new mark with C-SPC.
 
 +++
 ** Some commands do something special in Transient Mark mode when the
@@ -1392,6 +1467,10 @@ C-g.
 ** A prefix argument is no longer required to repeat a jump to a
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+
+** Movement commands `beginning-of-buffer', `end-of-buffer',
+`beginning-of-defun', `end-of-defun' do not set the mark if the mark
+is already active in Transient Mark mode.
 
 +++
 ** In the *Occur* buffer, `o' switches to it in another window, and
@@ -1744,12 +1823,15 @@ The functions c-hungry-backspace and c-hungry-delete-forward can be
 bound to keys to get this feature without toggling a mode.
 Contributed by Kevin Ryde.
 
-*** Better control over require-final-newline.
-The variable that controls how to handle a final newline when the
-buffer is saved, require-final-newline, is now customizable on a
-per-mode basis through c-require-final-newline.  The default is to set
-it to t only in languages that mandate a final newline in source files
-(C, C++ and Objective-C).
+*** Better control over require-final-newline.  The variable that
+controls how to handle a final newline when the buffer is saved,
+require-final-newline, is now customizable on a per-mode basis through
+c-require-final-newline.  That is a list of modes, and only those
+modes set require-final-newline.  By default that's C, C++ and
+Objective-C.
+
+The specified modes set require-final-newline based on 
+mode-require-final-newline, as usual.
 
 *** Format change for syntactic context elements.
 The elements in the syntactic context returned by c-guess-basic-syntax
@@ -2091,6 +2173,14 @@ anyone has committed to the repository since you last executed
 "checkout", "update" or "commit".  That means using cvs diff options
 -rBASE -rHEAD.
 
+** New variable `hs-set-up-overlay' allows customization of the overlay
+used to effect hiding for hideshow minor mode.  Integration with isearch
+handles the overlay property `display' specially, preserving it during
+temporary overlay showing in the course of an isearch operation.
+
+** New command `recode-region' decodes the region again by a specified
+coding system.
+
 
 * New modes and packages in Emacs 21.4
 
@@ -2339,6 +2429,48 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** If a buffer sets buffer-save-without-query to non-nil,
+save-some-buffers will always save that buffer without asking
+(if it's modified).
+
++++
+** The function symbol-file tells you which file defined
+a certain function or variable.
+
+** Lisp code can now test if a given buffer position is inside a
+clickable link with the new function `mouse-on-link-p'.  This is the
+function used by the new `mouse-1-click-follows-link' functionality.
+
++++
+** (while-no-input BODY...) runs BODY, but only so long as no input
+arrives.  If the user types or clicks anything, BODY stops as if a
+quit had occurred.  while-no-input returns the value of BODY, if BODY
+finishes.  It returns nil if BODY was aborted.
+
++++
+** `set-auto-mode' now gives the interpreter magic line (if present)
+precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
+will give the buffer XML or SGML mode, based on the new var
+`magic-mode-alist'.
+
++++
+** New function `looking-back' checks whether a regular expression matches
+the text before point.  Specifying the LIMIT argument bounds how far
+back the match can start; this is a way to keep it from taking too long.
+
++++
+** New functions `make-progress-reporter', `progress-reporter-update',
+`progress-reporter-force-update' and `progress-reporter-done' provide
+a simple and efficient way for a command to present progress messages
+for the user.
+
+---
+** To manipulate the File menu using easy-menu, you must specify the
+proper name "file".  In previous Emacs versions, you had to specify
+"files", even though the menu item itself was changed to say "File"
+several versions ago.
+
++++
 ** read-from-minibuffer now accepts an additional argument KEEP-ALL
 saying to put all inputs in the history list, even empty ones.
 
@@ -2581,8 +2713,10 @@ strings by giving that character a non-nil `cursor' text property.
 around potentially blocking or long-running code in timers
 and post-command-hooks.
 
-** An unconditional face specification in defface (one where the DISPLAY part
-is just t) applies to all cases and does not override subsequent entries.
+** The first face specification element in a defface can specify
+`default' instead of frame classification.  Then its attributes act as
+defaults that apply to all the subsequent cases (and may be overridden
+by them).
 
 +++
 ** New face attribute `min-colors' can be used to tailor the face color
@@ -3011,6 +3145,10 @@ be inserted is translated through it.
 ** `load-history' can now have elements of the form (t . FUNNAME),
 which means FUNNAME was previously defined as an autoload (before the
 current file redefined it).
+
++++
+** `load-history' now records (defun . FUNNAME) when a function is
+defined.  For a variable, it records just the variable name.
 
 +++
 ** New Lisp library testcover.el works with edebug to help you determine
@@ -6462,9 +6600,8 @@ function was declared obsolete.
 ** Function `plist-member' is renamed from `widget-plist-member' (which is
 retained as an alias).
 
-** Easy-menu's :filter now works as in XEmacs.
-It takes the unconverted (i.e. XEmacs) form of the menu and the result
-is automatically converted to Emacs' form.
+** Easy-menu's :filter now takes the unconverted form of the menu and
+the result is automatically converted to Emacs' form.
 
 ** The new function `window-list' has been defined
 

@@ -460,16 +460,14 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (make-local-variable 'calc-allow-ret)
     (setq calc-allow-ret allow-ret)
     (erase-buffer)
+    (add-hook 'kill-buffer-hook (lambda () 
+                                  (let ((calc-edit-handler nil))
+                                    (calc-edit-finish t))
+                                  (message "(Cancelled)")) t t)
     (insert (or title title "Calc Edit Mode")
-	    ".  Press "
-	    (if (eq (lookup-key (current-global-map) "\e#") 'calc-dispatch)
-		"M-# M-# or C-c C-c"
-	      (if allow-ret "C-c C-c" "RET"))
-	    " to finish, "
-	    (if (eq (lookup-key (current-global-map) "\e#") 'calc-dispatch)
-		"M-# x"
-	      "C-x k RET")
-	    " to cancel.\n")))
+	    ".  Press `C-c C-c'"
+            (if allow-ret "" " or RET")
+	    " to finish, `C-x k RET' to cancel.\n")))
 (put 'calc-edit-mode 'mode-class 'special)
 
 (defun calc-show-edit-buffer ()

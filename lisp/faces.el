@@ -854,12 +854,15 @@ Otherwise, return a single face."
 		      (get-char-property (point) 'face)))
 	faces)
     ;; Make a list of the named faces that the `face' property uses.
-    (if (listp faceprop)
+    (if (and (listp faceprop)
+	     ;; Don't treat an attribute spec as a list of faces.
+	     (not (keywordp (car faceprop)))
+	     (not (memq (car faceprop) '(foreground-color background-color))))
 	(dolist (f faceprop)
 	  (if (symbolp f)
 	      (push f faces)))
       (if (symbolp faceprop)
-	  (setq faces (list faceprop))))
+	  (push faceprop faces)))
     ;; If there are none, try to get a face name from the buffer.
     (if (and (null faces)
 	     (memq (intern-soft (thing-at-point 'symbol)) (face-list)))
@@ -1334,21 +1337,29 @@ If SPEC is nil, return nil."
   (unless frame
     (setq frame (selected-frame)))
   (let ((tail spec)
-	result all)
+	result defaults)
     (while tail
       (let* ((entry (pop tail))
 	     (display (car entry))
-	     (attrs (cdr entry)))
-	(when (face-spec-set-match-display display frame)
-	  (setq result (if (null (cdr attrs)) ;; was (listp (car attrs))
-			   ;; Old-style entry, the attribute list is the
-			   ;; first element.
-			   (car attrs)
-			 attrs))
-	  (if (eq display t)
-	      (setq all result result nil)
+	     (attrs (cdr entry))
+	     thisval)
+	;; Get the attributes as actually specified by this alternative.
+	(setq thisval
+	      (if (null (cdr attrs)) ;; was (listp (car attrs))
+		  ;; Old-style entry, the attribute list is the
+		  ;; first element.
+		  (car attrs)
+		attrs))
+
+	;; If the condition is `default', that sets the default
+	;; for following conditions.
+	(if (eq display 'default)
+	    (setq defaults thisval)
+	  ;; Otherwise, if it matches, use it.
+	  (when (face-spec-set-match-display display frame)
+	    (setq result thisval)
 	    (setq tail nil)))))
-    (if all (append result all) result)))
+    (if defaults (append result defaults) result)))
 
 
 (defun face-spec-reset-face (face &optional frame)
@@ -1775,7 +1786,7 @@ created."
 
 
 (defface mode-line
-  '((((type x w32 mac) (class color))
+  '((((class color) (min-colors 88))
      :box (:line-width -1 :style released-button)
      :background "grey75" :foreground "black")
     (t
@@ -1786,13 +1797,13 @@ created."
   :group 'basic-faces)
 
 (defface mode-line-inactive
-  '((t
+  '((default
      :inherit mode-line)
-    (((type x w32 mac) (background light) (class color))
+    (((class color) (min-colors 88) (background light))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
      :foreground "grey20" :background "grey90")
-    (((type x w32 mac) (background dark) (class color))
+    (((class color) (min-colors 88) (background dark) )
      :weight light
      :box (:line-width -1 :color "grey40" :style nil)
      :foreground "grey80" :background "grey30"))
@@ -1806,7 +1817,7 @@ created."
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
-  '((t
+  '((default
      :inherit mode-line)
     (((type tty))
      ;; This used to be `:inverse-video t', but that doesn't look very
@@ -1842,7 +1853,7 @@ created."
 
 
 (defface tool-bar
-  '((t
+  '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
     (((type x w32 mac) (class color))
@@ -2023,8 +2034,8 @@ Note: Other faces cannot inherit from the cursor face."
 
 (defface escape-glyph '((((background dark)) :foreground "cyan")
 			(((type pc)) :foreground "magenta")
-			(t :foreground "dark blue"))
-  "Face for displaying \\ and ^ in multichar glyphs."
+			(t :foreground "blue"))
+  "Face for characters displayed as ^-sequences or \-sequences."
   :group 'basic-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

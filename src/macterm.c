@@ -511,23 +511,6 @@ mac_reset_clipping (display, w)
 }
 
 
-/* XBM bits seem to be backward within bytes compared with how
-   Mac does things.  */
-static unsigned char
-reflect_byte (orig)
-     unsigned char orig;
-{
-  int i;
-  unsigned char reflected = 0x00;
-  for (i = 0; i < 8; i++)
-    {
-      if (orig & (0x01 << i))
-	reflected |= 0x80 >> i;
-    }
-  return reflected;
-}
-
-
 /* Mac replacement for XCreateBitmapFromBitmapData.  */
 
 static void
@@ -536,6 +519,11 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
      char *bits;
      int w, h;
 {
+  static unsigned char swap_nibble[16]
+    = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
+	0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
+	0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
+	0x3, 0xb, 0x7, 0xf };  /* 0011 1011 0111 1111 */
   int i, j, w1;
   char *p;
 
@@ -547,7 +535,12 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
     {
       p = bitmap->baseAddr + i * bitmap->rowBytes;
       for (j = 0; j < w1; j++)
-        *p++ = reflect_byte (*bits++);
+	{
+	  /* Bitswap XBM bytes to match how Mac does things.  */
+	  unsigned char c = *bits++;
+	  *p++ = (unsigned char)((swap_nibble[c & 0xf] << 4)
+				 | (swap_nibble[(c>>4) & 0xf]));;
+	}
     }
 
   SetRect (&(bitmap->bounds), 0, 0, w, h);
@@ -1178,7 +1171,17 @@ static void
 x_update_begin (f)
      struct frame *f;
 {
-  /* Nothing to do.  */
+#if TARGET_API_MAC_CARBON
+  /* During update of a frame, availability of input events is
+     periodically checked with ReceiveNextEvent if
+     redisplay-dont-pause is nil.  That normally flushes window buffer
+     changes for every check, and thus screen update looks waving even
+     if no input is available.  So we disable screen updates during
+     update of a frame.  */
+  BLOCK_INPUT;
+  DisableScreenUpdates ();
+  UNBLOCK_INPUT;
+#endif
 }
 
 
@@ -1263,7 +1266,7 @@ mac_draw_vertical_window_border (w, x, y0, y1)
    make sure that the mouse-highlight is properly redrawn.
 
    W may be a menu bar pseudo-window in case we don't have X toolkit
-   support. Such windows don't have a cursor, so don't display it
+   support.  Such windows don't have a cursor, so don't display it
    here. */
 
 static void
@@ -1327,6 +1330,9 @@ x_update_end (f)
 
   mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 
+#if TARGET_API_MAC_CARBON
+  EnableScreenUpdates ();
+#endif
   XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
 }
@@ -1983,7 +1989,7 @@ x_draw_glyph_string_background (s, force_p)
 	}
       else
 #endif
-#if 0 /* defined(MAC_OS8)*/
+#ifdef MAC_OS8
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
@@ -2041,7 +2047,7 @@ x_draw_glyph_string_foreground (s)
 	for (i = 0; i < s->nchars; ++i)
 	  char1b[i] = s->char2b[i].byte2;
 
-#if 0 /* defined(MAC_OS8) */
+#ifdef MAC_OS8
       /* Draw text with XDrawString if background has already been
 	 filled.  Otherwise, use XDrawImageString.  (Note that
 	 XDrawImageString is usually faster than XDrawString.)  Always
@@ -2059,7 +2065,7 @@ x_draw_glyph_string_foreground (s)
 	    XDrawString (s->display, s->window, s->gc, x,
 			 s->ybase - boff, char1b, s->nchars);
 	}
-#if 0 /* defined(MAC_OS8)*/
+#ifdef MAC_OS8
       else
 	{
 	  if (s->two_byte_p)
@@ -3652,6 +3658,7 @@ x_get_keysym_name (keysym)
 
 
 
+#if 0
 /* Mouse clicks and mouse movement.  Rah.  */
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
@@ -3685,6 +3692,7 @@ construct_mouse_click (result, event, f)
   result->arg = Qnil;
   return Qnil;
 }
+#endif
 
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -3754,8 +3762,6 @@ int disable_mouse_highlight;
 
 static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
-static void x_check_fullscreen P_ ((struct frame *));
-static void x_check_fullscreen_move P_ ((struct frame *));
 static int glyph_rect P_ ((struct frame *f, int, int, Rect *));
 
 
@@ -4017,7 +4023,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   r.right = left + width;
   r.bottom = disp_top + disp_height;
 
-#ifdef TARGET_API_MAC_CARBON
+#if TARGET_API_MAC_CARBON
   ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0,
 		   kControlScrollBarProc, 0L);
 #else
@@ -4395,7 +4401,7 @@ activate_scroll_bars (frame)
   while (! NILP (bar))
     {
       ch = SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (bar));
-#ifdef TARGET_API_MAC_CARBON
+#if 1 /* TARGET_API_MAC_CARBON */
       ActivateControl (ch);
 #else
       SetControlMaximum (ch,
@@ -4419,10 +4425,10 @@ deactivate_scroll_bars (frame)
   while (! NILP (bar))
     {
       ch = SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (bar));
-#ifdef TARGET_API_MAC_CARBON
+#if 1 /* TARGET_API_MAC_CARBON */
       DeactivateControl (ch);
 #else
-      SetControlMaximum (ch, XINT (-1));
+      SetControlMaximum (ch, -1);
 #endif
       bar = XSCROLL_BAR (bar)->next;
     }
@@ -4466,7 +4472,7 @@ x_scroll_bar_handle_click (bar, part_code, er, bufp)
     case kControlPageDownPart:
       bufp->part = scroll_bar_below_handle;
       break;
-#ifdef TARGET_API_MAC_CARBON
+#if TARGET_API_MAC_CARBON
     default:
 #else
     case kControlIndicatorPart:
@@ -4974,13 +4980,16 @@ x_new_font (f, fontname)
       XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->cursor_gc,
 		FRAME_FONT (f));
 
+      /* Don't change the size of a tip frame; there's no point in
+	 doing it because it's done in Fx_show_tip, and it leads to
+	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
         x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
     }
 
   return build_string (fontp->full_name);
 }
-
+
 /* Give frame F the fontset named FONTSETNAME as its default font, and
    return the full name of that fontset.  FONTSETNAME may be a wildcard
    pattern; in that case, we choose some fontset that fits the pattern.
@@ -5369,6 +5378,25 @@ x_make_frame_visible (f)
 
       f->output_data.mac->asked_for_visible = 1;
 
+#if TARGET_API_MAC_CARBON
+      if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
+	{
+	  struct frame *sf = SELECTED_FRAME ();
+	  if (!FRAME_MAC_P (sf))
+	    RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
+			      kWindowCenterOnMainScreen);
+	  else
+	    RepositionWindow (FRAME_MAC_WINDOW (f),
+			      FRAME_MAC_WINDOW (sf),
+#ifdef MAC_OS_X_VERSION_10_2
+			      kWindowCascadeStartAtParentWindowScreen
+#else
+			      kWindowCascadeOnParentWindowScreen
+#endif
+			      );
+	  x_real_positions (f, &f->left_pos, &f->top_pos);
+	}
+#endif
       ShowWindow (FRAME_MAC_WINDOW (f));
     }
 
@@ -5496,6 +5524,9 @@ x_free_frame_resources (f)
 
   x_free_gcs (f);
 
+  if (FRAME_SIZE_HINTS (f))
+    xfree (FRAME_SIZE_HINTS (f));
+
   xfree (f->output_data.mac);
   f->output_data.mac = NULL;
 
@@ -5548,143 +5579,39 @@ x_wm_set_size_hint (f, flags, user_position)
      long flags;
      int user_position;
 {
-#if 0 /* MAC_TODO: connect this to the Appearance Manager */
-  XSizeHints size_hints;
+  int base_width, base_height, width_inc, height_inc;
+  int min_rows = 0, min_cols = 0;
+  XSizeHints *size_hints;
 
-#ifdef USE_X_TOOLKIT
-  Arg al[2];
-  int ac = 0;
-  Dimension widget_width, widget_height;
-  Window window = XtWindow (f->output_data.x->widget);
-#else /* not USE_X_TOOLKIT */
-  Window window = FRAME_X_WINDOW (f);
-#endif /* not USE_X_TOOLKIT */
+  base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+  base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
+  width_inc = FRAME_COLUMN_WIDTH (f);
+  height_inc = FRAME_LINE_HEIGHT (f);
 
-  /* Setting PMaxSize caused various problems.  */
-  size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
+  check_frame_size (f, &min_rows, &min_cols);
 
-  size_hints.x = f->left_pos;
-  size_hints.y = f->top_pos;
+  size_hints = FRAME_SIZE_HINTS (f);
+  if (size_hints == NULL)
+    {
+      size_hints = FRAME_SIZE_HINTS (f) = xmalloc (sizeof (XSizeHints));
+      bzero (size_hints, sizeof (XSizeHints));
+    }
 
-#ifdef USE_X_TOOLKIT
-  XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
-  XtSetArg (al[ac], XtNheight, &widget_height); ac++;
-  XtGetValues (f->output_data.x->widget, al, ac);
-  size_hints.height = widget_height;
-  size_hints.width = widget_width;
-#else /* not USE_X_TOOLKIT */
-  size_hints.height = FRAME_PIXEL_HEIGHT (f);
-  size_hints.width = FRAME_PIXEL_WIDTH (f);
-#endif /* not USE_X_TOOLKIT */
+  size_hints->flags |= PResizeInc | PMinSize | PBaseSize ;
+  size_hints->width_inc  = width_inc;
+  size_hints->height_inc = height_inc;
+  size_hints->min_width  = base_width + min_cols * width_inc;
+  size_hints->min_height = base_height + min_rows * height_inc;
+  size_hints->base_width  = base_width;
+  size_hints->base_height = base_height;
 
-  size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
-  size_hints.height_inc = FRAME_LINE_HEIGHT (f);
-  size_hints.max_width
-    = FRAME_X_DISPLAY_INFO (f)->width - FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-  size_hints.max_height
-    = FRAME_X_DISPLAY_INFO (f)->height - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
-
-  /* Calculate the base and minimum sizes.
-
-     (When we use the X toolkit, we don't do it here.
-     Instead we copy the values that the widgets are using, below.)  */
-#ifndef USE_X_TOOLKIT
-  {
-    int base_width, base_height;
-    int min_rows = 0, min_cols = 0;
-
-    base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-    base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
-
-    check_frame_size (f, &min_rows, &min_cols);
-
-    /* The window manager uses the base width hints to calculate the
-       current number of rows and columns in the frame while
-       resizing; min_width and min_height aren't useful for this
-       purpose, since they might not give the dimensions for a
-       zero-row, zero-column frame.
-
-       We use the base_width and base_height members if we have
-       them; otherwise, we set the min_width and min_height members
-       to the size for a zero x zero frame.  */
-
-#ifdef HAVE_X11R4
-    size_hints.flags |= PBaseSize;
-    size_hints.base_width = base_width;
-    size_hints.base_height = base_height;
-    size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
-    size_hints.min_height = base_height + min_rows * size_hints.height_inc;
-#else
-    size_hints.min_width = base_width;
-    size_hints.min_height = base_height;
-#endif
-  }
-
-  /* If we don't need the old flags, we don't need the old hint at all.  */
   if (flags)
+    size_hints->flags = flags;
+  else if (user_position)
     {
-      size_hints.flags |= flags;
-      goto no_read;
+      size_hints->flags &= ~ PPosition;
+      size_hints->flags |= USPosition;
     }
-#endif /* not USE_X_TOOLKIT */
-
-  {
-    XSizeHints hints;		/* Sometimes I hate X Windows... */
-    long supplied_return;
-    int value;
-
-#ifdef HAVE_X11R4
-    value = XGetWMNormalHints (FRAME_X_DISPLAY (f), window, &hints,
-			       &supplied_return);
-#else
-    value = XGetNormalHints (FRAME_X_DISPLAY (f), window, &hints);
-#endif
-
-#ifdef USE_X_TOOLKIT
-    size_hints.base_height = hints.base_height;
-    size_hints.base_width = hints.base_width;
-    size_hints.min_height = hints.min_height;
-    size_hints.min_width = hints.min_width;
-#endif
-
-    if (flags)
-      size_hints.flags |= flags;
-    else
-      {
-	if (value == 0)
-	  hints.flags = 0;
-	if (hints.flags & PSize)
-	  size_hints.flags |= PSize;
-	if (hints.flags & PPosition)
-	  size_hints.flags |= PPosition;
-	if (hints.flags & USPosition)
-	  size_hints.flags |= USPosition;
-	if (hints.flags & USSize)
-	  size_hints.flags |= USSize;
-      }
-  }
-
-#ifndef USE_X_TOOLKIT
- no_read:
-#endif
-
-#ifdef PWinGravity
-  size_hints.win_gravity = f->win_gravity;
-  size_hints.flags |= PWinGravity;
-
-  if (user_position)
-    {
-      size_hints.flags &= ~ PPosition;
-      size_hints.flags |= USPosition;
-    }
-#endif /* PWinGravity */
-
-#ifdef HAVE_X11R4
-  XSetWMNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
-#else
-  XSetNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
-#endif
-#endif /* MAC_TODO */
 }
 
 #if 0 /* MAC_TODO: hide application instead of iconify? */
@@ -5976,7 +5903,7 @@ mac_to_x_fontname (name, size, style, scriptcode, encoding_base)
 	strcpy(cs, "mac-cyrillic");
 	break;
       case kTextEncodingMacCentralEurRoman:
-	strcpy(cs, "mac-centraleuropean");
+	strcpy(cs, "mac-centraleurroman");
 	break;
       case kTextEncodingMacSymbol:
       case kTextEncodingMacDingbats:
@@ -6034,7 +5961,7 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
     coding_system = Qeuc_kr;
   else if (strcmp (cs, "mac-roman") == 0
 	   || strcmp (cs, "mac-cyrillic") == 0
-	   || strcmp (cs, "mac-centraleuropean") == 0
+	   || strcmp (cs, "mac-centraleurroman") == 0
 	   || strcmp (cs, "adobe-fontspecific") == 0)
     strcpy (mf, family);
   else
@@ -6120,7 +6047,7 @@ init_font_name_table ()
 	    break;
 	  sc = GetTextEncodingBase (encoding);
 	  decode_mac_font_name (name, sizeof (name), sc);
-				       
+
 	  /* Point the instance iterator at the current font family.  */
 	  if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
 	    break;
@@ -6259,6 +6186,19 @@ init_font_name_table ()
 }
 
 
+void
+mac_clear_font_name_table ()
+{
+  int i;
+
+  for (i = 0; i < font_name_count; i++)
+    xfree (font_name_table[i]);
+  xfree (font_name_table);
+  font_name_table = NULL;
+  font_name_table_size = font_name_count = 0;
+}
+
+
 enum xlfd_scalable_field_index
   {
     XLFD_SCL_PIXEL_SIZE,
@@ -6276,6 +6216,28 @@ static int xlfd_scalable_fields[] =
   };
 
 static Lisp_Object
+mac_c_string_match (regexp, string, nonspecial, exact)
+     Lisp_Object regexp;
+     const char *string, *nonspecial;
+     int exact;
+{
+  if (exact)
+    {
+      if (strcmp (string, nonspecial) == 0)
+	return build_string (string);
+    }
+  else if (strstr (string, nonspecial))
+    {
+      Lisp_Object str = build_string (string);
+
+      if (fast_string_match (regexp, str) >= 0)
+	return str;
+    }
+
+  return Qnil;
+}
+
+static Lisp_Object
 mac_do_list_fonts (pattern, maxnames)
      char *pattern;
      int maxnames;
@@ -6286,6 +6248,11 @@ mac_do_list_fonts (pattern, maxnames)
   char scaled[256];
   char *ptr;
   int scl_val[XLFD_SCL_LAST], *field, *val;
+  char *longest_start, *cur_start, *nonspecial;
+  int longest_len, exact;
+
+  if (font_name_table == NULL)  /* Initialize when first used.  */
+    init_font_name_table ();
 
   for (i = 0; i < XLFD_SCL_LAST; i++)
     scl_val[i] = -1;
@@ -6343,34 +6310,60 @@ mac_do_list_fonts (pattern, maxnames)
   ptr = regex;
   *ptr++ = '^';
 
-  /* Turn pattern into a regexp and do a regexp match.  */
+  longest_start = cur_start = ptr;
+  longest_len = 0;
+  exact = 1;
+
+  /* Turn pattern into a regexp and do a regexp match.  Also find the
+     longest substring containing no special characters.  */
   for (; *pattern; pattern++)
     {
-      if (*pattern == '?')
-        *ptr++ = '.';
-      else if (*pattern == '*')
-        {
-          *ptr++ = '.';
-          *ptr++ = '*';
-        }
+      if (*pattern == '?' || *pattern == '*')
+	{
+	  if (ptr - cur_start > longest_len)
+	    {
+	      longest_start = cur_start;
+	      longest_len = ptr - cur_start;
+	    }
+	  exact = 0;
+
+	  if (*pattern == '?')
+	    *ptr++ = '.';
+	  else /* if (*pattern == '*') */
+	    {
+	      *ptr++ = '.';
+	      *ptr++ = '*';
+	    }
+	  cur_start = ptr;
+	}
       else
-        *ptr++ = tolower (*pattern);
+	*ptr++ = tolower (*pattern);
     }
+
+  if (ptr - cur_start > longest_len)
+    {
+      longest_start = cur_start;
+      longest_len = ptr - cur_start;
+    }
+
   *ptr = '$';
   *(ptr + 1) = '\0';
+
+  nonspecial = xmalloc (longest_len + 1);
+  strncpy (nonspecial, longest_start, longest_len);
+  nonspecial[longest_len] = '\0';
 
   pattern_regex = build_string (regex);
 
   for (i = 0; i < font_name_count; i++)
     {
-      fontname = build_string (font_name_table[i]);
-      if (fast_string_match (pattern_regex, fontname) >= 0)
+      fontname = mac_c_string_match (pattern_regex, font_name_table[i],
+				     nonspecial, exact);
+      if (!NILP (fontname))
 	{
 	  font_list = Fcons (fontname, font_list);
-
-          n_fonts++;
-          if (maxnames > 0 && n_fonts >= maxnames)
-            break;
+	  if (exact || maxnames > 0 && ++n_fonts >= maxnames)
+	    break;
 	}
       else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0
 	       && (ptr = strstr (font_name_table[i], "-0-0-75-75-m-0-")))
@@ -6384,17 +6377,19 @@ mac_do_list_fonts (pattern, maxnames)
 		   scl_val[XLFD_SCL_POINT_SIZE],
 		   scl_val[XLFD_SCL_AVGWIDTH],
 		   ptr + sizeof ("-0-0-75-75-m-0-") - 1);
-	  fontname = build_string (scaled);
-	  if (fast_string_match (pattern_regex, fontname) >= 0)
+	  fontname = mac_c_string_match (pattern_regex, scaled,
+					 nonspecial, exact);
+	  if (!NILP (fontname))
 	    {
 	      font_list = Fcons (fontname, font_list);
-
-	      n_fonts++;
-	      if (maxnames > 0 && n_fonts >= maxnames)
+	      if (exact || maxnames > 0 && ++n_fonts >= maxnames)
 		break;
 	    }
 	}
     }
+
+  xfree (nonspecial);
+
   return font_list;
 }
 
@@ -6413,9 +6408,6 @@ x_list_fonts (struct frame *f,
   Lisp_Object newlist = Qnil, tem, key;
   struct mac_display_info *dpyinfo = f ? FRAME_MAC_DISPLAY_INFO (f) : NULL;
 
-  if (font_name_table == NULL)  /* Initialize when first used.  */
-    init_font_name_table ();
-
   if (dpyinfo)
     {
       tem = XCDR (dpyinfo->name_list_element);
@@ -6429,7 +6421,9 @@ x_list_fonts (struct frame *f,
 	}
     }
 
+  BLOCK_INPUT;
   newlist = mac_do_list_fonts (SDATA (pattern), maxnames);
+  UNBLOCK_INPUT;
 
   /* MAC_TODO: add code for matching outline fonts here */
 
@@ -6733,6 +6727,18 @@ XLoadQueryFont (Display *dpy, char *fontname)
 }
 
 
+void
+mac_unload_font (dpyinfo, font)
+     struct mac_display_info *dpyinfo;
+     XFontStruct *font;
+{
+  xfree (font->fontname);
+  if (font->per_char)
+    xfree (font->per_char);
+  xfree (font);
+}
+
+
 /* Load font named FONTNAME of the size SIZE for frame F, and return a
    pointer to the structure font_info while allocating it dynamically.
    If SIZE is 0, load any size of font.
@@ -6783,7 +6789,9 @@ x_load_font (f, fontname, size)
     if (size > 0 && !NILP (font_names))
       fontname = (char *) SDATA (XCAR (font_names));
 
+    BLOCK_INPUT;
     font = (MacFontStruct *) XLoadQueryFont (FRAME_MAC_DISPLAY (f), fontname);
+    UNBLOCK_INPUT;
     if (!font)
       return NULL;
 
@@ -7063,15 +7071,21 @@ do_ae_print_documents (const AppleEvent *, AppleEvent *, long);
 static pascal OSErr do_ae_open_documents (AppleEvent *, AppleEvent *, long);
 static pascal OSErr do_ae_quit_application (AppleEvent *, AppleEvent *, long);
 
+#if TARGET_API_MAC_CARBON
 /* Drag and Drop */
-static OSErr init_mac_drag_n_drop ();
+static pascal OSErr mac_do_track_drag (DragTrackingMessage, WindowPtr, void*, DragReference);
 static pascal OSErr mac_do_receive_drag (WindowPtr, void*, DragReference);
+#endif
 
 #if USE_CARBON_EVENTS
 /* Preliminary Support for the OSX Services Menu */
 static OSStatus mac_handle_service_event (EventHandlerCallRef,EventRef,void*);
 static void init_service_handler ();
+/* Window Event Handler */
+static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
+						EventRef, void *);
 #endif
+OSErr install_window_handler (WindowPtr);
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
@@ -7278,12 +7292,11 @@ do_window_update (WindowPtr win)
 {
   struct frame *f = mac_window_to_frame (win);
 
-  if (win == tip_window)
-    /* The tooltip has been drawn already.  Avoid the
-       SET_FRAME_GARBAGED below.  */
-    return;
+  BeginUpdate (win);
 
-  if (f)
+  /* The tooltip has been drawn already.  Avoid the SET_FRAME_GARBAGED
+     below.  */
+  if (win != tip_window)
     {
       if (f->async_visible == 0)
         {
@@ -7300,17 +7313,30 @@ do_window_update (WindowPtr win)
         }
       else
         {
-          BeginUpdate (win);
+	  Rect r;
+
           handling_window_update = 1;
 
-	  XClearWindow (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+#if TARGET_API_MAC_CARBON
+	  {
+	    RgnHandle region = NewRgn ();
 
-          expose_frame (f, 0, 0, 0, 0);
+	    GetPortVisibleRegion (GetWindowPort (win), region);
+	    UpdateControls (win, region);
+	    GetRegionBounds (region, &r);
+	    DisposeRgn (region);
+	  }
+#else
+	  UpdateControls (win, win->visRgn);
+	  r = (*win->visRgn)->rgnBBox;
+#endif
+	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
 
           handling_window_update = 0;
-          EndUpdate (win);
         }
     }
+
+  EndUpdate (win);
 }
 
 static int
@@ -7472,20 +7498,43 @@ do_menu_choice (SInt32 menu_choice)
 static void
 do_grow_window (WindowPtr w, EventRecord *e)
 {
-  long grow_size;
   Rect limit_rect;
-  int rows, columns;
+  int rows, columns, width, height;
   struct frame *f = mac_window_to_frame (w);
+  XSizeHints *size_hints = FRAME_SIZE_HINTS (f);
+  int min_width = MIN_DOC_SIZE, min_height = MIN_DOC_SIZE;
+#if TARGET_API_MAC_CARBON
+  Rect new_rect;
+#else
+  long grow_size;
+#endif
 
-  SetRect(&limit_rect, MIN_DOC_SIZE, MIN_DOC_SIZE, MAX_DOC_SIZE, MAX_DOC_SIZE);
-
-  grow_size = GrowWindow (w, e->where, &limit_rect);
-
-  /* see if it really changed size */
-  if (grow_size != 0)
+  if (size_hints->flags & PMinSize)
     {
-      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, HiWord (grow_size));
-      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, LoWord (grow_size));
+      min_width  = size_hints->min_width;
+      min_height = size_hints->min_height;
+    }
+  SetRect (&limit_rect, min_width, min_height, MAX_DOC_SIZE, MAX_DOC_SIZE);
+
+#if TARGET_API_MAC_CARBON
+  if (!ResizeWindow (w, e->where, &limit_rect, &new_rect))
+    return;
+  height = new_rect.bottom - new_rect.top;
+  width = new_rect.right - new_rect.left;
+#else
+  grow_size = GrowWindow (w, e->where, &limit_rect);
+  /* see if it really changed size */
+  if (grow_size == 0)
+    return;
+  height = HiWord (grow_size);
+  width = LoWord (grow_size);
+#endif
+
+  if (width != FRAME_PIXEL_WIDTH (f)
+      || height != FRAME_PIXEL_HEIGHT (f))
+    {
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
+      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
 
       x_set_window_size (f, 0, columns, rows);
     }
@@ -7503,7 +7552,7 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   GrafPtr save_port;
   Rect zoom_rect, port_rect;
   Point top_left;
-  int w_title_height, columns, rows;
+  int w_title_height, columns, rows, width, height;
   struct frame *f = mac_window_to_frame (w);
 
 #if TARGET_API_MAC_CARBON
@@ -7578,18 +7627,23 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
 #else
   port_rect = w->portRect;
 #endif
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, port_rect.bottom - port_rect.top);
-  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, port_rect.right - port_rect.left);
-  x_set_window_size (f, 0, columns, rows);
-  x_real_positions (f, &f->left_pos, &f->top_pos);
-}
+  height = port_rect.bottom - port_rect.top;
+  width = port_rect.right - port_rect.left;
 
-/* Initialize Drag And Drop to allow files to be dropped onto emacs frames */
-static OSErr
-init_mac_drag_n_drop ()
-{
-  OSErr result = InstallReceiveHandler (mac_do_receive_drag, 0L, NULL);
-  return result;
+  if (width != FRAME_PIXEL_WIDTH (f)
+      || height != FRAME_PIXEL_HEIGHT (f))
+    {
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
+      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
+
+      change_frame_size (f, rows, columns, 0, 1, 0);
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
+
+      FRAME_PIXEL_WIDTH (f) = width;
+      FRAME_PIXEL_HEIGHT (f) = height;
+    }
+  x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
 /* Intialize AppleEvent dispatcher table for the required events.  */
@@ -7761,7 +7815,102 @@ mac_handle_service_event (EventHandlerCallRef callRef,
     }
   return err;
 }
+
+
+static pascal OSStatus
+mac_handle_window_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  extern Lisp_Object Qcontrol;
+
+  WindowPtr wp;
+  OSStatus result;
+  UInt32 attributes;
+  XSizeHints *size_hints;
+
+  GetEventParameter (event, kEventParamDirectObject, typeWindowRef,
+		     NULL, sizeof (WindowPtr), NULL, &wp);
+
+  switch (GetEventKind (event))
+    {
+    case kEventWindowBoundsChanging:
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      GetEventParameter (event, kEventParamAttributes, typeUInt32,
+			 NULL, sizeof (UInt32), NULL, &attributes);
+      size_hints = FRAME_SIZE_HINTS (mac_window_to_frame (wp));
+      if ((attributes & kWindowBoundsChangeUserResize)
+	  && ((size_hints->flags & (PResizeInc | PBaseSize | PMinSize))
+	      == (PResizeInc | PBaseSize | PMinSize)))
+	{
+	  Rect bounds;
+	  int width, height;
+
+	  GetEventParameter (event, kEventParamCurrentBounds,
+			     typeQDRectangle,
+			     NULL, sizeof (Rect), NULL, &bounds);
+	  width = bounds.right - bounds.left;
+	  height = bounds.bottom - bounds.top;
+
+	  if (width < size_hints->min_width)
+	    width = size_hints->min_width;
+	  else
+	    width = size_hints->base_width
+	      + (int) ((width - size_hints->base_width)
+		       / (float) size_hints->width_inc + .5)
+	      * size_hints->width_inc;
+
+	  if (height < size_hints->min_height)
+	    height = size_hints->min_height;
+	  else
+	    height = size_hints->base_height
+	      + (int) ((height - size_hints->base_height)
+		       / (float) size_hints->height_inc + .5)
+	      * size_hints->height_inc;
+
+	  bounds.right = bounds.left + width;
+	  bounds.bottom = bounds.top + height;
+	  SetEventParameter (event, kEventParamCurrentBounds,
+			     typeQDRectangle, sizeof (Rect), &bounds);
+	  return noErr;
+	}
+      break;
+    }
+
+  return eventNotHandledErr;
+}
+#endif	/* USE_CARBON_EVENTS */
+
+
+OSErr
+install_window_handler (window)
+     WindowPtr window;
+{
+  OSErr err = noErr;
+#if USE_CARBON_EVENTS
+  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowBoundsChanging}};
+  static EventHandlerUPP handle_window_event_UPP = NULL;
+
+  if (handle_window_event_UPP == NULL)
+    handle_window_event_UPP = NewEventHandlerUPP (mac_handle_window_event);
+
+  err = InstallWindowEventHandler (window, handle_window_event_UPP,
+				   GetEventTypeCount (specs), specs,
+				   NULL, NULL);
 #endif
+#if TARGET_API_MAC_CARBON
+  if (err == noErr)
+    err = InstallTrackingHandler (mac_do_track_drag, window, NULL);
+  if (err == noErr)
+    err = InstallReceiveHandler (mac_do_receive_drag, window, NULL);
+#endif
+  return err;
+}
+
 
 /* Open Application Apple Event */
 static pascal OSErr
@@ -7779,6 +7928,17 @@ path_from_vol_dir_name (char *, int, short, long, char *);
 /* Called when we receive an AppleEvent with an ID of
    "kAEOpenDocuments".  This routine gets the direct parameter,
    extracts the FSSpecs in it, and puts their names on a list.  */
+#pragma options align=mac68k
+typedef struct SelectionRange {
+  short unused1; // 0 (not used)
+  short lineNum; // line to select (<0 to specify range)
+  long startRange; // start of selection range (if line < 0)
+  long endRange; // end of selection range (if line < 0)
+  long unused2; // 0 (not used)
+  long theDate; // modification date/time
+} SelectionRange;
+#pragma options align=reset
+
 static pascal OSErr
 do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 {
@@ -7787,10 +7947,18 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
   AEKeyword keyword;
   DescType actual_type;
   Size actual_size;
+  SelectionRange position;
 
   err = AEGetParamDesc (message, keyDirectObject, typeAEList, &the_desc);
   if (err != noErr)
     goto descriptor_error_exit;
+
+  err = AEGetParamPtr (message, keyAEPosition, typeChar, &actual_type, &position, sizeof(SelectionRange), &actual_size);
+  if (err == noErr)
+    drag_and_drop_file_list = Fcons (list3 (make_number (position.lineNum + 1),
+					    make_number (position.startRange + 1),
+					    make_number (position.endRange + 1)),
+				     drag_and_drop_file_list);
 
   /* Check to see that we got all of the required parameters from the
      event descriptor.  For an 'odoc' event this should just be the
@@ -7841,8 +8009,11 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 					fs.name) &&
 		mac_to_posix_pathname (path_name, unix_path_name, 255))
 #endif
-	      drag_and_drop_file_list = Fcons (build_string (unix_path_name),
-					       drag_and_drop_file_list);
+	      /* x-dnd functions expect undecoded filenames.  */
+	      drag_and_drop_file_list =
+		Fcons (make_unibyte_string (unix_path_name,
+					    strlen (unix_path_name)),
+		       drag_and_drop_file_list);
 	  }
       }
   }
@@ -7856,6 +8027,68 @@ descriptor_error_exit:
   return err;
 }
 
+
+#if TARGET_API_MAC_CARBON
+static pascal OSErr
+mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
+		   void *handlerRefCon, DragReference theDrag)
+{
+  static int can_accept;
+  short items;
+  short index;
+  ItemReference theItem;
+  FlavorFlags theFlags;
+  OSErr result;
+
+  switch (message)
+    {
+    case kDragTrackingEnterHandler:
+      CountDragItems (theDrag, &items);
+      can_accept = 1;
+      for (index = 1; index <= items; index++)
+	{
+	  GetDragItemReferenceNumber (theDrag, index, &theItem);
+	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
+	  if (result != noErr)
+	    {
+	      can_accept = 0;
+	      break;
+	    }
+	}
+      break;
+
+    case kDragTrackingEnterWindow:
+      if (can_accept)
+	{
+	  RgnHandle hilite_rgn = NewRgn ();
+	  Rect r;
+
+	  GetWindowPortBounds (window, &r);
+	  OffsetRect (&r, -r.left, -r.top);
+	  RectRgn (hilite_rgn, &r);
+	  ShowDragHilite (theDrag, hilite_rgn, true);
+	  DisposeRgn (hilite_rgn);
+	  SetThemeCursor (kThemeCopyArrowCursor);
+	}
+      break;
+
+    case kDragTrackingInWindow:
+      break;
+
+    case kDragTrackingLeaveWindow:
+      if (can_accept)
+	{
+	  HideDragHilite (theDrag);
+	  SetThemeCursor (kThemeArrowCursor);
+	}
+      break;
+
+    case kDragTrackingLeaveHandler:
+      break;
+    }
+
+  return noErr;
+}
 
 static pascal OSErr
 mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
@@ -7898,11 +8131,14 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 				      data.fileSpec.parID, data.fileSpec.name) &&
 	      mac_to_posix_pathname (path_name, unix_path_name, 255))
 #endif
-            drag_and_drop_file_list = Fcons (build_string (unix_path_name),
-					     drag_and_drop_file_list);
+	    /* x-dnd functions expect undecoded filenames.  */
+            drag_and_drop_file_list =
+	      Fcons (make_unibyte_string (unix_path_name,
+					  strlen (unix_path_name)),
+		     drag_and_drop_file_list);
 	}
       else
-	return;
+	continue;
     }
   /* If there are items in the list, construct an event and post it to
      the queue like an interrupt using kbd_buffer_store_event.  */
@@ -7911,12 +8147,14 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       struct input_event event;
       Lisp_Object frame;
       struct frame *f = mac_window_to_frame (window);
-      SetPortWindowPort (window);
+      SInt16 modifiers;
+
       GlobalToLocal (&mouse);
+      GetDragModifiers (theDrag, NULL, NULL, &modifiers);
 
       event.kind = DRAG_N_DROP_EVENT;
       event.code = 0;
-      event.modifiers = 0;
+      event.modifiers = mac_to_emacs_modifiers (modifiers);
       event.timestamp = TickCount () * (1000 / 60);
       XSETINT (event.x, mouse.h);
       XSETINT (event.y, mouse.v);
@@ -7931,8 +8169,13 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 	GetCurrentProcess (&psn);
 	SetFrontProcess (&psn);
       }
+
+      return noErr;
     }
+  else
+    return dragNotAcceptedErr;
 }
+#endif
 
 
 /* Print Document Apple Event */
@@ -8082,6 +8325,45 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
   return *xKeySym != 0;
 }
 
+#if !USE_CARBON_EVENTS
+static RgnHandle mouse_region = NULL;
+
+Boolean
+mac_wait_next_event (er, sleep_time, dequeue)
+     EventRecord *er;
+     UInt32 sleep_time;
+     Boolean dequeue;
+{
+  static EventRecord er_buf = {nullEvent};
+  UInt32 target_tick, current_tick;
+  EventMask event_mask;
+
+  if (mouse_region == NULL)
+    mouse_region = NewRgn ();
+
+  event_mask = everyEvent;
+  if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
+    event_mask -= highLevelEventMask;
+
+  current_tick = TickCount ();
+  target_tick = current_tick + sleep_time;
+
+  if (er_buf.what == nullEvent)
+    while (!WaitNextEvent (event_mask, &er_buf,
+			   target_tick - current_tick, mouse_region))
+      {
+	current_tick = TickCount ();
+	if (target_tick <= current_tick)
+	  return false;
+      }
+
+  *er = er_buf;
+  if (dequeue)
+    er_buf.what = nullEvent;
+  return true;
+}
+#endif /* not USE_CARBON_EVENTS */
+
 /* Emacs calls this whenever it wants to read an input event from the
    user. */
 int
@@ -8093,9 +8375,7 @@ XTread_socket (sd, expected, hold_quit)
   int count = 0;
 #if USE_CARBON_EVENTS
   EventRef eventRef;
-  EventTargetRef toolbox_dispatcher = GetEventDispatcherTarget ();
-#else
-  EventMask event_mask;
+  EventTargetRef toolbox_dispatcher;
 #endif
   EventRecord er;
   struct mac_display_info *dpyinfo = &one_mac_display_info;
@@ -8126,16 +8406,14 @@ XTread_socket (sd, expected, hold_quit)
   if (terminate_flag)
     Fkill_emacs (make_number (1));
 
-#if !USE_CARBON_EVENTS
-  event_mask = everyEvent;
-  if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
-    event_mask -= highLevelEventMask;
+#if USE_CARBON_EVENTS
+  toolbox_dispatcher = GetEventDispatcherTarget ();
 
-  while (WaitNextEvent (event_mask, &er, 0L, NULL))
-#else /* USE_CARBON_EVENTS */
   while (!ReceiveNextEvent (0, NULL, kEventDurationNoWait,
 			    kEventRemoveFromQueue, &eventRef))
-#endif /* USE_CARBON_EVENTS */
+#else /* !USE_CARBON_EVENTS */
+  while (mac_wait_next_event (&er, 0, true))
+#endif /* !USE_CARBON_EVENTS */
     {
       int do_help = 0;
       struct frame *f;
@@ -8202,6 +8480,7 @@ XTread_socket (sd, expected, hold_quit)
 	      SendEventToEventTarget (eventRef, toolbox_dispatcher);
 
 	    break;
+
 	  default:
 	    /* Send the event to the appropriate receiver.  */
 	    SendEventToEventTarget (eventRef, toolbox_dispatcher);
@@ -8439,6 +8718,10 @@ XTread_socket (sd, expected, hold_quit)
 	      break;
 
 	    case mouseMovedMessage:
+#if !USE_CARBON_EVENTS
+	      SetRectRgn (mouse_region, er.where.h, er.where.v,
+			  er.where.h + 1, er.where.v + 1);
+#endif
 	      previous_help_echo_string = help_echo_string;
 	      help_echo_string = help_echo_object = help_echo_window = Qnil;
 	      help_echo_pos = -1;
@@ -8639,21 +8922,21 @@ XTread_socket (sd, expected, hold_quit)
 		  unsigned char ch = inev.code;
 		  ByteCount actual_input_length, actual_output_length;
 		  unsigned char outbuf[32];
-		  
-                  convert_status = TECConvertText (converter, &ch, 1,
-                                                   &actual_input_length,
+
+		  convert_status = TECConvertText (converter, &ch, 1,
+						   &actual_input_length,
 						   outbuf, 1,
-                                                   &actual_output_length);
-                  if (convert_status == noErr
-                      && actual_input_length == 1
-                      && actual_output_length == 1)
+						   &actual_output_length);
+		  if (convert_status == noErr
+		      && actual_input_length == 1
+		      && actual_output_length == 1)
 		    inev.code = *outbuf;
-		  
+
 		  /* Reset internal states of the converter object.
-                   If it fails, create another one. */
+		     If it fails, create another one. */
 		  convert_status = TECFlushText (converter, outbuf,
 						 sizeof (outbuf),
-                                               &actual_output_length);
+						 &actual_output_length);
 		  if (convert_status != noErr)
 		    {
 		      TECDisposeConverter (converter);
@@ -8661,7 +8944,7 @@ XTread_socket (sd, expected, hold_quit)
 					  kTextEncodingMacRoman,
 					  mac_keyboard_text_encoding);
 		    }
-                }
+		}
 	    }
 
 #if USE_CARBON_EVENTS
@@ -8806,59 +9089,12 @@ __convert_from_newlines (unsigned char * p, size_t * n)
 }
 #endif
 
-
-/* Initialize the struct pointed to by MW to represent a new COLS x
-   ROWS Macintosh window, using font with name FONTNAME and size
-   FONTSIZE.  */
-void
-make_mac_frame (FRAME_PTR fp)
-{
-  mac_output *mwp;
-#if TARGET_API_MAC_CARBON
-  static int making_terminal_window = 0;
-#else
-  static int making_terminal_window = 1;
-#endif
-
-  mwp = fp->output_data.mac;
-
-  BLOCK_INPUT;
-  if (making_terminal_window)
-    {
-      if (!(mwp->mWP = GetNewCWindow (TERM_WINDOW_RESOURCE, NULL,
-				      (WindowPtr) -1)))
-        abort ();
-      making_terminal_window = 0;
-    }
-  else
-    {
-#if TARGET_API_MAC_CARBON
-      Rect r;
-
-      SetRect (&r, 0, 0, 1, 1);
-      if (CreateNewWindow (kDocumentWindowClass,
-			   kWindowStandardDocumentAttributes
-			   /* | kWindowToolbarButtonAttribute */,
-			   &r, &mwp->mWP) != noErr)
-#else
-      if (!(mwp->mWP = GetNewCWindow (WINDOW_RESOURCE, NULL, (WindowPtr) -1)))
-#endif
-	abort ();
-    }
-
-  SetWRefCon (mwp->mWP, (long) mwp);
-    /* so that update events can find this mac_output struct */
-  mwp->mFP = fp;  /* point back to emacs frame */
-
-  SizeWindow (mwp->mWP, FRAME_PIXEL_WIDTH (fp), FRAME_PIXEL_HEIGHT (fp), false);
-  UNBLOCK_INPUT;
-}
-
-
+#ifdef MAC_OS8
 void
 make_mac_terminal_frame (struct frame *f)
 {
   Lisp_Object frame;
+  Rect r;
 
   XSETFRAME (frame, f);
 
@@ -8882,10 +9118,17 @@ make_mac_terminal_frame (struct frame *f)
   f->output_data.mac->mouse_pixel = 0xff00ff;
   f->output_data.mac->cursor_foreground_pixel = 0x0000ff;
 
+  f->output_data.mac->text_cursor = GetCursor (iBeamCursor);
+  f->output_data.mac->nontext_cursor = &arrow_cursor;
+  f->output_data.mac->modeline_cursor = &arrow_cursor;
+  f->output_data.mac->hand_cursor = &arrow_cursor;
+  f->output_data.mac->hourglass_cursor = GetCursor (watchCursor);
+  f->output_data.mac->horizontal_drag_cursor = &arrow_cursor;
+
   FRAME_FONTSET (f) = -1;
   f->output_data.mac->explicit_parent = 0;
-  f->left_pos = 4;
-  f->top_pos = 4;
+  f->left_pos = 8;
+  f->top_pos = 32;
   f->border_width = 0;
 
   f->internal_border_width = 0;
@@ -8896,7 +9139,20 @@ make_mac_terminal_frame (struct frame *f)
   f->new_text_cols = 0;
   f->new_text_lines = 0;
 
-  make_mac_frame (f);
+  SetRect (&r, f->left_pos, f->top_pos,
+           f->left_pos + FRAME_PIXEL_WIDTH (f),
+           f->top_pos + FRAME_PIXEL_HEIGHT (f));
+
+  BLOCK_INPUT;
+
+  if (!(FRAME_MAC_WINDOW (f) =
+	NewCWindow (NULL, &r, "\p", true, dBoxProc,
+		    (WindowPtr) -1, 1, (long) f->output_data.mac)))
+    abort ();
+  /* so that update events can find this mac_output struct */
+  f->output_data.mac->mFP = f;  /* point back to emacs frame */
+
+  UNBLOCK_INPUT;
 
   x_make_gc (f);
 
@@ -8912,9 +9168,8 @@ make_mac_terminal_frame (struct frame *f)
   Fmodify_frame_parameters (frame,
                             Fcons (Fcons (Qbackground_color,
                                           build_string ("white")), Qnil));
-
-  ShowWindow (f->output_data.mac->mWP);
 }
+#endif
 
 
 /***********************************************************************
@@ -8931,12 +9186,7 @@ mac_initialize_display_info ()
 
   bzero (dpyinfo, sizeof (*dpyinfo));
 
-  /* Put it on x_display_name_list.  */
-  x_display_name_list = Fcons (Fcons (build_string ("Mac"), Qnil),
-                               x_display_name_list);
-  dpyinfo->name_list_element = XCAR (x_display_name_list);
-
-#if 0
+#ifdef MAC_OSX
   dpyinfo->mac_id_name
     = (char *) xmalloc (SCHARS (Vinvocation_name)
 			+ SCHARS (Vsystem_name)
@@ -8991,6 +9241,61 @@ mac_initialize_display_info ()
   dpyinfo->mouse_face_hidden = 0;
 }
 
+/* Create an xrdb-style database of resources to supercede registry settings.
+   The database is just a concatenation of C strings, finished by an additional
+   \0.  The string are submitted to some basic normalization, so
+
+     [ *]option[ *]:[ *]value...
+
+   becomes
+
+     option:value...
+
+   but any whitespace following value is not removed.  */
+
+static char *
+mac_make_rdb (xrm_option)
+     char *xrm_option;
+{
+  char *buffer = xmalloc (strlen (xrm_option) + 2);
+  char *current = buffer;
+  char ch;
+  int in_option = 1;
+  int before_value = 0;
+
+  do {
+    ch = *xrm_option++;
+
+    if (ch == '\n')
+      {
+        *current++ = '\0';
+        in_option = 1;
+        before_value = 0;
+      }
+    else if (ch != ' ')
+      {
+        *current++ = ch;
+        if (in_option && (ch == ':'))
+          {
+            in_option = 0;
+            before_value = 1;
+          }
+        else if (before_value)
+          {
+            before_value = 0;
+          }
+      }
+    else if (!(in_option || before_value))
+      {
+        *current++ = ch;
+      }
+  } while (ch);
+
+  *current = '\0';
+
+  return buffer;
+}
+
 struct mac_display_info *
 mac_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -8998,7 +9303,8 @@ mac_term_init (display_name, xrm_option, resource_name)
      char *resource_name;
 {
   struct mac_display_info *dpyinfo;
-  GDHandle main_device_handle;
+
+  BLOCK_INPUT;
 
   if (!mac_initialized)
     {
@@ -9006,17 +9312,90 @@ mac_term_init (display_name, xrm_option, resource_name)
       mac_initialized = 1;
     }
 
-  mac_initialize_display_info (display_name);
+  if (x_display_list)
+    error ("Sorry, this version can only handle one display");
+
+  mac_initialize_display_info ();
 
   dpyinfo = &one_mac_display_info;
 
-  main_device_handle = LMGetMainDevice();
+  dpyinfo->xrdb = xrm_option ? mac_make_rdb (xrm_option) : NULL;
 
-  dpyinfo->height = (**main_device_handle).gdRect.bottom;
-  dpyinfo->width = (**main_device_handle).gdRect.right;
+  /* Put this display on the chain.  */
+  dpyinfo->next = x_display_list;
+  x_display_list = dpyinfo;
+
+  /* Put it on x_display_name_list.  */
+  x_display_name_list = Fcons (Fcons (display_name, Qnil),
+                               x_display_name_list);
+  dpyinfo->name_list_element = XCAR (x_display_name_list);
+
+  UNBLOCK_INPUT;
 
   return dpyinfo;
 }
+/* Get rid of display DPYINFO, assuming all frames are already gone.  */
+
+void
+x_delete_display (dpyinfo)
+     struct mac_display_info *dpyinfo;
+{
+  int i;
+
+  /* Discard this display from x_display_name_list and x_display_list.
+     We can't use Fdelq because that can quit.  */
+  if (! NILP (x_display_name_list)
+      && EQ (XCAR (x_display_name_list), dpyinfo->name_list_element))
+    x_display_name_list = XCDR (x_display_name_list);
+  else
+    {
+      Lisp_Object tail;
+
+      tail = x_display_name_list;
+      while (CONSP (tail) && CONSP (XCDR (tail)))
+	{
+	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
+	    {
+	      XSETCDR (tail, XCDR (XCDR (tail)));
+	      break;
+	    }
+	  tail = XCDR (tail);
+	}
+    }
+
+  if (x_display_list == dpyinfo)
+    x_display_list = dpyinfo->next;
+  else
+    {
+      struct x_display_info *tail;
+
+      for (tail = x_display_list; tail; tail = tail->next)
+	if (tail->next == dpyinfo)
+	  tail->next = tail->next->next;
+    }
+
+  /* Free the font names in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name)
+      {
+	if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
+	  xfree (dpyinfo->font_table[i].full_name);
+	xfree (dpyinfo->font_table[i].name);
+      }
+
+  if (dpyinfo->font_table->font_encoder)
+    xfree (dpyinfo->font_table->font_encoder);
+
+  xfree (dpyinfo->font_table);
+  xfree (dpyinfo->mac_id_name);
+
+  if (x_display_list == 0)
+    {
+      mac_clear_font_name_table ();
+      bzero (dpyinfo, sizeof (*dpyinfo));
+    }
+}
+
 
 #ifdef MAC_OSX
 void
@@ -9275,12 +9654,9 @@ mac_initialize ()
 #endif
 
   BLOCK_INPUT;
-  mac_initialize_display_info ();
 
 #if TARGET_API_MAC_CARBON
   init_required_apple_events ();
-
-  init_mac_drag_n_drop ();
 
 #if USE_CARBON_EVENTS
   init_service_handler ();
@@ -9313,7 +9689,9 @@ syms_of_macterm ()
   Qsuper = intern ("super");
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
 
+#ifdef MAC_OSX
   Fprovide (intern ("mac-carbon"), Qnil);
+#endif
 
   staticpro (&Qreverse);
   Qreverse = intern ("reverse");

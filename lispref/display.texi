@@ -23,6 +23,7 @@ that Emacs presents to the user.
 * Temporary Displays::  Displays that go away automatically.
 * Overlays::            Use overlays to highlight parts of the buffer.
 * Width::               How wide a character or string is on the screen.
+* Line Height::         Controlling the height of lines.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
@@ -1510,6 +1511,102 @@ the beginning of the result if one multi-column character in
 @end example
 @end defun
 
+@node Line Height
+@section Line Height
+@cindex line height
+
+  The total height of each display line consists of the height of the
+contents of the line, and additional vertical line spacing below the
+display row.
+
+  The height of the line contents is normally determined from the
+maximum height of any character or image on that display line,
+including the final newline if there is one.  (A line that is
+continued doesn't include a final newline.)  In the most common case,
+the line height equals the height of the default frame font.
+
+  There are several ways to explicitly control or change the line
+height, either by specifying an absolute height for the display line,
+or by adding additional vertical space below one or all lines.
+
+@kindex line-height @r{(text property)}
+  A newline can have a @code{line-height} text or overlay property
+that controls the total height of the display line ending in that
+newline.
+
+  If the property value is a list @code{(@var{height} @var{total})},
+then @var{height} is used as the actual property value for the
+@code{line-height}, and @var{total} specifies the total displayed
+height of the line, so the line spacing added below the line equals
+the @var{total} height minus the actual line height.  In this case,
+the other ways to specify the line spacing are ignored.
+
+  If the property value is @code{t}, the displayed height of the
+line is exactly what its contents demand; no line-spacing is added.
+This case is useful for tiling small images or image slices without
+adding blank areas between the images.
+
+  If the property value is not @code{t}, it is a height spec.  A height
+spec stands for a numeric height value; this heigh spec specifies the
+actual line height, @var{line-height}.  There are several ways to
+write a height spec; here's how each of them translates into a numeric
+height:
+
+@table @code
+@item @var{integer}
+If the height spec is a positive integer, the height value is that integer.
+@item @var{float}
+If the height spec is a float, @var{float}, the numeric height value
+is @var{float} times the frame's default line height.
+@item (@var{face} . @var{ratio})
+If the height spec is a cons of the format shown, the numeric height
+is @var{ratio} times the height of face @var{face}.  @var{ratio} can
+be any type of number, or @code{nil} which means a ratio of 1.
+If @var{face} is @code{t}, it refers to the current face.
+@item (@code{nil} . @var{ratio})
+If the height spec is a cons of the format shown, the numeric height
+is @var{ratio} times the height of the contents of the line.
+@end table
+
+  Thus, any valid non-@code{t} property value specifies a height in pixels,
+@var{line-height}, one way or another.  If the line contents' height
+is less than @var{line-height}, Emacs adds extra vertical space above
+the line to achieve the total height @var{line-height}.  Otherwise,
+@var{line-height} has no effect.
+
+  If you don't specify the @code{line-height} propery, the line's
+height consists of the contents' height plus the line spacing.
+There are several ways to specify the line spacing for different
+parts of Emacs text.
+
+@vindex default-line-spacing
+  You can specify the line spacing for all lines in a frame with the
+@code{line-spacing} frame parameter, @xref{Window Frame Parameters}.
+However, if the variable @code{default-line-spacing} is
+non-@code{nil}, it overrides the frame's @code{line-spacing}
+parameter.  An integer value specifies the number of pixels put below
+lines on window systems.  A floating point number specifies the
+spacing relative to the frame's default line height.
+
+@vindex line-spacing
+  You can specify the line spacing for all lines in a buffer via the
+buffer-local @code{line-spacing} variable.  An integer value specifies
+the number of pixels put below lines on window systems.  A floating
+point number specifies the spacing relative to the default frame line
+height.  This overrides line spacings specified for the frame.
+
+@kindex line-spacing @r{(text property)}
+  Finally, a newline can have a @code{line-spacing} text or overlay
+property that controls the height of the display line ending with that
+newline.  The property value overrides the default frame line spacing
+and the buffer local @code{line-spacing} variable.
+
+  One way or another, these mechanisms specify a Lisp value for the
+spacing of each line.  The value is a height spec, and it translates
+into a Lisp value as described above.  However, in this case the
+numeric height value specifies the line spacing, rather than the line
+height.
+
 @node Faces
 @section Faces
 @cindex faces
@@ -2826,7 +2923,14 @@ non-@code{nil} parameter value means they do.  The frame parameter
 @code{scroll-bar-width} specifies how wide they are (@code{nil}
 meaning the default).  @xref{Window Frame Parameters}.
 
-You can also control this for individual windows.  Call the function
+@vindex vertical-scroll-bar
+  You can enable or disable scroll bars for a particular buffer,
+by setting the variable @code{vertical-scroll-bar}.  This variable
+automatically becomes buffer-local when set.  The possible values are
+@code{left}, @code{right}, @code{t}, which means to use the
+frame's default, and @code{nil} for no scroll bar.
+
+  You can also control this for individual windows.  Call the function
 @code{set-window-scroll-bars} to specify what to do for a specific window:
 
 @defun set-window-scroll-bars window width &optional vertical-type horizontal-type

@@ -1251,29 +1251,6 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
   return buf;
 }
 
-DEFUN ("buffer-disable-undo", Fbuffer_disable_undo, Sbuffer_disable_undo,
-       0, 1, "",
-       doc: /* Make BUFFER stop keeping undo information.
-No argument or nil as argument means do this for the current buffer.  */)
-     (buffer)
-     register Lisp_Object buffer;
-{
-  Lisp_Object real_buffer;
-
-  if (NILP (buffer))
-    XSETBUFFER (real_buffer, current_buffer);
-  else
-    {
-      real_buffer = Fget_buffer (buffer);
-      if (NILP (real_buffer))
-	nsberror (buffer);
-    }
-
-  XBUFFER (real_buffer)->undo_list = Qt;
-
-  return Qnil;
-}
-
 DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
        0, 1, "",
        doc: /* Start keeping undo information for buffer BUFFER.
@@ -5671,9 +5648,12 @@ A value of nil means to use the scroll bar width from the window's frame.  */);
   DEFVAR_PER_BUFFER ("vertical-scroll-bar", &current_buffer->vertical_scroll_bar_type,
 		     Qnil,
 		     doc: /* *Position of this buffer's vertical scroll bar.
-A value of left or right means to place the vertical scroll bar at that side
-of the window; a value of nil means that this window has no vertical scroll bar.
-A value of t means to use the vertical scroll bar type from the window's frame.  */);
+The value takes effect whenever you tell a window to display this buffer;
+for instance, with `set-window-buffer' or when `display-buffer' displays it.
+
+A value of `left' or `right' means put the vertical scroll bar at that side
+of the window; a value of nil means don't show any vertical scroll bars.
+A value of t (the default) means do whatever the window's frame specifies.  */);
 
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &current_buffer->indicate_empty_lines, Qnil,
@@ -5951,7 +5931,6 @@ to the default frame line height.  */);
   defsubr (&Sbuffer_modified_tick);
   defsubr (&Srename_buffer);
   defsubr (&Sother_buffer);
-  defsubr (&Sbuffer_disable_undo);
   defsubr (&Sbuffer_enable_undo);
   defsubr (&Skill_buffer);
   defsubr (&Sset_buffer_major_mode);

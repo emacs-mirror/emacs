@@ -222,7 +222,7 @@ to the action header."
   ;; movement.
 
   (set (make-local-variable 'parens-require-spaces) nil)
-  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'comment-start)  "# ")
   (set (make-local-variable 'comment-start-skip)
        "\\(\\(?:^\\|[^\\\\\n]\\)\\(?:\\\\\\\\\\)*\\)#+[ \t]*")

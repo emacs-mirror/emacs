@@ -1303,8 +1303,9 @@ The converted character representation is stored in rAX."
   (set (make-local-variable 'compile-command) (concat "mixasm -g "
 						      buffer-file-name))
   ;; mixasm will do strange when there is no final newline,
-  ;; let emacs ensure that it is always there
-  (set (make-local-variable 'require-final-newline) t))
+  ;; so let Emacs ensure that it is always there
+  (set (make-local-variable 'require-final-newline)
+       mode-require-final-newline))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.mixal\\'" . mixal-mode))
