@@ -1225,14 +1225,14 @@ It returns t if it got any new messages."
 		      (save-excursion
 			(setq new-messages (rmail-convert-to-babyl-format)
 			      success t))
+		    ;; Try to delete the garbage just inserted.
+		    (or success (delete-region (point-min) (point-max)))
 		    ;; If we could not convert the file's inboxes,
 		    ;; rename the files we tried to read
 		    ;; so we won't over and over again.
 		    (if (and (not file-name) (not success))
 			(let ((delfiles delete-files)
 			      (count 0))
-			  ;; Try to delete the garbage just inserted.
-			  (delete-region (point-min) (point-max))
 			  (while delfiles
 			    (while (file-exists-p (format "RMAILOSE.%d" count))
 			      (setq count (1+ count)))
