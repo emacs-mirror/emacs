@@ -308,12 +308,18 @@ ACTIVATEP non-nil means activate mouse motion events."
   "Show a tooltip window at the current mouse position displaying TEXT."
   (if tooltip-use-echo-area
       (message "%s" text)
-    (x-show-tip text
-		(selected-frame)
-		tooltip-frame-parameters
-		nil
-		tooltip-x-offset
-		tooltip-y-offset)))
+    (condition-case error
+	(x-show-tip text
+		    (selected-frame)
+		    tooltip-frame-parameters
+		    nil
+		    tooltip-x-offset
+		    tooltip-y-offset)
+      (error 
+       (message "Error while displaying tooltip: %s" error)
+       (sit-for 1)
+       (message "%s" text)))))
+
 
 (defun tooltip-hide (&optional ignored-arg)
   "Hide a tooltip, if one is displayed.
