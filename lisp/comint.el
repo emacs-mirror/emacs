@@ -67,7 +67,7 @@
 ;;; m-n	    comint-next-input  	    	    Cycle forwards
 ;;; m-r     comint-previous-matching-input  Previous input matching a regexp
 ;;; m-s     comint-next-matching-input      Next input that matches
-;;; m-c-r   comint-previous-input-matching  Search backwards in input history
+;;; m-c-l   comint-show-output		    Show last batch of process output
 ;;; return  comint-send-input
 ;;; c-a     comint-bol                      Beginning of line; skip prompt
 ;;; c-d	    comint-delchar-or-maybe-eof     Delete char unless at end of buff
@@ -138,11 +138,11 @@
 Defaults to \"^\", the null string at BOL.
 
 Good choices:
-  Canonical Lisp: \"^[^> ]*>+:? *\" (Lucid, franz, kcl, T, cscheme, oaklisp)
+  Canonical Lisp: \"^[^> \\n]*>+:? *\" (Lucid, franz, kcl, T, cscheme, oaklisp)
   Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
   franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
   kcl: \"^>+ *\"
-  shell: \"^[^#$%>]*[#$%>] *\"
+  shell: \"^[^#$%>\\n]*[#$%>] *\"
   T: \"^>+ *\"
 
 This is a good thing to set in mode hooks.")
@@ -406,6 +406,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\es" 'comint-next-matching-input)
   (define-key comint-mode-map [?\A-\M-r] 'comint-previous-matching-input-from-input)
   (define-key comint-mode-map [?\A-\M-s] 'comint-next-matching-input-from-input)
+  (define-key comint-mode-map "\e\C-l" 'comint-show-output)
   (define-key comint-mode-map "\C-m" 'comint-send-input)
   (define-key comint-mode-map "\C-d" 'comint-delchar-or-maybe-eof)
   (define-key comint-mode-map "\C-a" 'comint-bol)
@@ -600,22 +601,27 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 ;;; comint-read-input-ring              Read into comint-input-ring...
 ;;; comint-write-input-ring             Write to comint-input-ring-file-name.
 
-(defun comint-read-input-ring ()
+(defun comint-read-input-ring (&optional silent)
   "Sets the buffer's `comint-input-ring' from a history file.
 The name of the file is given by the variable `comint-input-ring-file-name'.
 The history ring is of size `comint-input-ring-size', regardless of file size.
 If `comint-input-ring-file-name' is nil this function does nothing.
 
-Useful within mode or mode hooks.
+If the optional argument SILENT is non-nil, we say nothing about a
+failure to read the history file.
 
-The structure of the history file should be one input command per line, and
-most recent command last.
+This function is useful for major mode commands and mode hooks.
+
+The structure of the history file should be one input command per line,
+with the most recent command last.
 See also `comint-input-ignoredups' and `comint-write-input-ring'."
   (cond ((or (null comint-input-ring-file-name)
 	     (equal comint-input-ring-file-name ""))
 	 nil)
 	((not (file-readable-p comint-input-ring-file-name))
-	 (message "Cannot read history file %s" comint-input-ring-file-name))
+	 (or silent
+	     (message "Cannot read history file %s"
+		      comint-input-ring-file-name)))
 	(t
 	 (let ((history-buf (get-file-buffer comint-input-ring-file-name))
 	       (ring (make-ring comint-input-ring-size)))
@@ -845,7 +851,7 @@ If N is negative, find the next or Nth next match."
   (comint-previous-matching-input-from-input (- arg)))
 
 
-(defun comint-replace-by-expanded-history ()
+(defun comint-replace-by-expanded-history (&optional silent)
   "Expand input command history references before point.
 This function depends on the buffer's idea of the input history, which may not
 match the command interpreter's idea, assuming it has one.
@@ -854,13 +860,21 @@ Assumes history syntax is like typical Un*x shells'.  However, since emacs
 cannot know the interpreter's idea of input line numbers, assuming it has one,
 it cannot expand absolute input line number references.
 
+If the optional argument SILENT is non-nil, never complain
+even if history reference seems erroneous.
+
 See also `comint-magic-space'."
   (interactive)
   (save-excursion
     (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
 	  (start (progn (comint-bol nil) (point))))
-      (while (re-search-forward
-	      "[!^]" (save-excursion (end-of-line nil) (- (point) toend)) t)
+      (while (progn
+	       (skip-chars-forward "^!^"
+				   (save-excursion
+				     (end-of-line nil) (- (point) toend)))
+	       (< (point)
+		  (save-excursion
+		    (end-of-line nil) (- (point) toend))))
 	;; This seems a bit complex.  We look for references such as !!, !-num,
 	;; !foo, !?foo, !{bar}, !?{bar}, ^oh, ^my^, ^god^it, ^never^ends^.
 	;; If that wasn't enough, the plings can be suffixed with argument
@@ -868,11 +882,10 @@ See also `comint-magic-space'."
 	;; Argument ranges are complex too, so we hive off the input line,
 	;; referenced with plings, with the range string to `comint-args'.
 	(setq comint-input-ring-index nil)
-	(goto-char (match-beginning 0))
 	(cond ((or (= (preceding-char) ?\\)
 		   (comint-within-quotes start (point)))
 	       ;; The history is quoted, or we're in quotes.
-	       (goto-char (match-end 0)))
+	       (goto-char (1+ (point))))
 	      ((looking-at "![0-9]+\\($\\|[^-]\\)")
 	       ;; We cannot know the interpreter's idea of input line numbers.
 	       (goto-char (match-end 0))
@@ -908,9 +921,10 @@ See also `comint-magic-space'."
 			     (comint-previous-matching-input-string-position
 			      (concat pref (regexp-quote exp)) 1))))
 		 (if (null pos)
-		     (progn (message "Not found")
-			    (goto-char (match-end 0))
-			    (ding))
+		     (or silent
+			 (progn (message "Not found")
+				(goto-char (match-end 0))
+				(ding)))
 		   (setq comint-input-ring-index pos)
 		   (message "History item: %d" (1+ pos))
 		   (replace-match
@@ -927,8 +941,10 @@ See also `comint-magic-space'."
 		 (goto-char (match-beginning 0))
 		 (if (search-forward old pos t)
 		     (replace-match new t t)
-		   (message "Not found")
-		   (ding))))
+		   (or silent
+		       (progn
+			 (message "Not found")
+			 (ding))))))
 	      (t
 	       (goto-char (match-end 0))))))))
 
@@ -1078,14 +1094,14 @@ Similarly for Soar, Scheme, etc."
 			  ;; Just whatever's already there
 			  intxt
 			;; Expand and leave it visible in buffer
-			(comint-replace-by-expanded-history)
+			(comint-replace-by-expanded-history t)
 			(buffer-substring pmark (point))))
 	       (history (if (not (eq comint-input-autoexpand 'history))
 			    input
 			  ;; This is messy 'cos ultimately the original
 			  ;; functions used do insertion, rather than return
 			  ;; strings.  We have to expand, then insert back.
-			  (comint-replace-by-expanded-history)
+			  (comint-replace-by-expanded-history t)
 			  (let ((copy (buffer-substring pmark (point))))
 			    (delete-region pmark (point))
 			    (insert input)
@@ -1164,32 +1180,29 @@ Similarly for Soar, Scheme, etc."
   "Go to the end of buffer in all windows showing it.
 Movement occurs if point in the selected window is not after the process mark,
 and `this-command' is an insertion command.  Insertion commands recognised
-are `self-insert-command', `comint-magic-space', `yank', `mouse-yank-at-click',
-and `hilit-yank'.
+are `self-insert-command', `comint-magic-space', `yank', and `hilit-yank'.
 Depends on the value of `comint-scroll-to-bottom-on-input'.
 
 This function should be a pre-command hook."
   (if (and comint-scroll-to-bottom-on-input
 	   (memq this-command '(self-insert-command comint-magic-space yank
-				mouse-yank-at-click hilit-yank)))
+				hilit-yank)))
       (let* ((selected (selected-window))
 	     (current (current-buffer))
 	     (process (get-buffer-process current))
 	     (scroll comint-scroll-to-bottom-on-input))
-	(if (and process (< (point) (process-mark process))
-		 scroll (not (window-minibuffer-p selected)))
+	(if (and process (< (point) (process-mark process)))
 	    (if (eq scroll 'this)
 		(goto-char (point-max))
 	      (walk-windows
 	       (function (lambda (window)
 		 (if (and (eq (window-buffer window) current)
-			  (or (eq scroll t) (eq scroll 'all)
-			      (and (eq scroll 'this) (eq selected window))))
+			  (or (eq scroll t) (eq scroll 'all)))
 		     (progn
 		       (select-window window)
 		       (goto-char (point-max))
 		       (select-window selected)))))
-	       'not-minibuf t))))))
+	       nil t))))))
 
 (defun comint-postoutput-scroll-to-bottom (string)
   "Go to the end of buffer in all windows showing it.
@@ -1202,30 +1215,32 @@ This function should be in the list `comint-output-filter-functions'."
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
 	 (scroll comint-scroll-to-bottom-on-output))
-    (if process
-	(walk-windows
-	 (function (lambda (window)
-	   (if (eq (window-buffer window) current)
-	       (progn
-		 (select-window window)
-		 (if (and (< (point) (process-mark process))
-			  (or (eq scroll t) (eq scroll 'all)
-			      ;; Maybe user wants point to jump to the end.
-			      (and (eq scroll 'this) (eq selected window))
-			      (and (eq scroll 'others) (not (eq selected window)))
-			      ;; If point was at the end, keep it at the end.
-			      (>= (point)
-				  (- (process-mark process) (length string)))))
-		     (goto-char (process-mark process)))
-		 ;; Optionally scroll so that the text
-		 ;; ends at the bottom of the window.
-		 (if (and comint-scroll-show-maximum-output
-			  (>= (point) (process-mark process)))
-		     (save-excursion
-		       (goto-char (point-max))
-		       (recenter -1)))
-		 (select-window selected)))))
-	 nil t))))
+    (unwind-protect
+	(if process
+	    (walk-windows
+	     (function (lambda (window)
+	       (if (eq (window-buffer window) current)
+		   (progn
+		     (select-window window)
+		     (if (and (< (point) (process-mark process))
+			      (or (eq scroll t) (eq scroll 'all)
+				  ;; Maybe user wants point to jump to the end.
+				  (and (eq scroll 'this) (eq selected window))
+				  (and (eq scroll 'others) (not (eq selected window)))
+				  ;; If point was at the end, keep it at the end.
+				  (>= (point)
+				      (- (process-mark process) (length string)))))
+			 (goto-char (process-mark process)))
+		     ;; Optionally scroll so that the text
+		     ;; ends at the bottom of the window.
+		     (if (and comint-scroll-show-maximum-output
+			      (>= (point) (process-mark process)))
+			 (save-excursion
+			   (goto-char (point-max))
+			   (recenter -1)))
+		     (select-window selected)))))
+	     nil t))
+      (set-buffer current))))
 
 (defun comint-show-maximum-output ()
   "Put the end of the buffer at the bottom of the window."
