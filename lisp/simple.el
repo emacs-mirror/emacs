@@ -1373,7 +1373,7 @@ With argument, rotate that many kills forward (or backward, if negative)."
   "Insert after point the contents of BUFFER.
 Puts mark after the inserted text.
 BUFFER may be a buffer or a buffer name."
-(interactive
+  (interactive
    (list
     (progn
       (barf-if-buffer-read-only)
