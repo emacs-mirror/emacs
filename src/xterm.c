@@ -4585,7 +4585,9 @@ x_set_mouse_position (f, x, y)
 {
   int pix_x, pix_y;
 
+#if 0 /* Let the user ask for this if he wants it.  */
   x_raise_frame (f);
+#endif
 
   pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->display.x->font) / 2;
   pix_y = CHAR_TO_PIXEL_ROW (f, y) + FONT_HEIGHT (f->display.x->font) / 2;
