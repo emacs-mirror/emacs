@@ -2780,7 +2780,6 @@ redraws with point in the center of the current window.")
   register struct window *w = XWINDOW (selected_window);
   register int ht = window_internal_height (w);
   struct position pos;
-  Lisp_Object window;
 
   if (NILP (n))
     {
@@ -2802,9 +2801,7 @@ redraws with point in the center of the current window.")
   if (XINT (n) < 0)
     XSETINT (n, XINT (n) + ht);
 
-  XSETWINDOW (window, w);
-  pos = *vmotion (point, - XINT (n), window_internal_width (w) - 1,
-		  XINT (w->hscroll), window);
+  pos = *vmotion (point, - XINT (n), w);
 
   Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
   w->start_at_line_beg = ((pos.bufpos == BEGV
