@@ -484,6 +484,9 @@ file_name_as_directory (out, in)
 {
   int size = strlen (in) - 1;
 
+  if (size < 0)
+    error ("Empty file name");
+
   strcpy (out, in);
 
 #ifdef VMS
@@ -3731,7 +3734,6 @@ This does code conversion according to the value of\n\
       if (! not_regular)
 	how_much += this;
 
-      this_chars = this;
       if (CODING_REQUIRE_DECODING (&coding)
 	  || CODING_REQUIRE_DETECTION (&coding))
 	{
@@ -3777,6 +3779,11 @@ This does code conversion according to the value of\n\
 	  this_chars = chars_in_text (BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
 				      produced);
 	}
+      else if (! NILP (current_buffer->enable_multibyte_characters))
+	this_chars = chars_in_text (BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
+				    this);
+      else
+	this_chars = this;
 
       GAP_SIZE -= this;
       GPT_BYTE += this;
@@ -3822,7 +3829,7 @@ This does code conversion according to the value of\n\
     error ("IO error reading %s: %s",
 	   XSTRING (orig_filename)->data, strerror (errno));
   else if (how_much == -2)
-    error ("maximum buffer size exceeded");
+    error ("Maximum buffer size exceeded");
 
   set_coding_system = 1;
 
@@ -4278,7 +4285,8 @@ to the file, instead of any buffer contents, and END is ignored.")
       save_errno = errno;
     }
 
-  if (CODING_REQUIRE_FLUSHING (&coding) && !coding.last_block)
+  if (CODING_REQUIRE_FLUSHING (&coding) && !coding.last_block
+      && ! failure)
     {
       /* We have to flush out a data. */
       coding.last_block = 1;
