@@ -640,7 +640,8 @@ Note:    it means the file has no messages in it.\n\^_")))
     (unless (and coding-system
 		 (coding-system-p coding-system))
       (setq coding-system (detect-coding-region from to t)))
-    (unless (eq coding-system 'undecided)
+    (unless (memq coding-system
+		  '(undecided undecided-unix))
       (decode-coding-region from to coding-system)
       (setq coding-system last-coding-system-used))
     (set-buffer-modified-p modifiedp)
