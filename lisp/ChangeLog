@@ -1,3 +1,8 @@
+2000-09-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (face-spec-set): Only face-spec-reset-face when
+	ATTRS is non-nil.
+
 2000-09-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* help.el (help-insert-xref-button): Fix a typo in doc string.
@@ -74,7 +79,7 @@
 
 	* international/quail.el: Don't require face.
 	(quail): New group.
-	(quail-other-command): Dummy command to make quail-help works
+	(quail-other-command): Dummy command to make quail-help work
 	better.
 	(quail-keyboard-layout-alist): Add Keyboard type "jp106".
 	(quail-keyboard-layout-substitution): New variable.

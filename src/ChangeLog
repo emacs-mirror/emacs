@@ -1,5 +1,11 @@
 2000-09-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (Finternal_merge_in_global_face): Return a Lisp object.
+
+	* xdisp.c (dump_glyph_row): Fix printf format string.
+	(display_line, move_it_in_display_line_to): Avoid compiler
+	warnings.
+
 	* s/freebsd.h (GC_MARK_STACK, REL_ALLOC_MMAP): Define.
 
 	* keymap.c (Fset_keymap_parent): Check for cycles in keymap
