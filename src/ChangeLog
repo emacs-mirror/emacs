@@ -1,3 +1,9 @@
+2002-07-22  Juanma Barranquero  <lektu@terra.es>
+
+	* callproc.c (init_callproc) [DOS_NT]: Initialize
+	Vshared_game_score_directory to nil.
+	(syms_of_callproc) [DOS_NT]: Likewise.
+
 2002-07-22  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* xdisp.c (display_line): Replace an abort with xassert.
