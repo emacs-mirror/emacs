@@ -1565,9 +1565,11 @@ DIR must be a directory name, not a file name."
 
 (defvar dired-move-to-filename-regexp
   (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
+	 (l-or-quote "\\([A-Za-z']\\|[^\0-\177]\\)")
 	 ;; In some locales, month abbreviations are as short as 2 letters,
 	 ;; and they can be followed by ".".
-	 (month (concat l l "+\\.?"))
+	 ;; In Breton, a month name  can include a quote character.
+	 (month (concat l-or-quote l-or-quote "+\\.?"))
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
 	 (dd "[ 0-3][0-9]")
