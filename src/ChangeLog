@@ -1,5 +1,8 @@
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_create_tip_frame): Use CWSaveUnder only if the 
+	screen supports it.
+
 	* s/gnu-linux.h: Don't use `#cpu'.
 
 	* buffer.c (MAP_FAILED): Define it as `((void *) -1)' if it's
