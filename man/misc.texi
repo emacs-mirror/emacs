@@ -1174,9 +1174,21 @@ you finish with the file.  Use the variable
 this sense; its value should be a regular expression that matches file
 names that are temporary.
 
+@vindex server-kill-new-buffers
+  If the variable @code{server-kill-new-buffers} is set to non-nil,
+buffers which still have a client are killed when you are done with
+them, unless they were already present before Emacs Server visited
+them.  This overrides the effect of the @code{server-temp-file-regexp}
+variable.  By default, @code{server-kill-new-buffers} has a non-nil
+value; set it to nil if you want the old behavior giverned by
+@code{server-temp-file-regexp}.
+
   If you run @code{emacsclient} with the option @samp{--no-wait}, it
 returns immediately without waiting for you to ``finish'' the buffer in
-Emacs.
+Emacs.  Note that it this case, buffers for temporary files will not be
+killed automatically with the default value of
+@code{server-kill-new-buffers}, since those buffers will not have a
+client.
 
   If you have forgotten to start Emacs, then the option
 @samp{--alternate-editor=@var{command}} may be useful.  It specifies a
