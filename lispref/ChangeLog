@@ -1,3 +1,8 @@
+2003-05-22  Stephen J. Turnbull  <stephen@xemacs.org>
+
+	* strings.texi (Creating Strings): Update split-string specification
+	and examples.
+
 2003-05-19  Richard M. Stallman  <rms@gnu.org>
 
 	* elisp.texi: Correct invariant section names.
