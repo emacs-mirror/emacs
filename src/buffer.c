@@ -806,6 +806,7 @@ A non-nil FLAG means mark the buffer modified.")
 {
   register int already;
   register Lisp_Object fn;
+  Lisp_Object buffer, window;
 
 #ifdef CLASH_DETECTION
   /* If buffer becoming modified, lock the file.
@@ -824,7 +825,23 @@ A non-nil FLAG means mark the buffer modified.")
 #endif /* CLASH_DETECTION */
 
   SAVE_MODIFF = NILP (flag) ? MODIFF : 0;
-  update_mode_lines++;
+  
+  /* Set update_mode_lines only if buffer is displayed in some window.
+     Packages like jit-lock or lazy-lock preserve a buffer's modified
+     state by recording/restoring the state around blocks of code.
+     Setting update_mode_lines makes redisplay consider all windows
+     (on all frames).  Stealth fontification of buffers not displayed
+     would incur additional redisplay costs if we'd set
+     update_modes_lines unconditionally.
+
+     Ideally, I think there should be another mechanism for fontifying
+     buffers without "modifying" buffers, or redisplay should be
+     smarter about updating the `*' in mode lines.  --gerd  */
+  XSETBUFFER (buffer, current_buffer);
+  window = Fget_buffer_window (buffer, Qt);
+  if (WINDOWP (window))
+    update_mode_lines++;
+  
   return flag;
 }
 
