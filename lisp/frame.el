@@ -336,6 +336,7 @@ These supersede the values given in `default-frame-alist'.")
 ;; Delete from ALIST all elements whose car is KEY.
 ;; Return the modified alist.
 (defun frame-delete-all (key alist)
+  (setq alist (copy-sequence alist))
   (let ((tail alist))
     (while tail
       (if (eq (car (car tail)) key)
