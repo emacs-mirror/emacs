@@ -1168,9 +1168,11 @@ StandardEncoding 46 82 getinterval aload pop
 	       (listp filename)))
       (let* ((name (concat (buffer-name) ".ps"))
 	     (prompt (format "Save PostScript to file: (default %s) "
-			     name)))
-	(read-file-name prompt default-directory
-			name nil))))
+			     name))
+	     (res (read-file-name prompt default-directory name nil)))
+	(if (file-directory-p res)
+	    (expand-file-name name (file-name-as-directory res))
+	  res))))
 
 ;; The following functions implement a simple list-buffering scheme so
 ;; that ps-print doesn't have to repeatedly switch between buffers
