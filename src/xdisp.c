@@ -4925,9 +4925,10 @@ get_next_display_element (it)
 	  && FRAME_WINDOW_P (it->f))
 	{
 	  struct face *face = FACE_FROM_ID (it->f, it->face_id);
-	  int pos = (STRINGP (it->string)
-		     ? IT_STRING_CHARPOS (*it) : IT_CHARPOS (*it));
-
+	  int pos = (it->s ? -1
+		     : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
+		     : IT_CHARPOS (*it));
+	  
 	  it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
 	}
     }
