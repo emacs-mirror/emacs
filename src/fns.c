@@ -1377,7 +1377,7 @@ The key is always a possible RANGE argument to `set-char-table-range'.")
   Lisp_Object keyvec;
   Lisp_Object *indices = (Lisp_Object *) alloca (10 * sizeof (Lisp_Object));
 
-  map_char_table (function, NULL, chartable, 0, indices);
+  map_char_table (NULL, function, chartable, 0, indices);
   return Qnil;
 }
 
