@@ -671,7 +671,8 @@ Lisp_Object
 copy_keymap_1 (chartable, idx, elt)
      Lisp_Object chartable, idx, elt;
 {
-  Faset (chartable, idx, Fcopy_keymap (elt));
+  if (!SYMBOLP (elt) && ! NILP (Fkeymapp (elt)))
+    Faset (chartable, idx, Fcopy_keymap (elt));
 }
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
