@@ -1843,12 +1843,15 @@ This function returns a position list for position @var{pos} in
 @var{window}.
 @end defun
 
-@defun posn-at-x-y x y &optional frame-or-window
+@defun posn-at-x-y x y &optional frame-or-window whole
 This function returns position information corresponding to pixel
 coordinates @var{x} and @var{y} in a specified frame or window,
 @var{frame-or-window}, which defaults to the selected window.
 The coordinates @var{x} and @var{y} are relative to the
 frame or window used.
+If @var{whole} is @code{nil}, the coordinates are relative
+to the window text area, otherwise they are relative to
+the entire window area including scroll bars, margins and fringes.
 @end defun
 
   These functions are useful for decoding scroll bar events.
