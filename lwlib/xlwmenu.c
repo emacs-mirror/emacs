@@ -48,7 +48,7 @@ Boston, MA 02111-1307, USA.  */
 
 extern int gray_bitmap_width;
 extern int gray_bitmap_height;
-extern unsigned char *gray_bitmap_bits;
+extern char *gray_bitmap_bits;
 
 /* Defined in xterm.c.  */
 extern int x_alloc_nearest_color_for_widget __P ((Widget, Colormap, XColor*));
