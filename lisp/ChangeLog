@@ -1,3 +1,8 @@
+2005-04-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Enable the correct case setting for
+	dotless-i and dotted-I.
+
 2005-04-01  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-file-internal): Fall back to non-ido command if
