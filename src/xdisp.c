@@ -280,6 +280,7 @@ Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qmargin;
 extern Lisp_Object Qheight;
+extern Lisp_Object QCwidth, QCheight, QCascent;
 
 /* Non-nil means highlight trailing whitespace.  */
 
@@ -15660,6 +15661,1996 @@ invisible_p (propval, list)
 
 
 /***********************************************************************
+			     Glyph Display
+ ***********************************************************************/
+
+#if GLYPH_DEBUG
+
+void
+dump_glyph_string (s)
+     struct glyph_string *s;
+{
+  fprintf (stderr, "glyph string\n");
+  fprintf (stderr, "  x, y, w, h = %d, %d, %d, %d\n",
+	   s->x, s->y, s->width, s->height);
+  fprintf (stderr, "  ybase = %d\n", s->ybase);
+  fprintf (stderr, "  hl = %d\n", s->hl);
+  fprintf (stderr, "  left overhang = %d, right = %d\n",
+	   s->left_overhang, s->right_overhang);
+  fprintf (stderr, "  nchars = %d\n", s->nchars);
+  fprintf (stderr, "  extends to end of line = %d\n",
+	   s->extends_to_end_of_line_p);
+  fprintf (stderr, "  font height = %d\n", FONT_HEIGHT (s->font));
+  fprintf (stderr, "  bg width = %d\n", s->background_width);
+}
+
+#endif /* GLYPH_DEBUG */
+
+/* Initialize glyph string S.  CHAR2B is a suitably allocated vector
+   of XChar2b structures for S; it can't be allocated in
+   init_glyph_string because it must be allocated via `alloca'.  W
+   is the window on which S is drawn.  ROW and AREA are the glyph row
+   and area within the row from which S is constructed.  START is the
+   index of the first glyph structure covered by S.  HL is a
+   face-override for drawing S.  */
+
+#ifdef HAVE_NTGUI
+#define OPTIONAL_HDC(hdc)  hdc,
+#define DECLARE_HDC(hdc)   HDC hdc;
+#define ALLOCATE_HDC(hdc, f) hdc = get_frame_dc ((f))
+#define RELEASE_HDC(hdc, f)  release_frame_dc ((f), (hdc))
+#endif
+
+#ifndef OPTIONAL_HDC
+#define OPTIONAL_HDC(hdc)
+#define DECLARE_HDC(hdc)
+#define ALLOCATE_HDC(hdc, f)
+#define RELEASE_HDC(hdc, f)
+#endif
+
+static void
+init_glyph_string (s, OPTIONAL_HDC (hdc) char2b, w, row, area, start, hl)
+     struct glyph_string *s;
+     DECLARE_HDC (hdc)
+     XChar2b *char2b;
+     struct window *w;
+     struct glyph_row *row;
+     enum glyph_row_area area;
+     int start;
+     enum draw_glyphs_face hl;
+{
+  bzero (s, sizeof *s);
+  s->w = w;
+  s->f = XFRAME (w->frame);
+#ifdef HAVE_NTGUI
+  s->hdc = hdc;
+#endif
+  s->display = FRAME_X_DISPLAY (s->f);
+  s->window = FRAME_X_WINDOW (s->f);
+  s->char2b = char2b;
+  s->hl = hl;
+  s->row = row;
+  s->area = area;
+  s->first_glyph = row->glyphs[area] + start;
+  s->height = row->height;
+  s->y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+
+  /* Display the internal border below the tool-bar window.  */
+  if (s->w == XWINDOW (s->f->tool_bar_window))
+    s->y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
+
+  s->ybase = s->y + row->ascent;
+}
+
+
+/* Append the list of glyph strings with head H and tail T to the list
+   with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the result.  */
+
+static INLINE void
+append_glyph_string_lists (head, tail, h, t)
+     struct glyph_string **head, **tail;
+     struct glyph_string *h, *t;
+{
+  if (h)
+    {
+      if (*head)
+	(*tail)->next = h;
+      else
+	*head = h;
+      h->prev = *tail;
+      *tail = t;
+    }
+}
+
+
+/* Prepend the list of glyph strings with head H and tail T to the
+   list with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the
+   result.  */
+
+static INLINE void
+prepend_glyph_string_lists (head, tail, h, t)
+     struct glyph_string **head, **tail;
+     struct glyph_string *h, *t;
+{
+  if (h)
+    {
+      if (*head)
+	(*head)->prev = t;
+      else
+	*tail = t;
+      t->next = *head;
+      *head = h;
+    }
+}
+
+
+/* Append glyph string S to the list with head *HEAD and tail *TAIL.
+   Set *HEAD and *TAIL to the resulting list.  */
+
+static INLINE void
+append_glyph_string (head, tail, s)
+     struct glyph_string **head, **tail;
+     struct glyph_string *s;
+{
+  s->next = s->prev = NULL;
+  append_glyph_string_lists (head, tail, s, s);
+}
+
+
+/* Get face and two-byte form of character glyph GLYPH on frame F.
+   The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
+   a pointer to a realized face that is ready for display.  */
+
+static INLINE struct face *
+get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
+     struct frame *f;
+     struct glyph *glyph;
+     XChar2b *char2b;
+     int *two_byte_p;
+{
+  struct face *face;
+
+  xassert (glyph->type == CHAR_GLYPH);
+  face = FACE_FROM_ID (f, glyph->face_id);
+
+  if (two_byte_p)
+    *two_byte_p = 0;
+
+  if (!glyph->multibyte_p)
+    {
+      /* Unibyte case.  We don't have to encode, but we have to make
+	 sure to use a face suitable for unibyte.  */
+      STORE_XCHAR2B (char2b, 0, glyph->u.ch);
+    }
+  else if (glyph->u.ch < 128
+	   && glyph->face_id < BASIC_FACE_ID_SENTINEL)
+    {
+      /* Case of ASCII in a face known to fit ASCII.  */
+      STORE_XCHAR2B (char2b, 0, glyph->u.ch);
+    }
+  else
+    {
+      int c1, c2, charset;
+
+      /* Split characters into bytes.  If c2 is -1 afterwards, C is
+	 really a one-byte character so that byte1 is zero.  */
+      SPLIT_CHAR (glyph->u.ch, charset, c1, c2);
+      if (c2 > 0)
+	STORE_XCHAR2B (char2b, c1, c2);
+      else
+	STORE_XCHAR2B (char2b, 0, c1);
+
+      /* Maybe encode the character in *CHAR2B.  */
+      if (charset != CHARSET_ASCII)
+	{
+	  struct font_info *font_info
+	    = FONT_INFO_FROM_ID (f, face->font_info_id);
+	  if (font_info)
+	    glyph->font_type
+	      = rif->encode_char (glyph->u.ch, char2b, font_info, two_byte_p);
+	}
+    }
+
+  /* Make sure X resources of the face are allocated.  */
+  xassert (face != NULL);
+  PREPARE_FACE_FOR_DISPLAY (f, face);
+  return face;
+}
+
+
+/* Fill glyph string S with composition components specified by S->cmp.
+
+   FACES is an array of faces for all components of this composition.
+   S->gidx is the index of the first component for S.
+   OVERLAPS_P non-zero means S should draw the foreground only, and
+   use its physical height for clipping.
+
+   Value is the index of a component not in S.  */
+
+static int
+fill_composite_glyph_string (s, faces, overlaps_p)
+     struct glyph_string *s;
+     struct face **faces;
+     int overlaps_p;
+{
+  int i;
+
+  xassert (s);
+
+  s->for_overlaps_p = overlaps_p;
+
+  s->face = faces[s->gidx];
+  s->font = s->face->font;
+  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+
+  /* For all glyphs of this composition, starting at the offset
+     S->gidx, until we reach the end of the definition or encounter a
+     glyph that requires the different face, add it to S.  */
+  ++s->nchars;
+  for (i = s->gidx + 1; i < s->cmp->glyph_len && faces[i] == s->face; ++i)
+    ++s->nchars;
+
+  /* All glyph strings for the same composition has the same width,
+     i.e. the width set for the first component of the composition.  */
+
+  s->width = s->first_glyph->pixel_width;
+
+  /* If the specified font could not be loaded, use the frame's
+     default font, but record the fact that we couldn't load it in
+     the glyph string so that we can draw rectangles for the
+     characters of the glyph string.  */
+  if (s->font == NULL)
+    {
+      s->font_not_found_p = 1;
+      s->font = FRAME_FONT (s->f);
+    }
+
+  /* Adjust base line for subscript/superscript text.  */
+  s->ybase += s->first_glyph->voffset;
+
+  xassert (s->face && s->face->gc);
+
+  /* This glyph string must always be drawn with 16-bit functions.  */
+  s->two_byte_p = 1;
+
+  return s->gidx + s->nchars;
+}
+
+
+/* Fill glyph string S from a sequence of character glyphs.
+
+   FACE_ID is the face id of the string.  START is the index of the
+   first glyph to consider, END is the index of the last + 1.
+   OVERLAPS_P non-zero means S should draw the foreground only, and
+   use its physical height for clipping.
+
+   Value is the index of the first glyph not in S.  */
+
+static int
+fill_glyph_string (s, face_id, start, end, overlaps_p)
+     struct glyph_string *s;
+     int face_id;
+     int start, end, overlaps_p;
+{
+  struct glyph *glyph, *last;
+  int voffset;
+  int glyph_not_available_p;
+
+  xassert (s->f == XFRAME (s->w->frame));
+  xassert (s->nchars == 0);
+  xassert (start >= 0 && end > start);
+
+  s->for_overlaps_p = overlaps_p,
+  glyph = s->row->glyphs[s->area] + start;
+  last = s->row->glyphs[s->area] + end;
+  voffset = glyph->voffset;
+
+  glyph_not_available_p = glyph->glyph_not_available_p;
+
+  while (glyph < last
+	 && glyph->type == CHAR_GLYPH
+	 && glyph->voffset == voffset
+	 /* Same face id implies same font, nowadays.  */
+	 && glyph->face_id == face_id
+	 && glyph->glyph_not_available_p == glyph_not_available_p)
+    {
+      int two_byte_p;
+
+      s->face = get_glyph_face_and_encoding (s->f, glyph,
+					       s->char2b + s->nchars,
+					       &two_byte_p);
+      s->two_byte_p = two_byte_p;
+      ++s->nchars;
+      xassert (s->nchars <= end - start);
+      s->width += glyph->pixel_width;
+      ++glyph;
+    }
+
+  s->font = s->face->font;
+  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+
+  /* If the specified font could not be loaded, use the frame's font,
+     but record the fact that we couldn't load it in
+     S->font_not_found_p so that we can draw rectangles for the
+     characters of the glyph string.  */
+  if (s->font == NULL || glyph_not_available_p)
+    {
+      s->font_not_found_p = 1;
+      s->font = FRAME_FONT (s->f);
+    }
+
+  /* Adjust base line for subscript/superscript text.  */
+  s->ybase += voffset;
+
+  xassert (s->face && s->face->gc);
+  return glyph - s->row->glyphs[s->area];
+}
+
+
+/* Fill glyph string S from image glyph S->first_glyph.  */
+
+static void
+fill_image_glyph_string (s)
+     struct glyph_string *s;
+{
+  xassert (s->first_glyph->type == IMAGE_GLYPH);
+  s->img = IMAGE_FROM_ID (s->f, s->first_glyph->u.img_id);
+  xassert (s->img);
+  s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+  s->font = s->face->font;
+  s->width = s->first_glyph->pixel_width;
+
+  /* Adjust base line for subscript/superscript text.  */
+  s->ybase += s->first_glyph->voffset;
+}
+
+
+/* Fill glyph string S from a sequence of stretch glyphs.
+
+   ROW is the glyph row in which the glyphs are found, AREA is the
+   area within the row.  START is the index of the first glyph to
+   consider, END is the index of the last + 1.
+
+   Value is the index of the first glyph not in S.  */
+
+static int
+fill_stretch_glyph_string (s, row, area, start, end)
+     struct glyph_string *s;
+     struct glyph_row *row;
+     enum glyph_row_area area;
+     int start, end;
+{
+  struct glyph *glyph, *last;
+  int voffset, face_id;
+
+  xassert (s->first_glyph->type == STRETCH_GLYPH);
+
+  glyph = s->row->glyphs[s->area] + start;
+  last = s->row->glyphs[s->area] + end;
+  face_id = glyph->face_id;
+  s->face = FACE_FROM_ID (s->f, face_id);
+  s->font = s->face->font;
+  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+  s->width = glyph->pixel_width;
+  voffset = glyph->voffset;
+
+  for (++glyph;
+       (glyph < last
+	&& glyph->type == STRETCH_GLYPH
+	&& glyph->voffset == voffset
+	&& glyph->face_id == face_id);
+       ++glyph)
+    s->width += glyph->pixel_width;
+
+  /* Adjust base line for subscript/superscript text.  */
+  s->ybase += voffset;
+
+  /* The case that face->gc == 0 is handled when drawing the glyph
+     string by calling PREPARE_FACE_FOR_DISPLAY.  */
+  xassert (s->face);
+  return glyph - s->row->glyphs[s->area];
+}
+
+
+/* EXPORT for RIF:
+   Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
+   frame F.  Overhangs of glyphs other than type CHAR_GLYPH are
+   assumed to be zero.  */
+
+void
+x_get_glyph_overhangs (glyph, f, left, right)
+     struct glyph *glyph;
+     struct frame *f;
+     int *left, *right;
+{
+  *left = *right = 0;
+
+  if (glyph->type == CHAR_GLYPH)
+    {
+      XFontStruct *font;
+      struct face *face;
+      struct font_info *font_info;
+      XChar2b char2b;
+      XCharStruct *pcm;
+
+      face = get_glyph_face_and_encoding (f, glyph, &char2b, NULL);
+      font = face->font;
+      font_info = FONT_INFO_FROM_ID (f, face->font_info_id);
+      if (font  /* ++KFS: Should this be font_info ?  */
+	  && (pcm = rif->per_char_metric (font, &char2b, glyph->font_type)))
+	{
+	  if (pcm->rbearing > pcm->width)
+	    *right = pcm->rbearing - pcm->width;
+	  if (pcm->lbearing < 0)
+	    *left = -pcm->lbearing;
+	}
+    }
+}
+
+
+/* Return the index of the first glyph preceding glyph string S that
+   is overwritten by S because of S's left overhang.  Value is -1
+   if no glyphs are overwritten.  */
+
+static int
+left_overwritten (s)
+     struct glyph_string *s;
+{
+  int k;
+
+  if (s->left_overhang)
+    {
+      int x = 0, i;
+      struct glyph *glyphs = s->row->glyphs[s->area];
+      int first = s->first_glyph - glyphs;
+
+      for (i = first - 1; i >= 0 && x > -s->left_overhang; --i)
+	x -= glyphs[i].pixel_width;
+
+      k = i + 1;
+    }
+  else
+    k = -1;
+
+  return k;
+}
+
+
+/* Return the index of the first glyph preceding glyph string S that
+   is overwriting S because of its right overhang.  Value is -1 if no
+   glyph in front of S overwrites S.  */
+
+static int
+left_overwriting (s)
+     struct glyph_string *s;
+{
+  int i, k, x;
+  struct glyph *glyphs = s->row->glyphs[s->area];
+  int first = s->first_glyph - glyphs;
+
+  k = -1;
+  x = 0;
+  for (i = first - 1; i >= 0; --i)
+    {
+      int left, right;
+      x_get_glyph_overhangs (glyphs + i, s->f, &left, &right);
+      if (x + right > 0)
+	k = i;
+      x -= glyphs[i].pixel_width;
+    }
+
+  return k;
+}
+
+
+/* Return the index of the last glyph following glyph string S that is
+   not overwritten by S because of S's right overhang.  Value is -1 if
+   no such glyph is found.  */
+
+static int
+right_overwritten (s)
+     struct glyph_string *s;
+{
+  int k = -1;
+
+  if (s->right_overhang)
+    {
+      int x = 0, i;
+      struct glyph *glyphs = s->row->glyphs[s->area];
+      int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
+      int end = s->row->used[s->area];
+
+      for (i = first; i < end && s->right_overhang > x; ++i)
+	x += glyphs[i].pixel_width;
+
+      k = i;
+    }
+
+  return k;
+}
+
+
+/* Return the index of the last glyph following glyph string S that
+   overwrites S because of its left overhang.  Value is negative
+   if no such glyph is found.  */
+
+static int
+right_overwriting (s)
+     struct glyph_string *s;
+{
+  int i, k, x;
+  int end = s->row->used[s->area];
+  struct glyph *glyphs = s->row->glyphs[s->area];
+  int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
+
+  k = -1;
+  x = 0;
+  for (i = first; i < end; ++i)
+    {
+      int left, right;
+      x_get_glyph_overhangs (glyphs + i, s->f, &left, &right);
+      if (x - left < 0)
+	k = i;
+      x += glyphs[i].pixel_width;
+    }
+
+  return k;
+}
+
+
+/* Get face and two-byte form of character C in face FACE_ID on frame
+   F.  The encoding of C is returned in *CHAR2B.  MULTIBYTE_P non-zero
+   means we want to display multibyte text.  DISPLAY_P non-zero means
+   make sure that X resources for the face returned are allocated.
+   Value is a pointer to a realized face that is ready for display if
+   DISPLAY_P is non-zero.  */
+
+static INLINE struct face *
+get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
+     struct frame *f;
+     int c, face_id;
+     XChar2b *char2b;
+     int multibyte_p, display_p;
+{
+  struct face *face = FACE_FROM_ID (f, face_id);
+
+  if (!multibyte_p)
+    {
+      /* Unibyte case.  We don't have to encode, but we have to make
+	 sure to use a face suitable for unibyte.  */
+      STORE_XCHAR2B (char2b, 0, c);
+      face_id = FACE_FOR_CHAR (f, face, c);
+      face = FACE_FROM_ID (f, face_id);
+    }
+  else if (c < 128 && face_id < BASIC_FACE_ID_SENTINEL)
+    {
+      /* Case of ASCII in a face known to fit ASCII.  */
+      STORE_XCHAR2B (char2b, 0, c);
+    }
+  else
+    {
+      int c1, c2, charset;
+
+      /* Split characters into bytes.  If c2 is -1 afterwards, C is
+	 really a one-byte character so that byte1 is zero.  */
+      SPLIT_CHAR (c, charset, c1, c2);
+      if (c2 > 0)
+	STORE_XCHAR2B (char2b, c1, c2);
+      else
+	STORE_XCHAR2B (char2b, 0, c1);
+
+      /* Maybe encode the character in *CHAR2B.  */
+      if (face->font != NULL)
+	{
+	  struct font_info *font_info
+	    = FONT_INFO_FROM_ID (f, face->font_info_id);
+	  if (font_info)
+	    rif->encode_char (c, char2b, font_info, 0);
+	}
+    }
+
+  /* Make sure X resources of the face are allocated.  */
+#ifdef HAVE_X_WINDOWS
+  if (display_p)
+#endif
+    {
+      xassert (face != NULL);
+      PREPARE_FACE_FOR_DISPLAY (f, face);
+    }
+
+  return face;
+}
+
+
+/* Set background width of glyph string S.  START is the index of the
+   first glyph following S.  LAST_X is the right-most x-position + 1
+   in the drawing area.  */
+
+static INLINE void
+set_glyph_string_background_width (s, start, last_x)
+     struct glyph_string *s;
+     int start;
+     int last_x;
+{
+  /* If the face of this glyph string has to be drawn to the end of
+     the drawing area, set S->extends_to_end_of_line_p.  */
+  struct face *default_face = FACE_FROM_ID (s->f, DEFAULT_FACE_ID);
+
+  if (start == s->row->used[s->area]
+      && s->area == TEXT_AREA
+      && ((s->hl == DRAW_NORMAL_TEXT
+	   && (s->row->fill_line_p
+	       || s->face->background != default_face->background
+	       || s->face->stipple != default_face->stipple
+	       || s->row->mouse_face_p))
+	  || s->hl == DRAW_MOUSE_FACE
+	  || ((s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
+	      && s->row->fill_line_p)))
+      s->extends_to_end_of_line_p = 1;
+
+  /* If S extends its face to the end of the line, set its
+     background_width to the distance to the right edge of the drawing
+     area.  */
+  if (s->extends_to_end_of_line_p)
+    s->background_width = last_x - s->x + 1;
+  else
+    s->background_width = s->width;
+}
+
+
+/* Compute overhangs and x-positions for glyph string S and its
+   predecessors, or successors.  X is the starting x-position for S.
+   BACKWARD_P non-zero means process predecessors.  */
+
+static void
+compute_overhangs_and_x (s, x, backward_p)
+     struct glyph_string *s;
+     int x;
+     int backward_p;
+{
+  if (backward_p)
+    {
+      while (s)
+	{
+	  if (rif->compute_glyph_string_overhangs)
+	    rif->compute_glyph_string_overhangs (s);
+	  x -= s->width;
+	  s->x = x;
+	  s = s->prev;
+	}
+    }
+  else
+    {
+      while (s)
+	{
+	  if (rif->compute_glyph_string_overhangs)
+	    rif->compute_glyph_string_overhangs (s);
+	  s->x = x;
+	  x += s->width;
+	  s = s->next;
+	}
+    }
+}
+
+
+
+/* The following macros are only called from x_draw_glyphs below.
+   They reference the following parameters of that function directly:
+     `w', `row', `area', and `overlap_p'
+   as well as the following local variables:
+     `s', `f', and `hdc' (in W32)  */
+
+#ifdef HAVE_NTGUI
+/* On W32, silently add local `hdc' variable to argument list of
+   init_glyph_string.  */
+#define INIT_GLYPH_STRING(s, char2b, w, row, area, start, hl) \
+  init_glyph_string (s, hdc, char2b, w, row, area, start, hl)
+#else
+#define INIT_GLYPH_STRING(s, char2b, w, row, area, start, hl) \
+  init_glyph_string (s, char2b, w, row, area, start, hl)
+#endif
+
+/* Add a glyph string for a stretch glyph to the list of strings
+   between HEAD and TAIL.  START is the index of the stretch glyph in
+   row area AREA of glyph row ROW.  END is the index of the last glyph
+   in that glyph row area.  X is the current output position assigned
+   to the new glyph string constructed.  HL overrides that face of the
+   glyph; e.g. it is DRAW_CURSOR if a cursor has to be drawn.  LAST_X
+   is the right-most x-position of the drawing area.  */
+
+/* SunOS 4 bundled cc, barfed on continuations in the arg lists here
+   and below -- keep them on one line.  */
+#define BUILD_STRETCH_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X)   \
+     do									    \
+       {								    \
+	 s = (struct glyph_string *) alloca (sizeof *s);		    \
+	 INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		    \
+	 START = fill_stretch_glyph_string (s, row, area, START, END);	    \
+	 append_glyph_string (&HEAD, &TAIL, s);				    \
+         s->x = (X);							    \
+       }								    \
+     while (0)
+
+
+/* Add a glyph string for an image glyph to the list of strings
+   between HEAD and TAIL.  START is the index of the image glyph in
+   row area AREA of glyph row ROW.  END is the index of the last glyph
+   in that glyph row area.  X is the current output position assigned
+   to the new glyph string constructed.  HL overrides that face of the
+   glyph; e.g. it is DRAW_CURSOR if a cursor has to be drawn.  LAST_X
+   is the right-most x-position of the drawing area.  */
+
+#define BUILD_IMAGE_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X) \
+     do									\
+       {								\
+	 s = (struct glyph_string *) alloca (sizeof *s);		\
+	 INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		\
+	 fill_image_glyph_string (s);					\
+	 append_glyph_string (&HEAD, &TAIL, s);				\
+	 ++START;							\
+         s->x = (X);							\
+       }								\
+     while (0)
+
+
+/* Add a glyph string for a sequence of character glyphs to the list
+   of strings between HEAD and TAIL.  START is the index of the first
+   glyph in row area AREA of glyph row ROW that is part of the new
+   glyph string.  END is the index of the last glyph in that glyph row
+   area.  X is the current output position assigned to the new glyph
+   string constructed.  HL overrides that face of the glyph; e.g. it
+   is DRAW_CURSOR if a cursor has to be drawn.  LAST_X is the
+   right-most x-position of the drawing area.  */
+
+#define BUILD_CHAR_GLYPH_STRINGS(START, END, HEAD, TAIL, HL, X, LAST_X)	   \
+     do									   \
+       {								   \
+	 int c, face_id;						   \
+	 XChar2b *char2b;						   \
+									   \
+	 c = (row)->glyphs[area][START].u.ch;				   \
+	 face_id = (row)->glyphs[area][START].face_id;			   \
+									   \
+	 s = (struct glyph_string *) alloca (sizeof *s);		   \
+	 char2b = (XChar2b *) alloca ((END - START) * sizeof *char2b);	   \
+	 INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);	   \
+	 append_glyph_string (&HEAD, &TAIL, s);				   \
+	 s->x = (X);							   \
+	 START = fill_glyph_string (s, face_id, START, END, overlaps_p);   \
+       }								   \
+     while (0)
+
+
+/* Add a glyph string for a composite sequence to the list of strings
+   between HEAD and TAIL.  START is the index of the first glyph in
+   row area AREA of glyph row ROW that is part of the new glyph
+   string.  END is the index of the last glyph in that glyph row area.
+   X is the current output position assigned to the new glyph string
+   constructed.  HL overrides that face of the glyph; e.g. it is
+   DRAW_CURSOR if a cursor has to be drawn.  LAST_X is the right-most
+   x-position of the drawing area.  */
+
+#define BUILD_COMPOSITE_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X) \
+  do {									  \
+    int cmp_id = (row)->glyphs[area][START].u.cmp_id;			  \
+    int face_id = (row)->glyphs[area][START].face_id;			  \
+    struct face *base_face = FACE_FROM_ID (f, face_id);			  \
+    struct composition *cmp = composition_table[cmp_id];		  \
+    int glyph_len = cmp->glyph_len;					  \
+    XChar2b *char2b;							  \
+    struct face **faces;						  \
+    struct glyph_string *first_s = NULL;				  \
+    int n;								  \
+    									  \
+    base_face = base_face->ascii_face;					  \
+    char2b = (XChar2b *) alloca ((sizeof *char2b) * glyph_len);		  \
+    faces = (struct face **) alloca ((sizeof *faces) * glyph_len);	  \
+    /* At first, fill in `char2b' and `faces'.  */			  \
+    for (n = 0; n < glyph_len; n++)					  \
+      {									  \
+	int c = COMPOSITION_GLYPH (cmp, n);				  \
+	int this_face_id = FACE_FOR_CHAR (f, base_face, c);		  \
+	faces[n] = FACE_FROM_ID (f, this_face_id);			  \
+	get_char_face_and_encoding (f, c, this_face_id, 		  \
+				    char2b + n, 1, 1);			  \
+      }									  \
+    									  \
+    /* Make glyph_strings for each glyph sequence that is drawable by	  \
+       the same face, and append them to HEAD/TAIL.  */			  \
+    for (n = 0; n < cmp->glyph_len;)					  \
+      {									  \
+	s = (struct glyph_string *) alloca (sizeof *s);			  \
+	INIT_GLYPH_STRING (s, char2b + n, w, row, area, START, HL);	  \
+	append_glyph_string (&(HEAD), &(TAIL), s);			  \
+	s->cmp = cmp;							  \
+	s->gidx = n;							  \
+	s->x = (X);							  \
+									  \
+	if (n == 0)							  \
+	  first_s = s;							  \
+									  \
+	n = fill_composite_glyph_string (s, faces, overlaps_p);		  \
+      }									  \
+    									  \
+    ++START;								  \
+    s = first_s;							  \
+  } while (0)
+
+
+/* Build a list of glyph strings between HEAD and TAIL for the glyphs
+   of AREA of glyph row ROW on window W between indices START and END.
+   HL overrides the face for drawing glyph strings, e.g. it is
+   DRAW_CURSOR to draw a cursor.  X and LAST_X are start and end
+   x-positions of the drawing area.
+
+   This is an ugly monster macro construct because we must use alloca
+   to allocate glyph strings (because x_draw_glyphs can be called
+   asynchronously).  */
+
+#define BUILD_GLYPH_STRINGS(START, END, HEAD, TAIL, HL, X, LAST_X)	   \
+     do									   \
+       {								   \
+	 HEAD = TAIL = NULL;						   \
+	 while (START < END)						   \
+	   {								   \
+             struct glyph *first_glyph = (row)->glyphs[area] + START;	   \
+             switch (first_glyph->type)					   \
+	       {							   \
+	       case CHAR_GLYPH:						   \
+                 BUILD_CHAR_GLYPH_STRINGS (START, END, HEAD, TAIL,	   \
+		                           HL, X, LAST_X);		   \
+		 break;							   \
+									   \
+	       case COMPOSITE_GLYPH:					   \
+                 BUILD_COMPOSITE_GLYPH_STRING (START, END, HEAD, TAIL,	   \
+					       HL, X, LAST_X);		   \
+		 break;							   \
+									   \
+	       case STRETCH_GLYPH:					   \
+		 BUILD_STRETCH_GLYPH_STRING (START, END, HEAD, TAIL,	   \
+					     HL, X, LAST_X);		   \
+		 break;							   \
+									   \
+	       case IMAGE_GLYPH:					   \
+		 BUILD_IMAGE_GLYPH_STRING (START, END, HEAD, TAIL,	   \
+					   HL, X, LAST_X);		   \
+		 break;							   \
+									   \
+	       default:							   \
+		 abort ();						   \
+	       }							   \
+									   \
+             set_glyph_string_background_width (s, START, LAST_X);	   \
+	     (X) += s->width;						   \
+            }								   \
+       }								   \
+     while (0)
+
+
+/* Draw glyphs between START and END in AREA of ROW on window W,
+   starting at x-position X.  X is relative to AREA in W.  HL is a
+   face-override with the following meaning:
+
+   DRAW_NORMAL_TEXT	draw normally
+   DRAW_CURSOR		draw in cursor face
+   DRAW_MOUSE_FACE	draw in mouse face.
+   DRAW_INVERSE_VIDEO	draw in mode line face
+   DRAW_IMAGE_SUNKEN	draw an image with a sunken relief around it
+   DRAW_IMAGE_RAISED	draw an image with a raised relief around it
+
+   If OVERLAPS_P is non-zero, draw only the foreground of characters
+   and clip to the physical height of ROW.
+
+   Value is the x-position reached, relative to AREA of W.  */
+
+int
+x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
+     struct window *w;
+     int x;
+     struct glyph_row *row;
+     enum glyph_row_area area;
+     int start, end;
+     enum draw_glyphs_face hl;
+     int overlaps_p;
+{
+  struct glyph_string *head, *tail;
+  struct glyph_string *s;
+  int last_x, area_width;
+  int x_reached;
+  int i, j;
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  DECLARE_HDC (hdc);
+
+  ALLOCATE_HDC (hdc, f);
+
+  /* Let's rather be paranoid than getting a SEGV.  */
+  end = min (end, row->used[area]);
+  start = max (0, start);
+  start = min (end, start);
+
+  /* Translate X to frame coordinates.  Set last_x to the right
+     end of the drawing area.  */
+  if (row->full_width_p)
+    {
+      /* X is relative to the left edge of W, without scroll bars
+	 or fringes.  */
+      int window_left_x = WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f);
+
+      x += window_left_x;
+      area_width = XFASTINT (w->width) * CANON_X_UNIT (f);
+      last_x = window_left_x + area_width;
+
+      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+	{
+	  int width = FRAME_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f);
+	  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
+	    last_x += width;
+	  else
+	    x -= width;
+	}
+
+      x += FRAME_INTERNAL_BORDER_WIDTH (f);
+      /* ++KFS: W32 and MAC versions had -= in next line (bug??)  */
+      last_x += FRAME_INTERNAL_BORDER_WIDTH (f);
+    }
+  else
+    {
+      x = WINDOW_AREA_TO_FRAME_PIXEL_X (w, area, x);
+      area_width = window_box_width (w, area);
+      last_x = WINDOW_AREA_TO_FRAME_PIXEL_X (w, area, area_width);
+    }
+
+  /* Build a doubly-linked list of glyph_string structures between
+     head and tail from what we have to draw.  Note that the macro
+     BUILD_GLYPH_STRINGS will modify its start parameter.  That's
+     the reason we use a separate variable `i'.  */
+  i = start;
+  BUILD_GLYPH_STRINGS (i, end, head, tail, hl, x, last_x);
+  if (tail)
+    x_reached = tail->x + tail->background_width;
+  else
+    x_reached = x;
+
+  /* If there are any glyphs with lbearing < 0 or rbearing > width in
+     the row, redraw some glyphs in front or following the glyph
+     strings built above.  */
+  if (head && !overlaps_p && row->contains_overlapping_glyphs_p)
+    {
+      int dummy_x = 0;
+      struct glyph_string *h, *t;
+
+      /* Compute overhangs for all glyph strings.  */
+      if (rif->compute_glyph_string_overhangs)
+	for (s = head; s; s = s->next)
+	  rif->compute_glyph_string_overhangs (s);
+
+      /* Prepend glyph strings for glyphs in front of the first glyph
+	 string that are overwritten because of the first glyph
+	 string's left overhang.  The background of all strings
+	 prepended must be drawn because the first glyph string
+	 draws over it.  */
+      i = left_overwritten (head);
+      if (i >= 0)
+	{
+	  j = i;
+	  BUILD_GLYPH_STRINGS (j, start, h, t,
+			       DRAW_NORMAL_TEXT, dummy_x, last_x);
+	  start = i;
+	  compute_overhangs_and_x (t, head->x, 1);
+	  prepend_glyph_string_lists (&head, &tail, h, t);
+	}
+
+      /* Prepend glyph strings for glyphs in front of the first glyph
+	 string that overwrite that glyph string because of their
+	 right overhang.  For these strings, only the foreground must
+	 be drawn, because it draws over the glyph string at `head'.
+	 The background must not be drawn because this would overwrite
+	 right overhangs of preceding glyphs for which no glyph
+	 strings exist.  */
+      i = left_overwriting (head);
+      if (i >= 0)
+	{
+	  BUILD_GLYPH_STRINGS (i, start, h, t,
+			       DRAW_NORMAL_TEXT, dummy_x, last_x);
+	  for (s = h; s; s = s->next)
+	    s->background_filled_p = 1;
+	  compute_overhangs_and_x (t, head->x, 1);
+	  prepend_glyph_string_lists (&head, &tail, h, t);
+	}
+
+      /* Append glyphs strings for glyphs following the last glyph
+	 string tail that are overwritten by tail.  The background of
+	 these strings has to be drawn because tail's foreground draws
+	 over it.  */
+      i = right_overwritten (tail);
+      if (i >= 0)
+	{
+	  BUILD_GLYPH_STRINGS (end, i, h, t,
+			       DRAW_NORMAL_TEXT, x, last_x);
+	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
+	  append_glyph_string_lists (&head, &tail, h, t);
+	}
+
+      /* Append glyph strings for glyphs following the last glyph
+	 string tail that overwrite tail.  The foreground of such
+	 glyphs has to be drawn because it writes into the background
+	 of tail.  The background must not be drawn because it could
+	 paint over the foreground of following glyphs.  */
+      i = right_overwriting (tail);
+      if (i >= 0)
+	{
+	  BUILD_GLYPH_STRINGS (end, i, h, t,
+			       DRAW_NORMAL_TEXT, x, last_x);
+	  for (s = h; s; s = s->next)
+	    s->background_filled_p = 1;
+	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
+	  append_glyph_string_lists (&head, &tail, h, t);
+	}
+    }
+
+  /* Draw all strings.  */
+  for (s = head; s; s = s->next)
+    rif->draw_glyph_string (s);
+
+  if (area == TEXT_AREA
+      && !row->full_width_p
+      /* When drawing overlapping rows, only the glyph strings'
+	 foreground is drawn, which doesn't erase a cursor
+	 completely. */
+      && !overlaps_p)
+    {
+      int x0 = head ? head->x : x;
+      int x1 = tail ? tail->x + tail->background_width : x;
+
+      x0 = FRAME_TO_WINDOW_PIXEL_X (w, x0);
+      x1 = FRAME_TO_WINDOW_PIXEL_X (w, x1);
+
+      /* ++KFS: W32 and MAC versions had following test here:
+	 if (!row->full_width_p && XFASTINT (w->left_margin_width) != 0)
+      */
+
+      if (XFASTINT (w->left_margin_width) != 0)
+	{
+	  int left_area_width = window_box_width (w, LEFT_MARGIN_AREA);
+	  x0 -= left_area_width;
+	  x1 -= left_area_width;
+	}
+
+      notice_overwritten_cursor (w, area, x0, x1,
+				 row->y, MATRIX_ROW_BOTTOM_Y (row));
+    }
+
+  /* Value is the x-position up to which drawn, relative to AREA of W.
+     This doesn't include parts drawn because of overhangs.  */
+  x_reached = FRAME_TO_WINDOW_PIXEL_X (w, x_reached);
+  if (!row->full_width_p)
+    {
+      /* ++KFS: W32 and MAC versions only had this test here:
+	 if (area > LEFT_MARGIN_AREA)
+      */
+
+      if (area > LEFT_MARGIN_AREA && XFASTINT (w->left_margin_width) != 0)
+	x_reached -= window_box_width (w, LEFT_MARGIN_AREA);
+      if (area > TEXT_AREA)
+	x_reached -= window_box_width (w, TEXT_AREA);
+    }
+
+  RELEASE_HDC (hdc, f);
+
+  return x_reached;
+}
+
+
+/* Store one glyph for IT->char_to_display in IT->glyph_row.
+   Called from x_produce_glyphs when IT->glyph_row is non-null.  */
+
+static INLINE void
+append_glyph (it)
+     struct it *it;
+{
+  struct glyph *glyph;
+  enum glyph_row_area area = it->area;
+
+  xassert (it->glyph_row);
+  xassert (it->char_to_display != '\n' && it->char_to_display != '\t');
+
+  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+  if (glyph < it->glyph_row->glyphs[area + 1])
+    {
+      glyph->charpos = CHARPOS (it->position);
+      glyph->object = it->object;
+      glyph->pixel_width = it->pixel_width;
+      glyph->voffset = it->voffset;
+      glyph->type = CHAR_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
+      glyph->left_box_line_p = it->start_of_box_run_p;
+      glyph->right_box_line_p = it->end_of_box_run_p;
+      glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
+				      || it->phys_descent > it->descent);
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = it->glyph_not_available_p;
+      glyph->face_id = it->face_id;
+      glyph->u.ch = it->char_to_display;
+      glyph->font_type = FONT_TYPE_UNKNOWN;
+      ++it->glyph_row->used[area];
+    }
+}
+
+/* Store one glyph for the composition IT->cmp_id in IT->glyph_row.
+   Called from x_produce_glyphs when IT->glyph_row is non-null.  */
+
+static INLINE void
+append_composite_glyph (it)
+     struct it *it;
+{
+  struct glyph *glyph;
+  enum glyph_row_area area = it->area;
+
+  xassert (it->glyph_row);
+
+  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+  if (glyph < it->glyph_row->glyphs[area + 1])
+    {
+      glyph->charpos = CHARPOS (it->position);
+      glyph->object = it->object;
+      glyph->pixel_width = it->pixel_width;
+      glyph->voffset = it->voffset;
+      glyph->type = COMPOSITE_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
+      glyph->left_box_line_p = it->start_of_box_run_p;
+      glyph->right_box_line_p = it->end_of_box_run_p;
+      glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
+				      || it->phys_descent > it->descent);
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = 0;
+      glyph->face_id = it->face_id;
+      glyph->u.cmp_id = it->cmp_id;
+      glyph->font_type = FONT_TYPE_UNKNOWN;
+      ++it->glyph_row->used[area];
+    }
+}
+
+
+/* Change IT->ascent and IT->height according to the setting of
+   IT->voffset.  */
+
+static INLINE void
+take_vertical_position_into_account (it)
+     struct it *it;
+{
+  if (it->voffset)
+    {
+      if (it->voffset < 0)
+	/* Increase the ascent so that we can display the text higher
+	   in the line.  */
+	it->ascent += abs (it->voffset);
+      else
+	/* Increase the descent so that we can display the text lower
+	   in the line.  */
+	it->descent += it->voffset;
+    }
+}
+
+
+/* Produce glyphs/get display metrics for the image IT is loaded with.
+   See the description of struct display_iterator in dispextern.h for
+   an overview of struct display_iterator.  */
+
+static void
+produce_image_glyph (it)
+     struct it *it;
+{
+  struct image *img;
+  struct face *face;
+
+  xassert (it->what == IT_IMAGE);
+
+  face = FACE_FROM_ID (it->f, it->face_id);
+  img = IMAGE_FROM_ID (it->f, it->image_id);
+  xassert (img);
+
+  /* Make sure X resources of the face and image are loaded.  */
+  PREPARE_FACE_FOR_DISPLAY (it->f, face);
+  prepare_image_for_display (it->f, img);
+
+  it->ascent = it->phys_ascent = image_ascent (img, face);
+  it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
+  it->pixel_width = img->width + 2 * img->hmargin;
+
+  it->nglyphs = 1;
+
+  if (face->box != FACE_NO_BOX)
+    {
+      if (face->box_line_width > 0)
+	{
+	  it->ascent += face->box_line_width;
+	  it->descent += face->box_line_width;
+	}
+
+      if (it->start_of_box_run_p)
+	it->pixel_width += abs (face->box_line_width);
+      if (it->end_of_box_run_p)
+	it->pixel_width += abs (face->box_line_width);
+    }
+
+  take_vertical_position_into_account (it);
+
+  if (it->glyph_row)
+    {
+      struct glyph *glyph;
+      enum glyph_row_area area = it->area;
+
+      glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+      if (glyph < it->glyph_row->glyphs[area + 1])
+	{
+	  glyph->charpos = CHARPOS (it->position);
+	  glyph->object = it->object;
+	  glyph->pixel_width = it->pixel_width;
+	  glyph->voffset = it->voffset;
+	  glyph->type = IMAGE_GLYPH;
+	  glyph->multibyte_p = it->multibyte_p;
+	  glyph->left_box_line_p = it->start_of_box_run_p;
+	  glyph->right_box_line_p = it->end_of_box_run_p;
+	  glyph->overlaps_vertically_p = 0;
+          glyph->padding_p = 0;
+	  glyph->glyph_not_available_p = 0;
+	  glyph->face_id = it->face_id;
+	  glyph->u.img_id = img->id;
+	  glyph->font_type = FONT_TYPE_UNKNOWN;
+	  ++it->glyph_row->used[area];
+	}
+    }
+}
+
+
+/* Append a stretch glyph to IT->glyph_row.  OBJECT is the source
+   of the glyph, WIDTH and HEIGHT are the width and height of the
+   stretch.  ASCENT is the percentage/100 of HEIGHT to use for the
+   ascent of the glyph (0 <= ASCENT <= 1).  */
+
+static void
+append_stretch_glyph (it, object, width, height, ascent)
+     struct it *it;
+     Lisp_Object object;
+     int width, height;
+     double ascent;
+{
+  struct glyph *glyph;
+  enum glyph_row_area area = it->area;
+
+  xassert (ascent >= 0 && ascent <= 1);
+
+  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+  if (glyph < it->glyph_row->glyphs[area + 1])
+    {
+      glyph->charpos = CHARPOS (it->position);
+      glyph->object = object;
+      glyph->pixel_width = width;
+      glyph->voffset = it->voffset;
+      glyph->type = STRETCH_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
+      glyph->left_box_line_p = it->start_of_box_run_p;
+      glyph->right_box_line_p = it->end_of_box_run_p;
+      glyph->overlaps_vertically_p = 0;
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = 0;
+      glyph->face_id = it->face_id;
+      glyph->u.stretch.ascent = height * ascent;
+      glyph->u.stretch.height = height;
+      glyph->font_type = FONT_TYPE_UNKNOWN;
+      ++it->glyph_row->used[area];
+    }
+}
+
+
+/* Produce a stretch glyph for iterator IT.  IT->object is the value
+   of the glyph property displayed.  The value must be a list
+   `(space KEYWORD VALUE ...)' with the following KEYWORD/VALUE pairs
+   being recognized:
+
+   1. `:width WIDTH' specifies that the space should be WIDTH *
+   canonical char width wide.  WIDTH may be an integer or floating
+   point number.
+
+   2. `:relative-width FACTOR' specifies that the width of the stretch
+   should be computed from the width of the first character having the
+   `glyph' property, and should be FACTOR times that width.
+
+   3. `:align-to HPOS' specifies that the space should be wide enough
+   to reach HPOS, a value in canonical character units.
+
+   Exactly one of the above pairs must be present.
+
+   4. `:height HEIGHT' specifies that the height of the stretch produced
+   should be HEIGHT, measured in canonical character units.
+
+   5. `:relative-height FACTOR' specifies that the height of the
+   stretch should be FACTOR times the height of the characters having
+   the glyph property.
+
+   Either none or exactly one of 4 or 5 must be present.
+
+   6. `:ascent ASCENT'  specifies that ASCENT percent of the height
+   of the stretch should be used for the ascent of the stretch.
+   ASCENT must be in the range 0 <= ASCENT <= 100.  */
+
+#define NUMVAL(X)				\
+     ((INTEGERP (X) || FLOATP (X))		\
+      ? XFLOATINT (X)				\
+      : - 1)
+
+
+static void
+produce_stretch_glyph (it)
+     struct it *it;
+{
+  /* (space :width WIDTH :height HEIGHT.  */
+  Lisp_Object prop, plist;
+  int width = 0, height = 0;
+  double ascent = 0;
+  struct face *face = FACE_FROM_ID (it->f, it->face_id);
+  XFontStruct *font = face->font ? face->font : FRAME_FONT (it->f);
+
+  PREPARE_FACE_FOR_DISPLAY (it->f, face);
+
+  /* List should start with `space'.  */
+  xassert (CONSP (it->object) && EQ (XCAR (it->object), Qspace));
+  plist = XCDR (it->object);
+
+  /* Compute the width of the stretch.  */
+  if (prop = Fplist_get (plist, QCwidth),
+      NUMVAL (prop) > 0)
+    /* Absolute width `:width WIDTH' specified and valid.  */
+    width = NUMVAL (prop) * CANON_X_UNIT (it->f);
+  else if (prop = Fplist_get (plist, QCrelative_width),
+	   NUMVAL (prop) > 0)
+    {
+      /* Relative width `:relative-width FACTOR' specified and valid.
+	 Compute the width of the characters having the `glyph'
+	 property.  */
+      struct it it2;
+      unsigned char *p = BYTE_POS_ADDR (IT_BYTEPOS (*it));
+
+      it2 = *it;
+      if (it->multibyte_p)
+	{
+	  int maxlen = ((IT_BYTEPOS (*it) >= GPT ? ZV : GPT)
+			- IT_BYTEPOS (*it));
+	  it2.c = STRING_CHAR_AND_LENGTH (p, maxlen, it2.len);
+	}
+      else
+	it2.c = *p, it2.len = 1;
+
+      it2.glyph_row = NULL;
+      it2.what = IT_CHARACTER;
+      x_produce_glyphs (&it2);
+      width = NUMVAL (prop) * it2.pixel_width;
+    }
+  else if (prop = Fplist_get (plist, QCalign_to),
+	   NUMVAL (prop) > 0)
+    width = NUMVAL (prop) * CANON_X_UNIT (it->f) - it->current_x;
+  else
+    /* Nothing specified -> width defaults to canonical char width.  */
+    width = CANON_X_UNIT (it->f);
+
+  /* Compute height.  */
+  if (prop = Fplist_get (plist, QCheight),
+      NUMVAL (prop) > 0)
+    height = NUMVAL (prop) * CANON_Y_UNIT (it->f);
+  else if (prop = Fplist_get (plist, QCrelative_height),
+	   NUMVAL (prop) > 0)
+    height = FONT_HEIGHT (font) * NUMVAL (prop);
+  else
+    height = FONT_HEIGHT (font);
+
+  /* Compute percentage of height used for ascent.  If
+     `:ascent ASCENT' is present and valid, use that.  Otherwise,
+     derive the ascent from the font in use.  */
+  if (prop = Fplist_get (plist, QCascent),
+      NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
+    ascent = NUMVAL (prop) / 100.0;
+  else
+    ascent = (double) FONT_BASE (font) / FONT_HEIGHT (font);
+
+  if (width <= 0)
+    width = 1;
+  if (height <= 0)
+    height = 1;
+
+  if (it->glyph_row)
+    {
+      Lisp_Object object = it->stack[it->sp - 1].string;
+      if (!STRINGP (object))
+	object = it->w->buffer;
+      append_stretch_glyph (it, object, width, height, ascent);
+    }
+
+  it->pixel_width = width;
+  it->ascent = it->phys_ascent = height * ascent;
+  it->descent = it->phys_descent = height - it->ascent;
+  it->nglyphs = 1;
+
+  if (face->box != FACE_NO_BOX)
+    {
+      if (face->box_line_width > 0)
+	{
+	  it->ascent += face->box_line_width;
+	  it->descent += face->box_line_width;
+	}
+
+      if (it->start_of_box_run_p)
+	it->pixel_width += abs (face->box_line_width);
+      if (it->end_of_box_run_p)
+	it->pixel_width += abs (face->box_line_width);
+    }
+
+  take_vertical_position_into_account (it);
+}
+
+/* RIF:
+   Produce glyphs/get display metrics for the display element IT is
+   loaded with.  See the description of struct display_iterator in
+   dispextern.h for an overview of struct display_iterator.  */
+
+void
+x_produce_glyphs (it)
+     struct it *it;
+{
+  it->glyph_not_available_p = 0;
+
+  if (it->what == IT_CHARACTER)
+    {
+      XChar2b char2b;
+      XFontStruct *font;
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+      XCharStruct *pcm;
+      int font_not_found_p;
+      struct font_info *font_info;
+      int boff;			/* baseline offset */
+      /* We may change it->multibyte_p upon unibyte<->multibyte
+	 conversion.  So, save the current value now and restore it
+	 later.
+
+	 Note: It seems that we don't have to record multibyte_p in
+	 struct glyph because the character code itself tells if or
+	 not the character is multibyte.  Thus, in the future, we must
+	 consider eliminating the field `multibyte_p' in the struct
+	 glyph.  */
+      int saved_multibyte_p = it->multibyte_p;
+
+      /* Maybe translate single-byte characters to multibyte, or the
+	 other way.  */
+      it->char_to_display = it->c;
+      if (!ASCII_BYTE_P (it->c))
+	{
+	  if (unibyte_display_via_language_environment
+	      && SINGLE_BYTE_CHAR_P (it->c)
+	      && (it->c >= 0240
+		  || !NILP (Vnonascii_translation_table)))
+	    {
+	      it->char_to_display = unibyte_char_to_multibyte (it->c);
+	      it->multibyte_p = 1;
+	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+	      face = FACE_FROM_ID (it->f, it->face_id);
+	    }
+	  else if (!SINGLE_BYTE_CHAR_P (it->c)
+		   && !it->multibyte_p)
+	    {
+	      it->multibyte_p = 1;
+	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+	      face = FACE_FROM_ID (it->f, it->face_id);
+	    }
+	}
+
+      /* Get font to use.  Encode IT->char_to_display.  */
+      get_char_face_and_encoding (it->f, it->char_to_display, it->face_id,
+				  &char2b, it->multibyte_p, 0);
+      font = face->font;
+
+      /* When no suitable font found, use the default font.  */
+      font_not_found_p = font == NULL;
+      if (font_not_found_p)
+	{
+	  font = FRAME_FONT (it->f);
+	  boff = FRAME_BASELINE_OFFSET (it->f);
+	  font_info = NULL;
+	}
+      else
+	{
+	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+	  boff = font_info->baseline_offset;
+	  if (font_info->vertical_centering)
+	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+	}
+
+      if (it->char_to_display >= ' '
+	  && (!it->multibyte_p || it->char_to_display < 128))
+	{
+	  /* Either unibyte or ASCII.  */
+	  int stretched_p;
+
+	  it->nglyphs = 1;
+
+	  pcm = rif->per_char_metric (font, &char2b,
+				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
+	  it->ascent = FONT_BASE (font) + boff;
+	  it->descent = FONT_DESCENT (font) - boff;
+
+	  if (pcm)
+	    {
+	      it->phys_ascent = pcm->ascent + boff;
+	      it->phys_descent = pcm->descent - boff;
+	      it->pixel_width = pcm->width;
+	    }
+	  else
+	    {
+	      it->glyph_not_available_p = 1;
+              it->phys_ascent = FONT_BASE (font) + boff;
+              it->phys_descent = FONT_DESCENT (font) - boff;
+	      it->pixel_width = FONT_WIDTH (font);
+	    }
+
+	  /* If this is a space inside a region of text with
+	     `space-width' property, change its width.  */
+	  stretched_p = it->char_to_display == ' ' && !NILP (it->space_width);
+	  if (stretched_p)
+	    it->pixel_width *= XFLOATINT (it->space_width);
+
+	  /* If face has a box, add the box thickness to the character
+	     height.  If character has a box line to the left and/or
+	     right, add the box line width to the character's width.  */
+	  if (face->box != FACE_NO_BOX)
+	    {
+	      int thick = face->box_line_width;
+
+	      if (thick > 0)
+		{
+		  it->ascent += thick;
+		  it->descent += thick;
+		}
+	      else
+		thick = -thick;
+
+	      if (it->start_of_box_run_p)
+		it->pixel_width += thick;
+	      if (it->end_of_box_run_p)
+		it->pixel_width += thick;
+	    }
+
+	  /* If face has an overline, add the height of the overline
+	     (1 pixel) and a 1 pixel margin to the character height.  */
+	  if (face->overline_p)
+	    it->ascent += 2;
+
+	  take_vertical_position_into_account (it);
+
+	  /* If we have to actually produce glyphs, do it.  */
+	  if (it->glyph_row)
+	    {
+	      if (stretched_p)
+		{
+		  /* Translate a space with a `space-width' property
+		     into a stretch glyph.  */
+		  double ascent = (double) FONT_BASE (font)
+                                / FONT_HEIGHT (font);
+		  append_stretch_glyph (it, it->object, it->pixel_width,
+					it->ascent + it->descent, ascent);
+		}
+	      else
+		append_glyph (it);
+
+	      /* If characters with lbearing or rbearing are displayed
+		 in this line, record that fact in a flag of the
+		 glyph row.  This is used to optimize X output code.  */
+	      if (pcm && (pcm->lbearing < 0 || pcm->rbearing > pcm->width))
+		it->glyph_row->contains_overlapping_glyphs_p = 1;
+	    }
+	}
+      else if (it->char_to_display == '\n')
+	{
+	  /* A newline has no width but we need the height of the line.  */
+	  it->pixel_width = 0;
+	  it->nglyphs = 0;
+	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
+	  it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
+
+	  if (face->box != FACE_NO_BOX
+	      && face->box_line_width > 0)
+	    {
+	      it->ascent += face->box_line_width;
+	      it->descent += face->box_line_width;
+	    }
+	}
+      else if (it->char_to_display == '\t')
+	{
+	  int tab_width = it->tab_width * CANON_X_UNIT (it->f);
+	  int x = it->current_x + it->continuation_lines_width;
+	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
+
+	  /* If the distance from the current position to the next tab
+	     stop is less than a canonical character width, use the
+	     tab stop after that.  */
+	  if (next_tab_x - x < CANON_X_UNIT (it->f))
+	    next_tab_x += tab_width;
+
+	  it->pixel_width = next_tab_x - x;
+	  it->nglyphs = 1;
+	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
+	  it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
+
+	  if (it->glyph_row)
+	    {
+	      double ascent = (double) it->ascent / (it->ascent + it->descent);
+	      append_stretch_glyph (it, it->object, it->pixel_width,
+				    it->ascent + it->descent, ascent);
+	    }
+	}
+      else
+	{
+	  /* A multi-byte character.  Assume that the display width of the
+	     character is the width of the character multiplied by the
+	     width of the font.  */
+
+	  /* If we found a font, this font should give us the right
+	     metrics.  If we didn't find a font, use the frame's
+	     default font and calculate the width of the character
+	     from the charset width; this is what old redisplay code
+	     did.  */
+
+	  pcm = rif->per_char_metric (font, &char2b,
+				      FONT_TYPE_FOR_MULTIBYTE (font, it->c));
+
+	  if (font_not_found_p || !pcm)
+	    {
+	      int charset = CHAR_CHARSET (it->char_to_display);
+
+	      it->glyph_not_available_p = 1;
+	      it->pixel_width = (FONT_WIDTH (FRAME_FONT (it->f))
+				 * CHARSET_WIDTH (charset));
+	      it->phys_ascent = FONT_BASE (font) + boff;
+	      it->phys_descent = FONT_DESCENT (font) - boff;
+	    }
+	  else
+	    {
+	      it->pixel_width = pcm->width;
+	      it->phys_ascent = pcm->ascent + boff;
+	      it->phys_descent = pcm->descent - boff;
+	      if (it->glyph_row
+		  && (pcm->lbearing < 0
+		      || pcm->rbearing > pcm->width))
+		it->glyph_row->contains_overlapping_glyphs_p = 1;
+	    }
+	  it->nglyphs = 1;
+          it->ascent = FONT_BASE (font) + boff;
+          it->descent = FONT_DESCENT (font) - boff;
+	  if (face->box != FACE_NO_BOX)
+	    {
+	      int thick = face->box_line_width;
+
+	      if (thick > 0)
+		{
+		  it->ascent += thick;
+		  it->descent += thick;
+		}
+	      else
+		thick = - thick;
+
+	      if (it->start_of_box_run_p)
+		it->pixel_width += thick;
+	      if (it->end_of_box_run_p)
+		it->pixel_width += thick;
+	    }
+
+	  /* If face has an overline, add the height of the overline
+	     (1 pixel) and a 1 pixel margin to the character height.  */
+	  if (face->overline_p)
+	    it->ascent += 2;
+
+	  take_vertical_position_into_account (it);
+
+	  if (it->glyph_row)
+	    append_glyph (it);
+	}
+      it->multibyte_p = saved_multibyte_p;
+    }
+  else if (it->what == IT_COMPOSITION)
+    {
+      /* Note: A composition is represented as one glyph in the
+	 glyph matrix.  There are no padding glyphs.  */
+      XChar2b char2b;
+      XFontStruct *font;
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+      XCharStruct *pcm;
+      int font_not_found_p;
+      struct font_info *font_info;
+      int boff;			/* baseline offset */
+      struct composition *cmp = composition_table[it->cmp_id];
+
+      /* Maybe translate single-byte characters to multibyte.  */
+      it->char_to_display = it->c;
+      if (unibyte_display_via_language_environment
+	  && SINGLE_BYTE_CHAR_P (it->c)
+	  && (it->c >= 0240
+	      || (it->c >= 0200
+		  && !NILP (Vnonascii_translation_table))))
+	{
+	  it->char_to_display = unibyte_char_to_multibyte (it->c);
+	}
+
+      /* Get face and font to use.  Encode IT->char_to_display.  */
+      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+      face = FACE_FROM_ID (it->f, it->face_id);
+      get_char_face_and_encoding (it->f, it->char_to_display, it->face_id,
+				  &char2b, it->multibyte_p, 0);
+      font = face->font;
+
+      /* When no suitable font found, use the default font.  */
+      font_not_found_p = font == NULL;
+      if (font_not_found_p)
+	{
+	  font = FRAME_FONT (it->f);
+	  boff = FRAME_BASELINE_OFFSET (it->f);
+	  font_info = NULL;
+	}
+      else
+	{
+	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+	  boff = font_info->baseline_offset;
+	  if (font_info->vertical_centering)
+	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+	}
+
+      /* There are no padding glyphs, so there is only one glyph to
+	 produce for the composition.  Important is that pixel_width,
+	 ascent and descent are the values of what is drawn by
+	 draw_glyphs (i.e. the values of the overall glyphs composed).  */
+      it->nglyphs = 1;
+
+      /* If we have not yet calculated pixel size data of glyphs of
+	 the composition for the current face font, calculate them
+	 now.  Theoretically, we have to check all fonts for the
+	 glyphs, but that requires much time and memory space.  So,
+	 here we check only the font of the first glyph.  This leads
+	 to incorrect display very rarely, and C-l (recenter) can
+	 correct the display anyway.  */
+      if (cmp->font != (void *) font)
+	{
+	  /* Ascent and descent of the font of the first character of
+	     this composition (adjusted by baseline offset).  Ascent
+	     and descent of overall glyphs should not be less than
+	     them respectively.  */
+	  int font_ascent = FONT_BASE (font) + boff;
+	  int font_descent = FONT_DESCENT (font) - boff;
+	  /* Bounding box of the overall glyphs.  */
+	  int leftmost, rightmost, lowest, highest;
+	  int i, width, ascent, descent;
+
+	  cmp->font = (void *) font;
+
+	  /* Initialize the bounding box.  */
+	  if (font_info
+	      && (pcm = rif->per_char_metric (font, &char2b,
+					      FONT_TYPE_FOR_MULTIBYTE (font, it->c))))
+	    {
+	      width = pcm->width;
+	      ascent = pcm->ascent;
+	      descent = pcm->descent;
+	    }
+	  else
+	    {
+	      width = FONT_WIDTH (font);
+	      ascent = FONT_BASE (font);
+	      descent = FONT_DESCENT (font);
+	    }
+
+	  rightmost = width;
+	  lowest = - descent + boff;
+	  highest = ascent + boff;
+	  leftmost = 0;
+
+	  if (font_info
+	      && font_info->default_ascent
+	      && CHAR_TABLE_P (Vuse_default_ascent)
+	      && !NILP (Faref (Vuse_default_ascent,
+			       make_number (it->char_to_display))))
+	    highest = font_info->default_ascent + boff;
+
+	  /* Draw the first glyph at the normal position.  It may be
+	     shifted to right later if some other glyphs are drawn at
+	     the left.  */
+	  cmp->offsets[0] = 0;
+	  cmp->offsets[1] = boff;
+
+	  /* Set cmp->offsets for the remaining glyphs.  */
+	  for (i = 1; i < cmp->glyph_len; i++)
+	    {
+	      int left, right, btm, top;
+	      int ch = COMPOSITION_GLYPH (cmp, i);
+	      int face_id = FACE_FOR_CHAR (it->f, face, ch);
+
+	      face = FACE_FROM_ID (it->f, face_id);
+	      get_char_face_and_encoding (it->f, ch, face->id,
+					  &char2b, it->multibyte_p, 0);
+	      font = face->font;
+	      if (font == NULL)
+		{
+		  font = FRAME_FONT (it->f);
+		  boff = it->f->output_data.x->baseline_offset;
+		  font_info = NULL;
+		}
+	      else
+		{
+		  font_info
+		    = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+		  boff = font_info->baseline_offset;
+		  if (font_info->vertical_centering)
+		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+		}
+
+	      if (font_info
+		  && (pcm = rif->per_char_metric (font, &char2b, 
+						  FONT_TYPE_FOR_MULTIBYTE (font, ch))))
+		{
+		  width = pcm->width;
+		  ascent = pcm->ascent;
+		  descent = pcm->descent;
+		}
+	      else
+		{
+		  width = FONT_WIDTH (font);
+		  ascent = 1;
+		  descent = 0;
+		}
+
+	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
+		{
+		  /* Relative composition with or without
+		     alternate chars.  */
+		  left = (leftmost + rightmost - width) / 2;
+		  btm = - descent + boff;
+		  if (font_info && font_info->relative_compose
+		      && (! CHAR_TABLE_P (Vignore_relative_composition)
+			  || NILP (Faref (Vignore_relative_composition,
+					  make_number (ch)))))
+		    {
+
+		      if (- descent >= font_info->relative_compose)
+			/* One extra pixel between two glyphs.  */
+			btm = highest + 1;
+		      else if (ascent <= 0)
+			/* One extra pixel between two glyphs.  */
+			btm = lowest - 1 - ascent - descent;
+		    }
+		}
+	      else
+		{
+		  /* A composition rule is specified by an integer
+		     value that encodes global and new reference
+		     points (GREF and NREF).  GREF and NREF are
+		     specified by numbers as below:
+
+			0---1---2 -- ascent
+			|       |
+			|       |
+			|       |
+			9--10--11 -- center
+			|       |
+		     ---3---4---5--- baseline
+			|       |
+			6---7---8 -- descent
+		  */
+		  int rule = COMPOSITION_RULE (cmp, i);
+		  int gref, nref, grefx, grefy, nrefx, nrefy;
+
+		  COMPOSITION_DECODE_RULE (rule, gref, nref);
+		  grefx = gref % 3, nrefx = nref % 3;
+		  grefy = gref / 3, nrefy = nref / 3;
+
+		  left = (leftmost
+			  + grefx * (rightmost - leftmost) / 2
+			  - nrefx * width / 2);
+		  btm = ((grefy == 0 ? highest
+			  : grefy == 1 ? 0
+			  : grefy == 2 ? lowest
+			  : (highest + lowest) / 2)
+			 - (nrefy == 0 ? ascent + descent
+			    : nrefy == 1 ? descent - boff
+			    : nrefy == 2 ? 0
+			    : (ascent + descent) / 2));
+		}
+
+	      cmp->offsets[i * 2] = left;
+	      cmp->offsets[i * 2 + 1] = btm + descent;
+
+	      /* Update the bounding box of the overall glyphs. */
+	      right = left + width;
+	      top = btm + descent + ascent;
+	      if (left < leftmost)
+		leftmost = left;
+	      if (right > rightmost)
+		rightmost = right;
+	      if (top > highest)
+		highest = top;
+	      if (btm < lowest)
+		lowest = btm;
+	    }
+
+	  /* If there are glyphs whose x-offsets are negative,
+	     shift all glyphs to the right and make all x-offsets
+	     non-negative.  */
+	  if (leftmost < 0)
+	    {
+	      for (i = 0; i < cmp->glyph_len; i++)
+		cmp->offsets[i * 2] -= leftmost;
+	      rightmost -= leftmost;
+	    }
+
+	  cmp->pixel_width = rightmost;
+	  cmp->ascent = highest;
+	  cmp->descent = - lowest;
+	  if (cmp->ascent < font_ascent)
+	    cmp->ascent = font_ascent;
+	  if (cmp->descent < font_descent)
+	    cmp->descent = font_descent;
+	}
+
+      it->pixel_width = cmp->pixel_width;
+      it->ascent = it->phys_ascent = cmp->ascent;
+      it->descent = it->phys_descent = cmp->descent;
+
+      if (face->box != FACE_NO_BOX)
+	{
+	  int thick = face->box_line_width;
+
+	  if (thick > 0)
+	    {
+	      it->ascent += thick;
+	      it->descent += thick;
+	    }
+	  else
+	    thick = - thick;
+
+	  if (it->start_of_box_run_p)
+	    it->pixel_width += thick;
+	  if (it->end_of_box_run_p)
+	    it->pixel_width += thick;
+	}
+
+      /* If face has an overline, add the height of the overline
+	 (1 pixel) and a 1 pixel margin to the character height.  */
+      if (face->overline_p)
+	it->ascent += 2;
+
+      take_vertical_position_into_account (it);
+
+      if (it->glyph_row)
+	append_composite_glyph (it);
+    }
+  else if (it->what == IT_IMAGE)
+    produce_image_glyph (it);
+  else if (it->what == IT_STRETCH)
+    produce_stretch_glyph (it);
+
+  /* Accumulate dimensions.  Note: can't assume that it->descent > 0
+     because this isn't true for images with `:ascent 100'.  */
+  xassert (it->ascent >= 0 && it->descent >= 0);
+  if (it->area == TEXT_AREA)
+    it->current_x += it->pixel_width;
+
+  it->descent += it->extra_line_spacing;
+
+  it->max_ascent = max (it->max_ascent, it->ascent);
+  it->max_descent = max (it->max_descent, it->descent);
+  it->max_phys_ascent = max (it->max_phys_ascent, it->phys_ascent);
+  it->max_phys_descent = max (it->max_phys_descent, it->phys_descent);
+}
+
+
+
+
+
+
+/***********************************************************************
 			     Cursor types
  ***********************************************************************/
 
@@ -15855,6 +17846,63 @@ get_window_cursor_type (w, width, active_cursor)
     }
 
   return NO_CURSOR;
+}
+
+
+/* Notice when the text cursor of window W has been completely
+   overwritten by a drawing operation that outputs glyphs in AREA
+   starting at X0 and ending at X1 in the line starting at Y0 and
+   ending at Y1.  X coordinates are area-relative.  X1 < 0 means all
+   the rest of the line after X0 has been written.  Y coordinates
+   are window-relative.  */
+
+void
+notice_overwritten_cursor (w, area, x0, x1, y0, y1)
+     struct window *w;
+     enum glyph_row_area area;
+     int x0, y0, x1, y1;
+{
+#ifdef HAVE_CARBON
+  /* ++KFS:  Why is there a special version of this for the mac ? */
+  if (area == TEXT_AREA
+      && w->phys_cursor_on_p
+      && y0 <= w->phys_cursor.y
+      && y1 >= w->phys_cursor.y + w->phys_cursor_height
+      && x0 <= w->phys_cursor.x
+      && (x1 < 0 || x1 > w->phys_cursor.x))
+    w->phys_cursor_on_p = 0;
+#else
+  if (area == TEXT_AREA && w->phys_cursor_on_p)
+    {
+      int cx0 = w->phys_cursor.x;
+      int cx1 = cx0 + w->phys_cursor_width;
+      int cy0 = w->phys_cursor.y;
+      int cy1 = cy0 + w->phys_cursor_height;
+
+      if (x0 <= cx0 && (x1 < 0 || x1 >= cx1))
+	{
+	  /* The cursor image will be completely removed from the
+	     screen if the output area intersects the cursor area in
+	     y-direction.  When we draw in [y0 y1[, and some part of
+	     the cursor is at y < y0, that part must have been drawn
+	     before.  When scrolling, the cursor is erased before
+	     actually scrolling, so we don't come here.  When not
+	     scrolling, the rows above the old cursor row must have
+	     changed, and in this case these rows must have written
+	     over the cursor image.
+
+	     Likewise if part of the cursor is below y1, with the
+	     exception of the cursor being in the first blank row at
+	     the buffer and window end because update_text_area
+	     doesn't draw that row.  (Except when it does, but
+	     that's handled in update_text_area.)  */
+
+	  if (((y0 >= cy0 && y0 < cy1) || (y1 > cy0 && y1 < cy1))
+	      && w->current_matrix->rows[w->phys_cursor.vpos].displays_text_p)
+	    w->phys_cursor_on_p = 0;
+	}
+    }
+#endif
 }
 
 
