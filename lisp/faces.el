@@ -1529,12 +1529,20 @@ created."
 (put 'modeline 'face-alias 'mode-line)
 
 (defface header-line
-  '((((type x) (class color))
-     (:box (:line-width 2 :style released-button)
-	   :background "grey75" :foreground "black"))
-    (((type w32) (class color))
-     (:box (:line-width 2 :style released-button)
-	   :background "grey75" :foreground "black"))
+  '((((type tty))
+     (:inverse-video t))
+    (((class color) (background light))
+     (:box (:line-width 1 :style released-button)
+	   :background "grey90"
+	   :inherit mode-line))
+    (((class color) (background dark))
+     (:box (:line-width 1 :style released-button)
+	   :background "grey20"
+	   :inherit mode-line))
+    (((class mono))
+     (:box (:line-width 1 :style released-button)
+	   :background "grey"
+	   :inherit mode-line))
     (t
      (:inverse-video t)))
   "Basic header-line face."
