@@ -743,22 +743,32 @@ If DIR is positive skip forward; if negative, skip backward."
     (if window-system
 	(let ((inhibit-quit t)
 	      (echo-keystrokes 0)
-	      event events key)
+	      event events key ignore
+	      x-lost-selection-hooks)
+	  (add-hook 'x-lost-selection-hooks
+		    '(lambda (seltype)
+		       (if (eq seltype 'PRIMARY)
+			   (progn (setq ignore t)
+				  (throw 'mouse-show-mark t)))))
 	  (move-overlay mouse-drag-overlay (point) (mark t))
-	  (while (progn (setq event (read-event))
-			(setq events (append events (list event)))
-			(setq key (apply 'vector events))
-			(and (memq 'down (event-modifiers event))
-			     (not (key-binding key))
-			     (not (member key mouse-region-delete-keys))
-			     (not (mouse-undouble-last-event events)))))
-	  ;; For certain special keys, delete the region.
-	  (if (member key mouse-region-delete-keys)
-	      (delete-region (overlay-start mouse-drag-overlay)
-			     (overlay-end mouse-drag-overlay))
-	    ;; Otherwise, unread the key so it gets executed normally.
-	    (setq unread-command-events
-		  (nconc events unread-command-events)))
+	  (catch 'mouse-show-mark
+	    (while (progn (setq event (read-event))
+			  (setq events (append events (list event)))
+			  (setq key (apply 'vector events))
+			  (and (memq 'down (event-modifiers event))
+			       (not (key-binding key))
+			       (not (member key mouse-region-delete-keys))
+			       (not (mouse-undouble-last-event events))))))
+	  ;; If we lost the selection, just turn off the highlighting.
+	  (if ignore
+	      nil
+	    ;; For certain special keys, delete the region.
+	    (if (member key mouse-region-delete-keys)
+		(delete-region (overlay-start mouse-drag-overlay)
+			       (overlay-end mouse-drag-overlay))
+	      ;; Otherwise, unread the key so it gets executed normally.
+	      (setq unread-command-events
+		    (nconc events unread-command-events))))
 	  (setq quit-flag nil)
 	  (delete-overlay mouse-drag-overlay))
       (save-excursion
