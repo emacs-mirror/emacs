@@ -254,7 +254,7 @@ primary selection and region."
 	 ;; Primary selection bindings.
 
 	 ;; Bind keys to `ignore' instead of unsetting them because
-	 ;; modes my bind `down-mouse-1', for instance, without
+	 ;; modes may bind `down-mouse-1', for instance, without
 	 ;; binding other `up-mouse-1' or `mouse-1'.  If we unset
 	 ;; `mouse-1', this leads to a bitch_at_user when the mouse
 	 ;; goes up because no matching binding is found for that.
