@@ -462,7 +462,7 @@ from being initialized."
       ;; These two lines are ok for any Latin-N character set,
       ;; as long as the terminal displays it.
       (require 'disp-table)
-      (standard-display-european t)))
+      (standard-display-european t t)))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
