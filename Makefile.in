@@ -427,7 +427,7 @@ clean: FRC
 ###      `make distclean' should leave only the files that were in the
 ###      distribution.
 top_distclean=\
-	rm -f config.status build-install ; \
+	rm -f config.status ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
 	(cd lock ; rm -f *)
 distclean: FRC
@@ -479,7 +479,7 @@ extraclean:
 ### and VC will swiftly let you know if this happens, and it is easily
 ### corrected.
 SOURCES = ChangeLog GETTING.GNU.SOFTWARE INSTALL Makefile.in PROBLEMS \
-	README build-install.in configure make-dist move-if-change
+	README configure make-dist move-if-change
 
 .PHONY: unlock relock
 
