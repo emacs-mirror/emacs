@@ -1,3 +1,8 @@
+2002-06-03  Ken Raeburn  <raeburn@raeburn.org>
+
+	* buffer.c (fix_overlays_before): Fix list-walking bug in 05-19
+	change.
+
 2002-06-02  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* bytecode.c (Fbyte_code): Cast `current_column' return value to int.
