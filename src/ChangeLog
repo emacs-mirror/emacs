@@ -1,3 +1,18 @@
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (popup_get_selection): Pop down on C-g.
+	(set_frame_menubar): Install translations for Lucid/Motif/Lesstif that
+	pops down menu on C-g.
+	(xdialog_show): If dialog popped down and no button in the dialog was
+	pushed, call Fsignal to quit.
+	(xmenu_show): In no toolkit version, if menu returns NO_SELECT call
+	Fsignal to quit.
+
+	* xfns.c (Fx_file_dialog): Motif/Lesstif version:  Pop down on C-g.
+
+	* gtkutil.c (xg_initialize): Install bindings for C-g so that
+	dialogs and menus pop down.
+
 2004-12-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Make the value of

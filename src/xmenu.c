@@ -1243,6 +1243,11 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
                && dpyinfo->display == event.xbutton.display)
         {
           KeySym keysym = XLookupKeysym (&event.xkey, 0);
+
+          /* Pop down on C-g.  */
+          if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+            popup_activated_flag = 0;
+
           if (!IsModifierKey (keysym)
               && x_any_window_to_frame (dpyinfo, event.xany.window) != NULL)
 	    popup_activated_flag = 0;
@@ -2226,6 +2231,9 @@ set_frame_menubar (f, first_time, deep_p)
     }
   else
     {
+      char menuOverride[] = "Ctrl<KeyPress>g: MenuGadgetEscape()";
+      XtTranslations  override = XtParseTranslationTable (menuOverride);
+
       menubar_widget = lw_create_widget ("menubar", "menubar", id, first_wv,
 					 f->output_data.x->column_widget,
 					 0,
@@ -2234,6 +2242,9 @@ set_frame_menubar (f, first_time, deep_p)
 					 popup_deactivate_callback,
 					 menu_highlight_callback);
       f->output_data.x->menubar_widget = menubar_widget;
+
+      /* Make menu pop down on C-g.  */
+      XtOverrideTranslations (menubar_widget, override);
     }
 
   {
@@ -3155,6 +3166,9 @@ xdialog_show (f, keymaps, title, error)
 	    }
 	}
     }
+  else
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }
@@ -3500,7 +3514,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
     case XM_FAILURE:
       *error = "Can't activate menu";
     case XM_IA_SELECT:
+      entry = Qnil;
+      break;
     case XM_NO_SELECT:
+      /* Make "Cancel" equivalent to C-g unless this menu was popped up by
+         a mouse press.  */
+      if (! for_click)
+        Fsignal (Qquit, Qnil);
       entry = Qnil;
       break;
     }

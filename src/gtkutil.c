@@ -3578,6 +3578,8 @@ free_frame_tool_bar (f)
 void
 xg_initialize ()
 {
+  GtkBindingSet *binding_set;
+
   xg_ignore_gtk_scrollbar = 0;
   xg_detached_menus = 0;
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
@@ -3600,6 +3602,17 @@ xg_initialize ()
                                     "gtk-key-theme-name",
                                     "Emacs",
                                     EMACS_CLASS);
+
+  /* Make dialogs close on C-g.  Since file dialog inherits from
+     dialog, this works for them also.  */
+  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_DIALOG));
+  gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
+                                "close", 0);
+
+  /* Make menus close on C-g.  */
+  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_MENU_SHELL));
+  gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
+                                "cancel", 0);
 }
 
 #endif /* USE_GTK */
