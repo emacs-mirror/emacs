@@ -417,7 +417,8 @@
   :iso-final-char ?1
   :emacs-mule-id  162
   :code-space [32 127]
-  :map "viscii-lower")
+  :code-offset #x200200
+  :unify-map "viscii-lower")
 
 (define-charset 'vietnamese-viscii-upper
   "VISCII1.1 upper-case"
@@ -426,7 +427,8 @@
   :iso-final-char ?2
   :emacs-mule-id  163
   :code-space [32 127]
-  :map "viscii-upper")
+  :code-offset #x200280
+  :unify-map "viscii-upper")
 
 (define-charset 'vscii
   "VSCII1.1"
@@ -786,6 +788,9 @@
 (unify-charset 'big5)
 (unify-charset 'chinese-big5-1)
 (unify-charset 'chinese-big5-2)
+(unify-charset 'vietnamese-viscii-lower)
+(unify-charset 'vietnamese-viscii-upper)
+
 
 ;; These are tables for translating characters on decoding and
 ;; encoding.
