@@ -28,10 +28,6 @@
 
 ;;; Code:
 
-(defgroup dos-fns nil
-  "MS-Dos specific functions."
-  :group 'environment)
-
 ;; This overrides a trivial definition in files.el.
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
@@ -82,10 +78,8 @@ with a definition that really does change some file names."
 	  (aset string (1- (length string)) lastchar))
       (concat dir string))))
 
-(defcustom msdos-shells '("command.com" "4dos.com" "ndos.com")
-  "*List of shells that use `/c' instead of `-c' and a backslashed command."
-  :type '(repeat string)
-  :group 'dos-fns)
+;; See dos-vars.el for defcustom.
+(defvar msdos-shells)
 
 (defvar register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
@@ -127,17 +121,8 @@ with a definition that really does change some file names."
   (int86 33 regs))
 
 ;; Support for printing under MS-DOS, see lpr.el and ps-print.el.
-(defcustom dos-printer "PRN"
-  "*The name of a local MS-DOS device to which data is sent for printing.
-\(Note that PostScript files are sent to `dos-ps-printer', which see.\)
-
-Typical non-default settings would be \"LPT1\" to \"LPT3\" for
-parallel printers, or \"COM1\" to \"COM4\" or \"AUX\" for serial
-printers.  You can also set it to a name of a file, in which
-case the output gets appended to that file.
-If you want to discard the printed output, set this to \"NUL\"."
-  :type 'file ; could use string but then we lose completion for files.
-  :group 'dos-fns)
+;; See dos-vars.el for defcustom.
+(defvar dos-printer)
 
 (defun dos-print-region-function (start end
 					&optional lpr-prog
@@ -178,25 +163,8 @@ START and END."
 ;; the same output as `lpr-buffer' and `lpr-region', accordingly.
 (setq lpr-headers-switches "(page headers are not supported)")
 
-(defcustom dos-ps-printer "PRN"
-  "*Method for printing PostScript files under MS-DOS.
-
-If the value is a string, then it is taken as the name of the
-device to which PostScript files are written.  By default it
-is the default printer device; typical non-default settings
-would be \"LPT1\" to \"LPT3\" for parallel printers, or \"COM1\"
-to \"COM4\" or \"AUX\" for serial printers.  You can also set it
-to a name of a file, in which case the output gets appended
-to that file.  \(Note that `ps-print' package already has
-facilities for printing to a file, so you might as well use
-them instead of changing the setting of this variable.\)  If
-you want to silently discard the printed output, set this to \"NUL\".
-
-If the value is anything but a string, PostScript files will be
-piped to the program given by `ps-lpr-command', with switches
-given by `ps-lpr-switches', which see."
-  :type '(choice file (const :tag "Pipe to ps-lpr-command" pipe))
-  :group 'dos-fns)
+;; See dos-vars.el for defcustom.
+(defvar dos-ps-printer)
 
 (setq ps-lpr-command "gs")
 
