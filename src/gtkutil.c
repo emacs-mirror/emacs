@@ -1304,7 +1304,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
      char *default_filename;
      int mustmatch_p, only_dir_p;
 {
-  GtkWidget *w;
+  GtkWidget *w = 0;
   int count = SPECPDL_INDEX ();
   char *fn = 0;
   int filesel_done = 0;
@@ -1320,7 +1320,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
 #else /* not HAVE_GTK_FILE_BOTH */
 
-#ifdef HAVE_GTK_FILE_SELECTION_DIALOG_NEW
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
   w = xg_get_file_with_selection (f, prompt, default_filename,
                                   mustmatch_p, only_dir_p, &func);
 #endif

@@ -1,5 +1,8 @@
 2004-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_get_file_name): Fix typo in
+	HAVE_GTK_FILE_SELECTION_NEW.
+
 	* xmenu.c (x_menu_in_use): Removed.
 	(x_menu_set_in_use): Also set popup_activated_flag.
 
