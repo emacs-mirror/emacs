@@ -40,6 +40,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/ioctl.h>
 #endif
 
+#ifdef WINDOWSNT
+#include <fcntl.h>
+#endif
+
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
@@ -874,11 +878,13 @@ main (argc, argv, envp)
   uninterrupt_malloc ();
 #endif	/* not SYSTEM_MALLOC */
 
-#ifdef MSDOS
+#if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate
      newlines, we do that manually.  */
   _fmode = O_BINARY;
+#endif
 
+#ifdef MSDOS
 #if __DJGPP__ >= 2
   if (!isatty (fileno (stdin)))
     setmode (fileno (stdin), O_BINARY);
