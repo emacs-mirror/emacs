@@ -1,3 +1,11 @@
+2000-11-16  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-annotate): Changed handling of prefix arg; now asks
+	for both version and ratio in the minibuffer.
+
+	* vc-cvs.el (vc-cvs-annotate-command): New optional arg VERSION.  Use
+	vc-do-command to perform the annotation, not call-process.
+
 2000-11-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-start-translation): Don't call
