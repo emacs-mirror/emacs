@@ -481,6 +481,33 @@ Do not specify them in other calls."
 	   (let ((tem (copy-sequence file-name-handler-alist)))
 	     (delq (rassq 'ange-ftp-completion-hook-function tem) tem)))))
     (or prev-dirs (setq prev-dirs (list nil)))
+
+    ;; andrewi@harlequin.co.uk - none of the following code (except for
+    ;; invoking the file-name handler) currently applies on Windows
+    ;; (ie. there are no native symlinks), but there is an issue with
+    ;; case differences being ignored by the OS, and short "8.3 DOS"
+    ;; name aliases existing for all files.  (The short names are not
+    ;; reported by directory-files, but can be used to refer to files.)
+    ;; It seems appropriate for file-truename to resolve these issues in
+    ;; the most natural way, which on Windows is to call the function
+    ;; `w32-long-file-name' - this returns the exact name of a file as
+    ;; it is stored on disk (expanding short name aliases with the full
+    ;; name in the process).
+    (if (eq system-type 'windows-nt)
+      (let ((handler (find-file-name-handler filename 'file-truename))
+	    newname)
+	;; For file name that has a special handler, call handler.
+	;; This is so that ange-ftp can save time by doing a no-op.
+	(if handler
+	    (setq filename (funcall handler 'file-truename filename))
+	  ;; If filename contains a wildcard, newname will be the old name.
+	  (if (string-match "[*?]" filename)
+	      (setq newname filename)
+	    ;; If filename doesn't exist, newname will be nil.
+	    (setq newname (w32-long-file-name filename)))
+	  (setq filename (or newname filename)))
+	(setq done t)))
+
     ;; If this file directly leads to a link, process that iteratively
     ;; so that we don't use lots of stack.
     (while (not done)
@@ -1154,8 +1181,8 @@ run `normal-mode' explicitly."
     ("\\.awk\\'" . awk-mode)
     ("\\.prolog\\'" . prolog-mode)
     ("\\.tar\\'" . tar-mode)
-    ("\\.\\(arc\\|zip\\|lzh\\|zoo\\)\\'" . archive-mode)
-    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\)\\'" . archive-mode)
+    ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\)\\'" . archive-mode)
+    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\)\\'" . archive-mode)
     ;; Mailer puts message to be edited in
     ;; /tmp/Re.... or Message
     ("\\`/tmp/Re" . text-mode)
@@ -2569,7 +2596,7 @@ non-nil, it is called instead of rereading visited file contents."
 	     (not (file-exists-p file-name)))
 	   (error "Auto-save file %s not current" file-name))
 	  ((save-window-excursion
-	     (if (not (eq system-type 'vax-vms))
+	     (if (not (memq system-type '(vax-vms windows-nt)))
 		 (with-output-to-temp-buffer "*Directory*"
 		   (buffer-disable-undo standard-output)
 		   (call-process "ls" nil standard-output nil
