@@ -120,7 +120,8 @@ call_process_cleanup (fdpid)
 {
 #ifdef MSDOS
   /* for MSDOS fdpid is really (fd . tempfile)  */
-  register Lisp_Object file = Fcdr (fdpid);
+  register Lisp_Object file;
+  file = Fcdr (fdpid);
   close (XFASTINT (Fcar (fdpid)));
   if (strcmp (XSTRING (file)-> data, NULL_DEVICE) != 0)
     unlink (XSTRING (file)->data);
@@ -725,8 +726,9 @@ getenv_internal (var, varlen, value, valuelen)
 
   for (scan = Vprocess_environment; CONSP (scan); scan = XCONS (scan)->cdr)
     {
-      Lisp_Object entry = XCONS (scan)->car;
-      
+      Lisp_Object entry;
+
+      entry = XCONS (scan)->car;
       if (XTYPE (entry) == Lisp_String
 	  && XSTRING (entry)->size > varlen
 	  && XSTRING (entry)->data[varlen] == '='
