@@ -923,11 +923,14 @@ and nil for X and Y.")
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
-  col = XINT (x);
-  row = XINT (y);
-  glyph_to_pixel_coords (f, col, row, &col, &row);
-  XSETINT (x, col);
-  XSETINT (y, row);
+  if (! NILP (x))
+    {
+      col = XINT (x);
+      row = XINT (y);
+      pixel_to_glyph_coords (f, col, row, &col, &row, 0, 0);
+      XSETINT (x, col);
+      XSETINT (y, row);
+    }
   XSET (lispy_dummy, Lisp_Frame, f);
   return Fcons (lispy_dummy, Fcons (x, y));
 }
@@ -1841,37 +1844,12 @@ but that the idea of the actual width of the screen should not be changed.")
 }
 
 DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
-  "Return a list (FRAME X . Y) giving the current mouse frame and position.\n\
-The position is given in character cells, where (0, 0) is the\n\
-upper-left corner.\n\
-If Emacs is running on a mouseless terminal or hasn't been programmed\n\
-to read the mouse position, it returns the selected frame for FRAME\n\
-and nil for X and Y.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   ()
 {
-  FRAME_PTR f;
-  Lisp_Object lispy_dummy;
-  enum scroll_bar_part party_dummy;
-  Lisp_Object x, y;
-  int col, row;
-  unsigned long long_dummy;
-
-  f = selected_frame;
-  x = y = Qnil;
-
-  /* It's okay for the hook to refrain from storing anything.  */
-  if (mouse_position_hook)
-    (*mouse_position_hook) (&f,
-			    &lispy_dummy, &party_dummy,
-			    &x, &y,
-			    &long_dummy);
-  col = XINT (x);
-  row = XINT (y);
-  glyph_to_pixel_coords (f, col, row, &col, &row);
-  XSETINT (x, col);
-  XSETINT (y, row);
-  /* Always return nil for frame.  */
-  return Fcons (Qnil, Fcons (x, y));
+  return Fcons (Qnil, Fcons (Qnil, Qnil));
 }
 
 syms_of_frame ()
