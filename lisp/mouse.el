@@ -1007,57 +1007,53 @@ If DIR is positive skip forward; if negative, skip backward."
 (defun mouse-show-mark ()
   (if transient-mark-mode
       (delete-overlay mouse-drag-overlay)
-    (if (not (display-mouse-p))
-	(save-excursion
-	  (goto-char (mark t))
-	  (sit-for 1))
-      (let ((inhibit-quit t)
-	    (echo-keystrokes 0)
-	    event events key ignore
-	    x-lost-selection-hooks)
-	(add-hook 'x-lost-selection-hooks
-		  (lambda (seltype)
-		    (if (eq seltype 'PRIMARY)
-			(progn (setq ignore t)
-			       (throw 'mouse-show-mark t)))))
-	(move-overlay mouse-drag-overlay (point) (mark t))
-	(catch 'mouse-show-mark
-	  ;; In this loop, execute scroll bar and switch-frame events.
-	  ;; Also ignore down-events that are undefined.
-	  (while (progn (setq event (read-event))
-			(setq events (append events (list event)))
-			(setq key (apply 'vector events))
-			(or (and (consp event)
-				 (eq (car event) 'switch-frame))
-			    (and (consp event)
-				 (eq (posn-point (event-end event))
-				     'vertical-scroll-bar))
-			    (and (memq 'down (event-modifiers event))
-				 (not (key-binding key))
-				 (not (mouse-undouble-last-event events))
-				 (not (member key mouse-region-delete-keys)))))
-	    (and (consp event)
-		 (or (eq (car event) 'switch-frame)
-		     (eq (posn-point (event-end event))
-			 'vertical-scroll-bar))
-		 (let ((keys (vector 'vertical-scroll-bar event)))
-		   (and (key-binding keys)
-			(progn
-			  (call-interactively (key-binding keys)
-					      nil keys)
-			  (setq events nil)))))))
-	;; If we lost the selection, just turn off the highlighting.
-	(if ignore
-	    nil
-	  ;; For certain special keys, delete the region.
-	  (if (member key mouse-region-delete-keys)
-	      (delete-region (overlay-start mouse-drag-overlay)
-			     (overlay-end mouse-drag-overlay))
-	    ;; Otherwise, unread the key so it gets executed normally.
-	    (setq unread-command-events
-		  (nconc events unread-command-events))))
-	(setq quit-flag nil)
-	(delete-overlay mouse-drag-overlay)))))
+    (let ((inhibit-quit t)
+	  (echo-keystrokes 0)
+	  event events key ignore
+	  x-lost-selection-hooks)
+      (add-hook 'x-lost-selection-hooks
+		(lambda (seltype)
+		  (if (eq seltype 'PRIMARY)
+		      (progn (setq ignore t)
+			     (throw 'mouse-show-mark t)))))
+      (move-overlay mouse-drag-overlay (point) (mark t))
+      (catch 'mouse-show-mark
+	;; In this loop, execute scroll bar and switch-frame events.
+	;; Also ignore down-events that are undefined.
+	(while (progn (setq event (read-event))
+		      (setq events (append events (list event)))
+		      (setq key (apply 'vector events))
+		      (or (and (consp event)
+			       (eq (car event) 'switch-frame))
+			  (and (consp event)
+			       (eq (posn-point (event-end event))
+				   'vertical-scroll-bar))
+			  (and (memq 'down (event-modifiers event))
+			       (not (key-binding key))
+			       (not (mouse-undouble-last-event events))
+			       (not (member key mouse-region-delete-keys)))))
+	  (and (consp event)
+	       (or (eq (car event) 'switch-frame)
+		   (eq (posn-point (event-end event))
+		       'vertical-scroll-bar))
+	       (let ((keys (vector 'vertical-scroll-bar event)))
+		 (and (key-binding keys)
+		      (progn
+			(call-interactively (key-binding keys)
+					    nil keys)
+			(setq events nil)))))))
+      ;; If we lost the selection, just turn off the highlighting.
+      (if ignore
+	  nil
+	;; For certain special keys, delete the region.
+	(if (member key mouse-region-delete-keys)
+	    (delete-region (overlay-start mouse-drag-overlay)
+			   (overlay-end mouse-drag-overlay))
+	  ;; Otherwise, unread the key so it gets executed normally.
+	  (setq unread-command-events
+		(nconc events unread-command-events))))
+      (setq quit-flag nil)
+      (delete-overlay mouse-drag-overlay))))
 
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
