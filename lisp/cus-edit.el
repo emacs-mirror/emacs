@@ -868,6 +868,28 @@ are shown; the contents of those subgroups are initially hidden."
 (defun customize-option (symbol)
   "Customize SYMBOL, which must be a user option variable."
   (interactive (custom-variable-prompt))
+  ;; If we don't have SYMBOL's real definition loaded,
+  ;; try to load it.
+  (unless (get symbol 'custom-type)
+    (let ((loaddefs-file (locate-library "loaddefs.el" t))
+	  file)
+      ;; See if it is autoloaded from some library.
+      (when loaddefs-file
+	(with-temp-buffer
+	  (insert-file-contents loaddefs-file)
+	  (when (re-search-forward (concat "^(defvar " (symbol-name symbol))
+				   nil t)
+	    (search-backward "\n;;; Generated autoloads from ")
+	    (goto-char (match-end 0))
+	    (setq file (buffer-substring (point)
+					 (progn (end-of-line) (point)))))))
+      ;; If it is, load that library.
+      (when file
+	(when (string-match "\\.el\\'" file)
+	  (setq file (substring file 0 (match-beginning 0))))
+	(load file))))
+  (unless (get symbol 'custom-type)
+    (error "Variable %s cannot be customized" symbol))
   (custom-buffer-create (list (list symbol 'custom-variable))
 			(format "*Customize Option: %s*"
 				(custom-unlispify-tag-name symbol))))
