@@ -1,3 +1,18 @@
+2003-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* which-func.el (which-func-modes): Add f90-mode.
+	(which-function): Handle imenu submenus.
+
+	* progmodes/fortran.el (fortran-abbrev-start): Make XEmacs
+	compatible.
+
+	* progmodes/f90.el (f90-font-lock-keywords-2): Use override for
+	font-lock-variable-name-face in declarations.  Highlight
+	continuation characters.
+	(f90-indent-new-line): Remove direct call to f90-indent-line-no,
+	f90-update-line.
+	(f90-abbrev-start): Fix XEmacs compatibility.
+
 2003-04-19  Richard M. Stallman  <rms@gnu.org>
 
 	* desktop.el (desktop-buffer-mh): Don't require mh-e;
