@@ -601,7 +601,7 @@ This follows the rule [28] in the XML specifications."
 	     (t
 	      (if xml-validating-parser 
 		  (error "XML: (Validity) Invalid element type in the DTD"))))
-	    
+
 	    ;;  rule [45]: the element declaration must be unique
 	    (if (and (assoc element dtd)
 		     xml-validating-parser)
@@ -654,7 +654,7 @@ This follows the rule [28] in the XML specifications."
 						parse-ns))))))))
 	   (t
 	    (when xml-validating-parser
-	      (error "XML: (Validity) Invalid DTD item")))))
+	      (error "XML: (Validity) Invalid DTD item"))))))
       (if (looking-at "\\s-*]>")
 	  (goto-char (nth 1 (match-data)))))
     (nreverse dtd)))
@@ -725,8 +725,7 @@ This follows the rule [28] in the XML specifications."
 		    (entity
 		     (cdr entity))
 		    ((eq (length this-part) 0)
-		     (when xml-validating-parser
-		       (error "XML: (Validity) No entity given")))
+		     (error "XML: (Not Well-Formed) No entity given"))
 		    (t
 		     (when xml-validating-parser
 			 (error "XML: (Validity) Undefined entity `%s'"
