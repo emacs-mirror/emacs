@@ -1,3 +1,7 @@
+2004-04-13  Joe Buehler  <jbuehler@hekimian.com>
+
+	* sheap.c, unexcw.c: New files.
+
 2004-04-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.c (Fmake_indirect_buffer): Throw an error if the intended
