@@ -1,6 +1,8 @@
 2001-11-23  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (finder_setwins, setwins): Include Calc again.
+	
+	* calc/calc-rules.el: Add header comment.
 
 2001-11-23  Andre Spiegel  <spiegel@gnu.org>
 

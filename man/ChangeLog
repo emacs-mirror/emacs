@@ -1,3 +1,10 @@
+2001-11-23  Colin Walters  <walters@verbum.org>
+
+	* calc.texi (Installation): Remove most of the installation
+	instructions.  Clean up instructions on generating .dvi from the
+	manual.
+	(Reporting Bugs): Update maintainer and Emacs source addresses.
+
 2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (emacsman): New target.
