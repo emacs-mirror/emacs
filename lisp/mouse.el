@@ -157,23 +157,23 @@ the mouse back into the window, or release the button.
 This variable's value may be non-integral.
 Setting this to zero causes Emacs to scroll as fast as it can.")
 
-(defun mouse-scroll-subr (jump &optional overlay start)
-  "Scroll the selected window JUMP lines at a time, until new input arrives.
+(defun mouse-scroll-subr (window jump &optional overlay start)
+  "Scroll the window WINDOW, JUMP lines at a time, until new input arrives.
 If OVERLAY is an overlay, let it stretch from START to the far edge of
 the newly visible text.
 Upon exit, point is at the far edge of the newly visible text."
   (while (progn
-	   (goto-char (window-start))
-	   (if (not (zerop (vertical-motion jump)))
+	   (goto-char (window-start window))
+	   (if (not (zerop (vertical-motion jump window)))
 	       (progn
-		 (set-window-start (selected-window) (point))
+		 (set-window-start window (point))
 		 (if (natnump jump)
 		     (progn
-		       (goto-char (window-end (selected-window)))
+		       (goto-char (window-end window))
 		       ;; window-end doesn't reflect the window's new
 		       ;; start position until the next redisplay.  Hurrah.
-		       (vertical-motion (1- jump)))
-		   (goto-char (window-start (selected-window))))
+		       (vertical-motion (1- jump) window))
+		   (goto-char (window-start window)))
 		 (if overlay
 		     (move-overlay overlay start (point)))
 		 (if (not (eobp))
@@ -238,11 +238,11 @@ release the mouse button.  Otherwise, it does not."
 		(cond
 		 ((null mouse-row))
 		 ((< mouse-row top)
-		  (mouse-scroll-subr
-		   (- mouse-row top) mouse-drag-overlay start-point))
+		  (mouse-scroll-subr start-window (- mouse-row top)
+				     mouse-drag-overlay start-point))
 		 ((and (not (eobp))
 		       (>= mouse-row bottom))
-		  (mouse-scroll-subr (1+ (- mouse-row bottom))
+		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
 				     mouse-drag-overlay start-point)))))))))
 
       (if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
@@ -635,11 +635,11 @@ This must be bound to a button-down mouse event."
                   (cond
                    ((null mouse-row))
                    ((< mouse-row top)
-                    (mouse-scroll-subr
-                     (- mouse-row top) mouse-secondary-overlay start-point))
+                    (mouse-scroll-subr start-window (- mouse-row top)
+				       mouse-secondary-overlay start-point))
                    ((and (not (eobp))
                          (>= mouse-row bottom))
-                    (mouse-scroll-subr (1+ (- mouse-row bottom))
+                    (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
                                        mouse-secondary-overlay start-point)))))))))
 
 	(if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
