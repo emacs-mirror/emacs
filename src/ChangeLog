@@ -1,10 +1,25 @@
+2004-02-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.c (Fminibufferp, Fread_from_minibuffer)
+	(Fread_minibuffer, Feval_minibuffer)
+	(Fread_string, Fread_no_blanks_input)
+	(Fcompleting_read): Doc fixes.
+	(syms_of_minibuf): Doc fixes for minibuffer-completion-table and
+	completion-regexp-list.  Define Qcase_fold_search and staticpro it.
+	(read_minibuf): Fix initial comment.
+	(Ftry_completion, Fall_completions, Ftest_completion): Bind
+	case-fold-serach to the value of completion-ignore-case when
+	checking completion-regexp-list.
+	(Fdisplay_completion_list): Make it handle arguments that are
+	symbols.  Doc fix.
+
 2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Add declaration of free_frame_menubar.
 
 	* xfns.c (x_create_bitmap_mask): Removed unused variable depth.
 	(x_set_menu_bar_lines): Added ! defined USE_GTK for olines.
-	(Fx_change_window_property): Add declaration of parameters type and 
+	(Fx_change_window_property): Add declaration of parameters type and
 	format.  Remove unused variable cons.
 
 	* xselect.c: Include stdio,h.
