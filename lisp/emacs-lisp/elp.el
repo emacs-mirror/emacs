@@ -323,6 +323,8 @@ For example, to instrument all ELP functions, do the following:
 
     \\[elp-instrument-package] RET elp- RET"
   (interactive "sPrefix of package to instrument: ")
+  (if (zerop (length prefix))
+      (error "Instrumenting all Emacs functions would render Emacs unusable."))
   (elp-instrument-list
    (mapcar
     'intern
