@@ -1,3 +1,8 @@
+2000-10-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* files.texi (Visiting Functions): Return value of
+	find-file-noselect may be a list of buffers if wildcards are used.
+
 2000-10-24  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* display.texi (Defining Faces): Document `graphic' display type
