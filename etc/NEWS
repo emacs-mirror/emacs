@@ -18,6 +18,11 @@ installed programs.
 
 * Changes in Emacs 21.3
 
+** Unquoted `$' in file names do not signal an error any more when
+the corresponding environment variable does not exist.
+Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
+is only rarely needed.
+
 ** jit-lock can now be delayed with `jit-lock-defer-time'.
 
 If this variable is non-nil, its value should be the amount of Emacs
@@ -181,6 +186,13 @@ SQL buffer.
 
 
 * Lisp Changes in Emacs 21.3
+
+** The precedence of file-name-handlers has been changed.
+Instead of blindly choosing the first handler that matches,
+find-file-name-handler now gives precedence to a file-name handler
+that matches near the end of the file name.  More specifically, the
+handler whose (match-beginning 0) is the largest is chosen.
+In case of ties, the old "first matched" rule applies.
 
 ** Dense keymaps now handle inheritance correctly.
 To that end, binding a key to t now behaves the same as binding it to

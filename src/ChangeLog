@@ -1,3 +1,9 @@
+2001-11-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (access_keymap): Handle t bindings like nil bindings.
+	Make nil bindings in char-tables transparent.
+	(store_in_keymap): Turn a nil binding into a t binding for char-tables.
+
 2001-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* textprop.c (set_text_properties_1): Allow START, END in either order.
