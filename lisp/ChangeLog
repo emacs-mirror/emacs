@@ -1,3 +1,8 @@
+2002-12-15  David Kastrup  <David.Kastrup@t-online.de>
+
+	* emacs-lisp/autoload.el (autoload-ensure-default-file): insert
+	missing space in file end comment.
+
 2002-12-15  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Fall back to
