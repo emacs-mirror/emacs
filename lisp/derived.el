@@ -190,7 +190,7 @@ been generated automatically, with a reference to the keymap."
 	    `(defvar ,abbrev
 	       (progn (define-abbrev-table ',abbrev nil) ,abbrev)))
        (put ',child 'derived-mode-parent ',parent)
-       ,(if group `(put ',child 'custom-group ,group))
+       ,(if group `(put ',child 'custom-mode-group ,group))
 
        (defun ,child ()
 	 ,docstring
