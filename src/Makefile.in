@@ -525,6 +525,12 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #define VMS_SUPPORT
 #endif
 
+#ifdef MSDOS
+#define MSDOS_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}disp-tab.elc ${lispdir}dos-fns.elc ${lispdir}mouse.elc
+#else
+#define MSDOS_SUPPORT
+#endif
+
 /* List of Lisp files loaded into the dumped Emacs.  It's arranged
    like this because it's easier to generate it semi-mechanically from
    loadup.el this way.
@@ -560,6 +566,7 @@ lisp= \
 	${lispdir}text-mode.elc \
 	${lispdir}vc-hooks.elc \
 	VMS_SUPPORT \
+	MSDOS_SUPPORT \
 	${lispdir}window.elc \
 	${lispdir}version.el
 
@@ -600,7 +607,7 @@ emacs: temacs ${etc}DOC ${lisp}
 #endif /* ! defined (CANNOT_DUMP) */
 
 ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
-	rm -f ${etc}DOC
+	-rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${obj} ${SOME_MACHINE_OBJECTS} \
 	  ${lisp} > ${etc}DOC
 
