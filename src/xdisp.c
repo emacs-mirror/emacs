@@ -940,7 +940,14 @@ pos_visible_p (w, charpos, fully)
 {
   struct it it;
   struct text_pos top;
-  int visible_p, bottom_y;
+  int visible_p;
+  struct buffer *old_buffer = NULL;
+
+  if (XBUFFER (w->buffer) != current_buffer)
+    {
+      old_buffer = current_buffer;
+      set_buffer_internal_1 (XBUFFER (w->buffer));
+    }
 
   *fully = visible_p = 0;
   SET_TEXT_POS_FROM_MARKER (top, w->start);
@@ -951,15 +958,32 @@ pos_visible_p (w, charpos, fully)
   
   if (IT_CHARPOS (it) == charpos)
     {
-      int line_height;
-
-      if (it.max_ascent == 0 && it.max_descent == 0)
-	line_height = last_height;
-      else
-	line_height = it.max_ascent + it.max_descent;
+      int line_height, line_bottom_y;
+      int line_top_y = it.current_y;
+      int window_top_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       
-      *fully = it.current_y + line_height <= it.last_visible_y;
-      visible_p = 1;
+      line_height = it.max_ascent + it.max_descent;
+      if (line_height == 0)
+	{
+	  if (last_height)
+	    line_height = last_height;
+	  else
+	    {
+	      move_it_by_lines (&it, 1, 1);
+	      line_height = (it.max_ascent || it.max_descent
+			     ? it.max_ascent + it.max_descent
+			     : last_height);
+	    }
+	}
+      line_bottom_y = line_top_y + line_height;
+
+      if (line_top_y < window_top_y)
+	visible_p = line_bottom_y > window_top_y;
+      else if (line_top_y < it.last_visible_y)
+	{
+	  visible_p = 1;
+	  *fully = line_bottom_y <= it.last_visible_y;
+	}
     }
   else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
     {
@@ -970,6 +994,9 @@ pos_visible_p (w, charpos, fully)
 	  *fully  = 0;
 	}
     }
+
+  if (old_buffer)
+    set_buffer_internal_1 (old_buffer);
   
   return visible_p;
 }
