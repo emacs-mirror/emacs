@@ -301,10 +301,10 @@ the return value is never within the prompt either.")
   Fforward_line (make_number (XINT (n) - 1));
   end = PT;
 
-  if (INTEGERP (current_buffer->minibuffer_prompt_length)
-      && orig >= XFASTINT (current_buffer->minibuffer_prompt_length)
-      && end < XFASTINT (current_buffer->minibuffer_prompt_length))
-    end = XFASTINT (current_buffer->minibuffer_prompt_length);
+  if (INTEGERP (current_buffer->prompt_end_charpos)
+      && orig >= XFASTINT (current_buffer->prompt_end_charpos)
+      && end < XFASTINT (current_buffer->prompt_end_charpos))
+    end = XFASTINT (current_buffer->prompt_end_charpos);
 
   SET_PT_BOTH (orig, orig_byte);
 
@@ -1622,13 +1622,6 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
 {
   Lisp_Object result, tem, tem1;
 
-  if (INTEGERP (current_buffer->minibuffer_prompt_length))
-    {
-      int len = XFASTINT (current_buffer->minibuffer_prompt_length);
-      start = min (end, max (len, start));
-      start_byte = CHAR_TO_BYTE (start);
-    }
-
   if (start < GPT && GPT < end)
     move_gap (start);
 
@@ -1729,10 +1722,19 @@ they can be in either order.")
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
   "Return the contents of the current buffer as a string.\n\
 If narrowing is in effect, this function returns only the visible part\n\
-of the buffer.")
+of the buffer.  If in a mini-buffer, don't include the prompt in the\n\
+string returned.")
   ()
 {
-  return make_buffer_string (BEGV, ZV, 1);
+  int start = BEGV;
+  
+  if (INTEGERP (current_buffer->prompt_end_charpos))
+    {
+      int len = XFASTINT (current_buffer->prompt_end_charpos);
+      start = min (ZV, max (len, start));
+    }
+
+  return make_buffer_string (start, ZV, 1);
 }
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
