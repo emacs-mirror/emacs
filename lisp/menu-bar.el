@@ -291,17 +291,17 @@ and selects that window."
 							  0) ?\ )
 					"List All Buffers")
 				'list-buffers))))))
-    (setq menu (list menu))
-
     (if (cdr (frame-list))
 	(setq menu
-	      (cons (cons "Select Frame"
+	      (list menu
+		    (cons "Select Frame"
 			  (mapcar (lambda (frame)
 				    (cons (cdr (assq 'name
 						     (frame-parameters frame)))
 					  frame))
-				  (frame-list)))
-		    menu)))
+				  (frame-list)))))
+      (setq menu (list menu)))
+
     (setq menu (cons "Buffer and Frame Menu" menu))
 
     (let ((buf (x-popup-menu (if (listp event) event
