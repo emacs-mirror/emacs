@@ -1,3 +1,9 @@
+2004-07-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* novice.el (enable-command, disable-command): Doc fixes.
+
+	* subr.el (event-modifiers, event-basic-type): Doc fixes.
+
 2004-07-30  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (with-local-quit): Doc fix.

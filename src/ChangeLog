@@ -1,3 +1,11 @@
+2004-07-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Fset_keymap_parent, Fdefine_prefix_command): Doc fixes.
+
+	* keyboard.c (syms_of_keyboard) <disable-point-adjustment>:  Doc fix.
+
+	* callint.c (Fcall_interactively): Doc fix.
+
 2004-07-30  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Allocate extra (dummy) element in info.
