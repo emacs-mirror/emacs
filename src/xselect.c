@@ -1814,7 +1814,10 @@ and t is the same as `SECONDARY'.)")
   Atom atom;
   Display *dpy;
 
-  check_x ();
+  /* It should be safe to call this before we have an X frame.  */
+  if (FRAME_X_P (selected_frame))
+    return Qnil;
+
   dpy = FRAME_X_DISPLAY (selected_frame);
   CHECK_SYMBOL (selection, 0);
   if (!NILP (Fx_selection_owner_p (selection)))
