@@ -1,3 +1,10 @@
+2004-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (Fvertical_motion): Call move_it_by_lines even if LINES = 0.
+
+	* minibuf.c (Fall_completions): Add var `zero' and use it in loop.
+	(Ftry_completion): Really use outer `zero'; eliminate inner one.
+
 2004-12-12  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (encode_terminal_code): Fix previous change.
@@ -23,6 +30,7 @@
 
 	* xterm.c (x_calc_absolute_position): Don't subtract outer_pixel_diff
 	for left and top calculations.  Remove call to x_real_positions.
+	[Bug report by Drew Adams in November]
 	(x_check_expected_move): Do not set change_gravity to 1 when calling
 	x_set_offset.
 
