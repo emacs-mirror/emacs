@@ -458,7 +458,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     fatal ("Can't find .bss in %s.\n", old_name, 0);
 
   if (old_sbss_index != (old_bss_index - 1))
-    fatal (".sbss should come immediatly before .bss in %s.\n", old_name, 0);
+    fatal (".sbss should come immediately before .bss in %s.\n", old_name, 0);
 
   /* Figure out parameters of the new data3 and data2 sections.
    * Change the sbss and bss sections.
