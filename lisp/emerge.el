@@ -268,7 +268,7 @@ Do not start with `~/' or `~user-name/'.")
   "*Mode for Emerge temporary files.")
 
 (defvar emerge-combine-versions-template
-  "#ifdef NEW\n%b#else /* NEW */\n%a#endif /* NEW */\n"
+  "#ifdef NEW\n%b#else /* not NEW */\n%a#endif /* not NEW */\n"
   "*Template for `emerge-combine-versions' to combine the two versions.
 The template is inserted as a string, with the following interpolations:
 	%a	the A version of the difference
