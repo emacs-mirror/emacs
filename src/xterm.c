@@ -3489,24 +3489,14 @@ x_copy_dpy_color (dpy, cmap, pixel)
 }
 
 
-
-/* Constants used by x_alloc_lighter_color.  */
-
-/* How much to boost the brightness of 3d highlights for dark colors.
-   Nominally, highlight colors for `3d' faces are calculated by
-   brightening an object's color by a constant factor.  If
-   `highlight-color-dark-boost' is a floating point number between 0 and
-   1, colors darker than `highlight-color-dark-boost-limit' have their
-   highlight factor increased: a value of 0 means no increase at all,
-   and greater values yield correspondingly greater increases.  */
-#define HIGHLIGHT_COLOR_DARK_BOOST 0.7
-
 /* Brightness beyond which a color won't have its highlight brightness
-   boosted.  See HIGHLIGHT_COLOR_DARK_BOOST.
+   boosted.
 
-   The `brightness' of a color, for this purpose, is defined to be the
-   maximum of the color's red, green, or blue components, as returned by
-   `color-values'.
+   Nominally, highlight colors for `3d' faces are calculated by
+   brightening an object's color by a constant scale factor, but this
+   doesn't yield good results for dark colors, so for colors who's
+   brightness is less than this value (on a scale of 0-65535) have an
+   use an additional additive factor.
 
    The value here is set so that the default menu-bar/mode-line color
    (grey75) will not have its highlights changed at all.  */
@@ -3543,13 +3533,8 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
   new.green = min (0xffff, factor * color.green);
   new.blue = min (0xffff, factor * color.blue);
 
-  /* Use the maximum component brightness as the overall brightness
-     (this works quite well in practice).  */
-  bright = color.red;
-  if (color.green > bright)
-    bright = color.green;
-  if (color.blue > bright)
-    bright = color.blue;
+  /* Calculate brightness of COLOR.  */
+  bright = (2 * color.red + 3 * color.green + color.blue) / 6;
 
   /* We only boost colors that are darker than
      HIGHLIGHT_COLOR_DARK_BOOST_LIMIT.  */
@@ -3560,11 +3545,10 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
       /* How far below the limit this color is (0 - 1, 1 being darker).  */
       double dimness = 1 - (double)bright / HIGHLIGHT_COLOR_DARK_BOOST_LIMIT;
       /* The additive adjustment.  */
-      int min_delta = delta * dimness * HIGHLIGHT_COLOR_DARK_BOOST;
+      int min_delta = delta * dimness * factor / 2;
 
       if (factor < 1)
 	{
-	  min_delta /= 2;
 	  new.red =   max (0, new.red -   min_delta);
 	  new.green = max (0, new.green - min_delta);
 	  new.blue =  max (0, new.blue -  min_delta);
