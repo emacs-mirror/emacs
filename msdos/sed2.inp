@@ -50,7 +50,7 @@
 #endif /* not __DJGPP__ > 1 */
 s/^#define USER_FULL_NAME .*$/#define USER_FULL_NAME (getenv ("NAME"))/
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
-s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-unknown-msdos"/
+s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/
 s/^#undef EMACS_CONFIG_OPTIONS *$/#define EMACS_CONFIG_OPTIONS "-"/
 s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!
