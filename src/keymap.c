@@ -1683,6 +1683,7 @@ nominal         alternate\n\
 
   descbuf = XCONS (arg)->car;
   prefix = XCONS (arg)->cdr;
+  shadow = Qnil;
 
   Fset_buffer (Vstandard_output);
 
@@ -1720,17 +1721,12 @@ nominal         alternate\n\
   {
     int i, nmaps;
     Lisp_Object *modes, *maps;
-    Lisp_Object shadow;
-
-    shadow = Qnil;
 
     /* Temporarily switch to descbuf, so that we can get that buffer's
        minor modes correctly.  */
     Fset_buffer (descbuf);
     nmaps = current_minor_maps (&modes, &maps);
     Fset_buffer (Vstandard_output);
-
-    shadow = Qnil;
 
     /* Print the minor mode maps.  */
     for (i = 0; i < nmaps; i++)
