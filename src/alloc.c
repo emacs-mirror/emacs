@@ -756,6 +756,25 @@ See also the function `vector'.")
   return vector;
 }
 
+DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 0, 2, 0,
+  "Return a newly created char-table, with N \"extra\" slots.\n\
+Each element is initialized to INIT, which defaults to nil.\n\
+N may not be more than ten.\n\
+See `char-table-extra-slot' and `set-char-table-extra-slot'.")
+  (n, init)
+     register Lisp_Object n, init;
+{
+  Lisp_Object vector;
+  CHECK_NUMBER (n, 1);
+  if (XINT (n) < 0 || XINT (n) > 10)
+    args_out_of_range (n, Qnil);
+  /* Add 2 to the size for the defalt and parent slots.  */
+  vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
+			 init);
+  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
+  return vector;
+}
+
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
   "Return a newly created vector with specified arguments as elements.\n\
 Any number of arguments, even zero arguments, are allowed.")
@@ -1050,6 +1069,38 @@ Both LENGTH and INIT must be numbers.")
   while (p != end)
     *p++ = c;
   *p = 0;
+  return val;
+}
+
+DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
+  "Return a newly created bitstring of length LENGTH, with INIT as each element.\n\
+Both LENGTH and INIT must be numbers.  INIT matters only in whether it is t or nil.")
+  (length, init)
+     Lisp_Object length, init;
+{
+  register Lisp_Object val;
+  struct Lisp_Bool_Vector *p;
+  int real_init, i;
+  int length_in_chars, length_in_elts, bits_per_value;
+
+  CHECK_NATNUM (length, 0);
+
+  bits_per_value = sizeof (EMACS_INT) * INTBITS / sizeof (int);
+
+  length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
+  length_in_chars = length_in_elts * sizeof (EMACS_INT);
+
+  val = Fmake_vector (make_number (length_in_elts), Qnil);
+  p = XBOOL_VECTOR (val);
+  /* Get rid of any bits that would cause confusion.  */
+  p->vector_size = 0;
+  XSETBOOL_VECTOR (val, p);
+  p->size = XFASTINT (length);
+  
+  real_init = (NILP (init) ? 0 : -1);
+  for (i = 0; i < length_in_chars ; i++)
+    p->data[i] = real_init;
+
   return val;
 }
 
@@ -1751,6 +1802,8 @@ mark_object (objptr)
 	  mark_object (&ptr->buffer_predicate);
 	}
 #endif /* MULTI_FRAME */
+      else if (GC_BOOL_VECTOR_P (obj))
+	;
       else
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
@@ -2560,7 +2613,9 @@ which includes both saved text and other data.");
   defsubr (&Smake_byte_code);
   defsubr (&Smake_list);
   defsubr (&Smake_vector);
+  defsubr (&Smake_char_table);
   defsubr (&Smake_string);
+  defsubr (&Smake_bool_vector);
   defsubr (&Smake_symbol);
   defsubr (&Smake_marker);
   defsubr (&Spurecopy);
