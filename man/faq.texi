@@ -2695,12 +2695,13 @@ later), which converts these ANSI escape sequences into colors.
 The Emacs manual lists some common kinds of trouble users could get
 into, see @ref{Lossage, , Dealing with Emacs Trouble, emacs, The GNU
 Emacs Manual}, so you might look there if the problem you encounter
-doesn't in this section.  If you decide you've discovered a bug, see
-@ref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}, for
+isn't described in this chapter.  If you decide you've discovered a bug,
+see @ref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}, for
 instructions how to do that.
 
 The file @file{etc/PROBLEMS} in the Emacs distribution lists various
-known problems with building and using Emacs on specific platforms.
+known problems with building and using Emacs on specific platforms;
+type @kbd{C-h P} to read it.
 
 @menu
 * Problems with very large files::  
