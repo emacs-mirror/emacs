@@ -1,8 +1,4 @@
-;;; x-win.el --- parse switches controlling interface with X window system
-
-;; Author: FSF
-;; Keywords: terminals
-
+;; Parse switches controlling how Emacs interfaces with X window system.
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -22,7 +18,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-;;; Commentary:
 
 ;; X-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
 ;; that X windows are to be used.  Command line switches are parsed and those
@@ -31,8 +26,6 @@
 
 ;; startup.el will then examine startup files, and eventually call the hooks
 ;; which create the first window (s).
-
-;;; Code:
 
 ;; These are the standard X switches from the Xt Initialize.c file of
 ;; Release 4.
@@ -424,8 +417,46 @@ This returns ARGS with the arguments that have been processed removed."
 
 ;;;; Function keys
 
+;;; Give some common function keys reasonable definitions.
+(define-key global-map [home] 'beginning-of-line)
+(define-key global-map [left] 'backward-char)
+(define-key global-map [up] 'previous-line)
+(define-key global-map [right] 'forward-char)
+(define-key global-map [down] 'next-line)
+(define-key global-map [prior] 'scroll-down)
+(define-key global-map [next] 'scroll-up)
+(define-key global-map [M-next] 'scroll-other-window)
+(define-key global-map [begin] 'beginning-of-buffer)
+(define-key global-map [end] 'end-of-buffer)
+
 (define-key global-map "\C-z" 'iconify-frame)
 
+;; Map certain keypad keys into ASCII characters
+;; that people usually expect.
+(define-key function-key-map [backspace] [127])
+(define-key function-key-map [delete] [127])
+(define-key function-key-map [tab] [?\t])
+(define-key function-key-map [linefeed] [?\n])
+(define-key function-key-map [clear] [11])
+(define-key function-key-map [return] [13])
+(define-key function-key-map [escape] [?\e])
+(define-key function-key-map [M-backspace] [?\M-\d])
+(define-key function-key-map [M-delete] [?\M-\d])
+(define-key function-key-map [M-tab] [?\M-\t])
+(define-key function-key-map [M-linefeed] [?\M-\n])
+(define-key function-key-map [M-clear] [?\M-\013])
+(define-key function-key-map [M-return] [?\M-\015])
+(define-key function-key-map [M-escape] [?\M-\e])
+
+;; These tell read-char how to convert
+;; these special chars to ASCII.
+(put 'backspace 'ascii-character 127)
+(put 'delete 'ascii-character 127)
+(put 'tab 'ascii-character ?\t)
+(put 'linefeed 'ascii-character ?\n)
+(put 'clear 'ascii-character 12)
+(put 'return 'ascii-character 13)
+(put 'escape 'ascii-character ?\e)
 
 ;;;; Selections and cut buffers
 
@@ -477,9 +508,10 @@ This returns ARGS with the arguments that have been processed removed."
 		       (setq x-display-name (getenv "DISPLAY"))))
 
 (setq frame-creation-function 'x-create-frame)
-(setq suspend-hook
-      '(lambda ()
-	 (error "Suspending an emacs running under X makes no sense")))
+
+(defun x-win-suspend-error ()
+  (error "Suspending an emacs running under X makes no sense"))
+(add-hook 'suspend-hooks 'x-win-suspend-error)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
@@ -488,5 +520,3 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; Turn off window-splitting optimization; X is usually fast enough
 ;;; that this is only annoying.
 (setq split-window-keep-point t)
-
-;;; x-win.el ends here
