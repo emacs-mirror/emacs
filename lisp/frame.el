@@ -118,7 +118,8 @@ These supersede the values given in `default-frame-alist'.")
       (setq tail (cdr tail)))
     (if (> i 0)
 	(delete-frame frame t)
-      (kill-emacs))))
+      ;; Gildea@x.org says it is ok to ask questions before terminating.
+      (save-buffers-kill-emacs))))
 
 ;;;; Arrangement of frames at startup
 
