@@ -1055,8 +1055,9 @@ and source-file directory for your debugger."
   "Major mode for interacting with an inferior debugger process.
 
    You start it up with one of the commands M-x gdb, M-x sdb, M-x dbx,
-or M-x xdb.  Each entry point finishes by executing a hook; `gdb-mode-hook',
-`sdb-mode-hook', `dbx-mode-hook' or `xdb-mode-hook' respectively.
+M-x perldb, or M-x xdb.  Each entry point finishes by executing a
+hook; `gdb-mode-hook', `sdb-mode-hook', `dbx-mode-hook',
+`perldb-mode-hook', or `xdb-mode-hook' respectively.
 
 After startup, the following commands are available in both the GUD
 interaction buffer and any source buffer GUD visits due to a breakpoint stop
