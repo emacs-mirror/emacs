@@ -102,7 +102,7 @@ Control whether the text should be in inverse video.")
   "Alist of face attributes. 
 The elements are of the form (KEY TYPE SET GET),
 where KEY is the name of the attribute,
-TYPE is a widget type for editing the attibute,
+TYPE is a widget type for editing the attribute,
 SET is a function for setting the attribute value,
 and GET is a function for getiing the attribute value. 
 
