@@ -1,3 +1,19 @@
+2000-03-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/byte-opt.el: Fix byte-compiler warnings format.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-autoload):
+	Re-enable new code.
+
+	* lpr.el (print-region-1): Use -d to specify printer name for
+	systems `usg-unix-v*, `dgux', `hpux', `irix'.
+
+2000-03-31  Dave Love  <fx@gnu.org>
+	
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Look
+	for function definition in symbol's function value slot first
+	instead of first consulting byte-compile-function-environment.
+	
 2000-03-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/european.el ("Polish"): New language environment.
