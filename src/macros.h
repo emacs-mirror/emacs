@@ -25,7 +25,7 @@ extern Lisp_Object Vexecuting_macro;
 
 /* Index of next character to fetch from that macro.  */
 
-extern int executing_macro_index;
+extern EMACS_INT executing_macro_index;
 
 /* Number of successful iterations so far
    for innermost keyboard macro.
