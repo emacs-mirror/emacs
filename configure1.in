@@ -920,6 +920,7 @@ case "${canonical}" in
       i386-*-sunos4	  ) opsys=sunos4-0 ;;
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
       *-sunos4.1.3*	  ) opsys=sunos4-1-3 ;;
+      *-sunos4shr*	  ) opsys=sunos4shr ;;
       *-sunos4* | *-sunos ) opsys=sunos4-1 ;;
       *-sunos5.3* | *-solaris2.3* )
 		opsys=sol2-3
