@@ -96,12 +96,11 @@ Boston, MA 02111-1307, USA.  */
    different charsets, different realized faces are needed to display
    them.
 
-   Except for composite characters (CHARSET_COMPOSITION), faces are
-   always realized for a specific character set and contain a specific
-   font, even if the face being realized specifies a fontset (see
-   `font selection' below).  The reason is that the result of the new
-   font selection stage is better than what can be done with
-   statically defined font name patterns in fontsets.
+   Faces are always realized for a specific character set and contain
+   a specific font, even if the face being realized specifies a
+   fontset (see `font selection' below).  The reason is that the
+   result of the new font selection stage is better than what can be
+   done with statically defined font name patterns in fontsets.
 
 
    Unibyte text.
@@ -5487,10 +5486,10 @@ choose_face_font (f, attrs, charset, unibyte_registry)
 
 /* Choose a font to use on frame F to display CHARSET using FONTSET
    with Lisp face attributes specified by ATTRS.  CHARSET may be any
-   valid charset except CHARSET_COMPOSITION.  CHARSET < 0 means
-   unibyte text.  If the fontset doesn't contain a font pattern for
-   charset, use the pattern for CHARSET_ASCII.  Value is the font name
-   which is allocated from the heap and must be freed by the caller.  */
+   valid charset.  CHARSET < 0 means unibyte text.  If the fontset
+   doesn't contain a font pattern for charset, use the pattern for
+   CHARSET_ASCII.  Value is the font name which is allocated from the
+   heap and must be freed by the caller.  */
 
 static char *
 choose_face_fontset_font (f, attrs, fontset, charset)
@@ -5504,7 +5503,6 @@ choose_face_fontset_font (f, attrs, fontset, charset)
   struct font_name *fonts;
   int nfonts;
   
-  xassert (charset != CHARSET_COMPOSITION);
   xassert (fontset >= 0 && fontset < FRAME_FONTSET_DATA (f)->n_fontsets);
 
   /* For unibyte text, use the ASCII font of the fontset.  Using the
@@ -5819,7 +5817,7 @@ realize_x_face (c, attrs, charset)
 {
 #ifdef HAVE_X_WINDOWS
   struct face *face, *default_face;
-  struct frame *f = c->f;
+  struct frame *f;
   Lisp_Object stipple, overline, strike_through, box;
   Lisp_Object unibyte_registry;
   struct gcpro gcpro1;
@@ -5839,6 +5837,7 @@ realize_x_face (c, attrs, charset)
   /* Allocate a new realized face.  */
   face = make_realized_face (attrs, charset, unibyte_registry);
 
+  f = c->f;
   /* Determine the font to use.  Most of the time, the font will be
      the same as the font of the default face, so try that first.  */
   default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
@@ -5854,25 +5853,16 @@ realize_x_face (c, attrs, charset)
     }
   else if (charset >= 0)
     {
-      /* For all charsets except CHARSET_COMPOSITION, we use our own
-	 font selection functions to choose a best matching font for
-	 the specified face attributes.  If the face specifies a
-	 fontset alias name, the fontset determines the font name
-	 pattern, otherwise we construct a font pattern from face
-	 attributes and charset.
-
-	 If charset is CHARSET_COMPOSITION, we always construct a face
-	 with a fontset, even if the face doesn't specify a fontset alias
-	 (we use fontset-standard in that case).  When the composite
-	 character is displayed in xterm.c, a suitable concrete font is
-	 loaded in x_get_char_font_and_encoding.  */
+      /* For all charsets, we use our own font selection functions to
+	 choose a best matching font for the specified face
+	 attributes.  If the face specifies a fontset alias name, the
+	 fontset determines the font name pattern, otherwise we
+	 construct a font pattern from face attributes and charset.  */
       
       char *font_name = NULL;
       int fontset = face_fontset (f, attrs);
 
-      if (charset == CHARSET_COMPOSITION)
-	fontset = max (0, fontset);
-      else if (fontset < 0)
+      if (fontset < 0)
 	font_name = choose_face_font (f, attrs, charset, Qnil);
       else
 	{
@@ -6035,7 +6025,7 @@ realize_x_face (c, attrs, charset)
     face->stipple = load_pixmap (f, stipple, &face->pixmap_w, &face->pixmap_h);
 
   UNGCPRO;
-  xassert (face->fontset < 0 || face->charset == CHARSET_COMPOSITION);
+  xassert (face->fontset < 0);
   xassert (FACE_SUITABLE_FOR_CHARSET_P (face, charset));
   return face;
 #endif /* HAVE_X_WINDOWS */
