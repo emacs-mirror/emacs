@@ -5459,12 +5459,10 @@ char * xlfd_charset_of_font (char * fontname)
   char *charset, *encoding;
 
   encoding = strrchr(fontname, '-');
-  if (!encoding)
+  if (!encoding || encoding == fontname)
     return NULL;
 
-  *encoding = 0;
-  charset = strrchr(fontname, '-');
-  *encoding = '-';
+  charset = strrchr(encoding - 1, '-');
 
   if (!charset || strcmp(charset, "-*-*") == 0)
     return NULL;
@@ -6030,7 +6028,7 @@ w32_codepage_for_font (char *fontname)
   charset = xlfd_charset_of_font (fontname);
 
   if (!charset)
-    return CP_INVALID;
+    return CP_UNKNOWN;
 
   charset_str = (char *) alloca (strlen (charset));
   strcpy (charset_str, charset);
@@ -6051,7 +6049,7 @@ w32_codepage_for_font (char *fontname)
 
   entry = Fassoc (build_string(charset), Vw32_charset_info_alist);
   if (NILP (entry))
-    return CP_INVALID;
+    return CP_UNKNOWN;
 
   codepage = Fcdr (Fcdr (entry));
 
@@ -6062,7 +6060,7 @@ w32_codepage_for_font (char *fontname)
   else if (INTEGERP (codepage))
     return XINT (codepage);
   else
-    return CP_INVALID;
+    return CP_UNKNOWN;
 }
 
 
@@ -6705,7 +6703,8 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
          going to be able to output one of these anyway. */
       codepage = w32_codepage_for_font (XSTRING (tpat)->data);
       if (codepage != CP_8BIT && codepage != CP_UNICODE
-          && codepage != CP_DEFAULT && !IsValidCodePage(codepage))
+          && codepage != CP_DEFAULT && codepage != CP_UNKNOWN
+	  && !IsValidCodePage(codepage))
         continue;
 
       /* See if we cached the result for this particular query.
