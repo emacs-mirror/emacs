@@ -282,14 +282,14 @@ By default, this is the file specified by `mail-personal-alias-file'."
 		  (t (setq file nil))))
 	  (goto-char (point-min))
 	  (while (re-search-forward
-		  "^\\(a\\|alias\\|g\\|group\\)[ \t]+\\([^ \t]+\\)" nil t)
+		  "^\\(a\\|alias\\|g\\|group\\)[ \t]+\\([^ \t\n]+\\)" nil t)
 	    (let* ((name (match-string 2))
-		   (start (progn (skip-chars-forward " \t") (point))))
+		   (start (progn (skip-chars-forward " \t") (point)))
+		   value)
 	      (end-of-line)
-	      (define-mail-alias
-		name
-		(buffer-substring-no-properties start (point))
-		t)))
+	      (setq value (buffer-substring-no-properties start (point)))
+	      (unless (equal value "")
+		(define-mail-alias name value t))))
 	  mail-aliases)
       (if buffer (kill-buffer buffer))
       (set-buffer obuf))))
