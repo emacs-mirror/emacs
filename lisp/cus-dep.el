@@ -56,8 +56,11 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 					    nil t)
 		    (beginning-of-line)
 		    (let ((expr (read (current-buffer))))
-		      (eval expr)
-		      (put (nth 1 expr) 'custom-where name)))
+		      (condition-case nil
+			  (progn
+			    (eval expr)
+			    (put (nth 1 expr) 'custom-where name))
+			(error nil))))
 		(error nil)))))
 	(setq all-subdirs (cdr all-subdirs)))))
   (message "Generating cus-load.el...")
