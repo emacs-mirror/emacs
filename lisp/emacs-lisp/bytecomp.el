@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.102 $")
+(defconst byte-compile-version "$Revision: 2.106 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -957,6 +957,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 ;; Also log the current function and file if not already done.
 (defun byte-compile-log-warning (string &optional fill level)
   (let ((warning-prefix-function 'byte-compile-warning-prefix)
+	(warning-group-format "")
 	(warning-fill-prefix (if fill "    ")))
     (display-warning 'bytecomp string level "*Compile-Log*")))
 
@@ -1201,23 +1202,39 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		    (delq calls byte-compile-unresolved-functions)))))
       )))
 
+(defvar byte-compile-cl-functions nil
+  "List of functions defined in CL.")
+
+(defun byte-compile-find-cl-functions ()
+  (unless byte-compile-cl-functions
+    (dolist (elt load-history)
+      (when (string-match "^cl\\>" (car elt))
+	(setq byte-compile-cl-functions
+	      (append byte-compile-cl-functions
+		      (cdr elt)))))
+    (let ((tail byte-compile-cl-functions))
+      (while tail
+	(if (and (consp (car tail))
+		 (eq (car (car tail)) 'autoload))
+	    (setcar tail (cdr (car tail))))
+	(setq tail (cdr tail))))))
+
 (defun byte-compile-cl-warn (form)
   "Warn if FORM is a call of a function from the CL package."
-  (let* ((func (car-safe form))
-	 (library
-	  (if func
-	      (cond ((eq (car-safe func) 'autoload)
-		     (nth 1 func))
-		    ((symbol-file func))))))
-    (if (and library
-	     (string-match "^cl\\>" library)
+  (let ((func (car-safe form)))
+    (if (and byte-compile-cl-functions
+	     (memq func byte-compile-cl-functions)
 	     ;; Aliases which won't have been expended at this point.
 	     ;; These aren't all aliases of subrs, so not trivial to
 	     ;; avoid hardwiring the list.
 	     (not (memq func
 			'(cl-block-wrapper cl-block-throw
 			  multiple-value-call nth-value
-			  copy-seq first second rest endp cl-member))))
+			  copy-seq first second rest endp cl-member
+			  ;; This is sometimes defined in CL
+			  ;; but that redefines a standard function,
+			  ;; so don't warn about it.
+			  macroexpand))))
 	(byte-compile-warn "Function `%s' from cl package called at runtime"
 			   func)))
   form)
@@ -1317,6 +1334,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   `(let (warning-series)
      ;; Log the file name.  Record position of that text.
      (setq warning-series (byte-compile-log-file))
+     (byte-compile-find-cl-functions)
      (let ((--displaying-byte-compile-warnings-fn (lambda ()
 						    ,@body)))
        (if byte-compile-debug
