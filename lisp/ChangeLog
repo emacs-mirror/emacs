@@ -548,7 +548,7 @@
 2000-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (list-faces-display): Use display-mouse-p instead of
-        window-system.
+	window-system.
 
 	* menu-bar.el (global-map): Menu-bar items converted to the new
 	format (menu-item..., rearranged for better CUA compliance, and
@@ -715,135 +715,135 @@
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-        * textmodes/bibtex.el (bibtex-mode): Replaced manual splitting of path
-        at ':' characters by call to split-string.
+	* textmodes/bibtex.el (bibtex-mode): Replaced manual splitting of path
+	at ':' characters by call to split-string.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-        * textmodes/bibtex.el: Added RCS version identification.
+	* textmodes/bibtex.el: Added RCS version identification.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-        * textmodes/bibtex.el: Some temporary comments removed.
-        (bibtex-field-name, bibtex-entry-type): Made the relationship
-        explicit.
-        (bibtex-field-const): Allow capital letters.
-        (bibtex-start-of-string): Deleted because unused.
-
-        * textmodes/bibtex.el: Unified some nomenclature.  We no longer
-        use the term 'reference' to describe a bibtex entry as a whole.
-        Further, reference keys are no longer called 'labels'.
-        (bibtex-keys): Renamed to bibtex-reference-keys.
-        (bibtex-reformat-previous-labels): Renamed to
-        bibtex-reformat-previous-reference-keys.
-        (bibtex-reference-type): Renamed to bibtex-entry-type.
-        (bibtex-reference-head): Renamed to bibtex-entry-head.
-        (bibtex-reference-maybe-empty-head): Renamed to
-        bibtex-entry-maybe-empty-head.
-        (bibtex-key-in-reference): Renamed to bibtex-key-in-entry.
-        (bibtex-search-reference): Renamed to bibtex-search-entry.
-        (bibtex-enclosing-reference-maybe-empty-head): Renamed to
-        bibtex-enclosing-entry-maybe-empty-head.
-        (bibtex-entry-field-alist, bibtex-entry-head,
-        bibtex-font-lock-keywords, bibtex-skip-to-valid-entry,
-        bibtex-map-entries, bibtex-search-entry,
-        bibtex-enclosing-entry-maybe-empty-head, bibtex-format-entry,
-        bibtex-generate-autokey, bibtex-parse-keys, bibtex-pop, bibtex-mode,
-        bibtex-submit-bug-report, bibtex-entry, bibtex-print-help-message,
-        bibtex-make-field, bibtex-end-of-entry, bibtex-sort-buffer,
-        bibtex-find-entry-location, bibtex-validate, bibtex-find-text,
-        bibtex-kill-entry, bibtex-clean-entry, bibtex-reformat,
-        bibtex-complete-key, bibtex-String) : Use the new nomenclature.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-        * textmodes/bibtex.el (bibtex-strings, bibtex-keys): Removed redundant
-        comment.
-        (bibtex-format-field-delimiters): New function, functionality
-        extracted from bibtex-format-entry.
-        (bibtex-autokey-get-yearfield-digits): New function, functionality
-        extracted from bibtex-autokey-get-yearfield.
-
-        * textmodes/bibtex.el: Completely reimplemented parsing of bibtex
-        entries in order to avoid stack overflow in the regexp matcher if
-        field contents become large.
-        (bibtex-cfield, bibtex-name-in-cfield, bibtex-text-in-cfield,
-        bibtex-field-string-part-not-braced,
-        bibtex-field-string-part-no-inner-braces,
-        bibtex-field-string-part-1-inner-brace,
-        bibtex-field-string-part-2-inner-braces,
-        bibtex-field-string-part-3-inner-braces, bibtex-field-string-braced,
-        bibtex-field-string-quoted, bibtex-field-string,
-        bibtex-field-string-or-const, bibtex-field-text, bibtex-field,
-        bibtex-name-in-field, bibtex-text-in-field, bibtex-reference-infix,
-        bibtex-string, bibtex-key-in-string, bibtex-text-in-string): Deleted
-        as parsing is now performed by the following functions.
-        (bibtex-parse-nested-braces, bibtex-parse-field-string-braced,
-        bibtex-parse-quoted-string, bibtex-parse-field-string-quoted,
-        bibtex-parse-field-string, bibtex-search-forward-field-string,
-        bibtex-parse-association, bibtex-field-name-for-parsing,
-        bibtex-parse-field-name, bibtex-parse-field-text, bibtex-parse-field,
-        bibtex-search-forward-field, bibtex-search-backward-field,
-        bibtex-start-of-field, bibtex-end-of-field,
-        bibtex-start-of-name-in-field, bibtex-end-of-name-in-field,
-        bibtex-start-of-text-in-field, bibtex-end-of-text-in-field,
-        bibtex-parse-string-prefix, bibtex-parse-string-postfix,
-        bibtex-parse-string, bibtex-search-forward-string,
-        bibtex-search-backward-string, bibtex-start-of-string,
-        bibtex-end-of-string, bibtex-start-of-reference-key-in-string,
-        bibtex-end-of-reference-key-in-string, bibtex-start-of-text-in-string,
-        bibtex-end-of-text-in-string): New functions for the parsing of bibtex
-        entries.  Instead of reporting the results of the parsing by
-        match-beginning or match-end, these functions return data structures
-        that hold the corresponding positions.
-        (bibtex-enclosing-field): Changed to also report field boundaries by
-        return values rather than by match-beginning or match-end.  The
-        following functions have been adapted to use the new parsing
-        functions.
-        (bibtex-skip-to-valid-entry, bibtex-search-reference,
-        bibtex-enclosing-field, bibtex-format-entry,
-        bibtex-autokey-get-namefield, bibtex-autokey-get-titlestring,
-        bibtex-parse-keys, bibtex-complete, bibtex-pop, bibtex-mode,
-        bibtex-print-help-message, bibtex-end-of-entry,
-        bibtex-ispell-abstract, bibtex-validate, bibtex-next-field,
-        bibtex-find-text, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
-        bibtex-kill-field, bibtex-empty-field, bibtex-fill-entry): Use the new
-        method for parsing.
-        (bibtex-assoc-of-regexp, bibtex-skip-to-valid-entry,
-        bibtex-map-entries, bibtex-flash-head,
-        bibtex-enclosing-reference-maybe-empty-head, bibtex-format-entry,
-        bibtex-autokey-change, bibtex-autokey-get-namefield,
-        bibtex-autokey-get-names, bibtex-autokey-get-titlestring,
-        bibtex-autokey-get-titles, bibtex-parse-keys, bibtex-pop, bibtex-mode,
-        bibtex-end-of-entry, bibtex-ispell-abstract, bibtex-sort-buffer,
-        bibtex-validate, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
-        bibtex-kill-field, bibtex-kill-entry): Use let* instead of let in
-        order to make the new binding of case-fold-search immediately
-        visible.
+	* textmodes/bibtex.el: Some temporary comments removed.
+	(bibtex-field-name, bibtex-entry-type): Made the relationship
+	explicit.
+	(bibtex-field-const): Allow capital letters.
+	(bibtex-start-of-string): Deleted because unused.
+	
+	* textmodes/bibtex.el: Unified some nomenclature.  We no longer
+	use the term 'reference' to describe a bibtex entry as a whole.
+	Further, reference keys are no longer called 'labels'.
+	(bibtex-keys): Renamed to bibtex-reference-keys.
+	(bibtex-reformat-previous-labels): Renamed to
+	bibtex-reformat-previous-reference-keys.
+	(bibtex-reference-type): Renamed to bibtex-entry-type.
+	(bibtex-reference-head): Renamed to bibtex-entry-head.
+	(bibtex-reference-maybe-empty-head): Renamed to
+	bibtex-entry-maybe-empty-head.
+	(bibtex-key-in-reference): Renamed to bibtex-key-in-entry.
+	(bibtex-search-reference): Renamed to bibtex-search-entry.
+	(bibtex-enclosing-reference-maybe-empty-head): Renamed to
+	bibtex-enclosing-entry-maybe-empty-head.
+	(bibtex-entry-field-alist, bibtex-entry-head,
+	bibtex-font-lock-keywords, bibtex-skip-to-valid-entry,
+	bibtex-map-entries, bibtex-search-entry,
+	bibtex-enclosing-entry-maybe-empty-head, bibtex-format-entry,
+	bibtex-generate-autokey, bibtex-parse-keys, bibtex-pop, bibtex-mode,
+	bibtex-submit-bug-report, bibtex-entry, bibtex-print-help-message,
+	bibtex-make-field, bibtex-end-of-entry, bibtex-sort-buffer,
+	bibtex-find-entry-location, bibtex-validate, bibtex-find-text,
+	bibtex-kill-entry, bibtex-clean-entry, bibtex-reformat,
+	bibtex-complete-key, bibtex-String) : Use the new nomenclature.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-        * textmodes/bibtex.el: Copyright notice is up to date.
-        Added constant 'bibtex-maintainer-salutation.
-
-        * textmodes/bibtex.el (bibtex-mode): use with-temp-buffer rather
-        than make-temp-name, use match-string-no-properties and eliminate
-        a quadratic behavior when building bibtex-strings.
-
-        * bibtex.el (bibtex-reference-key): Accept string entries whose
-        reference key contains upper case letters.
+	* textmodes/bibtex.el (bibtex-strings, bibtex-keys): Removed redundant
+	comment.
+	(bibtex-format-field-delimiters): New function, functionality
+	extracted from bibtex-format-entry.
+	(bibtex-autokey-get-yearfield-digits): New function, functionality
+	extracted from bibtex-autokey-get-yearfield.
+	
+	* textmodes/bibtex.el: Completely reimplemented parsing of bibtex
+	entries in order to avoid stack overflow in the regexp matcher if
+	field contents become large.
+	(bibtex-cfield, bibtex-name-in-cfield, bibtex-text-in-cfield,
+	bibtex-field-string-part-not-braced,
+	bibtex-field-string-part-no-inner-braces,
+	bibtex-field-string-part-1-inner-brace,
+	bibtex-field-string-part-2-inner-braces,
+	bibtex-field-string-part-3-inner-braces, bibtex-field-string-braced,
+	bibtex-field-string-quoted, bibtex-field-string,
+	bibtex-field-string-or-const, bibtex-field-text, bibtex-field,
+	bibtex-name-in-field, bibtex-text-in-field, bibtex-reference-infix,
+	bibtex-string, bibtex-key-in-string, bibtex-text-in-string): Deleted
+	as parsing is now performed by the following functions.
+	(bibtex-parse-nested-braces, bibtex-parse-field-string-braced,
+	bibtex-parse-quoted-string, bibtex-parse-field-string-quoted,
+	bibtex-parse-field-string, bibtex-search-forward-field-string,
+	bibtex-parse-association, bibtex-field-name-for-parsing,
+	bibtex-parse-field-name, bibtex-parse-field-text, bibtex-parse-field,
+	bibtex-search-forward-field, bibtex-search-backward-field,
+	bibtex-start-of-field, bibtex-end-of-field,
+	bibtex-start-of-name-in-field, bibtex-end-of-name-in-field,
+	bibtex-start-of-text-in-field, bibtex-end-of-text-in-field,
+	bibtex-parse-string-prefix, bibtex-parse-string-postfix,
+	bibtex-parse-string, bibtex-search-forward-string,
+	bibtex-search-backward-string, bibtex-start-of-string,
+	bibtex-end-of-string, bibtex-start-of-reference-key-in-string,
+	bibtex-end-of-reference-key-in-string, bibtex-start-of-text-in-string,
+	bibtex-end-of-text-in-string): New functions for the parsing of bibtex
+	entries.  Instead of reporting the results of the parsing by
+	match-beginning or match-end, these functions return data structures
+	that hold the corresponding positions.
+	(bibtex-enclosing-field): Changed to also report field boundaries by
+	return values rather than by match-beginning or match-end.  The
+	following functions have been adapted to use the new parsing
+	functions.
+	(bibtex-skip-to-valid-entry, bibtex-search-reference,
+	bibtex-enclosing-field, bibtex-format-entry,
+	bibtex-autokey-get-namefield, bibtex-autokey-get-titlestring,
+	bibtex-parse-keys, bibtex-complete, bibtex-pop, bibtex-mode,
+	bibtex-print-help-message, bibtex-end-of-entry,
+	bibtex-ispell-abstract, bibtex-validate, bibtex-next-field,
+	bibtex-find-text, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
+	bibtex-kill-field, bibtex-empty-field, bibtex-fill-entry): Use the new
+	method for parsing.
+	(bibtex-assoc-of-regexp, bibtex-skip-to-valid-entry,
+	bibtex-map-entries, bibtex-flash-head,
+	bibtex-enclosing-reference-maybe-empty-head, bibtex-format-entry,
+	bibtex-autokey-change, bibtex-autokey-get-namefield,
+	bibtex-autokey-get-names, bibtex-autokey-get-titlestring,
+	bibtex-autokey-get-titles, bibtex-parse-keys, bibtex-pop, bibtex-mode,
+	bibtex-end-of-entry, bibtex-ispell-abstract, bibtex-sort-buffer,
+	bibtex-validate, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
+	bibtex-kill-field, bibtex-kill-entry): Use let* instead of let in
+	order to make the new binding of case-fold-search immediately
+	visible.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-        * bibtex.el (bibtex-reference-head): Allow entries to start with
-        a new line.
+	* textmodes/bibtex.el: Copyright notice is up to date.
+	Added constant 'bibtex-maintainer-salutation.
+	
+	* textmodes/bibtex.el (bibtex-mode): use with-temp-buffer rather
+	than make-temp-name, use match-string-no-properties and eliminate
+	a quadratic behavior when building bibtex-strings.
+	
+	* bibtex.el (bibtex-reference-key): Accept string entries whose
+	reference key contains upper case letters.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-        * bibtex.el: Hiding of entry bodies is not longer provided by
-        bibtex.el directly.  Instead the hideshow package can be used.
-        Added a special bibtex entry to hs-special-modes-alist.
-        (bibtex-hs-forward-sexp): Added for hideshow.el.
+	* bibtex.el (bibtex-reference-head): Allow entries to start with
+	a new line.
+
+2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* bibtex.el: Hiding of entry bodies is not longer provided by
+	bibtex.el directly.  Instead the hideshow package can be used.
+	Added a special bibtex entry to hs-special-modes-alist.
+	(bibtex-hs-forward-sexp): Added for hideshow.el.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -1384,11 +1384,11 @@
 	(ispell-choices-win-default-height): Fix for XEmacs visibility.
 	(ispell-dictionary-alist1): Added Brasileiro dictionary.
 	(ispell-dictionary-alist6): Russian command lines no longer accept
-        run-together words.
+	run-together words.
 	(ispell-local-dictionary-alist): Add koi8-r to customize definition.
 	(ispell-dictionary-alist): Add koi8-r to customize definition.
 	(check-ispell-version): Added documentation string.  Returns
-        library path when called non-interactively.
+	library path when called non-interactively.
 	(ispell-menu-map-needed): Uses new variables.
 	(ispell-library-path): New variable.
 	(ispell-decode-string): XEmacs fix for bogus variable bindings.
@@ -2814,8 +2814,8 @@
 	maintainer information closer to the beginning of the bibtex.el
 	file.
 	(bibtex-maintainer-salutation): New constant.
-        (bibtex-version): New constant.
-        (bibtex-submit-bug-report): Use bibtex-version and
+	(bibtex-version): New constant.
+	(bibtex-submit-bug-report): Use bibtex-version and
 	bibtex-maintainer-salutation.
 	(bibtex-entry-field-alist): Made booktitle field optional for
 	@inproceedings entries when crossreferenced.
@@ -3328,7 +3328,7 @@
 1999-11-10  Peter Kleiweg  <kleiweg@let.rug.nl>
 
 	* progmodes/ps-mode.el (ps-mode-maintainer-address): New
-        constant.
+	constant.
 	(ps-mode-submit-bug-report): New function. Entry added to menu.
 
 1999-11-10  William M. Perry  <wmperry@aventail.com>
@@ -5154,7 +5154,7 @@
 	(reftex-what-environment): Fixed bug with stacked environments of
 	same kind (e.g. enumerate).
 	(reftex-process-string): Preserve default directory.
-        (reftex-label-alist-builtin): Changed prefixes of endnote and
+	(reftex-label-alist-builtin): Changed prefixes of endnote and
 	footnote.  Also the magic words.
 	(reftex-reference): Interprete new option
 	`reftex-fref-is-default'.
@@ -5493,17 +5493,17 @@
 1999-08-03  Didier Verna  <verna@inf.enst.fr>
 
 	* rect.el: All functions rewritten, except when noted above
-        their declaration.  Below is a list of interface changes.
+	their declaration.  Below is a list of interface changes.
 	(apply-on-rectangle): New function, mostly replaces
 	`operate-on-rectangle'.  All callers changed.
-        (move-to-column-force): Pass new second argument to `move-to-column'.
+	(move-to-column-force): Pass new second argument to `move-to-column'.
 	(kill-rectangle): Added optional prefix arg to fill lines.
 	(delete-rectangle): Ditto.
-        (delete-whitespace-rectangle): Ditto.
+	(delete-whitespace-rectangle): Ditto.
 	(delete-extract-rectangle): Ditto.
 	(open-rectangle): Ditto.
 	(clear-rectangle): Ditto.
-        (delete-whitespace-rectangle-line): New function.
+	(delete-whitespace-rectangle-line): New function.
 	(delete-rectangle-line): Added third arg FILL.
 	(delete-extract-rectangle-line): Ditto.
 	(open-rectangle-line): Ditto.
