@@ -1348,10 +1348,9 @@ string.
 The functions on the list are called sequentially, and each one is
 given the string returned by the previous one.  The string returned by
 the last function is the text that is actually inserted in the
-redirection buffer.")
+redirection buffer.
 
-
-This variable is buffer-local.")
+This variable is permanent-local.")
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward

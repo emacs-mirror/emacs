@@ -3665,7 +3665,7 @@ If FUNCTION was not advised this will be a noop."
 (defun ad-recover (function)
   "Try to recover FUNCTION's original definition, and unadvise it.
 This is more low-level than `ad-unadvise' in that it does not do
-deactivation, which might run hooks and get into other trouble."
+deactivation, which might run hooks and get into other trouble.
 Use in emergencies."
   ;; Use more primitive interactive behavior here: Accept any symbol that's
   ;; currently defined in obarray, not necessarily with a function definition:
