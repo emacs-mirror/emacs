@@ -208,6 +208,9 @@
 ;; page 4:	statement syntax-commands for various shells
 ;; page 5:	various other commands
 
+(eval-when-compile
+  (require 'skeleton)
+  (require 'comint))
 (require 'executable)
 
 
