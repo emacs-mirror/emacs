@@ -1,3 +1,10 @@
+2002-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/keypad.el (keypad-setup, keypad-shifted-setup)
+	(keypad-numlock-setup, keypad-numlock-shifted-setup): 
+	Change `Remove Binding' option to `Unspecified/User-defined'.
+	(keypad-setup): Enhance explanation of setup type `none'.
+
 2002-09-14  Richard M. Stallman  <rms@gnu.org>
 
 	* warnings.el (display-warning): In batch mode,
