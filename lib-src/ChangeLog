@@ -1,3 +1,9 @@
+2000-01-28  Eric Hanchrow <offby1@blarg.net>
+
+	* emacsclient.c (socket_status): New function.
+	(main): if $LOGNAME or $USER exist and differ from our euid, look
+	for a socket based on the UID associated with the name.
+
 2000-01-12  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* emacsclient.c: Add option -a EDITOR and environment variable

@@ -5451,6 +5451,11 @@ Use M-x dsssl-mode.
 
 ** Changes to the emacsclient program
 
+*** If a socket can't be found, and environment variables LOGNAME or
+USER are set, emacsclient now looks for a socket based on the UID
+associated with the name.  That is an emacsclient running as root
+can connect to an Emacs server started by a non-root user.
+
 *** The emacsclient program now accepts an option --no-wait which tells
 it to return immediately without waiting for you to "finish" the
 buffer in Emacs.
