@@ -81,9 +81,10 @@
   :designation [(latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
 				japanese-jisx0212 katakana-jisx0201)
 		nil nil nil]
-  :flags '(short ascii-at-eol ascii-at-cntl 7-bit use-roman use-oldjis)
-  :charset-list '(latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
-				 japanese-jisx0212))
+  :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation
+		 use-roman use-oldjis)
+  :charset-list '(ascii latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
+			japanese-jisx0212))
 
 (define-coding-system-alias 'iso-2022-jp-1978-irv 'japanese-iso-7bit-1978-irv)
 (define-coding-system-alias 'old-jis 'japanese-iso-7bit-1978-irv)
