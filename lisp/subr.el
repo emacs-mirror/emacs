@@ -853,12 +853,11 @@ Wildcards and redirection are handled as usual in the shell."
   (cond
    ((eq system-type 'vax-vms)
     (apply 'start-process name buffer args))
-   ((eq system-type 'windows-nt)
-    (start-process name buffer shell-file-name shell-command-switch
-		   (mapconcat 'identity args " ")))
+   ;; We used to use `exec' to replace the shell with the command,
+   ;; but that failed to handle (...) and semicolon, etc.
    (t
     (start-process name buffer shell-file-name shell-command-switch
-		   (concat "exec " (mapconcat 'identity args " "))))))
+		   (mapconcat 'identity args " ")))))
 
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
