@@ -507,14 +507,25 @@ C-p Display information about the GNU project.
 C-w Display information on absence of warranty for GNU Emacs."
   help-map)
 
-;; Return a function which is called by the list containing point.
-;; If that gives no function, return a function whose name is around point.
+;; Return a function whose name is around point.
+;; If that gives no function, return a function which is called by the
+;; list containing point.
 ;; If that doesn't give a function, return nil.
 (defun function-called-at-point ()
   (let ((stab (syntax-table)))
     (set-syntax-table emacs-lisp-mode-syntax-table)
     (unwind-protect
 	(or (condition-case ()
+		(save-excursion
+		  (or (not (zerop (skip-syntax-backward "_w")))
+		      (eq (char-syntax (following-char)) ?w)
+		      (eq (char-syntax (following-char)) ?_)
+		      (forward-sexp -1))
+		  (skip-chars-forward "'")
+		  (let ((obj (read (current-buffer))))
+		    (and (symbolp obj) (fboundp obj) obj)))
+	      (error nil))
+	    (condition-case ()
 		(save-excursion
 		  (save-restriction
 		    (narrow-to-region (max (point-min) (- (point) 1000)) (point-max))
@@ -528,16 +539,6 @@ C-w Display information on absence of warranty for GNU Emacs."
 		    (let (obj)
 		      (setq obj (read (current-buffer)))
 		      (and (symbolp obj) (fboundp obj) obj))))
-	      (error nil))
-	    (condition-case ()
-		(save-excursion
-		  (or (not (zerop (skip-syntax-backward "_w")))
-		      (eq (char-syntax (following-char)) ?w)
-		      (eq (char-syntax (following-char)) ?_)
-		      (forward-sexp -1))
-		  (skip-chars-forward "'")
-		  (let ((obj (read (current-buffer))))
-		    (and (symbolp obj) (fboundp obj) obj)))
 	      (error nil)))
       (set-syntax-table stab))))
 
