@@ -263,15 +263,18 @@ other packages would interfere with them.
 @cindex major mode hook
 Each major mode should have a @dfn{mode hook} named
 @code{@var{modename}-mode-hook}.  The major mode command should run that
-hook, with @code{run-hooks}, as the very last thing it
+hook, with @code{run-mode-hooks}, as the very last thing it
 does.  @xref{Hooks}.
 
 @item
-The major mode command may also run the hooks of some more basic modes.
-For example, @code{indented-text-mode} runs @code{text-mode-hook} as
-well as @code{indented-text-mode-hook}.  It may run these other hooks
-immediately before the mode's own hook (that is, after everything else),
-or it may run them earlier.
+The major mode command may start by calling some other major mode
+command (called the @dfn{parent mode}) and then alter some of its
+settings.  A mode that does this is called a @dfn{derived mode}.  The
+recommended way to define one is to use @code{define-derived-mode},
+but this is not required.  Such a mode should use
+@code{delay-mode-hooks} around its entire body, including the call to
+the parent mode command and the final call to @code{run-mode-hooks}.
+(Using @code{define-derived-mode} does this automatically.) 
 
 @item
 If something special should be done if the user switches a buffer from
@@ -359,7 +362,7 @@ inherit all the commands defined in this map.")
 @end group
 @end smallexample
 
-  Here is the complete major mode function definition for Text mode:
+  This was formerly the complete major mode function definition for Text mode:
 
 @smallexample
 @group
@@ -388,7 +391,7 @@ Turning on text-mode runs the hook `text-mode-hook'."
 @group
   (setq mode-name "Text")
   (setq major-mode 'text-mode)
-  (run-hooks 'text-mode-hook))      ; @r{Finally, this permits the user to}
+  (run-mode-hooks 'text-mode-hook)) ; @r{Finally, this permits the user to}
                                     ;   @r{customize the mode with a hook.}
 @end group
 @end smallexample
@@ -543,7 +546,7 @@ if that value is non-nil."
 @group
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
-  (run-hooks 'lisp-mode-hook))           ; @r{This permits the user to use a}
+  (run-mode-hooks 'lisp-mode-hook))           ; @r{This permits the user to use a}
                                          ;   @r{hook to customize the mode.}
 @end group
 @end smallexample
@@ -819,6 +822,10 @@ minor modes in effect.
 way to insert the necessary hook into the rest of Emacs.  Minor mode
 keymaps make this easier than it used to be.
 
+@defvar minor-mode-list
+The value of this variable is a list of all minor mode commands.
+@end defvar
+
 @menu
 * Minor Mode Conventions::      Tips for writing a minor mode.
 * Keymaps and Minor Modes::     How a minor mode can have its own keymap.
@@ -981,20 +988,16 @@ characters are reserved for major modes.)
 implementing a mode in one self-contained definition.  It supports only
 buffer-local minor modes, not global ones.
 
-@defmac define-minor-mode mode doc &optional init-value mode-indicator keymap body...
+@defmac define-minor-mode mode doc [init-value [lighter [keymap keyword-args... body...]]]
 @tindex define-minor-mode
-This macro defines a new minor mode whose name is @var{mode} (a symbol).
-It defines a command named @var{mode} to toggle the minor
+This macro defines a new minor mode whose name is @var{mode} (a
+symbol).  It defines a command named @var{mode} to toggle the minor
 mode, with @var{doc} as its documentation string.  It also defines a
 variable named @var{mode}, which is set to @code{t} or @code{nil} by
 enabling or disabling the mode.  The variable is initialized to
 @var{init-value}.
 
-The command named @var{mode} finishes by executing the @var{body} forms,
-if any, after it has performed the standard actions such as setting
-the variable named @var{mode}.
-
-The string @var{mode-indicator} says what to display in the mode line
+The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
 in the mode line.
 
@@ -1005,7 +1008,36 @@ specifying bindings in this form:
 @example
 (@var{key-sequence} . @var{definition})
 @end example
+
+The @var{keyword-args} consist of keywords followed by corresponding
+values.  A few keywords have special meanings:
+
+@table @code
+@item :global @var{global}
+If non-@code{nil} specifies that the minor mode should be global.
+By default, minor modes are buffer-local.
+
+@item :init-value @var{init-value}
+This is equivalent to specifying @var{init-value} positionally.
+
+@item :lighter @var{lighter}
+This is equivalent to specifying @var{lighter} positionally.
+
+@item :keymap @var{keymap}
+This is equivalent to specifying @var{keymap} positionally.
+@end table
+
+Any other keyword arguments are passed passed directly to the
+@code{defcustom} generated for the variable @var{mode}.
+
+The command named @var{mode} finishes by executing the @var{body} forms,
+if any, after it has performed the standard actions such as setting
+the variable named @var{mode}.
 @end defmac
+
+@findex easy-mmode-define-minor-mode
+  The name @code{easy-mmode-define-minor-mode} is an alias
+for this macro.
 
   Here is an example of using @code{define-minor-mode}:
 
@@ -1028,7 +1060,8 @@ See the command \\[hungry-electric-delete]."
    ("\C-\M-\^?"
     . (lambda ()
         (interactive)
-        (hungry-electric-delete t)))))
+        (hungry-electric-delete t))))
+ :group 'hunger)
 @end smallexample
 
 @noindent
@@ -1037,12 +1070,35 @@ This defines a minor mode named ``Hungry mode'', a command named
 which indicates whether the mode is enabled, and a variable named
 @code{hungry-mode-map} which holds the keymap that is active when the
 mode is enabled.  It initializes the keymap with key bindings for
-@kbd{C-@key{DEL}} and @kbd{C-M-@key{DEL}}.
+@kbd{C-@key{DEL}} and @kbd{C-M-@key{DEL}}.  It puts the variable
+@code{hungry-mode} into custom group @code{hunger}.  There are no
+@var{body} forms---many minor modes don't need any.
 
+  Here's an equivalent way to write it:
 
-@findex easy-mmode-define-minor-mode
-  The name @code{easy-mmode-define-minor-mode} is an alias
-for this macro.
+@smallexample
+(define-minor-mode hungry-mode
+  "Toggle Hungry mode.
+With no argument, this command toggles the mode.
+Non-null prefix argument turns on the mode.
+Null prefix argument turns off the mode.
+
+When Hungry mode is enabled, the control delete key
+gobbles all preceding whitespace except the last.
+See the command \\[hungry-electric-delete]."
+ ;; The initial value.
+ :initial-value nil
+ ;; The indicator for the mode line.
+ :lighter " Hungry"
+ ;; The minor mode bindings.
+ :keymap
+ '(("\C-\^?" . hungry-electric-delete)
+   ("\C-\M-\^?"
+    . (lambda ()
+        (interactive)
+        (hungry-electric-delete t))))
+ :group 'hunger)
+@end smallexample
 
 @node Mode Line Format
 @section Mode Line Format
@@ -1885,6 +1941,19 @@ specifies the face name to use for highlighting.
 ("fubar" . fubar-face)
 @end example
 
+The value of @var{facename} is usually a face name (a symbol), but it
+can also be a list of the form
+
+@example
+(face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{})
+@end example
+
+to specify various text properties to put on the text that matches.
+If you do this, be sure to add the other text property names that you
+set in this way to the value of @code{font-lock-extra-managed-props}
+so that the properties will also be cleared out when they are no longer
+appropriate.
+
 @item (@var{matcher} . @var{highlighter})
 In this kind of element, @var{highlighter} is a list
 which specifies how to highlight matches found by @var{matcher}.
@@ -2060,6 +2129,14 @@ are @code{mark-defun} for programming modes or @code{mark-paragraph} for
 textual modes.
 @end defvar
 
+@defvar font-lock-extra-managed-props
+Additional properties (other than @code{face}) that are being managed
+by Font Lock mode.  Font Lock mode normally manages only the @code{face}
+property; if you want it to manage others as well, you must specify
+them in a @var{facename} in @code{font-lock-keywords} as well as adding
+them to this list.
+@end defvar
+
 @node Levels of Font Lock
 @subsection Levels of Font Lock
 
@@ -2162,6 +2239,10 @@ where they are defined and where they are used.
 @item font-lock-constant-face
 @vindex font-lock-constant-face
 Used (typically) for constant names.
+
+@item font-locl-preprocessor-face
+@vindex font-locl-preprocessor-face
+Used (typically) for preprocessor commands.
 
 @item font-lock-warning-face
 @vindex font-lock-warning-face
@@ -2311,6 +2392,18 @@ For example, here's how @code{emacs-lisp-mode} runs its mode hook:
 (run-hooks 'emacs-lisp-mode-hook)
 @end example
 @end defun
+
+@defun run-mode-hooks &rest hookvars
+Like @code{run-hooks}, but is affected by the @code{delay-mode-hooks}
+macro.
+@end defun
+
+@defmac delay-mode-hooks body...
+This macro executes the @var{body} forms but defers all calls to
+@code{run-mode-hooks} within them until the end of @var{body}.
+This macro enables a derived mode to arrange not to run
+its parent modes' mode hooks until the end.
+@end defmac
 
 @defun run-hook-with-args hook &rest args
 This function is the way to run an abnormal hook which passes arguments
