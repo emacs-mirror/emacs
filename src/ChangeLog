@@ -1,3 +1,10 @@
+2001-12-26  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (record_char): Ignore duplicate help-echo events only
+	separated by mouse-movement.  When tracking mouse, only record
+	first and last mouse-movement event in same window.
+	Don't record mouse-movement events in keyboard macros.
+	
 2001-12-25  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (enlarge_window): New arg PRESERVE_BEFORE.  Callers changed.
