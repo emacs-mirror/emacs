@@ -1,3 +1,8 @@
+2004-10-20  John Paul Wallington  <jpw@gnu.org>
+
+	* url-gw.el (url-gateway-nslookup-host):
+	Use `set-process-query-on-exit-flag'.
+
 2004-10-10  Lars Hansen  <larsh@math.ku.dk>
 
 	* url-auth.el: Update header and footer.
