@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;;; Copyright (C) 1989, 1990, 1991, 1992  Free Software Foundation, Inc.
+;;; Copyright (C) 1989, 1990, 1991, 1992, 1993  Free Software Foundation, Inc.
 ;;; ??? Waiting for papers from several people.
 ;;;
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
@@ -8,7 +8,7 @@
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 ;;;
 ;;; This program is distributed in the hope that it will be useful,
@@ -706,9 +706,9 @@ If nil then prompt the user for a password.")
 process uses the \'dir\' command to get directory information.")
 
 (defvar ange-ftp-binary-file-name-regexp
-  (concat "\\.Z$\\|\\.lzh$\\|\\.arc$\\|\\.zip$\\|\\.zoo$\\|\\.tar$\\|"
+  (concat "\\.[zZ]$\\|\\.lzh$\\|\\.arc$\\|\\.zip$\\|\\.zoo$\\|\\.tar$\\|"
 	  "\\.dvi$\\|\\.ps$\\|\\.elc$\\|TAGS$\\|\\.gif$\\|"
-	  "\\.EXE\\(;[0-9]+\\)?$\\|\\.Z-part-..$")
+	  "\\.EXE\\(;[0-9]+\\)?$\\|\\.[zZ]-part-..$")
   "*If a file matches this regexp then it is transferred in binary mode.")
 
 (defvar ange-ftp-gateway-host nil
@@ -859,7 +859,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.15 $")
+(defconst ange-ftp-version "$Revision: 1.16 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
