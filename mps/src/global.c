@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.5) $
+ * $HopeName: MMsrc!global.c(trunk.6) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -28,7 +28,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.5) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.6) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -407,7 +407,7 @@ void ArenaEnter(Arena arena)
 {
   AVER(CHECKT(Arena, arena));
 
-  StackProbe(STACK_PROBE_DEPTH);
+  StackProbe(StackProbeDEPTH);
   LockClaim(arena->lock);
   AVERT(Arena, arena); /* can't AVER it until we've got the lock */
   ShieldEnter(arena);
