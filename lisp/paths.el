@@ -121,12 +121,6 @@ Its name should end with a slash.")
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
-;; Solaris 2 has both of these files; prefer /usr/ucb/man
-;; because the other has nonstandard argument conventions.
-(defconst manual-program (if (file-exists-p "/usr/ucb/man")
-			     "/usr/ucb/man" "/usr/bin/man")
-  "Program to run to print man pages.")
-
 (defconst abbrev-file-name 
   (if (eq system-type 'vax-vms)
       "~/abbrev.def"
