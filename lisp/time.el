@@ -98,9 +98,7 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	(mail-spool-file (or display-time-mail-file
 			     (getenv "MAIL")
 			     (concat rmail-spool-directory
-				     (or (getenv "LOGNAME")
-					 (getenv "USER")
-					 (user-login-name)))))
+				     (user-login-name))))
 	hour am-pm-flag mail-flag)
     (setq hour (read (substring time 11 13)))
     (if (not display-time-24hr-format)
