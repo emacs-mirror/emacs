@@ -1772,10 +1772,11 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 }
 
 DEFUN ("forward-comment", Fforward_comment, Sforward_comment, 1, 1, 0,
-       doc: /* Move forward across up to N comments.  If N is negative, move backward.
+       doc: /* 
+Move forward across up to COUNT comments.  If COUNT is negative, move backward.
 Stop scanning if we find something other than a comment or whitespace.
 Set point to where scanning stops.
-If N comments are found as expected, with nothing except whitespace
+If COUNT comments are found as expected, with nothing except whitespace
 between them, return t; otherwise return nil.  */)
      (count)
      Lisp_Object count;
