@@ -584,7 +584,7 @@ when syntaxifying a chunk of buffer."
     (((class color) (background dark))
      (:foreground ,cperl-dark-foreground))
     (t (:weight bold :underline t)))
-  "Font Lock mode face used to highlight array names."
+  "Font Lock mode face used non-overridable keywords and modifiers of regexps."
   :group 'cperl-faces)
 
 (defface cperl-array-face
