@@ -79,6 +79,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef WINDOWSNT
+#include "ntlib.h"
 #undef access
 #undef unlink
 #define fork() 0
@@ -87,8 +88,16 @@ Boston, MA 02111-1307, USA.  */
    though the locking call succeeds (and indeed blocks local access from
    other NT programs).  If you have direct file access using an NFS
    client or something other than Samba, the locking call might work
-   properly - make sure it does before you enable this! */
-#define DISABLE_DIRECT_ACCESS
+   properly - make sure it does before you enable this!
+
+   [18-Feb-97 andrewi] I now believe my comment above to be incorrect,
+   since it was based on a misunderstanding of how locking calls are
+   implemented and used on Unix.  */
+//#define DISABLE_DIRECT_ACCESS
+
+/* Ensure all file i/o is in binary mode. */
+#include <fcntl.h>
+int _fmode = _O_BINARY;
 #endif /* WINDOWSNT */
 
 /* Cancel substitutions made by config.h for Emacs.  */
