@@ -1910,7 +1910,7 @@ do_autoload (fundef, funname)
      of what files are preloaded and when.  */
   if (! NILP (Vpurify_flag))
     error ("Attempt to autoload %s while preparing to dump",
-	   XSYMBOL (funname)->name->data);
+	   XSTRING (SYMBOL_NAME (funname))->data);
 
   fun = funname;
   CHECK_SYMBOL (funname);
@@ -1949,7 +1949,7 @@ do_autoload (fundef, funname)
 
   if (!NILP (Fequal (fun, fundef)))
     error ("Autoloading failed to define function %s",
-	   XSYMBOL (funname)->name->data);
+	   XSTRING (SYMBOL_NAME (funname))->data);
   UNGCPRO;
 }
 
