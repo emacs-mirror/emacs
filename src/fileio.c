@@ -464,8 +464,12 @@ DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
 Second arg DEFAULT is directory to start with if FILENAME is relative\n\
  (does not start with slash); if DEFAULT is nil or missing,\n\
 the current buffer's value of default-directory is used.\n\
-Filenames containing `.' or `..' as components are simplified;\n\
-initial `~/' expands to your home directory.\n\
+Path components that are `.' are removed, and \n\
+path components followed by `..' are removed, along with the `..' itself;\n\
+note that these simplifications are done without checking the resulting\n\
+paths in the file system.\n\
+An initial `~/' expands to your home directory.\n\
+An initial `~USER/' expands to USER's home directory.\n\
 See also the function `substitute-in-file-name'.")
      (name, defalt)
      Lisp_Object name, defalt;
@@ -1830,6 +1834,23 @@ if the directory so specified exists and really is a directory.")
   return (st.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
 }
 
+DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p, Sfile_accessible_directory_p, 1, 1, 0,
+  "Return t if file FILENAME is the name of a directory as a file,\n\
+and files in that directory can be opened by you.  In order to use a\n\
+directory as a buffer's current directory, this predicate must return true.\n\
+A directory name spec may be given instead; then the value is t\n\
+if the directory so specified exists and really is a readable and\n\
+searchable directory.")
+  (filename)
+     Lisp_Object filename;
+{
+  if (NILP (Ffile_directory_p (filename))
+      || NILP (Ffile_executable_p (filename)))
+    return Qnil;
+  else
+    return Qt;
+}
+
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
   "Return mode bits of FILE, as an integer.")
   (filename)
@@ -2107,8 +2128,8 @@ to the file, instead of any buffer contents, and END is ignored.")
 	desc = open (fn, O_RDWR);
 	if (desc < 0)
 	  desc = creat_copy_attrs (XTYPE (current_buffer->filename) == Lisp_String
-				 ? XSTRING (current_buffer->filename)->data : 0,
-				 fn);
+				   ? XSTRING (current_buffer->filename)->data : 0,
+				   fn);
       }
     else		/* Write to temporary name and rename if no errors */
       {
@@ -2224,13 +2245,10 @@ to the file, instead of any buffer contents, and END is ignored.")
 #ifndef USG
 #ifndef VMS
 #ifndef BSD4_1
-#ifndef alliant /* trinkle@cs.purdue.edu says fsync can return EBUSY
-		   on alliant, for no visible reason.  */
   /* Note fsync appears to change the modtime on BSD4.2 (both vax and sun).
      Disk full in NFS may be reported here.  */
   if (fsync (desc) < 0)
     failure = 1, save_errno = errno;
-#endif
 #endif
 #endif
 #endif
@@ -2821,6 +2839,7 @@ nil means use format `var'.  This variable is meaningful only on VMS.");
   defsubr (&Sfile_writable_p);
   defsubr (&Sfile_symlink_p);
   defsubr (&Sfile_directory_p);
+  defsubr (&Sfile_accessible_directory_p);
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
   defsubr (&Sfile_newer_than_file_p);
