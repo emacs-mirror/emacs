@@ -1,3 +1,92 @@
+2002-08-30  Kim F. Storm  <storm@cua.dk>
+
+	The following changes consolidates the handling of the cursor
+	type in xdisp.c, moving duplicate code and functionality from
+	xfns.c, xterm.c, w32fns.c, w32term.c, macfns.c, and macterm.c.
+
+	* frame.h (enum text_cursor_kinds): Consolidated here.
+	Added DEFAULT_CURSOR value.
+	(struct frame) <desired_cursor, cursor_width>
+	<blink_off_cursor, blink_off_cursor_width>: New fields.
+	Consolidated from output_x, output_w32 and output_mac structs.
+	(FRAME_DESIRED_CURSOR, FRAME_CURSOR_WIDTH, FRAME_BLINK_OFF_CURSOR)
+	(FRAME_BLINK_OFF_CURSOR_WIDTH): Macros consolidated here.
+
+	* xdisp.c (Qbar, Qhbar, Qbox, Qhollow, Vblink_cursor_alist):
+	Variables consolidated here.
+	(Valternate_cursor_type, Qalternate_cursor_type): New variables.
+	(Vcursor_in_non_selected_windows): Renamed from
+	cursor_in_non_selected_windows and changed to Lisp_Object.
+	(syms_of_xdisp): Define and staticpro new and moved variables.
+	(get_specified_cursor_type): Renamed from x_specified_cursor_type;
+	consolidated here.  Recognize Qhollow setting.
+	(set_frame_cursor_types): New function to set frame cursor types
+	based on the frame parameters.
+	(get_window_cursor_type): New function to calculate new cursor
+	type and width for the specified window.  Based on duplicated
+	code consolidated here.
+	Enhancements: cursor-in-non-selected-windows may be a cursor type,
+	check buffer-local alternate-cursor-type and blink-cursor-alist
+	before using built-in blink off methods.
+
+	* dispextern.h (cursor_in_non_selected_windows): Extern removed.
+
+	* lisp.h (Qcursor_in_non_selected_windows): Extern removed.
+	(get_specified_cursor_type, get_window_cursor_type)
+	(set_frame_cursor_types): Added prototypes.
+
+	* macfns.c (x_specified_cursor_type): Removed.
+	(x_set_cursor_type): Use set_frame_cursor_types.
+
+	* macterm.c (x_specified_cursor_type): Remove prototype.
+	(x_draw_bar_cursor): Use FRAME_CURSOR_WIDTH.
+	(x_display_and_set_cursor): Use get_window_cursor_type.
+	Remove unused local variables cursor_non_selected, active_cursor.
+	Redraw cursor if hbar cursor width changes.
+	(make_mac_frame): Set FRAME_DESIRED_CURSOR.
+
+	* macterm.h (enum text_cursor_kinds): Removed.
+	(struct output_mac) <current_cursor, desired_cursor, cursor_width>
+	<blink_off_cursor, blink_off_cursor_width>: Members removed.
+	(FRAME_DESIRED_CURSOR): Macro removed.
+	
+	* w32fns.c (Vblink_cursor_alist): Removed.
+	(Qbar, Qhbar, Qbox, Qhollow): Removed.
+	(syms_of_w32fns): Don't intern, staticpro, or define them.
+	(x_specified_cursor_type): Removed.
+	(x_set_cursor_type): Use set_frame_cursor_types.
+
+	* w32term.c (x_specified_cursor_type): Remove prototype.
+	(x_draw_bar_cursor): Use FRAME_CURSOR_WIDTH.
+	(x_display_and_set_cursor): Use get_window_cursor_type.
+	Remove unused local variables cursor_off_state.
+	Redraw cursor if hbar cursor width changes.
+
+	* w32term.h (enum text_cursor_kinds): Removed.
+	(struct output_w32) <current_cursor, desired_cursor, cursor_width>
+	<blink_off_cursor, blink_off_cursor_width>: Members removed.
+	(FRAME_DESIRED_CURSOR, FRAME_CURSOR_WIDTH, FRAME_BLINK_OFF_CURSOR)
+	(FRAME_BLINK_OFF_CURSOR_WIDTH): Macros removed.
+	
+	* xfns.c (Vblink_cursor_alist): Removed.
+	(Qbar, Qhbar, Qbox, Qhollow): Removed.
+	(syms_of_xfns): Don't intern, staticpro, or define them.
+	(x_specified_cursor_type): Removed.
+	(x_set_cursor_type): Use set_frame_cursor_types.
+
+	* xterm.c (x_specified_cursor_type): Remove prototype.
+	(x_draw_bar_cursor): Use FRAME_CURSOR_WIDTH.
+	(x_display_and_set_cursor): Use get_window_cursor_type.
+	Remove unused local variables cursor_off_state.
+	Redraw cursor if hbar cursor width changes.
+
+	* xterm.h (enum text_cursor_kinds): Removed.
+	(struct output_x) <current_cursor, desired_cursor, cursor_width>
+	<blink_off_cursor, blink_off_cursor_width>: Members removed.
+	(FRAME_DESIRED_CURSOR, FRAME_CURSOR_WIDTH, FRAME_BLINK_OFF_CURSOR)
+	(FRAME_BLINK_OFF_CURSOR_WIDTH): Macros removed.
+	(x_specified_cursor_type): Remove prototype.
+	
 2002-08-28  Richard M. Stallman  <rms@gnu.org>
 
 	* w32fns.c (x_set_cursor_type): Set FRAME_BLINK_OFF_CURSOR and
