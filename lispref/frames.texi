@@ -310,12 +310,23 @@ pixels, counting from the top edge of the screen.  This takes effect if
 and when the frame is iconified.
 
 @item user-position
-Non-@code{nil} if the screen position of the frame was explicitly
-requested by the user (for example, with the @samp{-geometry} option).
-Nothing automatically makes this parameter non-@code{nil}; it is up to
-Lisp programs that call @code{make-frame} to specify this parameter to
-indicate that the values of the @code{left} and @code{top} parameters
-are user-specified positions.
+When you create a frame and specify its screen position with the
+@code{left} and @code{top} parameters, use this parameter to say whether
+the specified position was user-specified (explicitly requested in some
+way by a human user) or merely program-specified (chosen by a program).
+A non-@code{nil} value says the position was user-specified.
+
+Window managers generally heed user-specified positions, and some heed
+program-specified positions too.  But many ignore program-specified
+positions, placing the window in a default fashion or letting the user
+place it with the mouse.  Some window managers, including @code{twm},
+let the user specify whether to obey program-specified positions or
+ignore them.
+
+When you call @code{make-frame}, you should specify a non-@code{nil}
+value for this parameter if the values of the @code{left} and @code{top}
+parameters represent the user's stated preference; otherwise, use
+@code{nil}.
 
 @item height
 The height of the frame contents, in characters.  (To get the height in
