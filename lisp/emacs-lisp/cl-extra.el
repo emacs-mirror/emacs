@@ -84,8 +84,8 @@ strings case-insensitively."
   (cond ((eq x y) t)
 	((stringp x)
 	 (and (stringp y) (= (length x) (length y))
-	      (or (equal x y)
-		  (equal (downcase x) (downcase y)))))   ; lazy but simple!
+	      (or (string-equal x y)
+		  (string-equal (downcase x) (downcase y)))))   ; lazy but simple!
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)
