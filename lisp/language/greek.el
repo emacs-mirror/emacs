@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Greek
 
@@ -36,6 +37,14 @@
   :mime-charset 'iso-8859-7)
 
 (define-coding-system-alias 'iso-8859-7 'greek-iso-8bit)
+
+(define-coding-system 'windows-1253
+  "windows-1253 encoding for Greek"
+  :coding-type 'charset
+  :mnemonic ?g
+  :charset-list '(windows-1253)
+  :mime-charset 'windows-1253)
+(define-coding-system-alias 'cp1253 'windows-1253)
 
 (set-language-info-alist
  "Greek" '((charset iso-8859-7)
