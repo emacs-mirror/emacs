@@ -27,7 +27,7 @@
 
 	* xterm.h (x_specified_cursor_type, x_copy_color): Add prototypes.
 
-	* xfaces.c (register_color, unregister_colors, unregister_colors)
+	* xfaces.c (register_color, unregister_color, unregister_colors)
 	[DEBUG_X_COLORS]: New functions.
 	(x_free_colors) [DEBUG_X_COLORS]: Unregister colors.
 
@@ -47,8 +47,8 @@
 	(PER_BUFFER_SYMBOL): Renamed from BUFFER_LOCAL_SYMBOL.
 	(PER_BUFFER_TYPE): Renamed from BUFFER_LOCAL_TYPE.
 
-	* category.c, data.c, syntax.c, print.c: Use new macro names
-	for handling per-buffer variables.
+	* category.c, data.c, syntax.c, print.c, lread.c: Use new macro
+	names for handling per-buffer variables.
 
 	* buffer.c (buffer_permanent_local_flags): Use MAX_PER_BUFFER_VARS
 	instead of MAX_BUFFER_LOCAL_VARS.
