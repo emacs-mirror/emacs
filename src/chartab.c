@@ -114,7 +114,11 @@ char_table_ascii (table)
   Lisp_Object sub;
 
   sub = XCHAR_TABLE (table)->contents[0];
+  if (! SUB_CHAR_TABLE_P (sub))
+    return sub;
   sub = XSUB_CHAR_TABLE (sub)->contents[0];
+  if (! SUB_CHAR_TABLE_P (sub))
+    return sub;
   return XSUB_CHAR_TABLE (sub)->contents[0];
 }
 
@@ -415,7 +419,7 @@ char_table_set (table, c, val)
 	}
       sub_char_table_set (sub, c, val);
       if (ASCII_CHAR_P (c))
-	tbl->ascii = char_table_ascii (tbl);
+	tbl->ascii = char_table_ascii (table);
     }
   return val;
 }
@@ -472,7 +476,7 @@ char_table_set_range (table, from, to, val)
 	   i++, min_char += chartab_chars[0])
 	sub_char_table_set_range (contents + i, 0, min_char, from, to, val);
       if (ASCII_CHAR_P (from))
-	tbl->ascii = char_table_ascii (tbl);
+	tbl->ascii = char_table_ascii (table);
     }
   return val;
 }
