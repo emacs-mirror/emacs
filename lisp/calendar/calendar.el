@@ -1406,6 +1406,10 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
   "Move cursor to DATE."
   t)
 
+(autoload 'calendar-goto-day-of-year "cal-move"
+  "Move cursor to day of year."
+  t)
+
 (autoload 'calendar-only-one-frame-setup "cal-x"
  "Start calendar and display it in a dedicated frame.")
 
@@ -2016,6 +2020,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "\C-x\C-x" 'calendar-exchange-point-and-mark)
   (define-key calendar-mode-map "\e=" 'calendar-count-days-region)
   (define-key calendar-mode-map "gd"  'calendar-goto-date)
+  (define-key calendar-mode-map "gD"  'calendar-goto-day-of-year)
   (define-key calendar-mode-map "gj"  'calendar-goto-julian-date)
   (define-key calendar-mode-map "ga"  'calendar-goto-astro-day-number)
   (define-key calendar-mode-map "gh"  'calendar-goto-hebrew-date)
@@ -2622,7 +2627,7 @@ If FILTER is provided, apply it to each key in the alist."
         (aseqp (if abbrevs (calendar-abbrev-construct abbrevs sequence
                                                       'period)))
         alist elem)
-    (dotimes (i (1- (length sequence)) (reverse alist))
+    (dotimes (i (length sequence) (reverse alist))
       (setq index (+ i offset)
             elem (elt sequence i)
             alist
