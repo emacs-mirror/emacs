@@ -829,7 +829,7 @@ See `sh-feature'.")
 		"\\(\n\\)")))
       (unless (assoc ere font-lock-syntactic-keywords)
 	(let* (	;; A rough regexp that should find us back.
-	       (sre (concat "<<\\(-\\)?\\s-*['\"]?"
+	       (sre (concat "<<\\(-\\)?\\s-*\\\\?['\"]?"
 			    (regexp-quote string) "['\"]?[ \t\n]"))
 	       (code `(cond
 		       ((save-excursion (re-search-backward ,sre nil t))
@@ -875,7 +875,7 @@ See `sh-feature'.")
   ;; of the shell command language (under `quoting') but with `$' removed.
   `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
-    ("[^<>]<<\\(-\\)?\\s-*\\(\\(['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)"
+    ("[^<>]<<\\(-\\)?\\s-*\\\\?\\(\\(['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)"
      4 (sh-font-lock-heredoc
 	(match-beginning 0) (match-string 2) (match-end 1)))
     ;; Distinguish the special close-paren in `case'.
