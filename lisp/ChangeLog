@@ -1,3 +1,18 @@
+2000-10-11  Dave Love  <fx@gnu.org>
+
+	* toolbar/cancel.xpm, toolbar/jump_to.xpm, toolbar/right_arrow.xpm:
+	* toolbar/close.xpm, toolbar/left_arrow.xpm, toolbar/save.xpm:
+	* toolbar/copy.xpm, toolbar/mail.xpm, toolbar/saveas.xpm:
+	* toolbar/cut.xpm, toolbar/mail_compose.xpm:
+	* toolbar/search-replace.xpm, toolbar/exit.xpm:
+	* toolbar/mail_send.xpm, toolbar/search.xpm, toolbar/fld_open.xpm:
+	* toolbar/new.xpm, toolbar/spell.xpm, toolbar/help.xpm:
+	* toolbar/open.xpm, toolbar/undo.xpm, toolbar/home.xpm:
+	* toolbar/paste.xpm, toolbar/up_arrow.xpm, toolbar/index.xpm:
+	* toolbar/preferences.xpm, toolbar/info.xpm, toolbar/print.xpm:
+	Reduce colour requirements to 25 overall.  (Probably wants
+	revisiting from the originals to reduce further.)
+
 2000-10-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* hexl.el (hexlify-buffer): Bind coding-system-for-write to
