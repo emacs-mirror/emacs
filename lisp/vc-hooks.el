@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.157 2003/08/23 10:06:29 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.158 2003/08/23 23:04:20 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -589,7 +589,7 @@ a regexp for matching all such backup files, regardless of the version."
   "Make a backup copy of FILE, which is assumed in sync with the repository.
 Before doing that, check if there are any old backups and get rid of them."
   (unless (and (fboundp 'msdos-long-file-names)
-               (not (with-no-warnings msdos-long-file-names)))
+               (not (with-no-warnings (msdos-long-file-names))))
     (vc-delete-automatic-version-backups file)
     (copy-file file (vc-version-backup-file-name file)
                nil 'keep-date)))
