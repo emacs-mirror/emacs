@@ -1,13 +1,12 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.33) $
+ * $HopeName: MMsrc!mpm.c(trunk.34) $
  * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
  *
- * .sources: design.mps.writef
- */
+ * .sources: design.mps.writef */
 
 #include "mpm.h"
 #include <stdarg.h>
@@ -16,7 +15,7 @@
 #include <limits.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.33) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.34) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -66,21 +65,6 @@ Bool MPMCheck(void)
   }
 
   return TRUE;  
-}
-
-
-/* BoolCheck -- check that a boolean is valid
- *
- * See design.mps.type.bool.check.
- * We expect this to be inlined (by the macro in impl.h.mpm).
- * See design.mps.type.bool.check.inline.
- */
-
-Bool (BoolCheck)(Bool b)
-{
-  CHECKL(BoolCheck(b));
-  UNUSED(b); /* see .check.unused */
-  return TRUE;
 }
 
 
@@ -147,21 +131,19 @@ Word (WordAlignUp)(Word word, Align align)
 
 /* WordRoundUp -- round word up to round.
  *
- * .wordroundup.arg.word: the quantity to be rounded.
- * .wordroundup.arg.round: The modulus to round to.  Not necessarily
- *   an alignment (ie not a power of two).
+ * .wordroundup.arg.word: The word arg is quantity to be rounded.
+ * .wordroundup.arg.round: The modulus argument is not necessarily an
+ * alignment (i.e., not a power of two).
  *
- * .wordroundup.result:
- * Let m be congruent to 0 mod r (m == 0(r)),
- *   and let m be the least m >= w.
- * If w+r-1 (!) is representible in Word then result is m.
- * Otherwise result is 0.  Wittily.
- * (NB result may be 0 even if m is representible)
- */
-Word (WordRoundUp)(Word word, Size round)
+ * .wordroundup.result: Let m be congruent to 0 mod r (m == 0(r)), and
+ * let m be the least m >= w.  If w+r-1 (!) is representable in Word
+ * then result is m.  Otherwise result is 0.  Wittily.  (NB.  Result may
+ * be 0 even if m is representable.)  */
+
+Word (WordRoundUp)(Word word, Size modulus)
 {
-  AVER(round > 0);
-  return WordRoundUp(word, round);
+  AVER(modulus > 0);
+  return WordRoundUp(word, modulus);
 }
 
 
@@ -203,41 +185,6 @@ Shift SizeLog2(Size size)
 }
 
 
-/* AddrAdd -- add a size to an address */
-
-Addr (AddrAdd)(Addr addr, Size size)
-{
-  Addr next;
-  AVER(addr != (Addr)0);
-  next = AddrAdd(addr, size);
-  AVER(next >= addr);   /* overflow check */
-  return next;
-}
-
-
-/* AddrSub -- subtract a size from an address */
-
-Addr (AddrSub)(Addr addr, Size size)
-{
-  Addr next;
-  AVER(addr != (Addr)0);
-  next = AddrSub(addr, size);
-  AVER(next <= addr);   /* overflow check */
-  return next;
-}
-
-
-/* AddrOffset -- calculate the offset between two addresses */
-
-Size (AddrOffset)(Addr base, Addr limit)
-{
-  AVER(base != 0);
-  AVER(limit != 0);
-  AVER(base <= limit);
-  return AddrOffset(base, limit);
-}
-
-
 /* AddrAlignDown -- round a word down to the nearest aligned value */
 
 Addr (AddrAlignDown)(Addr addr, Align alignment)
@@ -247,69 +194,20 @@ Addr (AddrAlignDown)(Addr addr, Align alignment)
 }
 
 
-/* PointerAdd -- add a size to a pointer */
-
-void *(PointerAdd)(void *p, size_t s)
-{
-  void *next;
-  AVER(p != NULL);
-  next = PointerAdd(p, s);
-  AVER(next >= p);   /* overflow check */
-  return next;
-}
-
-
-/* PointerSub -- subtract a size from a pointer */
-
-void *(PointerSub)(void *p, size_t s)
-{
-  void *next;
-  AVER(p != NULL);
-  next = PointerSub(p, s);
-  AVER(next <= p);   /* overflow check */
-  return next;
-}
-
-
-/* PointerOffset -- calculate the offset between two addresses */
-
-size_t (PointerOffset)(void *base, void *limit)
-{
-  AVER(base != NULL);
-  AVER(limit != NULL);
-  AVER(base <= limit);
-  return PointerOffset(base, limit);
-}
-
-
-/* PointerAlignUp -- align a pointer up */
-
-extern void *(PointerAlignUp)(void *p, size_t align)
-{
-  AVER(p != NULL);
-  AVER(AlignCheck(align));
-
-  /* uses macro defined in impl.h.mpm */
-  return PointerAlignUp(p, align);
-}
-
-
 /* ResIsAllocFailure 
  *
- * Test whether a result code is in the set of allocation failure codes.
- */
+ * Test whether a result code is in the set of allocation failure codes.  */
 
 Bool ResIsAllocFailure(Res res)
 {
-  return res == ResMEMORY || res == ResRESOURCE || res == ResCOMMIT_LIMIT;
+  return (res == ResMEMORY || res == ResRESOURCE || res == ResCOMMIT_LIMIT);
 }
 
 
 /* WriteWord -- output a textual representation of a word to a stream
  *
- * as an unsigned value in the given base (2-16),
- * padded to the given width.
- */
+ * Output as an unsigned value in the given base (2-16), padded to the
+ * given width.  */
 
 static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, 
                      unsigned width)
@@ -361,29 +259,26 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
  * .write.double.limitation: Only the "simple" printer is implemented
  * here.
  *
- * .write.double.check: There being no DBL_EXP_DIG, we assume that it
- * is less than DBL_DIG.
- */
+ * .write.double.check: There being no DBL_EXP_DIG, we assume that it is
+ * less than DBL_DIG.  */
 
 static Res WriteDouble(mps_lib_FILE *stream, double d) 
 {
   double F = d;
   int E = 0, i, x = 0;
-  /* Largest exponent that will print in %f style.  Larger will use %e
-     style.  DBL_DIG is chosen for use of doubles as extra-large
-     intergers. */
+  /* Largest exponent that will print in %f style.  Larger will use %e */
+  /* style.  DBL_DIG is chosen for use of doubles as extra-large integers. */
   int expmax = DBL_DIG;
-  /* Smallest exponent that will print in %f style.  Smaller will use
-     %e style.  -4 is chosen because it is the %g default. */
+  /* Smallest exponent that will print in %f style.  Smaller will use */
+  /* %e style.  -4 is chosen because it is the %g default. */
   int expmin = -4;
-  /* Epsilon defines how many digits will be printed.  Using
-     DBL_EPSILON prints all the significant digits.  To print fewer
-     digits, set epsilon to 10 ^ - N, where N is the desired number of
-     digits */
+  /* Epsilon defines how many digits will be printed.  Using DBL_EPSILON */
+  /* prints all the significant digits.  To print fewer digits, set */
+  /* epsilon to 10 ^ - N, where N is the desired number of digits. */
   double epsilon = DBL_EPSILON / 2;
   char digits[] = "0123456789";
-  /* sign, DBL_DIG, '0.', 'e', '+/-', log10(DBL_MAX_10_EXP),
-     terminator.  See .write.double.check */
+  /* sign, DBL_DIG, '0.', 'e', '+/-', log10(DBL_MAX_10_EXP), */
+  /* terminator.  See .write.double.check. */
   char buf[1+DBL_DIG+2+1+1+DBL_DIG+1];
   int j = 0;
   
@@ -399,7 +294,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     F = - F;
   }
   
-  /* This scaling operation could introduce rounding errors */
+  /* This scaling operation could introduce rounding errors. */
   for ( ; F >= 1.0 ; F /= 10.0) {
     E++;
     if (E > DBL_MAX_10_EXP) {
@@ -431,8 +326,8 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     j++;
   }
 
-  /* Convert the fraction to base 10, inserting a decimal according to
-     the exponent.  This is Steele and White's FP3 algorithm. */
+  /* Convert the fraction to base 10, inserting a decimal according to */
+  /* the exponent.  This is Steele and White's FP3 algorithm. */
   do {
     int U;
     
@@ -463,8 +358,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     j++;
   }
 
-  /* If %e notation is selected, append the exponent indicator and
-     sign  */
+  /* If %e notation is selected, append the exponent indicator and sign. */
   if (x != 0) {
     buf[j] = 'e';
     j++;
@@ -478,7 +372,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
       j++;
     }
 
-    /* Format the exponent to at least two digits */
+    /* Format the exponent to at least two digits. */
     for (i = 100; i <= x; )
       i *= 10;
     i /= 10;
@@ -508,8 +402,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
  * .writef.div: Although MPS_WORD_WIDTH/4 appears three times, there
  * are effectively three separate decisions to format at this width.
  *
- * .writef.check: See .check.writef
- */
+ * .writef.check: See .check.writef. */
 
 Res WriteF(mps_lib_FILE *stream, ...)
 {
