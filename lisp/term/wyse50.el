@@ -81,19 +81,18 @@
 (defun enable-arrow-keys ()
   "To be called by term-setup-hook. Overrides 6 Emacs standard keys
 whose functions are then typed as follows:
-C-a	Funct Left-arrow
+C-a	Funct left-arrow, C-a C-a
 C-h	M-?
 LFD	Funct Return, some modes override down-arrow via LFD
 C-k	CLR Line
-C-l	Scrn CLR
+C-l	Shift Scrn CLR
 M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar
 All special keys except Send, Shift Ins, Shift Home and shifted functions keys
 are assigned some hopefully useful meaning."
   (interactive)
 
   ; Function keys
-  (define-prefix-command 'Funct-prefix)
-  (define-key global-map "\^a" 'Funct-prefix)
+  (define-key global-map "\^a" (define-prefix-command 'Funct-prefix))
 
   ; Arrow keys
   (setup-terminal-keymap global-map
@@ -133,7 +132,7 @@ are assigned some hopefully useful meaning."
 	("\^a\^l\^m" . end-of-line)))
 
   ; forget self to put memory to some serious use
-  (fset 'enable-arrow-keys nil))
+  (fmakunbound 'enable-arrow-keys))
 
 
 (defun toggle-screen-width ()
@@ -154,7 +153,7 @@ are assigned some hopefully useful meaning."
 ; that will edit calls like (set-function-key ?x 'do-whatever) in ~/.emacs.
 (defun set-function-key (key &optional def)
   "Prompt for a function or other special key and assign it a meaning.
-The key must have been \"forwarded\" to a character in term/*.el.
+The key must have been \"forwarded\" to a character by term/*.el.
 
 As a function takes two args CHAR and DEF, with DEF as in define-key.
 If your terminals term/*.el forwards a physical key to CHAR (before or after
@@ -201,7 +200,7 @@ For keys labelled with some words or a symbol
 	?u  --  up-arrow.
 	?x  --  do key.
 	?\\?  --  help."
-  (interactive "kKey to redefine: ")
+  (interactive "kHit key to redefine")
   (let ((map function-keymap))
     (if (integerp key)
 	()
@@ -218,7 +217,7 @@ For keys labelled with some words or a symbol
       (if (and (consp map)
 	       (integerp (cdr map)))
 	  (setq key (cdr map)
-		map (car map))
+		map (car map))	; function-keymap usually
         (error "Key is not a \"forwarded\" definition.")))
     (if def
         ()
