@@ -1,3 +1,8 @@
+2001-10-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-emacs: Add --boot switch for bootstrapping.  Logs to
+	EMACS_ROOT/boot.log, renames previous log file to boot.log.old.
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
