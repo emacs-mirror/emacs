@@ -205,13 +205,12 @@ load_charset_map (charset, entries, n_entries, control_flag)
   if (control_flag > 0)
     {
       int n = CODE_POINT_TO_INDEX (charset, max_code) + 1;
-      unsigned invalid_code = CHARSET_INVALID_CODE (charset);
 
-      table = Fmake_char_table (Qnil, make_number (invalid_code));
+      table = Fmake_char_table (Qnil, Qnil);
       if (control_flag == 1)
 	vec = Fmake_vector (make_number (n), make_number (-1));
       else if (! CHAR_TABLE_P (Vchar_unify_table))
-	Vchar_unify_table = Fmake_char_table (Qnil, make_number (-1));
+	Vchar_unify_table = Fmake_char_table (Qnil, Qnil);
 
       charset_map_loaded = 1;
     }
@@ -551,26 +550,41 @@ DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
 
 
 void
-map_charset_chars (c_function, function, charset_symbol, arg)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, charset_symbol, arg;
+map_charset_chars (c_function, function, arg,
+		   charset, from, to)
+     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     Lisp_Object function, arg;
+     struct charset *charset;
+     unsigned from, to;
+     
 {
-  int id;
-  struct charset *charset;
   Lisp_Object range;
-
-  CHECK_CHARSET_GET_ID (charset_symbol, id);
-  charset = CHARSET_FROM_ID (id);
+  int partial;
 
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP_DEFERRED)  
     load_charset (charset);
 
+  partial = (from > CHARSET_MIN_CODE (charset)
+	     || to < CHARSET_MAX_CODE (charset));
+
+  if (CHARSET_UNIFIED_P (charset)
+      && CHAR_TABLE_P (CHARSET_DEUNIFIER (charset)))
+    {
+      map_char_table_for_charset (c_function, function,
+				  CHARSET_DEUNIFIER (charset), arg,
+				  partial ? charset : NULL, from, to);
+    }
+
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_OFFSET)
     {
-      range = Fcons (make_number (CHARSET_MIN_CHAR (charset)),
-		     make_number (CHARSET_MAX_CHAR (charset)));
+      int from_idx = CODE_POINT_TO_INDEX (charset, from);
+      int to_idx = CODE_POINT_TO_INDEX (charset, to);
+      int from_c = from_idx + CHARSET_CODE_OFFSET (charset);
+      int to_c = to_idx + CHARSET_CODE_OFFSET (charset);
+
+      range = Fcons (make_number (from_c), make_number (to_c));
       if (NILP (function))
-	(*c_function) (arg, range, Qnil);
+	(*c_function) (range, arg);
       else
 	call2 (function, range, arg);
     }
@@ -578,86 +592,87 @@ map_charset_chars (c_function, function, charset_symbol, arg)
     {
       if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
 	return;
-      if (CHARSET_ASCII_COMPATIBLE_P (charset))
+      if (CHARSET_ASCII_COMPATIBLE_P (charset) && from <= 127)
 	{
-	  range = Fcons (make_number (0), make_number (127));
+	  range = Fcons (make_number (from), make_number (to));
+	  if (to >= 128)
+	    XSETCAR (range, make_number (127));
+
 	  if (NILP (function))
-	    (*c_function) (arg, range, Qnil);
+	    (*c_function) (range, arg);
 	  else
 	    call2 (function, range, arg);
 	}
-      map_char_table (c_function, function, CHARSET_ENCODER (charset), arg,
-		      0, NULL);
+      map_char_table_for_charset (c_function, function,
+				  CHARSET_ENCODER (charset), arg,
+				  partial ? charset : NULL, from, to);
     }
-  else				/* i.e. CHARSET_METHOD_PARENT */
+  else if (CHARSET_METHOD (charset) == CHARSET_METHOD_SUBSET)
     {
-      int from, to, c;
-      unsigned code;
-      int i, j, k, l;
-      int *code_space = CHARSET_CODE_SPACE (charset);
-      Lisp_Object val;
+      Lisp_Object subset_info;
+      int offset;
 
-      range = Fcons (Qnil, Qnil);
-      from = to = -2;
-      for (i = code_space[12]; i <= code_space[13]; i++)
-	for (j = code_space[8]; j <= code_space[9]; j++)
-	  for (k = code_space[4]; k <= code_space[5]; k++)
-	    for (l = code_space[0]; l <= code_space[1]; l++)
-	      {
-		code = (i << 24) | (j << 16) | (k << 8) | l;
-		c = DECODE_CHAR (charset, code);
-		if (c == to + 1)
-		  {
-		    to++;
-		    continue;
-		  }
-		if (from >= 0)
-		  {
-		    if (from < to)
-		      {
-			XSETCAR (range, make_number (from));
-			XSETCDR (range, make_number (to));
-			val = range;
-		      }
-		    else
-		      val = make_number (from);
-		    if (NILP (function))
-		      (*c_function) (arg, val, Qnil);
-		    else
-		      call2 (function, val, arg);
-		  }
-		from = to = (c < 0 ? -2 : c);
-	      }
-      if (from >= 0)
+      subset_info = CHARSET_SUBSET (charset);
+      charset = CHARSET_FROM_ID (XFASTINT (AREF (subset_info, 0)));
+      offset = XINT (AREF (subset_info, 3));
+      from -= offset;
+      if (from < XFASTINT (AREF (subset_info, 1)))
+	from = XFASTINT (AREF (subset_info, 1));
+      to -= offset;
+      if (to > XFASTINT (AREF (subset_info, 2)))
+	to = XFASTINT (AREF (subset_info, 2));
+      map_charset_chars (c_function, function, arg, charset, from, to);
+    }
+  else				/* i.e. CHARSET_METHOD_SUPERSET */
+    {
+      Lisp_Object parents;
+
+      for (parents = CHARSET_SUPERSET (charset); CONSP (parents);
+	   parents = XCDR (parents))
 	{
-	  if (from < to)
-	    {
-	      XSETCAR (range, make_number (from));
-	      XSETCDR (range, make_number (to));
-	      val = range;
-	    }
-	  else
-	    val = make_number (from);
-	  if (NILP (function))
-	    (*c_function) (arg, val, Qnil);
-	  else
-	    call2 (function, val, arg);
+	  int offset;
+	  unsigned this_from, this_to;
+
+	  charset = CHARSET_FROM_ID (XFASTINT (XCAR (XCAR (parents))));
+	  offset = XINT (XCDR (XCAR (parents)));
+	  this_from = from - offset;
+	  this_to = to - offset;
+	  if (this_from < CHARSET_MIN_CODE (charset))
+	    this_from = CHARSET_MIN_CODE (charset);
+	  if (this_to > CHARSET_MAX_CODE (charset))
+	    this_to = CHARSET_MAX_CODE (charset);
+	  map_charset_chars (c_function, function, arg, charset, from, to);
 	}
     }
 }
   
-DEFUN ("map-charset-chars", Fmap_charset_chars, Smap_charset_chars, 2, 3, 0,
+
+DEFUN ("map-charset-chars", Fmap_charset_chars, Smap_charset_chars, 2, 5, 0,
        doc: /* Call FUNCTION for all characters in CHARSET.
-FUNCTION is called with an argument RANGE and optional 2nd
+FUNCTION is called with an argument RANGE and the optional 3rd
 argument ARG.
 
-RANGE is either a cons (FROM .  TO), where FROM and TO indicate a range of
-characters contained in CHARSET or a single character in the case that
-FROM and TO would be equal.  (The charset mapping may have gaps.)*/)
-     (function, charset, arg)
-       Lisp_Object function, charset, arg;
+RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
+characters contained in CHARSET.
+
+The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
+range of code points of targer characters.  */)
+     (function, charset, arg, from_code, to_code)
+       Lisp_Object function, charset, arg, from_code, to_code;
 {
-  map_charset_chars (NULL, function, charset, arg);
+  struct charset *cs;
+
+  CHECK_CHARSET_GET_CHARSET (charset, cs);
+  if (NILP (from_code))
+    from_code = 0;
+  if (from_code < CHARSET_MIN_CODE (cs))
+    from_code = CHARSET_MIN_CODE (cs);
+  if (NILP (to_code))
+    to_code = 0xFFFFFFFF;
+  if (to_code > CHARSET_MAX_CODE (cs))
+    to_code = CHARSET_MAX_CODE (cs);
+
+  map_charset_chars (NULL, function, arg, cs, from_code, to_code);
   return Qnil;
 }
 
@@ -893,13 +908,45 @@ usage: (define-charset-internal ...)  */)
 	load_charset_map_from_vector (&charset, val, 0);
       charset.method = CHARSET_METHOD_MAP_DEFERRED;
     }
-  else if (! NILP (args[charset_arg_parents]))
+  else if (! NILP (args[charset_arg_subset]))
     {
-      val = args[charset_arg_parents];
-      CHECK_LIST (val);
-      charset.method = CHARSET_METHOD_INHERIT;
+      Lisp_Object parent;
+      Lisp_Object parent_min_code, parent_max_code, parent_code_offset;
+      struct charset *parent_charset;
+
+      val = args[charset_arg_subset];
+      parent = Fcar (val);
+      CHECK_CHARSET_GET_CHARSET (parent, parent_charset);
+      parent_min_code = Fnth (make_number (1), val);
+      CHECK_NATNUM (parent_min_code);
+      parent_max_code = Fnth (make_number (2), val);
+      CHECK_NATNUM (parent_max_code);
+      parent_code_offset = Fnth (make_number (3), val);
+      CHECK_NUMBER (parent_code_offset);
+      val = Fmake_vector (make_number (4), Qnil);
+      ASET (val, 0, make_number (parent_charset->id));
+      ASET (val, 1, parent_min_code);
+      ASET (val, 2, parent_max_code);
+      ASET (val, 3, parent_code_offset);
+      ASET (attrs, charset_subset, val);
+
+      charset.method = CHARSET_METHOD_SUBSET;
+      /* Here, we just copy the parent's fast_map.  It's not accurate,
+	 but at least it works for quickly detecting which character
+	 DOESN'T belong to this charset.  */
+      for (i = 0; i < 190; i++)
+	charset.fast_map[i] = parent_charset->fast_map[i];
+
+      /* We also copy these for parents.  */
+      charset.min_char = parent_charset->min_char;
+      charset.max_char = parent_charset->max_char;
+    }
+  else if (! NILP (args[charset_arg_superset]))
+    {
+      val = args[charset_arg_superset];
+      charset.method = CHARSET_METHOD_SUPERSET;
       val = Fcopy_sequence (val);
-      ASET (attrs, charset_parents, val);
+      ASET (attrs, charset_superset, val);
 
       charset.min_char = MAX_CHAR;
       charset.max_char = 0;
@@ -1351,17 +1398,30 @@ decode_char (charset, code)
       method = CHARSET_METHOD (charset);
     }
 
-  if (method == CHARSET_METHOD_INHERIT)
+  if (method == CHARSET_METHOD_SUBSET)
+    {
+      Lisp_Object subset_info;
+
+      subset_info = CHARSET_SUBSET (charset);
+      charset = CHARSET_FROM_ID (XFASTINT (AREF (subset_info, 0)));
+      code -= XINT (AREF (subset_info, 3));
+      if (code < XFASTINT (AREF (subset_info, 1))
+	  || code > XFASTINT (AREF (subset_info, 2)))
+	c = -1;
+      else
+	c = DECODE_CHAR (charset, code);
+    }
+  else if (method == CHARSET_METHOD_SUPERSET)
     {
       Lisp_Object parents;
 
-      parents = CHARSET_PARENTS (charset);
+      parents = CHARSET_SUPERSET (charset);
       c = -1;
       for (; CONSP (parents); parents = XCDR (parents))
 	{
 	  int id = XINT (XCAR (XCAR (parents)));
 	  int code_offset = XINT (XCDR (XCAR (parents)));
-	  unsigned this_code = code + code_offset;
+	  unsigned this_code = code - code_offset;
 
 	  charset = CHARSET_FROM_ID (id);
 	  if ((c = DECODE_CHAR (charset, this_code)) >= 0)
@@ -1398,6 +1458,8 @@ decode_char (charset, code)
   return c;
 }
 
+/* Variable used temporarily by the macro ENCODE_CHAR.  */
+Lisp_Object charset_work;
 
 /* Return a code-point of CHAR in CHARSET.  If CHAR doesn't belong to
    CHARSET, return CHARSET_INVALID_CODE (CHARSET).  */
@@ -1412,8 +1474,7 @@ encode_char (charset, c)
 
   if (CHARSET_UNIFIED_P (charset))
     {
-      Lisp_Object deunifier;
-      int deunified;
+      Lisp_Object deunifier, deunified;
 
       deunifier = CHARSET_DEUNIFIER (charset);
       if (! CHAR_TABLE_P (deunifier))
@@ -1421,20 +1482,36 @@ encode_char (charset, c)
 	  Funify_charset (CHARSET_NAME (charset), Qnil);
 	  deunifier = CHARSET_DEUNIFIER (charset);
 	}
-      deunified = XINT (CHAR_TABLE_REF (deunifier, c));
-      if (deunified > 0)
-	c = deunified;
+      deunified = CHAR_TABLE_REF (deunifier, c);
+      if (! NILP (deunified))
+	c = XINT (deunified);
     }
 
   if (! CHARSET_FAST_MAP_REF ((c), charset->fast_map)
       || c < CHARSET_MIN_CHAR (charset) || c > CHARSET_MAX_CHAR (charset))
     return CHARSET_INVALID_CODE (charset);
 
-  if (method == CHARSET_METHOD_INHERIT)
+  if (method == CHARSET_METHOD_SUBSET)
+    {
+      Lisp_Object subset_info;
+      struct charset *this_charset;
+
+      subset_info = CHARSET_SUBSET (charset);
+      this_charset = CHARSET_FROM_ID (XFASTINT (AREF (subset_info, 0)));
+      code = ENCODE_CHAR (this_charset, c);
+      if (code == CHARSET_INVALID_CODE (this_charset)
+	  || code < XFASTINT (AREF (subset_info, 1))
+	  || code > XFASTINT (AREF (subset_info, 2)))
+	return CHARSET_INVALID_CODE (charset);
+      code += XINT (AREF (subset_info, 3));
+      return code;
+    }
+
+  if (method == CHARSET_METHOD_SUPERSET)
     {
       Lisp_Object parents;
 
-      parents = CHARSET_PARENTS (charset);
+      parents = CHARSET_SUPERSET (charset);
       for (; CONSP (parents); parents = XCDR (parents))
 	{
 	  int id = XINT (XCAR (XCAR (parents)));
@@ -1445,7 +1522,7 @@ encode_char (charset, c)
 	  if (code != CHARSET_INVALID_CODE (this_charset)
 	      && (code_offset < 0 || code >= code_offset))
 	    {
-	      code -= code_offset;
+	      code += code_offset;
 	      if (code >= charset->min_code && code <= charset->max_code
 		  && CODE_POINT_TO_INDEX (charset, code) >= 0)
 		return code;
@@ -1469,6 +1546,8 @@ encode_char (charset, c)
       if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
 	return CHARSET_INVALID_CODE (charset);
       val = CHAR_TABLE_REF (encoder, c);
+      if (NILP (val))
+	return CHARSET_INVALID_CODE (charset);
       code = XINT (val);
       if (! CHARSET_COMPACT_CODES_P (charset))
 	code = INDEX_TO_CODE_POINT (charset, code);
@@ -1962,7 +2041,8 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
     args[charset_arg_invalid_code] = Qnil;
     args[charset_arg_code_offset] = make_number (0);
     args[charset_arg_map] = Qnil;
-    args[charset_arg_parents] = Qnil;
+    args[charset_arg_subset] = Qnil;
+    args[charset_arg_superset] = Qnil;
     args[charset_arg_unify_map] = Qnil;
     /* The actual plist is set by mule-conf.el.  */
     plist[1] = args[charset_arg_name];
@@ -1993,7 +2073,8 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
     args[charset_arg_invalid_code] = Qnil;
     args[charset_arg_code_offset] = make_number (0);
     args[charset_arg_map] = Qnil;
-    args[charset_arg_parents] = Qnil;
+    args[charset_arg_subset] = Qnil;
+    args[charset_arg_superset] = Qnil;
     args[charset_arg_unify_map] = Qnil;
     /* The actual plist is set by mule-conf.el.  */
     plist[1] = args[charset_arg_name];
