@@ -186,6 +186,8 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 		 (o (glasses-make-overlay (match-beginning n) (match-end n))))
 	    (goto-char (match-beginning n))
 	    (when (and glasses-uncapitalize-p
+		       (save-match-data
+			 (looking-at "[A-Z]\\($\\|[^A-Z]\\)"))
 		       (save-excursion
 			 (save-match-data
 			   (re-search-backward "\\<.")
