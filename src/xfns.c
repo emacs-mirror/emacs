@@ -463,6 +463,7 @@ x_set_frame_parameters (f, alist)
   Lisp_Object *parms;
   Lisp_Object *values;
   int i;
+  int left_no_change = 0, top_no_change = 0;
   
   i = 0;
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
@@ -519,9 +520,21 @@ x_set_frame_parameters (f, alist)
 
   /* Don't die if just one of these was set.  */
   if (EQ (left, Qunbound))
-    XSET (left, Lisp_Int, f->display.x->left_pos);
+    {
+      left_no_change = 1;
+      if (f->display.x->left_pos < 0)
+	left = Fcons (Qplus, Fcons (make_number (f->display.x->left_pos), Qnil));
+      else
+	XSET (left, Lisp_Int, f->display.x->left_pos);
+    }
   if (EQ (top, Qunbound))
-    XSET (top, Lisp_Int, f->display.x->top_pos);
+    {
+      top_no_change = 1;
+      if (f->display.x->top_pos < 0)
+	top = Fcons (Qplus, Fcons (make_number (f->display.x->top_pos), Qnil));
+      else
+	XSET (top, Lisp_Int, f->display.x->top_pos);
+    }
 
   /* Don't die if just one of these was set.  */
   if (EQ (width, Qunbound))
@@ -549,22 +562,64 @@ x_set_frame_parameters (f, alist)
       Fset_frame_size (frame, width, height);
 
     if ((!NILP (left) || !NILP (top))
+	&& ! (left_no_change && top_no_change)
 	&& ! (NUMBERP (left) && XINT (left) == f->display.x->left_pos
 	      && NUMBERP (top) && XINT (top) == f->display.x->top_pos))
       {
-	int leftpos = (NUMBERP (left) ? XINT (left) : 0);
-	int toppos = (NUMBERP (top) ? XINT (top) : 0);
+	int leftpos = 0;
+	int toppos = 0;
+
+	/* Record the signs.  */
+	f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
+	if (EQ (left, Qminus))
+	  f->display.x->size_hint_flags |= XNegative;
+	else if (INTEGERP (left))
+	  {
+	    leftpos = XINT (left);
+	    if (leftpos < 0)
+	      f->display.x->size_hint_flags |= XNegative;
+	  }
+	else if (CONSP (left) && EQ (XCONS (left)->car, Qminus)
+		 && CONSP (XCONS (left)->cdr)
+		 && INTEGERP (XCONS (XCONS (left)->cdr)->car))
+	  {
+	    leftpos = - XINT (XCONS (XCONS (left)->cdr)->car);
+	    f->display.x->size_hint_flags |= XNegative;
+	  }
+	else if (CONSP (left) && EQ (XCONS (left)->car, Qplus)
+		 && CONSP (XCONS (left)->cdr)
+		 && INTEGERP (XCONS (XCONS (left)->cdr)->car))
+	  {
+	    leftpos = XINT (XCONS (XCONS (left)->cdr)->car);
+	  }
+
+	if (EQ (top, Qminus))
+	  f->display.x->size_hint_flags |= YNegative;
+	else if (INTEGERP (top))
+	  {
+	    toppos = XINT (top);
+	    if (toppos < 0)
+	      f->display.x->size_hint_flags |= YNegative;
+	  }
+	else if (CONSP (top) && EQ (XCONS (top)->car, Qminus)
+		 && CONSP (XCONS (top)->cdr)
+		 && INTEGERP (XCONS (XCONS (top)->cdr)->car))
+	  {
+	    toppos = - XINT (XCONS (XCONS (top)->cdr)->car);
+	    f->display.x->size_hint_flags |= YNegative;
+	  }
+	else if (CONSP (top) && EQ (XCONS (top)->car, Qplus)
+		 && CONSP (XCONS (top)->cdr)
+		 && INTEGERP (XCONS (XCONS (top)->cdr)->car))
+	  {
+	    toppos = XINT (XCONS (XCONS (top)->cdr)->car);
+	  }
+
 
 	/* Store the numeric value of the position.  */
 	f->display.x->top_pos = toppos;
 	f->display.x->left_pos = leftpos;
 
-	/* Record the signs.  */
-	f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
-	if (EQ (left, Qminus) || (NUMBERP (left) && XINT (left) < 0))
-	  f->display.x->size_hint_flags |= XNegative;
-	if (EQ (top, Qminus) || (NUMBERP (top) && XINT (top) < 0))
-	  f->display.x->size_hint_flags |= YNegative;
 	f->display.x->win_gravity = NorthWestGravity;
 
 	/* Actually set that position, and convert to absolute.  */
@@ -1594,8 +1649,9 @@ DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
        "Parse an X-style geometry string STRING.\n\
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).\n\
 The properties returned may include `top', `left', `height', and `width'.\n\
-The value of `left' or `top' may be an integer or `-'.\n\
-`-' means \"minus zero\".")
+The value of `left' or `top' may be an integer,\n\
+or a list (+ N) meaning N pixels relative to top/left corner,\n\
+or a list (- N) meaning -N pixels relative to bottom/right corner.")
      (string)
      Lisp_Object string;
 {
@@ -1618,8 +1674,10 @@ The value of `left' or `top' may be an integer or `-'.\n\
     {
       Lisp_Object element;
 
-      if (x == 0 && (geometry & XNegative))
-	element = Fcons (Qleft, Qminus);
+      if (x >= 0 && (geometry & XNegative))
+	element = Fcons (Qleft, Fcons (Qminus, Fcons (make_number (-x), Qnil)));
+      else if (x < 0 && ! (geometry & XNegative))
+	element = Fcons (Qleft, Fcons (Qplus, Fcons (make_number (x), Qnil)));
       else
 	element = Fcons (Qleft, make_number (x));
       result = Fcons (element, result);
@@ -1629,8 +1687,10 @@ The value of `left' or `top' may be an integer or `-'.\n\
     {
       Lisp_Object element;
 
-      if (y == 0 && (geometry & YNegative))
-	element = Fcons (Qtop, Qminus);
+      if (y >= 0 && (geometry & YNegative))
+	element = Fcons (Qtop, Fcons (Qminus, Fcons (make_number (-y), Qnil)));
+      else if (y < 0 && ! (geometry & YNegative))
+	element = Fcons (Qtop, Fcons (Qplus, Fcons (make_number (y), Qnil)));
       else
 	element = Fcons (Qtop, make_number (y));
       result = Fcons (element, result);
@@ -1710,6 +1770,19 @@ x_figure_window_size (f, parms)
 	  f->display.x->top_pos = 0;
 	  window_prompting |= YNegative;
 	}
+      else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qminus)
+	       && CONSP (XCONS (tem0)->cdr)
+	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
+	{
+	  f->display.x->top_pos = - XINT (XCONS (XCONS (tem0)->cdr)->car);
+	  window_prompting |= YNegative;
+	}
+      else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qplus)
+	       && CONSP (XCONS (tem0)->cdr)
+	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
+	{
+	  f->display.x->top_pos = XINT (XCONS (XCONS (tem0)->cdr)->car);
+	}
       else if (EQ (tem0, Qunbound))
 	f->display.x->top_pos = 0;
       else
@@ -1724,6 +1797,19 @@ x_figure_window_size (f, parms)
 	{
 	  f->display.x->left_pos = 0;
 	  window_prompting |= XNegative;
+	}
+      else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qminus)
+	       && CONSP (XCONS (tem1)->cdr)
+	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
+	{
+	  f->display.x->left_pos = - XINT (XCONS (XCONS (tem1)->cdr)->car);
+	  window_prompting |= XNegative;
+	}
+      else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qplus)
+	       && CONSP (XCONS (tem1)->cdr)
+	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
+	{
+	  f->display.x->left_pos = XINT (XCONS (XCONS (tem1)->cdr)->car);
 	}
       else if (EQ (tem1, Qunbound))
 	f->display.x->left_pos = 0;
@@ -1907,9 +1993,9 @@ x_window (f, window_prompting, minibuffer_only)
 	int xneg = window_prompting & XNegative;
 	int top = f->display.x->top_pos;
 	int yneg = window_prompting & YNegative;
-	if (left < 0)
+	if (xneg)
 	  left = -left;
-	if (top < 0)
+	if (yneg)
 	  top = -top;
 	sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
 		 PIXEL_HEIGHT (f) + menubar_size,
@@ -2308,7 +2394,7 @@ be shared by the new frame.")
 		       "borderColor", "BorderColor", string);
 
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
-		       "menuBarLines", "MenuBarLines", number);
+		       "menuBar", "MenuBar", number);
   x_default_parameter (f, parms, Qscroll_bar_width, make_number (12),
 		       "scrollBarWidth", "ScrollBarWidth", number);
 
