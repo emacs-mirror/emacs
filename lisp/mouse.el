@@ -716,7 +716,7 @@ If you do this twice in the same position, the selection is killed."
 	    (if before-scroll
 		(goto-char before-scroll))
 	    (exchange-point-and-mark)
-	    (kill-new (buffer-substring (point) (mark t)) t))
+	    (kill-new (buffer-substring (point) (mark t))))
 	  (mouse-set-region-1)
 	  (setq mouse-save-then-kill-posn
 		(list (car kill-ring) (point) click-posn)))))))
