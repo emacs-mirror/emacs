@@ -1064,7 +1064,7 @@ window blinks."
     (if on-p
 	(progn
 	  ;; Hide the cursor.
-	  (internal-show-cursor nil nil)
+	  ;(internal-show-cursor nil nil)
 	  (setq blink-cursor-idle-timer
 		(run-with-idle-timer blink-cursor-delay
 				     blink-cursor-delay
@@ -1072,12 +1072,14 @@ window blinks."
 	  (setq blink-cursor-mode t))
       (internal-show-cursor nil t))))
 
-(defcustom blink-cursor (unless (eq system-type 'ms-dos)
-			  window-system)
+;; Note that this is really initialized from startup.el before
+;; the init-file is read.
+
+(defcustom blink-cursor nil
   "*Non-nil means blinking cursor mode is active."
+  :group 'cursor
   :tag "Blinking cursor"
   :type 'boolean
-  :group 'cursor
   :set #'(lambda (symbol value)
 	   (set-default symbol value)
 	   (blink-cursor-mode (or value 0))))
