@@ -562,10 +562,12 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 				  "\\|")
 				 "\\)\\'")))
 
-	       ;; Check if there are any without an ignored extension
+	       ;; Check if there are any without an ignored extension.
+	       ;; Also ignore `.' and `..'.
 	       (setq p nil)
 	       (while p2
 		 (or (string-match PC-ignored-regexp (car p2))
+		     (string-match "\\(\\`\\|/\\)[.][.]?/?\\'" (car p2))
 		     (setq p (cons (car p2) p)))
 		 (setq p2 (cdr p2)))
 
