@@ -1,3 +1,8 @@
+2003-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el (ebnf-total, ebnf-nprod): Move defvar before
+	first use.
+
 2003-08-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/ebnf2ps.el (ebnf-begin-job): Code fix.
