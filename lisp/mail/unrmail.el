@@ -48,6 +48,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
   "Convert Rmail file FILE to system inbox format file TO-FILE."
   (interactive "fUnrmail (rmail file): \nFUnrmail into (new mailbox file): ")
   (let ((message-count 0)
+	;; Prevent rmail from making, or switching to, a summary buffer.
+	(rmail-display-summary nil)
 	(rmail-delete-after-output nil))
     (rmail file)
     (message "Writing messages to %s..." to-file)
