@@ -17,7 +17,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.13 1994/03/02 07:57:04 rms Exp kwzh $
+;; $Id: makefile.el,v 1.14 1994/04/11 20:40:58 kwzh Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -411,7 +411,7 @@ makefile-special-targets-list:
   (kill-all-local-variables)
   (make-local-variable 'local-write-file-hooks)
   (setq local-write-file-hooks
-	'(makefile-cleanup-continuations 'makefile-warn-suspicious-lines))
+	'(makefile-cleanup-continuations makefile-warn-suspicious-lines))
   (make-local-variable 'makefile-target-table)
   (make-local-variable 'makefile-macro-table)
   (make-local-variable 'makefile-has-prereqs)
