@@ -792,6 +792,7 @@ Optional DEFAULT is a default password to use instead of empty input."
 	      (message "Password not repeated accurately; please start over")
 	      (sit-for 1))))
 	success)
+    (clear-this-command-keys)
     (let ((pass nil)
 	  (c 0)
 	  (echo-keystrokes 0)
