@@ -36,7 +36,7 @@
 (load "paths.el")
 (load "site-init" t)
 
-(let ((attr (file-attributes rmail-spool-directory))
+(let ((attr (file-attributes (file-truename rmail-spool-directory)))
       modes)
   (or (eq t (car attr))
       (signal 'error
