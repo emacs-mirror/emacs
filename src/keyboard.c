@@ -1460,8 +1460,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Don't bother updating menu bars while doing mouse tracking.
      We get events very rapidly then, and the menu bar won't be changing.
      We do update the menu bar once on entry to Ftrack_mouse.  */
-  if (!do_mouse_tracking &&
-      commandflag >= 0 && !input_pending && !detect_input_pending ())
+  if (commandflag > 0 && !input_pending && !detect_input_pending ())
     prepare_menu_bars ();
 
   /* Save outer setjmp data, in case called recursively.  */
@@ -1505,7 +1504,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
       && unread_command_char < 0
-      && EVENT_QUEUES_EMPTY)
+      && !detect_input_pending ())
     {
       c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
       if (! NILP (c))
@@ -1555,8 +1554,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && !NILP (prev_event) && EVENT_HAS_PARAMETERS (prev_event)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
-      && unread_command_char < 0
-      && EVENT_QUEUES_EMPTY)
+      && unread_command_char < 0)
     c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
 
   /* Slow down auto saves logarithmically in size of current buffer,
@@ -1693,14 +1691,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
  from_macro:
  reread_first:
 
-  /* Record this character as part of the current key.
-     Don't record mouse motion; it should never matter.  */
+  /* Don't echo mouse motion events.  */
   if (! (EVENT_HAS_PARAMETERS (c)
 	 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
-    {
-      echo_char (c);
-      add_command_key (c);
-    }
+    echo_char (c);
+
+  /* Record this character as part of the current key.
+     Don't record mouse motion; it should never matter.  */
+  add_command_key (c);
 
   /* Re-reading in the middle of a command */
  reread:
