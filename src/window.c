@@ -2178,7 +2178,7 @@ window_scroll (window, n, noerror)
 
   if (NILP (tem))
     {
-      Fvertical_motion (make_number (- ht / 2), window);
+      Fvertical_motion (make_number (- (ht / 2)), window);
       XFASTINT (tem) = point;
       Fset_marker (w->start, tem, w->buffer);
       w->force_start = Qt;
@@ -2467,7 +2467,7 @@ negative means relative to bottom of window.")
   XSET (window, Lisp_Window, w);
   if (start < BEGV || start > ZV)
     {
-      Fvertical_motion (make_number (- height / 2), window);
+      Fvertical_motion (make_number (- (height / 2)), window);
       Fset_marker (w->start, make_number (point), w->buffer);
       w->start_at_line_beg = Fbolp ();
       w->force_start = Qt;
