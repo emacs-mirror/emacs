@@ -326,6 +326,22 @@ current buffer to the complete file name."
   (set (make-local-variable 'change-log-default-name) file-name)
   file-name)
 
+(defun add-log-file-name (buffer-file log-file)
+  ;; Never want to add a change log entry for the ChangeLog file itself.
+  (unless (or (null buffer-file) (string= buffer-file log-file))
+    (setq buffer-file
+	  (if (string-match
+	       (concat "^" (regexp-quote (file-name-directory log-file)))
+	       buffer-file)
+	      (substring buffer-file (match-end 0))
+	    (file-name-nondirectory buffer-file)))
+    ;; If we have a backup file, it's presumably because we're
+    ;; comparing old and new versions (e.g. for deleted
+    ;; functions) and we'll want to use the original name.
+    (if (backup-file-name-p buffer-file)
+	(file-name-sans-versions buffer-file)
+      buffer-file)))
+
 ;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window new-entry)
   "Find change log file and add an entry for today.
@@ -355,34 +371,21 @@ non-nil, otherwise in local time."
 	 ;; s/he can edit the full name field in prompter if s/he wants.
 	(setq add-log-mailing-address
 	      (read-input "Mailing address: " add-log-mailing-address))))
+
+  (setq file-name (expand-file-name (or file-name (find-change-log file-name))))
+  
   (let ((defun (add-log-current-defun))
 	(version (and change-log-version-info-enabled
 		      (change-log-version-number-search)))
-	bound entry)
+	;; Set ENTRY to the file name to use in the new entry.
+	(entry (if buffer-file-name
+		   (add-log-file-name buffer-file-name file-name)
+		 (if add-log-file-name-function
+		     (funcall add-log-file-name-function file-name))))
+	bound)
 
-    (setq file-name (expand-file-name (find-change-log file-name)))
-
-    ;; Set ENTRY to the file name to use in the new entry.
-    (and buffer-file-name
-	 ;; Never want to add a change log entry for the ChangeLog file itself.
-	 (not (string= buffer-file-name file-name))
-	 (if add-log-file-name-function
-	     (setq entry
-		   (funcall add-log-file-name-function buffer-file-name))
-	   (setq entry
-		 (if (string-match
-		      (concat "^" (regexp-quote (file-name-directory
-						 file-name)))
-		      buffer-file-name)
-		     (substring buffer-file-name (match-end 0))
-		   (file-name-nondirectory buffer-file-name)))
-	   ;; If we have a backup file, it's presumably because we're
-	   ;; comparing old and new versions (e.g. for deleted
-	   ;; functions) and we'll want to use the original name.
-	   (if (backup-file-name-p entry)
-	       (setq entry (file-name-sans-versions entry)))))
-
-    (if (and other-window (not (equal file-name buffer-file-name)))
+    (if (or (and other-window (not (equal file-name buffer-file-name)))
+	    (window-dedicated-p (selected-window)))
 	(find-file-other-window file-name)
       (find-file file-name))
     (or (eq major-mode 'change-log-mode)
