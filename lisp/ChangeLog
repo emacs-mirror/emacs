@@ -1,5 +1,8 @@
 2000-12-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* cus-edit.el (custom-save-variables, custom-save-faces): 
+	Comment fix.
+
 	* hscroll.el: Moved to `obsolete' subdir.
 
 2000-12-11  Miles Bader  <miles@gnu.org>
