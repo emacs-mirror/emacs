@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:versind.h(trunk.10) $
+/* $HopeName: MMQA_harness!testlib:versind.h(trunk.11) $
  *
  * If you define mps_ symbols here, you also need to list them in
  * MMQA_harness!testlib:assumed.
@@ -30,7 +30,7 @@
 #define mps_space_t mps_arena_t
 #include "mpsavm.h"
 #define mps_space_create(space) \
-  mps_arena_create(space, mps_arena_class_vm(), )
+  mps_arena_create(space, mps_arena_class_vm(), mmqaArenaSIZE)
 
 #endif
 
