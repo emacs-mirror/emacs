@@ -34,7 +34,6 @@
 /* Cancel some #define's in usg5-4.h.
    Larry Hunter <hunter@nlm.nih.gov> said this was needed
    for Irix 6.5.  Let's see if it is safe in 6.N, N<5, as well.  */
-#undef TIOCSIGSEND
 /* Extrapolating from Irix 6.5, the problem is that (at least) the
    bzero definition breaks what the X headers do.  The following means
    that we lack prototypes for these functions, and we presumably lose
@@ -46,3 +45,5 @@
 #undef bcopy
 #undef bcmp
 #undef bzero
+
+#undef TIOCSIGSEND
