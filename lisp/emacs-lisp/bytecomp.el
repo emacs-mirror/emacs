@@ -97,6 +97,7 @@
 ;;;				'redefine  (function cell redefined from
 ;;;					    a macro to a lambda or vice versa,
 ;;;					    or redefined to take other args)
+;;;				'obsolete  (obsolete variables and functions)
 ;;; byte-compile-compatibility	Whether the compiler should
 ;;;				generate .elc files which can be loaded into
 ;;;				generic emacs 18.
@@ -277,7 +278,8 @@ If it is 'byte, then only byte-level optimizations will be logged.")
 (defvar byte-compile-error-on-warn nil
   "*If true, the byte-compiler reports warnings with `error'.")
 
-(defconst byte-compile-warning-types '(redefine callargs free-vars unresolved))
+(defconst byte-compile-warning-types
+  '(redefine callargs free-vars unresolved obsolete))
 (defvar byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
 Elements of the list may be be:
@@ -287,6 +289,7 @@ Elements of the list may be be:
   callargs    lambda calls with args that don't match the definition.
   redefine    function cell redefined from a macro to a lambda or vice
               versa, or redefined to take a different number of arguments.
+  obsolete      obsolete variables and functions.
 
 See also the macro `byte-compiler-options'.")
 
@@ -788,12 +791,13 @@ otherwise pop it")
 
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
-  (let ((new (get (car form) 'byte-obsolete-info)))
-    (byte-compile-warn "%s is an obsolete function; %s" (car form)
-		       (if (stringp (car new))
-			   (car new)
-			   (format "use %s instead." (car new))))
-    (funcall (or (cdr new) 'byte-compile-normal-call) form)))
+  (if (memq 'obsolete byte-compile-warnings)
+      (let ((new (get (car form) 'byte-obsolete-info)))
+	(byte-compile-warn "%s is an obsolete function; %s" (car form)
+			   (if (stringp (car new))
+			       (car new)
+			       (format "use %s instead." (car new))))
+	(funcall (or (cdr new) 'byte-compile-normal-call) form))))
 
 ;; Compiler options
 
@@ -2057,7 +2061,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 			   "Variable reference to %s %s")
 			 (if (symbolp var) "constant" "nonvariable")
 			 (prin1-to-string var))
-    (if (get var 'byte-obsolete-variable)
+    (if (and (get var 'byte-obsolete-variable)
+	     (memq 'obsolete byte-compile-warnings))
 	(let ((ob (get var 'byte-obsolete-variable)))
 	  (byte-compile-warn "%s is an obsolete variable; %s" var
 			     (if (stringp ob)
