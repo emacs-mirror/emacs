@@ -90,7 +90,9 @@ Other features we would like:
   Love started on this.]
 
 * Implement a variant of uncompress.el or jka-compr.el that works with
-  GNU Privacy Guard for encryption.  [Code exists but isn't assigned.]
+  GNU Privacy Guard for encryption.  [Code exists but isn't assigned.
+  See the Gnus development sources for assigned code concerning GPG
+  use with mail, which is probably a good start.]
 
 * Save undo information in files, and reload it when needed
   for undoing.
@@ -109,7 +111,7 @@ Other features we would like:
   the whole menu bar.  In the mean time, it should process other messages.
 
 * Get some major packages installed: W3/url (development version needs
-  significant work), PSGML, Mule-UCS.  Check the assignments file for other
+  significant work), PSGML.  Check the assignments file for other
   packages which might go in and have been missed.
 
 * Make keymaps a first-class Lisp object (this means a rewrite of
@@ -143,8 +145,6 @@ Other features we would like:
 
 * Update the FAQ.
 
-* Make update-game-score work on systems that don't have strerror and difftime.
-
 * Allow auto-compression-mode to use zlib calls if zlib is available.
   [It's required for PNG, so may be linked anyhow.]
 
@@ -170,8 +170,6 @@ Other features we would like:
   size and its position from lines instead of characters.
 
 * Make the Custom themes support do useful things.
-
-* Adapt the gnuserv/gnudoit features for server/emacsclient.
 
 * Investigate using GNU Lightning or similar system for incremental
   compilation of selected bytecode functions to subrs.  Converting CCL
