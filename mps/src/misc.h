@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName$
+ * $HopeName: MMsrc!misc.h(trunk.26) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -13,7 +13,6 @@
 #define misc_h
 
 #include <stddef.h>
-#include <limits.h>
 
 
 typedef int Bool;                       /* design.mps.type.bool */
@@ -167,7 +166,7 @@ typedef const struct SrcIdStruct {
 
 /* Bit Sets -- sets of integers in [0,N-1].
  *
- * Can be used on any unsigned integral type, ty.  These defintions
+ * Can be used on any unsigned integral type, ty.  These definitions
  * are _syntactic_, hence macroid, hence upper case
  * (guide.c.naming.macro.special).
  */
@@ -175,8 +174,6 @@ typedef const struct SrcIdStruct {
 #define BS_EMPTY(ty)            ((ty)0)
 #define BS_COMP(s)              (~(s))
 #define BS_UNIV(ty)             BS_COMP(BS_EMPTY(ty))
-#define BS_UPPER_HALF(ty)       ((ty)(BS_UNIV(ty) \
-                                      << (sizeof(ty) * CHAR_BIT / 2)))
 #define BS_SINGLE(ty, i)        ((ty)1 << (i))
 #define BS_IS_MEMBER(s, i)      (((s) >> (i)) & 1)
 #define BS_UNION(s1, s2)        ((s1) | (s2))
