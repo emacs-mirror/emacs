@@ -14,11 +14,10 @@ for the latest precompiled distributions.
 
 * Preliminaries
 
-To compile Emacs, you will need a Microsoft C compiler package.  For
-NT, this can be any of the SDK compilers from NT 3.1 and up, Microsoft
-Visual C++ for NT (versions 1.0 and up), or Microsoft Visual C++
-(versions 2.0 and up).  For Windows 95, this can be Microsoft Visual
-C++ versions 2.0 and up.
+To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
+later, or a Windows port of GCC 2.95 or later with Mingw and W32 API
+support and a port of GNU make.  You can use the Cygwin ports of GCC,
+but Emacs requires the Mingw headers and libraries to build.
 
 * Building and installing
 
