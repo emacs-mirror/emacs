@@ -82,7 +82,7 @@ instead.")
 
 (defvar mouse-avoidance-nudge-dist 15
   "*Average distance that mouse will be moved when approached by cursor.
-Only applies in mode-avoidance-mode `jump' and its derivatives.
+Only applies in mouse-avoidance-mode `jump' and its derivatives.
 For best results make this larger than `mouse-avoidance-threshhold'.")
 
 (defvar mouse-avoidance-nudge-var 10
