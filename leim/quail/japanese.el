@@ -27,8 +27,8 @@
 (require 'quail)
 (require 'kkc)
 
-;; Update Quail translation region for Japanese bizarre translation
-;; rules.
+;; Update Quail translation region while considering Japanese bizarre
+;; translation rules.
 (defun quail-japanese-update-translation (control-flag)
   (cond ((eq control-flag t)
 	 (insert quail-current-str)
@@ -54,48 +54,34 @@
 ;; Convert Hiragana <-> Katakana in the current translation region.
 (defun quail-japanese-toggle-kana ()
   (interactive)
-  (if (quail-point-in-conversion-region)
-      (let ((start (overlay-start quail-conv-overlay))
-	    (end (overlay-end quail-conv-overlay)))
-	(setq quail-japanese-kana-state
-	      (if (eq last-command this-command)
-		  (not quail-japanese-kana-state)))
-	(if quail-japanese-kana-state
-	    (japanese-hiragana-region start end)
-	  (japanese-katakana-region start end))
-	(goto-char (overlay-end quail-conv-overlay))
-	(setq quail-exit-conversion-mode t))
-    ;; When this command is invoked, the point is not in a valid
-    ;; region.  Try the event which invoked this command again out of
-    ;; conversion mode.
-    (setq unread-command-events (list last-command-event))
-    (throw 'exit nil)))
+  (let ((start (overlay-start quail-conv-overlay))
+	(end (overlay-end quail-conv-overlay)))
+    (setq quail-japanese-kana-state
+	  (if (eq last-command this-command)
+	      (not quail-japanese-kana-state)))
+    (if quail-japanese-kana-state
+	(japanese-hiragana-region start end)
+      (japanese-katakana-region start end))
+    (goto-char (overlay-end quail-conv-overlay))))
 
 ;; Convert Hiragana in the current translation region to Kanji by KKC
 ;; (Kana Kanji Converter) utility.
 (defun quail-japanese-kanji-kkc ()
   (interactive)
-  (if (quail-point-in-conversion-region)
-      (let ((from (overlay-start quail-conv-overlay))
-	    (to (overlay-end quail-conv-overlay))
-	    newfrom)
-	(delete-overlay quail-overlay)
-	(delete-overlay quail-conv-overlay)
-	(unwind-protect
-	    (setq newfrom (kkc-region from to))
-	  ;; Activate the original (or shrinked) conversion region
-	  ;; again.	  
-	  (if newfrom
-	      ;; `kkc-region' is canceled.  
-	      (move-overlay quail-conv-overlay newfrom (point))
-	    ;; `kkc-region' is terminated normally.
-	    (move-overlay quail-conv-overlay from (point))
-	    (throw 'exit nil))))
-    ;; When this command is invoked, the point is not in a valid
-    ;; region.  Try the event which invoked this command again out of
-    ;; conversion mode.
-    (setq unread-command-events (list last-command-event))
-    (throw 'exit nil)))
+  (let ((from (overlay-start quail-conv-overlay))
+	(to (overlay-end quail-conv-overlay))
+	newfrom)
+    (quail-delete-overlays)
+    (setq overriding-terminal-local-map nil)
+    (kkc-region from to 'quail-japanese-kkc-mode-exit)))
+
+;; Function to call on exiting KKC mode.  ARG is nil if KKC mode is
+;; exited normally, else ARG is a cons (FROM . TO) where FROM and TO
+;; specify a region not yet processed.
+(defun quail-japanese-kkc-mode-exit (arg)
+  (setq overriding-terminal-local-map (quail-conversion-keymap))
+  (if arg
+      (move-overlay quail-conv-overlay (car arg) (cdr arg))))
 
 (defun quail-japanese-self-insert-and-switch-to-alpha (key idx)
   (quail-delete-region)
@@ -116,15 +102,16 @@
   (let ((pkg (cdr (assq (aref key (1- idx)) quail-japanese-switch-table))))
     (if (null pkg)
 	(error "No package to be switched")
+      (setq overriding-terminal-local-map nil)
       (quail-delete-region)
       (if (stringp pkg)
-	  (select-input-method pkg)
+	  (activate-input-method pkg)
 	(if (string= (car pkg) current-input-method)
 	    (if quail-japanese-package-saved
-		(select-input-method quail-japanese-package-saved))
+		(activate-input-method quail-japanese-package-saved))
 	  (setq quail-japanese-package-saved current-input-method)
-	  (select-input-method (car pkg))))
-      (throw 'quail-tag nil))))
+	  (activate-input-method (car pkg))))))
+  (throw 'quail-tag nil))
 
 (quail-define-package
  "japanese" "Japanese" "Aあ"
