@@ -217,8 +217,13 @@ $(DOC):		$(BLD)\make-docfile.exe
 {$(BLD)}.obj{$(BLD)}.exe:
 		$(LINK) -out:$@ $(LINK_FLAGS) $*.obj $(LIBS)
 
+!IF ($(_NMAKE_VER) < $(_NMAKE_VER_5))
 .c{$(BLD)}.obj:
-		$(CC) $(CFLAGS) -Fo$@ $<
+		$(CC) $(CFLAGS) -Fo$(OBJDIR)\i386\ $<
+!ELSE
+.c{$(BLD)}.obj::
+		$(CC) $(CFLAGS) -Fo$(OBJDIR)\i386\ $<
+!ENDIF
 
 #
 # Build the executables
