@@ -1418,13 +1418,12 @@ Does not delete the prompt."
   "Display start of this batch of interpreter output at top of window.
 Also put cursor there if the current position is not visible."
   (interactive)
+  (push-mark)
   (let ((pos (point)))
     (goto-char (or (marker-position comint-last-input-end) (point-max)))
     (beginning-of-line 0)
     (set-window-start (selected-window) (point))
-    (if (pos-visible-in-window-p pos)
-	(goto-char pos)
-      (comint-skip-prompt))))
+    (comint-skip-prompt)))
 
 (defun comint-interrupt-subjob ()
   "Interrupt the current subjob."
