@@ -10,3 +10,6 @@
 #define INTERRUPTIBLE_OPEN
 #define INTERRUPTIBLE_CLOSE
 #define INTERRUPTIBLE_IO
+
+/* Cause the compilation of oldxmenu to use the right -I option.  */
+#define OLDXMENU_OPTIONS CFLAGS=C_SWITCH_SYSTEM
