@@ -303,8 +303,15 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
   "coding-category-binary"
 };
 
-/* Alist of charsets vs the alternate charsets.  */
-Lisp_Object Valternate_charset_table;
+/* Flag to tell if we look up unification table on character code
+   conversion.  */
+Lisp_Object Venable_character_unification;
+/* Standard unification table to look up on reading (decoding).  */
+Lisp_Object Vstandard_character_unification_table_for_read;
+/* Standard unification table to look up on writing (encoding).  */
+Lisp_Object Vstandard_character_unification_table_for_write;
+
+Lisp_Object Qcharacter_unification_table;
 
 /* Alist of charsets vs revision number.  */
 Lisp_Object Vcharset_revision_alist;
@@ -650,44 +657,46 @@ detect_coding_iso2022 (src, src_end)
 }
 
 /* Decode a character of which charset is CHARSET and the 1st position
-   code is C1.  If dimension of CHARSET 2, the 2nd position code is
+   code is C1.  If dimension of CHARSET is 2, the 2nd position code is
    fetched from SRC and set to C2.  If CHARSET is negative, it means
    that we are decoding ill formed text, and what we can do is just to
    read C1 as is.  */
 
-#define DECODE_ISO_CHARACTER(charset, c1)			\
-  do {								\
-    if ((charset) >= 0 && CHARSET_DIMENSION (charset) == 2)	\
-      ONE_MORE_BYTE (c2);					\
-    if (COMPOSING_HEAD_P (coding->composing))			\
-      {								\
-	*dst++ = LEADING_CODE_COMPOSITION;			\
-	if (COMPOSING_WITH_RULE_P (coding->composing))		\
-	  /* To tell composition rules are embeded.  */		\
-	  *dst++ = 0xFF;					\
-	coding->composing += 2;					\
-      }								\
-    if ((charset) < 0)						\
-      *dst++ = c1;						\
-    else if ((charset) == CHARSET_ASCII)			\
-      DECODE_CHARACTER_ASCII (c1);				\
-    else if (CHARSET_DIMENSION (charset) == 1)			\
-      DECODE_CHARACTER_DIMENSION1 (charset, c1);		\
-    else							\
-      DECODE_CHARACTER_DIMENSION2 (charset, c1, c2);		\
-    if (COMPOSING_WITH_RULE_P (coding->composing))		\
-      /* To tell a composition rule follows.  */		\
-      coding->composing = COMPOSING_WITH_RULE_RULE;		\
+#define DECODE_ISO_CHARACTER(charset, c1)				\
+  do {									\
+    int c_alt, charset_alt = (charset);					\
+    if (COMPOSING_HEAD_P (coding->composing))				\
+      {									\
+	*dst++ = LEADING_CODE_COMPOSITION;				\
+	if (COMPOSING_WITH_RULE_P (coding->composing))			\
+	  /* To tell composition rules are embeded.  */			\
+	  *dst++ = 0xFF;						\
+	coding->composing += 2;						\
+      }									\
+    if ((charset) >= 0)							\
+      {									\
+	if (CHARSET_DIMENSION (charset) == 2)				\
+	  ONE_MORE_BYTE (c2);						\
+	if (!NILP (unification_table)					\
+	    && ((c_alt = unify_char (unification_table,			\
+				     -1, (charset), c1, c2)) >= 0))	\
+	  SPLIT_CHAR (c_alt, charset_alt, c1, c2);			\
+      }									\
+    if (charset_alt == CHARSET_ASCII || charset_alt < 0)		\
+      DECODE_CHARACTER_ASCII (c1);					\
+    else if (CHARSET_DIMENSION (charset_alt) == 1)			\
+      DECODE_CHARACTER_DIMENSION1 (charset_alt, c1);			\
+    else								\
+      DECODE_CHARACTER_DIMENSION2 (charset_alt, c1, c2);		\
+    if (COMPOSING_WITH_RULE_P (coding->composing))			\
+      /* To tell a composition rule follows.  */			\
+      coding->composing = COMPOSING_WITH_RULE_RULE;			\
   } while (0)
 
 /* Set designation state into CODING.  */
 #define DECODE_DESIGNATION(reg, dimension, chars, final_char)		\
   do {							      		\
     int charset = ISO_CHARSET_TABLE (dimension, chars, final_char);	\
-    Lisp_Object temp							\
-      = Fassq (CHARSET_SYMBOL (charset), Valternate_charset_table);	\
-    if (! NILP (temp))							\
-      charset = get_charset_id (XCONS (temp)->cdr);			\
     if (charset >= 0)					      		\
       {					      				\
         if (coding->direction == 1					\
@@ -719,6 +728,10 @@ decode_coding_iso2022 (coding, source, destination,
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
   int charset0 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 0);
   int charset1 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 1);
+  Lisp_Object unification_table = coding->character_unification_table;
+
+  if (!NILP (Venable_character_unification) && NILP (unification_table))
+    unification_table = Vstandard_character_unification_table_for_read;
 
   while (src < src_end && dst < adjusted_dst_end)
     {
@@ -728,7 +741,7 @@ decode_coding_iso2022 (coding, source, destination,
 	 ONE_MORE_BYTE or TWO_MORE_BYTES).  In that case, SRC is reset
 	 to SRC_BASE before exiting.  */
       unsigned char *src_base = src;
-      unsigned char c1 = *src++, c2, cmprule;
+      int c1 = *src++, c2;
 
       switch (iso_code_class [c1])
 	{
@@ -1167,6 +1180,21 @@ decode_coding_iso2022 (coding, source, destination,
       dst = encode_invocation_designation (charset, coding, dst);	\
   } while (1)
 
+#define ENCODE_ISO_CHARACTER(charset, c1, c2)				  \
+  do {									  \
+    int c_alt, charset_alt;						  \
+    if (!NILP (unification_table)					  \
+	&& ((c_alt = unify_char (unification_table, -1, charset, c1, c2)) \
+	    < 0))							  \
+      SPLIT_CHAR (c_alt, charset_alt, c1, c2);				  \
+    else								  \
+      charset_alt = charset;						  \
+    if (CHARSET_DIMENSION (charset_alt) == 1)				  \
+      ENCODE_ISO_CHARACTER_DIMENSION1 (charset_alt, c1);		  \
+    else								  \
+      ENCODE_ISO_CHARACTER_DIMENSION2 (charset_alt, c1, c2);		  \
+  } while (0)
+
 /* Produce designation and invocation codes at a place pointed by DST
    to use CHARSET.  The element `spec.iso2022' of *CODING is updated.
    Return new DST.  */
@@ -1266,48 +1294,57 @@ encode_invocation_designation (charset, coding, dst)
 	  (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, reg), reg, coding); \
   } while (0)
 
-int
-encode_designation_at_bol (coding, src, src_end, dstp)
+/* Produce designation sequences of charsets in the line started from
+   *SRC to a place pointed by DSTP.
+
+   If the current block ends before any end-of-line, we may fail to
+   find all the necessary *designations.  */
+encode_designation_at_bol (coding, table, src, src_end, dstp)
      struct coding_system *coding;
+     Lisp_Object table;
      unsigned char *src, *src_end, **dstp;
 {
-  int charset, reg, r[4];
-  unsigned char *dst = *dstp, c;
-  for (reg = 0; reg < 4; reg++) r[reg] = -1;
-  while (src < src_end && (c = *src++) != '\n')
-    {
-      switch (emacs_code_class[c])
-	{
-	case EMACS_ascii_code:
-	  charset = CHARSET_ASCII;
-	  break;
-	case EMACS_leading_code_2:
-	  if (++src >= src_end) continue;
-	  charset = c;
-	  break;
-	case EMACS_leading_code_3:
-	  if ((src += 2) >= src_end) continue;
-	  charset =  (c < LEADING_CODE_PRIVATE_11 ? c : *(src - 2));
-	  break;
-	case EMACS_leading_code_4:
-	  if ((src += 3) >= src_end) continue;
-	  charset = *(src - 3);
-	  break;
-	default:
-	  continue;
-	}
-      reg = CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset);
-      if (r[reg] < 0
-	  && CODING_SPEC_ISO_DESIGNATION (coding, reg) != charset)
-	r[reg] = charset;
-    }
-  if (c != '\n' && !coding->last_block)
-    return -1;
+  int charset, c, found = 0, reg;
+  /* Table of charsets to be designated to each graphic register.  */
+  int r[4];
+  unsigned char *dst = *dstp;
+
   for (reg = 0; reg < 4; reg++)
-    if (r[reg] >= 0)
-      ENCODE_DESIGNATION (r[reg], reg, coding);
-  *dstp = dst;
-  return 0;
+    r[reg] = -1;
+
+  while (src < src_end && *src != '\n' && found < 4)
+    {
+      int bytes = BYTES_BY_CHAR_HEAD (*src);
+      
+      if (NILP (table))
+	charset = CHARSET_AT (src);
+      else
+	{
+	  int c_alt, c1, c2;
+
+	  SPLIT_STRING(src, bytes, charset, c1, c2);
+	  if ((c_alt = unify_char (table, -1, charset, c1, c2)) >= 0)
+	    charset = CHAR_CHARSET (c_alt);
+	}
+
+      reg = CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset);
+      if (r[reg] < 0)
+	{
+	  found++;
+	  r[reg] = charset;
+	}
+
+      src += bytes;
+    }
+
+  if (found)
+    {
+      for (reg = 0; reg < 4; reg++)
+	if (r[reg] >= 0
+	    && CODING_SPEC_ISO_DESIGNATION (coding, reg) != r[reg])
+	  ENCODE_DESIGNATION (r[reg], reg, coding);
+      *dstp = dst;
+    }
 }
 
 /* See the above "GENERAL NOTES on `encode_coding_XXX ()' functions".  */
@@ -1328,6 +1365,10 @@ encode_coding_iso2022 (coding, source, destination,
      from DST_END to assure overflow checking is necessary only at the
      head of loop.  */
   unsigned char *adjusted_dst_end = dst_end - 19;
+  Lisp_Object unification_table = coding->character_unification_table;
+
+  if (!NILP (Venable_character_unification) && NILP (unification_table))
+    unification_table = Vstandard_character_unification_table_for_write;
 
   while (src < src_end && dst < adjusted_dst_end)
     {
@@ -1337,18 +1378,14 @@ encode_coding_iso2022 (coding, source, destination,
 	 TWO_MORE_BYTES, and THREE_MORE_BYTES).  In that case, SRC is
 	 reset to SRC_BASE before exiting.  */
       unsigned char *src_base = src;
-      unsigned char c1, c2, c3, c4;
-      int charset;
+      int charset, c1, c2, c3, c4;
 
       if (coding->flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL
 	  && CODING_SPEC_ISO_BOL (coding))
 	{
-	  /* We have to produce destination sequences now.  */
-	  if (encode_designation_at_bol (coding, src, src_end, &dst) < 0)
-	    /* We can't find end of line in the current block.  Let's
-	     repeat encoding starting from the current position
-	     pointed by SRC.  */
-	    break;
+	  /* We have to produce designation sequences if any now.  */
+	  encode_designation_at_bol (coding, unification_table,
+				     src, src_end, &dst);
 	  CODING_SPEC_ISO_BOL (coding) = 0;
 	}
 
@@ -1393,7 +1430,7 @@ encode_coding_iso2022 (coding, source, destination,
       switch (emacs_code_class[c1])
 	{
 	case EMACS_ascii_code:
-	  ENCODE_ISO_CHARACTER_DIMENSION1 (CHARSET_ASCII, c1);
+	  ENCODE_ISO_CHARACTER (CHARSET_ASCII, c1, /* dummy */ c2);
 	  break;
 
 	case EMACS_control_code:
@@ -1431,20 +1468,20 @@ encode_coding_iso2022 (coding, source, destination,
 
 	case EMACS_leading_code_2:
 	  ONE_MORE_BYTE (c2);
-	  ENCODE_ISO_CHARACTER_DIMENSION1 (c1, c2);
+	  ENCODE_ISO_CHARACTER (c1, c2, /* dummy */ c3);
 	  break;
 
 	case EMACS_leading_code_3:
 	  TWO_MORE_BYTES (c2, c3);
 	  if (c1 < LEADING_CODE_PRIVATE_11)
-	    ENCODE_ISO_CHARACTER_DIMENSION2 (c1, c2, c3);
+	    ENCODE_ISO_CHARACTER (c1, c2, c3);
 	  else
-	    ENCODE_ISO_CHARACTER_DIMENSION1 (c2, c3);
+	    ENCODE_ISO_CHARACTER (c2, c3, /* dummy */ c4);
 	  break;
 
 	case EMACS_leading_code_4:
 	  THREE_MORE_BYTES (c2, c3, c4);
-	  ENCODE_ISO_CHARACTER_DIMENSION2 (c2, c3, c4);
+	  ENCODE_ISO_CHARACTER (c2, c3, c4);
 	  break;
 
 	case EMACS_leading_code_composition:
@@ -1472,20 +1509,21 @@ encode_coding_iso2022 (coding, source, destination,
     label_end_of_loop:
       coding->carryover_size = src - src_base;
       bcopy (src_base, coding->carryover, coding->carryover_size);
-      src = src_base;
       break;
     }
 
   /* If this is the last block of the text to be encoded, we must
-     reset the state of graphic planes and registers to initial one.
-     In addition, we had better just flush out all remaining codes in
-     the text although they are not valid characters.  */
-  if (coding->last_block)
+     reset graphic planes and registers to the initial state.  */
+  if (src >= src_end && coding->last_block)
     {
       ENCODE_RESET_PLANE_AND_REGISTER;
-      bcopy(src, dst, src_end - src);
-      dst += (src_end - src);
-      src = src_end;
+      if (coding->carryover_size > 0
+	  && coding->carryover_size < (dst_end - dst))
+	{
+	  bcopy (coding->carryover, dst, coding->carryover_size);
+	  dst += coding->carryover_size;
+	  coding->carryover_size = 0;
+	}
     }
   *consumed = src - source;
   return dst - destination;
@@ -2063,6 +2101,9 @@ setup_coding_system (coding_system, coding)
   coding->direction = 0;
   coding->carryover_size = 0;
   coding->post_read_conversion = coding->pre_write_conversion = Qnil;
+  /* We have not yet implemented a way to specify unification table in
+     a coding system.  */
+  coding->character_unification_table = Qnil;
 
   Vlast_coding_system_used = coding->symbol = coding_system;
   eol_type = Qnil;
@@ -3316,10 +3357,13 @@ DEFUN ("terminal-coding-system",
 }
 
 DEFUN ("set-keyboard-coding-system",
-       Fset_keyboard_coding_system, Sset_keyboard_coding_system, 1, 1,
-       "zCoding-system for keyboard input: ",
-  "Set coding-system of what is sent from terminal keyboard to CODING-SYSTEM.\n\
-All inputs from terminal are decoded from this coding-system.")
+       Fset_keyboard_coding_system, Sset_keyboard_coding_system, 1, 1, 0,
+  "Set coding-system of codes sent from terminal keyboard to CODING-SYSTEM.\n\
+In Encoded-kbd minor mode, user inputs are decoded\n\
+accoding to CODING-SYSTEM.\n\
+Do not call this function directly, but use the command\n\
+encoded-kbd-set-coding-system to activate Encoded-kbd mode\n\
+with a specific coding system.")
   (coding_system)
      Lisp_Object coding_system;
 {
@@ -3529,6 +3573,11 @@ syms_of_coding ()
       }
   }
 
+  Qcharacter_unification_table = intern ("character-unification-table");
+  staticpro (&Qcharacter_unification_table);
+  Fput (Qcharacter_unification_table, Qchar_table_extra_slots,
+	make_number (0));
+
   defsubr (&Scoding_system_vector);
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
@@ -3613,11 +3662,19 @@ See the documentation of `find-coding-system' for more detail.");
     "Mnemonic character indicating end-of-line format is not yet decided.");
   eol_mnemonic_undecided = '-';
 
-  DEFVAR_LISP ("alternate-charset-table", &Valternate_charset_table,
-    "Alist of charsets vs the alternate charsets.\n\
-While decoding, if a charset (car part of an element) is found,\n\
-decode it as the alternate charset (cdr part of the element).");
-  Valternate_charset_table = Qnil;
+  DEFVAR_LISP ("enable-character-unification", &Venable_character_unification,
+    "Non-nil means ISO 2022 encoder/decoder do character unification.");
+  Venable_character_unification = Qt;
+
+  DEFVAR_LISP ("standard-character-unification-table-for-read",
+    &Vstandard_character_unification_table_for_read,
+    "Table for unifying characters when reading.");
+  Vstandard_character_unification_table_for_read = Qnil;
+
+  DEFVAR_LISP ("standard-character-unification-table-for-write",
+    &Vstandard_character_unification_table_for_write,
+    "Table for unifying characters when writing.");
+  Vstandard_character_unification_table_for_write = Qnil;
 
   DEFVAR_LISP ("charset-revision-table", &Vcharset_revision_alist,
     "Alist of charsets vs revision numbers.\n\
