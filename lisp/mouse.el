@@ -130,8 +130,7 @@ This must be bound to a mouse click."
     (raise-frame frame)
     (select-frame frame)
     (or (eq frame oframe)
-	(set-mouse-position (selected-frame) (1- (frame-width)) 0))
-    (unfocus-frame)))
+	(set-mouse-position (selected-frame) (1- (frame-width)) 0))))
 
 (defun mouse-tear-off-window (click)
   "Delete the window clicked on, and create a new frame displaying its buffer."
