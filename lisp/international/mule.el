@@ -24,10 +24,10 @@
 
 ;;; Code:
 
-(defconst mule-version "4.0 (HANANOEN)" "\
+(defconst mule-version "5.0 (AOI)" "\
 Version number and name of this version of MULE (multilingual environment).")
 
-(defconst mule-version-date "1998.7.1" "\
+(defconst mule-version-date "1999.12.7" "\
 Distribution date of this version of MULE (multilingual environment).")
 
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
@@ -1279,6 +1279,15 @@ identification number of the table respectively."
 	  (setq id (1+ id)))))
     (put symbol 'translation-table-id id)
     id))
+
+(put 'with-category-table 'lisp-indent-function 1)
+
+(defmacro with-category-table (category-table &rest body)
+  `(let ((current-category-table (category-table)))
+     (set-category-table ,category-table)
+     (unwind-protect
+	 (progn ,@body)
+       (set-category-table current-category-table))))
 
 ;;; Initialize some variables.
 
