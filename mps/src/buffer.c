@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(MMdevel_action2.4) $
+ * $HopeName: MMsrc!buffer.c(trunk.22) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(MMdevel_action2.4) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.22) $");
 
 
 /* BufferCheck
@@ -398,8 +398,9 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   AVER(p == buffer->apStruct.init);
   AVER(AddrAdd(buffer->apStruct.init, size) == buffer->apStruct.alloc);
 
-  /* Atomically update the init pointer to declare that the object */
-  /* is initialized (though it may be invalid if a flip occurred). */
+  /* .commit.update: Atomically update the init pointer to declare */
+  /* that the object is initialized (though it may be invalid if a */
+  /* flip occurred). */
 
   buffer->apStruct.init = buffer->apStruct.alloc;
 
@@ -411,7 +412,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   /* The commit must succeed when trip is called.  The pointer */
   /* p will have been fixed up. */
 
-  /* Trip the buffer if a flip has occurred. */
+  /* .commit.trip: Trip the buffer if a flip has occurred. */
 
   if(buffer->apStruct.limit == 0)
     return BufferTrip(buffer, p, size);
@@ -422,18 +423,27 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
 }
 
 
-/* BufferTrip -- act on a tripped buffer
- */
+/* BufferTrip -- act on a tripped buffer */
 
 Bool BufferTrip(Buffer buffer, Addr p, Size size)
 {
   Pool pool;
 
   AVERT(Buffer, buffer);
-  AVER(p == buffer->apStruct.init);
   AVER(size > 0);
   AVER(SizeIsAligned(size, buffer->alignment));
-  AVER(AddrAdd(buffer->apStruct.init, size) == buffer->apStruct.alloc);
+
+  /* The limit field should be zero, because that's how trip gets called. */
+  /* See .commit.trip. */
+  AVER(buffer->apStruct.limit == 0);
+
+  /* The init and alloc fields should be equal at this point, because */
+  /* the step .commit.update has happened. */
+  AVER(buffer->apStruct.init == buffer->apStruct.alloc);
+
+  /* The p parameter points at the base address of the allocated block, */
+  /* the end of which should now coincide with the init and alloc fields. */
+  AVER(AddrAdd(p, size) == buffer->apStruct.init);
 
   pool = BufferPool(buffer);
   return (*pool->class->bufferTrip)(pool, buffer, p, size);
