@@ -21,6 +21,32 @@
 #define MPS_WORD_SHIFT	5
 #define MPS_PF_ALIGN	4
 
+/* winnt.h (D:\packages\msvc20\include\winnt.h on aaron) */
+/* really ought to check this more thoroughly */
+
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_ALPHA)
+#define MPS_PF_W3ALMV
+#define MPS_OS_W3
+#define MPS_ARCH_AL
+#define MPS_BUILD_MV
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
+
+/* winnt.h (D:\packages\msvc20\include\winnt.h on aaron) */
+/* really ought to check this more thoroughly */
+
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_PPC)
+#define MPS_PF_W3PPMV
+#define MPS_OS_W3
+#define MPS_ARCH_PP
+#define MPS_BUILD_MV
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
+
 /* Visual C++ 2.0, Books Online, C/C++ Book, Preprocessor Reference, */
 /* Chapter 1: The Preprocessor, Macros, Predefined Macros. */
 
