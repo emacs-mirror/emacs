@@ -211,11 +211,7 @@ executable."
 		       (progn
 			 (replace-match argument t t nil 1)
 			 (message "Magic number changed to `%s'"
-				  (concat executable-prefix argument)))
-		     ;; Add a space at the end of the line
-		     ;; so we do not ask again about changing it.
-		     (end-of-line)
-		     (insert " ")))
+				  (concat executable-prefix argument)))))
 	    (insert executable-prefix argument ?\n)
 	    (message "Magic number changed to `%s'"
 		     (concat executable-prefix argument)))
