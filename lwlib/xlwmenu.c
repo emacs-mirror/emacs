@@ -1371,7 +1371,8 @@ Drag (w, ev, params, num_params)
      Cardinal *num_params;
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
-  handle_motion_event (mw, &ev->xmotion);
+  if (mw->menu.popped_up)
+    handle_motion_event (mw, &ev->xmotion);
 }
 
 static void 
