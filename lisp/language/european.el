@@ -312,7 +312,7 @@ but default input method is set to \"german-postfix\"."))
 
 ;; Definitions for the Mac Roman character sets and coding system.
 ;; The Mac Roman encoding uses all 128 code points in the range 128 to
-;; 255 for actual characters.  Emacs decode them to one of the
+;; 255 for actual characters.  Emacs decodes them to one of the
 ;; following character sets.
 ;;	ascii, latin-iso8859-1, mule-unicode-0100-24ff,
 ;;	mule-unicode-2500-33ff, mule-unicode-e000-ffff
