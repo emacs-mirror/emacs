@@ -1,3 +1,14 @@
+2002-03-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/xml-lite.el (xml-lite-at-indentation-p): Move.
+	(xml-lite-in-string-p, xml-lite-looking-back-at, xml-lite-looking-at):
+	New functions.
+	(forward-xml-tag, backward-xml-tag, beginning-of-xml-tag)
+	(end-of-xml-tag): Remove.
+	(xml-lite-get-context): Better handling of comments.
+	(xml-lite-calculate-indent): Use xml-lite-in-string-p.
+	(xml-lite-parse-tag-backward): Rewrite.
+
 2002-03-26  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (WINS): Add the toolbar directory.
@@ -34,13 +45,12 @@
 	* subr.el (macro-declaration-function): New function.  Set the
 	variable macro-declaration-function to it.
 
-	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble): 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
 	Handle declarations in macro definitions.
 
 2002-03-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* facemenu.el (facemenu-get-face): Remove unused variable
-	`foreground'.
+	* facemenu.el (facemenu-get-face): Remove unused variable `foreground'.
 
 	* enriched.el (enriched-face-ans): Support FACE of the form
 	(:foreground COLOR) and (:background COLOR).
