@@ -887,8 +887,8 @@ Wildcards and redirection are handled as usual in the shell."
 If the last search or match was done against a string,
 specify that string as the second argument STRING."
   (if string
-      (substring string (match-beginning 0) (match-end 0))
-    (buffer-substring (match-beginning 0) (match-end 0))))
+      (substring string (match-beginning n) (match-end n))
+    (buffer-substring (match-beginning n) (match-end n))))
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
