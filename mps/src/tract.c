@@ -1,6 +1,6 @@
 /* impl.c.tract: PAGE TABLES
  *
- * $HopeName$
+ * $HopeName: MMsrc!tract.c(trunk.3) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
@@ -13,7 +13,7 @@
 #include "boot.h"
 #include "mpm.h"
 
-SRCID(tract, "$HopeName: MMsrc!tract.c(trunk.2) $");
+SRCID(tract, "$HopeName: MMsrc!tract.c(trunk.3) $");
 
 
 static void ChunkDecache(Arena arena, Chunk chunk);
@@ -29,8 +29,7 @@ static void ChunkDecache(Arena arena, Chunk chunk);
 Bool TractCheck(Tract tract)
 {
   CHECKU(Pool, TractPool(tract));
-  CHECKL(AddrIsAligned(TractBase(tract), 
-                       ArenaAlign(PoolArena(TractPool(tract)))));
+  CHECKL(AddrIsAligned(TractBase(tract), ArenaAlign(TractArena(tract))));
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
     CHECKU(Seg, (Seg)TractP(tract)); 
@@ -566,48 +565,6 @@ Bool TractNext(Tract *tractReturn, Arena arena, Addr addr)
   AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
 
   return tractSearch(tractReturn, arena, addr);
-}
-
-
-/* TractNextContig -- return the contiguously following tract
- *
- * TractNextContig finds the tract with the base address which is
- * immediately after the supplied tract.  This is used as the iteration
- * step when iterating over all tracts in a contiguous area belonging to
- * a pool.  Both current and next tracts must be allocated.
- */
-
-Tract TractNextContig(Arena arena, Tract tract)
-{
-  Tract nextTract;
-  Page thisPage, nextPage;
-
-  AVERT_CRITICAL(Arena, arena);
-  AVERT_CRITICAL(Tract, tract);
-  AVER_CRITICAL(NULL != TractPool(tract));
-
-  /* check both this tract & next tract lie with the same chunk */
-  {
-    Chunk ch1, ch2;
-    UNUSED(ch1);
-    UNUSED(ch2);
-    AVER_CRITICAL(ChunkOfAddr(&ch1, arena, TractBase(tract))
-                  && ChunkOfAddr(&ch2, arena, 
-                                 AddrAdd(TractBase(tract), arena->alignment))
-                  && (ch1 == ch2));
-  }
-
-  /* the next contiguous tract is contiguous in the page table */
-  thisPage = PageOfTract(tract);
-  nextPage = thisPage + 1;
-  AVER_CRITICAL(PageIsAllocated(nextPage));
-  nextTract = PageTract(nextPage);
-  AVERT_CRITICAL(Tract, nextTract);
-
-  AVER_CRITICAL(TractPool(nextTract) == TractPool(tract));
-  AVER_CRITICAL(TractBase(nextTract)
-                == AddrAdd(TractBase(tract), arena->alignment));
-  return nextTract;
 }
 
 
