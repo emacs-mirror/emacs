@@ -491,7 +491,6 @@ This parameter describes the range of possible colors that can be used
 in this frame.  Its value is @code{color}, @code{grayscale} or
 @code{mono}.
 
-@vindex cursor-type
 @item cursor-type
 The way to display the cursor.  The legitimate values are @code{bar},
 @code{box}, and @code{(bar . @var{width})}.  The symbol @code{box}
@@ -500,6 +499,7 @@ that is the default.  The symbol @code{bar} specifies a vertical bar
 between characters as the cursor.  @code{(bar . @var{width})} specifies
 a bar @var{width} pixels wide.
 
+@vindex cursor-type
 The buffer-local variable @code{cursor-type} overrides the value of
 the @code{cursor-type} frame parameter, and can in addition have
 values @code{t} (use the cursor specified for the frame) and
@@ -1148,10 +1148,13 @@ the top left corner of the inside of @var{frame}.
 @end defun
 
 @defvar mouse-position-function
-If non-nil, the value of this variable is a function applied to the
-normal result of @code{mouse-position}.  This abnormal hook exists for
-the benefit of packages like XTerm-mouse which need to do mouse
-handling at the Lisp level.
+If non-@code{nil}, the value of this variable is a function for
+@code{mouse-position} to call.  @code{mouse-position} calls this
+function just before returning, with its normal return value as the
+sole argument, and it returns whatever this function returns to it.
+
+This abnormal hook exists for the benefit of packages like
+@file{xt-mouse.el} that need to do mouse handling at the Lisp level.
 @end defvar
 
 @defun set-mouse-position frame x y
@@ -1663,9 +1666,9 @@ supported in some other cases.
 
 @defun display-images-p &optional display
 This function returns @code{t} if @var{display} can display images.
-Windowed displays normally can display images, but some systems can
-lack the necessary support for that.  If images aren't supported, the
-tool bar cannot be displayed.
+Windowed displays ought in principle to handle images, but some
+systems lack the support for that.  On a display that does not support
+images, Emacs cannot display a tool bar.
 @end defun
 
 @defun display-screens &optional display

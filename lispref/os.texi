@@ -1633,7 +1633,7 @@ they were used as parts of key sequences.  Thus, you always get the last
 should be enough to see the events that invoked the macros.)
 
 A call to @code{clear-this-command-keys} (@pxref{Command Loop Info})
-causes this function to return an empty vector.
+causes this function to return an empty vector immediately afterward.
 @end defun
 
 @deffn Command open-dribble-file filename

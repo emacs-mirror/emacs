@@ -115,7 +115,7 @@ controls the reading of arguments for an interactive call.
 
   This section describes how to write the @code{interactive} form that
 makes a Lisp function an interactively-callable command, and how to
-obtain the interactive form of a command.
+examine a commands's @code{interactive} form.
 
 @defspec interactive arg-descriptor
 @cindex argument descriptors
@@ -211,12 +211,12 @@ give to that buffer:
 @end group
 @end smallexample
 
-@cindex @samp{*} in interactive
+@cindex @samp{*} in @code{interactive}
 @cindex read-only buffers in interactive
 If the first character in the string is @samp{*}, then an error is
 signaled if the buffer is read-only.
 
-@cindex @samp{@@} in interactive
+@cindex @samp{@@} in @code{interactive}
 @c Emacs 19 feature
 If the first character in the string is @samp{@@}, and if the key
 sequence used to invoke the command includes any mouse events, then
@@ -229,9 +229,9 @@ string (starting with the first character that is not @samp{*} or
 @samp{@@}).
 @end itemize
 
-@cindex obtaining interactive form of a function
+@cindex examining the @code{interactive} form
 @defun interactive-form function
-This function returns the interactive form of @var{function}.  If
+This function returns the @code{interactive} form of @var{function}.  If
 @var{function} is a command (@pxref{Interactive Call}), the value is a
 list of the form @code{(interactive @var{spec})}, where @var{spec} is
 the descriptor specification used by the command's @code{interactive}
@@ -747,11 +747,11 @@ input events in a string (@pxref{Strings of Events}).
 @tindex clear-this-command-keys
 @defun clear-this-command-keys
 This function empties out the table of events for
-@code{this-command-keys} to return, and also cause the function
-@code{recent-keys} (@pxref{Recording Input}) to return an empty
-vector.  This is useful after reading a password, to prevent the
-password from echoing inadvertently as part of the next command in
-certain cases.
+@code{this-command-keys} to return, and also empties the records that
+the function @code{recent-keys} (@pxref{Recording Input}) will
+subsequently return.  This is useful after reading a password, to
+prevent the password from echoing inadvertently as part of the next
+command in certain cases.
 @end defun
 
 @defvar last-nonmenu-event
