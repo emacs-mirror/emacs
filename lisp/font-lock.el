@@ -1894,7 +1894,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   ;; Function declarations.
 		   "\\(advice\\|alias\\|"
 		   "ine-\\(derived-mode\\|function\\|skeleton\\|widget\\)\\|"
-		   "macro\\|subst\\|un\\)\\|"
+		   "macro\\|subst\\|un\\|method\\)\\|"
 		   ;; Variable declarations.
 		   "\\(const\\|custom\\|face\\|var\\)\\|"
 		   ;; Structure declarations.
