@@ -768,9 +768,9 @@ Returns the documentation as a string, also."
 	  ;; Note, it is not reliable to test only for a custom-type property
 	  ;; because those are only present after the var's definition
 	  ;; has been loaded.
-	  (if (or (user-variable-p variable)
-		  (get variable 'custom-loads)
-		  (get variable 'custom-type))
+	  (if (or (get variable 'custom-type) ; after defcustom
+		  (get variable 'custom-loads) ; from loaddefs.el
+		  (get variable 'standard-value)) ; from cus-start.el
 	      (let ((customize-label "customize"))
 		(terpri)
 		(terpri)
