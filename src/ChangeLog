@@ -1,3 +1,10 @@
+2003-01-16  Kenichi Handa  <handa@m17n.org>
+
+	* charset.h (NEXT_CHAR_BOUNDARY, PREV_CHAR_BOUNDARY): New macros.
+
+	* regex.c (GET_CHAR_BEFORE_2): Use PREV_CHAR_BOUNDARY.
+	(re_search_2): Likewise.
+
 2003-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (message_dolog): Fix bug of the case that *Message*
