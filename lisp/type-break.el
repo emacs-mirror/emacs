@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.12 1997/06/23 05:28:51 friedman Exp stephen $
+;; $Id: type-break.el,v 1.13 1998/01/29 09:26:38 stephen Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -290,7 +290,7 @@ It will be either \"seconds\" or \"keystrokes\".")
         (setq alist nil))
        (t
         (setq alist (cdr alist)))))
-    (store-match-data data)
+    (set-match-data data)
     (cond ((eq result 'lucid)
            (and (string= emacs-version "19.8 Lucid")
                 (setq result 'lucid-19-8)))
