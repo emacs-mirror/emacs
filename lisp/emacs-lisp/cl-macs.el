@@ -1579,7 +1579,9 @@ Example: (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))."
 
 ;;; Some more Emacs-related place types.
 (defsetf buffer-file-name set-visited-file-name t)
-(defsetf buffer-modified-p set-buffer-modified-p t)
+(defsetf buffer-modified-p (&optional buf) (flag)
+  (list 'with-current-buffer buf
+	(list 'set-buffer-modified-p flag)))
 (defsetf buffer-name rename-buffer t)
 (defsetf buffer-string () (store)
   (list 'progn '(erase-buffer) (list 'insert store)))
