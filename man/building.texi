@@ -42,7 +42,7 @@ compilation errors occurred.
 
 @table @kbd
 @item M-x compile
-Run a compiler asynchronously under Emacs, with error messages to
+Run a compiler asynchronously under Emacs, with error messages going to
 @samp{*compilation*} buffer.
 @item M-x grep
 Run @code{grep} asynchronously under Emacs, with matching lines
@@ -488,7 +488,7 @@ Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 if you are using GDB; @code{dbx-mode-hook}, if you are using DBX;
 @code{sdb-mode-hook}, if you are using SDB; @code{xdb-mode-hook}, if you
 are using XDB; @code{perldb-mode-hook}, for Perl debugging mode;
-@code{jdb-mode-hook}, for PDB; @code{jdb-mode-hook}, for JDB.  You can
+@code{pdb-mode-hook}, for PDB; @code{jdb-mode-hook}, for JDB.  You can
 use these hooks to define custom key bindings for the debugger
 interaction buffer.  @xref{Hooks}.
 
