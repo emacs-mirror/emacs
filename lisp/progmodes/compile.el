@@ -39,12 +39,12 @@
 
 (defvar compilation-error-list nil
   "List of error message descriptors for visiting erring functions.
-Each error descriptor is a cons (or nil).  Its car is a marker pointing to
-an error message.  If its cdr is a marker, it points to the text of the
-line the message is about.  If its cdr is a cons, that cons's car is a cons
-\(DIRECTORY . FILE\), specifying the file the message is about, and its cdr
-is the number of the line the message is about.  Or its cdr may be nil if
-that error is not interesting.
+Each error descriptor is a cons (or nil).  Its car is a marker
+pointing to an error message.  If its cdr is a marker, it points to
+the text of the line the message is about.  If its cdr is a cons, that
+cons's car is the name of the file the message is about, and its cdr
+is the number of the line the message is about.  Or its cdr may be nil
+if that error is not interesting.
 
 The value may be t instead of a list; this means that the buffer of
 error messages should be reparsed the next time the list of errors is wanted.")
@@ -108,27 +108,29 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("^\\([^:( \t\n]+\\)[ \t]*[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 2)
+    ("\n\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 2)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
-    ("[ \t:]+\\([^:( \t\n]+\\)[ \t]*[:(]*(+[ \t]*\\([0-9]+\\))[:) \t]*$" 1 2)
+    ("[ \t:]\\([^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$" 1 2)
 
     ;; 4.3BSD lint pass 3
     ;; 	bloofle defined( /users/wolfgang/foo.c(4) ), but never used
     ;; This used to be
     ;; ("[ \t(]+\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
     ;; which is regexp Impressionism - it matches almost anything!
-    ("([ \t]*\\([^:( \t\n]+\\)[ \t]*[:(][ \t]*\\([0-9]+\\))" 1 2)
+    ("([ \t]*\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
 
     ;; Line 45 of "foo.c": bloofel undefined (who does this?)
-    ("^[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+of[ \t]+\"\\([^\"\n]+\\)\":" 2 1)
+    ("\n[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+of[ \t]+\"\\([^\"\n]+\\)\":" 2 1)
 
     ;; Apollo cc, 4.3BSD fc:
     ;;	"foo.f", line 3: Error: syntax error near end of statement
-    ;; or MIPS RISC CC - the one distributed with Ultrix:
+    ("\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\):" 1 2)
+
+    ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
-    ("\\b\"?\\([^,\" \n\t]+\\)\"?, line \\([0-9]+\\):" 1 2)
+    ("rror: \\([^,\" \n\t]+\\), line \\([0-9]+\\):" 1 2)
 
     ;; IBM AIX PS/2 C version 1.1:
     ;;	****** Error number 140 in line 8 of file errors.c ******
@@ -729,7 +731,10 @@ See variables `compilation-parse-errors-function' and
 		(or (markerp (cdr next-error))
 		    ;; This error has a filename/lineno pair.
 		    ;; Find the file and turn it into a marker.
-		    (let* ((fileinfo (car (cdr next-error)))
+		    (let* ((fileinfo
+			    (cons (file-name-directory (car (cdr next-error)))
+				  (file-name-nondirectory
+				   (car (cdr next-error)))))
 			   (buffer (compilation-find-file (cdr fileinfo)
 							  (car fileinfo)
 							  (car next-error))))
@@ -994,9 +999,12 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	     ;; Extract the file name and line number from the error message.
 	     (let ((beginning-of-match (match-beginning 0)) ;looking-at nukes
 		   (filename
-		    (cons default-directory
-			  (buffer-substring (match-beginning (nth 1 alist))
-					    (match-end (nth 1 alist)))))
+		    (save-excursion
+		      (goto-char (match-end (nth 1 alist)))
+		      (skip-chars-backward " \t")
+		      (let ((name (buffer-substring (match-beginning (nth 1 alist))
+						    (point))))
+			(expand-file-name name default-directory))))
 		   (linenum (save-restriction
 			      (narrow-to-region
 			       (match-beginning (nth 2 alist))
