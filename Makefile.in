@@ -290,8 +290,8 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	chmod -w src/Makefile
 
 oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile Makefile
-	echo "Producing \`src/Makefile' from \`${srcdir}/src/Makefile.in'."
-	rm -f src/Makefile.tmp
+	echo "Producing \`oldXMenu/Makefile' from \`${srcdir}/oldXMenu/Makefile.in'."
+	rm -f oldXMenu/Makefile.tmp
 	cp "${srcdir}"/oldXMenu/Makefile oldXMenu/Makefile
 
 
