@@ -1444,10 +1444,18 @@ make_shadow_gcs (mw)
   XColor topc, botc;
   int top_frobbed = 0, bottom_frobbed = 0;
 
+  mw->menu.free_top_shadow_color_p = 0;
+  mw->menu.free_bottom_shadow_color_p = 0;
+
   if (mw->menu.top_shadow_color == -1)
     mw->menu.top_shadow_color = mw->core.background_pixel;
+  else
+    mw->menu.top_shadow_color = mw->menu.top_shadow_color;
+    
   if (mw->menu.bottom_shadow_color == -1)
     mw->menu.bottom_shadow_color = mw->menu.foreground;
+  else
+    mw->menu.bottom_shadow_color = mw->menu.bottom_shadow_color;
 
   if (mw->menu.top_shadow_color == mw->core.background_pixel ||
       mw->menu.top_shadow_color == mw->menu.foreground)
@@ -1465,6 +1473,7 @@ make_shadow_gcs (mw)
 #endif
 	{
 	  mw->menu.top_shadow_color = topc.pixel;
+	  mw->menu.free_top_shadow_color_p = 1;
 	  top_frobbed = 1;
 	}
     }
@@ -1483,6 +1492,7 @@ make_shadow_gcs (mw)
 #endif
 	{
 	  mw->menu.bottom_shadow_color = botc.pixel;
+	  mw->menu.free_bottom_shadow_color_p = 1;
 	  bottom_frobbed = 1;
 	}
     }
@@ -1501,17 +1511,23 @@ make_shadow_gcs (mw)
 	{
 	  if (botc.pixel == mw->menu.foreground)
 	    {
-	      x_free_dpy_colors (dpy, screen, cmap,
-				 &mw->menu.top_shadow_color, 1);
-	      mw->menu.top_shadow_color
-		= x_copy_dpy_color (dpy, cmap, mw->core.background_pixel);
+	      if (mw->menu.free_top_shadow_color_p)
+		{
+		  x_free_dpy_colors (dpy, screen, cmap,
+				     &mw->menu.top_shadow_color, 1);
+		  mw->menu.free_top_shadow_color_p = 0;
+		}
+	      mw->menu.top_shadow_color = mw->core.background_pixel;
 	    }
 	  else
 	    {
-	      x_free_dpy_colors (dpy, screen, cmap,
-				 &mw->menu.bottom_shadow_color, 1);
-	      mw->menu.bottom_shadow_color
-		= x_copy_dpy_color (dpy, cmap, mw->menu.foreground);
+	      if (mw->menu.free_bottom_shadow_color_p)
+		{
+		  x_free_dpy_colors (dpy, screen, cmap,
+				     &mw->menu.bottom_shadow_color, 1);
+		  mw->menu.free_bottom_shadow_color_p = 0;
+		}
+	      mw->menu.bottom_shadow_color = mw->menu.foreground;
 	    }
 	}
     }
@@ -1520,20 +1536,24 @@ make_shadow_gcs (mw)
       mw->menu.top_shadow_color == mw->core.background_pixel)
     {
       mw->menu.top_shadow_pixmap = mw->menu.gray_pixmap;
-      if (top_frobbed)
-	x_free_dpy_colors (dpy, screen, cmap, &mw->menu.top_shadow_color, 1);
-      mw->menu.top_shadow_color = x_copy_dpy_color (dpy, cmap,
-						    mw->menu.foreground);
+      if (mw->menu.free_top_shadow_color_p)
+	{
+	  x_free_dpy_colors (dpy, screen, cmap, &mw->menu.top_shadow_color, 1);
+	  mw->menu.free_top_shadow_color_p = 0;
+	}
+      mw->menu.top_shadow_color = mw->menu.foreground;
     }
   if (!mw->menu.bottom_shadow_pixmap &&
       mw->menu.bottom_shadow_color == mw->core.background_pixel)
     {
       mw->menu.bottom_shadow_pixmap = mw->menu.gray_pixmap;
-      if (bottom_frobbed)
-	x_free_dpy_colors (dpy, screen, cmap,
-			   &mw->menu.bottom_shadow_color, 1);
-      mw->menu.bottom_shadow_color = x_copy_dpy_color (dpy, cmap,
-						       mw->menu.foreground);
+      if (mw->menu.free_bottom_shadow_color_p)
+	{
+	  x_free_dpy_colors (dpy, screen, cmap,
+			     &mw->menu.bottom_shadow_color, 1);
+	  mw->menu.free_bottom_shadow_color_p = 0;
+	}
+      mw->menu.bottom_shadow_color = mw->menu.foreground;
     }
 
   xgcv.fill_style = FillStippled;
@@ -1557,10 +1577,15 @@ release_shadow_gcs (mw)
   Screen *screen = XtScreen ((Widget) mw);
   Colormap cmap = mw->core.colormap;
   Pixel px[2];
+  int i = 0;
 
-  px[0] = mw->menu.top_shadow_color;
-  px[1] = mw->menu.bottom_shadow_color;
-  x_free_dpy_colors (dpy, screen, cmap, px, 2);
+  if (mw->menu.free_top_shadow_color_p)
+    px[i++] = mw->menu.top_shadow_color;
+  if (mw->menu.free_bottom_shadow_color_p)
+    px[i++] = mw->menu.bottom_shadow_color;
+  if (i > 0)
+    x_free_dpy_colors (dpy, screen, cmap, px, i);
+  
   XtReleaseGC ((Widget) mw, mw->menu.shadow_top_gc);
   XtReleaseGC ((Widget) mw, mw->menu.shadow_bottom_gc);
 }
