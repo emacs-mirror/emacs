@@ -115,6 +115,7 @@ This looks good, but slows down the commands several times.")
   (interactive)
   (kill-all-local-variables)
   (use-local-map apropos-mode-map)
+  (view-mode)
   (setq major-mode 'apropos-mode
 	mode-name "Apropos"))
 
