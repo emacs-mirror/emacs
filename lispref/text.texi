@@ -1,0 +1,2658 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/text
+@node Text, Searching and Matching, Markers, Top
+@chapter Text
+@cindex text
+
+  This chapter describes the functions that deal with the text in a
+buffer.  Most examine, insert or delete text in the current buffer,
+often in the vicinity of point.  Many are interactive.  All the
+functions that change the text provide for undoing the changes
+(@pxref{Undo}).
+
+  Many text-related functions operate on a region of text defined by two
+buffer positions passed in arguments named @var{start} and @var{end}.
+These arguments should be either markers (@pxref{Markers}) or numeric
+character positions (@pxref{Positions}).  The order of these arguments
+does not matter; it is all right for @var{start} to be the end of the
+region and @var{end} the beginning.  For example, @code{(delete-region 1
+10)} and @code{(delete-region 10 1)} are equivalent.  An
+@code{args-out-of-range} error is signaled if either @var{start} or
+@var{end} is outside the accessible portion of the buffer.  In an
+interactive call, point and the mark are used for these arguments.
+
+@cindex buffer contents
+  Throughout this chapter, ``text'' refers to the characters in the
+buffer.
+
+@menu
+* Near Point::       Examining text in the vicinity of point.
+* Buffer Contents::  Examining text in a general fashion.
+* Comparing Text::   Comparing substrings of buffers.
+* Insertion::        Adding new text to a buffer.
+* Commands for Insertion::  User-level commands to insert text.
+* Deletion::         Removing text from a buffer.
+* User-Level Deletion::     User-level commands to delete text.
+* The Kill Ring::    Where removed text sometimes is saved for later use.
+* Undo::             Undoing changes to the text of a buffer.
+* Maintaining Undo:: How to enable and disable undo information.
+			How to control how much information is kept.
+* Filling::          Functions for explicit filling.
+* Auto Filling::     How auto-fill mode is implemented to break lines.
+* Sorting::          Functions for sorting parts of the buffer.
+* Columns::          Computing horizontal positions, and using them.
+* Indentation::      Functions to insert or adjust indentation.
+* Case Changes::     Case conversion of parts of the buffer.
+* Text Properties::  Assigning Lisp property lists to text characters.
+* Substitution::     Replacing a given character wherever it appears.
+* Registers::        How registers are implemented.  Accessing the text or
+                       position stored in a register.
+* Change Hooks::     Supplying functions to be run when text is changed.
+@end menu
+
+@node Near Point
+@section Examining Text Near Point
+
+  Many functions are provided to look at the characters around point.
+Several simple functions are described here.  See also @code{looking-at}
+in @ref{Regexp Search}.
+
+@defun char-after position
+This function returns the character in the current buffer at (i.e.,
+immediately after) position @var{position}.  If @var{position} is out of
+range for this purpose, either before the beginning of the buffer, or at
+or beyond the end, then the value is @code{nil}.
+
+In the following example, assume that the first character in the
+buffer is @samp{@@}:
+
+@example
+@group
+(char-to-string (char-after 1))
+     @result{} "@@"
+@end group
+@end example
+@end defun
+
+@defun following-char
+This function returns the character following point in the current
+buffer.  This is similar to @code{(char-after (point))}.  However, if
+point is at the end of the buffer, then @code{following-char} returns 0.
+
+Remember that point is always between characters, and the terminal
+cursor normally appears over the character following point.  Therefore,
+the character returned by @code{following-char} is the character the
+cursor is over.
+
+In this example, point is between the @samp{a} and the @samp{c}.
+
+@example
+@group
+---------- Buffer: foo ----------
+Gentlemen may cry ``Pea@point{}ce! Peace!,''
+but there is no peace.
+---------- Buffer: foo ----------
+@end group
+
+@group
+(char-to-string (preceding-char))
+     @result{} "a"
+(char-to-string (following-char))
+     @result{} "c"
+@end group
+@end example
+@end defun
+
+@defun preceding-char
+This function returns the character preceding point in the current
+buffer.  See above, under @code{following-char}, for an example.  If
+point is at the beginning of the buffer, @code{preceding-char} returns
+0.
+@end defun
+
+@defun bobp
+This function returns @code{t} if point is at the beginning of the
+buffer.  If narrowing is in effect, this means the beginning of the
+accessible portion of the text.  See also @code{point-min} in
+@ref{Point}.
+@end defun
+
+@defun eobp
+This function returns @code{t} if point is at the end of the buffer.
+If narrowing is in effect, this means the end of accessible portion of
+the text.  See also @code{point-max} in @xref{Point}.
+@end defun
+
+@defun bolp
+This function returns @code{t} if point is at the beginning of a line.
+@xref{Text Lines}.  The beginning of the buffer (or its accessible
+portion always counts as the beginning of a line.
+@end defun
+
+@defun eolp
+This function returns @code{t} if point is at the end of a line.  The
+end of the buffer (or of its accessible portion) is always considered
+the end of a line.
+@end defun
+
+@node Buffer Contents
+@section Examining Buffer Contents
+
+  This section describes two functions that allow a Lisp program to
+convert any portion of the text in the buffer into a string.
+
+@defun buffer-substring start end
+This function returns a string containing a copy of the text of the
+region defined by positions @var{start} and @var{end} in the current
+buffer.  If the arguments are not positions in the accessible portion of
+the buffer, @code{buffer-substring} signals an @code{args-out-of-range}
+error.
+
+It is not necessary for @var{start} to be less than @var{end}; the
+arguments can be given in either order.  But most often the smaller
+argument is written first.
+
+@example
+@group
+---------- Buffer: foo ----------
+This is the contents of buffer foo
+
+---------- Buffer: foo ----------
+@end group
+
+@group
+(buffer-substring 1 10)
+@result{} "This is t"
+@end group
+@group
+(buffer-substring (point-max) 10)
+@result{} "he contents of buffer foo
+"
+@end group
+@end example
+@end defun
+
+@defun buffer-string
+This function returns the contents of the accessible portion of the
+current buffer as a string.  This is the portion between
+@code{(point-min)} and @code{(point-max)} (@pxref{Narrowing}).
+
+@example
+@group
+---------- Buffer: foo ----------
+This is the contents of buffer foo
+
+---------- Buffer: foo ----------
+
+(buffer-string)
+     @result{} "This is the contents of buffer foo
+"
+@end group
+@end example
+@end defun
+
+@node Comparing Text
+@section Comparing Text
+@cindex comparing buffer text
+
+  This function lets you compare portions of the text in a buffer, without
+copying them into strings first.
+
+@defun compare-buffer-substrings buffer1 start1 end1 buffer2 start2 end2
+This function lets you compare two substrings of the same buffer or two
+different buffers.  The first three arguments specify one substring,
+giving a buffer and two positions within the buffer.  The last three
+arguments specify the other substring in the same way.  You can use
+@code{nil} for @var{buffer1}, @var{buffer2} or both to stand for the
+current buffer.
+
+The value is negative if the first substring is less, positive if the
+first is greater, and zero if they are equal.  The absolute value of
+the result is one plus the index of the first differing characters
+within the substrings.
+
+This function ignores case when comparing characters
+if @code{case-fold-search} is non-@code{nil}.
+
+Suppose the current buffer contains the text @samp{foobarbar
+haha!rara!}; then in this example the two substrings are @samp{rbar }
+and @samp{rara!}.  The value is 2 because the first substring is greater
+at the second character.
+
+@example
+(compare-buffer-substring nil 6 11 nil 16 21)
+     @result{} 2
+@end example
+
+This function does not exist in Emacs version 18 and earlier.
+@end defun
+
+@node Insertion
+@section Insertion
+@cindex insertion of text
+@cindex text insertion
+
+  @dfn{Insertion} means adding new text to a buffer.  The inserted text
+goes at point---between the character before point and the character
+after point.
+
+  Insertion relocates markers that point at positions after the
+insertion point, so that they stay with the surrounding text
+(@pxref{Markers}).  When a marker points at the place of insertion,
+insertion normally doesn't relocate the marker, so that it points to the
+beginning of the inserted text; however, certain special functions such
+as @code{insert-before-markers} relocate such markers to point after the
+inserted text.
+
+@cindex insertion before point
+@cindex before point, insertion
+  Some insertion functions leave point before the inserted text, while
+other functions leave it after.  We call the latter insertion
+@dfn{before point}.
+
+  Insertion functions signal an error if the current buffer is
+read-only.
+
+@defun insert &rest args
+This function inserts the strings and/or characters @var{args} into the
+current buffer, at point, moving point forward.  An error is signaled
+unless all @var{args} are either strings or characters.  The value is
+@code{nil}.
+@end defun
+
+@defun insert-before-markers &rest args
+This function inserts the strings and/or characters @var{args} into the
+current buffer, at point, moving point forward.  An error is signaled
+unless all @var{args} are either strings or characters.  The value is
+@code{nil}.
+
+This function is unlike the other insertion functions in that it
+relocates markers initially pointing at the insertion point, to point
+after the inserted text.
+@end defun
+
+@defun insert-char character count
+This function inserts @var{count} instances of @var{character} into the
+current buffer before point.  The argument @var{count} must be a number,
+and @var{character} must be a character.  The value is @code{nil}.
+@c It's unfortunate that count comes second.  Not like make-string, etc.
+@end defun
+
+@defun insert-buffer-substring from-buffer-or-name &optional start end
+This function inserts a portion of buffer @var{from-buffer-or-name}
+(which must already exist) into the current buffer before point.  The
+text inserted is the region from @var{start} and @var{end}.  (These
+arguments default to the beginning and end of the accessible portion of
+that buffer.)  This function returns @code{nil}.
+
+In this example, the form is executed with buffer @samp{bar} as the
+current buffer.  We assume that buffer @samp{bar} is initially empty.
+
+@example
+@group
+---------- Buffer: foo ----------
+We hold these truths to be self-evident, that all
+---------- Buffer: foo ----------
+@end group
+
+@group
+(insert-buffer-substring "foo" 1 20)
+     @result{} nil
+
+---------- Buffer: bar ----------
+We hold these truth
+---------- Buffer: bar ----------
+@end group
+@end example
+@end defun
+
+  @xref{Sticky Properties}, for other insertion functions that inherit
+text properties from the nearby text.
+
+@node Commands for Insertion
+@section User-Level Insertion Commands
+
+  This section describes higher-level commands for inserting text,
+commands intended primarily for the user but useful also in Lisp
+programs.
+
+@deffn Command insert-buffer from-buffer-or-name
+This command inserts the entire contents of @var{from-buffer-or-name}
+(which must exist) into the current buffer after point.  It leaves
+the mark after the inserted text.  The value is @code{nil}.
+@end deffn
+
+@deffn Command self-insert-command count
+@cindex character insertion
+@cindex self-insertion
+This command inserts the last character typed @var{count} times and
+returns @code{nil}.  Most printing characters are bound to this command.
+In routine use, @code{self-insert-command} is the most frequently called
+function in Emacs, but programs rarely use it except to install it on a
+keymap.
+
+In an interactive call, @var{count} is the numeric prefix argument.
+
+This function calls @code{auto-fill-function} if the current column number
+is greater than the value of @code{fill-column} and the character
+inserted is a space (@pxref{Auto Filling}).
+
+@c Cross refs reworded to prevent overfull hbox.  --rjc 15mar92
+This function performs abbrev expansion if Abbrev mode is enabled and
+the inserted character does not have word-constituent
+syntax. (@xref{Abbrevs}, and @ref{Syntax Class Table}.)
+
+This function is also responsible for calling 
+@code{blink-paren-function} when the inserted character has close
+parenthesis syntax (@pxref{Blinking}).
+@end deffn
+
+@deffn Command newline &optional number-of-newlines 
+This command inserts newlines into the current buffer before point.
+If @var{number-of-newlines} is supplied, that many newline characters
+are inserted.
+
+@cindex newline and Auto Fill mode
+In Auto Fill mode, @code{newline} can break the preceding line if
+@var{number-of-newlines} is not supplied.  When this happens, it
+actually inserts two newlines at different places: one at point, and
+another earlier in the line.  @code{newline} does not auto-fill if
+@var{number-of-newlines} is non-@code{nil}.
+
+The value returned is @code{nil}.  In an interactive call, @var{count}
+is the numeric prefix argument.
+@end deffn
+
+@deffn Command split-line
+This command splits the current line, moving the portion of the line
+after point down vertically, so that it is on the next line directly
+below where it was before.  Whitespace is inserted as needed at the
+beginning of the lower line, using the @code{indent-to} function.
+@code{split-line} returns the position of point.
+
+Programs hardly ever use this function.
+@end deffn
+
+@defvar overwrite-mode
+This variable controls whether overwrite mode is in effect: a
+non-@code{nil} value enables the mode.  It is automatically made
+buffer-local when set in any fashion.
+@end defvar
+
+@node Deletion
+@section Deletion of Text
+
+@cindex deletion vs killing
+  Deletion means removing part of the text in a buffer, without saving
+it in the kill ring (@pxref{The Kill Ring}).  Deleted text can't be
+yanked, but can be reinserted using the undo mechanism (@pxref{Undo}).
+Some deletion functions save text in the kill ring in some cases
+but not in the usual case.
+
+  All of the deletion functions operate on the current buffer, and all
+return a value of @code{nil}.
+
+@defun erase-buffer
+This function deletes the entire text of the current buffer, leaving it
+empty.  If the buffer is read-only, it signals a @code{buffer-read-only}
+error.  Otherwise, it deletes the text without asking for any
+confirmation.  It returns @code{nil}.
+
+Normally, deleting a large amount of text from a buffer inhibits further
+auto-saving of that buffer ``because it has shrunk''.  However,
+@code{erase-buffer} does not do this, the idea being that the future
+text is not really related to the former text, and its size should not
+be compared with that of the former text.
+@end defun
+
+@deffn Command delete-region start end
+This command deletes the text in the current buffer in the region
+defined by @var{start} and @var{end}.  The value is @code{nil}.
+@end deffn
+
+@deffn Command delete-char count &optional killp
+This command deletes @var{count} characters directly after point, or
+before point if @var{count} is negative.  If @var{killp} is
+non-@code{nil}, then it saves the deleted characters in the kill ring.
+
+In an interactive call, @var{count} is the numeric prefix argument, and
+@var{killp} is the unprocessed prefix argument.  Therefore, if a prefix
+argument is supplied, the text is saved in the kill ring.  If no prefix
+argument is supplied, then one character is deleted, but not saved in
+the kill ring.
+
+The value returned is always @code{nil}.
+@end deffn
+
+@deffn Command delete-backward-char count &optional killp
+@cindex delete previous char
+This command deletes @var{count} characters directly before point, or
+after point if @var{count} is negative.  If @var{killp} is
+non-@code{nil}, then it saves the deleted characters in the kill ring.
+
+In an interactive call, @var{count} is the numeric prefix argument, and
+@var{killp} is the unprocessed prefix argument.  Therefore, if a prefix
+argument is supplied, the text is saved in the kill ring.  If no prefix
+argument is supplied, then one character is deleted, but not saved in
+the kill ring.
+
+The value returned is always @code{nil}.
+@end deffn
+
+@deffn Command backward-delete-char-untabify count &optional killp
+@cindex tab deletion
+This command deletes @var{count} characters backward, changing tabs
+into spaces.  When the next character to be deleted is a tab, it is
+first replaced with the proper number of spaces to preserve alignment
+and then one of those spaces is deleted instead of the tab.  If
+@var{killp} is non-@code{nil}, then the command saves the deleted
+characters in the kill ring.
+
+Conversion of tabs to spaces happens only if @var{count} is positive.
+If it is negative, exactly @minus{}@var{count} characters after point
+are deleted.
+
+In an interactive call, @var{count} is the numeric prefix argument, and
+@var{killp} is the unprocessed prefix argument.  Therefore, if a prefix
+argument is supplied, the text is saved in the kill ring.  If no prefix
+argument is supplied, then one character is deleted, but not saved in
+the kill ring.
+
+The value returned is always @code{nil}.
+@end deffn
+
+@node User-Level Deletion
+@section User-Level Deletion Commands
+
+  This section describes higher-level commands for deleting text,
+commands intended primarily for the user but useful also in Lisp
+programs.
+
+@deffn Command delete-horizontal-space
+@cindex deleting whitespace
+This function deletes all spaces and tabs around point.  It returns
+@code{nil}.
+
+In the following examples, we call @code{delete-horizontal-space} four
+times, once on each line, with point between the second and third
+characters on the successive line.
+
+@example
+@group
+---------- Buffer: foo ----------
+I @point{}thought
+I @point{}     thought
+We@point{} thought
+Yo@point{}u thought
+---------- Buffer: foo ----------
+@end group
+
+@group
+(delete-horizontal-space)   ; @r{Four times.}
+     @result{} nil
+
+---------- Buffer: foo ----------
+Ithought
+Ithought
+Wethought
+You thought
+---------- Buffer: foo ----------
+@end group
+@end example
+@end deffn
+
+@deffn Command delete-indentation &optional join-following-p 
+This function joins the line point is on to the previous line, deleting
+any whitespace at the join and in some cases replacing it with one
+space.  If @var{join-following-p} is non-@code{nil},
+@code{delete-indentation} joins this line to the following line
+instead.  The value is @code{nil}.
+
+If there is a fill prefix, and the second of the lines being joined
+starts with the prefix, then @code{delete-indentation} deletes the
+fill prefix before joining the lines.
+
+In the example below, point is located on the line starting
+@samp{events}, and it makes no difference if there are trailing spaces
+in the preceding line.
+
+@smallexample
+---------- Buffer: foo ----------
+When in the course of human
+@point{}    events, it becomes necessary
+---------- Buffer: foo ----------
+
+(delete-indentation)
+     @result{} nil
+
+---------- Buffer: foo ----------
+When in the course of human@point{} events, it becomes necessary
+---------- Buffer: foo ----------
+@end smallexample
+
+After the lines are joined, the function @code{fixup-whitespace} is
+responsible for deciding whether to leave a space at the junction.
+@end deffn
+
+@defun fixup-whitespace
+This function replaces all the white space surrounding point with either
+one space or no space, according to the context.  It returns @code{nil}.
+
+At the beginning or end of a line, the appropriate amount of space is
+none.  Before a character with close parenthesis syntax, or after a
+character with open parenthesis or expression-prefix syntax, no space is
+also appropriate.  Otherwise, one space is appropriate.  @xref{Syntax
+Class Table}.
+
+In the example below, @code{fixup-whitespace} is called the first time
+with point before the word @samp{spaces} in the first line.  for the
+second invocation, Point is directly after the @samp{(}.
+
+@smallexample
+@group
+---------- Buffer: foo ----------
+This has too many     @point{}spaces
+This has too many spaces at the start of (@point{}   this list)
+---------- Buffer: foo ----------
+@end group
+
+@group
+(fixup-whitespace)
+     @result{} nil
+(fixup-whitespace)
+     @result{} nil
+@end group
+
+@group
+---------- Buffer: foo ----------
+This has too many spaces
+This has too many spaces at the start of (this list)
+---------- Buffer: foo ----------
+@end group
+@end smallexample
+@end defun
+
+@deffn Command just-one-space
+@comment !!SourceFile simple.el
+This command replaces any spaces and tabs around point with a single
+space.  It returns @code{nil}.
+@end deffn
+
+@deffn Command delete-blank-lines
+This function deletes blank lines surrounding point.  If point is on a
+blank line with one or more blank lines before or after it, then all but
+one of them are deleted.  If point is on an isolated blank line, then it
+is deleted.  If point is on a nonblank line, the command deletes all
+blank lines following it.
+
+A blank line is defined as a line containing only tabs and spaces.
+
+@code{delete-blank-lines} returns @code{nil}.
+@end deffn
+
+@node The Kill Ring
+@section The Kill Ring
+@cindex kill ring
+
+  @dfn{Kill} functions delete text like the deletion functions, but save
+it so that the user can reinsert it by @dfn{yanking}.  Most of these
+functions have @samp{kill-} in their name.  By contrast, the functions
+whose names start with @samp{delete-} normally do not save text for
+yanking (though they can still be undone); these are ``deletion''
+functions.
+
+  Most of the kill commands are primarily for interactive use, and are
+not described here.  What we do describe are the functions provided for
+use in writing such commands.  You can use these functions to write
+commands for killing text.  When you need to deleting text for internal
+purposes within a Lisp function, you should normally use deletion
+functions, so as not to disturb the kill ring contents.
+@xref{Deletion}.
+
+  Killed text is saved for later yanking in the @dfn{kill ring}.  This
+is a list which holds, not just the last text kill, but a number of
+recent kills.  We call this a ``ring'' because yanking treats it as a
+cyclic order.  The list is kept in the variable @code{kill-ring}, and
+can be operated on with the usual functions for lists; there are also
+specialized functions, described in this section, which treat it as a
+ring.
+
+  Some people think this use of the word ``kill'' is unfortunate, since
+it refers to operations which specifically @emph{do not} destroy the
+entities ``killed''.  This is in sharp contrast to ordinary life, in
+which death is permanent and ``killed'' entities do not come back to
+life.  Therefore, other metaphors have been proposed.  For example, the
+term ``cut ring'' makes sense to people who, in pre-computer days, used
+scissors and paste to cut up and rearrange manuscripts.  However, it
+would be difficult to change the terminology now.
+
+@menu
+* Kill Ring Concepts::     What text looks like in the kill ring.
+* Kill Functions::         Functions that kill text.
+* Yank Commands::          Commands that access the kill ring.
+* Low Level Kill Ring::	   Functions and variables for kill ring access.
+* Internals of Kill Ring:: Variables that hold kill-ring data.
+@end menu
+
+@node Kill Ring Concepts
+@comment  node-name,  next,  previous,  up
+@subsection Kill Ring Concepts
+
+  The kill ring records killed text as strings in a list, most recent
+first.  A short kill ring, for example, might look like this:
+
+@example
+("some text" "a different piece of text" "even older text")
+@end example
+
+@noindent
+When the list reaches @code{kill-ring-max} entries in length, adding a
+new entry automatically deletes the last entry.
+
+  When kill commands are interwoven with other commands, each kill
+command makes a new entry in the kill ring.  Multiple kill commands in
+succession build up a single entry in the kill ring, which would be
+yanked as a unit.  The second and subsequent consecutive kill commands
+add text to the entry made by the first one.
+
+  For yanking, one entry in the kill ring is designated the ``front'' of
+the ring.  Some yank commands ``rotate'' the ring by designating a
+different element as the ``front.''  But this virtual rotation doesn't
+change the list itself---the most recent entry always comes first in the
+list.
+
+@node Kill Functions
+@comment  node-name,  next,  previous,  up
+@subsection Functions for Killing
+
+  @code{kill-region} is the usual subroutine for killing text.  Any
+command that calls this function is a ``kill command'' (and should
+probably have @samp{kill} in its name).  @code{kill-region} puts the
+newly killed text in a new element at the beginning of the kill ring or
+adds it to the most recent element.  It uses the @code{last-command}
+variable to determine whether the previous was a kill command, and if so
+appends the killed text to the most recent entry.
+
+@deffn Command kill-region start end
+This function kills the text in the region defined by @var{start} and
+@var{end}.  The text is deleted but saved in the kill ring.  The value
+is always @code{nil}.
+
+In an interactive call, @var{start} and @var{end} are point and
+the mark.
+
+@c Emacs 19 feature
+If the buffer is read-only, @code{kill-region} modifies the kill ring
+just the same, then signals an error without modifying the buffer.  This
+is convenient because it lets the user use all the kill commands to copy
+text into the kill ring from a read-only buffer.
+@end deffn
+
+@deffn Command copy-region-as-kill start end
+This command saves the region defined by @var{start} and @var{end} on
+the kill ring, but does not delete the text from the buffer.  It returns
+@code{nil}.  It also indicates the extent of the text copied by moving
+the cursor momentarily, or by displaying a message in the echo area.
+
+Don't call @code{copy-region-as-kill} in Lisp programs unless you aim to
+support Emacs 18.  For Emacs 19, it is better to use @code{kill-new} or
+@code{kill-append} instead.  @xref{Low Level Kill Ring}.
+@end deffn
+
+@node Yank Commands
+@comment  node-name,  next,  previous,  up
+@subsection Functions for Yanking
+
+  @dfn{Yanking} means reinserting an entry of previously killed text
+from the kill ring.
+
+@deffn Command yank &optional arg
+@cindex inserting killed text
+This command inserts before point the text in the first entry in the
+kill ring.  It positions the mark at the beginning of that text, and
+point at the end.
+
+If @var{arg} is a list (which occurs interactively when the user
+types @kbd{C-u} with no digits), then @code{yank} inserts the text as
+described above, but puts point before the yanked text and puts the mark
+after it.
+
+If @var{arg} is a number, then @code{yank} inserts the @var{arg}th most
+recently killed text---the @var{arg}th element of the kill ring list.
+
+@code{yank} does not alter the contents of the kill ring or rotate it.
+It returns @code{nil}.
+@end deffn
+
+@deffn Command yank-pop arg
+This command replaces the just-yanked entry from the kill ring with a
+different entry from the kill ring.
+
+This is allowed only immediately after a @code{yank} or another
+@code{yank-pop}.  At such a time, the region contains text that was just
+inserted by yanking.  @code{yank-pop} deletes that text and inserts in
+its place a different piece of killed text.  It does not add the deleted
+text to the kill ring, since it is already in the kill ring somewhere.
+
+If @var{arg} is @code{nil}, then the replacement text is the previous
+element of the kill ring.  If @var{arg} is numeric, the replacement is
+the @var{arg}th previous kill.  If @var{arg} is negative, a more recent
+kill is the replacement.
+
+The sequence of kills in the kill ring wraps around, so that after the
+oldest one comes the newest one, and before the newest one goes the
+oldest.
+
+The value is always @code{nil}.
+@end deffn
+
+@node Low Level Kill Ring
+@subsection Low Level Kill Ring
+
+  These functions and variables provide access to the kill ring at a lower
+level, but still convenient for use in Lisp programs.  They take care of
+interaction with X Window selections.  They do not exist in Emacs
+version 18.
+
+@defun current-kill n &optional do-not-move
+The function @code{current-kill} rotates the yanking pointer in the
+kill ring by @var{n} places, and returns the text at that place in the
+ring.
+
+If the optional second argument @var{do-not-move} is non-@code{nil},
+then @code{current-kill} doesn't alter the yanking pointer; it just
+returns the @var{n}th kill forward from the current yanking pointer.
+
+If @var{n} is zero, indicating a request for the latest kill,
+@code{current-kill} calls the value of
+@code{interprogram-paste-function} (documented below) before consulting
+the kill ring.
+@end defun
+
+@defun kill-new string
+This function puts the text @var{string} into the kill ring as a new
+entry at the front of the ring.  It discards the oldest entry if
+appropriate.  It also invokes the value of
+@code{interprogram-cut-function} (see below).
+@end defun
+
+@defun kill-append string before-p
+This function appends the text @var{string} to the first entry in the
+kill ring.  Normally @var{string} goes at the end of the entry, but if
+@var{before-p} is non-@code{nil}, it goes at the beginning.  This
+function also invokes the value of @code{interprogram-cut-function} (see
+below).
+@end defun
+
+@defvar interprogram-paste-function
+This variable provides a way of transferring killed text from other
+programs, when you are using a window system.  Its value should be
+@code{nil} or a function of no arguments.
+
+If the value is a function, @code{current-kill} calls it to get the
+``most recent kill''.  If the function returns a non-@code{nil} value,
+then that value is used as the ``most recent kill''.  If it returns
+@code{nil}, then the first element of @code{kill-ring} is used.
+
+The normal use of this hook is to get the X server's primary selection
+as the most recent kill, even if the selection belongs to another X
+client.  @xref{X Selections}.
+@end defvar
+
+@defvar interprogram-cut-function
+This variable provides a way of communicating killed text to and from
+other programs, when you are using a window system.  Its value should be
+@code{nil} or a function of one argument.
+
+If the value is a function, @code{kill-new} and @code{kill-append} call
+it with the new first element of the kill ring as an argument.
+
+The normal use of this hook is to set the X server's primary selection
+to the newly killed text.
+@end defvar
+
+@node Internals of Kill Ring
+@comment  node-name,  next,  previous,  up
+@subsection Internals of the Kill Ring
+
+  The variable @code{kill-ring} holds the kill ring contents, in the
+form of a list of strings.  The most recent kill is always at the front
+of the list. 
+
+  The @code{kill-ring-yank-pointer} variable points to a link in the
+kill ring list, whose @sc{car} is the text to yank next.  Moving
+@code{kill-ring-yank-pointer} to a different link is called
+@dfn{rotating the kill ring}; we say it identifies the ``front'' of the
+ring.  We call the kill ring a ``ring'' because the functions that move
+the yank pointer wrap around from the end of the list to the beginning,
+or vice-versa.  Rotation of the kill ring is virtual; it does not change
+the value of @code{kill-ring}.
+
+  Both @code{kill-ring} and @code{kill-ring-yank-pointer} are Lisp
+variables whose values are normally lists.  The word ``pointer'' in the
+name of the @code{kill-ring-yank-pointer} indicates that the variable's
+purpose is to identify one element of the list for use by the next yank
+command.
+
+  The value of @code{kill-ring-yank-pointer} is always @code{eq} to one
+of the links in the kill ring list.  The element it identifies is the
+@sc{car} of that link.  Kill commands, which change the kill ring, also
+set this variable from @code{kill-ring}.  The effect is to rotate the
+ring so that the newly killed text is at front.
+
+  Here is a diagram that shows the variable @code{kill-ring-yank-pointer}
+pointing to the second entry in the kill ring @code{("some text" "a
+different piece of text" "yet older text")}.  
+
+@example
+@group
+kill-ring       kill-ring-yank-pointer
+  |               |
+  |     ___ ___    --->  ___ ___      ___ ___
+   --> |___|___|------> |___|___|--> |___|___|--> nil
+         |                |            |            
+         |                |            |            
+         |                |             -->"yet older text" 
+         |                |
+         |                 --> "a different piece of text" 
+         |
+          --> "some text"
+@end group
+@end example
+
+@noindent
+This state of affairs might occur after @kbd{C-y} (@code{yank})
+immediately followed by @kbd{M-y} (@code{yank-pop}).
+
+@defvar kill-ring
+This variable holds list of killed text sequences, most recently killed
+first.
+@end defvar
+
+@defvar kill-ring-yank-pointer
+This variable's value indicates which element of the kill ring is at the
+``front'' of the ring for yanking.  More precisely, the value is a tail
+of the value of @code{kill-ring}, and its @sc{car} is the kill string
+that @kbd{C-y} should yank.
+@end defvar
+
+@defopt kill-ring-max
+The value of this variable is the maximum length to which the kill
+ring can grow, before elements are thrown away at the end.  The default
+value for @code{kill-ring-max} is 30.
+@end defopt
+
+@node Undo
+@comment  node-name,  next,  previous,  up
+@section Undo
+@cindex redo
+
+  Most buffers have an @dfn{undo list} which records all changes made to
+the buffer's text so that they can be undone.  (The buffers which don't
+have one are usually special-purpose buffers for which Emacs assumes
+that undoing is not useful.)  All the primitives which modify the text
+in the buffer automatically add elements to the front of the undo list,
+which is in the variable @code{buffer-undo-list}.
+
+@defvar buffer-undo-list
+This variable's value is the undo list of the current buffer.
+A value of @code{t} disables the recording of undo information.
+@end defvar
+
+Here are the kinds of elements an undo list can have:
+
+@table @code
+@item @var{integer}
+This kind of element records a previous value of point.  Ordinary cursor
+motion does not get any sort of undo record, but deletion commands use
+these entries to record where point was before the command.
+
+@item (@var{beg} . @var{end})
+This kind of element indicates how to delete text that was inserted.
+Upon insertion, the text occupied the range @var{beg}--@var{end} in the 
+buffer.
+
+@item (@var{pos} . @var{deleted})
+This kind of element indicates how to reinsert text that was deleted.
+The deleted text itself is the string @var{deleted}.  The place to
+reinsert it is @var{pos}.
+
+@item (t @var{high} . @var{low})
+This kind of element indicates that an unmodified buffer became
+modified.  The elements @var{high} and @var{low} are two integers, each
+recording 16 bits of the visited file's modification time as of when it
+was previously visited or saved.  @code{primitive-undo} uses those
+values to determine whether to mark the buffer as unmodified once again;
+it does so only if the file's modification time matches those numbers.
+
+@item (nil @var{property} @var{value} @var{beg} . @var{end})
+This kind of element records a change in a text property.
+Here's how you might undo the change:
+
+@example
+(put-text-property @var{beg} @var{end} @var{property} @var{value})
+@end example
+
+@item nil
+This element is a boundary.  The elements between two boundaries are
+called a @dfn{change group}; normally, each change group corresponds to
+one keyboard command, and undo commands normally undo an entire group as
+a unit.
+@end table
+
+@defun undo-boundary
+This function places a boundary element in the undo list.  The undo
+command stops at such a boundary, and successive undo commands undo
+to earlier and earlier boundaries.  This function returns @code{nil}.
+
+The editor command loop automatically creates an undo boundary between
+keystroke commands.  Thus, each undo normally undoes the effects of one
+command.  Calling this function explicitly is useful for splitting the
+effects of a command into more than one unit.  For example,
+@code{query-replace} calls this function after each replacement so that
+the user can undo individual replacements one by one.
+@end defun
+
+@defun primitive-undo count list
+This is the basic function for undoing elements of an undo list.
+It undoes the first @var{count} elements of @var{list}, returning
+the rest of @var{list}.  You could write this function in Lisp,
+but it is convenient to have it in C.
+
+@code{primitive-undo} adds elements to the buffer's undo list when it
+changes the buffer.  Undo commands avoid confusion by saving the undo
+list value at the beginning of a sequence of undo operations.  Then the
+undo operations use and update the saved value.  The new elements added
+by undoing are not part of the saved value, so they don't interfere with
+continuing to undo.
+@end defun
+
+@node Maintaining Undo
+@section Maintaining Undo Lists
+
+  This section describes how to enable and disable undo information for
+a given buffer.  It also explains how the undo list is truncated
+automatically so it doesn't get too big.
+
+  Recording of undo information in a newly created buffer is normally
+enabled to start with; but if the buffer name starts with a space, the
+undo recording is initially disabled.  You can explicitly enable or
+disable undo recording with the following two functions, or by setting
+@code{buffer-undo-list} yourself.
+
+@deffn Command buffer-enable-undo &optional buffer-or-name
+This command enables recording undo information for buffer
+@var{buffer-or-name}, so that subsequent changes can be undone.  If no
+argument is supplied, then the current buffer is used.  This function
+does nothing if undo recording is already enabled in the buffer.  It
+returns @code{nil}.
+
+In an interactive call, @var{buffer-or-name} is the current buffer.
+You cannot specify any other buffer.
+@end deffn
+
+@defun buffer-disable-undo &optional buffer
+@defunx buffer-flush-undo &optional buffer
+@cindex disable undo
+This function discards the undo list of @var{buffer}, and disables
+further recording of undo information.  As a result, it is no longer
+possible to undo either previous changes or any subsequent changes.  If
+the undo list of @var{buffer} is already disabled, this function
+has no effect.
+
+This function returns @code{nil}.  It cannot be called interactively.
+
+The name @code{buffer-flush-undo} is not considered obsolete, but the
+preferred name @code{buffer-disable-undo} is new as of Emacs versions
+19.
+@end defun
+
+  As editing continues, undo lists get longer and longer.  To prevent
+them from using up all available memory space, garbage collection trims
+them back to size limits you can set.  (For this purpose, the ``size''
+of an undo list measures the cons cells that make up the list, plus the
+strings of deleted text.)  Two variables control the range of acceptable
+sizes: @code{undo-limit} and @code{undo-strong-limit}.
+
+@defvar undo-limit
+This is the soft limit for the acceptable size of an undo list.  The
+change group at which this size is exceeded is the last one kept.
+@end defvar
+
+@defvar undo-strong-limit
+The upper limit for the acceptable size of an undo list.  The change
+group at which this size is exceeded is discarded itself (along with all
+subsequent changes).  There is one exception: garbage collection always
+keeps the very latest change group no matter how big it is.
+@end defvar
+
+@node Filling
+@comment  node-name,  next,  previous,  up
+@section Filling
+@cindex filling, explicit
+
+  @dfn{Filling} means adjusting the lengths of lines (by moving the line
+breaks) so that they are nearly (but no greater than) a specified
+maximum width.  Additionally, lines can be @dfn{justified}, which means
+that spaces are inserted between words to make the line exactly the
+specified width.  The width is controlled by the variable
+@code{fill-column}.  For ease of reading, lines should be no longer than
+70 or so columns.
+
+  You can use Auto Fill mode (@pxref{Auto Filling}) to fill text
+automatically as you insert it, but changes to existing text may leave
+it improperly filled.  Then you must fill the text explicitly.
+
+  Most of the functions in this section return values that are not
+meaningful.
+
+@deffn Command fill-paragraph justify-flag
+@cindex filling a paragraph
+This command fills the paragraph at or after point.  If
+@var{justify-flag} is non-@code{nil}, each line is justified as well.
+It uses the ordinary paragraph motion commands to find paragraph
+boundaries.  @xref{Paragraphs,,, emacs, The Emacs Manual}.
+@end deffn
+
+@deffn Command fill-region start end &optional justify-flag
+This command fills each of the paragraphs in the region from @var{start}
+to @var{end}.  It justifies as well if @var{justify-flag} is
+non-@code{nil}.
+
+The variable @code{paragraph-separate} controls how to distinguish
+paragraphs.  @xref{Standard Regexps}.
+@end deffn
+
+@deffn Command fill-individual-paragraphs start end &optional justify-flag mail-flag
+This command fills each paragraph in the region according to its
+individual fill prefix.  Thus, if the lines of a paragraph were indented
+with spaces, the filled paragraph will remain indented in the same
+fashion.
+
+The first two arguments, @var{start} and @var{end}, are the beginning
+and end of the region to be filled.  The third and fourth arguments,
+@var{justify-flag} and @var{mail-flag}, are optional.  If
+@var{justify-flag} is non-@code{nil}, the paragraphs are justified as
+well as filled.  If @var{mail-flag} is non-@code{nil}, it means the
+function is operating on a mail message and therefore should not fill
+the header lines.
+
+Ordinarily, @code{fill-individual-paragraphs} regards each change in
+indentation as starting a new paragraph.  If
+@code{fill-individual-varying-indent} is non-@code{nil}, then only
+separator lines separate paragraphs.  That mode can handle paragraphs
+with extra indentation on the first line.
+@end deffn
+
+@defopt fill-individual-varying-indent
+This variable alters the action of @code{fill-individual-paragraphs} as
+described above.
+@end defopt
+
+@deffn Command fill-region-as-paragraph start end &optional justify-flag
+This command considers a region of text as a paragraph and fills it.  If
+the region was made up of many paragraphs, the blank lines between
+paragraphs are removed.  This function justifies as well as filling when
+@var{justify-flag} is non-@code{nil}.  In an interactive call, any
+prefix argument requests justification.
+
+In Adaptive Fill mode, which is enabled by default,
+@code{fill-region-as-paragraph} on an indented paragraph when there is
+no fill prefix uses the indentation of the second line of the paragraph
+as the fill prefix.
+@end deffn
+
+@deffn Command justify-current-line
+This command inserts spaces between the words of the current line so
+that the line ends exactly at @code{fill-column}.  It returns
+@code{nil}.
+@end deffn
+
+@defopt fill-column
+This buffer-local variable specifies the maximum width of filled
+lines.  Its value should be an integer, which is a number of columns.
+All the filling, justification and centering commands are affected by
+this variable, including Auto Fill mode (@pxref{Auto Filling}).
+
+As a practical matter, if you are writing text for other people to
+read, you should set @code{fill-column} to no more than 70.  Otherwise
+the line will be too long for people to read comfortably, and this can
+make the text seem clumsy.
+@end defopt
+
+@defvar default-fill-column
+The value of this variable is the default value for @code{fill-column} in
+buffers that do not override it.  This is the same as
+@code{(default-value 'fill-column)}.
+
+The default value for @code{default-fill-column} is 70.
+@end defvar
+
+@node Auto Filling
+@comment  node-name,  next,  previous,  up
+@section Auto Filling
+@cindex filling, automatic
+@cindex Auto Fill mode
+
+  Auto Fill mode is a minor mode which fills lines automatically as text
+as inserted.  This section describes the hook and the two variables used
+by Auto Fill mode.  For a description of functions that you can call
+explicitly to fill and justify existing text, see @ref{Filling}.
+
+@defvar auto-fill-function
+The value of this variable should be a function (of no arguments) to
+be called after self-inserting a space at a column beyond
+@code{fill-column}.  It may be @code{nil}, in which case nothing
+special is done.
+
+The value of @code{auto-fill-function} is @code{do-auto-fill} when
+Auto-Fill mode is enabled.  That is a function whose sole purpose is to
+implement the usual strategy for breaking a line.
+
+@quotation
+In older Emacs versions, this variable was named @code{auto-fill-hook},
+but since it is not called with the standard convention for hooks, it
+was renamed to @code{auto-fill-function} in version 19.
+@end quotation
+@end defvar
+
+@node Sorting
+@section Sorting Text
+@cindex sorting text
+
+  The sorting functions described in this section all rearrange text in
+a buffer.  This is in contrast to the function @code{sort}, which
+rearranges the order of the elements of a list (@pxref{Rearrangement}).
+The values returned by these functions are not meaningful.
+
+@defun sort-subr reverse nextrecfun endrecfun &optional startkeyfun endkeyfun
+This function is the general text sorting routine that divides a buffer
+into records and sorts them.  Most of the commands in this section use
+this function.
+
+To understand how @code{sort-subr} works, consider the whole accessible
+portion of the buffer as being divided into disjoint pieces called
+@dfn{sort records}.  The records may or may not be contiguous; they may
+not overlap.  A portion of each sort record (perhaps all of it) is
+designated as the sort key.  Sorting rearranges the records in order by
+their sort keys.
+
+Usually, the records are rearranged in order of ascending sort key.
+If the first argument to the @code{sort-subr} function, @var{reverse},
+is non-@code{nil}, the sort records are rearranged in order of
+descending sort key.
+
+The next four arguments to @code{sort-subr} are functions that are
+called to move point across a sort record.  They are called many times
+from within @code{sort-subr}.
+
+@enumerate
+@item
+@var{nextrecfun} is called with point at the end of a record.  This
+function moves point to the start of the next record.  The first record
+is assumed to start at the position of point when @code{sort-subr} is
+called.  Therefore, you should usually move point to the beginning of
+the buffer before calling @code{sort-subr}.
+
+This function can indicate there are no more sort records by leaving
+point at the end of the buffer.
+
+@item
+@var{endrecfun} is called with point within a record.  It moves point to
+the end of the record.
+
+@item
+@var{startkeyfun} is called to move point from the start of a record to
+the start of the sort key.  This argument is optional; if it is omitted,
+the whole record is the sort key.  If supplied, the function should
+either return a non-@code{nil} value to be used as the sort key, or
+return @code{nil} to indicate that the sort key is in the buffer
+starting at point.  In the latter case, @var{endkeyfun} is called to
+find the end of the sort key.
+
+@item
+@var{endkeyfun} is called to move point from the start of the sort key
+to the end of the sort key.  This argument is optional.  If
+@var{startkeyfun} returns @code{nil} and this argument is omitted (or
+@code{nil}), then the sort key extends to the end of the record.  There
+is no need for @var{endkeyfun} if @var{startkeyfun} returns a
+non-@code{nil} value.
+@end enumerate
+
+As an example of @code{sort-subr}, here is the complete function
+definition for @code{sort-lines}:
+
+@example
+@group
+;; @r{Note that the first two lines of doc string}
+;; @r{are effectively one line when viewed by a user.}
+(defun sort-lines (reverse beg end)
+  "Sort lines in region alphabetically.
+Called from a program, there are three arguments:
+@end group
+@group
+REVERSE (non-nil means reverse order),
+and BEG and END (the region to sort)."
+  (interactive "P\nr")
+  (save-restriction
+    (narrow-to-region beg end)
+    (goto-char (point-min))
+    (sort-subr reverse
+               'forward-line
+               'end-of-line)))
+@end group
+@end example
+
+Here @code{forward-line} moves point to the start of the next record,
+and @code{end-of-line} moves point to the end of record.  We do not pass
+the arguments @var{startkeyfun} and @var{endkeyfun}, because the entire
+record is used as the sort key.
+
+The @code{sort-paragraphs} function is very much the same, except that
+its @code{sort-subr} call looks like this:
+
+@example
+@group
+(sort-subr reverse
+           (function 
+            (lambda () 
+              (skip-chars-forward "\n \t\f")))
+           'forward-paragraph)
+@end group
+@end example
+@end defun
+
+@deffn Command sort-regexp-fields reverse record-regexp key-regexp start end
+This command sorts the region between @var{start} and @var{end}
+alphabetically as specified by @var{record-regexp} and @var{key-regexp}.
+If @var{reverse} is a negative integer, then sorting is in reverse
+order.
+
+Alphabetical sorting means that two sort keys are compared by
+comparing the first characters of each, the second characters of each,
+and so on.  If a mismatch is found, it means that the sort keys are
+unequal; the sort key whose character is less at the point of first
+mismatch is the lesser sort key.  The individual characters are compared
+according to their numerical values.  Since Emacs uses the @sc{ASCII}
+character set, the ordering in that set determines alphabetical order.
+@c version 19 change
+
+The value of the @var{record-regexp} argument specifies how to divide
+the buffer into sort records.  At the end of each record, a search is
+done for this regular expression, and the text that matches it is the
+next record.  For example, the regular expression @samp{^.+$}, which
+matches lines with at least one character besides a newline, would make
+each such line into a sort record.  @xref{Regular Expressions}, for a
+description of the syntax and meaning of regular expressions.
+
+The value of the @var{key-regexp} argument specifies what part of each
+record is the sort key.  The @var{key-regexp} could match the whole
+record, or only a part.  In the latter case, the rest of the record has
+no effect on the sorted order of records, but it is carried along when
+the record moves to its new position.
+
+The @var{key-regexp} argument can refer to the text matched by a
+subexpression of @var{record-regexp}, or it can be a regular expression
+on its own.
+
+If @var{key-regexp} is:
+
+@table @asis
+@item @samp{\@var{digit}}
+then the text matched by the @var{digit}th @samp{\(...\)} parenthesis
+grouping in @var{record-regexp} is the sort key.
+
+@item @samp{\&}
+then the whole record is the sort key.
+
+@item a regular expression
+then @code{sort-regexp-fields} searches for a match for the regular
+expression within the record.  If such a match is found, it is the sort
+key.  If there is no match for @var{key-regexp} within a record then
+that record is ignored, which means its position in the buffer is not
+changed.  (The other records may move around it.)
+@end table
+
+For example, if you plan to sort all the lines in the region by the
+first word on each line starting with the letter @samp{f}, you should
+set @var{record-regexp} to @samp{^.*$} and set @var{key-regexp} to
+@samp{\<f\w*\>}.  The resulting expression looks like this:
+
+@example
+@group
+(sort-regexp-fields nil "^.*$" "\\<f\\w*\\>"
+                    (region-beginning)
+                    (region-end))
+@end group
+@end example
+
+If you call @code{sort-regexp-fields} interactively, it prompts for
+@var{record-regexp} and @var{key-regexp} in the minibuffer.
+@end deffn
+
+@deffn Command sort-lines reverse start end
+This command alphabetically sorts lines in the region between
+@var{start} and @var{end}.  If @var{reverse} is non-@code{nil}, the sort
+is in reverse order.
+@end deffn
+
+@deffn Command sort-paragraphs reverse start end
+This command alphabetically sorts paragraphs in the region between
+@var{start} and @var{end}.  If @var{reverse} is non-@code{nil}, the sort
+is in reverse order.
+@end deffn
+
+@deffn Command sort-pages reverse start end
+This command alphabetically sorts pages in the region between
+@var{start} and @var{end}.  If @var{reverse} is non-@code{nil}, the sort
+is in reverse order.
+@end deffn
+
+@deffn Command sort-fields field start end
+This command sorts lines in the region between @var{start} and
+@var{end}, comparing them alphabetically by the @var{field}th field
+of each line.  Fields are separated by whitespace and numbered starting
+from 1.  If @var{field} is negative, sorting is by the
+@w{@minus{}@var{field}th} field from the end of the line.  This command
+is useful for sorting tables.
+@end deffn
+
+@deffn Command sort-numeric-fields field start end
+This command sorts lines in the region between @var{start} and
+@var{end}, comparing them numerically by the @var{field}th field of each
+line.  The specified field must contain a number in each line of the
+region.  Fields are separated by whitespace and numbered starting from
+1.  If @var{field} is negative, sorting is by the
+@w{@minus{}@var{field}th} field from the end of the line.  This command
+is useful for sorting tables.
+@end deffn
+
+@deffn Command sort-columns reverse &optional beg end
+This command sorts the lines in the region between @var{beg} and
+@var{end}, comparing them alphabetically by a certain range of columns.
+The column positions of @var{beg} and @var{end} bound the range of
+columns to sort on.
+
+If @var{reverse} is non-@code{nil}, the sort is in reverse order.
+
+One unusual thing about this command is that the entire line
+containing position @var{beg}, and the entire line containing position
+@var{end}, are included in the region sorted.
+
+Note that @code{sort-columns} uses the @code{sort} utility program,
+and so cannot work properly on text containing tab characters.  Use
+@kbd{M-x @code{untabify}} to convert tabs to spaces before sorting.
+
+The @code{sort-columns} function did not work on VMS prior to Emacs 19.
+@end deffn
+
+@node Columns
+@comment  node-name,  next,  previous,  up
+@section Counting Columns
+@cindex columns
+@cindex counting columns
+@cindex horizontal position
+
+  The column functions convert between a character position (counting
+characters from the beginning of the buffer) and a column position
+(counting screen characters from the beginning of a line).
+
+  A character counts according to the number of columns it occupies on
+the screen.  This means control characters count as occupying 2 or 4
+columns, depending upon the value of @code{ctl-arrow}, and tabs count as
+occupying a number of columns that depends on the value of
+@code{tab-width} and on the column where the tab begins.  @xref{Usual Display}.
+
+  Column number computations ignore the width of the window and the
+amount of horizontal scrolling.  Consequently, a column value can be
+arbitrarily high.  The first (or leftmost) column is numbered 0.
+
+@defun current-column
+This function returns the horizontal position of point, measured in
+columns, counting from 0 at the left margin.  The column position is the
+sum of the widths of all the displayed representations of the characters
+between the start of the current line and point.
+
+For an example of using @code{current-column}, see the description of
+@code{count-lines} in @ref{Text Lines}.
+@end defun
+
+@defun move-to-column column &optional force
+This function moves point to @var{column} in the current line.  The
+calculation of @var{column} takes into account the widths of the
+displayed representations of the characters between the start of the
+line and point.
+
+If column @var{column} is beyond the end of the line, point moves to the
+end of the line.  If @var{column} is negative, point moves to the
+beginning of the line.
+
+If it is impossible to move to column @var{column} because that is in
+the middle of a multicolumn character such as a tab, point moves to the
+end of that character.  However, if @var{force} is non-@code{nil}, and
+@var{column} is in the middle of a tab, then @code{move-to-column}
+converts the tab into spaces so that it can move precisely to column
+@var{column}.  Other multicolumn characters can cause anomalies despite
+@var{force}, since there is no way to split them.
+
+The argument @var{force} also has an effect if the line isn't long
+enough to reach column @var{column}; in that case, it says to indent at
+the end of the line to reach that column.
+
+If @var{column} is not an integer, an error is signaled.
+
+The return value is the column number actually moved to.
+@end defun
+
+@node Indentation
+@section Indentation
+@cindex indentation
+
+  The indentation functions are used to examine, move to, and change
+whitespace that is at the beginning of a line.  Some of the functions
+can also change whitespace elsewhere on a line.  Columns and indentation
+count from zero at the left margin.
+
+@menu
+* Primitive Indent::      Functions used to count and insert indentation.
+* Mode-Specific Indent::  Customize indentation for different modes.
+* Region Indent::         Indent all the lines in a region.
+* Relative Indent::       Indent the current line based on previous lines.
+* Indent Tabs::           Adjustable, typewriter-like tab stops.
+* Motion by Indent::      Move to first non-blank character.
+@end menu
+
+@node Primitive Indent
+@subsection Indentation Primitives
+
+  This section describes the primitive functions used to count and
+insert indentation.  The functions in the following sections use these
+primitives.
+
+@defun current-indentation
+@comment !!Type Primitive Function
+@comment !!SourceFile indent.c
+This function returns the indentation of the current line, which is
+the horizontal position of the first nonblank character.  If the
+contents are entirely blank, then this is the horizontal position of the
+end of the line.
+@end defun
+
+@deffn Command indent-to column &optional minimum
+@comment !!Type Primitive Function
+@comment !!SourceFile indent.c
+This function indents from point with tabs and spaces until
+@var{column} is reached.  If @var{minimum} is specified and
+non-@code{nil}, then at least that many spaces are inserted even if this
+requires going beyond @var{column}.  The value is the column at which
+the inserted indentation ends.
+@end deffn
+
+@defopt indent-tabs-mode
+@comment !!SourceFile indent.c
+If this variable is non-@code{nil}, indentation functions can insert
+tabs as well as spaces.  Otherwise, they insert only spaces.  Setting
+this variable automatically makes it local to the current buffer.
+@end defopt
+
+@node Mode-Specific Indent
+@subsection Indentation Controlled by Major Mode
+
+  An important function of each major mode is to customize the @key{TAB}
+key to indent properly for the language being edited.  This section
+describes the mechanism of the @key{TAB} key and how to control it.
+The functions in this section return unpredictable values.
+
+@defvar indent-line-function
+This variable's value is the function to be used by @key{TAB} (and
+various commands) to indent the current line.  The command
+@code{indent-according-to-mode} does no more than call this function.
+
+In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
+mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
+In Fundamental mode, Text mode, and many other modes with no standard
+for indentation, the value is @code{indent-to-left-margin} (which is the
+default value).
+@end defvar
+
+@deffn Command indent-according-to-mode
+This command calls the function in @code{indent-line-function} to
+indent the current line in a way appropriate for the current major mode.
+@end deffn
+
+@deffn Command indent-for-tab-command
+This command calls the function in @code{indent-line-function} to indent
+the current line; except that if that function is
+@code{indent-to-left-margin}, it calls @code{insert-tab} instead.  (That
+is a trivial command which inserts a tab character.)
+@end deffn
+
+@defvar left-margin
+This variable is the column to which the default
+@code{indent-line-function} will indent.  (That function is
+@code{indent-to-left-margin}.)  In Fundamental mode, @key{LFD} indents
+to this column.  This variable automatically becomes buffer-local when
+set in any fashion.
+@end defvar
+
+@defun indent-to-left-margin
+This is the default @code{indent-line-function}, used in Fundamental
+mode, Text mode, etc.  Its effect is to adjust the indentation at the
+beginning of the current line to the value specified by the variable
+@code{left-margin}.  This may involve either inserting or deleting
+whitespace.
+@end defun
+
+@deffn Command newline-and-indent
+@comment !!SourceFile simple.el
+This function inserts a newline, then indents the new line (the one
+following the newline just inserted) according to the major mode.
+
+It does indentation by calling the current @code{indent-line-function}.
+In programming language modes, this is the same thing @key{TAB} does,
+but in some text modes, where @key{TAB} inserts a tab,
+@code{newline-and-indent} indents to the column specified by
+@code{left-margin}.
+@end deffn
+
+@deffn Command reindent-then-newline-and-indent
+@comment !!SourceFile simple.el
+This command reindents the current line, inserts a newline at point,
+and then reindents the new line (the one following the newline just
+inserted).
+
+This command does indentation on both lines according to the current
+major mode, by calling the current value of @code{indent-line-function}.
+In programming language modes, this is the same thing @key{TAB} does,
+but in some text modes, where @key{TAB} inserts a tab,
+@code{reindent-then-newline-and-indent} indents to the column specified
+by @code{left-margin}.
+@end deffn
+
+@node Region Indent
+@subsection Indenting an Entire Region
+
+  This section describes commands which indent all the lines in the
+region.  They return unpredictable values.
+
+@deffn Command indent-region start end to-column
+This command indents each nonblank line starting between @var{start}
+(inclusive) and @var{end} (exclusive).  If @var{to-column} is
+@code{nil}, @code{indent-region} indents each nonblank line by calling
+the current mode's indentation function, the value of
+@code{indent-line-function}.
+
+If @var{to-column} is non-@code{nil}, it should be an integer
+specifying the number of columns of indentation; then this function
+gives each line exactly that much indentation, by either adding or
+deleting whitespace.
+
+If there is a fill prefix, @code{indent-region} indents each line
+by making it start with the fill prefix.
+@end deffn
+
+@defvar indent-region-function
+The value of this variable is a function that can be used by
+@code{indent-region} as a short cut.  You should design the function so
+that it will produce the same results as indenting the lines of the
+region one by one, but presumably faster.
+
+If the value is @code{nil}, there is no short cut, and
+@code{indent-region} actually works line by line.
+
+A short cut function is useful in modes such as C mode and Lisp mode,
+where the @code{indent-line-function} must scan from the beginning of
+the function: applying it to each line would be quadratic in time.  The
+short cut can update the scan information as it moves through the lines
+indenting them; this takes linear time.  In a mode where indenting a
+line individually is fast, there is no need for a short cut.
+
+@code{indent-region} with a non-@code{nil} argument has a different
+meaning and does not use this variable.
+@end defvar
+
+@deffn Command indent-rigidly start end count
+@comment !!SourceFile indent.el
+This command indents all lines starting between @var{start}
+(inclusive) and @var{end} (exclusive) sideways by @var{count} columns.
+This ``preserves the shape'' of the affected region, moving it as a
+rigid unit.  Consequently, this command is useful not only for indenting
+regions of unindented text, but also for indenting regions of formatted
+code.
+
+For example, if @var{count} is 3, this command adds 3 columns of
+indentation to each of the lines beginning in the region specified.
+
+In Mail mode, @kbd{C-c C-y} (@code{mail-yank-original}) uses
+@code{indent-rigidly} to indent the text copied from the message being
+replied to.
+@end deffn
+
+@defun indent-code-rigidly start end columns &optional nochange-regexp
+This is like @code{indent-rigidly}, except that it doesn't alter lines
+that start within strings or comments.
+
+In addition, it doesn't alter a line if @var{nochange-regexp} matches at
+the beginning of the line (if @var{nochange-regexp} is non-@code{nil}).
+@end defun
+
+@node Relative Indent
+@subsection Indentation Relative to Previous Lines
+
+  This section describes two commands which indent the current line
+based on the contents of previous lines.
+
+@deffn Command indent-relative &optional unindented-ok
+This command inserts whitespace at point, extending to the same
+column as the next @dfn{indent point} of the previous nonblank line.  An
+indent point is a non-whitespace character following whitespace.  The
+next indent point is the first one at a column greater than the current
+column of point.  For example, if point is underneath and to the left of
+the first non-blank character of a line of text, it moves to that column
+by inserting whitespace.
+
+If the previous nonblank line has no next indent point (i.e., none at a
+great enough column position), @code{indent-relative} either does
+nothing (if @var{unindented-ok} is non-@code{nil}) or calls
+@code{tab-to-tab-stop}.  Thus, if point is underneath and to the right
+of the last column of a short line of text, this command ordinarily
+moves point to the next tab stop by inserting whitespace.
+
+The return value of @code{indent-relative} is unpredictable.
+
+In the following example, point is at the beginning of the second
+line:
+
+@example
+@group
+            This line is indented twelve spaces.
+@point{}The quick brown fox jumped.
+@end group
+@end example
+
+@noindent
+Evaluation of the expression @code{(indent-relative nil)} produces the
+following:
+
+@example
+@group
+            This line is indented twelve spaces.
+            @point{}The quick brown fox jumped.
+@end group
+@end example
+
+  In this example, point is between the @samp{m} and @samp{p} of
+@samp{jumped}:
+
+@example
+@group
+            This line is indented twelve spaces.
+The quick brown fox jum@point{}ped.
+@end group
+@end example
+
+@noindent
+Evaluation of the expression @code{(indent-relative nil)} produces the
+following:
+
+@example
+@group
+            This line is indented twelve spaces.
+The quick brown fox jum  @point{}ped.
+@end group
+@end example
+@end deffn
+
+@deffn Command indent-relative-maybe
+@comment !!SourceFile indent.el
+This command indents the current line like the previous nonblank line.
+It calls @code{indent-relative} with @code{t} as the @var{unindented-ok}
+argument.  The return value is unpredictable.
+
+If the previous nonblank line has no indent points beyond the current
+column, this command does nothing.
+@end deffn
+
+@node Indent Tabs
+@comment  node-name,  next,  previous,  up
+@subsection Adjustable ``Tab Stops''
+@cindex tabs stops for indentation
+
+  This section explains the mechanism for user-specified ``tab stops''
+and the mechanisms which use and set them.  The name ``tab stops'' is
+used because the feature is similar to that of the tab stops on a
+typewriter.  The feature works by inserting an appropriate number of
+spaces and tab characters to reach the next tab stop column; it does not
+affect the display of tab characters in the buffer (@pxref{Usual
+Display}).  Note that the @key{TAB} character as input uses this tab
+stop feature only in a few major modes, such as Text mode.
+
+@deffn Command tab-to-tab-stop
+This command inserts spaces or tabs up to the next tab stop column
+defined by @code{tab-stop-list}.  It searches the list for an element
+greater than the current column number, and uses that element as the
+column to indent to.  It does nothing if no such element is found.
+@end deffn
+
+@defopt tab-stop-list
+This variable is the list of tab stop columns used by
+@code{tab-to-tab-stops}.  The elements should be integers in increasing
+order.  The tab stop columns need not be evenly spaced.
+
+Use @kbd{M-x edit-tab-stops} to edit the location of tab stops
+interactively.
+@end defopt
+
+@node Motion by Indent
+@subsection Indentation-Based Motion Commands
+
+  These commands, primarily for interactive use, act based on the
+indentation in the text.
+
+@deffn Command back-to-indentation 
+@comment !!SourceFile simple.el
+This command moves point to the first non-whitespace character in the
+current line (which is the line in which point is located).  It returns
+@code{nil}.
+@end deffn
+
+@deffn Command backward-to-indentation arg
+@comment !!SourceFile simple.el
+This command moves point backward @var{arg} lines and then to the
+first nonblank character on that line.  It returns @code{nil}.
+@end deffn
+
+@deffn Command forward-to-indentation arg
+@comment !!SourceFile simple.el
+This command moves point forward @var{arg} lines and then to the first
+nonblank character on that line.  It returns @code{nil}.
+@end deffn
+
+@node Case Changes
+@comment  node-name,  next,  previous,  up
+@section Case Changes
+@cindex case changes
+
+  The case change commands described here work on text in the current
+buffer.  @xref{Character Case}, for case conversion commands that work
+on strings and characters.  @xref{Case Table}, for how to customize
+which characters are upper or lower case and how to convert them.
+
+@deffn Command capitalize-region start end
+This function capitalizes all words in the region defined by
+@var{start} and @var{end}.  To capitalize means to convert each word's
+first character to upper case and convert the rest of each word to lower
+case.  The function returns @code{nil}.
+
+If one end of the region is in the middle of a word, the part of the
+word within the region is treated as an entire word.
+
+When @code{capitalize-region} is called interactively, @var{start} and
+@var{end} are point and the mark, with the smallest first.
+
+@example
+@group
+---------- Buffer: foo ----------
+This is the contents of the 5th foo.
+---------- Buffer: foo ----------
+@end group
+
+@group
+(capitalize-region 1 44)
+@result{} nil
+
+---------- Buffer: foo ----------
+This Is The Contents Of The 5th Foo.
+---------- Buffer: foo ----------
+@end group
+@end example
+@end deffn
+
+@deffn Command downcase-region start end
+This function converts all of the letters in the region defined by
+@var{start} and @var{end} to lower case.  The function returns
+@code{nil}.
+
+When @code{downcase-region} is called interactively, @var{start} and
+@var{end} are point and the mark, with the smallest first.
+@end deffn
+
+@deffn Command upcase-region start end
+This function converts all of the letters in the region defined by
+@var{start} and @var{end} to upper case.  The function returns
+@code{nil}.
+
+When @code{upcase-region} is called interactively, @var{start} and
+@var{end} are point and the mark, with the smallest first.
+@end deffn
+
+@deffn Command capitalize-word count
+This function capitalizes @var{count} words after point, moving point
+over as it does.  To capitalize means to convert each word's first
+character to upper case and convert the rest of each word to lower case.
+If @var{count} is negative, the function capitalizes the
+@minus{}@var{count} previous words but does not move point.  The value
+is @code{nil}.
+
+If point is in the middle of a word, the part of word the before point
+(if moving forward) or after point (if operating backward) is ignored.
+The rest is treated as an entire word.
+
+When @code{capitalize-word} is called interactively, @var{count} is
+set to the numeric prefix argument.
+@end deffn
+
+@deffn Command downcase-word count
+This function converts the @var{count} words after point to all lower
+case, moving point over as it does.  If @var{count} is negative, it
+converts the @minus{}@var{count} previous words but does not move point.
+The value is @code{nil}.
+
+When @code{downcase-word} is called interactively, @var{count} is set
+to the numeric prefix argument.
+@end deffn
+
+@deffn Command upcase-word count
+This function converts the @var{count} words after point to all upper
+case, moving point over as it does.  If @var{count} is negative, it
+converts the @minus{}@var{count} previous words but does not move point.
+The value is @code{nil}.
+
+When @code{upcase-word} is called interactively, @var{count} is set to
+the numeric prefix argument.
+@end deffn
+
+@node Text Properties
+@section Text Properties
+@cindex text properties
+@cindex attributes of text
+@cindex properties of text
+
+  Each character position in a buffer or a string can have a @dfn{text
+property list}, much like the property list of a symbol (@pxref{Property
+Lists}).  The properties belong to a particular character at a
+particular place, such as, the letter @samp{T} at the beginning of this
+sentence or the first @samp{o} in @samp{foo}---if the same character
+occurs in two different places, the two occurrences generally have
+different properties.
+
+  Each property has a name and a value.  Both of these can be any Lisp
+object, but the name is normally a symbol.  The usual way to access the
+property list is to specify a name and ask what value corresponds to it.
+
+  If a character has a @code{category} property, we call it the
+@dfn{category} of the character.  It should be a symbol.  The properties
+of the symbol serve as defaults for the properties of the character.
+
+  Copying text between strings and buffers preserves the properties
+along with the characters; this includes such diverse functions as
+@code{substring}, @code{insert}, and @code{buffer-substring}.
+
+@menu
+* Examining Properties::	Looking at the properties of one character.
+* Changing Properties::		Setting the properties of a range of text.
+* Property Search::		Searching for where a property changes value.
+* Special Properties::		Particular properties with special meanings.
+* Sticky Properties::           How inserted text gets properties from
+                                  neighboring text.
+* Saving Properties::           Saving text properties in files, and reading
+                                  them back.
+* Not Intervals::		Why text properties do not use
+				  Lisp-visible text intervals.
+@end menu
+
+@node Examining Properties
+@subsection Examining Text Properties
+
+  The simplest way to examine text properties is to ask for the value of
+a particular property of a particular character.  For that, use
+@code{get-text-property}.  Use @code{text-properties-at} to get the
+entire property list of a character.  @xref{Property Search}, for
+functions to examine the properties of a number of characters at once.
+
+  These functions handle both strings and buffers.  Keep in mind that
+positions in a string start from 0, whereas positions in a buffer start
+from 1.
+
+@defun get-text-property pos prop &optional object
+This function returns the value of the @var{prop} property of the
+character after position @var{pos} in @var{object} (a buffer or
+string).  The argument @var{object} is optional and defaults to the
+current buffer.
+
+If there is no @var{prop} property strictly speaking, but the character
+has a category which is a symbol, then @code{get-text-property} returns
+the @var{prop} property of that symbol.
+@end defun
+
+@defun get-char-property pos prop &optional object
+This function is like @code{get-text-property}, except that it checks
+overlays first and then text properties.  @xref{Overlays}.
+
+The argument @var{object} may be a string, a buffer, or a window.  If it
+is a window, then the buffer displayed in that window is used for text
+properties and overlays, but only the overlays active for that window
+are considered.  If @var{object} is a buffer, then all overlays in that
+buffer are considered, as well as text properties.  If @var{object} is a
+string, only text properties are considered, since strings never have
+overlays.
+@end defun
+
+@defun text-properties-at position &optional object
+This function returns the entire property list of the character at
+@var{position} in the string or buffer @var{object}.  If @var{object} is
+@code{nil}, it defaults to the current buffer.
+@end defun
+
+@node Changing Properties
+@subsection Changing Text Properties
+
+  The primitives for changing properties apply to a specified range of
+text.  The function @code{set-text-properties} (see end of section) sets
+the entire property list of the text in that range; more often, it is
+useful to add, change, or delete just certain properties specified by
+name.
+
+  Since text properties are considered part of the buffer's contents, and
+can affect how the buffer looks on the screen, any change in the text
+properties is considered a buffer modification.  Buffer text property
+changes are undoable (@pxref{Undo}).
+
+@defun add-text-properties start end props &optional object
+This function modifies the text properties for the text between
+@var{start} and @var{end} in the string or buffer @var{object}.  If
+@var{object} is @code{nil}, it defaults to the current buffer.
+
+The argument @var{props} specifies which properties to change.  It
+should have the form of a property list (@pxref{Property Lists}): a list
+whose elements include the property names followed alternately by the
+corresponding values.
+
+The return value is @code{t} if the function actually changed some
+property's value; @code{nil} otherwise (if @var{props} is @code{nil} or
+its values agree with those in the text).
+
+For example, here is how to set the @code{comment} and @code{face}
+properties of a range of text:
+
+@example
+(add-text-properties @var{start} @var{end}
+                     '(comment t face highlight))
+@end example
+@end defun
+
+@defun put-text-property start end prop value &optional object
+This function sets the @var{prop} property to @var{value} for the text
+between @var{start} and @var{end} in the string or buffer @var{object}.
+If @var{object} is @code{nil}, it defaults to the current buffer.
+@end defun
+
+@defun remove-text-properties start end props &optional object
+This function deletes specified text properties from the text between
+@var{start} and @var{end} in the string or buffer @var{object}.  If
+@var{object} is @code{nil}, it defaults to the current buffer.
+
+The argument @var{props} specifies which properties to delete.  It
+should have the form of a property list (@pxref{Property Lists}): a list
+whose elements are property names alternating with corresponding values.
+But only the names matter---the values that accompany them are ignored.
+For example, here's how to remove the @code{face} property.
+
+@example
+(remove-text-properties @var{start} @var{end} '(face nil))
+@end example
+
+The return value is @code{t} if the function actually changed some
+property's value; @code{nil} otherwise (if @var{props} is @code{nil} or
+if no character in the specified text had any of those properties).
+@end defun
+
+@defun set-text-properties start end props &optional object
+This function completely replaces the text property list for the text
+between @var{start} and @var{end} in the string or buffer @var{object}.
+If @var{object} is @code{nil}, it defaults to the current buffer.
+
+The argument @var{props} is the new property list.  It should be a list
+whose elements are property names alternating with corresponding values.
+
+After @code{set-text-properties} returns, all the characters in the
+specified range have identical properties.
+
+If @var{props} is @code{nil}, the effect is to get rid of all properties
+from the specified range of text.  Here's an example:
+
+@example
+(set-text-properties @var{start} @var{end} nil)
+@end example
+@end defun
+
+@node Property Search
+@subsection Property Search Functions
+
+In typical use of text properties, most of the time several or many
+consecutive characters have the same value for a property.  Rather than
+writing your programs to examine characters one by one, it is much
+faster to process chunks of text that have the same property value.
+
+Here are functions you can use to do this.  In all cases, @var{object}
+defaults to the current buffer.
+
+For high performance, it's very important to use the @var{limit}
+argument to these functions, especially the ones that search for a
+single property---otherwise, they may spend a long time considering
+changes in other properties while scanning to the end of the buffer.
+
+@defun next-property-change pos &optional object limit
+The function scans the text forward from position @var{pos} in the
+string or buffer @var{object} till it finds a change in some text
+property, then returns the position of the change.  In other words, it
+returns the position of the first character beyond @var{pos} whose
+properties are not identical to those of the character just after
+@var{pos}.
+
+If @var{limit} is non-@code{nil}, then the scan ends at position
+@var{limit}.  If there is no property change before that point, 
+@code{next-property-change} returns @var{limit}.
+
+The value is @code{nil} if the properties remain unchanged all the way
+to the end of @var{object} and @var{limit} is @code{nil}.
+
+If the value is non-@code{nil}, it is a position greater than or equal
+to @var{pos}.  The value equals @var{pos} only when @var{limit} equals
+@var{pos}.
+
+Here is an example of how to scan the buffer by chunks of text within
+which all properties are constant:
+
+@smallexample
+(while (not (eobp))
+  (let ((plist (text-properties-at (point)))
+        (next-change
+         (or (next-property-change (point) (current-buffer))
+             (point-max))))
+    @r{Process text from point to @var{next-change}@dots{}}
+    (goto-char next-change)))
+@end smallexample
+@end defun
+
+@defun next-single-property-change pos prop &optional object limit
+The function scans the text forward from position @var{pos} in the
+string or buffer @var{object} till it finds a change in the @var{prop}
+property, then returns the position of the change.  In other words, it
+returns the position of the first character beyond @var{pos} whose
+@var{prop} property differs from that of the character just after
+@var{pos}.
+
+If @var{limit} is non-@code{nil}, then the scan ends at position
+@var{limit}.  If there is no property change before that point, 
+@code{next-single-property-change} returns @var{limit}.
+
+The value is @code{nil} if the property remains unchanged all the way to
+the end of @var{object} and @var{limit} is @code{nil}.  If the value is
+non-@code{nil}, it is a position greater than or equal to @var{pos}; it
+equals @var{pos} only if @var{limit} equals @var{pos}.
+@end defun
+
+@defun previous-property-change pos &optional object limit
+This is like @code{next-property-change}, but scans back from @var{pos}
+instead of forward.  If the value is non-@code{nil}, it is a position
+less than or equal to @var{pos}; it equals @var{pos} only if @var{limit}
+equals @var{pos}.
+
+Remember that a position is always between two characters; the position
+returned by this function is between two characters with different
+properties.
+@end defun
+
+@defun previous-single-property-change pos prop &optional object limit
+This is like @code{next-property-change}, but scans back from @var{pos}
+instead of forward.  If the value is non-@code{nil}, it is a position
+less than or equal to @var{pos}; it equals @var{pos} only if @var{limit}
+equals @var{pos}.
+@end defun
+
+@defun text-property-any start end prop value &optional object
+This function returns non-@code{nil} if at least one character between
+@var{start} and @var{end} has a property @var{prop} whose value is
+@var{value}.  More precisely, it returns the position of the first such
+character.  Otherwise, it returns @code{nil}.
+
+The optional fifth argument, @var{object}, specifies the string or
+buffer to scan.  Positions are relative to @var{object}.  The default
+for @var{object} is the current buffer.
+@end defun
+
+@defun text-property-not-all start end prop value &optional object
+This function returns non-@code{nil} if at least one character between
+@var{start} and @var{end} has a property @var{prop} whose value differs
+from @var{value}.  More precisely, it returns the position of the
+first such character.  Otherwise, it returns @code{nil}.
+
+The optional fifth argument, @var{object}, specifies the string or
+buffer to scan.  Positions are relative to @var{object}.  The default
+for @var{object} is the current buffer.
+@end defun
+
+@node Special Properties
+@subsection Properties with Special Meanings
+
+@table @code
+@cindex category of text character
+@kindex category @r{(text property)}
+@item category
+If a character has a @code{category} property, we call it the
+@dfn{category} of the character.  It should be a symbol.  The properties
+of the symbol serve as defaults for the properties of the character.
+
+@item face
+@cindex face codes of text
+@kindex face @r{(text property)}
+You can use the property @code{face} to control the font and color of
+text.  @xref{Faces}, for more information.  This feature is temporary;
+in the future, we may replace it with other ways of specifying how to
+display text.
+
+@item mouse-face
+@kindex mouse-face @r{(text property)}
+The property @code{mouse-face} is used instead of @code{face} when the
+mouse is on or near the character.  For this purpose, ``near'' means
+that all text between the character and where the mouse is have the same
+@code{mouse-face} property value.
+
+@item local-map
+@cindex keymap of character
+@kindex local-map @r{(text property)}
+You can specify a different keymap for a portion of the text by means
+of a @code{local-map} property.  The property's value, for the character
+after point, replaces the buffer's local map.  @xref{Active Keymaps}.
+
+@item read-only
+@cindex read-only character
+@kindex read-only @r{(text property)}
+If a character has the property @code{read-only}, then modifying that
+character is not allowed.  Any command that would do so gets an error.
+
+Insertion next to a read-only character is an error if inserting
+ordinary text there would inherit the @code{read-only} property due to
+stickiness.  Thus, you can control permission to insert next to
+read-only text by controlling the stickiness.  @xref{Sticky Properties}.
+
+Since changing properties counts as modifying the buffer, it is not
+possible to remove a @code{read-only} property unless you know the
+special trick: bind @code{inhibit-read-only} to a non-@code{nil} value
+and then remove the property.  @xref{Read Only Buffers}.
+
+@item invisible
+@kindex invisible @r{(text property)}
+A non-@code{nil} @code{invisible} property means a character does not
+appear on the screen.  This works much like selective display.  Details
+of this feature are likely to change in future versions, so check the
+@file{etc/NEWS} file in the version you are using.
+
+@item modification-hooks
+@cindex change hooks for a character
+@cindex hooks for changing a character
+@kindex modification-hooks @r{(text property)}
+If a character has the property @code{modification-hooks}, then its
+value should be a list of functions; modifying that character calls all
+of those functions.  Each function receives two arguments: the beginning
+and end of the part of the buffer being modified.  Note that if a
+particular modification hook function appears on several characters
+being modified by a single primitive, you can't predict how many times
+the function will be called.
+
+@item insert-in-front-hooks
+@itemx insert-behind-hooks
+@kindex insert-in-front-hooks @r{(text property)}
+@kindex insert-behind-hooks @r{(text property)}
+Assuming insertion is allowed, it then calls the functions
+listed in the @code{insert-in-front-hooks} property of the following
+character and in the @code{insert-behind-hooks} property of the
+preceding character.  These functions receive two arguments, the
+beginning and end of the inserted text.
+
+See also @ref{Change Hooks}, for other hooks that are called
+when you change text in a buffer.
+
+@item point-entered
+@itemx point-left
+@cindex hooks for motion of point
+@kindex point-entered @r{(text property)}
+@kindex point-left @r{(text property)}
+The special properties @code{point-entered} and @code{point-left}
+record hook functions that report motion of point.  Each time point
+moves, Emacs compares these two property values:
+
+@itemize @bullet
+@item
+the @code{point-left} property of the character after the old location,
+and
+@item
+the @code{point-entered} property of the character after the new
+location.
+@end itemize
+
+@noindent
+If these two values differ, each of them is called (if not @code{nil})
+with two arguments: the old value of point, and the new one.
+
+The same comparison is made for the characters before the old and new
+locations.  The result may be to execute two @code{point-left} functions
+(which may be the same function) and/or two @code{point-entered}
+functions (which may be the same function).  The @code{point-left}
+functions are always called before the @code{point-entered} functions.
+
+A primitive function may examine characters at various positions
+without moving point to those positions.  Only an actual change in the
+value of point runs these hook functions.
+@end table
+
+@defvar inhibit-point-motion-hooks
+When this variable is non-@code{nil}, @code{point-left} and
+@code{point-entered} hooks are not run.
+@end defvar
+
+@node Sticky Properties
+@subsection Stickiness of Text Properties
+@cindex sticky text properties
+@cindex inheritance of text properties
+
+  Self-inserting characters normally take on the same properties as the
+preceding character.  This is called @dfn{inheritance} of properties.
+
+  In a Lisp program, you can do insertion with inheritance or without,
+depending on your choice of insertion primitive.  The ordinary text
+insertion functions such as @code{insert} do not inherit any properties.
+They insert text with precisely the properties of the string being
+inserted, and no others.  This is correct for programs that copy text
+from one context to another---for example, into or out of the kill
+ring.  To insert with inheritance, use the special primatives described
+in this section.
+
+  When you do insertion with inheritance, @emph{which} properties are
+inherited depends on two specific properties: @code{front-sticky} and
+@code{rear-nonsticky}.
+
+  Insertion after a character inherits those of its properties that are
+@dfn{rear-sticky}.  Insertion before a character inherits those of its
+properties that are @dfn{front-sticky}.  By default, a text property is
+rear-sticky but not front-sticky.  Thus, the default is to inherit all
+the properties of the preceding character, and nothing from the
+following character.  You can request different behavior by specifying
+the stickiness of certain properties.
+
+  If a character's @code{front-sticky} property is @code{t}, then all
+its properties are front-sticky.  If the @code{front-sticky} property is
+a list, then the sticky properties of the character are those whose
+names are in the list.  For example, if a character has a
+@code{front-sticky} property whose value is @code{(face read-only)},
+then insertion before the character can inherit its @code{face} property
+and its @code{read-only} property, but no others.
+
+  The @code{rear-nonsticky} works the opposite way.  Every property is
+rear-sticky by default, so the @code{rear-nonsticky} property says which
+properties are @emph{not} rear-sticky.  If a character's
+@code{rear-nonsticky} property is @code{t}, then none of its properties
+are rear-sticky.  If the @code{rear-nonsticky} property is a list,
+properties are rear-sticky @emph{unless} their names are in the list.
+
+  When you insert text with inheritance, it inherits all the rear-sticky
+properties of the preceding character, and all the front-sticky
+properties of the following character.  The previous character's
+properties take precedence when both sides offer different sticky values
+for the same property.
+
+  Here are the functions that insert text with inheritance of properties:
+
+@defun insert-and-inherit &rest strings
+Insert the strings @var{strings}, just like the function @code{insert},
+but inherit any sticky properties from the adjoining text.
+@end defun
+
+@defun insert-before-markers-and-inherit &rest strings
+Insert the strings @var{strings}, just like the function
+@code{insert-before-markers}, but inherit any sticky properties from the
+adjoining text.
+@end defun
+
+@node Saving Properties
+@subsection Saving Text Properites in Files
+@cindex text properties in files
+@cindex saving text properties
+
+  You can save text properties in files, and restore text properties
+when inserting the files, using these two hooks: 
+
+@defvar write-region-annotation-functions
+This variable's value is a list of functions for @code{write-region} to
+run to encode text properties in some fashion as annotations to the text
+being written in the file.  @xref{Writing to Files}.
+
+Each function in the list is called with two arguments: the start and
+end of the region to be written.  These functions should not alter the
+contents of the buffer.  Instead, they should return lists indicating
+annotations to write in the file in addition to the text in the
+buffer.
+
+Each function should return a list of elements of the form
+@code{(@var{position} . @var{string})}, where @var{position} is an
+integer specifying the relative position in the text to be written, and
+@var{string} is the annotation to add there.
+
+Each list returned by one of these functions must be already sorted in
+increasing order by @var{position}.  If there is more than one function,
+@code{write-region} merges the lists destructively into one sorted list.
+
+When @code{write-region} actually writes the text from the buffer to the
+file, it intermixes the specified annotations at the corresponding
+positions.  All this takes place without modifying the buffer.
+@end defvar
+
+@defvar after-insert-file-functions
+This variable holds a list of functions for @code{insert-file-contents}
+to call after inserting a file's contents.  These functions should scan
+the inserted text for annotations, and convert them to the text
+properties they stand for.
+
+Each function receives one argument, the length of the inserted text;
+point indicates the start of that text.  The function should scan that
+text for annotations, delete them, and create the text properties that
+the annotations specify.  The function should return the updated length
+of the inserted text, as it stands after those changes.  The value
+returned by one function becomes the argument to the next function.
+
+These functions should always return with point at the beginning of
+the inserted text.
+
+The intended use of @code{after-insert-file-functions} is for converting
+some sort of textual annotations into actual text properties.  But other
+uses may be possible.
+@end defvar
+
+We invite users to write Lisp programs to store and retrieve text
+properties in files, using these hooks, and thus to experiment with
+various data formats and find good ones.  Eventually we hope users 
+will produce good, general extensions we can install in Emacs.
+
+We suggest not trying to handle arbitrary Lisp objects as property
+names or property values---because a program that general is probably
+difficult to write, and slow.  Instead, choose a set of possible data
+types that are reasonably flexible, and not too hard to encode.
+
+@node Not Intervals
+@subsection Why Text Properties are not Intervals
+@cindex intervals
+
+  Some editors that support adding attributes to text in the buffer do
+so by letting the user specify ``intervals'' within the text, and adding
+the properties to the intervals.  Those editors permit the user or the
+programmer to determine where individual intervals start and end.  We
+deliberately provided a different sort of interface in Emacs Lisp to
+avoid certain paradoxical behavior associated with text modification.
+
+  If the actual subdivision into intervals is meaningful, that means you
+can distinguish between a buffer that is just one interval with a
+certain property, and a buffer containing the same text subdivided into
+two intervals, both of which have that property.
+
+  Suppose you take the buffer with just one interval and kill part of
+the text.  The text remaining in the buffer is one interval, and the
+copy in the kill ring (and the undo list) becomes a separate interval.
+Then if you yank back the killed text, you get two intervals with the
+same properties.  Thus, editing does not preserve the distinction
+between one interval and two.
+
+  Suppose we ``fix'' this problem by coalescing the two intervals when
+the text is inserted.  That works fine if the buffer originally was a
+single interval.  But suppose instead that we have two adjacent
+intervals with the same properties, and we kill the text of one interval
+and yank it back.  The same interval-coalescence feature that rescues
+the other case causes trouble in this one: after yanking, we have just
+one interval.  One again, editing does not preserve the distinction
+between one interval and two.
+
+  Insertion of text at the border between intervals also raises
+questions that have no satisfactory answer.
+
+  However, it is easy to arrange for editing to behave consistently for
+questions of the form, ``What are the properties of this character?''
+So we have decided these are the only questions that make sense; we have
+not implemented asking questions about where intervals start or end.
+
+  In practice, you can usually use the property search functions in
+place of explicit interval boundaries.  You can think of them as finding
+the boundaries of intervals, assuming that intervals are always
+coalesced whenever possible.  @xref{Property Search}.
+
+  Emacs also provides explicit intervals as a presentation feature; see
+@ref{Overlays}.
+
+@node Substitution
+@section Substituting for a Character Code
+
+  The following functions replace characters within a specified region
+based on their character codes.
+
+@defun subst-char-in-region start end old-char new-char &optional noundo
+@cindex replace characters
+This function replaces all occurrences of the character @var{old-char}
+with the character @var{new-char} in the region of the current buffer
+defined by @var{start} and @var{end}.
+
+@cindex Outline mode
+@cindex undo avoidance
+If @var{noundo} is non-@code{nil}, then @code{subst-char-in-region}
+does not record the change for undo and does not mark the buffer as
+modified.  This feature is useful for changes which are not considered
+significant, such as when Outline mode changes visible lines to
+invisible lines and vice versa.
+
+@code{subst-char-in-region} does not move point and returns
+@code{nil}.
+
+@example
+@group
+---------- Buffer: foo ----------
+This is the contents of the buffer before.
+---------- Buffer: foo ----------
+@end group
+
+@group
+(subst-char-in-region 1 20 ?i ?X)
+     @result{} nil
+
+---------- Buffer: foo ----------
+ThXs Xs the contents of the buffer before.
+---------- Buffer: foo ----------
+@end group
+@end example
+@end defun
+
+@defun translate-region start end table
+This function applies a translation table to the characters in the
+buffer between positions @var{start} and @var{end}.
+
+The translation table @var{table} is a string; @code{(aref @var{table}
+@var{ochar})} gives the translated character corresponding to
+@var{ochar}.  If the length of @var{table} is less than 256, any
+characters with codes larger than the length of @var{table} are not
+altered by the translation.
+
+The return value of @code{translate-region} is the number of
+characters which were actually changed by the translation.  This does
+not count characters which were mapped into themselves in the
+translation table.
+
+This function is available in Emacs versions 19 and later.
+@end defun
+
+@node Registers
+@section Registers
+@cindex registers
+
+  A register is a sort of variable used in Emacs editing that can hold a
+marker, a string, a rectangle, a window configuration (of one frame), or
+a frame configuration (of all frames).  Each register is named by a
+single character.  All characters, including control and meta characters
+(but with the exception of @kbd{C-g}), can be used to name registers.
+Thus, there are 255 possible registers.  A register is designated in
+Emacs Lisp by a character which is its name.
+
+  The functions in this section return unpredictable values unless
+otherwise stated.
+@c Will change in version 19
+
+@defvar register-alist
+This variable is an alist of elements of the form @code{(@var{name} .
+@var{contents})}.  Normally, there is one element for each Emacs
+register that has been used.
+
+The object @var{name} is a character (an integer) identifying the
+register.  The object @var{contents} is a string, marker, or list
+representing the register contents.  A string represents text stored in
+the register.  A marker represents a position.  A list represents a
+rectangle; its elements are strings, one per line of the rectangle.
+@end defvar
+
+@defun get-register reg
+This function returns the contents of the register
+@var{reg}, or @code{nil} if it has no contents.
+@end defun
+
+@defun set-register reg value
+This function sets the contents of register @var{reg} to @var{value}.
+A register can be set to any value, but the other register functions
+expect only certain data types.  The return value is @var{value}.
+@end defun
+
+@deffn Command view-register reg
+This command displays what is contained in register @var{reg}.
+@end deffn
+
+@ignore
+@deffn Command point-to-register reg
+This command stores both the current location of point and the current
+buffer in register @var{reg} as a marker.
+@end deffn
+
+@deffn Command jump-to-register reg
+@deffnx Command register-to-point reg
+@comment !!SourceFile register.el
+This command restores the status recorded in register @var{reg}.
+
+If @var{reg} contains a marker, it moves point to the position stored in
+the marker.  Since both the buffer and the location within the buffer
+are stored by the @code{point-to-register} function, this command can
+switch you to another buffer.
+
+If @var{reg} contains a window configuration or a frame configuration.
+@code{jump-to-register} restores that configuration.
+@end deffn
+@end ignore
+
+@deffn Command insert-register reg &optional beforep
+This command inserts contents of register @var{reg} into the current
+buffer.
+
+Normally, this command puts point before the inserted text, and the
+mark after it.  However, if the optional second argument @var{beforep}
+is non-@code{nil}, it puts the mark before and point after.
+You can pass a non-@code{nil} second argument @var{beforep} to this
+function interactively by supplying any prefix argument.
+
+If the register contains a rectangle, then the rectangle is inserted
+with its upper left corner at point.  This means that text is inserted
+in the current line and underneath it on successive lines.
+
+If the register contains something other than saved text (a string) or
+a rectangle (a list), currently useless things happen.  This may be
+changed in the future.
+@end deffn
+
+@ignore
+@deffn Command copy-to-register reg start end &optional delete-flag
+This command copies the region from @var{start} to @var{end} into
+register @var{reg}.  If @var{delete-flag} is non-@code{nil}, it deletes
+the region from the buffer after copying it into the register.
+@end deffn
+
+@deffn Command prepend-to-register reg start end &optional delete-flag
+This command prepends the region from @var{start} to @var{end} into
+register @var{reg}.  If @var{delete-flag} is non-@code{nil}, it deletes
+the region from the buffer after copying it to the register.
+@end deffn
+
+@deffn Command append-to-register reg start end &optional delete-flag
+This command appends the region from @var{start} to @var{end} to the
+text already in register @var{reg}.  If @var{delete-flag} is
+non-@code{nil}, it deletes the region from the buffer after copying it
+to the register.
+@end deffn
+
+@deffn Command copy-rectangle-to-register reg start end &optional delete-flag
+This command copies a rectangular region from @var{start} to @var{end}
+into register @var{reg}.  If @var{delete-flag} is non-@code{nil}, it
+deletes the region from the buffer after copying it to the register.
+@end deffn
+
+@deffn Command window-configuration-to-register reg
+This function stores the window configuration of the selected frame in
+register @var{reg}.
+@end deffn
+
+@deffn Command frame-configuration-to-register reg
+This function stores the current frame configuration in register
+@var{reg}.
+@end deffn
+@end ignore
+
+@node Change Hooks
+@section Change Hooks
+@cindex change hooks
+@cindex hooks for text changes
+
+  These hook variables let you arrange to take notice of all changes in
+all buffers (or in a particular buffer, if you make them buffer-local).
+See also @ref{Special Properties}, for how to detect changes to specific
+parts of the text.
+
+  The functions you use in these hooks should save and restore the match
+data if they do anything that uses regular expressions; otherwise, they
+will interfere in bizarre ways with the editing operations that call
+them.
+
+@defvar before-change-function
+If this variable is non-@code{nil}, then it should be a function; the
+function is called before any buffer modification.  Its arguments are
+the beginning and end of the region that is about to change,
+represented as integers.  The buffer that is about to change is always
+the current buffer.
+@end defvar
+
+@defvar after-change-function
+If this variable is non-@code{nil}, then it should be a function; the
+function is called after any buffer modification.  It receives three
+arguments: the beginning and end of the region just changed, and the
+length of the text that existed before the change.  (To get the
+current length, subtract the region beginning from the region end.)
+All three arguments are integers.  The buffer that's about to change
+is always the current buffer.
+@end defvar
+
+Both of these variables are temporarily bound to @code{nil} during the
+time that either of these hooks is running.  This means that if one of
+these functions changes the buffer, that change won't run these
+functions.  If you do want the hook function to run recursively,
+design your hook functions to bind these variables back to their usual
+values.
+
+@defvar first-change-hook
+This variable is a normal hook that is run whenever a buffer is changed
+that was previously in the unmodified state.
+@end defvar
+
+  The variables described in this section are meaningful only starting
+with Emacs version 19.
