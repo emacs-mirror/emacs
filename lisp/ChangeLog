@@ -1,3 +1,7 @@
+2000-01-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* progmodes/ebnf2ps.el (ebnf-syntax): Doc fix
+
 2000-01-28  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl-macs.el: Remove dotimes, dolist.
