@@ -1,4 +1,8 @@
-2005-02-03  Stefan  <monnier@iro.umontreal.ca>
+2005-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (ispell-internal-change-dictionary): Fix problem
+	in recent changes, where the ispell process was repeatedly
+	killed & restarted.
 
 	* international/mule-cmds.el (set-locale-environment): Set file-name
 	coding system to utf-8 on Darwin systems.
