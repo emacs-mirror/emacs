@@ -370,6 +370,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     unbind_to (count1, Qnil);
   }
 
+  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
+  if (inherit_input_method)
+    current_buffer->enable_multibyte_characters = enable_multibyte;
+
   /* Put in the initial input.  */
   if (!NILP (initial))
     {
@@ -387,10 +391,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   /* Turn on an input method stored in INPUT_METHOD if any.  */
   if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
     call1 (Qactivate_input_method, input_method);
-
-  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
-  if (inherit_input_method)
-    current_buffer->enable_multibyte_characters = enable_multibyte;
 
   if (!NILP (current_buffer->enable_multibyte_characters)
       && ! STRING_MULTIBYTE (minibuf_prompt))
