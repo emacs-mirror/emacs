@@ -95,25 +95,23 @@ translation-table named `utf-translation-table-for-encode'")
 (define-translation-table 'utf-translation-table-for-decode)
 
 
-(defvar ucs-mule-cjk-to-unicode (make-hash-table :test 'eq :size 43000
-						 :rehash-size 1000)
+(defvar ucs-mule-cjk-to-unicode (make-hash-table :test 'eq)
   "Hash table mapping Emacs CJK character sets to Unicode code points.
 
 If `utf-translate-cjk' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-encode'.")
 
-(define-translation-hash-table 'utf-subst-table-for-encode 
-  (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
+(define-translation-hash-table 'utf-subst-table-for-encode
+  ucs-mule-cjk-to-unicode)
 
-(defvar ucs-unicode-to-mule-cjk (make-hash-table :test 'eq :size 43000
-						 :rehash-size 1000)
+(defvar ucs-unicode-to-mule-cjk (make-hash-table :test 'eq)
   "Hash table mapping Unicode code points to Emacs CJK character sets.
 
 If `utf-translate-cjk' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-decode'.")
 
 (define-translation-hash-table 'utf-subst-table-for-decode
-  (make-hash-table :test 'eq :size 21500 :rehash-size 200))
+  ucs-unicode-to-mule-cjk)
 
 (mapc
  (lambda (pair)
@@ -194,9 +192,9 @@ Setting this variable outside customize has no effect."
 	      (lambda (key val)
 		(if (and (>= key 128) val)
 		    (aset char-coding-system-table key
-			  (delq 'mule-utf-8
-				(delq 'mule-utf-16-le
-				      (delq 'mule-utf-16-be
+			  (remq 'mule-utf-8
+				(remq 'mule-utf-16-le
+				      (remq 'mule-utf-16-be
 					    (aref char-coding-system-table
 						  key)))))))
 	      utf-defragmentation-table)))
@@ -222,7 +220,16 @@ The tables are large (over 40000 entries), so this option is not the
 default.  Also, installing them may be rather slow."
   :set (lambda (s v)
 	 (if v
+	     ;; Fixme: Allow the use of the CJK charsets to be
+	     ;; customized by reordering and possible omission.
 	     (progn
+	       ;; Redefine them with realistic initial sizes and a
+	       ;; smallish rehash size to avoid wasting significant
+	       ;; space after they're built.
+	       (setq ucs-mule-cjk-to-unicode
+		     (make-hash-table :test 'eq :size 43000 :rehash-size 1000)
+		     ucs-unicode-to-mule-cjk
+		     (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
 	       ;; Load the files explicitly, to avoid having to keep
 	       ;; around the large tables they contain (as well as the
 	       ;; ones which get built).
@@ -262,9 +269,9 @@ default.  Also, installing them may be rather slow."
 	    (lambda (k v)
 	      (if (gethash k ucs-mule-cjk-to-unicode)
 		  (aset char-coding-system-table k
-			(delq 'mule-utf-8
-			      (delq 'mule-utf-16-le
-				    (delq 'mule-utf-16-be v))))))
+			(remq 'mule-utf-8
+			      (remq 'mule-utf-16-le
+				    (remq 'mule-utf-16-be v))))))
 	    char-coding-system-table)
 	   (define-translation-hash-table 'utf-subst-table-for-decode
 	     (make-hash-table :test 'eq))
