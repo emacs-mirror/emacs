@@ -1,24 +1,20 @@
 /*
- * 
- *    Copyright (C) 1986, 1988, 1990, 1991 Free Software Foundation, Inc.
- * 
- * This file is part of GNU Emacs.
- * 
- * GNU Emacs is distributed in the hope that it will be useful,
- * but without any warranty.  No author or distributor
- * accepts responsibility to anyone for the consequences of using it
- * or for whether it serves any particular purpose or works at all,
- * unless he says so in writing.
- * 
- * Everyone is granted permission to copy, modify and redistribute
- * GNU Emacs, but only under the conditions described in the
- * document "GNU Emacs copying permission notice".   An exact copy
- * of the document is supposed to have been given to you along with
- * GNU Emacs so that you can know how you may redistribute it all.
- * It should be in a file named COPYING.  Among other things, the
- * copyright notice and this notice must be preserved on all copies.
- * 
- *
+   Copyright (C) 1986, 1988, 1990, 1991 Free Software Foundation, Inc.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/*
  * For Emacs in SunView/Sun-Windows: (supported by Sun Unix v3.2 or greater)
  * Insert a notifier filter-function to convert all useful input 
  * to "key" sequences that emacs can understand.  See: Emacstool(1).
