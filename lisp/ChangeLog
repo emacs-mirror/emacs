@@ -1,3 +1,7 @@
+2000-03-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/cl-macs.el (cl-do-arglist): Don't add (setq :<key> ':<key>).
+
 2000-03-16  Dave Love  <fx@gnu.org>
 
 	* progmodes/f90.el (f90): Put custom group under `languages', not
