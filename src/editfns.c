@@ -1001,7 +1001,7 @@ and don't mark the buffer as really changed.")
   stop = XINT (end);
   look = XINT (fromchar);
 
-  modify_region (pos, stop);
+  modify_region (current_buffer, pos, stop);
   if (! NILP (noundo))
     {
       if (MODIFF - 1 == current_buffer->save_modified)
@@ -1051,7 +1051,7 @@ for the character with code N.  Returns the number of characters changed.")
 
   pos = XINT (start);
   stop = XINT (end);
-  modify_region (pos, stop);
+  modify_region (current_buffer, pos, stop);
 
   cnt = 0;
   for (; pos < stop; ++pos)

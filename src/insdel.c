@@ -473,9 +473,19 @@ del_range (from, to)
   signal_after_change (from, numdel, 0);
 }
 
-modify_region (start, end)
+/* Call this if you're about to change the region of BUFFER from START
+   to END.  This checks the read-only properties of the region, calls
+   the necessary modification hooks, and warns the next redisplay that
+   it should pay attention to that area.  */
+modify_region (buffer, start, end)
+     struct buffer *buffer;
      int start, end;
 {
+  struct buffer *old_buffer = current_buffer;
+
+  if (buffer != old_buffer)
+    set_buffer_internal (buffer);
+
   prepare_to_modify_buffer (start, end);
 
   if (start - 1 < beg_unchanged || unchanged_modified == MODIFF)
@@ -484,6 +494,9 @@ modify_region (start, end)
       || unchanged_modified == MODIFF)
     end_unchanged = Z - end;
   MODIFF++;
+
+  if (buffer != old_buffer)
+    set_buffer_internal (old_buffer);
 }
 
 /* Check that it is okay to modify the buffer between START and END.

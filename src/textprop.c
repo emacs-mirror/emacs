@@ -312,7 +312,8 @@ add_properties (plist, i, object)
 	      {
 		record_property_change (i->position, LENGTH (i),
 					sym1, Fcar (this_cdr), object);
-		modify_region (make_number (i->position),
+		modify_region (XBUFFER (object),
+			       make_number (i->position),
 			       make_number (i->position + LENGTH (i)));
 	      }
 
@@ -329,7 +330,8 @@ add_properties (plist, i, object)
 	    {
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
-	      modify_region (make_number (i->position),
+	      modify_region (XBUFFER (object),
+			     make_number (i->position),
 			     make_number (i->position + LENGTH (i)));
 	    }
 	  i->plist = Fcons (sym1, Fcons (val1, i->plist));
@@ -367,7 +369,8 @@ remove_properties (plist, i, object)
 	      record_property_change (i->position, LENGTH (i),
 				      sym, Fcar (Fcdr (current_plist)),
 				      object);
-	      modify_region (make_number (i->position),
+	      modify_region (XBUFFER (object),
+			     make_number (i->position),
 			     make_number (i->position + LENGTH (i)));
 	    }
 
@@ -386,7 +389,8 @@ remove_properties (plist, i, object)
 		{
 		  record_property_change (i->position, LENGTH (i),
 					  sym, Fcar (Fcdr (this)), object);
-		  modify_region (make_number (i->position),
+		  modify_region (XBUFFER (object),
+				 make_number (i->position),
 				 make_number (i->position + LENGTH (i)));
 		}
 
