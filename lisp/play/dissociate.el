@@ -88,9 +88,7 @@ Default is 2."
 					 (funcall move-function
 						  (- move-amount)))
 				  (point))))
-	   (let (ranval)
-	     (while (< (setq ranval (random)) 0))
-	     (goto-char (1+ (% ranval (1- (point-max))))))
+	   (goto-char (1+ (random (1- (point-max)))))
 	   (or (funcall search-function overlap nil t)
 	       (let ((opoint (point)))
 		 (goto-char 1)
