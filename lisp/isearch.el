@@ -1162,7 +1162,8 @@ and the meta character is unread so that it applies to editing the string."
 (defun isearch-quote-char ()
   "Quote special characters for incremental search."
   (interactive)
-  (isearch-process-search-char (read-quoted-char (isearch-message t))))
+  (isearch-process-search-char (+ (read-quoted-char (isearch-message t))
+				  nonascii-insert-offset)))
 
 (defun isearch-return-char ()
   "Convert return into newline for incremental search.
@@ -1669,7 +1670,7 @@ since they have special meaning in a regexp."
 ;; Portability functions to support various Emacs versions.
 
 (defun isearch-char-to-string (c)
-  (make-string 1 c))
+  (char-to-string c))
 
 (defun isearch-text-char-description (c)
   (if (and (integerp c) (or (< c ?\ ) (= c ?\^?)))
