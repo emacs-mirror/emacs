@@ -11802,6 +11802,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   struct frame *f = XFRAME (w->frame);
   int new_cursor_type;
   int new_cursor_width;
+  int active_cursor;
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
@@ -11835,7 +11836,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   xassert (interrupt_input_blocked);
 
   /* Set new_cursor_type to the cursor we want to be displayed.  */
-  new_cursor_type = get_window_cursor_type (w, &new_cursor_width);
+  new_cursor_type = get_window_cursor_type (w, &new_cursor_width, &active_cursor);
 
   /* If cursor is currently being shown and we don't want it to be or
      it is in the wrong place, or the cursor type is not what we want,

@@ -15288,23 +15288,30 @@ set_frame_cursor_types (f, arg)
 }
 
 
-/* Return the cursor we want to be displayed.  In a mini-buffer
-   window, we want the cursor only to appear if we are reading input
-   from this window.  For the selected window, we want the cursor type
-   given by the frame parameter or buffer local setting of
-   cursor-type.  If explicitly marked off, draw no cursor.  In all
-   other cases, we want a hollow box cursor.  */
+/* Return the cursor we want to be displayed in window W.  Return
+   width of bar/hbar cursor through WIDTH arg.  Return with
+   ACTIVE_CURSOR arg set to 1 if cursor in window W is `active'
+   (i.e. if the `system caret' should track this cursor).
+
+   In a mini-buffer window, we want the cursor only to appear if we
+   are reading input from this window.  For the selected window, we
+   want the cursor type given by the frame parameter or buffer local
+   setting of cursor-type.  If explicitly marked off, draw no cursor.
+   In all other cases, we want a hollow box cursor.  */
 
 enum text_cursor_kinds
-get_window_cursor_type (w, width)
+get_window_cursor_type (w, width, active_cursor)
      struct window *w;
      int *width;
+     int *active_cursor;
 {
   struct frame *f = XFRAME (w->frame);
   struct buffer *b = XBUFFER (w->buffer);
   int cursor_type = DEFAULT_CURSOR;
   Lisp_Object alt_cursor;
   int non_selected = 0;
+
+  *active_cursor = 1;
 
   /* Echo area */
   if (cursor_in_echo_area
@@ -15317,6 +15324,7 @@ get_window_cursor_type (w, width)
 	  return FRAME_DESIRED_CURSOR (f);
 	}
 
+      *active_cursor = 0;
       non_selected = 1;
     }
 
@@ -15327,6 +15335,8 @@ get_window_cursor_type (w, width)
 #endif
 	   )
     {
+      *active_cursor = 0;
+
       if (MINI_WINDOW_P (w) && minibuf_level == 0)
 	return NO_CURSOR;
 
