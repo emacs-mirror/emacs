@@ -1136,7 +1136,7 @@ clean: mostlyclean
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
-	rm -f paths.h config.h Makefile Makefile.c ../etc/DOC-*
+	rm -f paths.h config.h Makefile Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
 maintainer-clean: distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
