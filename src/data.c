@@ -784,6 +784,9 @@ store_symval_forwarding (symbol, valcontents, newval)
 	    Lisp_Object type;
 
 	    type = *(Lisp_Object *)(offset + (char *)&buffer_local_types);
+	    if (XINT (type) == -1)
+	      error ("Variable %s is read-only", XSYMBOL (symbol)->name->data);
+
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
 	      buffer_slot_type_mismatch (offset);
@@ -1146,9 +1149,12 @@ for this variable.")
       register int mask = XINT (*((Lisp_Object *)
 				  (idx + (char *)&buffer_local_flags)));
 
+      *(Lisp_Object *)(idx + (char *) &buffer_defaults) = value;
+
+      /* If this variable is not always local in all buffers,
+	 set it in the buffers that don't nominally have a local value.  */
       if (mask > 0)
 	{
-	  *(Lisp_Object *)(idx + (char *) &buffer_defaults) = value;
 	  for (b = all_buffers; b; b = b->next)
 	    if (!(b->local_var_flags & mask))
 	      *(Lisp_Object *)(idx + (char *) b) = value;
