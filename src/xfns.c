@@ -11083,6 +11083,21 @@ file_dialog_cb (widget, client_data, call_data)
 }
 
 
+/* Callback for unmapping a file selection dialog.  This is used to
+   capture the case where a dialog is closed via a window manager's
+   closer button, for example. Using a XmNdestroyCallback didn't work
+   in this case.  */
+
+static void
+file_dialog_unmap_cb (widget, client_data, call_data)
+     Widget widget;
+     XtPointer call_data, client_data;
+{
+  int *result = (int *) client_data;
+  *result = XmCR_CANCEL;
+}
+
+
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
   "Read file name, prompting with PROMPT in directory DIR.\n\
 Use a file selection dialog.\n\
@@ -11134,6 +11149,8 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
   XtAddCallback (dialog, XmNokCallback, file_dialog_cb,
 		 (XtPointer) &result);
   XtAddCallback (dialog, XmNcancelCallback, file_dialog_cb,
+		 (XtPointer) &result);
+  XtAddCallback (dialog, XmNunmapCallback, file_dialog_unmap_cb,
 		 (XtPointer) &result);
 
   /* Disable the help button since we can't display help.  */
@@ -11188,7 +11205,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
 
   /* Process events until the user presses Cancel or OK.  */
   result = 0;
-  while (result == 0 || XtAppPending (Xt_app_con))
+  while (result == 0)
     XtAppProcessEvent (Xt_app_con, XtIMAll);
 
   /* Get the result.  */
