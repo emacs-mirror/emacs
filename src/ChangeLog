@@ -15,7 +15,7 @@
 	[TARGET_API_MAC_CARBON] (Fmac_get_preference): New function.
 	(syms_of_mac) [TARGET_API_MAC_CARBON]: Defsubr it.
 	(P, LOOSE_BINDING, SINGLE_COMPONENT, HASHKEY_TERMINAL): New macro.
-	(skip_while_space, parse_comment, parse_include_file)
+	(skip_white_space, parse_comment, parse_include_file)
 	(parse_binding, parse_component, parse_resource_name, parse_value)
 	(parse_resource_line, xrm_create_database, xrm_q_put_resource)
 	(xrm_merge_string_database, xrm_q_get_resource, xrm_get_resource)
