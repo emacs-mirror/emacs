@@ -1,3 +1,37 @@
+2002-07-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* lread.c: Include "coding.h".
+	(Qget_emacs_mule_file_char, Qload_force_doc_strings,
+	load_each_byte, unread_char): New variables.
+	(readchar_backlog): This variable deleted.
+	(readchar): Return a character unless load_each_byte is nonzero.
+	Handle the case that readcharfun is Qget_emacs_mule_file_char or a
+	cons.  If unread_char is not -1, simply return it.
+	(unreadchar): Handle the case that readcharfun is
+	Qget_emacs_mule_file_char or a cons.  Set unread_char if
+	necessary.
+	(read_multibyte): This function deleted.
+	(readbyte_for_lambda, readbyte_from_file, readbyte_from_string)
+	(read_emacs_mule_char): New functions.
+	(Fload): Even if the file doesn't have the extention ".elc", if
+	safe_to_load_p returns a positive version number, assume that the
+	file contains bytecompiled code.  If the version is less than 22,
+	load the file while decoding multibyte sequences by emacs-mule.
+	(readevalloop): Don't use readchar_backlog.
+	(Fread): Likewise.  Pay attention to the case that STREAM is a
+	cons.
+	(Fread_from_string): Pay attention to the case that STREAM is a
+	cons.
+	(read_escape): The arg BYTEREP deleted.
+	(read1): Set load_each_byte to 1 temporarily while handling
+	#@NUMBER.  Don't call read_multibyte.
+	(read_vector): Call Fread with a cons.  If readcharfun is
+	Qget_emacs_mule_file_char, decode the read string by emacs-mule.
+	(read_list): If doc_reference is 2, make the cdr part string as
+	unibyte.
+	(syms_of_lread): Intern and staticpro Qget_emacs_mule_file_char
+	and Qload_force_doc_strings.
+
 2002-07-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (face_before_or_after_it_pos): Call
