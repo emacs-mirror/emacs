@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1999  Free Software Foundation, Inc.
 
-;; Author: Alex Schroeder <alex@gnu.ch>
-;; Maintainer: Alex Schroeder <alex@gnu.ch>
-;; Version: 1.2.0
+;; Author: Alex Schroeder <alex@gnu.org>
+;; Maintainer: Alex Schroeder <alex@gnu.org>
+;; Version: 2.1.1
 ;; Keywords: comm processes
 
 ;; This file is part of GNU Emacs.
@@ -36,70 +36,55 @@
 ;; program I wanted to extend (the MUSH client TinyTalk.el), so I had to
 ;; rewrite this.
 
-;; In order to install this with TinyMush.el, add the following to your
-;; .emacs file:
-;;
-;; (setq tinymud-filter-line-hook 'my-tinymud-add-ansi-text-properties)
-;; (autoload 'ansi-color-to-text-properties "ansi-color" 
-;;   "Translates ANSI color control sequences into text-properties." t)
-;; (defun my-tinymud-add-ansi-text-properties (conn line)
-;;   "Call `ansi-color-to-text-properties' for LINE.
-;; Ignores CONN and returns nil, so that `tinymud-filter-line' continues to
-;; process triggers and everything else."
-;;   (ansi-color-to-text-properties line)
-;;   nil)
-
-;; If the ANSI sequences assume that you have a black background, you'll
-;; have to display the stuff in a frame with a black background.  You
-;; can create such a frame like this (it still looks ugly!):
-;;
-;; (defun my-black-frame ()
-;;   "Create a frame with black background."
-;;   (interactive)
-;;   (make-frame '((foreground-color . "white")
-;; 		(background-color . "black"))))
-
 ;;; Testing:
 
 ;; If you want to test the setup, evaluate the following fragment in a
 ;; buffer without font-lock-mode.  This doesn't work in buffers that
 ;; have font-lock-mode!
 ;;
-;; (progn
-;;   (setq line "[1mbold[0m and [34mblue[0m, [1m[34mbold and blue[0m!!")
-;;   (ansi-color-to-text-properties line)
-;;   (insert line))
-;;
-;; Other test strings: (m-eating-bug) "[1mmold[0m should be mold"
+;; (insert (ansi-color-apply "\033[1mbold\033[0m and \033[34mblue\033[0m, \033[1m\033[34mbold and blue\033[0m!!"))
 
-;;; Bugs:
+;; Usage with TinyMush.el:
 
-;; 1. Only supports the ANSI sequences that the MUSH I'm on uses (the
-;;    MUSH is Elendor, see http://www.elendor.net).  To see the list of
-;;    codes supported I did a `help ansi()'.  Based on this information,
-;;    I used TinyTalk.el (without ANSI color support), gave myself the
-;;    ANSI color flags using `@set me=ANSI' and `@set me=COLOR', and
-;;    noted the ANSI escape sequences produced by the MUSH using `think
-;;    ansi(r,red)' for example.
+;; In order to install this with TinyMush.el, add the following to your
+;; .emacs file:
 ;;
-;; 2. The code is spaghetti-code, I hate it.
-;;
-;; 3. If a squence of chars looks like the start of an ANSI sequence,
-;;    the chars will be set invisible.  If the squence of chars turns
-;;    out not to be an ANSI sequence, this is not undone.  Here is a
-;;    teststring: "Is '[3' visible as ^[[3?"  This could be solved by
-;;    using `state': it shows most of the time how many characters have
-;;    been set invisible.
+;; (setq tinymud-filter-line-hook 'my-ansi-color-filter)
+;; (autoload 'ansi-color-apply "ansi-color" 
+;;   "Translates ANSI color control sequences into text-properties." t)
+;; (defun my-ansi-color-filter (conn line)
+;;   "Call `ansi-color-apply' and then processes things like `filter-line'."
+;;   (setq line (ansi-color-apply line))
+;;   (if (not (get-value conn 'trigger-disable))
+;;       (progn
+;; 	(check-triggers conn line
+;; 			(get-value conn 'triggers))
+;; 	(check-triggers conn line
+;; 			(get-value (get-value conn 'world) 'triggers))
+;; 	(check-triggers conn line
+;; 			tinymud-global-triggers)))
+;;   (display-line conn line)
+;;   t)
+
+;; Usage with shell-mode:
+
+;; In order to enjoy the marvels of "ls --color=tty" you will have to
+;; enter shell-mode using M-x shell, possibly disable font-lock-mode
+;; using M-: (font-lock-mode 0), and add ansi-color-apply to
+;; comint-preoutput-filter-functions using M-: (add-hook
+;; 'comint-preoutput-filter-functions 'ansi-color-apply).
 
 
 
 ;;; Code:
 
+;; Customization
+
 (defvar ansi-color-faces-vector
   [default bold  default default underline bold  default modeline]
   "Faces used for ANSI control sequences determining a face.
 
-Those are sequences like this one: [1m, where 1 could be one of the
+Those are sequences like this one: \033[1m, where 1 could be one of the
 following numbers: 0 (default), 1 (hilight, rendered as bold), 4
 (underline), 5 (flashing, rendered as bold), 7 (inverse, rendered the
 same as the modeline)")
@@ -108,8 +93,8 @@ same as the modeline)")
   ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"]
   "Array of colors.
 
-Used for sequences like this one: [31m, where 1 could be an index to a
-foreground color (red, in this case), or [41m, where 1 could be an
+Used for sequences like this one: \033[31m, where 1 could be an index to a
+foreground color (red, in this case), or \033[41m, where 1 could be an
 index to a background color.
 
 The default colors are: black, red, green, yellow, blue, magenta,
@@ -118,77 +103,64 @@ cyan, and white.
 On a light background, I prefer: black, red, dark green, orange, blue,
 magenta, turquoise, snow4")
 
-;; The main function
+;; Main function
 
-(defun ansi-color-to-text-properties (str)
-  "Translates ANSI color control sequences into text-properties.  
+(defun ansi-color-apply (string)
+  "Translates ANSI color control sequences into text-properties.
 
-The ANSI control sequences are made invisible.  The text-properties are
-added to the string given in the parameter STR."
-  ;; ANSI code for highlighting, example:  boring[1mINTERESTING[0mboring
-  ;; state: start with 0, "" -> 1, "[" -> 2, "[013457]" -> 3, 
-  ;; "[013457]" -> 4, "m" -> back to 0!
-  ;; param: stored when state is 3 (in the above example: 1)
-  (let ((str-length (length str))
-	(face '(default))
-	(i 0) (char) (state 0) (param1) (param2))
-    (while (< i str-length)
-      (setq char (aref str i))
-      (cond
-       ;; When writing normal chars (state 0) and happening upon an ANSI sequence.
-       ((and (= state 0) (= char ?))
-	(setq state 1)); saw escape
-       ((and (= state 1) (= char ?\[)); seen escape
-	(setq state 2
-	      param1 nil
-	      param2 nil)); saw [, prepare for param1 and param2!
-       ((and (or (= state 2) (= state 3)); reading first or second digit
-	     (string-match "[01234567]" (substring str i (1+ i))))
-	(if (= state 2); reading first digit
-	    ;; [1m (hilight)
-	    (setq param1 (string-to-number (substring str i (1+ i)))
-		  state 3); prepare to read a second digit or quit.
-	  ;; if reading second digit
-	  ;; such as [32m (green foreground)
-	  (setq param2 (string-to-number (substring str i (1+ i)))
-		state 4))); read second digit, prepare to quit
-       ((and (or (= state 3) (= state 4)) (= char ?m)); reading last char: m
-	(setq state 5); state 5: m will be last invisible char.  Now
-	;; reset face according to param1 and param2.
-	(if (null param2); only param1 set: no color changes!
-	    ;; [0m: default face
-	    (if (= param1 0)
-		(setq face '(default))
-	      ;; [1m: hilight, [7m: inverse, [4m: underline, etc.
-	      (add-to-list 'face (aref ansi-color-faces-vector param1)))
-	  ;; If param2 is set, we are changing back- or foreground color.
-	  (if (= param1 3); first digit told us to change foreground
-	      ;; [31m: red foreground
-	      (add-to-list 'face (cons 'foreground-color 
-				       (aref ansi-color-names-vector param2)))
-	    ;; [42m: green background
-	    (add-to-list 'face (cons 'background-color 
-				     (aref ansi-color-names-vector param2))))))
-       (t (setq state 0))); all other cases, state is 0.
+Applies ANSI control sequences setting foreground and background colors
+to STRING and returns the result.  The colors used are given in
+`ansi-color-faces-vector' and `ansi-color-names-vector'.
 
-      ;; Set text-property for every char.
-      (if (> state 0); if reading ANSI codes, state > 0: make them
-		     ; invisible.
-	  (put-text-property i (1+ i) 'invisible t str)
-	;; if reading normal chars, state is 0, put them in the
-	;; current face.
-	(put-text-property i (1+ i) 'face face str))
+This function can be added to `comint-preoutput-filter-functions'."
+  (let ((face)
+	(start 0) (end) (escape)
+	(result)
+	(params))
+    ;; find the next escape sequence
+    (while (setq end (string-match "\033\\[\\([01347][01234567]?;\\)*[01347][01234567]?m" string start))
+      ;; store escape sequence
+      (setq escape (match-string 0 string))
+      ;; colorize the old block from start to end using old face
+      (if face
+	  (put-text-property start end 'face face string))
+      (setq result (concat result (substring string start end)))
+      ;; create new face by applying all the parameters in the escape sequence
+      (let ((i 0))
+	(while (setq i (string-match "[01347][01234567]?[;m]" escape i))
+	  (setq face (ansi-color-make-face face
+					   (aref escape i)
+					   (aref escape (1+ i))))
+	  (setq i (match-end 0))))
+      (setq start (+ end (length escape))))
+    (concat result (substring string start))))
 
-      ;; Debug: (message "%c: %d" char state)
+;; Helper functions
 
-      ;; If we just finished reading an ANSI sequence (state 5), reset
-      ;; state (state 0).
-      (if (> state 4) (setq state 0))
-      ;; Next char
-      (setq i (1+ i)))))
+(defun ansi-color-make-face (face param1 param2)
+  "Return a face based on FACE and characters PARAM1 and PARAM2.
+
+The face can be used in a call to `add-text-properties'.  The PARAM1 and
+PARAM2 characters are the two numeric characters in ANSI control
+sequences between ?[ and ?m.  Unless the ANSI control sequence specifies
+a return to default face using PARAM1 ?0 and PARAM2 ?m (ie. \"\033[0m\"), the
+properties specified by PARAM1 and PARAM2 are added to face."
+  (cond ((= param1 ?0)
+	 nil)
+	((= param2 ?m)
+	 (add-to-list 'face (aref ansi-color-faces-vector
+				  (string-to-number (char-to-string param1)))))
+	((= param1 ?3)
+	 (add-to-list 'face (cons 'foreground-color
+				  (aref ansi-color-names-vector
+					(string-to-number (char-to-string param2))))))
+	((= param1 ?4)
+	 (add-to-list 'face (cons 'background-color
+				  (aref ansi-color-names-vector
+					(string-to-number (char-to-string param2))))))
+	(t (add-to-list 'face (aref ansi-color-faces-vector
+				  (string-to-number (char-to-string param1)))))))
 
 (provide 'ansi-color)
 
-;;; ansi-colors.el ends here
-
-
+;;; ansi-color.el ends here
