@@ -110,7 +110,9 @@ static struct sensemode {
 #include <sys/ttyhw.h>
 #include <sys/stream.h>
 #endif
+#ifndef NO_PTY_H
 #include <sys/pty.h>
+#endif
 #endif
 
 /* saka@pfu.fujitsu.co.JP writes:
