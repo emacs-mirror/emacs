@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.111 $")
+(defconst byte-compile-version "$Revision: 2.112 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1405,62 +1405,66 @@ recompile every `.el' file that already has a `.elc' file."
       nil
     (save-some-buffers)
     (force-mode-line-update))
-  (let ((directories (list (expand-file-name directory)))
-        (skip-count 0)
-        (fail-count 0)
-	(file-count 0)
-	(dir-count 0)
-	last-dir)
-    (displaying-byte-compile-warnings
-     (while directories
-       (setq directory (car directories))
-       (message "Checking %s..." directory)
-       (let ((files (directory-files directory))
-	     source dest)
-	 (dolist (file files)
-	   (setq source (expand-file-name file directory))
-	   (if (and (not (member file '("." ".." "RCS" "CVS")))
-		    (file-directory-p source)
-		    (not (file-symlink-p source)))
-	       ;; This file is a subdirectory.  Handle them differently.
-	       (when (or (null arg)
-			 (eq 0 arg)
-			 (y-or-n-p (concat "Check " source "? ")))
-		 (setq directories
-		       (nconc directories (list source))))
-	     ;; It is an ordinary file.  Decide whether to compile it.
-	     (if (and (string-match emacs-lisp-file-regexp source)
-		      (file-readable-p source)
-		      (not (auto-save-file-name-p source))
-		      (setq dest (byte-compile-dest-file source))
-		      (if (file-exists-p dest)
-			  ;; File was already compiled.
-			  (or force (file-newer-than-file-p source dest))
-			;; No compiled file exists yet.
-			(and arg
-			     (or (eq 0 arg)
-				 (y-or-n-p (concat "Compile " source "? "))))))
-		 (progn (if (and noninteractive (not byte-compile-verbose))
-			    (message "Compiling %s..." source))
-                        (let ((res (byte-compile-file source)))
-                          (cond ((eq res 'no-byte-compile)
-                                 (setq skip-count (1+ skip-count)))
-                                ((eq res t)
-                                 (setq file-count (1+ file-count)))
-                                ((eq res nil)
-                                 (setq fail-count (1+ fail-count)))))
-			(or noninteractive
-			    (message "Checking %s..." directory))
-			(if (not (eq last-dir directory))
-			    (setq last-dir directory
-				  dir-count (1+ dir-count)))
-			)))))
-       (setq directories (cdr directories))))
-    (message "Done (Total of %d file%s compiled%s%s%s)"
-	     file-count (if (= file-count 1) "" "s")
-             (if (> fail-count 0) (format ", %d failed" fail-count) "")
-             (if (> skip-count 0) (format ", %d skipped" skip-count) "")
-	     (if (> dir-count 1) (format " in %d directories" dir-count) ""))))
+  (save-current-buffer
+    (byte-goto-log-buffer)
+    (setq default-directory directory)
+    (let ((directories (list (expand-file-name directory)))
+	  (default-directory default-directory)
+	  (skip-count 0)
+	  (fail-count 0)
+	  (file-count 0)
+	  (dir-count 0)
+	  last-dir)
+      (displaying-byte-compile-warnings
+       (while directories
+	 (setq directory (car directories))
+	 (message "Checking %s..." directory)
+	 (let ((files (directory-files directory))
+	       source dest)
+	   (dolist (file files)
+	     (setq source (expand-file-name file directory))
+	     (if (and (not (member file '("." ".." "RCS" "CVS")))
+		      (file-directory-p source)
+		      (not (file-symlink-p source)))
+		 ;; This file is a subdirectory.  Handle them differently.
+		 (when (or (null arg)
+			   (eq 0 arg)
+			   (y-or-n-p (concat "Check " source "? ")))
+		   (setq directories
+			 (nconc directories (list source))))
+	       ;; It is an ordinary file.  Decide whether to compile it.
+	       (if (and (string-match emacs-lisp-file-regexp source)
+			(file-readable-p source)
+			(not (auto-save-file-name-p source))
+			(setq dest (byte-compile-dest-file source))
+			(if (file-exists-p dest)
+			    ;; File was already compiled.
+			    (or force (file-newer-than-file-p source dest))
+			  ;; No compiled file exists yet.
+			  (and arg
+			       (or (eq 0 arg)
+				   (y-or-n-p (concat "Compile " source "? "))))))
+		   (progn (if (and noninteractive (not byte-compile-verbose))
+			      (message "Compiling %s..." source))
+			  (let ((res (byte-compile-file source)))
+			    (cond ((eq res 'no-byte-compile)
+				   (setq skip-count (1+ skip-count)))
+				  ((eq res t)
+				   (setq file-count (1+ file-count)))
+				  ((eq res nil)
+				   (setq fail-count (1+ fail-count)))))
+			  (or noninteractive
+			      (message "Checking %s..." directory))
+			  (if (not (eq last-dir directory))
+			      (setq last-dir directory
+				    dir-count (1+ dir-count)))
+			  )))))
+	 (setq directories (cdr directories))))
+      (message "Done (Total of %d file%s compiled%s%s%s)"
+	       file-count (if (= file-count 1) "" "s")
+	       (if (> fail-count 0) (format ", %d failed" fail-count) "")
+	       (if (> skip-count 0) (format ", %d skipped" skip-count) "")
+	       (if (> dir-count 1) (format " in %d directories" dir-count) "")))))
 
 (defvar no-byte-compile nil
   "Non-nil to prevent byte-compiling of emacs-lisp code.
