@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings.
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1994,95,96,97,98,99,2000 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -49,17 +49,6 @@
 ;;
 ;; Searching using the above example `regexp-opt' regexp takes approximately
 ;; two-thirds of the time taken using the equivalent `mapconcat' regexp.
-;;
-;; Note that this package will also find common suffix strings if this does not
-;; increase the number of grouping constructs.  For example:
-;;
-;; (regexp-opt '("these" "those"))
-;;  => "th[eo]se"
-;;
-;; but:
-;;
-;; (regexp-opt '("barfly" "housefly"))
-;;  => "barfly\\|housefly" rather than "\\(bar\\|house\\)fly"
 
 ;; Since this package was written to produce efficient regexps, not regexps
 ;; efficiently, it is probably not a good idea to in-line too many calls in
@@ -89,8 +78,13 @@
 ;; Stefan Monnier.
 ;; No doubt `regexp-opt' doesn't always produce optimal regexps, so code, ideas
 ;; or any other information to improve things are welcome.
+;;
+;; One possible improvement would be to compile '("aa" "ab" "ba" "bb")
+;; into "[ab][ab]" rather than "a[ab]\\|b[ab]".  I'm not sure it's worth
+;; it but if someone knows how to do it without going through too many
+;; contortions, I'm all ears.
 
-;;; Code.
+;;; Code:
 
 ;;;###autoload
 (defun regexp-opt (strings &optional paren)
@@ -101,14 +95,12 @@ is enclosed by at least one regexp grouping construct.
 The returned regexp is typically more efficient than the equivalent regexp:
 
  (let ((open-paren (if PAREN \"\\\\(\" \"\")) (close-paren (if PAREN \"\\\\)\" \"\")))
-   (concat open-paren (mapconcat 'regexp-quote STRINGS \"\\\\|\") close-paren))
-
-but typically contains more regexp grouping constructs.
-Use `regexp-opt-depth' to count them."
+   (concat open-paren (mapconcat 'regexp-quote STRINGS \"\\\\|\") close-paren))"
   (save-match-data
     ;; Recurse on the sorted list.
     (let ((max-lisp-eval-depth (* 1024 1024))
 	  (completion-ignore-case nil))
+      (setq paren (cond ((stringp paren) paren) (paren "\\(")))
       (regexp-opt-group (sort (copy-sequence strings) 'string-lessp) paren))))
 
 ;;;###autoload
@@ -121,7 +113,7 @@ in REGEXP."
     (string-match regexp "")
     ;; Count the number of open parentheses in REGEXP.
     (let ((count 0) start)
-      (while (string-match "\\\\(" regexp start)
+      (while (string-match "\\\\\\(\\\\\\\\\\)*([^?]" regexp start)
 	(setq count (1+ count) start (match-end 0)))
       count)))
 
@@ -134,26 +126,22 @@ in REGEXP."
   (defalias 'make-bool-vector 'make-vector))
 
 (defun regexp-opt-group (strings &optional paren lax)
-  ;;
-  ;; Return a regexp to match a string in STRINGS.
-  ;; If PAREN non-nil, output regexp parentheses around returned regexp.
-  ;; If LAX non-nil, don't output parentheses if it doesn't require them.
-  ;; Merges keywords to avoid backtracking in Emacs' regexp matcher.
-  ;;
-  ;; The basic idea is to find the shortest common prefix or suffix, remove it
-  ;; and recurse.  If there is no prefix, we divide the list into two so that
-  ;; (at least) one half will have at least a one-character common prefix.
-  ;;
-  ;; Also we delay the addition of grouping parenthesis as long as possible
-  ;; until we're sure we need them, and try to remove one-character sequences
-  ;; so we can use character sets rather than grouping parenthesis.
-  ;;
-  (let* ((open-group (if paren "\\(" ""))
+  "Return a regexp to match a string in STRINGS.
+If PAREN non-nil, output regexp parentheses around returned regexp.
+If LAX non-nil, don't output parentheses if it doesn't require them.
+Merges keywords to avoid backtracking in Emacs' regexp matcher.
+
+The basic idea is to find the shortest common prefix or suffix, remove it
+and recurse.  If there is no prefix, we divide the list into two so that
+\(at least) one half will have at least a one-character common prefix.
+
+Also we delay the addition of grouping parenthesis as long as possible
+until we're sure we need them, and try to remove one-character sequences
+so we can use character sets rather than grouping parenthesis."
+  (let* ((open-group (cond ((stringp paren) paren) (paren "\\(?:") (t "")))
 	 (close-group (if paren "\\)" ""))
 	 (open-charset (if lax "" open-group))
-	 (close-charset (if lax "" close-group))
-	 (open-presuf open-charset)
-	 (close-presuf close-charset))
+	 (close-charset (if lax "" close-group)))
     (cond
      ;;
      ;; If there are no strings, just return the empty string.
@@ -172,58 +160,65 @@ in REGEXP."
 	      (regexp-opt-group (cdr strings) t t) "?"
 	      close-charset))
      ;;
-     ;; If all are one-character strings, just return a character set.
-     ((= (apply 'max (mapcar 'length strings)) 1)
-      (concat open-charset
-	      (regexp-opt-charset strings)
-	      close-charset))
+     ;; If there are several one-char strings, use charsets
+     ((and (= (length (car strings)) 1)
+	   (let ((strs (cdr strings)))
+	     (while (and strs (/= (length (car strs)) 1))
+	       (pop strs))
+	     strs))
+      (let (letters rest)
+	;; Collect one-char strings
+	(dolist (s strings)
+	  (if (= (length s) 1) (push s letters) (push s rest)))
+
+	(if rest
+	    ;; several one-char strings: take them and recurse
+	    ;; on the rest (first so as to match the longest).
+	    (concat open-group
+		    (regexp-opt-group (nreverse rest))
+		    "\\|" (regexp-opt-charset letters)
+		    close-group)
+	  ;; all are one-char strings: just return a character set.
+	  (concat open-charset
+		  (regexp-opt-charset letters)
+		  close-charset))))
      ;;
      ;; We have a list of different length strings.
      (t
-      (let ((prefix (try-completion "" (mapcar 'list strings)))
-	    (suffix (regexp-opt-try-suffix strings))
-	    (letters (let ((completion-regexp-list '("^.$")))
-		       (all-completions "" (mapcar 'list strings)))))
-	(cond
-	 ;;
-	 ;; If there is a common prefix, remove it and recurse on the suffixes.
-	 ((> (length prefix) 0)
-	  (let* ((end (length prefix))
-		 (suffixes (mapcar (lambda (s) (substring s end)) strings)))
-	    (concat open-presuf
-		    (regexp-quote prefix) (regexp-opt-group suffixes t t)
-		    close-presuf)))
-	 ;;
-	 ;; If there is a common suffix, remove it and recurse on the prefixes.
-	 ((> (length suffix) (if lax
-				 0
-			       (- (apply 'max (mapcar 'length strings)) 2)))
-	  (let* ((end (- (length suffix)))
-		 (prefixes (sort (mapcar (lambda (s) (substring s 0 end))
-					 strings)
-				 'string-lessp)))
-	    (concat open-presuf
-		    (regexp-opt-group prefixes t t) (regexp-quote suffix)
-		    close-presuf)))
-	 ;;
-	 ;; If there are several one-character strings, remove them and recurse
-	 ;; on the rest (first so the final regexp finds the longest match).
-	 ((> (length letters) 1)
-	  (let ((rest (let ((completion-regexp-list '("^..+$")))
-			(all-completions "" (mapcar 'list strings)))))
-	    (concat open-group
-		    (regexp-opt-group rest) "\\|" (regexp-opt-charset letters)
-		    close-group)))
-	 ;;
-	 ;; Otherwise, divide the list into those that start with a particular
-	 ;; letter and those that do not, and recurse on them.
-	 (t
-	  (let* ((char (substring (car strings) 0 1))
-		 (half1 (all-completions char (mapcar 'list strings)))
-		 (half2 (nthcdr (length half1) strings)))
-	    (concat open-group
-		    (regexp-opt-group half1) "\\|" (regexp-opt-group half2)
-		    close-group)))))))))
+      (let ((prefix (try-completion "" (mapcar 'list strings))))
+	(if (> (length prefix) 0)
+	    ;; common prefix: take it and recurse on the suffixes.
+	    (let* ((n (length prefix))
+		   (suffixes (mapcar (lambda (s) (substring s n)) strings)))
+	      (concat open-charset
+		      (regexp-quote prefix)
+		      (regexp-opt-group suffixes t t)
+		      close-charset))
+
+	  (let* ((sgnirts (mapcar (lambda (s)
+				    (concat (nreverse (string-to-list s))))
+				  strings))
+		 (xiffus (try-completion "" (mapcar 'list sgnirts))))
+	    (if (> (length xiffus) 0)
+		;; common suffix: take it and recurse on the prefixes.
+		(let* ((n (- (length xiffus)))
+		       (prefixes (mapcar (lambda (s) (substring s 0 n)) strings)))
+		  (concat open-charset
+			  (regexp-opt-group prefixes t t)
+			  (regexp-quote
+			   (concat (nreverse (string-to-list xiffus))))
+			  close-charset))
+	      
+	      ;; Otherwise, divide the list into those that start with a
+	      ;; particular letter and those that do not, and recurse on them.
+	      (let* ((char (char-to-string (string-to-char (car strings))))
+		     (half1 (all-completions char (mapcar 'list strings)))
+		     (half2 (nthcdr (length half1) strings)))
+		(concat open-group
+			(regexp-opt-group half1)
+			"\\|" (regexp-opt-group half2)
+			close-group))))))))))
+
 
 (defun regexp-opt-charset (chars)
   ;;
@@ -263,16 +258,6 @@ in REGEXP."
     (if (and (string-equal charset "") (string-equal bracket ""))
 	(concat "[" dash caret "]")
       (concat "[" bracket charset caret dash "]"))))
-
-(defun regexp-opt-try-suffix (strings)
-  ;;
-  ;; Return common suffix of each string in STRINGS.  See `try-completion'.
-  ;;
-  (let* ((chars (mapcar (lambda (s) (mapcar 'identity s)) strings))
-	 (srahc (mapcar 'reverse chars))
-	 (sgnirts (mapcar (lambda (c) (mapconcat 'char-to-string c "")) srahc))
-	 (xiffus (try-completion "" (mapcar 'list sgnirts))))
-    (mapconcat 'char-to-string (reverse (mapcar 'identity xiffus)) "")))
 
 (provide 'regexp-opt)
 
