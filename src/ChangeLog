@@ -1,5 +1,10 @@
 2000-09-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (redisplay_mode_lines): New function.
+	(display_mode_lines): Return number of mode lines displayed.
+	(echo_area_display): Use redisplay_mode_lines to draw garbaged
+	mode lines.  Don't temporarily bind redisplay-dont-pause to t.
+
 	* emacs.c, callint.c, doc.c, editfns.c: Remove includes of
 	string.h and strings.h.
 	(index) [HAVE_INDEX]: Add prototype.
