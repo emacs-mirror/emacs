@@ -190,8 +190,10 @@ One argument, the tag info returned by `snarf-tag-function'.")
   (set (make-local-variable 'tags-table-files) nil)
   (set (make-local-variable 'tags-completion-table) nil)
   (set (make-local-variable 'tags-included-tables) nil)
-  (setq find-tag-marker-ring (make-ring find-tag-marker-ring-length))
-  (setq tags-location-ring (make-ring find-tag-marker-ring-length))
+  ;; We used to initialize find-tag-marker-ring and tags-location-ring
+  ;; here, to new empty rings.  But that is wrong, because those
+  ;; are global.
+
   ;; Value is t if we have found a valid tags table buffer.
   (let ((hooks tags-table-format-hooks))
     (while (and hooks
