@@ -1,5 +1,8 @@
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* systime.h (EMACS_GET_TIME, EMACS_ADD_TIME, EMACS_SUB_TIME): Give
+	macros statement form.
+
 	* sound.c (struct sound): Renamed from struct sound_file.
 	(struct sound): Add members `data' and `header_size'.
 	(enum sound_attr): Add SOUND_DATA.
