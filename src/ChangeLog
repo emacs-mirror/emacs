@@ -1,11 +1,16 @@
 2002-05-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* buffer.c (Fset_buffer_multibyte): Convert 8-bit bytes to
+	multibyte form correctly.
+
 	* fontset.c (fs_load_font): Check fontp->full_name (not fontname)
 	against Vfont_encoding_alist.
 
 	* coding.c (Fdecode_sjis_char): Fix typo (0x7F->0xFF).  Fix the
 	handling of charset list.
 	(encode_coding_iso_2022): Setup coding->safe_charsets in advance.
+	(decode_coding_object): Move point to coding->dst_pos before
+	calling post-read-conversion function.
 
 	* coding.h (JIS_TO_SJIS): Fix typo (j1->s1, j2->s2).
 
