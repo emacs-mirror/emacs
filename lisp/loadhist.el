@@ -167,8 +167,14 @@ is nil, raise an error."
               ;; Remove any feature names that this file provided.
               (if (eq (car x) 'provide)
                   (setq features (delq (cdr x) features)))
-              (if (eq (car x) 'defvar)
-		  (makunbound (cdr x))))
+              (when (eq (car x) 'defvar)
+		;; Kill local values as much as possible.
+		(dolist (buf (buffer-list))
+		  (with-current-buffer buf
+		    (kill-local-variable (cdr x))))
+		;; Get rid of the default binding if we can.
+		(unless (local-variable-if-set-p (cdr x))
+		  (makunbound (cdr x)))))
 	     (t
 	      (when (fboundp x)
 		(if (fboundp 'ad-unadvise)
