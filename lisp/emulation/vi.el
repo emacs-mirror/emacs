@@ -49,7 +49,7 @@
 	    (help-mode)))
       (setq prefix-arg arg)		; prefix arg will be passed down
       (command-execute mode-cmd nil)	; may need to save mode-line-format etc
-      (set-buffer-modified-p (buffer-modified-p))))) ; just in case
+      (force-mode-line-update))))	; just in case
 
 
 (if (null (where-is-internal 'vi-switch-mode (current-local-map)))
@@ -99,7 +99,7 @@
 	(use-local-map vi-mode-old-local-map)
 	(setq major-mode vi-mode-old-major-mode)
 	(setq case-fold-search vi-mode-old-case-fold)
-	(set-buffer-modified-p (buffer-modified-p)))))
+	(force-mode-line-update))))
 
 (defun vi-readonly-mode ()
   "Toggle current buffer's readonly flag."
@@ -457,7 +457,7 @@ Syntax table and abbrevs while in vi mode remain as they were in Emacs."
      (use-local-map vi-com-map)
      (setq major-mode 'vi-mode)
      (setq mode-name "VI")
-     (set-buffer-modified-p (buffer-modified-p))  ; force mode line update
+     (force-mode-line-update)		; force mode line update
      (if vi-insert-state	        ; this is a return from insertion
          (vi-end-of-insert-state))))
 
@@ -522,7 +522,7 @@ This function expects 'overwrite-mode' being set properly beforehand."
   (setq case-fold-search vi-mode-old-case-fold)
   (use-local-map vi-mode-old-local-map)
   (setq major-mode vi-mode-old-major-mode)
-  (set-buffer-modified-p (buffer-modified-p))  ; force mode line update
+  (force-mode-line-update)
   (setq vi-insert-state t))
 
 (defun vi-end-of-insert-state ()
