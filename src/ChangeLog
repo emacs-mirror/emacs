@@ -1,8 +1,8 @@
-2003-03-21  Kenichi Handa  <handa@etlken2>
+2003-03-21  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Fexpand_file_name): Fix previous change.
 
-2003-03-19  Kenichi Handa  <handa@etlken2>
+2003-03-19  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Ffile_name_directory): Reconstruct file name by
 	make_specified_string.
