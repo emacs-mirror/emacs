@@ -857,16 +857,16 @@ update:
       beg_unchanged = BUF_GPT (b) - BUF_BEG (b);
       end_unchanged = BUF_Z (b) - BUF_GPT (b);
 
-      XFASTINT (w->last_point) = BUF_PT (b);
-      XFASTINT (w->last_point_x) = FRAME_CURSOR_X (selected_frame);
-      XFASTINT (w->last_point_y) = FRAME_CURSOR_Y (selected_frame);
+      XSETFASTINT (w->last_point, BUF_PT (b));
+      XSETFASTINT (w->last_point_x, FRAME_CURSOR_X (selected_frame));
+      XSETFASTINT (w->last_point_y, FRAME_CURSOR_Y (selected_frame));
 
       if (all_windows)
 	mark_window_display_accurate (FRAME_ROOT_WINDOW (selected_frame), 1);
       else
 	{
 	  w->update_mode_line = Qnil;
-	  XFASTINT (w->last_modified) = BUF_MODIFF (b);
+	  XSETFASTINT (w->last_modified, BUF_MODIFF (b));
 	  w->window_end_valid = w->buffer;
 	  last_arrow_position = Voverlay_arrow_position;
 	  last_arrow_string = Voverlay_arrow_string;
@@ -933,10 +933,8 @@ mark_window_display_accurate (window, flag)
 
       if (!NILP (w->buffer))
 	{
-	  XFASTINT (w->last_modified)
-	    = !flag ? 0
-	      : XBUFFER (w->buffer) == current_buffer
-		? MODIFF : BUF_MODIFF (XBUFFER (w->buffer));
+	  XSETFASTINT (w->last_modified,
+		       !flag ? 0 : BUF_MODIFF (XBUFFER (w->buffer)));
 
 	  /* Record if we are showing a region, so can make sure to
 	     update it fully at next redisplay.  */
@@ -1142,7 +1140,7 @@ redisplay_window (window, just_this_one)
       w->base_line_number = Qnil;
       w->update_mode_line = Qt;
       w->force_start = Qnil;
-      XFASTINT (w->last_modified) = 0;
+      XSETFASTINT (w->last_modified, 0);
       if (startp < BEGV) startp = BEGV;
       if (startp > ZV)   startp = ZV;
       try_window (window, startp);
@@ -1275,7 +1273,7 @@ redisplay_window (window, just_this_one)
 	cancel_my_columns (w);
     }
 
-  XFASTINT (w->last_modified) = 0;
+  XSETFASTINT (w->last_modified, 0);
   w->update_mode_line = Qt;
 
   /* Try to scroll by specified few lines */
@@ -1438,8 +1436,8 @@ try_window (window, pos)
     w->update_mode_line = Qt;
 
   /* Say where last char on frame will be, once redisplay is finished.  */
-  XFASTINT (w->window_end_pos) = Z - pos;
-  XFASTINT (w->window_end_vpos) = last_text_vpos - XFASTINT (w->top);
+  XSETFASTINT (w->window_end_pos, Z - pos);
+  XSETFASTINT (w->window_end_vpos, last_text_vpos - XFASTINT (w->top));
   /* But that is not valid info until redisplay finishes.  */
   w->window_end_valid = Qnil;
 }
@@ -1500,8 +1498,8 @@ try_window_id (window)
 	  bp = *compute_motion (start, 0, lmargin,
 				Z, height, 0,
 				width, hscroll, pos_tab_offset (w, start), w);
-	  XFASTINT (w->window_end_vpos) = height;
-	  XFASTINT (w->window_end_pos) = Z - bp.bufpos;
+	  XSETFASTINT (w->window_end_vpos, height);
+	  XSETFASTINT (w->window_end_pos, Z - bp.bufpos);
 	  return 1;
 	}
       return 0;
@@ -1738,8 +1736,8 @@ try_window_id (window)
 	 include the split character in the text considered on the frame */
       if (val.hpos < lmargin)
 	val.bufpos++;
-      XFASTINT (w->window_end_vpos) = last_text_vpos;
-      XFASTINT (w->window_end_pos) = Z - val.bufpos;
+      XSETFASTINT (w->window_end_vpos, last_text_vpos);
+      XSETFASTINT (w->window_end_pos, Z - val.bufpos);
     }
 
   /* If scrolling made blank lines at window bottom,
@@ -1797,7 +1795,7 @@ try_window_id (window)
 	{
 	  val = *vmotion (Z - XFASTINT (w->window_end_pos),
 			  delta, width, hscroll, window);
-	  XFASTINT (w->window_end_pos) = Z - val.bufpos;
+	  XSETFASTINT (w->window_end_pos, Z - val.bufpos);
 	  XFASTINT (w->window_end_vpos) += val.vpos;
 	}
     }
@@ -2076,7 +2074,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   int current_face = 0;
   int i;
 
-  XFASTINT (default_invis_vector[2]) = '.';
+  XSETFASTINT (default_invis_vector[2], '.');
   default_invis_vector[0] = default_invis_vector[1] = default_invis_vector[2];
 
   hpos += XFASTINT (w->left);
@@ -2176,14 +2174,14 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  while (pos == next_invisible && pos < end)
 	    {
 	      Lisp_Object position, limit, endpos, prop, ww;
-	      XFASTINT (position) = pos;
+	      XSETFASTINT (position, pos);
 	      XSETWINDOW (ww, w);
 	      prop = Fget_char_property (position, Qinvisible, ww);
 	      /* This is just an estimate to give reasonable
 		 performance; nothing should go wrong if it is too small.  */
 	      limit = Fnext_overlay_change (position);
 	      if (XFASTINT (limit) > pos + 50)
-		XFASTINT (limit) = pos + 50;
+		XSETFASTINT (limit, pos + 50);
 	      endpos = Fnext_single_property_change (position, Qinvisible,
 						Fcurrent_buffer (), limit);
 	      if (INTEGERP (endpos))
@@ -2548,7 +2546,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      Lisp_Object face, ilisp;
 	      int newface;
 
-	      XFASTINT (ilisp) = i;
+	      XSETFASTINT (ilisp, i);
 	      face = Fget_text_property (ilisp, Qface, Voverlay_arrow_string);
 	      newface = compute_glyph_face_1 (f, face, 0);
 	      leftmargin[i] = FAST_MAKE_GLYPH (c, newface);
@@ -2601,7 +2599,7 @@ display_menu_bar (w)
       if (NILP (string))
 	break;
 
-      XFASTINT (XVECTOR (items)->contents[i + 2]) = hpos;
+      XSETFASTINT (XVECTOR (items)->contents[i + 2], hpos);
 
       if (hpos < maxendcol)
 	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
@@ -2994,8 +2992,8 @@ decode_mode_spec (w, c, maxwidth)
 	   go back past it.  */
 	if (startpos == BUF_BEGV (b))
 	  {
-	    XFASTINT (w->base_line_number) = topline;
-	    XFASTINT (w->base_line_pos) = BUF_BEGV (b);
+	    XSETFASTINT (w->base_line_number, topline);
+	    XSETFASTINT (w->base_line_pos, BUF_BEGV (b));
 	  }
 	else if (nlines < height + 25 || nlines > height * 3 + 50
 		 || linepos == BUF_BEGV (b))
@@ -3020,8 +3018,8 @@ decode_mode_spec (w, c, maxwidth)
 		return "??";
 	      }
 
-	    XFASTINT (w->base_line_number) = topline - nlines;
-	    XFASTINT (w->base_line_pos) = position;
+	    XSETFASTINT (w->base_line_number, topline - nlines);
+	    XSETFASTINT (w->base_line_pos, position);
 	  }
 
 	/* Now count lines from the start pos to point.  */
@@ -3596,12 +3594,12 @@ init_xdisp ()
   if (!noninteractive)
     {
       FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (root_window)));
-      XFASTINT (XWINDOW (root_window)->top) = 0;
+      XSETFASTINT (XWINDOW (root_window)->top, 0);
       set_window_height (root_window, FRAME_HEIGHT (f) - 1, 0);
-      XFASTINT (mini_w->top) = FRAME_HEIGHT (f) - 1;
+      XSETFASTINT (mini_w->top, FRAME_HEIGHT (f) - 1);
       set_window_height (minibuf_window, 1, 0);
 
-      XFASTINT (XWINDOW (root_window)->width) = FRAME_WIDTH (f);
-      XFASTINT (mini_w->width) = FRAME_WIDTH (f);
+      XSETFASTINT (XWINDOW (root_window)->width, FRAME_WIDTH (f));
+      XSETFASTINT (mini_w->width, FRAME_WIDTH (f));
     }
 }
