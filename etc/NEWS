@@ -2012,8 +2012,11 @@ such as `error'.  The brown splotches are skipped for forms that are expected
 to always evaluate to the same value, such as (setq x 14).
 
 *** For difficult cases, you can add do-nothing macros to your code to help
-out the test coverage tool.  The macro 1value suppresses a brown splotch for
-its argument.  The macro noreturn suppresses a red splotch.
+out the test coverage tool.  The macro `noreturn' suppresses a red splotch.
+It is an error if the argument to `noreturn' does return.  The macro 1value
+suppresses a brown splotch for its argument.  This macro is a no-op except
+during test-coverage -- then it signals an error if the argument actually
+returns differing values.
 
 +++
 ** New function unsafep returns nil if the given Lisp form can't possibly
