@@ -46,15 +46,17 @@
   :type '(repeat (string :tag "Group")))
 
 (defcustom gnus-nocem-issuers
-  '("AutoMoose-1" "Automoose-1"		; CancelMoose[tm]
-    "rbraver@ohww.norman.ok.us"		; Robert Braver
-    "clewis@ferret.ocunix.on.ca"	; Chris Lewis
-    "jem@xpat.com"			; Despammer from Korea
-    "snowhare@xmission.com"		; Benjamin "Snowhare" Franz
-    "red@redpoll.mrfs.oh.us (Richard E. Depew)") ; ARMM! ARMM!
+  '("AutoMoose-1"			; CancelMoose[tm]
+    "clewis@ferret.ocunix"		; Chris Lewis
+    "cosmo.roadkill"
+    "SpamHippo"
+    "hweede@snafu.de")
   "*List of NoCeM issuers to pay attention to.
 
-This can also be a list of `(ISSUER CONDITIONS)' elements."
+This can also be a list of `(ISSUER CONDITION ...)' elements.
+
+See <URL:http://www.xs4all.nl/~rosalind/nocemreg/nocemreg.html> for an
+issuer registry."
   :group 'gnus-nocem
   :type '(repeat (choice string sexp)))
 
@@ -87,8 +89,17 @@ matches an previously scanned and verified nocem message."
 (defcustom gnus-nocem-check-article-limit nil
   "*If non-nil, the maximum number of articles to check in any NoCeM group."
   :group 'gnus-nocem
+  :version "21.1"
   :type '(choice (const :tag "unlimited" nil)
 		 (integer 1000)))
+
+(defcustom gnus-nocem-check-from t
+  "Non-nil means check for valid issuers in message bodies.
+Otherwise don't bother fetching articles unless their author matches a
+valid issuer, which is much faster if you are selective about the issuers."
+  :group 'gnus-nocem
+  :version "21.1"
+  :type 'boolean)
 
 ;;; Internal variables
 
@@ -173,6 +184,18 @@ matches an previously scanned and verified nocem message."
 		  ;; are not allowed to have references, so we can
 		  ;; ignore scanning followups.
 		  (and (string-match "@@NCM" (mail-header-subject header))
+		       (and gnus-nocem-check-from
+			    (let ((case-fold-search t))
+			      (catch 'ok
+				(mapcar
+				 (lambda (author)
+				   (if (consp author)
+				       (setq author (car author)))
+				   (if (string-match
+					author (mail-header-from header))
+				       (throw 'ok t)))
+				 gnus-nocem-issuers)
+				nil)))
 		       (or gnus-nocem-liberal-fetch
 			   (and (or (string= "" (mail-header-references
 						 header))
@@ -201,6 +224,7 @@ matches an previously scanned and verified nocem message."
   "Check whether the current article is an NCM article and that we want it."
   ;; Get the article.
   (let ((date (mail-header-date header))
+	(gnus-newsgroup-name group)
 	issuer b e type)
     (when (or (not date)
 	      (time-less-p
