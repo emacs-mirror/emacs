@@ -1,3 +1,8 @@
+2004-11-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (vc-annotate-display-autoscale): Add prefix-arg
+	spec in `interactive' form, and mention it in the docstring.
+
 2004-11-02  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/elp.el (elp-instrument-function):
@@ -30,7 +35,7 @@
 	find-file-existing.  Add "New File..." that calls find-file.
 
 	* diropen.pbm diropen.xpm: New files.
-	
+
 	* toolbar/tool-bar.el (tool-bar-setup): Tool bar item dired uses
 	icon diropen.  New tool bar item find-file-existing uses icon open.
 
