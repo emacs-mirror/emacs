@@ -199,6 +199,12 @@ Lisp_Object Vwrite_region_annotations_so_far;
 /* File name in which we write a list of all our auto save files.  */
 Lisp_Object Vauto_save_list_file_name;
 
+/* Function to call to read a file name.  */
+Lisp_Object Vread_file_name_function; 
+
+/* Current predicate used by read_file_name_internal.  */
+Lisp_Object Vread_file_name_predicate;
+
 /* Nonzero means, when reading a filename in the minibuffer,
  start out by inserting the default directory into the minibuffer. */
 int insert_default_directory;
@@ -5826,6 +5832,13 @@ double_dollars (val)
   return val;
 }
 
+static Lisp_Object
+read_file_name_cleanup (arg)
+     Lisp_Object arg;
+{
+  current_buffer->directory = arg;
+}
+
 DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_internal,
        3, 3, 0,
        doc: /* Internal subroutine for read-file-name.  Do not call this.  */)
@@ -5890,7 +5903,26 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   UNGCPRO;
 
   if (EQ (action, Qt))
-    return Ffile_name_all_completions (name, realdir);
+    {
+      Lisp_Object all = Ffile_name_all_completions (name, realdir);
+      Lisp_Object comp;
+      int count;
+
+      if (NILP (Vread_file_name_predicate)
+	  || EQ (Vread_file_name_predicate, Qfile_exists_p))
+	return all;
+      GCPRO3 (all, comp, specdir);
+      count = specpdl_ptr - specpdl;
+      record_unwind_protect (read_file_name_cleanup, current_buffer->directory);
+      current_buffer->directory = realdir;
+      for (comp = Qnil; CONSP (all); all = XCDR (all))
+	if (!NILP (call1 (Vread_file_name_predicate, XCAR (all))))
+	  comp = Fcons (XCAR (all), comp);
+      unbind_to (count, Qnil);
+      UNGCPRO;
+      return Fnreverse (comp);
+    }
+
   /* Only other case actually used is ACTION = lambda */
 #ifdef VMS
   /* Supposedly this helps commands such as `cd' that read directory names,
@@ -5898,10 +5930,12 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   if (XSTRING (name)->size == 0)
     return Qt;
 #endif /* VMS */
+  if (!NILP (Vread_file_name_predicate))
+    return call1 (Vread_file_name_predicate, string);
   return Ffile_exists_p (string);
 }
 
-DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
+DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
        doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
 Default name to DEFAULT-FILENAME if user enters a null string.
@@ -5910,13 +5944,15 @@ Default name to DEFAULT-FILENAME if user enters a null string.
 Fourth arg MUSTMATCH non-nil means require existing file's name.
  Non-nil and non-t means also require confirmation after completion.
 Fifth arg INITIAL specifies text to start with.
+If optional sixth arg PREDICATE is non-nil, possible completions and the 
+resulting file name must satisfy (funcall PREDICATE NAME).
 DIR defaults to current buffer's directory default.
 
 If this command was invoked with the mouse, use a file dialog box if
 `use-dialog-box' is non-nil, and the window system or X toolkit in use
 provides a file dialog box.  */)
-     (prompt, dir, default_filename, mustmatch, initial)
-     Lisp_Object prompt, dir, default_filename, mustmatch, initial;
+     (prompt, dir, default_filename, mustmatch, initial, predicate)
+     Lisp_Object prompt, dir, default_filename, mustmatch, initial, predicate;
 {
   Lisp_Object val, insdef, tem;
   struct gcpro gcpro1, gcpro2;
@@ -5993,12 +6029,29 @@ provides a file dialog box.  */)
   else
     insdef = Qnil;
 
+  if (!NILP (Vread_file_name_function))
+    {
+      Lisp_Object args[7];
+
+      GCPRO2 (insdef, default_filename);
+      args[0] = Vread_file_name_function;
+      args[1] = prompt;
+      args[2] = dir;
+      args[3] = default_filename;
+      args[4] = mustmatch;
+      args[5] = initial;
+      args[6] = predicate;
+      RETURN_UNGCPRO (Ffuncall (7, args));
+    }
+
   count = specpdl_ptr - specpdl;
 #ifdef VMS
   specbind (intern ("completion-ignore-case"), Qt);
 #endif
 
   specbind (intern ("minibuffer-completing-file-name"), Qt);
+  specbind (intern ("read-file-name-predicate"), 
+	    (NILP (predicate) ? Qfile_exists_p : predicate));
 
   GCPRO2 (insdef, default_filename);
   
@@ -6222,6 +6275,14 @@ same format as a regular save would use.  */);
 	       Fcons (Qfile_error, Fcons (Qerror, Qnil))));
   Fput (Qfile_date_error, Qerror_message,
 	build_string ("Cannot set file date"));
+
+  DEFVAR_LISP ("read-file-name-function", &Vread_file_name_function,
+	       doc: /* If this is non-nil, `read-file-name' does its work by calling this function.  */);
+  Vread_file_name_function = Qnil;
+
+  DEFVAR_LISP ("read-file-name-predicate", &Vread_file_name_predicate,
+	       doc: /* Current predicate used by `read-file-name-internal'.  */);
+  Vread_file_name_predicate = Qnil;
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
 	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.  */);
