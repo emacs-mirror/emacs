@@ -1206,7 +1206,7 @@ is used.
 @item right_margin_width
 Likewise for the right margin.
 
-@begin ignore
+@ignore
 @item last_mark_x
 @item last_mark_y
 ???Not used.
@@ -1234,7 +1234,7 @@ onto the screen.
 If redisplay in this window goes beyond this buffer position, it runs
 run the @code{redisplay-end-trigger-hook}.
 
-@begin ignore
+@ignore
 @item orig_height
 @item orig_top
 ??? Are temporary storage areas.

@@ -908,9 +908,9 @@ makes the string multibyte.  If the string constant is read from a
 unibyte source, then the character is read as unibyte and that makes the
 string unibyte.
 
-  You can also represent a multibyte non-@sc{ASCII} character with its
+  You can also represent a multibyte non-@sc{ascii} character with its
 character code: use a hex escape, @samp{\x@var{nnnnnnn}}, with as many
-digits as necessary.  (Multibyte non-@sc{ASCII} character codes are all
+digits as necessary.  (Multibyte non-@sc{ascii} character codes are all
 greater than 256.)  Any character which is not a valid hex digit
 terminates this construct.  If the next character in the string could be
 interpreted as a hex digit, write @w{@samp{\ }} (backslash and space) to

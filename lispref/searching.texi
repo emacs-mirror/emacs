@@ -1003,7 +1003,7 @@ The argument @var{replacements} specifies what to replace occurrences
 with.  If it is a string, that string is used.  It can also be a list of
 strings, to be used in cyclic order.
 
-If @var{replacements} is a cons cell, @var{(@var{function}
+If @var{replacements} is a cons cell, @code{(@var{function}
 . @var{data})}, this means to call @var{function} after each match to
 get the replacement text.  This function is called with two arguments:
 @var{data}, and the number of replacements already made.

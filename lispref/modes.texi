@@ -1518,7 +1518,7 @@ controlled by different variables.
 @defvar header-line-format
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
-is the same as for @code{mode-line-format} (@xref{Mode Line Data}).
+is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
 @end defvar
 
 @tindex default-header-line-format
