@@ -1,3 +1,7 @@
+2001-04-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (menu): Doc fix.
+
 2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Footer implementation.  Doc fix.
