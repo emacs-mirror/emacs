@@ -8,12 +8,15 @@
 ;;; Authors         : Ken Stevens <k.stevens@ieee.org>
 ;;; Note: version numbers and time stamp are not updated
 ;;;   when this file is edited for release with GNU Emacs.
-;;; Last Modified On: Mon Feb  6 17:39:38 EST 1995
-;;; Update Revision : 2.36
+;;; Last Modified On: Tue Jun 13 12:05:28 EDT 1995
+;;; Update Revision : 2.37
 ;;; Syntax          : emacs-lisp
 ;;; Status	    : Release with 3.1.12+ ispell.
 ;;; Version	    : International Ispell Version 3.1 by Geoff Kuenning.
 ;;; Bug Reports	    : ispell-el-bugs@itcorp.com
+;;;
+;;; Note: version numbers and time stamp are not updated
+;;;   when this file is edited for release with GNU emacs.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -130,6 +133,10 @@
 ;;;  On some versions of emacs, growing the minibuffer fails.
 ;;;
 ;;; HISTORY
+;;;
+;;; Revision 2.37  1995/6/13 12:05:28	stevens
+;;; Removed autoload from ispell-dictionary-alist. *choices* mode-line shows
+;;; misspelled word.  Block skip for pgp & forwarded messages added.
 ;;;
 ;;; Revision 2.36  1995/2/6 17:39:38	stevens
 ;;; Properly adjust screen with different ispell-choices-win-default-height
@@ -409,7 +416,6 @@ Otherwise use the minibuffer.")
   "*Formatting function for displaying word being spell checked.
 The function must take one string argument and return a string.")
 
-;;;###autoload
 (defvar ispell-personal-dictionary nil
   "*File name of your personal spelling dictionary, or nil.
 If nil, the default personal dictionary, \"~/.ispell_DICTNAME\" is used,
@@ -436,8 +442,10 @@ For example, '(\"-W\" \"3\") to cause it to accept all 1-3 character
 words as correct.  See also `ispell-dictionary-alist', which may be used
 for language-specific arguments.")
 
-;;;###autoload
-(defvar ispell-dictionary-alist-1	; sk  9-Aug-1991 18:28
+;;; ispell-dictionary-alist is set up from two subvariables above
+;;; to avoid having very long lines in loaddefs.el.
+(defvar ispell-dictionary-alist
+
   '((nil				; default (english.aff)
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil)
     ("english"				; make english explicitly selectable
@@ -457,11 +465,8 @@ for language-specific arguments.")
     ("nederlands8"				; dutch8.aff
      "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
      "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
-     "[']" t ("-C") nil)))
-
-;;;###autoload
-(defvar ispell-dictionary-alist-2
-  '(("svenska"				;7 bit swedish mode
+     "[']" t ("-C") nil)
+    ("svenska"				;7 bit swedish mode
      "[A-Za-z}{|\\133\\135\\\\]" "[^A-Za-z}{|\\133\\135\\\\]"
      "[']" nil ("-C") nil)
     ("svenska8"				;8 bit swedish mode
@@ -480,14 +485,8 @@ for language-specific arguments.")
     ("dansk"				; dansk.aff
      "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
      "" nil ("-C") nil)
-    ))
+    )
 
-
-;;; ispell-dictionary-alist is set up from two subvariables above
-;;; to avoid having very long lines in loaddefs.el.
-;;;###autoload
-(defvar ispell-dictionary-alist
-  (append ispell-dictionary-alist-1 ispell-dictionary-alist-2)
   "An alist of dictionaries and their associated parameters.
 
 Each element of this list is also a list:
@@ -530,27 +529,21 @@ contain the same character set as casechars and otherchars in the
 language.aff file \(e.g., english.aff\).")
 
 
-;;;###autoload
 (defvar ispell-menu-map nil "Key map for ispell menu")
 
-;;;###autoload
 (defvar ispell-menu-lucid nil "Spelling menu for Lucid Emacs.")
 
 ;;; Break out lucid menu and split into several calls to avoid having
 ;;; long lines in loaddefs.el.  Detect need off following constant.
 
-;;;###autoload
 (defconst ispell-menu-map-needed	; make sure this is not Lucid Emacs
   (and (not ispell-menu-map)
-;;; This is commented out because it fails in Emacs.
-;;; due to the fact that menu-bar is loaded much later than loaddefs.
-;;;       ;; make sure this isn't Lucid Emacs
-;;;       (featurep 'menu-bar)
-       (string-lessp "19" emacs-version)))
+       (string-lessp "19" emacs-version)
+       ;; make sure this isn't Lucid Emacs
+       (not (string-match "Lucid" emacs-version))))
 
 
 ;;; setup dictionary
-;;;###autoload
 (if ispell-menu-map-needed
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
 	  name)
@@ -566,7 +559,6 @@ language.aff file \(e.g., english.aff\).")
 			  (list 'ispell-change-dictionary name))))))))
 
 ;;; define commands in menu in opposite order you want them to appear.
-;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-change-dictionary]
@@ -580,7 +572,6 @@ language.aff file \(e.g., english.aff\).")
       (define-key ispell-menu-map [ispell-complete-word-interior-frag]
 	'("Complete Word Frag" . ispell-complete-word-interior-frag))))
 
-;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-continue]
@@ -592,7 +583,6 @@ language.aff file \(e.g., english.aff\).")
       (define-key ispell-menu-map [ispell-buffer]
 	'("Check Buffer" . ispell-buffer))))
 
-;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-message]
@@ -645,7 +635,7 @@ language.aff file \(e.g., english.aff\).")
 
 
 ;;; The version must be 3.1 or greater for this version of ispell.el
-;;; There is an incompatibility between versin 3.1.12 and lower versions.
+;;; There is an incompatibility between version 3.1.12 and lower versions.
 (defconst ispell-required-version '("3.1." 12)
   "Ispell versions with which this version of ispell.el is known to work.")
 (defvar ispell-offset 1
@@ -736,9 +726,8 @@ a `~' followed by an extended-character mode -- such as `~.tex'.")
 
 (defvar ispell-skip-sgml nil
   "Skips spell checking of SGML tags and entity references when non-nil.
-This variable is set when major-mode is sgml-mode.")
+This variable is set when major-mode is sgml-mode or html-mode.")
 
-;;;###autoload
 (defvar ispell-local-pdict ispell-personal-dictionary
   "A buffer local variable containing the current personal dictionary.
 If non-nil, the value must be a string, which is a file name.
@@ -783,7 +772,8 @@ You can set this variable in hooks in your init file -- eg:
      (not (boundp 'epoch::version))
      (defalias 'ispell 'ispell-buffer))
 
-;;;###autoload (define-key global-map "\M-$" 'ispell-word)
+;;;###autoload
+(define-key global-map "\M-$" 'ispell-word)
 
 ;;;###autoload
 (defun ispell-word (&optional following quietly continue)
@@ -973,7 +963,7 @@ used."
     ;; setup the *Choices* buffer with valid data.
     (save-excursion
       (set-buffer (get-buffer-create ispell-choices-buffer))
-      (setq mode-line-format "--  %b  --")
+      (setq mode-line-format (concat "--  %b  --  word: " word))
       (erase-buffer)
       (if guess
 	  (progn
@@ -1126,7 +1116,9 @@ used."
 			      (erase-buffer)
 			      (setq count ?0
 				    skipped 0
-				    mode-line-format "--  %b  --"
+				    mode-line-format (concat
+						      "--  %b  --  word: "
+						      new-word)
 				    miss (lookup-words new-word)
 				    choices miss)
 			      (while (and choices ; adjust choices window.
@@ -1587,7 +1579,7 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
     nil))
 
 
-;;; ispell-change-dictionary is set in some people's hooks.  Maybe it should
+;;; ispell-change-dictionary is set in some people's hooks.  Maybe this should
 ;;;  call ispell-init-process rather than wait for a spell checking command?
 
 ;;;###autoload
@@ -2038,7 +2030,7 @@ warns you if the previous word is incorrectly spelled."
   (mapconcat (function identity)
 	     '(
 	       ;; Matches postscript files.
-	       "^%!PS-Adobe-[23].0"
+	       "^%!PS-Adobe-[123].0"
 	       ;; Matches uuencoded text
 	       "^begin [0-9][0-9][0-9] .*\nM.*\nM.*\nM"
 	       ;; Matches shell files (esp. auto-decoding)
@@ -2052,6 +2044,32 @@ warns you if the previous word is incorrectly spelled."
   "*End of text which will be checked in ispell-message.
 If it is a string, limit at first occurrence of that regular expression.
 Otherwise, it must be a function which is called to get the limit.")
+
+
+(defvar ispell-message-start-skip
+  (mapconcat (function identity)
+	     '(
+	       ;; Matches forwarded messages
+	       "^---* Forwarded Message"
+	       ;; Matches PGP Public Key block
+	       "^---*BEGIN PGP [A-Z ]*--*"
+	       )
+	     "\\|")
+  "Spelling is skipped inside these start/end groups by ispell-message.
+Assumed that blocks are not mutually inclusive.")
+
+
+(defvar ispell-message-end-skip
+  (mapconcat (function identity)
+	     '(
+	       ;; Matches forwarded messages
+	       "^--- End of Forwarded Message"
+	       ;; Matches PGP Public Key block
+	       "^---*END PGP [A-Z ]*--*"
+	       )
+	     "\\|")
+  "Spelling is skipped inside these start/end groups by ispell-message.
+Assumed that blocks are not mutually inclusive.")
 
 
 ;;;###autoload
@@ -2155,10 +2173,12 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 		   ;; Check the next batch of lines that *aren't* cited.
 		   (end-c (and (re-search-forward cite-regexp-end limit 'end)
 			       (match-beginning 0)))
-		   ;; skip a forwarded message
+		   ;; Skip a block of included text.
 		   (end-fwd (and (goto-char start)
-				 (re-search-forward "---* Forwarded Message"
-						    limit 'end)))
+				 (re-search-forward ispell-message-start-skip
+						    limit 'end)
+				 (progn (beginning-of-line)
+					(point))))
 		   (end (or (and end-c end-fwd (min end-c end-fwd))
 			    end-c end-fwd
 			    ;; defalut to limit of text.
@@ -2168,7 +2188,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	      (if (and end-fwd (= end end-fwd))
 		  (progn
 		    (goto-char end)
-		    (search-forward "--- End of Forwarded Message" limit 'end))
+		    (re-search-forward ispell-message-end-skip limit 'end))
 		(goto-char end)))))
       (set-marker limit nil))))
 
@@ -2203,8 +2223,8 @@ Includes latex/nroff modes and extended character mode."
 	  (eq ispell-parser 'tex))
       (process-send-string ispell-process "+\n") ; set ispell mode to tex
     (process-send-string ispell-process "-\n"))	; set mode to normal (nroff)
-  ;; Hard-wire test for SGML mode.
-  (setq ispell-skip-sgml (eq 'sgml-mode major-mode))
+  ;; Hard-wire test for SGML & HTML mode.
+  (setq ispell-skip-sgml (memq major-mode '(sgml-mode html-mode)))
   ;; Set default extended character mode for given buffer, if any.
   (let ((extended-char-mode (ispell-get-extended-character-mode)))
     (if extended-char-mode
@@ -2328,7 +2348,7 @@ Both should not be used to define a buffer-local dictionary."
   reg-end)
 
 
-(defconst ispell-version "2.36 -- Mon Feb  6 17:39:38 EST 1995")
+(defconst ispell-version "2.37 -- Tue Jun 13 12:05:28 EDT 1995")
 
 (provide 'ispell)
 
