@@ -1,3 +1,8 @@
+2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* progmodes/ada-mode.el (ada-initialize-properties, ada-mode): Do
+	not use make-local-hook.
+
 2002-01-08  Andre Spiegel  <spiegel@gnu.org>
 
 	Patch by Martin.Lorentzson@telia.com
