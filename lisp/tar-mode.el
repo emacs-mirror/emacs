@@ -216,7 +216,7 @@ the file never exists on disk.")
 (defconst tar-dmin-offset (+ tar-dmaj-offset 8))
 (defconst tar-end-offset (+ tar-dmin-offset 8))
 
-(defun tokenize-tar-header-block (string)
+(defun tar-header-block-tokenize (string)
   "Return a `tar-header' structure.
 This is a list of name, mode, uid, gid, size, 
 write-date, checksum, link-type, and link-name."
@@ -283,7 +283,7 @@ write-date, checksum, link-type, and link-name."
   (tar-parse-octal-integer string))
 
 
-(defun checksum-tar-header-block (string)
+(defun tar-header-block-checksum (string)
   "Compute and return a tar-acceptable checksum for this block."
   (let* ((chk-field-start tar-chk-offset)
 	 (chk-field-end (+ chk-field-start 8))
@@ -300,14 +300,14 @@ write-date, checksum, link-type, and link-name."
 	    i (1+ i)))
     (+ sum (* 32 8))))
 
-(defun check-tar-header-block-checksum (hblock desired-checksum file-name)
+(defun tar-header-block-check-checksum (hblock desired-checksum file-name)
   "Beep and print a warning if the checksum doesn't match."
-  (if (not (= desired-checksum (checksum-tar-header-block hblock)))
+  (if (not (= desired-checksum (tar-header-block-checksum hblock)))
       (progn (beep) (message "Invalid checksum for file %s!" file-name))))
 
-(defun recompute-tar-header-block-checksum (hblock)
+(defun tar-header-block-recompute-checksum (hblock)
   "Modifies the given string to have a valid checksum field."
-  (let* ((chk (checksum-tar-header-block hblock))
+  (let* ((chk (tar-header-block-checksum hblock))
 	 (chk-string (format "%6o" chk))
 	 (l (length chk-string)))
     (aset hblock 154 0)
@@ -331,7 +331,7 @@ write-date, checksum, link-type, and link-name."
   (if (zerop (logand 2048 mode)) nil (aset string (+ start 5) ?s))
   string)
 
-(defun summarize-tar-header-block (tar-hblock &optional mod-p)
+(defun tar-header-block-summarize (tar-hblock &optional mod-p)
   "Returns a line similar to the output of `tar -vtf'."
   (let ((name (tar-header-name tar-hblock))
 	(mode (tar-header-mode tar-hblock))
@@ -401,7 +401,7 @@ is visible (and the real data of the buffer is hidden)."
 	(tokens nil))
     (while (not (eq tokens 'empty-tar-block))
       (let* ((hblock (buffer-substring pos (+ pos 512))))
-	(setq tokens (tokenize-tar-header-block hblock))
+	(setq tokens (tar-header-block-tokenize hblock))
 	(setq pos (+ pos 512))
 	(message "parsing tar file...%s%%"
 		 ;(/ (* pos 100) bs)   ; this gets round-off lossage
@@ -419,8 +419,8 @@ is visible (and the real data of the buffer is hidden)."
 		       (tar-header-name tokens) size))
 	    ;
 	    ; This is just too slow.  Don't really need it anyway....
-	    ;(check-tar-header-block-checksum
-	    ;  hblock (checksum-tar-header-block hblock)
+	    ;(tar-header-block-check-checksum
+	    ;  hblock (tar-header-block-checksum hblock)
 	    ;  (tar-header-name tokens))
 	    
 	    (setq result (cons (make-tar-desc pos tokens) result))
@@ -439,7 +439,7 @@ is visible (and the real data of the buffer is hidden)."
     (let ((buffer-read-only nil))
       (tar-dolist (tar-desc tar-parse-info)
 	(insert-string
-	  (summarize-tar-header-block (tar-desc-tokens tar-desc)))
+	  (tar-header-block-summarize (tar-desc-tokens tar-desc)))
 	(insert-string "\n"))
       (make-local-variable 'tar-header-offset)
       (setq tar-header-offset (point))
@@ -683,8 +683,12 @@ save your changes to disk."
 		(set-buffer buffer)
 		(insert-buffer-substring tar-buffer start end)
 		(goto-char 0)
-		;; Give it a name for lit-buffers and to decide mode.
-		(set-visited-file-name (concat tarname ":" name))
+		;; Give it a name for list-buffers and to decide mode.
+		;; Set buffer-file-name by hand first
+		;; so that set-visited-file-name won't lock the filename.
+		(setq buffer-file-name
+		      (expand-file-name (concat tarname ":" name)))
+		(set-visited-file-name buffer-file-name)
 		(normal-mode)  ; pick a mode.
 ;;; Without a file name, save-buffer doesn't work.
 ;;;		(set-visited-file-name nil)  ; nuke the name - not meaningful.
@@ -963,7 +967,7 @@ for this to be permanent."
 	  (let ((p (point)))
 	    (forward-line 1)
 	    (delete-region p (point))
-	    (insert (summarize-tar-header-block tokens) "\n")
+	    (insert (tar-header-block-summarize tokens) "\n")
 	    (setq tar-header-offset (point-max)))
 	  
 	  (widen)
@@ -975,7 +979,7 @@ for this to be permanent."
 	    (insert new-data-string) ; <--
 	    ;;
 	    ;; compute a new checksum and insert it.
-	    (let ((chk (checksum-tar-header-block
+	    (let ((chk (tar-header-block-checksum
 			(buffer-substring start (+ start 512)))))
 	      (goto-char (+ start tar-chk-offset))
 	      (delete-region (point) (+ (point) 8))
@@ -1063,7 +1067,7 @@ to make your changes permanent."
 		(insert ? ))
 	      ;;
 	      ;; compute a new checksum and insert it.
-	      (let ((chk (checksum-tar-header-block
+	      (let ((chk (tar-header-block-checksum
 			  (buffer-substring header-start data-start))))
 		(goto-char (+ header-start tar-chk-offset))
 		(delete-region (point) (+ (point) 8))
@@ -1085,7 +1089,7 @@ to make your changes permanent."
 		(setq after (point))
 		;; Insert the new text after the old, before deleting,
 		;; to preserve the window start.
-		(insert-before-markers (summarize-tar-header-block tokens t) "\n")
+		(insert-before-markers (tar-header-block-summarize tokens t) "\n")
 		(delete-region p after)
 		(setq tar-header-offset (marker-position m)))
 	      )))
