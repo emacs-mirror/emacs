@@ -5,7 +5,6 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.16 1996/02/06 21:35:20 erik Exp rms $
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -308,7 +307,7 @@ The return value has the form (NAME . ADDRESS)."
 	(if (progn
 	      (goto-char (point-min))
 	      (re-search-forward
-	       "\\$Id: [^ ]+ [^ ]+ \\([^/]+\\)/\\([^/]+\\)/\\([^ ]+\\) "
+	       "\\$[I]d: [^ ]+ [^ ]+ \\([^/]+\\)/\\([^/]+\\)/\\([^ ]+\\) "
 	       (lm-code-mark) t))
 	    (format "%s %s %s"
 		    (buffer-substring (match-beginning 3) (match-end 3))
@@ -335,7 +334,7 @@ This can befound in an RCS or SCCS header to crack it out of."
 	   (goto-char (point-min))
 	   (cond
 	    ;; Look for an RCS header
-	    ((re-search-forward "\\$Id: [^ ]+ \\([^ ]+\\) " header-max t)
+	    ((re-search-forward "\\$[I]d: [^ ]+ \\([^ ]+\\) " header-max t)
 	     (buffer-substring (match-beginning 1) (match-end 1)))
 
 	    ;; Look for an SCCS header
