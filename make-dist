@@ -173,21 +173,13 @@ then
 
   (cd man; make info)
 
-  echo "Updating finder-inf.el"
-
-  (cd lisp; make finder-data)
-
   echo "Recompiling Lisp files"
 
   $EMACS -batch -f batch-byte-recompile-directory lisp
 
-  echo "Updating autoloads"
+  echo "Updating finder, custom and autoload data"
 
-  (cd lisp; make autoloads)
-
-  echo "Updating cus-load.el"
-
-  (cd lisp; make custom-deps)
+  (cd lisp; make updates)
 fi
 
 echo "Making lisp/MANIFEST"
