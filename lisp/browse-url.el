@@ -208,7 +208,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Code:
 
-(eval-when-compile (require 'dired))
+(eval-when-compile (require 'dired)
+		   (require 'thingatpt))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
@@ -378,60 +379,9 @@ These might set the port, for instance."
 ;; URL input
 
 (defun browse-url-url-at-point ()
-  "Return the URL around or before point.
-Search backwards for the start of a URL ending at or after 
-point.  If no URL found, return the empty string.  The
-access scheme, `http://' will be prepended if absent."
-  (let ((url "") short strip)
-    (if (or (setq strip (browse-url-looking-at browse-url-markedup-regexp))
-	    (browse-url-looking-at browse-url-regexp)
-	    ;; Access scheme omitted?
-	    (setq short (browse-url-looking-at browse-url-short-regexp)))
-	(progn
-	  (setq url (buffer-substring-no-properties (match-beginning 0)
-						    (match-end 0)))
-	  (and strip (setq url (substring url 5 -1))) ; Drop "<URL:" & ">"
-	  ;; strip whitespace
-	  (while (string-match "\\s +\\|\n+" url)
-	    (setq url (replace-match "" t t url)))
-	  (and short (setq url (concat (if (string-match "@" url)
-					   "mailto:" "http://") url)))))
+  (let ((url (thing-at-point 'url)))
+    (set-text-properties 0 (length url) nil url)
     url))
-
-;; thingatpt.el doesn't work for complex regexps.  This should work
-;; for almost any regexp wherever we are in the match.  To do a
-;; perfect job for any arbitrary regexp would mean testing every
-;; position before point.  Regexp searches won't find matches that
-;; straddle the start position so we search forwards once and then
-;; back repeatedly and then back up a char at a time.
-
-(defun browse-url-looking-at (regexp)
-  "Return non-nil if point is in or just after a match for REGEXP.
-Set the match data from the earliest such match ending at or after
-point."
-  (save-excursion
-    (let ((old-point (point)) match)
-      (and (looking-at regexp)
-	   (>= (match-end 0) old-point)
-	   (setq match (point)))
-      ;; Search back repeatedly from end of next match.
-      ;; This may fail if next match ends before this match does.
-      (re-search-forward regexp nil 'limit)
-      (while (and (re-search-backward regexp nil t)
-		  (or (> (match-beginning 0) old-point)
-		      (and (looking-at regexp)	; Extend match-end past search start
-			   (>= (match-end 0) old-point)
-			   (setq match (point))))))
-      (if (not match) nil
-	(goto-char match)
-	;; Back up a char at a time in case search skipped
-	;; intermediate match straddling search start pos.
-	(while (and (not (bobp))
-		    (progn (backward-char 1) (looking-at regexp))
-		    (>= (match-end 0) old-point)
-		    (setq match (point))))
-	(goto-char match)
-	(looking-at regexp)))))
 
 ;; Having this as a separate function called by the browser-specific
 ;; functions allows them to be stand-alone commands, making it easier
