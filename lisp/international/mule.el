@@ -429,8 +429,7 @@ code-point in CCS.  Currently not supported and just ignored."
   "Return the coding type of CODING-SYSTEM.
 A coding type is an integer value indicating the encoding method
 of CODING-SYSTEM.  See the function `make-coding-system' for more detail."
-  (let ((spec (coding-system-spec coding-system)))
-    (if spec (aref spec coding-spec-type-idx))))
+  (aref (coding-system-spec coding-system) coding-spec-type-idx))
 
 (defun coding-system-mnemonic (coding-system)
   "Return the mnemonic character of CODING-SYSTEM.
@@ -441,21 +440,18 @@ to indicate the coding system.  If the arg is nil, return ?-."
 
 (defun coding-system-doc-string (coding-system)
   "Return the documentation string for CODING-SYSTEM."
-  (let ((spec (coding-system-spec coding-system)))
-    (if spec (aref spec coding-spec-doc-string-idx))))
+  (aref (coding-system-spec coding-system) coding-spec-doc-string-idx))
 
 (defun coding-system-plist (coding-system)
   "Return the property list of CODING-SYSTEM."
-  (let ((spec (coding-system-spec coding-system)))
-    (if spec (aref spec coding-spec-plist-idx))))
+  (aref (coding-system-spec coding-system) coding-spec-plist-idx))
 
 (defun coding-system-flags (coding-system)
   "Return `flags' of CODING-SYSTEM.
 A `flags' of a coding system is a vector of length 32 indicating detailed
 information of a coding system.  See the function `make-coding-system'
 for more detail."
-  (let ((spec (coding-system-spec coding-system)))
-    (if spec (aref spec coding-spec-flags-idx))))
+  (aref (coding-system-spec coding-system) coding-spec-flags-idx))
 
 (defun coding-system-get (coding-system prop)
   "Extract a value from CODING-SYSTEM's property list for property PROP."
@@ -466,8 +462,8 @@ for more detail."
   (let ((plist (coding-system-plist coding-system)))
     (if plist
 	(plist-put plist prop val)
-      (let ((spec (coding-system-spec coding-system)))
-	(if spec (aset spec coding-spec-plist-idx (list prop val)))))))
+      (aset (coding-system-spec coding-system) coding-spec-plist-idx
+	    (list prop val)))))
 
 (defun coding-system-category (coding-system)
   "Return the coding category of CODING-SYSTEM.
