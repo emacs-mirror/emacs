@@ -475,8 +475,9 @@ Return t if file exists.")
   /* 1 means we are loading a compiled file.  */
   int compiled = 0;
   Lisp_Object handler;
+  char *fmode = "r";
 #ifdef DOS_NT
-  char *dosmode = "rt";
+  fmode = "rt";
 #endif /* DOS_NT */
 
   CHECK_STRING (file, 0);
@@ -548,7 +549,7 @@ Return t if file exists.")
       compiled = 1;
 
 #ifdef DOS_NT
-      dosmode = "rb";
+      fmode = "rb";
 #endif /* DOS_NT */
       stat ((char *)XSTRING (found)->data, &s1);
       XSTRING (found)->data[XSTRING (found)->size - 1] = 0;
@@ -577,12 +578,12 @@ Return t if file exists.")
 	}
     }
 
-#ifdef DOS_NT
+#ifdef WINDOWSNT
   close (fd);
-  stream = fopen ((char *) XSTRING (found)->data, dosmode);
-#else  /* not DOS_NT */
-  stream = fdopen (fd, "r");
-#endif /* not DOS_NT */
+  stream = fopen ((char *) XSTRING (found)->data, fmode);
+#else  /* not WINDOWSNT */
+  stream = fdopen (fd, fmode);
+#endif /* not WINDOWSNT */
   if (stream == 0)
     {
       close (fd);
@@ -1581,7 +1582,7 @@ read1 (readcharfun, pch, first_in_list)
 	  if (c >= 0)
 	    UNREAD (c);
 	  
-#ifndef DOS_NT /* I don't know if filepos works right on MSDOS and Windoze.  */
+#ifndef WINDOWSNT /* I don't know if filepos works right on Windoze.  */
 	  if (load_force_doc_strings && EQ (readcharfun, Qget_file_char))
 	    {
 	      /* If we are supposed to force doc strings into core right now,
@@ -1608,7 +1609,7 @@ read1 (readcharfun, pch, first_in_list)
 	      saved_doc_string_length = i;
 	    }
 	  else
-#endif /* not DOS_NT */
+#endif /* not WINDOWSNT */
 	    {
 	      /* Skip that many characters.  */
 	      for (i = 0; i < nskip && c >= 0; i++)
