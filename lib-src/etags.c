@@ -783,9 +783,10 @@ find_entries (file)
       Asm_labels (inf);
       goto close_and_return;
     }
-  /* .C or .H or .cxx or .hxx or .cc: a C++ file */
+  /* .C or .H or .cxx or .hxx or .cc or .cpp: a C++ file */
   if (cp && (streq (cp1, "C")
 	     || streq (cp1, "H")
+	     || streq (cp1, "cpp")
 	     || streq (cp1, "cxx")
 	     || streq (cp1, "hxx")
 	     || streq (cp1, "cc")))
