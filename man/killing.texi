@@ -77,8 +77,6 @@ mode (@pxref{Transient Mark}).
 @c ??? Should be backward-delete-char
 @findex delete-backward-char
 @findex delete-char
-@kindex DEL
-@kindex C-d
 
 @table @kbd
 @item C-d
@@ -103,6 +101,8 @@ Join two lines by deleting the intervening newline, along with any
 indentation following it (@code{delete-indentation}).
 @end table
 
+@kindex DEL
+@kindex C-d
   The most basic delete commands are @kbd{C-d} (@code{delete-char}) and
 @key{DEL} (@code{delete-backward-char}).  @kbd{C-d} deletes the
 character after point, the one the cursor is ``on top of.''  This
@@ -112,38 +112,48 @@ in the buffer; deleting a newline joins two lines.  Actually, @kbd{C-d}
 and @key{DEL} aren't always delete commands; when given arguments, they
 kill instead, since they can erase more than one character this way.
 
+@kindex BACKSPACE
+@kindex BS
+@kindex DELETE
+  Every keyboard has a large key, labeled @key{DEL}, @key{BACKSPACE},
+@key{BS} or @key{DELETE}, which is a short distance above the
+@key{RET} or @key{ENTER} key and is normally used for erasing what you
+have typed.  Regardless of the actual name on the key, it is
+equivalent to @key{DEL}---or it should be.
+
+  Many keyboards have a @key{BACKSPACE} key a short ways above
+@key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  In that
+case, the @key{BACKSPACE} key is @key{DEL}, and the @key{DELETE} key
+is equivalent to @kbd{C-d}---or it should be.
+
 @findex delete-key-deletes-forward-mode
-  Some keyboards have both @key{Delete} and @key{DEL} keys, while others
-have just @key{DEL}.  (The former variety usually labels the @key{DEL}
-key as @key{BS} or @key{<-} and refers to it as a ``backspace key''.)
-When Emacs starts, it tries to detect keyboards with both @key{BS} and
-@key{Delete} keys, and if it finds your keyboard to have both keys, it
-binds them to the commands users expect: @key{Delete} deletes forward,
-like @kbd{C-d} does, and @key{BS} deletes backwards.  However, some
-systems don't report the keyboard configuration.  If your keyboard has
-these two keys, and if they are both reported to Emacs, but Emacs is
-unable to establish that, you can use the
-@code{delete-key-deletes-forward-mode} command to force Emacs to treat
-@key{BS} and @key{Delete} differently.  Either type @kbd{C-u 1 M-x
-delete-key-deletes-forward-mode @key{RET}} or put the following line
-into your @file{.emacs} init file (@pxref{Init File}):
+  Why do we say ``or it should be''?  When Emacs starts up using a
+window system, it determines automatically which key should be
+equivalent to @key{DEL}.  So the @key{BACKSPACE} and/or @key{DELETE}
+keys will almost surely do the right things.  But on text-only
+terminals, Emacs cannot tell which key is where; it has to make an
+assumption, which can be wrong.
+
+  If the usual key for text erasure does not behave as @key{DEL},
+probably that means it is really a @key{BACKSPACE} key.  You can use
+the command @kbd{M-x delete-key-deletes-forward-mode} to swap the
+meanings of @key{BACKSPACE} and @key{DEL}, so that the convenient key
+for deletion actually does deletion.  To do this for every Emacs
+session, put the following line into your @file{.emacs} init file
+(@pxref{Init File}):
 
 @lisp
- (delete-key-deletes-forward-mode 1)
+(delete-key-deletes-forward-mode 1)
 @end lisp
 
 @noindent
-@vindex delete-key-deletes-forward
-The variable @code{delete-key-deletes-forward}, if set to @code{t},
-tells Emacs that the @key{Delete} key deletes the character after the
-cursor.
+This also makes the @key{DELETE} key, if there is one, delete the
+character after the cursor.
 
-@noindent
-To find out whether the @key{BS} and @key{Delete} keys are reported to
-Emacs, type @kbd{C-h c @key{BS} C-h c @key{Delete}}, and then type
-@kbd{C-h l}.  If the text in the window popped up by Emacs after the
-last command includes ``C-h c backspace'' and ``C-h c delete'', you know
-that these keys are reported to Emacs.
+@vindex delete-key-deletes-forward
+The variable @code{delete-key-deletes-forward} is @code{t} in the mode
+where the @key{DELETE} key deletes forwards, @code{nil} if
+@key{DELETE} is equivalent to @key{DEL} and deletes backwards.
 
 @kindex M-\
 @findex delete-horizontal-space
