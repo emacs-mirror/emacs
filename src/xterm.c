@@ -3252,6 +3252,27 @@ x_alloc_nearest_color_for_widget (widget, cmap, color)
 }
 
 
+/* Allocate a color which is lighter or darker than *PIXEL by FACTOR
+   or DELTA.  Try a color with RGB values multiplied by FACTOR first.
+   If this produces the same color as PIXEL, try a color where all RGB
+   values have DELTA added.  Return the allocated color in *PIXEL.
+   DISPLAY is the X display, CMAP is the colormap to operate on.
+   Value is non-zero if successful.  */
+
+int
+x_alloc_lighter_color_for_widget (widget, display, cmap, pixel, factor, delta)
+     Widget widget;
+     Display *display;
+     Colormap cmap;
+     unsigned long *pixel;
+     double factor;
+     int delta;
+{
+  struct frame *f = x_frame_of_widget (widget);
+  return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
+}
+
+
 #endif /* USE_X_TOOLKIT */
 
 
