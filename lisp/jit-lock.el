@@ -66,7 +66,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
 (defcustom jit-lock-stealth-time 3
   "*Time in seconds to wait before beginning stealth fontification.
 Stealth fontification occurs if there is no input within this time.
-If nil, means stealth fontification is never performed.
+If nil, stealth fontification is never performed.
 
 The value of this variable is used when JIT Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
