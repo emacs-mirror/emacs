@@ -108,8 +108,8 @@
     ("-cr" cursor-color)
     ("-itype" icon-type t)
     ("-iconic" iconic-startup t)
-    ("-vb" vertical-scroll-bar t)
-    ("-hb" horizontal-scroll-bar t)
+    ("-vb" vertical-scroll-bars t)
+    ("-hb" horizontal-scroll-bars t)
     ("-bd" border-color)
     ("-bw" border-width)))
 
