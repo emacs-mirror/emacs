@@ -228,6 +228,10 @@ static int baud_convert[] =
   };
 #endif
 
+#ifdef HAVE_SPEED_T
+#include <termios.h>
+extern speed_t ospeed;
+#else
 #if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
 extern short ospeed;
 #else
@@ -238,6 +242,7 @@ extern short ospeed;
 extern speed_t ospeed;
 #else
 extern short ospeed;
+#endif
 #endif
 #endif
 

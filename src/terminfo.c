@@ -27,6 +27,10 @@ Boston, MA 02111-1307, USA.  */
 
 char *UP, *BC, PC;
 
+#ifdef HAVE_SPEED_T
+#include <termios.h>
+extern speed_t ospeed;
+#else
 #if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
 short ospeed;
 #else
@@ -37,6 +41,7 @@ short ospeed;
 speed_t ospeed;
 #else
 short ospeed;
+#endif
 #endif
 #endif
 
