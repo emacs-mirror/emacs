@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!69.c(trunk.5) $
+ id = $HopeName: MMQA_test_function!69.c(trunk.6) $
  summary = request.dylan.170563 (colour invariant and finalization)
  language = c
  link = testlib.o rankfmt.o
@@ -9,11 +9,19 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "rankfmt.h"
+
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 
 void *stackpointer;
 
-mps_space_t space;
+mps_arena_t arena;
 
 
 static void test(void) {
@@ -22,6 +30,7 @@ static void test(void) {
  mps_root_t root;
 
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_addr_t ref;
  mps_message_t message;
  mps_ap_t ap;
@@ -31,28 +40,25 @@ static void test(void) {
 
  long int j;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
+      "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ die(mps_thread_reg(&thread, arena), "register thread");
+ die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                         mps_stack_scan_ambig, stackpointer, 0),
+     "create root");
 
- cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
-
- cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
-  "create pool");
+ die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(
   mps_ap_create(&ap, pool, MPS_RANK_EXACT),
   "create ap");
 
- mps_message_type_enable(space, mps_message_type_finalization());
+ mps_message_type_enable(arena, mps_message_type_finalization());
 
  b = allocone(ap, 400, 1);
 
@@ -63,53 +69,44 @@ static void test(void) {
  }
 
  a = allocone(ap, 2, 1);
- mps_finalize(space, (mps_addr_t*)&a);
+ mps_finalize(arena, (mps_addr_t*)&a);
  myTag = a->tag;
 
  a = allocone(ap, 4000, 1);
- mps_arena_collect(space);
+ mps_arena_collect(arena);
 
- if (mps_message_get(&message, space, MPS_MESSAGE_TYPE_FINALIZATION)) {
- } else {
+ if (!mps_message_get(&message, arena, MPS_MESSAGE_TYPE_FINALIZATION)) {
   error("No message on queue!");
  }
 
  for (j=0; j<50; j++) {
   comment("%d of 50", j);
   a = allocdumb(ap, 1024*1024*10, 1);
-  mps_message_finalization_ref(&ref, space, message);
-  mps_arena_park(space);
+  mps_message_finalization_ref(&ref, arena, message);
+  mps_arena_park(arena);
   a = ref;
   comment("                   %p", a);
   asserts(a->tag == myTag, "Bad reference!");
   a = NULL;
   ref = NULL;
-  mps_arena_release(space);
+  mps_arena_release(arena);
  }
 
- mps_message_discard(space, message);
+ mps_message_discard(arena, message);
 
  mps_root_destroy(root);
- comment("Destroyed root.");
-
  mps_ap_destroy(ap);
- comment("Destroyed ap.");
-
  mps_pool_destroy(pool);
- comment("Destroyed pool.");
-
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 
-int main(void) {
+int main(void)
+{
  void *m;
  stackpointer=&m; /* hack to get stack pointer */
 
