@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.1) $
+# $HopeName: MMsrc!commpre.nmk(trunk.2) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -117,9 +117,12 @@ CFDP = /DCONFIG_VAR_DP /Z7
 
 CFDS = /DCONFIG_VAR_DS /Z7
 
+# "telemetry (logging)" variety flags
+CFDL = /DCONFIG_VAR_DL /Z7
+
 # "release" variety flags
-# Microsoft documentation is not very clear on the point of using bothing
-# optimzation and debug information
+# Microsoft documentation is not very clear on the point of using both
+# optimization and debug information
 CFRO = /DCONFIG_VAR_RO /Z7 /O2
 
 # "cover" variety flags
@@ -132,6 +135,7 @@ LINKFLAGSCOMMON = /nologo /PDB:NONE
 LFDF = /DEBUG:full /DEBUGTYPE:cv
 LFDP = /DEBUG:full /DEBUGTYPE:cv
 LFDS = /DEBUG:full /DEBUGTYPE:cv
+LFDL = /DEBUG:full /DEBUGTYPE:cv
 LFRO = /RELEASE /DEBUG:full /DEBUGTYPE:cv
 LFCV = /PROFILE /DEBUG:full /DEBUGTYPE:cv
 
@@ -142,6 +146,7 @@ LIBFLAGSCOMMON = /nologo
 LIBFLAGSDF = 
 LIBFLAGSDP = 
 LIBFLAGSDS = 
+LIBFLAGSDL = 
 LIBFLAGSRO = 
 LIBFLAGSCV =
 
