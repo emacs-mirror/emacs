@@ -281,7 +281,7 @@ make_frame (mini_p)
   f->focus_frame = Qnil;
   f->explicit_name = 0;
   f->can_have_scroll_bars = 0;
-  f->has_vertical_scroll_bars = 0;
+  f->vertical_scroll_bar_type = vertical_scroll_bar_none;
   f->param_alist = Qnil;
   f->scroll_bars = Qnil;
   f->condemned_scroll_bars = Qnil;
@@ -319,7 +319,7 @@ make_frame (mini_p)
      just so that there is "something there."
      Correct size will be set up later with change_frame_size.  */
 
-  f->width = 10;
+  SET_FRAME_WIDTH (f, 10);
   f->height = 10;
 
   XSETFASTINT (XWINDOW (root_window)->width, 10);
