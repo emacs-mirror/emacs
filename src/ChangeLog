@@ -264,6 +264,10 @@
 	* xfns.c: Include "character.h".
 	(x_encode_text): Adjusted for the new code-conversion API.
 
+	* xselect.c: Don't include "charset.h".
+	(selection_data_to_lisp_data): Adjusted for the new code
+	covnersion API.
+
 	* xterm.c: Include "character.h".
 	(x_encode_char): New argument CHARSET.  Caller changed.
 	(x_get_char_face_and_encoding): Call ENCODE_CHAR instead of

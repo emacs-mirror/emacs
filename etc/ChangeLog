@@ -1,3 +1,7 @@
+2002-03-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* charsets: New directory for charset mapping tables.
+
 2002-02-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.xpm: Remove garbages.

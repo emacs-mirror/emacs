@@ -1,3 +1,121 @@
+2002-03-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* bindings.el: Don't bind multibyte characters to
+	self-insert-command here.  It's done in mule-conf.el
+
+	* case-table.el (set-case-syntax-offset): Variable deleted.
+	(set-case-syntax-1): Function deleted.  Callers changed.
+	(set-case-syntax-delims): Don't check byte length of characters.
+
+	* isearch.el (isearch-mode-map): Call set-char-table-range to bind
+	characters to isearch-printing-char.
+
+	* loadup.el: Don't load "international/utf-8".  Don't call
+	update-coding-systems-internal.  Bind coding-system-for-write to
+	`utf-8' while writing fns-XXX.el.  Call clear-charset-maps before
+	dumping.
+
+	* version.el (emacs-version): Set to "22.0.0".
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Adjusted for the
+	change of map-char-table.
+
+	* eshell/esh-mode.el: Adjusted for the change of map-char-table.
+
+	* international/characters.el: Adjusted for the deletion of
+	generic characters.
+
+	* international/code-pages.el (cp-make-translation-table,
+	cp-valid-codes, cp-fix-safe-chars): Deleted.  Caller changed.
+	(cp-make-coding-system): Call define-coding-system.
+
+	* international/fontset.el: Mostly re-written.
+
+	* international/ja-dic-cnv.el (skkdic-get-kana-compact-codes):
+	Call encode-char instead of split-char.
+
+	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
+	Value changed.
+	(skkdic-lookup-key): Call encode-char instead of split-char.
+
+	* international/titdic-cnv.el (titdic-convert): Bind
+	coding-system-for-write to 'iso-2022-7bit.  Don't work on unibyte
+	buffer.
+
+	* international/latin-1.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-2.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-3.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-4.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-5.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-8.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-9.el: Don't bind set-case-syntax-offset.
+
+	* international/mule-cmds.el: Don't use coding category.  Call
+	set-coding-system-priority instead of set-coding-priority.
+	(sort-coding-systems): Call coding-system-priority-list to get the
+	most preferred one.
+	(select-safe-coding-system): Likewise.
+	(reset-language-environment): Order of coding system priority
+	changed.  Set primary charset to iso-8859-1.
+	(set-language-environment-coding-systems): Call
+	set-coding-system-priority instead of set-coding-priority.
+	(get-charset-property, put-charset-property): Moved to mule.el.
+
+	* international/mule-conf.el: Fully Re-written.
+
+	* international/mule-diag.el (print-designation): Arguments
+	changed.
+	(print-iso-2022-flags): New function.
+	(describe-coding-system): Adjusted for the new structure of coding
+	system.
+	(describe-current-coding-system): Likewise.
+
+	* international/mule.el (char-valid-p): Make it an alias of
+	characterp.
+	(define-charset): Fully re-designed.
+	(charset-quoted-standard-p): Deleted.
+	(charsetp): Moved to charset.c.
+	(charset-info, charset-id, charset-bytes, charset-width,
+	charset-directioin, charset-iso-graphic-plane,
+	charset-reverse-charset): Deleted.
+	(charset-dimension, charset-chars, charset-iso-final-char,
+	charset-description, charset-short-name, charset-long-name): Call
+	charset-plist instead of charset-info.
+	(charset-plist, set-charset-plist): Moved to charset.c.
+	(get-charset-property, put-charset-property): Moved from
+	mule-cmds.el.  Call charset-plist and set-charset-plist.
+	(make-char): Deleted.
+	(generic-char-p): Make it always return nil.
+	(decode-char, encode-char): Moved to charset.c.
+	(coding-spec-XXX-idx): Variables deleted.
+	(coding-system-iso-2022-flags): New variable.
+	(define-coding-system): New function.
+	(transform-make-coding-system-args, make-coding-system): Deleted.
+	(set-coding-priority): Make it obsolete.
+	(after-insert-file-set-buffer-file-coding-system): Adjusted for
+	the new coding system structure.
+	(find-new-buffer-file-coding-system): Likewise.
+
+	* language/chinese.el, language/cyrillic.el, language/european.el,
+	language/greek.el, language/hebrew.el, language/indian.el,
+	language/japanese.el, language/korean.el, language/lao.el,
+	language/thai.el, language/tibetan.el, language/vietnamese.el:
+	Call define-coding-system instead of make-coding-system.  All CCL
+	program deleted.
+
+	* textmodes/sgml-mode.el (sgml-mode-map): Use encode-char instead
+	of make-char.
+	(sgml-char-names-table): Iteration limit fixed.
+
+	* term/mac-win.el: Deleted unnecessary calls of set-fontset-font.
+	(ccl-encode-mac-roman-font): Deleted.
+
 2002-02-26  Richard M. Stallman  <rms@gnu.org>
 
 	* paths.el (remote-shell-program): Add doc string.
