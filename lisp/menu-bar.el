@@ -791,7 +791,7 @@ PROPS are additional properties."
 (defun menu-bar-left-scroll-bar ()
   "Display scroll bars on the left of each window."
   (interactive)
-  (customize-set-variable 'scroll-bar-mode 'right))
+  (customize-set-variable 'scroll-bar-mode 'left))
 
 (define-key menu-bar-showhide-scroll-bar-menu [none]
   '(menu-item "None"

@@ -1,3 +1,8 @@
+2003-01-02  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* menu-bar.el (menu-bar-left-scroll-bar): Set `scroll-bar-mode'
+	to `left'.
+
 2003-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-reply): Don't call mail-strip-quoted-names.
