@@ -236,6 +236,9 @@ extern int minibuf_prompt_width;
    minibuf_prompt as well as the buffer.  */
 extern char *echo_area_glyphs;
 
+/* This is the length of the message in echo_area_glyphs.  */
+extern int echo_area_glyphs_length;
+
 /* Value of echo_area_glyphs when it was last acted on.
   If this is nonzero, there is a message on the frame
   in the minibuffer and it should be erased as soon
