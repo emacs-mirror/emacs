@@ -5843,8 +5843,8 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio)
 }
 
 
-/* Get a list of matching fonts on frame F, considering alterntive
-   font families from Vface_alternative_font_registry_alist.
+/* Get a list of matching fonts on frame F, considering FAMILY
+   and alternative font families from Vface_alternative_font_registry_alist.
 
    FAMILY is the font family whose alternatives are considered.
 
@@ -5864,27 +5864,40 @@ try_alternative_families (f, family, registry, fonts)
   Lisp_Object alter;
   int nfonts = 0;
 
-  /* Try alternative font families.  */
-  alter = Fassoc (family, Vface_alternative_font_family_alist);
-  if (CONSP (alter))
+  nfonts = font_list (f, Qnil, family, registry, fonts);
+  if (nfonts == 0)
     {
-      for (alter = XCDR (alter);
-	   CONSP (alter) && nfonts == 0;
-	   alter = XCDR (alter))
+      /* Try alternative font families.  */
+      alter = Fassoc (family, Vface_alternative_font_family_alist);
+      if (CONSP (alter))
 	{
-	  if (STRINGP (XCAR (alter)))
-	    nfonts = font_list (f, Qnil, XCAR (alter), registry, fonts);
+	  for (alter = XCDR (alter);
+	       CONSP (alter) && nfonts == 0;
+	       alter = XCDR (alter))
+	    {
+	      if (STRINGP (XCAR (alter)))
+		nfonts = font_list (f, Qnil, XCAR (alter), registry, fonts);
+	    }
+	}
+      
+      /* Try scalable fonts before giving up.  */
+      if (nfonts == 0 && NILP (Vscalable_fonts_allowed))
+	{
+	  int count = BINDING_STACK_SIZE ();
+	  specbind (Qscalable_fonts_allowed, Qt);
+	  nfonts = try_alternative_families (f, family, registry, fonts);
+	  unbind_to (count, Qnil);
 	}
     }
-
   return nfonts;
 }
 
 
 /* Get a list of matching fonts on frame F.
 
-   FAMILY, if a string, specifies a font family.  If nil, use
-   the family specified in Lisp face attributes ATTRS instead.
+   FAMILY, if a string, specifies a font family derived from the fontset.
+   It is only used if the face does not specify any family in ATTRS or
+   if we cannot find any font of the face's family.
 
    REGISTRY, if a string, specifies a font registry and encoding to
    match.  A value of nil means include fonts of any registry and
@@ -5901,39 +5914,28 @@ try_font_list (f, attrs, family, registry, fonts)
      struct font_name **fonts;
 {
   int nfonts = 0;
+  Lisp_Object face_family = attrs[LFACE_FAMILY_INDEX];
 
-  if (STRINGP (attrs[LFACE_FAMILY_INDEX]))
-    {
-      Lisp_Object face_family;
-      face_family = attrs[LFACE_FAMILY_INDEX];
-      nfonts = font_list (f, Qnil, face_family, registry, fonts);
-      if (nfonts == 0)
-	nfonts = try_alternative_families (f, face_family, registry, fonts);
-    }
+  if (STRINGP (face_family))
+    nfonts = try_alternative_families (f, face_family, registry, fonts);
 
+  if (nfonts == 0 && !NILP (family))
+    nfonts = try_alternative_families (f, family, registry, fonts);
+
+  /* Try font family of the default face or "fixed".  */
   if (nfonts == 0)
     {
+      struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+      if (default_face)
+	family = default_face->lface[LFACE_FAMILY_INDEX];
+      else
+	family = build_string ("fixed");
       nfonts = font_list (f, Qnil, family, registry, fonts);
-      if (nfonts == 0 && !NILP (family))
-	{
-	  nfonts = try_alternative_families (f, family, registry, fonts);
-
-	  /* Try font family of the default face or "fixed".  */
-	  if (nfonts == 0)
-	    {
-	      struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-	      if (default_face)
-		family = default_face->lface[LFACE_FAMILY_INDEX];
-	      else
-		family = build_string ("fixed");
-	      nfonts = font_list (f, Qnil, family, registry, fonts);
-	    }
-
-	  /* Try any family with the given registry.  */
-	  if (nfonts == 0)
-	    nfonts = font_list (f, Qnil, Qnil, registry, fonts);
-	}
     }
+      
+  /* Try any family with the given registry.  */
+  if (nfonts == 0)
+    nfonts = font_list (f, Qnil, Qnil, registry, fonts);
 
   return nfonts;
 }
@@ -7200,8 +7202,10 @@ See `set-face-stipple' for possible values for this variable.");
 A value of nil means don't allow any scalable fonts.\n\
 A value of t means allow any scalable font.\n\
 Otherwise, value must be a list of regular expressions.  A font may be\n\
-scaled if its name matches a regular expression in the list.");
-  Vscalable_fonts_allowed = Qt;
+scaled if its name matches a regular expression in the list.\n\
+Note that if value is nil, a scalable font might still be used, if no\n\
+other font of the appropriate family and registry is available.");
+  Vscalable_fonts_allowed = Qnil;
 
   DEFVAR_LISP ("face-ignored-fonts", &Vface_ignored_fonts,
     "List of ignored fonts.\n\
