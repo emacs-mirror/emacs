@@ -3,7 +3,9 @@
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 2.02
+;; Version: 2.03
+;; Keywords: customization
+;; Favourite-brand-of-beer: None, I hate beer.
 
 ;; This file is part of GNU Emacs.
 
@@ -87,7 +89,7 @@ Otherwise simply ignore the file.")
 	'tags-file-name
 	'tags-table-list
 	;; 'desktop-globals-to-save	; Itself!
-	) 
+	)
   "List of global variables to save when killing Emacs.")
 
 ;; We skip .log files because they are normally temporary.
@@ -125,7 +127,8 @@ If the function returns t then the buffer is considered created.")
   (interactive)
   (setq kill-ring nil)
   (setq kill-ring-yank-pointer nil)
-  (mapcar (function kill-buffer) (buffer-list)))
+  (mapcar (function kill-buffer) (buffer-list))
+  (delete-other-windows))
 ;; ----------------------------------------------------------------------------
 ;; This is a bit dirty for version 18 because that version of Emacs was not
 ;; toilet-trained considering hooks.
@@ -146,21 +149,26 @@ If the function returns t then the buffer is considered created.")
       (progn
 	(desktop-save desktop-dirname))))
 ;; ----------------------------------------------------------------------------
-(defun desktop-outvar (VAR)
+(defun desktop-outvar (var)
   "Output a setq statement for VAR to the desktop file."
-  (if (boundp VAR)
-      (progn
+  (if (boundp var)
+      (let ((print-escape-newlines t)
+	    (val (symbol-value var)))
 	(insert "(setq ")
-	(prin1 VAR (current-buffer))
-	(insert " '")
-	(prin1 (symbol-value VAR) (current-buffer))
+	(prin1 var (current-buffer))
+	;; symbols are needed for cons cells and for symbols except
+	;; `t' and `nil'.
+	(if (or (consp val)
+		(and (symbolp val) val (not (eq t val))))
+	    (insert " '")
+	  (insert " "))
+	(prin1 val (current-buffer))
 	(insert ")\n"))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-save-buffer-p (filename bufname mode)
-  "Return t if should record a particular buffer for next startup.
+  "Return t if the desktop should record a particular buffer for next startup.
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode."
-
   (or (and filename
 	   (not (string-match desktop-buffers-not-to-save bufname)))
       (and (null filename)
@@ -188,7 +196,7 @@ MODE is the major mode."
 						   auto-fill-hook)))))
 			       (point)
 			       (if postv18
-				   (list 'quote (mark t) mark-active)
+				   (list 'quote (list (mark t) mark-active))
 				 (mark))
 			       buffer-read-only
 			       truncate-lines
@@ -226,21 +234,22 @@ MODE is the major mode."
 		  " kill-ring))\n"))
 
       (insert "\n;; Buffer section:\n")
-      (mapcar
-       (function (lambda (l)
-		   (if (desktop-save-buffer-p
-			(car l)
-			(nth 1 l)
-			(nth 1 (nth 2 l)))
-		       (progn
-			 (insert "(desktop-buffer")
-			 (mapcar
-			  (function (lambda (e)
-				      (insert "\n  ")
-				      (prin1 e (current-buffer))))
-			  l)
-			 (insert ")\n\n")))))
-       info)
+      (let ((print-escape-newlines t))
+	(mapcar
+	 (function (lambda (l)
+		     (if (desktop-save-buffer-p
+			  (car l)
+			  (nth 1 l)
+			  (nth 1 (nth 2 l)))
+			 (progn
+			   (insert "(desktop-buffer")
+			   (mapcar
+			    (function (lambda (e)
+					(insert "\n  ")
+					(prin1 e (current-buffer))))
+			    l)
+			   (insert ")\n\n")))))
+	 info))
       (setq default-directory dirname)
       (if (file-exists-p filename) (delete-file filename))
       (write-region (point-min) (point-max) filename nil 'nomessage)))
@@ -288,12 +297,12 @@ autoloaded files."
 	(Info-find-node (nth 0 misc) (nth 1 misc))
 	t)))
 ;; ----------------------------------------------------------------------------
-(defun desktop-buffer-rmail () "Load a RMAIL file."
-  (if (equal 'rmail-mode mam)
+(defun desktop-buffer-rmail () "Load an RMAIL file."
+  (if (eq 'rmail-mode mam)
       (progn (rmail-input fn) t)))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
-  (if (equal 'dired-mode mam)
+  (if (eq 'dired-mode mam)
       (progn
 	(dired (car misc))
 	(mapcar (function dired-maybe-insert-subdir) (cdr misc))
@@ -319,7 +328,7 @@ autoloaded files."
       (setq handler (car hlist))
       (setq result (funcall handler))
       (setq hlist (cdr hlist)))
-    (if (equal result t)
+    (if (eq result t)
 	(progn
 	  (if (not (equal (buffer-name) bn))
 	      (rename-buffer bn))
@@ -346,4 +355,3 @@ autoloaded files."
 (provide 'desktop)
 
 ;; desktop.el ends here.
-
