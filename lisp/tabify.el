@@ -18,6 +18,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+;;;###autoload
 (defun untabify (start end)
   "Convert all tabs in region to multiple spaces, preserving columns.
 The variable tab-width controls the action."
@@ -34,6 +35,7 @@ The variable tab-width controls the action."
 	  (delete-region start (point))
 	  (indent-to column))))))
 
+;;;###autoload
 (defun tabify (start end)
   "Convert multiple spaces in region to tabs when possible.
 A group of spaces is partially replaced by tabs

@@ -15,6 +15,7 @@
 ;;;
 ;;; hanoi - user callable Towers of Hanoi
 ;;;
+;;;###autoload
 (defun hanoi (nrings)
   "Towers of Hanoi diversion.  Argument is number of rings."
   (interactive

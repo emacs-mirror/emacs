@@ -263,6 +263,7 @@ and mark-paragraph for other modes."
 	 (t (mark-paragraph))))
 
 ;;; Key Bindings
+;;;###autoload
 (defun edt-emulation-on ()
   "Emulate DEC's EDT editor.
 Note that many keys are rebound; including nearly all keypad keys.

@@ -18,6 +18,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+;;;###autoload
 (defun underline-region (start end)
   "Underline all nonblank characters in the region.
 Works by overstriking underscores.
@@ -33,6 +34,7 @@ which specify the range to operate on."
 	   (insert "_"))
        (forward-char 1)))))
 
+;;;###autoload
 (defun ununderline-region (start end)
   "Remove all underlining (overstruck underscores) in the region.
 Called from program, takes two arguments START and END

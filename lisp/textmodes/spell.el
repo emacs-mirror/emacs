@@ -26,6 +26,7 @@
 This function might remove text-processor commands.
 nil means don't alter the text before checking it.")
 
+;;;###autoload
 (defun spell-buffer ()
   "Check spelling of every word in the buffer.
 For each incorrect word, you are asked for the correct spelling
@@ -35,6 +36,7 @@ as its \"correct\" spelling; then the query replace is skipped."
   (interactive)
   (spell-region (point-min) (point-max) "buffer"))
 
+;;;###autoload
 (defun spell-word ()
   "Check spelling of word at or before point.
 If it is not correct, ask user for the correct spelling
@@ -49,6 +51,7 @@ and query-replace the entire buffer to substitute it."
      (setq end (point)))
     (spell-region beg end (buffer-substring beg end))))
 
+;;;###autoload
 (defun spell-region (start end &optional description)
   "Like spell-buffer but applies only to region.
 Used in a program, applies from START to END.
@@ -110,6 +113,7 @@ for example, \"word\"."
 				   newword)))))))
 
 
+;;;###autoload
 (defun spell-string (string)
   "Check spelling of string supplied as argument."
   (interactive "sSpell string: ")

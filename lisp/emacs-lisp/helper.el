@@ -121,6 +121,7 @@
       (insert name " Mode\n" documentation)))
   (Helper-help-scroller))
 
+;;;###autoload
 (defun Helper-describe-bindings ()
   "Describe local key bindings of current mode."
   (interactive)
@@ -128,6 +129,7 @@
   (save-window-excursion (describe-bindings))
   (Helper-help-scroller))
 
+;;;###autoload
 (defun Helper-help ()
   "Provide help for current mode."
   (interactive)

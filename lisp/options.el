@@ -18,6 +18,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+;;;###autoload
 (defun list-options ()
   "Display a list of Emacs user options, with values and documentation."
   (interactive)
@@ -42,6 +43,7 @@
 	  (princ "\n;;\n"))
 	(setq vars (cdr vars))))))
 
+;;;###autoload
 (defun edit-options ()
   "Edit a list of Emacs user option values.
 Selects a buffer containing such a list,

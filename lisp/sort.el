@@ -169,6 +169,7 @@ same as ENDRECFUN."
     (narrow-to-region min (1+ (point)))
     (delete-region (point) (1+ (point)))))
 
+;;;###autoload
 (defun sort-lines (reverse beg end) 
   "Sort lines in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
@@ -180,6 +181,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
       (goto-char (point-min))
       (sort-subr reverse 'forward-line 'end-of-line))))
 
+;;;###autoload
 (defun sort-paragraphs (reverse beg end)
   "Sort paragraphs in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
@@ -193,6 +195,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
 		 (function (lambda () (skip-chars-forward "\n \t\f")))
 		 'forward-paragraph))))
 
+;;;###autoload
 (defun sort-pages (reverse beg end)
   "Sort pages in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
@@ -219,6 +222,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
     (modify-syntax-entry ?\. "_" table)	; for floating pt. numbers. -wsr
     (setq sort-fields-syntax-table table)))
 
+;;;###autoload
 (defun sort-numeric-fields (field beg end)
   "Sort lines in region numerically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
@@ -260,6 +264,7 @@ region to sort."
 				 (point))))))
 		 nil))
 
+;;;###autoload
 (defun sort-fields (field beg end)
   "Sort lines in region lexicographically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
@@ -303,6 +308,7 @@ FIELD, BEG and END.  BEG and END specify region to sort."
     (skip-chars-forward " \t")))
 
 
+;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
   "Sort the region lexicographically as specifed by RECORD-REGEXP and KEY.
 RECORD-REGEXP specifies the textual units which should be sorted.
@@ -364,6 +370,7 @@ sRegexp specifying key within record: \nr")
 
 (defvar sort-columns-subprocess t)
 
+;;;###autoload
 (defun sort-columns (reverse &optional beg end)
   "Sort lines in region alphabetically by a certain range of columns.
 For the purpose of this command, the region includes
@@ -406,6 +413,7 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 		       (function (lambda () (move-to-column col-start) nil))
 		       (function (lambda () (move-to-column col-end) nil)))))))))
 
+;;;###autoload
 (defun reverse-region (beg end)
   "Reverse the order of lines in a region.
 From a program takes two point or marker arguments, BEG and END."

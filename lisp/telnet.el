@@ -139,6 +139,7 @@ rejecting one login and prompting for the again for a username and password.")
   (interactive)
   (comint-send-input telnet-new-line telnet-remote-echoes))
 
+;;;###autoload
 (defun telnet (arg)
   "Open a network login connection to host named HOST (a string).
 Communication with HOST is recorded in a buffer *HOST-telnet*.

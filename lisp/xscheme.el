@@ -69,6 +69,7 @@ Is processed with `substitute-command-keys' first.")
 (xscheme-evaluation-commands scheme-mode-map)
 (xscheme-interrupt-commands scheme-mode-map)
 
+;;;###autoload
 (defun run-scheme (command-line)
   "Run an inferior Scheme process.
 Output goes to the buffer `*scheme*'.

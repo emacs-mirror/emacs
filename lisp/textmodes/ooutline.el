@@ -51,6 +51,7 @@ in the file it applies to.")
 (setq minor-mode-alist (append minor-mode-alist
 			       (list '(outline-minor-mode " Outl"))))
 
+;;;###autoload
 (defun outline-mode ()
   "Set major mode for editing outlines with selective display.
 Headings are lines which start with asterisks: one for major headings,

@@ -147,6 +147,7 @@ Use \\[up-list] to move forward out of the braces."
   (insert "{}")
   (backward-char))
 
+;;;###autoload
 (defun texinfo-mode ()
   "Major mode for editing Texinfo files.
 

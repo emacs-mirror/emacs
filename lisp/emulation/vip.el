@@ -214,6 +214,7 @@ function replaces the string by \"Vi:   \" etc."
 	    vip-emacs-mode-line-buffer-identification
 	  (list (concat string " %17b")))))
 
+;;;###autoload
 (defun vip-mode ()
   "Turn on VIP emulation of VI."
   (interactive)

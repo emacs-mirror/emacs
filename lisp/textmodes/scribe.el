@@ -86,6 +86,7 @@ scribe-open-parenthesis.")
   (define-key scribe-mode-map "\^cb" 'scribe-bold-word)
   (define-key scribe-mode-map "\^cu" 'scribe-underline-word))
 
+;;;###autoload
 (defun scribe-mode ()
   "Major mode for editing files of Scribe (a text formatter) source.
 Scribe-mode is similar text-mode, with a few extra commands added.

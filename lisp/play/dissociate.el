@@ -18,6 +18,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+;;;###autoload
 (defun dissociated-press (&optional arg)
   "Dissociate the text of the current buffer.
 Output goes in buffer named *Dissociation*,

@@ -25,6 +25,7 @@
 
 (put 'file-locked 'error-conditions '(file-locked file-error error))
 
+;;;###autoload
 (defun ask-user-about-lock (fn opponent)
   "Ask user what to do when he wants to edit FILE but it is locked by USER.
 This function has a choice of three things to do:
@@ -73,6 +74,7 @@ You can <q>uit; don't modify this file.")))
 (put
  'file-supersession 'error-conditions '(file-supersession file-error error))
 
+;;;###autoload
 (defun ask-user-about-supersession-threat (fn)
   "Ask a user who is about to modify an obsolete buffer what to do.
 This function has two choices: it can return, in which case the modification

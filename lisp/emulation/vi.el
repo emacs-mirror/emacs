@@ -384,6 +384,7 @@ form that is ready to be 'apply'ed.")
   (make-local-variable 'vi-mode-old-case-fold)
   (run-hooks 'vi-mode-hook))
       
+;;;###autoload
 (defun vi-mode ()
   "Major mode that acts like the `vi' editor.
 The purpose of this mode is to provide you the combined power of vi (namely,

@@ -27,6 +27,7 @@
 
 ;;; The user-level commands for editing macros.
 
+;;;###autoload
 (defun edit-last-kbd-macro (&optional prefix buffer hook)
   "Edit the most recently defined keyboard macro."
   (interactive "P")
@@ -34,6 +35,7 @@
 		      (function (lambda (x arg) (setq last-kbd-macro x)))
 		      prefix buffer hook))
 
+;;;###autoload
 (defun edit-kbd-macro (cmd &optional prefix buffer hook in-hook out-hook)
   "Edit a keyboard macro which has been given a name by `name-last-kbd-macro'.
 \(See also `edit-last-kbd-macro'.)"
@@ -49,6 +51,7 @@
 					   'x)))
 			   prefix buffer hook cmd)))
 
+;;;###autoload
 (defun read-kbd-macro (start end)
   "Read the region as a keyboard macro definition.
 The region is interpreted as spelled-out keystrokes, e.g., \"M-x abc RET\".

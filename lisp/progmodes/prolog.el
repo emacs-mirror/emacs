@@ -84,6 +84,7 @@ nil means send actual operating system end of file.")
   (setq prolog-mode-map (make-sparse-keymap))
   (prolog-mode-commands prolog-mode-map))
 
+;;;###autoload
 (defun prolog-mode ()
   "Major mode for editing Prolog code for Prologs.
 Blank lines and `%%...' separate paragraphs.  `%'s start comments.
@@ -227,6 +228,7 @@ Return not at end copies rest of line to end and sends it.
   (use-local-map inferior-prolog-mode-map)
   (run-hooks 'prolog-mode-hook))
 
+;;;###autoload
 (defun run-prolog ()
   "Run an inferior Prolog process, input and output via buffer *prolog*."
   (interactive)

@@ -20,6 +20,7 @@
 
 (defvar non-gosmacs-binding-alist nil)
 
+;;;###autoload
 (defun set-gosmacs-bindings ()
   "Rebind some keys globally to make GNU Emacs resemble Gosling Emacs.
 Use \\[set-gnu-bindings] to restore previous global bindings."

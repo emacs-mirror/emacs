@@ -22,6 +22,7 @@
 (require 'electric)			; command loop
 (require 'chistory)			; history lister
 
+;;;###autoload
 (defun Electric-command-history-redo-expression (&optional noconfirm)
   "Edit current history line in minibuffer and execute result.
 With prefix arg NOCONFIRM, execute current line as-is without editing."

@@ -18,6 +18,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+;;;###autoload
 (defun make-command-summary ()
   "Make a summary of current key bindings in the buffer *Summary*.
 Previous contents of that buffer are killed first."

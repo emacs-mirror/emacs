@@ -53,6 +53,7 @@
   (modify-syntax-entry ?} "){" texinfo-format-syntax-table)
   (modify-syntax-entry ?\' "." texinfo-format-syntax-table))
 
+;;;###autoload
 (defun texinfo-format-buffer (&optional notagify)
   "Process the current buffer as texinfo code, into an Info file.
 The Info file output is generated in a buffer visiting the Info file
@@ -132,6 +133,7 @@ Info-split to do these manually."
 (defvar texinfo-region-buffer-name "*Info Region*"
   "*Name of the temporary buffer used by \\[texinfo-format-region].")
 
+;;;###autoload
 (defun texinfo-format-region (region-beginning region-ending)
   "Convert the current region of the Texinfo file to Info format.
 This lets you see what that part of the file will look like in Info.
@@ -1757,6 +1759,7 @@ If used within a line, follow `@minus' with braces."
   (error "%s is not handled by texinfo"
 	 (buffer-substring texinfo-command-start texinfo-command-end)))
 
+;;;###autoload
 (defun batch-texinfo-format ()
   "Runs  texinfo-format-buffer  on the files remaining on the command line.
 Must be used only with -batch, and kills emacs on completion.

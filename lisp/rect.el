@@ -102,6 +102,7 @@ Point is at the end of the segment of this line within the rectangle."
 	      n (- n 8)))
       (concat val (aref spaces-strings n)))))
     
+;;;###autoload
 (defun delete-rectangle (start end)
   "Delete (don't save) text in rectangle with point and mark as corners.
 The same range of columns is deleted in each line starting with the line
@@ -109,6 +110,7 @@ where the region begins and ending with the line where the region ends."
   (interactive "r")
   (operate-on-rectangle 'delete-rectangle-line start end t))
 
+;;;###autoload
 (defun delete-extract-rectangle (start end)
   "Delete contents of rectangle and return it as a list of strings.
 Arguments START and END are the corners of the rectangle.
@@ -118,6 +120,7 @@ The value is list of strings, one for each line of the rectangle."
 			  start end t)
     (nreverse lines)))
 
+;;;###autoload
 (defun extract-rectangle (start end)
   "Return contents of rectangle with corners at START and END.
 Value is list of strings, one for each line of the rectangle."
@@ -128,6 +131,7 @@ Value is list of strings, one for each line of the rectangle."
 (defvar killed-rectangle nil
   "Rectangle for yank-rectangle to insert.")
 
+;;;###autoload
 (defun kill-rectangle (start end)
   "Delete rectangle with corners at point and mark; save as last killed one.
 Calling from program, supply two args START and END, buffer positions.
@@ -135,11 +139,13 @@ But in programs you might prefer to use `delete-extract-rectangle'."
   (interactive "r")
   (setq killed-rectangle (delete-extract-rectangle start end)))
 
+;;;###autoload
 (defun yank-rectangle ()
   "Yank the last killed rectangle with upper left corner at point."
   (interactive)
   (insert-rectangle killed-rectangle))
 
+;;;###autoload
 (defun insert-rectangle (rectangle)
   "Insert text of RECTANGLE with upper left corner at point.
 RECTANGLE's first line is inserted at point, its second
@@ -162,6 +168,7 @@ RECTANGLE should be a list of strings."
       (insert (car lines))
       (setq lines (cdr lines)))))
 
+;;;###autoload
 (defun open-rectangle (start end)
   "Blank out rectangle with corners at point and mark, shifting text right.
 The text previously in the region is not overwritten by the blanks,
@@ -180,6 +187,7 @@ but insted winds up to the right of the rectangle."
 			  (point)))
     (indent-to column)))
 
+;;;###autoload
 (defun clear-rectangle (start end)
   "Blank out rectangle with corners at point and mark.
 The text previously in the region is overwritten by the blanks.

@@ -75,6 +75,7 @@
 
 (defvar m2-indent 5 "*This variable gives the indentation in Modula-2-Mode")
   
+;;;###autoload
 (defun modula-2-mode ()
   "This is a mode intended to support program development in Modula-2.
 All control constructs of Modula-2 can be reached by typing C-c
