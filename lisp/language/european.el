@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, European
 
@@ -101,6 +101,7 @@ character set which supports the following languages:
  and Swedish.
 We also have specific language environments for the following languages:
   For Czech, \"Czech\".
+  For Croatian, \"Croatian\".
   For Romanian, \"Romanian\".
   For Slovak, \"Slovak\"."))
  '("European"))
@@ -255,7 +256,7 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
 	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (input-method . "german-postfix")
-	    (nonascii-translation . iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
 	    (unibyte-syntax . "latin-1")
 	    (unibyte-display . iso-latin-1)
 	    (sample-text . "\
@@ -301,7 +302,7 @@ but it selects the French tutorial."))
 	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (input-method . "spanish-postfix")
-	    (nonascii-translation . iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
 	    (unibyte-syntax . "latin-1")
 	    (unibyte-display . iso-latin-1)
 	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
@@ -316,7 +317,7 @@ and it selects the Spanish tutorial."))
 	   (charset ascii latin-iso8859-1)
 	   (coding-system iso-latin-1 iso-latin-9)
 	   (coding-priority iso-latin-1)
-	   (nonascii-translation . iso-latin-1)
+	   (nonascii-translation . latin-iso8859-1)
 	   (unibyte-syntax . "latin-1")
 	   (unibyte-display . iso-latin-1)
 	   (input-method . "dutch")
@@ -362,16 +363,27 @@ but it selects the Dutch tutorial and input method."))
 (set-language-info-alist
  "Welsh" `((coding-system utf-8 latin-8) ; the input method is Unicode-based
 	   (coding-priority utf-8 latin-8)
-	   (nonascii-translation . iso-8859-14)
+	   (nonascii-translation . latin-iso8859-14)
 	   (input-method . "welsh")
 	   (documentation . "Support for Welsh, using Unicode."))
  '("European"))
 
 (set-language-info-alist
+ "Latin-6" `((coding-system latin-6)
+	     (coding-priority latin-6)
+	     (nonascii-translation . ,(get 'decode-iso-latin-6 'translation-table))
+	     (input-method . latin-pre)
+	     (input-method . latin-pre)
+	     (features code-pages)
+	     (documentation . "Support for Latin-6."))
+ '("European"))
+
+(set-language-info-alist
  "Latin-7" `((coding-system latin-7)
 	     (coding-priority latin-7)
-	     (nonascii-translation . iso-8859-13)
-	     ;; Fixme: input-method
+	     (nonascii-translation . ,(get 'decode-iso-latin-7
+					   'translation-table))
+	     (input-method . latin-pre)
 	     (features code-pages)
 	     (documentation . "Support for Latin-7, e.g. Latvian, Lithuanian."))
  '("European"))
@@ -380,6 +392,8 @@ but it selects the Dutch tutorial and input method."))
  "Lithuanian" `((coding-system latin-7)
 		(coding-priority latin-7)
 		(input-method . "lithuanian-keyboard")
+		(nonascii-translation . ,(get 'decode-iso-latin-7
+					      'translation-table))
 		(features code-pages)
 		(documentation . "Support for Lithuanian."))
  '("European"))
@@ -388,6 +402,8 @@ but it selects the Dutch tutorial and input method."))
  "Latvian" `((coding-system latin-7)
 	     (coding-priority latin-7)
 	     (input-method . "latvian-keyboard")
+	     (nonascii-translation . ,(get 'decode-iso-latin-7
+					   'translation-table))
 	     (features code-pages)
 	     (documentation . "Support for Latvian."))
  '("European"))
@@ -397,11 +413,22 @@ but it selects the Dutch tutorial and input method."))
 	    (charset ascii latin-iso8859-1)
 	    (coding-system iso-latin-1)
 	    (coding-priority iso-latin-1)
-	    (nonascii-translation . iso-8859-1)
+	    (nonascii-translation . latin-iso8859-1)
 	    (unibyte-syntax . "latin-1")
 	    (unibyte-display . iso-latin-1)
 	    (sample-text . "Goddag Hej")
 	    (documentation . "Support for Swedish"))
+ '("European"))
+
+(set-language-info-alist
+ "Croatian" '((charset . (ascii latin-iso8859-2))
+	      (coding-system . (iso-8859-2))
+	      (coding-priority . (iso-8859-2))
+	      (input-method . "croatian")
+	      (nonascii-translation . latin-iso8859-2)
+	      (unibyte-syntax . "latin-2")
+	      (unibyte-display . iso-8859-2)
+	      (documentation . "Support for Croatian with Latin-2 encoding."))
  '("European"))
 
 ;; Definitions for the Mac Roman character sets and coding system.
