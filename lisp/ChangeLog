@@ -1,3 +1,14 @@
+2004-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-next-error): New fun.
+	(diff-mode): Use it.
+
+	* simple.el (next-error): Change arg name.
+	Add support for the documented C-u C-x ` usage.
+
+	* frame.el (special-display-popup-frame, next-multiframe-window)
+	(previous-multiframe-window): Only consider frames on same display.
+
 2004-04-22  Lars Hansen  <larsh@math.ku.dk>
 
 	* info.el (Info-restore-desktop-buffer): Delete with-no-warnings.
