@@ -2,6 +2,9 @@
 
 	* ido.el (ido-completion-help): Changed xemacs specific code to
 	avoid byte compiler warning in GNU emacs.                                                                            
+	(ido-set-matches1): Use regexp-quote instead of identity.
+	(ido-complete-space): New function.
+	(ido-define-mode-map): Bind it to SPACE.
 
 2002-07-07  Stefan Monnier  <monnier@cs.yale.edu>
 
