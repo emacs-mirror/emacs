@@ -81,7 +81,8 @@ the rlogin when starting."
   (let* ((buffer-name (format "*rlogin-%s*" host))
          (args (if (and rlogin-explicit-args (listp rlogin-explicit-args))
                    (cons host rlogin-explicit-args)
-                 (list host))))
+                 (list host)))
+	 proc)
     (and prefix (setq buffer-name 
                       (buffer-name (generate-new-buffer buffer-name))))
     (switch-to-buffer buffer-name)
