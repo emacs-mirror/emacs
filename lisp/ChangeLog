@@ -1,3 +1,8 @@
+2002-07-25  Colin Walters  <walters@debian.org>
+
+	* ibuffer.el (ibuffer-mouse-popup-menu): Allow point to be moved
+	by menu functions.
+
 2002-07-24  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (set-auto-coding): Doc fix.
