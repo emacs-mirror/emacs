@@ -17,25 +17,6 @@
 	(make-mode-line-mouse-sensitive): Simplify for
 	mode-line-buffer-identification.
 
-2000-01-07  Dave Love  <fx@gnu.org>
-
-	* add-log.el (add-log-debugging): Deleted.
-	(add-change-log-entry): Treat a backup FILE-NAME as its parent
-	file.  Remove debugging code.
-	(change-log-get-method-definition, change-log-name): Add doc.
-	(change-log-sortable-date-at): New function.
-	(change-log-merge): New command.
-
-	* time.el (display-time-string-forms): Make the Mail string active.
-	(display-time-update): Provide help-echo for load average.
-
-	* bindings.el (make-mode-line-mouse2-map): New function.
-	(mode-line-modified): Use it and simplify.
-	(mode-line-mule-info): Provide help-echo info.
-	(minor-mode-alist): Activate the strings.
-	(make-mode-line-mouse-sensitive): Simplify for
-	mode-line-buffer-identification.
-
 2000-01-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/pong.el: New file.
