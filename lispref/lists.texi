@@ -383,6 +383,14 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
 @end example
 @end defun
 
+@defun last list &optional n
+This function reruns the last link of the given @var{list}.  The
+@code{car} of this link is the list's last element.  If @var{list} is
+null, @code{nil} is returned.  If @var{n} is non-nil the
+@var{n}-th-to-last link is returned instead, or the whole @var{list} if
+@var{n} is bigger than @var{list}'s length.
+@end defun
+
 @defun safe-length list
 This function returns the length of @var{list}, with no risk
 of either an error or an infinite loop.
