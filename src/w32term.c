@@ -9231,6 +9231,7 @@ x_draw_bar_cursor (w, row, width)
   else
     {
       COLORREF cursor_color = f->output_data.w32->cursor_pixel;
+      struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
 
       if (width < 0)
         width = f->output_data.w32->cursor_width;
