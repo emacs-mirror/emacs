@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!88.c(trunk.2) $
  summary = EPVM allocate and collect_world
  language = c
  link = testlib.o epvmfmt.o
@@ -35,14 +35,15 @@ static void test(void)
 
  alloccomments = 1;
 
-/* create an arena that can't grow beyond 64M */
+ /* create an arena that can't grow beyond 64M */
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*64)),
   "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root, arena, MPS_RANK_AMBIG, 0, &a[0], 100),
+ cdie(mps_root_create_table(&root, arena, MPS_RANK_AMBIG, 0,
+                            (mps_addr_t *)&a[0], 100),
   "create root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtepvm), "create format");
@@ -72,6 +73,7 @@ static void test(void)
 
 }
 
+
 int main(void) {
  void *m;
  stackpointer=&m;
@@ -80,6 +82,4 @@ int main(void) {
  pass();
  return 0;
 }
-
-
 
