@@ -856,9 +856,7 @@ function, it is changed to a list of functions."
 	      (set (make-local-variable hook) (list t)))
     ;; Detect the case where make-local-variable was used on a hook
     ;; and do what we used to do.
-    (when (and (local-variable-p hook)
-	       (not (and (consp (symbol-value hook))
-			 (memq t (symbol-value hook)))))
+    (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
       (setq local t)))
   (let ((hook-value (if local (symbol-value hook) (default-value hook))))
     ;; If the hook value is a single function, turn it into a list.
