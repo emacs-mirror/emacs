@@ -440,7 +440,7 @@ There is a new command M-x replace-rectangle.
 query-replace-regexp, but takes a Lisp expression which is evaluated
 after each match to get the replacement text.
 
-** M-x query-replace recognizes a new command `E' that let's you
+** M-x query-replace recognizes a new command `E' that lets you
 edit the replacement string.
 
 ** The new command mail-abbrev-complete-alias, bound to `M-TAB', let's
@@ -1170,6 +1170,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** If the APPEND argument of `write-region' is an integer, it seeks to
+that offset in the file before writing.
 
 ** `concat' no longer accepts individual integer arguments, as
 promised long ago.
