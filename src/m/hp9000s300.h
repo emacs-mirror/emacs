@@ -167,6 +167,11 @@ NOTE-END */
 #define LIBS_DEBUG /usr/lib/end.o
 #endif
 
+/* Need a TEXT_START.  On the HP9000/s300 that is 0.  */
+#ifdef __GNUC__
+#define TEXT_START   0
+#endif
+
 /* The symbol FIONREAD is defined, but the feature does not work
    on the 200/300.  */
 
