@@ -732,13 +732,15 @@ This cannot be done asynchronously."
     (unwind-protect
 	(progn
 	  (set-buffer buffer)
-	  (setq opoint (point))
+	  (or (= (point) (point-max))
+	      (setq opoint (point)))
 	  (goto-char (point-max))
 	  (insert-before-markers string))
       ;; insert-before-markers moved this marker: set it back.
       (set-window-start window pos)
       ;; Finish our save-excursion.
-      (goto-char opoint)
+      (if opoint
+	  (goto-char opoint))
       (set-buffer obuf))))
 
 (defun shell-command-on-region (start end command &optional flag interactive)
