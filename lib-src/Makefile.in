@@ -324,7 +324,7 @@ REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) ../src/regex.h
 #endif
 
-regex.o: ../src/regex.c ../src/regex.h
+regex.o: ../src/regex.c ../src/regex.h ../src/config.h
 	${CC} -c ${BASE_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
