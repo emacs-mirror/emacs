@@ -537,6 +537,7 @@ preferred rule from the sanskrit fonts."  )
     (,dev-glyph-left-matra . 3) ;; processed by reference point.
     (,dev-glyph-top-matra . 4)
     (,(dev-charseq #xc7 #xc8) . 5)
+    (,(dev-charseq #xc4) . 6)
     (,(dev-charseq #xc6) . 6)
     (,(dev-charseq #xc5) . 7)
     (,dev-glyph-bottom-modifier . 8)))
