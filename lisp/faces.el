@@ -724,6 +724,17 @@ If NOERROR is non-nil, return nil on failure."
 	   (rest faces))
       (set-frame-face-alist frame faces)
 
+      (if (cdr (or (assq 'reverse parameters)
+		   (assq 'reverse default-frame-alist)))
+	  (let ((params (frame-parameters frame)))
+	    (modify-frame-parameters
+	     frame
+	     (list (cons 'foreground-color (cdr (assq 'background-color params)))
+		   (cons 'background-color (cdr (assq 'foreground-color params)))
+		   (cons 'mouse-color (cdr (assq 'background-color params)))
+		   (cons 'cursor-color (cdr (assq 'background-color params)))
+		   (cons 'border-color (cdr (assq 'background-color params)))))))
+
       ;; Copy the vectors that represent the faces.
       ;; Also fill them in from X resources.
       (while rest
