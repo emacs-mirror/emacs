@@ -1,3 +1,18 @@
+2004-06-10  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/edebug.el (edebug-eval-defun):
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Add `defface'.
+	Fix docstring.
+
+	* simple.el (eval-expression-print-format): Don't print additional
+	information on the first call to `eval-print-last-sexp'.
+	(next-error-find-buffer): Fix punctuation.
+	(killing) <defgroup>: Fix punctuation.
+	(yank-excluded-properties): Change group from editing to killing.
+
+	* replace.el (perform-replace): Use `limit' to terminate the
+	while-loop explicitly.
+
 2004-06-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/tool-bar.el (tool-bar-add-item, tool-bar-local-item): Use

@@ -1,3 +1,7 @@
+2004-06-10  Juri Linkov  <juri@jurta.org>
+
+	* building.texi (Lisp Eval): Add C-M-x on defface.
+
 2004-06-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.texi (Reverting): Auto-Revert mode and
