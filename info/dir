@@ -8,10 +8,10 @@ File: dir	Node: Top	This is the top of the INFO tree
 The Info Directory
 ******************
 
-  The Info Directory is the top-level menu of major Info topics. 
+  The Info Directory is the top-level menu of major Info topics.
   Type "d" in Info to return to the Info Directory.  Type "q" to exit Info.
   Type "?" for a list of Info commands, or "h" to visit an Info tutorial.
-  Type "m" to choose a menu item--for instance, 
+  Type "m" to choose a menu item--for instance,
     "mEmacs<Return>" visits the Emacs manual.
   In Emacs Info, you can click mouse button 2 on a menu item
   or cross reference to follow it to its target.
@@ -44,8 +44,9 @@ Emacs
 * Message: (message).	Mail and news composition mode that goes with Gnus.
 * MH-E: (mh-e).		Emacs interface to the MH mail system.
 * MIME: (emacs-mime).   Emacs MIME de/composition library.
-* SC: (sc).		Supercite lets you cite parts of messages you're 
+* SC: (sc).		Supercite lets you cite parts of messages you're
 			  replying to, in flexible ways.
+* SMTP: (smtpmail).     Emacs library for sending mail via SMTP.
 
 * Autotype: (autotype). Convenient features for text that you enter frequently
                           in Emacs.
@@ -55,6 +56,7 @@ Emacs
 * Forms: (forms).	Emacs package for editing data bases
 			  by filling in forms.
 * RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+* SES: (ses).           Simple Emacs Spreadsheet
 * Tramp: (tramp).	Transparent Remote (file) Access, Multiple Protocol.
                           Edit remote files via a remote shell (rsh,
                           ssh, telnet).
