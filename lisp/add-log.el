@@ -279,7 +279,9 @@ Runs `change-log-mode-hook'."
   (setq major-mode 'change-log-mode
 	mode-name "Change Log"
 	left-margin 8
-	fill-column 74)
+	fill-column 74
+    indent-tabs-mode t
+    tab-width 8)
   (use-local-map change-log-mode-map)
   ;; Let each entry behave as one paragraph:
   ;; We really do want "^" in paragraph-start below: it is only the lines that
