@@ -56,6 +56,10 @@ Boston, MA 02111-1307, USA.  */
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
+#ifdef HAVE_SETLOCALE
+#include <locale.h>
+#endif /* HAVE_SETLOCALE */
+
 #ifndef O_RDONLY
 #define O_RDONLY 0
 #endif
