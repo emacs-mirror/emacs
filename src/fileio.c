@@ -5566,7 +5566,6 @@ do_auto_save_unwind (stream)  /* used as unwind-protect function */
   if (!NILP (stream))
     fclose ((FILE *) (XFASTINT (XCAR (stream)) << 16
 		      | XFASTINT (XCDR (stream))));
-  pop_message ();
   return Qnil;
 }
 
@@ -5575,6 +5574,20 @@ do_auto_save_unwind_1 (value)  /* used as unwind-protect function */
      Lisp_Object value;
 {
   minibuffer_auto_raise = XINT (value);
+  return Qnil;
+}
+
+static Lisp_Object
+do_auto_save_make_dir (dir)
+     Lisp_Object dir;
+{
+  return call2 (Qmake_directory, dir, Qt);
+}
+
+static Lisp_Object
+do_auto_save_eh (ignore)
+     Lisp_Object ignore;
+{
   return Qnil;
 }
 
@@ -5601,7 +5614,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   Lisp_Object lispstream;
   int count = SPECPDL_INDEX ();
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
-  int message_p = 0;
+  int old_message_p = 0;
 
   if (max_specpdl_size < specpdl_size + 40)
     max_specpdl_size = specpdl_size + 40;
@@ -5609,8 +5622,11 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   if (minibuf_level)
     no_message = Qt;
 
-  if (NILP (no_message));
-    message_p = push_message ();
+  if (NILP (no_message))
+    {
+      old_message_p = push_message ();
+      record_unwind_protect (pop_message_unwind, Qnil);
+    }
   
   /* Ordinarily don't quit within this function,
      but don't make it impossible to quit (in case we get hung in I/O).  */
@@ -5637,7 +5653,9 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  Lisp_Object dir;
 	  dir = Ffile_name_directory (listfile);
 	  if (NILP (Ffile_directory_p (dir)))
-	    call2 (Qmake_directory, dir, Qt);
+	    internal_condition_case_1 (do_auto_save_make_dir,
+				       dir, Fcons (Fcons (Qfile_error, Qnil), Qnil),
+				       do_auto_save_eh);
 	}
       
       stream = fopen (SDATA (listfile), "w");
@@ -5765,17 +5783,22 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 
   if (auto_saved && NILP (no_message))
     {
-      if (message_p)
+      if (old_message_p)
 	{
+	  /* If we are going to restore an old message,
+	     give time to read ours.  */
 	  sit_for (1, 0, 0, 0, 0);
 	  restore_message ();
 	}
       else
+	/* If we displayed a message and then restored a state
+	   with no message, leave a "done" message on the screen.  */
 	message1 ("Auto-saving...done");
     }
 
   Vquit_flag = oquit;
 
+  /* This restores the message-stack status.  */
   unbind_to (count, Qnil);
   return Qnil;
 }
