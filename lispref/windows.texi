@@ -1144,10 +1144,17 @@ If the last redisplay of @var{window} was preempted, and did not finish,
 Emacs does not know the position of the end of display in that window.
 In that case, this function returns @code{nil}.
 
-If @var{update} is non-@code{nil}, @code{window-end} always returns
-an up-to-date value for where the window ends.  If the saved value is
-valid, @code{window-end} returns that; otherwise it computes the correct
+If @var{update} is non-@code{nil}, @code{window-end} always returns an
+up-to-date value for where the window ends, based on the current
+@code{window-start} value.  If the saved value is valid,
+@code{window-end} returns that; otherwise it computes the correct
 value by scanning the buffer text.
+
+Even if @var{update} is non-@code{nil}, @code{window-end} does not
+attempt to scroll the display if point has moved off the screen, the
+way real redisplay would do.  It does not alter the
+@code{window-start} value.  In effect, it reports where the displayed
+text will end if scrolling is not required.
 @end defun
 
 @defun set-window-start window position &optional noforce
