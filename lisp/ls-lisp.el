@@ -2,8 +2,8 @@
 
 ;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
 
-(defconst dired-lisp-version (substring "$Revision: 1.6 $" 11 -2)
-  "$Id: dired-lisp.el,v 1.6 1992/04/30 10:29:53 sk Exp sk $")
+(defconst dired-lisp-version (substring "$Revision: 1.7 $" 11 -2)
+  "$Id: dired-lisp.el,v 1.7 1992/04/30 10:37:15 sk Exp sk $")
 
 ;; Copyright (C) 1992 by Sebastian Kremer <sk@thp.uni-koeln.de>
 
@@ -25,7 +25,7 @@
 ;;    LCD Archive Entry:
 ;;    dired-lisp|Sebastian Kremer|sk@thp.uni-koeln.de
 ;;    |emulate Tree Dired's ls completely in Emacs Lisp 
-;;    |$Date: 1992/04/30 10:29:53 $|$Revision: 1.6 $|
+;;    |$Date: 1992/04/30 10:37:15 $|$Revision: 1.7 $|
 
 ;; INSTALLATION =======================================================
 ;; 
@@ -71,7 +71,7 @@
 
 ;;  RESTRICTIONS =====================================================
 
-;; * ls switches are mostly ignored, see docstring of `dired-ls'.
+;; * many ls switches are ignored, see docstring of `dired-ls'.
 
 ;; * In Emacs 18: cannot display date of file, displays a fake date
 ;;   "Jan 00 00:00" instead (dates do work in Emacs 19)
@@ -103,7 +103,7 @@
 
 (defun dired-lisp-ls (file &optional switches wildcard full-directory-p)
   "dired-lisp.el's version of dired-ls.
-Known switches: A a S r i s
+Known switches: A a S r i s t
 In Emacs 19, additional known switches are: c u
 Others are ignored.
 
@@ -187,22 +187,41 @@ SWITCHES default to dired-listing-switches."
   ;; FILE-ALIST's elements are (FILE . FILE-ATTRIBUTES).
   ;; Return new alist sorted according to SWITCHES which is a list of
   ;; characters.  Default sorting is alphabetically.
-  (setq file-alist
-	(sort file-alist
-	      (cond ((memq ?S switches)
-		     (function
-		      (lambda (x y)
-			;; 7th file attribute is file size
-			;; Make largest file come first
-			(< (nth 7 (cdr y)) (nth 7 (cdr x))))))
-		    ;; does Emacs 19 have a way to compare times?
-		    (t			; sorted alphabetically
-		     (function
-		      (lambda (x y)
-			(string-lessp (car x) (car y))))))))
+  (let (index)
+    (setq file-alist
+	  (sort file-alist
+		(cond ((memq ?S switches) ; sorted on size
+		       (function
+			(lambda (x y)
+			  ;; 7th file attribute is file size
+			  ;; Make largest file come first
+			  (< (nth 7 (cdr y))
+			     (nth 7 (cdr x))))))
+		      ((memq ?t switches) ; sorted on time
+		       (setq index (dired-lisp-time-index switches))
+		       (function
+			(lambda (x y)
+			  (time-lessp (nth index (cdr y))
+				      (nth index (cdr x))))))
+		      (t		; sorted alphabetically
+		       (function
+			(lambda (x y)
+			  (string-lessp (car x)
+					(car y)))))))))
   (if (memq ?r switches)		; reverse sort order
       (setq file-alist (nreverse file-alist)))
   file-alist)
+
+;; From Roland McGrath.  Can use this to sort on time.
+(defun time-lessp (time0 time1)
+  (let ((hi0 (car time0))
+	(hi1 (car time1))
+	(lo0 (car (cdr time0)))
+	(lo1 (car (cdr time1))))
+    (or (< hi0 hi1)
+	(and (= hi0 hi1)
+	     (< lo0 lo1)))))
+
 
 (defun dired-lisp-format (file-name file-attr &optional switches)
   (let ((file-type (nth 0 file-attr)))
@@ -231,6 +250,14 @@ SWITCHES default to dired-listing-switches."
 	    "\n"
 	    )))
 
+(defun dired-lisp-time-index (switches)
+  ;; Return index into file-attributes according to ls SWITCHES.
+  (cond
+   ((memq ?c switches) 6)		; last mode change
+   ((memq ?u switches) 4)		; last access
+   ;; default is last modtime
+   (t 5)))
+
 (defun dired-lisp-format-time (file-attr switches)
   ;; Format time string for file with attributes FILE-ATTR according
   ;; to SWITCHES (a list of ls option letters of which c and u are recognized).
@@ -240,12 +267,7 @@ SWITCHES default to dired-listing-switches."
   ;; date "Jan 00 00:00 ".
   (condition-case error-data
       (let* ((time (current-time-string
-		    (nth (cond
-			  ((memq ?c switches) 6) ; last mode change
-			  ((memq ?u switches) 4) ; last access
-			  ;; default is last modtime
-			  (t 5))
-			 file-attr)))
+		    (nth (dired-lisp-time-index switches) file-attr)))
 	     (date (substring time 4 11)) ; "Apr 30 "
 	     (clock (substring time 11 16)) ; "11:27"
 	     (year (substring time 19 24)) ; " 1992"
