@@ -24,7 +24,9 @@ CC = cc
 #   inline function.
 #   .types: sys/types.h uses 'long long' even under -ansi.
 CFLAGSCOMPILER := $(subst -Wstrict-prototypes,,$(CFLAGSCOMPILER)) \
-                  -Wno-unused -Wno-long-long
+                  -Wno-unused -Wno-long-long -no-cpp-precomp
+CFLAGSDEBUG := $(subst -g -ggdb3,-g3,$(CFLAGSDEBUG))
+CFLAGSOPT := $(subst -g -ggdb3,-g3,$(CFLAGSOPT))
 
 include comm.gmk
 
