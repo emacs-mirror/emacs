@@ -267,14 +267,14 @@ char PC;
 /* Actual baud rate if positive;
    - baud rate / 100 if negative.  */
 
-static short speeds[] =
+static int speeds[] =
   {
 #ifdef VMS
     0, 50, 75, 110, 134, 150, -3, -6, -12, -18,
     -20, -24, -36, -48, -72, -96, -192
 #else /* not VMS */
     0, 50, 75, 110, 135, 150, -2, -3, -6, -12,
-    -18, -24, -48, -96, -192, -384
+    -18, -24, -48, -96, -192, -288, -384, -576, -1152
 #endif /* not VMS */
   };
 
@@ -290,6 +290,10 @@ tputs (str, nlines, outfun)
 #ifdef emacs
   extern baud_rate;
   speed = baud_rate;
+  /* For quite high speeds, convert to the smaller
+     units to avoid overflow.  */
+  if (speed > 10000)
+    speed = - speed / 100;
 #else
   if (ospeed == 0)
     speed = tputs_baud_rate;
@@ -318,11 +322,14 @@ tputs (str, nlines, outfun)
   while (*str)
     (*outfun) (*str++);
 
-  /* padcount is now in units of tenths of msec.  */
-  padcount *= speeds[ospeed];
+  /* PADCOUNT is now in units of tenths of msec.
+     SPEED is mesured in characters per 10 seconds
+     or in characters per .1 seconds (if negative).
+     We use the smaller units for larger speeds to avoid overflow.  */
+  padcount *= speed;
   padcount += 500;
   padcount /= 1000;
-  if (speeds[ospeed] < 0)
+  if (speed < 0)
     padcount = -padcount;
   else
     {
