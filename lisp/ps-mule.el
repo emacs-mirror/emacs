@@ -215,11 +215,11 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
 (defconst ps-mule-font-info-database-bdf
   '((ascii
      (normal bdf ("lt1-24-etl.bdf" "etl24-latin1.bdf") nil 1)
-     (bold bdf ("lt1-16b-etl.bdf" "etl16b-latin1.bdf") iso-latin-1 1)
-     (italic bdf ("lt1-16i-etl.bdf" "etl16i-latin1.bdf") iso-latin-1 1)
-     (bold-italic bdf ("lt1-16bi-etl.bdf" "etl16bi-latin1.bdf") iso-latin-1 1))
+     (bold bdf ("lt1-16b-etl.bdf" "etl16b-latin1.bdf") nil 1)
+     (italic bdf ("lt1-16i-etl.bdf" "etl16i-latin1.bdf") nil 1)
+     (bold-italic bdf ("lt1-16bi-etl.bdf" "etl16bi-latin1.bdf") nil 1))
     (latin-iso8859-1
-     (normal bdf ("lt1-24-etl.bdf" "etl24-latin1.bdf") nil 1)
+     (normal bdf ("lt1-24-etl.bdf" "etl24-latin1.bdf") iso-latin-1 1)
      (bold bdf ("lt1-16b-etl.bdf" "etl16b-latin1.bdf") iso-latin-1 1)
      (italic bdf ("lt1-16i-etl.bdf" "etl16i-latin1.bdf") iso-latin-1 1)
      (bold-italic bdf ("lt1-16bi-etl.bdf" "etl16bi-latin1.bdf") iso-latin-1 1))
