@@ -29,7 +29,6 @@
 (eval-when-compile (require 'cl))
 (require 'widget)
 (require 'cus-face)
-(require 'autoload)
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
@@ -46,8 +45,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 					      (file-name-sans-extension
 					       (file-name-nondirectory f)))
 					    preloaded-file-list) t)
-			       "\\.el\\'"))
-	    is-autoloaded)
+			       "\\.el\\'")))
 	(dolist (file files)
 	  (when (and (file-exists-p file)
 		     ;; Ignore files that are preloaded.
@@ -66,17 +64,11 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 	      (condition-case nil
 		  (while (re-search-forward
 			  "^(def\\(custom\\|face\\|group\\)" nil t)
-		    (setq is-autoloaded nil)
 		    (beginning-of-line)
-		    (save-excursion
-		      (forward-line -1)
-		      (if (looking-at generate-autoload-cookie)
-			  (setq is-autoloaded t)))
 		    (let ((expr (read (current-buffer))))
 		      (condition-case nil
 			  (let ((custom-dont-initialize t))
 			    (eval expr)
-			    (put (nth 1 expr) 'custom-autoloaded is-autoloaded)
 			    (put (nth 1 expr) 'custom-where name))
 			(error nil))))
 		(error nil))))))))
@@ -140,12 +132,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		      where)
 		  (when version 
 		    (setq where (get symbol 'custom-where))
-		    (when (and where 
-			       ;; Don't bother to do anything if it's
-			       ;; autoloaded because we will have all
-			       ;; this info when emacs is running
-			       ;; anyway.
-			       (not (get symbol 'custom-autoloaded)))
+		    (when where
 		      (insert "(custom-put-if-not '" (symbol-name symbol) 
 			      " 'custom-version ")
 		      (prin1 version (current-buffer))
