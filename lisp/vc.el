@@ -3,9 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 5.3
-
-;;	$Id: vc.el,v 1.30 1993/03/29 15:38:31 eric Exp roland $	
+;; Version: 5.4
 
 ;; This file is part of GNU Emacs.
 
@@ -45,7 +43,8 @@
 ;; function vc-comment-to-change-log should prove a useful checkin hook.
 ;;
 ;; This code depends on call-process passing back the subprocess exit
-;; status.  Thus, you need Emacs 18.58 or later to run it.
+;; status.  Thus, you need Emacs 18.58 or later to run it.  For the
+;; vc-directory command to work properly, you need 19
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
 ;; version-control operations to a minimum.  Some names are only computed
@@ -59,13 +58,14 @@
 ;;; Code:
 
 (require 'vc-hooks)
+(require 'dired)
 
 ;; General customization
 
 (defvar vc-default-back-end nil
   "*Back-end actually used by this interface; may be SCCS or RCS.
 The value is only computed when needed to avoid an expensive search.")
-(defvar vc-diff-options '("-a" "-c1")
+(defvar vc-diff-options '("-a" "-c2")
   "*The command/flags list to be used in constructing diff commands.")
 (defvar vc-suppress-confirm nil
   "*If non-nil, reat user as expert; suppress yes-no prompts on some things.")
@@ -115,6 +115,8 @@ is sensitive to blank lines.")
 (defvar vc-log-version)
 
 (defconst vc-name-assoc-file "VC-names")
+
+(make-variable-buffer-local 'vc-dired-mode)
 
 ;; File property caching
 
@@ -231,17 +233,44 @@ the master name of FILE; this is appended to an optional list of FLAGS."
   ;; Revert buffer, try to keep point and mark where user expects them in spite
   ;; of changes because of expanded version-control key words.
   ;; This is quite important since otherwise typeahead won't work as expected.
+  ;; The algorithm for reparsing the *compilation* buffer if necessary was
+  ;; contributed by Johnathan Vail and Kevin Rodgers.
   (interactive "P")
   (widen)
   (let ((point-context (vc-position-context (point)))
 	;; Use mark-marker to avoid confusion in transient-mark-mode.
 	(mark-context  (if (eq (marker-buffer (mark-marker)) (current-buffer))
 			   (vc-position-context (mark-marker))))
+	;; We may want to reparse the compilation buffer after revert
+	(reparse (and (boundp 'compilation-error-list)
+		      (listp compilation-error-list)
+		      (let ((buffer (current-buffer))
+			    (errors compilation-error-list)
+			    (buffer-error-marked-p nil))
+			(while (and errors (not buffer-error-marked-p))
+			  (if (eq (marker-buffer
+				   (car (cdr (car errors))))
+				  buffer)
+			      (setq buffer-error-marked-p t))
+			  (setq errors (cdr errors)))
+			buffer-error-marked-p)))
 	;; Make the right thing happen in transient-mark-mode.
 	(mark-active nil))
 
     ;; the actual revisit
     (revert-buffer arg no-confirm)
+
+    ;; Reparse remaining *compilation* errors, if necessary:
+    (if reparse                               ; see next-error (compile.el)
+      (save-excursion
+        (set-buffer "*compilation*")
+        (set-buffer-modified-p nil)   ; ?
+        (if (consp compilation-error-list) ; not t, nor ()
+            (setq compilation-parsing-end
+                  (marker-position
+                   (car (car compilation-error-list)))))
+        (compilation-forget-errors)
+        (compilation-parse-errors)))
 
     ;; Restore point and mark
     (let ((new-point (vc-find-position-by-context point-context)))
@@ -276,6 +305,68 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	 ))
      )))
 
+(defun vc-next-action-on-file (file verbose &optional comment)
+  ;;; If comment is specified, it will be used as an admin or checkin comment.
+  (let (owner version (vc-file (vc-name file)))
+    (cond
+
+     ;; if there is no master file corresponding, create one
+     ((not vc-file)
+      (vc-register verbose comment)
+      (if vc-initial-comment
+	  (setq vc-log-after-operation-hook
+		'vc-checkout-writeable-buffer-hook)
+	(vc-checkout-writeable-buffer)))
+
+     ;; if there is no lock on the file, assert one and get it
+     ((not (setq owner (vc-locking-user file)))
+      (vc-checkout-writeable-buffer))
+
+     ;; a checked-out version exists, but the user may not own the lock
+     ((not (string-equal owner (user-login-name)))
+      (if comment
+	  (error "Sorry, you can't steal the lock on %s this way." file))
+      (vc-steal-lock
+       file
+       (and verbose (read-string "Version to steal: "))
+       owner))
+     
+     ;; OK, user owns the lock on the file
+     (t (let (file-window)
+	  (find-file file)
+
+	  ;; give luser a chance to save before checking in.
+	  (vc-buffer-sync)
+
+	  ;; Revert if file is unchanged and buffer is too.
+	  ;; If buffer is modified, that means the user just said no
+	  ;; to saving it; in that case, don't revert,
+	  ;; because the user might intend to save
+	  ;; after finishing the log entry.
+	  (if (and (vc-workfile-unchanged-p file)
+		   (not (buffer-modified-p)))
+	      (progn
+		(vc-backend-revert file)
+		;; DO NOT revert the file without asking the user!
+		(vc-resynch-window file t nil))
+
+	    ;; user may want to set nonstandard parameters
+	    (if verbose
+		(setq version (read-string "New version level: ")))
+
+	    ;; OK, let's do the checkin
+	    (vc-checkin file version comment)
+	    ))))))
+
+(defun vc-next-action-dired (file rev comment)
+  ;; We've accepted a log comment, now do a vc-next-action using it on all
+  ;; marked files.
+  (set-buffer vc-parent-buffer)
+  (dired-map-over-marks
+   (save-window-excursion
+     (vc-next-action-on-file (dired-get-filename) nil comment)) nil t)
+  )
+
 ;; Here's the major entry point.
 
 ;;;###autoload
@@ -288,70 +379,33 @@ a writeable and locked file ready for editing.
    If the file is checked out and locked by the calling user, this
 first checks to see if the file has changed since checkout.  If not,
 it performs a revert.
-   If the file has been changed, this pops up a buffer for creation of
-a log message; when the message has been entered, it checks in the
+   If the file has been changed, this pops up a buffer for entry
+of a log message; when the message has been entered, it checks in the
 resulting changes along with the log message as change commentary.  If
 the variable vc-keep-workfiles is non-nil (which is its default), a
 read-only copy of the changed file is left in place afterwards.
    If the file is registered and locked by someone else, you are given
-the option to steal the lock."
+the option to steal the lock.
+   If you call this from within a VC dired buffer with no files marked,
+it will operate on the file in the current line.
+   If you call this from within a VC dired buffer, and one or more
+files are marked, it will accept a log message and then operate on
+each one.  The log message will be used as a comment for any register
+or checkin operations, but ignored when doing checkouts.  Attempted
+lock steals will raise an error."
   (interactive "P")
-  (while vc-parent-buffer
+  (if vc-dired-mode
+      (let ((files (dired-get-marked-files)))
+	(if (null files)
+	    (find-file-other-window (dired-get-filename))
+	  (vc-start-entry nil nil nil
+			  "Enter a change comment."
+			  'vc-next-action-dired)))
+    (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
-  (if buffer-file-name
-      (let
-	  (do-update owner version
-		     (file buffer-file-name)
-		     (vc-file (vc-name buffer-file-name))
-		     (err-msg nil)
-		     owner)
-
-	(cond
-
-	 ;; if there is no master file corresponding, create one
-	 ((not vc-file)
-	  (vc-register verbose)
-	  (if vc-initial-comment
-	      (setq vc-log-after-operation-hook
-		    'vc-checkout-writeable-buffer-hook)
-	    (vc-checkout-writeable-buffer)))
-
-	 ;; if there is no lock on the file, assert one and get it
-	 ((not (setq owner (vc-locking-user file)))
-	  (vc-checkout-writeable-buffer))
-
-	 ;; a checked-out version exists, but the user may not own the lock
-	 ((not (string-equal owner (user-login-name)))
-	  (vc-steal-lock
-	   file
-	   (and verbose (read-string "Version to steal: "))
-	   owner))
-
-	 ;; OK, user owns the lock on the file
-	 (t (progn
-
-	      ;; give luser a chance to save before checking in.
-	      (vc-buffer-sync)
-
-	      ;; Revert if file is unchanged and buffer is too.
-	      ;; If buffer is modified, that means the user just said no
-	      ;; to saving it; in that case, don't revert,
-	      ;; because the user might intend to save
-	      ;; after finishing the log entry.
-	      (if (and (vc-workfile-unchanged-p file)
-		       (not (buffer-modified-p)))
-		  (progn
-		    (vc-backend-revert file)
-		    ;; DO NOT revert the file without asking the user!
-		    (vc-resynch-window file t nil))
-
-		;; user may want to set nonstandard parameters
-		(if verbose
-		    (setq version (read-string "New version level: ")))
-
-		;; OK, let's do the checkin
-		(vc-checkin file version))))))
-    (error "There is no file associated with buffer %s" (buffer-name))))
+    (if buffer-file-name
+	(vc-next-action-on-file buffer-file-name verbose)
+      (error "There is no file associated with buffer %s" (buffer-name)))))
 
 ;;; These functions help the vc-next-action entry point
 
@@ -361,7 +415,7 @@ the option to steal the lock."
   )
 
 ;;;###autoload
-(defun vc-register (&optional override)
+(defun vc-register (&optional override comment)
   "Register the current file into your version-control system."
   (interactive "P")
   (if (vc-name buffer-file-name)
@@ -375,7 +429,9 @@ the option to steal the lock."
   (vc-buffer-sync)
   (vc-admin
    buffer-file-name
-   (and override (read-string "Initial version level: ")))
+   (and override
+	(read-string
+	 (format "Initial version level for %s: " buffer-file-name))))
   )
 
 (defun vc-resynch-window (file &optional keep noquery)
@@ -394,27 +450,48 @@ the option to steal the lock."
 	   (delete-window)
 	   (kill-buffer (current-buffer))))))
 
+(defun vc-start-entry (file rev comment msg action)
+  ;; Accept a comment for an operation on FILE revision REV.  If COMMENT
+  ;; is nil, pop up a VC-log buffer, emit MSG, and set the
+  ;; action on close to ACTION; otherwise, do action immediately.
+  ;; Remember the file's buffer in parent-buffer (current one if no file).
+  (let ((parent (if file (find-file-noselect file) (current-buffer))))
+    (if comment
+	(set-buffer (get-buffer-create "*VC-log*"))
+      (pop-to-buffer (get-buffer-create "*VC-log*")))
+    (make-local-variable 'vc-parent-buffer)
+    (setq vc-parent-buffer parent)
+    (vc-mode-line (if file (file-name-nondirectory file) " (no file)"))
+    (vc-log-mode)
+    (setq vc-log-operation action)
+    (setq vc-log-file file)
+    (setq vc-log-version rev)
+    (if comment
+	(progn
+	  (erase-buffer)
+	  (if (not (eq comment t))
+	      (insert comment))
+	  (vc-finish-logentry))
+      (message "%s  Type C-c C-c when done." msg))))
 
-(defun vc-admin (file rev)
+(defun vc-admin (file rev &optional comment)
   "Check a file into your version-control system.
 FILE is the unmodified name of the file.  REV should be the base version
-level to check it in under."
-  (if vc-initial-comment
-      (let ((camefrom (current-buffer)))
-	(pop-to-buffer (get-buffer-create "*VC-log*"))
-	(make-local-variable 'vc-parent-buffer)
-	(setq vc-parent-buffer camefrom)
-	(vc-log-mode)
-	(narrow-to-region (point-max) (point-max))
-	(vc-mode-line file (file-name-nondirectory file))
-	(setq vc-log-operation 'vc-backend-admin)
-	(setq vc-log-file file)
-	(setq vc-log-version rev)
-	(message "Enter initial comment.  Type C-c C-c when done."))
-    (progn
-      (vc-backend-admin file rev)
-      ;; Inhibit query here, since otherwise we always get asked.
-      (vc-resynch-window file vc-keep-workfiles t))))
+level to check it in under.  COMMENT, if specified, is the checkin comment."
+      (vc-start-entry file rev
+		      (or comment (not vc-initial-comment))
+		      "Enter initial comment." 'vc-backend-admin))
+
+(defun vc-checkout (file &optional writeable)
+  "Retrieve a copy of the latest version of the given file."
+  ;; If ftp is on this system and the name matches the ange-ftp format
+  ;; for a remote file, the user is trying something that won't work.
+  (if (and (string-match "^/[^/:]+:" file) (vc-find-binary "ftp"))
+      (error "Sorry, you can't check out files over FTP"))
+  (vc-backend-checkout file writeable)
+  (if (string-equal file buffer-file-name)
+      (vc-resynch-window file t t))
+  )
 
 (defun vc-steal-lock (file rev &optional owner)
   "Steal the lock on the current workfile."
@@ -443,17 +520,6 @@ level to check it in under."
   (vc-backend-steal file version)
   (vc-resynch-window file t t))
 
-(defun vc-checkout (file &optional writeable)
-  "Retrieve a copy of the latest version of the given file."
-  ;; If ftp is on this system and the name matches the ange-ftp format
-  ;; for a remote file, the user is trying something that won't work.
-  (if (and (string-match "^/[^/:]+:" file) (vc-find-binary "ftp"))
-      (error "Sorry, you can't check out files over FTP"))
-  (vc-backend-checkout file writeable)
-  (if (string-equal file buffer-file-name)
-      (vc-resynch-window file t t))
-  )
-
 (defun vc-checkin (file &optional rev comment)
   "Check in the file specified by FILE.
 The optional argument REV may be a string specifying the new version level
@@ -461,32 +527,13 @@ The optional argument REV may be a string specifying the new version level
 permissions zeroed, or deleted (according to the value of vc-keep-workfiles).
 COMMENT is a comment string; if omitted, a buffer is
 popped up to accept a comment."
-  (let ((camefrom (current-buffer)))
-    (pop-to-buffer (get-buffer-create "*VC-log*"))
-    (make-local-variable 'vc-parent-buffer)
-    (setq vc-parent-buffer camefrom))
-  (vc-log-mode)
-  (narrow-to-region (point-max) (point-max))
-  (vc-mode-line file (file-name-nondirectory file))
-  (setq vc-log-operation 'vc-backend-checkin
-	vc-log-file file
-	vc-log-version rev
-	vc-log-after-operation-hook 'vc-checkin-hook)
-  (message "Enter log message.  Type C-c C-c when done.")
-  (if comment
-      (progn
-	(insert comment)
-	(vc-finish-logentry))))
+  (setq vc-log-after-operation-hook 'vc-checkin-hook)
+  (vc-start-entry file rev comment "Enter a change comment." 'vc-backend-checkin))
 
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
-(defun vc-comment-to-change-log (&optional file)
-  "\
-Update change log from comments entered into VC for the currently visited file.
-Optional arg specifies the change log file name; see `find-change-log'.
-See `vc-update-change-log'."
-  (interactive)
-  (let ((log (find-change-log file)))
+(defun vc-comment-to-change-log ()
+  (let ((log (find-change-log)))
     (if log
 	(let ((default-directory (or (file-name-directory log)
 				     default-directory)))
@@ -510,24 +557,25 @@ See `vc-update-change-log'."
 	(forward-char -1))
     (exchange-point-and-mark)
     ;; Check for errors
-    (vc-backend-logentry-check vc-log-file)
-    )
+    (vc-backend-logentry-check vc-log-file))
   ;; OK, do it to it
   (if vc-log-operation
-      (funcall vc-log-operation 
-	       vc-log-file
-	       vc-log-version
-	       (buffer-string))
+      (save-excursion
+	(funcall vc-log-operation 
+		 vc-log-file
+		 vc-log-version
+		 (buffer-string)))
     (error "No log operation is pending."))
   ;; Return to "parent" buffer of this checkin and remove checkin window
-  (pop-to-buffer (get-file-buffer vc-log-file))
-  (delete-window (get-buffer-window "*VC-log*"))
-  (bury-buffer "*VC-log*")
+  (pop-to-buffer vc-parent-buffer)
+  (vc-error-occurred
+   (delete-window (get-buffer-window "*VC-log*")))
+  (kill-buffer "*VC-log*")
   (bury-buffer "*VC-comment-ring*")
   ;; Now make sure we see the expanded headers
-  (vc-resynch-window buffer-file-name vc-keep-workfiles t)
-  (run-hooks vc-log-after-operation-hook)
-  )
+  (if buffer-file-name
+	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
+  (run-hooks vc-log-after-operation-hook))
 
 ;; Code for access to the comment ring
 
@@ -589,6 +637,8 @@ See `vc-update-change-log'."
 (defun vc-diff (historic)
   "Display diffs between file versions."
   (interactive "P")
+  (if vc-dired-mode
+      (set-buffer (find-file-noselect (dired-get-filename))))
   (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (if historic
@@ -628,6 +678,7 @@ files in or below it."
 		(or rel2 "current workfile(s)")
 		":\n\n")
 	(set-buffer (get-buffer-create "*vc*"))
+	(cd file)
 	(vc-file-tree-walk
 	 (function (lambda (f)
 		     (message "Looking at %s" f)
@@ -662,6 +713,8 @@ files in or below it."
 Headers desired are inserted at the start of the buffer, and are pulled from
 the variable vc-header-alist"
   (interactive)
+  (if vc-dired-mode
+      (find-file-other-window (dired-get-filename)))
   (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (save-excursion
@@ -686,30 +739,57 @@ the variable vc-header-alist"
 	      )
 	    )))))
 
-;; Status-checking functions
+;; The VC directory submode.  Coopt Dired for this.
+;; All VC commands get mapped into logical equivalents.
+
+(or (assq 'vc-dired-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist
+	   (cons 'vc-dired-mode minor-mode-map-alist)))
+
+(defun vc-dired-mode ()
+  "The augmented Dired minor mode used in VC directory buffers.
+All Dired commands operate normally.  Users currently locking listed files
+are listed at the left-hand side of the buffer, following the Dired mark area.
+Keystrokes bound to VC commands will execute as though they had been called
+on a buffer attached to the file named in the current Dired buffer line."
+  (setq vc-dired-mode t)
+  (setq vc-mode " under VC"))
 
 ;;;###autoload
 (defun vc-directory (verbose)
   "Show version-control status of all files under the current directory."
   (interactive "P")
-  (let (nonempty)
+  (let (nonempty
+	(dl (length default-directory))
+	(filelist nil) (userlist nil)
+	dired-buf)
+    (vc-file-tree-walk
+     (function (lambda (f)
+		 (if (vc-registered f)
+		     (let ((user (vc-locking-user f)))
+		       (and (or verbose user)
+			    (setq filelist (cons (substring f dl) filelist))
+			    (setq userlist (cons user userlist))))))))
     (save-excursion
-      (set-buffer (get-buffer-create "*vc-status*"))
-      (erase-buffer)
-      (vc-file-tree-walk
-       (function (lambda (f)
-		   (if (vc-registered f)
-		       (let ((user (vc-locking-user f)))
-			 (if (or user verbose)
-			     (insert (format
-				      "%s	%s\n"
-				      (concat user) f))))))))
-      (setq nonempty (not (zerop (buffer-size)))))
+     (dired (cons default-directory (nreverse filelist)))
+     (setq dired-buf (current-buffer))
+     (setq nonempty (not (zerop (buffer-size)))))
     (if nonempty
 	(progn
-	  (pop-to-buffer "*vc-status*" t)
-	  (vc-shrink-to-fit)
-	  (goto-char (point-min)))
+	  (pop-to-buffer dired-buf)
+	  (vc-dired-mode)
+	  (goto-char (point-min))
+	  (setq buffer-read-only nil)
+	  (mapcar
+	   (function (lambda (x)
+		       (forward-char 2)	;; skip dired's mark area
+		       (if x (insert x))
+		       (insert "\t")
+		       (forward-line 1)))
+	   (cons "\t" (nreverse userlist)))
+	  (setq buffer-read-only t)
+	  (goto-char (point-min))
+	  )
       (message "No files are currently %s under %s"
 	       (if verbose "registered" "locked") default-directory))
     ))
@@ -794,6 +874,8 @@ levels in the snapshot."
 (defun vc-print-log ()
   "List the change log of the current buffer in a window."
   (interactive)
+  (if vc-dired-mode
+      (set-buffer (find-file-noselect (dired-get-filename))))
   (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (if (and buffer-file-name (vc-name buffer-file-name))
@@ -813,6 +895,8 @@ levels in the snapshot."
 This asks for confirmation if the buffer contents are not identical
 to that version."
   (interactive)
+  (if vc-dired-mode
+      (find-file-other-window (dired-get-filename)))
   (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (let ((file buffer-file-name)
@@ -834,6 +918,8 @@ to that version."
 (defun vc-cancel-version (norevert)
   "Undo your latest checkin."
   (interactive "P")
+  (if vc-dired-mode
+      (find-file-other-window (dired-get-filename)))
   (while vc-parent-buffer
     (pop-to-buffer vc-parent-buffer))
   (let* ((target (concat (vc-latest-version (buffer-file-name))))
@@ -909,7 +995,7 @@ From a program, any arguments are passed to the `rcs2log' script."
   (goto-char (point-min))
   (push-mark)
   (message "Computing change log entries...")
-  (message "Computing change log entries...%s"
+  (message "Computing change log entries... %s"
            (if (eq 0 (apply 'call-process "rcs2log" nil t nil args))
 	       "done" "failed")))
 
@@ -994,6 +1080,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 (defun vc-locking-user (file)
   "Return the name of the person currently holding a lock on FILE.
 Return nil if there is no such person."
+  (setq file (expand-file-name file))	;; ??? Work around bug in 19.0.4
   (if (or (not vc-keep-workfiles)
 	  (eq vc-mistrust-permissions 't)
 	  (and vc-mistrust-permissions
@@ -1007,7 +1094,8 @@ Return nil if there is no such person."
     ;; hack is that calls to the very expensive vc-fetch-properties
     ;; function only have to be made if (a) the file is locked by someone
     ;; other than the current user, or (b) some untoward manipulation
-    ;; behind vc's back has twiddled the `group' or `other' write bits.
+    ;; behind vc's back has changed the owner or the `group' or `other'
+    ;; write bits.
     (let ((attributes (file-attributes file)))
       (cond ((string-match ".r-.r-.r-." (nth 8 attributes))
 	     nil)
