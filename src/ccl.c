@@ -636,7 +636,6 @@ static tr_stack *mapping_stack_pointer;
 #define CCL_SUCCESS		   	\
   do {				   	\
     ccl->status = CCL_STAT_SUCCESS;	\
-    ccl->ic = CCL_HEADER_MAIN;		\
     goto ccl_finish;		   	\
   } while (0)
 
@@ -978,6 +977,11 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      ic = ccl_prog_stack_struct[stack_idx].ic;
 	      break;
 	    }
+	  if (src)
+	    src = src_end;
+	  /* ccl->ic should points to this command code again to
+             suppress further processing.  */
+	  ic--;
 	  CCL_SUCCESS;
 
 	case CCL_ExprSelfConst: /* 00000OPERATION000000rrrXXXXX */
@@ -1180,9 +1184,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  }
 		else
 		  {
-		    /* INVALID CODE
-		       Returned charset is -1.  */
-		    reg[RRR] = -1;
+		    /* INVALID CODE.  Return a single byte character.  */
+		    reg[RRR] = CHARSET_ASCII;
+		    reg[rrr] = i;
 		  }
 	      } while (0);
 	      break;
@@ -1608,7 +1612,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 }
 
 /* Setup fields of the structure pointed by CCL appropriately for the
-   execution of compiled CCL code in VEC (vector of integer).  */
+   execution of compiled CCL code in VEC (vector of integer).
+   If VEC is nil, we skip setting ups based on VEC.  */
 void
 setup_ccl_program (ccl, vec)
      struct ccl_program *ccl;
@@ -1616,11 +1621,16 @@ setup_ccl_program (ccl, vec)
 {
   int i;
 
-  ccl->size = XVECTOR (vec)->size;
-  ccl->prog = XVECTOR (vec)->contents;
+  if (VECTORP (vec))
+    {
+      struct Lisp_Vector *vp = XVECTOR (vec);
+
+      ccl->size = vp->size;
+      ccl->prog = vp->contents;
+      ccl->eof_ic = XINT (vp->contents[CCL_HEADER_EOF]);
+      ccl->buf_magnification = XINT (vp->contents[CCL_HEADER_BUF_MAG]);
+    }
   ccl->ic = CCL_HEADER_MAIN;
-  ccl->eof_ic = XINT (XVECTOR (vec)->contents[CCL_HEADER_EOF]);
-  ccl->buf_magnification = XINT (XVECTOR (vec)->contents[CCL_HEADER_BUF_MAG]);
   for (i = 0; i < 8; i++)
     ccl->reg[i] = 0;
   ccl->last_block = 0;
