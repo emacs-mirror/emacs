@@ -1,5 +1,8 @@
                                                                 -*-text-*-
 
+* Bring back the feature of showing the part of the buffer that is a problem
+  for the use of the preferred coding systems.
+
 * Port the conservative stack marking code of Emacs' garbage collector
   to more systems, so that we can completely get rid of GCPROs.
 
@@ -33,9 +36,6 @@
 * Add ANSI C prototype forward declarations to the source files,
   so that even the functions used within one file have prototypes.
 
-* Add a way for macro definitions to provide info to edebug
-  so it can handle them right.
-
 * Replace finder.el with something that generates an Info file
   which gives the same information through a menu structure.  [Dave
   Love started on this.]
@@ -55,8 +55,6 @@
   the main thread, and not return from that message until the main
   thread has processed the menu_bar_activate_event and regenerated
   the whole menu bar.  In the mean time, it should process other messages.
-
-* Make Emacs work as a Java Bean.
 
 * Implement the design for Unicode-based internal encoding for Mule.
 
