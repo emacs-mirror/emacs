@@ -421,7 +421,7 @@ put_line (string)
 	{
 	  char *breakpos;
 
-	  /* Find the last char that fits. */
+	  /* Find the last char that fits.  */
 	  for (breakpos = s; *breakpos && column < 78; ++breakpos)
 	    {
 	      if (*breakpos == '\t')
@@ -429,15 +429,20 @@ put_line (string)
 	      else
 		column++;
 	    }
-	  /* Back up to just after the last comma that fits.  */
-	  while (breakpos != s && breakpos[-1] != ',') --breakpos;
-	  if (breakpos == s)
+	  /* If we didn't reach end of line, break the line.  */
+	  if (*breakpos)
 	    {
-	      /* If no comma fits, move past the first address anyway.  */
-	      while (*breakpos != 0 && *breakpos != ',') ++breakpos;
-	      if (*breakpos != 0)
-		/* Include the comma after it.  */
-		++breakpos;
+	      /* Back up to just after the last comma that fits.  */
+	      while (breakpos != s && breakpos[-1] != ',') --breakpos;
+
+	      if (breakpos == s)
+		{
+		  /* If no comma fits, move past the first address anyway.  */
+		  while (*breakpos != 0 && *breakpos != ',') ++breakpos;
+		  if (*breakpos != 0)
+		    /* Include the comma after it.  */
+		    ++breakpos;
+		}
 	    }
 	  /* Output that much, then break the line.  */
 	  fwrite (s, 1, breakpos - s, rem->handle);
