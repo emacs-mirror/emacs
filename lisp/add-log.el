@@ -328,7 +328,7 @@ Has a preference of looking backwards."
 	(let ((location (point)))
 	  (cond ((memq major-mode '(emacs-lisp-mode lisp-mode scheme-mode
 						    lisp-interaction-mode))
-		 ;; If we are now precisely a the beginning of a defun,
+		 ;; If we are now precisely at the beginning of a defun,
 		 ;; make sure beginning-of-defun finds that one
 		 ;; rather than the previous one.
 		 (or (eobp) (forward-char 1))
@@ -342,7 +342,7 @@ Has a preference of looking backwards."
 		       (if (looking-at "\\s(")
 			   (forward-char 1))
 		       (forward-sexp 1)
-		       (skip-chars-forward " ")
+		       (skip-chars-forward " '")
 		       (buffer-substring (point)
 					 (progn (forward-sexp 1) (point))))))
 		((and (memq major-mode '(c-mode c++-mode c++-c-mode objc-mode))
