@@ -1,6 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!testlib.h(trunk.19) $
+ * $HopeName: MMsrc!testlib.h(trunk.20) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -83,7 +83,7 @@
  * argument on stderr and exits the program.  Otherwise does nothing.
  *
  * Typical use:
- *   die(mps_space_create(&space), "SpaceCreate");
+ *   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
  */
 
 extern void die(mps_res_t res, const char *s);
@@ -96,7 +96,7 @@ extern void die(mps_res_t res, const char *s);
  * Otherwise does nothing.
  *
  * Typical use:
- *   die_expect(mps_space_create(&space), MPS_RES_OK, "SpaceCreate");
+ *   die_expect(res, MPS_RES_COMMIT_LIMIT, "Commit limit allocation");
  */
 
 extern void die_expect(mps_res_t res, mps_res_t expected, const char *s);
@@ -144,13 +144,6 @@ extern unsigned long rnd(void);
  */
 
 extern void randomize(int argc, char **argv);
-
-
-/* adjust_collection_freq -- multiply all collection frequencies by
- *                           a given factor
- */
-
-extern void adjust_collection_freq(double multiplier);
 
 
 #endif /* testlib_h */

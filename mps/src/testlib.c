@@ -1,6 +1,6 @@
 /* impl.c.testlib: TEST LIBRARY
  *
- * $HopeName: MMsrc!testlib.c(trunk.21) $
+ * $HopeName: MMsrc!testlib.c(trunk.22) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -107,40 +107,4 @@ void cdie(int res, const char *s)
   if (!res) {
     error("\n%s: %d\n", s, res);
   }
-}
-
-
-/* adjust_collection_freq -- multiply all collection frequencies by
- *                           a given factor
- *
- * If sizes are adjusted too low, they are corrected so that all are
- * non-zero and of reasonable size.
- */
-
-#define multSIZE(size, mult) ((size) = (unsigned long)((size) * (mult)))
-#define sizeLIMIT 63uL
-
-void adjust_collection_freq(double multiplier)
-{
-  multSIZE(TraceGen0Size, multiplier);
-  if(TraceGen0Size < sizeLIMIT)
-    TraceGen0Size = sizeLIMIT;
-  multSIZE(TraceGen1Size, multiplier);
-  if(TraceGen1Size <= sizeLIMIT)
-    TraceGen1Size = sizeLIMIT;
-  multSIZE(TraceGen2Size, multiplier);
-  if(TraceGen2Size <= sizeLIMIT)
-    TraceGen2Size = sizeLIMIT;
-  multSIZE(TraceGen0RampmodeSize, multiplier);
-  if(TraceGen0RampmodeSize < sizeLIMIT)
-    TraceGen0RampmodeSize = sizeLIMIT;
-  multSIZE(TraceGen1RampmodeSize, multiplier);
-  if(TraceGen1RampmodeSize <= sizeLIMIT)
-    TraceGen1RampmodeSize = sizeLIMIT;
-  multSIZE(TraceRampGenSize, multiplier);
-  if(TraceRampGenSize <= sizeLIMIT)
-    TraceRampGenSize = sizeLIMIT;
-  multSIZE(TraceGen2RampmodeSize, multiplier);
-  if(TraceGen2RampmodeSize <= sizeLIMIT)
-    TraceGen2RampmodeSize = sizeLIMIT;
 }
