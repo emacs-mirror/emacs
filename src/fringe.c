@@ -1060,7 +1060,7 @@ compute_fringe_widths (f, redraw)
 
 /* Free resources used by a user-defined bitmap.  */
 
-int
+void
 destroy_fringe_bitmap (n)
      int n;
 {
@@ -1371,7 +1371,6 @@ Return nil if POS is not visible in WINDOW.  */)
      Lisp_Object pos, window;
 {
   struct window *w;
-  struct buffer *old_buffer = NULL;
   struct glyph_row *row;
   int textpos;
 
