@@ -1,5 +1,9 @@
 2002-07-12  Juanma Barranquero  <lektu@terra.es>
 
+	* help-fns.el (describe-variable): Put `defvaralias' info before the
+	documentation (patch from John Paul Wallington
+	<jpw@shootybangbang.com>). Remove useless "Documentation:" string.
+
 	* timer.el (timer-set-time-with-usecs): Fix documentation. Simplify
 	extraction of time data.
 
