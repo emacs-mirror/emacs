@@ -49,6 +49,11 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "intervals.h"
 
+#undef min
+#undef max
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+
 extern void free_frame_menubar ();
 
 extern Lisp_Object Vwindow_system;

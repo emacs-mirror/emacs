@@ -47,6 +47,11 @@ extern char my_endbss[];
 
 #include "w32heap.h"
 
+#undef min
+#undef max
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+
 /* Basically, our "initialized" flag.  */
 BOOL need_to_recreate_heap = FALSE;
 

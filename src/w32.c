@@ -79,6 +79,11 @@ Boston, MA 02111-1307, USA.
 #include "ndir.h"
 #include "w32heap.h"
  
+#undef min
+#undef max
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
