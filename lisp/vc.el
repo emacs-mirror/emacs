@@ -647,7 +647,9 @@ to an optional list of FLAGS."
 		(vc-checkout-writable-buffer file)
 	      (if (yes-or-no-p "Lock the latest version instead? ")
 		  (vc-checkout-writable-buffer file
-		     (vc-branch-part (vc-workfile-version file))))))
+		     (if (vc-trunk-p (vc-workfile-version file)) 
+                         ""  ;; this means check out latest on trunk
+                       (vc-branch-part (vc-workfile-version file)))))))
 	  )))
 
      ;; a checked-out version exists, but the user may not own the lock
