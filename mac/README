@@ -25,7 +25,7 @@ sending AppleScript commands to other applications from Emacs.
 
 The following are not yet supported: unexec (dump-emacs), asynchronous
 subprocesses (start-process), and networking
-(open-network-connection).
+(open-network-stream).
 
 There is basic support for synchronous subprocesses (call-process)
 although Unix commands that are used will need to be ported to the

@@ -16,7 +16,7 @@ Emacs under the Mac OS.
 
   The following features of Emacs are not yet supported on the Mac:
 unexec (@code{dump-emacs}), asynchronous subprocesses
-(@code{start-process}), and networking (@code{open-network-connection}).
+(@code{start-process}), and networking (@code{open-network-stream}).
 As a result, packages such as Gnus, GUD, and Comint do not work.
 
   Since external Unix programs to handle commands such as
