@@ -1,3 +1,13 @@
+2004-06-30  Andreas Schwab  <schwab@suse.de>
+
+	* image.c (CHECK_LIB_AVAILABLE): Add third parameter LIBRARIES.
+	(Finit_image_library): Pass LIBRARIES through to
+	CHECK_LIB_AVAILABLE.  Declare parameters.  Doc fix.
+	(lookup_image_type): Pass Qnil as second argument to
+	Finit_image_library.
+
+	* lisp.h: Declare Finit_image_library.
+
 2004-06-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 	
 	* macterm.c (do_window_activate, do_window_deactivate): Remove.
