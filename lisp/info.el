@@ -124,6 +124,7 @@ Marker points nowhere if file has no tag table.")
   (if (eq system-type 'ms-dos)
       '( (".gz"      . "gunzip")
 	 (".z"       . "gunzip")
+	 (".inf"     . nil)
 	 (""         . nil))
     '( (".info.Z"  . "uncompress")
        (".info.Y"  . "unyabba")
@@ -152,6 +153,11 @@ be last in the list.")
 	   (ext-len (- (length filename) (length sans-exts) 1))
 	   ;; How many chars of that extension should we keep?
 	   (ext-left (max 0 (- 3 (length suffix)))))
+      ;; SUFFIX starts with a dot.  If FILENAME already has one,
+      ;; get rid of the one in SUFFIX.
+      (or (and (zerop ext-len)
+	       (not (eq (aref filename (1- (length filename))) ?.)))
+	  (setq suffix (substring suffix 1)))
       ;; Get rid of the rest of the extension, and add SUFFIX.
       (concat (substring filename 0 (- (length filename)
 				       (- ext-len ext-left)))
@@ -180,7 +186,7 @@ Do the right thing if the file has been compressed or zipped."
 	(setq tail (cdr tail)))
       ;; If we found a file with a suffix, set DECODER according to the suffix
       ;; and set FULLNAME to the file's actual name.
-      (setq fullname (concat filename (car (car tail)))
+      (setq fullname (info-insert-file-contents-1 filename (car (car tail)))
 	    decoder (cdr (car tail)))
       (or tail
 	  (error "Can't find %s or any compressed version of it" filename)))
@@ -194,7 +200,7 @@ Do the right thing if the file has been compressed or zipped."
 	(let ((buffer-read-only nil)
 	      (default-directory (or (file-name-directory fullname)
 				     default-directory)))
-	  (shell-command-on-region (point-min) (point-max) decoder t)))))
+	  (call-process-region (point-min) (point-max) decoder t t)))))
 
 ;;;###autoload (add-hook 'same-window-buffer-names "*info*")
 
@@ -264,10 +270,12 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (let ((suffix-list Info-suffix-list))
 		(while (and suffix-list (not found))
 		  (cond ((file-exists-p
-			  (concat temp (car (car suffix-list))))
+			  (info-insert-file-contents-1
+			   temp (car (car suffix-list))))
 			 (setq found temp))
 			((file-exists-p
-			  (concat temp-downcase (car (car suffix-list))))
+			  (info-insert-file-contents-1
+			   temp-downcase (car (car suffix-list))))
 			 (setq found temp-downcase)))
 		  (setq suffix-list (cdr suffix-list))))
 	      (setq dirs (cdr dirs)))))
