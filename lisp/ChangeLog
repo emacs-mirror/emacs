@@ -1,5 +1,10 @@
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* calendar/cal-menu.el (calendar-mode-map): Change the menu item's
+	name to "Insert Diary Entry".
+
+2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* net/ange-ftp.el (ange-ftp-process-handle-line) 
 	(ange-ftp-set-xfer-size): If the file's size is a float, divide
 	by 1024 instead of using ash.

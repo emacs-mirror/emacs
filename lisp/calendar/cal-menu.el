@@ -76,7 +76,7 @@
 (define-key calendar-mode-map [menu-bar diary wk]
   '("Insert Weekly" . insert-weekly-diary-entry))
 (define-key calendar-mode-map [menu-bar diary ent]
-  '("Insert Daily". insert-diary-entry))
+  '("Insert Diary Entry". insert-diary-entry))
 (define-key calendar-mode-map [menu-bar diary all]
   '("Show All" . show-all-diary-entries))
 (define-key calendar-mode-map [menu-bar diary mark]
