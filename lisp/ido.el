@@ -1256,6 +1256,7 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-c" 'ido-toggle-case)
     (define-key map "\C-e" 'ido-edit-input)
     (define-key map "\t" 'ido-complete)
+    (define-key map " " 'ido-complete-space)
     (define-key map "\C-j" 'ido-select-text)
     (define-key map "\C-m" 'ido-exit-minibuffer)
     (define-key map "\C-p" 'ido-toggle-prefix)
@@ -1941,6 +1942,27 @@ If INITIAL is non-nil, it specifies the initial input string."
 	;; else nothing to complete
 	(ido-completion-help)
 	)))))
+
+(defun ido-complete-space ()
+  "Try completion unless inserting the space makes sense."
+  (interactive)
+  (if (and (stringp ido-common-match-string)
+	   (stringp ido-text)
+	   (cond
+	    ((> (length ido-common-match-string) (length ido-text))
+	     (= (aref ido-common-match-string (length ido-text)) ? ))
+	    (ido-matches
+	     (let (insert-space
+		   (re (concat (regexp-quote ido-text) " "))
+		   (comp ido-matches))
+	       (while comp
+		 (if (string-match re (ido-name (car comp)))
+		     (setq comp nil insert-space t)
+		   (setq comp (cdr comp))))
+	       insert-space))
+	    (t nil)))
+      (insert " ")
+    (ido-complete)))
 
 (defun ido-undo-merge-work-directory (&optional text try refresh)
   "Undo or redo last ido directory merge operation.
@@ -2729,7 +2751,7 @@ for first matching file."
 	       ido-enable-flex-matching
 	       (> (length ido-text) 1)
 	       (not ido-enable-regexp))
-      (setq re (mapconcat 'identity (split-string ido-text "") ".*"))
+      (setq re (mapconcat 'regexp-quote (split-string ido-text "") ".*"))
       (if ido-enable-prefix
 	  (setq re (concat "\\`" re)))
       (mapcar
