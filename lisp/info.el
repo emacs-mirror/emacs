@@ -1441,6 +1441,11 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
 	  "[" (or allowedchars "^,\t\n") " ]" ;The last char can't be a space.
 	  "\\|\\)\\)"))			      ;Allow empty node names.
 
+;;; For compatibility; other files have used this name.
+(defun Info-following-node-name ()
+  (and (looking-at (Info-following-node-name-re))
+       (match-string 1)))
+
 (defun Info-next ()
   "Go to the next node of this node."
   (interactive)
