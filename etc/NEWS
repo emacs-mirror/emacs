@@ -1680,31 +1680,48 @@ with Custom.  cplus-md.el, which required it, has also been removed.
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
 
+** The default values of paragraph-start and indent-line-function have
+been changed to reflect those used in Text mode rather than those used
+in Indented-Text mode.
+
+** If you set `query-replace-skip-read-only' non-nil,
+`query-replace' and related functions simply ignore
+a match if part of it has a read-only property.
+
 
 * Lisp Changes in Emacs 21.4
 
++++
 ** The new function `window-inside-edges' returns the edges of the
 actual text portion of the window, not including the scroll bar or
 divider line, the fringes, the display margins, the header line and
 the mode line.
 
++++
 ** The new functions `window-pixel-edges' and `window-inside-pixel-edges'
 return window edges in units of pixels, rather than columns and lines.
 
++++
 ** The kill-buffer-hook is now permanent-local.
 
-** The `local-map' property now also works at the ends of overlays and
++++
+** `select-window' takes an optional second argument `norecord', like
+`switch-to-buffer'.
+
++++
+** The new macro `with-selected-window' temporarily switches the
+selected window without impacting the order of buffer-list.
+
++++
+** The `keymap' property now also works at the ends of overlays and
 text-properties, according to their stickiness.  This also means that it
-works with empty overlays.  The same hold for the `keymap' property.
+works with empty overlays.  The same hold for the `local-map' property.
 
-** `select-window' takes a second optional argument `norecord', like
-`switch-to-buffer'.  `with-selected-window' is a new macro that uses
-this to temporarily switch the selected window without impacting
-the order of buffer-list.
-
++++
 ** (map-keymap FUNCTION KEYMAP) applies the function to each binding
 in the keymap.
 
+---
 ** VC changes for backends:
 *** (vc-switches BACKEND OPERATION) is a new function for use by backends.
 *** The new `find-version' backend function replaces the `destfile'
@@ -1712,6 +1729,7 @@ parameter of the `checkout' backend function.
 Old code still works thanks to a default `find-version' behavior that
 uses the old `destfile' parameter.
 
++++
 ** The new macro dynamic-completion-table supports using functions
 as a dynamic completion table.
 
@@ -1724,6 +1742,7 @@ can ignore the value of its argument. If completion is performed in the
 minibuffer, FUN will be called in the buffer from which the minibuffer was
 entered. dynamic-completion-table then computes the completion.
 
++++
 ** The new macro lazy-completion-table initializes a variable
 as a lazy completion table.
 
@@ -1736,15 +1755,19 @@ completion is requested in the minibuffer, FUN will be called in the buffer
 from which the minibuffer was entered. The return value of
 `lazy-completion-table' must be used to initialize the value of VAR.
 
++++
 ** `minor-mode-list' now holds a list of minor mode commands.
 
 ** The new command `modify-all-frames-parameters' modifies parameters
 for all (existing and future) frames.
 
++++
 ** `sit-for' can now be called with args (SECONDS &optional NODISP).
 
++++
 ** New standard font-lock face `font-lock-preprocessor-face'.
 
++++
 ** The macro `with-syntax-table' does not copy the table any more.
 
 ** The variable `face-font-rescale-alist' specifies how much larger
@@ -2488,6 +2511,7 @@ on the screen.
 You should not set it up so that both the position before and the position
 after are unacceptable.
 
++++
 ** field-beginning and field-end now accept an additional optional
 argument, LIMIT.
 
@@ -2498,10 +2522,13 @@ it won't be stored in the user's abbrevs file if he saves the abbrevs.
 Major modes that predefine some abbrevs should always specify this
 flag.
 
+---
 ** Support for Mocklisp has been removed.
 
+---
 ** The function insert-string is now obsolete.
 
+---
 ** The precedence of file-name-handlers has been changed.
 Instead of blindly choosing the first handler that matches,
 find-file-name-handler now gives precedence to a file-name handler
@@ -2509,10 +2536,12 @@ that matches near the end of the file name.  More specifically, the
 handler whose (match-beginning 0) is the largest is chosen.
 In case of ties, the old "first matched" rule applies.
 
+---
 ** Dense keymaps now handle inheritance correctly.
 Previously a dense keymap would hide all of the simple-char key
 bindings of the parent keymap.
 
+---
 ** jit-lock obeys a new text-property `jit-lock-defer-multiline'.
 If a piece of text with that property gets contextually refontified
 (see jit-lock-defer-contextually), then all of that text will
@@ -2531,46 +2560,44 @@ text to being a piece of code, so you'd put a jit-lock-defer-multiline
 property over the second half of the command to force (deferred)
 refontification of `bar' whenever the `e' is added/removed.
 
+---
 ** describe-vector now takes a second argument `describer' which is
 called to print the entries' values.  It defaults to `princ'.
 
 ** defcustom and other custom declarations now use a default group
 (the last group defined in the same file) when no :group was given.
 
++++
 ** emacsserver now runs pre-command-hook and post-command-hook when
 it receives a request from emacsclient.
 
+---
 ** The variable `recursive-load-depth-limit' has been deleted.
 Emacs now signals an error if the same file is loaded with more
 than 3 levels of nesting.
 
-** The default values of paragraph-start and indent-line-function have
-been changed to reflect those used in Text mode rather than those used
-in Indented-Text mode.
-
+---
 ** If a major mode function has a non-nil `no-clone-indirect'
 property, `clone-indirect-buffer' signals an error if you use
 it in that buffer.
 
-** If you set `query-replace-skip-read-only' non-nil,
-`query-replace' and related functions simply ignore
-a match if part of it has a read-only property.
-
+---
 ** In `replace-match', the replacement text no longer inherits
 properties from surrounding text.
 
++++
 ** New function `buffer-local-value'.
-
-- Function: buffer-local-value variable buffer
 
 This function returns the buffer-local binding of VARIABLE (a symbol)
 in buffer BUFFER.  If VARIABLE does not have a buffer-local binding in
 buffer BUFFER, it returns the default value of VARIABLE instead.
 
+---
 ** New function `text-clone-create'.  Text clones are chunks of text
 that are kept identical by transparently propagating changes from one
 clone to the other.
 
++++
 ** font-lock can manage arbitrary text-properties beside `face'.
 *** the FACENAME returned in font-lock-keywords can be a list
 of the form (face FACE PROP1 VAL1 PROP2 VAL2 ...) so you can set
@@ -2578,17 +2605,23 @@ other properties than `face'.
 *** font-lock-extra-managed-props can be set to make sure those extra
 properties are automatically cleaned up by font-lock.
 
+---
 ** The special treatment of faces whose names are of the form `fg:COLOR'
 or `bg:COLOR' has been removed.  Lisp programs should use the
-`defface' facility for defining faces with specific colors.
+`defface' facility for defining faces with specific colors, or use
+the feature of specifying the face attributes :foreground and :background
+directly in the `face' property instead of using a named face.
 
++++
 ** The new function `run-mode-hooks' and the new macro `delay-mode-hooks'
 are used by define-derived-mode to make sure the mode hook for the
 parent mode is run at the end of the child mode.
 
++++
 ** define-minor-mode now accepts arbitrary additional keyword arguments
 and simply passes them to defcustom, if applicable.
 
++++
 ** define-derived-mode by default creates a new empty abbrev table.
 It does not copy abbrevs from the parent mode's abbrev table.
 
@@ -2597,6 +2630,7 @@ It does not copy abbrevs from the parent mode's abbrev table.
 to test/provide subfeatures.  Also `provide' now checks `after-load-alist'
 and runs any code associated with the provided feature.
 
+---
 ** The variable `compilation-parse-errors-filename-function' can
 be used to transform filenames found in compilation output.
 
@@ -2605,29 +2639,37 @@ be used to transform filenames found in compilation output.
 ignore the leading dots in file names, so that file names such as
 `.emacs' are treated as extensionless.
 
++++
 ** Functions `user-uid' and `user-real-uid' now return floats if the
 user UID doesn't fit in a Lisp integer.  Function `user-full-name'
 accepts a float as UID parameter.
 
+---
 ** `define-key-after' now accepts keys longer than 1.
 
++++
 ** The local variable `no-byte-compile' in elisp files is now obeyed.
 
++++
 ** The Emacs Lisp byte-compiler now displays the actual line and
 character position of errors, where possible.  Additionally, the form
 of its warning and error messages have been brought more in line with
 the output of other GNU tools.
 
++++
 ** New functions `keymap-prompt' and `current-active-maps'.
 
+---
 ** New function `describe-buffer-bindings'.
 
++++
 ** New vars `exec-suffixes' and `load-suffixes' used when
 searching for an executable resp. an elisp file.
 
++++
 ** Variable aliases have been implemented:
 
-- Function: defvaralias ALIAS-VAR BASE-VAR [DOCSTRING]
+*** defvaralias ALIAS-VAR BASE-VAR [DOCSTRING]
 
 This function defines the symbol ALIAS-VAR as a variable alias for
 symbol BASE-VAR.  This means that retrieving the value of ALIAS-VAR
@@ -2637,7 +2679,7 @@ changes the value of BASE-VAR.
 DOCSTRING, if present, is the documentation for ALIAS-VAR; else it has
 the same documentation as BASE-VAR.
 
-- Function: indirect-variable VARIABLE
+*** indirect-variable VARIABLE
 
 This function returns the variable at the end of the chain of aliases
 of VARIABLE.  If VARIABLE is not a symbol, or if VARIABLE is not
@@ -2646,21 +2688,25 @@ defined as an alias, the function returns VARIABLE.
 It might be noteworthy that variables aliases work for all kinds of
 variables, including buffer-local and frame-local variables.
 
++++
 ** Functions from `post-gc-hook' are run at the end of garbage
 collection.  The hook is run with GC inhibited, so use it with care.
 
++++
 ** If the second argument to `copy-file' is the name of a directory,
 the file is copied to that directory instead of signaling an error.
 
++++
 ** The variables most-positive-fixnum and most-negative-fixnum
-have been moved from the CL package to the core.
+hold the largest and smallest possible integer values.
 
+---
 ** On MS Windows, locale-coding-system is used to interact with the OS.
 The Windows specific variable w32-system-coding-system, which was
 formerly used for that purpose is now an alias for locale-coding-system.
 
-** Functions y-or-n-p, read-char, read-keysequence and alike that
-display a prompt but don't use the minibuffer now display the prompt
+** Functions y-or-n-p, read-char, read-key-sequence and the like, that
+display a prompt but don't use the minibuffer, now display the prompt
 using the text properties (esp. the face) of the prompt string.
 
 ** New packages:

@@ -1,3 +1,55 @@
+2003-07-14  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi (Killing Buffers): kill-buffer-hook is perm local.
+
+	* windows.texi (Selecting Windows): New arg to select-window.
+	(Selecting Windows): Add with-selected-window.
+	(Size of Window): Add window-inside-edges, etc.
+
+	* internals.texi (Garbage Collection): Add post-gc-hook.
+
+	* processes.texi (Subprocess Creation): Add exec-suffixes.
+
+	* keymaps.texi (Functions for Key Lookup): Add current-active-maps.
+	(Scanning Keymaps): Add map-keymaps.
+	(Defining Menus): Add keymap-prompt.
+
+	* numbers.texi (Integer Basics): Add most-positive-fixnum,
+	most-negative-fixnum.
+
+	* compile.texi (Byte Compilation): Explain no-byte-compile
+	(Compiler Errors): New node.
+
+	* os.texi (User Identification): user-uid, user-real-uid
+	can return float.
+
+	* modes.texi (Major Mode Conventions): Explain about run-mode-hooks
+	and about derived modes.
+	(Minor Modes): Add minor-mode-list.
+	(Defining Minor Modes): Keyword args for define-minor-mode.
+	(Search-based Fontification): Explain managing other properties.
+	(Other Font Lock Variables): Add font-lock-extra-managed-props.
+	(Faces for Font Lock): Add font-locl-preprocessor-face.
+	(Hooks): Add run-mode-hooks and delay-mode-hooks.
+
+	* variables.texi (Creating Buffer-Local): Add buffer-local-value.
+	(Variable Aliases): Clarify defvralias.
+
+	* loading.texi (Library Search): Add load-suffixes.
+
+	* minibuf.texi (Basic Completion): Add lazy-completion-table.
+	(Programmed Completion): Add dynamic-completion-table.
+
+	* files.texi (Changing Files): copy-file allows dir as NEWNAME.
+	(Magic File Names): Specify precedence order of handlers.
+o
+	* commands.texi (Command Overview): Emacs server runs pre-command-hook
+	and post-command-hook.
+	(Waiting): New calling convention for sit-for.
+
+	* text.texi (Special Properties): local-map and keymap properties
+	apply based on their stickiness.
+
 2003-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* modes.texi (Minor Mode Conventions): Specify only some kinds
