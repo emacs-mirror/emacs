@@ -1742,7 +1742,19 @@ be shared by the new frame.")
 		       "font", "Font", string);
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderwidth", "BorderWidth", number);
-  /* This defaults to 2 in order to match xterm.  */
+  /* This defaults to 2 in order to match xterm.  We recognize either
+     internalBorderWidth or internalBorder (which is what xterm calls
+     it).  */
+  if (NILP (Fassq (Qinternal_border_width, parms)))
+    {
+      Lisp_Object value;
+
+      value = x_get_arg (parms, Qinternal_border_width,
+			 "internalBorder", "BorderWidth", number);
+      if (! EQ (value, Qunbound))
+	parms = Fcons (Fcons (Qinternal_border_width, value),
+		       parms);
+    }
   x_default_parameter (f, parms, Qinternal_border_width, make_number (2),
 		       "internalBorderWidth", "BorderWidth", number);
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qt,
