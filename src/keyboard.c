@@ -1190,7 +1190,6 @@ command_loop_1 ()
   int nonundocount;
   Lisp_Object keybuf[30];
   int i;
-  int no_redisplay;
   int no_direct;
   int prev_modiff;
   struct buffer *prev_buffer;
@@ -1205,7 +1204,6 @@ command_loop_1 ()
   cancel_echoing ();
 
   nonundocount = 0;
-  no_redisplay = 0;
   this_command_key_count = 0;
   this_single_command_key_start = 0;
 
@@ -1364,12 +1362,7 @@ command_loop_1 ()
 	}
 
       /* Do redisplay processing after this command except in special
-	 cases identified below that set no_redisplay to 1.
-	 (actually, there's currently no way to prevent the redisplay,
-	 and no_redisplay is ignored.
-	 Perhaps someday we will really implement it.)  */
-      no_redisplay = 0;
-
+	 cases identified below.  */
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
@@ -1427,7 +1420,7 @@ command_loop_1 ()
 		      && !detect_input_pending ()
 		      && NILP (XWINDOW (selected_window)->column_number_displayed)
 		      && NILP (Vexecuting_macro))
-		    no_redisplay = direct_output_forward_char (1);
+		    direct_output_forward_char (1);
 		  goto directly_done;
 		}
 	      else if (EQ (Vthis_command, Qbackward_char) && PT > BEGV)
@@ -1453,7 +1446,7 @@ command_loop_1 ()
 		      && !detect_input_pending ()
 		      && NILP (XWINDOW (selected_window)->column_number_displayed)
 		      && NILP (Vexecuting_macro))
-		    no_redisplay = direct_output_forward_char (-1);
+		    direct_output_forward_char (-1);
 		  goto directly_done;
 		}
 	      else if (EQ (Vthis_command, Qself_insert_command)
@@ -1495,7 +1488,7 @@ command_loop_1 ()
 		     installed which is the case most of the time
 		     because FONT-LOCK installs one.  */
 		  if (!lose && !value)
-		    no_redisplay = direct_output_for_insert (c);
+		    direct_output_for_insert (c);
 		  goto directly_done;
 		}
 	    }
