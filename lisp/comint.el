@@ -128,8 +128,8 @@ Defaults to \"^\", the null string at BOL.
 
 Good choices:
   Canonical Lisp: \"^[^> ]*>+:? *\" (Lucid, franz, kcl, T, cscheme, oaklisp)
-  Lucid Common Lisp: \"^\\(>\\|\\(->\\)+\\) *\"
-  franz: \"^\\(->\\|<[0-9]*>:\\) *\"
+  Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
+  franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
   kcl: \"^>+ *\"
   shell: \"^[^#$%>]*[#$%>] *\"
   T: \"^>+ *\"
