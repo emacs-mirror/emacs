@@ -349,6 +349,13 @@ scan_buffer (target, start, count, shortage, allow_quit)
 }
 
 int
+find_next_newline_no_quit (from, cnt)
+     register int from, cnt;
+{
+  return scan_buffer ('\n', from, cnt, (int *) 0, 0);
+}
+
+int
 find_next_newline (from, cnt)
      register int from, cnt;
 {
