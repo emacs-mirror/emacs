@@ -1147,7 +1147,6 @@ system cut and paste."
   (if (eq last-command 'kill-region)
       (kill-append (buffer-substring beg end) (< end beg))
     (kill-new (buffer-substring beg end)))
-  (setq this-command 'kill-region)
   nil)
 
 (defun kill-ring-save (beg end)
