@@ -1,3 +1,17 @@
+2002-11-06  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_utf_8): When eol_type is Qdos, handle
+	the case that the last byte is '\r' correctly.
+	(decode_coding_emacs_mule): Likewise.
+	(decode_coding_iso_2022): Likewise.
+	(decode_coding_sjis): Likewise.
+	(decode_coding_big5): Likewise.
+	(decode_coding_charset): Likewise.
+	(produce_chars): Likewise.
+	(decode_coding): Flushing out the unprocessed data correctly.
+	(decode_coding_gap): Set CODING_MODE_LAST_BLOCK bit of
+	coding->mode.
+
 2002-10-31  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XTread_socket): Fix changes for defined keysyms.  Add
