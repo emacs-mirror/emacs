@@ -324,12 +324,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   }
 
 #ifdef MSDOS /* MW, July 1993 */
-  /* These vars record information from process termination.
-     Clear them now before process can possibly terminate,
-     to avoid timing error if process terminates soon.  */
-  synch_process_death = 0;
-  synch_process_retcode = 0;
-
   if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
     strcpy (tempfile = alloca (strlen (outf) + 20), outf);
   else
@@ -349,6 +343,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       close (filefd);
       report_file_error ("Opening process output file", Fcons (tempfile, Qnil));
     }
+  fd[1] = outfilefd;
 #endif
 
   if (INTEGERP (buffer))
@@ -388,21 +383,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     synch_process_death = 0;
     synch_process_retcode = 0;
 
-#ifdef MSDOS /* MW, July 1993 */
-    /* ??? Someone who knows MSDOG needs to check whether this properly
-       closes all descriptors that it opens.  */
-    pid = run_msdos_command (new_argv, current_dir, filefd, outfilefd);
-    close (outfilefd);
-    fd1 = -1; /* No harm in closing that one!  */
-    fd[0] = open (tempfile, NILP (Vbinary_process_output) ? O_TEXT : O_BINARY);
-    if (fd[0] < 0)
-      {
-	unlink (tempfile);
-	close (filefd);
-	report_file_error ("Cannot re-open temporary file", Qnil);
-      }
-#else /* not MSDOS */
-
     if (NILP (error_file))
       fd_error = open (NULL_DEVICE, O_WRONLY);
     else if (STRINGP (error_file))
@@ -424,7 +404,35 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	  close (fd1);
 	report_file_error ("Cannot open", error_file);
       }
+#ifdef MSDOS /* MW, July 1993 */
+    /* ??? Someone who knows MSDOG needs to check whether this properly
+       closes all descriptors that it opens.
 
+       Note that run_msdos_command() actually returns the child process
+       exit status, not its PID, so we assign it to `synch_process_retcode'
+       below.  */
+    pid = run_msdos_command (new_argv, current_dir,
+			     filefd, outfilefd, fd_error);
+
+    /* Record that the synchronous process exited and note its
+       termination status.  */
+    synch_process_alive = 0;
+    synch_process_retcode = pid;
+    if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
+      synch_process_death = strerror(errno);
+
+    close (outfilefd);
+    if (fd_error != outfilefd)
+      close (fd_error);
+    fd1 = -1; /* No harm in closing that one!  */
+    fd[0] = open (tempfile, NILP (Vbinary_process_output) ? O_TEXT : O_BINARY);
+    if (fd[0] < 0)
+      {
+	unlink (tempfile);
+	close (filefd);
+	report_file_error ("Cannot re-open temporary file", Qnil);
+      }
+#else /* not MSDOS */
 #ifdef WINDOWSNT
     pid = child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
 #else  /* not WINDOWSNT */
@@ -441,8 +449,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #endif /* USG */
 	child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
       }
-#endif /* not MSDOS */
 #endif /* not WINDOWSNT */
+#endif /* not MSDOS */
 
     environ = save_environ;
 
