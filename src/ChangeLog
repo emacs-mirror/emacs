@@ -1,3 +1,14 @@
+2005-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fexpand_file_name): Use IS_DEVICE_SEP.
+	(file_name_absolute_p): New fun, extracted from Ffile_name_absolute_p.
+	(Ffile_name_absolute_p): Use it.
+	(search_embedded_absfilename): New fun, extracted from
+	Fsubstitute_in_file_name.  Use file_name_absolute_p.
+	Free the pw data after use.
+	(Fsubstitute_in_file_name): Use it.
+	After cutting a prefix, re-check file-name-handler.
+
 2005-03-26  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* w32term.h (x_output): add focus_state.

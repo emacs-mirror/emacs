@@ -1014,7 +1014,7 @@ probably use `make-temp-file' instead, except in three circumstances:
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
        doc: /* Convert filename NAME to absolute, and canonicalize it.
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
- (does not start with slash); if DEFAULT-DIRECTORY is nil or missing,
+\(does not start with slash); if DEFAULT-DIRECTORY is nil or missing,
 the current buffer's value of default-directory is used.
 File name components that are `.' are removed, and
 so are file name components followed by `..', along with the `..' itself;
@@ -1464,7 +1464,7 @@ See also the function `substitute-in-file-name'.  */)
 	     indirectly by prepending newdir to nm if necessary, and using
 	     cwd (or the wd of newdir's drive) as the new newdir. */
 
-	  if (IS_DRIVE (newdir[0]) && newdir[1] == ':')
+	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
 	      drive = newdir[0];
 	      newdir += 2;
@@ -1487,7 +1487,7 @@ See also the function `substitute-in-file-name'.  */)
 	}
 
       /* Strip off drive name from prefix, if present. */
-      if (IS_DRIVE (newdir[0]) && newdir[1] == ':')
+      if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	{
 	  drive = newdir[0];
 	  newdir += 2;
@@ -1721,7 +1721,7 @@ See also the function `substitute-in-file-name'.  */)
 DEAFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
   "Convert FILENAME to absolute, and canonicalize it.\n\
 Second arg DEFAULT is directory to start with if FILENAME is relative\n\
- (does not start with slash); if DEFAULT is nil or missing,\n\
+\(does not start with slash); if DEFAULT is nil or missing,\n\
 the current buffer's value of default-directory is used.\n\
 Filenames containing `.' or `..' as components are simplified;\n\
 initial `~/' expands to your home directory.\n\
@@ -2040,6 +2040,75 @@ See also the function `substitute-in-file-name'.")
 }
 #endif
 
+/* If /~ or // appears, discard everything through first slash.  */
+static int
+file_name_absolute_p (filename)
+     const unsigned char *filename;
+{
+  return
+    (IS_DIRECTORY_SEP (*filename) || *filename == '~'
+#ifdef VMS
+     /* ??? This criterion is probably wrong for '<'.  */
+     || index (filename, ':') || index (filename, '<')
+     || (*filename == '[' && (filename[1] != '-'
+			      || (filename[2] != '.' && filename[2] != ']'))
+	 && filename[1] != '.')
+#endif /* VMS */
+#ifdef DOS_NT
+     || (IS_DRIVE (*filename) && IS_DEVICE_SEP (filename[1])
+	 && IS_DIRECTORY_SEP (filename[2]))
+#endif
+     );
+}
+
+static unsigned char *
+search_embedded_absfilename (nm, endp)
+     unsigned char *nm, *endp;
+{
+  unsigned char *p, *s;
+
+  for (p = nm + 1; p < endp; p++)
+    {
+      if ((0
+#ifdef VMS
+	   || p[-1] == ':' || p[-1] == ']' || p[-1] == '>'
+#endif /* VMS */
+	   || IS_DIRECTORY_SEP (p[-1]))
+	  && file_name_absolute_p (p)
+#if defined (APOLLO) || defined (WINDOWSNT) || defined(CYGWIN)
+	  /* // at start of file name is meaningful in Apollo,
+	     WindowsNT and Cygwin systems.  */
+	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 != nm)
+#endif /* not (APOLLO || WINDOWSNT || CYGWIN) */
+	      )
+	{
+	  for (s = p; *s && (!IS_DIRECTORY_SEP (*s)
+#ifdef VMS
+			      && *s != ':'
+#endif /* VMS */
+			      ); s++);
+	  if (p[0] == '~' && s > p + 1)	/* we've got "/~something/" */
+	    {
+	      unsigned char *o = alloca (s - p + 1);
+	      struct passwd *pw;
+	      bcopy (p, o, s - p);
+	      o [s - p] = 0;
+
+	      /* If we have ~user and `user' exists, discard
+		 everything up to ~.  But if `user' does not exist, leave
+		 ~user alone, it might be a literal file name.  */
+	      if ((pw = getpwnam (o + 1)))
+		return p;
+	      else
+		xfree (pw);
+	    }
+	  else
+	    return p;
+	}
+    }
+  return NULL;
+}
+
 DEFUN ("substitute-in-file-name", Fsubstitute_in_file_name,
        Ssubstitute_in_file_name, 1, 1, 0,
        doc: /* Substitute environment variables referred to in FILENAME.
@@ -2061,7 +2130,6 @@ duplicates what `expand-file-name' does.  */)
   int total = 0;
   int substituted = 0;
   unsigned char *xnm;
-  struct passwd *pw;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -2081,61 +2149,17 @@ duplicates what `expand-file-name' does.  */)
   endp = nm + SBYTES (filename);
 
   /* If /~ or // appears, discard everything through first slash.  */
-
-  for (p = nm; p != endp; p++)
-    {
-      if ((p[0] == '~'
-#if defined (APOLLO) || defined (WINDOWSNT) || defined(CYGWIN)
-	   /* // at start of file name is meaningful in Apollo,
-	      WindowsNT and Cygwin systems.  */
-	   || (IS_DIRECTORY_SEP (p[0]) && p - 1 != nm)
-#else /* not (APOLLO || WINDOWSNT || CYGWIN) */
-	   || IS_DIRECTORY_SEP (p[0])
-#endif /* not (APOLLO || WINDOWSNT || CYGWIN) */
-	   )
-	  && p != nm
-	  && (0
-#ifdef VMS
-	      || p[-1] == ':' || p[-1] == ']' || p[-1] == '>'
-#endif /* VMS */
-	      || IS_DIRECTORY_SEP (p[-1])))
-	{
-	  for (s = p; *s && (!IS_DIRECTORY_SEP (*s)
-#ifdef VMS
-			      && *s != ':'
-#endif /* VMS */
-			      ); s++);
-	  if (p[0] == '~' && s > p + 1)	/* we've got "/~something/" */
-	    {
-	      o = (unsigned char *) alloca (s - p + 1);
-	      bcopy ((char *) p, o, s - p);
-	      o [s - p] = 0;
-
-	      pw = (struct passwd *) getpwnam (o + 1);
-	    }
-	  /* If we have ~/ or ~user and `user' exists, discard
-	     everything up to ~.  But if `user' does not exist, leave
-	     ~user alone, it might be a literal file name.  */
-	  if (IS_DIRECTORY_SEP (p[0]) || s == p + 1 || pw)
-	    {
-	      nm = p;
-	      substituted = 1;
-	    }
-	}
-#ifdef DOS_NT
-      /* see comment in expand-file-name about drive specifiers */
-      else if (IS_DRIVE (p[0]) && p[1] == ':'
-	       && p > nm && IS_DIRECTORY_SEP (p[-1]))
-	{
-	  nm = p;
-	  substituted = 1;
-	}
-#endif /* DOS_NT */
-    }
+  p = search_embedded_absfilename (nm, endp);
+  if (p)
+    /* Start over with the new string, so we check the file-name-handler
+       again.  Important with filenames like "/home/foo//:/hello///there"
+       which whould substitute to "/:/hello///there" rather than "/there".  */
+    return Fsubstitute_in_file_name
+      (make_specified_string (p, -1, endp - p,
+			      STRING_MULTIBYTE (filename)));
 
 #ifdef VMS
-  return make_specified_string (nm, -1, strlen (nm),
-				STRING_MULTIBYTE (filename));
+  return filename;
 #else
 
   /* See if any variables are substituted into the string
@@ -2261,22 +2285,11 @@ duplicates what `expand-file-name' does.  */)
   *x = 0;
 
   /* If /~ or // appears, discard everything through first slash.  */
-
-  for (p = xnm; p != x; p++)
-    if ((p[0] == '~'
-#if defined (APOLLO) || defined (WINDOWSNT) || defined(CYGWIN)
-	 || (IS_DIRECTORY_SEP (p[0]) && p - 1 != xnm)
-#else /* not (APOLLO || WINDOWSNT || CYGWIN) */
-	 || IS_DIRECTORY_SEP (p[0])
-#endif /* not (APOLLO || WINDOWSNT || CYGWIN) */
-	 )
-	&& p != xnm && IS_DIRECTORY_SEP (p[-1]))
-      xnm = p;
-#ifdef DOS_NT
-    else if (IS_DRIVE (p[0]) && p[1] == ':'
-	     && p > xnm && IS_DIRECTORY_SEP (p[-1]))
-      xnm = p;
-#endif
+  while ((p = search_embedded_absfilename (xnm, x)))
+    /* This time we do not start over because we've already expanded envvars
+       and replaced $$ with $.  Maybe we should start over as well, but we'd
+       need to quote some $ to $$ first.  */
+    xnm = p;
 
   return make_specified_string (xnm, -1, x - xnm, STRING_MULTIBYTE (filename));
 
@@ -2959,24 +2972,8 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
      (filename)
      Lisp_Object filename;
 {
-  const unsigned char *ptr;
-
   CHECK_STRING (filename);
-  ptr = SDATA (filename);
-  if (IS_DIRECTORY_SEP (*ptr) || *ptr == '~'
-#ifdef VMS
-/* ??? This criterion is probably wrong for '<'.  */
-      || index (ptr, ':') || index (ptr, '<')
-      || (*ptr == '[' && (ptr[1] != '-' || (ptr[2] != '.' && ptr[2] != ']'))
-	  && ptr[1] != '.')
-#endif /* VMS */
-#ifdef DOS_NT
-      || (IS_DRIVE (*ptr) && ptr[1] == ':' && IS_DIRECTORY_SEP (ptr[2]))
-#endif
-      )
-    return Qt;
-  else
-    return Qnil;
+  return file_name_absolute_p (SDATA (filename)) ? Qt : Qnil;
 }
 
 /* Return nonzero if file FILENAME exists and can be executed.  */
