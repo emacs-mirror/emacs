@@ -30,6 +30,8 @@
 
 (require 'calc-ext)
 (require 'calc-macs)
+(eval-when-compile
+  (require 'calc-alg))
 
 ;;; Units operations.
 

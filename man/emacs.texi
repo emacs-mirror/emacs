@@ -278,13 +278,15 @@ The Mark and the Region
 * Mark Ring::		Previous mark positions saved so you can go back there.
 * Global Mark Ring::	Previous mark positions in various buffers.
 
-Deletion and Killing
+Killing
 
 * Deletion::		Commands for deleting small amounts of text and
 			  blank areas.
 * Killing by Lines::	How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
 			  syntactic units such as words and sentences.
+* Graphical Kill::      The kill ring on graphical terminals:
+                          yanking between applications.
 
 Yanking
 

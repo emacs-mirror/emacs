@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,99,2000,01,02,03,04
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
+     2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -318,6 +318,10 @@ extern Lisp_Object Qcursor;
 
 Lisp_Object Vshow_trailing_whitespace;
 
+/* Non-nil means escape non-break space and hyphens.  */
+
+Lisp_Object Vshow_nonbreak_escape;
+
 #ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Voverflow_newline_into_fringe;
 
@@ -345,7 +349,6 @@ Lisp_Object Qtrailing_whitespace;
 /* Name and number of the face used to highlight escape glyphs.  */
 
 Lisp_Object Qescape_glyph;
-int escape_glyph_face;
 
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
@@ -1236,20 +1239,24 @@ line_bottom_y (it)
 }
 
 
-/* Return 1 if position CHARPOS is visible in window W.  Set *FULLY to
-   1 if POS is visible and the line containing POS is fully visible.
+/* Return 1 if position CHARPOS is visible in window W.
+   If visible, set *X and *Y to pixel coordinates of top left corner.
+   Set *RTOP and *RBOT to pixel height of an invisible area of glyph at POS.
    EXACT_MODE_LINE_HEIGHTS_P non-zero means compute exact mode-line
    and header-lines heights.  */
 
 int
-pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
+pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
      struct window *w;
-     int charpos, *fully, *x, *y, exact_mode_line_heights_p;
+     int charpos, *x, *y, *rtop, *rbot, exact_mode_line_heights_p;
 {
   struct it it;
   struct text_pos top;
-  int visible_p;
+  int visible_p = 0;
   struct buffer *old_buffer = NULL;
+
+  if (noninteractive)
+    return visible_p;
 
   if (XBUFFER (w->buffer) != current_buffer)
     {
@@ -1257,7 +1264,6 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
       set_buffer_internal_1 (XBUFFER (w->buffer));
     }
 
-  *fully = visible_p = 0;
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
   /* Compute exact mode line heights, if requested.  */
@@ -1282,20 +1288,22 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
   if (IT_CHARPOS (it) >= charpos)
     {
       int top_y = it.current_y;
-      int bottom_y = line_bottom_y (&it);
+      int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
 
       if (top_y < window_top_y)
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
-	{
 	  visible_p = 1;
-	  *fully = bottom_y <= it.last_visible_y;
-	}
       if (visible_p && x)
 	{
 	  *x = it.current_x;
-	  *y = max (top_y + it.max_ascent - it.ascent, window_top_y);
+	  *y = max (top_y + max (0, it.max_ascent - it.ascent), window_top_y);
+	  if (rtop)
+	    {
+	      *rtop = max (0, window_top_y - top_y);
+	      *rbot = max (0, bottom_y - it.last_visible_y);
+	    }
 	}
     }
   else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
@@ -1312,6 +1320,11 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
 	      move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
 	      *x = it2.current_x;
 	      *y = it2.current_y + it2.max_ascent - it2.ascent;
+	      if (rtop)
+		{
+		  *rtop = 0;
+		  *rbot = max (0, (it2.current_y + it2.max_ascent + it2.max_descent) - it.last_visible_y);
+		}
 	    }
 	}
     }
@@ -1769,6 +1782,24 @@ get_glyph_string_clip_rect (s, nr)
       r.height = s->row->visible_height;
     }
 
+  if (s->clip_head)
+    if (r.x < s->clip_head->x)
+      {
+	if (r.width >= s->clip_head->x - r.x)
+	  r.width -= s->clip_head->x - r.x;
+	else
+	  r.width = 0;
+	r.x = s->clip_head->x;
+      }
+  if (s->clip_tail)
+    if (r.x + r.width > s->clip_tail->x + s->clip_tail->background_width)
+      {
+	if (s->clip_tail->x + s->clip_tail->background_width >= r.x)
+	  r.width = s->clip_tail->x + s->clip_tail->background_width - r.x;
+	else
+	  r.width = 0;
+      }
+
   /* If S draws overlapping rows, it's sufficient to use the top and
      bottom of the window for clipping because this glyph string
      intentionally draws over other lines.  */
@@ -1802,7 +1833,7 @@ get_glyph_string_clip_rect (s, nr)
   if (s->hl == DRAW_CURSOR)
     {
       struct glyph *glyph = s->first_glyph;
-      int height;
+      int height, max_y;
 
       if (s->x > r.x)
 	{
@@ -1811,13 +1842,26 @@ get_glyph_string_clip_rect (s, nr)
 	}
       r.width = min (r.width, glyph->pixel_width);
 
-      /* Don't draw cursor glyph taller than our actual glyph.  */
-      height = max (FRAME_LINE_HEIGHT (s->f), glyph->ascent + glyph->descent);
-      if (height < r.height)
+      /* If r.y is below window bottom, ensure that we still see a cursor.  */
+      height = min (glyph->ascent + glyph->descent,
+		    min (FRAME_LINE_HEIGHT (s->f), s->row->visible_height));
+      max_y = window_text_bottom_y (s->w) - height;
+      max_y = WINDOW_TO_FRAME_PIXEL_Y (s->w, max_y);
+      if (s->ybase - glyph->ascent > max_y)
 	{
-	  int max_y = r.y + r.height;
-	  r.y = min (max_y, s->ybase + glyph->descent - height);
-	  r.height = min (max_y - r.y, height);
+	  r.y = max_y;
+	  r.height = height;
+	}
+      else
+	{
+	  /* Don't draw cursor glyph taller than our actual glyph.  */
+	  height = max (FRAME_LINE_HEIGHT (s->f), glyph->ascent + glyph->descent);
+	  if (height < r.height)
+	    {
+	      max_y = r.y + r.height;
+	      r.y = min (max_y, max (r.y, s->ybase + glyph->descent - height));
+	      r.height = min (max_y - r.y, height);
+	    }
 	}
     }
 
@@ -1827,6 +1871,64 @@ get_glyph_string_clip_rect (s, nr)
   *nr = r;
 #endif
 }
+
+
+/* EXPORT:
+   Return the position and height of the phys cursor in window W.
+   Set w->phys_cursor_width to width of phys cursor.
+*/
+
+int
+get_phys_cursor_geometry (w, row, glyph, heightp)
+     struct window *w;
+     struct glyph_row *row;
+     struct glyph *glyph;
+     int *heightp;
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  int x, y, wd, h, h0, y0;
+
+  /* Compute the width of the rectangle to draw.  If on a stretch
+     glyph, and `x-stretch-block-cursor' is nil, don't draw a
+     rectangle as wide as the glyph, but use a canonical character
+     width instead.  */
+  wd = glyph->pixel_width - 1;
+#ifdef HAVE_NTGUI
+  wd++; /* Why? */
+#endif
+  if (glyph->type == STRETCH_GLYPH
+      && !x_stretch_cursor_p)
+    wd = min (FRAME_COLUMN_WIDTH (f), wd);
+  w->phys_cursor_width = wd;
+
+  y = w->phys_cursor.y + row->ascent - glyph->ascent;
+
+  /* If y is below window bottom, ensure that we still see a cursor.  */
+  h0 = min (FRAME_LINE_HEIGHT (f), row->visible_height);
+
+  h = max (h0, glyph->ascent + glyph->descent);
+  h0 = min (h0, glyph->ascent + glyph->descent);
+
+  y0 = WINDOW_HEADER_LINE_HEIGHT (w);
+  if (y < y0)
+    {
+      h = max (h - (y0 - y) + 1, h0);
+      y = y0 - 1;
+    }
+  else
+    {
+      y0 = window_text_bottom_y (w) - h0;
+      if (y > y0)
+	{
+	  h += y - y0;
+	  y = y0;
+	}
+    }
+
+  *heightp = h - 1;
+  return WINDOW_TO_FRAME_PIXEL_Y (w, y);
+}
+
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -3261,11 +3363,13 @@ setup_for_ellipsis (it, len)
 
   it->dpvec_char_len = len;
   it->current.dpvec_index = 0;
+  it->dpvec_face_id = -1;
 
   /* Remember the current face id in case glyphs specify faces.
      IT's face is restored in set_iterator_to_next.  */
   it->saved_face_id = it->face_id;
   it->method = next_element_from_display_vector;
+  it->ellipsis_p = 1;
 }
 
 
@@ -4564,51 +4668,53 @@ static void
 back_to_previous_visible_line_start (it)
      struct it *it;
 {
-  int visible_p = 0;
-
-  /* Go back one newline if not on BEGV already.  */
-  if (IT_CHARPOS (*it) > BEGV)
-    back_to_previous_line_start (it);
-
-  /* Move over lines that are invisible because of selective display
-     or text properties.  */
-  while (IT_CHARPOS (*it) > BEGV
-	 && !visible_p)
+  while (IT_CHARPOS (*it) > BEGV)
     {
-      visible_p = 1;
+      back_to_previous_line_start (it);
+      if (IT_CHARPOS (*it) <= BEGV)
+	break;
 
       /* If selective > 0, then lines indented more than that values
 	 are invisible.  */
       if (it->selective > 0
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				(double) it->selective)) /* iftc */
-	visible_p = 0;
-      else
-	{
-	  Lisp_Object prop;
+	continue;
 
-	  /* Check the newline before point for invisibility.  */
-	  prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
+      /* Check the newline before point for invisibility.  */
+      {
+	Lisp_Object prop;
+	prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
 				     Qinvisible, it->window);
-	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
-	    visible_p = 0;
-	}
+	if (TEXT_PROP_MEANS_INVISIBLE (prop))
+	  continue;
+      }
 
-#if 0
-      /* Commenting this out fixes the bug described in
-	 http://www.math.ku.dk/~larsh/emacs/emacs-loops-on-large-images/test-case.txt.  */
-      if (visible_p)
-	{
-	  struct it it2 = *it;
+      /* If newline has a display property that replaces the newline with something
+	 else (image or text), find start of overlay or interval and continue search
+	 from that point.  */
+      {
+	struct it it2 = *it;
+	int pos = IT_CHARPOS (*it);
+	int beg, end;
+	Lisp_Object val, overlay;
 
-	  if (handle_display_prop (&it2) == HANDLED_RETURN)
-	    visible_p = 0;
-	}
-#endif
-
-      /* Back one more newline if the current one is invisible.  */
-      if (!visible_p)
-	back_to_previous_line_start (it);
+	it2.sp = 0;
+	if (handle_display_prop (&it2) == HANDLED_RETURN
+	    && !NILP (val = get_char_property_and_overlay
+		      (make_number (pos), Qdisplay, Qnil, &overlay))
+	    && (OVERLAYP (overlay)
+		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
+		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
+	  {
+	    if (beg < BEGV)
+	      beg = BEGV;
+	    IT_CHARPOS (*it) = beg;
+	    IT_BYTEPOS (*it) = buf_charpos_to_bytepos (current_buffer, beg);
+	    continue;
+	  }
+      }
+      break;
     }
 
   xassert (IT_CHARPOS (*it) >= BEGV);
@@ -4906,8 +5012,10 @@ get_next_display_element (it)
 		  it->dpvec = v->contents;
 		  it->dpend = v->contents + v->size;
 		  it->current.dpvec_index = 0;
+		  it->dpvec_face_id = -1;
 		  it->saved_face_id = it->face_id;
 		  it->method = next_element_from_display_vector;
+		  it->ellipsis_p = 0;
 		}
 	      else
 		{
@@ -4939,8 +5047,8 @@ get_next_display_element (it)
 		       ? ((it->c >= 127
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c)
-			  || it->c == 0x8ad
-			  || it->c == 0x8a0)
+			  || (!NILP (Vshow_nonbreak_escape)
+			      && (it->c == 0x8ad || it->c == 0x8a0)))
 		       : (it->c >= 127
 			  && (!unibyte_display_via_language_environment
 			      || it->c == unibyte_char_to_multibyte (it->c)))))
@@ -4952,21 +5060,8 @@ get_next_display_element (it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
 	      int ctl_len;
-	      int face_id = escape_glyph_face;
-
-	      /* Find the face id if `escape-glyph' unless we recently did.  */
-	      if (face_id < 0)
-		{
-		  Lisp_Object tem = Fget (Qescape_glyph, Qface);
-		  if (INTEGERP (tem))
-		    face_id = XINT (tem);
-		  else
-		    face_id = 0;
-		  /* If there's overflow, use 0 instead.  */
-		  if (FAST_GLYPH_FACE (FAST_MAKE_GLYPH (0, face_id)) != face_id)
-		    face_id = 0;
-		  escape_glyph_face = face_id;
-		}
+	      int face_id, lface_id;
+	      GLYPH escape_glyph;
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
@@ -4974,57 +5069,78 @@ get_next_display_element (it)
 		  if (it->dp
 		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
 		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
-		    g = XINT (DISP_CTRL_GLYPH (it->dp));
+		    {
+		      g = XINT (DISP_CTRL_GLYPH (it->dp));
+		      lface_id = FAST_GLYPH_FACE (g);
+		      if (lface_id)
+			{
+			  g = FAST_GLYPH_CHAR (g);
+			  face_id = merge_faces (it->f, Qt, lface_id,
+						 it->face_id);
+			}
+		    }
 		  else
-		    g = FAST_MAKE_GLYPH ('^', face_id);
-		  XSETINT (it->ctl_chars[0], g);
+		    {
+		      /* Merge the escape-glyph face into the current face.  */
+		      face_id = merge_faces (it->f, Qescape_glyph, 0,
+					     it->face_id);
+		      g = '^';
+		    }
 
-		  g = FAST_MAKE_GLYPH (it->c ^ 0100, face_id);
+		  XSETINT (it->ctl_chars[0], g);
+		  g = it->c ^ 0100;
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
+		  goto display_control;
 		}
-	      else if (it->c == 0x8a0 || it->c == 0x8ad)
-		{
-		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
-		  if (it->dp
-		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (it->dp))))
-		    g = XINT (DISP_ESCAPE_GLYPH (it->dp));
-		  else
-		    g = FAST_MAKE_GLYPH ('\\', face_id);
-		  XSETINT (it->ctl_chars[0], g);
 
-		  g = FAST_MAKE_GLYPH (it->c == 0x8ad ? '-' : ' ', face_id);
-		  XSETINT (it->ctl_chars[1], g);
-		  ctl_len = 2;
+	      if (it->dp
+		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
+		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
+		{
+		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
+		  lface_id = FAST_GLYPH_FACE (escape_glyph);
+		  if (lface_id)
+		    {
+		      escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
+		      face_id = merge_faces (it->f, Qt, lface_id,
+					     it->face_id);
+		    }
 		}
 	      else
 		{
-		  unsigned char str[MAX_MULTIBYTE_LENGTH];
-		  int len;
-		  int i;
-		  GLYPH escape_glyph;
+		  /* Merge the escape-glyph face into the current face.  */
+		  face_id = merge_faces (it->f, Qescape_glyph, 0,
+					 it->face_id);
+		  escape_glyph = '\\';
+		}
 
-		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
-		  if (it->dp
-		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
-		    escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
-		  else
-		    escape_glyph = FAST_MAKE_GLYPH ('\\', face_id);
+	      if (it->c == 0x8a0 || it->c == 0x8ad)
+		{
+		  XSETINT (it->ctl_chars[0], escape_glyph);
+		  g = it->c == 0x8ad ? '-' : ' ';
+		  XSETINT (it->ctl_chars[1], g);
+		  ctl_len = 2;
+		  goto display_control;
+		}
 
-		  if (SINGLE_BYTE_CHAR_P (it->c))
-		    str[0] = it->c, len = 1;
-		  else
-		    {
-		      len = CHAR_STRING_NO_SIGNAL (it->c, str);
-		      if (len < 0)
-			{
-			  /* It's an invalid character, which
-			     shouldn't happen actually, but due to
-			     bugs it may happen.  Let's print the char
-			     as is, there's not much meaningful we can
-			     do with it.  */
+	      {
+		unsigned char str[MAX_MULTIBYTE_LENGTH];
+		int len;
+		int i;
+
+		/* Set IT->ctl_chars[0] to the glyph for `\\'.  */
+		if (SINGLE_BYTE_CHAR_P (it->c))
+		  str[0] = it->c, len = 1;
+		else
+		  {
+		    len = CHAR_STRING_NO_SIGNAL (it->c, str);
+		    if (len < 0)
+		      {
+			/* It's an invalid character, which shouldn't
+			   happen actually, but due to bugs it may
+			   happen.  Let's print the char as is, there's
+			   not much meaningful we can do with it.  */
 			  str[0] = it->c;
 			  str[1] = it->c >> 8;
 			  str[2] = it->c >> 16;
@@ -5033,31 +5149,31 @@ get_next_display_element (it)
 			}
 		    }
 
-		  for (i = 0; i < len; i++)
-		    {
-		      XSETINT (it->ctl_chars[i * 4], escape_glyph);
-		      /* Insert three more glyphs into IT->ctl_chars for
-			 the octal display of the character.  */
-		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 1], g);
-		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 2], g);
-		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 3], g);
-		    }
-		  ctl_len = len * 4;
-		}
+		for (i = 0; i < len; i++)
+		  {
+		    XSETINT (it->ctl_chars[i * 4], escape_glyph);
+		    /* Insert three more glyphs into IT->ctl_chars for
+		       the octal display of the character.  */
+		    g = ((str[i] >> 6) & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 1], g);
+		    g = ((str[i] >> 3) & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 2], g);
+		    g = (str[i] & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 3], g);
+		  }
+		ctl_len = len * 4;
+	      }
 
+	    display_control:
 	      /* Set up IT->dpvec and return first character from it.  */
 	      it->dpvec_char_len = it->len;
 	      it->dpvec = it->ctl_chars;
 	      it->dpend = it->dpvec + ctl_len;
 	      it->current.dpvec_index = 0;
+	      it->dpvec_face_id = face_id;
 	      it->saved_face_id = it->face_id;
 	      it->method = next_element_from_display_vector;
+	      it->ellipsis_p = 0;
 	      goto get_next;
 	    }
 	}
@@ -5180,9 +5296,6 @@ set_iterator_to_next (it, reseat_p)
 	  it->dpvec = NULL;
 	  it->current.dpvec_index = -1;
 
-	  /* Recheck faces after display vector */
-	  it->stop_charpos = 0;
-
 	  /* Skip over characters which were displayed via IT->dpvec.  */
 	  if (it->dpvec_char_len < 0)
 	    reseat_at_next_visible_line_start (it, 1);
@@ -5191,6 +5304,9 @@ set_iterator_to_next (it, reseat_p)
 	      it->len = it->dpvec_char_len;
 	      set_iterator_to_next (it, reseat_p);
 	    }
+
+	  /* Recheck faces after display vector */
+	  it->stop_charpos = IT_CHARPOS (*it);
 	}
     }
   else if (it->method == next_element_from_string)
@@ -5270,7 +5386,6 @@ next_element_from_display_vector (it)
   if (INTEGERP (*it->dpvec)
       && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
     {
-      int lface_id;
       GLYPH g;
 
       g = XFASTINT (it->dpvec[it->current.dpvec_index]);
@@ -5280,13 +5395,14 @@ next_element_from_display_vector (it)
       /* The entry may contain a face id to use.  Such a face id is
 	 the id of a Lisp face, not a realized face.  A face id of
 	 zero means no face is specified.  */
-      lface_id = FAST_GLYPH_FACE (g);
-      if (lface_id)
+      if (it->dpvec_face_id >= 0)
+	it->face_id = it->dpvec_face_id;
+      else
 	{
-	  /* The function returns -1 if lface_id is invalid.  */
-	  int face_id = ascii_face_of_lisp_face (it->f, lface_id);
-	  if (face_id >= 0)
-	    it->face_id = face_id;
+	  int lface_id = FAST_GLYPH_FACE (g);
+	  if (lface_id > 0)
+	    it->face_id = merge_faces (it->f, Qt, lface_id,
+				       it->saved_face_id);
 	}
     }
   else
@@ -5699,10 +5815,11 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   saved_glyph_row = it->glyph_row;
   it->glyph_row = NULL;
 
-#define BUFFER_POS_REACHED_P()			    \
-  ((op & MOVE_TO_POS) != 0			    \
-   && BUFFERP (it->object)			    \
-   && IT_CHARPOS (*it) >= to_charpos)
+#define BUFFER_POS_REACHED_P()			\
+  ((op & MOVE_TO_POS) != 0			\
+   && BUFFERP (it->object)			\
+   && IT_CHARPOS (*it) >= to_charpos		\
+   && it->method == next_element_from_buffer)
 
   while (1)
     {
@@ -6364,11 +6481,15 @@ move_it_by_lines (it, dvpos, need_y_p)
       it->current_y -= it2.current_y;
       it->current_x = it->hpos = 0;
 
-      /* If we moved too far, move IT some lines forward.  */
+      /* If we moved too far back, move IT some lines forward.  */
       if (it2.vpos > -dvpos)
 	{
 	  int delta = it2.vpos + dvpos;
+	  it2 = *it;
 	  move_it_to (it, -1, -1, -1, it->vpos + delta, MOVE_TO_VPOS);
+	  /* Move back again if we got too far ahead.  */
+	  if (IT_CHARPOS (*it) >= start_charpos)
+	    *it = it2;
 	}
     }
 }
@@ -7960,6 +8081,8 @@ echo_area_display (update_frame_p)
 
   /* Last displayed message is now the current message.  */
   echo_area_buffer[1] = echo_area_buffer[0];
+  /* Inform read_char that we're not echoing.  */
+  echo_message_buffer = Qnil;
 
   /* Prevent redisplay optimization in redisplay_internal by resetting
      this_line_start_pos.  This is done because the mini-buffer now
@@ -10808,6 +10931,18 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       glyph = cursor;
       x = cursor_x;
     }
+  else if (row->ends_in_ellipsis_p && glyph == end)
+    {
+      /* Scan back over the ellipsis glyphs, decrementing positions.  */
+      while (glyph > row->glyphs[TEXT_AREA]
+	     && (glyph - 1)->charpos == last_pos)
+	glyph--, x -= glyph->pixel_width;
+      /* That loop always goes one position too far,
+	 including the glyph before the ellipsis.
+	 So scan forward over that one.  */
+      x += glyph->pixel_width;
+      glyph++;
+    }
   else if (string_start
 	   && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
     {
@@ -11646,9 +11781,6 @@ redisplay_window (window, just_this_one_p)
   *w->desired_matrix->method = 0;
 #endif
 
-  /* Force this to be looked up again for each redisp of each window.  */
-  escape_glyph_face = -1;
-
   specbind (Qinhibit_point_motion_hooks, Qt);
 
   reconsider_clip_changes (w, buffer);
@@ -12193,6 +12325,8 @@ redisplay_window (window, just_this_one_p)
       /* If centering point failed to make the whole line visible,
 	 put point at the top instead.  That has to make the whole line
 	 visible, if it can be done.  */
+      if (centering_position == 0)
+	goto done;
       clear_glyph_matrix (w->desired_matrix);
       centering_position = 0;
       goto point_at_top;
@@ -14614,10 +14748,22 @@ cursor_row_p (w, row)
       /* If the row ends with a newline from a string, we don't want
 	 the cursor there (if the row is continued it doesn't end in a
 	 newline).  */
-      if (CHARPOS (row->end.string_pos) >= 0
-	  || MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
+      if (CHARPOS (row->end.string_pos) >= 0)
 	cursor_row_p = row->continued_p;
-
+      else if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
+	{
+	  /* If the row ends in middle of a real character,
+	     and the line is continued, we want the cursor here.
+	     That's because MATRIX_ROW_END_CHARPOS would equal
+	     PT if PT is before the character.  */
+	  if (!row->ends_in_ellipsis_p)
+	    cursor_row_p = row->continued_p;
+	  else
+	  /* If the row ends in an ellipsis, then
+	     MATRIX_ROW_END_CHARPOS will equal point after the invisible text.
+	     We want that position to be displayed after the ellipsis.  */
+	    cursor_row_p = 0;
+	}
       /* If the row ends at ZV, display the cursor at the end of that
 	 row instead of at the start of the row below.  */
       else if (row->ends_at_zv_p)
@@ -15093,6 +15239,11 @@ display_line (it)
 
   /* Remember the position at which this line ends.  */
   row->end = it->current;
+
+  /* Record whether this row ends inside an ellipsis.  */
+  row->ends_in_ellipsis_p
+    = (it->method == next_element_from_display_vector
+       && it->ellipsis_p);
 
   /* Save fringe bitmaps in this row.  */
   row->left_user_fringe_bitmap = it->left_user_fringe_bitmap;
@@ -15937,22 +16088,30 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
-       0, 4, 0,
-       doc: /* Return the mode-line of selected window as a string.
-First optional arg FORMAT specifies a different format string (see
-`mode-line-format' for details) to use.  If FORMAT is t, return
-the buffer's header-line.  Second optional arg WINDOW specifies a
-different window to use as the context for the formatting.
-If third optional arg NO-PROPS is non-nil, string is not propertized.
-Fourth optional arg BUFFER specifies which buffer to use.  */)
-  (format, window, no_props, buffer)
-     Lisp_Object format, window, no_props, buffer;
+       1, 4, 0,
+       doc: /* Format a string out of a mode line format specification.
+First arg FORMAT specifies the mode line format (see `mode-line-format'
+for details) to use.
+
+Optional second arg FACE specifies the face property to put
+on all characters for which no face is specified.
+t means whatever face the window's mode line currently uses
+\(either `mode-line' or `mode-line-inactive', depending).
+nil means the default is no face property.
+If FACE is an integer, the value string has no text properties.
+
+Optional third and fourth args WINDOW and BUFFER specify the window
+and buffer to use as the context for the formatting (defaults
+are the selected window and the window's buffer).  */)
+  (format, face, window, buffer)
+     Lisp_Object format, face, window, buffer;
 {
   struct it it;
   int len;
   struct window *w;
   struct buffer *old_buffer = NULL;
-  enum face_id face_id = DEFAULT_FACE_ID;
+  int face_id = -1;
+  int no_props = INTEGERP (face);
 
   if (NILP (window))
     window = selected_window;
@@ -15961,8 +16120,23 @@ Fourth optional arg BUFFER specifies which buffer to use.  */)
 
   if (NILP (buffer))
     buffer = w->buffer;
-
   CHECK_BUFFER (buffer);
+
+  if (NILP (format))
+    return build_string ("");
+
+  if (no_props)
+    face = Qnil;
+
+  if (!NILP (face))
+    {
+      if (EQ (face, Qt))
+	face = (EQ (window, selected_window) ? Qmode_line : Qmode_line_inactive);
+      face_id = lookup_named_face (XFRAME (WINDOW_FRAME (w)), face, 0, 0);
+    }
+
+  if (face_id < 0)
+    face_id = DEFAULT_FACE_ID;
 
   if (XBUFFER (buffer) != current_buffer)
     {
@@ -15970,28 +16144,13 @@ Fourth optional arg BUFFER specifies which buffer to use.  */)
       set_buffer_internal_1 (XBUFFER (buffer));
     }
 
-  if (NILP (format) || EQ (format, Qt))
-    {
-      face_id = (NILP (format)
-		 ? CURRENT_MODE_LINE_FACE_ID (w)
-		 : HEADER_LINE_FACE_ID);
-      format = (NILP (format)
-		? current_buffer->mode_line_format
-		: current_buffer->header_line_format);
-    }
-
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
-  if (NILP (no_props))
+  if (!no_props)
     {
-      mode_line_string_face
-	= (face_id == MODE_LINE_FACE_ID ? Qmode_line
-	   : face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive
-	   : face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
-
+      mode_line_string_face = face;
       mode_line_string_face_prop
-	= (NILP (mode_line_string_face) ? Qnil
-	   : Fcons (Qface, Fcons (mode_line_string_face, Qnil)));
+	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
 
       /* We need a dummy last element in mode_line_string_list to
 	 indicate we are building the propertized mode-line string.
@@ -16014,7 +16173,7 @@ Fourth optional arg BUFFER specifies which buffer to use.  */)
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
 
-  if (NILP (no_props))
+  if (!no_props)
     {
       Lisp_Object str;
       mode_line_string_list = Fnreverse (mode_line_string_list);
@@ -18171,6 +18330,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 {
   struct glyph_string *head, *tail;
   struct glyph_string *s;
+  struct glyph_string *clip_head = NULL, *clip_tail = NULL;
   int last_x, area_width;
   int x_reached;
   int i, j;
@@ -18239,6 +18399,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	  start = i;
 	  compute_overhangs_and_x (t, head->x, 1);
 	  prepend_glyph_string_lists (&head, &tail, h, t);
+	  clip_head = head;
 	}
 
       /* Prepend glyph strings for glyphs in front of the first glyph
@@ -18251,6 +18412,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
       i = left_overwriting (head);
       if (i >= 0)
 	{
+	  clip_head = head;
 	  BUILD_GLYPH_STRINGS (i, start, h, t,
 			       DRAW_NORMAL_TEXT, dummy_x, last_x);
 	  for (s = h; s; s = s->next)
@@ -18270,6 +18432,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 			       DRAW_NORMAL_TEXT, x, last_x);
 	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  append_glyph_string_lists (&head, &tail, h, t);
+	  clip_tail = tail;
 	}
 
       /* Append glyph strings for glyphs following the last glyph
@@ -18280,6 +18443,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
       i = right_overwriting (tail);
       if (i >= 0)
 	{
+	  clip_tail = tail;
 	  BUILD_GLYPH_STRINGS (end, i, h, t,
 			       DRAW_NORMAL_TEXT, x, last_x);
 	  for (s = h; s; s = s->next)
@@ -18287,6 +18451,12 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  append_glyph_string_lists (&head, &tail, h, t);
 	}
+      if (clip_head || clip_tail)
+	for (s = head; s; s = s->next)
+	  {
+	    s->clip_head = clip_head;
+	    s->clip_tail = clip_tail;
+	  }
     }
 
   /* Draw all strings.  */
@@ -18300,8 +18470,9 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	 completely. */
       && !overlaps_p)
     {
-      int x0 = head ? head->x : x;
-      int x1 = tail ? tail->x + tail->background_width : x;
+      int x0 = clip_head ? clip_head->x : (head ? head->x : x);
+      int x1 = (clip_tail ? clip_tail->x + clip_tail->background_width
+		: (tail ? tail->x + tail->background_width : x));
 
       int text_left = window_box_left (w, TEXT_AREA);
       x0 -= text_left;
@@ -20553,6 +20724,28 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
       past_end = 1;
     }
 
+  /* If whole rows or last part of a row came from a display overlay,
+     row_containing_pos will skip over such rows because their end pos
+     equals the start pos of the overlay or interval.  Backtrack if we
+     have a STOP object and previous row's end glyph came from STOP.  */
+  if (!NILP (stop))
+    {
+      struct glyph_row *prev = row-1;
+      while ((prev = row - 1, prev >= first)
+	     && MATRIX_ROW_END_CHARPOS (prev) == charpos
+	     && prev->used[TEXT_AREA] > 0)
+	{
+	  end = prev->glyphs[TEXT_AREA];
+	  glyph = end + prev->used[TEXT_AREA];
+	  while (--glyph >= end
+		 && INTEGERP (glyph->object));
+	  if (glyph >= end
+	      && !EQ (stop, glyph->object))
+	    break;
+	  row = prev;
+	}
+    }
+
   *x = row->x;
   *y = row->y;
   *vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
@@ -21013,9 +21206,9 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 		  help_echo_pos = charpos;
 		}
 	    }
-	  if (NILP (pointer))
-	    pointer = Fsafe_plist_get (XCDR (object), QCpointer);
 	}
+      if (NILP (pointer))
+	pointer = Fsafe_plist_get (XCDR (object), QCpointer);
     }
 
   if (STRINGP (string))
@@ -22318,6 +22511,10 @@ wide as that tab on the display.  */);
     doc: /* *Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
+
+  DEFVAR_LISP ("show-nonbreak-escape", &Vshow_nonbreak_escape,
+    doc: /* *Non-nil means display escape character before non-break space and hyphen.  */);
+  Vshow_nonbreak_escape = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.

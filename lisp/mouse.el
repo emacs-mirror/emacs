@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 94, 95, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1993, 94, 95, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -397,7 +397,6 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	 (start-nwindows (count-windows t))
 	 (old-selected-window (selected-window))
 	 (minibuffer (frame-parameter nil 'minibuffer))
-	 (mouse-autoselect-window nil)
 	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
     (track-mouse
       (progn
@@ -435,7 +434,7 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	  (cond ((integerp event)
 		 (setq done t))
 
-		((eq (car event) 'switch-frame)
+		((memq (car event) '(switch-frame select-window))
 		 nil)
 
 		((not (memq (car event) '(mouse-movement scroll-bar-movement)))
@@ -582,7 +581,7 @@ resized by dragging their header-line."
 	  ;;     unknown event.
 	  (cond ((integerp event)
 		 (setq done t))
-		((eq (car event) 'switch-frame)
+		((memq (car event) '(switch-frame select-window))
 		 nil)
 		((not (memq (car event)
 			    '(mouse-movement scroll-bar-movement)))
@@ -754,11 +753,11 @@ remains active.  Otherwise, it remains until the next input event.
 
 If the click is in the echo area, display the `*Messages*' buffer."
   (interactive "e")
-  (let ((w (posn-window (event-start start-event)))
-	(mouse-autoselect-window nil))
-    (if (not (or (not (window-minibuffer-p w))
-		 (minibuffer-window-active-p w)))
+  (let ((w (posn-window (event-start start-event))))
+    (if (and (window-minibuffer-p w)
+	     (not (minibuffer-window-active-p w)))
 	(save-excursion
+	  ;; Swallow the up-event.
 	  (read-event)
 	  (set-buffer "*Messages*")
 	  (goto-char (point-max))
@@ -773,21 +772,24 @@ If the click is in the echo area, display the `*Messages*' buffer."
 
 A clickable link is identified by one of the following methods:
 
-1) If the character at POS has a non-nil `follow-link' text or
-overlay property, the value of that property is returned.
+- If the character at POS has a non-nil `follow-link' text or
+overlay property, use the value of that property determines what
+to do.
 
-2) If there is a local key-binding or a keybinding at position
-POS for the `follow-link' event, the binding of that event
-determines whether POS is inside a link:
+- If there is a local key-binding or a keybinding at position POS
+for the `follow-link' event, the binding of that event determines
+what to do.
 
-- If the binding is `mouse-face', POS is inside a link if there
+The resulting value determine whether POS is inside a link:
+
+- If the value is `mouse-face', POS is inside a link if there
 is a non-nil `mouse-face' property at POS.  Return t in this case.
 
-- If the binding is a function, FUNC, POS is inside a link if
+- If the value is a function, FUNC, POS is inside a link if
 the call \(FUNC POS) returns non-nil.  Return the return value
 from that call.
 
-- Otherwise, return the binding of the `follow-link' binding.
+- Otherwise, return the value itself.
 
 The return value is interpreted as follows:
 
@@ -801,16 +803,17 @@ click is the local or global binding of that event.
 
 - Otherwise, the mouse-1 event is translated into a mouse-2 event
 at the same position."
-  (or (get-char-property pos 'follow-link)
-      (save-excursion
-	(goto-char pos)
-	(let ((b (key-binding [follow-link] nil t)))
-	  (cond
-	   ((eq b 'mouse-face)
-	    (and (get-char-property pos 'mouse-face) t))
-	   ((functionp b)
-	    (funcall b pos))
-	   (t b))))))
+  (let ((action
+	 (or (get-char-property pos 'follow-link)
+	     (save-excursion
+	       (goto-char pos)
+	       (key-binding [follow-link] nil t)))))
+    (cond
+     ((eq action 'mouse-face)
+      (and (get-char-property pos 'mouse-face) t))
+     ((functionp action)
+      (funcall action pos))
+     (t action))))
 
 (defun mouse-drag-region-1 (start-event)
   (mouse-minibuffer-check start-event)
@@ -858,8 +861,8 @@ at the same position."
 	(while (progn
 		 (setq event (read-event))
 		 (or (mouse-movement-p event)
-		     (eq (car-safe event) 'switch-frame)))
-	  (if (eq (car-safe event) 'switch-frame)
+		     (memq (car-safe event) '(switch-frame select-window))))
+	  (if (memq (car-safe event) '(switch-frame select-window))
 	      nil
 	    (setq end (event-end event)
 		  end-point (posn-point end))
@@ -1153,6 +1156,7 @@ If MODE is 2 then do the same for lines."
       (move-overlay mouse-drag-overlay (point) (mark t)))
     (catch 'mouse-show-mark
       ;; In this loop, execute scroll bar and switch-frame events.
+      ;; Should we similarly handle `select-window' events?  --Stef
       ;; Also ignore down-events that are undefined.
       (while (progn (setq event (read-event))
 		    (setq events (append events (list event)))
@@ -1476,9 +1480,9 @@ The function returns a non-nil value if it creates a secondary selection."
 	  (while (progn
 		   (setq event (read-event))
 		   (or (mouse-movement-p event)
-		       (eq (car-safe event) 'switch-frame)))
+		       (memq (car-safe event) '(switch-frame select-window))))
 
-	    (if (eq (car-safe event) 'switch-frame)
+	    (if (memq (car-safe event) '(switch-frame select-window))
 		nil
 	      (setq end (event-end event)
 		    end-point (posn-point end))

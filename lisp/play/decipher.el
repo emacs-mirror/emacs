@@ -305,7 +305,8 @@ The most useful commands are:
       (setq case-fold-search nil))      ;Case is significant when searching
   (use-local-map decipher-mode-map)
   (set-syntax-table decipher-mode-syntax-table)
-  (decipher-read-alphabet)
+  (unless (= (point-min) (point-max))
+    (decipher-read-alphabet))
   (set (make-local-variable 'font-lock-defaults)
        '(decipher-font-lock-keywords t))
   ;; Make the buffer writable when we exit Decipher mode:

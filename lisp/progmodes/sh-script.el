@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001, 03, 2004
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2003, 2004, 2005
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -448,6 +448,7 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-c=" 'sh-set-indent)
     (define-key map "\C-c<" 'sh-learn-line-indent)
     (define-key map "\C-c>" 'sh-learn-buffer-indent)
+    (define-key map "\C-c\C-\\" 'sh-backslash-region)
 
     (define-key map "=" 'sh-assignment)
     (define-key map "\C-c+" 'sh-add)
@@ -837,7 +838,7 @@ See `sh-feature'.")
 (defconst sh-st-symbol (string-to-syntax "_"))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
-(defconst sh-here-doc-open-re "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)")
+(defconst sh-here-doc-open-re "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\)+\\).*\\(\n\\)")
 
 (defvar sh-here-doc-markers nil)
 (make-variable-buffer-local 'sh-here-doc-markers)
@@ -1182,6 +1183,16 @@ This is for the rc shell."
 This is for the rc shell."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
+
+(defcustom sh-backslash-column 48
+  "*Column in which `sh-backslash-region' inserts backslashes."
+  :type 'integer
+  :group 'sh)
+
+(defcustom sh-backslash-align t
+  "*If non-nil, `sh-backslash-region' will align backslashes."
+  :type 'boolean
+  :group 'sh)
 
 ;; Internal use - not designed to be changed by the user:
 
@@ -3547,7 +3558,78 @@ The document is bounded by `sh-here-document-word'."
   (if (re-search-forward sh-end-of-command nil t)
       (goto-char (match-end 1))))
 
+;; Backslashification.  Stolen from make-mode.el.
+
+(defun sh-backslash-region (from to delete-flag)
+  "Insert, align, or delete end-of-line backslashes on the lines in the region.
+With no argument, inserts backslashes and aligns existing backslashes.
+With an argument, deletes the backslashes.
+
+This function does not modify the last line of the region if the region ends
+right at the start of the following line; it does not modify blank lines
+at the start of the region.  So you can put the region around an entire 
+shell command and conveniently use this command."
+  (interactive "r\nP")
+  (save-excursion
+    (goto-char from)
+    (let ((column sh-backslash-column)
+          (endmark (make-marker)))
+      (move-marker endmark to)
+      ;; Compute the smallest column number past the ends of all the lines.
+      (if sh-backslash-align
+	  (progn
+	    (if (not delete-flag)
+		(while (< (point) to)
+		  (end-of-line)
+		  (if (= (preceding-char) ?\\)
+		      (progn (forward-char -1)
+			     (skip-chars-backward " \t")))
+		  (setq column (max column (1+ (current-column))))
+		  (forward-line 1)))
+	    ;; Adjust upward to a tab column, if that doesn't push
+	    ;; past the margin.
+	    (if (> (% column tab-width) 0)
+		(let ((adjusted (* (/ (+ column tab-width -1) tab-width)
+				   tab-width)))
+		  (if (< adjusted (window-width))
+		      (setq column adjusted))))))
+      ;; Don't modify blank lines at start of region.
+      (goto-char from)
+      (while (and (< (point) endmark) (eolp))
+        (forward-line 1))
+      ;; Add or remove backslashes on all the lines.
+      (while (and (< (point) endmark)
+                  ;; Don't backslashify the last line
+                  ;; if the region ends right at the start of the next line.
+                  (save-excursion
+                    (forward-line 1)
+                    (< (point) endmark)))
+        (if (not delete-flag)
+            (sh-append-backslash column)
+          (sh-delete-backslash))
+        (forward-line 1))
+      (move-marker endmark nil))))
+
+(defun sh-append-backslash (column)
+  (end-of-line)
+  ;; Note that "\\\\" is needed to get one backslash.
+  (if (= (preceding-char) ?\\)
+      (progn (forward-char -1)
+             (delete-horizontal-space)
+             (indent-to column (if sh-backslash-align nil 1)))
+    (indent-to column (if sh-backslash-align nil 1))
+    (insert "\\")))
+
+(defun sh-delete-backslash ()
+  (end-of-line)
+  (or (bolp)
+      (progn
+ 	(forward-char -1)
+ 	(if (looking-at "\\\\")
+ 	    (delete-region (1+ (point))
+ 			   (progn (skip-chars-backward " \t") (point)))))))
+
 (provide 'sh-script)
 
-;;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
+;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
 ;;; sh-script.el ends here

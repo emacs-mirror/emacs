@@ -51,6 +51,7 @@ Invoke a compiler with the same command as in the last invocation of
 Run @code{grep} asynchronously under Emacs, with matching lines
 listed in the buffer named @samp{*grep*}.
 @item M-x grep-find
+@item M-x find-grep
 Run @code{grep} via @code{find}, with user-specified arguments, and
 collect output in the buffer named @samp{*grep*}.
 @item M-x kill-compilation
@@ -166,11 +167,12 @@ the tag (@pxref{Tags}) around point, and puts that into the default
 @code{grep} command.
 
 @findex grep-find
-  The command @kbd{M-x grep-find} is similar to @kbd{M-x grep}, but it
-supplies a different initial default for the command---one that runs
-both @code{find} and @code{grep}, so as to search every file in a
-directory tree.  See also the @code{find-grep-dired} command,
-in @ref{Dired and Find}.
+@findex find-grep
+  The command @kbd{M-x grep-find} (also available as @kbd{M-x
+find-grep}) is similar to @kbd{M-x grep}, but it supplies a different
+initial default for the command---one that runs both @code{find} and
+@code{grep}, so as to search every file in a directory tree.  See also
+the @code{find-grep-dired} command, in @ref{Dired and Find}.
 
 @node Compilation Mode
 @section Compilation Mode
@@ -307,12 +309,13 @@ Emacs.  @xref{MS-DOS}.
 
 @c Do you believe in GUD?
 The GUD (Grand Unified Debugger) library provides an interface to
-various symbolic debuggers from within Emacs.  We recommend the debugger
-GDB, which is free software, but you can also run DBX, SDB or XDB if you
-have them.  GUD can also serve as an interface to Perl's debugging
-mode, the Python debugger PDB, and to JDB, the Java Debugger.
-@xref{Debugging,, The Lisp Debugger, elisp, the Emacs Lisp Reference Manual},
-for information on debugging Emacs Lisp programs.
+various symbolic debuggers from within Emacs.  We recommend the
+debugger GDB, which is free software, but you can also run DBX, SDB or
+XDB if you have them.  GUD can also serve as an interface to Perl's
+debugging mode, the Python debugger PDB, the bash debugger, and to
+JDB, the Java Debugger.  @xref{Debugging,, The Lisp Debugger, elisp,
+the Emacs Lisp Reference Manual}, for information on debugging Emacs
+Lisp programs.
 
 @menu
 * Starting GUD::	How to start a debugger subprocess.
@@ -334,15 +337,14 @@ to a particular debugger program.
 @table @kbd
 @item M-x gdb @key{RET} @var{file} @key{RET}
 @findex gdb
-Run GDB as a subprocess of Emacs.  If the variable
-@code{gud-gdb-command-name} is ``gdb --annotate=3'' (the default
-value) then GDB starts as for @kbd{M-x gdba} below.  If you want GDB
-to start as in Emacs 21.3 and earlier then edit the string in the
-minibuffer or set @code{gud-gdb-command-name} to ``gdb --fullname''.
-You need to do this if you want to run multiple debugging sessions
-within one Emacs session.  In this case, the command creates a buffer
-for input and output to GDB, and switches to it.  If a GDB buffer
-already exists, it just switches to that buffer.
+Run GDB as a subprocess of Emacs.  By default, GDB starts as for
+@kbd{M-x gdba} below.  If you want GDB to start as in Emacs 21.3 and
+earlier then edit the string in the minibuffer or set
+@code{gud-gdb-command-name} to ``gdb --fullname''.  You need to do
+this if you want to run multiple debugging sessions within one Emacs
+session.  In this case, the command creates a buffer for input and
+output to GDB, and switches to it.  If a GDB buffer already exists, it
+just switches to that buffer.
 
 @item M-x gdba @key{RET} @var{file} @key{RET}
 Run GDB as a subprocess of Emacs, providing a graphical interface
@@ -567,11 +569,13 @@ be bizarre.  See the GDB manual entry regarding @code{jump} for
 details.
 @end table
 
-If you started GDB with the command @code{gdba}, you can click
-@kbd{Mouse-1} on a line of the source buffer, in the fringe or display
-margin, to set a breakpoint there.  If a breakpoint already exists on
-that line, this action will remove it.
-(@code{gdb-mouse-toggle-breakpoint}).
+With the GDB Graphical Interface, you can click @kbd{Mouse-1} on a
+line of the source buffer, in the fringe or display margin, to set a
+breakpoint there.  If a breakpoint already exists on that line, this
+action will remove it (@code{gdb-mouse-set-clear-breakpoint}). Where
+Emacs uses the margin to display breakpoints, it is also possible to
+enable or disable them when you click @kbd{Mouse-3} there
+(@code{gdb-mouse-toggle--breakpoint}).
 
   These commands interpret a numeric argument as a repeat count, when
 that makes sense.
@@ -659,19 +663,23 @@ customizable list @code{tooltip-gud-modes}.
 @node GDB Graphical Interface
 @subsection GDB Graphical Interface
 
+By default, the command @code{gdb} starts GDB using a graphical
+interface where you view and control the program's data using Emacs
+windows.  You can still interact with GDB through the GUD buffer, but
+the point of this mode is that you can do it through menus and clicks,
+without needing to know GDB commands.
+
 @findex gdba
-The command @code{gdba} starts GDB using a graphical interface where
-you view and control the program's data using Emacs windows.  You can
-still interact with GDB through the GUD buffer, but the point of this
-mode is that you can do it through menus and clicks, without needing
-to know GDB commands.
+If you have customised @code{gud-gdb-command-name}, then start this
+mode with the command @code{gdba}.
 
 @menu
 * Layout::               Control the number of displayed buffers.
 * Breakpoints Buffer::   A breakpoint control panel.
 * Stack Buffer::         Select a frame from the call stack.
 * Watch Expressions::    Monitor variable values in the speedbar.
-* Other Buffers::        Input/output, locals, registers and assembler buffers.
+* Other Buffers::        Input/output, locals, registers, assembler, threads
+                         and memory buffers.
 @end menu
 
 @node Layout
@@ -719,6 +727,15 @@ is unavailable, type @code{M-x
 gdb-display-@var{buffertype}-buffer} or @code{M-x
 gdb-frame-@var{buffertype}-buffer} respectively, where @var{buffertype}
 is the relevant buffer type e.g breakpoints.
+
+When you finish debugging then kill the GUD buffer with @kbd{C-x k},
+which will also kill all the buffers associated with the session.
+However you need not do this if, after editing and re-compiling your
+source code within Emacs, you wish continue debugging.  When you
+restart execution, GDB will automatically find your new executable.
+Keeping the GUD buffer has the advantage of keeping the shell history
+as well as GDB's breakpoints.  You need to check, however, that the
+breakpoints in the recently edited code are still where you want them.
 
 @node Breakpoints Buffer
 @subsubsection Breakpoints Buffer
@@ -825,17 +842,26 @@ The registers buffer displays the values held by the registers
 @item Assembler Buffer
 The assembler buffer displays the current frame as machine code.  An
 overlay arrow points to the current instruction and you can set and
-remove breakpoints as with the source buffer.  Breakpoints also
-appear in the margin.
+remove breakpoints as with the source buffer.  Breakpoint icons also
+appear in the fringe or margin.
 
 @item Threads Buffer
 
 The threads buffer displays a summary of all threads currently in your
-program.(@pxref{Threads,,, gdb, The GNU debugger}).  Move point to
+program (@pxref{Threads,,, gdb, The GNU debugger}).  Move point to
 any thread in the list and type @key{RET} to make it become the
 current thread (@code{gdb-threads-select}) and display the associated
 source in the source buffer.  Alternatively, click @kbd{Mouse-2} to
 make the selected thread become the current one.
+
+@item Memory Buffer
+
+The memory buffer allows the user to examine sections of program
+memory (@pxref{Memory,,, gdb, The GNU debugger}).  Click @kbd{Mouse-1}
+on the appropriate part of the header line to change the starting
+address or number of data items that the buffer displays.
+Click @kbd{Mouse-3} on the header line to select the display format
+or unit size for these data items.
 
 @end table
 

@@ -1,8 +1,8 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 
@@ -128,13 +128,13 @@ distribution.  Mixed-case symbols are convenience aliases.")
 
 (defconst reftex-cite-format-builtin
   '((default "Default macro \\cite{%l}"
-      "\\cite{%l}")
+      "\\cite[]{%l}")
     (natbib "The Natbib package"
-     ((?\C-m . "\\cite{%l}")
-      (?t    . "\\citet{%l}")
-      (?T    . "\\citet*{%l}")
-      (?p    . "\\citep{%l}")
-      (?P    . "\\citep*{%l}")
+     ((?\C-m . "\\cite[][]{%l}")
+      (?t    . "\\citet[][]{%l}")
+      (?T    . "\\citet*[][]{%l}")
+      (?p    . "\\citep[][]{%l}")
+      (?P    . "\\citep*[][]{%l}")
       (?e    . "\\citep[e.g.][]{%l}")
       (?s    . "\\citep[see][]{%l}")
       (?a    . "\\citeauthor{%l}")
@@ -157,8 +157,8 @@ distribution.  Mixed-case symbols are convenience aliases.")
     (bibentry "The Bibentry package"
       "\\bibentry{%l}")
     (harvard "The Harvard package"
-     ((?\C-m . "\\cite{%l}")
-      (?p    . "\\cite{%l}")
+     ((?\C-m . "\\cite[]{%l}")
+      (?p    . "\\cite[]{%l}")
       (?t    . "\\citeasnoun{%l}")
       (?n    . "\\citeasnoun{%l}")
       (?s    . "\\possessivecite{%l}")
@@ -166,17 +166,17 @@ distribution.  Mixed-case symbols are convenience aliases.")
       (?y    . "\\citeyear{%l}")
       (?a    . "\\citename{%l}")))
     (chicago "The Chicago package"
-     ((?\C-m . "\\cite{%l}")
-      (?t    . "\\citeN{%l}")
+     ((?\C-m . "\\cite[]{%l}")
+      (?t    . "\\citeN[]{%l}")
       (?T    . "\\shortciteN{%l}")
-      (?p    . "\\cite{%l}")
+      (?p    . "\\cite[]{%l}")
       (?P    . "\\shortcite{%l}")
       (?a    . "\\citeA{%l}")
       (?A    . "\\shortciteA{%l}")
       (?y    . "\\citeyear{%l}")))
     (astron "The Astron package"
-     ((?\C-m . "\\cite{%l}")
-      (?p    . "\\cite{%l}" )
+     ((?\C-m . "\\cite[]{%l}")
+      (?p    . "\\cite[]{%l}" )
       (?t    . "%2a (\\cite{%l})")))
     (author-year "Do-it-yourself Author-year"
      ((?\C-m . "\\cite{%l}")
@@ -484,6 +484,8 @@ LABEL-PREFIX
     empty string.  The prefix may contain the following `%' escapes:
        %f   Current file name with directory and extension stripped.
        %F   Current file name relative to directory of master file.
+       %m   Master file name, directory and extension stripped.
+       %M   Directory name (without path) where master file is located.
        %u   User login name, on systems which support this.
        %S   A section prefix derived with variable `reftex-section-prefixes'.
 
@@ -631,6 +633,43 @@ the final regular expression - so %s will be replaced with the environment
 or macro."
   :group 'reftex-defining-label-environments
   :type '(repeat (cons (symbol) (regexp))))
+
+(defcustom reftex-trust-label-prefix nil
+  "Non-nil means, trust the label prefix when determining label type.
+It is customary to use special label prefixes to distinguish different label
+types.  The label prefixes have no syntactic meaning in LaTeX (unless
+special packages like fancyref) are being used.  RefTeX can and by
+default does parse around each label to detect the correct label type,
+but this process can be slow when a document contains thousands of
+labels.  If you use label prefixes consistently, you may speed up
+document parsing by setting this variable to a non-nil value.  RefTeX
+will then compare the label prefix with the prefixes found in
+`reftex-label-alist' and derive the correct label type in this way.
+Possible values for this option are:
+
+t          This means to trust any label prefixes found.
+regexp     If a regexp, only prefixes matched by the regexp are trusted.
+list       List of accepted prefixes, as strings.  The colon is part of
+           the prefix, e.g. (\"fn:\" \"eqn:\" \"item:\").
+nil        Never trust a label prefix.
+
+The only disadvantage of using this feature is that the label context
+displayed in the label selection buffer along with each label is
+simply some text after the label definition.  This is no problem if you
+place labels keeping this in mind (e.g. *before* the equation, *at
+the beginning* of a fig/tab caption ...).  Anyway, it is probably best
+to use the regexp or the list value types to fine-tune this feature.
+For example, if your document contains thousands of footnotes with
+labels fn:xxx, you may want to set this variable to the value \"^fn:$\" or
+\(\"fn:\").  Then RefTeX will still do extensive parsing for any
+non-footnote labels."
+  :group 'reftex-defining-label-environments
+  :type '(choice
+          (const :tag "Always" t)
+          (const :tag "Never" nil)
+          (regexp)
+          (repeat :tag "List"
+                  (string :tag "prefix (with colon)"))))
   
 (defcustom reftex-special-environment-functions nil
   "List of functions to be called when trying to figure out current environment.
@@ -1010,6 +1049,9 @@ display, and for (setq reftex-comment-citations t).
 %< as a special operator kills punctuation and space around it after the 
 string has been formatted.
 
+A pair of square brackets indicates an optional argument, and RefTeX
+will prompt for the values of these arguments.
+
 Beware that all this only works with BibTeX database files.  When
 citations are made from the \\bibitems in an explicit thebibliography
 environment, only %l is available.
@@ -1041,6 +1083,42 @@ E.g.: (setq reftex-cite-format 'natbib)"
                     (?t  . "\\cite{%l}") (?p . "\\cite{%l}"))
             (cons (character :tag "Key character" ?\r)
                   (string    :tag "Format string" "")))))
+
+(defcustom reftex-cite-prompt-optional-args 'maybe
+  "*Non-nil means, prompt for empty optional arguments in cite macros.
+When an entry in `reftex-cite-format' ist given with square brackets to
+indicate optional arguments (for example \\cite[][]{%l}), RefTeX can
+prompt for values.  Possible values are:
+
+nil     Never prompt for optional arguments
+t       Always prompt
+maybe   Prompt only if `reftex-citation' was called with C-u prefix arg
+
+Unnecessary empty optional arguments are removed before insertion into
+the buffer.  See `reftex-cite-cleanup-optional-args'."
+  :group 'reftex-citation-support
+  :type '(choice
+          (const :tag "Always" t)
+          (const :tag "When called with prefix arg" maybe)
+          (const :tag "Never" nil)))
+
+(defcustom reftex-cite-cleanup-optional-args t
+  "*Non-nil means, remove unnecessary empty optional arguments in cite macros.
+The cite macros provided by some packages (for example
+natbib) allow specifying two optional arguments, one for a prefix to
+the citation, and a second for a postfix.  When only one optional
+argument is given, it is interpreted as postfix.  When this option is
+t, RefTeX removes unnecessary empty optional arguments from the cite
+macro before insertion.  For example, it will change
+    \\cite[][]{Jones}              -> \\cite{Jones}
+    \\cite[][Chapter 1]{Jones}     -> \\cite[Chapter 1]{Jones}
+    \\cite[see][]{Jones}           -> \\cite[see][]{Jones}
+    \\cite[see][Chapter 1]{Jones}  -> \\cite{Jones}
+Is is possible that other packages have other conventions about which
+optional argument is interpreted how - that is why this cleaning up
+can be turned off."
+  :group 'reftex-citation-support
+  :type 'boolean)
 
 (defcustom reftex-comment-citations nil
   "*Non-nil means add a comment for each citation describing the full entry.

@@ -1491,7 +1491,8 @@ Also make each path-info component into a list.
 
 (defsubst woman-dired-define-key-maybe (key)
   "If KEY is undefined in Dired, bind it to command `woman-dired-find-file'."
-  (if (eq (lookup-key dired-mode-map key) 'undefined)
+  (if (or (eq (lookup-key dired-mode-map key) 'undefined)
+	  (null (lookup-key dired-mode-map key)))
       (woman-dired-define-key key)))
 
 (defun woman-dired-define-keys ()

@@ -1,6 +1,6 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 01, 2004
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1998, 1999, 2000,
+     2001, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -529,6 +529,10 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
       struct gcpro gcpro1;
       Lisp_Object meta_map;
       GCPRO1 (map);
+      /* A strange value in which Meta is set would cause
+	 infinite recursion.  Protect against that.  */
+      if (XINT (meta_prefix_char) & CHAR_META)
+	meta_prefix_char = make_number (27);
       meta_map = get_keymap (access_keymap (map, meta_prefix_char,
 					    t_ok, noinherit, autoload),
 			     0, autoload);
@@ -1487,10 +1491,13 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
 
   if (!NILP (olp))
     {
-      if (!NILP (Voverriding_local_map))
-	keymaps = Fcons (Voverriding_local_map, keymaps);
       if (!NILP (current_kboard->Voverriding_terminal_local_map))
 	keymaps = Fcons (current_kboard->Voverriding_terminal_local_map, keymaps);
+      /* The doc said that overriding-terminal-local-map should
+	 override overriding-local-map.  The code used them both,
+	 but it seems clearer to use just one.  rms, jan 2005.  */
+      else if (!NILP (Voverriding_local_map))
+	keymaps = Fcons (Voverriding_local_map, keymaps);
     }
   if (NILP (XCDR (keymaps)))
     {
@@ -1498,16 +1505,20 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
       Lisp_Object *maps;
       int nmaps, i;
 
+      /* This usually returns the buffer's local map,
+	 but that can be overridden by a `local-map' property.  */
       local = get_local_map (PT, current_buffer, Qlocal_map);
       if (!NILP (local))
 	keymaps = Fcons (local, keymaps);
 
+      /* Now put all the minor mode keymaps on the list.  */
       nmaps = current_minor_maps (0, &maps);
 
       for (i = --nmaps; i >= 0; i--)
 	if (!NILP (maps[i]))
 	  keymaps = Fcons (maps[i], keymaps);
 
+      /* This returns nil unless there is a `keymap' property.  */
       local = get_local_map (PT, current_buffer, Qkeymap);
       if (!NILP (local))
 	keymaps = Fcons (local, keymaps);

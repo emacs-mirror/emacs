@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002,03,04  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -405,26 +405,6 @@ for safety.  This is a macro to prevent propagate-on-load viruses."
   (setq ses--header-row row)
   t)
 
-(defmacro ses-dotimes-msg (spec msg &rest body)
-  "(ses-dotimes-msg (VAR LIMIT) MSG BODY...): Like `dotimes', but
-a message is emitted using MSG every second or so during the loop."
-  (let ((msgvar   (make-symbol "msg"))
-	(limitvar (make-symbol "limit"))
-	(var      (car spec))
-	(limit    (cadr spec)))
-    `(let ((,limitvar ,limit)
-	   (,msgvar   ,msg))
-       (setq ses-start-time (float-time))
-       (message ,msgvar)
-       (setq ,msgvar (concat ,msgvar " (%d%%)"))
-       (dotimes (,var ,limitvar)
-	 (ses-time-check ,msgvar '(/ (* ,var 100) ,limitvar))
-	 ,@body)
-       (message nil))))
-
-(put 'ses-dotimes-msg 'lisp-indent-function 2)
-(def-edebug-spec ses-dotimes-msg ((symbolp form) form body))
-
 (defmacro ses-dorange (curcell &rest body)
   "Execute BODY repeatedly, with the variables `row' and `col' set to each
 cell in the range specified by CURCELL.  The range is available in the
@@ -535,7 +515,7 @@ for this spreadsheet."
 
 (defun ses-create-cell-variable-range (minrow maxrow mincol maxcol)
   "Create buffer-local variables for cells.  This is undoable."
-  (push `(ses-destroy-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
+  (push `(apply ses-destroy-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
 	buffer-undo-list)
   (let (sym xrow xcol)
     (dotimes (row (1+ (- maxrow minrow)))
@@ -556,16 +536,16 @@ for this spreadsheet."
       (dotimes (col (1+ (- maxcol mincol)))
 	(setq sym (ses-create-cell-symbol (+ row minrow) (+ col mincol)))
 	(if (boundp sym)
-	    (push `(ses-set-with-undo ,sym ,(symbol-value sym))
+	    (push `(apply ses-set-with-undo ,sym ,(symbol-value sym))
 		  buffer-undo-list))
 	(kill-local-variable sym))))
-  (push `(ses-create-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
+  (push `(apply ses-create-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
 	buffer-undo-list))
 
 (defun ses-reset-header-string ()
   "Flags the header string for update.  Upon undo, the header string will be
 updated again."
-  (push '(ses-reset-header-string) buffer-undo-list)
+  (push '(apply ses-reset-header-string) buffer-undo-list)
   (setq ses--header-hscroll -1))
 
 ;;Split this code off into a function to avoid coverage-testing difficulties
@@ -1218,7 +1198,8 @@ the rectangle (MINROW,MINCOL)..(NUMROWS,NUMCOLS) by adding ROWINCR and COLINCR
 to each symbol."
   (let (reform)
     (let (mycell newval)
-      (ses-dotimes-msg (row ses--numrows) "Relocating formulas..."
+      (dotimes-with-progress-reporter
+          (row ses--numrows) "Relocating formulas..."
 	(dotimes (col ses--numcols)
 	  (setq ses-relocate-return nil
 		mycell (ses-get-cell row col)
@@ -1246,7 +1227,8 @@ to each symbol."
       (cond
        ((and (<= rowincr 0) (<= colincr 0))
 	;;Deletion of rows and/or columns
-	(ses-dotimes-msg (row (- ses--numrows minrow)) "Relocating variables..."
+	(dotimes-with-progress-reporter
+           (row (- ses--numrows minrow)) "Relocating variables..."
 	  (setq myrow  (+ row minrow))
 	  (dotimes (col (- ses--numcols mincol))
 	    (setq mycol  (+ col mincol)
@@ -1262,7 +1244,8 @@ to each symbol."
 	(let ((disty (1- ses--numrows))
 	      (distx (1- ses--numcols))
 	      myrow mycol)
-	  (ses-dotimes-msg (row (- ses--numrows minrow)) "Relocating variables..."
+	  (dotimes-with-progress-reporter
+	      (row (- ses--numrows minrow)) "Relocating variables..."
 	    (setq myrow (- disty row))
 	    (dotimes (col (- ses--numcols mincol))
 	      (setq mycol (- distx col)
@@ -1296,38 +1279,39 @@ to each symbol."
 ;; Undo control
 ;;----------------------------------------------------------------------------
 
-(defadvice undo-more (around ses-undo-more activate preactivate)
-  "Define a meaning for conses in buffer-undo-list whose car is a symbol
-other than t or nil.  To undo these, apply the car--a function--to the
-cdr--its arglist."
-  (let ((ses-count (ad-get-arg 0)))
-    (catch 'undo
-      (dolist (ses-x pending-undo-list)
-	(unless ses-x
-	  ;;End of undo boundary
-	  (setq ses-count (1- ses-count))
-	  (if (<= ses-count 0)
-	      ;;We've seen enough boundaries - stop undoing
-	      (throw 'undo nil)))
-	(and (consp ses-x) (symbolp (car ses-x)) (fboundp (car ses-x))
-	     ;;Undo using apply
-	     (apply (car ses-x) (cdr ses-x)))))
-    (if (not (eq major-mode 'ses-mode))
-	ad-do-it
-      ;;Here is some extra code for SES mode.
-      (setq ses--deferred-narrow
-	    (or ses--deferred-narrow (ses-narrowed-p)))
-      (widen)
-      (condition-case x
-	  ad-do-it
-	(error
-	 ;;Restore narrow if appropriate
-	 (ses-command-hook)
-	 (signal (car x) (cdr x)))))))
+;; This should be unnecessary, because the feature is now built in.
+
+;;; (defadvice undo-more (around ses-undo-more activate preactivate)
+;;;   "Define a meaning for conses in buffer-undo-list whose car is a symbol
+;;; other than t or nil.  To undo these, apply the car--a function--to the
+;;; cdr--its arglist."
+;;;   (let ((ses-count (ad-get-arg 0)))
+;;;     (catch 'undo
+;;;       (dolist (ses-x pending-undo-list)
+;;; 	(unless ses-x
+;;; 	  ;;End of undo boundary
+;;; 	  (setq ses-count (1- ses-count))
+;;; 	  (if (<= ses-count 0)
+;;; 	      ;;We've seen enough boundaries - stop undoing
+;;; 	      (throw 'undo nil)))
+;;; 	(and (consp ses-x) (symbolp (car ses-x)) (fboundp (car ses-x))
+;;; 	     ;;Undo using apply
+;;; 	     (apply (car ses-x) (cdr ses-x)))))
+;;;     (if (not (eq major-mode 'ses-mode))
+;;; 	ad-do-it
+;;;       ;;Here is some extra code for SES mode.
+;;;       (setq ses--deferred-narrow
+;;; 	    (or ses--deferred-narrow (ses-narrowed-p)))
+;;;       (widen)
+;;;       (condition-case x
+;;; 	  ad-do-it
+;;; 	(error
+;;; 	 ;;Restore narrow if appropriate
+;;; 	 (ses-command-hook)
+;;; 	 (signal (car x) (cdr x)))))))
 
 (defun ses-begin-change ()
-  "For undo, remember current buffer-position before we start changing hidden
-stuff."
+  "For undo, remember point before we start changing hidden stuff."
   (let ((inhibit-read-only t))
     (insert-and-inherit "X")
     (delete-region (1- (point)) (point))))
@@ -1341,8 +1325,8 @@ stuff."
 	       (equal (symbol-value sym) newval)
 	       (not (stringp newval)))
     (push (if (boundp sym)
-	      `(ses-set-with-undo ,sym ,(symbol-value sym))
-	    `(ses-unset-with-undo ,sym))
+	      `(apply ses-set-with-undo ,sym ,(symbol-value sym))
+	    `(apply ses-unset-with-undo ,sym))
 	  buffer-undo-list)
     (set sym newval)
     t))
@@ -1350,13 +1334,13 @@ stuff."
 (defun ses-unset-with-undo (sym)
   "Set SYM to be unbound.  This is undoable."
   (when (1value (boundp sym)) ;;Always bound, except after a programming error
-    (push `(ses-set-with-undo ,sym ,(symbol-value sym)) buffer-undo-list)
+    (push `(apply ses-set-with-undo ,sym ,(symbol-value sym)) buffer-undo-list)
     (makunbound sym)))
 
 (defun ses-aset-with-undo (array idx newval)
   "Like aset, but undoable.  Result is t if element has changed"
   (unless (equal (aref array idx) newval)
-    (push `(ses-aset-with-undo ,array ,idx ,(aref array idx)) buffer-undo-list)
+    (push `(apply ses-aset-with-undo ,array ,idx ,(aref array idx)) buffer-undo-list)
     (aset array idx newval)
     t))
 
@@ -1475,7 +1459,7 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
     (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)
     ;;Create intangible properties, which also indicate which cell the text
     ;;came from.
-    (ses-dotimes-msg (row ses--numrows) "Finding cells..."
+    (dotimes-with-progress-reporter (row ses--numrows) "Finding cells..."
       (dotimes (col ses--numcols)
 	(setq pos  end
 	      sym  (ses-cell-symbol row col))
@@ -1724,7 +1708,7 @@ print area if NONARROW is nil."
     ;;find the data area when inserting or deleting *skip* values for cells
     (dotimes (row ses--numrows)
       (insert-and-inherit ses--blank-line))
-    (ses-dotimes-msg (row ses--numrows) "Reprinting..."
+    (dotimes-with-progress-reporter (row ses--numrows) "Reprinting..."
       (if (eq (ses-cell-value row 0) '*skip*)
 	  ;;Column deletion left a dangling skip
 	  (ses-set-cell row 0 'value nil))
@@ -1809,11 +1793,13 @@ cells."
   ;;Reconstruct reference lists.
   (let (x yrow ycol)
     ;;Delete old reference lists
-    (ses-dotimes-msg (row ses--numrows) "Deleting references..."
+    (dotimes-with-progress-reporter
+        (row ses--numrows) "Deleting references..."
       (dotimes (col ses--numcols)
 	(ses-set-cell row col 'references nil)))
     ;;Create new reference lists
-    (ses-dotimes-msg (row ses--numrows) "Computing references..."
+    (dotimes-with-progress-reporter
+        (row ses--numrows) "Computing references..."
       (dotimes (col ses--numcols)
 	(dolist (ref (ses-formula-references (ses-cell-formula row col)))
 	  (setq x    (ses-sym-rowcol ref)
@@ -2073,14 +2059,14 @@ before current one."
     (ses-set-parameter 'ses--numrows (+ ses--numrows count))
     ;;Insert each row
     (ses-goto-print row 0)
-    (ses-dotimes-msg (x count) "Inserting row..."
+    (dotimes-with-progress-reporter (x count) "Inserting row..."
       ;;Create a row of empty cells.  The `symbol' fields will be set by
       ;;the call to ses-relocate-all.
       (setq newrow (make-vector ses--numcols nil))
       (dotimes (col ses--numcols)
 	(aset newrow col (ses-make-cell)))
       (setq ses--cells (ses-vector-insert ses--cells row newrow))
-      (push `(ses-vector-delete ses--cells ,row 1) buffer-undo-list)
+      (push `(apply ses-vector-delete ses--cells ,row 1) buffer-undo-list)
       (insert ses--blank-line))
     ;;Insert empty lines in cell data area (will be replaced by
     ;;ses-relocate-all)
@@ -2162,7 +2148,7 @@ If COL is specified, the new column(s) get the specified WIDTH and PRINTER
     (ses-create-cell-variable-range 0            (1- ses--numrows)
 				    ses--numcols (+ ses--numcols count -1))
     ;;Insert each column.
-    (ses-dotimes-msg (x count) "Inserting column..."
+    (dotimes-with-progress-reporter (x count) "Inserting column..."
       ;;Create a column of empty cells.  The `symbol' fields will be set by
       ;;the call to ses-relocate-all.
       (ses-adjust-print-width col (1+ width))
@@ -2220,7 +2206,7 @@ from the current one."
     (ses-begin-change)
     (ses-set-parameter 'ses--numcols (- ses--numcols count))
     (ses-adjust-print-width col (- width))
-    (ses-dotimes-msg (row ses--numrows) "Deleting column..."
+    (dotimes-with-progress-reporter (row ses--numrows) "Deleting column..."
       ;;Delete lines from cell data area
       (ses-goto-data row col)
       (ses-delete-line count)
@@ -2331,7 +2317,10 @@ hard to override how mouse-1 works."
 		(eq (get-text-property beg 'read-only) 'ses)
 		(eq (get-text-property (1- end) 'read-only) 'ses)))
       ad-do-it ;Normal copy-region-as-kill
-    (kill-new (ses-copy-region beg end))))
+    (kill-new (ses-copy-region beg end))
+    (if transient-mark-mode
+	(setq deactivate-mark t))
+    nil))
 
 (defun ses-copy-region (beg end)
   "Treat the region as rectangular.  Convert the intangible attributes to
@@ -2466,7 +2455,7 @@ formulas are to be inserted without relocation."
 	     (colincr  (- (cdr rowcol) (cdr first)))
 	     (pos      0)
 	     myrow mycol x)
-	(ses-dotimes-msg (row needrows) "Yanking..."
+	(dotimes-with-progress-reporter (row needrows) "Yanking..."
 	  (setq myrow (+ row (car rowcol)))
 	  (dotimes (col needcols)
 	    (setq mycol (+ col (cdr rowcol))

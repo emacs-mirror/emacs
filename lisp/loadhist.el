@@ -51,9 +51,26 @@ a buffer with no associated file, or an `eval-region', return nil."
       (error "%S is not a currently loaded feature" feature)
     (car (feature-symbols feature))))
 
+(defun file-loadhist-lookup (file)
+  "Return the `load-history' element for FILE."
+  ;; First look for FILE as given.
+  (let ((symbols (assoc file load-history)))
+    ;; Try converting a library name to an absolute file name.
+    (and (null symbols)
+	 (let ((absname (find-library-name file)))
+	   (if (not (equal absname file))
+	       (setq symbols (cdr (assoc absname load-history))))))
+    ;; Try converting an absolute file name to a library name.
+    (and (null symbols) (string-match "[.]el\\'" file)
+	 (let ((libname (file-name-nondirectory file)))
+	   (string-match "[.]el\\'" libname)
+	   (setq libname (substring libname 0 (match-beginning 0)))
+	   (setq symbols (cdr (assoc libname load-history)))))
+    symbols))
+
 (defun file-provides (file)
   "Return the list of features provided by FILE."
-  (let ((symbols (cdr (assoc file load-history)))
+  (let ((symbols (file-loadhist-lookup file))
 	provides)
     (mapc (lambda (x)
 	    (if (and (consp x) (eq (car x) 'provide))
@@ -63,7 +80,7 @@ a buffer with no associated file, or an `eval-region', return nil."
 
 (defun file-requires (file)
   "Return the list of features required by FILE."
-  (let ((symbols (cdr (assoc file load-history)))
+  (let ((symbols (file-loadhist-lookup file))
 	requires)
     (mapc (lambda (x)
 	    (if (and (consp x) (eq (car x) 'require))

@@ -217,6 +217,7 @@
   (define-key calc-mode-map "dO" 'calc-flat-language)
   (define-key calc-mode-map "dP" 'calc-pascal-language)
   (define-key calc-mode-map "dT" 'calc-tex-language)
+  (define-key calc-mode-map "dL" 'calc-latex-language)
   (define-key calc-mode-map "dU" 'calc-unformatted-language)
   (define-key calc-mode-map "dW" 'calc-maple-language)
   (define-key calc-mode-map "d[" 'calc-truncate-up)
@@ -998,7 +999,7 @@ calc-keypad-press)
  ("calc-lang" calc-big-language calc-c-language calc-eqn-language
 calc-flat-language calc-fortran-language calc-maple-language
 calc-mathematica-language calc-normal-language calc-pascal-language
-calc-tex-language calc-unformatted-language)
+calc-tex-language calc-latex-language calc-unformatted-language)
 
  ("calc-map" calc-accumulate calc-apply calc-inner-product calc-map
 calc-map-equation calc-map-stack calc-outer-product calc-reduce)
@@ -1240,36 +1241,54 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-reset (arg)
   (interactive "P")
-  (save-excursion
-    (or (eq major-mode 'calc-mode)
-	(calc-create-buffer))
-    (if calc-embedded-info
-	(calc-embedded nil))
-    (or arg
-	(setq calc-stack nil))
-    (setq calc-undo-list nil
-	  calc-redo-list nil)
-    (let (calc-stack calc-user-parse-tables calc-standard-date-formats
-		     calc-invocation-macro)
-      (mapcar (function (lambda (v) (set v nil))) calc-local-var-list)
-      (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
-	      calc-mode-var-list))
-    (calc-set-language nil nil t)
-    (calc-mode)
-    (calc-flush-caches t)
-    (run-hooks 'calc-reset-hook))
-  (calc-wrapper
-   (let ((win (get-buffer-window (current-buffer))))
-     (calc-realign 0)
-     (if win
-	 (let ((height (- (window-height win) 2)))
-	   (set-window-point win (point))
-	   (or (= height calc-window-height)
-	       (let ((swin (selected-window)))
-		 (select-window win)
-		 (enlarge-window (- calc-window-height height))
-		 (select-window swin)))))))
-  (message "(Calculator reset)"))
+  (setq arg (if arg (prefix-numeric-value arg) nil))
+  (cond
+   ((and
+     calc-embedded-info
+     (equal (aref calc-embedded-info 0) (current-buffer))
+     (<= (point) (aref calc-embedded-info 5))
+     (>= (point) (aref calc-embedded-info 4)))
+    (let ((cbuf (aref calc-embedded-info 1))
+          (calc-embedded-quiet t))
+      (save-window-excursion
+        (calc-embedded nil)
+        (set-buffer cbuf)
+        (calc-reset arg))
+      (calc-embedded nil)))
+   ((eq major-mode 'calc-mode)
+    (save-excursion
+      (unless (and arg (> (abs arg) 0))
+        (setq calc-stack nil))
+      (setq calc-undo-list nil
+            calc-redo-list nil)
+      (let (calc-stack calc-user-parse-tables calc-standard-date-formats
+                       calc-invocation-macro)
+        (mapcar (function (lambda (v) (set v nil))) calc-local-var-list)
+        (if (and arg (<= arg 0))
+            (calc-mode-var-list-restore-default-values)
+          (calc-mode-var-list-restore-saved-values)))
+      (calc-set-language nil nil t)
+      (calc-mode)
+      (calc-flush-caches t)
+      (run-hooks 'calc-reset-hook))
+    (calc-wrapper
+     (let ((win (get-buffer-window (current-buffer))))
+       (calc-realign 0)
+       ;; Adjust the window height if the window is visible, but doesn't
+       ;; take up the whole height of the frame.
+       (if (and
+            win
+            (< (window-height win) (1- (frame-height))))
+           (let ((height (- (window-height win) 2)))
+             (set-window-point win (point))
+             (or (= height calc-window-height)
+                 (let ((swin (selected-window)))
+                   (select-window win)
+                   (enlarge-window (- calc-window-height height))
+                   (select-window swin)))))))
+    (message "(Calculator reset)"))
+   (t
+    (message "(Not inside a Calc buffer)"))))
 
 ;; What a pain; scroll-left behaves differently when called non-interactively.
 (defun calc-scroll-left (n)
@@ -1376,10 +1395,14 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-fancy-prefix-other-key (arg)
   (interactive "P")
-  (if (or (not (integerp last-command-char))
-	  (and (>= last-command-char 0) (< last-command-char ? )
-	       (not (eq last-command-char meta-prefix-char))))
+  (if (and
+       (not (eq last-command-char 'tab))
+       (not (eq last-command-char 'M-tab))
+       (or (not (integerp last-command-char))
+           (and (>= last-command-char 0) (< last-command-char ? )
+                (not (eq last-command-char meta-prefix-char)))))
      (calc-wrapper))  ; clear flags if not a Calc command.
+  (setq prefix-arg arg)
   (calc-unread-command)
   (setq overriding-terminal-local-map nil))
 
@@ -2924,13 +2947,13 @@ calc-kill calc-kill-region calc-yank))))
        (setq str (concat (substring str 0 (match-beginning 0))
 			 (substring str (match-end 0)))))
   (if (string-match "\\\\[^ \n|]" str)
-      (if (eq calc-language 'tex)
+      (if (eq calc-language 'latex)
 	  (math-read-expr str)
-	(let ((calc-language 'tex)
+	(let ((calc-language 'latex)
 	      (calc-language-option nil)
-	      (math-expr-opers (get 'tex 'math-oper-table))
-	      (math-expr-function-mapping (get 'tex 'math-function-table))
-	      (math-expr-variable-mapping (get 'tex 'math-variable-table)))
+	      (math-expr-opers (get 'latex 'math-oper-table))
+	      (math-expr-function-mapping (get 'latex 'math-function-table))
+	      (math-expr-variable-mapping (get 'latex 'math-variable-table)))
 	  (math-read-expr str)))
     (let ((math-read-big-lines nil)
 	  (pos 0)

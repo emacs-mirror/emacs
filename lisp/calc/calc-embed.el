@@ -48,11 +48,11 @@
 (defvar calc-embedded-some-active nil)
 (make-variable-buffer-local 'calc-embedded-some-active)
 
-(defvar calc-embedded-open-formula "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
+(defvar calc-embedded-open-formula "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the opening delimiter of a formula used by
 calc-embedded.")
 
-(defvar calc-embedded-close-formula "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
+(defvar calc-embedded-close-formula "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the closing delimiter of a formula used by
 calc-embedded.")
 
@@ -308,10 +308,10 @@ This is not required to be present for user-written mode annotations.")
   (calc-show-edit-buffer))
 
 (defvar calc-original-buffer)
-
+(defvar calc-edit-top)
 (defun calc-embedded-finish-edit (info)
   (let ((buf (current-buffer))
-	(str (buffer-substring (point) (point-max)))
+	(str (buffer-substring calc-edit-top (point-max)))
 	(start (point))
 	pos)
     (switch-to-buffer calc-original-buffer)
@@ -417,6 +417,8 @@ With any prefix argument, marks only the formula itself."
 	 (forward-char -1))
     (setq calc-embed-outer-top (point))
     (goto-char (match-end 0))
+    (if (looking-at "[ \t]*$")
+        (end-of-line))
     (if (eq (following-char) ?\n)
 	(forward-char 1))
     (or (bolp)
@@ -885,7 +887,7 @@ The command \\[yank] can retrieve it from there."
 	(list 'calcFunc-assign
 	      (nth 1 x)
 	      (calc-embedded-subst (nth 2 x)))
-      (calc-normalize (math-evaluate-expr-rec (math-multi-subst-rec x))))))
+      (calc-normalize (math-evaluate-expr-rec (math-multi-subst x nil nil))))))
 
 (defun calc-embedded-eval-get-var (var base)
   (let ((entry base)

@@ -1,3 +1,151 @@
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Basic Windows): Add cursor-in-non-selected-windows.
+	Clarify.
+	(Selecting Windows): Clarify save-selected-window.
+	(Cyclic Window Ordering): Clarify walk-windows.
+	(Window Point): Clarify.
+	(Window Start): Add comment to example.
+	(Resizing Windows): Add `interactive' specs in examples.
+	Document fit-window-to-buffer.
+
+	* text.texi (User-Level Deletion): just-one-space takes numeric arg.
+	(Undo, Maintaining Undo): Clarify last change.
+	(Sorting): In sort-numeric-fields, explain about octal and hex.
+	Mention sort-numeric-base.
+	(Format Properties): Add xref for hard newlines.
+
+	* frames.texi (Window Frame Parameters): Explain pixel=char on tty.
+	(Pop-Up Menus): Fix typo.
+	(Color Names): Explain all types of color names.
+	Explain color-values on B&W terminal.
+	(Text Terminal Colors): Explain "rgb values" are lists.  Fix arg names.
+
+	* files.texi (File Locks): Not supported on MS systems.
+	(Testing Accessibility): Clarify.
+
+	* edebug.texi (Printing in Edebug): Fix edebug-print-circle.
+	(Coverage Testing): Fix typo.
+
+	* commands.texi (Misc Events): Remove stray space.
+
+	* buffers.texi (Buffer Names): Clarify generate-new-buffer-name.
+	(Modification Time): Clarify when visited-file-modtime returns 0.
+	(The Buffer List): Clarify bury-buffer.
+	(Killing Buffers): Clarify.
+	(Indirect Buffers): Add clone-indirect-buffer.
+
+2005-02-02  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* edebug.texi (Printing in Edebug): Fix default value of
+	edebug-print-circle.
+	(Coverage Testing): Fix displayed frequency count data.
+
+2005-02-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* text.texi (Maintaining Undo): Add `undo-outer-limit'.
+
+2005-02-02  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Undo) <buffer-undo-list>: Describe `apply' elements.
+
+2005-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Describe the help-echo event.
+
+	* text.texi (Special Properties) <help-echo>: Use `pos'
+	consistently in description of the help-echo property.  Use
+	@code{nil} instead of @var{nil}.
+
+	* display.texi (Overlay Properties): Fix the index entry for
+	help-echo overlay property.
+
+	* customize.texi (Type Keywords): Uncomment the xref to the
+	help-echo property documentation.
+
+2005-01-23  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Start): Fix `pos-visible-in-window-p'
+	return value.  Third element FULLY replaced by PARTIAL which
+	specifies number of invisible pixels if row is only partially visible.
+	(Textual Scrolling): Mention auto-window-vscroll.
+	(Vertical Scrolling): New defvar auto-window-vscroll.
+
+2005-01-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymaps.texi (Changing Key Bindings): `suppress-keymap' now uses
+	command remapping.
+
+2005-01-15  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Images): Mention DATA-P arg of create-image.
+
+2005-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Accessing Events): Add WHOLE arg to posn-at-x-y.
+
+	* text.texi (Links and Mouse-1): Fix string and vector item.
+
+2005-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Rewrite the text, and update the
+	descriptions of overriding-local-map and overriding-terminal-local-map.
+
+	* text.texi (Links and Mouse-1): Clarify text.
+
+2005-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* modes.texi (Emulating Mode Line): Update format-mode-line entry.
+
+2005-01-13  Francis Litterio  <franl@world.std.com>  (tiny change)
+
+	* keymaps.texi (Active Keymaps): Fix overriding-local-map description.
+
+2005-01-12  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Links and Mouse-1): Rename section from Enabling
+	Mouse-1 to Following Links.  Change xrefs.
+	Add examples for define-button-type and define-widget.
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	Clarify mouse-1 and follow-link functionality.
+
+2005-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Enabling Mouse-1 to Follow Links): Redo prev. change.
+
+	* display.texi (Beeping): Fix Texinfo usage.
+
+	* modes.texi (Emulating Mode Line): Doc FACE arg in format-header-line.
+
+2005-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	Mention mouse-1 binding.  Add follow-link keyword.
+
+	* text.texi (Text Properties): Add "Enable Mouse-1" to submenu.
+	(Enabling Mouse-1 to Follow Links): New subsection.
+
+2005-01-06  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Minor change.
+
+	* os.texi (Timers): Clarify previous change.
+
+	* modes.texi (Emulating Mode Line): format-mode-line requires 1 arg.
+
+2005-01-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Face Attributes): Correct xref to renamed node.
+
+2005-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Face Attributes): Describe hex color specs.
+
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Update previous change.
+
 2004-12-30  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Line Height): Total line-height is now specified

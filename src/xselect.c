@@ -1400,7 +1400,7 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
       else if (INTEGERP (time_stamp))
         requestor_time = (Time) XUINT (time_stamp);
       else if (FLOATP (time_stamp))
-        requestor_time = (Time) XFLOAT (time_stamp);
+        requestor_time = (Time) XFLOAT_DATA (time_stamp);
       else
         error ("TIME_STAMP must be cons or number");
     }
@@ -2500,7 +2500,7 @@ x_check_property_data (data)
    DPY is the display use to look up X atoms.
    DATA is a Lisp list of values to be converted.
    RET is the C array that contains the converted values.  It is assumed
-   it is big enough to hol all values.
+   it is big enough to hold all values.
    FORMAT is 8, 16 or 32 and gives the size in bits for each C value to
    be stored in RET.  */
 
@@ -2524,7 +2524,7 @@ x_fill_property_data (dpy, data, ret, format)
       if (INTEGERP (o))
         val = (CARD32) XFASTINT (o);
       else if (FLOATP (o))
-        val = (CARD32) XFLOAT (o);
+        val = (CARD32) XFLOAT_DATA (o);
       else if (CONSP (o))
         val = (CARD32) cons_to_long (o);
       else if (STRINGP (o))
@@ -2629,7 +2629,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   if (INTEGERP (value))
     atom = (Atom) XUINT (value);
   else if (FLOATP (value))
-    atom = (Atom) XFLOAT (value);
+    atom = (Atom) XFLOAT_DATA (value);
   else if (CONSP (value))
     atom = (Atom) cons_to_long (value);
   else
@@ -2761,7 +2761,7 @@ are ignored.  */)
   else if (INTEGERP (dest))
     wdest = (Window) XFASTINT (dest);
   else if (FLOATP (dest))
-    wdest =  (Window) XFLOAT (dest);
+    wdest =  (Window) XFLOAT_DATA (dest);
   else if (CONSP (dest))
     {
       if (! NUMBERP (XCAR (dest)) || ! NUMBERP (XCDR (dest)))

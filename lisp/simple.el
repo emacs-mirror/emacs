@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;               2000, 2001, 2002, 2003, 2004
+;;               2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -647,15 +647,16 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (skip-chars-backward " \t")
        (constrain-to-field nil orig-pos)))))
 
-(defun just-one-space ()
-  "Delete all spaces and tabs around point, leaving one space."
-  (interactive "*")
+(defun just-one-space (&optional n)
+  "Delete all spaces and tabs around point, leaving one space (or N spaces)."
+  (interactive "*p")
   (let ((orig-pos (point)))
     (skip-chars-backward " \t")
     (constrain-to-field nil orig-pos)
-    (if (= (following-char) ? )
-	(forward-char 1)
-      (insert ? ))
+    (dotimes (i (or n 1))
+      (if (= (following-char) ?\ )
+	  (forward-char 1)
+	(insert ?\ )))
     (delete-region
      (point)
      (progn
@@ -899,7 +900,7 @@ display the result of expression evaluation."
   (if (and (integerp value)
            (or (not (memq this-command '(eval-last-sexp eval-print-last-sexp)))
                (eq this-command last-command)
-               (and (boundp 'edebug-active) edebug-active)))
+               (if (boundp 'edebug-active) edebug-active)))
       (let ((char-string
              (if (or (and (boundp 'edebug-active) edebug-active)
                      (memq this-command '(eval-last-sexp eval-print-last-sexp)))
@@ -1234,6 +1235,10 @@ Return 0 if current buffer is not a mini-buffer."
 (defvar undo-no-redo nil
   "If t, `undo' doesn't go through redo entries.")
 
+(defvar pending-undo-list nil
+  "Within a run of consecutive undo commands, list remaining to be undone.
+t if we undid all the way to the end of it.")
+
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
@@ -1257,14 +1262,15 @@ as an argument limits undo to changes within the current region."
     (setq this-command 'undo-start)
 
     (unless (and (eq last-command 'undo)
-		 ;; If something (a timer or filter?) changed the buffer
-		 ;; since the previous command, don't continue the undo seq.
-		 (let ((list buffer-undo-list))
-		   (while (eq (car list) nil)
-		     (setq list (cdr list)))
-		   ;; If the last undo record made was made by undo
-		   ;; it shows nothing else happened in between.
-		   (gethash list undo-equiv-table)))
+		 (or (eq pending-undo-list t)
+		     ;; If something (a timer or filter?) changed the buffer
+		     ;; since the previous command, don't continue the undo seq.
+		     (let ((list buffer-undo-list))
+		       (while (eq (car list) nil)
+			 (setq list (cdr list)))
+		       ;; If the last undo record made was made by undo
+		       ;; it shows nothing else happened in between.
+		       (gethash list undo-equiv-table))))
       (setq undo-in-region
 	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
       (if undo-in-region
@@ -1339,9 +1345,6 @@ Contrary to `undo', this will not redo a previous undo."
 ;; no idea whereas to bind it.  Any suggestion welcome.  -stef
 ;; (define-key ctl-x-map "U" 'undo-only)
 
-(defvar pending-undo-list nil
-  "Within a run of consecutive undo commands, list remaining to be undone.")
-
 (defvar undo-in-progress nil
   "Non-nil while performing an undo.
 Some change-hooks test this variable to do something different.")
@@ -1350,12 +1353,14 @@ Some change-hooks test this variable to do something different.")
   "Undo back N undo-boundaries beyond what was already undone recently.
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
-  (or pending-undo-list
+  (or (listp pending-undo-list)
       (error (format "No further undo information%s"
 		     (if (and transient-mark-mode mark-active)
 			 " for region" ""))))
   (let ((undo-in-progress t))
-    (setq pending-undo-list (primitive-undo count pending-undo-list))))
+    (setq pending-undo-list (primitive-undo count pending-undo-list))
+    (if (null pending-undo-list)
+	(setq pending-undo-list t))))
 
 ;; Deep copy of a list
 (defun undo-copy-list (list)
@@ -1520,33 +1525,76 @@ is not *inside* the region START...END."
 	     '(0 . 0)))
     '(0 . 0)))
 
+(defcustom undo-ask-before-discard t
+  "If non-nil ask about discarding undo info for the current command.
+Normally, Emacs discards the undo info for the current command if
+it exceeds `undo-outer-limit'.  But if you set this option
+non-nil, it asks in the echo area whether to discard the info.
+If you answer no, there a slight risk that Emacs might crash, so
+only do it if you really want to undo the command.
+
+This option is mainly intended for debugging.  You have to be
+careful if you use it for other purposes.  Garbage collection is
+inhibited while the question is asked, meaning that Emacs might
+leak memory.  So you should make sure that you do not wait
+excessively long before answering the question."
+  :type 'boolean
+  :group 'undo
+  :version "21.4")
+
 (defvar undo-extra-outer-limit nil
   "If non-nil, an extra level of size that's ok in an undo item.
 We don't ask the user about truncating the undo list until the
-current item gets bigger than this amount.")
+current item gets bigger than this amount.
+
+This variable only matters if `undo-ask-before-discard' is non-nil.")
 (make-variable-buffer-local 'undo-extra-outer-limit)
 
-;; When the first undo batch in an undo list is longer than undo-outer-limit,
-;; this function gets called to ask the user what to do.
-;; Garbage collection is inhibited around the call,
-;; so it had better not do a lot of consing.
+;; When the first undo batch in an undo list is longer than
+;; undo-outer-limit, this function gets called to warn the user that
+;; the undo info for the current command was discarded.  Garbage
+;; collection is inhibited around the call, so it had better not do a
+;; lot of consing.
 (setq undo-outer-limit-function 'undo-outer-limit-truncate)
 (defun undo-outer-limit-truncate (size)
-  (when (or (null undo-extra-outer-limit)
-	    (> size undo-extra-outer-limit))
-    ;; Don't ask the question again unless it gets even bigger.
-    ;; This applies, in particular, if the user quits from the question.
-    ;; Such a quit quits out of GC, but something else will call GC
-    ;; again momentarily.  It will call this function again,
-    ;; but we don't want to ask the question again.
-    (setq undo-extra-outer-limit (+ size 50000))
-    (if (let (use-dialog-box)
-	  (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
-			       (buffer-name) size)))
-	(progn (setq buffer-undo-list nil)
-	       (setq undo-extra-outer-limit nil)
-	       t)
-      nil)))
+  (if undo-ask-before-discard
+      (when (or (null undo-extra-outer-limit)
+		(> size undo-extra-outer-limit))
+	;; Don't ask the question again unless it gets even bigger.
+	;; This applies, in particular, if the user quits from the question.
+	;; Such a quit quits out of GC, but something else will call GC
+	;; again momentarily.  It will call this function again,
+	;; but we don't want to ask the question again.
+	(setq undo-extra-outer-limit (+ size 50000))
+	(if (let (use-dialog-box track-mouse executing-kbd-macro )
+	      (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+				   (buffer-name) size)))
+	    (progn (setq buffer-undo-list nil)
+		   (setq undo-extra-outer-limit nil)
+		   t)
+	  nil))
+    (display-warning '(undo discard-info)
+		     (concat
+		      (format "Buffer %s undo info was %d bytes long.\n"
+			      (buffer-name) size)
+		      "The undo info was discarded because it exceeded \
+`undo-outer-limit'.
+
+This is normal if you executed a command that made a huge change
+to the buffer.  In that case, to prevent similar problems in the
+future, set `undo-outer-limit' to a value that is large enough to
+cover the maximum size of normal changes you expect a single
+command to make, but not so large that it might exceed the
+maximum memory allotted to Emacs.
+
+If you did not execute any such command, the situation is
+probably due to a bug and you should report it.
+
+You can disable the popping up of this buffer by adding the entry
+\(undo discard-info) to the user option `warning-suppress-types'.\n")
+		     :warning)
+    (setq buffer-undo-list nil)
+    t))
 
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
@@ -3012,10 +3060,10 @@ Does not set point.  Does nothing if mark ring is empty."
   (when mark-ring
     (setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
     (set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
-    (deactivate-mark)
     (move-marker (car mark-ring) nil)
     (if (null (mark t)) (ding))
-    (setq mark-ring (cdr mark-ring))))
+    (setq mark-ring (cdr mark-ring)))
+  (deactivate-mark))
 
 (defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark (&optional arg)
@@ -3182,10 +3230,31 @@ Outline mode sets this."
       (or (memq prop buffer-invisibility-spec)
 	  (assq prop buffer-invisibility-spec)))))
 
+;; Perform vertical scrolling of tall images if necessary.
+(defun line-move (arg &optional noerror to-end)
+  (if auto-window-vscroll
+      (let ((forward (> arg 0))
+	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
+	(if (and (consp part)
+		 (> (setq part (if forward (cdr part) (car part))) 0))
+	    (set-window-vscroll nil
+				(if forward
+				    (+ (window-vscroll nil t)
+				       (min part
+					    (* (frame-char-height) arg)))
+				  (max 0
+				       (- (window-vscroll nil t)
+					  (min part
+					       (* (frame-char-height) (- arg))))))
+				t)
+	  (set-window-vscroll nil 0)
+	  (line-move-1 arg noerror to-end)))
+    (line-move-1 arg noerror to-end)))
+
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
 ;; The value is t if we can move the specified number of lines.
-(defun line-move (arg &optional noerror to-end)
+(defun line-move-1 (arg &optional noerror to-end)
   ;; Don't run any point-motion hooks, and disregard intangibility,
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
@@ -3594,7 +3663,7 @@ With argument, do this that many times."
 The place mark goes is the same place \\[forward-word] would
 move to with the same argument.
 Interactively, if this command is repeated
-or (in Transient Mark mode) if the mark is active, 
+or (in Transient Mark mode) if the mark is active,
 it marks the next ARG words after the ones already marked."
   (interactive "P\np")
   (cond ((and allow-extend
@@ -4004,7 +4073,7 @@ when it is off screen)."
 		(setq matching-paren
 		      (let ((syntax (syntax-after blinkpos)))
 			(and (consp syntax)
-			     (eq (car syntax) 4)
+			     (eq (logand (car syntax) 255) 4)
 			     (cdr syntax)))
 		      mismatch
 		      (or (null matching-paren)
@@ -4119,7 +4188,7 @@ specification for `play-sound'."
     (play-sound sound)))
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
-
+
 (defcustom read-mail-command 'rmail
   "*Your preference for a mail reading package.
 This is used by some keybindings which support reading mail.
@@ -4261,7 +4330,7 @@ Each action has the form (FUNCTION . ARGS)."
    (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
 		'switch-to-buffer-other-frame yank-action send-actions))
-
+
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.")
 
@@ -4324,7 +4393,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
   ;; Force a thorough redisplay for the case that the variable
   ;; has an effect on the display, like `tab-width' has.
   (force-mode-line-update))
-
+
 ;; Define the major mode for lists of completions.
 
 (defvar completion-list-mode-map nil
@@ -4332,6 +4401,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 (or completion-list-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] 'mouse-choose-completion)
+      (define-key map [follow-link] 'mouse-face)
       (define-key map [down-mouse-2] nil)
       (define-key map "\C-m" 'choose-completion)
       (define-key map "\e\e\e" 'delete-completion-window)

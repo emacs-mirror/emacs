@@ -1,8 +1,8 @@
 ;;; reftex-index.el --- index support with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 
@@ -360,7 +360,7 @@ _ ^        Add/Remove parent key (to make this item a subitem).
       (reftex-highlight 0 (match-beginning 0) (match-end 0) (current-buffer)))
     match))
 
-(defun reftex-display-index (&optional tag overriding-restriction
+(defun reftex-display-index (&optional tag overriding-restriction redo
                                        &rest locations)
   "Display a buffer with an index compiled from the current document.
 When the document has multiple indices, first prompts for the correct one.
@@ -387,7 +387,7 @@ With prefix 3, restrict index to region."
          (calling-file (buffer-file-name))
          (restriction
           (or overriding-restriction
-              (and (interactive-p) 
+              (and (not redo) 
                    (reftex-get-restriction current-prefix-arg docstruct))))
          (locations
           ;; See if we are on an index macro as initial position
@@ -427,7 +427,7 @@ With prefix 3, restrict index to region."
     (if restriction
         (setq reftex-index-restriction-indicator (car restriction)
               reftex-index-restriction-data (cdr restriction))
-      (if (interactive-p)
+      (if (not redo)
           (setq reftex-index-restriction-indicator nil
                 reftex-index-restriction-data nil)))
     (when (= (buffer-size) 0)
@@ -703,7 +703,7 @@ The function will go to the section where the entry at point was defined."
               (error "Don't know which file to rescan.  Try `C-u r'")
             (switch-to-buffer (reftex-get-file-buffer-force file))
             (setq current-prefix-arg '(4))
-            (reftex-display-index index-tag nil line)))
+            (reftex-display-index index-tag nil 'redo line)))
       (reftex-index-Rescan))
     (reftex-kill-temporary-buffers)))
 (defun reftex-index-Rescan (&rest ignore)
@@ -714,7 +714,7 @@ The function will go to the section where the entry at point was defined."
     (switch-to-buffer
      (reftex-get-file-buffer-force reftex-last-index-file))
     (setq current-prefix-arg '(16))
-    (reftex-display-index index-tag nil line)))
+    (reftex-display-index index-tag nil 'redo line)))
 (defun reftex-index-revert (&rest ignore)
   "Regenerate the *Index* from the internal lists.  No reparsing os done."
   (interactive)
@@ -727,14 +727,14 @@ The function will go to the section where the entry at point was defined."
     (reftex-erase-buffer buf)
     (setq current-prefix-arg nil
           reftex-last-follow-point 1)
-    (reftex-display-index index-tag nil data line)))
+    (reftex-display-index index-tag nil 'redo data line)))
 (defun reftex-index-switch-index-tag (&rest ignore)
   "Switch to a different index of the same document."
   (interactive)
   (switch-to-buffer
    (reftex-get-file-buffer-force reftex-last-index-file))
   (setq current-prefix-arg nil)
-  (reftex-display-index))
+  (reftex-display-index nil nil 'redo))
 
 (defun reftex-index-restrict-to-section (&optional force)
   "Restrict index to entries defined in same document sect. as entry at point."
@@ -1352,23 +1352,23 @@ Here are all local bindings.
     (if (re-search-forward reftex-index-phrases-phrase-regexp12 nil t)
         (progn
           (goto-char (match-beginning 0))
-          (reftex-index-this-phrase))
+          (reftex-index-this-phrase 'slave))
       (error "No more phrase lines after point"))))
 
-(defun reftex-index-this-phrase ()
+(defun reftex-index-this-phrase (&optional slave)
   "Index the phrase in the current line.
 Does a global search and replace in the entire document.  At each
 match, the user will be asked to confirm the replacement."
   (interactive)
-  (if (interactive-p) (reftex-index-phrases-parse-header t))
+  (if (not slave) (reftex-index-phrases-parse-header t))
   (save-excursion
     (beginning-of-line)
     (cond ((looking-at reftex-index-phrases-comment-regexp)
-           (if (interactive-p) (error "Comment line")))
+           (if (not slave) (error "Comment line")))
           ((looking-at "^[ \t]*$")
-           (if (interactive-p) (error "Empty line")))
+           (if (not slave) (error "Empty line")))
           ((looking-at reftex-index-phrases-macrodef-regexp)
-           (if (interactive-p) (error "Macro definition line")))
+           (if (not slave) (error "Macro definition line")))
           ((looking-at reftex-index-phrases-phrase-regexp12)
            ;; This is a phrase
            (let* ((char (if (not (equal (match-string 1) ""))
@@ -1429,7 +1429,7 @@ Calls `reftex-index-this-phrase' on each line in the region."
   (goto-char beg)
   (while (not (or (eobp)
                   (>= (point) end)))
-    (save-excursion (reftex-index-this-phrase))
+    (save-excursion (reftex-index-this-phrase 'slave))
     (beginning-of-line 2)))
 
 (defun reftex-index-phrases-parse-header (&optional get-files)
@@ -1736,12 +1736,15 @@ With optional arg ALLOW-NEWLINE, allow single newline between words."
                        "\\([ \t]*\\(\n[ \t]*\\)?\\|[ \t]\\)"
                      "\\([ \t]+\\)")))
     (concat (if (and as-words (string-match "\\`\\w" (car words)))
-                "\\<" "")
-            (mapconcat (lambda (w) (regexp-quote (downcase w)))
+                "\\(\\<\\|[`']\\)" "")
+            (mapconcat (lambda (w) (regexp-quote 
+                                    (if reftex-index-phrases-case-fold-search
+                                        (downcase w)
+                                      w)))
                        words space-re)
             (if (and as-words 
                      (string-match "\\w\\'" (nth (1- (length words)) words)))
-                "\\>" ""))))
+                "\\(\\>\\|'\\)" ""))))
 
 (defun reftex-index-simplify-phrase (phrase)
   "Make phrase single spaces and single line."
@@ -1825,6 +1828,8 @@ both ends."
     (unwind-protect
         (while (re-search-forward re nil t)
           (catch 'next-match
+            (if (reftex-in-comment)
+                (throw 'next-match nil))
             (if (and (fboundp reftex-index-verify-function)
                      (not (funcall reftex-index-verify-function)))
                 (throw 'next-match nil))
@@ -1925,7 +1930,7 @@ both ends."
       (reftex-unhighlight 0))))
 
 (defun reftex-index-phrase-match-is-indexed (beg end)
-  ;; CHeck if match is in an argument of an index macro, or if an
+  ;; Check if match is in an argument of an index macro, or if an
   ;; index macro is directly attached to the match.
   (save-excursion
     (goto-char end)

@@ -819,8 +819,7 @@ w32_reset_terminal_modes (void)
 
 /* Function prototypes of this page.  */
 
-static XCharStruct *w32_per_char_metric P_ ((XFontStruct *,
-                                             wchar_t *, int));
+XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
 static int w32_encode_char P_ ((int, wchar_t *, struct font_info *, int *));
 
 
@@ -957,7 +956,7 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 }
 
 
-static XCharStruct *
+XCharStruct *
 w32_per_char_metric (font, char2b, font_type)
      XFontStruct *font;
      wchar_t *char2b;
@@ -1922,15 +1921,9 @@ x_draw_glyph_string_box (s)
   struct glyph *last_glyph;
   RECT clip_rect;
 
-  last_x = window_box_right (s->w, s->area);
-  if (s->row->full_width_p
-      && !s->w->pseudo_window_p)
-    {
-      last_x += WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH (s->w);
-      if (s->area != RIGHT_MARGIN_AREA
-	  || WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
-	last_x += WINDOW_RIGHT_FRINGE_WIDTH (s->w);
-    }
+  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
+	    ? WINDOW_RIGHT_EDGE_X (s->w)
+	    : window_box_right (s->w, s->area));
 
   /* The glyph that may have a right box line.  */
   last_glyph = (s->cmp || s->img
@@ -4944,7 +4937,7 @@ x_draw_hollow_cursor (w, row)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   RECT rect;
-  int wd, h;
+  int h;
   struct glyph *cursor_glyph;
   HBRUSH hb = CreateSolidBrush (f->output_data.w32->cursor_pixel);
 
@@ -4954,34 +4947,12 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph == NULL)
     return;
 
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
+  /* Compute frame-relative coordinates for phys cursor.  */
   rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  rect.top = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-              + row->ascent - w->phys_cursor_ascent);
-
-  /* Compute the proper height and ascent of the rectangle, based
-     on the actual glyph.  Using the full height of the row looks
-     bad when there are tall images on that row.  */
-  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
-	   cursor_glyph->ascent + cursor_glyph->descent);
-  if (h < row->height)
-    rect.top += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
-  h--;
-
+  rect.top = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
   rect.bottom = rect.top + h;
+  rect.right = rect.left + w->phys_cursor_width;
 
-  /* Compute the width of the rectangle to draw.  If on a stretch
-     glyph, and `x-stretch-block-cursor' is nil, don't draw a
-     rectangle as wide as the glyph, but use a canonical character
-     width instead.  */
-  wd = cursor_glyph->pixel_width; /* TODO: Why off by one compared with X? */
-  if (cursor_glyph->type == STRETCH_GLYPH
-      && !x_stretch_cursor_p)
-    wd = min (FRAME_COLUMN_WIDTH (f), wd);
-  w->phys_cursor_width = wd;
-
-  rect.right = rect.left + wd;
   hdc = get_frame_dc (f);
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   w32_clip_to_row (w, row, TEXT_AREA, hdc);
@@ -5290,7 +5261,8 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
-  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);

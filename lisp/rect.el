@@ -127,14 +127,14 @@ the function is called."
     ))
 
 (defun delete-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (delete-region (point)
 		   (progn (move-to-column endcol 'coerce)
 			  (point)))))
 
 (defun delete-extract-rectangle-line (startcol endcol lines fill)
   (let ((pt (point-at-eol)))
-    (if (< (move-to-column startcol (or fill 'coerce)) startcol)
+    (if (< (move-to-column startcol (if fill t 'coerce)) startcol)
 	(setcdr lines (cons (spaces-string (- endcol startcol))
 			    (cdr lines)))
       ;; else
@@ -284,13 +284,13 @@ on the right side of the rectangle."
   (goto-char start))
 
 (defun open-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (and (not fill)
 		 (= (point) (point-at-eol)))
       (indent-to endcol))))
 
 (defun delete-whitespace-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (= (point) (point-at-eol))
       (delete-region (point) (progn (skip-syntax-forward " ") (point))))))
 
@@ -371,7 +371,7 @@ rectangle which were empty."
 
 (defun clear-rectangle-line (startcol endcol fill)
   (let ((pt (point-at-eol)))
-    (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+    (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
       (if (and (not fill)
 	       (<= (save-excursion (goto-char pt) (current-column)) endcol))
 	  (delete-region (point) pt)

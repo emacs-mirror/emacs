@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002, 2004
+;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002, 2004, 2005
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -631,6 +631,12 @@ and the buffer that is killed or buried is the one in that window."
   (interactive "e")
   (let ((window (posn-window (event-start event))))
     (if (and (window-live-p window)
+	     ;; Don't switch if we're currently in the minibuffer.
+	     ;; This tries to work around problems where the minibuffer gets
+	     ;; unselected unexpectedly, and where you then have to move
+	     ;; your mouse all the way down to the minibuffer to select it.
+	     (not (window-minibuffer-p (selected-window)))
+	     ;; Don't switch to a minibuffer window unless it's active.
 	     (or (not (window-minibuffer-p window))
 		 (minibuffer-window-active-p window)))
 	(select-window window))))
@@ -643,5 +649,5 @@ and the buffer that is killed or buried is the one in that window."
 (define-key ctl-x-map "+" 'balance-windows)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 
-;;; arch-tag: b508dfcc-c353-4c37-89fa-e773fe10cea9
+;; arch-tag: b508dfcc-c353-4c37-89fa-e773fe10cea9
 ;;; window.el ends here

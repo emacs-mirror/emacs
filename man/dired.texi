@@ -1116,13 +1116,10 @@ marked file.  As a special case, if no prefix argument is given and
 point is on a directory headerline, @kbd{w} gives you the name of that
 directory without looking for marked files.
 
-@vindex dired-marked-files
 The main purpose of the @kbd{w} command is so that you can yank the
 file names into arguments for other Emacs commands.  It also displays
 what was pushed onto the kill ring, so you can use it to display the
-list of currently marked files in the echo area.  It also stores the
-list of names in the variable @code{dired-marked-files}, for use in
-Lisp expressions.
+list of currently marked files in the echo area.
 @end table
 
 @ignore

@@ -64,6 +64,27 @@ strings or patterns."
   :group 'matching
   :version "21.4")
 
+(defcustom query-replace-highlight t
+  "*Non-nil means to highlight matches during query replacement."
+  :type 'boolean
+  :group 'matching)
+
+(defcustom query-replace-lazy-highlight t
+  "*Controls the lazy-highlighting during query replacements.
+When non-nil, all text in the buffer matching the current match
+is highlighted lazily using isearch lazy highlighting (see
+`lazy-highlight-initial-delay' and `lazy-highlight-interval')."
+  :type 'boolean
+  :group 'lazy-highlight
+  :group 'matching
+  :version "21.4")
+
+(defface query-replace
+  '((t (:inherit isearch)))
+  "Face for highlighting query replacement matches."
+  :group 'matching
+  :version "21.4")
+
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
@@ -736,9 +757,12 @@ Compatibility function for \\[next-error] invocations."
   (interactive "p")
   ;; we need to run occur-find-match from within the Occur buffer
   (with-current-buffer
+      ;; Choose the buffer and make it current.
       (if (next-error-buffer-p (current-buffer))
 	  (current-buffer)
-	(next-error-find-buffer nil nil (lambda() (eq major-mode 'occur-mode))))
+	(next-error-find-buffer nil nil
+				(lambda ()
+				  (eq major-mode 'occur-mode))))
 
     (goto-char (cond (reset (point-min))
 		     ((< argp 0) (line-beginning-position))
@@ -799,9 +823,10 @@ If the value is nil, don't highlight the buffer names specially."
 	(setq count (+ count (if forwardp -1 1)))
 	(setq beg (line-beginning-position)
 	      end (line-end-position))
-	(if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
+	(if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
 		 (text-property-not-all beg end 'fontified t))
-	    (jit-lock-fontify-now beg end))
+	    (if (fboundp 'jit-lock-fontify-now)
+		(jit-lock-fontify-now beg end)))
 	(push
 	 (funcall (if keep-props
 		      #'buffer-substring
@@ -918,17 +943,20 @@ See also `multi-occur'."
 (defun occur-1 (regexp nlines bufs &optional buf-name)
   (unless buf-name
     (setq buf-name "*Occur*"))
-  (let ((occur-buf (get-buffer-create buf-name))
-	(made-temp-buf nil)
+  (let (occur-buf
 	(active-bufs (delq nil (mapcar #'(lambda (buf)
 					   (when (buffer-live-p buf) buf))
 				       bufs))))
     ;; Handle the case where one of the buffers we're searching is the
-    ;; *Occur* buffer itself.
-    (when (memq occur-buf bufs)
-      (setq occur-buf (with-current-buffer occur-buf
-			(clone-buffer "*Occur-temp*"))
-	    made-temp-buf t))
+    ;; output buffer.  Just rename it.
+    (when (member buf-name (mapcar 'buffer-name active-bufs))
+      (with-current-buffer (get-buffer buf-name)
+	(rename-uniquely)))
+
+    ;; Now find or create the output buffer.
+    ;; If we just renamed that buffer, we will make a new one here.
+    (setq occur-buf (get-buffer-create buf-name))
+
     (with-current-buffer occur-buf
       (setq buffer-read-only nil)
       (occur-mode)
@@ -948,12 +976,6 @@ See also `multi-occur'."
 		   (if (zerop count) "no" (format "%d" count))
 		   (if (= count 1) "" "es")
 		   regexp))
-	;; If we had to make a temporary buffer, make it the *Occur*
-	;; buffer now.
-	(when made-temp-buf
-	  (with-current-buffer (get-buffer buf-name)
-	    (kill-buffer (current-buffer)))
-	  (rename-buffer buf-name))
 	(setq occur-revert-arguments (list regexp nlines bufs)
 	      buffer-read-only t)
 	(if (> count 0)
@@ -1008,9 +1030,11 @@ See also `multi-occur'."
 			    endpt (line-end-position)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
+		    (if (and keep-props
+			     (if (boundp 'jit-lock-mode) jit-lock-mode)
 			     (text-property-not-all begpt endpt 'fontified t))
-			(jit-lock-fontify-now begpt endpt))
+			(if (fboundp 'jit-lock-fontify-now)
+			    (jit-lock-fontify-now begpt endpt)))
 		    (setq curstring (buffer-substring begpt endpt))
 		    ;; Depropertize the string, and maybe
 		    ;; highlight the matches
@@ -1601,27 +1625,6 @@ make, or the user didn't cancel the call."
 		 (if (= replace-count 1) "" "s")))
     (and keep-going stack)))
 
-(defcustom query-replace-highlight t
-  "*Non-nil means to highlight matches during query replacement."
-  :type 'boolean
-  :group 'matching)
-
-(defcustom query-replace-lazy-highlight t
-  "*Controls the lazy-highlighting during query replacements.
-When non-nil, all text in the buffer matching the current match
-is highlighted lazily using isearch lazy highlighting (see
-`isearch-lazy-highlight-initial-delay' and
-`isearch-lazy-highlight-interval')."
-  :type 'boolean
-  :group 'matching
-  :version "21.4")
-
-(defface query-replace
-  '((t (:inherit isearch)))
-  "Face for highlighting query replacement matches."
-  :group 'matching
-  :version "21.4")
-
 (defvar replace-overlay nil)
 
 (defun replace-highlight (beg end)
@@ -1638,7 +1641,7 @@ is highlighted lazily using isearch lazy highlighting (see
   (when replace-overlay
     (delete-overlay replace-overlay))
   (when query-replace-lazy-highlight
-    (isearch-lazy-highlight-cleanup isearch-lazy-highlight-cleanup)
+    (isearch-lazy-highlight-cleanup lazy-highlight-cleanup)
     (setq isearch-lazy-highlight-last-string nil)))
 
 ;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4

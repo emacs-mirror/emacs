@@ -1952,6 +1952,7 @@ DEFUN ("bury-buffer", Fbury_buffer, Sbury_buffer, 0, 1, "",
        doc: /* Put BUFFER at the end of the list of all buffers.
 There it is the least likely candidate for `other-buffer' to return;
 thus, the least likely buffer for \\[switch-to-buffer] to select by default.
+You can specify a buffer name as BUFFER, or an actual buffer object.
 If BUFFER is nil or omitted, bury the current buffer.
 Also, if BUFFER is nil or omitted, remove the current buffer from the
 selected window if it is displayed there.  */)
@@ -5781,6 +5782,14 @@ obsolete.
 An entry (nil PROPERTY VALUE BEG . END) indicates that a text property
 was modified between BEG and END.  PROPERTY is the property name,
 and VALUE is the old value.
+
+An entry (apply FUN-NAME . ARGS) means undo the change with
+\(apply FUN-NAME ARGS).
+
+An entry (apply DELTA BEG END FUN-NAME . ARGS) supports selective undo
+in the active region.  BEG and END is the range affected by this entry
+and DELTA is the number of bytes added or deleted in that range by
+this change.
 
 An entry (MARKER . DISTANCE) indicates that the marker MARKER
 was adjusted in position by the offset DISTANCE (an integer).

@@ -168,7 +168,7 @@ set to nil, as the value is no longer rogue."
     ;; Do the actual initialization.
     (unless custom-dont-initialize
       (funcall initialize symbol default)))
-  (push (cons 'defvar symbol) current-load-list)
+  (push symbol current-load-list)
   (run-hooks 'custom-define-hook)
   symbol)
 
@@ -710,44 +710,46 @@ in every Customization buffer.")
 (put 'custom-local-buffer 'permanent-local t)
 
 (defun custom-set-variables (&rest args)
-  "Initialize variables according to user preferences.
-The settings are registered as theme `user'.
+  "Install user customizations of variable values specified in ARGS.
+These settings are registered as theme `user'.
 The arguments should each be a list of the form:
 
-  (SYMBOL VALUE [NOW [REQUEST [COMMENT]]])
+  (SYMBOL EXP [NOW [REQUEST [COMMENT]]])
 
-The unevaluated VALUE is stored as the saved value for SYMBOL.
-If NOW is present and non-nil, VALUE is also evaluated and bound as
-the default value for the SYMBOL.
+This stores EXP (without evaluating it) as the saved value for SYMBOL.
+If NOW is present and non-nil, then also evaluate EXP and set
+the default value for the SYMBOL to the value of EXP.
 
-REQUEST is a list of features we must 'require for SYMBOL.
+REQUEST is a list of features we must require in order to
+handle SYMBOL properly.
 COMMENT is a comment string about SYMBOL."
   (apply 'custom-theme-set-variables 'user args))
 
 (defun custom-theme-set-variables (theme &rest args)
-  "Initialize variables according to settings specified by args.
-Records the settings as belonging to THEME.
+  "Initialize variables for theme THEME according to settings in ARGS.
+Each of the arguments in ARGS should be a list of this form:
 
-The arguments should be a list where each entry has the form:
+  (SYMBOL EXP [NOW [REQUEST [COMMENT]]])
 
-  (SYMBOL VALUE [NOW [REQUEST [COMMENT]]])
+This stores EXP (without evaluating it) as the saved value for SYMBOL.
+If NOW is present and non-nil, then also evaluate EXP and set
+the default value for the SYMBOL to the value of EXP.
 
-The unevaluated VALUE is stored as the saved value for SYMBOL.
-If NOW is present and non-nil, VALUE is also evaluated and bound as
-the default value for the SYMBOL.
-REQUEST is a list of features we must 'require for SYMBOL.
+REQUEST is a list of features we must require in order to
+handle SYMBOL properly.
 COMMENT is a comment string about SYMBOL.
 
 Several properties of THEME and SYMBOL are used in the process:
 
-If THEME property `theme-immediate' is non-nil, this is equivalent of
-providing the NOW argument to all symbols in the argument list: SYMBOL
-is bound to the evaluated VALUE.  The only difference is SYMBOL property
+If THEME's property `theme-immediate' is non-nil, this is equivalent of
+providing the NOW argument to all symbols in the argument list:
+evaluate each EXP and set the corresponding SYMBOL.  However,
+there's a difference in the handling of SYMBOL's property
 `force-value': if NOW is non-nil, SYMBOL's property `force-value' is set to
 the symbol `rogue', else if THEME's property `theme-immediate' is non-nil,
-FACE's property `force-face' is set to the symbol `immediate'.
+SYMBOL's property `force-value' is set to the symbol `immediate'.
 
-VALUE itself is saved unevaluated as SYMBOL property `saved-value' and
+EXP itself is saved unevaluated as SYMBOL property `saved-value' and
 in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
   (custom-check-theme theme)
   (let ((immediate (get theme 'theme-immediate)))

@@ -446,7 +446,9 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
-    (let* ((async (and (vc-stay-local-p file) (fboundp 'start-process)))
+    (let* ((async (and (not vc-disable-async-diff)
+                       (vc-stay-local-p file) 
+                       (fboundp 'start-process)))
 	   ;; Run the command from the root dir so that `mcvs filt' returns
 	   ;; valid relative names.
 	   (default-directory (vc-mcvs-root file))

@@ -20,6 +20,13 @@ to the FSF.
 ** Redefine define-generic-mode as a macro, so the compiler
   sees the definitions it generates.
 
+** Change the way define-minor-mode handles autoloading.
+  It should not generate :require.  Or :require in defcustom
+  should not be recorded in the user's custom-set-variables call.
+
+** The buttons at the top of a custom buffer should not omit
+  variables whose values are currently hidden.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
@@ -70,6 +77,12 @@ to the FSF.
   be only full columns/lines.
 
 * Other features we would like:
+
+** A function to check for customizable options that have been
+  set but not saved, and ask the user whether to save them.
+  This could go in kill-emacs-query-functions, to remind people
+  to save their changes. If the user says yes, show them
+  in a Custom buffer using customize-customized.
 
 ** ange-ftp
 *** understand sftp
@@ -320,6 +333,9 @@ to the FSF.
   in lib-src so that they can be used from the input method
   "japanese".  Currently, most Japanese users are using external
   packages (e.g. tamago, anthy) or an input method via XIM.
+
+** Provide the toolbar on ttys. This could map a bit like tmm-menubar
+   for the menubar and buttons could look a bit like those used by customize.
 
 * Internal changes
 

@@ -774,7 +774,10 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
   fontp->name = (char *) xmalloc (strlen (fontname) + 1);
   bcopy (fontname, fontp->name, strlen (fontname) + 1);
   fontp->full_name = fontp->name;
-  fontp->size = FONT_WIDTH (font);
+  /* FIXME: look at BDF spec to see if there are better ways of finding
+     average_width and space_width, hopefully that don't involve working out
+     the values for ourselves from the data.  */
+  fontp->size = fontp->average_width = fontp->space_width = FONT_WIDTH (font);
   fontp->height = FONT_HEIGHT (font);
 
     /* The slot `encoding' specifies how to map a character

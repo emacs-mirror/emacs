@@ -304,9 +304,14 @@ If FILE is nil, execute BODY in the current buffer."
        (if ,filesym
 	   (with-temp-buffer
 	     (insert-file-contents ,filesym)
+	     (lisp-mode)
 	     ,@body)
 	 (save-excursion 
-	   ,@body)))))
+	   ;; Switching major modes is too drastic, so just switch
+	   ;; temporarily to the Lisp mode syntax table.
+	   (with-syntax-table lisp-mode-syntax-table
+	     ,@body))))))
+
 (put 'lm-with-file 'lisp-indent-function 1)
 (put 'lm-with-file 'edebug-form-spec t)
 

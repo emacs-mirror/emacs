@@ -1540,14 +1540,12 @@ tells Emacs that the current interval is over.
 @vindex timeclock-file
 @findex timeclock-reread-log
   The timeclock functions work by accumulating the data in a file
-called @file{.timelog} in your home directory.  (On MS-DOS, this file
-is called @file{_timelog}, since an initial period is not allowed in
-file names on MS-DOS.)  You can specify a different name for this file
-by customizing the variable @code{timeclock-file}.  If you edit the
-timeclock file manually, or if you change the value of any of
-timeclock's customizable variables, you should run the command
-@kbd{M-x timeclock-reread-log} to update the data in Emacs from the
-file.
+called @file{.timelog} in your home directory.  You can specify a
+different name for this file by customizing the variable
+@code{timeclock-file}.  If you edit the timeclock file manually, or if
+you change the value of any of timeclock's customizable variables, you
+should run the command @kbd{M-x timeclock-reread-log} to update the
+data in Emacs from the file.
 
 @ignore
    arch-tag: 4531ef09-9df3-449d-9c52-2b5a4a337f92

@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -69,6 +69,7 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
+#include <sys/param.h>
 
 #include "keyboard.h"
 #include "frame.h"
@@ -99,6 +100,10 @@ Boston, MA 02111-1307, USA.  */
 /* Non-nil means Emacs uses toolkit scroll bars.  */
 
 Lisp_Object Vx_toolkit_scroll_bars;
+
+/* If Non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */
+Lisp_Object Vmac_use_core_graphics;
+
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
@@ -724,6 +729,13 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      int nchars, mode, bytes_per_char;
 {
   SetPortWindowPort (w);
+#ifdef MAC_OS_X_VERSION_10_2
+  UInt32 textFlags, savedFlags;
+  if (!NILP(Vmac_use_core_graphics)) {
+    textFlags = kQDUseCGTextRendering;
+    savedFlags = SwapQDTextFlags(textFlags);
+  }
+#endif
 
   mac_set_colors (gc);
 
@@ -734,6 +746,10 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+#ifdef MAC_OS_X_VERSION_10_2
+  if (!NILP(Vmac_use_core_graphics))
+    SwapQDTextFlags(savedFlags);
+#endif
 }
 
 
@@ -1087,6 +1103,62 @@ XSetForeground (display, gc, color)
      unsigned long color;
 {
   gc->foreground = color;
+}
+
+
+/* Mac replacement for XSetBackground.  */
+
+void
+XSetBackground (display, gc, color)
+     Display *display;
+     GC gc;
+     unsigned long color;
+{
+  gc->background = color;
+}
+
+
+/* Mac replacement for XSetWindowBackground.  */
+
+void
+XSetWindowBackground (display, w, color)
+     Display *display;
+     WindowPtr w;
+     unsigned long color;
+{
+#if !TARGET_API_MAC_CARBON
+  AuxWinHandle aw_handle;
+  CTabHandle ctab_handle;
+  ColorSpecPtr ct_table;
+  short ct_size;
+#endif
+  RGBColor bg_color;
+
+  bg_color.red = RED16_FROM_ULONG (color);
+  bg_color.green = GREEN16_FROM_ULONG (color);
+  bg_color.blue = BLUE16_FROM_ULONG (color);
+
+#if TARGET_API_MAC_CARBON
+  SetWindowContentColor (w, &bg_color);
+#else
+  if (GetAuxWin (w, &aw_handle))
+    {
+      ctab_handle = (*aw_handle)->awCTable;
+      HandToHand ((Handle *) &ctab_handle);
+      ct_table = (*ctab_handle)->ctTable;
+      ct_size = (*ctab_handle)->ctSize;
+      while (ct_size > -1)
+	{
+	  if (ct_table->value == 0)
+	    {
+	      ct_table->rgb = bg_color;
+	      CTabChanged (ctab_handle);
+	      SetWinColor (w, (WCTabHandle) ctab_handle);
+	    }
+	  ct_size--;
+	}
+    }
+#endif
 }
 
 
@@ -1919,20 +1991,33 @@ static void
 mac_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
-#if 0
-  /* MAC_TODO: XTextExtents16 does nothing yet... */
+  Rect r;
+  MacFontStruct *font = s->font;
 
-  if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH)
+  TextFont (font->mac_fontnum);
+  TextSize (font->mac_fontsize);
+  TextFace (font->mac_fontface);
+
+  if (s->two_byte_p)
+    QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
+  else
     {
-      XCharStruct cs;
-      int direction, font_ascent, font_descent;
-      XTextExtents16 (s->font, s->char2b, s->nchars, &direction,
-		      &font_ascent, &font_descent, &cs);
-      s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
-      s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+      int i;
+      char *buf = xmalloc (s->nchars);
+
+      if (buf == NULL)
+	SetRect (&r, 0, 0, 0, 0);
+      else
+	{
+	  for (i = 0; i < s->nchars; ++i)
+	    buf[i] = s->char2b[i].byte2;
+	  QDTextBounds (s->nchars, buf, &r);
+	  xfree (buf);
+	}
     }
-#endif
+
+  s->right_overhang = r.right > s->width ? r.right - s->width : 0;
+  s->left_overhang = r.left < 0 ? -r.left : 0;
 }
 
 
@@ -2570,15 +2655,9 @@ x_draw_glyph_string_box (s)
   struct glyph *last_glyph;
   Rect clip_rect;
 
-  last_x = window_box_right (s->w, s->area);
-  if (s->row->full_width_p
-      && !s->w->pseudo_window_p)
-    {
-      last_x += WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH (s->w);
-      if (s->area != RIGHT_MARGIN_AREA
-	  || WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
-	last_x += WINDOW_RIGHT_FRINGE_WIDTH (s->w);
-    }
+  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
+	    ? WINDOW_RIGHT_EDGE_X (s->w)
+	    : window_box_right (s->w, s->area));
 
   /* The glyph that may have a right box line.  */
   last_glyph = (s->cmp || s->img
@@ -3006,10 +3085,12 @@ x_draw_glyph_string (s)
 {
   int relief_drawn_p = 0;
 
-  /* If S draws into the background of its successor, draw the
-     background of the successor first so that S can draw into it.
-     This makes S->next use XDrawString instead of XDrawImageString.  */
-  if (s->next && s->right_overhang && !s->for_overlaps_p)
+  /* If S draws into the background of its successor that does not
+     draw a cursor, draw the background of the successor first so that
+     S can draw into it.  This makes S->next use XDrawString instead
+     of XDrawImageString.  */
+  if (s->next && s->right_overhang && !s->for_overlaps_p
+      && s->next->hl != DRAW_CURSOR)
     {
       xassert (s->next->img == NULL);
       x_set_glyph_string_gc (s->next);
@@ -4650,29 +4731,10 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph == NULL)
     return;
 
-  /* Compute the width of the rectangle to draw.  If on a stretch
-     glyph, and `x-stretch-block-cursor' is nil, don't draw a
-     rectangle as wide as the glyph, but use a canonical character
-     width instead.  */
-  wd = cursor_glyph->pixel_width - 1;
-  if (cursor_glyph->type == STRETCH_GLYPH
-      && !x_stretch_cursor_p)
-    wd = min (FRAME_COLUMN_WIDTH (f), wd);
-  w->phys_cursor_width = wd;
-
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
+  /* Compute frame-relative coordinates for phys cursor.  */
   x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y);
-
-  /* Compute the proper height and ascent of the rectangle, based
-     on the actual glyph.  Using the full height of the row looks
-     bad when there are tall images on that row.  */
-  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
-	   cursor_glyph->ascent + cursor_glyph->descent);
-  if (h < row->height)
-    y += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
-  h--;
+  y = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
+  wd = w->phys_cursor_width;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -4952,7 +5014,8 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
-  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);
@@ -5857,7 +5920,7 @@ decode_mac_font_name (name, size, scriptcode)
 
 
 static char *
-mac_to_x_fontname (name, size, style, scriptcode, encoding_base)
+mac_to_x_fontname (name, size, style, scriptcode)
      char *name;
      int size;
      Style style;
@@ -6475,12 +6538,8 @@ x_font_min_bounds (font, w, h)
      MacFontStruct *font;
      int *w, *h;
 {
-  /*
-   * TODO: Windows does not appear to offer min bound, only
-   * average and maximum width, and maximum height.
-   */
   *h = FONT_HEIGHT (font);
-  *w = FONT_WIDTH (font);
+  *w = font->min_bounds.width;
 }
 
 
@@ -6693,29 +6752,66 @@ XLoadQueryFont (Display *dpy, char *fontname)
        returns 15 for 12-point Monaco! */
     char_width = CharWidth ('m');
 
-  font->max_bounds.rbearing = char_width;
-  font->max_bounds.lbearing = 0;
-  font->max_bounds.width = char_width;
-  font->max_bounds.ascent = the_fontinfo.ascent;
-  font->max_bounds.descent = the_fontinfo.descent;
+  if (is_two_byte_font)
+    {
+      font->per_char = NULL;
 
-  font->min_bounds = font->max_bounds;
+      if (fontface & italic)
+	font->max_bounds.rbearing = char_width + 1;
+      else
+	font->max_bounds.rbearing = char_width;
+      font->max_bounds.lbearing = 0;
+      font->max_bounds.width = char_width;
+      font->max_bounds.ascent = the_fontinfo.ascent;
+      font->max_bounds.descent = the_fontinfo.descent;
 
-  if (is_two_byte_font || CharWidth ('m') == CharWidth ('i'))
-    font->per_char = NULL;
+      font->min_bounds = font->max_bounds;
+    }
   else
     {
       font->per_char = (XCharStruct *)
 	xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
       {
-        int c;
+	int c, min_width, max_width;
+	Rect char_bounds, min_bounds, max_bounds;
+	char ch;
 
+	min_width = max_width = char_width;
+	SetRect (&min_bounds, -32767, -32767, 32767, 32767);
+	SetRect (&max_bounds, 0, 0, 0, 0);
         for (c = 0x20; c <= 0xff; c++)
           {
-            font->per_char[c - 0x20] = font->max_bounds;
-            font->per_char[c - 0x20].width =
-	      font->per_char[c - 0x20].rbearing = CharWidth (c);
-          }
+	    ch = c;
+	    char_width = CharWidth (ch);
+	    QDTextBounds (1, &ch, &char_bounds);
+	    STORE_XCHARSTRUCT (font->per_char[c - 0x20],
+			       char_width, char_bounds);
+	    /* Some Japanese fonts (in SJIS encoding) return 0 as the
+	       character width of 0x7f.  */
+	    if (char_width > 0)
+	      {
+		min_width = min (min_width, char_width);
+		max_width = max (max_width, char_width);
+	      }
+	    if (!EmptyRect (&char_bounds))
+	      {
+		SetRect (&min_bounds,
+			 max (min_bounds.left, char_bounds.left),
+			 max (min_bounds.top, char_bounds.top),
+			 min (min_bounds.right, char_bounds.right),
+			 min (min_bounds.bottom, char_bounds.bottom));
+		UnionRect (&max_bounds, &char_bounds, &max_bounds);
+	      }
+	  }
+	STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+	STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+	if (min_width == max_width
+	    && max_bounds.left >= 0 && max_bounds.right <= max_width)
+	  {
+	    /* Fixed width and no overhangs.  */
+	    xfree (font->per_char);
+	    font->per_char = NULL;
+	  }
       }
     }
 
@@ -6822,6 +6918,35 @@ x_load_font (f, fontname, size)
     fontp->font_idx = i;
     fontp->name = (char *) xmalloc (strlen (font->fontname) + 1);
     bcopy (font->fontname, fontp->name, strlen (font->fontname) + 1);
+
+    if (font->min_bounds.width == font->max_bounds.width)
+      {
+	/* Fixed width font.  */
+	fontp->average_width = fontp->space_width = font->min_bounds.width;
+      }
+    else
+      {
+	XChar2b char2b;
+	XCharStruct *pcm;
+
+	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
+	pcm = mac_per_char_metric (font, &char2b, 0);
+	if (pcm)
+	  fontp->space_width = pcm->width;
+	else
+	  fontp->space_width = FONT_WIDTH (font);
+
+	if (pcm)
+	  {
+	    int width = pcm->width;
+	    for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+	      if ((pcm = mac_per_char_metric (font, &char2b, 0)) != NULL)
+		width += pcm->width;
+	    fontp->average_width = width / 95;
+	  }
+	else
+	  fontp->average_width = FONT_WIDTH (font);
+      }
 
     fontp->full_name = fontp->name;
 
@@ -7835,6 +7960,14 @@ mac_handle_window_event (next_handler, event, data)
 
   switch (GetEventKind (event))
     {
+    case kEventWindowUpdate:
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      do_window_update (wp);
+      break;
+
     case kEventWindowBoundsChanging:
       result = CallNextEventHandler (next_handler, event);
       if (result != eventNotHandledErr)
@@ -7892,7 +8025,8 @@ install_window_handler (window)
 {
   OSErr err = noErr;
 #if USE_CARBON_EVENTS
-  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowBoundsChanging}};
+  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowUpdate},
+			   {kEventClassWindow, kEventWindowBoundsChanging}};
   static EventHandlerUPP handle_window_event_UPP = NULL;
 
   if (handle_window_event_UPP == NULL)
@@ -7987,24 +8121,28 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
         int i;
 
         /* AE file list is one based so just use that for indexing here.  */
-        for (i = 1; (err == noErr) && (i <= num_files_to_open); i++)
+        for (i = 1; i <= num_files_to_open; i++)
 	  {
-	    FSSpec fs;
-	    Str255 path_name, unix_path_name;
 #ifdef MAC_OSX
 	    FSRef fref;
-#endif
+	    char unix_path_name[MAXPATHLEN];
+
+	    err = AEGetNthPtr (&the_desc, i, typeFSRef, &keyword,
+			       &actual_type, &fref, sizeof (FSRef),
+			       &actual_size);
+	    if (err != noErr || actual_type != typeFSRef)
+	      continue;
+
+	    if (FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name))
+		== noErr)
+#else
+	    FSSpec fs;
+	    Str255 path_name, unix_path_name;
 
 	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
 			      (Ptr) &fs, sizeof (fs), &actual_size);
-	    if (err != noErr) break;
+	    if (err != noErr) continue;
 
-#ifdef MAC_OSX
-	    err = FSpMakeFSRef (&fs, &fref);
-	    if (err != noErr) break;
-
-	    if (FSRefMakePath (&fref, unix_path_name, 255) == noErr)
-#else
 	    if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
 					fs.name) &&
 		mac_to_posix_pathname (path_name, unix_path_name, 255))
@@ -8040,18 +8178,21 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
   FlavorFlags theFlags;
   OSErr result;
 
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
   switch (message)
     {
     case kDragTrackingEnterHandler:
       CountDragItems (theDrag, &items);
-      can_accept = 1;
+      can_accept = 0;
       for (index = 1; index <= items; index++)
 	{
 	  GetDragItemReferenceNumber (theDrag, index, &theItem);
 	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
-	  if (result != noErr)
+	  if (result == noErr)
 	    {
-	      can_accept = 0;
+	      can_accept = 1;
 	      break;
 	    }
 	}
@@ -8062,7 +8203,9 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
 	{
 	  RgnHandle hilite_rgn = NewRgn ();
 	  Rect r;
+	  struct frame *f = mac_window_to_frame (window);
 
+	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  GetWindowPortBounds (window, &r);
 	  OffsetRect (&r, -r.left, -r.top);
 	  RectRgn (hilite_rgn, &r);
@@ -8078,6 +8221,9 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
     case kDragTrackingLeaveWindow:
       if (can_accept)
 	{
+	  struct frame *f = mac_window_to_frame (window);
+
+	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  HideDragHilite (theDrag);
 	  SetThemeCursor (kThemeArrowCursor);
 	}
@@ -8101,8 +8247,10 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
   OSErr result;
   ItemReference theItem;
   HFSFlavor data;
-  FSRef fref;
   Size size = sizeof (HFSFlavor);
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
 
   drag_and_drop_file_list = Qnil;
   GetDragMouse (theDrag, &mouse, 0L);
@@ -8115,11 +8263,11 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       if (result == noErr)
 	{
 #ifdef MAC_OSX
-	  FSRef frref;
+	  FSRef fref;
+	  char unix_path_name[MAXPATHLEN];
 #else
-	  Str255 path_name;
+	  Str255 path_name, unix_path_name;
 #endif
-	  Str255 unix_path_name;
 	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
 #ifdef MAC_OSX
 	  /* Use Carbon routines, otherwise it converts the file name
@@ -8137,8 +8285,6 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 					  strlen (unix_path_name)),
 		     drag_and_drop_file_list);
 	}
-      else
-	continue;
     }
   /* If there are items in the list, construct an event and post it to
      the queue like an interrupt using kbd_buffer_store_event.  */
@@ -8698,8 +8844,9 @@ XTread_socket (sd, expected, hold_quit)
 	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 	      != eventNotHandledErr)
 	    break;
-#endif
+#else
 	  do_window_update ((WindowPtr) er.message);
+#endif
 	  break;
 
 	case osEvt:
@@ -9568,7 +9715,7 @@ static struct redisplay_interface x_redisplay_interface =
   0, /* destroy_fringe_bitmap */
   mac_per_char_metric,
   mac_encode_char,
-  NULL, /* mac_compute_glyph_string_overhangs */
+  mac_compute_glyph_string_overhangs,
   x_draw_glyph_string,
   mac_define_frame_cursor,
   mac_clear_frame_area,
@@ -9756,18 +9903,18 @@ nil then the key will act as the normal Mac option modifier.  */);
 
   DEFVAR_LISP ("mac-reverse-ctrl-meta", &Vmac_reverse_ctrl_meta,
     doc: /* Non-nil means that the control and meta keys are reversed.  This is
-	    useful for non-standard keyboard layouts.  */);
+useful for non-standard keyboard layouts.  */);
   Vmac_reverse_ctrl_meta = Qnil;
 
   DEFVAR_LISP ("mac-emulate-three-button-mouse",
 	       &Vmac_emulate_three_button_mouse,
     doc: /* t means that when the option-key is held down while pressing the
-    mouse button, the click will register as mouse-2 and while the
-    command-key is held down, the click will register as mouse-3.
-    'reverse means that the the option-key will register for mouse-3
-    and the command-key will register for mouse-2.  nil means that
-    not emulation should be done and the modifiers should be placed
-    on the mouse-1 event. */);
+mouse button, the click will register as mouse-2 and while the
+command-key is held down, the click will register as mouse-3.
+'reverse means that the the option-key will register for mouse-3
+and the command-key will register for mouse-2.  nil means that
+no emulation should be done and the modifiers should be placed
+on the mouse-1 event. */);
   Vmac_emulate_three_button_mouse = Qnil;
 
 #if USE_CARBON_EVENTS
@@ -9786,7 +9933,18 @@ Toolbox for processing before Emacs sees it.  */);
    doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
 Toolbox for processing before Emacs sees it.  */);
   Vmac_pass_control_to_system = Qt;
+
+  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
+   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
+Toolbox for processing before Emacs sees it.  */);
+  Vmac_pass_control_to_system = Qt;
 #endif
+
+  DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
+   doc: /* If non-nil, allow anti-aliasing.
+The text will be rendered using Core Graphics text rendering which
+may anti-alias the text.  */);
+  Vmac_use_core_graphics = Qnil;
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
     doc: /* One of the Text Encoding Base constant values defined in the

@@ -1,6 +1,7 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode
 
-;; Copyright (C) 1986, 87, 88, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1988, 1997, 1998, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -144,6 +145,7 @@
   (setq outline-regexp ";;; \\|(....")
   (make-local-variable 'comment-start)
   (setq comment-start ";")
+  (set (make-local-variable 'comment-add) 1)
   (make-local-variable 'comment-start-skip)
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
@@ -171,17 +173,11 @@
 
 (defvar scheme-mode-line-process "")
 
-(defvar scheme-mode-map nil
-  "Keymap for Scheme mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
-
-(unless scheme-mode-map
-  (let ((map (make-sparse-keymap "Scheme")))
-    (setq scheme-mode-map (make-sparse-keymap))
-    (set-keymap-parent scheme-mode-map lisp-mode-shared-map)
-    (define-key scheme-mode-map [menu-bar] (make-sparse-keymap))
-    (define-key scheme-mode-map [menu-bar scheme]
-      (cons "Scheme" map))
+(defvar scheme-mode-map
+  (let ((smap (make-sparse-keymap))
+	(map (make-sparse-keymap "Scheme")))
+    (set-keymap-parent smap lisp-mode-shared-map)
+    (define-key smap [menu-bar scheme] (cons "Scheme" map))
     (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
     (define-key map [uncomment-region]
       '("Uncomment Out Region" . (lambda (beg end)
@@ -192,7 +188,10 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
     (put 'comment-region 'menu-enable 'mark-active)
     (put 'uncomment-region 'menu-enable 'mark-active)
-    (put 'indent-region 'menu-enable 'mark-active)))
+    (put 'indent-region 'menu-enable 'mark-active)
+    smap)
+  "Keymap for Scheme mode.
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 ;; Used by cmuscheme
 (defun scheme-mode-commands (map)
@@ -222,14 +221,11 @@ Entry to this mode calls the value of `scheme-mode-hook'
 if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
-  (scheme-mode-initialize)
-  (scheme-mode-variables)
-  (run-hooks 'scheme-mode-hook))
-
-(defun scheme-mode-initialize ()
   (use-local-map scheme-mode-map)
   (setq major-mode 'scheme-mode)
-  (setq mode-name "Scheme"))
+  (setq mode-name "Scheme")
+  (scheme-mode-variables)
+  (run-mode-hooks 'scheme-mode-hook))
 
 (defgroup scheme nil
   "Editing Scheme code"
@@ -346,7 +342,7 @@ See `run-hooks'."
   "Default expressions to highlight in Scheme modes.")
 
 ;;;###autoload
-(defun dsssl-mode ()
+(define-derived-mode dsssl-mode scheme-mode "DSSSL"
   "Major mode for editing DSSSL code.
 Editing commands are similar to those of `lisp-mode'.
 
@@ -357,20 +353,16 @@ Blank lines separate paragraphs.  Semicolons start comments.
 Entering this mode runs the hooks `scheme-mode-hook' and then
 `dsssl-mode-hook' and inserts the value of `dsssl-sgml-declaration' if
 that variable's value is a string."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map scheme-mode-map)
-  (scheme-mode-initialize)
   (make-local-variable 'page-delimiter)
   (setq page-delimiter "^;;;" ; ^L not valid SGML char
 	major-mode 'dsssl-mode
 	mode-name "DSSSL")
   ;; Insert a suitable SGML declaration into an empty buffer.
+  ;; FIXME: This should use `auto-insert-alist' instead.
   (and (zerop (buffer-size))
        (stringp dsssl-sgml-declaration)
        (not buffer-read-only)
        (insert dsssl-sgml-declaration))
-  (scheme-mode-variables)
   (setq font-lock-defaults '(dsssl-font-lock-keywords
 			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
 			     beginning-of-defun
@@ -378,9 +370,7 @@ that variable's value is a string."
   (set (make-local-variable 'imenu-case-fold-search) nil)
   (setq imenu-generic-expression dsssl-imenu-generic-expression)
   (set (make-local-variable 'imenu-syntax-alist)
-       '(("+-*/.<>=?$%_&~^:" . "w")))
-  (run-hooks 'scheme-mode-hook)
-  (run-hooks 'dsssl-mode-hook))
+       '(("+-*/.<>=?$%_&~^:" . "w"))))
 
 ;; Extra syntax for DSSSL.  This isn't separated from Scheme, but
 ;; shouldn't cause much trouble in scheme-mode.
@@ -558,5 +548,5 @@ that variable's value is a string."
 
 (provide 'scheme)
 
-;;; arch-tag: a8f06bc1-ad11-42d2-9e36-ce651df37a90
+;; arch-tag: a8f06bc1-ad11-42d2-9e36-ce651df37a90
 ;;; scheme.el ends here

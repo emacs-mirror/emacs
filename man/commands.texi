@@ -222,13 +222,15 @@ this effect @emph{because} it is bound to that command.  If you rebind
 forward by words instead.  Rebinding keys is a common method of
 customization.@refill
 
-  In the rest of this manual, we usually ignore this subtlety to keep
-things simple.  To give the information needed for customization, we
-state the name of the command which really does the work in parentheses
+  In the rest of this manual, we usually ignore this distinction to
+keep things simple.  We will often speak of keys like @kbd{C-n} as
+commands, even though strictly speaking a key is bound to some
+command.  To give the information needed for customization, we state
+the name of the command which really does the work in parentheses
 after mentioning the key that runs it.  For example, we will say that
 ``The command @kbd{C-n} (@code{next-line}) moves point vertically
-down,'' meaning that @code{next-line} is a command that moves vertically
-down, and @kbd{C-n} is a key that is normally bound to it.
+down,'' meaning that @code{next-line} is a command that moves
+vertically down, and @kbd{C-n} is a key that is normally bound to it.
 
   While we are on the subject of information for customization only,
 it's a good time to tell you about @dfn{variables}.  Often the

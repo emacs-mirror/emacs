@@ -10,7 +10,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2000, 2002, 2003 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -592,6 +592,11 @@ over it (using the standard @code{help-echo} mechanism).  The argument
 is either a string to display, a function of one argument, the widget,
 which should return a string to display, or a form that evaluates to
 such a string.
+
+@vindex follow-link@r{ keyword}
+@item :follow-link
+Specifies how to interpret a @key{mouse-1} click on the widget.
+@xref{Enabling Mouse-1 to Follow Links,,, elisp, the Emacs Lisp Reference Manual}.
 
 @vindex indent@r{ keyword}
 @item :indent

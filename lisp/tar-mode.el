@@ -715,66 +715,67 @@ appear on disk when you save the tar-file's buffer."
 	      (set-buffer-multibyte nil)
 	      (save-excursion
 		(set-buffer buffer)
-		(if enable-multibyte-characters
-		    (progn
-		      ;; We must avoid unibyte->multibyte conversion.
-		      (set-buffer-multibyte nil)
-		      (insert-buffer-substring tar-buffer start end)
-		      (set-buffer-multibyte t))
-		  (insert-buffer-substring tar-buffer start end))
-		(goto-char (point-min))
-		(setq buffer-file-name new-buffer-file-name)
-		(setq buffer-file-truename
-		      (abbreviate-file-name buffer-file-name))
-		;; We need to mimic the parts of insert-file-contents
-		;; which determine the coding-system and decode the text.
-		(let ((coding
-		       (or coding-system-for-read
-			   (and set-auto-coding-function
-				(save-excursion
-				  (funcall set-auto-coding-function
-					   name (- (point-max) (point)))))))
-		      (multibyte enable-multibyte-characters)
-		      (detected (detect-coding-region
-				 (point-min)
-				 (min (+ (point-min) 16384) (point-max)) t)))
-		  (if coding
-		      (or (numberp (coding-system-eol-type coding))
-			  (vectorp (coding-system-eol-type detected))
-			  (setq coding (coding-system-change-eol-conversion
-					coding
-					(coding-system-eol-type detected))))
-		    (setq coding
-			  (or (find-new-buffer-file-coding-system detected)
-			      (let ((file-coding
-				     (find-operation-coding-system
-				      'insert-file-contents buffer-file-name)))
-				(if (consp file-coding)
-				    (setq file-coding (car file-coding))
-				  file-coding)))))
-		  (if (or (eq coding 'no-conversion)
-			  (eq (coding-system-type coding) 5))
-		      (setq multibyte (set-buffer-multibyte nil)))
-		  (or multibyte
+		(let ((buffer-undo-list t))
+		  (if enable-multibyte-characters
+		      (progn
+			;; We must avoid unibyte->multibyte conversion.
+			(set-buffer-multibyte nil)
+			(insert-buffer-substring tar-buffer start end)
+			(set-buffer-multibyte t))
+		    (insert-buffer-substring tar-buffer start end))
+		  (goto-char (point-min))
+		  (setq buffer-file-name new-buffer-file-name)
+		  (setq buffer-file-truename
+			(abbreviate-file-name buffer-file-name))
+		  ;; We need to mimic the parts of insert-file-contents
+		  ;; which determine the coding-system and decode the text.
+		  (let ((coding
+			 (or coding-system-for-read
+			     (and set-auto-coding-function
+				  (save-excursion
+				    (funcall set-auto-coding-function
+					     name (- (point-max) (point)))))))
+			(multibyte enable-multibyte-characters)
+			(detected (detect-coding-region
+				   (point-min)
+				   (min (+ (point-min) 16384) (point-max)) t)))
+		    (if coding
+			(or (numberp (coding-system-eol-type coding))
+			    (vectorp (coding-system-eol-type detected))
+			    (setq coding (coding-system-change-eol-conversion
+					  coding
+					  (coding-system-eol-type detected))))
 		      (setq coding
-			    (coding-system-change-text-conversion
-			     coding 'raw-text)))
-		  (decode-coding-region (point-min) (point-max) coding)
-		  (set-buffer-file-coding-system coding))
-		;; Set the default-directory to the dir of the
-		;; superior buffer.
-		(setq default-directory
-		      (save-excursion
-			(set-buffer tar-buffer)
-			default-directory))
-		(normal-mode)  ; pick a mode.
-		(rename-buffer bufname)
-		(make-local-variable 'tar-superior-buffer)
-		(make-local-variable 'tar-superior-descriptor)
-		(setq tar-superior-buffer tar-buffer)
-		(setq tar-superior-descriptor descriptor)
-		(setq buffer-read-only read-only-p)
-		(set-buffer-modified-p nil)
+			    (or (find-new-buffer-file-coding-system detected)
+				(let ((file-coding
+				       (find-operation-coding-system
+					'insert-file-contents buffer-file-name)))
+				  (if (consp file-coding)
+				      (setq file-coding (car file-coding))
+				    file-coding)))))
+		    (if (or (eq coding 'no-conversion)
+			    (eq (coding-system-type coding) 5))
+			(setq multibyte (set-buffer-multibyte nil)))
+		    (or multibyte
+			(setq coding
+			      (coding-system-change-text-conversion
+			       coding 'raw-text)))
+		    (decode-coding-region (point-min) (point-max) coding)
+		    (set-buffer-file-coding-system coding))
+		  ;; Set the default-directory to the dir of the
+		  ;; superior buffer.
+		  (setq default-directory
+			(save-excursion
+			  (set-buffer tar-buffer)
+			  default-directory))
+		  (normal-mode)  ; pick a mode.
+		  (rename-buffer bufname)
+		  (make-local-variable 'tar-superior-buffer)
+		  (make-local-variable 'tar-superior-descriptor)
+		  (setq tar-superior-buffer tar-buffer)
+		  (setq tar-superior-descriptor descriptor)
+		  (setq buffer-read-only read-only-p)
+		  (set-buffer-modified-p nil))
 		(tar-subfile-mode 1))
 	      (set-buffer tar-buffer))
 	  (narrow-to-region (point-min) tar-header-offset)

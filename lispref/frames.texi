@@ -310,12 +310,14 @@ The GNU Emacs Manual}.
 @node Window Frame Parameters
 @subsection Window Frame Parameters
 
-Just what parameters a frame has depends on what display mechanism it
+  Just what parameters a frame has depends on what display mechanism it
 uses.  Here is a table of the parameters that have special meanings in a
 window frame; of these, @code{name}, @code{title}, @code{height},
 @code{width}, @code{buffer-list} and @code{buffer-predicate} provide
 meaningful information in terminal frames, and @code{tty-color-mode}
-is meaningful @emph{only} in terminal frames.
+is meaningful @emph{only} in terminal frames.  Frame parameter whose
+values measured in pixels, when used on text-only terminals, count
+characters or lines instead.
 
 @table @code
 @item display
@@ -1407,7 +1409,7 @@ that it calls @code{x-popup-menu}.  Therefore, if you try to implement a
 submenu using @code{x-popup-menu}, it cannot work with the menu bar in
 an integrated fashion.  This is why all menu bar submenus are
 implemented with menu keymaps within the parent menu, and never with
-@code{x-popup-menu}.  @xref{Menu Bar},
+@code{x-popup-menu}.  @xref{Menu Bar}.
 
   If you want a menu bar submenu to have contents that vary, you should
 still use a menu keymap to implement it.  To make the contents vary, add
@@ -1586,6 +1588,17 @@ but @code{t} on MS-Windows.
 @node Color Names
 @section Color Names
 
+  A color name is text (usually in a string) that specifies a color.
+Symbolic names such as @samp{black}, @samp{white}, @samp{red}, etc.,
+are allowed; use @kbd{M-x list-colors-display} to see a list of
+defined names.  You can also specify colors numerically in forms such
+as @samp{#@var{rgb}} and @samp{RGB:@var{r}/@var{g}/@var{b}}, where
+@var{r} specifies the red level, @var{g} specifies the green level,
+and @var{b} specifies the blue level.  You can use either one, two,
+three, or four hex digits for @var{r}; then you must use the same
+number of hex digits for all @var{g} and @var{b} as well, making
+either 3, 6, 9 or 12 hex digits in all.
+
   These functions provide a way to determine which color names are
 valid, and what they look like.  In some cases, the value depends on the
 @dfn{selected frame}, as described below; see @ref{Input Focus}, for the
@@ -1666,9 +1679,10 @@ If @var{color} is not defined, the value is @code{nil}.
      @result{} nil
 @end example
 
-The color values are returned for @var{frame}'s display.  If @var{frame}
-is omitted or @code{nil}, the information is returned for the selected
-frame's display.
+The color values are returned for @var{frame}'s display.  If
+@var{frame} is omitted or @code{nil}, the information is returned for
+the selected frame's display.  If the frame cannot display colors, the
+value is @code{nil}.
 
 @findex x-color-values
 This function used to be called @code{x-color-values},
@@ -1701,26 +1715,26 @@ terminal) as an optional argument.  We hope in the future to make Emacs
 support more than one text-only terminal at one time; then this argument
 will specify which terminal to operate on (the default being the
 selected frame's terminal; @pxref{Input Focus}).  At present, though,
-the @var{display} argument has no effect.
+the @var{frame} argument has no effect.
 
-@defun tty-color-define name number &optional rgb display
+@defun tty-color-define name number &optional rgb frame
 @tindex tty-color-define
 This function associates the color name @var{name} with
 color number @var{number} on the terminal.
 
-The optional argument @var{rgb}, if specified, is an rgb value; it says
-what the color actually looks like.  If you do not specify @var{rgb},
-then this color cannot be used by @code{tty-color-approximate} to
-approximate other colors, because Emacs does not know what it looks
-like.
+The optional argument @var{rgb}, if specified, is an rgb value, a list
+of three numbers that specify what what the color actually looks like.
+If you do not specify @var{rgb}, then this color cannot be used by
+@code{tty-color-approximate} to approximate other colors, because
+Emacs will not know what it looks like.
 @end defun
 
-@defun tty-color-clear &optional display
+@defun tty-color-clear &optional frame
 @tindex tty-color-clear
 This function clears the table of defined colors for a text-only terminal.
 @end defun
 
-@defun tty-color-alist &optional display
+@defun tty-color-alist &optional frame
 @tindex tty-color-alist
 This function returns an alist recording the known colors supported by a
 text-only terminal.
@@ -1728,26 +1742,23 @@ text-only terminal.
 Each element has the form @code{(@var{name} @var{number} . @var{rgb})}
 or @code{(@var{name} @var{number})}.  Here, @var{name} is the color
 name, @var{number} is the number used to specify it to the terminal.
-If present, @var{rgb} is an rgb value that says what the color
-actually looks like.
+If present, @var{rgb} is a list of three color values (for red, green,
+and blue) that says what the color actually looks like.
 @end defun
 
-@defun tty-color-approximate rgb &optional display
+@defun tty-color-approximate rgb &optional frame
 @tindex tty-color-approximate
-This function finds the closest color, among the known colors supported
-for @var{display}, to that described by the rgb value @var{rgb}.
-The return value is an element of @code{tty-color-alist}.
+This function finds the closest color, among the known colors
+supported for @var{display}, to that described by the rgb value
+@var{rgb} (a list of color values).  The return value is an element of
+@code{tty-color-alist}.
 @end defun
 
-@defun tty-color-translate color &optional display
+@defun tty-color-translate color &optional frame
 @tindex tty-color-translate
 This function finds the closest color to @var{color} among the known
 colors supported for @var{display} and returns its index (an integer).
 If the name @var{color} is not defined, the value is @code{nil}.
-
-@var{color} can be an X-style @code{"#@var{xxxyyyzzz}"} specification
-instead of an actual name.  The format
-@code{"RGB:@var{xx}/@var{yy}/@var{zz}"} is also supported.
 @end defun
 
 @node Resources

@@ -946,8 +946,10 @@ generate the completions list.  This means that the hook
 (unless (fboundp 'event-matches-key-specifier-p)
   (defalias 'event-matches-key-specifier-p 'eq))
 
-(unless (fboundp 'read-event)
-  (defsubst read-event (&optional prompt)
+(if (fboundp 'read-event)
+    (defsubst pcomplete-read-event (&optional prompt)
+      (read-event prompt))
+  (defsubst pcomplete-read-event (&optional prompt)
     (aref (read-key-sequence prompt) 0)))
 
 (unless (fboundp 'event-basic-type)
@@ -969,7 +971,7 @@ Typing SPC flushes the help buffer."
       (prog1
 	  (catch 'done
 	    (while (with-current-buffer (get-buffer "*Completions*")
-		     (setq event (read-event)))
+		     (setq event (pcomplete-read-event)))
 	      (cond
 	       ((event-matches-key-specifier-p event ? )
 		(set-window-configuration pcomplete-last-window-config)

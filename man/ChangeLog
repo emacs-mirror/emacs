@@ -1,3 +1,227 @@
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Basic Window): Mention color-change in mode line.
+	(Change Window): Explain dragging vertical boundaries.
+
+	* text.texi (Sentences): Clarify.
+	(Paragraphs): Explain M-a and blank lines.
+	(Outline Mode): Clarify text and menu.
+	(Hard and Soft Newlines): Mention use-hard-newlines.
+
+	* frames.texi (Frames): Delete unnecessary mention of Windows.
+	(Mouse Commands): Likewise.  Mention xterm mouse support.
+	(Clipboard): Clarify.
+	(Mouse References): Mention use of Mouse-1 for following links.
+	(Menu Mouse Clicks): Clarify.
+	(Mode Line Mouse): Clarify.
+	(Drag and Drop): Rewrite.
+
+	* fixit.texi (Spelling): Fix typo.
+
+	* files.texi (File Names): Clarify.
+	(Visiting): Update conditions for use of file dialog.  Clarify.
+	(Saving): Doc d as answer in save-some-buffers.
+	(Remote Files): Clean up the text.
+
+	* dired.texi (Misc Dired Commands): Delete dired-marked-files.
+
+	* buffers.texi (Select Buffer): Doc next-buffer and prev-buffer.
+	(List Buffers): Clarify.
+	(Several Buffers): Doc T command.
+	(Buffer Convenience): Clarify menu.
+
+	* basic.texi (Undo): Clarify last change.
+
+2005-02-02  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* fixit.texi (Spelling): Fix typo.
+
+2005-02-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* basic.texi (Undo): Update description of `undo-outer-limit'.
+
+2005-02-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Update documentation relating to GDB Graphical
+	Interface.
+
+2005-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Easy Customization): Adapt menu to node name change.
+
+2005-01-30  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Easy Customization): Defn of "User Option" now
+	includes faces.  Don't say just "option" when talking about variables.
+	Do say just "options" to mean "anything customizable".
+	(Specific Customization): Describe `customize-variable',
+	not `customize-option'.
+
+	* glossary.texi (Glossary) <Faces>: Add xref.
+	<User Option>: Change definition--include faces.  Change xref.
+
+	* picture.texi (Picture): Mention artist.el.
+
+	* sending.texi, screen.texi, programs.texi, misc.texi:
+	* mini.texi, major.texi, maintaining.texi, macos.texi:
+	* help.texi, frames.texi, files.texi:
+	Don't say just "option" when talking about variables.
+
+	* display.texi, mule.texi: Don't say just "option" when talking
+	about variables.  Other minor cleanups.
+
+2005-01-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Some edits based on comments from David Abrahams.
+
+2005-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Fix the keystroke.
+
+2005-01-26  Lute Kamstra  <lute@gnu.org>
+
+	* cmdargs.texi (Initial Options): Add a cross reference to `Init
+	File'.  Mention the `-Q' option at the `--no-site-file' option.
+
+2005-01-24  David Kastrup  <dak@gnu.org>
+
+	* faq.texi: Update AUCTeX version info.
+
+2005-01-16  Xavier Maillard <zedek@gnu-rox.org> (tiny change)
+
+	* gnus-faq.texi ([4.1]): Typo.
+
+2005-01-22  David Kastrup  <dak@gnu.org>
+
+	* building.texi (Grep Searching): Mention alias `find-grep' for
+	`grep-find'.
+
+2005-01-20  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar.texi (Time Intervals): Delete special stuff for MS-DOS.
+
+2005-01-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Keep Arguments): Mention that keeping arguments
+	doesn't work with keyboard macros.
+
+2005-01-16  Richard M. Stallman  <rms@gnu.org>
+
+	* autotype.texi (Autoinserting): Fix small error.
+
+2005-01-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.47.
+
+	* tramp.texi (Compilation): New section, describing compilation of
+	remote files.
+
+2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+ 
+ 	* man/rmail.texi (Movemail): Explain differences
+	between standard and mailutils versions of movemail.
+	Describe command line and configuration options introduced
+	with the latter.
+	Explain the notion of mailbox URL, provide examples and
+	cross-references to mailutils documentation.
+	Describe various methods of specifying mailbox names,
+	user names and user passwords for rmail.
+	(Remote Mailboxes): New section.  Describe
+	how movemail handles remote mailboxes.  Describe configuration
+	options used to control its behavior. 
+	(Other Mailbox Formats): Explain handling of various mailbox
+	formats.
+
+2005-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Commands): Clarification.
+
+2005-01-11  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Multi-line Indent): Fix previous change.
+	(Fortran Autofill): Simplify description of fortran-auto-fill-mode.
+
+2005-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* widget.texi (Basic Types): Add :follow-link keyword.
+
+2005-01-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Basic Commands): Describe new behavior of calc-reset.
+
+2005-01-08  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Faces): isearch-lazy-highlight-face renamed to
+	lazy-highlight.
+
+	* search.texi (Query Replace): Mention faces query-replace
+	and lazy-highlight.
+	(Incremental Search): Update isearch highlighting info.
+
+2005-01-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change throughout to reflect new default value of
+	calc-settings-file.
+
+2005-01-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Reply): `message-reply-to-function' should return
+	a list.  Suggested by ARISAWA Akihiro <ari@mbf.ocn.co.jp>.
+
+2005-01-06  Hiroshi Fujishima  <pooh@nature.tsukuba.ac.jp>  (tiny change)
+
+	* faq.texi (Changing load-path): Fix typo.
+
+2005-01-05  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Programming Tutorial): Replace kbd command by
+	appropriate characters for a keyboard macro.
+
+2005-01-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Basic Tutorial, Programming Tutorial): Remove caveats
+	for Lucid Emacs.
+	(Programming Tutorial): Mention that the user needs to be in the
+	right mode to compute some functions.
+
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Saving Customizations): Minor improvement.
+
+2005-01-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Rewrite rules): Remove an exercise (on 0^0) which is
+	no longer applicable.
+
+2005-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Saving Customizations): Emacs no longer loads
+	`custom-file' after .emacs.  No longer mention customizing through
+	Custom.
+
+2005-01-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Programming Tutorial): Changed description of how to
+	edit keyboard macros to match current behavior.
+
+2005-01-01  Andreas Schwab  <schwab@suse.de>
+
+	* killing.texi (Graphical Kill): Move up under node Killing,
+	change @section to @subsection.
+
+2005-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Face Customization): Mention hex color specs.
+
+	* emacs.texi (Top): Update Killing submenu.
+
+	* killing.texi (Killing): Reorganize section.
+	No more TeX-only text; put the node command at start of chapter.
+	But the first section heading is used only in TeX.
+	Rewrite the text to read better in this mode.
+	(Graphical Kill): New subnode gets some of the text that
+	used to be in the first section.
+
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.texi (Shell Commands in Dired): Delete the ? example.
@@ -27,10 +251,6 @@
 	* basic.texi (Moving Point): C-e now runs move-end-of-line.
 	(Undo): Doc undo-outer-limit.
 
-2004-12-11  Richard M. Stallman  <rms@gnu.org>
-
-	* Makefile.in (MAKEINFO): Add --force.
-
 2004-12-20  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Types Tutorial): Emphasize that you can't divide by
@@ -56,7 +276,6 @@
 	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
 	(Dealing with HTTP documents): @inforef->@xref.
 
->>>>>>> 1.412
 2004-12-15  Juri Linkov  <juri@jurta.org>
 
 	* mark.texi (Transient Mark, Mark Ring): M-< and other
@@ -73,7 +292,6 @@
 
 	* calc.texi: Fix some TeX definitions.
 
->>>>>>> 1.407
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
 	* misc.texi (FFAP): Add C-x C-r, C-x C-v, C-x C-d,
@@ -87,7 +305,6 @@
 	* mark.texi (Marking Objects): Marking commands also extend the
 	region when mark is active in Transient Mark mode.
 
->>>>>>> 1.403
 2004-12-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* reftex.texi (Imprint): Remove erroneous @value's.

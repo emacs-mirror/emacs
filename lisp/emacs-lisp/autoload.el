@@ -135,7 +135,7 @@ or macro definition or a defcustom)."
 
 
 (defun autoload-trim-file-name (file)
-  ;; Returns a relative pathname of FILE
+  ;; Returns a relative file path for FILE
   ;; starting from the directory that loaddefs.el is in.
   ;; That is normally a directory in load-path,
   ;; which means Emacs will be able to find FILE when it looks.
@@ -273,7 +273,7 @@ are used."
 	output-end)
 
     ;; If the autoload section we create here uses an absolute
-    ;; pathname for FILE in its header, and then Emacs is installed
+    ;; file name for FILE in its header, and then Emacs is installed
     ;; under a different path on another system,
     ;; `update-autoloads-here' won't be able to find the files to be
     ;; autoloaded.  So, if FILE is in the same directory or a

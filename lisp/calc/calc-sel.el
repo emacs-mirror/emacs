@@ -677,10 +677,11 @@
 ;; The variable calc-edit-disp-trail is local to calc-edit-finish,
 ;; in calc-yank.el.
 (defvar calc-edit-disp-trail)
+(defvar calc-edit-top)
 
 (defun calc-finish-selection-edit (num sel reselect)
   (let ((buf (current-buffer))
-	(str (buffer-substring (point) (point-max)))
+	(str (buffer-substring calc-edit-top (point-max)))
 	(start (point)))
     (switch-to-buffer calc-original-buffer)
     (let ((val (math-read-expr str)))

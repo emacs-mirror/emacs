@@ -1,8 +1,8 @@
 ;;; reftex-global.el --- operations on entire documents with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 
@@ -337,6 +337,132 @@ Also checks if buffers visiting the files are in read-only mode."
         (or (y-or-n-p (format "Buffer %s is read-only. Continue? "
                               (buffer-name buf)))
             (error "Abort"))))))
+
+(defun reftex-isearch-wrap-function ()
+  (if (not isearch-word)
+      (switch-to-buffer 
+       (funcall isearch-next-buffer-function (current-buffer) t)))
+  (goto-char (if isearch-forward (point-min) (point-max))))
+
+(defun reftex-isearch-push-state-function ()
+  `(lambda (cmd)
+     (reftex-isearch-pop-state-function cmd ,(current-buffer))))
+
+(defun reftex-isearch-pop-state-function (cmd buffer)
+  (switch-to-buffer buffer))
+
+(defun reftex-isearch-isearch-search (string bound noerror)
+  (let ((nxt-buff nil)
+	(search-fun
+	 (cond
+	  (isearch-word
+	   (if isearch-forward 'word-search-forward 'word-search-backward))
+	  (isearch-regexp
+	   (if isearch-forward 're-search-forward 're-search-backward))
+	  (t
+	   (if isearch-forward 'search-forward 'search-backward)))))
+    (or
+     (funcall search-fun string bound noerror)
+     (unless bound
+       (condition-case nil
+	   (when isearch-next-buffer-function
+	     (while (not (funcall search-fun string bound noerror))
+	       (cond
+		(isearch-forward
+		 (setq nxt-buff
+		       (funcall isearch-next-buffer-function
+				(current-buffer)))
+		 (if (not nxt-buff)
+		     (progn
+		       (error "Wrap forward"))
+		   (switch-to-buffer nxt-buff)
+		   (goto-char (point-min))))
+		(t
+		 (setq nxt-buff
+		       (funcall isearch-next-buffer-function
+					 (current-buffer)))
+		 (if (not nxt-buff)
+		     (progn
+		       (error "Wrap backward"))
+		   (switch-to-buffer nxt-buff)
+		   (goto-char (point-max))))))
+	     (point))
+	 (error nil))))))
+
+;;; This function is called when isearch reaches the end of a
+;;; buffer. For reftex what we want to do is not wrap to the
+;;; beginning, but switch to the next buffer in the logical order of
+;;; the document.  This function looks through list of files in the
+;;; document (reftex-all-document-files), searches for the current
+;;; buffer and switches to the next/previous one in the logical order
+;;; of the document.  If WRAPP is true then wrap the search to the
+;;; beginning/end of the file list, depending of the search direction.
+(defun reftex-isearch-switch-to-next-file (crt-buf &optional wrapp)
+  (reftex-access-scan-info)
+  (let* ((cb (buffer-file-name crt-buf))
+	 (flist (reftex-all-document-files))
+	 (orig-flist flist))
+    (when flist
+      (if wrapp
+	  (unless isearch-forward
+	      (setq flist (last flist)))
+	(unless isearch-forward
+	  (setq flist (nreverse (copy-list flist)))
+	  (setq orig-flist flist))
+	(while (not (string= (car flist) cb))
+	  (setq flist (cdr flist)))
+	(setq flist (cdr flist)))
+      (when flist
+	(find-file  (car flist))))))
+
+;;;###autoload
+(defvar reftex-isearch-minor-mode nil)
+(make-variable-buffer-local 'reftex-isearch-minor-mode)
+
+;;;###autoload
+(defun reftex-isearch-minor-mode (&optional arg)
+  "When on, isearch searches the whole document, not only the current file.
+This minor mode allows isearch to search through all the files of
+the current TeX document.
+
+With no argument, this command toggles
+`reftex-isearch-minor-mode'.  With a prefix argument ARG, turn
+`reftex-isearch-minor-mode' on iff ARG is positive."
+  (interactive "P")
+  (let ((old-reftex-isearch-minor-mode reftex-isearch-minor-mode))
+    (setq reftex-isearch-minor-mode 
+	  (not (or (and (null arg) reftex-isearch-minor-mode)
+		   (<= (prefix-numeric-value arg) 0))))
+    (unless (eq reftex-isearch-minor-mode old-reftex-isearch-minor-mode)
+      (if reftex-isearch-minor-mode
+	  (progn
+	    (dolist (crt-buf (buffer-list))
+	      (with-current-buffer crt-buf
+		(when reftex-mode
+		  (set (make-local-variable 'isearch-wrap-function)
+		       'reftex-isearch-wrap-function)
+		  (set (make-local-variable 'isearch-search-fun-function)
+		       (lambda () 'reftex-isearch-isearch-search))
+		  (set (make-local-variable 'isearch-push-state-function)
+		       'reftex-isearch-push-state-function)
+		  (set (make-local-variable 'isearch-next-buffer-function)
+		       'reftex-isearch-switch-to-next-file)
+		  (setq reftex-isearch-minor-mode t))))
+	    (add-hook 'reftex-mode-hook 'reftex-isearch-minor-mode))
+	(dolist (crt-buf (buffer-list))
+	  (with-current-buffer crt-buf
+	    (when reftex-mode
+	      (kill-local-variable 'isearch-wrap-function)
+	      (kill-local-variable 'isearch-search-fun-function)
+	      (kill-local-variable 'isearch-push-state-function)
+	      (kill-local-variable 'isearch-next-buffer-function)
+	      (setq reftex-isearch-minor-mode nil))))
+	(remove-hook 'reftex-mode-hook 'reftex-isearch-minor-mode)))
+    ;; Force modeline redisplay.
+    (set-buffer-modified-p (buffer-modified-p))))
+
+(add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil 
+		'reftex-isearch-minor-mode)
 
 ;;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d
 ;;; reftex-global.el ends here

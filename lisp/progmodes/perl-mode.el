@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2003, 2005  Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -408,7 +408,7 @@ existing comment, moves to end-of-line, or if at end-of-line already,
 create a new comment."
   :type 'boolean)
 
-(defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
+(defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
   "*Lines starting with this regular expression are not auto-indented."
   :type 'regexp)
 
@@ -769,7 +769,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 			   (skip-chars-forward " \t\f\n")
 			   (cond ((looking-at ";?#")
 				  (forward-line 1) t)
-				 ((looking-at "\\(\\w\\|\\s_\\)+:")
+				 ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
 				  (save-excursion
 				    (end-of-line)
 				    (setq colon-line-end (point)))
@@ -929,5 +929,5 @@ With argument, repeat that many times; negative args move backward."
 
 (provide 'perl-mode)
 
-;;; arch-tag: 8c7ff68d-15f3-46a2-ade2-b7c41f176826
+;; arch-tag: 8c7ff68d-15f3-46a2-ade2-b7c41f176826
 ;;; perl-mode.el ends here

@@ -5,7 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.58.2.3
+;; Maintainer-Version: 5.58.2.4
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -233,7 +233,6 @@
 ;;; Code:
 
 (require 'easymenu)
-(eval-when-compile (require 'cl))
 
 ;;---------------------------------------------------------------------------
 ;; user-configurable variables

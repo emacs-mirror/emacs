@@ -53,10 +53,16 @@ multiple nonoverlapping Emacs windows.
 
   In each frame, at any time, one and only one window is designated as
 @dfn{selected within the frame}.  The frame's cursor appears in that
-window.  At any time, one frame is the selected frame; and the window
-selected within that frame is @dfn{the selected window}.  The selected
-window's buffer is usually the current buffer (except when
+window, but the other windows have ``non-selected'' cursors, normally
+less visible.  At any time, one frame is the selected frame; and the
+window selected within that frame is @dfn{the selected window}.  The
+selected window's buffer is usually the current buffer (except when
 @code{set-buffer} has been used).  @xref{Current Buffer}.
+
+@defvar cursor-in-non-selected-windows
+If this variable is @code{nil}, Emacs displays only one cursor,
+in the selected window.  Other windows have no cursor at all.
+@end defvar
 
   For practical purposes, a window exists only while it is displayed in
 a frame.  Once removed from the frame, the window is effectively deleted
@@ -455,10 +461,10 @@ The return value is @var{window}.
 @end defun
 
 @defmac save-selected-window forms@dots{}
-This macro records the selected window, as well as the selected window
+This macro records the selected frame, as well as the selected window
 of each frame, executes @var{forms} in sequence, then restores the
-earlier selected windows.  It returns the value of the last form in
-@var{forms}.
+earlier selected frame and windows It returns the value of the last
+form in @var{forms}.
 
 This macro does not save or restore anything about the sizes,
 arrangement or contents of windows; therefore, if the @var{forms}
@@ -648,8 +654,9 @@ In an interactive call, @var{count} is the numeric prefix argument.
 
 @c Emacs 19 feature
 @defun walk-windows proc &optional minibuf all-frames
-This function cycles through all windows, calling @code{proc}
-once for each window with the window as its sole argument.
+This function cycles through all windows.  It calls the function
+@code{proc} once for each window, with the window as its sole
+argument.
 
 The optional arguments @var{minibuf} and @var{all-frames} specify the
 set of windows to include in the scan.  See @code{next-window}, above,
@@ -1175,10 +1182,10 @@ the other windows are stored in those windows.
 @item
 As long as the selected window displays the current buffer, the window's
 point and the buffer's point always move together; they remain equal.
-
-@item
-@xref{Positions}, for more details on buffer positions.
 @end itemize
+
+@noindent
+@xref{Positions}, for more details on buffer positions.
 
   As far as the user is concerned, point is where the cursor is, and
 when the user switches to another buffer, the cursor jumps to the
@@ -1345,15 +1352,18 @@ non-@code{nil} anyway.  @xref{Horizontal Scrolling}.
 If @var{position} is visible, @code{pos-visible-in-window-p} returns
 @code{t} if @var{partially} is @code{nil}; if @var{partially} is
 non-@code{nil}, it returns a list of the form @code{(@var{x} @var{y}
-@var{fully})}, where @var{x} and @var{y} are the pixel coordinates
-relative to the top left corner of the window, and @var{fully} is
-@code{t} if the character after @var{position} is fully visible and
-@code{nil} otherwise.
+@var{partial})}, where @var{x} and @var{y} are the pixel coordinates
+relative to the top left corner of the window, and @var{partial} is
+@code{nil} if the character after @var{position} is fully visible;
+otherwise it is a cons @code{(@var{rtop} . @var{rbot})} where the
+@var{rtop} and @var{rbot} specify the number of invisible pixels at
+the top and bottom of the row at @var{position}.
 
 Here is an example:
 
 @example
 @group
+;; @r{If point is off the screen now, recenter it now.}
 (or (pos-visible-in-window-p
      (point) (selected-window))
     (recenter 0))
@@ -1396,6 +1406,12 @@ names that fit the user's point of view.
 @code{scroll-other-window}) have unpredictable results if the current
 buffer is different from the buffer that is displayed in the selected
 window.  @xref{Current Buffer}.
+
+  If the window contains a row which is taller than the height of the
+window (for example in the presense of a large image), the scroll
+functions will adjust the window vscroll to scroll the partially
+visible row.  To disable this feature, Lisp code may bind the variable
+`auto-window-vscroll' to @code{nil} (@pxref{Vertical Scrolling}).
 
 @deffn Command scroll-up &optional count
 This function scrolls the text in the selected window upward
@@ -1621,6 +1637,13 @@ The return value is the result of this rounding.
 If @var{pixels-p} is non-@code{nil}, @var{lines} specifies a number of
 pixels.  In this case, the return value is @var{lines}.
 @end defun
+
+@defvar auto-window-vscroll
+If this variable is non-@code{nil}, the line-move, scroll-up, and
+scroll-down functions will automatically modify the window vscroll to
+scroll through display rows that are taller that the height of the
+window, for example in the presense of large images.
+@end defvar
 
 @node Horizontal Scrolling
 @section Horizontal Scrolling
@@ -1969,6 +1992,7 @@ It could be defined as follows:
 @example
 @group
 (defun enlarge-window-horizontally (columns)
+  (interactive "p")
   (enlarge-window columns t))
 @end group
 @end example
@@ -1991,16 +2015,29 @@ It could be defined as follows:
 @example
 @group
 (defun shrink-window-horizontally (columns)
+  (interactive "p")
   (shrink-window columns t))
 @end group
 @end example
 @end deffn
 
+@defun fit-window-to-buffer &optional window max-height min-height
+This function makes @var{window} the right height to display its
+contents exactly.  If @var{window} is omitted or @code{nil}, it uses
+the selected window.
+
+The argument @var{max-height} specifies the maximum height the window
+is allowed to be; @code{nil} means use the frame height.  The argument
+@var{min-height} specifies the minimum height for the window;
+@code{nil} means use @code{window-min-height}.  All these height
+values include the mode-line and/or header-line.
+@end defun
+
 @deffn Command shrink-window-if-larger-than-buffer &optional window
-This command shrinks @var{window} to be as small as possible while still
-showing the full contents of its buffer---but not less than
-@code{window-min-height} lines.  If @var{window} is not given,
-it defaults to the selected window.
+This command shrinks @var{window} vertically to be as small as
+possible while still showing the full contents of its buffer---but not
+less than @code{window-min-height} lines.  If @var{window} is not
+given, it defaults to the selected window.
 
 However, the command does nothing if the window is already too small to
 display the whole text of the buffer, or if part of the contents are

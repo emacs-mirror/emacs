@@ -2464,7 +2464,7 @@ extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 extern Lisp_Object safe_eval P_ ((Lisp_Object));
 extern int pos_visible_p P_ ((struct window *, int, int *,
-			      int *, int *, int));
+			      int *, int *, int *, int));
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
@@ -2906,6 +2906,7 @@ EXFUN (Fevent_convert_list, 1);
 EXFUN (Fread_key_sequence, 5);
 EXFUN (Fset_input_mode, 4);
 extern int detect_input_pending P_ ((void));
+extern int detect_input_pending_ignore_squeezables P_ ((void));
 extern int detect_input_pending_run_timers P_ ((int));
 extern void safe_run_hooks P_ ((Lisp_Object));
 extern void cmd_error_internal P_ ((Lisp_Object, char *));

@@ -397,7 +397,7 @@
 	 (setq calc-last-edited-variable var)
 	 (calc-edit-mode (list 'calc-finish-stack-edit (list 'quote var))
 			 t
-			 (concat "Editing " (calc-var-name var)))
+			 (concat "Editing variable `" (calc-var-name var) "'. "))
 	 (and value
 	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
   (calc-show-edit-buffer))
@@ -482,7 +482,7 @@
 			     (setq rp nil)))
 		       (not rp)))))
      (calc-unread-command ?\C-a)
-     (setq decl (read-string (format "Declare: %s  to be: " var)
+     (setq decl (read-string (format "Declare: %s  to be: " (calc-var-name var))
 			     (and rp
 				  (math-format-flat-expr (nth 2 (car dp)) 0))))
      (setq decl (and (string-match "[^ \t]" decl)

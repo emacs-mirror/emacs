@@ -801,7 +801,7 @@ vectors.
 
 @defopt edebug-print-circle
 If non-@code{nil}, Edebug binds @code{print-circle} to this value while
-printing results.  The default value is @code{nil}.
+printing results.  The default value is @code{t}.
 @end defopt
 
   Other programs can also use custom printing; see @file{cust-print.el}
@@ -909,7 +909,7 @@ the breakpoint is reached, the frequency data looks like this:
 @example
 (defun fac (n)
   (if (= n 0) (edebug))
-;#6           1      0 =5
+;#6           1      = =5
   (if (< 0 n)
 ;#5         =
       (* n (fac (1- n)))

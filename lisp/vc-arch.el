@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system
 
-;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
@@ -270,7 +270,7 @@ Return non-nil if FILE is unchanged."
 (defun vc-arch-workfile-version (file)
   (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
 	 (defbranch (vc-arch-default-version file)))
-    (when (and defbranch (string-match "\\`\\(.+@[^/\n]+\\)/\\(\\(\\(.*\\)--.*\\)--.*\\)\\'" defbranch))
+    (when (and defbranch (string-match "\\`\\(.+@[^/\n]+\\)/\\(\\(\\(.*?\\)\\(?:--.*\\)?\\)--.*\\)\\'" defbranch))
       (let* ((archive (match-string 1 defbranch))
 	     (category (match-string 4 defbranch))
 	     (branch (match-string 3 defbranch))
@@ -377,7 +377,7 @@ Return non-nil if FILE is unchanged."
       (setq newvers nil))
   (if newvers
       (error "Diffing specific revisions not implemented.")
-    (let* ((async (fboundp 'start-process))
+    (let* ((async (and (not vc-disable-async-diff) (fboundp 'start-process)))
 	   ;; Run the command from the root dir.
 	   (default-directory (vc-arch-root file))
 	   (status

@@ -159,7 +159,7 @@ checker program Ispell, which is not part of Emacs.
 @table @kbd
 @item M-x flyspell-mode
 Enable Flyspell mode, which highlights all misspelled words.
-@item M-x flyspell-progmode
+@item M-x flyspell-prog-mode
 Enable Flyspell mode for comments and strings only.
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).

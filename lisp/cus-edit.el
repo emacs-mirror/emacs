@@ -1,6 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;           Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -243,7 +244,6 @@
 
 (defgroup customize '((widgets custom-group))
   "Customization of the Customization support."
-  :link '(custom-manual "(elisp)Customization")
   :prefix "custom-"
   :group 'help)
 
@@ -899,8 +899,6 @@ then prompt for the MODE to customize."
 	(let (
 	      ;; Copied from `custom-buffer-create-other-window'.
 	      (pop-up-windows t)
-	      (special-display-buffer-names nil)
-	      (special-display-regexps nil)
 	      (same-window-buffer-names nil)
 	      (same-window-regexps nil))
 	  (pop-to-buffer name))
@@ -1182,19 +1180,10 @@ links: groups have links to subgroups."
 		(const links))
   :group 'custom-buffer)
 
-;; If we pass BUFFER to `bury-buffer', the buffer isn't removed from
-;; the window.
-(defun custom-bury-buffer (buffer)
-  (with-current-buffer buffer
-    (bury-buffer)))
-
-(defcustom custom-buffer-done-function 'custom-bury-buffer
-  "*Function called to remove a Custom buffer when the user is done with it.
-Called with one argument, the buffer to remove."
-  :type '(choice (function-item :tag "Bury buffer" custom-bury-buffer)
-		 (function-item :tag "Kill buffer" kill-buffer)
-		 (function :tag "Other"))
-  :version "21.1"
+(defcustom custom-buffer-done-kill nil
+  "*Non-nil means exiting a Custom buffer should kill it."
+  :type 'boolean
+  :version "21.4"
   :group 'custom-buffer)
 
 (defcustom custom-buffer-indent 3
@@ -1247,8 +1236,6 @@ SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
   (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
     (pop-to-buffer (custom-get-fresh-buffer name))
@@ -1266,9 +1253,9 @@ This button will have a menu with all three reset operations."
   :group 'custom-buffer)
 
 (defun Custom-buffer-done (&rest ignore)
-  "Remove current buffer by calling `custom-buffer-done-function'."
+  "Exit current Custom buffer according to `custom-buffer-done-kill'."
   (interactive)
-  (funcall custom-buffer-done-function (current-buffer)))
+  (quit-window custom-buffer-done-kill))
 
 (defcustom custom-raised-buttons (not (equal (face-valid-attribute-values :box)
 					     '(("unspecified" . unspecified))))
@@ -1354,13 +1341,9 @@ Un-customize all values in this buffer.  They get their standard settings."
 		 :tag "Finish"
 		 :help-echo
 		 (lambda (&rest ignore)
-		   (cond
-		    ((eq custom-buffer-done-function
-			 'custom-bury-buffer)
-		     "Bury this buffer")
-		    ((eq custom-buffer-done-function 'kill-buffer)
-		     "Kill this buffer")
-		    (t "Finish with this buffer")))
+		   (if custom-buffer-done-kill
+		       "Kill this buffer"
+		     "Bury this buffer"))
 		 :action #'Custom-buffer-done)
   (widget-insert "\n\n")
   (message "Creating customization items...")
@@ -3699,35 +3682,57 @@ The default is nil, which means to use your init file
 as specified by `user-init-file'.  If the value is not nil,
 it should be an absolute file name.
 
-To make this feature work, you'll need to put something in your
-init file to specify the value of `custom-file'.  Just
-customizing the variable won't suffice, because Emacs won't know
-which file to load unless the init file sets `custom-file'.
+You can set this option through Custom, if you carefully read the
+last paragraph below.  However, usually it is simpler to write
+something like the following in your init file:
 
-When you change this variable, look in the previous custom file
-\(usually your init file) for the forms `(custom-set-variables ...)'
-and `(custom-set-faces ...)', and copy them (whichever ones you find)
-to the new custom file.  This will preserve your existing customizations."
-  :type '(choice (const :tag "Your Emacs init file" nil) file)
+\(setq custom-file \"~/.emacs-custom.el\")
+\(load custom-file)
+
+Note that both lines are necessary: the first line tells Custom to
+save all customizations in this file, but does not load it.
+
+When you change this variable outside Custom, look in the
+previous custom file \(usually your init file) for the
+forms `(custom-set-variables ...)'  and `(custom-set-faces ...)',
+and copy them (whichever ones you find) to the new custom file.
+This will preserve your existing customizations.
+
+If you save this option using Custom, Custom will write all
+currently saved customizations, including the new one for this
+option itself, into the file you specify, overwriting any
+`custom-set-variables' and `custom-set-faces' forms already
+present in that file.  It will not delete any customizations from
+the old custom file.  You should do that manually if that is what you
+want.  You also have to put something like `\(load \"CUSTOM-FILE\")
+in your init file, where CUSTOM-FILE is the actual name of the
+file.  Otherwise, Emacs will not load the file when it starts up,
+and hence will not set `custom-file' to that file either."
+  :type '(choice (const :tag "Your Emacs init file" nil)
+		 (file :format "%t:%v%d"
+		       :doc
+		       "Please read entire docstring below before setting \
+this through Custom.
+Click om \"More\" \(or position point there and press RETURN)
+if only the first line of the docstring is shown."))
   :group 'customize)
 
 (defun custom-file ()
   "Return the file name for saving customizations."
-  (setq custom-file
-	(or custom-file
-	    (let ((user-init-file user-init-file)
-		  (default-init-file
-		    (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
-	      (when (null user-init-file)
-		(if (or (file-exists-p default-init-file)
-			(and (eq system-type 'windows-nt)
-			     (file-exists-p "~/_emacs")))
-		    ;; Started with -q, i.e. the file containing
-		    ;; Custom settings hasn't been read.  Saving
-		    ;; settings there would overwrite other settings.
-		    (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
-		(setq user-init-file default-init-file))
-	      user-init-file))))
+  (or custom-file
+      (let ((user-init-file user-init-file)
+	    (default-init-file
+	      (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
+	(when (null user-init-file)
+	  (if (or (file-exists-p default-init-file)
+		  (and (eq system-type 'windows-nt)
+		       (file-exists-p "~/_emacs")))
+	      ;; Started with -q, i.e. the file containing
+	      ;; Custom settings hasn't been read.  Saving
+	      ;; settings there would overwrite other settings.
+	      (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+	  (setq user-init-file default-init-file))
+	user-init-file)))
 
 (defun custom-save-delete (symbol)
   "Visit `custom-file' and delete all calls to SYMBOL from it.
@@ -4051,23 +4056,23 @@ The format is suitable for use with `easy-menu-define'."
 
 ;;; The Custom Mode.
 
-(defvar custom-mode-map nil
-  "Keymap for `custom-mode'.")
-
-(unless custom-mode-map
+(defvar custom-mode-map
   ;; This keymap should be dense, but a dense keymap would prevent inheriting
   ;; "\r" bindings from the parent map.
-  (setq custom-mode-map (make-sparse-keymap))
-  (set-keymap-parent custom-mode-map widget-keymap)
-  (suppress-keymap custom-mode-map)
-  (define-key custom-mode-map " " 'scroll-up)
-  (define-key custom-mode-map "\177" 'scroll-down)
-  (define-key custom-mode-map "\C-x\C-s" 'Custom-save)
-  (define-key custom-mode-map "q" 'Custom-buffer-done)
-  (define-key custom-mode-map "u" 'Custom-goto-parent)
-  (define-key custom-mode-map "n" 'widget-forward)
-  (define-key custom-mode-map "p" 'widget-backward)
-  (define-key custom-mode-map [mouse-1] 'Custom-move-and-invoke))
+  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
+  (let ((map (make-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (suppress-keymap map)
+    (define-key map " " 'scroll-up)
+    (define-key map "\177" 'scroll-down)
+    (define-key map "\C-x\C-s" 'Custom-save)
+    (define-key map "q" 'Custom-buffer-done)
+    (define-key map "u" 'Custom-goto-parent)
+    (define-key map "n" 'widget-forward)
+    (define-key map "p" 'widget-backward)
+    (define-key map [mouse-1] 'Custom-move-and-invoke)
+    map)
+  "Keymap for `custom-mode'.")
 
 (defun Custom-move-and-invoke (event)
   "Move to where you click, and if it is an active field, invoke it."
@@ -4166,5 +4171,5 @@ if that value is non-nil."
 
 (provide 'cus-edit)
 
-;;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
+;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
 ;;; cus-edit.el ends here

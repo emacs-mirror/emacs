@@ -146,16 +146,15 @@ If you want the replies to go to the @code{Sender} instead of the
 This function will be called narrowed to the head of the article that is
 being replied to.
 
-As you can see, this function should return a string if it has an
-opinion as to what the To header should be.  If it does not, it should
-just return @code{nil}, and the normal methods for determining the To
-header will be used.
+As you can see, this function should return a list.  In this case, it
+returns @code{((To . "Whom"))} if it has an opinion as to what the To
+header should be.  If it does not, it should just return @code{nil}, and
+the normal methods for determining the To header will be used.
 
-This function can also return a list.  In that case, each list element
-should be a cons, where the @sc{car} should be the name of a header
-(e.g. @code{Cc}) and the @sc{cdr} should be the header value
-(e.g. @samp{larsi@@ifi.uio.no}).  All these headers will be inserted into
-the head of the outgoing mail.
+Each list element should be a cons, where the @sc{car} should be the
+name of a header (e.g. @code{Cc}) and the @sc{cdr} should be the header
+value (e.g. @samp{larsi@@ifi.uio.no}).  All these headers will be
+inserted into the head of the outgoing mail.
 
 
 @node Wide Reply

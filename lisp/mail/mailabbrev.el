@@ -305,10 +305,19 @@ If DEFINITION contains multiple addresses, separate them with commas."
 		    end (string-match "\"[ \t,]*" definition start))
 	    (setq end (string-match "[ \t,]+" definition start)))
 	(setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
-      (setq result (cons (substring definition start end) result))
-      (setq start (and end
-		       (/= (match-end 0) L)
-		       (match-end 0))))
+      (let ((tem (substring definition start end)))
+	;; Advance the loop past this address.
+	(setq start (and end
+			 (/= (match-end 0) L)
+			 (match-end 0)))
+	;; If the full name contains a problem character, quote it.
+	(when (string-match "\\(.+?\\)[ \t]*\\(<.*>\\)" tem)
+	  (if (string-match "[^- !#$%&'*+/0-9=?A-Za-z^_`{|}~]"
+			    (match-string 1 tem))
+	      (setq tem (replace-regexp-in-string
+			 "\\(.+?\\)[ \t]*\\(<.*>\\)" "\"\\1\" \\2"
+			 tem))))
+	(push tem result)))
     (setq definition (mapconcat (function identity)
 				(nreverse result)
 				mail-alias-separator-string)))
@@ -485,7 +494,9 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 	     ;; the usual syntax table.
 
 	     (or (and (integerp last-command-char)
-		      (eq (char-syntax last-command-char) ?_))
+		      (or (eq (char-syntax last-command-char) ?_)
+			  ;; Don't expand on @.
+			  (memq last-command-char '(?@ ?. ?% ?! ?_ ?-))))
 		 (let ((pre-abbrev-expand-hook nil)) ; That's us; don't loop.
 		   ;; Use this table so that abbrevs can have hyphens in them.
 		   (set-syntax-table mail-abbrev-syntax-table)
@@ -610,7 +621,8 @@ Don't use this command in Lisp programs!
   (interactive "P")
   (if (looking-at "[ \t]*\n") (expand-abbrev))
   (setq this-command 'end-of-buffer)
-  (end-of-buffer arg))
+  (with-no-warnings
+   (end-of-buffer arg)))
 
 (eval-after-load "sendmail"
   '(progn

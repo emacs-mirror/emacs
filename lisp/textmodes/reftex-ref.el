@@ -1,8 +1,8 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 
@@ -96,14 +96,27 @@ If optional BOUND is an integer, limit backward searches to that point."
 
 (defun reftex-label-info (label &optional file bound derive env-or-mac)
   ;; Return info list on LABEL at point.
-  (let* ((env-or-mac (or env-or-mac (reftex-label-location bound)))
-         (typekey (nth 1 (assoc env-or-mac reftex-env-or-mac-alist)))
+  (let* ((prefix (if (string-match "^[a-zA-Z0-9]+:" label)
+                     (match-string 0 label)))
+         (typekey (cdr (assoc prefix reftex-prefix-to-typekey-alist)))
          (file (or file (buffer-file-name)))
-         (parse (nth 2 (assoc env-or-mac reftex-env-or-mac-alist)))
-         (text (reftex-short-context env-or-mac parse reftex-location-start
-                                     derive))
+         (trust reftex-trust-label-prefix)
          (in-comment (reftex-in-comment)))
-    (list label typekey text file in-comment)))
+    (if (and typekey
+             (cond ((eq trust t) t)
+                   ((null trust) nil)
+                   ((stringp trust) (string-match trust typekey))
+                   ((listp trust) (member typekey trust))
+                   (t nil)))
+        (list label typekey
+              (reftex-nicify-text (reftex-context-substring))
+              file in-comment)
+      (let* ((env-or-mac (or env-or-mac (reftex-label-location bound)))
+             (typekey (nth 1 (assoc env-or-mac reftex-env-or-mac-alist)))
+             (parse (nth 2 (assoc env-or-mac reftex-env-or-mac-alist)))
+             (text (reftex-short-context env-or-mac parse reftex-location-start
+                                         derive)))
+        (list label typekey text file in-comment)))))
 
 ;;; Creating labels ---------------------------------------------------------
 
@@ -296,35 +309,43 @@ also applies `reftex-translate-to-ascii-function' to the string."
       (while (string-match "\\%\\([a-zA-Z]\\)" prefix num)
         (setq letter (match-string 1 prefix))
         (setq replace
-              (cond
-               ((equal letter "f")
-                (file-name-sans-extension
-                 (file-name-nondirectory (buffer-file-name))))
-               ((equal letter "F")
-                (let ((masterdir (file-name-directory (reftex-TeX-master-file)))
-                      (file (file-name-sans-extension (buffer-file-name))))
-                  (if (string-match (concat "\\`" (regexp-quote masterdir))
-                                    file)
-                      (substring file (length masterdir))
-                    file)))
-               ((equal letter "u")
-                (or (user-login-name) ""))
-               ((equal letter "S")
-                (let* (macro level-exp level)
-                  (save-excursion
-                    (save-match-data
-                      (when (re-search-backward reftex-section-regexp nil t)
-                        (setq macro (reftex-match-string 2)
-                              level-exp (cdr (assoc macro reftex-section-levels-all))
-                              level (if (symbolp level-exp)
-                                        (abs (save-match-data
-                                               (funcall level-exp)))
-                                      (abs level-exp))))
-                      (cdr (or (assoc macro reftex-section-prefixes)
-                               (assoc level reftex-section-prefixes)
-                               (assq t reftex-section-prefixes)
-                               (list t "sec:")))))))
-               (t "")))
+              (save-match-data
+                (cond
+                 ((equal letter "f")
+                  (file-name-sans-extension
+                   (file-name-nondirectory (buffer-file-name))))
+                 ((equal letter "F")
+                  (let ((masterdir (file-name-directory (reftex-TeX-master-file)))
+                        (file (file-name-sans-extension (buffer-file-name))))
+                    (if (string-match (concat "\\`" (regexp-quote masterdir))
+                                      file)
+                        (substring file (length masterdir))
+                      file)))
+                 ((equal letter "m")
+                  (file-name-sans-extension
+                   (file-name-nondirectory (reftex-TeX-master-file))))
+                 ((equal letter "M")
+                  (file-name-nondirectory
+                   (substring (file-name-directory (reftex-TeX-master-file))
+                              0 -1)))
+                 ((equal letter "u")
+                  (or (user-login-name) ""))
+                 ((equal letter "S")
+                  (let* (macro level-exp level)
+                    (save-excursion
+                      (save-match-data
+                        (when (re-search-backward reftex-section-regexp nil t)
+                          (setq macro (reftex-match-string 2)
+                                level-exp (cdr (assoc macro reftex-section-levels-all))
+                                level (if (symbolp level-exp)
+                                          (abs (save-match-data
+                                                 (funcall level-exp)))
+                                        (abs level-exp))))
+                        (cdr (or (assoc macro reftex-section-prefixes)
+                                 (assoc level reftex-section-prefixes)
+                                 (assq t reftex-section-prefixes)
+                                 (list t "sec:")))))))
+                 (t ""))))
         (setq num (1- (+ (match-beginning 1) (length replace)))
               prefix (replace-match replace nil nil prefix)))
       prefix)))
@@ -449,7 +470,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 
         ;; remove ~ if we do already have a space
         (when (and (= ?~ (string-to-char form))
-                   (member (preceding-char) '(?\ ?\t ?\n ?. ?~)))
+                   (member (preceding-char) '(?\ ?\t ?\n ?~)))
           (setq form (substring form 1)))
         ;; do we have a special format?
         (setq reftex-format-ref-function

@@ -1,5 +1,5 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985,93,94,97,98,99, 2000,01,02,03, 2004
+   Copyright (C) 1985,93,94,97,98,99, 2000,01,02,03, 2004, 2005
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -123,11 +123,12 @@ enum window_part
 
 #if GLYPH_DEBUG
 #define IF_DEBUG(X)	X
-#define xassert(X)	do {if (!(X)) abort ();} while (0)
 #else
 #define IF_DEBUG(X)	(void) 0
-#define xassert(X)	(void) 0
 #endif
+
+/* Maybe move this inside the above `#ifdef GLYPH_DEBUG' for release.  */
+#define xassert(X)	do {if (!(X)) abort ();} while (0)
 
 /* Macro for displaying traces of redisplay.  If Emacs was compiled
    with GLYPH_DEBUG != 0, the variable trace_redisplay_p can be set to
@@ -817,6 +818,9 @@ struct glyph_row
   /* 1 means this row currently shows the cursor in the right fringe.  */
   unsigned cursor_in_fringe_p : 1;
 
+  /* 1 means the last glyph in the row is part of an ellipsis.  */
+  unsigned ends_in_ellipsis_p : 1;
+
   /* Non-zero means display a bitmap on X frames indicating that this
      the first line of the buffer.  */
   unsigned indicate_bob_p : 1;
@@ -1184,6 +1188,11 @@ struct glyph_string
 
   /* Slice */
   struct glyph_slice slice;
+
+  /* Non-null means the horizontal clipping region starts from the
+     left edge of *clip_head, and ends with the right edge of
+     *clip_tail, not including their overhangs.  */
+  struct glyph_string *clip_head, *clip_tail;
 
   struct glyph_string *next, *prev;
 };
@@ -1820,6 +1829,10 @@ struct it
      Don't handle some `display' properties in these strings.  */
   unsigned string_from_display_prop_p : 1;
 
+  /* When METHOD == next_element_from_display_vector,
+     this is 1 if we're doing an ellipsis.  Otherwise meaningless.  */
+  unsigned ellipsis_p : 1;
+
   /* Display table in effect or null for none.  */
   struct Lisp_Char_Table *dp;
 
@@ -1834,6 +1847,9 @@ struct it
   /* Length in bytes of the char that filled dpvec.  A value of zero
      means that no such character is involved.  */
   int dpvec_char_len;
+
+  /* Face id to use for all characters in display vector.  -1 if unused. */
+  int dpvec_face_id;
 
   /* Face id of the iterator saved in case a glyph from dpvec contains
      a face.  The face is restored when all glyphs from dpvec have
@@ -2620,6 +2636,8 @@ extern void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
 extern void draw_phys_cursor_glyph P_ ((struct window *,
 					  struct glyph_row *,
 					  enum draw_glyphs_face));
+extern int get_phys_cursor_geometry P_ ((struct window *, struct glyph_row *,
+					 struct glyph *, int *));
 extern void erase_phys_cursor P_ ((struct window *));
 extern void display_and_set_cursor P_ ((struct window *,
 					  int, int, int, int, int));
@@ -2741,6 +2759,7 @@ int face_at_buffer_position P_ ((struct window *, int, int, int, int *,
 				 int, int));
 int face_at_string_position P_ ((struct window *, Lisp_Object, int, int, int,
 				 int, int *, enum face_id, int));
+int merge_faces P_ ((struct frame *, Lisp_Object, int, int));
 int compute_char_face P_ ((struct frame *, int, Lisp_Object));
 void free_all_realized_faces P_ ((Lisp_Object));
 extern Lisp_Object Qforeground_color, Qbackground_color;

@@ -1,7 +1,7 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 02, 2003
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+;;   2002, 2003, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
@@ -202,6 +202,7 @@ this function onto `change-major-mode-hook'."
   ;; Only do hard work if the mode has specified stuff in
   ;; `font-lock-defaults'.
   (when (or font-lock-defaults
+	    (and (boundp 'font-lock-keywords) font-lock-keywords)
 	    (cdr (assq major-mode font-lock-defaults-alist)))
     (font-lock-mode-internal mode)))
 
@@ -295,6 +296,5 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 
 (provide 'font-core)
 
+;; arch-tag: f8c286e1-02f7-41d9-b89b-1b67780aed71
 ;;; font-core.el ends here
-
-;;; arch-tag: f8c286e1-02f7-41d9-b89b-1b67780aed71

@@ -1,9 +1,45 @@
+2005-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el (gnus-article-mode): Turn off the "\ " non-break space.
+
+2005-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-beginning-of-line): Change the behavior when
+	invoked between BOL and : so that it first moves backward.
+
+2005-01-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-setup-buffer): Kill and re-create the
+	article buffer when editing of the article is discarded.
+	(gnus-article-prepare): Revert.
+
+2005-01-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-prepare):
+	Remove message-strip-forbidden-properties from the local hook.
+
+2005-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Convert string into unibyte when
+	inserting " *mml*" buffer's contents into a unibyte temp buffer.
+
+2005-01-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-insert-part): Switch the multibyteness of data
+	which will be inserted according to the multibyteness of a buffer
+	rather than the type of contents.  Suggested by ARISAWA Akihiro
+	<ari@mbf.ocn.ne.jp>.
+
+2005-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam.el (spam-face): New face.  Don't use `gnus-splash-face'
+	which is unreadable in some setups.
+
 2004-12-27  Simon Josefsson  <jas@extundo.com>
 
-	* mm-bodies.el (mm-body-encoding): Don't permit 7-bit to be used
-	when mm-use-ultra-safe-encoding is enabled (e.g., for PGP/MIME)
-	and we have trailing white space.  Reported by Werner Koch
-	<wk@gnupg.org>.
+	* mm-bodies.el (mm-body-encoding): Don't permit 7-bit to be used when
+	mm-use-ultra-safe-encoding is enabled (e.g., for PGP/MIME) and we have
+	trailing white space.  Reported by Werner Koch <wk@gnupg.org>.
 
 2004-12-17  Kim F. Storm  <storm@cua.dk>
 
@@ -46,8 +82,8 @@
 
 2004-12-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-group.el (gnus-group-make-rss-group): Use
-	gnus-group-make-group instead of gnus-group-unsubscribe-group.
+	* gnus-group.el (gnus-group-make-rss-group):
+	Use gnus-group-make-group instead of gnus-group-unsubscribe-group.
 
 	* gnus-start.el (gnus-setup-news): Honor user's setting to
 	gnus-message-archive-method.  Suggested by Lute Kamstra
@@ -376,11 +412,10 @@
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* gnus-agent.el (gnus-agent-possibly-synchronize-flags): Ignore
-	servers that are offline.  Avoids having gnus-agent-toggle-plugged
-	first ask if you want to open a server and then, even when you
-	responded with no, asking if you want to synchronize the server's
-	flags.
+	* gnus-agent.el (gnus-agent-possibly-synchronize-flags): Ignore servers
+	that are offline.  Avoids having gnus-agent-toggle-plugged first ask if
+	you want to open a server and then, even when you responded with no,
+	asking if you want to synchronize the server's flags.
 	(gnus-agent-synchronize-flags-server): Rewrite read loop to handle
 	multi-line expressions.
 	(gnus-agent-synchronize-group-flags): New internal function.
@@ -528,9 +563,8 @@
 
 2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
 
-	* gnus-start.el (gnus-convert-old-newsrc): Only write the
-	conversion message to newsrc-dribble when an actual conversion is
-	performed.
+	* gnus-start.el (gnus-convert-old-newsrc): Only write the conversion
+	message to newsrc-dribble when an actual conversion is performed.
 
 2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
 

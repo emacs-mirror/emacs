@@ -1,6 +1,6 @@
 ;;; case-table.el --- code to extend the character set and support case tables
 
-;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2005 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -62,11 +62,26 @@
        (describe-vector description)
        (help-mode)))))
 
+(defun get-upcase-table (case-table)
+  "Return the upcase table of CASE-TABLE."
+  (or (char-table-extra-slot case-table 0)
+      ;; Setup all extra slots of CASE-TABLE by temporarily selecting
+      ;; it as the standard case table.
+      (let ((old (standard-case-table)))
+	(unwind-protect
+	    (progn
+	      (set-standard-case-table case-table)
+	      (char-table-extra-slot case-table 0))
+	  (or (eq case-table old)
+	      (set-standard-case-table old))))))
+
 (defun copy-case-table (case-table)
-  (let ((copy (copy-sequence case-table)))
-    ;; Clear out the extra slots so that they will be
-    ;; recomputed from the main (downcase) table.
-    (set-char-table-extra-slot copy 0 nil)
+  (let ((copy (copy-sequence case-table))
+	(up (char-table-extra-slot case-table 0)))
+    ;; Clear out the extra slots (except for upcase table) so that
+    ;; they will be recomputed from the main (downcase) table.
+    (if up
+	(set-char-table-extra-slot copy 0 (copy-sequence up)))
     (set-char-table-extra-slot copy 1 nil)
     (set-char-table-extra-slot copy 2 nil)
     copy))
@@ -87,9 +102,11 @@ indicate left and right delimiters."
   (setq r (set-case-syntax-1 r))
   (aset table l l)
   (aset table r r)
+  (let ((up (get-upcase-table table)))
+    (aset up l l)
+    (aset up r r))
   ;; Clear out the extra slots so that they will be
-  ;; recomputed from the main (downcase) table.
-  (set-char-table-extra-slot table 0 nil)
+  ;; recomputed from the main (downcase) table and upcase table.
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
@@ -103,14 +120,49 @@ This sets the entries for characters UC and LC in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
-  (unless (= (charset-bytes (char-charset uc))
-	     (charset-bytes (char-charset lc)))
-    (error "Can't casify chars with different `charset-bytes' values"))
   (setq uc (set-case-syntax-1 uc))
   (setq lc (set-case-syntax-1 lc))
   (aset table uc lc)
   (aset table lc lc)
-  (set-char-table-extra-slot table 0 nil)
+  (let ((up (get-upcase-table table)))
+    (aset up uc uc)
+    (aset up lc uc))
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table and upcase table.
+  (set-char-table-extra-slot table 1 nil)
+  (set-char-table-extra-slot table 2 nil)
+  (modify-syntax-entry lc "w   " (standard-syntax-table))
+  (modify-syntax-entry uc "w   " (standard-syntax-table)))
+
+(defun set-upcase-syntax (uc lc table)
+  "Make character UC an upcase of character LC.
+It also modifies `standard-syntax-table' to give them the syntax of
+word constituents."
+  (setq uc (set-case-syntax-1 uc))
+  (setq lc (set-case-syntax-1 lc))
+  (aset table lc lc)
+  (let ((up (get-upcase-table table)))
+    (aset up uc uc)
+    (aset up lc uc))
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table and upcase table.
+  (set-char-table-extra-slot table 1 nil)
+  (set-char-table-extra-slot table 2 nil)
+  (modify-syntax-entry lc "w   " (standard-syntax-table))
+  (modify-syntax-entry uc "w   " (standard-syntax-table)))
+
+(defun set-downcase-syntax (uc lc table)
+  "Make character LC a downcase of character UC.
+It also modifies `standard-syntax-table' to give them the syntax of
+word constituents."
+  (setq uc (set-case-syntax-1 uc))
+  (setq lc (set-case-syntax-1 lc))
+  (aset table uc lc)
+  (aset table lc lc)
+  (let ((up (get-upcase-table table)))
+    (aset up uc uc))
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table and upcase table.
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)
   (modify-syntax-entry lc "w   " (standard-syntax-table))
@@ -124,7 +176,10 @@ It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
   (setq c (set-case-syntax-1 c))
   (aset table c c)
-  (set-char-table-extra-slot table 0 nil)
+  (let ((up (get-upcase-table table)))
+    (aset up c c))
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table and upcase table.
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)
   (modify-syntax-entry c syntax (standard-syntax-table)))

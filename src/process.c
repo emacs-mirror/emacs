@@ -187,6 +187,7 @@ extern Lisp_Object QCfilter;
 #include "syswait.h"
 
 extern void set_waiting_for_input P_ ((EMACS_TIME *));
+extern char *get_operating_system_release ();
 
 #ifndef USE_CRT_DLL
 extern int errno;
@@ -6701,6 +6702,19 @@ init_process ()
    Fprovide (intern ("make-network-process"), subfeatures);
  }
 #endif /* HAVE_SOCKETS */
+
+#ifdef DARWIN
+  /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive 
+     processes.  As such, we only change the default value.  */
+ if (initialized)
+  {
+    char *release = get_operating_system_release();
+    if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
+				    && release[1] == '.')) {
+      Vprocess_connection_type = Qnil;
+    }
+  }
+#endif
 }
 
 void

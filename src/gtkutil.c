@@ -756,7 +756,7 @@ xg_create_frame_widgets (f)
      So we cheat a bit by setting a height that is what it will have
      later on when tool bar items are added.  */
   if (FRAME_EXTERNAL_TOOL_BAR (f) && f->n_tool_bar_items == 0)
-    FRAME_TOOLBAR_HEIGHT (f) = 34;
+    FRAME_TOOLBAR_HEIGHT (f) = 38;
 
 
   /* We don't want this widget double buffered, because we draw on it
@@ -1312,6 +1312,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   char *fn = 0;
   int filesel_done = 0;
   xg_get_file_func func;
+  extern int x_use_old_gtk_file_dialog;
 
 #if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
   /* I really don't know why this is needed, but without this the GLIBC add on
@@ -1321,7 +1322,6 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 #endif /* HAVE_GTK_AND_PTHREAD */
 
 #ifdef HAVE_GTK_FILE_BOTH
-  extern int x_use_old_gtk_file_dialog;
 
   if (x_use_old_gtk_file_dialog)
     w = xg_get_file_with_selection (f, prompt, default_filename,
@@ -2850,7 +2850,7 @@ xg_gtk_scroll_destroy (widget, data)
      gpointer data;
 {
   gpointer p;
-  int id = (int)data;
+  int id = (int) (EMACS_INT) data; /* The EMACS_INT cast avoids a warning. */
 
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
   if (p) xfree (p);
@@ -2920,10 +2920,11 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                     "value-changed",
                     scroll_callback,
                     (gpointer) bar);
+  /* The EMACS_INT cast avoids a warning. */
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
-                    (gpointer) scroll_id);
+                    (gpointer) (EMACS_INT) scroll_id);
 
   /* Connect to button press and button release to detect if any scroll bar
      has the pointer.  */
@@ -3112,7 +3113,8 @@ xg_tool_bar_callback (w, client_data)
      GtkWidget *w;
      gpointer client_data;
 {
-  int idx = (int)client_data;
+  /* The EMACS_INT cast avoids a warning. */
+  int idx = (int) (EMACS_INT) client_data;
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
   struct input_event event;
@@ -3154,10 +3156,11 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
 
   if (f)
     {
+      FRAME_X_OUTPUT (f)->toolbar_detached = 1;
+
       /* When detaching a tool bar, not everything dissapear.  There are
          a few pixels left that are used to drop the tool bar back into
          place.  */
-      int bw = gtk_container_get_border_width (GTK_CONTAINER (wbox));
       FRAME_TOOLBAR_HEIGHT (f) = 2;
 
       /* The height has changed, resize outer widget and set columns
@@ -3185,11 +3188,13 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
     {
       GtkRequisition req;
 
+      FRAME_X_OUTPUT (f)->toolbar_detached = 0;
+
       gtk_widget_size_request (w, &req);
       FRAME_TOOLBAR_HEIGHT (f) = req.height;
 
       /* The height has changed, resize outer widget and set columns
-         rows to what we had before detaching the tool bar.  */
+         rows to what we had before attaching the tool bar.  */
       xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 }
@@ -3209,7 +3214,8 @@ xg_tool_bar_help_callback (w, event, client_data)
      GdkEventCrossing *event;
      gpointer client_data;
 {
-  int idx = (int)client_data;
+  /* The EMACS_INT cast avoids a warning. */
+  int idx = (int) (EMACS_INT) client_data;
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
 
@@ -3302,6 +3308,8 @@ xg_create_tool_bar (f)
 
   x->toolbar_widget = gtk_toolbar_new ();
   x->handlebox_widget = gtk_handle_box_new ();
+  x->toolbar_detached = 0;
+
   gtk_container_add (GTK_CONTAINER (x->handlebox_widget),
                      x->toolbar_widget);
 
@@ -3452,11 +3460,12 @@ update_frame_tool_bar (f)
 
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
 
+          /* The EMACS_INT cast avoids a warning. */
           gtk_toolbar_append_item (GTK_TOOLBAR (x->toolbar_widget),
                                    0, 0, 0,
                                    w,
                                    GTK_SIGNAL_FUNC (xg_tool_bar_callback),
-                                   (gpointer)i);
+                                   (gpointer) (EMACS_INT) i);
 
           /* Save the image so we can see if an update is needed when
              this function is called again.  */
@@ -3486,14 +3495,15 @@ update_frame_tool_bar (f)
                  rather than the GtkButton specific signals "enter" and
                  "leave", so we can have only one callback.  The event
                  will tell us what kind of event it is.  */
+              /* The EMACS_INT cast avoids a warning. */
               g_signal_connect (G_OBJECT (w),
                                 "enter-notify-event",
                                 G_CALLBACK (xg_tool_bar_help_callback),
-                                (gpointer)i);
+                                (gpointer) (EMACS_INT) i);
               g_signal_connect (G_OBJECT (w),
                                 "leave-notify-event",
                                 G_CALLBACK (xg_tool_bar_help_callback),
-                                (gpointer)i);
+                                (gpointer) (EMACS_INT) i);
             }
         }
       else
@@ -3532,7 +3542,8 @@ update_frame_tool_bar (f)
     }
 
   gtk_widget_size_request (x->toolbar_widget, &new_req);
-  if (old_req.height != new_req.height)
+  if (old_req.height != new_req.height
+      && ! FRAME_X_OUTPUT (f)->toolbar_detached)
     {
       FRAME_TOOLBAR_HEIGHT (f) = new_req.height;
       xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));

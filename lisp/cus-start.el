@@ -41,6 +41,17 @@
 	     (gc-cons-threshold alloc integer)
 	     (undo-limit undo integer)
 	     (undo-strong-limit undo integer)
+	     (undo-outer-limit undo
+			       (choice integer
+				       (const :tag "No limit"
+					      :format "%t\n%d"
+					      :doc
+					      "With this choice, \
+the undo info for the current command never gets discarded.
+This should only be chosen under exceptional circumstances,
+since it could result in memory overflow and make Emacs crash."
+					      nil))
+			       "21.4")
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format modeline sexp) ;Hard to do right.

@@ -44,7 +44,8 @@ their normal equivalents do.
 
 @vindex picture-mode-hook
   Turning on Picture mode runs the hook @code{picture-mode-hook}
-(@pxref{Hooks}).
+(@pxref{Hooks}).  Additional extensions to Picture mode can be found
+in @file{artist.el}.
 
 @menu
 * Basic Picture::         Basic concepts and simple commands of Picture Mode.

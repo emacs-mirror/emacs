@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 93, 94, 95, 96, 97, 98, 1999, 2000,01,02,03,04
-   Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+     2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2129,15 +2129,9 @@ x_draw_glyph_string_box (s)
   struct glyph *last_glyph;
   XRectangle clip_rect;
 
-  last_x = window_box_right (s->w, s->area);
-  if (s->row->full_width_p
-      && !s->w->pseudo_window_p)
-    {
-      last_x += WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH (s->w);
-      if (s->area != RIGHT_MARGIN_AREA
-	  || WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
-	last_x += WINDOW_RIGHT_FRINGE_WIDTH (s->w);
-    }
+  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
+	    ? WINDOW_RIGHT_EDGE_X (s->w)
+	    : window_box_right (s->w, s->area));
 
   /* The glyph that may have a right box line.  */
   last_glyph = (s->cmp || s->img
@@ -4332,7 +4326,7 @@ xg_scroll_callback (widget, data)
     }
 
   if (part >= 0)
-    { 
+    {
       window_being_scrolled = bar->window;
       last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);
@@ -7159,7 +7153,7 @@ x_clip_to_row (w, row, area, gc)
   window_box (w, area, &window_x, &window_y, &window_width, 0);
 
   clip_rect.x = window_x;
-  clip_rect.y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  clip_rect.y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, row->y));
   clip_rect.y = max (clip_rect.y, window_y);
   clip_rect.width = window_width;
   clip_rect.height = row->visible_height;
@@ -7189,29 +7183,10 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph == NULL)
     return;
 
-  /* Compute the width of the rectangle to draw.  If on a stretch
-     glyph, and `x-stretch-block-cursor' is nil, don't draw a
-     rectangle as wide as the glyph, but use a canonical character
-     width instead.  */
-  wd = cursor_glyph->pixel_width - 1;
-  if (cursor_glyph->type == STRETCH_GLYPH
-      && !x_stretch_cursor_p)
-    wd = min (FRAME_COLUMN_WIDTH (f), wd);
-  w->phys_cursor_width = wd;
-
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
+  /* Compute frame-relative coordinates for phys cursor.  */
   x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y);
-
-  /* Compute the proper height and ascent of the rectangle, based
-     on the actual glyph.  Using the full height of the row looks
-     bad when there are tall images on that row.  */
-  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
-	   cursor_glyph->ascent + cursor_glyph->descent);
-  if (h < row->height)
-    y += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
-  h--;
+  y = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
+  wd = w->phys_cursor_width;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -7779,27 +7754,9 @@ x_connection_closed (dpy, error_message)
   error ("%s", error_msg);
 }
 
-
-/* This is the usual handler for X protocol errors.
-   It kills all frames on the display that we got the error for.
-   If that was the only one, it prints an error message and kills Emacs.  */
-
-static void
-x_error_quitter (display, error)
-     Display *display;
-     XErrorEvent *error;
-{
-  char buf[256], buf1[356];
-
-  /* Note that there is no real way portable across R3/R4 to get the
-     original error handler.  */
-
-  XGetErrorText (display, error->error_code, buf, sizeof (buf));
-  sprintf (buf1, "X protocol error: %s on protocol request %d",
-	   buf, error->request_code);
-  x_connection_closed (display, buf1);
-}
-
+/* We specifically use it before defining it, so that gcc doesn't inline it,
+   otherwise gdb doesn't know how to properly put a breakpoint on it.  */
+static void x_error_quitter (Display *display, XErrorEvent *error);
 
 /* This is the first-level handler for X protocol errors.
    It calls x_error_quitter or x_error_catcher.  */
@@ -7815,6 +7772,38 @@ x_error_handler (display, error)
     x_error_quitter (display, error);
   return 0;
 }
+
+/* This is the usual handler for X protocol errors.
+   It kills all frames on the display that we got the error for.
+   If that was the only one, it prints an error message and kills Emacs.  */
+
+/* .gdbinit puts a breakpoint here, so make sure it is not inlined.  */
+
+#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
+#define NO_INLINE __attribute__((noinline))
+#else
+#define NO_INLINE
+#endif
+
+/* On older GCC versions, just putting x_error_quitter
+   after x_error_handler prevents inlining into the former.  */
+
+static void NO_INLINE
+x_error_quitter (display, error)
+     Display *display;
+     XErrorEvent *error;
+{
+  char buf[256], buf1[356];
+
+  /* Note that there is no real way portable across R3/R4 to get the
+     original error handler.  */
+
+  XGetErrorText (display, error->error_code, buf, sizeof (buf));
+  sprintf (buf1, "X protocol error: %s on protocol request %d",
+	   buf, error->request_code);
+  x_connection_closed (display, buf1);
+}
+
 
 /* This is the handler for X IO errors, always.
    It kills all frames on the display that we lost touch with.

@@ -36,6 +36,7 @@
 (defun calc-set-language (lang &optional option no-refresh)
   (setq math-expr-opers (or (get lang 'math-oper-table) math-standard-opers)
 	math-expr-function-mapping (get lang 'math-function-table)
+	math-expr-special-function-mapping (get lang 'math-special-function-table)
 	math-expr-variable-mapping (get lang 'math-variable-table)
 	calc-language-input-filter (get lang 'math-input-filter)
 	calc-language-output-filter (get lang 'math-output-filter)
@@ -296,6 +297,26 @@
 		  "TeX language mode with \\func{\\hbox{var}}")
 	      "TeX language mode"))))
 
+(defun calc-latex-language (n)
+  (interactive "P")
+  (calc-wrapper
+   (and n (setq n (prefix-numeric-value n)))
+   (calc-set-language 'latex n)
+   (cond ((not n)
+          (message "LaTeX language mode"))
+         ((= n 0)
+          (message "LaTeX language mode with multiline matrices"))
+         ((= n 1)
+          (message "LaTeX language mode with \\text{func}(\\text{var})"))
+         ((> n 1)
+          (message 
+           "LaTeX language mode with \\text{func}(\\text{var}) and multiline matrices"))
+         ((= n -1)
+          (message "LaTeX language mode with \\func(\\text{var})"))
+         ((< n -1)
+          (message 
+           "LaTeX language mode with \\func(\\text{var}) and multiline matrices")))))
+
 (put 'tex 'math-oper-table
   '( ( "u+"       ident		   -1 1000 )
      ( "u-"       neg		   -1 1000 )
@@ -406,6 +427,80 @@
   str)
 (put 'tex 'math-input-filter 'math-tex-input-filter)
 
+(put 'latex 'math-oper-table
+     (append (get 'tex 'math-oper-table)
+             '(( "\\Hat"    calcFunc-Hat     -1  950 )
+               ( "\\Check"  calcFunc-Check   -1  950 )
+               ( "\\Tilde"  calcFunc-Tilde   -1  950 )
+               ( "\\Acute"  calcFunc-Acute   -1  950 )
+               ( "\\Grave"  calcFunc-Grave   -1  950 )
+               ( "\\Dot"    calcFunc-Dot     -1  950 )
+               ( "\\Ddot"   calcFunc-Dotdot  -1  950 )
+               ( "\\Breve"  calcFunc-Breve   -1  950 )
+               ( "\\Bar"    calcFunc-Bar     -1  950 )
+               ( "\\Vec"    calcFunc-VEC     -1  950 )
+               ( "\\dddot"  calcFunc-dddot   -1  950 )
+               ( "\\ddddot" calcFunc-ddddot  -1  950 )
+               ( "\div"     /                170 171 )
+               ( "\\le"     calcFunc-leq     160 161 )
+               ( "\\leqq"   calcFunc-leq     160 161 )
+               ( "\\leqsland" calcFunc-leq   160 161 )
+               ( "\\ge"	    calcFunc-geq     160 161 )
+               ( "\\geqq"   calcFunc-geq     160 161 )
+               ( "\\geqslant" calcFunc-geq   160 161 )
+               ( "="	    calcFunc-eq	     160 161 )
+               ( "\\neq"    calcFunc-neq     160 161 )
+               ( "\\ne"	    calcFunc-neq     160 161 )
+               ( "\\lnot"   calcFunc-lnot     -1 121 )
+               ( "\\land"   calcFunc-land    110 111 )
+               ( "\\lor"    calcFunc-lor     100 101 )
+               ( "?"	    (math-read-if)    91  90 )
+               ( "!!!"	    calcFunc-pnot     -1  85 )
+               ( "&&&"	    calcFunc-pand     80  81 )
+               ( "|||"	    calcFunc-por      75  76 )
+               ( "\\gets"   calcFunc-assign   51  50 )
+               ( ":="	    calcFunc-assign   51  50 )
+               ( "::"       calcFunc-condition 45 46 )
+               ( "\\to"	    calcFunc-evalto   40  41 )
+               ( "\\to"	    calcFunc-evalto   40  -1 )
+               ( "=>" 	    calcFunc-evalto   40  41 )
+               ( "=>" 	    calcFunc-evalto   40  -1 ))))
+
+(put 'latex 'math-function-table
+     (append
+      (get 'tex 'math-function-table)
+      '(( \\frac      . (math-latex-parse-frac /))
+        ( \\tfrac     . (math-latex-parse-frac /))
+        ( \\dfrac     . (math-latex-parse-frac /))
+        ( \\binom     . (math-latex-parse-frac calcFunc-choose))
+        ( \\tbinom    . (math-latex-parse-frac calcFunc-choose))
+        ( \\dbinom    . (math-latex-parse-frac calcFunc-choose))
+        ( \\phi	      . calcFunc-totient )
+        ( \\mu	      . calcFunc-moebius ))))
+
+(put 'latex 'math-special-function-table
+     '((/               . (math-latex-print-frac "\\frac"))
+       (calcFunc-choose . (math-latex-print-frac "\\binom"))))
+
+(put 'latex 'math-variable-table
+     (get 'tex 'math-variable-table))
+
+(put 'latex 'math-complex-format 'i)
+
+(defun math-latex-parse-frac (f val)
+  (let (numer denom)
+    (setq args (math-read-expr-list))
+    (math-read-token)
+    (setq margs (math-read-factor))
+    (list (nth 2 f) (car args) margs)))
+
+(defun math-latex-print-frac (a fn)
+  (list 'horiz (nth 1 fn) "{" (math-compose-expr (nth 1 a) -1)
+               "}{"
+               (math-compose-expr (nth 2 a) -1)
+               "}"))
+
+(put 'latex 'math-input-filter 'math-tex-input-filter)
 
 (defun calc-eqn-language (n)
   (interactive "P")

@@ -1,5 +1,5 @@
 ;;; message.el --- composing mail and news messages
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -800,7 +800,7 @@ variable isn't used."
 ;; is nil.  See: http://article.gmane.org/gmane.emacs.gnus.general/51138
 (defcustom message-generate-headers-first '(references)
   "Which headers should be generated before starting to compose a message.
-If `t', generate all required headers.  This can also be a list of headers to
+If t, generate all required headers.  This can also be a list of headers to
 generate.  The variables `message-required-news-headers' and
 `message-required-mail-headers' specify which headers to generate.
 
@@ -5295,10 +5295,10 @@ outside the message header or if the option `message-beginning-of-line'
 is nil.
 
 If point is in the message header and on a (non-continued) header
-line, move point to the beginning of the header value.  If point
-is already there, move point to beginning of line.  Therefore,
-repeated calls will toggle point between beginning of field and
-beginning of line."
+line, move point to the beginning of the header value or the beginning of line,
+whichever is closer.  If point is already at beginning of line, move point to
+beginning of header value.  Therefore, repeated calls will toggle point
+between beginning of field and beginning of line."
   (interactive "p")
   (let ((zrs 'zmacs-region-stays))
     (when (and (interactive-p) (boundp zrs))
@@ -5309,9 +5309,9 @@ beginning of line."
 	     (bol (progn (beginning-of-line n) (point)))
 	     (eol (gnus-point-at-eol))
 	     (eoh (re-search-forward ": *" eol t)))
-	(if (or (not eoh) (equal here eoh))
-	    (goto-char bol)
-	  (goto-char eoh)))
+	(goto-char
+	 (if (and eoh (or (< eoh here) (= bol here)))
+	     eoh bol)))
     (beginning-of-line n)))
 
 (defun message-buffer-name (type &optional to group)
@@ -6880,5 +6880,5 @@ regexp VARSTR."
 ;; coding: iso-8859-1
 ;; End:
 
-;;; arch-tag: 94b32cac-4504-4b6c-8181-030ebf380ee0
+;; arch-tag: 94b32cac-4504-4b6c-8181-030ebf380ee0
 ;;; message.el ends here

@@ -169,8 +169,9 @@ sections.
   Some initial options affect the loading of init files.  The normal
 actions of Emacs are to first load @file{site-start.el} if it exists,
 then your own init file @file{~/.emacs} if it exists, and finally
-@file{default.el} if it exists; certain options prevent loading of some
-of these files or substitute other files for them.
+@file{default.el} if it exists.  @xref{Init File}.  Certain options
+prevent loading of some of these files or substitute other files for
+them.
 
 @table @samp
 @item -t @var{device}
@@ -257,8 +258,8 @@ changed with the @kbd{M-x customize} command and its variants.
 @opindex --no-site-file
 @cindex @file{site-start.el} file, not loading
 Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
-and @samp{--batch} have no effect on the loading of this file---this is
-the only option that blocks it.
+and @samp{--batch} have no effect on the loading of this file---this
+option and @samp{-Q} are the only options that block it.
 
 @item -Q
 @opindex -Q

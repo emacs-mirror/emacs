@@ -634,14 +634,17 @@ static EMACS_TIME timer_last_idleness_start_time;
 
 /* Global variable declarations.  */
 
+/* Flags for readable_events.  */
+#define READABLE_EVENTS_DO_TIMERS_NOW		(1 << 0)
+#define READABLE_EVENTS_FILTER_EVENTS		(1 << 1)
+#define READABLE_EVENTS_IGNORE_SQUEEZABLES	(1 << 2)
+
 /* Function for init_keyboard to call with no args (if nonzero).  */
 void (*keyboard_init_hook) ();
 
 static int read_avail_input P_ ((int));
 static void get_input_pending P_ ((int *, int));
-static void get_filtered_input_pending P_ ((int *, int, int));
 static int readable_events P_ ((int));
-static int readable_filtered_events P_ ((int, int));
 static Lisp_Object read_char_x_menu_prompt P_ ((int, Lisp_Object *,
 						Lisp_Object, int *));
 static Lisp_Object read_char_x_menu_prompt ();
@@ -3435,10 +3438,11 @@ tracking_off (old_value)
 	 input has been processed.  If the only input available was
 	 the sort that we have just disabled, then we need to call
 	 redisplay.  */
-      if (!readable_events (1))
+      if (!readable_events (READABLE_EVENTS_DO_TIMERS_NOW))
 	{
 	  redisplay_preserve_echo_area (6);
-	  get_input_pending (&input_pending, 1);
+	  get_input_pending (&input_pending,
+			     READABLE_EVENTS_DO_TIMERS_NOW);
 	}
     }
   return Qnil;
@@ -3490,20 +3494,19 @@ some_mouse_moved ()
 /* Return true iff there are any events in the queue that read-char
    would return.  If this returns false, a read-char would block.  */
 static int
-readable_filtered_events (do_timers_now, filter_events)
-     int do_timers_now;
-     int filter_events;
+readable_events (flags)
+     int flags;
 {
-  if (do_timers_now)
-    timer_check (do_timers_now);
+  if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
+    timer_check (1);
 
-  /* If the buffer contains only FOCUS_IN_EVENT events,
-     and FILTER_EVENTS is nonzero, report it as empty.  */
+  /* If the buffer contains only FOCUS_IN_EVENT events, and
+     READABLE_EVENTS_FILTER_EVENTS is set, report it as empty.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
       int have_live_event = 1;
 
-      if (filter_events)
+      if (flags & READABLE_EVENTS_FILTER_EVENTS)
         {
           struct input_event *event;
 
@@ -3524,7 +3527,8 @@ readable_filtered_events (do_timers_now, filter_events)
     }
 
 #ifdef HAVE_MOUSE
-  if (!NILP (do_mouse_tracking) && some_mouse_moved ())
+  if (!(flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
+      && !NILP (do_mouse_tracking) && some_mouse_moved ())
     return 1;
 #endif
   if (single_kboard)
@@ -3540,15 +3544,6 @@ readable_filtered_events (do_timers_now, filter_events)
 	  return 1;
     }
   return 0;
-}
-
-/* Return true iff there are any events in the queue that read-char
-   would return.  If this returns false, a read-char would block.  */
-static int
-readable_events (do_timers_now)
-     int do_timers_now;
-{
-  return readable_filtered_events (do_timers_now, 0);
 }
 
 /* Set this for debugging, to have a way to get out */
@@ -4225,7 +4220,7 @@ swallow_events (do_display)
     }
 
   old_timers_run = timers_run;
-  get_input_pending (&input_pending, 1);
+  get_input_pending (&input_pending, READABLE_EVENTS_DO_TIMERS_NOW);
 
   if (timers_run != old_timers_run && do_display)
     redisplay_preserve_echo_area (7);
@@ -6517,18 +6512,20 @@ lucid_event_type_list_p (object)
    but works even if FIONREAD does not exist.
    (In fact, this may actually read some input.)
 
-   If DO_TIMERS_NOW is nonzero, actually run timer events that are ripe.
-   If FILTER_EVENTS is nonzero, ignore internal events (FOCUS_IN_EVENT). */
+   If READABLE_EVENTS_DO_TIMERS_NOW is set in FLAGS, actually run
+   timer events that are ripe.
+   If READABLE_EVENTS_FILTER_EVENTS is set in FLAGS, ignore internal
+   events (FOCUS_IN_EVENT).
+   If READABLE_EVENTS_IGNORE_SQUEEZABLES is set in FLAGS, ignore mouse
+   movements. */
 
 static void
-get_filtered_input_pending (addr, do_timers_now, filter_events)
+get_input_pending (addr, flags)
      int *addr;
-     int do_timers_now;
-     int filter_events;
+     int flags;
 {
   /* First of all, have we already counted some input?  */
-  *addr = (!NILP (Vquit_flag)
-           || readable_filtered_events (do_timers_now, filter_events));
+  *addr = (!NILP (Vquit_flag) || readable_events (flags));
 
   /* If input is being read as it arrives, and we have none, there is none.  */
   if (*addr > 0 || (interrupt_input && ! interrupts_deferred))
@@ -6536,23 +6533,7 @@ get_filtered_input_pending (addr, do_timers_now, filter_events)
 
   /* Try to read some input and see how much we get.  */
   gobble_input (0);
-  *addr = (!NILP (Vquit_flag)
-           || readable_filtered_events (do_timers_now, filter_events));
-}
-
-/* Store into *addr a value nonzero if terminal input chars are available.
-   Serves the purpose of ioctl (0, FIONREAD, addr)
-   but works even if FIONREAD does not exist.
-   (In fact, this may actually read some input.)
-
-   If DO_TIMERS_NOW is nonzero, actually run timer events that are ripe.  */
-
-static void
-get_input_pending (addr, do_timers_now)
-     int *addr;
-     int do_timers_now;
-{
-  get_filtered_input_pending (addr, do_timers_now, 0);
+  *addr = (!NILP (Vquit_flag) || readable_events (flags));
 }
 
 /* Interface to read_avail_input, blocking SIGIO or SIGALRM if necessary.  */
@@ -6915,7 +6896,7 @@ input_available_signal (signo)
 #else
   SIGNAL_THREAD_CHECK (signo);
 #endif
-  
+
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 
@@ -9940,6 +9921,18 @@ detect_input_pending ()
   return input_pending;
 }
 
+/* Return nonzero if input events other than mouse movements are
+   pending.  */
+
+int
+detect_input_pending_ignore_squeezables ()
+{
+  if (!input_pending)
+    get_input_pending (&input_pending, READABLE_EVENTS_IGNORE_SQUEEZABLES);
+
+  return input_pending;
+}
+
 /* Return nonzero if input events are pending, and run any pending timers.  */
 
 int
@@ -9949,7 +9942,7 @@ detect_input_pending_run_timers (do_display)
   int old_timers_run = timers_run;
 
   if (!input_pending)
-    get_input_pending (&input_pending, 1);
+    get_input_pending (&input_pending, READABLE_EVENTS_DO_TIMERS_NOW);
 
   if (old_timers_run != timers_run && do_display)
     {
@@ -10002,7 +9995,9 @@ if there is a doubt, the value is t.  */)
   if (!NILP (Vunread_command_events) || unread_command_char != -1)
     return (Qt);
 
-  get_filtered_input_pending (&input_pending, 1, 1);
+  get_input_pending (&input_pending,
+		     READABLE_EVENTS_DO_TIMERS_NOW
+		     | READABLE_EVENTS_FILTER_EVENTS);
   return input_pending > 0 ? Qt : Qnil;
 }
 
@@ -10644,17 +10639,19 @@ The elements of this list correspond to the arguments of
   return Flist (sizeof (val) / sizeof (val[0]), val);
 }
 
-DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 3, 0,
+DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 4, 0,
        doc: /* Return position information for pixel coordinates X and Y.
 By default, X and Y are relative to text area of the selected window.
 Optional third arg FRAME_OR_WINDOW non-nil specifies frame or window.
+If optional fourth arg WHOLE is non-nil, X is relative to the left
+edge of the window.
 
 The return value is similar to a mouse click position:
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists.  */)
-  (x, y, frame_or_window)
-     Lisp_Object x, y, frame_or_window;
+  (x, y, frame_or_window, whole)
+     Lisp_Object x, y, frame_or_window, whole;
 {
   if (NILP (frame_or_window))
     frame_or_window = selected_window;
@@ -10667,7 +10664,10 @@ The `posn-' functions access elements of such lists.  */)
 
       w = XWINDOW (frame_or_window);
       XSETINT (x, (WINDOW_TO_FRAME_PIXEL_X (w, XINT (x))
-		   + window_box_left_offset (w, TEXT_AREA)));
+		   + (NILP (whole)
+		      ? window_box_left_offset (w, TEXT_AREA)
+		      : - (WINDOW_LEFT_SCROLL_BAR_COLS (w)
+			   * WINDOW_FRAME_COLUMN_WIDTH (w)))));
       XSETINT (y, WINDOW_TO_FRAME_PIXEL_Y (w, XINT (y)));
       frame_or_window = w->frame;
     }
@@ -10695,7 +10695,7 @@ The `posn-' functions access elements of such lists.  */)
 
   tem = Fpos_visible_in_window_p (pos, window, Qt);
   if (!NILP (tem))
-    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window);
+    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window, Qnil);
   return tem;
 }
 
@@ -11401,14 +11401,15 @@ The elements of the list are event types that may have menu bar bindings.  */);
 		 doc: /* Per-terminal keymap that overrides all other local keymaps.
 If this variable is non-nil, it is used as a keymap instead of the
 buffer's local map, and the minor mode keymaps and text property keymaps.
-It also overrides `overriding-local-map'.
+It also replaces `overriding-local-map'.
+
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.  */);
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
 	       doc: /* Keymap that overrides all other local keymaps.
-If this variable is non-nil, it is used as a keymap instead of the
-buffer's local map, and the minor mode keymaps and text property keymaps.  */);
+If this variable is non-nil, it is used as a keymap--replacing the
+buffer's local map, the minor mode keymaps, and char property keymaps.  */);
   Voverriding_local_map = Qnil;
 
   DEFVAR_LISP ("overriding-local-map-menu-flag", &Voverriding_local_map_menu_flag,

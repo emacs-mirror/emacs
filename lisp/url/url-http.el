@@ -322,8 +322,8 @@ This allows us to use `mail-fetch-field', etc."
 	  (let ((url-request-method url-http-method)
 		(url-request-data url-http-data)
 		(url-request-extra-headers url-http-extra-headers))
-	    (url-retrieve url url-callback-function url-callback-arguments))))
-      (kill-buffer (current-buffer)))))
+	    (url-retrieve url url-callback-function
+                          url-callback-arguments)))))))
 
 (defun url-http-parse-response ()
   "Parse just the response code."
@@ -459,7 +459,7 @@ should be shown to the user."
 	      (url-http-debug "Converting `%s' request to `GET' because of REDIRECT(%d)"
 			      url-http-method url-http-response-status)
 	      (setq url-http-method "GET"
-		    url-request-data nil)))
+		    url-http-data nil)))
 	   (303
 	    ;; The response to the request can be found under a different
 	    ;; URI and SHOULD be retrieved using a GET method on that

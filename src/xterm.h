@@ -502,6 +502,8 @@ struct x_output
   GtkWidget *toolbar_widget;
   /* The handle box that makes the tool bar detachable.  */
   GtkWidget *handlebox_widget;
+  /* Non-zero if the tool bar is detached.  */
+  int toolbar_detached;
 
   /* The last size hints set.  */
   GdkGeometry size_hints;

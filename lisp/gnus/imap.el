@@ -1,5 +1,5 @@
 ;;; imap.el --- imap library
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
@@ -69,7 +69,7 @@
 ;; imap-message-append,               imap-envelope-from
 ;; imap-body-lines
 ;;
-;; It is my hope that theese commands should be pretty self
+;; It is my hope that these commands should be pretty self
 ;; explanatory for someone that know IMAP.  All functions have
 ;; additional documentation on how to invoke them.
 ;;
@@ -325,7 +325,7 @@ for doing the actual authentication.")
 (defvar imap-error nil
   "Error codes from the last command.")
 
-;; Internal constants.  Change theese and die.
+;; Internal constants.  Change these and die.
 
 (defconst imap-default-port 143)
 (defconst imap-default-ssl-port 993)
@@ -1456,7 +1456,7 @@ or 'unseen.  The IMAP command tag is returned."
 (defun imap-fetch (uids props &optional receive nouidfetch buffer)
   "Fetch properties PROPS from message set UIDS from server in BUFFER.
 UIDS can be a string, number or a list of numbers.  If RECEIVE
-is non-nil return theese properties."
+is non-nil return these properties."
   (with-current-buffer (or buffer (current-buffer))
     (when (imap-ok-p (imap-send-command-wait
 		      (format "%sFETCH %s %s" (if nouidfetch "" "UID ")

@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.03
+@set VERSION 3.04
 @set DATE December 2004
 
 @dircategory Emacs
@@ -119,6 +119,7 @@ Tables
 
 * Built-in table editor::       Simple tables
 * table.el::                    Complex tables
+* orgtbl-mode::                 The table editor as minor mode
 
 Hyperlinks
 
@@ -202,6 +203,17 @@ different levels and in different ways, for example
 @r{@bullet{} as a full agenda and planner with deadlines and work scheduling}
 @end example
 
+The Org-mode table editor can be used integrated into any major mode
+by activating the minor Ortbl-mode.
+
+There is a website for Org-mode which provides links to the newest
+version of Org-mode, as well as additional information, screen shots
+and example files.  This page is located at
+@uref{http://www.astro.uva.nl/~dominik/Tools/org/}.
+
+
+@page
+
 @node Installation,  , Summary, Introduction
 @section Installation
 @cindex installation
@@ -223,12 +235,13 @@ Then copy the following lines into @file{.emacs}.  The last two lines
 define @emph{global} keys for the commands @command{org-store-link}
 and @command{org-agenda} - please choose suitable keys yourself.
 
-@c FIXME: autoloads not necessary when part of emacs
 @lisp
 (autoload 'org-mode "org" "Org mode" t)
 (autoload 'org-diary "org" "Diary entries from Org mode")
 (autoload 'org-agenda "org" "Multi-file agenda from Org mode" t)
 (autoload 'org-store-link "org" "Store a link to the current location" t)
+(autoload 'orgtbl-mode "org" "Org tables as a minor mode" t)
+(autoload 'turn-on-orgtbl "org" "Org tables as a minor mode")
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
@@ -656,6 +669,7 @@ with the Emacs table.el package.
 @menu
 * Built-in table editor::       Simple tables
 * table.el::                    Complex tables
+* orgtbl-mode::                 The table editor as minor mode
 @end menu
 
 @node Built-in table editor, table.el, Tables, Tables
@@ -855,7 +869,7 @@ it off with
 @noindent The only table command which then still works is
 @kbd{C-c C-c} to do a manual re-align.
 
-@node table.el,  , Built-in table editor, Tables
+@node table.el, orgtbl-mode, Built-in table editor, Tables
 @section The @file{table.el} package
 @kindex C-c C-c
 @cindex table editor, table.el
@@ -878,6 +892,20 @@ format.  See the documentation string of the command
 @code{org-convert-table} for the restrictions under which this is
 possible.
 @end table
+
+@node orgtbl-mode,  , table.el, Tables
+@section The Orgtbl minor mode
+@cindex orgtbl-mode
+@cindex Minor mode for tables
+
+If you like the intuitive way the Org-mode table editor works, you
+might want to use it also in other modes like text-mode or mail-mode.
+The minor mode Orgtbl-mode make this possible.  You can always toggle
+the mode with @kbd{M-x orgtbl-mode}.  To turn it on by default, for
+example in mail mode, use
+@lisp
+(add-hook 'mail-mode-hook 'turn-on-orgtbl)
+@end lisp
 
 @node Hyperlinks, Timestamps, Tables, Top
 @chapter Hyperlinks
@@ -1084,7 +1112,7 @@ example:
 @cindex deadline
 If a time stamp is preceded by the word @samp{DEADLINE:}, the task
 (most likely a TODO item) is supposed to be finished on that date, and
-it will be listed then In addition, the compilation for the
+it will be listed then.  In addition, the compilation for the
 @emph{current day} will carry a warning about the approaching or
 missed deadline, starting @code{org-deadline-warning-days} before the
 due date, and continuing until the entry is marked DONE.  An example:

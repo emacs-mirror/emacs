@@ -1,7 +1,7 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,99,2000, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999, 2000,
+;;   2001, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -403,7 +403,7 @@ Menu of mode operations in the mode line.")
 	      :button (:toggle . line-number-mode)))
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
-	      :button (:toggle . highlight-changes-mode)))
+	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
@@ -421,10 +421,10 @@ Menu of mode operations in the mode line.")
 	      :button (:toggle . column-number-mode)))
 (define-key mode-line-mode-menu [auto-revert-tail-mode]
   `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
-	      :button (:toggle . auto-revert-tail-mode)))
+	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
 (define-key mode-line-mode-menu [auto-revert-mode]
   `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
-	      :button (:toggle . auto-revert-mode)))
+	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
 (define-key mode-line-mode-menu [auto-fill-mode]
   `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
 	      :button (:toggle . auto-fill-function)))
@@ -1018,5 +1018,5 @@ language you are using."
 ;; no-update-autoloads: t
 ;; End:
 
-;;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
+;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
 ;;; bindings.el ends here

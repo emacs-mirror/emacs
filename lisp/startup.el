@@ -877,12 +877,6 @@ opening the first frame (e.g. open a connection to the server).")
 			      (sit-for 1))
 			    (setq user-init-file source))))
 
-		      (when (stringp custom-file)
-                        (unless (assoc custom-file load-history)
-                          ;; If the .emacs file has set `custom-file' but hasn't
-                          ;; loaded the file yet, let's load it.
-                          (load custom-file t t)))
-
 		      (unless inhibit-default-init
                         (let ((inhibit-startup-message nil))
                           ;; Users are supposed to be told their rights.

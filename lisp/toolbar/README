@@ -5,4 +5,6 @@ The following icons are from GTK+ 2.x:
     paste.xpm preferences.xpm print.xpm right_arrow.xpm save.xpm
     saveas.xpm search.xpm spell.xpm undo.xpm up_arrow.xpm
 
+    back_arrow.xpm and fwd_arrow.xpm are slightly modified undo and redo.
+
 They are not part of Emacs, but distributed and used by Emacs.

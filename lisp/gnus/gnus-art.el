@@ -1,5 +1,5 @@
 ;;; gnus-art.el --- article mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -3711,6 +3711,8 @@ commands:
   (make-local-variable 'gnus-article-image-alist)
   (make-local-variable 'gnus-article-charset)
   (make-local-variable 'gnus-article-ignored-charsets)
+  ;; Prevent recent Emacsen from displaying non-break space as "\ ".
+  (set (make-local-variable 'show-nonbreak-escape) nil)
   (gnus-set-default-directory)
   (buffer-disable-undo)
   (setq buffer-read-only t)
@@ -3743,14 +3745,19 @@ commands:
       (mm-enable-multibyte)
       (setq major-mode 'gnus-original-article-mode)
       (make-local-variable 'gnus-original-article))
-    (if (get-buffer name)
+    (if (and (get-buffer name)
+	     (with-current-buffer name
+	       (if gnus-article-edit-mode
+		   (if (y-or-n-p "Article mode edit in progress; discard? ")
+		       (progn
+			 (set-buffer-modified-p nil)
+			 (gnus-kill-buffer name)
+			 (message "")
+			 nil)
+		     (error "Action aborted"))
+		 t)))
 	(save-excursion
 	  (set-buffer name)
-	  (when (and gnus-article-edit-mode
-		     (buffer-modified-p)
-		     (not
-		      (y-or-n-p "Article mode edit in progress; discard? ")))
-	    (error "Action aborted"))
 	  (set (make-local-variable 'gnus-article-edit-mode) nil)
 	  (when gnus-article-mime-handles
 	    (mm-destroy-parts gnus-article-mime-handles)
