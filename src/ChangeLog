@@ -1,5 +1,7 @@
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
+	* charset.h (MAKE_CHAR): Be sure to set MSB of C1 to 0.
+
 	* charset.c: Include composite.h
 	(lisp_string_width): New function.
 	(Fstring_width): Call lisp_string_width instead of strwidth.
