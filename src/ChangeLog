@@ -1,5 +1,8 @@
 2000-12-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (direct_output_for_insert): Fix check for mini-window
+	currently displaying a message.
+
 	* bytecode.c (toplevel) [CHECK_FRAME_FONT]: Include frame.h and
 	xterm.h.
 	(Fbyte_code) [CHECK_FRAME_FONT]: Check the selected frame's font.
