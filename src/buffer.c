@@ -527,6 +527,7 @@ reset_buffer (b)
   b->file_format = Qnil;
   b->last_selected_window = Qnil;
   XSETINT (b->display_count, 0);
+  b->display_time = Qnil;
   b->extra2 = Qnil;
   b->extra3 = Qnil;
   b->enable_multibyte_characters = buffer_defaults.enable_multibyte_characters;
@@ -3851,6 +3852,7 @@ init_buffer_once ()
   buffer_defaults.cache_long_line_scans = Qnil;
   buffer_defaults.file_truename = Qnil;
   XSETFASTINT (buffer_defaults.display_count, 0);
+  buffer_defaults.display_time = Qnil;
 
   /* Assign the local-flags to the slots that have default values.
      The local flag is a bit that is used in the buffer
@@ -3877,6 +3879,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.invisibility_spec, -1);
   XSETINT (buffer_local_flags.file_format, -1);
   XSETINT (buffer_local_flags.display_count, -1);
+  XSETINT (buffer_local_flags.display_time, -1);
   XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
@@ -4416,6 +4419,7 @@ The functions are run using the `run-hooks' function.");
 	 but make-docfile can find it in this comment.  */
   DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list, Qnil,
     "List of undo entries in current buffer.\n\
+This variable is always local in all buffers.\n\
 Recent changes come first; older changes follow newer.\n\
 \n\
 An entry (BEG . END) represents an insertion which begins at\n\
@@ -4484,16 +4488,19 @@ the cache should not affect the behavior of any of the motion\n\
 functions; it should only affect their performance.");
 
   DEFVAR_PER_BUFFER ("point-before-scroll", &current_buffer->point_before_scroll, Qnil,
-  "Value of point before the last series of scroll operations, or nil.");
+  "Value of point before the last series of scroll operations, or nil.\n\
+This variable is always local in all buffers.");
 
   DEFVAR_PER_BUFFER ("buffer-file-format", &current_buffer->file_format, Qnil,
     "List of formats to use when saving this buffer.\n\
+This variable is always local in all buffers.\n\
 Formats are defined by `format-alist'.  This variable is\n\
 set when a file is visited.  Automatically local in all buffers.");
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &current_buffer->invisibility_spec, Qnil,
   "Invisibility spec of this buffer.\n\
+This variable is always local in all buffers.\n\
 The default is t, which means that text is invisible\n\
 if it has a non-nil `invisible' property.\n\
 If the value is a list, a text character is invisible if its `invisible'\n\
@@ -4504,7 +4511,17 @@ and they have an ellipsis as well if ELLIPSIS is non-nil.");
 
   DEFVAR_PER_BUFFER ("buffer-display-count",
 		     &current_buffer->display_count, Qnil,
-  "A number incremented each time the buffer is displayed in a window.");
+  "A number incremented each time this buffer is displayed in a window.\n\
+This variable is always local in all buffers.\n\
+The function `set-window-buffer increments it.");
+
+  DEFVAR_PER_BUFFER ("buffer-display-time",
+		     &current_buffer->display_time, Qnil,
+  "Time stamp updated each time this buffer is displayed in a window.\n\
+This variable is always local in all buffers.\n\
+The function `set-window-buffer' updates this variable\n\
+to the value obtained by calling `current-time'.\n\
+If the buffer has never been shown in a window, the value is nil.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
     "*Non-nil means deactivate the mark when the buffer contents change.\n\
