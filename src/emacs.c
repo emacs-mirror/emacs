@@ -506,7 +506,11 @@ main (argc, argv, envp)
       syms_of_window ();
       syms_of_xdisp ();
 #ifdef HAVE_X_WINDOWS
+      syms_of_xterm ();
       syms_of_xfns ();
+#ifdef HAVE_X11
+      syms_of_xselect ();
+#endif
 #ifdef HAVE_X_MENU
       syms_of_xmenu ();
 #endif /* HAVE_X_MENU */
