@@ -1,5 +1,9 @@
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/executable.el (executable-set-magic): If 
+	executable-find returns a quoted file name, unquote it before
+	inserting it.
+
 	* image.el (image-type-regexps): For JPEG files, use a regexp
 	derived from the JPEG spec.
 	
