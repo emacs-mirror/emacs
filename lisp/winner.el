@@ -1,11 +1,11 @@
-;;; winner.el  --- Restore window configuration or change buffer
+;;; winner.el  --- Restore window configuration (or switch buffer)
 
 ;; Copyright (C) 1997 Free Software Foundation. Inc.
 
 ;; Author: Ivar Rummelhoff <ivarr@ifi.uio.no>
 ;; Maintainer: Ivar Rummelhoff <ivarr@ifi.uio.no>
 ;; Created: 27 Feb 1997
-;; Keywords: extensions,windows
+;; Keywords: extensions, windows
 
 ;; This file is part of GNU Emacs.
 
@@ -25,58 +25,34 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
+
+;; Winner mode is a global minor mode that when turned on records
+;; changes in window configuration.  This way the changes can be
+;; "undone" using the function `winner-undo'.  By default this one is
+;; bound to the key sequence ctrl-x left.  If you change your mind
+;; (while undoing), you can press ctrl-x right (calling
+;; `winner-redo').  Unlike the normal undo, you may have to skip
+;; through several identical window configurations in order to find
+;; the one you want.  This is a bug due to some techical limitations
+;; in Emacs and can maybe be fixed in the future.
 ;; 
-;;   winner.el provides a minor mode (`winner-mode') that does
-;;   essentially two things:
-;;
-;;     1) It keeps track of changing window configurations, so that
-;;        when you wish to go back to a previous view, all you have
-;;        to do is to press C-left a couple of times.
-;;
-;;     2) It lets you switch to other buffers by pressing C-right.
-;;
-;; To use Winner mode, put this line in your .emacs file:
-;;
-;;      (add-hook 'after-init-hook (lambda () (winner-mode 1)))
-
-;; Details:
-;;
-;;   1. You may of course decide to use other bindings than those
-;;      mentioned above.  Just set these variables in your .emacs:
-;;
-;;          `winner-prev-event'
-;;          `winner-next-event'
-;;
-;;   2. When you have found the view of  your choice
-;;      (using your favourite keys), you may press ctrl-space
-;;      (`winner-max-event') to `delete-other-windows'.
-;;
-;;   3. Winner now keeps one configuration stack for each frame.
-;;
-;;
-;;
-;;                           Yours sincerely,   Ivar Rummelhoff
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; In addition to this I have added `winner-switch' which is a program
+;; that switches to other buffers without disturbing Winner mode.  If
+;; you bind this command to a key sequence, you may step through all
+;; your buffers (except the ones mentioned in `winner-skip-buffers' or
+;; matched by `winner-skip-regexps').  With a numeric prefix argument
+;; skip several buffers at a time.
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'ring)
 
+(defvar winner-dont-bind-my-keys nil
+  "If non-nil: Do not use `winner-mode-map' in Winner mode.")
 
-;;;; Variables you may want to change
-
-(defvar winner-prev-event 'C-left
-  "Winner mode binds this event to the command `winner-previous'.")
-
-(defvar winner-next-event 'C-right
-  "Winner mode binds this event to the command `winner-next'.")
-
-(defvar winner-max-event 67108896	; CTRL-space
-  "Event for deleting other windows
-after having selected a view with Winner.
-
-The normal functions of this event will also be performed.
-In the default case (CTRL-SPACE) the mark will be set.")
+(defvar winner-ring-size 100
+  "Maximum number of stored window configurations per frame.")
 
 (defvar winner-skip-buffers
   '("*Messages*",
@@ -84,7 +60,7 @@ In the default case (CTRL-SPACE) the mark will be set.")
     ".newsrc-dribble",
     "*Completions*",
     "*Buffer list*")
-  "Exclude these buffer names from any \(Winner mode\) list of buffers.")
+  "Exclude these buffer names from any \(Winner switch\) list of buffers.")
 
 (defvar winner-skip-regexps '("^ ")
   "Winner excludes buffers with names matching any of these regexps.
@@ -93,10 +69,33 @@ They are not included in any Winner mode list of buffers.
 By default `winner-skip-regexps' is set to \(\"^ \"\),
 which excludes \"invisible buffers\".")
 
-
-(defvar winner-limit 50
-  "Winner will save no more than 2 * `winner-limit' window configurations.
-\(.. and no less than `winner-limit'.\)")
+(defvar winner-ring-alist nil)
+
+(defsubst winner-ring (frame)
+  (or (cdr (assq frame winner-ring-alist))
+      (progn
+	(push (cons frame (make-ring winner-ring-size))
+	      winner-ring-alist)
+	(cdar winner-ring-alist))))
+
+(defvar winner-modified-list nil)
+
+(defun winner-change-fun ()
+  (pushnew (selected-frame) winner-modified-list))
+
+(defun winner-save-new-configurations ()
+  (while winner-modified-list
+    (ring-insert
+     (winner-ring (car winner-modified-list))
+     (current-window-configuration (pop winner-modified-list)))))
+
+(defun winner-set (conf)
+  (set-window-configuration conf)
+  (if (eq (selected-window) (minibuffer-window))
+      (other-window 1)))
+
+
+;;; Winner mode  (a minor mode)
 
 (defvar winner-mode-hook nil
   "Functions to run whenever Winner mode is turned on.")
@@ -104,20 +103,9 @@ which excludes \"invisible buffers\".")
 (defvar winner-mode-leave-hook nil
   "Functions to run whenever Winner mode is turned off.")
 
-(defvar winner-dont-bind-my-keys nil
-  "If non-nil: Do not use `winner-mode-map' in Winner mode.")
-
-
-
-;;;; Winner mode
-
-(eval-when-compile (require 'cl))
-
-
-(defvar winner-mode nil)		; For the modeline.
+(defvar winner-mode nil) ; mode variable
 (defvar winner-mode-map nil "Keymap for Winner mode.")
 
-;;;###autoload
 (defun winner-mode (&optional arg)
   "Toggle Winner mode.
 With arg, turn Winner mode on if and only if arg is positive."
@@ -125,91 +113,70 @@ With arg, turn Winner mode on if and only if arg is positive."
   (let ((on-p (if arg (> (prefix-numeric-value arg) 0)
 		(not winner-mode))))
     (cond
-     (on-p (let ((winner-frames-changed (frame-list)))
-	     (winner-do-save))		; Save current configurations
-	   (add-hook 'window-configuration-change-hook 'winner-save-configuration)
-	   (setq winner-mode t)
-	   (run-hooks 'winner-mode-hook))
-     (t (remove-hook 'window-configuration-change-hook 'winner-save-configuration)
-	(when winner-mode
-	  (setq winner-mode nil)
-	  (run-hooks 'winner-mode-leave-hook))))
+     ;; Turn mode on
+     (on-p 
+      (setq winner-mode t)
+      (add-hook 'window-configuration-change-hook 'winner-change-fun)
+      (add-hook 'post-command-hook 'winner-save-new-configurations)
+      (setq winner-modified-list (frame-list))
+      (winner-save-new-configurations)
+      (run-hooks 'winner-mode-hook))
+     ;; Turn mode off
+     (winner-mode
+      (setq winner-mode nil)
+      (run-hooks 'winner-mode-leave-hook)))
     (force-mode-line-update)))
 
+;; Inspired by undo (simple.el)
+(defun winner-undo (arg)
+  "Switch back to an earlier window configuration saved by Winner mode.
+In other words, \"undo\" changes in window configuration."
+  (interactive "p")
+  (cond
+   ((not winner-mode) (error "Winner mode is turned off"))
+   ((eq (selected-window) (minibuffer-window))
+    (error "No winner undo from minibuffer."))
+   (t (setq this-command t)
+      (if (eq last-command 'winner-undo)
+	  ;; This was no new window configuration after all.
+	  (ring-remove winner-pending-undo-ring 0)
+	(setq winner-pending-undo-ring (winner-ring (selected-frame)))
+	(setq winner-undo-counter 0))
+      (winner-undo-more (or arg 1))
+      (message "Winner undo (%d)!" winner-undo-counter)
+      (setq this-command 'winner-undo))))
 
-;; List of frames which have changed
-(defvar winner-frames-changed nil)
+(defvar winner-pending-undo-ring nil)
 
-;; Time to save the window configuration.
-(defun winner-save-configuration ()
-  (push (selected-frame) winner-frames-changed)
-  (add-hook 'post-command-hook 'winner-do-save))
+(defvar winner-undo-counter nil)
 
-
-(defun winner-do-save ()
-  (let ((current (selected-frame)))
-    (unwind-protect
-	(do ((frames winner-frames-changed (cdr frames)))
-	    ((null frames))
-	  (unless (memq (car frames) (cdr frames))
-	    ;; Process each frame once.
-	    (select-frame (car frames))
-	    (winner-push (current-window-configuration) (car frames))))
-      (setq winner-frames-changed nil)
-      (select-frame current)
-      (remove-hook 'post-command-hook 'winner-do-save))))
+(defun winner-undo-more (count)
+  "Undo N window configuration changes beyond what was already undone.
+Call `winner-undo-start' to get ready to undo recent changes,
+then call `winner-undo-more' one or more times to undo them."
+  (let ((len (ring-length winner-pending-undo-ring)))
+    (incf winner-undo-counter count)
+    (if (>= winner-undo-counter len)
+	(error "No further window configuration undo information")
+      (winner-set
+       (ring-ref winner-pending-undo-ring
+		 winner-undo-counter)))))
 
+(defun winner-redo ()
+  "Restore a more recent window configuration saved by Winner mode."
+  (interactive)
+  (cond
+   ((eq last-command 'winner-undo)
+    (ring-remove winner-pending-undo-ring 0)
+    (winner-set
+     (ring-remove winner-pending-undo-ring 0))
+    (or (eq (selected-window) (minibuffer-window))
+	(message "Winner undid undo!")))
+   (t (error "Previous command was not a winner-undo"))))
 
+;;; Winner switch
 
-
-
-;;;; Configuration stacks (one for each frame)
-
-
-(defvar winner-stacks nil) ; ------ " ------
-
-;; This works around a bug in defstruct.
-(defvar custom-print-functions nil)
-
-;; A stack of window configurations with some additional information.
-(defstruct (winner-stack
-	    (:constructor winner-stack-new
-			  (config &aux
-				  (data (list config))
-				  (place data))))
-  data place (count 1))
-
-
-;; Return the stack of this frame
-(defun winner-stack (frame)
-  (let ((stack (cdr (assq frame winner-stacks))))
-    (if stack (winner-stack-data stack)
-      ;; Else make new stack
-      (letf (((selected-frame) frame))
-	(let ((config (current-window-configuration)))
-	  (push (cons frame (winner-stack-new config))
-		winner-stacks)
-	  (list config))))))
-
-;; Push this window configuration on the right stack,
-;; but make sure the stack doesn't get too large etc...
-(defun winner-push (config frame)
-  (let ((this (cdr (assq frame winner-stacks))))
-    (if (not this) (push (cons frame (winner-stack-new config))
-			 winner-stacks)
-      (push config (winner-stack-data this))
-      (when (> (incf (winner-stack-count this)) winner-limit)
-	;; No more than 2*winner-limit configs
-	(setcdr (winner-stack-place this) nil)
-	(setf   (winner-stack-place this)
-	        (winner-stack-data  this))
-	(setf   (winner-stack-count this) 1)))))
-
-;;;; Selecting a window configuration
-
-;; Return list of names of other buffers, excluding the current buffer
-;; and buffers specified by the user.
-(defun winner-other-buffers ()
+(defun winner-switch-buffer-list ()
   (loop for buf in (buffer-list)
 	for name = (buffer-name buf)
 	unless (or (eq (current-buffer) buf)
@@ -218,99 +185,38 @@ With arg, turn Winner mode on if and only if arg is positive."
 			 if (string-match regexp name) return t
 			 finally return nil))
 	collect name))
+  
+(defvar winner-switch-list nil)
 
-(defun winner-select (&optional arg)
-  "Change to previous or new window configuration.
-With arg start at position 1 if arg is positive, and
-at -1 if arg is negative;  else start at position 0.
-\(For Winner to record changes in window configurations,
-Winner mode must be turned on.\)"
-  (interactive "P")
+(defun winner-switch (count)
+  "Step through your buffers without disturbing `winner-mode'.
+`winner-switch' does not consider buffers mentioned in the list
+`winner-skip-buffers' or matched by `winner-skip-regexps'."
+  (interactive "p")
+  (decf count)
+  (setq this-command t)
+  (cond
+   ((eq last-command 'winner-switch)
+    (if winner-mode (ring-remove (winner-ring (selected-frame)) 0))
+    (bury-buffer (current-buffer))
+    (mapcar 'bury-buffer winner-switch-list))
+   (t (setq winner-switch-list (winner-switch-buffer-list))))
+  (setq winner-switch-list (nthcdr count winner-switch-list))
+  (or winner-switch-list
+      (setq winner-switch-list (winner-switch-buffer-list))
+      (error "No more buffers"))
+  (switch-to-buffer (pop winner-switch-list))
+  (message (concat "Winner: [%s] "
+		   (mapconcat 'identity winner-switch-list " "))
+	   (buffer-name))
+  (setq this-command 'winner-switch))
 
-  (setq arg
-	(cond
-	 ((not arg) nil)
-	 ((> (prefix-numeric-value arg) 0) winner-next-event)
-	 ((< (prefix-numeric-value arg) 0) winner-prev-event)
-	 (t nil)))
-  (if arg (push arg unread-command-events))
-
-  (let ((stack (winner-stack (selected-frame)))
-	(store nil)
-	(buffers (winner-other-buffers))
-	(passed nil)
-	(config (current-window-configuration))
-	(pos 0) event)
-    ;; `stack'   and `store'  are stacks of window configuration while
-    ;; `buffers' and `passed' are stacks of buffer names.
-
-    (condition-case nil
-
-	(loop
-	 (setq event (read-event))
-	 (cond
-
-	  ((eq event winner-prev-event)
-	   (cond (passed     (push (pop passed) buffers)(decf pos))
-		 ((cdr stack)(push (pop stack)  store)  (decf pos))
-		 (t (setq stack (append (nreverse store) stack))
-		    (setq store nil)
-		    (setq pos   0))))
-
-	  ((eq event winner-next-event)
-	   (cond (store   (push (pop store)   stack)  (incf pos))
-		 (buffers (push (pop buffers) passed) (incf pos))
-		 (t (setq buffers (nreverse passed))
-		    (setq passed nil)
-		    (setq pos 0))))
-
-	  ((eq event winner-max-event)
-	   ;; Delete other windows and leave.
-	   (delete-other-windows)
-	   ;; Let this change be saved.
-	   (setq pos -1)
-	   ;; Perform other actions of this event.
-	   (push event unread-command-events)
-	   (return))
-	  (t (push event unread-command-events) (return)))
-
-	 (cond
-	  ;; Display
-	  (passed (set-window-buffer (selected-window) (car passed))
-		  (message (concat "Winner\(%d\): [%s] "
-				   (mapconcat 'identity buffers " "))
-			   pos (car passed)))
-
-	  (t (set-window-configuration (car stack))
-	     (if (window-minibuffer-p (selected-window))
-		 (other-window 1))
-	     (message "Winner\(%d\)" pos))))
-
-      (quit (set-window-configuration config)
-	    (setq pos 0)))
-    (if (zerop pos)
-	;; Do not record these changes.
-	(remove-hook 'post-command-hook 'winner-do-save)
-      ;; Else update the buffer list and make sure that the displayed
-      ;; buffer is the same as the current buffer.
-      (switch-to-buffer (window-buffer)))))
-
-(defun winner-previous ()
-  "Change to previous window configuration."
-  (interactive)
-  (winner-select -1))
-
-(defun winner-next ()
-  "Change to new window configuration."
-  (interactive)
-  (winner-select 1))
-
 ;;;; To be evaluated when the package is loaded:
 
 (unless winner-mode-map
   (setq winner-mode-map (make-sparse-keymap))
-  (define-key winner-mode-map (vector winner-prev-event) 'winner-previous)
-  (define-key winner-mode-map (vector winner-next-event) 'winner-next))
+  (define-key winner-mode-map [?\C-x left]  'winner-undo)
+  (define-key winner-mode-map [?\C-x right] 'winner-redo))
 
 (unless (or (assq 'winner-mode minor-mode-map-alist)
 	    winner-dont-bind-my-keys)
