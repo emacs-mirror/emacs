@@ -9,12 +9,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/10/10 14:04:29 vinicius>
-;; Version:	6.1
+;; Time-stamp:	<2000/10/18 18:31:37 vinicius>
+;; Version:	6.2
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.1"
-  "ps-print.el, v 6.1 <2000/10/10 vinicius>
+(defconst ps-print-version "6.2"
+  "ps-print.el, v 6.2 <2000/10/18 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1335,26 +1335,28 @@ Please send all bug fixes and enhancements to
 
 
 ;; to avoid compilation gripes
-(eval-and-compile
-  (mapcar #'(lambda (sym)
-	      (or (fboundp sym)
-		  (defalias sym 'ignore)))
-	  '(;; XEmacs
-	    color-instance-p
-	    color-instance-rgb-components
-	    color-name
-	    color-specifier-p
-	    copy-coding-system
-	    device-class
-	    extent-end-position
-	    extent-face
-	    extent-priority
-	    extent-start-position
-	    face-font-instance
-	    find-coding-system
-	    font-instance-properties
-	    make-color-instance
-	    map-extents)))
+
+;; XEmacs
+(defalias 'ps-x-color-instance-p              'color-instance-p)
+(defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
+(defalias 'ps-x-color-name                    'color-name)
+(defalias 'ps-x-color-specifier-p             'color-specifier-p)
+(defalias 'ps-x-copy-coding-system            'copy-coding-system)
+(defalias 'ps-x-device-class                  'device-class)
+(defalias 'ps-x-extent-end-position           'extent-end-position)
+(defalias 'ps-x-extent-face                   'extent-face)
+(defalias 'ps-x-extent-priority               'extent-priority)
+(defalias 'ps-x-extent-start-position         'extent-start-position)
+(defalias 'ps-x-face-font-instance            'face-font-instance)
+(defalias 'ps-x-find-coding-system            'find-coding-system)
+(defalias 'ps-x-font-instance-properties      'font-instance-properties)
+(defalias 'ps-x-make-color-instance           'make-color-instance)
+(defalias 'ps-x-map-extents                   'map-extents)
+
+;; GNU Emacs
+(if (fboundp 'find-composition)
+    (defalias 'ps-e-find-composition 'find-composition)
+  (defalias 'ps-e-find-composition 'ignore))
 
 
 (defconst ps-windows-system
@@ -2893,6 +2895,7 @@ The table depends on the current ps-print setup."
 	(t
 	 sym)))
 
+
 (defvar ps-print-emacs-type
   (cond ((string-match "XEmacs" emacs-version) 'xemacs)
 	((string-match "Lucid" emacs-version) 'lucid)
@@ -2905,19 +2908,112 @@ The table depends on the current ps-print setup."
   (require 'faces))			; face-font, face-underline-p,
 					; x-font-regexp
 
-;; Return t if the device (which can be changed during an emacs session)
-;; can handle colors.
-;; This is function is not yet implemented for GNU emacs.
-(cond ((and (eq ps-print-emacs-type 'xemacs)
-	    (>= emacs-minor-version 12)) ; xemacs
-       (defun ps-color-device ()
-	 (eq (device-class) 'color))
-       )
 
-      (t				; emacs
-       (defun ps-color-device ()
-	 t)
-       ))
+(eval-and-compile
+  ;; Return t if the device (which can be changed during an emacs session)
+  ;; can handle colors.
+  ;; This is function is not yet implemented for GNU emacs.
+  (cond ((and (eq ps-print-emacs-type 'xemacs)
+	      (>= emacs-minor-version 12)) ; xemacs
+	 (defun ps-color-device ()
+	   (eq (ps-x-device-class) 'color))
+	 )
+
+	(t				; emacs
+	 (defun ps-color-device ()
+	   t)
+	 ))
+
+  (cond ((eq ps-print-emacs-type 'emacs) ; emacs
+
+	 (defun ps-color-values (x-color)
+	   (if (fboundp 'x-color-values)
+	       (x-color-values x-color)
+	     (error "No available function to determine X color values.")))
+
+	 (defalias 'ps-face-foreground-name 'face-foreground)
+	 (defalias 'ps-face-background-name 'face-background)
+
+	 (defun ps-face-bold-p (face)
+	   (or (face-bold-p face)
+	       (memq face ps-bold-faces)))
+
+	 (defun ps-face-italic-p (face)
+	   (or (face-italic-p face)
+	       (memq face ps-italic-faces)))
+	 )
+					; xemacs
+					; lucid
+	(t				; epoch
+
+	 (or (ps-x-find-coding-system 'raw-text-unix)
+	     (ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix))
+
+	 (defun ps-mapper (extent list)
+	   (nconc list
+		  (list (list (ps-x-extent-start-position extent) 'push extent)
+			(list (ps-x-extent-end-position extent) 'pull extent)))
+	   nil)
+
+	 (defun ps-extent-sorter (a b)
+	   (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
+
+	 (defun ps-xemacs-face-kind-p (face kind kind-regex)
+	   (let* ((frame-font (or (ps-x-face-font-instance face)
+				  (ps-x-face-font-instance 'default)))
+		  (kind-cons
+		   (and frame-font
+			(assq kind
+			      (ps-x-font-instance-properties frame-font))))
+		  (kind-spec (cdr-safe kind-cons))
+		  (case-fold-search t))
+	     (and kind-spec (string-match kind-regex kind-spec))))
+
+	 (defun ps-xemacs-color-name (color)
+	   (if (ps-x-color-specifier-p color)
+	       (ps-x-color-name color)
+	     color))
+
+	 (defun ps-color-values (x-color)
+	   (let ((color (ps-xemacs-color-name x-color)))
+	     (cond
+	      ((fboundp 'x-color-values)
+	       (x-color-values color))
+	      ((and (fboundp 'color-instance-rgb-components)
+		    (ps-color-device))
+	       (ps-x-color-instance-rgb-components
+		(if (ps-x-color-instance-p x-color)
+		    x-color
+		  (ps-x-make-color-instance color))))
+	      (t
+	       (error "No available function to determine X color values.")))))
+
+	 (defun ps-face-foreground-name (face)
+	   (ps-xemacs-color-name (face-foreground face)))
+
+	 (defun ps-face-background-name (face)
+	   (ps-xemacs-color-name (face-background face)))
+
+	 (defun ps-face-bold-p (face)
+	   (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
+	       (memq face ps-bold-faces))) ; Kludge-compatible
+
+	 (defun ps-face-italic-p (face)
+	   (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
+	       (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
+	       (memq face ps-italic-faces))) ; Kludge-compatible
+	 )))
+
+
+(defun ps-color-scale (color)
+  ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
+  (mapcar #'(lambda (value) (/ value ps-print-color-scale))
+	  (ps-color-values color)))
+
+
+(defun ps-face-underlined-p (face)
+  (or (face-underline-p face)
+      (memq face ps-underlined-faces)))
 
 
 (require 'time-stamp)
@@ -3154,7 +3250,7 @@ If EXTENSION is any other symbol, it is ignored."
 (defun ps-font-lock-face-attributes ()
   (and (boundp 'font-lock-mode) (symbol-value 'font-lock-mode)
        (boundp 'font-lock-face-attributes)
-       (let ((face-attributes font-lock-face-attributes))
+       (let ((face-attributes (symbol-value 'font-lock-face-attributes)))
 	 (while face-attributes
 	   (let* ((face-attribute
 		   (car (prog1 face-attributes
@@ -4642,30 +4738,32 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
 
 (defun ps-end-file (needs-begin-file)
-  (ps-flush-output)
-  ;; Back to the PS output buffer to set the last page n-up printing
-  (save-excursion
-    (let ((pages-per-sheet (mod ps-page-postscript ps-n-up-printing))
-	  case-fold-search)
-      (set-buffer ps-spool-buffer)
-      (goto-char (point-max))
-      (and (> pages-per-sheet 0)
-	   (re-search-backward "^[0-9]+ BeginSheet$" nil t)
-	   (replace-match (format "%d BeginSheet" pages-per-sheet) t))))
-  ;; Set dummy page
-  (and ps-spool-duplex (= (mod ps-page-order 2) 1)
-       (let (ps-first-page)
-	 (ps-dummy-page)))
-  ;; Set end of PostScript file
-  (or ps-first-page
-      (ps-output "EndSheet\n"))
-  (setq ps-first-page nil)		; disable selected pages
-  (ps-output "\n%%Trailer\n%%Pages: "
-	     (format "%d"
-		     (if (and needs-begin-file ps-banner-page-when-duplexing)
-			 (1+ ps-page-order)
-		       ps-page-order))
-	     "\n\nEndDoc\n\n%%EOF\n"))
+  (let (ps-even-or-odd-pages)
+    (ps-flush-output)
+    ;; Back to the PS output buffer to set the last page n-up printing
+    (save-excursion
+      (let ((pages-per-sheet (mod ps-page-postscript ps-n-up-printing))
+	    case-fold-search)
+	(set-buffer ps-spool-buffer)
+	(goto-char (point-max))
+	(and (> pages-per-sheet 0)
+	     (re-search-backward "^[0-9]+ BeginSheet$" nil t)
+	     (replace-match (format "%d BeginSheet" pages-per-sheet) t))))
+    ;; Set dummy page
+    (and ps-spool-duplex (= (mod ps-page-order 2) 1)
+	 (let (ps-first-page)
+	   (ps-dummy-page)))
+    ;; Set end of PostScript file
+    (or ps-first-page
+	(ps-output "EndSheet\n"))
+    (setq ps-first-page nil)		; disable selected pages
+    (ps-output "\n%%Trailer\n%%Pages: "
+	       (format "%d"
+		       (if (and needs-begin-file
+				ps-banner-page-when-duplexing)
+			   (1+ ps-page-order)
+			 ps-page-order))
+	       "\n\nEndDoc\n\n%%EOF\n")))
 
 
 (defun ps-next-page ()
@@ -4680,7 +4778,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (setq ps-page-postscript (1+ ps-page-postscript))
     (cond ((ps-print-page-p)
 	   (setq ps-page-order (1+ ps-page-order))
-	   (and print-posterior (> ps-page-order 1)
+	   (and (or print-posterior ps-even-or-odd-pages) (> ps-page-order 1)
 		(ps-output "EndSheet\n"))
 	   (ps-output (if ps-n-up-on
 			  (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
@@ -4873,7 +4971,7 @@ EndDSCPage\n")
 	  ;; region with some control characters or some multi-byte characters
 	  (let* ((match-point (match-beginning 0))
 		 (match (char-after match-point))
-		 (composition (find-composition from (1+ match-point))))
+		 (composition (ps-e-find-composition from (1+ match-point))))
 	    (if composition
 		(if (and (nth 2 composition)
 			 (<= (car composition) match-point))
@@ -4911,7 +5009,7 @@ EndDSCPage\n")
 
 	     ((> match 255)		; a multi-byte character
 	      (let* ((charset (char-charset match))
-		     (composition (find-composition match-point to))
+		     (composition (ps-e-find-composition match-point to))
 		     (stop (if (nth 2 composition) (car composition) to)))
 		(or (eq charset 'composition)
 		    (while (and (< (point) stop) (eq (charset-after) charset))
@@ -4958,47 +5056,6 @@ EndDSCPage\n")
     (ps-mule-prepare-ascii-font str)
     (ps-output-string str)
     (ps-output " S\n")))
-
-(defun ps-color-scale (color)
-  ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
-  (mapcar #'(lambda (value) (/ value ps-print-color-scale))
-	  (ps-color-values color)))
-
-
-(defun ps-xemacs-color-name (color)
-  (if (color-specifier-p color)
-      (color-name color)
-    color))
-
-
-(cond ((eq ps-print-emacs-type 'emacs)  ; emacs
-
-       (defun ps-color-values (x-color)
-	 (if (fboundp 'x-color-values)
-	     (x-color-values x-color)
-	   (error "No available function to determine X color values.")))
-       )
-					; xemacs
-					; lucid
-      (t				; epoch
-
-       (or (find-coding-system 'raw-text-unix)
-	   (copy-coding-system 'no-conversion-unix 'raw-text-unix))
-
-       (defun ps-color-values (x-color)
-	 (let ((color (ps-xemacs-color-name x-color)))
-	   (cond
-	    ((fboundp 'x-color-values)
-	     (x-color-values color))
-	    ((and (fboundp 'color-instance-rgb-components)
-		  (ps-color-device))
-	     (color-instance-rgb-components
-	      (if (color-instance-p x-color)
-		  x-color
-		(make-color-instance color))))
-	    (t
-	     (error "No available function to determine X color values.")))))
-       ))
 
 
 (defun ps-face-attributes (face)
@@ -5102,55 +5159,6 @@ If FACE is not a valid face name, it is used default face."
   (goto-char to))
 
 
-(defun ps-xemacs-face-kind-p (face kind kind-regex)
-  (let* ((frame-font (or (face-font-instance face)
-			 (face-font-instance 'default)))
-	 (kind-cons (and frame-font
-			 (assq kind
-			       (font-instance-properties frame-font))))
-	 (kind-spec (cdr-safe kind-cons))
-	 (case-fold-search t))
-    (and kind-spec (string-match kind-regex kind-spec))))
-
-
-(cond ((eq ps-print-emacs-type 'emacs)  ; emacs
-
-       (defalias 'ps-face-foreground-name 'face-foreground)
-       (defalias 'ps-face-background-name 'face-background)
-
-       (defun ps-face-bold-p (face)
-	 (or (face-bold-p face)
-	     (memq face ps-bold-faces)))
-
-       (defun ps-face-italic-p (face)
-	 (or (face-italic-p face)
-	     (memq face ps-italic-faces)))
-       )
-					; xemacs
-					; lucid
-      (t				; epoch
-       (defun ps-face-foreground-name (face)
-	 (ps-xemacs-color-name (face-foreground face)))
-
-       (defun ps-face-background-name (face)
-	 (ps-xemacs-color-name (face-background face)))
-
-       (defun ps-face-bold-p (face)
-	 (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
-	     (memq face ps-bold-faces))) ; Kludge-compatible
-
-       (defun ps-face-italic-p (face)
-	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
-	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
-	     (memq face ps-italic-faces))) ; Kludge-compatible
-       ))
-
-
-(defun ps-face-underlined-p (face)
-  (or (face-underline-p face)
-      (memq face ps-underlined-faces)))
-
-
 ;; Ensure that face-list is fbound.
 (or (fboundp 'face-list) (defalias 'face-list 'list-faces))
 
@@ -5207,23 +5215,12 @@ If FACE is not a valid face name, it is used default face."
 		(ps-face-background-name face))))
 
 
-(cond ((not (eq ps-print-emacs-type 'emacs))
-					; xemacs
-					; lucid
-					; epoch
-       (defun ps-mapper (extent list)
-	 (nconc list (list (list (extent-start-position extent) 'push extent)
-			   (list (extent-end-position extent) 'pull extent)))
-	 nil)
+;; to avoid compilation gripes
+(eval-and-compile
+  (defun ps-print-ensure-fontified (start end)
+    (and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode)
+	 (lazy-lock-fontify-region start end))))
 
-       (defun ps-extent-sorter (a b)
-	 (< (extent-priority a) (extent-priority b)))
-       ))
-
-
-(defun ps-print-ensure-fontified (start end)
-  (and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode)
-       (lazy-lock-fontify-region start end)))
 
 (defun ps-generate-postscript-with-faces (from to)
   ;; Some initialization...
@@ -5245,7 +5242,7 @@ If FACE is not a valid face name, it is used default face."
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
-	  (map-extents 'ps-mapper nil from to a)
+	  (ps-x-map-extents 'ps-mapper nil from to a)
 	  (setq a (sort (cdr a) 'car-less-than-car)
 		extent-list nil)
 
@@ -5268,12 +5265,12 @@ If FACE is not a valid face name, it is used default face."
 	    ;; the buffer, this'll generate errors.  This is a
 	    ;; hack, but don't call ps-plot-with-face unless from >
 	    ;; point-min.
-	    (and (>= from (point-min)) (<= position (point-max))
-		 (ps-plot-with-face from position face))
+	    (and (>= from (point-min))
+		 (ps-plot-with-face from (min position (point-max)) face))
 
 	    (cond
 	     ((eq type 'push)
-	      (and (extent-face extent)
+	      (and (ps-x-extent-face extent)
 		   (setq extent-list (sort (cons extent extent-list)
 					   'ps-extent-sorter))))
 
@@ -5282,7 +5279,7 @@ If FACE is not a valid face name, it is used default face."
 				      'ps-extent-sorter))))
 
 	    (setq face (if extent-list
-			   (extent-face (car extent-list))
+			   (ps-x-extent-face (car extent-list))
 			 'default)
 		  from position
 		  a (cdr a)))))
