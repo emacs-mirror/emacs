@@ -70,7 +70,12 @@ Boston, MA 02111-1307, USA.  */
 /* This is safe since we already assumed HAVE_SOCKET
    if using X windows.  */
 #undef LIBX11_SYSTEM
-#define LIBX11_SYSTEM -lpt -lnls -lnsl -lc -lsocket
+#define LIBX11_SYSTEM_COMMON -lpt -lnls -lnsl -lc -lsocket
+#ifdef MOTIF
+# define LIBX11_SYSTEM -lgen LIBX11_SYSTEM_COMMON
+#else /* ndef MOTIF */
+# define LIBX11_SYSTEM LIBX11_SYSTEM_COMMON
+#endif /* ndef MOTIF */
 
 #undef LIB_X11_LIB
 #define LIB_X11_LIB -lX11
@@ -129,7 +134,11 @@ Boston, MA 02111-1307, USA.  */
 #undef POSIX_SIGNALS
 
 #define SIGMASKTYPE long
+
+#ifndef NOT_C_CODE
 extern SIGMASKTYPE sigprocmask_set;
+#endif /* not NOT_C_CODE */
+
 #define sigblock(sig)					\
      (sigprocmask_set = SIGEMPTYMASK | (sig),		\
       sigprocmask (SIG_BLOCK, &sigprocmask_set, NULL))
