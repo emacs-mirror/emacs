@@ -1513,6 +1513,17 @@ the table in `translation-table-vector'."
 	   (progn ,@body)
 	 (set-category-table ,current-category-table)))))
 
+;; Backwards compatibility.  These might be better with :init-value t,
+;; but that breaks loadup.
+(define-minor-mode unify-8859-on-encoding-mode
+  "Obsolete."
+  :group 'mule
+  :global t)
+(define-minor-mode unify-8859-on-decoding-mode
+  "Obsolete."
+  :group 'mule
+  :global t)
+
 ;;; Initialize some variables.
 
 (put 'use-default-ascent 'char-table-extra-slots 0)
