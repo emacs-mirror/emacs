@@ -1,3 +1,10 @@
+2004-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/browse-url.el (browse-url-netscape-sentinel)
+	(browse-url-mozilla-sentinel, browse-url-galeon-sentinel)
+	(browse-url-epiphany-sentinel, browse-url-mosaic): Use
+	browse-url-*-program instead of a literal program name.
+
 2004-04-27  Kevin Ryde  <user42@zip.com.au>
 
 	* eshell/em-alias.el:

@@ -1,3 +1,9 @@
+2004-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (init_environment): If one of the TMP... environment
+	variables is set to a drive letter without a trailing slash,
+	append a slash.
+
 2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
 
 	* editfns.c (lisp_time_argument): Provide externally.
