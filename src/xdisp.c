@@ -4431,8 +4431,6 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	int eol_flag = (c == 'Z');
 	char *p;
 
-	p = decode_mode_spec_coding (b->buffer_file_coding_system,
-				     decode_mode_spec_buf, eol_flag);
 	if (FRAME_TERMCAP_P (f))
 	  {
 	    /* No need to mention EOL here--the terminal never needs
@@ -4440,6 +4438,9 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, 0);
 	    p = decode_mode_spec_coding (terminal_coding.symbol, p, 0);
 	  }
+	p = decode_mode_spec_coding (b->buffer_file_coding_system,
+				     decode_mode_spec_buf, eol_flag);
+
 #if 0 /* This proves to be annoying; I think we can do without.  -- rms.  */
 #ifdef subprocesses
 	obj = Fget_buffer_process (Fcurrent_buffer ());
