@@ -196,7 +196,7 @@ Returns list of symbols and documentation found."
 				 (string-lessp (car a) (car b))))))
   (let ((p matches)
 	(old-buffer (current-buffer))
-	item keys-done symbol)
+	item keys-done symbol tem)
     (save-excursion
       (set-buffer standard-output)
       (or matches (princ "No matches found."))
