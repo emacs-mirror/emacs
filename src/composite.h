@@ -149,16 +149,16 @@ extern Lisp_Object composition_temp;
    ID, and thus share the same instance of this structure.  */
 
 struct composition {
-  /* How many columns the overall glyphs occupy on the screen.  This
-     gives an approximate value for column calculation in
-     Fcurrent_column, and etc.  */
-  unsigned char width;
-
   /* Number of glyphs of the composition components.  */
-  unsigned char glyph_len;
+  unsigned glyph_len;
 
   /* Width, ascent, and descent pixels of the composition.  */
   short pixel_width, ascent, descent;
+
+  /* How many columns the overall glyphs occupy on the screen.  This
+     gives an approximate value for column calculation in
+     Fcurrent_column, and etc.  */
+  unsigned short width;
 
   /* Method of the composition.  */
   enum composition_method method;
