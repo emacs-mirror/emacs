@@ -208,19 +208,19 @@ N was explicitly specified.")
      Lisp_Object n, killflag;
 {
   Lisp_Object value;
-  int deleted_tab = 0;
+  int deleted_special = 0;
   int i;
 
   CHECK_NUMBER (n, 0);
 
-  /* See if we are about to delete a tab backwards.  */
-  for (i = 0; i < XINT (n); i++)
+  /* See if we are about to delete a tab or newline backwards.  */
+  for (i = 1; i <= XINT (n); i++)
     {
       if (point - i < BEGV)
 	break;
-      if (FETCH_CHAR (point - i) == '\t')
+      if (FETCH_CHAR (point - i) == '\t' || FETCH_CHAR (point - i) == '\n')
 	{
-	  deleted_tab = 1;
+	  deleted_special = 1;
 	  break;
 	}
     }
@@ -231,7 +231,7 @@ N was explicitly specified.")
      unless at end of line.  */
   if (XINT (n) > 0
       && ! NILP (current_buffer->overwrite_mode)
-      && ! deleted_tab
+      && ! deleted_special
       && ! (point == ZV || FETCH_CHAR (point) == '\n'))
     {
       Finsert_char (make_number (' '), XINT (n));
