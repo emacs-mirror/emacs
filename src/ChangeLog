@@ -1,3 +1,8 @@
+2001-03-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (Fwindow_end): Call move_it_past_eol only if
+	ending up on a partially visible line.
+
 2001-03-01  Dave Love  <fx@gnu.org>
 
 	* ccl.c (Fccl_execute): Doc fix.
