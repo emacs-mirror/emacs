@@ -1,4 +1,4 @@
-;;; iso-syntax.el --- set up case-conversion and syntax tables for ISO 8859-2
+;;; iso02-syn.el --- set up case-conversion and syntax tables for ISO 8859-2
 ;;;                   (ISO latin2, i.e. East Block character set)
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
@@ -29,7 +29,7 @@
 
 (require 'case-table)
 
-(let ((downcase (concat (car (standard-case-table)))))
+(let ((downcase (standard-case-table)))
   (set-case-syntax 160 " " downcase)	  ; NBSP (no-break space)
   (set-case-syntax-pair 161 177 downcase) ; A with hook
   (set-case-syntax 162 "w" downcase)	  ; u accent
@@ -86,8 +86,8 @@
   (set-case-syntax 223 "w" downcase)	; small sharp s, German
   (set-case-syntax 247 "_" downcase)	; division sign
   (set-case-syntax 255 "w" downcase)	; dot accent
-  (set-standard-case-table (list downcase nil nil nil)))
+)
 
-(provide 'iso-syntax)
+(provide 'iso02-syn)
 
 ;;; iso-syntax.el ends here
