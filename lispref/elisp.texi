@@ -26,7 +26,7 @@
 
 @ifnottex
 This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
-Reference Manual, corresponding to Emacs version 21.3.
+Reference Manual, corresponding to Emacs version 22.1.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi and *one* in README.
 
@@ -52,7 +52,7 @@ Software Foundation raise funds for GNU development.''
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
-@subtitle For Emacs Version 21
+@subtitle For Emacs Version 22
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
 @subtitle Revision @value{VERSION}, January 2002
@@ -66,7 +66,7 @@ Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,@*
 
 @sp 2
 Edition @value{VERSION} @*
-Revised for Emacs Version 21.3,@*
+Revised for Emacs Version 22.1,@*
 January 2002.@*
 @sp 2
 ISBN 1-882114-73-6
@@ -96,7 +96,7 @@ Cover art by Etienne Suvasa.
 
 @ifnottex
 This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 21.3.
+Reference Manual, corresponding to GNU Emacs version 22.1.
 @end ifnottex
 
 @menu
@@ -173,7 +173,7 @@ Appendices
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
 
-* New Symbols::             New functions and variables in Emacs 21.
+* New Symbols::             New functions and variables in Emacs 22.
 
       --- The Detailed Node Listing ---
 
