@@ -199,7 +199,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 (defun cvs-parse-table ()
   "Table of message objects for `cvs-parse-process'."
-  (let (c file dir path type base-rev subtype)
+  (let (c file dir path base-rev subtype)
     (cvs-or
 
      (cvs-parse-status)
@@ -266,7 +266,20 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (and
 	(cvs-match "New directory `\\(.*\\)' -- ignored$" (dir 1))
 	;; (cvs-parsed-fileinfo 'MESSAGE " " (file-name-as-directory dir))
-	(cvs-parsed-fileinfo '(NEED-UPDATE . NEW-DIR) dir t))
+	;; These messages either correspond to a true new directory
+	;; that an update will bring in, or to a directory that's empty
+	;; on the current branch (either because it only exists in other
+	;; branches, or because it's been removed).
+	(if (ignore-errors
+	      (with-current-buffer
+		  (find-file-noselect (expand-file-name
+				       ".cvsignore" (file-name-directory dir)))
+		(goto-char (point-min))
+		(re-search-forward
+		 (concat "^" (regexp-quote (file-name-nondirectory dir)) "/$")
+		 nil t)))
+	    t		       ;The user requested to ignore those messages.
+	  (cvs-parsed-fileinfo '(NEED-UPDATE . NEW-DIR) dir t)))
 
        ;; File removed, since it is removed (by third party) in repository.
        (and
@@ -387,7 +400,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 
 (defun cvs-parse-merge ()
-  (let (path base-rev head-rev handled type)
+  (let (path base-rev head-rev type)
     ;; A merge (maybe with a conflict).
     (and
      (cvs-match "RCS file: .*$")
