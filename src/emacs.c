@@ -409,21 +409,6 @@ main (argc, argv, envp)
 
   clearerr (stdin);
 
-  if (! noninteractive1)
-    {
-#ifdef BSD_PGRPS
-      if (initialized)
-	{
-	  inherited_pgroup = EMACS_GETPGRP (0);
-	  setpgrp (0, getpid ());
-	}
-#else
-#if defined (USG5) && defined (INTERRUPT_INPUT)
-      setpgrp ();
-#endif
-#endif
-    }
-
 #ifdef APOLLO
 #ifndef APOLLO_SR10
   /* If USE_DOMAIN_ACLS environment variable exists,
@@ -505,6 +490,21 @@ main (argc, argv, envp)
     {
       skip_args += 1;
       noninteractive = 1;
+    }
+
+  if (! noninteractive)
+    {
+#ifdef BSD_PGRPS
+      if (initialized)
+	{
+	  inherited_pgroup = EMACS_GETPGRP (0);
+	  setpgrp (0, getpid ());
+	}
+#else
+#if defined (USG5) && defined (INTERRUPT_INPUT)
+      setpgrp ();
+#endif
+#endif
     }
 
 #ifdef POSIX_SIGNALS
