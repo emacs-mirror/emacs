@@ -1,3 +1,8 @@
+2000-12-12  Miles Bader  <miles@gnu.org>
+
+	* info.el (Info-last-preorder): Don't barf on nodes without a prev.
+	(Info-scroll-down): Respect `Info-scroll-prefer-subnodes'.
+
 2000-12-12  Andrew Choi  <akochoi@i-cable.com>
 
 	* term/mac-win.el: Remove load for ls-lisp.
