@@ -4052,9 +4052,7 @@ unwind_create_frame (frame)
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
       xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
-  
-      tip_window = None;
-      tip_frame = Qnil;
+      return Qt;
     }
   
   return Qnil;
@@ -10357,9 +10355,16 @@ static Lisp_Object
 unwind_create_tip_frame (frame)
      Lisp_Object frame;
 {
-  tip_window = None;
-  tip_frame = Qnil;
-  return unwind_create_frame (frame);
+  Lisp_Object deleted;
+
+  deleted = unwind_create_frame (frame);
+  if (EQ (deleted, Qt))
+    {
+      tip_window = None;
+      tip_frame = Qnil;
+    }
+  
+  return deleted;
 }
 
 
