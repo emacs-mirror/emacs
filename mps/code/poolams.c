@@ -1,7 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * $HopeName: MMsrc!poolams.c(trunk.52) $
  * Copyright (c) 2001 Ravenbrook Limited.
  * 
  * .design: See design.mps.poolams.

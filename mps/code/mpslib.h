@@ -1,7 +1,6 @@
 /* impl.h.mpslib: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!mpslib.h(trunk.9) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS client application developers, MPS developers.

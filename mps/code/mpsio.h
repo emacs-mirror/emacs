@@ -1,7 +1,6 @@
 /* impl.h.mpsio: RAVENBROOK MEMORY POOL SYSTEM I/O INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!mpsio.h(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: For MPS client application developers, MPS developers.

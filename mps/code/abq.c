@@ -1,7 +1,6 @@
 /* impl.c.abq: AVAILABLE BLOCK QUEUE
  *
  * $Id$
- * $HopeName: MMsrc!abq.c(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: Any MPS developer

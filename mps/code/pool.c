@@ -1,7 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
  * $Id$
- * $HopeName: MMsrc!pool.c(trunk.76) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

@@ -1,7 +1,6 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
  * $Id$
- * $HopeName: MMsrc!vmso.c(trunk.16) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

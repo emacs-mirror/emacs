@@ -1,7 +1,6 @@
 /* impl.c.prmci3li: PROTECTION MUTATOR CONTEXT INTEL 386 (LINUX)
  *
  * $Id$
- * $HopeName: MMsrc!prmci3li.c(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This module implements the part of the protection module

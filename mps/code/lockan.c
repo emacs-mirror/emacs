@@ -1,7 +1,6 @@
 /* impl.c.lockan: ANSI RECURSIVE LOCKS
  *
  * $Id$
- * $HopeName: MMsrc!lockan.c(trunk.10) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is a trivial implementation of recursive locks

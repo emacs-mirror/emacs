@@ -1,7 +1,6 @@
 /* impl.c.proto1: PROTECTION FOR DIGITAL UNIX
  *
  *  $Id$
- *  $HopeName: MMsrc!proto1.c(trunk.3) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  */
 

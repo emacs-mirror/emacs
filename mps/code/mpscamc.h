@@ -1,7 +1,6 @@
 /* impl.h.mpscamc: MEMORY POOL SYSTEM CLASS "AMC"
  *
  * $Id$
- * $HopeName: MMsrc!mpscamc.h(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

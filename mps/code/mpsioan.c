@@ -1,7 +1,6 @@
 /* impl.c.mpsioan: RAVENBROOK MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
  *
  * $Id$
- * $HopeName: MMsrc!mpsioan.c(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: For MPS client application developers and MPS developers.

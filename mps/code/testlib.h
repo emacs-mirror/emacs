@@ -1,7 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!testlib.h(trunk.22) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: A library of functions that may be of use to unit tests.

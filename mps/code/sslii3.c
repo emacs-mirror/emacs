@@ -1,7 +1,6 @@
 /* impl.c.sslii3: LINUX/INTEL STACK SCANNING
  *
  * $Id$
- * $HopeName: MMsrc!sslii3.c(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  *  This scans the stack and fixes the registers which may contain 

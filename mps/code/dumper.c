@@ -1,7 +1,6 @@
 /* impl.c.dumper: Simple Event Dumper
  *
  * $Id$
- * $HopeName: MMsrc!dumper.c(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MM developers.

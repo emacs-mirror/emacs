@@ -1,7 +1,6 @@
 # impl.nmk.w3i3mv: WINDOWS (INTEL) NMAKE FILE
 #
 # $Id$
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.72) $
 # Copyright (c) 2001 Ravenbrook Limited.
 
 PFM = w3i3mv

@@ -1,7 +1,6 @@
 /* impl.h.mpsclo: MEMORY POOL SYSTEM CLASS "LO"
  *
  * $Id$
- * $HopeName: MMsrc!mpsclo.h(trunk.2) $
  *
  * Copyright (c) 2001 Ravenbrook Limited.
  */

@@ -1,7 +1,6 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
  * $Id$
- * $HopeName: MMsrc!protsu.c(trunk.11) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

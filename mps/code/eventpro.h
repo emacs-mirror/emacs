@@ -2,7 +2,6 @@
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
- * $HopeName: MMsrc!eventpro.h(trunk.4) $
  */
 
 #ifndef eventpro_h

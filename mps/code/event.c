@@ -1,7 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
  * $Id$
- * $HopeName: MMsrc!event.c(trunk.14) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: mps.design.event

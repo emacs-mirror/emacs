@@ -1,7 +1,6 @@
 /* impl.c.lockw3: RECURSIVE LOCKS IN WIN32
  *
  * $Id$
- * $HopeName: MMsrc!lockw3.c(trunk.12) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: These are implemented using critical sections.

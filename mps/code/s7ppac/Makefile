@@ -1,7 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
 # $Id$
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.25) $
 #
 # Copyright (c) 2001 Ravenbrook Limited.
 

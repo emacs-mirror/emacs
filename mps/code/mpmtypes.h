@@ -1,7 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * $HopeName: MMsrc!mpmtypes.h(trunk.90) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: design.mps.type

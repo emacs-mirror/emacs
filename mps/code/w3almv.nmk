@@ -1,7 +1,6 @@
 # impl.nmk.w3almv: WINDOWS (ALPHA) NMAKE FILE
 #
 # $Id$
-# $HopeName: MMsrc!w3almv.nmk(trunk.43) $
 # Copyright (c) 2001 Ravenbrook Limited.
 
 PFM = w3almv

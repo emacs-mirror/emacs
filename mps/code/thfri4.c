@@ -1,7 +1,6 @@
 /*  impl.c.thfri3: Threads Manager for Intel x86 systems on FreeBSD
  *
  *  $Id$
- *  $HopeName: MMsrc!thlii4.c(trunk.2) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is a pthreads implementation of the threads manager.

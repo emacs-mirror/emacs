@@ -1,7 +1,6 @@
 /* impl.h.mpscmv: MEMORY POOL SYSTEM CLASS "MV"
  *
  * $Id$
- * $HopeName: MMsrc!mpscmv.h(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -1,7 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
  * $Id$
- * $HopeName: MMsrc!ld.c(trunk.9) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .def: A location dependency records the fact that the bit-patterns

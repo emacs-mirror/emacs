@@ -1,7 +1,6 @@
 /* impl.c.mpsliban: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
  * $Id$
- * $HopeName: MMsrc!mpsliban.c(trunk.12) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: The purpose of this code is

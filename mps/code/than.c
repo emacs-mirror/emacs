@@ -1,7 +1,6 @@
 /*  impl.c.than: ANSI THREADS MANAGER
  *
  *  $Id$
- *  $HopeName: MMsrc!than.c(trunk.20) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  *  This is a single-threaded implementation of the threads manager.

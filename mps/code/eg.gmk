@@ -1,7 +1,6 @@
 # impl.gmk.eg: GNUMAKEFILE FRAGMENT FOR EGCS
 #
 # $Id$
-# $HopeName: MMsrc!eg.gmk(trunk.1) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the EGCS

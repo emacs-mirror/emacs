@@ -3,7 +3,6 @@
  *               MANUAL RANK GUARDIAN POOL CLASS
  *
  *  $Id$
- *  $HopeName: MMsrc!poolmrg.h(trunk.2) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  */
 

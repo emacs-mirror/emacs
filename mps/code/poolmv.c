@@ -1,7 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
  * $Id$
- * $HopeName: MMsrc!poolmv.c(trunk.41) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control

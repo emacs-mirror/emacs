@@ -1,7 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * $HopeName: MMsrc!mpmst.h(trunk.99) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: This header file crosses module boundaries.  The relevant

@@ -1,7 +1,6 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
  * $Id$
- * $HopeName: MMsrc!vmo1.c(trunk.11) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: design.mps.vm, design.mps.vmo1
