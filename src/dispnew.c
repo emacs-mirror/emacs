@@ -120,6 +120,7 @@ struct dim
 
 /* Function prototypes.  */
 
+static void fake_current_matrices P_ ((Lisp_Object));
 static void redraw_overlapping_rows P_ ((struct window *, int));
 static void redraw_overlapped_rows P_ ((struct window *, int));
 static int count_blanks P_ ((struct glyph *, int));
@@ -2001,6 +2002,70 @@ adjust_frame_glyphs (f)
 }
 
 
+/* In the window tree with root W, build current matrices of leaf
+   windows from the frame's current matrix.  */
+
+static void
+fake_current_matrices (window)
+     Lisp_Object window;
+{
+  struct window *w;
+      
+  for (; !NILP (window); window = w->next)
+    {
+      w = XWINDOW (window);
+      
+      if (!NILP (w->hchild))
+	fake_current_matrices (w->hchild);
+      else if (!NILP (w->vchild))
+	fake_current_matrices (w->vchild);
+      else
+	{
+	  int i;
+	  struct frame *f = XFRAME (w->frame);
+	  struct glyph_matrix *m = w->current_matrix;
+	  struct glyph_matrix *fm = f->current_matrix;
+
+	  xassert (m->matrix_h == XFASTINT (w->height));
+	  xassert (m->matrix_w == XFASTINT (w->width));
+	  
+	  for (i = 0; i < m->matrix_h; ++i)
+	    {
+	      struct glyph_row *r = m->rows + i;
+	      struct glyph_row *fr = fm->rows + i + XFASTINT (w->top);
+
+	      xassert (r->glyphs[TEXT_AREA] >= fr->glyphs[TEXT_AREA]
+		       && r->glyphs[LAST_AREA] <= fr->glyphs[LAST_AREA]);
+
+	      r->enabled_p = fr->enabled_p;
+	      if (r->enabled_p)
+		{
+		  r->used[LEFT_MARGIN_AREA] = m->left_margin_glyphs;
+		  r->used[RIGHT_MARGIN_AREA] = m->right_margin_glyphs;
+		  r->used[TEXT_AREA] = (m->matrix_w
+					- r->used[LEFT_MARGIN_AREA]
+					- r->used[RIGHT_MARGIN_AREA]);
+		  r->mode_line_p = 0;
+		  r->inverse_p = fr->inverse_p;
+		}
+	    }
+	}
+    }
+}
+
+
+/* Make sure the current frame matrix of frame F has been built.
+   This is a no-op if F doesn't use frame-based redisplay.  */
+
+void
+ensure_frame_matrix (f)
+     struct frame *f;
+{
+  if (f->current_pool && display_completed)
+    build_frame_matrix (f);
+}
+
+
 /* Allocate/reallocate glyph matrices of a single frame F for
    frame-based redisplay.  */
 
@@ -2036,7 +2101,7 @@ adjust_frame_glyphs_for_frame_redisplay (f)
       f->desired_matrix = new_glyph_matrix (f->desired_pool);
       f->current_matrix = new_glyph_matrix (f->current_pool);
     }
-      
+  
   /* Compute window glyph matrices.  (This takes the mini-buffer
      window into account).  The result is the size of the frame glyph
      matrix needed.  The variable window_change_flags is set to a bit
@@ -2076,10 +2141,13 @@ adjust_frame_glyphs_for_frame_redisplay (f)
       adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
       adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
 
-      /* Since location and size of sub-matrices within the pool may
-	 have changed, and current matrices don't have meaningful
-	 contents anymore, mark the frame garbaged.  */
-      SET_FRAME_GARBAGED (f);
+      /* If the display hasn't been interrupted, set up windows'
+         current matrices so that they describe what's on the
+         screen.  */
+      if (display_completed)
+	fake_current_matrices (FRAME_ROOT_WINDOW (f));
+      else
+	SET_FRAME_GARBAGED (f);
     }
 }
 
