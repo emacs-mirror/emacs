@@ -53,6 +53,7 @@
 	(setq i (1+ i)))
       (modify-syntax-entry ?  "    " emacs-lisp-mode-syntax-table)
       (modify-syntax-entry ?\t "    " emacs-lisp-mode-syntax-table)
+      (modify-syntax-entry ?\f "    " emacs-lisp-mode-syntax-table)
       (modify-syntax-entry ?\n ">   " emacs-lisp-mode-syntax-table)
       ;; Give CR the same syntax as newline, for selective-display.
       (modify-syntax-entry ?\^m ">   " emacs-lisp-mode-syntax-table)
