@@ -1,3 +1,7 @@
+2002-11-25  Andreas Schwab  <schwab@suse.de>
+
+	* m/ia64.h: Restore `#ifndef NOT_C_CODE' deleted by last change.
+
 2002-11-24  Steven Tamm  <steventamm@mac.com>
 
 	* unexmacosx.c (unexec_realloc): Use malloc_default_zone to
