@@ -159,7 +159,7 @@ Values other than these four will be interpreted as `signal'.")
 (defvar hs-special-modes-alist 
   '((c-mode "{" "}" nil nil hs-c-like-adjust-block-beginning)
     (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
-    (java-mode "\\(\\(\\([ \t]*\\(\\(abstract\\|final\\|native\\|p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|s\\(tatic\\|ynchronized\\)\\)[ \t\n]+\\)+[.a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?\\([a-zA-Z0-9_:]+[ \t\n]*\\)([^)]*)\\([ \n\t]+throws[ \t\n][^{]+\\)?\\)\\|\\([ \t]*static[^{]*\\)\\)[ \t\n]*{\\)" "}" "/[*/]" java-hs-forward-sexp hs-c-like-adjust-block-beginning))
+    (java-mode "\\(\\(\\([ \t]*\\(\\(abstract\\|final\\|native\\|p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|s\\(tatic\\|ynchronized\\)\\)[ \t\n]+\\)*[.a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?\\([a-zA-Z0-9_:]+[ \t\n]*\\)([^)]*)\\([ \n\t]+throws[ \t\n][^{]+\\)?\\)\\|\\([ \t]*static[^{]*\\)\\)[ \t\n]*{\\)" "}" "/[*/]" java-hs-forward-sexp hs-c-like-adjust-block-beginning))
 ; I tested the java regexp using the following:
 ;(defvar hsj-public)
 ;(defvar hsj-type)
@@ -172,7 +172,7 @@ Values other than these four will be interpreted as `signal'.")
 ;      (concat "[ \t]*\\("
 ;	      (regexp-opt '("public" "private" "protected" "abstract" 
 ;			    "synchronized" "static" "final" "native") 1)
-;	      "[ \t\n]+\\)+"))
+;	      "[ \t\n]+\\)*"))
 
 ;(setq hsj-type "[.a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?")
 ;(setq hsj-fname "\\([a-zA-Z0-9_:]+[ \t\n]*\\)")
