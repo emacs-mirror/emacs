@@ -324,7 +324,7 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
   ()
 {
   register Lisp_Object val;
-  XSET (val, Lisp_Int, getc (instream));
+  XSETINT (val, getc (instream));
   return val;
 }
 
@@ -434,7 +434,7 @@ Return t if file exists.")
      So malloc a full-size pointer, and record the address of that pointer.  */
   ptr = (FILE **) xmalloc (sizeof (FILE *));
   *ptr = stream;
-  XSET (lispstream, Lisp_Internal_Stream, (EMACS_INT) ptr);
+  XSETINTERNAL_STREAM (lispstream, (EMACS_INT) ptr);
   record_unwind_protect (load_unwind, lispstream);
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   load_descriptor_list
@@ -1129,7 +1129,7 @@ read1 (readcharfun)
     case ']':
       {
 	register Lisp_Object val;
-	XSET (val, Lisp_Internal, c);
+	XSETINTERNAL (val, c);
 	return val;
       }
 
@@ -1202,9 +1202,9 @@ read1 (readcharfun)
 	if (c < 0) return Fsignal (Qend_of_file, Qnil);
 
 	if (c == '\\')
-	  XSET (val, Lisp_Int, read_escape (readcharfun));
+	  XSETINT (val, read_escape (readcharfun));
 	else
-	  XSET (val, Lisp_Int, c);
+	  XSETINT (val, c);
 
 	return val;
       }
@@ -1277,7 +1277,7 @@ read1 (readcharfun)
 #endif
 	  {
 	    register Lisp_Object val;
-	    XSET (val, Lisp_Internal, c);
+	    XSETINTERNAL (val, c);
 	    return val;
 	  }
 
@@ -1354,7 +1354,7 @@ read1 (readcharfun)
 		    if (p1[-1] == '.')
 		      p1[-1] = '\0';
 #endif
-		    XSET (val, Lisp_Int, atoi (read_buffer));
+		    XSETINT (val, atoi (read_buffer));
 		    return val;
 		  }
 	      }
@@ -1637,7 +1637,7 @@ oblookup (obarray, ptr, size)
     ;
   else if (!SYMBOLP (bucket))
     error ("Bad data in guts of obarray"); /* Like CADR error message */
-  else for (tail = bucket; ; XSET (tail, Lisp_Symbol, XSYMBOL (tail)->next))
+  else for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->next))
       {
 	if (XSYMBOL (tail)->name->size == size &&
 	    !bcmp (XSYMBOL (tail)->name->data, ptr, size))
@@ -1645,7 +1645,7 @@ oblookup (obarray, ptr, size)
 	else if (XSYMBOL (tail)->next == 0)
 	  break;
       }
-  XSET (tem, Lisp_Int, hash);
+  XSETINT (tem, hash);
   return tem;
 }
 
@@ -1686,7 +1686,7 @@ map_obarray (obarray, fn, arg)
 	    (*fn) (tail, arg);
 	    if (XSYMBOL (tail)->next == 0)
 	      break;
-	    XSET (tail, Lisp_Symbol, XSYMBOL (tail)->next);
+	    XSETSYMBOL (tail, XSYMBOL (tail)->next);
 	  }
     }
 }
@@ -1760,7 +1760,7 @@ defsubr (sname)
 {
   Lisp_Object sym;
   sym = intern (sname->symbol_name);
-  XSET (XSYMBOL (sym)->function, Lisp_Subr, sname);
+  XSETSUBR (XSYMBOL (sym)->function, sname);
 }
 
 #ifdef NOTDEF /* use fset in subr.el now */
@@ -1771,7 +1771,7 @@ defalias (sname, string)
 {
   Lisp_Object sym;
   sym = intern (string);
-  XSET (XSYMBOL (sym)->function, Lisp_Subr, sname);
+  XSETSUBR (XSYMBOL (sym)->function, sname);
 }
 #endif /* NOTDEF */
 
@@ -1786,7 +1786,7 @@ defvar_int (namestring, address)
 {
   Lisp_Object sym;
   sym = intern (namestring);
-  XSET (XSYMBOL (sym)->value, Lisp_Intfwd, address);
+  XSETINTFWD (XSYMBOL (sym)->value, address);
 }
 
 /* Similar but define a variable whose value is T if address contains 1,
@@ -1799,7 +1799,7 @@ defvar_bool (namestring, address)
 {
   Lisp_Object sym;
   sym = intern (namestring);
-  XSET (XSYMBOL (sym)->value, Lisp_Boolfwd, address);
+  XSETBOOLFWD (XSYMBOL (sym)->value, address);
 }
 
 /* Similar but define a variable whose value is the Lisp Object stored at address. */
@@ -1811,7 +1811,7 @@ defvar_lisp (namestring, address)
 {
   Lisp_Object sym;
   sym = intern (namestring);
-  XSET (XSYMBOL (sym)->value, Lisp_Objfwd, address);
+  XSETOBJFWD (XSYMBOL (sym)->value, address);
   staticpro (address);
 }
 
@@ -1826,7 +1826,7 @@ defvar_lisp_nopro (namestring, address)
 {
   Lisp_Object sym;
   sym = intern (namestring);
-  XSET (XSYMBOL (sym)->value, Lisp_Objfwd, address);
+  XSETOBJFWD (XSYMBOL (sym)->value, address);
 }
 
 #ifndef standalone
@@ -1848,8 +1848,8 @@ defvar_per_buffer (namestring, address, type, doc)
   sym = intern (namestring);
   offset = (char *)address - (char *)current_buffer;
 
-  XSET (XSYMBOL (sym)->value, Lisp_Buffer_Objfwd,
-	(Lisp_Object *) offset);
+  XSETBUFFER_OBJFWD (XSYMBOL (sym)->value,
+		     (Lisp_Object *) offset);
   *(Lisp_Object *)(offset + (char *)&buffer_local_symbols) = sym;
   *(Lisp_Object *)(offset + (char *)&buffer_local_types) = type;
   if (*(int *)(offset + (char *)&buffer_local_flags) == 0)
