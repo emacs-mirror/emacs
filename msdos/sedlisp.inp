@@ -17,6 +17,9 @@
 #
 # ----------------------------------------------------------------------
 
+/^SHELL *=/i\
+export FNCASE=y
+
 /^lisp=/s|@srcdir@|.|
 /^VPATH=/s|@srcdir@|.|
 /^srcdir=/s|@srcdir@|.|
