@@ -603,7 +603,8 @@ LANGUAGE.aff file \(e.g., english.aff\)."
  			       (const :tag "default" nil))
 		       (choice :tag "Character set"
 			       (const iso-8859-1)
-			       (const iso-8859-2))))
+			       (const iso-8859-2)
+			       (const koi8-r))))
   :group 'ispell)
 
 ;;; update the dictionaries at load time
