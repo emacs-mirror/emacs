@@ -35,8 +35,7 @@ DVI_TARGETS = emacs-lisp-intro.dvi
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
 DVIPS = dvips
-ENVADD = MAKEINFO="$(MAKEINFO) -I$(srcdir) -I."
-TEXADD = TEXINPUTS="$(srcdir)/../man:$(TEXINPUTS)"
+ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 .SUFFIXES: .dvi .ps .texi
 
@@ -48,7 +47,7 @@ ${infodir}/eintr: ${INFO_SOURCES}
 	$(MAKEINFO) -o $@ $(srcdir)/emacs-lisp-intro.texi
 
 emacs-lisp-intro.dvi: ${INFO_SOURCES}
-	$(ENVADD) $(TEXADD) $(TEXI2DVI) $(srcdir)/emacs-lisp-intro.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-lisp-intro.texi
 
 emacs-lisp-intro.html: $(INFO_SOURCES)
 	$(MAKEINFO) --html -o $@ $(srcdir)/emacs-lisp-intro.texi
