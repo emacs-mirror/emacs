@@ -1,3 +1,8 @@
+2001-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* battery.el (battery-update): Add help-echo.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
 2001-07-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* font-lock.el (c-font-lock-keywords-3): When matching something
