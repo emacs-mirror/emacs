@@ -500,8 +500,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
   (isearch-push-state)
 
-  (make-local-variable 'overriding-local-map)
-  (setq overriding-local-map isearch-mode-map)
+  (setq overriding-terminal-local-map isearch-mode-map)
   (isearch-update)
   (run-hooks 'isearch-mode-hook)
 
@@ -559,7 +558,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq mouse-leave-buffer-hook nil)
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
-  (setq overriding-local-map nil)
+  (setq overriding-terminal-local-map nil)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (isearch-dehighlight t)
   (let ((found-start (window-start (selected-window)))
