@@ -1651,7 +1651,8 @@ command_loop_1 ()
 	  /* Here for a command that isn't executed directly */
 
 #ifdef HAVE_X_WINDOWS
-	  if (display_hourglass_p)
+	  if (display_hourglass_p
+	      && NILP (Vexecuting_macro))
 	    start_hourglass ();
 #endif
 
@@ -1663,8 +1664,11 @@ command_loop_1 ()
 #ifdef HAVE_X_WINDOWS
 	  /* Do not check display_hourglass_p here, because
 	     Fcommand_execute could change it, but we should cancel
-	     hourglass cursor anyway.  */
-	  cancel_hourglass ();
+	     hourglass cursor anyway.
+	     But don't cancel the hourglass within a macro
+	     just because a command in the macro finishes.  */
+	  if (NILP (Vexecuting_macro))
+	    cancel_hourglass ();
 #endif
 	}
     directly_done: ;
