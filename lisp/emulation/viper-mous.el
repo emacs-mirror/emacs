@@ -84,97 +84,65 @@ For convenience, in Lisp modes, `-' is considered alphanumeric.
 If CLICK-COUNT is 3 or more, returns the line clicked on with leading and
 trailing space and tabs removed. In that case, the first argument, COUNT,
 is ignored."
-   (let ((basic-alpha "_a-zA-Z0-9") ; it is important for `_' to come first
-	 (basic-alpha-B "[_a-zA-Z0-9]")
-	 (basic-nonalphasep-B vip-NONALPHASEP-B)
-	 (end-modifiers "")
-	 (start-modifiers "")
-	 vip-ALPHA vip-ALPHA-B
-	 vip-NONALPHA vip-NONALPHA-B
-	 vip-ALPHASEP vip-ALPHASEP-B
-	 vip-NONALPHASEP vip-NONALPHASEP-B
+   (let ((modifiers "")
 	 beg skip-flag result
-	 one-char-word-func word-function-forw word-function-back word-beg)
+	 word-beg)
      (if (> click-count 2)
 	 (save-excursion
 	   (beginning-of-line)
-	   (skip-chars-forward " \t")
+	   (vip-skip-all-separators-forward 'within-line)
 	   (setq beg (point))
 	   (end-of-line)
 	   (setq result (buffer-substring beg (point))))
        
-       (if (and (looking-at basic-nonalphasep-B)
+       (if (and (not (vip-looking-at-alphasep))
 		(or (save-excursion (vip-backward-char-carefully)
-				    (looking-at basic-alpha-B))
+				    (vip-looking-at-alpha))
 		    (save-excursion (vip-forward-char-carefully)
-				    (looking-at basic-alpha-B))))
-	   (setq start-modifiers
+				    (vip-looking-at-alpha))))
+	   (setq modifiers
 		 (cond ((looking-at "\\\\") "\\\\")
-		       ((looking-at "-") "")
+		       ((looking-at "-") "C-C-")
 		       ((looking-at "[][]") "][")
 		       ((looking-at "[()]") ")(")
 		       ((looking-at "[{}]") "{}")
 		       ((looking-at "[<>]") "<>")
 		       ((looking-at "[`']") "`'")
-		       ((looking-at "\\^") "")
-		       ((looking-at vip-SEP-B) "")
+		       ((looking-at "\\^") "\\^")
+		       ((vip-looking-at-separator) "")
 		       (t (char-to-string (following-char))))
-		 end-modifiers
-		 (cond ((looking-at "-") "C-C-") ;; note the C-C trick
-		       ((looking-at "\\^") "^")
-		       (t ""))))
+		 ))
        
-       ;; Add `-' to alphanum, if it wasn't added and in we are in Lisp
+       ;; Add `-' to alphanum, if it wasn't added and if we are in Lisp
        (or (looking-at "-")
 	   (not (string-match "lisp" (symbol-name major-mode)))
-	   (setq end-modifiers (concat end-modifiers "C-C-")))
+	   (setq modifiers (concat modifiers "C-C-")))
        
-       (setq vip-ALPHA
-	     (format "%s%s%s" start-modifiers basic-alpha end-modifiers)
-	     vip-ALPHA-B
-	     (format "[%s%s%s]" start-modifiers basic-alpha end-modifiers)
-	     vip-NONALPHA (concat "^" vip-ALPHA)
-	     vip-NONALPHA-B (concat "[" vip-NONALPHA "]")
-	     vip-ALPHASEP (concat vip-ALPHA vip-SEP)
-	     vip-ALPHASEP-B
-	     (format "[%s%s%s%s]"
-		     start-modifiers basic-alpha vip-SEP end-modifiers)
-	     vip-NONALPHASEP (format "^%s%s" vip-SEP vip-ALPHA)
-	     vip-NONALPHASEP-B (format "[^%s%s]" vip-SEP vip-ALPHA)
-	     )
-       
-       (if (> click-count 1)
-	   (setq one-char-word-func 'vip-one-char-Word-p
-		 word-function-forw 'vip-end-of-Word
-		 word-function-back 'vip-backward-Word)
-	 (setq one-char-word-func 'vip-one-char-word-p
-	       word-function-forw 'vip-end-of-word
-	       word-function-back 'vip-backward-word))
        
        (save-excursion
-	 (cond ((> click-count 1) (skip-chars-backward vip-NONSEP))
-	       ((looking-at vip-ALPHA-B) (skip-chars-backward vip-ALPHA))
-	       ((looking-at vip-NONALPHASEP-B)
-		(skip-chars-backward vip-NONALPHASEP))
-	       (t (funcall word-function-back 1)))
-	 
+	 (cond ((> click-count 1) (vip-skip-nonseparators 'backward))
+	       ((vip-looking-at-alpha modifiers)
+		(vip-skip-alpha-backward modifiers))
+	       ((not (vip-looking-at-alphasep modifiers))
+		(vip-skip-nonalphasep-backward))
+	       (t (if (> click-count 1)
+		      (vip-skip-nonseparators 'backward)
+		    (vip-skip-alpha-backward modifiers))))
+
 	 (setq word-beg (point))
 	 
-	 (setq skip-flag t)
+	 (setq skip-flag nil) ; don't move 1 char forw the first time
 	 (while (> count 0)
-	   ;; skip-flag and the test for 1-char word takes care of the
-	   ;; special treatment that vip-end-of-word gives to 1-character
-	   ;; words. Otherwise, clicking once on such a word will insert two
-	   ;; words.
-	   (if (and skip-flag (funcall one-char-word-func))
-	       (setq skip-flag (not skip-flag))
-	     (funcall word-function-forw 1))
+	   (if skip-flag (vip-forward-char-carefully 1))
+	   (setq skip-flag t) ; now always move 1 char forward
+	   (if (> click-count 1)
+	       (vip-skip-nonseparators 'forward)
+	     (vip-skip-alpha-forward modifiers))
 	   (setq count (1- count)))
-	 
-	 (vip-forward-char-carefully)
+
 	 (setq result (buffer-substring word-beg (point))))
        ) ; if
-     ;; XEmacs doesn't have set-text-propertiesr, but there buffer-substring
+     ;; XEmacs doesn't have set-text-properties, but there buffer-substring
      ;; doesn't return properties together with the string, so it's not needed.
      (if vip-emacs-p
 	 (set-text-properties 0 (length result) nil result))
@@ -432,12 +400,14 @@ bindings in viper.el and in the Viper manual."
 
 
 (cond ((vip-window-display-p)
-       (let* ((search-key (if vip-xemacs-p [(meta button1up)] [S-mouse-1]))
+       (let* ((search-key (if vip-xemacs-p
+			      [(meta shift button1up)] [S-mouse-1]))
 	      (search-key-catch (if vip-xemacs-p
-				    [(meta button1)] [S-down-mouse-1]))
-	      (insert-key (if vip-xemacs-p [(meta button2up)] [S-mouse-2]))
+				    [(meta shift button1)] [S-down-mouse-1]))
+	      (insert-key (if vip-xemacs-p
+			      [(meta shift button2up)] [S-mouse-2]))
 	      (insert-key-catch (if vip-xemacs-p
-				    [(meta button2)] [S-down-mouse-2]))
+				    [(meta shift button2)] [S-down-mouse-2]))
 	      (search-key-unbound (and (not (key-binding search-key))
 				       (not (key-binding search-key-catch))))
 	      (insert-key-unbound (and (not (key-binding insert-key))
