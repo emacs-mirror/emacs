@@ -117,11 +117,6 @@ NOTE-END */
 #if 0 /* wisner@gryphon.com says this screws up cpp */
 #define C_SWITCH_MACHINE -Xa
 #endif
-#ifndef NOT_C_CODE
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif /* HAVE_ALLOCA_H */
-#endif /* not NOT_C_CODE */
 #endif /* not __GNUC__ */
 #endif /* SOLARIS2_4 */
 
@@ -194,11 +189,6 @@ NOTE-END */
 #define TEXT_START 0
 #endif /* USG */
 #endif /* not XENIX */
-
-/* If compiling with GCC, let GCC implement alloca.  */
-#if defined(__GNUC__) && !defined(alloca)
-#define alloca(n) __builtin_alloca(n)
-#endif
 
 #ifdef USG5_4
 #define DATA_SEG_BITS 0x08000000
