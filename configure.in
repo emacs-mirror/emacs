@@ -1378,6 +1378,8 @@ fi
 dnl For AC_FUNC_GETLOADAVG, at least:
 AC_CONFIG_LIBOBJ_DIR(src)
 
+AC_GNU_SOURCE
+
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
@@ -2084,7 +2086,7 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync)
+gai_strerror mkstemp getline getdelim mremap memmove fsync bzero)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -2318,6 +2320,9 @@ if test "$emacs_cv_c_restrict_arr" = yes; then
      declarations.  Define as empty for no equivalent.])
 fi
 
+AC_CHECK_HEADERS(nlist.h, [AC_DEFINE(NLIST_STRUCT, 1,
+                 [Define to 1 if you have <nlist.h>.])])
+
 dnl Fixme: AC_SYS_POSIX_TERMIOS should probably be used, but it's not clear
 dnl how the tty code is related to POSIX and/or other versions of termios.
 
@@ -2425,9 +2430,6 @@ if test "${REL_ALLOC}" = "yes" ; then
 	    [Define REL_ALLOC if you want to use the relocating allocator for
 	     buffer space.])
 fi
-
-AC_CHECK_HEADERS(nlist.h, [AC_DEFINE(NLIST_STRUCT, 1,
-                 [Define to 1 if you have <nlist.h>.])])
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 93, 94, 99, 2000, 2002 Free Software Foundation, Inc.
