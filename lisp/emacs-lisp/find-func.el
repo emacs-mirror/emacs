@@ -108,29 +108,27 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 `find-variable-regexp' is used."
   (if (null library)
       (error "Don't know where `%s' is defined" symbol))
-  (if (string-match "\\.el\\(c\\)\\'" library)
-      (setq library (substring library 0 (match-beginning 1))))
-  (let* ((path find-function-source-path)
-	 (compression (or (rassq 'jka-compr-handler file-name-handler-alist)
-			  (member 'crypt-find-file-hook find-file-hooks)))
-	 (filename (if (and (file-exists-p library)
-			    (not (file-directory-p library)))
-		       library
-		     ;; use `file-name-sans-extension' here? (if it gets fixed)
-		     (if (string-match "\\(\\.el\\)\\'" library)
-			 (setq library (substring library 0
-						  (match-beginning 1))))
-		     (or (locate-library (concat library ".el") t path)
-			 (locate-library library t path)
-			 (if compression
-			     (or (locate-library (concat library ".el.gz")
-						 t path)
-				 (locate-library (concat library ".gz")
-						 t path)))))))
-    (if (not filename)
-	(error "The library `%s' is not in the path" library))
-    (with-current-buffer (find-file-noselect filename)
-      (save-match-data
+  (save-match-data
+    (if (string-match "\\.el\\(c\\)\\'" library)
+	(setq library (substring library 0 (match-beginning 1))))
+    (let* ((path find-function-source-path)
+	   (compression (or (rassq 'jka-compr-handler file-name-handler-alist)
+			    (member 'crypt-find-file-hook find-file-hooks)))
+	   (filename (progn
+		       ;; use `file-name-sans-extension' here? (if it gets fixed)
+		       (if (string-match "\\(\\.el\\)\\'" library)
+			   (setq library (substring library 0
+						    (match-beginning 1))))
+		       (or (locate-library (concat library ".el") t path)
+			   (locate-library library t path)
+			   (if compression
+			       (or (locate-library (concat library ".el.gz")
+						   t path)
+				   (locate-library (concat library ".gz")
+						   t path)))))))
+      (if (not filename)
+	  (error "The library `%s' is not in the path" library))
+      (with-current-buffer (find-file-noselect filename)
 	(let ((regexp (format (if variable-p
 				  find-variable-regexp
 				find-function-regexp)
