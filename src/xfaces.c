@@ -187,6 +187,10 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #include "fontset.h"
+#ifdef USE_MOTIF
+#include <Xm/Xm.h>
+#include <Xm/XmStrDefs.h>
+#endif /* USE_MOTIF */
 #endif
 
 #ifdef MSDOS
@@ -286,7 +290,7 @@ Lisp_Object Qframe_update_face_colors;
 /* Names of basic faces.  */
 
 Lisp_Object Qdefault, Qmode_line, Qtool_bar, Qregion, Qfringe;
-Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse;;
+Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
 
 /* The symbol `face-alias'.  A symbols having that property is an
    alias for another face.  Value of the property is the name of
@@ -397,6 +401,7 @@ static int ngcs;
 struct font_name;
 struct table_entry;
 
+static Lisp_Object resolve_face_name P_ ((Lisp_Object));
 static int may_use_scalable_font_p P_ ((struct font_name *, char *));
 static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
 static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
@@ -834,31 +839,52 @@ clear_font_table (f)
 #ifdef HAVE_X_WINDOWS
 
 DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
-  "Non-nil if OBJECT is a valid pixmap specification.\n\
-A pixmap specification is either a string, or a list (WIDTH HEIGHT DATA)\n\
-where WIDTH is the pixel width of the pixmap, HEIGHT is its height,\n\
-and DATA contains the bits of the pixmap.")
+  "Value is non-nil if OBJECT is a valid pixmap specification.\n\
+A pixmap specification is either a string, a file name, or a list\n\
+(WIDTH HEIGHT DATA) where WIDTH is the pixel width of the pixmap,\n\
+HEIGHT is its height, and DATA is a string containing the bits of\n\
+the pixmap.  Bits are stored row by row, each row occupies\n\
+(WIDTH + 7)/8 bytes.")
   (object)
      Lisp_Object object;
 {
-  Lisp_Object height, width;
+  int pixmap_p = 0;
+  
+  if (STRINGP (object))
+    /* If OBJECT is a string, it's a file name.  */
+    pixmap_p = 1;
+  else if (CONSP (object))
+    {
+      /* Otherwise OBJECT must be (WIDTH HEIGHT DATA), WIDTH and
+	 HEIGHT must be integers > 0, and DATA must be string large
+	 enough to hold a bitmap of the specified size.  */
+      Lisp_Object width, height, data;
 
-  return ((STRINGP (object)
-	   || (CONSP (object)
-	       && CONSP (XCONS (object)->cdr)
-	       && CONSP (XCONS (XCONS (object)->cdr)->cdr)
-	       && NILP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->cdr)
-	       && (width = XCONS (object)->car, INTEGERP (width))
-	       && (height = XCONS (XCONS (object)->cdr)->car,
-		   INTEGERP (height))
-	       && STRINGP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)
-	       && XINT (width) > 0
-	       && XINT (height) > 0
-	       /* The string must have enough bits for width * height.  */
-	       && ((XSTRING (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)->size
-		    * (BITS_PER_INT / sizeof (int)))
-		   >= XFASTINT (width) * XFASTINT (height))))
-	  ? Qt : Qnil);
+      height = width = data = Qnil;
+      
+      if (CONSP (object))
+	{
+	  width = XCAR (object);
+	  object = XCDR (object);
+	  if (CONSP (object))
+	    {
+	      height = XCAR (object);
+	      object = XCDR (object);
+	      if (CONSP (object))
+		data = XCAR (object);
+	    }
+	}
+
+      if (NATNUMP (width) && NATNUMP (height) && STRINGP (data))
+	{
+	  int bytes_per_row = ((XFASTINT (width) + BITS_PER_CHAR - 1)
+			       / BITS_PER_CHAR);
+	  if (STRING_BYTES (XSTRING (data)) >= bytes_per_row * height)
+	    pixmap_p = 1;
+	}
+    }
+
+  return pixmap_p ? Qt : Qnil;
 }
 
 
@@ -2568,6 +2594,32 @@ check_lface (lface)
 #endif /* GLYPH_DEBUG == 0 */
 
 
+/* Resolve face name FACE_NAME.  If FACE_NAME Is a string, intern it
+   to make it a symvol.  If FACE_NAME is an alias for another face,
+   return that face's name.  */
+
+static Lisp_Object
+resolve_face_name (face_name)
+     Lisp_Object face_name;
+{
+  Lisp_Object aliased;
+  
+  if (STRINGP (face_name))
+    face_name = intern (XSTRING (face_name)->data);
+
+  for (;;)
+    {
+      aliased = Fget (face_name, Qface_alias);
+      if (NILP (aliased))
+	break;
+      else
+	face_name = aliased;
+    }
+
+  return face_name;
+}
+
+
 /* Return the face definition of FACE_NAME on frame F.  F null means
    return the global definition.  FACE_NAME may be a string or a
    symbol (apparently Emacs 20.2 allows strings as face names in face
@@ -2583,16 +2635,9 @@ lface_from_face_name (f, face_name, signal_p)
      Lisp_Object face_name;
      int signal_p;
 {
-  Lisp_Object lface, alias;
+  Lisp_Object lface;
 
-  if (STRINGP (face_name))
-    face_name = intern (XSTRING (face_name)->data);
-
-  /* If FACE_NAME is an alias for another face, return the definition
-     of the aliased face.  */
-  alias = Fget (face_name, Qface_alias);
-  if (!NILP (alias))
-    face_name = alias;
+  face_name = resolve_face_name (face_name);
 
   if (f)
     lface = assq_no_quit (face_name, f->face_alist);
@@ -3117,6 +3162,8 @@ frame.")
   
   CHECK_SYMBOL (face, 0);
   CHECK_SYMBOL (attr, 1);
+
+  face = resolve_face_name (face);
 
   /* Set lface to the Lisp attribute vector of FACE.  */
   if (EQ (frame, Qt))
@@ -3665,6 +3712,211 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
   return Finternal_set_lisp_face_attribute (face, attr, value, frame);
 }
 
+
+
+/***********************************************************************
+			      Menu face
+ ***********************************************************************/
+
+#ifdef USE_X_TOOLKIT
+
+/* Structure used to pass X resources to functions called via
+   XtApplyToWidgets.  */
+
+struct x_resources
+{
+  Arg *av;
+  int ac;
+};
+
+
+#ifdef USE_MOTIF
+
+static void xm_apply_resources P_ ((Widget, XtPointer));
+static void xm_set_menu_resources_from_menu_face P_ ((struct frame *, Widget));
+
+
+/* Set widget W's X resources from P which points to an x_resources
+   structure.  If W is a cascade button, apply resources to W's
+   submenu.  */
+
+static void
+xm_apply_resources (w, p)
+     Widget w;
+     XtPointer p;
+{
+  Widget submenu = 0;
+  struct x_resources *res = (struct x_resources *) p;
+  
+  XtSetValues (w, res->av, res->ac);
+  XtVaGetValues (w, XmNsubMenuId, &submenu, NULL);
+  if (submenu)
+    {
+      XtSetValues (submenu, res->av, res->ac);
+      XtApplyToWidgets (submenu, xm_apply_resources, p);
+    }
+}
+
+
+/* Set X resources of menu-widget WIDGET on frame F from face `menu'.
+   This is the LessTif/Motif version.  As of LessTif 0.88 it has the
+   following problems:
+
+   1. Setting the XmNfontList resource leads to an infinite loop
+   somewhere in LessTif.  */
+
+static void
+xm_set_menu_resources_from_menu_face (f, widget)
+     struct frame *f;
+     Widget widget;
+{
+  struct face *face;
+  Lisp_Object lface;
+  Arg av[3];
+  int ac = 0;
+  XmFontList fl = 0;
+
+  lface = lface_from_face_name (f, Qmenu, 1);
+  face = FACE_FROM_ID (f, MENU_FACE_ID);
+
+  if (!UNSPECIFIEDP (LFACE_FOREGROUND (lface)))
+    {
+      XtSetArg (av[ac], XmNforeground, face->foreground);
+      ++ac;
+    }
+
+  if (!UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
+    {
+      XtSetArg (av[ac], XmNbackground, face->background);
+      ++ac;
+    }
+
+  /* If any font-related attribute of `menu' is set, set the font.  */
+  if (face->font
+      && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
+	  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
+	  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
+	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
+	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
+    {
+#if 0 /* Setting the font leads to an infinite loop somewhere
+	 in LessTif during geometry computation.  */
+      XmFontListEntry fe;
+      fe = XmFontListEntryCreate ("menu_font", XmFONT_IS_FONT, face->font);
+      fl = XmFontListAppendEntry (NULL, fe);
+      XtSetArg (av[ac], XmNfontList, fl);
+      ++ac;
+#endif
+    }
+
+  xassert (ac <= sizeof av / sizeof *av);
+  
+  if (ac)
+    {
+      struct x_resources res;
+      
+      XtSetValues (widget, av, ac);
+      res.av = av, res.ac = ac;
+      XtApplyToWidgets (widget, xm_apply_resources, &res);
+      if (fl)
+	XmFontListFree (fl);
+    }
+}
+
+
+#endif /* USE_MOTIF */
+
+#ifdef USE_LUCID
+
+static void xl_apply_resources P_ ((Widget, XtPointer));
+static void xl_set_menu_resources_from_menu_face P_ ((struct frame *, Widget));
+
+
+/* Set widget W's resources from P which points to an x_resources
+   structure.  */
+
+static void
+xl_apply_resources (widget, p)
+     Widget widget;
+     XtPointer p;
+{
+  struct x_resources *res = (struct x_resources *) p;
+  XtSetValues (widget, res->av, res->ac);
+}
+
+
+/* On frame F, set X resources of menu-widget WIDGET from face `menu'.
+   This is the Lucid version.  */
+
+static void
+xl_set_menu_resources_from_menu_face (f, widget)
+     struct frame *f;
+     Widget widget;
+{
+  struct face *face;
+  Lisp_Object lface;
+  Arg av[3];
+  int ac = 0;
+
+  lface = lface_from_face_name (f, Qmenu, 1);
+  face = FACE_FROM_ID (f, MENU_FACE_ID);
+
+  if (!UNSPECIFIEDP (LFACE_FOREGROUND (lface)))
+    {
+      XtSetArg (av[ac], XtNforeground, face->foreground);
+      ++ac;
+    }
+
+  if (!UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
+    {
+      XtSetArg (av[ac], XtNbackground, face->background);
+      ++ac;
+    }
+
+  if (face->font
+      && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
+	  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
+	  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
+	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
+	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
+    {
+      XtSetArg (av[ac], XtNfont, face->font);
+      ++ac;
+    }
+
+  if (ac)
+    {
+      struct x_resources res;
+      
+      XtSetValues (widget, av, ac);
+
+      /* We must do children here in case we're handling a pop-up menu
+	 in which case WIDGET is a popup shell.  XtApplyToWidgets
+	 is a function from lwlib.  */
+      res.av = av, res.ac = ac;
+      XtApplyToWidgets (widget, xl_apply_resources, &res);
+    }
+}
+
+#endif /* USE_LUCID */
+
+
+/* On frame F, set X resources of menu-widget WIDGET from face `menu'.  */
+
+void
+x_set_menu_resources_from_menu_face (f, widget)
+     struct frame *f;
+     Widget widget;
+{
+#ifdef USE_LUCID
+  xl_set_menu_resources_from_menu_face (f, widget);
+#endif
+#ifdef USE_MOTIF
+  xm_set_menu_resources_from_menu_face (f, widget);
+#endif
+}
+
+#endif /* USE_X_TOOLKIT */
 
 #endif /* HAVE_X_WINDOWS */
 
@@ -5217,6 +5469,7 @@ realize_basic_faces (f)
       realize_named_face (f, Qborder, BORDER_FACE_ID);
       realize_named_face (f, Qcursor, CURSOR_FACE_ID);
       realize_named_face (f, Qmouse, MOUSE_FACE_ID);
+      realize_named_face (f, Qmenu, MENU_FACE_ID);
       success_p = 1;
     }
 
@@ -6340,6 +6593,8 @@ syms_of_xfaces ()
   staticpro (&Qheader_line);
   Qscroll_bar = intern ("scroll-bar");
   staticpro (&Qscroll_bar);
+  Qmenu = intern ("menu");
+  staticpro (&Qmenu);
   Qcursor = intern ("cursor");
   staticpro (&Qcursor);
   Qborder = intern ("border");
