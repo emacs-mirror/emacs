@@ -355,15 +355,20 @@ Do the same for the keys of the same name."
 	  (and (buffer-file-name)
 	       (or (buffer-modified-p)
 		   (not (verify-visited-file-modtime (current-buffer)))))))
+
 ;; Permit deleting frame if it would leave a visible or iconified frame.
 (put 'delete-frame 'menu-enable
-     '(let ((frames (frame-list))
-	    (count 0))
-	(while frames
-	  (if (cdr (assq 'visibility (frame-parameters (car frames))))
-	      (setq count (1+ count)))
-	  (setq frames (cdr frames)))
-	(> count 1)))
+     '(delete-frame-enabled-p))
+
+(defun delete-frame-enabled-p ()
+  "Return non-nil if `delete-frame' should be enabled in the menu bar."
+  (let ((frames (frame-list))
+	      (count 0))
+	  (while frames
+	    (if (frame-visible-p (car frames))
+		(setq count (1+ count)))
+	    (setq frames (cdr frames)))
+	  (> count 1)))
 
 (put 'advertised-undo 'menu-enable
      '(and (not (eq t buffer-undo-list))
