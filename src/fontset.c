@@ -34,6 +34,7 @@ Lisp_Object Vglobal_fontset_alist;
 Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vuse_default_ascent;
 Lisp_Object Valternative_fontname_alist;
+Lisp_Object Vfontset_alias_alist;
 Lisp_Object Vhighlight_wrong_size_font;
 Lisp_Object Vclip_large_size_font;
 
@@ -384,50 +385,31 @@ Lisp_Object
 fontset_pattern_regexp (pattern)
      Lisp_Object pattern;
 {
-  int nickname = 0;
-
   if (!index (XSTRING (pattern)->data, '*')
       && !index (XSTRING (pattern)->data, '?'))
     /* PATTERN does not contain any wild cards.  */
-    {
-      if (XSTRING (pattern)->size > 8
-	  && ! bcmp (XSTRING (pattern)->data, "fontset-", 8))
-	/* Just a nickname of a fontset is specified.  */
-	nickname = 1;
-      else
-	return Qnil;
-    }
+    return Qnil;
 
   if (!CONSP (Vcached_fontset_data)
       || strcmp (XSTRING (pattern)->data, CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
-      char *regex = (char *) alloca (XSTRING (pattern)->size * 2 + 3);
+      char *regex = (char *) alloca (XSTRING (pattern)->size * 2);
       char *p0, *p1 = regex;
 
-      if (nickname)
+      /* Convert "*" to ".*", "?" to ".".  */
+      *p1++ = '^';
+      for (p0 = XSTRING (pattern)->data; *p0; p0++)
 	{
-	  /* Just prepend ".*-" to PATTERN.  */
-	  *p1++= '.'; *p1++= '*', *p1++= '-';
-	  bcopy (XSTRING (pattern)->data, p1, XSTRING (pattern)->size);
-	  p1 += XSTRING (pattern)->size;
-	}
-      else
-	{
-	  /* Convert "*" to ".*", "?" to ".".  */
-	  *p1++ = '^';
-	  for (p0 = XSTRING (pattern)->data; *p0; p0++)
+	  if (*p0 == '*')
 	    {
-	      if (*p0 == '*')
-		{
-		  *p1++ = '.';
-		  *p1++ = '*';
-		}
-	      else if (*p0 == '?')
-		*p1++ == '.';
-	      else
-		*p1++ = *p0;
+	      *p1++ = '.';
+	      *p1++ = '*';
 	    }
+	  else if (*p0 == '?')
+	    *p1++ == '.';
+	  else
+	    *p1++ = *p0;
 	}
       *p1++ = '$';
       *p1++ = 0;
@@ -454,6 +436,10 @@ just like X's font name matching algorithm allows.")
 
   if (XSTRING (pattern)->size == 0)
     return Qnil;
+
+  tem = Frassoc (pattern, Vfontset_alias_alist);
+  if (!NILP (tem))
+    return Fcar (tem);
 
   regexp = fontset_pattern_regexp (pattern);
 
@@ -830,20 +816,33 @@ is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.");
   Vuse_default_ascent = Qnil;
 
   DEFVAR_LISP ("alternative-fontname-alist", &Valternative_fontname_alist,
-     "Alist of fontname vs list of the alternative fontnames.
-When no font can be opened by a fontname, the corresponding
+     "Alist of fontname vs list of the alternative fontnames.\n\
+When no font can be opened by a fontname, the corresponding\n\
 alternative fontnames are tried.");
   Valternative_fontname_alist = Qnil;
+
+  DEFVAR_LISP ("fontset-alias-alist", &Vfontset_alias_alist,
+     "Alist of fontset names vs the aliases.");
+  Vfontset_alias_alist = Qnil;
 
   DEFVAR_LISP ("highlight-wrong-size-font", &Vhighlight_wrong_size_font,
      "*Non-nil means highlight characters shown in wrong size fonts somehow.\n\
 The way to highlight them depends on window system on which Emacs runs.\n\
-On X window, rectangle is shown around each such characters.");
+On X window, a rectangle is shown around each such character.");
   Vhighlight_wrong_size_font = Qt;
 
   DEFVAR_LISP ("clip-large-size-font", &Vclip_large_size_font,
-     "*Non-nil means clip glyphs shown in large size fonts.\n\
-The hight of clipping area is the same as the hight of ASCII characters.");
+     "*Non-nil means characters shown in large size fonts are clipped.\n\
+The height of clipping area is the same as that of an ASCII character.\n\
+The width of the area is the same as that of an ASCII character or\n\
+twice wider than that of an ASCII character depending on\n\
+the width (i.e. column numbers occupied on screen) of the character set\n\
+of the character.\n\
+\n\
+In the case that you only have too large size font for a specific\n\
+charscter set, and clipping characters of the character set makes them\n\
+almost unreadable, you can set this variable to t to see the\n\
+characters in exchage for garbage dots left on your screen.");
   Vclip_large_size_font = Qt;
 
   defsubr (&Squery_fontset);
