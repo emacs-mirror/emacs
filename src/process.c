@@ -2748,7 +2748,7 @@ read_process_output (proc, channel)
   /* Now set NCHARS how many bytes we must decode.  */
   nchars += coding->carryover_size;
 
-  if (CODING_REQUIRE_CONVERSION (coding))
+  if (! CODING_REQUIRE_NO_CONVERSION (coding))
     {
       int require = decoding_buffer_size (coding, nchars);
       int consumed, produced;
@@ -3001,7 +3001,7 @@ send_process (proc, buf, len, object)
     error ("Output file descriptor of %s is closed", procname);
 
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
-  if (CODING_REQUIRE_CONVERSION (coding))
+  if (! CODING_MAY_REQUIRE_NO_CONVERSION (coding))
     {
       int require = encoding_buffer_size (coding, len);
       int offset, dummy;
