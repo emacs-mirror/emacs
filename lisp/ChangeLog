@@ -1,3 +1,8 @@
+2001-11-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired.el (dired-listing-switches): Mention in the doc string
+	that some switches are not supported by ls-lisp.el
+
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* imenu.el (imenu--split-menu): Use dolist and copy-sequence.
