@@ -1,3 +1,7 @@
+2002-04-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* fns.c (use-dialog-box): Doc fix.
+
 2002-04-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xterm.c (note_mode_line_or_margin_highlight): Remove unused

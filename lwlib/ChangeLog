@@ -1,3 +1,10 @@
+2002-04-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xlwmenu.c (find_next_selectable): New function.
+	(Down, Up, Right): Use it.
+	(find_next_selectable): Prevent endless loops when only one item
+	is enabled in the menu.
+
 2002-04-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	These changes allow moving in menu via keyboard.
