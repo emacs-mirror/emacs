@@ -849,8 +849,8 @@ If this is nil, no message will be displayed."
 
 (defvar fancy-splash-text
   '((:face variable-pitch
-	   "The menu bar and scroll bar are sufficient \
-for basic editing with the mouse.\n\n"
+	   "You can do basic editing with the menu bar and scroll bar \
+using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
 	   "Useful Files menu items:\n"
 	   :face variable-pitch "\
@@ -861,8 +861,8 @@ Recover Session		recover files you were editing before a crash
 "
 	   )
   (:face 'variable-pitch
-	   "The menu bar and scroll bar are sufficient \
-for basic editing with the mouse.\n\n"
+	   "You can do basic editing with the menu bar and scroll bar \
+using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
 	   :face variable-pitch "\
@@ -1053,7 +1053,7 @@ where FACE is a valid face specification, as it can be used with
 			       (fancy-splash-screens)
 			     (progn
 			       (insert "\
-The menu bar and scroll bar are sufficient for basic editing with the mouse.
+You can do basic editing with the menu bar and scroll bar using the mouse.
 
 Useful Files menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
