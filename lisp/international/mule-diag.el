@@ -199,6 +199,20 @@ but contains full information about each character sets."
 		((eq eol-type 1) (princ "CRLF\n"))
 		((eq eol-type 2) (princ "CR\n"))
 		(t (princ "invalid\n")))))
+      (let ((postread (coding-system-get coding-system 'post-read-conversion)))
+	(when postread
+	  (princ "After decoding a text normally,")
+	  (princ " perform post-conversion by the function: ")
+	  (princ "\n  ")
+	  (princ postread)
+	  (princ "\n")))
+      (let ((prewrite (coding-system-get coding-system 'pre-write-conversion)))
+	(when prewrite
+	  (princ "Before encoding a text normally,")
+	  (princ " perform pre-conversion by the function: ")
+	  (princ "\n  ")
+	  (princ prewrite)
+	  (princ "\n")))
       (save-excursion
 	(set-buffer standard-output)
 	(help-mode)))))
@@ -256,12 +270,12 @@ at the place of `..':
     (princ (format "%c -- %s"
 		   (coding-system-mnemonic coding-system)
 		   coding-system))
-    (let ((parent (coding-system-parent coding-system)))
-      (if parent
-	  (princ (format " (alias of %s)" parent))))
-    (let ((aliases (get coding-system 'alias-coding-systems)))
-      (if aliases
-	  (princ (format " %S" (cons 'alias: aliases)))))
+    (let ((aliases (coding-system-get coding-system 'alias-coding-systems)))
+      (if (eq coding-system (car aliases))
+	  (if (cdr aliases)
+	      (princ (format " %S" (cons 'alias: (cdr aliases)))))
+	(if (memq coding-system aliases)
+	    (princ (format " (alias of %s)" (car aliases))))))
     (princ "\n")
     (if (and doc-string
 	     (setq doc-string (coding-system-doc-string coding-system)))
@@ -306,15 +320,20 @@ at the place of `..':
 	    coding aliases)
 	(while l
 	  (setq coding (symbol-value (car l)))
+	  ;; Do not list up the same coding system twice.
 	  (when (not (memq coding coding-list))
 	    (setq coding-list (cons coding coding-list))
-	    (princ (format "  %d. %s" i coding))
-	    (when (setq aliases (get coding 'alias-coding-systems))
-	      (princ " ")
-	      (princ (cons 'alias: aliases)))
+	    (princ (format "  %d. %s " i coding))
+	    (setq aliases (coding-system-get coding 'alias-coding-systems))
+	    (if (eq coding (car aliases))
+		(if (cdr aliases)
+		    (princ (cons 'alias: (cdr aliases))))
+	      (if (memq coding aliases)
+		  (princ (list 'alias 'of (car aliases)))))
 	    (terpri)
 	    (setq i (1+ i)))
 	  (setq l (cdr l))))
+
       (princ "\n  Other coding systems cannot be distinguished automatically
   from these, and therefore cannot be recognized automatically
   with the present coding system priorities.\n\n")
@@ -327,7 +346,7 @@ at the place of `..':
 	   (function
 	    (lambda (x)
 	      (if (and (not (eq x coding-system))
-		       (get x 'no-initial-designation)
+		       (coding-system-get x 'no-initial-designation)
 		       (let ((flags (coding-system-flags x)))
 			 (not (or (aref flags 10) (aref flags 11)))))
 		  (setq codings (cons x codings)))))
@@ -359,6 +378,8 @@ at the place of `..':
 		      (while alist
 			(indent-to 16)
 			(prin1 (car (car alist)))
+			(if (>= (current-column) 40)
+			    (newline))
 			(indent-to 40)
 			(princ (cdr (car alist)))
 			(princ "\n")
@@ -369,14 +390,15 @@ at the place of `..':
       (help-mode))))
 
 ;; Print detailed information on CODING-SYSTEM.
-(defun print-coding-system (coding-system &optional aliases)
+(defun print-coding-system (coding-system)
   (let ((type (coding-system-type coding-system))
 	(eol-type (coding-system-eol-type coding-system))
 	(flags (coding-system-flags coding-system))
-	(base (coding-system-base coding-system)))
-    (if (not (eq base coding-system))
-	(princ (format "%s (alias of %s)\n" coding-system base))
+	(aliases (coding-system-get coding-system 'alias-coding-systems)))
+    (if (not (eq (car aliases) coding-system))
+	(princ (format "%s (alias of %s)\n" coding-system (car aliases)))
       (princ coding-system)
+      (setq aliases (cdr aliases))
       (while aliases
 	(princ ",")
 	(princ (car aliases))
