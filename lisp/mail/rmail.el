@@ -1604,13 +1604,16 @@ the body of the original message; otherwise copy the current message."
 	       (progn (search-forward "\n\n") (point))
 	       (point-max)))))
     ;; Start sending a new message; default header fields from the original.
-    (if (mail-other-window nil to subj irp2 cc (current-buffer))
-	;; Insert original text as initial text of new draft message.
-	(progn
-	  (goto-char (point-max))
-	  (insert orig-message)
-	  (goto-char (point-min))
-	  (end-of-line)))))
+    ;; Turn off the usual actions for initializing the message body
+    ;; because we want to get only the text from the failure message.
+    (let (mail-signature mail-setup-hook)
+      (if (mail-other-window nil to subj irp2 cc (current-buffer))
+	  ;; Insert original text as initial text of new draft message.
+	  (progn
+	    (goto-char (point-max))
+	    (insert orig-message)
+	    (goto-char (point-min))
+	    (end-of-line))))))
 
 ;;;; *** Rmail Specify Inbox Files ***
 

@@ -340,6 +340,10 @@ Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables))
 
+(defvar read-expression-map (copy-keymap minibuffer-local-map)
+  "Minibuffer keymap used for reading Lisp expressions.")
+(define-key read-expression-map "\M-\t" 'lisp-complete-symbol)
+
 (put 'eval-expression 'disabled t)
 
 ;; We define this, rather than making  eval  interactive,
@@ -347,7 +351,8 @@ Other major modes are defined by comparison with this one."
 (defun eval-expression (expression)
   "Evaluate EXPRESSION and print value in minibuffer.
 Value is also consed on to front of the variable `values'."
-  (interactive "xEval: ")
+  (interactive (list (read-from-minibuffer "Eval: "
+					   nil read-expression-map t)))
   (setq values (cons (eval expression) values))
   (prin1 (car values) t))
 
@@ -355,8 +360,9 @@ Value is also consed on to front of the variable `values'."
   "Prompting with PROMPT, let user edit COMMAND and eval result.
 COMMAND is a Lisp expression.  Let user edit that expression in
 the minibuffer, then read and evaluate the result."
-  (let ((command (read-minibuffer prompt
-				  (prin1-to-string command))))
+  (let ((command (read-from-minibuffer prompt
+				       (prin1-to-string command)
+				       read-expression-map t)))
     ;; Add edited command to command history, unless redundant.
     (or (equal command (car command-history))
 	(setq command-history (cons command command-history)))
@@ -377,13 +383,17 @@ to get different commands to edit and resubmit."
 	(minibuffer-history-sexp-flag t)
 	newcmd)
     (if elt
-	(let ((minibuffer-history-variable ' command-history))
+	(progn
 	  (setq newcmd (read-from-minibuffer "Redo: "
 					     (prin1-to-string elt)
-					     minibuffer-local-map
+					     read-expression-map
 					     t
 					     (cons 'command-history
 						   arg)))
+	  ;; If command was added to command-history as a string,
+	  ;; get rid of that.  We want only evallable expressions there.
+	  (if (stringp (car command-history))
+	      (setq command-history (cdr command-history)))
 	  ;; If command to be redone does not match front of history,
 	  ;; add it to the history.
 	  (or (equal newcmd (car command-history))
@@ -391,10 +401,17 @@ to get different commands to edit and resubmit."
 	  (eval newcmd))
       (ding))))
 
-(defvar minibuffer-history nil)
-(defvar minibuffer-history-sexp-flag nil)
+(defvar minibuffer-history nil
+  "Default minibuffer history list.
+This is used for all minibuffer input
+except when an alternate history list is specified.")
+(defvar minibuffer-history-sexp-flag nil
+  "Nonzero when doing history operations on `command-history'.
+More generally, indicates that the history list being acted on
+contains expressions rather than strings.")
 (setq minibuffer-history-variable 'minibuffer-history)
 (setq minibuffer-history-position nil)
+(defvar minibuffer-history-search-history nil)
 
 (mapcar
  (function (lambda (key-and-command)
@@ -406,15 +423,27 @@ to get different commands to edit and resubmit."
 	      '(minibuffer-local-map
 		minibuffer-local-ns-map
 		minibuffer-local-completion-map
-		minibuffer-local-must-match-map))))
+		minibuffer-local-must-match-map
+		read-expression-map))))
  '(("\en" . next-history-element) ([next] . next-history-element)
    ("\ep" . previous-history-element) ([prior] . previous-history-element)
    ("\er" . previous-matching-history-element)
    ("\es" . next-matching-history-element)))
 
-(put 'previous-matching-history-element 'enable-recursive-minibuffers t)
 (defun previous-matching-history-element (regexp n)
-  (interactive "sPrevious element matching (regexp): \np")
+  "Find the previous history element that matches REGEXP.
+\(Previous history elements refer to earlier actions.)
+With prefix argument N, search for Nth previous match.
+If N is negative, find the next or Nth next match."
+  (interactive
+   (let ((enable-recursive-minibuffers t)
+	 (minibuffer-history-sexp-flag nil))
+     (list (read-from-minibuffer "Previous element matching (regexp): "
+				 nil
+				 minibuffer-local-map
+				 nil
+				 'minibuffer-history-search-history)
+	   (prefix-numeric-value current-prefix-arg))))
   (let ((history (symbol-value minibuffer-history-variable))
 	prevpos
 	(pos minibuffer-history-position))
@@ -429,18 +458,32 @@ to get different commands to edit and resubmit."
 			(if minibuffer-history-sexp-flag
 			    (prin1-to-string (nth (1- pos) history))
 			  (nth (1- pos) history)))
-	  (setq n (+ n (if (< n 0) -1 1)))))
+	  (setq n (+ n (if (< n 0) 1 -1)))))
     (setq minibuffer-history-position pos)
     (erase-buffer)
     (let ((elt (nth (1- pos) history)))
       (insert (if minibuffer-history-sexp-flag
 		  (prin1-to-string elt)
 		elt)))
-      (goto-char (point-min))))
+      (goto-char (point-min)))
+  (if (or (eq (car (car command-history)) 'previous-matching-history-element)
+	  (eq (car (car command-history)) 'next-matching-history-element))
+      (setq command-history (cdr command-history))))
 
-(put 'next-matching-history-element 'enable-recursive-minibuffers t)
 (defun next-matching-history-element (regexp n)
-  (interactive "sNext element matching (regexp): \np")
+  "Find the next history element that matches REGEXP.
+\(The next history element refers to a more recent action.)
+With prefix argument N, search for Nth next match.
+If N is negative, find the previous or Nth previous match."
+  (interactive
+   (let ((enable-recursive-minibuffers t)
+	 (minibuffer-history-sexp-flag nil))
+     (list (read-from-minibuffer "Next element matching (regexp): "
+				 nil
+				 minibuffer-local-map
+				 nil
+				 'minibuffer-history-search-history)
+	   (prefix-numeric-value current-prefix-arg))))
   (previous-matching-history-element regexp (- n)))
 
 (defun next-history-element (n)
