@@ -312,7 +312,10 @@ directory_files_internal (directory, full, match, nosort, attrs)
   specpdl_ptr = specpdl + count;
 
   if (retry_p)
-    goto retry;
+    {
+      list = Qnil;
+      goto retry;
+    }
 
   if (NILP (nosort))
     list = Fsort (Fnreverse (list),
