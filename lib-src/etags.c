@@ -41,6 +41,7 @@ char pot_etags_version[] = "@(#) pot revision number is 11.59";
 #endif
 
 #ifdef MSDOS
+# include <string.h>
 # include <fcntl.h>
 # include <sys/param.h>
 #endif /* MSDOS */
@@ -114,7 +115,7 @@ extern int errno;
 
 #ifdef DOS_NT
 # define absolutefn(fn) (fn[0] == '/' \
-			 || (isalpha (fn[0]) && fn[1] == ':' && fn[2] == '/'))
+			 || (fn[1] == ':' && fn[2] == '/'))
 #else
 # define absolutefn(fn) (fn[0] == '/')
 #endif
@@ -874,7 +875,15 @@ main (argc, argv)
   if (!CTAGS)
     {
       if (streq (tagfile, "-"))
-	tagf = stdout;
+	{
+	  tagf = stdout;
+#ifdef DOS_NT
+	  /* Switch redirected `stdout' to binary mode (setting `_fmode'
+	     doesn't take effect until after `stdout' is already open),  */
+	  if (!isatty (fileno (stdout)))
+	    setmode (fileno (stdout), O_BINARY);
+#endif /* DOS_NT */
+	}
       else
 	tagf = fopen (tagfile, append_to_tagfile ? "a" : "w");
       if (tagf == NULL)
@@ -1060,6 +1069,17 @@ process_file (file)
 {
   struct stat stat_buf;
   FILE *inf;
+#ifdef DOS_NT
+  /* The rest of the program can't grok `\\'-style slashes.  */
+  char *p = file;
+
+  while (*p)
+    {
+      if (*p == '\\')
+	*p = '/';
+      ++p;
+    }
+#endif
 
   if (stat (file, &stat_buf) == 0 && !S_ISREG (stat_buf.st_mode))
     {
@@ -4299,10 +4319,12 @@ etags_getcwd ()
   getwd (path);
   p = path;
   while (*p)
-    if (*p == '\\')
-      *p++ = '/';
-    else
-      *p++ = lowcase (*p);
+    {
+      if (*p == '\\')
+	*p++ = '/';
+      else
+	*p++ = lowcase (*p);
+    }
 
   return strdup (path);
 #else /* not DOS_NT */
@@ -4382,6 +4404,12 @@ absolute_filename (file, cwd)
 
   if (absolutefn (file))
     res = concat (file, "", "");
+#ifdef DOS_NT
+  /* We don't support non-absolute filenames with a drive
+     letter, like `d:NAME' (it's too much hassle).  */
+  else if (file[1] == ':')
+    fatal ("%s: relative filenames with drive letters not supported", file);
+#endif
   else
     res = concat (cwd, file, "");
 
@@ -4402,6 +4430,13 @@ absolute_filename (file, cwd)
 		{
 		  strcpy (cp, slashp + 3);
 		}
+#ifdef DOS_NT
+	      /* Under MSDOS and NT we get `d:/NAME' as absolute
+		 filename, so the luser could say `d:/../NAME'.
+		 We silently treat this as `d:/NAME'.  */
+	      else if (cp[1] == ':')
+		strcpy (cp + 3, slashp + 4);
+#endif
 	      else		/* else (cp == res) */
 		{
 		  if (slashp[3] != '\0')
@@ -4434,6 +4469,16 @@ absolute_dirname (file, cwd)
 {
   char *slashp, *res;
   char save;
+#ifdef DOS_NT
+  char *p = file;
+
+  while (*p)
+    {
+      if (*p == '\\')
+	*p = '/';
+      ++p;
+    }
+#endif
 
   slashp = etags_strrchr (file, '/');
   if (slashp == NULL)
