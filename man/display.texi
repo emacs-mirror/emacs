@@ -292,6 +292,10 @@ comments, use this:
  '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
 @end example
 
+@findex font-lock-remove-keywords
+  To remove keywords from the font-lock highlighting patterns, use the
+function @code{font-lock-remove-keywords}.
+
 @node Highlight Changes
 @section Highlight Changes Mode
 
