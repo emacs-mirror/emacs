@@ -182,6 +182,7 @@ buildlisppath=${srcdir}/lisp
 # ==================== Utility Programs for the Build ====================
 
 # Allow the user to specify the install program.
+INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 
