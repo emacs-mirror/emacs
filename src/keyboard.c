@@ -1442,7 +1442,7 @@ safe_run_hooks (hook)
   int count = specpdl_ptr - specpdl;
   specbind (Qinhibit_quit, hook);
 
-  internal_condition_case (safe_run_hooks_1, Qerror, safe_run_hooks_error);
+  internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
 
   unbind_to (count, Qnil);
 }
