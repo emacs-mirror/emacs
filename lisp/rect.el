@@ -204,8 +204,7 @@ This command does not delete or overwrite any existing text.
 
 Called from a program, takes three args; START, END and STRING."
   (interactive "r\nsString rectangle: ")
-  (operate-on-rectangle 'string-rectangle-line start end t)
-  (goto-char start))
+  (operate-on-rectangle 'string-rectangle-line start end t))
 
 (defun string-rectangle-line (startpos begextra endextra)
   (let (whitespace)
