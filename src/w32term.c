@@ -4214,6 +4214,58 @@ x_display_cursor (f, on)
   UNBLOCK_INPUT;
 }
 
+/* Icons.  */
+
+int
+x_bitmap_icon (f, icon)
+     struct frame *f;
+     Lisp_Object icon;
+{
+  int mask, bitmap_id;
+  Window icon_window;
+  HANDLE hicon;
+
+  if (FRAME_W32_WINDOW (f) == 0)
+    return 1;
+
+  if (NILP (icon))
+    hicon = LoadIcon (hinst, EMACS_CLASS);
+  else if (STRINGP (icon))
+    hicon = LoadImage (NULL, (LPCTSTR) XSTRING (icon)->data, IMAGE_ICON, 0, 0,
+		       LR_DEFAULTSIZE | LR_LOADFROMFILE);
+  else if (SYMBOLP (icon))
+    {
+      LPCTSTR name;
+
+      if (EQ (icon, intern ("application")))
+	name = (LPCTSTR) IDI_APPLICATION;
+      else if (EQ (icon, intern ("hand")))
+	name = (LPCTSTR) IDI_HAND;
+      else if (EQ (icon, intern ("question")))
+	name = (LPCTSTR) IDI_QUESTION;
+      else if (EQ (icon, intern ("exclamation")))
+	name = (LPCTSTR) IDI_EXCLAMATION;
+      else if (EQ (icon, intern ("asterisk")))
+	name = (LPCTSTR) IDI_ASTERISK;
+      else if (EQ (icon, intern ("winlogo")))
+	name = (LPCTSTR) IDI_WINLOGO;
+      else
+	return 1;
+
+      hicon = LoadIcon (NULL, name);
+    }
+  else
+    return 1;
+
+  if (hicon == NULL)
+    return 1;
+
+  PostMessage (FRAME_W32_WINDOW (f), WM_SETICON, (WPARAM) ICON_BIG, (LPARAM) hicon);
+
+  return 0;
+}
+
+
 /* Changing the font of the frame.  */
 
 /* Give frame F the font named FONTNAME as its default font, and
@@ -4659,7 +4711,13 @@ w32_frame_raise_lower (f, raise)
 x_make_frame_visible (f)
      struct frame *f;
 {
+  Lisp_Object type;
+
   BLOCK_INPUT;
+
+  type = x_icon_type (f);
+  if (!NILP (type))
+    x_bitmap_icon (f, type);
 
   if (! FRAME_VISIBLE_P (f))
     {
@@ -4759,6 +4817,7 @@ x_iconify_frame (f)
      struct frame *f;
 {
   int result;
+  Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame == f)
@@ -4768,6 +4827,10 @@ x_iconify_frame (f)
     return;
 
   BLOCK_INPUT;
+
+  type = x_icon_type (f);
+  if (!NILP (type))
+    x_bitmap_icon (f, type);
 
   /* Simulate the user minimizing the frame.  */
   SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MINIMIZE, 0);
