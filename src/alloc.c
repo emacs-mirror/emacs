@@ -246,6 +246,10 @@ int ignore_warnings;
 
 Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
+/* Hook run after GC has finished.  */
+
+Lisp_Object Vpost_gc_hook, Qpost_gc_hook;
+
 static void mark_buffer P_ ((Lisp_Object));
 static void mark_kboards P_ ((void));
 static void gc_sweep P_ ((void));
@@ -4267,6 +4271,13 @@ Garbage collection happens automatically if you cons more than\n\
     }
 #endif
 
+  if (!NILP (Vpost_gc_hook))
+    {
+      int count = inhibit_garbage_collection ();
+      safe_run_hooks (Qpost_gc_hook);
+      unbind_to (count, Qnil);
+    }
+  
   return Flist (sizeof total / sizeof *total, total);
 }
 
@@ -5473,6 +5484,12 @@ which includes both saved text and other data.");
   DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
     "Non-nil means display messages at start and end of garbage collection.");
   garbage_collection_messages = 0;
+
+  DEFVAR_LISP ("post-gc-hook", &Vpost_gc_hook,
+    "Hook run after garbage collection has finished.");
+  Vpost_gc_hook = Qnil;
+  Qpost_gc_hook = intern ("post-gc-hook");
+  staticpro (&Qpost_gc_hook);
 
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
