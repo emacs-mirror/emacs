@@ -1,3 +1,27 @@
+2003-12-08  Miles Bader  <miles@gnu.org>
+
+	* .cvsignore: Add .arch-inventory.
+
+2003-12-24  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Check for <sys/socket.h>.  Include it before
+	including <net/if.h>.  Move check for <net/if.h> before it's use.
+
+2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-dep): Don't let cd output go into
+	pipe for carbon_appdir.
+
+2003-12-24  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in (PKG_CHECK_MODULES): Fix quoting.
+
+2003-12-01  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in (powerpc-apple-darwin*): Use ${CC-cc} instead of
+	hardcoding gcc.
+	* configure: Rebuild.
+
 2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_GTK_MULTIDISPLAY): Check if GTK can handle

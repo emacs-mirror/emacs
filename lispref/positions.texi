@@ -18,7 +18,11 @@ after that position.
   Positions are usually represented as integers starting from 1, but can
 also be represented as @dfn{markers}---special objects that relocate
 automatically when text is inserted or deleted so they stay with the
-surrounding characters.  @xref{Markers}.
+surrounding characters.  Functions that expect an argument to be a
+position (an integer), but accept a marker as a substitute, normally
+ignore the marker buffer.  Of course, markers used this way usually
+point to a position in the buffer that the function operates on, but
+that is entirely the programmer's responsibility.  @xref{Markers}.
 
   See also the ``field'' feature (@pxref{Fields}), which provides
 functions that are used by many cursor-motion commands.

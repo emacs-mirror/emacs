@@ -404,10 +404,15 @@ minibuffer_completion_contents ()
   return make_buffer_string (prompt_end, PT, 1);
 }
 
-/* Read from the minibuffer using keymap MAP, initial contents INITIAL
-   (a string), putting point minus BACKUP_N bytes from the end of INITIAL,
+/* Read from the minibuffer using keymap MAP and initial contents INITIAL,
+   putting point minus BACKUP_N bytes from the end of INITIAL,
    prompting with PROMPT (a string), using history list HISTVAR
-   with initial position HISTPOS.  (BACKUP_N should be <= 0.)
+   with initial position HISTPOS.  INITIAL should be a string or a
+   cons of a string and an integer.  BACKUP_N should be <= 0, or
+   Qnil, which is equivalent to 0.  If INITIAL is a cons, BACKUP_N is
+   ignored and replaced with an integer that puts point N characters
+   from the beginning of INITIAL, where N is the CDR of INITIAL, or at
+   the beginning of INITIAL if N <= 0.
 
    Normally return the result as a string (the text that was read),
    but if EXPFLAG is nonzero, read it and return the object read.
@@ -419,7 +424,7 @@ minibuffer_completion_contents ()
 
    If ALLOW_PROPS is nonzero, we do not throw away text properties.
 
-   if INHERIT_INPUT_METHOD is nonzeor, the minibuffer inherit the
+   if INHERIT_INPUT_METHOD is nonzero, the minibuffer inherits the
    current input method.  */
 
 static Lisp_Object
@@ -441,6 +446,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
+  int pos = INTEGERP (backup_n) ? XINT (backup_n) : 0;
 
   /* String to add to the history.  */
   Lisp_Object histstring;
@@ -456,6 +462,27 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     cancel_hourglass ();
 #endif
 
+  if (!NILP (initial))
+    {
+      if (CONSP (initial))
+	{
+	  backup_n = Fcdr (initial);
+	  initial = Fcar (initial);
+	  CHECK_STRING (initial);
+	  if (!NILP (backup_n))
+	    {
+	      CHECK_NUMBER (backup_n);
+	      /* Convert to distance from end of input.  */
+	      if (XINT (backup_n) < 1)
+		/* A number too small means the beginning of the string.  */
+		pos =  - SCHARS (initial);
+	      else
+		pos = XINT (backup_n) - 1 - SCHARS (initial);
+	    }
+	}
+      else
+	CHECK_STRING (initial);
+    }
   val = Qnil;
   ambient_dir = current_buffer->directory;
   input_method = Qnil;
@@ -482,7 +509,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   if (noninteractive)
     {
-      val = read_minibuf_noninteractive (map, initial, prompt, backup_n,
+      val = read_minibuf_noninteractive (map, initial, prompt,
+					 make_number (pos),
 					 expflag, histvar, histpos, defalt,
 					 allow_props, inherit_input_method);
       UNGCPRO;
@@ -633,8 +661,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   if (!NILP (initial))
     {
       Finsert (1, &initial);
-      if (INTEGERP (backup_n))
-	Fforward_char (backup_n);
+      Fforward_char (make_number (pos));
     }
 
   clear_message (1, 1);
@@ -884,8 +911,9 @@ Fifth arg HIST, if non-nil, specifies a history list
   which INITIAL-CONTENTS corresponds to).
   Positions are counted starting from 1 at the beginning of the list.
 Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is available
- for history commands; but `read-from-minibuffer' does NOT return DEFAULT-VALUE
- if the user enters empty input!  It returns the empty string.
+  for history commands; but, unless READ is non-nil, `read-from-minibuffer'
+  does NOT return DEFAULT-VALUE if the user enters empty input!  It returns
+  the empty string.
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
 If the variable `minibuffer-allow-text-properties' is non-nil,
@@ -895,33 +923,10 @@ If the variable `minibuffer-allow-text-properties' is non-nil,
      Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
      Lisp_Object inherit_input_method;
 {
-  int pos = 0;
-  Lisp_Object histvar, histpos, position, val;
+  Lisp_Object histvar, histpos, val;
   struct gcpro gcpro1;
 
-  position = Qnil;
-
   CHECK_STRING (prompt);
-  if (!NILP (initial_contents))
-    {
-      if (CONSP (initial_contents))
-	{
-	  position = Fcdr (initial_contents);
-	  initial_contents = Fcar (initial_contents);
-	}
-      CHECK_STRING (initial_contents);
-      if (!NILP (position))
-	{
-	  CHECK_NUMBER (position);
-	  /* Convert to distance from end of input.  */
-	  if (XINT (position) < 1)
-	    /* A number too small means the beginning of the string.  */
-	    pos =  - SCHARS (initial_contents);
-	  else
-	    pos = XINT (position) - 1 - SCHARS (initial_contents);
-	}
-    }
-
   if (NILP (keymap))
     keymap = Vminibuffer_local_map;
   else
@@ -944,7 +949,7 @@ If the variable `minibuffer-allow-text-properties' is non-nil,
 
   GCPRO1 (default_value);
   val = read_minibuf (keymap, initial_contents, prompt,
-		      make_number (pos), !NILP (read),
+		      Qnil, !NILP (read),
 		      histvar, histpos, default_value,
 		      minibuffer_allow_text_properties,
 		      !NILP (inherit_input_method));
@@ -960,8 +965,6 @@ is a string to insert in the minibuffer before reading.  */)
      Lisp_Object prompt, initial_contents;
 {
   CHECK_STRING (prompt);
-  if (!NILP (initial_contents))
-    CHECK_STRING (initial_contents);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
 		       prompt, Qnil, 1, Qminibuffer_history,
 		       make_number (0), Qnil, 0, 0);
@@ -1012,9 +1015,6 @@ the current input method and the setting of `enable-multibyte-characters'.  */)
      Lisp_Object prompt, initial, inherit_input_method;
 {
   CHECK_STRING (prompt);
-  if (! NILP (initial))
-    CHECK_STRING (initial);
-
   return read_minibuf (Vminibuffer_local_ns_map, initial, prompt, Qnil,
 		       0, Qminibuffer_history, make_number (0), Qnil, 0,
 		       !NILP (inherit_input_method));
@@ -1650,7 +1650,7 @@ the values STRING, PREDICATE and `lambda'.  */)
        (string, alist, predicate)
      Lisp_Object string, alist, predicate;
 {
-  Lisp_Object regexps, tem = Qnil;
+  Lisp_Object regexps, tail, tem = Qnil;
   int i = 0;
 
   CHECK_STRING (string);
@@ -1676,20 +1676,56 @@ the values STRING, PREDICATE and `lambda'.  */)
 	  else
 	    string = Fstring_make_multibyte (string);
 
-	  tem = oblookup (Vminibuffer_completion_table,
+	  tem = oblookup (alist,
 			  SDATA (string),
 			  SCHARS (string),
 			  SBYTES (string));
-	  if (!SYMBOLP (tem))
-	    return Qnil;
 	}
+
+      if (completion_ignore_case && !SYMBOLP (tem))
+	{
+	  for (i = XVECTOR (alist)->size - 1; i >= 0; i--)
+	    {
+	      tail = XVECTOR (alist)->contents[i];
+	      if (SYMBOLP (tail))
+		while (1)
+		  {
+		    if (EQ((Fcompare_strings (string, make_number (0), Qnil,
+					      Fsymbol_name (tail),
+					      make_number (0) , Qnil, Qt)),
+			   Qt))
+		      {
+			tem = tail;
+			break;
+		      }
+		    if (XSYMBOL (tail)->next == 0)
+		      break;
+		    XSETSYMBOL (tail, XSYMBOL (tail)->next);
+		  }
+	    }
+	}
+
+      if (!SYMBOLP (tem))
+	return Qnil;
     }
   else if (HASH_TABLE_P (alist))
     {
-      i = hash_lookup (XHASH_TABLE (alist), string, NULL);
+      struct Lisp_Hash_Table *h = XHASH_TABLE (alist);
+      i = hash_lookup (h, string, NULL);
       if (i >= 0)
-	tem = HASH_KEY (XHASH_TABLE (alist), i);
+	tem = HASH_KEY (h, i);
       else
+	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
+	  if (!NILP (HASH_HASH (h, i)) &&
+	      EQ (Fcompare_strings (string, make_number (0), Qnil,
+				    HASH_KEY (h, i), make_number (0) , Qnil,
+				    completion_ignore_case ? Qt : Qnil),
+		  Qt))
+	    {
+	      tem = HASH_KEY (h, i);
+	      break;
+	    }
+      if (!STRINGP (tem))
 	return Qnil;
     }
   else

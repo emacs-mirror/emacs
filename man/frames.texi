@@ -855,6 +855,16 @@ invoke the command to begin with.
 use of dialog boxes.  This also controls whether to use file selection
 windows (but those are not supported on all platforms).
 
+@vindex use-file-dialog
+  A file selection window is a special kind of dialog box for asking for
+file names.
+
+  You can customize the option @code{use-file-dialog} to suppress the
+use of file selection windows even if you still want other kinds
+of dialogs.  This option has no effect if you have supressed all dialog
+boxes with the option @code{use-dialog-box}.
+
+
 @node Tooltips
 @section Tooltips (or ``Balloon Help'')
 

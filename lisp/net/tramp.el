@@ -569,6 +569,7 @@ variable `tramp-methods'."
     ("rsh"    tramp-multi-connect-rlogin "rsh %h -l %u%n")
     ("remsh"  tramp-multi-connect-rlogin "remsh %h -l %u%n")
     ("ssh"    tramp-multi-connect-rlogin "ssh %h -l %u%n")
+    ("ssht"   tramp-multi-connect-rlogin "ssh %h -e none -t -t -l %u%n")     
     ("su"     tramp-multi-connect-su     "su - %u%n")
     ("sudo"   tramp-multi-connect-su     "sudo -u %u -s -p Password:%n"))
   "*List of connection functions for multi-hop methods.
@@ -1250,6 +1251,17 @@ checked via the following code:
       (re-search-forward \"\\\\w+\")
       (message \"Bytes sent: %s\\tBytes received: %s\" bytes (match-string 0))))
 
+In the Emacs normally running Tramp, evaluate the above code.
+You can do this, for example, by pasting it into the `*scratch*'
+buffer and then hitting C-j with the cursor after the last
+closing parenthesis.
+
+If your Emacs is buggy, the sent and received numbers will be
+different.  In that case, you'll want to set this variable to
+some number.  For those people who have needed it, the value 500
+seems to have worked well.  There is no way to predict what value
+you need; maybe you could just experiment a bit.
+
 Please raise a bug report via \"M-x tramp-bug\" if your system needs
 this variable to be set as well."
   :group 'tramp
@@ -1405,13 +1417,15 @@ some systems don't, and for them we have this shell function.")
 ;; The device number is returned as "-1", because there will be a virtual
 ;; device number set in `tramp-handle-file-attributes'
 (defconst tramp-perl-file-attributes "\
-$f = $ARGV[0];
+($f, $n) = @ARGV;
 @s = lstat($f);
 if (($s[2] & 0170000) == 0120000) { $l = readlink($f); $l = \"\\\"$l\\\"\"; }
 elsif (($s[2] & 0170000) == 040000) { $l = \"t\"; }
 else { $l = \"nil\" };
-printf(\"(%s %u %d %d (%u %u) (%u %u) (%u %u) %u %u t (%u . %u) -1)\\n\",
-$l, $s[3], $s[4], $s[5], $s[8] >> 16 & 0xffff, $s[8] & 0xffff,
+$u = ($n eq \"nil\") ? $s[4] : getpwuid($s[4]);
+$g = ($n eq \"nil\") ? $s[5] : getgrgid($s[5]);
+printf(\"(%s %u %s %s (%u %u) (%u %u) (%u %u) %u %u t (%u . %u) -1)\\n\",
+$l, $s[3], $u, $g, $s[8] >> 16 & 0xffff, $s[8] & 0xffff,
 $s[9] >> 16 & 0xffff, $s[9] & 0xffff, $s[10] >> 16 & 0xffff, $s[10] & 0xffff,
 $s[7], $s[2], $s[1] >> 16 & 0xffff, $s[1] & 0xffff);"
   "Perl script to produce output suitable for use with `file-attributes'
@@ -1900,7 +1914,7 @@ target of the symlink differ."
 		    (append '("") (reverse result) (list thisstep))
 		    "/"))
 	(setq symlink-target
-	      (nth 0 (tramp-handle-file-attributes
+	      (nth 0 (file-attributes
 		      (tramp-make-tramp-file-name
 		       multi-method method user host
 		       (mapconcat 'identity
@@ -1979,11 +1993,10 @@ target of the symlink differ."
 ;; CCC: This should check for an error condition and signal failure
 ;;      when something goes wrong.
 ;; Daniel Pittman <daniel@danann.net>
-(defun tramp-handle-file-attributes (filename &optional nonnumeric)
-  "Like `file-attributes' for tramp files.
-Optional argument NONNUMERIC means return user and group name
-rather than as numbers."
-  (let (result)
+(defun tramp-handle-file-attributes (filename &optional id-format)
+  "Like `file-attributes' for tramp files."
+  (let ((nonnumeric (and id-format (equal id-format 'string)))
+	result)
     (with-parsed-tramp-file-name filename nil
       (when (tramp-handle-file-exists-p filename)
 	;; file exists, find out stuff
@@ -2097,8 +2110,8 @@ is initially created and is kept cached by the remote shell."
 			     multi-method method user host localname))
   (tramp-send-command
    multi-method method user host
-   (format "tramp_file_attributes %s" 
-	   (tramp-shell-quote-argument localname)))
+   (format "tramp_file_attributes %s %s"
+	   (tramp-shell-quote-argument localname) nonnumeric))
   (tramp-wait-for-output)
   (let ((result (read (current-buffer))))
     (setcar (nthcdr 8 result)
@@ -2310,7 +2323,7 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-file-symlink-p (filename)
   "Like `file-symlink-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (let ((x (car (tramp-handle-file-attributes filename))))
+    (let ((x (car (file-attributes filename))))
       (when (stringp x)
 	;; When Tramp is running on VMS, then `file-name-absolute-p'
 	;; might do weird things.
@@ -3030,14 +3043,14 @@ This will break if COMMAND prints a newline, followed by the value of
   (with-parsed-tramp-file-name filename nil
     (let ((output-buf (get-buffer-create "*tramp output*"))
 	  (tramp-buf (tramp-get-buffer multi-method method user host))
-	  (copy-program (tramp-get-copy-program
+	  (copy-program (tramp-get-method-parameter
 			 multi-method
 			 (tramp-find-method multi-method method user host)
-			 user host))
-	  (copy-args (tramp-get-copy-args
+			 user host 'tramp-copy-program))
+	  (copy-args (tramp-get-method-parameter
 		      multi-method
 		      (tramp-find-method multi-method method user host)
-		      user host))
+		      user host 'tramp-copy-args))
 	  ;; We used to bind the following as late as possible.
 	  ;; loc-enc and loc-dec were bound directly before the if
 	  ;; statement that checks them.  But the functions
@@ -3212,14 +3225,14 @@ This will break if COMMAND prints a newline, followed by the value of
       (error "File not overwritten")))
   (with-parsed-tramp-file-name filename nil
     (let ((curbuf (current-buffer))
-	  (copy-program (tramp-get-copy-program
+	  (copy-program (tramp-get-method-parameter
 			 multi-method
 			 (tramp-find-method multi-method method user host)
-			 user host))
-	  (copy-args (tramp-get-copy-args
+			 user host 'tramp-copy-program))
+	  (copy-args (tramp-get-method-parameter
 		     multi-method
 		     (tramp-find-method multi-method method user host)
-		     user host))
+		     user host 'tramp-copy-args))
 	  (rem-enc (tramp-get-remote-encoding multi-method method user host))
 	  (rem-dec (tramp-get-remote-decoding multi-method method user host))
 	  (loc-enc (tramp-get-local-encoding multi-method method user host))
@@ -4402,7 +4415,8 @@ file exists and nonzero exit status otherwise."
        9 "Setting remote shell prompt...done")
       )
      (t (tramp-message 5 "Remote `%s' groks tilde expansion, good"
-		       (tramp-get-remote-sh multi-method method user host))))))
+		       (tramp-get-method-parameter
+			multi-method method user host 'tramp-remote-sh))))))
 
 (defun tramp-check-ls-command (multi-method method user host cmd)
   "Checks whether the given `ls' executable groks `-n'.
@@ -4686,15 +4700,15 @@ Maybe the different regular expressions need to be tuned.
              (p (apply 'start-process
                        (tramp-buffer-name multi-method method user host)
                        (tramp-get-buffer multi-method method user host)
-		       (tramp-get-login-program
+		       (tramp-get-method-parameter
 			multi-method
 			(tramp-find-method multi-method method user host)
-			user host)
+			user host 'tramp-login-program)
                        host
-		       (tramp-get-login-args
+		       (tramp-get-method-parameter
 			multi-method
 			(tramp-find-method multi-method method user host)
-			user host)))
+			user host 'tramp-login-args)))
              (found nil)
              (pw nil))
         (process-kill-without-query p)
@@ -4743,14 +4757,14 @@ arguments, and xx will be used as the host name to connect to.
     (let ((process-environment (copy-sequence process-environment))
 	  (bufnam (tramp-buffer-name multi-method method user host))
 	  (buf (tramp-get-buffer multi-method method user host))
-	  (login-program (tramp-get-login-program
+	  (login-program (tramp-get-method-parameter
 			multi-method
 			(tramp-find-method multi-method method user host)
-			user host))
-	  (login-args (tramp-get-login-args
+			user host 'tramp-login-program))
+	  (login-args (tramp-get-method-parameter
 		     multi-method
 		     (tramp-find-method multi-method method user host)
-		     user host)))
+		     user host 'tramp-login-args)))
       ;; The following should be changed.  We need a more general
       ;; mechanism to parse extra host args.
       (when (string-match "\\([^#]*\\)#\\(.*\\)" host)
@@ -4818,17 +4832,17 @@ prompt than you do, so it is not at all unlikely that the variable
              (p (apply 'start-process
                        (tramp-buffer-name multi-method method user host)
                        (tramp-get-buffer multi-method method user host)
-		       (tramp-get-login-program
+		       (tramp-get-method-parameter
 			multi-method
 			(tramp-find-method multi-method method user host)
-			user host)
+			user host 'tramp-login-program)
                        (mapcar
                         (lambda (x)
 			  (format-spec x `((?u . ,(or user "root")))))
-                        (tramp-get-login-args
+                        (tramp-get-method-parameter
 			 multi-method
 			 (tramp-find-method multi-method method user host)
-			 user host))))
+			 user host 'tramp-login-args))))
              (found nil)
              (pw nil))
         (process-kill-without-query p)
@@ -5054,11 +5068,13 @@ Uses PROMPT as a prompt and sends the password to process P."
     (erase-buffer)
     (process-send-string
      p (concat pw
-	       (tramp-get-password-end-of-line
-		tramp-current-multi-method
-		tramp-current-method
-		tramp-current-user
-		tramp-current-host)))))
+	       (or (tramp-get-method-parameter
+		    tramp-current-multi-method
+		    tramp-current-method
+		    tramp-current-user
+		    tramp-current-host
+		    'tramp-password-end-of-line)
+		   tramp-default-password-end-of-line)))))
 
 ;; HHH: Not Changed.  This might handle the case where USER is not
 ;;      given in the "File name" very poorly.  Then, the local
@@ -5101,13 +5117,15 @@ to set up.  METHOD, USER and HOST specify the connection."
   (tramp-send-command-internal
    multi-method method user host
    (format "exec env 'ENV=' 'PS1=$ ' %s"
-	   (tramp-get-remote-sh multi-method method user host))
+	   (tramp-get-method-parameter
+	    multi-method method user host 'tramp-remote-sh))
    (format "remote `%s' to come up"
-	   (tramp-get-remote-sh multi-method method user host)))
+	   (tramp-get-method-parameter
+	    multi-method method user host 'tramp-remote-sh)))
   (tramp-barf-if-no-shell-prompt
    p 30
    "Remote `%s' didn't come up.  See buffer `%s' for details"
-   (tramp-get-remote-sh multi-method method user host)
+   (tramp-get-method-parameter multi-method method user host 'tramp-remote-sh)
    (buffer-name))
   (tramp-message 8 "Setting up remote shell environment")
   (tramp-discard-garbage-erase-buffer p multi-method method user host)
@@ -5287,13 +5305,13 @@ locale to C and sets up the remote shell search path."
 	 multi-method method user host
 	 (concat "tramp_file_attributes () {\n"
 		 tramp-remote-perl
-		 " -e '" tramp-perl-file-attributes "' $1 2>/dev/null\n"
+		 " -e '" tramp-perl-file-attributes "' $1 $2 2>/dev/null\n"
 		 "}"))
 	(tramp-wait-for-output)
-	(unless (tramp-get-copy-program
+	(unless (tramp-get-method-parameter
 		 multi-method
 		 (tramp-find-method multi-method method user host)
-		 user host)
+		 user host 'tramp-copy-program)
 	  (tramp-message 5 "Sending the Perl `mime-encode' implementations.")
 	  (tramp-send-string
 	   multi-method method user host
@@ -5332,10 +5350,10 @@ locale to C and sets up the remote shell search path."
       (tramp-set-connection-property "ln" ln multi-method method user host)))
   (erase-buffer)
   ;; Find the right encoding/decoding commands to use.
-  (unless (tramp-get-copy-program
+  (unless (tramp-get-method-parameter
 	   multi-method
 	   (tramp-find-method multi-method method user host)
-	   user host)
+	   user host 'tramp-copy-program)
     (tramp-find-inline-encoding multi-method method user host))
   ;; If encoding/decoding command are given, test to see if they work.
   ;; CCC: Maybe it would be useful to run the encoder both locally and
@@ -5548,10 +5566,10 @@ connection if a previous connection has died for some reason."
     (unless (and p (processp p) (memq (process-status p) '(run open)))
       (when (and p (processp p))
         (delete-process p))
-      (funcall (tramp-get-connection-function
+      (funcall (tramp-get-method-parameter
 		multi-method
 		(tramp-find-method multi-method method user host)
-		user host)
+		user host 'tramp-connection-function)
                multi-method method user host))))
 
 (defun tramp-send-command
@@ -6035,10 +6053,10 @@ If both MULTI-METHOD and METHOD are nil, do a lookup in
   "Return t if this is an out-of-band method, nil otherwise.
 It is important to check for this condition, since it is not possible
 to enter a password for the `tramp-copy-program'."
-  (tramp-get-copy-program
+  (tramp-get-method-parameter
    multi-method
    (tramp-find-method multi-method method user host)
-   user host))
+   user host 'tramp-copy-program))
 
 ;; Variables local to connection.
 
@@ -6117,65 +6135,19 @@ If the value is not set for the connection, return `default'"
   (tramp-get-connection-property "local-decoding" nil
 				 multi-method method user host))
 
-
-
-(defun tramp-get-connection-function (multi-method method user host)
-  (second (or (assoc 'tramp-connection-function
-                     (assoc (tramp-find-method multi-method method user host)
-                            tramp-methods))
-              (error "Method `%s' didn't specify a connection function"
-                     (or multi-method method)))))
-
-(defun tramp-get-remote-sh (multi-method method user host)
-  (second (or (assoc 'tramp-remote-sh
-                     (assoc (tramp-find-method multi-method method user host)
-                            tramp-methods))
-              (error "Method `%s' didn't specify a remote shell"
-                     (or multi-method method)))))
-
-(defun tramp-get-login-program (multi-method method user host)
-  (second (or (assoc 'tramp-login-program
-                     (assoc (tramp-find-method multi-method method user host)
-                            tramp-methods))
-              (error "Method `%s' didn't specify a login program"
-                     (or multi-method method)))))
-
-(defun tramp-get-login-args (multi-method method user host)
-  (second (or (assoc 'tramp-login-args
-                     (assoc (tramp-find-method multi-method method user host)
-                            tramp-methods))
-              (error "Method `%s' didn't specify login args"
-                     (or multi-method method)))))
-
-(defun tramp-get-copy-program (multi-method method user host)
-  (second (or (assoc 'tramp-copy-program
-                     (assoc (tramp-find-method multi-method method user host)
-                            tramp-methods))
-              (error "Method `%s' didn't specify a copy program"
-                     (or multi-method method)))))
-
-(defun tramp-get-copy-args (multi-method method user host)
-  (second (or (assoc 'tramp-copy-args
-                     (assoc (tramp-find-method multi-method method user host)
-                            tramp-methods))
-              (error "Method `%s' didn't specify copy args"
-                     (or multi-method method)))))
-
-(defun tramp-get-copy-keep-date-arg (multi-method method user host)
-  (second (or (assoc 'tramp-copy-keep-date-arg
-                     (assoc (tramp-find-method multi-method method user host)
-                            tramp-methods))
-              (error "Method `%s' didn't specify `keep-date' arg for tramp"
-                     (or multi-method method)))))
-
-(defun tramp-get-password-end-of-line (multi-method method user host)
-  (let ((entry (assoc 'tramp-password-end-of-line
+(defun tramp-get-method-parameter (multi-method method user host param)
+  "Return the method parameter PARAM.
+If the `tramp-methods' entry does not exist, use the variable PARAM
+as default."
+  (unless (boundp param)
+    (error "Non-existing method parameter `%s'" param))
+  (let ((entry (assoc param
 		      (assoc (tramp-find-method multi-method method user host)
 			     tramp-methods))))
-    (unless entry
-      (error "Method `%s' didn't specify `password-end-of-line' arg for tramp"
-	     (or multi-method method)))
-    (or (second entry) tramp-default-password-end-of-line)))
+    (if entry
+	(second entry)
+      (symbol-value param))))
+      
 
 ;; Auto saving to a special directory.
 
@@ -6505,6 +6477,7 @@ report.
 
 ;;; TODO:
 
+;; * tramp-copy-keep-date-arg is not used!
 ;; * Allow putting passwords in the filename.
 ;;   This should be implemented via a general mechanism to add
 ;;   parameters in filenames.  There is currently a kludge for
@@ -6626,6 +6599,7 @@ report.
 ;; ** Enhance variables for debug.
 ;; ** Implement "/multi:" completion.
 ;; ** Add a learning mode for completion. Make results persistent.
+;; * Allow out-of-band methods as _last_ multi-hop.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

@@ -619,6 +619,9 @@ Eric Ludlam wrote the Speedbar package and @file{checkdoc.el}, a package
 for checking doc strings in Emacs Lisp programs.
 
 @item
+Alan Mackenzie wrote the integrated AWK support in CC Mode.
+
+@item
 Christopher J.@: Madsen wrote @file{decipher.el}, a package for cracking
 simple substitution ciphers.
 
@@ -776,7 +779,7 @@ Erik Naggum wrote the time-conversion functions.  He also wrote
 @file{disp-table.el}, a package for dealing with display tables,
 @file{latin-4.el} and @file{latin-5.el}, code which sets up
 case-conversion and syntax tables for the ISO Latin-4 and Latin-5
-character sets, @file{mailheader.el}, a pacakage for parsing email
+character sets, @file{mailheader.el}, a package for parsing email
 headers, and @file{parse-time.el}, a package for parsing time strings.
 
 @item
@@ -1139,7 +1142,7 @@ contexts.
 
 @item
 Martin Stjernholm co-authored CC Mode, a major editing mode for C,
-C@t{++}, Objective-C, and Java code.
+C@t{++}, Objective-C, Java, Pike, CORBA IDL, and AWK code.
 
 @item
 Steve Strassman did not write @file{spook.el}, and even if he did, he

@@ -1,3 +1,11 @@
+2003-12-24  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* .cvsignore: Add `.arch-inventory'.
+
+2003-11-22  Lars Hansen <larsh@math.ku.dk>
+
+	* inc/grp.h: Added.
+
 2003-09-03  Peter Runestig <peter@runestig.com>
 
 	* configure.bat: Create ``makefile'' in directories man, lispref

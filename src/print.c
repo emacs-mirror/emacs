@@ -911,6 +911,49 @@ to make it write to the debugging output.  */)
   return character;
 }
 
+
+#if defined(GNU_LINUX)
+
+/* This functionality is not vitally important in general, so we rely on
+   non-portable ability to use stderr as lvalue.  */
+
+#define WITH_REDIRECT_DEBUGGING_OUTPUT 1
+
+FILE *initial_stderr_stream = NULL;
+
+DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugging_output,
+       1, 2,
+       "FDebug output file: \nP",
+       doc: /* Redirect debugging output (stderr stream) to file FILE.
+If FILE is nil, reset target to the initial stderr stream.
+Optional arg APPEND non-nil (interactively, with prefix arg) means
+append to existing target file.  */) 
+     (file, append)
+     Lisp_Object file, append;
+{
+  if (initial_stderr_stream != NULL)
+    fclose(stderr);
+  stderr = initial_stderr_stream;
+  initial_stderr_stream = NULL;
+
+  if (STRINGP (file))
+    {
+      file = Fexpand_file_name (file, Qnil);
+      initial_stderr_stream = stderr;
+      stderr = fopen(SDATA (file), NILP (append) ? "w" : "a");
+      if (stderr == NULL)
+	{
+	  stderr = initial_stderr_stream;
+	  initial_stderr_stream = NULL;
+	  report_file_error ("Cannot open debugging output stream",
+			     Fcons (file, Qnil));
+	}
+    }
+  return Qnil;
+}
+#endif /* GNU_LINUX */
+
+
 /* This is the interface for debugging printing.  */
 
 void
@@ -2164,6 +2207,9 @@ that need to be recorded in the table.  */);
   defsubr (&Sterpri);
   defsubr (&Swrite_char);
   defsubr (&Sexternal_debugging_output);
+#ifdef WITH_REDIRECT_DEBUGGING_OUTPUT
+  defsubr (&Sredirect_debugging_output);
+#endif
 
   Qexternal_debugging_output = intern ("external-debugging-output");
   staticpro (&Qexternal_debugging_output);

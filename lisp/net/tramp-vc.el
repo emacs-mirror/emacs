@@ -391,8 +391,15 @@ filename we are thinking about..."
   ;; Pacify byte-compiler; this symbol is bound in the calling
   ;; function.  CCC: Maybe it would be better to move the
   ;; boundness-checking into this function?
-  (let ((file (symbol-value 'file)))
-    (if (and uid (/= uid (nth 2 (file-attributes file))))
+  (let ((file (symbol-value 'file))
+	(remote-uid
+	 ;; With Emacs 21.4, `file-attributes' has got an optional parameter
+	 ;; ID-FORMAT. Handle this case backwards compatible.
+	 (if (and (functionp 'subr-arity)
+		  (= 2 (cdr (subr-arity (symbol-function 'file-attributes)))))
+	     (nth 2 (file-attributes file 'integer))
+	   (nth 2 (file-attributes file)))))
+    (if (and uid (/= uid remote-uid))
 	(error "tramp-handle-vc-user-login-name cannot map a uid to a name")
       (let* ((v (tramp-dissect-file-name (tramp-handle-expand-file-name file)))
 	     (u (tramp-file-name-user v)))

@@ -2380,12 +2380,10 @@ FILES is the list of marked files."
     (dired-move-to-filename)))
 
 (defun dired-between-files ()
-  ;; Point must be at beginning of line
-  ;; Should be equivalent to (save-excursion (not (dired-move-to-filename)))
-  ;; but is about 1.5..2.0 times as fast. (Actually that's not worth it)
-  (or (looking-at "^$\\|^. *$\\|^. total\\|^. wildcard\\|^. used\\|^. find")
-      (and (looking-at dired-subdir-regexp)
-	   (save-excursion (not (dired-move-to-filename))))))
+  ;; This used to be a regexp match of the `total ...' line output by
+  ;; ls, which is slightly faster, but that is not very robust; notably,
+  ;; it fails for non-english locales.
+  (save-excursion (not (dired-move-to-filename))))
 
 (defun dired-next-marked-file (arg &optional wrap opoint)
   "Move to the next marked file, wrapping around the end of the buffer."

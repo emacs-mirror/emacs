@@ -153,7 +153,6 @@ Lisp_Object Vmenu_updating_frame;
 Lisp_Object Qdebug_on_next_call;
 
 extern Lisp_Object Qmenu_bar;
-extern Lisp_Object Qmouse_click, Qevent_kind;
 
 extern Lisp_Object QCtoggle, QCradio;
 

@@ -224,10 +224,10 @@ terminated by the end of line (i.e. `comment-end' is empty)."
 Functions autoloaded from newcomment.el, being entry points, should call
 this function before any other, so the rest of the code can assume that
 the variables are properly set."
-  (if (not comment-start)
-      (unless noerror
-	(set (make-local-variable 'comment-start)
-	     (read-string "No comment syntax is defined.  Use: ")))
+  (unless (and (not comment-start) noerror)
+    (unless comment-start
+      (set (make-local-variable 'comment-start)
+	   (read-string "No comment syntax is defined.  Use: ")))
     ;; comment-use-syntax
     (when (eq comment-use-syntax 'undecided)
       (set (make-local-variable 'comment-use-syntax)

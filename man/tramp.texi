@@ -102,8 +102,10 @@ You can find the latest version of this document on the web at
 @end ifset
 
 @ifhtml
-This manual is also available as a @uref{tramp_ja.html, Japanese
-translation}.
+@ifset jamanual
+This manual is also available as a @uref{@value{japanese-manual},
+Japanese translation}.
+@end ifset
 
 The latest release of @tramp{} is available for
 @uref{http://savannah.gnu.org/download/tramp/,
@@ -137,7 +139,7 @@ For the end user:
 * Usage::                       An overview of the operation of @tramp{}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
-* Concept Index::               An item for each concept
+* Concept Index::               An item for each concept.
 
 For the developer:
 
@@ -153,6 +155,7 @@ Installing @tramp{} with your @value{emacs-name}
 
 * Installation parameters::     Parameters in order to control installation.
 * Load paths::                  How to plug-in @tramp{} into your environment.
+* Japanese manual::             Japanese manual.
 
 @end ifset
 
@@ -170,7 +173,7 @@ Configuring @tramp{} for use
 * Windows setup hints::         Issues with Cygwin ssh.
 * Auto-save and Backup::        Auto-save and Backup.
 
-Using @tramp
+Using @tramp{}
 
 * Filename Syntax::             @tramp{} filename conventions.
 * Multi-hop filename syntax::   Multi-hop filename conventions.
@@ -198,7 +201,7 @@ How file names, directories and localnames are mangled and managed
 @end menu
 
 @node Overview
-@chapter An overview of @tramp
+@chapter An overview of @tramp{}
 @cindex overview
 
 After the installation of @tramp{} into your @value{emacs-name}, you
@@ -208,8 +211,8 @@ control, and @command{dired} are transparently enabled.
 
 Your access to the remote machine can be with the @command{rsh},
 @command{rlogin}, @command{telnet} programs or with any similar
-connection method.  This connection must pass @acronym{ASCII} successfully to be
-usable but need not be 8-bit clean.
+connection method.  This connection must pass @acronym{ASCII}
+successfully to be usable but need not be 8-bit clean.
 
 The package provides support for @command{ssh} connections out of the
 box, one of the more common uses of the package.  This allows
@@ -359,7 +362,7 @@ behind the scenes when you open a file with @tramp{}.
 @c For the end user
 @node Obtaining @tramp{}
 @chapter Obtaining @tramp{}.
-@cindex obtaining Tramp
+@cindex obtaining @tramp{}
 
 @tramp{} is freely available on the Internet and the latest release
 may be downloaded from
@@ -445,11 +448,12 @@ filenames in July 2002.
 @cindex configuration
 
 @cindex default configuration
-@tramp{} is (normally) fully functional when it is initially
-installed.  It is initially configured to use the @command{ssh} program
-to connect to the remote host and to use base-64 encoding (on the
-remote host, via @command{mimencode}, and on the local host via the
-built-in support for base-64 encoding in Emacs).
+@tramp{} is (normally) fully functional when it is initially installed.
+It is initially configured to use the @command{ssh} program to connect
+to the remote host and to use base64 or uu encoding to transfer the
+files through that shell connection.  So in the easiest case, you just
+type @kbd{C-x C-f} and then enter the filename
+@file{@value{tramp-prefix}@var{user}@@@var{machine}@value{tramp-postfix}@var{/path/to.file}}.
 
 On some hosts, there are problems with opening a connection.  These are
 related to the behavior of the remote shell.  See @xref{Remote shell
@@ -457,9 +461,12 @@ setup}, for details on this.
 
 If you do not wish to use these commands to connect to the remote
 host, you should change the default connection and transfer method
-that @tramp uses.  There are several different methods that @tramp{}
+that @tramp{} uses.  There are several different methods that @tramp{}
 can use to connect to remote machines and transfer files
 (@pxref{Connection types}).
+
+If you don't know which method is right for you, see @xref{Default
+Method}.
 
 
 @menu
@@ -468,6 +475,9 @@ can use to connect to remote machines and transfer files
 * External transfer methods::   External transfer methods.
 * Multi-hop Methods::           Connecting to a remote host using multiple hops.
 * Default Method::              Selecting a default method.
+                                  Here we also try to help those who
+                                  don't have the foggiest which method
+                                  is right for them.
 * Customizing Methods::         Using Non-Standard Methods.
 * Customizing Completion::      Selecting config files for user/host name completion.
 * Remote Programs::             How @tramp{} finds and uses programs on the remote machine.
@@ -486,7 +496,7 @@ advantages and limitations.  Both types of connection make use of a
 remote shell access program such as @command{rsh}, @command{ssh} or
 @command{telnet} to connect to the remote machine.
 
-This connection is used to perform many of the operations that @tramp
+This connection is used to perform many of the operations that @tramp{}
 requires to make the remote file system transparently accessible from
 the local machine. It is only when visiting files that the methods
 differ.
@@ -760,7 +770,7 @@ call @samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
 explicitly select whether you want to use the SSH protocol version 1
 or 2 to connect to the remote host.  (You can also specify in
 @file{~/.ssh/config}, the SSH configuration file, which protocol
-should be used, and use the regular @option{ssh} method.)
+should be used, and use the regular @option{scp} method.)
 
 Two other variants, @option{scp1_old} and @option{scp2_old}, use the
 @command{ssh1} and @command{ssh2} commands explicitly.  If you don't
@@ -1013,7 +1023,7 @@ the standard port.
 
 @vindex tramp-default-method
 When you select an appropriate transfer method for your typical usage
-you should set the variable @var{tramp-default-method} to reflect that
+you should set the variable @code{tramp-default-method} to reflect that
 choice.  This variable controls which method will be used when a method
 is not specified in the @tramp{} file name.  For example:
 
@@ -1023,7 +1033,7 @@ is not specified in the @tramp{} file name.  For example:
 
 @vindex tramp-default-method-alist
 You can also specify different methods for certain user/host
-combinations, via the variable @var{tramp-default-method-alist}.  For
+combinations, via the variable @code{tramp-default-method-alist}.  For
 example, the following two lines specify to use the @option{ssh}
 method for all user names matching @samp{john} and the @option{rsync}
 method for all host names matching @samp{lily}.  The third line
@@ -1039,7 +1049,7 @@ the machine @samp{localhost}.
 
 @noindent
 See the documentation for the variable
-@var{tramp-default-method-alist} for more details.
+@code{tramp-default-method-alist} for more details.
 
 External transfer methods are normally preferable to inline transfer
 methods, giving better performance. They may not be useful if you use
@@ -1063,6 +1073,48 @@ Internet, you should give serious thought to using @command{ssh} based
 methods to connect. These provide a much higher level of security,
 making it a non-trivial exercise for someone to obtain your password or
 read the content of the files you are editing.
+
+
+@subsection Which method is the right one for me?
+@cindex choosing the right method
+
+Given all of the above, you are probably thinking that this is all fine
+and good, but it's not helping you to choose a method!  Right you are.
+As a developer, we don't want to boss our users around but give them
+maximum freedom instead.  However, the reality is that some users would
+like to have some guidance, so here I'll try to give you this guidance
+without bossing you around.  You tell me whether it works @dots{}
+
+My suggestion is to use an inline method.  For large files, out-of-band
+methods might be more efficient, but I guess that most people will want
+to edit mostly small files.
+
+I guess that these days, most people can access a remote machine by
+using @code{ssh}.  So I suggest that you use the @code{ssh} method.
+So, type @kbd{C-x C-f /ssh:root@@otherhost:/etc/motd @key{RET}} to
+edit the @file{/etc/motd} file on the other host.
+
+If you can't use @code{ssh} to log in to the remote host, then select a
+method that uses a program that works.  For instance, Windows users
+might like the @code{plink} method which uses the PuTTY implementation
+of @code{ssh}.  Or you use Kerberos and thus like @code{krlogin}.
+
+For the special case of editing files on the local host as another
+user, see the @code{su} or @code{sudo} method.
+
+People who edit large files may want to consider @code{scp} instead of
+@code{ssh}, or @code{pscp} instead of @code{plink}.  These out-of-band
+methods are faster than inline methods for large files.  Note, however,
+that out-of-band methods suffer from some limitations.  Please try
+first whether you really get a noticeable speed advantage from using an
+out-of-band method!  Maybe even for large files, inline methods are
+fast enough.
+
+The reason why I'm suggesting to use inline methods is that they work
+even if the remote end is asking you for a password.  Out-of-band
+methods don't work in this situation.  Also, multi-hop methods are
+inherently inline.
+
 
 @node Customizing Methods
 @section Using Non-Standard Methods
@@ -1310,6 +1362,16 @@ The other approach is to teach @tramp{} about these questions.  See
 the variables @code{tramp-actions-before-shell} and
 @code{tramp-multi-actions} (for multi-hop connections).
 
+
+@item Environment variables named like users in @file{.profile}
+
+If you have a user named frumple and set the variable @code{FRUMPLE} in
+your shell environment, then this might cause trouble.  Maybe rename
+the variable to @code{FRUMPLE_DIR} or the like.
+
+This weird effect was actually reported by a @tramp{} user!
+
+
 @item Non-Bourne commands in @file{.profile}
 
 After logging in to the remote host, @tramp{} issues the command
@@ -1379,7 +1441,7 @@ When @code{backup-directory-alist} is nil (the default), such problems
 do not occur.
 
 If you wish to customize the variable, the workaround is to include
-special settings for Tramp files.  For example, the following statement
+special settings for @tramp{} files.  For example, the following statement
 effectively `turns off' the effect of @code{backup-directory-alist} for
 @tramp{} files:
 
@@ -1436,8 +1498,8 @@ know anything at all about Windows@dots{}
 
 
 @node Usage
-@chapter Using @tramp
-@cindex using @tramp
+@chapter Using @tramp{}
+@cindex using @tramp{}
 
 Once you have installed @tramp{} it will operate fairly transparently. You
 will be able to access files on any remote machine that you can log in
@@ -1532,9 +1594,9 @@ This is done by replacing the initial
 The user, machine and file specification remain the same.
 
 So, to connect to the machine @code{melancholia} as @code{daniel},
-using the @option{su} method to transfer files, and edit @file{.emacs}
+using the @option{ssh} method to transfer files, and edit @file{.emacs}
 in my home directory I would specify the filename
-@file{@value{tramp-prefix}su@value{tramp-postfix-single-hop}daniel@@melancholia@value{tramp-postfix}.emacs}.
+@file{@value{tramp-prefix}ssh@value{tramp-postfix-single-hop}daniel@@melancholia@value{tramp-postfix}.emacs}.
 
 
 @node Multi-hop filename syntax
@@ -1618,7 +1680,7 @@ is a possible completion for the respective method,
 machine,
 @end ifset
 and @samp{@value{tramp-prefix-single-hop}toto@value{tramp-postfix}}
-might be a host @tramp has detected in your @file{~/.ssh/known_hosts}
+might be a host @tramp{} has detected in your @file{~/.ssh/known_hosts}
 file (given you're using default method @option{ssh}).
 
 If you go on to type @kbd{e @key{TAB}}, the minibuffer is completed to

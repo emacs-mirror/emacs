@@ -35,16 +35,15 @@
 
 ;; Start the debugger with M-x gdba.
 
-;; This file is based on gdba.el from GDB 5.0 written by Tom Lord and Jim
+;; This file has evolved from gdba.el from GDB 5.0 written by Tom Lord and Jim
 ;; Kingdon and uses GDB's annotation interface. You don't need to know about
 ;; annotations to use this mode as a debugger, but if you are interested
 ;; developing the mode itself, then see the Annotations section in the GDB
-;; info manual.
+;; info manual. Some GDB/MI commands are also used through th CLI command
+;; 'interpreter mi <mi-command>'.
 ;;
 ;; Known Bugs: 
-;; Does not auto-display arrays of structures or structures containing arrays. 
-;; On MS Windows, Gdb 5.1.1 from MinGW 2.0 does not flush the output from the
-;; inferior.
+;; 
 
 ;;; Code:
 
@@ -121,7 +120,7 @@ The following interactive lisp functions help control operation :
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
   ;;
-  (gud-def gud-break (if (not (string-equal mode-name "Assembler"))
+  (gud-def gud-break (if (not (string-equal mode-name "Machine"))
 			 (gud-call "break %f:%l" arg)
 		       (save-excursion
 			 (beginning-of-line)
@@ -129,7 +128,7 @@ The following interactive lisp functions help control operation :
 			 (gud-call "break *%a" arg)))
 	   "\C-b" "Set breakpoint at current line or address.")
   ;;
-  (gud-def gud-remove (if (not (string-equal mode-name "Assembler"))
+  (gud-def gud-remove (if (not (string-equal mode-name "Machine"))
 			  (gud-call "clear %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
@@ -137,13 +136,16 @@ The following interactive lisp functions help control operation :
 			  (gud-call "clear *%a" arg)))
 	   "\C-d" "Remove breakpoint at current line or address.")
   ;;
-  (gud-def gud-until  (if (not (string-equal mode-name "Assembler"))
+  (gud-def gud-until  (if (not (string-equal mode-name "Machine"))
 			  (gud-call "until %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
 			  (forward-char 2)
 			  (gud-call "until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
+
+  (define-key gud-minor-mode-map [left-margin mouse-1] 'gdb-mouse-toggle-breakpoint)
+  (define-key gud-minor-mode-map [left-fringe mouse-1] 'gdb-mouse-toggle-breakpoint)
 
   (setq comint-input-sender 'gdb-send)
   ;;
@@ -172,17 +174,25 @@ The following interactive lisp functions help control operation :
   ;;
   (run-hooks 'gdba-mode-hook))
 
+(defcustom gdb-use-colon-colon-notation t
+  "Non-nil means use FUNCTION::VARIABLE format to display variables in the
+speedbar."
+  :type 'boolean
+  :group 'gud)
+
 (defun gud-watch ()
   "Watch expression at point."
   (interactive)
   (let ((expr (tooltip-identifier-from-point (point))))
-    (if (string-equal gdb-current-language "c")
+    (if (and (string-equal gdb-current-language "c") 
+	     gdb-use-colon-colon-notation)
 	(setq expr (concat gdb-current-frame "::" expr)))
     (catch 'already-watched
       (dolist (var gdb-var-list)
 	(if (string-equal expr (car var)) (throw 'already-watched nil)))
+      (set-text-properties 0 (length expr) nil expr)
       (gdb-enqueue-input
-       (list (concat "interpreter mi \"-var-create - * "  expr "\"\n")
+       (list (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
 	     `(lambda () (gdb-var-create-handler ,expr))))))
   (select-window (get-buffer-window gud-comint-buffer)))
 
@@ -194,24 +204,24 @@ The following interactive lisp functions help control operation :
     (goto-char (point-min))
     (if (re-search-forward gdb-var-create-regexp nil t)
 	(let ((var (list expr
-			 (match-string-no-properties 1)
-			 (match-string-no-properties 2)
-			 (match-string-no-properties 3)
-			 nil)))
+			 (match-string 1)
+			 (match-string 2)
+			 (match-string 3)
+			 nil nil)))
 	  (push var gdb-var-list)
 	  (speedbar 1)
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
-	       (list (concat "interpreter mi \"-var-evaluate-expression " 
+	       (list (concat "server interpreter mi \"-var-evaluate-expression " 
 			     (nth 1 var) "\"\n") 
 		     `(lambda () (gdb-var-evaluate-expression-handler 
-				  ,(nth 1 var)))))
+				  ,(nth 1 var) nil))))
 	    (setq gdb-var-changed t)))
       (if (re-search-forward "Undefined command" nil t)
 	  (message "Watching expressions requires gdb 6.0 onwards")
 	(message "No symbol %s in current context." expr)))))
 
-(defun gdb-var-evaluate-expression-handler (varnum)
+(defun gdb-var-evaluate-expression-handler (varnum changed)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (re-search-forward ".*value=\"\\(.*?\\)\"" nil t)
@@ -220,8 +230,8 @@ The following interactive lisp functions help control operation :
 	(dolist (var gdb-var-list)
 	  (if (string-equal varnum (cadr var))
 	      (progn
-		(setcar (nthcdr 4 var) 
-			(match-string-no-properties 1))
+		(if changed (setcar (nthcdr 5 var) t))
+		(setcar (nthcdr 4 var) (match-string 1))
 		(setcar (nthcdr num gdb-var-list) var)
 		(throw 'var-found nil)))
 	  (setq num (+ num 1))))))
@@ -229,7 +239,7 @@ The following interactive lisp functions help control operation :
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
-   (list (concat "interpreter mi \"-var-list-children "  varnum "\"\n")
+   (list (concat "server interpreter mi \"-var-list-children "  varnum "\"\n")
 	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
@@ -245,10 +255,11 @@ The following interactive lisp functions help control operation :
 	     (progn
 	       (push var var-list)
 	       (while (re-search-forward gdb-var-list-children-regexp nil t)
-		 (let ((varchild (list (match-string-no-properties 2)
-				       (match-string-no-properties 1)
-				       (match-string-no-properties 3)
-				       (match-string-no-properties 4)
+		 (let ((varchild (list (match-string 2)
+				       (match-string 1)
+				       (match-string 3)
+				       (match-string 5)
+				       (match-string 4)
 				       nil)))
 		   (dolist (var1 gdb-var-list)
 		     (if (string-equal (cadr var1) (cadr varchild))
@@ -257,10 +268,11 @@ The following interactive lisp functions help control operation :
 		   (if (equal (nth 2 varchild) "0")
 		       (gdb-enqueue-input
 			(list 
-			 (concat "interpreter mi \"-var-evaluate-expression "
+			 (concat 
+			  "server interpreter mi \"-var-evaluate-expression "
 				 (nth 1 varchild) "\"\n") 
 			 `(lambda () (gdb-var-evaluate-expression-handler 
-				      ,(nth 1 varchild)))))))))
+				      ,(nth 1 varchild) nil))))))))
 	   (push var var-list)))
        (setq gdb-var-list (nreverse var-list))))))
 
@@ -278,12 +290,12 @@ The following interactive lisp functions help control operation :
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (while (re-search-forward gdb-var-update-regexp nil t)
-	(let ((varnum (match-string-no-properties 1)))
+	(let ((varnum (match-string 1)))
 	  (gdb-enqueue-input
-	   (list (concat "interpreter mi \"-var-evaluate-expression " 
+	   (list (concat "server interpreter mi \"-var-evaluate-expression " 
 			 varnum "\"\n") 
 		     `(lambda () (gdb-var-evaluate-expression-handler 
-				  ,varnum)))))))
+				  ,varnum t)))))))
   (gdb-set-pending-triggers
    (delq 'gdb-var-update (gdb-get-pending-triggers))))
 
@@ -296,13 +308,30 @@ The following interactive lisp functions help control operation :
 	   (var (assoc expr gdb-var-list))
 	   (varnum (cadr var)))
       (gdb-enqueue-input
-       (list (concat "interpreter mi \"-var-delete "  varnum "\"\n")
+       (list (concat "server interpreter mi \"-var-delete " varnum "\"\n")
 	     'ignore))
       (setq gdb-var-list (delq var gdb-var-list))
       (dolist (varchild gdb-var-list)
 	(if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
 	    (setq gdb-var-list (delq varchild gdb-var-list)))))
     (setq gdb-var-changed t)))
+
+(defun gdb-edit-value (text token indent)
+  "Assign a value to a variable displayed in the speedbar"
+  (interactive)
+  (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
+	 (varnum (cadr var)) (value))
+    (setq value (read-string "New value: "))
+    (gdb-enqueue-input
+     (list (concat "server interpreter mi \"-var-assign "
+		   varnum " " value "\"\n")
+	   'ignore))))
+
+(defcustom gdb-show-changed-values t
+  "Non-nil means use font-lock-warning-face to display values that have
+recently changed in the speedbar."
+  :type 'boolean
+  :group 'gud)
 
 (defun gdb-speedbar-expand-node (text token indent)
   "Expand the node the user clicked on.
@@ -729,6 +758,11 @@ output from the current command if that happens to be appropriate."
 	(gdb-invalidate-registers)
 	(gdb-invalidate-locals)
 	(gdb-invalidate-threads)
+	(dolist (frame (frame-list))
+	  (when (string-equal (frame-parameter frame 'name) "Speedbar")
+	    (setq gdb-var-changed t)    ; force update
+	    (dolist (var gdb-var-list)
+	      (setcar (nthcdr 5 var) nil))))
 	(gdb-var-update)))
   (let ((sink (gdb-get-output-sink)))
     (cond
@@ -819,7 +853,7 @@ output from the current command if that happens to be appropriate."
 
 (defun gdb-clear-partial-output ()
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
-    (delete-region (point-min) (point-max))))
+    (erase-buffer)))
 
 (defun gdb-append-to-inferior-io (string)
   (with-current-buffer (gdb-get-create-buffer 'gdb-inferior-io)
@@ -830,7 +864,7 @@ output from the current command if that happens to be appropriate."
 
 (defun gdb-clear-inferior-io ()
   (with-current-buffer (gdb-get-create-buffer 'gdb-inferior-io)
-    (delete-region (point-min) (point-max))))
+    (erase-buffer)))
 
 
 ;; One trick is to have a command who's output is always available in a buffer
@@ -880,7 +914,7 @@ output from the current command if that happens to be appropriate."
 	    (with-current-buffer buf
 	      (let ((p (point))
 		    (buffer-read-only nil))
-		(delete-region (point-min) (point-max))
+		(erase-buffer)
 		(insert-buffer-substring (gdb-get-create-buffer
 					  'gdb-partial-output-buffer))
 		(goto-char p)))))
@@ -1054,6 +1088,20 @@ static char *magick[] = {
 				  (gdb-put-string "b" (+ start 1))))))))))))
 	  (end-of-line)))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
+
+(defun gdb-mouse-toggle-breakpoint (event)
+  "Toggle breakpoint with mouse click in left margin."
+  (interactive "e")
+  (mouse-minibuffer-check event)
+  (let ((posn (event-end event)))
+    (message "pt=%S posn=%S" (posn-point posn) posn)
+    (if (numberp (posn-point posn))
+	(with-selected-window (posn-window posn)
+	  (save-excursion
+	    (goto-char (posn-point posn))
+	    (if (posn-object posn)
+		(gud-remove nil)
+	      (gud-break nil)))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1241,7 +1289,7 @@ the source buffer."
 
 (def-gdb-auto-updated-buffer gdb-threads-buffer
   gdb-invalidate-threads
-  "info threads\n"
+  "server info threads\n"
   gdb-info-threads-handler
   gdb-info-threads-custom)
 
@@ -1290,7 +1338,6 @@ the source buffer."
   (save-excursion
     (re-search-backward "^\\s-*\\([0-9]*\\)" nil t)
     (match-string-no-properties 1)))
-
 
 (defun gdb-threads-select ()
   "Make the thread on the current line become the current thread and display the
@@ -1489,7 +1536,7 @@ the source buffer."
   (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer))
   (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
-;  (define-key menu [assembler] '("Assembler" . gdb-frame-assembler-buffer))
+;  (define-key menu [assembler] '("Machine" . gdb-frame-assembler-buffer))
 )
 
 (let ((menu (make-sparse-keymap "GDB-Windows")))
@@ -1501,7 +1548,7 @@ the source buffer."
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer))
   (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
-;  (define-key menu [assembler] '("Assembler" . gdb-display-assembler-buffer))
+;  (define-key menu [assembler] '("Machine" . gdb-display-assembler-buffer))
 )
 
 (let ((menu (make-sparse-keymap "View")))
@@ -1510,7 +1557,7 @@ the source buffer."
 ;  (define-key menu [both] '(menu-item "Both" gdb-view-both
 ;	       :help "Display both source and assembler"
 ;	       :button (:radio . (eq gdb-selected-view 'both))))
-   (define-key menu [assembler] '(menu-item "Assembler" gdb-view-assembler
+   (define-key menu [assembler] '(menu-item "Machine" gdb-view-assembler
 	       :help "Display assembler only"
 	       :button (:radio . (eq gdb-selected-view 'assembler))))
    (define-key menu [source] '(menu-item "Source" gdb-view-source-function
@@ -1812,7 +1859,7 @@ BUFFER nil or omitted means use the current buffer."
 
 \\{gdb-assembler-mode-map}"
   (setq major-mode 'gdb-assembler-mode)
-  (setq mode-name "Assembler")
+  (setq mode-name "Machine")
   (setq left-margin-width 2)
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
@@ -1893,7 +1940,8 @@ BUFFER nil or omitted means use the current buffer."
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		;;update with new frame for machine code if necessary
 		(gdb-invalidate-assembler))))))
-    (if (looking-at "source language  \\(\\S-*\\)")
+    (forward-line)
+    (if (looking-at " source language \\(\\S-*\\)\.")
 	(setq gdb-current-language (match-string 1))))
 
 (provide 'gdb-ui)

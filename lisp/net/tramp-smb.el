@@ -290,7 +290,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 	    (tramp-smb-send-command user host (format "cd \\"))
 	  ;; Error
 	  (tramp-smb-send-command user host (format "cd \\"))
-	  (error "Cannot delete file `%s'" directory))))))
+	  (error "Cannot delete file `%s'" filename))))))
 
 (defun tramp-smb-handle-directory-files
   (directory &optional full match nosort)
@@ -324,18 +324,18 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 	entries))))
 
 (defun tramp-smb-handle-directory-files-and-attributes
-  (directory &optional full match nosort)
+  (directory &optional full match nosort id-format)
   "Like `directory-files-and-attributes' for tramp files."
   (mapcar
    (lambda (x)
-     (cons x (file-attributes
-	(if full x (concat (file-name-as-directory directory) x)))))
+     ;; We cannot call `file-attributes' for backward compatibility reasons.
+     ;; Its optional parameter ID-FORMAT is introduced with Emacs 21.4.
+     (cons x (tramp-smb-handle-file-attributes
+	(if full x (concat (file-name-as-directory directory) x)) id-format)))
    (directory-files directory full match nosort)))
  
-(defun tramp-smb-handle-file-attributes (filename &optional nonnumeric)
-  "Like `file-attributes' for tramp files.
-Optional argument NONNUMERIC means return user and group name
-rather than as numbers."
+(defun tramp-smb-handle-file-attributes (filename &optional id-format)
+  "Like `file-attributes' for tramp files."
 ;  (with-parsed-tramp-file-name filename nil
   (let (user host localname)
     (with-parsed-tramp-file-name filename l
@@ -346,6 +346,8 @@ rather than as numbers."
 	     (entries (tramp-smb-get-file-entries user host share file))
 	     (entry (and entries
 			 (assoc (file-name-nondirectory file) entries)))
+	     (uid (if (and id-format (equal id-format 'string)) "nobody" -1))
+	     (gid (if (and id-format (equal id-format 'string)) "nogroup" -1))
 	     (inode (tramp-smb-get-inode share file))
 	     (device (tramp-get-device nil tramp-smb-method user host)))
 
@@ -354,8 +356,8 @@ rather than as numbers."
 	  (list (and (string-match "d" (nth 1 entry))
 		     t)         ;0 file type
 		-1		;1 link count
-		-1		;2 uid
-		-1		;3 gid
+		uid		;2 uid
+		gid		;3 gid
 		'(0 0)		;4 atime
 		(nth 3 entry)	;5 mtime
 		'(0 0)		;6 ctime
@@ -546,7 +548,7 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
   "Like `make-directory-internal' for tramp files."
   (setq directory (directory-file-name (expand-file-name directory)))
   (unless (file-name-absolute-p directory)
-    (setq ldir (concat default-directory directory)))
+    (setq directory (concat default-directory directory)))
 ;  (with-parsed-tramp-file-name directory nil
   (let 	(user host localname)
     (with-parsed-tramp-file-name directory l

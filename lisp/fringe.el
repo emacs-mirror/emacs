@@ -119,7 +119,7 @@ If ALL-FRAMES, the negation of the fringe values in
 Otherwise the negation of the fringe value in the currently selected
 frame parameter is used."
   (let ((mode (intern (completing-read
-		       "Select fringe mode for all frames (SPACE for list): "
+		       "Select fringe mode for all frames (type ? for list): "
 		       '(("none") ("default") ("left-only")
 			 ("right-only") ("half") ("minimal"))
 		       nil t))))

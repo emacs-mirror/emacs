@@ -610,7 +610,8 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
 				 nil	;require-match [handled elsewhere]
 				 nil	;initial-contents
 				 'iswitchb-history)))
-    (if (get-buffer iswitchb-final-text)
+    (if (and (not (eq iswitchb-exit 'usefirst))
+	     (get-buffer iswitchb-final-text))
 	;; This happens for example if the buffer was chosen with the mouse.
 	(setq iswitchb-matches (list iswitchb-final-text)))
 
@@ -712,7 +713,9 @@ The result is stored in `iswitchb-common-match-string'."
   (interactive)
   (if (or (not iswitchb-require-match)
 	   (iswitchb-existing-buffer-p))
-      (throw 'exit nil)))
+      (progn
+	(setq iswitchb-exit 'usefirst)
+	(throw 'exit nil))))
 
 (defun iswitchb-select-buffer-text ()
   "Select the buffer named by the prompt.

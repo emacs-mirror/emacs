@@ -281,4 +281,12 @@ Other features we would like:
 * (Controlled by a flag) make open and close syntax match exactly,
   i.e. `(' doesn't match `]'.
 
+* Specify parameter ID-FORMAT in all calls to `file-attributes' and
+  `directory-files-and-attributes' where attributes UID or GID are used.
+  Whenever possible, use value 'string.
+  When done, change meaning of default value from 'integer to 'string.
+  If value 'integer is used nowhere, remove the parameter ID-FORMAT from
+  the definition of `file-attributes' and `directory-files-and-attributes'
+  and from the calls.
+
 ;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

@@ -890,7 +890,9 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
     forward-word backward-word
     end-of-line beginning-of-line
     end-of-buffer beginning-of-buffer
-    scroll-up scroll-down    forward-paragraph backward-paragraph)
+    scroll-up scroll-down
+    forward-sentence backward-sentence
+    forward-paragraph backward-paragraph)
   "List of standard movement commands.
 Extra commands should be added to `cua-movement-commands'")
 

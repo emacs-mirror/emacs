@@ -42,7 +42,9 @@ it as a number; Lisp knows it is a vector, not a number.
 variable, and the type is known by the compiler but not represented in
 the data.  Such type declarations do not exist in Emacs Lisp.  A Lisp
 variable can have any type of value, and it remembers whatever value
-you store in it, type and all.
+you store in it, type and all.  (Actually, a small number of Emacs
+Lisp variables can only take on values of a certain type.
+@xref{Variables with Restricted Values}.)
 
   This chapter describes the purpose, printed representation, and read
 syntax of each of the standard types in GNU Emacs Lisp.  Details on how
@@ -226,11 +228,12 @@ example, the character @kbd{A} is represented as the @w{integer 65}.
 common to work with @emph{strings}, which are sequences composed of
 characters.  @xref{String Type}.
 
-  Characters in strings, buffers, and files are currently limited to the
-range of 0 to 524287---nineteen bits.  But not all values in that range
-are valid character codes.  Codes 0 through 127 are @acronym{ASCII} codes; the
-rest are non-@acronym{ASCII} (@pxref{Non-ASCII Characters}).  Characters that represent
-keyboard input have a much wider range, to encode modifier keys such as
+  Characters in strings, buffers, and files are currently limited to
+the range of 0 to 524287---nineteen bits.  But not all values in that
+range are valid character codes.  Codes 0 through 127 are
+@acronym{ASCII} codes; the rest are non-@acronym{ASCII}
+(@pxref{Non-ASCII Characters}).  Characters that represent keyboard
+input have a much wider range, to encode modifier keys such as
 Control, Meta and Shift.
 
 @cindex read syntax for characters
@@ -375,11 +378,11 @@ possible a wide range of basic character codes.
 @ifnottex
 2**7
 @end ifnottex
-bit attached to an @acronym{ASCII} character indicates a meta character; thus, the
-meta characters that can fit in a string have codes in the range from
-128 to 255, and are the meta versions of the ordinary @acronym{ASCII}
-characters.  (In Emacs versions 18 and older, this convention was used
-for characters outside of strings as well.)
+bit attached to an @acronym{ASCII} character indicates a meta
+character; thus, the meta characters that can fit in a string have
+codes in the range from 128 to 255, and are the meta versions of the
+ordinary @acronym{ASCII} characters.  (In Emacs versions 18 and older,
+this convention was used for characters outside of strings as well.)
 
   The read syntax for meta characters uses @samp{\M-}.  For example,
 @samp{?\M-A} stands for @kbd{M-A}.  You can use @samp{\M-} together with
@@ -416,8 +419,8 @@ significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
 @kbd{Alt-Hyper-Meta-x}.  (Note that @samp{\s} with no following @samp{-}
 represents the space character.)
 @tex
-Numerically, the
-bit values are @math{2^{22}} for alt, @math{2^{23}} for super and @math{2^{24}} for hyper.
+Numerically, the bit values are @math{2^{22}} for alt, @math{2^{23}}
+for super and @math{2^{24}} for hyper.
 @end tex
 @ifnottex
 Numerically, the
@@ -938,10 +941,13 @@ one character, @samp{a} with grave accent.  @w{@samp{\ }} in a string
 constant is just like backslash-newline; it does not contribute any
 character to the string, but it does terminate the preceding hex escape.
 
-  Using a multibyte hex escape forces the string to multibyte.  You can
-represent a unibyte non-@acronym{ASCII} character with its character code,
-which must be in the range from 128 (0200 octal) to 255 (0377 octal).
-This forces a unibyte string.
+  You can represent a unibyte non-@acronym{ASCII} character with its
+character code, which must be in the range from 128 (0200 octal) to
+255 (0377 octal).  If you write all such character codes in octal and
+the string contains no other characters forcing it to be multibyte,
+this produces a unibyte string.  However, using any hex escape in a
+string (even for an @acronym{ASCII} character) forces the string to be
+multibyte.
 
   @xref{Text Representations}, for more information about the two
 text representations.
@@ -963,9 +969,9 @@ distinguish case in @acronym{ASCII} control characters.
 
   Properly speaking, strings cannot hold meta characters; but when a
 string is to be used as a key sequence, there is a special convention
-that provides a way to represent meta versions of @acronym{ASCII} characters in a
-string.  If you use the @samp{\M-} syntax to indicate a meta character
-in a string constant, this sets the
+that provides a way to represent meta versions of @acronym{ASCII}
+characters in a string.  If you use the @samp{\M-} syntax to indicate
+a meta character in a string constant, this sets the
 @tex
 @math{2^{7}}
 @end tex
@@ -1082,16 +1088,25 @@ constant that follows actually specifies the contents of the bool-vector
 as a bitmap---each ``character'' in the string contains 8 bits, which
 specify the next 8 elements of the bool-vector (1 stands for @code{t},
 and 0 for @code{nil}).  The least significant bits of the character
-correspond to the lowest indices in the bool-vector.  If the length is not a
-multiple of 8, the printed representation shows extra elements, but
-these extras really make no difference.
+correspond to the lowest indices in the bool-vector.
 
 @example
 (make-bool-vector 3 t)
-     @result{} #&3"\007"
+     @result{} #&3"^G"
 (make-bool-vector 3 nil)
-     @result{} #&3"\0"
-;; @r{These are equal since only the first 3 bits are used.}
+     @result{} #&3"^@@"
+@end example
+
+@noindent
+These results make sense, because the binary code for @samp{C-g} is
+111 and @samp{C-@@} is the character with code 0.
+
+  If the length is not a multiple of 8, the printed representation
+shows extra elements, but these extras really make no difference.  For
+instance, in the next example, the two bool-vectors are equal, because
+only the first 3 bits are used:
+
+@example
 (equal #&3"\377" #&3"\007")
      @result{} t
 @end example
@@ -1875,9 +1890,12 @@ always true.
 @end example
 
 Comparison of strings is case-sensitive, but does not take account of
-text properties---it compares only the characters in the strings.
-A unibyte string never equals a multibyte string unless the
-contents are entirely @acronym{ASCII} (@pxref{Text Representations}).
+text properties---it compares only the characters in the strings.  For
+technical reasons, a unibyte string and a multibyte string are
+@code{equal} if and only if they contain the same sequence of
+character codes and all these codes are either in the range 0 through
+127 (@acronym{ASCII}) or 160 through 255 (@code{eight-bit-graphic}).
+(@pxref{Text Representations}).
 
 @example
 @group

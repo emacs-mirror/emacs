@@ -1,3 +1,304 @@
+2003-12-28  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (eval.o): Depend on dispextern.h.
+
+	* dispnew.c (buffer_posn_from_coords): Fix calculation of dy for
+	image glyph using image's ascent.
+	(mode_line_string): Return image glyph as object clicked on.
+	Adjust y0 for image glyph using image's ascent.
+
+	* dispextern.h (FACE_ID_BITS, MAX_FACE_ID): New defines.
+	(struct glyph): New members, ascent and descent.  Used to save
+	this glyph's ascent and descent, instead of having.
+	(struct glyph): Declare member face_id using FACE_ID_BITS.
+	(find_hot_spot): Add prototype.
+
+	* keyboard.c (Qimage): Remove extern (now in lisp.h).
+	(QCmap): Declare extern.
+	(make_lispy_position): When position is inside image hot-spot,
+	use hot-spot element's id as posn element.
+
+	* lisp.h (IMAGEP): New macro to test for image object type.
+	(Qimage): Declare extern.
+
+	* macfns.c (Qimage): Remove extern (now in lisp.h).
+	(valid_image_p, parse_image_spec): Use IMAGEP macro.
+
+	* macterm.c (Qface, Qmouse_face): Remove unused externs.
+
+	* w32fns.c (Qimage): Remove extern (now in lisp.h).
+	(valid_image_p, parse_image_spec): Use IMAGEP macro.
+
+	* w32menu.c (Qmouse_click, Qevent_kind): Remove unused externs.
+
+	* w32term.c (Qface, Qmouse_face): Remove unused externs.
+
+	* xdisp.c (Qarrow, Qhand, Qtext, Qpointer): New variables for
+	pointer types.
+	(Qrelative_width, Qalign_to): Remove unused variables.
+	(Vvoid_text_area_pointer): Replace Vshow_text_cursor_in_void.
+	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for
+	image maps.
+	(x_y_to_hpos_vpos): Return glyph relative coordinates through 
+	new dx and dy args.
+	Remove buffer_only_p arg (always 0).  Simplify code accordingly.
+	(get_glyph_string_clip_rect): Draw cursor using glyph's rather
+	than row's ascent and height, to get sensible height on tall rows.
+	(build_desired_tool_bar_string): Remove Qimage extern.
+	(get_tool_bar_item): Fix call to x_y_to_hpos_vpos.
+	(produce_image_glyph): Adjust it.ascent to minimum row ascent if
+	image glyph is alone on the last line.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(append_stretch_glyph): Set glyph's ascent and descent. 
+	(on_hot_spot_p): New function to check if position is inside an
+	rectangular, circular, or polygon-shaped image hot-spot, 
+	(find_hot_spot): New function to search for image hot-spot.
+	(Flookup_image_map): New defun to search for image hot-spot.
+	(define_frame_cursor1): New aux function to determine frame pointer.
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Handle `pointer' text property and :pointer image property to
+	control frame pointer shape.  Detect image hot-spots for pointer
+	and help_echo properties.  Use define_frame_cursor1.
+	(note_mouse_highlight):	Use Vvoid_text_area_pointer.
+	(syms_of_xdisp): Defsubr new defun. Intern and staticpro new variables.
+	DEFVAR_LISP Vvoid_text_area_pointer instead of Vshow_text_cursor_in_void.
+
+	* xfaces.c (cache_face): Abort if c->size exceeds MAX_FACE_ID.
+
+	* xfns.c (x_set_mouse_color): Remove bogus x_check_errors call.
+	(Qimage): Remove extern (now in lisp.h).
+	(valid_image_p, parse_image_spec): Use IMAGEP macro.
+
+	* xmenu.c (show_help_event): Remove unused code.
+
+	* xterm.c (Qface, Qmouse_face): Remove unused externs.
+	(x_draw_hollow_cursor): Draw cursor using glyph's rather than
+	row's ascent and descent, to get a sensible height on tall rows.
+
+2003-12-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.c (Fcompleting_read): Undo previous change.
+
+2003-12-25  Lars Hansen <larsh@math.ku.dk>
+
+	* dired.c (Fdirectory_files, Fdirectory_files_and_attributes):
+	Arguments GCPRO'ed in call to file name handler.
+
+2003-12-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* termcap.c (tgetst1): Scan for "%pN"; if all
+	N are continuous in [1,9], remove all "%pN".
+
+2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_frame_set_char_size): Call x_wm_set_size_hint.
+
+	* xfaces.c (lface_fully_specified_p): Take into account that
+	MAC OS always have unspecified stipple.
+
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* tparam.c (tparam1): Add handling for `%pN', which
+	means use param N for the next substitution.
+
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xfaces.c (Fcolor_gray_p): Fix omission bug:
+	In case `frame' is nil, consult the selected frame.
+	(Fcolor_supported_p): Likewise.
+
+2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Frandom, Fstring_make_multibyte, Fset_char_table_range):
+	Doc fixes.
+
+	* minibuf.c (read_minibuf): Allow INITIAL to be a cons of a string
+	and an integer.  Adapt the introductory comment accordingly.
+	(Fread_from_minibuffer): Delete code moved into read_minibuf.
+	Doc fix.
+	(Fread_minibuffer, Fread_no_blanks_input): Adapt to changes in
+	read_minibuf.
+	(Fcompleting_read): Delete code moved into read_minibuf.
+	(Ftest_completion): Make it handle obarrays and hash tables
+	correctly.
+
+2003-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_iso2022): Fix for preserving UTF-8
+	encoding sequence.
+
+2003-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (syms_of_composite): Don't make the compostion hash
+	table week.
+
+2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* intervals.h: Add EXFUN for Fget_char_property_and_overlay.
+	* textprop.c (Fget_char_property_and_overlay): New function.
+	(syms_of_textprop): Defsubr it.
+
+2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dispnew.c (buffer_posn_from_coords): Add ifdef HAVE_WINDOW_SYSTEM
+	to compile on terminal configuration.
+
+	* fileio.c (Fread_file_name): Check use_file_dialog also before
+	calling Fx_file_dialog.
+
+	* fns.c: use_file_dialog: New variable.
+	(syms_of_fns): DEFVAR_BOOL use-file-dialog.
+
+2003-11-29  Kim F. Storm  <storm@cua.dk>
+
+	* msdos.c (Qcursor_type, Qbar, Qhbar): Declare extern.
+	(syms_of_msdos): Don't intern and staticpro them.
+
+2003-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (buffer_posn_from_coords): Calculate and return pixel
+	coordinates relative to glyph at posn.  If glyph is an image,
+	return that as object at posn.  Callers changed.
+	(mode_line_string, marginal_area_string): Calculate and return
+	pixel coordinates relative to glyph.  Callers changed.
+
+	* dispextern.h (buffer_posn_from_coords, mode_line_string)
+	(marginal_area_string): Fix prototypes.
+	(window_box_left_offset, window_box_right_offset): Add prototypes.
+
+	* frame.h (get_specified_cursor_type, get_window_cursor_type):
+	Remove prototypes.
+
+	* keyboard.h (EVENT_CLICK_COUNT, POSN_SCROLLBAR_PART): Fix defines.
+
+	* keyboard.c (make_lispy_position): Add x and y coordinates
+	relative to the current glyph as 7th element of position.
+	If glyph is an image, return it in the object element.
+	(read_key_sequence): Skip checks for keymap property in cases
+	where POSN_STRING is not a string (e.g. an image).
+
+	* xdisp.c (Vdisplay_pixels_per_inch): New variable.
+	(Vshow_text_cursor_in_void): New variable.
+	(glyph_to_pixel_coords): Don't use negative hpos.
+	(x_y_to_hpos_vpos): Fix for partially visible first glyph.
+	(append_stretch_glyph): Change ascent arg to be actual value
+	in pixels rather than ratio to height. Callers changed.
+	(calc_pixel_width_or_height): New aux function, implementing
+	pixel based artihmetic for glyph widths and heights.
+	(produce_stretch_glyph): Use calc_pixel_width_or_height for
+	:width, :height, :align-to, and :ascent, thus allowing these to
+	be specified in pixels as well as multiples of characters.
+	Don't produce stretch glyphs with zero width or height.
+	(get_specified_cursor_type): Declare static.
+	(get_window_cursor_type): Declare static.  Add glyph arg to be
+	able to know when cursor is on an image; always substitute
+	hollow-box cursor for filled-box cursor on images, to avoid
+	negative images and flicker when blinking the cursor.
+	(display_and_set_cursor): Pass glyph to	get_window_cursor_type.
+	(note_mode_line_or_margin_highlight): Use non-text cursor rather
+	than vertical scroll-bar cursor in display margins.
+	(note_mouse_highlight): Use non-text cursor rather than text
+	cursor in fringes and over images in the text area.
+	Use non-text cursor when mouse pointer is outside editable text,
+	i.e. in the void after end-of-line or end-of-buffer; this was
+	already done for W32, but is now standard for all systems --
+	user can toggle show-text-cursor-in-void to get old behaviour.
+	(syms_of_xdisp): DEFVAR_LISP Vshow_text_cursor_in_void and
+	Vdisplay_pixels_per_inch.
+
+2003-11-25  Andreas Schwab  <schwab@suse.de>
+
+	* fns.c (internal_equal) <case Lisp_Vectorlike>: Declare size as
+	EMACS_INT to not lose bits.
+	(Ffillarray): Don't set bits beyond the size of a bool vector.
+
+2003-11-25  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (Fredirect_debugging_output) [!GNU_LINUX]: Do not
+	define this defun on systems that cannot use stderr as lvalue.
+
+2003-11-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/freebsd.h (LD_SWITCH_SYSTEM_TEMACS)
+	[__FreeBSD_version >= 500042]: Define as -znocombreloc because
+	ld's default is incompatible with unexec.
+
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (enum window_loop): Add REDISPLAY_BUFFER_WINDOWS.
+	(window_loop): Handle REDISPLAY_BUFFER_WINDOWS.
+	(Fforce_window_update): New defun.
+	(syms_of_window): Defsubr it.
+	(Fset_window_margins, Fset_window_fringes): Doc fix.
+
+	* print.c (Fredirect_debugging_output): New defun.
+	(syms_of_print): Defsubr it.
+
+2003-11-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fset_char_table_parent): Doc fix.
+
+2003-11-22  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (buffer_posn_from_coords): Return actual row/column
+	for glyph clicked on, rather than (unused) pixel positions.
+	(mode_line_string, marginal_area_string): Change X and Y args to
+	pointers for returning actual row/column for glyph clicked on.
+	Simplify and optimize loops.
+
+	* dispextern.h (mode_line_string, marginal_area_string):
+	Update prototypes.
+
+	* keyboard.c (make_lispy_position): New function for generating
+	mouse click positions from frame and pixel coordinates.
+	Enhanced to return buffer position and actual row/column for
+	events outside the text area using updated mode_line_string and
+	marginal_area_string functions.
+	Return left-fringe and right-fringe clicks as such, rather than
+	clicks in text area.
+	(make_lispy_event) [USE_X_TOOLKIT, USE_GTK]: Don't call
+	pixel_to_glyph_coords, as we never use the results.
+	(make_lispy_event): Use make_lispy_position for MOUSE_CLICK_EVENT,
+	WHEEL_EVENT, and DRAG_N_DROP_EVENT to replace redundant code.
+	Eliminate unused code in WHEEL_EVENT handling.
+	(make_lispy_movement): Use make_lispy_position.
+
+	* window.c (coordinates_in_window): Remove redundant tests.
+	Fix returned X pixel value for left-margin.
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Adapt to new
+	mode_line_string and marginal_area_string parameters.
+
+2003-11-22  Lars Hansen <larsh@math.ku.dk>
+
+	* w32.c (struct the_group): Added.
+	(getgrgid): Added.
+	* mac.c (struct my_group): Added.
+	(getgrgid): Added.
+
+2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fassq, Fassoc, Frassq, Frassoc): Doc fixes.
+
+2003-11-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired.c (Ffile_attributes): Parameter ID-FORMAT added and
+	included in call to file name handler. Numeric UID and GID
+	optionally translated to strings. Docstring updated.
+	(directory_files_internal): Parameter ID-FORMAT added.
+	(Fdirectory_files_and_attributes): Parameter ID-FORMAT added and
+	included in call to file name handler and call to
+	directory_files_internal. Docstring updated.  (Fdirectory_files):
+	Dummy parameter added in call to directory_files_internal.
+	* lisp.h (Qinteger): Added.  (Qinteger_or_floatp,
+	Qinteger_or_float_or_marker_p): Removed.  (Ffile_attributes):
+	Parameter added.
+	* data.c (Qinteger): Exported.
+
+2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Freverse, Fnreverse): Doc fixes.
+
 2003-11-19  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (init_iterator): Initialize it->start to position

@@ -71,6 +71,7 @@ Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 Lisp_Object Qtext_read_only;
+
 Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
@@ -87,7 +88,8 @@ Lisp_Object Qoverflow_error, Qunderflow_error;
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-static Lisp_Object Qinteger, Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
+Lisp_Object Qinteger;
+static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
 Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;

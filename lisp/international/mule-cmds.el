@@ -321,6 +321,11 @@ This also sets the following values:
   o default value for the command `set-keyboard-coding-system'."
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
+  (if (fboundp 'ucs-set-table-for-input)
+      (dolist (buffer (buffer-list))
+	(or (local-variable-p 'buffer-file-coding-system buffer)
+	    (ucs-set-table-for-input buffer))))
+
   (if default-enable-multibyte-characters
       (setq default-file-name-coding-system coding-system))
   ;; If coding-system is nil, honor that on MS-DOS as well, so
@@ -1822,8 +1827,10 @@ specifies the character set for the major languages of Western Europe."
 		   (string= "The XFree86 Project, Inc" (x-server-vendor))
 		   (> (aref (number-to-string (nth 2 (x-server-version))) 0)
 		      ?3))
-	  (aset standard-display-table ?' [?$,1ry(B])
-	  (aset standard-display-table ?` [?$,1rx(B])
+	  ;; We suppress these setting for the moment because the
+	  ;; above assumption is wrong.
+	  ;; (aset standard-display-table ?' [?$,1ry(B])
+	  ;; (aset standard-display-table ?` [?$,1rx(B])
 	  ;; The fonts don't have the relevant bug.
 	  (aset standard-display-table 160 nil)
 	  (aset standard-display-table (make-char 'latin-iso8859-1 160)

@@ -1134,7 +1134,7 @@ dnl see the `changequote' comment above.
   powerpc-apple-darwin* )
     machine=powermac opsys=darwin
     # Define CPP as follows to make autoconf work correctly.
-    CPP="gcc -E -no-cpp-precomp"
+    CPP="${CC-cc} -E -no-cpp-precomp"
   ;;
 
   ## AMD x86-64 Linux-based GNU system
@@ -1507,6 +1507,12 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
+AC_CHECK_HEADERS(sys/socket.h)
+AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+
 dnl checks for structure members
 AC_STRUCT_TM
 AC_STRUCT_TIMEZONE
@@ -1516,7 +1522,14 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[#include <time.h>])
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr, 
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
-		  struct ifreq.ifr_addr], , ,[#include <net/if.h>])
+		  struct ifreq.ifr_addr], , ,
+		 [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_NET_IF_H
+#include <net/if.h>
+#endif])
 
 dnl checks for compiler characteristics
 
@@ -1845,7 +1858,7 @@ dnl This function defintion taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
 dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
 dnl also defines GSTUFF_PKG_ERRORS on error
-AC_DEFUN(PKG_CHECK_MODULES, [
+AC_DEFUN([PKG_CHECK_MODULES], [
   succeeded=no
 
   if test -z "$PKG_CONFIG"; then
@@ -1893,7 +1906,7 @@ AC_DEFUN(PKG_CHECK_MODULES, [
   if test $succeeded = yes; then
      ifelse([$3], , :, [$3])
   else
-     ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
+     ifelse([$4], , [AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.])], [$4])
   fi
 ])
 
@@ -2510,7 +2523,7 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
 	    [Define to 1 if you have inet sockets.])
 fi
 
-AC_CHECK_HEADERS(sys/ioctl.h net/if.h)
+AC_CHECK_HEADERS(sys/ioctl.h)
 
 if test -f /usr/lpp/X11/bin/smt.exp; then
   AC_DEFINE(HAVE_AIX_SMT_EXP, 1,

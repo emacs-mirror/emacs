@@ -586,6 +586,8 @@ Lisp_Object Qvertical_line;
 Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 extern Lisp_Object Qleft_margin, Qright_margin;
+extern Lisp_Object Qleft_fringe, Qright_fringe;
+extern Lisp_Object QCmap;
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
@@ -4955,6 +4957,163 @@ EMACS_INT double_click_fuzz;
 
 int double_click_count;
 
+/* Return position of a mouse click or wheel event */
+
+static Lisp_Object
+make_lispy_position (f, x, y, time)
+     struct frame *f;
+     Lisp_Object *x, *y;
+     unsigned long time;
+{
+  Lisp_Object window;
+  enum window_part part;
+  Lisp_Object posn = Qnil;
+  Lisp_Object extra_info = Qnil;
+  int wx, wy;
+
+  /* Set `window' to the window under frame pixel coordinates (x,y)  */
+  if (f)
+    window = window_from_coordinates (f, XINT (*x), XINT (*y),
+				      &part, &wx, &wy, 0);
+  else
+    window = Qnil;
+
+  if (WINDOWP (window))
+    {
+      /* It's a click in window window at frame coordinates (x,y)  */
+      struct window *w = XWINDOW (window);
+      Lisp_Object object = Qnil;
+      int textpos = -1, rx = -1, ry = -1;
+      int dx = -1, dy = -1;
+
+      /* Set event coordinates to window-relative coordinates
+	 for constructing the Lisp event below.  */
+      XSETINT (*x, wx);
+      XSETINT (*y, wy);
+
+      if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
+	{
+	  /* Mode line or header line.  Look for a string under
+	     the mouse that may have a `local-map' property.  */
+	  Lisp_Object string;
+	  int charpos;
+
+	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
+	  rx = wx, ry = wy;
+	  string = mode_line_string (w, &rx, &ry, &dx, &dy, part, &charpos);
+	  if (STRINGP (string))
+	    object = Fcons (string, make_number (charpos));
+	  if (w == XWINDOW (selected_window))
+	    textpos = PT;
+	  else
+	    textpos = XMARKER (w->pointm)->charpos;
+	}
+      else if (part == ON_VERTICAL_BORDER)
+	{
+	  posn = Qvertical_line;
+	  wx = -1;
+	  dx = 0;
+	}
+      else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
+	{
+	  Lisp_Object string;
+	  int charpos;
+	  
+	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
+	  rx = wx, ry = wy;
+	  string = marginal_area_string (w, &rx, &ry, &dx, &dy, part, &charpos);
+	  if (STRINGP (string))
+	    object = Fcons (string, make_number (charpos));
+#ifdef HAVE_WINDOW_SYSTEM
+	  else if (IMAGEP (string))
+	    {
+	      Lisp_Object image_map, hotspot;
+	      object = string;
+	      if ((image_map = Fplist_get (XCDR (object), QCmap),
+		   !NILP (image_map))
+		  && (hotspot = find_hot_spot (image_map, dx, dy),
+		      CONSP (hotspot))
+		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+		posn = XCAR (hotspot);
+	    }
+#endif
+	}
+      else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
+	{
+	  posn = (part == ON_LEFT_FRINGE) ? Qleft_fringe : Qright_fringe;
+	  rx = 0;
+	  dx = wx;
+	  if (part == ON_RIGHT_FRINGE)
+	    dx -= (window_box_width (w, LEFT_MARGIN_AREA)
+		   + window_box_width (w, TEXT_AREA)
+		   + (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+		      ? window_box_width (w, RIGHT_MARGIN_AREA)
+		      : 0));
+	  else if (!WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
+	    dx -= window_box_width (w, LEFT_MARGIN_AREA);
+	}
+
+      if (textpos < 0)
+	{
+	  Lisp_Object string;
+	  struct display_pos p;
+	  int dx2, dy2;
+	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
+	  buffer_posn_from_coords (w, &wx, &wy, &dx2, &dy2, &string, &p);
+	  textpos = CHARPOS (p.pos);
+	  if (rx < 0) rx = wx;
+	  if (ry < 0) ry = wy;
+	  if (dx < 0) dx = dx2;
+	  if (dy < 0) dy = dy2;
+
+	  if (NILP (posn))
+	    {
+	      posn = make_number (textpos);
+	      if (STRINGP (string))
+		object = Fcons (string,
+				make_number (CHARPOS (p.string_pos)));
+#ifdef HAVE_WINDOW_SYSTEM
+	      else if (IMAGEP (string))
+		{
+		  Lisp_Object image_map, hotspot;
+		  object = string;
+		  if ((image_map = Fplist_get (XCDR (object), QCmap),
+		       !NILP (image_map))
+		      && (hotspot = find_hot_spot (image_map, dx, dy),
+			  CONSP (hotspot))
+		      && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+		    posn = XCAR (hotspot);
+		}
+#endif
+	    }
+	}
+
+      extra_info = Fcons (object,
+			  Fcons (make_number (textpos),
+				 Fcons (Fcons (make_number (rx),
+					       make_number (ry)),
+					Fcons (Fcons (make_number (dx),
+						      make_number (dy)),
+					       Qnil))));
+    }
+  else if (f != 0)
+    {
+      XSETFRAME (window, f);
+    }
+  else
+    {
+      window = Qnil;
+      XSETFASTINT (*x, 0);
+      XSETFASTINT (*y, 0);
+    }
+
+  return Fcons (window,
+		Fcons (posn,
+		       Fcons (Fcons (*x, *y),
+			      Fcons (make_number (time),
+				     extra_info))));
+}
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
@@ -5089,25 +5248,23 @@ make_lispy_event (event)
 	Lisp_Object position;
 	Lisp_Object *start_pos_ptr;
 	Lisp_Object start_pos;
-	Lisp_Object window;
 
 	position = Qnil;
 
 	/* Build the position as appropriate for this mouse click.  */
 	if (event->kind == MOUSE_CLICK_EVENT)
 	  {
-	    enum window_part part;
 	    struct frame *f = XFRAME (event->frame_or_window);
-	    Lisp_Object posn;
-	    Lisp_Object string_info = Qnil;
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 	    int row, column;
-	    int wx, wy;
+#endif
 
 	    /* Ignore mouse events that were made on frame that
 	       have been deleted.  */
 	    if (! FRAME_LIVE_P (f))
 	      return Qnil;
 
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 	    /* EVENT->x and EVENT->y are frame-relative pixel
 	       coordinates at this place.  Under old redisplay, COLUMN
 	       and ROW are set to frame relative glyph coordinates
@@ -5116,7 +5273,6 @@ make_lispy_event (event)
  	    pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
 	 			   &column, &row, NULL, 1);
 
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 	    /* In the non-toolkit version, clicks on the menu bar
 	       are ordinary button events in the event buffer.
 	       Distinguish them, and invoke the menu.
@@ -5170,77 +5326,14 @@ make_lispy_event (event)
 	      }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
 
-	    /* Set `window' to the window under frame pixel coordinates
-	       event->x/event->y.  */
-	    window = window_from_coordinates (f, XINT (event->x),
-					      XINT (event->y),
-					      &part, &wx, &wy, 0);
-
-	    if (!WINDOWP (window))
-	      {
-		window = event->frame_or_window;
-		posn = Qnil;
-	      }
-	    else
-	      {
-		/* It's a click in window window at frame coordinates
-		   event->x/ event->y.  */
-		struct window *w = XWINDOW (window);
-
-		/* Set event coordinates to window-relative coordinates
-		   for constructing the Lisp event below.  */
-		XSETINT (event->x, wx);
-		XSETINT (event->y, wy);
-
-		if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
-		  {
-		    /* Mode line or header line.  Look for a string under
-		       the mouse that may have a `local-map' property.  */
-		    Lisp_Object string;
-		    int charpos;
-
-		    posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
-		    string = mode_line_string (w, wx, wy, part, &charpos);
-		    if (STRINGP (string))
-		      string_info = Fcons (string, make_number (charpos));
-		  }
-		else if (part == ON_VERTICAL_BORDER)
-		  posn = Qvertical_line;
-		else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
-		  {
-		    int charpos;
-		    Lisp_Object object = marginal_area_string (w, wx, wy, part,
-							       &charpos);
-		    posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
-		    if (STRINGP (object))
-		      string_info = Fcons (object, make_number (charpos));
-		  }
-		else
-		  {
-		    Lisp_Object object;
-		    struct display_pos p;
-		    buffer_posn_from_coords (w, &wx, &wy, &object, &p);
-		    posn = make_number (CHARPOS (p.pos));
-		    if (STRINGP (object))
-		      string_info
-			= Fcons (object,
-				 make_number (CHARPOS (p.string_pos)));
-		  }
-	      }
-
-	    position
-	      = Fcons (window,
-		       Fcons (posn,
-			      Fcons (Fcons (event->x, event->y),
-				     Fcons (make_number (event->timestamp),
-					    (NILP (string_info)
-					     ? Qnil
-					     : Fcons (string_info, Qnil))))));
+	    position = make_lispy_position (f, &event->x, &event->y,
+					    event->timestamp);
 	  }
 #ifndef USE_TOOLKIT_SCROLL_BARS
 	else
 	  {
 	    /* It's a scrollbar click.  */
+	    Lisp_Object window;
 	    Lisp_Object portion_whole;
 	    Lisp_Object part;
 
@@ -5405,97 +5498,18 @@ make_lispy_event (event)
     case WHEEL_EVENT:
       {
 	Lisp_Object position;
-	Lisp_Object window;
 	Lisp_Object head;
 	
 	/* Build the position as appropriate for this mouse click.  */
-	enum window_part part;
 	struct frame *f = XFRAME (event->frame_or_window);
-	Lisp_Object posn;
-	Lisp_Object string_info = Qnil;
-	int row, column;
-	int wx, wy;
-	position = Qnil;
 
 	/* Ignore wheel events that were made on frame that have been
 	   deleted.  */
 	if (! FRAME_LIVE_P (f))
 	  return Qnil;
 
-	/* EVENT->x and EVENT->y are frame-relative pixel
-	   coordinates at this place.  Under old redisplay, COLUMN
-	   and ROW are set to frame relative glyph coordinates
-	   which are then used to determine whether this click is
-	   in a menu (non-toolkit version).  */
-	pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
-			       &column, &row, NULL, 1);
-
-	/* Set `window' to the window under frame pixel coordinates
-	   event->x/event->y.  */
-	window = window_from_coordinates (f, XINT (event->x),
-					  XINT (event->y),
-					  &part, &wx, &wy, 0);
-
-	if (!WINDOWP (window))
-	  {
-	    window = event->frame_or_window;
-	    posn = Qnil;
-	  }
-	else
-	  {
-	    /* It's a click in window window at frame coordinates
-	       event->x/ event->y.  */
-	    struct window *w = XWINDOW (window);
-	
-	    /* Set event coordinates to window-relative coordinates
-	       for constructing the Lisp event below.  */
-	    XSETINT (event->x, wx);
-	    XSETINT (event->y, wy);
-	
-	    if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
-	      {
-		/* Mode line or header line.  Look for a string under
-		   the mouse that may have a `local-map' property.  */
-		Lisp_Object string;
-		int charpos;
-
-		posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
-		string = mode_line_string (w, wx, wy, part, &charpos);
-		if (STRINGP (string))
-		  string_info = Fcons (string, make_number (charpos));
-	      }
-	    else if (part == ON_VERTICAL_BORDER)
-	      posn = Qvertical_line;
-	    else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
-	      {
-		int charpos;
-		Lisp_Object object = marginal_area_string (w, wx, wy, part,
-							   &charpos);
-		posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
-		if (STRINGP (object))
-		  string_info = Fcons (object, make_number (charpos));
-	      }
-	    else
-	      {
-		Lisp_Object object;
-		struct display_pos p;
-		buffer_posn_from_coords (w, &wx, &wy, &object, &p);
-		posn = make_number (CHARPOS (p.pos));
-		if (STRINGP (object))
-		  string_info
-		    = Fcons (object,
-			     make_number (CHARPOS (p.string_pos)));
-	      }
-	  }
-	
-	position
-	  = Fcons (window,
-		   Fcons (posn,
-			  Fcons (Fcons (event->x, event->y),
-				 Fcons (make_number (event->timestamp),
-					(NILP (string_info)
-					 ? Qnil
-					 : Fcons (string_info, Qnil))))));
+	position = make_lispy_position (f, &event->x, &event->y,
+					event->timestamp);
 
 	/* Set double or triple modifiers to indicate the wheel speed.	*/
 	{
@@ -5689,12 +5703,9 @@ make_lispy_event (event)
 
     case DRAG_N_DROP_EVENT:
       {
-	enum window_part part;
 	FRAME_PTR f;
-	Lisp_Object window;
-	Lisp_Object posn;
+	Lisp_Object head, position;
 	Lisp_Object files;
-	int wx, wy;
 
 	/* The frame_or_window field should be a cons of the frame in
 	   which the event occurred and a list of the filenames
@@ -5710,60 +5721,17 @@ make_lispy_event (event)
 	if (! FRAME_LIVE_P (f))
 	  return Qnil;
 
-	window = window_from_coordinates (f, XINT (event->x),
-                                          XINT (event->y),
-					  &part, &wx, &wy, 0);
+	position = make_lispy_position (f, &event->x, &event->y,
+					event->timestamp);
 
-	if (!WINDOWP (window))
-	  {
-	    window = XCAR (event->frame_or_window);
-	    posn = Qnil;
-	  }
-	else
-	  {
-	    /* It's an event in window `window' at frame coordinates
-	       event->x/ event->y.  */
-	    struct window *w = XWINDOW (window);
-
-	    /* Set event coordinates to window-relative coordinates
-	       for constructing the Lisp event below.  */
-	    XSETINT (event->x, wx);
-	    XSETINT (event->y, wy);
-
-	    if (part == ON_MODE_LINE)
-	      posn = Qmode_line;
-	    else if (part == ON_VERTICAL_BORDER)
-	      posn = Qvertical_line;
-	    else if (part == ON_HEADER_LINE)
-	      posn = Qheader_line;
-	    else
-	      {
-		Lisp_Object object;
-		struct display_pos p;
-		buffer_posn_from_coords (w, &wx, &wy, &object, &p);
-		posn = make_number (CHARPOS (p.pos));
-	      }
-	  }
-
-	{
-	  Lisp_Object head, position;
-
-	  position
-	    = Fcons (window,
-		     Fcons (posn,
-			    Fcons (Fcons (event->x, event->y),
-				   Fcons (make_number (event->timestamp),
-					  Qnil))));
-
-	  head = modify_event_symbol (0, event->modifiers,
-				      Qdrag_n_drop, Qnil,
-				      lispy_drag_n_drop_names,
-				      &drag_n_drop_syms, 1);
-	  return Fcons (head,
-			Fcons (position,
-			       Fcons (files,
-				      Qnil)));
-	}
+	head = modify_event_symbol (0, event->modifiers,
+				    Qdrag_n_drop, Qnil,
+				    lispy_drag_n_drop_names,
+				    &drag_n_drop_syms, 1);
+	return Fcons (head,
+		      Fcons (position,
+			     Fcons (files,
+				    Qnil)));
       }
 #endif /* HAVE_MOUSE */
 
@@ -5836,59 +5804,12 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
   /* Or is it an ordinary mouse movement?  */
   else
     {
-      enum window_part area;
-      Lisp_Object window;
-      Lisp_Object posn;
-      int wx, wy;
+      Lisp_Object position;
 
-      if (frame)
-	/* It's in a frame; which window on that frame?  */
-	window = window_from_coordinates (frame, XINT (x), XINT (y),
-					  &area, &wx, &wy, 0);
-      else
-	window = Qnil;
-
-      if (WINDOWP (window))
-	{
-	  struct window *w = XWINDOW (window);
-
-	  /* Set window relative coordinates.  */
-	  XSETINT (x, wx);
-	  XSETINT (y, wy);
-
-	  if (area == ON_MODE_LINE)
-	    posn = Qmode_line;
-	  else if (area == ON_VERTICAL_BORDER)
-	    posn = Qvertical_line;
-	  else if (area == ON_HEADER_LINE)
-	    posn = Qheader_line;
-	  else
-	    {
-	      Lisp_Object object;
-	      struct display_pos p;
-	      buffer_posn_from_coords (w, &wx, &wy, &object, &p);
-	      posn = make_number (CHARPOS (p.pos));
-	    }
-	}
-      else if (frame != 0)
-	{
-	  XSETFRAME (window, frame);
-	  posn = Qnil;
-	}
-      else
-	{
-	  window = Qnil;
-	  posn = Qnil;
-	  XSETFASTINT (x, 0);
-	  XSETFASTINT (y, 0);
-	}
+      position = make_lispy_position (frame, &x, &y, time);
 
       return Fcons (Qmouse_movement,
-		    Fcons (Fcons (window,
-				  Fcons (posn,
-					 Fcons (Fcons (x, y),
-						Fcons (make_number (time),
-						       Qnil)))),
+		    Fcons (position,
 			   Qnil));
     }
 }
@@ -8933,6 +8854,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (EVENT_HAS_PARAMETERS (key))
 	{
 	  Lisp_Object kind;
+	  Lisp_Object string;
 
 	  kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
 	  if (EQ (kind, Qmouse_click))
@@ -9049,11 +8971,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  /* If on a mode line string with a local keymap,
 		     reconsider the key sequence with that keymap.  */
-		  if (CONSP (POSN_STRING (EVENT_START (key))))
+		  if (string = POSN_STRING (EVENT_START (key)),
+		      (CONSP (string) && STRINGP (XCAR (string))))
 		    {
-		      Lisp_Object string, pos, map, map2;
+		      Lisp_Object pos, map, map2;
 
-		      string = POSN_STRING (EVENT_START (key));
 		      pos = XCDR (string);
 		      string = XCAR (string);
                       if (XINT (pos) >= 0
@@ -9072,16 +8994,16 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  goto replay_key;
 		}
-	      else if (CONSP (POSN_STRING (EVENT_START (key)))
-		       && NILP (from_string))
+	      else if (NILP (from_string)
+		       && (string = POSN_STRING (EVENT_START (key)),
+			   (CONSP (string) && STRINGP (XCAR (string)))))
 		{
 		  /* For a click on a string, i.e. overlay string or a
 		     string displayed via the `display' property,
 		     consider `local-map' and `keymap' properties of
 		     that string.  */
-		  Lisp_Object string, pos, map, map2;
+		  Lisp_Object pos, map, map2;
 
-		  string = POSN_STRING (EVENT_START (key));
 		  pos = XCDR (string);
 		  string = XCAR (string);
 		  if (XINT (pos) >= 0

@@ -1,3 +1,331 @@
+2003-12-27  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Handle non-readable directories.
+	(ido-decorations): Add 9th element for non-readable directory.
+	(ido-directory-nonreadable): New dynamic var.
+	(ido-set-current-directory): Set it.
+	(ido-read-buffer, ido-file-internal):
+	(ido-read-file-name, ido-read-directory-name): Let-bind it.
+	(ido-file-name-all-completions1): Return empty list for
+	non-readable directory.
+	(ido-exhibit): Print [Not readable] if directory is not readable.
+	(ido-expand-directory): New defun (based on tiny fix from Karl Chen).
+	(ido-read-file-name, ido-file-internal, ido-read-directory-name):
+	Use it.
+
+2003-12-27  Lars Hansen  <larsh@math.ku.dk>
+
+	* ls-lisp.el (ls-lisp-insert-directory): Add parameter 'string in
+	calls to directory-files-and-attributes and file-attributes.
+	(ls-lisp-format): Remove system dependent handling of user and
+	group id's.
+
+2003-12-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ffap.el (ffap-read-file-or-url): Revert previous change.
+
+2003-12-25  Andreas Schwab  <schwab@suse.de>
+
+	* jka-compr.el (jka-compr-insert-file-contents): Avoid error when
+	file not found.
+
+2003-12-08  Miles Bader  <miles@gnu.org>
+
+	* dired.el (dired-between-files): Always use dired-move-to-filename,
+	which is more robust in non-english locales.
+
+2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* vc.el (vc-dired-purge): Avoid error from `kill-line'.
+
+2003-12-24  Andreas Schwab  <schwab@suse.de>
+
+	* shell.el (shell-file-name-quote-list): Add backslash.
+
+	* comint.el (comint-quote-filename): Correctly handle backslash
+	in comint-file-name-quote-list.
+
+2003-12-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-default-coding-systems): Call
+	ucs-set-table-for-input for all buffers that don't have local
+	value of buffer-file-coding-system.
+
+	* international/ucs-tables.el (ucs-set-table-for-input): If
+	translation-table-for-encode is a symbol, get its
+	translation-table property.
+
+2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ffap.el (ffap-read-file-or-url): Eliminate reliance of the call
+	to `completing-read' on a recently fixed bug.
+
+	* fringe.el (fringe-query-style): Suggest `?' in minibuffer prompt,
+	instead of SPACE, to get the list of possible fringe modes.  SPACE
+	only works if both `partial-completion-mode' and
+	`completion-auto-help' are nil.
+
+	* complete.el (PC-is-complete-p): delete.
+	(PC-do-completion): Replace all calls to `PC-is-complete-p' with
+	calls to `test-completion'.
+
+2003-12-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use speed-bar-edit-line
+	to edit values when there are no children.
+
+	* gdb-ui.el (gdba, gdb-assembler-mode): Call the mode "Machine" as
+	a mode called "Assembler" already exists.
+	(gdb-use-colon-colon-notation, gdb-show-changed-values): New
+	options.
+	(gud-watch): Use format option. Remove font properties from
+	string.
+	(gdb-var-create-handler, gdb-var-list-children-handler): Don't
+	bother about properties as there are none.
+	(gdb-var-create-handler, gdb-var-list-children-handler)
+	(gdb-var-update-handler): Call gdb-var-evaluate-expression-handler
+	with two arguments.
+	(gdb-var-evaluate-expression-handler, gdb-post-prompt): Let
+	speedbar show value changes with a different font.
+	(gdb-edit-value): New defun.
+	(gdb-clear-partial-output, gdb-clear-inferior-io)
+	(def-gdb-auto-update-handler): Use erase-buffer.
+	(gdb-frame-handler): Display watch expressions in
+	FUNCTION::VARIABLE format if required.
+
+2003-12-23  John Paul Wallington  <jpw@gnu.org>
+
+	* info.el (Info-unescape-quotes, Info-split-parameter-string)
+	(Info-goto-emacs-command-node): Doc fixes.
+
+2003-12-12  Jesper Harder <harder@ifa.au.dk>
+
+	* cus-edit.el (custom-add-parent-links): Define "many".
+
+2003-12-08  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-child-value-get, widget-child-value-inline)
+	(widget-child-validate, widget-type-value-create)
+	(widget-type-default-get, widget-type-match): New functions.
+	(lazy): New widget.
+	(menu-choice, checklist, radio-button-choice, editable-list)
+	(group, documentation-string): Removed redundant (per 2003-10-25
+	change) calls to `widget-children-value-delete'.
+	(widget-choice-value-get, widget-choice-value-inline): Removed
+	functions. 
+	(menu-choice): Updated widget.
+
+2003-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Register "microsoft-cp1251" in
+	ctext-non-standard-encodings-alist.
+	("Bulgarian"): Add ctext-non-standard-encodings.
+	("Belarusian"): Likewise.
+
+	* international/mule-conf.el (compound-text-with-extensions):
+	Change the type to 2 (iso-2022 base).
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Change the format.
+	(ctext-non-standard-encodings): New variable.
+	(ctext-post-read-conversion): Fully re-written.
+	(ctext-non-standard-designations-alist): Delete it.
+	(ctext-non-standard-encodings-table): New function.
+	(ctext-pre-write-conversion): Fully re-written.
+
+2003-11-30  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-add-parent-links): Add documentation links
+	for parent, if the item has none of its own.
+
+2003-11-30  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-aux.el (dired-do-query-replace-regexp):
+	Report files visited read-only.
+
+2003-11-30  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-compare-directories): New command.
+	(dired-file-set-difference, dired-files-attributes): New functions.
+
+2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+	Version 2.0.38 of Tramp released.
+
+	* net/tramp.el (tramp-chunksize): Extend docstring.  Suggested by
+	Charles Curley <charlescurley@charlescurley.com>.
+	(tramp-multi-connection-function-alist): Add ssht entry which adds
+	"-e none -t -t" to the list of ssh args.  Suggested by Adrian
+	Aichner.
+	(tramp-get-method-parameter): New function to retrieve a method
+	parameter.  This allows for omission of method parameters.
+	Callers adjusted.
+
+2003-11-30  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el: Add new optional parameter ID-FORMAT to
+	`file-attributes'.  Calls of `file-attributes' won't use this
+	parameter for backward compatibility reasons.
+	(tramp-perl-file-attributes): Add a new parameter to Perl script
+	in order to handle uid/gid as strings, if desired.
+	(tramp-handle-file-truename, tramp-handle-file-symlink-p): Apply
+	`file-attributes' instead of `tramp-handle-file-attributes' in
+	order to make the function more general.
+	(tramp-handle-file-attributes): Replace proprietary optional
+	parameter NONNUMERIC by the recently (Emacs 21.4) introduced
+	ID-FORMAT.
+	(tramp-handle-file-attributes-with-perl): Handle parameter
+	NONNUMERIC if set. This wasn't done in the past.
+	(tramp-post-connection): Apply second parameter "$2" if
+	`tramp-remote-perl' is called.
+
+	* net/tramp-smb.el (tramp-smb-handle-delete-file): Correct
+	cut'n'waste error (`filename' instead of `directory').
+	(tramp-smb-handle-directory-files-and-attributes)
+	(tramp-smb-handle-file-attributes): Add recently (Emacs 21.4)
+	introduced parameter ID-FORMAT.
+	(tramp-smb-handle-make-directory-internal): Correct cut'n'waste
+	error (`directory' instead of `ldir').
+
+	* net/tramp-vc.el (tramp-handle-vc-user-login-name): Check if
+	`file-attributes' has a second parameter.  If yes, apply it with
+	value "'integer".  Otherwise, don't use that parameter (default is
+	integer format).
+
+
+2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.el (help-map): Bind `display-local-help' to `C-h .'.
+	(help-for-help): Add `C-h .' to the listed Help options.
+	Remove trailing whitespace.
+
+	* help-at-pt.el: New file.
+
+2003-11-30  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* subr.el (noreturn, 1value): New macros for test coverage.  See
+	`testcover.el'.
+
+	* emacs-lisp/edebug.el: Add def-edebug-spec for `noreturn' and `1value'.
+
+	* emacs-lisp/testcover.el (testcover-reinstrument): Special case
+	for macro `1value'.
+	(testcover-1value): New function.  Checks that a 1value form
+	actually returns only one value.  Requested by RMS.
+
+2003-11-29  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gud-watch, gdb-var-create-handler)
+	(gdb-var-list-children, gdb-var-list-children-handler)
+	(gdb-var-update-handler, gdb-var-delete): Add server prefix to the
+	gdb commands that use mi to keep them out of the command history.
+
+2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add use-file-dialog.
+
+2003-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (posn-object-x-y): New defun.
+
+2003-11-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (number-sequence): Improve handling of floating point
+	arguments (suggested by Kim Storm).  Allow negative arguments.
+
+2003-11-26  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (standard-display-european-internal):
+	Cancel the standard-display-table setting for ` and '.
+
+2003-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-use-filename-at-point, ido-use-url-at-point):
+	New defcustoms to add ffap-like functionality to ido.
+	(ido-saved-vc-hb): Rename from ido-saved-vc-mt.  Uses changed.
+	(ido-no-final-slash): New defun.
+	(ido-make-prompt, ido-file-internal, ido-toggle-vc)
+	(ido-read-file-name): ): Toggle VC checking via
+	vc-handled-backends instead of vc-master-templates.
+	(ido-file-internal): Handle ido-use-url-at-point and
+	ido-use-filename-at-point via code borrowed from ffap-guesser.
+	Handle new ido-exit code ffap.
+	(ido-sort-list): Ignore final slash when sorting file names.
+
+2003-11-25  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--standard-movement-commands):
+	Add forward-sentence and backward-sentence.
+
+2003-11-25  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-read-buffer,iswitchb-exit-minibuffer):
+	iswitchb-exit is set to 'usefirst when user selects buffer at head
+	of list using RET.  (Selecting buffers at the head of the list was
+	broken if the substring was also a complete buffername.)
+
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/compile.el (grep-command, grep-use-null-device)
+	(grep-find-command, grep-tree-command, grep-tree-files-aliases)
+	(grep-tree-ignore-case, grep-tree-ignore-CVS-directories)
+	(grep-regexp-alist, grep-program, find-program)
+	(grep-find-use-xargs, grep-history, grep-find-history)
+	(grep-process-setup, grep-compute-defaults)
+	(grep-default-command, grep, grep-tag-default, grep-find)
+	(grep-expand-command-macros, grep-tree-last-regexp)
+	(grep-tree-last-files, grep-tree): Move grep variables, functions
+	and commands to new file grep.el.
+	(compilation-mode-map): Remove grep commands from Compile sub-menu.
+	(compilation-process-setup-function): Doc fix.
+	(compilation-highlight-regexp, compilation-highlight-overlay): New
+	defvars used for highlighting current compile error in source buffer.
+	(compile-internal): New optional args HIGHLIGHT-REGEXP and
+	LOCAL-MAP which overrides compilation-highlight-regexp and
+	compilation-mode-map for this compilation.
+	Delay calling compilation-set-window-height until after running
+	compilation-process-setup-function so it can buffer-local override
+	compilation-window-height.
+	Check buffer-local value of compilation-scroll-output.
+	(compilation-set-window-height): Use buffer-local value of
+	compilation-window-height.
+	(compilation-revert-buffer): Don't pass (undefined)
+	preserve-modes arg to revert-buffer.
+	(next-error-no-select, previous-error-no-select): New commands.
+	(compilation-goto-locus): Temporarily highlight current match in
+	source buffer using compilation-highlight-regexp.
+
+	* progmodes/grep.el: New file with grep code from compile.el.
+	(grep): New defcustom group.
+	(grep-window-height): New defcustom, like compilation-window-height.
+	(grep-auto-highlight): New defcustom, like compile-auto-highlight.
+	(grep-scroll-output): New defcustom, like compilation-scroll-output.
+	(grep-command, grep-use-null-device, grep-find-command)
+	(grep-tree-files-aliases, grep-tree-ignore-case)
+	(grep-tree-ignore-CVS-directories): Move to grep custom group.
+	(grep-setup-hook): New hook variable.
+	(grep-mode-map): New keymap for grep commands.  Add Grep menu.
+	(grep-last-buffer): New defvar, override compilation-last-buffer.
+	(grep): Add optional arg HIGHLIGHT-REGEXP.  Doc fix.
+	Call compile-internal with args highlight-regexp and grep-mode-map.
+
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (event-start, event-end): Doc fix.
+	(posn-window, posn-x-y, posn-timestamp): Simplify doc.
+	(posn-area, posn-actual-col-row, posn-object): New defuns.
+	(posn-col-row): Simplify doc.  Rewrite to use cond.
+	(posn-point): Also return buffer position for events outside text
+	area (that info is now present in the event position).
+
+	* mouse.el: Bind mouse-1 on left-fringe and right-fringe to
+	mouse-set-point so that hscroll still works now that clicks on
+	fringes generate specific mouse events.
+	(mouse-set-point): Note that it now works in fringes and margins
+	too due to new semantics of posn-point in fringes and margins.
+
+	* gdb-ui.el (gdb-mouse-toggle-breakpoint): New defun.
+	(gdba): Bind it to [left-margin mouse-1] and [left-fringe mouse-1].
+
 2003-11-20  Kim F. Storm  <storm@cua.dk>
 
 	* gdb-ui.el (gud-gdba-command-name): Find gdb command via PATH.

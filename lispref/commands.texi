@@ -1096,7 +1096,7 @@ arguments to the key-binding lookup and modification functions.
 
 Emacs supports four kinds of mouse events: click events, drag events,
 button-down events, and motion events.  All mouse events are represented
-as lists.  The @acronym{CAR} of the list is the event type; this says which
+as lists.  The @sc{car} of the list is the event type; this says which
 mouse button was involved, and which modifier keys were used with it.
 The event type can also distinguish double or triple button presses
 (@pxref{Repeat Events}).  The rest of the list elements give position
@@ -1119,26 +1119,12 @@ binding of the key sequence.
 @cindex mouse click event
 
 When the user presses a mouse button and releases it at the same
-location, that generates a @dfn{click} event.  Mouse click events have
-this form:
+location, that generates a @dfn{click} event.  All mouse click event
+share the same format:
 
 @example
-(@var{event-type}
- (@var{window} @var{buffer-pos} (@var{x} . @var{y})
-  @var{timestamp})
- @var{click-count})
+(@var{event-type} @var{position} @var{click-count})
 @end example
-
-or, for clicks on strings in the mode line, header line or marginal
-areas:
-
-@example
-(@var{event-type}
- (@var{window} @var{buffer-pos} (@var{x} . @var{y}) @var{timestamp} (@var{string} . @var{string-pos})
- @var{click-count})
-@end example
-
-Here is what the elements normally mean:
 
 @table @asis
 @item @var{event-type}
@@ -1155,21 +1141,50 @@ describe events by their types; thus, if there is a key binding for
 @code{mouse-1}, that binding would apply to all events whose
 @var{event-type} is @code{mouse-1}.
 
+@item @var{position}
+This is the position where the mouse click occurred.  The actual
+format of @var{position} depends on what part of a window was clicked
+on.  The various formats are described below.
+
+@item @var{click-count}
+This is the number of rapid repeated presses so far of the same mouse
+button.  @xref{Repeat Events}.
+@end table
+
+For mouse click events in the text area, mode line, header line, or in
+the marginal areas, @var{position} has this form:
+
+@example
+(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
+ @var{object} @var{text-pos} (@var{col} . @var{row}) (@var{dx} . @var{dy}))
+@end example
+
+@table @asis
 @item @var{window}
 This is the window in which the click occurred.
+
+@item @var{pos-or-area}
+This is the buffer position of the character clicked on in the text
+area, or if clicked outside the text area, it is the window area in
+which the click occurred.  It is one of the symbols @code{mode-line},
+@code{header-line}, @code{vertical-line}, @code{left-margin},
+@code{right-margin}, @code{left-fringe}, or @code{right-fringe}.
 
 @item @var{x}, @var{y}
 These are the pixel-denominated coordinates of the click, relative to
 the top left corner of @var{window}, which is @code{(0 . 0)}.
-
-@item @var{buffer-pos}
-This is the buffer position of the character clicked on.
+For the mode or header line, @var{y} does not have meaningful data.
+For the vertical line, @var{x} does not have meaningful data.
 
 @item @var{timestamp}
-This is the time at which the event occurred, in milliseconds.  (Since
-this value wraps around the entire range of Emacs Lisp integers in about
-five hours, it is useful only for relating the times of nearby
-events.)
+This is the time at which the event occurred, in milliseconds.
+
+@item @var{object}
+This is the object on which the click occurred.  It is either
+@code{nil} if there is no string property or image at the position
+clicked on, or it has the form (@var{string} . @var{string-pos}) when
+there is a string-type text property at the click position, or it is
+an image object as returned by @code{find-image} if click was in an image.
 
 @item @var{string}
 This is the string on which the click occurred, including any
@@ -1179,29 +1194,53 @@ properties.
 This is the position in the string on which the click occurred,
 relevant if properties at the click need to be looked up.
 
-@item @var{click-count}
-This is the number of rapid repeated presses so far of the same mouse
-button.  @xref{Repeat Events}.
+@item @var{text-pos}
+For clicks on a marginal area or on a fringe, this is the buffer
+position of the first visible character in the corresponding line in
+the window.  For other events, it is the current buffer position in
+the window.
+
+@item @var{col}, @var{row}
+These are the actual coordinates of the glyph under the @var{x},
+@var{y} position, possibly padded with default character width
+glyphs if @var{x} is beyond the last glyph on the line.
+
+@item @var{dx}, @var{dy}
+These are the pixel-denominated coordinates of the click, relative to
+the top left corner of @var{object}, which is @code{(0 . 0)}.  If
+@var{object} is @code{nil}, the coordinates are relative to the top
+left corner of the character glyph clicked on.
 @end table
 
-The meanings of @var{buffer-pos}, @var{x} and @var{y} are somewhat
-different when the event location is in a special part of the screen,
-such as the mode line or a scroll bar.
+For mouse clicks on a scroll-bar, @var{position} has this form:
 
-If the location is in a scroll bar, then @var{buffer-pos} is the symbol
-@code{vertical-scroll-bar} or @code{horizontal-scroll-bar}, and the pair
-@code{(@var{x} . @var{y})} is replaced with a pair @code{(@var{portion}
-. @var{whole})}, where @var{portion} is the distance of the click from
-the top or left end of the scroll bar, and @var{whole} is the length of
-the entire scroll bar.
+@example
+(@var{window} @var{area} (@var{portion} . @var{whole}) @var{timestamp} @var{part})
+@end example
 
-If the position is on a mode line, the vertical line separating
-@var{window} from its neighbor to the right, or in a marginal area,
-then @var{buffer-pos} is the symbol @code{mode-line},
-@code{header-line}, @code{vertical-line}, @code{left-margin}, or
-@code{right-margin}.  For the mode line, @var{y} does not have
-meaningful data.  For the vertical line, @var{x} does not have
-meaningful data.
+@table @asis
+@item @var{window}
+This is the window whose scroll-bar was clicked on.
+
+@item @var{area}
+This is the scroll bar where the click occurred.  It is one of the
+symbols @code{vertical-scroll-bar} or @code{horizontal-scroll-bar}.
+
+@item @var{portion}
+This is the distance of the click from the top or left end of
+the scroll bar.
+
+@item @var{whole}
+This is the length of the entire scroll bar.
+
+@item @var{timestamp}
+This is the time at which the event occurred, in milliseconds.
+
+@item @var{part}
+This is the part of the scroll-bar which was clicked on.  It is one
+of the symbols @code{above-handle}, @code{handle}, @code{below-handle},
+@code{up}, @code{down}, @code{top}, @code{bottom}, and @code{end-scroll}.
+@end table
 
 In one special case, @var{buffer-pos} is a list containing a symbol (one
 of the symbols listed above) instead of just the symbol.  This happens
@@ -1521,7 +1560,7 @@ into another window.  That produces a pair of events like these:
 key binding purposes.  For a keyboard event, the event type equals the
 event value; thus, the event type for a character is the character, and
 the event type for a function key symbol is the symbol itself.  For
-events that are lists, the event type is the symbol in the @acronym{CAR} of
+events that are lists, the event type is the symbol in the @sc{car} of
 the list.  Thus, the event type is always a symbol or a character.
 
   Two events of the same type are equivalent where key bindings are
@@ -1629,7 +1668,8 @@ a mouse button or motion event.
 mouse-button event, as a list of this form:
 
 @example
-(@var{window} @var{buffer-position} (@var{x} . @var{y}) @var{timestamp})
+(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
+ @var{object} @var{text-pos} (@var{col} . @var{row}) (@var{dx} . @var{dy}))
 @end example
 
 @defun event-start event
@@ -1650,15 +1690,24 @@ position such events have.
 @end defun
 
 @cindex mouse position list, accessing
-  These five functions take a position list as described above, and
+  These seven functions take a position list as described above, and
 return various parts of it.
 
 @defun posn-window position
 Return the window that @var{position} is in.
 @end defun
 
+@defun posn-area position
+Return the window area recorded in @var{position}.  It returns @code{nil}
+when the event occurred in the text area of the window; otherwise, it
+is a symbol identifying the area in which the the event occurred.
+@end defun
+
 @defun posn-point position
-Return the buffer position in @var{position}.  This is an integer.
+Return the buffer position in @var{position}.  When the event occurred
+in the text area of the window, in a marginal area, or on a fringe,
+this is an integer specifying a buffer position.  Otherwise, the value
+is undefined.
 @end defun
 
 @defun posn-x-y position
@@ -1667,15 +1716,36 @@ cell @code{(@var{x} . @var{y})}.
 @end defun
 
 @defun posn-col-row position
-Return the row and column (in units of characters) of @var{position}, as
-a cons cell @code{(@var{col} . @var{row})}.  These are computed from the
-@var{x} and @var{y} values actually found in @var{position}.
+Return the row and column (in units of frame default characters) of
+@var{position}, as a cons cell @code{(@var{col} . @var{row})}.  These
+are computed from the @var{x} and @var{y} values actually found in
+@var{position}.
+@end defun
+
+@defun posn-actual-col-row position
+Return the actual row and column in @var{position}, as a cons cell
+@code{(@var{col} . @var{row})}.  The values are the actual row number
+in the window, and the actual character number in that row.  Return
+@code{nil} if @var{position} does not include the actual positions; in that
+case, @code{posn-col-row} can be used to get approximate values.
+@end defun
+
+@defun posn-object position
+Return the object in @var{position}, either @code{nil}, a cons
+cell @code{(@var{string} . @var{string-pos})}, or an image
+@code{(image ...)}.
+@end defun
+
+@defun posn-object-x-y position
+Return the pixel-based x and y coordinates relative to the upper left
+corner of the object in @var{position}, as a cons cell @code{(@var{dx} . @var{dy})}.
 @end defun
 
 @cindex mouse event, timestamp
 @cindex timestamp of a mouse event
-@defun posn-timestamp position
-Return the timestamp in @var{position}.
+@defun posn-timestamp
+Return the timestamp in @var{position}.  This is the time at which the
+event occurred, in milliseconds.
 @end defun
 
   These functions are useful for decoding scroll bar events.
@@ -2513,7 +2583,7 @@ This function returns the numeric meaning of a valid raw prefix argument
 value, @var{arg}.  The argument may be a symbol, a number, or a list.
 If it is @code{nil}, the value 1 is returned; if it is @code{-}, the
 value @minus{}1 is returned; if it is a number, that number is returned;
-if it is a list, the @acronym{CAR} of that list (which should be a number) is
+if it is a list, the @sc{car} of that list (which should be a number) is
 returned.
 @end defun
 

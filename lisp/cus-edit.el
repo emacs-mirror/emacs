@@ -1956,7 +1956,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 	(type (widget-type widget))
 	(buttons (widget-get widget :buttons))
 	(start (point))
-	found)
+	(parents nil))
     (insert (or initial-string "Parent groups:"))
     (mapatoms (lambda (symbol)
 		(let ((entry (assq name (get symbol 'custom-group))))
@@ -1967,12 +1967,30 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 			   :tag (custom-unlispify-tag-name symbol)
 			   symbol)
 			  buttons)
-		    (setq found t)))))
-    (widget-put widget :buttons buttons)
-    (if found
-	(insert "\n")
+		    (setq parents (cons symbol parents))))))
+    (and (null (get symbol 'custom-links)) ;No links of its own.
+         (= (length parents) 1)         ;A single parent.
+         (let* ((links (get (car parents) 'custom-links))
+                (many (> (length links) 2)))
+           (when links
+             (insert "\nParent documentation: ")
+             (while links
+               (push (widget-create-child-and-convert widget (car links))
+                     buttons)
+               (setq links (cdr links))
+               (cond ((null links)
+                      (insert ".\n"))
+                     ((null (cdr links))
+                      (if many
+                          (insert ", and ")
+                        (insert " and ")))
+                     (t
+                      (insert ", ")))))))
+    (if parents
+        (insert "\n")
       (delete-region start (point)))
-    found))
+    (widget-put widget :buttons buttons)
+    parents))
 
 ;;; The `custom-comment' Widget.
 

@@ -413,7 +413,8 @@ static unsigned short screen_virtual_offset = 0;
 /* A flag to control how to display unibyte 8-bit characters.  */
 extern int unibyte_display_via_language_environment;
 
-Lisp_Object Qbar, Qhbar;
+extern Lisp_Object Qcursor_type;
+extern Lisp_Object Qbar, Qhbar;
 
 /* The screen colors of the current frame, which serve as the default
    colors for newly-created frames.  */
@@ -1992,8 +1993,6 @@ IT_update_end (struct frame *f)
 {
   FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
 }
-
-Lisp_Object Qcursor_type;
 
 static void
 IT_frame_up_to_date (struct frame *f)
@@ -5267,18 +5266,11 @@ syms_of_msdos ()
 #ifndef HAVE_X_WINDOWS
 
   /* The following two are from xfns.c:  */
-  Qbar = intern ("bar");
-  staticpro (&Qbar);
-  Qhbar = intern ("hbar");
-  staticpro (&Qhbar);
-  Qcursor_type = intern ("cursor-type");
-  staticpro (&Qcursor_type);
   Qreverse = intern ("reverse");
   staticpro (&Qreverse);
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
-
 This variable is used only by MSDOS terminals.  */);
   Vdos_unsupported_char_glyph = '\177';
 

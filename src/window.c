@@ -632,8 +632,7 @@ coordinates_in_window (w, x, y)
      scroll bars.  */
 
   if (WINDOW_WANTS_MODELINE_P (w)
-      && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w)
-      && *y < bottom_y)
+      && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
     {
       part = ON_MODE_LINE;
 
@@ -662,7 +661,6 @@ coordinates_in_window (w, x, y)
     }
 
   if (WINDOW_WANTS_HEADER_LINE_P (w)
-      && *y >= top_y
       && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
     {
       part = ON_HEADER_LINE;
@@ -708,7 +706,7 @@ coordinates_in_window (w, x, y)
 	      ? (*x >= left_x + WINDOW_LEFT_FRINGE_WIDTH (w))
 	      : (*x < left_x + lmargin_width)))
 	{
-	  *x -= x0;
+	  *x -= left_x;
 	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
 	    *x -= WINDOW_LEFT_FRINGE_WIDTH (w);
 	  *y -= top_y;
@@ -1831,6 +1829,7 @@ enum window_loop
   DELETE_BUFFER_WINDOWS,	/* Arg is buffer */
   GET_LARGEST_WINDOW,
   UNSHOW_BUFFER,		/* Arg is buffer */
+  REDISPLAY_BUFFER_WINDOWS,	/* Arg is buffer */
   CHECK_ALL_WINDOWS
 };
 
@@ -2026,6 +2025,14 @@ window_loop (type, obj, mini, frames)
 		    if (EQ (window, selected_window))
 		      Fset_buffer (w->buffer);
 		  }
+	      }
+	    break;
+
+	  case REDISPLAY_BUFFER_WINDOWS:
+	    if (EQ (w->buffer, obj))
+	      {
+		mark_window_display_accurate (window, 0);
+		best_window = window;
 	      }
 	    break;
 
@@ -3429,6 +3436,46 @@ displayed.  */)
   Fset_window_buffer (window, buffer, Qnil);
   return display_buffer_1 (window);
 }
+
+
+DEFUN ("force-window-update", Fforce_window_update, Sforce_window_update,
+       0, 1, 0,
+       doc: /* Force redisplay of all windows.
+If optional arg OBJECT is a window, force redisplay of that window only.
+If OBJECT is a buffer or buffer name, force redisplay of all windows 
+displaying that buffer.  */)
+     (object)
+     Lisp_Object object;
+{
+  if (NILP (object))
+    {
+      windows_or_buffers_changed++;
+      return Qt;
+    }
+
+  if (WINDOWP (object))
+    {
+      mark_window_display_accurate (object, 0);
+      return Qt;
+    }
+    
+  if (STRINGP (object))
+    object = Fget_buffer (object);
+  if (BUFFERP (object) && !NILP (XBUFFER (object)->name))
+    {
+      /* Walk all windows looking for buffer, and force update
+	 of each of those windows.  */
+
+      object = window_loop (REDISPLAY_BUFFER_WINDOWS, object, 0, Qvisible);
+      return NILP (object) ? Qnil : Qt;
+    }
+
+  /* If nothing suitable was found, just return.
+     We could signal an error, but this feature will typically be used
+     asynchronously in timers or process sentinels, so we don't.  */
+  return Qnil;
+}
+
 
 void
 temp_output_buffer_show (buf)
@@ -5846,11 +5893,11 @@ usage: (save-window-excursion BODY ...)  */)
 DEFUN ("set-window-margins", Fset_window_margins, Sset_window_margins,
        2, 3, 0,
        doc: /* Set width of marginal areas of window WINDOW.
-If window is nil, set margins of the currently selected window.
-First parameter LEFT-WIDTH specifies the number of character
-cells to reserve for the left marginal area.  Second parameter
-RIGHT-WIDTH does the same for the right marginal area.
-A nil width parameter means no margin.  */)
+If WINDOW is nil, set margins of the currently selected window.
+Second arg LEFT-WIDTH specifies the number of character cells to
+reserve for the left marginal area.  Optional third arg RIGHT-WIDTH
+does the same for the right marginal area.  A nil width parameter
+means no margin.  */)
      (window, left, right)
      Lisp_Object window, left, right;
 {
@@ -5912,17 +5959,14 @@ as nil.  */)
 DEFUN ("set-window-fringes", Fset_window_fringes, Sset_window_fringes,
        2, 4, 0,
        doc: /* Set the fringe widths of window WINDOW.
-
 If WINDOW is nil, set the fringe widths of the currently selected
 window.
-
-The second parameter LEFT-WIDTH specifies the number of pixels to
-reserve for the left fringe.  The third parameter RIGHT-WIDTH
-specifies the right fringe width.  If a fringe width parameter is nil,
-that means to use the frame's default fringe width.  Default fringe
-widths can be set with the command `set-fringe-style'.
-
-If the fourth parameter OUTSIDE-MARGINS is non-nil, draw the fringes
+Second arg LEFT-WIDTH specifies the number of pixels to reserve for
+the left fringe.  Optional third arg RIGHT-WIDTH specifies the right
+fringe width.  If a fringe width arg is nil, that means to use the
+frame's default fringe width.  Default fringe widths can be set with
+the command `set-fringe-style'.
+If optional fourth arg OUTSIDE-MARGINS is non-nil, draw the fringes
 outside of the display margins.  By default, fringes are drawn between
 display marginal areas and the text area.  */)
      (window, left, right, outside_margins)
@@ -6607,6 +6651,7 @@ This variable automatically becomes buffer-local when set.  */);
   defsubr (&Sspecial_display_p);
   defsubr (&Ssame_window_p);
   defsubr (&Sdisplay_buffer);
+  defsubr (&Sforce_window_update);
   defsubr (&Ssplit_window);
   defsubr (&Senlarge_window);
   defsubr (&Sshrink_window);

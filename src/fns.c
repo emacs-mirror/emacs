@@ -59,6 +59,10 @@ Boston, MA 02111-1307, USA.  */
    asked by mouse commands.  */
 int use_dialog_box;
 
+/* Nonzero enables use of a file dialog for file name
+   questions asked by mouse commands.  */
+int use_file_dialog;
+
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
@@ -91,7 +95,7 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
        doc: /* Return a pseudo-random number.
 All integers representable in Lisp are equally likely.
-  On most systems, this is 28 bits' worth.
+  On most systems, this is 29 bits' worth.
 With positive integer argument N, return random number in interval [0,N).
 With argument t, set the random number seed from the current time and pid. */)
      (n)
@@ -1095,8 +1099,14 @@ string_make_unibyte (string)
 DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
        1, 1, 0,
        doc: /* Return the multibyte equivalent of STRING.
-The function `unibyte-char-to-multibyte' is used to convert
-each unibyte character to a multibyte character. */)
+If STRING is unibyte and contains non-ASCII characters, the function
+`unibyte-char-to-multibyte' is used to convert each unibyte character
+to a multibyte character.  In this case, the returned string is a
+newly created string with no text properties.  If STRING is multibyte
+or entirely ASCII, it is returned unchanged.  In particular, when
+STRING is unibyte and entirely ASCII, the returned string is unibyte.
+\(When the characters are all ASCII, Emacs primitives will treat the
+string the same way whether it is unibyte or multibyte.)  */)
      (string)
      Lisp_Object string;
 {
@@ -1494,7 +1504,7 @@ whose car is ELT.  */)
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the car of an element of LIST.
-The value is actually the element of LIST whose car is KEY.
+The value is actually the first element of LIST whose car is KEY.
 Elements of LIST that are not conses are ignored.  */)
      (key, list)
      Lisp_Object key, list;
@@ -1551,7 +1561,7 @@ assq_no_quit (key, list)
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
-The value is actually the element of LIST whose car equals KEY.  */)
+The value is actually the first element of LIST whose car equals KEY.  */)
        (key, list)
      Lisp_Object key, list;
 {
@@ -1595,7 +1605,7 @@ The value is actually the element of LIST whose car equals KEY.  */)
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
-The value is actually the element of LIST whose cdr is KEY.  */)
+The value is actually the first element of LIST whose cdr is KEY.  */)
      (key, list)
      register Lisp_Object key;
      Lisp_Object list;
@@ -1637,7 +1647,7 @@ The value is actually the element of LIST whose cdr is KEY.  */)
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the cdr of an element of LIST.
-The value is actually the element of LIST whose cdr equals KEY.  */)
+The value is actually the first element of LIST whose cdr equals KEY.  */)
      (key, list)
      Lisp_Object key, list;
 {
@@ -1840,7 +1850,7 @@ to be sure of changing the value of `foo'.  */)
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
        doc: /* Reverse LIST by modifying cdr pointers.
-Returns the beginning of the reversed list.  */)
+Return the reversed list.  */)
      (list)
      Lisp_Object list;
 {
@@ -1863,7 +1873,7 @@ Returns the beginning of the reversed list.  */)
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-       doc: /* Reverse LIST, copying.  Returns the beginning of the reversed list.
+       doc: /* Reverse LIST, copying.  Return the reversed list.
 See also the function `nreverse', which is used more often.  */)
      (list)
      Lisp_Object list;
@@ -2192,8 +2202,8 @@ internal_equal (o1, o2, depth)
 
     case Lisp_Vectorlike:
       {
-	register int i, size;
-	size = XVECTOR (o1)->size;
+	register int i;
+	EMACS_INT size = XVECTOR (o1)->size;
 	/* Pseudovectors have the type encoded in the size field, so this test
 	   actually checks that the objects have the same type as well as the
 	   same size.  */
@@ -2315,8 +2325,15 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
       charval = (! NILP (item) ? -1 : 0);
-      for (index = 0; index < size_in_chars; index++)
+      for (index = 0; index < size_in_chars - 1; index++)
 	p[index] = charval;
+      if (index < size_in_chars)
+	{
+	  /* Mask out bits beyond the vector size.  */
+	  if (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)
+	    charval &= (1 << (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)) - 1;
+	  p[index] = charval;
+	}
     }
   else
     {
@@ -2369,7 +2386,7 @@ then the actual applicable value is inherited from the parent char-table
 DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
        2, 2, 0,
        doc: /* Set the parent char-table of CHAR-TABLE to PARENT.
-PARENT must be either nil or another char-table.  */)
+Return PARENT.  PARENT must be either nil or another char-table.  */)
      (char_table, parent)
      Lisp_Object char_table, parent;
 {
@@ -2471,9 +2488,9 @@ a character set name, or a character code.  */)
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
        3, 3, 0,
        doc: /* Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
-RANGE should be t (for all characters), nil (for the default value)
-a vector which identifies a character set or a row of a character set,
-a coding system, or a character code.  */)
+RANGE should be t (for all characters), nil (for the default value),
+a character set, a vector which identifies a character set, a row of a
+character set, or a character code.  Return VALUE.  */)
      (char_table, range, value)
      Lisp_Object char_table, range, value;
 {
@@ -5630,6 +5647,13 @@ Used by `featurep' and `require', and altered by `provide'.  */);
 This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
 invoked by mouse clicks and mouse menu items.  */);
   use_dialog_box = 1;
+
+  DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,
+    doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
+This applies to commands from menus and tool bar buttons.  The value of
+`use-dialog-box' takes precedence over this variable, so a file dialog is only
+used if both `use-dialog-box' and this variable are non-nil.  */);
+  use_file_dialog = 1;
 
   defsubr (&Sidentity);
   defsubr (&Srandom);

@@ -1,3 +1,61 @@
+2003-12-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* building.texi (Watch Expressions): Update.
+	(Commands of GUD): Include use of toolbar + breakpoints set from
+	fringe/margin.
+
+2003-12-03  Andre Spiegel  <spiegel@gnu.org>
+
+	* files.texi: Say how to disable VC.  Suggested by Alan Mackenzie
+	<acm@muc.de>.
+
+2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+	Tramp version 2.0.38 released.
+
+	* tramp.texi (Remote shell setup): Warn of environment variables
+	FRUMPLE if user frumple exists.  Suggested by Sven Gabriel
+	<sven.gabriel@imk.fzk.de>.
+	(Configuration): Tramp now chooses base64/uuencode
+	automatically.  Update wording accordingly.
+	(Top): More description for the `Default Method' menu entry.
+	(Default Method): Use @code, not @var, for Lisp variables.
+	(Default Method): New subsection `Which method is the right one
+	for me?'  Suggested by Christian Kirsch.
+	(Configuration): Pointer to new subsection added.
+	(Default Method): Too many "use" in one sentence.
+	Rephrase.  Reported by Christian Kirsch.
+	(Filename Syntax): Old `su' example is probably a left-over from
+	the sm/su method naming.  Replace with `ssh', instead.
+	(External transfer methods, Auto-save and Backup):
+	Typo fixes.
+
+2003-11-02  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (all): Harmonize all occurences of @tramp{}.
+	(Top): Mention japanese manual only if flag `jamanual' is set.
+	Insert section `Japanese manual' in menu.
+
+2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Added use-file-dialog.
+
+2003-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* eshell.texi (Known Problems): Add doc item.
+
+2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* ack.texi: Note that Alan Mackenzie contributed the AWK support
+	in CC Mode.
+
+2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Updated for CC Mode 5.30.
+
+	Note: Please refrain from doing purely cosmetic changes like
+	removing trailing whitespace in this manual; it clobbers cvs
+	merging for no good reason.
+
 2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* man/ack.texi, man/basic.texi, man/cmdargs.texi:

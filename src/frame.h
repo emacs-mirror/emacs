@@ -795,9 +795,6 @@ extern Lisp_Object Vdefault_frame_alist;
 extern Lisp_Object Vterminal_frame;
 
 extern Lisp_Object Vmouse_highlight;
-
-enum text_cursor_kinds get_specified_cursor_type P_ ((Lisp_Object, int *));
-enum text_cursor_kinds get_window_cursor_type P_ ((struct window *, int *, int *));
 
 /* The currently selected frame.  */
 

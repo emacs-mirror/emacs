@@ -26,6 +26,13 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef VMS
+#include "vms-pwd.h"
+#else
+#include <pwd.h>
+#include <grp.h>
+#endif
+
 #include "systime.h"
 #include <errno.h>
 
@@ -132,12 +139,14 @@ directory_files_internal_unwind (dh)
 
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.
    When ATTRS is zero, return a list of directory filenames; when
-   non-zero, return a list of directory filenames and their attributes.  */
+   non-zero, return a list of directory filenames and their attributes.
+   In the latter case, ID_FORMAT is passed to Ffile_attributes.  */
 
 Lisp_Object
-directory_files_internal (directory, full, match, nosort, attrs)
+directory_files_internal (directory, full, match, nosort, attrs, id_format)
      Lisp_Object directory, full, match, nosort;
      int attrs;
+     Lisp_Object id_format;
 {
   DIR *d;
   int directory_nbytes;
@@ -295,7 +304,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 
 		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
 		  decoded_fullname = Fexpand_file_name (name, directory);
-		  fileattrs = Ffile_attributes (decoded_fullname);
+		  fileattrs = Ffile_attributes (decoded_fullname, id_format);
 
 		  list = Fcons (Fcons (finalname, fileattrs), list);
 		  UNGCPRO;
@@ -350,32 +359,25 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
-    {
-      Lisp_Object args[6];
+    return call5 (handler, Qdirectory_files, directory,
+                  full, match, nosort);
 
-      args[0] = handler;
-      args[1] = Qdirectory_files;
-      args[2] = directory;
-      args[3] = full;
-      args[4] = match;
-      args[5] = nosort;
-      return Ffuncall (6, args);
-    }
-
-  return directory_files_internal (directory, full, match, nosort, 0);
+  return directory_files_internal (directory, full, match, nosort, 0, Qnil);
 }
 
 DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
-       Sdirectory_files_and_attributes, 1, 4, 0,
+       Sdirectory_files_and_attributes, 1, 5, 0,
        doc: /* Return a list of names of files and their attributes in DIRECTORY.
-There are three optional arguments:
+There are four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
- NOSORT is useful if you plan to sort the result yourself.  */)
-     (directory, full, match, nosort)
-     Lisp_Object directory, full, match, nosort;
+ NOSORT is useful if you plan to sort the result yourself.
+ID-FORMAT specifies the preferred format of attributes uid and gid, see
+`file-attributes' for further documentation. */)
+     (directory, full, match, nosort, id_format)
+     Lisp_Object directory, full, match, nosort, id_format;
 {
   Lisp_Object handler;
   directory = Fexpand_file_name (directory, Qnil);
@@ -384,19 +386,10 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
-    {
-      Lisp_Object args[6];
+    return call6 (handler, Qdirectory_files_and_attributes,
+                  directory, full, match, nosort, id_format);
 
-      args[0] = handler;
-      args[1] = Qdirectory_files_and_attributes;
-      args[2] = directory;
-      args[3] = full;
-      args[4] = match;
-      args[5] = nosort;
-      return Ffuncall (6, args);
-    }
-
-  return directory_files_internal (directory, full, match, nosort, 1);
+  return directory_files_internal (directory, full, match, nosort, 1, id_format);
 }
 
 
@@ -872,14 +865,21 @@ make_time (time)
 		Fcons (make_number (time & 0177777), Qnil));
 }
 
-DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 1, 0,
+DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
        doc: /* Return a list of attributes of file FILENAME.
 Value is nil if specified file cannot be opened.
-Otherwise, list elements are:
+
+ID-FORMAT specifies the preferred format of attributes uid and gid (see
+below) - valid values are 'string and 'integer. The latter is the default,
+but we plan to change that, so you should specify a non-nil value for
+ID-FORMAT if you use the returned uid or gid.
+
+Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
  1. Number of links to file.
- 2. File uid.
- 3. File gid.
+ 2. File uid as a string or an integer.  If a string value cannot be
+  looked up, the integer value is returned.
+ 3. File gid, likewise.
  4. Last access time, as a list of two integers.
   First integer has high-order 16 bits of time, second has low 16 bits.
  5. Last modification time, likewise.
@@ -892,15 +892,15 @@ Otherwise, list elements are:
   this is a cons cell containing two integers: first the high part,
   then the low 16 bits.
 11. Device number.  If it is larger than the Emacs integer, this is
-  a cons cell, similar to the inode number.
-
-If file does not exist, returns nil.  */)
-     (filename)
-     Lisp_Object filename;
+  a cons cell, similar to the inode number.  */)
+     (filename, id_format)
+     Lisp_Object filename, id_format;
 {
   Lisp_Object values[12];
   Lisp_Object encoded;
   struct stat s;
+  struct passwd *pw;
+  struct group *gr;
 #if defined (BSD4_2) || defined (BSD4_3)
   Lisp_Object dirname;
   struct stat sdir;
@@ -914,7 +914,7 @@ If file does not exist, returns nil.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_attributes);
   if (!NILP (handler))
-    return call2 (handler, Qfile_attributes, filename);
+    return call3 (handler, Qfile_attributes, filename, id_format);
 
   encoded = ENCODE_FILE (filename);
 
@@ -933,8 +933,18 @@ If file does not exist, returns nil.  */)
 #endif
     }
   values[1] = make_number (s.st_nlink);
-  values[2] = make_number (s.st_uid);
-  values[3] = make_number (s.st_gid);
+  if (NILP (id_format) || EQ (id_format, Qinteger))
+    {
+      values[2] = make_number (s.st_uid);
+      values[3] = make_number (s.st_gid);
+    }
+  else
+    {
+      pw = (struct passwd *) getpwuid (s.st_uid);
+      values[2] = (pw ? build_string (pw->pw_name) : s.st_uid);
+      gr = (struct group *) getgrgid (s.st_gid);
+      values[3] = (gr ? build_string (gr->gr_name) : s.st_gid);
+    }
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);

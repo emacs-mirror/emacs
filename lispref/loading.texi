@@ -140,6 +140,7 @@ This variable is non-@code{nil} if Emacs is in the process of loading a
 file, and it is @code{nil} otherwise.
 @end defvar
 
+@anchor{Definition of load-read-function}
 @defvar load-read-function
 This variable specifies an alternate expression-reading function for
 @code{load} and @code{eval-region} to use instead of @code{read}.
@@ -150,7 +151,7 @@ functions should use @code{read}.
 
 Instead of using this variable, it is cleaner to use another, newer
 feature: to pass the function as the @var{read-function} argument to
-@code{eval-region}.  @xref{Eval}.
+@code{eval-region}.  @xref{Definition of eval-region,, Eval}.
 @end defvar
 
   For information about how @code{load} is used in building Emacs, see

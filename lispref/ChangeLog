@@ -1,3 +1,100 @@
+2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* display.texi (Fringes): Fix typo "set-buffer-window".
+
+2003-12-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi, eval.texi, help.texi, internals.texi, loading.texi:
+	* nonascii.texi, processes.texi, tips.texi, variables.texi:
+	Add or change various xrefs and anchors.
+
+	* commands.texi: Replace all occurrences of @acronym{CAR} with
+	@sc{car}, for consistency with the rest of the Elisp manual.
+	`car' and `cdr' are historically acronyms, but are no longer
+	widely thought of as such.
+
+	* internals.texi (Pure Storage): Mention that `purecopy' does not
+	copy text properties.
+	(Object Internals): Now 29 bits are used (in most implementations)
+	to address Lisp objects.
+
+	* variables.texi (Variables with Restricted Values): New node.
+
+	* objects.texi (Lisp Data Types): Mention that certain variables
+	can only take on a restricted set of values and add an xref to
+	the new node "Variables with Restricted Values".
+
+	* eval.texi (Function Indirection): Describe the errors that
+	`indirect-function' can signal.
+	(Eval): Clarify the descriptions of `eval-region' and `values'.
+	Describe `eval-buffer' instead of `eval-current-buffer' and
+	mention `eval-current-buffer' as an alias for `current-buffer'.
+	Correct the description and mention all optional arguments.
+
+	* nonascii.texi : Various small changes in addition to the
+	following.
+	(Converting Representations): Clarify behavior of
+	`string-make-multibyte' and `string-to-multibyte' for unibyte all
+	ASCII arguments.
+	(Character Sets): Document the variable `charset-list' and adapt
+	the definition of the function `charset-list' accordingly.
+	(Translation of Characters): Clarify use of generic characters in
+	`make-translation-table'.  Clarify and correct the description of
+	the use of translation tables in encoding and decoding.
+	(User-Chosen Coding Systems): Correct and clarify the description
+	of `select-safe-coding-system'.
+	(Default Coding Systems): Clarify description of
+	`file-coding-system-alist'.
+
+2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Text Comparison): Correctly describe when two
+	strings are `equal'.  Combine and clarify descriptions of
+	`assoc-ignore-case' and `assoc-ignore-representation'.
+
+	* objects.texi (Non-ASCII in Strings): Clarify description of
+	when a string is unibyte or multibyte.
+	(Bool-Vector Type): Update examples.
+	(Equality Predicates): Correctly describe when two strings are
+	`equal'.
+
+2003-11-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Building Lists): `append' no longer accepts integer
+	arguments.  Update the description of `number-sequence' to reflect
+	recent changes.
+	(Sets And Lists): Describe `member-ignore-case' after `member'.
+
+2003-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Click object may be an images.
+	Describe (dx . dy) element of click positions.
+	(Accessing Events): Remove duplicate posn-timestamp.
+	New functions posn-object and posn-object-x-y.
+
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Describe enhancements to event
+	position lists, including new text-pos and (col . row) items.
+	Mention left-fringe and right-fringe area events.
+	(Accessing Events): New functions posn-area and
+	posn-actual-col-row.  Mention posn-timestamp.  Mention that
+	posn-point in non-text area still returns buffer position.
+	Clarify posn-col-row.
+
+2003-11-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* files.texi (File Attributes): Describe new parameter ID-FORMAT.
+	* anti.texi (File Attributes): Describe removed parameter
+	ID-FORMAT.
+
+2003-11-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* positions.texi (Positions): Mention that, if a marker is used as
+	a position, its buffer is ignored.
+
+	* markers.texi (Overview of Markers): Mention it here too.
+
 2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* numbers.texi (Numeric Conversions): Not just `floor', but also

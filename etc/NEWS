@@ -83,6 +83,23 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** New command `display-local-help' displays any local help at point
+in the echo area.  It is bound to `C-h .'.  It normally displays the
+same string that would be displayed on mouse-over using the
+`help-echo' property, but, in certain cases, it can display a more
+keyboard oriented alternative.
+
+** New user option `help-at-pt-display-when-idle' allows to
+automatically show the help provided by `display-local-help' on
+point-over, after suitable idle time.  The amount of idle time is
+determined by the user option `help-at-pt-timer-delay' and defaults
+to one second.  This feature is turned off by default.
+
+** New commands `scan-buf-next-region' and `scan-buf-previous-region'
+move to the start of the next (previous, respectively) region with
+non-nil help-echo property and display any help found there in the
+echo area, using `display-local-help'.
+
 +++
 ** Help mode now only makes hyperlinks for faces when the face name is
 preceded or followed by the word `face'.  It no longer makes
@@ -91,10 +108,6 @@ preceded by one of the words `variable' or `option'.
 
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).
-
-** Under XFree86 4, the display table is modified so that `' is
-displayed as balanced quotes, not the ASCII glyphs whose shape has
-been changed generally in the XFree86 fonts.
 
 +++
 ** The -f option, used from the command line to call a function,
@@ -466,6 +479,10 @@ On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
 
 +++
+** The file selection dialog for Gtk+, W32 and Motif/Lesstif can be
+disabled by customizing the variable `use-file-dialog'.
+
++++
 ** Emacs can produce an underscore-like (horizontal bar) cursor.
 The underscore cursor is set by putting `(cursor-type . hbar)' in
 default-frame-alist.  It supports variable heights, like the `bar'
@@ -782,7 +799,7 @@ counter to the specified source line (the one where point is).
 +++
 ** hide-ifdef-mode now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
-changes the behavior of motion commands line C-e and C-p.
+changes the behavior of motion commands like C-e and C-p.
 
 +++
 ** In Dired's ! command (dired-do-shell-command), `*' and `?' now
@@ -1410,10 +1427,32 @@ it remains unchanged.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
 
-** New user option `compilation-environment'.
+** Compilation mode enhancements:
+
+*** New user option `compilation-environment'.
 This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
+
+*** `next-error' now temporarily highlights the corresponding source line.
+
+** Grep has been decoupled from compilation mode setup.
+
+*** Grep commands now have their own submenu and customization group.
+
+*** The new variables `grep-window-height', `grep-auto-highlight', and
+`grep-scroll-output' can be used to override the corresponding
+compilation mode settings for grep commands.
+
+*** Source line is temporarily highlighted when going to next match.
+
+*** New key bindings in grep output window:
+SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
+previous match in the grep window.  RET jumps to the source line of
+the current match.  `n' and `p' shows next and previous match in
+other window, but does not switch buffer.  `{' and `}' jumps to the
+previous or next file in the grep output.  TAB also jumps to the next
+file.
 
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
@@ -1695,6 +1734,89 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New function `get-char-property-and-overlay' accepts the same
+arguments as `get-char-property' and returns a cons whose car is the
+return value of `get-char-property' called with those arguments and
+whose cdr is the overlay in which the property was found, or nil if
+it was found as a text property or not found at all.
+
+** The mouse pointer shape in void text areas (i.e. after the end of a
+line or below the last line in the buffer) of the text window is now
+controlled by the new variable `void-text-area-pointer'.  The default
+is to use the `arrow' (non-text) pointer.  Other choices are `text'
+(or nil), `hand', `vdrag', `hdrag', `modeline', and `hourglass'.
+
+** The mouse pointer shape over an image can now be controlled by the
+:pointer image property.
+
+** The mouse pointer shape over ordinary text or images may now be
+controlled/overriden via the `pointer' text property.
+
+** Images may now have an associated image map via the :map property.
+
+An image map is an alist where each element has the format (AREA ID PLIST).
+An AREA is specified as either a rectangle, a circle, or a polygon:
+A rectangle is a cons (rect . ((x0 . y0) . (x1 . y1))) specifying the
+pixel coordinates of the upper left and bottom right corners.
+A circle is a cons (circle . ((x0 . y0) . r)) specifying the center
+and the radius of the circle; r may be a float or integer.
+A polygon is a cons (poly . [x0 y0 x1 y1 ...]) where each pair in the
+vector describes one corner in the polygon.
+
+When the mouse pointer is above a hot-spot area of an image, the
+PLIST of that hot-spot is consulted; if it contains a `help-echo'
+property it defines a tool-tip for the hot-spot, and if it contains
+a `pointer' property, it defines the shape of the mouse cursor when
+it is over the hot-spot.  See the variable 'void-area-text-pointer'
+for possible pointer shapes.
+
+When you click the mouse when the mouse pointer is over a hot-spot,
+an event is composed by combining the ID of the hot-spot with the
+mouse event, e.g. [area4 mouse-1] if the hot-spot's ID is `area4'.
+
+** Mouse event enhancements:
+
+*** Mouse clicks on fringes now generates left-fringe or right-fringes
+events, rather than a text area click event.
+
++++
+*** Mouse events now includes buffer position for all event types.
+
++++
+*** `posn-point' now returns buffer position for non-text area events.
+
+*** Function `mouse-set-point' now works for events outside text area.
+
++++
+*** New function `posn-area' returns window area clicked on (nil means
+text area).
+
++++
+*** Mouse events include actual glyph column and row for all event types.
+
++++
+*** New function `posn-actual-col-row' returns actual glyph coordinates.
+
++++
+*** Mouse events may now include image object in addition to string object.
+
++++
+*** Mouse events include relative x and y pixel coordinates relative to
+the top left corner of the object (image or character) clicked on.
+
+*** New functions 'posn-object' and 'posn-object-x-y' return the image
+or string object of a mouse click, and the x and y pixel coordinates
+relative to the top left corner of that object.
+
+** New function `force-window-update' can initiate a full redisplay of
+one or all windows.  Normally, this is not needed as changes in window
+contents are detected automatically.  However, certain implicit
+changes to mode lines, header lines, or display properties may require
+forcing an explicit window update.
+
+** New function `redirect-debugging-output' can be used to redirect
+debugging output on the stderr file handle to a file.
+
 +++
 ** `split-string' now includes null substrings in the returned list if
 the optional argument SEPARATORS is non-nil and there are matches for
@@ -1715,6 +1837,7 @@ documented.
 locally to provide Eldoc functionality by some method appropriate to
 the language.
 
+---
 ** New coding system property `mime-text-unsuitable' indicates that
 the coding system's `mime-charset' is not suitable for MIME text
 parts, e.g. utf-16.
@@ -1943,8 +2066,11 @@ such as `error'.  The brown splotches are skipped for forms that are expected
 to always evaluate to the same value, such as (setq x 14).
 
 *** For difficult cases, you can add do-nothing macros to your code to help
-out the test coverage tool.  The macro 1value suppresses a brown splotch for
-its argument.  The macro noreturn suppresses a red splotch.
+out the test coverage tool.  The macro `noreturn' suppresses a red splotch.
+It is an error if the argument to `noreturn' does return.  The macro 1value
+suppresses a brown splotch for its argument.  This macro is a no-op except
+during test-coverage -- then it signals an error if the argument actually
+returns differing values.
 
 +++
 ** New function unsafep returns nil if the given Lisp form can't possibly
@@ -2678,7 +2804,7 @@ refontification of `bar' whenever the `e' is added/removed.
 called to print the entries' values.  It defaults to `princ'.
 
 ** defcustom and other custom declarations now use a default group
-(the last group defined in the same file) when no :group was given.
+(the last prior group defined in the same file) when no :group was given.
 
 +++
 ** emacsserver now runs pre-command-hook and post-command-hook when

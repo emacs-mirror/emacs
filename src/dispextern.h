@@ -321,6 +321,9 @@ struct glyph
   /* Width in pixels.  */
   short pixel_width;
 
+  /* Ascent and descent in pixels.  */
+  short ascent, descent;
+
   /* Vertical offset.  If < 0, the glyph is displayed raised, if > 0
      the glyph is displayed lowered.  */
   short voffset;
@@ -359,8 +362,10 @@ struct glyph
      doesn't have a glyph in a font.  */
   unsigned glyph_not_available_p : 1;
 
+#define FACE_ID_BITS	21
+
   /* Face of the glyph.  */
-  unsigned face_id : 21;
+  unsigned face_id : FACE_ID_BITS;
 
   /* Type of font used to display the character glyph.  May be used to
      determine which set of functions to use to obtain font metrics
@@ -1493,6 +1498,7 @@ enum face_id
   BASIC_FACE_ID_SENTINEL
 };
 
+#define MAX_FACE_ID  ((1 << FACE_ID_BITS) - 1)
 
 /* A cache of realized faces.  Each frame has its own cache because
    Emacs allows different frame-local face definitions.  */
@@ -2454,7 +2460,9 @@ int window_box_height P_ ((struct window *));
 int window_text_bottom_y P_ ((struct window *));
 int window_box_width P_ ((struct window *, int));
 int window_box_left P_ ((struct window *, int));
+int window_box_left_offset P_ ((struct window *, int));
 int window_box_right P_ ((struct window *, int));
+int window_box_right_offset P_ ((struct window *, int));
 void window_box_edges P_ ((struct window *, int, int *, int *, int *, int *));
 int estimate_mode_line_height P_ ((struct frame *, enum face_id));
 void pixel_to_glyph_coords P_ ((struct frame *, int, int, int *, int *,
@@ -2534,6 +2542,7 @@ extern void x_draw_vertical_border P_ ((struct window *w));
 extern void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
 extern void get_glyph_string_clip_rect P_ ((struct glyph_string *,
 					    NativeRectangle *nr));
+extern Lisp_Object find_hot_spot P_ ((Lisp_Object, int, int));
 extern void note_mouse_highlight P_ ((struct frame *, int, int));
 extern void x_clear_window_mouse_face P_ ((struct window *));
 extern void cancel_mouse_face P_ ((struct frame *));
@@ -2662,9 +2671,11 @@ int popup_activated P_ ((void));
 extern int inverse_video;
 extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
-extern Lisp_Object mode_line_string P_ ((struct window *, int, int,
+extern Lisp_Object mode_line_string P_ ((struct window *, int *, int *,
+					 int *, int *,
 					 enum window_part, int *));
-extern Lisp_Object marginal_area_string P_ ((struct window *, int, int,
+extern Lisp_Object marginal_area_string P_ ((struct window *, int *, int *,
+					     int *, int *,
 					     enum window_part, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
@@ -2707,6 +2718,7 @@ int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
 void buffer_posn_from_coords P_ ((struct window *, int *, int *,
+				  int *, int *,
 				  Lisp_Object *, struct display_pos *));
 void do_pending_window_change P_ ((int));
 void change_frame_size P_ ((struct frame *, int, int, int, int, int));

@@ -301,9 +301,14 @@ not be enclosed in { } or ( )."
    '("^\\( +\\)\t" 1 makefile-space-face)))
 
 (defconst makefile-font-lock-syntactic-keywords
-  (list
-   ;; Change the syntax of a quoted newline so that it does not end a comment.
-   '("\\\\\n" 0 " ")))
+  ;; From sh-script.el.
+  ;; A `#' begins a comment in sh when it is unquoted and at the beginning
+  ;; of a word.  In the shell, words are separated by metacharacters.
+  ;; The list of special chars is taken from the single-unix spec of the
+  ;; shell command language (under `quoting') but with `$' removed.
+  '(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 "_")
+    ;; Change the syntax of a quoted newline so that it does not end a comment.
+    ("\\\\\n" 0 ".")))
 
 (defvar makefile-imenu-generic-expression
   (list

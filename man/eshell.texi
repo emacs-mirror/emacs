@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.19 2003/09/01 15:45:45 miles Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.20 2003/11/26 17:12:11 ttn Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
@@ -671,6 +671,8 @@ Below is complete list of known problems with Eshell version 2.4.1,
 which is the version included with Emacs 21.1.
 
 @table @asis
+@item Documentation incomplete
+
 @item Differentiate between aliases and functions
 
 Allow for a bash-compatible syntax, such as:

@@ -43,6 +43,8 @@ variable.
 * Future Local Variables::  New kinds of local values we might add some day.
 * Variable Aliases::      Variables that are aliases for other variables.
 * File Local Variables::  Handling local variable lists in files.
+* Variables with Restricted Values::  Non-constant variables whose value can
+                                        @emph{not} be an arbitrary Lisp object.
 @end menu
 
 @node Global Variables
@@ -258,19 +260,21 @@ These kinds of bindings work somewhat like ordinary local bindings, but
 they are localized depending on ``where'' you are in Emacs, rather than
 localized in time.
 
+@anchor{Definition of max-specpdl-size}
 @defvar max-specpdl-size
 @cindex variable limit error
 @cindex evaluation error
 @cindex infinite recursion
 This variable defines the limit on the total number of local variable
-bindings and @code{unwind-protect} cleanups (@pxref{Nonlocal Exits})
-that are allowed before signaling an error (with data @code{"Variable
-binding depth exceeds max-specpdl-size"}).
+bindings and @code{unwind-protect} cleanups (@pxref{Cleanups,,
+Cleaning Up from Nonlocal Exits}) that are allowed before signaling an
+error (with data @code{"Variable binding depth exceeds
+max-specpdl-size"}).
 
 This limit, with the associated error when it is exceeded, is one way
 that Lisp avoids infinite recursion on an ill-defined function.
 @code{max-lisp-eval-depth} provides another limit on depth of nesting.
-@xref{Eval}.
+@xref{Definition of max-lisp-eval-depth,, Eval}.
 
 The default value is 600.  Entry to the Lisp debugger increases the
 value, if there is little room left, to make sure the debugger itself
@@ -1812,6 +1816,41 @@ the user what to do for each file.  The default value is @code{maybe}.
 could include functions to call.  So Emacs discards all text
 properties from string values specified in a file's local variables
 list.
+
+@node Variables with Restricted Values
+@section Variables with Restricted Values
+
+  Ordinary Lisp variables can be assigned any value that is a valid
+Lisp object.  However, certain Lisp variables are not defined in Lisp,
+but in C.  Most of these variables are defined in the C code using
+@code{DEFVAR_LISP}.  Like variables defined in Lisp, these can take on
+any value.  However, some variables are defined using
+@code{DEFVAR_INT} or @code{DEFVAR_BOOL}.  @xref{Defining Lisp
+variables in C,, Writing Emacs Primitives}, in particular the
+description of functions of the type @code{syms_of_@var{filename}},
+for a brief discussion of the C implementation.
+
+  Variables of type @code{DEFVAR_BOOL} can only take on the values
+@code{nil} or @code{t}.  Attempting to assign them any other value
+will set them to @code{t}:
+
+@example
+(let ((display-hourglass 5))
+  display-hourglass)
+     @result{} t
+@end example
+
+@defvar byte-boolean-vars
+This variable holds a list of all variables of type @code{DEFVAR_BOOL}.
+@end defvar
+
+  Variables of type @code{DEFVAR_INT} can only take on integer values.
+Attempting to assign them any other value will result in an error:
+
+@example
+(setq window-min-height 5.0)
+@error{} Wrong type argument: integerp, 5.0
+@end example
 
 @ignore
    arch-tag: 5ff62c44-2b51-47bb-99d4-fea5aeec5d3e

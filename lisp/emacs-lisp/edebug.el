@@ -2090,6 +2090,10 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec push (form sexp))
 (def-edebug-spec pop (sexp))
 
+(def-edebug-spec 1value (form))
+(def-edebug-spec noreturn (form))
+
+
 ;; Anything else?
 
 

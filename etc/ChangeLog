@@ -1,3 +1,8 @@
+2003-11-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* TODO: Add plans for change of file attributes UID and GID from
+	integer to string.
+	
 2003-11-10  Kailash C. Chowksey <klchxbec@m-net.arbornet.org>
 
 	* HELLO: Add Kannada.

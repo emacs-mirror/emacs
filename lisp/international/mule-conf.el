@@ -442,12 +442,16 @@ Like `compound-text', but does not produce escape sequences for compositions."
  '((safe-charsets . t)))
 
 (make-coding-system
- 'compound-text-with-extensions 5 ?x
+ 'compound-text-with-extensions 2 ?x
  "Compound text encoding with extended segments.
+
+See the variable `ctext-non-standard-encodings-alist' for the
+detail about how extended segments are handled.
 
 This coding system should be used only for X selections.  It is inappropriate
 for decoding and encoding files, process I/O, etc."
- nil
+ '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
+   nil ascii-eol ascii-cntl)
  '((post-read-conversion . ctext-post-read-conversion)
    (pre-write-conversion . ctext-pre-write-conversion)))
 

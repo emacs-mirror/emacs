@@ -5689,19 +5689,20 @@ update_frame_line (f, vpos)
 /* Determine what's under window-relative pixel position (*X, *Y).
    Return in *OBJECT the object (string or buffer) that's there.
    Return in *POS the position in that object. Adjust *X and *Y
-   to character boundaries.  */
+   to character positions.  */
 
 void
-buffer_posn_from_coords (w, x, y, object, pos)
+buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
      struct window *w;
      int *x, *y;
+     int *dx, *dy;
      Lisp_Object *object;
      struct display_pos *pos;
 {
   struct it it;
   struct buffer *old_current_buffer = current_buffer;
   struct text_pos startp;
-  int left_area_width;
+  int x0, x1;
 
   current_buffer = XBUFFER (w->buffer);
   SET_TEXT_POS_FROM_MARKER (startp, w->start);
@@ -5709,16 +5710,50 @@ buffer_posn_from_coords (w, x, y, object, pos)
   BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
   start_display (&it, w, startp);
 
-  left_area_width = WINDOW_LEFT_MARGIN_WIDTH (w);
-  move_it_to (&it, -1, *x + it.first_visible_x - left_area_width, *y, -1,
+  x0 = *x - WINDOW_LEFT_MARGIN_WIDTH (w);
+  move_it_to (&it, -1, x0 + it.first_visible_x, *y, -1,
 	      MOVE_TO_X | MOVE_TO_Y);
 
-  *x = it.current_x - it.first_visible_x + left_area_width;
-  *y = it.current_y;
   current_buffer = old_current_buffer;
 
-  *object = STRINGP (it.string) ? it.string : w->buffer;
+  *dx = x0 + it.first_visible_x - it.current_x;
+  *dy = *y - it.current_y;
+
+  *object =  w->buffer;
+
+#ifdef HAVE_WINDOW_SYSTEM
+  if (it.what == IT_IMAGE)
+    {
+      struct image *img;
+      if ((img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
+	  && !NILP (img->spec))
+	{
+	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, it.vpos);
+	  struct glyph *glyph;
+
+	  if (it.hpos < row->used[TEXT_AREA]
+	      && (glyph = row->glyphs[TEXT_AREA] + it.hpos,
+		  glyph->type == IMAGE_GLYPH))
+	    {
+	      *dy -= row->ascent - glyph->ascent;
+	      *object = img->spec;
+	    }
+	}
+    }
+  else
+#endif
+    if (STRINGP (it.string))
+      *object = it.string;
+
   *pos = it.current;
+
+  /* Add extra (default width) columns if clicked after EOL. */
+  x1 = max(0, it.current_x + it.pixel_width - it.first_visible_x);
+  if (x0 > x1)
+    it.hpos += (x0 - x1) / WINDOW_FRAME_COLUMN_WIDTH (w);
+
+  *x = it.hpos;
+  *y = it.vpos;
 }
 
 
@@ -5728,21 +5763,24 @@ buffer_posn_from_coords (w, x, y, object, pos)
    the string returned.  */
 
 Lisp_Object
-mode_line_string (w, x, y, part, charpos)
+mode_line_string (w, x, y, dx, dy, part, charpos)
      struct window *w;
-     int x, y;
+     int *x, *y;
+     int *dx, *dy;
      enum window_part part;
      int *charpos;
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
-  int x0;
+  int x0, y0;
   Lisp_Object string = Qnil;
 
   if (part == ON_MODE_LINE)
     row = MATRIX_MODE_LINE_ROW (w->current_matrix);
   else
     row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
+  y0 = *y - row->y;
+  *y = row - MATRIX_FIRST_TEXT_ROW (w->current_matrix);
 
   if (row->mode_line_p && row->enabled_p)
     {
@@ -5750,13 +5788,28 @@ mode_line_string (w, x, y, part, charpos)
          it's the one we were looking for.  */
       glyph = row->glyphs[TEXT_AREA];
       end = glyph + row->used[TEXT_AREA];
-      for (x0 = 0; glyph < end; x0 += glyph->pixel_width, ++glyph)
-	if (x >= x0 && x < x0 + glyph->pixel_width)
-	  {
-	    string = glyph->object;
-	    *charpos = glyph->charpos;
-	    break;
-	  }
+      for (x0 = *x; glyph < end && x0 > glyph->pixel_width; ++glyph)
+	x0 -= glyph->pixel_width;
+      *x = glyph - row->glyphs[TEXT_AREA];
+      if (glyph < end)
+	{
+	  string = glyph->object;
+	  *charpos = glyph->charpos;
+	}
+      else
+	/* Add extra (default width) columns if clicked after EOL. */
+	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+    }
+  else
+    {
+      *x = 0;
+      x0 = 0;
+    }
+
+  if (dx)
+    {
+      *dx = x0;
+      *dy = y0;
     }
 
   return string;
@@ -5768,15 +5821,16 @@ mode_line_string (w, x, y, part, charpos)
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (w, x, y, part, charpos)
+marginal_area_string (w, x, y, dx, dy, part, charpos)
      struct window *w;
-     int x, y;
+     int *x, *y;
+     int *dx, *dy;
      enum window_part part;
      int *charpos;
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
-  int x0, i, wy = y;
+  int x0, y0, i, wy = *y;
   int area;
   Lisp_Object string = Qnil;
 
@@ -5790,14 +5844,13 @@ marginal_area_string (w, x, y, part, charpos)
   for (i = 0; row->enabled_p && i < w->current_matrix->nrows; ++i, ++row)
     if (wy >= row->y && wy < MATRIX_ROW_BOTTOM_Y (row))
       break;
+  y0 = *y - row->y;
+  *y = row - MATRIX_FIRST_TEXT_ROW (w->current_matrix);
 
   if (row->enabled_p)
     {
       /* Find the glyph under X.  If we find one with a string object,
 	 it's the one we were looking for.  */
-      glyph = row->glyphs[area];
-      end = glyph + row->used[area];
-
       if (area == RIGHT_MARGIN_AREA)
 	x0 = ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
 	       ? WINDOW_LEFT_FRINGE_WIDTH (w) 
@@ -5809,13 +5862,40 @@ marginal_area_string (w, x, y, part, charpos)
 	      ? WINDOW_LEFT_FRINGE_WIDTH (w) 
 	      : 0);
 
-      for (; glyph < end; x0 += glyph->pixel_width, ++glyph)
-	if (x >= x0 && x < x0 + glyph->pixel_width)
-	  {
-	    string = glyph->object;
-	    *charpos = glyph->charpos;
-	    break;
-	  }
+      glyph = row->glyphs[area];
+      end = glyph + row->used[area];
+      for (x0 = *x - x0; glyph < end && x0 > glyph->pixel_width; ++glyph)
+	x0 -= glyph->pixel_width;
+      *x = glyph - row->glyphs[area];
+      if (glyph < end)
+	{
+	  string = glyph->object;
+	  *charpos = glyph->charpos;
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (glyph->type == IMAGE_GLYPH)
+	    {
+	      struct image *img;
+	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      if (img != NULL)
+		string = img->spec;
+	      y0 -= row->ascent - glyph->ascent;
+	    }
+#endif
+	}
+      else
+	/* Add extra (default width) columns if clicked after EOL. */
+	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+    }
+  else
+    {
+      x0 = 0;
+      *x = 0;
+    }
+
+  if (dx)
+    {
+      *dx = x0;
+      *dy = y0;
     }
 
   return string;

@@ -1386,6 +1386,10 @@ typedef unsigned char UCHAR;
 #define GC_FRAMEP(x) GC_PSEUDOVECTORP (x, PVEC_FRAME)
 
 #define SUB_CHAR_TABLE_P(x) (CHAR_TABLE_P (x) && NILP (XCHAR_TABLE (x)->top))
+
+/* Test for image (image . spec)  */
+#define IMAGEP(x) (CONSP (x) && EQ (XCAR (x), Qimage))
+
 
 #define GC_EQ(x, y) EQ (x, y)
 
@@ -1956,28 +1960,31 @@ extern Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
 extern Lisp_Object Qvoid_variable, Qvoid_function;
 extern Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
 extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
-extern Lisp_Object Qend_of_file, Qarith_error;
+extern Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
-extern Lisp_Object Qmark_inactive, Qtext_read_only;
+extern Lisp_Object Qtext_read_only;
+
+extern Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
+extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
+extern Lisp_Object Qbuffer_or_string_p;
+extern Lisp_Object Qboundp, Qfboundp;
+extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
+
+extern Lisp_Object Qcdr;
 
 extern Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 extern Lisp_Object Qoverflow_error, Qunderflow_error;
 
-extern Lisp_Object Qintegerp, Qnumberp, Qnatnump, Qwholenump;
-extern Lisp_Object Qsymbolp, Qlistp, Qconsp;
-extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
-extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qvectorp;
-extern Lisp_Object Qinteger_or_marker_p, Qnumber_or_marker_p;
-extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
-extern Lisp_Object Qboundp, Qfboundp;
-extern Lisp_Object Qbuffer_or_string_p;
-extern Lisp_Object Qcdr;
+extern Lisp_Object Qfloatp;
+extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-extern Lisp_Object Qfloatp, Qinteger_or_floatp, Qinteger_or_float_or_marker_p;
-
-extern Lisp_Object Qframep;
+extern Lisp_Object Qinteger;
 
 extern void circular_list_error P_ ((Lisp_Object));
+
+/* Defined in frame.c */
+extern Lisp_Object Qframep;
 
 EXFUN (Feq, 2);
 EXFUN (Fnull, 1);
@@ -2285,6 +2292,7 @@ extern Lisp_Object Qinhibit_point_motion_hooks;
 extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qinhibit_eval_during_redisplay;
 extern Lisp_Object Qmessage_truncate_lines;
+extern Lisp_Object Qimage;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
@@ -2982,7 +2990,7 @@ extern void syms_of_category P_ ((void));
 extern void syms_of_ccl P_ ((void));
 
 /* Defined in dired.c */
-EXFUN (Ffile_attributes, 1);
+EXFUN (Ffile_attributes, 2);
 extern void syms_of_dired P_ ((void));
 
 /* Defined in term.c */

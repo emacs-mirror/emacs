@@ -805,8 +805,9 @@ If the @var{forms} do not change the major mode in the output buffer,
 so that it is still Help mode at the end of their execution, then
 @code{with-output-to-temp-buffer} makes this buffer read-only at the
 end, and also scans it for function and variable names to make them
-into clickable cross-references.  @xref{Documentation Tips, , Tips for
-Documentation Strings}.
+into clickable cross-references.  @xref{Docstring hyperlinks, , Tips
+for Documentation Strings}, in particular the item on hyperlinks in
+documentation strings, for more details.
 
 The string @var{buffer-name} specifies the temporary buffer, which
 need not already exist.  The argument must be a string, not a buffer.
@@ -2527,7 +2528,7 @@ fringe in pixels.
 
   The values of these variables take effect when you display the
 buffer in a window.  If you change them while the buffer is visible,
-you can call @code{set-buffer-window} to display it in a window again.
+you can call @code{set-window-buffer} to display it in a window again.
 
 @defun set-window-fringes window left &optional right outside-margins
 This function sets the fringe widthes of window @var{window}.

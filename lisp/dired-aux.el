@@ -88,6 +88,101 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
       nil))
   (diff-backup (dired-get-filename) switches))
 
+(defun dired-compare-directories (dir2 predicate)
+  "Mark files with different file attributes in two dired buffers.
+Compare file attributes of files in the current directory
+with file attributes in directory DIR2 using PREDICATE on pairs of files
+with the same name.  Mark files for which PREDICATE returns non-nil.
+
+PREDICATE is a Lisp expression that can refer to the following variables:
+
+    size1, size2   - file size in bytes
+    mtime1, mtime2 - last modification time in seconds, as a float
+    fa1, fa2       - list of file attributes
+                     returned by function `file-attributes'
+
+    where 1 refers to attribute of file in the current dired buffer
+    and 2 to attribute of file in second dired buffer.
+
+Examples of PREDICATE:
+
+    (> mtime1 mtime2) - mark newer files
+    (not (= size1 size2)) - mark files with different sizes
+    (not (string= (nth 8 fa1) (nth 8 fa2))) - mark files with different modes
+    (not (and (= (nth 2 fa1) (nth 2 fa2))   - mark files with different UID
+              (= (nth 3 fa1) (nth 3 fa2))))   and GID."
+  (interactive
+   (list (read-file-name (format "Compare %s with: "
+				 (dired-current-directory))
+			 (dired-dwim-target-directory))
+	 (read-minibuffer "Mark if (lisp expr): ")))
+  (let* ((dir1 (dired-current-directory))
+         (file-alist1 (dired-files-attributes dir1))
+         (file-alist2 (dired-files-attributes dir2))
+	 (file-list1 (mapcar
+		      'cadr
+                      (dired-file-set-difference
+                       file-alist1 file-alist2
+		       predicate)))
+	 (file-list2 (mapcar
+		      'cadr
+                      (dired-file-set-difference
+                       file-alist2 file-alist1
+		       predicate))))
+    (dired-fun-in-all-buffers
+     dir1 nil
+     (lambda ()
+       (dired-mark-if
+        (member (dired-get-filename nil t) file-list1) nil)))
+    (dired-fun-in-all-buffers
+     dir2 nil
+     (lambda ()
+       (dired-mark-if
+        (member (dired-get-filename nil t) file-list2) nil)))
+    (message "Marked in dir1: %s files, in dir2: %s files"
+             (length file-list1)
+             (length file-list2))))
+
+(defun dired-file-set-difference (list1 list2 predicate)
+  "Combine LIST1 and LIST2 using a set-difference operation.
+The result list contains all file items that appear in LIST1 but not LIST2.
+This is a non-destructive function; it makes a copy of the data if necessary
+to avoid corrupting the original LIST1 and LIST2.
+PREDICATE (see `dired-compare-directories') is an additional match
+condition.  Two file items are considered to match if they are equal
+*and* PREDICATE evaluates to t."
+  (if (or (null list1) (null list2))
+      list1
+    (let (res)
+      (dolist (file1 list1)
+	(unless (let ((list list2))
+		  (while (and list
+			      (not (let* ((file2 (car list))
+					  (fa1 (caddr file1))
+					  (fa2 (caddr file2))
+					  (size1 (nth 7 fa1))
+					  (size2 (nth 7 fa2))
+					  (mtime1 (float-time (nth 5 fa1)))
+					  (mtime2 (float-time (nth 5 fa2))))
+				     (and
+				      (equal (car file1) (car file2))
+				      (not (eval predicate))))))
+		    (setq list (cdr list)))
+		  list)
+	  (setq res (cons file1 res))))
+      (nreverse res))))
+
+(defun dired-files-attributes (dir)
+  "Return a list of all file names and attributes from DIR.
+List has a form of (file-name full-file-name (attribute-list))"
+  (mapcar
+   (lambda (file-name)
+     (let ((full-file-name (expand-file-name file-name dir)))
+       (list file-name
+             full-file-name
+             (file-attributes full-file-name))))
+   (directory-files dir)))
+
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
   ;; Change file attributes (mode, group, owner) of marked files and
   ;; refresh their file lines.
@@ -2015,6 +2110,11 @@ If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
   (interactive
    "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
+  (dolist (file (dired-get-marked-files nil nil 'dired-nondirectory-p))
+    (let ((buffer (get-file-buffer file)))
+      (if (and buffer (with-current-buffer buffer
+			buffer-read-only))
+	  (error "File `%s' is visited read-only"))))
   (tags-query-replace from to delimited
 		      '(dired-get-marked-files nil nil 'dired-nondirectory-p)))
 

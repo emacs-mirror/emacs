@@ -28,10 +28,13 @@ deleted, so that it stays with the two characters on either side of it.
 @node Overview of Markers
 @section Overview of Markers
 
-  A marker specifies a buffer and a position in that buffer.  The marker
-can be used to represent a position in the functions that require one,
-just as an integer could be used.  @xref{Positions}, for a complete
-description of positions.
+  A marker specifies a buffer and a position in that buffer.  The
+marker can be used to represent a position in the functions that
+require one, just as an integer could be used.  In that case, the
+marker's buffer is normally ignored.  Of course, a marker used in this
+way usually points to a position in the buffer that the function
+operates on, but that is entirely the programmer's responsibility.
+@xref{Positions}, for a complete description of positions.
 
   A marker has two attributes: the marker position, and the marker
 buffer.  The marker position is an integer that is equivalent (at a

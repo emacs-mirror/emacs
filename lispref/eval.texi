@@ -319,6 +319,10 @@ This function returns the meaning of @var{function} as a function.  If
 definition and starts over with that value.  If @var{function} is not a
 symbol, then it returns @var{function} itself.
 
+This function signals a @code{void-function} error if the final
+symbol is unbound and a @code{cyclic-function-indirection} error if
+there is a loop in the chain of symbols.
+
 Here is how you could define @code{indirect-function} in Lisp:
 
 @smallexample
@@ -625,32 +629,51 @@ The number of currently active calls to @code{eval} is limited to
 @code{max-lisp-eval-depth} (see below).
 @end defun
 
+@anchor{Definition of eval-region}
 @deffn Command eval-region start end &optional stream read-function
 This function evaluates the forms in the current buffer in the region
 defined by the positions @var{start} and @var{end}.  It reads forms from
 the region and calls @code{eval} on them until the end of the region is
 reached, or until an error is signaled and not handled.
 
-If @var{stream} is non-@code{nil}, the values that result from
-evaluating the expressions in the region are printed using @var{stream}.
-@xref{Output Streams}.
+By default, @code{eval-region} does not produce any output.  However,
+if @var{stream} is non-@code{nil}, any output produced by output
+functions (@pxref{Output Functions}), as well as the values that
+result from evaluating the expressions in the region are printed using
+@var{stream}.  @xref{Output Streams}.
 
-If @var{read-function} is non-@code{nil}, it should be a function, which
-is used instead of @code{read} to read expressions one by one.  This
-function is called with one argument, the stream for reading input.  You
-can also use the variable @code{load-read-function} (@pxref{How Programs
-Do Loading}) to specify this function, but it is more robust to use the
+If @var{read-function} is non-@code{nil}, it should be a function,
+which is used instead of @code{read} to read expressions one by one.
+This function is called with one argument, the stream for reading
+input.  You can also use the variable @code{load-read-function}
+(@pxref{Definition of load-read-function,, How Programs Do Loading})
+to specify this function, but it is more robust to use the
 @var{read-function} argument.
 
-@code{eval-region} always returns @code{nil}.
+@code{eval-region} does not move point.  It always returns @code{nil}.
 @end deffn
 
 @cindex evaluation of buffer contents
-@deffn Command eval-current-buffer &optional stream
-This is like @code{eval-region} except that it operates on the whole
-buffer.
+@deffn Command eval-buffer &optional buffer-or-name stream filename unibyte print
+This is similar to @code{eval-region}, but the arguments provide
+different optional features.  @code{eval-buffer} operates on the
+entire accessible portion of buffer @var{buffer-or-name}.
+@var{buffer-or-name} can be a buffer, a buffer name (a string), or
+@code{nil} (or omitted), which means to use the current buffer.
+@var{stream} is used as in @code{eval-region}, unless @var{stream} is
+@code{nil} and @var{print} non-@code{nil}.  In that case, values that
+result from evaluating the expressions are still discarded, but the
+output of the output functions is printed in the echo area.
+@var{filename} is the file name to use for @code{load-history}
+(@pxref{Unloading}), and defaults to @code{buffer-file-name}
+(@pxref{Buffer File Name}).  If @var{unibyte} is non-@code{nil},
+@code{read} converts strings to unibyte whenever possible.
+
+@findex eval-current-buffer
+@code{eval-current-buffer} is an alias for this command.
 @end deffn
 
+@anchor{Definition of max-lisp-eval-depth}
 @defvar max-lisp-eval-depth
 This variable defines the maximum depth allowed in calls to @code{eval},
 @code{apply}, and @code{funcall} before an error is signaled (with error
@@ -670,14 +693,17 @@ Entry to the Lisp debugger increases the value, if there is little room
 left, to make sure the debugger itself has room to execute.
 
 @code{max-specpdl-size} provides another limit on nesting.
-@xref{Local Variables}.
+@xref{Definition of max-specpdl-size,, Local Variables}.
 @end defvar
 
 @defvar values
 The value of this variable is a list of the values returned by all the
 expressions that were read, evaluated, and printed from buffers
-(including the minibuffer) by the standard Emacs commands which do this.
-The elements are ordered most recent first.
+(including the minibuffer) by the standard Emacs commands which do
+this.  (Note that this does @emph{not} include evaluation in
+@samp{*ielm*} buffers, nor evaluation using @kbd{C-j} in
+@code{lisp-interaction-mode}.)  The elements are ordered most recent
+first.
 
 @example
 @group
