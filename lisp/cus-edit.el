@@ -1297,14 +1297,13 @@ Un-customize all values in this buffer.  They get their standard settings."
 		 :tag "Finish"
 		 :help-echo
 		 (lambda (&rest ignore)
-		   (concat (cond
-			    ((eq custom-buffer-done-function
-				 'custom-bury-buffer)
-			     "Bury")
-			    ((eq custom-buffer-done-function 'kill-buffer)
-			     "Kill")
-			    (t "Finish with"))		    
-			   " the buffer."))
+		   (cond
+		    ((eq custom-buffer-done-function
+			 'custom-bury-buffer)
+		     "Bury this buffer")
+		    ((eq custom-buffer-done-function 'kill-buffer)
+		     "Kill this buffer")
+		    (t "Finish with this buffer")))
 		 :action #'Custom-buffer-done)
   (widget-insert "\n\n")
   (message "Creating customization items...")
@@ -1322,18 +1321,18 @@ Un-customize all values in this buffer.  They get their standard settings."
 	  (let ((count 0)
 		(length (length options)))
 	    (mapcar (lambda (entry)
-			(prog2
-			    (message "Creating customization items ...%2d%%"
-				     (/ (* 100.0 count) length))
-			    (widget-create (nth 1 entry)
+		      (prog2
+			  (message "Creating customization items ...%2d%%"
+				   (/ (* 100.0 count) length))
+			  (widget-create (nth 1 entry)
 					 :tag (custom-unlispify-tag-name
 					       (nth 0 entry))
 					 :value (nth 0 entry))
-			  (setq count (1+ count))
-			  (unless (eq (preceding-char) ?\n)
-			    (widget-insert "\n"))
-			  (widget-insert "\n")))
-		      options))))
+			(setq count (1+ count))
+			(unless (eq (preceding-char) ?\n)
+			  (widget-insert "\n"))
+			(widget-insert "\n")))
+		    options))))
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
   (message "Creating customization items ...%2d%%done" 100)
@@ -2379,7 +2378,7 @@ Optional EVENT is the location for the menu."
 	   (error "Cannot set hidden variable"))
 	  ((setq val (widget-apply child :validate))
 	   (goto-char (widget-get val :from))
-	   (error "%s" (widget-get val :error)))
+	   (error "Saving %s: %s" symbol (widget-get val :error)))
 	  ((memq form '(lisp mismatch))
 	   (when (equal comment "")
 	     (setq comment nil)
