@@ -4,7 +4,7 @@
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
-;; Keywords: i14n
+;; Keywords: i18n
 
 ;; This file is part of GNU Emacs.
 
