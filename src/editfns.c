@@ -715,15 +715,16 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.")
 }
 
 
-DEFUN ("line-beginning-position", Fline_beginning_position, Sline_beginning_position,
-  0, 1, 0,
+DEFUN ("line-beginning-position",
+       Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
   "Return the character position of the first character on the current line.\n\
 With argument N not nil or 1, move forward N - 1 lines first.\n\
 If scan reaches end of buffer, return that position.\n\
-The scan does not cross a field boundary unless it would move\n\
-beyond there to a different line.  Field boundaries are not noticed if\n\
-`inhibit-field-text-motion' is non-nil. .And if N is nil or 1,\n\
-and scan starts at a field boundary, the scan stops as soon as it starts.\n\
+\n\
+The scan does not cross a field boundary unless doing so would move\n\
+beyond there to a different line; if N is nil or 1, and scan starts at a\n\
+field boundary, the scan stops as soon as it starts.  To ignore field\n\
+boundaries bind `inhibit-field-text-motion' to t.\n\
 \n\
 This function does not move point.")
   (n)
@@ -749,11 +750,16 @@ This function does not move point.")
 			      Qt, Qnil);
 }
 
-DEFUN ("line-end-position", Fline_end_position, Sline_end_position,
-  0, 1, 0,
+DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
   "Return the character position of the last character on the current line.\n\
 With argument N not nil or 1, move forward N - 1 lines first.\n\
 If scan reaches end of buffer, return that position.\n\
+\n\
+The scan does not cross a field boundary unless doing so would move\n\
+beyond there to a different line; if N is nil or 1, and scan starts at a\n\
+field boundary, the scan stops as soon as it starts.  To ignore field\n\
+boundaries bind `inhibit-field-text-motion' to t.\n\
+\n\
 This function does not move point.")
   (n)
      Lisp_Object n;
@@ -772,6 +778,7 @@ This function does not move point.")
   return Fconstrain_to_field (make_number (end_pos), make_number (orig),
 			      Qnil, Qt, Qnil);
 }
+
 
 Lisp_Object
 save_excursion_save ()
