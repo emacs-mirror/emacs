@@ -134,7 +134,7 @@ This variable should be set in site-local.el.")
                   (/ (aref calendar-longitude 1) 60.0)))
              (if (numberp calendar-longitude)
                  (if (> calendar-longitude 0) "E" "W")
-               (if (equal (aref calendar-latitude 2) 'east) "E" "W"))))
+               (if (equal (aref calendar-longitude 2) 'east) "E" "W"))))
   "*Expression evaluating to name of `calendar-longitude', calendar-latitude'.
 For example, \"New York City\".  Default value is just the latitude, longitude
 pair.
@@ -491,7 +491,7 @@ This function is suitable for execution in a .emacs file."
                           (/ (aref calendar-longitude 1) 60.0)))
                      (if (numberp calendar-longitude)
                          (if (> calendar-longitude 0) "E" "W")
-                       (if (equal (aref calendar-latitude 2) 'east)
+                       (if (equal (aref calendar-longitude 2) 'east)
                            "E" "W"))))))
         (calendar-standard-time-zone-name
          (if (< arg 16) calendar-standard-time-zone-name
