@@ -16041,27 +16041,31 @@ pint2hrstr (buf, width, d)
 	{
 	  tenths = remainder / 100;
 	  if (50 <= remainder % 100)
-	    if (tenths < 9)
-	      tenths++;
-	    else
-	      {
-		quotient++;
-		if (quotient == 10)
-		  tenths = -1;
-		else
-		  tenths = 0;
-	      }
+	    {
+	      if (tenths < 9)
+		tenths++;
+	      else
+		{
+		  quotient++;
+		  if (quotient == 10)
+		    tenths = -1;
+		  else
+		    tenths = 0;
+		}
+	    }
 	}
       else
 	if (500 <= remainder)
-	  if (quotient < 999)
-	    quotient++;
-	  else
-	    {
-	      quotient = 1;
-	      exponent++;
-	      tenths = 0;
-	    }
+	  {
+	    if (quotient < 999)
+	      quotient++;
+	    else
+	      {
+		quotient = 1;
+		exponent++;
+		tenths = 0;
+	      }
+	  }
     }
 
   /* Calculate the LENGTH of QUOTIENT.TENTHS as a string. */
@@ -18348,7 +18352,7 @@ produce_image_glyph (it)
 {
   struct image *img;
   struct face *face;
-  int face_ascent, glyph_ascent;
+  int glyph_ascent;
   struct glyph_slice slice;
 
   xassert (it->what == IT_IMAGE);
@@ -18431,7 +18435,7 @@ produce_image_glyph (it)
 
 #if 0  /* this breaks image tiling */
   /* If this glyph is alone on the last line, adjust it.ascent to minimum row ascent.  */
-  face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
+  int face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
   if (face_ascent > it->ascent)
     it->ascent = it->phys_ascent = face_ascent;
 #endif
