@@ -2235,6 +2235,6 @@ the truename of a file can be slow.  */);
 This option slows down file-attributes noticeably, so is disabled by
 default.  Note that it is only useful for files on NTFS volumes,
 where hard links are supported.  */);
-  Vw32_get_true_file_attributes = Qnil;
+  Vw32_get_true_file_attributes = Qt;
 }
 /* end of ntproc.c */
