@@ -198,7 +198,7 @@ void (*judge_scroll_bars_hook)( /* FRAME_PTR *FRAME */ );
 
 /* Strings, numbers and flags taken from the termcap entry.  */
 
-char *TS_end_italic_mode;	/* termcal "ae" */
+char *TS_end_italic_mode;	/* termcap "ae" */
 char *TS_ins_line;		/* "al" */
 char *TS_italic_mode;		/* "as" */
 char *TS_ins_multi_lines;	/* "AL" (one parameter, # lines to insert) */
