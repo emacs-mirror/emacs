@@ -159,6 +159,7 @@ static void single_keymap_panes ();
 static void single_menu_item ();
 static void list_of_panes ();
 static void list_of_items ();
+void w32_free_menu_strings (HWND);
 
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
@@ -1035,11 +1036,19 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
 	      buf.arg = entry;
 	      kbd_buffer_store_event (&buf);
 
+	      /* Free memory used by owner-drawn and help-echo strings.  */
+	      w32_free_menu_strings (FRAME_W32_WINDOW (f));
+	      f->output_data.w32->menu_command_in_progress = 0;
+	      f->output_data.w32->menubar_active = 0;
 	      return;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
+  /* Free memory used by owner-drawn and help-echo strings.  */
+  w32_free_menu_strings (FRAME_W32_WINDOW (f));
+  f->output_data.w32->menu_command_in_progress = 0;
+  f->output_data.w32->menubar_active = 0;
 }
 
 /* Allocate a widget_value, blocking input.  */
