@@ -1,5 +1,20 @@
 2004-04-17  Kim F. Storm  <storm@cua.dk>
 
+	* keymap.c (Fkey_description): Add optional PREFIX arg.
+	Combine prefix with KEYS to make up the full key sequence to describe.
+	Correlate meta_prefix_char and following (simple) key to describe
+	as meta modifier.  All callers changed.
+	(describe_map): Rename arg `keys' to `prefix'.  Remove local
+	`elt_prefix' var.  Use Fkey_description with prefix instead of
+	elt_prefix combined with Fsingle_key_description.
+	(describe_vector): Declare static.  Replace arg `elt_prefix' with
+	`prefix'.  Add KEYMAP_P arg.  Add local var `elt_prefix'; use it
+	if !KEYMAP_P. Use Fkey_description with prefix instead of
+	Fsingle_key_description.
+
+	* keymap.h (Fkey_description): Fix prototype.
+	(describe_vector): Remove prototype.
+
 	* xdisp.c (update_overlay_arrows): Fix handling of up_to_date < 0.
 
 	* image.c (PNG_BG_COLOR_SHIFT): Remove.
