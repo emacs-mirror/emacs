@@ -1,6 +1,7 @@
 /* impl.c.version: VERSION INSPECTION
  *
  * $Id$
+ * $HopeName: MMsrc!version.c(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * PURPOSE

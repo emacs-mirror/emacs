@@ -1,6 +1,7 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
  * $Id$
+ * $HopeName: MMsrc!poolsnc.c(trunk.13) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

@@ -1,6 +1,7 @@
 /* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
  * $Id$
+ * $HopeName: MMsrc!thw3i3.c(trunk.25) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * Implements thread registration, suspension, and stack

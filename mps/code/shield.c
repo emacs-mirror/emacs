@@ -1,6 +1,7 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
  * $Id$
+ * $HopeName: MMsrc!shield.c(trunk.16) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * See: idea.shield, design.mps.shield.

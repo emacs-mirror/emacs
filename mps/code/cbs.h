@@ -1,6 +1,7 @@
 /* impl.h.cbs: CBS -- Coalescing Block Structure
  *
  * $Id$
+ * $HopeName: MMsrc!cbs.h(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .source: design.mps.cbs.

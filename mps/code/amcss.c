@@ -1,6 +1,7 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
  * $Id$
+ * $HopeName: MMsrc!amcss.c(trunk.37) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

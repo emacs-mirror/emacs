@@ -1,6 +1,7 @@
 /* impl.c.message: MPS/CLIENT MESSAGES
  *
  * $Id$
+ * $HopeName: MMsrc!message.c(trunk.11) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

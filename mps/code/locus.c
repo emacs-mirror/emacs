@@ -1,6 +1,7 @@
 /* impl.c.locus: LOCUS MANAGER
  *
  * $Id$
+ * $HopeName: MMsrc!locus.c(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

@@ -1,6 +1,7 @@
 /* impl.c.protan: ANSI MEMORY PROTECTION
  *
  * $Id$
+ * $HopeName: MMsrc!protan.c(trunk.9) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  *

@@ -1,6 +1,7 @@
 /* impl.c.pool: PROTOCOL IMPLEMENTATION
  *
  * $Id$
+ * $HopeName: MMsrc!protocol.c(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

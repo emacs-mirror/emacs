@@ -1,6 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * $Id$
+ * $HopeName: MMsrc!config.h(trunk.47) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * PURPOSE

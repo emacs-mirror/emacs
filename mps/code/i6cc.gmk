@@ -1,6 +1,7 @@
 # impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX 6 CC (N32 or N64 ABI)
 #
 # $Id$
+# $HopeName: MMsrc!i6cc.gmk(trunk.5) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the IRIX 6 CC

@@ -1,6 +1,7 @@
 /*  impl.c.protfr: PROTECTION FOR FreeBSD
  *
  *  $Id$
+ *  $HopeName: $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  */

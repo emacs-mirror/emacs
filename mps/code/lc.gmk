@@ -1,6 +1,7 @@
 # impl.gmk.lc: GNUMAKEFILE FRAGMENT FOR LCC
 #
 # $Id$
+# $HopeName: MMsrc!lc.gmk(trunk.4) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the LCC

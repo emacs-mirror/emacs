@@ -1,6 +1,7 @@
 /* impl.h.mpscsnc: MEMORY POOL SYSTEM CLASS "SNC"
  *
  * $Id$
+ * $HopeName: MMsrc!mpscsnc.h(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -1,6 +1,7 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
  * $Id$
+ * $HopeName: MMsrc!amsss.c(trunk.12) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: Adapted from amcss.c, but not counting collections, just

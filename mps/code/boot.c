@@ -1,6 +1,7 @@
 /* impl.c.boot: BOOTSTRAP ALLOCATOR
  *
  * $Id$
+ * $HopeName: MMsrc!boot.c(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .overview: A structure and protocols for allocating memory from a
