@@ -290,7 +290,7 @@ If string STR1 is greater, the value is a positive number N;\n\
       int c1, c2;
 
       if (STRING_MULTIBYTE (str1))
-	FETCH_STRING_CHAR_ADVANCE (c1, str1, i1, i1_byte);
+	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c1, str1, i1, i1_byte);
       else
 	{
 	  c1 = XSTRING (str1)->data[i1++];
@@ -298,7 +298,7 @@ If string STR1 is greater, the value is a positive number N;\n\
 	}
 
       if (STRING_MULTIBYTE (str2))
-	FETCH_STRING_CHAR_ADVANCE (c2, str2, i2, i2_byte);
+	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c2, str2, i2, i2_byte);
       else
 	{
 	  c2 = XSTRING (str2)->data[i2++];
@@ -367,15 +367,8 @@ Symbols are also allowed; their print names are used instead.")
 	 characters, not just the bytes.  */
       int c1, c2;
 
-      if (STRING_MULTIBYTE (s1))
-	FETCH_STRING_CHAR_ADVANCE (c1, s1, i1, i1_byte);
-      else
-	c1 = XSTRING (s1)->data[i1++];
-
-      if (STRING_MULTIBYTE (s2))
-	FETCH_STRING_CHAR_ADVANCE (c2, s2, i2, i2_byte);
-      else
-	c2 = XSTRING (s2)->data[i2++];
+      FETCH_STRING_CHAR_ADVANCE (c1, s1, i1, i1_byte);
+      FETCH_STRING_CHAR_ADVANCE (c2, s2, i2, i2_byte);
 
       if (c1 != c2)
 	return c1 < c2 ? Qt : Qnil;
@@ -625,7 +618,7 @@ concat (nargs, args, target_type, last_special)
 		  wrong_type_argument (Qintegerp, ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
-		if (this_len_byte > 1)
+		if (!SINGLE_BYTE_CHAR_P (XINT (ch)))
 		  some_multibyte = 1;
 	      }
 	  else if (BOOL_VECTOR_P (this) && XBOOL_VECTOR (this)->size > 0)
@@ -638,7 +631,7 @@ concat (nargs, args, target_type, last_special)
 		  wrong_type_argument (Qintegerp, ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
-		if (this_len_byte > 1)
+		if (!SINGLE_BYTE_CHAR_P (XINT (ch)))
 		  some_multibyte = 1;
 	      }
 	  else if (STRINGP (this))
@@ -753,9 +746,9 @@ concat (nargs, args, target_type, last_special)
 		int c;
 		if (STRING_MULTIBYTE (this))
 		  {
-		    FETCH_STRING_CHAR_ADVANCE (c, this,
-					       thisindex,
-					       thisindex_byte);
+		    FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, this,
+							thisindex,
+							thisindex_byte);
 		    XSETFASTINT (elt, c);
 		  }
 		else
@@ -799,7 +792,12 @@ concat (nargs, args, target_type, last_special)
 		CHECK_NUMBER (elt, 0);
 		if (SINGLE_BYTE_CHAR_P (XINT (elt)))
 		  {
-		    XSTRING (val)->data[toindex_byte++] = XINT (elt);
+		    if (some_multibyte)
+		      toindex_byte
+			+= CHAR_STRING (XINT (elt),
+					XSTRING (val)->data + toindex_byte);
+		    else
+		      XSTRING (val)->data[toindex_byte++] = XINT (elt);
 		    if (some_multibyte
 			&& toindex_byte > 0
 			&& count_combining (XSTRING (val)->data,
@@ -886,7 +884,8 @@ string_char_to_byte (string, char_index)
       while (best_below < char_index)
 	{
 	  int c;
-	  FETCH_STRING_CHAR_ADVANCE (c, string, best_below, best_below_byte);
+	  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string,
+					      best_below, best_below_byte);
 	}
       i = best_below;
       i_byte = best_below_byte;
@@ -958,7 +957,8 @@ string_byte_to_char (string, byte_index)
       while (best_below_byte < byte_index)
 	{
 	  int c;
-	  FETCH_STRING_CHAR_ADVANCE (c, string, best_below, best_below_byte);
+	  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string,
+					      best_below, best_below_byte);
 	}
       i = best_below;
       i_byte = best_below_byte;
@@ -1070,7 +1070,9 @@ DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
        1, 1, 0,
   "Return a unibyte string with the same individual bytes as STRING.\n\
 If STRING is unibyte, the result is STRING itself.\n\
-Otherwise it is a newly created string, with no text properties.")
+Otherwise it is a newly created string, with no text properties.\n\
+If STRING is multibyte and contains a character of charset `binary',\n\
+it is converted to the corresponding single byte.")
   (string)
      Lisp_Object string;
 {
@@ -1078,10 +1080,13 @@ Otherwise it is a newly created string, with no text properties.")
 
   if (STRING_MULTIBYTE (string))
     {
-      string = Fcopy_sequence (string);
-      XSTRING (string)->size = STRING_BYTES (XSTRING (string));
-      XSTRING (string)->intervals = NULL_INTERVAL;
-      SET_STRING_BYTES (XSTRING (string), -1);
+      int bytes = STRING_BYTES (XSTRING (string));
+      unsigned char *str = (unsigned char *) xmalloc (bytes);
+
+      bcopy (XSTRING (string)->data, str, bytes);
+      bytes = str_as_unibyte (str, bytes);
+      string = make_unibyte_string (str, bytes);
+      xfree (str);
     }
   return string;
 }
@@ -1090,7 +1095,10 @@ DEFUN ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
        1, 1, 0,
   "Return a multibyte string with the same individual bytes as STRING.\n\
 If STRING is multibyte, the result is STRING itself.\n\
-Otherwise it is a newly created string, with no text properties.")
+Otherwise it is a newly created string, with no text properties.\n\
+If STRING is unibyte and contains an individual 8-bit byte (i.e. not\n\
+part of multibyte form), it is converted to the corresponding\n\
+multibyte character of charset `binary'.")
   (string)
      Lisp_Object string;
 {
@@ -1098,12 +1106,19 @@ Otherwise it is a newly created string, with no text properties.")
 
   if (! STRING_MULTIBYTE (string))
     {
-      int nbytes = STRING_BYTES (XSTRING (string));
-      int newlen = multibyte_chars_in_text (XSTRING (string)->data, nbytes);
+      Lisp_Object new_string;
+      int nchars, nbytes;
 
-      string = Fcopy_sequence (string);
-      XSTRING (string)->size = newlen;
-      XSTRING (string)->size_byte = nbytes;
+      parse_str_as_multibyte (XSTRING (string)->data,
+			      STRING_BYTES (XSTRING (string)),
+			      &nchars, &nbytes);
+      new_string = make_uninit_multibyte_string (nchars, nbytes);
+      bcopy (XSTRING (string)->data, XSTRING (new_string)->data,
+	     STRING_BYTES (XSTRING (string)));
+      if (nbytes != STRING_BYTES (XSTRING (string)))
+	str_as_multibyte (XSTRING (new_string)->data, nbytes,
+			  STRING_BYTES (XSTRING (string)), NULL);
+      string = new_string;
       XSTRING (string)->intervals = NULL_INTERVAL;
     }
   return string;
@@ -2374,7 +2389,7 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	    elt = XCHAR_TABLE (subtable)->defalt;
 	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
 	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
-	  c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
+	  c = MAKE_CHAR (charset, c1, c2);
 	  if (c_function)
 	    (*c_function) (arg, make_number (c), elt);
 	  else
@@ -2513,20 +2528,8 @@ mapcar1 (leni, vals, fn, seq)
 	    vals[i] = dummy;
 	}
     }
-  else if (STRINGP (seq) && ! STRING_MULTIBYTE (seq))
-    {
-      /* Single-byte string.  */
-      for (i = 0; i < leni; i++)
-	{
-	  XSETFASTINT (dummy, XSTRING (seq)->data[i]);
-	  dummy = call1 (fn, dummy);
-	  if (vals)
-	    vals[i] = dummy;
-	}
-    }
   else if (STRINGP (seq))
     {
-      /* Multi-byte string.  */
       int i_byte;
 
       for (i = 0, i_byte = 0; i < leni;)
@@ -3100,7 +3103,7 @@ static short base64_char_to_value[128] =
    base64 characters.  */
 
 
-static int base64_encode_1 P_ ((const char *, char *, int, int));
+static int base64_encode_1 P_ ((const char *, char *, int, int, int));
 static int base64_decode_1 P_ ((const char *, char *, int));
 
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
@@ -3135,9 +3138,18 @@ into shorter lines.")
   else
     encoded = (char *) xmalloc (allength);
   encoded_length = base64_encode_1 (BYTE_POS_ADDR (ibeg), encoded, length,
-				    NILP (no_line_break));
+				    NILP (no_line_break),
+				    !NILP (current_buffer->enable_multibyte_characters));
   if (encoded_length > allength)
     abort ();
+
+  if (encoded_length < 0)
+    {
+      /* The encoding wasn't possible. */
+      if (length > MAX_ALLOCA)
+	xfree (encoded);
+      error ("Base64 encoding failed");
+    }
 
   /* Now we have encoded the region, so we insert the new contents
      and delete the old.  (Insert first in order to preserve markers.)  */
@@ -3187,9 +3199,18 @@ into shorter lines.")
     encoded = (char *) xmalloc (allength);
 
   encoded_length = base64_encode_1 (XSTRING (string)->data,
-				    encoded, length, NILP (no_line_break));
+				    encoded, length, NILP (no_line_break),
+				    STRING_MULTIBYTE (string));
   if (encoded_length > allength)
     abort ();
+
+  if (encoded_length < 0)
+    {
+      /* The encoding wasn't possible. */
+      if (length > MAX_ALLOCA)
+	xfree (encoded);
+      error ("Base64 encoding failed");
+    }
 
   encoded_string = make_unibyte_string (encoded, encoded_length);
   if (allength > MAX_ALLOCA)
@@ -3199,20 +3220,30 @@ into shorter lines.")
 }
 
 static int
-base64_encode_1 (from, to, length, line_break)
+base64_encode_1 (from, to, length, line_break, multibyte)
      const char *from;
      char *to;
      int length;
      int line_break;
+     int multibyte;
 {
   int counter = 0, i = 0;
   char *e = to;
   unsigned char c;
   unsigned int value;
+  int bytes;
 
   while (i < length)
     {
-      c = from[i++];
+      if (multibyte)
+	{
+	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
+	  if (!SINGLE_BYTE_CHAR_P (c))
+	    return -1;
+	  i += bytes;
+	}
+      else
+	c = from[i++];
 
       /* Wrap line every 76 characters.  */
 
@@ -3242,7 +3273,13 @@ base64_encode_1 (from, to, length, line_break)
 	  break;
 	}
 
-      c = from[i++];
+      if (multibyte)
+	{
+	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
+	  i += bytes;
+	}
+      else
+	c = from[i++];
 
       *e++ = base64_value_to_char[value | (0x0f & c >> 4)];
       value = (0x0f & c) << 2;
@@ -3256,7 +3293,13 @@ base64_encode_1 (from, to, length, line_break)
 	  break;
 	}
 
-      c = from[i++];
+      if (multibyte)
+	{
+	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
+	  i += bytes;
+	}
+      else
+	c = from[i++];
 
       *e++ = base64_value_to_char[value | (0x03 & c >> 6)];
       *e++ = base64_value_to_char[0x3f & c];
@@ -3305,27 +3348,19 @@ If the region can't be decoded, signal an error and don't modify the buffer.")
       error ("Base64 decoding failed");
     }
 
+  inserted_chars = decoded_length;
+  if (!NILP (current_buffer->enable_multibyte_characters))
+    decoded_length = str_to_multibyte (decoded, length, decoded_length);
+
   /* Now we have decoded the region, so we insert the new contents
      and delete the old.  (Insert first in order to preserve markers.)  */
-  /* We insert two spaces, then insert the decoded text in between
-     them, at last, delete those extra two spaces.  This is to avoid
-     byte combining while inserting.  */
-  TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);
-  insert_1_both ("  ", 2, 2, 0, 1, 0);
-  TEMP_SET_PT_BOTH (XFASTINT (beg) + 1, ibeg + 1);  
-  insert (decoded, decoded_length);
-  inserted_chars = PT - (XFASTINT (beg) + 1);
+  TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);  
+  insert_1_both (decoded, inserted_chars, decoded_length, 0, 1, 0);
   if (length > MAX_ALLOCA)
     xfree (decoded);
-  /* At first delete the original text.  This never causes byte
-     combining.  */
-  del_range_both (PT + 1, PT_BYTE + 1, XFASTINT (end) + inserted_chars + 2,
-		  iend + decoded_length + 2, 1);
-  /* Next delete the extra spaces.  This will cause byte combining
-     error.  */
-  del_range_both (PT, PT_BYTE, PT + 1, PT_BYTE + 1, 0);
-  del_range_both (XFASTINT (beg), ibeg, XFASTINT (beg) + 1, ibeg + 1, 0);
-  inserted_chars = PT - XFASTINT (beg);
+  /* Delete the original text.  */
+  del_range_both (PT, PT_BYTE, XFASTINT (end) + inserted_chars,
+		  iend + decoded_length, 1);
 
   /* If point was outside of the region, restore it exactly; else just
      move to the beginning of the region.  */
@@ -3361,7 +3396,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   if (decoded_length > length)
     abort ();
   else if (decoded_length >= 0)
-    decoded_string = make_string (decoded, decoded_length);
+    decoded_string = make_unibyte_string (decoded, decoded_length);
   else
     decoded_string = Qnil;
 
