@@ -1,3 +1,7 @@
+2001-10-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (command-line-1): Bind tab-width to 8.
+
 2001-10-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el: Use defalias instead of fset for
