@@ -706,15 +706,14 @@ number, prompt the user for the name of the file to save in."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions and variables:
 
-(if (featurep 'emacs-vers)
-    nil
-  (defvar emacs-type (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-			   ((string-match "Lucid" emacs-version) 'lucid)
-			   ((string-match "Epoch" emacs-version) 'epoch)
-			   (t 'emacs))))
+(defvar ps-print-emacs-type
+  (cond ((string-match "XEmacs" emacs-version) 'xemacs)
+	((string-match "Lucid" emacs-version) 'lucid)
+	((string-match "Epoch" emacs-version) 'epoch)
+	(t 'emacs)))
 
-(if (or (eq emacs-type 'lucid)
-	(eq emacs-type 'xemacs))
+(if (or (eq ps-print-emacs-type 'lucid)
+	(eq ps-print-emacs-type 'xemacs))
     (if (< emacs-minor-version 12)
 	(setq ps-print-color-p nil))
   (require 'faces))			; face-font, face-underline-p,
@@ -1104,7 +1103,7 @@ StandardEncoding 46 82 getinterval aload pop
 
 (defvar ps-razchunk 0)
 
-(defvar ps-color-format (if (eq emacs-type 'emacs)
+(defvar ps-color-format (if (eq ps-print-emacs-type 'emacs)
 
 			    ;;Emacs understands the %f format; we'll
 			    ;;use it to limit color RGB values to
@@ -1635,14 +1634,14 @@ EndDSCPage\n"))
 	(memq face kind-list))))
 
 (defun ps-face-bold-p (face)
-  (if (eq emacs-type 'emacs)
+  (if (eq ps-print-emacs-type 'emacs)
       (ps-emacs-face-kind-p face 'bold "-\\(bold\\|demibold\\)-"
 			  ps-bold-faces)
     (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold"
 			   ps-bold-faces)))
 
 (defun ps-face-italic-p (face)
-  (if (eq emacs-type 'emacs)
+  (if (eq ps-print-emacs-type 'emacs)
       (ps-emacs-face-kind-p face 'italic "-[io]-" ps-italic-faces)
     (or
      (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)
@@ -1716,7 +1715,7 @@ EndDSCPage\n"))
     (let ((face 'default)
 	  (position to))
       (ps-print-ensure-fontified from to)
-      (cond ((or (eq emacs-type 'lucid) (eq emacs-type 'xemacs))
+      (cond ((or (eq ps-print-emacs-type 'lucid) (eq ps-print-emacs-type 'xemacs))
 	   ;; Build the list of extents...
 	   (let ((a (cons 'dummy nil))
 		 record type extent extent-list)
@@ -1767,7 +1766,7 @@ EndDSCPage\n"))
 	       (setq from position)
 	       (setq a (cdr a)))))
 
-	    ((eq emacs-type 'emacs)
+	    ((eq ps-print-emacs-type 'emacs)
 	     (let ((property-change from)
 		   (overlay-change from))
 	       (while (< from to)
@@ -1924,10 +1923,13 @@ EndDSCPage\n"))
 ;; WARNING!!! The following code is *sample* code only. Don't use it
 ;; unless you understand what it does!
 
-(defmacro ps-prsc () (list 'if (list 'eq 'emacs-type ''emacs) [f22] ''f22))
-(defmacro ps-c-prsc () (list 'if (list 'eq 'emacs-type ''emacs) [C-f22]
+(defmacro ps-prsc () (list 'if (list 'eq 'ps-print-emacs-type ''emacs)
+			   [f22] ''f22))
+(defmacro ps-c-prsc () (list 'if (list 'eq 'ps-print-emacs-type ''emacs)
+			     [C-f22]
 			     ''(control f22)))
-(defmacro ps-s-prsc () (list 'if (list 'eq 'emacs-type ''emacs) [S-f22]
+(defmacro ps-s-prsc () (list 'if (list 'eq 'ps-print-emacs-type ''emacs)
+			     [S-f22]
 			     ''(shift f22)))
 
 ;; Look in an article or mail message for the Subject: line.  To be
