@@ -2253,6 +2253,10 @@ term_init (char *name, char *terminal_type, int must_succeed)
   display = get_named_tty_display (name);
   if (display)
     {
+      /* XXX We would be able to support multiple emacsclients from
+         the same terminal if display devices were Lisp objects.
+         (Lisp code must know the difference between two separate
+         displays on the same terminal device.) -- lorentey */
       if (! display->display_info.tty->input)
         error ("%s already has a suspended frame on it, can't open it twice", name);
       return display;
@@ -2320,11 +2324,11 @@ term_init (char *name, char *terminal_type, int must_succeed)
          if we don't have one at the moment.  */
       fd = emacs_open (name, O_RDWR | O_IGNORE_CTTY | O_NOCTTY, 0);
 #else
-      /* Alas, O_IGNORE_CTTY is a GNU extension that is only defined
-         on Hurd.  On other systems, we need to dissociate ourselves
-         from the controlling tty when we want to open a frame on the
-         same terminal.  The function setsid should be used for this,
-         but it didn't work for me. */
+      /* Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
+         defined on Hurd.  On other systems, we need to dissociate
+         ourselves from the controlling tty when we want to open a
+         frame on the same terminal.  The function setsid should be
+         used for this, but it didn't work for me. */
 
       fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
       

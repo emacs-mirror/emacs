@@ -6731,6 +6731,11 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     if (--initial_display->reference_count == 0
         && initial_display->delete_display_hook)
       (*initial_display->delete_display_hook) (initial_display);
+
+    /* Update frame parameters to reflect the new type. */
+    Fmodify_frame_parameters
+      (selected_frame, Fcons (Fcons (Qtty_type,
+                                     Fframe_tty_type (selected_frame)), Qnil));
   }
   
   {

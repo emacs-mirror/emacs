@@ -434,30 +434,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	  ;; ...-frame-alist.
 	  (if (fboundp 'frame-notice-user-settings)
 	      (frame-notice-user-settings))
+	  ;; Set the faces for the initial background mode even if
+	  ;; frame-notice-user-settings didn't (such as on a tty).
+	  ;; frame-set-background-mode is idempotent, so it won't
+	  ;; cause any harm if it's already been done.
 	  (if (fboundp 'frame-set-background-mode)
-	      ;; Set the faces for the initial background mode even if
-	      ;; frame-notice-user-settings didn't (such as on a tty).
-	      ;; frame-set-background-mode is idempotent, so it won't
-	      ;; cause any harm if it's already been done.
-	      (let ((frame-background-mode frame-background-mode)
-		    (frame (selected-frame))
-		    term)
-		(when (and (null initial-window-system)
-			   ;; Don't override a possibly customized value.
-			   (null frame-background-mode)
-			   ;; Don't override user specifications.
-			   (null (frame-parameter frame 'reverse))
-			   (let ((bg (frame-parameter frame 'background-color)))
-			     (or (null bg)
-				 (member bg '(unspecified "unspecified-bg")))))
-		  (setq term (getenv "TERM"))
-		  ;; Some files in lisp/term do a better job with the
-		  ;; background mode, but we leave this here anyway, in
-		  ;; case they remove those files.
-		  (if (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-				    term)
-		      (setq frame-background-mode 'light)))
-		(frame-set-background-mode (selected-frame)))))
+	      (frame-set-background-mode (selected-frame))))
 
 	;; Now we know the user's default font, so add it to the menu.
 	(if (fboundp 'font-menu-add-default)
@@ -629,13 +611,12 @@ opening the first frame (e.g. open a connection to the server).")
     (setq eol-mnemonic-dos  "(DOS)"
           eol-mnemonic-mac  "(Mac)")))
 
-  ;; Read window system's init file if using a window system.
+  ;; Make sure window system's init file was loaded in loadup.el if using a window system.
   (condition-case error
     (unless noninteractive
       (if (and initial-window-system
 	       (not (featurep
-		     (intern (concat (symbol-name initial-window-system)
-				     "-win")))))
+		     (intern (concat (symbol-name initial-window-system) "-win")))))
 	  (error "Unsupported window system `%s'" initial-window-system))
       ;; Process window-system specific command line parameters.
       (setq command-line-args

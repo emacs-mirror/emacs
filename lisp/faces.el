@@ -1542,19 +1542,29 @@ according to the `background-mode' and `display-type' frame parameters."
 	  (and (window-system frame)
 	       (x-get-resource "backgroundMode" "BackgroundMode")))
 	 (bg-color (frame-parameter frame 'background-color))
+	 (tty-type (frame-parameter frame 'tty-type))
 	 (bg-mode
 	  (cond (frame-background-mode)
 		(bg-resource
 		 (intern (downcase bg-resource)))
-		((and (null (window-system frame)) (null bg-color))
-		 ;; No way to determine this automatically (?).
-		 'dark)
-		;; Unspecified frame background color can only happen
-		;; on tty's.
-		((member bg-color '(unspecified "unspecified-bg"))
-		 'dark)
+		((and (null (window-system frame))
+		      ;; Unspecified frame background color can only
+		      ;; happen on tty's.
+		      (member bg-color '(nil unspecified "unspecified-bg")))
+		 ;; There is no way to determine the background mode
+		 ;; automatically, so we make a guess based on the
+		 ;; terminal type.
+		 (if (and tty-type
+			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+					tty-type))
+		     'light
+		   'dark))
 		((equal bg-color "unspecified-fg") ; inverted colors
-		 'light)
+		 (if (and tty-type
+			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+					tty-type))
+		     'dark
+		   'light))
 		((>= (apply '+ (x-color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
 		    ;; values add up to .6 of the white total
@@ -1746,15 +1756,30 @@ Parameters not specified by PARAMETERS are taken from
 `default-frame-alist'.  If either PARAMETERS or `default-frame-alist'
 contains a `reverse' parameter, handle that.  Value is the new frame
 created."
-  (let ((frame (make-terminal-frame parameters))
+  (let ((old-frame (selected-frame))
+	(frame (make-terminal-frame parameters))
 	success)
     (unwind-protect
 	(progn
+	  (select-frame frame)
 	  (tty-handle-reverse-video frame (frame-parameters frame))
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
+	  ;; Load library for our terminal type.
+	  ;; User init file can set term-file-prefix to nil to prevent this.
+	  (unless (null term-file-prefix)
+	    (let ((term (cdr (assq 'tty-type parameters)))
+		  hyphend)
+	      (while (and term
+			  (not (load (concat term-file-prefix term) t t)))
+		;; Strip off last hyphen and what follows, then try again
+		(setq term
+		      (if (setq hyphend (string-match "[-_][^-_]+$" term))
+			  (substring term 0 hyphend)
+			nil)))))
 	  (setq success t))
       (unless success
+	(select-frame old-frame)
 	(delete-frame frame)))
     frame))
 

@@ -697,7 +697,6 @@ affects all frames on the same terminal device.  */)
     Lisp_Object tty, tty_type;
     char *name = 0, *type = 0;
 
-    /* XXX Ugh, there must be a better way to do this. */
     tty = Fassq (Qtty, parms);
     if (EQ (tty, Qnil))
       tty = Fassq (Qtty, XFRAME (selected_frame)->param_alist);

@@ -186,6 +186,14 @@ THINGS TO DO
    multi-locale setup. (E.g., while logging in from a remote client
    with a different locale.)
 
+** Change Lisp code not to (getenv "TERM"); use the `tty-type' frame
+   parameter or the frame-tty-type function instead.
+   (M-x tags-search "TERM" helps with this.)
+
+** The terminal customization files in term/*.el tend to change global
+   parameters, which may confuse Emacs with multiple displays.  Change
+   them to tweak only frame-local settings, if possible.
+
 ** Dan Nicolaescu suggests that -nw should be added as an alias for -t
    in emacsclient.  Good idea.  (Alas, implementing this is not
    trivial, getopt_long does not seem to support two-letter ``short''
