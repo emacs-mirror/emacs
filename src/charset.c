@@ -316,7 +316,7 @@ int
 char_printable_p (c)
      int c;
 {
-  int charset, c1, c2, chars;
+  int charset, c1, c2;
 
   if (ASCII_BYTE_P (c))
     return 1;
@@ -1004,7 +1004,6 @@ return a list of symbol `unknown' and CHAR.")
   (ch)
      Lisp_Object ch;
 {
-  Lisp_Object val;
   int c, charset, c1, c2;
 
   CHECK_NUMBER (ch, 0);
@@ -1155,8 +1154,6 @@ This is now an obsolete function.  We keep it just for backward compatibility.")
   (ch)
      Lisp_Object ch;
 {
-  Lisp_Object val;
-
   CHECK_NUMBER (ch, 0);
   return make_number (1);
 }
@@ -1478,7 +1475,6 @@ str_to_multibyte (str, len, bytes)
 {
   unsigned char *p = str, *endp = str + bytes;
   unsigned char *to;
-  int c;
 
   while (p < endp && (*p < 0x80 || *p >= 0xA0)) p++;
   if (p == endp)
