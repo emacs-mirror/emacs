@@ -1,3 +1,24 @@
+2000-10-31  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Fix bug on selected pages for printing.  Use
+	`color-values' for Emacs 21.  Ensure fontification when jit-lock
+	is on.  Try to avoid warning messages when compiling.  Doc Fix.
+	(ps-print-version): New version number (6.3).
+	(ps-color-device): Use `color-values' to determine if device
+	supports color.
+	(ps-color-values): Try to use `x-color-values' when using XEmacs.
+	(ps-print-page-p): Changed from defsubst to defun.
+	(ps-page-number): Changed from defmacro to defun.
+	(ps-header-sheet, ps-header-page): Fix bug on selected pages for
+	printing.
+	(ps-print-ensure-fontified): Ensure fontification when jit-lock is
+	on.
+	(ps-end-file, ps-dummy-page): Funs eliminated.
+	(ps-print-color-scale): Changed default value.
+	(ps-page-n-up, ps-print-page-p): New internal vars.
+	(ps-print-preprint, ps-output, ps-begin-file, ps-begin-page)
+	(ps-plot-region, ps-generate, ps-end-job): Code fix.
+
 2000-10-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* term/mac-win.el: (decode-mac-roman, encode-mac-roman,
