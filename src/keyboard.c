@@ -1148,7 +1148,7 @@ command_loop_1 ()
 
 	  Fsit_for (make_number (2), Qnil, Qnil);
 	  /* Clear the echo area.  */
-	  message2 (0);
+	  message2 (0, 0);
 	  safe_run_hooks (Qecho_area_clear_hook);
 
 	  unbind_to (count, Qnil);
@@ -5182,7 +5182,7 @@ menu_bar_items (old)
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     {
       if (! NILP (maps[mapno]))
-	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1, 0));
+	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1, 0), 0);
       else
 	def = Qnil;
 
@@ -5769,7 +5769,7 @@ follow_key (key, nmaps, current, defs, next)
 	  {
 	    Lisp_Object def;
 	    def = get_keyelt (access_keymap (current[i],
-					     meta_prefix_char, 1, 0));
+					     meta_prefix_char, 1, 0), 0);
 
 	    /* Note that since we pass the resulting bindings through
 	       get_keymap_1, non-prefix bindings for meta-prefix-char
@@ -5794,7 +5794,7 @@ follow_key (key, nmaps, current, defs, next)
 	  else
 	    map = current[i];
 
-	  defs[i] = get_keyelt (access_keymap (map, key, 1, 0));
+	  defs[i] = get_keyelt (access_keymap (map, key, 1, 0), 0);
 	  if (! NILP (defs[i]))
 	    first_binding = i;
 	}
@@ -6546,7 +6546,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  fkey_next
 		    = get_keymap_1
 		      (get_keyelt
-		       (access_keymap (fkey_map, meta_prefix_char, 1, 0)),
+		       (access_keymap (fkey_map, meta_prefix_char, 1, 0), 0),
 		       0, 1);
 		  XSETFASTINT (key, XFASTINT (key) & ~meta_modifier);
 		}
@@ -6554,7 +6554,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		fkey_next = fkey_map;
 
 	      fkey_next
-		= get_keyelt (access_keymap (fkey_next, key, 1, 0));
+		= get_keyelt (access_keymap (fkey_next, key, 1, 0), 0);
 
 #if 0 /* I didn't turn this on, because it might cause trouble
 	 for the mapping of return into C-m and tab into C-i.  */
@@ -6654,7 +6654,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		keytran_next
 		  = get_keymap_1
 		    (get_keyelt
-		     (access_keymap (keytran_map, meta_prefix_char, 1, 0)),
+		     (access_keymap (keytran_map, meta_prefix_char, 1, 0), 0),
 		     0, 1);
 		XSETFASTINT (key, XFASTINT (key) & ~meta_modifier);
 	      }
@@ -6662,7 +6662,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      keytran_next = keytran_map;
 
 	    keytran_next
-	      = get_keyelt (access_keymap (keytran_next, key, 1, 0));
+	      = get_keyelt (access_keymap (keytran_next, key, 1, 0), 0);
 
 	    /* If the key translation map gives a function, not an
 	       array, then call the function with no args and use
