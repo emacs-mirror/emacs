@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.132 2001/07/11 22:05:01 monnier Exp $
+;; $Id: vc-hooks.el,v 1.133 2001/09/22 20:09:40 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -485,7 +485,7 @@ a regexp for matching all such backup files, regardless of the version."
   (condition-case nil
       (mapcar
        'delete-file
-       (directory-files (file-name-directory file) t
+       (directory-files (or (file-name-directory file) default-directory) t
 			(vc-version-backup-file-name file nil nil t)))
     ;; Don't fail when the directory doesn't exist.
     (file-error nil)))
