@@ -545,11 +545,11 @@ considered a sequence.
   Arrays are further subdivided into strings, vectors, char-tables and
 bool-vectors.  Vectors can hold elements of any type, but string
 elements must be characters, and bool-vector elements must be @code{t}
-or @code{nil}.  The characters in a string can have text properties like
-characters in a buffer (@pxref{Text Properties}); vectors and
-bool-vectors do not support text properties even when their elements
-happen to be characters.  Char-tables are like vectors except that they
-are indexed by any valid character code.
+or @code{nil}.  Char-tables are like vectors except that they are
+indexed by any valid character code.  The characters in a string can
+have text properties like characters in a buffer (@pxref{Text
+Properties}), but vectors do not support text properties, even when
+their elements happen to be characters.
 
   Lists, strings and the other array types are different, but they have
 important similarities.  For example, all have a length @var{l}, and all
