@@ -58,8 +58,8 @@ struct atimer
   /* Interval of this timer.  */
   EMACS_TIME interval;
 
-  /* Function to call when timer is ripe.  Interupt input is
-     garanteed to not be blocked when this function is called.  */
+  /* Function to call when timer is ripe.  Interrupt input is
+     guaranteed to not be blocked when this function is called.  */
   atimer_callback fn;
 
   /* Additional user-specified data to pass to FN.  */

@@ -62,7 +62,7 @@ static struct atimer *atimers;
 
 int pending_atimers;
 
-/* Block/unblock SIGALRM.. */
+/* Block/unblock SIGALRM.  */
 
 #define BLOCK_ATIMERS   sigblock (sigmask (SIGALRM))
 #define UNBLOCK_ATIMERS sigunblock (sigmask (SIGALRM))

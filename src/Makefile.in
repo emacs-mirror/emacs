@@ -24,7 +24,7 @@
 # script may need modifying in sync with changes made here.  Try to
 # avoid shell-ism because the DOS build has to use the DOS shell.
 
-# Don't try to replace the ccp processing using autoconf facilities,
+# Don't try to replace the cpp processing using autoconf facilities,
 # says rms.
 
 # Here are the things that we expect ../configure to edit.

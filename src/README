@@ -26,6 +26,3 @@ systems where you are not overly concerned with security, since it
 either requires that you install Emacs with SYSPRV or make SYSUAF.DAT
 world readable.  Otherwise, Emacs can determine information about the
 current user, but no one else.
-
-`pwd.h' contains definitions for VMS to be able to correctly simulate
-`getpwdnam' and `getpwduid'.
