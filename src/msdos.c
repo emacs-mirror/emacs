@@ -782,11 +782,6 @@ IT_write_glyphs (struct glyph *str, int str_len)
       int cf, chlen, enclen;
       unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *buf;
       unsigned ch;
-      register GLYPH g = GLYPH_FROM_CHAR_GLYPH (*str);
-
-      /* Find the actual glyph to display by traversing the entire
-	 aliases chain for this glyph.  */
-      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
 
       /* Glyphs with GLYPH_MASK_PADDING bit set are actually there
 	 only for the redisplay code to know how many columns does
@@ -798,19 +793,35 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	}
       else
 	{
+	  register GLYPH g = GLYPH_FROM_CHAR_GLYPH (*str);
+	  int glyph_not_in_table = 0;
+
+	  if (g < 0 || g >= tlen)
+	    {
+	      /* This glyph doesn't have an entry in Vglyph_table.  */
+	      ch = str->u.ch;
+	      glyph_not_in_table = 1;
+	    }
+	  else
+	    {
+	      /* This glyph has an entry in Vglyph_table, so process
+		 any aliases before testing for simpleness.  */
+	      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
+	      ch = FAST_GLYPH_CHAR (g);
+	    }
+
 	  /* Convert the character code to multibyte, if they
-	     requested display via language environment.  */
-	  ch = FAST_GLYPH_CHAR (g);
-	  /* We only want to convert unibyte characters to multibyte
-	     in unibyte buffers!  Otherwise, the 8-bit code might come
-	     from the display table set up to display foreign characters.  */
+	     requested display via language environment.  We only want
+	     to convert unibyte characters to multibyte in unibyte
+	     buffers!  Otherwise, the 8-bit value in CH came from the
+	     display table set up to display foreign characters.  */
 	  if (SINGLE_BYTE_CHAR_P (ch) && convert_unibyte_characters
 	      && (ch >= 0240
 		  || (ch >= 0200 && !NILP (Vnonascii_translation_table))))
 	    ch = unibyte_char_to_multibyte (ch);
 
 	  /* Invalid characters are displayed with a special glyph.  */
-	  if (! GLYPH_CHAR_VALID_P (ch))
+	  if (! CHAR_VALID_P (ch, 0))
 	    {
 	      g = !NILP (Vdos_unsupported_char_glyph)
 		? Vdos_unsupported_char_glyph
@@ -824,7 +835,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	  if (cf != screen_face)
 	    IT_set_face (cf);	/* handles invalid faces gracefully */
 
-	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
+	  if (glyph_not_in_table || GLYPH_SIMPLE_P (tbase, tlen, g))
 	    {
 	      /* We generate the multi-byte form of CH in WORKBUF.  */
 	      chlen = CHAR_STRING (ch, workbuf);
