@@ -9615,8 +9615,9 @@ try_window_reusing_current_matrix (w)
 	    {
 	      update_begin (f);
 	      rif->update_window_begin_hook (w);
+	      rif->clear_mouse_face (w);
 	      rif->scroll_run_hook (w, &run);
-	      rif->update_window_end_hook (w, 0);
+	      rif->update_window_end_hook (w, 0, 0);
 	      update_end (f);
 	    }
 
@@ -9783,8 +9784,9 @@ try_window_reusing_current_matrix (w)
 	  struct frame *f = XFRAME (WINDOW_FRAME (w));
 	  update_begin (f);
 	  rif->update_window_begin_hook (w);
+	  rif->clear_mouse_face (w);
 	  rif->scroll_run_hook (w, &run);
-	  rif->update_window_end_hook (w, 0);
+	  rif->update_window_end_hook (w, 0, 0);
 	  update_end (f);
 	}
 
@@ -10456,8 +10458,9 @@ try_window_id (w)
       if (FRAME_WINDOW_P (f))
 	{
 	  rif->update_window_begin_hook (w);
+	  rif->clear_mouse_face (w);
 	  rif->scroll_run_hook (w, &run);
-	  rif->update_window_end_hook (w, 0);
+	  rif->update_window_end_hook (w, 0, 0);
 	}
       else
 	{
