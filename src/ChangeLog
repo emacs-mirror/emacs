@@ -1,5 +1,14 @@
 2003-06-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xfaces.c (set_font_frame_param): Set default_face_done_p to zero.
+	(realize_default_face): Use default_face_done_p for the force_p
+	argument to set_lface_from_font_name.  Set default_face_done_p to
+	one.
+
+	* frame.c (make_frame): Initialize default_face_done_p.
+
+	* frame.h (struct frame): Add default_face_done_p.
+
 	* config.in: Add XRegisterIMInstantiateCallback_arg6 so it
 	will be defined.
 

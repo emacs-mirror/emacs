@@ -451,6 +451,11 @@ struct frame
   /* Set to non-zero in change_frame_size when size of frame changed
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
+
+  /* Set to non-zero if the default face for the frame has been
+     realized.  Reset to zero whenever the default face changes.
+     Used to see the difference between a font change and face change.  */
+  unsigned default_face_done_p : 1;
 };
 
 #ifdef MULTI_KBOARD

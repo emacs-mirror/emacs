@@ -4340,6 +4340,7 @@ set_font_frame_param (frame, lface)
 	  xfree (font);
 	}
 
+      f->default_face_done_p = 0;
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font_name), Qnil));
     }
 }
@@ -6586,9 +6587,9 @@ realize_default_face (f)
       frame_font = Fassq (Qfont, f->param_alist);
       xassert (CONSP (frame_font) && STRINGP (XCDR (frame_font)));
       frame_font = XCDR (frame_font);
-      /* Specify 0 for FORCE_P here, so that we don't override
-	 a :family attribute specified for `default' for new frames.  */
-      set_lface_from_font_name (f, lface, frame_font, 0, 1);
+      set_lface_from_font_name (f, lface, frame_font,
+                                f->default_face_done_p, 1);
+      f->default_face_done_p = 1;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
