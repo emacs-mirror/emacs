@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.25 2002/07/19 13:27:44 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.26 2002/09/04 20:49:35 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -491,37 +491,6 @@ Needs RCS 5.6.2 or later for -M."
 (defun vc-rcs-print-log (file)
   "Get change log associated with FILE."
   (vc-do-command nil 0 "rlog" (vc-name file)))
-
-(defun vc-rcs-show-log-entry (version)
-  (when (re-search-forward
-	 ;; also match some context, for safety
-	 (concat "----\nrevision " version
-		 "\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)
-    ;; set the display window so that
-    ;; the whole log entry is displayed
-    (let (start end lines)
-      (beginning-of-line) (forward-line -1) (setq start (point))
-      (if (not (re-search-forward "^----*\nrevision" nil t))
-	  (setq end (point-max))
-	(beginning-of-line) (forward-line -1) (setq end (point)))
-      (setq lines (count-lines start end))
-      (cond
-       ;; if the global information and this log entry fit
-       ;; into the window, display from the beginning
-       ((< (count-lines (point-min) end) (window-height))
-	(goto-char (point-min))
-	(recenter 0)
-	(goto-char start))
-       ;; if the whole entry fits into the window,
-       ;; display it centered
-       ((< (1+ lines) (window-height))
-	(goto-char start)
-	(recenter (1- (- (/ (window-height) 2) (/ lines 2)))))
-       ;; otherwise (the entry is too large for the window),
-       ;; display from the start
-       (t
-	(goto-char start)
-	(recenter 0))))))
 
 (defun vc-rcs-diff (file &optional oldvers newvers)
   "Get a difference report using RCS between two versions of FILE."
