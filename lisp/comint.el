@@ -209,6 +209,11 @@ If non-nil, then show the maximum output when the window is scrolled.
 See variable `comint-scroll-to-bottom-on-output' and function
 `comint-postoutput-scroll-to-bottom'.  This variable is buffer-local.")
 
+(defvar comint-buffer-maximum-size 1024
+  "*The maximum size in lines for comint buffers.
+Comint buffers are truncated from the top to be no greater than this number, if
+the function `comint-truncate-buffer' is on `comint-output-filter-functions'.")
+
 (defvar comint-input-ring-size 32
   "Size of input history ring.")
 
@@ -1292,11 +1297,19 @@ This function should be in the list `comint-output-filter-functions'."
 	     nil t))
       (set-buffer current))))
 
+(defun comint-truncate-buffer (&optional string)
+  "Truncate the buffer to `comint-buffer-maximum-size'.
+This function could be on `comint-output-filter-functions' or bound to a key."
+  (interactive)
+  (save-excursion
+    (goto-char (point-max))
+    (forward-line (- comint-buffer-maximum-size))
+    (beginning-of-line)
+    (delete-region (point-min) (point))))
+
 (defun comint-strip-ctrl-m (&optional string)
   "Strip trailing `^M' characters from the current output group.
-
-This function could be in the list `comint-output-filter-functions' or bound to
-a key."
+This function could be on `comint-output-filter-functions' or bound to a key."
   (interactive)
   (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
     (save-excursion
