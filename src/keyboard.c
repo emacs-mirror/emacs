@@ -6627,7 +6627,6 @@ read_avail_input (expected)
 
   if (read_socket_hook)
     {
-      int discard = 0;
       int nr;
       struct input_event hold_quit;
 
