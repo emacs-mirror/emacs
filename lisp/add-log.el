@@ -91,9 +91,9 @@ and `current-time-string' are two valid values."
      ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 font-lock-function-name-face)))
     ;;
     ;; Function or variable names.
-    ("(\\([^ ,:\n]+\\)"
+    ("(\\([^) ,:\n]+\\)"
      (1 font-lock-keyword-face)
-     ("\\=, \\([^ ,:\n]+\\)" nil nil (1 font-lock-keyword-face)))
+     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 font-lock-keyword-face)))
     ;;
     ;; Conditionals.
     ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
