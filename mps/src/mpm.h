@@ -653,6 +653,7 @@ extern void (ArenaPoll)(Arena arena);
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
 
+extern void ArenaStep(Arena arena);
 extern void ArenaClamp(Arena arena);
 extern void ArenaRelease(Arena arena);
 extern void ArenaPark(Arena arena);

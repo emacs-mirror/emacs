@@ -99,7 +99,7 @@ static Bool mpsi_check(void)
   /* The external idea of an address and the internal one */
   /* had better match. */
   CHECKL(CHECKTYPE(mps_addr_t, Addr));
- 
+
   /* The external idea of size and the internal one had */
   /* better match.  See design.mps.interface.c.cons.size */
   /* and design.mps.interface.c.pun.size. */
@@ -273,7 +273,7 @@ size_t mps_arena_commit_limit(mps_arena_t mps_arena)
 
   return size;
 }
- 
+
 mps_res_t mps_arena_commit_limit_set(mps_arena_t mps_arena, size_t limit)
 {
   Res res;
@@ -309,6 +309,14 @@ size_t mps_arena_spare_commit_limit(mps_arena_t mps_arena)
   return limit;
 }
 
+void mps_arena_step(mps_arena_t mps_arena)
+{
+  Arena arena = (Arena)mps_arena;
+  ArenaEnter(arena);
+  ArenaStep(arena);
+  ArenaLeave(arena);
+}
+
 void mps_arena_clamp(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
@@ -323,7 +331,7 @@ void mps_space_clamp(mps_space_t mps_space)
   mps_arena_clamp(mps_space);
 }
 
-  
+
 void mps_arena_release(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
@@ -337,7 +345,7 @@ void mps_space_release(mps_space_t mps_space)
 {
   mps_arena_release(mps_space);
 }
- 
+
 
 void mps_arena_park(mps_space_t mps_space)
 {
@@ -369,7 +377,7 @@ mps_res_t mps_space_collect(mps_space_t mps_space)
 {
   return mps_arena_collect(mps_space);
 }
-   
+
 
 /* mps_arena_create -- create an arena object */
 
@@ -574,7 +582,7 @@ void mps_fmt_destroy(mps_fmt_t mps_fmt)
 {
   Format format = (Format)mps_fmt;
   Arena arena;
- 
+
   AVER(CHECKT(Format, format));
   arena = FormatArena(format);
 
@@ -620,7 +628,7 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
   res = PoolCreateV(&pool, arena, class, args);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *mps_pool_o = (mps_pool_t)pool;
   return res;
@@ -630,7 +638,7 @@ void mps_pool_destroy(mps_pool_t mps_pool)
 {
   Pool pool = (Pool)mps_pool;
   Arena arena;
- 
+
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 
@@ -650,7 +658,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t mps_pool,
   Arena arena;
   Addr p;
   Res res;
- 
+
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 
@@ -692,7 +700,7 @@ void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
 {
   Pool pool = (Pool)mps_pool;
   Arena arena;
- 
+
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 
@@ -719,7 +727,7 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
   BufferClass bufclass;
   Res res;
   va_list args;
- 
+
   AVER(mps_ap_o != NULL);
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
@@ -752,7 +760,7 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
   Buffer buf;
   BufferClass bufclass;
   Res res;
- 
+
   AVER(mps_ap_o != NULL);
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
@@ -777,7 +785,7 @@ void mps_ap_destroy(mps_ap_t mps_ap)
   Buffer buf = BufferOfAP((AP)mps_ap);
   Arena arena;
 
-  AVER(mps_ap != NULL); 
+  AVER(mps_ap != NULL);
   AVER(CHECKT(Buffer, buf));
   arena = BufferArena(buf);
 
@@ -869,7 +877,7 @@ mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
  */
 mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 {
-  AVER(frame_o != NULL); 
+  AVER(frame_o != NULL);
   AVER(mps_ap != NULL);
 
   /* Fail if between reserve & commit */
@@ -890,10 +898,10 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 
     AVER(CHECKT(Buffer, buf));
     arena = BufferArena(buf);
-   
+
     ArenaEnter(arena);
     AVERT(Buffer, buf);
-   
+
     res = BufferFramePush(&frame, buf);
 
     if(res == ResOK) {
@@ -934,10 +942,10 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 
     AVER(CHECKT(Buffer, buf));
     arena = BufferArena(buf);
-   
+
     ArenaEnter(arena);
     AVERT(Buffer, buf);
-   
+
     res = BufferFramePop(buf, (AllocFrame)frame);
 
     ArenaLeave(arena);
@@ -959,7 +967,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   Addr p;
   Res res;
 
-  AVER(mps_ap != NULL); 
+  AVER(mps_ap != NULL);
   AVER(CHECKT(Buffer, buf));
   arena = BufferArena(buf);
 
@@ -975,7 +983,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   res = BufferFill(&p, buf, size, /* withReservoirPermit */ FALSE);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
@@ -991,7 +999,7 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o,
   Addr p;
   Res res;
 
-  AVER(mps_ap != NULL); 
+  AVER(mps_ap != NULL);
   AVER(CHECKT(Buffer, buf));
   arena = BufferArena(buf);
 
@@ -1007,7 +1015,7 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o,
   res = BufferFill(&p, buf, size, /* withReservoirPermit */ TRUE);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
@@ -1026,7 +1034,7 @@ mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
   Arena arena;
   Bool b;
 
-  AVER(mps_ap != NULL); 
+  AVER(mps_ap != NULL);
   AVER(CHECKT(Buffer, buf));
   arena = BufferArena(buf);
 
@@ -1065,7 +1073,7 @@ mps_res_t mps_sac_create(mps_sac_t *mps_sac_o, mps_pool_t mps_pool,
   res = SACCreate(&sac, pool, (Count)classes_count, classes);
 
   ArenaLeave(arena);
- 
+
   if (res != ResOK) return (mps_res_t)res;
   *mps_sac_o = (mps_sac_t)ExternalSACOfSAC(sac);
   return (mps_res_t)res;
@@ -1205,7 +1213,7 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
                       (RootScanMethod)mps_root_scan, p, s);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
@@ -1237,7 +1245,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
                         (Addr *)base, (Addr *)base + size);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
@@ -1270,7 +1278,7 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                               mask);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
@@ -1289,7 +1297,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
   Root root;
   RootMode mode = (RootMode)mps_rm;
   Res res;
- 
+
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
@@ -1298,7 +1306,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
                       (Addr)base, (Addr)limit);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
@@ -1334,7 +1342,7 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
                       reg_scan_p, mps_size);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
@@ -1361,7 +1369,7 @@ void mps_root_destroy(mps_root_t mps_root)
 {
   Root root = (Root)mps_root;
   Arena arena;
- 
+
   AVER(CHECKT(Root, root));
   arena = RootArena(root);
 
@@ -1401,7 +1409,7 @@ mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t mps_arena)
   res = ThreadRegister(&thread, arena);
 
   ArenaLeave(arena);
- 
+
   if(res != ResOK) return res;
   *mps_thr_o = (mps_thr_t)thread;
   return MPS_RES_OK;
@@ -1411,7 +1419,7 @@ void mps_thread_dereg(mps_thr_t mps_thr)
 {
   Thread thread = (Thread)mps_thr;
   Arena arena;
- 
+
   AVER(ThreadCheckSimple(thread));
   arena = ThreadArena(thread);
 
@@ -1654,7 +1662,7 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
   Ref ref;
 
   AVER(mps_addr_return != NULL);
- 
+
   ArenaEnter(arena);
 
   AVERT(Arena, arena);
