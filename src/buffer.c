@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <errno.h>
+#include <stdio.h>
 
 #ifndef USE_CRT_DLL
 extern int errno;
