@@ -798,7 +798,7 @@ If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
     ',(let ((l rules)
 	    (map (list nil)))
 	(while l
-	  (quail-defrule-internal (car (car l)) (car (cdr (car l))) map)
+	  (quail-defrule-internal (car (car l)) (car (cdr (car l))) map t)
 	  (setq l (cdr l)))
 	map)))
 
@@ -841,7 +841,7 @@ current Quail package."
   (quail-defrule-internal key translation (quail-map)))
 
 ;;;###autoload
-(defun quail-defrule-internal (key trans map)
+(defun quail-defrule-internal (key trans map &optional append)
   "Define KEY as TRANS in a Quail map MAP."
   (if (null (stringp key))
       "Invalid Quail key `%s'" key)
@@ -891,7 +891,9 @@ current Quail package."
 		    (error "Quail key %s is too short" key)
 		  (setcdr entry trans))
 	      (setcdr entry (append trans (cdr map)))))
-	(setcar map trans)))))
+	(if (and append (stringp (car map)) (stringp trans))
+	    (setcar map (concat (car map) trans))
+	  (setcar map trans))))))
 
 (defun quail-get-translation (def key len)
   "Return the translation specified as DEF for KEY of length LEN.
