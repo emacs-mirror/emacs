@@ -3421,7 +3421,7 @@ or matches a regexp in `special-display-regexps'.");
     "*List of buffer names that should appear in the selected window.\n\
 Displaying one of these buffers using `display-buffer' or `pop-to-buffer'\n\
 switches to it in the selected window, rather than making it appear\n\
-in some other window.
+in some other window.\n\
 \n\
 An element of the list can be a cons cell instead of just a string.\n\
 Then the car must be a string, which specifies the buffer name.\n\
