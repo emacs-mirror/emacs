@@ -62,3 +62,5 @@
 #define WAIT_USE_INT
 
 #define NO_MATHERR
+
+#define AMPERSAND_FULL_NAME
