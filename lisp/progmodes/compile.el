@@ -115,7 +115,12 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\n\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
+    ("\n\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 1 2)
+
+    ;; GNU error message with a program name in it.
+    ;;  compilername:file:linenum: error message
+    ("\n\\([^:( \t\n]+\\):\\([^:( \t\n]+\\):[ \t]*\\([0-9]+\\)\\(:[^0-9\n]\\)"
+     2 3)
 
     ;; Borland C++:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
@@ -177,6 +182,10 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;; GNAT compiler v1.82
     ;; foo.adb:2:1: Unit name does not match file name
     ("\n\\([^ \n\t:]+\\):\\([0-9]+\\):\\([0-9]+\\)[: \t]" 1 2 3)
+
+    ;; GNU message with program name and column number.
+    ("\n\\([^ \n\t:]+\\):\\([^ \n\t:]+\\):\
+\\([0-9]+\\):\\([0-9]+\\)[: \t]" 2 3 4)
     )
   "Alist that specifies how to match errors in compiler output.
 Each element has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX]).
