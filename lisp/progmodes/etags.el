@@ -548,8 +548,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
       (let ((file tags-file-name))
 	(kill-local-variable 'tags-file-name)
 	(if (eq file tags-file-name)
-	    (setq tags-file-name nil)))
-      (error "File %s is not a valid tags table" file))))
+	    (setq tags-file-name nil))
+	(error "File %s is not a valid tags table" file)))))
 
 (defun file-of-tag ()
   "Return the file name of the file whose tags point is within.
