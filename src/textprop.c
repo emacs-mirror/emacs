@@ -902,7 +902,18 @@ is the string or buffer containing the text.")
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
 
+  /* If we want no properties for a whole string,
+     get rid of its intervals.  */
+  if (NILP (props) && STRINGP (object)
+      && XFASTINT (start) == 0
+      && XFASTINT (end) == XSTRING (object)->size)
+    {
+      XSTRING (object)->intervals = 0;
+      return Qt;
+    }
+
   i = validate_interval_range (object, &start, &end, soft);
+
   if (NULL_INTERVAL_P (i))
     {
       /* If buffer has no props, and we want none, return now.  */
