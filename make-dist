@@ -280,7 +280,7 @@ echo "Creating subdirectories"
 for subdir in lisp site-lisp leim real-leim real-leim/CXTERM-DIC \
 	      real-leim/SKK-DIC real-leim/skk real-leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
-	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet \
+	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      etc etc/e lock info man msdos vms; do
   mkdir ${tempdir}/${subdir}
 done
@@ -440,6 +440,10 @@ echo "Making links to \`nt/inc/arpa'"
 echo "Making links to \`nt/inc/netinet'"
 (cd nt/inc/netinet
  ln [a-z]*.h ../../../${tempdir}/nt/inc/netinet)
+
+echo "Making links to \`nt/icons'"
+(cd nt/icons
+ ln [a-z]*.ico ../../../${tempdir}/nt/icons)
 
 echo "Making links to \`msdos'"
 (cd msdos
