@@ -32,12 +32,12 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "dispextern.h"
 #include "w32term.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
 #include "fontset.h"
 #include "intervals.h"
-#include "keyboard.h"
 #include "blockinput.h"
 #include "epaths.h"
 #include "w32heap.h"
@@ -5518,7 +5518,9 @@ char * xlfd_charset_of_font (char * fontname)
 struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
                                      int size, char* filename);
 static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names);
-BOOL w32_to_x_font (LOGFONT * lplf, char * lpxstr, int len, char * charset);
+static BOOL w32_to_x_font (LOGFONT * lplf, char * lpxstr, int len,
+			   char * charset);
+static BOOL x_to_w32_font (char *lpxstr, LOGFONT *lplogfont);
 
 static struct font_info *
 w32_load_system_font (f,fontname,size)
