@@ -2260,9 +2260,11 @@ read1 (readcharfun, pch, first_in_list)
 	       compiled Emacs Lisp files, and those always use the
 	       Emacs internal encoding.  Meanwhile, Qlambda is used
 	       for reading dynamic byte code (compiled with
-	       byte-compile-dynamic = t).  */
+	       byte-compile-dynamic = t).  So make the string multibyte
+	       if the string contains any multibyte sequences.
+	       (to_multibyte is a no-op if not.)  */
 	    to_multibyte (&p, &end, &nchars);
-	    is_multibyte = 1;
+	    is_multibyte = (p - read_buffer) != nchars;
 	  }
 	else
 	  /* In all other cases, if we read these bytes as
