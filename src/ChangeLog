@@ -1,3 +1,7 @@
+2001-11-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* print.c (prin1, print): Doc fix.
+
 2001-11-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* fontset.h: Remove prototypes for variables
