@@ -36,16 +36,16 @@ Similarly, a ``Lisp library directory'' is a directory of files
 containing Lisp code.
 
 @menu
-* How Programs Do Loading::     The @code{load} function and others.
-* Library Search::              Finding a library to load.
-* Loading Non-ASCII::           Non-@acronym{ASCII} characters in Emacs Lisp files.
-* Autoload::                    Setting up a function to autoload.
-* Repeated Loading::            Precautions about loading a file twice.
-* Named Features::              Loading a library if it isn't already loaded.
-* Where Defined::               Finding which file defined a certain symbol.
-* Unloading::			How to ``unload'' a library that was loaded.
-* Hooks for Loading::		Providing code to be run when
-				  particular libraries are loaded.
+* How Programs Do Loading:: The @code{load} function and others.
+* Library Search::          Finding a library to load.
+* Loading Non-ASCII::       Non-@acronym{ASCII} characters in Emacs Lisp files.
+* Autoload::                Setting up a function to autoload.
+* Repeated Loading::        Precautions about loading a file twice.
+* Named Features::          Loading a library if it isn't already loaded.
+* Where Defined::           Finding which file defined a certain symbol.
+* Unloading::		      to ``unload'' a library that was loaded.
+* Hooks for Loading::	    Providing code to be run when
+			      particular libraries are loaded.
 @end menu
 
 @node How Programs Do Loading
