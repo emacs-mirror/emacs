@@ -8,6 +8,8 @@
 
 2004-02-05  Kenichi Handa  <handa@m17n.org>
 
+	* fns.c (Fset_char_table_range): Fix previous change.
+
 	* buffer.c (Fset_buffer_multibyte): Fix docstring.
 
 2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
