@@ -898,7 +898,7 @@ The fill lines remain a comment."
       (while (looking-at fill-prefix)
 	(previous-line 1))
       (next-line 1)
-      (insert-string "\n")
+      (insert "\n")
       (fill-paragraph nil)
       (delete-char -1)
       (setq fill-prefix save))))
