@@ -28,7 +28,7 @@
 
 ;; This program was written to protest the miss-named "Communications
 ;; Decency Act of 1996. This Act bans "indecent speech", whatever that is,
-;; from the internet. For more on the CDA, see Richard Stallman's essay on
+;; from the Internet. For more on the CDA, see Richard Stallman's essay on
 ;; censorship, included in the etc directory of emacs distributions 19.34
 ;; and up. See also http://www.eff.org/blueribbon.html.
 
@@ -56,7 +56,7 @@
 ;; data file from which to select words at random. Sorry about that. I
 ;; believe the average user will be able to come up with a few words on
 ;; his or her own. If that is a problem, feel free to ask any American
-;; teenager, preferrably one who attends a government school. Failing
+;; teenager, preferably one who attends a government school. Failing
 ;; that, you might write to Mr. Clinton or Ms Reno or their successors and
 ;; ask them for suggestions. Think of it as a public spirited act: the
 ;; time they spend answering you is time not spent persecuting someone
@@ -70,7 +70,7 @@
 ;; ascii 0s.
 
 ;; Once you have edited up a data file, you have to tell emacs how to find
-;; the program bruce. Add the follwing two lines to your .emacs file. Be
+;; the program bruce. Add the following two lines to your .emacs file. Be
 ;; sure to uncomment the second line.
 
 ;; for bruce mode
@@ -112,7 +112,7 @@
   :group 'games)
 
 (defcustom bruce-phrases-file "~/bruce.lines"
-  "Keep your favorite phrases here."
+  "Keep your favourite phrases here."
   :type 'file
   :group 'bruce)
 
