@@ -2500,4 +2500,5 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
     (list "xml" (list "val" (flymake-init-create-temp-buffer-copy buffer 'flymake-create-temp-inplace)))
 )
 
+;;; arch-tag: 8f0d6090-061d-4cac-8862-7c151c4a02dd
 ;;; flymake.el ends here
