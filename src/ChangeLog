@@ -1,3 +1,7 @@
+2002-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eval.c (Fcommandp): Doc fix.
+
 2002-05-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (keymap_parent): New fun, extracted from Fkeymap_parent.

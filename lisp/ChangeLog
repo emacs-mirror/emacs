@@ -1,3 +1,7 @@
+2002-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/easymenu.el (easy-menu-add): Doc fix.
+
 2002-05-14  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-directive-re): New name for
