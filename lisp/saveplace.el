@@ -179,9 +179,7 @@ To save places automatically in all files, put this in your `.emacs' file:
                           (setq s (cdr s))))))
                   
                 (kill-buffer (current-buffer))
-                (message "Loading places from %s...done" file)
-                t)
-            t)
+                (message "Loading places from %s...done" file)))
           nil))))
 
 (defun save-places-to-alist ()
