@@ -1,5 +1,5 @@
 /* Communication subprocess for GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1987, 1992, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -152,12 +152,12 @@ main ()
   for (;;)
     {
       SELECT_TYPE rmask;
-      FD_ZERO (rmask);
-      FD_SET (rmask, 0);
-      FD_SET (rmask, s);
+      FD_ZERO (&rmask);
+      FD_SET (0, &rmask);
+      FD_SET (s, &rmask);
       if (select (s + 1, &rmask, 0, 0, 0) < 0)
 	perror ("select");
-      if (FD_ISSET (rmask, s))	/* client sends list of filenames */
+      if (FD_ISSET (s, &rmask))	/* client sends list of filenames */
 	{
 	  fromlen = sizeof (fromunix);
 	  fromunix.sun_family = AF_UNIX;
@@ -210,7 +210,7 @@ main ()
 	  fflush (infile);
 	  continue;
 	}
-      else if (FD_ISSET (rmask, 0)) /* emacs sends codeword, fd, and string message */
+      else if (FD_ISSET (0, &rmask)) /* emacs sends codeword, fd, and string message */
 	{
 	  /* Read command codeword and fd */
 	  clearerr (stdin);
