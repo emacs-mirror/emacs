@@ -207,6 +207,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_RMDIR      1
 #define HAVE_MKDIR      1
 #define HAVE_GETHOSTNAME	1
+#define HAVE_MOUSE	1
+
+#define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
 
 /* These have to be defined because our compilers treat __STDC__ as being
    defined (most of them anyway). */
@@ -260,6 +263,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    is...  I don't know if they do the right thing for emacs.  For this to
    have proper effect, config.h must always be included before windows.h.  */
 #define _WINSOCKAPI_    1
+
+/* Defines size_t and alloca ().  */
+#include <malloc.h>
 
 /* ============================================================ */
 
