@@ -37,6 +37,8 @@
 /* Netbsd has POSIX-style pgrp behavior.  */
 #undef BSD_PGRPS
 
+#define GETPGRP_NO_ARG
+
 #ifndef NO_SHARED_LIBS
 /* These definitions should work for either dynamic or static linking,
    whichever is the default for `cc -nostdlib'.  */
