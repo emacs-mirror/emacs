@@ -454,6 +454,8 @@
   :ascii-compatible-p t
   :code-space [0 255]
   :map "ibm866")
+(define-charset-alias 'cp866 'alternativnyj)
+(define-charset-alias 'ibm 'alternativnyj)
 
 (define-charset 'koi8-u
   "KOI8-U"
@@ -577,6 +579,126 @@
 (define-charset-alias 'ruscii 'cp1125)
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-charset-alias 'cp866u 'cp1125)
+
+(define-charset 'cp437
+  "CP437"
+  :short-name "CP437"
+  :long-name "CP437"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp437")
+
+(define-charset 'cp737
+  "CP737"
+  :short-name "CP737"
+  :long-name "CP737"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp737")
+
+(define-charset 'cp775
+  "CP775"
+  :short-name "CP775"
+  :long-name "CP775"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp775")
+
+(define-charset 'cp851
+  "CP851"
+  :short-name "CP851"
+  :long-name "CP851"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp851")
+
+(define-charset 'cp852
+  "CP852"
+  :short-name "CP852"
+  :long-name "CP852"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp852")
+
+(define-charset 'cp855
+  "CP855"
+  :short-name "CP855"
+  :long-name "CP855"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp855")
+
+(define-charset 'cp857
+  "CP857"
+  :short-name "CP857"
+  :long-name "CP857"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp857")
+
+(define-charset 'cp860
+  "CP860"
+  :short-name "CP860"
+  :long-name "CP860"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp860")
+
+(define-charset 'cp861
+  "CP861"
+  :short-name "CP861"
+  :long-name "CP861"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp861")
+
+(define-charset 'cp862
+  "CP862"
+  :short-name "CP862"
+  :long-name "CP862"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp862")
+
+(define-charset 'cp863
+  "CP863"
+  :short-name "CP863"
+  :long-name "CP863"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp863")
+
+(define-charset 'cp864
+  "CP864"
+  :short-name "CP864"
+  :long-name "CP864"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp864")
+
+(define-charset 'cp865
+  "CP865"
+  :short-name "CP865"
+  :long-name "CP865"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp865")
+
+(define-charset 'cp869
+  "CP869"
+  :short-name "CP869"
+  :long-name "CP869"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp869")
+
+(define-charset 'cp874
+  "CP874"
+  :short-name "CP874"
+  :long-name "CP874"
+  :code-space [0 255]
+  :ascii-compatible-p t
+  :map "cp874")
 
 ;; For Arabic, we need three different types of character sets.
 ;; Digits are of direction left-to-right and of width 1-column.
@@ -1072,7 +1194,7 @@ for decoding and encoding files, process I/O, etc."
 
 ;; Make all multibyte characters self-insert.
 (set-char-table-range (nth 1 global-map)
-		      (cons (decode-char 'ucs 128) (max-char))
+		      (cons 128 (max-char))
 		      'self-insert-command)
 
 (aset latin-extra-code-table ?\222 t)
