@@ -52,10 +52,10 @@ A value of nil means that any change in indentation starts a new paragraph."
 If the function returns nil, then `fill-paragraph' does its normal work.")
 
 (defvar enable-kinsoku t
-  "*Non-nil means enable `kinsoku' processing on filling paragraph.
-`Kinsoku' processing is to prohibit specific characters to be placed
-at beginning or end of line.  See the documentation of kinsoku for
- more detail.")
+  "*Non-nil means enable \"kinsoku\" processing on filling paragraph.
+Kinsoku processing is designed to prevent certain characters from being
+placed at the beginning or end of a line by filling.
+See the documentation of `kinsoku' for more information.")
 
 (defun set-fill-prefix ()
   "Set the fill prefix to the current line up to point.
@@ -450,7 +450,11 @@ space does not end a sentence, so don't break a line there."
 		  ;; Normally, move back over the single space between the words.
 		  (if (= (preceding-char) ?\ ) (forward-char -1))
 		  ;; Do KINSOKU processing.
-		  (if (and enable-multibyte-characters enable-kinsoku)
+		  (if (and enable-multibyte-characters enable-kinsoku
+			   (save-excursion
+			     (goto-char from)
+			     (skip-chars-forward "\0-\177" to)
+			     (/= (point) to)))
 		      (kinsoku linebeg)))
 
 		;; If the left margin and fill prefix by themselves
