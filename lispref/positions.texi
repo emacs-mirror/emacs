@@ -566,7 +566,7 @@ expressions (also called @dfn{sexps} in connection with moving across
 them in Emacs).  The syntax table controls how these functions interpret
 various characters; see @ref{Syntax Tables}.  @xref{Parsing
 Expressions}, for lower-level primitives for scanning sexps or parts of
-sexps.  For user-level commands, see @ref{Lists and Sexps,,, emacs, GNU
+sexps.  For user-level commands, see @ref{Lists Commands,,, emacs, GNU
 Emacs Manual}.
 
 @deffn Command forward-list arg
