@@ -209,14 +209,32 @@ patch to assert.h should solve this:
 
 * Improving performance with slow X connections
 
-If you don't need X Input Methods (XIM) for entering text in some
-language you use, you can improve performance on WAN links by
-configuring Emacs with option `--without-xim'.  Configuring Emacs
-without XIM does not affect the use of Emacs' own input methods, which
-are part of the Leim package.
+There are several ways to improve this performance, any subset of which can
+be carried out at the same time:
 
-If the connection is very slow, you might also want to consider
-switching off scroll bars, menu bar, and tool bar.
+1) If you don't need X Input Methods (XIM) for entering text in some
+   language you use, you can improve performance on WAN links by
+   configuring Emacs with option `--without-xim'.  Configuring Emacs
+   without XIM does not affect the use of Emacs' own input methods, which
+   are part of the Leim package.
+
+2) If the connection is very slow, you might also want to consider
+   switching off scroll bars, menu bar, and tool bar.
+
+3) Use ssh to forward the X connection, and enable compression on this
+   forwarded X connection (ssh -XC remotehostname emacs ...).
+
+4) Use lbxproxy on the remote end of the connection.  This is an interface
+   to the low bandwidth X extension in most modern X servers, which
+   improves performance dramatically, at the slight expense of correctness
+   of the X protocol.  lbxproxy acheives the performance gain by grouping
+   several X requests in one TCP packet and sending them off together,
+   instead of requiring a round-trip for each X request in a seperate
+   packet.  The switches that seem to work best for emacs are:
+    -noatomsfile  -nowinattr  -cheaterrors -cheatevents
+   Note that the -nograbcmap option is known to cause problems.
+   For more about lbxproxy, see:
+   http://www.xfree86.org/4.2.0/lbxproxy.1.html
 
 * Getting a Meta key on the FreeBSD console
 
