@@ -92,11 +92,11 @@ See the files mac/README and mac/INSTALL for build instructions.
 displayed between the margins and the buffer's text area, rather than
 at the edges of the window.
 
-** A windows may now have individual fringe and scroll-bar settings,
+** A window may now have individual fringe and scroll-bar settings,
 in addition to the individual display margin settings.
 
 Such individual settings are now preserved when windows are split
-horisontally or vertically, a saved window configuration is restored,
+horizontally or vertically, a saved window configuration is restored,
 or when the frame is resized.
 
 ** Under X, mouse-wheel-mode is turned on by default.
