@@ -940,12 +940,14 @@ that are visiting the various files."
 	     find-file-wildcards
 	     (not (string-match "\\`/:" filename))
 	     (string-match "[[*?]" filename))
-	(let ((files (file-expand-wildcards filename t))
+	(let ((files (condition-case nil
+			 (file-expand-wildcards filename t)
+		       (error (list filename))))
 	      (find-file-wildcards nil))
 	  (if (null files)
-	      (error "No files match `%s'" filename))
-	  (mapcar #'(lambda (fn) (find-file-noselect fn))
-		  files))
+	      (find-file-noselect filename)
+	    (car (mapcar #'(lambda (fn) (find-file-noselect fn))
+			 files))))
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (number (nthcdr 10 (file-attributes truename)))
