@@ -62,6 +62,7 @@ src: FRC
 	update gdb.tmp gdb.ini
 	rm -f gdb.tmp gdb.sed
 	cd ..
+	if exist leim\Makefile redir $(MAKE) -C leim top_srcdir=${top_srcdir}
 
 man:	FRC
 	cd man
@@ -109,4 +110,7 @@ clean:
 	cd ..
 	cd oldxmenu
 	-$(MAKE) clean
+	cd ..
+	cd leim
+	if exist Makefile redir $(MAKE) clean
 	cd ..
