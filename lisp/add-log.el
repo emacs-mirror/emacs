@@ -68,7 +68,8 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
     ;; Chase links before visiting the file.
     ;; This makes it easier to use a single change log file
     ;; for several related directories.
-    (setq file-name (or (file-symlink-p file-name) file-name))
+    (setq file-name
+	  (expand-file-name (or (file-symlink-p file-name) file-name)))
     (set (make-local-variable 'change-log-default-name) file-name)
     (if buffer-file-name
 	(setq entry (if (string-match
