@@ -157,7 +157,9 @@ Boston, MA 02111-1307, USA.  */
 #define BUF_INTERVALS(buf) ((buf)->text->intervals)
 
 /* Marker chain of buffer.  */
-#define BUF_MARKERS(buf) ((buf)->text->markers)
+#define BUF_MARKERS(buf) GC_UNMASK_OBJECT ((buf)->text->markers)
+#define SET_BUF_MARKERS(buf, marker) \
+   (buf)->text->markers = GC_MASK_OBJECT (marker)
 
 #define BUF_UNCHANGED_MODIFIED(buf) \
   ((buf)->text->unchanged_modified)
@@ -458,7 +460,7 @@ struct buffer
      in ordinary buffers.  In indirect buffers, this is not used.  */
   struct buffer_text own_text;
 
-  /* This points to the `struct buffer_text' that used for this buffer.
+  /* This points to the `struct buffer_text' used for this buffer.
      In an ordinary buffer, this is the own_text field above.
      In an indirect buffer, this is the own_text field of another buffer.  */
   struct buffer_text *text;
