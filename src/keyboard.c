@@ -4711,14 +4711,14 @@ make_lispy_event (event)
 		for (i = 0; i < XVECTOR (items)->size; i += 4)
 		  {
 		    Lisp_Object pos, string;
-		    string = XVECTOR (items)->contents[i + 1];
-		    pos = XVECTOR (items)->contents[i + 3];
+		    string = AREF (items, i + 1);
+		    pos = AREF (items, i + 3);
 		    if (NILP (string))
 		      break;
 		    if (column >= XINT (pos)
 			&& column < XINT (pos) + XSTRING (string)->size)
 		      {
-			item = XVECTOR (items)->contents[i];
+			item = AREF (items, i);
 			break;
 		      }
 		  }
@@ -4810,15 +4810,14 @@ make_lispy_event (event)
 	  }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
-	if (button >= XVECTOR (button_down_location)->size)
+	if (button >= ASIZE (button_down_location))
 	  {
 	    button_down_location = larger_vector (button_down_location,
 						  button + 1, Qnil);
 	    mouse_syms = larger_vector (mouse_syms, button + 1, Qnil);
 	  }
 	
-	start_pos_ptr = &XVECTOR (button_down_location)->contents[button];
-
+	start_pos_ptr = &AREF (button_down_location, button);
 	start_pos = *start_pos_ptr;
 	*start_pos_ptr = Qnil;
 
@@ -4855,12 +4854,11 @@ make_lispy_event (event)
            see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {
-	    /* If we did not see a down before this up,
-	       ignore the up.  Probably this happened because
-	       the down event chose a menu item.
-	       It would be an annoyance to treat the release
-	       of the button that chose the menu item
-	       as a separate event.  */
+	    /* If we did not see a down before this up, ignore the up.
+	       Probably this happened because the down event chose a
+	       menu item.  It would be an annoyance to treat the
+	       release of the button that chose the menu item as a
+	       separate event.  */
 
 	    if (!CONSP (start_pos))
 	      return Qnil;
@@ -4877,16 +4875,29 @@ make_lispy_event (event)
 		Lisp_Object down;
 
 		down = Fnth (make_number (2), start_pos);
-		if (EQ (event->x, XCAR (down))
-		    && EQ (event->y, XCDR (down)))
-		  {
-		    event->modifiers |= click_modifier;
-		  }
+		if (EQ (event->x, XCAR (down)) && EQ (event->y, XCDR (down)))
+		  /* Mouse hasn't moved.  */
+		  event->modifiers |= click_modifier;
 		else
 		  {
-		    button_down_time = 0;
-		    event->modifiers |= drag_modifier;
+		    Lisp_Object window1, window2, posn1, posn2;
+
+		    /* Avoid generating a drag event if the mouse
+		       hasn't actually moved off the buffer position.  */
+		    window1 = Fnth (make_number (0), position);
+		    posn1 = Fnth (make_number (1), position);
+		    window2 = Fnth (make_number (0), start_pos);
+		    posn2 = Fnth (make_number (1), start_pos);
+
+		    if (EQ (window1, window2) && EQ (posn1, posn2))
+		      event->modifiers |= click_modifier;
+		    else
+		      {
+			button_down_time = 0;
+			event->modifiers |= drag_modifier;
+		      }
 		  }
+		
 		/* Don't check is_double; treat this as multiple
 		   if the down-event was multiple.  */
 		if (double_click_count > 1)
