@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.15
+;; Version:    5.16
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -171,16 +171,22 @@
     (skip-chars-backward "-+!*&:.~" (c-point 'boi))))
 
 (defun c-end-of-statement-1 ()
-  (condition-case ()
-      (progn
+  (condition-case nil
+      (let (beg end found)
 	(while (and (not (eobp))
-		    (let ((beg (point)))
+		    (progn
+		      (setq beg (point))
 		      (forward-sexp 1)
-		      (let ((end (point)))
-			(save-excursion
-			  (goto-char beg)
-			  (not (re-search-forward "[;{}]" end t)))))))
-	(re-search-backward "[;}]")
+		      (setq end (point))
+		      (goto-char beg)
+		      (setq found nil)
+		      (while (and (not found)
+				  (re-search-forward "[;{}]" end t))
+			(if (not (c-in-literal beg))
+			    (setq found t)))
+		      (not found)))
+	  (goto-char end))
+	(re-search-backward "[;{}]")
 	(forward-char 1))
     (error 
      (let ((beg (point)))
