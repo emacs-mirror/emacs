@@ -140,6 +140,9 @@ you must reload generic-x to enable the specified modes."
 			 'hosts-generic-mode  'fvwm-generic-mode 
 			 'x-resource-generic-mode 
 			 'alias-generic-mode
+			 'inetd-conf-generic-mode
+			 'etc-services-generic-mode
+			 'etc-passwd-generic-mode
 			 )
 		   generic-extras-enable-list)))
 
@@ -157,7 +160,12 @@ you must reload generic-x to enable the specified modes."
    '(("^\\(<.*>\\)"       1 'font-lock-reference-face)
      ("^\\(\\sw+\\)\\s-"  1 'font-lock-variable-name-face))    
    (list "srm\\.conf\\'" "httpd\\.conf\\'" "access\\.conf\\'")
-   nil 
+   (list 
+    (function
+     (lambda ()
+      (setq imenu-generic-expression 
+	    '((nil "^\\([-A-Za-z0-9_]+\\)" 1)))
+       )))
    "Generic mode for Apache or HTTPD configuration files."))
  
 ;;; Samba
@@ -165,9 +173,14 @@ you must reload generic-x to enable the specified modes."
  (memq 'samba-generic-mode generic-extras-enable-list)
 
 (define-generic-mode 'samba-generic-mode
-   (list ?\;)
+   (list ?\; ?#)
    nil
-   '(("^\\(\\[.*\\]\\)"   1 'font-lock-reference-face))
+   '(
+     ("^\\(\\[.*\\]\\)"   1 'font-lock-reference-face)
+     ("^\\s-*\\(.+\\)=\\([^\r\n]*\\)"
+      (1 'font-lock-variable-name-face)
+      (2 'font-lock-type-face))
+     )
    (list "smb\\.conf\\'")
    (list 'generic-bracket-support)
    "Generic mode for Samba configuration files."))
@@ -251,13 +264,13 @@ you must reload generic-x to enable the specified modes."
       (1 font-lock-function-name-face)
       (2 font-lock-variable-name-face)))
    (list "\\.[iI][nN][iI]\\'")
-    (list 
-     (function
-      (lambda ()
-	(setq imenu-generic-expression 
-	'((nil "^\\[\\(.*\\)\\]" 1)
-	  ("*Variables*" "^\\s-*\\([^=]+\\)\\s-*=" 1)))
-	)))
+   (list 
+    (function
+     (lambda ()
+       (setq imenu-generic-expression 
+	     '((nil "^\\[\\(.*\\)\\]" 1)
+	       ("*Variables*" "^\\s-*\\([^=]+\\)\\s-*=" 1)))
+       )))
     "Generic mode for MS-Windows INI files."))
 
 ;;; Windows REG files
@@ -302,22 +315,32 @@ you must reload generic-x to enable the specified modes."
      ;; These keywords appear as the first word on a line.  (Actually, they
      ;; can also appear after "if ..." or "for ..." clause, but since they
      ;; are frequently used in simple text, we punt.)
+     ;; In `generic-bat-mode-setup-function' we make the keywords
+     ;; case-insensitive
      (generic-make-keywords-list
       (list
-       "FOR" "for" "For"
-       "IF" "if" "If"
+       "call"
+       "echo"
+       "for"
+       "if"
+       "path"
+       "pause"
+       "prompt"
+       "set"
+       "start"
        )
       'font-lock-keyword-face "^[@ \t]*")
      ;; These keywords can be anywhere on a line
+     ;; In `generic-bat-mode-setup-function' we make the keywords
+     ;; case-insensitive
      (generic-make-keywords-list
       (list
-       "DO"	    "do"	 "Do"
-       "EXIST"	    "exist"	 "Exist"
-       "ERRORLEVEL" "errorlevel" "ErrorLevel" "Errorlevel"
-       "GOTO"	    "goto"	 "GoTo"	      "Goto"
-       "NOT"	    "not"	 "Not"
-       ) 'font-lock-keyword-face "[ \t|\n]")
-     ; These are built-in commands.  Only frequently-used ones are listed.
+       "exist"
+       "errorlevel"
+       "goto"
+       "not"
+       ) 'font-lock-keyword-face)
+     ;; These are built-in commands.  Only frequently-used ones are listed.
      (generic-make-keywords-list
       (list
        "CALL"	    "call"	 "Call"
@@ -380,6 +403,8 @@ you must reload generic-x to enable the specified modes."
 	  comment-start-skip	     "[Rr][Ee][Mm] *"
 	  )
     (set-syntax-table	      bat-generic-mode-syntax-table)
+    ;; Make keywords case-insensitive
+    (setq font-lock-defaults (list 'generic-font-lock-defaults nil t))
     )
   )
 
@@ -554,13 +579,36 @@ you must reload generic-x to enable the specified modes."
 
 ;; Java properties files
 (define-generic-mode 'java-properties-generic-mode
-  (list ?#)
-   nil
-   ;; Property and value can be separated with whitespace or an equal sign
-  '(("^\\([\\.A-Za-z0-9_]+\\)\\(\\s-+\\|\\(\\s-*=\\s-*\\)\\)\\([^\r\n]*\\)$" 
-     (1 font-lock-reference-face) (4 font-lock-variable-name-face)))
+  (list ?! ?#)
   nil
+  (let ((java-properties-key 
+	 "\\(\\([-A-Za-z0-9_\\./]\\|\\(\\\\[ =:]\\)\\)+\\)")
+	(java-properties-value 
+	 "\\([^\r\n]*\\)")
+	)
+    ;; Property and value can be separated in a number of different ways:
+    ;;   * whitespace
+    ;;   * an equal sign
+    ;;   * a colon
+    (mapcar
+     (function 
+      (lambda (elt)
+	(list 
+	 (concat "^" java-properties-key elt java-properties-value "$")
+	 '(1 font-lock-reference-face) 
+	 '(4 font-lock-variable-name-face)
+	 )))
+     ;; These are the separators
+     (list ":\\s-+" "\\s-+" "\\s-*=\\s-*")
+     )
+    )
   nil
+  (list
+   (function
+    (lambda ()
+      (setq imenu-generic-expression 
+	    '((nil "^\\([^#! \t\n\r=:]+\\)" 1)))
+      )))  
   "Mode for Java properties files.")
 
 ;; C shell alias definitions
@@ -1303,6 +1351,154 @@ you must reload generic-x to enable the specified modes."
   nil
   "Mode for mailrc files.")
 
+;; Inetd.conf
+(and 
+ (memq 'inetd-conf-generic-mode generic-extras-enable-list)
+
+(define-generic-mode 'inetd-conf-generic-mode
+  (list ?#)
+  (list 
+   "stream"
+   "dgram"
+   "tcp"
+   "udp"
+   "wait"
+   "nowait"
+   "internal"
+   )
+  '(
+    ("^\\([-A-Za-z0-9_]+\\)"
+     1 'font-lock-type-face)
+    )
+  '("/etc/inetd.conf\\'")
+  (list 
+   (function
+    (lambda ()
+      (setq imenu-generic-expression 
+	    '((nil "^\\([-A-Za-z0-9_]+\\)" 1)))
+      )))
+  )
+)
+
+;; Services
+(and 
+ (memq 'etc-services-generic-mode generic-extras-enable-list)
+
+(define-generic-mode 'etc-services-generic-mode
+  (list ?#)
+  (list 
+   "tcp"
+   "udp"
+   "ddp"
+   )
+  '(
+    ("^\\([-A-Za-z0-9_]+\\)\\s-+\\([0-9]+\\)/"
+     (1 'font-lock-type-face)
+     (2 'font-lock-variable-name-face)
+     )
+    )
+  '("/etc/services\\'")
+  (list 
+   (function
+    (lambda ()
+      (setq imenu-generic-expression 
+	    '((nil "^\\([-A-Za-z0-9_]+\\)" 1)))
+      )))
+  )
+)
+
+;; Password and Group files
+(and 
+ (memq 'etc-passwd-generic-mode generic-extras-enable-list)
+
+(define-generic-mode 'etc-passwd-generic-mode
+  nil              ;; No comment characters
+  (list "root")    ;; Only one keyword
+  (list
+    (list
+     (concat
+      "^"
+      ;; User name -- Never blank!
+      "\\([^:]+\\)"
+      ":"
+      ;; Password, UID and GID
+      (mapconcat
+       'identity
+       (make-list 3 "\\([^:]+\\)")
+       ":"
+       )
+      ":"
+      ;; GECOS/Name -- might be blank
+      "\\([^:]*\\)"
+      ":"
+      ;; Home directory and shell
+      "\\([^:]+\\)"
+      ":?"
+      "\\([^:]*\\)"
+      "$"
+     )
+     '(1 'font-lock-type-face)
+     '(5 'font-lock-variable-name-face)
+     '(6 'font-lock-reference-face)
+     '(7 'font-lock-warning-face)
+     )
+    '("^\\([^:]+\\):\\([^:]*\\):\\([0-9]+\\):\\(.*\\)$"
+      (1 'font-lock-type-face)
+      (4 'font-lock-variable-name-face)
+     )
+    )
+  '("/etc/passwd\\'" "/etc/group\\'")
+  (list 
+   (function
+    (lambda ()
+      (setq imenu-generic-expression 
+	    '((nil "^\\([-A-Za-z0-9_]+\\):" 1)))
+      )))
+  )
+)
+
+
+;; From Jacques Duthen <jacques.duthen@sncf.fr>
+(defvar show-tabs-generic-mode-font-lock-defaults-1
+   '(  ;; trailing spaces must come before...
+       ("[ \t]+$" . 'show-tabs-space-face)
+       ;; ...embedded tabs
+       ("[^\n\t]\\(\t+\\)" (1 'show-tabs-tab-face))))
+
+(defvar show-tabs-generic-mode-font-lock-defaults-2
+   '(  ;; trailing spaces must come before...
+       ("[ \t]+$" . 'show-tabs-space-face)
+       ;; ...tabs
+       ("\t+" . 'show-tabs-tab-face)))
+
+(defface show-tabs-tab-face
+  '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
+    (((class grayscale) (background dark))  (:foreground "DimGray"   :bold t))
+    (((class color)     (background light)) (:foreground "red"))
+    (((class color)     (background dark))  (:foreground "red"))
+    (t (:bold t)))
+  "Font Lock mode face used to highlight TABs."
+  :group 'show-tabs)
+
+(defface show-tabs-space-face
+  '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
+    (((class grayscale) (background dark))  (:foreground "DimGray"   :bold t))
+    (((class color)     (background light)) (:foreground "yellow"))
+    (((class color)     (background dark))  (:foreground "yellow"))
+    (t (:bold t)))
+  "Font Lock mode face used to highlight spaces."
+  :group 'show-tabs)
+
+(define-generic-mode 'show-tabs-generic-mode
+  () ;; no comment char
+  () ;; no keywords
+   show-tabs-generic-mode-font-lock-defaults-1
+  () ;; no auto-mode-alist
+  ;; (list 'show-tabs-generic-mode-hook-fun)
+  nil
+  "Generic mode to show tabs and trailing spaces")
+
 (provide 'generic-x)
 
 ;;; generic-x.el ends here
+
