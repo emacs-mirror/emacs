@@ -2156,6 +2156,9 @@ used to effect hiding for hideshow minor mode.  Integration with isearch
 handles the overlay property `display' specially, preserving it during
 temporary overlay showing in the course of an isearch operation.
 
+** New command `recode-region' decodes the region again by a specified
+coding system.
+
 
 * New modes and packages in Emacs 21.4
 
