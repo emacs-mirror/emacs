@@ -181,15 +181,18 @@ backward search finds matches that are entirely before the starting
 point, just as a forward search finds matches that begin after it.
 
   The characters @kbd{C-y} and @kbd{C-w} can be used in incremental
-search to grab text from the buffer into the search string.  This makes
-it convenient to search for another occurrence of text at point.
-@kbd{C-w} copies the word after point as part of the search string,
-advancing point over that word.  Another @kbd{C-s} to repeat the search
-will then search for a string including that word.  @kbd{C-y} is similar
-to @kbd{C-w} but copies all the rest of the current line into the search
-string.  Both @kbd{C-y} and @kbd{C-w} convert the text they copy to
-lower case if the search is currently not case-sensitive; this is so the
-search remains case-insensitive.
+search to grab text from the buffer into the search string.  This
+makes it convenient to search for another occurrence of text at point.
+@kbd{C-w} copies the character or word after point as part of the
+search string, advancing point over it.  (The decision, whether to
+copy a character or a word, is heuristic.)  Another @kbd{C-s} to
+repeat the search will then search for a string including that
+character or word.
+
+  @kbd{C-y} is similar to @kbd{C-w} but copies all the rest of the
+current line into the search string.  Both @kbd{C-y} and @kbd{C-w}
+convert the text they copy to lower case if the search is currently
+not case-sensitive; this is so the search remains case-insensitive.
 
   The character @kbd{M-y} copies text from the kill ring into the search
 string.  It uses the same text that @kbd{C-y} as a command would yank.
