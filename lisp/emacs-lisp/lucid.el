@@ -152,6 +152,38 @@ bottom of the buffer stack."
 (defalias 'get-face 'internal-get-face)
 (defalias 'try-face-font 'internal-try-face-font)
 
+(defun make-extent (beg end &optional buffer)
+  (make-overlay beg end buffer))
+
+(defun set-extent-property (extent prop value)
+  (if (eq prop 'duplicable)
+      (cond ((and value (not (overlay-get extent prop)))
+	     ;; If becoming duplicable, copy all overlayprops to text props.
+	     (add-text-properties (overlay-start extent)
+				  (overlay-end extent)
+				  (overlay-properties extent)
+				  (overlay-buffer extent)))
+	    ;; If becoming no longer duplicable, remove these text props.
+	    ((and (not value) (overlay-get extent prop))
+	     (remove-text-properties (overlay-start extent)
+				     (overlay-end extent)
+				     (overlay-properties extent)
+				     (overlay-buffer extent))))
+    ;; If extent is already duplicable, put this property
+    ;; on the text as well as on the overlay.
+    (if (overlay-get extent 'duplicable)
+	(put-text-property  (overlay-start extent)
+			    (overlay-end extent)
+			    prop value (overlay-buffer extent))))
+  (overlay-put extent prop value))
+
+(defun set-extent-face (extent face)
+  (set-extent-property extent 'face face))
+
+(defun delete-extent (extent)
+  (set-extent-property extent 'duplicable nil)
+  (delete-overlay extent))
+
 ;; Support the Lucid names with `screen' instead of `frame'.
 
 (defalias 'current-screen-configuration 'current-frame-configuration)
