@@ -32,6 +32,10 @@
 
 ;;; Code:
 
+;;; Load translation tables for CP932.
+(load "international/cp51932")
+(load "international/eucjp-ms")
+
 (define-coding-system 'iso-2022-jp
   "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)."
   :coding-type 'iso-2022
@@ -64,6 +68,26 @@
 			latin-iso8859-1 greek-iso8859-7)
   :mime-charset 'iso-2022-jp-2)
 
+(let ((map			; SJIS		vs	CP932
+       '((#x301C . #xFF5E)	; WAVE DASH		FULLWIDTH TILDE
+	 (#x2016 . #x2225)	; DOUBLE VERTICAL LINE	PARALLEL TO
+	 (#x2212 . #xFF0D)	; MINUS SIGN		FULLWIDTH HYPHEN-MINUS
+	 (#x00A2 . #xFFE0)	; CENT SIGN		FULLWIDTH CENT SIGN
+	 (#x00A3 . #xFFE1)	; POUND SIGN		FULLWIDTH POUND SIGN
+	 (#x00AC . #xFFE2)	; NOT SIGN		FULLWIDTH NOT SIGN
+	 )))
+  (define-translation-table 'japanese-ucs-cp932-map map)
+  (mapc #'(lambda (x) (let ((tmp (car x)))
+			(setcar x (cdr x)) (setcdr x tmp)))
+	map)
+  (define-translation-table 'japanese-ucs-jis-map map)
+  (define-translation-table 'japanese-ucs-glibc-map map))
+
+;; U+2014 (EM DASH) vs U+2015 (HORIZONTAL BAR)
+(aset (get 'japanese-ucs-cp932-map 'translation-table) #x2014 #x2015)
+(aset (get 'japanese-ucs-jis-map 'translation-table)   #x2015 #x2014)
+(aset (get 'japanese-ucs-glibc-map 'translation-table) #x2014 #x2015)
+
 (define-coding-system 'japanese-shift-jis
   "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)"
   :coding-type 'shift-jis
@@ -81,10 +105,6 @@
   :charset-list '(ascii katakana-sjis cp932-2-byte))
 
 (define-coding-system-alias 'cp932 'japanese-cp932)
-
-;; Fixme: AKA Shift-JIS according to
-;; <URL:http://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
-;; that correct?
 
 (define-coding-system 'japanese-iso-7bit-1978-irv
   "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman."
@@ -115,6 +135,18 @@
 (define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
 (define-coding-system-alias 'euc-japan 'japanese-iso-8bit)
 (define-coding-system-alias 'euc-jp 'japanese-iso-8bit)
+
+(define-coding-system 'eucjp-ms
+  "eucJP-ms (like EUC-JP but with CP932 extension).
+eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
+  :coding-type 'iso-2022
+  :mnemonic ?E
+  :designation [ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212]
+  :flags '(short ascii-at-eol ascii-at-cntl single-shift)
+  :charset-list '(ascii latin-jisx0201 japanese-jisx0208
+			katakana-jisx0201 japanese-jisx0212)
+  :decode-translation-table 'eucjp-ms-decode
+  :encode-translation-table 'eucjp-ms-encode)
 
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)
