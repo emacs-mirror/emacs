@@ -1,3 +1,8 @@
+2002-01-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (display_mode_element): When computing charpos, depend
+	on multibyteness of elt, not the text in field.
+
 2002-01-14  Andreas Schwab  <schwab@suse.de>
 
 	* unexelf.c [!defined MAP_ANON]: Define MAP_ANON to MAP_ANONYMOUS
