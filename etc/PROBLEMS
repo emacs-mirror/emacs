@@ -494,6 +494,10 @@ src/s/hpux10.h.
 * Crashes when displaying GIF images in Emacs built with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
 
+Beginning with version 21.3, Emacs refuses to link against libungif
+whose version is 4.1.0 or older (the `configure' script behaves as if
+libungif were not available at all).
+
 * Font Lock displays portions of the buffer in incorrect faces.
 
 By far the most frequent cause of this is a parenthesis `(' or a brace
@@ -552,6 +556,23 @@ MS-Windows version of Emacs.  This is due to some change in the Bash
 port or in the Cygwin library which apparently make Bash ignore the
 keyboard interrupt event sent by Emacs to Bash.  (Older Cygwin ports
 of Bash, up to b20.1, did receive SIGINT from Emacs.)
+
+* Dired is very slow.
+
+This could happen if invocation of the `df' program takes a long
+time.  Possible reasons for this include:
+
+  - ClearCase mounted filesystems (VOBs) that sometimes make `df'
+    response time extremely slow (dozens of seconds);
+
+  - slow automounters on some old versions of Unix;
+
+  - slow operation of some versions of `df'.
+
+To work around the problem, you could either (a) set the variable
+`directory-free-space-program' to nil, and thus prevent Emacs from
+invoking `df'; (b) use `df' from the GNU Fileutils package; or
+(c) use CVS, which is Free Software, instead of ClearCase.
 
 * Accessing remote files with ange-ftp hangs the MS-Windows version of Emacs.
 
