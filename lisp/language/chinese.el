@@ -231,7 +231,9 @@ converted to CNS)."))
   "GB18030 encoding for Chinese (MIME:GB18030)."
   :coding-type 'charset
   :mnemonic ?c
-  :charset-list '(gb18030)
+  :charset-list '(ascii gb18030-2-byte
+			gb18030-4-byte-bmp gb18030-4-byte-smp
+			gb18030-4-byte-ext-1 gb18030-4-byte-ext-2)
   :mime-charset 'gb18030)
 
 (define-coding-system-alias 'gb18030 'chinese-gb18030)
