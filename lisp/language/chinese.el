@@ -96,24 +96,6 @@
 (define-coding-system-alias 'hz-gb-2312 'chinese-hz)
 (define-coding-system-alias 'hz 'chinese-hz)
 
-(defun post-read-decode-hz (len)
-  (let ((pos (point))
-	(buffer-modified-p (buffer-modified-p))
-	last-coding-system-used)
-    (prog1
-	(decode-hz-region pos (+ pos len))
-      (set-buffer-modified-p buffer-modified-p))))
-
-(defun pre-write-encode-hz (from to)
-  (let ((buf (current-buffer)))
-    (set-buffer (generate-new-buffer " *temp*"))
-    (if (stringp from)
-	(insert from)
-      (insert-buffer-substring buf from to))
-    (let (last-coding-system-used)
-      (encode-hz-region 1 (point-max)))
-    nil))
-
 (set-language-info-alist
  "Chinese-GB" '((charset chinese-gb2312 chinese-sisheng)
 		(coding-system chinese-iso-8bit iso-2022-cn chinese-hz)
@@ -144,7 +126,7 @@
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
 		  (input-method . "chinese-py-punct-b5")
 		  (features china-util)
-		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
+		  (sample-text . "Cantonese ($(Gemk#(B,$(Gl]N)fc(B)	$ATg3?(B, $ADc:C(B")
 		  (documentation . "Support for Chinese Big5 character set."))
  '("Chinese"))
 
@@ -185,6 +167,7 @@
 				  chinese-iso-8bit)
 		 (features china-util)
 		 (input-method . "chinese-cns-quick")
+		 ;; Fixme: presumably it won't accept big5 now.
 		 (documentation . "\
 Support for Chinese CNS character sets.  Note that EUC-TW coding system
 accepts Big5 for input also (which is then converted to CNS)."))
