@@ -579,23 +579,23 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 	;; c-mode-common-hook or {c,c++,objc,java}-mode-hook.
 	(c-set-style c-site-default-style))))
 
-(defun c-copy-tree (tree &optional vecp)
+(defun c-copy-tree (tree)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
 Contrast to copy-sequence, which copies only along the cdrs.  With second
 argument VECP, this copies vectors as well as conses."
   (if (consp tree)
-      (let ((p (setq tree (copy-list tree))))
+      (let ((p tree) result)
 	(while (consp p)
-	  (if (or (consp (car p)) (and vecp (vectorp (car p))))
-	      (setcar p (c-copy-tree (car p) vecp)))
-	  (or (listp (cdr p)) (setcdr p (c-copy-tree (cdr p) vecp)))
-	  (setq p (cdr p))))
-    (if (and vecp (vectorp tree))
-	(let ((i (length (setq tree (copy-sequence tree)))))
-	  (while (>= (setq i (1- i)) 0)
-	    (aset tree i (c-copy-tree (aref tree i) vecp))))))
-  tree)
+	  (setq result (cons (if (consp (car p))
+				 (c-copy-tree (car p))
+			       (car p))
+			result))
+	  (setq p (cdr p)))
+	(if (null p)
+	    (nreverse result)
+	  (nconc (nreverse result) p)))
+    tree))
 
 (defun c-make-styles-buffer-local ()
   "Make all CC Mode style variables buffer local.
