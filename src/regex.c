@@ -2973,7 +2973,7 @@ regex_compile (pattern, size, syntax, bufp)
 
     if (fail_stack.size < re_max_failures * TYPICAL_FAILURE_SIZE)
       {
-	fail_stack.size = re_max_failures * TYPICAL_FAILURE_SIZE);
+	fail_stack.size = re_max_failures * TYPICAL_FAILURE_SIZE;
 
 #ifdef emacs
 	if (! fail_stack.stack)
