@@ -44,9 +44,9 @@ Boston, MA 02111-1307, USA.  */
 */
 
 DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0,
-       "Mocklisp version of `if'.\n\
-usage: (ml-if COND THEN ELSE...)")
-  (args)
+       doc: /* Mocklisp version of `if'.
+usage: (ml-if COND THEN ELSE...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object val;
@@ -110,8 +110,8 @@ ml_apply (function, args)
 }
 
 DEFUN ("ml-nargs", Fml_nargs, Sml_nargs, 0, 0, 0,
-  "Number of arguments to currently executing mocklisp function.")
-  ()
+       doc: /* Number of arguments to currently executing mocklisp function.  */)
+     ()
 {
   if (EQ (Vmocklisp_arguments, Qinteractive))
     return make_number (0);
@@ -119,8 +119,8 @@ DEFUN ("ml-nargs", Fml_nargs, Sml_nargs, 0, 0, 0,
 }
 
 DEFUN ("ml-arg", Fml_arg, Sml_arg, 1, 2, 0,
-  "Argument number N to currently executing mocklisp function.")
-  (n, prompt)
+       doc: /* Argument number N to currently executing mocklisp function.  */)
+     (n, prompt)
      Lisp_Object n, prompt;
 {
   if (EQ (Vmocklisp_arguments, Qinteractive))
@@ -131,17 +131,17 @@ DEFUN ("ml-arg", Fml_arg, Sml_arg, 1, 2, 0,
 }
 
 DEFUN ("ml-interactive", Fml_interactive, Sml_interactive, 0, 0, 0,
- "True if currently executing mocklisp function was called interactively.")
-  ()
+       doc: /* True if currently executing mocklisp function was called interactively.  */)
+     ()
 {
   return (EQ (Vmocklisp_arguments, Qinteractive)) ? Qt : Qnil;
 }
 
 DEFUN ("ml-provide-prefix-argument", Fml_provide_prefix_argument, Sml_provide_prefix_argument,
-  2, UNEVALLED, 0,
-  "Evaluate second argument, using first argument as prefix arg value.\n\
-usage: (ml-provide-prefix-argument ARG1 ARG2)")
-  (args)
+       2, UNEVALLED, 0,
+       doc: /* Evaluate second argument, using first argument as prefix arg value.
+usage: (ml-provide-prefix-argument ARG1 ARG2)  */)
+     (args)
      Lisp_Object args;
 {
   struct gcpro gcpro1;
@@ -153,8 +153,8 @@ usage: (ml-provide-prefix-argument ARG1 ARG2)")
 
 DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_loop,
        0, UNEVALLED, 0,
-  "usage: (ml-prefix-argument-loop ...)")
-  (args)
+       doc: /* usage: (ml-prefix-argument-loop ...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object tem;
@@ -184,9 +184,9 @@ DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_
 #if 0 /* Now in mlsupport.el */
 
 DEFUN ("ml-substr", Fml_substr, Sml_substr, 3, 3, 0,
-  "Return a substring of STRING, starting at index FROM and of length LENGTH.\n\
-If either FROM or LENGTH is negative, the length of STRING is added to it.")
-  (string, from, to)
+       doc: /* Return a substring of STRING, starting at index FROM and of length LENGTH.
+If either FROM or LENGTH is negative, the length of STRING is added to it.  */)
+     (string, from, to)
      Lisp_Object string, from, to;
 {
   CHECK_STRING (string, 0);
@@ -202,11 +202,11 @@ If either FROM or LENGTH is negative, the length of STRING is added to it.")
 }
 #endif /* 0 */
 DEFUN ("insert-string", Finsert_string, Sinsert_string, 0, MANY, 0,
-  "Mocklisp-compatibility insert function.\n\
-Like the function `insert' except that any argument that is a number\n\
-is converted into a string by expressing it in decimal.\n\
-usage: (insert-string &rest ARGS)")
-  (nargs, args)
+       doc: /* Mocklisp-compatibility insert function.
+Like the function `insert' except that any argument that is a number
+is converted into a string by expressing it in decimal.
+usage: (insert-string &rest ARGS)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
