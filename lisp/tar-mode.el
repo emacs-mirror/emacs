@@ -789,9 +789,20 @@ the current tar-entry."
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
 	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
-	 (end (+ start size)))
+	 (end (+ start size))
+	 (inhibit-file-name-handlers inhibit-file-name-handlers)
+	 (inhibit-file-name-operation inhibit-file-name-operation))
     (save-restriction
       (widen)
+      ;; Inhibit compressing a subfile again if *both* name and
+      ;; to-file are handled by jka-compr
+      (if (and (eq (find-file-name-handler name 'write-region) 'jka-compr-handler)
+	       (eq (find-file-name-handler to-file 'write-region) 'jka-compr-handler))
+	  (setq inhibit-file-name-handlers
+		(cons 'jka-compr-handler
+		      (and (eq inhibit-file-name-operation 'write-region)
+			   inhibit-file-name-handlers))
+		inhibit-file-name-operation 'write-region))
       (write-region start end to-file))
     (message "Copied tar entry %s to %s" name to-file)))
 
