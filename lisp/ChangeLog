@@ -1,3 +1,48 @@
+2002-04-25  Colin Walters  <walters@verbum.org>
+
+	* replace.el (multi-occur-by-filename-regexp): Doc fix.
+	(occur-engine): Go to `point-min'.
+
+	* ibuf-ext.el (ibuffer-filtering-groups): Renamed to
+	`ibuffer-filter-groups'.  All users updated.
+	(ibuffer-show-empty-filter-groups): New variable.
+	(ibuffer-saved-filter-groups): New variable.
+	(ibuffer-maybe-save-stuff): Renamed from
+	`ibuffer-maybe-save-saved-filters'.  Callers updated.  Handle
+	`ibuffer-saved-filter-groups'.
+	(ibuffer-hidden-filtering-groups): Renamed to
+	`ibuffer-hidden-filter-groups'.
+	(ibuffer-filter-group-kill-ring): New variable.
+	(ibuffer-save-with-custom): Doc fix.
+	(ibuffer-set-filter-groups-by-mode): New function.
+	(ibuffer-clear-filter-groups): New function.
+	(ibuffer-current-filter-groups-with-position): Renamed from
+	`ibuffer-current-filter-groups'.  Callers updated.
+	(ibuffer-kill-filter-group): New function.
+	(ibuffer-kill-line): New function.
+	(ibuffer-yank): New function.
+	(ibuffer-save-filter-groups): New function.
+	(ibuffer-delete-saved-filter-groups): New function.
+	(ibuffer-switch-to-saved-filter-groups): New function.
+	(ibuffer-mark-on-buffer): Add optional arguments for adding a
+	specific mark, and marking on a specific group.
+
+	* ibuffer.el (ibuffer-formats): Doc fix.
+	(ibuffer-mode-map): Bind <up> to `ibuffer-backward-line'.  Bind
+	new functions from ibuf-ext.el.  Add menu entries for them.
+	Remove superfluous tooltips.
+	(ibuffer-toggle-marks): If on a group name, then toggle marks just
+	in that group.
+	(ibuffer-mark-interactive): Handle filter groups.
+	(ibuffer-mark-forward, ibuffer-unmark-forward)
+	(ibuffer-mark-for-delete, ibuffer-unmark-backward)
+	(ibuffer-mark-for-delete-backwards): Update docs.
+	(ibuffer-current-filter-groups): Moved to ibuf-ext.el, and renamed
+	to `ibuffer-current-filter-groups-with-position'.
+	(ibuffer-redisplay-engine): Handle
+	`ibuffer-show-empty-filter-groups'.
+	(ibuffer-mode): Add some documentation about filter groups.
+
 2002-04-25  Andreas Schwab  <schwab@suse.de>
 
 	* find-dired.el (find-name-dired): Don't quote pattern twice.

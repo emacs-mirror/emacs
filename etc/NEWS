@@ -21,13 +21,13 @@ so we will look at it
 installed programs.
 
 ** By default, Emacs now uses a setgid helper program to update game
-scores.  Game scores are normally stored in ${prefix}/var/games/emacs.
-This may be controlled by the configure option `--with-game-dir'.  The
-specific user that Emacs uses to own the game scores is controlled by
-`--with-game-user'.  If access to a game user is not available
-(e.g. Emacs is not being built as root, or the specified game user
-doesn't exist), then scores will be stored separately in each user's
-home directory.
+scores.  The directory ${localstatedir}/games/emacs is the normal
+place for game scores to be stored.  This may be controlled by the
+configure option `--with-game-dir'.  The specific user that Emacs uses
+to own the game scores is controlled by `--with-game-user'.  If access
+to a game user is not available (e.g. Emacs is not being built as
+root, or the specified game user doesn't exist), then scores will be
+stored separately in each user's home directory.
 
 ---
 ** Leim is now part of the Emacs distribution.
