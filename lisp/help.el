@@ -446,7 +446,8 @@ C-w print information on absence of warranty for GNU Emacs."
 	      (princ " in `")
 	      ;; We used to add .el to the file name,
 	      ;; but that's completely wrong when the user used load-file.
-	      (princ file))))
+	      (princ file)
+	      (princ "'"))))
       (princ ".")
       (terpri)
       (let ((arglist (cond ((byte-code-function-p def)
