@@ -1,3 +1,11 @@
+2002-10-08  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Added ability to pass command line options
+	through to make and configure (-m, & -c,).
+	Added option to not copy Application into installer, the default
+	for X11 builds.  Does not copy CVS directories into installer.
+	Clarified some of the usage notes.
+
 2002-10-07  Steven Tamm  <steventamm@mac.com>
 
 	* make-package: Now calls make bootstrap if .elc files are missing

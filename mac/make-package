@@ -44,10 +44,12 @@ progname="$0"
 
 prefix=/usr/local
 with_config=yes
+with_app=yes
+with_x=no
 
 ac_prev=
 display_usage=false;
-config_options=--without-x
+config_options=;
 while test $# != 0
 do
   if test -n "$ac_prev"; then
@@ -64,18 +66,34 @@ do
        prefix=`expr "x$1" : 'x[^=]*=\(.*\)'` ;;
     -no-configure | -no-conf | --no-configure | --no-conf | --without-config)
        with_config=no ;;
+    -no-app | --no-app | -without-app | --without-app)
+       with_app=no ;;
+    -without-x | --without-x)
+       with_x=no ;;
     -with-x | --with-x)
-       config_options= ;;
+       with_x=yes
+       with_app=no ;;
+    -C,* | -c,*)
+       config_options="$config_options `expr "x$1" : 'x[^,]*,\(.*\)'`" ;;
+    -M,* | -m,*)
+       make_options="$make_options `expr "x$1" : 'x[^,]*,\(.*\)'`" ;;
+       
   esac
   shift
 done
 
+if test "$with_x" = "no"; then
+   config_options="--without-x $config_options"
+fi
+
 if test "$display_usage" = "yes"; then
   cat <<EOF
-\`make-package' generates a Mac OS X package from an Emacs distribution.
-By default, this first runs ./configure on the emacs directory.  Then 
-make install to create the emacs distribution.  Then some mac-specific
-commands to generate the required information for the mac package.
+\`make-package' generates a Mac OS X installer package from an Emacs 
+distribution.  By default, this first runs ./configure on the emacs 
+directory.  Then make install to create the emacs distribution.  
+Then some mac-specific commands to generate the required information 
+for the mac package.  The installer will, by default, create a
+Carbon application called Emacs in the /Applications directory, and 
 
 Usage: $0 [OPTION]
 
@@ -85,8 +103,12 @@ Options:
                           of the emacs related file.  By default /usr/local
       --no-conf           Do not run the configure script before running
                           make install.
+      --without-app       Do not create the Emacs application bundle
       --with-x            Setup the install to use X Windows for its 
-                          windowed display, instead of carbon.
+                          windowed display, instead of carbon.  Implies
+                          --without-app.
+  -C,option               Pass option to configure
+  -M,option               Pass option to make
 EOF
   exit 0
 fi
@@ -114,7 +136,7 @@ itself.  Move or delete Emacs.pkg and try again." >&2
   exit 1
 fi
 
-if [ ! -f Emacs.app/Contents/PkgInfo ]; then
+if test $with_app == "yes" && [ ! -f Emacs.app/Contents/PkgInfo ]; then
   echo "${progname}: Can't find \`Emacs.app/Contents/PkgInfo'" >&2
   echo "${progname} must be run in the \`mac' directory of the Emacs" >&2
   echo "distribution tree.  cd to that directory and try again." >&2
@@ -177,13 +199,13 @@ fi
 ## Make bootstrap if .elc files are missing from distribution
 if [ ! -f ../lisp/abbrev.elc ]; then
    echo "Required .elc files missing; making bootstrap..."
-   if ! (cd ..; make bootstrap prefix=${tempparentfull}${prefix}); then
+   if ! (cd ..; make bootstrap prefix=${tempparentfull}${prefix} $make_options); then
       echo "Make bootstrap failed...  Aborting make-package."
       exit 2
    fi
 fi
 
-if ! (cd ..; make install prefix=${tempparentfull}${prefix}); then
+if ! (cd ..; make install prefix=${tempparentfull}${prefix} $make_options); then
    echo "Make failed... Aborting make-package."
    exit 1
 fi
@@ -192,9 +214,14 @@ fi
 ### when the script is interrupted in mid-career.
 trap "echo 'Interrupted...cleaning up the staging directory'; rm -rf ${tempparent}; rm -rf Emacs.pkg; exit 1" 1 2 15
 
-mkdir ${tempparentfull}/Applications
+if test "$with_app" == "yes"; then
+  mkdir ${tempparentfull}/Applications
 
-cp -r Emacs.app ${tempparentfull}/Applications
+  ## Copy Emacs application
+  cp -r Emacs.app ${tempparentfull}/Applications
+  ## Delete any CVS files
+  find ${tempparentfull}/Applications -name "CVS" -execdir rm -r {} \;
+fi
 
 echo "Creating Package Info file"
 
