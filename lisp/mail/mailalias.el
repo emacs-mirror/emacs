@@ -520,7 +520,7 @@ See `mail-directory-stream'."
     (set-process-sentinel
      (apply 'open-network-stream "mailalias" (current-buffer)
 	    mail-directory-stream)
-     (lambda (x x)
+     (lambda (x y)
        (setq mailalias-done t)))
     (while (not mailalias-done)
       (sit-for .1))))
