@@ -53,6 +53,10 @@ struct ccl_program {
 				   many times bigger the output buffer
 				   should be than the input buffer.  */
   int stack_idx;		/* How deep the call of CCL_Call is nested.  */
+  int eol_type;			/* When the CCL program is used for
+				   encoding by a coding system, set to
+				   the eol_type of the coding
+				   system.  */
 };
 
 /* This data type is used for the spec field of the structure
@@ -62,6 +66,7 @@ struct ccl_spec {
   struct ccl_program decoder;
   struct ccl_program encoder;
   unsigned char valid_codes[256];
+  int cr_carryover;		/* CR carryover flag.  */
 };
 
 /* Alist of fontname patterns vs corresponding CCL program.  */
