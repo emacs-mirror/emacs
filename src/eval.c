@@ -213,6 +213,11 @@ call_debugger (arg)
   if (specpdl_size + 40 > max_specpdl_size)
     max_specpdl_size = specpdl_size + 40;
   
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
+
   debug_on_next_call = 0;
   when_entered_debugger = num_nonmacro_input_events;
 
