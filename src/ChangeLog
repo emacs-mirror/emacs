@@ -1,5 +1,7 @@
 2000-11-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* dired.c (directory_files_internal): Fix a braino.
+	
 	* dired.c (directory_files_internal): Add missing GCPRO's.
 	Some cleanup.
 

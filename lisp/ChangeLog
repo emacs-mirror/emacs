@@ -1,3 +1,14 @@
+2000-11-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/ispell.el (ispell-library-path): Don't call
+	check-ispell-version when byte-compiling because that starts
+	an ispell process, and ispell might not be installed.
+	(toplevel): Don't set up a menu when byte-compiling.
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-file): Don't bind
+	it, so that a boundp test can be used to determine if we're
+	currently byte-compiling.
+
 2000-11-09  Dave Love  <fx@gnu.org>
 
 	* pcvs.el (uniquify-buffer-file-name): Wrap advice in
