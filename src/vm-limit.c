@@ -42,7 +42,7 @@ static int warnlevel;
 
 /* Function to call to issue a warning;
    0 means don't issue them.  */
-static void (*warnfunction) ();
+static void (*warn_function) ();
 
 extern POINTER sbrk ();
 
@@ -63,9 +63,9 @@ morecore_with_warning (size)
 
   /* Find current end of memory and issue warning if getting near max */
   cp = sbrk (0);
-  data_size = cp - data_space_start;
+  data_size = (char *) cp - (char *) data_space_start;
 
-  if (warnfunction)
+  if (warn_function)
     switch (warnlevel)
       {
       case 0: 
@@ -111,7 +111,7 @@ morecore_with_warning (size)
     warnlevel = 2;
 
   if (EXCEEDS_LISP_PTR (cp))
-    (*warnfunction) ("Warning: memory in use exceeds lisp pointer size");
+    (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
 
   result = sbrk (size);
   if (result == (POINTER) -1)
@@ -134,6 +134,6 @@ memory_warnings (start, warnfun)
   else
     data_space_start = start_of_data ();
 
-  warnfunction = warnfun;
+  warn_function = warnfun;
   __morecore = &morecore_with_warning;
 }
