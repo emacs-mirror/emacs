@@ -261,10 +261,11 @@
   "A regular expression probably matching a URL.")
 
 (defvar browse-url-browser-function
-  'browse-url-netscape
+  'browse-url-choose-browser
   "*Function to display the current buffer in a WWW browser.
-Used by the `browse-url-at-point', `browse-url-at-mouse', and
-`browse-url-of-file' commands.")
+This is used by the `browse-url-at-point', `browse-url-at-mouse', and
+`browse-url-of-file' commands.
+The function should take one argument, an URL.")
 
 (defvar browse-url-netscape-program "netscape"
   "*The name for invoking Netscape.")
@@ -590,6 +591,14 @@ Default to the URL around or before point."
 Default to the URL around or before point."
   (interactive (browse-url-interactive-arg "W3 URL: "))
   (w3-fetch url))
+
+(defun browse-url-choose-browser (argument)
+  "Decide which browser to use, then invoke it.
+This is the default value of `browse-url-browser-function'."
+  (if (fboundp 'w3-fetch)
+      (setq browse-url-browser-function 'browse-url-w3)
+    (setq browse-url-browser-function 'browse-url-netscape))
+  (funcall browse-url-browser-function argument))
 
 (provide 'browse-url)
 
