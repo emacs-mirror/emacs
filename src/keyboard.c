@@ -902,6 +902,8 @@ command_loop_1 ()
 
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
+  if (current_perdisplay)
+    cancel_echoing ();
 
   nonundocount = 0;
   no_redisplay = 0;
@@ -6051,6 +6053,9 @@ init_perdisplay (perd)
   perd->internal_last_event_frame = Qnil;
 #endif
   perd->Vlast_event_frame = Qnil;
+  perd->immediate_echo = 0;
+  perd->echoptr = perd->echobuf;
+  perd->echo_after_prompt = -1;
 }
 
 /*
