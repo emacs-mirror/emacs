@@ -235,22 +235,22 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)
   "Return the value of CODING-SYSTEM's `post-read-conversion' property."
-  (coding-system-get coding-system 'post-read-conversion))
+  (coding-system-get coding-system :post-read-conversion))
 
 ;;;###autoload
 (defun coding-system-pre-write-conversion (coding-system)
   "Return the value of CODING-SYSTEM's `pre-write-conversion' property."
-  (coding-system-get coding-system 'pre-write-conversion))
+  (coding-system-get coding-system :pre-write-conversion))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-decode (coding-system)
   "Return the value of CODING-SYSTEM's `translation-table-for-decode' property."
-  (coding-system-get coding-system 'translation-table-for-decode))
+  (coding-system-get coding-system :decode-translation-table))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-encode (coding-system)
   "Return the value of CODING-SYSTEM's `translation-table-for-encode' property."
-  (coding-system-get coding-system 'translation-table-for-encode))
+  (coding-system-get coding-system :encode-translation-table))
 
 ;;;###autoload
 (defun coding-system-equal (coding-system-1 coding-system-2)
@@ -258,13 +258,14 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 Two coding systems are identical if two symbols are equal
 or one is an alias of the other."
   (or (eq coding-system-1 coding-system-2)
-      (and (equal (coding-system-spec coding-system-1)
-		  (coding-system-spec coding-system-2))
+      (and (equal (coding-system-plist coding-system-1)
+		  (coding-system-plist coding-system-2))
 	   (let ((eol-type-1 (coding-system-eol-type coding-system-1))
 		 (eol-type-2 (coding-system-eol-type coding-system-2)))
 	     (or (eq eol-type-1 eol-type-2)
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
+;; Fixme: delete this?
 ;;;###autoload
 (defmacro detect-coding-with-priority (from to priority-list)
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
@@ -290,13 +291,21 @@ The detection takes into account the coding system priorities for the
 language environment LANG-ENV."
   (let ((coding-priority (get-language-info lang-env 'coding-priority)))
     (if coding-priority
-	(detect-coding-with-priority
-	 from to
-	 (mapcar (function (lambda (x)
-			     (cons (coding-system-get x 'coding-category) x)))
-		 coding-priority))
-      (detect-coding-region from to))))
+	(with-coding-priority coding-priority
+          (detect-coding-region from to)))))
 
+;;;###autoload
+(defmacro with-coding-priority (coding-systems &rest body)
+  "Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
+CODING-SYSTEMS is a list of coding systems."
+  (let ((current (make-symbol "current")))
+  `(let ((,current (coding-system-priorities)))
+     (apply #'set-coding-priority ,coding-systems)
+     (unwind-protect
+	 (progn ,@body)
+       (set-coding-priority ,current)))))
+(put 'with-coding-priority 'lisp-indent-function 1)
+(put 'with-coding-priority 'edebug-form-spec t)
 
 (provide 'mule-util)
 
