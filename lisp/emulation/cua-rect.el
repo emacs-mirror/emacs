@@ -585,7 +585,8 @@ If command is repeated at same position, delete the rectangle."
                   (if (car (cdr (cdr sel)))
                       (setq v (null v))))
                 (if visible
-                    (funcall fct p m l r v)
+		    (unless (eolp)
+			(funcall fct p m l r v))
                   (if v
                       (funcall fct p m l r)))))
           (set-marker m nil)
