@@ -567,6 +567,8 @@ echo_area_display ()
 		      0, 0, 0, 0, FRAME_WIDTH (f));
 
       /* If desired cursor location is on this line, put it at end of text */
+      if (cursor_in_echo_area)
+	FRAME_CURSOR_Y (f) = vpos;
       if (FRAME_CURSOR_Y (f) == vpos)
 	FRAME_CURSOR_X (f) = FRAME_DESIRED_GLYPHS (f)->used[vpos];
 
@@ -2803,8 +2805,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
       cursor_hpos += XFASTINT (w->left);
       if (w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
 	{
-	  FRAME_CURSOR_Y (f) = cursor_vpos;
-	  FRAME_CURSOR_X (f) = cursor_hpos;
+	  if (!(cursor_in_echo_area && FRAME_HAS_MINIBUF_P (f)
+		&& EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window)))
+	    {
+	      FRAME_CURSOR_Y (f) = cursor_vpos;
+	      FRAME_CURSOR_X (f) = cursor_hpos;
+	    }
 
 	  if (w == XWINDOW (selected_window))
 	    {
