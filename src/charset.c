@@ -124,14 +124,20 @@ invalid_character (c)
   error ("Invalid character: 0%o, %d, 0x%x", c, c, c);
 }
 
-/* Parse string STR of length LENGTH (>= 2) and check if a composite
-   character is at STR.  If there is a valid composite character, set
-   CHARSET, C1, and C2 to proper values so that MAKE_CHAR can compose
-   the composite character from them.  Otherwise, set CHARSET to
-   CHARSET_COMPOSITION, but set C1 to the second byte of the sequence,
-   C2 to -1 so that MAKE_CHAR can compose the invalid multibyte
-   character whose string representation is two bytes of STR[0] and
-   STR[1].  In any case, set BYTES to LENGTH.  */
+/* Parse composite character string STR of length LENGTH (>= 2) and
+   set BYTES, CHARSET, C1, and C2 as below.
+
+   It is assumed that *STR is LEADING_CODE_COMPOSITION and the
+   following (LENGTH - 1) bytes satisfy !CHAR_HEAD_P.
+
+   If there is a valid composite character, set CHARSET, C1, and C2 to
+   such values that MAKE_CHAR can make the composite character from
+   them.  Otherwise, set CHARSET to CHARSET_COMPOSITION, set C1 to the
+   second byte of the sequence, C2 to -1 so that MAKE_CHAR can make
+   the invalid multibyte character whose string representation is two
+   bytes of STR[0] and STR[1].  In any case, set BYTES to LENGTH.
+
+   This macro should be called only from SPLIT_MULTIBYTE_SEQ.  */
 
 #define SPLIT_COMPOSITE_SEQ(str, length, bytes, charset, c1, c2)	\
   do {									\
@@ -151,10 +157,16 @@ invalid_character (c)
       }									\
   } while (0)
 
-/* Parse string STR of length LENGTH (>= 2) and check if a
-   non-composite multibyte character is at STR.  Set BYTES to the
-   actual length, CHARSET, C1, and C2 to proper values so that
-   MAKE_CHAR can compose the multibyte character from them.  */
+/* Parse non-composite multibyte character string STR of length LENGTH
+   (>= 2) and set BYTES to the length of actual multibyte sequence,
+   CHARSET, C1, and C2 to such values that MAKE_CHAR can make the
+   multibyte character from them.
+
+   It is assumed that *STR is one of base leading codes (excluding
+   LEADING_CODE_COMPOSITION) and the following (LENGTH - 1) bytes
+   satisfy !CHAR_HEAD_P.
+
+   This macro should be called only from SPLIT_MULTIBYTE_SEQ.  */
 
 #define SPLIT_CHARACTER_SEQ(str, length, bytes, charset, c1, c2)	\
   do {									\
@@ -182,7 +194,10 @@ invalid_character (c)
 #define SPLIT_MULTIBYTE_SEQ(str, length, bytes, charset, c1, c2)	\
   do {									\
     int i;								\
-    for (i = 1; i < (length) && ! CHAR_HEAD_P ((str)[i]); i++);		\
+    if (ASCII_BYTE_P ((str)[0]))					\
+      i = 1;								\
+    else								\
+      for (i = 1; i < (length) && ! CHAR_HEAD_P ((str)[i]); i++);	\
     if (i == 1)								\
       (bytes) = 1, (charset) = CHARSET_ASCII, (c1) = (str)[0] ;		\
     else if ((str)[0] == LEADING_CODE_COMPOSITION)			\
@@ -196,7 +211,7 @@ invalid_character (c)
   } while (0)
 
 /* 1 if CHARSET, C1, and C2 compose a valid character, else 0.  */
-#define CHAR_COMPONENT_VALID_P(charset, c1, c2)	\
+#define CHAR_COMPONENTS_VALID_P(charset, c1, c2)	\
   (CHARSET_DIMENSION (charset) == 1		\
    ? ((c1) >= 0x20 && (c1) <= 0x7F)		\
    : ((c1) >= 0x20 && (c1) <= 0x7F && (c2) >= 0x20 && (c2) <= 0x7F))
@@ -312,12 +327,12 @@ non_ascii_char_to_string (c, workbuf, str)
   return (workbuf - *str);
 }
 
-/* Return a non-ASCII character of which multi-byte form is at STR of
-   length LEN.  If ACTUAL_LEN is not NULL, the byte length of the
-   multibyte form is set to the address ACTUAL_LEN.
+/* Return the non-ASCII character corresponding to multi-byte form at
+   STR of length LEN.  If ACTUAL_LEN is not NULL, store the byte
+   length of the multibyte form in *ACTUAL_LEN.
 
    Use macro `STRING_CHAR (STR, LEN)' instead of calling this function
-   directly if STR can hold an ASCII character.  */
+   directly if you want ot handle ASCII characters as well.  */
 
 int
 string_to_non_ascii_char (str, len, actual_len)
@@ -333,7 +348,8 @@ string_to_non_ascii_char (str, len, actual_len)
   return c;
 }
 
-/* Return the length of the multi-byte form at string STR of length LEN.  */
+/* Return the length of the multi-byte form at string STR of length LEN.
+   Use the macro MULTIBYTE_FORM_LENGTH instead.  */
 int
 multibyte_form_length (str, len)
      const unsigned char *str;
@@ -367,7 +383,8 @@ split_non_ascii_string (str, len, charset, c1, c2)
   *c2 = code2;
 }
 
-/* Return 1 iff character C has valid printable glyph.  */
+/* Return 1 iff character C has valid printable glyph.
+   Use the macro CHAR_PRINTABLE_P instead.  */
 int
 char_printable_p (c)
      int c;
@@ -1063,8 +1080,8 @@ DEFUN ("make-char-internal", Fmake_char_internal, Smake_char_internal, 1, 3, 0,
   if (c1 == 0
       ? c2 != 0
       : (c2 == 0
-	 ? !CHAR_COMPONENT_VALID_P (charset, c1, 0x20)
-	 : !CHAR_COMPONENT_VALID_P (charset, c1, c2)))
+	 ? !CHAR_COMPONENTS_VALID_P (charset, c1, 0x20)
+	 : !CHAR_COMPONENTS_VALID_P (charset, c1, c2)))
     error ("Invalid code points: %d %d", c1, c2);
 
   return make_number (MAKE_CHAR (charset_id, c1, c2));
@@ -1192,7 +1209,7 @@ char_valid_p (c, genericp)
 	}
     }
   return (CHARSET_DEFINED_P (charset)
-	  && CHAR_COMPONENT_VALID_P (charset, c1, c2));
+	  && CHAR_COMPONENTS_VALID_P (charset, c1, c2));
 }
 
 DEFUN ("char-valid-p", Fchar_valid_p, Schar_valid_p, 1, 2, 0,
