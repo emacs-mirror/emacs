@@ -29,11 +29,6 @@
 
 ;;; Code:
 
-;;; Add %t: into the mode line format just after the open-paren.
-(let ((tail (member "   %[(" mode-line-format)))
-  (setcdr tail (cons (purecopy "%t:")
-		     (cdr tail))))
-
 ;; Use ";" instead of ":" as a path separator (from files.el).
 (setq path-separator ";")
 
@@ -92,36 +87,42 @@ against the file name, and TYPE is nil for text, t for binary.")
 
 (defun find-buffer-file-type-coding-system (command args)
   "Choose a coding system for a file operation.
-If COMMAND is 'insert-file-contents', the coding system is chosen based
-upon the filename, the contents of 'untranslated-filesystem-list' and
-'file-name-buffer-file-type-alist', and whether the file exists:
+If COMMAND is `insert-file-contents', the coding system is chosen based
+upon the filename, the contents of `untranslated-filesystem-list' and
+`file-name-buffer-file-type-alist', and whether the file exists:
 
-  If it matches in 'untranslated-filesystem-list':	'no-conversion'
-  If it matches in 'file-name-buffer-file-type-alist':
-    If the match is t (for binary):			'no-conversion'
-    If the match is nil (for text):			'emacs-mule-dos'
+  If it matches in `untranslated-filesystem-list':
+    If the file exists:					`no-conversion'
+    If the file does not exist:				`undecided'
+  If it matches in `file-name-buffer-file-type-alist':
+    If the match is t (for binary):			`no-conversion'
+    If the match is nil (for dos-text):			`undecided-dos'
   Otherwise:
-    If the file exists:					'undecided'
-    If the file does not exist:				'undecided-dos'
+    If the file exists:					`undecided'
+    If the file does not exist:				`undecided-dos'
 
-If COMMAND is 'write-region', the coding system is chosen based
-upon the value of 'buffer-file-type': If t, the coding system is
-'no-conversion', otherwise it is 'emacs-mule-dos'."
+If COMMAND is `write-region', the coding system is chosen based
+upon the value of `buffer-file-type': If t, the coding system is
+`no-conversion', otherwise it is `undecided-dos'."
   (let ((op (nth 0 command))
 	(target)
 	(binary nil) (text nil)
 	(undecided nil))
     (cond ((eq op 'insert-file-contents) 
 	   (setq target (nth 1 command))
-	   (setq binary (find-buffer-file-type target))
-	   (unless binary
-	     (if (find-buffer-file-type-match target)
-		 (setq text t)
-	       (setq undecided (file-exists-p target)))))
+	   (if (untranslated-file-p target)
+	       (if (file-exists-p target)
+		   (setq undecided t)
+		 (setq binary t))
+	     (setq binary (find-buffer-file-type target))
+	     (unless binary
+		     (if (find-buffer-file-type-match target)
+			 (setq text t)
+		       (setq undecided (file-exists-p target))))))
 	  ((eq op 'write-region) 
 	   (setq binary buffer-file-type)))
     (cond (binary '(no-conversion . no-conversion))
-	  (text '(emacs-mule-dos . emacs-mule-dos))
+	  (text '(undecided-dos . undecided-dos))
 	  (undecided '(undecided . undecided))
 	  (t '(undecided-dos . undecided-dos)))))
 
@@ -214,11 +215,11 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 (defun find-binary-process-coding-system (op args)
   "Choose a coding system for process I/O.
 The coding system for decode is 'no-conversion' if 'binary-process-output'
-is non-nil, and 'emacs-mule-dos' otherwise.  Similarly, the coding system 
+is non-nil, and 'undecided-dos' otherwise.  Similarly, the coding system 
 for encode is 'no-conversion' if 'binary-process-input' is non-nil,
-and 'emacs-mule-dos' otherwise."
-  (let ((decode 'emacs-mule-dos)
-	(encode 'emacs-mule-dos))
+and 'undecided-dos' otherwise."
+  (let ((decode 'undecided-dos)
+	(encode 'undecided-dos))
     (if binary-process-output
 	(setq decode 'no-conversion))
     (if binary-process-input
