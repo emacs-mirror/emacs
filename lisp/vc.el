@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.289 2000/11/16 18:17:26 spiegel Exp $
+;; $Id: vc.el,v 1.290 2000/11/16 18:28:11 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -824,20 +824,6 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 	  (save-buffer)
 	(unless not-urgent
 	  (error "Aborted")))))
-
-(defun vc-workfile-unchanged-p (file)
-  "Has FILE changed since last checkout?"
-  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
-        (lastmod (nth 5 (file-attributes file))))
-    (if checkout-time
-        (equal checkout-time lastmod)
-      (let ((unchanged (vc-call workfile-unchanged-p file)))
-        (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
-        unchanged))))
-
-(defun vc-default-workfile-unchanged-p (file)
-  "Default check whether FILE is unchanged: diff against master version."
-  (zerop (vc-call diff file (vc-workfile-version file))))
 
 (defun vc-recompute-state (file)
   "Force a recomputation of the version control state of FILE.
