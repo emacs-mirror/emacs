@@ -1795,7 +1795,7 @@ read1 (readcharfun, pch, first_in_list)
 	  nchars = p - read_buffer;
 	else if (! NILP (buffer_defaults.enable_multibyte_characters)
 		 || force_multibyte)
-	  nchars = chars_in_text (read_buffer, p - read_buffer);
+	  nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
 	else
 	  nchars = p - read_buffer;
 
