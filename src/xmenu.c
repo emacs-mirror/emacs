@@ -1203,7 +1203,7 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 
   while (popup_activated_flag)
     {
-       if (initial_event)
+      if (initial_event)
         {
           event = *initial_event;
           initial_event = 0;
