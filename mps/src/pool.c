@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.10) $
+ * $HopeName: MMsrc!pool.c(trunk.11) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -19,7 +19,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 
-SRCID("$HopeName: MMsrc!pool.c(trunk.10) $");
+SRCID("$HopeName: MMsrc!pool.c(trunk.11) $");
 
 
 Bool PoolIsValid(Pool pool, ValidationType validParam)
@@ -106,8 +106,6 @@ Error (PoolAlloc)(Addr *pReturn, Pool pool, Size size)
   /* Make sure that the allocated address was in the pool's memory. */  
   AVER(PoolHasAddr(pool, (Addr)*pReturn));
 
-  SpacePoll(PoolSpace(pool));
-
   return ErrSUCCESS;
 }
 
@@ -121,37 +119,43 @@ void PoolFree(Pool pool, Addr old, Size size)
     (*pool->class->free)(pool, old, size);
 }
 
-
-Error PoolCondemn(Pool pool, Trace trace)
+Error PoolCondemn(RefSet *condemnedReturn, Pool pool,
+                  Space space, TraceId ti)
 {
-  AVER(pool->class->condemn != NULL);
-  return (*pool->class->condemn)(pool, trace);
+  if(pool->class->condemn != NULL)
+    return (*pool->class->condemn)(condemnedReturn, pool, space, ti);
+
+  *condemnedReturn = RefSetEmpty;
+  return ErrSUCCESS;
 }
 
-void PoolMark(Pool pool, Trace trace)
+void PoolGrey(Pool pool, Space space, TraceId ti)
 {
-  if(pool->class->mark != NULL)
-    (*pool->class->mark)(pool, trace);
+  if(pool->class->grey != NULL)
+    (*pool->class->grey)(pool, space, ti);
 }
 
-Error PoolScan(Pool pool, Trace trace)
+Error PoolScan(ScanState ss, Pool pool, Bool *finishedReturn)
 {
   if(pool->class->scan != NULL)
-    return (*pool->class->scan)(pool, trace);
-  return ErrSUCCESS;
+    return (*pool->class->scan)(ss, pool, finishedReturn);
+  else {
+    *finishedReturn = TRUE;
+    return ErrSUCCESS;
+  }
 }
 
-Error PoolFix(Pool pool, Trace trace, Arena arena, Addr *refIO)
+Error PoolFix(Pool pool, ScanState ss, Arena arena, Addr *refIO)
 {
   if(pool->class->fix != NULL)
-    return (*pool->class->fix)(pool, trace, arena, refIO);
+    return (*pool->class->fix)(pool, ss, arena, refIO);
   return ErrSUCCESS;
 }
 
-void PoolReclaim(Pool pool, Trace trace)
+void PoolReclaim(Pool pool, Space space, TraceId ti)
 {
-  AVER(pool->class->reclaim != NULL);
-  (*pool->class->reclaim)(pool, trace);
+  if(pool->class->reclaim != NULL)
+    (*pool->class->reclaim)(pool, space, ti);
 }
 
 
@@ -159,14 +163,6 @@ void PoolAccess(Pool pool, Addr seg, ProtMode mode)
 {
   if(pool->class->access != NULL)
     (*pool->class->access)(pool, seg, mode);
-}
-
-
-Size PoolPoll(Pool pool)
-{
-  if(pool->class->poll != NULL)
-    return (*pool->class->poll)(pool);
-  return SPACE_POLL_MAX;
 }
 
 
