@@ -488,6 +488,8 @@ Lisp_Object Fthis_command_keys ();
 Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check ();
 
+extern Lisp_Object Vhistory_length;
+
 extern char *x_get_keysym_name ();
 
 static void record_menu_key ();
@@ -7474,13 +7476,24 @@ a special event, so ignore the prefix argument and don't clear it.")
 	 other sorts of commands, call-interactively takes care of
 	 this.  */
       if (!NILP (record_flag))
-	Vcommand_history
-	  = Fcons (Fcons (Qexecute_kbd_macro,
-			  Fcons (final, Fcons (prefixarg, Qnil))),
-		   Vcommand_history);
+	{
+	  Vcommand_history
+	    = Fcons (Fcons (Qexecute_kbd_macro,
+			    Fcons (final, Fcons (prefixarg, Qnil))),
+		     Vcommand_history);
+
+	  /* Don't keep command history around forever.  */
+	  if (NUMBERP (Vhistory_length) && XINT (Vhistory_length) > 0)
+	    {
+	      tem = Fnthcdr (Vhistory_length, Vcommand_history);
+	      if (CONSP (tem))
+		XCONS (tem)->cdr = Qnil;
+	    }
+	}
 
       return Fexecute_kbd_macro (final, prefixarg);
     }
+
   if (CONSP (final) || SUBRP (final) || COMPILEDP (final))
     {
       backtrace.next = backtrace_list;
