@@ -1,6 +1,6 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output
 
-;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 03, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree tools
@@ -385,7 +385,7 @@ the list is a three-string list TAG, KIND, REV."
 ;;;;
 
 (defvar cvs-tree-use-jisx0208
-  nil ;; (and (char-display-font 'japanese-jisx0208) t)
+  (and (char-displayable-p (make-char 'japanese-jisx0208 40 44)) t)
   "*Non-nil if we should use the graphical glyphs from `japanese-jisx0208'.
 Otherwise, default to ASCII chars like +, - and |.")
 
