@@ -156,7 +156,9 @@ See the function `iso-accents-mode'.")
 	 ;; Wait for the second key and look up the combination.
 	 (second-char (if (or prompt
 			      (not (eq (key-binding "a")
-				       'self-insert-command)))
+				       'self-insert-command))
+			      ;; Called from anything but the command loop.
+			      this-command)
 			  (progn
 			    (message "%s%c"
 				     (or prompt "Compose with ")
@@ -316,7 +318,7 @@ Noninteractively, this operates on text from START to END."
 		(insert (car (cdr (car entry)))))
 	    (forward-char 1)))))))
 
-(iso-customize-accents "default")
+(iso-accents-customize "default")
 
 ;;; iso-acc.el ends here
 
