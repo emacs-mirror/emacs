@@ -309,12 +309,13 @@
 ;; The other coding-systems are defined in each language specific
 ;; section of languages.el.
 
-;; Setting coding system `undecided' for reading any files.  Though,
-;; compiled Emacs Lisp files (*.elc) should never be decoded nor
-;; encoded.  tar files too.
+;; Normally, set coding system to `undecided' before reading a file.
+;; Compiled Emacs Lisp files (*.elc) are not decoded at all,
+;; but we regard them as containing multibyte characters.
+;; Tar files are not decoded at all, but we treat them as raw bytes.
 
 (setq file-coding-system-alist
-      '(("\\.elc$" . (no-conversion . no-conversion))
+      '(("\\.elc$" . (emacs-mule . emacs-mule))
 	("\\(\\`\\|/\\)loaddefs.el$" . (no-conversion . no-conversion))
 	("\\.tar$" . (no-conversion . no-conversion))
 	("" . (undecided . nil))))
