@@ -100,8 +100,6 @@
 (defvar server-process nil
   "The current server process.")
 
-(defvar server-previous-strings nil)
-
 (defvar server-clients nil
   "List of current server clients.
 Each element is (CLIENTID BUFFERS...) where CLIENTID is a string
@@ -179,9 +177,6 @@ are done with it in the server.")
 	(or (bolp) (newline)))))
 
 (defun server-sentinel (proc msg)
-  ;; Purge server-previous-strings of the now irrelevant entry.
-  (setq server-previous-strings
-	(delq (assq proc server-previous-strings) server-previous-strings))
   (let ((client (assq proc server-clients)))
     ;; Remove PROC from the list of clients.
     (when client
@@ -282,10 +277,10 @@ Server mode runs a process that accepts commands from the
   "Process a request from the server to edit some files.
 PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
   (server-log string proc)
-  (let ((ps (assq proc server-previous-strings)))
-    (when (cdr ps)
-      (setq string (concat (cdr ps) string))
-      (setcdr ps nil)))
+  (let ((prev (process-get proc 'previous-string)))
+    (when prev
+      (setq string (concat prev string))
+      (process-put proc 'previous-string nil)))
   ;; If the input is multiple lines,
   ;; process each line individually.
   (while (string-match "\n" string)
@@ -362,9 +357,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		      "When done with a buffer, type \\[server-edit]")))))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
-    (let ((ps (assq proc server-previous-strings)))
-      (if ps (setcdr ps string)
-	(push (cons proc string) server-previous-strings)))))
+    (process-put proc 'previous-string string)))
 
 (defun server-goto-line-column (file-line-col)
   (goto-line (nth 1 file-line-col))
