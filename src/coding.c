@@ -363,10 +363,10 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
   "coding-category-iso-8-2",
   "coding-category-iso-7-else",
   "coding-category-iso-8-else",
+  "coding-category-ccl",
   "coding-category-big5",
   "coding-category-raw-text",
-  "coding-category-binary",
-  "coding-category-ccl"
+  "coding-category-binary"
 };
 
 /* Table of pointers to coding systems corresponding to each coding
@@ -3351,7 +3351,7 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 		mask = detect_coding_big5 (src, src_end);      
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_EMACS_MULE)
 		mask = detect_coding_emacs_mule (src, src_end);      
-	      else if (priorities[i] & CODING_CATEGORY_MASK_CCL)
+	      else if (priorities[i] & try & CODING_CATEGORY_MASK_CCL)
 		mask = detect_coding_ccl (src, src_end);
 	      else if (priorities[i] & CODING_CATEGORY_MASK_RAW_TEXT)
 		mask = CODING_CATEGORY_MASK_RAW_TEXT;
