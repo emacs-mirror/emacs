@@ -1720,7 +1720,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
     }
 
  ccl_error_handler:
-  if (destination)
+  if (ccl->suppress_error
+      && destination)
     {
       /* We can insert an error message only if DESTINATION is
          specified and we still have a room to store the message
@@ -1937,6 +1938,7 @@ setup_ccl_program (ccl, ccl_prog)
   ccl->status = 0;
   ccl->stack_idx = 0;
   ccl->eol_type = CODING_EOL_LF;
+  ccl->suppress_error = 0;
   return 0;
 }
 
