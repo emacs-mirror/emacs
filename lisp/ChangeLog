@@ -1,3 +1,8 @@
+2001-06-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (auto-mode-alist): Add configure.ac (autoconf).  From
+	Karl Eichwalder <ke@suse.de>.
+
 2001-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (eval-last-sexp): Doc fix.
