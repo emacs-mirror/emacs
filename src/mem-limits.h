@@ -141,8 +141,8 @@ get_lim_data ()
 static void
 get_lim_data ()
 {
-  extern unsigned long data_region_size;
-  lim_data = data_region_size;
+  extern unsigned long reserved_heap_size;
+  lim_data = reserved_heap_size;
 }
 
 #else
