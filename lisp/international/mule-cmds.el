@@ -723,9 +723,10 @@ and TO is ignored."
       (let ((window-configuration (current-window-configuration)))
 	(save-excursion
 	  ;; Make sure the offending buffer is displayed.
-	  (when (and default-coding-system (not (stringp from)))
+	  (when (and (consp default-coding-system) (not (stringp from)))
 	    (pop-to-buffer bufname)
-	    (goto-char (apply 'min (mapcar #'(lambda (x) (car (cadr x)))
+	    ;; The `or' is because sometimes (car (cadr x)) is nil.
+	    (goto-char (apply 'min (mapcar #'(lambda (x) (or (car (cadr x)) (point-max)))
 					   default-coding-system))))
 	  ;; Then ask users to select one from CODINGS.
 	  (with-output-to-temp-buffer "*Warning*"
