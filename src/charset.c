@@ -534,7 +534,7 @@ CHARSET should be defined by `defined-charset' in advance.")
 
 /* Return number of different charsets in STR of length LEN.  In
    addition, for each found charset N, CHARSETS[N] is set 1.  The
-   caller should allocate CHARSETS (MAX_CHARSET + 1 bytes) in advance.
+   caller should allocate CHARSETS (MAX_CHARSET + 1 elements) in advance.
    It may lookup a unification table TABLE if supplied.  */
 
 int
@@ -616,12 +616,12 @@ Optional arg TABLE if non-nil is a unification table to look up.")
   (str, table)
      Lisp_Object str, table;
 {
-  char charsets[MAX_CHARSET + 1];
+  int charsets[MAX_CHARSET + 1];
   int i;
   Lisp_Object val;
 
   CHECK_STRING (str, 0);
-  bzero (charsets, MAX_CHARSET + 1);
+  bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
   find_charset_in_str (XSTRING (str)->data, XSTRING (str)->size,
 		       charsets, table);
   val = Qnil;
