@@ -463,7 +463,12 @@ to implement dynamic menus."
 ;; here easy-menu-remove is a noop and easy-menu-add only precalculates
 ;; equivalent keybindings (if easy-menu-precalculate-equivalent-keybindings
 ;; is on).
-(defalias 'easy-menu-remove 'ignore)
+(defalias 'easy-menu-remove 'ignore
+  "Remove MENU from the current menu bar.
+Contrary to XEmacs, this is a nop on Emacs since menus are automatically
+\(de)activated when the corresponding keymap is (de)activated.
+
+\(fn MENU)")
 
 (defun easy-menu-add (menu &optional map)
   "Add the menu to the menubar.
