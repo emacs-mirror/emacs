@@ -1,3 +1,10 @@
+2000-07-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* iswitchb.el (iswitchb-entryfn-p): Test this-command instead
+	of testing if iswitchb-prepost-hooks is bound, because the
+	latter will always be true when invoking a recursive minibuffer
+	from an active Iswitchb buffer.
+
 2000-07-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (shell-quote-wildcard-pattern): New function.
