@@ -1,3 +1,13 @@
+2001-08-20  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-db2): Doc change.
+
+2001-08-20  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-postgres): Add the database at the end of the
+	parameters instead of at the beginning.
+	(sql-postgres-options): Doc change.
+
 2001-08-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* custom.el (defcustom): Doc fix.

@@ -1,3 +1,10 @@
-This directory contains scripts and other things useful for
-maintaining Emacs.  These files are not part of Emacs releases because
-they are not deemed generally useful.
+This directory contains scripts and other things useful for developing
+and maintaining Emacs.  These files are not part of Emacs releases
+because they are not deemed generally useful, and you have to know
+what you do when using them.
+
+Brief description of scripts found here:
+
+build-configs	build Emacs in various configurations
+make-emacs	build Emacs in various ways
+revdiff		get CVS diffs of files
