@@ -1,3 +1,8 @@
+2000-01-04  Dave Love  <fx@gnu.org>
+
+	* bindings.el (make-mode-line-mouse-sensitive):
+	Fix the toggle menu items.
+
 2000-01-03  Dave Love  <fx@gnu.org>
 
 	* elide-head.el (elide-head) [defgroup: Add :version.
