@@ -423,8 +423,8 @@ struct buffer_text
        end_unchanged contain no useful information.  */
     int overlay_unchanged_modified;
 
-    /* Properties of this buffer's text -- conditionally compiled.  */
-    DECLARE_INTERVALS
+    /* Properties of this buffer's text.  */
+    INTERVAL intervals;
 
     /* The markers that refer to this buffer.
        This is actually a single marker ---
