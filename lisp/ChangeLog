@@ -1,5 +1,9 @@
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
+	* complete.el, thumbs.el: Replace `legal' with `valid'.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
 	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with
 	`invalid'.
 	* midnight.el, vc-cvs.el: Replace `illegal' with `invalid'.
