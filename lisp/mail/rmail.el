@@ -852,6 +852,9 @@ Instead, these commands are available:
 
 (defun rmail-mode-2 ()
   (kill-all-local-variables)
+  ;; Don't let a local variables list in a message cause confusion.
+  (make-local-variable 'enable-local-variables)
+  (setq enable-local-variables nil)
   (rmail-mode-1)
   (rmail-variables))
 
