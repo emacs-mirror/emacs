@@ -57,6 +57,10 @@
 ;; it to nil to avoid highlighting specific buffers, when the global
 ;; mode is used.
 
+;; In default whole the line is highlighted. The range of highlighting
+;; can be changed by defining an appropriate function as the 
+;; buffer-local value of `hl-line-range-function'.
+
 ;;; Code:
 
 (defgroup hl-line nil
@@ -77,6 +81,15 @@ the command `hl-line-mode' to turn Hl-Line mode on."
   :type 'boolean
   :version "21.4"
   :group 'hl-line)
+
+(defvar hl-line-range-function nil
+  "If non-nil, function to call to return highlight range.
+The function of no args should return a cons cell; its car value
+is the beginning position of highlight and its cdr value is the 
+end position of highlight in the buffer.
+It should return nil if there's no region to be highlighted.
+
+This variable is expected to be made buffer-local by modes.")
 
 (defvar hl-line-overlay nil
   "Overlay used by Hl-Line mode to highlight the current line.")
@@ -124,8 +137,7 @@ addition to `hl-line-highlight' on `post-command-hook'."
           (overlay-put hl-line-overlay 'face hl-line-face))
         (overlay-put hl-line-overlay
                      'window (unless hl-line-sticky-flag (selected-window)))
-        (move-overlay hl-line-overlay
-                      (line-beginning-position) (line-beginning-position 2)))
+	(hl-line-move hl-line-overlay))
     (hl-line-unhighlight)))
 
 (defun hl-line-unhighlight ()
@@ -158,13 +170,29 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
         (setq global-hl-line-overlay (make-overlay 1 1)) ; to be moved
         (overlay-put global-hl-line-overlay 'face hl-line-face))
       (overlay-put global-hl-line-overlay 'window (selected-window))
-      (move-overlay global-hl-line-overlay
-                    (line-beginning-position) (line-beginning-position 2)))))
+      (hl-line-move global-hl-line-overlay))))
 
 (defun global-hl-line-unhighlight ()
   "Deactivate the Global-Hl-Line overlay on the current line."
   (if global-hl-line-overlay
       (delete-overlay global-hl-line-overlay)))
+
+(defun hl-line-move (overlay)
+  "Move the hl-line-mode overlay.
+If `hl-line-range-function' is non-nil, move the OVERLAY to the position
+where the function returns. If `hl-line-range-function' is nil, fill
+the line including the point by OVERLAY."
+  (let (tmp b e)
+    (if hl-line-range-function
+	(setq tmp (funcall hl-line-range-function)
+	      b   (car tmp)
+	      e   (cdr tmp))
+      (setq tmp t
+	    b (line-beginning-position)
+	    e (line-beginning-position 2)))
+    (if tmp
+	(move-overlay overlay b e)
+      (move-overlay overlay 1 1))))
 
 (provide 'hl-line)
 

@@ -1,3 +1,35 @@
+2004-03-15  Masatake YAMATO  <jet@gyve.org>
+
+	* hl-line.el (hl-line-range-function): New variable.
+	(hl-line-move): New function.
+	(global-hl-line-highlight): Use `hl-line-move'.
+	(hl-line-highlight): Ditto.
+
+	* scroll-bar.el (scroll-bar-columns): New function derived from
+	ruler-mode.el.
+
+	* fringe.el (fringe-columns): New function derived from
+	ruler-mode.el.
+
+	* ruler-mode.el (top-level): Require scroll-bar and fringe.
+	(ruler-mode-left-fringe-cols)
+	(ruler-mode-right-fringe-cols): Use `fringe-columns'.
+	(ruler-mode-right-scroll-bar-cols)
+	(ruler-mode-left-scroll-bar-cols): Use `scroll-bar-columns'.
+	(ruler-mode-ruler-function): New variable.
+	(ruler-mode-header-line-format): Call `ruler-mode-ruler-function'
+	if the value for `ruler-mode-ruler-function'is given.
+
+	* hexl.el (hexl-mode-hook): Make the hook customizable.
+	(hexl-address-area, hexl-ascii-area, hexl-ascii-cursor): New 
+	customize variables.
+	(hexlify-buffer): Put font-lock-faces on the address area and 
+	the ascii area.
+	(hexl-activate-ruler): New function.
+	(hexl-follow-line): New function.
+	(hexl-highlight-line-range): New function.
+	(hexl-mode-ruler): New function.
+
 2004-03-12  Jesper Harder  <harder@ifa.au.dk>
 
 	* info-look.el (info-lookup): Reuse an existing Info window.
