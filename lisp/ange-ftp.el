@@ -4093,7 +4093,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(error (insert (format "%s\n" (nth 1 oops)))))
     (apply 'call-process program nil (not discard) nil arguments)))
 
-;;; This currently does not work; it is never called.
+;; Handle an attempt to run chmod on a remote file
+;; by using the ftp chmod command.
 (defun ange-ftp-call-chmod (args)
   (if (< (length args) 2)
       (error "ange-ftp-call-chmod: missing mode and/or filename: %s" args))
@@ -4118,7 +4119,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 					    file 
 					    (cdr result)))))))))
      (cdr args)))
-  (setq ange-ftp-ls-cache-file nil))	;stop confusing dired
+  (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.
+  0)
 
 ;;; This is turned off because it has nothing properly to do
 ;;; with dired.  It could be reasonable to adapt this to
