@@ -53,7 +53,7 @@
 (define-key help-map "\C-d" 'describe-distribution)
 (define-key help-map "\C-w" 'describe-no-warranty)
 (define-key help-map "\C-p" 'describe-project)
-(define-key help-map "a" 'command-apropos)
+(define-key help-map "a" 'apropos-command)
 
 (define-key help-map "b" 'describe-bindings)
 
