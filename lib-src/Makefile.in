@@ -152,6 +152,8 @@ LINK_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
+ALLOCA_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
+   -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 
 /* This is the default compilation command.
    But we should never rely on it, because some make version
@@ -257,6 +259,8 @@ getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
 getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
+alloca.o: ${srcdir}/alloca.c
+	${CC} -c ${ALLOCA_CFLAGS} ${srcdir}/alloca.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
