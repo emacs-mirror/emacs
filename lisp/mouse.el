@@ -1492,8 +1492,8 @@ and selects that window."
 
 ;; By binding these to down-going events, we let the user use the up-going
 ;; event to make the selection, saving a click.
-(global-set-key [C-down-mouse-1] 'mouse-buffer-menu)
-(global-set-key [C-down-mouse-2] 'mouse-set-font)
+(global-set-key [C-down-mouse-1] 'mouse-set-font)
+;; C-down-mouse-2 is bound in facemenu.el.
 (global-set-key [C-down-mouse-3] 'mouse-major-mode-menu)
 
 
