@@ -395,7 +395,7 @@ xaw_create_dialog (instance)
   Widget widget;
   Boolean pop_up_p = instance->pop_up_p;
   char *shell_name = 0;
-  char *icon_name;
+  char *icon_name = 0;
   Boolean text_input_slot = False;
   Boolean radio_box = False;
   Boolean list = False;
