@@ -45,6 +45,7 @@ If `angles', they look like:
 	Elvis Parsley <king@grassland.com>
 If `default', Rmail allows the system to insert its default From field."
   :type '(choice (const nil) (const parens) (const angles) (const default))
+  :version "20.3"
   :group 'sendmail)
 
 ;;;###autoload
