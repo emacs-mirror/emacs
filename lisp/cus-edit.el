@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9914
+;; Version: 1.9920
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -1206,6 +1206,8 @@ and `face'."
 	       (or (not hidden)
 		   (memq category custom-magic-show-hidden)))
       (insert "   ")
+      (when (eq category 'group)
+	(insert-char ?\  (1+ (* 2 (widget-get parent :custom-level)))))
       (push (widget-create-child-and-convert 
 	     widget 'choice-item 
 	     :help-echo "Change the state of this item."
@@ -1277,7 +1279,8 @@ and `face'."
   ;; We recognize extra escape sequences.
   (let* ((buttons (widget-get widget :buttons))
 	 (state (widget-get widget :custom-state))
-	 (level (widget-get widget :custom-level)))
+	 (level (widget-get widget :custom-level))
+	 (category (widget-get widget :custom-category)))
     (cond ((eq escape ?l)
 	   (when level 
 	     (insert-char ?\  (1- level))
@@ -1298,9 +1301,12 @@ and `face'."
 	   (when (and level (not (eq state 'hidden)))
 	     (insert-char ?- (- 76 (current-column) level))
 	     (insert "\\")))
+	  ((eq escape ?i)
+	   (insert-char ?\  (+ 1 level level)))
 	  ((eq escape ?L)
 	   (push (widget-create-child-and-convert
 		  widget 'visibility
+		  :help-echo "Show or hide this group."
 		  :action 'custom-toggle-parent
 		  (not (eq state 'hidden)))
 		 buttons))
@@ -1322,6 +1328,8 @@ and `face'."
 		 (and (eq (preceding-char) ?\n)
 		      (widget-get widget :indent)
 		      (insert-char ?  (widget-get widget :indent)))
+		 (when (eq category 'group)
+		   (insert-char ?\  (1+ (* 2 level))))
 		 (insert "See also ")
 		 (while links
 		   (push (widget-create-child-and-convert widget (car links))
@@ -1430,7 +1438,8 @@ and `face'."
 	  (t 
 	   (widget-put widget :documentation-shown nil)
 	   (widget-put widget :custom-state 'hidden)))
-    (custom-redraw widget)))
+    (custom-redraw widget)
+    (widget-setup)))
 
 (defun custom-toggle-parent (widget &rest ignore)
   "Toggle visibility of parent to WIDGET."
@@ -1517,6 +1526,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		 buttons)
 	   (push (widget-create-child-and-convert 
 		  widget 'visibility
+		  :help-echo "Show the value of this option."
 		  :action 'custom-toggle-parent
 		  nil)
 		 buttons))
@@ -1533,6 +1543,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	     (insert (symbol-name symbol) ": ")
 	     (push (widget-create-child-and-convert 
 		  widget 'visibility
+		  :help-echo "Hide the value of this option."
 		  :action 'custom-toggle-parent
 		  t)
 		 buttons)
@@ -1557,6 +1568,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		    widget 'item 
 		    :format tag-format
 		    :action 'custom-tag-action
+		    :help-echo "Change value of this option."
 		    :mouse-down-action 'custom-tag-mouse-down-action
 		    :button-face 'custom-variable-button-face
 		    :sample-face 'custom-variable-sample-face
@@ -1565,6 +1577,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	     (insert " ")
 	     (push (widget-create-child-and-convert 
 		  widget 'visibility
+		  :help-echo "Hide the value of this option."
 		  :action 'custom-toggle-parent
 		  t)
 		 buttons)	     
@@ -1623,13 +1636,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     (widget-put widget :custom-state state)))
 
 (defvar custom-variable-menu 
-  '(("Edit" custom-variable-edit 
-     (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'edit))))
-    ("Edit Lisp" custom-variable-edit-lisp
-     (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'lisp))))
-    ("Set" custom-variable-set
+  '(("Set" custom-variable-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
     ("Save" custom-variable-save
@@ -1648,7 +1655,14 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
      (lambda (widget)
        (and (get (widget-value widget) 'standard-value)
 	    (memq (widget-get widget :custom-state)
-		  '(modified set changed saved rogue))))))
+		  '(modified set changed saved rogue)))))
+    ("---" ignore ignore)
+    ("Don't show as Lisp expression" custom-variable-edit 
+     (lambda (widget)
+       (not (eq (widget-get widget :custom-form) 'edit))))
+    ("Show as Lisp expression" custom-variable-edit-lisp
+     (lambda (widget)
+       (not (eq (widget-get widget :custom-form) 'lisp)))))
   "Alist of actions for the `custom-variable' widget.
 Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
@@ -1958,23 +1972,24 @@ Match frames with dark backgrounds.")
     (message "Creating face editor...done")))
 
 (defvar custom-face-menu 
-  '(("Edit Selected" custom-face-edit-selected
-     (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'selected))))
-    ("Edit All" custom-face-edit-all
-     (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'all))))
-    ("Edit Lisp" custom-face-edit-lisp
-     (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'lisp))))
-    ("Set" custom-face-set)
+  '(("Set" custom-face-set)
     ("Save" custom-face-save)
     ("Reset to Saved" custom-face-reset-saved
      (lambda (widget)
        (get (widget-value widget) 'saved-face)))
     ("Reset to Standard Setting" custom-face-reset-standard
      (lambda (widget)
-       (get (widget-value widget) 'face-defface-spec))))
+       (get (widget-value widget) 'face-defface-spec)))
+    ("---" ignore ignore)
+    ("Show all display specs" custom-face-edit-all
+     (lambda (widget)
+       (not (eq (widget-get widget :custom-form) 'all))))
+    ("Just current attributes" custom-face-edit-selected
+     (lambda (widget)
+       (not (eq (widget-get widget :custom-form) 'selected))))
+    ("Show as Lisp expression" custom-face-edit-lisp
+     (lambda (widget)
+       (not (eq (widget-get widget :custom-form) 'lisp)))))
   "Alist of actions for the `custom-face' widget.
 Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
@@ -2181,7 +2196,7 @@ and so forth.  The remaining group tags are shown with
 
 (define-widget 'custom-group 'custom
   "Customize group."
-  :format "%l %{%t%} group: %L %-\n%m%h%a%v%e"
+  :format "%l %{%t%} group: %L %-\n%m%i%h%a%v%e"
   :sample-face-get 'custom-group-sample-face-get
   :documentation-property 'group-documentation
   :help-echo "Set or reset all members of this group."
