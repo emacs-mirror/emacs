@@ -1,3 +1,13 @@
+2001-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/msdos.h: Update copyright notice.
+
+	* dosfns.h: Update copyright notice.
+
+	* dosfns.c: Update copyright notice.
+
+	* msdos.c: Update copyright notice.
+
 2001-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (glyph_rect): New function.

@@ -1,3 +1,7 @@
+2001-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* config.bat: Update the copyright.
+
 2001-02-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* configure.in: Use AC_EGREP_CPP to check if the C preprocessor
