@@ -722,21 +722,21 @@ Also set the mark at the position where point was."
        (let ((buf (current-buffer))
 	     (bufname (buffer-name))
 	     (file (buffer-file-name)))
-	 (when (and view-try-extend-at-buffer-end
-		    file
-		    (not (verify-visited-file-modtime buf))
-		    (file-exists-p file)
-		    (or (not (buffer-modified-p buf))
-			(progn
-			  (setq file (file-name-nondirectory file))
-			  (yes-or-no-p
-			   (format
-			    "File %s changed on disk.  Discard your edits%s? "
-			    file
-			    (if (string= bufname file) ""
-			      (concat " in " bufname)))))))
-	   (revert-buffer t t t)
-	   (pos-visible-in-window-p (point-max))))))
+	 (or (not view-try-extend-at-buffer-end)
+	     (null file)
+	     (verify-visited-file-modtime buf)
+	     (not (file-exists-p file))
+	     (when (buffer-modified-p buf)
+	       (setq file (file-name-nondirectory file))
+	       (not (yes-or-no-p
+		     (format
+		      "File %s changed on disk.  Discard your edits%s? "
+		      file
+		      (if (string= bufname file) ""
+			(concat " in " bufname))))))
+	     (progn
+	       (revert-buffer t t t)
+	       (pos-visible-in-window-p (point-max)))))))
 
 (defun view-end-message ()
   ;; Tell that we are at end of buffer.
