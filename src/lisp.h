@@ -1222,6 +1222,8 @@ typedef unsigned char UCHAR;
 			 Lisp_Object, Lisp_Object)
 #define DEFUN_ARGS_7	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
 			 Lisp_Object, Lisp_Object, Lisp_Object)
+#define DEFUN_ARGS_8	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
+			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
 #endif
 
 /* defsubr (Sname);
@@ -1921,14 +1923,14 @@ EXFUN (Fmatch_end, 1);
 /* defined in minibuf.c */
 
 extern Lisp_Object last_minibuf_string;
-EXFUN (Fcompleting_read, 7);
-EXFUN (Fread_from_minibuffer, 6);
+EXFUN (Fcompleting_read, 8);
+EXFUN (Fread_from_minibuffer, 7);
 EXFUN (Fread_variable, 2);
 EXFUN (Fread_buffer, 3);
 EXFUN (Fread_minibuffer, 2);
 EXFUN (Feval_minibuffer, 2);
-EXFUN (Fread_string, 4);
-EXFUN (Fread_no_blanks_input, 2);
+EXFUN (Fread_string, 5);
+EXFUN (Fread_no_blanks_input, 3);
 extern Lisp_Object get_minibuffer P_ ((int));
 
 /* Defined in callint.c */
