@@ -1,3 +1,9 @@
+2003-11-25  Andreas Schwab  <schwab@suse.de>
+
+	* fns.c (internal_equal) <case Lisp_Vectorlike>: Declare size as
+	EMACS_INT to not lose bits.
+	(Ffillarray): Don't set bits beyond the size of a bool vector.
+
 2003-11-25  Kim F. Storm  <storm@cua.dk>
 
 	* print.c (Fredirect_debugging_output) [!GNU_LINUX]: Do not
