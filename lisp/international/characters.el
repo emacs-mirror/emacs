@@ -601,20 +601,41 @@
 
 ;; Unicode (mule-unicode-0100-24ff)
 
-(let ((c #x0100) (tbl (standard-case-table)))
-  (while (<= c #x0233)			; Latin Extended-A, Latin Extended-B
+(let ((tbl (standard-case-table)) c)
+
+;; In some languages, U+0049 LATIN CAPITAL LETTER I and U+0131 LATIN
+;; SMALL LETTER DOTLESS I make a case pair, and so do U+0130 LATIN
+;; CAPITAL LETTER I WITH DOT ABOVE and U+0069 LATIN SMALL LETTER I.
+;; Thus we have to check language-environment to handle casing
+;; correctly.  Currently only I<->i is available.
+
+;; case-syntax-pair's are not yet given for Latin Extendet-B
+
+  ;; Latin Extended-A, Latin Extended-B
+  (setq c #x0100)
+  (while (<= c #x0233)
     (modify-category-entry (decode-char 'ucs c) ?l)
-    (and (<= c #x0176)
+    (and (or (<= c #x012e)
+	     (and (>= c #x014a) (<= c #x0177)))
 	 (zerop (% c 2))
 	 (set-case-syntax-pair
 	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))
+    (and (>= c #x013a)
+	 (<= c #x0148)
+	 (zerop (% c 2))
+	 (set-case-syntax-pair
+	  (decode-char 'ucs (1- c)) (decode-char 'ucs c) tbl))
     (setq c (1+ c)))
-  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)
+  (set-case-syntax-pair ?$,1 R(B ?$,1 S(B tbl)
+  (set-case-syntax-pair ?$,1 T(B ?$,1 U(B tbl)
+  (set-case-syntax-pair ?$,1 V(B ?$,1 W(B tbl)
+;  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)	; these two have different length!
   (set-case-syntax-pair ?$,1!9(B ?$,1!:(B tbl)
   (set-case-syntax-pair ?$,1!;(B ?$,1!<(B tbl)
   (set-case-syntax-pair ?$,1!=(B ?$,1!>(B tbl)
 
-  (setq c #x1e00)			; Latin Extended Additional
+  ;; Latin Extended Additional
+  (setq c #x1e00)
   (while (<= c #x1ef9)
     (modify-category-entry (decode-char 'ucs c) ?l)
     (and (zerop (% c 2))
@@ -623,7 +644,8 @@
 	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))
     (setq c (1+ c)))
 
-  (setq c #x0370)			; Greek
+  ;; Greek
+  (setq c #x0370)
   (while (<= c #x03ff)
     (modify-category-entry (decode-char 'ucs c) ?g)
     (if (or (and (>= c #x0391) (<= c #x03a1))
@@ -644,7 +666,8 @@
   (set-case-syntax-pair ?$,1&n(B ?$,1'M(B tbl)
   (set-case-syntax-pair ?$,1&o(B ?$,1'N(B tbl)
 
-  (setq c #x1f00)			; Greek Extended
+  ;; Greek Extended
+  (setq c #x1f00)
   (while (<= c #x1fff)
     (modify-category-entry (decode-char 'ucs c) ?g)
     (and (<= (logand c #x000f) 7)
@@ -679,7 +702,8 @@
   (set-case-syntax-pair ?$,1r[(B ?$,1q=(B tbl)
   (set-case-syntax-pair ?$,1r\(B ?$,1rS(B tbl)
 
-  (setq c #x0400)			; cyrillic
+  ;; cyrillic
+  (setq c #x0400)
   (while (<= c #x04ff)
     (modify-category-entry (decode-char 'ucs c) ?y)
     (and (>= c #x0400)
@@ -703,7 +727,8 @@
   (set-case-syntax-pair ?$,1*+(B ?$,1*,(B tbl)
   (set-case-syntax-pair ?$,1*X(B ?$,1*Y(B tbl)
 
-  (setq c #x2000)			; general punctuation
+  ;; general punctuation
+  (setq c #x2000)
   (while (<= c #x200b)
     (set-case-syntax c " " tbl)
     (setq c (1+ c)))
