@@ -92,7 +92,7 @@ INSTALL_STRIP =
 
 # Things that a user might actually run,
 # which should be installed in bindir.
-INSTALLABLES = etags ctags emacsclient b2m
+INSTALLABLES = etags ctags emacsclient b2m ebrowse
 INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
@@ -361,6 +361,9 @@ regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o etags
+
+ebrowse: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
+	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/ebrowse.c $(GETOPTOBJS) $(LOADLIBES) -o ebrowse
 
 /* We depend on etags to assure that parallel makes don't write two
    etags.o files on top of each other.  */
