@@ -1,5 +1,8 @@
 2001-09-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/isearch-x.el (isearch-exit-recursive-edit): Take
+	three parameters, since it's used as an after-change-function.
+
 	* emacs-lisp/backquote.el (backquote-backquote-symbol) 
 	(backquote-unquote-symbol, backquote-splice-symbol): Remove `*'
 	from doc strings.
