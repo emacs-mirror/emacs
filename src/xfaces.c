@@ -813,7 +813,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
   if (pos < region_beg && region_beg < endpos)
     endpos = region_beg;
 
-  XFASTINT (position) = pos;
+  XSETFASTINT (position, pos);
 
   if (mouse)
     propname = Qmouse_face;
@@ -825,7 +825,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
   {
     Lisp_Object limit1, end;
 
-    XFASTINT (limit1) = (limit < endpos ? limit : endpos);
+    XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
     end = Fnext_single_property_change (position, propname, w->buffer, limit1);
     if (INTEGERP (end))
       endpos = XINT (end);
