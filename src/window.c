@@ -4398,7 +4398,7 @@ scroll_command (n, direction)
      Lisp_Object n;
      int direction;
 {
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   xassert (abs (direction) == 1);
 
@@ -4512,7 +4512,7 @@ showing that buffer, popping the buffer up if necessary.  */)
 {
   Lisp_Object window;
   struct window *w;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   window = Fother_window_for_scrolling ();
   w = XWINDOW (window);

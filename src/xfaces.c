@@ -6304,7 +6304,7 @@ try_alternative_families (f, family, registry, fonts)
       /* Try scalable fonts before giving up.  */
       if (nfonts == 0 && NILP (Vscalable_fonts_allowed))
 	{
-	  int count = BINDING_STACK_SIZE ();
+	  int count = SPECPDL_INDEX ();
 	  specbind (Qscalable_fonts_allowed, Qt);
 	  nfonts = try_alternative_families (f, family, registry, fonts);
 	  unbind_to (count, Qnil);
@@ -6450,7 +6450,7 @@ realize_basic_faces (f)
      struct frame *f;
 {
   int success_p = 0;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   /* Block input here so that we won't be surprised by an X expose
      event, for instance, without having the faces set up.  */

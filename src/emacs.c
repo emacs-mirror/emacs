@@ -2057,7 +2057,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   extern char my_edata[];
   Lisp_Object tem;
   Lisp_Object symbol;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   check_pure_size ();
 

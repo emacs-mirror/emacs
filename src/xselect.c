@@ -786,7 +786,7 @@ x_handle_selection_request (event)
     }
 
   x_selection_current_request = event;
-  count = BINDING_STACK_SIZE ();
+  count = SPECPDL_INDEX ();
   selection_request_dpyinfo = dpyinfo;
   record_unwind_protect (x_selection_request_lisp_error, Qnil);
 

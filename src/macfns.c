@@ -3825,7 +3825,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct mac_display_info *dpyinfo = NULL;
@@ -9750,7 +9750,7 @@ Value is t is tooltip was open, nil otherwise.  */)
   GCPRO2 (frame, timer);
   tip_frame = tip_timer = deleted = Qnil;
   
-  count = BINDING_STACK_SIZE ();
+  count = SPECPDL_INDEX ();
   specbind (Qinhibit_redisplay, Qt);
   specbind (Qinhibit_quit, Qt);
   

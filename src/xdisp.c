@@ -1328,7 +1328,7 @@ safe_eval (sexpr)
     val = Qnil;
   else
     {
-      int count = BINDING_STACK_SIZE ();
+      int count = SPECPDL_INDEX ();
       struct gcpro gcpro1;
 
       GCPRO1 (sexpr);
@@ -1360,7 +1360,7 @@ safe_call (nargs, args)
     val = Qnil;
   else
     {
-      int count = BINDING_STACK_SIZE ();
+      int count = SPECPDL_INDEX ();
       struct gcpro gcpro1;
 
       GCPRO1 (args[0]);
@@ -2241,7 +2241,7 @@ handle_fontified_prop (it)
 	  prop = Fget_char_property (pos, Qfontified, Qnil),
 	  NILP (prop)))
     {
-      int count = BINDING_STACK_SIZE ();
+      int count = SPECPDL_INDEX ();
       Lisp_Object val;
 
       val = Vfontification_functions;
@@ -2864,7 +2864,7 @@ handle_single_display_prop (it, prop, object, position,
 
   if (!NILP (form) && !EQ (form, Qt))
     {
-      int count = BINDING_STACK_SIZE ();
+      int count = SPECPDL_INDEX ();
       struct gcpro gcpro1;
 
       /* Bind `object' to the object having the `display' property, a
@@ -2935,7 +2935,7 @@ handle_single_display_prop (it, prop, object, position,
 	      /* Evaluate IT->font_height with `height' bound to the
 		 current specified height to get the new height.  */
 	      Lisp_Object value;
-	      int count = BINDING_STACK_SIZE ();
+	      int count = SPECPDL_INDEX ();
 
 	      specbind (Qheight, face->lface[LFACE_HEIGHT_INDEX]);
 	      value = safe_eval (it->font_height);
@@ -6271,7 +6271,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
 {
   Lisp_Object buffer;
   int this_one, the_other, clear_buffer_p, rc;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   /* If buffers aren't live, make new ones.  */
   ensure_echo_area_buffers ();
@@ -6446,7 +6446,7 @@ setup_echo_area_for_printing (multibyte_p)
 
       if (Z > BEG)
 	{
-	  int count = BINDING_STACK_SIZE ();
+	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_read_only, Qt);
 	  del_range (BEG, Z);
 	  unbind_to (count, Qnil);
@@ -7126,7 +7126,7 @@ echo_area_display (update_frame_p)
 	      /* Must update other windows.  Likewise as in other
 		 cases, don't let this update be interrupted by
 		 pending input.  */
-	      int count = BINDING_STACK_SIZE ();
+	      int count = SPECPDL_INDEX ();
 	      specbind (Qredisplay_dont_pause, Qt);
 	      windows_or_buffers_changed = 1;
 	      redisplay_internal (0);
@@ -7359,7 +7359,7 @@ prepare_menu_bars ()
   if (all_windows)
     {
       Lisp_Object tail, frame;
-      int count = BINDING_STACK_SIZE ();
+      int count = SPECPDL_INDEX ();
 
       record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
 
@@ -7477,7 +7477,7 @@ update_menu_bar (f, save_match_data)
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
-	  int count = BINDING_STACK_SIZE ();
+	  int count = SPECPDL_INDEX ();
 
 	  specbind (Qinhibit_menubar_update, Qt);
 
@@ -7571,7 +7571,7 @@ update_tool_bar (f, save_match_data)
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
-	  int count = BINDING_STACK_SIZE ();
+	  int count = SPECPDL_INDEX ();
 
 	  /* Set current_buffer to the buffer of the selected
 	     window of the frame, so that we get the right local
@@ -8504,7 +8504,7 @@ redisplay_internal (preserve_echo_area)
 
   /* Record a function that resets redisplaying_p to its old value
      when we leave this function.  */
-  count = BINDING_STACK_SIZE ();
+  count = SPECPDL_INDEX ();
   record_unwind_protect (unwind_redisplay, make_number (redisplaying_p));
   ++redisplaying_p;
 
@@ -10090,7 +10090,7 @@ redisplay_window (window, just_this_one_p)
   /* Record it now because it's overwritten.  */
   int current_matrix_up_to_date_p = 0;
   int temp_scroll_step = 0;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
   int rc;
   int centering_position;
 

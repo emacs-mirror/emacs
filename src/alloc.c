@@ -4048,7 +4048,7 @@ Garbage collection happens automatically if you cons more than
   register int i;
   int message_p;
   Lisp_Object total[8];
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   /* Can't GC if pure storage overflowed because we can't determine
      if something is a pure object or not.  */

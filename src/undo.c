@@ -399,7 +399,7 @@ Return what remains of the list.  */)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object next;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
   register int arg;
   
 #if 0  /* This is a good feature, but would make undo-start

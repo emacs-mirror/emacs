@@ -2162,7 +2162,7 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
 {
   FRAME_PTR f;
   register Lisp_Object tail, prop, val;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   /* Bind this to t to inhibit initialization of the default face from
      X resources in face-set-after-frame-default.  If we don't inhibit

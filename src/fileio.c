@@ -3588,7 +3588,7 @@ actually used.  */)
   int inserted = 0;
   register int how_much;
   register int unprocessed;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object handler, val, insval, orig_filename;
   Lisp_Object p;

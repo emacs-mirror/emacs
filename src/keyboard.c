@@ -2090,7 +2090,7 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 	{
 	  if (STRINGP (help))
 	    {
-	      int count = BINDING_STACK_SIZE ();
+	      int count = SPECPDL_INDEX ();
 
 	      if (!help_echo_showing_p)
 		Vpre_help_message = current_message ();
@@ -4204,7 +4204,7 @@ timer_check (do_it_now)
 	  if (NILP (vector[0]))
 	    {
 	      int was_locked = single_kboard;
-	      int count = BINDING_STACK_SIZE ();
+	      int count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
 
 	      /* Mark the timer as triggered to prevent problems if the lisp
@@ -9517,7 +9517,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  Lisp_Object binding;
 	  char *newmessage;
 	  int message_p = push_message ();
-	  int count = BINDING_STACK_SIZE ();
+	  int count = SPECPDL_INDEX ();
 
 	  record_unwind_protect (push_message_unwind, Qnil);
 	  binding = Fkey_description (bindings);
