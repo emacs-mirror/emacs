@@ -6198,7 +6198,9 @@ realize_default_face (f)
 	LFACE_FOREGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_TERMCAP_P (f)
+	       || FRAME_MSDOS_P (f)
+	       || FRAME_W32_CONSOLE_P (f))
 	LFACE_FOREGROUND (lface) = build_string (unspecified_fg);
       else
 	abort ();
@@ -6213,7 +6215,9 @@ realize_default_face (f)
 	LFACE_BACKGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_TERMCAP_P (f)
+	       || FRAME_MSDOS_P (f)
+	       || FRAME_W32_CONSOLE_P (f))
 	LFACE_BACKGROUND (lface) = build_string (unspecified_bg);
       else
 	abort ();
@@ -6300,7 +6304,9 @@ realize_face (cache, attrs, c, base_face, former_face_id)
 
   if (FRAME_WINDOW_P (cache->f))
     face = realize_x_face (cache, attrs, c, base_face);
-  else if (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f))
+  else if (FRAME_TERMCAP_P (cache->f)
+	   || FRAME_MSDOS_P (cache->f)
+	   || FRAME_W32_CONSOLE_P (cache->f))
     face = realize_tty_face (cache, attrs, c);
   else
     abort ();
@@ -6652,11 +6658,14 @@ realize_tty_face (cache, attrs, c)
   struct frame *f = cache->f;
 
   /* Frame must be a termcap frame.  */
-  xassert (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f));
+  xassert (FRAME_TERMCAP_P (cache->f)
+	   || FRAME_MSDOS_P (cache->f)
+	   || FRAME_W32_CONSOLE_P (cache->f));
 
   /* Allocate a new realized face.  */
   face = make_realized_face (attrs);
-  face->font_name = FRAME_MSDOS_P (cache->f) ? "ms-dos" : "tty";
+  face->font_name = FRAME_MSDOS_P (cache->f) ? "ms-dos" 
+    : FRAME_W32_CONSOLE_P (cache->f) ? "w32console" : "tty";
 
   /* Map face attributes to TTY appearances.  We map slant to
      dimmed text because we want italic text to appear differently
