@@ -1,3 +1,7 @@
+2003-09-16  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Depend on coding.h.
+
 2003-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* process.c [HAVE_SOCKETS]: Include sys/ioctl.h and net/if.h.
