@@ -7187,7 +7187,7 @@ build_desired_tool_bar_string (f)
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
-      extern Lisp_Object QCrelief, QCmargin, QCalgorithm, Qimage;
+      extern Lisp_Object QCrelief, QCmargin, QCconversion, Qimage;
       extern Lisp_Object Qlaplace;
 
       /* If image is a vector, choose the image according to the
@@ -7277,7 +7277,7 @@ build_desired_tool_bar_string (f)
 	 for the disabled state, make the image appear disabled by
 	 applying an appropriate algorithm to it.  */
       if (!enabled_p && idx < 0)
-	plist = Fplist_put (plist, QCalgorithm, Qdisabled);
+	plist = Fplist_put (plist, QCconversion, Qdisabled);
       
       /* Put a `display' text property on the string for the image to
 	 display.  Put a `menu-item' property on the string that gives
