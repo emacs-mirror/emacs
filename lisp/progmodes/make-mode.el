@@ -1328,19 +1328,30 @@ Uses `makefile-use-curly-braces-for-macros-p'."
 ;;; Support for other packages, like add-log and imenu.
 
 (defun makefile-add-log-defun ()
-  ;; "Return name of target or macro point is in, or nil."
+  "Return name of target or variable assignment that point is in.
+If it isn't in one, return nil."
   (save-excursion
-    (beginning-of-line)
-    (cond
-     ((looking-at makefile-macroassign-regex)
-      (buffer-substring (match-beginning 1)
-			(match-end 1)))
-     ((progn
-	(or (eobp) (forward-char))
-	(re-search-backward makefile-dependency-regex nil t))
-      (buffer-substring (match-beginning 1)
-			(match-end 1)))
-     (t nil))))
+    (let (found)
+      (beginning-of-line)
+      ;; Scan back line by line, noticing when we come to a
+      ;; variable or rule definition, and giving up when we see
+      ;; a line that is not part of either of those.
+      (while (not found)
+	(cond
+	 ((looking-at makefile-macroassign-regex)
+	  (setq found (buffer-substring-no-properties (match-beginning 1)
+							(match-end 1))))
+	 ((looking-at makefile-dependency-regex)
+	  (setq found (buffer-substring-no-properties (match-beginning 1)
+						      (match-end 1))))
+	 ;; Don't keep looking across a blank line or comment.  Give up.
+	 ((looking-at "$\\|#")
+	  (setq found 'bobp))
+	 ((bobp)
+	  (setq found 'bobp)))
+	(or found
+	    (forward-line -1)))
+      (if (stringp found) found))))
 
 ;; FIXME it might be nice to have them separated by macro vs target.
 (defun makefile-menu-index-function ()
