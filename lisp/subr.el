@@ -1042,12 +1042,15 @@ that can be added."
 
 (defun global-set-key (key command)
   "Give KEY a global binding as COMMAND.
-COMMAND is a symbol naming an interactively-callable function.
-KEY is a key sequence (a string or vector of characters or event types).
-Non-ASCII characters with codes above 127 (such as ISO Latin-1)
-can be included if you use a vector.
-Note that if KEY has a local binding in the current buffer
-that local binding will continue to shadow any global binding."
+COMMAND is the command definition to use; usually it is
+a symbol naming an interactively-callable function.
+KEY is a key sequence; noninteractively, it is a string or vector
+of characters or event types, and non-ASCII characters with codes
+above 127 (such as ISO Latin-1) can be included if you use a vector.
+
+Note that if KEY has a local binding in the current buffer,
+that local binding will continue to shadow any global binding
+that you make with this function."
   (interactive "KSet key globally: \nCSet key %s to command: ")
   (or (vectorp key) (stringp key)
       (signal 'wrong-type-argument (list 'arrayp key)))
@@ -1056,10 +1059,12 @@ that local binding will continue to shadow any global binding."
 
 (defun local-set-key (key command)
   "Give KEY a local binding as COMMAND.
-COMMAND is a symbol naming an interactively-callable function.
-KEY is a key sequence (a string or vector of characters or event types).
-Non-ASCII characters with codes above 127 (such as ISO Latin-1)
-can be included if you use a vector.
+COMMAND is the command definition to use; usually it is
+a symbol naming an interactively-callable function.
+KEY is a key sequence; noninteractively, it is a string or vector
+of characters or event types, and non-ASCII characters with codes
+above 127 (such as ISO Latin-1) can be included if you use a vector.
+
 The binding goes in the current buffer's local map,
 which in most cases is shared with all other buffers in the same major mode."
   (interactive "KSet key locally: \nCSet key %s locally to command: ")
