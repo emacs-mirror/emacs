@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, European
 
@@ -252,7 +252,7 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
 (set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
 	    (charset ascii latin-iso8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (input-method . "german-postfix")
 	    (nonascii-translation . iso-latin-1)
@@ -270,7 +270,7 @@ Additionally, it selects the German tutorial."))
 (set-language-info-alist
  "French" '((tutorial . "TUTORIAL.fr")
 	    (charset ascii latin-iso8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (nonascii-translation . latin-iso8859-1)
 	    (unibyte-syntax . "latin-1")
@@ -298,7 +298,7 @@ but it selects the French tutorial."))
 (set-language-info-alist
  "Spanish" '((tutorial . "TUTORIAL.es")
 	    (charset ascii latin-iso8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (input-method . "spanish-postfix")
 	    (nonascii-translation . iso-latin-1)
@@ -314,15 +314,16 @@ and it selects the Spanish tutorial."))
 (set-language-info-alist
  "Dutch" '((tutorial . "TUTORIAL.nl")
 	   (charset ascii latin-iso8859-1)
-	   (coding-system iso-latin-1)
+	   (coding-system iso-latin-1 iso-latin-9)
 	   (coding-priority iso-latin-1)
 	   (nonascii-translation . iso-latin-1)
 	   (unibyte-syntax . "latin-1")
 	   (unibyte-display . iso-latin-1)
+	   (input-method . "dutch")
 	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
 	   (documentation . "\
 This language environment is almost the same as Latin-1,
-but it selects the Dutch tutorial."))
+but it selects the Dutch tutorial and input method."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
@@ -332,7 +333,7 @@ but it selects the Dutch tutorial."))
 
 (set-language-info-alist
  "Turkish" '((charset ascii latin-iso8859-9)
-	     (coding-system iso-latin-5)
+	     (coding-system iso-latin-5 iso-latin-3)
 	     (coding-priority iso-latin-5)
 	     (nonascii-translation . latin-iso8859-9)
 	     (unibyte-syntax . "latin-5")
@@ -361,6 +362,7 @@ but it selects the Dutch tutorial."))
 (set-language-info-alist
  "Welsh" `((coding-system utf-8 latin-8) ; the input method is Unicode-based
 	   (coding-priority utf-8 latin-8)
+	   (nonascii-translation . iso-8859-14)
 	   (input-method . "welsh")
 	   (documentation . "Support for Welsh, using Unicode."))
  '("European"))
@@ -368,6 +370,7 @@ but it selects the Dutch tutorial."))
 (set-language-info-alist
  "Latin-7" `((coding-system latin-7)
 	     (coding-priority latin-7)
+	     (nonascii-translation . iso-8859-13)
 	     ;; Fixme: input-method
 	     (features code-pages)
 	     (documentation . "Support for Latin-7, e.g. Latvian, Lithuanian."))
