@@ -34,4 +34,14 @@
 (eval-after-load "quail/PY-b5"
   '(quail-defrule "ling2" ?$(0!r(B nil t))
 
+(autoload 'ucs-input-activate "quail/uni-input"
+  "Activate UCS input method.
+With arg, activate UCS input method if and only if arg is positive.
+
+While this input method is active, the variable
+`input-method-function' is bound to the function `ucs-input-method'.")
+
+(register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
+		       "Unicode input as hex in the form Uxxxx.")
+
 ;; arch-tag: 75cfdfc7-de85-44f9-b408-ff67d1ec664e
