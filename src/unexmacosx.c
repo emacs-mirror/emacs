@@ -95,6 +95,10 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #include <mach/mach.h>
 #include <mach-o/loader.h>
+#include <mach-o/reloc.h>
+#if defined (__ppc__)
+#include <mach-o/ppc/reloc.h>
+#endif
 #include <objc/malloc.h>
 
 #define VERBOSE 1
@@ -157,6 +161,11 @@ int infd, outfd;
 int in_dumped_exec = 0;
 
 malloc_zone_t *emacs_zone;
+
+/* file offset of input file's data segment */
+off_t data_segment_old_fileoff;
+
+struct segment_command *data_segment_scp;
 
 /* Read n bytes from infd into memory starting at address dest.
    Return true if successful, false otherwise.  */
@@ -763,6 +772,65 @@ copy_symtab (struct load_command *lc)
   curr_header_offset += lc->cmdsize;
 }
 
+/* Fix up relocation entries. */
+static void
+unrelocate (const char *name, off_t reloff, int nrel)
+{
+  int i, unreloc_count;
+  struct relocation_info reloc_info;
+  struct scattered_relocation_info *sc_reloc_info
+    = (struct scattered_relocation_info *) &reloc_info;
+
+  for (unreloc_count = 0, i = 0; i < nrel; i++)
+    {
+      if (lseek (infd, reloff, L_SET) != reloff)
+	unexec_error ("unrelocate: %s:%d cannot seek to reloc_info", name, i);
+      if (!unexec_read (&reloc_info, sizeof (reloc_info)))
+	unexec_error ("unrelocate: %s:%d cannot read reloc_info", name, i);
+      reloff += sizeof (reloc_info);
+
+      if (sc_reloc_info->r_scattered == 0)
+	switch (reloc_info.r_type)
+	  {
+	  case GENERIC_RELOC_VANILLA:
+	    if (reloc_info.r_address >= data_segment_scp->vmaddr
+		&& reloc_info.r_address < (data_segment_scp->vmaddr
+					   + data_segment_scp->vmsize))
+	      {
+		off_t src_off = data_segment_old_fileoff
+		  + reloc_info.r_address - data_segment_scp->vmaddr;
+		off_t dst_off = data_segment_scp->fileoff
+		  + reloc_info.r_address - data_segment_scp->vmaddr;
+
+		if (!unexec_copy (dst_off, src_off, 1 << reloc_info.r_length))
+		  unexec_error ("unrelocate: %s:%d cannot copy original value",
+				name, i);
+		unreloc_count++;
+	      }
+	    break;
+	  default:
+	    unexec_error ("unrelocate: %s:%d cannot handle type = %d",
+			  name, i, reloc_info.r_type);
+	  }
+      else
+	switch (sc_reloc_info->r_type)
+	  {
+#if defined (__ppc__)
+	  case PPC_RELOC_PB_LA_PTR:
+	    /* nothing to do for prebound lazy pointer */
+	    break;
+#endif
+	  default:
+	    unexec_error ("unrelocate: %s:%d cannot handle scattered type = %d",
+			  name, i, sc_reloc_info->r_type);
+	  }
+    }
+
+  if (nrel > 0)
+    printf ("Fixed up %d/%d %s relocation entries in data segment.\n",
+	    unreloc_count, nrel, name);
+}
+
 /* Copy a LC_DYSYMTAB load command from the input file to the output
    file, adjusting the file offset fields.  */
 static void
@@ -770,10 +838,8 @@ copy_dysymtab (struct load_command *lc)
 {
   struct dysymtab_command *dstp = (struct dysymtab_command *) lc;
 
-  /* If Mach-O executable is not prebound, relocation entries need
-     fixing up.  This is not supported currently.  */
-  if (!(mh.flags & MH_PREBOUND) && (dstp->nextrel != 0 || dstp->nlocrel != 0))
-    unexec_error ("cannot handle LC_DYSYMTAB with relocation entries");
+  unrelocate ("local", dstp->locreloff, dstp->nlocrel);
+  unrelocate ("external", dstp->extreloff, dstp->nextrel);
 
   if (dstp->nextrel > 0) {
     dstp->extreloff += delta;
@@ -845,6 +911,11 @@ dump_it ()
 	  struct segment_command *scp = (struct segment_command *) lca[i];
 	  if (strncmp (scp->segname, SEG_DATA, 16) == 0)
 	    {
+	      /* save data segment file offset and segment_command for
+		 unrelocate */
+	      data_segment_old_fileoff = scp->fileoff;
+	      data_segment_scp = scp;
+
 	      copy_data_segment (lca[i]);
 	    }
 	  else

@@ -1,3 +1,9 @@
+2003-10-31  Andrew Choi  <akochoi@shaw.ca>
+
+	* unexmacosx.c (unrelocate): New function (contributed by Nozomu
+	Ando).
+	(copy_dysymtab): Call it.
+
 2003-10-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* eval.c (Fdefvaralias): Doc fix.
