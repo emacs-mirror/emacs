@@ -25,15 +25,17 @@
 
 ;;; Commentary:
 
-;; Provides a global minor mode (toggled by M-x hl-line-mode) to
-;; highlight, on a suitable terminal, the line in the current window
-;; on which point is (except in a minibuffer window).  Done to satisfy
-;; a request for a feature of Lesser Editors.
+;; Provides a minor mode (toggled by M-x hl-line-ode) and a global minor
+;; mode (toggled by M-x global-hl-line-mode) to highlight, on a
+;; suitable terminal, the line in the current window on which point is
+;; (except in a minibuffer window).  Done to satisfy a request for a
+;; feature of Lesser Editors.
 
 ;; You probably don't really want this; if the cursor is difficult to
 ;; spot, try changing its colour, relying on `blink-cursor-mode' or
 ;; both.  The hookery used might affect response noticeably on a slow
-;; machine.
+;; machine.  It may be useful in "non-text" buffers such as Gnus or
+;; PCL-CVS though.
 
 ;; An overlay is used, active only on the selected window.  Hooks are
 ;; added to `pre-command-hook' and `post-command-hook' to activate and
@@ -45,7 +47,7 @@
 ;; across the window width.
 
 ;; You could make variable `hl-line-mode' buffer-local to avoid
-;; highlighting specific buffers.
+;; highlighting specific buffers, when the global mode is used.
 
 ;;; Code:
 
