@@ -1,3 +1,13 @@
+2002-07-18  Juanma Barranquero  <lektu@terra.es>
+
+	* international/mule-util.el (string-to-sequence, truncate-string): Add
+	autoload cookie to obsolescence declaration.
+
+	* rect.el (move-to-column-force): Likewise.
+
+	* composite.el (decompose-composite-char): Likewise; also remove
+	redundant info.
+
 2002-07-18  Kim F. Storm  <storm@cua.dk>
 
 	* loadup.el: Load international/utf-8 before international/characters.
@@ -73,6 +83,7 @@
 	* international/utf-8-subst.el: Populate utf-8-subst-rev-table.
 	(utf-8-subst-table): Don't set.
 
+>>>>>>> 1.4125
 2002-07-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (define-coding-system-alias):
