@@ -1,3 +1,7 @@
+2003-05-08  Dave Love  <fx@gnu.org>
+
+	* coding.c (Vlast_coding_system_used): Doc fix.
+
 2003-05-07  Jason Rumney  <jasonr@gnu.org>
 
 	* fileio.c (Ffile_symlink_p): Let handlers handle symlinks even

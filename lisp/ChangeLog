@@ -1,3 +1,7 @@
+2003-05-08  Dave Love  <fx@gnu.org>
+
+	* international/utf-7.el: New file.
+
 2003-05-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
 	* files.el (insert-file-contents-literally): Allow it to be called

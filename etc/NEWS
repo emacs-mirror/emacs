@@ -88,6 +88,8 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** A UTF-7 coding system is available in the library `utf-7'.
+
 ** GUD mode has its own tool bar for controlling execution of the inferior
 and other common debugger commands.
 
@@ -224,13 +226,17 @@ Big 5 is then converted to CNS.
 library.  These include complete versions of most of those in
 codepage.el, based on Unicode mappings.
 
-** The utf-8 coding system has been enhanced.  Untranslatable utf-8
-sequences (mostly representing CJK characters) are composed into
-single quasi-characters.  User option `utf-translate-cjk-mode'
-arranges to translate many utf-8 CJK character sequences into real
-Emacs characters in a similar way to the Mule-UCS system.  The utf-8
-coding system will now encode characters from most of Emacs's
+** The utf-8/16 coding systems have been enhanced.
+By default, untranslatable utf-8 sequences (mostly representing CJK
+characters) are simply composed into single quasi-characters.  User
+option `utf-translate-cjk' arranges to translate many utf-8 CJK
+character sequences into real Emacs characters in a similar way to the
+Mule-UCS system.  This uses significant space, so is not the default.
+You can augment/amend the CJK translation via hash tables
+`ucs-mule-cjk-to-unicode' and `ucs-unicode-to-mule-cjk'.  The utf-8
+coding system now also encodes characters from most of Emacs's
 one-dimensional internal charsets, specifically the ISO-8859 ones.
+The utf-16 coding system is affected similarly.
 
 ** iso-10646-1 (`Unicode') fonts can be used to display any range of
 characters encodable by the utf-8 coding system.  Just specify the
@@ -405,7 +411,7 @@ mode-line.
 ** Speedbar has moved from the "Tools" top level menu to "Show/Hide".
 
 +++
-** Emacs can now indicate in the mode-line the presence of new e-mails
+** Emacs can now indicate in the mode-line the presence of new e-mail
 in a directory or in a file.  See the documentation of the user option
 `display-time-mail-directory'.
 
@@ -1208,7 +1214,7 @@ mode-lines in inverse-video.
 
 ---
 ** The obsolete C mode (c-mode.el) has been removed to avoid problems
-with Custom.
+with Custom.  cplus-md.el, which required it, has also been removed.
 
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
