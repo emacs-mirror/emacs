@@ -1,11 +1,12 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables
 
-;; Copyright (C) 2000, 01, 02, 03, 04 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Tue Jun 01 2004 11:36:39 (PDT)
+;; Revised: Fri Mar 18 2005 13:50:13 (PST)
 
 ;; This file is part of GNU Emacs.
 
@@ -1024,16 +1025,10 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
       :active (and (not buffer-read-only) (not (table--probe-cell)))
       :help "Insert a text based table at point"]
      ["Row" table-insert-row
-      :active (and (not buffer-read-only)
-		   (or (table--probe-cell)
-		       (save-excursion
-			 (table--find-row-column nil t))))
+      :active (table--row-column-insertion-point-p)
       :help "Insert row(s) of cells in table"]
      ["Column" table-insert-column
-      :active (and (not buffer-read-only)
-		   (or (table--probe-cell)
-		       (save-excursion
-			 (table--find-row-column 'column t))))
+      :active (table--row-column-insertion-point-p 'column)
       :help "Insert column(s) of cells in table"])
     "----"
     ("Recognize"
@@ -1076,16 +1071,10 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
   '("Table"
     ("Insert"
      ["Row" table-insert-row
-      :active (and (not buffer-read-only)
-		   (or (table--probe-cell)
-		       (save-excursion
-			 (table--find-row-column nil t))))
+      :active (table--row-column-insertion-point-p)
       :help "Insert row(s) of cells in table"]
      ["Column" table-insert-column
-      :active (and (not buffer-read-only)
-		   (or (table--probe-cell)
-		       (save-excursion
-			 (table--find-row-column 'column t))))
+      :active (table--row-column-insertion-point-p 'column)
       :help "Insert column(s) of cells in table"])
     ("Delete"
      ["Row" table-delete-row
@@ -4698,6 +4687,30 @@ of line."
       (setq multiplier (1- multiplier)))
     ret-str))
 
+(defun table--line-column-position (line column)
+  "Return the location of LINE forward at COLUMN."
+  (save-excursion
+    (forward-line line)
+    (move-to-column column)
+    (point)))
+
+(defun table--row-column-insertion-point-p (&optional columnp)
+  "Return non nil if it makes sense to insert a row or a column at point."
+  (and (not buffer-read-only)
+       (or (get-text-property (point) 'table-cell)
+	   (let ((column (current-column)))
+	     (if columnp
+		 (or (text-property-any (line-beginning-position 0)
+					(table--line-column-position -1 column)
+					'table-cell t)
+		     (text-property-any (line-beginning-position) (point) 'table-cell t)
+		     (text-property-any (line-beginning-position 2)
+					(table--line-column-position 1 column)
+					'table-cell t))
+	       (text-property-any (table--line-column-position -2 column)
+				  (table--line-column-position -2 (+ 2 column))
+				  'table-cell t))))))
+
 (defun table--find-row-column (&optional columnp no-error)
   "Search table and return a cell coordinate list of row or column."
   (let ((current-coordinate (table--get-coordinate)))
@@ -5136,7 +5149,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
 
 (defun table--editable-cell-p (&optional abort-on-error)
   (and (not buffer-read-only)
-       (table--probe-cell abort-on-error)))
+       (get-text-property (point) 'table-cell)))
 
 (defun table--probe-cell (&optional abort-on-error)
   "Probes a table cell around the point.
@@ -5603,5 +5616,5 @@ It returns COLUMN unless STR contains some wide characters."
 ;; End: ***
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
+;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
 ;;; table.el ends here
