@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.21) $
+ * $HopeName: MMsrc!eventdef.h(trunk.22) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers.
@@ -139,3 +139,5 @@ RELATION(TraceStatReclaim                , 0x0041, TRUE, Trace, PWW)
 RELATION(ArenaAlloc                      , 0x0042, TRUE, Arena, PPAWP)
 RELATION(ArenaFree                       , 0x0043, TRUE, Arena, PAW)
 RELATION(ArenaAllocFail                  , 0x0044, TRUE, Arena, PWP)
+RELATION(SegMerge                        , 0x0045, TRUE, Seg, PPP)
+RELATION(SegSplit                        , 0x0046, TRUE, Seg, PPPA)
