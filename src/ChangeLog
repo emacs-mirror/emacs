@@ -1,5 +1,9 @@
 2005-02-18  Kim F. Storm  <storm@cua.dk>
 
+	* xfaces.c (Finternal_set_lisp_face_attribute): Allow :color property
+	to be nil in a :box attribute value list; customize prints that
+	as lisp value when no box color is specified.
+
 	* .gdbinit (pitx, pit): Pretty print display iterator.
 	(prowx, prow): Pretty print glyph row.
 	(pcursorx, pcursor): Pretty print a window cursor.
