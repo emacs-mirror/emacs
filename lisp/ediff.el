@@ -3,15 +3,10 @@
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
-;; Version: 1.64
+;; Version: 1.64.2
 ;; Keywords: comparing, merging, patching, version control.
 
 ;; This file is part of GNU Emacs.
-
-;; LCD Archive Entry:
-;; ediff|Michael Kifer|kifer@cs.sunysb.edu|
-;; Visual interface to diff and patch.|
-;; 28-June-94|1.64|~/packages/ediff.el.Z|
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -340,14 +335,17 @@
 ;; faces: ediff-even/odd-diff-face-A/B.   The odd and the even
 ;; faces are actually identical on monochrome displays, because it is
 ;; rather poor in what you can do on such a display. So, I chose to use
-;; italics to highlight other differences. Any ideas would be welcome. (In
-;; Lucid Emacs, the faces are different because it supports pixmaps.)
+;; italics to highlight other differences. Any ideas would be welcome.
 ;; There are two ways to change the default setting for highlighting faces:
 ;; either change the variables, as in
 ;;
-;; (setq ediff-current-diff-face-A (internal-get-face 'bold-italic))
+;; (setq ediff-current-diff-face-A 'bold-italic)
 ;;
-;; (`internal-get-face' should be `get-face' if you are using Lucid Emacs)
+;; or
+;;
+;; (setq ediff-current-diff-face-A
+;;  	 (copy-face 'bold-italic 'ediff-current-diff-face-A))
+;;
 ;; or by selectively modifying the defaults:
 ;;
 ;; (add-hook 'ediff-load-hooks
@@ -358,6 +356,11 @@
 ;;
 ;; You may also want to take a look at how the above faces are defined in
 ;; Ediff. 
+;;
+;; Note: it is not recommended to use `internal-get-face' (or `get-face' in
+;;  	 Lucid) when defining faces for Ediff, since this may cause
+;;  	 problems when there are several frames with different font sizes.
+;;       Instead, use copy-face or set/make-face-* as shown above.
 ;;
 ;; The last group of variables in this group,
 ;;
@@ -392,8 +395,8 @@
 ;;
 ;; Refining difference regions
 ;; ---------------------------
-;; There are also variables that control the way fine differences are
-;; highlighted. This feature lets the user highlight the exact words that
+;; Ediff has variables that control the way fine differences are
+;; highlighted. This feature lets the user highlight the exact words that 
 ;; make the difference regions in buffer A and B different. This process
 ;; ignores spaces, tabs, and newlines.
 ;;
@@ -455,6 +458,21 @@
 ;; diff'ed files before sending the patch.  This is because diff.el is much
 ;; faster in yielding the output of diff  (Ediff is a big gun, if used
 ;; for this simple purpose).
+;;
+;; Mode line
+;; ---------
+;;
+;; When Ediff is running, the mode line of Ediff Control Panel buffer
+;; displays the current difference being displayed and the total number of
+;; difference regions in the two files. 
+;;
+;; The mode line of the buffers being compared displays the type of the
+;; buffer (`A:' or `B:') and (usually) the file name. Ediff is trying to be
+;; intelligent in choosing mode line buffer identification. In particular,
+;; it works well with uniquify.el and mode-line.el packages (which improve
+;; on the default way in which Emacs displays buffer identification).
+;; If you don't like the way Ediff identifies its buffers, there is always
+;; ediff-prepare-buffer-hooks, which can be used to modify the mode line.
 ;;
 ;; Miscellaneous
 ;; -------------
@@ -789,7 +807,7 @@
 
 ;; Sat April 16, 1994
 
-;;     Added Ediff to the File menu on the menu bar (version).
+;;     Added Ediff to the File menu on the menu bar (FSF's version).
 
 ;; Mon April 18, 1994
 
@@ -867,6 +885,20 @@
 
 ;;     Fixed ediff-patch-files to work with remote and compressed files.
 
+;; Wed July 20, 1994
+
+;;     Changed menu bar items per RMS's suggestion. Changed odd/even faces
+;;     in Lemacs to italic.  Changed ediff-*-face-* variables so that they
+;;     will contain names of faces instead of the face internal
+;;     representation.  (Copy-face works better with face names than with
+;;     face internal representation.  With face internal representation, if
+;;     a face vector mentions a font explicitly, copy-face may attempt to
+;;     copy this font, which would cause an error if the font has a wrong
+;;     size for one of the existing frames.)  Improved the way
+;;     mode-line-buffer-identification is set in ediff-setup so that Ediff
+;;     will accommodate the way buffers are identified in mode-line.el and
+;;     uniquify.el.
+
 
 ;;; Acknowledgements:
 
@@ -884,8 +916,9 @@
 ;; <maechler@stat.math.ethz.ch>, Richard Mlynarik <mly@adoc.xerox.com>,
 ;; Ray Nickson <nickson@cs.uq.oz.au>, Sandy Rutherford
 ;; <sandy@ibm550.sissa.it>,  Andy Scott <ascott@pcocd2.intel.com>,
-;; Richard Stanton <stanton@haas.berkeley.edu>, Peter Stout 
-;; <Peter_Stout@cs.cmu.edu>  for contributing ideas, patches and bug reports. 
+;; Richard Stallman <rms@gnu.ai.mit.edu>, Richard Stanton 
+;; <stanton@haas.berkeley.edu>, Peter Stout <Peter_Stout@cs.cmu.edu>
+;; for contributing ideas, patches, and bug reports. 
 ;;
 ;; Thanks also to many others who felt obliged to drop a thanks note.
 
@@ -1291,12 +1324,7 @@ through files.")
 (defvar ediff-disturbed-overlays nil
   "List of difference overlays disturbed by working with the current diff.")
   
-(defvar ediff-shaded-overlay-priority 
-  (if (ediff-if-lucid)
-      (1+ mouse-highlight-priority)
-    100)    	;; 100 is a kludge. There is a bug in insert-in-front-hooks
-		;; in Emacs < 19.23. When this is fixed, I will get rid of
-		;; this kludge.
+(defvar ediff-shaded-overlay-priority  100
   "Priority of non-selected overlays.")
 
 
@@ -1350,7 +1378,7 @@ through files.")
 (if (not window-system)
     ()
   (defun ediff-set-face (ground face color)
-    "Sets face foreground/background. If color unavailable, guides the user."
+    "Sets face foreground/background."
     (if (ediff-valid-color-p color)
 	(if (eq ground 'foreground)
 	    (set-face-foreground face color)
@@ -1381,7 +1409,8 @@ through files.")
 		     (copy-face 'modeline 'ediff-current-diff-face-A)
 		   (copy-face 'highlight 'ediff-current-diff-face-A))
 		 )))
-      (ediff-get-face 'ediff-current-diff-face-A))
+      'ediff-current-diff-face-A)
+      ;;(ediff-get-face 'ediff-current-diff-face-A))
     "Face for highlighting the selected difference in buffer A.")
 
   (defvar ediff-current-diff-face-B
@@ -1398,7 +1427,8 @@ through files.")
 		     (copy-face 'modeline 'ediff-current-diff-face-B)
 		   (copy-face 'highlight 'ediff-current-diff-face-B))
 		 )))
-      (ediff-get-face 'ediff-current-diff-face-B))
+      'ediff-current-diff-face-B)
+      ;;(ediff-get-face 'ediff-current-diff-face-B))
     "Face for highlighting the selected difference in buffer B.")
 
   (defvar ediff-fine-diff-face-A
@@ -1411,7 +1441,8 @@ through files.")
 		 (ediff-set-face 'background 'ediff-fine-diff-face-A
 				 "sky blue"))
 		(t (set-face-underline-p 'ediff-fine-diff-face-A t))))
-      (ediff-get-face 'ediff-fine-diff-face-A))
+      'ediff-fine-diff-face-A)
+      ;;(ediff-get-face 'ediff-fine-diff-face-A))
     "Face for highlighting the refinement of the selected diff in buffer A.")
 
   (defvar ediff-fine-diff-face-B
@@ -1422,7 +1453,8 @@ through files.")
 		 (ediff-set-face 'foreground 'ediff-fine-diff-face-B "Black")
 		 (ediff-set-face 'background 'ediff-fine-diff-face-B "cyan"))
 		(t (set-face-underline-p 'ediff-fine-diff-face-B t))))
-      (ediff-get-face 'ediff-fine-diff-face-B))
+      'ediff-fine-diff-face-B)
+      ;;(ediff-get-face 'ediff-fine-diff-face-B))
     "Face for highlighting the refinement of the selected diff in buffer B.")
 
 
@@ -1436,12 +1468,9 @@ through files.")
 		 (ediff-set-face
 		  'background 'ediff-even-diff-face-A "light grey"))
 		(t 
-		 (if (ediff-if-lucid)
-		     (progn
-		       (copy-face 'highlight 'ediff-even-diff-face-A)
-		       (invert-face 'ediff-even-diff-face-A))
-		   (copy-face 'italic 'ediff-even-diff-face-A)))))
-      (ediff-get-face 'ediff-even-diff-face-A))
+		 (copy-face 'italic 'ediff-even-diff-face-A))))
+      'ediff-even-diff-face-A)
+      ;;(ediff-get-face 'ediff-even-diff-face-A))
     "Face used to highlight even-numbered differences in buffer A.")
       
   (defvar ediff-even-diff-face-B
@@ -1454,10 +1483,9 @@ through files.")
 		 (ediff-set-face
 		  'background 'ediff-even-diff-face-B "Gray"))
 		(t 
-		 (if (ediff-if-lucid)
-		     (copy-face 'highlight 'ediff-even-diff-face-B)
-		   (copy-face 'italic 'ediff-even-diff-face-B)))))
-      (ediff-get-face 'ediff-even-diff-face-B))
+		 (copy-face 'italic 'ediff-even-diff-face-B))))
+      'ediff-even-diff-face-B)
+      ;;(ediff-get-face 'ediff-even-diff-face-B))
     "Face used to highlight even-numbered differences in buffer B.")
   
   (defvar ediff-odd-diff-face-A
@@ -1470,10 +1498,9 @@ through files.")
 		 (ediff-set-face
 		  'background 'ediff-odd-diff-face-A "Gray"))
 		(t 
-		 (if (ediff-if-lucid)
-		     (copy-face 'highlight 'ediff-odd-diff-face-A)
-		   (copy-face 'italic 'ediff-odd-diff-face-A)))))
-      (ediff-get-face 'ediff-odd-diff-face-A))
+		 (copy-face 'italic 'ediff-odd-diff-face-A))))
+      'ediff-odd-diff-face-A)
+      ;;(ediff-get-face 'ediff-odd-diff-face-A))
     "Face used to highlight odd-numbered differences in buffer A.")
       
   (defvar ediff-odd-diff-face-B
@@ -1486,12 +1513,9 @@ through files.")
 		 (ediff-set-face
 		  'background 'ediff-odd-diff-face-B "light grey"))
 		(t 
-		 (if (ediff-if-lucid)
-		     (progn
-		       (copy-face 'highlight 'ediff-odd-diff-face-B)
-		       (invert-face 'ediff-odd-diff-face-B))
-		   (copy-face 'italic 'ediff-odd-diff-face-B)))))
-      (ediff-get-face 'ediff-odd-diff-face-B))
+		 (copy-face 'italic 'ediff-odd-diff-face-B))))
+      'ediff-odd-diff-face-B)
+      ;;(ediff-get-face 'ediff-odd-diff-face-B))
     "Face used to highlight odd-numbered differences in buffer B.")
 
   ;; Create *-var faces. These are the actual faces used to highlight
@@ -1543,12 +1567,12 @@ through files.")
 	(ediff-overlay-put (eval overlay) 'ediff ediff-control-buffer)
 	))
 	
-  ;; Computes priority of ediff overlay.
+  ;; Compute priority of ediff overlay.
   (defun ediff-highest-priority (start end buffer)
     (let ((pos (max 1 (1- start)))
 	  ovr-list)
       (if (ediff-if-lucid)
-	  (+ 2 mouse-highlight-priority)
+	  (1+ ediff-shaded-overlay-priority)
 	(ediff-eval-in-buffer
 	 buffer
 	 (while (< pos (min (point-max) (1+ end)))
@@ -1644,30 +1668,32 @@ Do not start with `~/' or `~user-name/'.")
 ;;; They only do something in loaddefs.el.
 ;;;###autoload
 (if purify-flag
-  (defvar menu-bar-epatch-menu
-    (make-sparse-keymap "Epatch"))
-  (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
-  (defvar menu-bar-ediff-menu (make-sparse-keymap "Ediff"))
-  (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu)))
+  (progn
+    (defvar menu-bar-epatch-menu (make-sparse-keymap "Epatch"))
+    (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
+    (defvar menu-bar-ediff-menu (make-sparse-keymap "Ediff"))
+    (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))))
 
 
 ;;;###autoload
 (if purify-flag
-  (define-key menu-bar-ediff-menu [rcs-ediff]
-    '("Compare with a version via RCS ..." . rcs-ediff))
-  (define-key menu-bar-ediff-menu [vc-ediff]
-    '("Compare with a version via VC ..." . vc-ediff))
-  (define-key menu-bar-ediff-menu [ediff-buffers]
-    '("Compare buffers ..." . ediff-buffers))
-  (define-key menu-bar-ediff-menu [ediff-files]
-    '("Compare files ..." . ediff-files)))
+    (progn
+      (define-key menu-bar-ediff-menu [rcs-ediff]
+	'("Compare with a version via RCS ..." . rcs-ediff))
+      (define-key menu-bar-ediff-menu [vc-ediff]
+	'("Compare with a version via VC ..." . vc-ediff))
+      (define-key menu-bar-ediff-menu [ediff-buffers]
+	'("Compare buffers ..." . ediff-buffers))
+      (define-key menu-bar-ediff-menu [ediff-files]
+	'("Compare files ..." . ediff-files))))
 
 ;;;###autoload
 (if purify-flag
-  (define-key menu-bar-epatch-menu [ediff-patch-buffer]
-    '("To a Buffer ..." . ediff-patch-buffer))
-  (define-key menu-bar-epatch-menu [ediff-patch-file]
-    '("To a File ..." . ediff-patch-file)))
+    (progn
+      (define-key menu-bar-epatch-menu [ediff-patch-buffer]
+	'("To a Buffer ..." . ediff-patch-buffer))
+      (define-key menu-bar-epatch-menu [ediff-patch-file]
+	'("To a File ..." . ediff-patch-file))))
 
 (if (and window-system ediff-want-default-menus (ediff-frame-has-menubar)
 	 (ediff-if-lucid))
@@ -1690,6 +1716,7 @@ Do not start with `~/' or `~user-name/'.")
 		"New Screen")
       ;; Displays as a solid horizontal line 
       (add-menu-item '("File") "---" nil nil "New Screen")))
+
 
 
 (defun ediff-setup-keymap ()
@@ -1855,24 +1882,38 @@ Else, read patch file into a new buffer."
      ;; These won't run if there are errors in diff
      (ediff-eval-in-buffer
       ediff-A-buffer
-      (run-hooks 'ediff-prepare-buffer-hooks)
       (add-hook 'local-write-file-hooks 'ediff-block-write-file)
       (setq before-change-function 'ediff-before-change-guard)
       ;; add control-buffer to the list of sessions
       (or (memq control-buffer ediff-this-buffer-control-sessions)
 	  (setq ediff-this-buffer-control-sessions
 		(cons control-buffer ediff-this-buffer-control-sessions)))
-      (setq mode-line-buffer-identification '("A: %b")))
+      (setq mode-line-buffer-identification
+	    (cons "A: "
+		  (if (string-match "\\(^ \\|^[^ \t]*: \\)"
+				    (car mode-line-buffer-identification))
+		      (cons (substring (car mode-line-buffer-identification)
+				       (match-end 0))
+			    (cdr mode-line-buffer-identification))
+		    mode-line-buffer-identification)))
+      (run-hooks 'ediff-prepare-buffer-hooks))
      (ediff-eval-in-buffer
       ediff-B-buffer
-      (run-hooks 'ediff-prepare-buffer-hooks)
       (add-hook 'local-write-file-hooks 'ediff-block-write-file)
       (setq before-change-function 'ediff-before-change-guard)
       ;; add control-buffer to the list of sessions
       (or (memq control-buffer ediff-this-buffer-control-sessions)
 	  (setq ediff-this-buffer-control-sessions
 		(cons control-buffer ediff-this-buffer-control-sessions)))
-      (setq mode-line-buffer-identification '("B: %b")))
+      (setq mode-line-buffer-identification
+	    (cons "B: "
+		  (if (string-match "\\(^ \\|^[^ \t]*: \\)"
+				    (car mode-line-buffer-identification))
+		      (cons (substring (car mode-line-buffer-identification)
+				       (match-end 0))
+			    (cdr mode-line-buffer-identification))
+		    mode-line-buffer-identification)))
+      (run-hooks 'ediff-prepare-buffer-hooks))
 
      (ediff-eval-in-buffer control-buffer
 			    (run-hooks 'startup-hooks 'ediff-startup-hooks)
@@ -3573,7 +3614,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 			     (1+ ediff-current-difference)
 			     ediff-number-of-differences)))))
   ;; Force mode-line redisplay
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 
 
@@ -4292,8 +4333,3 @@ avoid loading cl-*."
 (provide 'ediff)
 
 ;;; ediff.el ends here
-
-
-
-
-
