@@ -384,9 +384,8 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map "^" 'backup)
 (define-key query-replace-map "\C-h" 'help)
 (define-key query-replace-map "?" 'help)
-;; Cause all other types of events to be unread immediately,
-;; without regard to the global map.
-(define-key query-replace-map [t] 'ignore)
+(define-key query-replace-map "\C-g" 'quit)
+(define-key query-replace-map "\C-]" 'quit)
 
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
