@@ -1,5 +1,7 @@
 2005-04-04  Kim F. Storm  <storm@cua.dk>
 
+	* alloc.c (Fgarbage_collect): Call CHECK_CONS_LIST before and after gc.
+
 	* eval.c (Ffuncall): Always call CHECK_CONS_LIST on entry.
 	Call it again after autoload.
 
