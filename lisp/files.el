@@ -397,7 +397,9 @@ Not actually set up until the first time you you use it.")
       (setq dir (file-name-as-directory dir)))
   (setq dir (abbreviate-file-name (expand-file-name dir)))
   (if (not (file-directory-p dir))
-      (error "%s is not a directory" dir)
+      (if (file-exists-p dir)
+	  (error "%s is not a directory" dir)
+	(error "%s: no such directory"))
     (if (file-executable-p dir)
 	(setq default-directory dir)
       (error "Cannot cd to %s:  Permission denied" dir))))
@@ -1284,10 +1286,10 @@ and we don't even do that unless it would come from the file name."
 				 modes))))))
     ;; If we found modes to use, invoke them now,
     ;; outside the save-excursion.
-    (if modes
-	(unless just-from-file-name
-	  (mapcar 'funcall (nreverse modes))
-	  (setq done t)))
+    (when modes
+      (unless just-from-file-name
+	(mapcar 'funcall (nreverse modes)))
+      (setq done t))
     ;; If we didn't find a mode from a -*- line, try using the file name.
     (if (and (not done) buffer-file-name)
 	(let ((name buffer-file-name)
@@ -2135,7 +2137,9 @@ After saving the buffer, run `after-save-hook'."
     (if (not (file-writable-p buffer-file-name))
 	(let ((dir (file-name-directory buffer-file-name)))
 	  (if (not (file-directory-p dir))
-	      (error "%s is not a directory" dir)
+	      (if (file-exists-p dir)
+		  (error "%s is not a directory" dir)
+		(error "%s: no such directory"))
 	    (if (not (file-exists-p buffer-file-name))
 		(error "Directory %s write-protected" dir)
 	      (if (yes-or-no-p
