@@ -1149,13 +1149,24 @@ print (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('f');
 		}
-	      else if (! SINGLE_BYTE_CHAR_P (c)
-		       && NILP (current_buffer->enable_multibyte_characters))
+	      else if ((! SINGLE_BYTE_CHAR_P (c)
+			&& NILP (current_buffer->enable_multibyte_characters)))
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.  */
 		  unsigned char outbuf[50];
 		  sprintf (outbuf, "\\x%x", c);
+		  strout (outbuf, -1, -1, printcharfun, 0);
+		}
+	      else if (SINGLE_BYTE_CHAR_P (c)
+		       && ! ASCII_BYTE_P (c)
+		       && ! NILP (current_buffer->enable_multibyte_characters))
+		{
+		  /* When multibyte is enabled,
+		     print single-byte non-ASCII string chars
+		     using octal escapes.  */
+		  unsigned char outbuf[5];
+		  sprintf (outbuf, "\\%03o", c);
 		  strout (outbuf, -1, -1, printcharfun, 0);
 		}
 	      else
