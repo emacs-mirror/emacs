@@ -112,7 +112,7 @@ Returns the number of actions taken."
 					(vector (nth 1 elt))))
 				action-alist))
 		use-menus t
-		mouse-event last-nonmenu-event))			       
+		mouse-event last-nonmenu-event))
       (setq user-keys (if action-alist
 			  (concat (mapconcat (function
 					      (lambda (elt)
@@ -220,7 +220,7 @@ the current %s and exit."
 			      (set-buffer standard-output)
 			      (help-mode)))
 
-			  (setq next (lambda ()
+			  (setq next `(lambda ()
 				       (setq next ',next)
 				       ',elt)))
 			 ((vectorp def)
@@ -229,14 +229,14 @@ the current %s and exit."
 			      ;; The function has eaten this object.
 			      (setq actions (1+ actions))
 			    ;; Regurgitated; try again.
-			    (setq next (lambda ()
+			    (setq next `(lambda ()
 					 (setq next ',next)
 					 ',elt))))
 			 ((and (consp char)
 			       (eq (car char) 'switch-frame))
 			  ;; switch-frame event.  Put it off until we're done.
 			  (setq delayed-switch-frame char)
-			  (setq next (lambda ()
+			  (setq next `(lambda ()
 				       (setq next ',next)
 				       ',elt)))
 			 (t
@@ -245,7 +245,7 @@ the current %s and exit."
 				   (key-description (vector help-char)))
 			  (beep)
 			  (sit-for 1)
-			  (setq next (lambda ()
+			  (setq next `(lambda ()
 				       (setq next ',next)
 				       ',elt)))))
 		  (prompt
