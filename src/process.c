@@ -1024,6 +1024,22 @@ Remaining arguments are strings to give program as arguments.")
 #else /* not VMS */
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
+  /* If program file name is not absolute, search our path for it */
+  if (XSTRING (program)->data[0] != '/')
+    {
+      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
+      tem = Qnil;
+      GCPRO4 (name, program, buffer, current_dir);
+      openp (Vexec_path, program, EXEC_SUFFIXES, &tem, 1);
+      UNGCPRO;
+      if (NILP (tem))
+	report_file_error ("Searching for program", Fcons (program, Qnil));
+      new_argv[0] = XSTRING (tem)->data;
+    }
+  else
+    new_argv[0] = XSTRING (program)->data;
+
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
@@ -1031,17 +1047,6 @@ Remaining arguments are strings to give program as arguments.")
       new_argv[i - 2] = XSTRING (tem)->data;
     }
   new_argv[i - 2] = 0;
-  new_argv[0] = XSTRING (program)->data;
-
-  /* If program file name is not absolute, search our path for it */
-  if (new_argv[0][0] != '/')
-    {
-      tem = Qnil;
-      openp (Vexec_path, program, EXEC_SUFFIXES, &tem, 1);
-      if (NILP (tem))
-	report_file_error ("Searching for program", Fcons (program, Qnil));
-      new_argv[0] = XSTRING (tem)->data;
-    }
 #endif /* not VMS */
 
   proc = make_process (name);
