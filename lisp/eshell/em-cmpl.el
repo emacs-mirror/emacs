@@ -51,7 +51,7 @@ variable names, arguments, etc."
 ;;
 ;; The completion facility is very easy to use.  Just press TAB.  If
 ;; there are a large number of possible completions, a buffer will
-;; appearing showing a list of them.  Completions may be selected from
+;; appear showing a list of them.  Completions may be selected from
 ;; that buffer using the mouse.  If no completion is selected, and the
 ;; user starts doing something else, the display buffer will
 ;; automatically disappear.
