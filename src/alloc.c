@@ -3552,7 +3552,6 @@ mark_face_cache (c)
 	    {
 	      for (j = 0; j < LFACE_VECTOR_SIZE; ++j)
 		mark_object (&face->lface[j]);
-	      mark_object (&face->registry);
 	    }
 	}
     }
