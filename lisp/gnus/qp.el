@@ -1,6 +1,6 @@
 ;;; qp.el --- Quoted-Printable functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -66,7 +66,7 @@ with \\[universal-coding-system-argument]."
 		 (let ((byte (string-to-int (buffer-substring (1+ (point))
 							      (+ 3 (point)))
 					    16)))
-		   (insert byte)
+		   (mm-insert-byte byte 1)
 		   (delete-char 3)
 		   (unless (eq byte ?=)
 		     (backward-char))))
@@ -95,13 +95,15 @@ You should probably avoid non-ASCII characters in this arg.
 If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
-  ;; Fixme: what should this do in XEmacs/Mule?
-  (if (fboundp 'find-charset-region)	; else XEmacs, non-Mule
-      (if (delq 'unknown		; Emacs 20 unibyte
-		(delq 'eight-bit-graphic ; Emacs 21
-		      (delq 'eight-bit-control
-			    (delq 'ascii (find-charset-region from to)))))
-	  (error "Multibyte character in QP encoding region")))
+  (save-excursion
+    (goto-char from)
+    (if (fboundp 'string-to-multibyte)	; Emacs 22
+	(if (re-search-forward (string-to-multibyte "[^\x0-\x7f\x80-\xff]")
+			       to t)
+	    ;; Fixme: This is somewhat misleading.
+	    (error "Multibyte character in QP encoding region"))
+      (if (re-search-forward (mm-string-as-multibyte "[^\0-\377]") to t)
+	  (error "Multibyte character in QP encoding region"))))
   (unless class
     ;; Avoid using 8bit characters. = is \075.
     ;; Equivalent to "^\000-\007\013\015-\037\200-\377="
@@ -115,7 +117,8 @@ encode lines starting with \"From\"."
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     (format "=%02X" (char-after))
+	     ;; To unibyte in case of Emacs 22 eight-bit.
+	     (format "=%02X" (mm-multibyte-char-to-unibyte (char-after)))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.
       (goto-char (point-min))
