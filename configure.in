@@ -38,6 +38,25 @@ lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
+gamedir=yes
+
+AC_ARG_WITH(game-dir,
+[  --with-game-dir         use a shared game directory if possible],
+   [if test "$withval" = yes; then
+      gamedir="${localstatedir}/games/emacs"
+    else
+      if test "$withval" = no; then
+        gamedir=no
+      else
+        gamedir="$withval"
+      fi
+    fi
+])
+
+gameuser=games
+AC_ARG_WITH(game-user,
+[  --with-game-user       use specified user for game directory],
+   [gameuser="$withval"])
 
 AC_ARG_WITH(gcc,
 [  --without-gcc           don't use GCC to compile Emacs if GCC is found])
@@ -1464,6 +1483,25 @@ AC_PROG_MAKE_SET
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES
 
+if test "$gamedir" = no; then :
+else
+  AC_MSG_CHECKING([for access to game group "$gameuser"])
+  rm -f conf$$chown.file
+  touch conf$$chown.file
+  dnl If we can't chown a file to group games, then the users
+  dnl can't share scores.
+  if chown "$gameuser" conf$$chown.file 1>/dev/null 2>&1; then
+    AC_MSG_RESULT([yes])
+    if test "$gamedir" = "yes"; then
+      gamedir="${localstatedir}/games/emacs"
+    fi
+    tgamedir=`eval "echo $gamedir"`
+    AC_DEFINE_UNQUOTED(HAVE_SHARED_GAME_DIR, "$tgamedir")
+  else
+    AC_MSG_RESULT([no])
+    gamedir=no
+  fi
+fi
 #### Choose a window system.
 
 AC_PATH_X
@@ -2006,7 +2044,7 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp)
+gai_strerror mkstemp getline getdelim)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -2239,6 +2277,8 @@ AC_SUBST(etcdir)
 AC_SUBST(archlibdir)
 AC_SUBST(docdir)
 AC_SUBST(bitmapdir)
+AC_SUBST(gamedir)
+AC_SUBST(gameuser)
 AC_SUBST(c_switch_system)
 AC_SUBST(c_switch_machine)
 AC_SUBST(LD_SWITCH_X_SITE)
@@ -2296,7 +2336,8 @@ Configured for \`${canonical}'.
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
   Should Emacs use mmap(2) for buffer allocation?         $use_mmap_for_buffers
   What window system should Emacs use?                    ${window_system}
-  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}"
+  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}
+  Should Emacs use a shared game state directory?         ${gamedir}"
 
 if test -n "${x_includes}"; then
 echo "  Where do we find X Windows header files?                ${x_includes}"
