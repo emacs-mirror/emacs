@@ -17,7 +17,8 @@
 	* calc/calc.el (calc-language): Adjust docstring.
 	(calc-set-mode-line): Add LaTeX support.
 	(math-expr-special-function-mapping): New variable.
-
+	(math-tex-ignore-words): Add to list.
+	
 	* calc/calccomp.el (math-compose-expr, math-compose-rows):
 	Add LaTeX support.
 	(math-compose-expr): Add support for special functions.
