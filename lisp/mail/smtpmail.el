@@ -363,7 +363,7 @@ don't define this value.")
 ;		 (setq return-value response-string)
 
 		 (if smtpmail-debug-info
-		     (message response-string))
+		     (message "%s" response-string))
 
 		 (setq smtpmail-read-point match-end)
 		 (setq return-value
