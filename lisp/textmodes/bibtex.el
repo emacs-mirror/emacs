@@ -411,20 +411,17 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 
 (defvar bibtex-font-lock-keywords
   (list
-   "^@[A-Za-z]*[({]"
-   ;; reference type
-   '("^\\([ \t]*OPT[A-Za-z_-][A-Za-z0-9_-]*\\)[ \t]*="
+   '("\\(^@\\sw+\\)[ \t]*[({][ \t]*\\([^ \t\n,]*\\)"
+     (1 font-lock-keyword-face) (2 font-lock-reference-face))
+   ;; reference type and reference label
+   '("^[ \t]*\\(OPT\\sw+\\)[ \t]*="
      1 font-lock-comment-face)
-   ;; optional field names
-   '("^\\([ \t]*[A-Za-z_-][A-Za-z0-9_-]*\\)[ \t]*="
-     1 font-lock-function-name-face)
+   ;; optional field names (treated as comments)
+   '("^[ \t]*\\(\\sw+\\)[ \t]*="
+     1 font-lock-variable-name-face)
    ;; field names
-   '("^@[A-Za-z]*[({]\\([^\n,]*\\),"
-     1 font-lock-string-face)
-   ;; reference labels
    )
-  "*Fonts to use in BibTeX mode")
-
+  "*Default expressions to highlight in BibTeX mode.")
 
 ;; Syntax Table, Keybindings and BibTeX Entry List
 (defvar bibtex-mode-syntax-table
@@ -1385,7 +1382,8 @@ non-nil."
   (auto-fill-mode 1)
   (setq auto-fill-function 'bibtex-auto-fill-function)
   (set (make-local-variable 'font-lock-defaults)
-       '(bibtex-font-lock-keywords nil t ((?$ . "\""))))
+       '(bibtex-font-lock-keywords
+         nil t ((?_ . "w") (?- . "w") (?$ . "\""))))
   (run-hooks 'bibtex-mode-hook))
 
 (defun bibtex-entry (entry-type &optional required optional)
