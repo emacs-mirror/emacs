@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.5 1993/12/22 12:06:54 friedman Exp rms $
+;; Version: $Id: lisp-mnt.el,v 1.6 1993/12/26 07:56:21 rms Exp rms $
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -421,7 +421,11 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (let ((package (buffer-name))
 	(addr (lm-maintainer))
 	(version (lm-version)))
-    (mail nil (or addr bug-gnu-emacs) topic)
+    (mail nil
+	  (if addr
+	      (concat (car addr) " <" (cdr addr) ">")
+	    bug-gnu-emacs)
+	  topic)
     (goto-char (point-max))
     (insert "\nIn "
 	    package
