@@ -1490,9 +1490,11 @@ This hook is mainly used for canceling the effect of
 (defun current-language-environment-custom-type ()
   "Return a custom type for `current-language-environment'.
 This is based on `language-info-alist'."
-  (cons 'choice (mapcar (lambda (lang)
-			  (list 'const (car lang)))
-			language-info-alist)))
+  (cons 'choice (mapcar
+		 (lambda (lang)
+		   (list 'const (car lang)))
+		 (sort (copy-sequence language-info-alist)
+		       (lambda (x y) (string< (car x) (car y)))))))
 
 (defcustom current-language-environment "English"
   "The last language environment specified with `set-language-environment'.
