@@ -1787,6 +1787,7 @@ Note on function names in this list: all functions of the form
 ;; ======================================================================
 ;; published interface to mail and news readers
 
+;;;###autoload
 (defun sc-cite-original ()
   "Workhorse citing function which performs the initial citation.
 This is callable from the various mail and news readers' reply
