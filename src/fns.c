@@ -2634,9 +2634,9 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
    ARG is passed to C_FUNCTION when that is called.  */
 
 void
-map_char_table (c_function, function, subtable, arg, depth, indices)
+map_char_table (c_function, function, table, subtable, arg, depth, indices)
      void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, subtable, arg, *indices;
+     Lisp_Object function, table, subtable, arg, *indices;
      int depth;
 {
   int i, to;
@@ -2646,7 +2646,11 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
       /* At first, handle ASCII and 8-bit European characters.  */
       for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
 	{
-	  Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
+	  Lisp_Object elt= XCHAR_TABLE (subtable)->contents[i];
+	  if (NILP (elt))
+	    elt = XCHAR_TABLE (subtable)->defalt;
+	  if (NILP (elt))
+	    elt = Faref (subtable, make_number (i));
 	  if (c_function)
 	    (*c_function) (arg, make_number (i), elt);
 	  else
@@ -2687,7 +2691,7 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	{
 	  if (depth >= 3)
 	    error ("Too deep char table");
-	  map_char_table (c_function, function, elt, arg, depth + 1, indices);
+	  map_char_table (c_function, function, table, elt, arg, depth + 1, indices);
 	}
       else
 	{
@@ -2695,6 +2699,8 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 
 	  if (NILP (elt))
 	    elt = XCHAR_TABLE (subtable)->defalt;
+	  if (NILP  (elt))
+	    elt = Faref (table, make_number (i));
 	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
 	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
 	  c = MAKE_CHAR (charset, c1, c2);
@@ -2731,7 +2737,7 @@ The key is always a possible IDX argument to `aref'.  */)
      be passed to map_char_table because it returns a Lisp_Object rather
      than returning nothing.
      Casting leads to crashes on some architectures.  -stef  */
-  map_char_table (void_call2, Qnil, char_table, function, 0, indices);
+  map_char_table (void_call2, Qnil, char_table, char_table, function, 0, indices);
   return Qnil;
 }
 
