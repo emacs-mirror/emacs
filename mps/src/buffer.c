@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.28) $
+ * $HopeName: MMsrc!buffer.c(trunk.29) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.28) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.29) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -51,7 +51,6 @@ Bool BufferCheck(Buffer buffer)
   /* of the non-reset fields. */
   if(buffer->seg == NULL ||
      buffer->base == (Addr)0 ||
-     buffer->initAtFlip == (Addr)0 ||
      buffer->apStruct.init == (Addr)0 ||
      buffer->apStruct.alloc == (Addr)0 ||
      buffer->poolLimit == (Addr)0) {
@@ -71,9 +70,8 @@ Bool BufferCheck(Buffer buffer)
     CHECKL(buffer->rankSet == SegRankSet(buffer->seg));
 
     /* These fields should obey the ordering */
-    /* base <= initAtFlip <= init <= alloc <= poolLimit */
-    CHECKL(buffer->base <= buffer->initAtFlip);
-    CHECKL(buffer->initAtFlip <= buffer->apStruct.init);
+    /* base <= init <= alloc <= poolLimit */
+    CHECKL(buffer->base <= buffer->apStruct.init);
     CHECKL(buffer->apStruct.init <= buffer->apStruct.alloc);
     CHECKL(buffer->apStruct.alloc <= buffer->poolLimit);
 
@@ -88,12 +86,19 @@ Bool BufferCheck(Buffer buffer)
     /* If the buffer isn't trapped then "limit" should be the limit */
     /* set by the owning pool.  Otherwise, "init" is either at the */
     /* same place it was at flip (.commit.before) or has been set */
-    /* to "alloc" (.commit.after). */
-    if(buffer->apStruct.limit != (Addr)0)
+    /* to "alloc" (.commit.after).  Also, when the buffer is */
+    /* trapped, initAtFlip should hold the init at flip, which is */
+    /* between the base and current init.  Otherwise, initAtFlip */
+    /* is kept at zero to avoid misuse (see */
+    /* request.dylan.170429.sol.zero). */
+    if(buffer->apStruct.limit != (Addr)0) {
       CHECKL(buffer->apStruct.limit == buffer->poolLimit);
-    else {
+      CHECKL(buffer->initAtFlip == (Addr)0);
+    } else {
       CHECKL(buffer->apStruct.init == buffer->initAtFlip ||
              buffer->apStruct.init == buffer->apStruct.alloc);
+      CHECKL(buffer->base <= buffer->initAtFlip);
+      CHECKL(buffer->initAtFlip <= buffer->apStruct.init);
       /* Only buffers which allocate pointers get trapped. */
       CHECKL(buffer->rankSet != RankSetEMPTY);
     }
@@ -396,6 +401,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   /* the buffer).  Untrap the buffer, and try again. */
   if(!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
     buffer->apStruct.limit = buffer->poolLimit;
+    buffer->initAtFlip = (Addr)0;
     next = AddrAdd(buffer->apStruct.alloc, size);
     if(next > buffer->apStruct.alloc &&
        next <= buffer->apStruct.limit) {
@@ -427,10 +433,10 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   buffer->seg = seg;
   SegSetBuffer(seg, buffer);
   buffer->base = base;
-  buffer->initAtFlip = base;
   buffer->apStruct.init = base;
   buffer->apStruct.alloc = AddrAdd(base, size);
   buffer->apStruct.limit = limit;
+  AVER(buffer->initAtFlip == (Addr)0);
   buffer->poolLimit = limit;
 
   AVERT(Buffer, buffer);
@@ -520,6 +526,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
     buffer->apStruct.init = p;
     buffer->apStruct.alloc = p;
     buffer->apStruct.limit = buffer->poolLimit;
+    buffer->initAtFlip = (Addr)0;
     return FALSE;
   }
 }
@@ -545,13 +552,7 @@ void BufferFlip(Buffer buffer)
 
   if(buffer->rankSet != RankSetEMPTY &&
      buffer->apStruct.limit != (Addr)0) {
-    /* removing this aver because it isn't true.  after a flip */
-    /* when a buffer is unflipped by updating limit, initAtFlip */
-    /* isn't updated */
-    /* see change.dylan.sunflower.3.170429 */
-#if 0
-    AVER(buffer->initAtFlip == buffer->base);
-#endif
+    AVER(buffer->initAtFlip == (Addr)0);
     buffer->initAtFlip = buffer->apStruct.init;
     buffer->apStruct.limit = (Addr)0;
   }
