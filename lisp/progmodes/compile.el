@@ -426,6 +426,7 @@ Returns the compilation buffer created."
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'compile-mouse-goto-error)
     (define-key map "\C-c\C-c" 'compile-goto-error)
+    (define-key map "\C-m" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
     (define-key map "\M-n" 'compilation-next-error)
     (define-key map "\M-p" 'compilation-previous-error)
