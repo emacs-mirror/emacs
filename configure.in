@@ -2,7 +2,7 @@ dnl This is an autoconf script.
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
-AC_PREREQ(1.111)dnl
+AC_PREREQ(2.0)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -903,7 +903,7 @@ case "${window_system}" in
     HAVE_X11=yes
     case "${with_x_toolkit}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;	
-dnl      motif ) USE_X_TOOLKIT=MOTIF ;;	
+      motif ) USE_X_TOOLKIT=MOTIF ;;	
 dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;	
       * ) USE_X_TOOLKIT=none ;;
     esac
@@ -1209,27 +1209,6 @@ fi
 if test "${LISP_FLOAT_TYPE}" = "yes" ; then
   AC_DEFINE(LISP_FLOAT_TYPE)
 fi
-
-dnl # ====================== Developer's configuration =======================
-dnl 
-dnl # The following assignments make sense if you're running Emacs on a single
-dnl # machine, one version at a time, and  you want changes to the lisp and etc
-dnl # directories in the source tree to show up immediately in your working
-dnl # environment.  It saves a great deal of disk space by not duplicating the
-dnl # lisp and etc directories.
-dnl 
-dnl if test "$enable_single_tree" = "yes"; then
-dnl    bindir='${exec_prefix}/bin/${configuration}'
-dnl    datadir='${prefix}/common'
-dnl    sharedstatedir='${prefix}/common'
-dnl    libexecdir='${bindir}'
-dnl    lispdir='${prefix}/common/lisp'
-dnl    locallisppath='${prefix}/common/site-lisp'
-dnl    lockdir='${prefix}/common/lock'
-dnl    archlibdir='${libexecdir}/etc'
-dnl    etcdir='${prefix}/common/data'
-dnl    docdir='${prefix}/common/data'
-dnl fi
 
 #### Report on what we decided to do.
 echo "
