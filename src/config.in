@@ -139,6 +139,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_LIBRESOLV
 #undef HAVE_LIBXMU
 #undef HAVE_LIBNCURSES
+#undef HAVE_LIBINTL
 
 /* movemail Kerberos support */
 /* libraries */
