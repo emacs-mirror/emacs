@@ -1,3 +1,7 @@
+2001-12-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_fringe_bitmap): Always undo clipping.
+
 2001-12-01  Jason Rumney  <jasonr@gnu.org>
 
 	* window.c (Qleft_fringe, Qright_fringe): Remove. Now in frame.c.
