@@ -1,3 +1,7 @@
+2005-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/bobcat.el: Don't use keyswap.el, since it is now obsolete.
+
 2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/cal-menu.el (top level): Delete local C-down-mouse-3

@@ -1,3 +1,8 @@
+2005-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Text Display): Add index entries for how no-break
+	characters are displayed.
+
 2005-03-26  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
 
 	* dired-x.texi (Multiple Dired Directories): default-directory was
