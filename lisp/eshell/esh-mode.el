@@ -415,8 +415,6 @@ This is used by `eshell-watch-for-password-prompt'."
       (if (and load-hook (boundp load-hook))
 	  (run-hooks load-hook))))
 
-  (make-local-hook 'pre-command-hook)
-
   (if eshell-send-direct-to-subprocesses
       (add-hook 'pre-command-hook 'eshell-intercept-commands t t))
 
@@ -427,12 +425,9 @@ This is used by `eshell-watch-for-password-prompt'."
     (set (make-local-variable 'scroll-conservatively) 1000))
 
   (when eshell-status-in-modeline
-    (make-local-hook 'eshell-pre-command-hook)
     (add-hook 'eshell-pre-command-hook 'eshell-command-started nil t)
-    (make-local-hook 'eshell-post-command-hook)
     (add-hook 'eshell-post-command-hook 'eshell-command-finished nil t))
 
-  (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook
 	    (function
 	     (lambda ()
