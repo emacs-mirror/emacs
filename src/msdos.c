@@ -1056,7 +1056,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 		 terminal_coding with Vdos_unsupported_char_glyph.  */
 	      if (*conversion_buffer == '?')
 		{
-		  char *cbp = conversion_buffer;
+		  unsigned char *cbp = conversion_buffer;
 
 		  while (cbp < conversion_buffer + enclen && *cbp == '?')
 		    *cbp++ = unsupported_char;
