@@ -1,6 +1,6 @@
 ;;; iso-transl.el --- keyboard input definitions for ISO 8859-1
 
-;; Copyright (C) 1987, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1995, 2001 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -282,24 +282,24 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 (defalias 'iso-transl-c-cedilla [231])
 (defalias 'iso-transl-e-grave [232])
 (defalias 'iso-transl-e-acute [233])
-(defalias 'iso-transl-E-caret [234])
+(defalias 'iso-transl-e-caret [234])
 (defalias 'iso-transl-e-umlaut [235])
 (defalias 'iso-transl-i-grave [236])
 (defalias 'iso-transl-i-acute [237])
-(defalias 'iso-transl-I-caret [238])
+(defalias 'iso-transl-i-caret [238])
 (defalias 'iso-transl-i-umlaut [239])
 (defalias 'iso-transl-d-stroke [240])
 (defalias 'iso-transl-n-tilde [241])
 (defalias 'iso-transl-o-grave [242])
 (defalias 'iso-transl-o-acute [243])
-(defalias 'iso-transl-O-caret [244])
+(defalias 'iso-transl-o-caret [244])
 (defalias 'iso-transl-o-tilde [245])
 (defalias 'iso-transl-o-umlaut [246])
 (defalias 'iso-transl-division-sign [247])
 (defalias 'iso-transl-o-slash [248])
 (defalias 'iso-transl-u-grave [249])
 (defalias 'iso-transl-u-acute [250])
-(defalias 'iso-transl-U-caret [251])
+(defalias 'iso-transl-u-caret [251])
 (defalias 'iso-transl-u-umlaut [252])
 (defalias 'iso-transl-y-acute [253])
 (defalias 'iso-transl-thorn [254])
