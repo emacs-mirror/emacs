@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2001, 2003  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
@@ -178,7 +178,7 @@ first will be printed into the backtrace buffer."
 		      (delete-region middlestart (point)))
 		    (insert "...\n"))
 		  (goto-char (point-min))
-		  (message (buffer-string))
+		  (message "%s" (buffer-string))
 		  (kill-emacs))
 		(if (eq (car debugger-args) 'debug)
 		    ;; Skip the frames for backtrace-debug, byte-code, and debug.
