@@ -665,7 +665,7 @@ useful, such as version control."
   "*Regexp matching files we don't want displayed in a speedbar buffer.
 It is generated from the variable `completion-ignored-extensions'")
 
-;; Ugly compiler silencing trick.  The real defvar comes later in this file.
+;; Compiler silencing trick.  The real defvar comes later in this file.
 (defvar speedbar-file-regexp)
 
 ;; this is dangerous to customize, because the defaults will probably
