@@ -1,5 +1,25 @@
 1999-11-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (Fgarbage_collect): Call mark_byte_stack and
+	relocate_byte_pcs.
+	(init_alloc_once, init_alloc): Set byte_stack_list to null.
+
+	* eval.c (struct catchtag): Add member byte_stack.
+	(internal_catch, Fcondition_case, internal_condition_case)
+	(internal_condition_case_1: Save value of byte_stack_list in
+	catchtag.
+	(unwind_to_catch): Restore byte_stack_list from catchtag.
+
+	* lisp.h: Add prototypes for new functions in bytecode.c.
+	Add extern declaration for byte_stack_list.
+
+	* bytecode.c (struct byte_stack): New.
+	(byte_stack_list, mark_byte_stack, relocate_byte_pcs): New
+	(BEFORE_POTENTIAL_GC, AFTER_POTENTIAL_GC): New.
+	(FETCH, PUSH, POP, DISCARD, TOP, MAYBE_GC): Rewritten.
+	(HANDLE_RELOCATION): Removed.
+	(Fbyte_code): Use byte_stack structures.
+
 	* filelock.c (Ffile_locked_p): Make FILENAME a required argument.
 
 	* buffer.c (syms_of_buffer): Extend documentation of
