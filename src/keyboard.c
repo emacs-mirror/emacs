@@ -5092,7 +5092,7 @@ Polling is automatically disabled in all other cases.");
 Measured in milliseconds.  nil means disable double-click recognition;\n\
 t means double-clicks have no time limit and are detected\n\
 by position only.");
-  double_click_time = 500;
+  Vdouble_click_time = make_number (500);
 
   DEFVAR_INT ("num-input-keys", &num_input_keys,
     "*Number of complete keys read from the keyboard so far.");
