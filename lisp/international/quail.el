@@ -116,7 +116,7 @@ A Quail package is a list of these elements:
   NAME, TITLE, QUAIL-MAP, GUIDANCE, DOCSTRING, TRANSLATION-KEYS,
   FORGET-LAST-SELECTION, DETERMINISTIC, KBD-TRANSLATE, SHOW-LAYOUT,
   DECODE-MAP, MAXIMUM-SHORTEST, OVERLAY-PLIST, UPDATE-TRANSLATION-FUNCTION,
-  CONVERSION-KEYS.
+  CONVERSION-KEYS, SIMPLE.
 
 QUAIL-MAP is a data structure to map key strings to translations.  For
 the format, see the documentation of `quail-map-p'.
@@ -182,6 +182,9 @@ See also the documentation of `quail-define-package'."
 Conversion keymap is a keymap used while conversion region is active
  but translation region is not active."
   (nth 14 quail-current-package))
+(defsubst quail-simple ()
+  "Return t if the current Quail package is simple."
+  (nth 15 quail-current-package))
 
 (defsubst quail-package (name)
   "Return Quail package named NAME."
@@ -455,7 +458,7 @@ non-Quail commands."
 	   forget-last-selection deterministic kbd-translate show-layout
 	   (if create-decode-map (list 'decode-map) nil)
 	   maximum-shortest overlay-plist update-translation-function
-	   conversion-keymap))
+	   conversion-keymap simple))
 
     ;; Update input-method-alist.
     (let ((slot (assoc name input-method-alist))
@@ -1392,6 +1395,13 @@ Remaining args are for FUNC."
       (setq quail-overlay (make-overlay 1 1))
       (overlay-put quail-overlay 'face 'highlight))))
 
+;; Return t iff the current Quail package requires showing guidance
+;; buffer.
+(defun quail-require-guidance-buf ()
+  (and input-method-verbose-flag
+       (not (and (eq (selected-window) (minibuffer-window))
+		 (quail-simple)))))
+
 (defun quail-show-guidance-buf ()
   "Display a guidance buffer for Quail input method in some window.
 Create the buffer if it does not exist yet.
@@ -1399,10 +1409,7 @@ The buffer is normally displayed at the echo area,
 but if the current buffer is a minibuffer, it is shown in
 the bottom-most ordinary window of the same frame,
 or in a newly created frame (if the selected frame has no other windows)."
-  (if (and (not input-method-verbose-flag)
-	   (eq (selected-window) (minibuffer-window)))
-      ;; We don't need the guidance buffer.
-      nil
+  (when (quail-require-guidance-buf)
     ;; At first, setup a guidance buffer.
     (or (buffer-live-p quail-guidance-buf)
 	(setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*")))
@@ -1472,8 +1479,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 (defun quail-update-guidance ()
   "Update the Quail guidance buffer and completion buffer (if displayed now)."
   ;; Update guidance buffer.
-  (if (or input-method-verbose-flag
-	  (not (eq (selected-window) (minibuffer-window))))
+  (if (quail-require-guidance-buf)
       (let ((guidance (quail-guidance)))
 	(cond ((or (eq guidance t)
 		   (listp guidance))
