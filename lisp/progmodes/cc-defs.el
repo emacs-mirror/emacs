@@ -105,7 +105,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.30.3"
+(defconst c-version "5.30.4"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -864,19 +864,57 @@ This function does not do any hidden buffer changes."
   ;; This function does not do any hidden buffer changes.
   (assq (car (c-intersect-lists list alist1)) alist2))
 
-(defsubst c-langelem-col (langelem &optional preserve-point)
-  "Convenience routine to return the column of LANGELEM's relpos.
-Leaves point at the relpos unless PRESERVE-POINT is non-nil.
+(defsubst c-langelem-sym (langelem)
+  "Return the syntactic symbol in LANGELEM.
+
+LANGELEM is a syntactic element, i.e. either a cons cell on the
+\"old\" form given as the first argument to lineup functions or a list
+on the \"new\" form as used in `c-syntactic-element'.
 
 This function does not do any hidden buffer changes."
-  (if (cdr langelem)
-      (let ((here (point)))
-	(goto-char (cdr langelem))
-	(prog1 (current-column)
-	  (if preserve-point
-	      (goto-char here))
-	  ))
-    0))
+  (car langelem))
+
+(defsubst c-langelem-pos (langelem)
+  "Return the (primary) anchor position in LANGELEM, or nil if there is none.
+
+LANGELEM is a syntactic element, i.e. either a cons cell on the
+\"old\" form given as the first argument to lineup functions or a list
+on the \"new\" form as used in `c-syntactic-element'.
+
+This function does not do any hidden buffer changes."
+  (if (consp (cdr langelem))
+      (car-safe (cdr langelem))
+    (cdr langelem)))
+
+(defun c-langelem-col (langelem &optional preserve-point)
+  "Return the column of the (primary) anchor position in LANGELEM.
+Leave point at that position unless PRESERVE-POINT is non-nil.
+
+LANGELEM is a syntactic element, i.e. either a cons cell on the
+\"old\" form given as the first argument to lineup functions or a list
+on the \"new\" form as used in `c-syntactic-element'.
+
+This function does not do any hidden buffer changes."
+  (let ((pos (c-langelem-pos langelem))
+	(here (point)))
+    (if pos
+	(progn
+	  (goto-char pos)
+	  (prog1 (current-column)
+	    (if preserve-point
+		(goto-char here))))
+      0)))
+
+(defsubst c-langelem-2nd-pos (langelem)
+  "Return the secondary position in LANGELEM, or nil if there is none.
+
+LANGELEM is a syntactic element, typically on the \"new\" form as used
+in `c-syntactic-element'.  It may be on the \"old\" form that is used
+as the first argument to lineup functions, but then the returned value
+always will be nil.
+
+This function does not do any hidden buffer changes."
+  (car-safe (cdr-safe (cdr-safe langelem))))
 
 (defsubst c-keep-region-active ()
   ;; Do whatever is necessary to keep the region active in XEmacs.
