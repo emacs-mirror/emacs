@@ -88,6 +88,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** C-h v and C-h f commands now include a hyperlink to the C source for
+variables and functions defined in C (if the C source is available).
+
 ** When used interactively, `format-write-file' now asks for confirmation
 before overwriting an existing file, unless a prefix argument is
 supplied.  This behavior is analogous to `write-file'.
@@ -120,8 +123,6 @@ only gets updated whenever the buffer gets reverted.
 ** New command `Buffer-menu-toggle-files-only' toggles display of file
 buffers only in the Buffer Menu.  It is bound to `T' in Buffer Menu
 mode.
-
-** The URL package is now part of Emacs.
 
 ** M-x compile has become more robust and reliable
 
@@ -1690,6 +1691,8 @@ to view diffs or log entries directly from vc-annotate-mode:
     W:  annotates the workfile (most up to date) version
 
 * New modes and packages in Emacs 21.4
+
+** The URL package (which had been part of W3) is now part of Emacs.
 
 +++
 ** The new global minor mode `size-indication-mode' (off by default)
