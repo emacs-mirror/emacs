@@ -1132,6 +1132,22 @@ Leave point after argument."
     (insert ?\n)
     (setq texinfo-last-node-pos (point))))
 
+(put 'anchor 'texinfo-format 'texinfo-anchor)
+(defun texinfo-anchor ()
+  (let (anchor-string 
+        (here (- (point) 7))  ; save location of beginning of `@anchor'
+        (arg (texinfo-parse-arg-discard)))
+    (delete-char 1)           ; since a space is left after -discard
+    (forward-paragraph) 
+    (let ((end (point)))
+      (if (save-excursion 
+            (backward-word 1)
+            (search-forward "@refill" end t))
+          (setq anchor-string "@anchor-yes-refill")
+        (setq anchor-string "@anchor-no-refill")))
+      (goto-char here)
+      (insert anchor-string "{" arg "}")))
+
 (put 'menu 'texinfo-format 'texinfo-format-menu)
 (defun texinfo-format-menu ()
   (texinfo-discard-line)
