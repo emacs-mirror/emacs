@@ -76,8 +76,8 @@ int bufsize = 128;
 #endif
 #endif
 
-#ifndef TERMCAP_NAME
-#define TERMCAP_NAME "/etc/termcap"
+#ifndef TERMCAP_FILE
+#define TERMCAP_FILE "/etc/termcap"
 #endif
 
 #ifndef emacs
@@ -480,7 +480,7 @@ tgetent (bp, name)
     }
 
   if (!termcap_name || !filep)
-    termcap_name = TERMCAP_NAME;
+    termcap_name = TERMCAP_FILE;
 
   /* Here we know we must search a file and termcap_name has its name.  */
 
