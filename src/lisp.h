@@ -541,7 +541,8 @@ extern Lisp_Object make_number ();
 
 /* Convenience macros for dealing with Lisp strings.  */
 
-#define SREF(string, index)	XSTRING (string)->data[index]
+#define SREF(string, index)	(XSTRING (string)->data[index] + 0)
+#define SSET(string, index, new) (XSTRING (string)->data[index] = (new))
 #define SDATA(string)		(XSTRING (string)->data + 0)
 #define SCHARS(string)		(XSTRING (string)->size + 0)
 #define SBYTES(string)		(STRING_BYTES (XSTRING (string)) + 0)
