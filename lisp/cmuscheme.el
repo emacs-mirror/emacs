@@ -1,11 +1,16 @@
 ;;; cmuscheme.el -- Scheme process in a buffer. Adapted from tea.el.
 
+;; Maintainer: Olin Shivers <olin.shivers@cs.cmu.edu>
+;; Last-Modified: 16 Mar 1992
+
 ;;; Copyright Olin Shivers (1988)
 ;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
 ;;; notice appearing here to the effect that you may use this code any
 ;;; way you like, as long as you don't charge money for it, remove this
 ;;; notice, or hold me liable for its results.
-;;;
+
+;;; Commentary:
+
 ;;;    This is a customisation of comint-mode (see comint.el)
 ;;;
 ;;; Written by Olin Shivers (olin.shivers@cs.cmu.edu). With bits and pieces
@@ -84,6 +89,8 @@
 ;;;   (autoload 'run-scheme "cmuscheme" "Run an inferior Scheme" t)
 ;;;   *or* just delete the autoload declaration from scheme.el altogether,
 ;;;   which will allow the autoload in your .emacs to have its say.
+
+;;; Code:
 
 (require 'scheme)
 (require 'comint)

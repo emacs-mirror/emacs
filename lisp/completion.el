@@ -1,5 +1,10 @@
 ;;; completion.el --- dynamic word-completion code
 
+;; Maintainer: bug-completion@think.com
+;; Last-Modified: 30 Jun 1992
+
+;;; Commentary:
+
 ;;; This is a Completion system for GNU Emacs
 ;;;
 ;;;  E-Mail: 
@@ -260,7 +265,7 @@
 ;;;
 ;;;
 ;;;-----------------------------------------------
-;;; History ::
+;;; Change Log:
 ;;;-----------------------------------------------
 ;;;    Sometime in '84 Brewster implemented a somewhat buggy version for 
 ;;; Symbolics LISPMs.
@@ -319,6 +324,8 @@
 ;;;  - added backup protection to save-completions-to-file (prevents 
 ;;;    problems with disk full errors)
 
+;;; Code:
+
 ;;;-----------------------------------------------
 ;;; Requires
 ;;; Version

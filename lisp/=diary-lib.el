@@ -1,4 +1,8 @@
 ;;; diary.el --- diary functions.
+
+;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Last-Modified: 30 Jun 1992
+
 ;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +22,8 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
 ;; This collection of functions implements the diary features as described
 ;; in calendar.el.
 
@@ -26,6 +32,8 @@
 ;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
 ;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
 ;;                                   Urbana, Illinois 61801
+
+;;; Code:
 
 (require 'calendar)
 

@@ -1,5 +1,8 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
+;; Maintainer: FSF
+;; Last-Modified: 05 Jul 1992
+
 ;;;!!! dup removal is broken.
 
 ;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
@@ -20,6 +23,8 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
+
+;;; Code:
 
 ;;;###autoload
 (defvar compilation-mode-hook nil
