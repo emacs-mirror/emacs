@@ -263,7 +263,8 @@ check_x_display_info (frame)
 /* This function can be called during GC, so use GC_xxx type test macros.  */
 
 struct frame *
-x_window_to_frame (wdesc)
+x_window_to_frame (dpyinfo, wdesc)
+     struct x_display_info *dpyinfo;
      int wdesc;
 {
   Lisp_Object tail, frame;
@@ -275,6 +276,8 @@ x_window_to_frame (wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
+      if (FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+	continue;
 #ifdef USE_X_TOOLKIT
       if (f->display.nothing == 1) 
 	return 0;
@@ -296,7 +299,8 @@ x_window_to_frame (wdesc)
    windows.  */
 
 struct frame *
-x_any_window_to_frame (wdesc)
+x_any_window_to_frame (dpyinfo, wdesc)
+     struct x_display_info *dpyinfo;
      int wdesc;
 {
   Lisp_Object tail, frame;
@@ -309,6 +313,8 @@ x_any_window_to_frame (wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
+      if (FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+	continue;
       if (f->display.nothing == 1) 
 	return 0;
       x = f->display.x;
@@ -328,7 +334,8 @@ x_any_window_to_frame (wdesc)
    If WDESC is some other (smaller) window, we return 0.  */
 
 struct frame *
-x_top_window_to_frame (wdesc)
+x_top_window_to_frame (dpyinfo, wdesc)
+     struct x_display_info *dpyinfo;
      int wdesc;
 {
   Lisp_Object tail, frame;
@@ -341,6 +348,8 @@ x_top_window_to_frame (wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
+      if (FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+	continue;
       if (f->display.nothing == 1) 
 	return 0;
       x = f->display.x;
