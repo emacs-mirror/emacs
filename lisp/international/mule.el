@@ -230,12 +230,15 @@ A generic character can be used to index a char table (e.g. syntax-table)."
       `(make-char-internal ,(charset-id (nth 1 charset)) ,c1 ,c2)
     `(make-char-internal (charset-id ,charset) ,c1 ,c2)))
 
-(defmacro charset-list ()
+(defun charset-list ()
   "Return list of charsets ever defined.
 
-This macro is provided for backward compatibility.
+This function is provided for backward compatibility.
 Now we have the variable `charset-list'."
-  'charset-list)
+  charset-list)
+
+(make-obsolete 'charset-list
+	       "Use the variable charset-list instead.")
 
 (defsubst generic-char-p (char)
   "Return t if and only if CHAR is a generic character.
@@ -250,19 +253,17 @@ See also the documentation of make-char."
 ;;
 ;; The value of the property `coding-system' is a vector of the
 ;; following format:
-;;	[TYPE MNEMONIC DOC-STRING NOT-USED-NOW FLAGS]
+;;	[TYPE MNEMONIC DOC-STRING PLIST FLAGS]
 ;; We call this vector as coding-spec.  See comments in src/coding.c
-;; for more detail.  The property value may be another coding system,
-;; in which case, the coding-spec should be taken from that
-;; coding-system.  The 4th element NOT-USED-NOW is kept just for
-;; backward compatibility with old version of Mule.
+;; for more detail.  
 
 (defconst coding-spec-type-idx 0)
 (defconst coding-spec-mnemonic-idx 1)
 (defconst coding-spec-doc-string-idx 2)
+(defconst coding-spec-plist-idx 2)
 (defconst coding-spec-flags-idx 4)
 
-;; Coding system may have proerpty `eol-type'.  The value of the
+;; Coding system may have property `eol-type'.  The value of the
 ;; property `eol-type' is integer 0..2 or a vector of three coding
 ;; systems.  The integer value 0, 1, and 2 indicate the format of
 ;; end-of-line LF, CRLF, and CR respectively.  The vector value
@@ -305,6 +306,10 @@ See also the documentation of make-char."
 (defun coding-system-doc-string (coding-system)
   "Return DOC-STRING element in coding-spec of CODING-SYSTEM."
   (coding-system-spec-ref coding-system coding-spec-doc-string-idx))
+
+(defun coding-system-plist (coding-system)
+  "Return PLIST element in coding-spec of CODING-SYSTEM."
+  (coding-system-spec-ref coding-system coding-spec-plist-idx))
 
 (defun coding-system-flags (coding-system)
   "Return FLAGS element in coding-spec of CODING-SYSTEM."
@@ -469,6 +474,7 @@ FLAGS specifies more precise information of each TYPE.
 	  (t				; i.e. (= type 5)
 	   (setq coding-category 'coding-category-raw-text)))
     (put coding-system 'coding-system coding-spec)
+    (put coding-system 'coding-system-parent coding-system)
     (put coding-system 'coding-category coding-category)
     (put coding-category 'coding-systems
 	 (cons coding-system (get coding-category 'coding-systems))))
