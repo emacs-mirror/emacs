@@ -2409,6 +2409,7 @@ Optional EVENT is the location for the menu."
     (face-spec-set symbol value)
     (put symbol 'saved-face value)
     (put symbol 'customized-face nil)
+    (custom-save-all)
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
 
