@@ -1,3 +1,8 @@
+2005-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* undo.c (Fprimitive_undo): Check that undo function does not
+	switch buffer.
+
 2005-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c (selection_data_to_lisp_data): For the special case
