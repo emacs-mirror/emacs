@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992,94,99,2000,2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1992,94,99,2000,2001, 2002, 2003  Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -269,14 +269,13 @@ not be enclosed in { } or ( )."
    (list makefile-dependency-regex 1 'font-lock-function-name-face)
 
    ;; Variable references even in targets/strings/comments.
-   '("\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)[}):]"
+   '("[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)[}):]"
      1 font-lock-constant-face prepend)
 
-   ;; Automatic variable references and single character variable references...
-   '("\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)" 1 font-lock-constant-face prepend)
-
-   ;; ...but not shell variables references.
-   '("\\$\\$\\(\\sw+\\)" 1 'default t)
+   ;; Automatic variable references and single character variable references,
+   ;; but not shell variables references.
+   '("[^$]\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)"
+     1 font-lock-constant-face prepend)
 
    ;; Fontify conditionals and includes.
    ;; Note that plain `if' is an automake conditional, and not a bug.
