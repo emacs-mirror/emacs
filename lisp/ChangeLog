@@ -1,3 +1,8 @@
+2001-03-07  Dave Love  <fx@gnu.org>
+
+	* imenu.el (imenu--create-keymap-2): Revert use of menu-item for
+	now, to avoid problems with binding imenu directly to a mouse event.
+
 2001-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* info.el (Info-scroll-down): Call pos-visible-in-window-p with
