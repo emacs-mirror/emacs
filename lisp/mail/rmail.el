@@ -67,7 +67,7 @@ value is the user's name.)
 It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
-(defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:"
+(defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:\\|^nntp-posting-host:"
   "*Regexp to match Header fields that Rmail should normally hide.")
 
 ;;;###autoload
@@ -1727,7 +1727,7 @@ or forward if N is negative."
 
 (defvar rmail-search-last-regexp nil)
 (defun rmail-search (regexp &optional n)
-  "Show message containing next match for REGEXP.
+  "Show message containing next match for REGEXP (but not the current msg).
 Prefix argument gives repeat count; negative argument means search
 backwards (through earlier messages).
 Interactively, empty argument means use same regexp used last time."
@@ -2367,7 +2367,9 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  (let (mail-buffer bounce-start bounce-end bounce-indent resending)
+  (let ((rmail-buffer (current-buffer))
+	(msgnum rmail-current-message)
+	bounce-start bounce-end bounce-indent resending)
     (save-excursion
       ;; Narrow down to just the quoted original message
       (rmail-beginning-of-message)
@@ -2377,7 +2379,6 @@ specifying headers which should not be copied into the new message."
 		   (buffer-substring (progn (beginning-of-line) (point))
 				     (progn (end-of-line) (point)))))
 	      (re-search-forward mail-unsent-separator)
-	      (setq mail-buffer (current-buffer))
 	      (search-forward codestring)
 	      (or (search-forward "\n\n" nil t)
 		  (error "Cannot find end of Mime data in failed message"))
@@ -2404,25 +2405,50 @@ specifying headers which should not be copied into the new message."
 		(setq bounce-end (point)))
 	    ;; One message contained a few random lines before the old
 	    ;; message header.  The first line of the message started with
-	    ;; two hyphens.  A blank line follows these random lines.
+	    ;; two hyphens.  A blank line followed these random lines.
+	    ;; The same line beginning with two hyphens was possibly
+	    ;; marking the end of the message.
 	    (if (looking-at "^--")
-		(progn
+		(let ((boundary (buffer-substring-no-properties
+				 (point)
+				 (progn (end-of-line) (point)))))
 		  (search-forward "\n\n")
-		  (skip-chars-forward "\n")))
-	    (setq bounce-start (point)
-		  bounce-end (point-max))
+		  (skip-chars-forward "\n")
+		  (setq bounce-start (point))
+		  (goto-char (point-max))
+		  (search-backward (concat "\n\n" boundary) bounce-start t)
+		  (setq bounce-end (point)))
+	      (setq bounce-start (point)
+		    bounce-end (point-max)))
 	    (or (search-forward "\n\n" nil t)
-		(error "Cannot find end of header in failed message")))
-	  (setq mail-buffer (current-buffer)))))
+		(error "Cannot find end of header in failed message"))
+	    ))))
     ;; Start sending a new message; default header fields from the original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
-    (let (mail-signature mail-setup-hook)
-      (if (rmail-start-mail nil nil nil nil nil mail-buffer)
+    (let ((action
+	   ;; This function will be called when the user sends the retry.
+	   ;; It will mark the bounce message as "retried".
+	   (function (lambda ()
+		       (let ((msgnum rmail-send-actions-rmail-msg-number))
+			 (save-excursion
+			   (set-buffer rmail-send-actions-rmail-buffer)
+			   (if msgnum
+			       (rmail-set-attribute "retried" t msgnum)))))))
+	  mail-signature mail-setup-hook)
+      (if (rmail-start-mail nil nil nil nil nil rmail-buffer
+			    (list (list action)))
 	  ;; Insert original text as initial text of new draft message.
 	  (progn
+	    ;; We keep the rmail buffer and message number in these 
+	    ;; buffer-local vars in the sendmail buffer,
+	    ;; so that the rmail-only-expunge can relocate the message number.
+	    (make-local-variable 'rmail-send-actions-rmail-buffer)
+	    (make-local-variable 'rmail-send-actions-rmail-msg-number)
+	    (setq rmail-send-actions-rmail-buffer rmail-buffer)
+	    (setq rmail-send-actions-rmail-msg-number msgnum)
 	    (erase-buffer)
-	    (insert-buffer-substring mail-buffer bounce-start bounce-end)
+	    (insert-buffer-substring rmail-buffer bounce-start bounce-end)
 	    (goto-char (point-min))
 	    (if bounce-indent
 		(indent-rigidly (point-min) (point-max) bounce-indent))
@@ -2440,7 +2466,7 @@ specifying headers which should not be copied into the new message."
 		    (insert "BCC: " (user-login-name) "\n"))))
 	    (insert mail-header-separator)
 	    (mail-position-on-field (if resending "Resent-To" "To") t)
-	    (set-buffer mail-buffer)
+	    (set-buffer rmail-buffer)
 	    (rmail-beginning-of-message))))))
 
 (defun rmail-summary-exists ()
