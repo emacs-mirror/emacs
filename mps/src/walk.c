@@ -1,13 +1,13 @@
 /* impl.c.walk: OBJECT WALKER
  *
- * $HopeName: MMsrc!walk.c(trunk.4) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!walk.c(trunk.5) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.4) $");
+SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.5) $");
 
 
 /* Heap Walking
@@ -34,6 +34,7 @@ static Bool FormattedObjectsStepClosureCheck(FormattedObjectsStepClosure c)
   return TRUE;
 }
 
+
 static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
                                       void *p, Size s)
 {
@@ -52,8 +53,7 @@ static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
 
 /* ArenaFormattedObjectsWalk -- iterate over all objects
  *
- * so called because it walks all formatted objects in an arena 
- */
+ * So called because it walks all formatted objects in an arena.  */
 
 static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
                                       void *p, Size s)
@@ -91,8 +91,7 @@ static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
 
 /* mps_arena_formatted_objects_walk -- iterate over all objects
  *
- * Client interface to ArenaFormattedObjectsWalk
- */
+ * Client interface to ArenaFormattedObjectsWalk.  */
 
 void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
                                       mps_formatted_objects_stepper_t f,
@@ -117,55 +116,59 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
 
 /* Root Walking
  *
- * This involves more code than it should. The roots are walked 
- * by scanning them. But there's no direct support for
- * invoking the scanner without there being a trace, and there's
- * no direct support for creating a trace without also condemning
- * part of the heap. (@@@@ This looks like a useful canditate for
- * inclusion in the future). For now, the root walker contains 
- * its own code for creating a minimal trace and scan state.
+ * This involves more code than it should. The roots are walked by
+ * scanning them. But there's no direct support for invoking the scanner
+ * without there being a trace, and there's no direct support for
+ * creating a trace without also condemning part of the heap. (@@@@ This
+ * looks like a useful canditate for inclusion in the future). For now,
+ * the root walker contains its own code for creating a minimal trace
+ * and scan state.
  *
  * ASSUMPTIONS
  *
  * .assume.parked: The root walker must be invoked with a parked
- * arena. It's only strictly necessary for there to be no current 
- * trace, but the client has no way to ensure this apart from
- * parking the arena.
+ * arena. It's only strictly necessary for there to be no current trace,
+ * but the client has no way to ensure this apart from parking the
+ * arena.
  *
- * .assume.rootaddr: The client closure is called with a parameter
- * which is the address of a reference to an object referenced from 
- * a root. The client may desire this address to be the address of
- * the actual reference in the root (so that the debugger can be 
- * used to determine details about the root). This is not always 
- * possible, since the root might actually be a register, or the 
- * format scan method might not pass this address directly to the 
- * fix method. If the format code does pass on the address, the 
- * client can be sure to be passed the address of any root other
- * than a register or stack.
- */
+ * .assume.rootaddr: The client closure is called with a parameter which
+ * is the address of a reference to an object referenced from a
+ * root. The client may desire this address to be the address of the
+ * actual reference in the root (so that the debugger can be used to
+ * determine details about the root). This is not always possible, since
+ * the root might actually be a register, or the format scan method
+ * might not pass this address directly to the fix method. If the format
+ * code does pass on the address, the client can be sure to be passed
+ * the address of any root other than a register or stack.  */
 
 
-/* RootsStepClosure -- closure environment for root walker
+/* rootsStepClosure -- closure environment for root walker
  *
- * Defined as a subclass of ScanState 
- */
+ * Defined as a subclass of ScanState.  */
 
 /* SIGnature Roots Step CLOsure */
-#define RootsStepClosureSig ((Sig)0x51965C10)  
+#define rootsStepClosureSig ((Sig)0x51965C10)  
 
-typedef struct RootsStepClosureStruct *RootsStepClosure;
-typedef struct RootsStepClosureStruct {
+typedef struct rootsStepClosureStruct *rootsStepClosure;
+typedef struct rootsStepClosureStruct {
   ScanStateStruct ssStruct;          /* generic scan state object */
   mps_roots_stepper_t f;             /* client closure function */
   void *p;                           /* client closure data */
   size_t s;                          /* client closure data */
   Root root;                         /* current root, or NULL */
   Sig sig;                           /* impl.h.misc.sig */
-} RootsStepClosureStruct;
+} rootsStepClosureStruct;
 
-static Bool RootsStepClosureCheck(RootsStepClosure rsc)
+#define rootsStepClosure2ScanState(rsc) (&(rsc)->ssStruct)
+#define ScanState2rootsStepClosure(ss) \
+  PARENT(rootsStepClosureStruct, ssStruct, ss)
+
+
+/* rootsStepClosureCheck -- check a rootsStepClosure */
+
+static Bool rootsStepClosureCheck(rootsStepClosure rsc)
 {
-  CHECKS(RootsStepClosure, rsc);
+  CHECKS(rootsStepClosure, rsc);
   CHECKD(ScanState, &rsc->ssStruct);
   CHECKL(FUNCHECK(rsc->f));
   /* p and s fields are arbitrary closures which cannot be checked */
@@ -175,43 +178,22 @@ static Bool RootsStepClosureCheck(RootsStepClosure rsc)
   return TRUE;
 }
 
-static ScanState RootsStepClosureScanState(RootsStepClosure rsc)
-{
-  AVERT(RootsStepClosure, rsc);
 
-  return &rsc->ssStruct;
-}
-
-static RootsStepClosure ScanStateRootsStepClosure(ScanState ss)
-{
-  AVERT(ScanState, ss);
-
-  return PARENT(RootsStepClosureStruct, ssStruct, ss);
-}
-
-
-/* RootsStepClosureInit -- Initialize a RootsStepClosure
+/* rootsStepClosureInit -- Initialize a rootsStepClosure
  *
- * Initialize the parent ScanState too.
- */
+ * Initialize the parent ScanState too.  */
 
-static void RootsStepClosureInit(RootsStepClosure rsc, 
-                                 Arena arena, Trace trace,
+static void rootsStepClosureInit(rootsStepClosure rsc, 
+                                 Globals arena, Trace trace,
                                  TraceFixMethod rootFix,
                                  mps_roots_stepper_t f, void *p, Size s)
 {
   ScanState ss;
 
-  /* we are initing it, so we can't check rsc */
-  AVERT(Arena, arena);
-  AVERT(Trace, trace);
-  AVER(FUNCHECK(rootFix));
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary client-provided closure data. */
-
   /* First initialize the ScanState superclass */
   ss = &rsc->ssStruct;
-  ScanStateInit(ss, TraceSetSingle(trace), arena, RankAMBIG, trace->white);
+  ScanStateInit(ss, TraceSetSingle(trace), GlobalsArena(arena), RankAMBIG,
+                trace->white);
 
   /* Initialize the fix method in the ScanState */
   ss->fix = rootFix;
@@ -222,94 +204,42 @@ static void RootsStepClosureInit(RootsStepClosure rsc,
   rsc->s = s;
   rsc->root = NULL;
 
-  rsc->sig = RootsStepClosureSig;
+  rsc->sig = rootsStepClosureSig;
 
-  AVERT(RootsStepClosure, rsc);
+  AVERT(rootsStepClosure, rsc);
 }
 
 
-/* RootsStepClosureFinish -- Finish a RootsStepClosure
+/* rootsStepClosureFinish -- Finish a rootsStepClosure
  *
- * Finish the parent ScanState too.
- */ 
+ * Finish the parent ScanState too.  */
 
-static void RootsStepClosureFinish(RootsStepClosure rsc)
+static void rootsStepClosureFinish(rootsStepClosure rsc)
 {
   ScanState ss;
 
-  AVERT(RootsStepClosure, rsc);
-
-  ss = RootsStepClosureScanState(rsc);
+  ss = rootsStepClosure2ScanState(rsc);
   rsc->sig = SigInvalid;
   ScanStateFinish(ss);
 }
 
 
-/* RootsWalkTraceStart -- Initialize a minimal trace for root walking */
-
-static Res RootsWalkTraceStart(Trace trace)
-{
-  Ring ring, node, next;
-  Arena arena;
-
-  AVERT(Trace, trace);
-  arena = trace->arena;
-
-  /* Set the white set to universal so that the scanner */
-  /* doesn't filter out any references from roots into the arena. */
-  trace->white = ZoneSetUNIV; 
-
-  /* Make the roots grey so that they are scanned */
-  ring = ArenaRootRing(arena);
-  RING_FOR(node, ring, next) {
-    Root root = RING_ELT(Root, arenaRing, node);
-    RootGrey(root, trace);
-  }
-
-  return ResOK;
-} 
-
-
-/* RootsWalkTraceFinish -- Finish a minimal trace for root walking */
-
-static void RootsWalkTraceFinish(Trace trace)
-{
-  Arena arena;
-
-  AVERT(Trace, trace);
-
-  /* Make this trace look like any other finished trace. */
-  /* Need to set the state of the trace, and add it to the  */
-  /* arena's set of flipped traces */
-  arena = trace->arena;
-  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace);
-  trace->state = TraceFINISHED;
-  TraceDestroy(trace);
-}
-
-
 /* RootsWalkFix -- the fix method used during root walking
  *
- * This doesn't cause further scanning of transitive references, 
- * it just calls the client closure.
- */
+ * This doesn't cause further scanning of transitive references, it just
+ * calls the client closure.  */
 
 static Res RootsWalkFix(ScanState ss, Ref *refIO)
 {
-  RootsStepClosure rsc;
-  Root root;
+  rootsStepClosure rsc;
   Ref ref;
   Seg seg;
   Arena arena;
-  
+
   AVERT(ScanState, ss);
   AVER(refIO != NULL);
-
-  rsc = ScanStateRootsStepClosure(ss);
-  AVERT(RootsStepClosure, rsc);
-
-  root = rsc->root;
-  AVERT(Root, root);
+  rsc = ScanState2rootsStepClosure(ss);
+  AVERT(rootsStepClosure, rsc);
 
   arena = ss->arena;
   ref = *refIO;
@@ -321,7 +251,7 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
     /* shouldn't be passed to the client */
     if ((SegPool(seg)->class->attr & AttrGC) != 0) {
       /* Call the client closure - .assume.rootaddr */
-      rsc->f((mps_addr_t*)refIO, (mps_root_t)root, rsc->p, rsc->s);
+      rsc->f((mps_addr_t*)refIO, (mps_root_t)rsc->root, rsc->p, rsc->s);
     }
   } else {
     /* See design.mps.trace.exact.legal */
@@ -337,67 +267,78 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
 }
 
 
-/* ArenaRootsWalk -- starts the trace and scans the roots */
+/* rootWalk -- the step function for ArenaRootsWalk */
 
-static Res ArenaRootsWalk(Arena arena, mps_roots_stepper_t f,
+static Res rootWalk(Root root, void *p)
+{
+  ScanState ss = (ScanState)p;
+
+  AVERT(ScanState, ss);
+
+  if (RootRank(root) == ss->rank) {
+    /* set the root for the benefit of the fix method */
+    ScanState2rootsStepClosure(ss)->root = root;
+    /* Scan it */
+    ScanStateSetSummary(ss, RefSetEMPTY);
+    return RootScan(ss, root);
+  } else
+    return ResOK;
+}
+
+
+/* ArenaRootsWalk -- walks all the root in the arena */
+
+static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
                           void *p, size_t s)
 {
-  RootsStepClosureStruct rscStruct;
-  RootsStepClosure rsc = &rscStruct;
+  Arena arena;
+  rootsStepClosureStruct rscStruct;
+  rootsStepClosure rsc = &rscStruct;
   Trace trace;
   ScanState ss;
   Rank rank;
   Res res;
 
-  AVERT(Arena, arena);
+  AVERT(Globals, arenaGlobals);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary client-provided closure data. */
+  arena = GlobalsArena(arenaGlobals);
 
-  /* Scan all the roots with a minimal trace. */
-  /* Invoke the scanner with a RootsStepClosure, which */
-  /* is a subclass of ScanState and contains the client- */
-  /* provided closure. Supply a special fix method */
-  /* in order to call the client closure. This fix method */
-  /* must perform no tracing operations of its own. */
+  /* Scan all the roots with a minimal trace.  Invoke the scanner with a */
+  /* rootsStepClosure, which is a subclass of ScanState and contains the */
+  /* client-provided closure.  Supply a special fix method in order to */
+  /* call the client closure.  This fix method must perform no tracing */
+  /* operations of its own. */
 
   res = TraceCreate(&trace, arena);
-  /* Have to fail if no trace available. Unlikely due to .assume.parked */
+  /* Have to fail if no trace available.  Unlikely due to .assume.parked. */
   if (res != ResOK)
     return res;
+  /* Set the white set to universal so that the scanner */
+  /* doesn't filter out any references from roots into the arena. */
+  trace->white = ZoneSetUNIV; 
+  /* Make the roots grey so that they are scanned */
+  res = RootsIterate(arenaGlobals, (RootIterateFn)RootGrey, (void *)trace);
+  /* Make this trace look like any other trace. */
+  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace);
 
-  res = RootsWalkTraceStart(trace);
-  if (res != ResOK)
-    return res;
- 
-  RootsStepClosureInit(rsc, arena, trace, RootsWalkFix, f, p, s);
-  ss = RootsStepClosureScanState(rsc);
+  rootsStepClosureInit(rsc, arenaGlobals, trace, RootsWalkFix, f, p, s);
+  ss = rootsStepClosure2ScanState(rsc);
 
   for(rank = RankAMBIG; rank < RankLIMIT; ++rank) {
-    Ring ring = ArenaRootRing(arena);
-    Ring node, next;
-
     ss->rank = rank;
     AVERT(ScanState, ss);
-
-    RING_FOR(node, ring, next) {
-      Root root = RING_ELT(Root, arenaRing, node);
-
-      if (RootRank(root) == ss->rank) {
-        /* set the root for the benefit of the fix method */
-        rsc->root = root;
-        /* Scan it */
-        ScanStateSetSummary(ss, RefSetEMPTY);
-        res = RootScan(ss, root);
-        if (res != ResOK)
-          return res;
-      }
-    }
+    res = RootsIterate(arenaGlobals, rootWalk, (void *)ss);
+    if (res != ResOK)
+      break;
   }
 
-  RootsStepClosureFinish(rsc);
-  RootsWalkTraceFinish(trace);
+  rootsStepClosureFinish(rsc);
+  /* Make this trace look like any other finished trace. */
+  trace->state = TraceFINISHED;
+  TraceDestroy(trace);
 
-  return ResOK;
+  return res;
 }
 
 
@@ -410,14 +351,13 @@ void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
   Res res;
 
   ArenaEnter(arena);
-  AVERT(Arena, arena);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures, hence can't be checked */
 
-  AVER(TRUE == arena->clamped);                /* .assume.parked */
+  AVER(arena->clamped);                /* .assume.parked */
   AVER(arena->busyTraces == TraceSetEMPTY);    /* .assume.parked */
 
-  res = ArenaRootsWalk(arena, f, p, s);
+  res = ArenaRootsWalk(ArenaGlobals(arena), f, p, s);
   AVER(res == ResOK);
   ArenaLeave(arena);
 }
