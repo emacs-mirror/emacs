@@ -26,6 +26,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define USG
 #define USG5
 #define IRIS
+#ifndef IRIX
+#define IRIX
+#endif
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
@@ -173,3 +176,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_GETWD
 
 #define HAVE_SYSVIPC
+
+/* Use setsid to handle terminals for subprocesses.  */
+#define HAVE_SETSID
+
+/* Implementation of uname is broken on Irix as of version 3.3 */
+#define HAVE_GETHOSTNAME
