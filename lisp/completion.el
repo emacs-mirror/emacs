@@ -618,41 +618,36 @@ Used to decide whether to save completions.")
   "Returns the symbol that the point is currently on.
 But only if it is longer than `completion-min-length'."
   (setq cmpl-saved-syntax (syntax-table))
-  (set-syntax-table cmpl-syntax-table)
-  (cond 
-  ;; Cursor is on following-char and after preceding-char
-    ((memq (char-syntax (following-char)) '(?w ?_))     
-     (setq cmpl-saved-point (point)
-	   cmpl-symbol-start (scan-sexps (1+ cmpl-saved-point) -1)
-	   cmpl-symbol-end (scan-sexps cmpl-saved-point 1))
-     ;; remove chars to ignore at the start
-     (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
-	    (goto-char cmpl-symbol-start)
-	    (forward-word 1)
-	    (setq cmpl-symbol-start (point))
-	    (goto-char cmpl-saved-point)
-	    ))
-     ;; remove chars to ignore at the end
-     (cond ((= (char-syntax (char-after (1- cmpl-symbol-end))) ?w)
-	    (goto-char cmpl-symbol-end)
-	    (forward-word -1)
-	    (setq cmpl-symbol-end (point))
-	    (goto-char cmpl-saved-point)
-	    ))
-     ;; restore state
-     (set-syntax-table cmpl-saved-syntax)
-     ;; Return completion if the length is reasonable
-     (if (and (<= (cmpl-read-time-eval completion-min-length)
-		  (- cmpl-symbol-end cmpl-symbol-start))
-	      (<= (- cmpl-symbol-end cmpl-symbol-start)
-		  (cmpl-read-time-eval completion-max-length)))
-	 (buffer-substring cmpl-symbol-start cmpl-symbol-end))
-     )
-    (t 
-     ;; restore table if no symbol
-     (set-syntax-table cmpl-saved-syntax)
-     nil)
-    ))
+  (unwind-protect
+      (progn
+	(set-syntax-table cmpl-syntax-table)
+	(cond 
+	;; Cursor is on following-char and after preceding-char
+	  ((memq (char-syntax (following-char)) '(?w ?_))     
+	   (setq cmpl-saved-point (point)
+		 cmpl-symbol-start (scan-sexps (1+ cmpl-saved-point) -1)
+		 cmpl-symbol-end (scan-sexps cmpl-saved-point 1))
+	   ;; Remove chars to ignore at the start.
+	   (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
+		  (goto-char cmpl-symbol-start)
+		  (forward-word 1)
+		  (setq cmpl-symbol-start (point))
+		  (goto-char cmpl-saved-point)
+		  ))
+	   ;; Remove chars to ignore at the end.
+	   (cond ((= (char-syntax (char-after (1- cmpl-symbol-end))) ?w)
+		  (goto-char cmpl-symbol-end)
+		  (forward-word -1)
+		  (setq cmpl-symbol-end (point))
+		  (goto-char cmpl-saved-point)
+		  ))
+	   ;; Return completion if the length is reasonable.
+	   (if (and (<= (cmpl-read-time-eval completion-min-length)
+			(- cmpl-symbol-end cmpl-symbol-start))
+		    (<= (- cmpl-symbol-end cmpl-symbol-start)
+			(cmpl-read-time-eval completion-max-length)))
+	       (buffer-substring cmpl-symbol-start cmpl-symbol-end)))))
+    (set-syntax-table cmpl-saved-syntax)))
 
 ;;; tests for symbol-under-point
 ;;;  `^' indicates cursor pos. where value is returned
@@ -671,56 +666,50 @@ But only if it is longer than `completion-min-length'."
 Returns nil if there isn't one longer than `completion-min-length'."       
   ;; This is called when a word separator is typed so it must be FAST !
   (setq cmpl-saved-syntax (syntax-table))
-  (set-syntax-table cmpl-syntax-table)
-  ;; Cursor is on following-char and after preceding-char
-  (cond ((= (setq cmpl-preceding-syntax (char-syntax (preceding-char))) ?_)
-	 ;; No chars. to ignore at end
-	 (setq cmpl-symbol-end (point)
-	       cmpl-symbol-start (scan-sexps (1+ cmpl-symbol-end) -1)
+  (unwind-protect
+      (progn
+	(set-syntax-table cmpl-syntax-table)
+	;; Cursor is on following-char and after preceding-char
+	(cond ((= (setq cmpl-preceding-syntax (char-syntax (preceding-char))) ?_)
+	       ;; Number of chars to ignore at end.
+	       (setq cmpl-symbol-end (point)
+		     cmpl-symbol-start (scan-sexps cmpl-symbol-end -1)
+		     )
+	       ;; Remove chars to ignore at the start.
+	       (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
+		      (goto-char cmpl-symbol-start)
+		      (forward-word 1)
+		      (setq cmpl-symbol-start (point))
+		      (goto-char cmpl-symbol-end)
+		      ))
+	       ;; Return value if long enough.
+	       (if (>= cmpl-symbol-end
+		       (+ cmpl-symbol-start
+			  (cmpl-read-time-eval completion-min-length)))
+		   (buffer-substring cmpl-symbol-start cmpl-symbol-end))
 	       )
-	 ;; remove chars to ignore at the start
-	 (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
-		(goto-char cmpl-symbol-start)
-		(forward-word 1)
-		(setq cmpl-symbol-start (point))
-		(goto-char cmpl-symbol-end)
-		))
-	 ;; restore state
-	 (set-syntax-table cmpl-saved-syntax)
-	 ;; return value if long enough
-	 (if (>= cmpl-symbol-end
-		 (+ cmpl-symbol-start
-		    (cmpl-read-time-eval completion-min-length)))
-	     (buffer-substring cmpl-symbol-start cmpl-symbol-end))
-	 )
-	((= cmpl-preceding-syntax ?w)
-	 ;; chars to ignore at end
-	 (setq cmpl-saved-point (point)
-	       cmpl-symbol-start (scan-sexps (1+ cmpl-saved-point) -1))
-	 ;; take off chars. from end
-	 (forward-word -1)
-	 (setq cmpl-symbol-end (point))
-	 ;; remove chars to ignore at the start
-	 (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
-		(goto-char cmpl-symbol-start)
-		(forward-word 1)
-		(setq cmpl-symbol-start (point))
-		))
-	 ;; restore state
-	 (goto-char cmpl-saved-point)
-	 (set-syntax-table cmpl-saved-syntax)
-	 ;; Return completion if the length is reasonable
-	 (if (and (<= (cmpl-read-time-eval completion-min-length)
-		      (- cmpl-symbol-end cmpl-symbol-start))
-		  (<= (- cmpl-symbol-end cmpl-symbol-start)
-		      (cmpl-read-time-eval completion-max-length)))
-	     (buffer-substring cmpl-symbol-start cmpl-symbol-end))
-	 )
-	(t 
-	 ;; restore table if no symbol
-	 (set-syntax-table cmpl-saved-syntax)
-	 nil)
-	))
+	      ((= cmpl-preceding-syntax ?w)
+	       ;; chars to ignore at end
+	       (setq cmpl-saved-point (point)
+		     cmpl-symbol-start (scan-sexps cmpl-saved-point -1))
+	       ;; take off chars. from end
+	       (forward-word -1)
+	       (setq cmpl-symbol-end (point))
+	       ;; remove chars to ignore at the start
+	       (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
+		      (goto-char cmpl-symbol-start)
+		      (forward-word 1)
+		      (setq cmpl-symbol-start (point))
+		      ))
+	       ;; Restore state.
+	       (goto-char cmpl-saved-point)
+	       ;; Return completion if the length is reasonable
+	       (if (and (<= (cmpl-read-time-eval completion-min-length)
+			    (- cmpl-symbol-end cmpl-symbol-start))
+			(<= (- cmpl-symbol-end cmpl-symbol-start)
+			    (cmpl-read-time-eval completion-max-length)))
+		   (buffer-substring cmpl-symbol-start cmpl-symbol-end)))))
+    (set-syntax-table cmpl-saved-syntax)))
 
 ;;; tests for symbol-before-point
 ;;;  `^' indicates cursor pos. where value is returned
@@ -741,15 +730,17 @@ Returns nil if there isn't one longer than `completion-min-length'."
   ;;; copying all the code.
   ;;; However, it is only used by the completion string prompter.
   ;;; If it comes into common use, it could be rewritten.
-  (setq cmpl-saved-syntax (syntax-table))
-  (set-syntax-table cmpl-syntax-table)
-  (cond ((memq (char-syntax (following-char)) '(?w ?_))
-	 (set-syntax-table cmpl-saved-syntax)
+  (cond ((memq (progn
+		 (setq cmpl-saved-syntax (syntax-table))
+		 (unwind-protect
+		     (progn
+		       (set-syntax-table cmpl-syntax-table)
+		       (char-syntax (following-char)))
+		   (set-syntax-table cmpl-saved-syntax)))
+	       '(?w ?_))
 	 (symbol-under-point))
 	(t
-	 (set-syntax-table cmpl-saved-syntax)
-	 (symbol-before-point))
-	))
+	 (symbol-before-point))))
 
 
 (defun symbol-before-point-for-complete ()
@@ -758,34 +749,30 @@ Returns nil if there isn't one longer than `completion-min-length'."
   ;; end chars."
   ;; Cursor is on following-char and after preceding-char
   (setq cmpl-saved-syntax (syntax-table))
-  (set-syntax-table cmpl-syntax-table)
-  (cond ((memq (setq cmpl-preceding-syntax (char-syntax (preceding-char)))
-	       '(?_ ?w))
-	 (setq cmpl-symbol-end (point)
-	       cmpl-symbol-start (scan-sexps (1+ cmpl-symbol-end) -1)
-	       )
-	 ;; remove chars to ignore at the start
-	 (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
-		(goto-char cmpl-symbol-start)
-		(forward-word 1)
-		(setq cmpl-symbol-start (point))
-		(goto-char cmpl-symbol-end)
-		))
-	 ;; restore state
-	 (set-syntax-table cmpl-saved-syntax)
-	 ;; Return completion if the length is reasonable
-	 (if (and (<= (cmpl-read-time-eval
-		       completion-prefix-min-length)
-		      (- cmpl-symbol-end cmpl-symbol-start))
-		  (<= (- cmpl-symbol-end cmpl-symbol-start)
-		      (cmpl-read-time-eval completion-max-length)))
-	     (buffer-substring cmpl-symbol-start cmpl-symbol-end))
-	 )
-	(t 
-	 ;; restore table if no symbol
-	 (set-syntax-table cmpl-saved-syntax)
-	 nil)
-	))
+  (unwind-protect
+      (progn
+	(set-syntax-table cmpl-syntax-table)
+	(cond ((memq (setq cmpl-preceding-syntax (char-syntax (preceding-char)))
+		     '(?_ ?w))
+	       (setq cmpl-symbol-end (point)
+		     cmpl-symbol-start (scan-sexps cmpl-symbol-end -1)
+		     )
+	       ;; Remove chars to ignore at the start.
+	       (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
+		      (goto-char cmpl-symbol-start)
+		      (forward-word 1)
+		      (setq cmpl-symbol-start (point))
+		      (goto-char cmpl-symbol-end)
+		      ))
+	       ;; Return completion if the length is reasonable.
+	       (if (and (<= (cmpl-read-time-eval
+			     completion-prefix-min-length)
+			    (- cmpl-symbol-end cmpl-symbol-start))
+			(<= (- cmpl-symbol-end cmpl-symbol-start)
+			    (cmpl-read-time-eval completion-max-length)))
+		   (buffer-substring cmpl-symbol-start cmpl-symbol-end)))))
+    ;; Restore syntax table.
+    (set-syntax-table cmpl-saved-syntax)))
 
 ;;; tests for symbol-before-point-for-complete
 ;;;  `^' indicates cursor pos. where value is returned
