@@ -279,7 +279,7 @@ Non-strings in LIST are ignored."
   "Make MAP override all normally self-inserting keys to be undefined.
 Normally, as an exception, digits and minus-sign are set to make prefix args,
 but optional second arg NODIGITS non-nil treats them like other chars."
-  (substitute-key-definition 'self-insert-command 'undefined map global-map)
+  (define-key map [remap self-insert-command] 'undefined)
   (or nodigits
       (let (loop)
 	(define-key map "-" 'negative-argument)
