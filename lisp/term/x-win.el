@@ -169,10 +169,15 @@
 
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
-  (setq initial-frame-alist
-	(append initial-frame-alist
-		(x-parse-geometry (car x-invocation-args)))
-	x-invocation-args (cdr x-invocation-args)))
+  (let ((geo (x-parse-geometry (car x-invocation-args))))
+    (setq initial-frame-alist
+	  (append initial-frame-alist
+		  (if (or (assq 'left geo) (assq 'top geo))
+		      '((user-position . t)))
+		  (if (or (assq 'height geo) (assq 'width geo))
+		      '((user-size . t)))
+		  geo)
+	  x-invocation-args (cdr x-invocation-args))))
 
 ;; Handle the -name and -rn options.  Set the variable x-resource-name
 ;; to the option's operand; if the switch was `-name', set the name of
