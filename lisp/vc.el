@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.341 2002/10/07 16:50:43 monnier Exp $
+;; $Id: vc.el,v 1.342 2002/10/08 15:31:43 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2171,12 +2171,12 @@ There is a special command, `*l', to mark all files currently locked."
      ((eq state 'needs-patch) "(patch)")
      ((eq state 'unlocked-changes) "(stale)"))))
 
-(defun vc-dired-reformat-line (x)
+(defun vc-dired-reformat-line (vc-info)
   "Reformat a directory-listing line.
-Replace various columns with version control information.
+Replace various columns with version control information, VC-INFO.
 This code, like dired, assumes UNIX -l format."
   (beginning-of-line)
-  (let ((pos (point)) limit perm date-and-file)
+  (let ((pos (point)) limit)
     (end-of-line)
     (setq limit (point))
     (goto-char pos)
@@ -2191,10 +2191,16 @@ This code, like dired, assumes UNIX -l format."
          (re-search-forward  ;; OS/2 -l format, no links, owner, group
           "^\\(..[drwxlts-]+ \\) *[0-9]+\\( .*\\)"
           limit t))
-      (setq perm          (match-string 1)
-	    date-and-file (match-string 2))
-      (setq x (substring (concat x "          ") 0 10))
-      (replace-match (concat perm x date-and-file)))))
+      (let ((replacement (concat (match-string 1)
+                                 (substring (concat vc-info "          ")
+                                            0 10)
+                                 (match-string 2))))
+        ;; FIXME: Clear the text properties to make it work, because with
+        ;; a straightforward replacement, they will get messed up.
+        ;; Eventually, the text properties should be transformed correctly,
+        ;; not removed.
+        (set-text-properties 0 (length replacement) nil replacement)
+        (replace-match replacement)))))
 
 (defun vc-dired-hook ()
   "Reformat the listing according to version control.
