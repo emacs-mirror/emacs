@@ -447,11 +447,13 @@ contains expressions rather than strings.")
       (minibuffer-local-completion-map . t)
       (minibuffer-local-must-match-map . t)
       (read-expression-map . nil))))
- ;; In completion maps, use the completion-oriented history commands.
- '(("\en" . (next-history-element . next-complete-history-element))
-   ([next] . (next-history-element . next-complete-history-element))
-   ("\ep" . (previous-history-element . previous-complete-history-element))
-   ([prior] . (previous-history-element . previous-complete-history-element))
+ ;;; This was once set up to use the completion-oriented history commands
+ ;;; but I turned that off since they seem to do things I don't like.
+ ;;; - rms
+ '(("\en" . (next-history-element . next-history-element))
+   ([next] . (next-history-element . next-history-element))
+   ("\ep" . (previous-history-element . previous-history-element))
+   ([prior] . (previous-history-element . previous-history-element))
    ("\er" . previous-matching-history-element)
    ("\es" . next-matching-history-element)))
 
