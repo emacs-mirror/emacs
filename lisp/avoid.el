@@ -109,18 +109,26 @@ Analogous to mouse-position."
   (let* ((w (selected-window))
 	 (edges (window-edges w))
 	 (list 
-	  (compute-motion (window-start w)                     ; start pos
-			  (cons (car edges) (car (cdr edges))) ; start XY
+	  (compute-motion (max (window-start w) (point-min))   ; start pos
+			  ;; window-start can be < point-min if the
+			  ;; latter has changed since the last redisplay 
+			  '(0 . 0)	                       ; start XY
 			  (point)	                       ; stop pos
-			  (cons (nth 2 edges) (nth 3 edges))   ; stop XY: none
+			  (cons (window-width) (window-height)); stop XY: none
 			  (1- (window-width))                  ; width
-			  (cons (window-hscroll w) 0) ; 0 may not be right?
+			  (cons (window-hscroll w) 0)          ; 0 may not be right?
 			  (selected-window))))
     ;; compute-motion returns (pos HPOS VPOS prevhpos contin)
     ;; we want:               (frame hpos . vpos)
-    (setcar list (selected-frame))	
-    (setcdr (cdr list) (car (cdr (cdr list))))
-    list))
+    (cons (selected-frame)
+	  (cons (+ (car edges)       (car (cdr list)))
+		(+ (car (cdr edges)) (car (cdr (cdr list))))))))
+
+;(defun mouse-avoidance-point-position-test ()
+;  (interactive)
+;  (message (format "point=%s mouse=%s" 
+;		   (cdr (mouse-avoidance-point-position))
+;		   (cdr (mouse-position)))))
 
 (defun mouse-avoidance-set-mouse-position (pos)
   ;; Carefully set mouse position to given position (X . Y)
