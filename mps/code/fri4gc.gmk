@@ -15,8 +15,8 @@ LIBS = -lm -pthread
 
 include gc.gmk
 
-CFLAGSDEBUG = -g -ggdb
-CFLAGSOPT = -O -g -ggdb
+CFLAGSDEBUG = -g
+CFLAGSOPT = -O -g
 
 CC = cc
 

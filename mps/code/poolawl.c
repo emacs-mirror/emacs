@@ -792,9 +792,10 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
 
 
 /* awlScanObject -- scan a single object */
+/* base and limit are both offset by the header size */
 
 static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
-                         FormatScanMethod scan, Addr base, Addr limit)
+                         Format format, Addr base, Addr limit)
 {
   Res res;
   Bool dependent;       /* is there a dependent object? */
@@ -804,7 +805,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
   AVERT(Arena, arena);
   AVERT(AWL, awl);
   AVERT(ScanState, ss);
-  AVER(FUNCHECK(scan));
+  AVERT(Format, format);
   AVER(base != 0);
   AVER(base < limit);
 
@@ -817,7 +818,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
-  res = (*scan)(ss, base, limit);
+  res = (*format->scan)(ss, base, limit);
   if (res == ResOK)
     ss->scannedSize += AddrOffset(base, limit);
 
@@ -836,10 +837,12 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 {
   Addr base, limit, bufferScanLimit;
   Addr p;
+  Addr hp;
   Arena arena;
   AWL awl;
   AWLSeg awlseg;
   Buffer buffer;
+  Format format;
 
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
@@ -850,6 +853,9 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   AVERT(AWL, awl);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
+
+  format = pool->format;
+  AVERT(Format, format);
 
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -878,17 +884,19 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
       p = AddrAdd(p, pool->alignment);
       continue;
     }
-    objectLimit = (*pool->format->skip)(p);
+    hp = AddrAdd(p, format->headerSize);
+    objectLimit = (format->skip)(hp);
     /* design.mps.poolawl.fun.scan.pass.object */
     if (scanAllObjects
         || (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
-      Res res = awlScanObject(arena, awl, ss, pool->format->scan,
-                              p, objectLimit);
+      Res res = awlScanObject(arena, awl, ss, pool->format,
+                              hp, objectLimit);
       if (res != ResOK)
         return res;
       *anyScannedReturn = TRUE;
       BTSet(awlseg->scanned, i);
     }
+    objectLimit = AddrSub(objectLimit, format->headerSize);
     AVER(p < objectLimit);
     p = AddrAlignUp(objectLimit, pool->alignment);
   }
@@ -954,7 +962,8 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
-  Ref ref;
+  Ref clientRef;
+  Addr base;
   Index i;
   AWL awl;
   AWLSeg awlseg;
@@ -970,15 +979,23 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   awlseg  = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
 
-  ref = *refIO;
-  i = awlIndexOfAddr(SegBase(seg), awl, ref);
-
+  clientRef = *refIO;
   ss->wasMarked = TRUE;
+
+  base = AddrSub((Addr)clientRef, pool->format->headerSize);
+  /* can get an ambiguous reference to close to the base of the
+   * segment, so when we subtract the header we are not in the
+   * segment any longer.  This isn't a real reference,
+   * so we can just skip it.  */
+  if (base < SegBase(seg)) {
+    return ResOK;
+  }
+  i = awlIndexOfAddr(SegBase(seg), awl, base);
 
   switch(ss->rank) {
   case RankAMBIG:
     /* not a real pointer if not aligned or not allocated */
-    if (!AddrIsAligned((Addr)ref, pool->alignment) || !BTGet(awlseg->alloc, i))
+    if (!AddrIsAligned(base, pool->alignment) || !BTGet(awlseg->alloc, i))
       return ResOK;
     /* falls through */
   case RankEXACT:
@@ -1012,6 +1029,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWLSeg awlseg;
   Index i;
   Count oldFree;
+  Format format;
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
   Size freed; /* amount reclaimed, in bytes */
@@ -1024,6 +1042,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
+
+  format = pool->format;
 
   base = SegBase(seg);
 
@@ -1046,7 +1066,9 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
         continue;
       }
     }
-    q = AddrAlignUp(pool->format->skip(p), pool->alignment);
+    q = format->skip(AddrAdd(p, format->headerSize));
+    q = AddrSub(q, format->headerSize);
+    q = AddrAlignUp(q, pool->alignment);
     j = awlIndexOfAddr(base, awl, q);
     AVER(j <= awlseg->grains);
     if (BTGet(awlseg->mark, i)) {
@@ -1123,6 +1145,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
   AWL awl;
   AWLSeg awlseg;
   Addr object, base, limit;
+  Format format;
 
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -1133,6 +1156,8 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
+
+  format = pool->format;
 
   base = SegBase(seg);
   object = base;
@@ -1162,7 +1187,10 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
       object = AddrAdd(object, pool->alignment);
       continue;
     }
-    next = AddrAlignUp((*pool->format->skip)(object), pool->alignment);
+    object = AddrAdd(object, format->headerSize);
+    next = format->skip(object);
+    next = AddrSub(next, format->headerSize);
+    next = AddrAlignUp(next, pool->alignment);
     if (BTGet(awlseg->mark, i) && BTGet(awlseg->scanned, i))
       (*f)(object, pool->format, pool, p, s);
     object = next;

@@ -277,7 +277,7 @@ endif
 # %%TARGET: Add the target to the all dependencies, if it uses the
 # CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
 
-all: mpmss sacss amcss amcsshe amsss segsmss awlut \
+all: mpmss sacss amcss amcsshe amsss segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
      finalcv arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest \
@@ -289,8 +289,9 @@ swall: mmsw.a epvmss replaysw epdss
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
-testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut mpsicv lockcov \
-         poolncv locv qs finalcv arenacv abqtest cbstest btcv messtest
+testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut awluthe \
+         mpsicv lockcov poolncv locv qs finalcv arenacv \
+         abqtest cbstest btcv messtest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
@@ -304,7 +305,7 @@ testrunep: epvmss epdss
 # %%TARGET: Add a pseudo-target for the new target here.
 
 mpmss sacss amcss amcssth amcsshe amsss segsmss awlut awlutth \
-  mpsicv lockcov poolncv locv qs apss \
+  awluthe mpsicv lockcov poolncv locv qs apss \
   finalcv arenacv bttest teletest epvmss epdss \
   abqtest cbstest btcv mv2test \
   messtest \
@@ -408,6 +409,9 @@ $(PFM)/$(VARIETY)/epdss: $(PFM)/$(VARIETY)/epdss.o \
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
+	$(PFM)/$(VARIETY)/fmthe.o $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
