@@ -415,6 +415,10 @@ Do the same for the keys of the same name."
 			(setq uniquify-buffer-name-style
 			      (if (not uniquify-buffer-name-style)
 				  'forward))))
+(define-key menu-bar-options-menu [case-fold-search]
+  (menu-bar-make-toggle toggle-case-fold-search case-fold-search
+			"Case folding in searches"
+			"Case folding in searches %s"))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
 			"Transient Mark Mode (highlights region)"
