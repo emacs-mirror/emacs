@@ -1946,17 +1946,14 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       break;
     }
 
-  if (src < src_end)
-    {
-      if (result == CODING_FINISH_NORMAL)
-	result = CODING_FINISH_INSUFFICIENT_DST;
-      else
-	/* If this is the last block of the text to be encoded, we
-	   must reset graphic planes and registers to the initial
-	   state, and flush out the carryover if any.  */
-	if (coding->mode & CODING_MODE_LAST_BLOCK)
-	  ENCODE_RESET_PLANE_AND_REGISTER;
-    }
+  if (src < src_end && result == CODING_FINISH_NORMAL)
+    result = CODING_FINISH_INSUFFICIENT_DST;
+
+  /* If this is the last block of the text to be encoded, we must
+     reset graphic planes and registers to the initial state, and
+     flush out the carryover if any.  */
+  if (coding->mode & CODING_MODE_LAST_BLOCK)
+    ENCODE_RESET_PLANE_AND_REGISTER;
 
   coding->consumed = src - source;
   coding->produced = coding->produced_char = dst - destination;
