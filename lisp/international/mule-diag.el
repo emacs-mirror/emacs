@@ -729,9 +729,12 @@ which font is being used for displaying the character."
       (save-excursion
 	(set-buffer standard-output)
 	(let ((charsets (coding-system-get coding-system 'safe-charsets)))
-	  (when charsets
+	  (when (and (not (memq (coding-system-base coding-system)
+				'(raw-text emacs-mule)))
+		     charsets)
 	    (if (eq charsets t)
-		(insert "This coding system can encode all charsets.\n")
+		(insert "This coding system can encode all charsets except for
+eight-bit-control and eight-bit-graphic.\n")
 	      (insert "This coding system encodes the following charsets:\n ")
 	      (while charsets
 		(insert " " (symbol-name (car charsets)))
