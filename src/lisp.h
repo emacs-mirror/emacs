@@ -515,7 +515,7 @@ typedef struct interval *INTERVAL;
 
 /* Complain if object is not string or buffer type */
 #define CHECK_STRING_OR_BUFFER(x, i) \
-  { if (XTYPE ((x)) != Lisp_String && XTYPE ((x)) != Lisp_Buffer) \
+  { if (!STRINGP ((x)) && !BUFFERP ((x))) \
       x = wrong_type_argument (Qbuffer_or_string_p, (x)); }
 
 /* Macro used to conditionally compile intervals into certain data
@@ -710,9 +710,9 @@ typedef unsigned char UCHAR;
 #define GC_NILP(x) GC_EQ (x, Qnil)
 
 #ifdef LISP_FLOAT_TYPE
-#define NUMBERP(x) (XTYPE (x) == Lisp_Int || XTYPE (x) == Lisp_Float)
+#define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
 #else
-#define NUMBERP(x) (XTYPE (x) == Lisp_Int)
+#define NUMBERP(x) (INTEGERP (x))
 #endif
 
 #define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
@@ -734,30 +734,39 @@ typedef unsigned char UCHAR;
 #define FLOATP(x) (0)
 #endif
 #define OVERLAYP(x) (XTYPE ((x)) == Lisp_Overlay)
+#define BOOLFWDP(x) (XTYPE ((x)) == Lisp_Boolfwd)
+#define INTERNALP(x) (XTYPE ((x)) == Lisp_Internal)
+#define INTFWDP(x) (XTYPE ((x)) == Lisp_Intfwd)
+#define OBJFWDP(x) (XTYPE ((x)) == Lisp_Objfwd)
+#define INTERNAL_STREAMP(x) (XTYPE ((x)) == Lisp_Internal_Stream)
+#define BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Buffer_Local_Value)
+#define SOME_BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Some_Buffer_Local_Value)
+#define BUFFER_OBJFWDP(x) (XTYPE ((x)) == Lisp_Buffer_Objfwd)
+#define VOIDP(x) (XTYPE ((x)) == Lisp_Void)
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
 
 #define CHECK_LIST(x, i) \
-  do { if ((XTYPE ((x)) != Lisp_Cons) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); } while (0)
+  do { if (!CONSP ((x)) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); } while (0)
 
 #define CHECK_STRING(x, i) \
-  do { if (XTYPE ((x)) != Lisp_String) x = wrong_type_argument (Qstringp, (x)); } while (0)
+  do { if (!STRINGP ((x))) x = wrong_type_argument (Qstringp, (x)); } while (0)
 
 #define CHECK_CONS(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Cons) x = wrong_type_argument (Qconsp, (x)); } while (0)
+  do { if (!CONSP ((x))) x = wrong_type_argument (Qconsp, (x)); } while (0)
 
 #define CHECK_SYMBOL(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Symbol) x = wrong_type_argument (Qsymbolp, (x)); } while (0)
+  do { if (!SYMBOLP ((x))) x = wrong_type_argument (Qsymbolp, (x)); } while (0)
 
 #define CHECK_VECTOR(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Vector) x = wrong_type_argument (Qvectorp, (x)); } while (0)
+  do { if (!VECTORP ((x))) x = wrong_type_argument (Qvectorp, (x)); } while (0)
 
 #define CHECK_BUFFER(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Buffer) x = wrong_type_argument (Qbufferp, (x)); } while (0)
+  do { if (!BUFFERP ((x))) x = wrong_type_argument (Qbufferp, (x)); } while (0)
 
 #define CHECK_WINDOW(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Window) x = wrong_type_argument (Qwindowp, (x)); } while (0)
+  do { if (!WINDOWP ((x))) x = wrong_type_argument (Qwindowp, (x)); } while (0)
 
 /* This macro rejects windows on the interior of the window tree as
    "dead", which is what we want; this is an argument-checking macro, and 
@@ -768,27 +777,27 @@ typedef unsigned char UCHAR;
 
 #define CHECK_LIVE_WINDOW(x, i)				\
   do {							\
-    if (XTYPE ((x)) != Lisp_Window			\
+    if (!WINDOWP ((x))					\
 	|| NILP (XWINDOW ((x))->buffer))		\
       x = wrong_type_argument (Qwindow_live_p, (x));	\
   } while (0)
 
 #define CHECK_PROCESS(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Process) x = wrong_type_argument (Qprocessp, (x)); } while (0)
+  do { if (!PROCESSP ((x))) x = wrong_type_argument (Qprocessp, (x)); } while (0)
 
 #define CHECK_NUMBER(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Int) x = wrong_type_argument (Qintegerp, (x)); } while (0)
+  do { if (!INTEGERP ((x))) x = wrong_type_argument (Qintegerp, (x)); } while (0)
 
 #define CHECK_NATNUM(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Int || XINT ((x)) < 0)	\
+  do { if (!INTEGERP ((x)) || XINT ((x)) < 0)	\
       x = wrong_type_argument (Qwholenump, (x)); } while (0)
 
 #define CHECK_MARKER(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Marker) x = wrong_type_argument (Qmarkerp, (x)); } while (0)
+  do { if (!MARKERP ((x))) x = wrong_type_argument (Qmarkerp, (x)); } while (0)
 
 #define CHECK_NUMBER_COERCE_MARKER(x, i) \
-  do { if (XTYPE ((x)) == Lisp_Marker) XFASTINT (x) = marker_position (x); \
-    else if (XTYPE ((x)) != Lisp_Int) x = wrong_type_argument (Qinteger_or_marker_p, (x)); } while (0)
+  do { if (MARKERP ((x))) XFASTINT (x) = marker_position (x); \
+    else if (!INTEGERP ((x))) x = wrong_type_argument (Qinteger_or_marker_p, (x)); } while (0)
 
 #ifdef LISP_FLOAT_TYPE
 
@@ -799,16 +808,16 @@ typedef unsigned char UCHAR;
 #define XFLOATINT(n) extract_float((n))
 
 #define CHECK_FLOAT(x, i)		\
-  do { if (XTYPE (x) != Lisp_Float)	\
+  do { if (!FLOATP (x))			\
     x = wrong_type_argument (Qfloatp, (x)); } while (0)
 
 #define CHECK_NUMBER_OR_FLOAT(x, i)	\
-  do { if (XTYPE (x) != Lisp_Float && XTYPE (x) != Lisp_Int)	\
+  do { if (!FLOATP (x) && !INTEGERP (x))	\
     x = wrong_type_argument (Qnumberp, (x)); } while (0)
 
 #define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x, i) \
-  do { if (XTYPE (x) == Lisp_Marker) XFASTINT (x) = marker_position (x);	\
-  else if (XTYPE (x) != Lisp_Int && XTYPE (x) != Lisp_Float)		\
+  do { if (MARKERP (x)) XFASTINT (x) = marker_position (x);	\
+  else if (!INTEGERP (x) && !FLOATP (x))		\
     x = wrong_type_argument (Qnumber_or_marker_p, (x)); } while (0)
 
 #else  /* Not LISP_FLOAT_TYPE */
@@ -821,7 +830,7 @@ typedef unsigned char UCHAR;
 #endif /* LISP_FLOAT_TYPE */
 
 #define CHECK_OVERLAY(x, i) \
-  do { if (XTYPE ((x)) != Lisp_Overlay) x = wrong_type_argument (Qoverlayp, (x));} while (0)
+  do { if (!OVERLAYP ((x))) x = wrong_type_argument (Qoverlayp, (x));} while (0)
 
 /* Cast pointers to this type to compare them.  Some machines want int.  */
 #ifndef PNTR_COMPARISON_TYPE
