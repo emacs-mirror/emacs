@@ -1201,7 +1201,7 @@ supported, it is used by default whenever you attempt to retrieve
 POP mail when @code{rmail-pop-password} and
 @code{rmail-pop-password-required} are unset.
 
-@cindex POP inboxes in reverse order
+@cindex reverse order in POP inboxes
   Some POP servers store messages in reverse order.  If your server does
 this, and you would rather read your mail in the order in which it was
 received, you can tell @code{movemail} to reverse the order of

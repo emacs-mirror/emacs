@@ -618,7 +618,7 @@ century.
 @cindex astronomical day numbers
   Astronomers use a simple counting of days elapsed since noon, Monday,
 January 1, 4713 B.C. on the Julian calendar.  The number of days elapsed
-is called the @emph{Julian day number} or the @emph{Astronomical day number}.
+is called the @dfn{Julian day number} or the @dfn{Astronomical day number}.
 
 @cindex Hebrew calendar
   The Hebrew calendar is used by tradition in the Jewish religion.  The

@@ -475,7 +475,6 @@ of the special key bindings of Shell mode:
 @item @key{RET}
 @kindex RET @r{(Shell mode)}
 @findex comint-send-input
-@cindex prompt, shell
 At end of buffer send line as input; otherwise, copy current line to
 end of buffer and send it (@code{comint-send-input}).  When a line is
 copied, any prompt at the beginning if the line (text output by
@@ -1923,8 +1922,6 @@ the order you choose.
 @cindex other editors
 @cindex EDT
 @cindex vi
-@cindex CRiSP
-@cindex Brief
 @cindex PC keybindings
 @cindex scrolling all windows
 @cindex PC selecion
@@ -1942,6 +1939,7 @@ editors.  Standard facilities can emulate these:
 @findex scroll-all-mode
 @cindex CRiSP mode
 @cindex Brief emulation
+@cindex emulation of Brief
 @cindex mode, CRiSP
 You can turn on keybindings to emulate the CRiSP/Brief editor with
 @kbd{M-x crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs
@@ -2051,7 +2049,6 @@ keybindings.
 @section Hyperlinking and Navigation Features
 
 @cindex hyperlinking
-@cindex URLs
 @cindex navigation
   Various modes documented elsewhere have hypertext features so that
 you can follow links, usually by clicking @kbd{Mouse-2} on the link or
@@ -2139,13 +2136,11 @@ which has a similar feature of its own.
 
 @node FFAP
 @subsection Finding Files and URLs at Point
-@findex ffap
 @findex find-file-at-point
 @findex ffap
 @findex ffap-dired-at-point
 @findex ffap-next
 @findex ffap-menu
-@cindex FFAP
 @cindex finding file at point
 
   FFAP mode replaces certain key bindings for finding files, including

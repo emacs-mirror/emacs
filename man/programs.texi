@@ -36,11 +36,6 @@ Judicious use of blank lines to make the program clearer will also
 provide useful chunks of text for the paragraph commands to work
 on.
 
-@cindex selective display
-@cindex outline
-@cindex folding
-@findex outline-minor-mode
-@cindex outlines
   The selective display feature is useful for looking at the overall
 structure of a function (@pxref{Selective Display}).  This feature
 hides the lines that are indented more than a specified amount.
@@ -349,6 +344,7 @@ Put region around whole current or following defun (@code{mark-defun}).
   The commands to move to the beginning and end of the current defun are
 @kbd{C-M-a} (@code{beginning-of-defun}) and @kbd{C-M-e} (@code{end-of-defun}).
 
+@kindex C-M-h @r{(C mode)}
 @findex c-mark-function
   If you wish to operate on the current defun, use @kbd{C-M-h}
 (@code{mark-defun}) which puts point at the beginning and mark at the end
@@ -1466,8 +1462,7 @@ point.
 and they have no additional characters in common, a list of all possible
 completions is displayed in another window.
 
-@cindex completion using tags
-@cindex tags completion
+@cindex tags-based completion
 @cindex Info index completion
 @findex complete-symbol
   In most programming language major modes, @kbd{M-@key{TAB}} runs the
@@ -1482,7 +1477,7 @@ completion works only if there is an Info file for the standard library
 functions of your language, and only if it is installed at your site.
 
 @cindex Lisp symbol completion
-@cindex completion in Lisp
+@cindex completion (Lisp symbols)
 @findex lisp-complete-symbol
   In Emacs-Lisp mode, the name space for completion normally consists of
 nontrivial symbols present in Emacs---those that have function
@@ -3232,8 +3227,6 @@ hungry-delete feature is enabled.
 
 @table @kbd
 @item C-M-h
-@findex c-mark-function
-@kindex C-M-h @r{(C mode)}
 Put mark at the end of a function definition, and put point at the
 beginning (@code{c-mark-function}).
 
@@ -3383,12 +3376,10 @@ continuation lines.
 are unlike those of other languages.  Built-in abbrevs optionally save
 typing when you insert Fortran keywords.
 
-@findex fortran-mode
   Use @kbd{M-x fortran-mode} to switch to this major mode.  This command
 runs the hook @code{fortran-mode-hook} (@pxref{Hooks}).
 
-@cindex Fortran77
-@cindex Fortran90
+@cindex Fortran77 and Fortran90
 @findex f90-mode
 @findex fortran-mode
   Fortan mode is meant for editing Fortran77 ``fixed format'' source

@@ -379,22 +379,9 @@ and ``down'' counterparts.  @kbd{M-x windmove-default-keybindings} binds
 these commands to @kbd{S-right} etc.  (Not all terminals support shifted
 arrow keys, however.)
 
-@cindex Follow mode
-@cindex mode, Follow
-@findex follow-mode
-@cindex windows, synchronizing
-@cindex synchronizing windows
   Follow minor mode (@kbd{M-x follow-mode}) synchronizes several
 windows on the same buffer so that they always display adjacent
-sections of that buffer.  Also if point moves outside a window, it
-moves automatically to another window which shows that part of the
-buffer, if any.  Thus, the windows act like one large window on
-the buffer.
-
-  One use of this feature is to effectively double the number of lines
-in a given screen height, using side-by-side windows on the same
-buffer.  First split a window into side-by-side windows with @kbd{C-x
-3}, then use @kbd{M-x follow-mode} to synchronize the windows.
+sections of that buffer.  @xref{Follow Mode}.
 
 @vindex scroll-all-mode
 @cindex scrolling windows together

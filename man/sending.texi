@@ -418,13 +418,14 @@ modified flag, because only saving the file should do that.  As a
 result, you don't get a warning if you try to send the same message
 twice.
 
-@vindex sendmail-coding-system
+@c This is indexed in mule.texi, node "Recognize Coding".
+@c @vindex sendmail-coding-system
   When you send a message that contains non-ASCII characters, they need
 to be encoded with a coding system (@pxref{Coding Systems}).  Usually
 the coding system is specified automatically by your chosen language
 environment (@pxref{Language Environments}).  You can explicitly specify
 the coding system for outgoing mail by setting the variable
-@code{sendmail-coding-system}.
+@code{sendmail-coding-system} (@pxref{Recognize Coding}).
 
   If the coding system thus determined does not handle the characters in
 a particular message, Emacs asks you to select the coding system to use,

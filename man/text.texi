@@ -130,8 +130,10 @@ move to.  If point is after the space in @w{@samp{FOO, BAR}}, then
 not the comma and the space, use @kbd{M-b M-d} instead of
 @kbd{M-@key{DEL}}.)
 
-@kindex M-t
-@findex transpose-words
+@c Don't index M-t and transpose-words here, they are indexed in
+@c fixit.texi, in the node "Transpose".
+@c @kindex M-t
+@c @findex transpose-words
   @kbd{M-t} (@code{transpose-words}) exchanges the word before or
 containing point with the following word.  The delimiter characters between
 the words do not move.  For example, @w{@samp{FOO, BAR}} transposes into
@@ -856,7 +858,6 @@ visible.  @xref{Outline Mode}.
 @section Outline Mode
 @cindex Outline mode
 @cindex mode, Outline
-@cindex selective display
 @cindex invisible lines
 
 @findex outline-mode

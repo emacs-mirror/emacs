@@ -377,7 +377,7 @@ Search}.
 
 @node Regexps, Search Case, Regexp Search, Search
 @section Syntax of Regular Expressions
-@cindex regexp syntax
+@cindex syntax of regexps
 
   Regular expressions have a syntax in which a few characters are
 special constructs and the rest are @dfn{ordinary}.  An ordinary

@@ -529,7 +529,7 @@ Change the mode (also called ``permission bits'') of the specified files
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}
-@cindex changing file group ownership (in Dired)
+@cindex changing file group (in Dired)
 @item G @var{newgroup} @key{RET}
 Change the group of the specified files to @var{newgroup}
 (@code{dired-do-chgrp}).
@@ -601,13 +601,6 @@ replacing matches for @var{from} (a regular expression) with the string
 This command is a variant of @code{tags-query-replace}.  If you exit the
 query replace loop, you can use @kbd{M-,} to resume the scan and replace
 more matches.  @xref{Tags Search}.
-
-@kindex a @r{(Dired)}
-@findex dired-do-apply
-@cindex apply arbitrary function to many files
-@item a @var{function} @kbd{RET}
-Apply an arbitrary Lisp function to the name of each marked file
-(@code{dired-do-apply}).
 @end table
 
 @kindex + @r{(Dired)}
@@ -1010,7 +1003,6 @@ minibuffer arguments, @var{directory} and @var{find-args}; it runs
 @code{find} what condition to test.  To use this command, you need to
 know how to use @code{find}.
 
-@pindex locate
 @findex locate
 @findex locate-with-filter
 @cindex file database (locate)

@@ -629,8 +629,7 @@ Char: @`A (04300, 2240, 0x8c0, ext ESC , A @@) (latin-iso8859-1 64)
 @section Numeric Arguments
 @cindex numeric arguments
 @cindex prefix arguments
-@cindex arguments, numeric
-@cindex arguments, prefix
+@cindex arguments to commands
 
   In mathematics and computer usage, the word @dfn{argument} means
 ``data provided to a function or operation.''  You can give any Emacs

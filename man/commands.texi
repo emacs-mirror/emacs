@@ -173,7 +173,6 @@ characters.
 @section Keys and Commands
 
 @cindex binding
-@cindex function
 @cindex command
 @cindex function definition
   This manual is full of passages that tell you what particular keys

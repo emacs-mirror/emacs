@@ -948,8 +948,7 @@ on your screen using the command @code{ps-print-buffer-with-faces}.
 @section Font Lock mode
 @cindex Font Lock mode
 @cindex mode, Font Lock
-@cindex syntax highlighting
-@cindex syntax coloring
+@cindex syntax highlighting and coloring
 
   Font Lock mode is a minor mode, always local to a particular
 buffer, which highlights (or ``fontifies'') using various faces
@@ -1106,9 +1105,9 @@ highlight.  You control Hi-lock mode with these commands:
 
 @table @kbd
 @item C-x w h @var{regexp} @key{RET} @var{face} @key{RET}
-@kindex C-x w i
+@kindex C-x w h
 @findex highlight-regexp
-Highlight text that matches Highlight all strings that match
+Highlight text that matches
 @var{regexp} using face @var{face} (@code{highlight-regexp}).
 By using this command more than once, you can highlight various
 parts of the text in different ways.

@@ -687,7 +687,6 @@ faces that you have set but not saved.
 @node Hooks
 @subsection Hooks
 @cindex hook
-@cindex hook function
 @cindex running a hook
 
   @dfn{Hooks} are an important mechanism for customization of Emacs.  A
@@ -1460,7 +1459,7 @@ for cautious completion.
 @node Rebinding
 @subsection Changing Key Bindings Interactively
 @cindex key rebinding, this session
-@cindex rebinding keys, this session
+@cindex redefining keys, this session
 
   The way to redefine an Emacs key is to change its entry in a keymap.
 You can change the global keymap, in which case the change is effective in

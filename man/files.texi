@@ -146,7 +146,6 @@ Visit a file with no conversion of the contents.
 @end table
 
 @cindex files, visiting and saving
-@cindex visiting files
 @cindex saving files
   @dfn{Visiting} a file means copying its contents into an Emacs buffer
 so you can edit them.  Emacs makes a new buffer for each file that you
@@ -2683,7 +2682,6 @@ refers to a file whose name is @file{~hack} in directory @file{/tmp}.
 a file name that contains @samp{$}.  However, the @samp{/:} must be at
 the beginning of the buffer in order to quote @samp{$}.
 
-@cindex wildcard characters in file names
   You can also quote wildcard characters with @samp{/:}, for visiting.
 For example, @file{/:/tmp/foo*bar} visits the file @file{/tmp/foo*bar}.
 However, in most cases you can simply type the wildcard characters for

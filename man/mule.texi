@@ -492,7 +492,6 @@ coding systems @code{no-conversion}, @code{raw-text} and
 MS-DOS software.  To use any of these systems, you need to create it
 with @kbd{M-x codepage-setup}.  @xref{MS-DOS and MULE}.
 
-@cindex end-of-line conversion
   In addition to converting various representations of non-ASCII
 characters, a coding system can perform end-of-line conversion.  Emacs
 handles three different conventions for how to separate lines in a file:
@@ -1134,7 +1133,6 @@ sequences mostly correspond to those of the prefix input methods.
 @cindex accented characters
 @cindex ISO Latin character sets
 @cindex Unibyte operation
-@vindex enable-multibyte-characters
   The ISO 8859 Latin-@var{n} character sets define character codes in
 the range 160 to 255 to handle the accented letters and punctuation
 needed by various European languages (and some non-European ones).
@@ -1179,8 +1177,6 @@ characters:
 @itemize @bullet
 @cindex 8-bit input
 @item
-@findex set-keyboard-coding-system
-@vindex keyboard-coding-system
 If your keyboard can generate character codes 128 and up, representing
 non-ASCII you can type those character codes directly.
 

@@ -156,7 +156,9 @@ Scroll through buffer @var{buffer}.
 @end table
 
 @kindex C-x C-q
-@findex vc-toggle-read-only
+@c Don't index vc-toggle-read-only here, it is indexed in files.texi,
+@c in the node "Basic VC Editing".
+@c @findex vc-toggle-read-only
 @vindex buffer-read-only
 @cindex read-only buffer
   A buffer can be @dfn{read-only}, which means that commands to change

@@ -92,8 +92,10 @@ Otherwise, a reverse search (@kbd{C-r}) is often the best way.
 @findex transpose-lines
 @kindex M-t
 @findex transpose-words
-@kindex C-M-t
-@findex transpose-sexps
+@c Don't index C-M-t and transpose-sexps here, they are indexed in
+@c programs.texi, in the "List Commands" node.
+@c @kindex C-M-t
+@c @findex transpose-sexps
   @kbd{M-t} (@code{transpose-words}) transposes the word before point
 with the word after point.  It moves point forward over a word, dragging
 the word preceding or containing point forward as well.  The punctuation

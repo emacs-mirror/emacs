@@ -233,6 +233,7 @@ one large window.
 
 @node Selective Display
 @section Selective Display
+@cindex selective display
 @findex set-selective-display
 @kindex C-x $
 
@@ -502,7 +503,9 @@ occupied by that tab character.  To enable this feature, set the
 variable @code{x-stretch-cursor} to a non-@code{nil} value.
 
 @cindex cursor in non-selected windows
+@vindex show-cursor-in-non-selected-windows
 @vindex cursor-in-non-selected-windows
-  Normally, the cursor in non-selected windows is shown as a hollow
-box.  To turn off cursor display in non-selected windows, set the
-variable @code{cursor-in-non-selected-windows} to @code{nil}.
+  Normally, the cursor in non-selected windows is shown as a hollow box.
+To turn off cursor display in non-selected windows, customize the option
+@code{show-cursor-in-non-selected-windows}, or set the variable
+@code{cursor-in-non-selected-windows} to @code{nil}.

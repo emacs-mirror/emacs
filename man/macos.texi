@@ -34,8 +34,8 @@ they are not supported in the Mac OS version.
 
 @node Mac Input
 @section Keyboard Input on the Mac
-@cindex Meta (under Mac OS)
-@cindex Mac keyboard coding
+@cindex Meta (Mac OS)
+@cindex keyboard coding (Mac OS)
 @vindex mac-command-key-is-meta
 @vindex mac-keyboard-text-encoding
 
@@ -79,7 +79,7 @@ make this setting permanent, put this in your @file{.emacs} init file:
 @node Mac International
 @section International Character Set Support on the Mac
 @cindex Mac Roman coding system
-@cindex Mac clipboard support
+@cindex clipboard support (Mac OS)
 
   The Mac uses a non-standard encoding for the upper 128 single-byte
 characters.  It also deviates from the ISO 2022 standard by using code
@@ -134,7 +134,7 @@ Chinese, use @samp{chinese-big5-mac} and for Japanese,
 
 @node Mac Environment Variables
 @section Environment Variables and Command Line Arguments.
-@cindex Mac environment variables
+@cindex environment variables (Mac OS)
 
   Environment variables and command line arguments for Emacs can be set
 by modifying the @samp{STR#} resources 128 and 129, respectively.  A common
@@ -159,7 +159,7 @@ EMACS_UNIBYTE=1
 
 @node Mac Directories
 @section Volumes and Directories on the Mac
-@cindex file names under Mac OS
+@cindex file names (Mac OS)
 
   The directory structure in the Mac OS is seen by Emacs as 
 
@@ -186,7 +186,7 @@ another directory but this folder will still be created.
 
 @node Mac Font Specs
 @section Specifying Fonts on the Mac
-@cindex font names under Mac OS
+@cindex font names (Mac OS)
 
   Fonts are specified to Emacs on the Mac in the form of a standard X
 font name.  I.e.,
@@ -218,7 +218,7 @@ the name @samp{-ETL-fixed-*-iso8859-1}.
 
 @node Mac Functions
 @section Mac-Specific Lisp Functions
-@cindex Lisp functions on the Mac OS
+@cindex Lisp functions specific to Mac OS
 
 @findex do-applescript
   The function @code{do-applescript} takes a string argument,
