@@ -222,7 +222,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;;	ccom: Error: foo.c, line 2: syntax error
     ;; DEC AXP OSF/1 cc
     ;;  /usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah
-    ("[a-z/]+: \\([eE]rror\\|[wW]arning\\): \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
+    ("[a-z/]+: \\([eE]rror\\|[wW]arning\\): \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 2 4)
 
     ;; IBM AIX PS/2 C version 1.1:
     ;;	****** Error number 140 in line 8 of file errors.c ******
