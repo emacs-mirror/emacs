@@ -1,3 +1,14 @@
+1999-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_set_face): Don't swap face colors when highlight or
+	fp->tty_reverse_p is set, unless the computed colors are identical
+	to frame colors.  Print both original and computed colors to
+	termscript file.
+	(IT_write_glyphs): Track the changes in handling of composite
+	characters.
+	(IT_set_frame_parameters): Don't set frame colors from
+	unspecified-fg and unspecified-bg pseudo-colors.
+
 1999-12-17  Dave Love  <fx@gnu.org>
 
 	* data.c (Fkeywordp): New function.

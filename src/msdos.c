@@ -679,25 +679,34 @@ IT_set_face (int face)
   fg = fp->foreground;
   bg = fp->background;
 
-  /* Don't use invalid colors.  In particular, a color of -1 means use
-     the colors of the default face, except that if highlight is on,
-     invert the foreground and the background.  Note that we assume
-     all 16 colors to be available for the background, since Emacs
-     switches on this mode (and loses the blinking attribute) at
-     startup.  */
+  /* Don't use invalid colors.  In particular, FACE_TTY_DEFAULT_*
+     colors mean use the colors of the default face, except that if
+     highlight is on, invert the foreground and the background.  Note
+     that we assume all 16 colors to be available for the background,
+     since Emacs switches on this mode (and loses the blinking
+     attribute) at startup.  */
   if (fg == FACE_TTY_DEFAULT_COLOR || fg == FACE_TTY_DEFAULT_FG_COLOR)
-    fg = highlight || fp->tty_reverse_p ? FRAME_BACKGROUND_PIXEL (sf)
-					: FRAME_FOREGROUND_PIXEL (sf);
+    fg = FRAME_FOREGROUND_PIXEL (sf);
   else if (fg == FACE_TTY_DEFAULT_BG_COLOR)
-    fg = highlight ? FRAME_FOREGROUND_PIXEL (sf) : FRAME_BACKGROUND_PIXEL (sf);
-  if (bg == FACE_TTY_DEFAULT_COLOR || fg == FACE_TTY_DEFAULT_BG_COLOR)
-    bg = highlight || fp->tty_reverse_p ? FRAME_FOREGROUND_PIXEL (sf)
-					: FRAME_BACKGROUND_PIXEL (sf);
+    fg = FRAME_BACKGROUND_PIXEL (sf);
+  if (bg == FACE_TTY_DEFAULT_COLOR || bg == FACE_TTY_DEFAULT_BG_COLOR)
+    bg = FRAME_BACKGROUND_PIXEL (sf);
   else if (bg == FACE_TTY_DEFAULT_FG_COLOR)
-    fg = highlight ? FRAME_BACKGROUND_PIXEL (sf) : FRAME_FOREGROUND_PIXEL (sf);
+    bg = FRAME_FOREGROUND_PIXEL (sf);
+
+  /* Make sure highlighted lines really stand out, come what may.  */
+  if ((highlight || fp->tty_reverse_p)
+      && (fg == FRAME_FOREGROUND_PIXEL (sf)
+	  && bg == FRAME_BACKGROUND_PIXEL (sf)))
+    {
+      unsigned long tem = fg;
+
+      fg = bg;
+      bg = tem;
+    }
   if (termscript)
-    fprintf (termscript, "<FACE %d%s: %d/%d>",
-	     face, highlight ? "H" : "", fp->foreground, fp->background);
+    fprintf (termscript, "<FACE %d%s: %d/%d[FG:%d/BG:%d]>", face,
+	     highlight ? "H" : "", fp->foreground, fp->background, fg, bg);
   if (fg >= 0 && fg < 16)
     {
       ScreenAttrib &= 0xf0;
@@ -734,7 +743,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
     = (NILP (current_buffer->enable_multibyte_characters)
        && unibyte_display_via_language_environment);
 
-  if (str_len == 0) return;
+  if (str_len <= 0) return;
   
   screen_buf = screen_bp = alloca (str_len * 2);
   screen_buf_end = screen_buf + str_len * 2;
@@ -753,7 +762,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
   while (sl)
     {
       int cf, chlen, enclen;
-      unsigned char workbuf[4], *buf;
+      unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *buf;
       unsigned ch;
       register GLYPH g = GLYPH_FROM_CHAR_GLYPH (*str);
 
@@ -790,14 +799,6 @@ IT_write_glyphs (struct glyph *str, int str_len)
 		: MAKE_GLYPH (sf, '\177', GLYPH_FACE (sf, g));
 	      ch = FAST_GLYPH_CHAR (g);
 	    }
-	  if (COMPOSITE_CHAR_P (ch))
-	    {
-	      /* If CH is a composite character, we can display
-		 only the first component.  */
-	      g = cmpchar_table[COMPOSITE_CHAR_ID (ch)]->glyph[0],
-	      ch = GLYPH_CHAR (sf, g);
-	      cf = FAST_GLYPH_FACE (g);
-	    }
 
 	  /* If the face of this glyph is different from the current
 	     screen face, update the screen attribute byte.  */
@@ -806,8 +807,11 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	    IT_set_face (cf);	/* handles invalid faces gracefully */
 
 	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
-	    /* We generate the multi-byte form of CH in BUF.  */
-	    chlen = CHAR_STRING (ch, workbuf, buf);
+	    {
+	      /* We generate the multi-byte form of CH in WORKBUF.  */
+	      chlen = CHAR_STRING (ch, workbuf);
+	      buf = workbuf;
+	    }
 	  else
 	    {
 	      /* We have a string in Vglyph_table.  */
@@ -1444,7 +1448,9 @@ IT_set_frame_parameters (f, alist)
 	  unsigned long new_color = load_color (f, NULL, val, reverse
 						? LFACE_BACKGROUND_INDEX
 						: LFACE_FOREGROUND_INDEX);
-	  if (new_color != ~0)
+	  if (new_color !=  FACE_TTY_DEFAULT_COLOR
+	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
+	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
 	      if (reverse)
 		/* FIXME: should the fore-/background of the default
@@ -1463,7 +1469,9 @@ IT_set_frame_parameters (f, alist)
 	  unsigned long new_color = load_color (f, NULL, val, reverse
 						? LFACE_FOREGROUND_INDEX
 						: LFACE_BACKGROUND_INDEX);
-	  if (new_color != ~0)
+	  if (new_color != FACE_TTY_DEFAULT_COLOR
+	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
+	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
 	      if (reverse)
 		FRAME_FOREGROUND_PIXEL (f) = new_color;
