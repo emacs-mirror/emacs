@@ -500,6 +500,7 @@ Here is the current list of valid syntactic element symbols:
 			    nil))))
     offset))
 
+;;;###autoload
 (defun c-set-offset (symbol offset &optional add-p)
   "Change the value of a syntactic element symbol in `c-offsets-alist'.
 SYMBOL is the syntactic element symbol to change and OFFSET is the new
