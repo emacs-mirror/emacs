@@ -2090,6 +2090,7 @@ unixtodos_filename (p)
 }
 
 /* Get the default directory for a given drive.  0=def, 1=A, 2=B, ...  */
+void msdos_downcase_filename (unsigned char *);
 
 int
 getdefdir (drive, dst)
@@ -2113,11 +2114,7 @@ getdefdir (drive, dst)
   if (errno)
     return 0;
 
-  /* Under LFN we expect to get pathnames in their true case.  */
-  if (! (_USE_LFN))
-    for (p = dst; *p; p++)
-      if (*p >= 'A' && *p <= 'Z')
-	*p += 'a' - 'A';
+  msdos_downcase_filename (dst);
 
   errno = e;
   return 1;
@@ -2231,6 +2228,32 @@ DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
   ()
 {
   return (_USE_LFN ? Qt : Qnil);
+}
+
+/* Convert alphabetic characters in a filename to lower-case.  */
+
+void
+msdos_downcase_filename (p)
+     register unsigned char *p;
+{
+  /* Under LFN we expect to get pathnames in their true case.  */
+  if (NILP (Fmsdos_long_file_names ()))
+    for ( ; *p; p++)
+      if (*p >= 'A' && *p <= 'Z')
+	*p += 'a' - 'A';
+}
+
+DEFUN ("msdos-downcase-filename", Fmsdos_downcase_filename, Smsdos_downcase_filename,
+       1, 1, 0,
+  "Convert alphabetic characters in FILENAME to lower case and return that.\n\
+When long filenames are supported, doesn't change FILENAME.")
+  (filename)
+     Lisp_Object filename;
+{
+  char *fname = XSTRING (filename)->data;
+
+  msdos_downcase_filename (fname);
+  return make_string (fname, XSTRING (filename)->size);
 }
 
 /* The Emacs root directory as determined by init_environment.  */
@@ -2924,6 +2947,7 @@ syms_of_msdos ()
 
   defsubr (&Srecent_doskeys);
   defsubr (&Smsdos_long_file_names);
+  defsubr (&Smsdos_downcase_filename);
 }
 
 #endif /* MSDOS */
