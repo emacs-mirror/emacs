@@ -133,3 +133,5 @@ extern Lisp_Object _temp_category_set;
 #define WORD_BOUNDARY_P(c1, c2)					\
   (!(SINGLE_BYTE_CHAR_P (c1) && SINGLE_BYTE_CHAR_P (c2))	\
    && word_boundary_p (c1, c2))
+
+extern int word_boundary_p P_ ((int, int));
