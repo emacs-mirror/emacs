@@ -153,6 +153,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
 #undef LDAV_SYMBOL
+#define SYSTEM_MALLOC
 #ifdef SIGIO
  /* R3V7 has SIGIO, but interrupt input does not work yet.
     Let's go on with cbreak code. */
@@ -225,7 +226,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 		 functions with few local variables. */
 #  define C_SWITCH_MACHINE -ga -O
 #  define GAP_USE_BCOPY		/* *++to = *++from  is inefficient */
-#  define BCOPY_DOWNWARD_SAFE	/* bcopy does: mov.b (%a1)+,(%a0)+ */
+#  define BCOPY_UPWARD_SAFE 0
+#  define BCOPY_DOWNWARD_SAFE 1	/* bcopy does: mov.b (%a1)+,(%a0)+ */
 # else
  /* We are using the standard AT&T Portable C Compiler */
 #  define SWITCH_ENUM_BUG
