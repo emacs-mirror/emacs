@@ -40,6 +40,7 @@ This function works by modifying `process-environment'."
   (if (string-match "=" variable)
       (error "Environment variable name `%s' contains `='" variable)
     (let ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
+	  (case-fold-search nil)
 	  (scan process-environment))
       (while scan
 	(cond
