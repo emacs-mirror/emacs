@@ -1,3 +1,8 @@
+2005-03-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-lang.el: Add functions to math-function-table
+	properties of tex and math.
+
 2005-03-29  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-plot-string): Translate characters by
