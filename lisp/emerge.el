@@ -564,7 +564,7 @@
 
 (defmacro emerge-eval-in-buffer (buffer &rest forms)
   "Macro to switch to BUFFER, evaluate FORMS, returns to original buffer.
-Differs from  save-excursion  in that it doesn't save the point and mark."
+Differs from `save-excursion' in that it doesn't save the point and mark."
   (` (let ((StartBuffer (current-buffer)))
     (unwind-protect
 	(progn
@@ -573,10 +573,11 @@ Differs from  save-excursion  in that it doesn't save the point and mark."
       (set-buffer StartBuffer)))))
 
 (defmacro emerge-defvar-local (var value doc) 
-  "Defines SYMBOL as an advertised variable.  Performs a defvar, then
-executes make-variable-buffer-local on the variable.  Also sets the
-'preserved' property, so that kill-all-local-variables (called by major-mode
-setting commands) won't destroy Emerge control variables."
+  "Defines SYMBOL as an advertised variable.  
+Performs a defvar, then executes `make-variable-buffer-local' on
+the variable.  Also sets the 'preserved' property, so that
+`kill-all-local-variables' (called by major-mode setting commands) 
+won't destroy Emerge control variables."
   (` (progn
        (defvar (, var) (, value) (, doc))
        (make-variable-buffer-local '(, var))
@@ -594,16 +595,16 @@ setting commands) won't destroy Emerge control variables."
 
 ;; We need to define this function so describe-mode can describe Emerge mode.
 (defun emerge-mode ()
-  "Emerge mode is used by the Emerge file-merging package.  It is entered only
-through one of the functions:
-	emerge-files
-	emerge-files-with-ancestor
-	emerge-buffers
-	emerge-buffers-with-ancestor
-	emerge-files-command
-	emerge-files-with-ancestor-command
-	emerge-files-remote
-	emerge-files-with-ancestor-remote
+  "Emerge mode is used by the Emerge file-merging package.
+It is entered only through one of the functions:
+	`emerge-files'
+	`emerge-files-with-ancestor'
+	`emerge-buffers'
+	`emerge-buffers-with-ancestor'
+	`emerge-files-command'
+	`emerge-files-with-ancestor-command'
+	`emerge-files-remote'
+	`emerge-files-with-ancestor-remote'
 
 Commands:
 \\{emerge-basic-keymap}
@@ -614,8 +615,8 @@ in 'fast' mode.")
   "The version of Emerge.")
 
 (defun emerge-version ()
-  "Return string describing the version of Emerge.  When called interactively,
-displays the version."
+  "Return string describing the version of Emerge.
+When called interactively, displays the version."
   (interactive)
   (if (interactive-p)
       (message "Emerge version %s" (emerge-version))
@@ -659,8 +660,9 @@ Lines that do not match are assumed to be error output.")
 ;; These function definitions need to be up here, because they are used
 ;; during loading.
 (defun emerge-new-flags ()
-  "Function to be called after emerge-{before,after}-flag are changed to
-compute values that depend on the flags."
+  "Function to be called after `emerge-{before,after}-flag'.
+This is called after these functions are changed to compute values that
+depend on the flags."
   (setq emerge-before-flag-length (length emerge-before-flag))
   (setq emerge-before-flag-lines
 	(count-matches-string emerge-before-flag "\n"))
@@ -880,8 +882,7 @@ emerge-prefix-argument will be bound to the prefix argument of the emerge-quit
 command.
 This is  not  a user option, since Emerge uses it for its own processing.")
 (emerge-defvar-local emerge-output-description nil
-  "Describes output destination of the merge, for the use of
-emerge-file-names.")
+  "Describes output destination merge, for the use of `emerge-file-names'.")
 
 ;;; Setup functions for two-file mode.
 
@@ -1366,9 +1367,10 @@ emerge-file-names.")
   (setq emerge-fast-mode t))
 
 (defun emerge-remember-buffer-characteristics ()
-  "Must be called in the merge buffer.  Remembers certain properties of the
-buffers being merged (read-only, modified, auto-save), and saves them in
-buffer local variables.  Sets the buffers read-only and turns off auto-save.
+  "Remembers certain properties of the buffers being merged.
+Must be called in the merge buffer.  Remembers read-only, modified,
+auto-save, and saves them in buffer local variables.  Sets the buffers
+read-only and turns off `auto-save-mode'.
 These characteristics are restored by emerge-restore-buffer-characteristics."
   ;; force auto-save, because we will turn off auto-saving in buffers for the
   ;; duration
@@ -1495,9 +1497,9 @@ emerge-remember-buffer-characteristics."
 ;;; Commands
 
 (defun emerge-recenter (&optional arg)
-  "Bring the highlighted region of all three merge buffers into view,
-if they are in windows.  If an ARGUMENT is given, the default three-window
-display is reestablished."
+  "Bring the highlighted region of all three merge buffers into view.
+This brings the buffers into view if they are in windows.
+If an ARGUMENT is given, the default three-window display is reestablished."
   (interactive "P")
   ;; If there is an argument, rebuild the window structure
   (if arg
@@ -1628,7 +1630,7 @@ size of the merge window."
 (defun emerge-scroll-left (&optional arg)
   "Scroll left all three merge buffers, if they are in windows.
 If an ARGUMENT is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  `C-u -' alone as argument scrolls half the
+the width of the A and B windows.  C-u - alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows
@@ -1656,7 +1658,7 @@ width of the A and B windows."
 (defun emerge-scroll-right (&optional arg)
   "Scroll right all three merge buffers, if they are in windows.
 If an ARGUMENT is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  `C-u -' alone as argument scrolls half the
+the width of the A and B windows.  C-u - alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows
@@ -1682,8 +1684,9 @@ width of the A and B windows."
 	     default-amount)))))))
 
 (defun emerge-scroll-reset ()
-  "Reset horizontal scrolling of all three merge buffers to the left margin,
-if they are in windows."
+  "Reset horizontal scrolling.
+This resets the horizontal scrolling of all three merge buffers
+to the left margin, if they are in windows."
   (interactive)
   (emerge-operate-on-windows
    (function (lambda (x) (set-window-hscroll (selected-window) 0)))
@@ -1766,8 +1769,9 @@ if they are in windows."
       (error "Bad difference number"))))
 
 (defun emerge-quit (arg)
-  "Finish an Emerge session.  Prefix ARGUMENT means to abort rather than
-successfully finish.  The difference depends on how the merge was started,
+  "Finish an Emerge session.
+Prefix argument means to abort rather than successfully finish.
+The difference depends on how the merge was started,
 but usually means to not write over one of the original files, or to signal
 to some process which invoked Emerge a failure code.
 
@@ -1815,8 +1819,9 @@ buffer after this will cause serious problems."
     (run-hooks 'emerge-quit-hook)))
 
 (defun emerge-select-A (&optional force)
-  "Select the A variant of this difference.  Refuses to function if this
-difference has been edited, i.e., if it is neither the A nor the B variant.
+  "Select the A variant of this difference.  
+Refuses to function if this difference has been edited, i.e., if it
+is neither the A nor the B variant.
 An ARGUMENT forces the variant to be selected even if the difference has
 been edited."
   (interactive "P")
@@ -1843,9 +1848,9 @@ been edited."
    (emerge-refresh-mode-line)))
 
 (defun emerge-select-B (&optional force)
-  "Select the B variant of this difference.  Refuses to function if this
-difference has been edited, i.e., if it is neither the A nor the B variant.
-An ARGUMENT forces the variant to be selected even if the difference has
+  "Select the B variant of this difference.
+Refuses to function if this difference has been edited, i.e., if it
+is neither the A nor the B variant.  An ARGUMENT forces the variant to be selected even if the difference has
 been edited."
   (interactive "P")
   (let ((operate
@@ -1871,7 +1876,8 @@ been edited."
    (emerge-refresh-mode-line)))
 
 (defun emerge-default-A ()
-  "Selects the A variant for all differences from here down in the buffer
+  "Selects the A variant.
+This selects the A variant for all differences from here down in the buffer
 which are still defaulted, i.e., which the user has not selected and for
 which there is no preference."
   (interactive)
@@ -1892,7 +1898,8 @@ which there is no preference."
   (message "Default A set"))
 
 (defun emerge-default-B ()
-  "Selects the B variant for all differences from here down in the buffer
+  "Selects the B variant.
+This selects the B variant for all differences from here down in the buffer
 which are still defaulted, i.e., which the user has not selected and for
 which there is no preference."
   (interactive)
@@ -1913,8 +1920,9 @@ which there is no preference."
   (message "Default B set"))
 
 (defun emerge-fast-mode ()
-  "Set fast mode, in which ordinary Emacs commands are disabled, and Emerge
-commands are need not be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
+  "Set fast mode.
+In this mode ordinary Emacs commands are disabled, and Emerge commands
+are need not be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (interactive)
   (setq buffer-read-only t)
   (use-local-map emerge-fast-keymap)
@@ -1926,8 +1934,9 @@ commands are need not be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-key
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun emerge-edit-mode ()
-  "Set edit mode, in which ordinary Emacs commands are available, and Emerge
-commands must be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
+  "Set edit mode.
+In this mode ordinary Emacs commands are available, and Emerge commands
+must be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (interactive)
   (setq buffer-read-only nil)
   (use-local-map emerge-edit-keymap)
@@ -1939,11 +1948,11 @@ commands must be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun emerge-auto-advance (arg)
-  "Toggle auto-advance mode, which causes  emerge-select-A  and
- emerge-select-B  to automatically advance to the next difference.  (See
-emerge-auto-advance.)  
-If a positive ARGUMENT is given, it turns on auto-advance mode.
-If a negative ARGUMENT is given, it turns off auto-advance mode."
+  "Toggle auto-advance mode.
+This mode causes `emerge-select-A' and `emerge-select-B'  to automatically
+advance to the next difference.  (See `emerge-auto-advance'.)  
+If a positive ARGUMENT is given, it turns on `auto-advance-mode'.
+If a negative ARGUMENT is given, it turns off `auto-advance-mode'."
   (interactive "P")
   (setq emerge-auto-advance (if (null arg)
 				(not emerge-auto-advance)
@@ -1955,11 +1964,12 @@ If a negative ARGUMENT is given, it turns off auto-advance mode."
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun emerge-skip-prefers (arg)
-  "Toggle skip-prefers mode, which causes  emerge-next-difference  and
- emerge-previous-difference  to automatically skip over differences for which
-there is a preference.  (See emerge-skip-prefers.)  
-If a positive ARGUMENT is given, it turns on skip-prefers mode.
-If a negative ARGUMENT is given, it turns off skip-prefers mode."
+  "Toggle skip-prefers mode.
+This mode causes `emerge-next-difference' and `emerge-previous-difference'
+to automatically skip over differences for which there is a preference.
+(See `emerge-skip-prefers'.)  If a positive ARG is given, it turns on
+`skip-prefers' mode.
+If a negative ARG is given, it turns off `skip-prefers' mode."
   (interactive "P")
   (setq emerge-skip-prefers (if (null arg)
 				(not emerge-skip-prefers)
@@ -2052,7 +2062,7 @@ With prefix argument, puts mark before, point after."
 
 (defun emerge-file-names ()
   "Show the names of the buffers or files being operated on by Emerge.
-Use ^U L to reset the windows afterward."
+Use C-u l to reset the windows afterward."
   (interactive)
   (delete-other-windows)
   (let ((temp-buffer-show-hook
@@ -2092,8 +2102,8 @@ Use ^U L to reset the windows afterward."
       (princ emerge-output-description))))
 
 (defun emerge-join-differences (arg)
-  "Join the selected difference with the following one.  With a prefix
-argument, join with the preceeding one."
+  "Join the selected difference with the following one.
+With a prefix argument, join with the preceeding one."
   (interactive "P")
   (let ((n emerge-current-difference))
     ;; adjust n to be first difference to join
@@ -2207,9 +2217,10 @@ argument, join with the preceeding one."
       (emerge-recenter))))
 
 (defun emerge-trim-difference ()
-  "Trim lines off the top and bottom of a difference that are the same in
-both the A and B versions.  (This can happen when the A and B versions
-have common lines that the ancestor version does not share.)"
+  "Trim lines off top and bottom of difference that are the same.
+If lines are the same in both the A and the B versions, strip them off.
+(This can happen when the A and B versions have common lines that the
+ancestor version does not share.)"
   (interactive)
   ;; make sure we are in a real difference
   (emerge-validate-difference)
@@ -2305,8 +2316,8 @@ the nearest previous difference."
   (emerge-find-difference1 arg (point) 4 5))
 
 (defun emerge-find-difference-A (arg)
-  "Find the difference containing the current position of the point in the
-A buffer.  (Nonetheless, this command must be executed in the merge buffer.)
+  "Find the difference containing the position of the point in the A buffer.
+This command must be executed in the merge buffer.
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
 the nearest previous difference."
@@ -2318,8 +2329,8 @@ the nearest previous difference."
 			   0 1))
 
 (defun emerge-find-difference-B (arg)
-  "Find the difference containing the current position of the point in the
-B buffer.  (Nonetheless, this command must be executed in the merge buffer.)
+  "Find the difference containing the position of the point in the B buffer.
+This command must be executed in the merge buffer.
 If there is no containing difference and the prefix argument is positive,
 it finds the nearest following difference.  A negative prefix argument finds
 the nearest previous difference."
@@ -2368,7 +2379,8 @@ the nearest previous difference."
 	 (error "No difference contains or preceeds point")))))))
 
 (defun emerge-line-numbers ()
-  "Display the current line numbers of the points in the A, B, and
+  "Display the current line numbers.
+This function displays the line numbers of the points in the A, B, and
 merge buffers."
   (interactive)
   (let* ((valid-diff
@@ -2398,9 +2410,9 @@ merge buffers."
     temp))
 
 (defun emerge-set-combine-versions-template (start end &optional localize)
-  "Copy region into  emerge-combine-versions-template  which controls how
-emerge-combine-versions  will combine the two versions.
-With prefix argument,  emerge-combine-versions  is made local to this
+  "Copy region into `emerge-combine-versions-template'.
+This controls how `emerge-combine-versions' will combine the two versions.
+With prefix argument, `emerge-combine-versions'  is made local to this
 merge buffer.  Localization is permanent for any particular merge buffer."
   (interactive "r\nP")
   (if localize
@@ -2412,22 +2424,21 @@ merge buffer.  Localization is permanent for any particular merge buffer."
      "emerge-set-combine-versions-template set.")))
 
 (defun emerge-combine-versions (&optional force)
-  "Combine the two versions using the template in
-emerge-combine-versions-template.
+  "Combine versions using the template in `emerge-combine-versions-template'.
 Refuses to function if this difference has been edited, i.e., if it is
 neither the A nor the B variant.
-An ARGUMENT forces the variant to be selected even if the difference has
+An argument forces the variant to be selected even if the difference has
 been edited."
   (interactive "P")
   (emerge-combine-versions-internal emerge-combine-versions-template force))
 
 (defun emerge-combine-versions-register (char &optional force)
   "Combine the two versions using the template in register REG.
-See documentation of the variable  emerge-combine-versions-template
+See documentation of the variable `emerge-combine-versions-template'
 for how the template is interpreted.
 Refuses to function if this difference has been edited, i.e., if it is
 neither the A nor the B variant.
-An ARGUMENT forces the variant to be selected even if the difference has
+An argument forces the variant to be selected even if the difference has
 been edited."
   (interactive "cRegister containing template: \nP")
   (let ((template (get-register char)))
@@ -2475,8 +2486,9 @@ been edited."
    (emerge-refresh-mode-line)))
 
 (defun emerge-set-merge-mode (mode)
-  "Set the major mode in a merge buffer.  Overrides any change that the mode
-might make to the mode line or local keymap.  Leaves merge in fast mode."
+  "Set the major mode in a merge buffer.
+Overrides any change that the mode might make to the mode line or local
+keymap.  Leaves merge in fast mode."
   (interactive
    (list (intern (completing-read "New major mode for merge buffer: "
 				  obarray 'commandp t nil))))
@@ -2708,14 +2720,14 @@ might make to the mode line or local keymap.  Leaves merge in fast mode."
 
 (defun emerge-query-write-file ()
   "Query the user if he really wants to write out the incomplete merge.
-If he says yes, call  write-file  to do so.  See  emerge-query-and-call
+If he says yes, call `write-file' to do so.  See `emerge-query-and-call'
 for details of the querying process."
   (interactive)
   (emerge-query-and-call 'write-file))
 
 (defun emerge-query-save-buffer ()
   "Query the user if he really wants to write out the incomplete merge.
-If he says yes, call  save-buffer  to do so.  See  emerge-query-and-call
+If he says yes, call `save-buffer' to do so.  See `emerge-query-and-call'
 for details of the querying process."
   (interactive)
   (emerge-query-and-call 'save-buffer))
@@ -2775,7 +2787,7 @@ around the current difference are removed."
 
 ;; Define a key, even if a prefix of it is defined
 (defun emerge-force-define-key (keymap key definition)
-  "Like define-key, but is not stopped if a prefix of KEY is a defined 
+  "Like `define-key', but isn't stopped if a prefix of KEY is a defined 
 command."
   ;; Find out if a prefix of key is defined
   (let ((v (lookup-key keymap key)))
@@ -2792,7 +2804,7 @@ command."
 If optional MINOR is non-nil (or prefix argument is given if interactive),
 display documentation of acive minor modes as well.
 For this to work correctly for a minor mode, the mode's indicator variable
-(listed in minor-mode-alist) must also be a function whose documentation
+(listed in `minor-mode-alist') must also be a function whose documentation
 describes the minor mode."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
@@ -2867,9 +2879,9 @@ including those whose definition is OLDDEF."
 	  (define-key keymap key definition)))))
 
 (defun emerge-recursively-substitute-key-definition (olddef newdef keymap)
-  "Like substitute-key-definition, but examines and substitutes in all
+  "Like `substitute-key-definition', but examines and substitutes in all
 keymaps accessible from KEYMAP.  Make sure that subordinate keymaps aren't
-shared with other keymaps!  (copy-keymap will suffice.)"
+shared with other keymaps!  (`copy-keymap' will suffice.)"
   ;; Loop through all keymaps accessible from keymap
   (let ((maps (accessible-keymaps keymap)))
     (while maps
