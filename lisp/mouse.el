@@ -771,22 +771,24 @@ If the click is in the echo area, display the `*Messages*' buffer."
 
 A clickable link is identified by one of the following methods:
 
-If the character at POS has a non-nil `follow-link' text or
-overlay property, use the value of that property as action code,
-or if there is a local key-binding or a keybinding at position
-POS for the `follow-link' event, use the binding of that event as
-action code.
+- If the character at POS has a non-nil `follow-link' text or
+overlay property, use the value of that property determines what
+to do.
 
-The action code is used to determine whether POS is inside a link:
+- If there is a local key-binding or a keybinding at position POS
+for the `follow-link' event, the binding of that event determines
+what to do.
 
-- If the action code is `mouse-face', POS is inside a link if there
+The resulting value determine whether POS is inside a link:
+
+- If the value is `mouse-face', POS is inside a link if there
 is a non-nil `mouse-face' property at POS.  Return t in this case.
 
-- If the action code is a function, FUNC, POS is inside a link if
+- If the value is a function, FUNC, POS is inside a link if
 the call \(FUNC POS) returns non-nil.  Return the return value
 from that call.
 
-- Otherwise, return the action code itself.
+- Otherwise, return the value itself.
 
 The return value is interpreted as follows:
 
