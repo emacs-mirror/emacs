@@ -70,16 +70,20 @@ controlled by a separate variable, `mail-specify-envelope-from'."
 The value used to specify it is whatever is found in
 `mail-envelope-from', with `user-mail-address' as fallback.
 
-On most systems, specifying the envelope-from address
-is a privileged operation."
+On most systems, specifying the envelope-from address is a
+privileged operation.  This variable is only used if
+`send-mail-function' is set to `sendmail-send-it'."
   :version "21.1"
   :type 'boolean
   :group 'sendmail)
 
 (defcustom mail-envelope-from nil
   "*If non-nil, designate the envelope-from address when sending mail.
-If this is nil while `mail-specify-envelope-from' is non-nil, the
-content of `user-mail-address' is used."
+This only has an effect if `mail-specify-envelope-from' is non-nil.
+The value should be either a string, or the symbol `header' (in
+which case the contents of the \"From\" header of the message
+being sent is used), or nil (in which case the value of
+`user-mail-address' is used)."
   :version "21.1"
   :type '(choice (string :tag "From-name")
 		 (const :tag "Use From: header from message" header)
