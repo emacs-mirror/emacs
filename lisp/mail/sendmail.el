@@ -71,7 +71,7 @@ match the variable `mail-header-separator'.")
 This can be an inbox file or an Rmail file.")
 
 ;;;###autoload
-(defvar mail-default-reply-to t
+(defvar mail-default-reply-to nil
   "*Address to insert as default Reply-to field of outgoing messages.")
 
 ;;;###autoload
@@ -210,7 +210,7 @@ actually occur.")
 	      mail-aliases t))))
 
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
-  (if (eq mail-default-reply-to t)
+  (or mail-default-reply-to
       (setq mail-default-reply-to (getenv "REPLYTO")))
   (sendmail-synch-aliases)
   (if (eq mail-aliases t)
