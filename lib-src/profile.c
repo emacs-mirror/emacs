@@ -49,13 +49,13 @@ reset_watch ()
 
 /* This call returns the time since the last reset_watch call.  The time
    is returned as a string with the format  <seconds>.<micro-seconds> 
-   If reset_watch was not called yet, return NULL.  */
+   If reset_watch was not called yet, exit.  */
 
 char *
 get_time ()
 {
   if (watch_not_started)
-    return ((char *) 0); /* call reset_watch first ! */
+    exit (1);  /* call reset_watch first ! */
   gettimeofday (&TV2, tzp);
   if (TV1.tv_usec > TV2.tv_usec)
     {
@@ -70,10 +70,10 @@ get_time ()
 void
 main ()
 {
-  char inp[10];
-  while (gets (inp))
+  int c;
+  while ((c = getchar ()) != EOF)
     {
-      switch (inp[0])
+      switch (c)
 	{
 	case 'z':
 	  reset_watch ();
@@ -84,6 +84,9 @@ main ()
 	case 'q':
 	  exit (0);
 	}
+      /* Anything remaining on the line is ignored.  */
+      while (c != '\n' && c != EOF)
+	c = getchar ();
     }
   exit (1);
 }
