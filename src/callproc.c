@@ -128,7 +128,7 @@ If you quit, the process is killed with SIGKILL.")
 
   CHECK_STRING (args[0], 0);
 
-  if (nargs <= 1 || NULL (args[1]))
+  if (nargs <= 1 || NILP (args[1]))
     args[1] = build_string ("/dev/null");
   else
     args[1] = Fexpand_file_name (args[1], current_buffer->directory);
@@ -169,7 +169,7 @@ If you quit, the process is killed with SIGKILL.")
     }
   /* Search for program; barf if not found.  */
   openp (Vexec_path, args[0], "", &path, 1);
-  if (NULL (path))
+  if (NILP (path))
     {
       close (filefd);
       report_file_error ("Searching for program", Fcons (args[0], Qnil));
@@ -267,9 +267,9 @@ If you quit, the process is killed with SIGKILL.")
     while ((nread = read (fd[0], buf, sizeof buf)) > 0)
       {
 	immediate_quit = 0;
-	if (!NULL (buffer))
+	if (!NILP (buffer))
 	  insert (buf, nread);
-	if (!NULL (display) && INTERACTIVE)
+	if (!NILP (display) && INTERACTIVE)
 	  redisplay_preserve_echo_area ();
 	immediate_quit = 1;
 	QUIT;
@@ -337,7 +337,7 @@ If you quit, the process is killed with SIGKILL.")
   Fwrite_region (start, end, filename_string, Qnil, Qlambda);
   record_unwind_protect (delete_temp_file, filename_string);
 
-  if (!NULL (args[3]))
+  if (!NILP (args[3]))
     Fdelete_region (start, end);
 
   args[3] = filename_string;
@@ -456,6 +456,66 @@ child_setup (in, out, err, new_argv, env, set_pgrp)
   _exit (1);
 }
 
+static int
+getenv_internal (var, varlen, value, valuelen)
+     char *var;
+     int varlen;
+     char **value;
+     int *valuelen;
+{
+  Lisp_Object scan;
+
+  for (scan = Vprocess_environment; CONSP (scan); scan = XCONS (scan)->cdr)
+    {
+      Lisp_Object entry = XCONS (scan)->car;
+
+      if (XTYPE (entry) == Lisp_String
+	  && XSTRING (entry)->size > varlen
+	  && XSTRING (entry)->data[varlen] == '='
+	  && ! bcmp (XSTRING (entry)->data, var, varlen))
+	{
+	  *value    = (char *) XSTRING (entry)->data + (varlen + 1);
+	  *valuelen = XSTRING (entry)->size - (varlen + 1);
+	  return 1;
+	}
+    }
+
+  return 0;
+}
+
+DEFUN ("getenv", Fgetenv, Sgetenv, 1, 2, 0,
+  "Return the value of environment variable VAR, as a string.\n\
+VAR should be a string.  Value is nil if VAR is undefined in the environment.\n\
+This function consults the variable ``process-environment'' for its value.")
+  (var)
+     Lisp_Object var;
+{
+  char *value;
+  int valuelen;
+
+  CHECK_STRING (var, 0);
+  if (getenv_internal (XSTRING (var)->data, XSTRING (var)->size,
+		       &value, &valuelen))
+    return make_string (value, valuelen);
+  else
+    return Qnil;
+}
+
+/* A version of getenv that consults process_environment, easily
+      callable from C.  */
+char *
+egetenv (var)
+          char *var;
+{
+  char *value;
+  int valuelen;
+
+  if (getenv_internal (var, strlen (var), &value, &valuelen))
+    return value;
+  else
+    return 0;
+}
+
 #endif /* not VMS */
 
 init_callproc ()
@@ -522,4 +582,5 @@ Each string should have the format ENVVARNAME=VALUE.");
   defsubr (&Scall_process);
 #endif
   defsubr (&Scall_process_region);
+  defsubr (&Sgetenv);
 }
