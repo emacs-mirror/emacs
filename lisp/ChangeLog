@@ -3,6 +3,10 @@
 	* calc/calc.el (calc-mode-var-list-restore-saved-values):
 	Make sure settings file exists before accessing it.
 
+	* calc/calc-embed.el (calc-embedded-subst):
+	Replace math-multi-subst-rec, which is only supposed to be called
+	by math-multi-subst, by math-multi-subst.
+
 2005-01-09  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-allow-async-revert): New user option.
