@@ -403,7 +403,7 @@ Lisp_Object Vface_alternative_font_registry_alist;
    font may be scaled if its name matches a regular expression in the
    list.  */
 
-Lisp_Object Vscalable_fonts_allowed;
+Lisp_Object Vscalable_fonts_allowed, Qscalable_fonts_allowed;
 
 /* List of regular expressions that matches names of fonts to ignore. */
 
@@ -486,10 +486,6 @@ int tty_suppress_bold_inverse_default_colors_p;
    Finternal_set_lisp_face_attribute.  */
 
 static Lisp_Object Vparam_value_alist;
-
-/* Non-zero while realizing the default face.  */
-
-static int realizing_basic_faces_p;
 
 /* The total number of colors currently allocated.  */
 
@@ -2358,23 +2354,6 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
 	}
       else
 	xfree (fonts[n].name);
-    }
-
-  /* If someone specified a default font that's scalable, try
-     to do the right thing.  */
-  if (realizing_basic_faces_p
-      && try_alternatives_p
-      && n == 0
-      && nignored > 0)
-    {
-      for (tem = lfonts; CONSP (tem) && n < nfonts; tem = XCDR (tem))
-	{
-	  fonts[n].name = xstrdup (XSTRING (XCAR (tem))->data);
-	  if (split_font_name (f, fonts + n, 1))
-	    ++n;
-	  else
-	    xfree (fonts[n].name);
-	}
     }
 
   /* If no fonts found, try patterns from Valternate_fontname_alist.  */
@@ -5950,11 +5929,12 @@ realize_basic_faces (f)
      struct frame *f;
 {
   int success_p = 0;
+  int count = BINDING_STACK_SIZE ();
 
   /* Block input there so that we won't be surprised by an X expose
      event, for instance without having the faces set up.  */
   BLOCK_INPUT;
-  realizing_basic_faces_p = 1;
+  specbind (Qscalable_fonts_allowed, Qt);
 
   if (realize_default_face (f))
     {
@@ -5980,7 +5960,7 @@ realize_basic_faces (f)
       success_p = 1;
     }
 
-  realizing_basic_faces_p = 0;
+  unbind_to (count, Qnil);
   UNBLOCK_INPUT;
   return success_p;
 }
@@ -7067,6 +7047,8 @@ syms_of_xfaces ()
   staticpro (&Qtty_color_by_index);
   Qtty_color_alist = intern ("tty-color-alist");
   staticpro (&Qtty_color_alist);
+  Qscalable_fonts_allowed = intern ("scalable-fonts-allowed");
+  staticpro (&Qscalable_fonts_allowed);
 
   Vparam_value_alist = Fcons (Fcons (Qnil, Qnil), Qnil);
   staticpro (&Vparam_value_alist);
@@ -7132,13 +7114,7 @@ A value of nil means don't allow any scalable fonts.\n\
 A value of t means allow any scalable font.\n\
 Otherwise, value must be a list of regular expressions.  A font may be\n\
 scaled if its name matches a regular expression in the list.");
-#if defined (WINDOWSNT) || defined (macintosh)
-  /* Windows uses mainly truetype fonts, so disallowing scalable fonts
-     by default limits the fonts available severely. */
   Vscalable_fonts_allowed = Qt;
-#else
-  Vscalable_fonts_allowed = Qnil;
-#endif
 
   DEFVAR_LISP ("face-ignored-fonts", &Vface_ignored_fonts,
     "List of ignored fonts.\n\
