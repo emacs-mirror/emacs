@@ -83,7 +83,8 @@ the call to the function.  If REPEAT is nil, call it just once."
       (if (or (not timer-alist) (eq stat 'exit)) ()
         (ding 'no-terminate)
         (message "Timer exited abnormally.  All events cancelled."))
-      (setq timer-process nil timer-alist nil timer-scratch ""))))
+      ;; Used to set timer-scratch to "", but nothing uses that var.
+      (setq timer-process nil timer-alist nil))))
 
 (defun cancel-timer (function)
   "Cancel all events scheduled by ``run-at-time'' which would run FUNCTION."
