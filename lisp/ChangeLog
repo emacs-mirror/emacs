@@ -1,3 +1,29 @@
+1999-10-04  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add x-stretch-cursor, indicate-empty-lines,
+	scroll-up-aggressively, scroll-down-aggressively.
+
+	* widget.el (define-widget-keywords): Make dummy definition and
+	comment-out its use.
+
+	* time.el (display-time-mode): Add autoload cookie.
+
+	* term.el: Avoid ange-ftp related compilation warnings.
+
+	* sun-curs.el: Require sun-fns.
+
+	* msb.el: (msb--choose-file-menu): Use `completion-ignore-case' in
+	name comparisons.
+	
+	* rect.el: Add/fix various doc strings.  Add `*' to all the
+	interactive specs.
+	(delete-extract-rectangle): Doc fix from verna.
+
+	* tooltip.el (tooltip-mode): Customize this, per convention.
+	(tooltip-active): Option deleted.
+
+	* help-macro.el (three-step-help): Customize.
+
 1999-10-03  Dave Love  <fx@gnu.org>
 
 	* image.el (defimage): Remove redundant code.  Substitute file in
