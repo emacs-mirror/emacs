@@ -4,7 +4,7 @@
 
 ;; Author: Tom Wurgler <twurgler@goodyear.com>
 ;; Created: 12/8/94
-;; Keywords:
+;; Keywords: extensions, processes
 
 ;; This file is part of GNU Emacs.
 
