@@ -425,6 +425,7 @@ else defaults to `Top'."
 	     (completing-read "Node name: " (Info-build-node-completions)
 			      nil t "Top")
 	   "Top")))
+  (info-initialize)
   (Info-mode)
   (set (make-local-variable 'Info-current-file) t)
   (Info-find-node-2 nil nodename))
