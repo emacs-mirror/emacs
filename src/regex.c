@@ -2,7 +2,7 @@
    0.12.  (Implements POSIX draft P10003.2/D11.2, except for
    internationalization features.)
 
-   Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -2907,14 +2907,14 @@ regex_compile (pattern, size, syntax, bufp)
 	      || *pending_exact >= (1 << BYTEWIDTH) - (p - p1)
 
 	      /* If followed by a repetition operator.	*/
-	      || *p == '*' || *p == '^'
+	      || (p != pend && (*p == '*' || *p == '^'))
 	      || ((syntax & RE_BK_PLUS_QM)
-		  ? *p == '\\' && (p[1] == '+' || p[1] == '?')
-		  : (*p == '+' || *p == '?'))
+		  ? p + 1 < pend && *p == '\\' && (p[1] == '+' || p[1] == '?')
+		  : p != pend && (*p == '+' || *p == '?'))
 	      || ((syntax & RE_INTERVALS)
 		  && ((syntax & RE_NO_BK_BRACES)
-		      ? *p == '{'
-		      : (p[0] == '\\' && p[1] == '{'))))
+		      ? p != pend && *p == '{'
+		      : p + 1 < pend && p[0] == '\\' && p[1] == '{')))
 	    {
 	      /* Start building a new exactn.  */
 
