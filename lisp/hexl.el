@@ -239,7 +239,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
-    (set (make-variable-buffer-local 'eldoc-print-current-symbol-info-function)
+    (set (make-local-variable 'eldoc-print-current-symbol-info-function)
 	 'hexl-print-current-point-info)
     (eldoc-add-command-completions "hexl-")
     (eldoc-remove-command "hexl-save-buffer" 
