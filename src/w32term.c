@@ -1134,13 +1134,11 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
   int charset = CHAR_CHARSET (c);
   int codepage;
   int unicode_p = 0;
+  int internal_two_byte_p = 0;
 
   XFontStruct *font = font_info->font;
 
-  xassert (two_byte_p);
-
-  if (two_byte_p)
-    *two_byte_p = w32_font_is_double_byte (font);
+  internal_two_byte_p = w32_font_is_double_byte (font);
 
   /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
      This may be either a program in a special encoder language or a
@@ -1167,7 +1165,7 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
 
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
-      if (!*two_byte_p)	/* 1-byte font */
+      if (!internal_two_byte_p)	/* 1-byte font */
 	STORE_XCHAR2B (char2b, 0, ccl->reg[1]);
       else
 	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
@@ -1214,8 +1212,12 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
             MultiByteToWideChar (codepage, 0, temp+1, 1, char2b, 1);
         }
       unicode_p = 1;
-      *two_byte_p = 1;
+      internal_two_byte_p = 1;
     }
+
+  if (two_byte_p)
+    *two_byte_p = internal_two_byte_p;
+
   if (!font)
     return UNKNOWN_FONT;
   else if (font->bdf && CHARSET_DIMENSION (charset) == 1)
