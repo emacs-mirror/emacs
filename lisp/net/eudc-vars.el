@@ -41,7 +41,7 @@
 A port number may be specified by appending a colon and a
 number to the name of the server.  Use `localhost' if the directory
 server resides on your computer (BBDB backend)."
-  :type  '(string :tag "Server")
+  :type  '(choice (string :tag "Server") (const :tag "None" nil))
   :group 'eudc)
 
 ;; Known protocols (used in completion)
@@ -59,7 +59,8 @@ Supported protocols are specified by `eudc-supported-protocols'."
   :type  `(choice :menu-tag "Protocol"
 		  ,@(mapcar (lambda (s)
 			      (list 'const ':tag (symbol-name s) s))
-			    eudc-known-protocols))
+			    eudc-known-protocols)
+		  (const :tag "None" nil))
   :group 'eudc)
 
 
