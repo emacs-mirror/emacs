@@ -2512,6 +2512,7 @@ read_process_output (proc, channel)
       int count = specpdl_ptr - specpdl;
       Lisp_Object odeactivate;
       Lisp_Object obuffer, okeymap;
+      int outer_running_asynch_code = running_asynch_code;
 
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
@@ -2522,7 +2523,24 @@ read_process_output (proc, channel)
       specbind (Qinhibit_quit, Qt);
       specbind (Qlast_nonmenu_event, Qt);
 
+      /* In case we get recursively called,
+	 and we already saved the match data nonrecursively,
+	 save the same match data in safely recursive fashion.  */
+      if (outer_running_asynch_code)
+	{
+	  Lisp_Object tem;
+	  /* Don't clobber the CURRENT match data, either!  */
+	  tem = Fmatch_data ();
+	  restore_match_data ();
+	  record_unwind_protect (Fstore_match_data, Fmatch_data ());
+	  Fstore_match_data (tem);
+	}
+
+      /* For speed, if a search happens within this code,
+	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
+
+      /* Read and dispose of the process output.  */
       internal_condition_case_1 (read_process_output_call,
 				 Fcons (outstream,
 					Fcons (proc,
@@ -2531,8 +2549,10 @@ read_process_output (proc, channel)
 						      Qnil))),
 				 !NILP (Vdebug_on_error) ? Qnil : Qerror,
 				 read_process_output_error_handler);
-      running_asynch_code = 0;
+
+      /* If we saved the match data nonrecursively, restore it now.  */
       restore_match_data ();
+      running_asynch_code = outer_running_asynch_code;
 
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
@@ -3512,6 +3532,7 @@ exec_sentinel (proc, reason)
   Lisp_Object sentinel, obuffer, odeactivate, okeymap;
   register struct Lisp_Process *p = XPROCESS (proc);
   int count = specpdl_ptr - specpdl;
+  int outer_running_asynch_code = running_asynch_code;
 
   /* No need to gcpro these, because all we do with them later
      is test them for EQness, and none of them should be a string.  */
@@ -3531,14 +3552,31 @@ exec_sentinel (proc, reason)
   specbind (Qinhibit_quit, Qt);
   specbind (Qlast_nonmenu_event, Qt);
 
+  /* In case we get recursively called,
+     and we already saved the match data nonrecursively,
+     save the same match data in safely recursive fashion.  */
+  if (outer_running_asynch_code)
+    {
+      Lisp_Object tem;
+      tem = Fmatch_data ();
+      restore_match_data ();
+      record_unwind_protect (Fstore_match_data, Fmatch_data ());
+      Fstore_match_data (tem);
+    }
+
+  /* For speed, if a search happens within this code,
+     save the match data in a special nonrecursive fashion.  */
   running_asynch_code = 1;
+
   internal_condition_case_1 (read_process_output_call,
 			     Fcons (sentinel,
 				    Fcons (proc, Fcons (reason, Qnil))),
 			     !NILP (Vdebug_on_error) ? Qnil : Qerror,
 			     exec_sentinel_error_handler);
-  running_asynch_code = 0;
+
+  /* If we saved the match data nonrecursively, restore it now.  */
   restore_match_data ();
+  running_asynch_code = outer_running_asynch_code;
 
   Vdeactivate_mark = odeactivate;
 #if 0
@@ -3589,9 +3627,9 @@ status_notify ()
 	  XSETINT (p->update_tick, XINT (p->tick));
 
 	  /* If process is still active, read any output that remains.  */
-	  if (XINT (p->infd) >= 0)
-	    while (! EQ (p->filter, Qt)
-		   && read_process_output (proc, XINT (p->infd)) > 0);
+	  while (! EQ (p->filter, Qt)
+		 && XINT (p->infd) >= 0
+		 && read_process_output (proc, XINT (p->infd)) > 0);
 
 	  buffer = p->buffer;
 
