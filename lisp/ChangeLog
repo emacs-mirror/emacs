@@ -31,8 +31,8 @@
 	of erasing buffer.
 
 	* textmodes/fill.el (fill-common-string-prefix): New function.
-	(fill-context-prefix): Use the longest common substring of both
-	prefixes, if there is one.
+	(fill-context-prefix): Use the longest common prefix of first
+	and second line fill prefix, if there is one.
 
 2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
