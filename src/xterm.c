@@ -6137,36 +6137,9 @@ construct_mouse_click (result, event, f)
   XSETINT (result->x, event->x);
   XSETINT (result->y, event->y);
   XSETFRAME (result->frame_or_window, f);
+  result->arg = Qnil;
   return Qnil;
 }
-
-#if 0 /* This function isn't called. --gerd  */
-
-/* Prepare a menu-event in *RESULT for placement in the input queue.  */
-
-static Lisp_Object
-construct_menu_click (result, event, f)
-     struct input_event *result;
-     XButtonEvent *event;
-     struct frame *f;
-{
-  /* Make the event type no_event; we'll change that when we decide
-     otherwise.  */
-  result->kind = mouse_click;
-  result->code = event->button - Button1;
-  result->timestamp = event->time;
-  result->modifiers = (x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
-					       event->state)
-		       | (event->type == ButtonRelease
-			  ? up_modifier
-			  : down_modifier));
-
-  XSETINT (result->x, event->x);
-  XSETINT (result->y, -1);
-  XSETFRAME (result->frame_or_window, f);
-}
-
-#endif /* 0 */
 
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -7563,6 +7536,7 @@ x_scroll_bar_to_input_event (event, ievent)
   
   ievent->kind = scroll_bar_click;
   ievent->frame_or_window = window;
+  ievent->arg = Qnil;
   ievent->timestamp = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
   ievent->part = ev->data.l[1];
   ievent->code = ev->data.l[2];
@@ -8609,6 +8583,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 	  ? up_modifier
 	  : down_modifier));
   emacs_event->frame_or_window = bar->window;
+  emacs_event->arg = Qnil;
   emacs_event->timestamp = event->xbutton.time;
   {
 #if 0
@@ -8964,6 +8939,7 @@ static struct x_display_info *next_noop_dpyinfo;
            {								\
              bufp->kind = menu_bar_activate_event;			\
              XSETFRAME (bufp->frame_or_window, f);			\
+             bufp->arg = Qnil;						\
              bufp++;							\
              count++;							\
              numchars--;						\
@@ -9167,6 +9143,7 @@ XTread_socket (sd, bufp, numchars, expected)
 
 			    bufp->kind = delete_window_event;
 			    XSETFRAME (bufp->frame_or_window, f);
+			    bufp->arg = Qnil;
 			    bufp++;
 
 			    count += 1;
@@ -9259,6 +9236,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
 		SELECTION_EVENT_TIME (bufp) = eventp->time;
 		bufp->frame_or_window = Qnil;
+		bufp->arg = Qnil;
 		bufp++;
 
 		count += 1;
@@ -9289,6 +9267,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		  SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
 		  SELECTION_EVENT_TIME (bufp) = eventp->time;
 		  bufp->frame_or_window = Qnil;
+		  bufp->arg = Qnil;
 		  bufp++;
 
 		  count += 1;
@@ -9402,6 +9381,7 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		      bufp->kind = iconify_event;
 		      XSETFRAME (bufp->frame_or_window, f);
+		      bufp->arg = Qnil;
 		      bufp++;
 		      count++;
 		      numchars--;
@@ -9433,6 +9413,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      bufp->kind = deiconify_event;
 		      XSETFRAME (bufp->frame_or_window, f);
+		      bufp->arg = Qnil;
 		      bufp++;
 		      count++;
 		      numchars--;
@@ -9615,6 +9596,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			  bufp->kind = non_ascii_keystroke;
 			  bufp->code = keysym;
 			  XSETFRAME (bufp->frame_or_window, f);
+			  bufp->arg = Qnil;
 			  bufp->modifiers
 			    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
 						      modifiers);
@@ -9635,6 +9617,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			      bufp->kind = ascii_keystroke;
 			      bufp->code = copy_buffer[i];
 			      XSETFRAME (bufp->frame_or_window, f);
+			      bufp->arg = Qnil;
 			      bufp->modifiers
 				= x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
 							  modifiers);
@@ -9753,6 +9736,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      bufp->kind = FOCUS_IN_EVENT;
 		      XSETFRAME (bufp->frame_or_window, f);
+		      bufp->arg = Qnil;
 		      ++bufp, ++count, --numchars;
 		    }
 		}
