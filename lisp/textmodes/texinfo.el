@@ -496,6 +496,8 @@ value of texinfo-mode-hook."
 	(concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-separate))
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
+  (make-local-variable 'adaptive-fill-mode)
+  (setq adaptive-fill-mode nil)
   (make-local-variable 'fill-column)
   (setq fill-column 72)
   (make-local-variable 'comment-start)
