@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.12
+;; Version:    5.13
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -561,8 +561,7 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 		       (lambda (var)
 			 (let ((val (symbol-value var)))
 			   (cons var (if (atom val) val
-				       (c-copy-tree val)
-				       ))
+				       (copy-sequence val)))
 			   )))
 		      '(c-backslash-column
 			c-basic-offset
@@ -578,24 +577,6 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 	;; the default style is now GNU.  This can be overridden in
 	;; c-mode-common-hook or {c,c++,objc,java}-mode-hook.
 	(c-set-style c-site-default-style))))
-
-(defun c-copy-tree (tree)
-  "Make a copy of TREE.
-If TREE is a cons cell, this recursively copies both its car and its cdr.
-Contrast to copy-sequence, which copies only along the cdrs.  With second
-argument VECP, this copies vectors as well as conses."
-  (if (consp tree)
-      (let ((p tree) result)
-	(while (consp p)
-	  (setq result (cons (if (consp (car p))
-				 (c-copy-tree (car p))
-			       (car p))
-			result))
-	  (setq p (cdr p)))
-	(if (null p)
-	    (nreverse result)
-	  (nconc (nreverse result) p)))
-    tree))
 
 (defun c-make-styles-buffer-local ()
   "Make all CC Mode style variables buffer local.
