@@ -1,3 +1,9 @@
+2004-11-20  Masatake YAMATO  <jet@gyve.org>
+
+	* url.el (url-mm-callback): Delay the invocation
+	of `mm-destroy-parts'. Invoke `mm-destroy-parts'
+	when the buffer is killed.
+
 2004-11-12  Masatake YAMATO  <jet@gyve.org>
 
 	* url-mailto.el (url-mailto): Fix a typo in the 
