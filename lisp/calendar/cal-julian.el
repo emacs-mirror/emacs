@@ -182,7 +182,7 @@ Defaults to today's date if DATE is not given."
   "Show astronomical (Julian) day number after noon UTC on date shown by cursor."
   (interactive)
   (message
-   "Astronomical (Julian) day number (after noon UTC): %s"
+   "Astronomical (Julian) day number (at noon UTC): %s.0"
    (calendar-astro-date-string (calendar-cursor-to-date t))))
 
 (defun calendar-goto-astro-day-number (daynumber &optional noecho)
