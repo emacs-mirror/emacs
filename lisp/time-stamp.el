@@ -40,7 +40,7 @@
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;; Version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.22 1996/12/17 00:14:41 rms Exp rms $
+;; $Id: time-stamp.el,v 1.23 1996/12/17 00:19:01 rms Exp rms $
 
 ;;; Code:
 
@@ -255,14 +255,10 @@ Do not alter other %-combinations, and do detect %%."
 (defun time-stamp-mail-host-name ()
   "Return the name of the host where the user receives mail.
 This is the value of `mail-host-address' if bound and a string,
-otherwise the value of `time-stamp-mail-host' (for versions of Emacs
-before 19.29) otherwise the value of the function system-name."
+otherwise the value of the function system-name."
   (or (and (boundp 'mail-host-address)
 	   (stringp mail-host-address)
 	   mail-host-address)
-      (and (boundp 'time-stamp-mail-host) ;for backward compatibility
-	   (stringp time-stamp-mail-host)
-	   time-stamp-mail-host)
       (system-name)))
 
 ;;; the rest of this file is for version 1 compatibility
