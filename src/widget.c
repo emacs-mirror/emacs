@@ -191,8 +191,12 @@ pixel_to_char_size (ew, pixel_width, pixel_height, char_width, char_height)
 }
 
 static void
-char_to_pixel_size (EmacsFrame ew, int char_width, int char_height,
-		    Dimension* pixel_width, Dimension* pixel_height)
+char_to_pixel_size (ew, char_width, char_height, pixel_width, pixel_height)
+     EmacsFrame ew;
+     int char_width;
+     int char_height;
+     Dimension* pixel_width;
+     Dimension* pixel_height;
 {
   struct frame* f = ew->emacs_frame.frame;
   *pixel_width = CHAR_TO_PIXEL_WIDTH (f, char_width);
@@ -200,9 +204,12 @@ char_to_pixel_size (EmacsFrame ew, int char_width, int char_height,
 }
 
 static void
-round_size_to_char (EmacsFrame ew,
-		    Dimension in_width, Dimension in_height,
-		    Dimension* out_width, Dimension* out_height)
+round_size_to_char (ew, in_width, in_height, out_width, out_height)
+     EmacsFrame ew;
+     Dimension in_width;
+     Dimension in_height;
+     Dimension* out_width;
+     Dimension* out_height;
 {
   int char_width;
   int char_height;
@@ -211,7 +218,8 @@ round_size_to_char (EmacsFrame ew,
 }
 
 static Widget
-get_wm_shell (Widget w)
+get_wm_shell (w)
+     Widget w;
 {
   Widget wmshell;
 
@@ -223,7 +231,8 @@ get_wm_shell (Widget w)
 }
 
 static void
-mark_shell_size_user_specified (Widget wmshell)
+mark_shell_size_user_specified (wmshell)
+     Widget wmshell;
 {
   if (! XtIsWMShell (wmshell)) abort ();
   /* This is kind of sleazy, but I can't see how else to tell it to make it
@@ -241,7 +250,8 @@ mark_shell_size_user_specified (Widget wmshell)
 static Boolean first_frame_p = True;
 
 static void
-set_frame_size (EmacsFrame ew)
+set_frame_size (ew)
+     EmacsFrame ew;
 {
   /* The widget hierarchy is
 
@@ -468,7 +478,8 @@ set_frame_size (EmacsFrame ew)
 
 
 static void
-update_wm_hints (EmacsFrame ew)
+update_wm_hints (ew)
+     EmacsFrame ew;
 {
   Widget wmshell = get_wm_shell ((Widget)ew);
   int cw;
@@ -510,7 +521,8 @@ update_wm_hints (EmacsFrame ew)
 }
 
 static void
-create_frame_gcs (EmacsFrame ew)
+create_frame_gcs (ew)
+     EmacsFrame ew;
 {
   struct frame* s = ew->emacs_frame.frame;
 
@@ -523,7 +535,8 @@ create_frame_gcs (EmacsFrame ew)
 }
 
 static void
-setup_frame_gcs (EmacsFrame ew)
+setup_frame_gcs (ew)
+     EmacsFrame ew;
 {
   XGCValues gc_values;
   struct frame* s = ew->emacs_frame.frame;
@@ -599,7 +612,8 @@ setup_frame_gcs (EmacsFrame ew)
 }
 
 static void
-update_various_frame_slots (EmacsFrame ew)
+update_various_frame_slots (ew)
+     EmacsFrame ew;
 {
   struct x_display* x = ew->emacs_frame.frame->display.x;
   x->pixel_height = ew->core.height;
@@ -609,7 +623,8 @@ update_various_frame_slots (EmacsFrame ew)
 }
 
 static void
-update_from_various_frame_slots (EmacsFrame ew)
+update_from_various_frame_slots (ew)
+     EmacsFrame ew;
 {
   struct x_display* x = ew->emacs_frame.frame->display.x;
   ew->core.height = x->pixel_height;
@@ -623,8 +638,11 @@ update_from_various_frame_slots (EmacsFrame ew)
 }
 
 static void 
-EmacsFrameInitialize (Widget request, Widget new,
-		       ArgList dum1, Cardinal *dum2)
+EmacsFrameInitialize (request, new, dum1, dum2)
+     Widget request;
+     Widget new;
+     ArgList dum1;
+     Cardinal *dum2;
 {
   EmacsFrame ew = (EmacsFrame)new;
 
@@ -681,8 +699,10 @@ EmacsFrameInitialize (Widget request, Widget new,
 
 
 static void
-EmacsFrameRealize (Widget widget, XtValueMask *mask,
-		    XSetWindowAttributes *attrs)
+EmacsFrameRealize (widget, mask, attrs)
+     Widget widget;
+     XtValueMask *mask;
+     XSetWindowAttributes *attrs;
 {
   EmacsFrame ew = (EmacsFrame)widget;
 
@@ -699,10 +719,11 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask,
   update_wm_hints (ew); 
 }
 
-extern void free_frame_faces (struct frame *);
+extern void free_frame_faces (/* struct frame * */);
 
 static void
-EmacsFrameDestroy (Widget widget)
+EmacsFrameDestroy (widget)
+     Widget widget;
 {
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame* s = ew->emacs_frame.frame;
@@ -723,7 +744,8 @@ EmacsFrameDestroy (Widget widget)
 }
 
 void
-EmacsFrameResize (Widget widget)
+EmacsFrameResize (widget)
+     Widget widget;
 {
   EmacsFrame ew = (EmacsFrame)widget;
   struct frame *f = ew->emacs_frame.frame;
@@ -762,8 +784,12 @@ EmacsFrameResize (Widget widget)
 }
 
 static Boolean
-EmacsFrameSetValues (Widget cur_widget, Widget req_widget, Widget new_widget,
-		      ArgList dum1, Cardinal *dum2)
+EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
+     Widget cur_widget;
+     Widget req_widget;
+     Widget new_widget;
+     ArgList dum1;
+     Cardinal *dum2;
 {
   EmacsFrame cur = (EmacsFrame)cur_widget;
   EmacsFrame new = (EmacsFrame)new_widget;
@@ -834,8 +860,10 @@ EmacsFrameSetValues (Widget cur_widget, Widget req_widget, Widget new_widget,
 }
 
 static XtGeometryResult
-EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry* request,
-			  XtWidgetGeometry* result)
+EmacsFrameQueryGeometry (widget, request, result)
+     Widget widget;
+     XtWidgetGeometry* request;
+     XtWidgetGeometry* result;
 {
   EmacsFrame ew = (EmacsFrame)widget;
 
@@ -868,13 +896,20 @@ EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry* request,
    it to make the focus handlers work??
  */
 static void
-key_press (Widget w, XEvent* event, String *params, Cardinal *n_params)
+key_press (w, event, params, n_params)
+     Widget w;
+     XEvent* event;
+     String *params;
+     Cardinal *n_params;
 {
 }
 
 static void
-emacs_frame_focus_handler (Widget w, XEvent *event, String *params,
-			    Cardinal *n_params)
+emacs_frame_focus_handler (w, event, params, n_params)
+     Widget w;
+     XEvent *event;
+     String *params;
+     Cardinal *n_params;
 {
   emacs_Xt_focus_event_handler (event, 0);
 }
@@ -882,7 +917,10 @@ emacs_frame_focus_handler (Widget w, XEvent *event, String *params,
 
 /* Special entrypoints */
 void
-EmacsFrameSetCharSize (Widget widget, int columns, int rows)
+EmacsFrameSetCharSize (widget, columns, rows)
+     Widget widget;
+     int columns;
+     int rows;
 {
   EmacsFrame ew = (EmacsFrame) widget;
   Dimension pixel_width, pixel_height, granted_width, granted_height;

@@ -27,7 +27,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Menu callbacks */
 static void
-pre_hook (Widget w, XtPointer client_data, XtPointer call_data)
+pre_hook (w, client_data, call_data)
+     Widget w;
+     XtPointer client_data;
+     XtPointer call_data;
 {
   widget_instance* instance = (widget_instance*)client_data;
   widget_value* val;
@@ -42,7 +45,10 @@ pre_hook (Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 static void
-pick_hook (Widget w, XtPointer client_data, XtPointer call_data)
+pick_hook (w, client_data, call_data)
+     Widget w;
+     XtPointer client_data;
+     XtPointer call_data;
 {
   widget_instance* instance = (widget_instance*)client_data;
   widget_value* contents_val = (widget_value*)call_data;
@@ -66,7 +72,8 @@ pick_hook (Widget w, XtPointer client_data, XtPointer call_data)
 
 /* creation functions */
 static Widget
-xlw_create_menubar (widget_instance* instance)
+xlw_create_menubar (instance)
+     widget_instance* instance;
 {
   Widget widget =
     XtVaCreateWidget (instance->info->name, xlwMenuWidgetClass,
@@ -79,7 +86,8 @@ xlw_create_menubar (widget_instance* instance)
 }
 
 static Widget
-xlw_create_popup_menu (widget_instance* instance)
+xlw_create_popup_menu (instance)
+     widget_instance* instance;
 {
   Widget popup_shell =
     XtCreatePopupShell (instance->info->name, overrideShellWidgetClass,
@@ -106,7 +114,8 @@ xlw_creation_table [] =
 };
 
 Boolean
-lw_lucid_widget_p (Widget widget)
+lw_lucid_widget_p (widget)
+     Widget widget;
 {
   WidgetClass the_class = XtClass (widget);
   if (the_class == xlwMenuWidgetClass)
@@ -119,8 +128,11 @@ lw_lucid_widget_p (Widget widget)
 }
 
 void
-xlw_update_one_widget (widget_instance* instance, Widget widget,
-		       widget_value* val, Boolean deep_p)
+xlw_update_one_widget (instance, widget, val, deep_p)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
+     Boolean deep_p;
 {
   XlwMenuWidget mw;
 
@@ -132,19 +144,24 @@ xlw_update_one_widget (widget_instance* instance, Widget widget,
 }
 
 void
-xlw_update_one_value (widget_instance* instance, Widget widget,
-		      widget_value* val)
+xlw_update_one_value (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   return;
 }
 
 void
-xlw_pop_instance (widget_instance* instance, Boolean up)
+xlw_pop_instance (instance, up)
+     widget_instance* instance;
+     Boolean up;
 {
 }
 
 void
-xlw_popup_menu (Widget widget)
+xlw_popup_menu (widget)
+     Widget widget;
 {
   XButtonPressedEvent dummy;
   XlwMenuWidget mw;
@@ -170,7 +187,8 @@ xlw_popup_menu (Widget widget)
 
 /* Destruction of instances */
 void
-xlw_destroy_instance (widget_instance* instance)
+xlw_destroy_instance (instance)
+     widget_instance* instance;
 {
   if (instance->widget)
     XtDestroyWidget (instance->widget);

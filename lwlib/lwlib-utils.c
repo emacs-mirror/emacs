@@ -29,7 +29,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Redisplay the contents of the widget, without first clearing it. */
 void
-XtNoClearRefreshWidget (Widget widget)
+XtNoClearRefreshWidget (widget)
+     Widget widget;
 {
   XEvent event;
 
@@ -53,7 +54,10 @@ XtNoClearRefreshWidget (Widget widget)
  * Apply a function to all the subwidgets of a given widget recursively.
 */
 void
-XtApplyToWidgets (Widget w, XtApplyToWidgetsProc proc, XtPointer arg)
+XtApplyToWidgets (w, proc, arg)
+     Widget w;
+     XtApplyToWidgetsProc proc;
+     XtPointer arg;
 {
   if (XtIsComposite (w))
     {
@@ -83,7 +87,10 @@ XtApplyToWidgets (Widget w, XtApplyToWidgetsProc proc, XtPointer arg)
  * Stop as soon as the function returns non NULL and returns this as a value.
  */
 void *
-XtApplyUntilToWidgets (Widget w, XtApplyUntilToWidgetsProc proc, XtPointer arg)
+XtApplyUntilToWidgets (w, proc, arg)
+     Widget w;
+     XtApplyUntilToWidgetsProc proc;
+     XtPointer arg;
 {
   void* result;
   if (XtIsComposite (w))
@@ -109,7 +116,9 @@ XtApplyUntilToWidgets (Widget w, XtApplyUntilToWidgetsProc proc, XtPointer arg)
  * Returns a copy of the list of all children of a composite widget
  */
 Widget *
-XtCompositeChildren (Widget widget, unsigned int* number)
+XtCompositeChildren (widget, number)
+     Widget widget;
+     unsigned int* number;
 {
   CompositeWidget cw = (CompositeWidget)widget;
   Widget* result;
@@ -130,13 +139,15 @@ XtCompositeChildren (Widget widget, unsigned int* number)
 }
 
 Boolean
-XtWidgetBeingDestroyedP (Widget widget)
+XtWidgetBeingDestroyedP (widget)
+     Widget widget;
 {
   return widget->core.being_destroyed;
 }
 
 void
-XtSafelyDestroyWidget (Widget widget)
+XtSafelyDestroyWidget (widget)
+     Widget widget;
 {
 #if 0
 
