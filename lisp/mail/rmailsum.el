@@ -522,16 +522,20 @@ Instead, all of the Rmail Mode commands are available, plus:
 	    (skip-chars-forward "0-9")
 	    (setq msg-num (string-to-int (buffer-substring beg (point))))
 	    (or (eq rmail-current-message msg-num)
-		(progn
+		(let (go-where window (owin (selected-window)))
 		  (setq rmail-current-message msg-num)
 		  (if (= (following-char) ?-)
 		      (progn
 			(delete-char 1)
 			(insert " ")))
 		  (setq window (display-buffer rmail-buffer))
-		  (save-window-excursion
-		    (select-window window)
-		    (rmail-show-message msg-num)))))))))
+		  ;; Using save-window-excursion caused the new value
+		  ;; of point to get lost.
+		  (unwind-protect
+		      (progn
+			(select-window window)
+			(rmail-show-message msg-num))
+		    (select-window owin)))))))))
 
 (defvar rmail-summary-mode-map nil)
 
@@ -674,6 +678,7 @@ Instead, all of the Rmail Mode commands are available, plus:
   (save-excursion
     (set-buffer rmail-buffer)
     (rmail-only-expunge)
+    (set-buffer rmail-buffer)
     (save-buffer))
   (rmail-update-summary))
 
@@ -682,8 +687,7 @@ Instead, all of the Rmail Mode commands are available, plus:
   (interactive)
   (save-excursion
     (set-buffer rmail-buffer)
-    (rmail-get-new-mail))
-  (rmail-update-summary))
+    (rmail-get-new-mail)))
 
 (defun rmail-summary-input (filename)
   "Run Rmail on file FILENAME."
@@ -767,7 +771,9 @@ Interactively, empty argument means use same regexp used last time."
 (defun rmail-summary-add-label (label)
   "Add LABEL to labels associated with current Rmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (rmail-read-label "Add label")))
+  (interactive (list (save-excursion
+		       (set-buffer rmail-buffer)
+		       (rmail-read-label "Add label"))))
   (save-excursion
     (set-buffer rmail-buffer)
     (rmail-add-label label)))
@@ -775,7 +781,9 @@ Completion is performed over known labels when reading."
 (defun rmail-summary-kill-label (label)
   "Remove LABEL from labels associated with current Rmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (rmail-read-label "Add label")))
+  (interactive (list (save-excursion
+		       (set-buffer rmail-buffer)
+		       (rmail-read-label "Kill label"))))
   (save-excursion
     (set-buffer rmail-buffer)
     (rmail-set-label label nil)))
