@@ -3034,19 +3034,23 @@ can refer to that file in Emacs as @samp{/:/foo:/bar}.
 character for a user's home directory.  For example, @file{/:/tmp/~hack}
 refers to a file whose name is @file{~hack} in directory @file{/tmp}.
 
-  Likewise, quoting with @samp{/:} is one way to enter in the minibuffer
-a file name that contains @samp{$}.  However, the @samp{/:} must be at
-the beginning of the minibuffer in order to quote @samp{$}.  (For
-another way of quoting @samp{$} in file names see @ref{File Names with
-@samp{$}}.)
+  Quoting with @samp{/:} is also a way to enter in the minibuffer a
+file name that contains @samp{$}.  In order for this to work, the
+@samp{/:} must be at the beginning of the minibuffer contents.  (You
+can also double each @samp{$}; see @ref{File Names with @samp{$}}.)
 
   You can also quote wildcard characters with @samp{/:}, for visiting.
-For example, @file{/:/tmp/foo*bar} visits the file @file{/tmp/foo*bar}.
-However, in most cases you can simply type the wildcard characters for
-themselves.  For example, if the only file name in @file{/tmp} that
-starts with @samp{foo} and ends with @samp{bar} is @file{foo*bar}, then
-specifying @file{/tmp/foo*bar} will visit just @file{/tmp/foo*bar}.
-Another way is to specify @file{/tmp/foo[*]bar}.
+For example, @file{/:/tmp/foo*bar} visits the file
+@file{/tmp/foo*bar}.
+
+  Another method of getting the same result is to enter
+@file{/tmp/foo[*]bar}, which is a wildcard specification that matches
+only @file{/tmp/foo*bar}.  However, in many cases there is no need to
+quote the wildcard characters because even unquoted they give the
+right result.  For example, if the only file name in @file{/tmp} that
+starts with @samp{foo} and ends with @samp{bar} is @file{foo*bar},
+then specifying @file{/tmp/foo*bar} will visit only
+@file{/tmp/foo*bar}.
 
 @node File Name Cache
 @section File Name Cache
