@@ -202,8 +202,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
     repeat = XINT (prefixarg);
 
   final = indirect_function (macro);
-  if (XTYPE (final) != Lisp_String
-      && XTYPE (final) != Lisp_Vector)
+  if (!STRINGP (final) && !VECTORP (final))
     error ("Keyboard macros must be strings or vectors.");
 
   XFASTINT (tem) = executing_macro_index;
@@ -220,8 +219,8 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 
       QUIT;
     }
-  while (--repeat && (XTYPE (Vexecuting_macro) == Lisp_String
-		      || XTYPE (Vexecuting_macro) == Lisp_Vector));
+  while (--repeat
+	 && (STRINGP (Vexecuting_macro) || VECTORP (Vexecuting_macro)));
 
   UNGCPRO;
   return unbind_to (count, Qnil);
