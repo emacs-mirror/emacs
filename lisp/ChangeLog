@@ -1,3 +1,8 @@
+2001-08-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (line-number-mode): Mention the variable
+	line-number-display-limit-width in the doc string.
+
 2001-08-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* bindings.el (mode-line-unbury-buffer): Add EVENT parameter.
