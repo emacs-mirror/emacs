@@ -1,6 +1,9 @@
 2002-04-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* international/mule-cmds.el (read-language-name): Take of
+	* recentf.el (recentf-menu-before): Use string to specify path in
+	the menu.
+
+	* international/mule-cmds.el (read-language-name): Take care of
 	non-list values.
 
 2002-04-27  Richard M. Stallman  <rms@gnu.org>
