@@ -1,3 +1,26 @@
+2003-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_iso2022): Pay attention to the byte
+	sequence of CTEXT extended segment, and retain those bytes as is.
+
+2003-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (ENCODE_UNSAFE_CHARACTER): Adjusted for the name change
+	of CODING_REPLACEMENT_CHARACTER.
+	(decode_coding_iso2022): If CODING_FLAG_ISO_SAFE, set
+	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in coding->mode, and
+	check this flag on encoding.
+	(encode_coding_sjis_big5): Check
+	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag of coding->mode.
+	(Fset_terminal_coding_system_internal): Set
+	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in terminal_coding.mode
+	instead of setting CODING_FLAG_ISO_SAFE flag in
+	terminal_coding.flags.
+
+	* coding.h (CODING_REPLACEMENT_CHARACTER): Renamed from
+	CODING_INHIBIT_CHARACTER_SUBSTITUTION.
+	(CODING_MODE_INHIBIT_UNENCODABLE_CHAR): New macro.
+
 2003-05-28  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (syms_of_print) <print-escape-nonascii>: Doc fix.

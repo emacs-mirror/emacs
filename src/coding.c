@@ -2036,6 +2036,78 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		}
 	      continue;
 
+	    case '%':
+	      if (COMPOSING_P (coding))
+		DECODE_COMPOSITION_END ('1');
+	      ONE_MORE_BYTE (c1);
+	      if (c1 == '/')
+		{
+		  /* CTEXT extended segment:
+		     ESC % / [0-4] M L --ENCODING-NAME-- \002 --BYTES--
+		     We keep these bytes as is for the moment.
+		     They may be decoded by post-read-conversion.  */
+		  int dim, M, L;
+		  int size, required;
+		  int produced_chars;
+		  
+		  ONE_MORE_BYTE (dim);
+		  ONE_MORE_BYTE (M);
+		  ONE_MORE_BYTE (L);
+		  size = ((M - 128) * 128) + (L - 128);
+		  required = 8 + size * 2;
+		  if (dst + required > (dst_bytes ? dst_end : src))
+		    goto label_end_of_loop;
+		  *dst++ = ISO_CODE_ESC;
+		  *dst++ = '%';
+		  *dst++ = '/';
+		  *dst++ = dim;
+		  produced_chars = 4;
+		  dst += CHAR_STRING (M, dst), produced_chars++;
+		  dst += CHAR_STRING (L, dst), produced_chars++;
+		  while (size-- > 0)
+		    {
+		      ONE_MORE_BYTE (c1);
+		      dst += CHAR_STRING (c1, dst), produced_chars++;
+		    }
+		  coding->produced_char += produced_chars;
+		}
+	      else if (c1 == 'G')
+		{
+		  unsigned char *d = dst;
+		  int produced_chars;
+
+		  /* XFree86 extension for embedding UTF-8 in CTEXT:
+		     ESC % G --UTF-8-BYTES-- ESC % @
+		     We keep these bytes as is for the moment.
+		     They may be decoded by post-read-conversion.  */
+		  if (d + 6 > (dst_bytes ? dst_end : src))
+		    goto label_end_of_loop;
+		  *d++ = ISO_CODE_ESC;
+		  *d++ = '%';
+		  *d++ = 'G';
+		  produced_chars = 3;
+		  while (d + 1 < (dst_bytes ? dst_end : src))
+		    {
+		      ONE_MORE_BYTE (c1);
+		      if (c1 == ISO_CODE_ESC
+			  && src + 1 < src_end
+			  && src[0] == '%'
+			  && src[1] == '@')
+			break;
+		      d += CHAR_STRING (c1, d), produced_chars++;
+		    }
+		  if (d + 3 > (dst_bytes ? dst_end : src))
+		    goto label_end_of_loop;
+		  *d++ = ISO_CODE_ESC;
+		  *d++ = '%';
+		  *d++ = '@';
+		  dst = d;
+		  coding->produced_char += produced_chars + 3;
+		}
+	      else
+		goto label_invalid_code;
+	      continue;
+
 	    default:
 	      if (! (coding->flags & CODING_FLAG_ISO_DESIGNATION))
 		goto label_invalid_code;
