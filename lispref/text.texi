@@ -2762,18 +2762,20 @@ This feature is used in the mode line and for other active text.
 @cindex keymap of character
 @kindex keymap @r{(text property)}
 The @code{keymap} property specifies an additional keymap for
-commands.  The property's value for the character after point, if
-non-@code{nil}, is used for key lookup before the buffer's local map.
-(For mouse clicks, the @code{keymap} property of the character clicked
-on is the one used.)  If the property value is a symbol, the symbol's
-function definition is used as the keymap.  @xref{Active Keymaps}.
+commands.  The property's value for the character before point applies
+if it is non-@code{nil} and rear-sticky, and the property's value for
+the character after point applies if it is non-@code{nil} and
+front-sticky.  When the value applies, it is used for key lookup
+before the buffer's local map.  (For mouse clicks, the position of the
+click is used instead of the position of point.)  If the property
+value is a symbol, the symbol's function definition is used as the
+keymap.  @xref{Active Keymaps}.
 
 @item local-map
 @kindex local-map @r{(text property)}
-This property specifies a keymap to use @emph{instead of} the buffer's
-local map.  If the property value is a symbol, the symbol's function
-definition is used as the keymap.  For most purposes (perhaps all
-purposes), the @code{keymap} is superior.
+This property works like @code{keymap} except that it specifies a
+keymap to use @emph{instead of} the buffer's local map.  For most
+purposes (perhaps all purposes), the @code{keymap} is superior.
 
 @item syntax-table
 The @code{syntax-table} property overrides what the syntax table says
