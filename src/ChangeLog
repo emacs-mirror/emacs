@@ -1,3 +1,8 @@
+2002-04-10  Colin Walters  <walters@verbum.org>
+
+	* callproc.c: (Vgame_score_directory): New variable.
+	(syms_of_callproc) <Vgame_score_directory>: DEFVAR_LISP.
+
 2002-04-10  Richard M. Stallman  <rms@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Reduce again to avoid big excess.

@@ -1,3 +1,9 @@
+2002-04-10  Colin Walters  <walters@verbum.org>
+
+	* Makefile.in (gamedir, gameuser): New variables.
+	(toplevel, UTILITIES): Add update-game-score.
+	(${archlibdir}): Handle HAVE_SHARED_GAME_DIR.
+
 2002-04-07  Colin Walters  <walters@verbum.org>
 
 	* update-game-score.c (SCORE_FILE_PREFIX): Don't hardcode.
