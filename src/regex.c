@@ -5007,6 +5007,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	on_failure:
 	  DEBUG_PRINT1 ("EXECUTING on_failure_jump");
 
+#if defined (WINDOWSNT) && defined (emacs)
+	  QUIT;
+#endif
+
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT3 (" %d (to 0x%x)", mcnt, p + mcnt);
 
@@ -5047,6 +5051,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	/* A smart repeat ends with `maybe_pop_jump'.
 	   We change it to either `pop_failure_jump' or `jump'.	 */
 	case maybe_pop_jump:
+#if defined (WINDOWSNT) && defined (emacs)
+	  QUIT;
+#endif
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT2 ("EXECUTING maybe_pop_jump %d.\n", mcnt);
 	  {
@@ -5267,6 +5274,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	/* Unconditionally jump (without popping any failure points).  */
 	case jump:
 	unconditional_jump:
+#if defined (WINDOWSNT) && defined (emacs)
+	  QUIT;
+#endif
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);	/* Get the amount to jump.  */
 	  DEBUG_PRINT2 ("EXECUTING jump %d ", mcnt);
 	  p += mcnt;				/* Do the jump.	 */
@@ -5670,6 +5680,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
     /* We goto here if a matching operation fails. */
     fail:
+#if defined (WINDOWSNT) && defined (emacs)
+      QUIT;
+#endif
       if (!FAIL_STACK_EMPTY ())
 	{ /* A restart point is known.  Restore to that state.  */
           DEBUG_PRINT1 ("\nFAIL:\n");
