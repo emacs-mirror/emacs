@@ -5331,6 +5331,14 @@ x_write_glyphs (start, len)
 		     hpos, hpos + len,
 		     DRAW_NORMAL_TEXT, 0);
 
+  /* Invalidate old phys cursor if the glyph at its hpos is redrawn.  */
+  if (updated_area == TEXT_AREA
+      && updated_window->phys_cursor_on_p
+      && updated_window->phys_cursor.vpos == output_cursor.vpos
+      && updated_window->phys_cursor.hpos >= hpos
+      && updated_window->phys_cursor.hpos < hpos + len)
+    updated_window->phys_cursor_on_p = 0;
+
   UNBLOCK_INPUT;
   
   /* Advance the output cursor.  */
