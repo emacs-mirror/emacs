@@ -383,5 +383,7 @@ vector of CHAR respectively."
 	((eq type 'list) (list char))
 	(t (vector char))))
 
+(make-obsolete 'decompose-composite-char 'char-to-string "21.1")
+
 
 ;;; composite.el ends here
