@@ -428,7 +428,6 @@ Lisp_Object minibuf_prompt;
    of the line that contains the prompt.  */
 
 int minibuf_prompt_width;
-int minibuf_prompt_pixel_width;
 
 /* This is the window where the echo area message was displayed.  It
    is always a mini-buffer window, but it may not be the same window
