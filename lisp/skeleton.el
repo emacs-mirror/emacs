@@ -115,10 +115,60 @@ INTERACTOR and ELEMENT ... are as defined under `skeleton-insert'."
   (if skeleton-debug
       (set command skeleton))
   `(progn
-     (defvar ,command ',skeleton ,documentation)
-     (defalias ',command 'skeleton-proxy)))
+     (defun ,command (&optional str arg)
+       ,(concat documentation
+		(if (string-match "\n\\>" documentation)
+		    "" "\n")
+		"\n"
+  "This is a skeleton command (see `skeleton-insert').
+Normally the skeleton text is inserted at point, with nothing \"inside\".
+If there is a highlighted region, the skeleton text is wrapped
+around the region text.
 
+A prefix argument ARG says to wrap the skeleton around the next ARG words.
+A prefix argument of zero says to wrap around zero words---that is, nothing.
+This is a way of overiding the use of a highlighted region.")
+       (interactive "*P\nP")
+       (skeleton-proxy-new ',skeleton str arg))))
 
+;;;###autoload
+(defun skeleton-proxy-new (skeleton &optional str arg)
+  "Insert skeleton defined by variable of same name (see `skeleton-insert').
+Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
+If no ARG was given, but the region is visible, ARG defaults to -1 depending
+on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
+This command can also be an abbrev expansion (3rd and 4th columns in
+\\[edit-abbrevs]  buffer: \"\"  command-name).
+
+When called as a function, optional first argument STR may also be a string
+which will be the value of `str' whereas the skeleton's interactor is then
+ignored."
+  (interactive "*P\nP")
+  (setq skeleton (funcall skeleton-filter skeleton))
+  (if (not skeleton)
+      (if (memq this-command '(self-insert-command
+			       skeleton-pair-insert-maybe
+			       expand-abbrev))
+	  (setq buffer-undo-list (primitive-undo 1 buffer-undo-list)))
+    (skeleton-insert skeleton
+		     (if (setq skeleton-abbrev-cleanup
+			       (or (eq this-command 'self-insert-command)
+				   (eq this-command
+				       'skeleton-pair-insert-maybe)))
+			 ()
+		       ;; Pretend  C-x a e  passed its prefix arg to us
+		       (if (or arg current-prefix-arg)
+			   (prefix-numeric-value (or arg
+						     current-prefix-arg))
+			 (and skeleton-autowrap
+			      (or (eq last-command 'mouse-drag-region)
+				  (and transient-mark-mode mark-active))
+			      -1)))
+		     (if (stringp str)
+			 str))
+    (and skeleton-abbrev-cleanup
+	 (setq skeleton-abbrev-cleanup (point))
+	 (add-hook 'post-command-hook 'skeleton-abbrev-cleanup nil t))))
 
 ;; This command isn't meant to be called, only it's aliases with meaningful
 ;; names are.
@@ -421,7 +471,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 ;;			  'read-expression-history) | _
 ;;    comment-end \n)
 ;;  resume:
-;;  comment-start "End:" comment-end)
+;;  comment-start "End:" comment-end \n)
 
 ;; Variables and command for automatically inserting pairs like () or "".
 
