@@ -21,9 +21,9 @@
 ;;; Code:
 
 (defun open-line (arg)
-  "Insert a newline and leave point before it.  If there is a fill
-prefix, inserts the fill prefix after the newline that it inserts.
-With arg, inserts that many newlines."
+  "Insert a newline and leave point before it.
+If there is a fill prefix, insert the fill prefix after the newline
+that it inserts.  With arg N, insert N newlines."
   (interactive "*p")
   (let ((flag (and (bolp) (not (bobp)))))
     (if flag (forward-char -1))
@@ -46,7 +46,7 @@ With arg, inserts that many newlines."
 
 (defun quoted-insert (arg)
   "Read next input character and insert it.
-Useful for inserting control characters.
+This is useful for inserting control characters.
 You may also type up to 3 octal digits, to insert a character with that code"
   (interactive "*p")
   (let ((char (read-quoted-char)))
@@ -148,10 +148,10 @@ On nonblank line, delete all blank lines that follow it."
 
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.
-Indentation is done using the current indent-line-function.
+Indentation is done using the value of `indent-line-function'.
 In programming language modes, this is the same as TAB.
-In some text modes, where TAB inserts a tab, this indents to the
-specified left-margin column."
+In some text modes, where TAB inserts a tab, this command indents to the
+column specified by the variable `left-margin'."
   (interactive "*")
   (delete-region (point) (progn (skip-chars-backward " \t") (point)))
   (newline)
@@ -160,10 +160,10 @@ specified left-margin column."
 (defun reindent-then-newline-and-indent ()
   "Reindent current line, insert newline, then indent the new line.
 Indentation of both lines is done according to the current major mode,
-which means that the current value of indent-line-function is called.
+which means calling the current value of `indent-line-function'.
 In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
-specified left-margin column."
+column specified by the variable `left-margin'."
   (interactive "*")
   (save-excursion
     (delete-region (point) (progn (skip-chars-backward " \t") (point)))
@@ -218,7 +218,8 @@ Goes backward if ARG is negative; error if CHAR not found."
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
 With arg N, put point N/10 of the way from the true beginning.
-Don't use this in Lisp programs!
+
+Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
   (push-mark)
@@ -234,7 +235,8 @@ Don't use this in Lisp programs!
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer; leave mark at previous position.
 With arg N, put point N/10 of the way from the true end.
-Don't use this in Lisp programs!
+
+Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
   (push-mark)
@@ -287,7 +289,7 @@ that uses or sets the mark."
 (defun count-lines (start end)
   "Return number of lines between START and END.
 This is usually the number of newlines between them,
-but will be one more if START is not equal to END
+but can be one more if START is not equal to END
 and the greater of them is not at the start of a line."
   (save-excursion
     (save-restriction
@@ -493,16 +495,16 @@ A numeric argument serves as a repeat count."
 	 (delete-auto-save-file-if-necessary))))
 
 (defun undo-start ()
-  "Move pending-undo-list to front of undo records.
-The next call to undo-more will undo the most recently made change."
+  "Set `pending-undo-list' to the front of the undo list.
+The next call to `undo-more' will undo the most recently made change."
   (if (eq buffer-undo-list t)
       (error "No undo information in this buffer"))
   (setq pending-undo-list buffer-undo-list))
 
 (defun undo-more (count)
   "Undo back N undo-boundaries beyond what was already undone recently.
-Call undo-start to get ready to undo recent changes,
-then call undo-more one or more times to undo them."
+Call `undo-start' to get ready to undo recent changes,
+then call `undo-more' one or more times to undo them."
   (or pending-undo-list
       (error "No further undo information"))
   (setq pending-undo-list (primitive-undo count pending-undo-list)))
@@ -939,7 +941,7 @@ system cut and paste."
 			(substring killed-text 0 message-len)))))))))
 
 (defun append-next-kill ()
-  "Cause following command, if kill, to append to previous kill."
+  "Cause following command, if it kills, to append to previous kill."
   (interactive)
   (if (interactive-p)
       (progn
@@ -948,15 +950,15 @@ system cut and paste."
     (setq last-command 'kill-region)))
 
 (defun yank-pop (arg)
-  "Replace just-yanked stretch of killed-text with a different stretch.
-This command is allowed only immediately after a  yank  or a  yank-pop.
+  "Replace just-yanked stretch of killed text with a different stretch.
+This command is allowed only immediately after a `yank' or a `yank-pop'.
 At such a time, the region contains a stretch of reinserted
-previously-killed text.  yank-pop  deletes that text and inserts in its
+previously-killed text.  `yank-pop' deletes that text and inserts in its
 place a different stretch of killed text.
 
 With no argument, the previous kill is inserted.
-With argument n, the n'th previous kill is inserted.
-If n is negative, this is a more recent kill.
+With argument N, insert the Nth previous kill.
+If N is negative, this is a more recent kill.
 
 The sequence of kills wraps around, so that after the oldest one
 comes the newest one."
@@ -973,9 +975,9 @@ comes the newest one."
 (defun yank (&optional arg)
   "Reinsert the last stretch of killed text.
 More precisely, reinsert the stretch of killed text most recently
-killed OR yanked.
-With just C-U as argument, same but put point in front (and mark at end).
-With argument n, reinsert the nth most recently killed stretch of killed
+killed OR yanked.  Put point at end, and set mark at beginning.
+With just C-u as argument, same but put point at beginning (and mark at end).
+With argument N, reinsert the Nth most recently killed stretch of killed
 text.
 See also the command \\[yank-pop]."
   (interactive "*P")
@@ -1068,7 +1070,7 @@ mark position to be lost.
 Normally, when a new mark is set, the old one should go on the stack.
 This is why most applications should use push-mark, not set-mark.
 
-Novice emacs-lisp programmers often try to use the mark for the wrong
+Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  The mark saves a location for the user's convenience.
 Most editing commands should not alter the mark.
 To remember a location for internal use in the Lisp program,
@@ -1091,7 +1093,7 @@ most recent first.")
 With no prefix argument, set mark, and push previous mark on mark ring.
 With argument, jump to mark, and pop into mark off the mark ring.
 
-Novice emacs-lisp programmers often try to use the mark for the wrong
+Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
   (if (null arg)
@@ -1105,7 +1107,7 @@ purposes.  See the documentation of `set-mark' for more information."
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
 Displays \"Mark set\" unless the optional second arg NOMSG is non-nil.
 
-Novice emacs-lisp programmers often try to use the mark for the wrong
+Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (if (null (mark))
       nil
@@ -1506,7 +1508,7 @@ not end the comment.  Blank lines do not get comments."
 (defun backward-word (arg)
   "Move backward until encountering the end of a word.
 With argument, do this that many times.
-In programs, it is faster to call forward-word with negative arg."
+In programs, it is faster to call `forward-word' with negative arg."
   (interactive "p")
   (forward-word (- arg)))
 
@@ -1659,17 +1661,17 @@ automatically breaks the line at a previous space."
   (auto-fill-mode 1))
 
 (defun set-fill-column (arg)
-  "Set fill-column to current column, or to argument if given.
-fill-column's value is separate for each buffer."
+  "Set `fill-column' to current column, or to argument if given.
+The variable `fill-column' has a separate value for each buffer."
   (interactive "P")
   (setq fill-column (if (integerp arg) arg (current-column)))
   (message "fill-column set to %d" fill-column))
 
 (defun set-selective-display (arg)
-  "Set selective-display to ARG; clear it if no arg.
-When selective-display is a number > 0,
-lines whose indentation is >= selective-display are not displayed.
-selective-display's value is separate for each buffer."
+  "Set `selective-display' to ARG; clear it if no arg.
+When the value of `selective-display' is a number > 0,
+lines whose indentation is >= that value are not displayed.
+The variable `selective-display' has a separate value for each buffer."
   (interactive "P")
   (if (eq selective-display t)
       (error "selective-display already in use for marked lines"))
