@@ -55,6 +55,9 @@
 (defvar auto-insert-alist '(("\\.tex$" . "tex-insert.tex")
 			    ("\\.c$" . "c-insert.c")
 			    ("\\.h$" . "h-insert.c")
+			    ("\\.cc$" . "c-insert.cc")
+			    ("\\.C$" . "c-insert.cc")
+			    ("\\.H$" . "h-insert.cc")
 			    ("[Mm]akefile" . "makefile.inc")
 			    ("\\.bib$" . "tex-insert.tex"))
   "A list specifying text to insert by default into a new file.
@@ -75,10 +78,11 @@ Matches the visited file name against the elements of `auto-insert-alist'."
         (insert-file nil))
 
     ;; find first matching alist entry
-    (while (and (not insert-file) alist)
+    (let ((case-fold-search (eq system-type 'vax-vms)))
+      (while (and (not insert-file) alist)
       (if (string-match (car (car alist)) name)
           (setq insert-file (cdr (car alist)))
-        (setq alist (cdr alist))))
+        (setq alist (cdr alist)))))
 
     ;; Now, if we found an appropriate insert file, insert it
     (if insert-file
