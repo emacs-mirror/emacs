@@ -7205,7 +7205,7 @@ XTread_socket (display, bufp, numchars, expected)
 #endif
 
 #ifndef USE_GTK
-      while (XPending (dpyinfo->display))
+      while (numchars > 0 && XPending (dpyinfo->display))
 	{
           int finish;
 
