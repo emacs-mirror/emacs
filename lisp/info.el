@@ -1136,6 +1136,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
     (setq Info-history (cdr Info-history))
     (goto-char opoint)))
 
+;;;###autoload
 (defun Info-directory ()
   "Go to the Info directory node."
   (interactive)
@@ -1893,14 +1894,33 @@ If no reference to follow, moves to the next node, or up if none."
 (easy-menu-define Info-mode-menu Info-mode-map
   "Menu for info files."
   '("Info"
-    ["Up" Info-up (Info-check-pointer "up")]
-    ["Next" Info-next (Info-check-pointer "next")]
-    ["Previous" Info-prev (Info-check-pointer "prev[ious]*")]
+    ["Up" Info-up (Info-check-pointer "up")
+     :help "Go up in the Info tree"]
+    ["Next" Info-next (Info-check-pointer "next")
+     :help "Go to the next node"]
+    ["Previous" Info-prev (Info-check-pointer "prev[ious]*")
+     :help "Go to the previous node"]
+    ["Backward" Info-backward-node t
+     :help "Go backward one node, considering all as a sequence"]
+    ["Forward" Info-forward-node t
+     :help "Go forward one node, considering all as a sequence"]
+    ["Top" Info-top-node t
+     :help "Go to top node of file"]
+    ["Final node" Info-final-node t
+     :help "Go to final node in this file"]
     ("Menu item" ["You should never see this" report-emacs-bug t])
     ("Reference" ["You should never see this" report-emacs-bug t])
-    ["Search..." Info-search t]
-    ["Goto node..." Info-goto-node t]
-    ["Last" Info-last Info-history]
+    ["Search..." Info-search t
+     :help "Search for regular expression in this Info file"]
+    ["Goto node..." Info-goto-node t
+     :help "Go to a named node]"]
+    ["Last" Info-last Info-history
+     :help "Go to the last node you were at"]
+    ("Index..."
+     ["Lookup a String" Info-index t
+      :help "Look for a string in the index items"]
+     ["Next Matching Item" Info-index-next t
+      :help "Look for another occurrence of previous item"])
     ["Exit" Info-exit t]))
 
 (defvar Info-menu-last-node nil)
@@ -2496,6 +2516,12 @@ BUFFER is the buffer speedbar is requesting buttons for."
       (erase-buffer))
   (Info-speedbar-hierarchy-buttons nil 0)
   )
+
+(dolist (mess '("^Node has no Previous$"
+		"^No menu in this node$"
+		"^Node has no Next$"
+		"^No \".*\" in index$"))
+  (add-to-list 'debug-ignored-errors mess))
 
 (provide 'info)
 
