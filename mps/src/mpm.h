@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.93) $
+ * $HopeName: MMsrc!mpm.h(trunk.94) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -88,7 +88,6 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 /* Result codes */
 
 extern Bool ResIsAllocFailure(Res res);
-
 
 /* Accumulator methods */
 
@@ -201,6 +200,15 @@ extern Ring (RingNext)(Ring ring);
   for(node = RingNext(ring), next = RingNext(node);             \
       node != (ring) ;                                          \
       node = (next), next = RingNext(node))
+
+
+/* Version Determination
+ *
+ * See design.mps.version-library.
+ */
+
+/* Defined in impl.c.version */
+extern char *MPSVersion(void);
 
 
 /* Bit Table Interface -- see design.mps.bt.if.* for doc */
