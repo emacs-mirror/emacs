@@ -1,3 +1,9 @@
+2001-02-12  Dave Love  <d.love@dl.ac.uk>
+
+	* international/latin1-disp.el:  Doc fixes.
+	(latin1-display) <defgroup>: Add :link.
+	(latin1-display) <function>: Set variable latin1-display.
+
 2001-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule-cmds.el (set-input-method): Doc fix.
