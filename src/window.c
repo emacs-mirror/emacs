@@ -4027,12 +4027,16 @@ window_scroll (window, n, whole, noerror)
      int whole;
      int noerror;
 {
+  immediate_quit = 1;
+
   /* If we must, use the pixel-based version which is much slower than
      the line-based one but can handle varying line heights.  */
   if (FRAME_WINDOW_P (XFRAME (XWINDOW (window)->frame)))
     window_scroll_pixel_based (window, n, whole, noerror);
   else
     window_scroll_line_based (window, n, whole, noerror);
+
+  immediate_quit = 0;
 }
 
 
