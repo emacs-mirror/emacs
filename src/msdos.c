@@ -1284,6 +1284,7 @@ dos_set_keyboard (code, always)
      Note: calling Int 2Fh via int86 wedges the DOS box on some versions
      of Windows 9X!  So don't do that!  */
   regs.x.ax = 0xad80;
+  regs.x.ss = regs.x.sp = regs.x.flags = 0;
   _go32_dpmi_simulate_int (0x2f, &regs);
   if (regs.h.al == 0xff)
     international_keyboard = 1;
