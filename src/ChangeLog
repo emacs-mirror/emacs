@@ -1,3 +1,7 @@
+1999-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (command_loop_1): Remove no_redisplay.
+
 1999-11-16  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* print.c (PRINTPREPARE): Don't call setup_echo_area_for_printing
