@@ -725,6 +725,7 @@ directory names."
   (setq mode-name mode-name-string)
   (force-mode-line-update t))
 
+(defvar mh-folder-hist nil)
 
 (defun mh-prompt-for-folder (prompt default can-create)
   ;; Prompt for a folder name with PROMPT.  Returns the folder's name as a
@@ -739,8 +740,8 @@ directory names."
 	 read-name folder-name)
     (if (null mh-folder-list)
 	(mh-set-folder-list))
-    (while (and (setq read-name (completing-read prompt mh-folder-list
-					    nil nil "+"))
+    (while (and (setq read-name (completing-read prompt mh-folder-list nil nil
+						 "+" 'mh-folder-hist default))
 		(equal read-name "")
 		(equal default "")))
     (cond ((or (equal read-name "") (equal read-name "+"))
