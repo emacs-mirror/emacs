@@ -1310,7 +1310,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
       int startpos;
 
       overlay = XCONS (tail)->car;
-      if (XGCTYPE (overlay) == Lisp_Overlay)
+      if (XGCTYPE (overlay) != Lisp_Overlay)
 	abort ();
 
       start = OVERLAY_START (overlay);
@@ -1350,7 +1350,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
       int startpos;
 
       overlay = XCONS (tail)->car;
-      if (XGCTYPE (overlay) == Lisp_Overlay)
+      if (XGCTYPE (overlay) != Lisp_Overlay)
 	abort ();
 
       start = OVERLAY_START (overlay);
