@@ -1,25 +1,26 @@
 ;;; shell.el --- specialized comint.el for running the shell.
-;;; Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
+
+;; Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Maintainer: Simon Marshall <s.marshall@dcs.hull.ac.uk>
 ;; Keywords: processes
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
@@ -258,19 +259,14 @@ Thus, this does not include the shell's current directory.")
        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
        (define-key shell-mode-map "\M-?"
 	 'comint-dynamic-list-filename-completions)
-       ;; Undefine the general completion first.
-       (define-key shell-mode-map [menu-bar completion complete] nil)
-       (define-key shell-mode-map [menu-bar completion expand-directory]
-	 '("Expand Directory Reference" . shell-replace-by-expanded-directory))
-       (define-key shell-mode-map [menu-bar completion complete-env-variable]
-	 '("Complete Env. Variable Name" .
-	   shell-dynamic-complete-environment-variable))
-       (define-key shell-mode-map [menu-bar completion complete-command]
-	 '("Complete Command Name" . shell-dynamic-complete-command))
-       ;; Redefine (requires a new key) so that it is at the top.
-       (define-key shell-mode-map [menu-bar completion complete-shell]
-	 '("Complete Before Point" . comint-dynamic-complete))
-       ))
+       (define-key-after (lookup-key shell-mode-map [menu-bar completion])
+	 [complete-env-variable] '("Complete Env. Variable Name" .
+				   shell-dynamic-complete-environment-variable)
+	 'complete-file)
+       (define-key-after (lookup-key shell-mode-map [menu-bar completion])
+	 [expand-directory] '("Expand Directory Reference" .
+			      shell-replace-by-expanded-directory)
+	 'complete-expand)))
 
 (defvar shell-mode-hook '()
   "*Hook for customising Shell mode.")
@@ -789,7 +785,6 @@ Returns t if successful."
   (interactive)
   (if (comint-match-partial-filename)
       (save-excursion
-	(message "Expanding directory references...")
 	(goto-char (match-beginning 0))
 	(let ((stack (cons default-directory shell-dirstack))
 	      (index (cond ((looking-at "=-/?")
