@@ -1093,10 +1093,10 @@ it just adds completion characters to the end of the filename."
 	       (display-completion-list completions))
 	     (sit-for 0)
 	     (message "Hit space to flush")
-	     (let ((ch (read-char)))
+	     (let ((ch (read-event)))
 	       (if (= ch ?\ )
 		   (set-window-configuration conf)
-		   (setq unread-command-events (list ch)))))))))
+		 (setq unread-command-events (list ch)))))))))
 
 ;;; Converting process modes to use comint mode
 ;;; ===========================================================================
