@@ -621,8 +621,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
-  (set-locale-environment nil)
-
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
   ;;! to it, then it would be better to eliminate the option.
@@ -672,6 +670,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (when (and (not (display-graphic-p))
 	     (not noninteractive))
     (setq command-line-args (tty-handle-args command-line-args)))
+
+  (set-locale-environment nil)
 
   (let ((done nil)
 	(args (cdr command-line-args)))
