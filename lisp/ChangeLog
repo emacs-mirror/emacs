@@ -1,3 +1,8 @@
+2003-07-29  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* comint.el (comint-read-noecho): Use `clear-string' instead of
+	`fillarray'.
+
 2003-07-29  Thomas W Murphy  <twm@andrew.cmu.edu>  (tiny change)
 
 	* outline.el (outline-mode-hook): Add defvar.
@@ -6,7 +11,7 @@
 
 	* gdb-ui.el (gdb-setup-windows, gdb-restore-windows): Restore
 	assembler in source window if that is what has been selected.
-	(menu): Add gdb-restore-windows to menu. Make gdba
+	(menu): Add gdb-restore-windows to menu.  Make gdba
 	specific menus only visible from gdba.
 
 2003-07-28  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
@@ -18,7 +23,7 @@
 
 	* progmodes/gud.el (gdb-script-font-lock-keywords):
 	Put `font-lock-function-name-face' on a symbol which includes
-	`-' like `hook-run'. Put font-lock-variable-name-face
+	`-' like `hook-run'.  Put font-lock-variable-name-face
 	on a symbol starting with $.
 
 2003-07-27  Markus Rost  <rost@math.ohio-state.edu>
