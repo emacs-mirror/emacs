@@ -891,6 +891,10 @@ Ian T. Zimmerman wrote @file{gametree.el}.
 @item
 Neal Ziring and Felix S. T. Wu wrote @file{vi.el}, an emulation of the
 VI text editor.
+
+@item
+John Wiegley wrote @file{align.el}, a set of commands for aligning
+text according to regular-expression based rules.
 @end itemize
 
 Others too numerous to mention have reported and fixed bugs, and added
