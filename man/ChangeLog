@@ -1,3 +1,8 @@
+2004-06-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Reverting): Auto-Revert mode and
+	Global Auto-Revert mode no longer revert remote files.
+
 2004-06-05  Lars Hansen  <larsh@math.ku.dk>
 
 	* dired-x.texi (variable dired-omit-mode): Rename from
