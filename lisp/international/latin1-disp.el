@@ -1,6 +1,6 @@
 ;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*- coding: emacs-mule -*-
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -181,7 +181,8 @@ character set: `latin-2', `hebrew' etc."
 		 ;; Now FONT-PATTERN is a string or a cons of family
 		 ;; field pattern and registry field pattern.
 		 (or (stringp font-pattern)
-		     (setq font-pattern (concat (or (car font-pattern) "*")
+		     (setq font-pattern (concat "-"
+						(or (car font-pattern) "*")
 						"-*-"
 						(cdr font-pattern))))
 		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
