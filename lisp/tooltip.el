@@ -331,13 +331,13 @@ change the existing association.  Value is the resulting alist."
 	      (fg (face-attribute 'tooltip :foreground))
 	      (bg (face-attribute 'tooltip :background)))
 	  (unless (eq 'unspecified fg)
-	    (tooltip-set-param params 'foreground-color fg))
+	    (setq params (tooltip-set-param params 'foreground-color fg)))
 	  (unless (eq 'unspecified bg)
-	    (tooltip-set-param params 'background-color bg)
-	    (tooltip-set-param params 'border-color bg))
+	    (setq params (tooltip-set-param params 'background-color bg))
+	    (setq params (tooltip-set-param params 'border-color bg)))
 	  (x-show-tip (propertize text 'face 'tooltip)
 		      (selected-frame)
-		      tooltip-frame-parameters
+		      params
 		      nil
 		      tooltip-x-offset
 		      tooltip-y-offset))
