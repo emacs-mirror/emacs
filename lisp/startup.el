@@ -303,7 +303,7 @@ one of the environment variables LC_ALL, LC_CTYPE, or LANG.
 The paren group in the regexp should match the specific character
 set number, N.  Currently only Latin-[12345] are supported.
 \(Note that Latin-5 is ISO 8859-9, because 8859-[678] are non-Latin
-alphabets.\)")
+alphabets; hence, supported values of N are [12349].\)")
 
 (defcustom mail-host-address nil
   "*Name of this machine, for purposes of naming users."
