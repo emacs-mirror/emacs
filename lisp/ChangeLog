@@ -3,7 +3,6 @@
 	* filecache.el (file-cache-add-directory-using-find): Don't quote 
 	wildcards on MS-DOS. Suggested by Eli Zaretskii <eliz@is.elta.co.il>.
 
-
 2000-08-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* help.el (help-make-xrefs): Don't make hyperlinks for incorrect
@@ -112,7 +111,7 @@
 
 	* align.el: Test align-region-separate to see if it's a symbol.
 
-2000-08-27  John Wiegley  <johnw@gnu.org>
+2000-08-28  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-util.el (eshell-flatten-list): Made this function
 	into a defsubst form.  It gets used very frequently, although
@@ -199,14 +198,14 @@
 	to ensure the `preserve' flag gets propagated when doing recursive
 	directory copies.
 
-2000-08-09  Stefan Monnier  <monnier@cs.yale.edu>
+2000-08-28  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eshell/em-hist.el (eshell-put-history, eshell-get-history):
 	Don't convert \n into \0177 in memory.
 	(eshell-read-history, eshell-write-history): Convert \n to \0177,
 	and back again, when reading and writing.
 	
-2000-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
+2000-08-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/esh-util.el (eshell-processp): Added to relieve constant
 	testing of `fboundp' on `processp'.
@@ -235,9 +234,9 @@
 	fix.
 	(eshell-get-target, eshell-create-handles): Doc fix.
 
-2000-06-28  Miles Bader  <miles@lsi.nec.co.jp>
+2000-08-28  Miles Bader  <miles@lsi.nec.co.jp>
 
-	* em-smart.el (eshell-smart-maybe-jump-to-end): Change the
+	* eshell/em-smart.el (eshell-smart-maybe-jump-to-end): Change the
 	criterion to include commands that output something, as long as it
 	leaves both the command and the end-of-buffer visible when the
 	command has exited.
@@ -267,8 +266,8 @@
 
 2000-08-28  Stanislav Shalunov  <shalunov@internet2.edu>
 
-	* uce.el (uce-reply-to-uce): Remove hard-coded "*Article*" from
-	Gnus support code, and use special article copy buffer
+	* mail/uce.el (uce-reply-to-uce): Remove hard-coded "*Article*"
+	from Gnus support code, and use special article copy buffer
 	`(gnus-original-article-buffer)' instead.  This allows to get rid
 	of article-hide-headers usage (which breaks in the latest Gnus
 	version).  Thanks to Detlev Zundel.
