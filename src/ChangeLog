@@ -1,3 +1,9 @@
+2004-04-17  Kim F. Storm  <storm@cua.dk>
+
+	* image.c (PNG_BG_COLOR_SHIFT): Remove.
+	(png_load): Fix calculation of transparent background color on X
+	and W32 platforms.
+
 2004-04-16  Juanma Barranquero  <lektu@terra.es>
 
 	* xdisp.c (try_scrolling): Make sure `scroll-conservatively' is
