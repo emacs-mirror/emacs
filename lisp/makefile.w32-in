@@ -181,11 +181,12 @@ subdirs.el:
 update-subdirs: update-subdirs-$(SHELLTYPE)
 
 update-subdirs-CMD: doit
-	@set QWINS=
-	@for %d in ($(WINS)) do if not (%d)==(term) set QWINS=%QWINS% "%d"
-	echo ;; In load-path, after this directory should come> subdirs.el
+	echo ;; -*- no-byte-compile: t -*->subdirs.el
+	echo ;; In load-path, after this directory should come>> subdirs.el
 	echo ;; certain of its subdirectories.  Here we specify them.>> subdirs.el
-	echo (normal-top-level-add-to-load-path $(SQUOTE)(%QWINS%))>> subdirs.el
+	echo (normal-top-level-add-to-load-path $(SQUOTE)(>> subdirs.el
+	@for %d in ($(WINS)) do if not (%d)==(term) echo "%d">> subdirs.el
+	echo ))>> subdirs.el
 
 update-subdirs-SH: doit
 	wd=$(lisp); $(setwins); \

@@ -1,3 +1,9 @@
+2003-02-06  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (update-subdirs-CMD): Fix generation of
+	subdirs.el (from Tak Ota <Takaaki.Ota@am.sony.com>) and make it
+	non-compilable.
+
 2003-02-06  Matthew Swift  <swift@alum.mit.edu>
 
 	* dired.el (dired-move-to-filename-regexp): Support "K" suffix on
