@@ -47,6 +47,7 @@ int etext;
 /* The major and minor versions of NT.  */
 int w32_major_version;
 int w32_minor_version;
+int w32_build_number;
 
 /* Distinguish between Windows NT and Windows 95.  */
 int os_subtype;
@@ -83,6 +84,10 @@ cache_system_info (void)
   /* Cache os info.  */
   osinfo_cache.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
   GetVersionEx (&osinfo_cache);
+
+  w32_build_number = osinfo_cache.dwBuildNumber;
+  if (os_subtype == OS_WIN95)
+    w32_build_number &= 0xffff;
 }
 
 /* Emulate getpagesize.  */
