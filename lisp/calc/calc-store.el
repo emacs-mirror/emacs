@@ -200,7 +200,7 @@
 
 (defun calcVar-digit ()
   (interactive)
-  (if (calc-minibuffer-contains "var-\\'")
+  (if (calc-minibuffer-contains "\\'")
       (if (eq calc-store-opers 0)
 	  (beep)
 	(insert "q")
@@ -210,7 +210,7 @@
 (defun calcVar-oper ()
   (interactive)
   (if (and (eq calc-store-opers t)
-	   (calc-minibuffer-contains "var-\\'"))
+	   (calc-minibuffer-contains "\\'"))
       (progn
 	(erase-buffer)
 	(self-insert-and-exit))
