@@ -187,7 +187,7 @@ The default is t."
 
 (defcustom makefile-pickup-everything-picks-up-filenames-p nil
   "If non-nil, `makefile-pickup-everything' picks up filenames as targets.
-This means it calls `makefile-find-filenames-as-targets'.
+This means it calls `makefile-pickup-filenames-as-targets'.
 Otherwise filenames are omitted."
   :type 'boolean
   :group 'makefile)
@@ -512,7 +512,7 @@ makefile-browser-auto-advance-after-selection-p:
 makefile-pickup-everything-picks-up-filenames-p:
    If this variable is set to a non-nil value then
    `makefile-pickup-everything' also picks up filenames as targets
-   (i.e. it calls `makefile-find-filenames-as-targets'), otherwise
+   (i.e. it calls `makefile-pickup-filenames-as-targets'), otherwise
    filenames are omitted.
 
 makefile-cleanup-continuations-p:
