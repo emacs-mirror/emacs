@@ -1,3 +1,11 @@
+2000-09-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexelf.c (SHT_PROGBITS) [__NetBSD__ && !PT_LOAD]: Don't define.
+	(SHT_MIPS_DEBUG, HDRR) [__NetBSD__ && __mips__]: Define.
+
+	* s/netbsd.h [!NO_C_SOURCE]: Include <signal.h>.
+	(GC_SETJMP_WORKS, GC_MARK_STACK): Define.
+
 2000-09-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* lread.c (read1): Accept `?' as symbol constituent, for
