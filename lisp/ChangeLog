@@ -1,3 +1,51 @@
+2004-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* pcvs-util.el (cvs-bury-buffer):
+	Don't call get-buffer-window for effect.
+
+	* outline.el (hide-other): Call outline-up-heading with INVISIBLE-OK=t.
+
+	* newcomment.el (comment-auto-fill-only-comments): Add autoload.
+
+	* msb.el (msb-unload-hook): Set the variable.
+
+	* mouse.el (mouse-yank-at-click, mouse-yank-secondary):
+	Use * to err if buffer is readonly.
+
+	* subr.el (looking-back): Return only t or nil.
+
+	* whitespace.el (whitespace-unload-hook): Set the variable.
+
+	* view.el (view-mode-enable): Set view-page-size and
+	view-half-page-size to nil.
+	(view-set-half-page-size-default): view-half-page-size = nil
+	means the default.
+	(View-scroll-page-forward): Use view-page-size-default.
+	(View-scroll-page-backward): Likewise.
+	(view-page-size, view-half-page-size): Doc fixes.
+
+	* emacs-lisp/elp.el (elp-unload-hook): Set the variable.
+
+	* emacs-lisp/cl.el (cl-unload-hook): Don't defvar it, just set it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Don't process
+	"cl" like other files.  Instead, call byte-compile-find-cl-functions.
+	(byte-compile-log-1): Bind inhibit-read-only.
+	(byte-compile-warning-prefix, byte-compile-log-file): Likewise.
+	(byte-compile-log-warning): Likewise.
+	(byte-compile-file-form-require): Detect "cl" from the arg value.
+
+	* progmodes/compile.el (compilation-start): Assume compilation-mode
+	will make the buffer read-only.
+	(compilation-mode): Take arg name-of-mode.
+	(compilation-setup): Make buffer read-only.
+	(compilation-handle-exit): Bind inhibit-read-only.
+
+	* textmodes/ispell.el (ispell-command-loop): Use with-no-warnings.
+	(ispell-message): Likewise.
+	(ispell-show-choices): Don't call get-buffer-window uselessly.
+	(ispell-init-process): Use set-process-query-on-exit-flag.
+
 2004-10-16  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.el (fringe-bitmaps): Only initialize when defined.
@@ -37,6 +85,15 @@
 	(substitute-key-definition): Use it with map-keymap.
 	(event-modifiers): Use push.
 	(mouse-movement-p, with-temp-buffer): Simplify.
+
+2004-10-12  Richard M. Stallman  <rms@gnu.org>
+
+	* info-look.el (info-lookup-file): Add info-file property.
+	(info-lookup-symbol): Likewise.
+
+	* info.el (info-xref): Add underlining.
+	(info): Add info-file property.
+	(Info-find-emacs-command-nodes): Specify case-sensitive search.
 
 2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
 

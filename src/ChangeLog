@@ -1,3 +1,7 @@
+2004-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fspecial_display_p): Doc fix.
+
 2004-10-15  Stefan  <monnier@iro.umontreal.ca>
 
 	* doc.c (Fsubstitute_command_keys): Fix remap-handling.
