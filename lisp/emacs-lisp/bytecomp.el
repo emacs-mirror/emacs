@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.40 $")
+(defconst byte-compile-version "$Revision: 2.41 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1557,6 +1557,7 @@ list that represents a doc string reference.
 		(setq position
 		      (byte-compile-output-as-comment
 		       (nth (nth 1 info) form) nil))
+		(setq position (position-bytes position))
 		;; If the doc string starts with * (a user variable),
 		;; negate POSITION.
 		(if (and (stringp (nth (nth 1 info) form))
@@ -1586,6 +1587,7 @@ list that represents a doc string reference.
 			   (byte-compile-output-as-comment
 			    (cons (car form) (nth 1 form))
 			    t)))
+		      (setq position (position-bytes position))
 		      (princ (format "(#$ . %d) nil" position) outbuffer)
 		      (setq form (cdr form))
 		      (setq index (1+ index))))
