@@ -663,7 +663,7 @@ buffer (the line numbers don't actually appear in the buffer):
 the indentation mechanism for that line:
 
 @example
-((statement . 32))
+syntactic analysis: ((statement . 32))
 @end example
 
   This indicates that the line is a statement and it is indented
@@ -672,7 +672,7 @@ relative to buffer position 32, which happens to be the @samp{i} in
 @kbd{C-c C-s}, it displays this:
 
 @example
-((defun-block-intro . 28))
+syntactic analysis: ((defun-block-intro . 28))
 @end example
 
   This indicates that the @code{int} line is the first statement in a
@@ -697,7 +697,7 @@ Here is another example:
 Typing @kbd{C-c C-s} on line 4 displays this:
 
 @example
-((substatement-open . 43))
+syntactic analysis: ((substatement-open . 43))
 @end example
 
   This says that the brace @emph{opens} a substatement block.  By the
@@ -793,8 +793,7 @@ spaces.
 
 @vindex c-strict-syntax-p
    If a syntactic symbol in the analysis of a line does not appear in
-@code{c-offsets-alist}, it is ignored; if in addition the variable
-@code{c-strict-syntax-p} is non-@code{nil}, it is an error.
+@code{c-offsets-alist}, it is ignored.
 
 @node Changing Indent Style
 @subsubsection Changing Indentation Style
@@ -1187,7 +1186,7 @@ second.  @code{blink-matching-paren-distance} specifies how many
 characters back to search to find the matching opening delimiter.  If
 the match is not found in that far, scanning stops, and nothing is
 displayed.  This is to prevent scanning for the matching delimiter from
-wasting lots of time when there is no match.  The default is 12,000.
+wasting lots of time when there is no match.  The default is 25600.
 
 @cindex Show Paren mode
 @cindex highlighting matching parentheses
@@ -1234,10 +1233,10 @@ uncomment the region (@code{comment-dwim}).
 @item C-u M-;
 Kill comment on current line (@code{comment-kill}).
 @item C-x ;
-Set comment column (@code{set-comment-column}).
+Set comment column (@code{comment-set-column}).
 @item C-M-j
 Like @key{RET} followed by inserting and aligning a comment
-(@code{indent-new-comment-line}).
+(@code{comment-indent-new-line}).
 @item M-x comment-region
 Add or remove comment delimiters on all the lines in the region.
 @end table
@@ -1317,9 +1316,9 @@ is indented like a line of code.
 
 @kindex C-M-j
 @cindex blank lines in programs
-@findex indent-new-comment-line
+@findex comment-indent-new-line
   If you are typing a comment and wish to continue it on another line,
-you can use the command @kbd{C-M-j} (@code{indent-new-comment-line}).
+you can use the command @kbd{C-M-j} (@code{comment-indent-new-line}).
 This terminates the comment you are typing, creates a new blank line
 afterward, and begins a new comment indented under the old one.  When
 Auto Fill mode is on, going past the fill column while typing a comment
@@ -1340,18 +1339,18 @@ how many copies of the character to insert.  Thus, in Lisp mode,
 @kbd{C-u 2 M-x comment-region} adds @samp{;;} to each line.  Duplicating
 the comment delimiter is a way of calling attention to the comment.  It
 can also affect how the comment is indented.  In Lisp, for proper
-indentation, you should use an argument of two, if between defuns, and
-three, if within a defun.
+indentation, you should use an argument of two or three, if between defuns;
+if within a defun, it must be three.
 
 @node Options for Comments
 @subsection Options Controlling Comments
 
 @vindex comment-column
 @kindex C-x ;
-@findex set-comment-column
+@findex comment-set-column
   The comment column is stored in the variable @code{comment-column}.  You
 can set it to a number explicitly.  Alternatively, the command @kbd{C-x ;}
-(@code{set-comment-column}) sets the comment column to the column point is
+(@code{comment-set-column}) sets the comment column to the column point is
 at.  @kbd{C-u C-x ;} sets the comment column to match the last comment
 before point in the buffer, and then does a @kbd{M-;} to align the
 current line's comment under the previous one.
@@ -1367,8 +1366,10 @@ current buffer.
 expression that is the value of the variable @code{comment-start-skip}.
 Make sure this regexp does not match the null string.  It may match more
 than the comment starting delimiter in the strictest sense of the word;
-for example, in C mode the value of the variable is @code{@t{"/\\*+
-*"}}, which matches extra stars and spaces after the @samp{/*} itself.
+for example, in C mode the value of the variable is
+@c This stops M-q from breaking the line inside that @code.
+@code{@w{"/\\*+ *\\|//+ *""}}, which matches extra stars and spaces
+after the @samp{/*} itself, and accepts C++ style comments also.
 (Note that @samp{\\} is needed in Lisp syntax to include a @samp{\} in
 the string, which is needed to deny the first star its special meaning
 in regexp syntax.  @xref{Regexps}.)
@@ -1384,7 +1385,8 @@ into the comment.  In C mode, @code{comment-start} has the value
 @vindex comment-padding
   The variable @code{comment-padding} specifies how many spaces
 @code{comment-region} should insert on each line between the
-comment delimiter and the line's original text.  The default is 1.
+comment delimiter and the line's original text.  The default is 1,
+to insert one space.
 
 @vindex comment-multi-line
   The variable @code{comment-multi-line} controls how @kbd{C-M-j}
