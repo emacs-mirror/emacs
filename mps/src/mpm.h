@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.10) $
+ * $HopeName: MMsrc!mpm.h(trunk.11) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -37,6 +37,14 @@
 /* MPMCheck -- check MPM assumptions */
 
 extern Bool MPMCheck(void);
+
+
+/* Miscellaneous Checks -- see impl.c.mpm */
+
+extern Bool BoolCheck(Bool b);
+extern Bool FunCheck(Fun f);
+extern Bool AttrCheck(Attr attr);
+#define FUNCHECK(f)	(FunCheck((Fun)f))
 
 
 /* Address/Size Interface -- see impl.c.mpm */
@@ -430,7 +438,5 @@ extern Res VMMap(Space space, Addr base, Addr limit);
 extern void VMUnmap(Space space, Addr base, Addr limit);
 extern Size VMReserved(Space space);
 extern Size VMMapped(Space space);
-
-#define AttrCheck(attr) (((attr) & ~AttrMask) == 0)
 
 #endif /* mpm_h */
