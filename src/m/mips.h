@@ -169,10 +169,6 @@ NOTE-END  */
 #define C_SWITCH_MACHINE -I/usr/include/bsd
 #define C_DEBUG_SWITCH -O -g3
 
-#if defined(HAVE_X_WINDOWS) && defined(HAVE_X11)
-#define HAVE_VFORK		/* Graciously provided by libX.a */
-#endif
-
 #endif /* not BSD_SYSTEM */
 #endif /* not NEWSOS5 && not __linux__ */
 

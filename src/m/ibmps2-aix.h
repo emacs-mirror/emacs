@@ -114,7 +114,6 @@ so disable it for them.  */
 #endif
 
 #define BSTRING
-#define HAVE_VFORK
 #undef  HAVE_TERMIO
 #define HAVE_TERMIOS
 

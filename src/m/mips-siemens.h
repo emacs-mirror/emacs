@@ -160,10 +160,6 @@ NOTE-END  */
 #define LD_SWITCH_MACHINE
 #endif
 
-#if defined(HAVE_X_WINDOWS) && defined(HAVE_X11)
-#define HAVE_VFORK		/* Graciously provided by libX.a */
-#endif
-
 
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */

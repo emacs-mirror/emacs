@@ -112,9 +112,6 @@ NOTE-END */
 #ifndef SOLARIS2_4
 /* J.W.hawtin@lut.ac.uk says Solaris 2.1 on the X86 has FSCALE defined in a
    system header. */
-
-#define HAVE_VFORK
-
 #else /* SOLARIS2_4 */
 #ifndef __GNUC__
 #if 0 /* wisner@gryphon.com says this screws up cpp */

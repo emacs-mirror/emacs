@@ -50,7 +50,6 @@ Boston, MA 02111-1307, USA.  */
 
 #undef LIBS_MACHINE
 #define LIBS_MACHINE 
-#undef HAVE_VFORK
 
 #undef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE -xa

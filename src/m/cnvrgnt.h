@@ -97,10 +97,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define SWITCH_ENUM_BUG
 
-/* fork(2) and vfork() are the same here.  */
-
-#define HAVE_VFORK
-
 /* grows towards lower addresses.  */
 
 #define	STACK_DIRECTION	-1
