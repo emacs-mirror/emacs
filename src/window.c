@@ -2537,12 +2537,14 @@ by `current-window-configuration' (which see).")
   FRAME_ROOT_WINDOW (f) = data->root_window;
   Fselect_window (data->current_window);
 
+#ifdef MULTI_FRAME
   /* Fselect_window will have made f the selected frame, so we
      reselect the proper frame here.  Fselect_frame will change the
      selected window too, but that doesn't make the call to
      Fselect_window above totally superfluous; it still sets f's
      selected window.  */
   Fselect_frame (data->selected_frame);
+#endif
 
   if (!NILP (new_current_buffer))
     Fset_buffer (new_current_buffer);
@@ -2717,7 +2719,9 @@ redirection (see `redirect-frame-focus').")
 				  Qnil));
   XFASTINT (data->frame_width) = FRAME_WIDTH (f);
   XFASTINT (data->frame_height) = FRAME_HEIGHT (f);
+#ifdef MULTI_FRAME
   XSET (data->selected_frame, Lisp_Frame, selected_frame);
+#endif
   data->current_window = FRAME_SELECTED_WINDOW (f);
   XSET (data->current_buffer, Lisp_Buffer, current_buffer);
   data->minibuf_scroll_window = Vminibuf_scroll_window;
