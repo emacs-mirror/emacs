@@ -1,6 +1,6 @@
 ;;; hilit19.el --- customizable highlighting for Emacs 19
 
-;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (c) 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author:   Jonathan Stigelman <stig@hackvan.com>
 ;; Maintainer: FSF
@@ -635,7 +635,8 @@ See the documentation for hilit-translate and hilit-face-translation-table."
 	  ;; we wanted, but ignore errors making the face bold or italic
 	  ;; if the font isn't available, there's nothing to do about it...
 	  (progn
-	    (set-face-font face basefont frame)
+	    (when (display-graphic-p frame)
+	      (set-face-font face basefont frame))
 	    (set-face-underline-p face (string-match "underline" fn))
 	    (if (string-match ".*bold" fn)
 		;; make face bold in all frames
@@ -945,7 +946,6 @@ the entire buffer is forced."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (and (not hilit-inhibit-rebinding)
-     window-system
      (progn 
        (substitute-key-definition 'yank     'hilit-yank
 				  (current-global-map))
@@ -956,13 +956,11 @@ the entire buffer is forced."
 
 (global-set-key [?\C-\S-l] 'hilit-repaint-command)
 
-(and window-system
-     (add-hook 'find-file-hooks 'hilit-find-file-hook t))
+(add-hook 'find-file-hooks 'hilit-find-file-hook t)
 
 (eval-when-compile (require 'gnus))	; no compilation gripes
 
 (and (not hilit-inhibit-hooks)
-     window-system
      (condition-case c
 	 (progn
 
