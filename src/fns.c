@@ -2369,7 +2369,7 @@ then the actual applicable value is inherited from the parent char-table
 DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
        2, 2, 0,
        doc: /* Set the parent char-table of CHAR-TABLE to PARENT.
-PARENT must be either nil or another char-table.  */)
+Return PARENT.  PARENT must be either nil or another char-table.  */)
      (char_table, parent)
      Lisp_Object char_table, parent;
 {
