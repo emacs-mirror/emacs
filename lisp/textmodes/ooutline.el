@@ -34,11 +34,16 @@
 
 ;; Jan '86, Some new features added by Peter Desnoyers and rewritten by RMS.
   
-(defvar outline-regexp "[*\^l]+"
+(defvar outline-regexp nil
   "*Regular expression to match the beginning of a heading.
 Any line whose beginning matches this regexp is considered to start a heading.
 The recommended way to set this is with a Local Variables: list
 in the file it applies to.  See also outline-heading-end-regexp.")
+
+;; Can't initialize this in the defvar above -- some major modes have
+;; already assigned a local value to it.
+(or (default-value 'outline-regexp)
+    (setq-default outline-regexp "[*\^L]+"))
   
 (defvar outline-heading-end-regexp "[\n\^M]"
   "*Regular expression to match the end of a heading line.
