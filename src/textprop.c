@@ -524,9 +524,10 @@ If the value is non-nil, it is a position greater than POS, never equal.")
   if (NULL_INTERVAL_P (i))
     return Qnil;
 
-  here_val = textget (prop, i->plist);
+  here_val = textget (i->plist, prop);
   next = next_interval (i);
-  while (! NULL_INTERVAL_P (next) && EQ (here_val, textget (prop, next->plist)))
+  while (! NULL_INTERVAL_P (next) 
+	 && EQ (here_val, textget (next->plist, prop)))
     next = next_interval (next);
 
   if (NULL_INTERVAL_P (next))
@@ -586,10 +587,10 @@ If the value is non-nil, it is a position less than POS, never equal.")
   if (NULL_INTERVAL_P (i))
     return Qnil;
 
-  here_val = textget (prop, i->plist);
+  here_val = textget (i->plist, prop);
   previous = previous_interval (i);
   while (! NULL_INTERVAL_P (previous)
-	 && EQ (here_val, textget (prop, previous->plist)))
+	 && EQ (here_val, textget (previous->plist, prop)))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return Qnil;
