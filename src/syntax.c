@@ -45,6 +45,9 @@ Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
 int words_include_escapes;
 int parse_sexp_lookup_properties;
 
+/* Nonzero means `scan-sexps' treat all multibyte characters as symbol.  */
+int multibyte_syntax_as_symbol;
+
 /* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
    if not compiled with GCC.  No need to mark it, since it is used
    only very temporarily.  */
@@ -1942,6 +1945,13 @@ between them, return t; otherwise return nil.")
   return Qt;
 }
 
+/* Return syntax code of character C if C is a single byte character
+   or `multibyte_symbol_p' is zero.  Otherwise, retrun Ssymbol.  */
+
+#define SYNTAX_WITH_MULTIBYTE_CHECK(c)			\
+  ((SINGLE_BYTE_CHAR_P (c) || !multibyte_symbol_p)	\
+   ? SYNTAX (c) : Ssymbol)
+
 static Lisp_Object
 scan_lists (from, count, depth, sexpflag)
      register int from;
@@ -1963,6 +1973,7 @@ scan_lists (from, count, depth, sexpflag)
   int from_byte;
   int out_bytepos, out_charpos;
   int temp, dummy;
+  int multibyte_symbol_p = sexpflag && multibyte_syntax_as_symbol;
 
   if (depth > 0) min_depth = 0;
 
@@ -1982,7 +1993,7 @@ scan_lists (from, count, depth, sexpflag)
 	  int comstart_first, prefix;
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  c = FETCH_CHAR (from_byte);
-	  code = SYNTAX (c);
+	  code = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 	  comstart_first = SYNTAX_COMSTART_FIRST (c);
 	  comnested = SYNTAX_COMMENT_NESTED (c);
 	  prefix = SYNTAX_PREFIX (c);
@@ -2026,7 +2037,8 @@ scan_lists (from, count, depth, sexpflag)
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
 
 		  /* Some compilers can't handle this inside the switch.  */
-		  temp = SYNTAX (FETCH_CHAR (from_byte));
+		  c = FETCH_CHAR (from_byte);
+		  temp = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 		  switch (temp)
 		    {
 		    case Scharquote:
@@ -2101,13 +2113,14 @@ scan_lists (from, count, depth, sexpflag)
 		{
 		  if (from >= stop) goto lose;
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
+		  c = FETCH_CHAR (from_byte);
 		  if (code == Sstring 
-		      ? (FETCH_CHAR (from_byte) == stringterm)
-		      : SYNTAX (FETCH_CHAR (from_byte)) == Sstring_fence) 
+		      ? c == stringterm
+		      : SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring_fence)
 		    break;
 
 		  /* Some compilers can't handle this inside the switch.  */
-		  temp = SYNTAX (FETCH_CHAR (from_byte));
+		  temp = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 		  switch (temp)
 		    {
 		    case Scharquote:
@@ -2140,7 +2153,7 @@ scan_lists (from, count, depth, sexpflag)
 	  DEC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	  c = FETCH_CHAR (from_byte);
-	  code = SYNTAX (c);
+	  code = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 	  if (depth == min_depth)
 	    last_good = from;
 	  comstyle = 0;
@@ -2188,7 +2201,7 @@ scan_lists (from, count, depth, sexpflag)
 		    temp_pos--;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 		  c1 = FETCH_CHAR (temp_pos);
-		  temp_code = SYNTAX (c1);
+		  temp_code = SYNTAX_WITH_MULTIBYTE_CHECK (c1);
 		  /* Don't allow comment-end to be quoted.  */
 		  if (temp_code == Sendcomment)
 		    goto done2;
@@ -2200,7 +2213,7 @@ scan_lists (from, count, depth, sexpflag)
 		      UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 		    }
 		  c1 = FETCH_CHAR (temp_pos);
-		  temp_code = SYNTAX (c1);
+		  temp_code = SYNTAX_WITH_MULTIBYTE_CHECK (c1);
 		  if (! (quoted || temp_code == Sword
 			 || temp_code == Ssymbol
 			 || temp_code == Squote))
@@ -2260,7 +2273,8 @@ scan_lists (from, count, depth, sexpflag)
 		  if (from == stop) goto lose;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  if (!char_quoted (from, from_byte) 
-		      && SYNTAX (FETCH_CHAR (from_byte)) == code)
+		      && (c = FETCH_CHAR (from_byte),
+			  SYNTAX_WITH_MULTIBYTE_CHECK (c) == code))
 		    break;
 		}
 	      if (code == Sstring_fence && !depth && sexpflag) goto done2;
@@ -2909,6 +2923,11 @@ init_syntax_once ()
       c = ".,;:?!#@~^'`"[i];
       SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, c, temp);
     }
+
+  /* All multibyte characters have syntax `word' by default.  */
+  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
+  for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+    XCHAR_TABLE (Vstandard_syntax_table)->contents[i] = temp;
 }
 
 void
@@ -2939,6 +2958,10 @@ relevant only for open/close type.");
   words_include_escapes = 0;
   DEFVAR_BOOL ("words-include-escapes", &words_include_escapes,
     "Non-nil means `forward-word', etc., should treat escape chars part of words.");
+
+  DEFVAR_BOOL ("multibyte-syntax-as-symbol", &multibyte_syntax_as_symbol,
+    "Non-nil means `scan-sexps' treats all multibyte characters as symbol.");
+  multibyte_syntax_as_symbol = 0;
 
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);
