@@ -642,8 +642,8 @@ CODE values: 13 = Tool-Position, 14 = Size-in-Pixels, 18 = Size-in-Chars."
 ;;;  primative functions are defined in sunfns.c
 ;;;
 (defun sun-yank-selection ()
-  "Set mark and yank the contents of the current sunwindows selection
-into the current buffer at point."
+  "Set mark and yank the contents of the current sunwindows selection.
+Insert contents into the current buffer at point."
   (interactive "*")
   (set-mark-command nil)
   (insert-string (sun-get-selection)))
@@ -658,7 +658,8 @@ into the current buffer at point."
 ;;; This closes the window instead of stopping emacs.
 ;;;
 (defun suspend-emacstool (&optional stuffstring)
-  "If running under as a detached process emacstool,
+  "Suspend emacstool.
+If running under as a detached process emacstool,
 you don't want to suspend  (there is no way to resume), 
 just close the window, and wait for reopening."
   (interactive)

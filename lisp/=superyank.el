@@ -1136,11 +1136,12 @@ sy-use-only-preference-p   (default: nil)
 ;; attribution if none could be found from the paragraph.
 ;;
 (defun sy-fill-paragraph-manually (arg)
-  "Fill paragraph containing or following point, automatically finding
-the sy-cite-regexp and using it as the prefix.  If the sy-cite-regexp
-is not in the first line of the paragraph, it makes a guess at what
-the fill-prefix for the paragraph should be by looking at the first
-line and taking anything up to the first alphanumeric character.
+  "Fill paragraph containing or following point.
+This automatically finds the sy-cite-regexp and uses it as the prefix.
+If the sy-cite-regexp is not in the first line of the paragraph, it
+makes a guess at what the fill-prefix for the paragraph should be by
+looking at the first line and taking anything up to the first
+alphanumeric character.
 
 Prefix arg means justify both sides of paragraph as well.
 
@@ -1207,7 +1208,8 @@ attribution string used to cite lines."
 ;; insert the persistant attribution at point
 ;;
 (defun sy-insert-persist-attribution ()
-  "Insert the persistant attribution at the beginning of the line that
+  "Insert the persistant attribution.
+This inserts the peristant attribution at the beginning of the line that
 point is on.  This string is the last attribution confirmed and used
 in the yanked reply buffer."
   (interactive)
@@ -1222,9 +1224,9 @@ in the yanked reply buffer."
 ;; open a line putting the attribution at the beginning
 
 (defun sy-open-line (arg)
-  "Insert a newline and leave point before it.  Also inserts the
-persistant attribution at the beginning of the line.  With arg,
-inserts that many newlines."
+  "Insert a newline and leave point before it.
+Also inserts the persistant attribution at the beginning of the line.
+With argument, inserts ARG newlines."
   (interactive "p")
   (save-excursion
     (let ((start (point)))
