@@ -791,6 +791,9 @@ line numbers for the errors."
       (set-buffer buffer)
       (setq default-directory directory))))
 
+(defvar tex-send-command-modified-tick 0)
+(make-variable-buffer-local 'tex-send-command-modified-tick)
+
 (defun tex-send-command (command &optional file background)
   "Send COMMAND to TeX shell process, substituting optional FILE for *.
 Do this in background if optional BACKGROUND is t.  If COMMAND has no *,
@@ -809,10 +812,15 @@ evaluates to a command string."
 		   (concat cmd " " file))
 	       cmd)
 	     (if background "&" ""))))
+      ;; If text is unchanged since previous tex-send-command,
+      ;; we haven't got any output.  So wait for output now.
+      (if (= (buffer-modified-tick) tex-send-command-modified-tick)
+	  (accept-process-output proc))
       (set-buffer (process-buffer proc))
       (goto-char (process-mark proc))
       (insert string)
-      (comint-send-input))))
+      (comint-send-input)
+      (setq tex-send-command-modified-tick (buffer-modified-tick)))))
 
 (defun tex-delete-last-temp-files ()
   "Delete any junk files from last temp file."
