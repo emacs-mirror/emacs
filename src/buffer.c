@@ -3049,7 +3049,9 @@ Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode, Qnil,
     "Non-nil if self-insertion should replace existing text.\n\
-If non-nil and not `overwrite-mode-binary', self-insertion still\n\
+The value should be one of `overwrite-mode-textual',\n\
+`overwrite-mode-binary', or nil.\n\
+If it is `overwrite-mode-textual', self-insertion still\n\
 inserts at the end of a line, and inserts when point is before a tab,\n\
 until the tab is filled in.\n\
 If `overwrite-mode-binary', self-insertion replaces newlines and tabs too.\n\
