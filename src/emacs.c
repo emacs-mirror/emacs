@@ -1021,7 +1021,9 @@ expect to be able to interact with the user.");
     "Priority for Emacs to run at.\n\
 This value is effective only if set before Emacs is dumped,\n\
 and only if the Emacs executable is installed with setuid to permit\n\
-it to change priority.  (Emacs sets its uid back to the real uid.)");
+it to change priority.  (Emacs sets its uid back to the real uid.)\n\
+Currently, you need to define PRIO_PROCESS in `config.h'\n\
+before you compile Emacs, to enable the code for this feature.")
   emacs_priority = 0;
 
   DEFVAR_LISP ("invocation-name", &Vinvocation_name,
