@@ -731,27 +731,30 @@ something like this in your .emacs.
 ** Changes to Change Log mode and Add-Log functions
 
 +++
-If you invoke `add-change-log-entry' from a backup file, it makes an
-entry appropriate for the file's parent.  This is useful for making
+*** If you invoke `add-change-log-entry' from a backup file, it makes
+an entry appropriate for the file's parent.  This is useful for making
 log entries by comparing a version with deleted functions.
 
 +++
-New command M-x change-log-merge merges another log into the current
-buffer.
+**** New command M-x change-log-merge merges another log into the
+current buffer.
 
 +++
-New command M-x change-log-redate fixes any old-style date entries in
-a log file.
+*** New command M-x change-log-redate fixes any old-style date entries
+in a log file.
 
 +++
-Change Log mode now adds a file's version number to change log entries
-if user-option `change-log-version-info-enabled' is non-nil.
+*** Change Log mode now adds a file's version number to change log
+entries if user-option `change-log-version-info-enabled' is non-nil.
 
 +++
-Unless the file is under version control the search for a file's
+*** Unless the file is under version control the search for a file's
 version number is performed based on regular expressions from
 `change-log-version-number-regexp-list' which can be cutomized.
 Version numbers are only found in the first 10 percent of a file.
+
+*** Change Log mode now defines its own faces for font-lock
+highlighting.
 
 ** Changes in Font Lock
 

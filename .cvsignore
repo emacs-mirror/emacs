@@ -4,3 +4,8 @@ boot.log
 boot.log.diff
 boot.log.old
 update.log
+config.log
+config.status
+config.cache
+Makefile
+emacs*.tar.gz

@@ -16,3 +16,4 @@
 *.tp
 *.tps
 *.tmp
+Makefile
