@@ -368,7 +368,7 @@ column point starts at, `tab-to-tab-stop' is done instead."
 
 (defcustom tab-stop-list
   '(8 16 24 32 40 48 56 64 72 80 88 96 104 112 120)
-  "*List of tab stop positions used by `tab-to-tab-stops'.
+  "*List of tab stop positions used by `tab-to-tab-stop'.
 This should be a list of integers, ordered from smallest to largest."
   :group 'indent
   :type '(repeat integer))
