@@ -1183,7 +1183,7 @@ defining this function as macro."
 		(sleep-for 1)
 		(message ""))
 	    (condition-case errorcode
-		(accept-process-output nntp-server-process)
+		(accept-process-output nntp-server-process 1)
 	      (error
 	       (cond ((string-equal "select error: Invalid argument" 
 				    (nth 1 errorcode))
