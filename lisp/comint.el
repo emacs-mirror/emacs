@@ -1218,9 +1218,10 @@ Similarly for Soar, Scheme, etc."
 			  ;; functions used do insertion, rather than return
 			  ;; strings.  We have to expand, then insert back.
 			  (comint-replace-by-expanded-history t)
-			  (let ((copy (buffer-substring pmark (point))))
-			    (delete-region pmark (point))
-			    (insert-before-markers input)
+			  (let ((copy (buffer-substring pmark (point)))
+				(start (point)))
+			    (insert input)
+			    (delete-region pmark start)
 			    copy))))
           (if comint-process-echoes
               (delete-region pmark (point))
