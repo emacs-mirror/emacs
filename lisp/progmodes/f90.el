@@ -1338,8 +1338,7 @@ automatically breaks the line at a previous space."
 		       (not auto-fill-function)
 		     (> (prefix-numeric-value arg) 0))
 		   'f90-do-auto-fill))
-    ;; update mode-line
-    (set-buffer-modified-p (buffer-modified-p))))
+    (force-mode-line-update)))
 
 (defun f90-do-auto-fill ()
   "Break line if non-white characters beyond fill-column."
