@@ -1169,6 +1169,10 @@ write-file-hooks to write-file-functions,
 write-contents-hooks to write-contents-functions.
 Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
+** The new variable `delete-frame-functions' replaces `delete-frame-hook'. 
+It was renamed to follow the naming conventions for abnormal hooks.  The old
+name remains available as an alias, but has been marked obsolete.
+
 ** The `read-file-name' function now takes an additional argument which
 specifies a predicate which the file name read must satify.  The
 new variable `read-file-name-predicate' contains the predicate argument
