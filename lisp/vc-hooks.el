@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.123 2000/10/05 22:47:21 monnier Exp $
+;; $Id: vc-hooks.el,v 1.124 2000/10/22 15:28:58 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -469,15 +469,13 @@ be backed up locally.  The default is to switch off this feature."
 If MANUAL is non-nil it means that a name for backups created by
 the user should be returned; if REGEXP is non-nil that means to return
 a regexp for matching all such backup files, regardless of the version."
-  (let ((delim (if manual "~" "#")))
-    (if regexp
-        (concat (regexp-quote (file-name-nondirectory file))
-                "." delim "[0-9.]+" delim)
-      (expand-file-name (concat (file-name-nondirectory file) 
-                                "." delim 
-                                (or rev (vc-workfile-version file))
-                                delim)
-                        (file-name-directory file)))))
+  (if regexp
+      (concat (regexp-quote (file-name-nondirectory file))
+              "\\.~[0-9.]+" (unless manual "\\.") "~")
+    (expand-file-name (concat (file-name-nondirectory file) 
+                              ".~" (or rev (vc-workfile-version file)) 
+                              (unless manual ".") "~")
+                      (file-name-directory file))))
 
 (defun vc-delete-automatic-version-backups (file)
   "Delete all existing automatic version backups for FILE."
