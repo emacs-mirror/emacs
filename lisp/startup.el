@@ -649,7 +649,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		   (if (directory-files "~/" nil "\\`\\.saves-" t)
 		       (insert "\n\nIf an Emacs session crashed recently,\n"
 			       "type M-x recover-session RET to recover"
-			       " the files you were editing.))
+			       " the files you were editing."))
 
 		   (set-buffer-modified-p nil)
 		   (sit-for 120))
