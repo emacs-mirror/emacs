@@ -32,7 +32,7 @@
 
 (make-coding-system
  'iso-latin-1 2 ?1
- "ISO 2022 based 8-bit encoding for Laint-1 (MIME:ISO-8859-1)"
+ "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)"
  '(ascii latin-iso8859-1 nil nil
    nil nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-1)
@@ -88,7 +88,7 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 (defun setup-latin2-environment ()
   "Set up multilingual environment (MULE) for European Latin-2 users."
   (interactive)
-  (set-language-environment "Laint-2"))
+  (set-language-environment "Latin-2"))
 
 (set-language-info-alist
  "Latin-2" '((charset ascii latin-iso8859-2)
