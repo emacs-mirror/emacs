@@ -272,7 +272,7 @@ regexp should probably be \".\" to specify a default browser."
 
 (defcustom browse-url-netscape-program "netscape"
   ;; Info about netscape-remote from Karl Berry.
-  "The name by which to invoke Netscape.
+  "*The name by which to invoke Netscape.
 
 The free program `netscape-remote' from
 <URL:http://home.netscape.com/newsref/std/remote.c> is said to start
@@ -283,12 +283,12 @@ system, given vroot.h from the same directory, with cc flags
   :group 'browse-url)
 
 (defcustom browse-url-netscape-arguments nil
-  "A list of strings to pass to Netscape as arguments."
+  "*A list of strings to pass to Netscape as arguments."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
 (defcustom browse-url-netscape-startup-arguments browse-url-netscape-arguments
-  "A list of strings to pass to Netscape when it starts up.
+  "*A list of strings to pass to Netscape when it starts up.
 Defaults to the value of `browse-url-netscape-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument"))
@@ -301,17 +301,17 @@ Defaults to the value of `browse-url-netscape-arguments' at the time
   :group 'browse-url)
 
 (defcustom browse-url-mozilla-program "mozilla"
-  "The name by which to invoke Mozilla."
+  "*The name by which to invoke Mozilla."
   :type 'string
   :group 'browse-url)
 
 (defcustom browse-url-mozilla-arguments nil
-  "A list of strings to pass to Mozilla as arguments."
+  "*A list of strings to pass to Mozilla as arguments."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
 (defcustom browse-url-mozilla-startup-arguments browse-url-mozilla-arguments
-  "A list of strings to pass to Mozilla when it starts up.
+  "*A list of strings to pass to Mozilla when it starts up.
 Defaults to the value of `browse-url-mozilla-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument"))
@@ -319,24 +319,24 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
 
 ;;;###autoload
 (defcustom browse-url-galeon-program "galeon"
-  "The name by which to invoke Galeon."
+  "*The name by which to invoke Galeon."
   :type 'string
   :group 'browse-url)
 
 (defcustom browse-url-galeon-arguments nil
-  "A list of strings to pass to Galeon as arguments."
+  "*A list of strings to pass to Galeon as arguments."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
 (defcustom browse-url-galeon-startup-arguments browse-url-galeon-arguments
-  "A list of strings to pass to Galeon when it starts up.
+  "*A list of strings to pass to Galeon when it starts up.
 Defaults to the value of `browse-url-galeon-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
 (defcustom browse-url-galeon-new-window-is-tab nil
-  "Whether to open up new windows in a tab or a new window.
+  "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-galeon' is asked to open it in a new window."
   :type 'boolean
@@ -352,14 +352,19 @@ commands reverses the effect of this variable.  Requires Netscape version
   :group 'browse-url)
 
 (defcustom browse-url-mosaic-program "xmosaic"
-  "The name by which to invoke Mosaic (or mMosaic)."
+  "*The name by which to invoke Mosaic (or mMosaic)."
   :type 'string
   :version "20.3"
   :group 'browse-url)
 
 (defcustom browse-url-mosaic-arguments nil
-  "A list of strings to pass to Mosaic as arguments."
+  "*A list of strings to pass to Mosaic as arguments."
   :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-mosaic-pidfile "~/.mosaicpid"
+  "*The name of the pidfile created by Mosaic."
+  :type 'string
   :group 'browse-url)
 
 (defcustom browse-url-filename-alist
@@ -373,7 +378,7 @@ commands reverses the effect of this variable.  Requires Netscape version
 	    '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/")
               ("^[\\/][\\/]+" . "file://"))))
     ("^/+" . "file:/")))
-  "An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
+  "*An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
 Any substring of a filename matching one of the REGEXPs is replaced by
 the corresponding STRING using `replace-match', not treating STRING
 literally.  All pairs are applied in the order given.  The default
@@ -404,7 +409,7 @@ Used by the `browse-url-of-file' command."
   :group 'browse-url)
 
 (defcustom browse-url-of-file-hook nil
-  "Run after `browse-url-of-file' has asked a browser to load a file.
+  "*Run after `browse-url-of-file' has asked a browser to load a file.
 
 Set this to `browse-url-netscape-reload' to force Netscape to load the
 file rather than displaying a cached copy."
@@ -422,7 +427,7 @@ Emacs 19.29 accepts 'SIGUSR1, earlier versions require an integer
 which is 30 on SunOS and 16 on HP-UX and Solaris.")
 
 (defcustom browse-url-CCI-port 3003
-  "Port to access XMosaic via CCI.
+  "*Port to access XMosaic via CCI.
 This can be any number between 1024 and 65535 but must correspond to
 the value set in the browser."
   :type 'integer
@@ -439,7 +444,7 @@ enabled.  The port number should be set in `browse-url-CCI-port'."
 (make-variable-buffer-local 'browse-url-temp-file-name)
 
 (defcustom browse-url-xterm-program "xterm"
-  "The name of the terminal emulator used by `browse-url-lynx-xterm'.
+  "*The name of the terminal emulator used by `browse-url-lynx-xterm'.
 This might, for instance, be a separate colour version of xterm."
   :type 'string
   :group 'browse-url)
@@ -452,7 +457,7 @@ These might set its size, for instance."
 
 (defcustom browse-url-lynx-emacs-args (and (not window-system)
                                            '("-show_cursor"))
-  "A list of strings defining options for Lynx in an Emacs buffer.
+  "*A list of strings defining options for Lynx in an Emacs buffer.
 
 The default is none in a window system, otherwise `-show_cursor' to
 indicate the position of the current link in the absence of
@@ -462,7 +467,7 @@ highlighting, assuming the normal default for showing the cursor."
   :group 'browse-url)
 
 (defcustom browse-url-gnudoit-program "gnudoit"
-  "The name of the `gnudoit' program used by `browse-url-w3-gnudoit'."
+  "*The name of the `gnudoit' program used by `browse-url-w3-gnudoit'."
   :type 'string
   :group 'browse-url)
 
@@ -484,7 +489,7 @@ These might set the port, for instance."
   :group 'browse-url)
 
 (defcustom browse-url-temp-dir temporary-file-directory
-  "The name of a directory for browse-url's temporary files.
+  "*The name of a directory for browse-url's temporary files.
 Such files are generated by functions like `browse-url-of-region'.
 You might want to set this to somewhere with restricted read permissions
 for privacy's sake."
@@ -493,7 +498,7 @@ for privacy's sake."
 
 (defcustom browse-url-netscape-version
   3
-  "The version of Netscape you are using.
+  "*The version of Netscape you are using.
 This affects how URL reloading is done; the mechanism changed
 incompatibly at version 4."
   :type 'number
@@ -517,10 +522,10 @@ down (this *won't* always work)."
   "*How many times to try to move down from a series of lynx input fields.")
 
 (defcustom browse-url-lynx-input-delay 0.2
-  "How many seconds to wait for lynx between moves down from an input field.")
+  "*How many seconds to wait for lynx between moves down from an input field.")
 
 (defcustom browse-url-kde-program "kfmclient"
-  "The name by which to invoke the KDE web browser."
+  "*The name by which to invoke the KDE web browser."
   :type 'string
   :version "21.1"
   :group 'browse-url)
@@ -927,7 +932,7 @@ used instead of `browse-url-new-window-flag'."
 ;; GNOME means of invoking either Mozilla or Netrape.
 
 (defcustom browse-url-gnome-moz-arguments '()
-  "A list of strings passed to the GNOME mozilla viewer as arguments."
+  "*A list of strings passed to the GNOME mozilla viewer as arguments."
   :version "21.1"
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
@@ -974,7 +979,7 @@ the effect of `browse-url-new-window-flag'.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "Mosaic URL: "))
-  (let ((pidfile (expand-file-name "~/.mosaicpid"))
+  (let ((pidfile (expand-file-name browse-url-mosaic-pidfile))
 	pid)
     (if (file-readable-p pidfile)
 	(save-excursion
