@@ -1,3 +1,8 @@
+2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (transient-mark-mode): Document the fact that many
+	commands act on the region when mark is active.
+
 2001-01-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-setup-completion-buf): Make the
