@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.14 2001/05/18 16:59:52 sds Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.15 2001/07/16 07:46:48 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -352,7 +352,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("=" .	cvs-mode-diff)
     ("d" .	cvs-mode-diff-map)
     ;; keys that operate on individual files
-    ("\C-k".	cvs-mode-acknowledge)
+    ("\C-k" .	cvs-mode-acknowledge)
     ("A" .	cvs-mode-add-change-log-entry-other-window)
     ;;("B" .	cvs-mode-byte-compile-files)
     ("C" .	cvs-mode-commit-setup)
@@ -365,7 +365,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("c" .	cvs-mode-commit)
     ("e" .	cvs-mode-examine)
     ("f" .	cvs-mode-find-file)
-    ([RET] .	cvs-mode-find-file)
+    ("\C-m" .	cvs-mode-find-file)
     ("i" .	cvs-mode-ignore)
     ("l" .	cvs-mode-log)
     ("o" .	cvs-mode-find-file-other-window)
