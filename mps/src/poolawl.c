@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.9) $
+ * $HopeName: MMsrc!poolawl.c(trunk.10) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.9) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.10) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -477,9 +477,12 @@ notFinished:
 	Bool b;
 
 	b = SegOfAddr(&dependentSeg, space, dependentObj);
-	AVER(b == TRUE);
-	ShieldExpose(space, dependentSeg);
-	TraceSetSummary(space, dependentSeg, RefSetUNIV);
+	if(b == TRUE) {
+	  ShieldExpose(space, dependentSeg);
+	  TraceSetSummary(space, dependentSeg, RefSetUNIV);
+	} else {
+	  dependent = FALSE;
+	}
       }
       res = awl->format->scan(ss, p, objectEnd);
       if(dependent) {
@@ -559,6 +562,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
 static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 {
+  Addr base;
   AWL awl;
   AWLGroup group;
   Index i;
@@ -576,6 +580,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   space = PoolSpace(pool);
   AVERT(Space, space);
 
+  base = SegBase(space, seg);
+
   i = 0;
   while(i < group->grains) {
     Addr p;
@@ -584,8 +590,17 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       ++i;
       continue;
     }
-    p = AddrAdd(SegBase(space, seg), i << awl->alignShift);
-    j = AddrOffset(SegBase(space, seg), awl->format->skip(p)) >>
+    p = AddrAdd(base, i << awl->alignShift);
+    if(SegBuffer(seg) != NULL) {
+      Buffer buffer = SegBuffer(seg);
+
+      if(p >= BufferScanLimit(buffer)) {
+        AVER(p == BufferScanLimit(buffer));
+	i = AddrOffset(base, BufferLimit(buffer)) >> awl->alignShift;
+	continue;
+      }
+    }
+    j = AddrOffset(base, awl->format->skip(p)) >>
         awl->alignShift;
     AVER(j <= group->grains);
     if(!BTGet(group->mark, i)) {
@@ -596,6 +611,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVER(i == group->grains);
 
   BTResRange(group->mark, 0, group->grains);
+  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
 }
 
 static Res AWLTraceBegin(Pool pool, Trace trace, Action action)
