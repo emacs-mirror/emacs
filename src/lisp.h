@@ -1207,7 +1207,7 @@ extern Lisp_Object Ffset (), Fsetplist ();
 extern Lisp_Object Fsymbol_value (), find_symbol_value (), Fset ();
 extern Lisp_Object Fdefault_value (), Fset_default (), Fdefault_boundp ();
 
-extern Lisp_Object Faref (), Faset (), Farray_length ();
+extern Lisp_Object Faref (), Faset ();
 
 extern Lisp_Object Fstring_to_number (), Fnumber_to_string ();
 extern Lisp_Object Feqlsign (), Fgtr (), Flss (), Fgeq (), Fleq ();
