@@ -213,24 +213,35 @@ Optional ARG means move up."
   (Buffer-menu-unmark)
   (forward-line -1))
 
-(defun Buffer-menu-delete ()
-  "Mark buffer on this line to be deleted by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command."
-  (interactive)
+(defun Buffer-menu-delete (&optional arg)
+  "Mark buffer on this line to be deleted by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command.
+Prefix arg is how many buffers to delete.
+Negative arg means delete backwards."
+  (interactive "p")
   (beginning-of-line)
   (if (looking-at " [-M]")		;header lines
       (ding)
     (let ((buffer-read-only nil))
-      (delete-char 1)
-      (insert ?D)
-      (forward-line 1))))
+      (if (or (null arg) (= arg 0))
+	  (setq arg 1))
+      (while (> arg 0)
+	(delete-char 1)
+	(insert ?D)
+	(forward-line 1)
+	(setq arg (1- arg)))
+      (while (< arg 0)
+	(delete-char 1)
+	(insert ?D)
+	(forward-line -1)
+	(setq arg (1+ arg))))))
 
-(defun Buffer-menu-delete-backwards ()
+(defun Buffer-menu-delete-backwards (&optional arg)
   "Mark buffer on this line to be deleted by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command
-and then move up one line"
-  (interactive)
-  (Buffer-menu-delete)
-  (forward-line -2)
-  (if (looking-at " [-M]") (forward-line 1)))
+and then move up one line.  Prefix arg means move that many lines."
+  (interactive "p")
+  (Buffer-menu-delete (- (or arg 1)))
+  (while (looking-at " [-M]")
+    (forward-line 1)))
 
 (defun Buffer-menu-save ()
   "Mark buffer on this line to be saved by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command."
