@@ -229,7 +229,6 @@ Default value, nil, means edit the string instead."
     (while (< i 256)
       (define-key map (vector i) 'isearch-printing-char)
       (setq i (1+ i)))
-      (define-key map (vector i) 'isearch-printing-char)
 
     ;; To handle local bindings with meta char prefix keys, define
     ;; another full keymap.  This must be done for any other prefix
