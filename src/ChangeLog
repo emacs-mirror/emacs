@@ -1,5 +1,8 @@
 2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (handle_async_input): Remove pthread mutex handling.
+	(input_available_signal): Move pthread thingy to !SYNC_INPUT branch.
+
 	* syntax.c (Fforward_word): Avoid non-idempotent side-effects
 	in macro arguments.
 
