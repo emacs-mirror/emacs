@@ -178,7 +178,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 (unless scheme-mode-map
   (let ((map (make-sparse-keymap "Scheme")))
     (setq scheme-mode-map (make-sparse-keymap))
-    (set-keymap-parent scheme-mode-map shared-lisp-mode-map)
+    (set-keymap-parent scheme-mode-map lisp-mode-shared-map)
     (define-key scheme-mode-map [menu-bar] (make-sparse-keymap))
     (define-key scheme-mode-map [menu-bar scheme]
       (cons "Scheme" map))
