@@ -1,3 +1,11 @@
+1999-11-03  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
+
+	* calendar.el (redraw-calendar): Move to nearest date before
+	redrawing.
+
+	* diary-lib.el (simple-diary-display): Reset modeline even if
+	there are no diary entries since the diary buffer may be displayed.
+
 1999-11-03  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* emacs-lisp/debug.el (debug): If noninteractive, display the
