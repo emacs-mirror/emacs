@@ -1,3 +1,84 @@
+2003-03-16  Kim F. Storm  <storm@cua.dk>
+
+	The following changes consolidate some of the gui-independent
+	parts of the processing and drawing of "glyph strings" from
+	xterm.c, w32term.c, and macterm.c into xdisp.c.
+	
+	* dispextern.h (struct glyph): Reduce face_id member from 22 to
+	21 bits (this reduces number of faces from 4M to 2M).
+	Replace W32 specific w32_font_type member (2 bits) by generic
+	font_type member (3 bits) for portability.
+	(FONT_TYPE_UNKNOWN): New define, default for font_type member.
+	(enum draw_glyphs_face): Define here.
+	(struct glyph_string): Define here.  Merge W32 and X versions.
+	(struct redisplay_interface): New members per_char_metric,
+	encode_char, compute_glyph_string_overhangs, draw_glyph_string.
+	(VCENTER_BASELINE_OFFSET): Define here.
+	(dump_glyph_string, x_get_glyph_overhangs, x_produce_glyphs)
+	(x_draw_glyphs, notice_overwritten_cursor): Declare prototypes here.
+
+	* xdisp.c: Consolidate gui-independent "glyph string" code here.
+	(dump_glyph_string): Moved here.
+	(init_glyph_string, append_glyph_string_lists, append_glyph_string)
+	(prepend_glyph_string_lists, get_glyph_face_and_encoding)
+	(fill_composite_glyph_string, fill_glyph_string)
+	(fill_image_glyph_string, fill_stretch_glyph_string)
+	(left_overwritten, left_overwriting, right_overwritten)
+	(right_overwriting, get_char_face_and_encoding)
+	(set_glyph_string_background_width, compute_overhangs_and_x)
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(take_vertical_position_into_account, append_stretch_glyph)
+	(produce_stretch_glyph): New generic functions (based on X version).
+	Call platform specific functions through rif.
+	(INIT_GLYPH_STRING): New macro, hides W32 details.
+	(BUILD_STRETCH_GLYPH_STRING, BUILD_IMAGE_GLYPH_STRING)
+	(BUILD_CHAR_GLYPH_STRINGS, BUILD_COMPOSITE_GLYPH_STRING)
+	(BUILD_GLYPH_STRINGS): Generic macros (based on X version).
+	(x_draw_glyphs, x_get_glyph_overhangs, x_produce_glyphs)
+	(notice_overwritten_cursor):
+	Generic functions exported to platform modules.  Users changed.
+
+	* xterm.h (FONT_DESCENT, FRAME_X_OUTPUT, FRAME_BASELINE_OFFSET)
+	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE)
+	(STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2):
+	New macro for consolidated code.
+ 
+	* xterm.c: Remove consolidated defines and code.
+	(x_per_char_metric, x_encode_char)
+	(x_compute_glyph_string_overhangs): Adapt to RIF requirements.
+	(x_redisplay_interface): Add new members.
+
+	* w32gui.h (Display): Add dummy typedef for consolidation.
+	(XChar2b): Define alias for wchar_t for consolidation.
+	(STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2): New macros.
+
+	* w32term.h (FRAME_X_OUTPUT, FRAME_X_WINDOW, FRAME_X_DISPLAY)
+	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): 
+	New macros for consolidation.
+
+	* w32term.c Remove consolidated defines and code.
+	(BUILD_WCHAR_T, BYTE1, BYTE2): Macros removed; callers changed
+	to use STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2 instead.
+	(w32_per_char_metric): Change font_type arg to int for RIF.
+	(w32_encode_char): Return int according to RIF requirements.
+	(w32_compute_glyph_string_overhangs): Adapt to RIF.
+	(w32_get_glyph_overhangs): New function for RIF.  Uses generic
+	x_get_glyph_overhangs.
+	(w32_redisplay_interface): Add new members.
+
+	* macgui.h (XChar2b): Move typedef here for consolidation.
+	(STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2): New macros.
+
+	* macterm.h (FRAME_X_OUTPUT, FRAME_X_WINDOW, FRAME_X_DISPLAY):
+	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): New macros for
+	consolidation.
+
+	* macterm.c: Remove consolidated defines and code.
+	(mac_per_char_metric): New function for RIF.
+	(mac_encode_char): Adapted to new RIF requirements.
+	(mac_compute_glyph_string_overhangs): Adapt for RIF.
+	(x_redisplay_interface): Add new members.
+
 2003-03-14  Richard M. Stallman  <rms@gnu.org>
 
 	* lread.c (read1): After #!, exit loop on eof.
@@ -44,7 +125,7 @@
 
 2003-03-12  Kim F. Storm  <storm@cua.dk>
 
-	The following changes consolidates the fringe handling from
+	The following changes consolidate the fringe handling from
 	xterm.c, w32term.c, and macterm.c into xdisp.c.
 
 	* xdisp.c: Consolidate fringe handling code here.
