@@ -1,3 +1,8 @@
+2000-12-19  Andrew Innes  <andrewi@gnu.org>
+
+	* simple.el (delete-key-deletes-forward-mode): Fix typo in
+	docstring.
+
 2000-12-19  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
 	* progmodes/idlw-rinfo.el: Fixed copyright notice.
