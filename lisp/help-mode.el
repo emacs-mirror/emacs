@@ -176,8 +176,6 @@ Commands:
   (use-local-map help-mode-map)
   (setq mode-name "Help")
   (setq major-mode 'help-mode)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults nil)         ; font-lock would defeat xref
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
   (setq view-no-disable-on-exit t)
@@ -205,21 +203,6 @@ Commands:
 ;; This may have some scope for extension and the same or something
 ;; similar should be done for widget doc strings, which currently use
 ;; another mechanism.
-
-(defcustom help-highlight-p t
-  "*If non-nil, `help-make-xrefs' highlight cross-references.
-Under a window system it highlights them with face defined by
-`help-highlight-face'."
- :group 'help
- :version "20.3"
- :type 'boolean)
-
-(defcustom help-highlight-face 'underline
-  "Face used by `help-make-xrefs' to highlight cross-references.
-Must be previously-defined."
-  :group 'help
-  :version "20.3"
-  :type 'face)
 
 (defvar help-back-label (purecopy "[back]")
   "Label to use by `help-make-xrefs' for the go-back reference.")
@@ -282,12 +265,11 @@ restore it properly when going back."
 (defun help-make-xrefs (&optional buffer)
   "Parse and hyperlink documentation cross-references in the given BUFFER.
 
-Find cross-reference information in a buffer and, if
-`help-highlight-p' is non-nil, highlight it with face defined by
-`help-highlight-face'; activate such cross references for selection
-with `help-follow'.  Cross-references have the canonical form `...'
-and the type of reference may be disambiguated by the preceding
-word(s) used in `help-xref-symbol-regexp'.
+Find cross-reference information in a buffer and activate such cross
+references for selection with `help-follow'.  Cross-references have
+the canonical form `...'  and the type of reference may be
+disambiguated by the preceding word(s) used in
+`help-xref-symbol-regexp'.
 
 If the variable `help-xref-mule-regexp' is non-nil, find also
 cross-reference information related to multilingual environment
