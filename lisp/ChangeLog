@@ -1,3 +1,9 @@
+2000-08-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* man.el (Man-init-defvars): Don't reset Man-fontify-manpage-flag,
+	even if the display doesn't support colors: some displays will
+	support bold/underline faces.
+
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl.el (cl-macroexpand): Doc fix.
