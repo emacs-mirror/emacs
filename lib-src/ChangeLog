@@ -1,8 +1,15 @@
+2003-09-28  Andreas B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
+
+	* emacsclient.c (quote_file_name): Print the result instead of
+	returning it.  Fix the return type accordingly.
+	(main): Under --eval, don't fail if left with additional
+	arguments after decoding options.  Quote file names.
+
 2003-09-10  Richard M. Stallman  <rms@gnu.org>
 
 	* emacsclient.c	(main): Use socket_name.
 
-2003-09-10  Andreas_B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
+2003-09-10  Andreas B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
 
 	* emacsclient.c (socket_name): New variable.
 	(longopts, decode_options, print_help_and_exit):

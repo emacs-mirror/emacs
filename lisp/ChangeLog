@@ -1,3 +1,8 @@
+2003-09-28  Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-find-index-name): Remove any "<n>" suffixes which
+	makeinfo appends to duplicate index entries.
+
 2003-09-28  Eli Zaretskii  <eliz@elta.co.il>
 
 	* dired-x.el (dired-clean-tex): Doc fix.
