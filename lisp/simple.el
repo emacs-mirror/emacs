@@ -811,8 +811,7 @@ deleted."
 			    (set-buffer buffer)
 			    (goto-char (point-min))
 			    (buffer-substring (point)
-					      (progn (end-of-line) (point)))))
-		 (kill-buffer buffer))
+					      (progn (end-of-line) (point))))))
 		(t 
 		 (set-window-start (display-buffer buffer) 1))))))))
 
