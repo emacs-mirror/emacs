@@ -195,7 +195,7 @@ defaults to \"...\"."
 ;; 		(("こhんeにlちlはo" 13 4 ?x "日本語") . "xex日本語")
 ;; 		))
 ;;   (let (ret)
-;;     (condition-case e 
+;;     (condition-case e
 ;; 	(setq ret (apply #'truncate-string-to-width (car test)))
 ;;       (error (setq ret e)))
 ;;     (unless (equal ret (cdr test))
@@ -292,19 +292,6 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 
 
 ;; Coding system related functions.
-
-;;;###autoload
-(defun coding-system-eol-type-mnemonic (coding-system)
-  "Return the string indicating end-of-line format of CODING-SYSTEM."
-  (let* ((eol-type (coding-system-eol-type coding-system))
-	 (val (cond ((vectorp eol-type) eol-mnemonic-undecided)
-		    ((eq eol-type 0) eol-mnemonic-unix)
-		    ((eq eol-type 1) eol-mnemonic-dos)
-		    ((eq eol-type 2) eol-mnemonic-mac)
-		    (t "-"))))
-    (if (stringp val)
-	val
-      (char-to-string val))))
 
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)
