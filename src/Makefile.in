@@ -289,7 +289,7 @@ LIBXMENU=
 #endif /* not HAVE_X_MENU */
 
 #ifdef USE_X_TOOLKIT
-LIBXT= -lXaw -lXt -lXmu
+LIBXT= -lXaw -lXt -lXmu -lXext
 #else
 LIBXT=
 #endif
