@@ -58,6 +58,11 @@ for these coding systems only support DOS and Unix style EOLs (the -mac
 variety is actually just an alias for the -unix variety)."
   (save-match-data
     (let* ((coding-name (symbol-name coding))
+	   (undef (if (eq system-type 'ms-dos)
+		      (if dos-unsupported-char-glyph
+			  (logand dos-unsupported-char-glyph 255)
+			127)
+		    ??))
 	   (ccl-decoder-dos
 	    (ccl-compile
 	     `(4 (loop (read r1)
@@ -89,7 +94,7 @@ variety is actually just an alias for the -unix variety)."
 			 (if (r0 != ,(charset-id 'ascii))
 			     ((translate-character ,encoder r0 r1)
 			      (if (r0 == ,(charset-id 'japanese-jisx0208))
-				  ((r1 = ??)
+				  ((r1 = ,undef)
 				   (write r1))))))
 		       (write-repeat r1)))))
 	   (ccl-encoder-unix
@@ -98,7 +103,7 @@ variety is actually just an alias for the -unix variety)."
 		       (if (r0 != ,(charset-id 'ascii))
 			   ((translate-character ,encoder r0 r1)
 			    (if (r0 == ,(charset-id 'japanese-jisx0208))
-				((r1 = ??)
+				((r1 = ,undef)
 				 (write r1)))))
 		       (write-repeat r1))))))
       (if (memq coding coding-system-list)
@@ -436,14 +441,19 @@ decoder and encoder created by this function."
     ;; For charsets other than ascii and ISO-NAME, set `?' for
     ;; one-column charsets, and some Japanese character for
     ;; wide-column charsets.  CCL encoder convert that Japanese
-    ;; character to "??".
+    ;; character to either dos-unsupported-char-glyph or "??".
     (let ((tbl (char-table-extra-slot (symbol-value nonascii-table) 0))
+	  (undef (if (eq system-type 'ms-dos)
+		     (if dos-unsupported-char-glyph
+			 (logand dos-unsupported-char-glyph 255)
+		       127)
+		   ??))
 	  (charsets (delq 'ascii (delq iso-name
 				       (copy-sequence charset-list))))
 	  (wide-column-char (make-char 'japanese-jisx0208 32 32)))
       (while charsets
 	(aset tbl (make-char (car charsets))
-	      (if (= (charset-width (car charsets)) 1) ?? wide-column-char))
+	      (if (= (charset-width (car charsets)) 1) undef wide-column-char))
 	(setq charsets (cdr charsets))))
     (define-translation-table decode-translation
       (symbol-value nonascii-table))
