@@ -1,3 +1,14 @@
+2004-03-03  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Doc fix.
+	(ps-print-version): New version number (6.6.3).
+	(ps-right-header, ps-right-footer, ps-left-header, ps-left-footer):
+	Docstring fix.
+	(ps-kill-emacs-check): Check if ps-print temporary buffer is killed
+	before printing.
+	(ps-time-stamp-yyyy-mm-dd): New fun.
+	(ps-time-stamp-iso8601): Alias for ps-time-stamp-yyyy-mm-dd.
+
 2004-03-02  Kim F. Storm  <storm@cua.dk>
 
 	* gdb-ui.el (gdb-mouse-toggle-breakpoint): Remove debug message.
