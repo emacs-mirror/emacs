@@ -1,3 +1,12 @@
+2003-02-18  Kim F. Storm  <storm@cua.dk>
+
+	* lread.c (read1): Fix and relax read syntax.
+	Recognize "[", ";", "#", and "?" after a dotted-pair dot.
+	Only recognize "," after dotted-pair dot if inside backquote.
+	Never include "`" or "," (inside backquote) in a symbol.
+	Allow dotted-pair dot after a character constant.
+	Allow "`" and "," (inside backquote) after a character constant.
+	
 2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_expose_callback): New function.
