@@ -42,7 +42,7 @@
 
 ;; Named list of symbols representing valid message keywords in RMAIL.
 
-(defvar rmail-keywords nil)
+(defvar rmail-keywords)
 
 (defun rmail-add-label (string)
   "Add LABEL to labels associated with current RMAIL message.
