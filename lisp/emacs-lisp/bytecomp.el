@@ -1336,7 +1336,7 @@ With argument, insert value in current buffer after the form."
      (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
      "\000\000\000\n"
      )
-    (insert ";;; compiled by " (user-login-name) "@" (system-name) " on "
+    (insert ";;; compiled by " user-mail-address " on "
 	    (current-time-string) "\n;;; from file " filename "\n")
     (insert ";;; emacs version " emacs-version ".\n")
     (insert ";;; bytecomp version " byte-compile-version "\n;;; "
