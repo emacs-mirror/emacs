@@ -5278,7 +5278,7 @@ comparison is done with `eq'.
 
 ** The meaning of the `:weakness WEAK' argument of make-hash-table
 has been changed: WEAK can now have new values `key-or-value' and
-`key-and-value', in addition the `nil', `key', `value', and `t'.
+`key-and-value', in addition to `nil', `key', `value', and `t'.
 
 ** Function `aset' stores any multibyte character in any string
 without signaling "Attempt to change char length of a string".  It may
