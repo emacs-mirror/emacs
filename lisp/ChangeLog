@@ -1,3 +1,20 @@
+2003-01-29  John Paul Wallington  <jpw@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Match `deftheme'.
+
+	* emacs-lisp/lisp-mode.el (toplevel): Define docstring offset for
+	`deftheme'.  Fix docstring offsets for `define-ibuffer-filter' and
+	`define-ibuffer-sorter'.
+	(lisp-imenu-generic-expression): Add `deftheme' to types.
+
+	* custom.el (customize-mark-to-save, customize-mark-as-set)
+	(custom-remove-theme): Doc fixes.
+	
+2003-01-29  Didier Verna  <didier@xemacs.org>
+
+	* cus-edit.el (custom-save-variables): also save non theme'd ones.
+	* cus-edit.el (custom-save-faces): ditto.
+	
 2003-01-29  Juanma Barranquero  <lektu@terra.es>
 
 	* composite.el (decompose-composite-char): Fix docstring.
