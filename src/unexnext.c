@@ -31,7 +31,9 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <unistd.h>
-/* Instead of unistd.h, this used to include libc.h.  */
+/* Instead of unistd.h, this used to include libc.h.
+   "Nelson H. F. Beebe" <beebe@math.utah.edu> says that doesn't work
+   in system version 3.3.  */
 
 
 int malloc_cookie;
