@@ -1,3 +1,21 @@
+2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (uncomment-region-default, comment-region-default):
+	New functions extracted from uncomment-region and comment-region.
+	(comment-region, comment-region-function, uncomment-region)
+	(uncomment-region-function): Use them.
+
+	* pcvs-util.el (cvs-string-prefix-p): Use compare-strings.
+
+	* pcvs-info.el (cvs-states): Allow `ignore' on NEED-UPDATE.
+	It's not crucial but can make sense at times.
+
+	* vc-arch.el (vc-arch-workfile-version): Handle the special case before
+	the first commit.
+
+	* vc.el (vc-buffer-context, vc-restore-buffer-context):
+	Disable obsolete code.
+
 2004-09-07  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-highlight-matches): Change default from
@@ -58,8 +76,7 @@
 	(next-error-follow-mode-post-command-hook): New functions.
 	(next-error-follow-last-line): New defvar.
 
-	* diff-mode.el (diff-mode-map): Bind
-	toggle-next-error-follow-mode.
+	* diff-mode.el (diff-mode-map): Bind next-error-follow-mode.
 	* progmodes/compile.el (compilation-mode-map): Likewise.
 	* progmodes/grep.el (grep-mode-map): Likewise.
 	* replace.el (occur-mode-map): Likewise.
