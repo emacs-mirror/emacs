@@ -1,5 +1,7 @@
 2004-03-04  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (decode_coding_utf_16): Fix handling of surrogate pair.
+
 	* editfns.c (Ftranslate_region_internal): Renamed from
 	Ftranslate_region.  Accept a char-table in TABLE.
 	(syms_of_editfns): Defsubr Stranslate_region_internal.
