@@ -380,7 +380,9 @@ This must be bound to a mouse click."
 The text is saved in the kill ring, as with \\[kill-region]."
   (interactive "e")
   (mouse-minibuffer-check click)
-  (let ((click-posn (posn-point (event-start click))))
+  (let* ((posn (event-start click))
+	 (click-posn (posn-point posn)))
+    (select-window (posn-window posn))
     (if (numberp click-posn)
 	(kill-region (min (point) click-posn)
 		     (max (point) click-posn)))))
