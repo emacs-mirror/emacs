@@ -527,7 +527,7 @@ extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
 /* A char-table for characters which may invoke auto-filling.  */
 extern Lisp_Object Vauto_fill_chars;
 
-extern Lisp_Object Vscript_alist;
+extern Lisp_Object Vchar_script_table;
 
 /* Copy LEN bytes from FROM to TO.  This macro should be used only
    when a caller knows that LEN is short and the obvious copy loop is
