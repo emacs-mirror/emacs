@@ -1,3 +1,8 @@
+2004-03-10  John Paul Wallington  <jpw@gnu.org>
+
+	* foldout.el (foldout-fold-list, foldout-modeline-string): 
+	Declare them as variables, not constants.
+
 2004-03-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Modification to print *Messages* buffer.
