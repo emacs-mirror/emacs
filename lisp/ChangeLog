@@ -1,3 +1,9 @@
+2000-11-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (combine-run-hooks): Only run-hooks if there's a hook to run.
+
+	* sort.el (sort-columns): Don't concat strings with numbers.
+
 2000-11-29  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (face): Fix :format.
