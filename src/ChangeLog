@@ -1,3 +1,17 @@
+2003-01-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* fns.c (Fsubstring): Clarify doc string.
+
+	* textprop.c (Ftext_properties_at, Fnext_char_property_change)
+	(Fprevious_char_property_change)
+	(Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change, Fnext_property_change)
+	(Fnext_single_property_change, Fprevious_property_change)
+	(Fprevious_single_property_change, Fadd_text_properties)
+	(Fput_text_property, Fset_text_properties)
+	(Fremove_text_properties, Fremove_list_of_text_properties)
+	(Ftext_property_any, Ftext_property_not_all): Clarify doc strings.
+
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* process.h (struct Lisp_Process): New member plist replaces old
