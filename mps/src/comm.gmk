@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.63) $
+# $HopeName: MMsrc!comm.gmk(trunk.64) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -181,7 +181,6 @@ LO = poollo.c
 SNC = poolsnc.c
 POOLN = pooln.c
 MVFF = poolmvff.c
-ARENAAN = arenaan.c
 TESTLIB = testlib.c
 FMTDY = fmtdy.c
 FMTDYTST = fmtdy.c fmtdytst.c
@@ -229,8 +228,6 @@ POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
 POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
 MVFFOBJ = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.o)
 MVFFDEP = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d)
-ARENAANOBJ = $(ARENAAN:%.c=$(PFM)/$(VARIETY)/%.o)
-ARENAANDEP = $(ARENAAN:%.c=$(PFM)/$(VARIETY)/%.d)
 SWOBJ = $(SW:%.c=$(PFM)/$(VARIETY)/%.o)
 # The following hack for SWDEP only creates those dependencies when
 # mmsw.a is being built.
@@ -288,7 +285,7 @@ testrunep: epvmss
 mpmss apss sacss amcss amcssth amcsshe amsss segsmss awlut awlutth mpsicv \
   lockcov poolncv locv qs finalcv arenacv bttest teletest epvmss \
   abqtest cbstest btcv mv2eptst mv2test messtest eventcnv replay replaysw \
-  mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
+  mps.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -353,10 +350,10 @@ $(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
 	$(MPMOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
-	$(MPMOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
-	$(MPMOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(MPMOBJ)
@@ -389,31 +386,29 @@ $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
-	$(MPMOBJ) $(TESTLIBOBJ) $(POOLNOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ) $(POOLNOBJ)
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
 	$(AMCOBJ) $(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
-	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
-	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
+	$(PFM)/$(VARIETY)/abq.o $(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/cbstest: $(PFM)/$(VARIETY)/cbstest.o \
-	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
-	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
-
-$(PFM)/$(VARIETY)/mv2eptst: $(PFM)/$(VARIETY)/mv2eptst.o \
-	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
-	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
+	$(PFM)/$(VARIETY)/poolmv2.o $(PFM)/$(VARIETY)/abq.o \
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
@@ -430,16 +425,10 @@ $(PFM)/$(VARIETY)/replaysw: $(PFM)/$(VARIETY)/replay.o \
 
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
 
-$(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ) \
+$(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
   $(FMTDYOBJ) $(AWLOBJ)
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
-
-$(PFM)/$(VARIETY)/mpm.a: $(MPMOBJ)
-
-$(PFM)/$(VARIETY)/lo.a: $(LOOBJ)
-
-$(PFM)/$(VARIETY)/awl.a: $(AWLOBJ)
 
 $(PFM)/$(VARIETY)/mmsw.a: \
 	$(SWOBJ)
@@ -508,7 +497,7 @@ $(PFM)/$(VARIETY)/%.d: %.c
 ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
-include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) $(ARENAANDEP) \
+include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) \
   $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
   $(PLINTHDEP) $(EVENTPROCDEP)
 endif
