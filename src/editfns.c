@@ -542,28 +542,6 @@ if we can figure out a reasonably easy way to get that information.")
 
   return build_string (buf);
 }
-
-#ifdef unix
-
-DEFUN ("set-default-file-mode", Fset_default_file_mode, Sset_default_file_mode, 1, 1, "p",
-  "Set Unix `umask' value to ARGUMENT, and return old value.\n\
-The `umask' value is the default protection mode for new files.")
-  (nmask)
-     Lisp_Object nmask;
-{
-  CHECK_NUMBER (nmask, 0);
-  return make_number (umask (XINT (nmask)));
-}
-
-DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
-  "Tell Unix to finish all pending disk updates.")
-  ()
-{
-  sync ();
-  return Qnil;
-}
-
-#endif /* unix */
 
 void
 insert1 (arg)
@@ -1278,8 +1256,6 @@ syms_of_editfns ()
   defsubr (&Scurrent_time);
   defsubr (&Scurrent_time_string);
   defsubr (&Ssystem_name);
-  defsubr (&Sset_default_file_mode);
-  defsubr (&Sunix_sync);
   defsubr (&Smessage);
   defsubr (&Sformat);
 
