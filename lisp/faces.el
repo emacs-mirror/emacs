@@ -263,7 +263,6 @@ If FRAME is omitted or nil, use the selected frame."
     (:stipple
      (".attributeStipple" . "Face.AttributeStipple")
      (".attributeBackgroundPixmap" . "Face.AttributeBackgroundPixmap"))
-    (:font (".attributeFont" . "Face.AttributeFont"))
     (:bold (".attributeBold" . "Face.AttributeBold"))
     (:italic (".attributeItalic" . "Face.AttributeItalic"))
     (:font (".attributeFont" . "Face.AttributeFont")))
@@ -1167,8 +1166,11 @@ do it on all frames.  See `defface' for information about SPEC."
 	;; Support some old-style attribute names and values.
 	(case attribute
 	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
-	  (:italic (setq attribute :slant value (if value 'italic 'normal))))
-	(setq params (cons attribute (cons value params))))
+	  (:italic (setq attribute :slant value (if value 'italic 'normal)))
+	  (t (unless (assq attribute face-x-resources)
+	       (setq attribute nil))))
+	(when attribute
+	  (setq params (cons attribute (cons value params)))))
       (setq attrs (cdr (cdr attrs))))
     (face-spec-reset-face face frame)
     (apply #'set-face-attribute face frame params)))
