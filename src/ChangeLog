@@ -1,3 +1,8 @@
+2004-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c (allocate_vectorlike): Surround calls to mallopt with
+	BLOCK/UNBLOCK_INPUT.
+
 2004-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (Fx_popup_dialog): Add an Ok button if no buttons are
