@@ -39,6 +39,9 @@ FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
 *Every* FROM string should start with `^'.
 
+Do not use `~' in the TO strings.
+They should be ordinary absolute directory names.
+
 Use this feature when you have directories which you normally refer to
 via absolute symbolic links.  Make TO the name of the link, and FROM
 the name it is linked to.")
