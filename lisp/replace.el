@@ -875,9 +875,13 @@ type them."
   "Subroutine of `query-replace'.  Its complexity handles interactive queries.
 Don't use this in your own program unless you want to query and set the mark
 just as `query-replace' does.  Instead, write a simple loop like this:
-  (while (re-search-forward \"foo[ \t]+bar\" nil t)
+
+  (while (re-search-forward \"foo[ \\t]+bar\" nil t)
     (replace-match \"foobar\" nil nil))
-which will run faster and probably do exactly what you want."
+
+which will run faster and probably do exactly what you want.  Please
+see the documentation of `replace-match' to find out how to simulate
+`case-replace'."
   (or map (setq map query-replace-map))
   (and query-flag minibuffer-auto-raise
        (raise-frame (window-frame (minibuffer-window))))
