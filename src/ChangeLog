@@ -1,5 +1,9 @@
 2000-09-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c: Remove conditional compilation on SCALABLE_FONTS.
+	(Finternal_set_lisp_face_attribute): If frame is 0, set new frame
+	defaults first.
+
 	* lread.c (Fload): Put code checking for recursive loads in #if 0.
 
 2000-09-12  Miyashita Hisashi  <himi@meadowy.org>
