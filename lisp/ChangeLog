@@ -1,3 +1,9 @@
+2004-12-05  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/which-func.el (which-function): Use
+	`run-hook-with-args-until-success' instead of a custom loop.
+	Fixes bug with local hooks.
+
 2004-12-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-font-lock-url-regexp):
