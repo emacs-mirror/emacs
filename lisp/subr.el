@@ -1329,7 +1329,8 @@ Optional DEFAULT is a default password to use instead of empty input."
     (while
 	(progn
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
-					   (number-to-string default))))
+					   (and default
+						(number-to-string default)))))
 	    (setq n (cond
 		     ((zerop (length str)) default)
 		     ((stringp str) (read str)))))
