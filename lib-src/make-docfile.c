@@ -526,6 +526,7 @@ scan_c_file (filename, mode)
  Looks for
   (defun NAME ARGS DOCSTRING ...)
   (defmacro NAME ARGS DOCSTRING ...)
+  (defsubst NAME ARGS DOCSTRING ...)
   (autoload (quote NAME) FILE DOCSTRING ...)
   (defvar NAME VALUE DOCSTRING)
   (defconst NAME VALUE DOCSTRING)
@@ -675,7 +676,8 @@ scan_lisp_file (filename, mode)
       read_lisp_symbol (infile, buffer);
 
       if (! strcmp (buffer, "defun")
-	  || ! strcmp (buffer, "defmacro"))
+	  || ! strcmp (buffer, "defmacro")
+	  || ! strcmp (buffer, "defsubst"))
 	{
 	  type = 'F';
 	  read_lisp_symbol (infile, buffer);
