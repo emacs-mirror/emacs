@@ -1,6 +1,6 @@
 /* impl.c.fmtdytst: DYLAN FORMAT TEST CODE
  *
- * $HopeName: MMsrc!fmtdytst.c(trunk.4) $
+ * $HopeName: MMsrc!fmtdytst.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Group.  All rights reserved.
  *
  * .readership: MPS developers, Dylan developers.
@@ -110,13 +110,17 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
 void dylan_write(mps_addr_t addr, mps_addr_t *refs, size_t nr_refs)
 {
   mps_word_t *p = (mps_word_t *)addr;
+  mps_word_t t = p[1] >> 2;
 
   /* If the object is a vector, update a random entry. */
-  if(p[0] == (mps_word_t)tvw) {
-    mps_word_t t = p[1] >> 2;
-    if(t > 0)
-      p[2 + (rnd() % t)] =
-        (mps_word_t)refs[rnd() % nr_refs];
+  if(p[0] == (mps_word_t)tvw && t > 0) {
+    mps_word_t r = rnd();
+    size_t i = 2 + (rnd() % t);
+
+    if(r & 1)
+      p[i] = ((r & ~(mps_word_t)3) | 1); /* random int */
+    else
+      p[i] = (mps_word_t)refs[(r >> 1) % nr_refs]; /* random ptr */
   }
 }
 
