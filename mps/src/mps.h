@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.39) $
+ * $HopeName: MMsrc!mps.h(trunk.40) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -377,6 +377,14 @@ typedef void (*mps_formatted_objects_stepper_t)(mps_addr_t, mps_fmt_t,
 extern void mps_arena_formatted_objects_walk(mps_arena_t,
                                              mps_formatted_objects_stepper_t,
 			                     void *, size_t);
+/* Root Walking */
+
+typedef void (*mps_roots_stepper_t)(mps_addr_t *, 
+                                    mps_root_t,
+                                    void *, size_t);
+extern void mps_arena_roots_walk(mps_arena_t,
+                                 mps_roots_stepper_t,
+                                 void *, size_t);
 
 
 /* Scanner Support */
