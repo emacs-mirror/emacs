@@ -2067,7 +2067,7 @@ set_tty_color_mode (f, val)
      struct frame *f;
      Lisp_Object val;
 {
-  Lisp_Object color_mode_spec, current_mode_spec, tem;
+  Lisp_Object color_mode_spec, current_mode_spec;
   Lisp_Object color_mode, current_mode;
   int mode, old_mode;
   extern Lisp_Object Qtty_color_mode;
