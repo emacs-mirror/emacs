@@ -1,3 +1,8 @@
+2004-07-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Input Focus): Clarify descriptions of
+	`select-frame-set-input-focus' and `select-frame'.
+
 2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* os.texi: Various small changes in addition to:
