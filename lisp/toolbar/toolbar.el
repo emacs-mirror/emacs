@@ -85,7 +85,8 @@ Info node `(elisp)Image Descriptors')."
 (defun toolbar-like-menu-item (command icon &optional map)
   "Define toolbar binding for COMMAND using the given ICON in keymap MAP.
 The binding of COMMAND is looked up in the menu bar in MAP (default
-`global-map') and modified to add an image specification for ICON.
+`global-map') and modified to add an image specification for ICON, which
+is looked for as by `toolbar-add-item'.
 MAP must contain appropriate keymaps bound to `[menu-bar]' and
 `[tool-bar]'."
   (unless map
