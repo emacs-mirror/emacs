@@ -1,11 +1,19 @@
 2001-11-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* hexl.el (hexl-mode, hexl-follow-ascii): Remove make-local-hook.
+
+	* icomplete.el (icomplete-minibuffer-setup): Likewise.
+
+	* hilit-chg.el (hilit-chg-set): Likewise.
+
+	* speedbar.el (speedbar-mode): Likewise.
+
+	* calendar/calendar.el (calendar-mode): Likewise.
+
 	* play/yow.el (psychoanalyze-pinhead): Use insert instead of
 	insert-string.
 
 	* play/gamegrid.el (gamegrid-init-buffer): Likewise.
-
-	* vc.el (vc-next-action-on-file): Likewise.
 
 	* term/bg-mouse.el (bg-insert-moused-sexp): Likewise.
 
@@ -29,6 +37,9 @@
 	(outline-rebullet-heading, outline-insert-listified)
 	(outline-latex-verbatim-quote-curr-line)
 	(outline-latexify-one-item, outlineify-sticky): Likewise.
+
+	* vc.el (vc-next-action-on-file): Likewise.
+	(vc-dired-mode): Remove make-local-hook.
 
 2001-11-26  Andre Spiegel  <spiegel@gnu.org>
 
