@@ -1,5 +1,7 @@
 2001-02-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* unexencap.c, unexfx2800.c: Files removed.
+
 	* dispnew.c (direct_output_for_insert): Give up if we are showing
 	a message or just cleared the message because we might need to
 	resize the echo area window or display an empty echo area.
