@@ -156,9 +156,8 @@
 ;;
 ;; `japanese-zenkaku' 入力メソッドは全角英数字を入力するのに使う。
 ;;
-;; 以下に「ローマ字仮名変換」ステージでのキーシーケンスを挙げる。
-;;
-;; [omitted]
+;; 「ローマ字仮名変換」ステージでのキーシーケンスのリストは最後に付け
+;; てある。
 ;;
 ;; 「仮名漢字変換」
 ;;
@@ -205,7 +204,7 @@
 (quail-define-package
  "japanese" "Japanese" "Aあ"
  nil
- "Japanese input method using Roman transliteration and Kana-Kanji conversion.
+ "Japanese input method by Roman transliteration and Kana-Kanji conversion.
 
 When you use this input method, text entry proceeds in two stages:
 Roman-Kana transliteration and Kana-Kanji conversion.  When you start
@@ -223,81 +222,22 @@ underlined.
 In addition, the following keys provide special effects:
 
 K	Change Hiragana to Katakana or Katakana to Hiragana.
-qq	Toggle between this input method and the `japanese-ascii' input method.
-qz	Shift to the `japanese-zenkaku' input method.
+qq	Toggle between this input method and the input method `japanese-ascii'.
+qz	Shift to the input method `japanese-zenkaku'.
 	Typing \"qh\" will put you back to this input method.
 RET	Accept the current character sequence.
 SPC	Proceed to the next stage, Kana-Kanji conversion.
 
-The `japanese-ascii' input method is used to enter ASCII characters.
+The input method `japanese-ascii' is used to enter ASCII characters.
 This is almost the same as turning off the input method.  The only
 difference is that typing `qq' will put you back into the Japanese
 input method.
 
-The `japanese-zenkaku' input methods is used to enter full width
+The input method `japanese-zenkaku' is used to enter full width
 JISX0208 characters corresponding to typed ASCII characters.
 
-Here's a list of key sequences for Roman-Kana transliteration.
-
-a  あ  i い  u う  e え  o お
-ka か ki き ku く ke け ko こ	ga が gi ぎ gu ぐ ge げ go ご
-sa さ si し su す se せ so そ	za ざ zi じ zu ず ze ぜ zo ぞ
-ta た ti ち tu つ te て to と	da だ di ぢ du づ de で do ど
-na な ni に nu ぬ ne ね no の
-ha は hi ひ hu ふ he へ ho ほ	ba ば bi び bu ぶ be べ bo ぼ
-ma ま mi み mu む me め mo も	pa ぱ pi ぴ pu ぷ pe ぺ po ぽ
-ya や       yu ゆ       yo よ
-ra ら ri り ru る re れ ro ろ
-la ら li り lu る le れ lo ろ
-wa わ wi ゐ wu う we ゑ wo を n' ん			     
-
-kya きゃ kyu きゅ kye きぇ kyo きょ
-sha しゃ shu しゅ she しぇ sho しょ sya しゃ syu しゅ sye しぇ syo しょ 
-cha ちゃ chu ちゅ che ちぇ cho ちょ tya ちゃ tyu ちゅ tye ちぇ tyo ちょ
-nya にゃ nyu にゅ nye にぇ nyo にょ
-hya ひゃ hyu ひゅ hye ひぇ hyo ひょ
-mya みゃ myu みゅ mye みぇ myo みょ
-rya りゃ ryu りゅ rye りぇ ryo りょ lya りゃ lyu りゅ lye りぇ lyo りょ
-gya ぎゃ gyu ぎゅ gye ぎぇ gyo ぎょ
-zya じゃ zyu じゅ zye じぇ zyo じょ jya じゃ jyu じゅ jye じぇ jyo じょ
-ja  じゃ ju  じゅ je  じぇ jo  じょ
-bya びゃ byu びゅ bye びぇ byo びょ pya ぴゃ pyu ぴゅ pye ぴぇ pyo ぴょ
-    	     	      	       	   
-kwa くゎ kwi くぃ kwe くぇ kwo くぉ
-tsa つぁ tsi つぃ tse つぇ tso つぉ
-fa  ふぁ fi  ふぃ fe  ふぇ fo  ふぉ
-gwa ぐゎ gwi ぐぃ gwe ぐぇ gwo ぐぉ
-dyi でぃ dyu どぅ dye でぇ dyo どぉ
-
-shi し   tyi てぃ chi ち   tsu つ   ji じ fu  ふ
-xwi うぃ xwe うぇ xwo うぉ ye  いぇ
-
-va ヴぁ vi ヴぃ vu ヴ ve ヴぇ vo ヴぉ
-
-xa  ぁ xi  ぃ xu  ぅ xe  ぇ xo  ぉ xtu っ
-xya ゃ xyu ゅ xyo ょ xwa ゎ xka ヵ xke ヶ
-
-Digists and punctuations:
-
-key:  1 2 3 4 5 6 7 8 9 0 - = \\ ` ! @ # $ % ^ & * ( ) _ + | ~
-char: １２３４５６７８９０ー＝￥｀！＠＃＄％＾＆＊（）＿＋｜￣
-
-key:  [ ] { } ; ' : \" , . / < > ?
-char: 「」｛｝；’：”、。／＜＞？
-       	       	 
-Symbols (`z' followed by these keys):
-
-Key:  1 2 3 4 5 6 7 8 9 0 - = \\ ` ! @ # $ % ^ & * ( ) _ + | ~
-char: ○▽△□◇☆◎¢♂♀〜≠＼´●▼▲■◆★£×【】∴±‖¨
-
-Key:  [ ] { } ; ' : \" , . / < > ?
-char: 『』〔〕゛‘゜“‥…・≦≧∞
-
-Key:  b c d f g h j k l m n p q r s t v w B C D F G M N P Q R S T V W
-char: °〇ゝ〃‐←↓↑→″′〒《々ヽ〆※》←℃ゞ→―〓↓↑〈仝ヾ§÷〉
-
-Key:  x   X
-str:  :-  :-)
+List of the all key sequences for Roman-Kana transliteration is shown
+at the tail.
 
 :: Kana-Kanji conversion ::
 
@@ -478,8 +418,8 @@ C-h		kkc-help
 (quail-define-package
  "japanese-ascii" "Japanese" "Aa"
  nil
- "Temporary ASCII input mode while using Quail package `japanese'
-Type \"qq\" to go back to previous package."
+ "Temporary ASCII input mode used within the input method `japanese'.
+Type \"qq\" to go back to previous input method."
  nil t t)
 
 (quail-define-rules ("qq" quail-japanese-switch-package))
@@ -487,10 +427,11 @@ Type \"qq\" to go back to previous package."
 (quail-define-package
  "japanese-zenkaku" "Japanese" "Ａ"
  nil
- "Japanese zenkaku alpha numeric character input method
+ "Japanese zenkaku alpha numeric character input method.
 ---- Special key bindings ----
-qq:	toggle between `japanese-zenkaku' and `japanese-ascii'
-qh:	use `japanese' package, \"qz\" puts you back to `japanese-zenkaku'
+qq:	toggle between this input method and the input method `japanese-ascii'.
+qh:	shift to the input method `japanese',
+	typing \"qz\" puts you back to this input method.
 "
  nil t t)
 
@@ -538,9 +479,9 @@ qh:	use `japanese' package, \"qz\" puts you back to `japanese-zenkaku'
  "japanese-hankaku-kana"
  "Japanese" "ｱ"
  nil
- "Japanese hankaku katakana input method by Roman transliteration
+ "Japanese hankaku katakana input method by Roman transliteration.
 ---- Special key bindings ----
-qq:	toggle between `japanese-hankaku-kana' and `japanese-ascii'
+qq:	toggle between this input method and the input method `japanese-ascii'.
 "
  nil t t nil nil nil nil nil
  'quail-japanese-hankaku-update-translation)
@@ -552,7 +493,7 @@ qq:	toggle between `japanese-hankaku-kana' and `japanese-ascii'
 (quail-define-package
  "japanese-hiragana" "Japanese" "あ"
  nil
- "Japanese hiragana input method by Roman transliteration"
+ "Japanese hiragana input method by Roman transliteration."
  nil t t nil nil nil nil nil
  'quail-japanese-update-translation)
 
@@ -573,7 +514,7 @@ qq:	toggle between `japanese-hankaku-kana' and `japanese-ascii'
 (quail-define-package 
  "japanese-katakana" "Japanese" "ア"
  nil
- "Japanese katakana input method by Roman transliteration"
+ "Japanese katakana input method by Roman transliteration."
  nil t t nil nil nil nil nil
  'quail-japanese-katakana-update-translation)
 
