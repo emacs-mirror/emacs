@@ -407,6 +407,7 @@ Otherwise use the minibuffer.")
   "*Formatting function for displaying word being spell checked.
 The function must take one string argument and return a string.")
 
+;;;###autoload
 (defvar ispell-personal-dictionary nil
   "*File name of your personal spelling dictionary, or nil.
 If nil, the default personal dictionary, \"~/.ispell_DICTNAME\" is used,
