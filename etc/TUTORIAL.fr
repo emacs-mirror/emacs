@@ -1189,3 +1189,9 @@ dans le même esprit. Lisez le fichier COPYING et donnez ensuite des
 copies de GNU Emacs à vos amis. Participez à l'éradication de
 l'obstructionnisme du logiciel (sa « propriétarisation ») en
 utilisant, écrivant et partagent des logiciels libres !
+
+--- end of TUTORIAL.fr ---
+
+;;; Local Variables:
+;;;   coding: latin-1
+;;; End:
