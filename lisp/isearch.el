@@ -234,6 +234,7 @@ Default value, nil, means edit the string instead."
       (aset (nth 1 map) (make-char 'latin-iso8859-2) 'isearch-printing-char)
       (aset (nth 1 map) (make-char 'latin-iso8859-3) 'isearch-printing-char)
       (aset (nth 1 map) (make-char 'latin-iso8859-4) 'isearch-printing-char)
+      (aset (nth 1 map) (make-char 'latin-iso8859-9) 'isearch-printing-char)
       ;; Make function keys, etc, exit the search.
       (define-key map [t] 'isearch-other-control-char)
       ;; Control chars, by default, end isearch mode transparently.
@@ -1018,10 +1019,14 @@ If no previous match was done, just beep."
 	       (or isearch-yank-flag
 		   (<= (match-end 0) 
 		       (min isearch-opoint isearch-barrier))))
-	(setq isearch-success t 
-	      isearch-invalid-regexp nil
-	      isearch-within-brackets nil
-	      isearch-other-end (match-end 0))
+	(progn
+	  (setq isearch-success t 
+		isearch-invalid-regexp nil
+		isearch-within-brackets nil
+		isearch-other-end (match-end 0))
+	  (if (and (eq isearch-case-fold-search t) search-upper-case)
+	      (setq isearch-case-fold-search
+		    (isearch-no-upper-case-p isearch-string isearch-regexp))))
       ;; Not regexp, not reverse, or no match at point.
       (if (and isearch-other-end (not isearch-adjusted))
 	  (goto-char (if isearch-forward isearch-other-end
