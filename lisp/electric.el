@@ -160,7 +160,6 @@
       (cond ((and (eq (window-buffer win) buf))
 	     (select-window win))
 	    (one-window
-	     (goto-char (window-start win))
 	     (pop-to-buffer buffer)
 	     (setq win (selected-window))
 	     (enlarge-window (- target-height (window-height win))))
