@@ -162,6 +162,14 @@ If value is non-nil but not t, the reference section is still shown."
 		 (other :tag "Replace only tag" tag))
   :group 'info)
 
+(defcustom Info-refill-paragraphs nil
+  "*If non-nil, attempt to refill paragraphs with hidden references.
+This refilling may accidentally remove explicit line breaks in the info
+file, so be prepared for a few surprises if you enable this feature."
+  :version "21.4"
+  :type 'boolean
+  :group 'info)
+
 (defcustom Info-mode-hook
   ;; Try to obey obsolete Info-fontify settings.
   (unless (and (boundp 'Info-fontify) (null Info-fontify))
@@ -2905,27 +2913,30 @@ the variable `Info-file-list-for-emacs'."
 		(save-excursion
 		  (goto-char (match-beginning 1))
 		  (insert other-tag)))
-	      (when (or hide-tag (eq Info-hide-note-references t))
+	      (when (and Info-refill-paragraphs
+			 (or hide-tag (eq Info-hide-note-references t)))
 		(push (set-marker (make-marker) start)
 		      paragraph-markers)))))
 
-	(let ((fill-nobreak-invisible t)
-	      (fill-individual-varying-indent nil)
-	      (paragraph-start "\f\\|[ \t]*[-*]\\|[ \t]*$")
-	      (paragraph-separate ".*\\.[ \t]*\n[ \t]\\|[ \t]*[-*]\\|[ \t\f]*$")
-	      (adaptive-fill-mode nil))
-	  (goto-char (point-max))
-	  (while paragraph-markers
-	    (let ((m (car paragraph-markers)))
-	      (setq paragraph-markers (cdr paragraph-markers))
-	      (when (< m (point))
-		(goto-char m)
-		(beginning-of-line)
-		(let ((beg (point)))
-		  (when (zerop (forward-paragraph))
-		    (fill-individual-paragraphs beg (point) nil nil)
-		    (goto-char beg))))
-	      (set-marker m nil))))
+	(when (and Info-refill-paragraphs
+		   paragraph-markers)
+	  (let ((fill-nobreak-invisible t)
+		(fill-individual-varying-indent nil)
+		(paragraph-start "\f\\|[ \t]*[-*]\\|[ \t]*$")
+		(paragraph-separate ".*\\.[ \t]*\n[ \t]\\|[ \t]*[-*]\\|[ \t\f]*$")
+		(adaptive-fill-mode nil))
+	    (goto-char (point-max))
+	    (while paragraph-markers
+	      (let ((m (car paragraph-markers)))
+		(setq paragraph-markers (cdr paragraph-markers))
+		(when (< m (point))
+		  (goto-char m)
+		  (beginning-of-line)
+		  (let ((beg (point)))
+		    (when (zerop (forward-paragraph))
+		      (fill-individual-paragraphs beg (point) nil nil)
+		      (goto-char beg))))
+		(set-marker m nil)))))
 
 	(goto-char (point-min))
 	(when (and (search-forward "\n* Menu:" nil t)
