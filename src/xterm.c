@@ -6505,12 +6505,22 @@ x_list_fonts (f, pattern, size, maxnames)
       /* At first, put PATTERN in the cache.  */
 
       BLOCK_INPUT;
+      count = x_catch_errors (dpy);
+
       if (try_XLoadQueryFont)
 	{
 	  XFontStruct *font;
 	  unsigned long value;
 
 	  font = XLoadQueryFont (dpy, XSTRING (pattern)->data);
+	  if (x_had_errors_p (dpy))
+	    {
+	      /* This error is perhaps due to insufficient memory on X
+                 server.  Let's just ignore it.  */
+	      font = NULL;
+	      x_clear_errors (dpy);
+	    }
+
 	  if (font
 	      && XGetFontProperty (font, XA_FONT, &value))
 	    {
@@ -6542,10 +6552,21 @@ x_list_fonts (f, pattern, size, maxnames)
 	}
 
       if (!try_XLoadQueryFont)
-	/* We try at least 10 fonts because XListFonts will return
-	   auto-scaled fonts at the head.  */
-	names = XListFonts (dpy, XSTRING (pattern)->data, max (maxnames, 10),
-			    &num_fonts);
+	{
+	  /* We try at least 10 fonts because XListFonts will return
+	     auto-scaled fonts at the head.  */
+	  names = XListFonts (dpy, XSTRING (pattern)->data, max (maxnames, 10),
+			      &num_fonts);
+	  if (x_had_errors_p (dpy))
+	    {
+	      /* This error is perhaps due to insufficient memory on X
+                 server.  Let's just ignore it.  */
+	      names = NULL;
+	      x_clear_errors (dpy);
+	    }
+	}
+
+      x_uncatch_errors (dpy, count);
       UNBLOCK_INPUT;
 
       if (names)
@@ -6627,8 +6648,17 @@ x_list_fonts (f, pattern, size, maxnames)
 	      XFontStruct *thisinfo;
 
 	      BLOCK_INPUT;
+	      count = x_catch_errors (dpy);
 	      thisinfo = XLoadQueryFont (dpy,
 					 XSTRING (XCONS (tem)->car)->data);
+	      if (x_had_errors_p (dpy))
+		{
+		  /* This error is perhaps due to insufficient memory on X
+		     server.  Let's just ignore it.  */
+		  thisinfo = NULL;
+		  x_clear_errors (dpy);
+		}
+	      x_uncatch_errors (dpy, count);
 	      UNBLOCK_INPUT;
 
 	      if (thisinfo)
