@@ -166,7 +166,7 @@ The following key sequence may cause multilingual text insertion."
 		(aset encoded-kbd-iso2022-invocations 2 3))
 
 	       ((>= last-command-char ?\240)
-		(encoded-kbd-self-insert-iso2022-8bit))
+		(encoded-kbd-self-insert-iso2022-8bit 1))
 
 	       (t
 		(error "Can't handle the character code %d"
@@ -237,11 +237,38 @@ The following key sequence may cause multilingual text insertion."
     (setq unread-command-events
 	  (append result unread-command-events))))
 
+(defun encoded-kbd-self-insert-charset (arg)
+  (interactive "p")
+  (let* ((charset-list
+	  (coding-system-get (keyboard-coding-system) :charset-list))
+	 (charset (car charset-list))
+	 ;; For the moment, we can assume that the length of CHARSET-LIST
+	 ;; is 1, and the dimension of CHARSET is 1.
+	 (c (decode-char charset last-command-char)))
+    (unless c
+      (error "Can't decode the code point %d by %s"
+	     last-command-char charset))
+    ;; As simply setting unread-command-events may result in
+    ;; infinite-loop for characters 160..255, this is a temporary
+    ;; workaround until we found a better solution.
+    (let ((last-command-char c))
+      (self-insert-command arg))))
+
 (defun encoded-kbd-setup-keymap (coding)
   ;; At first, reset the keymap.
   (setcdr encoded-kbd-mode-map nil)
   ;; Then setup the keymap according to the keyboard coding system.
   (cond
+   ((eq encoded-kbd-coding 'charset)
+    (let* ((charset (car (coding-system-get coding :charset-list)))
+	   (code-space (get-charset-property charset :code-space))
+	   (from (max (aref code-space 0) 128))
+	   (to (aref code-space 1)))
+      (while (<= from to)
+	(define-key encoded-kbd-mode-map
+	  (vector from) 'encoded-kbd-self-insert-charset)
+	(setq from (1+ from)))))
+
    ((eq encoded-kbd-coding 'sjis)
     (let ((i 128))
       (while (< i 256)
@@ -345,6 +372,17 @@ as a multilingual text encoded in a coding system set by
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'ccl))
+
+	      ((and (eq (coding-system-type coding) 'charset)
+		    (let* ((charset-list (coding-system-get coding
+							    :charset-list))
+			   (charset (car charset-list)))
+		      (and (= (length charset-list) 1)
+			   (= (charset-dimension charset) 1))))
+	       (set-input-mode
+		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
+		'use-8th-bit (nth 3 saved-input-mode))
+	       (setq encoded-kbd-coding 'charset))
 
 	      (t
 	       (setq encoded-kbd-mode nil)
