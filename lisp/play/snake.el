@@ -123,7 +123,8 @@
   '(((glyph colorize)
      (t ?\+))
     ((color-x color-x)
-     (mono-x grid-x))
+     (mono-x grid-x)
+     (color-tty color-tty))
     (((glyph color-x) [0.5 0.5 0.5])
      (color-tty "white"))))
 
