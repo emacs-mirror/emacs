@@ -24,6 +24,7 @@
 
 (defconst vip-ex-work-buf-name " *ex-working-space*")
 (defconst vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name))
+(defconst vip-ex-tmp-buf-name " *ex-tmp*")
 
 
 ;;; Variable completion in :set command
@@ -93,7 +94,8 @@
 
 ;; `sh' doesn't seem to expand wildcards, like `*'
 (defconst ex-find-file-shell "csh"
-  "Shell in which to interpret wildcards.")
+  "Shell in which to interpret wildcards. Must be csh, tcsh, or similar.
+Bourne shell doesn't seem to work here.")
 (defvar ex-find-file-shell-options "-f"
   "*Options to pass to `ex-find-file-shell'.")
 
@@ -140,16 +142,16 @@ reversed.")
 
 ;;; Code
   
+;; Check if ex-token is an initial segment of STR
 (defun vip-check-sub (str)
-  "Check if ex-token is an initial segment of STR."
   (let ((length (length ex-token)))
     (if (and (<= length (length str))
   	     (string= ex-token (substring str 0 length)))
 	(setq ex-token str)
       (setq ex-token-type 'non-command))))
 
+;; Get a complete ex command
 (defun vip-get-ex-com-subr ()
-  "Get a complete ex command."
   (let (case-fold-search)
     (set-mark (point))
     (re-search-forward "[a-zA-Z][a-zA-Z]*")
@@ -237,9 +239,9 @@ reversed.")
     (exchange-point-and-mark)
     ))
 
+;; Get an ex-token which is either an address or a command.
+;; A token has a type, \(command, address, end-mark\), and a value
 (defun vip-get-ex-token ()
-  "Get an ex-token which is either an address or a command.
-A token has a type, \(command, address, end-mark\), and a value."
   (save-window-excursion
     (set-buffer vip-ex-work-buf)
     (skip-chars-forward " \t|")
@@ -418,8 +420,10 @@ A token has a type, \(command, address, end-mark\), and a value."
 		    (vip-alist-to-list (reverse compl-list)))))))
       )))
     
+
+;; Read Ex commands 
+;; Ex commands themselves are implemented in viper-ex.el
 (defun vip-ex (&optional string)
-  "Ex commands within Viper."
   (interactive)
   (or string
       (setq ex-g-flag nil
@@ -428,7 +432,7 @@ A token has a type, \(command, address, end-mark\), and a value."
 	 (address nil)
 	 (cont t)
 	 (dot (point))
-	 com-str)
+	 prev-token-type com-str)
 	 
     (vip-add-keymap vip-ex-cmd-map map)
     
@@ -473,20 +477,29 @@ A token has a type, \(command, address, end-mark\), and a value."
 	    ((eq ex-token-type 'non-command)
 	     (error (format "`%s': %s" ex-token vip-BadExCommand)))
 	    ((eq ex-token-type 'whole)
+	     (setq address nil)
 	     (setq ex-addresses
-		   (cons (point-max) (cons (point-min) ex-addresses))))
+		   (if ex-addresses
+		       (cons (point-max) ex-addresses)
+		     (cons (point-max) (cons (point-min) ex-addresses)))))
 	    ((eq ex-token-type 'comma)
+	     (if (eq prev-token-type 'whole)
+		 (setq address (point-min)))
 	     (setq ex-addresses
 		   (cons (if (null address) (point) address) ex-addresses)))
 	    ((eq ex-token-type 'semi-colon)
+	     (if (eq prev-token-type 'whole)
+		 (setq address (point-min)))
 	     (if address (setq dot address))
 	     (setq ex-addresses
 		   (cons (if (null address) (point) address) ex-addresses)))
 	    (t (let ((ans (vip-get-ex-address-subr address dot)))
-		 (if ans (setq address ans))))))))
+		 (if ans (setq address ans)))))
+      (setq prev-token-type ex-token-type))))
+      
 
+;; Get a regular expression and set `ex-variant', if found
 (defun vip-get-ex-pat ()
-  "Get a regular expression and set `ex-variant', if found."
   (save-window-excursion
     (set-buffer vip-ex-work-buf)
     (skip-chars-forward " \t")
@@ -521,8 +534,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 	(setq ex-token nil))
       c)))
 
+;; get an ex command
 (defun vip-get-ex-command ()
-  "get an ex command"
   (save-window-excursion
     (set-buffer vip-ex-work-buf)
     (if (looking-at "/") (forward-char 1))
@@ -536,8 +549,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 	   (forward-char 1))
 	  (t (error vip-BadExCommand)))))
 
+;; Get an Ex option g or c
 (defun vip-get-ex-opt-gc (c)
-  "Get an Ex option g or c."
   (save-window-excursion
     (set-buffer vip-ex-work-buf)
     (if (looking-at (format "%c" c)) (forward-char 1))
@@ -552,8 +565,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 	   t)
 	  (t nil))))
 
+;; Compute default addresses.  WHOLE-FLAG means use the whole buffer
 (defun vip-default-ex-addresses (&optional whole-flag)
-  "Compute default addresses.  WHOLE-FLAG means use the whole buffer."
   (cond ((null ex-addresses)
 	 (setq ex-addresses
 	       (if whole-flag
@@ -563,8 +576,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 	 (setq ex-addresses
 	       (cons (car ex-addresses) ex-addresses)))))
 
+;; Get an ex-address as a marker and set ex-flag if a flag is found
 (defun vip-get-ex-address ()
-  "Get an ex-address as a marker and set ex-flag if a flag is found."
   (let ((address (point-marker)) (cont t))
     (setq ex-token "")
     (setq ex-flag nil)
@@ -586,8 +599,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 		 (if ans (setq address ans))))))
     address))
 
+;; Returns an address as a point
 (defun vip-get-ex-address-subr (old-address dot)
-  "Returns an address as a point."
   (let ((address nil))
     (if (null old-address) (setq old-address dot))
     (cond ((eq ex-token-type 'dot)
@@ -630,8 +643,8 @@ A token has a type, \(command, address, end-mark\), and a value."
     address))
 
 
+;; Search pattern and set address
 (defun ex-search-address (forward)
-  "Search pattern and set address."
   (if (string= ex-token "")
       (if (null vip-s-string)
 	  (error vip-NoPrevSearch)
@@ -644,8 +657,8 @@ A token has a type, \(command, address, end-mark\), and a value."
     (forward-line -1)
     (re-search-backward ex-token)))
 
+;; Get a buffer name and set `ex-count' and `ex-flag' if found
 (defun vip-get-ex-buffer ()
-  "Get a buffer name and set `ex-count' and `ex-flag' if found."
   (setq ex-buffer nil)
   (setq ex-count nil)
   (setq ex-flag nil)
@@ -696,8 +709,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 	(error "`%s': %s"
 	       (buffer-substring (point-min) (1- (point-max))) vip-BadExCommand))))
 
+;; Expand \% and \# in ex command
 (defun ex-expand-filsyms (cmd buf)
-  "Expand \% and \# in ex command."
   (let (cf pf ret)
     (save-excursion 
       (set-buffer buf)
@@ -708,7 +721,7 @@ A token has a type, \(command, address, end-mark\), and a value."
     (if (and (null pf) (string-match "[^\\]#\\|\\`#" cmd))
 	(error "No alternate file to substitute for `#'"))
     (save-excursion
-      (set-buffer (get-buffer-create " *ex-tmp*"))
+      (set-buffer (get-buffer-create vip-ex-tmp-buf-name))
       (erase-buffer)
       (insert cmd)
       (goto-char (point-min))
@@ -726,8 +739,8 @@ A token has a type, \(command, address, end-mark\), and a value."
       (message "%s" ret))
     ret))
 
+;; Get a file name and set ex-variant, `ex-append' and `ex-offset' if found
 (defun vip-get-ex-file ()
-  "Get a file name and set ex-variant, `ex-append' and `ex-offset' if found."
   (let (prompt)
     (setq ex-file nil
 	  ex-variant nil
@@ -850,8 +863,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 		(setq vip-last-ex-prompt (concat vip-last-ex-prompt " !")))))
     (substring str (or beg 0) end)))
 
+;; Execute ex command using the value of addresses
 (defun vip-execute-ex-command ()
-  "Execute ex command using the value of addresses."
   (vip-deactivate-mark)
   (cond ((string= ex-token "args") (ex-args))
 	((string= ex-token "copy") (ex-copy nil))
@@ -921,7 +934,7 @@ A token has a type, \(command, address, end-mark\), and a value."
 	     (string= ex-token "unabbreviate"))
 	 (error
 	  (format
-	   "`%s': Vi's abbrevs are obsolete. Use more powerful Emacs' abbrevs"
+	   "`%s': Vi-style abbrevs are obsolete. Use the more powerful Emacs abbrevs"
 	   ex-token)))
 	((or (string= ex-token "list")
 	     (string= ex-token "print")
@@ -970,15 +983,15 @@ A token has a type, \(command, address, end-mark\), and a value."
 	    (princ "\n\nPress any key to continue...\n\n"))
 	  (vip-read-event))))))
 
+;; Ex cd command. Default directory of this buffer changes
 (defun ex-cd ()
-  "Ex cd command. Default directory of this buffer changes."
   (vip-get-ex-file)
   (if (string= ex-file "")
       (setq ex-file "~"))
   (setq default-directory (file-name-as-directory (expand-file-name ex-file))))
 
+;; Ex copy and move command.  DEL-FLAG means delete
 (defun ex-copy (del-flag)
-  "Ex copy and move command.  DEL-FLAG means delete."
   (vip-default-ex-addresses)
   (let ((address (vip-get-ex-address))
 	(end (car ex-addresses)) (beg (car (cdr ex-addresses))))
@@ -1008,8 +1021,8 @@ A token has a type, \(command, address, end-mark\), and a value."
       (forward-line 1))
       (insert (current-kill 0))))
 
+;; Ex delete command
 (defun ex-delete ()
-  "Ex delete command."
   (vip-default-ex-addresses)
   (vip-get-ex-buffer)
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
@@ -1045,12 +1058,12 @@ A token has a type, \(command, address, end-mark\), and a value."
 
 
 
+;; Ex edit command
+;; In Viper, `e' and `e!' behave identically. In both cases, the user is
+;; asked if current buffer should really be discarded.
+;; This command can take multiple file names. It replaces the current buffer
+;; with the first file in its argument list
 (defun ex-edit (&optional file)
-  "Ex edit command.
-In Viper, `e' and `e!' behave identically. In both cases, the user is
-asked if current buffer should really be discarded.
-This command can take multiple file names. It replaces the current buffer
-with the first file in its argument list."
   (if (not file)
       (vip-get-ex-file))
   (cond ((and (string= ex-file "") buffer-file-name)
@@ -1100,11 +1113,11 @@ with the first file in its argument list."
 ;; splits the string FILESPEC into substrings separated by newlines `\012'
 ;; each line assumed to be a file name. find-file's each file thus obtained.
 (defun ex-find-file (filespec)
-  (let (s f filebuf status)
+  (let (f filebuf tmp-buf status)
     (if (string-match "[^a-zA-Z0-9_.-/]" filespec)
 	(progn
 	  (save-excursion 
-	    (set-buffer (get-buffer-create " *ex-tmp*"))
+	    (set-buffer (setq tmp-buf (get-buffer-create vip-ex-tmp-buf-name)))
 	    (erase-buffer)
 	    (setq status
 		  (call-process ex-find-file-shell nil t nil
@@ -1112,7 +1125,7 @@ with the first file in its argument list."
 				"-c"
 				(format "echo %s | tr ' ' '\\012'" filespec)))
 	    (goto-char (point-min))
-	    ;; Give an error, if no match.
+	    ;; Issue an error, if no match.
 	    (if (> status 0)
 		(save-excursion
 		  (skip-chars-forward " \t\n\j")
@@ -1122,19 +1135,20 @@ with the first file in its argument list."
 			 filespec
 			 (buffer-substring (point) (vip-line-pos 'end)))
 		  ))
+	    (reverse-region (point-min) (point-max))
+	    (goto-char (point-min))
 	    (while (not (eobp))
-	      (setq s (point))
-	      (end-of-line)
-	      (setq f (buffer-substring s (point)))
-	      (setq filebuf (find-file-noselect f))
+	      (setq f (buffer-substring (point) (vip-line-pos 'end)))
+	      (setq filebuf (find-file f))
+	      (set-buffer tmp-buf) ; otherwise it'll be in f.
 	      (forward-to-indentation 1))
 	    ))
       (setq filebuf (find-file-noselect (setq f filespec))))
     (switch-to-buffer filebuf)
     ))
 
+;; Ex global command
 (defun ex-global (variant)
-  "Ex global command."
   (let ((gcommand ex-token))
     (if (or ex-g-flag ex-g-variant)
 	(error "`%s' within `global' is not allowed" gcommand)
@@ -1191,16 +1205,16 @@ with the first file in its argument list."
       (setq mark-count (1- mark-count))
       (setq marks (cdr marks)))))
 
+;; Ex goto command
 (defun ex-goto ()
-  "Ex goto command."
   (if (null ex-addresses)
       (setq ex-addresses (cons (point) nil)))
   (push-mark (point) t)
   (goto-char (car ex-addresses))
   (beginning-of-line))
 
+;; Ex line commands.  COM is join, shift-right or shift-left
 (defun ex-line (com)
-  "Ex line commands.  COM is join, shift-right or shift-left."
   (vip-default-ex-addresses)
   (vip-get-ex-count)
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))) point)
@@ -1247,8 +1261,8 @@ with the first file in its argument list."
 	 (vip-forward-char-carefully))))
 
 
+;; Ex mark command
 (defun ex-mark ()
-  "Ex mark command."
   (let (char)
     (if (null ex-addresses)
 	(setq ex-addresses
@@ -1349,10 +1363,10 @@ with the first file in its argument list."
 	(setq wind (get-lru-window (if vip-xemacs-p nil 'visible)))
 	(set-window-buffer wind buf))
 	    
-      (if window-system
+      (if (vip-window-display-p)
 	  (progn
-	    (vip-raise-frame (vip-window-frame wind))
-	    (if (equal (vip-window-frame wind) (vip-window-frame old-win))
+	    (raise-frame (window-frame wind))
+	    (if (equal (window-frame wind) (window-frame old-win))
 		(save-window-excursion (select-window wind) (sit-for 1))
 	      (select-window wind)))
 	(save-window-excursion (select-window wind) (sit-for 1)))
@@ -1365,32 +1379,36 @@ with the first file in its argument list."
       )))
   
     
+;; Force auto save
 (defun ex-preserve ()
-  "Force auto save."
   (message "Autosaving all buffers that need to be saved...")
   (do-auto-save t))
 
+;; Ex put
 (defun ex-put ()
-  "Ex put."
   (let ((point (if (null ex-addresses) (point) (car ex-addresses))))
     (vip-get-ex-buffer)
     (setq vip-use-register ex-buffer)
     (goto-char point)
     (if (bobp) (vip-Put-back 1) (vip-put-back 1))))
 
+;; Ex print working directory
 (defun ex-pwd ()
-  "Ex print working directory."
   (message default-directory))
 
+;; Ex quit command
 (defun ex-quit ()
-  "Ex quit command."
+  ;; skip "!", if it is q!. In Viper q!, w!, etc., behave as q, w, etc.
+  (save-excursion
+    (set-buffer vip-ex-work-buf)
+    (if (looking-at "!") (forward-char 1)))
   (if (< vip-expert-level 3)
       (save-buffers-kill-emacs)
     (kill-buffer (current-buffer))))
 
 
+;; Ex read command
 (defun ex-read ()
-  "Ex read command."
   (vip-get-ex-file)
   (let ((point (if (null ex-addresses) (point) (car ex-addresses))))
     (goto-char point)
@@ -1412,8 +1430,8 @@ with the first file in its argument list."
 	(cons (mapconcat 'identity args " ") (cdr vip-ex-history))))
   
 
+;; Ex recover from emacs \#file\#
 (defun ex-recover ()
-  "Ex recover from emacs \#file\#."
   (vip-get-ex-file)
   (if (or ex-append ex-offset)
       (error "`recover': %s" vip-SpuriousText))
@@ -1429,8 +1447,8 @@ with the first file in its argument list."
       (error "No write since last change \(:rec! overrides\)"))
   (recover-file ex-file))
 
+;; Tell that `rewind' is obsolete and to use `:next count' instead
 (defun ex-rewind ()
-  "Tell that `rewind' is obsolete and that one should use `:next count'"
   (message
    "Use `:n <count>' instead. Counts are obtained from the `:args' command"))
 
@@ -1617,12 +1635,12 @@ with the first file in its argument list."
       (buffer-substring beg end))))
 
 
+;; Ex shell command
 (defun ex-shell ()
-  "Ex shell command."
   (shell))
   
+;; Viper help. Invokes Info
 (defun ex-help ()
-  "Viper help. Invokes Info."
   (condition-case nil
       (progn
 	(pop-to-buffer (get-buffer-create "*info*"))
@@ -1630,27 +1648,24 @@ with the first file in its argument list."
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
 	   (with-output-to-temp-buffer " *vip-info*"
-	     (princ "The Info file for Viper does not seem to be installed.
+	     (princ (format "
+The Info file for Viper does not seem to be installed.
 
-This file is part of the distribution of Viper. If you do not
-have the full distribution, please obtain it from the `anonymous'
-FTP account at `archive.cis.ohio-state.edu':
+This file is part of the standard distribution of %sEmacs.
+Please contact your system administrator. "
+			    (if vip-xemacs-p "X" "")
+			    ))))))
 
-	    /pub/gnu/emacs/elisp-archive/modes/viper.shar
-	    
-The Info files for Viper should be installed as <name>, <name>-1, etc.,
-where <name> is the value of `vip-info-file-name'.")))))
-
+;; Ex source command. Loads the file specified as argument or `~/.vip'
 (defun ex-source ()
-  "Ex source command. Loads the file specified as argument or `~/.vip'."
   (vip-get-ex-file)
   (if (string= ex-file "")
       (load vip-custom-file-name)
     (load ex-file)))
 
+;; Ex substitute command
+;; If REPEAT use previous regexp which is ex-reg-exp or vip-s-string
 (defun ex-substitute (&optional repeat r-flag) 
-  "Ex substitute command. 
-If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
   (let ((opt-g nil)
 	(opt-c nil)
 	(matched-pos nil)
@@ -1728,8 +1743,8 @@ If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
     (beginning-of-line)
     (if opt-c (message "done"))))
 
+;; Ex tag command
 (defun ex-tag ()
-  "Ex tag command."
   (let (tag)
     (save-window-excursion
       (set-buffer vip-ex-work-buf)
@@ -1749,8 +1764,8 @@ If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
        (vip-change-state-to-vi)
        (vip-message-conditions conds)))))
 
+;; Ex write command
 (defun ex-write (q-flag)
-  "Ex write command."
   (vip-default-ex-addresses t)
   (vip-get-ex-file)
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))) 
@@ -1826,8 +1841,8 @@ If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
 	   (count-lines beg (min (1+ end) (point-max)))
 	   (- end beg)))
 
+;; Ex yank command
 (defun ex-yank ()
-  "Ex yank command."
   (vip-default-ex-addresses)
   (vip-get-ex-buffer)
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
@@ -1853,8 +1868,8 @@ If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
 		(t (error vip-InvalidRegister ex-buffer))))
       (copy-region-as-kill (point) (mark t)))))
 
+;; Execute shell command
 (defun ex-command ()
-  "Execute shell command."
   (let (command)
     (save-window-excursion
       (set-buffer vip-ex-work-buf)
@@ -1878,15 +1893,15 @@ If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
 	  (shell-command-on-region (point) (mark t) command t))
 	(goto-char beg)))))
 
+;; Print line number
 (defun ex-line-no ()
-  "Print line number."
   (message "%d"
 	   (1+ (count-lines
 		(point-min)
 		(if (null ex-addresses) (point-max) (car ex-addresses))))))
 
+;; Give information on the file visited by the current buffer
 (defun vip-info-on-file ()
-  "Give information on the file visited by the current buffer."
   (interactive)
   (let (file info)
     (setq file (if (buffer-file-name)
