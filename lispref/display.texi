@@ -1166,7 +1166,7 @@ the beginning of the result if one multi-column character in
 @example
 (truncate-string-to-width "\tab\t" 12 4)
      @result{} "ab"
-(truncate-string-to-width "\tab\t" 12 4 ?\ )
+(truncate-string-to-width "\tab\t" 12 4 ?\s)
      @result{} "    ab  "
 @end example
 @end defun
@@ -2006,6 +2006,21 @@ This function clears the face cache for all frames.
 If @var{unload-p} is non-@code{nil}, that means to unload
 all unused fonts as well.
 @end defun
+
+@defvar face-font-rescale-alist
+This variable specifies scaling for certain faces.  Its value should
+be a list of elements of the form
+
+@example
+(@var{fontname-regexp} . @var{scale-factor})
+@end example
+
+If @var{fontname-regexp} matches the font name that is about to be
+used, this says to choose a larger similar font according to the
+factor @var{scale-factor}.  You would use this feature to normalize
+the font size if certain fonts are bigger or smaller than their
+nominal heights and widths would suggest.
+@end defvar
 
 @node Face Functions
 @subsection Functions for Working with Faces
