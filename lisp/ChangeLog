@@ -1,3 +1,7 @@
+2004-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-tail-handler): Put in undo boundaries.
+
 2004-12-31  Masatake YAMATO  <jet@gyve.org>
 
 	* server.el (server-process-filter): Suppress `error', too.
