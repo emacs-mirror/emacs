@@ -599,19 +599,17 @@ modify read-only text.
 
 The new variable `locale-coding-system' specifies how to encode and
 decode strings passed to low-level message functions like strerror and
-time functions like strftime.  The new variables `messages-locale' and
-`time-locale' give the system locales to be used during the next
-invocations of these two types of functions; the new variables
-`previous-messages-locale' and `previous-time-locale' give the locales
-most recently used.
+time functions like strftime.  The new variables
+`system-messages-locale' and `system-time-locale' give the system
+locales to be used when invoking these two types of functions.
 
 The new function `set-locale-environment' sets the language
 environment, preferred coding system, and locale coding system from
 the system locale as specified by the LC_ALL, LC_CTYPE, and LANG
-environment variables.  It is normally invoked during startup.  It
-uses the new variables `locale-language-names',
-`locale-charset-language-names', and `locale-preferred-coding-systems'
-to make its decisions.
+environment variables.  Normally, it is invoked during startup and need
+not be invoked thereafter.  It uses the new variables
+`locale-language-names', `locale-charset-language-names', and
+`locale-preferred-coding-systems' to make its decisions.
 
 ** syntax tables now understand nested comments.
 To declare a comment syntax as allowing nesting, just add an `n'
