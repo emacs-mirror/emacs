@@ -385,7 +385,14 @@ unlock_all_files ()
     {
       b = XBUFFER (XCONS (XCONS (tail)->car)->cdr);
       if (STRINGP (b->file_truename) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
-	unlock_file (b->file_truename);
+	{
+	  register char *lfname;
+
+	  MAKE_LOCK_NAME (lfname, b->file_truename);
+
+	  if (current_lock_owner (0, lfname) == 2)
+	    unlink (lfname);
+	}
     }
 }
 
