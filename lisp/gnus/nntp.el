@@ -1051,7 +1051,7 @@ password contained in '~/.nntp-authinfo'."
   (save-excursion
     (set-buffer (or (nntp-find-connection-buffer nntp-server-buffer)
 		    nntp-server-buffer))
-    (let ((len (/ (point-max) 1024))
+    (let ((len (/ (buffer-size) 1024))
 	  message-log-max)
       (unless (< len 10)
 	(setq nntp-have-messaged t)
