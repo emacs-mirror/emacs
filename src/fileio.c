@@ -2568,8 +2568,8 @@ check_writable (filename)
     return 0;
   return (st.st_mode & S_IWRITE || (st.st_mode & S_IFMT) == S_IFDIR);
 #else /* not MSDOS */
-#ifdef HAVE_EACCESS
-  return (eaccess (filename, 2) >= 0);
+#ifdef HAVE_EUIDACCESS
+  return (euidaccess (filename, 2) >= 0);
 #else
   /* Access isn't quite right because it uses the real uid
      and we really want to test with the effective uid.
