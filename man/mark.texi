@@ -322,12 +322,13 @@ the same buffer.
 (@code{beginning-of-buffer}), start by setting the mark and saving the
 old mark on the mark ring.  This is to make it easier for you to move
 back later.  Searches set the mark if they move point.  You can tell
-when a command sets the mark because it displays @samp{Mark Set} in the
+when a command sets the mark because it displays @samp{Mark set} in the
 echo area.
 
   If you want to move back to the same place over and over, the mark
 ring may not be convenient enough.  If so, you can record the position
-in a register for later retrieval (@pxref{RegPos}).
+in a register for later retrieval (@pxref{RegPos,, Saving Positions in
+Registers}).
 
 @vindex mark-ring-max
   The variable @code{mark-ring-max} specifies the maximum number of
