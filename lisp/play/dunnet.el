@@ -132,7 +132,6 @@
 ;;; or lack thereof, depends on certain conditions.
 
 (defun dun-special-object ()
-
   (if (= dun-current-room computer-room)
       (if dun-computer
 	  (dun-mprincl 
@@ -3326,3 +3325,5 @@ File not found")))
   (dun-mprinc "\n")
   (setq dun-batch-mode t)
   (dun-batch-loop))
+
+
