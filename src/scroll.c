@@ -90,6 +90,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
      /* matrix is of size window_size + 1 on each side.  */
      struct matrix_elt *matrix;
      int window_size;
+     int lines_below;
      int *draw_cost;
      int *old_hash;
      int *new_hash;
@@ -431,6 +432,7 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
      /* matrix is of size window_size + 1 on each side.  */
      struct matrix_elt *matrix;
      int window_size;
+     int lines_below;
      int *draw_cost;
      int *old_draw_cost;
      int *old_hash;
