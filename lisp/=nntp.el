@@ -623,29 +623,7 @@ in the current news group."
     ;;  process because of NEmacs hack.
     (copy-to-buffer nntp-server-buffer begin end)
     (set-buffer nntp-server-buffer)
-    (setq begin (point-min))
-    (setq end (point-max))
-    ;; `process-send-region' does not work if text to be sent is very
-    ;;  large. I don't know maximum size of text sent correctly.
-    (let ((last nil)
-	  (size 100))			;Size of text sent at once.
-      (save-restriction
-	(narrow-to-region begin end)
-	(goto-char begin)
-	(while (not (eobp))
-	  ;;(setq last (min end (+ (point) size)))
-	  ;; NEmacs gets confused if character at `last' is Kanji.
-	  (setq last (save-excursion
-		       (goto-char (min end (+ (point) size)))
-		       (or (eobp) (forward-char 1)) ;Adjust point
-		       (point)))
-	  (process-send-region nntp-server-process (point) last)
-	  ;; I don't know whether the next codes solve the known
-	  ;;  problem of communication error of GNU Emacs.
-	  (accept-process-output)
-	  ;;(sit-for 0)
-	  (goto-char last)
-	  )))
+    (process-send-region nntp-server-process (point-min) (point-max))
     ;; We cannot erase buffer, because reply may be received.
     (delete-region begin end)
     ))
