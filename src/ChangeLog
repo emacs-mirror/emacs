@@ -1,3 +1,16 @@
+2002-10-29  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (Vface_resizing_fonts): New variable.
+	(struct font_name): New member `resizing_ratio'.
+	(font_resizing_ratio): New function.
+	(split_font_name): Set font->resizing_ratio.
+	(better_font_p): Pay attention to font->resizing_ratio.
+	(build_scalable_font_name): Likewise.  Don't change POINT_SIZE,
+	RESX, and RESY fields.
+	(try_alternative_families): Try scalable fonts if
+	Vscalable_fonts_allowed is not Qt.
+	(syms_of_xfaces): Declare Vface_resizing_fonts as a Lisp variable.
+
 2002-10-29  Dave Love  <fx@gnu.org>
 
 	* xterm.c (xaw_scroll_callback): Cast correctly.

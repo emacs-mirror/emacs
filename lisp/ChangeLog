@@ -1,3 +1,11 @@
+2002-10-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el ("fontset-default"): Add an entry for
+	`devanagari' script and `malayalam-glyph' charset.
+	(face-resizing-fonts): Register CDAC fonts.
+
+	* international/mule-conf.el (malayalam-glyph): New charset.
+
 2002-10-28  Dave Love  <fx@gnu.org>
 
 	* term/x-win.el: Fix typo in loop setting x-keysym-table.
