@@ -2140,6 +2140,9 @@ is measured in pixels.
 ** The new global minor mode `auto-image-file-mode' allows image files
 to be visited as images.
 
+** Two new user-options `grep-command' and `grep-find-command'
+were added to compile.el.
+
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
