@@ -1259,7 +1259,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 (defun dired-in-this-tree (file dir)
   ;;"Is FILE part of the directory tree starting at DIR?"
   (let (case-fold-search)
-    (string-match (concat "^" (regexp-quote dir)) file)))
+    (string-match (concat "^" (regexp-quote (expand-file-name dir))) file)))
 
 (defun dired-normalize-subdir (dir)
   ;; Prepend default-directory to DIR if relative path name.
@@ -1400,7 +1400,7 @@ Returns the new value of the alist."
     (save-excursion
       ;; The hair here is to get the result of dired-goto-subdir
       ;; without really calling it if we don't have any subdirs.
-      (if (if (string= dir default-directory)
+      (if (if (string= dir (expand-file-name default-directory))
 	      (goto-char (point-min))
 	    (and (cdr dired-subdir-alist)
 		 (dired-goto-subdir dir)))
