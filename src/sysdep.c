@@ -2420,7 +2420,7 @@ read_input_waiting ()
 	  /* Don't look at input that follows a C-g too closely.
 	     This reduces lossage due to autorepeat on C-g.  */
 	  if (buf[i].kind == ascii_keystroke
-	      && XINT(buf[i].code) == quit_char)
+	      && buf[i].code == quit_char)
 	    break;
 	}
     }
