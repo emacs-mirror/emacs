@@ -455,7 +455,8 @@ The function must take one string argument and return a string."
   "*File name of your personal spelling dictionary, or nil.
 If nil, the default personal dictionary, \"~/.ispell_DICTNAME\" is used,
 where DICTNAME is the name of your default dictionary."
-  :type 'file
+  :type '(choice file
+		 (const :tag "default" nil))
   :group 'ispell)
 
 (defcustom ispell-silently-savep nil
