@@ -120,10 +120,6 @@ The format is (FUNCTION ARGS...).")
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
 
-(defcustom help-mode-hook nil
-  "Hook run by `help-mode'."
-  :type 'hook
-  :group 'help)
 
 
 ;; Button types used by help
@@ -174,9 +170,9 @@ The format is (FUNCTION ARGS...).")
   'action #'help-button-action)
 
 (define-button-type 'help-variable-def
-  'help-function (lambda (arg)
+  'help-function (lambda (var &optional file)
 		   (let ((location
-			  (find-variable-noselect arg)))
+			  (find-variable-noselect var file)))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy"mouse-2, RET: find variable's definition")
@@ -189,22 +185,15 @@ The format is (FUNCTION ARGS...).")
 		(button-get button 'help-args)))
 
 
-(defun help-mode ()
+(define-derived-mode help-mode nil "Help"
   "Major mode for viewing help text and navigating references in it.
 Entry to this mode runs the normal hook `help-mode-hook'.
 Commands:
 \\{help-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map help-mode-map)
-  (setq mode-name "Help")
-  (setq major-mode 'help-mode)
-  (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults nil)         ; font-lock would defeat xref
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
-  (setq view-no-disable-on-exit t)
-  (run-hooks 'help-mode-hook))
+  (setq view-no-disable-on-exit t))
 
 (defun help-mode-setup ()
   (help-mode)
@@ -407,15 +396,15 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 	    (describe-function-1 defn nil (interactive-p))
 	    (print-help-return-message)))))))
 
-(defun describe-mode ()
+(defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
 The major mode description comes first, followed by the minor modes,
 each on a separate page.
-
 For this to work correctly for a minor mode, the mode's indicator variable
 \(listed in `minor-mode-alist') must also be a function whose documentation
 describes the minor mode."
   (interactive)
+  (when buffer (set-buffer buffer))
   (with-output-to-temp-buffer "*Help*"
     (when minor-mode-alist
       (princ "The major mode is described first.
@@ -423,7 +412,7 @@ For minor modes, see following pages.\n\n"))
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation major-mode))
-    (help-setup-xref (list #'help-xref-mode (current-buffer)) (interactive-p))
+    (help-setup-xref (list #'describe-mode (current-buffer)) (interactive-p))
     (let ((minor-modes minor-mode-alist))
       (while minor-modes
 	(let* ((minor-mode (car (car minor-modes)))
@@ -435,7 +424,8 @@ For minor modes, see following pages.\n\n"))
 		   (symbol-value minor-mode)
 		   (fboundp minor-mode))
 	      (let ((pretty-minor-mode minor-mode))
-		(if (string-match "-mode$" (symbol-name minor-mode))
+		(if (string-match "\\(-minor\\)?-mode\\'"
+				  (symbol-name minor-mode))
 		    (setq pretty-minor-mode
 			  (capitalize
 			   (substring (symbol-name minor-mode)
@@ -551,8 +541,7 @@ To record all your input on a file, use `open-dribble-file'."
 				    (prin1-to-string key nil))))
 		      (recent-keys)
 		      " "))
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
       (goto-char (point-min))
       (while (progn (move-to-column 50) (not (eobp)))
 	(search-forward " " nil t)
@@ -689,19 +678,19 @@ It can also be nil, if the definition is not associated with any file."
 				obarray 'fboundp t nil nil (symbol-name fn)))
      (list (if (equal val "")
 	       fn (intern val)))))
-  (if function
-      (with-output-to-temp-buffer "*Help*"
-	(prin1 function)
-	;; Use " is " instead of a colon so that
-	;; it is easier to get out the function name using forward-sexp.
-	(princ " is ")
-	(describe-function-1 function nil (interactive-p))
-	(print-help-return-message)
+  (if (null function)
+      (message "You didn't specify a function")
+    (with-output-to-temp-buffer "*Help*"
+      (prin1 function)
+      ;; Use " is " instead of a colon so that
+      ;; it is easier to get out the function name using forward-sexp.
+      (princ " is ")
+      (describe-function-1 function nil (interactive-p))
+      (print-help-return-message)
 	(save-excursion
 	  (set-buffer standard-output)
 	  ;; Return the text we displayed.
-	  (buffer-string)))
-    (message "You didn't specify a function")))
+	(buffer-string)))))
 
 (defun describe-function-1 (function parens interactive-p)
   (let* ((def (if (symbolp function)
@@ -775,6 +764,15 @@ It can also be nil, if the definition is not associated with any file."
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
+    (when (commandp function)
+      (let ((keys (where-is-internal
+		   function overriding-local-map nil nil)))
+	(when keys
+	  (princ "It is bound to ")
+	  ;; FIXME: This list can be very long (f.ex. for self-insert-command).
+	  (princ (mapconcat 'key-description keys ", "))
+	  (princ ".")
+	  (terpri))))
     ;; Handle symbols aliased to other symbols.
     (setq def (indirect-function def))
     ;; If definition is a macro, find the function inside it.
@@ -919,43 +917,49 @@ it is displayed along with the global value."
 			(goto-char from)
 			(delete-char -1)))))))
 	  (terpri)
-	  (if (local-variable-p variable)
-	      (progn
-		(princ (format "Local in buffer %s; " (buffer-name)))
-		(if (not (default-boundp variable))
-		    (princ "globally void")
-		  (let ((val (default-value variable)))
-		    (with-current-buffer standard-output
-		      (princ "global value is ")
-		      (terpri)
-		      ;; Fixme: pp can take an age if you happen to
-		      ;; ask for a very large expression.  We should
-		      ;; probably print it raw once and check it's a
-		      ;; sensible size before prettyprinting.  -- fx
-		      (let ((from (point)))
+	  (when (local-variable-p variable)
+	    (princ (format "Local in buffer %s; " (buffer-name)))
+	    (if (not (default-boundp variable))
+		(princ "globally void")
+	      (let ((val (default-value variable)))
+		(with-current-buffer standard-output
+		  (princ "global value is ")
+		  (terpri)
+		  ;; Fixme: pp can take an age if you happen to
+		  ;; ask for a very large expression.  We should
+		  ;; probably print it raw once and check it's a
+		  ;; sensible size before prettyprinting.  -- fx
+		  (let ((from (point)))
 			(pp val)
 			(help-xref-on-pp from (point))
 			(if (< (point) (+ from 20))
 			    (save-excursion
 			      (goto-char from)
 			      (delete-char -1)))))))
-		(terpri)))
+	    (terpri))
 	  (terpri)
 	  (with-current-buffer standard-output
-	    (if (> (count-lines (point-min) (point-max)) 10)
-		(progn
-		  ;; Note that setting the syntax table like below
-		  ;; makes forward-sexp move over a `'s' at the end
-		  ;; of a symbol.
-		  (set-syntax-table emacs-lisp-mode-syntax-table)
-		  (goto-char (point-min))
-		  (if valvoid
-		      (forward-line 1)
-		    (forward-sexp 1)
-		    (delete-region (point) (progn (end-of-line) (point)))
-		    (insert " value is shown below.\n\n")
-		    (save-excursion
-		      (insert "\n\nValue:"))))))
+	    (when (> (count-lines (point-min) (point-max)) 10)
+	      ;; Note that setting the syntax table like below
+	      ;; makes forward-sexp move over a `'s' at the end
+	      ;; of a symbol.
+	      (set-syntax-table emacs-lisp-mode-syntax-table)
+	      (goto-char (point-min))
+	      (if valvoid
+		  (forward-line 1)
+		(forward-sexp 1)
+		(delete-region (point) (progn (end-of-line) (point)))
+		(insert " value is shown below.\n\n")
+		(save-excursion
+		  (insert "\n\nValue:"))))
+	    ;; Add a note for variables that have been make-var-buffer-local.
+	    (when (and (local-variable-if-set-p variable)
+		       (or (not (local-variable-p variable))
+			   (with-temp-buffer
+			     (local-variable-if-set-p variable))))
+	      (save-excursion
+		(forward-line -1)
+		(insert "Automatically becomes buffer-local when set in any fashion.\n"))))
 	  (princ "Documentation:")
 	  (terpri)
 	  (let ((doc (documentation-property variable 'variable-documentation)))
@@ -974,7 +978,7 @@ it is displayed along with the global value."
 		(terpri)
 		(terpri)
 		(princ (concat "You can " customize-label " this variable."))
-		(with-current-buffer "*Help*"
+		(with-current-buffer standard-output
 		  (save-excursion
 		    (re-search-backward
 		     (concat "\\(" customize-label "\\)") nil t)
@@ -983,14 +987,25 @@ it is displayed along with the global value."
 	  ;; change the format of the buffer's initial line in case
 	  ;; anything expects the current format.)
 	  (let ((file-name (symbol-file variable)))
+	    (when (equal file-name "loaddefs.el")
+	      ;; Find the real def site of the preloaded variable.
+	      (let ((location (ignore-errors
+				(find-variable-noselect variable file-name))))
+		(when location
+		  (with-current-buffer (car location)
+		    (goto-char (cdr location))
+		    (when (re-search-backward
+			   "^;;; Generated autoloads from \\(.*\\)" nil t)
+		      (setq file-name (match-string 1)))))))
 	    (when file-name
 	      (princ "\n\nDefined in `")
 	      (princ file-name)
 	      (princ "'.")
-	      (with-current-buffer "*Help*"
+	      (with-current-buffer standard-output
 		(save-excursion
 		  (re-search-backward "`\\([^`']+\\)'" nil t)
-		  (help-xref-button 1 'help-variable-def variable)))))
+		  (help-xref-button 1 'help-variable-def
+				    variable file-name)))))
 
 	  (print-help-return-message)
 	  (save-excursion
@@ -1355,12 +1370,6 @@ help buffer."
 		    " is also a " "variable." "\n\n"))
 	  (help-setup-xref (list #'help-xref-interned symbol) nil))))))
 
-(defun help-xref-mode (buffer)
-  "Do a `describe-mode' for the specified BUFFER."
-  (save-excursion
-    (set-buffer buffer)
-    (describe-mode)))
-
 
 ;;; Navigation/hyperlinking with xrefs
 
@@ -1441,7 +1450,7 @@ buffers on if ARG is positive or off otherwise.
 This makes the window the right height for its contents, but never
 more than `temp-buffer-max-height' nor less than `window-min-height'.
 This applies to `help', `apropos' and `completion' buffers, and some others."
-  nil nil nil :global t :group 'help
+  :global t :group 'help
   (if temp-buffer-resize-mode
       ;; `help-make-xrefs' may add a `back' button and thus increase the
       ;; text size, so `resize-temp-buffer-window' must be run *after* it.
