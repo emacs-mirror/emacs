@@ -94,17 +94,23 @@ If N is bigger than the length of X, return X."
       (setq x (cdr x)))
     x))
 
-(defun assoc-default (el alist test default)
-  "Find object EL in a pseudo-alist ALIST.
-ALIST is a list of conses or objects.  Each element (or the element's
-car, if it. is a cons) is compared with EL by calling TEST.
-If TEST returns non-nil, the element matches;
-then `assoc-default' returns the cdr of the element (if it is a cons),
+(defun assoc-default (key alist &optional test default)
+  "Find object KEY in a pseudo-alist ALIST.
+ALIST is a list of conses or objects.  Each element (or the element's car,
+if it is a cons) is compared with KEY by evaluating (TEST (car elt) KEY).
+If that is non-nil, the element matches;
+then `assoc-default' returns the element's cdr, if it is a cons,
 or DEFAULT if the element is not a cons.
-If no element matches, the value is nil."
-  (dolist (rr alist)
-    (when (funcall test el (if (consp rr) (car rr) rr))
-      (return (if (consp rr) (cdr rr) default)))))
+
+If no element matches, the value is nil.
+If TEST is omitted or nil, `equal' is used."
+  (let (found (tail alist) value)
+    (while (and tail (not found))
+      (let ((elt (car tail)))
+	(when (funcall (or test 'equal) (if (consp elt) (car elt) elt) key)
+	  (setq found t value (if (consp elt) (cdr elt) default))))
+      (setq tail (cdr tail)))
+    value))
 
 ;;;; Keymap support.
 
