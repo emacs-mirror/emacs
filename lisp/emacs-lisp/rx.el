@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 03, 2004  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -235,23 +235,7 @@ all arguments must satisfy PREDICATE.")
     (comment-start	. ?<)
     (comment-end	. ?>)
     (string-delimiter	. ?|)
-    (comment-delimiter	. ?!)
-    ;; sregex compatibility
-    (- . ?-)
-    (\. . ?.)
-    (w . ?w)
-    (_ . ?_)
-    (\( . ?\()
-    (\) . ?\))
-    (\' . ?\')
-    (\" . ?\")
-    (\$ . ?$)
-    (\\ . ?\\)
-    (/ . ?/)
-    (< . ?<)
-    (> . ?>)
-    (| . ?|)
-    (! . ?!))
+    (comment-delimiter	. ?!))
   "Alist mapping Rx syntax symbols to syntax characters.
 Each entry has the form (SYMBOL . CHAR), where SYMBOL is a valid
 symbol in `(syntax SYMBOL)', and CHAR is the syntax character
@@ -372,7 +356,7 @@ FORM is of the form `(and FORM1 ...)'."
 	    "\\)")))
 
 
-(defvar bracket)		       ; dynamically bound in `rx-any'
+(defvar rx-bracket)		       ; dynamically bound in `rx-any'
 
 (defun rx-check-any (arg)
    "Check arg ARG for Rx `any'."
@@ -387,7 +371,7 @@ FORM is of the form `(and FORM1 ...)'."
      ;; Remove ] and set flag for adding it to start of overall result.
      (when (string-match "]" arg)
        (setq arg (replace-regexp-in-string "]" "" arg)
-	     bracket "]")))
+	     rx-bracket "]")))
    (when (symbolp arg)
      (let ((translation (condition-case nil
 			    (rx-to-string arg 'no-group)
@@ -406,13 +390,13 @@ FORM is of the form `(and FORM1 ...)'."
   "Parse and produce code from FORM, which is `(any ARG ...)'.
 ARG is optional."
   (rx-check form)
-  (let* (bracket
-	 (args (mapcar #'rx-check-any (cdr form)))) ; side-effects `bracket'
+  (let* ((rx-bracket nil)
+	 (args (mapcar #'rx-check-any (cdr form)))) ; side-effects `rx-bracket'
     ;; If there was a ?- in the form, move it to the front to avoid
     ;; accidental range.
     (if (member "-" args)
 	(setq args (cons "-" (delete "-" args))))
-    (apply #'concat "[" bracket (append args '("]")))))
+    (apply #'concat "[" rx-bracket (append args '("]")))))
 
 
 (defun rx-check-not (arg)
@@ -595,9 +579,15 @@ of all atomic regexps."
 (defun rx-syntax (form)
   "Parse and produce code from FORM, which is `(syntax SYMBOL)'."
   (rx-check form)
-  (let ((syntax (assq (cadr form) rx-syntax)))
+  (let* ((sym (cadr form))
+	 (syntax (assq sym rx-syntax)))
     (unless syntax
-      (error "Unknown rx syntax `%s'" (cadr form)))
+      ;; Try sregex compatibility.
+      (let ((name (symbol-name sym)))
+	(if (= 1 (length name))
+	    (setq syntax (rassq (aref name 0) rx-syntax))))
+      (unless syntax
+	(error "Unknown rx syntax `%s'" (cadr form))))
     (format "\\s%c" (cdr syntax))))
 
 
