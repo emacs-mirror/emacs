@@ -1,3 +1,13 @@
+2004-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* html2text.el (html2text-buffer-head): Removed.  Use `goto-char'
+	instead.
+
+2004-10-24  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-start.el (gnus-convert-old-newsrc): Fixed numeric
+	comparison on string.
+
 2004-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-view.el (mm-display-inline-fontify): Inhibit font-lock when
