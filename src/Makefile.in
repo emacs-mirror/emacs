@@ -155,6 +155,12 @@ CC = C_COMPILER
 #define LD_SWITCH_MACHINE
 #endif
 
+/* This holds special options for linking temacs
+   that should be used for linking anything else.  */
+#ifndef LD_SWITCH_MACHINE_TEMACS
+#define LD_SWITCH_MACHINE_TEMACS
+#endif
+
 /* Some m/MACHINE.h files define this to request special switches in cc.  */
 #ifndef C_SWITCH_MACHINE
 #define C_SWITCH_MACHINE
@@ -456,7 +462,7 @@ LD=ld
 #endif /* not ORDINARY_LINK */
 
 ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE \
-	 LD_SWITCH_SITE $(LDFLAGS)
+	 LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE $(LDFLAGS)
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they're passed to LD.  This is helpful if you have
