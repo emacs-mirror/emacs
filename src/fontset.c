@@ -1319,7 +1319,7 @@ If FRAME is omitted, it defaults to the currently selected frame.")
 	  if (INTEGERP (face_id))
 	    {
 	      face = FACE_FROM_ID (f, XINT (face_id));
-	      if (face->font && face->font_name)
+	      if (face && face->font && face->font_name)
 		{
 		  font = build_string (face->font_name);
 		  if (NILP (Fmember (font, XCDR (XCDR (elt)))))
