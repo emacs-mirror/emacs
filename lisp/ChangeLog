@@ -1,5 +1,27 @@
 2000-06-12  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* startup.el (command-line): Only call menu-bar-mode if interactive.
+
+	* thingatpt.el (toplevel symbol-properties):
+	* textmodes/makeinfo.el (makeinfo-compile):
+	* progmodes/make-mode.el (makefile-pickup-filenames-as-targets):
+	* progmodes/hideif.el (hif-compress-define-list) 
+	(hide-ifdef-use-define-alist):
+	* net/ange-ftp.el (ange-ftp-vms-delete-file-entry) 
+	(ange-ftp-vms-add-file-entry):
+	* menu-bar.el (menu-bar-update-buffers, menu-bar-update-buffers):
+	* man.el (Man-build-man-command):
+	* mail/rnewspost.el (news-reply-header-hook):
+	* info.el (Info-insert-dir):
+	* emulation/mlconvert.el (backward-word, forward-word, setq):
+	* emacs-lisp/gulp.el (gulp-send-requests):
+	* emacs-lisp/byte-opt.el (byte-compile-log-lap-1) 
+	(byte-optimize-inline-handler, byte-optimize-form-code-walker) 
+	(byte-optimize-apply, end of file):
+	* emacs-lisp/advice.el (ad-advice-class-completion-table)
+	(ad-make-freeze-definition):
+	* startup.el (command-line, command-line-1): Don't quote lambdas.
+
 	* pcvs.el (cvs-parse-process): Don't blindly refresh all cookies.
 	(cvs-cleanup-removed): New function.
 	(cvs-cleanup-functions): New var.
