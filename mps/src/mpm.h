@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.33) $
+ * $HopeName: MMsrc!mpm.h(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -486,7 +486,7 @@ extern Pool (BufferPool)(Buffer buffer);
 #define BufferPool(buffer)      ((buffer)->pool)
 extern Seg (BufferSeg)(Buffer buffer);
 #define BufferSeg(buffer)       ((buffer)->seg)
-extern Rank (BufferRankSet)(Buffer buffer);
+extern RankSet (BufferRankSet)(Buffer buffer);
 #define BufferRankSet(buffer)   ((buffer)->rankSet)
 extern Addr (BufferBase)(Buffer buffer);
 #define BufferBase(buffer)      ((buffer)->base)
