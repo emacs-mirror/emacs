@@ -1,3 +1,8 @@
+2002-10-19  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (${archlibdir}): Always create $(gamedir).
+	(update-game-score): Pass $(gamedir) as HAVE_SHARED_GAME_DIR.
+
 2002-10-04  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (lisp): Load devanagari.el, not .elc.
