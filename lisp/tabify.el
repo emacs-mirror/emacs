@@ -25,7 +25,9 @@
 ;;;###autoload
 (defun untabify (start end)
   "Convert all tabs in region to multiple spaces, preserving columns.
-The variable tab-width controls the action."
+Called non-interactively, the region is specified by arguments
+START and END, rather than by the position of point and mark.
+The variable `tab-width' controls the spacing of tab stops."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -44,7 +46,9 @@ The variable tab-width controls the action."
   "Convert multiple spaces in region to tabs when possible.
 A group of spaces is partially replaced by tabs
 when this can be done without changing the column they end at.
-The variable tab-width controls the action."
+Called non-interactively, the region is specified by arguments
+START and END, rather than by the position of point and mark.
+The variable `tab-width' controls the spacing of tab stops."
   (interactive "r")
   (save-excursion
     (save-restriction
