@@ -311,7 +311,7 @@ undoes the expansion."
 						    (length to-str))))
 	 to-str)
 	((not (he-ordinary-case-p to-str))
-	 to-string)
+	 to-str)
 	((string= from-str (downcase from-str))
 	 (downcase to-str))
 	((string= from-str (upcase from-str))
