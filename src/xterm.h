@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000
+   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -993,6 +993,7 @@ extern XtAppContext Xt_app_con;
 #endif
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));
+extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
 
 /* Defined in xselect.c */
 
