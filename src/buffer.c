@@ -2422,7 +2422,7 @@ A string is printed verbatim in the mode line except for %-constructs:\n\
   %* -- print *, % or hyphen.   %m -- print value of mode-name (obsolete).\n\
   %s -- print process status.   %l -- print the current line number.\n\
   %p -- print percent of buffer above top of window, or Top, Bot or All.\n\
-  %p -- print percent of buffer above bottom of window, perhaps plus Top,\n\
+  %P -- print percent of buffer above bottom of window, perhaps plus Top,\n\
         or print Bottom or All.\n\
   %n -- print Narrow if appropriate.\n\
   %t -- print T if files is text, B if binary.\n\
