@@ -1,3 +1,8 @@
+2005-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-fontify-keywords-region): Ensure forward
+	progress, even with buggy anchored keywords.
+
 2005-03-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (goto-line): Remove unbalanced final parenthesis.

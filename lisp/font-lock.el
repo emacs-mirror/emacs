@@ -1,7 +1,7 @@
 ;;; font-lock.el --- Electric font lock mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004 2005  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
@@ -1425,7 +1425,10 @@ LOUDLY, if non-nil, allows progress-meter bar."
 	(while highlights
 	  (if (numberp (car (car highlights)))
 	      (font-lock-apply-highlight (car highlights))
-	    (font-lock-fontify-anchored-keywords (car highlights) end))
+	    (let ((pos (point)))
+	      (font-lock-fontify-anchored-keywords (car highlights) end)
+	      ;; Ensure forward progress.
+	      (if (< (point) pos) (goto-char pos))))
 	  (setq highlights (cdr highlights))))
       (setq keywords (cdr keywords)))))
 
