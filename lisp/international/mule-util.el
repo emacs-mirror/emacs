@@ -241,26 +241,6 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
   (coding-system-get coding-system 'translation-table-for-encode))
 
 ;;;###autoload
-(defun coding-system-list (&optional base-only)
-  "Return a list of all existing coding systems.
-If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
-  (let* ((codings (copy-sequence coding-system-list))
-	 (tail (cons nil codings)))
-    ;; Remove subsidiary coding systems (eol variants) and alias
-    ;; coding systems (if necessary).
-    (while (cdr tail)
-      (let* ((coding (car (cdr tail)))
-	     (aliases (coding-system-get coding 'alias-coding-systems)))
-	(if (or
-	     ;; CODING is an eol variant if not in ALIASES.
-	     (not (memq coding aliases))
-	     ;; CODING is an alias if it is not car of ALIASES.
-	     (and base-only (not (eq coding (car aliases)))))
-	    (setcdr tail (cdr (cdr tail)))
-	  (setq tail (cdr tail)))))
-    codings))
-
-;;;###autoload
 (defun coding-system-equal (coding-system-1 coding-system-2)
   "Return t if and only if CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
 Two coding systems are identical if two symbols are equal
