@@ -1,3 +1,11 @@
+2002-12-13  Markus Rost  <rost@math.ohio-state.edu>
+
+	* international/mule-cmds.el (current-language-environment): Set
+	type according to `language-info-alist' also here.
+
+	* progmodes/compile.el (compilation-menu-map): Use
+	`kill-compilation' to stop compilation.
+
 2002-12-13  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el (encode-mac-roman): Fix last change.
@@ -15,7 +23,6 @@
 	* international/subst-big5.el, international/subst-gb2312.el:
 	* international/subst-jis.el, international/subst-ksc.el: New.
 	
-
 	* custom.el (defcustom, custom-set-variables): Doc fix.
 
 	* emacs-lisp/bytecomp.el (byte-compile-if): Suppress warnings from
