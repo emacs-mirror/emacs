@@ -400,7 +400,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (setq Info-current-node nil)
   (unwind-protect
       ;; Bind case-fold-search in case the user sets it to nil.
-      (let ((case-fold-search t))
+      (let ((case-fold-search t)
+	    anchorpos)
         ;; Switch files if necessary
         (or (null filename)
             (equal Info-current-file filename)
@@ -465,29 +466,35 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
           ;; *Or* the same, but in an indirect subfile.
 
           ;; Search file for a suitable node.
-          (let ((guesspos (point-min))
-                (regexp
-                 (concat "\\(Node:\\|Ref:\\) *"
-                         (regexp-quote nodename)
-                         " *[,\t\n\177]")))
+	  (let ((guesspos (point-min))
+		(regexp
+		 (concat "\\(Node:\\|Ref:\\) *\\("
+			 (regexp-quote nodename)
+			 "\\) *[,\t\n\177]"))
+		(nodepos nil))
 
             ;; First, search a tag table, if any
             (if (marker-position Info-tag-table-marker)
-
-                (let (found-in-tag-table
+		(let ((found-in-tag-table t)
 		      found-anchor
-                      found-mode
-                      (m Info-tag-table-marker))
+		      found-mode
+		      (m Info-tag-table-marker))
                   (save-excursion
                     (set-buffer (marker-buffer m))
                     (goto-char m)
                     (beginning-of-line) ; so re-search will work.
 
                     ;; Search tag table
-                    (setq found-in-tag-table
-                          (re-search-forward regexp nil t)
-			  found-anchor
-			  (string-equal "Ref:" (match-string 1)))
+		    (catch 'foo
+		      (while (re-search-forward regexp nil t)
+			(setq found-anchor
+			      (string-equal "Ref:" (match-string 1)))
+			(or nodepos (setq nodepos (point))
+			(if (string-equal (match-string 2) nodename)
+			    (throw 'foo t))))
+		      (if nodepos
+			  (goto-char nodepos)
+			(setq found-in-tag-table nil)))
                     (if found-in-tag-table
                         (setq guesspos (1+ (read (current-buffer)))))
                     (setq found-mode major-mode))
@@ -506,7 +513,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                             (setq guesspos (Info-read-subfile guesspos)))))
 
                   ;; Handle anchor
-                  (if found-anchor (goto-char guesspos)
+                  (if found-anchor
+		      (goto-char (setq anchorpos guesspos))
 
                     ;; Else we may have a node, which we search for:
 		    (goto-char (max (point-min)
@@ -517,6 +525,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		    ;; First, check whether the node is right
 		    ;; where we are, in case the buffer begins
 		    ;; with a node.
+		    (setq nodepos nil)
 		    (or (Info-node-at-bob-matching regexp)
 			(catch 'foo
 			  (while (search-forward "\n\^_" nil t)
@@ -524,17 +533,25 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			    (let ((beg (point)))
 			      (forward-line 1)
 			      (if (re-search-backward regexp beg t)
-				  (progn
-				    (beginning-of-line)
-				    (throw 'foo t)))))
-			  (error
-			   "No such anchor in tag table or node in tag table or file: %s"
-			   nodename)))))
+				  (if (string-equal (match-string 2) nodename)
+				      (progn
+					(beginning-of-line)
+					(throw 'foo t))
+				    (or nodepos
+				      (setq nodepos (point)))))))
+			  (if nodepos
+			      (progn
+				(goto-char nodepos)
+				(beginning-of-line))
+			    (error
+			     "No such anchor in tag table or node in tag table or file: %s"
+			     nodename))))))
 	      (goto-char (max (point-min) (- guesspos 1000)))
 	      ;; Now search from our advised position (or from beg of buffer)
 	      ;; to find the actual node.
 	      ;; First, check whether the node is right where we are, in case
 	      ;; the buffer begins with a node.
+	      (setq nodepos nil)
 	      (or (Info-node-at-bob-matching regexp)
 		  (catch 'foo
 		    (while (search-forward "\n\^_" nil t)
@@ -542,10 +559,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		      (let ((beg (point)))
 			(forward-line 1)
 			(if (re-search-backward regexp beg t)
-			    (throw 'foo t))))
-		    (error "No such node: %s" nodename)))))
+			    (if (string-equal (match-string 2) nodename)
+				(throw 'foo t)
+			      (or nodepos
+				  (setq nodepos (point)))))))
+		    (if nodepos
+			(goto-char nodepos)
+		      (error "No such node: %s" nodename))))))
           (Info-select-node)
-	  (goto-char (point-min))))
+	  (goto-char (or anchorpos (point-min)))))
     ;; If we did not finish finding the specified node,
     ;; go back to the previous one.
     (or Info-current-node no-going-back (null Info-history)
