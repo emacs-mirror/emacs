@@ -39,6 +39,7 @@
 
 (define-key mule-keymap "f" 'set-buffer-file-coding-system)
 (define-key mule-keymap "r" 'revert-buffer-with-coding-system)
+(define-key mule-keymap "F" 'set-file-name-coding-system)
 (define-key mule-keymap "t" 'set-terminal-coding-system)
 (define-key mule-keymap "k" 'set-keyboard-coding-system)
 (define-key mule-keymap "p" 'set-buffer-process-coding-system)
@@ -129,6 +130,10 @@
   '(menu-item "For Reverting This File Now" revert-buffer-with-coding-system
 	      :enable buffer-file-name
 	      :help "Revisit this file immediately using specified coding system")
+  t)
+(define-key-after set-coding-system-map [set-file-name-coding-system]
+  '(menu-item "For File Name" set-file-name-coding-system
+	      :help "How to decode/encode file names")
   t)
 (define-key-after set-coding-system-map [separator-2]
   '("--")
