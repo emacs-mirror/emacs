@@ -50,7 +50,7 @@ extern Lisp_Object Voverriding_local_map_menu_flag;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
-Lisp_Object Qredisplay_end_trigger_hook;
+Lisp_Object Qredisplay_end_trigger_functions;
 
 /* Nonzero means print newline to stdout before next minibuffer message.  */
 
@@ -2725,7 +2725,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	     run the hook.  */
 	  if (pos >= e_t_h && e_t_h != ZV)
 	    {
-	      Frun_hooks (1, &Qredisplay_end_trigger_hook);
+	      Lisp_Object args[3];
+
+	      args[0] = Qredisplay_end_trigger_functions;
+	      XSETWINDOW (args[1], w);
+	      XSETINT (args[2], e_t_h);
+	      Frun_hook_with_args (3, args);
+
 	      w->redisplay_end_trigger = Qnil;
 	      e_t_h = ZV;
 	      /* Notice if it changed the face of this character.  */
@@ -4257,8 +4263,8 @@ syms_of_xdisp ()
   staticpro (&Qwindow_scroll_functions);
   Qwindow_scroll_functions = intern ("window-scroll-functions");
 
-  staticpro (&Qredisplay_end_trigger_hook);
-  Qredisplay_end_trigger_hook = intern ("redisplay-end-trigger-hook");
+  staticpro (&Qredisplay_end_trigger_functions);
+  Qredisplay_end_trigger_functions = intern ("redisplay-end-trigger-functions");
 
   staticpro (&last_arrow_position);
   staticpro (&last_arrow_string);
