@@ -4108,7 +4108,13 @@ graphics window.  For other kinds of displays, the default is to
 display the graph in Emacs itself using rough character graphics.
 Press @kbd{q} when you are done viewing the character graphics.
 
-Next, let's add the line we got from our least-squares fit:
+Next, let's add the line we got from our least-squares fit.
+@ifinfo
+(If you are reading this tutorial on-line while running Calc, typing
+@kbd{g a} may cause the tutorial to disappear from its window and be
+replaced by a buffer named @samp{*Gnuplot Commands*}.  The tutorial
+will reappear when you terminate GNUPLOT by typing @kbd{g q}.) 
+@end ifinfo
 
 @smallexample
 @group
