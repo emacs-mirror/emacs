@@ -8,9 +8,8 @@
 @cindex program editing
 
   This chapter describes Emacs features for maintaining programs.  The
-version control features,described in the chapter on files
-(@pxref{Version Control}), are also useful particularly for this
-purpose.
+version control features (@pxref{Version Control}) are also
+particularly useful for this purpose.
 
 @menu
 * Change Log::	        Maintaining a change history for your program.
@@ -138,7 +137,7 @@ contributions.  Emacs has a special command for maintaining the
   The @kbd{M-x authors} command prompts for the name of the root of the
 Emacs source directory.  It then scans @file{ChangeLog} files and Lisp
 source files under that directory for information about authors of
-individual packages and people who made changes in source files, and
+individual packages, and people who made changes in source files, and
 puts the information it gleans into a buffer named @samp{*Authors*}.
 You can then edit the contents of that buffer and merge it with the
 existing @file{AUTHORS} file.
