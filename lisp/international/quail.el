@@ -1279,9 +1279,11 @@ Do so while interleaving with the following special events:
   (let* ((events (mapcar
 		  (lambda (c)
 		    ;; This gives us the chance to unify on input
-		    ;; (e.g. using ucs-tables.el).
-		    (or (and translation-table-for-input
-			     (aref translation-table-for-input c))
+		    ;; (e.g. using ucs-tables.el).  Fixme: The result
+		    ;; of Quail input doesn't currently go through
+		    ;; `keyboard-translate-table'.
+		    (or (and (char-table-p keyboard-translate-table)
+			     (aref keyboard-translate-table c))
 			c))
 		  str))
 	 (len (length str))
