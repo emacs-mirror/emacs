@@ -131,6 +131,19 @@ macro before appending to it. */)
   return Qnil;
 }
 
+/* Finish defining the current keyboard macro.  */
+
+void
+end_kbd_macro ()
+{
+  current_kboard->defining_kbd_macro = Qnil;
+  update_mode_lines++;
+  current_kboard->Vlast_kbd_macro
+    = make_event_array ((current_kboard->kbd_macro_end
+			 - current_kboard->kbd_macro_buffer),
+			current_kboard->kbd_macro_buffer);
+}
+
 DEFUN ("end-kbd-macro", Fend_kbd_macro, Send_kbd_macro, 0, 2, "p",
        doc: /* Finish defining a keyboard macro.
 The definition was started by \\[start-kbd-macro].
@@ -157,12 +170,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   if (!NILP (current_kboard->defining_kbd_macro))
     {
-      current_kboard->defining_kbd_macro = Qnil;
-      update_mode_lines++;
-      current_kboard->Vlast_kbd_macro
-	= make_event_array ((current_kboard->kbd_macro_end
-			     - current_kboard->kbd_macro_buffer),
-			    current_kboard->kbd_macro_buffer);
+      end_kbd_macro ();
       message ("Keyboard macro defined");
     }
 
