@@ -1,6 +1,6 @@
 /*  ==== MANUAL FIXED SMALL UNIT POOL ====
  *
- *  $HopeName: MMsrc!poolmfs.c(trunk.6) $
+ *  $HopeName: MMsrc!poolmfs.c(trunk.7) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -44,7 +44,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 /*  == Round up ==
@@ -75,7 +75,7 @@ PoolClass PoolClassMFS(void)
                 NULL, NULL,             /* bufferCreate, bufferDestroy */
                 NULL, NULL, NULL,       /* comdemn, mark, scan */
                 NULL, NULL,             /* fix, relcaim */
-                NULL,                   /* access */
+                NULL, NULL,             /* access, poll */
                 describe);
   return &PoolClassMFSStruct;
 }

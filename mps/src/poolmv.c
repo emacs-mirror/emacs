@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOL ====
  *
- *  $HopeName: MMsrc!poolmv.c(trunk.8) $
+ *  $HopeName: MMsrc!poolmv.c(trunk.9) $
  *
  *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
@@ -44,7 +44,7 @@
 #include "mpscmv.h"
 #include <stdarg.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!poolmv.c(trunk.9) $");
 
 
 #define BLOCKPOOL(mv)   (PoolMFSPool(&(mv)->blockPoolStruct))
@@ -71,7 +71,7 @@ PoolClass PoolClassMV(void)
                 NULL, NULL,             /* bufferCreate, bufferDestroy */
                 NULL, NULL, NULL,       /* condemn, mark, scan */
                 NULL, NULL,             /* fix, relcaim */
-                NULL,                   /* access */
+                NULL, NULL,             /* access, poll */
                 describe);
   return &PoolClassMVStruct;
 }
