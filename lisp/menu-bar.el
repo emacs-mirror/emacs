@@ -1170,16 +1170,14 @@ key (or menu-item)"))
 
 ;;; Set up a menu bar menu for the minibuffer.
 
-(dolist (map (list minibuffer-local-ns-map
-		   minibuffer-local-must-match-map
-		   minibuffer-local-isearch-map
-		   minibuffer-local-map
+(dolist (map (list minibuffer-local-map
+		   ;; This shouldn't be necessary, but there's a funny
+		   ;; bug in keymap.c that I don't understand yet.  -stef
 		   minibuffer-local-completion-map))
   (define-key map [menu-bar minibuf]
     (cons "Minibuf" (make-sparse-keymap "Minibuf"))))
 
-(dolist (map (list minibuffer-local-must-match-map
-		   minibuffer-local-completion-map))
+(let ((map minibuffer-local-completion-map))
   (define-key map [menu-bar minibuf ?\?]
     (list 'menu-item "List Completions" 'minibuffer-completion-help
 	  :help "Display all possible completions"))
@@ -1190,11 +1188,7 @@ key (or menu-item)"))
     (list 'menu-item "Complete" 'minibuffer-complete
 	  :help "Complete as far as possible")))
 
-(dolist (map (list minibuffer-local-ns-map
-		   minibuffer-local-must-match-map
-		   minibuffer-local-isearch-map
-		   minibuffer-local-map
-		   minibuffer-local-completion-map))
+(let ((map minibuffer-local-map))
   (define-key map [menu-bar minibuf quit]
     (list 'menu-item "Quit" 'keyboard-escape-quit
 	  :help "Abort input and exit minibuffer"))
