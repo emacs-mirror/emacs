@@ -1,6 +1,6 @@
 ;;; eudc-bob.el --- Binary Objects Support for EUDC
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@xemacs.org>
 ;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
@@ -89,7 +89,7 @@
   (if eudc-xemacs-p
       (and (memq (console-type) '(x mswindows))
 	   (fboundp 'make-glyph))
-    (and (boundp 'display-graphic-p)
+    (and (fboundp 'display-graphic-p)
 	 (display-graphic-p))))
 
 (defun eudc-bob-make-button (label keymap &optional menu plist)
@@ -131,7 +131,7 @@ display a button."
 				       'start-open t
 				       'end-open t
 				       'object-data data))))
-	((boundp 'create-image)
+	((fboundp 'create-image)
 	 (let* ((image (create-image data nil t))
 		(props (list 'object-data data 'eudc-image image)))
 	   (when (and inline (image-type-available-p 'jpeg))
@@ -222,7 +222,6 @@ display a button."
 	     (unless (fboundp 'play-sound)
 	       (error "Playing sounds not supported on this system"))
 	     (play-sound (list 'sound :data sound)))))))
-  
 
 (defun eudc-bob-play-sound-at-mouse (event)
   "Play the sound data contained in the button where EVENT occurred."
@@ -230,7 +229,7 @@ display a button."
   (save-excursion
     (eudc-jump-to-event event)
     (eudc-bob-play-sound-at-point)))
-  
+
 
 (defun eudc-bob-save-object ()
   "Save the object data of the button at point."
@@ -241,6 +240,7 @@ display a button."
       (if (fboundp 'set-buffer-file-coding-system)
 	  (set-buffer-file-coding-system 'binary))
       (set-buffer buffer)
+      (set-buffer-multibyte nil)
       (insert data)
       (save-buffer))
     (kill-buffer buffer)))
@@ -291,6 +291,7 @@ display a button."
 (setq eudc-bob-generic-keymap
       (let ((map (make-sparse-keymap)))
 	(define-key map "s" 'eudc-bob-save-object)
+	(define-key map "!" 'eudc-bob-pipe-object-to-external-program)
 	(define-key map (if eudc-xemacs-p
 			    [button3]
 			  [down-mouse-3]) 'eudc-bob-popup-menu)
