@@ -1316,7 +1316,9 @@ getline (server)
 		fprintf (stderr, "<<< %s\n", server->buffer);
 	      return (server->buffer);
 	    }
-	  search_offset += ret;
+	  /* As above, the "- 1" here is to account for the fact that
+	     we may have read a CR without its accompanying LF. */
+	  search_offset += ret - 1;
 	}
     }
 
