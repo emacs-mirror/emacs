@@ -1,6 +1,6 @@
 2000-06-13  Dave Love  <fx@gnu.org>
 
-	* image.el (put-image): Default STRING to a space.
+	* image.el (insert-image): Default STRING to a space.
 
 	* info.el Doc fixes.
 	(Info-build-node-completions): Match Ref tags. 
