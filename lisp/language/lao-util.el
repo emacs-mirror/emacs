@@ -155,10 +155,10 @@
 ;; CV -> C, CT -> C, CVT -> C, Cv -> C, CvT -> C
 ;;                                   v         v
 ;;                             T
-;;        V         T          V                   T
-;; CsV -> C, CsT -> C, CsVT -> C, Csv -> C, CvT -> C
-;;        s         s          s         s         s
-;;                                       v         v
+;;        V         T          V                    T
+;; CsV -> C, CsT -> C, CsVT -> C, Csv -> C, CsvT -> C
+;;        s         s          s         s          s
+;;                                       v          v
 
 
 ;; where C: consonant, V: vowel upper, v: vowel lower,
@@ -519,24 +519,20 @@ syllable.  In that case, FROM and TO are indexes to STR."
       lao-str)))
 
 ;;;###autoload
-(defun lao-post-read-conversion (len)
-  (lao-compose-region (point) (+ (point) len))
-  len)
-
-;;;###autoload
-(defun lao-composition-function (from to pattern &optional string)
-  "Compose Lao text in the region FROM and TO.
-The text matches the regular expression PATTERN.
-Optional 4th argument STRING, if non-nil, is a string containing text
-to compose.
-
-The return value is number of composed characters."
-  (if (< (1+ from) to)
-      (prog1 (- to from)
-	(if string
-	    (compose-string string from to)
-	  (compose-region from to))
-	(- to from))))
+(defun lao-composition-function (pos &optional string)
+  (setq pos (1- pos))
+  (with-category-table lao-category-table
+    (if string
+	(if (and (>= pos 0)
+		 (eq (string-match lao-composition-pattern string pos) pos))
+	    (prog1 (match-end 0)
+	      (compose-string string pos (match-end 0))))
+      (if (>= pos (point-min))
+	  (save-excursion
+	    (goto-char pos)
+	    (if (looking-at lao-composition-pattern)
+		(prog1 (match-end 0)
+		  (compose-region pos (match-end 0)))))))))
 
 ;;;###autoload
 (defun lao-compose-region (from to)
