@@ -2394,15 +2394,6 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
     {
       switch (msg.msg.message)
 	{
-#if 0
-	case WM_ERASEBKGND:
-	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
-	  if (f)
-	    {
-	      win32_clear_rect (f, NULL, &msg.rect);
-	    }
-	  break;
-#endif
 	case WM_PAINT:
 	  {
 	    f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
@@ -2417,10 +2408,6 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 		  }
 		else
 		  {
-		    /* WM_ERASEBKGND is only generated (and processed)
-		       in response to WM_PAINT, so emulate that
-		       behaviour here. */
-		    win32_clear_rect (f, NULL, &msg.rect);
 		    dumprectangle (f,
 				   msg.rect.left,
 				   msg.rect.top,
@@ -2429,13 +2416,6 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 		  }
 	      }
 	  }
-	  
-	  break;
-	case WM_PALETTECHANGED:
-	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
-	  if (f)
-	    /* Realize palette - will force update if needed. */
-	    release_frame_dc (f, get_frame_dc (f));
 	  break;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
@@ -2490,7 +2470,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 		     AltGr and there is a valid AltGr scan code for
 		     this key.  */
 		  if (is_dead_key (msg.msg.wParam) 
-		      && !((VkKeyScan (bufp->code) & 0xff00) == 0x600))
+		      && !((VkKeyScan ((char) bufp->code) & 0xff00) == 0x600))
 		    break;
 
 		  bufp += add;
