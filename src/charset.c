@@ -994,6 +994,26 @@ The conversion is done based on `nonascii-translation-table' (which see)\n\
   return make_number (c);
 }
 
+DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
+       Smultibyte_char_to_unibyte, 1, 1, 0,
+  "Convert the multibyte character CH to unibyte character.\n\
+The conversion is done based on `nonascii-translation-table' (which see)\n\
+ or `nonascii-insert-offset' (which see).")
+  (ch)
+     Lisp_Object ch;
+{
+  int c;
+
+  CHECK_NUMBER (ch, 0);
+  c = XINT (ch);
+  if (c < 0)
+    error ("Invalid multibyte character: %d", c);
+  c = multibyte_char_to_unibyte (c, Qnil);
+  if (c < 0)
+    error ("Can't convert to unibyte character: %d", XINT (ch));
+  return make_number (c);
+}
+
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
   "Return byte length of multi-byte form of CHAR.")
   (ch)
@@ -1819,6 +1839,7 @@ syms_of_charset ()
   defsubr (&Siso_charset);
   defsubr (&Schar_valid_p);
   defsubr (&Sunibyte_char_to_multibyte);
+  defsubr (&Smultibyte_char_to_unibyte);
   defsubr (&Schar_bytes);
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
