@@ -4053,7 +4053,7 @@ update_window (w, force_p)
     {
       struct glyph_row *row, *end;
       struct glyph_row *mode_line_row;
-      struct glyph_row *header_line_row = NULL;
+      struct glyph_row *header_line_row;
       int yb, changed_p = 0, mouse_face_overwritten_p = 0, n_updated;
 
       rif->update_window_begin_hook (w);
@@ -4063,8 +4063,14 @@ update_window (w, force_p)
 	 Adjust y-positions of other rows by the top line height.  */
       row = desired_matrix->rows;
       end = row + desired_matrix->nrows - 1;
+      
       if (row->mode_line_p)
-	header_line_row = row++;
+	{
+	  header_line_row = row;
+	  ++row;
+	}
+      else
+	header_line_row = NULL;
 
       /* Update the mode line, if necessary.  */
       mode_line_row = MATRIX_MODE_LINE_ROW (desired_matrix);
@@ -4085,8 +4091,19 @@ update_window (w, force_p)
       
       /* Try reusing part of the display by copying.  */
       if (row < end && !desired_matrix->no_scrolling_p)
-	if (scrolling_window (w, header_line_row != NULL) > 0)
-	  force_p = changed_p = 1;
+	{
+	  int rc = scrolling_window (w, header_line_row != NULL);
+	  if (rc < 0)
+	    {
+	      /* All rows were found to be equal.  */
+	      paused_p = 0;
+	      goto set_cursor;
+	    }
+	  else if (rc > 0)
+	    /* We've scrolled the display.  */
+	    force_p = 1;
+	  changed_p = 1;
+	}
 
       /* Update the top mode line after scrolling because a new top
 	 line would otherwise overwrite lines at the top of the window
@@ -4132,6 +4149,8 @@ update_window (w, force_p)
       /* Was display preempted?  */
       paused_p = row < end;
       
+    set_cursor:
+      
       /* Fix the appearance of overlapping(overlapped rows.  */
       if (!paused_p && !w->pseudo_window_p)
 	{
@@ -4155,8 +4174,11 @@ update_window (w, force_p)
       strcpy (w->current_matrix->method, w->desired_matrix->method);
 #endif
 
-      /* End of update of window W.  */
-      rif->update_window_end_hook (w, 1, mouse_face_overwritten_p);
+      /* End the update of window W.  Don't set the cursor if we
+         paused updating the display because in this case,
+         set_window_cursor_after_update hasn't been called, and
+         output_cursor doesn't contain the cursor location.  */
+      rif->update_window_end_hook (w, !paused_p, mouse_face_overwritten_p);
     }
   else
     paused_p = 1;
