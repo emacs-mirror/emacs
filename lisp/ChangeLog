@@ -1,3 +1,18 @@
+2003-05-25  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-info-breakpoints-custom, gdb-assembler-custom):
+	Put string associated with breakpoint at start of line so that it
+	is always visible.
+	(gdb-display-source-buffer): Display assembler during execution,
+	when requested.
+	(gud-menu-map): Add a toggle button to menubar for
+	gdb-many-windows.
+	(gdb-many-windows): Define explicitly as a function and a variable
+	(formerly as a minor mode). These need to be global so layout can
+	be reset from any buffer.
+	(gdb-assembler-mode): Keep fringe outside margin as the overlay
+	arrow is not used for assembler.
+
 2003-05-25   Tim Van Holder  <tim.vanholder@anubex.com>
 
 	* which-func.el (which-func-update-timer): New variable.
