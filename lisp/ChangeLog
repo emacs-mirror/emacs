@@ -18,7 +18,6 @@
 	(comint-mode-map): Add it to the menu.
 	Bind `C-c C-s' to comint-write-output.
 
->>>>>>> 1.1299
 2000-10-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-screens): Set buffer-undo-list to t.

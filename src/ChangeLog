@@ -1,3 +1,7 @@
+2000-10-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* xterm.c (x_find_ccl_program): Check also fontp->full_name.
+
 2000-10-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* strftime.c: Sync with glibc, file version 1.78.
