@@ -2,13 +2,38 @@
 
 ;; ---------------------------------------------------------------------------
 
-;; Note: You may copy this file freely for non-commercial use; otherwise,
-;;       please contact   (address) O Seidel, Lessingstr 8, Eschborn, FRG
-;;                        (e-mail ) Oliver.Seidel@cl.cam.ac.uk (2 Aug 1997)
+;; Copyright (C) 1997 Oliver Seidel
 
-;; $Id: todomode.el,v 1.6 1997/08/05 16:47:01 os10000 Exp os10000 $
+;; Keywords: todo-mode
+
+;; todomode.el is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; todomode.el is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;; ---------------------------------------------------------------------------
+
+;; Contact information:    (address) O Seidel, Lessingstr 8, Eschborn, FRG
+;;                         (e-mail ) Oliver.Seidel@cl.cam.ac.uk (2 Aug 1997)
+
+;; $Id: todomode.el,v 1.7 1997/08/05 22:34:14 os10000 Exp os10000 $
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.7  1997/08/05 22:34:14  os10000
+;; Fixed insertion routine with help from Trey Jackson
+;; <tjackson@ichips.intel.com>; added todo-ins-thresh;
+;; fixed keyboard layout to remove unwanted keys.
+;;
 ;; Revision 1.6  1997/08/05 16:47:01  os10000
 ;; Incorporated menus for XEmacs from Allan.Cochrane@soton.sc.philips.com,
 ;; fixed TYPO, fixed todo-file-cmd, cleaned up rcs history.
