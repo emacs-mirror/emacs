@@ -1,5 +1,9 @@
 2002-01-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* enriched.el (enriched-make-annotation): Fix the change from
+	2002-01-05.
+	(enriched-handle-display-prop): Return proper values.
+
 	* net/eudcb-ldap.el (eudc-attribute-display-method-alist): Use
 	proper attribute name labeledUri instead of deprecated labeledUrl.
 
