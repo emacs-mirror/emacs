@@ -2047,7 +2047,7 @@ Use %% to put a single % into the output.")
 	     because it is the format string.  */
 	  strings[i++] = XSTRING (args[n])->data;
 	else
-	  strings[i++] = (unsigned char *) XFASTINT (args[n]);
+	  strings[i++] = (unsigned char *) XSTRING (args[n]);
       }
 
     /* Make room in result for all the non-%-codes in the control string.  */
