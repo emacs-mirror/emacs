@@ -365,11 +365,6 @@ struct frame
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
-  /* A pointer to the data structure containing all information of
-     fontsets associated with this frame.  See the comments in
-     fontset.h for more detail.  */
-  struct fontset_data *fontset_data;
-
   /* Nonzero if the mouse has moved on this display
      since the last time we checked.  */
   char mouse_moved;
@@ -566,7 +561,6 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
-#define FRAME_FONTSET_DATA(f) ((f)->fontset_data)
 
 /* Return a pointer to the face cache of frame F.  */
 
