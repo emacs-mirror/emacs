@@ -4217,6 +4217,120 @@ set_window_cursor_after_update (w)
 }
 
 
+/* Set WINDOW->must_be_updated_p to ON_P for all windows in the window
+   tree rooted at W.  */
+
+void
+set_window_update_flags (w, on_p)
+     struct window *w;
+     int on_p;
+{
+  while (w)
+    {
+      if (!NILP (w->hchild))
+	set_window_update_flags (XWINDOW (w->hchild), on_p);
+      else if (!NILP (w->vchild))
+	set_window_update_flags (XWINDOW (w->vchild), on_p);
+      else
+	w->must_be_updated_p = on_p;
+
+      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+    }
+}    
+
+
+
+/***********************************************************************
+			Window-Based Scrolling
+ ***********************************************************************/
+
+/* Structure describing rows in scrolling_window.  */
+
+struct row_entry
+{
+  /* Number of occurrences of this row in desired and current matrix.  */
+  int old_uses, new_uses;
+    
+  /* Vpos of row in new matrix.  */
+  int new_line_number;
+
+  /* Bucket index of this row_entry in the hash table row_table.  */
+  int bucket;
+    
+  /* The row described by this entry.  */
+  struct glyph_row *row;
+    
+  /* Hash collision chain.  */
+  struct row_entry *next;
+};
+
+/* A pool to allocate row_entry structures from, and the size of the
+   pool.  The pool is reallocated in scrolling_window when we find
+   that we need a larger one.  */
+
+static struct row_entry *row_entry_pool;
+static int row_entry_pool_size;
+
+/* Index of next free entry in row_entry_pool.  */
+
+static int row_entry_idx;
+
+/* The hash table used during scrolling, and the table's size.  This
+   table is used to quickly identify equal rows in the desired and
+   current matrix.  */
+
+static struct row_entry **row_table;
+static int row_table_size;
+
+/* Vectors of pointers to row_entry structures belonging to the
+   current and desired matrix, and the size of the vectors.  */
+
+static struct row_entry **old_lines, **new_lines;
+static int old_lines_size, new_lines_size;
+
+/* A pool to allocate run structures from, and its size.  */
+
+static struct run *run_pool;
+static int runs_size;
+
+/* A vector of runs of lines found during scrolling.  */
+
+static struct run **runs;
+
+static struct row_entry *add_row_entry P_ ((struct window *,
+					    struct glyph_row *));
+
+
+/* Add glyph row ROW to the scrolling hash table during the scrolling
+   of window W.  */
+
+static INLINE struct row_entry *
+add_row_entry (w, row)
+     struct window *w;
+     struct glyph_row *row;
+{
+  struct row_entry *entry;
+  int i = row->hash % row_table_size;
+  
+  entry = row_table[i];
+  while (entry && !row_equal_p (w, entry->row, row))
+    entry = entry->next;
+  
+  if (entry == NULL)
+    {
+      entry = row_entry_pool + row_entry_idx++;
+      entry->row = row;
+      entry->old_uses = entry->new_uses = 0;
+      entry->new_line_number = 0;
+      entry->bucket = i;
+      entry->next = row_table[i];
+      row_table[i] = entry;
+    }
+
+  return entry;
+}
+
+
 /* Try to reuse part of the current display of W by scrolling lines.
    HEADER_LINE_P non-zero means W has a top mode line.
 
@@ -4248,39 +4362,20 @@ scrolling_window (w, header_line_p)
      struct window *w;
      int header_line_p;
 {
-  struct symbol 
-  {
-    /* Number of occurrences of this line in old and new matrix.  */
-    short old_uses, new_uses;
-    
-    /* Vpos of line in new matrix.  */
-    short new_line_number;
-    
-    /* The line itself.  */
-    struct glyph_row *row;
-    
-    /* Hash collision chain.  */
-    struct symbol *next;
-  };
-
-  int SYMBOL_TABLE_SIZE = 101;
-  struct symbol **table;
-  struct symbol **old_line_syms, **new_line_syms;
-  int i, j, first_old, first_new, last_old, last_new;
-  struct symbol *sym;
-  struct run **runs;
-  int nruns;
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   struct glyph_matrix *current_matrix = w->current_matrix;
   int yb = window_text_bottom_y (w);
+  int i, j, first_old, first_new, last_old, last_new;
+  int nruns, nbytes, n, run_idx;
+  struct row_entry *entry;
 
   /* Skip over rows equal at the start.  */
   i = header_line_p ? 1 : 0;
   while (i < current_matrix->nrows - 1
          && MATRIX_ROW_ENABLED_P (current_matrix, i)
 	 && MATRIX_ROW_ENABLED_P (desired_matrix, i)
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i)) < yb
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i)) < yb
+	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i)) <= yb
+	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i)) <= yb
          && row_equal_p (w,
 			 MATRIX_ROW (desired_matrix, i),
                          MATRIX_ROW (current_matrix, i)))
@@ -4302,7 +4397,7 @@ scrolling_window (w, header_line_p)
   i = first_new + 1;
   while (i < desired_matrix->nrows - 1
 	 && MATRIX_ROW (desired_matrix, i)->enabled_p
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i)) < yb)
+	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i)) <= yb)
     ++i;
 
   if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
@@ -4316,7 +4411,7 @@ scrolling_window (w, header_line_p)
      disabled.  */
   i = first_old + 1;
   while (i < current_matrix->nrows - 1
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i)) < yb)
+	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (current_matrix, i)) <= yb)
     ++i;
   last_old = i;
 
@@ -4339,76 +4434,84 @@ scrolling_window (w, header_line_p)
   if (last_new == first_new)
     return 0;
 
-  /* Allocate a hash table in which all rows will be inserted.  */
-  table = (struct symbol **) alloca (SYMBOL_TABLE_SIZE * sizeof *table);
-  bzero (table, SYMBOL_TABLE_SIZE * sizeof *table);
+  /* Reallocate vectors, tables etc. if necessary.  */
+  
+  if (current_matrix->nrows > old_lines_size)
+    {
+      old_lines_size = current_matrix->nrows;
+      nbytes = old_lines_size * sizeof *old_lines;
+      old_lines = (struct row_entry **) xrealloc (old_lines, nbytes);
+    }
+  
+  if (desired_matrix->nrows > new_lines_size)
+    {
+      new_lines_size = desired_matrix->nrows;
+      nbytes = new_lines_size * sizeof *new_lines;
+      new_lines = (struct row_entry **) xrealloc (new_lines, nbytes);
+    }
 
-  /* For each row in the current matrix, record the symbol belonging
-     to the row in OLD_LINE_SYMS.  */
-  old_line_syms = (struct symbol **) alloca (current_matrix->nrows
-					     * sizeof *old_line_syms);
-  new_line_syms = (struct symbol **) alloca (desired_matrix->nrows
-					     * sizeof *new_line_syms);
+  n = desired_matrix->nrows + current_matrix->nrows;
+  if (3 * n > row_table_size)
+    {
+      row_table_size = next_almost_prime (3 * n);
+      nbytes = row_table_size * sizeof *row_table;
+      row_table = (struct row_entry **) xrealloc (row_table, nbytes);
+      bzero (row_table, nbytes);
+    }
 
-#define ADDSYM(ROW) 						\
-  do								\
-    {								\
-      struct glyph_row *row_ = (ROW);				\
-      int i_ = row_->hash % SYMBOL_TABLE_SIZE;			\
-      sym = table[i_];						\
-      while (sym && !row_equal_p (w, sym->row, row_))		\
-        sym = sym->next;					\
-      if (sym == NULL)						\
-	{							\
-	  sym = (struct symbol *) alloca (sizeof *sym);		\
-	  sym->row = row_;					\
-	  sym->old_uses = sym->new_uses = 0;			\
-	  sym->next = table[i_];				\
-	  table[i_] = sym;					\
-	}							\
-    }								\
-  while (0)
+  if (n > row_entry_pool_size)
+    {
+      row_entry_pool_size = n;
+      nbytes = row_entry_pool_size * sizeof *row_entry_pool;
+      row_entry_pool = (struct row_entry *) xrealloc (row_entry_pool, nbytes);
+    }
 
-  /* Add current rows to the symbol table.  */
+  if (desired_matrix->nrows > runs_size)
+    {
+      runs_size = desired_matrix->nrows;
+      nbytes = runs_size * sizeof *runs;
+      runs = (struct run **) xrealloc (runs, nbytes);
+      nbytes = runs_size * sizeof *run_pool;
+      run_pool = (struct run *) xrealloc (run_pool, nbytes);
+    }
+
+  nruns = run_idx = 0;
+  row_entry_idx = 0;
+
+  /* Add rows from the current and desired matrix to the hash table
+     row_hash_table to be able to find equal ones quickly.  */
+  
   for (i = first_old; i < last_old; ++i)
     {
       if (MATRIX_ROW (current_matrix, i)->enabled_p)
 	{
-	  ADDSYM (MATRIX_ROW (current_matrix, i));
-	  old_line_syms[i] = sym;
-	  ++sym->old_uses;
+	  entry = add_row_entry (w, MATRIX_ROW (current_matrix, i));
+	  old_lines[i] = entry;
+	  ++entry->old_uses;
 	}
       else
-	old_line_syms[i] = NULL;
+	old_lines[i] = NULL;
     }
 
-  /* Add desired rows to the symbol table.  */
   for (i = first_new; i < last_new; ++i)
     {
       xassert (MATRIX_ROW_ENABLED_P (desired_matrix, i));
-      ADDSYM (MATRIX_ROW (desired_matrix, i));
-      ++sym->new_uses;
-      new_line_syms[i] = sym;
-      sym->new_line_number = i;
+      entry = add_row_entry (w, MATRIX_ROW (desired_matrix, i));
+      ++entry->new_uses;
+      entry->new_line_number = i;
+      new_lines[i] = entry;
     }
-
-#undef ADDSYM
-
-  /* Record in runs which moves were found, ordered by pixel
-     height of copied areas.  */
-  nruns = 0;
-  runs = (struct run **) alloca (desired_matrix->nrows * sizeof *runs);
 
   /* Identify moves based on lines that are unique and equal
      in both matrices.  */
   for (i = first_old; i < last_old;)
-    if (old_line_syms[i]
-	&& old_line_syms[i]->old_uses == 1
-        && old_line_syms[i]->new_uses == 1)
+    if (old_lines[i]
+	&& old_lines[i]->old_uses == 1
+        && old_lines[i]->new_uses == 1)
       {
 	int j, k;
-	int new_line = old_line_syms[i]->new_line_number;
-	struct run *run = (struct run *) alloca (sizeof *run);
+	int new_line = old_lines[i]->new_line_number;
+	struct run *run = run_pool + run_idx++;
 
 	/* Record move.  */
 	run->current_vpos = i;
@@ -4423,7 +4526,7 @@ scrolling_window (w, header_line_p)
 	k = new_line - 1;
 	while (j > first_old
 	       && k > first_new
-	       && old_line_syms[j] == new_line_syms[k])
+	       && old_lines[j] == new_lines[k])
 	  {
 	    int h = MATRIX_ROW (current_matrix, j)->height;
 	    --run->current_vpos; 
@@ -4440,7 +4543,7 @@ scrolling_window (w, header_line_p)
 	k = new_line + 1;
 	while (j < last_old
 	       && k < last_new
-	       && old_line_syms[j] == new_line_syms[k])
+	       && old_lines[j] == new_lines[k])
 	  {
 	    int h = MATRIX_ROW (current_matrix, j)->height;
 	    ++run->nrows; 
@@ -4518,31 +4621,13 @@ scrolling_window (w, header_line_p)
 	  }
       }
 
+  /* Clear the hash table, for the next time.  */
+  for (i = 0; i < row_entry_idx; ++i)
+    row_table[row_entry_pool[i].bucket] = NULL;
+
   /* Value is non-zero to indicate that we scrolled the display.  */
   return 1;
 }
-
-
-/* Set WINDOW->must_be_updated_p TO ON_P for all windows WINDOW in the
-   window tree rooted at W.  */
-
-void
-set_window_update_flags (w, on_p)
-     struct window *w;
-     int on_p;
-{
-  while (w)
-    {
-      if (!NILP (w->hchild))
-	set_window_update_flags (XWINDOW (w->hchild), on_p);
-      else if (!NILP (w->vchild))
-	set_window_update_flags (XWINDOW (w->vchild), on_p);
-      else
-	w->must_be_updated_p = on_p;
-
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
-    }
-}    
 
 
 
