@@ -781,6 +781,13 @@ static Lisp_Object x_default_scroll_bar_color_parameter P_ ((struct frame *,
 static void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_edge_detection P_ ((struct frame *, struct image *, Lisp_Object,
 				  Lisp_Object));
+static void init_color_table P_ ((void));
+static void free_color_table P_ ((void));
+static unsigned long *colors_in_color_table P_ ((int *n));
+static unsigned long lookup_rgb_color P_ ((struct frame *f, int r, int g, int b));
+static unsigned long lookup_pixel_color P_ ((struct frame *f, unsigned long p));
+
+
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -3833,7 +3840,7 @@ x_icon (f, parms)
   UNBLOCK_INPUT;
 }
 
-/* Make the GC's needed for this window, setting the
+/* Make the GCs needed for this window, setting the
    background, border and mouse colors; also create the
    mouse cursor and the gray border tile.  */
 
@@ -3853,7 +3860,7 @@ x_make_gc (f)
 
   BLOCK_INPUT;
 
-  /* Create the GC's of this frame.
+  /* Create the GCs of this frame.
      Note that many default values are used.  */
 
   /* Normal video */
@@ -5369,6 +5376,31 @@ or omitted means use the selected frame.")
 }
 
 
+DEFUN ("image-mask-p", Fimage_mask_p, Simage_mask_p, 1, 2, 0,
+  "Return t if image SPEC has a mask bitmap.\n\
+FRAME is the frame on which the image will be displayed.  FRAME nil\n\
+or omitted means use the selected frame.")
+  (spec, frame)
+     Lisp_Object spec, frame;
+{
+  Lisp_Object mask;
+
+  mask = Qnil;
+  if (valid_image_p (spec))
+    {
+      struct frame *f = check_x_frame (frame);
+      int id = lookup_image (f, spec);
+      struct image *img = IMAGE_FROM_ID (f, id);
+      if (img->mask)
+	mask = Qt;
+    }
+  else
+    error ("Invalid image specification");
+
+  return mask;
+}
+
+
 
 /***********************************************************************
 		 Image type independent image structures
@@ -5776,7 +5808,7 @@ lookup_image (f, spec)
 			means build a mask heuristically.
 		 `:heuristic-mask (R G B)'
 		 `:mask (heuristic (R G B))'
-			measn build a mask from color (R G B) in the
+			means build a mask from color (R G B) in the
 			image.
 		 `:mask nil'
 			means remove a mask, if any.  */
@@ -6018,7 +6050,7 @@ x_find_image_file (file)
 
 /* Read FILE into memory.  Value is a pointer to a buffer allocated
    with xmalloc holding FILE's contents.  Value is null if an error
-   occured.  *SIZE is set to the size of the file.  */
+   occurred.  *SIZE is set to the size of the file.  */
 
 static char *
 slurp_file (file, size)
@@ -6329,7 +6361,7 @@ xbm_scan (s, end, sval, ival)
    buffer's end.  Set *WIDTH and *HEIGHT to the width and height of
    the image.  Return in *DATA the bitmap data allocated with xmalloc.
    Value is non-zero if successful.  DATA null means just test if
-   CONTENTS looks like an im-memory XBM file.  */
+   CONTENTS looks like an in-memory XBM file.  */
 
 static int
 xbm_read_bitmap_data (contents, end, width, height, data)
@@ -6747,6 +6779,156 @@ static struct image_type xpm_type =
 };
 
 
+/* Define ALLOC_XPM_COLORS if we can use Emacs' own color allocation
+   functions for allocating image colors.  Our own functions handle
+   color allocation failures more gracefully than the ones on the XPM
+   lib.  */
+
+#if defined XpmAllocColor && defined XpmFreeColors && defined XpmColorClosure
+#define ALLOC_XPM_COLORS
+#endif
+
+#ifdef ALLOC_XPM_COLORS
+
+static void xpm_init_color_cache P_ ((void));
+static void xpm_free_color_cache P_ ((void));
+static int xpm_lookup_color P_ ((struct frame *, char *, XColor *));
+
+/* An entry in a hash table used to cache color definitions of named
+   colors.  This cache is necessary to speed up XPM image loading in
+   case we do color allocations ourselves.  Without it, we would need
+   a call to XParseColor per pixel in the image.  */
+
+struct xpm_cached_color
+{
+  /* Next in collision chain.  */
+  struct xpm_cached_color *next;
+
+  /* Color definition (RGB and pixel color).  */
+  XColor color;
+
+  /* Color name.  */
+  char name[1];
+};
+
+/* The hash table used for the color cache, and its bucket vector
+   size.  */
+
+#define XPM_COLOR_CACHE_BUCKETS	1001
+struct xpm_cached_color **xpm_color_cache;
+
+
+/* Initialize the color cache.  */
+
+static void
+xpm_init_color_cache ()
+{
+  size_t nbytes = XPM_COLOR_CACHE_BUCKETS * sizeof *xpm_color_cache;
+  xpm_color_cache = (struct xpm_cached_color **) xmalloc (nbytes);
+  memset (xpm_color_cache, 0, nbytes);
+  init_color_table ();
+}
+
+
+/* Free the color cache.  */
+
+static void
+xpm_free_color_cache ()
+{
+  struct xpm_cached_color *p, *next;
+  int i;
+
+  for (i = 0; i < XPM_COLOR_CACHE_BUCKETS; ++i)
+    for (p = xpm_color_cache[i]; p; p = next)
+      {
+	next = p->next;
+	xfree (p);
+      }
+
+  xfree (xpm_color_cache);
+  xpm_color_cache = NULL;
+  free_color_table ();
+}
+
+
+/* Look up color COLOR_NAME for frame F in the color cache.  If found,
+   return the cached definition in *COLOR.  Otherwise, make a new
+   entry in the cache and allocate the color.  Value is zero if color
+   allocation failed.  */
+
+static int
+xpm_lookup_color (f, color_name, color)
+     struct frame *f;
+     char *color_name;
+     XColor *color;
+{
+  unsigned h = 0;
+  const char *s;
+  struct xpm_cached_color *p;
+
+  for (s = color_name; *s; ++s)
+    h = (h << 2) ^ *s;
+  h %= XPM_COLOR_CACHE_BUCKETS;
+
+  for (p = xpm_color_cache[h]; p; p = p->next)
+    if (strcmp (p->name, color_name) == 0)
+      break;
+
+  if (p != NULL)
+    *color = p->color;
+  else if (XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+			color_name, color))
+    {
+      size_t nbytes;
+      color->pixel = lookup_rgb_color (f, color->red, color->green,
+				       color->blue);
+      nbytes = sizeof *p + strlen (color_name);
+      p = (struct xpm_cached_color *) xmalloc (nbytes);
+      strcpy (p->name, color_name);
+      p->color = *color;
+      p->next = xpm_color_cache[h];
+      xpm_color_cache[h] = p;
+    }
+
+  return p != NULL;
+}
+
+
+/* Callback for allocating color COLOR_NAME.  Called from the XPM lib.
+   CLOSURE is a pointer to the frame on which we allocate the
+   color.  Return in *COLOR the allocated color.  Value is non-zero
+   if successful.  */
+
+static int
+xpm_alloc_color (dpy, cmap, color_name, color, closure)
+     Display *dpy;
+     Colormap cmap;
+     char *color_name;
+     XColor *color;
+     void *closure;
+{
+  return xpm_lookup_color ((struct frame *) closure, color_name, color);
+}
+
+
+/* Callback for freeing NPIXELS colors contained in PIXELS.  CLOSURE
+   is a pointer to the frame on which we allocate the color.  Value is
+   non-zero if successful.  */
+
+static int
+xpm_free_colors (dpy, cmap, pixels, npixels, closure)
+     Display *dpy;
+     Colormap cmap;
+     Pixel *pixels;
+     int npixels;
+     void *closure;
+{
+  return 1;
+}
+
+#endif /* ALLOC_XPM_COLORS */
+
+
 /* Value is non-zero if COLOR_SYMBOLS is a valid color symbols list
    for XPM images.  Such a list must consist of conses whose car and
    cdr are strings.  */
@@ -6806,14 +6988,25 @@ xpm_load (f, img)
   attrs.colormap = FRAME_X_COLORMAP (f);
   attrs.valuemask |= XpmVisual;
   attrs.valuemask |= XpmColormap;
+
+#ifdef ALLOC_XPM_COLORS
+  /* Allocate colors with our own functions which handle
+     failing color allocation more gracefully.  */
+  attrs.color_closure = f;
+  attrs.alloc_color = xpm_alloc_color;
+  attrs.free_colors = xpm_free_colors;
+  attrs.valuemask |= XpmAllocColor | XpmFreeColors | XpmColorClosure;
+#else /* not ALLOC_XPM_COLORS */
+  /* Let the XPM lib allocate colors.  */
   attrs.valuemask |= XpmReturnAllocPixels;
 #ifdef XpmAllocCloseColors
   attrs.alloc_close_colors = 1;
   attrs.valuemask |= XpmAllocCloseColors;
-#else
+#else /* not XpmAllocCloseColors */
   attrs.closeness = 600;
   attrs.valuemask |= XpmCloseness;
-#endif
+#endif /* not XpmAllocCloseColors */
+#endif /* ALLOC_XPM_COLORS */
 
   /* If image specification contains symbolic color definitions, add
      these to `attrs'.  */
@@ -6854,6 +7047,11 @@ xpm_load (f, img)
   /* Create a pixmap for the image, either from a file, or from a
      string buffer containing data in the same format as an XPM file.  */
   BLOCK_INPUT;
+
+#ifdef ALLOC_XPM_COLORS
+  xpm_init_color_cache ();
+#endif
+  
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   if (STRINGP (specified_file))
     {
@@ -6881,7 +7079,9 @@ xpm_load (f, img)
 
   if (rc == XpmSuccess)
     {
-      /* Remember allocated colors.  */
+#ifdef ALLOC_XPM_COLORS
+      img->colors = colors_in_color_table (&img->ncolors);
+#else /* not ALLOC_XPM_COLORS */
       img->ncolors = attrs.nalloc_pixels;
       img->colors = (unsigned long *) xmalloc (img->ncolors
 					       * sizeof *img->colors);
@@ -6892,6 +7092,7 @@ xpm_load (f, img)
 	  register_color (img->colors[i]);
 #endif
 	}
+#endif /* not ALLOC_XPM_COLORS */
 
       img->width = attrs.width;
       img->height = attrs.height;
@@ -6928,6 +7129,9 @@ xpm_load (f, img)
 	}
     }
 
+#ifdef ALLOC_XPM_COLORS
+  xpm_free_color_cache ();
+#endif
   return rc == XpmSuccess;
 }
 
@@ -6964,15 +7168,6 @@ struct ct_color **ct_table;
 /* Number of entries in the color table.  */
 
 int ct_colors_allocated;
-
-/* Function prototypes.  */
-
-static void init_color_table P_ ((void));
-static void free_color_table P_ ((void));
-static unsigned long *colors_in_color_table P_ ((int *n));
-static unsigned long lookup_rgb_color P_ ((struct frame *f, int r, int g, int b));
-static unsigned long lookup_pixel_color P_ ((struct frame *f, unsigned long p));
-
 
 /* Initialize the color table.  */
 
@@ -10855,6 +11050,7 @@ meaning don't clear the cache.");
 
   defsubr (&Sclear_image_cache);
   defsubr (&Simage_size);
+  defsubr (&Simage_mask_p);
 
   busy_cursor_atimer = NULL;
   busy_cursor_shown_p = 0;
