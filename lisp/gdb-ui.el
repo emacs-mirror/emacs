@@ -38,12 +38,6 @@
 (defvar gdb-first-time nil)
 (defvar gdb-proc nil "The process associated with gdb.")
 
-;; Dynamically-bound vars in gud.el
-(defvar gud-gdb-complete-string)
-(defvar gud-gdb-complete-break)
-(defvar gud-gdb-complete-list)
-(defvar gud-gdb-complete-in-progress)
-
 ;;;###autoload
 (defun gdba (command-line)
   "Run gdb on program FILE in buffer *gdb-FILE*.
@@ -96,31 +90,28 @@ The following interactive lisp functions help control operation :
 
   (interactive (list (gud-query-cmdline 'gdba)))
 
-  (gdba-common-init command-line nil 'gdba-marker-filter)
+  ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
+  (gdb command-line)
 
   (set (make-local-variable 'gud-minor-mode) 'gdba)
+  (set (make-local-variable 'gud-marker-filter) 'gdba-marker-filter)
 
-  (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set breakpoint at current line.")
-  (gud-def gud-run    "run"	     nil    "Run the program.")
-  (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
-  (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
-  (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
-  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
-  (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
-  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
-  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
-  (gud-def gud-goto  "until %f:%l"     "\C-u" "Continue up to current line.")
+  (gud-def gud-break (if (not (string-equal mode-name "Assembler"))
+			 (gud-call "break %f:%l" arg)
+		       (save-excursion
+			 (beginning-of-line)
+			 (forward-char 2)
+			 (gud-call "break *%a" arg)))
+	   "\C-b" "Set breakpoint at current line or address.")
 
-  (define-key gud-mode-map "\C-c\C-b" 'gud-break)
-  (define-key global-map "\C-x\C-a\C-b" 'gud-break)
+  (gud-def gud-remove (if (not (string-equal mode-name "Assembler"))
+			  (gud-call "clear %f:%l" arg)
+			(save-excursion
+			  (beginning-of-line)
+			  (forward-char 2)
+			  (gud-call "clear *%a" arg)))
+	   "\C-d" "Remove breakpoint at current line or address.")
 
-  (define-key gud-mode-map "\C-c\C-d" 'gud-remove)
-  (define-key global-map "\C-x\C-a\C-d" 'gud-remove)
-
-  (local-set-key "\C-i" 'gud-gdb-complete-command)
-
-  (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq comint-input-sender 'gdb-send)
 
   ;; (re-)initialise
@@ -128,38 +119,17 @@ The following interactive lisp functions help control operation :
   (setq gdb-current-address nil)
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
-  (setq gud-last-last-frame nil)
-  (setq gud-running nil)
 
-  (run-hooks 'gdb-mode-hook)
   (setq gdb-proc (get-buffer-process (current-buffer)))
   (gdb-make-instance)
-  (if gdb-first-time (gdb-clear-inferior-io))
+  (gdb-clear-inferior-io)
 
   ;; find source file and compilation directory here
   (gdb-instance-enqueue-idle-input (list "server list\n" 'ignore))
   (gdb-instance-enqueue-idle-input (list "server info source\n"
-					 'gdb-source-info)))
+					 'gdb-source-info))
 
-(defun gud-break (arg)
-  "Set breakpoint at current line or address."
-  (interactive "p")
-  (if (not (string-equal mode-name "Assembler"))
-      (gud-call "break %f:%l" arg)
-    (save-excursion
-      (beginning-of-line)
-      (forward-char 2)
-      (gud-call "break *%a" arg))))
-
-(defun gud-remove (arg)
-  "Remove breakpoint at current line or address."
-  (interactive "p")
-  (if (not (string-equal mode-name "Assembler"))
-      (gud-call "clear %f:%l" arg)
-    (save-excursion
-      (beginning-of-line)
-      (forward-char 2)
-      (gud-call "clear *%a" arg))))
+  (run-hooks 'gdba-mode-hook))
 
 (defun gud-display ()
   "Display (possibly dereferenced) C expression at point."
@@ -172,100 +142,16 @@ The following interactive lisp functions help control operation :
 
 (defun gud-display1 (expr)
   (goto-char (point-min))
-    (if (re-search-forward "\*" nil t)
-	(gdb-instance-enqueue-idle-input
-	 (list (concat "server display* " expr "\n") 'ignore))
+  (if (re-search-forward "\*" nil t)
       (gdb-instance-enqueue-idle-input
-       (list (concat "server display " expr "\n") 'ignore))))
+       (list (concat "server display* " expr "\n") 'ignore))
+    (gdb-instance-enqueue-idle-input
+     (list (concat "server display " expr "\n") 'ignore))))
 
 
 ;; The completion process filter is installed temporarily to slurp the
 ;; output of GDB up to the next prompt and build the completion list.
 ;; It must also handle annotations.
-(defun gdba-complete-filter (string)
-  (gdb-output-burst string)
-  (while (string-match "\n\032\032\\(.*\\)\n" string)
-    (setq string (concat (substring string 0 (match-beginning 0))
-			 (substring string (match-end 0)))))
-  (setq string (concat gud-gdb-complete-string string))
-  (while (string-match "\n" string)
-    (setq gud-gdb-complete-list
-	  (cons (substring string gud-gdb-complete-break (match-beginning 0))
-		gud-gdb-complete-list))
-    (setq string (substring string (match-end 0))))
-  (if (string-match comint-prompt-regexp string)
-      (progn
-	(setq gud-gdb-complete-in-progress nil)
-	string)
-    (progn
-      (setq gud-gdb-complete-string string)
-      "")))
-
-(defvar gdb-target-name "--unknown--"
-  "The apparent name of the program being debugged in a gud buffer.")
-
-(defun gdba-common-init (command-line massage-args marker-filter &optional find-file)
-
-  (let* ((words (split-string command-line))
-	 (program (car words))
-
-	 ;; Extract the file name from WORDS
-	 ;; and put t in its place.
-	 ;; Later on we will put the modified file name arg back there.
-	 (file-word (let ((w (cdr words)))
-		      (while (and w (= ?- (aref (car w) 0)))
-			(setq w (cdr w)))
-		      (and w
-			   (prog1 (car w)
-			     (setcar w t)))))
-	 (file-subst
-	  (and file-word (substitute-in-file-name file-word)))
-
-	 (args (cdr words))
-
-	 ;; If a directory was specified, expand the file name.
-	 ;; Otherwise, don't expand it, so GDB can use the PATH.
-	 ;; A file name without directory is literally valid
-	 ;; only if the file exists in ., and in that case,
-	 ;; omitting the expansion here has no visible effect.
-	 (file (and file-word
-		    (if (file-name-directory file-subst)
-			(expand-file-name file-subst)
-		      file-subst)))
-	 (filepart (and file-word (file-name-nondirectory file)))
-	 (buffer-name (concat "*gdb-" filepart "*")))
-
-    (setq gdb-first-time (not (get-buffer-process buffer-name)))
-
-    (switch-to-buffer buffer-name)
-    ;; Set default-directory to the file's directory.
-    (and file-word
-	 gud-chdir-before-run
-	 ;; Don't set default-directory if no directory was specified.
-	 ;; In that case, either the file is found in the current directory,
-	 ;; in which case this setq is a no-op,
-	 ;; or it is found by searching PATH,
-	 ;; in which case we don't know what directory it was found in.
-	 (file-name-directory file)
-	 (setq default-directory (file-name-directory file)))
-    (or (bolp) (newline))
-    (insert "Current directory is " default-directory "\n")
-    ;; Put the substituted and expanded file name back in its place.
-    (let ((w args))
-      (while (and w (not (eq (car w) t)))
-	(setq w (cdr w)))
-      (if w
-	  (setcar w file)))
-    (apply 'make-comint (concat "gdb-" filepart) program nil args)
-    (gud-mode)
-    (setq gdb-target-name filepart))
-  (make-local-variable 'gud-marker-filter)
-  (setq gud-marker-filter marker-filter)
-  (if find-file (set (make-local-variable 'gud-find-file) find-file))
-
-  (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
-  (set-process-sentinel (get-buffer-process (current-buffer)) 'gud-sentinel)
-  (gud-set-buffer))
 
 
 ;; ======================================================================
@@ -358,17 +244,15 @@ handlers.")
 (defun gdb-make-instance ()
   "Create a gdb instance object from a gdb process."
   (with-current-buffer (process-buffer gdb-proc)
-    (progn
-      (mapc 'make-local-variable gdb-instance-variables)
-      (setq gdb-buffer-type 'gdba))))
+    (mapc 'make-local-variable gdb-instance-variables)
+    (setq gdb-buffer-type 'gdba)))
 
 (defun gdb-instance-target-string ()
   "The apparent name of the program being debugged by a gdb instance.
 For sure this the root string used in smashing together the gdb
 buffer's name, even if that doesn't happen to be the name of a
 program."
-  (in-gdb-instance-context
-   (function (lambda () gdb-target-name))))
+  (in-gdb-instance-context (lambda () gud-target-name)))
 
 
 ;;
@@ -621,13 +505,12 @@ This filter may simply queue output for a later time."
 ;;
 
 (defcustom gud-gdba-command-name "gdb -annotate=2"
-  "Default command to execute an executable under the GDB debugger (gdb-ui.el)."
+  "Default command to execute an executable under the GDB-UI debugger."
    :type 'string
    :group 'gud)
 
 (defun gdba-marker-filter (string)
   "A gud marker filter for gdb."
-  ;; Bogons don't tell us the process except through scoping crud.
   (gdb-output-burst string))
 
 (defvar gdb-annotation-rules
@@ -1911,10 +1794,8 @@ buffer."
 ;;; FIXME: This should only return true for buffers in the current gdb-proc
 (defun gdb-protected-buffer-p (buffer)
   "Is BUFFER a buffer which we want to leave displayed?"
-  (save-excursion
-    (set-buffer buffer)
-    (or gdb-buffer-type
-	overlay-arrow-position)))
+  (with-current-buffer buffer
+    (or gdb-buffer-type overlay-arrow-position)))
 
 ;;; The way we abuse the dedicated-p flag is pretty gross, but seems
 ;;; to do the right thing.  Seeing as there is no way for Lisp code to
@@ -1967,7 +1848,7 @@ buffer."
 (define-key gud-minor-mode-map "\C-c\M-\C-b" 'gdb-display-breakpoints-buffer)
 
 (let ((menu (make-sparse-keymap "GDB-Windows")))
-  (define-key gud-minor-mode-map [menu-bar debug displays]
+  (define-key gud-menu-map [displays]
     `(menu-item "GDB-Windows" ,menu :visible (memq gud-minor-mode '(gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
   (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
@@ -1983,7 +1864,7 @@ buffer."
    (gdb-get-create-instance-buffer 'gdba)))
 
 (let ((menu (make-sparse-keymap "GDB-Frames")))
-  (define-key gud-minor-mode-map [menu-bar debug frames]
+  (define-key gud-menu-map [frames]
     `(menu-item "GDB-Frames" ,menu :visible (memq gud-minor-mode '(gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
