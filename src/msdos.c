@@ -1252,7 +1252,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
   if (mouse_preempted)
     return;
 
-  if (disable_mouse_highlight)
+  if (disable_mouse_highlight
+      || !f->glyphs_initialized_p)
     return;
 
   dpyinfo->mouse_face_mouse_x = x;
