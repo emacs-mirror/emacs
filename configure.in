@@ -1228,6 +1228,12 @@ configure___ system_malloc=yes
 configure___ system_malloc=no
 #endif
 
+#ifdef REL_ALLOC_MMAP
+configure___ rel_alloc_mmap=yes
+#else
+configure___ rel_alloc_mmap=no
+#endif
+
 #ifndef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -g
 #endif
@@ -1536,6 +1542,15 @@ fi
 
 if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
+fi
+
+@dnl For now, need to use an explicit `#define REL_ALLOC_MMAP 1' in
+@dnl the system configuration file (s/*.h) to turn the use of mmap
+@dnl in the relocating allocator on.
+
+AC_FUNC_MMAP
+if test $rel_alloc_mmap = yes; then
+  REL_ALLOC=yes
 fi
 
 LIBS="$libsrc_libs $LIBS"
@@ -2089,7 +2104,6 @@ else
 fi
 
 AC_FUNC_VFORK
-AC_FUNC_MMAP
 
 # Fixme: This should be replaced when we have autoconf 2.14.
 AC_SIZE_T
@@ -2180,7 +2194,8 @@ Configured for \`${canonical}'.
         \`${opsysfile}' and \`${machfile}'
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
-  Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
+  Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
+  Should Emacs use mmap for the relocating allocator?     $rel_alloc_mmap
   What window system should Emacs use?                    ${window_system}
   What toolkit should Emacs use?                          ${USE_X_TOOLKIT}"
 
