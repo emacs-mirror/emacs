@@ -152,16 +152,17 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 	    ;; the inside of the following let that handles array elements.
 	    (aset vec1 0 char)
 	    (aset prefix1 (length prefix) char)
-	    (let (inner-def)
+	    (let (inner-def skipped)
 	      ;; Skip past menu-prompt.
 	      (while (stringp (car-safe defn))
+		(setq skipped (cons (car defn) skipped))
 		(setq defn (cdr defn)))
 	      (setq inner-def defn)
 	      (while (and (symbolp inner-def)
 			  (fboundp inner-def))
 		(setq inner-def (symbol-function inner-def)))
 	      (if (eq defn olddef)
-		  (define-key keymap prefix1 newdef)
+		  (define-key keymap prefix1 (nconc (nreverse skipped) newdef))
 		(if (keymapp defn)
 		    (substitute-key-definition olddef newdef keymap
 					       inner-def
@@ -176,16 +177,18 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		  ;; the inside of the previous let.
 		  (aset vec1 0 char)
 		  (aset prefix1 (length prefix) char)
-		  (let (inner-def)
+		  (let (inner-def skipped)
 		    ;; Skip past menu-prompt.
 		    (while (stringp (car-safe defn))
+		      (setq skipped (cons (car defn) skipped))
 		      (setq defn (cdr defn)))
 		    (setq inner-def defn)
 		    (while (and (symbolp inner-def)
 				(fboundp inner-def))
 		      (setq inner-def (symbol-function inner-def)))
 		    (if (eq defn olddef)
-			(define-key keymap prefix1 newdef)
+			(define-key keymap prefix1
+			  (nconc (nreverse skipped) newdef))
 		      (if (keymapp defn)
 			  (substitute-key-definition olddef newdef keymap
 						     inner-def
