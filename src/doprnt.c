@@ -267,7 +267,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		{
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
-		  while (!CHAR_HEAD_P (string + tem - 1)) tem--;
+		  while (!CHAR_HEAD_P (string[tem - 1])) tem--;
 		  bcopy (string, bufptr, tem);
 		  /* We must calculate WIDTH again.  */
 		  width = strwidth (bufptr, tem);
@@ -310,8 +310,8 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	char *save_bufptr = bufptr;
 
 	do { *bufptr++ = *fmt++; }
-	while (--bufsize > 0 && !CHAR_HEAD_P (fmt));
-	if (!CHAR_HEAD_P (fmt))
+	while (--bufsize > 0 && !CHAR_HEAD_P (*fmt));
+	if (!CHAR_HEAD_P (*fmt))
 	  {
 	    bufptr = save_bufptr;
 	    break;
