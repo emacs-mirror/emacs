@@ -668,31 +668,31 @@ Commands for sorting the summary:
   (cons "Classify" (make-sparse-keymap "Classify")))
 
 (define-key rmail-summary-mode-map [menu-bar classify output-inbox]
-  '("Output (inbox)" . rmail-summary-output))
+  '("Output (inbox)..." . rmail-summary-output))
 
 (define-key rmail-summary-mode-map [menu-bar classify output]
-  '("Output (Rmail)" . rmail-summary-output-to-rmail-file))
+  '("Output (Rmail)..." . rmail-summary-output-to-rmail-file))
 
 (define-key rmail-summary-mode-map [menu-bar classify kill-label]
-  '("Kill Label" . rmail-summary-kill-label))
+  '("Kill Label..." . rmail-summary-kill-label))
 
 (define-key rmail-summary-mode-map [menu-bar classify add-label]
-  '("Add Label" . rmail-summary-add-label))
+  '("Add Label..." . rmail-summary-add-label))
 
 (define-key rmail-summary-mode-map [menu-bar summary]
   (cons "Summary" (make-sparse-keymap "Summary")))
 
 (define-key rmail-summary-mode-map [menu-bar summary labels]
-  '("By Labels" . rmail-summary-by-labels))
+  '("By Labels..." . rmail-summary-by-labels))
 
 (define-key rmail-summary-mode-map [menu-bar summary recipients]
-  '("By Recipients" . rmail-summary-by-recipients))
+  '("By Recipients..." . rmail-summary-by-recipients))
 
 (define-key rmail-summary-mode-map [menu-bar summary topic]
-  '("By Topic" . rmail-summary-by-topic))
+  '("By Topic..." . rmail-summary-by-topic))
 
 (define-key rmail-summary-mode-map [menu-bar summary regexp]
-  '("By Regexp" . rmail-summary-by-regexp))
+  '("By Regexp..." . rmail-summary-by-regexp))
 
 (define-key rmail-summary-mode-map [menu-bar summary all]
   '("All" . rmail-summary))
@@ -710,7 +710,7 @@ Commands for sorting the summary:
   '("Continue" . rmail-summary-continue))
 
 (define-key rmail-summary-mode-map [menu-bar mail resend]
-  '("Re-send" . rmail-resend))
+  '("Re-send..." . rmail-resend))
 
 (define-key rmail-summary-mode-map [menu-bar mail forward]
   '("Forward" . rmail-summary-forward))
@@ -743,10 +743,10 @@ Commands for sorting the summary:
   (cons "Move" (make-sparse-keymap "Move")))
 
 (define-key rmail-summary-mode-map [menu-bar move search-back]
-  '("Search Back" . rmail-summary-search-backward))
+  '("Search Back..." . rmail-summary-search-backward))
 
 (define-key rmail-summary-mode-map [menu-bar move search]
-  '("Search" . rmail-summary-search))
+  '("Search..." . rmail-summary-search))
 
 (define-key rmail-summary-mode-map [menu-bar move previous]
   '("Previous Nondeleted" . rmail-summary-previous-msg))
