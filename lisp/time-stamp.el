@@ -6,7 +6,7 @@
 ;; This file is part of GNU Emacs.
 
 ;; Maintainer's Time-stamp: <2001-07-15 12:35:58 pavel>
-;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
+;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
