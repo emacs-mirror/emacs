@@ -70,3 +70,5 @@ There are several subdirectories:
 `vms' holds instructions and useful files for running Emacs under VMS.
 `nt' holds various command files and documentation files that pertain
     to running Emacs on Windows NT.
+`mac' holds instructions, sources, and other useful files for building
+      and running Emacs on the Mac.
