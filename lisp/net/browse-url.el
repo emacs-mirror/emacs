@@ -39,6 +39,7 @@
 ;; Function                           Browser     Earliest version
 ;; browse-url-mozilla                 Mozilla     Don't know
 ;; browse-url-galeon                  Galeon      Don't know
+;; browse-url-epiphany                Epiphany    Don't know
 ;; browse-url-netscape                Netscape    1.1b1
 ;; browse-url-mosaic                  XMosaic/mMosaic <= 2.4
 ;; browse-url-cci                     XMosaic     2.5
@@ -248,6 +249,7 @@ regexp should probably be \".\" to specify a default browser."
 			 :value  browse-url-w3-gnudoit)
 	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
 	  (function-item :tag "Galeon" :value  browse-url-galeon)
+	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
@@ -338,6 +340,23 @@ Defaults to the value of `browse-url-galeon-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+(defcustom browse-url-epiphany-program "epiphany"
+  "*The name by which to invoke Epiphany."
+  :type 'string
+  :group 'browse-url)
+
+(defcustom browse-url-epiphany-arguments nil
+  "*A list of strings to pass to Epiphany as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-epiphany-startup-arguments browse-url-epiphany-arguments
+  "*A list of strings to pass to Epiphany when it starts up.
+Defaults to the value of `browse-url-epiphany-arguments' at the time
+`browse-url' is loaded."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
 (defcustom browse-url-mozilla-new-window-is-tab nil
   "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -349,6 +368,13 @@ If non-nil, then open the URL in a new tab rather than a new window if
   "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-galeon' is asked to open it in a new window."
+  :type 'boolean
+  :group 'browse-url)
+
+(defcustom browse-url-epiphany-new-window-is-tab nil
+  "*Whether to open up new windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new window if
+`browse-url-epiphany' is asked to open it in a new window."
   :type 'boolean
   :group 'browse-url)
 
@@ -922,7 +948,8 @@ used instead of `browse-url-new-window-flag'."
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
-			 (concat "galeon " url) nil
+			 (concat "galeon " url)
+			 nil
 			 browse-url-galeon-program
 			 (append
 			  browse-url-galeon-arguments
@@ -945,6 +972,55 @@ used instead of `browse-url-new-window-flag'."
 	(apply 'start-process (concat "galeon " url) nil
 	       browse-url-galeon-program
 	       (append browse-url-galeon-startup-arguments (list url))))))
+
+(defun browse-url-epiphany (url &optional new-window)
+  "Ask the Epiphany WWW browser to load URL.
+Default to the URL around or before point.  The strings in variable
+`browse-url-galeon-arguments' are also passed to Epiphany.
+
+When called interactively, if variable `browse-url-new-window-flag' is
+non-nil, load the document in a new Epiphany window, otherwise use a
+random existing one.  A non-nil interactive prefix argument reverses
+the effect of `browse-url-new-window-flag'.
+
+If `browse-url-galeon-new-window-is-tab' is non-nil, then whenever a
+document would otherwise be loaded in a new window, it is loaded in a
+new tab in an existing window instead.
+
+When called non-interactively, optional second argument NEW-WINDOW is
+used instead of `browse-url-new-window-flag'."
+  (interactive (browse-url-interactive-arg "URL: "))
+  ;; URL encode any `confusing' characters in the URL.  This needs to
+  ;; include at least commas; presumably also close parens.
+  (while (string-match "[,)]" url)
+    (setq url (replace-match
+	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (let* ((process-environment (browse-url-process-environment))
+         (process (apply 'start-process
+			 (concat "epiphany " url)
+			 nil
+			 browse-url-epiphany-program
+			 (append
+			  browse-url-epiphany-arguments
+                          (if (browse-url-maybe-new-window new-window)
+			      (if browse-url-epiphany-new-window-is-tab
+				  '("--new-tab")
+				'("--new-window" "--noraise"))
+                            '("--existing"))
+                          (list url)))))
+    (set-process-sentinel process
+			  `(lambda (process change)
+			     (browse-url-epiphany-sentinel process ,url)))))
+
+(defun browse-url-epiphany-sentinel (process url)
+  "Handle a change to the process communicating with Epiphany."
+  (or (eq (process-exit-status process) 0)
+      (let* ((process-environment (browse-url-process-environment)))
+	;; Epiphany is not running - start it
+	(message "Starting Epiphany...")
+	(apply 'start-process (concat "epiphany " url) nil
+	       browse-url-epiphany-program
+	       (append browse-url-epiphany-startup-arguments (list url))))))
 
 ;; GNOME means of invoking either Mozilla or Netrape.
 (defvar browse-url-gnome-moz-program "gnome-moz-remote")
