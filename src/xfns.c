@@ -2369,6 +2369,7 @@ x_window (f, window_prompting, minibuffer_only)
   ac = 0;
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
   XtSetArg (al[ac], XtNinput, 1); ac++;
+  XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
   shell_widget = XtAppCreateShell (f->namebuf, EMACS_CLASS,
 				   topLevelShellWidgetClass,
 				   FRAME_X_DISPLAY (f), al, ac);
@@ -2427,24 +2428,26 @@ x_window (f, window_prompting, minibuffer_only)
         menubar_size += ibw;
       }
 
-    if (window_prompting & USPosition)
-      {
-	int left = f->display.x->left_pos;
-	int xneg = window_prompting & XNegative;
-	int top = f->display.x->top_pos;
-	int yneg = window_prompting & YNegative;
-	if (xneg)
-	  left = -left;
-	if (yneg)
-	  top = -top;
-	sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
-		 PIXEL_HEIGHT (f) + menubar_size,
-		 (xneg ? '-' : '+'), left,
-		 (yneg ? '-' : '+'), top);
-      }
-    else
-      sprintf (shell_position, "=%dx%d", PIXEL_WIDTH (f), 
-	       PIXEL_HEIGHT (f) + menubar_size);
+    /* Convert our geometry parameters into a geometry string
+       and specify it.
+       Note that we do not specify here whether the position
+       is a user-specified or program-specified one.
+       We pass that information later, in x_wm_set_size_hints.  */
+    {
+      int left = f->display.x->left_pos;
+      int xneg = window_prompting & XNegative;
+      int top = f->display.x->top_pos;
+      int yneg = window_prompting & YNegative;
+      if (xneg)
+	left = -left;
+      if (yneg)
+	top = -top;
+      sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
+	       PIXEL_HEIGHT (f) + menubar_size,
+	       (xneg ? '-' : '+'), left,
+	       (yneg ? '-' : '+'), top);
+    }
+
     len = strlen (shell_position) + 1;
     tem = (char *) xmalloc (len);
     strncpy (tem, shell_position, len);
@@ -2939,12 +2942,11 @@ This function is an internal primitive--use `make-frame' instead.")
   f->height = f->width = 0;
   change_frame_size (f, height, width, 1, 0);
 
-/* With the toolkit, the geometry management is done in x_window.  */
-#ifndef USE_X_TOOLKIT
+  /* Tell the server what size and position, etc, we want,
+     and how badly we want them.  */
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
-#endif /* USE_X_TOOLKIT */
 
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
