@@ -628,11 +628,11 @@ characters; for example, there are three coding systems for the Cyrillic
 conversion, but some of them leave the choice unspecified---to be chosen
 heuristically for each file, based on the data.
 
-In general, a coding system doesn't guarantee a roundtrip identity,
-i.e. decoding followed by encoding in the same coding system can
-result in the different byte sequence.  But there are several coding
-systems that go guarantee that the result will be the same as what you
-originally decoded.  They are:
+In general, a coding system doesn't guarantee roundtrip identity:
+decoding text then encoding the result in the same coding system can
+produce a different byte sequence from the one you originally decoded.
+However, the following coding systems do guarantee that the result
+will be the same as what you originally decoded:
 
 @quotation
 chinese-big5 chinese-iso-8bit cyrillic-iso-8bit emacs-mule
@@ -641,14 +641,13 @@ iso-latin-4 iso-latin-5 iso-latin-8 iso-latin-9 iso-safe
 japanese-iso-8bit japanese-shift-jis korean-iso-8bit raw-text
 @end quotation
 
-Likewise, a coding systme doesn't guarantee the other way of roundtrip
-identity, i.e. encoding buffer text into a coding system followed by
-decoding again with the same coding system will produce the different
-buffer text.  For instance, when you encode Latin-2 characters by
-@code{utf-8} and decode it back by the same coding system, you'll get
-Unicode charactes (of charset @code{mule-unicode-0100-24ff}), and when
-you encode Unicode characters by @code{iso-latin-2} and decode it back
-by the same coding system, you'll get Latin-2 characters.
+Encoding buffer text and then decoding the result can also fail to
+reproduce the original text.  For instance, when you encode Latin-2
+characters with @code{utf-8} and decode the result using the same
+coding system, you'll get Unicode characters (of charset
+@code{mule-unicode-0100-24ff}).  When you encode Unicode characters
+with @code{iso-latin-2} and decode them back with the same coding
+system, you'll get Latin-2 characters.
 
 @cindex end of line conversion
   @dfn{End of line conversion} handles three different conventions used
