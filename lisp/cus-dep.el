@@ -40,9 +40,18 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
       (message "Directory %s" subdir)
       (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
 	    (default-directory (expand-file-name subdir))
+	    (preloaded (concat "\\`"
+			       (regexp-opt (mapcar
+					    (lambda (f)
+					      (file-name-sans-extension
+					       (file-name-nondirectory f)))
+					    preloaded-file-list) t)
+			       "\\.el\\'"))
 	    is-autoloaded)
 	(dolist (file files)
-	  (when (file-exists-p file)
+	  (when (and (file-exists-p file)
+		     ;; Ignore files that are preloaded.
+		     (not (string-match preloaded file)))
 	    (erase-buffer)
 	    (insert-file-contents file)
 	    (goto-char (point-min))
