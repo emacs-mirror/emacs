@@ -935,7 +935,7 @@ on the left of the dialog box and all following items on the right.
 
 /* Activate the menu bar of frame F.
    This is called from keyboard.c when it gets the
-   menu_bar_activate_event out of the Emacs event queue.
+   MENU_BAR_ACTIVATE_EVENT out of the Emacs event queue.
 
    To activate the menu bar, we signal to the input thread that it can
    return from the WM_INITMENU message, allowing the normal Windows

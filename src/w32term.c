@@ -6188,9 +6188,9 @@ construct_mouse_click (result, msg, f)
   parse_button (msg->msg.message, HIWORD (msg->msg.wParam),
 		&button, &up);
 
-  /* Make the event type no_event; we'll change that when we decide
+  /* Make the event type NO_EVENT; we'll change that when we decide
      otherwise.  */
-  result->kind = mouse_click;
+  result->kind = MOUSE_CLICK_EVENT;
   result->code = button;
   result->timestamp = msg->msg.time;
   result->modifiers = (msg->dwModifiers
@@ -6212,7 +6212,7 @@ construct_mouse_wheel (result, msg, f)
      struct frame *f;
 {
   POINT p;
-  result->kind = mouse_wheel;
+  result->kind = MOUSE_WHEEL_EVENT;
   result->code = (short) HIWORD (msg->msg.wParam);
   result->timestamp = msg->msg.time;
   result->modifiers = msg->dwModifiers;
@@ -6240,7 +6240,7 @@ construct_drag_n_drop (result, msg, f)
   char *name;
   int i, len;
 
-  result->kind = drag_n_drop;
+  result->kind = DRAG_N_DROP_EVENT;
   result->code = 0;
   result->timestamp = msg->msg.time;
   result->modifiers = msg->dwModifiers;
@@ -8319,7 +8319,7 @@ w32_judge_scroll_bars (f)
 }
 
 /* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
-   is set to something other than no_event, it is enqueued.
+   is set to something other than NO_EVENT, it is enqueued.
 
    This may be called from a signal handler, so we have to ignore GC
    mark bits.  */
@@ -8333,7 +8333,7 @@ w32_scroll_bar_handle_click (bar, msg, emacs_event)
   if (! GC_WINDOWP (bar->window))
     abort ();
 
-  emacs_event->kind = w32_scroll_bar_click;
+  emacs_event->kind = W32_SCROLL_BAR_CLICK_EVENT;
   emacs_event->code = 0;
   /* not really meaningful to distinguish up/down */
   emacs_event->modifiers = msg->dwModifiers;
@@ -8433,7 +8433,7 @@ w32_scroll_bar_handle_click (bar, msg, emacs_event)
 	  }
 	/* fall through */
       default:
-	emacs_event->kind = no_event;
+	emacs_event->kind = NO_EVENT;
 	return FALSE;
       }
 
@@ -8634,7 +8634,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		     visibility changes properly.  */
 		  if (f->iconified)
 		    {
-		      bufp->kind = deiconify_event;
+		      bufp->kind = DEICONIFY_EVENT;
 		      XSETFRAME (bufp->frame_or_window, f);
 		      bufp->arg = Qnil;
 		      bufp++;
@@ -8672,7 +8672,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      if (numchars == 0)
 		abort ();
 	  
-	      bufp->kind = language_change_event;
+	      bufp->kind = LANGUAGE_CHANGE_EVENT;
 	      XSETFRAME (bufp->frame_or_window, f);
 	      bufp->arg = Qnil;
 	      bufp->code = msg.msg.wParam;
@@ -8698,7 +8698,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
-	      bufp->kind = non_ascii_keystroke;
+	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
 	      bufp->code = msg.msg.wParam;
 	      bufp->modifiers = msg.dwModifiers;
 	      XSETFRAME (bufp->frame_or_window, f);
@@ -8725,7 +8725,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
-	      bufp->kind = ascii_keystroke;
+	      bufp->kind = ASCII_KEYSTROKE_EVENT;
 	      bufp->code = msg.msg.wParam;
 	      bufp->modifiers = msg.dwModifiers;
 	      XSETFRAME (bufp->frame_or_window, f);
@@ -8799,7 +8799,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	    int button;
 	    int up;
 
-            emacs_event.kind = no_event;
+            emacs_event.kind = NO_EVENT;
 	    
 	    if (dpyinfo->grabbed && last_mouse_frame
 		&& FRAME_LIVE_P (last_mouse_frame))
@@ -8991,7 +8991,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  f->async_visible = 0;
 		  f->async_iconified = 1;
 		  
-		  bufp->kind = iconify_event;
+		  bufp->kind = ICONIFY_EVENT;
 		  XSETFRAME (bufp->frame_or_window, f);
 		  bufp->arg = Qnil;
 		  bufp++;
@@ -9021,7 +9021,7 @@ w32_read_socket (sd, bufp, numchars, expected)
                       f->output_data.w32->left_pos = x;
                       f->output_data.w32->top_pos = y;
 
-		      bufp->kind = deiconify_event;
+		      bufp->kind = DEICONIFY_EVENT;
 		      XSETFRAME (bufp->frame_or_window, f);
 		      bufp->arg = Qnil;
 		      bufp++;
@@ -9169,7 +9169,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      if (numchars == 0)
 		abort ();
 	      
-	      bufp->kind = delete_window_event;
+	      bufp->kind = DELETE_WINDOW_EVENT;
 	      XSETFRAME (bufp->frame_or_window, f);
 	      bufp->arg = Qnil;
 	      bufp++;
@@ -9186,7 +9186,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      if (numchars == 0)
 		abort ();
 	  
-	      bufp->kind = menu_bar_activate_event;
+	      bufp->kind = MENU_BAR_ACTIVATE_EVENT;
 	      XSETFRAME (bufp->frame_or_window, f);
 	      bufp->arg = Qnil;
 	      bufp++;

@@ -6765,7 +6765,7 @@ construct_mouse_click (result, event, f)
 {
   Point mouseLoc;
 
-  result->kind = mouse_click;
+  result->kind = MOUSE_CLICK_EVENT;
   result->code = 0;  /* only one mouse button */
   result->timestamp = event->when;
   result->modifiers = event->what == mouseDown ? down_modifier : up_modifier;
@@ -8712,7 +8712,7 @@ deactivate_scroll_bars (frame)
 }
 
 /* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
-   is set to something other than no_event, it is enqueued.
+   is set to something other than NO_EVENT, it is enqueued.
 
    This may be called from a signal handler, so we have to ignore GC
    mark bits.  */
@@ -8727,7 +8727,7 @@ x_scroll_bar_handle_click (bar, part_code, er, bufp)
   if (! GC_WINDOWP (bar->window))
     abort ();
 
-  bufp->kind = scroll_bar_click;
+  bufp->kind = SCROLL_BAR_CLICK_EVENT;
   bufp->frame_or_window = bar->window;
   bufp->arg = Qnil;
 
@@ -12334,7 +12334,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	      GlobalToLocal (&mouse_loc);
 		  
 	      bufp->code = 0;  /* only one mouse button */
-              bufp->kind = scroll_bar_click;
+              bufp->kind = SCROLL_BAR_CLICK_EVENT;
               bufp->frame_or_window = tracked_scroll_bar->window;
               bufp->part = scroll_bar_handle;
               bufp->modifiers = up_modifier;
@@ -12359,7 +12359,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
                 struct frame *f = ((mac_output *)
 				   GetWRefCon (FrontWindow ()))->mFP;
                 saved_menu_event_location = er.where;
-                bufp->kind = menu_bar_activate_event;
+                bufp->kind = MENU_BAR_ACTIVATE_EVENT;
                 XSETFRAME (bufp->frame_or_window, f);
                 count++;
               }
@@ -12421,7 +12421,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		    }
 		  else
 	            {
-	              bufp->kind = mouse_click;
+	              bufp->kind = MOUSE_CLICK_EVENT;
 		      XSETFRAME (bufp->frame_or_window, mwp->mFP);
 		      if (er.what == mouseDown)
 		        mouse_tracking_in_progress
@@ -12460,7 +12460,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	    case inGoAway:
 	      if (TrackGoAway (window_ptr, er.where))
 	        {
-	          bufp->kind = delete_window_event;
+	          bufp->kind = DELETE_WINDOW_EVENT;
 	          XSETFRAME (bufp->frame_or_window,
 			     ((mac_output *) GetWRefCon (window_ptr))->mFP);
  	          count++;
@@ -12502,12 +12502,12 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  if (keycode == 0x33)  /* delete key (charCode translated to 0x8) */
 	    {
 	      bufp->code = 0x7f;
-	      bufp->kind = ascii_keystroke;
+	      bufp->kind = ASCII_KEYSTROKE_EVENT;
 	    }
 	  else if (keycode_to_xkeysym (keycode, &xkeysym))
 	    {
 	      bufp->code = 0xff00 | xkeysym;
-	      bufp->kind = non_ascii_keystroke;
+	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
 	    }	      
 	  else
 	    {
@@ -12528,7 +12528,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	        }
 	      else
 	        bufp->code = er.message & charCodeMask;
-	      bufp->kind = ascii_keystroke;
+	      bufp->kind = ASCII_KEYSTROKE_EVENT;
 	    }
 	}
 
@@ -12539,7 +12539,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
            Mac keyboard to be used to enter non-ASCII iso-latin-1
            characters directly.  */
         if (mac_keyboard_text_encoding != kTextEncodingMacRoman
-	    && bufp->kind == ascii_keystroke && bufp->code >= 128)
+	    && bufp->kind == ASCII_KEYSTROKE_EVENT && bufp->code >= 128)
 	  {
             static TECObjectRef converter = NULL;
             OSStatus the_err = noErr;
@@ -12610,7 +12610,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
         AEProcessAppleEvent(&er);
         
-        /* Build a drag_n_drop type event as is done in
+        /* Build a DRAG_N_DROP_EVENT type event as is done in
            constuct_drag_n_drop in w32term.c.  */
         if (!NILP (drag_and_drop_file_list))
           {
@@ -12624,7 +12624,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
             else
               f = ((mac_output *) GetWRefCon (wp))->mFP;            
             
-            bufp->kind = drag_n_drop;
+            bufp->kind = DRAG_N_DROP_EVENT;
             bufp->code = 0;
             bufp->timestamp = er.when * (1000 / 60);
 	      /* ticks to milliseconds */

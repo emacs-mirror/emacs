@@ -3362,9 +3362,9 @@ dos_rawgetc ()
 	}
 
       if (code >= 0x100)
-	event.kind = non_ascii_keystroke;
+	event.kind = NON_ASCII_KEYSTROKE_EVENT;
       else
-	event.kind = ascii_keystroke;
+	event.kind = ASCII_KEYSTROKE_EVENT;
       event.code = code;
       event.modifiers =	modifiers;
       event.frame_or_window = selected_frame;
@@ -3473,7 +3473,7 @@ dos_rawgetc ()
 		      }
 		  }
 
-		event.kind = mouse_click;
+		event.kind = MOUSE_CLICK_EVENT;
 		event.code = button_num;
 		event.modifiers = dos_get_modifiers (0)
 		  | (press ? down_modifier : up_modifier);

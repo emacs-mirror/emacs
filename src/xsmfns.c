@@ -57,15 +57,15 @@ Boston, MA 02111-1307, USA.  */
 
 extern Lisp_Object Vuser_login_name;
 
-/* This is the event used when save_session occurs */
+/* This is the event used when SAVE_SESSION_EVENT occurs.  */
 
 static struct input_event emacs_event;
 
-/* The descriptor that we use to check for data from the session manager. */
+/* The descriptor that we use to check for data from the session manager.  */
 
 static int ice_fd = -1;
 
-/* A flag that says if we are in shutdown interactions or not. */
+/* A flag that says if we are in shutdown interactions or not.  */
 
 static int doing_interact = False;
 
@@ -98,7 +98,7 @@ Lisp_Object Vx_session_previous_id;
    open to a session manager, just return 0.
    Otherwise returns the number of events stored in buffer BUFP,
    which can hold up to *NUMCHARS characters.  At most one event is
-   stored, an save_session_event. */
+   stored, an SAVE_SESSION_EVENT. */
 int
 x_session_check_input (bufp, numchars)
      struct input_event *bufp;
@@ -117,9 +117,9 @@ x_session_check_input (bufp, numchars)
   
   /* Reset this so wo can check kind after callbacks have been called by
      IceProcessMessages.  The smc_interact_CB sets the kind to
-     save_session_event, but we don't know beforehand if that callback
+     SAVE_SESSION_EVENT, but we don't know beforehand if that callback
      will be called. */
-  emacs_event.kind = no_event;
+  emacs_event.kind = NO_EVENT;
 
   if (select (ice_fd+1, &read_fds,
               (SELECT_TYPE *)0, (SELECT_TYPE *)0, &tmout) < 0)
@@ -135,8 +135,8 @@ x_session_check_input (bufp, numchars)
 
   
   /* Check if smc_interact_CB was called and we shall generate a
-     save_session event. */
-  if (*numchars > 0 && emacs_event.kind != no_event)
+     SAVE_SESSION_EVENT. */
+  if (*numchars > 0 && emacs_event.kind != NO_EVENT)
     {
       bcopy (&emacs_event, bufp, sizeof (struct input_event));
       bufp++;
@@ -156,7 +156,7 @@ x_session_have_connection ()
 }
 
 /* This is called when the session manager says it is OK to interact with the
-   user.  Here we set the kind to save_session so an event is generated.
+   user.  Here we set the kind to SAVE_SESSION_EVENT so an event is generated.
    Then lisp code can interact with the user. */
 static void
 smc_interact_CB (smcConn, clientData)
@@ -164,7 +164,7 @@ smc_interact_CB (smcConn, clientData)
      SmPointer clientData;
 {
   doing_interact = True;
-  emacs_event.kind = save_session_event;
+  emacs_event.kind = SAVE_SESSION_EVENT;
 }
 
 /* This is called when the session manager tells us to save ourself.

@@ -6636,9 +6636,9 @@ construct_mouse_click (result, event, f)
      XButtonEvent *event;
      struct frame *f;
 {
-  /* Make the event type no_event; we'll change that when we decide
+  /* Make the event type NO_EVENT; we'll change that when we decide
      otherwise.  */
-  result->kind = mouse_click;
+  result->kind = MOUSE_CLICK_EVENT;
   result->code = event->button - Button1;
   result->timestamp = event->time;
   result->modifiers = (x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
@@ -8325,7 +8325,7 @@ static Boolean xaw3d_pick_top;
 /* Action hook installed via XtAppAddActionHook when toolkit scroll
    bars are used..  The hook is responsible for detecting when
    the user ends an interaction with the scroll bar, and generates
-   a `end-scroll' scroll_bar_click' event if so.  */
+   a `end-scroll' SCROLL_BAR_CLICK_EVENT' event if so.  */
 
 static void
 xt_action_hook (widget, client_data, action_name, event, params,
@@ -8455,7 +8455,7 @@ x_scroll_bar_to_input_event (event, ievent)
   XSETWINDOW (window, w);
   f = XFRAME (w->frame);
   
-  ievent->kind = scroll_bar_click;
+  ievent->kind = SCROLL_BAR_CLICK_EVENT;
   ievent->frame_or_window = window;
   ievent->arg = Qnil;
   ievent->timestamp = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
@@ -9513,7 +9513,7 @@ x_scroll_bar_expose (bar, event)
 }
 
 /* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
-   is set to something other than no_event, it is enqueued.
+   is set to something other than NO_EVENT, it is enqueued.
 
    This may be called from a signal handler, so we have to ignore GC
    mark bits.  */
@@ -9529,7 +9529,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
   if (! GC_WINDOWP (bar->window))
     abort ();
 
-  emacs_event->kind = scroll_bar_click;
+  emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
   emacs_event->code = event->xbutton.button - Button1;
   emacs_event->modifiers
     = (x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO 
@@ -9896,7 +9896,7 @@ static struct x_display_info *next_noop_dpyinfo;
          bcopy (&event, f->output_data.x->saved_menu_event, size);	\
          if (numchars >= 1)						\
            {								\
-             bufp->kind = menu_bar_activate_event;			\
+             bufp->kind = MENU_BAR_ACTIVATE_EVENT;			\
              XSETFRAME (bufp->frame_or_window, f);			\
              bufp->arg = Qnil;						\
              bufp++;							\
@@ -10113,7 +10113,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			    if (numchars == 0)
 			      abort ();
 
-			    bufp->kind = delete_window_event;
+			    bufp->kind = DELETE_WINDOW_EVENT;
 			    XSETFRAME (bufp->frame_or_window, f);
 			    bufp->arg = Qnil;
 			    bufp++;
@@ -10203,7 +10203,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		if (numchars == 0)
 		  abort ();
 
-		bufp->kind = selection_clear_event;
+		bufp->kind = SELECTION_CLEAR_EVENT;
 		SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
 		SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
 		SELECTION_EVENT_TIME (bufp) = eventp->time;
@@ -10232,7 +10232,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		  if (numchars == 0)
 		    abort ();
 
-		  bufp->kind = selection_request_event;
+		  bufp->kind = SELECTION_REQUEST_EVENT;
 		  SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
 		  SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
 		  SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
@@ -10372,7 +10372,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      f->async_iconified = 1;
 
-		      bufp->kind = iconify_event;
+		      bufp->kind = ICONIFY_EVENT;
 		      XSETFRAME (bufp->frame_or_window, f);
 		      bufp->arg = Qnil;
 		      bufp++;
@@ -10404,7 +10404,7 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		  if (f->iconified)
 		    {
-		      bufp->kind = deiconify_event;
+		      bufp->kind = DEICONIFY_EVENT;
 		      XSETFRAME (bufp->frame_or_window, f);
 		      bufp->arg = Qnil;
 		      bufp++;
@@ -10640,7 +10640,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			  if (temp_index == sizeof temp_buffer / sizeof (short))
 			    temp_index = 0;
 			  temp_buffer[temp_index++] = keysym;
-			  bufp->kind = non_ascii_keystroke;
+			  bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
 			  bufp->code = keysym;
 			  XSETFRAME (bufp->frame_or_window, f);
 			  bufp->arg = Qnil;
@@ -10703,8 +10703,8 @@ XTread_socket (sd, bufp, numchars, expected)
 							    nbytes - i, len);
 			      
 			      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
-					    ? ascii_keystroke
-					    : multibyte_char_keystroke);
+					    ? ASCII_KEYSTROKE_EVENT
+					    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
 			      bufp->code = c;
 			      XSETFRAME (bufp->frame_or_window, f);
 			      bufp->arg = Qnil;
@@ -11032,7 +11032,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		struct input_event emacs_event;
 		int tool_bar_p = 0;
 		
-		emacs_event.kind = no_event;
+		emacs_event.kind = NO_EVENT;
 		bzero (&compose_status, sizeof (compose_status));
 
 		if (dpyinfo->grabbed
@@ -11098,7 +11098,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    dpyinfo->grabbed &= ~(1 << event.xbutton.button);
 		  }
 
-		if (numchars >= 1 && emacs_event.kind != no_event)
+		if (numchars >= 1 && emacs_event.kind != NO_EVENT)
 		  {
 		    bcopy (&emacs_event, bufp, sizeof (struct input_event));
 		    bufp++;

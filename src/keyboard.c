@@ -505,7 +505,7 @@ static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
    queue.  That way, they'll be dequeued as dead frames or windows,
    but still valid Lisp objects.
 
-   If kbd_buffer[i].kind != no_event, then
+   If kbd_buffer[i].kind != NO_EVENT, then
 
    AREF (kbd_buffer_gcpro, 2 * i) == kbd_buffer[i].frame_or_window.
    AREF (kbd_buffer_gcpro, 2 * i + 1) == kbd_buffer[i].arg.  */
@@ -3330,10 +3330,10 @@ void
 kbd_buffer_store_event (event)
      register struct input_event *event;
 {
-  if (event->kind == no_event)
+  if (event->kind == NO_EVENT)
     abort ();
 
-  if (event->kind == ascii_keystroke)
+  if (event->kind == ASCII_KEYSTROKE_EVENT)
     {
       register int c = event->code & 0377;
 
@@ -3366,7 +3366,7 @@ kbd_buffer_store_event (event)
 
 		  if (event_to_kboard (sp) == kb)
 		    {
-		      sp->kind = no_event;
+		      sp->kind = NO_EVENT;
 		      sp->frame_or_window = Qnil;
 		      sp->arg = Qnil;
 		    }
@@ -3400,11 +3400,11 @@ kbd_buffer_store_event (event)
 	  return;
 	}
     }
-  /* Don't insert two buffer_switch_event's in a row.
+  /* Don't insert two BUFFER_SWITCH_EVENT's in a row.
      Just ignore the second one.  */
-  else if (event->kind == buffer_switch_event
+  else if (event->kind == BUFFER_SWITCH_EVENT
 	   && kbd_fetch_ptr != kbd_store_ptr
-	   && kbd_store_ptr->kind == buffer_switch_event)
+	   && kbd_store_ptr->kind == BUFFER_SWITCH_EVENT)
     return;
 
   if (kbd_store_ptr - kbd_buffer == KBD_BUFFER_SIZE)
@@ -3418,12 +3418,12 @@ kbd_buffer_store_event (event)
     {
       int idx;
       
-#if 0 /* The selection_request_event case looks bogus, and it's error
+#if 0 /* The SELECTION_REQUEST_EVENT case looks bogus, and it's error
 	 prone to assign individual members for other events, in case
 	 the input_event structure is changed.  --2000-07-13, gerd.  */
       struct input_event *sp = kbd_store_ptr;
       sp->kind = event->kind;
-      if (event->kind == selection_request_event)
+      if (event->kind == SELECTION_REQUEST_EVENT)
 	{
 	  /* We must not use the ordinary copying code for this case,
 	     since `part' is an enum and copying it might not copy enough
@@ -3507,7 +3507,7 @@ kbd_buffer_store_help_event (frame, help)
 
 
 /* Discard any mouse events in the event buffer by setting them to
-   no_event.  */
+   NO_EVENT.  */
 void
 discard_mouse_events ()
 {
@@ -3517,22 +3517,22 @@ discard_mouse_events ()
       if (sp == kbd_buffer + KBD_BUFFER_SIZE)
 	sp = kbd_buffer;
 
-      if (sp->kind == mouse_click
+      if (sp->kind == MOUSE_CLICK_EVENT
 #ifdef WINDOWSNT
-	  || sp->kind == w32_scroll_bar_click
+	  || sp->kind == W32_SCROLL_BAR_CLICK_EVENT
 #endif
-	  || sp->kind == scroll_bar_click)
+	  || sp->kind == SCROLL_BAR_CLICK_EVENT)
 	{
-	  sp->kind = no_event;
+	  sp->kind = NO_EVENT;
 	}
     }
 }
 
 
 /* Return non-zero if there are any real events waiting in the event
-   buffer, not counting `no_event's.
+   buffer, not counting `NO_EVENT's.
 
-   If DISCARD is non-zero, discard no_event events at the front of
+   If DISCARD is non-zero, discard NO_EVENT events at the front of
    the input queue, possibly leaving the input queue empty if there
    are no real input events.  */
 
@@ -3543,7 +3543,7 @@ kbd_buffer_events_waiting (discard)
   struct input_event *sp;
   
   for (sp = kbd_fetch_ptr;
-       sp != kbd_store_ptr && sp->kind == no_event;
+       sp != kbd_store_ptr && sp->kind == NO_EVENT;
        ++sp)
     {
       if (sp == kbd_buffer + KBD_BUFFER_SIZE)
@@ -3553,7 +3553,7 @@ kbd_buffer_events_waiting (discard)
   if (discard)
     kbd_fetch_ptr = sp;
 
-  return sp != kbd_store_ptr && sp->kind != no_event;
+  return sp != kbd_store_ptr && sp->kind != NO_EVENT;
 }
 
 
@@ -3566,7 +3566,7 @@ clear_event (event)
   int idx = 2 * (event - kbd_buffer);
   ASET (kbd_buffer_gcpro, idx, Qnil);
   ASET (kbd_buffer_gcpro, idx + 1, Qnil);
-  event->kind = no_event;
+  event->kind = NO_EVENT;
 }
 
 
@@ -3671,7 +3671,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       /* These two kinds of events get special handling
 	 and don't actually appear to the command loop.
 	 We return nil for them.  */
-      if (event->kind == selection_request_event)
+      if (event->kind == SELECTION_REQUEST_EVENT)
 	{
 #ifdef HAVE_X11
 	  struct input_event copy;
@@ -3690,7 +3690,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 #endif
 	}
 
-      else if (event->kind == selection_clear_event)
+      else if (event->kind == SELECTION_CLEAR_EVENT)
 	{
 #ifdef HAVE_X11
 	  struct input_event copy;
@@ -3707,7 +3707,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 #endif
 	}
 #if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
-      else if (event->kind == delete_window_event)
+      else if (event->kind == DELETE_WINDOW_EVENT)
 	{
 	  /* Make an event (delete-frame (FRAME)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
@@ -3716,14 +3716,14 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	}
 #endif
 #if defined (HAVE_X11) || defined (HAVE_NTGUI)
-      else if (event->kind == iconify_event)
+      else if (event->kind == ICONIFY_EVENT)
 	{
 	  /* Make an event (iconify-frame (FRAME)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
 	  obj = Fcons (Qiconify_frame, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
-      else if (event->kind == deiconify_event)
+      else if (event->kind == DEICONIFY_EVENT)
 	{
 	  /* Make an event (make-frame-visible (FRAME)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
@@ -3731,14 +3731,14 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-      else if (event->kind == buffer_switch_event)
+      else if (event->kind == BUFFER_SWITCH_EVENT)
 	{
 	  /* The value doesn't matter here; only the type is tested.  */
 	  XSETBUFFER (obj, current_buffer);
 	  kbd_fetch_ptr = event + 1;
 	}
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
-      else if (event->kind == menu_bar_activate_event)
+      else if (event->kind == MENU_BAR_ACTIVATE_EVENT)
 	{
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events (0);
@@ -3747,7 +3747,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	}
 #endif
 #ifdef WINDOWSNT
-      else if (event->kind == language_change_event)
+      else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
 	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
 	  obj = Fcons (event->modifiers, Qnil);
@@ -3757,7 +3757,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-      else if (event->kind == save_session_event)
+      else if (event->kind == SAVE_SESSION_EVENT)
         {
           obj = Fcons (Qsave_session, Qnil);
 	  kbd_fetch_ptr = event + 1;
@@ -3768,9 +3768,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	 (They shouldn't otherwise be found in the buffer,
 	 but on some machines it appears they do show up
 	 even without MULTI_KBOARD.)  */
-      /* On Windows NT/9X, no_event is used to delete extraneous
+      /* On Windows NT/9X, NO_EVENT is used to delete extraneous
          mouse events during a popup-menu call.  */
-      else if (event->kind == no_event)
+      else if (event->kind == NO_EVENT)
 	kbd_fetch_ptr = event + 1;
       else if (event->kind == HELP_EVENT)
 	{
@@ -3938,7 +3938,7 @@ swallow_events (do_display)
 
       /* These two kinds of events get special handling
 	 and don't actually appear to the command loop.  */
-      if (event->kind == selection_request_event)
+      if (event->kind == SELECTION_REQUEST_EVENT)
 	{
 #ifdef HAVE_X11
 	  struct input_event copy;
@@ -3957,7 +3957,7 @@ swallow_events (do_display)
 #endif
 	}
 
-      else if (event->kind == selection_clear_event)
+      else if (event->kind == SELECTION_CLEAR_EVENT)
 	{
 #ifdef HAVE_X11
 	  struct input_event copy;
@@ -4724,7 +4724,7 @@ make_lispy_event (event)
   switch (SWITCH_ENUM_CAST (event->kind))
     {
       /* A simple keystroke.  */
-    case ascii_keystroke:
+    case ASCII_KEYSTROKE_EVENT:
       {
 	Lisp_Object lispy_c;
 	int c = event->code & 0377;
@@ -4748,7 +4748,7 @@ make_lispy_event (event)
 	return lispy_c;
       }
 
-    case multibyte_char_keystroke:
+    case MULTIBYTE_CHAR_KEYSTROKE_EVENT:
       {
 	Lisp_Object lispy_c;
 
@@ -4758,7 +4758,7 @@ make_lispy_event (event)
 
       /* A function key.  The symbol may need to have modifier prefixes
 	 tacked onto it.  */
-    case non_ascii_keystroke:
+    case NON_ASCII_KEYSTROKE_EVENT:
       button_down_time = 0;
 
       for (i = 0; i < sizeof (lispy_accent_codes) / sizeof (int); i++)
@@ -4820,9 +4820,9 @@ make_lispy_event (event)
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
-    case mouse_click:
+    case MOUSE_CLICK_EVENT:
 #ifndef USE_TOOLKIT_SCROLL_BARS
-    case scroll_bar_click:
+    case SCROLL_BAR_CLICK_EVENT:
 #endif
       {
 	int button = event->code;
@@ -4835,7 +4835,7 @@ make_lispy_event (event)
 	position = Qnil;
 
 	/* Build the position as appropriate for this mouse click.  */
-	if (event->kind == mouse_click)
+	if (event->kind == MOUSE_CLICK_EVENT)
 	  {
 	    int part;
 	    struct frame *f = XFRAME (event->frame_or_window);
@@ -5165,7 +5165,7 @@ make_lispy_event (event)
 	 index of type `enum scroll_bar_part' which we can use as an
 	 index in scroll_bar_parts to get the appropriate symbol.  */
 	 
-    case scroll_bar_click:
+    case SCROLL_BAR_CLICK_EVENT:
       {
 	Lisp_Object position, head, window, portion_whole, part;
 
@@ -5196,7 +5196,7 @@ make_lispy_event (event)
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
 #ifdef WINDOWSNT
-    case w32_scroll_bar_click:
+    case W32_SCROLL_BAR_CLICK_EVENT:
       {
 	int button = event->code;
 	int is_double;
@@ -5239,7 +5239,7 @@ make_lispy_event (event)
 			       Qnil));
 	}
       }
-    case mouse_wheel:
+    case MOUSE_WHEEL_EVENT:
       {
 	int part;
 	FRAME_PTR f = XFRAME (event->frame_or_window);
@@ -5312,7 +5312,7 @@ make_lispy_event (event)
       }
 #endif /* WINDOWSNT */
 
-    case drag_n_drop:
+    case DRAG_N_DROP_EVENT:
       {
 	int part;
 	FRAME_PTR f;
@@ -5418,7 +5418,7 @@ make_lispy_event (event)
       /* A user signal.  */
       return *lispy_user_signals[event->code];
       
-    case save_session_event:
+    case SAVE_SESSION_EVENT:
       return Qsave_session;
       
       /* The 'kind' field of the event is something we don't recognize.  */
@@ -6194,7 +6194,7 @@ gobble_input (expected)
 #endif
 }
 
-/* Put a buffer_switch_event in the buffer
+/* Put a BUFFER_SWITCH_EVENT in the buffer
    so that read_key_sequence will notice the new current buffer.  */
 
 void
@@ -6203,7 +6203,7 @@ record_asynch_buffer_change ()
   struct input_event event;
   Lisp_Object tem;
 
-  event.kind = buffer_switch_event;
+  event.kind = BUFFER_SWITCH_EVENT;
   event.frame_or_window = Qnil;
   event.arg = Qnil;
 
@@ -6358,7 +6358,7 @@ read_avail_input (expected)
 #endif /* no FIONREAD */
       for (i = 0; i < nread; i++)
 	{
-	  buf[i].kind = ascii_keystroke;
+	  buf[i].kind = ASCII_KEYSTROKE_EVENT;
 	  buf[i].modifiers = 0;
 	  if (meta_key == 1 && (cbuf[i] & 0x80))
 	    buf[i].modifiers = meta_modifier;
@@ -6377,7 +6377,7 @@ read_avail_input (expected)
       kbd_buffer_store_event (&buf[i]);
       /* Don't look at input that follows a C-g too closely.
 	 This reduces lossage due to autorepeat on C-g.  */
-      if (buf[i].kind == ascii_keystroke
+      if (buf[i].kind == ASCII_KEYSTROKE_EVENT
 	  && buf[i].code == quit_char)
 	break;
     }
@@ -9822,10 +9822,10 @@ stuff_buffered_input (stuffstring)
       
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
-      if (kbd_fetch_ptr->kind == ascii_keystroke)
+      if (kbd_fetch_ptr->kind == ASCII_KEYSTROKE_EVENT)
 	stuff_char (kbd_fetch_ptr->code);
       
-      kbd_fetch_ptr->kind = no_event;
+      kbd_fetch_ptr->kind = NO_EVENT;
       idx = 2 * (kbd_fetch_ptr - kbd_buffer);
       ASET (kbd_buffer_gcpro, idx, Qnil);
       ASET (kbd_buffer_gcpro, idx + 1, Qnil);
