@@ -447,7 +447,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   if (INTEGERP (arg1)     /* common lisp spec */
       && INTEGERP (arg2)) /* don't promote, if both are ints */
     {				/* this can be improved by pre-calculating */
-      int acc, x, y;		/* some binary powers of x then accumulating */
+      EMACS_INT acc, x, y;	/* some binary powers of x then accumulating */
       Lisp_Object val;
 
       x = XINT (arg1);
@@ -747,7 +747,7 @@ With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.")
 
   if (! NILP (divisor))
     {
-      int i1, i2;
+      EMACS_INT i1, i2;
 
       CHECK_NUMBER_OR_FLOAT (divisor, 1);
 
