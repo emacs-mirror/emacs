@@ -918,6 +918,8 @@ string_make_multibyte (string)
 {
   unsigned char *buf;
   int nbytes;
+  Lisp_Object ret;
+  USE_SAFE_ALLOCA;
 
   if (STRING_MULTIBYTE (string))
     return string;
