@@ -1,5 +1,6 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001
+   Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -32,6 +33,61 @@ Boston, MA 02111-1307, USA.  */
 #include "coding.h"
 #include "process.h"
 #include "composite.h"
+
+struct prop_location;
+
+static Lisp_Object x_atom_to_symbol P_ ((Display *dpy, Atom atom));
+static Atom symbol_to_x_atom P_ ((struct x_display_info *, Display *,
+				  Lisp_Object));
+static void x_own_selection P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object x_get_local_selection P_ ((Lisp_Object, Lisp_Object));
+static void x_decline_selection_request P_ ((struct input_event *));
+static Lisp_Object x_selection_request_lisp_error P_ ((Lisp_Object));
+static Lisp_Object queue_selection_requests_unwind P_ ((Lisp_Object));
+static Lisp_Object some_frame_on_display P_ ((struct x_display_info *));
+static void x_reply_selection_request P_ ((struct input_event *, int,
+					   unsigned char *, int, Atom));
+static int waiting_for_other_props_on_window P_ ((Display *, Window));
+static struct prop_location *expect_property_change P_ ((Display *, Window,
+							 Atom, int));
+static void unexpect_property_change P_ ((struct prop_location *));
+static Lisp_Object wait_for_property_change_unwind P_ ((Lisp_Object));
+static void wait_for_property_change P_ ((struct prop_location *));
+static Lisp_Object x_get_foreign_selection P_ ((Lisp_Object, Lisp_Object));
+static void x_get_window_property P_ ((Display *, Window, Atom,
+				       unsigned char **, int *,
+				       Atom *, int *, unsigned long *, int));
+static void receive_incremental_selection P_ ((Display *, Window, Atom,
+					       Lisp_Object, unsigned,
+					       unsigned char **, int *,
+					       Atom *, int *, unsigned long *));
+static Lisp_Object x_get_window_property_as_lisp_data P_ ((Display *,
+							   Window, Atom,
+							   Lisp_Object, Atom));
+static Lisp_Object selection_data_to_lisp_data P_ ((Display *, unsigned char *,
+						    int, Atom, int));
+static void lisp_data_to_selection_data P_ ((Display *, Lisp_Object,
+					     unsigned char **, Atom *,
+					     unsigned *, int *, int *));
+static Lisp_Object clean_local_selection_data P_ ((Lisp_Object));
+static void initialize_cut_buffers P_ ((Display *, Window));
+
+
+/* Printing traces to stderr.  */
+
+#ifdef TRACE_SELECTION
+#define TRACE0(fmt) \
+  fprintf (stderr, "%d: " fmt "\n", getpid ())
+#define TRACE1(fmt, a0) \
+  fprintf (stderr, "%d: " fmt "\n", getpid (), a0)
+#define TRACE2(fmt, a0, a1) \
+  fprintf (stderr, "%d: " fmt "\n", getpid (), a0, a1)
+#else
+#define TRACE0(fmt)		(void) 0
+#define TRACE1(fmt, a0)		(void) 0
+#define TRACE2(fmt, a0, a1)	(void) 0
+#endif
+
 
 #define CUT_BUFFER_SUPPORT
 
@@ -142,9 +198,7 @@ symbol_to_x_atom (dpyinfo, display, sym)
 #endif
   if (!SYMBOLP (sym)) abort ();
 
-#if 0
-  fprintf (stderr, " XInternAtom %s\n", (char *) XSYMBOL (sym)->name->data);
-#endif
+  TRACE1 (" XInternAtom %s", (char *) XSYMBOL (sym)->name->data);
   BLOCK_INPUT;
   val = XInternAtom (display, (char *) XSYMBOL (sym)->name->data, False);
   UNBLOCK_INPUT;
@@ -156,14 +210,17 @@ symbol_to_x_atom (dpyinfo, display, sym)
    and calls to intern whenever possible.  */
 
 static Lisp_Object
-x_atom_to_symbol (dpyinfo, display, atom)
-     struct x_display_info *dpyinfo;
-     Display *display;
+x_atom_to_symbol (dpy, atom)
+     Display *dpy;
      Atom atom;
 {
+  struct x_display_info *dpyinfo;
   char *str;
   Lisp_Object val;
-  if (! atom) return Qnil;
+  
+  if (! atom)
+    return Qnil;
+  
   switch (atom)
     {
     case XA_PRIMARY:
@@ -196,6 +253,7 @@ x_atom_to_symbol (dpyinfo, display, atom)
 #endif
     }
 
+  dpyinfo = x_display_info_for_display (dpy);
   if (atom == dpyinfo->Xatom_CLIPBOARD)
     return QCLIPBOARD;
   if (atom == dpyinfo->Xatom_TIMESTAMP)
@@ -218,11 +276,9 @@ x_atom_to_symbol (dpyinfo, display, atom)
     return QNULL;
 
   BLOCK_INPUT;
-  str = XGetAtomName (display, atom);
+  str = XGetAtomName (dpy, atom);
   UNBLOCK_INPUT;
-#if 0
-  fprintf (stderr, " XGetAtomName --> %s\n", str);
-#endif
+  TRACE1 ("XGetAtomName --> %s", str);
   if (! str) return Qnil;
   val = intern (str);
   BLOCK_INPUT;
@@ -411,6 +467,8 @@ x_decline_selection_request (event)
      struct input_event *event;
 {
   XSelectionEvent reply;
+  int count;
+  
   reply.type = SelectionNotify;
   reply.display = SELECTION_EVENT_DISPLAY (event);
   reply.requestor = SELECTION_EVENT_REQUESTOR (event);
@@ -419,10 +477,13 @@ x_decline_selection_request (event)
   reply.target = SELECTION_EVENT_TARGET (event);
   reply.property = None;
 
+  /* The reason for the error may be that the receiver has
+     died in the meantime.  Handle that case.  */
   BLOCK_INPUT;
-  XSendEvent (reply.display, reply.requestor, False, 0L,
-	      (XEvent *) &reply);
+  count = x_catch_errors (reply.display);
+  XSendEvent (reply.display, reply.requestor, False, 0L, (XEvent *) &reply);
   XFlush (reply.display);
+  x_uncatch_errors (reply.display, count);
   UNBLOCK_INPUT;
 }
 
@@ -553,9 +614,7 @@ x_reply_selection_request (event, format, data, size, type)
   if (bytes_remaining <= max_bytes)
     {
       /* Send all the data at once, with minimal handshaking.  */
-#if 0
-      fprintf (stderr,"\nStoring all %d\n", bytes_remaining);
-#endif
+      TRACE1 ("Sending all %d bytes", bytes_remaining);
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, size);
       /* At this point, the selection was successfully stored; ack it.  */
@@ -583,17 +642,21 @@ x_reply_selection_request (event, format, data, size, type)
 
       if (x_window_to_frame (dpyinfo, window)) /* #### debug */
 	error ("Attempt to transfer an INCR to ourself!");
-#if 0
-      fprintf (stderr, "\nINCR %d\n", bytes_remaining);
-#endif
+      
+      TRACE2 ("Start sending %d bytes incrementally (%s)",
+	      bytes_remaining,  XGetAtomName (display, reply.property));
       wait_object = expect_property_change (display, window, reply.property,
 					    PropertyDelete);
 
+      TRACE1 ("Set %s to number of bytes to send",
+	      XGetAtomName (display, reply.property));
       XChangeProperty (display, window, reply.property, dpyinfo->Xatom_INCR,
 		       32, PropModeReplace,
 		       (unsigned char *) &bytes_remaining, 1);
       XSelectInput (display, window, PropertyChangeMask);
+      
       /* Tell 'em the INCR data is there...  */
+      TRACE0 ("Send SelectionNotify event");
       XSendEvent (display, window, False, 0L, (XEvent *) &reply);
       XFlush (display);
 
@@ -603,8 +666,13 @@ x_reply_selection_request (event, format, data, size, type)
       /* First, wait for the requester to ack by deleting the property.
 	 This can run random lisp code (process handlers) or signal.  */
       if (! had_errors)
-	wait_for_property_change (wait_object);
+	{
+	  TRACE1 ("Waiting for ACK (deletion of %s)",
+		  XGetAtomName (display, reply.property));
+	  wait_for_property_change (wait_object);
+	}
 
+      TRACE0 ("Got ACK");
       while (bytes_remaining)
 	{
 	  int i = ((bytes_remaining < max_bytes)
@@ -616,9 +684,11 @@ x_reply_selection_request (event, format, data, size, type)
 	  wait_object
 	    = expect_property_change (display, window, reply.property,
 				      PropertyDelete);
-#if 0
-	  fprintf (stderr,"  INCR adding %d\n", i);
-#endif
+
+	  TRACE1 ("Sending increment of %d bytes", i);
+	  TRACE1 ("Set %s to increment data",
+		  XGetAtomName (display, reply.property));
+	  
 	  /* Append the next chunk of data to the property.  */
 	  XChangeProperty (display, window, reply.property, type, format,
 			   PropModeAppend, data, i / format_bytes);
@@ -632,21 +702,23 @@ x_reply_selection_request (event, format, data, size, type)
 	    break;
 
 	  /* Now wait for the requester to ack this chunk by deleting the
-	     property.	 This can run random lisp code or signal.
-	   */
+	     property.	 This can run random lisp code or signal.  */
+	  TRACE1 ("Waiting for increment ACK (deletion of %s)",
+		  XGetAtomName (display, reply.property));
 	  wait_for_property_change (wait_object);
 	}
-      /* Now write a zero-length chunk to the property to tell the requester
-	 that we're done.  */
-#if 0
-      fprintf (stderr,"  INCR done\n");
-#endif
+      
+      /* Now write a zero-length chunk to the property to tell the
+	 requester that we're done.  */
       BLOCK_INPUT;
       if (! waiting_for_other_props_on_window (display, window))
 	XSelectInput (display, window, 0L);
 
+      TRACE1 ("Set %s to a 0-length chunk to indicate EOF",
+	      XGetAtomName (display, reply.property));
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, 0);
+      TRACE0 ("Done sending incrementally");
     }
 
   /* The window we're communicating with may have been deleted
@@ -685,8 +757,7 @@ x_handle_selection_request (event)
 
   GCPRO3 (local_selection_data, converted_selection, target_symbol);
 
-  selection_symbol = x_atom_to_symbol (dpyinfo,
-				       SELECTION_EVENT_DISPLAY (event),
+  selection_symbol = x_atom_to_symbol (SELECTION_EVENT_DISPLAY (event),
 				       SELECTION_EVENT_SELECTION (event));
 
   local_selection_data = assq_no_quit (selection_symbol, Vselection_alist);
@@ -717,7 +788,7 @@ x_handle_selection_request (event)
   selection_request_dpyinfo = dpyinfo;
   record_unwind_protect (x_selection_request_lisp_error, Qnil);
 
-  target_symbol = x_atom_to_symbol (dpyinfo, SELECTION_EVENT_DISPLAY (event),
+  target_symbol = x_atom_to_symbol (SELECTION_EVENT_DISPLAY (event),
 				    SELECTION_EVENT_TARGET (event));
 
 #if 0 /* #### MULTIPLE doesn't work yet */
@@ -805,7 +876,7 @@ x_handle_selection_clear (event)
       }
   UNBLOCK_INPUT;
 
-  selection_symbol = x_atom_to_symbol (dpyinfo, display, selection);
+  selection_symbol = x_atom_to_symbol (display, selection);
 
   local_selection_data = assq_no_quit (selection_symbol, Vselection_alist);
 
@@ -945,8 +1016,7 @@ expect_property_change (display, window, property, state)
      Atom property;
      int state;
 {
-  struct prop_location *pl
-    = (struct prop_location *) xmalloc (sizeof (struct prop_location));
+  struct prop_location *pl = (struct prop_location *) xmalloc (sizeof *pl);
   pl->identifier = ++prop_location_identifier;
   pl->display = display;
   pl->window = window;
@@ -1021,10 +1091,14 @@ wait_for_property_change (location)
     {
       secs = x_selection_timeout / 1000;
       usecs = (x_selection_timeout % 1000) * 1000;
+      TRACE2 ("  Waiting %d secs, %d usecs", secs, usecs);
       wait_reading_process_input (secs, usecs, property_change_reply, 0);
 
       if (NILP (XCAR (property_change_reply)))
-	error ("Timed out waiting for property-notify event");
+	{
+	  TRACE0 ("  Timed out");
+	  error ("Timed out waiting for property-notify event");
+	}
     }
 
   unbind_to (count, Qnil);
@@ -1037,6 +1111,7 @@ x_handle_property_notify (event)
      XPropertyEvent *event;
 {
   struct prop_location *prev = 0, *rest = property_change_wait_list;
+
   while (rest)
     {
       if (rest->property == event->atom
@@ -1044,13 +1119,9 @@ x_handle_property_notify (event)
 	  && rest->display == event->display
 	  && rest->desired_state == event->state)
 	{
-#if 0
-	  fprintf (stderr, "Saw expected prop-%s on %s\n",
-		   (event->state == PropertyDelete ? "delete" : "change"),
-		   (char *) XSYMBOL (x_atom_to_symbol (dpyinfo, event->display,
-						       event->atom))
-		   ->name->data);
-#endif
+	  TRACE2 ("Expected %s of property %s",
+		  (event->state == PropertyDelete ? "deletion" : "change"),
+		  XGetAtomName (event->display, event->atom));
 
 	  rest->arrived = 1;
 
@@ -1066,16 +1137,10 @@ x_handle_property_notify (event)
 	  xfree (rest);
 	  return;
 	}
+      
       prev = rest;
       rest = rest->next;
     }
-#if 0
-  fprintf (stderr, "Saw UNexpected prop-%s on %s\n",
-	   (event->state == PropertyDelete ? "delete" : "change"),
-	   (char *) XSYMBOL (x_atom_to_symbol (dpyinfo,
-					       event->display, event->atom))
-	   ->name->data);
-#endif
 }
 
 
@@ -1160,7 +1225,13 @@ x_get_foreign_selection (selection_symbol, target_type)
     type_atom = symbol_to_x_atom (dpyinfo, display, target_type);
 
   BLOCK_INPUT;
+  
   count = x_catch_errors (display);
+  
+  TRACE2 ("Get selection %s, type %s",
+	  XGetAtomName (display, type_atom),
+	  XGetAtomName (display, target_property));
+
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
   XFlush (display);
@@ -1187,7 +1258,9 @@ x_get_foreign_selection (selection_symbol, target_type)
   /* This allows quits.  Also, don't wait forever.  */
   secs = x_selection_timeout / 1000;
   usecs = (x_selection_timeout % 1000) * 1000;
+  TRACE1 ("  Start waiting %d secs for SelectionNotify", secs);
   wait_reading_process_input (secs, usecs, reading_selection_reply, 0);
+  TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
 
   BLOCK_INPUT;
   x_check_errors (display, "Cannot get selection: %s");
@@ -1230,9 +1303,12 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
   unsigned char *tmp_data = 0;
   int result;
   int buffer_size = SELECTION_QUANTUM (display);
-  if (buffer_size > MAX_SELECTION_QUANTUM) buffer_size = MAX_SELECTION_QUANTUM;
+  
+  if (buffer_size > MAX_SELECTION_QUANTUM)
+    buffer_size = MAX_SELECTION_QUANTUM;
   
   BLOCK_INPUT;
+  
   /* First probe the thing to find out how big it is.  */
   result = XGetWindowProperty (display, window, property,
 			       0L, 0L, False, AnyPropertyType,
@@ -1246,6 +1322,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       *bytes_ret = 0;
       return;
     }
+  
   /* This was allocated by Xlib, so use XFree.  */
   XFree ((char *) tmp_data);
   
@@ -1261,7 +1338,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
   /* Now read, until we've gotten it all.  */
   while (bytes_remaining)
     {
-#if 0
+#ifdef TRACE_SELECTION
       int last = bytes_remaining;
 #endif
       result
@@ -1271,17 +1348,20 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
 			      AnyPropertyType,
 			      actual_type_ret, actual_format_ret,
 			      actual_size_ret, &bytes_remaining, &tmp_data);
-#if 0
-      fprintf (stderr, "<< read %d\n", last-bytes_remaining);
-#endif
+
+      TRACE2 ("Read %ld bytes from property %s",
+	      last - bytes_remaining,
+	      XGetAtomName (display, property));
+
       /* If this doesn't return Success at this point, it means that
 	 some clod deleted the selection while we were in the midst of
-	 reading it.  Deal with that, I guess....
-       */
-      if (result != Success) break;
+	 reading it.  Deal with that, I guess.... */
+      if (result != Success)
+	break;
       *actual_size_ret *= *actual_format_ret / 8;
       bcopy (tmp_data, (*data_ret) + offset, *actual_size_ret);
       offset += *actual_size_ret;
+      
       /* This was allocated by Xlib, so use XFree.  */
       XFree ((char *) tmp_data);
     }
@@ -1312,9 +1392,8 @@ receive_incremental_selection (display, window, property, target_type,
   struct prop_location *wait_object;
   *size_bytes_ret = min_size_bytes;
   *data_ret = (unsigned char *) xmalloc (*size_bytes_ret);
-#if 0
-  fprintf (stderr, "\nread INCR %d\n", min_size_bytes);
-#endif
+
+  TRACE1 ("Read %d bytes incrementally", min_size_bytes);
 
   /* At this point, we have read an INCR property.
      Delete the property to ack it.
@@ -1326,7 +1405,11 @@ receive_incremental_selection (display, window, property, target_type,
    */
   BLOCK_INPUT;
   XSelectInput (display, window, STANDARD_EVENT_SET | PropertyChangeMask);
+  TRACE1 ("  Delete property %s",
+	  XSYMBOL (x_atom_to_symbol (display, property))->name->data);
   XDeleteProperty (display, window, property);
+  TRACE1 ("  Expect new value of property %s",
+	  XSYMBOL (x_atom_to_symbol (display, property))->name->data);
   wait_object = expect_property_change (display, window, property,
 					PropertyNewValue);
   XFlush (display);
@@ -1336,20 +1419,24 @@ receive_incremental_selection (display, window, property, target_type,
     {
       unsigned char *tmp_data;
       int tmp_size_bytes;
+
+      TRACE0 ("  Wait for property change");
       wait_for_property_change (wait_object);
+      
       /* expect it again immediately, because x_get_window_property may
 	 .. no it won't, I don't get it.
-	 .. Ok, I get it now, the Xt code that implements INCR is broken.
-       */
+	 .. Ok, I get it now, the Xt code that implements INCR is broken. */
+      TRACE0 ("  Get property value");
       x_get_window_property (display, window, property,
 			     &tmp_data, &tmp_size_bytes,
 			     type_ret, format_ret, size_ret, 1);
 
+      TRACE1 ("  Read increment of %d bytes", tmp_size_bytes);
+
       if (tmp_size_bytes == 0) /* we're done */
 	{
-#if 0
-	  fprintf (stderr, "  read INCR done\n");
-#endif
+	  TRACE0 ("Done reading incrementally");
+
 	  if (! waiting_for_other_props_on_window (display, window))
 	    XSelectInput (display, window, STANDARD_EVENT_SET);
 	  unexpect_property_change (wait_object);
@@ -1360,31 +1447,29 @@ receive_incremental_selection (display, window, property, target_type,
 	}
 
       BLOCK_INPUT;
+      TRACE1 ("  ACK by deleting property %s",
+	      XGetAtomName (display, property));
       XDeleteProperty (display, window, property);
       wait_object = expect_property_change (display, window, property,
 					    PropertyNewValue);
       XFlush (display);
       UNBLOCK_INPUT;
 
-#if 0
-      fprintf (stderr, "  read INCR %d\n", tmp_size_bytes);
-#endif
       if (*size_bytes_ret < offset + tmp_size_bytes)
 	{
-#if 0
-	  fprintf (stderr, "  read INCR realloc %d -> %d\n",
-		   *size_bytes_ret, offset + tmp_size_bytes);
-#endif
 	  *size_bytes_ret = offset + tmp_size_bytes;
 	  *data_ret = (unsigned char *) xrealloc (*data_ret, *size_bytes_ret);
 	}
+      
       bcopy (tmp_data, (*data_ret) + offset, tmp_size_bytes);
       offset += tmp_size_bytes;
+      
       /* Use xfree, not XFree, because x_get_window_property
 	 calls xmalloc itself.  */
       xfree (tmp_data);
     }
 }
+
 
 /* Once a requested selection is "ready" (we got a SelectionNotify event),
    fetch value from property PROPERTY of X window WINDOW on display DISPLAY.
@@ -1407,6 +1492,8 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
   Lisp_Object val;
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
 
+  TRACE0 ("Reading selection data");
+
   x_get_window_property (display, window, property, &data, &bytes,
 			 &actual_type, &actual_format, &actual_size, 1);
   if (! data)
@@ -1421,12 +1508,12 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
 	       ? Fcons (build_string ("selection owner couldn't convert"),
 			actual_type
 			? Fcons (target_type,
-				 Fcons (x_atom_to_symbol (dpyinfo, display,
+				 Fcons (x_atom_to_symbol (display,
 							  actual_type),
 					Qnil))
 			: Fcons (target_type, Qnil))
 	       : Fcons (build_string ("no selection"),
-			Fcons (x_atom_to_symbol (dpyinfo, display,
+			Fcons (x_atom_to_symbol (display,
 						 selection_atom),
 			       Qnil)));
     }
@@ -1448,6 +1535,7 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
     }
 
   BLOCK_INPUT;
+  TRACE1 ("  Delete property %s", XGetAtomName (display, property));
   XDeleteProperty (display, window, property);
   XFlush (display);
   UNBLOCK_INPUT;
@@ -1574,14 +1662,14 @@ selection_data_to_lisp_data (display, data, size, type, format)
     {
       int i;
       if (size == sizeof (Atom))
-	return x_atom_to_symbol (dpyinfo, display, *((Atom *) data));
+	return x_atom_to_symbol (display, *((Atom *) data));
       else
 	{
 	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (Atom)),
 					make_number (0));
 	  for (i = 0; i < size / sizeof (Atom); i++)
 	    Faset (v, make_number (i),
-		   x_atom_to_symbol (dpyinfo, display, ((Atom *) data) [i]));
+		   x_atom_to_symbol (display, ((Atom *) data) [i]));
 	  return v;
 	}
     }
@@ -1853,6 +1941,7 @@ x_handle_selection_notify (event)
   if (event->selection != reading_which_selection)
     return;
 
+  TRACE0 ("Received SelectionNotify");
   XCAR (reading_selection_reply)
     = (event->property != 0 ? Qt : Qlambda);
 }
@@ -2121,7 +2210,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   if (format != 8 || type != XA_STRING)
     Fsignal (Qerror,
 	     Fcons (build_string ("cut buffer doesn't contain 8-bit data"),
-		    Fcons (x_atom_to_symbol (dpyinfo, display, type),
+		    Fcons (x_atom_to_symbol (display, type),
 			   Fcons (make_number (format), Qnil))));
 
   ret = (bytes ? make_string ((char *) data, bytes) : Qnil);
