@@ -5567,6 +5567,17 @@ x_make_frame_visible (f)
   XFlushQueue ();
 
   UNBLOCK_INPUT;
+
+  /* Synchronize to ensure Emacs knows the frame is visible
+     before we do anything else.  We do this loop with input not blocked
+     so that incoming events are handled.  */
+  {
+    Lisp_Object frame;
+    XSET (frame, Lisp_Frame, f);
+    while (! f->async_visible)
+      x_sync (frame);
+    FRAME_SAMPLE_VISIBILITY (f);
+  }
 }
 
 /* Change from mapped state to withdrawn state. */
