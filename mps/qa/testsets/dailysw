@@ -1,0 +1,25 @@
+% testset for daily builds of mmsw on the PC
+% (functional testing)
+%
+
+function/82.c
+function/84.c
+function/85.c
+function/86.c
+function/87.c
+function/88.c
+function/89.c
+function/91.c
+function/92.c
+function/93.c
+function/94.c
+function/136.c
+function/137.c
+function/139.c
+function/140.c
+function/141.c
+function/142.c
+function/143.c
+function/145.c
+function/146.c
+
