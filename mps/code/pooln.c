@@ -1,6 +1,7 @@
 /* impl.c.pooln: NULL POOL CLASS
  *
  * $Id$
+ * $HopeName: MMsrc!pooln.c(trunk.28) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

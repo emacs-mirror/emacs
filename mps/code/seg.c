@@ -1,6 +1,7 @@
 /* impl.c.seg: SEGMENTS
  *
  * $Id$
+ * $HopeName: MMsrc!seg.c(trunk.30) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: The design for this module is design.mps.seg.

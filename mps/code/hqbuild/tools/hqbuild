@@ -2,6 +2,7 @@
 # impl.sh.hqbuild
 #
 # $Id$
+# $HopeName: MMsrc!hqbuild:tools:hqbuild(trunk.1) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # Build script for SWIG autobuild system.

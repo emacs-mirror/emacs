@@ -1,6 +1,7 @@
 /* impl.h.chain: GENERATION CHAINS
  *
  * $Id$
+ * $HopeName: MMsrc!chain.h(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

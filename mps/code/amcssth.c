@@ -1,6 +1,7 @@
 /* impl.c.amcssth: POOL CLASS AMC STRESS TEST WITH TWO THREADS
  *
  * $Id$
+ * $HopeName: MMsrc!amcssth.c(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .posix: This is Posix only.

@@ -1,6 +1,7 @@
 /* impl.h.table: A dictionary mapping a Word to a void*
  *
  * $Id$
+ * $HopeName: MMsrc!table.c(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .note.good-hash: As is common in hash table implementations, we

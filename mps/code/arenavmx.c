@@ -1,6 +1,7 @@
 /* impl.c.arenavmx: STUBS FOR ARENAVM
  *
  * $Id$
+ * $HopeName: MMsrc!arenavmx.c(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This file is not properly part of the MPS.  It is a

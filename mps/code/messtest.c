@@ -1,6 +1,7 @@
 /* impl.c.messtest: MESSAGE TEST
  *
  * $Id$
+ * $HopeName: MMsrc!messtest.c(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

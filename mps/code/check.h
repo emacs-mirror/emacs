@@ -1,6 +1,7 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
  * $Id$
+ * $HopeName: MMsrc!check.h(trunk.18) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.

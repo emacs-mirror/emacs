@@ -1,6 +1,7 @@
 /* impl.h.protocol: PROTOCOL INHERITANCE DEFINITIONS
  *
  * $Id$
+ * $HopeName: MMsrc!protocol.h(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

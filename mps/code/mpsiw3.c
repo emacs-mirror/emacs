@@ -3,6 +3,7 @@
  *       WIN32 MEMORY POOL SYSTEM INTERFACE LAYER EXTRAS
  *
  *  $Id$
+ *  $HopeName: MMsrc!mpsiw3.c(trunk.4) $
  *
  *  Copyright (c) 2001 Ravenbrook Limited.
  */

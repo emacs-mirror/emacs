@@ -1,6 +1,7 @@
 /* impl.c.walk: OBJECT WALKER
  *
  * $Id$
+ * $HopeName: MMsrc!walk.c(trunk.7) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

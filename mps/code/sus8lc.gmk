@@ -1,6 +1,7 @@
 # impl.gmk.sus8lc: BUILD FOR SUNOS/SPARC V8/LCC PLATFORM
 #
 # $Id$
+# $HopeName: MMsrc!sus8lc.gmk(trunk.21) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This is the GNU makefile for platform.sus8lc.
