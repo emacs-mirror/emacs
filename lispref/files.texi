@@ -948,10 +948,12 @@ The function @code{file-truename} returns the truename of the file
 @var{filename}.  The argument must be an absolute file name.
 @end defun
 
-@defun file-chase-links filename
+@defun file-chase-links filename &optional limit
 This function follows symbolic links, starting with @var{filename},
 until it finds a file name which is not the name of a symbolic link.
-Then it returns that file name.
+Then it returns that file name.  If you specify a number for
+@var{limit}, then after chasing through that many links, the function
+just returns what it as even if that is still a symbolic link.
 @end defun
 
   To illustrate the difference between @code{file-chase-links} and
