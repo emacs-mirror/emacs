@@ -1,3 +1,7 @@
+2002-01-17  Richard M. Stallman  <rms@gnu.org>
+
+	* ibuf-ext.el: Enable byte-compile-dynamic.
+
 2002-01-17  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el: Restore conditional require of fontset.
