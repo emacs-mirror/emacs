@@ -385,7 +385,8 @@ changing the variable `diary-include-string'."
                                 (list-diary-entries original-date number)))
                 (save-excursion
                   (set-buffer (find-buffer-visiting diary-file))
-                  (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
+		  (let ((inhibit-read-only t))
+		    (subst-char-in-region (point-min) (point-max) ?\^M ?\n t))
                   (setq selective-display nil)
                   (set-buffer-modified-p diary-modified)))
             (beep)
