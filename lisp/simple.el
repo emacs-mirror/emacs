@@ -2145,7 +2145,9 @@ use \\[append-next-kill] before \\[kill-line].
 
 If the buffer is read-only, Emacs will beep and refrain from deleting
 the line, but put the line in the kill ring anyway.  This means that
-you can use this command to copy text from a read-only buffer."
+you can use this command to copy text from a read-only buffer.
+\(If the variable `kill-read-only-ok' is non-nil, then this won't
+even beep.)"
   (interactive "P")
   (kill-region (point)
 	       ;; It is better to move point to the other end of the kill
