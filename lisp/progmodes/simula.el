@@ -132,6 +132,85 @@ for SIMULA mode to function correctly.")
 (defvar simula-mode-syntax-table nil
   "Syntax table in SIMULA mode buffers.")
 
+;; Regexps written with help from Alf-Ivar Holm <alfh@ifi.uio.no>.
+(defconst simula-font-lock-keywords-1
+  (list
+   ;;
+   ;; Comments and strings.
+   '(simula-match-string-or-comment 0
+     (if (match-beginning 1) font-lock-string-face font-lock-comment-face))
+   ;;
+   ;; Compiler directives.
+   '("^%\\([^ \t\n].*\\)" 1 font-lock-reference-face)
+   ;;
+   ;; Class and procedure names.
+   '("\\<\\(class\\|procedure\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+   )
+  "Subdued level highlighting for Simula mode.")
+
+(defconst simula-font-lock-keywords-2
+  (append simula-font-lock-keywords-1
+   (list
+    ;;
+    ;; Constants as references.
+    '("\\<\\(false\\|none\\|notext\\|true\\)\\>" . font-lock-reference-face)
+    ;;
+    ;; Keywords.
+    (concat "\\<\\("
+;	    (make-regexp
+;	     '("activate" "after" "and" "at" "before" "begin" "delay" "do"
+;	       "else" "end" "eq" "eqv" "external" "for" "ge" "go" "goto" "gt"
+;	       "hidden" "if" "imp" "in" "inner" "inspect" "is" "label" "le"
+;	       "lt" "ne" "new" "not" "or" "otherwise" "prior" "protected"
+;	       "qua" "reactivate" "step" "switch" "then" "this" "to" "until"
+;	       "virtual" "when" "while"))
+	    "a\\(ctivate\\|fter\\|nd\\|t\\)\\|be\\(fore\\|gin\\)\\|"
+	    "d\\(elay\\|o\\)\\|e\\(lse\\|nd\\|qv?\\|xternal\\)\\|for\\|"
+	    "g\\([eot]\\|oto\\)\\|hidden\\|i\\([fns]\\|mp\\|n\\(ner\\|"
+	    "spect\\)\\)\\|l\\([et]\\|abel\\)\\|n\\(ew?\\|ot\\)\\|"
+	    "o\\(r\\|therwise\\)\\|pr\\(ior\\|otected\\)\\|qua\\|"
+	    "reactivate\\|s\\(tep\\|witch\\)\\|t\\(h\\(en\\|is\\)\\|o\\)\\|"
+	    "until\\|virtual\\|wh\\(en\\|ile\\)"	    
+	    "\\)\\>")
+    ;;
+    ;; Types.
+    (cons (concat "\\<\\(array\\|boolean\\|character\\|integer\\|"
+		  "long\\|name\\|real\\|short\\|text\\|value\\|ref\\)\\>")
+	  'font-lock-type-face)
+    ))
+  "Medium level highlighting for Simula mode.")
+
+(defconst simula-font-lock-keywords-3
+  (append simula-font-lock-keywords-2
+   (list
+    ;;
+    ;; Super-class names and super-slow.
+    '("\\<\\(\\sw+\\)[ \t]+class\\>" 1 font-lock-function-name-face)
+    ;;
+    ;; Types and their declarations.
+    (list (concat "\\<\\(array\\|boolean\\|character\\|integer\\|"
+		  "long\\|name\\|real\\|short\\|text\\|value\\)\\>"
+		  "\\([ \t]+\\sw+\\>\\)*")
+	  '(font-lock-match-c++-style-declaration-item-and-skip-to-next
+	    ;; Start with point after all type specifiers.
+	    (goto-char (or (match-beginning 2) (match-end 1)))
+	    ;; Finish with point after first type specifier.
+	    (goto-char (match-end 1))
+	    ;; Fontify as a variable name.
+	    (1 font-lock-variable-name-face)))
+    ;;
+    ;; Object references and their declarations.
+    '("\\<\\(ref\\)\\>[ \t]*\\((\\(\\sw+\\))\\)?"
+      (3 font-lock-function-name-face nil t)
+      (font-lock-match-c++-style-declaration-item-and-skip-to-next nil nil
+       (1 font-lock-variable-name-face)))
+    ))
+  "Gaudy level highlighting for Simula mode.")
+
+(defvar simula-font-lock-keywords simula-font-lock-keywords-1
+  "Default expressions to highlight in Simula mode.")
+
 ; The following function is taken from cc-mode.el,
 ; it determines the flavor of the Emacs running
 (defconst simula-emacs-features
@@ -194,7 +273,7 @@ supported list, along with the values for this variable:
   (modify-syntax-entry ?\[ "."    simula-mode-syntax-table)
   (modify-syntax-entry ?\\ "."    simula-mode-syntax-table)
   (modify-syntax-entry ?\] "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?_  "w"    simula-mode-syntax-table)
+  (modify-syntax-entry ?_  "_"    simula-mode-syntax-table)
   (modify-syntax-entry ?\| "."    simula-mode-syntax-table)
   (modify-syntax-entry ?\{ "."    simula-mode-syntax-table)
   (modify-syntax-entry ?\} "."    simula-mode-syntax-table))
@@ -277,6 +356,7 @@ supported list, along with the values for this variable:
   "Abbrev table in SIMULA mode buffers")
 
 
+;;;###autoload
 (defun simula-mode ()
   "Major mode for editing SIMULA code.
 \\{simula-mode-map}
@@ -349,6 +429,11 @@ at all."
   (setq parse-sexp-ignore-comments nil)
   (make-local-variable 'comment-multi-line)
   (setq comment-multi-line t)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+	'((simula-font-lock-keywords simula-font-lock-keywords-1
+	   simula-font-lock-keywords-2 simula-font-lock-keywords-3)
+	  t t ((?_ . "w"))))
   (if simula-mode-abbrev-table
       ()
     (if simula-abbrev-file
@@ -1566,6 +1651,37 @@ If not nil and not t, move to limit of search and return nil."
 	    ("when" "WHEN" simula-electric-keyword)
 	    ("while" "WHILE" simula-expand-keyword))))
 
+;;; Font Lock mode support.
+(eval-when-compile
+  (require 'cl))
+
+;; SIMULA comments and strings are a mess.  If we rely on the syntax table,
+;; then %-comments may be shown incorrectly (and prematurely) ended by a
+;; semicolon, !-comments by a newline and '-strings may screw up the rest of
+;; the buffer.  And of course we can't do comment- or end-comments using the
+;; syntax table.  We can do everything except end-comments in one fast regexp,
+;; but we aught to do end-comments too, so we need a function.  simon@gnu.
+(defun simula-match-string-or-comment (limit)
+  ;; Return t if there is a string or comment before LIMIT.
+  ;; Matches buffer text so that if (match-string 1) is non-nil, it is the
+  ;; string.  Otherwise, (match-string 0) is non-nil, and is the comment.
+  (when (re-search-forward
+	 (eval-when-compile
+	   (concat "\\(\"[^\"\n]*\"\\|'\\(.\\|![0-9]+!\\)'\\)\\|"
+		   "\\(\\<end[ \t\n]+\\)\\|"
+		   "^%[ \t].*\\|\\(!\\|\\<comment\\>\\)[^;]*;?"))
+	 limit t)
+    (when (match-beginning 3)
+      ;; We've matched an end-comment.  Yuck.  Find the extent of it.
+      (store-match-data
+       (list (point)
+	(if (re-search-forward "\\<\\(end\\|else\\|when\\|otherwise\\)\\>\\|;"
+			       limit 'move)
+	    (match-beginning 0)
+	  (point)))))
+    t))
+
+;;; Hilit mode support.
 (if (and (fboundp 'hilit-set-mode-patterns)
 	 (boundp 'hilit-patterns-alist)
 	 (not (assoc 'simula-mode hilit-patterns-alist)))
@@ -1579,65 +1695,60 @@ If not nil and not t, move to limit of search and return nil."
        ("!\\|\\<COMMENT\\>" ";" comment))
      nil 'case-insensitive))
 
-(setq simula-find-comment-point -1
-      simula-find-comment-context nil)
-
-;; function used by hilit19
-(defun simula-find-next-comment-region (param)
-  "Return region (start end) cons of comment after point, or NIL"
-  (let (start end)
-    ;; This function is called repeatedly, check if point is
-    ;; where we left it in the last call
-    (if (not (eq simula-find-comment-point (point)))
-	(setq simula-find-comment-point (point)
-	      simula-find-comment-context (simula-context)))
-    ;; loop as long as we haven't found the end of a comment
-    (if (memq simula-find-comment-context '(0 1 2))
-	(setq start (point))
-      (if (re-search-forward "\\<end\\>\\|!\\|\"\\|'\\|^%\\|\\<comment\\>"
-			     nil 'move)
-	  (let ((previous-char (preceding-char)))
-	    (cond
-	     ((memq previous-char '(?d ?D))
-	      (setq start (point)
-		    simula-find-comment-context 2))
-	     ((memq previous-char '(?t ?T ?\!))
-	      (setq start (point)
-		    simula-find-comment-context 0))
-	     ((eq previous-char ?%)
-	      (setq start (point)
-		    simula-find-comment-context 0))))))
-    ;; BUG: the following (0 2) branches don't take into account intermixing
-    ;; directive lines
-    (cond
-     ((eq simula-find-comment-context 0)
-      (search-forward ";" nil 'move))
-     ((eq simula-find-comment-context 1)
-      (beginning-of-line 2))
-     ((eq simula-find-comment-context 2)
-      (re-search-forward ";\\|\\<end\\>\\|\\<else\\>\\|\\<otherwise\\>\\|\\<when\\>\\" (point-max) 'move)))
-    (if start
-	(setq end (point)))
-    ;; save point for later calls to this function
-    (setq simula-find-comment-point (if end (point) -1))
-    (and end (cons start end))))
+;; None of this seems to be used by anything, including hilit19.el.  simon@gnu.
+;(setq simula-find-comment-point -1
+;      simula-find-comment-context nil)
+;
+;;; function used by hilit19
+;(defun simula-find-next-comment-region (param)
+;  "Return region (start end) cons of comment after point, or NIL"
+;  (let (start end)
+;    ;; This function is called repeatedly, check if point is
+;    ;; where we left it in the last call
+;    (if (not (eq simula-find-comment-point (point)))
+;	(setq simula-find-comment-point (point)
+;	      simula-find-comment-context (simula-context)))
+;    ;; loop as long as we haven't found the end of a comment
+;    (if (memq simula-find-comment-context '(0 1 2))
+;	(setq start (point))
+;      (if (re-search-forward "\\<end\\>\\|!\\|\"\\|'\\|^%\\|\\<comment\\>"
+;			     nil 'move)
+;	  (let ((previous-char (preceding-char)))
+;	    (cond
+;	     ((memq previous-char '(?d ?D))
+;	      (setq start (point)
+;		    simula-find-comment-context 2))
+;	     ((memq previous-char '(?t ?T ?\!))
+;	      (setq start (point)
+;		    simula-find-comment-context 0))
+;	     ((eq previous-char ?%)
+;	      (setq start (point)
+;		    simula-find-comment-context 0))))))
+;    ;; BUG: the following (0 2) branches don't take into account intermixing
+;    ;; directive lines
+;    (cond
+;     ((eq simula-find-comment-context 0)
+;      (search-forward ";" nil 'move))
+;     ((eq simula-find-comment-context 1)
+;      (beginning-of-line 2))
+;     ((eq simula-find-comment-context 2)
+;      (re-search-forward ";\\|\\<end\\>\\|\\<else\\>\\|\\<otherwise\\>\\|\\<when\\>\\" (point-max) 'move)))
+;    (if start
+;	(setq end (point)))
+;    ;; save point for later calls to this function
+;    (setq simula-find-comment-point (if end (point) -1))
+;    (and end (cons start end))))
 
 ;; defuns for submitting bug reports
 
 (defconst simula-mode-help-address "simula-mode@ifi.uio.no"
   "Address accepting submission of simula-mode bug reports.")
 
-;; get reporter-submit-bug-report when byte-compiling
-(and (fboundp 'eval-when-compile)
-     (eval-when-compile
-      (require 'reporter)))
-
 (defun simula-submit-bug-report ()
   "Submit via mail a bug report on simula-mode."
   (interactive)
   (and
    (y-or-n-p "Do you want to submit a report on simula-mode? ")
-   (require 'reporter)
    (reporter-submit-bug-report
     simula-mode-help-address
     (concat "simula-mode from Emacs " emacs-version)
