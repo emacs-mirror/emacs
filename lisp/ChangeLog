@@ -1,5 +1,10 @@
 2001-07-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (last-sexp-setup-props): New function.
+	(last-sexp-toggle-display): Renamed from last-sexp-print.
+	(last-sexp-toggle-display, eval-last-sexp-1): Use
+	last-sexp-setup-props.
+
 	* mwheel.el (mouse-wheel-down-button, mouse-wheel-up-button): 
 	New user-options.
 	(mouse-wheel-change-button): New function.

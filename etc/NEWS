@@ -1150,8 +1150,8 @@ the first 12 members of a list and at most 4 nesting levels deep (if
 the list is longer or deeper than that, an ellipsis `...'  is
 printed).
 
-<RET> or <mouse-2> on the printed text replace the abbreviated printed
-representation with an unabbreviated one.
+<RET> or <mouse-2> on the printed text toggles between an abbreviated
+printed representation and an unabbreviated one.
 
 The default value of eval-expression-debug-on-error is t, so any error
 during evaluation produces a backtrace.

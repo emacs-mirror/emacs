@@ -9,7 +9,7 @@
 	deal with the first overlay string having an image `display'
 	property.
 	(try_window_reusing_current_matrix, compute_line_metrics): Fix
-	compuation of row's visible height for the case that part of the
+	computation of row's visible height for the case that part of the
 	row is invisible above and part of the row is at the same time
 	invisible below the window.
 
