@@ -214,8 +214,6 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 (defvar tex-shell-map nil
   "Keymap for the tex-shell.  A comint-mode-map with a few additions.")
 
-;(defalias 'TeX-mode 'tex-mode) 		;in loaddefs.
-
 (defvar compare-windows-whitespace nil)	; Pacify the byte-compiler
 
 ;;; This would be a lot simpler if we just used a regexp search,
@@ -245,6 +243,7 @@ is used."
 		       'plain-tex-mode))))
     (if mode (funcall mode)
       (funcall tex-default-mode))))
+
 ;;;###autoload
 (defalias 'TeX-mode 'tex-mode)
 ;;;###autoload
