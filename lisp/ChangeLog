@@ -1,3 +1,13 @@
+2000-10-04  Miles Bader  <miles@gnu.org>
+
+	* simple.el (minibuffer-temporary-goal-position): New variable.
+	(next-history-element): Try to keep the position of point in the
+	input string constant.
+
+	* dired-aux.el (dired-mark-read-file-name): Add optional arg DEFAULT.
+	(dired-do-create-files): If there's only one file, pass it in as
+	the DEFAULT arg to dired-mark-read-file-name.
+
 2000-10-03  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-transfer-file, vc-default-receive-file): Rewritten to 
