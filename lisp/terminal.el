@@ -484,7 +484,7 @@ lets you type a terminal emulator command."
 (defun terminal-edit-mode ()
   "Major mode for editing the contents of a terminal-emulator buffer.
 The editing commands are the same as in Fundamental mode,
-together with a command \\<terminal-edit-mode-map>to return to terminal emulation: \\[terminal-cease-edit]."
+together with a command \\<terminal-edit-map>to return to terminal emulation: \\[terminal-cease-edit]."
   (use-local-map terminal-edit-map)
   (setq major-mode 'terminal-edit-mode)
   (setq mode-name "Terminal Edit")
@@ -540,6 +540,7 @@ together with a command \\<terminal-edit-mode-map>to return to terminal emulatio
       (setq te-more-count -1)))
 
   (setq mode-line-modified (default-value 'mode-line-modified))
+  (use-local-map terminal-map)
   (setq major-mode 'terminal-mode)
   (setq mode-name "terminal")
   (setq mode-line-process '(":%s")))
