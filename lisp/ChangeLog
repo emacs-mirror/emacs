@@ -1,3 +1,8 @@
+2004-01-09  John Paul Wallington  <jpw@gnu.org>
+
+	* bindings.el (mode-line-change-eol): Add EVENT parameter.
+	Temporarily select EVENT's window for changing eol type.
+
 2004-01-09  Deepak Goel  <deego@gnufans.org>
 
 	* calendar/diary-lib.el (diary-entry-time):
