@@ -80,6 +80,13 @@ It should read in the source files which have errors and set
 found.  See that variable for more info.")
 
 ;;;###autoload
+(defvar compilation-process-setup-function nil
+  "*Function to call to customize the compilation process.
+This functions is called immediately before the compilation process is
+started.  It can be used to set any variables or functions that are used
+while processing the output of the compilation process.")
+
+;;;###autoload
 (defvar compilation-buffer-name-function nil
   "Function to compute the name of a compilation buffer.
 The function receives one argument, the name of the major mode of the
@@ -457,6 +464,8 @@ Returns the compilation buffer created."
 	(or (eq outwin (selected-window))
 	    (set-window-point outwin (point-min)))
 	(compilation-set-window-height outwin)
+	(if compilation-process-setup-function
+	    (funcall compilation-process-setup-function))
 	;; Start the compilation.
 	(if (fboundp 'start-process)
 	    (let* ((process-environment (cons "EMACS=t" process-environment))
