@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1141,7 +1141,7 @@ internal_equal (o1, o2, depth)
 	{
 	  return (XMARKER (o1)->buffer == XMARKER (o2)->buffer
 		  && (XMARKER (o1)->buffer == 0
-		      || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos));
+		      || XMARKER (o1)->bytepos == XMARKER (o2)->bytepos));
 	}
       break;
 
