@@ -1,13 +1,13 @@
 ;;; ps-mule.el --- Provide multi-byte character facility to ps-print.
 
-;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Author:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript, multibyte, mule
-;; Time-stamp:	<99/12/11 20:09:24 vinicius>
+;; Time-stamp:	<2000/04/17 11:28:09 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -136,8 +136,8 @@ Valid values are:
 			  `ps-header-font-family' and `ps-font-info-database'.
 
 Any other value is treated as nil."
-  :type '(choice (const non-latin-printer) (const bdf-font)
-		 (const bdf-font-except-latin) (other :tag "nil" nil))
+  :type '(choice (const non-latin-printer)     (const bdf-font)
+		 (const bdf-font-except-latin) (const :tag "nil" nil))
   :group 'ps-print-font)
 
 
