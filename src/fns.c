@@ -101,29 +101,28 @@ A byte-code function object is also allowed.")
   register int i;
 
  retry:
-  if (VECTORP (obj) || STRINGP (obj) || COMPILEDP (obj))
-    return Farray_length (obj);
+  if (STRINGP (obj))
+    XSETFASTINT (val, XSTRING (obj)->size);
+  else if (VECTORP (obj) || COMPILEDP (obj))
+    XSETFASTINT (val, XVECTOR (obj)->size);
   else if (CONSP (obj))
     {
-      for (i = 0, tail = obj; !NILP(tail); i++)
+      for (i = 0, tail = obj; !NILP (tail); i++)
 	{
 	  QUIT;
 	  tail = Fcdr (tail);
 	}
 
       XSETFASTINT (val, i);
-      return val;
     }
-  else if (NILP(obj))
-    {
-      XSETFASTINT (val, 0);
-      return val;
-    }
+  else if (NILP (obj))
+    XSETFASTINT (val, 0);
   else
     {
       obj = wrong_type_argument (Qsequencep, obj);
       goto retry;
     }
+  return val;
 }
 
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
