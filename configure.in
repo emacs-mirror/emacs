@@ -578,6 +578,9 @@ case "${canonical}" in
   rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
+  rs6000-ibm-aix5.1* | powerpc-ibm-aix5.1*  )
+    machine=ibmrs6000 opsys=aix4-2
+  ;;
   rs6000-ibm-aix4.0* | powerpc-ibm-aix4.0*  )
     machine=ibmrs6000 opsys=aix4
   ;;
