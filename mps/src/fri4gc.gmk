@@ -1,4 +1,4 @@
-# impl.gmk.lii4gc: BUILD FOR LINUX/INTEL/GCC PLATFORM
+# impl.gmk.fri4gc: BUILD FOR FreeBSD/INTEL/GCC PLATFORM
 #
 # $HopeName: MMsrc!lii4gc.gmk(trunk.5) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
@@ -8,7 +8,7 @@ PFM = fri4gc
 PFMDEFS = -D_REENTRANT
 
 MPMPF = mpsliban.c mpsioan.c lockfr.c thfri4.c pthrdext.c vmfr.c \
-        protfr.c protfri3.c proti3.c prmci3fr.c ssfri3.c span.c
+        protfr.c protfri3.c prmcan.c ssfri3.c span.c
 SWPF = than.c vmfr.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm -pthread
