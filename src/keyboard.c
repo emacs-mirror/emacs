@@ -3672,8 +3672,8 @@ read_avail_input (expected)
 	    buf[i].modifiers = meta_modifier;
 	  if (meta_key != 2)
 	    cbuf[i] &= ~0x80;
-	    
-	  XSETINT (buf[i].code, cbuf[i]);
+
+	  buf[i].code = cbuf[i];
 #ifdef MULTI_FRAME
 	  XSETFRAME (buf[i].frame_or_window, selected_frame);
 #else
