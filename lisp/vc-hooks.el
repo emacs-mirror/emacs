@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.165 2004/03/28 17:38:03 monnier Exp $
+;; $Id: vc-hooks.el,v 1.166 2004/04/11 15:03:21 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -475,7 +475,7 @@ Return non-nil if FILE is unchanged."
                               (vc-find-backend-function (vc-backend file)
                                                         'diff))))
                     (not (eq (caddr err) 5)))
-                (signal wrong-number-of-arguments err)
+                (signal 'wrong-number-of-arguments err)
               (vc-call diff file))))))
 
 (defun vc-workfile-version (file)
