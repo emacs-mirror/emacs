@@ -1,5 +1,7 @@
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* ffap.el (ffap-newsgroup-p): Test for non-nil symbol-value of htb.
+
 	* calendar/cal-menu.el (calendar-mode-map): Change the menu item's
 	name to "Insert Diary Entry".
 

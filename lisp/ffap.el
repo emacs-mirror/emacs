@@ -549,7 +549,8 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
 	   (progn
 	     ;; errs: htb symbol may be unbound, or not a hash-table.
 	     ;; gnus-gethash is just a macro for intern-soft.
-	     (and (intern-soft string (symbol-value htb))
+	     (and (symbol-value htb)
+		  (intern-soft string (symbol-value htb))
 		  (setq ret string htbs nil))
 	     ;; If we made it this far, gnus is running, so ignore "heads":
 	     (setq heads nil))
