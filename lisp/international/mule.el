@@ -551,6 +551,7 @@ This attribute has a meaning only when `:coding-type' is `ccl'."
 				   ((eq coding-type 'utf-16)
 				    '(:bom
 				      :endian))
+				   ;; Fixme: CCL definition is broken.
 				   ((eq coding-type 'ccl)
 				    '(:ccl-decoder
 				      :ccl-encoder
@@ -697,7 +698,7 @@ formats (e.g. iso-latin-1-unix, koi8-r-dos)."
     ;; coding systems (if necessary).
     (while (cdr tail)
       (let* ((coding (car (cdr tail)))
-	     (aliases (coding-system-get coding 'alias-coding-systems)))
+	     (aliases (coding-system-aliases coding)))
 	(if (or
 	     ;; CODING is an eol variant if not in ALIASES.
 	     (not (memq coding aliases))
@@ -873,6 +874,7 @@ This setting is effective for the next communication only."
 
   (setq next-selection-coding-system coding-system))
 
+;; Fixme: 
 (defun set-coding-priority (arg)
   "Set priority of coding categories according to ARG.
 ARG is a list of coding categories ordered by priority.
@@ -1377,12 +1379,6 @@ translation in CCL programs.
 Each argument is a list of elements of the form (FROM . TO), where FROM
 is a character to be translated to TO.
 
-FROM can be a generic character (see `make-char').  In this case, TO is
-a generic character containing the same number of characters, or an
-ordinary character.  If FROM and TO are both generic characters, all
-characters belonging to FROM are translated to characters belonging to TO
-without changing their position code(s).
-
 The arguments and forms in each argument are processed in the given
 order, and if a previous form already translates TO to some other
 character, say TO-ALT, FROM is also translated to TO-ALT."
@@ -1405,12 +1401,9 @@ character, say TO-ALT, FROM is also translated to TO-ALT."
 	    (if (and (/= from-i to-i) (/= to-i 0))
 		(error "Invalid character pair (%d . %d)" from to))
 	    ;; If we have already translated TO to TO-ALT, FROM should
-	    ;; also be translated to TO-ALT.  But, this is only if TO
-	    ;; is a generic character or TO-ALT is not a generic
-	    ;; character.
+	    ;; also be translated to TO-ALT.
 	    (let ((to-alt (aref table to)))
-	      (if (and to-alt
-		       (or (> to-i 0) (not (generic-char-p to-alt))))
+	      (if (and to-alt (> to-i 0))
 		  (setq to to-alt)))
 	    (if (> from-i 0)
 		(set-char-table-default table from to)
@@ -1495,11 +1488,12 @@ the table in `translation-table-vector'."
 
 (defmacro with-category-table (category-table &rest body)
   "Execute BODY like `progn' with CATEGORY-TABLE the current category table."
-  `(let ((current-category-table (category-table)))
-     (set-category-table ,category-table)
-     (unwind-protect
-	 (progn ,@body)
-       (set-category-table current-category-table))))
+  (let ((current-category-table (make-symbol "current-category-table")))
+    `(let ((,current-category-table (category-table)))
+       (set-category-table ,category-table)
+       (unwind-protect
+	   (progn ,@body)
+	 (set-category-table ,current-category-table)))))
 
 ;;; Initialize some variables.
 
