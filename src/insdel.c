@@ -1788,16 +1788,16 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
 	     STRING_MULTIBYTE (new),
 	     ! NILP (current_buffer->enable_multibyte_characters));
 
-  /* We have copied text into the gap, but we have not altered
-     PT or PT_BYTE yet.  So we can pass PT and PT_BYTE
-     to these functions and get the same results as we would
-     have got earlier on.  Meanwhile, GPT_ADDR does point to
+  /* We have copied text into the gap, but we have not marked
+     it as part of the buffer.  So we can use the old FROM and FROM_BYTE
+     here, for both the previous text and the following text.
+     Meanwhile, GPT_ADDR does point to
      the text that has been stored by copy_text.  */
 
   combined_before_bytes
-    = count_combining_before (GPT_ADDR, outgoing_insbytes, PT, PT_BYTE);
+    = count_combining_before (GPT_ADDR, outgoing_insbytes, from, from_byte);
   combined_after_bytes
-    = count_combining_after (GPT_ADDR, outgoing_insbytes, PT, PT_BYTE);
+    = count_combining_after (GPT_ADDR, outgoing_insbytes, from, from_byte);
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1812,15 +1812,15 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
       deletion = Qnil;
 
       if (! EQ (current_buffer->undo_list, Qt))
-	deletion = make_buffer_string_both (PT, PT_BYTE,
-					    PT + combined_after_bytes,
-					    PT_BYTE + combined_after_bytes, 1);
+	deletion = make_buffer_string_both (from, from_byte,
+					    from + combined_after_bytes,
+					    from_byte + combined_after_bytes, 1);
 
-      adjust_markers_for_record_delete (PT, PT_BYTE,
-					PT + combined_after_bytes,
-					PT_BYTE + combined_after_bytes);
+      adjust_markers_for_record_delete (from, from_byte,
+					from + combined_after_bytes,
+					from_byte + combined_after_bytes);
       if (! EQ (current_buffer->undo_list, Qt))
-	record_delete (PT, deletion);
+	record_delete (from, deletion);
     }
 
   if (combined_before_bytes)
@@ -1829,15 +1829,15 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
       deletion = Qnil;
 
       if (! EQ (current_buffer->undo_list, Qt))
-	deletion = make_buffer_string_both (PT - 1, CHAR_TO_BYTE (PT - 1),
-					    PT, PT_BYTE, 1);
-      adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
-					PT, PT_BYTE);
+	deletion = make_buffer_string_both (from - 1, CHAR_TO_BYTE (from - 1),
+					    from, from_byte, 1);
+      adjust_markers_for_record_delete (from - 1, CHAR_TO_BYTE (from - 1),
+					from, from_byte);
       if (! EQ (current_buffer->undo_list, Qt))
-	record_delete (PT - 1, deletion);
+	record_delete (from - 1, deletion);
     }
 
-  record_insert (PT - !!combined_before_bytes,
+  record_insert (from - !!combined_before_bytes,
 		 inschars - combined_before_bytes + !!combined_before_bytes);
 
   GAP_SIZE -= outgoing_insbytes;
@@ -1866,7 +1866,7 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
 			       combined_before_bytes, combined_after_bytes, 0);
 
 #ifdef USE_TEXT_PROPERTIES
-  offset_intervals (current_buffer, PT, inschars - nchars_del);
+  offset_intervals (current_buffer, from, inschars - nchars_del);
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
@@ -1899,7 +1899,7 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
   MODIFF++;
   UNGCPRO;
 
-  signal_after_change (from, nchars_del, PT - from);
+  signal_after_change (from, nchars_del, GPT - from);
 }
 
 /* Delete characters in current buffer
