@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.7) $
+ * $HopeName: MMsrc!eventdef.h(trunk.8) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -64,7 +64,7 @@ RELATION(AMCCondemn                      , 0x0009, TRUE, Seg, PPPP)
 RELATION(AMCScanBegin                    , 0x000a, TRUE, Trace, PPP)
 RELATION(AMCScanEnd                      , 0x000b, TRUE, Trace, PPP)
 RELATION(AMCFix                          , 0x000c, TRUE, Ref, 0)
-RELATION(AMCFixAmbig                     , 0x000d, TRUE, Ref, 0)
+RELATION(AMCFixInPlace                   , 0x000d, TRUE, Ref, 0)
 RELATION(AMCFixForward                   , 0x000e, TRUE, Ref, A)
 RELATION(AMCReclaim                      , 0x000f, TRUE, Seg, PPP)
 RELATION(AMCTraceEnd                     , 0x0010, TRUE, Trace, PPP)
@@ -106,3 +106,5 @@ RELATION(TraceSegGreyen                  , 0x0031, TRUE, Seg, PPU)
 RELATION(RootScan                        , 0x0032, TRUE, Seg, PWW)
 RELATION(Intern                          , 0x0033, TRUE, User, WS)
 RELATION(Label                           , 0x0034, TRUE, User, AW)
+/* TraceStep is not really seg level event */
+RELATION(TraceStep                       , 0x0033, TRUE, Seg, PP)
