@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.27) $
+ * $HopeName: MMsrc!mpsi.c(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.27) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.28) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -246,7 +246,8 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   AVER(mps_arena_o != NULL);
 
   res = ArenaCreateV(&arena, (ArenaClass)mps_arena_class, args);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
   
   *mps_arena_o = (mps_arena_t)arena;
   return MPS_RES_OK;
@@ -975,4 +976,155 @@ mps_word_t mps_collections(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
   return ArenaEpoch(arena);  /* thread safe: see impl.h.arena.epoch.ts */
+}
+
+
+/* mps_finalize -- register for finalize
+ */
+
+mps_res_t mps_finalize(mps_arena_t mps_arena, mps_addr_t obj)
+{
+  Res res;
+  Arena arena = (Arena)mps_arena;
+
+  ArenaEnter(arena);
+
+  res = ArenaFinalize(arena, (Addr)obj);
+
+  ArenaLeave(arena);
+
+  return res;
+}
+
+void mps_definalize(mps_arena_t arena, mps_addr_t obj)
+{
+  /* Not yet implemented */
+  NOTREACHED;
+}
+
+
+/* Messages */
+
+
+mps_bool_t mps_message_poll(mps_arena_t mps_arena)
+{
+  Bool b;
+  Arena arena = (Arena)mps_arena;
+
+  ArenaEnter(arena);
+
+  b = MessagePoll(arena);
+
+  ArenaLeave(arena);
+
+  return b;
+}
+
+
+mps_message_type_t mps_message_type(mps_arena_t mps_arena,
+                               mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  MessageType type;
+
+  ArenaEnter(arena);
+
+  type = MessageGetType(message);
+
+  ArenaLeave(arena);
+
+  return (mps_message_type_t)type;
+}
+
+void mps_message_discard(mps_arena_t mps_arena, mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+
+  ArenaEnter(arena);
+
+  MessageDiscard(arena, message);
+
+  ArenaLeave(arena);
+}
+
+void mps_message_type_enable(mps_arena_t mps_arena,
+                             mps_message_type_t mps_type)
+{
+  Arena arena = (Arena)mps_arena;
+  MessageType type = (MessageType)mps_type;
+
+  ArenaEnter(arena);
+
+  MessageTypeEnable(arena, type);
+
+  ArenaLeave(arena);
+}
+
+mps_bool_t mps_message_get(mps_message_t *mps_message_return,
+                           mps_arena_t mps_arena,
+                           mps_message_type_t mps_type)
+{
+  Bool b;
+  Arena arena = (Arena)mps_arena;
+  MessageType type = (MessageType)mps_type;
+  Message message;
+
+  ArenaEnter(arena);
+
+  b = MessageGet(&message, arena, type);
+
+  ArenaLeave(arena);
+
+  if(b) {
+    *mps_message_return = (mps_message_t)message;
+  }
+
+  return b;
+}
+
+mps_bool_t mps_message_queue_type(mps_message_type_t *mps_message_type_return,
+				  mps_arena_t mps_arena)
+{
+  Arena arena = (Arena)mps_arena;
+  MessageType type;
+  Bool b;
+
+  ArenaEnter(arena);
+
+  b = MessageQueueType(&type, arena);
+
+  ArenaLeave(arena);
+
+  if(b) {
+    *mps_message_type_return = (mps_message_type_t)type;
+  }
+
+  return b;
+}
+
+
+/* Message Type Specific Methods */
+
+/* MPS_MESSAGE_TYPE_FINALIZATION */
+
+void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
+                                  mps_arena_t mps_arena,
+				  mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  Ref ref;
+
+  AVER(mps_addr_return != NULL);
+  
+  ArenaEnter(arena);
+  AVERT(Arena, arena);
+  MessageFinalizationRef(&ref, arena, message);
+  ArenaLeave(arena);
+
+  /* Must be outside arena in case mps_addr_return is */
+  /* write-protected. */
+  *mps_addr_return = (mps_addr_t)ref;
 }

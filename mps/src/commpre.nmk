@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.6) $
+# $HopeName: MMsrc!commpre.nmk(trunk.7) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -25,7 +25,6 @@
 #   AMS      as above for the "ams" part
 #   LO       as above for the "lo" part
 #   MRG      as above for the "mrg" part
-#   DW       as above for the "dw" part
 #   SW       as above for the "sw" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
@@ -67,9 +66,6 @@
 !ENDIF
 !IFNDEF AMS
 !ERROR mv.nmk: AMS not defined
-!ENDIF
-!IFNDEF MRG
-!ERROR mv.nmk: MRG not defined
 !ENDIF
 !IFNDEF DW
 !ERROR mv.nmk: DW not defined

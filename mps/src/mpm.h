@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.45) $
+ * $HopeName: MMsrc!mpm.h(trunk.46) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -185,11 +185,11 @@ extern Ring (RingNext)(Ring ring);
 #define RING_ELT(type, field, node) \
    ((type)((char *)(node) - (size_t)(&((type)0)->field)))
 
-/* .ring.for */
-#define RING_FOR(var, ring) \
-  for(var = RingNext(ring); \
-      var != (ring); \
-      var = RingNext(var))
+/* .ring.for: Robust to permit deletion  */
+#define RING_FOR(node, ring, next)                               \
+  for(node = RingNext(ring), next = RingNext(node);             \
+      node != (ring) ;                                          \
+      node = (next), next = RingNext(node))
 
 
 /* Bit Table Interface -- see design.mps.bt.if.* for the interface doc */
@@ -312,6 +312,32 @@ extern void PoolTrivTraceEnd(Pool pool, Trace trace, Action action);
 extern double PoolNoBenefit(Pool pool, Action action);
 
 
+/* Message Interface -- see design.mps.message */
+
+extern Bool MessageCheck(Message message);
+extern Bool MessageClassCheck(MessageClass class);
+extern Bool MessageTypeCheck(MessageType type);
+extern MessageClass MessageGetClass(Message message);
+extern Arena MessageArena(Message message);
+extern void MessageInit(Arena arena, Message message, MessageClass class);
+extern void MessageFinish(Message message);
+extern void MessagePost(Arena arena, Message message);
+extern Bool MessagePoll(Arena arena);
+extern MessageType MessageGetType(Message message);
+extern void MessageDiscard(Arena arena, Message message);
+extern void MessageEmpty(Arena arena);
+extern Bool MessageGet(Message *messageReturn, Arena arena, MessageType type);
+extern Bool MessageQueueType(MessageType *typeReturn, Arena arena);
+extern void MessageTypeEnable(Arena arena, MessageType type);
+
+/* Message methods for MessageTypeFinalization */
+
+extern void MessageFinalizationRef(Ref *refReturn,
+				   Arena arena, Message message);
+extern void MessageNoFinalizationRef(Ref *refReturn,
+				     Arena arena, Message message);
+
+
 /* Trace Interface -- see impl.c.trace */
 
 #define TraceSetSingle(ti)	BS_SINGLE(TraceSet, ti)
@@ -419,6 +445,8 @@ extern void (ArenaPoll)(Arena arena);
 #endif
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
+/* @@@@ Doesn't this break a rule that macro and function forms */
+/* must have identical behaviour?  GavinM 1997-09-12 */
 
 extern Res ArenaAlloc(void **baseReturn, Arena arena, Size size);
 extern void ArenaFree(Arena arena, void *base, Size size);
@@ -439,16 +467,17 @@ extern Size ArenaCommitted(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 extern Res ArenaRetract(Arena, Addr base, Size size);
+extern Res ArenaFinalize(Arena arena, Addr addr);
 
 extern Res SegAlloc(Seg *segReturn, SegPref pref,
-		    Arena arena, Size size, Pool pool);
-extern void SegFree(Arena arena, Seg seg);
-extern Addr SegBase(Arena arena, Seg seg);
-extern Addr SegLimit(Arena arena, Seg seg);
-extern Size SegSize(Arena arena, Seg seg);
-extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
-extern Bool SegFirst(Seg *segReturn, Arena arena);
-extern Bool SegNext(Seg *segReturn, Arena arena, Addr addr);
+                    Size size, Pool pool);
+extern void SegFree(Seg seg);
+extern Addr SegBase(Seg seg);
+extern Addr SegLimit(Seg seg);
+extern Size SegSize(Seg seg);
+extern Bool SegOfAddr(Seg *segReturn, Space space, Addr addr);
+extern Bool SegFirst(Seg *segReturn, Space space);
+extern Bool SegNext(Seg *segReturn, Space space, Addr addr);
 
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 extern Res ArenaNoRetract(Arena arena, Addr base, Size size);

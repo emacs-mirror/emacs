@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.19) $
+ * $HopeName: MMsrc!poolawl.c(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.19) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.20) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -78,10 +78,10 @@ static void AWLGroupDestroy(AWLGroup group)
 
   /* This is one of the few places where it is easy to check */
   /* group->grains, so we do */
-  segGrains = SegSize(arena, seg) >> awl->alignShift;
+  segGrains = SegSize(seg) >> awl->alignShift;
   AVER(segGrains == group->grains);
   tableSize = BTSize(segGrains);
-  SegFree(arena, seg);
+  SegFree(seg);
   ArenaFree(arena, group->alloc, tableSize);
   ArenaFree(arena, group->scanned, tableSize);
   ArenaFree(arena, group->mark, tableSize);
@@ -118,7 +118,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   if(size == 0) {
     return ResMEMORY;
   }
-  res = SegAlloc(&seg, SegPrefDefault(), arena, size, pool);
+  res = SegAlloc(&seg, SegPrefDefault(), size, pool);
   if(res != ResOK)
     goto failSegAlloc;
   res = ArenaAlloc(&v, arena, sizeof *group);
@@ -159,7 +159,7 @@ failArenaAllocScanned:
 failArenaAllocMark:
   ArenaFree(arena, group, sizeof *group);
 failArenaAlloc0:
-  SegFree(arena, seg);
+  SegFree(seg);
 failSegAlloc:
   return res;
 }
@@ -182,15 +182,15 @@ static Bool AWLGroupAlloc(Addr *baseReturn, Addr *limitReturn,
   AVERT(Arena, arena);
 
 
-  if(size > SegSize(arena, group->seg)) {
+  if(size > SegSize(group->seg)) {
     return FALSE;
   }
   n = size >> awl->alignShift;
   if(!BTFindLongResRange(&i, &j, group->alloc, 0, group->grains, n)) {
     return FALSE;
   }
-  *baseReturn = AddrAdd(SegBase(arena, group->seg), i << awl->alignShift);
-  *limitReturn = AddrAdd(SegBase(arena, group->seg), j << awl->alignShift);
+  *baseReturn = AddrAdd(SegBase(group->seg), i << awl->alignShift);
+  *limitReturn = AddrAdd(SegBase(group->seg), j << awl->alignShift);
   return TRUE;
 }
 
@@ -223,7 +223,7 @@ static Res AWLInit(Pool pool, va_list arg)
 static void AWLFinish(Pool pool)
 {
   AWL awl;
-  Ring ring, node;
+  Ring ring, node, nextNode;
 
   AVERT(Pool, pool);
 
@@ -231,9 +231,7 @@ static void AWLFinish(Pool pool)
   AVERT(AWL, awl);
 
   ring = &pool->segRing;
-  node = RingNext(ring);
-  while(node != ring) {
-    Ring next = RingNext(node);
+  RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     AWLGroup group;
 
@@ -241,7 +239,6 @@ static void AWLFinish(Pool pool)
     group = (AWLGroup)SegP(seg);
     AVERT(AWLGroup, group);
     AWLGroupDestroy(group);
-    node = next;
   }
   ActionFinish(&awl->actionStruct);
 }
@@ -254,8 +251,8 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AWLGroup group;
   AWL awl;
   Res res;
-  Ring node;
   Arena arena;
+  Ring node, nextNode;
 
   AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
@@ -269,7 +266,7 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
 
-  RING_FOR(node, &pool->segRing) {
+  RING_FOR(node, &pool->segRing, nextNode) {
     Seg seg;
 
     seg = SegOfPoolRing(node);
@@ -291,14 +288,14 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   if(res != ResOK) {
     return res;
   }
-  base = SegBase(arena, group->seg);
-  limit = SegLimit(arena, group->seg);
+  base = SegBase(group->seg);
+  limit = SegLimit(group->seg);
 
 found:
   {
     Index i, j;
-    i = AddrOffset(SegBase(arena, group->seg), base) >> awl->alignShift;
-    j = AddrOffset(SegBase(arena, group->seg), limit) >> awl->alignShift;
+    i = AddrOffset(SegBase(group->seg), base) >> awl->alignShift;
+    j = AddrOffset(SegBase(group->seg), limit) >> awl->alignShift;
     BTSetRange(group->alloc, i, j);
     /* Objects are allocated black */
     BTSetRange(group->mark, i, j);
@@ -326,7 +323,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
   group = (AWLGroup)SegP(BufferSeg(buffer));
   AVERT(AWLGroup, group);
 
-  segBase = SegBase(PoolArena(pool), BufferSeg(buffer));
+  segBase = SegBase(BufferSeg(buffer));
 
   i = AddrOffset(segBase, BufferGetInit(buffer)) >> awl->alignShift;
   j = AddrOffset(segBase, BufferLimit(buffer)) >> awl->alignShift;
@@ -503,8 +500,8 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   group = SegP(seg);
   AVERT(AWLGroup, group);
   *anyScannedReturn = FALSE;
-  base = SegBase(arena, seg);
-  limit = SegLimit(arena, seg);
+  base = SegBase(seg);
+  limit = SegLimit(seg);
   p = base;
   while(p < limit) {
     Index i;	/* the index into the bit tables corresponding to p */
@@ -616,7 +613,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT(Arena, arena);
 
   ref = *refIO;
-  i = AddrOffset(SegBase(arena, seg), ref) >> awl->alignShift;
+  i = AddrOffset(SegBase(seg), ref) >> awl->alignShift;
   
   ss->wasMarked = TRUE;
 
@@ -671,7 +668,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  base = SegBase(arena, seg);
+  base = SegBase(seg);
 
   i = 0;
   while(i < group->grains) {

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.30) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.31) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -82,15 +82,19 @@ typedef Size (*ArenaCommittedMethod)(Arena arena);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaRetractMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaSegAllocMethod)(Seg *segReturn, SegPref pref,
-				   Arena arena, Size size, Pool pool);
-typedef void (*ArenaSegFreeMethod)(Arena arena, Seg seg);
-typedef Addr (*ArenaSegBaseMethod)(Arena arena, Seg seg);
-typedef Addr (*ArenaSegLimitMethod)(Arena arena, Seg seg);
-typedef Size (*ArenaSegSizeMethod)(Arena arena, Seg seg);
+				   Size size, Pool pool);
+typedef void (*ArenaSegFreeMethod)(Seg seg);
+typedef Addr (*ArenaSegBaseMethod)(Seg seg);
+typedef Addr (*ArenaSegLimitMethod)(Seg seg);
+typedef Size (*ArenaSegSizeMethod)(Seg seg);
 typedef Bool (*ArenaSegOfAddrMethod)(Seg *segReturn, Arena arena, Addr addr);
 typedef Bool (*ArenaSegFirstMethod)(Seg *segReturn, Arena arena);
 typedef Bool (*ArenaSegNextMethod)(Seg *segReturn, Arena arena, Addr addr);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
+
+typedef unsigned MessageType;           /* design.mps.message */
+typedef struct MessageStruct *Message;  /* design.mps.message */
+typedef struct MessageClassStruct *MessageClass; /* design.mps.message */
 
 
 /* Pool*Method -- see design.mps.class-interface */
@@ -119,6 +123,18 @@ typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolTraceEndMethod)(Pool pool, Trace trace,
                                    Action action);
 typedef double (*PoolBenefitMethod)(Pool pool, Action action);
+
+
+/* Message*Method -- design.mps.message */
+
+typedef void (*MessageDeleteMethod)(Message message);
+typedef void (*MessageFinalizationRefMethod)
+  (Ref *refReturn, Space space, Message message);
+
+
+/* Message Types -- design.mps.message and elsewhere */
+
+typedef struct MessageFinalizationStruct *MessageFinalization;
 
 
 /* Format*Method -- see design.mps.format-interface */
@@ -151,7 +167,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define AccessSetEMPTY  ((AccessSet)0) /* design.mps.type.access-set */
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
-#define AccessMAX	((Size)2)
+#define AccessMAX       ((Size)2)
 #define RingNONE        ((Ring)0)       /* design.mps.ring */
 #define TraceIdNONE     ((TraceId)-1)   /* design.mps.tracer */
 #define RefSetEMPTY     BS_EMPTY(RefSet)
@@ -177,7 +193,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
                          AttrGC | AttrINCR_RB | AttrINCR_WB)
 #define SegPrefHigh     ((SegPrefKind)0)
 #define SegPrefLow      ((SegPrefKind)1)
-#define SegPrefRefSet	((SegPrefKind)2)
+#define SegPrefRefSet   ((SegPrefKind)2)
 
 
 /* Rank constants -- see design.mps.type.rank */
@@ -245,12 +261,19 @@ enum {
   TraceFINISHED
 };
 
-
 /* CheckLevel's --- Used to control check method behaviour */
 enum {
   CheckNONE = 0,
   CheckSHALLOW = 1,
   CheckDEEP = 2
+};
+
+/* MessageTypes -- see design.mps.message */
+/* .message.types: Keep in sync with impl.h.mps.message.types */
+
+enum {
+  MessageTypeFinalization,
+  MessageTypeMAX
 };
 
 
@@ -266,5 +289,61 @@ typedef unsigned long WriteFU;
 typedef unsigned long WriteFB;
 typedef void *(*WriteFF)(void);
 typedef int WriteFC; /* Promoted */
+
+
+/* Event Codes -- see design.mps.telemetry
+ *
+ * These names are intended to be mnemonic.  They are derived from 
+ * selected letters as indicated, using the transliteration in 
+ * guide.hex.trans.
+ */
+
+                                                   /* EVent ... */
+#define EventEventTime      ((EventType)0xEF213E99) /* TIME */
+#define EventSpaceCreate    ((EventType)0xEF5BCC6E) /* SPaCe CREate */
+#define EventSpaceDestroy   ((EventType)0xEF5BCDE5) /* SPaCe DEStroy */
+#define EventPoolInit       ((EventType)0xEFB07141) /* POoL INIt */
+#define EventPoolFinish     ((EventType)0xEFB07F14) /* POoL FINish */
+#define EventPoolAlloc      ((EventType)0xEFB07A77) /* POoL ALLoc */
+#define EventPoolFree       ((EventType)0xEFB07F6E) /* POoL FREe */
+#define EventArenaCreate    ((EventType)0xEFA64C6E) /* AReNa CREate */
+#define EventArenaDestroy   ((EventType)0xEFA64DE5) /* AReNa DEStroy */
+#define EventSegAlloc       ((EventType)0xEF5E9A77) /* SEG ALLoc */
+#define EventSegFree        ((EventType)0xEF5E9F6E) /* SEG FREe */
+#define EventAMCGenCreate   ((EventType)0xEFA3C94C) /* AMC GeN Create */
+#define EventAMCGenDestroy  ((EventType)0xEFA3C94D) /* AMC GeN Destroy */
+#define EventAMCInit        ((EventType)0xEFA3C141) /* AMC INIt */
+#define EventAMCFinish      ((EventType)0xEFA3CF14) /* AMC FINish */
+#define EventAMCBufferInit  ((EventType)0xEFA3CBF1) /* AMC BuFfer Init */
+#define EventAMCBufferFill  ((EventType)0xEFA3CBFF) /* AMC BuFfer Fill */
+#define EventAMCBufferEmpty ((EventType)0xEFA3CBFE) /* AMC BuFfer Empty */
+#define EventAMCTraceBegin  ((EventType)0xEFA3C26B) /* AMC TRace Begin */
+#define EventAMCCondemn     ((EventType)0xEFA3CC04) /* AMC CONdemn */
+#define EventAMCScanBegin   ((EventType)0xEFA3C5CB) /* AMC SCan Begin */
+#define EventAMCScanEnd     ((EventType)0xEFA3C5CE) /* AMC SCan End */
+#define EventAMCFix         ((EventType)0xEFA3CF18) /* AMC FIX */
+#define EventAMCFixAmbig    ((EventType)0xEFA3CF8A) /* AMC FiX Ambig */
+#define EventAMCFixForward  ((EventType)0xEFA3CF8F) /* AMC FiX Forward */
+#define EventAMCReclaim     ((EventType)0xEFA3C6EC) /* AMC REClaim */
+#define EventAMCTraceEnd    ((EventType)0xEFA3C26E) /* AMC TRace End */
+#define EventTraceStart     ((EventType)0xEF26AC52) /* TRACe STart */
+#define EventTraceCreate    ((EventType)0xEF26ACC6) /* TRACe CReate */
+#define EventTraceDestroy   ((EventType)0xEF26ACDE) /* TRACe DEstroy */
+#define EventTraceSegGreyen ((EventType)0xEF26A599) /* TRAce SeG Greyen */
+#define EventTraceFlipBegin ((EventType)0xEF26AF7B) /* TRAce FLip Begin */
+#define EventTraceFlipEnd   ((EventType)0xEF26AF7E) /* TRAce FLip End */
+#define EventTraceReclaim   ((EventType)0xEF26A6EC) /* TRAce REClaim */
+#define EventTraceScan      ((EventType)0xEF26AC5C) /* TRACe SCan */
+#define EventTraceAccess    ((EventType)0xEF26AACC) /* TRAce ACCess */
+#define EventTracePoll      ((EventType)0xEF26AB01) /* TRAce POLl */
+#define EventTraceFix       ((EventType)0xEF26AF18) /* TRAce FIX */
+#define EventTraceFixSeg    ((EventType)0xEF26AF85) /* TRAce FiX Seg */
+#define EventTraceFixWhite  ((EventType)0xEF26AF83) /* TRAce FiX White */
+#define EventTraceScanArea  ((EventType)0xEF26A5CA) /* TRAce SCan Area */
+#define EventTraceScanAreaTagged ((EventType)0xEF26A5C2) /* TRAce SCan area Tagged */
+#define EventVMCreate       ((EventType)0xEFF3C6EA) /* VM CREAte */
+#define EventVMDestroy      ((EventType)0xEFF3DE52) /* VM DESTroy */
+#define EventVMMap          ((EventType)0xEFF33AB9) /* VM MAP */
+#define EventVMUnmap        ((EventType)0xEFF3043B) /* VM UNMaP */
 
 #endif /* mpmtypes_h */

@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.22) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
@@ -35,7 +35,7 @@
 #include "mpm.h"
 #include "poolmfs.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.22) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.23) $");
 
 
 /*  == Round up ==
@@ -123,7 +123,7 @@ static void MFSFinish(Pool pool)
   seg = mfs->segList;
   while(seg != NULL) {
     Seg nextSeg = (Seg)SegP(seg);   /* .seg.chain */
-    SegFree(PoolArena(pool), seg);
+    SegFree(seg);
     seg = nextSeg;
   }
 
@@ -161,12 +161,9 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     Size unitSize;
     Addr base;
     Header header = NULL, next;
-    Arena arena;
-
-    arena = PoolArena(pool);
 
     /* Create a new segment and attach it to the pool. */
-    res = SegAlloc(&seg, SegPrefDefault(), arena, mfs->extendBy, pool);
+    res = SegAlloc(&seg, SegPrefDefault(), mfs->extendBy, pool);
     if(res != ResOK)
       return res;
 
@@ -180,7 +177,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 
     unitsPerSeg = mfs->unitsPerSeg;
     unitSize = mfs->unitSize;
-    base = SegBase(arena, seg);
+    base = SegBase(seg);
     next = NULL;
 
 #define SUB(b, s, i)    ((Header)AddrAdd(b, (s)*(i)))
@@ -189,7 +186,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     {
       header = SUB(base, unitSize, unitsPerSeg-i - 1);
       AVER(AddrIsAligned(header, pool->alignment));
-      AVER(AddrAdd((Addr)header, unitSize) <= SegLimit(arena, seg));
+      AVER(AddrAdd((Addr)header, unitSize) <= SegLimit(seg));
       header->next = next;
       next = header;
     }

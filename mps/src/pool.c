@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.35) $
+ * $HopeName: MMsrc!pool.c(trunk.36) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.35) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.36) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -373,7 +373,7 @@ double PoolBenefit(Pool pool, Action action)
 Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
 {
   Res res;
-  Ring node;
+  Ring node, nextNode;
 
   AVERT(Pool, pool);
   AVER(stream != NULL);
@@ -391,12 +391,10 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
   res = (*pool->class->describe)(pool, stream);
   if(res != ResOK) return res;
 
-  node = RingNext(&pool->bufferRing);
-  while(node != &pool->bufferRing) {
+  RING_FOR(node, &pool->bufferRing, nextNode) {
     Buffer buffer = RING_ELT(Buffer, poolRing, node);
     res = BufferDescribe(buffer, stream);
     if(res != ResOK) return res;
-    node = RingNext(node);
   }
 
   res = WriteF(stream,
