@@ -1,5 +1,8 @@
 1999-11-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (direct_output_for_insert): Increment glyph positions
+	for glyphs from buffer text only.
+
 	* emacs.c (gdb_valbits, gdb_gctypebits, gdb_emacs_intbits)
 	(gdb_data_seg_bits): New variables.
 	
