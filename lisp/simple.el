@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1865,11 +1865,25 @@ specialization of overwrite-mode, entered by setting the
   (interactive "P")
   (setq overwrite-mode
 	(if (if (null arg)
-		(not (eq (overwrite-mode 'overwrite-mode-binary)))
+		(not (eq overwrite-mode 'overwrite-mode-binary))
 	      (> (prefix-numeric-value arg) 0))
 	    'overwrite-mode-binary))
   (force-mode-line-update))
 
+(defvar line-number-mode nil
+  "*Non-nil means display line number in mode line.")
+
+(defun line-number-mode (arg)
+  "Toggle Line Number mode.
+With arg, turn Line Number mode on iff arg is positive.
+When Line Number mode is enabled, the line number appears
+in the mode line."
+  (interactive "P")
+  (setq line-number-mode
+	(if (null arg) (not line-number-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
+
 (defvar blink-matching-paren t
   "*Non-nil means show matching open-paren when close-paren is inserted.")
 
