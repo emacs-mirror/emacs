@@ -2069,7 +2069,7 @@ key             binding\n\
 
       describe_map (Fcdr (elt), Fcar (elt),
 		    transl ? describe_translation : describe_command,
-		    partial, sub_shadows, &seen);
+		    partial, sub_shadows, &seen, nomenu);
 
     skip: ;
     }
@@ -2155,16 +2155,17 @@ shadow_lookup (shadow, key, flag)
 
 /* Describe the contents of map MAP, assuming that this map itself is
    reached by the sequence of prefix keys KEYS (a string or vector).
-   PARTIAL, SHADOW are as in `describe_map_tree' above.  */
+   PARTIAL, SHADOW, NOMENU are as in `describe_map_tree' above.  */
 
 static void
-describe_map (map, keys, elt_describer, partial, shadow, seen)
+describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
      register Lisp_Object map;
      Lisp_Object keys;
      int (*elt_describer) ();
      int partial;
      Lisp_Object shadow;
      Lisp_Object *seen;
+     int nomenu;
 {
   Lisp_Object elt_prefix;
   Lisp_Object tail, definition, event;
@@ -2208,6 +2209,9 @@ describe_map (map, keys, elt_describer, partial, shadow, seen)
 	  /* Ignore bindings whose "keys" are not really valid events.
 	     (We get these in the frames and buffers menu.)  */
 	  if (! (SYMBOLP (event) || INTEGERP (event)))
+	    continue;
+
+	  if (nomenu && EQ (event, Qmenu_bar))
 	    continue;
 
 	  definition = get_keyelt (XCONS (XCONS (tail)->car)->cdr, 0);
