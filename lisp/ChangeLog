@@ -1,3 +1,7 @@
+2004-07-06  Stefan  <monnier@iro.umontreal.ca>
+
+	* replace.el (query-replace-regexp-eval): Fix last change.
+
 2004-07-05  Stefan  <monnier@iro.umontreal.ca>
 
 	* replace.el (query-replace-descr): New fun.
