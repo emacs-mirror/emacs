@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.35) $
+ * $HopeName: MMsrc!trace.c(trunk.36) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.35) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.36) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -686,13 +686,21 @@ void TraceAccess(Arena arena, Seg seg, AccessSet mode)
   AVERT(Seg, seg);
   UNUSED(mode);
 
+  /* If it's a read access, then the segment must be grey for a trace */
+  /* which is flipped. */
+  AVER((mode & SegSM(seg) & AccessREAD) == 0 ||
+       TraceSetInter(SegGrey(seg), space->flippedTraces) !=
+       TraceSetEMPTY);
+
+  /* If it's a write acess, then the segment must have a summary that */
+  /* is smaller than the mutator's summary (which is assumed to be */
+  /* RefSetUNIV). */
+  AVER((mode & SegSM(seg) & AccessWRITE) == 0 ||
+       SegSummary(seg) != RefSetUNIV);
+
   EVENT_PPU(TraceAccess, arena, seg, mode);
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
-    /* In this case, the segment must be grey for a trace which is */
-    /* flipped. */
-    AVER(TraceSetInter(SegGrey(seg), arena->flippedTraces) != TraceSetEMPTY);
-
     /* scan.conservative: At the moment we scan at RankEXACT.  Really */
     /* we should be scanning at the "phase" of the trace, which is the */
     /* minimum rank of all grey segments. */
@@ -708,11 +716,13 @@ void TraceAccess(Arena arena, Seg seg, AccessSet mode)
     AVER(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY);
   }
 
-  if((mode & SegSM(seg) & AccessWRITE) != 0) {    /* write barrier? */
-    AVER(SegSummary(seg) != RefSetUNIV);
-    TraceSetSummary(arena, seg, RefSetUNIV);
-  }
+  /* The write barrier handling must come after the read barrier, */
+  /* because the latter may set the summary and raise the write barrier. */
+  
+  if((mode & SegSM(seg) & AccessWRITE) != 0)      /* write barrier? */
+    TraceSetSummary(space, seg, RefSetUNIV);
 
+  /* The segment must now be accessible. */
   AVER((mode & SegSM(seg)) == AccessSetEMPTY);
 }
 
