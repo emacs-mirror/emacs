@@ -38,25 +38,8 @@ A value of nil means that any change in indentation starts a new paragraph."
   :type 'boolean
   :group 'fill)
 
-(defcustom sentence-end-double-space t
-  "*Non-nil means a single space does not end a sentence.
-This is relevant for filling.  See also `sentence-end-without-period'
-and `colon-double-space'.
-
-If you change this, you should also change `sentence-end'.  See Info
-node `Sentences'."
-  :type 'boolean
-  :group 'fill)
-
 (defcustom colon-double-space nil
   "*Non-nil means put two spaces after a colon when filling."
-  :type 'boolean
-  :group 'fill)
-
-(defcustom sentence-end-without-period nil
-  "*Non-nil means a sentence will end without a period.
-For example, a sentence in Thai text ends with double space but
-without a period."
   :type 'boolean
   :group 'fill)
 
@@ -123,7 +106,7 @@ This function is used when `adaptive-fill-regexp' does not match."
   :type '(choice (const nil) function)
   :group 'fill)
 
-(defvar fill-indent-according-to-mode nil
+(defvar fill-indent-according-to-mode t
   "Whether or not filling should try to use the major mode's indentation.")
 
 (defun current-fill-column ()
@@ -220,7 +203,6 @@ act as a paragraph-separator."
     (let ((firstline (point))
 	  first-line-prefix
 	  ;; Non-nil if we are on the second line.
-	  at-second
 	  second-line-prefix
 	  start)
       (move-to-left-margin)
@@ -232,51 +214,47 @@ act as a paragraph-separator."
 	    ;; second-line-prefix from being used.
 	    (cond ;; ((looking-at paragraph-start) nil)
 		  ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
-		   (buffer-substring-no-properties start (match-end 0)))
+		   (match-string-no-properties 0))
 		  (adaptive-fill-function (funcall adaptive-fill-function))))
       (forward-line 1)
-      (if (>= (point) to)
-	  (goto-char firstline)
-	(setq at-second t)
+      (if (< (point) to)
+	(progn
 	(move-to-left-margin)
 	(setq start (point))
 	(setq second-line-prefix
-	      (cond ((looking-at paragraph-start) nil)
+	      (cond ((looking-at paragraph-start) nil) ; can it happen ??  -sm
 		    ((and adaptive-fill-regexp
 			  (looking-at adaptive-fill-regexp))
 		     (buffer-substring-no-properties start (match-end 0)))
 		    (adaptive-fill-function
-		     (funcall adaptive-fill-function)))))
-      (if at-second
+		     (funcall adaptive-fill-function))))
 	  ;; If we get a fill prefix from the second line,
 	  ;; make sure it or something compatible is on the first line too.
-	  (and second-line-prefix first-line-prefix
-	       ;; If the first line has the second line prefix too, use it.
-	       (if (or (string-match (concat "\\`"
-					     (regexp-quote second-line-prefix)
-					     "\\(\\'\\|[ \t]\\)")
-				     first-line-prefix)
-		       ;; If the second line prefix is whitespace, use it.
-		       (string-match "\\`[ \t]+\\'" second-line-prefix))
-		   second-line-prefix
+	  (when second-line-prefix
+	    (unless first-line-prefix (setq first-line-prefix ""))
 
-		 ;; If using the common prefix of first-line-prefix
-		 ;; and second-line-prefix leads to problems, consider
-		 ;; to restore the code below that's commented out,
-		 ;; and document why a common prefix cannot be used.
-		 
-;		 ;; If the second line has the first line prefix,
-;		 ;; plus whitespace, use the part that the first line shares.
-;		 (if (string-match (concat "\\`"
-;					     (regexp-quote first-line-prefix)
-;					     "[ \t]*\\'")
-;				   second-line-prefix)
-;		     first-line-prefix)))
+	    (if ;; If the non-whitespace chars match the first line,
+		;; just use it (this subsumes the 2 previous checks).
+		;; Used when first line is `/* ...' and second-line is
+		;; ` * ...'.
+		(save-excursion
+		  (goto-char start)
+		  (looking-at
+		   (apply 'concat
+			  (mapcar (lambda (c)
+				    (if (memq c '(?\t ?\ ))
+					;; The number of chars might not
+					;; match up if there's a mix of
+					;; tabs and spaces.
+					"\\([ \t]*\\|.\\)"
+				      (regexp-quote (string c))))
+				  second-line-prefix))))
+		second-line-prefix
 
 		 ;; Use the longest common substring of both prefixes,
 		 ;; if there is one.
 		 (fill-common-string-prefix first-line-prefix
-					    second-line-prefix)))
+					 second-line-prefix))))
 	;; If we get a fill prefix from a one-line paragraph,
 	;; maybe change it to whitespace,
 	;; and check that it isn't a paragraph starter.
@@ -299,23 +277,75 @@ act as a paragraph-separator."
 					   (concat result "a"))))
 		  result)))))))
 
-(defvar fill-nobreak-predicate nil
-  "If non-nil, a predicate for recognizing places not to break a line.
-The predicate is called with no arguments, with point at the place
-to be tested.  If it returns t, fill commands do not break the line there.")
+(defun fill-single-word-nobreak-p ()
+  "Don't break a line after the first or before the last word of a sentence."
+  (or (looking-at "[ \t]*\\sw+[ \t]*[.?!:][ \t]*$")
+      (save-excursion
+	(skip-chars-backward " \t")
+	(and (/= (skip-syntax-backward "w") 0)
+	     (/= (skip-chars-backward " \t") 0)
+	     (/= (skip-chars-backward ".?!:") 0)))))
+
+(defun fill-french-nobreak-p ()
+  "Return nil if French style allows breaking the line at point.
+This is used in `fill-nobreak-predicate' to prevent breaking lines just
+after an opening paren or just before a closing paren or a punctuation
+mark such as `?' or `:'.  It is common in French writing to put a space
+at such places, which would normally allow breaking the line at those
+places."
+  (or (looking-at "[ \t]*[])}»?!;:-]")
+      (save-excursion
+	(skip-chars-backward " \t")
+	(unless (bolp)
+	  (backward-char 1)
+	  (or (looking-at "[([{«]")
+	      ;; Don't cut right after a single-letter word.
+	      (and (memq (preceding-char) '(?\t ?\ ))
+		   (eq (char-syntax (following-char)) ?w)))))))
+
+(defcustom fill-nobreak-predicate nil
+  "List of predicates for recognizing places not to break a line.
+The predicates are called with no arguments, with point at the place to
+be tested.  If it returns t, fill commands do not break the line there."
+  :group 'fill
+  :type 'hook
+  :options '(fill-french-nobreak-p fill-single-word-nobreak-p))
+
+(defun fill-nobreak-p ()
+  "Return nil if breaking the line at point is allowed.
+Can be customized with the variable `fill-nobreak-predicate'."
+  (unless (bolp)
+    (or
+     ;; Don't break after a period followed by just one space.
+     ;; Move back to the previous place to break.
+     ;; The reason is that if a period ends up at the end of a
+     ;; line, further fills will assume it ends a sentence.
+     ;; If we now know it does not end a sentence, avoid putting
+     ;; it at the end of the line.
+     (and sentence-end-double-space
+	  (save-excursion
+	    (skip-chars-backward ". ")
+	    (looking-at "\\. \\([^ ]\\|$\\)")))
+     ;; Another approach to the same problem.
+     (save-excursion
+       (skip-chars-backward ". ")
+       (and (looking-at "\\.")
+     	    (not (looking-at sentence-end))))
+     ;; Don't split a line if the rest would look like a new paragraph.
+     (unless use-hard-newlines
+       (save-excursion
+	 (skip-chars-forward " \t") (looking-at paragraph-start)))
+     (run-hook-with-args-until-success 'fill-nobreak-predicate))))
 
 ;; Put `fill-find-break-point-function' property to charsets which
 ;; require special functions to find line breaking point.
-(let ((alist '((katakana-jisx0201 . kinsoku)
+(dolist (pair '((katakana-jisx0201 . kinsoku)
 	       (chinese-gb2312 . kinsoku)
 	       (japanese-jisx0208 . kinsoku)
 	       (japanese-jisx0212 . kinsoku)
 	       (chinese-big5-1 . kinsoku)
-	       (chinese-big5-2 . kinsoku))))
-  (while alist
-    (put-charset-property (car (car alist)) 'fill-find-break-point-function
-			  (cdr (car alist)))
-    (setq alist (cdr alist))))
+		(chinese-big5-2 . kinsoku)))
+  (put-charset-property (car pair) 'fill-find-break-point-function (cdr pair)))
 
 (defun fill-find-break-point (limit)
   "Move point to a proper line breaking position of the current line.
@@ -402,6 +432,13 @@ space does not end a sentence, so don't break a line there."
       nil ; There is no paragraph, only whitespace: exit now.
 
     (or justify (setq justify (current-justification)))
+
+    ;; Never indent-according-to-mode with brain dead "indenting" functions.
+    (when (and fill-indent-according-to-mode
+	       (memq indent-line-function
+		     '(indent-relative-maybe indent-relative
+		       indent-to-left-margin)))
+      (set (make-local-variable 'fill-indent-according-to-mode) nil))
 
     ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
     (let ((fill-prefix fill-prefix))
@@ -528,16 +565,7 @@ space does not end a sentence, so don't break a line there."
 		;; further fills will assume it ends a sentence.
 		;; If we now know it does not end a sentence,
 		;; avoid putting it at the end of the line.
-		(while (and (> (point) linebeg)
-			    (or (and sentence-end-double-space
-				     (> (point) (+ linebeg 2))
-				     (eq (preceding-char) ?\ )
-				     (not (eq (following-char) ?\ ))
-				     (eq (char-after (- (point) 2)) ?\.)
-				     (progn (forward-char -2) t))
-				(and fill-nobreak-predicate
-				     (funcall fill-nobreak-predicate)
-				     (skip-chars-backward " \t"))))
+		(while (and (> (point) linebeg) (fill-nobreak-p))
 		  (if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
 		      (forward-char 1)))
 		;; If the left margin and fill prefix by themselves
@@ -553,18 +581,10 @@ space does not end a sentence, so don't break a line there."
 		      (>= prefixcol (current-column)))
 		    ;; Ok, skip at least one word or one \c| character.
 		    ;; Meanwhile, don't stop at a period followed by one space.
-		    (let ((first t))
+		    (let ((fill-nobreak-predicate nil) ;to break sooner.
+			  (first t))
 		      (move-to-column prefixcol)
-		      (while (and (not (eobp))
-				  (or first
-				      (and (not (bobp))
-					   sentence-end-double-space
-					   (save-excursion
-					     (forward-char -1)
-					     (and (looking-at "\\. ")
-						  (not (looking-at "\\.  ")))))
-				      (and fill-nobreak-predicate
-					   (funcall fill-nobreak-predicate))))
+		      (while (and (not (eobp)) (or first (fill-nobreak-p)))
 			;; Find a breakable point while ignoring the
 			;; following spaces.
 			(skip-chars-forward " \t")
@@ -579,7 +599,7 @@ space does not end a sentence, so don't break a line there."
 			(setq first nil)))
 		  ;; Normally, move back over the single space between
 		  ;; the words.
-		  (if (= (preceding-char) ?\ ) (forward-char -1))
+		  (skip-chars-backward " \t")
 
 		  (if enable-multibyte-characters
 		      ;; If we are going to break the line after or
@@ -613,17 +633,9 @@ space does not end a sentence, so don't break a line there."
 							  0 nchars)))))))
 		    ;; Ok, skip at least one word.  But
 		    ;; don't stop at a period followed by just one space.
-		    (let ((first t))
-		      (while (and (not (eobp))
-				  (or first
-				      (and (not (bobp))
-					   sentence-end-double-space
-					   (save-excursion
-					     (forward-char -1)
-					     (and (looking-at "\\. ")
-						  (not (looking-at "\\.  ")))))
-				      (and fill-nobreak-predicate
-					   (funcall fill-nobreak-predicate))))
+		    (let ((fill-nobreak-predicate nil) ;to break sooner.
+			  (first t))
+		      (while (and (not (eobp)) (or first (fill-nobreak-p)))
 			;; Find a breakable point while ignoring the
 			;; following spaces.
 			(skip-chars-forward " \t")
@@ -656,10 +668,7 @@ space does not end a sentence, so don't break a line there."
 		  (set-text-properties (1- (point)) (point)
 				       (text-properties-at (point)))
 		  (if (or fill-prefix
-			  (not fill-indent-according-to-mode)
-			  (memq indent-line-function
-				;; Brain dead "indenting" functions.
-				'(indent-relative-maybe indent-relative)))
+			  (not fill-indent-according-to-mode))
 		      (indent-to-left-margin)
 		    (indent-according-to-mode))
 		  ;; Insert the fill prefix after indentation.
@@ -799,8 +808,7 @@ space does not end a sentence, so don't break a line there."
   "*Method of justifying text not otherwise specified.
 Possible values are `left', `right', `full', `center', or `none'.
 The requested kind of justification is done whenever lines are filled.
-The `justification' text-property  can locally override this variable.
-This variable automatically becomes buffer-local when set in any fashion."
+The `justification' text-property can locally override this variable."
   :type '(choice (const left)
 		 (const right)
 		 (const full)
@@ -1226,61 +1234,47 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 	    (fill-region-as-paragraph start (point) justify)
 	    (if (and (bolp) (not had-newline))
 		(delete-char -1))))))))
-
 (defun fill-individual-paragraphs-prefix (citation-regexp)
-  (or (let ((adaptive-fill-first-line-regexp "")
-	    just-one-line-prefix
-	    two-lines-prefix
-	    one-line-citation-part
-	    two-lines-citation-part
-	    adjusted-two-lines-citation-part)
-	(setq just-one-line-prefix
-	      (fill-context-prefix
-	       (point)
-	       (line-beginning-position 2)))
-	(setq two-lines-prefix
-	      (fill-context-prefix
-	       (point)
-	       (line-beginning-position 3)))
-	(when just-one-line-prefix
-	  (setq one-line-citation-part
-		(if citation-regexp
-		    (fill-individual-paragraphs-citation just-one-line-prefix
-							 citation-regexp)
-		  just-one-line-prefix)))
-	(when two-lines-prefix
-	  (setq two-lines-citation-part
-		(if citation-regexp
-		    (fill-individual-paragraphs-citation two-lines-prefix
-							 citation-regexp)
-		  just-one-line-prefix))
-	  (or two-lines-citation-part (setq two-lines-citation-part ""))
-	  (setq adjusted-two-lines-citation-part
-		(substring two-lines-citation-part 0
-			   (string-match "[ \t]*\\'"
-					 two-lines-citation-part))))
+  (let* ((adaptive-fill-first-line-regexp ".*")
+	 (just-one-line-prefix
+	  ;; Accept any prefix rather than just the ones matched by
+	  ;; adaptive-fill-first-line-regexp.
+	  (fill-context-prefix (point) (line-beginning-position 2)))
+	 (two-lines-prefix
+	  (fill-context-prefix (point) (line-beginning-position 3))))
+    (if (not just-one-line-prefix)
+	(buffer-substring
+	 (point) (save-excursion (skip-chars-forward " \t") (point)))
 	;; See if the citation part of JUST-ONE-LINE-PREFIX
 	;; is the same as that of TWO-LINES-PREFIX,
 	;; except perhaps with longer whitespace.
-	(if (and just-one-line-prefix
-		 two-lines-prefix
+      (if (and just-one-line-prefix two-lines-prefix
+	       (let* ((one-line-citation-part
+		       (fill-individual-paragraphs-citation
+			just-one-line-prefix citation-regexp))
+		      (two-lines-citation-part
+		       (fill-individual-paragraphs-citation
+			two-lines-prefix citation-regexp))
+		      (adjusted-two-lines-citation-part
+		       (substring two-lines-citation-part 0
+				  (string-match "[ \t]*\\'"
+						two-lines-citation-part))))
+		 (and
 		 (string-match (concat "\\`"
 				       (regexp-quote
 					adjusted-two-lines-citation-part)
 				       "[ \t]*\\'")
 			       one-line-citation-part)
 		 (>= (string-width one-line-citation-part)
-		     (string-width two-lines-citation-part)))
+		      (string-width two-lines-citation-part)))))
 	    two-lines-prefix
-	  just-one-line-prefix))
-      (buffer-substring 
-       (point)
-       (save-excursion (skip-chars-forward " \t")
-		       (point)))))
+	just-one-line-prefix))))
 
 (defun fill-individual-paragraphs-citation (string citation-regexp)
-  (string-match citation-regexp
-		string)
-  (match-string 0 string))  
+  (if citation-regexp
+      (if (string-match citation-regexp string)
+	  (match-string 0 string)
+	"")
+    string))
 
 ;;; fill.el ends here
