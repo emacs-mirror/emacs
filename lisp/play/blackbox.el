@@ -335,34 +335,35 @@ a reflection."
       (bb-update-board (propertize "O" 'help-echo "Placed ball"))))))
 
 (defun bb-trace-ray (x y)
-  (let ((result (bb-trace-ray-2
-		 t
-		 x
-		 (cond
-		  ((= x -1) 1)
-		  ((= x 8) -1)
-		  (t 0))
-		 y
-		 (cond
-		  ((= y -1) 1)
-		  ((= y 8) -1)
-		  (t 0)))))
-    (cond
-     ((eq result 'hit)
-      (bb-update-board (propertize "H" 'help-echo "Hit"))
-      (setq bb-score (1+ bb-score)))
-     ((equal result (cons x y))
-      (bb-update-board (propertize "R" 'help-echo "Reflection"))
-      (setq bb-score (1+ bb-score)))
-     (t
-      (setq bb-detour-count (1+ bb-detour-count))
-      (bb-update-board (propertize (format "%d" bb-detour-count)
-				   'help-echo "Detour"))
-      (save-excursion
-	(bb-goto result)
-	(bb-update-board (propertize (format "%d" bb-detour-count)
-				     'help-echo "Detour")))
-      (setq bb-score (+ bb-score 2))))))
+  (when (= (following-char) 32)
+    (let ((result (bb-trace-ray-2
+                   t
+                   x
+                   (cond
+                    ((= x -1) 1)
+                    ((= x 8) -1)
+                    (t 0))
+                   y
+                   (cond
+                    ((= y -1) 1)
+                    ((= y 8) -1)
+                    (t 0)))))
+      (cond
+       ((eq result 'hit)
+        (bb-update-board (propertize "H" 'help-echo "Hit"))
+        (setq bb-score (1+ bb-score)))
+       ((equal result (cons x y))
+        (bb-update-board (propertize "R" 'help-echo "Reflection"))
+        (setq bb-score (1+ bb-score)))
+       (t
+        (setq bb-detour-count (1+ bb-detour-count))
+        (bb-update-board (propertize (format "%d" bb-detour-count)
+                                     'help-echo "Detour"))
+        (save-excursion
+          (bb-goto result)
+          (bb-update-board (propertize (format "%d" bb-detour-count)
+                                       'help-echo "Detour")))
+        (setq bb-score (+ bb-score 2)))))))
 
 (defun bb-trace-ray-2 (first x dx y dy)
   (cond
