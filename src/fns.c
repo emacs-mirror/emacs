@@ -2973,7 +2973,7 @@ is nil and `use-dialog-box' is non-nil.  */)
       {
 	Lisp_Object pargs[3];
 
-	/* Colorize prompt accordingly to `minibuffer-prompt-face'.  */
+	/* Colorize prompt accordingly to `minibuffer-prompt' face.  */
 	pargs[0] = build_string ("%s(y or n) ");
 	pargs[1] = intern ("face");
 	pargs[2] = intern ("minibuffer-prompt");
