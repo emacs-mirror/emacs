@@ -427,10 +427,30 @@ char ppid_env_var_buffer[64];
 int 
 win32_spawnve (int mode, char *cmdname, char **argv, char **envp)
 {
+  Lisp_Object program, full;
   char *cmdline, *env, *parg, **targ;
   int arglen;
   PROCESS_INFORMATION pi;
-  
+
+  /* Handle executable names without an executable suffix.  */
+  program = make_string (cmdname, strlen (cmdname));
+  if (NILP (Ffile_executable_p (program)))
+    {
+      struct gcpro gcpro1;
+      
+      full = Qnil;
+      GCPRO1 (program);
+      openp (Vexec_path, program, EXEC_SUFFIXES, &full, 1);
+      UNGCPRO;
+      if (NILP (full))
+	{
+	  errno = EINVAL;
+	  return -1;
+	}
+      cmdname = XSTRING (full)->data;
+      argv[0] = cmdname;
+    }
+
   if (child_proc_count == MAX_CHILDREN)
     {
       errno = EAGAIN;
