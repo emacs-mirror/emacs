@@ -1901,7 +1901,7 @@ xdialog_show (f, menubarp, keymaps, title, error)
 #if 0 /* This causes crashes, and seems to be redundant -- rms.  */
   lw_modify_all_widgets (dialog_id, first_wv, True);
 #endif
-  lw_modify_all_widgets (dialog_id, first_wv->contents->next, True);
+  lw_modify_all_widgets (dialog_id, first_wv->contents, True);
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
 
