@@ -2305,76 +2305,76 @@ This format is defined by the `gnus-article-time-format' variable."
   (let ((default-name
 	  (funcall function group headers (symbol-value variable)))
 	result)
-    (setq
-     result
-     (cond
-      ((eq filename 'default)
-       default-name)
-      ((eq filename t)
-       default-name)
-      (filename filename)
-      (t
-       (let* ((split-name (gnus-get-split-value gnus-split-methods))
-	      (prompt
-	       (format prompt
-		       (if (and gnus-number-of-articles-to-be-saved
-				(> gnus-number-of-articles-to-be-saved 1))
-			   (format "these %d articles"
-				   gnus-number-of-articles-to-be-saved)
-			 "this article")))
-	      (file
-	       ;; Let the split methods have their say.
-	       (cond
-		;; No split name was found.
-		((null split-name)
-		 (read-file-name
-		  (concat prompt " (default "
-			  (file-name-nondirectory default-name) ") ")
-		  (file-name-directory default-name)
-		  default-name))
-		;; A single group name is returned.
-		((stringp split-name)
-		 (setq default-name
-		       (funcall function split-name headers
-				(symbol-value variable)))
-		 (read-file-name
-		  (concat prompt " (default "
-			  (file-name-nondirectory default-name) ") ")
-		  (file-name-directory default-name)
-		  default-name))
-		;; A single split name was found
-		((= 1 (length split-name))
-		 (let* ((name (expand-file-name
-			       (car split-name) gnus-article-save-directory))
-			(dir (cond ((file-directory-p name)
-				    (file-name-as-directory name))
-				   ((file-exists-p name) name)
-				   (t gnus-article-save-directory))))
-		   (read-file-name
-		    (concat prompt " (default " name ") ")
-		    dir name)))
-		;; A list of splits was found.
-		(t
-		 (setq split-name (nreverse split-name))
-		 (let (result)
-		   (let ((file-name-history
-			  (nconc split-name file-name-history)))
-		     (setq result
-			   (expand-file-name
-			    (read-file-name
-			     (concat prompt " (`M-p' for defaults) ")
-			     gnus-article-save-directory
-			     (car split-name))
-			    gnus-article-save-directory)))
-		   (car (push result file-name-history)))))))
-	 ;; Create the directory.
-	 (gnus-make-directory (file-name-directory file))
-	 ;; If we have read a directory, we append the default file name.
-	 (when (file-directory-p file)
-	   (setq file (expand-file-name (file-name-nondirectory default-name)
-					(file-name-as-directory file))))
-	 ;; Possibly translate some characters.
-	 (nnheader-translate-file-chars file)))))
+    (setq result
+	  (expand-file-name 
+	   (cond
+	    ((eq filename 'default)
+	     default-name)
+	    ((eq filename t)
+	     default-name)
+	    (filename filename)
+	    (t
+	     (let* ((split-name (gnus-get-split-value gnus-split-methods))
+		    (prompt
+		     (format prompt
+			     (if (and gnus-number-of-articles-to-be-saved
+				      (> gnus-number-of-articles-to-be-saved 1))
+				 (format "these %d articles"
+					 gnus-number-of-articles-to-be-saved)
+			       "this article")))
+		    (file
+		     ;; Let the split methods have their say.
+		     (cond
+		      ;; No split name was found.
+		      ((null split-name)
+		       (read-file-name
+			(concat prompt " (default "
+				(file-name-nondirectory default-name) ") ")
+			(file-name-directory default-name)
+			default-name))
+		      ;; A single group name is returned.
+		      ((stringp split-name)
+		       (setq default-name
+			     (funcall function split-name headers
+				      (symbol-value variable)))
+		       (read-file-name
+			(concat prompt " (default "
+				(file-name-nondirectory default-name) ") ")
+			(file-name-directory default-name)
+			default-name))
+		      ;; A single split name was found
+		      ((= 1 (length split-name))
+		       (let* ((name (expand-file-name
+				     (car split-name) gnus-article-save-directory))
+			      (dir (cond ((file-directory-p name)
+					  (file-name-as-directory name))
+					 ((file-exists-p name) name)
+					 (t gnus-article-save-directory))))
+			 (read-file-name
+			  (concat prompt " (default " name ") ")
+			  dir name)))
+		      ;; A list of splits was found.
+		      (t
+		       (setq split-name (nreverse split-name))
+		       (let (result)
+			 (let ((file-name-history
+				(nconc split-name file-name-history)))
+			   (setq result
+				 (expand-file-name
+				  (read-file-name
+				   (concat prompt " (`M-p' for defaults) ")
+				   gnus-article-save-directory
+				   (car split-name))
+				  gnus-article-save-directory)))
+			 (car (push result file-name-history)))))))
+	       ;; Create the directory.
+	       (gnus-make-directory (file-name-directory file))
+      ;; If we have read a directory, we append the default file name.
+	       (when (file-directory-p file)
+		 (setq file (expand-file-name (file-name-nondirectory default-name)
+					      (file-name-as-directory file))))
+	       ;; Possibly translate some characters.
+	       (nnheader-translate-file-chars file))))))
     (gnus-make-directory (file-name-directory result))
     (set variable result)))
 
