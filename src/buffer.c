@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -451,6 +451,8 @@ reset_buffer_local_variables (b)
   b->case_canon_table = Vascii_canon_table;
   b->case_eqv_table = Vascii_eqv_table;
   b->buffer_file_type = Qnil;
+  b->invisibility_spec = Qt;
+
 #if 0
   b->sort_table = XSTRING (Vascii_sort_table);
   b->folding_sort_table = XSTRING (Vascii_folding_sort_table);
@@ -2726,6 +2728,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.mark_active, -1);
   XSETINT (buffer_local_flags.point_before_scroll, -1);
   XSETINT (buffer_local_flags.file_truename, -1);
+  XSETINT (buffer_local_flags.invisibility_spec, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3245,6 +3248,17 @@ functions; it should only affect their performance.");
 
   DEFVAR_PER_BUFFER ("point-before-scroll", &current_buffer->point_before_scroll, Qnil,
   "Value of point before the last series of scroll operations, or nil.");
+
+  DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
+		     &current_buffer->invisibility_spec, Qnil,
+  "Invisibility spec of this buffer.\n\
+The default is t, which means that text is invisible\n\
+if it has a non-nil `invisible' property.\n\
+If the value is a list, a text character is invisible if its `invisible'\n\
+property is an element in that list.\n\
+If an element is a cons cell of the for (PROP . ELLIPSIS),\n\
+then characters with property value PROP is invisible,\n\
+and they have an ellipsis as well if ELLIPSIS is non-nil.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
     "*Non-nil means deactivate the mark when the buffer contents change.");
