@@ -1,3 +1,7 @@
+2003-03-30  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (sh-mode): Add doc-specs for commands and variables.
+
 2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* international/utf-8.el (utf-translate-cjk-mode): Minor mode,
@@ -14,7 +18,7 @@
 	expands to itself, rather than "/foo".  This is intended to work
 	in conjunction with a change in `file-relative-name' which makes
 	sure to use absolute file names if FILE and DIRECTORY have
-	different handlers. 
+	different handlers.
 	(tramp-handle-insert-directory): Comment out XEmacs
 	kludge.  Suggested by Katsumi Yamaoka <yamaoka@jpl.org>.
 
@@ -36,7 +40,7 @@
 	to avoid variable capture.  Set table within `unwind-protect'.
 	Ensure table is restored in correct buffer.  Add docstring.
 
-2003-03-29  Kenichi Handa  <handa@etlken2>
+2003-03-29  Kenichi Handa  <handa@m17n.org>
 
 	* language/japan-util.el: If system-type is not for Windows,
 	prefer japanese-iso-8bit.
