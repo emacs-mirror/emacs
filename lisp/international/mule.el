@@ -669,6 +669,7 @@ a value of `safe-charsets' in PLIST."
 				  (cons (append (car flags) '(t)) (cdr flags))
 				(cons (list (car flags) t) (cdr flags)))
 			      properties)
+	  (coding-system-put esc 'mime-charset nil)
 	  (coding-system-put esc 'safe-charsets t))))
 
   coding-system)
