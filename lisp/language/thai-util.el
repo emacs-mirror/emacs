@@ -2,6 +2,9 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, thai
 
@@ -31,19 +34,37 @@
 (defconst thai-category-table (make-category-table))
 (define-category ?c "Thai consonant" thai-category-table)
 (define-category ?v "Thai upper/lower vowel" thai-category-table)
-(define-category ?t "Thai tone" thai-category-table)
+(define-category ?t "Thai tone mark" thai-category-table)
+(define-category ?u "Thai tone mark and upper sign" thai-category-table)
+(define-category ?I "THAI CHARACTER SARA I" thai-category-table)
+(define-category ?U "THAI CHARACTER THANTHAKHAT" thai-category-table)
 
 ;; The general composing rules are as follows:
 ;;
 ;;                          T
-;;       V        T         V                  T
-;; CV -> C, CT -> C, CVT -> C, Cv -> C, CvT -> C
+;;       V        U         V                  U
+;; CV -> C, CU -> C, CVT -> C, Cv -> C, CvU -> C
 ;;                                   v         v
 ;;
-;; where C: consonant, V: vowel upper, v: vowel lower, T: tone mark.
+;; where C: consonant, V: vowel upper, v: vowel lower,
+;;       T: tone mark, U: tone mark and upper sign.
+;; Special rule: The sign `,Tl(B' can be put on the vowel `,TT(B'.
 
-(defvar thai-composition-pattern "\\cc\\(\\ct\\|\\cv\\ct?\\)"
+
+(defvar thai-composition-pattern
+  "\\cc\\(\\cu\\|\\cI\\cU\\|\\cv\\ct?\\)\\|\\cv\\ct\\|\\cI\\cU"
   "Regular expression matching a Thai composite sequence.")
+
+(defun thai-self-insert-command (&optional n)
+  "Insert the Thai character you type.
+The character will be composed with the surrounding Thai character
+if necessary."
+  (interactive "*p")
+  (let ((pos (point))
+	category-set ch)
+    (self-insert-command n)
+    (or thai-auto-composition-mode
+	(thai-auto-composition (1- (point)) (point) 0))))
 
 (let ((l '((?,T!(B consonant "LETTER KO KAI")				; 0xA1
 	   (?,T"(B consonant "LETTER KHO KHAI")				; 0xA2
@@ -115,14 +136,14 @@
 	   (?,Td(B vowel-base "VOWEL SIGN SARA MAI MALAI")			; 0xE4
 	   (?,Te(B vowel-base "LAK KHANG YAO")				; 0xE5
 	   (?,Tf(B special "MAI YAMOK (repetion)")				; 0xE6
-	   (?,Tg(B vowel-upper "VOWEL SIGN MAI TAI KHU N/S-T")		; 0xE7
+	   (?,Tg(B sign-upper "VOWEL SIGN MAI TAI KHU N/S-T")		; 0xE7
 	   (?,Th(B tone "TONE MAI EK N/S-T")				; 0xE8
 	   (?,Ti(B tone "TONE MAI THO N/S-T")				; 0xE9
 	   (?,Tj(B tone "TONE MAI TRI N/S-T")				; 0xEA
 	   (?,Tk(B tone "TONE MAI CHATTAWA N/S-T")				; 0xEB
-	   (?,Tl(B tone "THANTHAKHAT N/S-T (cancellation mark)")		; 0xEC
-	   (?,Tm(B tone "NIKKHAHIT N/S-T (final nasal)")			; 0xED
-	   (?,Tn(B vowel-upper "YAMAKKAN N/S-T")				; 0xEE
+	   (?,Tl(B sign-upper "THANTHAKHAT N/S-T (cancellation mark)")	; 0xEC
+	   (?,Tm(B sign-upper "NIKKHAHIT N/S-T (final nasal)")		; 0xED
+	   (?,Tn(B sign-upper "YAMAKKAN N/S-T")				; 0xEE
 	   (?,To(B special "FONRMAN")					; 0xEF
 	   (?,Tp(B special "DIGIT ZERO")					; 0xF0
 	   (?,Tq(B special "DIGIT ONE")					; 0xF1
@@ -207,14 +228,14 @@
 	   (?$,1CD(B vowel-base "VOWEL SIGN SARA MAI MALAI")
 	   (?$,1CE(B vowel-base "LAK KHANG YAO")
 	   (?$,1CF(B special "MAI YAMOK (repetion)")
-	   (?$,1CG(B vowel-upper "VOWEL SIGN MAI TAI KHU N/S-T")
+	   (?$,1CG(B sign-upper "VOWEL SIGN MAI TAI KHU N/S-T")
 	   (?$,1CH(B tone "TONE MAI EK N/S-T")
 	   (?$,1CI(B tone "TONE MAI THO N/S-T")
 	   (?$,1CJ(B tone "TONE MAI TRI N/S-T")
 	   (?$,1CK(B tone "TONE MAI CHATTAWA N/S-T")
-	   (?$,1CL(B tone "THANTHAKHAT N/S-T (cancellation mark)")
-	   (?$,1CM(B tone "NIKKHAHIT N/S-T (final nasal)")
-	   (?$,1CN(B vowel-upper "YAMAKKAN N/S-T")
+	   (?$,1CL(B sign-upper "THANTHAKHAT N/S-T (cancellation mark)")
+	   (?$,1CM(B sign-upper "NIKKHAHIT N/S-T (final nasal)")
+	   (?$,1CN(B sign-upper "YAMAKKAN N/S-T")
 	   (?$,1CO(B special "FONRMAN")
 	   (?$,1CP(B special "DIGIT ZERO")
 	   (?$,1CQ(B special "DIGIT ONE")
@@ -236,12 +257,42 @@
 	  (ptype (nth 1 elm)))
       (put-char-code-property char 'phonetic-type ptype)
       (cond ((eq ptype 'consonant)
-	     (modify-category-entry char ?c thai-category-table))
+	     (modify-category-entry char ?c thai-category-table)
+	     (global-set-key (vector char) 'thai-self-insert-command))
 	    ((memq ptype '(vowel-upper vowel-lower))
-	     (modify-category-entry char ?v thai-category-table))
+	     (modify-category-entry char ?v thai-category-table)
+	     (if (or (= char ?,TT(B) (= char ?$,1C4(B))
+		 ;; Give category `I' to "SARA I".
+		 (modify-category-entry char ?I thai-category-table))
+	     (global-set-key (vector char) 'thai-self-insert-command))
 	    ((eq ptype 'tone)
-	     (modify-category-entry char ?t thai-category-table)))
+	     (modify-category-entry char ?t thai-category-table)
+	     (modify-category-entry char ?u thai-category-table)
+	     (global-set-key (vector char) 'thai-self-insert-command))
+	    ((eq ptype 'sign-upper)
+	     (modify-category-entry char ?u thai-category-table)
+	     (if (or (= char ?,Tl(B) (= char ?$,1CL(B))
+		 ;; Give category `U' to "THANTHAKHAT".
+		 (modify-category-entry char ?U thai-category-table))
+	     (global-set-key (vector char) 'thai-self-insert-command)))
       (put-char-code-property char 'name (nth 2 elm)))))
+
+(defun thai-compose-syllable (beg end &optional category-set string)
+  (or category-set
+      (setq category-set 
+	    (char-category-set (if string (aref string beg) (char-after beg)))))
+  (if (aref category-set ?c)
+      ;; Starting with a consonant.  We do relative composition.
+      (if string
+	  (compose-string string beg end)
+	(compose-region beg end))
+    ;; Vowel tone sequence.
+    (if string
+	(compose-string string beg end (list (aref string beg) '(Bc . Bc) 
+					     (aref string (1+ beg))))
+      (compose-region beg end (list (char-after beg) '(Bc . Bc) 
+				    (char-after (1+ beg))))))
+  (- end beg))
 
 ;;;###autoload
 (defun thai-compose-region (beg end)
@@ -249,12 +300,18 @@
 When called from a program, expects two arguments,
 positions (integers or markers) specifying the region."
   (interactive "r")
-  (save-restriction
-    (narrow-to-region beg end)
-    (goto-char (point-min))
-    (with-category-table thai-category-table
-      (while (re-search-forward thai-composition-pattern nil t)
-	(compose-region (match-beginning 0) (match-end 0))))))
+  (let ((pos (point)))
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (with-category-table thai-category-table
+	(while (re-search-forward thai-composition-pattern nil t)
+	  (setq beg (match-beginning 0) end (match-end 0))
+	  (if (and (> pos beg) (< pos end))
+	      (setq pos end))
+	  (thai-compose-syllable beg end
+				 (char-category-set (char-after beg))))))
+    (goto-char pos)))
 
 ;;;###autoload
 (defun thai-compose-string (string)
@@ -262,7 +319,7 @@ positions (integers or markers) specifying the region."
   (with-category-table thai-category-table
     (let ((idx 0))
       (while (setq idx (string-match thai-composition-pattern string idx))
-	(compose-string string idx (match-end 0))
+	(thai-compose-syllable idx (match-end 0) nil string)
 	(setq idx (match-end 0)))))
   string)
 
@@ -285,12 +342,45 @@ Optional 4th argument STRING, if non-nil, is a string containing text
 to compose.
 
 The return value is number of composed characters."
-  (if (< (1+ from) to)
-      (progn
-	(if string
-	    (compose-string string from to)
-	  (compose-region from to))
-	(- to from))))
+  (when (and (not thai-auto-composition-mode)
+	     (< (1+ from) to))
+    (with-category-table thai-category-table
+      (if string
+	  (if (eq (string-match thai-composition-pattern string from) from)
+	      (thai-compose-syllable from (match-end 0) nil string))
+	(if (save-excursion 
+	      (goto-char from)
+	      (and (looking-at thai-composition-pattern)
+		   (setq to (match-end 0))))
+	    (thai-compose-syllable from to))))))
+
+(defun thai-auto-composition (beg end len)
+  (with-category-table thai-category-table
+    (let (category-set)
+      (while (and (> beg (point-min))
+		  (setq category-set (char-category-set (char-after (1- beg))))
+		  (or (aref category-set ?v) (aref category-set ?u)))
+	  (setq beg (1- beg)))
+      (if (and (> beg (point-min))
+	       (aref (char-category-set (char-after (1- beg))) ?c))
+	  (setq beg (1- beg)))
+      (while (and (< end (point-max))
+		  (setq category-set (char-category-set (char-after end)))
+		  (or (aref category-set ?v) (aref category-set ?u)))
+	(setq end (1+ end)))
+      (if (< beg end)
+	  (thai-compose-region beg end)))))
+
+(put 'thai-auto-composition-mode 'permanent-local t)
+
+;;;###autoload
+(define-minor-mode thai-auto-composition-mode
+  "Minor mode for automatically correct Thai character composition."
+  nil nil nil
+  (cond ((null thai-auto-composition-mode)
+	 (remove-hook 'after-change-functions 'thai-auto-composition))
+	(t
+	 (add-hook 'after-change-functions 'thai-auto-composition))))
 
 ;;
 (provide 'thai-util)
