@@ -464,9 +464,11 @@ coordinates_in_window (w, x, y)
     }
   else
     {
-      left_x = WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
+      left_x = (WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w)
+		- FRAME_INTERNAL_BORDER_WIDTH (f));
       right_x = WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X (w);
-      top_y = WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
+      top_y = (WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w)
+	       - FRAME_INTERNAL_BORDER_WIDTH (f));
       bottom_y = WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y (w);
     }
 
