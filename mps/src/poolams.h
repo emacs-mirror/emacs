@@ -1,6 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.4) $
+ * $HopeName: MMsrc!poolams.h(trunk.5) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
@@ -43,7 +43,6 @@ typedef Res (*AMSIterateFunction)(AMSGroup group,
 
 typedef struct AMSStruct {
   PoolStruct poolStruct;       /* generic pool structure */
-  Format format;               /* format of objects */
   Shift grainShift;            /* log2 of grain size */
   ActionStruct actionStruct;   /* action of collecting this pool */
   Size size;                   /* total segment size of the pool */
