@@ -202,7 +202,8 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
 				   (set-buffer name)
 				   (dehexlify-buffer)
 				   ;; Prevent infinite recursion.
-				   (let ((hexl-in-save-buffer t))
+				   (let ((hexl-in-save-buffer t)
+					 (buffer-file-type t)) ; for ms-dos
 				     (save-buffer))
 				   (setq modified (buffer-modified-p))
 				   (delete-region (point-min) (point-max))
@@ -499,12 +500,15 @@ You may also type up to 3 octal digits, to insert a character with that code"
 (defun hexlify-buffer ()
   "Convert a binary buffer to hexl format"
   (interactive)
-  (shell-command-on-region (point-min) (point-max) hexlify-command t))
+  (let ((binary-process-output nil) ; for Ms-Dos
+	(binary-process-input t))
+    (shell-command-on-region (point-min) (point-max) hexlify-command t)))
 
 (defun dehexlify-buffer ()
   "Convert a hexl format buffer to binary."
   (interactive)
-  (let ((binary-process t)) ; for Ms-Dos
+  (let ((binary-process-output t) ; for Ms-Dos
+	(binary-process-input nil))
     (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
 
 (defun hexl-char-after-point ()
