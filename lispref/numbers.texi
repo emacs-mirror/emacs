@@ -30,7 +30,7 @@ where Emacs does not support them.
 * Arithmetic Operations::     How to add, subtract, multiply and divide.
 * Rounding Operations::       Explicitly rounding floating point numbers.
 * Bitwise Operations::        Logical and, or, not, shifting.
-* Transcendental Functions::  Trig, exponential and logarithmic functions.
+* Math Functions::            Trig, exponential and logarithmic functions.
 * Random Numbers::            Obtaining random integers, predictable or not.
 @end menu
 
@@ -903,8 +903,8 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @end example
 @end defun
 
-@node Transcendental Functions
-@section Transcendental Functions
+@node Math Functions
+@section Standard Mathematical Functions
 @cindex transcendental functions
 @cindex mathematical functions
 
