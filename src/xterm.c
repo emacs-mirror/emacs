@@ -2295,12 +2295,16 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
       emacs_event->part = scroll_bar_handle;
     else
       emacs_event->part = scroll_bar_below_handle;
-    
+
+    /* Just because the user has clicked on the handle doesn't mean
+       they want to drag it.  */
+#if 0
     /* If the user has just clicked on the handle, record where they're
        holding it.  */
     if (event->type == ButtonPress
 	&& emacs_event->part == scroll_bar_handle)
       XSET (bar->dragging, Lisp_Int, y - XINT (bar->start));
+#endif
 
     /* If the user has released the handle, set it to its final position.  */
     if (event->type == ButtonRelease
