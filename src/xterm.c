@@ -610,7 +610,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	struct face *face = FRAME_DEFAULT_FACE (f);
 	FONT_TYPE *font = FACE_FONT (face);
 	GC gc = FACE_GC (face);
-	int defaulted = 1;
 	int gc_temporary = 0;
 
 	/* HL = 3 means use a mouse face previously chosen.  */
@@ -632,7 +631,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	      face = intern_face (f, FRAME_COMPUTED_FACES (f) [cf]);
 	    font = FACE_FONT (face);
 	    gc = FACE_GC (face);
-	    defaulted = 0;
 	  }
 
 	/* Then comes the distinction between modeline and normal text.  */
@@ -643,7 +641,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	    face = FRAME_MODE_LINE_FACE (f);
 	    font = FACE_FONT (face);
 	    gc   = FACE_GC   (face);
-	    defaulted = 0;
 	  }
 
 #define FACE_DEFAULT (~0)
@@ -651,8 +648,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	/* Now override that if the cursor's on this character.  */
 	if (hl == 2)
 	  {
-	    if (defaulted
-		|| !face->font
+	    if (!face->font
 		|| (int) face->font == FACE_DEFAULT)
 	      {
 		gc = f->display.x->cursor_gc;
@@ -3672,7 +3668,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 #ifdef HAVE_X11
 	case UnmapNotify:
-	  f = x_window_to_frame (event.xunmap.window);
+	  f = x_any_window_to_frame (event.xunmap.window);
 	  if (f)		/* F may no longer exist if
 				   the frame was deleted.  */
 	    {
@@ -5195,9 +5191,10 @@ x_calc_absolute_position (f)
 #endif /* ! defined (HAVE_X11) */
 }
 
-x_set_offset (f, xoff, yoff)
+x_set_offset (f, xoff, yoff, change_gravity)
      struct frame *f;
      register int xoff, yoff;
+     int change_gravity;
 {
   f->display.x->top_pos = yoff;
   f->display.x->left_pos = xoff;
@@ -5212,7 +5209,10 @@ x_set_offset (f, xoff, yoff)
 	       f->display.x->left_pos, f->display.x->top_pos);
 #endif /* not USE_X_TOOLKIT */
 #ifdef HAVE_X11
-  x_wm_set_size_hint (f, 0, 1, xoff, yoff);
+  if (change_gravity)
+    f->display.x->win_gravity = NorthWestGravity;
+
+  x_wm_set_size_hint (f, 0, 1);
 #endif /* ! defined (HAVE_X11) */
   UNBLOCK_INPUT;
 }
@@ -5248,7 +5248,7 @@ x_set_window_size (f, change_gravity, cols, rows)
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
 #ifdef HAVE_X11
-  x_wm_set_size_hint (f, 0, change_gravity, 0, 0);
+  x_wm_set_size_hint (f, 0, change_gravity);
 #endif /* ! defined (HAVE_X11) */
   XSync (x_current_display, False);
   XChangeWindowSize (FRAME_X_WINDOW (f), pixelwidth, pixelheight);
@@ -5406,6 +5406,8 @@ x_make_frame_visible (f)
   if (! FRAME_VISIBLE_P (f))
     {
 #ifdef HAVE_X11
+      x_set_offset (f, f->display.x->top_pos, f->display.x->left_pos, 0);
+
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
 #ifdef USE_X_TOOLKIT
@@ -5632,7 +5634,11 @@ x_destroy_window (f)
     x_highlight_frame = 0;
 
   if (f == mouse_face_mouse_frame)
-    clear_mouse_face ();
+    {
+      mouse_face_beg = -1;
+      mouse_face_end = -1;
+      mouse_face_window = Qnil;
+    }
 
   UNBLOCK_INPUT;
 }
@@ -5717,16 +5723,12 @@ mouse_event_pending_p ()
 
 /* SPEC_X and SPEC_Y are the specified positions.
    We look only at their sign, to decide the gravity.
-   If CHANGE_GRAVITY is 0, we ignore SPEC_X and SPEC_Y
-   and leave the gravity unchanged.
+   If CHANGE_GRAVITY is 0, we may set PWinGravity.  */
 
-   CHANGE_GRAVITY is nonzero when PROMPTING is nonzero.  */
-
-x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
+x_wm_set_size_hint (f, prompting, change_gravity)
      struct frame *f;
      long prompting;
      int change_gravity;
-     int spec_x, spec_y;
 {
   XSizeHints size_hints;
 
@@ -5805,27 +5807,13 @@ x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
 	size_hints.flags |= USPosition;
       if (hints.flags & USSize)
 	size_hints.flags |= USSize;
-      size_hints.win_gravity = hints.win_gravity;
     }
+
+  size_hints.win_gravity = f->display.x->win_gravity;
 
 #if defined (PWinGravity)
   if (change_gravity)
     {
-      switch (((spec_x < 0) << 1) + (spec_y < 0))
-	{
-	case 0:
-	  size_hints.win_gravity = NorthWestGravity;
-	  break;
-	case 1:
-	  size_hints.win_gravity = SouthWestGravity;
-	  break;
-	case 2:
-	  size_hints.win_gravity = NorthEastGravity;
-	  break;
-	case 3:
-	  size_hints.win_gravity = SouthEastGravity;
-	  break;
-	}
       if (! (size_hints.flags & USPosition))
 	size_hints.flags |= PWinGravity;
     }
