@@ -322,9 +322,6 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 Keywords supported:  :key :count :start :end :from-end"
   (apply 'delete* nil cl-list :if-not cl-pred cl-keys))
 
-(defun remove (x y) (remove* x y :test 'equal))
-(defun remq (x y) (if (memq x y) (delq x (copy-list y)) y))
-
 (defun remove-duplicates (cl-seq &rest cl-keys)
   "Return a copy of SEQ with all duplicate elements removed.
 Keywords supported:  :test :test-not :key :start :end :from-end"
