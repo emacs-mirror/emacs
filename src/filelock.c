@@ -54,6 +54,10 @@ extern int errno;
 #ifdef CLASH_DETECTION
 
 #include <utmp.h>
+
+#ifndef WTMP_FILE
+#define WTMP_FILE "/var/log/wtmp"
+#endif
   
 /* The strategy: to lock a file FN, create a symlink .#FN in FN's
    directory, with link data `user@host.pid'.  This avoids a single
@@ -140,7 +144,7 @@ get_boot_time ()
     }
 
   /* Try to get boot time from the current wtmp file.  */
-  get_boot_time_1 ("/var/log/wtmp");
+  get_boot_time_1 (WTMP_FILE);
 
   /* If we did not find a boot time in wtmp, look at wtmp, and so on.  */
   for (counter = 0; counter < 20 && boot_time == 1; counter++)
@@ -151,13 +155,13 @@ get_boot_time ()
 
       filename = Qnil;
 
-      sprintf (cmd_string, "/var/log/wtmp.%d", counter);
+      sprintf (cmd_string, "%s.%d", WTMP_FILE, counter);
       tempname = build_string (cmd_string);
       if (! NILP (Ffile_exists_p (filename)))
 	filename = tempname;
       else
 	{
-	  sprintf (cmd_string, "/var/log/wtmp.%d.gz", counter);
+	  sprintf (cmd_string, "%s.%d.gz", WTMP_FILE, counter);
 	  tempname = build_string (cmd_string);
 	  if (! NILP (Ffile_exists_p (tempname)))
 	    {
@@ -168,8 +172,8 @@ get_boot_time ()
 	      args[2] = Qnil;
 	      args[3] = Qnil;
 	      args[4] = build_string ("-c");
-	      sprintf (cmd_string, "gunzip < /var/log/wtmp.%d.gz > %s",
-		       counter, XSTRING (tempname)->data);
+	      sprintf (cmd_string, "gunzip < %s.%d.gz > %s",
+		       WTMP_FILE, counter, XSTRING (tempname)->data);
 	      args[5] = build_string (cmd_string);
 	      Fcall_process (6, args);
 	      filename = tempname;
@@ -200,7 +204,16 @@ get_boot_time_1 (filename)
      char *filename;
 {
   struct utmp ut, *utp;
+  int desc;
 
+  /* On some versions of IRIX, opening a nonexistent file name
+     is likely to crash in the utmp routines.  */
+  desc = open (filename, O_RDONLY);
+  if (desc < 0)
+    return;
+
+  close (desc);
+      
   utmpname (filename);
   setutent ();
   while (1)
