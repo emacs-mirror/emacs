@@ -1,3 +1,8 @@
+2001-02-05  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (BUILT_EMACS): Use $(THISDIR) to make emacs.exe
+	path absolute.
+
 2001-02-03  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (LATIN): Fix last change to use () not {}.
