@@ -1,4 +1,4 @@
-;; scroll-lock.el -- scroll-locking minor mode
+;; scroll-all.el -- scroll all buffers together minor mode
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -31,32 +31,23 @@
 ;;    screen-at-a-time scrolling, and doesn't remap any of the keyboard
 ;;    commands to do it.
 
-;; You can disable autoloading of this package by placing
-;; (setq crisp-load-scroll-lock nil) in your .emacs before loading
-;; the crisp package.  If you want to use this package by itself,
-;; you can enable it by placing the following in your .emacs:
-
-;; (require 'scroll-lock)
-
-;; In the first (autoloaded) case, meta-f1 is bound to the command to
-;; toggle the scroll-lock mode.  In the second (non-autoloaded) case,
-;; you can enable and disable it with the 'scroll-lock-mode' command.
+;; You can enable and disable this mode with the 'scroll-all-mode' command.
 
 ;; Suggestions/ideas from:
 ;;    Rick Macdonald <rickm@vsl.com>
 ;;    Anders Lindgren <andersl@csd.uu.se>
 
 (defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version))
-(defvar is-scroll-locked nil
+(defvar scroll-all-mode nil
   "Track status of scroll locking.")
 (if running-xemacs
-    (add-minor-mode 'is-scroll-locked " *SL*")
-  (or (assq 'is-scroll-locked-mode minor-mode-alist)
+    (add-minor-mode 'scroll-all-mode " *SL*")
+  (or (assq 'scroll-all-mode-mode minor-mode-alist)
       (setq minor-mode-alist
-	    (cons '(is-scroll-locked-mode " *SL*") minor-mode-alist))))
+	    (cons '(scroll-all-mode-mode " *SL*") minor-mode-alist))))
 
-(defun scroll-lock-scroll-down-all (arg)
-  "Scroll-down all visible windows."
+(defun scroll-all-scroll-down-all (arg)
+  "Scroll down all visible windows."
   (interactive "P")
   (let ((num-windows (count-windows))
 	(count 1))
@@ -68,8 +59,8 @@
 		  (other-window 1)
 		  (setq count (1+ count)))))))
 
-(defun scroll-lock-scroll-up-all (arg)
-  "Scroll-up all visible windows."
+(defun scroll-all-scroll-up-all (arg)
+  "Scroll up all visible windows."
   (interactive "P")
   (let ((num-windows (count-windows))
 	(count 1))
@@ -81,8 +72,8 @@
 		  (other-window 1)
 		  (setq count (1+ count)))))))
 
-(defun scroll-lock-page-down-all (arg)
-  "Page-down all visible windows."
+(defun scroll-all-page-down-all (arg)
+  "Page down in all visible windows."
   (interactive "P")
   (let ((num-windows (count-windows))
 	(count 1))
@@ -93,8 +84,8 @@
 		 (other-window 1)
 		 (setq count (1+ count)))))))
 
-(defun scroll-lock-page-up-all (arg)
-  "Page-up all visible windows."
+(defun scroll-all-page-up-all (arg)
+  "Page up in all visible windows."
   (interactive "P")
   (let ((num-windows (count-windows))
 	(count 1))
@@ -106,28 +97,28 @@
 		 (setq count (1+ count)))))))
 
 
-(defun scroll-lock-check-to-scroll ()
-  "Check last-command to see if a scroll was done."
+(defun scroll-all-check-to-scroll ()
+  "Check `last-command' to see if a scroll was done."
   (if (eq this-command 'next-line)
-      (call-interactively 'scroll-lock-scroll-down-all))
+      (call-interactively 'scroll-all-scroll-down-all))
   (if (eq this-command 'previous-line)
-      (call-interactively 'scroll-lock-scroll-up-all))
+      (call-interactively 'scroll-all-scroll-up-all))
   (if (eq this-command 'fkey-scroll-up)
-      (call-interactively 'scroll-lock-page-down-all))
+      (call-interactively 'scroll-all-page-down-all))
   (if (eq this-command 'fkey-scroll-down)
-      (call-interactively 'scroll-lock-page-up-all)))
+      (call-interactively 'scroll-all-page-up-all)))
 
 
-(defun scroll-lock-mode (arg)
-  "Toggle scroll-lock minor mode."
+(defun scroll-all-mode (arg)
+  "Toggle Scroll-All minor mode."
   (interactive "P")
-  (setq is-scroll-locked (not is-scroll-locked))
+  (setq scroll-all-mode (not scroll-all-mode))
   (cond
-   ((eq is-scroll-locked 't)
-    (add-hook 'post-command-hook 'scroll-lock-check-to-scroll))
-   ((eq is-scroll-locked 'nil)
-    (remove-hook 'post-command-hook 'scroll-lock-check-to-scroll))))
+   ((eq scroll-all-mode 't)
+    (add-hook 'post-command-hook 'scroll-all-check-to-scroll))
+   ((eq scroll-all-mode 'nil)
+    (remove-hook 'post-command-hook 'scroll-all-check-to-scroll))))
 
-(provide 'scroll-lock)
+(provide 'scroll-all)
 
 ;; scroll-all.el ends here
