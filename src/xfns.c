@@ -929,17 +929,20 @@ x_set_menu_bar_lines_1 (window, n)
   Lisp_Object window;
   int n;
 {
-  for (; !NILP (window); window = XWINDOW (window)->next)
+  struct window *w = XWINDOW (window);
+
+  XFASTINT (w->top) += n;
+  XFASTINT (w->height) -= n;
+
+  /* Handle just the top child in a vertical split.  */
+  if (!NILP (w->vchild))
+    x_set_menu_bar_lines_1 (w->vchild, n);
+
+  /* Adjust all children in a horizontal split.  */
+  for (window = w->hchild; !NILP (window); window = w->next)
     {
-      struct window *w = XWINDOW (window);
-
-      XFASTINT (w->top) += n;
-
-      if (!NILP (w->vchild))
-	x_set_menu_bar_lines_1 (w->vchild, n);
-
-      if (!NILP (w->hchild))
-	x_set_menu_bar_lines_1 (w->hchild, n);
+      w = XWINDOW (window);
+      x_set_menu_bar_lines_1 (window, n);
     }
 }
 
@@ -965,16 +968,6 @@ x_set_menu_bar_lines (f, value, oldval)
 
   FRAME_MENU_BAR_LINES (f) = nlines;
   x_set_menu_bar_lines_1 (f->root_window, nlines - olines);
-  /* Use FRAME_NEW_WIDTH, HEIGHT so as not to override a size change
-     made by the user but not fully reflected in the Emacs frame object.  */
-  x_set_window_size (f,
-		     (FRAME_NEW_WIDTH (f)
-		      ? FRAME_NEW_WIDTH (f)
-		      : FRAME_WIDTH (f)),
-		     ((FRAME_NEW_HEIGHT (f)
-		       ? FRAME_NEW_HEIGHT (f)
-		       : FRAME_HEIGHT (f))
-		      + nlines - olines));
 }
 
 /* Change the name of frame F to ARG.  If ARG is nil, set F's name to
