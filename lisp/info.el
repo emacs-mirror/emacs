@@ -1375,7 +1375,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
   ;; Make mode line update.
   (set-buffer-modified-p (buffer-modified-p))
   (message (substitute-command-keys
-	     "Editing: Type \\<Info-mode-map>\\[Info-cease-edit] to return to info")))
+	     "Editing: Type \\<Info-edit-map>\\[Info-cease-edit] to return to info")))
 
 (defun Info-cease-edit ()
   "Finish editing Info node; switch back to Info proper."
