@@ -2091,6 +2091,14 @@ static void record_char ();
 static jmp_buf wrong_kboard_jmpbuf;
 #endif
 
+#define STOP_POLLING					\
+do { if (! polling_stopped_here) stop_polling ();	\
+       polling_stopped_here = 1; } while (0)
+
+#define RESUME_POLLING					\
+do { if (polling_stopped_here) start_polling ();	\
+       polling_stopped_here = 0; } while (0)
+
 /* read a character from the keyboard; call the redisplay if needed */
 /* commandflag 0 means do not do auto-saving, but do do redisplay.
    -1 means do not do redisplay, but do do autosaving.
@@ -2130,6 +2138,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   volatile int reread;
   struct gcpro gcpro1, gcpro2;
   EMACS_TIME last_idle_start;
+  int polling_stopped_here = 0;
 
   also_record = Qnil;
 
@@ -2231,7 +2240,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  || executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
 	{
 	  XSETINT (c, -1);
-	  RETURN_UNGCPRO (c);
+	  goto exit;
 	}
 
       c = Faref (Vexecuting_macro, make_number (executing_macro_index));
@@ -2457,7 +2466,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Now that we have read an event, Emacs is not idle.  */
       timer_stop_idle ();
 
-      RETURN_UNGCPRO (c);
+      goto exit;
     }
 
   /* Maybe autosave and/or garbage collect due to idleness.  */
@@ -2564,7 +2573,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
  wrong_kboard:
 
-  stop_polling ();
+  STOP_POLLING;
 
   /* Finally, we read from the main queue,
      and if that gives us something we can't use yet, we put it on the
@@ -2627,7 +2636,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      should the next event read be a help-echo.  */
   last_idle_start = timer_idleness_start_time;
   timer_stop_idle ();
-  start_polling ();
+  RESUME_POLLING;
 
   if (NILP (c))
     {
@@ -2644,7 +2653,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      so don't show them to the user.
      Also, don't record a key if we already did.  */
   if (BUFFERP (c) || key_already_recorded)
-    RETURN_UNGCPRO (c);
+    goto exit;
 
   /* Process special events within read_char
      and loop around to read another event.  */
@@ -2672,7 +2681,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     {
       /* If kbd_buffer_get_event gave us an EOF, return that.  */
       if (XINT (c) == -1)
-	RETURN_UNGCPRO (c);
+	goto exit;
 
       if ((STRINGP (Vkeyboard_translate_table)
 	   && XSTRING (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
@@ -2908,6 +2917,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
     }
 
+ exit:
+  RESUME_POLLING;
   RETURN_UNGCPRO (c);
 }
 
