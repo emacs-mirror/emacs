@@ -1,3 +1,8 @@
+2000-10-05  Dave Love  <fx@gnu.org>
+
+	* xmenu.c (Fx_popup_menu, Fx_popup_dialog): Check for tool-bar
+	position like menu-bar.
+
 2000-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (Frecursive_edit): Make sure redisplay can happen.
