@@ -1,3 +1,7 @@
+2002-05-19  Richard M. Stallman  <rms@gnu.org>
+
+	* doc.c (reread_doc_file): Don't ask for confirmation.
+
 2002-05-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_create_pixmap_from_bitmap_data): New function.

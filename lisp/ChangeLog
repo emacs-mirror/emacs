@@ -1,5 +1,14 @@
 2002-05-19  Richard M. Stallman  <rms@gnu.org>
 
+	* indent.el (indent-region): Make COLUMN arg optional.
+
+	* files.el (find-file-read-args): New function.
+	(find-file, find-file-other-window, find-file-other-frame) 
+	(find-file-read-only, find-file-read-only-other-window) 
+	(find-file-read-only-other-frame): Use it.
+
+	* custom.el (custom-load-symbol): Verify that LOADED is a string.
+
 	* arc-mode.el (archive-zip-use-pkzip): Variable deleted.
 	(archive-zip-extract, archive-zip-expunge, archive-zip-update) 
 	(archive-zip-update-case): Use locate-file to decide whether
