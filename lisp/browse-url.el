@@ -261,8 +261,7 @@ Netscape version 1.1N or later or XMosaic version 2.5 or later."
   :group 'browse-url)
 
 (defcustom browse-url-netscape-display nil
-  "*The X display on which Netscape is running if different from
-Emacs's display."
+  "*The X display for running Netscape, if not same as Emacs's."
   :type 'string
   :group 'browse-url)
 
@@ -273,7 +272,7 @@ Emacs's display."
 
 (defvar browse-url-path-regexp
   "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
-  "A regular expression probably matching the host, path or e-mail part of a URL.")
+  "A regular expression to match the host, path or e-mail part of a URL.")
 
 (defvar browse-url-short-regexp
   (concat "[-A-Za-z0-9.]+" browse-url-path-regexp)
