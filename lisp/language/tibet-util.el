@@ -446,15 +446,13 @@ See also docstring of the function tibetan-compose-region."
 ;;;###autoload
 (defun tibetan-pre-write-conversion (from to)
   (setq tibetan-decomposed-temp tibetan-decomposed)
-  (let ((old-buf (current-buffer))
-	(work-buf (get-buffer-create " *tibetan-work*")))
-    (set-buffer work-buf)
-    (erase-buffer)
-    (if (stringp from)
-	(insert from)
-      (insert-buffer-substring old-buf from to))
-    (if (not tibetan-decomposed-temp)
-	(tibetan-decompose-region (point-min) (point-max)))
+  (let ((old-buf (current-buffer)))
+    (with-temp-buffer
+      (if (stringp from)
+	  (insert from)
+	(insert-buffer-substring old-buf from to))
+      (if (not tibetan-decomposed-temp)
+	  (tibetan-decompose-region (point-min) (point-max))))
     ;; Should return nil as annotations.
     nil))
 
