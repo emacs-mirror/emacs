@@ -1631,6 +1631,47 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
     *prev_ptr = prev;
   return idx;
 }
+
+/* Fast function to just test if we're at an overlay boundary.  */
+int
+overlay_touches_p (pos)
+     int pos;
+{
+  Lisp_Object tail, overlay;
+
+  for (tail = current_buffer->overlays_before; GC_CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      int endpos;
+
+      overlay = XCONS (tail)->car;
+      if (!GC_OVERLAYP (overlay))
+	abort ();
+
+      endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+      if (endpos < pos)
+	break;
+      if (endpos == pos || OVERLAY_POSITION (OVERLAY_START (overlay)) == pos)
+	return 1;
+    }
+
+  for (tail = current_buffer->overlays_after; GC_CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      int startpos;
+
+      overlay = XCONS (tail)->car;
+      if (!GC_OVERLAYP (overlay))
+	abort ();
+
+      startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+      if (pos < startpos)
+	break;
+      if (startpos == pos || OVERLAY_POSITION (OVERLAY_END (overlay)) == pos)
+	return 1;
+    }
+  return 0;
+}
 
 struct sortvec
 {
