@@ -1,3 +1,8 @@
+2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* net/eudcb-ph.el, net/ldap.el: New maintainer.  New e-mail
+	address of the author.
+
 2002-01-08  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (occur-mode-goto-occurrence-other-window): New command.
