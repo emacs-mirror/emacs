@@ -1448,11 +1448,38 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (noninteractive && XTYPE (c) == Lisp_Int && XINT (c) < 0)
     Fkill_emacs (make_number (1));
 
-  /* Test for ControlMask and Mod1Mask.  */
-  if (extra_keyboard_modifiers & 4)
-    c &= ~0140;
-  if (extra_keyboard_modifiers & 8)
-    c |= 0200;
+  if (XTYPE (c) == Lisp_Int)
+    {
+      /* Add in any extra modifiers, where appropriate.  */
+      if ((extra_keyboard_modifiers & CHAR_CTL)
+	  || ((extra_keyboard_modifiers & 0177) < ' '
+	      && (extra_keyboard_modifiers & 0177) != 0))
+	{
+	  /* If it's already a control character, don't mess with it.  */
+	  if ((c & 0177) == 0)
+	    ;
+
+	  /* Making ? a control character should result in DEL.  */
+	  else if ((c & 0177) == '?')
+	    c |= 0177;
+
+	  /* ASCII control chars are made from letters (both cases),
+	     as well as the non-letters within 0100...0137.  */
+	  else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
+	    c = (c & (037 | ~0177));
+	  else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
+	    c = (c & (037 | ~0177));
+
+	  /* Anything else must get its high control bit set.  */
+	  else
+	    c = c | ctrl_modifier;
+	}
+
+      /* Transfer any other modifier bits directly from
+	 extra_keyboard_modifiers to c.  Ignore the actual character code
+	 in the low 16 bits of extra_keyboard_modifiers.  */
+      c |= (extra_keyboard_modifiers & ~0xff7f & ~CHAR_CTL);
+    }
 
  non_reread:
 
@@ -1829,11 +1856,10 @@ kbd_buffer_get_event ()
 	if (! NILP (focus))
 	  frame = focus;
 
-	if (! EQ (frame, internal_last_event_frame))
-	  {
-	    internal_last_event_frame = frame;
-	    obj = make_lispy_switch_frame (frame);
-	  }
+	if (! EQ (frame, internal_last_event_frame)
+	    && XFRAME (frame) != selected_frame)
+	  obj = make_lispy_switch_frame (frame);
+	internal_last_event_frame = frame;
       }
 #endif
 
@@ -1874,11 +1900,10 @@ kbd_buffer_get_event ()
 	  if (NILP (frame))
 	    XSET (frame, Lisp_Frame, f);
 
-	  if (! EQ (frame, internal_last_event_frame))
-	    {
-	      XSET (internal_last_event_frame, Lisp_Frame, frame);
-	      obj = make_lispy_switch_frame (internal_last_event_frame);
-	    }
+	  if (! EQ (frame, internal_last_event_frame)
+	      && XFRAME (frame) != selected_frame)
+	    obj = make_lispy_switch_frame (internal_last_event_frame);
+	  internal_last_event_frame = frame;
 	}
 #endif
 
@@ -2469,6 +2494,7 @@ static char *modifier_names[] =
   "drag", "click", 0, 0, 0, 0, 0, 0,
   0, 0, "alt", "super", "hyper", "shift", "control", "meta"
 };
+#define NUM_MOD_NAMES (sizeof (modifier_names) / sizeof (modifier_names[0]))
 
 static Lisp_Object modifier_symbols;
 
@@ -2481,14 +2507,10 @@ lispy_modifier_list (modifiers)
   int i;
 
   modifier_list = Qnil;
-  for (i = 0; (1<<i) <= modifiers; i++)
+  for (i = 0; (1<<i) <= modifiers && i < NUM_MOD_NAMES; i++)
     if (modifiers & (1<<i))
-      {
-	if (i >= XVECTOR (modifier_symbols)->size)
-	  abort ();
-	modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
-			       modifier_list);
-      }
+      modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
+			     modifier_list);
 
   return modifier_list;
 }
@@ -2554,10 +2576,11 @@ apply_modifiers (modifiers, base)
 {
   Lisp_Object cache, index, entry, new_symbol;
 
+  /* Mask out upper bits.  We don't know where this value's been.  */
+  modifiers &= (1<<VALBITS) - 1;
+
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
-  if (modifiers & ~((1<<VALBITS) - 1))
-    abort ();
   XFASTINT (index) = (modifiers & ~click_modifier);
   entry = Fassq (index, cache);
 
@@ -2575,8 +2598,6 @@ apply_modifiers (modifiers, base)
       Fput (base, Qmodifier_cache, Fcons (entry, cache));
 
       /* We have the parsing info now for free, so add it to the caches.  */
-      if (modifiers & ~((1<<VALBITS) - 1))
-	abort ();
       XFASTINT (index) = modifiers;
       Fput (new_symbol, Qevent_symbol_element_mask,
 	    Fcons (base, Fcons (index, Qnil)));
@@ -2589,8 +2610,8 @@ apply_modifiers (modifiers, base)
      You'd think we could just set this once and for all when we
      intern the symbol above, but reorder_modifiers may call us when
      BASE's property isn't set right; we can't assume that just
-     because we found something in the cache it must have its kind set
-     right.  */
+     because it has a Qmodifier_cache property it must have its
+     Qevent_kind set right as well.  */
   if (NILP (Fget (new_symbol, Qevent_kind)))
     {
       Lisp_Object kind = Fget (base, Qevent_kind);
@@ -3701,8 +3722,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  if (XTYPE (head) == Lisp_Symbol)
 	    {
 	      Lisp_Object breakdown = parse_modifiers (head);
-	      Lisp_Object modifiers =
-		XINT (XCONS (XCONS (breakdown)->cdr)->car);
+	      int modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
 
 	      /* We drop unbound `down-' events altogether.  */
 	      if (modifiers & down_modifier)
@@ -4457,6 +4477,31 @@ Optional fourth arg QUIT if non-nil specifies character to use for quitting.")
   init_sys_modes ();
   return Qnil;
 }
+
+DEFUN ("current-input-mode", Fcurrent_input_mode, Scurrent_input_mode, 0, 0, 0,
+  "Return information about the way Emacs currently reads keyboard input.\n\
+The value is a list of the form (INTERRUPT FLOW META QUIT), where\n\
+  INTERRUPT is non-nil if Emacs is using interrupt-driven input; if\n\
+    nil, Emacs is using CBREAK mode.\n\
+  FLOW is non-nil if Emacs uses ^S/^Q flow control for output to the\n\
+    terminal; this does not apply if Emacs uses interrupt-driven input.\n\
+  META is non-nil if Emacs is accepting 8-bit input; otherwise, Emacs\n\
+    clears the eighth bit of every input character.\n\
+  QUIT is the character Emacs currently uses to quit.\n\
+The elements of this list correspond to the arguments of\n\
+set-input-mode.")
+  ()
+{
+  Lisp_Object val[4];
+
+  val[0] = interrupt_input ? Qt : Qnil;
+  val[1] = flow_control ? Qt : Qnil;
+  val[2] = meta_key ? Qt : Qnil;
+  XSETINT (val[3], quit_char);
+
+  return Flist (val, sizeof (val) / sizeof (val[0]));
+}
+
 
 init_keyboard ()
 {
@@ -4663,6 +4708,7 @@ syms_of_keyboard ()
   defsubr (&Sdiscard_input);
   defsubr (&Sopen_dribble_file);
   defsubr (&Sset_input_mode);
+  defsubr (&Scurrent_input_mode);
   defsubr (&Sexecute_extended_command);
 
   DEFVAR_LISP ("disabled-command-hook", &Vdisabled_command_hook,
@@ -4784,10 +4830,15 @@ Type this character while in a menu prompt to rotate around the lines of it.");
 
   DEFVAR_INT ("extra-keyboard-modifiers", &extra_keyboard_modifiers,
     "A mask of additional modifier keys to use with every keyboard character.\n\
-These bits follow the convention for X windows,\n\
-but the control and meta bits work even when you are not using X:\n\
-  1 -- shift bit      2 -- lock bit\n\
-  4 -- control bit    8 -- meta bit.");
+The modifiers of the character stored here apply to each keyboard\n\
+character we read.  For example, after evaluating the expression\n\
+    (setq extra-keyboard-modifiers ?\C-x)\n\
+all input characters will have the control modifier applied to them.\n\
+\n\
+Note that the character ?\C-@, equivalent to the integer zero, does\n\
+not count as a control character; rather, it counts as a character\n\
+with no modifiers; thus, setting extra_keyboard_modifiers to zero\n\
+cancels any modification.");
   extra_keyboard_modifiers = 0;
 
   DEFVAR_LISP ("deactivate-mark", &Vdeactivate_mark,
