@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.23 2000/03/13 11:16:00 friedman Exp $
+;; $Id: type-break.el,v 1.24 2000/07/24 00:49:09 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -72,7 +72,6 @@
 (defgroup type-break nil
   "Encourage the user to take a rest from typing at suitable intervals."
   :prefix "type-break"
-  :group 'type-break
   :group 'keyboard)
 
 ;;;###autoload
