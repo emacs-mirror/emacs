@@ -35,8 +35,7 @@ ALL	        = $(BLD)\make-docfile.exe \
 		$(BLD)\ctags.exe	\
 		$(BLD)\etags.exe	\
 		$(BLD)\ebrowse.exe	\
-		$(BLD)\movemail.exe	\
-		$(BLD)\fakemail.exe	\
+		$(BLD)\movemail.exe
 
 
 # don't know what (if) to do with these yet...
