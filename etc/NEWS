@@ -56,8 +56,9 @@ NEWS.
 ---
 ** LDAP support now defaults to ldapsearch from OpenLDAP version 2.
 
++++
 ** You can now disable pc-selection-mode after enabling it.
-M-x pc-selection-mode behaves like a proper minor mode, and with no 
+M-x pc-selection-mode behaves like a proper minor mode, and with no
 argument it toggles the mode.
 
 Turning off PC-Selection mode restores the global key bindings
