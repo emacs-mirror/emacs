@@ -270,10 +270,10 @@ to the window's right, if any.  No arg means split equally."
     (split-window-save-restore-data (split-window nil size t) old-w)))
 
 (defcustom mode-line-window-height-fudge nil
-  "*Amount returned by `mode-line-window-height-fudge' on graphic displays.
-This is added to the sizes of windows in some cases to compensate for the
-extra height of mode-lines on graphic display, so they don't obscure the
-last line of text.
+  "*Fudge factor returned by `mode-line-window-height-fudge' on graphic displays.
+If non-nil, it should be the number of lines to add to the sizes of
+windows to compensate for the extra height of the mode-line, so it
+doesn't't obscure the last line of text.
 
 If nil, an attempt is made to calculate reasonable value.
 
@@ -283,12 +283,25 @@ This is a kluge."
   :group 'windows)
 
 ;; List of face attributes that might change a face's height
-(defvar height-affecting-face-attributes
+(defconst height-affecting-face-attributes
   '(:family :height :box :font :inherit))
 
 (defsubst mode-line-window-height-fudge ()
   "Return a fudge factor to compensate for the extra height of graphic mode-lines.
 On a non-graphic display, return 0.
+
+If the variable `mode-line-window-height-fudge' has a non-nil value, it
+is returned.  Otherwise, the `mode-line' face is checked to see if it
+contains any attributes that might affect its height; if it does, 1 is
+returned, otherwise 0.
+
+\[Because mode-lines on a graphics capable display may have a height
+larger than a normal text line, a window who's size is calculated to
+exactly show some text, including 1 line for the mode-line, may be
+displayed with the last text line obscured by the mode-line.
+
+To work-around this problem, call `mode-line-window-height-fudge', and
+add the return value to the requested window size.]
 
 This is a kluge."
   (if (display-graphic-p)
