@@ -1683,7 +1683,7 @@ for symbol @var{base-var}. This means that retrieving the value of
 value of @var{alias-var} changes the value of @var{base-var}.
 
 If the @var{docstring} argument is present, it specifies the documentation for
-@var{alias-var}; otherwise, it has the same documentation that @var{base-var},
+@var{alias-var}; otherwise, it has the same documentation as @var{base-var},
 if any.
 @end defmac
 
