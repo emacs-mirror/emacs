@@ -711,7 +711,7 @@ DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
   "Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
 This is the reverse operation of `decode-time', which see.\n\
 ZONE defaults to the current time zone rule.  This can\n\
-be a string (as from `set-time-zone-rule'), or it can be a list\n\
+be a string or t (as from `set-time-zone-rule'), or it can be a list\n\
 (as from `current-time-zone') or an integer (as from `decode-time')\n\
 applied without consideration for daylight savings time.\n\
 \n\
@@ -757,7 +757,9 @@ If you want them to stand for years in this century, you must do that yourself."
       char *tzstring;
       char **oldenv = environ, **newenv;
       
-      if (STRINGP (zone))
+      if (zone == Qt)
+	tzstring = "UTC0";
+      else if (STRINGP (zone))
 	tzstring = (char *) XSTRING (zone)->data;
       else if (INTEGERP (zone))
 	{
@@ -914,7 +916,8 @@ static char **environbuf;
 
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
   "Set the local time zone using TZ, a string specifying a time zone rule.\n\
-If TZ is nil, use implementation-defined default time zone information.")
+If TZ is nil, use implementation-defined default time zone information.\n\
+If TZ is t, use Universal Time.")
   (tz)
      Lisp_Object tz;
 {
@@ -922,6 +925,8 @@ If TZ is nil, use implementation-defined default time zone information.")
 
   if (NILP (tz))
     tzstring = 0;
+  else if (tz == Qt)
+    tzstring = "UTC0";
   else
     {
       CHECK_STRING (tz, 0);
