@@ -1,3 +1,11 @@
+2004-12-14  Juri Linkov  <juri@jurta.org>
+
+	* buff-menu.el (list-buffers-noselect): Collect internal info
+	for every buffer in BUFFER-LIST arg too.
+	(Buffer-menu-switch-other-window): Bind pop-up-windows to t.
+	(Buffer-menu-switch-other-window, Buffer-menu-2-window):
+	Bind same-window-buffer-names and same-window-regexps to nil.
+
 2004-12-13  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (next-error-buffer-p, next-error-find-buffer):
