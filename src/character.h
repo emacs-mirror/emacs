@@ -149,6 +149,15 @@ Boston, MA 02111-1307, USA.  */
       (p)[1] = (0x80 | ((c) & 0x3F)),		\
       2))
 
+/* Store multibyte form of eight-bit char B in P.  The caller should
+   allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
+   Returns the length of the multibyte form.  */
+
+#define BYTE8_STRING(b, p)			\
+  ((p)[0] = (0xC0 | (((b) >> 6) & 0x01)),	\
+   (p)[1] = (0x80 | ((c) & 0x3F)),		\
+   2)
+
 
 /* Store multibyte form of the character C in P.  The caller should
    allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
