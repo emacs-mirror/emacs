@@ -492,3 +492,9 @@ block cursor as wide as the character under the cursor---for example,
 if the cursor is on a tab character, it would cover the full width
 occupied by that tab character.  To enable this feature, set the
 variable @code{x-stretch-cursor} to a non-@code{nil} value.
+
+@cindex cursor in non-selected windows
+@vindex cursor-in-non-selected-windows
+  Normally, the cursor in non-selected windows is shown as a hollow
+box.  To turn off cursor display in non-selected windows, set the
+variable @code{cursor-in-non-selected-windows} to @code{nil}.
