@@ -1,5 +1,9 @@
 2001-08-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* menu-bar.el (menu-bar-options-menu): Make option text, messages
+	and tooltips more consistent.  From "Marshall, Simon"
+	<Simon.Marshall@midas-kapiti.com>.
+
 	* startup.el (fancy-splash-screens): Temporarily set
 	minor-mode-map-alist to nil while displaying splash screens.
 
