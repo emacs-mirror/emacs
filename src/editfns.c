@@ -458,6 +458,7 @@ is in effect, in which case it is less.")
 DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
   "Return the byte position for character position POSITION.")
   (position)
+     Lisp_Object position;
 {
   CHECK_NUMBER_COERCE_MARKER (position, 1);
   return make_number (CHAR_TO_BYTE (XINT (position)));
