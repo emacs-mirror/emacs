@@ -1,3 +1,8 @@
+2003-07-28  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+
+	* progmodes/compile.el (compilation-environment): New user variable.
+	(compile-internal): Respect it.
+
 2003-07-23  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/gud.el (gdb-script-font-lock-keywords): 
