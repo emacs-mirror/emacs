@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.6 2001/01/08 16:26:44 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.7 2001/01/09 14:55:30 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,6 +28,9 @@
 
 ;;; Code:
 
+(eval-when-compile 
+  (require 'vc))
+
 ;;; 
 ;;; Customization options
 ;;;
@@ -37,6 +40,17 @@
 A string or list of strings passed to the checkin program by
 \\[vc-sccs-register]."
   :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :version "21.1"
+  :group 'vc)
+
+(defcustom vc-sccs-diff-switches nil
+  "*A string or list of strings specifying extra switches for `vcdiff',
+the diff utility used for SCCS under VC."
+    :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
 			 :value ("")
@@ -128,9 +142,9 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-sccs-workfile-unchanged-p (file)
   "SCCS-specific implementation of vc-workfile-unchanged-p."
-  (apply 'vc-do-command nil 1 "vcdiff" (vc-name file)
-         (list "--brief" "-q"
-               (concat "-r" (vc-workfile-version file)))))
+  (zerop (apply 'vc-do-command nil 1 "vcdiff" (vc-name file)
+                (list "--brief" "-q"
+                      (concat "-r" (vc-workfile-version file))))))
 
 
 ;;;
@@ -291,14 +305,11 @@ EDITABLE non-nil means previous version should be locked."
   "Get a difference report using SCCS between two versions of FILE."
   (setq oldvers (vc-sccs-lookup-triple file oldvers))
   (setq newvers (vc-sccs-lookup-triple file newvers))
-  (let* ((diff-switches-list (if (listp diff-switches)
-                                diff-switches
-                              (list diff-switches)))
-	 (options (append (list "-q"
-				(and oldvers (concat "-r" oldvers))
-				(and newvers (concat "-r" newvers)))
-			  diff-switches-list)))
-    (apply 'vc-do-command t 1 "vcdiff" (vc-name file) options)))
+  (apply 'vc-do-command t 1 "vcdiff" (vc-name file) 
+         (append (list "-q"
+                       (and oldvers (concat "-r" oldvers))
+                       (and newvers (concat "-r" newvers)))
+                 (vc-diff-switches-list sccs))))
 
 
 ;;;
