@@ -2437,7 +2437,12 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
 		   "Click \\[mouse-choose-completion] on a completion to select it.\n")))
       (insert (substitute-command-keys
 	       "In this buffer, type \\[choose-completion] to \
-select the completion near point.\n\n")))))
+select the completion near point.\n\n"))
+      (forward-line 1)
+      (if window-system
+	  (while (re-search-forward "[^ \t\n]+" nil t)
+	    (put-text-property (match-beginning 0) (match-end 0)
+			       'mouse-face 'highlight))))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
