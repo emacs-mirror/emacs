@@ -134,9 +134,9 @@ extern int charset_latin_jisx0201; /* JISX0201.Roman (Japanese Roman) */
 extern int charset_big5_1;	/* Big5 Level 1 (Chinese Traditional) */
 extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
-/* Check if STR points the head of multi-byte form, i.e. *STR is an
-   ASCII character or a base leading-code.  */
-#define CHAR_HEAD_P(str) ((unsigned char) *(str) < 0xA0)
+/* Check if CH is the head of multi-byte form, i.e.,
+   an ASCII character or a base leading-code.  */
+#define CHAR_HEAD_P(ch) ((unsigned char) (ch) < 0xA0)
 
 /*** GENERAL NOTE on CHARACTER REPRESENTATION ***
 
@@ -599,10 +599,10 @@ extern int iso_charset_table[2][2][128];
    range checking of POS.  */
 #define INC_POS(pos)				\
   do {						\
-    unsigned char *p = POS_ADDR (pos);		\
+    unsigned char *p = BYTE_POS_ADDR (pos);	\
     pos++;					\
     if (*p++ >= 0x80)				\
-      while (!CHAR_HEAD_P (p)) p++, pos++;	\
+      while (!CHAR_HEAD_P (*p)) p++, pos++;	\
   } while (0)
 
 /* Decrease the buffer point POS of the current buffer to the previous
@@ -611,11 +611,63 @@ extern int iso_charset_table[2][2][128];
   do {							      	\
     unsigned char *p, *p_min;				      	\
     int pos_saved = --pos;				      	\
-    if (pos < GPT)					      	\
+    if (pos < GPT_BYTE)					      	\
       p = BEG_ADDR + pos - 1, p_min = BEG_ADDR;		      	\
     else						      	\
       p = BEG_ADDR + GAP_SIZE + pos - 1, p_min = GAP_END_ADDR;	\
-    while (p > p_min && !CHAR_HEAD_P (p)) p--, pos--;		\
+    while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;		\
+    if (*p < 0x80 && pos != pos_saved) pos = pos_saved;		\
+  } while (0)
+
+/* Increment both CHARPOS and BYTEPOS, each in the appropriate way.  */
+
+#define INC_BOTH(charpos, bytepos)		\
+do						\
+  {						\
+    (charpos)++;				\
+    INC_POS ((bytepos));			\
+  }						\
+while (0)
+
+/* Decrement both CHARPOS and BYTEPOS, each in the appropriate way.  */
+
+#define DEC_BOTH(charpos, bytepos)		\
+do						\
+  {						\
+    (charpos)--;				\
+    DEC_POS ((bytepos));			\
+  }						\
+while (0)
+
+/* Increase the buffer point POS of the current buffer to the next
+   character boundary.  This macro relies on the fact that *GPT_ADDR
+   and *Z_ADDR are always accessible and the values are '\0'.  No
+   range checking of POS.  */
+#define BUF_INC_POS(buf, pos)			\
+  do {						\
+    unsigned char *p = BUF_BYTE_ADDRESS (buf, pos);	\
+    pos++;					\
+    if (*p++ >= 0x80)				\
+      while (!CHAR_HEAD_P (*p)) p++, pos++;	\
+  } while (0)
+
+/* Decrease the buffer point POS of the current buffer to the previous
+   character boundary.  No range checking of POS.  */
+#define BUF_DEC_POS(buf, pos)				      	\
+  do {							      	\
+    unsigned char *p, *p_min;				      	\
+    int pos_saved = --pos;				      	\
+    if (pos < BUF_GPT_BYTE (buf))			      	\
+      {								\
+	p = BUF_BEG_ADDR (buf) + pos - 1;			\
+	p_min = BUF_BEG_ADDR (buf);				\
+      }								\
+    else						      	\
+      {								\
+	p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos - 1;	\
+	p_min = BUF_GAP_END_ADDR (buf);				\
+      }								\
+    while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;		\
     if (*p < 0x80 && pos != pos_saved) pos = pos_saved;		\
   } while (0)
 
