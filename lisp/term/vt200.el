@@ -1,9 +1,3 @@
-(defun terminal-80-columns ()
-  (interactive)
-  (send-string-to-terminal "\033[?3l")
-  (set-frame-width 80))
-
-(defun terminal-132-columns ()
-  (interactive)
-  (send-string-to-terminal "\033[?3h")
-  (set-frame-width 132))
+;; For our purposes we can treat the vt200 and vt100 alike.
+;; The differences are handled by the termcap entry.
+(load "term/vt100" nil t)
