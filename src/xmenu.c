@@ -99,7 +99,6 @@ Lisp_Object Vmenu_updating_frame;
 Lisp_Object Qdebug_on_next_call;
 
 extern Lisp_Object Qmenu_bar;
-extern Lisp_Object Qmouse_click, Qevent_kind;
 
 extern Lisp_Object QCtoggle, QCradio;
 
@@ -1304,6 +1303,7 @@ show_help_event (f, widget, help)
     }
   else
     {
+#if 0  /* This code doesn't do anything useful.  ++kfs */
       /* WIDGET is the popup menu.  It's parent is the frame's
 	 widget.  See which frame that is.  */
       xt_or_gtk_widget frame_widget = XtParent (widget);
@@ -1317,7 +1317,7 @@ show_help_event (f, widget, help)
 		  FRAME_X_P (f) && f->output_data.x->widget == frame_widget))
 	    break;
 	}
-
+#endif
       show_help_echo (help, Qnil, Qnil, Qnil, 1);
     }
 }
