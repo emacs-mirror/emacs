@@ -1440,13 +1440,49 @@
 ;;; The variable `byte-boolean-vars' is now primitive and updated
 ;;; automatically by DEFVAR_BOOL.
 
+(defmacro byte-opt-update-stack-params (stack-adjust stack-depth lap0 rest lap)
+  "...macro used by byte-optimize-lapcode..."
+  `(progn
+     (byte-compile-log-lap "Before %s  [depth = %s]" ,lap0 ,stack-depth)
+     (cond ((eq (car ,lap0) 'TAG)
+	       ;; A tag can encode the expected stack depth.
+	       (when (cddr ,lap0)
+		 ;; First, check to see if our notion of the current stack
+		 ;; depth agrees with this tag.  We don't check at the
+		 ;; beginning of the function, because the presence of
+		 ;; lexical arguments means the first tag will have a
+		 ;; non-zero offset.
+		 (when (and (not (eq ,rest ,lap))	; not at first insn
+			    ,stack-depth	        ; not just after a goto
+			    (not (= (cddr ,lap0) ,stack-depth)))
+		   (error "Compiler error: optimizer is confused about ,stack-depth:
+  %s != %s at ,lapcode %s" (cddr ,lap0) ,stack-depth ,lap0))
+		 ;; Now set out current depth from this tag
+		 (setq ,stack-depth (cddr ,lap0)))
+	       (setq ,stack-adjust 0))
+	      ((memq (car ,lap0) '(byte-goto byte-return))
+	       ;; These insns leave us in an unknown state
+	       (setq ,stack-adjust nil))
+	      (t
+	       ;; ,stack-adjust will be added to ,stack-depth at the end of the
+	       ;; loop, so any code that modifies the isntruction sequence must
+	       ;; adjust this too.
+	       (setq ,stack-adjust
+		     (byte-compile-stack-adjustment (car ,lap0) (cdr ,lap0)))))
+     (byte-compile-log-lap "Before %s  [depth => %s, adj = %s]" ,lap0 ,stack-depth ,stack-adjust)
+     ))
+
 (defun byte-optimize-lapcode (lap &optional for-effect)
   "Simple peephole optimizer.  LAP is both modified and returned."
   (let (lap0
 	lap1
 	lap2
 	stack-adjust
-	(stack-depth 0)
+	stack-depth
+	(initial-stack-depth
+	 (and lap
+	      (eq (car (car lap)) 'TAG)
+	      (cdr (cdr (car lap)))))
 	(keep-going 'first-time)
 	(add-depth 0)
 	rest tmp tmp2 tmp3
@@ -1463,31 +1499,7 @@
 	      lap1 (nth 1 rest)
 	      lap2 (nth 2 rest))
 
-	(cond ((eq (car lap0) 'TAG)
-	       ;; A tag can encode the expected stack depth.
-	       (when (cddr lap0)
-		 ;; First, check to see if our notion of the current stack
-		 ;; depth agrees with this tag.  We don't check at the
-		 ;; beginning of the function, because the presence of
-		 ;; lexical arguments means the first tag will have a
-		 ;; non-zero offset.
-		 (when (and (not (eq rest lap))	; not at first insn
-			    stack-depth	        ; not just after a goto
-			    (not (= (cddr lap0) stack-depth)))
-		   (error "Compiler error: optimizer is confused about stack-depth:
-  %s != %s at lapcode %s" (cddr lap0) stack-depth lap0))
-		 ;; Now set out current depth from this tag
-		 (setq stack-depth (cddr lap0)))
-	       (setq stack-adjust 0))
-	      ((memq (car lap0) '(byte-goto byte-return))
-	       ;; These insns leave us in an unknown state
-	       (setq stack-adjust nil))
-	      (t
-	       ;; stack-adjust will be added to stack-depth at the end of the
-	       ;; loop, so any code that modifies the isntruction sequence must
-	       ;; adjust this too.
-	       (setq stack-adjust
-		     (byte-compile-stack-adjustment (car lap0) (cdr lap0)))))
+	(byte-opt-update-stack-params stack-adjust stack-depth lap0 rest lap)
 
 	;; You may notice that sequences like "dup varset discard" are
 	;; optimized but sequences like "dup varset TAG1: discard" are not.
@@ -1772,6 +1784,14 @@
 		   ""))
 	       (setq keep-going t))
 	      ;;
+	      ;; stack-ref-N  -->  dup    ; where N is TOS
+	      ;;
+	      ((and (eq (car lap0) 'byte-stack-ref)
+		    (= (cdr lap0) (1- stack-depth)))
+	       (setcar lap0 'byte-dup)
+	       (setcdr lap0 nil)
+	       (setq keep-going t))
+	      ;;
 	      ;; goto*-X ... X: goto-Y  --> goto*-Y
 	      ;; goto-X ...  X: return  --> return
 	      ;;
@@ -1938,10 +1958,13 @@
     ;;  need to do more than once.
     (setq byte-compile-constants nil
 	  byte-compile-variables nil)
-    (setq rest lap)
+    (setq rest lap
+	  stack-depth initial-stack-depth)
+    (byte-compile-log-lap "  ---- final pass")
     (while rest
       (setq lap0 (car rest)
 	    lap1 (nth 1 rest))
+      (byte-opt-update-stack-params stack-adjust stack-depth lap0 rest lap)
       (if (memq (car lap0) byte-constref-ops)
 	  (if (or (eq (car lap0) 'byte-constant)
 		  (eq (car lap0) 'byte-constant2))
@@ -1990,44 +2013,96 @@
 					 (+ (cdr lap0) (cdr lap1))))
 	     (setq lap (delq lap0 lap))
 	     (setcdr lap1 (+ (cdr lap1) (cdr lap0))))
-;; 	    ;;
-;; 	    ;; [(stack-set-M [discard ...]) ...]  -->  discardN-preserve-tos-(...)
-;; 	    ;;
-;; 	    ((and (memq (car lap0) '(byte-discard byte-discardN))
-;; 		  (memq (car lap1) '(byte-discard byte-discardN)))
-;; 	     (setq tmp rest)
-;; 	     (while (memq (car tmp) '(byte-discard byte-discardN))
-;; 	       (setq tmp2 (+ tmp2 (if (eq (car rest) 'byte-discard) 1 (cdar tmp))))
-;; 	       (setq tmp (cdr tmp)))
-;; 	     (setcar lap0 'byte-discardN)
-;; 	     (setcdr lap0 tmp2)
-;; 	     (setcdr rest tmp))
-;; 	    ;;
-;; 	    ;; [discard/discardN-M ...]  -->  discardN-(M+...)
-;; 	    ;;
-;; 	    ((and (memq (car lap0) '(byte-discard byte-discardN))
-;; 		  (memq (car lap1) '(byte-discard byte-discardN)))
-;; 	     (setq tmp rest)
-;; 	     (while (memq (car tmp) '(byte-discard byte-discardN))
-;; 	       (setq tmp2 (+ tmp2 (if (eq (car rest) 'byte-discard) 1 (cdar tmp))))
-;; 	       (setq tmp (cdr tmp)))
-;; 	     (setcar lap0 'byte-discardN)
-;; 	     (setcdr lap0 tmp2)
-;; 	     (setcdr rest tmp))
-;; 	    ;;
-;; 	    ;; [discardN-preserve-tos-M ...]  -->  discardN-preserve-tos-(M+...)
-;; 	    ;;
-;; 	    ((and (eq (car lap0) 'byte-discardN-preserve-tos)
-;; 		  (eq (car lap1) 'byte-discardN-preserve-tos))
-;; 	     (setq tmp rest)
-;; 	     (while (eq (car tmp) 'byte-discardN-preserve-tos)
-;; 	       (setq tmp2 (+ tmp2 (cdar tmp)))
-;; 	       (setq tmp (cdr tmp)))
-;; 	     (setcar lap0 'byte-discardN-preserve-tos)
-;; 	     (setcdr lap0 tmp2)
-;; 	     (setcdr rest tmp))
+	    
+	    ;;
+	    ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
+	    ;; stack-set-M [discard/discardN ...]  -->  discardN
+	    ;;
+	    ((and (eq (car lap0) 'byte-stack-set)
+		  (memq (car lap1) '(byte-discard byte-discardN))
+		  (progn
+		    ;; Following should be enough discards to expose the
+		    ;; value stored by the stack-set.
+		    (setq tmp (cdr rest))
+		    (setq tmp2 (- stack-depth 2 (cdr lap0)))
+		    (setq tmp3 0)
+		    (while (memq (car (car tmp)) '(byte-discard byte-discardN))
+		      (if (eq (car (car tmp)) 'byte-discard)
+			  (setq tmp3 (1+ tmp3))
+			(setq tmp3 (+ tmp3 (cdr (car tmp)))))
+		      (setq tmp (cdr tmp)))
+		    (>= tmp3 tmp2)))
+	     (setq lap (delq lap0 lap))
+	     (setcar lap1 (if (= tmp2 tmp3)
+			      'byte-discardN-preserve-tos
+			    'byte-discardN))
+	     (setcdr lap1 tmp3)
+	     (setcdr (cdr rest) tmp)
+	     (setq stack-adjust 0)
+	     (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"
+				   lap0 lap1))
+	    
+	    ;;
+	    ;; discard/discardN/discardN-preserve-tos-X discard/discardN-Y  -->
+	    ;; discardN-(X+Y)
+	    ;;
+	    ((and (memq (car lap0)
+			'(byte-discard
+			  byte-discardN
+			  byte-discardN-preserve-tos))
+		  (memq (car lap1) '(byte-discard byte-discardN)))
+	     (setq lap (delq lap0 lap))
+	     (setcar lap1 'byte-discardN)
+	     (setcdr lap1 (+ (if (eq (car lap0) 'byte-discard) 1 (cdr lap0))
+			     (if (eq (car lap1) 'byte-discard) 1 (cdr lap1))))
+	     (setq stack-adjust 0)
+	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 (car rest)))
+	    
+	    ;;
+	    ;; discardN-preserve-tos-X discardN-preserve-tos-Y  -->
+	    ;; discardN-preserve-tos-(X+Y)
+	    ;;
+	    ((and (eq (car lap0) 'byte-discardN-preserve-tos)
+		  (eq (car lap1) 'byte-discardN-preserve-tos))
+	     (setq lap (delq lap0 lap))
+	     (setcdr lap1 (+ (cdr lap0) (cdr lap1)))
+	     (setq stack-adjust 0)
+	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 (car rest)))
+	    
+	    ;;
+	    ;; discardN-preserve-tos return  -->  return
+	    ;; dup return  -->  return
+	    ;; stack-set-N return  -->  return     ; where N is TOS-1
+	    ;;
+	    ((and (eq (car lap1) 'byte-return)
+		  (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
+		      (and (eq (car lap0) 'byte-stack-set)
+			   (= (cdr lap0) (- stack-depth 2)))))
+	     ;; the byte-code interpreter will pop the stack for us, so
+	     ;; we can just leave stuff on it
+	     (setq lap (delq lap0 lap))
+	     (setq stack-adjust 0)
+	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
+	    
+	    ;;
+	    ;; dup stack-set-N return  -->  return     ; where N is TOS
+	    ;;
+	    ((and (eq (car lap0) 'byte-dup)
+		  (eq (car lap1) 'byte-stack-set)
+		  (eq (car (car (cdr (cdr rest)))) 'byte-return)
+		  (= (cdr lap1) (1- stack-depth)))
+	     (setq lap (delq lap0 (delq lap1 lap)))
+	     (setq rest (cdr rest))
+	     (setq stack-adjust 0)
+	     (byte-compile-log-lap "  dup %s return\t-->\treturn" lap1))
 	    )
+
+      (if (and stack-depth stack-adjust)
+	  (setq stack-depth (+ stack-depth stack-adjust))
+	(setq stack-depth nil))
+
       (setq rest (cdr rest)))
+
     (setq byte-compile-maxdepth (+ byte-compile-maxdepth add-depth)))
   lap)
 
