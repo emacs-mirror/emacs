@@ -2382,9 +2382,9 @@ adjust the variable `quail-keyboard-layout-type' ")
 	    (quail-help-insert-keymap-description
 	     (quail-conversion-keymap)
 	     "--- Key bindings for converting a character (sequence) ---\n"))
-	(setq quail-current-package nil)
-	(help-setup-xref (list #'quail-help package)
-			 (interactive-p))))))
+	(help-setup-xref (list #'quail-help (quail-name))
+			 (interactive-p))
+	(setq quail-current-package nil)))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
   (let (pos1 pos2 eol)
