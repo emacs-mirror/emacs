@@ -2485,6 +2485,8 @@ parse_modifiers (symbol)
 		   Qnil);
       Lisp_Object mask;
 
+      if (modifiers & ~((1<<VALBITS) - 1))
+	abort ();
       XFASTINT (mask) = modifiers;
       elements = Fcons (unmodified, Fcons (mask, Qnil));
 
@@ -2521,6 +2523,8 @@ apply_modifiers (modifiers, base)
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
+  if (index & ~((1<<VALBITS) - 1))
+    abort ();
   XFASTINT (index) = (modifiers & ~click_modifier);
   entry = Fassq (index, cache);
 
@@ -2538,6 +2542,8 @@ apply_modifiers (modifiers, base)
       Fput (base, Qmodifier_cache, Fcons (entry, cache));
 
       /* We have the parsing info now for free, so add it to the caches.  */
+      if (modifiers & ~((1<<VALBITS) - 1))
+	abort ();
       XFASTINT (index) = modifiers;
       Fput (new_symbol, Qevent_symbol_element_mask,
 	    Fcons (base, Fcons (index, Qnil)));
