@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-parse.el,v 1.1 2000/03/11 03:42:29 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.2 2000/03/22 02:56:53 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -185,7 +185,6 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       (apply 'cvs-create-fileinfo type
 	     (concat cvs-current-subdir (or dir cvs-current-dir))
 	     file (cvs-parse-msg) :subtype subtype keys))))
-
 
 ;;;; CVS Process Parser Tables:
 ;;;;
@@ -217,19 +216,28 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       ;; P: The file was patched from the repository.
       ;; ?: Unknown file.
       (let ((code (aref c 0)))
-	(cvs-parsed-fileinfo (case code
-			       (?M 'MODIFIED)
-			       (?A 'ADDED)
-			       (?R 'REMOVED)
-			       (?? 'UNKNOWN)
-			       (?C 'CONFLICT) ;(if dont-change-disc 'NEED-MERGE
-			       (?J 'NEED-MERGE)	;not supported by standard CVS
-			       ((?U ?P)
-				(if dont-change-disc
-				    'NEED-UPDATE
-				  (cons 'UP-TO-DATE
-					(if (eq code ?U) 'UPDATED 'PATCHED)))))
-			     path 'trust)))
+	(cvs-parsed-fileinfo
+	 (case code
+	   (?M 'MODIFIED)
+	   (?A 'ADDED)
+	   (?R 'REMOVED)
+	   (?? 'UNKNOWN)
+	   (?C
+	    (if (not dont-change-disc) 'CONFLICT
+	      ;; This is ambiguous.  We should look for conflict markers in the
+	      ;; file to decide between CONFLICT and NEED-MERGE.  With CVS-1.10
+	      ;; servers, this should not be necessary, because they return
+	      ;; a complete merge output.
+	      (with-temp-buffer
+		(insert-file-contents path)
+		(goto-char (point-min))
+		(if (re-search-forward "^<<<<<<< " nil t)
+		    'CONFLICT 'NEED-MERGE))))
+	   (?J 'NEED-MERGE)		;not supported by standard CVS
+	   ((?U ?P)
+	    (if dont-change-disc 'NEED-UPDATE
+	      (cons 'UP-TO-DATE (if (eq code ?U) 'UPDATED 'PATCHED)))))
+	 path 'trust)))
 
      (and
       (cvs-match "pcl-cvs: descending directory \\(.*\\)$" (dir 1))
