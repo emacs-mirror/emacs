@@ -1186,7 +1186,7 @@ See also the functions `match-beginning', `match-end' and `replace-match'.")
   return search_command (regexp, bound, noerror, count, 1, 1);
 }
 
-DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 3, 0,
+DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 4, 0,
   "Replace text matched by last search with NEWTEXT.\n\
 If second arg FIXEDCASE is non-nil, do not alter case of replacement text.\n\
 Otherwise maybe capitalize the whole text, or maybe just word initials,\n\
@@ -1202,9 +1202,13 @@ Otherwise treat `\\' as special:\n\
        If Nth parens didn't match, substitute nothing.\n\
   `\\\\' means insert one `\\'.\n\
 FIXEDCASE and LITERAL are optional arguments.\n\
-Leaves point at end of replacement text.")
-  (newtext, fixedcase, literal)
-     Lisp_Object newtext, fixedcase, literal;
+Leaves point at end of replacement text.\n\
+\n\
+The optional fourth argument STRING can be a string to modify.\n\
+In that case, this function creates and returns a new string\n\
+which is made by replacing the part of STRING that was matched.")
+  (newtext, fixedcase, literal, string)
+     Lisp_Object newtext, fixedcase, literal, string;
 {
   enum { nochange, all_caps, cap_initial } case_action;
   register int pos, last;
@@ -1217,17 +1221,31 @@ Leaves point at end of replacement text.")
 
   CHECK_STRING (newtext, 0);
 
+  if (! NILP (string))
+    CHECK_STRING (string, 4);
+
   case_action = nochange;	/* We tried an initialization */
 				/* but some C compilers blew it */
 
   if (search_regs.num_regs <= 0)
     error ("replace-match called before any match found");
 
-  if (search_regs.start[0] < BEGV
-      || search_regs.start[0] > search_regs.end[0]
-      || search_regs.end[0] > ZV)
-    args_out_of_range (make_number (search_regs.start[0]),
-		       make_number (search_regs.end[0]));
+  if (NILP (string))
+    {
+      if (search_regs.start[0] < BEGV
+	  || search_regs.start[0] > search_regs.end[0]
+	  || search_regs.end[0] > ZV)
+	args_out_of_range (make_number (search_regs.start[0]),
+			   make_number (search_regs.end[0]));
+    }
+  else
+    {
+      if (search_regs.start[0] < 0
+	  || search_regs.start[0] > search_regs.end[0]
+	  || search_regs.end[0] > XSTRING (string)->size)
+	args_out_of_range (make_number (search_regs.start[0]),
+			   make_number (search_regs.end[0]));
+    }
 
   if (NILP (fixedcase))
     {
@@ -1246,7 +1264,11 @@ Leaves point at end of replacement text.")
 
       for (pos = search_regs.start[0]; pos < last; pos++)
 	{
-	  c = FETCH_CHAR (pos);
+	  if (NILP (string))
+	    c = FETCH_CHAR (pos);
+	  else
+	    c = XSTRING (string)->data[pos];
+
 	  if (LOWERCASEP (c))
 	    {
 	      /* Cannot be all caps if any original char is lower case */
@@ -1289,6 +1311,77 @@ Leaves point at end of replacement text.")
 	case_action = all_caps;
       else
 	case_action = nochange;
+    }
+
+  /* Do replacement in a string.  */
+  if (!NILP (string))
+    {
+      Lisp_Object before, after;
+
+      before = Fsubstring (string, make_number (0),
+			   make_number (search_regs.start[0]));
+      after = Fsubstring (string, make_number (search_regs.end[0]), Qnil);
+
+      /* Do case substitution into NEWTEXT if desired.  */
+      if (NILP (literal))
+	{
+	  int lastpos = -1;
+	  /* We build up the substituted string in ACCUM.  */
+	  Lisp_Object accum;
+	  Lisp_Object middle;
+
+	  accum = Qnil;
+
+	  for (pos = 0; pos < XSTRING (newtext)->size; pos++)
+	    {
+	      int substart = -1;
+	      int subend;
+
+	      c = XSTRING (newtext)->data[pos];
+	      if (c == '\\')
+		{
+		  c = XSTRING (newtext)->data[++pos];
+		  if (c == '&')
+		    {
+		      substart = search_regs.start[0];
+		      subend = search_regs.end[0];
+		    }
+		  else if (c >= '1' && c <= '9' && c <= search_regs.num_regs + '0')
+		    {
+		      if (search_regs.start[c - '0'] >= 1)
+			{
+			  substart = search_regs.start[c - '0'];
+			  subend = search_regs.end[c - '0'];
+			}
+		    }
+		}
+	      if (substart >= 0)
+		{
+		  if (pos - 1 != lastpos + 1)
+		    middle = Fsubstring (newtext, lastpos + 1, pos - 1);
+		  else
+		    middle = Qnil;
+		  accum = concat3 (accum, middle,
+				   Fsubstring (string, make_number (substart),
+					       make_number (subend)));
+		  lastpos = pos;
+		}
+	    }
+
+	  if (pos != lastpos + 1)
+	    middle = Fsubstring (newtext, lastpos + 1, pos);
+	  else
+	    middle = Qnil;
+
+	  newtext = concat2 (accum, middle);
+	}
+
+      if (case_action == all_caps)
+	newtext = Fupcase (newtext);
+      else if (case_action == cap_initial)
+	newtext = upcase_initials (newtext);
+
+      return concat3 (before, newtext, after);
     }
 
   /* We insert the replacement text before the old text, and then
