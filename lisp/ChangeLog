@@ -1,3 +1,12 @@
+2001-10-26  Tomas Abrahamsson  <tab@lysator.liu.se>
+
+	* textmodes/artist.el (artist-version): 1.2.4.
+	(artist-butlast-fn): New variable.
+	(artist-butlast): New function.
+	(artist-ellipse-mirror-quadrant): Use it.
+	(artist-mouse-draw-poly): Use nil for `point-list'.
+	(artist-mouse-draw-poly): Check for point-list being nil.
+
 2001-10-26  Peter Kleiweg  <kleiweg@let.rug.nl>
 
 	* progmodes/ps-mode.el (ps-mode-print-function): Remove quote for
