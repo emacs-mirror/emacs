@@ -75,11 +75,13 @@
 # endif
 #endif
 
+#if 0
 #ifdef _LIBC
 # include <libintl.h>
 #else
 /* This is for other GNU distributions with internationalized messages.  */
 # include "gettext.h"
+#endif
 #endif
 #define _(msgid) gettext (msgid)
 
