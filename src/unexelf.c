@@ -420,7 +420,7 @@ Filesz      Memsz       Flags       Align
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
-#ifndef __NetBSD__
+#if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <elf.h>
 #endif
 #include <sys/mman.h>
@@ -429,7 +429,7 @@ Filesz      Memsz       Flags       Align
 #include <sym.h>
 #endif /* __sony_news && _SYSTYPE_SYSV */
 
-#if defined (__alpha__) && !defined (__NetBSD__)
+#if defined (__alpha__) && !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <sym.h>	/* get COFF debugging symbol table declaration */
 #endif
 
@@ -472,6 +472,10 @@ Filesz      Memsz       Flags       Align
 #  define pHDRR		HDRR *
 # endif
 #endif /* __NetBSD__ */
+
+#ifdef __OpenBSD__
+# include <sys/exec_elf.h>
+#endif
 
 #if __GNU_LIBRARY__ - 0 >= 6
 # include <link.h>	/* get ElfW etc */
@@ -682,7 +686,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
   old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
 #endif /* not (__sony_news && _SYSTYPE_SYSV) */	    
-#if defined(emacs) || !defined(DEBUG)
+#if defined (emacs) || !defined (DEBUG)
   new_bss_addr = (ElfW(Addr)) sbrk (0);
 #else
   new_bss_addr = old_bss_addr + old_bss_size + 0x1234;
