@@ -86,6 +86,19 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
 
+/* GCC 2.5.8, gcc -E -dM */
+
+#elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) && \
+      defined(__svr4__)
+#define MPS_PF_SOSPGC
+#define MPS_OS_SO
+#define MPS_ARCH_SP
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8
+
 /* GCC 2.6.3, gcc -E -dM */
 
 #elif defined(__osf__) && defined(__alpha__) && defined(__GNUC__)
