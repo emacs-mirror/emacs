@@ -365,6 +365,177 @@ x_top_window_to_frame (wdesc)
 #endif /* USE_X_TOOLKIT */
 
 
+
+/* Code to deal with bitmaps.  Bitmaps are referenced by their bitmap
+   id, which is just an int that this section returns.  Bitmaps are
+   reference counted so they can be shared among frames.
+
+   Bitmap indices are guaranteed to be > 0, so a negative number can
+   be used to indicate no bitmap.
+
+   If you use x_create_bitmap_from_data, then you must keep track of
+   the bitmaps yourself.  That is, creating a bitmap from the same
+   data more than once will not be caught. */
+
+
+/* Structure recording X pixmap and reference count.
+   If REFCOUNT is 0 then this record is free to be reused.  */
+
+struct x_bitmap_record
+{
+  Pixmap pixmap;
+  char *file;
+  int refcount;
+};
+
+/* Pointer to bitmap records.  */
+static struct x_bitmap_record *x_bitmaps;
+
+/* Allocated size of x_bitmaps.  */
+static int x_bitmaps_size;
+
+/* Last used bitmap index.  */
+static int x_bitmaps_last;
+
+/* Count of free bitmaps before X_BITMAPS_LAST.  */
+static int x_bitmaps_free;
+
+/* Allocate a new bitmap record.  Returns index of new record.  */
+
+static int
+x_allocate_bitmap_record ()
+{
+  if (x_bitmaps == NULL)
+    {
+      x_bitmaps_size = 10;
+      x_bitmaps
+	= (struct x_bitmap_record *) xmalloc (x_bitmaps_size * sizeof (struct x_bitmap_record));
+      x_bitmaps_last = 1;
+      return 1;
+    }
+
+  if (x_bitmaps_last < x_bitmaps_size)
+    return ++x_bitmaps_last;
+
+  if (x_bitmaps_free > 0)
+    {
+      int i;
+      for (i = 0; i < x_bitmaps_size; ++i)
+	{
+	  if (x_bitmaps[i].refcount == 0)
+	    {
+	      --x_bitmaps_free;
+	      return i + 1;
+	    }
+	}
+    }
+
+  x_bitmaps_size *= 2;
+  x_bitmaps = (struct x_bitmap_record *) xrealloc (x_bitmaps, x_bitmaps_size * sizeof (struct x_bitmap_record));
+  return ++x_bitmaps_last;
+}
+
+/* Add one reference to the reference count of the bitmap with id ID.  */
+
+void
+x_reference_bitmap (id)
+     int id;
+{
+  ++x_bitmaps[id - 1].refcount;
+}
+
+/* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
+
+int
+x_create_bitmap_from_data (f, bits, width, height)
+     struct frame *f;
+     char *bits;
+     unsigned int width, height;
+{
+  Pixmap bitmap;
+  int id;
+
+  bitmap = XCreateBitmapFromData (x_current_display, FRAME_X_WINDOW (f),
+				  bits, width, height);
+
+  if (! bitmap)
+    return -1;
+
+  id = x_allocate_bitmap_record ();
+  x_bitmaps[id - 1].pixmap = bitmap;
+  x_bitmaps[id - 1].file = NULL;
+  x_bitmaps[id - 1].refcount = 1;
+
+  return id;
+}
+
+/* Create bitmap from file FILE for frame F.  */
+
+int
+x_create_bitmap_from_file (f, file)
+     struct frame *f;
+     char *file;
+{
+  unsigned int width, height;
+  Pixmap bitmap;
+  int xhot, yhot, result, id;
+
+  /* Look for an existing bitmap with the same name.  */
+  for (id = 0; id < x_bitmaps_last; ++id)
+    {
+      if (x_bitmaps[id].refcount
+	  && x_bitmaps[id].file
+	  && !strcmp (x_bitmaps[id].file, file))
+	{
+	  ++x_bitmaps[id].refcount;
+	  return id + 1;
+	}
+    }
+
+  result = XReadBitmapFile (x_current_display, FRAME_X_WINDOW (f),
+			    file, &width, &height, &bitmap, &xhot, &yhot);
+  if (result != BitmapSuccess)
+    return -1;
+
+  id = x_allocate_bitmap_record ();
+  x_bitmaps[id - 1].pixmap = bitmap;
+  x_bitmaps[id - 1].refcount = 1;
+  x_bitmaps[id - 1].file = (char *) xmalloc ((strlen (file) + 1));
+  strcpy (x_bitmaps[id - 1].file, file);
+
+  return id;
+}
+
+/* Remove reference to bitmap with id number ID.  */
+
+int
+x_destroy_bitmap (id)
+     int id;
+{
+  if (id > 0)
+    {
+      --x_bitmaps[id - 1].refcount;
+      if (! x_bitmaps[id - 1].refcount)
+	{
+	  XFreePixmap (x_current_display, x_bitmaps[id - 1].pixmap);
+	  if (x_bitmaps[id - 1].file)
+	    {
+	      free (x_bitmaps[id - 1].file);
+	      x_bitmaps[id - 1].file = NULL;
+	    }
+	}
+    }
+}
+
+/* Return pixmap given bitmap id.  */
+
+Pixmap
+x_lookup_pixmap (id)
+     int id;
+{
+  return x_bitmaps[id - 1].pixmap;
+}
+
 /* Connect the frame-parameter names for X frames
    to the ways of passing the parameter values to the window system.
 
@@ -473,7 +644,7 @@ x_set_frame_parameters (f, alist)
   Lisp_Object *values;
   int i;
   int left_no_change = 0, top_no_change = 0;
-  
+
   i = 0;
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
     i++;
@@ -1083,14 +1254,21 @@ x_set_icon_type (f, arg, oldval)
   Lisp_Object tem;
   int result;
 
-  if (EQ (oldval, Qnil) == EQ (arg, Qnil))
+  if (STRINGP (arg))
+    {
+      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+	return;
+    }
+  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
     return;
 
   BLOCK_INPUT;
   if (NILP (arg))
     result = x_text_icon (f, 0);
-  else
-    result = x_bitmap_icon (f);
+  else if (STRINGP (arg))
+    result = x_bitmap_icon (f, XSTRING (arg)->data);
+  else 
+    result = x_bitmap_icon (f, 0);
 
   if (result)
     {
@@ -2362,6 +2540,7 @@ be shared by the new frame.")
   f->output_method = output_x_window;
   f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
   bzero (f->display.x, sizeof (struct x_display));
+  f->display.x->icon_bitmap = -1;
 
   FRAME_X_SCREEN (f) = &the_x_screen;
   FRAME_X_SCREEN (f)->reference_count++;
