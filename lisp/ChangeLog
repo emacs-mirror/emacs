@@ -1,3 +1,7 @@
+2002-07-23  Markus Rost  <rost@math.ohio-state.edu>
+
+	* add-log.el (add-log-current-defun):  Fix typo in documentation.
+
 2002-07-22  Markus Rost  <rost@math.ohio-state.edu>
 
 	* add-log.el (add-log-mailing-address): Fix type.  Can be a
