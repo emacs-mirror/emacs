@@ -1437,15 +1437,31 @@ term_init (terminal_type)
 
   status = tgetent (buffer, terminal_type);
   if (status < 0)
-    fatal ("Cannot open termcap database file.\n");
+    {
+#ifdef TERMINFO
+      fatal ("Cannot open terminfo database file.\n");
+#else
+      fatal ("Cannot open termcap database file.\n");
+#endif
+    }
   if (status == 0)
-    fatal ("Terminal type %s is not defined.\n\
+    {
+#ifdef TERMINFO
+      fatal ("Terminal type %s is not defined.\n\
+If that is not the actual type of terminal you have,\n\
+use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
+`setenv TERM ...') to specify the correct type.  It may be necessary\n\
+to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.\n",
+	     terminal_type);
+#else
+      fatal ("Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
-	   terminal_type);
-
+	     terminal_type);
+#endif
+    }
 #ifdef TERMINFO
   area = (char *) malloc (2044);
 #else
