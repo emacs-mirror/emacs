@@ -1,6 +1,6 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
- * $HopeName: MMsrc!assert.c(trunk.2) $
+ * $HopeName: MMsrc!assert.c(trunk.3) $
  *
  * When DEBUG is defined (see debug.h) this source provides
  * the AssertFail function which is invoked by the assertion macros
@@ -59,7 +59,7 @@ AssertHandler AssertInstall(AssertHandler new)
  */
 
 void AssertFail(const char *cond, const char *id, 
-  const char *file, unsigned line)
+                const char *file, unsigned line)
 {
   if(handler != NULL) {
     (*handler)(cond, id, file, line);
@@ -69,15 +69,4 @@ void AssertFail(const char *cond, const char *id,
 }
 
 
-/*  === UNREACHABLE STATEMENT ===
- *
- *  This function is called by the NOTREACHED macro.
- */
-
-void AssertReach(const char *file, unsigned line)
-{
-  AssertFail("unreachable statement", "no id", file, line);
-}
-
-
-#endif
+#endif /* DEBUG */
