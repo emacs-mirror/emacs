@@ -179,6 +179,15 @@ which is at least the number of distinct elements.")
   return length;
 }
 
+DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
+  "Return the number of bytes in STRING.\n\
+If STRING is a multibyte string, this is greater than the length of STRING.")
+  (string)
+{
+  CHECK_STRING (string, 1);
+  return make_number (XSTRING (string)->size_byte);
+}
+
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
   "Return t if two strings have identical contents.\n\
 Case is significant, but text properties are ignored.\n\
@@ -2541,6 +2550,7 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Srandom);
   defsubr (&Slength);
   defsubr (&Ssafe_length);
+  defsubr (&Sstring_bytes);
   defsubr (&Sstring_equal);
   defsubr (&Sstring_lessp);
   defsubr (&Sappend);
