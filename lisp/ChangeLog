@@ -1,3 +1,9 @@
+2001-10-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* international/fontset.el (x-must-resolve-font-name): New
+	function.
+	(x-complement-fontset-spec): Use it.
+
 2001-10-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* uniquify.el (uniquify-get-proposed-name): Fix (.. "usr" "/usr" 0).

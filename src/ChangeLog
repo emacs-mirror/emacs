@@ -8,6 +8,8 @@
 
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c: Change #ifdef GLYPH_DEBUG to #if.
+	
 	* xdisp.c (try_window_reusing_current_matrix): Use
 	row_containing_pos.
 	(row_containing_pos): Take additional argument DY.  Treat
