@@ -1,3 +1,15 @@
+2000-12-15  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* dabbrev.el (dabbrev--last-case-pattern): Value is now
+	`upcase' or `downcase' or nil.
+	(dabbrev-expand): Don't do anything with dabbrev--last-case-pattern.
+	Pass new record-case-pattern arg to dabbrev--substitute-expansion.
+	(dabbrev--substitute-expansion): New arg record-case-pattern.
+	If it is non-nil, set dabbrev--last-case-pattern.
+	If ABBREV is " ", use dabbrev--last-case-pattern to change EXPANSION.
+
+	* dabbrev.el (dabbrev--find-expansion): Remove extra nreverse.
+
 2000-12-15  Miles Bader  <miles@gnu.org>
 
 	* paths.el (Info-default-directory-list): Don't delete
