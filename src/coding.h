@@ -282,6 +282,7 @@ enum coding_type
 #define CODING_FINISH_INSUFFICIENT_SRC	1
 #define CODING_FINISH_INSUFFICIENT_DST	2
 #define CODING_FINISH_INCONSISTENT_EOL	3
+#define CODING_FINISH_INTERRUPT		4
 
 /* Macros used for the member `mode' of the struct coding_system.  */
 
