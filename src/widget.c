@@ -973,8 +973,6 @@ EmacsFrameSetCharSize (widget, columns, rows)
       update_hints_inhibit = 0;
       update_wm_hints (ew);
 
-      do_pending_window_change ();
-
       /* These seem to get clobbered.  I don't know why. - rms.  */
       f->output_data.x->widget->core.x = old_left;
       f->output_data.x->widget->core.y = old_top;
