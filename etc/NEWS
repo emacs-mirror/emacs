@@ -2618,9 +2618,9 @@ minibuffer window only if it's active.  MINIBUF neither nil nor t
 means never include the minibuffer window.
 
 +++
-** There's a new function `some-window' defined as follows
+** There's a new function `get-window-with-predicate' defined as follows
 
-- Function: some-window PREDICATE &optional MINIBUF ALL-FRAMES DEFAULT
+- Function: get-window-with-predicate PREDICATE &optional MINIBUF ALL-FRAMES DEFAULT
 
 Return a window satisfying PREDICATE.
 
