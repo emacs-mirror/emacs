@@ -48,6 +48,11 @@ Boston, MA 02111-1307, USA.  */
 #define NULL (void *)0
 #endif
 
+#ifndef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
 /* Nonzero enables use of dialog boxes for questions
    asked by mouse commands.  */
 int use_dialog_box;
@@ -3174,10 +3179,1326 @@ base64_decode_1 (from, to, length)
       *e++ = (unsigned char) (0xff & value);
     }
 }
+
+
+
+/***********************************************************************
+ *****                                                             *****
+ *****			     Hash Tables                           *****
+ *****                                                             *****
+ ***********************************************************************/
+
+/* Implemented by gerd@gnu.org.  This hash table implementation was
+   inspired by CMUCL hash tables.  */
+
+/* Ideas:
+
+   1. For small tables, association lists are probably faster than
+   hash tables because they have lower overhead.
+
+   For uses of hash tables where the O(1) behavior of table
+   operations is not a requirement, it might therefore be a good idea
+   not to hash.  Instead, we could just do a linear search in the
+   key_and_value vector of the hash table.  This could be done
+   if a `:linear-search t' argument is given to make-hash-table.  */
+
+
+/* Return the contents of vector V at index IDX.  */
+
+#define AREF(V, IDX)       XVECTOR (V)->contents[IDX]
+
+/* Value is the key part of entry IDX in hash table H.  */
+
+#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
+
+/* Value is the value part of entry IDX in hash table H.  */
+
+#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
+
+/* Value is the index of the next entry following the one at IDX
+   in hash table H.  */
+
+#define HASH_NEXT(H, IDX)  AREF ((H)->next, (IDX))
+
+/* Value is the hash code computed for entry IDX in hash table H.  */
+
+#define HASH_HASH(H, IDX)  AREF ((H)->hash, (IDX))
+
+/* Value is the index of the element in hash table H that is the
+   start of the collision list at index IDX in the index vector of H.  */
+
+#define HASH_INDEX(H, IDX)  AREF ((H)->index, (IDX))
+
+/* Value is the size of hash table H.  */
+
+#define HASH_TABLE_SIZE(H) XVECTOR ((H)->next)->size
+
+/* The list of all weak hash tables.  Don't staticpro this one.  */
+
+Lisp_Object Vweak_hash_tables;
+
+/* Various symbols.  */
+
+Lisp_Object Qhash_table_p, Qeq, Qeql, Qequal, Qkey_weak, Qvalue_weak;
+Lisp_Object Qkey_value_weak;
+Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweak;
+Lisp_Object Qhash_table_test;
+
+/* Function prototypes.  */
+
+static struct Lisp_Hash_Table *check_hash_table P_ ((Lisp_Object));
+static int next_almost_prime P_ ((int));
+static int get_key_arg P_ ((Lisp_Object, int, Lisp_Object *, char *));
+static Lisp_Object larger_vector P_ ((Lisp_Object, int, Lisp_Object));
+static void maybe_resize_hash_table P_ ((struct Lisp_Hash_Table *));
+static int cmpfn_eq P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
+			 Lisp_Object, unsigned));
+static int cmpfn_eql P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
+			  Lisp_Object, unsigned));
+static int cmpfn_equal P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
+			    Lisp_Object, unsigned));
+static int cmpfn_user_defined P_ ((struct Lisp_Hash_Table *, Lisp_Object,
+				   unsigned, Lisp_Object, unsigned));
+static unsigned hashfn_eq P_ ((struct Lisp_Hash_Table *, Lisp_Object));
+static unsigned hashfn_eql P_ ((struct Lisp_Hash_Table *, Lisp_Object));
+static unsigned hashfn_equal P_ ((struct Lisp_Hash_Table *, Lisp_Object));
+static unsigned hashfn_user_defined P_ ((struct Lisp_Hash_Table *,
+					 Lisp_Object));
+static unsigned sxhash_string P_ ((unsigned char *, int));
+static unsigned sxhash_list P_ ((Lisp_Object, int));
+static unsigned sxhash_vector P_ ((Lisp_Object, int));
+static unsigned sxhash_bool_vector P_ ((Lisp_Object));
+
+
+
+/***********************************************************************
+			       Utilities
+ ***********************************************************************/
+
+/* If OBJ is a Lisp hash table, return a pointer to its struct
+   Lisp_Hash_Table.  Otherwise, signal an error.  */
+
+static struct Lisp_Hash_Table *
+check_hash_table (obj)
+     Lisp_Object obj;
+{
+  CHECK_HASH_TABLE (obj, 0);
+  return XHASH_TABLE (obj);
+}
+
+
+/* Value is the next integer I >= N, N >= 0 which is "almost" a prime
+   number.  */
+
+static int
+next_almost_prime (n)
+     int n;
+{
+  if (n % 2 == 0)
+    n += 1;
+  if (n % 3 == 0)
+    n += 2;
+  if (n % 7 == 0)
+    n += 4;
+  return n;
+}
+
+
+/* Find KEY in ARGS which has size NARGS.  Don't consider indices for
+   which USED[I] is non-zero.  If found at index I in ARGS, set
+   USED[I] and USED[I + 1] to 1, and return I + 1.  Otherwise return
+   -1.  This function is used to extract a keyword/argument pair from
+   a DEFUN parameter list.  */
+
+static int
+get_key_arg (key, nargs, args, used)
+     Lisp_Object key;
+     int nargs;
+     Lisp_Object *args;
+     char *used;
+{
+  int i;
+  
+  for (i = 0; i < nargs - 1; ++i)
+    if (!used[i] && EQ (args[i], key))
+      break;
+  
+  if (i >= nargs - 1)
+    i = -1;
+  else
+    {
+      used[i++] = 1;
+      used[i] = 1;
+    }
+  
+  return i;
+}
+
+
+/* Return a Lisp vector which has the same contents as VEC but has
+   size NEW_SIZE, NEW_SIZE >= VEC->size.  Entries in the resulting
+   vector that are not copied from VEC are set to INIT.  */
+
+static Lisp_Object
+larger_vector (vec, new_size, init)
+     Lisp_Object vec;
+     int new_size;
+     Lisp_Object init;
+{
+  struct Lisp_Vector *v;
+  int i, old_size;
+
+  xassert (VECTORP (vec));
+  old_size = XVECTOR (vec)->size;
+  xassert (new_size >= old_size);
+
+  v = allocate_vectorlike (new_size);
+  v->size = new_size;
+  bcopy (XVECTOR (vec)->contents, v->contents,
+	 old_size * sizeof *v->contents);
+  for (i = old_size; i < new_size; ++i)
+    v->contents[i] = init;
+  XSETVECTOR (vec, v);
+  return vec;
+}
+
+
+/***********************************************************************
+			 Low-level Functions
+ ***********************************************************************/
+
+/* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
+   HASH2 in hash table H using `eq'.  Value is non-zero if KEY1 and
+   KEY2 are the same.  */
+
+static int
+cmpfn_eq (h, key1, hash1, key2, hash2)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key1, key2;
+     unsigned hash1, hash2;
+{
+  return EQ (key1, key2);
+}
+
+
+/* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
+   HASH2 in hash table H using `eql'.  Value is non-zero if KEY1 and
+   KEY2 are the same.  */
+
+static int
+cmpfn_eql (h, key1, hash1, key2, hash2)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key1, key2;
+     unsigned hash1, hash2;
+{
+  return (EQ (key1, key2)
+	  || (FLOATP (key1)
+	      && FLOATP (key2)
+	      && XFLOAT (key1)->data == XFLOAT (key2)->data));
+}
+
+
+/* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
+   HASH2 in hash table H using `equal'.  Value is non-zero if KEY1 and
+   KEY2 are the same.  */
+
+static int
+cmpfn_equal (h, key1, hash1, key2, hash2)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key1, key2;
+     unsigned hash1, hash2;
+{
+  return (EQ (key1, key2)
+	  || (hash1 == hash2
+	      && !NILP (Fequal (key1, key2))));
+}
+
+  
+/* Compare KEY1 which has hash code HASH1, and KEY2 with hash code
+   HASH2 in hash table H using H->user_cmp_function.  Value is non-zero
+   if KEY1 and KEY2 are the same.  */
+
+static int
+cmpfn_user_defined (h, key1, hash1, key2, hash2)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key1, key2;
+     unsigned hash1, hash2;
+{
+  if (hash1 == hash2)
+    {
+      Lisp_Object args[3];
+  
+      args[0] = h->user_cmp_function;
+      args[1] = key1;
+      args[2] = key2;
+      return !NILP (Ffuncall (3, args));
+    }
+  else
+    return 0;
+}
+
+
+/* Value is a hash code for KEY for use in hash table H which uses
+   `eq' to compare keys.  The hash code returned is guaranteed to fit
+   in a Lisp integer.  */
+
+static unsigned
+hashfn_eq (h, key)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key;
+{
+  /* Lisp strings can change their address.  Don't try to compute a
+     hash code for a string from its address.  */
+  if (STRINGP (key))
+    return sxhash_string (XSTRING (key)->data, XSTRING (key)->size);
+  else
+    return XUINT (key) ^ XGCTYPE (key);
+}
+
+
+/* Value is a hash code for KEY for use in hash table H which uses
+   `eql' to compare keys.  The hash code returned is guaranteed to fit
+   in a Lisp integer.  */
+
+static unsigned
+hashfn_eql (h, key)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key;
+{
+  /* Lisp strings can change their address.  Don't try to compute a
+     hash code for a string from its address.  */
+  if (STRINGP (key))
+    return sxhash_string (XSTRING (key)->data, XSTRING (key)->size);
+  else if (FLOATP (key))
+    return sxhash (key, 0);
+  else
+    return XUINT (key) ^ XGCTYPE (key);
+}
+
+
+/* Value is a hash code for KEY for use in hash table H which uses
+   `equal' to compare keys.  The hash code returned is guaranteed to fit
+   in a Lisp integer.  */
+
+static unsigned
+hashfn_equal (h, key)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key;
+{
+  return sxhash (key, 0);
+}
+
+
+/* Value is a hash code for KEY for use in hash table H which uses as
+   user-defined function to compare keys.  The hash code returned is
+   guaranteed to fit in a Lisp integer.  */
+
+static unsigned
+hashfn_user_defined (h, key)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key;
+{
+  Lisp_Object args[2], hash;
+  
+  args[0] = h->user_hash_function;
+  args[1] = key;
+  hash = Ffuncall (2, args);
+  if (!INTEGERP (hash))
+    Fsignal (Qerror,
+	     list2 (build_string ("Illegal hash code returned from \
+user-supplied hash function"),
+		    hash));
+  return XUINT (hash);
+}
+
+
+/* Create and initialize a new hash table.
+
+   TEST specifies the test the hash table will use to compare keys.
+   It must be either one of the predefined tests `eq', `eql' or
+   `equal' or a symbol denoting a user-defined test named TEST with
+   test and hash functions USER_TEST and USER_HASH.
+   
+   Give the table initial capacity SIZE, SIZE > 0, an integer.
+
+   If REHASH_SIZE is an integer, it must be > 0, and this hash table's
+   new size when it becomes full is computed by adding REHASH_SIZE to
+   its old size.  If REHASH_SIZE is a float, it must be > 1.0, and the
+   table's new size is computed by multiplying its old size with
+   REHASH_SIZE.
+
+   REHASH_THRESHOLD must be a float <= 1.0, and > 0.  The table will
+   be resized when the ratio of (number of entries in the table) /
+   (table size) is >= REHASH_THRESHOLD.
+
+   WEAK specifies the weakness of the table.  If non-nil, it must be
+   one of the symbols `key-weak', `value-weak' or `key-value-weak'.  */
+
+Lisp_Object
+make_hash_table (test, size, rehash_size, rehash_threshold, weak,
+		 user_test, user_hash)
+     Lisp_Object test, size, rehash_size, rehash_threshold, weak;
+     Lisp_Object user_test, user_hash;
+{
+  struct Lisp_Hash_Table *h;
+  struct Lisp_Vector *v;
+  Lisp_Object table;
+  int index_size, i, len, sz;
+
+  /* Preconditions.  */
+  xassert (SYMBOLP (test));
+  xassert (INTEGERP (size) && XINT (size) > 0);
+  xassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
+	   || (FLOATP (rehash_size) && XFLOATINT (rehash_size) > 1.0));
+  xassert (FLOATP (rehash_threshold)
+	   && XFLOATINT (rehash_threshold) > 0
+	   && XFLOATINT (rehash_threshold) <= 1.0);
+
+  /* Allocate a vector, and initialize it.  */
+  len = VECSIZE (struct Lisp_Hash_Table);
+  v = allocate_vectorlike (len);
+  v->size = len;
+  for (i = 0; i < len; ++i)
+    v->contents[i] = Qnil;
+
+  /* Initialize hash table slots.  */
+  sz = XFASTINT (size);
+  h = (struct Lisp_Hash_Table *) v;
+  
+  h->test = test;
+  if (EQ (test, Qeql))
+    {
+      h->cmpfn = cmpfn_eql;
+      h->hashfn = hashfn_eql;
+    }
+  else if (EQ (test, Qeq))
+    {
+      h->cmpfn = cmpfn_eq;
+      h->hashfn = hashfn_eq;
+    }
+  else if (EQ (test, Qequal))
+    {
+      h->cmpfn = cmpfn_equal;
+      h->hashfn = hashfn_equal;
+    }
+  else
+    {
+      h->user_cmp_function = user_test;
+      h->user_hash_function = user_hash;
+      h->cmpfn = cmpfn_user_defined;
+      h->hashfn = hashfn_user_defined;
+    }
+  
+  h->weak = weak;
+  h->rehash_threshold = rehash_threshold;
+  h->rehash_size = rehash_size;
+  h->count = make_number (0);
+  h->key_and_value = Fmake_vector (make_number (2 * sz), Qnil);
+  h->hash = Fmake_vector (size, Qnil);
+  h->next = Fmake_vector (size, Qnil);
+  index_size = next_almost_prime (sz / XFLOATINT (rehash_threshold));
+  h->index = Fmake_vector (make_number (index_size), Qnil);
+
+  /* Set up the free list.  */
+  for (i = 0; i < sz - 1; ++i)
+    HASH_NEXT (h, i) = make_number (i + 1);
+  h->next_free = make_number (0);
+
+  XSET_HASH_TABLE (table, h);
+  xassert (HASH_TABLE_P (table));
+  xassert (XHASH_TABLE (table) == h);
+
+  /* Maybe add this hash table to the list of all weak hash tables.  */
+  if (NILP (h->weak))
+    h->next_weak = Qnil;
+  else
+    {
+      h->next_weak = Vweak_hash_tables;
+      Vweak_hash_tables = table;
+    }
+
+  return table;
+}
+
+
+/* Resize hash table H if it's too full.  If H cannot be resized
+   because it's already too large, throw an error.  */
+
+static INLINE void
+maybe_resize_hash_table (h)
+     struct Lisp_Hash_Table *h;
+{
+  if (NILP (h->next_free))
+    {
+      int old_size = HASH_TABLE_SIZE (h);
+      int i, new_size, index_size;
+ 
+      if (INTEGERP (h->rehash_size))
+	new_size = old_size + XFASTINT (h->rehash_size);
+      else
+	new_size = old_size * XFLOATINT (h->rehash_size);
+      index_size = next_almost_prime (new_size
+				      / XFLOATINT (h->rehash_threshold));
+      if (max (index_size, 2 * new_size) & ~VALMASK)
+	error ("Hash table too large to resize");
+
+      h->key_and_value = larger_vector (h->key_and_value, 2 * new_size, Qnil);
+      h->next = larger_vector (h->next, new_size, Qnil);
+      h->hash = larger_vector (h->hash, new_size, Qnil);
+      h->index = Fmake_vector (make_number (index_size), Qnil);
+
+      /* Update the free list.  Do it so that new entries are added at
+         the end of the free list.  This makes some operations like
+         maphash faster.  */
+      for (i = old_size; i < new_size - 1; ++i)
+	HASH_NEXT (h, i) = make_number (i + 1);
+      
+      if (!NILP (h->next_free))
+	{
+	  Lisp_Object last, next;
+	  
+	  last = h->next_free;
+	  while (next = HASH_NEXT (h, XFASTINT (last)),
+		 !NILP (next))
+	    last = next;
+	  
+	  HASH_NEXT (h, XFASTINT (last)) = make_number (old_size);
+	}
+      else
+	XSETFASTINT (h->next_free, old_size);
+
+      /* Rehash.  */
+      for (i = 0; i < old_size; ++i)
+	if (!NILP (HASH_HASH (h, i)))
+	  {
+	    unsigned hash_code = XUINT (HASH_HASH (h, i));
+	    int start_of_bucket = hash_code % XVECTOR (h->index)->size;
+	    HASH_NEXT (h, i) = HASH_INDEX (h, start_of_bucket);
+	    HASH_INDEX (h, start_of_bucket) = make_number (i);
+	  }
+    }	
+}
+
+
+/* Lookup KEY in hash table H.  If HASH is non-null, return in *HASH
+   the hash code of KEY.  Value is the index of the entry in H
+   matching KEY, or -1 if not found.  */
+
+int
+hash_lookup (h, key, hash)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key;
+     unsigned *hash;
+{
+  unsigned hash_code;
+  int start_of_bucket;
+  Lisp_Object idx;
+
+  hash_code = h->hashfn (h, key);
+  if (hash)
+    *hash = hash_code;
+  
+  start_of_bucket = hash_code % XVECTOR (h->index)->size;
+  idx = HASH_INDEX (h, start_of_bucket);
+
+  while (!NILP (idx))
+    {
+      int i = XFASTINT (idx);
+      if (h->cmpfn (h, key, hash_code, HASH_KEY (h, i), HASH_HASH (h, i)))
+	break;
+      idx = HASH_NEXT (h, i);
+    }
+
+  return NILP (idx) ? -1 : XFASTINT (idx);
+}
+
+
+/* Put an entry into hash table H that associates KEY with VALUE.
+   HASH is a previously computed hash code of KEY.  */
+
+void
+hash_put (h, key, value, hash)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key, value;
+     unsigned hash;
+{
+  int start_of_bucket, i;
+
+  xassert ((hash & ~VALMASK) == 0);
+
+  /* Increment count after resizing because resizing may fail.  */
+  maybe_resize_hash_table (h);
+  h->count = make_number (XFASTINT (h->count) + 1);
+  
+  /* Store key/value in the key_and_value vector.  */
+  i = XFASTINT (h->next_free);
+  h->next_free = HASH_NEXT (h, i);
+  HASH_KEY (h, i) = key;
+  HASH_VALUE (h, i) = value;
+
+  /* Remember its hash code.  */
+  HASH_HASH (h, i) = make_number (hash);
+
+  /* Add new entry to its collision chain.  */
+  start_of_bucket = hash % XVECTOR (h->index)->size;
+  HASH_NEXT (h, i) = HASH_INDEX (h, start_of_bucket);
+  HASH_INDEX (h, start_of_bucket) = make_number (i);
+}
+
+
+/* Remove the entry matching KEY from hash table H, if there is one.  */
+
+void
+hash_remove (h, key)
+     struct Lisp_Hash_Table *h;
+     Lisp_Object key;
+{
+  unsigned hash_code;
+  int start_of_bucket;
+  Lisp_Object idx, prev;
+
+  hash_code = h->hashfn (h, key);
+  start_of_bucket = hash_code % XVECTOR (h->index)->size;
+  idx = HASH_INDEX (h, start_of_bucket);
+  prev = Qnil;
+
+  while (!NILP (idx))
+    {
+      int i = XFASTINT (idx);
+
+      if (h->cmpfn (h, key, hash_code, HASH_KEY (h, i), HASH_HASH (h, i)))
+	{
+	  /* Take entry out of collision chain.  */
+	  if (NILP (prev))
+	    HASH_INDEX (h, start_of_bucket) = HASH_NEXT (h, i);
+	  else
+	    HASH_NEXT (h, XFASTINT (prev)) = HASH_NEXT (h, i);
+
+	  /* Clear slots in key_and_value and add the slots to
+	     the free list.  */
+	  HASH_KEY (h, i) = HASH_VALUE (h, i) = HASH_HASH (h, i) = Qnil;
+	  HASH_NEXT (h, i) = h->next_free;
+	  h->next_free = make_number (i);
+	  h->count = make_number (XFASTINT (h->count) - 1);
+	  xassert (XINT (h->count) >= 0);
+	  break;
+	}
+      else
+	{
+	  prev = idx;
+	  idx = HASH_NEXT (h, i);
+	}
+    }
+}
+
+
+/* Clear hash table H.  */
+
+void
+hash_clear (h)
+     struct Lisp_Hash_Table *h;
+{
+  if (XFASTINT (h->count) > 0)
+    {
+      int i, size = HASH_TABLE_SIZE (h);
+
+      for (i = 0; i < size; ++i)
+	{
+	  HASH_NEXT (h, i) = i < size - 1 ? make_number (i + 1) : Qnil;
+	  HASH_KEY (h, i) = Qnil;
+	  HASH_VALUE (h, i) = Qnil;
+	  HASH_HASH (h, i) = Qnil;
+	}
+
+      for (i = 0; i < XVECTOR (h->index)->size; ++i)
+	XVECTOR (h->index)->contents[i] = Qnil;
+
+      h->next_free = make_number (0);
+      h->count = make_number (0);
+    }
+}
+
+
+
+/************************************************************************
+			   Weak Hash Tables
+ ************************************************************************/
+
+/* Remove elements from weak hash tables that don't survive the
+   current garbage collection.  Remove weak tables that don't survive
+   from Vweak_hash_tables.  Called from gc_sweep.  */
+
+void
+sweep_weak_hash_tables ()
+{
+  Lisp_Object table;
+  struct Lisp_Hash_Table *h = 0, *prev;
+
+  for (table = Vweak_hash_tables; !GC_NILP (table); table = h->next_weak)
+    {
+      prev = h;
+      h = XHASH_TABLE (table);
+	
+      if (h->size & ARRAY_MARK_FLAG)
+	{
+	  if (XFASTINT (h->count) > 0)
+	    {
+	      int bucket, n;
+
+	      n = XVECTOR (h->index)->size & ~ARRAY_MARK_FLAG;
+	      for (bucket = 0; bucket < n; ++bucket)
+		{
+		  Lisp_Object idx, key, value, prev, next;
+
+		  /* Follow collision chain, removing entries that
+		     don't survive this garbage collection.  */
+		  idx = HASH_INDEX (h, bucket);
+		  prev = Qnil;
+		  while (!GC_NILP (idx))
+		    {
+		      int remove_p;
+		      int i = XFASTINT (idx);
+		      Lisp_Object next;
+
+		      if (EQ (h->weak, Qkey_weak))
+			remove_p = !survives_gc_p (HASH_KEY (h, i));
+		      else if (EQ (h->weak, Qvalue_weak))
+			remove_p = !survives_gc_p (HASH_VALUE (h, i));
+		      else if (EQ (h->weak, Qkey_value_weak))
+			remove_p = (!survives_gc_p (HASH_KEY (h, i))
+				    || !survives_gc_p (HASH_VALUE (h, i)));
+		      else
+			abort ();
+		      
+		      next = HASH_NEXT (h, i);
+		      if (remove_p)
+			{
+			  /* Take out of collision chain.  */
+			  if (GC_NILP (prev))
+			    HASH_INDEX (h, i) = next;
+			  else
+			    HASH_NEXT (h, XFASTINT (prev)) = next;
+
+			  /* Add to free list.  */
+			  HASH_NEXT (h, i) = h->next_free;
+			  h->next_free = idx;
+
+			  /* Clear key, value, and hash.  */
+			  HASH_KEY (h, i) = HASH_VALUE (h, i) = Qnil;
+			  HASH_HASH (h, i) = Qnil;
+
+			  h->count = make_number (XFASTINT (h->count) - 1);
+			}
+		      else
+			{
+			  /* Make sure key and value survive.  */
+			  mark_object (&HASH_KEY (h, i));
+			  mark_object (&HASH_VALUE (h, i));
+			}
+
+		      idx = next;
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  /* Table is not marked, and will thus be freed.
+	     Take it out of the list of weak hash tables.  */
+	  if (prev)
+	    prev->next_weak = h->next_weak;
+	  else
+	    Vweak_hash_tables = h->next_weak;
+	}
+    }
+}
+
+
+
+/***********************************************************************
+			Hash Code Computation
+ ***********************************************************************/
+
+/* Maximum depth up to which to dive into Lisp structures.  */
+
+#define SXHASH_MAX_DEPTH 3
+
+/* Maximum length up to which to take list and vector elements into
+   account.  */
+
+#define SXHASH_MAX_LEN   7
+
+/* Combine two integers X and Y for hashing.  */
+
+#define SXHASH_COMBINE(X, Y)						\
+     ((((unsigned)(X) << 4) + ((unsigned)(X) >> 24) & 0x0fffffff)	\
+      + (unsigned)(Y))
+
+
+/* Return a hash for string PTR which has length LEN.  */
+
+static unsigned
+sxhash_string (ptr, len)
+     unsigned char *ptr;
+     int len;
+{
+  unsigned char *p = ptr;
+  unsigned char *end = p + len;
+  unsigned char c;
+  unsigned hash = 0;
+
+  while (p != end)
+    {
+      c = *p++;
+      if (c >= 0140)
+	c -= 40;
+      hash = ((hash << 3) + (hash >> 28) + c);
+    }
+  
+  return hash & 07777777777;
+}
+
+
+/* Return a hash for list LIST.  DEPTH is the current depth in the
+   list.  We don't recurse deeper than SXHASH_MAX_DEPTH in it.  */
+
+static unsigned
+sxhash_list (list, depth)
+     Lisp_Object list;
+     int depth;
+{
+  unsigned hash = 0;
+  int i;
+  
+  if (depth < SXHASH_MAX_DEPTH)
+    for (i = 0;
+	 CONSP (list) && i < SXHASH_MAX_LEN;
+	 list = XCDR (list), ++i)
+      {
+	unsigned hash2 = sxhash (XCAR (list), depth + 1);
+	hash = SXHASH_COMBINE (hash, hash2);
+      }
+
+  return hash;
+}
+
+
+/* Return a hash for vector VECTOR.  DEPTH is the current depth in
+   the Lisp structure.  */
+
+static unsigned
+sxhash_vector (vec, depth)
+     Lisp_Object vec;
+     int depth;
+{
+  unsigned hash = XVECTOR (vec)->size;
+  int i, n;
+
+  n = min (SXHASH_MAX_LEN, XVECTOR (vec)->size);
+  for (i = 0; i < n; ++i)
+    {
+      unsigned hash2 = sxhash (XVECTOR (vec)->contents[i], depth + 1);
+      hash = SXHASH_COMBINE (hash, hash2);
+    }
+
+  return hash;
+}
+
+
+/* Return a hash for bool-vector VECTOR.  */
+
+static unsigned
+sxhash_bool_vector (vec)
+     Lisp_Object vec;
+{
+  unsigned hash = XBOOL_VECTOR (vec)->size;
+  int i, n;
+
+  n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->vector_size);
+  for (i = 0; i < n; ++i)
+    hash = SXHASH_COMBINE (hash, XBOOL_VECTOR (vec)->data[i]);
+
+  return hash;
+}
+
+
+/* Return a hash code for OBJ.  DEPTH is the current depth in the Lisp
+   structure.  Value is an unsigned integer clipped to VALMASK.  */
+
+unsigned
+sxhash (obj, depth)
+     Lisp_Object obj;
+     int depth;
+{
+  unsigned hash;
+
+  if (depth > SXHASH_MAX_DEPTH)
+    return 0;
+  
+  switch (XTYPE (obj))
+    {
+    case Lisp_Int:
+      hash = XUINT (obj);
+      break;
+
+    case Lisp_Symbol:
+      hash = sxhash_string (XSYMBOL (obj)->name->data,
+			    XSYMBOL (obj)->name->size);
+      break;
+
+    case Lisp_Misc:
+      hash = XUINT (obj);
+      break;
+
+    case Lisp_String:
+      hash = sxhash_string (XSTRING (obj)->data, XSTRING (obj)->size);
+      break;
+
+      /* This can be everything from a vector to an overlay.  */
+    case Lisp_Vectorlike:
+      if (VECTORP (obj))
+	/* According to the CL HyperSpec, two arrays are equal only if
+	   they are `eq', except for strings and bit-vectors.  In
+	   Emacs, this works differently.  We have to compare element
+	   by element.  */
+	hash = sxhash_vector (obj, depth);
+      else if (BOOL_VECTOR_P (obj))
+	hash = sxhash_bool_vector (obj);
+      else
+	/* Others are `equal' if they are `eq', so let's take their
+	   address as hash.  */
+	hash = XUINT (obj);
+      break;
+
+    case Lisp_Cons:
+      hash = sxhash_list (obj, depth);
+      break;
+
+    case Lisp_Float:
+      {
+	unsigned char *p = (unsigned char *) &XFLOAT (obj)->data;
+	unsigned char *e = p + sizeof XFLOAT (obj)->data;
+	for (hash = 0; p < e; ++p)
+	  hash = SXHASH_COMBINE (hash, *p);
+	break;
+      }
+
+    default:
+      abort ();
+    }
+
+  return hash & VALMASK;
+}
+
+
+
+/***********************************************************************
+			    Lisp Interface
+ ***********************************************************************/
+
+
+DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
+  "Compute a hash code for OBJ and return it as integer.")
+  (obj)
+     Lisp_Object obj;
+{
+  unsigned hash = sxhash (obj, 0);;
+  return make_number (hash);
+}
+
+
+DEFUN ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
+  "Create and return a new hash table.\n\
+Arguments are specified as keyword/argument pairs.  The following\n\
+arguments are defined:\n\
+\n\
+:TEST TEST -- TEST must be a symbol that specifies how to compare keys.
+Default is `eql'.  Predefined are the tests `eq', `eql', and `equal'.\n\
+User-supplied test and hash functions can be specified via\n\
+`define-hash-table-test'.\n\
+\n\
+:SIZE SIZE -- A hint as to how many elements will be put in the table.
+Default is 65.\n\
+\n\
+:REHASH-SIZE REHASH-SIZE - Indicates how to expand the table when\n\
+it fills up.  If REHASH-SIZE is an integer, add that many space.\n\
+If it is a float, it must be > 1.0, and the new size is computed by\n\
+multiplying the old size with that factor.  Default is 1.5.\n\
+\n\
+:REHASH-THRESHOLD THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.\n\
+Resize the hash table when ratio of the number of entries in the table.\n\
+Default is 0.8.\n\
+\n\
+:WEAK WEAK -- WEAK must be one of nil, t, `key-weak', `value-weak' or\n\
+`key-value-weak'.  WEAK t means the same as `key-value-weak'.  Elements\n\
+ are removed from a weak hash table when their key, value or both \n\
+according to WEAKNESS are otherwise unreferenced.  Default is nil.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object test, size, rehash_size, rehash_threshold, weak;
+  Lisp_Object user_test, user_hash;
+  char *used;
+  int i;
+
+  /* The vector `used' is used to keep track of arguments that
+     have been consumed.  */
+  used = (char *) alloca (nargs * sizeof *used);
+  bzero (used, nargs * sizeof *used);
+
+  /* See if there's a `:test TEST' among the arguments.  */
+  i = get_key_arg (QCtest, nargs, args, used);
+  test = i < 0 ? Qeql : args[i];
+  if (!EQ (test, Qeq) && !EQ (test, Qeql) && !EQ (test, Qequal))
+    {
+      /* See if it is a user-defined test.  */
+      Lisp_Object prop;
+      
+      prop = Fget (test, Qhash_table_test);
+      if (!CONSP (prop) || XFASTINT (Flength (prop)) < 2)
+	Fsignal (Qerror, list2 (build_string ("Illegal hash table test"),
+				test));
+      user_test = Fnth (make_number (0), prop);
+      user_hash = Fnth (make_number (1), prop);
+    }
+  else
+    user_test = user_hash = Qnil;
+
+  /* See if there's a `:size SIZE' argument.  */
+  i = get_key_arg (QCsize, nargs, args, used);
+  size = i < 0 ? make_number (DEFAULT_HASH_SIZE) : args[i];
+  if (!INTEGERP (size) || XINT (size) <= 0)
+    Fsignal (Qerror,
+	     list2 (build_string ("Illegal hash table size"),
+		    size));
+
+  /* Look for `:rehash-size SIZE'.  */
+  i = get_key_arg (QCrehash_size, nargs, args, used);
+  rehash_size = i < 0 ? make_float (DEFAULT_REHASH_SIZE) : args[i];
+  if (!NUMBERP (rehash_size)
+      || (INTEGERP (rehash_size) && XINT (rehash_size) <= 0)
+      || XFLOATINT (rehash_size) <= 1.0)
+    Fsignal (Qerror,
+	     list2 (build_string ("Illegal hash table rehash size"),
+		    rehash_size));
+  
+  /* Look for `:rehash-threshold THRESHOLD'.  */
+  i = get_key_arg (QCrehash_threshold, nargs, args, used);
+  rehash_threshold = i < 0 ? make_float (DEFAULT_REHASH_THRESHOLD) : args[i];
+  if (!FLOATP (rehash_threshold)
+      || XFLOATINT (rehash_threshold) <= 0.0
+      || XFLOATINT (rehash_threshold) > 1.0)
+    Fsignal (Qerror,
+	     list2 (build_string ("Illegal hash table rehash threshold"),
+		    rehash_threshold));
+  
+  /* Look for `:weak WEAK'.  */
+  i = get_key_arg (QCweak, nargs, args, used);
+  weak = i < 0 ? Qnil : args[i];
+  if (EQ (weak, Qt))
+    weak = Qkey_value_weak;
+  if (!NILP (weak)
+      && !EQ (weak, Qkey_weak)
+      && !EQ (weak, Qvalue_weak)
+      && !EQ (weak, Qkey_value_weak))
+    Fsignal (Qerror, list2 (build_string ("Illegal hash table weakness"), 
+			    weak));
+  
+  /* Now, all args should have been used up, or there's a problem.  */
+  for (i = 0; i < nargs; ++i)
+    if (!used[i])
+      Fsignal (Qerror,
+	       list2 (build_string ("Invalid argument list"), args[i]));
+
+  return make_hash_table (test, size, rehash_size, rehash_threshold, weak,
+			  user_test, user_hash);
+}
+
+
+DEFUN ("makehash", Fmakehash, Smakehash, 0, MANY, 0,
+       "Create a new hash table.\n\
+Optional first argument SIZE is a hint to the implementation as\n\
+to how many elements will be put in the table.  Default is 65.\n\
+\n\
+Optional second argument TEST specifies how to compare keys in\n\
+the table.  Predefined tests are `eq', `eql', and `equal'.  Default\n\
+is `eql'.  New tests can be defined with `define-hash-table-test'.\n\
+\n\
+Optional third argument WEAK must be one of nil, t, `key-weak',\n\
+ `value-weak' or `key-value-weak'.  WEAK t means the same as\n\
+ `key-value-weak'.  Default is nil.  Elements of weak hash tables\n\
+are removed when their key, value or both are otherwise unreferenced.\n\
+\n\
+The rest of the optional arguments are keyword/value pairs.  The\n\
+following are recognized:\n\
+\n\
+:REHASH-SIZE REHASH-SIZE - Indicates how to expand the table when\n\
+it fills up.  If REHASH-SIZE is an integer, add that many space.\n\
+If it is a float, it must be > 1.0, and the new size is computed by\n\
+multiplying the old size with that factor.  Default is 1.5.\n\
+\n\
+:REHASH-THRESHOLD THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.\n\
+Resize the hash table when ratio of the number of entries in the table.\n\
+Default is 0.8.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object args2[nargs + 6];
+  int i, j;
+
+  /* Recognize size argument.  */
+  i = j = 0;
+  if (INTEGERP (args[i]))
+    {
+      args2[j++] = QCsize;
+      args2[j++] = args[i++];
+    }
+
+  /* Recognize test argument.  */
+  if (SYMBOLP (args[i])
+      && !EQ (args[i], QCrehash_size)
+      && !EQ (args[i], QCrehash_threshold)
+      && !EQ (args[i], QCweak))
+    {
+      args2[j++] = QCtest;
+      args2[j++] = args[i++];
+    }
+
+  /* Recognize weakness argument.  */
+  if (EQ (args[i], Qt)
+      || NILP (args[i])
+      || EQ (args[i], Qkey_weak)
+      || EQ (args[i], Qvalue_weak)
+      || EQ (args[i], Qkey_value_weak))
+    {
+      args2[j++] = QCweak;
+      args2[j++] = args[i++];
+    }
+
+  /* Copy remaining arguments.  */
+  while (i < nargs)
+    args2[j++] = args[i++];
+
+  return Fmake_hash_table (j, args2);
+}
+
+
+DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
+  "Return the number of elements in TABLE.")
+  (table)
+       Lisp_Object table;
+{
+  return check_hash_table (table)->count;
+}
+
+  
+DEFUN ("hash-table-rehash-size", Fhash_table_rehash_size,
+       Shash_table_rehash_size, 1, 1, 0,
+  "Return the current rehash size of TABLE.")
+  (table)
+       Lisp_Object table;
+{
+  return check_hash_table (table)->rehash_size;
+}
+  
+
+DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
+       Shash_table_rehash_threshold, 1, 1, 0,
+  "Return the current rehash threshold of TABLE.")
+  (table)
+       Lisp_Object table;
+{
+  return check_hash_table (table)->rehash_threshold;
+}
+  
+
+DEFUN ("hash-table-size", Fhash_table_size, Shash_table_size, 1, 1, 0,
+  "Return the size of TABLE.\n\
+The size can be used as an argument to `make-hash-table' to create\n\
+a hash table than can hold as many elements of TABLE holds\n\
+without need for resizing.")
+  (table)
+       Lisp_Object table;
+{
+  struct Lisp_Hash_Table *h = check_hash_table (table);
+  return make_number (HASH_TABLE_SIZE (h));
+}
+  
+
+DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
+  "Return the test TABLE uses.")
+  (table)
+       Lisp_Object table;
+{
+  return check_hash_table (table)->test;
+}
+
+  
+DEFUN ("hash-table-weak", Fhash_table_weak, Shash_table_weak, 1, 1, 0,
+  "Return the weakness of TABLE.")
+  (table)
+       Lisp_Object table;
+{
+  return check_hash_table (table)->weak;
+}
+
+  
+DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
+  "Return t if OBJ is a Lisp hash table object.")
+  (obj)
+     Lisp_Object obj;
+{
+  return HASH_TABLE_P (obj) ? Qt : Qnil;
+}
+
+
+DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
+  "Clear hash table TABLE.")
+  (table)
+     Lisp_Object table;
+{
+  hash_clear (check_hash_table (table));
+  return Qnil;
+}
+
+
+DEFUN ("gethash", Fgethash, Sgethash, 2, 3, 0,
+  "Look up KEY in TABLE and return its associated value.\n\
+If KEY is not found, return DFLT which defaults to nil.")
+  (table, key, dflt)
+     Lisp_Object table, key;
+{
+  struct Lisp_Hash_Table *h = check_hash_table (table);
+  int i = hash_lookup (h, key, NULL);
+  return i >= 0 ? HASH_VALUE (h, i) : dflt;
+}
+
+
+DEFUN ("puthash", Fputhash, Sputhash, 3, 3, 0,
+  "Associate KEY with VALUE is hash table TABLE.\n\
+If KEY is already present in table, replace its current value with\n\
+VALUE.")
+  (table, key, value)
+     Lisp_Object table, key, value;
+{
+  struct Lisp_Hash_Table *h = check_hash_table (table);
+  int i;
+  unsigned hash;
+
+  i = hash_lookup (h, key, &hash);
+  if (i >= 0)
+    HASH_VALUE (h, i) = value;
+  else
+    hash_put (h, key, value, hash);
+  
+  return Qnil;
+}
+
+
+DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
+  "Remove KEY from TABLE.")
+  (table, key)
+     Lisp_Object table, key;
+{
+  struct Lisp_Hash_Table *h = check_hash_table (table);
+  hash_remove (h, key);
+  return Qnil;
+}
+
+
+DEFUN ("maphash", Fmaphash, Smaphash, 2, 2, 0,
+  "Call FUNCTION for all entries in hash table TABLE.\n\
+FUNCTION is called with 2 arguments KEY and VALUE.")
+  (function, table)
+     Lisp_Object function, table;
+{
+  struct Lisp_Hash_Table *h = check_hash_table (table);
+  Lisp_Object args[3];
+  int i;
+
+  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    if (!NILP (HASH_HASH (h, i)))
+      {
+	args[0] = function;
+	args[1] = HASH_KEY (h, i);
+	args[2] = HASH_VALUE (h, i);
+	Ffuncall (3, args);
+      }
+  
+  return Qnil;
+}
+
+
+DEFUN ("define-hash-table-test", Fdefine_hash_table_test,
+       Sdefine_hash_table_test, 3, 3, 0,
+  "Define a new hash table test with name NAME, a symbol.\n\
+In hash tables create with NAME specified as test, use TEST to compare\n\
+keys, and HASH for computing hash codes of keys.\n\
+\n\
+TEST must be a function taking two arguments and returning non-nil\n\
+if both arguments are the same.   HASH must be a function taking\n\
+one argument and return an integer that is the hash code of the\n\
+argument.  Hash code computation should use the whole value range of\n\
+integers, including negative integers.")
+  (name, test, hash)
+     Lisp_Object name, test, hash;
+{
+  return Fput (name, Qhash_table_test, list2 (test, hash));
+}
+
+
+
 
 void
 syms_of_fns ()
 {
+  /* Hash table stuff.  */
+  Qhash_table_p = intern ("hash-table-p");
+  staticpro (&Qhash_table_p);
+  Qeq = intern ("eq");
+  staticpro (&Qeq);
+  Qeql = intern ("eql");
+  staticpro (&Qeql);
+  Qequal = intern ("equal");
+  staticpro (&Qequal);
+  QCtest = intern (":test");
+  staticpro (&QCtest);
+  QCsize = intern (":size");
+  staticpro (&QCsize);
+  QCrehash_size = intern (":rehash-size");
+  staticpro (&QCrehash_size);
+  QCrehash_threshold = intern (":rehash-threshold");
+  staticpro (&QCrehash_threshold);
+  QCweak = intern (":weak");
+  staticpro (&QCweak);
+  Qkey_weak = intern ("key-weak");
+  staticpro (&Qkey_weak);
+  Qvalue_weak = intern ("value-weak");
+  staticpro (&Qvalue_weak);
+  Qkey_value_weak = intern ("key-value-weak");
+  staticpro (&Qkey_value_weak);
+  Qhash_table_test = intern ("hash-table-test");
+  staticpro (&Qhash_table_test);
+
+  defsubr (&Ssxhash);
+  defsubr (&Smake_hash_table);
+  defsubr (&Smakehash);
+  defsubr (&Shash_table_count);
+  defsubr (&Shash_table_rehash_size);
+  defsubr (&Shash_table_rehash_threshold);
+  defsubr (&Shash_table_size);
+  defsubr (&Shash_table_test);
+  defsubr (&Shash_table_weak);
+  defsubr (&Shash_table_p);
+  defsubr (&Sclrhash);
+  defsubr (&Sgethash);
+  defsubr (&Sputhash);
+  defsubr (&Sremhash);
+  defsubr (&Smaphash);
+  defsubr (&Sdefine_hash_table_test);
+  
   Qstring_lessp = intern ("string-lessp");
   staticpro (&Qstring_lessp);
   Qprovide = intern ("provide");
@@ -3271,4 +4592,11 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Sbase64_decode_region);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
+}
+
+
+void
+init_fns ()
+{
+  Vweak_hash_tables = Qnil;
 }
