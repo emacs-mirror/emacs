@@ -50,6 +50,8 @@
 (garbage-collect)
 (load "files")
 (garbage-collect)
+(load "format")
+(garbage-collect)
 (load "indent")
 (garbage-collect)
 (load "window")
