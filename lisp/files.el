@@ -1107,6 +1107,7 @@ if you wish to pass an empty string as the argument."
 	    (make-auto-save-file-name)))
     ;; Rename the old auto save file if any.
     (and oauto buffer-auto-save-file-name
+	 (file-exists-p oauto)
 	 (rename-file oauto buffer-auto-save-file-name t)))
   (if buffer-file-name
       (set-buffer-modified-p t)))
