@@ -59,7 +59,7 @@ arguments.  The arguments should consist of alternating keywords
 them.
 
 Several keywords make sense in @code{make-hash-table}, but the only two
-that you really need to know about are @code{:test} and @code{:weak}.
+that you really need to know about are @code{:test} and @code{:weakness}.
 
 @table @code
 @item :test @var{test}
@@ -106,7 +106,7 @@ both are weak).
 @item :size @var{size}
 This specifies a hint for how many associations you plan to store in the
 hash table.  If you know the approximate number, you can make things a
-little more efficient by specifying it this way.  If you specify to
+little more efficient by specifying it this way.  If you specify too
 small a size, the hash table will grow automatically when necessary, but
 doing that takes some extra time,
 
@@ -279,8 +279,8 @@ itself is copied---the keys and values are shared.
 This function returns the actual number of entries in @var{table}.
 @end defun
 
-@tindex hash-table-rehash-test
-@defun hash-table-rehash-test table
+@tindex hash-table-test
+@defun hash-table-test table
 This returns the @var{test} value that was given when @var{table} was
 created, to specify how to hash and compare keys.  See
 @code{make-hash-table} (@pxref{Creating Hash}).
@@ -302,7 +302,7 @@ This returns the rehash size of @var{table}.
 This returns the rehash threshold of @var{table}.
 @end defun
 
-@tindex hash-table-rehash-size
-@defun hash-table-rehash-size table
+@tindex hash-table-size
+@defun hash-table-size table
 This returns the current nominal size of @var{table}.
 @end defun
