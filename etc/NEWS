@@ -1115,9 +1115,9 @@ Another method to grab a character is to enter the minibuffer by `M-e'
 and to type `C-f' at the end of the search string in the minibuffer.
 
 +++
-** M-% and C-M-% typed in isearch mode invoke `query-replace' and
-`query-replace-regexp' with the current search string inserted
-in the minibuffer as initial input for the string to replace.
+** M-% typed in isearch mode invokes `query-replace' or
+`query-replace-regexp' (depending on search mode) with the current
+search string used as the string to replace.
 
 +++
 ** Yanking text now discards certain text properties that can
