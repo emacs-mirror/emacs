@@ -430,7 +430,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
     
     (save-excursion
       (set-buffer extraction-buffer)
-      (buffer-flush-undo extraction-buffer)
+      (buffer-disable-undo extraction-buffer)
       (set-syntax-table address-syntax-table)
       (widen)
       (erase-buffer)
@@ -697,7 +697,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
       
       (set-buffer canonicalization-buffer)
       
-      (buffer-flush-undo canonicalization-buffer)
+      (buffer-disable-undo canonicalization-buffer)
       (set-syntax-table address-syntax-table)
       (setq case-fold-search nil)
       
@@ -1081,7 +1081,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 	)
     (save-excursion
       (set-buffer variant-buffer)
-      (buffer-flush-undo variant-buffer)
+      (buffer-disable-undo variant-buffer)
       (set-syntax-table address-text-syntax-table)
       (widen)
       (erase-buffer)

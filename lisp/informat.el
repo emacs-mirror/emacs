@@ -398,7 +398,7 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""
 			((< (point-max) 30000)
 			 (message "%s too small to bother tagifying" file))
 			(t
-			 (Info-tagify file))))
+			 (Info-tagify))))
 		(let ((loss-name " *problems in info file*"))
 		  (message "Checking validity of info file %s..." file)
 		  (if (get-buffer loss-name)

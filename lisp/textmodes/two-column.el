@@ -126,8 +126,8 @@
 ;; An^stata^u tri `autoload' kaj tri  |  Instead  of  three  `autoload' and
 ;; `global-set-key'  vi povas uzi la  |  three `global-set-key' you can use
 ;; jenon en via dataro ~/.emacs, por  |  the    following   in  your   file
-;; memstare ^car^gi la modalon:	     |  ~/.emacs,  to  automatically  load
-;;				     |  the mode:
+;; memstare ^car^gi la modalon:	      |  ~/.emacs,  to  automatically  load
+;;				      |  the mode:
 
 ;;	(global-set-key "\C-x6"
 ;;			'(lambda () (interactive)
@@ -138,24 +138,25 @@
 ;; Se vi ^satus  havi la dukolumnajn  |  If     you'd like   to  have   the
 ;; ordonojn je funkciklavo <f2>,  vi  |  two-column  commands   on function
 ;; povas  uzi la jenon en via dataro  |  key   <f2>,  you  can     use  the
-;; ~/.emacs:			     |  following in your file ~/.emacs:
+;; ~/.emacs:			      |  following in your file ~/.emacs:
 
-;;	(define-key function-keymap "\^b"
-;;	  '(lambda () (interactive)
-;;	     (load-library "two-column")
-;;	     (define-key function-keymap "\^b" tc-mode-map)
-;;	     (call-interactively
-;;	      (cdr (assq (read-char) tc-mode-map)))))
+;; (global-set-key [f2] (function
+;;                       (lambda ()
+;;                         (interactive)
+;;                         (load-library "two-column")
+;;                         (global-set-key [f2] tc-mode-map)
+;;                         (call-interactively
+;;                          (cdr (assq (read-char) tc-mode-map))))))
 
 ;; In addition to two-column editing of text, for example for writing a
 ;; bilingual text side-by-side as shown below in the file's prolog, other
 ;; interesting uses have been found for this minor mode:
 ;; 
 ;; 
-;; You can separate the columns with    {+} C-x 6 u  or  <f2> u  if you prefer
-;; any string that pleases you, by      {+} handles these with a prefix argument
-;; setting tc-separator.  For   {+} that enables you to declare the
-;; example "{+}  " if you like to       {+}  desired length of such a string.
+;; You can separate the columns with   {+} C-x 6 u  or  <f2> u  if you prefer
+;; any string that pleases you, by     {+} handles these with a prefix argument
+;; setting tc-separator.  For          {+} that enables you to declare the
+;; example "{+}  " if you like to      {+}  desired length of such a string.
 ;; amuse yourself.
 ;; 
 ;; 

@@ -70,7 +70,7 @@ performance.")
 (if terminal-map
     nil
   (let ((map (make-keymap)))
-    (fillarray map 'te-pass-through)
+    (fillarray (car (cdr map)) 'te-pass-through)
     ;(define-key map "\C-l"
     ;  '(lambda () (interactive) (te-pass-through) (redraw-display)))
     (setq terminal-map map)))
@@ -80,7 +80,7 @@ performance.")
     nil
   (let ((map (make-keymap)))
     ;(fillarray map 'te-escape-extended-command-unread)
-    (fillarray map 'undefined)
+    (fillarray (car (cdr map)) 'undefined)
     (let ((s "0"))
       (while (<= (aref s 0) ?9)
 	(define-key map s 'digit-argument)
@@ -127,7 +127,7 @@ performance.")
 (if terminal-more-break-map
     nil
   (let ((map (make-keymap)))
-    (fillarray map 'te-more-break-unread)
+    (fillarray (car (cdr map)) 'te-more-break-unread)
     (define-key map (char-to-string help-char) 'te-more-break-help)
     (define-key map " " 'te-more-break-resume)
     (define-key map "\C-l" 'redraw-display)

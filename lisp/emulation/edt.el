@@ -117,8 +117,6 @@
 
 ;;; Code:
 
-(require 'keypad)
-
 (defvar edt-last-deleted-lines ""
   "Last text deleted by an EDT emulation `line-delete' command.")
 (defvar edt-last-deleted-words ""
@@ -292,26 +290,26 @@ Accepts a prefix argument for the number of paragraphs."
   "Set EDT Advance mode so keypad commands move forward."
   (interactive)
   (setq edt-direction-string " ADVANCE")
-  (define-key function-keymap "\C-c" 'isearch-forward)  ; PF3
-  (define-key function-keymap "8" 'scroll-window-up) ; "8"
-  (define-key function-keymap "7" 'next-paragraph)   ; "7"
-  (define-key function-keymap "1" 'forward-to-word)  ; "1"
-  (define-key function-keymap "2" 'next-end-of-line) ; "2"
-  (define-key function-keymap "3" 'forward-char)     ; "3"
-  (define-key function-keymap "0" 'forward-line)     ; "0"
+  (global-set-key [kp-f1] 'isearch-forward)
+  (global-set-key [kp-8] 'scroll-window-up)
+  (global-set-key [kp-7] 'next-paragraph)
+  (global-set-key [kp-1] 'forward-to-word)
+  (global-set-key [kp-2] 'next-end-of-line)
+  (global-set-key [kp-3] 'forward-char)
+  (global-set-key [kp-0] 'forward-line)
   (update-mode-line))
 
 (defun backup-direction ()
   "Set EDT Backup mode so keypad commands move backward."
   (interactive)
   (setq edt-direction-string " BACKUP")
-  (define-key function-keymap "\C-c" 'isearch-backward) ; PF3
-  (define-key function-keymap "8" 'scroll-window-down) ; "8"
-  (define-key function-keymap "7" 'previous-paragraph) ; "7"
-  (define-key function-keymap "1" 'backward-to-word)    ; "1"
-  (define-key function-keymap "2" 'previous-end-of-line) ; "2"
-  (define-key function-keymap "3" 'backward-char)    ; "3"
-  (define-key function-keymap "0" 'backward-line)    ; "0"
+  (global-set-key [kp-f3] 'isearch-backward)
+  (global-set-key [kp-8] 'scroll-window-down)
+  (global-set-key [kp-7] 'previous-paragraph)
+  (global-set-key [kp-1] 'backward-to-word)
+  (global-set-key [kp-2] 'previous-end-of-line)
+  (global-set-key [kp-3] 'backward-char)
+  (global-set-key [kp-9] 'backward-line)
   (update-mode-line))
 
 (defun edt-beginning-of-window ()
@@ -366,13 +364,10 @@ and mark-paragraph for other modes."
 (defun edt-emulation-on ()
   "Emulate DEC's EDT editor.
 Note that many keys are rebound; including nearly all keypad keys.
-Use \\[edt-emulation-off] to undo all rebindings except the keypad keys.
-Note that this function does not work if called directly from the .emacs file.
-Instead, the .emacs file should do \"(setq term-setup-hook 'edt-emulation-on)\"
-Then this function will be called at the time when it will work."
+Use \\[edt-emulation-off] to undo all rebindings except the keypad keys."
   (interactive)
   (advance-direction)
-  (edt-bind-gold-keypad)	;Must do this *after* $TERM.el is loaded
+  (edt-bind-gold-keypad)
   (setq edt-mode-old-c-\\ (lookup-key global-map "\C-\\"))
   (global-set-key "\C-\\" 'quoted-insert)
   (setq edt-mode-old-delete (lookup-key global-map "\177"))
@@ -395,33 +390,24 @@ The keys redefined by \\[edt-emulation-on] are given their old definitions."
   (define-key lisp-mode-map "\177" edt-mode-old-lisp-delete) ;"Delete"
   (global-set-key "\C-j" edt-mode-old-linefeed))           ;"LineFeed"
 
-(define-key function-keymap "u" 'previous-line)		;Up arrow
-(define-key function-keymap "d" 'next-line)		;down arrow
-(define-key function-keymap "l" 'backward-char)		;right arrow
-(define-key function-keymap "r" 'forward-char)		;left arrow
-(define-key function-keymap "h" 'edt-beginning-of-window)	;home
-(define-key function-keymap "\C-b" 'describe-key)	;PF2
-(define-key function-keymap "\C-d" 'delete-current-line);PF4
-(define-key function-keymap "9" 'append-to-buffer)	;9 keypad key, etc.
-(define-key function-keymap "-" 'delete-current-word)
-(define-key function-keymap "4" 'advance-direction)
-(define-key function-keymap "5" 'backup-direction)
-(define-key function-keymap "6" 'kill-region)
-(define-key function-keymap "," 'delete-current-char)
-(define-key function-keymap "." 'set-mark-command)
-(define-key function-keymap "e" 'other-window)		;enter key
-(define-key function-keymap "\C-a" 'GOLD-prefix)	;PF1 ("gold")
-
 (fset 'GOLD-prefix GOLD-map)
 
 (defvar GOLD-map (make-keymap)
    "`GOLD-map' maps the function keys on the VT100 keyboard preceeded
 by the PF1 key.  GOLD is the ASCII the 7-bit escape sequence <ESC>OP.")
 
-(defun define-keypad-key (keymap function-keymap-slot definition)
-  (let ((function-key-sequence (function-key-sequence function-keymap-slot)))
-    (if function-key-sequence
-	(define-key keymap function-key-sequence definition))))
+(global-set-key [home] 'edt-beginning-of-window)
+(global-set-key [kp-f2] 'describe-key)
+(global-set-key [kp-f4] 'delete-current-line)
+(global-set-key [kp-9] 'append-to-buffer)
+(global-set-key [kp-subtract] 'delete-current-word)
+(global-set-key [kp-4] 'advance-direction)
+(global-set-key [kp-5] 'backup-direction)
+(global-set-key [kp-6] 'kill-region)
+(global-set-key [kp-separator] 'delete-current-char)
+(global-set-key [kp-decimal] 'set-mark-command)
+(global-set-key [kp-enter] 'other-window)
+(global-set-key [kp-f1] 'GOLD-prefix)
 
 ;;Bind GOLD/Keyboard keys
 
@@ -465,28 +451,28 @@ by the PF1 key.  GOLD is the ASCII the 7-bit escape sequence <ESC>OP.")
 
 ;Bind GOLD/Keypad keys
 (defun edt-bind-gold-keypad ()
-  (define-keypad-key GOLD-map ?u 'edt-line-to-top-of-window) ;"up-arrow"
-  (define-keypad-key GOLD-map ?d 'edt-line-to-bottom-of-window) ;"down-arrow"
-  (define-keypad-key GOLD-map ?l 'backward-sentence) ;"left-arrow"
-  (define-keypad-key GOLD-map ?r 'forward-sentence) ;"right-arrow"
-  (define-keypad-key GOLD-map ?\C-a 'mark-section-wisely) ;Gold     "PF1"
-  (define-keypad-key GOLD-map ?\C-b 'describe-function)	;Help     "PF2"
-  (define-keypad-key GOLD-map ?\C-c 'occur) ;Find     "PF3"
-  (define-keypad-key GOLD-map ?\C-d 'undelete-lines) ;Und Line "PF4"
-  (define-keypad-key GOLD-map ?0 'open-line) ;Open L   "0"
-  (define-keypad-key GOLD-map ?1 'case-flip-character) ;Chgcase  "1"
-  (define-keypad-key GOLD-map ?2 'delete-to-eol) ;Del EOL  "2"
-  (define-keypad-key GOLD-map ?3 'copy-region-as-kill) ;Copy     "3"
-  (define-keypad-key GOLD-map ?4 'move-to-end) ;Bottom   "4"
-  (define-keypad-key GOLD-map ?5 'move-to-beginning) ;Top      "5"
-  (define-keypad-key GOLD-map ?6 'yank)	;Paste    "6"
-  (define-keypad-key GOLD-map ?7 'execute-extended-command) ;Command  "7"
-  (define-keypad-key GOLD-map ?8 'indent-or-fill-region) ;Fill     "8"
-  (define-keypad-key GOLD-map ?9 'replace-regexp) ;Replace  "9"
-  (define-keypad-key GOLD-map ?- 'undelete-words) ;UND word "-"
-  (define-keypad-key GOLD-map ?, 'undelete-chars) ;UND Char ","
-  (define-keypad-key GOLD-map ?. 'redraw-display) ;Reset Window "."
-  (define-keypad-key GOLD-map ?e 'shell-command)) ;"ENTER"
+  (define-key GOLD-map [up] 'edt-line-to-top-of-window)
+  (define-key GOLD-map [down] 'edt-line-to-bottom-of-window)
+  (define-key GOLD-map [left] 'backward-sentence)
+  (define-key GOLD-map [right] 'forward-sentence)
+  (define-key GOLD-map [kp-f1] 'mark-section-wisely)
+  (define-key GOLD-map [kp-f2] 'describe-function)
+  (define-key GOLD-map [kp-f3] 'occur)
+  (define-key GOLD-map [kp-f4] 'undelete-lines)
+  (define-key GOLD-map [kp-0] 'open-line)
+  (define-key GOLD-map [kp-1] 'case-flip-character)
+  (define-key GOLD-map [kp-2] 'delete-to-eol)
+  (define-key GOLD-map [kp-3] 'copy-region-as-kill)
+  (define-key GOLD-map [kp-4] 'move-to-end)
+  (define-key GOLD-map [kp-5] 'move-to-beginning)
+  (define-key GOLD-map [kp-6] 'yank)
+  (define-key GOLD-map [kp-7] 'execute-extended-command)
+  (define-key GOLD-map [kp-8] 'indent-or-fill-region)
+  (define-key GOLD-map [kp-9] 'replace-regexp)
+  (define-key GOLD-map [kp-subtract] 'undelete-words)
+  (define-key GOLD-map [kp-separator] 'undelete-chars)
+  (define-key GOLD-map [kp-decimal] 'redraw-display)
+  (define-key GOLD-map [kp-enter] 'shell-command))
 
 ;; Make direction of motion show in mode line
 ;; while EDT emulation is turned on.

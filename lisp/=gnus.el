@@ -954,7 +954,7 @@ Various hooks for customization:
   (setq mode-line-buffer-identification	"GNUS: List of Newsgroups")
   (setq mode-line-process nil)
   (use-local-map gnus-Group-mode-map)
-  (buffer-flush-undo (current-buffer))
+  (buffer-disable-undo (current-buffer))
   (setq buffer-read-only t)		;Disable modification
   (run-hooks 'gnus-Group-mode-hook))
 
@@ -1729,7 +1729,7 @@ Various hooks for customization:
 	    (cons (list 'gnus-show-threads " Thread") minor-mode-alist)))
   (gnus-Subject-set-mode-line)
   (use-local-map gnus-Subject-mode-map)
-  (buffer-flush-undo (current-buffer))
+  (buffer-disable-undo (current-buffer))
   (setq buffer-read-only t)		;Disable modification
   (setq truncate-lines t)		;Stop line folding
   (setq selective-display t)
@@ -3216,7 +3216,7 @@ is non-nil.  The hook is intended to customize Rmail mode."
 	(digbuf (get-buffer-create gnus-Digest-buffer))
 	(mail-header-separator ""))
     (set-buffer digbuf)
-    (buffer-flush-undo (current-buffer))
+    (buffer-disable-undo (current-buffer))
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert-buffer-substring artbuf)
@@ -3652,7 +3652,7 @@ Various hooks for customization:
   (setq page-delimiter gnus-page-delimiter)
   (make-local-variable 'mail-header-separator)
   (setq mail-header-separator "")	;For caesar function.
-  (buffer-flush-undo (current-buffer))
+  (buffer-disable-undo (current-buffer))
   (setq buffer-read-only t)		;Disable modification
   (run-hooks 'gnus-Article-mode-hook))
 
@@ -4617,7 +4617,7 @@ ROT47 will be performed for Japanese text in any case."
 		(kill-buffer file-buffer))
 	    (error "Output file does not exist")))
       (set-buffer tmpbuf)
-      (buffer-flush-undo (current-buffer))
+      (buffer-disable-undo (current-buffer))
       (erase-buffer)
       (insert-buffer-substring artbuf)
       (gnus-convert-article-to-rmail)
@@ -4655,7 +4655,7 @@ ROT47 will be performed for Japanese text in any case."
 	(tmpbuf (get-buffer-create " *GNUS-output*")))
     (save-excursion
       (set-buffer tmpbuf)
-      (buffer-flush-undo (current-buffer))
+      (buffer-disable-undo (current-buffer))
       (erase-buffer)
       (insert-buffer-substring artbuf)
       ;; Append newline at end of the buffer as separator, and then
@@ -4724,7 +4724,7 @@ Run gnus-Open-server-hook just before opening news server."
     ;; If no server name is given, local host is assumed.
     (if (string-equal gnus-nntp-server "")
 	(setq gnus-nntp-server (system-name)))
-    (cond ((string= gnus-nntp-server) "::")
+    (cond ((string= gnus-nntp-server "::")
 	   (require 'nnspool)
 	   (gnus-define-access-method 'nnspool)
 	   (message "Looking up local news spool..."))
@@ -5701,7 +5701,7 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
       ;; Prepare .newsrc buffer.
       (set-buffer (find-file-noselect newsrc-file))
       ;; It is not so good idea turning off undo.
-      ;;(buffer-flush-undo (current-buffer))
+      ;;(buffer-disable-undo (current-buffer))
       ;; Load quick .newsrc to restore gnus-marked-assoc and
       ;; gnus-killed-assoc even if gnus-newsrc-assoc is out of date.
       (condition-case nil
@@ -5895,7 +5895,7 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
 	     (save-buffer))
 	   ;; Quickly loadable .newsrc.
 	   (set-buffer (get-buffer-create " *GNUS-newsrc*"))
-	   (buffer-flush-undo (current-buffer))
+	   (buffer-disable-undo (current-buffer))
 	   (erase-buffer)
 	   (gnus-gnus-to-quick-newsrc-format)
 	   (let ((make-backup-files nil)

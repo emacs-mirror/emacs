@@ -43,7 +43,7 @@
 ;;; Code:
 
 (require 'comint)
-(require 'tags)
+(require 'etags)
 
 ;; ======================================================================
 ;; the overloading mechanism
@@ -196,9 +196,9 @@ and source-file directory for your debugger."
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
+  (interactive "fRun sdb on file: ")
   (if (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name)))
       (error "The sdb support requires a valid tags table to work."))
-  (interactive "fRun sdb on file: ")
   (gud-overload-functions '((gud-debugger-startup . gud-sdb-debugger-startup)
 			    (gud-marker-filter    . gud-sdb-marker-filter)
 			    (gud-visit-file       . gud-sdb-visit-file)
@@ -525,20 +525,20 @@ Obeying it means displaying in another window the specified file and line."
 (defun gud-read-address()
   "Return a string containing the core-address found in the buffer at point."
   (save-excursion
-   (let ((pt (dot)) found begin)
-     (setq found (if (search-backward "0x" (- pt 7) t)(dot)))
+   (let ((pt (point)) found begin)
+     (setq found (if (search-backward "0x" (- pt 7) t)(point)))
      (cond (found (forward-char 2)
 		  (setq result
 			(buffer-substring found
 				 (progn (re-search-forward "[^0-9a-f]")
 					(forward-char -1)
-					(dot)))))
+					(point)))))
 	   (t (setq begin (progn (re-search-backward "[^0-9]") (forward-char 1)
-				 (dot)))
+				 (point)))
 	      (forward-char 1)
 	      (re-search-forward "[^0-9]")
 	      (forward-char -1)
-	      (buffer-substring begin (dot)))))))
+	      (buffer-substring begin (point)))))))
 
 
 (defun send-gud-command (arg)
@@ -559,7 +559,7 @@ member of gud-commands."
 		 (if (stringp comm) (format comm addr) (funcall comm addr))))
 	  (t (setq comm addr)))
     (switch-to-buffer current-gud-buffer)
-    (goto-char (dot-max))
+    (goto-char (point-max))
     (insert-string comm)))
 
 ;;; gud.el ends here

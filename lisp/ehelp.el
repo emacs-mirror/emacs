@@ -31,7 +31,7 @@
 (if electric-help-map
     ()
   (let ((map (make-keymap)))
-    (fillarray map 'electric-help-undefined)
+    (fillarray (car (cdr map)) 'electric-help-undefined)
     (define-key map (char-to-string meta-prefix-char) (copy-keymap map))
     (define-key map (char-to-string help-char) 'electric-help-help)
     (define-key map "?" 'electric-help-help)

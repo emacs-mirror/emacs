@@ -63,21 +63,21 @@
 
 (defun medit-zap-define-to-mdl ()
   "Return to MDL with surrounding or previous toplevel MDL object."
-  (indetarctive)
-  (medit-save-defun)
-  (medit-go-to-mdl))
+  (interactive)
+  (medit-save-define)
+  (medit-goto-mdl))
 
 (defun medit-zap-region-mdl (start end)
   "Return to MDL with current region."
   (interactive)
   (medit-save-region start end)
-  (medit-go-to-mdl))
+  (medit-goto-mdl))
 
 (defun medit-zap-buffer ()
   "Return to MDL with current buffer."
   (interactive)
   (medit-save-buffer)
-  (medit-go-to-mdl))
+  (medit-goto-mdl))
 
 (defun medit-goto-mdl ()
   "Return from Emacs to superior MDL, sending saved code.

@@ -28,6 +28,8 @@
 ;;;
 ;;; 9-dec-86 Jeff Peck, Sun Microsystems Inc. <peck@sun.com>
 
+(require 'cl)
+
 (defvar sc::cursors nil "List of known cursors")
 
 (defmacro defcursor (name x y string)
@@ -96,7 +98,7 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
 (defun sc::pic-ins-at-mouse (char)
   "Picture insert char at mouse location"
   (mouse-move-point *mouse-window* (min 15 *mouse-x*) (min 15 *mouse-y*))
-  (move-to-column-force (1+ (min 15 (current-column))))
+  (move-to-column (1+ (min 15 (current-column))) t)
   (delete-char -1)
   (insert char)
   (sc::goto-hotspot))

@@ -16,6 +16,9 @@
 
 ;;; Code:
 
+(require 'mailalias)
+(require 'sendmail)
+
 ;; (setq send-mail-function 'post-mail-send-it)
 
 (defun post-mail-send-it ()

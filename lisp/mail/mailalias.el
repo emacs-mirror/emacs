@@ -173,4 +173,6 @@ DEFINITION can be one or more mail addresses separated by commas."
 	(rplacd tem definition)
       (setq mail-aliases (cons (cons name definition) mail-aliases)))))
 
+(provide 'mailalias)
+
 ;;; mailalias.el ends here

@@ -120,29 +120,12 @@
   (define-key gomoku-mode-map "\C-cr" 'gomoku-human-resigns)	; C-C R
   (define-key gomoku-mode-map "\C-ce" 'gomoku-emacs-plays)	; C-C E
 
-  ;; Key bindings for "function" keys. If your terminal has such
-  ;; keys, make sure they are declared through the function-keymap
-  ;; keymap (see file keypad.el).
-  ;; One problem with keypad.el is that the function-key-sequence
-  ;; function is really slow, so slow that you may want to comment out
-  ;; the following lines ...
-  (if (featurep 'keypad)
-      (let (keys)
-	(if (setq keys (function-key-sequence ?u))		; Up Arrow
-	    (define-key gomoku-mode-map keys 'gomoku-move-up))
-	(if (setq keys (function-key-sequence ?d))		; Down Arrow
-	    (define-key gomoku-mode-map keys 'gomoku-move-down))
-	(if (setq keys (function-key-sequence ?l))		; Left Arrow
-	    (define-key gomoku-mode-map keys 'gomoku-move-left))
-	(if (setq keys (function-key-sequence ?r))		; Right Arrow
-	    (define-key gomoku-mode-map keys 'gomoku-move-right))
-;;	(if (setq keys (function-key-sequence ?e))		; Enter
-;;	    (define-key gomoku-mode-map keys 'gomoku-human-plays))
-;;	(if (setq keys (function-key-sequence ?I))		; Insert
-;;	    (define-key gomoku-mode-map keys 'gomoku-human-plays))
-	)))
-
-
+  (define-key gomoku-mode-map [up] 'gomoku-move-up)
+  (define-key gomoku-mode-map [down] 'gomoku-move-down)
+  (define-key gomoku-mode-map [left] 'gomoku-move-left)
+  (define-key gomoku-mode-map [right] 'gomoku-move-right)
+  (define-key gomoku-mode-map [kp-enter] 'gomoku-human-plays)
+  (define-key gomoku-mode-map [insert] 'gomoku-human-plays))
 
 (defun gomoku-mode ()
   "Major mode for playing Gomoku against Emacs.

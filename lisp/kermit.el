@@ -100,7 +100,8 @@
 (defun kermit-send-input-cr ()
   "Like \\[comint-send-input] but end the line with carriage-return."
   (interactive)
-  (comint-send-input "\r"))
+  (comint-send-input)
+  (comint-send-string (get-buffer-process (current-buffer)) "\r"))
 
 ;; This is backwards of what makes sense, but ...
 (define-key shell-mode-map "\n" 'kermit-send-input-cr)
@@ -127,11 +128,11 @@ In this state, use LFD to send a line and end it with a carriage-return."
       (set-buffer (process-buffer proc))
       (goto-char beg)
       (insert-before-markers str)
-      (while (re-search-backware "[\r\C-a]+" beg t)
+      (while (re-search-backward "[\r\C-a]+" beg t)
 	(replace-match "")))))
 
 (defun kermit-clean-on ()
-  "Delete all null characters and ^M's from the kermit output."
+  "Delete all null characters and ^M's from the kermit output.
 Note that another (perhaps better) way to do this is to use the
 command `kermit | tr -d '\\015''."
   (interactive)
