@@ -1,3 +1,7 @@
+2004-06-13  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired-x.texi (dired-mark-omitted): Update keybinding.
+
 2004-06-12  Juri Linkov  <juri@jurta.org>
 
 	* dired.texi (Operating on Files): Add dired-do-touch.

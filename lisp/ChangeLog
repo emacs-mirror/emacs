@@ -1,3 +1,7 @@
+2004-06-13  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired-x.el (dired-mark-omitted): Bind to "*O".
+
 2004-06-12  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-bmenu-relocate): New function, as
