@@ -185,7 +185,7 @@ Lisp_Object Vx_pixel_size_width_font_regexp;
 
 Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
-Lisp_Object Qbar;
+Lisp_Object Qbar, Qhbar;
 Lisp_Object Qborder_color;
 Lisp_Object Qborder_width;
 Lisp_Object Qbox;
@@ -1861,6 +1861,19 @@ x_specified_cursor_type (arg, width)
 	   && XINT (XCDR (arg)) >= 0)
     {
       type = BAR_CURSOR;
+      *width = XINT (XCDR (arg));
+    }
+  else if (EQ (arg, Qhbar))
+    {
+      type = HBAR_CURSOR;
+      *width = 2;
+    }
+  else if (CONSP (arg)
+	   && EQ (XCAR (arg), Qhbar)
+	   && INTEGERP (XCDR (arg))
+	   && XINT (XCDR (arg)) >= 0)
+    {
+      type = HBAR_CURSOR;
       *width = XINT (XCDR (arg));
     }
   else if (NILP (arg))
@@ -11831,6 +11844,8 @@ syms_of_xfns ()
   staticpro (&Qauto_lower);
   Qbar = intern ("bar");
   staticpro (&Qbar);
+  Qhbar = intern ("hbar");
+  staticpro (&Qhbar);
   Qborder_color = intern ("border-color");
   staticpro (&Qborder_color);
   Qborder_width = intern ("border-width");
