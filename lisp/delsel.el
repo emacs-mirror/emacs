@@ -1,4 +1,4 @@
-;;; pending-del.el --- pending delete selection
+;;; delsel.el --- delete selection if you insert
 
 ;;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -30,9 +30,9 @@
 
 ;;; Code:
 
-(defvar pending-delete-mode t
-  "*Non-nil means Pending Delete mode is enabled.
-In Pending Delete mode, when a region is highlighted,
+(defvar delete-selection-mode t
+  "*Non-nil means Delete Selection mode is enabled.
+In Delete Selection mode, when a region is highlighted,
 insertion commands first delete the region and then insert.")
 
 (defun delete-active-region (&optional killp)
@@ -43,12 +43,12 @@ insertion commands first delete the region and then insert.")
   (run-hooks 'deactivate-mark-hook)
   t)
 
-(defun pending-delete-pre-hook ()
-  (if (and pending-delete-mode
+(defun delete-selection-pre-hook ()
+  (if (and delete-selection-mode
 	   (not buffer-read-only)
 	   transient-mark-mode mark-active)
       (let ((type (and (symbolp this-command)
-		       (get this-command 'pending-delete))))
+		       (get this-command 'delete-selection))))
 	(cond ((eq type 'kill)
 	       (delete-active-region t))
 	      ((eq type 'supersede)
@@ -57,28 +57,29 @@ insertion commands first delete the region and then insert.")
 	      (type
 	       (delete-active-region ()))))))
 
-(add-hook 'pre-command-hook 'pending-delete-pre-hook)
+(add-hook 'pre-command-hook 'delete-selection-pre-hook)
 
-(put 'self-insert-command 'pending-delete t)
+(put 'self-insert-command 'delete-selection t)
 
-(put 'yank 'pending-delete t)
-(put 'x-yank-clipboard-selection 'pending-delete t)
+(put 'yank 'delete-selection t)
+(put 'x-yank-clipboard-selection 'delete-selection t)
 
-(put 'delete-backward-char 'pending-delete 'supersede)
-(put 'backward-delete-char-untabify 'pending-delete 'supersede)
-(put 'delete-char 'pending-delete 'supersede)
+(put 'delete-backward-char 'delete-selection 'supersede)
+(put 'backward-delete-char-untabify 'delete-selection 'supersede)
+(put 'delete-char 'delete-selection 'supersede)
 
-(put 'newline-and-indent 'pending-delete 't)
-(put 'newline 'pending-delete t)
-(put 'open-line 'pending-delete t)
+(put 'newline-and-indent 'delete-selection 't)
+(put 'newline 'delete-selection t)
+(put 'open-line 'delete-selection t)
 
-(defun pending-delete-mode (arg)
-  "Toggle the state of pending-delete mode.
+(defalias 'pending-delete-mode 'delete-selection-mode)
+(defun delete-selection-mode (arg)
+  "Toggle Delete Selection mode.
 When ON, typed text replaces the selection if the selection is active.
 When OFF, typed text is just inserted at point."
   (interactive "P")
-  (setq pending-delete-mode
-	(if (null arg) (not pending-delete-mode)
+  (setq delete-selection-mode
+	(if (null arg) (not delete-selection-mode)
 	  (> (prefix-numeric-value arg) 0)))
   (set-buffer-modified-p (buffer-modified-p))) ;No-op, but updates mode line.
 
@@ -86,7 +87,7 @@ When OFF, typed text is just inserted at point."
 ;; selection and the second one signal a QUIT.
 ;; This is very useful for cancelling a selection in the minibuffer without 
 ;; aborting the minibuffer.
-;; It has actually nothing to do with pending-delete but its more necessary
+;; It has actually nothing to do with delete-selection but its more necessary
 ;; with pending delete because pending delete users use the selection more.
 (defun keyboard-quit ()
   "Signal a `quit' condition.
@@ -113,6 +114,10 @@ In Transient Mark mode, if the mark is active, just deactivate it."
     (abort-recursive-edit)))
 
 (define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit) 
+(define-key minibuffer-local-ns-map "\C-g" 'minibuffer-keyboard-quit) 
+(define-key minibuffer-local-completion-map "\C-g" 'minibuffer-keyboard-quit) 
+(define-key minibuffer-local-must-match-map "\C-g" 'minibuffer-keyboard-quit) 
+(define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit) 
 
 (provide 'pending-del)
 
