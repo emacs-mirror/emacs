@@ -6,7 +6,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.34 $
+;; Ada Core Technologies's version:   $Revision: 1.35 $
 ;; Keywords: languages ada
 
 ;; This file is not part of GNU Emacs
@@ -1179,7 +1179,7 @@ If you use ada-xref.el:
   (if ada-clean-buffer-before-saving
       (progn
         ;; remove all spaces at the end of lines in the whole buffer.
-        (add-hook 'local-write-file-hooks 'ada-remove-trailing-spaces)
+        (add-hook 'local-write-file-hooks 'delete-trailing-whitespace)
         ;; convert all tabs to the correct number of spaces.
         (add-hook 'local-write-file-hooks
                   (lambda () (untabify (point-min) (point-max))))))
@@ -1975,7 +1975,7 @@ offset."
 						(current-column))
 		    tmp-indent (cdr cur-indent))
 	    (setq prev-indent 0  tmp-indent '()))
-	    
+
           (while (not (null tmp-indent))
             (cond
              ((numberp (car tmp-indent))
@@ -2025,11 +2025,11 @@ offset."
      ;;-----------------------------
      ;; in open parenthesis, but not in parameter-list
      ;;-----------------------------
-     
+
      ((and ada-indent-to-open-paren
 	   (not (ada-in-paramlist-p))
 	   (setq column (ada-in-open-paren-p)))
-      
+
       ;; check if we have something like this  (Table_Component_Type =>
       ;;                                          Source_File_Record)
       (save-excursion
@@ -2047,22 +2047,22 @@ offset."
 
      ((not (char-after))
       (ada-indent-on-previous-lines nil orgpoint orgpoint))
-     
+
      ;;---------------------------
      ;;  starting with e
      ;;---------------------------
-     
+
      ((= (char-after) ?e)
       (cond
 
        ;; -------  end  ------
-       
+
        ((looking-at "end\\>")
 	(let ((label 0)
 	      limit)
 	  (save-excursion
 	    (ada-goto-matching-start 1)
-	    
+
 	    ;;
 	    ;; found 'loop' => skip back to 'while' or 'for'
 	    ;;                 if 'loop' is not on a separate line
@@ -2085,18 +2085,18 @@ offset."
 			  (beginning-of-line)
 			  (if (looking-at ada-named-block-re)
 			      (setq label (- ada-label-indent))))))))
-	    
+
 	    (list (+ (save-excursion (back-to-indentation) (point)) label) 0))))
 
        ;; ------  exception  ----
-       
+
        ((looking-at "exception\\>")
 	(save-excursion
 	  (ada-goto-matching-start 1)
 	  (list (save-excursion (back-to-indentation) (point)) 0)))
 
        ;; else
-       
+
        ((looking-at "else\\>")
 	(if (save-excursion  (ada-goto-previous-word)
 			     (looking-at "\\<or\\>"))
@@ -2106,7 +2106,7 @@ offset."
 	    (list (progn (back-to-indentation) (point)) 0))))
 
        ;; elsif
-       
+
        ((looking-at "elsif\\>")
 	(save-excursion
 	  (ada-goto-matching-start 1 nil t)
@@ -2117,7 +2117,7 @@ offset."
      ;;---------------------------
      ;;  starting with w (when)
      ;;---------------------------
-     
+
      ((and (= (char-after) ?w)
 	   (looking-at "when\\>"))
       (save-excursion
@@ -2144,7 +2144,7 @@ offset."
      ;;---------------------------
      ;;   starting with l (loop)
      ;;---------------------------
-     
+
      ((and (= (char-after) ?l)
 	   (looking-at "loop\\>"))
       (setq pos (point))
@@ -2177,7 +2177,7 @@ offset."
 
      ((and (= (char-after) ?i)
 	   (looking-at "is\\>"))
-      
+
       (if (and ada-indent-is-separate
                (save-excursion
                  (goto-char (match-end 0))
@@ -2200,7 +2200,7 @@ offset."
       (cond
 
        ;; ----- record ------
-       
+
        ((looking-at "record\\>")
 	(save-excursion
 	  (ada-search-ignore-string-comment
@@ -2223,12 +2223,12 @@ offset."
 			   (= (char-after (car pos)) ?r))
 		      (goto-char (car pos)))
 		  (setq var 'ada-indent-renames)))
-	    
+
 	    (forward-comment -1000)
 	    (if (= (char-before) ?\))
 		(forward-sexp -1)
 	      (forward-word -1))
-	    
+
 	    ;; If there is a parameter list, and we have a function declaration
 	    ;; or a access to subprogram declaration
 	    (let ((num-back 1))
@@ -2241,13 +2241,13 @@ offset."
 			       (backward-word 1)
 			       (setq num-back 2)
 			       (looking-at "function\\>")))))
-		  
+
 		  ;; The indentation depends of the value of ada-indent-return
 		  (if (<= (eval var) 0)
 		      (list (point) (list '- var))
 		    (list (progn (backward-word num-back) (point))
 			  var))
-		
+
 		;; Else there is no parameter list, but we have a function
 		;; Only do something special if the user want to indent
 		;; relative to the "function" keyword
@@ -2255,11 +2255,11 @@ offset."
 			 (save-excursion (forward-word -1)
 					 (looking-at "function\\>")))
 		    (list (progn (forward-word -1) (point)) var)
-		  
+
 		  ;; Else...
 		  (ada-indent-on-previous-lines nil orgpoint orgpoint)))))))
        ))
-     
+
      ;;--------------------------------
      ;;   starting with 'o' or 'p'
      ;;   'or'      as statement-start
@@ -2295,7 +2295,7 @@ offset."
 	  ;;  We must use a search-forward (even if the code is more complex),
 	  ;;  since we want to find the beginning of the comment.
 	  (let (pos)
-	    
+
 	    (if (and ada-indent-align-comments
 		     (save-excursion
 		       (forward-line -1)
@@ -2309,7 +2309,7 @@ offset."
 			   (setq pos (point))))
 		       pos))
 		(list (- pos 2) 0)
-		
+
 	    ;;  Else always on previous line
 	    (ada-indent-on-previous-lines nil orgpoint orgpoint)))
 
@@ -2338,7 +2338,7 @@ offset."
      ;;---------------------------------
      ;; new/abstract/separate
      ;;---------------------------------
-     
+
      ((looking-at "\\(new\\|abstract\\|separate\\)\\>")
       (ada-indent-on-previous-lines nil orgpoint orgpoint))
 
@@ -2355,20 +2355,20 @@ offset."
 	  (while (and (not found)
 		      (ada-search-ignore-string-comment
 	     "\\<\\(generic\\|end\\|begin\\|package\\|procedure\\|function\\)\\>" t))
-	    
+
 	    ;;  avoid "with procedure"... in generic parts
 	    (save-excursion
 	      (forward-word -1)
 	      (setq found (not (looking-at "with"))))))
-	    
+
 	(if (looking-at "generic")
 	    (list (progn (back-to-indentation) (point)) 0)
 	  (ada-indent-on-previous-lines nil orgpoint orgpoint))))
-     
+
      ;;---------------------------------
      ;; label
      ;;---------------------------------
-     
+
      ((looking-at "\\(\\sw\\|_\\)+[ \t\n]*:[^=]")
       (if (ada-in-decl-p)
           (ada-indent-on-previous-lines nil orgpoint orgpoint)
@@ -2979,7 +2979,7 @@ open parenthesis."
 
     (setq match-dat (ada-search-prev-end-stmt))
     (if match-dat
-	
+
 	;;
 	;; found a previous end-statement => check if anything follows
 	;;
@@ -3000,7 +3000,7 @@ open parenthesis."
 		(goto-char (cdr match-dat)))
 	    (ada-goto-next-non-ws)
 	    ))
-      
+
       ;;
       ;; no previous end-statement => we are at the beginning of the
       ;;                              accessible part of the buffer
@@ -3248,7 +3248,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
 	    (progn
 	      (setq nest-count (1- nest-count))
 	      (setq first nil)))))
-       
+
        ;;
        ((looking-at "declare\\|generic")
         (setq nest-count (1- nest-count))
@@ -3639,7 +3639,7 @@ Returns nil if the private is part of the package name, as in
 	 ;;  Make sure this is the start of a private section (ie after
 	 ;;  a semicolon or just after the package declaration, but not
 	 ;;  after a 'type ... is private' or 'is new ... with private'
-	 (progn (forward-comment -1000) 
+	 (progn (forward-comment -1000)
 		(or (= (char-before) ?\;)
 		    (and (forward-word -3)
 			 (looking-at "\\<package\\>")))))))
@@ -3774,17 +3774,6 @@ of the region.  Otherwise, operates only on the current line."
 ;; ------------------------------------------------------------
 ;; --  Miscellaneous
 ;; ------------------------------------------------------------
-
-(defun ada-remove-trailing-spaces  ()
-  "Remove trailing spaces in the whole buffer."
-  (interactive)
-  (save-match-data
-    (save-excursion
-      (save-restriction
-        (widen)
-        (goto-char (point-min))
-        (while (re-search-forward "[ \t]+$" (point-max) t)
-          (replace-match "" nil nil))))))
 
 (defun ada-gnat-style ()
   "Clean up comments, `(' and `,' for GNAT style checking switch."
@@ -4213,7 +4202,7 @@ The paragraph is indented on the first line."
     (goto-char (+ from 2))
     (while (re-search-forward "^-- *" to t)
       (replace-match " "))
-    
+
     (goto-char (1- to))
     (setq to (point-marker))
 
@@ -4302,11 +4291,11 @@ otherwise."
 		(setq is-body t
 		      name    (match-string 1 name)))
 	    (setq suffixes (cdr suffixes)))))
-    
+
     ;;  If this wasn't in either list, return name itself
     (if (not (or is-spec is-body))
 	name
-      
+
       ;;  Else find the other possible names
       (if is-spec
 	  (setq suffixes ada-body-suffixes)

@@ -47,7 +47,7 @@
 Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables))
-
+
 ;; Making and deleting lines.
 
 (defun newline (&optional arg)
@@ -132,7 +132,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
     (if (and (listp sticky) (not (memq 'hard sticky)))
 	(put-text-property from (point) 'rear-nonsticky
 			   (cons 'hard sticky)))))
-
+
 (defun open-line (arg)
   "Insert a newline and leave point before it.
 If there is a fill prefix and/or a left-margin, insert them on the new line
@@ -184,7 +184,7 @@ With argument, join this line to following line."
 	(fixup-whitespace))))
 
 (defalias 'join-line #'delete-indentation) ; easier to find
-
+
 (defun delete-blank-lines ()
   "On blank line, delete all surrounding blank lines, leaving just one.
 On isolated blank line, delete that one.
@@ -225,6 +225,17 @@ On nonblank line, delete any immediately following blank lines."
     (if (looking-at "^[ \t]*\n\\'")
 	(delete-region (point) (point-max)))))
 
+(defun delete-trailing-whitespace ()
+  "Delete all the trailing whitespace across the current buffer.
+All whitespace after the last non-whitespace character in a line is deleted.
+This respects narrowing, created by \\[narrow-to-region] and friends."
+  (interactive "*")
+  (save-match-data
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\s-+$" nil t)
+        (delete-region (match-beginning 0) (match-end 0))))))
+
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.
 Indentation is done using the value of `indent-line-function'.
@@ -249,7 +260,7 @@ column specified by the function `current-left-margin'."
     (indent-according-to-mode))
   (newline)
   (indent-according-to-mode))
-
+
 (defun quoted-insert (arg)
   "Read next input character and insert it.
 This is useful for inserting control characters.
@@ -287,7 +298,7 @@ useful for editing binary files."
     (while (> arg 0)
       (insert-and-inherit char)
       (setq arg (1- arg)))))
-
+
 (defun forward-to-indentation (arg)
   "Move forward ARG lines and position at first nonblank character."
   (interactive "p")
@@ -333,7 +344,7 @@ Leave one space or none, according to the context."
     (insert ? ))
   (delete-region (point) (progn (skip-chars-forward " \t") (point))))
 
-
+
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
 With arg N, put point N/10 of the way from the beginning.
@@ -395,7 +406,7 @@ that uses or sets the mark."
   (push-mark (point-max) nil t)
   (goto-char (point-min)))
 
-
+
 ;; Counting lines, one way or another.
 
 (defun goto-line (arg)
@@ -455,7 +466,7 @@ and the greater of them is not at the start of a line."
 		  (1+ done)
 		done)))
 	(- (buffer-size) (forward-line (buffer-size)))))))
-
+
 (defun what-cursor-position (&optional detail)
   "Print info on cursor position (on screen and within buffer).
 Also describe the character after point, and give its character code
@@ -520,7 +531,7 @@ in *Help* buffer.  See also the command `describe-char-after'."
 		       (single-key-description char)
 		     (buffer-substring-no-properties (point) (1+ (point))))
 		   encoding-msg pos total percent col hscroll))))))
-
+
 (defvar read-expression-map
   (let ((m (make-sparse-keymap)))
     (define-key m "\M-\t" 'lisp-complete-symbol)
@@ -560,7 +571,7 @@ Value is also consed on to front of the variable `values'."
 			       nil read-expression-map t
 			       'read-expression-history)
 	 current-prefix-arg))
-  
+
   (if (null eval-expression-debug-on-error)
       (setq values (cons (eval eval-expression-arg) values))
     (let ((old-value (make-symbol "t")) new-value)
@@ -573,7 +584,7 @@ Value is also consed on to front of the variable `values'."
       ;; propagate that change to the global binding.
       (unless (eq old-value new-value)
 	(setq debug-on-error new-value))))
-    
+
   (let ((print-length eval-expression-print-length)
 	(print-level eval-expression-print-level))
     (prin1 (car values)
@@ -631,7 +642,7 @@ to get different commands to edit and resubmit."
 	      (setq command-history (cons newcmd command-history)))
 	  (eval newcmd))
       (ding))))
-
+
 (defvar minibuffer-history nil
   "Default minibuffer history list.
 This is used for all minibuffer input
@@ -874,7 +885,7 @@ Return 0 if current buffer is not a mini-buffer."
 Return 0 if current buffer is not a mini-buffer."
   (field-beginning (point-max)))
 
-
+
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
 
@@ -1096,7 +1107,7 @@ is not *inside* the region START...END."
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
-
+
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
 
@@ -1227,7 +1238,7 @@ specifies the value of ERROR-BUFFER."
 		  ))
 	    (shell-command-on-region (point) (point) command
 				     output-buffer nil error-buffer)))))))
-
+
 (defun display-message-or-buffer (message
 				  &optional buffer-name not-this-window frame)
   "Display MESSAGE in the echo area if possible, otherwise in a pop-up buffer.
@@ -1456,7 +1467,7 @@ specifies the value of ERROR-BUFFER."
     (with-current-buffer
       standard-output
       (call-process shell-file-name nil t nil shell-command-switch command))))
-
+
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap)))
     (define-key map [t] 'universal-argument-other-key)
@@ -1572,7 +1583,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 		  unread-command-events)))
   (reset-this-command-lengths)
   (setq overriding-terminal-local-map nil))
-
+
 ;;;; Window system cut and paste hooks.
 
 (defvar interprogram-cut-function nil
@@ -1611,7 +1622,7 @@ current string, it is probably good enough to return nil if the string
 is equal (according to `string=') to the last text Emacs provided.")
 
 
-
+
 ;;;; The kill ring data structure.
 
 (defvar kill-ring nil
@@ -1686,7 +1697,7 @@ yanking point; just return the Nth kill forward."
 	(car ARGth-kill-element)))))
 
 
-
+
 ;;;; Commands for manipulating the kill ring.
 
 (defcustom kill-read-only-ok nil
@@ -1804,7 +1815,7 @@ The argument is used for internal purposes; do not supply one."
 	(setq this-command 'kill-region)
 	(message "If the next command is a kill, it will append"))
     (setq last-command 'kill-region)))
-
+
 ;; Yanking.
 
 (defun yank-pop (arg)
@@ -1875,7 +1886,7 @@ See also the command \\[yank-pop]."
 With argument, rotate that many kills forward (or backward, if negative)."
   (interactive "p")
   (current-kill arg))
-
+
 ;; Some kill commands.
 
 ;; Internal subroutine of delete-char
@@ -1938,7 +1949,7 @@ Goes backward if ARG is negative; error if CHAR not found."
 			 (search-forward (char-to-string char) nil nil arg)
 ;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
 			 (point))))
-
+
 ;; kill-line and its subroutines.
 
 (defcustom kill-whole-line nil
@@ -2048,7 +2059,7 @@ If ARG is zero, move to the beginning of the current line."
 	(goto-char (next-single-property-change (point) 'invisible))
       (goto-char (next-overlay-change (point))))
     (end-of-line)))
-
+
 (defun insert-buffer (buffer)
   "Insert after point the contents of BUFFER.
 Puts mark after the inserted text.
@@ -2130,7 +2141,7 @@ START and END specify the portion of the current buffer to be copied."
       (erase-buffer)
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))
-
+
 (put 'mark-inactive 'error-conditions '(mark-inactive error))
 (put 'mark-inactive 'error-message "The mark is not active now")
 
@@ -2323,7 +2334,7 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
 	(widen))
     (goto-char position)
     (switch-to-buffer buffer)))
-
+
 (defcustom next-line-add-newlines t
   "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error."
   :type 'boolean
@@ -2387,7 +2398,7 @@ to use and more reliable (no dependence on goal column, etc.)."
 	((beginning-of-buffer end-of-buffer) (ding)))
     (line-move (- arg)))
   nil)
-
+
 (defcustom track-eol nil
   "*Non-nil means vertical motion starting at end of line keeps to ends of lines.
 This means moving to the end of each line moved onto.
@@ -2549,7 +2560,7 @@ The goal column is stored in the variable `goal-column'."
 	      "Goal column %d (use \\[set-goal-column] with an arg to unset it)")
 	     goal-column))
   nil)
-
+
 
 (defun scroll-other-window-down (lines)
   "Scroll the \"other window\" down.
@@ -2595,7 +2606,7 @@ With arg N, put point N/10 of the way from the true end."
 	  (end-of-buffer arg)
 	  (recenter '(t)))
       (select-window orig-window))))
-
+
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
 With prefix arg ARG, effect is to take character before point
@@ -2702,7 +2713,7 @@ With argument 0, interchanges line point is in with line mark is in."
 		 (+ transpose-subr-start1 (- len1 len2))))
     (delete-region (point) (+ (point) len1))
     (insert word2)))
-
+
 (defun backward-word (arg)
   "Move backward until encountering the end of a word.
 With argument, do this that many times."
@@ -2762,7 +2773,7 @@ or adjacent to a word."
 		   (setq start (point)))
 		 (buffer-substring-no-properties start end)))
 	(buffer-substring-no-properties start end)))))
-
+
 (defcustom fill-prefix nil
   "*String for filling to insert at front of new line, or nil for none.
 Setting this variable automatically makes it local to the current buffer."
@@ -2974,7 +2985,7 @@ Just \\[universal-argument] as argument means to use the current column."
       (error "set-fill-column requires an explicit argument")
     (message "Fill column set to %d (was %d)" arg fill-column)
     (setq fill-column arg)))
-
+
 (defun set-selective-display (arg)
   "Set `selective-display' to ARG; clear it if no arg.
 When the value of `selective-display' is a number > 0,
@@ -3038,7 +3049,7 @@ specialization of overwrite-mode, entered by setting the
 	      (> (prefix-numeric-value arg) 0))
 	    'overwrite-mode-binary))
   (force-mode-line-update))
-
+
 (defcustom line-number-mode t
   "*Non-nil means display line number in mode line."
   :type 'boolean
@@ -3251,7 +3262,7 @@ use either M-x customize or the function `set-input-mode'."
   :version "21.1"
   :link '(custom-manual "Single-Byte European Support")
   :group 'keyboard)
-
+
 (defcustom read-mail-command 'rmail
   "*Your preference for a mail reading package.
 This is used by some keybindings which support reading mail.
@@ -3427,7 +3438,7 @@ Each action has the form (FUNCTION . ARGS)."
    (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
 		'switch-to-buffer-other-frame yank-action send-actions))
-
+
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.")
 
@@ -3471,7 +3482,7 @@ in the definition is used to check that VALUE is valid."
 	(error "Value `%S' does not match type %S of %S"
 	       val (car type) var))))
   (set var val))
-
+
 ;; Define the major mode for lists of completions.
 
 (defvar completion-list-mode-map nil
@@ -3713,7 +3724,7 @@ select the completion near point.\n\n")))))
       (goto-char (point-min))
       (search-forward "\n\n")
       (forward-line 1))))
-
+
 ;; Support keyboard commands to turn on various modifiers.
 
 ;; These functions -- which are not commands -- each add one modifier
@@ -3779,7 +3790,7 @@ PREFIX is the string that represents this modifier in an event type symbol."
 (define-key function-key-map [?\C-x ?@ ?a] 'event-apply-alt-modifier)
 (define-key function-key-map [?\C-x ?@ ?S] 'event-apply-shift-modifier)
 (define-key function-key-map [?\C-x ?@ ?c] 'event-apply-control-modifier)
-
+
 ;;;; Keypad support.
 
 ;;; Make the keypad keys act like ordinary typing keys.  If people add
@@ -3944,7 +3955,7 @@ the front of the list of recently selected ones."
 
 (define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
 
-
+
 ;;; Syntax stuff.
 
 (defconst syntax-code-table
@@ -3972,12 +3983,12 @@ corresponing syntax code as it is stored in a syntax cell, and
 can be used as value of a `syntax-table' property.
 DESCRIPTION is the descriptive string for the syntax.")
 
-
+
 ;;; Misc
 
 (defun byte-compiling-files-p ()
   "Return t if currently byte-compiling files."
   (and (boundp 'byte-compile-current-file)
        (stringp byte-compile-current-file)))
-   
+
 ;;; simple.el ends here

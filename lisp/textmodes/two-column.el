@@ -363,7 +363,7 @@ first and the associated buffer to its right."
 		    (generate-new-buffer (concat "2C/" (buffer-name)))))
 	       (or buffer
 		   (run-hooks '2C-other-buffer-hook))))
-    
+
     (2C-mode (prog1 (point-marker)
 	       (other-window -1)))))
 
@@ -503,7 +503,7 @@ this one, then this one becomes the left column.
 
 If you want `2C-separator' on empty lines in the second column,
 you should put just one space in them.  In the final result, you can strip
-off trailing spaces with \\[beginning-of-buffer] \\[replace-regexp] [ SPC TAB ] + $ RET RET"
+off trailing spaces with \\[delete-trailing-whitespace]."
   (interactive)
   (and (> (car (window-edges)) 0)	; not touching left edge of screen
        (eq (window-buffer (previous-window))

@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This code provides the picture-mode commands documented in the Emacs 
+;; This code provides the picture-mode commands documented in the Emacs
 ;; manual.  The screen is treated as a semi-infinite quarter-plane with
 ;; support for rectangle operations and `etch-a-sketch' character
 ;; insertion in any of eight directions.
@@ -735,20 +735,13 @@ With no argument strips whitespace from end of every line in Picture buffer
   (interactive "P")
   (if (not (eq major-mode 'picture-mode))
       (error "You aren't editing a Picture.")
-    (if (not nostrip) (picture-clean))
+    (if (not nostrip) (delete-trailing-whitespace))
     (setq mode-name picture-mode-old-mode-name)
     (use-local-map picture-mode-old-local-map)
     (setq major-mode picture-mode-old-major-mode)
     (kill-local-variable 'tab-stop-list)
     (setq truncate-lines picture-mode-old-truncate-lines)
     (force-mode-line-update)))
-
-(defun picture-clean ()
-  "Eliminate whitespace at ends of lines."
-  (save-excursion
-   (goto-char (point-min))
-   (while (re-search-forward "[ \t][ \t]*$" nil t)
-     (delete-region (match-beginning 0) (point)))))
 
 (provide 'picture)
 
