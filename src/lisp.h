@@ -1600,14 +1600,14 @@ void staticpro P_ ((Lisp_Object *));
 
 /* Evaluate expr, UNGCPRO, and then return the value of expr.  */
 #define RETURN_UNGCPRO(expr)			\
-if (1)						\
+do						\
     {						\
       Lisp_Object ret_ungc_val;			\
       ret_ungc_val = (expr);			\
       UNGCPRO;					\
       return ret_ungc_val;			\
     }						\
-else
+while (0)
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
@@ -1768,6 +1768,8 @@ extern Lisp_Object detect_coding_system P_ ((unsigned char *, int, int));
 extern void init_coding P_ ((void));
 extern void init_coding_once P_ ((void));
 extern void syms_of_coding P_ ((void));
+extern Lisp_Object code_convert_string_norecord P_ ((Lisp_Object, Lisp_Object,
+						     int));
 
 /* Defined in charset.c */
 extern int nonascii_insert_offset;
@@ -2601,6 +2603,7 @@ EXFUN (Fx_popup_dialog, 2);
 extern void syms_of_xmenu P_ ((void));
 
 /* defined in sysdep.c */
+extern void stuff_char P_ ((char c));
 extern void init_sigio P_ ((int));
 extern void request_sigio P_ ((void));
 extern void unrequest_sigio P_ ((void));
