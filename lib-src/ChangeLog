@@ -1,5 +1,9 @@
 2004-05-13  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* descrip.mms_in_in: New file.
+
+2004-05-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* make-docfile.c (scan_c_file): Save extension position;
 	use it to get, and later reset, the extension.
 	[VMS] Modify `filename' in place: trim leading/trailing commas,

@@ -1,0 +1,379 @@
+# Makefile for lib-src subdirectory in GNU Emacs.
+# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2004 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to
+# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+# Avoid trouble on systems where the `SHELL' variable might be
+# inherited from the environment.
+SHELL = /bin/sh
+
+# ==================== Things `configure' will edit ====================
+
+CC=@CC@
+CFLAGS=@CFLAGS@
+ALLOCA=@ALLOCA@
+LD = link
+LDFLAGS=
+YACC=@YACC@
+version=@version@
+version_us=@version_us@
+configuration=@configuration@
+sys_includes=@sys_includes@
+
+# On Xenix and the IBM RS6000, double-dot gets screwed up.
+dot=.
+# With DEC C 5 and up, dot-star gets screwed up.
+star=*
+dotstar=$(dot)$(star)
+
+# ==================== Where To Install Things ====================
+
+# The default location for installation.  Everything is placed in
+# subdirectories of this directory.  The default values for many of
+# the variables below are expressed in terms of this one, so you may
+# not need to change them.  This is set with the --prefix option to
+# `../configure'.
+prefix=@prefix@
+
+# Like `prefix', but used for architecture-specific files.  This is
+# set with the --exec-prefix option to `../configure'.
+exec_prefix=@exec_prefix@
+
+# Where to install Emacs and other binaries that people will want to
+# run directly (like etags).  This is set with the --bindir option
+# to `../configure'.
+bindir=@bindir@
+
+# Where to install and expect executable files to be run by Emacs
+# rather than directly by users, and other architecture-dependent
+# data.  ${archlibdir} is usually below this.  This is set with the
+# --libdir option to `../configure'.
+libdir=@libdir@
+
+# Where to find the source code.  This is set by the configure
+# script's `--srcdir' option.  However, the value of ${srcdir} in
+# this makefile is not identical to what was specified with --srcdir,
+# since the variable here has `/lib-src' added at the end.
+srcdir=@srcdir@
+VPATH=@srcdir@
+
+# Components of the top of the source tree.
+tsdev=@top_srcdir_dev@
+tsdir=@top_srcdir_dir@
+
+# Where to find some useful VMS scripts.
+vmssrcdir=$(tsdev)[$(tsdir).VMS]
+
+# Source directory from top-level.
+srcsrcdir=$(tsdev)[$(tsdir).SRC]
+
+# ==================== Emacs-specific directories ====================
+
+# These variables hold the values Emacs will actually use.  They are
+# based on the values of the standard Make variables above.
+
+# Where to put executables to be run by Emacs rather than the user.
+# This path usually includes the Emacs version and configuration name,
+# so that multiple configurations for multiple versions of Emacs may
+# be installed at once.  This can be set with the --archlibdir option
+# to `../configure'.
+archlibdir=@archlibdir@
+
+# ==================== Utility Programs for the Build ================
+
+# ../configure figures out the correct values for these.
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+# ========================== Lists of Files ==========================
+
+# Things that a user might actually run,
+# which should be installed in bindir.
+# removed: ctags.exe,emacsclient.exe
+INSTALLABLES = etags.exe,b2m.exe,ebrowse.exe
+INSTALLABLE_SCRIPTS = rcs-checkin.,grep-changelog.
+
+# Things that Emacs runs internally, or during the build process,
+# which should not be installed in bindir.
+# removed: movemail.exe,emacsserver.exe,fakemail.exe
+# removed: vmssendmail.exe,vmsgetmail.exe
+UTILITIES= profile.exe,digest-doc.exe,\
+sorted-doc.exe,cvtmail.exe,yow.exe,hexl.exe
+
+DONT_INSTALL= test-distrib.exe,make-docfile.exe
+
+# Like UTILITIES, but they're not system-dependent, and should not be
+# deleted by the distclean target.
+SCRIPTS=
+
+EXECUTABLES= $(UTILITIES), $(INSTALLABLES), $(SCRIPTS), $(INSTALLABLE_SCRIPTS)
+
+SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
+	makedoc.com *.c *.h *.y rcs2log vcdiff
+
+local_includes = \
+  sys$disk:[],sys$disk:[-.src],$(srcdir),$(srcsrcdir),$(vmssrcdir)
+slash_include = /include=($(local_includes))
+
+# ========================== start of cpp stuff =======================
+/* From here on, comments must be done in C syntax.  */
+
+#ifdef vms
+#undef vms /* let's depend on VMS, right? */
+#endif
+
+#ifdef VAXC
+#undef VAXC
+#endif
+
+#ifdef vaxc
+#undef vaxc
+#endif
+
+#define NO_SHORTNAMES
+#define THIS_IS_YMAKEFILE
+#define NOT_C_CODE
+#include "config.h"
+
+/* We won't really call alloca;
+   don't let the file name alloca.c get messed up.  */
+#ifdef alloca
+#undef alloca
+#endif
+
+/* Some s/*.h files define this to request special libraries.  */
+#ifndef LIBS_SYSTEM
+#define LIBS_SYSTEM
+#endif
+
+/* Some m/*.h files define this to request special libraries.  */
+#ifndef LIBS_MACHINE
+#define LIBS_MACHINE
+#endif
+
+#ifndef C_SWITCH_SYSTEM
+#define C_SWITCH_SYSTEM
+#endif
+
+#ifndef C_SWITCH_MACHINE
+#define C_SWITCH_MACHINE
+#endif
+
+#undef MOVEMAIL_NEEDS_BLESSING
+#ifndef MAIL_USE_FLOCK
+#ifndef MAIL_USE_LOCKF
+#define MOVEMAIL_NEEDS_BLESSING
+#endif
+#endif
+
+#ifdef MOVEMAIL_NEEDS_BLESSING
+#define BLESSMAIL blessmail
+#else
+#define BLESSMAIL
+#endif
+
+LOADLIBES=LIBS_SYSTEM LIBS_MACHINE
+
+/* Some files - those shared with other GNU utilities - need
+   HAVE_CONFIG_H #defined before they know they can take advantage of
+   the information in [-.src]config.h.  */
+ALL_CFLAGS = /define=(HAVE_CONFIG_H,VERSION="""$(version)""") \
+  $(slash_include) \
+  C_SWITCH_SYSTEM $(CPPFLAGS) $(CFLAGS)
+LINK_CFLAGS = /define=(HAVE_CONFIG_H,VERSION="""$(version)""") \
+  $(slash_include) \
+  C_SWITCH_SYSTEM $(CFLAGS)
+CPP_CFLAGS = /define=(HAVE_CONFIG_H,VERSION="""$(version)""") \
+  $(slash_include) \
+  C_SWITCH_SYSTEM $(CPPFLAGS) $(CFLAGS)
+ALLOCA_CFLAGS = /define=(HAVE_CONFIG_H,VERSION="""$(version)""") \
+  $(slash_include) \
+  C_SWITCH_SYSTEM $(CPPFLAGS) $(CFLAGS)
+
+
+/* This is the default compilation command.
+   But we should never rely on it, because some make version
+   failed to find it for getopt.obj.
+   Using an explicit command made it work.  */
+.c.obj :
+	$(CC) $(CPP_CFLAGS) $(MMS$SOURCE) /obj=$(MMS$TARGET)
+
+.obj.exe :
+	$(LD) $(LDFLAGS) /exec=$*.exe $*.obj,[-.vms]vmslink.opt/opt
+
+.c.exe :
+	$(CC) $(ALL_CFLAGS) $< /obj = $*.obj
+	$(LD) $(LDFLAGS) /exec=$*.exe $*.obj,[-.vms]vmslink.opt/opt
+
+# removed: $(SCRIPTS) and $(INSTALLABLE_SCRIPTS)
+all : $(DONT_INSTALL) $(UTILITIES) $(INSTALLABLES)
+	@ !
+
+/* Install the internal utilities.  Until they are installed, we can
+   just run them directly from lib-src.  */
+$(archlibdir) : all
+	@ write sys$output ""
+	@ write sys$output "Installing utilities run internally by Emacs."
+	create/dir $(archlibdir)
+	a = f$environment("DEFAULT")
+	set default [-.lib-src]
+	@$(vmssrcdir)compare_dirs $(archlibdir) 'f$environment("DEFAULT")' result
+	if .not. result then $(INSTALL_PROGRAM) $(UTILITIES) $(archlibdir) /log
+	- purge $(archlibdir)$(UTILITIES) /log
+	set default 'a'
+	@$(vmssrcdir)compare_dirs $(archlibdir) $(srcdir) result
+	if .not. result then $(INSTALL_PROGRAM) $(srcdir)$(SCRIPTS) $(archlibdir) /log
+	- purge $(archlibdir)$(SCRIPTS) /log
+
+/* We don't need to install `wakeup' explicitly, because it will be
+   copied when this whole directory is copied.  */
+install : $(archlibdir)
+	@ write sys$output ""
+	@ write sys$output "Installing utilities for users to run."
+	a = f$environment("DEFAULT")
+	set default [-.lib-src]
+	$(INSTALL_PROGRAM) $(INSTALLABLES) $(bindir) /log
+	- purge $(bindir)$(INSTALLABLES) /log
+	set default 'a'
+	set default [-]
+	$(INSTALL_PROGRAM) $(srcdir)$(INSTALLABLE_SCRIPTS) $(bindir) /log
+	- purge $(bindir)$(INSTALLABLE_SCRIPTS) /log
+	set default 'a'
+
+uninstall :
+	a = f$environment("DEFAULT")
+	set def $(bindir)
+	- @$(vmssrcdir)delete $(INSTALLABLES),$(INSTALLABLE_SCRIPTS)
+	set def $(archlibdir)
+	- @$(vmssrcdir)delete $(UTILITIES),$(INSTALLABLES),$(SCRIPTS),$(INSTALLABLE_SCRIPTS)
+	set def 'a'
+
+mostlyclean :
+	- @$(vmssrcdir)delete *.obj
+
+#	- @$(vmssrcdir)delete $(UTILITIES)
+#	- @$(vmssrcdir)delete $(DONT_INSTALL)
+
+clean : mostlyclean
+	- @$(vmssrcdir)delete $(INSTALLABLES),$(UTILITIES),$(DONT_INSTALL)
+	- @$(vmssrcdir)delete *.el
+
+distclean : clean
+	- @$(vmssrcdir)delete [-.etc]DOC*$(dotstar),[]*_tab.c,*_tab.h,TAGS$(dotstar)
+	- @$(vmssrcdir)delete descrip.mms,descrip.mms_in,blessmail.exe
+
+realclean : distclean
+	@ !
+
+extraclean : realclean
+	- @$(vmssrcdir)delete _$*$(dotstar)$
+	- purge
+
+unlock :
+	set file/prot=(o:rwd) $(SOURCES)
+
+relock :
+	set file/prot=(o:r) $(SOURCES)
+
+/* Test the contents of the directory.  */
+check :
+	@ write sys$output "We don't have any tests for GNU Emacs yet."
+
+TAGS : etags.exe
+	mcr sys$disk:[]etags *.c *.h
+
+/* This verifies that the non-ASCII characters in the file `testfile'
+   have not been clobbered by whatever means were used to copy and
+   distribute Emacs.  If they were clobbered, all the .elc files were
+   clobbered too.  */
+test-distrib.exe : $(srcdir)test-distrib.c [-.vms]vmslink.opt
+	$(CC) $(ALL_CFLAGS) /obj=test-distrib.obj $(srcdir)test-distrib.c
+	$(LD) $(LDFLAGS) /exe=test-distrib.exe test-distrib.obj,[-.vms]vmslink.opt/opt
+
+test-distrib : test-distrib.exe
+	mcr sys$disk:[]test-distrib $(srcdir)testfile
+
+GETOPTOBJS = getopt.obj, getopt1.obj $(ALLOCA)
+GETOPTDEPS = $(GETOPTOBJS) $(srcdir)getopt.h
+getopt.obj : $(srcdir)getopt.c $(srcdir)getopt.h
+getopt1.obj : $(srcdir)getopt1.c $(srcdir)getopt.h
+
+REGEXPOBJ = regex.obj
+REGEXPDEPS = $(REGEXPOBJ) $(srcsrcdir)regex.h
+regex.obj : $(srcsrcdir)regex.c
+
+alloca.obj : $(srcdir)alloca.c
+	$(CC) $(ALLOCA_CFLAGS) $(srcdir)alloca.c /obj=alloca.obj
+
+etags.exe : $(srcdir)etags.c $(GETOPTDEPS) $(REGEXPDEPS) \
+		[-.src]config.h [-.vms]vmslink.opt
+	$(CC) $(ALL_CFLAGS) $(srcdir)etags.c /obj=etags.obj
+	link /exe=etags.exe etags.obj,$(GETOPTOBJS),$(REGEXPOBJ),-
+		[-.vms]vmslink.opt/opt
+
+ebrowse.exe : $(srcdir)ebrowse.c $(GETOPTDEPS)
+	$(CC) $(ALL_CFLAGS) $(srcdir)ebrowse.c /obj=ebrowse.obj
+	$(LD) $(LDFLAGS) /exe=$@ ebrowse.obj,$(GETOPTOBJS),-
+		[-.vms]vmslink.opt/opt
+
+profile.obj : $(srcdir)profile.c [-.vms]vmslink.opt
+profile.exe : profile.obj
+	link /exec=profile.exe profile.obj,[-.vms]vmslink.opt/opt
+
+make-docfile.exe : $(srcdir)make-docfile.c [-.vms]vmslink.opt
+
+digest-doc.exe : $(srcdir)digest-doc.c [-.vms]vmslink.opt
+
+SORTED_DOC_OBJS=sorted-doc.obj $(ALLOCA)
+sorted-doc.obj : $(srcdir)sorted-doc.c
+sorted-doc.exe : $(SORTED_DOC_OBJS) [-.vms]vmslink.opt
+	$(LD)/exe=sorted-doc.exe sorted-doc.obj$(ALLOCA),[-.vms]vmslink.opt/opt
+
+b2m.exe : $(srcdir)b2m.c [-.src]config.h [-.vms]vmslink.opt
+	$(CC) $(ALL_CFLAGS) $(srcdir)b2m.c /obj=b2m.obj
+	$(LD)/exe=b2m.exe b2m.obj,$(GETOPTOBJS),[-.vms]vmslink.opt/opt
+
+movemail.exe : $(srcdir)movemail.c [-.src]config.h [-.vms]vmslink.opt
+	$(CC) $(ALL_CFLAGS) $(srcdir)movemail.c /obj=movemail.obj
+	$(LD)/exe=movemail.exe movemail.obj,[-.vms]vmslink.opt/opt
+
+cvtmail.exe : $(srcdir)cvtmail.c [-.vms]vmslink.opt
+
+#if 0 /* We will get to this later. --ttn  */
+vmssendmail.exe : $(srcdir)vmssendmail.c [-.vms]vmslink.opt
+
+vmsgetmail.obj : $(srcdir)vmsgetmail.c $(srcdir)mailmsgdef.h \
+		$(srcdir)maildef.h $(srcdir)mail.h $(srcdir)getopt.h
+vmsgetmail.exe : vmsgetmail.obj $(GETOPTOBJS) [-.vms]vmslink.opt
+	$(LD) $(LDFLAGS) /exe=vmsgetmail.exe vmsgetmail.obj,$(GETOPTOBJS),\
+		[-.vms]vmslink.opt/opt
+#endif /* 0 */
+
+yow.exe : $(srcdir)yow.c [-.src]paths.h [-.vms]vmslink.opt
+
+hexl.exe : $(srcdir)hexl.c [-.vms]vmslink.opt
+
+TIMEROBJS=getdate.obj, timer.obj $(ALLOCA)
+getdate.obj : $(srcdir)getdate.y [-.src]config.h
+	$(YACC) $(YFLAGS) $(srcdir)getdate.y
+	$(CC)  $(CPP_CFLAGS) y_tab.c
+	rename y_tab.obj getdate.obj
+timer.obj : $(srcdir)timer.c [-.src]config.h
+	$(CC) $(CPP_CFLAGS) $(srcdir)timer.c
+timer.exe : $(TIMEROBJS) [-.vms]vmslink.opt
+	$(LD)/exe=timer.exe $(TIMEROBJS),[-.vms]vmslink.opt/opt
