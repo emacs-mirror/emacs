@@ -108,6 +108,8 @@ int next_screen_context_lines;
 static int sequence_number;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
+
+extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
   "Returns t if OBJECT is a window.")
@@ -1864,7 +1866,7 @@ BUFFER can be a buffer or buffer name.")
   w->buffer = buffer;
   XSETFASTINT (w->window_end_pos, 0);
   w->window_end_valid = Qnil;
-  XSETFASTINT(w->hscroll, 0);
+  XSETFASTINT (w->hscroll, 0);
   Fset_marker (w->pointm,
 	       make_number (BUF_PT (XBUFFER (buffer))),
 	       buffer);
@@ -1877,6 +1879,9 @@ BUFFER can be a buffer or buffer name.")
   windows_or_buffers_changed++;
   if (EQ (window, selected_window))
     Fset_buffer (buffer);
+  if (! NILP (Vwindow_scroll_functions))
+    run_hook_with_args_2 (Qwindow_scroll_functions, window,
+			  Fmarker_position (w->start));
 
   return Qnil;
 }
