@@ -141,7 +141,7 @@ Letters do not insert themselves; instead, they are commands.
   (let* ((where (save-excursion
 		  (beginning-of-line)
 		  (+ (point) Buffer-menu-buffer-column)))
-	 (name (get-text-property where 'buffer-name)))
+	 (name (and (not (eobp)) (get-text-property where 'buffer-name))))
     (if name
 	(or (get-buffer name)
 	    (if error-if-non-existent-p
