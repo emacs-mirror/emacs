@@ -438,11 +438,15 @@ set_frame_size (ew)
     {
       int len;
       char *tem;
+      Arg al[2];
+      int ac = 0;
+
       sprintf (shell_position, "=%dx%d", pixel_width, pixel_height);
       len = strlen (shell_position) + 1;
       tem = (char *) xmalloc (len);
       strncpy (tem, shell_position, len);
-      XtVaSetValues (wmshell, XtNgeometry, tem, 0);
+      XtSetArg (al[ac], XtNgeometry, tem); ac++;
+      XtSetValues (wmshell, al, ac);
     }
 
 #if 0 /* We don't need this also.  */
