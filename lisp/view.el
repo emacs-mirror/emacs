@@ -508,7 +508,7 @@ This function runs the normal hook `view-mode-hook'."
     (force-mode-line-update)
     (message "%s"
 	     (substitute-command-keys "\
-Type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
+View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
 
 (defun view-mode-exit (&optional return-to-alist exit-action all-win)
   "Exit View mode in various ways, depending on optional arguments.
