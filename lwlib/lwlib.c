@@ -1303,7 +1303,7 @@ lw_refigure_widget (w, doit)
      Widget w;
      Boolean doit;
 {
-#if defined (XAW)  
+#if defined (USE_XAW)  
   XawPanedSetRefigureMode (w, doit);
 #endif
 #if defined (USE_MOTIF)
