@@ -1,6 +1,7 @@
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/characters.el: Fix categories ?A and ?C.
+	* international/characters.el: Fix categories ?A and ?C.  Treat
+	ASCII characters as `latin' script.
 
 2002-08-18  Kenichi Handa  <handa@etl.go.jp>
 

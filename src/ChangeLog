@@ -1,5 +1,7 @@
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
+	* lread.c (safe_to_load_p): Fix the logic.
+
 	* syntax.c (scan_words): Don't treat characters belonging to
 	different scripts constituting a work.
 
