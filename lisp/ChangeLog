@@ -1,3 +1,9 @@
+2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-buffer-p): Only revert dired buffers
+	if one of global-auto-revert-non-file-buffers or autorevert-mode
+	is non-nil.
+
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
 
 	* subr.el (delete-dups): A better implementation from Karl Heuer
@@ -6,8 +12,7 @@
 2004-02-16  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
 
 	* net/telnet.el (telnet-interrupt-subjob): Move doc string to the
-	correct place.
-	* progmodes/icon.el (icon-indent-command): Ditto.
+	correct place.  * progmodes/icon.el (icon-indent-command): Ditto.
 	* textmodes/paragraphs.el (repunctuate-sentences): Ditto.
 
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
@@ -45,7 +50,7 @@
 	by calls to check-field; change the call to
 	rmail-output-to-rmail-file such that rmail-current-message stays
 	the same to avoid wrong deletion of unseen
-	flags. 
+	flags.
 	(rsf-add-contents-type): New function to convert old format
 	of rmail-spam-definitions-alist into new one.
 	Changed prefixes of all variables and functions from
@@ -115,7 +120,7 @@
 
 2004-02-16  Dave Love  <fx@gnu.org>
 
-	* newcomment.el (comment-insert-comment-function) 
+	* newcomment.el (comment-insert-comment-function)
 	(comment-region-function, uncomment-region-function): New.
 	(comment-indent): Use comment-insert-comment-function.
 	(uncomment-region): Use uncomment-region-function.
