@@ -408,7 +408,8 @@ Use `face-attribute' for finer control."
 
 (defun set-face-documentation (face string)
   "Set the documentation string for FACE to STRING."
-  (put face 'face-documentation string))
+  ;; The text doesn't get into DOC.
+  (put face 'face-documentation (purecopy string)))
 
 
 (defalias 'face-doc-string 'face-documentation)
