@@ -1057,7 +1057,7 @@ Ligatures and special rules are processed."
 		      (list (assq glyph devanagari-composition-rules))))))
     (sort ordered-glyphs '(lambda (x y) (< (car (cdr x)) (car (cdr y)))))))
 
-! ;;(devanagari-compose-to-one-glyph "$(5"5!X![(B") => "4$(6!Xv#"5t%![0!X"5![1(B"
+;;(devanagari-compose-to-one-glyph "$(5"5!X![(B") => "4$(6!Xv#"5t%![0!X"5![1(B"
 
 (defun devanagari-compose-to-one-glyph (devanagari-string)
   (let* ((o-glyph-list (devanagari-reorder-glyphs-for-composition

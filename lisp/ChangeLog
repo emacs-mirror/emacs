@@ -1,3 +1,11 @@
+2002-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* language/devan-util.el: Delete the superfluous `!'.
+
+2002-09-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* loadup.el: Don't call ucs-unify-8859.
+
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (grep-compute-defaults): Move definition
