@@ -1,3 +1,9 @@
+2002-08-31  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (Valternate_cursor_type, Qalternate_cursor_type): Removed.
+	(get_window_cursor_type): Don't use them.
+	(syms_of_xdisp): Remove intern, staticpro, and defvar for them.
+
 2002-08-30  Andrew Choi  <akochoi@shaw.ca>
 
 	* macfns.c (Qbox): Add extern declaration.
