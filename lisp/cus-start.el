@@ -67,6 +67,8 @@
 	     (exec-path execute
 			(repeat (choice (const :tag "default" nil)
 					(file :format "%v"))))
+	     ;; coding.c
+	     (inhibit-eol-conversion mule boolean)
 	     ;; dired.c
 	     (completion-ignored-extensions dired 
 					    (repeat (string :format "%v")))
