@@ -1,5 +1,15 @@
 2000-05-20  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/easy-mmode.el: Update copyright and commentary.
+	(easy-mmode-define-toggle): Deprecate the use of *-(on|off)-hook.
+	Print a status message if the toggle is called interactively.
+	(define-minor-mode): Allow INIT-VALUE to be (global . INIT-VALUE)
+	for global minor modes and use `defcustom' for them.
+	Use add-minor-mode.
+	(easy-mmode-define-derived-mode): Remove.
+	(define-derived-mode): Fancier default docstring.
+	(easy-mmode-define-navigation): Signal an error rather than (ding).
+
 	* newcomment.el (comment-styles): New `box-multi'.
 	(comment-normalize-vars): Better default for comment-continue to
 	avoid whitespace-only continuations.
