@@ -53,14 +53,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   ;; This strange form ensures that (recent-keys) is the value before
   ;; the bug subject string is read.
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
-  (if (mail nil
-	    (if (string-match "\\..*\\..*\\." emacs-version)
-		;; If there are four numbers in emacs-version,
-		;; this is a pretest version.
-		report-emacs-bug-pretest-address
-	      bug-gnu-emacs)
-	    topic)
+  (condition-case nil
       (let (user-point)
+	(compose-mail (if (string-match "\\..*\\..*\\." emacs-version)
+			  ;; If there are four numbers in emacs-version,
+			  ;; this is a pretest version.
+			  report-emacs-bug-pretest-address
+			bug-gnu-emacs)
+		      topic)
 	;; The rest of this does not execute
 	;; if the user was asked to confirm and said no.
 	(goto-char (point-min))
@@ -127,7 +127,8 @@ Type SPC to scroll through this section and its subsections.")))
 	  (skip-chars-backward " \t\n")
 	  (make-local-variable 'report-emacs-bug-orig-text)
 	  (setq report-emacs-bug-orig-text (buffer-substring (point-min) (point))))
-	(goto-char user-point))))
+	(goto-char user-point))
+    (error nil)))
 
 (defun report-emacs-bug-info ()
   "Go to the Info node on reporting Emacs bugs."
