@@ -1996,7 +1996,7 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
 {
   struct display *d = get_tty_display (display);
   if (!d)
-    return Qnil;
+    return make_number (0);
   else
     return make_number (d->display_info.tty->TN_max_colors);
 }
