@@ -1,3 +1,8 @@
+2003-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* apropos.el (apropos-sort-by-scores): Rename from apropos-show-scores.
+	All uses changed.
+
 2003-07-14  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-parse-tag, xml-parse-file, xml-parse-region):
