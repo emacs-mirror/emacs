@@ -1,4 +1,4 @@
-;;; message.el --- composing mail and news messages
+;;; message.el --- composing mail and news messages  -*- coding: iso-latin-1 -*-
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000
 ;;        Free Software Foundation, Inc.
 
@@ -1522,12 +1522,12 @@ M-RET    message-newline-and-reformat (break the line and reformat)."
   (message-set-auto-save-file-name)
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
-	(concat "[ \t]*[-a-z0-9A-Z]*\\(>[ \t]*\\)+[ \t]*\\|" adaptive-fill-regexp))
+	(concat "[ \t]*[-[:alnum:]]*\\(>[ \t]*\\)+[ \t]*\\|" adaptive-fill-regexp))
   (unless (boundp 'adaptive-fill-first-line-regexp)
     (setq adaptive-fill-first-line-regexp nil))
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (setq adaptive-fill-first-line-regexp
-	(concat "[ \t]*[-a-z0-9A-Z]*\\(>[ \t]*\\)+[ \t]*\\|"
+	(concat "[ \t]*[-[:alnum:]]*\\(>[ \t]*\\)+[ \t]*\\|"
 		adaptive-fill-first-line-regexp))
   (make-local-variable 'auto-fill-inhibit-regexp)
   (setq auto-fill-inhibit-regexp "^[A-Z][^: \n\t]+:")
@@ -1708,8 +1708,9 @@ With the prefix argument FORCE, insert the header anyway."
 (defun message-newline-and-reformat ()
   "Insert four newlines, and then reformat if inside quoted text."
   (interactive)
+  ;; The Latin-1 angle quote looks pretty dubious.  -- fx
   (let ((prefix "[]>»|:}+ \t]*")
-	(supercite-thing "[-._a-zA-Z0-9]*[>]+[ \t]*")
+	(supercite-thing "[-._[:alnum:]]*[>]+[ \t]*")
 	quoted point)
     (unless (bolp)
       (save-excursion
