@@ -110,7 +110,8 @@ variety is actually just an alias for the -unix variety)."
        (concat "8-bit encoding of " (symbol-name iso-name)
 	       " characters using IBM codepage " coding-name)
        (cons ccl-decoder-unix ccl-encoder-unix)
-       `((safe-charsets ascii ,iso-name)))
+       `((safe-charsets ascii ,iso-name)
+	 (valid-codes (0 . 255))))
       ;;; Make coding systems CODING-unix, CODING-dos, CODING-mac.
       (make-subsidiary-coding-system coding)
       (put coding 'eol-type (vector (intern (format "%s-unix" coding))
