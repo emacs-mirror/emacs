@@ -1184,27 +1184,48 @@ directories if your program contains sources from more than one directory."
 ;;; History of argument lists passed to perldb.
 (defvar gud-perldb-history nil)
 
+;; Convert a command line as would be typed normally to run a script
+;; into one that invokes an Emacs-enabled debugging session.
+;; "-d" in inserted as the first switch, and "-emacs" is inserted where
+;; it will be $ARGV[0] (see perl5db.pl).
 (defun gud-perldb-massage-args (file args)
-  (let (new-args)
+  (let* ((new-args '("-d"))
+	 (seen-e nil)
+	 (shift (lambda ()
+		  (setq new-args (cons (car args) new-args))
+		  (setq args (cdr args)))))
 
+    ;; Pass all switches and -e scripts through.
     (while (and args
-		(string-match "^-[^-]" (car args)))
-      (setq new-args (cons (car args) new-args))
-      (setq args (cdr args)))
+		(string-match "^-" (car args))
+		(not (equal "-" (car args)))
+		(not (equal "--" (car args))))
+      (when (equal "-e" (car args))
+	;; -e goes with the next arg, so shift one extra.
+	(or (funcall shift)
+	    ;; -e as the last arg is an error in Perl.
+	    (error "No code specified for -e."))
+	(setq seen-e t))
+      (funcall shift))
 
-    (if args
-	(progn
-	  (setq new-args (cons (car args) new-args))
-	  (setq args (cdr args)))
-      (setq new-args (cons "--" new-args)))
+    (when (not seen-e)
+      (if (or (not args)
+	      (string-match "^-" (car args)))
+	  (error "Can't use stdin as the script to debug."))
+      ;; This is the program name.
+      (funcall shift))
+
+    ;; If -e specified, make sure there is a -- so -emacs is not taken
+    ;; as -e macs.
+    (if (and args (equal "--" (car args)))
+	(funcall shift)
+      (and seen-e (setq new-args (cons "--" new-args))))
 
     (setq new-args (cons "-emacs" new-args))
-
     (while args
-      (setq new-args (cons (car args) new-args))
-      (setq args (cdr args)))
+      (funcall shift))
 
-    (cons "-d" (nreverse new-args))))
+    (nreverse new-args)))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
