@@ -35,6 +35,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   neccessary for the system to remain consistent.  This requirement
   is enforced by the subrs installing properties onto the intervals. */
 
+/* The rest of the file is within this conditional */
+#ifdef USE_TEXT_PROPERTIES
 
 /* Types of hooks. */
 Lisp_Object Qmouse_left;
@@ -830,3 +832,9 @@ percentage by which the left interval tree should not differ from the right.");
   defsubr (&Sremove_text_properties);
   defsubr (&Serase_text_properties);
 }
+
+#else
+
+lose -- this shouldn't be compiled if USE_TEXT_PROPERTIES isn't defined
+
+#endif /* USE_TEXT_PROPERTIES */
