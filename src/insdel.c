@@ -1020,13 +1020,16 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;
 
+  if (prepare)
+    /* Do this before moving and increasing the gap,
+       because the before-change hooks might move the gap
+       or make it smaller.  */
+    prepare_to_modify_buffer (PT, PT, NULL);
+
   if (PT != GPT)
     move_gap_both (PT, PT_BYTE);
   if (GAP_SIZE < nbytes)
     make_gap (nbytes - GAP_SIZE);
-
-  if (prepare)
-    prepare_to_modify_buffer (PT, PT, NULL);
 
   combined_before_bytes
     = count_combining_before (string, nbytes, PT, PT_BYTE);
@@ -1179,12 +1182,10 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
       = count_size_as_multibyte (&XSTRING (string)->data[pos_byte],
 				 nbytes);
 
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, outgoing_nbytes + Z);
-  if (outgoing_nbytes + Z != XINT (temp))
-    error ("Maximum buffer size exceeded");
-
   GCPRO1 (string);
+  /* Do this before moving and increasing the gap,
+     because the before-change hooks might move the gap
+     or make it smaller.  */
   prepare_to_modify_buffer (PT, PT, NULL);
 
   if (PT != GPT)
@@ -1342,6 +1343,9 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   if (outgoing_nbytes + Z != XINT (temp))
     error ("Maximum buffer size exceeded");
 
+  /* Do this before moving and increasing the gap,
+     because the before-change hooks might move the gap
+     or make it smaller.  */
   prepare_to_modify_buffer (PT, PT, NULL);
 
   if (PT != GPT)
