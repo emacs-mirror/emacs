@@ -3,6 +3,13 @@
  * $Id$
  * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
+ * 
+ * The primary purpose of this test is to test that mps_arena_expose does
+ * not protect any pages.  This is only tested to any real extent on
+ * Windows where an exception handler in test_stepper is used to catch any
+ * would-be exceptions (there aren't any if the MPS is operating
+ * correctly).
+ * 
  */
 
 #include "fmtdy.h"
