@@ -8,76 +8,34 @@
 
 @setchapternewpage off
 
-@ifinfo
-Copyright (C) 1993 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-@ignore
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-@end ignore
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation approved
-by the Free Software Foundation.
-@end ifinfo
-
 @titlepage
 @title GNU Task List
-@author Richard Stallman
+@author Free Software Foundation
 @author last updated @value{lastupdate}
-@page
-
-@vskip 0pt plus 1filll
-Copyright @copyright{} 1993 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation approved
-by Free Software Foundation.
 @end titlepage
 
 @ifinfo
 @node Top, Documentation, (dir), (dir)
-@top Version
+@top GNU Task list
 
-Last updated @value{lastupdate}.
+This file is updated automatically from @file{tasks.texi}, which was
+last updated on @value{lastupdate}.
 @end ifinfo
 
 Check with gnu@@prep.ai.mit.edu, for a possibly more current copy.
 This task list is not exclusive; any other useful program might be a
-good project--but it might instead be something we already have, so
+good project---but it might instead be something we already have, so
 check with gnu@@prep before you start writing it.
 
 @menu
 * Documentation::               
-* Unix-related projects::       
-* Kernel-related projects::     
-* Extensions to existing GNU software::  
-* X windows projects::          
-* Other random projects::       
-* Compilers for other batch languages::  
-* Games and recreations::       
+* Unix-Related Projects::       
+* Kernel Projects::     
+* Extensions::
+* X Windows Projects::          
+* Other Projects::       
+* Compilers::
+* Games and Recreations::       
 @end menu
 
 If you start working steadily on a project, please let gnu@@prep know.
@@ -92,7 +50,7 @@ we ask you to consider writing such a program.
 In general, a new program that does a completely new job advances the
 GNU project more than an improvement to an existing program.
 
-@node Documentation, Unix-related projects, Top, Top
+@node Documentation
 @chapter Documentation
 
 We very urgently need documentation for some parts of the system
@@ -140,8 +98,8 @@ Many utilities need documentation, including @code{grep}, @code{cpio},
 
 @end itemize
 
-@node Unix-related projects, Kernel-related projects, Documentation, Top
-@chapter Unix-related projects
+@node Unix-Related Projects
+@chapter Unix-Related projects
 
 @itemize
 
@@ -172,8 +130,8 @@ An emulation of SCCS that works using RCS.
 
 @end itemize
 
-@node Kernel-related projects, Extensions to existing GNU software, Unix-related projects, Top
-@chapter Kernel-related projects
+@node Kernel Projects
+@chapter Kernel-Related projects
 
 @itemize
 
@@ -187,7 +145,7 @@ machine specific parts should be kept well separated.
 
 @end itemize
 
-@node Extensions to existing GNU software, X windows projects, Kernel-related projects, Top
+@node Extensions
 @chapter Extensions to existing GNU software
 
 @itemize
@@ -221,7 +179,7 @@ other languages, like @code{cxref}, @code{cflow}, and @code{ctrace}.
 
 @end itemize
 
-@node X windows projects, Other random projects, Extensions to existing GNU software, Top
+@node X Windows Projects
 @chapter X windows projects
 
 @itemize
@@ -262,8 +220,8 @@ usable.
 
 @end itemize
 
-@node Other random projects, Compilers for other batch languages, X windows projects, Top
-@chapter Other random projects
+@node Other Projects
+@chapter Other Projects
 
 If you think of others that should be added, please
 send them to gnu@@prep.ai.mit.edu.
@@ -384,16 +342,16 @@ alignments.
 
 @end itemize
 
-@node Compilers for other batch languages, Games and recreations, Other random projects, Top
-@chapter Compilers for other batch languages
+@node Compilers
+@chapter Compilers for Other Batch Languages
 
 Volunteers are needed to write parsers/front ends for languages such
 as Algol 60, Algol 68, PL/I, or whatever, to be used with the
 code generation phases of the GNU C compiler.  (C++ is done, and
 Ada, Fortran, Pascal and Modula are being worked on.)
 
-@node Games and recreations,  , Compilers for other batch languages, Top
-@chapter Games and recreations
+@node Games and Recreations
+@chapter Games and Recreations
 
 @itemize
 
