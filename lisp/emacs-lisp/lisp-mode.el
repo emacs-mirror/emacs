@@ -215,13 +215,16 @@ if that value is non-nil."
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (interactive "P")
-  (let ((standard-output (if arg (current-buffer) t)))
+  (let ((standard-output (if arg (current-buffer) t))
+	(opoint (point)))
     (prin1 (let ((stab (syntax-table)))
 	     (eval (unwind-protect
 		       (save-excursion
 			 (set-syntax-table emacs-lisp-mode-syntax-table)
 			 (forward-sexp -1)
-			 (read (current-buffer)))
+			 (save-restriction
+			   (narrow-to-region (point-min) opoint)
+			   (read (current-buffer))))
 		     (set-syntax-table stab)))))))
 
 (defun eval-defun (arg)
@@ -481,6 +484,7 @@ of the start of the containing expression."
 (put 'save-excursion 'lisp-indent-function 0)
 (put 'save-window-excursion 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
+(put 'save-match-data 'lisp-indent-function 0)
 (put 'let 'lisp-indent-function 1)
 (put 'let* 'lisp-indent-function 1)
 (put 'while 'lisp-indent-function 1)
