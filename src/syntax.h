@@ -197,23 +197,25 @@ extern char syntax_code_spec[16];
 
 /* Make syntax table state (gl_state) good for POS, assuming it is
    currently good for a position before POS.  */
-#define UPDATE_SYNTAX_TABLE_FORWARD(pos)				\
-		((pos) >= gl_state.e_property ?				\
-		 ( update_syntax_table ((pos), 1, 0), 1 ) : 0)
 
+#define UPDATE_SYNTAX_TABLE_FORWARD(pos)		\
+  ((pos) >= gl_state.e_property - gl_state.offset	\
+   ? (update_syntax_table ((pos) + gl_state.offset, 1, 0), 1) : 0)
 
 /* Make syntax table state (gl_state) good for POS, assuming it is
    currently good for a position after POS.  */
-#define UPDATE_SYNTAX_TABLE_BACKWARD(pos)				\
-		((pos) <= gl_state.b_property ?				\
-		 ( update_syntax_table ((pos), -1, 0), 1 ) : 0)
 
-/* Make syntax table good for POS. */
+#define UPDATE_SYNTAX_TABLE_BACKWARD(pos)		\
+  ((pos) <= gl_state.b_property - gl_state.offset	\
+   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0), 1) : 0)
+
+/* Make syntax table good for POS.  */
+
 #define UPDATE_SYNTAX_TABLE(pos)					\
-		((pos) <= gl_state.b_property ?				\
-		 ( update_syntax_table ((pos), -1, 0), 1 ) :		\
-		 ( (pos) >= gl_state.e_property ?			\
-		   ( update_syntax_table ((pos), 1, 0), 1 ) : 0))
+  ((pos) <= gl_state.b_property - gl_state.offset			\
+   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0), 1)		\
+   : ((pos) >= gl_state.e_property - gl_state.offset			\
+      ? (update_syntax_table ((pos) + gl_state.offset, 1, 0), 1) : 0))
 
 /* This macro should be called with FROM at the start of forward
    search, or after the last position of the backward search.  It
@@ -227,28 +229,37 @@ extern char syntax_code_spec[16];
   gl_state.b_property = BEGV - 1;					\
   gl_state.e_property = ZV + 1;						\
   gl_state.use_global = 0;						\
+  gl_state.offset = 0;							\
   gl_state.current_syntax_table = current_buffer->syntax_table;		\
   if (parse_sexp_lookup_properties) 					\
-      update_syntax_table ((count) > 0 ? (from) : (from) - 1, (count), 1, Qnil);
+    update_syntax_table ((count) > 0 ? (from) : (from) - 1, (count),	\
+			 1, Qnil);
 
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
-   If it is t, ignore properties altogether. */
+   If it is t, ignore properties altogether.
+
+   This is meant for regex.c to use.  For buffers, regex.c passes arguments
+   to the UPDATE_SYNTAX_TABLE macros which are relative to BEGV.
+   So if it is a buffer,a we set the offset field to BEGV.  */
 
 #define SETUP_SYNTAX_TABLE_FOR_OBJECT(object, from, count)		\
   if (BUFFERP (object) || NILP (object))				\
     {									\
       gl_state.b_property = BEGV - 1;					\
       gl_state.e_property = ZV;						\
+      gl_state.offset = BEGV;						\
     }									\
   else if (EQ (object, Qt))						\
     {									\
       gl_state.b_property = - 1;					\
       gl_state.e_property = 1500000000;					\
+      gl_state.offset = 0;						\
     }									\
   else									\
     {									\
       gl_state.b_property = -1;						\
       gl_state.e_property = 1 + XSTRING (object)->size;			\
+      gl_state.offset = 0;						\
     }									\
   gl_state.use_global = 0;						\
   gl_state.current_syntax_table = current_buffer->syntax_table;		\
@@ -275,10 +286,12 @@ struct gl_state_s
 					   and possibly at the
 					   intervals too, depending
 					   on: */
+  /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
+  int offset;
   char left_ok;
   char right_ok;
 };
 
 extern struct gl_state_s gl_state;
 extern int parse_sexp_lookup_properties;
-extern INTERVAL interval_of();
+extern INTERVAL interval_of ();
