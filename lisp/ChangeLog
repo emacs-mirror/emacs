@@ -1,3 +1,7 @@
+2001-08-24  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
+
+	* term/mac-win.el: Require scroll-bar.
+
 2001-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* hexl.el (hexl-insert-multibyte-char) New function.

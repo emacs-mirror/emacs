@@ -45,6 +45,8 @@
 (global-unset-key [vertical-scroll-bar drag-mouse-1])
 (global-unset-key [vertical-scroll-bar mouse-1])
 
+(require 'scroll-bar)
+
 (defun mac-handle-scroll-bar-event (event)
   "Handle scroll bar EVENT to emulate Mac Toolbox style scrolling."
   (interactive "e")
