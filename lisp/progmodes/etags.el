@@ -151,46 +151,11 @@ See documentation of variable tags-file-name."
   (interactive (if current-prefix-arg
 		   '(nil t)
 		 (find-tag-tag "Find tag: ")))
-  (let (buffer file linebeg startpos)
-    (save-excursion
-     (visit-tags-table-buffer)
-     (if (not next)
-	 (goto-char (point-min))
-       (setq tagname last-tag))
-     (setq last-tag tagname)
-     (while (progn
-	      (if (not (search-forward tagname nil t))
-		  (error "No %sentries containing %s"
-			 (if next "more " "") tagname))
-	      (not (looking-at "[^\n\177]*\177"))))
-     (search-forward "\177")
-     (setq file (expand-file-name (file-of-tag)
-				  (file-name-directory tags-file-name)))
-     (setq linebeg
-	   (buffer-substring (1- (point))
-			     (save-excursion (beginning-of-line) (point))))
-     (search-forward ",")
-     (setq startpos (read (current-buffer))))
+  (let ((tagbuf (find-tag-noselect tagname nil next)))
     (if other-window
-	(find-file-other-window file)
-      (find-file file))
-    (widen)
-    (push-mark)
-    (let ((offset 1000)
-	  found
-	  (pat (concat "^" (regexp-quote linebeg))))
-      (or startpos (setq startpos (point-min)))
-      (while (and (not found)
-		  (progn
-		   (goto-char (- startpos offset))
-		   (not (bobp))))
-	(setq found
-	      (re-search-forward pat (+ startpos offset) t))
-	(setq offset (* 3 offset)))
-      (or found
-	  (re-search-forward pat nil t)
-	  (error "%s not found in %s" pat file)))
-    (beginning-of-line))
+	(switch-to-buffer-other-window tagbuf)
+      (switch-to-buffer tagbuf))
+    )
   (setq tags-loop-form '(find-tag nil t))
   ;; Return t in case used as the tags-loop-form.
   t)
