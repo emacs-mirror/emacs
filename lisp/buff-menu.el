@@ -163,10 +163,11 @@ Type q immediately to make the buffer menu go away and to restore
 previous window configuration."
   (interactive "P")
 ;;;  (setq Buffer-menu-window-config (current-window-configuration))
-  ;; This order seems to let list-buffers set the value of point
-  ;; regardless of whether we are using the same buffer or another.
-  (pop-to-buffer "*Buffer List*")
   (list-buffers arg)
+  (let ((newpoint (save-excursion (set-buffer "*Buffer List*")
+				  (point))))
+    (pop-to-buffer "*Buffer List*")
+    (goto-char newpoint))
   (message
    "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
 
