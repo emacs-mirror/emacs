@@ -3,6 +3,8 @@
 	* progmodes/f90.el (f90-xemacs-flag): New variable.
 	(f90-mark-subprogram-overlay): New variable.
 	(f90-mark-subprogram): Now it highlights the subprogram.
+	(f90-font-lock-keywords-1, f90-font-lock-keywords-2): Fix
+	highlighting of various "type" forms.
 
 2002-04-28  Colin Walters  <walters@verbum.org>
 
