@@ -369,6 +369,15 @@ C-w print information on absence of warranty for GNU Emacs."
 	      (and (symbolp obj) (fboundp obj) obj)))
 	(error nil))))
 
+(defun describe-function-find-file (function)
+  (let ((files load-history)
+	file functions)
+    (while files
+      (if (memq function (cdr (car files)))
+	  (setq file (car (car files)) files nil))
+      (setq files (cdr files)))
+    file))
+
 (defun describe-function (function)
   "Display the full documentation of FUNCTION (a symbol)."
   (interactive
@@ -409,11 +418,12 @@ C-w print information on absence of warranty for GNU Emacs."
 ;;;			    (nth 1 def)
 			    ))
 		   (t "")))
-      (if (get function 'autoload)
-	  (progn
-	    (princ " in the `")
-	    (princ (car (get function 'autoload)))
-	    (princ "' package")))
+      (let ((file (describe-function-find-file function)))
+	(if file
+	    (progn
+	      (princ " in `")
+	      (princ file)
+	      (princ ".el'"))))
       (princ ".")
       (terpri)
       (let ((arglist (cond ((byte-code-function-p def)
