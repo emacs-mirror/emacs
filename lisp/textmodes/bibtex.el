@@ -699,6 +699,8 @@ non-nil."
   (set-syntax-table bibtex-mode-syntax-table)
   (setq local-abbrev-table bibtex-mode-abbrev-table)
   (make-local-variable 'paragraph-start)
+  (make-local-variable 'comment-start)
+  (setq comment-start "%")
   (setq paragraph-start "^[ \f\n\t]*$")
   (auto-fill-mode 1)			; nice alignments
   (setq left-margin (+ bibtex-text-alignment 1))
