@@ -1,3 +1,8 @@
+2000-10-13  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* image-file.el (image-file-name-extensions) 
+	(image-file-name-regexps): Add autoload cookies.
+
 2000-10-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (select-safe-coding-system): If FROM
@@ -29,7 +34,6 @@
 	(cperl-invalid-face): Revert last change.
 	(cperl-init-faces): Quote cperl-invalid-face.
 
->>>>>>> 1.1252
 2000-10-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* startup.el (fancy-splash-text): Remove superfluous quote.
