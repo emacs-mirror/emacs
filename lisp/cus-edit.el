@@ -936,7 +936,11 @@ version."
 
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
-      (setq since-version nil))
+      (setq since-version nil)
+    (unless (condition-case nil
+		(numberp (read since-version))
+	      (error nil))
+      (signal 'wrong-type-argument (list 'numberp since-version))))
   (unless since-version
     (setq since-version customize-changed-options-previous-release))
   (let ((found nil)
@@ -987,17 +991,24 @@ version."
 			    "*Customize Changed Options*"))))
 
 (defun customize-version-lessp (version1 version2)
+  ;; Why are the versions strings, and given that they are, why aren't
+  ;; they converted to numbers and compared as such here?  -- fx
+
   ;; In case someone made a mistake and left out the quotes
   ;; in the :version value.
   (if (numberp version2)
       (setq version2 (prin1-to-string version2)))
   (let (major1 major2 minor1 minor2)
-    (string-match "\\([0-9]+\\)[.]\\([0-9]+\\)" version1)
-    (setq major1 (read (match-string 1 version1)))
-    (setq minor1 (read (match-string 2 version1)))
-    (string-match "\\([0-9]+\\)[.]\\([0-9]+\\)" version2)
-    (setq major2 (read (match-string 1 version2)))
-    (setq minor2 (read (match-string 2 version2)))
+    (string-match "\\([0-9]+\\)\\(\\.\\([0-9]+\\)\\)?" version1)
+    (setq major1 (read (or (match-string 1 version1)
+			   "0")))
+    (setq minor1 (read (or (match-string 3 version1)
+			   "0")))
+    (string-match "\\([0-9]+\\)\\(\\.\\([0-9]+\\)\\)?" version2)
+    (setq major2 (read (or (match-string 1 version2)
+			   "0")))
+    (setq minor2 (read (or (match-string 3 version2)
+			   "0")))
     (or (< major1 major2)
 	(and (= major1 major2)
 	     (< minor1 minor2)))))
