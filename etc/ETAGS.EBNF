@@ -2,7 +2,7 @@
 
 This file contains two sections:
 
-1) An EBNF (Extended Backus Normal Form) description of the format of
+1) An EBNF (Extended Backus-Naur Form) description of the format of
     the tags file created by etags.c and interpreted by etags.el;
 2) A discussion of tag names and implicit tag names.
 
