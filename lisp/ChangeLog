@@ -1,6 +1,7 @@
 2000-05-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* derived.el: Fix keywords.
+	(define-derived-mode): Only define if needed.
 
 	* simple.el (fill-comment, comment-column, comment-start)
 	(comment-start-skip, comment-end, comment-indent-function)
