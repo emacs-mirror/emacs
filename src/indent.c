@@ -53,6 +53,7 @@ int last_known_column_point;
 int last_known_column_modified;
 
 static int current_column_1 ();
+static int position_indentation ();
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -243,6 +244,7 @@ skip_invisible (pos, next_boundary_p, to, window)
 	proplimit = overlay_limit;
       end = XFASTINT (Fnext_single_property_change (position, Qinvisible,
 						    buffer, proplimit));
+#if 0
       /* Don't put the boundary in the middle of multibyte form if
          there is no actual property change.  */
       if (end == pos + 100
@@ -250,6 +252,7 @@ skip_invisible (pos, next_boundary_p, to, window)
 	  && end < ZV)
 	while (pos < end && !CHAR_HEAD_P (POS_ADDR (end)))
 	  end--;
+#endif
       *next_boundary_p = end;
     }
   /* if the `invisible' property is set, we can skip to
@@ -317,7 +320,7 @@ current_column ()
      counting width.  Tab characters are the only complicated case.  */
 
   /* Make a pointer for decrementing through the chars before point.  */
-  ptr = POS_ADDR (PT - 1) + 1;
+  ptr = BYTE_POS_ADDR (PT_BYTE - 1) + 1;
   /* Make a pointer to where consecutive chars leave off,
      going backwards from point.  */
   if (PT == BEGV)
@@ -379,7 +382,8 @@ current_column ()
   if (ptr == BEGV_ADDR)
     current_column_bol_cache = BEGV;
   else
-    current_column_bol_cache = PTR_CHAR_POS (ptr);
+    current_column_bol_cache = BYTE_TO_CHAR (PTR_BYTE_POS (ptr));
+
   last_known_column = col;
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
@@ -399,12 +403,20 @@ current_column_1 (pos)
   register int tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   /* Start the scan at the beginning of this line with column number 0.  */
   register int col = 0;
-  int scan = current_column_bol_cache = find_next_newline (pos, -1);
-  int next_boundary = scan;
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int scan, scan_byte;
+  int next_boundary, next_boundary_byte;
+  int opoint = PT, opoint_byte = PT_BYTE;
+
+  scan_newline (pos, CHAR_TO_BYTE (pos), BEGV, BEGV_BYTE, -1, 1);
+  current_column_bol_cache = PT;
+  scan = PT, scan_byte = PT_BYTE;
+  SET_PT_BOTH (opoint, opoint_byte);
+  next_boundary = scan;
+  next_boundary_byte = scan_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
@@ -416,11 +428,15 @@ current_column_1 (pos)
       /* Occasionally we may need to skip invisible text.  */
       while (scan == next_boundary)
 	{
+	  int old_scan = scan;
 	  /* This updates NEXT_BOUNDARY to the next place
 	     where we might need to skip more invisible text.  */
 	  scan = skip_invisible (scan, &next_boundary, pos, Qnil);
 	  if (scan >= pos)
 	    goto endloop;
+	  if (scan != old_scan)
+	    scan_byte = CHAR_TO_BYTE (scan);
+	  next_boundary_byte = CHAR_TO_BYTE (next_boundary);
 	}
 
       c = FETCH_BYTE (scan);
@@ -428,6 +444,7 @@ current_column_1 (pos)
 	{
 	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
 	  scan++;
+	  scan_byte++;
 	  continue;
 	}
       if (c == '\n')
@@ -435,6 +452,7 @@ current_column_1 (pos)
       if (c == '\r' && EQ (current_buffer->selective_display, Qt))
 	break;
       scan++;
+      scan_byte++;
       if (c == '\t')
 	{
 	  int prev_col = col;
@@ -443,21 +461,22 @@ current_column_1 (pos)
 	}
       else if (multibyte && BASE_LEADING_CODE_P (c))
 	{
-	  scan--;
+	  scan_byte--;
 	  /* Start of multi-byte form.  */
 	  if (c == LEADING_CODE_COMPOSITION)
 	    {
-	      unsigned char *ptr = POS_ADDR (scan);
+	      unsigned char *ptr = BYTE_POS_ADDR (scan_byte);
 
-	      int cmpchar_id = str_cmpchar_id (ptr, next_boundary - scan);
+	      int cmpchar_id
+		= str_cmpchar_id (ptr, next_boundary_byte - scan_byte);
 	      if (cmpchar_id >= 0)
 		{
-		  scan += cmpchar_table[cmpchar_id]->len,
+		  scan_byte += cmpchar_table[cmpchar_id]->len;
 		  col += cmpchar_table[cmpchar_id]->width;
 		}
 	      else
 		{		/* invalid composite character */
-		  scan++;
+		  scan_byte++;
 		  col += 4;
 		}
 	    }
@@ -467,12 +486,14 @@ current_column_1 (pos)
 		 constituents of multi-byte form.  */
 	      int len = BYTES_BY_CHAR_HEAD (c), i;
 
-	      for (i = 1, scan++; i < len; i++, scan++)
+	      for (i = 1, scan_byte++; i < len; i++, scan_byte++)
 		/* We don't need range checking for PTR because there
 		   are anchors (`\0') at GAP and Z.  */
-		if (CHAR_HEAD_P (POS_ADDR (scan))) break;
+		if (CHAR_HEAD_P (FETCH_BYTE (scan_byte)))
+		  break;
+
 	      if (i < len)
-		col += 4, scan -= i - 1;
+		col += 4, scan_byte -= i - 1;
 	      else
 		col += WIDTH_BY_CHAR_HEAD (c);
 	    }
@@ -628,25 +649,30 @@ following any initial whitespace.")
   ()
 {
   Lisp_Object val;
+  int opoint = PT, opoint_byte = PT_BYTE;
 
-  XSETFASTINT (val, position_indentation (find_next_newline (PT, -1)));
+  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
+
+  XSETFASTINT (val, position_indentation (PT_BYTE));
+  SET_PT_BOTH (opoint, opoint_byte);
   return val;
 }
 
-position_indentation (pos)
-     register int pos;
+static int
+position_indentation (pos_byte)
+     register int pos_byte;
 {
   register int column = 0;
   register int tab_width = XINT (current_buffer->tab_width);
   register unsigned char *p;
   register unsigned char *stop;
   unsigned char *start;
-  int next_boundary = pos;
-  int ceiling = pos;
+  int next_boundary_byte = pos_byte;
+  int ceiling = next_boundary_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
-  p = POS_ADDR (pos);
+  p = BYTE_POS_ADDR (pos_byte);
   /* STOP records the value of P at which we will need
      to think about the gap, or about invisible text,
      or about the end of the buffer.  */
@@ -657,28 +683,34 @@ position_indentation (pos)
     {
       while (p == stop)
 	{
-	  int stop_pos;
+	  int stop_pos_byte;
 
-	  /* If we have updated P, set POS to match.
-	     The first time we enter the loop, POS is already right.  */
+	  /* If we have updated P, set POS_BYTE to match.
+	     The first time we enter the loop, POS_BYTE is already right.  */
 	  if (p != start)
-	    pos = PTR_CHAR_POS (p);
+	    pos_byte = PTR_BYTE_POS (p);
 	  /* Consider the various reasons STOP might have been set here.  */
-	  if (pos == ZV)
+	  if (pos_byte == ZV_BYTE)
 	    return column;
-	  if (pos == next_boundary)
-	    pos = skip_invisible (pos, &next_boundary, ZV, Qnil);
-	  if (pos >= ceiling)
-	    ceiling = BUFFER_CEILING_OF (pos) + 1;
+	  if (pos_byte == next_boundary_byte)
+	    {
+	      int next_boundary;
+	      int pos = BYTE_TO_CHAR (pos_byte);
+	      pos = skip_invisible (pos, &next_boundary, ZV, Qnil);
+	      pos_byte = CHAR_TO_BYTE (pos);
+	      next_boundary_byte = CHAR_TO_BYTE (next_boundary);
+	    }
+	  if (pos_byte >= ceiling)
+	    ceiling = BUFFER_CEILING_OF (pos_byte) + 1;
 	  /* Compute the next place we need to stop and think,
 	     and set STOP accordingly.  */
-	  stop_pos = min (ceiling, next_boundary);
+	  stop_pos_byte = min (ceiling, next_boundary_byte);
 	  /* The -1 and +1 arrange to point at the first byte of gap
-	     (if STOP_POS is the position of the gap)
+	     (if STOP_POS_BYTE is the position of the gap)
 	     rather than at the data after the gap.  */
 	     
-	  stop = POS_ADDR (stop_pos - 1) + 1;
-	  p = POS_ADDR (pos);
+	  stop = BYTE_POS_ADDR (stop_pos_byte - 1) + 1;
+	  p = BYTE_POS_ADDR (pos_byte);
 	}
       switch (*p++)
 	{
@@ -696,13 +728,14 @@ position_indentation (pos)
 	      || NILP (current_buffer->enable_multibyte_characters))
 	    return column;
 	  {
-	    int pos = PTR_CHAR_POS (p - 1);
-	    int c = FETCH_MULTIBYTE_CHAR (pos);
+	    int c;
+	    pos_byte = PTR_BYTE_POS (p - 1);
+	    c = FETCH_MULTIBYTE_CHAR (pos_byte);
 	    if (CHAR_HAS_CATEGORY (c, ' '))
 	      {
 		column++;
-		INC_POS (pos);
-		p = POS_ADDR (pos);
+		INC_POS (pos_byte);
+		p = BYTE_POS_ADDR (pos_byte);
 	      }
 	    else
 	      return column;
@@ -714,13 +747,21 @@ position_indentation (pos)
 /* Test whether the line beginning at POS is indented beyond COLUMN.
    Blank lines are treated as if they had the same indentation as the
    preceding line.  */
+
 int
-indented_beyond_p (pos, column)
-     int pos, column;
+indented_beyond_p (pos, pos_byte, column)
+     int pos, pos_byte, column;
 {
-  while (pos > BEGV && FETCH_BYTE (pos) == '\n')
-    pos = find_next_newline_no_quit (pos - 1, -1);
-  return (position_indentation (pos) >= column);
+  Lisp_Object val;
+  int opoint = PT, opoint_byte = PT_BYTE;
+
+  SET_PT_BOTH (pos, pos_byte);
+  while (PT > BEGV && FETCH_BYTE (PT_BYTE) == '\n')
+    scan_newline (PT - 1, PT_BYTE - 1, BEGV, BEGV_BYTE, -1, 0);
+
+  XSETFASTINT (val, position_indentation (PT_BYTE));
+  SET_PT_BOTH (opoint, opoint_byte);
+  return val;
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
@@ -753,16 +794,20 @@ The return value is the current column.")
   Lisp_Object val;
   int prev_col;
   int c;
-
   int next_boundary;
+
+  int pos_byte, end_byte, next_boundary_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column, 0);
   goal = XINT (column);
 
   pos = PT;
+  pos_byte = PT_BYTE;
   end = ZV;
+  end_byte = ZV_BYTE;
   next_boundary = pos;
+  next_boundary_byte = PT_BYTE;
 
   /* If we're starting past the desired column,
      back up to beginning of line and scan from there.  */
@@ -770,6 +815,7 @@ The return value is the current column.")
     {
       end = pos;
       pos = current_column_bol_cache;
+      pos_byte = CHAR_TO_BYTE (pos);
       col = 0;
     }
 
@@ -777,7 +823,11 @@ The return value is the current column.")
     {
       while (pos == next_boundary)
 	{
+	  int prev = pos;
 	  pos = skip_invisible (pos, &next_boundary, end, Qnil);
+	  if (pos != prev)
+	    pos_byte = CHAR_TO_BYTE (pos);
+	  next_boundary_byte = CHAR_TO_BYTE (next_boundary);
 	  if (pos >= end)
 	    goto endloop;
 	}
@@ -788,10 +838,11 @@ The return value is the current column.")
       if (col >= goal)
 	break;
 
-      c = FETCH_BYTE (pos);
+      c = FETCH_BYTE (pos_byte);
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	  pos_byte++;
 	  pos++;
 	  continue;
 	}
@@ -800,6 +851,7 @@ The return value is the current column.")
       if (c == '\r' && EQ (current_buffer->selective_display, Qt))
 	break;
       pos++;
+      pos_byte++;
       if (c == '\t')
 	{
 	  prev_col = col;
@@ -817,21 +869,21 @@ The return value is the current column.")
 	  /* Start of multi-byte form.  */
 	  unsigned char *ptr;
 
-	  pos--;		/* rewind to the character head */
-	  ptr = POS_ADDR (pos);
+	  pos_byte--;		/* rewind to the character head */
+	  ptr = BYTE_POS_ADDR (pos_byte);
 	  if (c == LEADING_CODE_COMPOSITION)
 	    {
-	      int cmpchar_id = str_cmpchar_id (ptr, end - pos);
+	      int cmpchar_id = str_cmpchar_id (ptr, end_byte - pos_byte);
 
 	      if (cmpchar_id >= 0)
 		{
 		  col += cmpchar_table[cmpchar_id]->width;
-		  pos += cmpchar_table[cmpchar_id]->len;
+		  pos_byte += cmpchar_table[cmpchar_id]->len;
 		}
 	      else
 		{		/* invalid composite character */
 		  col += 4;
-		  pos++;
+		  pos_byte++;
 		}
 	    }
 	  else
@@ -843,11 +895,13 @@ The return value is the current column.")
 	      for (i = 1, ptr++; i < len; i++, ptr++)
 		/* We don't need range checking for PTR because there
 		   are anchors (`\0') both at GPT and Z.  */
-		if (CHAR_HEAD_P (ptr)) break;
+		if (CHAR_HEAD_P (*ptr))
+		  break;
+
 	      if (i < len)
-		col += 4, pos++;
+		col += 4, pos_byte++;
 	      else
-		col += WIDTH_BY_CHAR_HEAD (c), pos += i;
+		col += WIDTH_BY_CHAR_HEAD (c), pos_byte += i;
 	    }
 	}
       else
@@ -855,19 +909,20 @@ The return value is the current column.")
     }
  endloop:
 
-  SET_PT (pos);
+  SET_PT_BOTH (pos, pos_byte);
 
   /* If a tab char made us overshoot, change it to spaces
      and scan through it again.  */
   if (!NILP (force) && col > goal && c == '\t' && prev_col < goal)
     {
-      int old_point;
+      int old_point, old_point_byte;
 
       del_range (PT - 1, PT);
       Findent_to (make_number (goal), Qnil);
       old_point = PT;
+      old_point_byte = PT_BYTE;
       Findent_to (make_number (col), Qnil);
-      SET_PT (old_point);
+      SET_PT_BOTH (old_point, old_point_byte);
       /* Set the last_known... vars consistently.  */
       col = goal;
     }
@@ -960,6 +1015,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   register int vpos = fromvpos;
 
   register int pos;
+  int pos_byte;
   register int c;
   register int tab_width = XFASTINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
@@ -994,6 +1050,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   int wide_column = 0;		/* Set to 1 when a previous character
 				   is wide-colomn.  */
   int prev_pos;			/* Previous buffer position.  */
+  int prev_pos_byte;		/* Previous buffer position.  */
   int contin_hpos;		/* HPOS of last column of continued line.  */
   int prev_tab_offset;		/* Previous tab offset.  */
 
@@ -1013,12 +1070,14 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   pos = prev_pos = from;
+  pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
   contin_hpos = 0;
   prev_tab_offset = tab_offset;
   while (1)
     {
       while (pos == next_boundary)
 	{
+	  int pos_here = pos;
 	  int newpos;
 
 	  /* If the caller says that the screen position came from an earlier
@@ -1049,7 +1108,11 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  if (newpos >= to)
 	    goto after_loop;
 
-	  pos = newpos;
+	  if (newpos != pos_here)
+	    {
+	      pos = newpos;
+	      pos_byte = CHAR_TO_BYTE (pos);
+	    }
 	}
 
       /* Handle right margin.  */
@@ -1105,7 +1168,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    {
 	      /* Truncating: skip to newline.  */
 	      if (pos <= to)  /* This IF is needed because we may past TO */
-		pos = find_before_next_newline (pos, to, 1);
+		{
+		  pos = find_before_next_newline (pos, to, 1);
+		  pos_byte = CHAR_TO_BYTE (pos);
+		}
 	      hpos = width;
 	      /* If we just skipped next_boundary,
 		 loop around in the main while
@@ -1142,6 +1208,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	{
 	  /* Go back to the previous position.  */
 	  pos = prev_pos;
+	  pos_byte = prev_pos_byte;
 	  hpos = prev_hpos;
 	  tab_offset = prev_tab_offset;
 
@@ -1181,6 +1248,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		 to previous value.  It's the beginning of the
 		 line.  */
 	      pos = prev_pos;
+	      pos_byte = prev_pos_byte;
 	      hpos = prev_hpos;
 	      tab_offset = prev_tab_offset;
 	    }
@@ -1191,6 +1259,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
       prev_hpos = hpos;
       prev_pos = pos;
+      prev_pos_byte = pos_byte;
       wide_column = 0;
 
       /* Consult the width run cache to see if we can avoid inspecting
@@ -1235,7 +1304,11 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
               hpos = run_end_hpos;
               if (run_end > pos)
                 prev_hpos = hpos - common_width;
-              pos = run_end;
+	      if (pos != run_end)
+		{
+		  pos = run_end;
+		  pos_byte = CHAR_TO_BYTE (pos);
+		}
             }
 
           next_width_run = run_end + 1;
@@ -1244,8 +1317,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
       /* We have to scan the text character-by-character.  */
       else
 	{
-	  c = FETCH_BYTE (pos);
-	  pos++;
+	  c = FETCH_BYTE (pos_byte);
+	  pos++, pos_byte++;
 
 	  /* Perhaps add some info to the width_run_cache.  */
 	  if (current_buffer->width_run_cache)
@@ -1289,7 +1362,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    }
 	  else if (c == '\n')
 	    {
-	      if (selective > 0 && indented_beyond_p (pos, selective))
+	      if (selective > 0
+		  && indented_beyond_p (pos, pos_byte, selective))
 		{
 		  /* If (pos == to), we don't have to take care of
 		    selective display.  */
@@ -1297,9 +1371,12 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		    {
 		      /* Skip any number of invisible lines all at once */
 		      do
-			pos = find_before_next_newline (pos, to, 1) + 1;
+			{
+			  pos = find_before_next_newline (pos, to, 1) + 1;
+			  pos_byte = CHAR_TO_BYTE (pos);
+			}
 		      while (pos < to
-			     && indented_beyond_p (pos, selective));
+			     && indented_beyond_p (pos, pos_byte, selective));
 		      /* Allow for the " ..." that is displayed for them. */
 		      if (selective_rlen)
 			{
@@ -1307,7 +1384,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 			  if (hpos >= width)
 			    hpos = width;
 			}
-		      --pos;
+		      DEC_BOTH (pos, pos_byte);
 		      /* We have skipped the invis text, but not the
 			newline after.  */
 		    }
@@ -1331,7 +1408,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		 everything from a ^M to the end of the line is invisible.
 		 Stop *before* the real newline.  */
 	      if (pos < to)
-		pos = find_before_next_newline (pos, to, 1);
+		{
+		  pos = find_before_next_newline (pos, to, 1);
+		  pos_byte = CHAR_TO_BYTE (pos);
+		}
 	      /* If we just skipped next_boundary,
 		 loop around in the main while
 		 and handle it.  */
@@ -1351,10 +1431,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      unsigned char *ptr;
 	      int len, actual_len;
 
-	      pos--;		/* rewind POS */
+	      pos--, pos_byte--;		/* rewind POS */
 
-	      ptr = (((pos) >= GPT ? GAP_SIZE : 0) + (pos) + BEG_ADDR - 1);
-	      len = ((pos) >= GPT ? ZV : GPT) - (pos);
+	      ptr = BYTE_POS_ADDR (pos_byte);
+	      len = BUFFER_CEILING_OF (pos_byte) - pos_byte + 1;
 
 	      c = STRING_CHAR_AND_LENGTH (ptr, len, actual_len);
 
@@ -1378,7 +1458,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		    wide_column = 1;
 		}
 
-	      pos += actual_len;
+	      pos++;
+	      pos_byte += actual_len;
 	    }
 	  else
 	    hpos += (ctl_arrow && c < 0200) ? 2 : 4;
@@ -1395,6 +1476,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
                        width_run_start, width_run_end);
 
   val_compute_motion.bufpos = pos;
+  val_compute_motion.bytepos = pos_byte;
   val_compute_motion.hpos = hpos;
   val_compute_motion.vpos = vpos;
   val_compute_motion.prevhpos = prev_hpos;
@@ -1507,42 +1589,6 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
 
 }
 
-/* Return the column of position POS in window W's buffer.
-   The result is rounded down to a multiple of the internal width of W.
-   This is the amount of indentation of position POS
-   that is not visible in its horizontal position in the window.  */
-
-int
-pos_tab_offset (w, pos)
-     struct window *w;
-     register int pos;
-{
-  int opoint = PT;
-  int col;
-  int width = window_internal_width (w) - 1;
-
-  if (pos == BEGV)
-    return MINI_WINDOW_P (w) ? -minibuf_prompt_width : 0;
-  if (FETCH_BYTE (pos - 1) == '\n')
-    return 0;
-  TEMP_SET_PT (pos);
-  col = current_column ();
-  TEMP_SET_PT (opoint);
-  /* Modulo is no longer valid, as a line may get shorter than WIDTH
-     columns by continuation of a wide-column character.  Just return
-     COL here. */
-#if 0
-  /* In the continuation of the first line in a minibuffer we must
-     take the width of the prompt into account.  */
-  if (MINI_WINDOW_P (w) && col >= width - minibuf_prompt_width
-      && find_next_newline_no_quit (pos, -1) == BEGV)
-    return col - (col + minibuf_prompt_width) % width;
-  return col - (col % width);
-#endif
-  return col;
-}
-
-
 /* Fvertical_motion and vmotion */
 struct position val_vmotion;
 
@@ -1558,6 +1604,7 @@ vmotion (from, vtarget, w)
   register int vpos = 0;
   Lisp_Object prevline;
   register int first;
+  int from_byte;
   int lmargin = hscroll > 0 ? 1 - hscroll : 0;
   int selective
     = (INTEGERP (current_buffer->selective_display)
@@ -1585,7 +1632,7 @@ vmotion (from, vtarget, w)
   if (vpos >= vtarget)
     {
       /* To move upward, go a line at a time until
-	 we have gone at least far enough */
+	 we have gone at least far enough.  */
 
       first = 1;
 
@@ -1596,7 +1643,9 @@ vmotion (from, vtarget, w)
 	  XSETFASTINT (prevline, find_next_newline_no_quit (from - 1, -1));
 	  while (XFASTINT (prevline) > BEGV
 		 && ((selective > 0
-		      && indented_beyond_p (XFASTINT (prevline), selective))
+		      && indented_beyond_p (XFASTINT (prevline),
+					    CHAR_TO_BYTE (XFASTINT (prevline)),
+					    selective))
 #ifdef USE_TEXT_PROPERTIES
 		     /* watch out for newlines with `invisible' property */
 		     || (propval = Fget_char_property (prevline,
@@ -1635,6 +1684,7 @@ vmotion (from, vtarget, w)
       if (vpos >= vtarget)
 	{
 	  val_vmotion.bufpos = from;
+	  val_vmotion.bytepos = CHAR_TO_BYTE (from);
 	  val_vmotion.vpos = vpos;
 	  val_vmotion.hpos = lmargin;
 	  val_vmotion.contin = 0;
@@ -1648,14 +1698,17 @@ vmotion (from, vtarget, w)
     }
   /* Moving downward is simple, but must calculate from beg of line
      to determine hpos of starting point */
-  if (from > BEGV && FETCH_BYTE (from - 1) != '\n')
+  from_byte = CHAR_TO_BYTE (from);
+  if (from > BEGV && FETCH_BYTE (from_byte - 1) != '\n')
     {
       Lisp_Object propval;
 
       XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
       while (XFASTINT (prevline) > BEGV
 	     && ((selective > 0
-		  && indented_beyond_p (XFASTINT (prevline), selective))
+		  && indented_beyond_p (XFASTINT (prevline),
+					CHAR_TO_BYTE (XFASTINT (prevline)),
+					selective))
 #ifdef USE_TEXT_PROPERTIES
 		 /* watch out for newlines with `invisible' property */
 		 || (propval = Fget_char_property (prevline, Qinvisible,
