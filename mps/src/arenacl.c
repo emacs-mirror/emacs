@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.8) $
+ * $HopeName: MMsrc!arenacl.c(trunk.9) $
  * 
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
@@ -26,23 +26,22 @@
  *
  * .req.place: Allow preferential placement of segments.
  * 
- * .improve.twiddle: There are several places in which many bits in a 
- * bit table are checked or set in sequence. These could all be made 
- * much faster with suitable bit-twiddling code.
- *
+ * .improve.remember: One possible performance improvement is to
+ * remember (a conservative approximation to) the indices of the first
+ * and last free pages in each chunk, and start searching from these
+ * in ChunkSegAlloc. See request.epcore.170534.
  */
 
 #include "mpm.h"
 #include "mpsacl.h"
 
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.8) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.9) $");
 
 
 typedef struct ClientArenaStruct *ClientArena;
 typedef struct ChunkStruct *Chunk;
 typedef struct PageStruct *Page;
-typedef Word *ABT;                      /* bool table type */
 
 
 /* ClientArenaStruct -- Client Arena Structure */
@@ -89,7 +88,7 @@ typedef struct ChunkStruct { /* chunk structure */
   Addr limit;                /* limit address of chunk */
   Addr pageBase;             /* base of first managed page in chunk */
   Page pageTable;            /* the page table */
-  ABT freeTable;             /* page free table */
+  BT allocTable;             /* page allocated table */
 } ChunkStruct;
 
 
@@ -135,7 +134,7 @@ static Bool ChunkCheck(Chunk chunk)
   /* check the control structures are not NULL: */
   CHECKL(chunk->pageBase != (Addr)0);
   CHECKL(chunk->pageTable != NULL);
-  CHECKL(chunk->freeTable != NULL);
+  CHECKL(chunk->allocTable != NULL);
   /* check the control structures are between base and limit */
   /* (allowing for the case in which the chunk manages no pages): */
   CHECKL((Addr)chunk >= chunk->base);
@@ -144,20 +143,20 @@ static Bool ChunkCheck(Chunk chunk)
   CHECKL(chunk->pageBase <= chunk->limit);
   CHECKL((Addr)chunk->pageTable > chunk->base);
   CHECKL((Addr)chunk->pageTable <= chunk->limit);
-  CHECKL((Addr)chunk->freeTable > chunk->base);
-  CHECKL((Addr)chunk->freeTable <= chunk->limit);
+  CHECKL((Addr)chunk->allocTable > chunk->base);
+  CHECKL((Addr)chunk->allocTable <= chunk->limit);
   /* check order of control structures within chunk: */
   CHECKL((Addr)chunk < (Addr)chunk->pageTable);
-  CHECKL((Addr)chunk->pageTable <= (Addr)chunk->freeTable);
-  CHECKL((Addr)chunk->freeTable <= (Addr)chunk->pageBase);
+  CHECKL((Addr)chunk->pageTable <= (Addr)chunk->allocTable);
+  CHECKL((Addr)chunk->allocTable <= (Addr)chunk->pageBase);
   /* check size of control structures within chunk: */
         /* enough size for chunk struct: */
   CHECKL(AddrOffset(chunk, chunk->pageTable) >= sizeof(ChunkStruct));
         /* enough space for page table: */
-  CHECKL(AddrOffset(chunk->pageTable, chunk->freeTable) / 
+  CHECKL(AddrOffset(chunk->pageTable, chunk->allocTable) / 
     sizeof(PageStruct) >= chunk->pages);
-        /* enough space for free table: */
-  CHECKL(AddrOffset(chunk->freeTable, chunk->pageBase) / sizeof(Word)
+        /* enough space for alloc table: */
+  CHECKL(AddrOffset(chunk->allocTable, chunk->pageBase) / sizeof(Word)
          >= SizeAlignUp(chunk->pages, MPS_WORD_WIDTH)
             >> MPS_WORD_SHIFT);
         /* enough space for pages: */
@@ -179,8 +178,8 @@ static Bool ChunkCheck(Chunk chunk)
  * See design.mps.arenavm.table.linear
  */
 
-#define PageBase(chunk, pi) \
-  AddrAdd((chunk)->pageBase, ((pi) << (chunk)->arena->pageShift))
+#define PageBase(chunk, index) \
+  AddrAdd((chunk)->pageBase, ((index) << (chunk)->arena->pageShift))
 
 
 /* PageSeg -- segment descriptor of a page */
@@ -196,64 +195,21 @@ static Bool ChunkCheck(Chunk chunk)
 #define PageOfSeg(seg)          PARENT(PageStruct, the.segStruct, seg)
 
 
-/* Index Types
- * 
- * PI is the type of a value used to index into a page table.
- * 
- * BI is the type of a value used to index into a bool table (See ABTGet
- * and ABTSet in this module).
- */
-
-typedef Size PI;
-typedef Size BI;
-
-
 /* ChunkPageIndexOfAddr -- base address to page index (within a chunk) 
  *                         mapping
  */
 
-static PI ChunkPageIndexOfAddr(Chunk chunk, Addr addr)
+static Index ChunkPageIndexOfAddr(Chunk chunk, Addr addr)
 {
   AVERT(Chunk, chunk);
   AVER(chunk->pageBase <= addr);
   AVER(addr < AddrAdd(chunk->pageBase,
                       (Size)(chunk->pages << chunk->arena->pageShift)));
 
-  return (PI)(AddrOffset(chunk->pageBase, addr) >>
+  return (Index)(AddrOffset(chunk->pageBase, addr) >>
               chunk->arena->pageShift);
 }
   
-
-/* ABTGet -- get a bool from a bool table
- *
- * Note: The function version of ABTGet isn't used anywhere in
- * this source, but is left here in case we want to revert from
- * the macro.
- */
-
-#if 0
-static Bool (ABTGet)(ABT bt, BI i)
-{
-  Size wi = MPS_WORD_SHIFT;            /* word index */
-  Size bi = i & (MPS_WORD_WIDTH - 1);       /* bit index */
-  return (bt[wi] >> bi) & 1;
-}
-#endif /* 0 */
-
-#define ABTGet(bt, i) \
-  (((bt)[(i)>>MPS_WORD_SHIFT] >> ((i)&(MPS_WORD_WIDTH-1))) & 1)
-
-
-/* ABTSet -- set a bool in a bool table */
-
-static void ABTSet(ABT bt, BI i, Bool b)
-{
-  Size bi = i & (MPS_WORD_WIDTH - 1);       /* bit index */
-  Word mask = ~((Word)1 << bi);
-  Size wi = i >> MPS_WORD_SHIFT;            /* word index */
-  bt[wi] = (bt[wi] & mask) | ((Word)b << bi);
-}
-
 
 /* ClientArenaCheck -- check the consistency of a client arena */
 
@@ -277,8 +233,6 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
   Chunk chunk;
   Addr a;
   Size tablePages;
-  Size freeTableWords;
-  PI i;
 
   AVERT(ClientArena, clientArena);
   AVER(chunkReturn != NULL);
@@ -302,11 +256,8 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
   a = AddrAlignUp(AddrAdd(a, sizeof(PageStruct) * tablePages), 
     MPS_PF_ALIGN);
 
-  chunk->freeTable = (ABT)a;
-  freeTableWords = SizeAlignUp(tablePages, MPS_WORD_WIDTH) >> 
-    MPS_WORD_SHIFT;
-  a = AddrAlignUp(AddrAdd(a, freeTableWords * sizeof(Word)),
-                  ARENA_CLIENT_PAGE_SIZE);
+  chunk->allocTable = (BT)a;
+  a = AddrAlignUp(AddrAdd(a, BTSize(tablePages)), ARENA_CLIENT_PAGE_SIZE);
 
   /* the rest is in managed pages; there may be some wastage at */
   /* the end */
@@ -320,10 +271,7 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
   chunk->freePages = chunk->pages;
   chunk->arena = clientArena;
 
-  /* initialize the freeTable */
-  /* .improve.twiddle.init: Could go a lot faster with bit twiddling */
-  for(i = 0; i < tablePages; ++i)
-    ABTSet(chunk->freeTable, i, TRUE);
+  BTResRange(chunk->allocTable, 0, tablePages);
 
   /* link to the arena (in address order) */
   RingInit(&chunk->arenaRing);
@@ -472,11 +420,8 @@ static Res ClientArenaRetract(Arena arena, Addr base, Size size)
     AVERT(Chunk, chunk);
     if ((chunk->base == base) && (chunk->limit == limit)) {
       /* check that it's empty */
-      PI pi;
-      for (pi = 0; pi < chunk->pages; pi++) {
-        if (ABTGet(chunk->freeTable, pi) == FALSE)
+      if (!BTIsResRange(chunk->allocTable, 0, chunk->pages))
           return ResFAIL;
-      }
       return ResOK;
     }
   }
@@ -536,7 +481,8 @@ static Size ClientArenaCommitted(Arena arena)
 static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages, 
                          Pool pool, Chunk chunk)
 {
-  PI pi, count, base = 0;
+  Index baseIndex, limitIndex, index;
+  Bool b;
   Seg seg;
   ClientArena clientArena;
 
@@ -547,70 +493,39 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages,
     return ResRESOURCE;
 
   clientArena = chunk->arena;
-  
-  /* Search the free table for a sufficiently-long run of free pages. */
-  /* If we succeed, we go to "found:" with the lowest page number in */
-  /* the run in 'base'. */
-  /* .improve.twiddle.search: This code could go a lot faster with */
-  /* twiddling the bit table. */
-  /* .improve.clear: I have tried to make this code clear, with */
-  /* comments &c, but there's room for further clarification. */
 
-  count = 0; /* the number of free pages found in the current run */
-  if (pref->high) { /* search down from the top of the chunk */
-    pi = chunk->pages;
-    while (pi != 0) {
-      pi--;
-      if (ABTGet(chunk->freeTable, pi)) {
-        ++count;
-        /* then we're done, take the base of this run */
-        if (count == pages) { 
-          base = pi;
-          goto found;
-        }
-      } else
-        count = 0;
-    }
-  } else { /* search up from the bottom of the chunk */
-    pi = 0;
-    while (pi != chunk->pages) {
-      if(ABTGet(chunk->freeTable, pi)) {
-        if(count == 0)
-          base = pi; /* remember the base of this run */
-        ++count;
-        if(count == pages) /* now we're done */
-          goto found;
-      } else
-        count = 0;
-      pi++;
-    }
-  }
+  if (pref->high)
+    b = BTFindShortResRangeHigh(&baseIndex, &limitIndex,
+				chunk->allocTable,
+				0, chunk->pages,
+				pages);
+  else 
+    b = BTFindShortResRange(&baseIndex, &limitIndex,
+			    chunk->allocTable,
+			    0, chunk->pages,
+			    pages);
   
-  /* No adequate run was found. */
-  /* .improve.alloc-fail: This could be because the request was */
-  /* too large, or perhaps because of fragmentation.  We could */
-  /* return a more meaningful code. */
-  return ResRESOURCE;
+  if (!b)
+    return ResRESOURCE;
 
-found:
   /* Initialize the generic segment structure. */
-  seg = PageSeg(&chunk->pageTable[base]);
+  seg = PageSeg(&chunk->pageTable[baseIndex]);
   SegInit(seg, pool);
 
   /* Allocate the first page, and, if there is more than one page, */
   /* allocate the rest of the pages and store the multi-page */
   /* information in the page table. */
-  AVER(ABTGet(chunk->freeTable, base));
-  ABTSet(chunk->freeTable, base, FALSE);
+  AVER(!BTGet(chunk->allocTable, baseIndex));
+  BTSet(chunk->allocTable, baseIndex);
   if(pages > 1) {
-    Addr limit = PageBase(chunk, base + pages);
+    Addr limit = PageBase(chunk, limitIndex);
     SegSetSingle(seg, FALSE);
-    for(pi = base + 1; pi < base + pages; ++pi) {
-      AVER(ABTGet(chunk->freeTable, pi));
-      ABTSet(chunk->freeTable, pi, FALSE);
-      PageTail(&chunk->pageTable[pi])->pool = NULL;
-      PageTail(&chunk->pageTable[pi])->seg = seg;
-      PageTail(&chunk->pageTable[pi])->limit = limit;
+    for(index = baseIndex + 1; index < limitIndex; ++index) {
+      AVER(!BTGet(chunk->allocTable, index));
+      BTSet(chunk->allocTable, index);
+      PageTail(&chunk->pageTable[index])->pool = NULL;
+      PageTail(&chunk->pageTable[index])->seg = seg;
+      PageTail(&chunk->pageTable[index])->limit = limit;
     }
   } else {
     SegSetSingle(seg, TRUE);
@@ -664,7 +579,7 @@ static Res ClientSegAlloc(Seg *segReturn, SegPref pref,
  *             resides 
  */
 
-static Res SegChunk(Chunk *chunkReturn, PI *piReturn, Seg seg)
+static Res SegChunk(Chunk *chunkReturn, Index *indexReturn, Seg seg)
 {
   Page page;
   Ring node, nextNode;
@@ -682,7 +597,7 @@ static Res SegChunk(Chunk *chunkReturn, PI *piReturn, Seg seg)
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     if ((page >= chunk->pageTable) &&
         (page < (chunk->pageTable + chunk->pages))) {
-      *piReturn = page - chunk->pageTable;
+      *indexReturn = page - chunk->pageTable;
       *chunkReturn = chunk;
       return ResOK;
     }
@@ -697,7 +612,8 @@ static void ClientSegFree(Seg seg)
 {
   ClientArena clientArena;
   Chunk chunk;
-  PI pi, pl, pn;
+  Index baseIndex, limitIndex;
+  Size pages;
   Addr base, limit; 
   Res res;
 
@@ -705,32 +621,20 @@ static void ClientSegFree(Seg seg)
 
   clientArena = SegClientArena(seg);
   AVERT(ClientArena, clientArena);
-  res = SegChunk(&chunk, &pi, seg);
+  res = SegChunk(&chunk, &baseIndex, seg);
   AVER(res == ResOK);
 
+  base = PageBase(chunk, baseIndex);
   limit = ClientSegLimit(seg);
 
   SegFinish(seg);
 
-  /* Remember the base address of the segment so it can be */
-  /* unmapped .free.unmap */
-  base = PageBase(chunk, pi);
+  pages = AddrOffset(base, limit) >> clientArena->pageShift;
+  limitIndex = baseIndex + pages;
+  AVER(BTIsSetRange(chunk->allocTable, baseIndex, limitIndex));
+  BTResRange(chunk->allocTable, baseIndex, limitIndex);
 
-  /* Calculate the number of pages in the segment, and hence the */
-  /* limit for .free.loop */
-  pn = AddrOffset(base, limit) >> clientArena->pageShift;
-  pl = pi + pn;
-  /* .free.loop: */
-  for( ; pi < pl; ++pi) {
-    AVER(ABTGet(chunk->freeTable, pi) == FALSE);
-    ABTSet(chunk->freeTable, pi, TRUE);
-  }
-
-  chunk->freePages += pn;
-
-  /* Double check that .free.loop takes us to the limit page of the */
-  /* segment. */
-  AVER(PageBase(chunk, pi) == limit);
+  chunk->freePages += pages;
 }
 
 
@@ -744,7 +648,7 @@ static void ClientSegFree(Seg seg)
 static Addr ClientSegBase(Seg seg)
 {
   ClientArena clientArena;
-  PI pi;
+  Index index;
   Chunk chunk;
   Res res;
   
@@ -752,10 +656,10 @@ static Addr ClientSegBase(Seg seg)
   clientArena = SegClientArena(seg);
   AVERT(ClientArena, clientArena);
 
-  res = SegChunk(&chunk, &pi, seg);
+  res = SegChunk(&chunk, &index, seg);
   AVER(res == ResOK);
 
-  return PageBase(chunk, pi);
+  return PageBase(chunk, index);
 }
 
 
@@ -817,10 +721,10 @@ static Bool ClientSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
   RING_FOR(node, &clientArena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     if(chunk->base <= addr && addr < chunk->limit) {
-      PI pi = AddrOffset(chunk->pageBase, addr) >> 
+      Index index = AddrOffset(chunk->pageBase, addr) >> 
               clientArena->pageShift;
-      if(!ABTGet(chunk->freeTable, pi)) {
-        Page page = &chunk->pageTable[pi];
+      if(BTGet(chunk->allocTable, index)) {
+        Page page = &chunk->pageTable[index];
         if(SegPool(PageSeg(page)) != NULL)
           *segReturn = PageSeg(page);
         else
@@ -835,27 +739,27 @@ static Bool ClientSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
 
 /* SegSearchChunk -- search for a segment in a given chunk
  *
- * Searches for a segment in the chunk starting at page index pi,
+ * Searches for a segment in the chunk starting at page 'index',
  * return NULL if there is none.  A segment is present if it is
  * not free, and its pool is not NULL.
  *
  * This function is private to this module and is used in the segment
  * iteration protocol (SegFirst and SegNext).
  */
-static Seg SegSearchChunk(Chunk chunk, PI pi)
+static Seg SegSearchChunk(Chunk chunk, Index index)
 {
   AVERT(Chunk, chunk);
-  AVER(pi <= chunk->pages);
+  AVER(index <= chunk->pages);
 
-  while(pi < chunk->pages &&
-        (ABTGet(chunk->freeTable, pi) ||
-         SegPool(PageSeg(&chunk->pageTable[pi])) == NULL))
-    ++pi;
+  while(index < chunk->pages &&
+        (!BTGet(chunk->allocTable, index) ||
+         SegPool(PageSeg(&chunk->pageTable[index])) == NULL))
+    ++index;
   
-  if(pi < chunk->pages)
-    return PageSeg(&chunk->pageTable[pi]);
+  if(index < chunk->pages)
+    return PageSeg(&chunk->pageTable[index]);
   
-  AVER(pi == chunk->pages);
+  AVER(index == chunk->pages);
   return NULL;
 }
 
@@ -893,7 +797,7 @@ static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
   /* this finds the first */
   RING_FOR(node, &clientArena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    PI pi;
+    Index index;
 
     if(addr < AddrAdd(chunk->pageBase,
                (Size)(chunk->pages << clientArena->pageShift))) {
@@ -902,17 +806,17 @@ static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
       if(addr < chunk->pageBase) {
         /* The address is not in this chunk, so we want */
         /* to start looking at the beginning of the chunk. */
-        pi = 0;
+        index = 0;
       } else {
         /* The address is in this chunk, so we want to start */
         /* looking just after the page at this address. */
-        pi = ChunkPageIndexOfAddr(chunk, addr);
+        index = ChunkPageIndexOfAddr(chunk, addr);
         /* There are fewer pages than addresses so the page index will */
         /* not wrap. */
-        AVER(pi + 1 != 0);
-        ++pi;
+        AVER(index + 1 != 0);
+        ++index;
       }
-      seg = SegSearchChunk(chunk, pi);
+      seg = SegSearchChunk(chunk, index);
       if(seg != NULL) {
         AVER(addr < ClientSegBase(seg));
         *segReturn = seg;
