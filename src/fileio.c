@@ -658,7 +658,10 @@ directory_file_name (src, dst)
 #else
   if (slen > 1 
       && IS_DIRECTORY_SEP (dst[slen - 1])
-      && !IS_ANY_SEP (dst[slen - 2]))
+#ifdef DOS_NT
+      && !IS_ANY_SEP (dst[slen - 2])
+#endif
+      )
     dst[slen - 1] = 0;
 #endif
   return 1;
