@@ -306,8 +306,8 @@ Font Lock cache files saved.  Ownership may be unknown for networked files."
   "*If non-nil, means show status messages for cache processing.
 If a number, only buffers greater than this size have processing messages."
   :type '(choice (const :tag "never" nil)
-		 (const :tag "always" t)
-		 (integer :tag "size"))
+		 (integer :tag "size")
+		 (other :tag "always" t))
   :group 'fast-lock)
 
 (defvar fast-lock-save-faces
