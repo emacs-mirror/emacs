@@ -3,6 +3,9 @@
 	* calc/calc-ext.el (calc-init-extensions): Update the rest of the
 	autoload names to match files renamed on initial calc import.
 
+	* calc/calc.el (Commentary): Cleanup, and add logistic curve
+	fitting suggestion from Robert J. Chassell <bob@rattlesnake.com>.
+
 2001-11-23  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (finder_setwins, setwins): Include Calc again.
