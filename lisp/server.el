@@ -286,18 +286,19 @@ Then bury it, and return a suggested buffer to select next."
 ;; If a server buffer is killed, release its client.
 ;; I'm not sure this is really a good idea--do you want the client
 ;; to proceed using whatever is on disk in that file?
-(add-hook 'kill-buffer-query-functions
- 	  (function
- 	   (lambda ()
-	     (or (not server-buffer-clients)
-		 (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
-				      (buffer-name (current-buffer))))))))
+(defun server-kill-buffer-query-function ()
+  (or (not server-buffer-clients)
+      (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
+			   (buffer-name (current-buffer))))))
 
-(add-hook 'kill-emacs-query-functions
- 	  (function
- 	   (lambda ()
-	     (or (not server-clients)
-		 (yes-or-no-p "Server buffers still have clients; exit anyway? ")))))
+(add-hook 'kill-buffer-query-functions
+ 	  'server-kill-buffer-query-function)
+
+(defun server-kill-emacs-query-function ()
+  (or (not server-clients)
+      (yes-or-no-p "Server buffers still have clients; exit anyway? ")))
+
+(add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
 
 (defun server-edit (&optional arg)
   "Switch to next server editing buffer; say \"Done\" for current buffer.
