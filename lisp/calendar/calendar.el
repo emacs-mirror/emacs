@@ -1539,7 +1539,7 @@ the inserted text.  Value is always t."
   (list
    (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-left]")
    "Calendar"
-   (substitute-command-keys "\\<calendar-mode-map>\\[describe-calendar-mode] help/\\[calendar-other-month] other/\\[calendar-current-month] current")
+   (substitute-command-keys "\\<calendar-mode-map>\\[describe-calendar-mode] help/\\[calendar-other-month] other/\\[calendar-current-month] today")
    '(calendar-date-string (calendar-current-date) t)
    (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-right]"))
   "The mode line of the calendar buffer.")
@@ -1850,8 +1850,7 @@ concatenated and the result truncated."
 Movement is backward if ARG is negative."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
-  (let* ((cursor-date (or (calendar-cursor-to-date)
-                          (error "Cursor is not on a date!")))
+  (let* ((cursor-date (calendar-cursor-to-date t))
          (month (extract-calendar-month cursor-date))
          (day (extract-calendar-day cursor-date))
          (year (extract-calendar-year cursor-date)))
@@ -1943,9 +1942,10 @@ If in the calendar buffer, also sets the current date local variables."
           (string-to-int (substring date (match-beginning 4) (match-end 4)))))
     (list month day year)))
 
-(defun calendar-cursor-to-date ()
+(defun calendar-cursor-to-date (&optional error)
   "Returns a list of the month, day, and year of current cursor position.
-Returns nil if the cursor is not on a specific day."
+If cursor is not on a specific date, signals an error if optional parameter
+ERROR is t, otherwise just returns nil."
   (if (and (looking-at "[*0-9]")
            (< 2 (count-lines (point-min) (point))))
       (save-excursion
@@ -1962,7 +1962,8 @@ Returns nil if the cursor is not on a specific day."
                ((and (=  12 month) (= segment 0)) (1- displayed-year))
                ((and (=   1 month) (= segment 2)) (1+ displayed-year))
                (t displayed-year))))
-          (list month day year)))))
+          (list month day year)))
+      (if error (error "Cursor is not on a date!"))))
 
 (defun calendar-cursor-to-nearest-date ()
   "Move the cursor to the closest date.
@@ -2233,8 +2234,7 @@ Gregorian date Sunday, December 31, 1 BC."
 With no prefix argument, push current date onto marked date ring.
 With argument, jump to mark, pop it, and put point at end of ring."
   (interactive "P")
-  (let ((date (or (calendar-cursor-to-date)
-                  (error "Cursor is not on a date!"))))
+  (let ((date (calendar-cursor-to-date t)))
     (if (null arg)
         (progn
           (setq calendar-mark-ring (cons date calendar-mark-ring))
@@ -2254,8 +2254,7 @@ With argument, jump to mark, pop it, and put point at end of ring."
   "Exchange the current cursor position with the marked date."
   (interactive)
   (let ((mark (car calendar-mark-ring))
-        (date (or (calendar-cursor-to-date)
-                  (error "Cursor is not on a date!"))))
+        (date (calendar-cursor-to-date t)))
     (if (null mark)
         (error "No mark set in this buffer")
       (setq calendar-mark-ring (cons date (cdr calendar-mark-ring)))
@@ -2265,8 +2264,7 @@ With argument, jump to mark, pop it, and put point at end of ring."
   "Count the number of days (inclusive) between point and the mark."
   (interactive)
   (let* ((days (- (calendar-absolute-from-gregorian
-                   (or (calendar-cursor-to-date)
-                       (error "Cursor is not on a date!")))
+                   (calendar-cursor-to-date t))
                   (calendar-absolute-from-gregorian
                    (or (car calendar-mark-ring)
                        (error "No mark set in this buffer")))))
@@ -2653,9 +2651,7 @@ Defaults to today's date if DATE is not given."
 (defun calendar-print-day-of-year ()
   "Show day number in year/days remaining in year for date under the cursor."
   (interactive)
-  (message (calendar-day-of-year-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+  (message (calendar-day-of-year-string (calendar-cursor-to-date t))))
 
 (defun calendar-absolute-from-iso (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
@@ -2709,9 +2705,7 @@ Defaults to today's date if DATE is not given."
   "Show equivalent ISO date for the date under the cursor."
   (interactive)
   (message "ISO date: %s"
-           (calendar-iso-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+           (calendar-iso-date-string (calendar-cursor-to-date t))))
 
 (defun calendar-julian-from-absolute (date)
   "Compute the Julian (month day year) corresponding to the absolute DATE.
@@ -2767,9 +2761,7 @@ Driven by the variable `calendar-date-display-form'."
   "Show the Julian calendar equivalent of the date under the cursor."
   (interactive)
   (message "Julian date: %s"
-           (calendar-julian-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+           (calendar-julian-date-string (calendar-cursor-to-date t))))
 
 (defun islamic-calendar-leap-year-p (year)
   "Returns t if YEAR is a leap year on the Islamic calendar."
@@ -2857,9 +2849,7 @@ Driven by the variable `calendar-date-display-form'."
 (defun calendar-print-islamic-date ()
   "Show the Islamic calendar equivalent of the date under the cursor."
   (interactive)
-  (let ((i (calendar-islamic-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+  (let ((i (calendar-islamic-date-string (calendar-cursor-to-date t))))
     (if (string-equal i "")
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
@@ -3002,9 +2992,7 @@ Driven by the variable `calendar-date-display-form'."
   "Show the Hebrew calendar equivalent of the date under the cursor."
   (interactive)
   (message "Hebrew date (until sunset): %s"
-           (calendar-hebrew-date-string
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!")))))
+           (calendar-hebrew-date-string (calendar-cursor-to-date t))))
 
 (defun hebrew-calendar-yahrzeit (death-date year)
   "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
@@ -3130,9 +3118,7 @@ Defaults to today's date if DATE is not given."
   (interactive)
   (message
    "Astronomical (Julian) day number after noon UTC: %s"
-   (calendar-astro-date-string
-    (or (calendar-cursor-to-date)
-        (error "Cursor is not on a date!")))))
+   (calendar-astro-date-string (calendar-cursor-to-date t))))
 
 (defun calendar-goto-astro-day-number (daynumber &optional noecho)
   "Move cursor to astronomical (Julian) DAYNUMBER.
