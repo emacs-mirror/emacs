@@ -35,8 +35,21 @@
   "Return a new, empty display table."
   (make-char-table 'display-table nil))
 
-(or standard-display-table
-    (setq standard-display-table (make-display-table)))
+;;;###autoload (setq standard-display-table #^[t nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil #^^[nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil [11534428 32] nil nil nil nil nil nil nil nil nil nil nil nil [11534428 45] nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil] nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil display-table nil nil 11534428 11534430 [11534382 11534382 11534382] nil])
+;; This code generates the preceding table:
+;; (let* ((face (lsh (face-id 'glyph) 19))
+;;        (backslash (+ face ?\\))
+;;        (dot (+ face ?.))
+;;        (table (make-display-table))
+;;        print-length)
+;;   (set-char-table-extra-slot table 2 backslash)
+;;   (aset table 2208 (vector backslash ?\ ))
+;;   (aset table 2221 (vector backslash ?-))
+;;
+;;   (set-char-table-extra-slot table 3 (+ face ?^))
+;;
+;;   (set-char-table-extra-slot table 4 (vector dot dot dot))
+;;   (print table))
 
 ;;; Display-table slot names.  The property value says which slot.
 
