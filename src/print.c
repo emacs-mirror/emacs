@@ -972,7 +972,10 @@ print (obj, printcharfun, escapeflag)
 	       ? "#<frame " : "#<dead frame "),
 	      -1, printcharfun);
       print_string (XFRAME (obj)->name, printcharfun);
-      sprintf (buf, " 0x%lx", (EMACS_UINT) (XFRAME (obj)));
+      if (sizeof (EMACS_INT) > 4)
+	sprintf (buf, " 0x%lx", (EMACS_UINT) (XFRAME (obj)));
+      else
+	sprintf (buf, " 0x%x", (EMACS_UINT) (XFRAME (obj)));
       strout (buf, -1, printcharfun);
       strout (">", -1, printcharfun);
       break;
