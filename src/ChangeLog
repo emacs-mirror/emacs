@@ -1,5 +1,10 @@
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (current_gif_memory_src): New variable.
+	(gif_load): Record the address of the current memory source
+	in current_gif_memory_src.
+	(gif_read_from_memory): Use current_gif_memory_src.
+
 	* systime.h (EMACS_GET_TIME, EMACS_ADD_TIME, EMACS_SUB_TIME): Give
 	macros statement form.
 

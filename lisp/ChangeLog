@@ -1,3 +1,8 @@
+2000-01-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* autorevert.el (auto-revert-mode): Return value of
+	auto-revert-mode.
+
 2000-01-04  Dave Love  <fx@gnu.org>
 
 	* bindings.el (make-mode-line-mouse-sensitive):
