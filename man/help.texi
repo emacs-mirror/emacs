@@ -87,6 +87,9 @@ Display documentation of the current major mode (@code{describe-mode}).
 @item C-h n
 Display documentation of Emacs changes, most recent first
 (@code{view-emacs-news}).
+@item C-h P
+Display info on known problems with Emacs and possible workarounds
+(@code{view-emacs-problems}).
 @item C-h p
 Find packages by topic keyword (@code{finder-by-keyword}).
 @item C-h s
@@ -463,6 +466,8 @@ actually @kbd{C-M-h}, which marks a defun.)
 @findex describe-no-warranty
 @kindex C-h C-p
 @findex describe-project
+@kindex C-h P
+@findex view-emacs-problems
   The other @kbd{C-h} options display various files of useful
 information.  @kbd{C-h C-w} displays the full details on the complete
 absence of warranty for GNU Emacs.  @kbd{C-h n} (@code{view-emacs-news})
@@ -476,4 +481,7 @@ conditions you must obey in distributing copies of Emacs.  @kbd{C-h C-d}
 (@code{describe-distribution}) displays the file
 @file{emacs/etc/DISTRIB}, which tells you how you can order a copy of
 the latest version of Emacs.  @kbd{C-h C-p} (@code{describe-project})
-displays general information about the GNU Project.
+displays general information about the GNU Project.  @kbd{C-h P}
+(@code{view-emacs-problems}) displays the file
+@file{emacs/etc/PROBLEMS}, which lists known problems with Emacs in
+various situations with solutions or workarounds in many cases.
