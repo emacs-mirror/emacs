@@ -1,3 +1,7 @@
+1999-10-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* regex.c (POP_FAILURE_POINT): Extract failure_id as an integer.
+
 1999-10-24  Ken Raeburn  <raeburn@raeburn.org>
 
 	* alloc.c: Undef HIDE_LISP_IMPLEMENTATION before including
