@@ -1,3 +1,14 @@
+2004-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (main): If batch mode, set Vundo_outer_limit to nil.
+
+	* lisp.h (Vundo_outer_limit): Fix decl.
+
+	* undo.c (Vundo_outer_limit): Replaces undo_outer_limit.
+	Uses changed.
+	(syms_of_undo): Initialize appropriately.
+	(truncate_undo_list): If it's nil, there's no limit.
+
 2004-12-22  Kenichi Handa  <handa@m17n.org>
 
 	* xselect.c (Fx_get_cut_buffer_internal): Return a unibyte string.
