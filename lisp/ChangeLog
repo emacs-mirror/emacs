@@ -1,3 +1,19 @@
+2001-08-02  Francesco Potorti`  <pot@gnu.org>
+
+	* uniquify.el (uniquify-ref-base, uniquify-ref-filename)
+	(uniquify-ref-buffer, uniquify-ref-proposed): New functions.
+	(uniquify-fix-item-base, uniquify-fix-item-filename)
+	(uniquify-fix-item-buffer, uniquify-fix-item-proposed): Deleted.
+	Callers changed.
+	(uniquify-set-proposed): Changed to work with a vector item.
+	(uniquify-rationalize-file-buffer-names): Use a list of arrays for
+	the fix list, and a list of strings for the non-file buffer
+	names.  Both changes reduce consing.
+	(uniquify-rationalize-a-list): Local variable renaming.
+	(uniquify-rationalize-conflicting-sublist): Use member instead of
+	assoc.
+	(uniquify-rename-buffer): Use unless instead of if not.
+
 2001-08-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* recentf.el (recentf-dump-variable): Handle a value of nil
@@ -5,7 +21,7 @@
 
 	* custom.el (custom-set-variables): Set options with :require
 	clauses last.
-	
+
 	* custom.el (defcustom): Doc fix.
 
 	* Makefile.in (TAGS, TAGS-LISP): Exclude loaddefs.el.
