@@ -1,3 +1,23 @@
+2002-08-30  Juanma Barranquero  <lektu@terra.es>
+
+	* bs.el (bs-message-without-log): Fix typo.
+
+	* font-core.el (font-lock-defaults): Likewise.
+
+	* font-lock.el (font-lock-add-keywords): Likewise.
+
+	* mouse-copy.el (mouse-copy-work-around-drag-bug): Likewise.
+
+	* textmodes/bibtex.el (bibtex-mode): Likewise.
+
+	* emulation/viper-ex.el (ex-compile-command): Likewise.
+
+	* progmodes/idlwave.el (idlwave-max-extra-continuation-indent): Likewise.
+
+	* progmodes/dcl-mode.el (dcl-calc-cont-indent-relative): Likewise.
+
+	* allout.el (my-mark-marker): Likewise.
+
 2002-08-30  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Delete process buffer
@@ -26,7 +46,7 @@
 	* kmacro.el: Changed default bindings from F7/F8 to F3/F4.
 	Changed default binding of C-x e to kmacro-end-or-call-macro.
 	(kmacro-call-repeat-key, kmacro-call-repeat-with-arg): New custom
-	variables. 
+	variables.
 	(kmacro-get-prefix-arg): New function.
 	(kmacro-repeat-on-last-key): Renamed from kmacro-repeat-loop and improved.
 	Callers changed.
@@ -44,7 +64,7 @@
 
 2002-08-28  Richard M. Stallman  <rms@gnu.org>
 
-	* files.el (make-auto-save-file-name, make-backup-file-name-1): 
+	* files.el (make-auto-save-file-name, make-backup-file-name-1):
 	Don't use directory-sep-char.
 
 2002-08-28  Juanma Barranquero  <lektu@terra.es>
@@ -165,24 +185,6 @@
 
 	* mail/rmail.el (rmail-speedbar-match-folder-regexp): Doc fix.
 
-2002-08-23  Richard M. Stallman  <rms@gnu.org>
-
-	* loadhist.el (unload-feature): Distinguish functions from
-	variables in load-history.
-	(feature-symbols): Doc fix.
-
-	* files.el (ange-ftp-completion-hook-function): Add safe-magic prop.
-
-	* subr.el (symbol-file-load-history-loaded)
-	(load-symbol-file-load-history): Deleted.
-	(symbol-file): Don't call load-symbol-file-load-history.
-
-2002-08-22  Katsumi Yamaoka <yamaoka@jpl.org>  (tiny change)
-
-	* frame.el (select-frame-by-name, select-frame-set-input-focus):
-	Always call x-focus-frame, if using x.
-	Use set-mouse-position on all systems, if focus-follows-mouse.
-
 2002-08-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-xemacs-flag, f90-xemacs-menu)
@@ -195,9 +197,27 @@
 	(f90-abbrev-start): Use fboundp.
 	(f90-imenu-flag): Delete - use imenu--index-alist instead.
 
+2002-08-23  Richard M. Stallman  <rms@gnu.org>
+
+	* loadhist.el (unload-feature): Distinguish functions from
+	variables in load-history.
+	(feature-symbols): Doc fix.
+
+	* files.el (ange-ftp-completion-hook-function): Add safe-magic prop.
+
+	* subr.el (symbol-file-load-history-loaded)
+	(load-symbol-file-load-history): Deleted.
+	(symbol-file): Don't call load-symbol-file-load-history.
+
 2002-08-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-kill-buffer-hook): Add it to kill-buffer-hook again.
+
+2002-08-22  Katsumi Yamaoka <yamaoka@jpl.org>  (tiny change)
+
+	* frame.el (select-frame-by-name, select-frame-set-input-focus):
+	Always call x-focus-frame, if using x.
+	Use set-mouse-position on all systems, if focus-follows-mouse.
 
 2002-08-22  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -382,6 +402,11 @@
 	* textmodes/reftex.el (reftex-mode): Moved the creation of special
 	syntax tables to top-level.
 
+2002-08-15  David Kastrup  <David.Kastrup@t-online.de>
+
+	* net/ange-ftp.el (ange-ftp-wipe-file-entries): Fix type mismatch;
+	use `hash-table-size' instead of `length'.
+
 2002-08-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* help-fns.el (locate-library): Use locate-file(-completion).
@@ -423,11 +448,6 @@
 	(imenu-choose-buffer-index): Use the new var.
 
 	* startup.el (command-line): Load custom-file if not done yet.
-
-2002-08-15  David Kastrup  <David.Kastrup@t-online.de>
-
-	* net/ange-ftp.el (ange-ftp-wipe-file-entries): Fix type mismatch;
-	use `hash-table-size' instead of `length'.
 
 2002-08-14  Kenichi Handa  <handa@etl.go.jp>
 
