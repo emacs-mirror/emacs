@@ -1,3 +1,14 @@
+2004-05-02  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-sort-buffer): Remove error message.
+	(bibtex-clean-entry): Disentangle code.
+	(bibtex-realign): New function.
+	(bibtex-reformat): Use mapcar and bibtex-realign.  Do not use
+	bibtex-beginning-of-first-entry and bibtex-skip-to-valid-entry.
+	Remove undocumented optional arg called-by-convert-alien.
+	(bibtex-convert-alien): Use bibtex-realign.  Use bibtex-reformat
+	for sorting instead of bibtex-sort-buffer.
+
 2004-05-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/compile.el (compilation-start): In the
