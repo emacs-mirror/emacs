@@ -483,7 +483,7 @@ and TO is ignored."
 	(setq coding-system default-coding-system)
 
       ;; Try the default.  If the default is nil or undecided, try the
-      ;; most prefered one or one of its subsidiaries that converts
+      ;; most preferred one or one of its subsidiaries that converts
       ;; EOL as the same way as the default.
       (if (or (not default-coding-system)
 	      (eq (coding-system-base default-coding-system) 'undecided))
