@@ -319,6 +319,18 @@
 	(antlr-font-lock-literal-face): Changed color.
 	(antlr-font-lock-additional-keywords): Minor changes.
 
+1999-12-20  Carsten Dominik  <cd@gnu.org>
+
+	* progmodes/idlwave.el: New file.
+
+	* progmodes/idlwave-rinfo.el: New file.
+
+	* progmodes/idlwave-shell.el: New file.
+
+	* progmodes/idlwave-toolbar.el: New file.
+
+	* files.el (auto-mode-alist): idlwave-mode default for .pro files. 
+
 1999-12-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/cwarn.el: New file.
@@ -422,6 +434,98 @@
 	* faces.el (face-read-integer, read-face-attribute)
 	(color-defined-p, color-values): Allow color values unspecified-fg
 	and unspecified-bg, handle them as unspecified.
+
+1999-12-15  Carsten Dominik  <dominik@astro.uva.nl>
+
+	* textmodes/reftex.el: (reftex-compile-variables): respect new
+	structure of `reftex-index-macro'
+	(reftex-compile-variables): Use the changed structure of
+	`reftex-label-alist'.
+
+	* textmodes/reftex-vars.el (reftex-index-math-format,
+	(reftex-toc-max-level): New option.
+	reftex-index-phrases-search-whole-words,
+	reftex-index-phrases-case-fold-search,
+	reftex-index-phrases-skip-indexed-matches,
+	reftex-index-phrases-wrap-long-lines,
+	reftex-index-phrases-sort-prefers-entry,
+	reftex-index-phrases-sort-in-blocks): New options.
+	(reftex-index-macros): Option structure changed.
+	(reftex-index-macros-builtin): Added `repeat' item to each entry.
+	(reftex-label-alist): Additional item in each entry to specify if
+	the environment should be listed in the TOC.
+	(eval-when-compile (require 'cl)) added.
+
+	* textmodes/reftex-index.el (reftex-index-selection-or-word): No
+	longer deals with "repeat".
+	(reftex-index): "repeat property in `reftex-index-macro-alist' is
+	now used.
+	(reftex-index-phrases-comment-regexp,
+	reftex-index-phrases-macrodef-regexp,
+	reftex-index-phrases-phrase-regexp1,
+	reftex-index-phrases-phrase-regexp2,
+	reftex-index-phrases-phrase-regexp12, reftex-index-phrases-help):
+	New constants.
+	(reftex-index-phrases-macro-data, reftex-index-phrases-files,
+	reftex-index-phrases-font-lock-keywords,
+	reftex-index-phrases-font-lock-defaults, reftex-index-phrases-map,
+	reftex-index-phrases-restrict-file): New variables.
+	(reftex-index-phrase-selection-or-word,
+	reftex-index-visit-phrases-buffer,
+	reftex-index-initialize-phrases-buffer,
+	reftex-index-phrases-save-and-return, reftex-index-phrases-mode,
+	reftex-index-next-phrase, reftex-index-this-phrase,
+	reftex-index-all-phrases, reftex-index-region-phrases,
+	reftex-index-phrases-parse-header,
+	reftex-index-phrases-toggle-restricted, reftex-index-new-phrase,
+	reftex-index-find-next-conflict-phrase, reftex-index-phrases-info,
+	reftex-index-phrases-set-macro-key, reftex-index-sort-phrases,
+	reftex-compare-phrase-lines, reftex-index-make-phrase-regexp,
+	reftex-index-simplify-phrase, reftex-index-phrases-find-dup-re,
+	reftex-index-make-replace-string,
+	reftex-query-index-phrase-globally, reftex-query-index-phrase,
+	reftex-index-phrase-match-is-indexed,
+	reftex-index-phrases-fixup-line,
+	reftex-index-phrases-replace-space,
+	reftex-index-select-phrases-macro): New functions.
+	(reftex-index-globalize, reftex-index-globally): functions removed
+	(eval-when-compile (require 'cl)) added.
+	     
+	 * textmodes/reftex-toc.el (reftex-toc-mode): Create new indicator
+	 for max level.
+	 (reftex-toc-max-level-indicator): New variable.
+	 (reftex-toc-max-level): New command.
+	 (reftex-toc-map): New keybinding `t'.
+	 (reftex-toc-help): Constant updated.
+	 (eval-when-compile (require 'cl)) added.
+
+	 * textmodes/reftex-ref.el (reftex-offer-label-menu): Prefix to
+	 `t' command key can change `reftex-toc-max-level'
+	 (eval-when-compile (require 'cl)) added.
+
+	 * textmode/reftex-sel (reftex-insert-docstruct): Respect
+	 `reftex-toc-max-level'
+	 (eval-when-compile (require 'cl)) added.
+
+	 * textmodes/reftex-auc.el (eval-when-compile (require 'cl))
+	 added.
+
+	 * textmodes/reftex-vcr.el (eval-when-compile (require 'cl))
+	 added.
+
+	 * textmodes/reftex-cite.el (reftex-citep, reftex-citet): New
+	 commands.
+	 (reftex-citation, reftex-do-citation,
+	 reftex-figure-out-cite-format): Additional argument FORMAT-KEY to
+	 preselect a citation format.
+	 (eval-when-compile (require 'cl)) added.
+
+	 * textmodes/reftex-parse.el (reftex-context-substring): Optional
+	 parameter to-end
+	 (reftex-section-info): Deal with environment matches.
+	 (eval-when-compile (require 'cl)) added.
+
+	 * reftex-global.el (eval-when-compile (require 'cl)) added.
 
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
