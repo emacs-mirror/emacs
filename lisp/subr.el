@@ -1294,6 +1294,16 @@ Only affects hooks run in the current buffer."
      (let ((delay-mode-hooks t))
        ,@body)))
 
+;; PUBLIC: find if the current mode derives from another.
+
+(defun derived-mode-p (&rest modes)
+  "Non-nil if the current major mode is derived from one of MODES.
+Uses the `derived-mode-parent' property of the symbol to trace backwards."
+  (let ((parent major-mode))
+    (while (and (not (memq parent modes))
+		(setq parent (get parent 'derived-mode-parent))))
+    parent))
+
 (defmacro with-syntax-table (table &rest body)
   "Evaluate BODY with syntax table of current buffer set to a copy of TABLE.
 The syntax table of the current buffer is saved, BODY is evaluated, and the
