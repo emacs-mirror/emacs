@@ -490,7 +490,7 @@ Otherwise, just return the value."
 					 :value-to-internal value)))
 
 (defun widget-default-get (widget)
-  "Extract the defaylt value of WIDGET."
+  "Extract the default value of WIDGET."
   (or (widget-get widget :value)
       (widget-apply widget :default-get)))
 
@@ -2657,7 +2657,9 @@ when he invoked the menu."
 		    (setq child (widget-create-child-value 
 				 widget type value))
 		  (setq child (widget-create-child-value 
-			       widget type (widget-default-get type)))))
+			       widget type
+			       (widget-apply type :value-to-external
+					     (widget-default-get type))))))
 	       (t 
 		(error "Unknown escape `%c'" escape)))))
      (widget-put widget 
