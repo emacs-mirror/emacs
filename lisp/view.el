@@ -87,9 +87,8 @@ This is local in each buffer, once it is used.")
   (define-key view-mode-map "'" 'View-back-to-mark)
   (define-key view-mode-map "@" 'View-back-to-mark)  
   (define-key view-mode-map "x" 'exchange-point-and-mark)
-  (define-key view-mode-map "h" 'Helper-describe-bindings)
-  (define-key view-mode-map "?" 'Helper-describe-bindings)
-  (define-key view-mode-map (char-to-string help-char) 'help-command)
+  (define-key view-mode-map "h" 'describe-mode)
+  (define-key view-mode-map "?" 'describe-mode)
   (define-key view-mode-map "s" 'isearch-forward)
   (define-key view-mode-map "r" 'isearch-backward)
   (define-key view-mode-map "/" 'View-search-regexp-forward)
@@ -185,20 +184,13 @@ This command runs the normal hook `view-mode-hook'."
 If you use this function to turn on View mode,
 \"exiting\" View mode does nothing except turn View mode off.
 The other way to turn View mode on is by calling
-`view-mode-enter'."
-  (interactive "P")
-  (setq view-mode
-	(if (null arg)
-	    (not view-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+`view-mode-enter'.
 
-(defun view-mode-enter (&optional prev-buffer action)
-  "Minor mode for viewing text but not editing it.
 Letters do not insert themselves.  Instead these commands are provided.
 Most commands take prefix arguments.  Commands dealing with lines
 default to \"scroll size\" lines (initially size of window).
 Search commands default to a repeat count of one.
+
 M-< or <	move to beginning of buffer.
 M-> or >	move to end of buffer.
 C-v or Space	scroll forward lines.
@@ -226,7 +218,17 @@ C-r or r	do reverse incremental search.
 C-n		moves down lines vertically.
 C-p		moves upward lines vertically.
 C-l		recenters the screen.
-q		exit view-mode and return to previous buffer.
+q		exit view-mode and return to previous buffer."
+  (interactive "P")
+  (setq view-mode
+	(if (null arg)
+	    (not view-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
+
+(defun view-mode-enter (&optional prev-buffer action)
+  "Enter View mode, a Minor mode for viewing text but not editing it.
+See the function `view-mode' for more details.
 
 This function runs the normal hook `view-mode-hook'.
 
@@ -261,7 +263,7 @@ This function runs the normal hook `view-mode-hook'.
   (run-hooks 'view-mode-hook)
   (message
      (substitute-command-keys
-      "Type \\[help-command] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit.")))
+      "Type \\[help-command] for help, \\[describe-mode] for commands, \\[view-exit] to quit.")))
 
 (defun view-exit ()
   "Exit from view-mode.
