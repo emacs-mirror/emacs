@@ -21,12 +21,10 @@
 #define WNOHANG		0x1
 
 /* No need to use sprintf to get the tty name--we get that from _getpty.  */
+#undef PTY_TTY_NAME_SPRINTF
 #define PTY_TTY_NAME_SPRINTF
 /* No need to get the pty name at all.  */
 #define PTY_NAME_SPRINTF
-#ifdef emacs
-char *_getpty();
-#endif
 /* We need only try once to open a pty.  */
 #define PTY_ITERATION
 /* Here is how to do it.  */

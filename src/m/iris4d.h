@@ -183,6 +183,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define XSETMARKBIT(a,b) ((a) = ((a) & ~MARKBIT) | ((b) ? MARKBIT : 0))
 #define XUNMARK(a) ((a) = (((unsigned)(a) << INTBITS-GCTYPEBITS-VALBITS) >> INTBITS-GCTYPEBITS-VALBITS))
 
+#ifndef __GNUC__
 /* Turn off some "helpful" error checks for type mismatches
    that we can't fix without breaking other machines.  */
 #define C_SWITCH_MACHINE -cckr
+#endif
