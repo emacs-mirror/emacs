@@ -1,3 +1,7 @@
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* cmds.c (Fend_of_line): Doc fix.
+
 2004-02-16  Dmitry Antipov  <dmitry.antipov@mail.ru>  (tiny change)
 
 	* keyboard.c (prev_read): New static variable.
