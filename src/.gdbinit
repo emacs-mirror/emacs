@@ -158,7 +158,7 @@ print (struct scrollbar *) (($ & 0x00ffffff) | $data_seg_bits)
 output *$
 echo \n
 end
-document xsubr
+document xscrollbar
 Print $ as a scrollbar pointer.
 end
 
