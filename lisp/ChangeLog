@@ -1,3 +1,9 @@
+2002-03-22  Juanma Barranquero  <lektu@terra.es>
+
+	* play/gomoku.el (gomoku-font-lock-O-face): Convert to use `defface'.
+	(gomoku-font-lock-X-face): Likewise.
+	(gomoku-font-lock-keywords): Use faces instead of variables.
+
 2002-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile.in (bootstrap): Make sure subdirs.el is ready.
