@@ -679,7 +679,7 @@ Major/minor modes can set this variable if they know which option applies.")
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
     (let ((modified (make-symbol "modified")))
       `(let* ,(append varlist
-		      '((,modified (buffer-modified-p))
+		      `((,modified (buffer-modified-p))
 			(buffer-undo-list t)
 			(inhibit-read-only t)
 			(inhibit-point-motion-hooks t)
