@@ -1,3 +1,8 @@
+2003-10-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* objects.texi (Integer Type): Update for extra bit of integer range.
+	(Character Type): Ditto.
+
 2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
 
 	* numbers.texi (Integer Basics): Add index entries for reading
