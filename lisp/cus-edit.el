@@ -748,7 +748,7 @@ it as the third element in the list."
 
 ;;;###autoload
 (defun customize-set-value (var val &optional comment)
-  "Set VARIABLE to VALUE.  VALUE is a Lisp object.
+  "Set VARIABLE to VALUE, and return VALUE.  VALUE is a Lisp object.
 
 If VARIABLE has a `variable-interactive' property, that is used as if
 it were the arg to `interactive' (which see) to interactively read the value.
@@ -761,15 +761,16 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       "Set %s to value: "
 				       current-prefix-arg))
    
-  (set var val)
   (cond ((string= comment "")
  	 (put var 'variable-comment nil))
  	(comment
- 	 (put var 'variable-comment comment))))
+ 	 (put var 'variable-comment comment)))
+  (set var val))
 
 ;;;###autoload
 (defun customize-set-variable (variable value &optional comment)
-  "Set the default for VARIABLE to VALUE.  VALUE is a Lisp object.
+  "Set the default for VARIABLE to VALUE, and return VALUE.
+VALUE is a Lisp object.
 
 If VARIABLE has a `custom-set' property, that is used for setting
 VARIABLE, otherwise `set-default' is used.
@@ -787,6 +788,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   (interactive (custom-prompt-variable "Set variable: "
 				       "Set customized value for %s to: "
 				       current-prefix-arg))
+  (custom-load-symbol variable)
   (funcall (or (get variable 'custom-set) 'set-default) variable value)
   (put variable 'customized-value (list (custom-quote value)))
   (cond ((string= comment "")
@@ -794,11 +796,14 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
  	 (put variable 'customized-variable-comment nil))
  	(comment
  	 (put variable 'variable-comment comment)
- 	 (put variable 'customized-variable-comment comment))))
+ 	 (put variable 'customized-variable-comment comment)))
+  value)
 
 ;;;###autoload
 (defun customize-save-variable (var value &optional comment)
   "Set the default for VARIABLE to VALUE, and save it for future sessions.
+Return VALUE.
+
 If VARIABLE has a `custom-set' property, that is used for setting
 VARIABLE, otherwise `set-default' is used.
 
@@ -823,7 +828,8 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
  	(comment
  	 (put var 'variable-comment comment)
  	 (put var 'saved-variable-comment comment)))
-  (custom-save-all))
+  (custom-save-all)
+  value)
 
 ;;;###autoload
 (defun customize ()
@@ -1815,6 +1821,7 @@ and `face'."
 (defvar custom-load-recursion nil
   "Hack to avoid recursive dependencies.")
 
+;;;###autoload
 (defun custom-load-symbol (symbol)
   "Load all dependencies for SYMBOL."
   (unless custom-load-recursion
@@ -3750,22 +3757,22 @@ or (if there were none) at the end of the buffer."
   "Mark SYMBOL for later saving.
 
 If the default value of SYMBOL is different from the standard value, 
-set the 'saved-value' property to a list whose car evaluates to the
+set the `saved-value' property to a list whose car evaluates to the
 default value. Otherwise, set it til nil.
 
-To actually save the value, call 'custom-save-all'.
+To actually save the value, call `custom-save-all'.
 
-Return non-nil iff the 'saved-value' property actually changed."
+Return non-nil iff the `saved-value' property actually changed."
   (let* ((get (or (get symbol 'custom-get) 'default-value))
 	 (value (funcall get symbol))
 	 (saved (get symbol 'saved-value))
 	 (standard (get symbol 'standard-value))
 	 (comment (get symbol 'customized-variable-comment)))
     ;; Save default value iff different from standard value.
-    (if (and standard 
-	     (not (condition-case nil
-		      (equal value (eval (car standard)))
-		    (error nil))))
+    (if (or (null standard)
+	    (not (equal value (condition-case nil
+				  (eval (car standard))
+				(error nil)))))
 	(put symbol 'saved-value (list (custom-quote value)))
       (put symbol 'saved-value nil))
     ;; Clear customized information (set, but not saved).
@@ -3774,6 +3781,30 @@ Return non-nil iff the 'saved-value' property actually changed."
     (when comment
       (put symbol 'saved-variable-comment comment))
     (not (equal saved (get symbol 'saved-value)))))
+
+;;;###autoload
+(defun customize-mark-as-set (symbol)
+  "Mark current value of SYMBOL as being set from customize.
+
+If the default value of SYMBOL is different from the saved value if any, 
+or else if it is different from the standard value, set the
+`customized-value' property to a list whose car evaluates to the 
+default value. Otherwise, set it til nil.
+
+Return non-nil iff the `customized-value' property actually changed."
+  (let* ((get (or (get symbol 'custom-get) 'default-value))
+	 (value (funcall get symbol))
+	 (customized (get symbol 'customized-value))
+	 (old (or (get symbol 'saved-value) (get symbol 'standard-value))))
+    ;; Mark default value as set iff different from old value.
+    (if (or (null old)
+	    (not (equal value (condition-case nil 
+				  (eval (car old))
+				(error nil)))))
+	(put symbol 'customized-value (list (custom-quote value)))
+      (put symbol 'customized-value nil))
+    ;; Changed?
+    (not (equal customized (get symbol 'customized-value)))))
 
 ;;; The Customize Menu.
 

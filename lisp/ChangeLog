@@ -1,3 +1,26 @@
+2002-02-11  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* toolbar/tool-bar.el (tool-bar-mode): Removed standard value.
+	* menu-bar.el (menu-bar-mode): Ditto.
+	* cus-edit.el (customize-mark-to-save): Always save variables
+	without a standard value.
+
+	* menu-bar.el (menu-bar-make-toggle): Made it aware of customize.
+	(menu-bar-options-save): Ditto.
+	(menu-bar-showhide-menu): Ditto.
+	(menu-bar-options-menu): Ditto.
+	(menu-bar-scroll-bar-right, menu-bar-scroll-bar-left,
+	menu-bar-scroll-bar-none): Removed. 
+	(menu-bar-showhide-scroll-bar-menu): Use customize aware lambda
+	expressions instead.
+
+	* cus-edit.el (customize-set-value): Return value.
+	(customize-set-variable): Ditto.
+	(customize-save-variable): Ditto.
+	(customize-set-variable): Load dependencies before setting value. 
+        (custom-load-symbol): Autoload it.
+	(customize-mark-as-set): New function.
+
 2002-02-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* cus-start.el: Don't warn about "x-*" symbols when building a

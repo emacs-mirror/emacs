@@ -530,12 +530,28 @@ Do the same for the keys of the same name."
 		(substring help 1) ".")
        (interactive)
        (if ,(if body `(progn . ,body)
-	      `(setq ,variable (not ,variable)))
-  	   (message ,message "enabled")
+	      `(progn 
+		 (custom-load-symbol ',variable)
+		 (let ((set (or (get ',variable 'custom-set) 'set-default))
+		       (get (or (get ',variable 'custom-get) 'default-value)))
+		   (funcall set ',variable (not (funcall get ',variable))))))
+	   (message ,message "enabled")
   	 (message ,message "disabled")))
-     '(menu-item ,doc ,name
+     ;; The function `customize-mark-as-set' must only be called when
+     ;; a variable is set interactively, as the purpose is to mark it
+     ;; as a candidate for "Save Options", and we do not want to save
+     ;; options the user have already set explicitly in his init
+     ;; file.  Unfortunately, he could very likely call the function
+     ;; defined above there.  So we put `customize-mark-as-set' in a
+     ;; lambda expression. 
+     ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
+     '(menu-item ,doc (lambda ()
+			(interactive)
+			(,name)
+			(customize-mark-as-set ',variable))
 		 :help ,help
-                 :button (:toggle . (and (boundp ',variable) ,variable)))))
+                 :button (:toggle . (and (default-boundp ',variable)
+					 (default-value ',variable))))))
 
 ;;; Assemble all the top-level items of the "Options" menu
 (define-key menu-bar-options-menu [customize]
@@ -546,27 +562,27 @@ Do the same for the keys of the same name."
   "Save current values of Options menu items using Custom."
   (interactive)
   (let ((need-save nil))
-    (dolist (elt '(debug-on-quit debug-on-error auto-compression-mode
+    ;; These are set with `customize-set-variable'.
+    (dolist (elt '(line-number-mode column-number-mode scroll-bar-mode
+		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
+		   save-place uniquify-buffer-name-style
 		   case-fold-search truncate-lines show-paren-mode
 		   transient-mark-mode global-font-lock-mode
-		   current-language-environment default-input-method
-		   default-frame-alist display-time-mode
-		   line-number-mode column-number-mode))
+		   display-time-mode auto-compression-mode
+		   ;; Saving `text-mode-hook' is somewhat questionable,
+		   ;; as we might get more than we bargain for, if
+		   ;; other code may has added hooks as well.
+		   ;; Nonetheless, not saving it would like be confuse
+		   ;; more often.
+		   ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
+		   text-mode-hook))
+      (and (get elt 'customized-value)
+	   (customize-mark-to-save elt)
+	   (setq need-save t)))
+    ;; These are set with other functions.
+    (dolist (elt '(current-language-environment default-input-method))
       (when (customize-mark-to-save elt)
 	(setq need-save t)))
-    ;; We only want to save text-mode-hook after adding or removing auto fill.
-    (and (or (memq 'turn-on-auto-fill text-mode-hook) ;Added.
-	     ;; If it is already saved, it is safe to save.
-	     (get 'text-mode-hook 'saved-value)) ;Maybe removed.
-	 (customize-mark-to-save 'text-mode-hook)
-	 (setq need-save t))
-    ;; Avoid loading extra libraries.
-    (and (featurep 'saveplace)
-	 (customize-mark-to-save 'save-place)
-	 (setq need-save t))
-    (and (featurep 'uniquify)
-	 (customize-mark-to-save 'uniquify-buffer-name-style)
-	 (setq need-save t))
     ;; Save if we changed anything.
     (when need-save
       (custom-save-all))))
@@ -603,7 +619,10 @@ Do the same for the keys of the same name."
     (message "Display-time mode disabled.")))
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
-  '(menu-item "Date and time" showhide-date-time
+  '(menu-item "Date and time" (lambda ()
+				(interactive)
+				(showhide-date-time)
+				(customize-mark-as-set 'display-time-mode))
 	      :help "Display date and time in the mode-line"
 	      :button (:toggle . display-time-mode)))
 
@@ -612,38 +631,35 @@ Do the same for the keys of the same name."
 
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
-(defun menu-bar-scroll-bar-right ()
-  "Turn on the scroll-bar on the right side."
-  (interactive)
-  (set-scroll-bar-mode 'right))
-
-(defun menu-bar-scroll-bar-left ()
-  "Turn on the scroll-bar on the left side."
-  (interactive)
-  (set-scroll-bar-mode 'left))
-
-(defun menu-bar-scroll-bar-none ()
-  "Turn off the scroll-bar."
-  (interactive)
-  (set-scroll-bar-mode nil))
-
 (define-key menu-bar-showhide-scroll-bar-menu [right]
-  '(menu-item "On the Right" menu-bar-scroll-bar-right
+  '(menu-item "On the Right" 
+	      (lambda ()
+		(interactive)
+		(customize-set-variable 'scroll-bar-mode 'right))
 	      :help "Scroll-bar on the right side"
 	      :visible window-system
-	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars (frame-parameters))) 'right))))
+	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
+					       (frame-parameters))) 'right))))
 
 (define-key menu-bar-showhide-scroll-bar-menu [left]
-  '(menu-item "On the Left" menu-bar-scroll-bar-left
+  '(menu-item "On the Left" 	   
+	      (lambda ()
+		(interactive)
+		(customize-set-variable 'scroll-bar-mode 'left))
 	      :help "Scroll-bar on the left side"
 	      :visible window-system
-	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars (frame-parameters))) 'left))))
+	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
+					       (frame-parameters))) 'left))))
 
 (define-key menu-bar-showhide-scroll-bar-menu [none]
-  '(menu-item "None" menu-bar-scroll-bar-none
+  '(menu-item "None" 
+	      (lambda ()
+		(interactive)
+		(customize-set-variable 'scroll-bar-mode nil))
 	      :help "Turn off scroll-bar"
 	      :visible window-system
-	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars (frame-parameters))) nil))))
+	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
+					       (frame-parameters))) nil))))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
   (list 'menu-item "Scroll-Bar" menu-bar-showhide-scroll-bar-menu
@@ -659,7 +675,11 @@ Do the same for the keys of the same name."
     (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
 
 (define-key menu-bar-showhide-menu [showhide-menu-bar]
-  '(menu-item "Menu-bar" showhide-menu-bar
+  '(menu-item "Menu-bar" 
+	      (lambda ()
+		(interactive)
+		(showhide-menu-bar)
+		(customize-mark-as-set 'menu-bar-mode))
 	      :help "Toggle menu-bar on/off"
 	      :button (:toggle . menu-bar-mode)))
 
@@ -671,7 +691,11 @@ Do the same for the keys of the same name."
     (message "Tool-bar mode disabled.")))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  '(menu-item "Tool-bar" showhide-tool-bar
+  '(menu-item "Tool-bar" 
+	      (lambda ()
+		(interactive)
+		(showhide-tool-bar)
+		(customize-mark-as-set 'tool-bar-mode))
 	      :help "Turn tool-bar on/off"
 	      :visible window-system
 	      :button (:toggle . tool-bar-mode)))
@@ -712,18 +736,19 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [toggle-auto-compression]
   '(menu-item "Automatic File De/compression"
-             auto-compression-mode
-	     :help "Transparently decompress compressed files"
-             :button (:toggle . (rassq 'jka-compr-handler
-				       file-name-handler-alist))))
+	      (lambda ()
+		(interactive)
+		(auto-compression-mode)
+		(customize-mark-as-set 'auto-compression-mode))
+	      :help "Transparently decompress compressed files"
+	      :button (:toggle . (rassq 'jka-compr-handler
+					file-name-handler-alist))))
 (define-key menu-bar-options-menu [save-place]
   (menu-bar-make-toggle toggle-save-place-globally save-place
 			"Save Place in Files between Sessions"
 			"Saving place in files %s"
-			"Save Emacs state for next session"
-                        (require 'saveplace)
-			(setq-default save-place
-				      (not (default-value save-place)))))
+			"Save Emacs state for next session"))
+
 (define-key menu-bar-options-menu [uniquify]
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
 			"Use Directory Names in Buffer Names"
@@ -733,6 +758,7 @@ Do the same for the keys of the same name."
 			(setq uniquify-buffer-name-style
 			      (if (not uniquify-buffer-name-style)
 				  'forward))))
+
 (define-key menu-bar-options-menu [edit-options-separator]
   '("--"))
 (define-key menu-bar-options-menu [case-fold-search]
@@ -742,7 +768,13 @@ Do the same for the keys of the same name."
 			"Ignore letter-case in search"))
 (define-key menu-bar-options-menu [auto-fill-mode]
   '(menu-item "Word Wrap in Text Modes (Auto Fill)"
-              toggle-text-mode-auto-fill
+              (lambda ()
+		(interactive)
+		(toggle-text-mode-auto-fill)
+		;; This is somewhat questionable, as `text-mode-hook'
+		;; might have changed outside customize.  
+		;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
+		(customize-mark-as-set 'text-mode-hook))
 	      :help "Automatically fill text between left and right margins"
               :button (:toggle . (member 'turn-on-auto-fill text-mode-hook))))
 (define-key menu-bar-options-menu [truncate-lines]
@@ -750,7 +782,10 @@ Do the same for the keys of the same name."
    toggle-truncate-lines truncate-lines
    "Truncate Long Lines in this Buffer" "Long Line Truncation %s"
    "Truncate long lines on the screen"
-   (prog1 (setq truncate-lines (not truncate-lines))
+   ;; FIXME: We should define a :set method for `truncate-lines' to do
+   ;; the `buffer-modified-p' stuff.
+   ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
+   (prog1 (setq-default truncate-lines (not truncate-lines))
      (set-buffer-modified-p (buffer-modified-p)))))
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
@@ -758,8 +793,7 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-highlight-paren-mode show-paren-mode
 			"Paren Match Highlighting (Show Paren mode)"
 			"Show Paren mode %s"
-			"Highlight matching/mismatched parentheses at cursor"
-			(show-paren-mode)))
+			"Highlight matching/mismatched parentheses at cursor"))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
 			"Active Region Highlighting (Transient Mark mode)"
@@ -769,8 +803,7 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
 			"Syntax Highlighting (Global Font Lock mode)"
 			"Global Font Lock mode %s"
-			"Colorize text based on language syntax"
-			(global-font-lock-mode)))
+			"Colorize text based on language syntax"))
 
 
 ;; The "Tools" menu items
@@ -1402,6 +1435,12 @@ use either \\[customize] or the function `menu-bar-mode'."
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'frames)
+
+;;; `menu-bar-mode' doesn't really have a standard value, as it depend
+;;; on where and how Emacs was started.  By removing the standard
+;;; value, we ensure that customize will always save it.
+;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
+(put 'menu-bar-mode 'standard-value nil)
 
 (defun menu-bar-mode (&optional flag)
   "Toggle display of a menu bar on each frame.
