@@ -157,6 +157,11 @@ recreate it for the change to take effect."
   :group 'ibuffer)
 (defvar ibuffer-shrink-to-minimum-size nil)
 
+(defcustom ibuffer-display-summary t
+  "If non-nil, summarize Ibuffer columns."
+  :type 'boolean
+  :group 'ibuffer)
+
 (defcustom ibuffer-truncate-lines t
   "If non-nil, do not display continuation lines."
   :type 'boolean
@@ -1926,34 +1931,35 @@ the value of point at the beginning of the line for that buffer."
 	(delete-region (previous-single-property-change
 			(point-max) 'ibuffer-summary)
 		       (point-max)))
-    (add-text-properties
-     (point)
-     (progn
-       (insert "\n")
-       (dolist (element format)
-	 (insert
-	  (if (stringp element)
-	      (make-string (length element) ? )
-	    (let ((sym (car element)))
-	      (let ((min (cadr element))
-		    ;; (max (caddr element))
-		    (align (cadddr element)))
-		;; Ignore a negative min when we're inserting the title
-		(when (minusp min)
-		  (setq min (- min)))
-		(let* ((summary (if (get sym 'ibuffer-column-summarizer)
-				    (funcall (get sym 'ibuffer-column-summarizer)
-					     (get sym 'ibuffer-column-summary))
-				  (make-string (length (get sym 'ibuffer-column-name))
-					       ? )))
-		       (len (length summary)))
-		  (if (< len min)
-		      (ibuffer-format-column summary
-					     (- min len)
-					     align)
-		    summary)))))))
-       (point))
-     `(ibuffer-summary t))))
+    (if ibuffer-display-summary
+	(add-text-properties
+	 (point)
+	 (progn
+	   (insert "\n")
+	   (dolist (element format)
+	     (insert
+	      (if (stringp element)
+		  (make-string (length element) ? )
+		(let ((sym (car element)))
+		  (let ((min (cadr element))
+			;; (max (caddr element))
+			(align (cadddr element)))
+		    ;; Ignore a negative min when we're inserting the title
+		    (when (minusp min)
+		      (setq min (- min)))
+		    (let* ((summary (if (get sym 'ibuffer-column-summarizer)
+					(funcall (get sym 'ibuffer-column-summarizer)
+						 (get sym 'ibuffer-column-summary))
+				      (make-string (length (get sym 'ibuffer-column-name))
+						   ? )))
+			   (len (length summary)))
+		      (if (< len min)
+			  (ibuffer-format-column summary
+						 (- min len)
+						 align)
+			summary)))))))
+	   (point))
+	 `(ibuffer-summary t)))))
 
 (defun ibuffer-update-mode-name ()
   (setq mode-name (format "Ibuffer by %s" (if ibuffer-sorting-mode
