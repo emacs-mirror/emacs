@@ -1,3 +1,7 @@
+2002-03-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lisp.h (Fplist_member): Add prototype.
+
 2002-03-18  Kim F. Storm  <storm@cua.dk>
 
 	* config.in: Add HAVE_SENDTO, HAVE_RECVFROM, HAVE_SETSOCKOPT,
