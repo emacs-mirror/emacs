@@ -398,6 +398,10 @@ Do the same for the keys of the same name."
 			(substring string 0 (/ yank-menu-length 2))
 			"..."
 			(substring string (- (/ yank-menu-length 2)))))))
+    ;; Don't let the menu string be all dashes
+    ;; because that has a special meaning in a menu.
+    (if (string-match "\\`-+\\'" menu-string)
+	(setq menu-string (concat menu-string " ")))
     ;; If we're supposed to be extending an existing string, and that
     ;; string really is at the front of the menu, then update it in place.
     (if (and old (or (eq old (car front))
