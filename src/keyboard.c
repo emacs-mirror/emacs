@@ -4012,12 +4012,12 @@ static char *lispy_drag_n_drop_names[] =
 /* Scroll bar parts.  */
 Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
 Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
-Lisp_Object Qtop;
+Lisp_Object Qtop, Qratio;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
 Lisp_Object *scroll_bar_parts[] = {
   &Qabove_handle, &Qhandle, &Qbelow_handle,
-  &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll
+  &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
 };
 
 /* User signal events.  */
@@ -9621,6 +9621,8 @@ syms_of_keyboard ()
   staticpro (&Qbottom);
   Qend_scroll = intern ("end-scroll");
   staticpro (&Qend_scroll);
+  Qratio = intern ("ratio");
+  staticpro (&Qratio);
 
   Qevent_kind = intern ("event-kind");
   staticpro (&Qevent_kind);
