@@ -1,3 +1,10 @@
+2002-05-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el: Change registry for japanese-jisx0208
+	to "JISX0208*" in the default fontset.
+	(font-encoding-alist): Add an entry for "JISX0208.1983" and
+	"ISO10646.indian-1".
+
 2002-05-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/japanese.el (japanese-iso-7bit-1978-irv): Add
