@@ -209,6 +209,9 @@ Resources can be used to over-ride these face attributes.  For example, the
 resource `Emacs.font-lock-comment-face.attributeUnderline' can be used to
 specify the UNDERLINE-P attribute for face `font-lock-comment-face'.")
 
+(defvar font-lock-make-faces-done nil
+  "Non-nil if have already set up the faces for Font-Lock mode.")
+
 (defun font-lock-make-faces ()
   "Make faces from `font-lock-face-attributes'.
 A default list is used if this is nil.
@@ -229,10 +232,9 @@ See `font-lock-make-face' and `list-faces-display'."
 					       "BackgroundMode"))
 		  (params (frame-parameters)))
 	      (cond (bg-resource (intern (downcase bg-resource)))
-		    ((or (string-equal "white"
-			  (downcase (cdr (assq 'foreground-color params))))
-			 (string-equal "black"
-			  (downcase (cdr (assq 'background-color params)))))
+		    ((< (apply '+ (x-color-values
+				   (cdr (assq 'background-color params))))
+			(/ (apply '+ (x-color-values "white")) 3))
 		     'dark)
 		    (t 'light)))))
   (if (null font-lock-face-attributes)
@@ -291,7 +293,8 @@ See `font-lock-make-face' and `list-faces-display'."
 		       (font-lock-variable-name-face "LightGoldenrod")
 		       (font-lock-type-face "PaleGreen")
 		       (font-lock-reference-face "Aquamarine")))))))
-  (mapcar 'font-lock-make-face font-lock-face-attributes))
+  (mapcar 'font-lock-make-face font-lock-face-attributes)
+  (setq font-lock-make-faces-done t))
 
 (defun font-lock-make-face (face-attributes)
   "Make a face from FACE-ATTRIBUTES.
@@ -583,6 +586,10 @@ fontification occurs only if the buffer is less than `font-lock-maximum-size'.
 To fontify a buffer without turning on Font Lock mode, and regardless of buffer
 size, you can use \\[font-lock-fontify-buffer]."
   (interactive "P")
+
+  (or font-lock-make-faces-done
+      (font-lock-make-faces))
+
   (let ((on-p (if arg (> (prefix-numeric-value arg) 0) (not font-lock-mode))))
     (if (equal (buffer-name) " *Compiler Input*") ; hack for bytecomp...
 	(setq on-p nil))
@@ -927,10 +934,6 @@ and `font-lock-keywords-case-fold-search' using `font-lock-defaults-alist'."
 		(setq slist (cdr slist))))))))
 
 ;; Install ourselves:
-
-(if purify-flag
-    (add-hook 'after-init-hook 'font-lock-make-faces)
-  (font-lock-make-faces))
 
 (or (assq 'font-lock-mode minor-mode-alist)
     (setq minor-mode-alist (cons '(font-lock-mode " Font") minor-mode-alist)))
