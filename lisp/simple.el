@@ -664,7 +664,7 @@ but it is nonetheless available in buffer `*Shell Command Output*'
 even though that buffer is not automatically displayed.  If there is no output
 or output is inserted in the current buffer then `*Shell Command Output*' is
 deleted." 
-  (interactive (list (min (point) (mark)) (max (point) (mark))
+  (interactive (list (region-beginning) (region-end)
 		     (read-string "Shell command on region: "
 				  last-shell-command-on-region)
 		     current-prefix-arg
