@@ -904,6 +904,11 @@ See `font-lock-make-face' and `list-faces-display'."
 					       "BackgroundMode"))
 		  (params (frame-parameters)))
 	      (cond (bg-resource (intern (downcase bg-resource)))
+		    ((eq system-type 'ms-dos)
+		     (if (string-match "light"
+				       (cdr (assq 'background-color params)))
+			 'light
+		       'dark))
 		    ((< (apply '+ (x-color-values
 				   (cdr (assq 'background-color params))))
 			(/ (apply '+ (x-color-values "white")) 3))
