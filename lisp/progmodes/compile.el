@@ -69,6 +69,9 @@
 
 ;;; Code:
 
+;; This is the parsing engine for compile:
+(require 'font-lock) ; needed to get font-lock-value-in-major-mode
+
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
   :group 'tools
