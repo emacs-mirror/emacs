@@ -546,13 +546,34 @@ colon-separated list of directories when resolving a relative directory name."
 		       (read-file-name "Load file: "))))
   (load (expand-file-name file) nil nil t))
 
-(defun load-completion (string predicate action)
+(defun locate-file (filename path &optional suffixes predicate)
+  "Search for FILENAME through PATH.
+If SUFFIXES is non-nil, it should be a list of suffixes to append to
+file name when searching.  If SUFFIXES is nil, it is equivalent to '(\"\").
+If non-nil, PREDICATE is used instead of `file-readable-p'.
+PREDICATE can also be an integer to pass to the access(2) function,
+in which case file-name-handlers are ignored.
+For compatibility with XEmacs, PREDICATE can also be a symbol among
+`executable', `readable', `writable', or `exists' or a list of one
+of those symbols."
+  (if (and predicate (symbolp predicate) (not (functionp predicate)))
+      (setq predicate (list predicate)))
+  (when (and (consp predicate) (not (functionp predicate)))
+    (setq predicate
+	  (logior (if (memq 'executable predicate) 1 0)
+		  (if (memq 'writable predicate) 2 0)
+		  (if (memq 'readable predicate) 4 0))))
+  (locate-file-internal filename path suffixes predicate))
+
+(defun locate-file-completion (string path-and-suffixes action)
+  "Do completion for file names passed to `locate-file'.
+PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
   (if (file-name-absolute-p string)
-      (read-file-name-internal string predicate action)
+      (read-file-name-internal string nil action)
     (let ((names nil)
-	  (suffix (concat (regexp-opt load-suffixes t) "\\'"))
+	  (suffix (concat (regexp-opt (cdr path-and-suffixes) t) "\\'"))
 	  (string-dir (file-name-directory string)))
-      (dolist (dir load-path)
+      (dolist (dir (car path-and-suffixes))
 	(if string-dir (setq dir (expand-file-name string-dir dir)))
 	(when (file-directory-p dir)
 	  (dolist (file (file-name-all-completions
@@ -562,13 +583,16 @@ colon-separated list of directories when resolving a relative directory name."
 	      (setq file (substring file 0 (match-beginning 0)))
 	      (push (if string-dir (concat string-dir file) file) names)))))
       (if action
-	  (all-completions string (mapcar 'list names) predicate)
-	(try-completion string (mapcar 'list names) predicate)))))
+	  (all-completions string (mapcar 'list names))
+	(try-completion string (mapcar 'list names))))))
 
 (defun load-library (library)
   "Load the library named LIBRARY.
 This is an interface to the function `load'."
-  (interactive (list (completing-read "Load library: " 'load-completion)))
+  (interactive
+   (list (completing-read "Load library: "
+			  'locate-file-completion
+			  (cons load-path load-suffixes))))
   (load library))
 
 (defun file-local-copy (file)
@@ -3372,7 +3396,7 @@ See also `auto-save-file-name-p'."
 	  (if (string-match (car (car list)) filename)
 	      (setq result (replace-match (cadr (car list)) t nil
 					  filename)
-		    uniq (caddr (car list))))
+		    uniq (car (cddr (car list)))))
 	  (setq list (cdr list)))
 	(if result
 	    (if uniq
