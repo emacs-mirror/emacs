@@ -665,13 +665,13 @@ Has a preference of looking backwards."
 		     ;; Needs work for f90, but better than nothing.
 		     (eq major-mode 'f90-mode))
                  ;; must be inside function body for this to work
-                 (beginning-of-fortran-subprogram)
+                 (fortran-beginning-of-subprogram)
                  (let ((case-fold-search t)) ; case-insensitive
                    ;; search for fortran subprogram start
                    (if (re-search-forward
                         "^[ \t]*\\(program\\|subroutine\\|function\
 \\|[ \ta-z0-9*()]*[ \t]+function\\|\\(block[ \t]*data\\)\\)"
-                        (save-excursion (end-of-fortran-subprogram)
+                        (save-excursion (fortran-end-of-subprogram)
                                         (point))
                         t)
                        (or (match-string 2)
