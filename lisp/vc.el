@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.241 1998/12/08 16:04:52 rost Exp rms $
+;; $Id: vc.el,v 1.242 1999/01/02 21:54:32 rms Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -2293,9 +2293,6 @@ default directory."
 	       (delete-file tempfile)))))
 
 ;; vc-annotate functionality (CVS only).
-(defvar vc-annotate-mode nil
-  "Variable indicating if VC-Annotate mode is active.")
-
 (defvar vc-annotate-mode-map nil
   "Local keymap used for VC-Annotate mode.")
 
@@ -2444,8 +2441,14 @@ THRESHOLD, nil otherwise"
 	    ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))))
     (set-buffer buffer)
     (display-buffer buffer)
-    (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
+    (or (eq major-mode 'vc-annotate-mode) ; Turn on vc-annotate-mode if not done
 	(vc-annotate-mode))
+    ;; Delete old overlays
+    (mapcar
+     (lambda (overlay)
+       (if (overlay-get overlay 'vc-annotation)
+	   (delete-overlay overlay)))
+     (overlays-in (point-min) (point-max)))
     (goto-char (point-min))		; Position at the top of the buffer.
     (while (re-search-forward
 	    "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "
@@ -2473,10 +2476,13 @@ THRESHOLD, nil otherwise"
 			    (if vc-annotate-background
 				(set-face-background tmp-face vc-annotate-background))
 			    tmp-face)))) ; Return the face
-	     (point (point)))
+	     (point (point))
+	     overlay)
 
 	(forward-line 1)
-	(overlay-put (make-overlay point (point) nil) 'face face)))))
+	(setq overlay (make-overlay point (point)))
+	(overlay-put overlay 'face face)
+	(overlay-put overlay 'vc-annotation t)))))
 
 
 ;; Collect back-end-dependent stuff here
