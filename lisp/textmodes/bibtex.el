@@ -138,7 +138,6 @@
 ;;;   user visible variables added:
 ;;; 	 bibtex-maintain-sorted-entries
 ;;;   new local keybindings:
-;;; 	"	tex-insert-quote
 ;;; 	C-c$   ispell-bibtex-entry
 ;;; 	M-C-a  beginning-of-bibtex-entry
 ;;; 	M-C-e  end-of-bibtex-entry
@@ -233,8 +232,6 @@
 ;;; these guys typically don't have autoloads...[alarson:19920131.1548CST]
 ;;; Check for fboundp first so that if user autoloads them from non standard 
 ;;; places, the users bindings will take precedence.
-(if (not (fboundp 'tex-insert-quote))
-    (autoload 'tex-insert-quote "tex-mode"))
 (if (not (fboundp 'sort-subr))
     (autoload 'sort-subr "sort"))
 
@@ -299,7 +296,6 @@ string and the cdr the value to be inserted.")
     (define-key km "\C-c\C-d" 'bibtex-empty-field)
 
     ;; [alarson:19920131.1543CST]
-    (define-key km "\""   'tex-insert-quote)
     (define-key km "\C-c$"   'ispell-bibtex-entry)
     (define-key km "\M-\C-a"   'beginning-of-bibtex-entry)
     (define-key km "\M-\C-e"   'end-of-bibtex-entry)
