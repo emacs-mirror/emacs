@@ -1430,29 +1430,21 @@ DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
   return buf;
 }
 
-/* Set the current buffer to B.  */
+/* Set the current buffer to B.
+
+   We previously set windows_or_buffers_changed here to invalidate
+   global unchanged information in beg_unchanged and end_unchanged.
+   This is no longer necessary because we now compute unchanged
+   information on a buffer-basis.  Every action affecting other
+   windows than the selected one requires a select_window at some
+   time, and that increments windows_or_buffers_changed.  */
 
 void
 set_buffer_internal (b)
      register struct buffer *b;
 {
   if (current_buffer != b)
-    {
-      /* Set windows_or_buffers_changed only if buffer is displayed
-	 somewhere.  This enables redisplay optimizations if a
-	 background task like deferred fontification changes buffers,
-	 but none that are currently displayed.  */
-      if (!windows_or_buffers_changed
-	  && selected_frame)
-	{
-	  Lisp_Object buffer;
-	  XSETBUFFER (buffer, b);
-	  if (!NILP (Fget_buffer_window (buffer, Qvisible)))
-	    ++windows_or_buffers_changed;
-	}
-  
-      set_buffer_internal_1 (b);
-    }
+    set_buffer_internal_1 (b);
 }
 
 /* Set the current buffer to B, and do not set windows_or_buffers_changed.
