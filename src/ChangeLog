@@ -1,5 +1,8 @@
 2001-05-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c (Fsingle_key_description): NUL-terminate the string
+	buffer before calling build_string.
+
 	* callproc.c (Fcall_process): Deal with decode_coding returning
 	CODING_FINISH_INCONSISTENT_EOL.
 
