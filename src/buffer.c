@@ -133,6 +133,8 @@ Lisp_Object Qget_file_buffer;
 
 Lisp_Object Qoverlayp;
 
+Lisp_Object Qpriority, Qwindow;
+
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
@@ -1365,6 +1367,85 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
   return idx;
 }
 
+struct sortvec
+{
+  Lisp_Object overlay;
+  int beg, end;
+  int priority;
+};
+
+static int
+compare_overlays (s1, s2)
+     struct sortvec *s1, *s2;
+{
+  if (s1->priority != s2->priority)
+    return s1->priority - s2->priority;
+  if (s1->beg != s2->beg)
+    return s1->beg - s2->beg;
+  if (s1->end != s2->end)
+    return s2->end - s1->end;
+  return 0;
+}
+
+/* Sort an array of overlays by priority.  The array is modified in place.
+   The return value is the new size; this may be smaller than the original
+   size if some of the overlays were invalid or were window-specific.  */
+int
+sort_overlays (overlay_vec, noverlays, w)
+     Lisp_Object *overlay_vec;
+     int noverlays;
+     struct window *w;
+{
+  int i, j;
+  struct sortvec *sortvec;
+  sortvec = (struct sortvec *) alloca (noverlays * sizeof (struct sortvec));
+
+  /* Put the valid and relevant overlays into sortvec.  */
+
+  for (i = 0, j = 0; i < noverlays; i++)
+    {
+      Lisp_Object overlay = overlay_vec[i];
+
+      if (OVERLAY_VALID (overlay)
+	  && OVERLAY_POSITION (OVERLAY_START (overlay)) > 0
+	  && OVERLAY_POSITION (OVERLAY_END (overlay)) > 0)
+	{
+	  Lisp_Object window;
+	  window = Foverlay_get (overlay, Qwindow);
+
+	  /* Also ignore overlays limited to one window
+	     if it's not the window we are using.  */
+	  if (XTYPE (window) != Lisp_Window
+	      || XWINDOW (window) == w)
+	    {
+	      Lisp_Object tem;
+
+	      /* This overlay is good and counts:
+		 put it in sortvec.  */
+	      sortvec[j].overlay = overlay;
+	      sortvec[j].beg = OVERLAY_POSITION (OVERLAY_START (overlay));
+	      sortvec[j].end = OVERLAY_POSITION (OVERLAY_END (overlay));
+	      tem = Foverlay_get (overlay, Qpriority);
+	      if (INTEGERP (tem))
+		sortvec[j].priority = XINT (tem);
+	      else
+		sortvec[j].priority = 0;
+	      j++;
+	    }
+	}
+    }
+  noverlays = j;
+
+  /* Sort the overlays into the proper order: increasing priority.  */
+
+  if (noverlays > 1)
+    qsort (sortvec, noverlays, sizeof (struct sortvec), compare_overlays);
+
+  for (i = 0; i < noverlays; i++)
+    overlay_vec[i] = sortvec[i].overlay;
+  return (noverlays);
+}
+
 /* Shift overlays in BUF's overlay lists, to center the lists at POS.  */
 
 void
@@ -2197,6 +2278,10 @@ syms_of_buffer ()
   Qinsert_behind_hooks = intern ("insert-behind-hooks");
   staticpro (&Qget_file_buffer);
   Qget_file_buffer = intern ("get-file-buffer");
+  Qpriority = intern ("priority");
+  staticpro (&Qpriority);
+  Qwindow = intern ("window");
+  staticpro (&Qwindow);
 
   Qoverlayp = intern ("overlayp");
 
