@@ -293,7 +293,8 @@ lwlib/Makefile: lwlib/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ## We don't depend on `all', but rather on ${SUBDIR}, so that we won't
 ## ever modify src/paths.h.
-install: ${SUBDIR} install-arch-dep install-arch-indep blessmail;
+install: ${SUBDIR} install-arch-dep install-arch-indep blessmail
+	@true
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
@@ -321,8 +322,8 @@ install-arch-indep: mkdir
 	   shift ; \
 	 done
 	-set ${COPYDESTS} ; \
- 	 mkdir ${COPYDESTS} ; \
- 	 chmod ugo+rx ${COPYDESTS} ; \
+	 mkdir ${COPYDESTS} ; \
+	 chmod ugo+rx ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
 	   [ -d $${dir} ] \
@@ -354,7 +355,6 @@ install-arch-indep: mkdir
 	   else mv -f dir dir.bak; fi; \
 	   cd ${srcdir}/info ; \
 	   (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
-	   fi ; \
 	   for f in cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*; do \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f); \
 	   done); \
@@ -451,7 +451,6 @@ distclean: FRC
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
 	(cd man &&    $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
-	
 
 ### `maintainer-clean'
 ###      Delete everything from the current directory that can be
