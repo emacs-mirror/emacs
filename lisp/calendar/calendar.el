@@ -1484,7 +1484,7 @@ Holidays are included if `cal-tex-holidays' is t.")
 
 (autoload 'cal-tex-cursor-week-iso "cal-tex"
   "Make a buffer with LaTeX commands for a one page ISO-style weekly calendar.
-Optional prefix argument specifies number of weeks."
+Optional prefix argument specifies number of weeks.
 Diary entries are included if `cal-tex-diary' is t.
 Holidays are included if `cal-tex-holidays' is t.")
 
