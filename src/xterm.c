@@ -4446,7 +4446,6 @@ x_draw_glyph_string (s)
 
   /* Set up S->gc, set clipping and draw S.  */
   x_set_glyph_string_gc (s);
-  x_set_glyph_string_clipping (s);
 
   /* Draw relief (if any) in advance for char/composition so that the
      glyph string can be drawn over it.  */
@@ -4456,10 +4455,14 @@ x_draw_glyph_string (s)
 	  || s->first_glyph->type == COMPOSITE_GLYPH))
 
     {
+      x_set_glyph_string_clipping (s);
       x_draw_glyph_string_background (s, 1);
       x_draw_glyph_string_box (s);
+      x_set_glyph_string_clipping (s);
       relief_drawn_p = 1;
     }
+  else
+    x_set_glyph_string_clipping (s);
 
   switch (s->first_glyph->type)
     {
