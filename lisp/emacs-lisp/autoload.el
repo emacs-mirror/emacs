@@ -235,7 +235,6 @@ autoloads go somewhere else.")
 	  (widen)
 	  (goto-char (point-min))
 	  (while (search-forward generate-autoload-section-header nil t)
-	    (or done (setq done 'seen))
 	    (let ((form (condition-case ()
 			    (read (current-buffer))
 			  (end-of-file nil))))
@@ -257,20 +256,27 @@ autoloads go somewhere else.")
 		      (generate-file-autoloads file))
 		    (setq done t))))))
 	(if done
+	    ;; There was an existing section and we have updated it.
 	    ()
-	  ;; Have the user tell us where to put the section.
-	  (save-window-excursion
-	    (switch-to-buffer (current-buffer))
-	    (with-output-to-temp-buffer "*Help*"
-	      (princ (substitute-command-keys
-		      (format "\
+	  (if (save-excursion
+		(set-buffer (find-file-noselect file))
+		(save-excursion
+		  (search-forward generate-autoload-cookie nil t)))
+	      ;; There are autoload cookies in FILE.
+	      ;; Have the user tell us where to put the new section.
+	      (progn
+		(save-window-excursion
+		(switch-to-buffer (current-buffer))
+		(with-output-to-temp-buffer "*Help*"
+		  (princ (substitute-command-keys
+			  (format "\
 Move point to where the autoload section
 for %s should be inserted.
 Then do \\[exit-recursive-edit]."
-			      file))))
-	    (recursive-edit)
-	    (beginning-of-line))
-	  (generate-file-autoloads file)))
+				  file))))
+		(recursive-edit)
+		(beginning-of-line))
+		(generate-file-autoloads file)))))
       (if (interactive-p) (save-buffer))
       (if (and (null existing-buffer)
 	       (setq existing-buffer (get-file-buffer file)))
