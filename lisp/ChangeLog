@@ -1,3 +1,14 @@
+2002-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/sendmail.el (mail-recover-1): New function.
+	(mail-recover): Switch to the *mail* buffer right away.  Use
+	buffer-auto-save-file-name instead of calling
+	make-auto-save-file-name.  Call dired-noselect instead of invoking
+	`ls' directly.  Bind coding-system-for-read to emacs-mule-unix
+	before reading the auto-save file.  If the buffer's auto-save file
+	does not exist, call mail-recover-1 to allow recovery from past
+	auto-saved drafts.
+
 2002-01-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* time.el (display-time-load-average-threshold): Fix defcustom
