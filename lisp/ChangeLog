@@ -1,7 +1,9 @@
-2002-03-16  Eli Zaretskii  <eliz@fencepost.gnu.org>
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/po.el (po-find-charset): Search for the Charset=
 	header even if we've read less than 4KB.
+	<top-level>: Remove the setup for all known codepages: it seems
+	to cause crashes in the CCL driver.
 
 2002-03-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
