@@ -228,5 +228,5 @@ and this notice must be preserved on all copies.  */
 
 #define SYSTEM_MALLOC
 
-
-
+/* Use the gethostname system call.  */
+#define HAVE_GETHOSTNAME
