@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
-;; Copyright (C) 1985, 86, 87, 93, 94 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 1995 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
@@ -586,7 +586,7 @@ Just inserts the text, but uses `insert-before-markers'."
     errors))
 
 (defsubst compilation-buffer-p (buffer)
-  (assq 'compilation-error-list (buffer-local-variables buffer)))
+  (or compilation-minor-mode (eq major-mode 'compilation-mode)))
 
 (defun compilation-next-error (n)
   "Move point to the next error in the compilation buffer.
