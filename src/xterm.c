@@ -2249,8 +2249,9 @@ x_produce_glyphs (it)
   else if (it->what == IT_STRETCH)
     x_produce_stretch_glyph (it);
 
-  /* Accumulate dimensions.  */
-  xassert (it->ascent >= 0 && it->descent > 0);
+  /* Accumulate dimensions.  Note: can't assume that it->descent > 0
+     because this isn't true for images with `:ascent 100'.  */
+  xassert (it->ascent >= 0 && it->descent >= 0);
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
   
