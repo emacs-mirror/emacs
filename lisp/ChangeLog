@@ -1,3 +1,7 @@
+2000-07-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.el (compose-chars-after): Preserve match data.
+
 2000-07-26  Sam Steingold  <sds@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-file-newer-than-file-p): New function.
