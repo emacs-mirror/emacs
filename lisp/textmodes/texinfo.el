@@ -216,7 +216,7 @@ chapter."
     ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face)	;commands
     ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) 	;menu items
     ("@\\(emph\\|strong\\|b\\|i\\){\\([^}]+\\)" 2 font-lock-comment-face)
-    ("@\\(file\\|kbd\\|key\\){\\([^}]+\\)" 2 font-lock-string-face)
+    ("@\\(file\\|kbd\\|key\\|url\\|email\\){\\([^}]+\\)" 2 font-lock-string-face)
     ("@\\(samp\\|code\\|var\\|math\\){\\([^}]+\\)"
      2 font-lock-variable-name-face)
     ("@\\(cite\\|xref\\|pxref\\){\\([^}]+\\)" 2 font-lock-reference-face)
