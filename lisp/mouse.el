@@ -300,16 +300,16 @@ This command must be bound to a mouse click."
   (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (let ((done nil)
-	(echo-keystrokes 0)
-	(start-event-frame (window-frame (car (car (cdr start-event)))))
-	(start-event-window (car (car (cdr start-event))))
-	(start-nwindows (count-windows t))
-	(old-selected-window (selected-window))
-	event mouse x left right edges wconfig growth
-	(which-side
-	 (or (cdr (assq 'vertical-scroll-bars default-frame-alist))
-	     'left)))
+  (let* ((done nil)
+	 (echo-keystrokes 0)
+	 (start-event-frame (window-frame (car (car (cdr start-event)))))
+	 (start-event-window (car (car (cdr start-event))))
+	 (start-nwindows (count-windows t))
+	 (old-selected-window (selected-window))
+	 event mouse x left right edges wconfig growth
+	 (which-side
+	  (or (cdr (assq 'vertical-scroll-bars (frame-parameters start-event-frame)))
+	      'right)))
     (if (one-window-p t)
 	(error "Attempt to resize sole ordinary window"))
     (if (eq which-side 'left)
