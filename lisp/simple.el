@@ -1902,7 +1902,7 @@ can set the value for a particular mode using that mode's hook.")
 (make-variable-buffer-local 'comment-column)
 
 (defconst comment-start nil
-  "*String to insert to start a new comment, or nil if no comment syntax defined.")
+  "*String to insert to start a new comment, or nil if no comment syntax.")
 
 (defconst comment-start-skip nil
   "*Regexp to match the start of a comment plus everything up to its body.
@@ -1924,47 +1924,62 @@ the comment's starting delimiter.")
 This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
 
+(defconst block-comment-start nil
+  "*String to insert to start a new comment on a line by itself.
+If nil, use `comment-start' instead.
+Note that the regular expression `comment-start-skip' should skip this string
+as well as the `comment-start' string.")
+
+(defconst block-comment-end nil
+  "*String to insert to end a new comment on a line by itself.
+Should be an empty string if comments are terminated by end-of-line.
+If nil, use `comment-end' instead.")
+
 (defun indent-for-comment ()
   "Indent this line's comment to comment column, or insert an empty comment."
   (interactive "*")
   (beginning-of-line 1)
-  (if (null comment-start)
-      (error "No comment syntax defined")
-    (let* ((eolpos (save-excursion (end-of-line) (point)))
-	   cpos indent begpos)
-      (if (re-search-forward comment-start-skip eolpos 'move)
-	  (progn (setq cpos (point-marker))
-		 ;; Find the start of the comment delimiter.
-		 ;; If there were paren-pairs in comment-start-skip,
-		 ;; position at the end of the first pair.
-		 (if (match-end 1)
-		     (goto-char (match-end 1))
-		   ;; If comment-start-skip matched a string with
-		   ;; internal whitespace (not final whitespace) then
-		   ;; the delimiter start at the end of that
-		   ;; whitespace.  Otherwise, it starts at the
-		   ;; beginning of what was matched.
-		   (skip-syntax-backward " " (match-beginning 0))
-		   (skip-syntax-backward "^ " (match-beginning 0)))))
-      (setq begpos (point))
-      ;; Compute desired indent.
-      (if (= (current-column)
-	     (setq indent (if comment-indent-hook
-			      (funcall comment-indent-hook)
-			    (funcall comment-indent-function))))
-	  (goto-char begpos)
-	;; If that's different from current, change it.
-	(skip-chars-backward " \t")
-	(delete-region (point) begpos)
-	(indent-to indent))
-      ;; An existing comment?
-      (if cpos 
-	  (progn (goto-char cpos)
-		 (set-marker cpos nil))
-	;; No, insert one.
-	(insert comment-start)
-	(save-excursion
-	  (insert comment-end))))))
+  (let* ((empty (save-excursion (beginning-of-line)
+				(looking-at "[ \t]*$")))
+	 (starter (or (and empty block-comment-start) comment-start))
+	 (ender (or (and empty block-comment-end) comment-end)))
+    (if (null starter)
+	(error "No comment syntax defined")
+      (let* ((eolpos (save-excursion (end-of-line) (point)))
+	     cpos indent begpos)
+	(if (re-search-forward comment-start-skip eolpos 'move)
+	    (progn (setq cpos (point-marker))
+		   ;; Find the start of the comment delimiter.
+		   ;; If there were paren-pairs in comment-start-skip,
+		   ;; position at the end of the first pair.
+		   (if (match-end 1)
+		       (goto-char (match-end 1))
+		     ;; If comment-start-skip matched a string with
+		     ;; internal whitespace (not final whitespace) then
+		     ;; the delimiter start at the end of that
+		     ;; whitespace.  Otherwise, it starts at the
+		     ;; beginning of what was matched.
+		     (skip-syntax-backward " " (match-beginning 0))
+		     (skip-syntax-backward "^ " (match-beginning 0)))))
+	(setq begpos (point))
+	;; Compute desired indent.
+	(if (= (current-column)
+	       (setq indent (if comment-indent-hook
+				(funcall comment-indent-hook)
+			      (funcall comment-indent-function))))
+	    (goto-char begpos)
+	  ;; If that's different from current, change it.
+	  (skip-chars-backward " \t")
+	  (delete-region (point) begpos)
+	  (indent-to indent))
+	;; An existing comment?
+	(if cpos 
+	    (progn (goto-char cpos)
+		   (set-marker cpos nil))
+	  ;; No, insert one.
+	  (insert starter)
+	  (save-excursion
+	    (insert ender)))))))
 
 (defun set-comment-column (arg)
   "Set the comment column based on point.
