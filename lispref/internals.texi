@@ -1094,6 +1094,9 @@ The value of @code{buffer-file-coding-system} in this buffer.
 @item file_format
 The value of @code{buffer-file-format} in this buffer.
 
+@item auto_save_file_format
+The value of @code{buffer-auto-save-file-format} in this buffer.
+
 @item pt_marker
 In an indirect buffer, or a buffer that is the base of an indirect
 buffer, this holds a marker that records point for this buffer when the

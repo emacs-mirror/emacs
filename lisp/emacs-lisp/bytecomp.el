@@ -365,7 +365,7 @@ Elements of the list may be be:
 
 (defcustom byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.
-This records functions were called and from where.
+This records which functions were called and from where.
 If the value is t, compilation displays the call graph when it finishes.
 If the value is neither t nor nil, compilation asks you whether to display
 the graph.
@@ -4240,15 +4240,18 @@ invoked interactively."
 				 (mapconcat 'symbol-name callers ", ")
 			       "<top level>"))
 	      (let ((fill-prefix "    "))
-		(fill-region-as-paragraph p (point)))))
+		(fill-region-as-paragraph p (point)))
+              (unless (= 0 (current-column))
+                (insert "\n"))))
 	(if calls
 	    (progn
 	      (insert "  calls:\n")
 	      (setq p (point))
 	      (insert "    " (mapconcat 'symbol-name calls ", "))
 	      (let ((fill-prefix "    "))
-		(fill-region-as-paragraph p (point)))))
-	(insert "\n")
+		(fill-region-as-paragraph p (point)))
+              (unless (= 0 (current-column))
+                (insert "\n"))))
 	(setq rest (cdr rest)))
 
       (message "Generating call tree...(finding uncalled functions...)")

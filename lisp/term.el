@@ -925,7 +925,7 @@ is buffer-local.")
 (defun term-window-width ()
   (if (featurep 'xemacs)
       (1- (window-width))
-    (if window-system
+    (if (and window-system overflow-newline-into-fringe)
 	(window-width)
       (1- (window-width)))))
 
@@ -988,8 +988,6 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-width)
   (setq term-width (term-window-width))
   (setq term-height (1- (window-height)))
-  (term-ifnot-xemacs
-   (set (make-local-variable 'overflow-newline-into-fringe) nil))
   (make-local-variable 'term-terminal-parameter)
   (make-local-variable 'term-saved-cursor)
   (make-local-variable 'term-last-input-start)

@@ -46,14 +46,15 @@ INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/emacs-mime $(infodir)/eshell \
 		$(infodir)/speedbar $(infodir)/tramp \
 		$(infodir)/ses $(infodir)/smtpmail \
-		$(infodir)/flymake $(infodir)/emacs-xtra
+		$(infodir)/flymake $(infodir)/emacs-xtra \
+		$(infodir)/pgg $(infodir)/sieve
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
-		 emacs-xtra.dvi
+		 emacs-xtra.dvi pgg.dvi sieve.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -189,6 +190,7 @@ $(infodir)/forms: forms.texi
 forms.dvi: forms.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/forms.texi
 
+# gnus/message/emacs-mime/sieve/pgg are part of Gnus:
 $(infodir)/gnus: gnus.texi
 	$(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
@@ -196,11 +198,22 @@ gnus.dvi: gnus.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*
-
 $(infodir)/message: message.texi
 	$(MAKEINFO) message.texi
 message.dvi: message.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/message.texi
+$(infodir)/emacs-mime: emacs-mime.texi
+	$(MAKEINFO) emacs-mime.texi
+emacs-mime.dvi: emacs-mime.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-mime.texi
+../info/sieve: sieve.texi
+	$(MAKEINFO) sieve.texi
+sieve.dvi: sieve.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/sieve.texi
+../info/pgg: pgg.texi
+	$(MAKEINFO) pgg.texi
+pgg.dvi: pgg.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/pgg.texi
 
 $(infodir)/mh-e: mh-e.texi
 	$(MAKEINFO) mh-e.texi
@@ -277,11 +290,6 @@ $(infodir)/speedbar: speedbar.texi
 	$(MAKEINFO) speedbar.texi
 speedbar.dvi: speedbar.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/speedbar.texi
-
-$(infodir)/emacs-mime: emacs-mime.texi
-	$(MAKEINFO) emacs-mime.texi
-emacs-mime.dvi: emacs-mime.texi
-	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-mime.texi
 
 $(infodir)/tramp: tramp.texi
 	$(MAKEINFO) tramp.texi

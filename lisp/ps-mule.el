@@ -418,21 +418,21 @@ See also `ps-mule-font-info-database-bdf'.")
 
 (defun ps-mule-encode-bit (string delta)
   (let* ((dim (charset-dimension (char-charset (string-to-char string))))
-	 (len (* (ps-mule-chars-in-string string) dim))
+	 (len (* (length string) dim))
 	 (str (make-string len 0))
 	 (i 0)
 	 (j 0))
     (if (= dim 1)
 	(while (< j len)
 	  (aset str j
-		(+ (nth 1 (split-char (ps-mule-string-char string i))) delta))
-	  (setq i (ps-mule-next-index string i)
+		(+ (nth 1 (split-char (aref string i))) delta))
+	  (setq i (1+ i)
 		j (1+ j)))
       (while (< j len)
-	(let ((split (split-char (ps-mule-string-char string i))))
+	(let ((split (split-char (aref string i))))
 	  (aset str j (+ (nth 1 split) delta))
 	  (aset str (1+ j) (+ (nth 2 split) delta))
-	  (setq i (ps-mule-next-index string i)
+	  (setq i (1+ i)
 		j (+ j 2)))))
     str))
 
@@ -468,13 +468,13 @@ See also `ps-mule-font-info-database-bdf'.")
 
 ;; Special encoding for mule-unicode-* characters.
 (defun ps-mule-encode-ucs2 (string)
-  (let* ((len (ps-mule-chars-in-string string))
+  (let* ((len (length string))
 	 (str (make-string (* 2 len) 0))
 	 (i 0)
 	 (j 0)
 	 ch hi lo)
     (while (< i len)
-      (setq ch (encode-char (ps-mule-string-char string i) 'ucs)
+      (setq ch (encode-char (aref string i) 'ucs)
 	    hi (lsh ch -8)
 	    lo (logand ch 255))
       (aset str j hi)
@@ -796,7 +796,7 @@ the sequence."
 	    (cons from ps-width-remaining)
 	  (cons (if composition
 		    (nth 1 composition)
-		  (ps-mule-next-point from))
+		  (1+ from))
 		run-width)))
     ;; We assume that all characters in this range have the same width.
     (setq char-width (* char-width (charset-width ps-mule-current-charset)))
@@ -849,7 +849,7 @@ the sequence."
 
      ;; This case is obsolete for Emacs 21.
      ((eq ps-mule-current-charset 'composition)
-      (ps-mule-plot-composition from (ps-mule-next-point from) bg-color))
+      (ps-mule-plot-composition from (1+ from) bg-color))
 
      (t
       ;; No way to print this charset.  Just show a vacant box of an

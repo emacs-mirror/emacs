@@ -618,6 +618,7 @@ end of the buffer."
     (define-key map "g" 'revert-buffer)
     (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-this-buffer)
+    (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
     map)
   "Keymap for `occur-mode'.")
 
@@ -1392,7 +1393,9 @@ make, or the user didn't cancel the call."
 		  ;; Bind message-log-max so we don't fill up the message log
 		  ;; with a bunch of identical messages.
 		  (let ((message-log-max nil))
-		    (message message from-string next-replacement))
+		    (message message
+                             (query-replace-descr from-string)
+                             (query-replace-descr next-replacement)))
 		  (setq key (read-event))
 		  ;; Necessary in case something happens during read-event
 		  ;; that clobbers the match data.

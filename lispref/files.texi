@@ -2825,7 +2825,7 @@ The argument @var{format} is a list of format names.  If @var{format} is
 @key{RET} for @var{format} specifies @code{nil}.
 @end deffn
 
-@defvar auto-save-file-format
+@defvar buffer-auto-save-file-format
 This variable specifies the format to use for auto-saving.  Its value is
 a list of format names, just like the value of
 @code{buffer-file-format}; however, it is used instead of

@@ -129,6 +129,7 @@
 (put 'defsubst 'doc-string-elt 3)
 (put 'define-skeleton 'doc-string-elt 2)
 (put 'define-derived-mode 'doc-string-elt 4)
+(put 'define-compilation-mode 'doc-string-elt 3)
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 2)
 (put 'define-minor-mode 'doc-string-elt 2)
 (put 'define-generic-mode 'doc-string-elt 7)
@@ -489,7 +490,7 @@ If CHAR is not a character, return nil."
 	 (and string
 	      (= (car (read-from-string string)) char)
 	      string))))
-	 
+
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.

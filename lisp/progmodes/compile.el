@@ -878,7 +878,7 @@ Returns the compilation buffer created."
 	  ;; Set the EMACS variable, but
 	  ;; don't override users' setting of $EMACS.
 	  (unless (getenv "EMACS") '("EMACS=t"))
-	  process-environment))
+	  (copy-sequence process-environment)))
 	(thisdir default-directory)
 	outwin outbuf)
     (with-current-buffer
@@ -1059,6 +1059,7 @@ exited abnormally with code %d\n"
     (set-keymap-parent map compilation-minor-mode-map)
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
+    (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
     ;; Set up the menu-bar
     (define-key map [menu-bar compilation]

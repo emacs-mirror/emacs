@@ -617,7 +617,7 @@ use the selected frame.  If t, then the global, non-frame faces are used."
 		       (check-face (car face-list)))))
 		(i mask-len)
 		(useful nil))
-	    (while (> (setq i (1- i)) 1)
+	    (while (>= (setq i (1- i)) 0)
 	      (and (not (memq (aref face-atts i) '(nil unspecified)))
 		   (memq (aref mask-atts i) '(nil unspecified))
 		   (aset mask-atts i (setq useful t))))

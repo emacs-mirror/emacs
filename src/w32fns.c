@@ -260,6 +260,7 @@ typedef BOOL (WINAPI * TrackMouseEvent_Proc)
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ClipboardSequence_Proc clipboard_sequence_fn = NULL;
+extern AppendMenuW_Proc unicode_append_menu;
 
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;
@@ -3457,7 +3458,13 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
               pMis->itemHeight = GetSystemMetrics (SM_CYMENUSIZE);
               if (title)
                 {
-                  GetTextExtentPoint32 (hdc, title, strlen (title), &size);
+		  if (unicode_append_menu)
+		    GetTextExtentPoint32W (hdc, (WCHAR *) title,
+					   wcslen ((WCHAR *) title),
+					   &size);
+		  else
+		    GetTextExtentPoint32 (hdc, title, strlen (title), &size);
+
                   pMis->itemWidth = size.cx;
                   if (pMis->itemHeight < size.cy)
                     pMis->itemHeight = size.cy;
@@ -3495,13 +3502,22 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
                   menu_font = CreateFontIndirect (&menu_logfont);
                   old_font = SelectObject (hdc, menu_font);
 
-                  /* Always draw title as if not selected.  */
-                  ExtTextOut (hdc,
-                              pDis->rcItem.left
-                              + GetSystemMetrics (SM_CXMENUCHECK),
-                              pDis->rcItem.top,
-                              ETO_OPAQUE, &pDis->rcItem,
-                              title, strlen (title), NULL);
+		  /* Always draw title as if not selected.  */
+		  if (unicode_append_menu)
+		    ExtTextOutW (hdc,
+				 pDis->rcItem.left
+				 + GetSystemMetrics (SM_CXMENUCHECK),
+				 pDis->rcItem.top,
+				 ETO_OPAQUE, &pDis->rcItem,
+				 (WCHAR *) title,
+				 wcslen ((WCHAR *) title), NULL);
+		  else
+		    ExtTextOut (hdc,
+				pDis->rcItem.left
+				+ GetSystemMetrics (SM_CXMENUCHECK),
+				pDis->rcItem.top,
+				ETO_OPAQUE, &pDis->rcItem,
+				title, strlen (title), NULL);
 
                   SelectObject (hdc, old_font);
                   DeleteObject (menu_font);

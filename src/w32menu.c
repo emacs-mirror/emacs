@@ -143,11 +143,6 @@ typedef BOOL (WINAPI * SetMenuItemInfoA_Proc) (
     IN UINT,
     IN BOOL,
     IN LPCMENUITEMINFOA);
-typedef BOOL (WINAPI * AppendMenuW_Proc) (
-    IN HMENU,
-    IN UINT,
-    IN UINT_PTR,
-    IN LPCWSTR);
 
 GetMenuItemInfoA_Proc get_menu_item_info = NULL;
 SetMenuItemInfoA_Proc set_menu_item_info = NULL;

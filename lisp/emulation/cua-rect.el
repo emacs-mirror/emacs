@@ -778,7 +778,6 @@ If command is repeated at same position, delete the rectangle."
         '(lambda (s e l r v)
            (let ((rface (if v 'cua-rectangle-face 'cua-rectangle-noselect-face))
                  overlay bs ms as)
-	     (if (= s e) (setq e (1+ e)))
 	     (when (cua--rectangle-virtual-edges)
 	       (let ((lb (line-beginning-position))
 		     (le (line-end-position))

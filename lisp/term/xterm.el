@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm
 
-;; Copyright (C) 1995, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -50,6 +50,16 @@
   (define-key map "\e[23~" [f11])
   (define-key map "\e[24~" [f12])
   (define-key map "\e[29~" [print])
+
+  (define-key map "\e[1;2A" [S-up])
+  (define-key map "\e[1;2B" [S-down])
+  (define-key map "\e[1;2C" [S-right])
+  (define-key map "\e[1;2D" [S-left])
+
+  (define-key map "\e[1;5A" [C-up])
+  (define-key map "\e[1;5B" [C-down])
+  (define-key map "\e[1;5C" [C-right])
+  (define-key map "\e[1;5D" [C-left])
 
   (define-key map "\e[2;2~" [S-insert])
   (define-key map "\e[3;2~" [S-delete])
@@ -236,5 +246,5 @@ versions of xterm."
 ;; This recomputes all the default faces given the colors we've just set up.
 (tty-set-up-initial-frame-faces)
 
-;;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
+;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here

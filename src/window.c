@@ -3057,7 +3057,9 @@ BUFFER can be a buffer or the name of an existing buffer.
 Optional third arg KEEP-MARGINS non-nil means that WINDOW's current
 display margins, fringe widths, and scroll bar settings are maintained;
 the default is to reset these from BUFFER's local settings or the frame
-defaults.  */)
+defaults.
+
+This function runs the hook `window-scroll-functions'.  */)
      (window, buffer, keep_margins)
      register Lisp_Object window, buffer, keep_margins;
 {

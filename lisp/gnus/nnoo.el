@@ -1,6 +1,6 @@
 ;;; nnoo.el --- OO Gnus Backends
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -38,7 +38,7 @@
   "The same as `defvar', only takes list of variables to MAP to."
   `(prog1
        ,(if doc
-	    `(defvar ,var ,init ,doc)
+	    `(defvar ,var ,init ,(concat doc "\n\nThis is a Gnus server variable.  See Info node `(gnus)Select Methods'."))
 	  `(defvar ,var ,init))
      (nnoo-define ',var ',map)))
 (put 'defvoo 'lisp-indent-function 2)
@@ -201,8 +201,8 @@
 	(while (setq def (pop defs))
 	  (unless (assq (car def) bvariables)
 	    (nconc bvariables
- 		   (list (cons (car def) (and (boundp (car def))
- 					      (symbol-value (car def)))))))
+		   (list (cons (car def) (and (boundp (car def))
+					      (symbol-value (car def)))))))
 	  (if (equal server "*internal-non-initialized-backend*")
 	      (set (car def) (symbol-value (cadr def)))
 	    (set (car def) (cadr def)))))
@@ -254,7 +254,7 @@
 	(setcdr bstate (delq defs (cdr bstate)))
 	(pop defs)
 	(while defs
-	  (set (car (pop defs)) nil)))))
+	  (set (car (pop defs)) nil))))) 
   t)
 
 (defun nnoo-close (backend)
@@ -304,6 +304,20 @@ All functions will return nil and report an error."
 		   (&rest args)
 		 (nnheader-report ',backend ,(format "%s-%s not implemented"
 						     backend function))))))))
+
+(defun nnoo-set (server &rest args)
+  (let ((parents (nnoo-parents (car server)))
+	(nnoo-parent-backend (car server)))
+    (while parents
+      (nnoo-change-server (caar parents)
+			  (cadr server)
+			  (cdar parents))
+      (pop parents)))
+  (nnoo-change-server (car server)
+		      (cadr server) (cddr server))
+  (while args
+    (set (pop args) (pop args))))
+
 (provide 'nnoo)
 
 ;;; arch-tag: 0196b5ed-6f34-4778-a455-73a971f837e7

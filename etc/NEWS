@@ -242,10 +242,53 @@ that configure outputs and -o options so you see at a glance where you are.
 
 The new file etc/compilation.txt gives examples of each type of message.
 
-** M-x grep has been adapted to new compile
+** Compilation mode enhancements:
+
+*** New user option `compilation-environment'.
+This option allows you to specify environment variables for inferior
+compilation processes without affecting the environment that all
+subprocesses inherit.
+
+** Grep has been decoupled from compilation mode setup.
+
+*** There's a new separate package grep.el.
+
+*** M-x grep has been adapted to new compile
 
 Hits are fontified in green, and hits in binary files in orange.  Grep buffers
 can be saved and automatically revisited with the new Grep mode.
+
+*** Grep commands now have their own submenu and customization group.
+
+*** The new variables `grep-window-height', `grep-auto-highlight', and
+`grep-scroll-output' can be used to override the corresponding
+compilation mode settings for grep commands.
+
+*** New option `grep-highlight-matches' highlightes matches in *grep*
+buffer.  It uses a special feature of some grep programs which accept
+--color option to output markers around matches.  When going to the next
+match with `next-error' the exact match is highlighted in the source
+buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
+source line is highlighted.
+
+*** New key bindings in grep output window:
+SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
+previous match in the grep window.  RET jumps to the source line of
+the current match.  `n' and `p' shows next and previous match in
+other window, but does not switch buffer.  `{' and `}' jumps to the
+previous or next file in the grep output.  TAB also jumps to the next
+file.
+
+** New options `next-error-highlight' and `next-error-highlight-no-select'
+specify the method of highlighting of the corresponding source line
+in new face `next-error'.
+
+** A new minor mode `next-error-follow-minor-mode' can be used in
+compilation-mode, grep-mode, occur-mode, and diff-mode (i.e. all the
+modes that can use `next-error').  In this mode, cursor motion in the
+buffer causes automatic display in another window of the corresponding
+matches, compilation errors, etc.  This minor mode can be toggled with
+C-c C-f.
 
 ** M-x diff uses diff-mode instead of compilation-mode.
 
@@ -256,6 +299,15 @@ resync points in both windows.
 This is like `strokes-global-set-stroke', but it allows you to bind
 the stroke directly to a string to insert.  This is convenient for
 using strokes as an input method.
+
+** Gnus package
+
+*** Gnus now includes Sieve and PGG
+Sieve is a library for managing Sieve scripts.  PGG is a library to handle
+PGP/MIME.
+
+*** There are many news features, bug fixes and improvements.
+See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 
 +++
 ** Desktop package
@@ -1120,6 +1172,16 @@ and to type `C-f' at the end of the search string in the minibuffer.
 search string used as the string to replace.
 
 +++
+** New user option `isearch-resume-enabled'.
+This option can be disabled, to avoid the normal behavior of isearch
+which puts calls to `isearch-resume' in the command history.
+
++++
+** New user option `history-delete-duplicates'.
+If set to t when adding a new history element, all previous identical
+elements are deleted.
+
++++
 ** Yanking text now discards certain text properties that can
 be inconvenient when you did not expect them.  The variable
 `yank-excluded-properties' specifies which ones.  Insertion
@@ -1787,11 +1849,6 @@ from the file name or buffer contents.
 +++
 ** `xml-mode' is now an alias for `sgml-mode', which has XML support.
 
-+++
-** New user option `isearch-resume-enabled'.
-This option can be disabled, to avoid the normal behavior of isearch
-which puts calls to `isearch-resume' in the command history.
-
 ---
 ** Lisp mode now uses font-lock-doc-face for the docstrings.
 
@@ -1856,42 +1913,6 @@ parts is, by contrast, slightly highlighted.
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
-
-** Compilation mode enhancements:
-
-*** New user option `compilation-environment'.
-This option allows you to specify environment variables for inferior
-compilation processes without affecting the environment that all
-subprocesses inherit.
-
-*** New options `next-error-highlight' and `next-error-highlight-no-select'
-specify the method of highlighting of the corresponding source line
-in new face `next-error'.
-
-** Grep has been decoupled from compilation mode setup.
-
-*** There's a new separate package grep.el.
-
-*** Grep commands now have their own submenu and customization group.
-
-*** The new variables `grep-window-height', `grep-auto-highlight', and
-`grep-scroll-output' can be used to override the corresponding
-compilation mode settings for grep commands.
-
-*** New option `grep-highlight-matches' highlightes matches in *grep*
-buffer.  It uses a special feature of some grep programs which accept
---color option to output markers around matches.  When going to the next
-match with `next-error' the exact match is highlighted in the source
-buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
-source line is highlighted.
-
-*** New key bindings in grep output window:
-SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
-previous match in the grep window.  RET jumps to the source line of
-the current match.  `n' and `p' shows next and previous match in
-other window, but does not switch buffer.  `{' and `}' jumps to the
-previous or next file in the grep output.  TAB also jumps to the next
-file.
 
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
@@ -2211,6 +2232,10 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** `auto-save-file-format' has been renamed to
+`buffer-auto-save-file-format' and made into a permanent local.
+
++++
 ** Both the variable and the function `disabled-command-hook' have
 been renamed to `disabled-command-function'.  The variable
 `disabled-command-hook' has been kept as an obsolete alias.
@@ -2385,6 +2410,11 @@ height) of the specified image.
 
 The form `(+ EXPR ...)' adds up the value of the expressions.
 The form `(- EXPR ...)' negates or subtracts the value of the expressions.
+
+** Normally, the cursor is displayed at the end of any overlay and
+text property string that may be present at the current window
+position.  The cursor may now be placed on any character of such
+strings by giving that character a non-nil `cursor' text property.
 
 ** New macro with-local-quit temporarily sets inhibit-quit to nil for use
 around potentially blocking or long-running code in timers
@@ -2860,6 +2890,15 @@ It is useful for writing Emacs Lisp shell script files, because they
 can start with this line:
 
    #!/usr/bin/emacs --script
+
+** The option --directory DIR now modifies `load-path' immediately.
+Directories are added to the front of `load-path' in the order they
+appear on the command line.  For example, with this command line:
+
+  emacs -batch -L .. -L /tmp --eval "(require 'foo)"
+
+Emacs looks for library `foo' in the parent directory, then in /tmp, then
+in the other directories in `load-path'.  (-L is short for --directory.)
 
 +++
 ** A function's docstring can now hold the function's usage info on

@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999,2000,2003,2004  Free Software Foundation Inc.
+;; Copyright (C) 1999, 2000, 2003, 2004  Free Software Foundation Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
@@ -137,7 +137,7 @@ The function has no args.
 Applicable at least in modes for languages like fixed-format Fortran where
 comments always start in column zero.")
 
-(defvar comment-region-function nil
+(defvar comment-region-function 'comment-region-default
   "Function to comment a region.
 Its args are the same as those of `comment-region', but BEG and END are
 guaranteed to be correctly ordered.  It is called within `save-excursion'.
@@ -145,7 +145,7 @@ guaranteed to be correctly ordered.  It is called within `save-excursion'.
 Applicable at least in modes for languages like fixed-format Fortran where
 comments always start in column zero.")
 
-(defvar uncomment-region-function nil
+(defvar uncomment-region-function 'uncomment-region-default
   "Function to uncomment a region.
 Its args are the same as those of `uncomment-region', but BEG and END are
 guaranteed to be correctly ordered.  It is called within `save-excursion'.
@@ -368,12 +368,12 @@ and raises an error or returns nil if NOERROR is non-nil."
 				  (if comment-use-global-state (syntax-ppss pt))
 				  t)))
       (when (and (nth 8 s) (nth 3 s) (not comment-use-global-state))
-	  ;; The search ended inside a string.  Try to see if it
-	  ;; works better when we assume that pt is inside a string.
-	  (setq s (parse-partial-sexp
-		   pt (or limit (point-max)) nil nil
-		   (list nil nil nil (nth 3 s) nil nil nil nil)
-		   t)))
+	;; The search ended at eol inside a string.  Try to see if it
+	;; works better when we assume that pt is inside a string.
+	(setq s (parse-partial-sexp
+		 pt (or limit (point-max)) nil nil
+		 (list nil nil nil (nth 3 s) nil nil nil nil)
+		 t)))
       (if (not (and (nth 8 s) (not (nth 3 s))))
 	  (unless noerror (error "No comment"))
 	;; We found the comment.
@@ -710,100 +710,108 @@ comment markers."
   (interactive "*r\nP")
   (comment-normalize-vars)
   (when (> beg end) (setq beg (prog1 end (setq end beg))))
-  (save-excursion
-    (if uncomment-region-function
-	(funcall uncomment-region-function beg end arg)
-      (goto-char beg)
-      (setq end (copy-marker end))
-      (let* ((numarg (prefix-numeric-value arg))
-	     (ccs comment-continue)
-	     (srei (comment-padright ccs 're))
-	     (csre (comment-padright comment-start 're))
-	     (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
-	     spt)
-	(while (and (< (point) end)
-		    (setq spt (comment-search-forward end t)))
-	  (let ((ipt (point))
-		;; Find the end of the comment.
-		(ept (progn
-		       (goto-char spt)
-		       (unless (or (comment-forward)
-				   ;; Allow non-terminated comments.
-				   (eobp))
-			 (error "Can't find the comment end"))
-		       (point)))
-		(box nil)
-		(box-equal nil)) ;Whether we might be using `=' for boxes.
-	    (save-restriction
-	      (narrow-to-region spt ept)
+  ;; Bind `comment-use-global-state' to nil.  While uncommenting a region
+  ;; (which works a line at a time), a comment can appear to be
+  ;; included in a mult-line string, but it is actually not.
+  (let ((comment-use-global-state nil))
+    (save-excursion
+      (funcall uncomment-region-function beg end arg))))
 
-	      ;; Remove the comment-start.
-	      (goto-char ipt)
-	    (skip-syntax-backward " ")
-	    ;; A box-comment starts with a looong comment-start marker.
-	    (when (and (or (and (= (- (point) (point-min)) 1)
-				(setq box-equal t)
-				(looking-at "=\\{7\\}")
-				(not (eq (char-before (point-max)) ?\n))
-				(skip-chars-forward "="))
-			   (> (- (point) (point-min) (length comment-start)) 7))
-		       (> (count-lines (point-min) (point-max)) 2))
-	      (setq box t))
-	    ;; Skip the padding.  Padding can come from comment-padding and/or
-	    ;; from comment-start, so we first check comment-start.
-	    (if (or (save-excursion (goto-char (point-min)) (looking-at csre))
-		    (looking-at (regexp-quote comment-padding)))
-		(goto-char (match-end 0)))
-	    (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
+(defun uncomment-region-default (beg end &optional arg)
+  "Uncomment each line in the BEG .. END region.
+The numeric prefix ARG can specify a number of chars to remove from the
+comment markers."
+  (goto-char beg)
+  (setq end (copy-marker end))
+  (let* ((numarg (prefix-numeric-value arg))
+	 (ccs comment-continue)
+	 (srei (comment-padright ccs 're))
+	 (csre (comment-padright comment-start 're))
+	 (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
+	 spt)
+    (while (and (< (point) end)
+		(setq spt (comment-search-forward end t)))
+      (let ((ipt (point))
+	    ;; Find the end of the comment.
+	    (ept (progn
+		   (goto-char spt)
+		   (unless (or (comment-forward)
+			       ;; Allow non-terminated comments.
+			       (eobp))
+		     (error "Can't find the comment end"))
+		   (point)))
+	    (box nil)
+	    (box-equal nil))	   ;Whether we might be using `=' for boxes.
+	(save-restriction
+	  (narrow-to-region spt ept)
+		
+	  ;; Remove the comment-start.
+	  (goto-char ipt)
+	  (skip-syntax-backward " ")
+	  ;; A box-comment starts with a looong comment-start marker.
+	  (when (and (or (and (= (- (point) (point-min)) 1)
+			      (setq box-equal t)
+			      (looking-at "=\\{7\\}")
+			      (not (eq (char-before (point-max)) ?\n))
+			      (skip-chars-forward "="))
+			 (> (- (point) (point-min) (length comment-start)) 7))
+		     (> (count-lines (point-min) (point-max)) 2))
+	    (setq box t))
+	  ;; Skip the padding.  Padding can come from comment-padding and/or
+	  ;; from comment-start, so we first check comment-start.
+	  (if (or (save-excursion (goto-char (point-min)) (looking-at csre))
+		  (looking-at (regexp-quote comment-padding)))
 	      (goto-char (match-end 0)))
-	    (if (null arg) (delete-region (point-min) (point))
-	      (skip-syntax-backward " ")
-		  (delete-char (- numarg))
-		  (unless (or (bobp)
-			      (save-excursion (goto-char (point-min))
-					      (looking-at comment-start-skip)))
-		    ;; If there's something left but it doesn't look like
-		    ;; a comment-start any more, just remove it.
-		    (delete-region (point-min) (point))))
+	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
+	    (goto-char (match-end 0)))
+	  (if (null arg) (delete-region (point-min) (point))
+	    (skip-syntax-backward " ")
+	    (delete-char (- numarg))
+	    (unless (or (bobp)
+			(save-excursion (goto-char (point-min))
+					(looking-at comment-start-skip)))
+	      ;; If there's something left but it doesn't look like
+	      ;; a comment-start any more, just remove it.
+	      (delete-region (point-min) (point))))
+		
+	  ;; Remove the end-comment (and leading padding and such).
+	  (goto-char (point-max)) (comment-enter-backward)
+	  ;; Check for special `=' used sometimes in comment-box.
+	  (when (and box-equal (not (eq (char-before (point-max)) ?\n)))
+	    (let ((pos (point)))
+	      ;; skip `=' but only if there are at least 7.
+	      (when (> (skip-chars-backward "=") -7) (goto-char pos))))
+	  (unless (looking-at "\\(\n\\|\\s-\\)*\\'")
+	    (when (and (bolp) (not (bobp))) (backward-char))
+	    (if (null arg) (delete-region (point) (point-max))
+	      (skip-syntax-forward " ")
+	      (delete-char numarg)
+	      (unless (or (eobp) (looking-at comment-end-skip))
+		;; If there's something left but it doesn't look like
+		;; a comment-end any more, just remove it.
+		(delete-region (point) (point-max)))))
 
-		;; Remove the end-comment (and leading padding and such).
-		(goto-char (point-max)) (comment-enter-backward)
-		;; Check for special `=' used sometimes in comment-box.
-		(when (and box-equal (not (eq (char-before (point-max)) ?\n)))
-		  (let ((pos (point)))
-		    ;; skip `=' but only if there are at least 7.
-		    (when (> (skip-chars-backward "=") -7) (goto-char pos))))
-		(unless (looking-at "\\(\n\\|\\s-\\)*\\'")
-		  (when (and (bolp) (not (bobp))) (backward-char))
-		  (if (null arg) (delete-region (point) (point-max))
-		    (skip-syntax-forward " ")
-		    (delete-char numarg)
-		    (unless (or (eobp) (looking-at comment-end-skip))
-		      ;; If there's something left but it doesn't look like
-		      ;; a comment-end any more, just remove it.
-		      (delete-region (point) (point-max)))))
+	  ;; Unquote any nested end-comment.
+	  (comment-quote-nested comment-start comment-end t)
 
-		;; Unquote any nested end-comment.
-		(comment-quote-nested comment-start comment-end t)
-
-		;; Eliminate continuation markers as well.
-		(when sre
-		  (let* ((cce (comment-string-reverse (or comment-continue
-							  comment-start)))
-			 (erei (and box (comment-padleft cce 're)))
-			 (ere (and erei (concat "\\(" erei "\\)\\s-*$"))))
-		    (goto-char (point-min))
-		    (while (progn
-			     (if (and ere (re-search-forward
-					   ere (line-end-position) t))
-				 (replace-match "" t t nil (if (match-end 2) 2 1))
-			       (setq ere nil))
-			     (forward-line 1)
-			     (re-search-forward sre (line-end-position) t))
-		      (replace-match "" t t nil (if (match-end 2) 2 1)))))
-		;; Go to the end for the next comment.
-		(goto-char (point-max)))))))
-      (set-marker end nil)))
+	  ;; Eliminate continuation markers as well.
+	  (when sre
+	    (let* ((cce (comment-string-reverse (or comment-continue
+						    comment-start)))
+		   (erei (and box (comment-padleft cce 're)))
+		   (ere (and erei (concat "\\(" erei "\\)\\s-*$"))))
+	      (goto-char (point-min))
+	      (while (progn
+		       (if (and ere (re-search-forward
+				     ere (line-end-position) t))
+			   (replace-match "" t t nil (if (match-end 2) 2 1))
+			 (setq ere nil))
+		       (forward-line 1)
+		       (re-search-forward sre (line-end-position) t))
+		(replace-match "" t t nil (if (match-end 2) 2 1)))))
+	  ;; Go to the end for the next comment.
+	  (goto-char (point-max))))))
+  (set-marker end nil))
 
 (defun comment-make-extra-lines (cs ce ccs cce min-indent max-indent &optional block)
   "Make the leading and trailing extra lines.
@@ -966,59 +974,61 @@ The strings used as comment starts are built from
   (interactive "*r\nP")
   (comment-normalize-vars)
   (if (> beg end) (let (mid) (setq mid beg beg end end mid)))
+  (save-excursion
+    ;; FIXME: maybe we should call uncomment depending on ARG.
+    (funcall comment-region-function beg end arg)))
+
+(defun comment-region-default (beg end &optional arg)
   (let* ((numarg (prefix-numeric-value arg))
 	 (add comment-add)
 	 (style (cdr (assoc comment-style comment-styles)))
 	 (lines (nth 2 style))
 	 (block (nth 1 style))
 	 (multi (nth 0 style)))
-    (save-excursion
-      (if comment-region-function
-	  (funcall comment-region-function beg end arg)
-	;; we use `chars' instead of `syntax' because `\n' might be
-	;; of end-comment syntax rather than of whitespace syntax.
-	;; sanitize BEG and END
-	(goto-char beg) (skip-chars-forward " \t\n\r") (beginning-of-line)
-	(setq beg (max beg (point)))
-	(goto-char end) (skip-chars-backward " \t\n\r") (end-of-line)
-	(setq end (min end (point)))
-	(if (>= beg end) (error "Nothing to comment"))
+    ;; we use `chars' instead of `syntax' because `\n' might be
+    ;; of end-comment syntax rather than of whitespace syntax.
+    ;; sanitize BEG and END
+    (goto-char beg) (skip-chars-forward " \t\n\r") (beginning-of-line)
+    (setq beg (max beg (point)))
+    (goto-char end) (skip-chars-backward " \t\n\r") (end-of-line)
+    (setq end (min end (point)))
+    (if (>= beg end) (error "Nothing to comment"))
 
-	;; sanitize LINES
-	(setq lines
-	      (and
-	       lines ;; multi
-	       (progn (goto-char beg) (beginning-of-line)
-		      (skip-syntax-forward " ")
-		      (>= (point) beg))
-	       (progn (goto-char end) (end-of-line) (skip-syntax-backward " ")
-		      (<= (point) end))
-	       (or block (not (string= "" comment-end)))
-	       (or block (progn (goto-char beg) (search-forward "\n" end t))))))
+    ;; sanitize LINES
+    (setq lines
+	  (and
+	   lines ;; multi
+	   (progn (goto-char beg) (beginning-of-line)
+		  (skip-syntax-forward " ")
+		  (>= (point) beg))
+	   (progn (goto-char end) (end-of-line) (skip-syntax-backward " ")
+		  (<= (point) end))
+	   (or block (not (string= "" comment-end)))
+	   (or block (progn (goto-char beg) (search-forward "\n" end t)))))
 
-      ;; don't add end-markers just because the user asked for `block'
-      (unless (or lines (string= "" comment-end)) (setq block nil))
+    ;; don't add end-markers just because the user asked for `block'
+    (unless (or lines (string= "" comment-end)) (setq block nil))
 
-      (cond
-       ((consp arg) (uncomment-region beg end))
-       ((< numarg 0) (uncomment-region beg end (- numarg)))
-       (t
-	(setq numarg (if (and (null arg) (= (length comment-start) 1))
-			 add (1- numarg)))
-	(comment-region-internal
-	 beg end
-	 (let ((s (comment-padright comment-start numarg)))
-	   (if (string-match comment-start-skip s) s
-	     (comment-padright comment-start)))
-	 (let ((s (comment-padleft comment-end numarg)))
-	   (and s (if (string-match comment-end-skip s) s
-		    (comment-padright comment-end))))
-	 (if multi (comment-padright comment-continue numarg))
-	 (if multi
-	     (comment-padleft (comment-string-reverse comment-continue) numarg))
-	 block
-	 lines
-	 (nth 3 style)))))))
+    (cond
+     ((consp arg) (uncomment-region beg end))
+     ((< numarg 0) (uncomment-region beg end (- numarg)))
+     (t
+      (setq numarg (if (and (null arg) (= (length comment-start) 1))
+		       add (1- numarg)))
+      (comment-region-internal
+       beg end
+       (let ((s (comment-padright comment-start numarg)))
+	 (if (string-match comment-start-skip s) s
+	   (comment-padright comment-start)))
+       (let ((s (comment-padleft comment-end numarg)))
+	 (and s (if (string-match comment-end-skip s) s
+		  (comment-padright comment-end))))
+       (if multi (comment-padright comment-continue numarg))
+       (if multi
+	   (comment-padleft (comment-string-reverse comment-continue) numarg))
+       block
+       lines
+       (nth 3 style))))))
 
 (defun comment-box (beg end &optional arg)
   "Comment out the BEG .. END region, putting it inside a box.
@@ -1193,5 +1203,5 @@ unless optional argument SOFT is non-nil."
 
 (provide 'newcomment)
 
-;;; arch-tag: 01e3320a-00c8-44ea-a696-8f8e7354c858
+;; arch-tag: 01e3320a-00c8-44ea-a696-8f8e7354c858
 ;;; newcomment.el ends here

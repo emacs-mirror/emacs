@@ -186,12 +186,13 @@ OWNERSHIP:
 
 FILE ATTRIBUTES:
   l[+-]N                 +/-/= N links
-  a[Mwhm][+-](N|'FILE')  access time +/-/= N mnths/weeks/days/mins
-			 if FILE specified, use as comparison basis;
-			 so a+'file.c' shows files accessed before
-			 file.c was last accessed
-  m[Mwhm][+-](N|'FILE')  modification time...
-  c[Mwhm][+-](N|'FILE')  change time...
+  a[Mwhms][+-](N|'FILE') access time +/-/= N mnths/weeks/hours/mins/secs
+			 (days if unspecified) if FILE specified,
+			 use as comparison basis; so a+'file.c'
+			 shows files accessed before file.c was
+			 last accessed
+  m[Mwhms][+-](N|'FILE') modification time...
+  c[Mwhms][+-](N|'FILE') change time...
   L[kmp][+-]N            file size +/-/= N Kb/Mb/blocks
 
 EXAMPLES:
@@ -409,7 +410,7 @@ returning the resultant string."
   "Return a predicate to test whether a file matches a certain time."
   (let* ((quantum 86400)
 	 qual amount when open close end)
-    (when (memq (char-after) '(?M ?w ?h ?m))
+    (when (memq (char-after) '(?M ?w ?h ?m ?s))
       (setq quantum (char-after))
       (cond
        ((eq quantum ?M)

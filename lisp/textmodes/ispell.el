@@ -724,6 +724,8 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 	      ispell-dictionary-alist-3 ispell-dictionary-alist-4
 	      ispell-dictionary-alist-5 ispell-dictionary-alist-6))
 
+(defvar ispell-really-aspell nil) ; Non-nil if aspell extensions should be used
+
 
 
 
@@ -815,7 +817,12 @@ Otherwise returns the library directory name, if that is defined."
 		 (< (car (read-from-string (buffer-substring-no-properties
 					    (match-beginning 3)(match-end 3))))
 		    (car (cdr (cdr ispell-required-version)))))
-	    (setq ispell-offset 0)))
+          (setq ispell-offset 0))
+        ;; Check to see if it's really aspell.
+        (goto-char (point-min))
+        (let (case-fold-search)
+          (setq ispell-really-aspell
+                (and (search-forward "(but really Aspell " nil t) t))))
       (kill-buffer (current-buffer)))
     result))
 
@@ -1292,6 +1299,12 @@ pass it the output of the last ispell invocation."
 	  (save-excursion
 	    (set-buffer buf)
 	    (erase-buffer)))))))
+
+(defun ispell-send-replacement (misspelled replacement)
+  "Notify aspell that MISSPELLED should be spelled REPLACEMENT.
+This allows it to improve the suggestion list based on actual mispellings."
+  (and ispell-really-aspell
+       (ispell-send-string (concat "$$ra " misspelled "," replacement "\n"))))
 
 
 (defun ispell-send-string (string)
@@ -2841,10 +2854,12 @@ Returns the sum shift due to changes in word replacements."
 	      (if (not (listp replace))
 		  (progn
 		    (insert replace)	; insert dictionary word
+		    (ispell-send-replacement (car poss) replace)
 		    (setq accept-list (cons replace accept-list)))
 		(let ((replace-word (car replace)))
 		  ;; Recheck hand entered replacement word
 		  (insert replace-word)
+		  (ispell-send-replacement (car poss) replace-word)
 		  (if (car (cdr replace))
 		      (save-window-excursion
 			(delete-other-windows) ; to correctly show help.

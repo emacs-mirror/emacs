@@ -1,6 +1,6 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
@@ -78,7 +78,7 @@ Used for APOP authentication.")
     ;; query for password
     (if (and pop3-password-required (not pop3-password))
 	(setq pop3-password
-	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
+	      (read-passwd (format "Password for %s: " pop3-maildrop))))
     (cond ((equal 'apop pop3-authentication-scheme)
 	   (pop3-apop process pop3-maildrop))
 	  ((equal 'pass pop3-authentication-scheme)
@@ -88,8 +88,8 @@ Used for APOP authentication.")
     (setq message-count (car (pop3-stat process)))
     (unwind-protect
 	(while (<= n message-count)
-	  (message (format "Retrieving message %d of %d from %s..."
-			   n message-count pop3-mailhost))
+	  (message "Retrieving message %d of %d from %s..."
+		   n message-count pop3-mailhost)
 	  (pop3-retr process n crashbuf)
 	  (save-excursion
 	    (set-buffer crashbuf)
@@ -121,7 +121,7 @@ Used for APOP authentication.")
     ;; query for password
     (if (and pop3-password-required (not pop3-password))
 	(setq pop3-password
-	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
+	      (read-passwd (format "Password for %s: " pop3-maildrop))))
     (cond ((equal 'apop pop3-authentication-scheme)
 	   (pop3-apop process pop3-maildrop))
 	  ((equal 'pass pop3-authentication-scheme)
@@ -177,8 +177,9 @@ Return the response string if optional second argument is non-nil."
     (save-excursion
       (set-buffer (process-buffer process))
       (goto-char pop3-read-point)
-      (while (not (search-forward "\r\n" nil t))
-	(accept-process-output process 3)
+      (while (and (memq (process-status process) '(open run))
+		  (not (search-forward "\r\n" nil t)))
+	(nnheader-accept-process-output process)
 	(goto-char pop3-read-point))
       (setq match-end (point))
       (goto-char pop3-read-point)
@@ -191,17 +192,6 @@ Return the response string if optional second argument is non-nil."
 	      (buffer-substring (point) match-end)
 	    t)
 	  )))))
-
-(defvar pop3-read-passwd nil)
-(defun pop3-read-passwd (prompt)
-  (if (not pop3-read-passwd)
-      (if (fboundp 'read-passwd)
-	  (setq pop3-read-passwd 'read-passwd)
-	(if (load "passwd" t)
-	    (setq pop3-read-passwd 'read-passwd)
-	  (autoload 'ange-ftp-read-passwd "ange-ftp")
-	  (setq pop3-read-passwd 'ange-ftp-read-passwd))))
-  (funcall pop3-read-passwd prompt))
 
 (defun pop3-clean-region (start end)
   (setq end (set-marker (make-marker) end))
@@ -263,7 +253,7 @@ If NOW, use that time instead."
 	    ;; Tue Jul 9 09:04:21 1996
 	    (setq date
 		  (cond ((not date)
-                        "Tue Jan 1 00:00:0 1900")
+			 "Tue Jan 1 00:00:0 1900")
 			((string-match "[A-Z]" (nth 0 date))
 			 (format "%s %s %s %s %s"
 				 (nth 0 date) (nth 2 date) (nth 1 date)
@@ -316,7 +306,7 @@ If NOW, use that time instead."
   (let ((pass pop3-password))
     (if (and pop3-password-required (not pass))
 	(setq pass
-	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
+	      (read-passwd (format "Password for %s: " pop3-maildrop))))
     (if pass
 	(let ((hash (pop3-md5 (concat pop3-timestamp pass))))
 	  (pop3-send-command process (format "APOP %s %s" user hash))
@@ -363,7 +353,8 @@ This function currently does nothing.")
     (save-excursion
       (set-buffer (process-buffer process))
       (while (not (re-search-forward "^\\.\r\n" nil t))
-	(accept-process-output process 3)
+	;; Fixme: Shouldn't depend on nnheader.
+	(nnheader-accept-process-output process)
 	;; bill@att.com ... to save wear and tear on the heap
 	;; uncommented because the condensed version below is a problem for
 	;; some.

@@ -1,5 +1,5 @@
 ;;; gnus-ems.el --- functions for making Gnus work under different Emacsen
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -45,12 +45,13 @@
 (eval-and-compile
   (autoload 'gnus-xmas-define "gnus-xmas")
   (autoload 'gnus-xmas-redefine "gnus-xmas")
-  (autoload 'appt-select-lowest-window "appt"))
+  (autoload 'appt-select-lowest-window "appt")
+  (autoload 'gnus-get-buffer-create "gnus")
+  (autoload 'nnheader-find-etc-directory "nnheader"))
 
-(if (featurep 'xemacs)
-    (autoload 'gnus-smiley-display "smiley")
-  (autoload 'gnus-smiley-display "smiley-ems") ; override XEmacs version
-)
+(autoload 'smiley-region "smiley")
+;; Fixme: shouldn't require message
+(autoload 'message-text-with-property "message")
 
 (defun gnus-kill-all-overlays ()
   "Delete all overlays in the current buffer."
@@ -71,20 +72,30 @@
        valstr)))
 
 (eval-and-compile
+  (defalias 'gnus-char-width
+    (if (fboundp 'char-width)
+	'char-width
+      (lambda (ch) 1)))) ;; A simple hack.
+
+(eval-and-compile
   (if (featurep 'xemacs)
       (gnus-xmas-define)
     (defvar gnus-mouse-face-prop 'mouse-face
       "Property used for highlighting mouse regions.")))
 
-(defvar gnus-tmp-unread)
-(defvar gnus-tmp-replied)
-(defvar gnus-tmp-score-char)
-(defvar gnus-tmp-indentation)
-(defvar gnus-tmp-opening-bracket)
-(defvar gnus-tmp-lines)
-(defvar gnus-tmp-name)
-(defvar gnus-tmp-closing-bracket)
-(defvar gnus-tmp-subject-or-nil)
+(eval-when-compile
+  (defvar gnus-tmp-unread)
+  (defvar gnus-tmp-replied)
+  (defvar gnus-tmp-score-char)
+  (defvar gnus-tmp-indentation)
+  (defvar gnus-tmp-opening-bracket)
+  (defvar gnus-tmp-lines)
+  (defvar gnus-tmp-name)
+  (defvar gnus-tmp-closing-bracket)
+  (defvar gnus-tmp-subject-or-nil)
+  (defvar gnus-check-before-posting)
+  (defvar gnus-mouse-face)
+  (defvar gnus-group-buffer))
 
 (defun gnus-ems-redefine ()
   (cond
@@ -96,18 +107,18 @@
 
     ;; [Note] Now there are three kinds of mule implementations,
     ;; original MULE, XEmacs/mule and Emacs 20+ including
-    ;; MULE features.  Unfortunately these API are different.  In
-    ;; particular, Emacs (including original MULE) and XEmacs are
+    ;; MULE features.  Unfortunately these APIs are different.  In
+    ;; particular, Emacs (including original Mule) and XEmacs are
     ;; quite different.  However, this version of Gnus doesn't support
     ;; anything other than XEmacs 20+ and Emacs 20.3+.
 
     ;; Predicates to check are following:
-    ;; (boundp 'MULE) is t only if MULE (original; anything older than
+    ;; (boundp 'MULE) is t only if Mule (original; anything older than
     ;;                     Mule 2.3) is running.
-    ;; (featurep 'mule) is t when every mule variants are running.
+    ;; (featurep 'mule) is t when other mule variants are running.
 
     ;; It is possible to detect XEmacs/mule by (featurep 'mule) and
-    ;; checking `emacs-version'.  In this case, the implementation for
+    ;; (featurep 'xemacs).  In this case, the implementation for
     ;; XEmacs/mule may be shareable between XEmacs and XEmacs/mule.
 
     (defvar gnus-summary-display-table nil
@@ -144,6 +155,10 @@
        (boundp 'mark-active)
        mark-active))
 
+(defun gnus-mark-active-p ()
+  "Non-nil means the mark and region are currently active in this buffer."
+  mark-active) ; aliased to region-exists-p in XEmacs.
+
 (if (fboundp 'add-minor-mode)
     (defalias 'gnus-add-minor-mode 'add-minor-mode)
   (defun gnus-add-minor-mode (mode name map &rest rest)
@@ -166,11 +181,13 @@
 	(when (and dir
 		   (file-exists-p (setq file
 					(expand-file-name "x-splash" dir))))
-	  (with-temp-buffer
-	    (insert-file-contents file)
-	    (goto-char (point-min))
-	    (ignore-errors
-	      (setq pixmap (read (current-buffer))))))
+	  (let ((coding-system-for-read 'raw-text)
+		default-enable-multibyte-characters)
+	    (with-temp-buffer
+	      (insert-file-contents file)
+	      (goto-char (point-min))
+	      (ignore-errors
+		(setq pixmap (read (current-buffer)))))))
 	(when pixmap
 	  (make-face 'gnus-splash)
 	  (setq height (/ (car pixmap) (frame-char-height))
@@ -189,81 +206,36 @@
 	  (goto-char (point-min))
 	  (sit-for 0))))))
 
-(defvar gnus-article-xface-ring-internal nil
-  "Cache for face data.")
+;;; Image functions.
 
-;; Worth customizing?
-(defvar gnus-article-xface-ring-size 6
-  "Length of the ring used for `gnus-article-xface-ring-internal'.")
+(defun gnus-image-type-available-p (type)
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p type)))
 
-(defvar gnus-article-compface-xbm
-  (eq 0 (string-match "#define" (shell-command-to-string "uncompface -X")))
-  "Non-nil means the compface program supports the -X option.
-That produces XBM output.")
+(defun gnus-create-image (file &optional type data-p &rest props)
+  (let ((face (plist-get props :face)))
+    (when face
+      (setq props (plist-put props :foreground (face-foreground face)))
+      (setq props (plist-put props :background (face-background face))))
+    (apply 'create-image file type data-p props)))
 
-(defun gnus-article-display-xface (beg end)
-  "Display an XFace header from between BEG and END in the current article.
-Requires support for images in your Emacs and the external programs
-`uncompface', and `icontopbm'.  On a GNU/Linux system these
-might be in packages with names like `compface' or `faces-xface' and
-`netpbm' or `libgr-progs', for instance.  See also
-`gnus-article-compface-xbm'.
+(defun gnus-put-image (glyph &optional string category)
+  (let ((point (point)))
+    (insert-image glyph (or string " "))
+    (put-text-property point (point) 'gnus-image-category category)
+    (unless string
+      (put-text-property (1- (point)) (point)
+			 'gnus-image-text-deletable t))
+    glyph))
 
-This function is for Emacs 21+.  See `gnus-xmas-article-display-xface'
-for XEmacs."
-  ;; It might be worth converting uncompface's output in Lisp.
-
-  (when (if (fboundp 'display-graphic-p)
-	    (display-graphic-p))
-    (unless gnus-article-xface-ring-internal ; Only load ring when needed.
-      (setq gnus-article-xface-ring-internal
-	    (make-ring gnus-article-xface-ring-size)))
-    (save-excursion
-      (let* ((cur (current-buffer))
-	     (data (buffer-substring beg end))
-	     (image (cdr-safe (assoc data (ring-elements
-					   gnus-article-xface-ring-internal))))
-	     default-enable-multibyte-characters)
-	(unless image
-	  (with-temp-buffer
-	    (insert data)
-	    (and (eq 0 (apply #'call-process-region (point-min) (point-max)
-			      "uncompface"
-			      'delete '(t nil) nil
-			      (if gnus-article-compface-xbm
-				  '("-X"))))
-		 (if gnus-article-compface-xbm
-		     t
-		   (goto-char (point-min))
-		   (progn (insert "/* Width=48, Height=48 */\n") t)
-		   (eq 0 (call-process-region (point-min) (point-max)
-					      "icontopbm"
-					      'delete '(t nil))))
-		 ;; Miles Bader says that faces don't look right as
-		 ;; light on dark.
-		 (if (eq 'dark (cdr-safe (assq 'background-mode
-					       (frame-parameters))))
-		     (setq image (create-image (buffer-string)
-					       (if gnus-article-compface-xbm
-						   'xbm
-						 'pbm)
-					       t
-					       :ascent 'center
-					       :foreground "black"
-					       :background "white"))
-		   (setq image (create-image (buffer-string)
-					     (if gnus-article-compface-xbm
-						 'xbm
-					       'pbm)
-					     t
-					     :ascent 'center)))))
-	  (ring-insert gnus-article-xface-ring-internal (cons data image)))
-	(when image
-	  (goto-char (point-min))
-	  (re-search-forward "^From:" nil 'move)
-	  (while (get-text-property (point) 'display)
-	    (goto-char (next-single-property-change (point) 'display)))
-	  (insert-image image))))))
+(defun gnus-remove-image (image &optional category)
+  (dolist (position (message-text-with-property 'display))
+    (when (and (equal (get-text-property position 'display) image)
+	       (equal (get-text-property position 'gnus-image-category)
+		      category))
+      (put-text-property position (1+ position) 'display nil)
+      (when (get-text-property position 'gnus-image-text-deletable)
+	(delete-region position (1+ position))))))
 
 (provide 'gnus-ems)
 

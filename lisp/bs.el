@@ -628,8 +628,8 @@ For faster navigation each digit key is a digit argument.
 \\[bs-tmp-select-other-window] -- make another window display that buffer and
     remain in Buffer Selection Menu.
 \\[bs-mouse-select] -- select current line's buffer and other marked buffers.
-\\[bs-save] -- save current line's buffer immediatly.
-\\[bs-delete] -- kill current line's buffer immediatly.
+\\[bs-save] -- save current line's buffer immediately.
+\\[bs-delete] -- kill current line's buffer immediately.
 \\[bs-toggle-readonly] -- toggle read-only status of current line's buffer.
 \\[bs-clear-modified] -- clear modified-flag on that buffer.
 \\[bs-mark-current] -- mark current line's buffer to be displayed.

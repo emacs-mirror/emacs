@@ -1,3 +1,16 @@
+2004-09-08  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer History): Add `history-delete-duplicates'.
+
+2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locals.texi (Standard Buffer-Local Variables): Add
+	`buffer-auto-save-file-format'.
+	* internals.texi (Buffer Internals): Describe new
+	auto_save_file_format field of the buffer structure.
+	* files.texi (Format Conversion): `auto-save-file-format' has been
+	renamed `buffer-auto-save-file-format'.
+
 2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* abbrevs.texi (Abbrev Expansion): `abbrev-start-location' can be

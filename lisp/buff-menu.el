@@ -638,14 +638,11 @@ For more information, see the function `buffer-menu'."
 		  (mapcar
 		   (lambda (buffer)
 		     (with-current-buffer buffer
-		       (save-window-excursion
-			 (setq name (buffer-name)
-			       mode (progn
-				      (set-window-buffer (selected-window) buffer)
-				      (concat (format-mode-line mode-name)
-					      (if mode-line-process
-						  (format-mode-line mode-line-process))))
-			       file (buffer-file-name)))
+		       (setq name (buffer-name)
+			     mode (concat (format-mode-line mode-name nil nil buffer)
+					  (if mode-line-process
+					      (format-mode-line mode-line-process nil nil buffer)))
+			     file (buffer-file-name))
 		       (cond
 			;; Don't mention internal buffers.
 			((and (string= (substring name 0 1) " ") (null file)))
