@@ -1,8 +1,9 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
-;;; Author:		Jamie Zawinski <jwz@lucid.com>
-;;; Created:		4 Apr 1990
-;;; Version:		1.21, 10 Mar 91
+;; Author: Jamie Zawinski <jwz@lucid.com>
+;; Created: 4 Apr 1990
+;; Version: 1.21
+;; Last-Modified: 10 Mar 1991
 
 ;;; Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 ;;;
@@ -21,6 +22,8 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;;; This package attempts to make dealing with Unix 'tar' archives easier.
 ;;; When this code is loaded, visiting a file whose name ends in '.tar' will
@@ -86,6 +89,8 @@
 ;;;
 ;;; o  Block files, sparse files, continuation files, and the various header 
 ;;;    types aren't editable.  Actually I don't know that they work at all.
+
+;;; Code:
 
 (defvar tar-anal-blocksize 20
   "*The blocksize of tar files written by Emacs, or nil, meaning don't care.

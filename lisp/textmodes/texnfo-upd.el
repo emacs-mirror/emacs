@@ -1,6 +1,8 @@
 ;;; texnfo-upd.el --- a utility for updating nodes and menus in Texinfo files.
 
-;;;; Version 2.00   14 Dec 1990
+;; Author: Bob Chassell <bob@gnu.ai.mit.edu>
+;; Version: 2.00
+;; Last-Modified: 14 Dec 1990
 
 ;;;; Copyright 1989, 1990, 1992 Free Software Foundation
 
@@ -20,6 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ;;;; Summary
 
@@ -143,6 +146,7 @@
 ; Since node names should be more concise than section or chapter
 ; titles, node names so inserted will need to be edited manually.
 
+;;; Code:
  
 ;;;; Menu Making Functions
 

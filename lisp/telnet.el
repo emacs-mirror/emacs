@@ -1,4 +1,9 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
+
+;; Author: William F. Schelter
+;; Maintainer: FSF
+;; Last-Modified: 16 Mar 1992
+
 ;;; Copyright (C) 1985, 1988, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -17,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Author William F. Schelter
+;;; Code:
 
 ;;to do fix software types for lispm:
 ;;to eval current expression.  Also to try to send escape keys correctly.

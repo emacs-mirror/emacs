@@ -1,12 +1,17 @@
 ;;; term-nasty.el --- Damned Things from terminfo.el
 
-Some people used to be bothered by the following comments that were
-found in terminal.el.  We decided they were distracting, and that it
-was better not to have them there.  On the other hand, we didn't want
-to appear to be giving in to the pressure to censor obscenity that
-currently threatens freedom of speech and of the press in the US.
-So we decided to put the comments here.
+;; Maintainer: FSF
 
+;;; Commentary:
+
+;; Some people used to be bothered by the following comments that were
+;; found in terminal.el.  We decided they were distracting, and that it
+;; was better not to have them there.  On the other hand, we didn't want
+;; to appear to be giving in to the pressure to censor obscenity that
+;; currently threatens freedom of speech and of the press in the US.
+;; So we decided to put the comments here.
+
+;;; Code:
 
 These comments were removed from te-losing-unix.
   ;(what lossage)
