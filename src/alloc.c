@@ -1119,9 +1119,14 @@ struct string_block *large_string_blocks;
 /* If SIZE is the length of a string, this returns how many bytes
    the string occupies in a string_block (including padding).  */
 
-#define STRING_FULLSIZE(size) (((size) + sizeof (struct Lisp_String) + PAD) \
-			       & ~(PAD - 1))
-#define PAD (sizeof (EMACS_INT))
+#define STRING_FULLSIZE(size) (((size) + 1 + STRING_BASE_SIZE + STRING_PAD - 1) \
+			       & ~(STRING_PAD - 1))
+     /* Add 1 for the null terminator,
+	and add STRING_PAD - 1 as part of rounding up.  */
+
+#define STRING_PAD (sizeof (EMACS_INT))
+/* Size of the stuff in the string not including its data.  */
+#define STRING_BASE_SIZE (((sizeof (struct Lisp_String) - 1) / STRING_PAD) * STRING_PAD)
 
 #if 0
 #define STRING_FULLSIZE(SIZE)   \
@@ -1377,8 +1382,7 @@ make_pure_string (data, length, length_byte)
      int length_byte;
 {
   register Lisp_Object new;
-  register int size = (2 * sizeof (EMACS_INT)
-		       + INTERVAL_PTR_SIZE + length_byte + 1);
+  register int size = STRING_FULLSIZE (length_byte);
 
   if (pureptr + size > PURESIZE)
     error ("Pure Lisp storage exhausted");
@@ -1393,8 +1397,7 @@ make_pure_string (data, length, length_byte)
 #if defined (USE_TEXT_PROPERTIES)
   XSTRING (new)->intervals = NULL_INTERVAL;
 #endif
-  pureptr += (size + sizeof (EMACS_INT) - 1)
-	     / sizeof (EMACS_INT) * sizeof (EMACS_INT);
+  pureptr += size;
   return new;
 }
 
