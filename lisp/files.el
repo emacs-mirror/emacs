@@ -3058,8 +3058,14 @@ non-nil, it is called instead of rereading visited file contents."
 		   (if (file-symlink-p file)
 		       (setq switches (concat switches "L")))
 		   (set-buffer standard-output)
-		   (insert-directory file switches)
-		   (insert-directory file-name switches))))
+		   ;; Use insert-directory-safely, not insert-directory,
+		   ;; because these files might not exist.  In particular,
+		   ;; FILE might not exist if the auto-save file was for
+		   ;; a buffer that didn't visit a file, such as "*mail*".
+		   ;; The code in v20.x called `ls' directly, so we need
+		   ;; to emulate what `ls' did in that case.
+		   (insert-directory-safely file switches)
+		   (insert-directory-safely file-name switches))))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
 	   (let ((buffer-read-only nil)
@@ -3619,6 +3625,17 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		      (forward-word -1)
 		      (setq available (buffer-substring (point) end))))
 		  (insert " available " available))))))))))
+
+(defun insert-directory-safely (file switches
+				     &optional wildcard full-directory-p)
+  "Insert directory listing for FILE, formatted according to SWITCHES.
+
+Like `insert-directory', but if FILE does not exist, it inserts a
+message to that effect instead of signaling an error."
+  (if (file-exists-p file)
+      (insert-directory file switches wildcard full-directory-p)
+    ;; Simulate the message printed by `ls'.
+    (insert (format "%s: No such file or directory\n" file))))
 
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
