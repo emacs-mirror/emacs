@@ -1166,11 +1166,11 @@ Similarly for Soar, Scheme, etc."
 			  (comint-replace-by-expanded-history t)
 			  (let ((copy (buffer-substring pmark (point))))
 			    (delete-region pmark (point))
-			    (insert input)
+			    (insert-before-markers input)
 			    copy))))
           (if comint-process-echoes
               (delete-region pmark (point))
-	    (insert ?\n))
+	    (insert-before-markers ?\n))
 	  (if (and (funcall comint-input-filter history)
 		   (or (null comint-input-ignoredups)
 		       (not (ring-p comint-input-ring))
