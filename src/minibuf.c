@@ -175,7 +175,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 {
   Lisp_Object val;
   int count = specpdl_ptr - specpdl;
-  Lisp_Object mini_frame;
+  Lisp_Object mini_frame, ambient_dir;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   single_kboard_state ();
@@ -194,23 +194,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
       && (EQ (selected_window, minibuf_window)))
     error ("Command attempted to use minibuffer while in minibuffer");
 
-  /* Could we simply bind these variables instead?  */
-  minibuf_save_list
-    = Fcons (Voverriding_local_map,
-	     Fcons (minibuf_window, minibuf_save_list));
-  minibuf_save_list
-    = Fcons (minibuf_prompt,
-	     Fcons (make_number (minibuf_prompt_width),
-		    Fcons (Vhelp_form,
-			   Fcons (Vcurrent_prefix_arg,
-				  Fcons (Vminibuffer_history_position,
-					 Fcons (Vminibuffer_history_variable,
-						minibuf_save_list))))));
+  ambient_dir = current_buffer->directory;
 
-  minibuf_prompt_width = 0;	/* xdisp.c puts in the right value.  */
-  minibuf_prompt = Fcopy_sequence (prompt);
-  Vminibuffer_history_position = histpos;
-  Vminibuffer_history_variable = histvar;
+  /* Choose the minibuffer window and frame, and take action on them.  */
 
   choose_minibuf_frame ();
 
@@ -233,7 +219,37 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     Fraise_frame (mini_frame);
 #endif
 
-  val = current_buffer->directory;
+  /* We have to do this after saving the window configuration
+     since that is what restores the current buffer.  */
+
+  /* Arrange to restore a number of minibuffer-related variables.
+     We could bind each variable separately, but that would use lots of
+     specpdl slots.  */
+  minibuf_save_list
+    = Fcons (Voverriding_local_map,
+	     Fcons (minibuf_window, minibuf_save_list));
+  minibuf_save_list
+    = Fcons (minibuf_prompt,
+	     Fcons (make_number (minibuf_prompt_width),
+		    Fcons (Vhelp_form,
+			   Fcons (Vcurrent_prefix_arg,
+				  Fcons (Vminibuffer_history_position,
+					 Fcons (Vminibuffer_history_variable,
+						minibuf_save_list))))));
+
+  record_unwind_protect (read_minibuf_unwind, Qnil);
+  minibuf_level++;
+
+  /* Now that we can restore all those variables, start changing them.  */
+
+  minibuf_prompt_width = 0;	/* xdisp.c puts in the right value.  */
+  minibuf_prompt = Fcopy_sequence (prompt);
+  Vminibuffer_history_position = histpos;
+  Vminibuffer_history_variable = histvar;
+  Vhelp_form = Vminibuffer_help_form;
+
+  /* Switch to the minibuffer.  */
+
   Fset_buffer (get_minibuffer (minibuf_level));
 
   /* The current buffer's default directory is usually the right thing
@@ -244,8 +260,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
      up Emacs and buf's default directory is Qnil.  Here's a hack; can
      you think of something better to do?  Find another buffer with a
      better directory, and use that one instead.  */
-  if (STRINGP (val))
-    current_buffer->directory = val;
+  if (STRINGP (ambient_dir))
+    current_buffer->directory = ambient_dir;
   else
     {
       Lisp_Object buf_list;
@@ -269,16 +285,16 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   if (XFRAME (mini_frame) != selected_frame)
     Fredirect_frame_focus (Fselected_frame (), mini_frame);
 #endif
-  Fmake_local_variable (Qprint_escape_newlines);
-  print_escape_newlines = 1;
-
-  record_unwind_protect (read_minibuf_unwind, Qnil);
 
   Vminibuf_scroll_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
   Fselect_window (minibuf_window);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
 
+  Fmake_local_variable (Qprint_escape_newlines);
+  print_escape_newlines = 1;
+
+  /* Erase the buffer.  */
   {
     int count1 = specpdl_ptr - specpdl;
     specbind (Qinhibit_read_only, Qt);
@@ -286,8 +302,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     unbind_to (count1, Qnil);
   }
 
-  minibuf_level++;
-
+  /* Put in the initial input.  */
   if (!NILP (initial))
     {
       Finsert (1, &initial);
@@ -299,12 +314,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   /* This is in case the minibuffer-setup-hook calls Fsit_for.  */
   previous_echo_glyphs = 0;
 
-  Vhelp_form = Vminibuffer_help_form;
   current_buffer->keymap = map;
 
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
-     but it's important to save time here in the usual case.  */
+     but it's important to save time here in the usual case).  */
   if (!NILP (Vminibuffer_setup_hook) && !EQ (Vminibuffer_setup_hook, Qunbound)
       && !NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qminibuffer_setup_hook);
