@@ -8127,8 +8127,9 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      struct scroll_bar *bar;
      int portion, position, whole;
 {
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  Widget widget = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
   float top, shown;
-  Widget widget = SCROLL_BAR_X_WIDGET (bar);
 
   if (whole == 0)
     top = 0, shown = 1;
@@ -8339,12 +8340,15 @@ x_scroll_bar_create (w, top, left, width, height)
 
   /* Map the window/widget.  */
 #if USE_TOOLKIT_SCROLL_BARS
-  XtConfigureWidget (SCROLL_BAR_X_WIDGET (bar),
+ {
+   Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
+   XtConfigureWidget (scroll_bar,
 		     left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 		     top,
 		     width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
 		     height, 0);
-  XtMapWidget (SCROLL_BAR_X_WIDGET (bar));
+   XtMapWidget (scroll_bar);
+ }
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   XMapRaised (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -8477,16 +8481,14 @@ static void
 x_scroll_bar_remove (bar)
      struct scroll_bar *bar;
 {
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   BLOCK_INPUT;
 
 #if USE_TOOLKIT_SCROLL_BARS
-  XtDestroyWidget (SCROLL_BAR_X_WIDGET (bar));
-#else /* not USE_TOOLKIT_SCROLL_BARS */
-  {
-    FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-    XDestroyWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
-  }
-#endif /* not USE_TOOLKIT_SCROLL_BARS */
+  XtDestroyWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar));
+#else
+  XDestroyWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
+#endif
   
   /* Disassociate this scroll bar from its window.  */
   XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
@@ -8580,7 +8582,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       /* Move/size the scroll bar widget.  */
       if (mask)
-	XtConfigureWidget (SCROLL_BAR_X_WIDGET (bar),
+	XtConfigureWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar),
 			   sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 			   top,
 			   sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
