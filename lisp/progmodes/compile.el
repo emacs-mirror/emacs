@@ -1150,6 +1150,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see).
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
   (compilation-setup)
+  (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
 
 (defmacro define-compilation-mode (mode name doc &rest body)
@@ -1212,8 +1213,6 @@ If nil, use the beginning of buffer.")
   "Prepare the buffer for the compilation parsing commands to work.
 Optional argument MINOR indicates this is called from
 `compilation-minor-mode'."
-  (unless minor
-    (setq buffer-read-only t))
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
