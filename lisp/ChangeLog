@@ -1,5 +1,10 @@
 1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* info.el (info-node, info-menu-5, info-xref): Define colors for
+	Info faces if the display supports them.
+
+1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	Changes for automatic remapping of X colors on terminal frames:
 
 	* term/pc-win.el (msdos-setup-initial-frame): New function, run by
