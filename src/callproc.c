@@ -633,13 +633,14 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     int first = 1;
     int total_read = 0;
     int carryover = 0;
+    int display_on_the_fly = !NILP (display) && INTERACTIVE;
+    struct coding_system saved_coding = process_coding;
 
     while (1)
       {
 	/* Repeatedly read until we've filled as much as possible
 	   of the buffer size we have.  But don't read
 	   less than 1024--save that for the next bufferful.  */
-
 	nread = carryover;
 	while (nread < bufsize - 1024)
 	  {
@@ -649,21 +650,20 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      goto give_up;
 
 	    if (this_read == 0)
-	      goto give_up_1;
+	      {
+		process_coding.mode |= CODING_MODE_LAST_BLOCK;
+		break;
+	      }
 
 	    nread += this_read;
+	    total_read += this_read;
+
+	    if (display_on_the_fly)
+	      break;
 	  }
 
-      give_up_1:
-
 	/* Now NREAD is the total amount of data in the buffer.  */
-	if (nread == carryover)
-	  /* Here, just tell decode_coding that we are processing the
-             last block.  We break the loop after decoding.  */
-	  process_coding.mode |= CODING_MODE_LAST_BLOCK;
-
 	immediate_quit = 0;
-	total_read += nread - carryover;
 	
 	if (!NILP (buffer))
 	  {
@@ -676,6 +676,19 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
 		decode_coding (&process_coding, bufptr, decoding_buf,
 			       nread, size);
+		if (display_on_the_fly
+		    && saved_coding.type == coding_type_undecided
+		    && process_coding.type != coding_type_undecided)
+		  {
+		    /* We have detected some coding system.  But,
+		       there's a possibility that the detection was
+		       done by insufficient data.  So, we give up
+		       displaying on the fly.  */
+		    display_on_the_fly = 0;
+		    process_coding = saved_coding;
+		    carryover = nread;
+		    continue;
+		  }
 		if (process_coding.produced > 0)
 		  insert (decoding_buf, process_coding.produced);
 		carryover = nread - process_coding.consumed;
