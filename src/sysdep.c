@@ -604,7 +604,16 @@ sys_suspend ()
 #ifdef subprocesses
       close_process_descs ();	/* Close Emacs's pipes/ptys */
 #endif
-      nice (-nice (0));		/* Give the new shell the default piority */ 
+
+#ifdef PRIO_PROCESS
+      {
+	extern int emacs_priority;
+
+	if (emacs_priority)
+	  nice (-emacs_priority);
+      }
+#endif
+
       execlp (sh, sh, 0);
       write (1, "Can't execute subshell", 22);
       _exit (1);
@@ -1772,12 +1781,6 @@ read_input_waiting ()
 #endif /* not VMS */
 
 #ifdef BSD4_1
-/* VARARGS */
-setpriority ()
-{
-  return 0;
-}
-
 /*
  * Partially emulate 4.2 open call.
  * open is defined as this in 4.1.
@@ -2368,18 +2371,6 @@ rename (from, to)
 }
 
 #endif
-
-/* Set priority value to PRIO.  */
-
-int
-setpriority (which, who, prio)
-     int which, who, prio;
-{
-  int nice ();
-
-  nice (prio - nice (0));
-  return (0);
-}
 
 #ifndef HAVE_VFORK
 
@@ -3779,9 +3770,6 @@ delete_logical_name (varname)
 }
 
 ulimit ()
-{}
-
-setpriority ()
 {}
 
 setpgrp ()
