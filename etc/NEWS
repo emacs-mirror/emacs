@@ -786,6 +786,15 @@ mode-lines in inverse-video.
 
 * Lisp Changes in Emacs 21.4
 
+** The `read-file-name' function now takes an additional argument which
+specifies a predicate which the file name read must satify.  The
+new variable `read-file-name-predicate' contains the predicate argument
+while reading the file name from the minibuffer; the predicate in this
+variable is used by read-file-name-internal to filter the completion list.
+
+** The new variable `read-file-name-function' can be used by lisp code
+to override the internal read-file-name function.
+
 ** The New lisp library fringe.el controls the apperance of fringes.
 
 ** The `defmacro' form may contain declarations specifying how to
