@@ -2,7 +2,7 @@ dnl This is an autoconf script.
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
-AC_PREREQ(2.0)dnl
+AC_PREREQ(2.4.1)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -11,6 +11,7 @@ locallisppath='${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${sharedstatedir}/emacs/lock'
+archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
 AC_ARG_WITH(gcc,
