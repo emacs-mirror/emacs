@@ -10669,7 +10669,9 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	{
 	  extern int cursor_in_non_selected_windows;
 	  
-	  if (MINI_WINDOW_P (w) || !cursor_in_non_selected_windows)
+	  if (MINI_WINDOW_P (w)
+	      || !cursor_in_non_selected_windows
+	      || NILP (XBUFFER (w->buffer)->cursor_type))
 	    new_cursor_type = NO_CURSOR;
 	  else
 	    new_cursor_type = HOLLOW_BOX_CURSOR;
