@@ -7,7 +7,7 @@
    USUAL-OPSYS="note"  
 
 NOTE-START
-Use -opsystem=osf1 for OSF/1, and -opsystem=bsd4-3 otherwise.
+The operating system would be either osf1, ultrix, or NetBSD.
 NOTE-END  */
 
 #undef WORDS_BIG_ENDIAN
@@ -27,6 +27,14 @@ NOTE-END  */
 #define START_FILES pre-crt0.o /usr/lib/cmplrs/cc/crt0.o
 #endif
 
+#ifdef __NetBSD__
+#undef START_FILES
+#undef RUN_TIME_REMAP
+#define START_FILES pre-crt0.o /usr/lib/crt0.o
+#define CANNOT_DUMP
+#undef UNEXEC
+#endif /* NetBSD */
+
 /* Supposedly the following will overcome a kernel bug.  */
 #undef LD_SWITCH_MACHINE
 #undef DATA_START
@@ -45,16 +53,19 @@ NOTE-END  */
 /* Override what mips.h says about this.  */
 #undef LINKER
 
+#ifdef ultrix
 /* Ultrix 4.2 (perhaps also 4.1) implements O_NONBLOCK
    but it doesn't work right;
    and it causes hanging in read_process_output.  */
 #define BROKEN_O_NONBLOCK
+#endif
 
 #if defined (OSF1) || defined (MACH)
 #undef C_ALLOCA
 #define HAVE_ALLOCA
 #endif
 
+#ifndef __NetBSD__
 /* mcc@timessqr.gc.cuny.edu says this makes Emacs work with DECnet.  */
 #ifdef HAVE_LIBDNET
 #define LIBS_MACHINE -ldnet
@@ -63,8 +74,9 @@ NOTE-END  */
 /* mcc@timessqr.gc.cuny.edu says it is /vmunix on Ultrix 4.2a.  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/vmunix"
+#endif
 
-#ifndef MACH
+#ifdef ultrix
 /* Jim Wilson writes:
    [...] The X11 include files that Dec distributes with Ultrix
    are bogus.
