@@ -1,5 +1,6 @@
 /* CCL (Code Conversion Language) interpreter.
    Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 2001 Free Software Foundation, Inc.
    Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
