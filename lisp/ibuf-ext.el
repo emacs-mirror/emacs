@@ -654,23 +654,20 @@ of replacing the current filters."
 ;;;###autoload
 (defun ibuffer-toggle-sorting-mode ()
   "Toggle the current sorting mode.
-Possible sorting modes are:
+Default sorting modes are:
  Recency - the last time the buffer was viewed
  Name - the name of the buffer
  Major Mode - the name of the major mode of the buffer
  Size - the size of the buffer"
   (interactive)
-  (let* ((keys (mapcar #'car ibuffer-sorting-functions-alist))
-	 (entry (memq ibuffer-sorting-mode keys))
-	 (next (or (cadr entry) (car keys)))
-	 (nextentry (assq next ibuffer-sorting-functions-alist)))
-    (if (and entry nextentry)
-	(progn
-	  (setq ibuffer-sorting-mode next)
-	  (message "Sorting by %s" (cadr nextentry)))
-      (progn
-	(setq ibuffer-sorting-mode 'recency)
-	(message "Sorting by last view time"))))
+  (let ((modes (mapcar 'car ibuffer-sorting-functions-alist)))
+    (add-to-list 'modes 'recency)
+    (setq modes (sort modes 'string-lessp))
+    (let ((next (or (find-if 
+                     (lambda (x) (string-lessp ibuffer-sorting-mode x)) modes)
+                    (car modes))))
+      (setq ibuffer-sorting-mode next)
+      (message "Sorting by %s" next)))
   (ibuffer-redisplay t))
 
 ;;;###autoload
