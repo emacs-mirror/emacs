@@ -1753,7 +1753,11 @@ yanking point; just return the Nth kill forward."
   "Kill between point and mark.
 The text is deleted but saved in the kill ring.
 The command \\[yank] can retrieve it from there.
-\(If you want to kill and then yank immediately, use \\[copy-region-as-kill].)
+\(If you want to kill and then yank immediately, use \\[kill-ring-save].)
+
+If you want to append the killed region to the last killed text,
+use \\[append-next-kill] before \\[kill-region].
+
 If the buffer is read-only, Emacs will beep and refrain from deleting
 the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
@@ -1812,6 +1816,9 @@ system cut and paste."
 In Transient Mark mode, deactivate the mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste.
+
+If you want to append the killed line to the last killed text,
+use \\[append-next-kill] before \\[kill-ring-save].
 
 This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
@@ -2014,6 +2021,9 @@ If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
 with no argument.  As a consequence, you can always kill a whole line
 by typing \\[beginning-of-line] \\[kill-line].
+
+If you want to append the killed line to the last killed text,
+use \\[append-next-kill] before \\[kill-line].
 
 If the buffer is read-only, Emacs will beep and refrain from deleting
 the line, but put the line in the kill ring anyway.  This means that
