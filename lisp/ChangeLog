@@ -1,3 +1,8 @@
+2002-11-11  Fabrice Bauzac  <fabrice.bauzac@wanadoo.fr>  (tiny change)
+
+	* dired-aux.el (dired-show-file-type): Format filename with "%s" to
+	escape any format-like sequences it could contain.
+
 2002-11-03  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-dired-mode): Adapt dired-move-to-filename-regexp to its

@@ -102,7 +102,7 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
     (setq failures
 	  (dired-bunch-files 10000
 			     (function dired-check-process)
-			     (append 
+			     (append
 			      (list operation program new-attribute)
 			      (if (string-match "gnu" system-configuration)
 				  '("--") nil))
@@ -560,7 +560,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	    (setq suffix (car suffixes) suffixes nil))
 	(setq suffixes (cdr suffixes))))
     ;; If so, compute desired new name.
-    (if suffix	
+    (if suffix
 	(setq newname (concat (substring file 0 (match-beginning 0))
 			      (nth 1 suffix))))
     (cond (handler
@@ -852,7 +852,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      ;; It inserts the file's absolute name, rather than
 	      ;; the relative one.  That may be hard to fix since it
 	      ;; is probably controlled by something in ftp.
-	      (goto-char opoint)	
+	      (goto-char opoint)
 	      (let ((inserted-name (dired-get-filename 'verbatim)))
 		(if (file-name-directory inserted-name)
 		    (progn
@@ -2014,15 +2014,15 @@ with the command \\[tags-loop-continue]."
 (defun dired-show-file-type (file &optional deref-symlinks)
   "Print the type of FILE, according to the `file' command.
 If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
-true then the type of the file linked to by FILE is printed instead." 
+true then the type of the file linked to by FILE is printed instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
-  (with-temp-buffer 
+  (with-temp-buffer
     (if deref-symlinks
 	(call-process "file" nil t t "-L" file)
       (call-process "file" nil t t file))
     (when (bolp)
       (backward-delete-char 1))
-    (message (buffer-string))))
+    (message "%s" (buffer-string))))
 
 (provide 'dired-aux)
 
