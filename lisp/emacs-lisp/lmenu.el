@@ -134,7 +134,7 @@ The syntax, more precisely:
    menu		:=  '(' name [ menu-item | menu | text ]+ ')'
 "
   (let ((menu (make-lucid-menu-keymap (car menu-desc) (cdr menu-desc)))
-	(pos (mouse-position))
+	(pos (mouse-pixel-position))
 	answer)
     (while menu
       (setq answer (x-popup-menu (list (list (nth 1 pos) (nthcdr 2 pos))
