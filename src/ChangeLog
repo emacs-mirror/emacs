@@ -1,5 +1,7 @@
 2001-03-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (fast_find_position): Return the correct vpos.
+
 	* data.c (store_symval_forwarding): Add parameter BUF.  If BUF is
 	non-null, set a per-buffer value in BUF instead of the current
 	buffer.
