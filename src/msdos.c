@@ -3217,6 +3217,7 @@ dos_rawgetc ()
       event.code = code;
       event.modifiers =	modifiers;
       event.frame_or_window = selected_frame;
+      event.arg = Qnil;
       event.timestamp = event_timestamp ();
       kbd_buffer_store_event (&event);
     }
@@ -3288,6 +3289,7 @@ dos_rawgetc ()
 		event.x = x;
 		event.y = y;
 		event.frame_or_window = selected_frame;
+		event.arg = Qnil;
 		event.timestamp = event_timestamp ();
 		kbd_buffer_store_event (&event);
 	      }
