@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92-96, 98, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -28,6 +28,10 @@
 ;; documented in the Emacs user's manual.
 
 ;;; Code:
+(eval-when-compile
+  (require 'rmail)
+  (require 'mailalias))
+
 (defgroup sendmail nil
   "Mail sending commands for Emacs."
   :prefix "mail-"
@@ -146,6 +150,7 @@ This file need not actually exist."
   "Normal hook, run each time a new outgoing mail message is initialized.
 The function `mail-setup' runs this hook."
   :type 'hook
+  :options '(fortune-to-signature spook)
   :group 'sendmail)
 
 (defvar mail-aliases t
@@ -424,6 +429,12 @@ actually occur.")
       (set-buffer-modified-p nil))
   (run-hooks 'mail-setup-hook))
 
+(defcustom mail-mode-hook nil
+  "Hook run by Mail mode."
+  :group 'sendmail
+  :type 'hook
+  :options '(footnote-mode))
+
 ;;;###autoload
 (defun mail-mode ()
   "Major mode for editing mail to be sent.
@@ -676,6 +687,12 @@ Prefix arg means don't delete this window."
 	    (if summary-buffer (switch-to-buffer summary-buffer)
 	      (delete-window))
 	  (switch-to-buffer newbuf))))))
+
+(defcustom mail-send-hook nil
+  "Hook run just before sending mail with `mail-send'."
+  :type 'hook
+  :options '(flyspell-mode-off)
+  :group 'sendmail)
 
 (defun mail-send ()
   "Send the message in the current buffer.
