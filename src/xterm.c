@@ -3929,6 +3929,7 @@ x_new_font (f, fontname)
 		f->display.x->font->fid);
       XSetFont (x_current_display, f->display.x->cursor_gc,
 		f->display.x->font->fid);
+      init_frame_faces (f);
 
       x_set_window_size (f, f->width, f->height);
     }
