@@ -1,5 +1,6 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 1997
+     Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2991,7 +2992,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
   next_boundary = pos;
   p1prev = p1;
   prevpos = pos;
-  while (1)
+  while (p1 < endp)
     {
       if (pos >= pause)
 	{
