@@ -298,7 +298,10 @@ CC=gcc
 
 #define LD_SWITCH_SYSTEM
 #define START_FILES pre-crt0.o
+#if 0  /* Shawn M. Carey <smcarey@mailbox.syr.edu> found this
+	  caused trouble on DGUX 5.4.2.  */
 #define LIBS_SYSTEM -ldgc
+#endif
 #define LIB_GCC /usr/lib/gcc/libgcc.a
 
 #ifdef _M88KBCS_TARGET
