@@ -289,15 +289,17 @@ directory, like `default-directory'."
   :type '(repeat function)
   :group 'ibuffer)
 
-(defcustom ibuffer-hooks nil
+(defcustom ibuffer-hook nil
   "Hooks run when `ibuffer' is called."
   :type 'hook
   :group 'ibuffer)
+(defvaralias 'ibuffer-hooks 'ibuffer-hook)
 
-(defcustom ibuffer-mode-hooks nil
+(defcustom ibuffer-mode-hook nil
   "Hooks run upon entry into `ibuffer-mode'."
   :type 'hook
   :group 'ibuffer)
+(defvaralias 'ibuffer-mode-hooks 'ibuffer-mode-hook)
 
 (defcustom ibuffer-marked-face 'font-lock-warning-face
   "Face used for displaying marked buffers."
