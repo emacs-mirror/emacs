@@ -1317,9 +1317,9 @@ configure___ system_malloc=no
 #endif
 
 #ifdef __GNUC__
-configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH ${CFLAGS}
+configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${CFLAGS}'
 #else
-configure___ CFLAGS=C_DEBUG_SWITCH ${CFLAGS}
+configure___ CFLAGS=C_DEBUG_SWITCH '${CFLAGS}'
 #endif
 ' > ${tempcname}
 # The value of CPP is a quoted variable reference, so we need to do this
