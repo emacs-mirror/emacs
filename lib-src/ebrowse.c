@@ -2914,8 +2914,8 @@ parse_qualified_ident_or_type (last_id)
      char **last_id;
 {
   struct sym *cls = NULL;
-  static char *id = NULL;
-  static int id_size = 0;
+  char *id = NULL;
+  size_t id_size = 0;
   
   while (LOOKING_AT (IDENT))
     {
@@ -2935,6 +2935,9 @@ parse_qualified_ident_or_type (last_id)
 	{
 	  cls = add_sym (id, cls);
 	  *last_id = NULL;
+	  xfree (id);
+	  id = NULL;
+	  id_size = 0;
 	  MATCH ();
 	}
       else
@@ -3617,6 +3620,8 @@ read_line (fp)
     }
 
   buffer[i] = '\0';
+  if (i > 0 && buffer[i - 1] == '\r')
+    buffer[i - 1] = '\0';
   return buffer;
 }
 
