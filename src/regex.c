@@ -2784,7 +2784,7 @@ re_compile_fastmap (bufp)
       
   while (p != pend || !FAIL_STACK_EMPTY ())
     {
-      if (p == pend)
+      if (p == pend || *p == succeed)
         {
           bufp->can_be_null |= path_can_be_null;
           
