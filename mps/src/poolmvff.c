@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.17) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.18) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -24,7 +24,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.17) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.18) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -209,7 +209,7 @@ static Res MVFFAddSeg(Seg *segReturn,
     /* try again for a seg just large enough for object */
     /* see design.mps.poolmvff.design.seg-fail */
     segSize = SizeAlignUp(size, align);
-    res = SegAlloc(&seg, mvff->segPref, segSize, pool, 
+    res = SegAlloc(&seg, EnsureSegClass(), mvff->segPref, segSize, pool, 
                    withReservoirPermit);
     if (res != ResOK) {
       return res;
