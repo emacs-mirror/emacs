@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 
-;; Author: Philippe Schnoebelen <phs@lifia.imag.fr>
+;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
