@@ -158,7 +158,10 @@ Prefix arg means just kill any existing server communications subprocess."
       nil
     (if server-process
 	(server-log (message "Restarting server")))
-    (setq server-process (start-process "server" nil server-program))
+    ;; Using a pty is wasteful, and the separate session causes
+    ;; annoyance sometimes (some systems kill idle sessions).
+    (let ((process-connection-type nil))
+      (setq server-process (start-process "server" nil server-program)))
     (set-process-sentinel server-process 'server-sentinel)
     (set-process-filter server-process 'server-process-filter)
     (process-kill-without-query server-process)))
