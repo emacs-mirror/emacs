@@ -1,3 +1,7 @@
+2000-12-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_set_cursor_color): Fix last change.
+
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (echo_area_display): If cursor is in the echo area, make
