@@ -688,7 +688,7 @@ Return t if any property value actually changed, nil otherwise.")
       else
 	{
 	  unchanged = i;
-	  i = split_interval_right (unchanged, s - unchanged->position + 1);
+	  i = split_interval_right (unchanged, s - unchanged->position);
 	  copy_properties (unchanged, i);
 	}
     }
@@ -712,7 +712,7 @@ Return t if any property value actually changed, nil otherwise.")
 
 	  /* i doesn't have the properties, and goes past the change limit */
 	  unchanged = i;
-	  i = split_interval_left (unchanged, len + 1);
+	  i = split_interval_left (unchanged, len);
 	  copy_properties (unchanged, i);
 	  add_properties (properties, i, object);
 	  return Qt;
@@ -768,12 +768,12 @@ is the string or buffer containing the text.")
   if (i->position != s)
     {
       unchanged = i;
-      i = split_interval_right (unchanged, s - unchanged->position + 1);
+      i = split_interval_right (unchanged, s - unchanged->position);
 
       if (LENGTH (i) > len)
 	{
 	  copy_properties (unchanged, i);
-	  i = split_interval_left (i, len + 1);
+	  i = split_interval_left (i, len);
 	  set_properties (props, i, object);
 	  return Qt;
 	}
@@ -797,7 +797,7 @@ is the string or buffer containing the text.")
       if (LENGTH (i) >= len)
 	{
 	  if (LENGTH (i) > len)
-	    i = split_interval_left (i, len + 1);
+	    i = split_interval_left (i, len);
 
 	  if (NULL_INTERVAL_P (prev_changed))
 	    set_properties (props, i, object);
@@ -863,7 +863,7 @@ Return t if any property was actually removed, nil otherwise.")
       else
 	{
 	  unchanged = i;
-	  i = split_interval_right (unchanged, s - unchanged->position + 1);
+	  i = split_interval_right (unchanged, s - unchanged->position);
 	  copy_properties (unchanged, i);
 	}
     }
@@ -887,7 +887,7 @@ Return t if any property was actually removed, nil otherwise.")
 
 	  /* i has the properties, and goes past the change limit */
 	  unchanged = i;
-	  i = split_interval_left (i, len + 1);
+	  i = split_interval_left (i, len);
 	  copy_properties (unchanged, i);
 	  remove_properties (props, i, object);
 	  return Qt;
@@ -897,6 +897,76 @@ Return t if any property was actually removed, nil otherwise.")
       modified += remove_properties (props, i, object);
       i = next_interval (i);
     }
+}
+
+DEFUN ("text-property-any", Ftext_property_any,
+       Stext_property_any, 4, 5, 0,
+  "Check text from START to END to see if PROP is ever `eq' to VALUE.\n\
+If so, return the position of the first character whose PROP is `eq'\n\
+to VALUE.  Otherwise return nil.\n\
+The optional fifth argument, OBJECT, is the string or buffer\n\
+containing the text.")
+  (start, end, prop, value, object)
+       Lisp_Object start, end, prop, value, object;
+{
+  register INTERVAL i;
+  register int e, pos;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
+  i = validate_interval_range (object, &start, &end, soft);
+  e = XINT (end);
+
+  while (! NULL_INTERVAL_P (i))
+    {
+      if (i->position >= e)
+	break;
+      if (EQ (textget (i->plist, prop), value))
+	{
+	  pos = i->position;
+	  if (pos < XINT (start))
+	    pos = XINT (start);
+	  return make_number (pos - (XTYPE (object) == Lisp_String));
+	}
+      i = next_interval (i);
+    }
+  return Qnil;
+}
+
+DEFUN ("text-property-not-all", Ftext_property_not_all,
+       Stext_property_not_all, 4, 5, 0,
+  "Check text from START to END to see if PROP is ever not `eq' to VALUE.\n\
+If so, return the position of the first character whose PROP is not\n\
+`eq' to VALUE.  Otherwise, return nil.\n\
+The optional fifth argument, OBJECT, is the string or buffer\n\
+containing the text.")
+  (start, end, prop, value, object)
+       Lisp_Object start, end, prop, value, object;
+{
+  register INTERVAL i;
+  register int s, e;
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
+  i = validate_interval_range (object, &start, &end, soft);
+  if (NULL_INTERVAL_P (i))
+    return (NILP (value) || EQ (start, end)) ? Qt : Qnil;
+  s = XINT (start);
+  e = XINT (end);
+
+  while (! NULL_INTERVAL_P (i))
+    {
+      if (i->position >= e)
+	break;
+      if (! EQ (textget (i->plist, prop), value))
+	{
+	  if (i->position > s)
+	    s = i->position;
+	  return make_number (s - (XTYPE (object) == Lisp_String));
+	}
+      i = next_interval (i);
+    }
+  return Qnil;
 }
 
 #if 0 /* You can use set-text-properties for this.  */
@@ -931,13 +1001,13 @@ is the string or buffer containing the text.")
       /* If there are properties here, then this text will be modified. */
       if (! NILP (i->plist))
 	{
-	  i = split_interval_right (unchanged, s - unchanged->position + 1);
+	  i = split_interval_right (unchanged, s - unchanged->position);
 	  i->plist = Qnil;
 	  modified++;
 
 	  if (LENGTH (i) > len)
 	    {
-	      i = split_interval_right (i, len + 1);
+	      i = split_interval_right (i, len);
 	      copy_properties (unchanged, i);
 	      return Qt;
 	    }
@@ -977,7 +1047,7 @@ is the string or buffer containing the text.")
 	    }
 
           if (LENGTH (i) > len)
-            i = split_interval_left (i, len + 1);
+            i = split_interval_left (i, len);
 	  if (! NULL_INTERVAL_P (prev_changed))
 	    merge_interval_left (i);
 	  else
@@ -1159,6 +1229,8 @@ percentage by which the left interval tree should not differ from the right.");
   defsubr (&Sput_text_property);
   defsubr (&Sset_text_properties);
   defsubr (&Sremove_text_properties);
+  defsubr (&Stext_property_any);
+  defsubr (&Stext_property_not_all);
 /*  defsubr (&Serase_text_properties); */
 /*  defsubr (&Scopy_text_properties); */
 }
