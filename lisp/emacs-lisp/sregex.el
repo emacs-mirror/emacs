@@ -4,6 +4,7 @@
 
 ;; Author: Bob Glickstein <bobg+sregex@zanshin.com>
 ;; Maintainer: Bob Glickstein <bobg+sregex@zanshin.com>
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 
