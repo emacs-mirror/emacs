@@ -31,10 +31,11 @@
  * 2001 Nested classes by Francesco Potortì (concept by Mykola Dzyuba).
  * 2002 #line directives by Francesco Potortì.
  *
- *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
+ * Francesco Potortì <pot@gnu.org> has maintained and improved it since 1993.
+ *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.26";
+char pot_etags_version[] = "@(#) pot revision number is 16.27";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -3831,8 +3832,9 @@ Yacc_entries (inf)
 #define LOOP_ON_INPUT_LINES(file_pointer, line_buffer, char_pointer)	\
   for (;			/* loop initialization */		\
        !feof (file_pointer)	/* loop test */				\
-       && (char_pointer = lb.buffer, /* instructions at start of loop */ \
-	   readline (&line_buffer, file_pointer),			\
+       &&			/* instructions at start of loop */	\
+	  (readline (&line_buffer, file_pointer),			\
+           char_pointer = line_buffer.buffer,				\
 	   TRUE);							\
       )
 #define LOOKING_AT(cp, keyword)	/* keyword is a constant string */	\
@@ -4398,7 +4400,7 @@ Cobol_paragraphs (inf)
 
 /*
  * Makefile support
- * Idea by Assar Westerlund <assar@sics.se> (2001)
+ * Ideas by Assar Westerlund <assar@sics.se> (2001)
  */
 static void
 Makefile_targets (inf)
@@ -4412,7 +4414,7 @@ Makefile_targets (inf)
 	continue;
       while (*bp != '\0' && *bp != '=' && *bp != ':')
 	bp++;
-      if (*bp == ':')
+      if (*bp == ':' || (globals && *bp == '='))
 	pfnote (savenstr (lb.buffer, bp - lb.buffer), TRUE,
 		lb.buffer, bp - lb.buffer + 1, lineno, linecharno);
     }
@@ -5432,9 +5434,13 @@ add_regex (regexp_pattern, lang)
 	need_filebuf = TRUE;
 	break;
       default:
-	modifiers[1] = '\0';
-	error ("invalid regexp modifier `%s'", modifiers);
-	return;
+	{
+	  char wrongmod [2];
+	  wrongmod[0] = modifiers[0];
+	  wrongmod[1] = '\0';
+	  error ("invalid regexp modifier `%s', ignoring", wrongmod);
+	}
+	break;
       }
 
   patbuf = xnew (1, struct re_pattern_buffer);
