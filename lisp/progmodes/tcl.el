@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.52 $
+;; Version: $Revision: 1.53 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1998/07/02 17:47:49 $|$Revision: 1.52 $|~/modes/tcl.el.Z|
+;; $Date: 1999/03/29 07:35:55 $|$Revision: 1.53 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.53  1999/03/29 07:35:55  tromey
+;; (tcl-using-emacs-19-23): Recognize Emacs 20.
+;;
 ;; Revision 1.52  1998/07/02 17:47:49  tromey
 ;; Some itcl additions:
 ;; (tcl-typeword-list): Added private, itk_option.
@@ -379,7 +382,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.52 $")
+(defconst tcl-version "$Revision: 1.53 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -662,7 +665,7 @@ Emacs 18 users must use `setq':
   "Hook for customizing Inferior Tcl mode.")
 
 (defvar tcl-proc-list
-  '("proc" "method" "itcl_class" "body" "configbody" "class")
+  '("proc" "method" "itcl_class" "body" "configbody" "class" "body")
   "List of commands whose first argument defines something.
 This exists because some people (eg, me) use \"defvar\" et al.
 Call `tcl-set-proc-regexp' and `tcl-set-font-lock-keywords'
