@@ -167,7 +167,7 @@ archlibdir=${libdir}/emacs/${version}/${configname}
 # locallisppath=${srcdir}/site-lisp
 # etcdir=${srcdir}/etc
 # lockdir=${srcdir}/lock
-# archlibdir=${srcdir}/etc
+# archlibdir=${srcdir}/bin
 # infodir=${srcdir}/info
 
 # ==================== Utility Programs for the Build ====================
@@ -492,6 +492,40 @@ extraclean:
 	-rm config.status config-tmp-*
 	-rm -f *~ \#*
 
+### Unlocking and relocking.  The idea of these productions is to reduce
+### hassles when installing an incremental tar of Emacs.  Do `make unlock'
+### before unlocking the file to take the write locks off all sources so
+### that tar xvof will overwrite them without fuss.  Then do `make relock'
+### afterward so that VC mode will know which files should be checked in
+### if you want to mung them.
+###
+### Note: it's no disaster if these productions miss a file or two; tar
+### and VC will swiftly let you know if this happens, and it is easily
+### corrected.
+SOURCES = ChangeLog GETTING.GNU.SOFTWARE INSTALL Makefile.in PROBLEMS \
+	README build-install.in configure make-dist move-if-change
+
+unlock:
+	chmod u+w $(SOURCES) cpp/*
+	-(cd elisp; chmod u+w Makefile README *.texi)
+	(cd etc; make unlock)
+	(cd lib-src; make unlock)
+	(cd lisp; make unlock)
+	(cd lisp/term; chmod u+w README *.el)
+	(cd man; chmod u+w *texi* ChangeLog split-man)
+	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
+	(cd src; make unlock)
+
+relock:
+	chmod u-w $(SOURCES) cpp/*
+	-(cd elisp; chmod u-w Makefile README *.texi)
+	(cd etc; make relock)
+	(cd lib-src; make relock)
+	(cd lisp; make relock)
+	(cd lisp/term; chmod u+w README *.el)
+	(cd man; chmod u+w *texi* ChangeLog split-man)
+	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
+	(cd src; make relock)
 
 TAGS tags:	lib-src
 	(cd ${srcdir} ; lib-src/etags --output=./src/TAGS \
