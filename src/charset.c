@@ -74,9 +74,9 @@ Lisp_Object Vcharset_symbol_table;
 /* A list of charset symbols ever defined.  */
 Lisp_Object Vcharset_list;
 
-/* Vector of unification table ever defined.
-   An ID of a unification table is an index of this vector.  */
-Lisp_Object Vcharacter_unification_table_vector;
+/* Vector of character translation table ever defined.
+   ID of a character translation table is used to index this vector.  */
+Lisp_Object Vcharacter_translation_table_vector;
 
 /* Tables used by macros BYTES_BY_CHAR_HEAD and WIDTH_BY_CHAR_HEAD.  */
 int bytes_by_char_head[256];
@@ -103,7 +103,7 @@ int nonascii_insert_offset;
 
 /* Translation table for converting non-ASCII unibyte characters
    to multibyte codes, or nil.  */
-Lisp_Object Vnonascii_translate_table;
+Lisp_Object Vnonascii_translation_table;
 
 #define min(X, Y) ((X) < (Y) ? (X) : (Y))
 #define max(X, Y) ((X) > (Y) ? (X) : (Y))
@@ -273,11 +273,12 @@ split_non_ascii_string (str, len, charset, c1, c2)
   return 0;
 }
 
-/* Return a character unified with C (or a character made of CHARSET,
-   C1, and C2) in unification table TABLE.  If no unification is found
-   in TABLE, return C.  */
+/* Translate character C by character translation table TABLE.  If C
+   is negative, translate a character specified by CHARSET, C1, and C2
+   (C1 and C2 are code points of the character).  If no translation is
+   found in TABLE, return C.  */
 int
-unify_char (table, c, charset, c1, c2)
+translate_char (table, c, charset, c1, c2)
      Lisp_Object table;
      int c, charset, c1, c2;
 {
@@ -307,7 +308,7 @@ unify_char (table, c, charset, c1, c2)
 }
 
 /* Convert the unibyte character C to multibyte based on
-   Vnonascii_translate_table or nonascii_insert_offset.  If they can't
+   Vnonascii_translation_table or nonascii_insert_offset.  If they can't
    convert C to a valid multibyte character, convert it based on
    DEFAULT_NONASCII_INSERT_OFFSET which makes C a Latin-1 character.  */
 
@@ -319,8 +320,8 @@ unibyte_char_to_multibyte (c)
     {
       int c_save = c;
 
-      if (! NILP (Vnonascii_translate_table))
-	c = XINT (Faref (Vnonascii_translate_table, make_number (c)));
+      if (! NILP (Vnonascii_translation_table))
+	c = XINT (Faref (Vnonascii_translation_table, make_number (c)));
       else if (nonascii_insert_offset > 0)
 	c += nonascii_insert_offset;
       if (c >= 0240 && (c < 0400 || ! VALID_MULTIBYTE_CHAR_P (c)))
@@ -629,7 +630,7 @@ CHARSET should be defined by `defined-charset' in advance.")
 /* Return number of different charsets in STR of length LEN.  In
    addition, for each found charset N, CHARSETS[N] is set 1.  The
    caller should allocate CHARSETS (MAX_CHARSET + 1 elements) in advance.
-   It may lookup a unification table TABLE if supplied.  */
+   It may lookup a translation table TABLE if supplied.  */
 
 int
 find_charset_in_str (str, len, charsets, table)
@@ -662,7 +663,7 @@ find_charset_in_str (str, len, charsets, table)
 		  c = cmpcharp->glyph[i];
 		  if (!NILP (table))
 		    {
-		      if ((c = unify_char (table, c, 0, 0, 0)) < 0)
+		      if ((c = translate_char (table, c, 0, 0, 0)) < 0)
 			c = cmpcharp->glyph[i];
 		    }
 		  if ((charset = CHAR_CHARSET (c)) < 0)
@@ -686,7 +687,7 @@ find_charset_in_str (str, len, charsets, table)
 	  c = STRING_CHAR_AND_LENGTH (str, len, bytes);
 	  if (! NILP (table))
 	    {
-	      int c1 = unify_char (table, c, 0, 0, 0);
+	      int c1 = translate_char (table, c, 0, 0, 0);
 	      if (c1 >= 0)
 		c = c1;
 	    }
@@ -708,7 +709,7 @@ DEFUN ("find-charset-region", Ffind_charset_region, Sfind_charset_region,
        2, 3, 0,
   "Return a list of charsets in the region between BEG and END.\n\
 BEG and END are buffer positions.\n\
-Optional arg TABLE if non-nil is a unification table to look up.")
+Optional arg TABLE if non-nil is a translation table to look up.")
   (beg, end, table)
      Lisp_Object beg, end, table;
 {
@@ -754,7 +755,7 @@ Optional arg TABLE if non-nil is a unification table to look up.")
 DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
        1, 2, 0,
   "Return a list of charsets in STR.\n\
-Optional arg TABLE if non-nil is a unification table to look up.")
+Optional arg TABLE if non-nil is a translation table to look up.")
   (str, table)
      Lisp_Object str, table;
 {
@@ -971,8 +972,7 @@ DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
 	 : ((! NILP (current_buffer->enable_multibyte_characters)    	\
 	     && BASE_LEADING_CODE_P (c))			     	\
 	    ? WIDTH_BY_CHAR_HEAD (c)				     	\
-	    : 4))))						     	\
-
+	    : 4))))
 
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
   "Return width of CHAR when displayed in the current buffer.\n\
@@ -1751,11 +1751,11 @@ syms_of_charset ()
     "List of charsets ever defined.");
   Vcharset_list = Fcons (Qascii, Qnil);
 
-  DEFVAR_LISP ("character-unification-table-vector",
-	       &Vcharacter_unification_table_vector,
-    "Vector of cons cell of a symbol and unification table ever defined.\n\
-An ID of a unification table is an index of this vector.");
-  Vcharacter_unification_table_vector = Fmake_vector (make_number (16), Qnil);
+  DEFVAR_LISP ("character-translation-table-vector",
+	       &Vcharacter_translation_table_vector,
+    "Vector of cons cell of a symbol and translation table ever defined.\n\
+An ID of a translation table is an index of this vector.");
+  Vcharacter_translation_table_vector = Fmake_vector (make_number (16), Qnil);
 
   DEFVAR_INT ("leading-code-composition", &leading_code_composition,
     "Leading-code of composite characters.");
@@ -1788,15 +1788,16 @@ for your choice of character set.\n\
 If `nonascii-translate-table' is non-nil, it overrides this variable.");
   nonascii_insert_offset = 0;
 
-  DEFVAR_LISP ("nonascii-translate-table", &Vnonascii_translate_table,
-    "Translate table for converting non-ASCII unibyte codes to multibyte.\n\
+  DEFVAR_LISP ("nonascii-translation-table", &Vnonascii_translation_table,
+    "Character translation table to convert non-ASCII unibyte codes to multibyte.\n\
 This is used for converting unibyte text to multibyte,\n\
 and for inserting character codes specified by number.\n\n\
 Conversion is performed only when multibyte characters are enabled,\n\
 and it serves to convert a Latin-1 or similar 8-bit character code\n\
 to the corresponding Emacs character code.\n\n\
-If this is nil, `nonascii-insert-offset' is used instead.");
-  Vnonascii_translate_table = Qnil;
+If this is nil, `nonascii-insert-offset' is used instead.
+See also the docstring of `make-translation-table'.");
+  Vnonascii_translation_table = Qnil;
 
   DEFVAR_INT ("min-composite-char", &min_composite_char,
     "Minimum character code of a composite character.");
