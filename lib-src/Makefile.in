@@ -93,8 +93,8 @@ INSTALLABLE_SCRIPTS = rcs-checkin
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
-UTILITIES= wakeup profile digest-doc \
-	sorted-doc movemail cvtmail fakemail yow emacsserver hexl timer
+UTILITIES=  profile digest-doc \
+	sorted-doc movemail cvtmail fakemail yow emacsserver hexl
 
 DONT_INSTALL= test-distrib make-docfile
 
@@ -251,8 +251,6 @@ ${archlibdir}: all
 	  done ; \
 	fi
 
-/* We don't need to install `wakeup' explicitly, because it will be
-   copied when this whole directory is copied.  */
 install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
@@ -338,9 +336,6 @@ etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 ctags: etags
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" -DETAGS_REGEXPS ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
-wakeup: ${srcdir}/wakeup.c
-	$(CC) ${ALL_CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
-
 profile: ${srcdir}/profile.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
 
@@ -382,18 +377,6 @@ emacsclient: ${srcdir}/emacsclient.c ../src/config.h
 
 hexl: ${srcdir}/hexl.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
-
-TIMEROBJS=getdate.o timer.o $(ALLOCA)
-$(srcdir)/getdate.c: ${srcdir}/getdate.y
-	cd $(srcdir); ${YACC} ${YFLAGS} getdate.y
-	cd $(srcdir); mv y.tab.c getdate.c
-getdate.o: ${srcdir}/getdate.c ../src/config.h
-	$(CC) $(CPP_CFLAGS) -Demacs -c ${srcdir}/getdate.c
-
-timer.o: ${srcdir}/timer.c ../src/config.h
-	$(CC) -c $(CPP_CFLAGS) ${srcdir}/timer.c
-timer: ${TIMEROBJS}
-	$(CC) $(LINK_CFLAGS) ${TIMEROBJS} $(LOADLIBES) -o timer
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
    See ../src/Makefile.in.  */
