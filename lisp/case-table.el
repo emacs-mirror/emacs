@@ -38,7 +38,6 @@
 
 (defvar set-case-syntax-set-multibyte nil)
 
-;;;###autoload
 (defun describe-buffer-case-table ()
   "Describe the case table of the current buffer."
   (interactive)
@@ -63,7 +62,6 @@
        (describe-vector description)
        (help-mode)))))
 
-;;;###autoload
 (defun copy-case-table (case-table)
   (let ((copy (copy-sequence case-table)))
     ;; Clear out the extra slots so that they will be
@@ -79,7 +77,6 @@
       (+ char set-case-syntax-offset)
     char))
 
-;;;###autoload
 (defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
 This sets the entries for L and R in TABLE, which is a string
@@ -100,7 +97,6 @@ indicate left and right delimiters."
   (modify-syntax-entry r (concat ")" (char-to-string l) "  ")
 		       (standard-syntax-table)))
 
-;;;###autoload
 (defun set-case-syntax-pair (uc lc table)
   "Make characters UC and LC a pair of inter-case-converting letters.
 This sets the entries for characters UC and LC in TABLE, which is a string
@@ -117,7 +113,6 @@ word constituents."
   (modify-syntax-entry lc "w   " (standard-syntax-table))
   (modify-syntax-entry uc "w   " (standard-syntax-table)))
 
-;;;###autoload
 (defun set-case-syntax (c syntax table)
   "Make character C case-invariant with syntax SYNTAX.
 This sets the entry for character C in TABLE, which is a string
