@@ -214,6 +214,6 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
     (setq char (1+ (lsh char 1))))
   (if (not (eolp))(forward-char)))
 
-(provide 'sm-cursors)
+(provide 'sun-curs)
 
 ;;; sun-curs.el ends here
