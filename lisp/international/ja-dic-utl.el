@@ -88,7 +88,8 @@
       (setq heads (cdr heads)))
     l))
 
-(defconst skkdic-jisx0208-hiragana-block (nth 1 (split-char ?あ)))
+(defconst skkdic-jisx0208-hiragana-block (cons (decode-char 'unicode #x3040)
+					       (decode-char 'unicode #x309F)))
 
 (defun skkdic-lookup-key (seq len &optional postfix prefer-noun)
   "Return a list of conversion string for sequence SEQ of length LEN.
@@ -128,14 +129,17 @@ LEIM is available from the same ftp directory as Emacs."))
     ;;   else VEC[N] is 128.
     (while (< i len)
       (let ((ch (aref seq i))
-	    elts)
-	(if (= ch ?ー)
-	    (aset vec i 0)
-	  (setq elts (split-char ch))
-	  (if (and (eq (car elts) 'japanese-jisx0208)
-		   (= (nth 1 elts) skkdic-jisx0208-hiragana-block))
-	      (aset vec i (- (nth 2 elts) 32))
-	    (aset vec i 128))))
+	    code)
+	(cond ((= ch ?ー)
+	       (aset vec i 0))
+	      ((and (>= ch (car skkdic-jisx0208-hiragana-block))
+		    (<= ch (cdr skkdic-jisx0208-hiragana-block)))
+	       (setq code (encode-char ch 'japanese-jisx0208))
+	       (if code
+		   (aset vec i (- (logand code #xFF) 32))
+		 (aset vec i 128)))
+	      (t
+	       (aset vec i 128))))
       (setq i (1+ i)))
 
     ;; Search OKURI-NASI entries.
