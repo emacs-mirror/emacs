@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.83) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.84) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -18,6 +18,9 @@
                         /* options */
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "mpslib.h"
+
+#include <stdarg.h>
+#include <stddef.h>
 
 
 /* TYPES */
