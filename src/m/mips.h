@@ -214,9 +214,6 @@ NOTE-END  */
 /* The `select' in the system won't work for pipes, so don't use it.  */
 #undef HAVE_SELECT /* override configuration decision */
 
-#define HAVE_GETWD
-#define HAVE_GETTIMEOFDAY
-
 #define HAVE_PTYS
 #define HAVE_SOCKETS
 
