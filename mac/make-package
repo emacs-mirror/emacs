@@ -62,7 +62,7 @@ do
        ac_prev=prefix ;;
     -p=* | -prefix=* | --p=* | --prefix=*)
        prefix=`expr "x$1" : 'x[^=]*=\(.*\)'` ;;
-    -no-configure | -no-conf | --no-configure | --no-conf)
+    -no-configure | -no-conf | --no-configure | --no-conf | --without-config)
        with_config=no ;;
     -with-x | --with-x)
        config_options= ;;
@@ -174,7 +174,19 @@ if test "$with_config" = yes; then
     (cd ..; ./configure ${config_options} --prefix=${prefix};)
 fi
 
-(cd ..; make install prefix=${tempparentfull}${prefix})
+## Make bootstrap if .elc files are missing from distribution
+if [ ! -f ../lisp/abbrev.elc ]; then
+   echo "Required .elc files missing; making bootstrap..."
+   if ! (cd ..; make bootstrap prefix=${tempparentfull}${prefix}); then
+      echo "Make bootstrap failed...  Aborting make-package."
+      exit 2
+   fi
+fi
+
+if ! (cd ..; make install prefix=${tempparentfull}${prefix}); then
+   echo "Make failed... Aborting make-package."
+   exit 1
+fi
 
 ### This trap ensures that the staging directory will be cleaned up even
 ### when the script is interrupted in mid-career.
