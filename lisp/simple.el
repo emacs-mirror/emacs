@@ -201,6 +201,18 @@ column specified by the variable `left-margin'."
   (newline)
   (indent-according-to-mode))
 
+;; Internal subroutine of delete-char
+(defun kill-forward-chars (arg)
+  (if (listp arg) (setq arg (car arg)))
+  (if (eq arg '-) (setq arg -1))
+  (kill-region (point) (+ (point) arg)))
+
+;; Internal subroutine of backward-delete-char
+(defun kill-backward-chars (arg)
+  (if (listp arg) (setq arg (car arg)))
+  (if (eq arg '-) (setq arg -1))
+  (kill-region (point) (- (point) arg)))
+
 (defun backward-delete-char-untabify (arg &optional killp)
   "Delete characters backward, changing tabs into spaces.
 Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
@@ -568,7 +580,7 @@ Get previous element of history which is a completion of minibuffer contents."
       (forward-line (1- arg)))))
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
-(defalias 'advertised-undo 'undo)
+(define-function 'advertised-undo 'undo)
 
 (defun undo (&optional arg)
   "Undo some previous changes.
@@ -838,17 +850,18 @@ Repeating \\[universal-argument] without digits or minus sign
   (skip-chars-forward " \t"))
 
 (defvar kill-whole-line nil
-  "*If non-nil, kill-line kills the whole line (including the newline)
- if point is positioned at the beginning of a line.")
+  "*If non-nil, `kill-line' with no arg at beg of line kills the whole line.")
 
 (defun kill-line (&optional arg)
-  "Kill the rest of the current line; if the line is blank, or if point is at
-the beginning of the line and kill-whole-line is non-nil, kill thru newline.
+  "Kill the rest of the current line; if no nonblanks there, kill thru newline.
 With prefix argument, kill that many lines from point.
 Negative arguments kill lines backward.
 
 When calling from a program, nil means \"no arg\",
-a number counts as a prefix arg."
+a number counts as a prefix arg.
+
+If `kill-whole-line' is non-nil, then kill the whole line
+when given no argument at the beginning of a line."
   (interactive "P")
   (kill-region (point)
 	       ;; Don't shift point before doing the delete; that way,
@@ -1254,7 +1267,7 @@ Does not set point.  Does nothing if mark ring is empty."
 	(if (null (mark)) (ding))
 	(setq mark-ring (cdr mark-ring)))))
 
-(defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
+(define-function 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark ()
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
@@ -1268,9 +1281,7 @@ and it reactivates the mark."
     nil))
 
 (defvar next-line-add-newlines t
-  "*If non-nil, next-line will insert a newline into the buffer
- when invoked with no newline character between the point and the end
- of the buffer.")
+  "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error.")
 
 (defun next-line (arg)
   "Move cursor vertically down ARG lines.
@@ -1409,34 +1420,31 @@ If this is zero, point is always centered after it moves off frame.")
           (scroll-left (- (- here min) delta))
         ))))
   
-;;; Make arrow keys do the right thing for improved terminal support
-;;; When we implement true horizontal autoscrolling, right-arrow and
-;;; left-arrow can lose the (if truncate-lines ...) clause and become
-;;; aliases.  These functions are bound to the corresponding keyboard
-;;; events in loaddefs.el.
+;; rms: (1) The definitions of arrow keys should not simply restate
+;; what keys they are.  The arrow keys should run the ordinary commands.
+;; (2) The arrow keys are just one of many common ways of moving point
+;; within a line.  Real horizontal autoscrolling would be a good feature,
+;; but supporting it only for arrow keys is too incomplete to be desirable.
 
-(defun right-arrow (arg)
-  "Move right one character on the screen (with prefix ARG, that many chars).
-Scroll right if needed to keep point horizontally onscreen."
-  (interactive "P")
-  (forward-char arg)
-  (hscroll-point-visible))
+;;;;; Make arrow keys do the right thing for improved terminal support
+;;;;; When we implement true horizontal autoscrolling, right-arrow and
+;;;;; left-arrow can lose the (if truncate-lines ...) clause and become
+;;;;; aliases.  These functions are bound to the corresponding keyboard
+;;;;; events in loaddefs.el.
 
-(defun left-arrow (arg)
-  "Move left one character on the screen (with prefix ARG, that many chars).
-Scroll left if needed to keep point horizontally onscreen."
-  (interactive "P")
-  (backward-char arg)
-  (hscroll-point-visible))
+;;(defun right-arrow (arg)
+;;  "Move right one character on the screen (with prefix ARG, that many chars).
+;;Scroll right if needed to keep point horizontally onscreen."
+;;  (interactive "P")
+;;  (forward-char arg)
+;;  (hscroll-point-visible))
 
-(defun down-arrow (arg)
-  "Move down one line on the screen (with prefix ARG, that many lines).
-If doing so would add lines to the end of the buffer, raise an error."
-  (interactive "P")
-  (let ((next-line-add-newlines nil))
-    (next-line 1)))
-
-(defalias 'up-arrow 'previous-line)
+;;(defun left-arrow (arg)
+;;  "Move left one character on the screen (with prefix ARG, that many chars).
+;;Scroll left if needed to keep point horizontally onscreen."
+;;  (interactive "P")
+;;  (backward-char arg)
+;;  (hscroll-point-visible))
 
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
