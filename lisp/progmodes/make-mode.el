@@ -88,7 +88,7 @@
 
 ;;; Code:
 
-(provide 'makefile)
+(provide 'make-mode)
 
 ;; Sadly we need this for a macro.
 (eval-when-compile
