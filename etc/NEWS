@@ -7299,62 +7299,320 @@ supposed attribute of God.
 
 ** ps-print changes
 
-There are some new user variables for customizing the page layout.
+There are some new user variables and subgroups for customizing the page
+layout.
 
-*** Paper size, paper orientation, columns
+*** Headers & Footers (subgroup)
 
-The variable `ps-paper-type' determines the size of paper ps-print
-formats for; it should contain one of the symbols:
-`a4' `a3' `letter' `legal' `letter-small' `tabloid'
-`ledger' `statement' `executive' `a4small' `b4' `b5'
-It defaults to `letter'.
-If you need other sizes, see the variable `ps-page-dimensions-database'.
+Some printer systems print a header page and force the first page to
+be printed on the back of the header page when using duplex.  If your
+printer system has this behavior, set variable
+`ps-banner-page-when-duplexing' to t.
 
-The variable `ps-landscape-mode' determines the orientation
-of the printing on the page.  nil, the default, means "portrait" mode,
-non-nil means "landscape" mode.
+If variable `ps-banner-page-when-duplexing' is non-nil, it prints a
+blank page as the very first printed page.  So, it behaves as if the
+very first character of buffer (or region) where a form feed ^L (\014).
 
-The variable `ps-number-of-columns' must be a positive integer.
-It determines the number of columns both in landscape and portrait mode.
-It defaults to 1.
+The variable `ps-spool-config' specifies who is responsible for
+setting duplex mode and page size.  Valid values are:
 
-*** Horizontal layout
+ lpr-switches    duplex and page size are configured by `ps-lpr-switches'.
+		 Don't forget to set `ps-lpr-switches' to select duplex
+		 printing for your printer.
 
-The horizontal layout is determined by the variables
-`ps-left-margin', `ps-inter-column', and `ps-right-margin'.
-All are measured in points.
+ setpagedevice   duplex and page size are configured by ps-print using the
+		 setpagedevice PostScript operator.
 
-*** Vertical layout
+ nil             duplex and page size are configured by ps-print *not* using
+		 the setpagedevice PostScript operator.
 
-The vertical layout is determined by the variables
-`ps-bottom-margin', `ps-top-margin', and `ps-header-offset'.
-All are measured in points.
+The variable `ps-spool-tumble' specifies how the page images on
+opposite sides of a sheet are oriented with respect to each other.  If
+`ps-spool-tumble' is nil, ps-print produces output suitable for
+bindings on the left or right.  If `ps-spool-tumble' is non-nil,
+ps-print produces output suitable for bindings at the top or bottom.
+This variable takes effect only if `ps-spool-duplex' is non-nil.
+The default value is nil.
 
-*** Headers
+The variable `ps-header-frame-alist' specifies a header frame
+properties alist.  Valid frame properties are:
 
-If the variable `ps-print-header' is nil, no header is printed.  Then
-`ps-header-offset' is not relevant and `ps-top-margin' represents the
-margin above the text.
+  fore-color	Specify the foreground frame color.
+		Value should be a float number between 0.0 (black
+		color) and 1.0 (white color), or a string which is a
+		color name, or a list of 3 float numbers which
+		correspond to the Red Green Blue color scale, each
+		float number between 0.0 (dark color) and 1.0 (bright
+		color).  The default is 0 ("black").
 
-If the variable `ps-print-header-frame' is non-nil, a gaudy
-framing box is printed around the header.
+  back-color	Specify the background frame color (similar to fore-color).
+		The default is 0.9 ("gray90").
 
-The contents of the header are determined by `ps-header-lines',
-`ps-show-n-of-n', `ps-left-header' and `ps-right-header'.
+  shadow-color	Specify the shadow color (similar to fore-color).
+		The default is 0 ("black").
 
-The height of the header is determined by `ps-header-line-pad',
-`ps-header-font-family', `ps-header-title-font-size' and
-`ps-header-font-size'.
+  border-color	Specify the border color (similar to fore-color).
+		The default is 0 ("black").
 
-*** Font managing
+  border-width	Specify the border width.
+		The default is 0.4.
 
-The variable `ps-font-family' determines which font family is to be
-used for ordinary text.  Its value must be a key symbol in the alist
-`ps-font-info-database'.  You can add other font families by adding
-elements to this alist.
+Any other property is ignored.
 
-The variable `ps-font-size' determines the size of the font
-for ordinary text.  It defaults to 8.5 points.
+Don't change this alist directly; instead use Custom, or the
+`ps-value', `ps-get', `ps-put' and `ps-del' functions (see there for
+documentation).
+
+Ps-print can also print footers.  The footer variables are:
+`ps-print-footer', `ps-footer-offset', `ps-print-footer-frame',
+`ps-footer-font-family', `ps-footer-font-size', `ps-footer-line-pad',
+`ps-footer-lines', `ps-left-footer', `ps-right-footer' and
+`ps-footer-frame-alist'.  These variables are similar to those
+controlling headers.
+
+*** Color management (subgroup)
+
+If `ps-print-color-p' is non-nil, the buffer's text will be printed in
+color.
+
+*** Face Management (subgroup)
+
+If you need to print without worrying about face background colors,
+set the variable `ps-use-face-background' which specifies if face
+background should be used.  Valid values are:
+
+ t		always use face background color.
+ nil		never use face background color.
+ (face...)	list of faces whose background color will be used.
+
+*** N-up printing (subgroup)
+
+The variable `ps-n-up-printing' specifies the number of pages per
+sheet of paper.
+
+The variable `ps-n-up-margin' specifies the margin in points (pt)
+between the sheet border and the n-up printing.
+
+If variable `ps-n-up-border-p' is non-nil, a border is drawn around
+each page.
+
+The variable `ps-n-up-filling' specifies how the page matrix is filled
+on each sheet of paper.  Following are the valid values for
+`ps-n-up-filling' with a filling example using a 3x4 page matrix:
+
+   `left-top'   1  2  3  4         `left-bottom'    9  10 11 12
+		5  6  7  8                          5  6  7  8
+		9  10 11 12                         1  2  3  4
+
+   `right-top'  4  3  2  1         `right-bottom'   12 11 10 9
+		8  7  6  5                          8  7  6  5
+		12 11 10 9                          4  3  2  1
+
+   `top-left'   1  4  7  10        `bottom-left'    3  6  9  12
+		2  5  8  11                         2  5  8  11
+		3  6  9  12                         1  4  7  10
+
+   `top-right'  10 7  4  1         `bottom-right'   12 9  6  3
+		11 8  5  2                          11 8  5  2
+		12 9  6  3                          10 7  4  1
+
+Any other value is treated as `left-top'.
+
+*** Zebra stripes (subgroup)
+
+The variable `ps-zebra-color' controls the zebra stripes grayscale or
+RGB color.
+
+The variable `ps-zebra-stripe-follow' specifies how zebra stripes
+continue on next page.  Visually, valid values are (the character `+'
+to the right of each column indicates that a line is printed):
+
+		   `nil'        `follow'        `full'        `full-follow'
+   Current Page --------     -----------     ---------     ----------------
+		1  XXXXX +   1  XXXXXXXX +   1  XXXXXX +   1  XXXXXXXXXXXXX +
+		2  XXXXX +   2  XXXXXXXX +   2  XXXXXX +   2  XXXXXXXXXXXXX +
+		3  XXXXX +   3  XXXXXXXX +   3  XXXXXX +   3  XXXXXXXXXXXXX +
+		4        +   4           +   4         +   4                +
+		5        +   5           +   5         +   5                +
+		6        +   6           +   6         +   6                +
+		7  XXXXX +   7  XXXXXXXX +   7  XXXXXX +   7  XXXXXXXXXXXXX +
+		8  XXXXX +   8  XXXXXXXX +   8  XXXXXX +   8  XXXXXXXXXXXXX +
+		9  XXXXX +   9  XXXXXXXX +   9  XXXXXX +   9  XXXXXXXXXXXXX +
+		10       +   10          +
+		11       +   11          +
+		--------     -----------     ---------     ----------------
+      Next Page --------     -----------     ---------     ----------------
+		12 XXXXX +   12          +   10 XXXXXX +   10               +
+		13 XXXXX +   13 XXXXXXXX +   11 XXXXXX +   11               +
+		14 XXXXX +   14 XXXXXXXX +   12 XXXXXX +   12               +
+		15       +   15 XXXXXXXX +   13        +   13 XXXXXXXXXXXXX +
+		16       +   16          +   14        +   14 XXXXXXXXXXXXX +
+		17       +   17          +   15        +   15 XXXXXXXXXXXXX +
+		18 XXXXX +   18          +   16 XXXXXX +   16               +
+		19 XXXXX +   19 XXXXXXXX +   17 XXXXXX +   17               +
+		20 XXXXX +   20 XXXXXXXX +   18 XXXXXX +   18               +
+		21       +   21 XXXXXXXX +
+		22       +   22          +
+		--------     -----------     ---------     ----------------
+
+Any other value is treated as `nil'.
+
+
+*** Printer management (subgroup)
+
+The variable `ps-printer-name-option' determines the option used by
+some utilities to indicate the printer name; it's used only when
+`ps-printer-name' is a non-empty string.  If you're using the lpr
+utility to print, for example, `ps-printer-name-option' should be set
+to "-P".
+
+The variable `ps-manual-feed' indicates if the printer requires manual
+paper feeding.  If it's nil, automatic feeding takes place.  If it's
+non-nil, manual feeding takes place.
+
+The variable `ps-end-with-control-d' specifies whether C-d (\x04)
+should be inserted at end of the generated PostScript.  Non-nil means
+do so.
+
+*** Page settings (subgroup)
+
+If variable `ps-warn-paper-type' is nil, it's *not* treated as an
+error if the PostScript printer doesn't have a paper with the size
+indicated by `ps-paper-type'; the default paper size will be used
+instead.  If `ps-warn-paper-type' is non-nil, an error is signaled if
+the PostScript printer doesn't support a paper with the size indicated
+by `ps-paper-type'.  This is used when `ps-spool-config' is set to
+`setpagedevice'.
+
+The variable `ps-print-upside-down' determines the orientation for
+printing pages: nil means `normal' printing, non-nil means
+`upside-down' printing (that is, the page is rotated by 180 degrees).
+
+The variable `ps-selected-pages' specifies which pages to print.  If
+it's nil, all pages are printed.  If it's a list, list elements may be
+integers specifying a single page to print, or cons cells (FROM . TO)
+specifying to print from page FROM to TO.  Invalid list elements, that
+is integers smaller than one, or elements whose FROM is greater than
+its TO, are ignored.
+
+The variable `ps-even-or-odd-pages' specifies how to print even/odd
+pages.  Valid values are:
+
+   nil		print all pages.
+
+   `even-page'	print only even pages.
+
+   `odd-page'	print only odd pages.
+
+   `even-sheet'	print only even sheets.
+		That is, if `ps-n-up-printing' is 1, it behaves like
+		`even-page', but for values greater than 1, it'll
+		print only the even sheet of paper.
+
+   `odd-sheet'	print only odd sheets.
+		That is, if `ps-n-up-printing' is 1, it behaves like
+		`odd-page'; but for values greater than 1, it'll print
+		only the odd sheet of paper.
+
+Any other value is treated as nil.
+
+If you set `ps-selected-pages' (see there for documentation), pages
+are filtered by `ps-selected-pages', and then by
+`ps-even-or-odd-pages'.  For example, if we have:
+
+   (setq ps-selected-pages '(1 4 (6 . 10) (12 . 16) 20))
+
+and we combine this with `ps-even-or-odd-pages' and
+`ps-n-up-printing', we get:
+
+`ps-n-up-printing' = 1:
+   `ps-even-or-odd-pages'	PAGES PRINTED
+	nil			1, 4, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 20
+	even-page		4, 6, 8, 10, 12, 14, 16, 20
+	odd-page		1, 7, 9, 13, 15
+	even-sheet		4, 6, 8, 10, 12, 14, 16, 20
+	odd-sheet		1, 7, 9, 13, 15
+
+`ps-n-up-printing' = 2:
+   `ps-even-or-odd-pages'	PAGES PRINTED
+	nil			1/4, 6/7, 8/9, 10/12, 13/14, 15/16, 20
+	even-page		4/6, 8/10, 12/14, 16/20
+	odd-page		1/7, 9/13, 15
+	even-sheet		6/7, 10/12, 15/16
+	odd-sheet		1/4, 8/9, 13/14, 20
+
+*** Miscellany (subgroup)
+
+The variable `ps-error-handler-message' specifies where error handler
+messages should be sent.
+
+It is also possible to add a user-defined PostScript prologue code in
+front of all generated prologue code by setting the variable
+`ps-user-defined-prologue'.
+
+The variable `ps-line-number-font' specifies the font for line numbers.
+
+The variable `ps-line-number-font-size' specifies the font size in
+points for line numbers.
+
+The variable `ps-line-number-color' specifies the color for line
+numbers.  See `ps-zebra-color' for documentation.
+
+The variable `ps-line-number-step' specifies the interval in which
+line numbers are printed.  For example, if `ps-line-number-step' is set
+to 2, the printing will look like:
+
+   1 one line
+     one line
+   3 one line
+     one line
+   5 one line
+     one line
+     ...
+
+Valid values are:
+
+integer		an integer specifying the interval in which line numbers are
+		printed.  If it's smaller than or equal to zero, 1
+		is used.
+
+`zebra'		specifies that only the line number of the first line in a
+		zebra stripe is to be printed.
+
+Any other value is treated as `zebra'.
+
+The variable `ps-line-number-start' specifies the starting point in
+the interval given by `ps-line-number-step'.  For example, if
+`ps-line-number-step' is set to 3, and `ps-line-number-start' is set to
+3, the output will look like:
+
+     one line
+     one line
+   3 one line
+     one line
+     one line
+   6 one line
+     one line
+     one line
+   9 one line
+     one line
+     ...
+
+The variable `ps-postscript-code-directory' specifies the directory
+where the PostScript prologue file used by ps-print is found.
+
+The variable `ps-line-spacing' determines the line spacing in points,
+for ordinary text, when generating PostScript (similar to
+`ps-font-size').
+
+The variable `ps-paragraph-spacing' determines the paragraph spacing,
+in points, for ordinary text, when generating PostScript (similar to
+`ps-font-size').
+
+The variable `ps-paragraph-regexp' specifies the paragraph delimiter.
+
+The variable `ps-begin-cut-regexp' and `ps-end-cut-regexp' specify the
+start and end of a region to cut out when printing.
 
 ** hideshow changes.
 
