@@ -3181,5 +3181,6 @@ See also `java-font-lock-extra-types'.")
 ;; Provide ourselves:
 
 (provide 'font-lock)
+(require 'jit-lock)
 
 ;;; font-lock.el ends here
