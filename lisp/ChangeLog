@@ -1,3 +1,8 @@
+2000-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* image.el (image-type-available-p): Don't reference image-types
+	if it isn't bound.
+
 2000-05-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* autoarg.el (autoarg-mode): Typo in the :set argument.
