@@ -1,3 +1,8 @@
+2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lwlib-Xol.c, lwlib-Xol.h, lwlib-Xolmb.c, lwlib-Xolmb.h
+	* lwlib-XolmbP.h: Remove file.
+
 2002-04-22  Jan D.  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c: Removed compiler warning.
