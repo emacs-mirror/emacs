@@ -1,4 +1,7 @@
-2000-10-25  Miles Bader  <miles@lsi.nec.co.jp>
+2000-10-26  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* simple.el (previous-matching-history-element): Position point on
+	match.  Handle N == 0 correctly.  Miscellaneous cleanup.
 
 	* comint.el (comint-mode): Locally set `next-line-add-newlines' to nil.
 	(comint-mode-map): Reverse order of `comint-write-output' and
