@@ -28,7 +28,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define DISP_BORDER_GLYPH(dp) ((dp)->contents[261])
 #define DISP_CHAR_VECTOR(dp, c) ((dp)->contents[c])
 
+/* Defined in window.c.  */
 extern struct Lisp_Vector *window_display_table ();
+
+/* Defined in indent.c.  */
+extern struct Lisp_Vector *buffer_display_table ();
 
 /* Display table to use for vectors that don't specify their own.  */
 extern Lisp_Object Vstandard_display_table;
