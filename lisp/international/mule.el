@@ -535,6 +535,18 @@ coding system whose eol-type is N."
 		 (and (not (> (downcase c1) (downcase c2)))
 		      (< c1 c2)))))))
 
+(defun coding-system-equal (coding-system-1 coding-system-2)
+  "Return t if and only if CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
+Two coding systems are identical if two symbols are equal
+or one is an alias of the other."
+  (or (eq coding-system-1 coding-system-2)
+      (and (equal (coding-system-spec coding-system-1)
+		  (coding-system-spec coding-system-2))
+	   (let ((eol-type-1 (coding-system-eol-type coding-system-1))
+		 (eol-type-2 (coding-system-eol-type coding-system-2)))
+	     (or (eq eol-type-1 eol-type-2)
+		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
+
 (defun add-to-coding-system-list (coding-system)
   "Add CODING-SYSTEM to `coding-system-list' while keeping it sorted."
   (if (or (null coding-system-list)
