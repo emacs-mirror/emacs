@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: strings, regexps
-;; Version: 1.05
+;; Version: 1.05.01
 
 ;; This file is part of GNU Emacs.
 
@@ -220,14 +220,14 @@ in REGEXP."
 	 (aset charmap char t))))
     ;;
     ;; Make a character set from the map using ranges where applicable.
-    (dotimes (elt charwidth)
-      (when (aref charmap elt)
-	(let ((start elt))
-	  (while (and (< elt charwidth) (aref charmap elt))
-	    (incf elt))
-	  (if (> (- elt start) 3)
-	      (setq charset (format "%s%c-%c" charset start (1- elt)))
-	    (setq charset (format "%s%c" charset (setq elt start)))))))
+    (dotimes (char charwidth)
+      (let ((start char))
+	(while (and (< char charwidth) (aref charmap char))
+	  (incf char))
+	(cond ((> char (+ start 3))
+	       (setq charset (format "%s%c-%c" charset start (1- char))))
+	      ((> char start)
+	       (setq charset (format "%s%c" charset (setq char start)))))))
     ;;
     ;; Make sure a caret is not first and a dash is first or last.
     (if (and (string-equal charset "") (string-equal bracket ""))
