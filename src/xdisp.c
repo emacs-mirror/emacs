@@ -516,6 +516,12 @@ redisplay ()
     {
       Lisp_Object tail, frame;
 
+#ifdef HAVE_X_WINDOWS
+      /* Since we're doing a thorough redisplay, we might as well
+	 recompute all our display faces.  */
+      clear_face_vector ();
+#endif
+
       /* Recompute # windows showing selected buffer.
 	 This will be incremented each time such a window is displayed.  */
       buffer_shared = 0;
@@ -1473,6 +1479,68 @@ try_window_id (window)
   return 1;
 }
 
+/* Mark a section of BUF as modified, but only for the sake of redisplay.
+   This is useful for recording changes to overlays.
+
+   We increment the buffer's modification timestamp and set the
+   redisplay caches (windows_or_buffers_changed, beg_unchanged, etc)
+   as if the region of text between START and END had been modified;
+   the redisplay code will check this against the windows' timestamps,
+   and redraw the appropriate area of the buffer.
+
+   However, if the buffer is unmodified, we bump the last-save
+   timestamp as well, so that incrementing the timestamp doesn't fool
+   Emacs into thinking that the buffer's text has been modified. 
+
+   Tweaking the timestamps shouldn't hurt the first-modification
+   timestamps recorded in the undo records; those values aren't
+   written until just before a real text modification is made, so they
+   will never catch the timestamp value just before this function gets
+   called.  */
+
+void
+redisplay_region (buf, start, end)
+     struct buffer *buf;
+     int start, end;
+{
+  if (start == end)
+    return;
+
+  if (start > end)
+    {
+      int temp = start;
+      start = end; end = temp;
+    }
+
+  if (buf != current_buffer)
+    windows_or_buffers_changed = 1;
+  else
+    {
+      if (unchanged_modified == MODIFF)
+	{
+	  beg_unchanged = start - BEG;
+	  end_unchanged = Z - end;
+	}
+      else
+	{
+	  if (Z - end < end_unchanged)
+	    end_unchanged = Z - end;
+	  if (start - BEG < beg_unchanged)
+	    beg_unchanged = start - BEG;
+	}
+    }
+
+  /* Increment the buffer's time stamp, but also increment the save
+     and autosave timestamps, so as not to screw up that timekeeping. */
+  if (BUF_MODIFF (buf) == buf->save_modified)
+    buf->save_modified++;
+  if (BUF_MODIFF (buf) == buf->auto_save_modified)
+    buf->auto_save_modified++;
+
+  BUF_MODIFF (buf) ++;
+}
+
+
 /* Copy glyphs from the vector FROM to the rope T.
    But don't actually copy the parts that would come in before S.
    Value is T, advanced past the copied data.  */
@@ -1581,6 +1649,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
   GLYPH continuer = (dp == 0 || XTYPE (DISP_CONTINUE_GLYPH (dp)) != Lisp_Int
 		    ? '\\' : XINT (DISP_CONTINUE_GLYPH (dp)));
 
+  /* The next buffer location at which the face should change, due
+     to overlays or text property changes.  */
+  int next_face_change;
+
+  /* The face we're currently using.  */
+  int current_face;
+
   hpos += XFASTINT (w->left);
   get_display_line (f, vpos, XFASTINT (w->left));
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
@@ -1603,16 +1678,21 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
   /* Loop generating characters.
      Stop at end of buffer, before newline,
-     or if reach or pass continuation column.  */
-
+     if reach or pass continuation column,
+     or at face change.  */
   pause = pos;
+  next_face_change = pos;
   while (p1 < endp)
     {
       p1prev = p1;
-      if (pos == pause)
+      if (pos >= pause)
 	{
-	  if (pos == end)
+	  /* Did we hit the end of the visible region of the buffer?
+	     Stop here.  */
+	  if (pos >= end)
 	    break;
+
+	  /* Did we reach point?  Record the cursor location.  */
 	  if (pos == point && cursor_vpos < 0)
 	    {
 	      cursor_vpos = vpos;
@@ -1620,6 +1700,19 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    }
 
 	  pause = end;
+
+	  /* Did we hit a face change?  Figure out what face we should
+	     use now.  We also hit this the first time through the
+	     loop, to see what face we should start with.  */
+	  if (pos == next_face_change)
+	    {
+	      current_face = compute_char_face (f, w, pos, &next_face_change);
+	      if (pos < next_face_change && next_face_change < pause)
+		pause = next_face_change;
+	    }
+
+	  /* Wouldn't you hate to read the next line to someone over
+             the phone?  */
 	  if (pos < point && point < pause)
 	    pause = point;
 	  if (pos < GPT && GPT < pause)
@@ -1632,7 +1725,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
 	  if (p1 >= startp)
-	    *p1 = c;
+	    *p1 = MAKE_GLYPH (c, 0);
 	  p1++;
 	}
       else if (c == '\n')
@@ -1656,7 +1749,11 @@ display_text_line (w, start, vpos, hpos, taboffset)
 				 XVECTOR (DISP_INVIS_VECTOR (dp))->contents,
 				 (p1 - p1prev));
 	    }
-	  break;
+
+	  /* This assures we'll exit the loop, but still gives us a chance to
+	     apply current_face to the glyphs we've laid down.  */
+	  end = pos;
+	  pause = end;
 	}
       else if (c == '\t')
 	{
@@ -1683,7 +1780,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
 				 XVECTOR(DISP_INVIS_VECTOR (dp))->contents,
 				 (p1 - p1prev));
 	    }
-	  break;
+	  end = pos;
+	  pause = end;
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
 	{
@@ -1692,29 +1790,50 @@ display_text_line (w, start, vpos, hpos, taboffset)
       else if (c < 0200 && ctl_arrow)
 	{
 	  if (p1 >= startp)
-	    *p1 = (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
-		   ? XINT (DISP_CTRL_GLYPH (dp)) : '^');
+	    *p1 = MAKE_GLYPH ((dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
+			       ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
+			      0);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = c ^ 0100;
+	    *p1 = MAKE_GLYPH (c ^ 0100, 0);
 	  p1++;
 	}
       else
 	{
 	  if (p1 >= startp)
-	    *p1 = (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
-		   ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\');
+	    *p1 = MAKE_GLYPH ((dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
+			       ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+			      0);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = (c >> 6) + '0';
+	    *p1 = MAKE_GLYPH ((c >> 6) + '0', 0);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = (7 & (c >> 3)) + '0';
+	    *p1 = MAKE_GLYPH ((7 & (c >> 3)) + '0', 0);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = (7 & c) + '0';
+	    *p1 = MAKE_GLYPH ((7 & c) + '0', 0);
 	  p1++;
 	}
+
+      /* Now we've laid down some characters between p1prev and p1.
+	 Let's apply current_face to those who have a face of zero
+	 (the default), and apply Vglyph_table to the result.  */
+      if (current_face)
+	{
+	  GLYPH *gstart, *gp, *gend;
+
+	  gstart = (p1prev > startp) ? p1prev : startp;
+	  gend   = (p1     < endp)   ? p1     : endp;
+
+	  for (gp = gstart; gp < gend; gp++)
+	    *gp = MAKE_GLYPH (GLYPH_CHAR (*gp),
+			      (GLYPH_FACE (*gp) == 0
+			       ? current_face
+			       : compute_glyph_face (f, FRAME_DEFAULT_FACE (f),
+						     GLYPH_FACE (*gp))));
+	}
+
       pos++;
     }
 
