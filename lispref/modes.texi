@@ -1454,11 +1454,12 @@ enabled separately in each buffer.
 @end defvar
 
 @defvar global-mode-string
-This variable holds a mode-line spec that appears in the mode line by
-default, just after the buffer name.  The command @code{display-time}
+This variable holds a mode-line spec that, by default, appears in the
+mode line just after the @code{which-func-mode} minor mode if set,
+else after @code{mode-line-modes}.  The command @code{display-time}
 sets @code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time and
-load information.
+@code{display-time-string}, which holds a string containing the time
+and load information.
 
 The @samp{%M} construct substitutes the value of
 @code{global-mode-string}, but that is obsolete, since the variable is
