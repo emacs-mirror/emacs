@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+(message "Using load-path %s" load-path)
+(sleep-for 1)
+
 ;;; We don't want to have any undo records in the dumped Emacs.
 (buffer-disable-undo "*scratch*")
 
