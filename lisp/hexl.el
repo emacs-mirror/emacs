@@ -29,16 +29,9 @@
 ;; a program called hexl, supplied with the GNU Emacs distribution, that
 ;; can filter a binary into an editable format or from the format back into
 ;; binary.  For full instructions, invoke `hexl-mode' on an empty buffer and
-;; do `M-x describe-mode'.
+;; do M-x `describe-mode'.
 ;;
-;; This may be useful in your .emacs:
-;;
-;;	(autoload 'hexl-find-file "hexl"
-;;	  "Edit file FILENAME in hexl-mode." t)
-;;	
-;;	(define-key global-map "\C-c\C-h" 'hexl-find-file)
-;;
-;; NOTE: Remember to change HEXL-PROGRAM or HEXL-OPTIONS if needed.
+;; NOTE: Remember to change `hexl-program' or `hexl-options' if needed.
 ;;
 ;; Currently hexl only supports big endian hex output with 16 bit
 ;; grouping.
@@ -72,7 +65,7 @@ and \"-de\" when dehexlifying a buffer."
   :group 'hexl)
 
 (defcustom hexl-options (format "-hex %s" hexl-iso)
-  "Options to hexl-program that suit your needs."
+  "Options to `hexl-program' that suit your needs."
   :type 'string
   :group 'hexl)
 
