@@ -1730,7 +1730,6 @@ display_text_line (w, start, vpos, hpos, taboffset)
 #ifdef USE_TEXT_PROPERTIES
   /* The next location where the `invisible' property changes */
   int next_invisible;
-  Lisp_Object prop, position, endpos;
 #endif
   
   /* The face we're currently using.  */
@@ -1815,28 +1814,31 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  /* if the `invisible' property is set to t, we can skip to
 	     the next property change */
 	  while (pos == next_invisible && pos < end)
-	  {
-	    XFASTINT (position) = pos;
-	    prop = Fget_text_property (position,
-				       Qinvisible,
-				       Fcurrent_buffer ());
-	    endpos = Fnext_single_property_change (position,
-						   Qinvisible,
-						   Fcurrent_buffer ());
-	    if (INTEGERP (endpos))
-	      next_invisible = XINT (endpos);
-	    else
-	      next_invisible = end;
-	    if (! NILP (prop))
 	    {
-	      if (pos < point && next_invisible >= point)
-	      {
-		cursor_vpos = vpos;
-		cursor_hpos = p1 - startp;
-	      }
-	      pos = next_invisible;
+	      Lisp_Object position, limit, endpos, prop;
+	      XFASTINT (position) = pos;
+	      prop = Fget_text_property (position, Qinvisible,
+					 Fcurrent_buffer ());
+	      /* This is just an estimate to give reasonable
+		 performance; nothing should go wrong if it is too small.  */
+	      XFASTINT (limit) = pos + 50;
+	      endpos
+		= Fnext_single_property_change (position, Qinvisible,
+						Fcurrent_buffer (), limit);
+	      if (INTEGERP (endpos))
+		next_invisible = XINT (endpos);
+	      else
+		next_invisible = end;
+	      if (! NILP (prop))
+		{
+		  if (pos < point && next_invisible >= point)
+		    {
+		      cursor_vpos = vpos;
+		      cursor_hpos = p1 - startp;
+		    }
+		  pos = next_invisible;
+		}
 	    }
-	  }
 	  if (pos >= end)
 	    break;
 #endif
@@ -1848,7 +1850,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  if (pos >= next_face_change && FRAME_X_P (f))
 	    current_face = compute_char_face (f, w, pos,
 					      region_beg, region_end,
-					      &next_face_change);
+					      &next_face_change, pos + 50);
 #endif
 
 	  pause = end;
