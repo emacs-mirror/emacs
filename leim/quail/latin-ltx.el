@@ -938,8 +938,8 @@ system, including many technical ones.  Examples:
  ("\\lambdabar" ?$,1![(B)
  ("\\celsius" ?$,1uC(B)
  ;; by analogy with lq, rq:
- ("\ldq" ?\$,1r|(B)
- ("\rdq" ?\$,1r}(B)
+ ("\\ldq" ?\$,1r|(B)
+ ("\\rdq" ?\$,1r}(B)
 )
 
 ;;; latin-ltx.el ends here
