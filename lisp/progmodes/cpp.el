@@ -1,6 +1,6 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals
 
-;; Copyright (C) 1994, 1995 Free Software Foundation
+;; Copyright (C) 1994, 1995, 2003 Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -379,9 +379,6 @@ A prefix arg suppresses display of that buffer."
 (defun cpp-make-overlay-hidden (overlay)
   ;; Make overlay hidden and intangible.
   (overlay-put overlay 'invisible 'cpp)
-  (overlay-put overlay 'intangible t)
-  ;; Unfortunately `intangible' is not implemented for overlays yet,
-  ;; so we make is read-only instead.
   (overlay-put overlay 'modification-hooks '(cpp-signal-read-only))
   (overlay-put overlay 'insert-in-front-hooks '(cpp-signal-read-only)))
 
