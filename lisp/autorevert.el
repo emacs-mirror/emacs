@@ -256,7 +256,7 @@ Use `auto-revert-mode' to revert a particular buffer."
 
 (defun auto-revert-set-timer ()
   "Restart or cancel the timer used by Auto-Revert Mode.
-If such a timer is running, cancel it.  Start a new timer if
+If such a timer is active, cancel it.  Start a new timer if
 Global Auto-Revert Mode is active or if Auto-Revert Mode is active
 in some buffer.  Restarting the timer ensures that Auto-Revert Mode
 will use an up-to-date value of `auto-revert-interval'"
