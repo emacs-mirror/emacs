@@ -5,7 +5,7 @@
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
 @macro trampver{}
-2.0.34
+2.0.35
 @end macro
 
 @c Other flags from configuration

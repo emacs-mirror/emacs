@@ -1,3 +1,17 @@
+2003-06-17  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	Version 2.0.35 of Tramp released.
+
+	* tramp.texi: From Michael Albinus <Michael.Albinus@alcatel.de>:
+	(Inline methods): Add methods `remsh' and `plink1'.
+	(External transfer methods): Add method `remcp'.
+	(Multi-hop Methods): Add method `remsh'.
+	Small patch from Adrian Aichner <adrian@xemacs.org>:
+	Fix minor typos.
+	(Concept Index): Added to make manual searchable via
+	`Info-index'.
+	(Version Control): Add cindex entry.
+
 2003-06-04  Richard M. Stallman  <rms@gnu.org>
 
 	* programs.texi (Expressions): Delete C-M-DEL.

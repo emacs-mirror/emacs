@@ -17,13 +17,6 @@
 
 @include trampver.texi
 
-@c Entries for @command{install-info} to use
-@dircategory Emacs
-@direntry
-* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
-                                 Emacs remote file access via rsh and rcp.
-@end direntry
-
 @c Macro to make formatting of the tramp program name consistent.
 @macro tramp
 @sc{tramp}
@@ -59,6 +52,13 @@ separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
+
+@c Entries for @command{install-info} to use
+@dircategory Emacs
+@direntry
+* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
+                                 Emacs remote file access via rsh and rcp.
+@end direntry
 
 @tex
 
@@ -137,6 +137,7 @@ For the end user:
 * Usage::                       An overview of the operation of @tramp{}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
+* Concept Index::               An item for each concept
 
 For the developer:
 
@@ -569,6 +570,10 @@ apply it for encoding and decoding.
 Connect to the remote host with @command{rsh}.  Due to the unsecure
 connection it is recommended for very local host topology only.
 
+On operating systems which provide the command @command{remsh} instead
+of @command{rsh}, you can use the method @option{remsh}.  This is true
+for HP-UX or Cray UNICOS, for example.
+
 
 @item @option{ssh}
 @cindex method ssh
@@ -673,6 +678,10 @@ This method is mostly interesting for Windows users using the PuTTY
 implementation of SSH.  It uses @samp{plink -ssh} to log in to the
 remote host.
 
+Additionally, the method @option{plink1} is provided, which calls
+@samp{plink -1 -ssh} in order to use SSH protocol version 1
+explicitely.
+
 CCC: Do we have to connect to the remote host once from the command
 line to accept the SSH key?  Maybe this can be made automatic?
 
@@ -722,8 +731,12 @@ look at the @command{ssh} based inline methods.
 @cindex rsh (with rcp method)
 
 This method uses the @command{rsh} and @command{rcp} commands to connect
-to the remote machine and transfer files. This is probably the fastest
+to the remote machine and transfer files.  This is probably the fastest
 connection method available.
+
+The alternative method @option{remcp} uses the @command{remsh} and
+@command{rcp} commands.  It should be applied on machines where
+@command{remsh} is used instead of @command{rsh}.
 
 
 @item @option{scp}  ---  @command{ssh} and @command{scp}
@@ -897,7 +910,7 @@ The @option{smb} method supports the @samp{-p} hack.
 @strong{Please note:} If Emacs runs locally under MS Windows, this
 method isn't available.  Instead of, you can use UNC file names like
 @file{//melancholia/daniel$$/.emacs}.  The only disadvantage is that
-there's no possiblity to specify another user name.
+there's no possibility to specify another user name.
 
 @end table
 
@@ -939,6 +952,10 @@ user is queried for the password.
 
 This uses @command{rsh} to connect to the host.  You do not need to
 enter a password unless @command{rsh} explicitly asks for it.
+
+The variant @option{remsh} uses the @command{remsh} command.  It
+should be applied on machines where @command{remsh} is used instead of
+@command{rsh}.
 
 @item ssh
 @cindex hop method ssh
@@ -1125,7 +1142,7 @@ in such files, it can return host names only.
 @item @code{tramp-parse-sconfig}
 @findex tramp-parse-shosts
 
-This function returns the host nicnames defined by @code{Host} entries
+This function returns the host nicknames defined by @code{Host} entries
 in @file{~/.ssh/config} style files.
 
 @item @code{tramp-parse-hosts}
@@ -1823,6 +1840,7 @@ documentation of @code{tramp-chunksize}.
 @c For the developer
 @node Version Control
 @chapter The inner workings of remote version control
+@cindex Version Control
 
 Unlike @value{ftp-package-name}, @tramp{} has full shell access to the
 remote machine. This makes it possible to provide version control for
@@ -2034,7 +2052,11 @@ would have to be installed from the start, too.
 
 @end itemize
 
-
+@node Concept Index
+@comment node-name,    next,  previous,      up
+@unnumbered Concept Index
+@printindex cp
+@contents
 @c End of tramp.texi - the TRAMP User Manual
 @bye
 
