@@ -1,5 +1,23 @@
 2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Use `keep'
+	rather than `prepend' and add an interesting comment.
+	(tex-math-face, tex-font-lock-syntactic-face-function):
+	New face and function to use it.
+	(tex-define-common-keys, tex-mode-map): Use menu-item rather
+	than `menu-enable' symbol property.
+	(tex-mode-map): Bind {, (, [ and $ to skeleton-pair-insert-maybe.
+	(tex-mode): Add some latex-mode commands for auto-selection.
+	Use tex-font-lock-syntactic-face-function.
+	(tex-insert-quote): Simplify.
+	(tex-shell): New mode.
+	(tex-start-shell): Use it.
+	(tex-shell-proc, tex-shell-buf): New functions.
+	(tex-send-command): Use it.
+	(tex-main-file): Fix the meaning of the new arg REALFILE.
+	(tex-send-tex-command): New function split from `tex-start-tex'.
+	Set compilation-last-buffer and compilation-parsing-end.
+
 	* newcomment.el (comment-indent-default): Stick \s<\s< to the left
 	when it follows non-comment text on the line.
 
