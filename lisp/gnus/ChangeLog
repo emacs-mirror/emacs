@@ -1,3 +1,13 @@
+2000-10-06  Dave Love  <fx@gnu.org>
+
+	* gnus-audio.el: Don't require cl.
+	(gnus-audio): New custom group.
+	(gnus-audio-inline-sound): Change to work with Emacs.
+	(gnus-audio-directory, gnus-audio-directory) 
+	(gnus-audio-au-player):  Customize.
+	(gnus-audio-play): Try external player if play-sound-file fails.
+	Use file-name-extension, not string-match.
+
 2000-10-05  Dave Love  <fx@gnu.org>
 
 	* rfc1843.el: Require cl when compiling.
