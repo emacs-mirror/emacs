@@ -166,7 +166,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	  (lookup-key menubar (vector (car submap)))))))
 
 (defun mouse-popup-menubar (event prefix)
-  "Pops up a menu equiavlent to the menu bar a keyboard EVENT with PREFIX.
+  "Pops up a menu equivalent to the menu bar a keyboard EVENT with PREFIX.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
   (interactive "@e \nP")
