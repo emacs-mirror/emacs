@@ -82,6 +82,14 @@
 	(dired-do-create-files): If there's only one file, pass it in as
 	the DEFAULT arg to dired-mark-read-file-name.
 
+2000-10-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-font-lock-keywords): Minor regex fix.
+	(diff-goto-source): Be smarter when choosing REVERSE or not.
+
+	* textmodes/texinfo.el (texinfo-heading-face): Forgot the var def.
+	(texinfo-mode-menu): Add an explicit shortcut for update all.
+
 2000-10-03  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-transfer-file, vc-default-receive-file): Rewritten to 
