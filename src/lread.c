@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 
-   1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 1997
+      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2534,10 +2534,20 @@ init_lread ()
 
 	      if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
 		{
+		  Lisp_Object tem2;
+
 		  tem = Fexpand_file_name (build_string ("src/Makefile"),
 					   Vinstallation_directory);
 		  tem1 = Ffile_exists_p (tem);
-		  if (!NILP (tem1))
+
+		  /* Don't be fooled if they moved the entire source tree
+		     AFTER dumping Emacs.  If the build directory is indeed
+		     different from the source dir, src/Makefile.in and
+		     src/Makefile will not be found together.  */
+		  tem = Fexpand_file_name (build_string ("src/Makefile.in"),
+					   Vinstallation_directory);
+		  tem2 = Ffile_exists_p (tem);
+		  if (!NILP (tem1) && NILP (tem2))
 		    {
 		      tem = Fexpand_file_name (build_string ("lisp"),
 					       Vsource_directory);
