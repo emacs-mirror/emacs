@@ -362,6 +362,23 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
+#### Check if the source directory already has a configured system in it.
+if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
+   && [ -f "${srcdir}/src/config.h" ] ; then
+  (echo "${progname}: WARNING: The directory tree \`${srcdir}' is being used"
+   echo "   as a build directory right now; it has been configured in its own"
+   echo "   right.  To configure in another directory as well, you MUST"
+   echo "   use GNU make.  If you do not have GNU make, then you must"
+   echo "   now do \`make distclean' in ${srcdir},"
+   echo "   and then run ${progname} again.") >&2
+  # We need a multi-line sed script, which cannot go in a makefile.
+  vpath_sed='-f vpath.sed'
+else
+  # Do the normal substitution for VPATH.  This will not crash non-GNU make.
+  vpath_sed='-e '\''s|^\(VPATH *=\).*$$|\1 ='\''"${srcdir}/${subdir}|"'
+fi
+] AC_SUBST(vpath_sed) [
+
 ### Make the necessary directories, if they don't exist.
 for dir in ./src ./lib-src ./cpp ./oldXMenu ./etc ; do
   if [ ! -d ${dir} ]; then
@@ -1293,4 +1310,4 @@ test -n "${prefix}" &&
 test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
-AC_OUTPUT(Makefile)
+AC_OUTPUT(Makefile ${extra_output})
