@@ -5285,8 +5285,10 @@ make_lispy_event (event)
 				      &mouse_wheel_syms, 1);
 	  return Fcons (head,
 			Fcons (position,
-			       Fcons (make_number (event->code),
-				      Qnil)));
+			       /* Insert 1 here so event-click-count works.  */
+			       Fcons (make_number (1),
+				      Fcons (make_number (event->code),
+					     Qnil))));
 	}
       }
 #endif /* WINDOWSNT */
