@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.60) $
+ * $HopeName: MMsrc!buffer.c(trunk.61) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -20,14 +20,13 @@
  * TRANSGRESSIONS
  *
  * .trans.mod: There are several instances where pool structures are
- * directly accessed by this module because impl.c.pool does not
- * provide an adequate (or adequately documented) interface.  They
- * bear this tag.
- */
+ * directly accessed by this module because impl.c.pool does not provide
+ * an adequate (or adequately documented) interface.  They bear this
+ * tag.  */
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.60) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.61) $");
 
 
 /* forward declarations */
@@ -36,8 +35,7 @@ static void BufferFrameNotifyPopPending(Buffer buffer);
 
 /* BufferCheck -- check consistency of a buffer
  *
- * See .ap.async.
- */
+ * See .ap.async.  */
 
 Bool BufferCheck(Buffer buffer)
 {
@@ -68,11 +66,11 @@ Bool BufferCheck(Buffer buffer)
   /* of the non-reset fields. */
   if (buffer->mode & BufferModeTRANSITION) {
     /* nothing to check */
-  } else if ((buffer->mode & BufferModeATTACHED) == 0 ||
-     buffer->base == (Addr)0 ||
-     buffer->apStruct.init == (Addr)0 ||
-     buffer->apStruct.alloc == (Addr)0 ||
-     buffer->poolLimit == (Addr)0) {
+  } else if ((buffer->mode & BufferModeATTACHED) == 0
+             || buffer->base == (Addr)0
+             || buffer->apStruct.init == (Addr)0
+             || buffer->apStruct.alloc == (Addr)0
+             || buffer->poolLimit == (Addr)0) {
     CHECKL((buffer->mode & BufferModeATTACHED) == 0);
     CHECKL(buffer->base == (Addr)0);
     CHECKL(buffer->initAtFlip == (Addr)0);
@@ -144,8 +142,7 @@ Bool BufferCheck(Buffer buffer)
 
 /* BufferDescribe -- write out description of buffer
  *
- * See impl.h.mpmst for structure definitions.
- */
+ * See impl.h.mpmst for structure definitions.  */
 
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
@@ -208,7 +205,7 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   buffer->pool = pool;
   RingInit(&buffer->poolRing);
   buffer->isMutator = isMutator;
-  if (arena->bufferLogging) {
+  if (ArenaGlobals(arena)->bufferLogging) {
     buffer->mode = BufferModeLOGGED;
   } else {
     buffer->mode = 0;
@@ -255,8 +252,7 @@ failInit:
 
 /* BufferCreate -- create an allocation buffer
  *
- * See design.mps.buffer.method.create.
- */
+ * See design.mps.buffer.method.create.  */
 
 Res BufferCreate(Buffer *bufferReturn, BufferClass class, 
                  Pool pool, Bool isMutator, ...)
@@ -273,8 +269,7 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
 
 /* BufferCreateV -- create an allocation buffer, with varargs
  *
- * See design.mps.buffer.method.create.
- */
+ * See design.mps.buffer.method.create.  */
 
 Res BufferCreateV(Buffer *bufferReturn, BufferClass class, 
                   Pool pool, Bool isMutator, va_list args)
@@ -365,8 +360,7 @@ void BufferDetach(Buffer buffer, Pool pool)
 
 /* BufferDestroy -- destroy an allocation buffer
  *
- * design.mps.buffer.method.destroy
- */
+ * See design.mps.buffer.method.destroy.  */
 
 void BufferDestroy(Buffer buffer)
 {
@@ -420,10 +414,9 @@ void BufferFinish(Buffer buffer)
 
 /* BufferIsReset -- test whether a buffer is in the "reset" state
  *
- * A buffer is "reset" when it is not attached.  In this state
- * all of the pointers into the region are zero.  This condition
- * is checked by BufferCheck.
- */
+ * A buffer is "reset" when it is not attached.  In this state all of
+ * the pointers into the region are zero.  This condition is checked by
+ * BufferCheck.  */
 
 Bool BufferIsReset(Buffer buffer)
 {
@@ -435,11 +428,10 @@ Bool BufferIsReset(Buffer buffer)
 
 /* BufferIsReady -- test whether a buffer is ready for reserve
  *
- * BufferIsReady returns TRUE if and only if the buffer is not between
- * a reserve and commit.  The result is only reliable if the client is
- * not currently using the buffer, since it may update the alloc and
- * init pointers asynchronously.
- */
+ * BufferIsReady returns TRUE if and only if the buffer is not between a
+ * reserve and commit.  The result is only reliable if the client is not
+ * currently using the buffer, since it may update the alloc and init
+ * pointers asynchronously.  */
 
 Bool BufferIsReady(Buffer buffer)
 {
@@ -449,11 +441,9 @@ Bool BufferIsReady(Buffer buffer)
 }
 
 
-/* BufferIsMutator
+/* BufferIsMutator -- test whether buffer belongs to mutator
  *
- * returns TRUE iff mutator was created at mutator request (ie a
- * mutator buffer).
- */
+ * Returns TRUE iff mutator was created for the mutator.  */
 
 Bool BufferIsMutator(Buffer buffer)
 {
@@ -465,8 +455,7 @@ Bool BufferIsMutator(Buffer buffer)
 
 /* BufferSetUnflipped
  *
- * Unflip a buffer if it was flipped
- */
+ * Unflip a buffer if it was flipped.  */
 
 static void BufferSetUnflipped(Buffer buffer)
 {
@@ -483,9 +472,8 @@ static void BufferSetUnflipped(Buffer buffer)
 
 /* BufferFrameState
  *
- * Returns the frame state of a buffer.
- * See design.mps.alloc-frame.lw-frame.states
- */
+ * Returns the frame state of a buffer.  See
+ * design.mps.alloc-frame.lw-frame.states.  */
 
 FrameState BufferFrameState(Buffer buffer)
 {
@@ -507,10 +495,8 @@ FrameState BufferFrameState(Buffer buffer)
 
 /* BufferFrameSetState
  *
- * Sets the frame state of a buffer.
- * See design.mps.alloc-frame.lw-frame.states
- * Only the mutator may set the PopPending state
- */
+ * Sets the frame state of a buffer.  Only the mutator may set the
+ * PopPending state.  See design.mps.alloc-frame.lw-frame.states.  */
 
 void BufferFrameSetState(Buffer buffer, FrameState state)
 {
@@ -524,8 +510,7 @@ void BufferFrameSetState(Buffer buffer, FrameState state)
 
 /* BufferSetAllocAddr
  *
- * Sets the init & alloc pointers of a buffer
- */
+ * Sets the init & alloc pointers of a buffer.  */
 
 void BufferSetAllocAddr(Buffer buffer, Addr addr)
 {
@@ -542,10 +527,9 @@ void BufferSetAllocAddr(Buffer buffer, Addr addr)
 
 /* BufferFrameNotifyPopPending
  *
- * Notifies the pool when a lightweight frame pop operation
- * has been defered and needs to be processed
- * See design.mps.alloc-frame.lw-frame.sync.trip.
- */
+ * Notifies the pool when a lightweight frame pop operation has been
+ * deferred and needs to be processed.  See
+ * design.mps.alloc-frame.lw-frame.sync.trip.  */
 
 static void BufferFrameNotifyPopPending(Buffer buffer)
 {
@@ -569,8 +553,7 @@ static void BufferFrameNotifyPopPending(Buffer buffer)
 
 /* BufferFramePush
  *
- * see design.mps.alloc-frame
- */
+ * See design.mps.alloc-frame.  */
 
 Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 {
@@ -598,8 +581,7 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 
 /* BufferFramePop
  *
- * see design.mps.alloc-frame
- */
+ * See design.mps.alloc-frame.  */
 
 Res BufferFramePop(Buffer buffer, AllocFrame frame)
 {
@@ -615,8 +597,7 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
 
 /* BufferReserve -- reserve memory from an allocation buffer
  *
- * .reserve: Keep in sync with impl.h.mps.reserve.
- */
+ * .reserve: Keep in sync with impl.h.mps.reserve.  */
 
 Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                   Bool withReservoirPermit)
@@ -647,9 +628,8 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
 
 /* BufferAttach -- attach a region to a buffer
  *
- * BufferAttach is entered because of a BufferFill,
- * or because of a Pop operation on a lightweight frame.
- */
+ * BufferAttach is entered because of a BufferFill, or because of a Pop
+ * operation on a lightweight frame.  */
 
 void BufferAttach(Buffer buffer, Addr base, Addr limit, 
                   Addr init, Size size)
@@ -700,11 +680,10 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
 
 /* BufferFill -- refill an empty buffer
  *
- * BufferFill is entered by the "reserve" operation on a buffer if
- * there isn't enough room between "alloc" and "limit" to satisfy
- * an allocation request.  This might be because the buffer has been
- * trapped and "limit" has been set to zero.
- */
+ * BufferFill is entered by the "reserve" operation on a buffer if there
+ * isn't enough room between "alloc" and "limit" to satisfy an
+ * allocation request.  This might be because the buffer has been
+ * trapped and "limit" has been set to zero.  */
 
 Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
                Bool withReservoirPermit)
@@ -748,8 +727,8 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   }
 
   /* There really isn't enough room for the allocation now. */
-  AVER(AddrAdd(buffer->apStruct.alloc, size) > buffer->poolLimit ||
-       AddrAdd(buffer->apStruct.alloc, size) < buffer->apStruct.alloc);
+  AVER(AddrAdd(buffer->apStruct.alloc, size) > buffer->poolLimit
+       || AddrAdd(buffer->apStruct.alloc, size) < buffer->apStruct.alloc);
 
   BufferDetach(buffer, pool);
 
@@ -776,8 +755,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
 
 /* BufferCommit -- commit memory previously reserved
  *
- * .commit: Keep in sync with impl.h.mps.commit.
- */
+ * .commit: Keep in sync with impl.h.mps.commit.  */
 
 Bool BufferCommit(Buffer buffer, Addr p, Size size)
 {
@@ -817,9 +795,8 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
 /* BufferTrip -- act on a trapped buffer
  *
  * Called from BufferCommit (and its equivalents) when invoked on a
- * trapped buffer (indicated by limit == 0).  This function can
- * decide whether to succeed or fail the commit.
- */
+ * trapped buffer (indicated by limit == 0).  This function can decide
+ * whether to succeed or fail the commit.  */
 
 Bool BufferTrip(Buffer buffer, Addr p, Size size)
 {
@@ -897,17 +874,16 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
 /* BufferFlip -- trap buffer at GC flip time
  *
  * .flip: Tells the buffer that a flip has occurred.  If the buffer is
- * between reserve and commit, and has a rank (i.e. references), and
- * has the two-phase protocol, then the object being initialized is
- * invalidated by failing the next commit.  The buffer code handles
- * this automatically (ie the pool implementation is not involved).  If
- * the buffer is reset there is no effect, since there is no object to
+ * between reserve and commit, and has a rank (i.e. references), and has
+ * the two-phase protocol, then the object being initialized is
+ * invalidated by failing the next commit.  The buffer code handles this
+ * automatically (ie the pool implementation is not involved).  If the
+ * buffer is reset there is no effect, since there is no object to
  * invalidate.  If the buffer is already flipped there is no effect,
  * since the object is already invalid by a previous trace.  The buffer
  * becomes unflipped at the next reserve or commit operation (actually
  * reserve because commit is lazy).  This is handled by BufferFill
- * (.fill.unflip) or BufferTrip (.trip.unflip).
- */
+ * (.fill.unflip) or BufferTrip (.trip.unflip).  */
 
 void BufferFlip(Buffer buffer)
 {
@@ -927,13 +903,11 @@ void BufferFlip(Buffer buffer)
 
 /* BufferScanLimit -- return limit of data to which to scan
  *
- * Returns the highest address to which it is safe to scan objects
- * in the buffer.  When the buffer is not flipped, this is the
- * "init" of the AP.  When the buffer is flipped, it is the value
- * that "init" had at flip time.  [Could make BufferScanLimit
- * return the AP "alloc" when using ambiguous scanning.]
- * See .ap.async.
- */
+ * Returns the highest address to which it is safe to scan objects in
+ * the buffer.  When the buffer is not flipped, this is the "init" of
+ * the AP.  When the buffer is flipped, it is the value that "init" had
+ * at flip time.  [Could make BufferScanLimit return the AP "alloc" when
+ * using ambiguous scanning.]  See .ap.async.  */
 
 Addr BufferScanLimit(Buffer buffer)
 {
@@ -945,44 +919,12 @@ Addr BufferScanLimit(Buffer buffer)
 }
 
 
-AP (BufferAP)(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return BufferAP(buffer);
-}
-
-/* design.mps.buffer.method.ofap */
-/* This method must be thread-safe. See */
-/* design.mps.interface.c.thread-safety. */
-Buffer (BufferOfAP)(AP ap)
-{
-  /* Can't AVER ap as that would not be thread safe */
-  /* No Check method for AP, so no AVER */
-  /* .design.mps.misc.parent.thread-safe */
-  return BufferOfAP(ap);
-}
-
-/* design.mps.buffer.method.space */
-/* This method must be thread-safe.  See */
-/* design.mps.interface.c.thread-safety. */
-Arena (BufferArena)(Buffer buffer)
-{
-  /* Can't AVER buffer as that would not be thread-safe. */
-  /* AVERT(Buffer, buffer); */
-  return BufferArena(buffer);
-}
-
-Pool (BufferPool)(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return BufferPool(buffer);
-}
-
 Seg BufferSeg(Buffer buffer)
 {
   AVERT(Buffer, buffer);
   return buffer->class->seg(buffer);
 }
+
 
 RankSet BufferRankSet(Buffer buffer)
 {
@@ -996,6 +938,7 @@ void BufferSetRankSet(Buffer buffer, RankSet rankset)
   AVERT(RankSet, rankset);
   buffer->class->setRankSet(buffer, rankset);
 }
+
 
 Addr (BufferBase)(Buffer buffer)
 {
@@ -1024,8 +967,7 @@ Addr (BufferLimit)(Buffer buffer)
 
 /* BufferReassignSeg -- adjust the seg of an attached buffer
  *
- * Used for segment splitting and merging.
- */
+ * Used for segment splitting and merging.  */
 
 void BufferReassignSeg(Buffer buffer, Seg seg)
 {
@@ -1041,28 +983,25 @@ void BufferReassignSeg(Buffer buffer, Seg seg)
 
 /* BufferIsTrapped
  *
- * Indicates whether the buffer is trapped - either by MPS or the mutator.
- * See .ap.async.
- */
+ * Indicates whether the buffer is trapped - either by MPS or the
+ * mutator.  See .ap.async.  */
 
 Bool BufferIsTrapped(Buffer buffer)
 {
   /* Can't check buffer, see .check.use-trapped */
-  return BufferIsTrappedByMutator(buffer) ||
-         ((buffer->mode & (BufferModeFLIPPED|BufferModeLOGGED)) != 0);
+  return BufferIsTrappedByMutator(buffer)
+         || ((buffer->mode & (BufferModeFLIPPED|BufferModeLOGGED)) != 0);
 }
 
 
 /* BufferIsTrappedByMutator
  *
- * Indicates whether the mutator trapped the buffer.
- * See design.mps.alloc-frame.lw-frame.sync.trip and .ap.async.
- */
+ * Indicates whether the mutator trapped the buffer.  See
+ * design.mps.alloc-frame.lw-frame.sync.trip and .ap.async.  */
 
 Bool BufferIsTrappedByMutator(Buffer buffer)
 {
-  AVER(buffer->apStruct.lwPopPending == FALSE ||
-       buffer->apStruct.enabled == TRUE);
+  AVER(!buffer->apStruct.lwPopPending || buffer->apStruct.enabled);
   /* Can't check buffer, see .check.use-trapped */
   return buffer->apStruct.lwPopPending;
 }
@@ -1070,8 +1009,7 @@ Bool BufferIsTrappedByMutator(Buffer buffer)
 
 /* Alloc pattern functions
  *
- * Just represent the two patterns by two different pointers to dummies.
- */
+ * Just represent the two patterns by two different pointers to dummies.  */
 
 AllocPatternStruct AllocPatternRampStruct = {'\0'};
 
@@ -1099,8 +1037,7 @@ static Bool AllocPatternCheck(AllocPattern pattern)
 /* BufferRampBegin -- note an entry into a ramp pattern
  *
  * .ramp.hack: We count the number of times the ap has begun ramp mode
- * (and not ended), so we can do reset by ending all the current ramps.
- */
+ * (and not ended), so we can do reset by ending all the current ramps.  */
 
 void BufferRampBegin(Buffer buffer, AllocPattern pattern)
 {
@@ -1158,8 +1095,7 @@ void BufferRampReset(Buffer buffer)
 
 
 
-/* BufferClass -- support for the basic Buffer class 
- */
+/* BufferClass -- support for the basic Buffer class */
 
 
 /* bufferTrivInit -- basic buffer init method */
@@ -1214,9 +1150,8 @@ static void bufferTrivDetach(Buffer buffer)
 
 /* bufferNoSeg -- basic buffer BufferSeg accessor method 
  *
- * .noseg: basic buffers don't support segments, so this 
- * method should not be called.
- */
+ * .noseg: basic buffers don't support segments, so this method should
+ * not be called.  */
 
 static Seg bufferNoSeg (Buffer buffer)
 {
@@ -1239,9 +1174,8 @@ static RankSet bufferTrivRankSet (Buffer buffer)
 
 /* bufferNoSetRankSet -- basic BufferSetRankSet setter method 
  *
- * .norank: basic buffers don't support ranksets, so this 
- * method should not be called.
- */
+ * .norank: basic buffers don't support ranksets, so this method should
+ * not be called.  */
 
 static void bufferNoSetRankSet (Buffer buffer, RankSet rankset)
 {
@@ -1253,9 +1187,8 @@ static void bufferNoSetRankSet (Buffer buffer, RankSet rankset)
 
 /* bufferNoReassignSeg -- basic BufferReassignSeg method 
  *
- * .noseg: basic buffers don't support attachment to sements, 
- * so this method should not be called.
- */
+ * .noseg: basic buffers don't support attachment to sements, so this
+ * method should not be called.  */
 
 static void bufferNoReassignSeg (Buffer buffer, Seg seg)
 {
@@ -1299,8 +1232,7 @@ Bool BufferClassCheck(BufferClass class)
 
 /* BufferClass -- the vanilla buffer class definition 
  *
- * See design.mps.buffer.class.hierarchy.buffer.
- */
+ * See design.mps.buffer.class.hierarchy.buffer.  */
 
 DEFINE_CLASS(BufferClass, class)
 {
@@ -1321,8 +1253,7 @@ DEFINE_CLASS(BufferClass, class)
 
 
 
-/* SegBufClass -- support for the SegBuf subclass 
- */
+/* SegBufClass -- support for the SegBuf subclass */
 
 
 /* BufferSegBuf -- convert generic Buffer to a SegBuf */
@@ -1504,10 +1435,8 @@ static void segBufSetRankSet (Buffer buffer, RankSet rankset)
  *
  * Used to support segment merging and splitting.
  *
- * .invseg: On entry the buffer is attached to an invalid segment,
- * which can't be checked. The method is called to make the 
- * attachment valid.
- */
+ * .invseg: On entry the buffer is attached to an invalid segment, which
+ * can't be checked. The method is called to make the attachment valid.  */
 
 static void segBufReassignSeg (Buffer buffer, Seg seg)
 {
@@ -1553,9 +1482,8 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
 
 /* SegBufClass -- SegBuf class definition 
  *
- * Supports an association with a single segment when attached.
- * See design.mps.buffer.class.hierarchy.segbuf.
- */
+ * Supports an association with a single segment when attached.  See
+ * design.mps.buffer.class.hierarchy.segbuf.  */
  
 typedef BufferClassStruct SegBufClassStruct;
 
@@ -1611,8 +1539,7 @@ static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
  *
  * A subclass of SegBufClass, sharing structure for instances.
  *
- * Supports initialization to a rank supplied at creation time.
- */
+ * Supports initialization to a rank supplied at creation time.  */
  
 typedef BufferClassStruct RankBufClassStruct;
 
