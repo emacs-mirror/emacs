@@ -1987,28 +1987,32 @@ search string to change)."
     (isearch-lazy-highlight-remove-overlays (window-start)
 					    (window-end nil t))
 
-    (when (or (null isearch-lazy-highlight-max)
-	      (< (length isearch-lazy-highlight-overlays)
-		 isearch-lazy-highlight-max))
-      (save-excursion
-	(save-match-data
-	  (let (found)
-	    (goto-char isearch-lazy-highlight-start)
-	    (while (let ((case-fold-search isearch-case-fold-search))
-		     (funcall (cond (isearch-word 'word-search-forward)
-				    (isearch-regexp 're-search-forward)
-				    (t 'search-forward))
-			      isearch-string
-			      isearch-lazy-highlight-end
-			      t))
-	      ;; Found the next match.
+    (save-excursion
+      (save-match-data
+	(let (found)
+	  (goto-char isearch-lazy-highlight-start)
+	  (while (and (or (null isearch-lazy-highlight-max)
+			  (< (length isearch-lazy-highlight-overlays)
+			     isearch-lazy-highlight-max))
+		      (< (point) isearch-lazy-highlight-end)
+		      (let ((case-fold-search isearch-case-fold-search))
+			(funcall (cond (isearch-word 'word-search-forward)
+				       (isearch-regexp 're-search-forward)
+				       (t 'search-forward))
+				 isearch-string
+				 isearch-lazy-highlight-end
+				 t)))
+	    ;; Found the next match.
+	    ;; If it is empty, ignore it and move on.
+	    (if (= (match-beginning 0) (match-end 0))
+		(forward-char 1)
 	      (let ((ov (make-overlay (match-beginning 0)
 				      (match-end 0))))
 		;; If OV overlaps the current isearch overlay, suppress
 		;; its face property; otherwise, we sometimes get odd
 		;; looking face combinations.
 		(unless (memq isearch-overlay
-			      (overlays-at (match-beginning 0)))
+			      (overlays-in (match-beginning 0) (match-end 0)))
 		  (overlay-put ov 'face isearch-lazy-highlight-face))
 
 		(overlay-put ov 'priority 0)
