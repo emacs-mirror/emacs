@@ -866,7 +866,7 @@ create_dialog (wv, select_cb, deactivate_cb)
       else
         {
           /* This is one button to add to the dialog.  */
-          w = gtk_button_new_with_mnemonic (utf8_label);
+          w = gtk_button_new_with_label (utf8_label);
           if (! item->enabled)
             gtk_widget_set_sensitive (w, FALSE);
           if (select_cb)
@@ -1211,7 +1211,7 @@ make_widget_for_menu_item (utf8_label, utf8_key)
   GtkWidget *wbox;
 
   wbox = gtk_hbox_new (FALSE, 0);
-  wlbl = gtk_label_new_with_mnemonic (utf8_label);
+  wlbl = gtk_label_new (utf8_label);
   wkey = gtk_label_new (utf8_key);
 
   gtk_misc_set_alignment (GTK_MISC (wlbl), 0.0, 0.5);
@@ -1257,13 +1257,13 @@ make_menu_item (utf8_label, utf8_key, item, group)
     {
       *group = NULL;
       if (utf8_key) w = gtk_check_menu_item_new ();
-      else w = gtk_check_menu_item_new_with_mnemonic (utf8_label);
+      else w = gtk_check_menu_item_new_with_label (utf8_label);
       gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (w), item->selected);
     }
   else if (item->button_type == BUTTON_TYPE_RADIO)
     {
       if (utf8_key) w = gtk_radio_menu_item_new (*group);
-      else w = gtk_radio_menu_item_new_with_mnemonic (*group, utf8_label);
+      else w = gtk_radio_menu_item_new_with_label (*group, utf8_label);
       *group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (w));
       if (item->selected)
         gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (w), TRUE);
@@ -1272,7 +1272,7 @@ make_menu_item (utf8_label, utf8_key, item, group)
     {
       *group = NULL;
       if (utf8_key) w = gtk_menu_item_new ();
-      else w = gtk_menu_item_new_with_mnemonic (utf8_label);
+      else w = gtk_menu_item_new_with_label (utf8_label);
     }
 
   if (wtoadd) gtk_container_add (GTK_CONTAINER (w), wtoadd);
@@ -1552,7 +1552,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
           utf8_label = get_utf8_string (item->name);
 
           gtk_menu_set_title (GTK_MENU (wmenu), utf8_label);
-          w = gtk_menu_item_new_with_mnemonic (utf8_label);
+          w = gtk_menu_item_new_with_label (utf8_label);
           gtk_widget_set_sensitive (w, FALSE);
           if (utf8_label && utf8_label != item->name) g_free (utf8_label);
         }
@@ -1830,7 +1830,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
           GtkLabel *wlabel = GTK_LABEL (gtk_bin_get_child (GTK_BIN (witem)));
           char *utf8_label = get_utf8_string (val->name);
 
-          gtk_label_set_text_with_mnemonic (wlabel, utf8_label);
+          gtk_label_set_text (wlabel, utf8_label);
 
           iter = g_list_next (iter);
           val = val->next;
@@ -1960,7 +1960,7 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
     gtk_label_set_text (wkey, utf8_key);
 
   if (! old_label || strcmp (utf8_label, old_label) != 0)
-    gtk_label_set_text_with_mnemonic (wlbl, utf8_label);
+    gtk_label_set_text (wlbl, utf8_label);
 
   if (utf8_key && utf8_key != val->key) g_free (utf8_key);
   if (utf8_label && utf8_label != val->name) g_free (utf8_label);

@@ -1,3 +1,9 @@
+2003-05-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (create_dialog, make_widget_for_menu_item)
+	(make_menu_item, create_menus, xg_update_menu_item): Don't call
+	..._with_mnemonic functions for menu items.
+
 2003-04-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eval.c (unbind_to): Don't handle symbol = Qnil any more.
