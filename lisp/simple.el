@@ -1341,7 +1341,7 @@ if there is no mark at all.
 
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
-  (if (or force mark-active mark-even-if-inactive)
+  (if (or force (not transient-mark-mode) mark-active mark-even-if-inactive)
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
