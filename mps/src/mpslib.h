@@ -1,20 +1,20 @@
 /* impl.h.mpslib: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE
  *
- * $HopeName$
- * Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!mpslib.h(trunk.7) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS client application developers, MPS developers.
- * .sources: design.mps.lib, design.mps.exec-env in Memory Management 
- *   Information System
- * .doc: Full documentation not yet available.
+ * .sources: design.mps.lib
+ *
  * .purpose: The purpose of this file is to declare the functions and types
- *   required for the MPS downward library interface, and also to include those
- *   headers permitted to free-standing implementations (see .free-standing),
- *   except float.h.
+ * required for the MPS downward library interface, and also to include those
+ * headers permitted to free-standing implementations (see .free-standing),
+ * except float.h.
  */
 
 #ifndef mpslib_h
 #define mpslib_h
+
 
 /* .free-standing: These three headers may be used in free-standing 
  * implementations.  See standard.ansic section 4 and design.mps.exec-env.
@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <stddef.h>
+
 
 extern int mps_lib_get_EOF(void);
 #define mps_lib_EOF     (mps_lib_get_EOF())
@@ -42,10 +43,10 @@ extern void *(mps_lib_memset)(void *, int, size_t);
 extern void *(mps_lib_memcpy)(void *, const void *, size_t);
 extern int (mps_lib_memcmp)(const void *, const void *, size_t);
 
-/*@@@@*/
 typedef unsigned long mps_clock_t;
 extern mps_clock_t mps_clock(void);
 
 extern unsigned long mps_lib_telemetry_control(void);
+
 
 #endif /* mpslib_h */
