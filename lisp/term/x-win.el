@@ -582,6 +582,9 @@ This is in addition to the primary selection.")
 ;;; Return the value of the current X selection.
 ;;; Consult the selection, then the cut buffer.  Treat empty strings
 ;;; as if they were unset.
+;;; If this function is called twice and finds the same text,
+;;; it returns nil the second time.  This is so that a single
+;;; selection won't be added to the kill ring over and over.
 (defun x-cut-buffer-or-selection-value ()
   (let (text)
 
