@@ -3,6 +3,7 @@
 	* faces.el (display-supports-face-attributes-p): New function.
 	(face-spec-set-match-display): Support `supports' predicate.
 	(italic): Try underlining for displays that don't support real italics.
+	* cus-edit.el (custom-display): Add support for `supports' predicate.
 	* term/tty-colors.el (color-name-rgb-alist): Use 16-bit RGB values
 	instead of 8-bit, for consistency with the rest of emacs.
 	(tty-color-canonicalize): Only copy COLOR if we need to change it.
