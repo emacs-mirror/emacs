@@ -839,4 +839,12 @@ extern Lisp_Object Vauto_fill_chars;
     while (i--) *from_p++ = *to_p++;		\
   } while (0)
 
+/* Length of C in bytes.  */
+
+#define CHAR_LEN(C)					\
+     (CHAR_CHARSET ((C)) == CHARSET_COMPOSITION		\
+      ? cmpchar_table[COMPOSITE_CHAR_ID ((C))]->len	\
+      : CHARSET_BYTES (CHAR_CHARSET ((C))))
+
+
 #endif /* _CHARSET_H */
