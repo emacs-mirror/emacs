@@ -681,6 +681,12 @@ t if it is locked by you, else a string of the name of the locker.")
 /* Initialization functions.  */
 
 void
+init_filelock ()
+{
+  boot_time = 0;
+}
+
+void
 syms_of_filelock ()
 {
   defsubr (&Sunlock_buffer);
