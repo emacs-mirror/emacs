@@ -83,9 +83,18 @@ documents from the MPS Project page
 which aren't "sources" but may still be useful to understand the history
 of the project.
 
-[A note about confidential sources being excluded.]
+Some project documents are client confidential.  The MPS project has a
+long history, and it will take some time to sort through the documents
+to see which can be published.  If there's a particular document you
+want to see, please write to us <info@ravenbrook.com> and we'll see what
+we can do.
 
-[Some explanation of tags and tagging.]
+Many documents are referenced by tags, which look like
+"design.mps.buffer" or "req.dylan".  These are references to the
+obsolete Memory Management Information System [RBÊ2002-06-18].  We are
+working on translating these documents to HTML.  There are a vast
+number.  We've only been able to include a few key documents in the open
+source release so far.
 
 
 4. DEVELOPING USING THE KIT
@@ -101,8 +110,6 @@ The MPS can also be built on Mac OS 7 through Mac OS 9 using MPW or
 Metrowerks Codewarrior, but neither of these builds have been maintained
 for some time, and probably no longer work.  We've included the
 makefiles/project files as a starting point.
-
-[What about other platforms which probably don't work?]
 
               Table 1. MPS makefiles and platforms
 
@@ -157,18 +164,32 @@ your path.  MASM is available free from Microsoft.  Then type:
 
   nmake /f w3i3mv.nmk
 
-[And so on, like Unix.  DDK, ML.ERR, ML.EXE, blah blah]
+To build just one target, type:
 
-[Building usually generates "mps.a" or equivalent, which you link with
-your application, but see "Licensing".]
+  nmake /f w3i3mv.nmk <target>
+
+And so on.
+
+The output of the build goes to a directory named after the platform
+(e.g. "fri4gc") so that you can share the source tree across platforms
+using NFS, for example.  Building generates "mps.a" or "mps.lib" or
+equivalent, which you link with your application, but see "Licensing". 
+It also generates a bunch of test programs
 
 
 5. TESTING
 
-[Some stuff about how to run the test suite.]
+There is an extensive regression test suite in the "test" directory, but
+we have not yet had time to make it easy to run.
 
 
-6. BUILDING AND TESTING A RELEASE
+6. BUILDING A RELEASE
+
+The procedure for building a release of the MPS is in
+"procedure/release-build".  This will only be of interest if you are
+intending to maintain and publish a variant of the MPS.  If you do want
+to do this, please get in touch with us <info@ravenbrook.com> to discuss
+it.
 
 
 7. CONTRIBUTING YOUR WORK
@@ -214,6 +235,10 @@ A. REFERENCES
 management development goes Open Source"; Richard Brooksby; Ravenbrook
 Limited; 2002-01-30;
 <http://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>.
+
+[RBÊ2002-06-18] "The Obsolete Memory Management Information System";
+Richard Brooksby; Ravenbrook Limited; 2002-06-18;
+<http://www.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/>.
 
 
 B. DOCUMENT HISTORY
