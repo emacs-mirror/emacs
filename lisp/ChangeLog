@@ -1,3 +1,7 @@
+2002-02-18  Andreas Schwab  <schwab@suse.de>
+
+	* replace.el (query-replace-regexp-eval): Doc fix.
+
 2002-02-15  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Require
