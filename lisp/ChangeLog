@@ -1,3 +1,24 @@
+2000-11-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-1):
+	Fix ARG regexp to skip quoted braces.
+	(tex-font-lock-keywords-2): Fix ARG regexp to skip quoted braces.
+	Remove `bf' and `it' from `bold' and `italic' (they were wrong and
+	are (correctly) handled separately).
+	Remove `caption' and `footnote' from `citations': they contain text.
+	Don't highlight `textmd', `texttt' and `textrm' with bold-italic.
+	(latex-skeleton-end-hook): New function.
+	(latex-mode): Use it.
+	(tex-start-tex-marker): Remove.
+	(tex-send-tex-command): Don't set tex-start-tex-marker.
+	(tex-error-parse-syntax-table): New var.
+	(tex-compilation-parse-errors): Use it.
+	Ignore tex-start-tex-marker.  Don't bother with marker-position.
+	(tex-validate-buffer): Don't bother with marker-position.
+
+	* textmodes/flyspell.el (flyspell-prog-text-faces): New var.
+	(flyspell-generic-progmode-verify): Use it.n
+
 2000-11-22  Sam Steingold  <sds@gnu.org>
 
 	* simple.el (delete-trailing-whitespace): New interactive function.
@@ -5,9 +26,8 @@
 	`ada-remove-trailing-spaces'
 	(ada-remove-trailing-spaces): Removed.
 	* textmodes/two-column.el (2C-merge): Recommend it in the doc.
-	* textmodes/picture.el (picture-mode-exit): Call it instead of
-	`picture-clean'.
-	(picture-clean): Removed.
+	* textmodes/picture.el (picture-clean): Removed.
+	(picture-mode-exit): Call it instead of `picture-clean'.
 
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
@@ -10878,8 +10898,7 @@
 	column-number items.  Add help-echo for the background.
 	(mode-line-mule-info): Modify help-echo.
 
-	* avoid.el (mouse-avoidance-mode): Add autoload cookie to
-	defcustom.
+	* avoid.el (mouse-avoidance-mode): Add autoload cookie to defcustom.
 
 	* files.el (load-file): Allow completion to .elc.
 
