@@ -323,6 +323,7 @@ the user from the mailer."
 (defun mail-do-fcc (header-end)
   (let (fcc-list
 	(rmailbuf (current-buffer))
+	timezone
 	(tembuf (generate-new-buffer " rmail output"))
 	(case-fold-search t))
     (save-excursion
@@ -338,8 +339,19 @@ the user from the mailer."
 		       (progn (forward-line 1) (point))))
       (set-buffer tembuf)
       (erase-buffer)
+      (call-process "date" nil t nil)
+      (goto-char (point-min))
+      (re-search-forward 
+        "[0-9] \\([A-Za-z][A-Za-z ]*[A-Za-z]\\)[0-9 ]*$")
+      (setq timezone (buffer-substring (match-beginning 1) (match-end 1)))
+      (erase-buffer)
       (insert "\nFrom " (user-login-name) " "
 	      (current-time-string) "\n")
+      ;; Insert the time zone before the year.
+      (forward-char -1)
+      (forward-word -1)
+      (insert timezone " ")
+      (goto-char (point-max))
       (insert-buffer-substring rmailbuf)
       ;; Make sure messages are separated.
       (goto-char (point-max))
