@@ -955,7 +955,7 @@ internal_equal (o1, o2, depth)
       goto tail_recurse;
 
     case Lisp_Misc:
-      if (XMISC (o1)->type != XMISC (o2)->type)
+      if (XMISCTYPE (o1) != XMISCTYPE (o2))
 	return 0;
       if (OVERLAYP (o1))
 	{
