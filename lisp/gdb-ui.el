@@ -1087,7 +1087,6 @@ static char *magick[] = {
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
-    (message "pt=%S posn=%S" (posn-point posn) posn)
     (if (numberp (posn-point posn))
 	(with-selected-window (posn-window posn)
 	  (save-excursion
