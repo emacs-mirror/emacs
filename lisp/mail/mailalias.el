@@ -178,7 +178,8 @@ An address can contain spaces if it is quoted with double-quotes."
   (if (string-match "[ \t\n,]+\\'" definition)
       (setq definition (substring definition 0 (match-beginning 0))))
   (let ((result '())
-	(start 0)
+	;; If DEFINITION is null string, avoid looping even once.
+	(start (and (not (equal definition "")) 0))
 	(L (length definition))
 	end tem)
     (while start
@@ -189,8 +190,8 @@ An address can contain spaces if it is quoted with double-quotes."
 	  (if (eq ?\" (aref definition start))
 	      (setq start (1+ start)
 		    end (string-match "\"[ \t,]*" definition start))
-	      (setq end (string-match "[ \t,]+" definition start)))
-	  (setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
+	    (setq end (string-match "[ \t,]+" definition start)))
+	(setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
       (setq result (cons (substring definition start end) result))
       (setq start (and end
 		       (/= (match-end 0) L)
