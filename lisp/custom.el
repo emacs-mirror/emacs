@@ -485,7 +485,8 @@ LOAD should be either a library file name, or a feature name."
 	      ;; if not necessary.
 	      ((let (found (regexp (regexp-quote load)))
 		 (dolist (loaded load-history)
-		   (and (string-match regexp (car loaded))
+		   (and (stringp (car loaded))
+			(string-match regexp (car loaded))
 			(eq (locate-library load) (car loaded))
 			(setq found t)))
 		 found))
