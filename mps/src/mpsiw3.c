@@ -1,9 +1,17 @@
-/* impl.c.mpsint: WIN32 MEMORY POOL SYSTEM INTERFACE LAYER EXTRAS */
+/* impl.c.mpsint:
+ *
+ *       WIN32 MEMORY POOL SYSTEM INTERFACE LAYER EXTRAS
+ *
+ *  $HopeName$
+ *
+ *  Copyright (C) 1996 Harlequin Group, all rights reserved
+ */
 
 #include "std.h"
 #include "mps.h"
 #include <windows.h>
 
+SRCID("$HopeName$");
 
 /* This is defined in protnt.c */
 extern LONG ProtSEHfilter(LPEXCEPTION_POINTERS info);
