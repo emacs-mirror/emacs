@@ -204,7 +204,11 @@ then
 
   echo "Updating finder, custom and autoload data"
 
-  (cd lisp; make updates)
+  (cd lisp; make updates EMACS=$EMACS)
+
+  echo "Updating leim-list.el"
+
+  (cd leim; make leim-list.el EMACS=$EMACS)
 fi
 
 echo "Making lisp/MANIFEST"
