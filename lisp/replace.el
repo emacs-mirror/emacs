@@ -80,6 +80,7 @@ Applies to lines after point."
 (defvar occur-buffer nil)
 (defvar occur-nlines nil)
 (defvar occur-pos-list nil)
+(defvar occur-last-string "")
 
 (defun occur-mode ()
   "Major mode for output from \\[occur].
@@ -131,19 +132,23 @@ default is nil.")
 (fset 'list-matching-lines 'occur)
 
 (defun occur (regexp &optional nlines)
-  "Show lines  containing a match for REGEXP.  If the global variable
+  "Show lines containing a match for REGEXP.  If the global variable
 occur-whole-buffer is non-nil, the entire buffer is searched, otherwise
-search begins at point.
+search begins at point.  Interactively, REGEXP defaults to the last REGEXP
+used interactively.
 
 Each line is displayed with NLINES lines before and after,
- or -NLINES before if NLINES is negative.
+or -NLINES before if NLINES is negative.
 NLINES defaults to list-matching-lines-default-context-lines.
 Interactively it is the prefix arg.
 
 The lines are shown in a buffer named *Occur*.
 It serves as a menu to find any of the occurrences in this buffer.
 \\[describe-mode] in that buffer will explain how."
-  (interactive "sList lines matching regexp: \nP")
+  (interactive (list (setq occur-last-string
+			   (read-string "List lines matching regexp: "
+					occur-last-string))
+		     current-prefix-arg))
   (setq nlines (if nlines (prefix-numeric-value nlines)
 		 list-matching-lines-default-context-lines))
   (let ((first t)
