@@ -27,6 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #include "lisp.h"
+#include "intervals.h"
 #include "buffer.h"
 #include "window.h"
 
@@ -700,7 +701,9 @@ Both arguments are required.")
 /* Making strings from buffer contents.  */
 
 /* Return a Lisp_String containing the text of the current buffer from
-   START to END.
+   START to END.  If text properties are in use and the current buffer
+   has properties in the range specifed, the resulting string will also
+   have them.
 
    We don't want to use plain old make_string here, because it calls
    make_uninit_string, which can cause the buffer arena to be
@@ -709,6 +712,7 @@ Both arguments are required.")
    doesn't effect most of the other users of make_string, so it should
    be left as is.  But we should use this function when conjuring
    buffer substrings.  */
+
 Lisp_Object
 make_buffer_string (start, end)
      int start, end;
@@ -720,6 +724,9 @@ make_buffer_string (start, end)
 
   result = make_uninit_string (end - start);
   bcopy (&FETCH_CHAR (start), XSTRING (result)->data, end - start);
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  copy_intervals_to_string (result, current_buffer, start, end - start);
 
   return result;
 }
@@ -756,7 +763,7 @@ They default to the beginning and the end of BUFFER.")
   (buf, b, e)
      Lisp_Object buf, b, e;
 {
-  register int beg, end, exch;
+  register int beg, end, temp, len, opoint, start;
   register struct buffer *bp;
 
   buf = Fget_buffer (buf);
@@ -778,7 +785,7 @@ They default to the beginning and the end of BUFFER.")
     }
 
   if (beg > end)
-    exch = beg, beg = end, end = exch;
+    temp = beg, beg = end, end = temp;
 
   /* Move the gap or create enough gap in the current buffer.  */
 
@@ -786,6 +793,10 @@ They default to the beginning and the end of BUFFER.")
     move_gap (point);
   if (GAP_SIZE < end - beg)
     make_gap (end - beg - GAP_SIZE);
+
+  len = end - beg;
+  start = beg;
+  opoint = point;
 
   if (!(BUF_BEGV (bp) <= beg
 	&& beg <= end
@@ -801,6 +812,10 @@ They default to the beginning and the end of BUFFER.")
     }
   if (beg < end)
     insert (BUF_CHAR_ADDRESS (bp, beg), end - beg);
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  graft_intervals_into_buffer (copy_intervals (bp->intervals, start, len),
+			       opoint, bp);
 
   return Qnil;
 }
