@@ -35,35 +35,87 @@
 
 (require 'image)
 
-;;;###autoload
-(defcustom image-file-handler-enabled nil
-  "True if visiting an image file will actually display the image.
-A file is considered an image file if its filename matches one of the
-regexps in `image-file-regexps'.
 
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `set-image-file-handler-enabled'."
-  :type 'boolean
-  :set (lambda (sym val) (set-image-file-handler-enabled val))
+(defcustom image-file-name-extensions
+  '("png" "jpeg" "jpg" "gif" "tiff" "xbm" "xpm")
+  "*A list of image-file filename extensions.
+Filenames having one of these extensions are considered image files,
+in addition to those matching `image-file-name-regexps'.
+
+See `auto-image-file-mode'; if `auto-image-file-mode' is enabled,
+setting this variable directly does not take effect unless
+`auto-image-file-mode' is re-enabled; this happens automatically the
+variable is set using \\[customize]."
+  :type '(repeat string)
+  :set (lambda (sym val)
+	 (set-default sym val)
+	 (when auto-image-file-mode
+	   ;; Re-initialize the image-file handler
+	   (auto-image-file-mode t)))
   :initialize 'custom-initialize-default
-  :require 'image-file
   :group 'image)
 
-(defcustom image-file-regexps
-  '("\\.png$" "\\.jpeg$" "\\.jpg$" "\\.gif$" "\\.tiff$" "\\.x[bp]m$")
-  "*A list of regexps matching files that should be displayed as images.
+(defcustom image-file-name-regexps nil
+  "*A list of regexps matching image-file filenames.
+Filenames matching one of these regexps are considered image files,
+in addition to those with an extension in `image-file-name-extensions'.
 
-Setting this variable directly does not take effect until the next time
-`set-image-file-handler-enabled' is called (which happens automatically
-when using \\[customize]."
+See `auto-image-file-mode'; if `auto-image-file-mode' is enabled,
+setting this variable directly does not take effect unless
+`auto-image-file-mode' is re-enabled; this happens automatically the
+variable is set using \\[customize]."
   :type '(repeat regexp)
   :set (lambda (sym val)
 	 (set-default sym val)
-	 (when image-file-handler-enabled
+	 (when auto-image-file-mode
 	   ;; Re-initialize the image-file handler
-	   (set-image-file-handler-enabled t)))
+	   (auto-image-file-mode t)))
   :initialize 'custom-initialize-default
   :group 'image)
+
+
+;;;###autoload
+(defun image-file-name-regexp ()
+  "Return a regular expression that matches image-file filenames."
+  (let ((exts-regexp
+	 (and image-file-name-extensions
+	      (concat "\\."
+		      (regexp-opt image-file-name-extensions t)
+		      "\\'"))))
+    (if image-file-name-regexps
+	(mapconcat 'identity
+		   (if exts-regexp
+		       (cons exts-regexp image-file-regexps)
+		     image-file-regexps)
+		   "\\|")
+      exts-regexp)))
+
+
+;;;###autoload
+(define-minor-mode auto-image-file-mode
+  "Toggle visiting of image files as images.
+With prefix argument ARG, turn on if positive, otherwise off.
+Returns non-nil if the new state is enabled.
+
+Image files are those whose name has an extension in
+`image-file-name-extensions', or matches a regexp in
+`image-file-name-regexps'."
+  nil
+  nil
+  nil
+  :global t
+  :group 'image
+  ;; Remove existing handler
+  (let ((existing-entry
+	 (rassq 'image-file-handler file-name-handler-alist)))
+    (when existing-entry
+      (setq file-name-handler-alist
+	    (delq existing-entry file-name-handler-alist))))
+  ;; Add new handler, if enabled
+  (when auto-image-file-mode
+    (push (cons (image-file-name-regexp) 'image-file-handler)
+	  file-name-handler-alist)))
+
 
 ;;;###autoload
 (defun insert-image-file (file &optional visit beg end replace)
@@ -74,12 +126,14 @@ the command `insert-file-contents'."
 	 (image-file-call-underlying #'insert-file-contents-literally
 				     'insert-file-contents
 				     file visit beg end replace)))
-    (when (and image-file-handler-enabled (or (null beg) (zerop beg)) (null end))
-      ;; Make image into a picture, but only if the whole file was inserted
+    ;; Turn the image data into a real image, but only if the whole file
+    ;; was inserted
+    (when (and (or (null beg) (zerop beg)) (null end))
       (let* ((ibeg (point))
 	     (iend (+ (point) (cadr rval)))
 	     (data
-	      (string-make-unibyte (buffer-substring-no-properties ibeg iend)))
+	      (string-make-unibyte
+	       (buffer-substring-no-properties ibeg iend)))
 	     (image
 	      (create-image data nil t))
 	     (props
@@ -99,7 +153,8 @@ the command `insert-file-contents'."
   "File name handler for inserting image files.
 OPERATION is the operation to perform, on ARGS.
 See `file-name-handler-alist' for details."
-  (if (eq operation 'insert-file-contents)
+  (if (and (eq operation 'insert-file-contents)
+	   auto-image-file-mode)
       (apply #'insert-image-file args)
     ;; We don't handle OPERATION, use another handler or the default
     (apply #'image-file-call-underlying operation operation args)))
@@ -114,38 +169,6 @@ Optional argument ARGS are the arguments to call FUNCTION with."
 	(inhibit-file-name-operation operation))
     (apply function args)))
 
-;;;###autoload
-(defun set-image-file-handler-enabled (enabled)
-  "Enable or disable visiting image files as real images, as per ENABLED.
-The regexp in `image-file-regexp' is used to determine which filenames are
-considered image files."
-  ;; Remove existing handler
-  (let ((existing-entry (rassq 'image-file-handler file-name-handler-alist)))
-    (when existing-entry
-      (setq file-name-handler-alist
-	    (delq existing-entry file-name-handler-alist))))
-  ;; Add new handler
-  (when enabled
-    (let ((regexp
-	   (concat "\\("
-		   (mapconcat 'identity image-file-regexps "\\|")
-		   "\\)")))
-      (setq file-name-handler-alist
-	    (cons (cons regexp 'image-file-handler) file-name-handler-alist))))
-  (setq-default image-file-handler-enabled enabled))
-
-;;;###autoload
-(defun enable-image-file-handler ()
-  "Enable visiting image files as real images.
-The regexp in `image-file-regexp' is used to determine which filenames are
-considered image files."
-  (interactive)
-  (set-image-file-handler-enabled t))
-
-(defun disable-image-file-handler ()
-  "Disable visiting image files as real images."
-  (interactive)
-  (set-image-file-handler-enabled nil))
 
 (provide 'image-file)
 
