@@ -705,6 +705,8 @@ Property value is a character."
 			 (aref (aref jamo-name-table 1) V)
 			 (if (= T 0) ""
 			   (aref (aref jamo-name-table 2) (1- T)))))))
+	    ((eq sym 'CJK\ IDEOGRAPH)
+	     (format "%s-%04X" sym char))
 	    ((eq sym 'CJK\ COMPATIBILITY\ IDEOGRAPH)
 	     (format "%s-%04X" sym char))
 	    ((eq sym 'VARIATION\ SELECTOR)
