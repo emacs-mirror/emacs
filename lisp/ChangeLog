@@ -1,5 +1,9 @@
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* progmodes/idlwave.el: Rename idlwave-*.el into idlw-*.el
+
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* term/x-win.el (xw-defined-colors): Call color-supported-p,
 	the new name of face-color-supported-p.
 
