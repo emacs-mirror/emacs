@@ -34,10 +34,11 @@
 ;; Finnish letters and placing the U+20AC Euro sign in the cell =A4 of
 ;; the former international currency sign ¤.
 
-;; The differnces from Latin-1 are starred on the comments below.
+;; The differences from Latin-1 are starred on the comments below.
 
 ;; This is now ISO/IEC 8859-15:1999.  As of 1999-05, there was a `final
 ;; proof' at <URL:http://www.indigo.ie/egt/standards/iso8859/8859-15-en.pdf>.
+;; See also <URL:http://www.itscj.ipsj.or.jp/ISO-IR/203.pdf>.
 
 ;;; Code:
 
@@ -62,7 +63,7 @@
   (set-case-syntax 172 "_" tbl)		;not sign
   (set-case-syntax 173 "_" tbl)		;soft hyphen
   (set-case-syntax 174 "_" tbl)		;registered sign
-  (set-case-syntax 175 "w" tbl)		;macron *
+  (set-case-syntax 175 "w" tbl)		;macron
   (set-case-syntax 176 "_" tbl)		;degree sign
   (set-case-syntax 177 "_" tbl)		;plus-minus sign
   (set-case-syntax 178 "w" tbl)		;superscript two
