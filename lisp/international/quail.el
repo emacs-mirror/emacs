@@ -1312,7 +1312,8 @@ Do so while interleaving with the following special events:
       (list key)
     (quail-setup-overlays (quail-conversion-keymap))
     (let ((modified-p (buffer-modified-p))
-	  (buffer-undo-list t))
+	  (buffer-undo-list t)
+	  (inhibit-modification-hooks t))
       (unwind-protect
 	  (let ((input-string (if (quail-conversion-keymap)
 				  (quail-start-conversion key)
