@@ -301,7 +301,7 @@ this prefix to create a unique file name.")
 	(and window-setup-hook
 	     (run-hooks 'window-setup-hook))
 	(or menubar-bindings-done
-	    (if (eq window-system 'x)
+	    (if (or (eq window-system 'x) (eq window-system 'win32))
 		(precompute-menubar-bindings)))))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
@@ -456,7 +456,7 @@ this prefix to create a unique file name.")
   (if (fboundp 'frame-initialize)
       (frame-initialize))
   ;; If frame was created with a menu bar, set menu-bar-mode on.
-  (if (or (not (eq window-system 'x))
+  (if (or (not (or (eq window-system 'x) (eq window-system 'win32)))
 	  (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0))
       (menu-bar-mode t))
 
@@ -606,7 +606,7 @@ this prefix to create a unique file name.")
 	     (setq window-setup-hook nil)
 	     ;; Do this now to avoid an annoying delay if the user
 	     ;; clicks the menu bar during the sit-for.
-	     (if (eq window-system 'x)
+	     (if (or (eq window-system 'x) (eq window-system 'win32))
 		 (precompute-menubar-bindings))
 	     (setq menubar-bindings-done t)
 	     (unwind-protect
