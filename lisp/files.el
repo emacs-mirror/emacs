@@ -123,6 +123,9 @@ If the buffer is visiting a new file, the value is nil.")
 (make-variable-buffer-local 'buffer-file-number)
 (put 'buffer-file-number 'permanent-local t)
 
+(defvar buffer-file-numbers-unique (not (memq system-type '(windows-nt)))
+  "Non-nil means that buffer-file-number uniquely identifies files.")
+
 (defconst file-precious-flag nil
   "*Non-nil means protect against I/O errors while saving files.
 Some modes set this non-nil in particular buffers.
@@ -691,7 +694,8 @@ If there is no such live buffer, return nil."
 	  found)
 	(let ((number (nthcdr 10 (file-attributes truename)))
 	      (list (buffer-list)) found)
-	  (and number
+	  (and buffer-file-numbers-unique
+	       number
 	       (while (and (not found) list)
 		 (save-excursion
 		   (set-buffer (car list))
