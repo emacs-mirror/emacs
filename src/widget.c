@@ -433,22 +433,6 @@ set_frame_size (ew)
     ew->core.width = pixel_width;
     ew->core.height = pixel_height;
 
-    /* Compute the geometry of the toplevel shell because on some platforms
-       when the geometry is not set, the widget children are resized.  */
-    {
-      int len;
-      char *tem;
-      Arg al[2];
-      int ac = 0;
-
-      sprintf (shell_position, "=%dx%d", pixel_width, pixel_height);
-      len = strlen (shell_position) + 1;
-      tem = (char *) xmalloc (len);
-      strncpy (tem, shell_position, len);
-      XtSetArg (al[ac], XtNgeometry, tem); ac++;
-      XtSetValues (wmshell, al, ac);
-    }
-
 #if 0 /* We don't need this also.  */
     /* If a position was specified, assign it to the shell widget.
        (Else WM won't do anything with it.)
