@@ -37,6 +37,3 @@
 #include <strings.h>
 #endif
 #endif
-
-#define UNEXEC unexsol.o
-
