@@ -50,6 +50,7 @@ inherit all the commands defined in this map.")
 (if text-mode-map
     ()
   (setq text-mode-map (make-sparse-keymap))
+  (define-key text-mode-map "\e\t" 'ispell-complete-word)
   (define-key text-mode-map "\t" 'tab-to-tab-stop)
   (define-key text-mode-map "\es" 'center-line)
   (define-key text-mode-map "\eS" 'center-paragraph))
