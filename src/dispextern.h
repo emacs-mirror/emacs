@@ -2157,6 +2157,9 @@ extern int tool_bar_button_relief;
 
 /* Defined in xdisp.c */
 
+struct glyph_row *row_containing_pos P_ ((struct window *, int,
+					  struct glyph_row *,
+					  struct glyph_row *));
 int string_buffer_position P_ ((struct window *, Lisp_Object, int));
 int line_bottom_y P_ ((struct it *));
 int display_prop_intangible_p P_ ((Lisp_Object));
