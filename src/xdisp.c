@@ -3547,7 +3547,6 @@ forward_to_next_line_start (it, skipped_p)
     }
 
   it->selective = old_selective;
-  xassert (!newline_found_p || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
   return newline_found_p;
 }
 
