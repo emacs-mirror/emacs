@@ -71,7 +71,7 @@ with no args, if that value is non-nil."
   (setq local-abbrev-table awk-mode-abbrev-table)
   (set-syntax-table awk-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
+  (setq paragraph-start (concat "$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
