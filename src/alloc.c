@@ -1029,9 +1029,9 @@ allocate_string_data (s, nchars, nbytes)
      struct Lisp_String *s;
      int nchars, nbytes;
 {
-  struct sdata *data;
+  struct sdata *data, *old_data;
   struct sblock *b;
-  int needed;
+  int needed, old_nbytes;
 
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
@@ -1077,16 +1077,9 @@ allocate_string_data (s, nchars, nbytes)
     }
   else
     b = current_sblock;
-      
-  /* If S had already data assigned, mark that as free by setting
-     its string back-pointer to null, and recording the size of
-     the data in it..  */
-  if (s->data)
-    {
-      data = SDATA_OF_STRING (s);
-      data->u.nbytes = GC_STRING_BYTES (s);
-      data->string = NULL;
-    }
+
+  old_data = s->data ? SDATA_OF_STRING (s) : NULL;
+  old_nbytes = GC_STRING_BYTES (s);
   
   data = b->next_free;
   data->string = s;
@@ -1096,6 +1089,16 @@ allocate_string_data (s, nchars, nbytes)
   s->data[nbytes] = '\0';
   b->next_free = (struct sdata *) ((char *) data + needed);
   
+  /* If S had already data assigned, mark that as free by setting its
+     string back-pointer to null, and recording the size of the data
+     in it.. Copy old string contents to the new sdata.  */
+  if (old_data)
+    {
+      bcopy (old_data->u.data, s->data, old_nbytes);
+      old_data->u.nbytes = old_nbytes;
+      old_data->string = NULL;
+    }
+
   consing_since_gc += needed;
 }
 
