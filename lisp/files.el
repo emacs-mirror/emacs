@@ -1642,7 +1642,7 @@ Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d', so that a full listing is expected.
 
 This works by running a directory listing program
-whose name is in the variable `ls-program'.
+whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'."
   (let ((handler (find-file-name-handler file)))
     (if handler
