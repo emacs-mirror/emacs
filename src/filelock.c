@@ -61,6 +61,10 @@ Boston, MA 02111-1307, USA.  */
 extern int errno;
 #endif
 
+/* The directory for writing temporary files.  */
+
+Lisp_Object Vtemporary_file_directory;
+
 #ifdef CLASH_DETECTION
 
 #include <utmp.h>
@@ -195,7 +199,9 @@ get_boot_time ()
 	  if (! NILP (Ffile_exists_p (tempname)))
 	    {
 	      Lisp_Object args[6];
-	      tempname = Fmake_temp_name (build_string ("wtmp"));
+	      tempname = Fexpand_file_name (build_string ("wtmp"),
+					    Vtemporary_file_directory);
+	      tempname = Fmake_temp_name (tempname);
 	      args[0] = Vshell_file_name;
 	      args[1] = Qnil;
 	      args[2] = Qnil;
@@ -391,7 +397,7 @@ current_lock_owner (owner, lfname)
 #ifndef index
   extern char *rindex (), *index ();
 #endif
-  int o, p, len, ret;
+  int len, ret;
   int local_owner = 0;
   char *at, *dot, *colon;
   char *lfinfo = 0;
@@ -720,6 +726,10 @@ init_filelock ()
 void
 syms_of_filelock ()
 {
+  DEFVAR_LISP ("temporary-file-directory", &Vtemporary_file_directory,
+    "The directory for writing temporary files.");
+  Vtemporary_file_directory = Qnil;
+
   defsubr (&Sunlock_buffer);
   defsubr (&Slock_buffer);
   defsubr (&Sfile_locked_p);
