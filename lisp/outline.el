@@ -216,6 +216,9 @@ in the file it applies to."
 (defvar outline-mode-hook nil
   "*This hook is run when outline mode starts.")
 
+(defvar outline-blank-line nil
+  "*Non-nil means to leave unhidden blank line before heading.")
+
 ;;;###autoload
 (define-derived-mode outline-mode text-mode "Outline"
   "Set major mode for editing outlines with selective display.
@@ -349,7 +352,7 @@ at the end of the buffer."
   (if (re-search-forward (concat "\n\\(?:" outline-regexp "\\)")
 			 nil 'move)
       (goto-char (match-beginning 0)))
-  (if (and (bolp) (eobp) (not (bobp)))
+  (if (and (bolp) (or outline-blank-line (eobp)) (not (bobp)))
       (forward-char -1)))
 
 (defun outline-next-heading ()
@@ -769,7 +772,11 @@ Show the heading too, if it is currently invisible."
 
 (defun outline-show-heading ()
   "Show the current heading and move to its end."
-  (outline-flag-region (- (point) (if (bobp) 0 1))
+  (outline-flag-region (- (point)
+ 			  (if (bobp) 0
+ 			    (if (and outline-blank-line
+                                     (eq (char-before (1- (point))) ?\n))
+ 				2 1)))
 		       (progn (outline-end-of-heading) (point))
 		       nil))
 
@@ -837,7 +844,10 @@ Show the heading too, if it is currently invisible."
     (if (bolp)
 	(progn
 	  ;; Go to end of line before heading
-	  (forward-char -1)))))
+	  (forward-char -1)
+          (if (and outline-blank-line (bolp))
+ 	      ;; leave blank line before heading
+ 	      (forward-char -1))))))
 
 (defun show-branches ()
   "Show all subheadings of this heading, but not their bodies."
