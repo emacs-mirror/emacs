@@ -1,3 +1,8 @@
+2004-06-28  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+
+	* macterm.c (XTread_socket): Correctly set the frame position
+	after the window is moved.
+
 2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): Call g_object_unref on

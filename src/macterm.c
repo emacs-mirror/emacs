@@ -8084,6 +8084,25 @@ XTread_socket (sd, expected, hold_quit)
       if (!mac_convert_event_ref (eventRef, &er))
 	switch (GetEventClass (eventRef))
 	  {
+	  case kEventClassWindow:
+	    if (GetEventKind (eventRef) == kEventWindowBoundsChanged) 
+	      {
+		WindowPtr window_ptr;
+		GetEventParameter(eventRef, kEventParamDirectObject,
+				  typeWindowRef, NULL, sizeof(WindowPtr),
+				  NULL, &window_ptr);
+		f = mac_window_to_frame (window_ptr);
+		if (f && !f->async_iconified)
+		  {
+		    int x, y;
+		    
+		    x_real_positions (f, &x, &y);
+		    f->left_pos = x;
+		    f->top_pos = y;
+		  }
+		SendEventToEventTarget (eventRef, toolbox_dispatcher);
+	      }
+	    break;
 	  case kEventClassMouse:
 	    if (GetEventKind (eventRef) == kEventMouseWheelMoved)
 	      {
@@ -8306,6 +8325,18 @@ XTread_socket (sd, expected, hold_quit)
 #else /* not TARGET_API_MAC_CARBON */
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
 #endif /* not TARGET_API_MAC_CARBON */
+		/* Update the frame parameters.  */
+		{
+		  struct frame *f = mac_window_to_frame (window_ptr);
+		  if (f && !f->async_iconified)
+		    {
+		      int x, y;
+		      
+		      x_real_positions (f, &x, &y);
+		      f->left_pos = x;
+		      f->top_pos = y;
+		    }
+		}
 		break;
 
 	      case inGoAway:
