@@ -1,4 +1,4 @@
-;;; win32-win.el --- parse switches controlling interface with win32
+;;; w32-win.el --- parse switches controlling interface with W32 window system.
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
@@ -24,10 +24,10 @@
 
 ;;; Commentary:
 
-;; win32-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
-;; that win32 windows are to be used.  Command line switches are parsed and those
-;; pertaining to win32 are processed and removed from the command line.  The
-;; win32 display is opened and hooks are set for popping up the initial window.
+;; w32-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
+;; that W32 windows are to be used.  Command line switches are parsed and those
+;; pertaining to W32 are processed and removed from the command line.  The
+;; W32 display is opened and hooks are set for popping up the initial window.
 
 ;; startup.el will then examine startup files, and eventually call the hooks
 ;; which create the first window (s).
@@ -67,8 +67,8 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
-(if (not (eq window-system 'win32))
-    (error "%s: Loading win32-win.el but not compiled for win32" (invocation-name)))
+(if (not (eq window-system 'w32))
+    (error "%s: Loading w32-win.el but not compiled for w32" (invocation-name)))
 	 
 (require 'frame)
 (require 'mouse)
@@ -82,7 +82,7 @@
 ;; scroll bar routines.
 
 (defun w32-handle-scroll-bar-event (event)
-  "Handle Win32 scroll bar events to do normal Window style scrolling."
+  "Handle W32 scroll bar events to do normal Window style scrolling."
   (interactive "e")
   (let ((old-window (selected-window)))
     (unwind-protect
@@ -623,7 +623,7 @@ This is in addition to the primary selection.")
       (setq x-selection-timeout (string-to-number res-selection-timeout))))
 
 (defun x-win-suspend-error ()
-  (error "Suspending an emacs running under Win32 makes no sense"))
+  (error "Suspending an emacs running under W32 makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
@@ -660,10 +660,10 @@ This is in addition to the primary selection.")
 			   default)))))
 	 (list face (if (equal value "") nil value))))
 
-;; Redefine the font selection to use the standard Win32 dialog
+;; Redefine the font selection to use the standard W32 dialog
 
 (defun mouse-set-font (&rest fonts)
   (interactive)
   (set-default-font (w32-select-font)))
 
-;;; win32-win.el ends here
+;;; w32-win.el ends here
