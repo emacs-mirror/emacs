@@ -341,7 +341,7 @@ displayed in a window:
 	  ;; get the first time off of the list
 	  ;; and calculate the number of minutes until the appointment.
 
-	  (if appt-time-msg-list
+	  (if (and appt-issue-message appt-time-msg-list)
 	      (let ((appt-comp-time (car (car (car appt-time-msg-list)))))
 		(setq min-to-app (- appt-comp-time cur-comp-time))
 
@@ -657,6 +657,10 @@ ARG is positive, otherwise off."
             global-mode-string
             (append global-mode-string '(appt-mode-string)))
       (appt-check t))))
+
+
+;; This is needed for backwards compatibility. Feh.
+(appt-activate 1)
 
 
 (provide 'appt)
