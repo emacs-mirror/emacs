@@ -55,6 +55,7 @@ Boston, MA 02111-1307, USA.  */
 extern void free_frame_menubar ();
 extern double atof ();
 extern int w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state);
+extern void w32_menu_display_help (HWND owner, HMENU menu, UINT menu_item, UINT flags);
 extern int quit_char;
 
 /* A definition of XColor for non-X frames.  */
@@ -4686,23 +4687,16 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_MENUSELECT:
-#if DIRECT_MENU_HELP
+      /* Direct handling of help_echo in menus.  Should be safe now
+	 that we generate the help_echo by placing a help event in the
+	 keyboard buffer.  */
       {
-	/* Tooltips seemed to behave better when help_echo was directly
-	   displayed, but this causes crashes when GC kicks in when the
-	   tip_frame is active.  */
 	HMENU menu = (HMENU) lParam;
 	UINT menu_item = (UINT) LOWORD (wParam);
 	UINT flags = (UINT) HIWORD (wParam);
 
-	BLOCK_INPUT;
-	w32_menu_display_help (menu, menu_item, flags);
-	UNBLOCK_INPUT;
+	w32_menu_display_help (hwnd, menu, menu_item, flags);
       }
-#else
-      wmsg.dwModifiers = w32_get_modifiers ();
-      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-#endif
       return 0;
 
     case WM_MEASUREITEM:
@@ -13547,6 +13541,8 @@ Text larger than the specified size is clipped.  */)
       /* Let the row go over the full width of the frame.  */
       row->full_width_p = 1;
 
+#ifdef TODO /* Investigate why some fonts need more width than is
+	       calculated for some tooltips.  */
       /* There's a glyph at the end of rows that is use to place
 	 the cursor there.  Don't include the width of this glyph.  */
       if (row->used[TEXT_AREA])
@@ -13555,6 +13551,7 @@ Text larger than the specified size is clipped.  */)
 	  row_width = row->pixel_width - last->pixel_width;
 	}
       else
+#endif
 	row_width = row->pixel_width;
       
       /* TODO: find why tips do not draw along baseline as instructed.  */
