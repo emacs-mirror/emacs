@@ -2416,6 +2416,19 @@ the fifth is the port number.
 connections are accepted in the stopped state.  For a client process,
 no input is received in the stopped state.
 
+???
+*** New function network-interface-list.
+
+This function returns a list of network interface names and their
+current network addresses.
+
+???
+*** New function get-network-interface-info.
+
+This function returns the network address, hardware address, current
+status, and other information about a specific network interface.
+
+
 +++
 ** New function copy-tree.
 
