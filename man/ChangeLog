@@ -1,3 +1,8 @@
+2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Specifiers): Describe
+	`pop3-leave-mail-on-server'.
+
 2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* Makefile.in, makefile.w32-in: Added PGG and Sieve files.
