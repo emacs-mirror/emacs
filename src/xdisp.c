@@ -2740,9 +2740,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      args[0] = Qredisplay_end_trigger_functions;
 	      XSETWINDOW (args[1], w);
 	      XSETINT (args[2], e_t_h);
+
+	      /* Since we are *trying* to run these functions,
+		 don't try to run them again, even if they get an error.  */
+	      w->redisplay_end_trigger = Qnil;
 	      Frun_hook_with_args (3, args);
 
-	      w->redisplay_end_trigger = Qnil;
 	      e_t_h = ZV;
 	      /* Notice if it changed the face of this character.  */
 	      next_face_change = pos;
