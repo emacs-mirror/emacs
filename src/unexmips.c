@@ -31,10 +31,51 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/stat.h>
 #include <stdio.h>
 #include <varargs.h>
+
+#ifdef MACH
+
+#include <a.out.h>
+
+/* I don't know why this isn't defined.  */
+#ifndef STYP_INIT
+#define STYP_INIT  0x80000000
+#endif
+
+/* I don't know why this isn't defined.  */
+#ifndef _RDATA
+#define	_RDATA	".rdata"
+#define STYP_RDATA 0x00000100
+#endif
+
+/* Small ("near") data section.  */
+#ifndef _SDATA
+#define	_SDATA	".sdata"
+#define STYP_SDATA 0x00000200
+#endif
+
+/* Small ("near") bss section.  */
+#ifndef _SBSS
+#define _SBSS ".sbss"
+#define STYP_SBSS 0x00000400
+#endif
+
+/* We don't seem to have a sym.h or syms.h anywhere, so we'll do it the
+   hard way.  This stinks.  */
+typedef struct {
+  short   magic;
+  short   vstamp;
+  long    ilineMax;
+  struct { long foo, offset; } offsets[11];
+} HDRR, *pHDRR;
+
+#else /* not MACH */
+
 #include <filehdr.h>
 #include <aouthdr.h>
 #include <scnhdr.h>
 #include <sym.h>
+
+#endif /* not MACH */
 
 #if defined (IRIS_4D) || defined (sony)
 #include "getpagesize.h"
@@ -244,10 +285,14 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   errno = EEOF;
   nread = read (old, buffer, BUFSIZE);
   if (nread < sizeof (HDRR)) fatal_unexec ("reading symbols from %s", a_name);
-#define symhdr ((pHDRR)buffer)
   newsyms = hdr.aout.tsize + hdr.aout.dsize;
   symrel = newsyms - hdr.fhdr.f_symptr;
   hdr.fhdr.f_symptr = newsyms;
+#define symhdr ((pHDRR)buffer)
+#ifdef MACH
+  for (i = 0; i < 11; i++)
+    symhdr->offsets[i].offset += symrel;
+#else
   symhdr->cbLineOffset += symrel;
   symhdr->cbDnOffset += symrel;
   symhdr->cbPdOffset += symrel;
@@ -259,6 +304,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   symhdr->cbFdOffset += symrel;
   symhdr->cbRfdOffset += symrel;
   symhdr->cbExtOffset += symrel;
+#endif
 #undef symhdr
   do
     {
