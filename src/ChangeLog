@@ -1,5 +1,12 @@
 2000-09-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (png_load, jpeg_load): Declare some variables volatile
+	that might be clobbered by longjmp.
+	(check_x_display_info, x_decode_color, create_frame_xic)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(x_build_heuristic_mask, pbm_scan_number): Avoid compiler
+	warnings.
+
 	* lread.c (init_lread): Set Vloads_in_progress to nil.
 	(Fload): Show list of recursively loaded files, when signaling an
 	error.
