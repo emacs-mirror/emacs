@@ -122,6 +122,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef HAVE_UNISTD_H
 #undef HAVE_UTIME_H
 #undef HAVE_LINUX_VERSION_H
+#undef HAVE_TERMIOS_H
 #undef STDC_HEADERS
 #undef TIME_WITH_SYS_TIME
 
