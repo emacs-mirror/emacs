@@ -2510,9 +2510,16 @@ away in the internal cache."
 ;;;; ------------------------------------------------------------
 
 (defconst ange-ftp-date-regexp
-  " [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9] "
+  (let* ((l "[A-Za-z\xa0-\xff]")
+	 (k "[^\x00-\xff]")
+	 (s " ")
+	 (mm "[ 0-1][0-9]")
+	 (dd "[ 0-3][0-9]")
+	 (western (concat "\\(" l l l s dd "\\|" dd s l l l "\\)"))
+	 (japanese (concat mm k s dd k)))
+    (concat s "\\(" western "\\|" japanese "\\)" s))
   "Regular expression to recognize the date in a directory listing.
-This regular expression is designed to recognize month names
+This regular expression is designed to recognize dates
 regardless of the language.")
 
 (defvar ange-ftp-add-file-entry-alist nil
