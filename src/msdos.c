@@ -1200,6 +1200,9 @@ static int help_echo_pos;
    cursor moves into it.  */
 int x_autoselect_window_p;
 
+/* Last window where we saw the mouse.  Used by x-autoselect-window.  */
+static Lisp_Object last_mouse_window;
+
 static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
 /* Set the mouse pointer shape according to whether it is in the
@@ -3402,17 +3405,20 @@ dos_rawgetc ()
 						      mouse_last_y,
 						      &mouse_area, 0);
 	      /* A window will be selected only when it is not
-		 selected now and last mouse movement event was not in
-		 it.  A minubuffer window will be selected iff it is
-		 active.  */
-	      if (!EQ (mouse_window, selected_window)
+		 selected now.  A minubuffer window will be selected
+		 iff it is active.  */
+	      if (!EQ (mouse_window, last_mouse_window)
+		  && !EQ (mouse_window, selected_window)
 		  && (!MINI_WINDOW_P (XWINDOW (mouse_window))
 		      || (EQ (mouse_window, minibuf_window)
 			  && minibuf_level > 0)))
 		{
 		  Fselect_window (mouse_window);
 		}
+	      last_mouse_window = mouse_window;
 	    }
+	  else
+	    last_mouse_window = Qnil;
 	  previous_help_echo = help_echo;
 	  help_echo = help_echo_object = help_echo_window = Qnil;
 	  help_echo_pos = -1;
