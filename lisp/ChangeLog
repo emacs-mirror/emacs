@@ -1,3 +1,25 @@
+2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-view.el (log-view-(msg|file)-(prev|next)): Rename from
+	log-view-*-(message|file) and use easy-mmode-define-navigation.
+	(log-view-message-re): Match SCCS format as well.
+	And match the revision line rather than the dashed separator line.
+	(log-view-mode): Use the new define-derived-mode.
+	(log-view-current-tag): Fill in with an actual implementation.
+
+	* cvs-status.el (cvs-status-(prev|next)): Rename from
+	cvs-status-(prev|next)-entry and use easy-mmode-define-navigation.
+	(cvs-tree-dstr-*): Rename from cvstree-dstr-* and use two ascii chars
+	to let the output "breathe" a little more (more readable).
+	(cvs-status-mode): Use the new define-derived-mode.
+
+	* smerge-mode.el (smerge-auto-leave): New function and variable.
+	(smerge-basic-map): Rename from smerge-basic-keymap.
+	Change the bindings for smerge-diff-*.
+	(smerge-*-map): Use easy-mmode-defmap.
+	(smerge-(next|prev)): Use easy-mmode-define-navigation.
+	(smerge-keep-*): Use smerge-auto-leave.
+
 2000-03-21  Jason Rumney  <jasonr@gnu.org>
 
 	* cus-edit.el (custom-button-face): Use 3D look for w32.
