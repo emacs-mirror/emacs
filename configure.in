@@ -1220,8 +1220,12 @@ configure___ system_malloc=no
 #define LD_SWITCH_SYSTEM
 #endif
 
+#ifndef LD_SWITCH_X_SITE_AUX
+#define LD_SWITCH_X_SITE_AUX
+#endif  
+
 configure___ ld_switch_system=LD_SWITCH_SYSTEM
-configure___ ld_switch_maldhine=LD_SWITCH_MACHINE
+configure___ ld_switch_machine=LD_SWITCH_MACHINE
 
 #ifdef THIS_IS_CONFIGURE
 
