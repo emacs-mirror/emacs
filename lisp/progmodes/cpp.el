@@ -47,6 +47,9 @@
 
 ;;; Customization:
 
+(defvar cpp-config-file (convert-standard-filename ".cpp.el")
+  "*File name to save cpp configuration.")
+
 (defvar cpp-known-face 'invisible
   "*Face used for known cpp symbols.")
 
@@ -506,10 +509,10 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 (defun cpp-edit-load ()
   "Load cpp configuration."
   (interactive)
-  (cond ((file-readable-p ".cpp.el")
-	 (load-file ".cpp.el"))
-	((file-readable-p "~/.cpp.el")
-	 (load-file ".cpp.el")))
+  (cond ((file-readable-p cpp-config-file)
+	 (load-file cpp-config-file))
+	((file-readable-p (concat "~/" cpp-config-file))
+	 (load-file cpp-config-file)))
   (if (eq major-mode 'cpp-edit-mode)
       (cpp-edit-reset)))
 
@@ -519,7 +522,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
   (require 'pp)
   (save-excursion
     (set-buffer cpp-edit-buffer)
-    (let ((buffer (find-file-noselect ".cpp.el")))
+    (let ((buffer (find-file-noselect cpp-config-file)))
       (set-buffer buffer)
       (erase-buffer)
       (pp (list 'setq 'cpp-known-face
@@ -534,7 +537,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 		(list 'quote cpp-unknown-writable)) buffer)
       (pp (list 'setq 'cpp-edit-list
 		(list 'quote cpp-edit-list)) buffer)
-      (write-file ".cpp.el"))))
+      (write-file cpp-config-file))))
 
 (defun cpp-edit-home ()
   "Switch back to original buffer."
