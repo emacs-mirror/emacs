@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.140) $
+ * $HopeName: MMsrc!mpm.h(trunk.141) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -378,7 +378,7 @@ extern Bool MessageQueueType(MessageType *typeReturn, Arena arena);
 extern void MessageTypeEnable(Arena arena, MessageType type);
 extern void MessageTypeDisable(Arena arena, MessageType type);
 
-/* Message methods for MessageTypeFinalization */
+/* Message methods */
 
 /* Method dispatchers */
 extern void MessageFinalizationRef(Ref *refReturn,
@@ -418,7 +418,7 @@ extern Size MessageNoGCNotCondemnedSize(Message message);
 
 
 extern void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
-                          Rank rank, RefSet white);
+                          Rank rank, ZoneSet white);
 extern void ScanStateFinish(ScanState ss);
 extern Bool ScanStateCheck(ScanState ss);
 extern void ScanStateSetSummary(ScanState ss, RefSet summary);
@@ -431,7 +431,7 @@ extern Res TraceCreate(Trace *traceReturn, Arena arena);
 extern void TraceDestroy(Trace trace);
 
 extern Res TraceAddWhite(Trace trace, Seg seg);
-extern Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet);
+extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern void TraceStart(Trace trace, double mortality, double finishingTime);
 extern void TracePoll(Arena arena);
 
@@ -451,7 +451,7 @@ extern double TraceWorkFactor;
 #define TRACE_SCAN_BEGIN(ss) \
   BEGIN \
     Shift SCANzoneShift = (ss)->zoneShift; \
-    RefSet SCANwhite = (ss)->white; \
+    ZoneSet SCANwhite = (ss)->white; \
     RefSet SCANsummary = (ss)->unfixedSummary; \
     Word SCANt; \
     {
@@ -459,7 +459,7 @@ extern double TraceWorkFactor;
 /* Equivalent to impl.h.mps MPS_FIX1 */
 
 #define TRACE_FIX1(ss, ref) \
-  (SCANt = (Word)1<<((Word)(ref)>>SCANzoneShift&(MPS_WORD_WIDTH-1)), \
+  (SCANt = (Word)1 << ((Word)(ref) >> SCANzoneShift & (MPS_WORD_WIDTH-1)), \
    SCANsummary |= SCANt, \
    SCANwhite & SCANt)
 
@@ -821,28 +821,32 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define AddrZone(arena, addr) \
   (((Word)(addr) >> (arena)->zoneShift) & (MPS_WORD_WIDTH - 1))
 
-#define RefSetCheck(refset)     TRUE
 #define RefSetUnion(rs1, rs2)   BS_UNION((rs1), (rs2))
 #define RefSetInter(rs1, rs2)   BS_INTER((rs1), (rs2))
+#define RefSetDiff(rs1, rs2)    BS_DIFF((rs1), (rs2))
 #define RefSetAdd(arena, rs, addr) \
   BS_ADD(RefSet, rs, AddrZone(arena, addr))
 #define RefSetIsMember(arena, rs, addr) \
   BS_IS_MEMBER(rs, AddrZone(arena, addr))
 #define RefSetSuper(rs1, rs2)   BS_SUPER((rs1), (rs2))
-#define RefSetDiff(rs1, rs2)    BS_DIFF((rs1), (rs2))
 #define RefSetSub(rs1, rs2)     BS_SUB((rs1), (rs2))
-#define RefSetComp(rs)          BS_COMP(rs)
-
-extern RefSet RefSetOfRange(Arena arena, Addr base, Addr limit);
-extern RefSet RefSetOfSeg(Arena arena, Seg seg);
 
 
 /* Zone sets -- see design.mps.refset */
 
 #define ZoneSetUnion(zs1, zs2) BS_UNION(zs1, zs2)
 #define ZoneSetInter(zs1, zs2) BS_INTER(zs1, zs2)
+#define ZoneSetDiff(zs1, zs2)  BS_DIFF(zs1, zs2)
 #define ZoneSetAdd(arena, zs, addr) \
-  BS_ADD(RefSet, zs, AddrZone(arena, addr))
+  BS_ADD(ZoneSet, zs, AddrZone(arena, addr))
+#define ZoneSetIsMember(arena, zs, addr) \
+  BS_IS_MEMBER(zs, AddrZone(arena, addr))
+#define ZoneSetSub(zs1, zs2)   BS_SUB(zs1, zs2)
+#define ZoneSetSuper(zs1, zs2) BS_SUPER(zs1, zs2)
+#define ZoneSetComp(zs)        BS_COMP(zs)
+
+extern ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit);
+extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);
 
 
 /* Shield Interface -- see impl.c.shield */
@@ -950,7 +954,8 @@ extern Size VMMapped(VM vm);
 
 
 /* Stack Probe */
-extern void StackProbe(Word depth);
+
+extern void StackProbe(Size depth);
 
 
 /* STATISTIC -- gather diagnostics (in some varieties)
