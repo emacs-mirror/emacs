@@ -468,7 +468,19 @@
 
 ;; Hebrew character set (ISO-8859-8)
 
-;; (modify-category-entry (make-char 'hebrew-iso8859-8) ?w)
+(modify-category-entry (make-char 'hebrew-iso8859-8) ?w)
+(let ((c #x591))
+  (while (<= c #x5f4)
+    (modify-category-entry (decode-char 'ucs c) ?w)
+    (setq c (1+ c))))
+
+(modify-syntax-entry (make-char 'hebrew-iso8859-8 208) ".") ; PASEQ
+(modify-syntax-entry (make-char 'hebrew-iso8859-8 211) ".") ; SOF PASUQ
+(modify-syntax-entry (decode-char 'ucs #x5be) ".") ; MAQAF
+(modify-syntax-entry (decode-char 'ucs #x5c0) ".") ; PASEQ
+(modify-syntax-entry (decode-char 'ucs #x5c3) ".") ; SOF PASUQ
+(modify-syntax-entry (decode-char 'ucs #x5f3) ".") ; GERESH
+(modify-syntax-entry (decode-char 'ucs #x5f4) ".") ; GERSHAYIM
 
 ;; (let ((c 224))
 ;;   (while (< c 251)
