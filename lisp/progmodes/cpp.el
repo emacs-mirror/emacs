@@ -332,7 +332,8 @@ A prefix arg suppresses display of that buffer."
   (overlay-put overlay 'intangible t)
   ;; Unfortunately `intangible' is not implemented for overlays yet,
   ;; so we make is read-only instead.
-  (overlay-put overlay 'modification-hooks '(cpp-signal-read-only)))
+  (overlay-put overlay 'modification-hooks '(cpp-signal-read-only))
+  (overlay-put overlay 'insert-in-front-hooks '(cpp-signal-read-only)))
 
 (defun cpp-make-overlay-read-only (overlay)
   ;; Make overlay read only.
@@ -345,18 +346,20 @@ A prefix arg suppresses display of that buffer."
   (overlay-put overlay 'insert-in-front-hooks '(cpp-grow-overlay))
   (overlay-put overlay 'insert-behind-hooks '(cpp-grow-overlay)))
 
-(defun cpp-signal-read-only (overlay start end)
+(defun cpp-signal-read-only (overlay after start end &optional len)
   ;; Only allow deleting the whole overlay.
   ;; Trying to change a read-only overlay.
-  (if (or (< (overlay-start overlay) start)
-	  (> (overlay-end overlay) end))
+  (if (and (not after)
+	   (or (< (overlay-start overlay) start)
+	       (> (overlay-end overlay) end)))
       (error "This text is read only")))
 
-(defun cpp-grow-overlay (overlay start end)
+(defun cpp-grow-overlay (overlay after start end &optional len)
   ;; Make OVERLAY grow to contain range START to END.
-  (move-overlay overlay
-		(min start (overlay-start overlay))
-		(max end (overlay-end overlay))))
+  (if after
+      (move-overlay overlay
+		    (min start (overlay-start overlay))
+		    (max end (overlay-end overlay)))))
 
 ;;; Edit Buffer:
 
@@ -483,7 +486,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 	    (setq cpp-edit-list (delq entry cpp-edit-list)
 		  entry nil))
 	
-	(if (> (length symbol) 29)
+	(if (> (length symbol) 39)
 	    (insert (substring symbol 0 39) ": ")
 	  (insert (format "%39s: " symbol)))
 
