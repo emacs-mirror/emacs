@@ -916,7 +916,17 @@ PostScript programming that returns a float or integer value.
 For example, if you wish to print an EPS image on all pages do:
 
    '((\"~/images/EPS-image.ps\"))"
-  :type 'list
+  :type '(repeat (list file
+		       (choice :tag "X" number string (const nil))
+		       (choice :tag "Y" number string (const nil))
+		       (choice :tag "X Scale" number string (const nil))
+		       (choice :tag "Y Scale" number string (const nil))
+		       (choice :tag "Rotation" number string (const nil))
+		       (repeat :tag "Pages" :inline t
+			       (radio integer
+				      (cons :tag "Range"
+					    (integer :tag "From")
+					    (integer :tag "To"))))))
   :group 'ps-print)
 
 (defcustom ps-print-background-text nil
@@ -954,7 +964,18 @@ PostScript programming that returns a float or integer value.
 For example, if you wish to print text \"Preliminary\" on all pages do:
 
    '((\"Preliminary\"))"
-  :type 'list
+  :type '(repeat (list string
+		       (choice :tag "X" number string (const nil))
+		       (choice :tag "Y" number string (const nil))
+		       (choice :tag "Font" string (const nil))
+		       (choice :tag "Fontsize" number string (const nil))
+		       (choice :tag "Gray" number string (const nil))
+		       (choice :tag "Rotation" number string (const nil))
+		       (repeat :tag "Pages" :inline t
+			       (radio integer
+				      (cons :tag "Range"
+					    (integer :tag "From")
+					    (integer :tag "To"))))))
   :group 'ps-print)
 
 ;;; Horizontal layout
@@ -1040,7 +1061,7 @@ customizable by changing variables `ps-left-header' and
 (defcustom ps-show-n-of-n t
   "*Non-nil means show page numbers as N/M, meaning page N of M.
 Note: page numbers are displayed as part of headers, see variable
-`ps-print-headers'."
+`ps-print-header'."
   :type 'boolean
   :group 'ps-print-header)
 
