@@ -253,18 +253,18 @@ get_keyword (field, rest)
 {
   static char keyword[KEYWORD_SIZE];
   register char *ptr;
-  register char c;
+  register int c;
 
   ptr = &keyword[0];
-  c = *field++;
+  c = (unsigned char) *field++;
   if (isspace (c) || c == ':')
     return ((char *) NULL);
   *ptr++ = (islower (c) ? toupper (c) : c);
-  while (((c = *field++) != ':') && ! isspace (c))
+  while (((c = (unsigned char) *field++) != ':') && ! isspace (c))
     *ptr++ = (islower (c) ? toupper (c) : c);
   *ptr++ = '\0';
   while (isspace (c))
-    c = *field++;
+    c = (unsigned char) *field++;
   if (c != ':')
     return ((char *) NULL);
   *rest = field;
