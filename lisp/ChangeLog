@@ -1,3 +1,12 @@
+2000-10-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dos-w32.el (find-file-not-found-set-buffer-file-coding-system):
+	Don't call find-buffer-file-type-coding-system.  Instead, just
+	set eol-type to -unix if inhibit-eol-conversion is in effect, or
+	if the file is on an untranslated filesystem.
+	(add-untranslated-filesystem): Use "D" instead of "f" inside
+	interactive.
+
 2000-10-27  Dave Love  <fx@gnu.org>
 
 	* textmodes/refill.el (refill-late-fill-paragraph-function): New
