@@ -1,5 +1,11 @@
 2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/mule-diag.el (describe-char-after): Use
+	display-graphic-p instead of window-system, so that this function
+	works on MS-DOS.
+
+2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* international/codepage.el (cp-make-coding-systems-for-codepage):
 	Remove the eight-bit-graphic and eight-bit-control charsets from
 	the list of charsets which we convert into `?'.
