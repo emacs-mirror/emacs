@@ -258,6 +258,7 @@ and those listed in `desktop-clear-preserve-buffers'."
   (let ((buffers (buffer-list)))
     (while buffers
       (or (member (buffer-name (car buffers)) desktop-clear-preserve-buffers)
+	  (null (buffer-name (car buffers)))
 	  ;; Don't kill buffers made for internal purposes.
 	  (and (not (equal (buffer-name (car buffers)) ""))
 	       (eq (aref (buffer-name (car buffers)) 0) ?\ ))
