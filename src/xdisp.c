@@ -4291,7 +4291,8 @@ all the functions in the list are called, with the frame as argument.");
   DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
     "List of Functions to call before redisplaying a window with scrolling.\n\
 Each function is called with two arguments, the window\n\
-and its new display-start position.");
+and its new display-start position.  Note that the value of `window-end'\n\
+is not valid when these functions are called.");
   Vwindow_scroll_functions = Qnil;
 }
 
