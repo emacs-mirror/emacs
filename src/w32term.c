@@ -62,11 +62,11 @@ Boston, MA 02111-1307, USA.  */
 #define BETWEEN(X, LOWER, UPPER)  ((X) >= (LOWER) && (X) < (UPPER))
 
 
-/* Bitmaps for truncated lines.  */
+/* Fringe bitmaps.  */
 
-enum bitmap_type
+enum fringe_bitmap_type
 {
-  NO_BITMAP,
+  NO_FRINGE_BITMAP,
   LEFT_TRUNCATION_BITMAP,
   RIGHT_TRUNCATION_BITMAP,
   OVERLAY_ARROW_BITMAP,
@@ -401,12 +401,12 @@ static void x_update_window_cursor P_ ((struct window *, int));
 static void x_erase_phys_cursor P_ ((struct window *));
 void x_display_cursor P_ ((struct window *w, int, int, int, int, int));
 void x_display_and_set_cursor P_ ((struct window *, int, int, int, int, int));
-static void w32_draw_bitmap P_ ((struct window *, HDC hdc, struct glyph_row *, 
-                                 enum bitmap_type));
+static void w32_draw_fringe_bitmap P_ ((struct window *, HDC hdc, struct glyph_row *, 
+					enum fringe_bitmap_type));
 static void w32_clip_to_row P_ ((struct window *, struct glyph_row *,
                                  HDC, int));
 static int x_phys_cursor_in_rect_p P_ ((struct window *, RECT *));
-static void x_draw_row_bitmaps P_ ((struct window *, struct glyph_row *));
+static void x_draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
 static void note_overwritten_text_cursor P_ ((struct window *, int, int));
 
 static Lisp_Object Qvendor_specific_keysyms;
@@ -650,7 +650,7 @@ x_draw_vertical_border (w)
 
       window_box_edges (w, -1, (int *) &r.left, (int *) &r.top,
 			(int *) &r.right, (int *) &r.bottom);
-      r.left = r.right + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f);
+      r.left = r.right + FRAME_X_RIGHT_FRINGE_WIDTH (f);
       r.right = r.left + 1;
       r.bottom -= 1;
 
@@ -750,7 +750,7 @@ w32_frame_up_to_date (f)
 
 
 /* Draw truncation mark bitmaps, continuation mark bitmaps, overlay
-   arrow bitmaps, or clear the areas where they would be displayed
+   arrow bitmaps, or clear the fringes if no bitmaps are required
    before DESIRED_ROW is made current.  The window being updated is
    found in updated_window.  This function It is called from
    update_window_line only if it is known that there are differences
@@ -770,7 +770,7 @@ x_after_update_window_line (desired_row)
       int width;
 
       BLOCK_INPUT;
-      x_draw_row_bitmaps (w, desired_row);
+      x_draw_row_fringe_bitmaps (w, desired_row);
 
       /* When a window has disappeared, make sure that no rest of
 	 full-width rows stays visible in the internal border.  */
@@ -781,7 +781,7 @@ x_after_update_window_line (desired_row)
 	{
 	  int height = desired_row->visible_height;
 	  int x = (window_box_right (w, -1)
-                   + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f));
+                   + FRAME_X_RIGHT_FRINGE_WIDTH (f));
 	  int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
           HDC hdc = get_frame_dc (f);
 
@@ -794,17 +794,17 @@ x_after_update_window_line (desired_row)
 }
 
 
-/* Draw the bitmap WHICH in one of the areas to the left or right of
+/* Draw the bitmap WHICH in one of the left or right fringes of
    window W.  ROW is the glyph row for which to display the bitmap; it
    determines the vertical position at which the bitmap has to be
    drawn.  */
 
 static void
-w32_draw_bitmap (w, hdc, row, which)
+w32_draw_fringe_bitmap (w, hdc, row, which)
      struct window *w;
      HDC hdc;
      struct glyph_row *row;
-     enum bitmap_type which;
+     enum fringe_bitmap_type which;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Window window = FRAME_W32_WINDOW (f);
@@ -825,7 +825,7 @@ w32_draw_bitmap (w, hdc, row, which)
       pixmap = left_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
       break;
       
     case OVERLAY_ARROW_BITMAP:
@@ -834,7 +834,7 @@ w32_draw_bitmap (w, hdc, row, which)
       pixmap = ov_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
       break;
       
     case RIGHT_TRUNCATION_BITMAP:
@@ -842,7 +842,7 @@ w32_draw_bitmap (w, hdc, row, which)
       h = right_height;
       pixmap = right_bmp;
       x = window_box_right (w, -1);
-      x += (FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f) - wd) / 2;
+      x += (FRAME_X_RIGHT_FRINGE_WIDTH (f) - wd) / 2;
       break;
 
     case CONTINUED_LINE_BITMAP:
@@ -850,7 +850,7 @@ w32_draw_bitmap (w, hdc, row, which)
       h = continued_height;
       pixmap = continued_bmp;
       x = window_box_right (w, -1);
-      x += (FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f) - wd) / 2;
+      x += (FRAME_X_RIGHT_FRINGE_WIDTH (f) - wd) / 2;
       break;
       
     case CONTINUATION_LINE_BITMAP:
@@ -859,7 +859,7 @@ w32_draw_bitmap (w, hdc, row, which)
       pixmap = continuation_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
       break;
 
     case ZV_LINE_BITMAP:
@@ -868,7 +868,7 @@ w32_draw_bitmap (w, hdc, row, which)
       pixmap = zv_bmp;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
       break;
 
     default:
@@ -881,7 +881,7 @@ w32_draw_bitmap (w, hdc, row, which)
   dy = (row->height - h) / 2;
 
   /* Draw the bitmap.  */
-  face = FACE_FROM_ID (f, BITMAP_AREA_FACE_ID);
+  face = FACE_FROM_ID (f, FRINGE_FACE_ID);
 
   compat_hdc = CreateCompatibleDC (hdc);
   SaveDC (hdc);
@@ -898,16 +898,16 @@ w32_draw_bitmap (w, hdc, row, which)
 }
 
 
-/* Draw flags bitmaps for glyph row ROW on window W.  Call this
+/* Draw fringe bitmaps for glyph row ROW on window W.  Call this
    function with input blocked.  */
 
 static void
-x_draw_row_bitmaps (w, row)
+x_draw_row_fringe_bitmaps (w, row)
      struct window *w;
      struct glyph_row *row;
 {
   struct frame *f = XFRAME (w->frame);
-  enum bitmap_type bitmap;
+  enum fringe_bitmap_type bitmap;
   struct face *face;
   int header_line_height = -1;
   HDC hdc;
@@ -919,10 +919,10 @@ x_draw_row_bitmaps (w, row)
   if (row->visible_height <= 0)
     return;
 
-  face = FACE_FROM_ID (f, BITMAP_AREA_FACE_ID);
+  face = FACE_FROM_ID (f, FRINGE_FACE_ID);
   PREPARE_FACE_FOR_DISPLAY (f, face);
 
-  /* Decide which bitmap to draw at the left side.  */
+  /* Decide which bitmap to draw in the left fringe.  */
   if (row->overlay_arrow_p)
     bitmap = OVERLAY_ARROW_BITMAP;
   else if (row->truncated_on_left_p)
@@ -932,15 +932,15 @@ x_draw_row_bitmaps (w, row)
   else if (row->indicate_empty_line_p)
     bitmap = ZV_LINE_BITMAP;
   else
-    bitmap = NO_BITMAP;
+    bitmap = NO_FRINGE_BITMAP;
 
   hdc = get_frame_dc (f);
 
-  /* Clear flags area if no bitmap to draw or if bitmap doesn't fill
-     the flags area.  */
-  if (bitmap == NO_BITMAP
-      || FRAME_FLAGS_BITMAP_WIDTH (f) < FRAME_X_LEFT_FLAGS_AREA_WIDTH (f)
-      || row->height > FRAME_FLAGS_BITMAP_HEIGHT (f))
+  /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
+     the fringe.  */
+  if (bitmap == NO_FRINGE_BITMAP
+      || FRAME_FRINGE_BITMAP_WIDTH (f) < FRAME_X_LEFT_FRINGE_WIDTH (f)
+      || row->height > FRAME_FRINGE_BITMAP_HEIGHT (f))
     {
       /* If W has a vertical border to its left, don't draw over it.  */
       int border = ((XFASTINT (w->left) > 0
@@ -952,30 +952,30 @@ x_draw_row_bitmaps (w, row)
 	header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       
       w32_fill_area (f, hdc, face->background,
-                     left - FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) + border,
+                     left - FRAME_X_LEFT_FRINGE_WIDTH (f) + border,
                      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
                                                       row->y)),
-                     FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - border,
+                     FRAME_X_LEFT_FRINGE_WIDTH (f) - border,
                      row->visible_height);
     }
 
   /* Draw the left bitmap.  */
-  if (bitmap != NO_BITMAP)
-    w32_draw_bitmap (w, hdc, row, bitmap);
+  if (bitmap != NO_FRINGE_BITMAP)
+    w32_draw_fringe_bitmap (w, hdc, row, bitmap);
 
-  /* Decide which bitmap to draw at the right side.  */
+  /* Decide which bitmap to draw in the right fringe.  */
   if (row->truncated_on_right_p)
     bitmap = RIGHT_TRUNCATION_BITMAP;
   else if (row->continued_p)
     bitmap = CONTINUED_LINE_BITMAP;
   else
-    bitmap = NO_BITMAP;
+    bitmap = NO_FRINGE_BITMAP;
 
-  /* Clear flags area if no bitmap to draw of if bitmap doesn't fill
-     the flags area.  */
-  if (bitmap == NO_BITMAP
-      || FRAME_FLAGS_BITMAP_WIDTH (f) < FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f)
-      || row->height > FRAME_FLAGS_BITMAP_HEIGHT (f))
+  /* Clear right fringe if no bitmap to draw of if bitmap doesn't fill
+     the fringe.  */
+  if (bitmap == NO_FRINGE_BITMAP
+      || FRAME_FRINGE_BITMAP_WIDTH (f) < FRAME_X_RIGHT_FRINGE_WIDTH (f)
+      || row->height > FRAME_FRINGE_BITMAP_HEIGHT (f))
     {
       int right = window_box_right (w, -1);
 
@@ -986,13 +986,13 @@ x_draw_row_bitmaps (w, row)
                      right,
                      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
                                                       row->y)),
-                     FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f),
+                     FRAME_X_RIGHT_FRINGE_WIDTH (f),
                      row->visible_height);
     }
 
   /* Draw the right bitmap.  */
-  if (bitmap != NO_BITMAP)
-    w32_draw_bitmap (w, hdc, row, bitmap);
+  if (bitmap != NO_FRINGE_BITMAP)
+    w32_draw_fringe_bitmap (w, hdc, row, bitmap);
 
   release_frame_dc (f, hdc);
 }
@@ -3754,7 +3754,7 @@ x_draw_glyph_string_box (s)
   if (s->row->full_width_p
       && !s->w->pseudo_window_p)
     {
-      last_x += FRAME_X_RIGHT_FLAGS_AREA_WIDTH (s->f);
+      last_x += FRAME_X_RIGHT_FRINGE_WIDTH (s->f);
       if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (s->f))
 	last_x += FRAME_SCROLL_BAR_WIDTH (s->f) * CANON_X_UNIT (s->f);
     }
@@ -4893,9 +4893,9 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
   if (row->full_width_p)
     {
       /* X is relative to the left edge of W, without scroll bars
-	 or flag areas.  */
+	 or fringes.  */
       struct frame *f = XFRAME (WINDOW_FRAME (w));
-      /* int width = FRAME_FLAGS_AREA_WIDTH (f); */
+      /* int width = FRAME_FRINGE_WIDTH (f); */
       int window_left_x = WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f);
 
       x += window_left_x;
@@ -5400,11 +5400,11 @@ x_scroll_run (w, run)
   HDC hdc = get_frame_dc (f);
 
   /* Get frame-relative bounding box of the text display area of W,
-     without mode lines.  Include in this box the flags areas to the
-     left and right of W.  */
+     without mode lines.  Include in this box the left and right
+     fringes of W.  */
   window_box (w, -1, &x, &y, &width, &height);
-  width += FRAME_X_FLAGS_AREA_WIDTH (f);
-  x -= FRAME_X_LEFT_FLAGS_AREA_WIDTH (f);
+  width += FRAME_X_FRINGE_WIDTH (f);
+  x -= FRAME_X_LEFT_FRINGE_WIDTH (f);
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
@@ -5643,7 +5643,7 @@ expose_line (w, row, r)
 	expose_area (w, row, r, TEXT_AREA);
       if (row->used[RIGHT_MARGIN_AREA])
 	expose_area (w, row, r, RIGHT_MARGIN_AREA);
-      x_draw_row_bitmaps (w, row);
+      x_draw_row_fringe_bitmaps (w, row);
     }
 
   return row->mouse_face_p;
@@ -6342,7 +6342,7 @@ frame_to_window_pixel_xy (w, x, y)
 /* Take proper action when mouse has moved to the mode or header line of
    window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
    mode line.  X is relative to the start of the text display area of
-   W, so the width of bitmap areas and scroll bars must be subtracted
+   W, so the width of fringes and scroll bars must be subtracted
    to get a position relative to the start of the mode line.  */
 
 static void
@@ -6370,7 +6370,7 @@ note_mode_line_highlight (w, x, mode_line_p)
       glyph = row->glyphs[TEXT_AREA];
       end = glyph + row->used[TEXT_AREA];
       x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
-	      + FRAME_X_LEFT_FLAGS_AREA_WIDTH (f));
+	      + FRAME_X_LEFT_FRINGE_WIDTH (f));
       
       while (glyph < end
 	     && x >= x0 + glyph->pixel_width)
@@ -9203,8 +9203,8 @@ w32_clip_to_row (w, row, hdc, whole_line_p)
      the rectangle to the left and increase its width.  */
   if (whole_line_p)
     {
-      clip_rect.left -= FRAME_X_LEFT_FLAGS_AREA_WIDTH (f);
-      clip_rect.right += FRAME_X_FLAGS_AREA_WIDTH (f);
+      clip_rect.left -= FRAME_X_LEFT_FRINGE_WIDTH (f);
+      clip_rect.right += FRAME_X_FRINGE_WIDTH (f);
     }
 
   w32_set_clip_rectangle (hdc, &clip_rect);
@@ -10021,8 +10021,8 @@ x_set_window_size (f, change_gravity, cols, rows)
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.w32->font)));
-  f->output_data.w32->flags_areas_extra
-    = FRAME_FLAGS_AREA_WIDTH (f);
+  f->output_data.w32->fringes_extra
+    = FRAME_FRINGE_WIDTH (f);
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
   
