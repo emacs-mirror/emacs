@@ -26,7 +26,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(provide 'reftex-vars)
+(eval-and-compile
+  (defun reftex-set-dirty (symbol value)
+    (setq reftex-tables-dirty t)
+    (set symbol value)))
 
 ;; Define the two constants which are needed during compilation
 
@@ -1743,5 +1746,7 @@ construct:  \\bbb [xxx] {aaa}."
   "Hook which is being run when turning on RefTeX mode."
   :group 'reftex-miscellaneous-configurations
   :type 'hook)
+
+(provide 'reftex-vars)
 
 ;;; reftex-vars.el ends here
