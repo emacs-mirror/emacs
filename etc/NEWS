@@ -1094,11 +1094,25 @@ per-mode basis through c-require-final-newline.  The default is to set
 it to t only in languages that mandate a final newline in source files
 (C, C++ and Objective-C).
 
-*** Slight API change for the syntactic context used by lineup functions.
-The syntactic context stored in c-syntactic-context has been changed
-to allow more information.  This might affect custom lineup functions,
-but only if they use that variable directly.  See its docstring for
-more details.
+*** Format change for syntactic context elements.
+The elements in the syntactic context returned by c-guess-basic-syntax
+and stored in c-syntactic-context has been changed somewhat to allow
+attaching more information.  They are now lists instead of single cons
+cells.  E.g. a line that previously had the syntactic analysis
+
+((inclass . 11) (topmost-intro . 13))
+
+is now analysed as
+
+((inclass 11) (topmost-intro 13))
+
+In some cases there are more than one position given for a syntactic
+symbol.
+
+This change might affect code that call c-guess-basic-syntax directly,
+and custom lineup functions if they use c-syntactic-context.  However,
+the argument given to lineup functions is still a single cons cell
+with nil or an integer in the cdr.
 
 *** API changes for derived modes.
 There have been extensive changes "under the hood" which can affect
