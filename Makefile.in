@@ -106,29 +106,29 @@ srcdir=.
 # These variables hold the values Emacs will actually use.  They are
 # based on the values of the standard Make variables above.
 
-# Where to install the elisp files distributed with Emacs.  This
+# Where to install the lisp files distributed with Emacs.  This
 # includes the Emacs version, so that the lisp files for different
 # versions of Emacs will install themselves in separate directories.
 lispdir=${datadir}/emacs/${version}/lisp
 
-# Where to install the elisp files which are distributed with Emacs
+# Where to install the lisp files which are distributed with Emacs
 # but not maintained by the FSF.  This includes the Emacs version, so
 # that the lisp files for different versions of Emacs will install
 # themselves in separate directories.
 externallispdir=${datadir}/emacs/${version}/external-lisp
 
-# Directories Emacs should search for elisp files specific to this
+# Directories Emacs should search for lisp files specific to this
 # site (i.e. customizations), before consulting ${lispdir}.  This
 # should be a colon-separated list of directories.
 locallisppath=${datadir}/emacs/site-lisp
 
-# Where Emacs will search to find its elisp files.  Before changing
+# Where Emacs will search to find its lisp files.  Before changing
 # this, check to see if your purpose wouldn't better be served by
 # changing locallisppath.  This should be a colon-separated list of
 # directories.
 lisppath=${locallisppath}:${lispdir}
 
-# Where Emacs will search for its elisp files while building.  This is
+# Where Emacs will search for its lisp files while building.  This is
 # only used during the process of compiling Emacs, to help Emacs find
 # its lisp files before they've been installed in their final
 # location.  It's usually identical to lisppath, except that the entry
@@ -153,6 +153,22 @@ lockdir=${statedir}/emacs/lock
 # so that multiple configurations for multiple versions of Emacs may
 # be installed at once.
 archlibdir=${libdir}/emacs/${version}/${configname}
+
+# ====================== Developer's configuration =======================
+
+# The following assignments make sense if you're running Emacs on a single
+# machine, one version at a time, and  you want changes to the lisp and etc
+# directories in the source tree to show up immediately in your working
+# environment.  It saves a great deal of disk space by not duplicating the
+# lisp and etc directories.
+#
+# lispdir=${srcdir}/lisp
+# externallispdir=${srcdir}/externallisp
+# locallisppath=${srcdir}/site-lisp
+# etcdir=${srcdir}/etc
+# lockdir=${srcdir}/lock
+# archlibdir=${srcdir}/etc
+# infodir=${srcdir}/info
 
 # ==================== Utility Programs for the Build ====================
 
