@@ -1372,8 +1372,11 @@ and it reactivates the mark."
   "Toggle Transient Mark mode.
 With arg, turn Transient Mark mode on if arg is positive, off otherwise.
 
-In Transient Mark mode, changing the buffer \"deactivates\" the mark.
-While the mark is active, the region is highlighted."
+In Transient Mark mode, when the mark is active, the region is highlighted.
+Changing the buffer \"deactivates\" the mark.
+So do certain other operations that set the mark
+but whose main purpose is something else--for example,
+incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
   (interactive "P")
   (setq transient-mark-mode
 	(if (null arg)
