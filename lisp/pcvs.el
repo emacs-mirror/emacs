@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.37 2002/06/24 22:49:38 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.38 2002/06/25 00:11:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -537,7 +537,13 @@ Working dir: " (abbreviate-file-name dir) "
 			     (if cvs-cvsroot (list "-d" cvs-cvsroot))
 			     args
 			     files))
-	       (process-connection-type nil) ; Use a pipe, not a pty.
+	       ;; If process-connection-type is nil and the repository
+	       ;; is accessed via SSH, a bad interaction between libc,
+	       ;; CVS and SSH can lead to garbled output.
+	       ;; It might be a glibc-specific problem.
+	       ;; Until the problem is cleared, we'll use a pty rather than
+	       ;; a pipe.
+	       ;; (process-connection-type nil) ; Use a pipe, not a pty.
 	       (process
 		;; the process will be run in the selected dir
 		(let ((default-directory (cvs-expand-dir-name dir)))
@@ -558,15 +564,23 @@ Working dir: " (abbreviate-file-name dir) "
 
 (defun cvs-update-header (args fis) ; inline
   (let* ((lastarg nil)
-	 ;; filter out the largish commit message
 	 (args (mapcar (lambda (arg)
 			 (cond
+			  ;; filter out the largish commit message
 			  ((and (eq lastarg nil) (string= arg "commit"))
 			   (setq lastarg 'commit) arg)
 			  ((and (eq lastarg 'commit) (string= arg "-m"))
 			   (setq lastarg '-m) arg)
 			  ((eq lastarg '-m)
 			   (setq lastarg 'done) "<log message>")
+			  ;; filter out the largish `admin -mrev:msg' message
+			  ((and (eq lastarg nil) (string= arg "admin"))
+			   (setq lastarg 'admin) arg)
+			  ((and (eq lastarg 'admin)
+				(string-match "\\`-m[^:]*:" arg))
+			   (setq lastarg 'done)
+			   (concat (match-string 0 arg) "<log message>"))
+			  ;; Keep the rest as is.
 			  (t arg)))
 		       args))
 	 ;; turn them into a string
@@ -626,6 +640,9 @@ it is finished."
 	  (save-excursion (eval cvs-postproc))
 	  ;; check whether something is left
 	  (unless cvs-postprocess
+	    ;; IIRC, we enable undo again once the process is finished
+	    ;; for cases where the output was inserted in *vc-diff* or
+	    ;; in a file-like buffer.  -stef
 	    (buffer-enable-undo)
 	    (with-current-buffer cvs-buffer
 	      (cvs-update-header nil nil) ;FIXME: might need to be inline
@@ -693,6 +710,7 @@ clear what alternative to use.
 - NOARGS will get all the arguments from the *cvs* buffer and will
   always behave as if called interactively.
 - DOUBLE is the generic case."
+  (declare (debug (&define sexp lambda-list stringp ("interactive" interactive) def-body)))
   (let ((style (cvs-cdr fun))
 	(fun (cvs-car fun)))
     (cond
@@ -727,7 +745,6 @@ before calling the real function `" (symbol-name fun-1) "'.\n")
 	     (cvs-mode! ',fun-1)))))
 
      (t (error "unknown style %s in `defun-cvs-mode'" style)))))
-(def-edebug-spec defun-cvs-mode (&define sexp lambda-list stringp ("interactive" interactive) def-body))
 
 (defun-cvs-mode cvs-mode-kill-process ()
   "Kill the temporary buffer and associated process."
@@ -1049,7 +1066,7 @@ Full documentation is in the Texinfo file."
 	       ("" cvs-branch-prefix (cvs-secondary-branch-prefix
 				      ("->" cvs-secondary-branch-prefix))))
 	  " " cvs-mode-line-process))
-  (buffer-disable-undo (current-buffer))
+  (buffer-disable-undo)
   ;;(set (make-local-variable 'goal-column) cvs-cursor-column)
   (set (make-local-variable 'revert-buffer-function) 'cvs-mode-revert-buffer)
   (setq truncate-lines t)
@@ -1386,6 +1403,63 @@ The POSTPROC specified there (typically `log-edit') is then called,
     (cvs-mode!)
     ;;(pop-to-buffer cvs-buffer)
     (cvs-mode-do "commit" (list* "-m" msg flags) 'commit)))
+
+
+;;;; Editing existing commit log messages.
+
+(defun cvs-edit-log-text-at-point ()
+  (save-excursion
+    (end-of-line)
+    (when (re-search-backward "^revision " nil t)
+      (forward-line 1)
+      (if (looking-at "date:") (forward-line 1))
+      (if (looking-at "branches:") (forward-line 1))
+      (buffer-substring
+       (point)
+       (if (re-search-forward
+	    "^\\(-\\{28\\}\\|=\\{77\\}\\|revision [.0-9]+\\)$"
+	    nil t)
+	   (match-beginning 0)
+	 (point))))))
+
+(defun cvs-mode-edit-log (rev &optional text)
+  "Edit the log message at point.
+This is best called from a `log-view-mode' buffer."
+  (interactive
+   (list
+    (or (cvs-mode! (lambda () (cvs-prefix-get 'cvs-branch-prefix)))
+	(read-string "Revision to edit: "))
+    (cvs-edit-log-text-at-point)))
+  ;; It seems that the save-excursion that happens if I use the better
+  ;; form of `(cvs-mode! (lambda ...))' screws up a couple things which
+  ;; end up being rather annoying (like log-edit-mode's message being
+  ;; displayed in the wrong minibuffer).
+  (cvs-mode!)
+  (let ((buf (cvs-temp-buffer "message" 'normal 'nosetup))
+	(lbd list-buffers-directory)
+	(setupfun (or (nth 2 (cdr (assoc "message" cvs-buffer-name-alist)))
+		      'log-edit)))
+    (funcall setupfun 'cvs-do-edit-log nil 'cvs-edit-log-filelist buf)
+    (when text (erase-buffer) (insert text))
+    (set (make-local-variable 'cvs-edit-log-revision) rev)
+    (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-edit-log-minor-wrap)
+    (set (make-local-variable 'list-buffers-directory) lbd)
+    ;; (run-hooks 'cvs-mode-commit-hook)
+    ))
+
+(defun cvs-edit-log-minor-wrap (buf f)
+  (let ((cvs-ignore-marks-modif (cvs-mode-mark-get-modif "commit")))
+    (funcall f)))
+
+(defun cvs-edit-log-filelist ()
+  (cvs-mode-files nil nil :read-only t :file t :noquery t))
+
+(defun cvs-do-edit-log (rev)
+  "Do the actual commit, using the current buffer as the log message."
+  (interactive (list cvs-edit-log-revision))
+  (let ((msg (buffer-substring-no-properties (point-min) (point-max))))
+    (cvs-mode!)
+    (cvs-mode-do "admin" (list (concat "-m" rev ":" msg)) nil)))
 
 
 ;;;;
@@ -1850,7 +1924,10 @@ The file is removed and `cvs update FILE' is run."
   (interactive (list nil));; (cvs-flags-query 'cvs-undo-flags "undo flags")
   (if current-prefix-arg (call-interactively 'cvs-mode-revert-to-rev)
     (let* ((fis (cvs-do-removal 'undo "update" 'all))
-	   (removedp (lambda (fi) (eq (cvs-fileinfo->type fi) 'REMOVED)))
+	   (removedp (lambda (fi)
+		       (or (eq (cvs-fileinfo->type fi) 'REMOVED)
+			   (and (eq (cvs-fileinfo->type fi) 'CONFLICT)
+				(eq (cvs-fileinfo->subtype fi) 'REMOVED)))))
 	   (fis-split (cvs-partition removedp fis))
 	   (fis-removed (car fis-split))
 	   (fis-other (cdr fis-split)))
