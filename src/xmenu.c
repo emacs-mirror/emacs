@@ -89,7 +89,7 @@ DEFUN ("x-popup-menu",Fx_popup_menu, Sx_popup_menu, 1, 2, 0,
 POSITION is a position specification.  This is either a mouse button event\n\
 or a list ((XOFFSET YOFFSET) WINDOW)\n\
 where XOFFSET and YOFFSET are positions in characters from the top left\n\
-corner of WINDOW's frame.  A mouse-event list will serve for this.\n\
+corner of WINDOW's frame.  (WINDOW may be a frame object instead of a window.)\n\
 This controls the position of the center of the first line\n\
 in the first pane of the menu, not the top left of the menu as a whole.\n\
 \n\
@@ -138,16 +138,28 @@ be the return value for that line (i.e. if it is selected).")
       x = Fcar (tem);
       y = Fcdr (tem);
     }
-  CHECK_LIVE_WINDOW (window, 0);
   CHECK_NUMBER (x, 0);
   CHECK_NUMBER (y, 0);
 
-  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
+  if (XTYPE (window) == Lisp_Frame)
+    {
+      f = XFRAME (window);
 
-  XMenu_xpos
-    = FONT_WIDTH (f->display.x->font) * (XINT (x) + XWINDOW (window)->left);
-  XMenu_ypos
-    = FONT_HEIGHT (f->display.x->font) * (XINT (y) + XWINDOW (window)->top);
+      XMenu_xpos = 0;
+      XMenu_ypos = 0;
+    }
+  else if (XTYPE (window) == Lisp_Window)
+    {
+      CHECK_LIVE_WINDOW (window, 0);
+      f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
+
+      XMenu_xpos = FONT_WIDTH (f->display.x->font) * XWINDOW (window)->left;
+      XMenu_ypos = FONT_HEIGHT (f->display.x->font) * XWINDOW (window)->top;
+    }
+
+  XMenu_xpos += FONT_WIDTH (f->display.x->font) * XINT (x);
+  XMenu_ypos += FONT_HEIGHT (f->display.x->font) * XINT (y);
+
   XMenu_xpos += f->display.x->left_pos;
   XMenu_ypos += f->display.x->top_pos;
 
