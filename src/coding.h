@@ -425,7 +425,8 @@ extern struct coding_system terminal_coding;
    function `set-keyboard-coding-system'.  */
 extern struct coding_system keyboard_coding;
 
-extern Lisp_Object Vcoding_system_alist;
+/* Default coding systems used for process I/O.  */
+extern Lisp_Object Vdefault_process_coding_system;
 
 #endif
 
