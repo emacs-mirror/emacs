@@ -1,14 +1,20 @@
 2000-10-03  Andre Spiegel  <spiegel@gnu.org>
 
+	* vc.el (vc-transfer-file, vc-default-receive-file): Rewritten to 
+	factorize backend-specific code cleanly (this was essentially
+	conceived by Stefan Monnier).
+	(vc-unregister): Function removed.
+ 	(vc-revert-file): New function.
+	(vc-revert-buffer): Delegate some of the work to it.
+
 	* vc-rcs.el (vc-rcs-fetch-master-state): Parse and remember
 	default branch unconditionally.
 	(vc-rcs-set-default-branch): New function.
 	(vc-rcs-cancel-version, vc-rcs-checkin, vc-rcs-checkout): Use it.
 	(vc-rcs-checkin): If an appropriate default branch has been set,
 	force creation of that branch.
-
-	* vc.el (vc-revert-file): New function.
-	(vc-revert-buffer): Delegate some of the work to it.
+	(vc-rcs-receive-file): Rewritten to contain only backend-specific
+	code (as suggested by Stefan Monnier).
 
 2000-10-02  Gerd Moellmann  <gerd@gnu.org>
 
