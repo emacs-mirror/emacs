@@ -1,3 +1,10 @@
+2003-03-06  John Paul Wallington  <jpw@gnu.org>
+
+	* buff-menu.el (Buffer-menu-mode-map): Add docstring.
+	(Buffer-menu-buffer): Fix indentation.
+	(list-buffers-noselect): Calculate header-line spacing to take
+	into account width of left fringe and left scrollbar.
+
 2003-03-05  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (query-replace-read-args): Use save-excursion.
