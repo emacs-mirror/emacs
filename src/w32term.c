@@ -222,10 +222,10 @@ struct cursor_pos output_cursor;
 
 /* The handle of the frame that currently owns the system caret.  */
 HWND w32_system_caret_hwnd;
-int w32_system_caret_width;
 int w32_system_caret_height;
 int w32_system_caret_x;
 int w32_system_caret_y;
+int w32_use_visible_system_caret;
 
 /* Flag to enable Unicode output in case users wish to use programs
    like Twinbridge on '95 rather than installed system level support
@@ -593,6 +593,9 @@ x_update_window_begin (w)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
 
+  /* Hide the system caret during an update.  */
+  SendMessage (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0);
+
   updated_window = w;
   set_output_cursor (&w->cursor);
 
@@ -713,6 +716,11 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
       dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
       dpyinfo->mouse_face_window = Qnil;
     }
+
+  /* Unhide the caret.  This won't actually show the cursor, unless it
+     was visible before the corresponding call to HideCaret in
+     x_update_window_begin.  */
+  SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
 
   updated_window = NULL;
 }
@@ -9690,7 +9698,19 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor.y = glyph_row->y;
       w->phys_cursor.hpos = hpos;
       w->phys_cursor.vpos = vpos;
-      w->phys_cursor_type = new_cursor_type;
+
+      /* If the user wants to use the system caret, make sure our own
+	 cursor remains invisible.  */
+      if (w32_use_visible_system_caret)
+	{
+	  if (w->phys_cursor_type != NO_CURSOR)
+	    x_erase_phys_cursor (w);
+
+	  new_cursor_type = w->phys_cursor_type = NO_CURSOR;
+	}
+      else
+	w->phys_cursor_type = new_cursor_type;
+
       w->phys_cursor_on_p = 1;
 
       /* If this is the active cursor, we need to track it with the
@@ -9698,33 +9718,24 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	 and speech synthesizers can follow the cursor.  */
       if (active_cursor)
 	{
-	  struct glyph * cursor_glyph = get_phys_cursor_glyph (w);
-	  if (cursor_glyph)
-	    {
-	      HWND hwnd = FRAME_W32_WINDOW (f);
-	      int caret_width = cursor_glyph->pixel_width;
-	      w32_system_caret_x
-		= WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-	      w32_system_caret_y
-		= (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-		   + glyph_row->ascent - w->phys_cursor_ascent);
+	  HWND hwnd = FRAME_W32_WINDOW (f);
 
-	      /* If the size of the active cursor changed, destroy the old
-		 system caret.  */
-	      if (w32_system_caret_hwnd
-		  && (w32_system_caret_height != w->phys_cursor_height
-		      || w32_system_caret_width != caret_width))
-		PostMessage (hwnd, WM_EMACS_DESTROY_CARET, 0, 0);
+	  w32_system_caret_x
+	    = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+	  w32_system_caret_y
+	    = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
+	       + glyph_row->ascent - w->phys_cursor_ascent);
 
-	      if (!w32_system_caret_hwnd)
-		{
-		  w32_system_caret_height = w->phys_cursor_height;
-		  w32_system_caret_width = caret_width;
-		}
+	  /* If the size of the active cursor changed, destroy the old
+	     system caret.  */
+	  if (w32_system_caret_hwnd
+	      && (w32_system_caret_height != w->phys_cursor_height))
+	    PostMessage (hwnd, WM_EMACS_DESTROY_CARET, 0, 0);
 
-	      /* Move the system caret.  */
-	      PostMessage (hwnd, WM_EMACS_TRACK_CARET, 0, 0);
-	    }
+	  w32_system_caret_height = w->phys_cursor_height;
+
+	  /* Move the system caret.  */
+	  PostMessage (hwnd, WM_EMACS_TRACK_CARET, 0, 0);
 	}
 
       switch (new_cursor_type)
@@ -11019,7 +11030,6 @@ w32_initialize ()
 
   w32_system_caret_hwnd = NULL;
   w32_system_caret_height = 0;
-  w32_system_caret_width = 0;
   w32_system_caret_x = 0;
   w32_system_caret_y = 0;
 
@@ -11152,6 +11162,24 @@ affect on NT machines.  */);
   previous_help_echo = Qnil;
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
+
+  DEFVAR_BOOL ("w32-use-visible-system-caret",
+	       &w32_use_visible_system_caret,
+	       doc: /* Flag to make the system caret visible.
+When this is non-nil, Emacs will indicate the position of point by
+using the system caret instead of drawing its own cursor.  Some screen
+reader software does not track the system cursor properly when it is
+invisible, and gets confused by Emacs drawing its own cursor, so this
+variable is initialized to t when Emacs detects that screen reader 
+software is running as it starts up.
+
+When this variable is set, other variables affecting the appearance of
+the cursor have no effect.  */);
+
+  /* Initialize w32_use_visible_system_caret based on whether a screen
+     reader is in use.  */
+  SystemParametersInfo (SPI_GETSCREENREADER, 0,
+			&w32_use_visible_system_caret, 0);
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
 	       doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
