@@ -109,7 +109,7 @@
     ;; original MULE, XEmacs/mule and Emacs 20+ including
     ;; MULE features.  Unfortunately these API are different.  In
     ;; particular, Emacs (including original MULE) and XEmacs are
-    ;; quite different.  Howvere, this version of Gnus doesn't support
+    ;; quite different.  However, this version of Gnus doesn't support
     ;; anything other than XEmacs 20+ and Emacs 20.3+.
 
     ;; Predicates to check are following:
