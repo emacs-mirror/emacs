@@ -2608,7 +2608,10 @@ XTset_vertical_scroll_bar (window, portion, whole, position)
   /* Where should this scroll bar be, pixelwise?  */
   int pixel_top  = CHAR_TO_PIXEL_ROW (f, top);
   int pixel_left = CHAR_TO_PIXEL_COL (f, left);
-  int pixel_width = FRAME_SCROLL_BAR_PIXEL_WIDTH (f);
+  int pixel_width
+    = (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
+       ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
+       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->display.x->font)));
   int pixel_height = VERTICAL_SCROLL_BAR_PIXEL_HEIGHT (f, height);
 
   struct scroll_bar *bar;
@@ -4497,12 +4500,7 @@ x_new_font (f, fontname)
   
   /* If we have, just return it from the table.  */
   if (already_loaded >= 0)
-    {
-      int wid;
-      f->display.x->font = x_font_table[already_loaded].font;
-      wid = FONT_WIDTH (f->display.x->font);
-      f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
-    }
+    f->display.x->font = x_font_table[already_loaded].font;
   /* Otherwise, load the font and add it to the table.  */
   else
     {
@@ -4593,11 +4591,16 @@ x_new_font (f, fontname)
 
       if (full_name)
 	fontname = full_name;
-      {
-	int wid = FONT_WIDTH (f->display.x->font);
-	f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
-      }
     }
+
+  /* Compute the scroll bar width in character columns.  */
+  if (f->scroll_bar_pixel_width > 0)
+    {
+      int wid = FONT_WIDTH (f->display.x->font);
+      f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
+    }
+  else
+    f->scroll_bar_cols = 2;
 
   /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
@@ -4745,9 +4748,11 @@ x_set_window_size (f, change_gravity, cols, rows)
 
   check_frame_size (f, &rows, &cols);
   f->display.x->vertical_scroll_bar_extra
-    = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+       ? 0
+       : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
-       : 0);
+       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->display.x->font)));
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
