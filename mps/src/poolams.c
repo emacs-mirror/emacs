@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.13) $
+ * $HopeName: MMsrc!poolams.c(trunk.14) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -17,7 +17,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.13) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.14) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -42,8 +42,8 @@ typedef struct AMSGroupStruct {
   Seg seg;                      /* segment of group's memory */
   AMS ams;                      /* owning ams */
   Count grains;                 /* number of grains in this group */
+  Count free;                   /* number of free grains in this group */
   BT allocTable;                /* set if grain is allocated */
-
   /* design.mps.poolams.one-condemn */
   Bool marked;                  /* has been marked since last scan */
   BT markTable;                 /* set if grain marked */
@@ -72,7 +72,7 @@ static Bool AMSCheck(AMS ams);
 #define AMSGroupArena(group)      PoolArena(AMSPool((group)->ams))
 
 /* only use when size is a multiple of the grain size */
-#define AMSGrains(ams,size)       ((size) >> (ams)->grainShift)
+#define AMSGrains(ams, size)      ((size) >> (ams)->grainShift)
 
 #define AMSGroupBase(group)       SegBase((group)->seg)
 
@@ -85,12 +85,11 @@ static Bool AMSCheck(AMS ams);
 
 #define AMSGroupAddr(group, offset) AddrAdd(AMSGroupBase(group), offset)
 
-#define AMSAddrIndex(group,addr) ((Index)(AMSGroupOffset(group,addr) \
-                                          >> AMSGroupShift(group)))
+#define AMSAddrIndex(group, addr) \
+  ((Index)(AMSGroupOffset(group, addr) >> AMSGroupShift(group)))
 
-#define AMSIndexAddr(group,index) AMSGroupAddr(group,                \
-                                               (index) <<            \
-					       AMSGroupShift(group))
+#define AMSIndexAddr(group, index) \
+  AMSGroupAddr(group, (index) << AMSGroupShift(group))
 
 #define AMSSegGroup(seg) ((AMSGroup)SegP(seg))
 
@@ -127,27 +126,27 @@ static int AMSGrainColour(AMSGroup group, Index index)
   mark = BTGet(group->markTable, index);
   scan = BTGet(group->scanTable, index);
   alloc = BTGet(group->allocTable, index);
-  
-  if (mark) {     /* mark */
-    if (scan) {   /* mark, scan */
-      if (alloc)
+
+  if(mark) {     /* mark */
+    if(scan) {   /* mark, scan */
+      if(alloc)
         return AMS_BLACK;       /*  mark,  scan,  alloc: black */
       else
         return AMS_ILLEGAL;
     } else {      /* mark, !scan */
-      if (alloc)
+      if(alloc)
         return AMS_GREY;        /*  mark, !scan,  alloc: grey */
       else
         return AMS_ILLEGAL;
     } 
   } else {        /* !mark */
-    if (scan) {   /* !mark, scan */
-      if (alloc)
+    if(scan) {   /* !mark, scan */
+      if(alloc)
         return AMS_ILLEGAL;
       else
         return AMS_FREE;        /* !mark,  scan, !alloc: free */
     } else {      /* !mark, !scan */
-      if (alloc)
+      if(alloc)
         return AMS_WHITE;       /*  mark, !scan,  alloc: white */
       else
         return AMS_ILLEGAL;
@@ -173,7 +172,7 @@ static Bool AMSGroupCheck(AMSGroup group)
          (SegSize(group->seg) >> group->ams->grainShift));
   CHECKL(group->grains > 0);
 
-  if (SegWhite(group->seg) != TraceSetEMPTY)
+  if(SegWhite(group->seg) != TraceSetEMPTY)
     /* design.mps.poolams.one-condemn */
     CHECKL(TraceSetSingle(SegWhite(group->seg)));
 
@@ -217,16 +216,16 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   arena = PoolArena(pool);
   
   size = SizeAlignUp(size, ArenaAlign(arena));
-  if (size == 0)
+  if(size == 0)
     return ResMEMORY; /* overflow in alignment computation */
   
   res = ArenaAlloc(&p, arena, (Size)sizeof(AMSGroupStruct));
-  if (res != ResOK)
+  if(res != ResOK)
     goto failGroup;
   group = (AMSGroup)p;
 
   res = SegAlloc(&seg, SegPrefDefault(), size, pool);
-  if (res != ResOK)
+  if(res != ResOK)
     goto failSeg;
   
   group->seg = seg;
@@ -239,20 +238,21 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   }
 
   group->grains = size >> ams->grainShift;
+  group->free = group->grains;
   group->marked = FALSE; /* design.mps.poolams.marked.unused */
 
   res = BTCreate(&group->allocTable, arena, group->grains);
-  if (res != ResOK)
+  if(res != ResOK)
     goto failAlloc;
   BTResRange(group->allocTable, 0, group->grains);
 
   res = BTCreate(&group->markTable, arena, group->grains);
-  if (res != ResOK)
+  if(res != ResOK)
     goto failMark;
   BTResRange(group->allocTable, 0, group->grains);
 
   res = BTCreate(&group->scanTable, arena, group->grains);
-  if (res != ResOK)
+  if(res != ResOK)
     goto failScan;
   /* design.mps.poolams.invariant.create */
   BTSetRange(group->scanTable, 0, group->grains);
@@ -376,11 +376,11 @@ static void AMSFinish(Pool pool)
 }
 
 
-/* AMSGroupAlloc -- attempts to allocate an area of at least the given
- * size in the given group.
+/* AMSGroupAlloc -- try to allocate an area in the given group
  * 
- *  If successful, makes that area black and returns the base and
- *  limit grain indices of the area.  */
+ * Tries to find an area of at least the given size.  If successful,
+ * makes that area black and returns its base and limit grain indices.
+ */
 
 static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
                           AMSGroup group, Size size)
@@ -402,12 +402,12 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
 
   grains = AMSGrains(ams, size);
   AVER(grains > 0);
-  if (grains > group->grains)
+  if(grains > group->grains)
     return FALSE;
 
   b = BTFindLongResRange(&base, &limit, group->allocTable,
                          0, group->grains, grains);
-  if (!b)
+  if(!b)
     return FALSE;
 
   /* design.mps.poolams.invariant.free */
@@ -419,6 +419,7 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
   /* design.mps.poolams.invariant.alloc */
   BTSetRange(group->allocTable, base, limit);
   BTSetRange(group->markTable, base, limit);
+  group->free -= limit - base;
 
   *baseReturn = base;
   *limitReturn = limit;
@@ -479,19 +480,20 @@ static Res AMSBufferFill(Seg *segReturn,
   ring = PoolSegRing(pool);
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
-    if (SegBuffer(seg) == NULL &&
-	SegRankSet(seg) == rankSet) {
+    if(SegBuffer(seg) == NULL && SegRankSet(seg) == rankSet) {
       group = AMSSegGroup(seg);
-      AVERT(AMSGroup, group);
-      b = AMSGroupAlloc(&base, &limit, group, size);
-      if (b)
-        goto found;
+      AVERT_CRITICAL(AMSGroup, group);
+      if(group->free > AMSGrains(ams, size)) {
+        b = AMSGroupAlloc(&base, &limit, group, size);
+        if(b)
+          goto found;
+      }
     }
   }
 
   /* no group has enough room; make a new group */
   res = AMSGroupCreate(&group, pool, size, rankSet);
-  if (res != ResOK)
+  if(res != ResOK)
     return res;
   b = AMSGroupAlloc(&base, &limit, group, size);
   
@@ -536,7 +538,7 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer)
   AVER(AddrIsAligned(init, PoolAlignment(pool)));
   AVER(AddrIsAligned(limit, PoolAlignment(pool)));
 
-  if (init == limit)
+  if(init == limit)
     return;
 
   initIndex = AMSAddrIndex(group, init);
@@ -552,6 +554,7 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer)
   /* design.mps.poolams.invariant.empty */
   BTResRange(group->markTable, initIndex, limitIndex);
   BTResRange(group->allocTable, initIndex, limitIndex);
+  group->free += limitIndex - initIndex;
 }
 
 
@@ -562,7 +565,7 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer)
 
 static void AMSRangeWhiten(AMSGroup group, Index base, Index limit)
 {
-  if (base != limit) {
+  if(base != limit) {
     AVER(base < limit);
     AVER(limit <= group->grains);
     
@@ -605,7 +608,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   buffer = SegBuffer(seg);
-  if (buffer != NULL) { /* design.mps.poolams.whiten.buffer */
+  if(buffer != NULL) { /* design.mps.poolams.whiten.buffer */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMSAddrIndex(group, BufferScanLimit(buffer));
     limitIndex = AMSAddrIndex(group, BufferLimit(buffer));
@@ -669,7 +672,7 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
     /* design.mps.poolams.iter.align */
     AVER(AddrIsAligned(p, alignment));
   
-    if (buffer != NULL &&
+    if(buffer != NULL &&
         p == BufferScanLimit(buffer) &&
         p != BufferLimit(buffer)) { /* design.mps.poolams.iter.buffer */
       next = BufferLimit(buffer); 
@@ -682,14 +685,14 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
       colour = AMSGrainColour(group, i);
       AVER(AMSColourIsValid(colour));
       AVER(colour != AMS_ILLEGAL);
-      if (colour == AMS_FREE) { /* no object here */
+      if(colour == AMS_FREE) { /* no object here */
         next = AddrAdd(p, alignment);
       } else { /* there is an object here */
         next = (*format->skip)(p);
 
 	/* apply the object function */
 	res = (*f)(group, i, p, next, colour, closure);
-	if (res != ResOK)
+	if(res != ResOK)
 	  return res;
       }
     }
@@ -720,7 +723,7 @@ static Res AMSBlackenObject(AMSGroup group,
   AVER(AMSColourIsValid(colour));
 
   /* if the object is grey, make it black */
-  if (colour == AMS_GREY) 
+  if(colour == AMS_GREY) 
     BTSet(group->scanTable, i);
 
   return ResOK;
@@ -744,7 +747,7 @@ static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
 
   /* only do anything if the bitmaps apply to one of these traces. */
   /* see design.mps.poolams.invariant.object */
-  if (TraceSetInter(SegWhite(seg), traceSet) != TraceSetEMPTY) {
+  if(TraceSetInter(SegWhite(seg), traceSet) != TraceSetEMPTY) {
     ams = PoolPoolAMS(pool);
     AVERT(AMS, ams);
     arena = PoolArena(pool);
@@ -799,14 +802,16 @@ static Res AMSScanObject(AMSGroup group,
 
   format = group->ams->format;
   AVERT(Format, format);
-  
-  if (colour == AMS_GREY || closure->scanAllObjects) {
+
+  /* The design incorrectly assumes scanAllObjects => everything is */
+  /* grey, so we have to scan everything if scanAllObjects is true. */
+  if(colour == AMS_GREY || closure->scanAllObjects) {
     Res res = (*format->scan)(closure->ss, p, next);
-    if (res != ResOK)
+    if(res != ResOK)
       return res;
   }
 
-  if (colour == AMS_GREY) /* blacken the object */
+  if(colour == AMS_GREY) /* blacken the object */
     BTSet(group->scanTable, i); /* design.mps.poolams.invariant.black */
 
   return ResOK;
@@ -842,11 +847,11 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
   closureStruct.ss = ss;
 
-  if (closureStruct.scanAllObjects) { /* design.mps.poolams.scan.all */
+  if(closureStruct.scanAllObjects) { /* design.mps.poolams.scan.all */
 
     res = AMSIterate(ams, group, seg, arena, AMSScanObject,
 		     &closureStruct);
-    if (res != ResOK)
+    if(res != ResOK)
       return res;
     group->marked = FALSE;
     
@@ -857,7 +862,7 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
       group->marked = FALSE; 
       res = AMSIterate(ams, group, seg, arena, AMSScanObject,
 		       &closureStruct);
-      if (res != ResOK) {
+      if(res != ResOK) {
         group->marked = TRUE; /* design.mps.poolams.marked.scan.fail */
         return res;
       }
@@ -970,11 +975,12 @@ static Res AMSReclaimObject(AMSGroup group,
   AVER(colour != AMS_GREY); /* no grey objects now */
   j = AMSAddrIndex(group, next);
   
-  if (colour == AMS_WHITE) { /* then we can free it */
+  if(colour == AMS_WHITE) { /* then we can free it */
     /* design.mps.poolams.invariant.free */
     BTResRange(group->markTable, i, j);
     BTSetRange(group->scanTable, i, j);
     BTResRange(group->allocTable, i, j);
+    group->free += j - i;
   } else { /* the object survived collection */
     AVER(colour == AMS_BLACK);
     /* make it all black. design.mps.poolams.invariant.object.reclaim */
@@ -995,6 +1001,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   AMSGroup group;
   Arena arena;
   Res res;
+  Count oldFree;
   Bool anySurvivors;            /* did anything survive */
 
   AVERT(Pool, pool);
@@ -1008,13 +1015,17 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   AVER(group->marked == FALSE); /* design.mps.poolams.marked.reclaim */
 
   anySurvivors = FALSE;
+  oldFree = group->free;
 
   res = AMSIterate(ams, group, seg, arena, AMSReclaimObject,
 		   &anySurvivors);
   AVER(res == ResOK); /* AMSReclaimObject always returns ResOK */
 
-  if ((SegBuffer(seg) == NULL) && !anySurvivors)
-     /* design.mps.poolams.reclaim.empty */
+  ++trace->reclaimCount;
+  trace->reclaimSize += (group->free - oldFree) << ams->grainShift;
+
+  if((SegBuffer(seg) == NULL) && !anySurvivors)
+    /* design.mps.poolams.reclaim.empty */
     AMSGroupDestroy(group);
   else
     /* design.mps.poolams.reclaim.unwhite */
@@ -1028,6 +1039,10 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
  * well enough to run tests. See design.mps.poolams.benefit.guess
  */
 
+int AMSRatioDenominator = 1;
+int AMSRatioNumerator = 2;
+Size AMSMinimumCollectableSize = 128*(Size)1024;
+
 static double AMSBenefit(Pool pool, Action action)
 {
   AMS ams;
@@ -1040,8 +1055,9 @@ static double AMSBenefit(Pool pool, Action action)
   AVERT(Action, action);
   AVER(ams == ActionAMS(action));
 
-  if ((ams->size > POOLAMS_MINIMUM_BENEFIT_SIZE) &&
-      (ams->size/2 > ams->lastReclaimed)) {
+  if((ams->size > AMSMinimumCollectableSize)
+      && (ams->size * AMSRatioNumerator
+          > ams->lastReclaimed * AMSRatioDenominator)) {
     /* design.mps.poolams.benefit.repeat */
     ams->lastReclaimed = ams->size; 
     benefit = 1.0;
@@ -1070,7 +1086,7 @@ static Res AMSSegDescribe(AMS ams, Seg seg, mps_lib_FILE *stream)
 
   buffer = SegBuffer(seg);
 
-  if (buffer != NULL)
+  if(buffer != NULL)
     AVERT(Buffer, buffer);
 
   res = WriteF(stream,
@@ -1089,32 +1105,32 @@ static Res AMSSegDescribe(AMS ams, Seg seg, mps_lib_FILE *stream)
   for (i=0 ; i < group->grains; ++ i) {
     int colour;
     char c = 0;
-    if (i % 64 == 0) {
+    if(i % 64 == 0) {
       res = WriteF(stream, "\n  ", NULL);
-      if (res != ResOK)
+      if(res != ResOK)
         return res;
     }
-    if (buffer != NULL) {
+    if(buffer != NULL) {
       Index baseIndex = AMSAddrIndex(group, BufferBase(buffer));
       Index limitIndex = AMSAddrIndex(group, BufferLimit(buffer));
       Index scanLimIndex = AMSAddrIndex(group, BufferScanLimit(buffer));
       Index initIndex = AMSAddrIndex(group, BufferGetInit(buffer));
       Index allocIndex = AMSAddrIndex(group, BufferAlloc(buffer));
 
-      if (i == limitIndex)
+      if(i == limitIndex)
         c = ']';
-      else if (i == baseIndex)
+      else if(i == baseIndex)
         c = '[';
-      else if (i == scanLimIndex)
+      else if(i == scanLimIndex)
         c = '<';
-      else if (i == initIndex)
+      else if(i == initIndex)
         c = '|';
-      else if (i == allocIndex)
+      else if(i == allocIndex)
         c = '>';
 
-      if (c != 0) {
+      if(c != 0) {
         res = WriteF(stream, "$C", c, NULL);
-        if (res != ResOK)
+        if(res != ResOK)
           return res;
       }
     }
@@ -1141,12 +1157,12 @@ static Res AMSSegDescribe(AMS ams, Seg seg, mps_lib_FILE *stream)
       NOTREACHED;
     }
     res = WriteF(stream, "$C", c, NULL);
-    if (res != ResOK)
+    if(res != ResOK)
       return res;
   }
 
   res = WriteF(stream, "\n} AMS Group $P\n", (WriteFP)group);
-  if (res != ResOK)
+  if(res != ResOK)
     return res;
 
   return ResOK;
@@ -1179,7 +1195,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
                (WriteFP)ams->format, (WriteFU)ams->format->serial,
                "  grain shift $U\n", (WriteFU)ams->grainShift,
                NULL);
-  if (res != ResOK)
+  if(res != ResOK)
     return res;
 
   res = WriteF(stream,
@@ -1191,7 +1207,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 	       "            > = buffer alloc\n"
 	       "            ] = buffer limit\n",
                NULL);
-  if (res != ResOK)
+  if(res != ResOK)
     return res;
 
   RING_FOR(node, PoolSegRing(pool), nextNode) {
@@ -1200,7 +1216,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
   }
 
   res = WriteF(stream, "} AMS $P\n",(WriteFP)ams, NULL);
-  if (res != ResOK)
+  if(res != ResOK)
     return res;
 
   return ResOK;
