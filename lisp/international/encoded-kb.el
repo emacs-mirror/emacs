@@ -356,4 +356,6 @@ as a multilingual text encoded in a coding system set by
 		      (keyboard-coding-system))))
 	(encoded-kbd-setup-keymap coding))))
 
+(provide 'encoded-kb)
+
 ;;; encoded-kb.el ends here
