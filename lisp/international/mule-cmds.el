@@ -252,6 +252,7 @@ wrong, use this command again to toggle back to the right mode."
   "Execute an I/O command using the specified coding system."
   (interactive)
   (let* ((default (and buffer-file-coding-system
+		       ;; Fixme: what is t here?
 		       (not (eq (coding-system-type buffer-file-coding-system)
 				t))
 		       buffer-file-coding-system))
@@ -393,18 +394,19 @@ non-nil, it is used to sort CODINGS in the different way than above."
 			 (if (memq base lang-preferred) 8 0)
 			 (if (string-match "-with-esc$" (symbol-name base))
 			     0 4)
-			 (if (eq (coding-system-type base) 2)
-			     ;; For ISO based coding systems, prefer
-			     ;; one that doesn't use escape sequences.
-			     ;; Fixme: coding-system-spec
-			     (let* ((extra-spec (coding-system-spec base))
-				    (flags (aref extra-spec 3)))
-			       (if (/= (logand flags #x40) 0)
-				   (if (/= (logand flags #x30) 0)
-				       0
-				     1)
-				 2))
-			   1)))))))
+;; Fixme: sort out coding-system-spec
+;; 			 (if (eq (coding-system-type base) 'iso-2022)
+;; 			     ;; For ISO based coding systems, prefer
+;; 			     ;; one that doesn't use escape sequences.
+;; 			     (let* ((extra-spec (coding-system-spec base))
+;; 				    (flags (aref extra-spec 3)))
+;; 			       (if (/= (logand flags #x40) 0)
+;; 				   (if (/= (logand flags #x30) 0)
+;; 				       0
+;; 				     1)
+;; 				 2))
+;; 			   1)
+			 ))))))
       (sort codings (function (lambda (x y)
 				(> (funcall func x) (funcall func y))))))))
 
@@ -2011,7 +2013,7 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
   "Return a pretty description of STR that is encoded by CODING-SYSTEM."
   (setq str (string-as-unibyte str))
   (mapconcat
-   (if (and coding-system (eq (coding-system-type coding-system) 2))
+   (if (and coding-system (eq (coding-system-type coding-system) 'iso-2022))
        ;; Try to get a pretty description for ISO 2022 escape sequences.
        (function (lambda (x) (or (cdr (assq x iso-2022-control-alist))
 				 (format "%02X" x))))
