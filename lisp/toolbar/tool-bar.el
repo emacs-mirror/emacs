@@ -151,12 +151,22 @@ PROPS is a list of additional properties to add to the binding."
 (tool-bar-add-item-from-menu 'print-buffer "print")
 (tool-bar-add-item "preferences" 'customize 'customize nil
 		   :help "Edit preferences (customize)")
-(tool-bar-add-item "help"
-		   (lambda ()
-		     (interactive)
-		     (let ((p (mouse-position)))
-		       (x-popup-menu (list (list (cadr p) (cddr p)) (car p))
-				     menu-bar-help-menu)))
+
+(defun tool-bar-help ()
+  "Pop up the help menu from the tool-bar."
+  (interactive)
+  (let* ((p (mouse-position))
+	 (menu menu-bar-help-menu)
+	 (selection (x-popup-menu (list (list (cadr p) (cddr p)) (car p))
+				  menu))
+	 binding)
+    (while selection
+      (setq binding (lookup-key (or binding menu) (vector (car selection)))
+	    selection (cdr selection)))
+    (when binding
+      (call-interactively binding))))
+
+(tool-bar-add-item "help" 'tool-bar-help
 		   'help nil :help "Pop up the Help menu")
 
 (provide 'tool-bar)
