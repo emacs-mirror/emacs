@@ -1,3 +1,9 @@
+2000-07-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c [emacs]: Don't include <X11/bitmaps/gray> because that
+	leads to redefinition errors when static is defined as empty in
+	config.h.  Refer to the gray bitmap in xfns.c, instead.
+
 2000-07-18  Dave Love  <fx@gnu.org>
 
 	* lwlib-utils.c (XtApplyToWidgets): Cast args of lwlib_bcopy.

@@ -1,8 +1,24 @@
 2000-07-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/refer.el: Correct maintainer's email address.
+
+	* progmodes/hideif.el: Correct author's email address.
+	Fix typo in comment.
+
+	* xml.el: New file.
+
 	* mail/mailheader.el: Correct author's mail address.
 
 	* gnus/parse-time.el: Correct author's mail address.
+
+2000-07-19  Colin Walters <walters@cis.ohio-state.edu>
+	
+	* comint.el (comint-highlight-input, comint-highlight-face): 
+	New user options.
+	(comint-input-ring-file-name): Change custom type.
+	(comint-mode-map): Bind mouse-2.
+	(comint-insert-clicked-input): New function.
+	(comint-send-input): Handle input highlighting.
 
 2000-07-18  Stefan Monnier  <monnier@cs.yale.edu>
 

@@ -1,5 +1,16 @@
 2000-07-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (with_echo_area_buffer): Call FN with more arguments.
+	Add some more prototypes.
+
+	* xterm.c, xterm.h: Add some more prototypes.
+
+	* lisp.h (Fnext_single_char_property_change): Add prototype.
+
+	* dispnew.c (direct_output_for_insert): Remove confusing
+	outer local variable mouse_face_overwritten_p.
+	(glyph_row_slice_p): Put in #ifdef GLYPH_DEBUG.
+
 	* alloc.c (allocate_string_data): Don't copy old string contents.
 
 2000-07-19  Kenichi Handa  <handa@etl.go.jp>
