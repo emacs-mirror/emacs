@@ -775,44 +775,57 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
   matrix->nrows = dim.height;
   xassert (matrix->nrows >= 0);
 
-  /* Mark rows in a current matrix of a window as not having valid
-     contents.  It's important to not do this for desired matrices.
-     When Emacs starts, it may already be building desired matrices
-     when this function runs.  */
-  if (w && matrix == w->current_matrix)
+  if (w)
     {
-      if (window_width < 0)
-	window_width = window_box_width (w, -1);
+      if (matrix == w->current_matrix)
+	{
+	  /* Mark rows in a current matrix of a window as not having
+	     valid contents.  It's important to not do this for
+	     desired matrices.  When Emacs starts, it may already be
+	     building desired matrices when this function runs.  */
+	  if (window_width < 0)
+	    window_width = window_box_width (w, -1);
       
-      /* Optimize the case that only the height has changed (C-x 2,
-         upper window).  Invalidate all rows that are no longer part
-         of the window.  */
-      if (!marginal_areas_changed_p
-	  && matrix->window_left_x == XFASTINT (w->left)
-	  && matrix->window_top_y == XFASTINT (w->top)
-	  && matrix->window_width == window_box_width (w, -1))
-	{
-	  i = 0;
-	  while (matrix->rows[i].enabled_p
-		 && (MATRIX_ROW_BOTTOM_Y (matrix->rows + i)
-		     < matrix->window_height))
-	    ++i;
+	  /* Optimize the case that only the height has changed (C-x 2,
+	     upper window).  Invalidate all rows that are no longer part
+	     of the window.  */
+	  if (!marginal_areas_changed_p
+	      && matrix->window_left_x == XFASTINT (w->left)
+	      && matrix->window_top_y == XFASTINT (w->top)
+	      && matrix->window_width == window_box_width (w, -1))
+	    {
+	      i = 0;
+	      while (matrix->rows[i].enabled_p
+		     && (MATRIX_ROW_BOTTOM_Y (matrix->rows + i)
+			 < matrix->window_height))
+		++i;
 
-	  /* Window end is invalid, if inside of the rows that
-	     are invalidated.  */
-	  if (INTEGERP (w->window_end_vpos)
-	      && XFASTINT (w->window_end_vpos) >= i)
-	    w->window_end_valid = Qnil;
+	      /* Window end is invalid, if inside of the rows that
+		 are invalidated.  */
+	      if (INTEGERP (w->window_end_vpos)
+		  && XFASTINT (w->window_end_vpos) >= i)
+		w->window_end_valid = Qnil;
 	  
-	  while (i < matrix->nrows)
-	    matrix->rows[i++].enabled_p = 0;
+	      while (i < matrix->nrows)
+		matrix->rows[i++].enabled_p = 0;
+	    }
+	  else
+	    {
+	      for (i = 0; i < matrix->nrows; ++i)
+		matrix->rows[i].enabled_p = 0;
+	    }
 	}
-      else
+      else if (matrix == w->desired_matrix)
 	{
+	  /* Rows in desired matrices always have to be cleared;
+	     redisplay expects this is the case when it runs, so it
+	     had better be the case when we adjust matrices between
+	     redisplays.  */
 	  for (i = 0; i < matrix->nrows; ++i)
 	    matrix->rows[i].enabled_p = 0;
 	}
     }
+    
   
   /* Remember last values to be able to optimize frame redraws.  */
   matrix->matrix_x = x;
