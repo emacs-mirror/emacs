@@ -1207,24 +1207,17 @@ Remaining arguments are strings to give program as arguments.")
 		     BUF_ZV_BYTE (XBUFFER (buffer)));
 
   {
-    /* Setup coding systems for communicating with the process.  */
+    /* Decide coding systems for communicating with the process.  Here
+       we don't setup the structure coding_system nor pay attention to
+       unibyte mode.  They are done in create_process.  */
+
     /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
     Lisp_Object coding_systems = Qt;
     Lisp_Object val, *args2;
     struct gcpro gcpro1;
 
-    if (!NILP (Vcoding_system_for_read))
-      val = Vcoding_system_for_read;
-    else if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
-	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
-      /* The user will normally expect EOL conversion to take place, so
-	 specify `raw-text' as the decoding system; when that is not
-	 desired, the process coding system should be set explicitly to
-	 `no-conversion'.  The encoding system will be updated to match
-	 when the EOL convention has been established, which seems
-	 reasonable.  */
-      val = Qraw_text;
-    else
+    val = Vcoding_system_for_read;
+    if (NILP (val))
       {
 	args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	args2[0] = Qstart_process;
@@ -1236,17 +1229,11 @@ Remaining arguments are strings to give program as arguments.")
 	  val = XCONS (coding_systems)->car;
 	else if (CONSP (Vdefault_process_coding_system))
 	  val = XCONS (Vdefault_process_coding_system)->car;
-	else
-	  val = Qnil;
       }
     XPROCESS (proc)->decode_coding_system = val;
 
-    if (!NILP (Vcoding_system_for_write))
-      val = Vcoding_system_for_write;
-    else if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
-	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
-      val = Qnil;
-    else
+    val = Vcoding_system_for_write;
+    if (NILP (val))
       {
 	if (EQ (coding_systems, Qt))
 	  {
@@ -1261,8 +1248,6 @@ Remaining arguments are strings to give program as arguments.")
 	  val = XCONS (coding_systems)->cdr;
 	else if (CONSP (Vdefault_process_coding_system))
 	  val = XCONS (Vdefault_process_coding_system)->cdr;
-	else
-	  val = Qnil;
       }
     XPROCESS (proc)->encode_coding_system = val;
   }
@@ -1356,6 +1341,7 @@ create_process (process, new_argv, current_dir)
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
   extern char **environ;
+  Lisp_Object buffer = XPROCESS (process)->buffer;
 
   inchannel = outchannel = -1;
 
@@ -1449,6 +1435,20 @@ create_process (process, new_argv, current_dir)
 	= (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (process)->encode_coding_system,
 		       proc_encode_coding_system[outchannel]);
+
+  if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
+      || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+    {
+      /* In unibyte mode, character code conversion should not take
+	 place but EOL conversion should.  So, setup raw-text or one
+	 of the subsidiary according to the information just setup.  */
+      if (NILP (Vcoding_system_for_read)
+	  && !NILP (XPROCESS (process)->decode_coding_system))
+	setup_raw_text_coding_system (proc_decode_coding_system[inchannel]);
+      if (NILP (Vcoding_system_for_write)
+	  && !NILP (XPROCESS (process)->encode_coding_system))
+	setup_raw_text_coding_system (proc_decode_coding_system[outchannel]);
+    }
 
   if (CODING_REQUIRE_ENCODING (proc_encode_coding_system[outchannel]))
     {
