@@ -147,13 +147,13 @@ to continue it.
 
 Entry to this mode runs the hooks on comint-mode-hook."
   (interactive)
-  (make-local-variable 'input-ring)
-  (put 'input-ring 'preserved t)
   (kill-all-local-variables)
   (setq major-mode 'comint-mode
         mode-name "Comint"
         mode-line-process '(": %s"))
   (use-local-map comint-mode-map)
+  (set (make-local-variable 'input-ring) (make-ring input-ring-size))
+  (put 'input-ring 'preserved t)
   (set (make-local-variable 'comint-last-input-match) "")
   (set (make-local-variable 'comint-last-similar--string) "")
   (set (make-local-variable 'input-ring-index) 0)
@@ -177,7 +177,7 @@ Entry to this mode runs the hooks on comint-mode-hook."
 	 (proc (get-buffer-process buffer)))
     ;; If no process, or nuked process, crank up a new one and put buffer in
     ;; comint mode. Otherwise, leave buffer and existing process alone.
-    (cond ((not (comint-check-proc))
+    (cond ((not (comint-check-proc buffer))
            (save-excursion
 	     (set-buffer buffer)
 	     (comint-mode)) ; Install local vars, mode, keymap, ...
@@ -209,7 +209,7 @@ You can use this to cheaply run a series of processes in the same buffer."
 	     (insert-file-contents startfile)
 	     (setq startfile (buffer-substring (point) (point-max)))
 	     (delete-region (point) (point-max))
-	     (comint-send-string proc startfile)))
+	     (comint-send-string proc startfile))))
     buffer))
 
 ;;; This auxiliary function cranks up the process for comint-exec in
