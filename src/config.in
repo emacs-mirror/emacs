@@ -177,24 +177,24 @@ and this notice must be preserved on all copies.  */
 #undef EMACS_CONFIG_OPTIONS
 
 /* The configuration script defines opsysfile to be the name of the
-   s/*.h file that describes the system type you are using.  The file
+   s/SYSTEM.h file that describes the system type you are using.  The file
    is chosen based on the configuration name you give.
 
    See the file ../etc/MACHINES for a list of systems and the
    configuration names to use for them.
 
-   See s/template.h for documentation on writing s/*.h files.  */
+   See s/template.h for documentation on writing s/SYSTEM.h files.  */
 #undef config_opsysfile 
 #include config_opsysfile
 
 /* The configuration script defines machfile to be the name of the
-   m/*.h file that describes the machine you are using.  The file is
+   m/MACHINE.h file that describes the machine you are using.  The file is
    chosen based on the configuration name you give.
 
    See the file ../etc/MACHINES for a list of machines and the
    configuration names to use for them.
 
-   See m/template.h for documentation on writing m/*.h files.  */
+   See m/template.h for documentation on writing m/MACHINE.h files.  */
 #undef config_machfile
 #include config_machfile
 
@@ -222,7 +222,7 @@ typedef unsigned long EMACS_UINT;
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
    These do not work for some USG systems yet;
-   for the ones where they work, the s/*.h file defines this flag.  */
+   for the ones where they work, the s/SYSTEM.h file defines this flag.  */
 
 #ifndef VMS
 #ifndef USG
