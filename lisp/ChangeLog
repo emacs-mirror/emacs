@@ -1,4 +1,14 @@
+2002-06-13  Dave Love  <fx@gnu.org>
+
+	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936): New
+	coding systems.
+	("Chinese-GBK"): New environment.
+
 2002-06-12  Dave Love  <fx@gnu.org>
+
+	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936): New
+	coding systems.
+	("Chinese-GBK"): New environment.
 
 	* language/thai-util.el: Remove redundant unicodes in
 	category-setting.
