@@ -1,3 +1,11 @@
+2000-11-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* xterm.c (VCENTER_BASELINE_OFFSET): Fix previous change.  If the
+	font is taller than the frame line, we don't have to vias the
+	division by two.
+
+	* w32term.c (VCENTER_BASELINE_OFFSET): Likewise.
+
 2000-11-07  Dave Love  <fx@gnu.org>
 
 	* config.in (HAVE_MKDIR): Add.
