@@ -1,3 +1,8 @@
+2000-08-28  Dave Love  <fx@gnu.org>
+
+	* movemail.c (toplevel) [HAVE_STRING_H]: Include string.h.
+	(toplevel) [HAVE_STRINGS_H]: Include strings.h.
+
 2000-08-22  Andrew Innes  <andrewi@gnu.org>
 
 	* ntlib.h (WIN32): Remove unnecessary definition.

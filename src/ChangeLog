@@ -1,3 +1,7 @@
+2000-08-28  Dave Love  <fx@gnu.org>
+
+	* keymap.c (store_in_keymap): Add `static' to declaration.
+
 2000-08-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs.c, callint.c, doc.c, editfns.c
