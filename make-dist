@@ -33,7 +33,7 @@ progname="$0"
 ### Print out each line we read, for debugging's sake.
 ### set -v
 
-## Don't protect any files.
+## Don't restrict access to any files.
 umask 0
 
 update=yes
