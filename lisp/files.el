@@ -1332,7 +1332,7 @@ unless NOMODES is non-nil."
 		  "Use M-x make-directory RET RET to create the directory"
 		"Use C-u M-x make-directory RET RET to create directory and its parents")))))
       (when msg
-	(message msg)
+	(message "%s" msg)
 	(or not-serious (sit-for 1 nil t))))
     (when (and auto-save-default (not noauto))
       (auto-save-mode t)))
