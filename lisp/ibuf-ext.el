@@ -925,7 +925,7 @@ of replacing the current filters."
 
 (defun ibuffer-list-buffer-modes ()
   "Create an alist of buffer modes currently in use.
-The list returned will be of the form ("MODE-NAME" . MODE-SYMBOL)."
+The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
   (let ((bufs (buffer-list))
 	(modes)
 	(this-mode))
