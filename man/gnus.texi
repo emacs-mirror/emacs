@@ -2560,6 +2560,9 @@ the articles from a mail-to-news gateway.  Posting directly to this
 group is therefore impossible---you have to send mail to the mailing
 list address instead.
 
+Some parameters have corresponding customizable variables, each of which
+is an alist of regexps and values.
+
 @item to-list
 @cindex to-list
 Address used when doing @kbd{a} in that group.
@@ -2581,6 +2584,8 @@ sending the message if @code{gnus-add-to-list} is set to @code{t}.
 If you do an @kbd{a} command in a mail group and you don't have a
 @code{to-list} group parameter, one will be added automatically upon
 sending the message.
+
+See also @code{gnus-parameter-to-list-alist}.
 
 @item visible
 @cindex visible
@@ -2631,6 +2636,8 @@ If the group parameter has an element that looks like
 expiry process, even if they are not marked as expirable.  Use with
 caution.  Unread, ticked and dormant articles are not eligible for
 expiry.
+
+See also @code{gnus-total-expirable-newsgroups}.
 
 @item expiry-wait
 @cindex expiry-wait
@@ -2683,20 +2690,15 @@ Elements that look like @code{(charset . iso-8859-1)} will make
 @code{iso-8859-1} the default charset; that is, the charset that will be
 used for all articles that do not specify a charset.
 
-@item (@var{variable} @var{form})
-You can use the group parameters to set variables local to the group you
-are entering.  If you want to turn threading off in @samp{news.answers},
-you could put @code{(gnus-show-threads nil)} in the group parameters of
-that group.  @code{gnus-show-threads} will be made into a local variable
-in the summary buffer you enter, and the form @code{nil} will be
-@code{eval}ed there.
+See also @code{gnus-group-charset-alist}.
 
-This can also be used as a group-specific hook function, if you'd like.
-If you want to hear a beep when you enter a group, you could put
-something like @code{(dummy-variable (ding))} in the parameters of that
-group.  @code{dummy-variable} will be set to the result of the
-@code{(ding)} form, but who cares?
+@item ignored-charsets
+Elements that look like @code{(ignored-charsets x-known iso-8859-1)}
+will make @code{iso-8859-1} and @code{x-unknown} ignored; that is, the
+default charset will be used for decoding articles.
 
+See also @code{gnus-group-ignored-charsets-alist}.
+ 
 @item posting-style
 You can store additional posting style information for this group only
 here (@pxref{Posting Styles}).  The format is that of an entry in the
@@ -2720,6 +2722,20 @@ that matches the regular expression "regex" to be stripped. Instead of
 "regex", you can also use the symbol @code{signature} which strips the
 last signature or any of the elements of the alist
 @code{gnus-article-banner-alist}.
+
+@item (@var{variable} @var{form})
+You can use the group parameters to set variables local to the group you
+are entering.  If you want to turn threading off in @samp{news.answers},
+you could put @code{(gnus-show-threads nil)} in the group parameters of
+that group.  @code{gnus-show-threads} will be made into a local variable
+in the summary buffer you enter, and the form @code{nil} will be
+@code{eval}ed there.
+
+This can also be used as a group-specific hook function, if you like.
+If you want to hear a beep when you enter a group, you could put
+something like @code{(dummy-variable (ding))} in the parameters of that
+group.  @code{dummy-variable} will be set to the result of the
+@code{(ding)} form, but who cares?
 
 @end table
 
@@ -4225,14 +4241,6 @@ Go to the next summary line of an unread article
 Go to the previous summary line of an unread article
 (@code{gnus-summary-prev-unread-subject}).
 
-@item G j
-@itemx j
-@kindex j @r{(Summary)}
-@kindex G j @r{(Summary)}
-@findex gnus-summary-goto-article
-Ask for an article number or @code{Message-ID}, and then go to that
-article (@code{gnus-summary-goto-article}).
-
 @item G g
 @kindex G g @r{(Summary)}
 @findex gnus-summary-goto-subject
@@ -4397,6 +4405,14 @@ command above in that you can pop as many previous articles off the
 history as you like, while @kbd{l} toggles the two last read articles.
 For a somewhat related issue (if you use these commands a lot),
 @pxref{Article Backlog}.
+
+@item G j
+@itemx j
+@kindex j @r{(Summary)}
+@kindex G j @r{(Summary)}
+@findex gnus-summary-goto-article
+Ask for an article number or @code{Message-ID}, and then go to that
+article (@code{gnus-summary-goto-article}).
 @end table
 
 
@@ -17757,7 +17773,7 @@ Hook called after creating the score mode menu.
 @cindex mouse
 @cindex click
 
-Those new-fangled @dfn{mouse} contraptions is very popular with the
+Those new-fangled @dfn{mouse} contraptions are very popular with the
 young, hep kids who don't want to learn the proper way to do things
 these days.  Why, I remember way back in the summer of '89, when I was
 using Emacs on a Tops 20 system.  Three hundred users on one single
