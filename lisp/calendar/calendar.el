@@ -1306,6 +1306,11 @@ calendar."
   "String of Chinese date of Gregorian date."
   t)
 
+(autoload 'calendar-julian-from-absolute "cal-julian"
+  "Compute the Julian (month day year) corresponding to the absolute DATE.
+The absolute date is the number of days elapsed since the (imaginary)
+Gregorian date Sunday, December 31, 1 BC.")
+
 (autoload 'calendar-goto-julian-date "cal-julian"
   "Move cursor to Julian DATE; echo Julian date unless NOECHO is t."
   t)
