@@ -1,3 +1,10 @@
+2004-03-05  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-assembler-mode): Create a second overlay arrow
+	for the assembler buffer.
+	(gdb-assembler-custom): Position the overlay arrow.
+	(gdb-put-arrow, gdb-remove-arrow): Delete functions.
+
 2004-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/sendmail.el (mail-mode): Set comment-start-skip.
