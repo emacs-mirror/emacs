@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>
-;; Last Change: May 29 1997
+;; Last Change: Dec 29 1998
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -367,7 +367,7 @@ whether to blink the matching beginning."
 ;; Highlighting patterns
 
 (defvar f90-font-lock-keywords-1
-  (list				; Emacs
+  (list
    '("\\<\\(end[ \t]*\\(program\\|module\\|function\\|subroutine\\|type\\)\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    '("\\<\\(program\\|call\\|module\\|subroutine\\|function\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
@@ -375,7 +375,7 @@ whether to blink the matching beginning."
    ;; Special highlighting of "module procedure foo-list"
    '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face t))
    ;; Highlight definition of new type
-   '("\\<\\(type\\)[ \t]*\\(,.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
+   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    "\\<\\(\\(end[ \t]*\\)?\\(interface\\|block[ \t]*data\\)\\|contains\\)\\>")
   "This does fairly subdued highlighting of comments and function calls.")
@@ -410,11 +410,9 @@ whether to blink the matching beginning."
    (list
     f90-keywords-level-3-re
     f90-operators-re
-    (if (string-match "XEmacs" emacs-version)
-	(append (list f90-procedures-re) '(1 font-lock-keyword-face t))
-      (list f90-procedures-re '(1 font-lock-keyword-face t)))
-    "\\<real\\>"			; Avoid overwriting real defs.
-    ))
+    (list f90-procedures-re '(1 font-lock-keyword-face t))
+   "\\<real\\>"			; Avoid overwriting real defs.
+   ))
   "Highlights all F90 keywords and intrinsic procedures.")
 
 (defvar f90-font-lock-keywords-4
@@ -658,7 +656,7 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 (defconst f90-end-type-re 
   "end[ \t]*\\(type\\|interface\\|block[ \t]*data\\)")
 (defconst f90-type-def-re
-  "\\<\\(type\\)[ \t]*\\(,.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)")
+  "\\<\\(type\\)\\([^(\n]*\\)\\(::\\)?[ \t]*\\b\\(\\sw+\\)")
 (defconst f90-no-break-re  "\\(\\*\\*\\|//\\|=>\\)")
 ;; A temporary position to make region operators faster
 (defvar f90-cache-position nil)
@@ -865,21 +863,24 @@ with no args, if that value is non-nil."
   (if (string-match "XEmacs" emacs-version)
       (progn
 	(put 'f90-mode 'font-lock-keywords-case-fold-search t)
-	(if (and current-menubar
+	(if (and (featurep 'menubar)
+		 current-menubar
 		 (not (assoc "F90" current-menubar)))
 	    (progn
 	      (set-buffer-menubar (copy-sequence current-menubar))
-	      (add-submenu nil f90-xemacs-menu)))
-	(make-local-variable 'font-lock-keywords)
-	(setq font-lock-keywords f90-font-lock-keywords))
-    ;; Emacs
-    (make-local-variable 'font-lock-defaults)
-    (setq font-lock-defaults '(f90-font-lock-keywords nil t))
-
-    ;; Tell imenu how to handle f90.
-    (setq imenu-case-fold-search t)
-    (make-local-variable 'imenu-generic-expression)
-    (setq imenu-generic-expression f90-imenu-generic-expression))
+	      (add-submenu nil f90-xemacs-menu)))))
+  ;; XEmacs: (Don't need a special case, since both emacsen work alike -sb)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults 
+	'((f90-font-lock-keywords f90-font-lock-keywords-1
+				  f90-font-lock-keywords-2
+				  f90-font-lock-keywords-3
+				  f90-font-lock-keywords-4)
+	  nil t))
+  ;; Tell imenu how to handle f90.
+  (set (make-local-variable 'imenu-case-fold-search) t)
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression f90-imenu-generic-expression)
   (run-hooks 'f90-mode-hook)
   (if f90-startup-message
       (message "Emacs F90 mode; please report bugs to %s" bug-f90-mode))
@@ -1015,7 +1016,7 @@ Name is nil if the statement has no label."
 Name is non-nil only for type."
   (cond 
    ((looking-at f90-type-def-re)
-    (list (f90-match-piece 1) (f90-match-piece 3)))
+    (list (f90-match-piece 1) (f90-match-piece 4)))
    ((looking-at "\\(interface\\|block[\t]*data\\)\\>")
     (list (f90-match-piece 1) nil))))
 
