@@ -64,10 +64,6 @@
 (define-key-after mule-menu-keymap [set-language-environment]
   (list 'menu-item  "Set Language Environment" setup-language-environment-map
 	:help "Multilingual environment suitable for a specific language"))
-(define-key-after menu-bar-options-menu [mouse-set-font]
-  '(menu-item "Set Font/Fontset" mouse-set-font
-	       :visible (fboundp 'generate-fontset-menu)
-	       :help "Select a font from list of known fonts/fontsets"))
 (define-key-after mule-menu-keymap [separator-mule]
   '("--")
   t)
@@ -1688,11 +1684,16 @@ The default status is as follows:
   (let ((coding (get-language-info language-name 'unibyte-display)))
     (if coding
 	(standard-display-european-internal)
+<<<<<<< mule-cmds.el
+      (dotimes (i 128)
+	(aset standard-display-table (+ i 128) nil))
+=======
       ;; The following 2 lines undo the 8-bit display that we set up
       ;; in standard-display-european-internal, which see.  This is in
       ;; case the user has used standard-display-european earlier in
       ;; this session.  (The MS-DOS port doesn't use that setup, so it
       ;; doesn't need to undo it.)
+>>>>>>> 1.234
       (standard-display-default (if (eq window-system 'pc) 128 160) 255)
       (aset standard-display-table 146 nil))
     (or (eq window-system 'pc)
