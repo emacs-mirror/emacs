@@ -401,9 +401,10 @@ with a session that you are debugging.
    (written by Marc Fleischeuers, Geoff Voelker and Andrew Innes)
 
 To debug Emacs with Microsoft Visual C++, you either start emacs from
-the debugger or attach the debugger to a running emacs process.  To
-start emacs from the debugger, you can use the file bin/debug.bat.  The
-Microsoft Developer studio will start and under Project, Settings,
+the debugger or attach the debugger to a running emacs process.
+
+To start emacs from the debugger, you can use the file bin/debug.bat.
+The Microsoft Developer studio will start and under Project, Settings,
 Debug, General you can set the command-line arguments and Emacs's
 startup directory.  Set breakpoints (Edit, Breakpoints) at Fsignal and
 other functions that you want to examine.  Run the program (Build,
@@ -461,3 +462,21 @@ It is also possible to keep appropriately masked and typecast Lisp
 symbols in the Watch window, this is more convenient when steeping
 though the code.  For instance, on entering apply_lambda, you can
 watch (struct Lisp_Symbol *) (0xfffffff & args[0]).
+
+Optimizations often confuse the MS debugger.  For example, the
+debugger will sometimes report wrong line numbers, e.g., when it
+prints the backtrace for a crash.  It is usually best to look at the
+disassembly to determine exactly what code is being run--the
+disassembly will probably show several source lines followed by a
+block of assembler for those lines.  The actual point where Emacs
+crashes will be one of those source lines, but not neccesarily the one
+that the debugger reports.
+
+Another problematic area with the MS debugger is with variables that
+are stored in registers: it will sometimes display wrong values for
+those variables.  Usually you will not be able to see any value for a
+register variable, but if it is only being stored in a register
+temporarily, you will see an old value for it.  Again, you need to
+look at the disassembly to determine which registers are being used,
+and look at those registers directly, to see the actual current values
+of these variables.
