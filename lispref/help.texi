@@ -80,10 +80,10 @@ function @code{documentation-property} knows how to extract it.
 @cindex @file{emacs/etc/DOC-@var{version}}
 @cindex @file{etc/DOC-@var{version}}
 To save space, the documentation for preloaded functions and variables
-(including primitive functions and autoloaded functions) are stored in
+(including primitive functions and autoloaded functions) is stored in
 the file @file{emacs/etc/DOC-@var{version}}.  The data structure inside
 Emacs has an integer offset into the file, where the documentation
-string ought to be.  The functions @code{documentation} the
+string ought to be.  The functions @code{documentation} and
 @code{documentation-property} read the documentation from the file
 @file{emacs/etc/DOC-@var{version}} when they notice the integer there;
 this is transparent to the user.  Keeping the documentation strings out
@@ -134,13 +134,13 @@ bindings.  (This is not done if @var{verbatim} is non-@code{nil}; the
 @var{verbatim} argument exists only as of Emacs 19.)
 
 The function @code{documentation} signals a @code{void-function} error
-unless @var{function} has a function definition.  However, it is ok if
+if @var{function} has no function definition.  However, it is ok if
 the function definition has no documentation string.  In that case,
 @code{documentation} returns @code{nil}.
 @end defun
 
 @c Wordy to prevent overfull hboxes.  --rjc 15mar92
-  Here is an example of using the two functions, @code{documentation} and
+Here is an example of using the two functions, @code{documentation} and
 @code{documentation-property}, to display the documentation strings for
 several symbols in a @samp{*Help*} buffer.
 
@@ -275,12 +275,12 @@ In older Emacs versions, @code{exec-directory} was used for this.
 @cindex keys in documentation strings
 @cindex substituting keys in documentation
 
-  When documentation strings refer to key sequences, they should do so
-based on the current, actual key bindings.  They can do so using certain
-special text sequences described below.  Accessing documentation strings
-in the usual way substitutes current key binding information for these
-special sequences.  This works by calling @code{substitute-command-keys}.
-You can also call that function yourself.
+  When documentation strings refer to key sequences, they should use the
+current, actual key bindings.  They can do so using certain special text
+sequences described below.  Accessing documentation strings in the usual
+way substitutes current key binding information for these special
+sequences.  This works by calling @code{substitute-command-keys}.  You
+can also call that function yourself.
 
   Here is a list of the special sequences and what they mean:
 
@@ -299,14 +299,14 @@ stands for no text itself.  It is used for a side effect: it specifies
 sequences in this documentation string.
 @end table
 
-@strong{Please note:} each @samp{\} must be doubled when written in a
+@strong{Please note:} Each @samp{\} must be doubled when written in a
 string in Emacs Lisp.
 
 @defun substitute-command-keys string
 This function scans @var{string} for the above special sequences and
 replaces them by what they stand for, returning the result as a string.
 This permits display of documentation that refers accurately to the
-users's own customized key bindings.
+user's own customized key bindings.
 @end defun
 
   Here are examples of the special sequences:
@@ -370,7 +370,7 @@ Emacs notation for keyboard input.  A normal printing character appears
 as itself, but a control character turns into a string starting with
 @samp{C-}, a meta character turns into a string starting with @samp{M-},
 and space, linefeed, etc.@: appear as @samp{SPC}, @samp{LFD}, etc.  A
-function key symbol appears as itself.  An event which is a list appears
+function key symbol appears as itself.  An event that is a list appears
 as the name of the symbol in the @sc{car} of the list.
 
 @smallexample
@@ -421,21 +421,21 @@ about them, see @ref{Help, , Help, emacs, The GNU Emacs Manual}.  Here
 we describe some program-level interfaces to the same information.
 
 @deffn Command apropos regexp &optional do-all predicate
-  This function finds all symbols whose names contain a match for the
-regular expression @var{regexp}, and returns a list of them.  
-It also displays the symbols in a buffer named @samp{*Help*}, each with a
-one-line description.
+This function finds all symbols whose names contain a match for the
+regular expression @var{regexp}, and returns a list of them
+(@pxref{Regular Expressions}).  It also displays the symbols in a buffer
+named @samp{*Help*}, each with a one-line description.
 
 @c Emacs 19 feature
-  If @var{do-all} is non-@code{nil}, then @code{apropos} also shows
+If @var{do-all} is non-@code{nil}, then @code{apropos} also shows
 key bindings for the functions that are found.
 
-  If @var{predicate} is non-@code{nil}, it should be a function to be
+If @var{predicate} is non-@code{nil}, it should be a function to be
 called on each symbol that has matched @var{regexp}.  Only symbols for
 which @var{predicate} returns a non-@code{nil} value are listed or
 displayed.
 
-  In the first of the following examples, @code{apropos} finds all the
+In the first of the following examples, @code{apropos} finds all the
 symbols with names containing @samp{exec}.  In the second example, it
 finds and returns only those symbols that are also commands.
 (We don't show the output that results in the @samp{*Help*} buffer.)
@@ -466,7 +466,7 @@ execute-extended-command      ESC x
 @end ignore
 @end smallexample
 
-  The command @kbd{C-h a} (@code{command-apropos}) calls @code{apropos},
+The command @kbd{C-h a} (@code{command-apropos}) calls @code{apropos},
 but specifies a @var{predicate} to restrict the output to symbols that
 are commands.  The call to @code{apropos} looks like this:
 
@@ -479,10 +479,10 @@ are commands.  The call to @code{apropos} looks like this:
 @deffn Command super-apropos regexp &optional do-all
 This function differs from @code{apropos} in that it searches
 documentation strings as well as symbol names for matches for
-@var{regexp}.  By default, it searches only the documentation strings,
-and only those of functions and variables that are included in Emacs
-when it is dumped.  If @var{do-all} is non-@code{nil}, it scans the
-names and documentation strings of all functions and variables.
+@var{regexp}.  By default, it searches the documentation strings only
+for preloaded functions and variables.  If @var{do-all} is
+non-@code{nil}, it scans the names and documentation strings of all
+functions and variables.
 @end deffn
 
 @defvar help-map
@@ -504,11 +504,10 @@ follows:
 @end deffn
 
 @defun print-help-return-message &optional function
-This function builds a string which is a message explaining how to
-restore the previous state of the windows after a help command.  After
-building the message, it applies @var{function} to it if @var{function}
-is non-@code{nil}.  Otherwise it calls @code{message} to display it in
-the echo area.
+This function builds a string that explains how to restore the previous
+state of the windows after a help command.  After building the message,
+it applies @var{function} to it if @var{function} is non-@code{nil}.
+Otherwise it calls @code{message} to display it in the echo area.
 
 This function expects to be called inside a
 @code{with-output-to-temp-buffer} special form, and expects
@@ -562,7 +561,7 @@ The variable's default value is @code{describe-prefix-bindings}.
 This function calls @code{describe-bindings} to display a list of all
 the subcommands of the prefix key of the most recent key sequence.  The
 prefix described consists of all but the last event of that key
-sequence.
+sequence.  (The last event is, presumably, the help character.)
 @end defun
 
   The following two functions are found in the library @file{helper}.
@@ -595,18 +594,18 @@ Emacs versions, @code{exec-directory} was used for this.
 
 @c Emacs 19 feature
 @defmac make-help-screen fname help-line help-text help-map
-This macro defines a help command named @var{fname} which acts like a 
-prefix key which shows a list of the subcommands it offers.
+This macro defines a help command named @var{fname} that acts like a 
+prefix key that shows a list of the subcommands it offers.
 
 When invoked, @var{fname} displays @var{help-text} in a window, then
 reads and executes a key sequence according to @var{help-map}.  The
-string @var{help-text} should describe of the bindings available in
+string @var{help-text} should describe the bindings available in
 @var{help-map}.
 
 The command @var{fname} is defined to handle a few events itself, by
 scrolling the display of @var{help-text}.  When @var{fname} reads one of
 those special events, it does the scrolling and then reads another
-event.  When it reads an event which is not one of those few, and which
+event.  When it reads an event that is not one of those few, and which
 has a binding in @var{help-map}, it executes that key's binding and
 then returns.
 
