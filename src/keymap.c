@@ -1878,8 +1878,8 @@ describe_map_tree (startmap, partial, shadow, prefix, title, nomenu)
      char *title;
      int nomenu;
 {
-  Lisp_Object maps;
-  struct gcpro gcpro1;
+  Lisp_Object maps, seen;
+  struct gcpro gcpro1, gcpro2;
   int something = 0;
   char *key_heading
     = "\
@@ -1887,7 +1887,8 @@ key             binding\n\
 ---             -------\n";
 
   maps = Faccessible_keymaps (startmap, prefix);
-  GCPRO1 (maps);
+  seen = Qnil;
+  GCPRO2 (maps, seen);
 
   if (nomenu)
     {
@@ -1967,7 +1968,8 @@ key             binding\n\
 	    sub_shadows = Fcons (shmap, sub_shadows);
 	}
 
-      describe_map (Fcdr (elt), Fcar (elt), describe_command, partial, sub_shadows);
+      describe_map (Fcdr (elt), Fcar (elt), describe_command,
+		    partial, sub_shadows, &seen);
 
     skip: ;
     }
@@ -2024,15 +2026,16 @@ shadow_lookup (shadow, key, flag)
 
 /* Describe the contents of map MAP, assuming that this map itself is
    reached by the sequence of prefix keys KEYS (a string or vector).
-   PARTIAL, SHADOW is as in `describe_map_tree' above.  */
+   PARTIAL, SHADOW are as in `describe_map_tree' above.  */
 
 static void
-describe_map (map, keys, elt_describer, partial, shadow)
+describe_map (map, keys, elt_describer, partial, shadow, seen)
      register Lisp_Object map;
      Lisp_Object keys;
      int (*elt_describer) ();
      int partial;
      Lisp_Object shadow;
+     Lisp_Object *seen;
 {
   Lisp_Object elt_prefix;
   Lisp_Object tail, definition, event;
@@ -2044,7 +2047,6 @@ describe_map (map, keys, elt_describer, partial, shadow)
 
   if (!NILP (keys) && XFASTINT (Flength (keys)) > 0)
     {
-      Lisp_Object tem;
       /* Call Fkey_description first, to avoid GC bug for the other string.  */
       tem = Fkey_description (keys);
       elt_prefix = concat2 (tem, build_string (" "));
@@ -2063,17 +2065,17 @@ describe_map (map, keys, elt_describer, partial, shadow)
 
   GCPRO3 (elt_prefix, definition, kludge);
 
-  for (tail = XCONS (map)->cdr; CONSP (tail); tail = Fcdr (tail))
+  for (tail = map; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       QUIT;
 
       if (XTYPE (XCONS (tail)->car) == Lisp_Vector)
 	describe_vector (XCONS (tail)->car,
 			 elt_prefix, elt_describer, partial, shadow);
-      else
+      else if (CONSP (XCONS (tail)->car))
 	{
-	  event = Fcar_safe (Fcar (tail));
-	  definition = get_keyelt (Fcdr_safe (Fcar (tail)), 0);
+	  event = XCONS (XCONS (tail)->car)->car;
+	  definition = get_keyelt (XCONS (XCONS (tail)->car)->cdr, 0);
 
 	  /* Don't show undefined commands or suppressed commands.  */
 	  if (NILP (definition)) continue;
@@ -2113,6 +2115,16 @@ describe_map (map, keys, elt_describer, partial, shadow)
 	     elt_describer will take care of spacing out far enough
 	     for alignment purposes.  */
 	  (*elt_describer) (definition);
+	}
+      else if (EQ (XCONS (tail)->car, Qkeymap))
+	{
+	  /* The same keymap might be in the structure twice, if we're
+	     using an inherited keymap.  So skip anything we've already
+	     encountered.  */
+	  tem = Fassq (tail, *seen);
+	  if (CONSP (tem) && Fequal (XCONS (tem)->car, keys))
+	    break;
+	  *seen = Fcons (Fcons (tail, keys), *seen);
 	}
     }
 
