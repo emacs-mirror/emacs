@@ -39,6 +39,7 @@
 
 (defgroup ldap nil
   "Lightweight Directory Access Protocol."
+  :version "21.1"
   :group 'comm)
 
 (defcustom ldap-default-host nil
