@@ -1,3 +1,26 @@
+2004-09-25  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-max-directory-size): New defcustom.
+	(ido-decorations): Add "too big" element.
+	(ido-directory-too-big): New dynamic var.
+	(ido-may-cache-directory): Don't cache big directories.
+	(ido-directory-too-big-p): New defun.
+	(ido-set-current-directory): Update ido-directory-too-big.
+	(ido-read-internal): Make empty ido-cur-item if too-big.
+	(ido-buffer-internal): Use ido-read-internal directly instead of
+	ido-read-buffer.
+	(ido-file-internal): Init ido-directory-too-big.
+	(ido-complete): <TAB> If ido-directory-too-big is set, clear it,
+	and redo completion with full list.
+	(ido-toggle-ignore): <C-a> If ido-directory-too-big is set, clear
+	it, and show completions.
+	(ido-all-completions): Let bind ido-directory-too-big to nil.
+	(ido-exhibit): Handle ido-directory-too-big.
+	(ido-read-buffer): Handle fallback to read-buffer.  Init
+	ido-directory-too-big.
+	(ido-read-file-name, ido-read-directory-name, ido-completing-read):
+	Init ido-directory-too-big.
+
 2004-09-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/enriched.el
