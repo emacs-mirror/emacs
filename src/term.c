@@ -1238,6 +1238,7 @@ term_get_fkeys (address)
      char **address;
 {
   extern char *tgetstr ();
+  char capval[32];
   int i;
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
@@ -1287,7 +1288,7 @@ term_get_fkeys (address)
 	else
 	  fcap[1] = 'a' + i - 11;
 
-	if (tgetstr(fcap))
+	if (tgetstr(fcap, &capval))
 	  {
 	    (void) sprintf(fkey, "f%d", i);	    
 	    Fdefine_key (Vfunction_key_map,
@@ -1302,7 +1303,7 @@ term_get_fkeys (address)
    */
   {
 #define CONDITIONAL_REASSIGN(cap1, cap2, sym) \
-      if (!tgetstr(cap1) && tgetstr(cap2)) \
+      if (!tgetstr(cap1, &capval) && tgetstr(cap2, &capval)) \
 	    Fdefine_key (Vfunction_key_map, \
 			 build_string (cap2), \
 			 Fmake_vector (make_number (1), intern (sym)))
@@ -1313,6 +1314,7 @@ term_get_fkeys (address)
       CONDITIONAL_REASSIGN("%8", "kP", "previous");
       /* if there's no key_dc keycap, map key_ic to `insert' keysym */
       CONDITIONAL_REASSIGN("kD", "kI", "insert");
+#undef CONDITIONAL_REASSIGN
   }
 }
 
