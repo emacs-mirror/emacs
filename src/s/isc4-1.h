@@ -11,3 +11,14 @@
 
 /* uddeborg@carmen.se says we don't need -lPW or -lcposix.  */
 #undef LIB_STANDARD
+
+/* uddeborg@carmen.se recommends the rest of this file.  */
+
+/* We have Posix termios. */
+#define HAVE_TERMIOS
+/* According to template.h HAVE_TERMIO and HAVE_TERMIOS shouldn't be */
+/* defined at the same time. */
+#undef HAVE_TERMIO
+
+#define HAVE_SOCKETS
+#define NEED_NET_ERRNO_H
