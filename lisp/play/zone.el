@@ -57,7 +57,7 @@
                        zone-pgm-jitter
                        zone-pgm-putz-with-case
                        zone-pgm-dissolve
-;                      zone-pgm-explode
+		       ;; zone-pgm-explode
                        zone-pgm-whack-chars
                        zone-pgm-rotate
                        zone-pgm-rotate-LR-lockstep
@@ -149,10 +149,10 @@
 
 (defun zone-shift-up ()
   (let* ((b (point))
- (e (progn
-      (end-of-line)
-      (if (looking-at "\n") (1+ (point)) (point))))
- (s (buffer-substring b e)))
+	 (e (progn
+	      (end-of-line)
+	      (if (looking-at "\n") (1+ (point)) (point))))
+	 (s (buffer-substring b e)))
     (delete-region b e)
     (goto-char (point-max))
     (insert s)))
@@ -162,10 +162,10 @@
   (forward-line -1)
   (beginning-of-line)
   (let* ((b (point))
- (e (progn
-      (end-of-line)
-      (if (looking-at "\n") (1+ (point)) (point))))
- (s (buffer-substring b e)))
+	 (e (progn
+	      (end-of-line)
+	      (if (looking-at "\n") (1+ (point)) (point))))
+	 (s (buffer-substring b e)))
     (delete-region b e)
     (goto-char (point-min))
     (insert s)))
@@ -173,20 +173,20 @@
 (defun zone-shift-left ()
   (while (not (eobp))
     (or (eolp)
-(let ((c (following-char)))
-  (delete-char 1)
-  (end-of-line)
-  (insert c)))
+	(let ((c (following-char)))
+	  (delete-char 1)
+	  (end-of-line)
+	  (insert c)))
     (forward-line 1)))
 
 (defun zone-shift-right ()
   (while (not (eobp))
     (end-of-line)
     (or (bolp)
-(let ((c (preceding-char)))
-  (delete-backward-char 1)
-  (beginning-of-line)
-  (insert c)))
+	(let ((c (preceding-char)))
+	  (delete-backward-char 1)
+	  (beginning-of-line)
+	  (insert c)))
     (forward-line 1)))
 
 (defun zone-pgm-jitter ()
@@ -216,14 +216,14 @@
   (let ((tbl (copy-sequence (get 'zone-pgm-whack-chars 'wc-tbl))))
     (while (not (input-pending-p))
       (let ((i 48))
-(while (< i 122)
-  (aset tbl i (+ 48 (random (- 123 48))))
-  (setq i (1+ i)))
-(translate-region (point-min) (point-max) tbl)
-(sit-for 0 2)))))
+	(while (< i 122)
+	  (aset tbl i (+ 48 (random (- 123 48))))
+	  (setq i (1+ i)))
+	(translate-region (point-min) (point-max) tbl)
+	(sit-for 0 2)))))
 
 (put 'zone-pgm-whack-chars 'wc-tbl
-     (let ((tbl (make-string 128 ?x))
+     (let ((tbl (make-vector 128 ?x))
            (i 0))
        (while (< i 128)
          (aset tbl i i)
@@ -237,17 +237,17 @@
     (while working
       (setq working nil)
       (save-excursion
-(goto-char (point-min))
-(while (not (eobp))
-  (if (looking-at "[^(){}\n\t ]")
-      (let ((n (random 5)))
-(if (not (= n 0))
-    (progn
-      (setq working t)
-      (forward-char 1))
-  (delete-char 1)
-  (insert " ")))
-    (forward-char 1))))
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (if (looking-at "[^(){}\n\t ]")
+	      (let ((n (random 5)))
+		(if (not (= n 0))
+		    (progn
+		      (setq working t)
+		      (forward-char 1))
+		  (delete-char 1)
+		  (insert " ")))
+	    (forward-char 1))))
       (sit-for 0 2))))
 
 (defun zone-pgm-dissolve ()
@@ -261,14 +261,14 @@
   (let ((i 0))
     (while (< i 20)
       (save-excursion
-(goto-char (point-min))
-(while (not (eobp))
-  (if (looking-at "[^*\n\t ]")
-      (let ((n (random 5)))
-(if (not (= n 0))
-    (forward-char 1))
-  (insert " ")))
-    (forward-char 1)))
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (if (looking-at "[^*\n\t ]")
+	      (let ((n (random 5)))
+		(if (not (= n 0))
+		    (forward-char 1))
+		(insert " ")))
+	  (forward-char 1)))
       (setq i (1+ i))
       (sit-for 0 2)))
   (zone-pgm-jitter))
@@ -285,25 +285,25 @@
 ;; less interesting effect than you might imagine.
 (defun zone-pgm-2nd-putz-with-case ()
   (let ((tbl (make-string 128 ?x))
-(i 0))
+	(i 0))
     (while (< i 128)
       (aset tbl i i)
       (setq i (1+ i)))
     (while (not (input-pending-p))
       (setq i ?a)
       (while (<= i ?z)
-(aset tbl i
-      (if (zerop (random 5))
-  (upcase i)
-(downcase i)))
-(setq i (+ i (1+ (random 5)))))
+	(aset tbl i
+	      (if (zerop (random 5))
+		  (upcase i)
+		(downcase i)))
+	(setq i (+ i (1+ (random 5)))))
       (setq i ?A)
       (while (<= i ?z)
-(aset tbl i
-      (if (zerop (random 5))
-  (downcase i)
-(upcase i)))
-(setq i (+ i (1+ (random 5)))))
+	(aset tbl i
+	      (if (zerop (random 5))
+		  (downcase i)
+		(upcase i)))
+	(setq i (+ i (1+ (random 5)))))
       (translate-region (point-min) (point-max) tbl)
       (sit-for 0 2))))
 
@@ -311,18 +311,18 @@
   (goto-char (point-min))
   (while (not (input-pending-p))
     (let ((np (+ 2 (random 5)))
-  (pm (point-max)))
+	  (pm (point-max)))
       (while (< np pm)
-(goto-char np)
+	(goto-char np)
         (let ((prec (preceding-char))
               (props (text-properties-at (1- (point)))))
           (insert (if (zerop (random 2))
                       (upcase prec)
                     (downcase prec)))
           (set-text-properties (1- (point)) (point) props))
-(backward-char 2)
-(delete-char 1)
-(setq np (+ np (1+ (random 5))))))
+	(backward-char 2)
+	(delete-char 1)
+	(setq np (+ np (1+ (random 5))))))
     (goto-char (point-min))
     (sit-for 0 2)))
 
@@ -334,9 +334,9 @@
     (save-excursion
       (goto-char (window-start))
       (while (< (point) (window-end))
-(when (looking-at "[\t ]*\\([^\n]+\\)")
-  (setq ret (cons (cons (match-beginning 1) (match-end 1)) ret)))
-(forward-line 1)))
+	(when (looking-at "[\t ]*\\([^\n]+\\)")
+	  (setq ret (cons (cons (match-beginning 1) (match-end 1)) ret)))
+	(forward-line 1)))
     ret))
 
 (defun zone-pgm-rotate (&optional random-style)
@@ -413,7 +413,7 @@
 (defun zone-fall-through-ws (c col wend)
   (let ((fall-p nil)                    ; todo: move outward
         (wait 0.15)
-        (o (point))                     ; for terminals w/o cursor hiding
+        (o (point))		     ; for terminals w/o cursor hiding
         (p (point)))
     (while (progn
              (forward-line 1)
@@ -455,7 +455,7 @@
               ((= i nl))
             (insert line)))))
     ;;
-    (catch 'done; ugh
+    (catch 'done ;; ugh
       (while (not (input-pending-p))
         (goto-char (point-min))
         (sit-for 0)
@@ -541,8 +541,8 @@
 		  mode-line-bg (face-attribute 'mode-line :background))
 	    (set-face-attribute 'mode-line nil
 				:foreground bg
-				 :background bg
-				 :box nil))
+				:background bg
+				:box nil))
 
 	  (let ((msg "Zoning... (zone-pgm-stress)"))
 	    (while (not (string= msg ""))
