@@ -1,3 +1,15 @@
+2000-10-20  Miles Bader  <miles@gnu.org>
+
+	* window.el (height-affecting-face-attributes): Use `defconst'.
+
+	* textmodes/ispell.el (ispell-mode-line-window-height-fudge):
+	New function, conditionally aliased to `mode-line-window-height-fudge'.
+	(ispell-help): Use it.
+	(ispell-choices-win-default-height): Don't include mode-line fudge.
+	(ispell-choices-win-default-height): New function.
+	(ispell-show-choices, ispell-command-loop): Use function
+	`ispell-choices-win-default-height' instead of variable.
+
 2000-10-20  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* window.el (mode-line-window-height-fudge): New variable.
