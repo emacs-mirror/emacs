@@ -1,12 +1,12 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
-;;; ###	Hacked by Mike Taylor, 11th October 1999 to add support for
-;;;	automatically appending a domain to RCPT TO: addresses.
 
 ;; Copyright (C) 1995, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Brian D. Carlstrom <bdc@ai.mit.edu>
 ;; ESMTP support: Simon Leinen <simon@switch.ch>
+;; Hacked by Mike Taylor, 11th October 1999 to add support for
+;; automatically appending a domain to RCPT TO: addresses.
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -92,12 +92,6 @@ buffer includes an exchange like:
 "
   :type '(choice (const nil) string)
   :group 'smtpmail)
-
-(defun maybe-append-domain (recipient)
-  (if (or (not smtpmail-sendto-domain)
-	  (string-match "@" recipient))
-      recipient
-    (concat recipient "@" smtpmail-sendto-domain)))
 
 (defcustom smtpmail-debug-info nil
   "*smtpmail debug info printout. messages and process buffer."
@@ -338,6 +332,12 @@ This is relative to `smtpmail-queue-dir'.")
       (concat (system-name) "." smtpmail-local-domain)
     (system-name)))
 
+(defun smtpmail-maybe-append-domain (recipient)
+  (if (or (not smtpmail-sendto-domain)
+	  (string-match "@" recipient))
+      recipient
+    (concat recipient "@" smtpmail-sendto-domain)))
+
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
   (let ((process nil)
 	(host (or smtpmail-smtp-server
@@ -481,7 +481,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    ;; RCPT TO: <recipient>
 	    (let ((n 0))
 	      (while (not (null (nth n recipient)))
-		(smtpmail-send-command process (format "RCPT TO: <%s>" (maybe-append-domain (nth n recipient))))
+		(smtpmail-send-command process (format "RCPT TO: <%s>" (smtpmail-maybe-append-domain (nth n recipient))))
 		(setq n (1+ n))
 
 		(setq response-code (smtpmail-read-response process))
