@@ -1,5 +1,7 @@
 2000-12-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/reftex-toc.el (reftex-toc-menu): Fix typo.
+
 	* iswitchb.el: Update customization commentary.
 
 2000-12-05  Rob Riepel  <riepel@Stanford.EDU>

@@ -1,5 +1,8 @@
 2000-12-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_destroy_window): Reset the frame's X window after
+	destroying it.
+
 	* dispnew.c (adjust_glyph_matrix): Make sure to initialize local
 	variable window_width.
 	(line_draw_cost): Fix code skipping over spaces at the end of the
