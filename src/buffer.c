@@ -3164,8 +3164,8 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
 
   modify_overlay (b,
-		    marker_position (OVERLAY_START (overlay)),
-		    marker_position (OVERLAY_END   (overlay)));
+		  marker_position (OVERLAY_START (overlay)),
+		  marker_position (OVERLAY_END   (overlay)));
 
   Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
   Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
