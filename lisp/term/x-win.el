@@ -74,6 +74,8 @@
 (require 'select)
 (require 'menu-bar)
 
+(defvar x-invocation-args)
+
 (defvar x-command-line-resources nil)
 
 (setq command-switch-alist
