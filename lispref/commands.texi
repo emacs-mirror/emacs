@@ -721,7 +721,7 @@ are characters or symbols; mouse events are always lists.  This section
 describes the representation and meaning of input events in detail.
 
 @defun eventp object
-This function returns non-@code{nil} if @var{event} is an input event.
+This function returns non-@code{nil} if @var{object} is an input event.
 @end defun
 
 @menu
@@ -1275,16 +1275,16 @@ The standard definition of the @code{delete-frame} event is to delete @var{frame
 @cindex @code{iconify-frame} event
 @item (iconify-frame (@var{frame}))
 This kind of event indicates that the user iconified @var{frame} using
-the window manager.  Its standard definition is @code{ignore}; since
-the frame has already been deiconified, Emacs has no work to do.
-The purpose of this event type is so that you can keep track of such
-events if you want to.
+the window manager.  Its standard definition is @code{ignore}; since the
+frame has already been iconified, Emacs has no work to do.  The purpose
+of this event type is so that you can keep track of such events if you
+want to.
 
 @cindex @code{make-frame-visible} event
 @item (make-frame-visible (@var{frame}))
 This kind of event indicates that the user deiconified @var{frame} using
 the window manager.  Its standard definition is @code{ignore}; since the
-frame has already been iconified, Emacs has no work to do.
+frame has already been made visible, Emacs has no work to do.
 @end table
 
   If one of these events arrives in the middle of a key sequence---that
