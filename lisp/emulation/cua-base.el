@@ -974,6 +974,13 @@ Extra commands should be added to `cua-movement-commands'")
 (defvar cua-movement-commands nil
   "User may add additional movement commands to this list.")
 
+(defvar cua--preserve-mark-commands
+  '(end-of-buffer beginning-of-buffer)
+  "List of movement commands that move the mark.
+CUA will preserve the previous mark position if a mark is already
+active before one of these commands is executed.")
+
+(defvar cua--undo-push-mark nil)
 
 ;;; Scrolling commands which does not signal errors at top/bottom
 ;;; of buffer at first key-press (instead moves to top/bottom
@@ -1062,8 +1069,15 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	;; If rectangle is active, expand rectangle in specified direction and ignore the movement.
 	(if movement
 	    (cond
-	     ((memq 'shift (event-modifiers (aref (this-single-command-raw-keys) 0)))
-	      (unless mark-active
+	     ((memq 'shift (event-modifiers
+			    (aref (if window-system
+				      (this-single-command-raw-keys)
+				    (this-single-command-keys)) 0)))
+	      (if mark-active
+		  (if (and (memq this-command cua--preserve-mark-commands)
+			   (not inhibit-mark-movement))
+		      (setq cua--undo-push-mark t
+			    inhibit-mark-movement t))
 		(push-mark-command nil t))
 	      (setq cua--last-region-shifted t)
 	      (setq cua--explicit-region-start nil))
@@ -1110,6 +1124,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 (defun cua--post-command-handler ()
   (condition-case nil
       (progn
+	(when cua--undo-push-mark
+	  (setq cua--undo-push-mark nil
+		inhibit-mark-movement nil))
 	(when cua--global-mark-active
 	  (cua--global-mark-post-command))
 	(when (fboundp 'cua--rectangle-post-command)
