@@ -71,13 +71,50 @@ Anything else means restrict to the selected frame."
   (save-selected-window
     (if (framep all-frames)
 	(select-window (frame-first-window all-frames)))
-    (let* ((walk-windows-start (selected-window))
-	   (walk-windows-current walk-windows-start))
+    (let* (walk-windows-already-seen
+	   (walk-windows-current (selected-window)))
       (while (progn
 	       (setq walk-windows-current
 		     (next-window walk-windows-current minibuf all-frames))
-	       (funcall proc walk-windows-current)
-	       (not (eq walk-windows-current walk-windows-start)))))))
+	       (not (memq walk-windows-current walk-windows-already-seen)))
+	(setq walk-windows-already-seen
+	      (cons walk-windows-current walk-windows-already-seen))
+	(funcall proc walk-windows-current)))))
+
+(defun some-window (predicate &optional minibuf all-frames default)
+  "Return a window satisfying PREDICATE.
+
+This function cycles through all visible windows using `walk-windows',
+calling PREDICATE on each one.  PREDICATE is called with a window as
+argument.  The first window for which PREDICATE returns a non-nil
+value is returned.  If no window satisfies PREDICATE, DEFAULT is
+returned.
+
+Optional second arg MINIBUF t means count the minibuffer window even
+if not active.  MINIBUF nil or omitted means count the minibuffer iff
+it is active.  MINIBUF neither t nor nil means not to count the
+minibuffer even if it is active.
+
+Several frames may share a single minibuffer; if the minibuffer
+counts, all windows on all frames that share that minibuffer count
+too.  Therefore, if you are using a separate minibuffer frame
+and the minibuffer is active and MINIBUF says it counts,
+`walk-windows' includes the windows in the frame from which you
+entered the minibuffer, as well as the minibuffer window.
+
+ALL-FRAMES is the optional third argument.
+ALL-FRAMES nil or omitted means cycle within the frames as specified above.
+ALL-FRAMES = `visible' means include windows on all visible frames.
+ALL-FRAMES = 0 means include windows on all visible and iconified frames.
+ALL-FRAMES = t means include windows on all frames including invisible frames.
+If ALL-FRAMES is a frame, it means include windows on that frame.
+Anything else means restrict to the selected frame."
+  (catch 'found
+    (walk-windows #'(lambda (window) 
+		      (when (funcall predicate window)
+			(throw 'found window)))
+		  minibuf all-frames)
+    default))
 
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW (a minibuffer window) is now active."
