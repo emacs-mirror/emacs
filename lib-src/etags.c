@@ -4337,6 +4337,7 @@ etags_getcwd ()
 #ifdef HAVE_GETCWD
   int bufsize = 200;
   char *path = xnew (bufsize, char);
+  char *p;
 
   while (getcwd (path, bufsize) == NULL)
     {
@@ -4346,7 +4347,15 @@ etags_getcwd ()
       path = xnew (bufsize, char);
     }
 
+  /* Convert backslashes to slashes.  */
+#if WINDOWSNT
+  for (p = path; *p != '\0'; p++)
+    if (*p == '\\')
+      *p = '/';
+#endif
+
   return path;
+
 #else /* not HAVE_GETCWD */
 #ifdef MSDOS
   char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
