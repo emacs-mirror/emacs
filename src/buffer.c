@@ -34,6 +34,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
+#include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
 
@@ -247,6 +248,10 @@ The value is never nil.")
   BUF_ZV (b) = 1;
   BUF_Z (b) = 1;
   BUF_MODIFF (b) = 1;
+
+  b->newline_cache = 0;
+  b->width_run_cache = 0;
+  b->width_table = Qnil;
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->next = all_buffers;
@@ -840,6 +845,17 @@ with `delete-process'.")
   b->name = Qnil;
   BLOCK_INPUT;
   BUFFER_FREE (BUF_BEG_ADDR (b));
+  if (b->newline_cache)
+    {
+      free_region_cache (b->newline_cache);
+      b->newline_cache = 0;
+    }
+  if (b->width_run_cache)
+    {
+      free_region_cache (b->width_run_cache);
+      b->width_run_cache = 0;
+    }
+  b->width_table = Qnil;
   UNBLOCK_INPUT;
   b->undo_list = Qnil;
 
@@ -2479,6 +2495,7 @@ init_buffer_once ()
 #endif
   XSETFASTINT (buffer_defaults.fill_column, 70);
   XSETFASTINT (buffer_defaults.left_margin, 0);
+  buffer_defaults.cache_long_line_scans = Qnil;
 
   /* Assign the local-flags to the slots that have default values.
      The local flag is a bit that is used in the buffer
@@ -2518,6 +2535,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.abbrev_table, 0x1000);
   XSETFASTINT (buffer_local_flags.display_table, 0x2000);
   XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
+  XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
 #ifdef MSDOS
   XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
 #endif
@@ -2970,6 +2988,23 @@ If the value of the variable is t, undo information is not recorded.");
   DEFVAR_PER_BUFFER ("mark-active", &current_buffer->mark_active, Qnil, 
     "Non-nil means the mark and region are currently active in this buffer.\n\
 Automatically local in all buffers.");
+
+  DEFVAR_PER_BUFFER ("cache-long-line-scans", &current_buffer->cache_long_line_scans, Qnil, 
+    "Non-nil means that Emacs should use caches to handle long lines faster.\n\
+\n\
+Emacs moves from one line to the next by scanning the buffer for\n\
+newlines, and it implements columnar operations like move-to-column by\n\
+scanning the buffer, adding character widths as it goes.  If the\n\
+buffer's lines are very long (say, more than 500 characters), these\n\
+scans can slow Emacs down a great deal.\n\
+\n\
+If this variable is non-nil, Emacs caches the results of its scans,\n\
+and avoids rescanning regions of the buffer until they are modified.\n\
+\n\
+If this variable is non-nil, short scans will become slightly slower,\n\
+and the caches will use memory roughly proportional to the number of\n\
+newlines and characters whose visual representation can occupy more than\n\
+one column.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
     "*Non-nil means deactivate the mark when the buffer contents change.");
