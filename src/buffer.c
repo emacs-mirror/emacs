@@ -2198,7 +2198,7 @@ char-to-byte.  */)
 	      
 	  if (ASCII_BYTE_P (*p))
 	    p++, pos++;
-	  else if (method == Qas
+	  else if (EQ (method, Qas)
 		   && (bytes = MULTIBYTE_LENGTH (p, pend)) > 0)
 	    p += bytes, pos += bytes;
 	  else
@@ -2206,7 +2206,7 @@ char-to-byte.  */)
 	      unsigned char tmp[MAX_MULTIBYTE_LENGTH];
 	      int c;
 
-	      if (method == Qmake)
+	      if (EQ (method, Qmake))
 		c = unibyte_char_to_multibyte (*p);
 	      else
 		c = BYTE8_TO_CHAR (*p);
