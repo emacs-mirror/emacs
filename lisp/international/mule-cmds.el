@@ -204,7 +204,8 @@ This also sets the following values:
   o default value for the command `set-keyboard-coding-system'"
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
-  (setq default-file-name-coding-system coding-system)
+  (if default-enable-multibyte-characters
+      (setq default-file-name-coding-system coding-system))
   (setq default-terminal-coding-system coding-system)
   (setq default-keyboard-coding-system coding-system)
   (setq default-process-coding-system (cons coding-system coding-system)))
