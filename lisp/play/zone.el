@@ -75,6 +75,7 @@ If nil, don't interrupt for about 1^26 seconds.")
                        zone-pgm-paragraph-spaz
                        zone-pgm-stress
                        zone-pgm-stress-destress
+                       zone-pgm-random-life
                        ])
 
 (defmacro zone-orig (&rest body)
@@ -459,6 +460,26 @@ If the element is a function or a list of a function and a number,
       (sit-for wait))
     (delete-char -1) (insert c-string)))
 
+(defun zone-fill-out-screen (width height)
+  (save-excursion
+    (goto-char (point-min))
+    ;; fill out rectangular ws block
+    (while (not (eobp))
+      (end-of-line)
+      (let ((cc (current-column)))
+        (if (< cc width)
+            (insert (make-string (- width cc) 32))
+          (delete-char (- width cc))))
+      (unless (eobp)
+        (forward-char 1)))
+    ;; pad ws past bottom of screen
+    (let ((nl (- height (count-lines (point-min) (point)))))
+      (when (> nl 0)
+        (let ((line (concat (make-string (1- width) ? ) "\n")))
+          (do ((i 0 (1+ i)))
+              ((= i nl))
+            (insert line)))))))
+
 (defun zone-fall-through-ws (c col wend)
   (let ((fall-p nil)                    ; todo: move outward
         (wait 0.15)
@@ -486,27 +507,9 @@ If the element is a function or a list of a function and a number,
          (mc 0)                         ; miss count
          (total (* ww wh))
          (fall-p nil))
-    (goto-char (point-min))
-    ;; fill out rectangular ws block
-    (while (not (eobp))
-      (end-of-line)
-      (let ((cc (current-column)))
-        (if (< cc ww)
-            (insert (make-string (- ww cc) ? ))
-          (delete-char (- ww cc))))
-      (unless (eobp)
-        (forward-char 1)))
-    ;; pad ws past bottom of screen
-    (let ((nl (- wh (count-lines (point-min) (point)))))
-      (when (> nl 0)
-        (let ((line (concat (make-string (1- ww) ? ) "\n")))
-          (do ((i 0 (1+ i)))
-              ((= i nl))
-            (insert line)))))
+    (zone-fill-out-screen ww wh)
     (catch 'done
       (while (not (input-pending-p))
-        (goto-char (point-min))
-        (sit-for 0)
         (let ((wbeg (window-start))
               (wend (window-end)))
           (setq mc 0)
@@ -552,7 +555,9 @@ If the element is a function or a list of a function and a number,
 ;;;; zone-pgm-paragraph-spaz
 
 (defun zone-pgm-paragraph-spaz ()
-  (if (memq (zone-orig major-mode) '(text-mode fundamental-mode))
+  (if (memq (zone-orig major-mode)
+            ;; there should be a better way to distinguish textish modes
+            '(text-mode texinfo-mode fundamental-mode))
       (let ((fill-column fill-column)
             (fc-min fill-column)
             (fc-max fill-column)
@@ -570,7 +575,7 @@ If the element is a function or a list of a function and a number,
     (zone-pgm-rotate)))
 
 
-;;;; zone-pgm-stress
+;;;; stressing and destressing
 
 (defun zone-pgm-stress ()
   (goto-char (point-min))
@@ -596,9 +601,6 @@ If the element is a function or a list of a function and a number,
        (message (concat (make-string (random (- (frame-width) 5)) ? ) "grrr"))
        (sit-for 0.1)))))
 
-
-;;;; zone-pgm-stress-destress
-
 (defun zone-pgm-stress-destress ()
   (zone-call 'zone-pgm-stress 25)
   (zone-hiding-modeline
@@ -615,6 +617,59 @@ If the element is a function or a list of a function and a number,
    (zone-call '((zone-pgm-rotate         30)
                 (zone-pgm-whack-chars    10)
                 zone-pgm-drip))))
+
+
+;;;; the lyfe so short the craft so long to lerne --chaucer
+
+(defvar zone-pgm-random-life-wait nil
+  "*Seconds to wait between successive `life' generations.
+If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
+
+(defun zone-pgm-random-life ()
+  (require 'life)
+  (zone-fill-out-screen (1- (window-width)) (1- (window-height)))
+  (let ((top (progn (goto-char (window-start)) (forward-line 7) (point)))
+        (bot (progn (goto-char (window-end)) (forward-line -7) (point)))
+        (rtc (- (frame-width) 11))
+        (min (window-start))
+        (max (1- (window-end)))
+        c col)
+    (delete-region max (point-max))
+    (while (progn (goto-char (+ min (random max)))
+                  (and (sit-for 0.005)
+                       (or (progn (skip-chars-forward " @\n" max)
+                                  (not (= max (point))))
+                           (unless (or (= 0 (skip-chars-backward " @\n" min))
+                                       (= min (point)))
+                             (forward-char -1)
+                             t))))
+      (setq c (char-after))
+      (unless (or (not c) (= ?\n c))
+        (forward-char 1)
+        (insert-and-inherit             ; keep colors
+         (cond ((or (> top (point))
+                    (< bot (point))
+                    (or (> 11 (setq col (current-column)))
+                        (< rtc col)))
+                32)
+               ((and (<= ?a c) (>= ?z c)) (+ c (- ?A ?a)))
+               ((and (<= ?A c) (>= ?Z c)) ?*)
+               (t ?@)))
+        (forward-char -1)
+        (delete-char -1)))
+    (sit-for 3)
+    (setq col nil)
+    (goto-char bot)
+    (while (< top (point))
+      (setq c (point))
+      (move-to-column 9)
+      (setq col (cons (buffer-substring (point) c) col))
+      (end-of-line 0)
+      (forward-char -10))
+    (let ((life-patterns (vector (cons (make-string (length (car col)) 32)
+                                       col))))
+      (life (or zone-pgm-random-life-wait (random 4)))
+      (kill-buffer nil))))
 
 
 ;;;;;;;;;;;;;;;
