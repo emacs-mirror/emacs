@@ -1,3 +1,13 @@
+2001-02-03  Andrew Innes  <andrewi@gnu.org>
+
+	* configure.bat: Leave a space before >> only when there is a
+	preceding digit.  Add a comment about the importance of this.
+
+	* README: Replace outdated information.
+
+	* INSTALL (Trouble-shooting): Add note about need to specify extra
+	compiler flags with recent Cygwin ports of gcc.
+
 2001-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.bat: Use "rm -f" instead of "del /f", as the latter

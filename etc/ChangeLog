@@ -1,3 +1,8 @@
+2001-02-03  Andrew Innes  <andrewi@gnu.org>
+
+	* PROBLEMS: Add note about need to specify extra compiler flags
+	with recent Cygwin ports of gcc.
+
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* DEBUG: Expand and update, based on the instructions to

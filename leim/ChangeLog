@@ -1,3 +1,7 @@
+2001-02-03  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (LATIN): Fix last change to use () not {}.
+
 2001-02-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (LATIN): Include ${srcdir}/quail/latin-alt.elc.
