@@ -1750,14 +1750,15 @@ OLD and NEW are both characters used to mark files."
 	  (new (progn (message  "Change %c marks to (new mark): " old)
 		      (read-char))))
      (list old new)))
-  (let ((regexp (format "^%s" (regexp-quote old)))
-	(buffer-read-only))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward regexp nil t)
-	(beginning-of-line)
-	(delete-region (point) (1+ (point)))
-	(insert-char new 1)))))
+  (if (or (eq old ?\r) (eq new ?\r))
+      (ding)
+    (let ((string (format "\n%c" old))
+	  (buffer-read-only))
+      (save-excursion
+	(goto-char (point-min))
+	(while (search-forward string nil t)
+	  (subst-char-in-region (match-beginning 0)
+				(match-end 0) old new))))))
 
 (defun dired-unmark-all-files (mark &optional arg)
   "Remove a specific mark or any mark from every file.
