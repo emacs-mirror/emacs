@@ -476,7 +476,10 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
      int noinherit;
      int autoload;
 {
-  Lisp_Object val = Qunbound;
+  Lisp_Object val;
+
+  /* Qunbound in VAL means we have found no binding yet.  */
+  val = Qunbound;
 
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
@@ -516,7 +519,13 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
   {
     Lisp_Object tail;
-    Lisp_Object t_binding = Qnil;
+
+    /* t_binding is where we put a default binding that applies,
+       to use in case we do not find a binding specifically
+       for this key sequence.
+
+    Lisp_Object t_binding;
+    t_binding = Qnil;
 
     /* If `t_ok' is 2, both `t' and generic-char bindings are accepted.
        If it is 1, only generic-char bindings are accepted.
