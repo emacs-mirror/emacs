@@ -217,11 +217,13 @@
     ("\\(<?\\(url: ?\\)?news:\\([^>\n\t ]*\\)>?\\)" 1 t
      gnus-button-message-id 3)
     ("\\(<URL: *\\)?mailto: *\\([^> \n\t]+\\)>?" 0 t gnus-button-reply 2)
-    ;; This is how URLs _should_ be embedded in text...
-    ("<URL: *\\([^\n\r>]*\\)>" 0 t gnus-button-url 1)
     ;; Next regexp stolen from highlight-headers.el.
     ;; Modified by Vladimir Alexiev.
-    (,gnus-button-url-regexp 0 t gnus-button-url 0))
+    (,gnus-button-url-regexp 0 t gnus-button-url 0)
+    ;; This is how URLs _should_ be embedded in text...  It should go
+    ;; last to avoid matching only a subset of the URL, depending on
+    ;; how it was broken across lines.
+    ("<URL:\\([^>]+\\)>" 0 t gnus-button-url 1))
   "Alist of regexps matching buttons in article bodies.
 
 Each entry has the form (REGEXP BUTTON FORM CALLBACK PAR...), where
@@ -1518,7 +1520,13 @@ specified by `gnus-button-alist'."
 
 (defun gnus-button-url (address)
   "Browse ADDRESS."
-  (funcall browse-url-browser-function address))
+  (funcall browse-url-browser-function
+	   ;; Zap whitespace in case <URL:...> contained it.
+	   ;; (Whitespace illegal in raw URL.)
+	   (let ((stripped-address address))
+	     (while (string-match "\\s +\\|\n+" stripped-address)
+	       (setq stripped-address (replace-match "" t t stripped-address)))
+	     stripped-address)))
 
 ;;; Next/prev buttons in the article buffer.
 
