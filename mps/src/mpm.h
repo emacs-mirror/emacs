@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.23) $
+ * $HopeName: MMsrc!mpm.h(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -517,6 +517,7 @@ extern void LDReset(LD ld, Space space);
 extern void LDAdd(LD ld, Space space, Addr addr);
 extern Bool LDIsStale(LD ld, Space space, Addr addr);
 extern void LDAge(Space space, RefSet moved);
+extern void LDMerge(LD ld, Space space, LD from);
 
 
 /* Root Interface -- see impl.c.root */
