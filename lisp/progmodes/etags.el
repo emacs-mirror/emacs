@@ -1866,6 +1866,7 @@ directory specification."
 	(or gotany
 	    (error "File %s not in current tags tables" file)))))
   (with-current-buffer "*Tags List*"
+    (require 'apropos)
     (apropos-mode)
     (setq buffer-read-only t)))
 
@@ -1884,6 +1885,7 @@ directory specification."
 	  (funcall tags-apropos-function regexp))))
     (etags-tags-apropos-additional regexp))
   (with-current-buffer "*Tags List*"
+    (require 'apropos)
     (apropos-mode)
     ;; apropos-mode is derived from fundamental-mode and it kills
     ;; all local variables.

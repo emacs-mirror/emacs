@@ -1,3 +1,8 @@
+2004-05-21  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/etags.el (tags-apropos, list-tags): Require
+	apropos.
+
 2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* locate.el (locate-prompt-for-command): Shorten first line of
