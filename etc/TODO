@@ -3,7 +3,8 @@
 * Port the conservative stack marking code of Emacs' garbage collector
   to more systems, so that we can completely get rid of GCPROs.
 
-* Program Enriched mode to read and save in RTF.
+* Program Enriched mode to read and save in RTF.  [Is there actually a
+  decent single definition of RTF?]
 
 * Implement other text formatting properties.
 ** Footnotes that can appear either in place or at the end of the page.
@@ -145,3 +146,6 @@
   be only full columns/lines.
 
 * Add horizontal scroll bars.
+
+* Integrate Vroonhof's Custom themes code and make it do useful
+  things.
