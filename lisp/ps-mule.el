@@ -1,13 +1,13 @@
 ;;; ps-mule.el --- Provide multi-byte character facility to ps-print.
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Author:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:	print, PostScript, multibyte, mule
-;; Time-stamp:	<99/02/19 13:15:52 vinicius>
+;; Keywords:	wp, print, PostScript, multibyte, mule
+;; Time-stamp:	<99/06/24 23:07:11 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +28,7 @@
 
 ;;; Commentary:
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; About ps-mule
 ;; -------------
@@ -46,8 +46,14 @@
 ;;
 ;; Valid values for `ps-multibyte-buffer' are:
 ;;
-;;  nil                     This is the value to use when you are printing
-;;			    buffer with only ASCII and Latin characters.
+;;  nil                     This is the value to use the default settings which
+;;			    is by default for printing buffer with only ASCII
+;;			    and Latin characters.   The default setting can be
+;;			    changed by setting the variable
+;;			    `ps-mule-font-info-database-default' differently.
+;;			    The initial value of this variable is
+;;			    `ps-mule-font-info-database-latin' (see
+;;			    documentation).
 ;;
 ;;  `non-latin-printer'     This is the value to use when you have a japanese
 ;;			    or korean PostScript printer and want to print
@@ -80,61 +86,70 @@
 ;;
 ;; The default is nil.
 ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Code:
 
 (eval-and-compile (require 'ps-print))
 
-;;;###autoload
-(defcustom ps-multibyte-buffer nil
-  "*Specifies the multi-byte buffer handling.
 
-Valid values are:
+(require 'ps-print-def)			; Common definitions
 
-  nil                     This is the value to use the default settings which
-			  is by default for printing buffer with only ASCII
-			  and Latin characters.   The default setting can be
-			  changed by setting the variable
-			  `ps-mule-font-info-database-default' differently.
-			  The initial value of this variable is
-			  `ps-mule-font-info-database-latin' (which see).
 
-  `non-latin-printer'     This is the value to use when you have a Japanese
-			  or Korean PostScript printer and want to print
-			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
-			  JISX0201-Kana) and Korean characters.  At present,
-			  it was not tested the Korean characters printing.
-			  If you have a korean PostScript printer, please,
-			  test it.
+;;;; `ps-multibyte-buffer' definition should be placed in `ps-mule' but due to
+;;;; compilation and customization gripes it was moved to `ps-print-def'.
+;;
+;;(defcustom ps-multibyte-buffer nil
+;;  "*Specifies the multi-byte buffer handling.
+;;
+;;Valid values are:
+;;
+;;  nil                     This is the value to use the default settings which
+;;			    is by default for printing buffer with only ASCII
+;;			    and Latin characters.   The default setting can be
+;;			    changed by setting the variable
+;;			    `ps-mule-font-info-database-default' differently.
+;;			    The initial value of this variable is
+;;			    `ps-mule-font-info-database-latin' (see
+;;			    documentation).
+;;
+;;  `non-latin-printer'     This is the value to use when you have a Japanese
+;;			    or Korean PostScript printer and want to print
+;;			    buffer with ASCII, Latin-1, Japanese (JISX0208 and
+;;			    JISX0201-Kana) and Korean characters.  At present,
+;;			    it was not tested the Korean characters printing.
+;;			    If you have a korean PostScript printer, please,
+;;			    test it.
+;;
+;;  `bdf-font'              This is the value to use when you want to print
+;;			    buffer with BDF fonts.  BDF fonts include both latin
+;;			    and non-latin fonts.  BDF (Bitmap Distribution
+;;			    Format) is a format used for distributing X's font
+;;			    source file.  BDF fonts are included in
+;;			    `intlfonts-1.1' which is a collection of X11 fonts
+;;			    for all characters supported by Emacs.  In order to
+;;			    use this value, be sure to have installed
+;;			    `intlfonts-1.1' and set the variable
+;;			    `bdf-directory-list' appropriately (see ps-bdf.el for
+;;			    documentation of this variable).
+;;
+;;  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+;;			    PostScript default fonts to print ASCII and Latin-1
+;;			    characters.  This is convenient when you want or
+;;			    need to use both latin and non-latin characters on
+;;			    the same buffer.  See `ps-font-family',
+;;			    `ps-header-font-family' and `ps-font-info-database'.
+;;
+;;Any other value is treated as nil."
+;;  :type '(choice (const non-latin-printer) (const bdf-font)
+;;		   (const bdf-font-except-latin) (other :tag "nil" nil))
+;;  :group 'ps-print-font)
 
-  `bdf-font'              This is the value to use when you want to print
-			  buffer with BDF fonts.  BDF fonts include both latin
-			  and non-latin fonts.  BDF (Bitmap Distribution
-			  Format) is a format used for distributing X's font
-			  source file.  BDF fonts are included in
-			  `intlfonts-1.1' which is a collection of X11 fonts
-			  for all characters supported by Emacs.  In order to
-			  use this value, be sure to have installed
-			  `intlfonts-1.1' and set the variable
-			  `bdf-directory-list' appropriately (see ps-bdf.el for
-			  documentation of this variable).
-
-  `bdf-font-except-latin' This is like `bdf-font' except that it is used
-			  PostScript default fonts to print ASCII and Latin-1
-			  characters.  This is convenient when you want or
-			  need to use both latin and non-latin characters on
-			  the same buffer.  See `ps-font-family',
-			  `ps-header-font-family' and `ps-font-info-database'.
-
-Any other value is treated as nil."
-  :type '(choice (const non-latin-printer) (const bdf-font)
-		 (const bdf-font-except-latin) (other :tag "nil" nil))
-  :group 'ps-print-font)
 
 ;; For Emacs 20.2 and the earlier version.
 (eval-and-compile
-  (if (not (string< mule-version "4.0"))
+  (if (and (boundp 'mule-version)	; only if mule package is loaded
+	   (not (string< mule-version "4.0")))
       (progn
 	(defalias 'ps-mule-next-point '1+)
 	(defalias 'ps-mule-chars-in-string 'length)
@@ -148,8 +163,7 @@ Any other value is treated as nil."
     (defun ps-mule-string-char (string idx)
       (string-to-char (substring string idx)))
     (defun ps-mule-next-index (string i)
-      (+ i (charset-bytes (char-charset (string-to-char string))))))
-  )
+      (+ i (charset-bytes (char-charset (string-to-char string)))))))
 
 (defvar ps-mule-font-info-database
   nil
@@ -198,9 +212,23 @@ See also the variable `ps-font-info-database'.")
      (normal nil nil iso-latin-1)))
   "Sample setting of `ps-mule-font-info-database' to use latin fonts.")
 
-(defvar ps-mule-font-info-database-default
+(defcustom ps-mule-font-info-database-default
   ps-mule-font-info-database-latin
-  "The default setting to use if `ps-multibyte-buffer' (which see) is nil.")
+  "*The default setting to use if `ps-multibyte-buffer' is nil."
+  :type '(repeat :tag "Multi-Byte Buffer Database Font Default"
+		 (list (symbol :tag "Charset")
+		       (repeat :inline t
+			       (list (choice :tag "Font Type"
+					     (const normal) (const bold)
+					     (const italic) (const bold-italic))
+				     (choice :tag "Font Source"
+					     (const builtin) (const ps-bdf)
+					     (const vflib)
+					     (other :tag "nil" nil))
+				     (list (string :tag "Font Name"))
+				     (function :tag "Encoding")
+				     (integer :tag "Bytes")))))
+  :group 'ps-print-font)
 
 (defconst ps-mule-font-info-database-ps
   '((katakana-jisx0201
@@ -366,26 +394,34 @@ See also `ps-mule-font-info-database-bdf'.")
     str))
 
 ;; Special encoding function for Ethiopic.
-(define-ccl-program ccl-encode-ethio-unicode
-  `(1
-    ((read r2)
-     (loop
-      (if (r2 == ,leading-code-private-22)
-	  ((read r0)
-	   (if (r0 == ,(charset-id 'ethiopic))
-	       ((read r1 r2)
-		(r1 &= 127) (r2 &= 127)
-		(call ccl-encode-ethio-font)
-		(write r1)
-		(write-read-repeat r2))
-	     ((write r2 r0)
-	      (repeat))))
-	(write-read-repeat r2))))))
+(if (boundp 'mule-version)		; only if mule package is loaded
+    (define-ccl-program ccl-encode-ethio-unicode
+      `(1
+	((read r2)
+	 (loop
+	  (if (r2 == ,leading-code-private-22)
+	      ((read r0)
+	       (if (r0 == ,(charset-id 'ethiopic))
+		   ((read r1 r2)
+		    (r1 &= 127) (r2 &= 127)
+		    (call ccl-encode-ethio-font)
+		    (write r1)
+		    (write-read-repeat r2))
+		 ((write r2 r0)
+		  (repeat))))
+	    (write-read-repeat r2))))))
+  ;; to avoid compilation gripes
+  (defvar ccl-encode-ethio-unicode nil))
 
-(defun ps-mule-encode-ethiopic (string)
-  (ccl-execute-on-string (symbol-value 'ccl-encode-ethio-unicode)
-			 (make-vector 9 nil)
-			 string))
+(if (boundp 'mule-version)
+    ;; bound mule-version
+    (defun ps-mule-encode-ethiopic (string)
+      (ccl-execute-on-string (symbol-value 'ccl-encode-ethio-unicode)
+			     (make-vector 9 nil)
+			     string))
+  ;; unbound mule-version
+  (defun ps-mule-encode-ethiopic (string)
+    string))
 
 ;; A charset which we are now processing.
 (defvar ps-mule-current-charset nil)
