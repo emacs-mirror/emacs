@@ -606,7 +606,7 @@ the user from the mailer."
 
 ;;;###autoload
 (defvar sendmail-coding-system nil
-  "Coding system to which to encode the mail.")
+  "Coding system to encode the outgoing mail.")
 
 (defun sendmail-send-it ()
   (require 'mail-utils)
@@ -625,6 +625,10 @@ the user from the mailer."
 	   (or sendmail-coding-system
 	       default-buffer-file-coding-system
 	       'iso-latin-1))))
+    (if (fboundp select-safe-coding-system-function)
+	(setq sendmail-coding-system
+	      (funcall select-safe-coding-system-function
+		       (point-min) (point-max) sendmail-coding-system)))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
