@@ -1,6 +1,7 @@
 /*  impl.h.pthreadext: POSIX THREAD EXTENSIONS
  *
  *  $Id$
+ *  $HopeName: MMsrc!pthrdext.h(trunk.1) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MM developers.

@@ -1,6 +1,7 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
+ * $HopeName: MMsrc!poolamc.c(trunk.56) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: design.mps.poolamc.

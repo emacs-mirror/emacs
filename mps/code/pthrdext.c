@@ -1,6 +1,7 @@
 /*  impl.c.pthreadext: POSIX THREAD EXTENSIONS
  *
  *  $Id$
+ *  $HopeName: MMsrc!pthrdext.c(trunk.3) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: Provides extension to Pthreads.

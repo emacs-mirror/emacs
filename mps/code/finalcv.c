@@ -1,6 +1,7 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
  * $Id$
+ * $HopeName: MMsrc!finalcv.c(trunk.13) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

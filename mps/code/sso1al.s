@@ -1,6 +1,7 @@
  # impl.s.sso1al: STACK SCANNING FOR DIGITAL UNIX / ALPHA
  #
  # $Id$
+ # $HopeName: MMsrc!sso1al.s(trunk.2) $
  # Copyright (c) 2001 Ravenbrook Limited.
  #
  # .readership: Any MPS developer that is prepared to read Alpha

@@ -1,6 +1,7 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
+ * $HopeName: MMsrc!buffer.c(trunk.64) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.

@@ -1,6 +1,7 @@
 /* impl.c.lockli: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
+ * $HopeName: MMsrc!lockli.c(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .linux: This implementation currently just supports LinuxThreads 

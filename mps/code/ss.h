@@ -2,6 +2,7 @@
  *              STACK SCANNING
  *
  *  $Id$
+ *  $HopeName: MMsrc!ss.h(trunk.3) $
  *
  *  Copyright (c) 2001 Ravenbrook Limited.
  *

@@ -1,6 +1,7 @@
 /*  impl.c.protso: PROTECTION FOR SOLARIS
  *
  *  $Id$
+ *  $HopeName: MMsrc!protso.c(trunk.6) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  */

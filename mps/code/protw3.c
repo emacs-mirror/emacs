@@ -1,6 +1,7 @@
 /*  impl.c.protw3: PROTECTION FOR WIN32
  *
  *  $Id$
+ *  $HopeName: MMsrc!protw3.c(trunk.16) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -2,6 +2,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
+ * $HopeName: MMsrc!eventrep.h(trunk.2) $
  */
 
 #ifndef eventrep_h

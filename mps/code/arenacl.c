@@ -1,6 +1,7 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
  * $Id$
+ * $HopeName: MMsrc!arenacl.c(trunk.24) $
  * Copyright (c) 2001 Ravenbrook Limited.
  * 
  * .design: See design.mps.arena.client.

@@ -1,6 +1,7 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
  * $Id$
+ * $HopeName: MMsrc!poolabs.c(trunk.9) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * PURPOSE

@@ -1,6 +1,7 @@
 /* impl.h.fmtdy: DYLAN OBJECT FORMAT
  *
  * $Id$
+ * $HopeName: MMsrc!fmtdy.h(trunk.7) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -1,6 +1,7 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
  * $Id$
+ * $HopeName: MMsrc!arena.c(trunk.80) $
  * Copyright (c) 2001 Ravenbrook Limited.
  * 
  * .sources: design.mps.arena is the main design document.  */

@@ -1,6 +1,7 @@
 /*  impl.c.qs: QUICKSORT
  *
  *  $Id$
+ *  $HopeName: MMsrc!qs.c(trunk.18) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  *  The purpose of this program is to act as a "real" client of the MM.

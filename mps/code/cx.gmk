@@ -1,6 +1,7 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR CXREF
 #
 # $Id$
+# $HopeName: MMsrc!cx.gmk(trunk.4) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that generate a c

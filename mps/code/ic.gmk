@@ -1,6 +1,7 @@
 # impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX CC (IRIX 4 OR 5)
 #
 # $Id$
+# $HopeName: MMsrc!ic.gmk(trunk.4) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the IRIX CC

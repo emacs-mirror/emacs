@@ -2,6 +2,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
+ * $HopeName: MMsrc!eventcnv.c(trunk.4) $
  */
 
 #include "config.h"

@@ -1,6 +1,7 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR SunPro C
 #
 # $Id$
+# $HopeName: MMsrc!sc.gmk(trunk.5) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the SunPro C

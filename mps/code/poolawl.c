@@ -1,6 +1,7 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
+ * $HopeName: MMsrc!poolawl.c(trunk.73) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  *

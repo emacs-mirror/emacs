@@ -1,6 +1,7 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
+ * $HopeName: MMsrc!trace.c(trunk.103) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: design.mps.trace.  */

@@ -1,6 +1,7 @@
 /* impl.h.ossu: SUNOS ANSI COMPATABILITY HEADER
  *
  *  $Id$
+ *  $HopeName: MMsrc!ossu.h(trunk.11) $
  *
  *  Copyright (c) 2001 Ravenbrook Limited.
  *

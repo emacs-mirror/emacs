@@ -1,6 +1,7 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
+ * $HopeName: MMsrc!mpm.h(trunk.148) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
