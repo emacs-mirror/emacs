@@ -339,8 +339,7 @@ new value.")
       (overlay-put overlay 'mouse-face widget-mouse-face))
     ;;(overlay-put overlay 'balloon-help help-echo)
     (if (stringp help-echo)
-	(overlay-put overlay 'help-echo help-echo))
-    (overlay-put overlay 'face face)))
+	(overlay-put overlay 'help-echo help-echo))))
 
 (defun widget-specify-sample (widget from to)
   "Specify sample for WIDGET between FROM and TO."
@@ -1956,6 +1955,9 @@ when he invoked the menu."
   :button-prefix ""
   :format "%[%v%]"
   :on "[X]"
+  ;; We could probably do the same job as the images using single
+  ;; space characters in a boxed face with a stretch specification to
+  ;; make them square.
   :on-glyph (create-image (make-bool-vector 49 1)
 			  'xbm t :width 7 :height 7
 			  :foreground "grey75" ; like default mode line
