@@ -65,7 +65,7 @@ The Lisp code is executed when the node is selected.")
 (defface info-menu-5
   '((((class color)) (:foreground "red1"))
     (t (:underline t)))
-  "Face for the fifth and nineth `*' in an Info menu."
+  "Face for every third `*' in an Info menu."
   :group 'info)
 
 (defface info-xref
@@ -76,7 +76,7 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defcustom Info-fontify-maximum-menu-size 100000
-  "*Maximum size of menu to fontify if `Info-fontify' is non-nil."
+  "*Maximum size of menu to fontify if `font-lock-mode' is non-nil."
   :type 'integer
   :group 'info)
 
