@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Cyrillic
 
@@ -89,11 +90,9 @@
   "ALTERNATIVNYJ 8-bit encoding for Cyrillic."
   :coding-type 'charset
   :mnemonic ?A
-  :charset-list '(alternativnyj)
-  :mime-charset 'cp866)
+  :charset-list '(alternativnyj))
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
-(define-coding-system-alias 'cp866 'cyrillic-alternativnyj)
 
 (set-language-info-alist
  "Cyrillic-ALT" `((charset alternativnyj)
@@ -106,6 +105,13 @@
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		  (documentation . "Support for Cyrillic ALTERNATIVNYJ."))
  '("Cyrillic"))
+
+(define-coding-system 'cp866
+  "CP866 encoding for Cyrillic."
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(ibm866)
+  :mime-charset 'cp866)
 
 (define-coding-system 'koi8-u
   "KOI8-U 8-bit encoding for Cyrillic (MIME: KOI8-U)"
