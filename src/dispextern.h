@@ -2192,8 +2192,8 @@ extern EMACS_INT tool_bar_button_relief;
 
 /* Default values of the above variables.  */
 
-#define DEFAULT_TOOL_BAR_BUTTON_MARGIN 1
-#define DEFAULT_TOOL_BAR_BUTTON_RELIEF 3
+#define DEFAULT_TOOL_BAR_BUTTON_MARGIN 4
+#define DEFAULT_TOOL_BAR_BUTTON_RELIEF 1
 
 /* The height in pixels of the default tool-bar images.  */
 
