@@ -535,6 +535,8 @@ If the current buffer now contains an empty file that you just visited
 	(onum buffer-file-number)
 	(otrue buffer-file-truename)
 	(oname (buffer-name)))
+    (if (get-buffer " **lose**")
+	(kill-buffer " **lose**"))
     (rename-buffer " **lose**")
     (setq buffer-file-name nil)
     (setq buffer-file-number nil)
