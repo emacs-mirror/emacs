@@ -12644,6 +12644,13 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		Point point;
 		WindowPtr window_ptr = FrontNonFloatingWindow ();
 		struct mac_output *mwp = (mac_output *) GetWRefCon (window_ptr);
+		if (!IsValidWindowPtr (window_ptr))
+		  {
+		    SysBeep(1);
+		    UNBLOCK_INPUT;
+		    return 0;
+		  }
+
 		GetEventParameter(eventRef, kEventParamMouseWheelDelta,
 				  typeSInt32, NULL, sizeof (SInt32),
 				  NULL, &delta);

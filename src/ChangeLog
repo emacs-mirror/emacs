@@ -1,3 +1,8 @@
+2003-01-20  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (XTread_socket): Checks for valid, visible window
+	before sending a scroll-wheel event.
+
 2003-01-20  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (redisplay_window): If mini window's buffer is not
