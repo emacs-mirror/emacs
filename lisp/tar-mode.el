@@ -630,11 +630,19 @@ appear on disk when you save the tar-file's buffer."
 
 ;; Revert the buffer and recompute the dired-like listing.
 (defun tar-mode-revert (&optional no-autosave no-confirm)
-  (setq tar-header-offset nil)
-  (let ((revert-buffer-function nil))
-    (revert-buffer t no-confirm)
-    (widen))
-  (tar-mode))
+  (let ((revert-buffer-function nil)
+	(old-offset tar-header-offset)
+	success)
+    (setq tar-header-offset nil)
+    (unwind-protect
+	(and (revert-buffer t no-confirm)
+	     (progn (widen)
+		    (setq success t)
+		    (tar-mode)))
+      ;; If the revert was canceled,
+      ;; put back the old value of tar-header-offset.
+      (or success
+	  (setq tar-header-offset old-offset)))))
 
 
 (defun tar-next-line (p)
