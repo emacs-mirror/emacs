@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.23) $
+ * $HopeName: MMsrc!bt.c(trunk.24) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -15,7 +15,7 @@
 #include "mpm.h"
 
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.23) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.24) $");
 
 
 /* BTIndexAlignUp, BTIndexAlignDown -- Align bit-table indices
@@ -928,5 +928,74 @@ void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
  
   ACT_ON_RANGE(base, limit, SINGLE_COPY_INVERT_RANGE, 
                BITS_COPY_INVERT_RANGE, WORD_COPY_INVERT_RANGE);
+}
+
+
+/* BTCopyRange -- copy a range of bits from one BT to another
+ * 
+ * See design.mps.bt.if.copy-range
+ */
+
+void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit)
+{
+  AVER(BTCheck(fromBT));
+  AVER(BTCheck(toBT));
+  AVER(fromBT != toBT);
+  AVER(base < limit);
+
+#define SINGLE_COPY_RANGE(i) \
+  if (BTGet(fromBT, (i))) \
+    BTSet(toBT, (i)); \
+  else \
+    BTRes(toBT, (i)) 
+#define BITS_COPY_RANGE(i,base,limit) \
+  BEGIN \
+    Index bactI = (i); \
+    Word bactMask = BTMask((base),(limit)); \
+    toBT[bactI] = \
+      (toBT[bactI] & ~bactMask) | (fromBT[bactI] & bactMask); \
+  END
+#define WORD_COPY_RANGE(i) \
+  BEGIN \
+    Index wactI = (i); \
+    toBT[wactI] = fromBT[wactI]; \
+  END
+ 
+  ACT_ON_RANGE(base, limit, SINGLE_COPY_RANGE, 
+               BITS_COPY_RANGE, WORD_COPY_RANGE);
+}
+
+
+/* BTCopyOffsetRange -- copy a range of bits from one BT to an
+ * offset range in another BT
+ *
+ * .slow: Can't always use ACT_ON_RANGE because word alignment
+ * may differ for each range. We could try to be smart about 
+ * detecting similar alignment - but we don't.
+ * 
+ * See design.mps.bt.if.copy-offset-range
+ */
+
+void BTCopyOffsetRange(BT fromBT, BT toBT, 
+                       Index fromBase, Index fromLimit, 
+                       Index toBase, Index toLimit)
+{
+  Index fromBit, toBit;
+
+  AVER(BTCheck(fromBT));
+  AVER(BTCheck(toBT));
+  AVER(fromBT != toBT);
+  AVER(fromBase < fromLimit);
+  AVER(toBase < toLimit);
+  AVER((fromLimit - fromBase) == (toLimit - toBase));
+
+  for (fromBit = fromBase, toBit = toBase;
+       fromBit < fromLimit;
+       ++fromBit, ++toBit) {
+    if (BTGet(fromBT, fromBit))
+      BTSet(toBT, toBit);
+    else
+      BTRes(toBT, toBit);
+  }
 }
 
