@@ -187,11 +187,13 @@ With prefix argument, enable European character display iff arg is positive.
 
 Normally, this function turns off `enable-multibyte-characters'
 for all Emacs buffers, because users who call this function
-probably want to edit European characters in single-byte mode.
+probably want to edit European characters in single-byte mode."
 
-However, if the optional argument AUTO is non-nil, this function
-does not alter `enable-multibyte-characters'.
-AUTO also specifies, in this case, the coding system for terminal output."
+  ;; If the optional argument AUTO is non-nil, this function
+  ;; does not alter `enable-multibyte-characters'.
+  ;; AUTO also specifies, in this case, the coding system for terminal output.
+  ;; The AUTO argument is meant for use by startup.el only.
+  ;; which is why it is not in the doc string.
   (interactive "P")
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
