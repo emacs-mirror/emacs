@@ -1130,13 +1130,10 @@ insert_from_string (string, pos, pos_byte, length, length_byte, inherit)
      register int pos, pos_byte, length, length_byte;
      int inherit;
 {
-  if (length > 0)
-    {
-      int opoint = PT;
-      insert_from_string_1 (string, pos, pos_byte, length, length_byte,
-			    inherit, 0);
-      signal_after_change (opoint, 0, PT - opoint);
-    }
+  int opoint = PT;
+  insert_from_string_1 (string, pos, pos_byte, length, length_byte,
+			inherit, 0);
+  signal_after_change (opoint, 0, PT - opoint);
 }
 
 /* Like `insert_from_string' except that all markers pointing
@@ -1149,13 +1146,10 @@ insert_from_string_before_markers (string, pos, pos_byte,
      register int pos, pos_byte, length, length_byte;
      int inherit;
 {
-  if (length > 0)
-    {
-      int opoint = PT;
-      insert_from_string_1 (string, pos, pos_byte, length, length_byte,
-			    inherit, 1);
-      signal_after_change (opoint, 0, PT - opoint);
-    }
+  int opoint = PT;
+  insert_from_string_1 (string, pos, pos_byte, length, length_byte,
+			inherit, 1);
+  signal_after_change (opoint, 0, PT - opoint);
 }
 
 /* Subroutine of the insertion functions above.  */
@@ -1311,13 +1305,10 @@ insert_from_buffer (buf, charpos, nchars, inherit)
      int charpos, nchars;
      int inherit;
 {
-  if (nchars > 0)
-    {
-      int opoint = PT;
+  int opoint = PT;
 
-      insert_from_buffer_1 (buf, charpos, nchars, inherit);
-      signal_after_change (opoint, 0, PT - opoint);
-    }
+  insert_from_buffer_1 (buf, charpos, nchars, inherit);
+  signal_after_change (opoint, 0, PT - opoint);
 }
 
 static void
