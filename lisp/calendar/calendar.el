@@ -639,7 +639,7 @@ See the documentation for `calendar-holidays' for details.")
         (holiday-hebrew 11 15 "Tu B'Shevat"))))
 
 ;;;###autoload
-(defvar hebrew-holiday-3
+(defvar hebrew-holidays-3
   '((if all-hebrew-calendar-holidays
         (holiday-hebrew
          11
