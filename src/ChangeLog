@@ -1,3 +1,17 @@
+2002-11-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_image_foreground, x_draw_image_glyph_string)
+	(w32_draw_image_foreground_1): Handle image masks.
+	(x_draw_image_glyph_string): Don't BitBlt transparently.
+
+	* w32fns.c (w32_defined_color): Adjust RGB values for Emacs.
+	(x_from_xcolors): Adjust RGB values for W32.
+	(image_background, image_background_transparent)
+	(postprocess_image, x_to_xcolors, x_disable_image)
+	(x_build_heuristic_mask): Adapt for W32 and enable.
+	(x_create_x_image_and_pixmap): Mark images with palettes as such.
+	(xbm_load): Remove unused variable.
+
 2002-11-14  Dave Love  <fx@gnu.org>
 
 	* alloc.c (SETJMP_WILL_NOT_WORK): Add note.
