@@ -125,8 +125,7 @@
   (setq c++-mode-syntax-table (copy-syntax-table c-mode-syntax-table))
   (modify-syntax-entry ?* ". 23b" c++-mode-syntax-table)
   (modify-syntax-entry ?/ ". 124" c++-mode-syntax-table)
-  (modify-syntax-entry ?\n ">" c++-mode-syntax-table)
-  (modify-syntax-entry ?\' "." c++-mode-syntax-table))
+  (modify-syntax-entry ?\n ">" c++-mode-syntax-table))
 
 (defvar c++-continued-member-init-offset nil
   "*Extra indent for continuation lines of member inits;
