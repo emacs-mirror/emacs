@@ -1,3 +1,8 @@
+2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>  (tiny change)
+
+	* filecache.el: All message and error commands now use prefix
+	"Filecache:" to make it easy to read *Messages* buffer.
+
 2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
 
 	Autorevert: Add support to detect changed dired buffers.
