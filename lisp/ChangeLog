@@ -1,3 +1,11 @@
+2004-08-16  Davis Herring <herring@lanl.gov>
+
+	* isearch.el (isearch-string, isearch-message-string, isearch-point)
+	(isearch-success, isearch-forward-flag, isearch-other-end)
+	(isearch-word, isearch-invalid-regexp, isearch-wrapped)
+	(isearch-barrier, isearch-within-brackets)
+	(isearch-case-fold-search): Fix broken `nth'-like calls to `aref'.
+
 2004-08-16  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-font-info-database): Fix docstring.
@@ -23,11 +31,10 @@
 	(isearch-*-char, isearch-|-char): Now just call `isearch-fallback'
 	appropriately.
 	(isearch-mode-map): Bind `}' to `isearch-}-char'.
-	(isearch-string, isearch-message,string, isearch-point,
-	isearch-success, isearch-forward-flag, isearch-other-end,
-	isearch-word, isearch-invalid-regexp, isearch-wrapped,
-	isearch-barrier, isearch-within-brackets,
-	isearch-case-fold-search):
+	(isearch-string, isearch-message,string, isearch-point)
+	(isearch-success, isearch-forward-flag, isearch-other-end)
+	(isearch-word, isearch-invalid-regexp, isearch-wrapped)
+	(isearch-barrier, isearch-within-brackets, isearch-case-fold-search):
 	New inline functions to read fields of a stack frame.
 
 2004-08-14  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>  (tiny change)
