@@ -1003,7 +1003,7 @@ The only difference with cyrillic-translit is that \"sht\" translates as
 (quail-define-package
  "bulgarian-pho" "Bulgarian" "$,1(6(1(D(B"
  nil
- "Bulragian Phonetic keyboard layout, producing Unicode
+ "Bulgarian Phonetic keyboard layout, producing Unicode
 
 The layout is similar to `cyrillic-translit', but all Bulgarian
 characters are typed with a single key."
