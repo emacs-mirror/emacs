@@ -7513,7 +7513,7 @@ redisplay_internal (preserve_echo_area)
   ++redisplaying_p;
   
  retry:
-
+  pause = 0;
   reconsider_clip_changes (w, current_buffer);
 
   /* If new fonts have been loaded that make a glyph matrix adjustment
@@ -7867,9 +7867,9 @@ redisplay_internal (preserve_echo_area)
   ++clear_face_cache_count;
 
   
-  /* Build desired matrices.  If consider_all_windows_p is non-zero,
-     do it for all windows on all frames.  Otherwise do it for
-     selected_window, only.  */
+  /* Build desired matrices, and update the display.  If
+     consider_all_windows_p is non-zero, do it for all windows on all
+     frames.  Otherwise do it for selected_window, only.  */
 
   if (consider_all_windows_p)
     {
@@ -7889,6 +7889,7 @@ redisplay_internal (preserve_echo_area)
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
+	  
 	  if (FRAME_WINDOW_P (f) || f == sf)
 	    {
 	      /* Mark all the scroll bars to be removed; we'll redeem
@@ -7903,81 +7904,60 @@ redisplay_internal (preserve_echo_area)
 		 nuked should now go away.  */
 	      if (judge_scroll_bars_hook)
 		(*judge_scroll_bars_hook) (f);
-	    }
-	}
-    }
-  else if (FRAME_VISIBLE_P (sf)
-	   && !FRAME_OBSCURED_P (sf))
-    redisplay_window (selected_window, 1);
 
-  
-  /* Compare desired and current matrices, perform output.  */
-  
-update:
-  
-  /* If fonts changed, display again.  */
-  if (fonts_changed_p)
-    goto retry;
-
-  /* Prevent various kinds of signals during display update.
-     stdio is not robust about handling signals,
-     which can cause an apparent I/O error.  */
-  if (interrupt_input)
-    unrequest_sigio ();
-  stop_polling ();
-
-  if (consider_all_windows_p)
-    {
-      Lisp_Object tail;
-      struct frame *f;
-      int hscrolled_p;
-
-      pause = 0;
-      hscrolled_p = 0;
-
-      /* See if we have to hscroll.  */
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-	if (FRAMEP (XCAR (tail)))
-	  {
-	    f = XFRAME (XCAR (tail));
-	    
-	    if ((FRAME_WINDOW_P (f)
-		 || f == sf)
-		&& FRAME_VISIBLE_P (f)
-		&& !FRAME_OBSCURED_P (f)
-		&& hscroll_windows (f->root_window))
-	      hscrolled_p = 1;
-	  }
-
-      if (hscrolled_p)
-	goto retry;
-
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-	{
-	  if (!FRAMEP (XCAR (tail)))
-	    continue;
-
-	  f = XFRAME (XCAR (tail));
-
-	  if ((FRAME_WINDOW_P (f) || f == sf)
-	      && FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
-	    {
-	      /* Mark all windows as to be updated.  */
-	      set_window_update_flags (XWINDOW (f->root_window), 1);
-	      pause |= update_frame (f, 0, 0);
-	      if (!pause)
+	      /* If fonts changed, display again.  */
+	      if (fonts_changed_p)
+		goto retry;
+	      
+	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		{
+		  /* See if we have to hscroll.  */
+		  if (hscroll_windows (f->root_window))
+		    goto retry;
+
+		  /* Prevent various kinds of signals during display
+		     update.  stdio is not robust about handling
+		     signals, which can cause an apparent I/O
+		     error.  */
+		  if (interrupt_input)
+		    unrequest_sigio ();
+		  stop_polling ();
+
+		  /* Update the display.  */
+		  set_window_update_flags (XWINDOW (f->root_window), 1);
+		  pause |= update_frame (f, 0, 0);
+		  if (pause)
+		    break;
+
 		  mark_window_display_accurate (f->root_window, 1);
-		  if (frame_up_to_date_hook != 0)
-		    (*frame_up_to_date_hook) (f);
+		  if (frame_up_to_date_hook)
+		    frame_up_to_date_hook (f);
 		}
 	    }
 	}
     }
-  else
+  else if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
     {
-      if (FRAME_VISIBLE_P (sf)
-	  && !FRAME_OBSCURED_P (sf))
+      Lisp_Object mini_window;
+      struct frame *mini_frame;
+
+      redisplay_window (selected_window, 1);
+  
+      /* Compare desired and current matrices, perform output.  */
+    update:
+  
+      /* If fonts changed, display again.  */
+      if (fonts_changed_p)
+	goto retry;
+
+      /* Prevent various kinds of signals during display update.
+	 stdio is not robust about handling signals,
+	 which can cause an apparent I/O error.  */
+      if (interrupt_input)
+	unrequest_sigio ();
+      stop_polling ();
+
+      if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
 	{
 	  if (hscroll_windows (selected_window))
 	    goto retry;
@@ -7985,29 +7965,22 @@ update:
 	  XWINDOW (selected_window)->must_be_updated_p = 1;
 	  pause = update_frame (sf, 0, 0);
 	}
-      else
-	pause = 0;
 
       /* We may have called echo_area_display at the top of this
 	 function.  If the echo area is on another frame, that may
 	 have put text on a frame other than the selected one, so the
 	 above call to update_frame would not have caught it.  Catch
 	 it here.  */
-      {
-	Lisp_Object mini_window;
-	struct frame *mini_frame;
-
-	mini_window = FRAME_MINIBUF_WINDOW (sf);
-	mini_frame = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
+      mini_window = FRAME_MINIBUF_WINDOW (sf);
+      mini_frame = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 	
-	if (mini_frame != sf && FRAME_WINDOW_P (mini_frame))
-	  {
-	    XWINDOW (mini_window)->must_be_updated_p = 1;
-	    pause |= update_frame (mini_frame, 0, 0);
-	    if (!pause && hscroll_windows (mini_window))
-	      goto retry;
-	  }
-      }
+      if (mini_frame != sf && FRAME_WINDOW_P (mini_frame))
+	{
+	  XWINDOW (mini_window)->must_be_updated_p = 1;
+	  pause |= update_frame (mini_frame, 0, 0);
+	  if (!pause && hscroll_windows (mini_window))
+	    goto retry;
+	}
     }
 
   /* If display was paused because of pending input, make sure we do a
@@ -8843,7 +8816,8 @@ try_cursor_movement (window, startp, scroll_step)
 
       /* Start with the row the cursor was displayed during the last
 	 not paused redisplay.  Give up if that row is not valid.  */
-      if (w->last_cursor.vpos >= w->current_matrix->nrows)
+      if (w->last_cursor.vpos < 0
+	  || w->last_cursor.vpos >= w->current_matrix->nrows)
 	rc = -1;
       else
 	{
