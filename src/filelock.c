@@ -311,9 +311,11 @@ typedef struct
 
 
 /* Write the name of the lock file for FN into LFNAME.  Length will be
-   that of FN plus two more for the leading `.#' plus one for the null.  */
+   that of FN plus two more for the leading `.#' plus 1 for the
+   trailing period plus one for the digit after it plus one for the
+   null.  */
 #define MAKE_LOCK_NAME(lock, file) \
-  (lock = (char *) alloca (STRING_BYTES (XSTRING (file)) + 2 + 1), \
+  (lock = (char *) alloca (STRING_BYTES (XSTRING (file)) + 2 + 1 + 1 + 1), \
    fill_in_lock_file_name (lock, (file)))
 
 static void
@@ -322,6 +324,8 @@ fill_in_lock_file_name (lockfile, fn)
      register Lisp_Object fn;
 {
   register char *p;
+  struct stat st;
+  int count = 0;
 
   strcpy (lockfile, XSTRING (fn)->data);
 
@@ -334,6 +338,18 @@ fill_in_lock_file_name (lockfile, fn)
   /* Insert the `.#'.  */
   p[1] = '.';
   p[2] = '#';
+
+  p = p + strlen (p);
+
+  while (lstat (lockfile, &st) == 0 && !S_ISLNK (st.st_mode))
+    {
+      if (count > 9)
+	{
+	  *p = '\0';
+	  return;
+	}
+      sprintf (p, ".%d", count++);
+    }
 }
 
 /* Lock the lock file named LFNAME.
