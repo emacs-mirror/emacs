@@ -1356,7 +1356,7 @@ the value of `bibtex-text-indentation', minus 2."
                   (setq found t)))))
         (if found
             (progn
-              (store-match-data md)
+              (set-match-data md)
               ;; to set match-beginning/end again
               (point))
           (if (equal noerror nil)
