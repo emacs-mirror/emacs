@@ -1,3 +1,7 @@
+1999-11-18  Dave Love  <fx@gnu.org>
+
+	* simple.el (input-mode-8-bit): Fix the customization.
+
 1999-11-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/iso-acc.el (iso-languages): Add more
