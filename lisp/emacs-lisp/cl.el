@@ -107,26 +107,6 @@
 (defvar cl-optimize-safety 1)
 
 
-;;; Keywords used in this package.
-
-(defconst :test ':test)
-(defconst :test-not ':test-not)
-(defconst :key ':key)
-(defconst :start ':start)
-(defconst :start1 ':start1)
-(defconst :start2 ':start2)
-(defconst :end ':end)
-(defconst :end1 ':end1)
-(defconst :end2 ':end2)
-(defconst :count ':count)
-(defconst :initial-value ':initial-value)
-(defconst :size ':size)
-(defconst :from-end ':from-end)
-(defconst :rehash-size ':rehash-size)
-(defconst :rehash-threshold ':rehash-threshold)
-(defconst :allow-other-keys ':allow-other-keys)
-
-
 (defvar custom-print-functions nil
   "This is a list of functions that format user objects for printing.
 Each function is called in turn with three arguments: the object, the
