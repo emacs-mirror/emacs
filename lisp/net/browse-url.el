@@ -983,7 +983,7 @@ non-nil, load the document in a new Epiphany window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
-If `browse-url-galeon-new-window-is-tab' is non-nil, then whenever a
+If `browse-url-epiphany-new-window-is-tab' is non-nil, then whenever a
 document would otherwise be loaded in a new window, it is loaded in a
 new tab in an existing window instead.
 
