@@ -1956,7 +1956,7 @@ but the contents viewed as characters do change.")
   struct buffer *other;
   int undo_enabled_p = !EQ (current_buffer->undo_list, Qt);
   int begv, zv;
-  int narrowed = (BEG != begv || Z != zv);
+  int narrowed = (BEG != BEGV || Z != ZV);
   int modified_p = !NILP (Fbuffer_modified_p (Qnil));
 
   if (current_buffer->base_buffer)
