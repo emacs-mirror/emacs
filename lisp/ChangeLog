@@ -1,3 +1,14 @@
+2003-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Add run-time check to catch users trying
+	to use older versions of CUA-mode, rather than the version
+	distributed with Emacs.  Use autoload cookies and eval-after-load.
+
+	* startup.el (command-line): Clarify and tidy up the message
+	printed when there are errors in the user-init-file.
+	Do not encapsulate the error data; it's read by humans here.
+	Do not split windows when displaying the *Message* buffer.
+
 2003-02-20  Ehud Karni  <ehud@unix.mvs.co.il>  (tiny change)
 
 	* mail/rmail.el (rmail-insert-inbox-text): Make the pop3 mechanism
