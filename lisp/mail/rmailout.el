@@ -181,7 +181,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
 (defun rmail-output (file-name &optional count noattribute from-gnus)
-  "Append this message to Unix mail file named FILE-NAME.
+  "Append this message to system-inbox-format mail file named FILE-NAME.
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count.
 When called from lisp code, N may be omitted.
