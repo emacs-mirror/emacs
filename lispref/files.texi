@@ -152,7 +152,7 @@ Conversion}).
 
 The @code{find-file-noselect} function usually returns the buffer that
 is visiting the file @var{filename}.  But, if wildcards are actually
-used and expanded, it returns a list of buffer tha are visiting the
+used and expanded, it returns a list of buffers that are visiting the
 various files.
 
 @example
