@@ -243,7 +243,6 @@ echo "Making links to \`info'."
 echo "Making links to \`man'."
 (cd man
  ln *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
- cp texinfo.tex texindex.c ../${tempdir}/man
  test -f README && ln README ../${tempdir}/man
  test -f Makefile && ln Makefile ../${tempdir}/man
  ln ChangeLog split-man ../${tempdir}/man
