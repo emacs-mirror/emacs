@@ -1,5 +1,4 @@
 This is a list of the status of GNU Emacs on various machines and systems.
-Last updated 10 Feb 1992.
 
 For each system and machine, we give the configuration name you should
 pass to the `configure' script to prepare to build Emacs for that
@@ -28,7 +27,7 @@ will configure Emacs for the latest version it knows about.
 
 Alliant (fx80-alliant-bsd):
 
-  18.52 works on system version 4.  Previous Emacs versions were
+  18.52 worked on system version 4.  Previous Emacs versions were
   known to work on previous system versions.
 
   If you are using older versions of their operating system, you may
@@ -41,7 +40,7 @@ Alliant FX/2800 (i860-alliant-bsd)
 
 Altos 3068 (m68k-altos-sysv)
 
-  18.52 is said to work, provided you don't compile unexec.c with -O.
+  18.52 was said to work, provided you don't compile unexec.c with -O.
 
 Amdahl UTS (580-amdahl-sysv)
 
@@ -59,8 +58,7 @@ Amdahl UTS (580-amdahl-sysv)
 Apollo running Domain (m68k-apollo-bsd)
 
   18.52 works, to some extent.
-  Code for dumping Emacs has been written, but we cannot
-  distribute it yet.
+  Code for dumping Emacs has been written, but we cannot distribute it yet.
   There are reports of bugs in cc -O on this system.
 
   In `lib-src/Makefile', don't expect emacsclient and emacsserver to
@@ -70,19 +68,53 @@ Apollo running Domain (m68k-apollo-bsd)
   Paraphrasing the statement should avoid the problem.  I have not yet
   received word as to the exact statement this is.
 
+  The Apollo has a bizarre operating system which does not permit
+  Emacs to be dumped with preloaded pure Lisp code.  Therefore, each
+  time you start Emacs on this system, the standard Lisp code is loaded
+  into it.  Expect it to take a long time.  You can prevent loading of
+  the standard Lisp code by specifying the -nl switch.  It must
+  come at the beginning of the command line; only the -t and -batch
+  switches may come before it.
+
+  There is one remaining problem on the Apollo.  You must replace
+  the CPP line in src/Makefile with "CPP = /usr/lib/cpp".
+  The C preprocessor lives there rather than in /lib/cpp because the
+  Aegis OS uses the /lib directory as the repository for shared libraries.
+
+
+  Here is a design for a method of dumping and reloading the relevant
+  necessary impure areas of Emacs.
+
+  On dumping, you need to dump only the array `pure' plus the
+  locations that contain values of forwarded Lisp variables or that are
+  protected for garbage collection.  The former can be found by a
+  garbage- collection-like technique, and the latter are in the
+  staticprolist vector (see alloc.c for both things).
+
+  Reloading would work in an Emacs that has just been started; except
+  when a switch is specified to inhibit this, it would read the dump
+  file and set all the appropriate locations.  The data loaded must be
+  relocated, but that's not hard.  Those locations that are of type
+  Lisp_Object can be found by a technique like garbage-collection, and
+  those of them that point to storage can be relocated.  The other data
+  read from the file will not need to be relocated.
+
+  The switch to inhibit loading the data base would be used when it
+  is time to dump a new data base.
+
+  This would take a few seconds, which is much faster than loading
+  the Lisp code of Emacs from scratch.
+
 AT&T 3b2, 3b5, 3b15, 3b20 (we32k-att-sysv)
 
   Emacs will probably not work with certain kernel constants too small. 
 
   In param.h CDLIMIT should be at least (1L << 12) in order to allow 
-  processes to write up to 2 Mbyte files.  If it's too small,
-  you can perhaps fix it using the file `ulimit.hack' in this directory.
-
-  Note that for V.3.1 and later releases, this parameter is configurable
+  processes to write up to 2 Mbyte files.  This parameter is configurable
   by normal means in /etc/master.d/kernel; examine that file for the
   symbol CDLIMIT or ULIMIT, and raise it by several powers of 2.  Then
   do normal kernel rebuild things via "cd /boot; mkboot -k KERNEL" and so
-  forth.  Do not use ulimit.hack if you have V.3.1 or later.
+  forth.
 
   In seg.h NSEGP and STACKSEG should be at least 16 and 4 respectively
   to allow processes with total size of up to 2Mbytes.
@@ -93,7 +125,7 @@ AT&T 3b2, 3b5, 3b15, 3b20 (we32k-att-sysv)
 
 AT&T 7300 or 3b1 (m68k-att-sysv)
 
-  18.52 seems to work.  If you have strange troubles with dumping
+  18.52 worked.  If you have strange troubles with dumping
   Emacs, delete the last few lines from `src/m/7300.h' and recompile.
   These lines are supposed to produce a sharable executable.
 
@@ -112,7 +144,7 @@ CCI 5/32, 6/32
 
 Celerity (celerity-celerity-bsd4.2)
 
-  Version 18.49 works.  This configuration name is a hack, because we
+  Version 18.49 worked.  This configuration name is a hack, because we
   don't know the processor used by Celerities.  If someone
   who uses a Celerity could get in touch with us, we can teach
   config.sub a better name for the configuration.
@@ -129,7 +161,7 @@ Clipper (clipper-???)
 Convex (c1-convex-bsd, c2-convex-bsd, c32-convex-bsd, c34-convex-bsd,
         c38-convex-bsd)
 
-  18.53 is supposed to work.
+  18.53 supposedly to work.
 
 Cubix QBx/386 (i386-cubix-sysv)
 
@@ -167,12 +199,12 @@ Motorola Delta 187 (m88k-motorola-sysv or m88k-motorola-m88kbcs)
  
 Dual running System V (m68k-dual-sysv)
 
-  As of 17.46, this works except for a few changes
+  As of 17.46, this worked except for a few changes
   needed in unexec.c.
 
 Dual running Uniplus (m68k-dual-uniplus)
 
-  Works, as of 17.51.
+  Worked, as of 17.51.
 
 Elxsi 6400 (elxsi-elxsi-sysv)
 
@@ -307,7 +339,7 @@ IBM RS/6000 (rs6000-ibm-aix)
 
 IBM RT/PC (romp-ibm-bsd or romp-ibm-aix)
 
-  18.52 works on both operating systems.
+  18.52 worked on both operating systems.
   Use romp-ibm-bsd for the 4.2-like system and romp-ibm-aix for AIX.
 
   On BSD, if you have trouble, try compiling with a different compiler.
@@ -382,7 +414,7 @@ Intel 386 (i386-unknown-isc, i386-unknown-esix, i386-unknown-xenix,
 
 Iris 2500 and Iris 2500 Turbo (m68k-sgi-iris3.5 or m68k-sgi-iris3.6)
 
-  Version 18 said to work; use m68k-sgi-iris3.5 for system version 2.5
+  Version 18 was said to work; use m68k-sgi-iris3.5 for system version 2.5
   and m68k-sgi-iris3.6 for system version 3.6.
   Note that the 3030 is the same as the Iris 2500 Turbo.
 
@@ -473,7 +505,7 @@ NCR Tower 32 (m68k-ncr-sysv2 or m68k-ncr-sysv3)
   If you are running System V release 2, use m68k-ncr-sysv2.
   If you are running System V release 3, use m68k-ncr-sysv3.
 
-  These both work as of 18.56.  If you change `src/ymakefile' so that
+  These both worked as of 18.56.  If you change `src/ymakefile' so that
   CFLAGS includes C_OPTIMIZE_SWITCH rather than C_DEBUG_SWITCH, check
   out the comments in `src/m/tower32.h' (for System V release 2) or
   `src/m/tower32v3.h' (for System V release 3) about this.
@@ -494,7 +526,7 @@ Nu (TI or LMI) (m68k-nu-sysv)
 
 Plexus (m68k-plexus-sysv)
 
-  Works as of 17.56.
+  Worked as of 17.56.
 
 Pmax (DEC Mips)  (mips-dec-ultrix or mips-dec-osf1)
 
@@ -529,7 +561,7 @@ Pyramid (pyramid-pyramid-bsd)
 
 Sequent Balance (ns32k-sequent-bsd4.2 or ns32k-sequent-bsd4.3)
 
-  Emacs 18.51 should work on system version 3.0.  18.52 is said to work.
+  Emacs 18.51 worked on system version 3.0.  18.52 is said to work.
   Delete some lines at the end of `src/m/sequent.h' for earlier system
   versions.
 
@@ -539,12 +571,11 @@ Sequent Symmetry (i386-sequent-bsd)
 
 SONY News (m68k-sony-bsd4.2 or m68k-sony-bsd4.3)
 
-  18.52 should work.
-  Use m68k-sony-bsd4.3 for system release 3.
+  18.52 worked.  Use m68k-sony-bsd4.3 for system release 3.
 
 SONY News 3000 series (RISC NEWS) (mips-sony-bsd)
 
-  Works, as of 18.56.  Note that this is a MIPS architecture machine.
+  Worked, as of 18.56.  Note that this is a MIPS architecture machine.
 
   Some versions of the operating system give SIGTRAP for division by zero
   instead of the usual signals.  This causes division by zero
@@ -614,6 +645,29 @@ Sun 1, 2 and 3 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos)
 
   Changes for the Roadrunner architecture were merged in 18.51.
 
+  There is a bug in the Export version of SunOS 4.0 shipped outsde the
+  US; it has something to do with Pentagon export restrictions on the
+  DES chips in Suns.  The symptom is that "cc -Bstatic ..." WILL NOT
+  WORK ON SUNOS 4.0 EXPORT without a little help from "ar".  The
+  static C-library is /lib/libc.a, and this is where the problem
+  occurs.  There are a bunch of .o files in there relating to DES
+  stuff (des_crypt.o, des_soft.o, _crypt.o, etc).  All of them will
+  cause cc -Bstatic to die with these errors:
+
+  > _edata: ld: user attempt to redefine loader-defined symbol
+  > _end: user attempt to redefine loader-defined symbol
+  > _etext: /lib/libc.a(des_crypt.o): multiply defined
+
+  In order to make cc -Bstatic useful, you must remove all the
+  brain-damaged .o files from /lib/libc.a.  To do this use
+
+  ar d /lib/libc.a des_crypt.o des_soft.o _crypt.o ....
+
+  (Make a backup of /lib/libc.a first, you may decide you need the "real"
+  thing someday).  Note that there are a bunch of these files, these may
+  not be  all of them.  You will find them quick enough by trying to
+  compile ANY C program, even one which does NOTHING.
+
 Tadpole 68K (m68k-tadpole-sysv)
 
   Changes merged in 19.1.
@@ -627,7 +681,7 @@ Tadpole 68K (m68k-tadpole-sysv)
 
 Tahoe (tahoe-tahoe-bsd4.2 or tahoe-tahoe-bsd4.3)
 
-  18.52 known to work on some Tahoes, but a compiler bug intervenes
+  18.52 was known to work on some Tahoes, but a compiler bug intervenes
   on others.  Some Emacs versions have worked in Unisys 1r4
   (not in 1r3) and CCI I.21.
 
@@ -647,7 +701,7 @@ Tektronix 16000 box (6130?) (ns16k-tektronix-bsd)
 
 Tektronix 4300 (m68k-tektronix-bsd)
 
-  Emacs 18.51 should work.
+  Emacs 18.51 worked.
 
 Titan P2 or P3 (titan-titan-sysv)
 
@@ -666,11 +720,11 @@ Vaxen running Berkeley Unix (vax-dec-bsd4.1, vax-dec-bsd4.2, vax-dec-bsd4.3),
 
   See under Ultrix for problems using X windows on Ultrix (vax-dec-ultrix).
 
-  18.27 works on System V rel 2 (vax-dec-sysv2).
+  18.27 worked on System V rel 2 (vax-dec-sysv2).
 
-  18.36 works on System V rel 0 (vax-dec-sysv0).
+  18.36 worked on System V rel 0 (vax-dec-sysv0).
 
-  18.36 is believed to work on VMS.  Addition of features is necessary
+  18.36 was believed to work on VMS.  Addition of features is necessary
   to make this Emacs version more usable.
 
 Whitechapel MG1 (ns16k-whitechapel-?)
