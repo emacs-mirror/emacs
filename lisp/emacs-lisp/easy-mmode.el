@@ -3,6 +3,7 @@
 ;; Copyright (C) 1997  Free Software Foundation, Inc.
 
 ;; Author:  Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
+;; Maintainer:  Stefan Monnier <monnier@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -60,10 +61,11 @@ optional MENU-NAME is passed to `make-sparse-keymap'."
      keymap-alist)
     keymap))
 
-(defmacro easy-mmode-define-toggle (mode &optional doc)
+(defmacro easy-mmode-define-toggle (mode &optional doc &rest body)
   "Define a one arg toggle mode MODE function and associated hooks.
-MODE-mode is the so defined function that toggle the mode.
+MODE is the so defined function that toggles the mode.
 optional DOC is its associated documentation.
+BODY is executed after the toggling and before running the hooks.
 
 Hooks are checked for run, each time MODE-mode is called.
 They run under the followings conditions:
@@ -72,86 +74,79 @@ MODE-on-hook: if the mode is on.
 MODE-off-hook: if the mode is off.
 
 When the mode is effectively toggled, two hooks may run.
-If so MODE-hook is guaranteed to be the first.
-
-\(defmacro easy-mmode-define-toggle (MODE &optional DOC)"
-  (let* ((mode-name
-	  (if (string-match "-mode\\'" (symbol-name mode))
-	      (symbol-name mode)
-	    (concat (symbol-name mode) "-mode")))
+If so MODE-hook is guaranteed to be the first."
+  (let* ((mode-name (symbol-name mode))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
-	 (toggle (intern mode-name))
-	 (mode toggle)
 	 (toggle-doc (or doc
-			 (format "With no argument, toggle %s mode.
-With arg turn mode on.
-With zero or negative arg turn mode off"
-				 mode-name))))
+			 (format "With no argument, toggle %s.
+With universal prefix ARG turn mode on.
+With zero or negative ARG turn mode off.
+\\{%s}" mode-name (concat mode-name "-map")))))
     `(progn
-       (defvar ,hook  nil	     
-	 ,(format "Hook called when %s mode is toggled" mode-name))
+       (defcustom ,hook  nil
+	 ,(format "Hook called when `%s' is toggled" mode-name)
+	 :type 'hook)
 
-       (defvar ,hook-on  nil	     
-	 ,(format "Hook called when %s mode is turned on" mode-name))
+       (defcustom ,hook-on  nil
+	 ,(format "Hook called when `%s' is turned on" mode-name)
+	 :type 'hook)
 
-       (defvar ,hook-off nil
-	 ,(format "Hook called when %s mode is turned off" mode-name))
+       (defcustom ,hook-off nil
+	 ,(format "Hook called when `%s' is turned off" mode-name)
+	 :type 'hook)
 
-       (defun ,toggle (&optional arg)
+       (defun ,mode (&optional arg)
 	 ,toggle-doc
 	 (interactive "P")
 	 (let ((old-mode ,mode))
 	   (setq ,mode
 		 (if arg
-		     (or (listp arg);; C-u alone
-			 (> (prefix-numeric-value arg) 0))
+		     (> (prefix-numeric-value arg) 0)
 		   (not ,mode)))
-	   (and ,hook
-		(not (equal old-mode ,mode))
-	        (run-hooks ',hook))
-	   (and ,hook-on
-		,mode
-		(run-hooks ',hook-on))
-	   (and ,hook-off
-		(not ,mode)
-		(run-hooks ',hook-off)))))))
+	   ,@body
+	   (unless (equal old-mode ,mode) (run-hooks ',hook))
+	   (run-hooks (if ,mode ',hook-on ',hook-off)))))))
 
 ;;;###autoload
-(defmacro easy-mmode-define-minor-mode (mode doc &optional init-value lighter keymap)
+(defalias 'easy-mmode-define-minor-mode 'define-minor-mode)
+;;;###autoload
+(defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
 This function defines the associated control variable, keymap,
 toggle command, and hooks (see `easy-mmode-define-toggle').
 
 DOC is the documentation for the mode toggle command.
+Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the mode-bar when the mode is on.
 Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
 If it is a list, it is passed to `easy-mmode-define-keymap'
 in order to build a valid keymap.
- 
-\(defmacro easy-mmode-define-minor-mode
-  (MODE DOC &optional INIT-VALUE LIGHTER KEYMAP)...\)" 
+BODY contains code that will be executed each time the mode is (dis)activated.
+It will be executed after any toggling but before running the hooks."
   (let* ((mode-name (symbol-name mode))
-	 (mode-doc (format "Non-nil if %s mode is enabled." mode-name))
-	 (keymap-name (concat mode-name "-map"))
-	 (keymap-doc (format "Keymap for %s mode." mode-name)))
+	 (mode-doc (format "Non-nil if mode is enabled.
+Use the function `%s' to change this variable." mode-name))
+	 (keymap-sym (intern (concat mode-name "-map")))
+	 (keymap-doc (format "Keymap for `%s'." mode-name)))
     `(progn
        ;; Define the variable to enable or disable the mode.
        (defvar ,mode ,init-value ,mode-doc)
        (make-variable-buffer-local ',mode)
 
        ;; Define the minor-mode keymap.
-       (defvar ,(intern keymap-name)
-	 (cond ((and ,keymap (keymapp ,keymap))
-		,keymap)
-	       ((listp ,keymap)
-		(easy-mmode-define-keymap ,keymap))
-	       (t (error "Invalid keymap %S" ,keymap)))
-	 ,keymap-doc)
+       ,(when keymap
+	  `(defvar ,keymap-sym
+	     (cond ((and ,keymap (keymapp ,keymap))
+		    ,keymap)
+		   ((listp ,keymap)
+		    (easy-mmode-define-keymap ,keymap))
+		   (t (error "Invalid keymap %S" ,keymap)))
+	     ,keymap-doc))
 
        ;; Define the toggle and the hooks.
-       ,(macroexpand `(easy-mmode-define-toggle ,mode ,doc))
+       (easy-mmode-define-toggle ,mode ,doc ,@body)
 
        ;; Update the mode line.
        (or (assq ',mode minor-mode-alist)
@@ -161,10 +156,10 @@ in order to build a valid keymap.
 
        ;; Update the minor mode map.
        (or (assq ',mode minor-mode-map-alist)
-	   (setq minor-mode-map-alist 
-		 (cons (cons ',mode ,(intern keymap-name)) minor-mode-map-alist)))
+	   (setq minor-mode-map-alist
+		 (cons (cons ',mode nil) minor-mode-map-alist)))
        (setcdr (assq ',mode minor-mode-map-alist)
-	       ,(intern keymap-name))) ))
+	       ,keymap-sym)) ))
 
 (provide 'easy-mmode)
 
