@@ -3265,6 +3265,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
   int prefix;
   Lisp_Object part;
   struct x_display_info *dpyinfo;
+#ifdef HAVE_X_I18N
+  Status status_return;
+#endif
 
   if (interrupt_input_blocked)
     {
@@ -3339,6 +3342,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			/* Since we set WM_TAKE_FOCUS, we must call
 			   XSetInputFocus explicitly.  But not if f is null,
 			   since that might be an event for a deleted frame.  */
+#ifdef HAVE_X_I18N
+			/* Not quite sure this is needed -pd */
+			if (f)
+			  XSetICFocus (FRAME_XIC (f));
+#endif
 			if (f)
 			  XSetInputFocus (event.xclient.display,
 					  event.xclient.window,
@@ -3645,8 +3653,25 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 					| dpyinfo->hyper_mod_mask
 					| dpyinfo->alt_mod_mask);
 
+#ifdef HAVE_X_I18N
+		  if (FRAME_XIC (f))
+		    {
+		      /* The necessity of the following line took me
+			 a full work-day to decipher from the docs!!  */
+		      if (XFilterEvent (&event, None))
+			break;
+		      nbytes = XmbLookupString (FRAME_XIC (f),
+						&event.xkey, copy_buffer,
+						80, &keysym,
+						&status_return);
+		    }
+		  else
+		    nbytes = XLookupString (&event.xkey, copy_buffer,
+					    80, &keysym, &compose_status);
+#else
 		  nbytes = XLookupString (&event.xkey, copy_buffer,
 					  80, &keysym, &compose_status);
+#endif
 
 		  orig_keysym = keysym;
 
@@ -3800,6 +3825,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      if (f)
 		x_new_focus_frame (dpyinfo, f);
 
+#ifdef HAVE_X_I18N
+	      if (f && FRAME_XIC (f))
+		XSetICFocus (FRAME_XIC (f));
+#endif
+
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
@@ -3837,6 +3867,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		dpyinfo->x_focus_event_frame = 0;
 	      if (f && f == dpyinfo->x_focus_frame)
 		x_new_focus_frame (dpyinfo, 0);
+
+#ifdef HAVE_X_I18N
+	      if (f && FRAME_XIC (f))
+		XUnsetICFocus (FRAME_XIC (f));
+#endif
 
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
@@ -5817,6 +5852,10 @@ x_term_init (display_name, xrm_option, resource_name)
       x_initialize ();
       x_initialized = 1;
     }
+
+#ifdef HAVE_X_I18N
+  setlocale (LC_ALL, NULL);
+#endif
 
 #ifdef USE_X_TOOLKIT
   /* weiner@footloose.sps.mot.com reports that this causes
