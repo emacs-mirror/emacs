@@ -1,3 +1,20 @@
+2004-11-08  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (syntax-after): Doc fix.
+
+	* paren.el (show-paren-function): Change calls to syntax-after
+	for new way of returning the value.
+
+	* menu-bar.el (menu-bar-file-menu): Make this the real name
+	and menu-bar-files-menu the alias.  Use the former.
+	(global-map): Use `file', not `files', as the symbol.
+
+	* info.el (Info-revert-find-node): Don't use beginning-of-buffer.
+
+	* filesets.el (filesets-spawn-external-viewer, filesets-run-cmd):
+	Don't use beginning-of-buffer.
+	(filesets-cmd-show-result): Use with-no-warnings.
+
 2004-11-08  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compile): Don't overwrite last command in
@@ -36,12 +53,14 @@
 
 	* simple.el (next-error group, face): Move before first use.
 	(next-error-highlight, next-error-highlight-no-select): Likewise.
-	(line-move-invisible-p): Renamed from line-move-invisible.
+
+	* simple.el (line-move-invisible-p): Renamed from line-move-invisible.
 	(line-move): New args NOERROR and TO-END.
 	Return t if if succeed in moving specified number of lines.
 	(move-end-of-line): New function.
-	(beginning-of-buffer-other-window, end-of-buffer-other-window): 
-	Use with-no-warnings.
+
+	* simple.el (beginning-of-buffer-other-window): Use with-no-warnings.
+	(end-of-buffer-other-window): Likewise.
 
 	* simple.el (line-move-ignore-invisible): Default to t.
 

@@ -1,3 +1,7 @@
+2004-11-08  Richard M. Stallman  <rms@gnu.org>
+
+	* syntax.texi (Syntax Table Functions): Add syntax-after.
+
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 
 	* os.texi (Processor Run Time): New section documenting

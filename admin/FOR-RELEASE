@@ -10,6 +10,8 @@ Tasks needed before the next release.
 
 ** Let mouse-1 follow links.
 
+** Make Rmail find the best version of movemail.
+To be done by Sergey Poznyakoff <gray@Mirddin.farlep.net>.
 
 * FATAL ERRORS
 
@@ -29,7 +31,6 @@ invalid pointer from string_free_list.
 * LOSSAGE
 
 ** Clean up flymake.el to follow Emacs Lisp conventions.
-
 
 * GTK RELATED BUGS
 
@@ -244,6 +245,8 @@ Electric-pop-up-window can use it.
 
 * DOCUMENTATION
 
+** Document Custom Themes.
+
 ** Finish updating the Emacs Lisp manual.
 
 ** Update the Emacs manual.
@@ -318,11 +321,11 @@ names of the people who have checked it.
 SECTION                  READERS
 ----------------------------------
 lispref/abbrevs.texi     "Luc Teirlinck"
-lispref/advice.texi
+lispref/advice.texi	 Joakim Verona <joakim@verona.se>
 lispref/anti.texi
 lispref/backups.texi     "Luc Teirlinck"
 lispref/buffers.texi     "Luc Teirlinck"
-lispref/calendar.texi
+lispref/calendar.texi    Joakim Verona <joakim@verona.se>
 lispref/commands.texi    "Luc Teirlinck"
 lispref/compile.texi     "Luc Teirlinck"
 lispref/control.texi     "Luc Teirlinck"
