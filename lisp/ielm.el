@@ -87,7 +87,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.25 $" 11 -2)
+   (substring "$Revision: 1.2 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -132,7 +132,7 @@ This variable is buffer-local.")
   ;; A wrapper for lisp-complete symbol that returns non-nil if
   ;; completion has occurred
   (let* ((btick (buffer-modified-tick))
-	 (cbuffer (get-buffer " *Completions*"))
+	 (cbuffer (get-buffer "*Completions*"))
 	 (ctick (and cbuffer (buffer-modified-tick cbuffer))))
     (lisp-complete-symbol)
      ;; completion has occurred if:
@@ -142,7 +142,7 @@ This variable is buffer-local.")
      ;; a completions buffer has been modifed or created
      (if cbuffer
 	 (not (= ctick (buffer-modified-tick cbuffer)))
-       (get-buffer " *Completions*")))))
+       (get-buffer "*Completions*")))))
 
 (defun ielm-complete-filename nil
   "Dynamically complete filename before point, if in a string."
