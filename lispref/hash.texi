@@ -95,15 +95,25 @@ The weakness of a hash table specifies whether the presence of a key or
 value in the hash table preserves it from garbage collection.
 
 The value, @var{weak}, must be one of @code{nil}, @code{key},
-@code{value} or @code{t}.  If @var{weak} is @code{key} or @code{t}, then
-the hash table does not prevent its keys from being collected as garbage
-(if they are not referenced anywhere else); if a particular key does get
-collected, the corresponding association is removed from the hash table.
+@code{value}, @code{key-or-value}, @code{key-and-value}, or @code{t}
+which is an alias for @code{key-and-value}.  If @var{weak} is @code{key}
+then the hash table does not prevent its keys from being collected as
+garbage (if they are not referenced anywhere else); if a particular key
+does get collected, the corresponding association is removed from the
+hash table.
 
-Likewise, if @var{weak} is @code{value} or @code{t}, then the hash table
-does not prevent values from being collected as garbage (if they are not
-referenced anywhere else); if a particular value does get collected, the
+If @var{weak} is @code{value}, then the hash table does not prevent
+values from being collected as garbage (if they are not referenced
+anywhere else); if a particular value does get collected, the
 corresponding association is removed from the hash table.
+
+If @var{weak} is @code{key-or-value}, associations are removed from the
+hash table when either their key or their value part would be collected
+as garbage, not counting references to the key and value from weak hash
+tables.  Likewise, if @var{weak} is @code{key-and-value}, associations
+are removed from the hash table when both their key and value would be
+collected as garbage, again not considering references to the key and
+value from weak hash tables.
 
 The default for @var{weak} is @code{nil}, so that all keys and values
 referenced in the hash table are preserved from garbage collection.  If

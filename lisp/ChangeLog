@@ -1,16 +1,45 @@
+2000-07-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* eshell/esh-groups.el: Change custom :link file names
+	from `eshell.info' to `eshell'.
+
+2000-07-30  Francis Wright  <fjw@maths.qmw.ac.uk>
+
+	* dired.el (dired-build-subdir-alist): Expand subdirectory names
+	correctly in recursive ange-ftp listings.
+
+2000-07-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Fix bug 1: if ps-font-size-internal,
+	ps-header-font-size-internal and
+	ps-header-title-font-size-internal variables are not set,
+	ps-nb-pages and ps-line-lengths-internal crashes.  Fix bug 2: if
+	face text property is (foreground-color . COLOR) or
+	`(background-color . COLOR)', ps-print crashes.  Doc fix.
+	(ps-print-version): New version number (5.2.4).
+	(ps-plot-region): Code fix.
+	(ps-nb-pages, ps-line-lengths-internal): Bug fix 1.
+	(ps-face-attribute-list, ps-face-attributes, ps-face-background):
+	Bug fix 2.
+
+2000-07-30  Milan Zamazal  <pdm@freesoft.cz>
+
+	* glasses.el (glasses-make-readable): Fix uncapitalization of
+	identifiers like `myXMLDocument'.
+
 2000-07-28  Karl Fogel  <kfogel@red-bean.com>
 
-	* mail/mail-hist.el (mail-hist-previous-input,
-	mail-hist-next-input): do the obvious code factorization.
-	(mail-hist-retrieve-and-insert): new func, contains common
+	* mail/mail-hist.el (mail-hist-previous-input)
+	(mail-hist-next-input): Do the obvious code factorization.
+	(mail-hist-retrieve-and-insert): New func, contains common
 	code of above two.
 	If inserting a message body, leave point at top.
 
 2000-07-28  Sam Steingold  <sds@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-verify-visited-file-modtime):
-	use `<=', not `<' to compare times!
-	(ange-ftp-ls): remve
+	Use `<=', not `<' to compare times!
+	(ange-ftp-ls): Remove.
 
 2000-07-27  Gerd Moellmann  <gerd@gnu.org>
 
