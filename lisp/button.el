@@ -113,12 +113,12 @@ Buttons inherit them by setting their `category' property to that symbol."
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
 specifying properties to use as defaults for buttons with this type
 \(a button's type may be set by giving it a `type' property when
-creating the button).
+creating the button, using the :type keyword argument).
 
-The property `supertype' may be used to specify a button-type from which
-NAME inherits its default property values \(however, the inheritance
-happens only when NAME is defined; subsequent changes to a supertype are
-not reflected in its subtypes)."
+In addition, the keyword argument :supertype may be used to specify a
+button-type from which NAME inherits its default property values
+\(however, the inheritance happens only when NAME is defined; subsequent
+changes to a supertype are not reflected in its subtypes)."
   (let* ((catsym (make-symbol (concat (symbol-name name) "-button")))
 	 (supertype
 	  (or (plist-get properties 'supertype)
@@ -220,6 +220,7 @@ the normal action is used instead."
   (buffer-substring-no-properties (button-start button) (button-end button)))
 
 (defsubst button-type (button)
+  "Return BUTTON's button-type."
   (button-get button 'type))
 
 (defun button-has-type-p (button type)
@@ -233,9 +234,10 @@ the normal action is used instead."
 (defun make-button (beg end &rest properties)
   "Make a button from BEG to END in the current buffer.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
-specifying properties to add to the button.  In particular, the `type'
-property may be used to specify a button-type from which to inherit
-other properties; see `define-button-type'.
+specifying properties to add to the button.
+In addition, the keyword argument :type may be used to specify a
+button-type from which to inherit other properties; see
+`define-button-type'.
 
 Also see `make-text-button', `insert-button'."
   (let ((overlay (make-overlay beg end nil t nil)))
@@ -254,9 +256,10 @@ Also see `make-text-button', `insert-button'."
 (defun insert-button (label &rest properties)
   "Insert a button with the label LABEL.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
-specifying properties to add to the button.  In particular, the `type'
-property may be used to specify a button-type from which to inherit
-other properties; see `define-button-type'.
+specifying properties to add to the button.
+In addition, the keyword argument :type may be used to specify a
+button-type from which to inherit other properties; see
+`define-button-type'.
 
 Also see `insert-text-button', `make-button'."
   (apply #'make-button
@@ -271,9 +274,10 @@ Also see `insert-text-button', `make-button'."
 (defun make-text-button (beg end &rest properties)
   "Make a button from BEG to END in the current buffer.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
-specifying properties to add to the button.  In particular, the `type'
-property may be used to specify a button-type from which to inherit
-other properties; see `define-button-type'.
+specifying properties to add to the button.
+In addition, the keyword argument :type may be used to specify a
+button-type from which to inherit other properties; see
+`define-button-type'.
 
 This function is like `make-button', except that the button is actually
 part of the text instead of being a property of the buffer.  Creating
@@ -306,9 +310,10 @@ Also see `insert-text-button'."
 (defun insert-text-button (label &rest properties)
   "Insert a button with the label LABEL.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
-specifying properties to add to the button.  In particular, the `type'
-property may be used to specify a button-type from which to inherit
-other properties; see `define-button-type'.
+specifying properties to add to the button.
+In addition, the keyword argument :type may be used to specify a
+button-type from which to inherit other properties; see
+`define-button-type'.
 
 This function is like `insert-button', except that the button is
 actually part of the text instead of being a property of the buffer.
