@@ -25,7 +25,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.4 1995/04/10 00:19:27 kwzh Exp kwzh $
+;; $Id: mh-comp.el,v 1.5 1995/04/20 23:35:49 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -756,7 +756,7 @@ Prompt for the field name with a completion list of the current folders."
   "Insert the file named by mh-signature-file-name at the current point."
   (interactive)
   (insert-file-contents mh-signature-file-name)
-  (set-buffer-modified-p (buffer-modified-p))) ; force mode line update
+  (force-mode-line-update))
 
 
 (defun mh-check-whom ()
