@@ -69,6 +69,7 @@
 (defvar gdb-buffer-type nil)
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
+(defvar gdb-flush-pending-output nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -234,6 +235,7 @@ detailed description of this mode.
   (setq gdb-pending-triggers nil)
   (setq gdb-output-sink 'user)
   (setq gdb-server-prefix "server ")
+  (setq gdb-flush-pending-output nil)
   ;;
   (setq gdb-buffer-type 'gdba)
   ;;
@@ -643,6 +645,7 @@ This filter may simply queue input for a later time."
 	   last))))
 
 (defun gdb-send-item (item)
+  (setq gdb-flush-pending-output nil)
   (if gdb-enable-debug-log (push (cons 'send item) gdb-debug-log))
   (setq gdb-current-item item)
   (with-current-buffer gud-comint-buffer
@@ -706,6 +709,7 @@ This filter may simply queue input for a later time."
     ) "An assoc mapping annotation tags to functions which process them.")
 
 (defun gdb-resync()
+  (setq gdb-flush-pending-output t)
   (setq gud-running nil)
   (setq gdb-output-sink 'user)
   (setq gdb-input-queue nil)
@@ -854,61 +858,63 @@ happens to be appropriate."
 
 (defun gud-gdba-marker-filter (string)
   "A gud marker filter for gdb.  Handle a burst of output from GDB."
-  (if gdb-enable-debug-log (push (cons 'recv string) gdb-debug-log))
-  ;; Recall the left over gud-marker-acc from last time
-  (setq gud-marker-acc (concat gud-marker-acc string))
-  ;; Start accumulating output for the GUD buffer
-  (let ((output ""))
-    ;;
-    ;; Process all the complete markers in this chunk.
-    (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
-      (let ((annotation (match-string 1 gud-marker-acc)))
-	;;
-	;; Stuff prior to the match is just ordinary output.
-	;; It is either concatenated to OUTPUT or directed
-	;; elsewhere.
-	(setq output
-	      (gdb-concat-output
-	       output
-	       (substring gud-marker-acc 0 (match-beginning 0))))
-        ;;
-	;; Take that stuff off the gud-marker-acc.
-	(setq gud-marker-acc (substring gud-marker-acc (match-end 0)))
-        ;;
-	;; Parse the tag from the annotation, and maybe its arguments.
-	(string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
-	(let* ((annotation-type (match-string 1 annotation))
-	       (annotation-arguments (match-string 2 annotation))
-	       (annotation-rule (assoc annotation-type
-				       gdb-annotation-rules)))
-	  ;; Call the handler for this annotation.
-	  (if annotation-rule
-	      (funcall (car (cdr annotation-rule))
-		       annotation-arguments)
-	    ;; Else the annotation is not recognized.  Ignore it silently,
-	    ;; so that GDB can add new annotations without causing
-	    ;; us to blow up.
-	    ))))
-    ;;
-    ;; Does the remaining text end in a partial line?
-    ;; If it does, then keep part of the gud-marker-acc until we get more.
-    (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
-		      gud-marker-acc)
-	(progn
-	  ;; Everything before the potential marker start can be output.
-	  (setq output
-		(gdb-concat-output output
-				   (substring gud-marker-acc 0
-					      (match-beginning 0))))
-	  ;;
-	  ;; Everything after, we save, to combine with later input.
-	  (setq gud-marker-acc (substring gud-marker-acc (match-beginning 0))))
+  (if gdb-flush-pending-output
+      nil
+    (if gdb-enable-debug-log (push (cons 'recv string) gdb-debug-log))
+    ;; Recall the left over gud-marker-acc from last time
+    (setq gud-marker-acc (concat gud-marker-acc string))
+    ;; Start accumulating output for the GUD buffer
+    (let ((output ""))
       ;;
-      ;; In case we know the gud-marker-acc contains no partial annotations:
-      (progn
-	(setq output (gdb-concat-output output gud-marker-acc))
-	(setq gud-marker-acc "")))
-    output))
+      ;; Process all the complete markers in this chunk.
+      (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
+	(let ((annotation (match-string 1 gud-marker-acc)))
+	  ;;
+	  ;; Stuff prior to the match is just ordinary output.
+	  ;; It is either concatenated to OUTPUT or directed
+	  ;; elsewhere.
+	  (setq output
+		(gdb-concat-output
+		 output
+		 (substring gud-marker-acc 0 (match-beginning 0))))
+	  ;;
+	  ;; Take that stuff off the gud-marker-acc.
+	  (setq gud-marker-acc (substring gud-marker-acc (match-end 0)))
+	  ;;
+	  ;; Parse the tag from the annotation, and maybe its arguments.
+	  (string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
+	  (let* ((annotation-type (match-string 1 annotation))
+		 (annotation-arguments (match-string 2 annotation))
+		 (annotation-rule (assoc annotation-type
+					 gdb-annotation-rules)))
+	    ;; Call the handler for this annotation.
+	    (if annotation-rule
+		(funcall (car (cdr annotation-rule))
+			 annotation-arguments)
+	      ;; Else the annotation is not recognized.  Ignore it silently,
+	      ;; so that GDB can add new annotations without causing
+	      ;; us to blow up.
+	      ))))
+      ;;
+      ;; Does the remaining text end in a partial line?
+      ;; If it does, then keep part of the gud-marker-acc until we get more.
+      (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
+			gud-marker-acc)
+	  (progn
+	    ;; Everything before the potential marker start can be output.
+	    (setq output
+		  (gdb-concat-output output
+				     (substring gud-marker-acc 0
+						(match-beginning 0))))
+	    ;;
+	    ;; Everything after, we save, to combine with later input.
+	    (setq gud-marker-acc (substring gud-marker-acc (match-beginning 0))))
+	;;
+	;; In case we know the gud-marker-acc contains no partial annotations:
+	(progn
+	  (setq output (gdb-concat-output output gud-marker-acc))
+	  (setq gud-marker-acc "")))
+      output)))
 
 (defun gdb-concat-output (so-far new)
   (let ((sink gdb-output-sink))
