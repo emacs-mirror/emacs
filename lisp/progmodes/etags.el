@@ -1307,11 +1307,12 @@ If it returns non-nil, this file needs processing by evalling
   "Continue last \\[tags-search] or \\[tags-query-replace] command.
 Used noninteractively with non-nil argument to begin such a command (the
 argument is passed to `next-file', which see).
-Two variables control the processing we do on each file:
-the value of `tags-loop-scan' is a form to be executed on each file
-to see if it is interesting (it returns non-nil if so)
-and `tags-loop-operate' is a form to execute to operate on an interesting file
-If the latter returns non-nil, we exit; otherwise we scan the next file."
+
+Two variables control the processing we do on each file: the value of
+`tags-loop-scan' is a form to be executed on each file to see if it is
+interesting (it returns non-nil if so) and `tags-loop-operate' is a form to
+evaluate to operate on an interesting file.  If the latter evaluates to
+nil, we exit; otherwise we scan the next file."
   (interactive)
   (let (new
 	(messaged nil))
@@ -1338,6 +1339,7 @@ If the latter returns non-nil, we exit; otherwise we scan the next file."
 	      (let ((pos (point)))
 		(erase-buffer)
 		(set-buffer (find-file-noselect new))
+		(setq new nil)		;No longer in a temp buffer.
 		(widen)
 		(goto-char pos)))
 
