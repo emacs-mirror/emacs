@@ -4698,7 +4698,7 @@ is how to make @kbd{H-M-RIGHT} move forward a word:
 Not all modifiers are permitted in all situations.  @key{Hyper},
 @key{Super}, and @key{Alt} are not available on Unix character
 terminals.  Non-ASCII keys and mouse events (e.g. @kbd{C-=} and
-@kbd{mouse-1}) also fall under this category.
+@kbd{Mouse-1}) also fall under this category.
 
 @end itemize
 
@@ -4858,7 +4858,7 @@ Emacs 18.  Write to Joel if you want the patches or package.
 @c FIXME: Should we mention Ehud Karni's package?
 
 @file{hebrew.el} requires a Hebrew screen font, but no other hardware support.
-Joel has a screen font for PCs running MS-DOS and Linux.
+Joel has a screen font for PCs running MS-DOS or GNU/Linux.
 
 You might also try to query archie for files named with @file{hebrew};
 several ftp sites in Israel may also have the necessary files.
