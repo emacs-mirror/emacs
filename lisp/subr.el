@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1307,6 +1307,27 @@ Optional DEFAULT is a default password to use instead of empty input."
 		  (setq pass new-pass))))))
       (message nil)
       (or pass default ""))))
+
+;; This should be used by `call-interactively' for `n' specs.
+(defun read-number (prompt &optional default)
+  (let ((n nil))
+    (when default
+      (setq prompt
+	    (if (string-match "\\(\\):[^:]*" prompt)
+		(replace-match (format " [%s]" default) t t prompt 1)
+	      (concat prompt (format " [%s] " default)))))
+    (while
+	(progn
+	  (let ((str (read-from-minibuffer prompt nil nil nil nil
+					   (number-to-string default))))
+	    (setq n (cond
+		     ((zerop (length str)) default)
+		     ((stringp str) (read str)))))
+	  (unless (numberp n)
+	    (message "Please enter a number.")
+	    (sit-for 1)
+	    t)))
+    n))
 
 ;;; Atomic change groups.
 
