@@ -1,3 +1,8 @@
+2003-03-29  Kenichi Handa  <handa@etlken2>
+
+	* language/japan-util.el: If system-type is not for Windows,
+	prefer japanese-iso-8bit.
+
 2003-03-28  Sudish Joseph  <sudish@corp.earthlink.net>  (tiny change)
 
 	* term/mac-win.el (iconify-or-deiconify-frame): Define for
