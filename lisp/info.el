@@ -31,6 +31,8 @@
 ;;  - a menu item MAY contain colons but not colon-space ": "
 ;;  - a menu item ending with ": " (but not ":: ") is an index entry
 ;;  - a node name MAY NOT contain a colon
+;; This distinction is to support indexing of computer programming
+;; language terms that may contain ":" but not ": ".
 
 ;;; Code:
 
@@ -1482,8 +1484,9 @@ FOOTNOTENAME may be an abbreviation of the reference name."
   (skip-chars-forward " \t\n")
   (let ((beg (point))
 	str i)
-    (skip-chars-forward "^:")
-    (forward-char 1)
+    (while (not (looking-at ":*[ \n]"))
+      (skip-chars-forward "^:")
+      (forward-char 1))
     (setq str
 	  (if (looking-at ":")
 	      (buffer-substring-no-properties beg (1- (point)))
@@ -1522,7 +1525,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	   (concat "\n\\* +" (regexp-quote string) ":") nil t)
 	(let ((pattern (concat "\n\\* +\\("
 			       (regexp-quote string)
-			       "[^:\t\n]*\\):"))
+			       "[^\t\n]*\\):"))
 	      completions)
 	  ;; Check the cache.
 	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
@@ -1580,7 +1583,7 @@ new buffer."
 	    (save-excursion
 	      (goto-char p)
 	      (end-of-line)
-	      (if (re-search-backward "\n\\* +\\([^:\t\n]*\\):" beg t)
+	      (if (re-search-backward "\n\\* +\\([^\t\n]*\\):" beg t)
 		  (setq default (match-string-no-properties 1))))))
      (let ((item nil))
        (while (null item)
@@ -2123,19 +2126,11 @@ If no reference to follow, moves to the next node, or up if none."
      ((setq node (Info-get-token (point) "\\*note[ \n]"
 				 "\\*note[ \n]\\([^:]*\\):"))
       (Info-follow-reference node))
-     ;; explicit node name
+     ;; menu item: node name
      ((setq node (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\)::"))
       (Info-goto-node node))
-     ;; index entry (Another approach is to combine this w/ the following cond
-     ;;              branch "other menu item", but that also requires fixing
-     ;;              Info-extract-menu-node-name -- stay tuned. --ttn)
-     ((Info-get-token (point) "\\* +" "\\* +\\(.*\\):[ \t]")
-      (save-excursion
-        (re-search-forward ":[ \t]")
-        (setq node (Info-following-node-name "^.")))
-      (Info-goto-node node))
-     ;; other menu item
-     ((Info-get-token (point) "\\* +" "\\* +\\([^:]*\\):")
+     ;; menu item: index entry
+     ((Info-get-token (point) "\\* +" "\\* +\\(.*\\): ")
       (beginning-of-line)
       (forward-char 2)
       (setq node (Info-extract-menu-node-name))
@@ -2705,7 +2700,8 @@ the variable `Info-file-list-for-emacs'."
 
 (defun Info-fontify-node ()
   ;; Only fontify the node if it hasn't already been done.
-  (unless (next-property-change (point-min))
+  (unless (let ((where (next-property-change (point-min))))
+            (and where (not (= where (point-max)))))
     (save-excursion
       (let ((inhibit-read-only t)
 	    (case-fold-search t)
