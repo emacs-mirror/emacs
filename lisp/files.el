@@ -862,7 +862,8 @@ unless NOMODES is non-nil."
 		   (if (and warn
 			    (file-newer-than-file-p (make-auto-save-file-name)
 						    buffer-file-name))
-		       "Auto save file is newer; consider M-x recover-file"
+		       (format "%s has auto save data; consider M-x recover-file"
+			       (file-name-nondirectory buffer-file-name))
 		     (setq not-serious t)
 		     (if error "(New file)" nil)))
 		  ((not error)
