@@ -564,12 +564,21 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
   (save-excursion
     (let ((changelog-file-name
 	   (let ((default-directory
-		   (file-name-directory (expand-file-name file))))
-	     ;; `find-change-log' uses `change-log-default-name' if set
-	     ;; and sets it before exiting, so we need to work around
-	     ;; that memoizing which is undesired here
-	     (setq change-log-default-name nil)
-	     (find-change-log))))
+		   (file-name-directory (expand-file-name file)))
+		 (visiting-buffer (find-buffer-visiting file)))
+	     ;; If there is a buffer visiting FILE, and it has a local
+	     ;; value for `change-log-default-name', use that.
+	     (if (and visiting-buffer
+		      (local-variable-p 'change-log-default-name
+					visiting-buffer))
+		 (save-excursion
+		   (set-buffer visiting-buffer)
+		   change-log-default-name)
+	       ;; `find-change-log' uses `change-log-default-name' if set
+	       ;; and sets it before exiting, so we need to work around
+	       ;; that memoizing which is undesired here
+	       (setq change-log-default-name nil)
+	       (find-change-log)))))
       (set-buffer (find-file-noselect changelog-file-name))
       (unless (eq major-mode 'change-log-mode) (change-log-mode))
       (goto-char (point-min))
