@@ -160,7 +160,7 @@ insert it and then insert a punctuation or whitespace character to expand it.
 outer otter}; @samp{Foo} into @samp{Find outer otter}, and @samp{FOO} into
 @samp{FIND OUTER OTTER} or @samp{Find Outer Otter} according to the
 variable @code{abbrev-all-caps} (setting it non-@code{nil} specifies
-@samp{FIND OUTER OTTER}.
+@samp{FIND OUTER OTTER}).
 
   These commands are used to control abbrev expansion:
 
