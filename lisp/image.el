@@ -46,7 +46,7 @@ When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
 IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
-a non-nil value, TYPE is the image's type ")
+a non-nil value, TYPE is the image's type.")
 
 
 (defun image-jpeg-p (data)
