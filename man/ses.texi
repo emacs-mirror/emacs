@@ -70,7 +70,7 @@ license to the document, as described in section 6 of the license.
 @c ===================================================================
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
+@node Top, Sales Pitch, (dir), (dir)
 @comment  node-name,  next,  previous,  up
 @top SES: Simple Emacs Spreadsheet
 
@@ -86,11 +86,11 @@ This (such as @pxref{Top,calc,,calc}) is good.
 To report bugs, send email to @email{jyavner@@engineer.com}.
 
 @menu
-* Sales pitch::        Why use SES?
-* The Basics::         Basic spreadsheet commands
-* Advanced Features::  Want to know more?
-* For Gurus::          Want to know @emph{even more}?
-* Acknowledgements::    Acknowledgements
+* Sales Pitch::                 Why use SES?
+* The Basics::                  Basic spreadsheet commands
+* Advanced Features::           Want to know more?
+* For Gurus::                   Want to know @emph{even more}?
+* Acknowledgements::            Acknowledgements
 @end menu
 
 @c ===================================================================
@@ -456,7 +456,7 @@ printer functions, etc.
 @item C-x n w
 Show print and data areas (@code{widen}).
 
-@item C-c C-n 
+@item C-c C-n
 Show only print area (@code{ses-renarrow-buffer}).
 
 @item S-C-l
