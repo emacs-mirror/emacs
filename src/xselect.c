@@ -211,6 +211,7 @@ x_atom_to_symbol (dpyinfo, display, atom)
   if (! str) return Qnil;
   val = intern (str);
   BLOCK_INPUT;
+  /* This was allocated by Xlib, so use XFree.  */
   XFree (str);
   UNBLOCK_INPUT;
   return val;
@@ -720,6 +721,8 @@ x_handle_selection_request (event)
       /* Indicate we have successfully processed this event.  */
       x_selection_current_request = 0;
 
+      /* Use xfree, not XFree, because lisp_data_to_selection_data
+	 calls xmalloc itself.  */
       if (!nofree)
 	xfree (data);
     }
@@ -1152,6 +1155,8 @@ x_get_foreign_selection (selection_symbol, target_type)
 
 /* Subroutines of x_get_window_property_as_lisp_data */
 
+/* Use xfree, not XFree, to free the data obtained with this function.  */
+
 static void
 x_get_window_property (display, window, property, data_ret, bytes_ret,
 		       actual_type_ret, actual_format_ret, actual_size_ret,
@@ -1188,7 +1193,8 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       *bytes_ret = 0;
       return;
     }
-  xfree ((char *) tmp_data);
+  /* This was allocated by Xlib, so use XFree.  */
+  XFree ((char *) tmp_data);
   
   if (*actual_type_ret == None || *actual_format_ret == 0)
     {
@@ -1223,7 +1229,8 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       *actual_size_ret *= *actual_format_ret / 8;
       bcopy (tmp_data, (*data_ret) + offset, *actual_size_ret);
       offset += *actual_size_ret;
-      xfree ((char *) tmp_data);
+      /* This was allocated by Xlib, so use XFree.  */
+      XFree ((char *) tmp_data);
     }
 
   XFlush (display);
@@ -1231,6 +1238,8 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
   *bytes_ret = offset;
 }
 
+/* Use xfree, not XFree, to free the data obtained with this function.  */
+
 static void
 receive_incremental_selection (display, window, property, target_type,
 			       min_size_bytes, data_ret, size_bytes_ret,
@@ -1291,6 +1300,8 @@ receive_incremental_selection (display, window, property, target_type,
 	  if (! waiting_for_other_props_on_window (display, window))
 	    XSelectInput (display, window, STANDARD_EVENT_SET);
 	  unexpect_property_change (wait_object);
+	  /* Use xfree, not XFree, because x_get_window_property
+	     calls xmalloc itself.  */
 	  if (tmp_data) xfree (tmp_data);
 	  break;
 	}
@@ -1316,6 +1327,8 @@ receive_incremental_selection (display, window, property, target_type,
 	}
       bcopy (tmp_data, (*data_ret) + offset, tmp_size_bytes);
       offset += tmp_size_bytes;
+      /* Use xfree, not XFree, because x_get_window_property
+	 calls xmalloc itself.  */
       xfree (tmp_data);
     }
 }
@@ -1372,7 +1385,9 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
 
       unsigned int min_size_bytes = * ((unsigned int *) data);
       BLOCK_INPUT;
-      XFree ((char *) data);
+      /* Use xfree, not XFree, because x_get_window_property
+	 calls xmalloc itself.  */
+      xfree ((char *) data);
       UNBLOCK_INPUT;
       receive_incremental_selection (display, window, property, target_type,
 				     min_size_bytes, &data, &bytes,
@@ -1390,6 +1405,8 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
   val = selection_data_to_lisp_data (display, data, bytes,
 				     actual_type, actual_format);
   
+  /* Use xfree, not XFree, because x_get_window_property
+     calls xmalloc itself.  */
   xfree ((char *) data);
   return val;
 }
@@ -1491,6 +1508,8 @@ selection_data_to_lisp_data (display, data, size, type, format)
     }
 }
 
+
+/* Use xfree, not XFree, to free the data obtained with this function.  */
 
 static void
 lisp_data_to_selection_data (display, obj,
@@ -1977,6 +1996,8 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 			   Fcons (make_number (format), Qnil))));
 
   ret = (bytes ? make_string ((char *) data, bytes) : Qnil);
+  /* Use xfree, not XFree, because x_get_window_property
+     calls xmalloc itself.  */
   xfree (data);
   return ret;
 }
