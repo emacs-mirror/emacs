@@ -117,6 +117,8 @@ and this notice must be preserved on all copies.  */
 
 #undef HAVE_BCOPY
 
+#undef HAVE_AIX_SMT_EXP
+
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
 #define INLINE __inline__
