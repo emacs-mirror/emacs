@@ -108,17 +108,24 @@
   :code-space [32 127]
   :code-offset 160)
 
-(define-charset 'eight-bit-control
+;; Name perhaps not ideal, but is XEmacs-compatible.
+(define-charset 'control-1
   "8-bit control code (0x80..0x9F)"
   :short-name "8-bit control code"
   :code-space [128 159]
   :code-offset 128)
 
+(define-charset 'eight-bit-control
+  "Raw bytes in the range 0x80..0x9F (usually produced from invalid encodings)"
+  :short-name "Raw bytes 0x80..0x9F"
+  :code-space [128 159]
+  :code-offset #x3FFF80)		; see character.h
+
 (define-charset 'eight-bit-graphic
-  "8-bit graphic code (0xA0..0xFF)"
-  :short-name "8-bit graphic code"
+  "Raw bytes in the range 0xA0..0xFF (usually produced from invalid encodings)"
+  :short-name "Raw bytes 0xA0..0xFF"
   :code-space [160 255]
-  :code-offset 160)
+  :code-offset #x3FFFA0)		; see character.h
 
 (defmacro define-iso-single-byte-charset (symbol iso-symbol name nickname
 						 iso-ir iso-final
@@ -402,7 +409,8 @@
   :iso-final-char ?C
   :emacs-mule-id 147
   :code-space [33 126 33 126]
-  :map "ksc5601-1987")
+  :code-offset #x279f94
+  :unify-map "ksc5601-1987")
 
 ;; Fixme: Korean cp949/UHC
 
@@ -416,6 +424,9 @@
   :unify-map "sisheng"
   :code-offset #x200000)
 
+;; A subset of the 1989 version of IPA.  It consists of the consonant
+;; signs used in English, French, German and Italian, and all vowels
+;; signs in the table.  [says old MULE doc]
 (define-charset 'ipa
   "IPA (International Phonetic Association)"
   :short-name "IPA"
