@@ -1,3 +1,9 @@
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fmake_network_process): Remove kludge for interrupted
+	connects on BSD.  If connect is interrupted, just close socket and
+	start over rather than sleeping and retry with same socket.
+
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* .cvsignore: Add buildobj.lst.
@@ -11,7 +17,7 @@
 	* Makefile.in (SOME_MACHINE_OBJECTS): Add fringe.o, image.o
 	and w32*.o.
 	(temacs${EXEEXT}): Generate buildobj.lst when temacs is linked.
-	(mostlyclean): rm buildobj.lst 
+	(mostlyclean): rm buildobj.lst
 
 	* makefile.w32-in ($(TEMACS)): Generate buildobj.lst when temacs
 	is linked.
