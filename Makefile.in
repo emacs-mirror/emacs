@@ -476,8 +476,8 @@ relock:
 	(cd src; make relock)
 
 TAGS tags:	lib-src
-	(cd ${srcdir} ; lib-src/etags --output=./src/TAGS \
-	 src/*.[ch] lisp/*.el lisp/term/*.el)
+	(cd ${srcdir}/src; \
+	 ../lib-src/etags *.[ch] ../lisp/*.el ../lisp/term/*.el)
 
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
