@@ -81,6 +81,10 @@ It is useful to set this variable in the site customization file.")
 \(the name varies depending on the operating system,
 and the value of the environment variable MAIL overrides it).")
 
+;;;###autoload
+(defvar rmail-mail-new-frame nil
+  "*Non-nil means Rmail makes a new frame for composing outgoing mail.")
+
 ;; These may be altered by site-init.el to match the format of mmdf files
 ;;  delimiting used on a given host (delim1 and delim2 from the config
 ;;  files).
@@ -1648,17 +1652,25 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 
 ;;;; *** Rmail Mailing Commands ***
 
+(defun rmail-start-mail (&rest args)
+  (if rmail-mail-new-frame
+      (progn
+	(apply 'mail-other-frame args)
+	(modify-frame-parameters (selected-frame)
+				 '((dedicated . t))))
+    (apply 'mail-other-window args)))
+
 (defun rmail-mail ()
   "Send mail in another window.
 While composing the message, use \\[mail-yank-original] to yank the
 original message into it."
   (interactive)
-  (mail-other-window nil nil nil nil nil (current-buffer)))
+  (rmail-start-mail nil nil nil nil nil (current-buffer)))
 
 (defun rmail-continue ()
   "Continue composing outgoing message previously being composed."
   (interactive)
-  (mail-other-window t))
+  (rmail-start-mail t))
 
 (defun rmail-reply (just-sender)
   "Reply to the current message.
@@ -1708,7 +1720,7 @@ use \\[mail-yank-original] to yank the original message into it."
 	 (or (string-match (concat "\\`" (regexp-quote rmail-reply-prefix))
 			   subject)
 	     (setq subject (concat rmail-reply-prefix subject))))
-    (mail-other-window nil
+    (rmail-start-mail nil
       (mail-strip-quoted-names reply-to)
       subject
       (rmail-make-in-reply-to-field from date message-id)
@@ -1803,7 +1815,7 @@ see the documentation of `rmail-resend'."
 	;; and sending the mail will get back to it.
 	(if (funcall (if (one-window-p t)
 			 (function mail)
-		       (function mail-other-window))
+		       (function rmail-start-mail))
 		     nil nil subject nil nil nil
 		     (list (list (function (lambda (buf msgnum)
 				   (save-excursion
@@ -1907,7 +1919,7 @@ the body of the original message; otherwise copy the current message."
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
     (let (mail-signature mail-setup-hook)
-      (if (mail-other-window nil to subj irp2 cc (current-buffer))
+      (if (rmail-start-mail nil to subj irp2 cc (current-buffer))
 	  ;; Insert original text as initial text of new draft message.
 	  (progn
 	    (goto-char (point-max))
