@@ -1,3 +1,7 @@
+2005-03-24  Stefan  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el: If running in Terminal.app set coding-system to utf-8.
+
 2005-03-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-mode-change):  Save all
