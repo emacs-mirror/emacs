@@ -1676,14 +1676,21 @@ a match if part of it has a read-only property.
 locally to provide Eldoc functionality by some method appropriate to
 the language.
 
-** `latin1-char-displayable-p' is obsoleted by `char-displayable-p'.
-
 ** New coding system property `mime-text-unsuitable' indicates that
 the coding system's `mime-charset' is not suitable for MIME text
 parts, e.g. utf-16.
 
++++
 ** The argument to forward-word, backward-word, forward-to-indentation
 and backward-to-indentation is now optional, and defaults to 1.
+
++++
+** (char-displayable-p CHAR) returns non-nil if Emacs ought to be able
+to display CHAR.  More precisely, if the selected frame's fontset has
+a font to display the character set that CHAR belongs to.
+
+Fontsets can specify a font on a per-character basis; when the fontset
+does that, this value may not be accurate.
 
 +++
 ** The new function `window-inside-edges' returns the edges of the
@@ -2025,6 +2032,7 @@ settings.  To make `left-fringe-width', `right-fringe-width', and
 displaying the buffer in a window, or use `set-window-buffer' to force
 an update of the display margins.
 
++++
 ** Per-window vertical scroll-bar settings
 
 Windows can now have their own individual scroll-bar settings
@@ -2163,6 +2171,7 @@ Lisp packages using many minor mode keymaps can now maintain their own
 keymap alist separate from minor-mode-map-alist by adding their keymap
 alist to this list.
 
++++
 ** Atomic change groups.
 
 To perform some changes in the current buffer "atomically" so that
@@ -2302,6 +2311,7 @@ yank or yank-pop command (or a call to insert-for-yank).  The function
 insert-for-yank automatically sets that variable according to the UNDO
 element of the string argument's yank-handler text property if present.
 
++++
 ** New function display-supports-face-attributes-p may be used to test
 whether a given set of face attributes is actually displayable.
 
@@ -2309,13 +2319,16 @@ A new predicate `supports' has also been added to the `defface' face
 specification language, which can be used to do this test for faces
 defined with defface.
 
++++
 ** face-attribute, face-foreground, face-background, and face-stipple now
 accept a new optional argument, INHERIT, which controls how face
 inheritance is used when determining the value of a face attribute.
 
++++
 ** New functions face-attribute-relative-p and merge-face-attribute
 help with handling relative face attributes.
 
++++
 ** Enhancements to process support
 
 *** Function list-processes now has an optional argument; if non-nil,
@@ -2337,7 +2350,7 @@ and modify elements on this property list.
 The new low-level functions process-plist and set-process-plist are
 used to access and replace the entire property list of a process.
 
-
++++
 ** Enhanced networking support.
 
 *** There is a new `make-network-process' function which supports
@@ -2400,14 +2413,19 @@ the fifth is the port number.
 connections are accepted in the stopped state.  For a client process,
 no input is received in the stopped state.
 
++++
 ** New function copy-tree.
 
++++
 ** New function substring-no-properties.
 
++++
 ** New function minibuffer-selected-window.
 
++++
 ** New function `call-process-shell-command'.
 
+---
 ** The dummy function keys made by easymenu
 are now always lower case.  If you specify the
 menu item name "Ada", for instance, it uses `ada'
@@ -2422,6 +2440,7 @@ argument.  If it is non-nil, then `commandp' checks
 for a function that could be called with `call-interactively',
 and does not return t for keyboard macros.
 
+---
 ** master-mode.el implements a minor mode for scrolling a slave
 buffer without leaving your current buffer, the master buffer.
 
@@ -2442,6 +2461,7 @@ SQL buffer.
    (function (lambda ()
 	       (master-set-slave sql-buffer))))
 
++++
 ** File local variables.
 
 A file local variables list cannot specify a string with text
