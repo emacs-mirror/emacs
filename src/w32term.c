@@ -2511,7 +2511,7 @@ x_estimate_mode_line_height (f, face_id)
      struct frame *f;
      enum face_id face_id;
 {
-  int height = 1;
+  int height = FONT_HEIGHT (FRAME_FONT (f));
 
   /* This function is called so early when Emacs starts that the face
      cache and mode line face are not yet initialized.  */
@@ -2519,7 +2519,12 @@ x_estimate_mode_line_height (f, face_id)
       {
 	struct face *face = FACE_FROM_ID (f, face_id);
 	if (face)
-	  height = FONT_HEIGHT (face->font) + 2 * face->box_line_width;
+          {
+            if (face->font)
+              height = FONT_HEIGHT (face->font);
+            height += 2 * face->box_line_width;
+          }
+        
       }
   
   return height;
@@ -6365,6 +6370,9 @@ note_mouse_highlight (f, x, y)
       return;
     }
 #if 0 /* TODO: mouse cursor */
+  else if (portion == 2)
+    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		   f->output_data.x->horizontal_drag_cursor);
   else
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   f->output_data.x->text_cursor);
