@@ -1,3 +1,8 @@
+2002-11-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (sys_write): Avoid non-blocking mode, which is not fully
+	supported.
+
 2002-11-25  Dave Love  <fx@gnu.org>
 
 	* unexalpha.c (update_dynamic_symbols): Cast arg of fatal_unexec.
