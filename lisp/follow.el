@@ -1,6 +1,6 @@
 ;;; follow.el --- Minor mode, Synchronize windows showing the same buffer.
 
-;; Copyright (C) 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Maintainer: Anders Lindgren <andersl@andersl.com>
@@ -1479,7 +1479,7 @@ position of the first window. Otherwise it is a good guess."
 (defun follow-avoid-tail-recenter (&rest rest)
   "Make sure windows displaying the end of a buffer aren't recentered.
 
-This is done by reading and rewriting the start positon of
+This is done by reading and rewriting the start position of
 non-first windows in Follow Mode."
   (if follow-avoid-tail-recenter-p
       (let* ((orig-buffer (current-buffer))
