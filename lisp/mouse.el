@@ -107,14 +107,28 @@ This command must be bound to a mouse click."
   (interactive "@e")
   (let ((start (event-start click)))
     (select-window (posn-window start))
-    (split-window-vertically (1+ (cdr (posn-col-row click))))))
+    (let ((new-height (1+ (cdr (posn-col-row (event-end click)))))
+	  (first-line window-min-height)
+	  (last-line (- (window-height) window-min-height)))
+      (if (< last-line first-line)
+	  (error "window too short to split")
+	(split-window-vertically
+	 (min (max new-height first-line) last-line))))))
 
 (defun mouse-split-window-horizontally (click)
   "Select Emacs window mouse is on, then split it horizontally in half.
 The window is split at the column clicked on.
 This command must be bound to a mouse click."
   (interactive "@e")
-  (split-window-horizontally (1+ (car (posn-col-row (event-end click))))))
+  (let ((start (event-start click)))
+    (select-window (posn-window start))
+    (let ((new-width (1+ (car (posn-col-row (event-end click)))))
+	  (first-col window-min-width)
+	  (last-col (- (window-width) window-min-width)))
+      (if (< last-col first-col)
+	  (error "window too narrow to split")
+	(split-window-horizontally
+	 (min (max new-width first-col) last-col))))))
 
 (defun mouse-set-point (click)
   "Move point to the position clicked on with the mouse.
@@ -240,7 +254,7 @@ and selects that window."
 	    (select-window window)
 	    (switch-to-buffer buf))))))
 
-;;; These need to be rewritten for the new scrollbar implementation.
+;;; These need to be rewritten for the new scroll bar implementation.
 
 ;;;!! ;; Commands for the scroll bar.
 ;;;!! 
@@ -482,7 +496,7 @@ and selects that window."
 ;;;!! ;;;   (define-key doubleclick-test-map mouse-button-left-up 'double-up))
 ;;;!! 
 ;;;!! ;;
-;;;!! ;; This scrolls while button is depressed.  Use preferable in scrollbar.
+;;;!! ;; This scrolls while button is depressed.  Use preferable in scroll bar.
 ;;;!! ;;
 ;;;!! 
 ;;;!! (defvar scrolled-lines 0)
