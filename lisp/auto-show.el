@@ -37,11 +37,11 @@ to hscroll from your init file and code."
 
 ;;;###autoload
 (defun auto-show-mode (arg)
-  "This functino is obsolete."
+  "This command is obsolete."
   (interactive "P"))
   
 (defun auto-show-make-point-visible (&optional ignore-arg)
-  "This functino is obsolete."
+  "This command is obsolete."
   (interactive))
 
 (provide 'auto-show)
