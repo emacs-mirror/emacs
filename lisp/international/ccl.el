@@ -246,6 +246,13 @@
 (defun ccl-embed-data (data &optional ic)
   (if ic
       (aset ccl-program-vector ic data)
+    (let ((len (length ccl-program-vector)))
+      (if (>= ccl-current-ic len)
+	  (let ((new (make-vector (* len 2) nil)))
+	    (while (> len 0)
+	      (setq len (1- len))
+	      (aset new len (aref ccl-program-vector len)))
+	    (setq ccl-program-vector new))))
     (aset ccl-program-vector ccl-current-ic data)
     (setq ccl-current-ic (1+ ccl-current-ic))))
 
@@ -302,8 +309,7 @@
 			  (logior (ash (get reg2 'ccl-register-number) 8)
 				  (ash data 11))
 			(ash data 8)))))
-    (aset ccl-program-vector ccl-current-ic code)
-    (setq ccl-current-ic (1+ ccl-current-ic))))
+    (ccl-embed-data code)))
 
 ;; extended ccl command format
 ;;	|- 14-bit -|- 3-bit --|- 3-bit --|- 3-bit --|- 5-bit -|
