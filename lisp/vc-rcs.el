@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.32 2002/12/26 14:06:33 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.33 2002/12/26 14:38:20 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -439,7 +439,8 @@ whether to remove it."
 (defun vc-rcs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (vc-do-command nil 0 "co" (vc-name file) "-f"
-		 (concat "-u" (vc-workfile-version file))))
+                 (concat (if (eq (vc-state file) 'edited) "-u" "-r") 
+                         (vc-workfile-version file))))
 
 (defun vc-rcs-cancel-version (file editable)
   "Undo the most recent checkin of FILE.
