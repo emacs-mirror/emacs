@@ -1,3 +1,8 @@
+2002-05-31  Juanma Barranquero  <lektu@terra.es>
+
+	* emulation/viper-cmd.el (viper-smart-suffix-list, viper-ask-level):
+	Fix typos.
+
 2002-05-31  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/compile.el (grep-tree-command, grep-tree-files-aliases)
