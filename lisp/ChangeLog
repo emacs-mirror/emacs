@@ -1,3 +1,27 @@
+2003-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-ignore-directories-merge): Doc fix.
+	(ido-max-prompt-width): Renamed from ido-max-prompt-path.
+	(ido-enable-last-directory-history): Doc fix.
+	(ido-work-directory-list-ignore-regexps): Doc fix.
+	(ido-enable-tramp-completion): Doc fix.
+	(ido-record-ftp-work-directories): Doc fix.
+	(ido-merge-ftp-work-directories): Doc fix.
+	(ido-rewrite-file-prompt-functions): Renamed from
+	ido-make-file-prompt-hook.  Directory name is now in dynamic
+	variable `dirname' (instead of `path').
+	(ido-rewrite-file-prompt-rules): Renamed from
+	ido-rewrite-prompt-path-rules.
+	(ido-read-file-name-as-directory-commands): Doc fix.
+	(ido-last-directory-list): Doc fix.
+	(ido-work-directory-list): Doc fix.
+	(ido-work-file-list): Doc fix.
+	(ido-make-prompt): Directory name now in `dirname' var.
+	(ido-edit-input): Doc fix.
+	(ido-complete): Fix error message.
+	(ido-copy-current-word): Doc fix.
+	(ido-find-file): Doc fix.
+
 2003-01-13  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* server.el (server-process-filter): Use `minibufferp' to test
