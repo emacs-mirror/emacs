@@ -934,7 +934,7 @@ external program defined by `sendmail-program'."
 			  (/= (point) (point-max)))
 		   (setq selected-coding (select-message-coding-system))
 		   (setq charset
-			 (coding-system-get selected-coding 'mime-charset))
+			 (coding-system-get selected-coding :mime-charset))
 		   (goto-char delimline)
 		   (insert "MIME-version: 1.0\n"
 			   "Content-type: text/plain; charset="
