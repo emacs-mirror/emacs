@@ -664,6 +664,27 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       signal (SIGQUIT, fatal_error_signal);
       signal (SIGILL, fatal_error_signal);
       signal (SIGTRAP, fatal_error_signal);
+#ifdef SIGABRT
+      signal (SIGABRT, fatal_error_signal);
+#endif
+#ifdef SIGHWE
+      signal (SIGHWE, fatal_error_signal);
+#endif
+#ifdef SIGPRE
+      signal (SIGPRE, fatal_error_signal);
+#endif
+#ifdef SIGORE
+      signal (SIGORE, fatal_error_signal);
+#endif
+#ifdef SIGUME
+      signal (SIGUME, fatal_error_signal);
+#endif
+#ifdef SIGDLK
+      signal (SIGDLK, fatal_error_signal);
+#endif
+#ifdef SIGCPULIM
+      signal (SIGCPULIM, fatal_error_signal);
+#endif
 #ifdef SIGIOT
       /* This is missing on some systems - OS/2, for example.  */
       signal (SIGIOT, fatal_error_signal);
