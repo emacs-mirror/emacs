@@ -1,3 +1,8 @@
+2001-11-19  Colin Walters  <walters@verbum.org>
+
+	* calc/calc.el (toplevel): Add comment and version header.
+	(calc-init-base): Bump version to 2.02f, update date.
+
 2001-11-19  Richard M. Stallman  <rms@gnu.org>
 
 	* net/browse-url.el: Support Mozilla and Galeon.
