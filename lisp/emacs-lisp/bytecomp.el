@@ -1321,7 +1321,7 @@ With argument, insert value in current buffer after the form."
      (if (byte-compile-version-cond byte-compile-compatibility)
 	 "; compiled with Emacs 18 compatibility.\n"
        ".\n"))
-   (if (byte-compile-version-cond byte-compile-compatibility)
+   (if (not (byte-compile-version-cond byte-compile-compatibility))
        (insert ";;; this file uses opcodes which do not exist in Emacs 18.\n"
 	       ;; Have to check if emacs-version is bound so that this works
 	       ;; in files loaded early in loadup.el.
