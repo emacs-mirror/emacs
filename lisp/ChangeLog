@@ -1,5 +1,8 @@
 2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* info.el (info-initialize): Remove the test for system-type when
+	invocation-directory is non-nil.
+
 	* progmodes/make-mode.el (makefile-mode): Set SYNTAX-BEGIN member
 	of `font-lock-defaults' to `backward-paragraph' rather than nil.
 
