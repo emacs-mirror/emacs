@@ -5,8 +5,8 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/08/15 17:12:51 vinicius>
-;; Version: 1.5
+;; Time-stamp: <2001/09/24 10:17:20 vinicius>
+;; Version: 1.6
 
 ;; This file is part of GNU Emacs.
 
@@ -387,6 +387,11 @@
     (aset ebnf-iso-token-table ?.  'character)))
 
 
+;; replace the range "\240-\377" (see `ebnf-range-regexp').
+(defconst ebnf-iso-non-terminal-chars
+  (ebnf-range-regexp " 0-9A-Za-z" ?\240 ?\377))
+
+
 (defun ebnf-iso-lex ()
   "Lexical analyser for ISO EBNF.
 
@@ -447,9 +452,10 @@ See documentation for variable `ebnf-iso-lex'."
 	'terminal)
        ;; non-terminal
        ((eq token 'non-terminal)
-	(setq ebnf-iso-lex (ebnf-iso-normalize
-			    (ebnf-trim-right
-			     (ebnf-buffer-substring " 0-9A-Za-z\240-\377"))))
+	(setq ebnf-iso-lex
+	      (ebnf-iso-normalize
+	       (ebnf-trim-right
+		(ebnf-buffer-substring ebnf-iso-non-terminal-chars))))
 	(and ebnf-no-meta-identifier
 	     (error "Exception sequence should not contain a meta identifier"))
 	'non-terminal)
