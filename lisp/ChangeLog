@@ -1,3 +1,27 @@
+2003-12-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use speed-bar-edit-line
+	to edit values when there are no children.
+
+	* gdb-ui.el (gdba, gdb-assembler-mode): Call the mode "Machine" as
+	a mode called "Assembler" already exists.
+	(gdb-use-colon-colon-notation, gdb-show-changed-values): New
+	options.
+	(gud-watch): Use format option. Remove font properties from
+	string.
+	(gdb-var-create-handler, gdb-var-list-children-handler): Don't
+	bother about properties as there are none.
+	(gdb-var-create-handler, gdb-var-list-children-handler)
+	(gdb-var-update-handler): Call gdb-var-evaluate-expression-handler
+	with two arguments.
+	(gdb-var-evaluate-expression-handler, gdb-post-prompt): Let
+	speedbar show value changes with a different font.
+	(gdb-edit-value): New defun.
+	(gdb-clear-partial-output, gdb-clear-inferior-io)
+	(def-gdb-auto-update-handler): Use erase-buffer.
+	(gdb-frame-handler): Display watch expressions in
+	FUNCTION::VARIABLE format if required.
+
 2003-12-23  John Paul Wallington  <jpw@gnu.org>
 
 	* info.el (Info-unescape-quotes, Info-split-parameter-string)
