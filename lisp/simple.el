@@ -263,11 +263,15 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
-  (save-excursion
-    (delete-horizontal-space t)
-    (indent-according-to-mode))
-  (newline)
-  (indent-according-to-mode))
+  (delete-horizontal-space t)
+  (let ((pos (point)))
+    ;; Be careful to insert the newline before indenting the line.
+    ;; Otherwise, the indentation might be wrong.
+    (newline)
+    (save-excursion
+      (goto-char pos)
+      (indent-according-to-mode))
+    (indent-according-to-mode)))
 
 (defun quoted-insert (arg)
   "Read next input character and insert it.
@@ -771,8 +775,8 @@ See also `minibuffer-history-case-insensitive-variables'."
       (delete-minibuffer-contents)
       (insert match-string)
       (goto-char (+ (minibuffer-prompt-end) match-offset))))
-  (if (or (eq (car (car command-history)) 'previous-matching-history-element)
-	  (eq (car (car command-history)) 'next-matching-history-element))
+  (if (memq (car (car command-history)) '(previous-matching-history-element
+					  next-matching-history-element))
       (setq command-history (cdr command-history))))
 
 (defun next-matching-history-element (regexp n)
@@ -817,8 +821,8 @@ makes the search case-sensitive."
 	      (error "End of history; no default available")))
 	(if (> narg (length (symbol-value minibuffer-history-variable)))
 	    (error "Beginning of history; no preceding item"))
-	(unless (or (eq last-command 'next-history-element)
-		    (eq last-command 'previous-history-element))
+	(unless (memq last-command '(next-history-element
+				     previous-history-element))
 	  (let ((prompt-end (minibuffer-prompt-end)))
 	    (set (make-local-variable 'minibuffer-temporary-goal-position)
 		 (cond ((<= (point) prompt-end) prompt-end)
@@ -1012,11 +1016,12 @@ we stop and ignore all further elements."
 	      (let ((position (car delta))
 		    (offset (cdr delta)))
 
-		;; Loop down the earlier events adjusting their buffer positions
-		;; to reflect the fact that a change to the buffer isn't being
-		;; undone. We only need to process those element types which
-		;; undo-elt-in-region will return as being in the region since
-		;; only those types can ever get into the output
+		;; Loop down the earlier events adjusting their buffer
+		;; positions to reflect the fact that a change to the buffer
+		;; isn't being undone. We only need to process those element
+		;; types which undo-elt-in-region will return as being in
+		;; the region since only those types can ever get into the
+		;; output
 
 		(while temp-undo-list
 		  (setq undo-elt (car temp-undo-list))
@@ -1112,6 +1117,34 @@ is not *inside* the region START...END."
 	     '(0 . 0)))
     '(0 . 0)))
 
+(defun undo-get-state ()
+  "Return a handler for the current state to which we might want to undo.
+The returned handler can then be passed to `undo-revert-to-handle'."
+  (unless (eq buffer-undo-list t)
+    buffer-undo-list))
+
+(defun undo-revert-to-state (handle)
+  "Revert to the state HANDLE earlier grabbed with `undo-get-handle'.
+This undoing is not itself undoable (aka redoable)."
+  (unless (eq buffer-undo-list t)
+    (let ((new-undo-list (cons (car handle) (cdr handle))))
+      ;; Truncate the undo log at `handle'.
+      (when handle
+	(setcar handle nil) (setcdr handle nil))
+      (unless (eq last-command 'undo) (undo-start))
+      ;; Make sure there's no confusion.
+      (when (and handle (not (eq handle (last pending-undo-list))))
+	(error "Undoing to some unrelated state"))
+      ;; Undo it all.
+      (while pending-undo-list (undo-more 1))
+      ;; Reset the modified cons cell to its original content.
+      (when handle
+	(setcar handle (car new-undo-list))
+	(setcdr handle (cdr new-undo-list)))
+      ;; Revert the undo info to what it was when we grabbed the state.
+      (setq buffer-undo-list handle))))
+  
+
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
 
@@ -1137,9 +1170,7 @@ the buffer `*Shell Command Output*'.  If the output is short enough to
 display in the echo area (which is determined by the variables
 `resize-mini-windows' and `max-mini-window-height'), it is shown
 there, but it is nonetheless available in buffer `*Shell Command
-Output*' even though that buffer is not automatically displayed.  If
-there is no output, or if output is inserted in the current buffer,
-then `*Shell Command Output*' is deleted.
+Output*' even though that buffer is not automatically displayed.
 
 To specify a coding system for converting non-ASCII characters
 in the shell command output, use \\[universal-coding-system-argument]
@@ -1397,10 +1428,10 @@ specifies the value of ERROR-BUFFER."
 					 (list t error-file)
 				       t)
 				     nil shell-command-switch command))
-;;; It is rude to delete a buffer which the command is not using.
-;;;	  (let ((shell-buffer (get-buffer "*Shell Command Output*")))
-;;;	    (and shell-buffer (not (eq shell-buffer (current-buffer)))
-;;;		 (kill-buffer shell-buffer)))
+	  ;; It is rude to delete a buffer which the command is not using.
+	  ;; (let ((shell-buffer (get-buffer "*Shell Command Output*")))
+	  ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
+	  ;; 	 (kill-buffer shell-buffer)))
 	  ;; Don't muck with mark unless REPLACE says we should.
 	  (and replace swap (exchange-point-and-mark)))
       ;; No prefix argument: put the output in a temp buffer,
@@ -1449,7 +1480,10 @@ specifies the value of ERROR-BUFFER."
 			      (< 0 (nth 7 (file-attributes error-file))))
 			 "(Shell command %sed with some error output)"
 		       "(Shell command %sed with no output)")
-		     (if (equal 0 exit-status) "succeed" "fail"))))))
+		     (if (equal 0 exit-status) "succeed" "fail"))
+	    ;; Don't kill: there might be useful info in the undo-log.
+	    ;; (kill-buffer buffer)
+	    ))))
 
     (when (and error-file (file-exists-p error-file))
       (if (< 0 (nth 7 (file-attributes error-file)))
@@ -2685,67 +2719,42 @@ With argument 0, interchanges line point is in with line mark is in."
 		       (forward-line arg))))
 		  arg))
 
-(defvar transpose-subr-start1)
-(defvar transpose-subr-start2)
-(defvar transpose-subr-end1)
-(defvar transpose-subr-end2)
+(defun transpose-subr (mover arg &optional special)
+  (let ((aux (if special mover
+	       (lambda (x)
+		 (cons (progn (funcall mover x) (point))
+		       (progn (funcall mover (- x)) (point))))))
+	pos1 pos2)
+    (cond
+     ((= arg 0)
+      (save-excursion
+	(setq pos1 (funcall aux 1))
+	(goto-char (mark))
+	(setq pos2 (funcall aux 1))
+	(transpose-subr-1 pos1 pos2))
+      (exchange-point-and-mark))
+     ((> arg 0)
+      (setq pos1 (funcall aux -1))
+      (setq pos2 (funcall aux arg))
+      (transpose-subr-1 pos1 pos2)
+      (goto-char (car pos2)))
+     (t
+      (setq pos1 (funcall aux -1))
+      (goto-char (car pos1))
+      (setq pos2 (funcall aux arg))
+      (transpose-subr-1 pos1 pos2)))))
 
-(defun transpose-subr (mover arg)
-  (let (transpose-subr-start1
-	transpose-subr-end1
-	transpose-subr-start2
-	transpose-subr-end2)
-    (if (= arg 0)
-	(progn
-	  (save-excursion
-	    (funcall mover 1)
-	    (setq transpose-subr-end2 (point))
-	    (funcall mover -1)
-	    (setq transpose-subr-start2 (point))
-	    (goto-char (mark))
-	    (funcall mover 1)
-	    (setq transpose-subr-end1 (point))
-	    (funcall mover -1)
-	    (setq transpose-subr-start1 (point))
-	    (transpose-subr-1))
-	  (exchange-point-and-mark))
-      (if (> arg 0)
-	  (progn
-	    (funcall mover -1)
-	    (setq transpose-subr-start1 (point))
-	    (funcall mover 1)
-	    (setq transpose-subr-end1 (point))
-	    (funcall mover arg)
-	    (setq transpose-subr-end2 (point))
-	    (funcall mover (- arg))
-	    (setq transpose-subr-start2 (point))
-	    (transpose-subr-1)
-	    (goto-char transpose-subr-end2))
-	(funcall mover -1)
-	(setq transpose-subr-start2 (point))
-	(funcall mover 1)
-	(setq transpose-subr-end2 (point))
-	(funcall mover (1- arg))
-	(setq transpose-subr-start1 (point))
-	(funcall mover (- arg))
-	(setq transpose-subr-end1 (point))
-	(transpose-subr-1)))))
-
-(defun transpose-subr-1 ()
-  (if (> (min transpose-subr-end1 transpose-subr-end2)
-	 (max transpose-subr-start1 transpose-subr-start2))
-      (error "Don't have two things to transpose"))
-  (let* ((word1 (buffer-substring transpose-subr-start1 transpose-subr-end1))
-	 (len1 (length word1))
-	 (word2 (buffer-substring transpose-subr-start2 transpose-subr-end2))
-	 (len2 (length word2)))
-    (delete-region transpose-subr-start2 transpose-subr-end2)
-    (goto-char transpose-subr-start2)
-    (insert word1)
-    (goto-char (if (< transpose-subr-start1 transpose-subr-start2)
-		   transpose-subr-start1
-		 (+ transpose-subr-start1 (- len1 len2))))
-    (delete-region (point) (+ (point) len1))
+(defun transpose-subr-1 (pos1 pos2)
+  (when (> (car pos1) (cdr pos1)) (setq pos1 (cons (cdr pos1) (car pos1))))
+  (when (> (car pos2) (cdr pos2)) (setq pos2 (cons (cdr pos2) (car pos2))))
+  (when (> (car pos1) (car pos2))
+    (let ((swap pos1))
+      (setq pos1 pos2 pos2 swap)))
+  (if (> (cdr pos1) (car pos2)) (error "Don't have two things to transpose"))
+  (let ((word2 (delete-and-extract-region (car pos2) (cdr pos2))))
+    (goto-char (car pos2))
+    (insert (delete-and-extract-region (car pos1) (cdr pos1)))
+    (goto-char (car pos1))
     (insert word2)))
 
 (defun backward-word (arg)
@@ -2809,8 +2818,7 @@ or adjacent to a word."
 	(buffer-substring-no-properties start end)))))
 
 (defcustom fill-prefix nil
-  "*String for filling to insert at front of new line, or nil for none.
-Setting this variable automatically makes it local to the current buffer."
+  "*String for filling to insert at front of new line, or nil for none."
   :type '(choice (const :tag "None" nil)
 		 string)
   :group 'fill)
@@ -2852,15 +2860,18 @@ Setting this variable automatically makes it local to the current buffer.")
 	  (save-excursion (unjustify-current-line)))
 
       ;; Choose a fill-prefix automatically.
-      (if (and adaptive-fill-mode
-	       (or (null fill-prefix) (string= fill-prefix "")))
-	  (let ((prefix
-		 (fill-context-prefix
-		  (save-excursion (backward-paragraph 1) (point))
-		  (save-excursion (forward-paragraph 1) (point)))))
-	    (and prefix (not (equal prefix ""))
-		 (setq fill-prefix prefix))))
-
+      (when (and adaptive-fill-mode
+		 (or (null fill-prefix) (string= fill-prefix "")))
+	(let ((prefix
+	       (fill-context-prefix
+		(save-excursion (backward-paragraph 1) (point))
+		(save-excursion (forward-paragraph 1) (point)))))
+	  (and prefix (not (equal prefix ""))
+	       ;; Use auto-indentation rather than a guessed empty prefix.
+	       (not (and fill-indent-according-to-mode
+			 (string-match "[ \t]*" prefix)))
+	       (setq fill-prefix prefix))))
+      
       (while (and (not give-up) (> (current-column) fc))
 	;; Determine where to split the line.
 	(let* (after-prefix
@@ -2882,20 +2893,9 @@ Setting this variable automatically makes it local to the current buffer.")
 		    ;; a character, or \c| following a character.  If
 		    ;; not found, place the point at beginning of line.
 		    (while (or first
-			       ;; If this is after period and a single space,
-			       ;; move back once more--we don't want to break
-			       ;; the line there and make it look like a
-			       ;; sentence end.
 			       (and (not (bobp))
 				    (not bounce)
-				    sentence-end-double-space
-				    (save-excursion (forward-char -1)
-						    (and (looking-at "\\. ")
-							 (not (looking-at "\\.  ")))))
-			       (and (not (bobp))
-				    (not bounce)
-				    fill-nobreak-predicate
-				    (funcall fill-nobreak-predicate)))
+				    (fill-nobreak-p)))
 		      (setq first nil)
 		      (re-search-backward "[ \t]\\|\\c|.\\|.\\c|\\|^")
 		      ;; If we find nowhere on the line to break it,
@@ -2958,8 +2958,8 @@ Setting this variable automatically makes it local to the current buffer.")
 		;; Now do justification, if required
 		(if (not (eq justify 'left))
 		    (save-excursion
-		      (end-of-line 0)
-		      (justify-current-line justify nil t)))
+		    (end-of-line 0)
+		    (justify-current-line justify nil t)))
 		;; If making the new line didn't reduce the hpos of
 		;; the end of the line, then give up now;
 		;; trying again will not help.
@@ -3371,9 +3371,9 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 (defun rfc822-goto-eoh ()
   ;; Go to header delimiter line in a mail message, following RFC822 rules
   (goto-char (point-min))
-  (while (looking-at "^[^: \n]+:\\|^[ \t]")
-    (forward-line 1))
-  (point))
+  (when (re-search-forward
+	 "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
+    (goto-char (match-beginning 0))))
 
 (defun sendmail-user-agent-compose (&optional to subject other-headers continue
 					      switch-function yank-action
@@ -3832,7 +3832,7 @@ PREFIX is the string that represents this modifier in an event type symbol."
 ;;; bindings.
 
 ;; Also tell read-char how to handle these keys.
-(mapcar
+(mapc
  (lambda (keypad-normal)
    (let ((keypad (nth 0 keypad-normal))
 	 (normal (nth 1 keypad-normal)))
@@ -4137,7 +4137,7 @@ See also `normal-erase-is-backspace'."
        (stringp byte-compile-current-file)))
 
 
-;;; Minibuffer prompt stuff.
+;; Minibuffer prompt stuff.
 
 ;(defun minibuffer-prompt-modification (start end)
 ;  (error "You cannot modify the prompt"))
