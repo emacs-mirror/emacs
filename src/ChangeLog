@@ -1,3 +1,8 @@
+2000-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* atimer.c (start_atimer) [!HAVE_SETITIMER]: Use EMACS_SET_SECS
+	and EMACS_SET_USECS.
+
 2000-01-26  Dave Love  <fx@gnu.org>
 
 	* editfns.c (Fchar_after, Fchar_before): Doc fix.
