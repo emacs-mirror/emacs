@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.8) $
+ * $HopeName: MMsrc!bt.c(trunk.9) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -19,7 +19,16 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.8) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.9) $");
+
+/* is the whole word of bits at this index set? */
+
+#define BTIsWordSet(bt,i) ((bt)[(i)>>MPS_WORD_SHIFT] == ~(Word)0)
+
+/* align bit-table indices up and down */
+
+#define BTIndexAlignUp(index) ((Index)SizeAlignUp(index, MPS_WORD_WIDTH))
+#define BTIndexAlignDown(index) ((Index)SizeAlignDown((index), MPS_WORD_WIDTH))
 
 
 /* AMSBTCreate -- allocate a BT from the control pool
@@ -193,7 +202,8 @@ void BTResRange(BT t, Index i, Index j)
 }
 
 
-/* BTFindResRange -- find a reset range of bits in a bit table
+/* BTFindResRange -- find a reset range of bits in a bit table,
+ * starting at the low end of the search range.
  *
  * See design.mps.bt.fun.find-res-range.
  */
@@ -201,52 +211,106 @@ void BTResRange(BT t, Index i, Index j)
 static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
                            BT bt,
                            Index searchBase, Index searchLimit,
-                           unsigned long minLength,
-                           unsigned long maxLength)
+                           unsigned long minLength, unsigned long maxLength)
 {
-  unsigned long base;
+  Index base;   /* base of each candidate range */
+  Index limit;  /* limit of each candidate range */
+  Index i;      /* current index to check */
+  unsigned long length; /* length of a successful candidate */
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVER(bt != NULL);
   AVER(searchBase < searchLimit);
-  AVER(minLength <= maxLength);
-  AVER(minLength <= searchLimit - searchBase);
   AVER(minLength > 0);
+  AVER(minLength <= maxLength);
   AVER(maxLength <= searchLimit - searchBase);
-  AVER(maxLength > 0);
 
-  /* design.mps.bt.fun.find-res.outer-loop */
   base = searchBase;
-  while(base < searchLimit) {
-    if(!BTGet(bt, base)) {
-      /* design.mps.bt.fun.find-res.enter */
-      /* base now marks the beginning of a run */
-      unsigned long limit = base;
-      unsigned long stopLimit = base + maxLength;
-      if(stopLimit > searchLimit)
-        stopLimit = searchLimit;
-      do {
-	/* design.mps.bt.fun.find-res.inner-loop */
-        ++limit;
-      } while(limit < stopLimit && !BTGet(bt, limit));
-      if(limit - base >= minLength) {
-	/* design.mps.bt.fun.find-res.success */
-        /* found sufficiently long run */
-        *baseReturn = base;
-        *limitReturn = limit;
-        return TRUE;
+  while (base <= searchLimit - minLength) {
+    limit = base + minLength;
+    i = limit - 1;                      /* top index in candidate range */
+    if (BTIsWordSet(bt,i)) {            /* skip to the next word */
+      base = BTIndexAlignUp(limit);
+      if (base < limit) /* overflow case */
+	return FALSE;
+    } else {                           /* check the candidate range */
+      while (!BTGet(bt, i)) {
+        if (i == base) {               /* candidate range succeeds */
+          length = minLength;
+	  /* try to extend to maxLength */
+	  while ((length < maxLength) &&
+		 (limit < searchLimit) &&
+                 !BTGet(bt,limit)) {
+	    ++ length;
+	    ++ limit;
+	  }
+          *baseReturn = base;
+	  *limitReturn = limit;
+          return TRUE;
+        }
+        -- i;
       }
-      /* design.mps.bt.fun.find-res.continue */
-      /* wasn't long enough */
-      base = limit;
-    } else {             /* necessary, consider j == s */
-      /* design.mps.bt.fun.find-res.outer-loop */
-      ++base;
+      base = i + 1;                 /* skip to first trailing set bit */
     }
   }
-  AVER(base == searchLimit);
+  /* failure */
+  return FALSE;
+}
 
+
+/* BTFindResRangeHigh -- find a reset range of bits in a bit table,
+ * starting at the high end of the search range.
+ *
+ * See design.mps.bt.fun.find-res-range.
+ */
+
+static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
+                               BT bt,
+                               Index searchBase, Index searchLimit,
+                               unsigned long minLength,
+			       unsigned long maxLength)
+{
+  Index base;   /* base of each candidate range */
+  Index limit;  /* limit of each candidate range */
+  Index i;      /* current index to check */
+  unsigned long length; /* length of a successful candidate */
+
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVER(bt != NULL);
+  AVER(searchBase < searchLimit);
+  AVER(minLength > 0);
+  AVER(minLength <= maxLength);
+  AVER(maxLength <= searchLimit - searchBase);
+
+  limit = searchLimit;
+  while (limit >= searchBase + minLength) {
+    base = limit - minLength;
+    i = base;                           /* bottom index in candidate range */
+    if (BTIsWordSet(bt,i)) {            /* skip to the next word */
+      limit = BTIndexAlignDown(base);
+    } else {                            /* check the candidate range */
+      while (!BTGet(bt, i)) {
+	++ i;
+        if (i == limit) {               /* candidate range succeeds */
+          length = minLength;
+	  /* try to extend to maxLength */
+	  while ((length < maxLength) &&
+		 (base > searchBase) &&
+                 !BTGet(bt,base)) {
+	    ++ length;
+	    -- base;
+	  }
+          *baseReturn = base;
+	  *limitReturn = limit;
+          return TRUE;
+        }
+      }
+      limit = i;                        /* skip to last leading set bit */
+    }
+  }
+  /* failure */
   return FALSE;
 }
 
@@ -284,6 +348,24 @@ Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
                         bt,
                         searchBase, searchLimit,
                         length, length);
+}
+
+/* BTFindShortResRangeHigh -- find short range of reset bits in a bit table,
+ * starting to look from the top of the search range.
+ *
+ * See design.mps.bt.fun.find-short-res-range-high.
+ */
+
+Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
+			     BT bt,
+			     Index searchBase, Index searchLimit,
+			     unsigned long length)
+{
+  /* All parameters are checked by BTFindResRangeHigh. */
+  return BTFindResRangeHigh(baseReturn, limitReturn,
+			    bt,
+			    searchBase, searchLimit,
+			    length, length);
 }
 
 /* BTRangesSame -- check that a range of bits in two BTs are the same.

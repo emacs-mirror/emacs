@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.52) $
+ * $HopeName: MMsrc!mpm.h(trunk.53) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -75,7 +75,7 @@ extern Size (AddrOffset)(Addr base, Addr limit);
 #define AddrOffset(b, l)        (PointerOffset((Pointer)b, (Pointer)l))
 
 extern Addr (AddrAlignDown)(Addr addr, Align align);
-#define AddrAlignDown(p, a)	((Addr)WordAlignDown((Word)p, a))
+#define AddrAlignDown(p, a)     ((Addr)WordAlignDown((Word)p, a))
 
 
 /* Logs and Powers
@@ -99,6 +99,7 @@ extern Shift SizeFloorLog2(Size size);
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), a))
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), a)
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), a))
+#define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), a))
 
 
 /* Formatted Output -- see design.mps.writef, impl.c.mpm */
@@ -230,6 +231,10 @@ extern Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
                                 BT bt,
                                 Index searchBase, Index searchLimit,
                                 unsigned long length);
+extern Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
+                                    BT bt,
+                                    Index searchBase, Index searchLimit,
+                                    unsigned long length);
 extern Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
                                BT bt,
                                Index searchBase, Index searchLimit,
@@ -337,9 +342,9 @@ extern void MessageTypeEnable(Arena arena, MessageType type);
 /* Message methods for MessageTypeFinalization */
 
 extern void MessageFinalizationRef(Ref *refReturn,
-				   Arena arena, Message message);
+                                   Arena arena, Message message);
 extern void MessageNoFinalizationRef(Ref *refReturn,
-				     Arena arena, Message message);
+                                     Arena arena, Message message);
 
 extern Res PoolNoAct(Pool pool, Action action);
 extern Res PoolCollectAct(Pool pool, Action action);
@@ -347,14 +352,14 @@ extern Res PoolCollectAct(Pool pool, Action action);
 
 /* Trace Interface -- see impl.c.trace */
 
-#define TraceSetSingle(ti)	BS_SINGLE(TraceSet, ti)
+#define TraceSetSingle(ti)      BS_SINGLE(TraceSet, ti)
 #define TraceSetIsMember(ts, ti)BS_IS_MEMBER(ts, ti)
 #define TraceSetAdd(ts, ti)     BS_ADD(TraceSet, ts, ti)
 #define TraceSetDel(ts, ti)     BS_DEL(TraceSet, ts, ti)
 #define TraceSetUnion(ts1, ts2) BS_UNION(ts1, ts2)
-#define TraceSetInter(ts1, ts2)	BS_INTER(ts1, ts2)
-#define TraceSetDiff(ts1, ts2)	BS_DIFF(ts1, ts2)
-#define TraceSetSuper(ts1, ts2)	BS_SUPER(ts1, ts2)
+#define TraceSetInter(ts1, ts2) BS_INTER(ts1, ts2)
+#define TraceSetDiff(ts1, ts2)  BS_DIFF(ts1, ts2)
+#define TraceSetSuper(ts1, ts2) BS_SUPER(ts1, ts2)
 
 extern TraceSet (TraceSetAdd)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
@@ -488,8 +493,8 @@ extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word);
 #define ArenaTraceRing(arena)   (&(arena)->traceRing)
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
-#define ArenaTrace(arena, ti)	(&(arena)->trace[ti])
-#define ArenaZoneShift(arena)	((arena)->zoneShift)
+#define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
+#define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) \
   (&arena->greyRing[rank])
@@ -526,32 +531,32 @@ extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 
-#define SegPool(seg)		((seg)->_pool)
+#define SegPool(seg)            ((seg)->_pool)
 /* .bitfield.promote: The bit field accesses need to be cast to the */
 /* right type, otherwise they'll be promoted to signed int, see */
 /* standard.ansic.6.2.1.1. */
-#define SegSingle(seg)		((Bool)(seg)->_single)
-#define SegRankSet(seg)		((RankSet)(seg)->_rankSet)
-#define SegPM(seg)		((AccessSet)(seg)->_pm)
-#define SegSM(seg)		((AccessSet)(seg)->_sm)
-#define SegDepth(seg)		((unsigned)(seg)->_depth)
-#define SegP(seg)		((seg)->_p)
-#define SegGrey(seg)		((TraceSet)(seg)->_grey)
-#define SegWhite(seg)		((TraceSet)(seg)->_white)
-#define SegSummary(seg)		((RefSet)(seg)->_summary)
-#define SegBuffer(seg)		((seg)->_buffer)
-#define SegPoolRing(seg)	(&(seg)->_poolRing)
-#define SegOfPoolRing(node)	RING_ELT(Seg, _poolRing, node)
-#define SegGreyRing(seg)	(&(seg)->_greyRing)
-#define SegOfGreyRing(node)	RING_ELT(Seg, _greyRing, node)
+#define SegSingle(seg)          ((Bool)(seg)->_single)
+#define SegRankSet(seg)         ((RankSet)(seg)->_rankSet)
+#define SegPM(seg)              ((AccessSet)(seg)->_pm)
+#define SegSM(seg)              ((AccessSet)(seg)->_sm)
+#define SegDepth(seg)           ((unsigned)(seg)->_depth)
+#define SegP(seg)               ((seg)->_p)
+#define SegGrey(seg)            ((TraceSet)(seg)->_grey)
+#define SegWhite(seg)           ((TraceSet)(seg)->_white)
+#define SegSummary(seg)         ((RefSet)(seg)->_summary)
+#define SegBuffer(seg)          ((seg)->_buffer)
+#define SegPoolRing(seg)        (&(seg)->_poolRing)
+#define SegOfPoolRing(node)     RING_ELT(Seg, _poolRing, node)
+#define SegGreyRing(seg)        (&(seg)->_greyRing)
+#define SegOfGreyRing(node)     RING_ELT(Seg, _greyRing, node)
 
-#define SegSetSingle(seg, s)	((void)((seg)->_single = (s)))
-#define SegSetPM(seg, mode)	((void)((seg)->_pm = (mode)))
-#define SegSetSM(seg, mode)	((void)((seg)->_sm = (mode)))
-#define SegSetDepth(seg, d)	((void)((seg)->_depth = (d)))
-#define SegSetP(seg, pp)	((void)((seg)->_p = (pp)))
-#define SegSetWhite(seg, ts)	((void)((seg)->_white = (ts)))
-#define SegSetBuffer(seg, b)	((void)((seg)->_buffer = (b)))
+#define SegSetSingle(seg, s)    ((void)((seg)->_single = (s)))
+#define SegSetPM(seg, mode)     ((void)((seg)->_pm = (mode)))
+#define SegSetSM(seg, mode)     ((void)((seg)->_sm = (mode)))
+#define SegSetDepth(seg, d)     ((void)((seg)->_depth = (d)))
+#define SegSetP(seg, pp)        ((void)((seg)->_p = (pp)))
+#define SegSetWhite(seg, ts)    ((void)((seg)->_white = (ts)))
+#define SegSetBuffer(seg, b)    ((void)((seg)->_buffer = (b)))
 
 
 /* Buffer Interface -- see impl.c.buffer */
@@ -574,9 +579,9 @@ extern Addr BufferScanLimit(Buffer buffer);
 extern AP (BufferAP)(Buffer buffer);
 #define BufferAP(buffer)        (&(buffer)->apStruct)
 extern Buffer BufferOfAP(AP ap);
-#define BufferOfAP(ap)		PARENT(BufferStruct, apStruct, ap)
+#define BufferOfAP(ap)          PARENT(BufferStruct, apStruct, ap)
 extern Arena BufferArena(Buffer buffer);
-#define BufferArena(buffer)	((buffer)->arena)
+#define BufferArena(buffer)     ((buffer)->arena)
 extern Pool (BufferPool)(Buffer buffer);
 #define BufferPool(buffer)      ((buffer)->pool)
 extern Seg (BufferSeg)(Buffer buffer);
@@ -614,11 +619,11 @@ extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
 extern Bool RankCheck(Rank rank);
 extern Bool RankSetCheck(RankSet rankSet);
 
-#define RankSetIsMember(rs, r)	BS_IS_MEMBER(rs, r)
-#define RankSetSingle(r)	BS_SINGLE(RankSet, r)
-#define RankSetIsSingle(r)	BS_IS_SINGLE(r)
-#define RankSetUnion(rs1, rs2)	BS_UNION(rs1, rs2)
-#define RankSetDel(rs, r)	BS_DEL(RankSet, rs, r)
+#define RankSetIsMember(rs, r)  BS_IS_MEMBER(rs, r)
+#define RankSetSingle(r)        BS_SINGLE(RankSet, r)
+#define RankSetIsSingle(r)      BS_IS_SINGLE(r)
+#define RankSetUnion(rs1, rs2)  BS_UNION(rs1, rs2)
+#define RankSetDel(rs, r)       BS_DEL(RankSet, rs, r)
 
 #define RefSetZone(arena, addr) \
   (((Word)(addr) >> arena->zoneShift) & (MPS_WORD_WIDTH - 1))
@@ -629,8 +634,8 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define RefSetIsMember(arena, rs, addr) \
   BS_IS_MEMBER(rs, RefSetZone(arena, addr))
 #define RefSetSuper(rs1, rs2)   BS_SUPER(rs1, rs2)
-#define RefSetDiff(rs1, rs2)	BS_DIFF(rs1, rs2)
-#define RefSetSub(rs1, rs2)	BS_SUB(rs1, rs2)
+#define RefSetDiff(rs1, rs2)    BS_DIFF(rs1, rs2)
+#define RefSetSub(rs1, rs2)     BS_SUB(rs1, rs2)
 
 extern RefSet RefSetOfSeg(Arena arena, Seg seg);
 
@@ -687,10 +692,10 @@ extern void LDMerge(LD ld, Arena arena, LD from);
 
 extern Res RootCreateTable(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
-			   Addr *base, Addr *limit);
+                           Addr *base, Addr *limit);
 extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
                                  Rank rank, RootMode mode,
-				 Addr *base, Addr *limit,
+                                 Addr *base, Addr *limit,
                                  Word mask);
 extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            Rank rank, Thread thread,
@@ -698,7 +703,7 @@ extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            void *p, size_t s);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode, 
-			   FormatScanMethod scan,
+                           FormatScanMethod scan,
                            Addr base, Addr limit);
 extern Res RootCreateFun(Root *rootReturn, Arena arena,
                         Rank rank, RootScanMethod scan,
