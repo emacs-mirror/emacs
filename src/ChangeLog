@@ -1,5 +1,8 @@
 2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* fileio.c (Finsert_file_contents): Remove unused variable
+	`gap_size'.
+
 	* sysdep.c (init_sys_modes): Change doc-string comments to `new
 	style' [w/`doc:' keyword].
 
