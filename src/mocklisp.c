@@ -210,9 +210,9 @@ is converted into a string by expressing it in decimal.")
     {
       tem = args[argnum];
     retry:
-      if (XTYPE (tem) == Lisp_Int)
+      if (INTEGERP (tem))
 	tem = Fnumber_to_string (tem);
-      if (XTYPE (tem) == Lisp_String)
+      if (STRINGP (tem))
 	insert1 (tem);
       else
 	{
