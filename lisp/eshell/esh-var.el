@@ -427,7 +427,7 @@ Possible options are:
       (let ((end (eshell-find-delimiter ?\< ?\>)))
 	(if (not end)
 	    (throw 'eshell-incomplete ?\<)
-	  (let* ((temp (make-temp-name temporary-file-directory))
+	  (let* ((temp (make-temp-file temporary-file-directory))
 		 (cmd (concat (buffer-substring (1+ (point)) end)
 			      " > " temp)))
 	    (prog1
