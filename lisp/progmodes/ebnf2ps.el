@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/28 19:18:57 vinicius>
+;; Time-stamp: <2004/02/29 14:06:59 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -70,8 +70,8 @@ Please send all bug fixes and enhancements to
 ;; Using ebnf2ps
 ;; -------------
 ;;
-;; ebnf2ps provides six commands for generating PostScript syntactic chart
-;; images of Emacs buffers:
+;; ebnf2ps provides the following commands for generating PostScript syntactic
+;; chart images of Emacs buffers:
 ;;
 ;;	ebnf-print-directory
 ;;	ebnf-print-file
