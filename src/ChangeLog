@@ -1,3 +1,7 @@
+2004-08-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Finteractive_form): Doc fix.
+
 2004-08-02  Kim F. Storm  <storm@cua.dk>
 
 	* indent.c (compute_motion): Use actual window width if WIDTH is -1,
