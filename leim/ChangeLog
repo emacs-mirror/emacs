@@ -1,3 +1,7 @@
+2003-08-19  Markus Rost  <rost@math.ohio-state.edu>
+
+	* quail/latin-pre.el ("french-prefix"): Fix spacing in docstring.
+
 2003-07-21  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* quail/indian.el (quail-indian-update-translation): Adjusted the
