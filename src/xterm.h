@@ -526,10 +526,10 @@ struct scroll_bar {
 
 /* Return the row/column (zero-based) of the character cell containing 
    the pixel on FRAME at ROW/COL.  */
-#define PIXEL_TO_CHAR_ROW(frame, row) \
+#define PIXEL_TO_CHAR_ROW(f, row) \
   (((row) - (f)->display.x->internal_border_width) \
    / FONT_HEIGHT ((f)->display.x->font))
-#define PIXEL_TO_CHAR_COL(frame, col) \
+#define PIXEL_TO_CHAR_COL(f, col) \
   (((col) - (f)->display.x->internal_border_width) \
    / FONT_WIDTH ((f)->display.x->font))
 
