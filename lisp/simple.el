@@ -32,25 +32,13 @@ if the line would have been empty.
 With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
-	 (flag (and (null do-fill-prefix) (bolp) (not (bobp)))))
-    ;; If this is a simple case, and we are at the beginning of a line,
-    ;; actually insert the newline *before* the preceding newline
-    ;; instead of after.  That makes better display behavior.
-    (if flag
-	(progn
-	  ;; If undo is enabled, don't let this hack be visible:
-	  ;; record the real value of point as the place to move back to
-	  ;; if we undo this insert.
-	  (if (not (eq buffer-undo-list t))
-	      (setq buffer-undo-list (cons (point) buffer-undo-list)))
-	  (forward-char -1)))
-    (save-excursion
-      (while (> arg 0)
-	(if do-fill-prefix (insert fill-prefix))
-	(insert ?\n)
-	(setq arg (1- arg))))
-    (end-of-line)
-    (if flag (forward-char 1))))
+	 (loc (point)))
+    (while (> arg 0)
+      (if do-fill-prefix (insert fill-prefix))
+      (newline 1)
+      (setq arg (1- arg)))
+    (goto-char loc))
+  (end-of-line))
 
 (defun split-line ()
   "Split current line, moving portion beyond point vertically down."
@@ -58,7 +46,7 @@ With arg N, insert N newlines."
   (skip-chars-forward " \t")
   (let ((col (current-column))
 	(pos (point)))
-    (insert ?\n)
+    (newline 1)
     (indent-to col 0)
     (goto-char pos)))
 
@@ -1554,7 +1542,7 @@ and more reliable (no dependence on goal column, etc.)."
       (let ((opoint (point)))
 	(end-of-line)
 	(if (eobp)
-	    (insert ?\n)
+	    (newline 1)
 	  (goto-char opoint)
 	  (line-move arg)))
     (if (interactive-p)
@@ -2222,10 +2210,10 @@ Setting this variable automatically makes it local to the current buffer.")
 		  (if (save-excursion
 			(skip-chars-backward " \t")
 			(= (point) fill-point))
-		      (indent-new-comment-line)
+		      (indent-new-comment-line t)
 		    (save-excursion
 		      (goto-char fill-point)
-		      (indent-new-comment-line)))
+		      (indent-new-comment-line t)))
 		  ;; If making the new line didn't reduce the hpos of
 		  ;; the end of the line, then give up now;
 		  ;; trying again will not help.
@@ -2270,21 +2258,24 @@ The variable `fill-column' has a separate value for each buffer."
 on new line, with no new terminator or starter.
 This is obsolete because you might as well use \\[newline-and-indent].")
 
-(defun indent-new-comment-line ()
+(defun indent-new-comment-line (&optional soft)
   "Break line at point and indent, continuing comment if within one.
 This indents the body of the continued comment
 under the previous comment line.
 
 This command is intended for styles where you write a comment per line,
 starting a new comment (and terminating it if necessary) on each line.
-If you want to continue one comment across several lines, use \\[newline-and-indent]."
-  (interactive "*")
+If you want to continue one comment across several lines, use \\[newline-and-indent].
+
+The inserted newline is marked hard if `use-hard-newlines' is true, 
+unless optional argument SOFT is non-nil."
+  (interactive)
   (let (comcol comstart)
     (skip-chars-backward " \t")
     (delete-region (point)
 		   (progn (skip-chars-forward " \t")
 			  (point)))
-    (insert ?\n)
+    (if soft (insert ?\n) (newline 1))
     (if (not comment-multi-line)
 	(save-excursion
 	  (if (and comment-start-skip
