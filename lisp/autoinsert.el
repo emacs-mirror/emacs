@@ -136,7 +136,7 @@ If this contains a %s, that will be replaced by the matching rule."
      "Short description: "
      ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str "
 
-;; Copyright (C) " (substring (current-time-string) -4) " "
+;; Copyright (C) " (substring (current-time-string) -4) "  "
  (getenv "ORGANIZATION") | "Free Software Foundation, Inc." "
 
 ;; Author: " (user-full-name)
@@ -181,7 +181,7 @@ If this contains a %s, that will be replaced by the matching rule."
 \(provide '"
        (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
        ")
-;;; " (file-name-nondirectory (buffer-file-name)) " ends here"))
+;;; " (file-name-nondirectory (buffer-file-name)) " ends here\n"))
   "A list specifying text to insert by default into a new file.
 Elements look like (CONDITION . ACTION) or ((CONDITION . DESCRIPTION) . ACTION).
 CONDITION maybe a regexp that must match the new file's name, or it may be
