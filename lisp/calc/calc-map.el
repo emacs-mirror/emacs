@@ -1261,4 +1261,3 @@
     (cons 'vec (nreverse mat))))
 
 ;;; calc-map.el ends here
-

@@ -201,4 +201,3 @@
 	(< a b))))
 
 ;;; calc-macs.el ends here
-
