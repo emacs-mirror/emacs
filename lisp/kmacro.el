@@ -665,7 +665,11 @@ With \\[universal-argument], call second macro in macro ring."
 ;;;###autoload
 (defun kmacro-end-and-call-macro (arg &optional no-repeat)
   "Call last keyboard macro, ending it first if currently being defined.
-With numeric prefix ARG, repeat macro that many times."
+With numeric prefix ARG, repeat macro that many times.
+Zero argument means repeat until there is an error.
+
+To give a macro a permanent name, so you can call it
+even after defining other macros, use \\[name-last-kbd-macro]."
   (interactive "P")
   (if defining-kbd-macro
       (kmacro-end-macro nil))
