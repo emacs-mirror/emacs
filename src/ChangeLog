@@ -1,5 +1,7 @@
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* eval.c (Feval): Put check for interrupt_input_block in #if 0.
+
 	* window.c (delete_all_subwindows): Reset Vwindow_list.
 
 	* xterm.c (x_append_glyph, x_append_composite_glyph)

@@ -1,3 +1,9 @@
+2000-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist: Check DONTCOMPILE in lisp/Makefile.in instead of
+	lisp/Makefile.  Distribute lisp/Makefile.in instead of
+	lisp/Makefile.
+
 2000-06-30  Ken Raeburn  <raeburn@gnu.org>
 
 	* configure.in: Add ${C_SWITCH_X_SITE} temporarily to CPPFLAGS,
