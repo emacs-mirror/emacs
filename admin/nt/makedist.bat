@@ -47,7 +47,7 @@ for %%f in (emacs-%1/BUGS emacs-%1/GETTING.GNU.SOFTWARE emacs-%1/README emacs-%1
 for %%f in (emacs-%1/bin/fns*) do echo emacs-%1/bin/%%f>>#files#
 for %%f in (emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp %elfiles%) do echo %%f>>#files#
 for %%f in (%eld%/term/*.el) do echo %eld%/term/%%f>>#files#
-for %%f in (emacs-%1/lock emacs-%1/site-lisp) do echo %%f>>#files#
+for %%f in (emacs-%1/lock emacs-%1/site-lisp emacs-%1/site-lisp/subdirs.el) do echo %%f>>#files#
 %TAR% --exclude temacs.exe --exclude emacs.mdp --exclude *.pdb --exclude *.opt --exclude *.el --exclude *~ -T #files# -cvf - | gzip -9 > %2-bin-i386.tar.gz
 del emacs-%1\README.W32
 del #files#
