@@ -37,6 +37,9 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 /* NetBSD needs this bit, but SunOS does not have it.  */
 #ifndef MAP_FILE
