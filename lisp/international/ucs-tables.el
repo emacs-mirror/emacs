@@ -2474,10 +2474,12 @@ Interactively, prompts for a hex string giving the code."
 (defun ucs-quail-activate ()
   "Set up an appropriate `translation-table-for-input' for current buffer.
 Intended to be added to `quail-activate-hook'."
-  (let ((cs (coding-system-base buffer-file-coding-system)))
+  (let ((cs (and buffer-file-coding-system
+		 (coding-system-base buffer-file-coding-system))))
     (if (eq cs 'undecided)
-	(setq cs (coding-system-base default-buffer-file-coding-system)))
-    (if (coding-system-get cs 'translation-table-for-input)
+	(setq cs (and default-buffer-file-coding-system
+		      (coding-system-base default-buffer-file-coding-system))))
+    (if (and cs (coding-system-get cs 'translation-table-for-input))
 	(set (make-variable-buffer-local 'translation-table-for-input)
 	     (coding-system-get cs 'translation-table-for-input)))))
 
