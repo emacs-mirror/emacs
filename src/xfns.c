@@ -1754,8 +1754,10 @@ be shared by the new frame.")
     Lisp_Object font;
 
     /* Try out a font which we know has bold and italic variations.  */
+    BLOCK_INPUT;
     font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
-    if (NILP (font))
+    UNBLOCK_INPUT;
+    if (! STRINGP (font))
       font = build_string ("-*-fixed-*-*-*-*-*-120-*-*-c-*-iso8859-1");
     
     x_default_parameter (f, parms, Qfont, font, 
