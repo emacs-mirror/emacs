@@ -475,6 +475,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	(or (eq major-mode 'rmail-mode)
 	    (progn (rmail-mode-2)
 		   (setq run-mail-hook t)))
+      (kill-local-variable 'enable-multibyte-characters)
       (setq run-mail-hook t)
       (rmail-mode-2)
       ;; Convert all or part to Babyl file if possible.
