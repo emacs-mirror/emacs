@@ -1835,11 +1835,18 @@ init_from_display_pos (it, w, pos)
      after-string.  */
   init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
 
-  /* If position is within an overlay string, set up IT to
-     the right overlay string.  */
+  /* If position is within an overlay string, set up IT to the right
+     overlay string.  */
   if (pos->overlay_string_index >= 0)
     {
       int relative_index;
+
+      /* If the first overlay string happens to have a `display'
+	 property for an image, the iterator will be set up for that
+	 image, and we have to undo that setup first before we can
+	 correct the overlay string index.  */
+      if (it->method == next_element_from_image)
+	pop_it (it);
       
       /* We already have the first chunk of overlay strings in
 	 IT->overlay_strings.  Load more until the one for
@@ -10481,7 +10488,7 @@ try_window_reusing_current_matrix (w)
   struct glyph_row *last_reused_text_row;
   struct glyph_row *start_row;
   int start_vpos, min_y, max_y;
-  
+
   if (/* This function doesn't handle terminal frames.  */
       !FRAME_WINDOW_P (f)
       /* Don't try to reuse the display if windows have been split
@@ -10623,14 +10630,12 @@ try_window_reusing_current_matrix (w)
 	       ++row)
 	    {
 	      row->y = it.current_y;
+	      row->visible_height = row->height;
 
 	      if (row->y < min_y)
-		row->visible_height = row->height - (min_y - row->y);
-	      else if (row->y + row->height > max_y)
-		row->visible_height
-		  = row->height - (row->y + row->height - max_y);
-	      else
-		row->visible_height = row->height;
+		row->visible_height -= min_y - row->y;
+	      if (row->y + row->height > max_y)
+		row->visible_height -= row->y + row->height - max_y;
 	      
 	      it.current_y += row->height;
 
@@ -10785,13 +10790,11 @@ try_window_reusing_current_matrix (w)
       for (row = first_reusable_row; row < first_row_to_display; ++row)
 	{
 	  row->y -= dy;
+	  row->visible_height = row->height;
 	  if (row->y < min_y)
-	    row->visible_height = row->height - (min_y - row->y);
-	  else if (row->y + row->height > max_y)
-	    row->visible_height
-	      = row->height - (row->y + row->height - max_y);
-	  else
-	    row->visible_height = row->height;
+	    row->visible_height -= min_y - row->y;
+	  if (row->y + row->height > max_y)
+	    row->visible_height -= row->y + row->height - max_y;
 	}
 
       /* Scroll the current matrix.  */
@@ -12246,7 +12249,7 @@ compute_line_metrics (it)
 
   if (FRAME_WINDOW_P (it->f))
     {
-      int i, header_line_height;
+      int i, min_y, max_y;
 
       /* The line may consist of one space only, that was added to
 	 place the cursor on it.  If so, the row's height hasn't been
@@ -12285,15 +12288,13 @@ compute_line_metrics (it)
       /* Compute how much of the line is visible.  */
       row->visible_height = row->height;
       
-      header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (it->w);
-      if (row->y < header_line_height)
-	row->visible_height -= header_line_height - row->y;
-      else
-	{
-	  int max_y = WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (it->w);
-	  if (row->y + row->height > max_y)
-	    row->visible_height -= row->y + row->height - max_y;
-	}
+      min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (it->w);
+      max_y = WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE (it->w);
+
+      if (row->y < min_y)
+	row->visible_height -= min_y - row->y;
+      if (row->y + row->height > max_y)
+	row->visible_height -= row->y + row->height - max_y;
     }
   else
     {
