@@ -1105,7 +1105,7 @@ Return index number of the registered CCL program.")
 
   if (i == len)
     {
-      Lisp_Object new_table = Fmake_vector (len * 2, Qnil);
+      Lisp_Object new_table = Fmake_vector (make_number (len * 2), Qnil);
       int j;
 
       for (j = 0; j < len; j++)
@@ -1121,7 +1121,7 @@ Return index number of the registered CCL program.")
 syms_of_ccl ()
 {
   staticpro (&Vccl_program_table);
-  Vccl_program_table = Fmake_vector (32, Qnil);
+  Vccl_program_table = Fmake_vector (make_number (32), Qnil);
 
   DEFVAR_LISP ("font-ccl-encoder-alist", &Vfont_ccl_encoder_alist,
     "Alist of fontname patterns vs corresponding CCL program.\n\
