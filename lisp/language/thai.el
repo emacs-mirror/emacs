@@ -2,8 +2,9 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
-;; Keywords: multilingual, Thai
+;; Keywords: multilingual, Thai, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -66,6 +67,14 @@
   :charset-list '(cp874)
   :mime-charset 'cp874)
 (define-coding-system-alias 'ibm874 'cp874)
+
+(define-coding-system 'iso-8859-11
+  "ISO/IEC 8859/11 (Latin/Thai)
+This is the same as `thai-tis620' with the addition of no-break-space."
+  :coding-type 'charset
+  :mnemonic ?*
+  :mime-charset 'iso-8859-11 ; not actually registered as of 2002-05-24
+  :charset-list '(iso-8859-11))
 
 (provide 'thai)
 
