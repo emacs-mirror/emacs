@@ -1,3 +1,11 @@
+2002-07-23  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* xdisp.c (redisplay_updating_p): New variable.
+	(init_iterator): Don't free realized faces when
+	redisplay_updating_p is set.
+	(redisplay_internal): Set redisplay_updating_p while updating
+	the display.
+
 2002-07-23  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fmessage): Treat "" like nil.

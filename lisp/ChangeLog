@@ -1,3 +1,19 @@
+2002-07-23  Richard M. Stallman  <rms@gnu.org>
+
+	* warnings.el: Add `provide' call.
+
+	* files.el (basic-save-buffer-2): If there's an error writing the file,
+	unrename the backup file if it was just made.
+	(backup-buffer, basic-save-buffer-2, basic-save-buffer-1) 
+	(basic-save-buffer): Value now has form (MODES . BACKUPNAME)
+	when a backup was just made by renaming.  Otherwise it's nil.
+
+	* wid-edit.el (widget-convert): Handle an argument that's a keyword.
+	Recognize explicit :args specification.
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	Don't ask for confirmation of mismatch if find-file-literally was used.
+
 2002-07-23  Markus Rost  <rost@math.ohio-state.edu>
 
 	* add-log.el (add-log-current-defun):  Fix typo in documentation.
@@ -27,6 +43,58 @@
 2002-07-22  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-next-action-on-file): Preserve find-file-literally.
+
+2002-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* simple.el (undo, undo-more): Adjust messages when undoing in a
+	region. 
+
+2002-07-22  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* net/browse-url.el (browse-url-lynx-input-attempts): Use defcustom.
+	(browse-url-lynx-input-delay): Add custom type and group.
+
+	* cus-start.el (double-click-fuzz): Added.
+
+2002-07-22  Alan Shutko  <ats@acm.org>
+
+	* calendar/solar.el (diary-sabbath-candles): Add optional MARK
+	parameter, specifying what face or character to use in the
+	calendar display.  These will now return (MARK . ENTRY).
+
+	* calendar/lunar.el (diary-phases-of-moon): Add optional MARK
+	parameter, specifying what face or character to use in the
+	calendar display.  These will now return (MARK . ENTRY).
+
+	* calendar/cal-hebrew.el (diary-omer, diary-yahrzeit)
+	(diary-rosh-hodesh, diary-parasha, diary-parasha): Add optional
+	MARK parameter, specifying what face or character to use in the
+	calendar display.  These will now return (MARK . ENTRY).
+
+	* calendar/diary-lib.el (mark-sexp-diary-entries): Retrieve mark
+	from diary-sexp-entry and pass it to mark-visible-calendar-date.
+	(list-sexp-diary-entries): Update doc string for new docs for ....
+	If diary-sexp-entry returns a cons, only add the text to the diary
+	list.
+	(diary-sexp-entry): Allow sexps to return a cons of the form (MARK
+	. STRING) to specify what face or character mark should be used in
+	the calendar display.
+	(diary-date, diary-block, diary-float, diary-anniversary)
+	(diary-cyclic): Add optional MARK parameter, specifying what face
+	or character to use in the calendar display.  These will now
+	return (MARK . ENTRY).
+
+	* calendar/diary-lib.el (check-calendar-holidays, diary-iso-date)
+	(calendar-holiday-list, diary-french-date, diary-mayan-date) 
+	(diary-julian-date, diary-astro-day-number, diary-chinese-date) 
+	(diary-islamic-date, list-islamic-diary-entries) 
+	(mark-islamic-diary-entries, mark-islamic-calendar-date-pattern) 
+	(diary-hebrew-date, diary-omer, diary-yahrzeit, diary-parasha) 
+	(diary-rosh-hodesh, list-hebrew-diary-entries) 
+	(mark-hebrew-diary-entries, mark-hebrew-calendar-date-pattern) 
+	(diary-coptic-date, diary-persian-date, diary-phases-of-moon) 
+	(diary-sunrise-sunset, diary-sabbath-candles):
+	Remove interactive flag from autoloads.
 
 2002-07-22  Carsten Dominik  <dominik@astro.uva.nl>
 
@@ -76,7 +144,19 @@
 	(reftex-parse-bibtex-entry): Use `reftex-syntax-table-for-bib'.
 	(reftex-with-special-syntax-for-bib): new macro.
 
+<<<<<<< ChangeLog
+2002-07-21  Richard M. Stallman  <rms@gnu.org>
+
+	* international/ucs-tables.el (ucs-quail-activate):
+	Cope if buffer-file-coding-system is nil.
+
+	* bindings.el (last-buffer): Use buffer-list with frame arg.
+	Create *scratch* if no other choice exists.  Fix bugs. 
+
+2002-07-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+=======
 2002-07-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+>>>>>>> 1.4146
 
 	* net/tramp.el: Bump version to 2.0.2.
 	(tramp-methods): Rename methods invoking "ssh1" or "ssh2" to
