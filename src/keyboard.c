@@ -6949,18 +6949,35 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 	 is used.  Note that [Enter] is not echoed by dos.  */
       cursor_to (0, 0);
 #endif
-      printf ("Auto-save? (y or n) ");
-      fflush (stdout);
-      if (((c = getchar ()) & ~040) == 'Y')
+      /* It doesn't work to autosave while GC is in progress;
+	 the code used for auto-saving doesn't cope with the mark bit.  */
+      if (!gc_in_progress)
 	{
-	  Fdo_auto_save (Qt, Qnil);
+	  printf ("Auto-save? (y or n) ");
+	  fflush (stdout);
+	  if (((c = getchar ()) & ~040) == 'Y')
+	    {
+	      Fdo_auto_save (Qt, Qnil);
 #ifdef MSDOS
-	  printf ("\r\nAuto-save done");
+	      printf ("\r\nAuto-save done");
 #else /* not MSDOS */
-	  printf ("Auto-save done\n");
+	      printf ("Auto-save done\n");
 #endif /* not MSDOS */
+	    }
+	  while (c != '\n') c = getchar ();
 	}
-      while (c != '\n') c = getchar ();
+      else 
+	{
+	  /* During GC, it must be safe to reenable quitting again.  */
+	  Vinhibit_quit = Qnil;
+#ifdef MSDOS
+	  printf ("\r\n");
+#endif /* not MSDOS */
+	  printf ("Garbage collection in progress; cannot auto-save now\r\n");
+	  printf ("but will instead do a real quit after garbage collection ends\r\n");
+	  fflush (stdout);
+	}
+
 #ifdef MSDOS
       printf ("\r\nAbort?  (y or n) ");
 #else /* not MSDOS */
