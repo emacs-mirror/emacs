@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!111.c(trunk.3) $
+ id = $HopeName: MMQA_test_function!111.c(trunk.4) $
  summary = wait until all registered objects are finalized
  language = c
  link = testlib.o rankfmt.o
@@ -16,6 +16,12 @@ END_HEADER
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
+
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 
 void *stackpointer;
@@ -39,14 +45,16 @@ int qhd = 0;
 int qtl = 0;
 
 
-static void nq(mps_message_t mess) {
+static void nq(mps_message_t mess)
+{
  mqueue[qhd] = mess;
  qhd = (qhd+1) % 10000;
  asserts(qhd != qtl, "No space in message queue.");
 }
 
 
-static void process_mess(mps_message_t message, int faction, mps_addr_t *ref) {
+static void process_mess(mps_message_t message, int faction, mps_addr_t *ref)
+{
  mps_addr_t ffref;
 
  switch (faction) {
@@ -72,7 +80,8 @@ static void process_mess(mps_message_t message, int faction, mps_addr_t *ref) {
 }
 
 
-static void finalpoll(mycell **ref, int faction) {
+static void finalpoll(mycell **ref, int faction)
+{
  mps_message_t message;
 
  if (mps_message_get(&message, arena, MPS_MESSAGE_TYPE_FINALIZATION)) {
@@ -82,12 +91,14 @@ static void finalpoll(mycell **ref, int faction) {
 }
 
 
-static void test(void) {
+static void test(void)
+{
  mps_pool_t poolamc, poolawl, poollo;
  mps_thr_t thread;
  mps_root_t root0, root1;
 
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_ap_t apamc, apawl, aplo;
 
  mycell *a, *b, *c, *d, *z;
@@ -110,8 +121,10 @@ static void test(void) {
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
 
- cdie(mps_pool_create(&poolamc, arena, mps_class_amc(), format),
-      "create pool");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
+ die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
       "create pool");
@@ -130,7 +143,7 @@ static void test(void) {
 
  mps_message_type_enable(arena, mps_message_type_finalization());
 
-/* register loads of objects for finalization (1000*4) */
+ /* register loads of objects for finalization (1000*4) */
 
  a = allocone(apamc, 2, 1);
  b = a;
@@ -173,9 +186,7 @@ static void test(void) {
   }
  }
 
- /* how many are left? (n.b. ideally this would be 0 but
-   there's no guarantee)
-   */
+ /* how many are left? (Ideally, this would be 0 but there's no guarantee.) */
 
  report("count", "%i", final_count);
  report("iter", "%i", i);
@@ -192,18 +203,16 @@ static void test(void) {
  mps_pool_destroy(poollo);
  comment("Destroyed pools.");
 
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
 }
 
 
-int main(void) {
+int main(void)
+{
  void *m;
  stackpointer=&m; /* hack to get stack pointer */
 
