@@ -1,5 +1,8 @@
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-cmds.el (select-safe-coding-system): Check
+	coding-category-list more rigidly.
+
 	* dired.el (dired-move-to-filename-regexp): Fix previous change.
 
 2000-12-21  Miles Bader  <miles@gnu.org>
