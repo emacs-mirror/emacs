@@ -250,7 +250,7 @@ a disc image." >&2
   exit 0
 fi
 
-cp -a Emacs.pkg /Volumes/Emacs
+cp -R Emacs.pkg /Volumes/Emacs
 
 ## Converting Disk Image to read-only
 echo 'Converting Disc Image to read-only'
