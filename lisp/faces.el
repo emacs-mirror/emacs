@@ -747,7 +747,7 @@ an integer value."
 	    ((:height)
 	     'integerp)
 	    (:stipple
-	     (and window-system
+	     (and (memq window-system '(x w32))
 		  (mapcar #'list
 			  (apply #'nconc (mapcar #'directory-files
 						 x-bitmap-file-path)))))
