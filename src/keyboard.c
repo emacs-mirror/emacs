@@ -224,7 +224,7 @@ static struct kboard *ok_to_echo_at_next_pause;
    exists, and echo_message_buffer is eq to the current message
    buffer, we know that the message comes from echo_kboard.  */
 
-static struct kboard *echo_kboard;
+struct kboard *echo_kboard;
 
 /* The buffer used for echoing.  Set in echo_now, reset in
    cancel_echoing.  */
