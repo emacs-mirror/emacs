@@ -35,7 +35,7 @@
  *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.42";
+char pot_etags_version[] = "@(#) pot revision number is 16.46";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -459,7 +459,7 @@ static bool vgrind_style;	/* -v: create vgrind style index output */
 static bool no_warnings;	/* -w: suppress warnings */
 static bool cxref_style;	/* -x: create cxref style output */
 static bool cplusplus;		/* .[hc] means C++, not C */
-static bool noindentypedefs;	/* -I: ignore indentation in C */
+static bool ignoreindent;	/* -I: ignore indentation in C */
 static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
 #define STDIN 0x1001		/* returned by getopt_long on --parse-stdin */
@@ -775,11 +775,11 @@ Relative ones are stored relative to the output file's directory.\n");
 	Do not create tag entries for global variables in some\n\
 	languages.  This makes the tags file smaller.");
   puts ("--members\n\
-	Create tag entries for member variables in C and derived languages.");
+	Create tag entries for member variables in some languages.");
 
 #ifdef ETAGS_REGEXPS
   puts ("-r REGEXP, --regex=REGEXP or --regex=@regexfile\n\
-        Make a tag for each line matching the regular expression pattern\n\
+        Make a tag for each line matching a regular expression pattern\n\
 	in the following files.  {LANGUAGE}REGEXP uses REGEXP for LANGUAGE\n\
 	files only.  REGEXFILE is a file containing one REGEXP per line.\n\
 	REGEXP takes the form /TAGREGEXP/TAGNAME/MODS, where TAGNAME/ is\n\
@@ -789,15 +789,13 @@ Relative ones are stored relative to the output file's directory.\n");
 	  --regex=\"/proc[ \\t]+\\([^ \\t]+\\)/\\1/.\".\n\
 	MODS are optional one-letter modifiers: `i' means to ignore case,\n\
 	`m' means to allow multi-line matches, `s' implies `m' and\n\
-	causes dot to match the newline character as well.");
+	causes dot to match any character, including newline.");
   puts ("-R, --no-regex\n\
         Don't create tags from regexps for the following files.");
 #endif /* ETAGS_REGEXPS */
   puts ("-I, --ignore-indentation\n\
-        Don't rely on indentation quite as much as normal.  Currently,\n\
-        this means not to assume that a closing brace in the first\n\
-        column is the final brace of a function or structure\n\
-        definition in C and C++.");
+        In C and C++ do not assume that a closing brace in the first\n\
+        column is the final brace of a function or structure definition.");
   puts ("-o FILE, --output=FILE\n\
         Write the tags to FILE.");
   puts ("--parse-stdin=NAME\n\
@@ -1070,7 +1068,7 @@ main (argc, argv)
 	break;
       case 'I':
       case 'S':		/* for backward compatibility */
-	noindentypedefs = TRUE;
+	ignoreindent = TRUE;
 	break;
       case 'l':
 	{
@@ -2595,7 +2593,7 @@ static struct {
 } cstack;			/* stack for nested declaration tags */
 /* Current struct nesting depth (namespace, class, struct, union, enum). */
 #define nestlev		(cstack.nl)
-/* After struct keyword or in struct body, not inside an nested function. */
+/* After struct keyword or in struct body, not inside a nested function. */
 #define instruct	(structdef == snone && nestlev > 0			\
 			 && cblev == cstack.cblev[nestlev-1] + 1)
 
@@ -2988,6 +2986,9 @@ static struct
 #define curlinepos (lbs[curndx].linepos)
 #define newlinepos (lbs[newndx].linepos)
 
+#define cplpl ((c_ext & C_PLPL) == C_PLPL)
+#define cjava ((c_ext & C_JAVA) == C_JAVA)
+
 #define CNL_SAVE_DEFINEDEF()						\
 do {									\
   curlinepos = charno;							\
@@ -3052,7 +3053,6 @@ C_entries (c_ext, inf)
   int parlev;			/* current parenthesis level */
   int typdefcblev;		/* cblev where a typedef struct body begun */
   bool incomm, inquote, inchar, quotednl, midtoken;
-  bool cplpl, cjava;
   bool yacc_rules;		/* in the rules part of a yacc file */
   struct tok savetoken;	        /* token saved during preprocessor handling */
 
@@ -3079,8 +3079,6 @@ C_entries (c_ext, inf)
   token.valid = savetoken.valid = FALSE;
   cblev = 0;
   parlev = 0;
-  cplpl = (c_ext & C_PLPL) == C_PLPL;
-  cjava = (c_ext & C_JAVA) == C_JAVA;
   if (cjava)
     { qualifier = "."; qlen = 1; }
   else
@@ -3395,7 +3393,10 @@ C_entries (c_ext, inf)
 		      fvdef = finlist;
 		      continue;
 		    case flistseen:
-		      make_C_tag (TRUE); /* a function */
+#if 0
+		      if (!instruct || members)
+#endif
+			make_C_tag (TRUE); /* a function */
 		      fvdef = fignore;
 		      break;
 		    case fvnameseen:
@@ -3449,7 +3450,18 @@ C_entries (c_ext, inf)
 	      break;
 	    }
 	  if (structdef == stagseen)
-	    structdef = scolonseen;
+	    {
+	      structdef = scolonseen;
+	      break;
+	    }
+#if 0
+	  if (cplpl && fvdef == flistseen)
+	    {
+	      make_C_tag (TRUE); /* a function */
+	      fvdef = fignore;
+	      break;
+	    }
+#endif
 	  break;
 	case ';':
 	  if (definedef != dnone)
@@ -3468,7 +3480,7 @@ C_entries (c_ext, inf)
 	      switch (fvdef)
 		{
 		case fignore:
-		  if (typdef == tignore)
+		  if (typdef == tignore || cplpl)
 		    fvdef = fvnone;
 		  break;
 		case fvnameseen:
@@ -3701,7 +3713,7 @@ C_entries (c_ext, inf)
 	case '}':
 	  if (definedef != dnone)
 	    break;
-	  if (!noindentypedefs && lp == newlb.buffer + 1)
+	  if (!ignoreindent && lp == newlb.buffer + 1)
 	    {
 	      cblev = 0;	/* reset curly brace level if first column */
 	      parlev = 0;	/* also reset paren level, just in case... */
@@ -4986,44 +4998,45 @@ HTML_labels (inf)
      FILE * inf;
 {
   bool getnext = FALSE;		/* next text outside of HTML tags is a tag */
-  bool ignoretag = FALSE;	/* skip to the end of the current HTML tag */
-  bool inanchor = FALSE;	/* inside an A HTML tag, looking for NAME= */
+  bool skiptag = FALSE;		/* skip to the end of the current HTML tag */
+  bool intag = FALSE;		/* inside an html tag, looking for ID= */
+  bool inanchor = FALSE;	/* when INTAG, is an anchor, look for NAME= */
   char *end;
 
 
   linebuffer_setlen (&token_name, 0); /* no name in buffer */
 
   LOOP_ON_INPUT_LINES (inf, lb, dbp)
-    {
-      for (;;)			/* loop on the same line */
-
-	if (ignoretag)		/* skip HTML tag */
+    for (;;)			/* loop on the same line */
+      {
+	if (skiptag)		/* skip HTML tag */
 	  {
 	    while (*dbp != '\0' && *dbp != '>')
 	      dbp++;
 	    if (*dbp == '>')
 	      {
 		dbp += 1;
-		ignoretag = FALSE;
+		skiptag = FALSE;
 		continue;	/* look on the same line */
 	      }
 	    break;		/* go to next line */
 	  }
 
-	else if (inanchor)	/* look for "name=" */
+	else if (intag)	/* look for "name=" or "id=" */
 	  {
-	    while (*dbp != '\0' && *dbp != '>' && lowcase (*dbp) != 'n')
+	    while (*dbp != '\0' && *dbp != '>'
+		   && lowcase (*dbp) != 'n' && lowcase (*dbp) != 'i')
 	      dbp++;
 	    if (*dbp == '\0')
 	      break;		/* go to next line */
 	    if (*dbp == '>')
 	      {
 		dbp += 1;
-		inanchor = FALSE;
+		intag = FALSE;
 		continue;	/* look on the same line */
 	      }
-	    dbp += 1;
-	    if (LOOKING_AT_NOCASE (dbp, "ame="))
+	    if ((inanchor && LOOKING_AT_NOCASE (dbp, "name="))
+		|| LOOKING_AT_NOCASE (dbp, "id="))
 	      {
 		bool quoted = (dbp[0] == '"');
 
@@ -5038,11 +5051,12 @@ HTML_labels (inf)
 		token_name.buffer[end - dbp] = '\0';
 
 		dbp = end;
-		inanchor = FALSE; /* we found what we looked for */
-		ignoretag = TRUE; /* skip to the end of the anchor */
+		intag = FALSE;	/* we found what we looked for */
+		skiptag = TRUE; /* skip to the end of the tag */
 		getnext = TRUE;	/* then grab the text */
 		continue;	/* look on the same line */
 	      }
+	    dbp += 1;
 	  }
 
 	else if (getnext)	/* grab next tokens and tag them */
@@ -5052,10 +5066,8 @@ HTML_labels (inf)
 	      break;		/* go to next line */
 	    if (*dbp == '<')
 	      {
-		if (lowcase (dbp[1]) == 'a' && !intoken (dbp[2]))
-		  inanchor = TRUE;
-		else
-		  ignoretag = TRUE;
+		intag = TRUE;
+		inanchor = (lowcase (dbp[1]) == 'a' && !intoken (dbp[2]));
 		continue;	/* look on the same line */
 	      }
 
@@ -5074,19 +5086,24 @@ HTML_labels (inf)
 	      dbp++;
 	    if (*dbp == '\0')
 	      break;		/* go to next line */
-	    dbp += 1;
-	    if (lowcase (dbp[0]) == 'a' && !intoken (dbp[1]))
-	      inanchor = TRUE;
-	    else if (LOOKING_AT_NOCASE (dbp, "title>")
-		     || LOOKING_AT_NOCASE (dbp, "h1>")
-		     || LOOKING_AT_NOCASE (dbp, "h2>")
-		     || LOOKING_AT_NOCASE (dbp, "h3>"))
+	    intag = TRUE;
+	    if (lowcase (dbp[1]) == 'a' && !intoken (dbp[2]))
 	      {
+		inanchor = TRUE;
+		continue;	/* look on the same line */
+	      }
+	    else if (LOOKING_AT_NOCASE (dbp, "<title>")
+		     || LOOKING_AT_NOCASE (dbp, "<h1>")
+		     || LOOKING_AT_NOCASE (dbp, "<h2>")
+		     || LOOKING_AT_NOCASE (dbp, "<h3>"))
+	      {
+		intag = FALSE;
 		getnext = TRUE;
 		continue;	/* look on the same line */
 	      }
+	    dbp += 1;
 	  }
-    }
+      }
 }
 
 
