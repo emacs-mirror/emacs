@@ -26,7 +26,7 @@
 
 ;; There is at present only a function interpreting the new `/proc/apm'
 ;; file format of Linux version 1.3.58 or newer.  That is, what a lucky
-;; coincidence, exactly the interface provided by the author's labtop.
+;; coincidence, exactly the interface provided by the author's laptop.
 
 ;;; Code:
 
