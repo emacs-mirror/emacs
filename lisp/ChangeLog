@@ -1,5 +1,9 @@
 2000-12-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-lazy-highlight-max): New user-option.
+	(isearch-lazy-highlight-update): Don't highlight more than
+	isearch-lazy-highlight-max matches.
+
 	* mail/mh-utils.el (mh-find-path): Set read-mail-command.
 
 2000-12-15  Richard M. Stallman  <rms@caffeine.ai.mit.edu>

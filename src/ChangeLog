@@ -1,5 +1,7 @@
 2000-12-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* lread.c (read1): Recognize end of file after `\\'.
+
 	* xfns.c (x_create_tip_frame): Use unwind_create_tip_frame,
 	not unwind_create_frame.
 
