@@ -168,7 +168,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
      not set by (*load_font_func).  */
   fontp->charset = charset;
 
-  if (fontp->encoding[1] >= 0)
+  if (fontp->encoding[1] != 4)
     {
       /* The font itself tells which code points to be used.  Use this
 	 encoding for all other charsets.  */
