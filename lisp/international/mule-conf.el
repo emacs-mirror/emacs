@@ -505,13 +505,15 @@
   :short-name "alternativnyj"
   :ascii-compatible-p t
   :code-space [0 255]
+  :map "alternativnyj")
+
+(define-charset 'cp866
+  "CP866"
+  :short-name "cp866"
+  :ascii-compatible-p t
+  :code-space [0 255]
   :map "ibm866")
-;; Fixme: http://czyborra.com/charsets/cyrillic.html says the
-;; following, but the iconv map for cp866 isn't the same as his chart
-;; for alternativnyj.  I can't find anything that looks like an
-;; official definition of alternativnyj.
-(define-charset-alias 'cp866 'alternativnyj)
-(define-charset-alias 'ibm866 'alternativnyj)
+(define-charset-alias 'ibm866 'cp866)
 
 (define-charset 'koi8-u
   "KOI8-U"
@@ -947,6 +949,15 @@
   :code-space [0 255]
   :mime-charset 'ebcdic-uk
   :map "ebcdic-uk")
+
+(define-charset 'ibm1047
+  ;; Says groff:
+  "IBM1047, some form of EBCDIC used by OS/390 Unix."
+  :short-name "IBM1047"
+  :code-space [0 255]
+  :mime-charset 'ibm1047
+  :map "ibm1047")
+(define-charset-alias 'cp1047 'ibm1047)
 
 (define-charset 'hp-roman8
   "Encoding used by Hewlet-Packard printer software"
