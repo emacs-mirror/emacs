@@ -1,3 +1,8 @@
+2003-04-02  Ehud Karni  <ehud@unix.mvs.co.il>  (tiny change)
+
+	* sort.el (sort-reorder-buffer): Fix saving of markers at the end
+	of the sorted region.
+
 2003-04-02  Masatake YAMATO  <jet@gyve.org>
 
 	* woman.el (woman-xref): Removed.

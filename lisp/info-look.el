@@ -783,7 +783,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'octave-mode
  :regexp "[_a-zA-Z0-9]+"
- :doc-spec '(("(octave)Function Index" nil 
+ :doc-spec '(("(octave)Function Index" nil
 	      "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
 	     ("(octave)Variable Index" nil "^ - [^:]+:[ ]+" nil)
 	     ;; Catch lines of the form "xyz statement"
@@ -797,7 +797,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 	      nil)))
 
 ;; coreutils and bash builtins overlap in places, eg. printf, so there's a
-;; question which should come first.  Some of the sh-utils descriptions are
+;; question which should come first.  Some of the coreutils descriptions are
 ;; more detailed, but if bash is usually /bin/sh on a GNU system then the
 ;; builtins will be what's normally run.
 ;;
