@@ -203,12 +203,13 @@ These supersede the values given in `default-frame-alist'.")
 (defun frame-notice-user-settings ()
 
   ;; Make menu-bar-mode and default-frame-alist consistent.
-  (let ((default (assq 'menu-bar-lines default-frame-alist)))
-    (if default
-	(setq menu-bar-mode (not (eq (cdr default) 0)))
-      (setq default-frame-alist
-	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		  default-frame-alist))))
+  (if (boundp 'menu-bar-mode)
+      (let ((default (assq 'menu-bar-lines default-frame-alist)))
+	(if default
+	    (setq menu-bar-mode (not (eq (cdr default) 0)))
+	  (setq default-frame-alist
+		(cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		      default-frame-alist)))))
 
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
@@ -495,7 +496,8 @@ A negative ARG moves in the opposite order."
     (raise-frame frame)
     (select-frame frame)
     (set-mouse-position (selected-frame) (1- (frame-width)) 0)
-    (unfocus-frame)))
+    (if (fboundp 'unfocus-frame)
+	(unfocus-frame))))
 
 ;;;; Frame configurations
 
