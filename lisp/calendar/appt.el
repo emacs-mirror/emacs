@@ -45,7 +45,7 @@
 ;;; The variable `appt-message-warning-time' allows the
 ;;; user to specify how much notice they want before the appointment. The 
 ;;; variable `appt-issue-message' specifies whether the user wants
-;;; to to be notified of a pending appointment.
+;;; to be notified of a pending appointment.
 ;;; 
 ;;; In order to use the appt package, you only need
 ;;; to load it---provided you have appointments.
