@@ -386,8 +386,10 @@ Return t if file exists.")
   Lisp_Object temp;
   struct gcpro gcpro1;
   Lisp_Object found;
-  /* 1 means inhibit the message at the beginning.  */
-  int nomessage1 = 0;
+  /* 1 means we printed the ".el is newer" message.  */
+  int newer = 0;
+  /* 1 means we are loading a compiled file.  */
+  int compiled = 0;
   Lisp_Object handler;
 #ifdef DOS_NT
   char *dosmode = "rt";
@@ -431,6 +433,8 @@ Return t if file exists.")
       struct stat s1, s2;
       int result;
 
+      compiled = 1;
+
 #ifdef DOS_NT
       dosmode = "rb";
 #endif /* DOS_NT */
@@ -439,11 +443,13 @@ Return t if file exists.")
       result = stat ((char *)XSTRING (found)->data, &s2);
       if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
 	{
-	  message ("Source file `%s' newer than byte-compiled file",
-		   XSTRING (found)->data);
-	  /* Don't immediately overwrite this message.  */
-	  if (!noninteractive)
-	    nomessage1 = 1;
+	  /* Make the progress messages mention that source is newer.  */
+	  newer = 1;
+
+	  /* If we won't print another message, mention this anyway.  */
+	  if (! NILP (nomessage))
+	    message ("Source file `%s' newer than byte-compiled file",
+		     XSTRING (found)->data);
 	}
       XSTRING (found)->data[XSTRING (found)->size - 1] = 'c';
     }
@@ -460,8 +466,16 @@ Return t if file exists.")
       error ("Failure to create stdio stream for %s", XSTRING (file)->data);
     }
 
-  if (NILP (nomessage) && !nomessage1)
-    message ("Loading %s...", XSTRING (file)->data);
+  if (NILP (nomessage))
+    {
+      if (newer)
+	message ("Loading %s... (compiled; note, source file is newer)",
+		 XSTRING (file)->data);
+      else if (compiled)
+	message ("Loading %s... (compiled)", XSTRING (file)->data);
+      else
+	message ("Loading %s...", XSTRING (file)->data);
+    }
 
   GCPRO1 (file);
   lispstream = Fcons (Qnil, Qnil);
@@ -488,7 +502,15 @@ Return t if file exists.")
   saved_doc_string_size = 0;
 
   if (!noninteractive && NILP (nomessage))
-    message ("Loading %s...done", XSTRING (file)->data);
+    {
+      if (newer)
+	message ("Loading %s...done (compiled; note, source file is newer)",
+		 XSTRING (file)->data);
+      else if (compiled)
+	message ("Loading %s...done (compiled)", XSTRING (file)->data);
+      else
+	message ("Loading %s...done", XSTRING (file)->data);
+    }
   return Qt;
 }
 
