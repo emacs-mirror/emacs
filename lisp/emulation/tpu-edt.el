@@ -423,8 +423,10 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 	 (setq minor-mode-alist tpu-original-mm-alist))
 	(t
 	 (setq-default mode-line-format
-		       (list (purecopy "")
+		       (list (purecopy "-")
+			     'mode-line-mule-info
 			     'mode-line-modified
+			     'mode-line-frame-identification
 			     'mode-line-buffer-identification
 			     (purecopy "  ")
 			     'global-mode-string
