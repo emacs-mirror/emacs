@@ -10502,7 +10502,7 @@ this variable holds the actual mouse event that led to the menu,
 so that you can determine whether the command was run by mouse or not.  */);
 
   DEFVAR_LISP ("last-input-char", &last_input_char,
-	       doc: /* Last input character.  */);
+	       doc: /* Last input event.  */);
 
   DEFVAR_LISP_NOPRO ("last-input-event", &last_input_char,
 		     doc: /* Last input event.  */);
@@ -10729,7 +10729,7 @@ This is measured in microseconds.  */);
   Vecho_area_clear_hook = Qnil;
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
-	       doc: /* t means menu bar, specified Lucid style, needs to be recomputed.  */);
+	       doc: /* Non-nil means menu bar, specified Lucid style, needs to be recomputed.  */);
   Vlucid_menu_bar_dirty_flag = Qnil;
 
   DEFVAR_LISP ("menu-bar-final-items", &Vmenu_bar_final_items,
