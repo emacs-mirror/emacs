@@ -1,3 +1,11 @@
+2002-06-11  Richard M. Stallman  <rms@gnu.org>
+
+	* format.el (format-alist): Document new element PRESERVE.
+	(format-write-file): Implement PRESERVE elt for a format.
+
+	* files.el (make-auto-save-file-name): Rename local `filename' to
+	`file-name'.
+
 2002-06-10  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/ebrowse.el (ebrowse-draw-tree-fn): Use copy-sequence.

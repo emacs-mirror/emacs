@@ -1,3 +1,8 @@
+2002-06-11  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (readable_events): Ignore any number of
+	FOCUS_IN_EVENT events and return 0 if nothing else in buffer.
+
 2002-06-09  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Ftty_supports_face_attributes_p): New function.
