@@ -1,3 +1,11 @@
+2000-05-08  Dave Love  <fx@gnu.org>
+
+	* pop3.el: Import changes from current Gnus.
+	(pop3-open-server): Bind coding systems before creating buffer and
+	fix creating its name.
+	(pop3-string-to-list): Function deleted.  Change callers to use
+	split-string.
+
 1999-12-19  Dave Love  <fx@gnu.org>
 
 	* mail/pop3.el (pop3-movemail-file-coding-system): Doc fix.
