@@ -683,7 +683,7 @@ detect_coding_iso2022 (src, src_end)
 {
   int mask = CODING_CATEGORY_MASK_ISO;
   int mask_found = 0;
-  int reg[4], shift_out = 0;
+  int reg[4], shift_out = 0, single_shifting = 0;
   int c, c1, i, charset;
 
   reg[0] = CHARSET_ASCII, reg[1] = reg[2] = reg[3] = -1;
@@ -693,6 +693,7 @@ detect_coding_iso2022 (src, src_end)
       switch (c)
 	{
 	case ISO_CODE_ESC:
+	  single_shifting = 0;
 	  if (src >= src_end)
 	    break;
 	  c = *src++;
@@ -781,6 +782,7 @@ detect_coding_iso2022 (src, src_end)
 	  break;
 
 	case ISO_CODE_SO:
+	  single_shifting = 0;
 	  if (shift_out == 0
 	      && (reg[1] >= 0
 		  || SHIFT_OUT_OK (CODING_CATEGORY_IDX_ISO_7_ELSE)
@@ -793,6 +795,7 @@ detect_coding_iso2022 (src, src_end)
 	  break;
 	  
 	case ISO_CODE_SI:
+	  single_shifting = 0;
 	  if (shift_out == 1)
 	    {
 	      /* Locking shift in.  */
@@ -802,6 +805,7 @@ detect_coding_iso2022 (src, src_end)
 	  break;
 
 	case ISO_CODE_CSI:
+	  single_shifting = 0;
 	case ISO_CODE_SS2:
 	case ISO_CODE_SS3:
 	  {
@@ -815,6 +819,7 @@ detect_coding_iso2022 (src, src_end)
 		if (coding_system_table[CODING_CATEGORY_IDX_ISO_8_2]->flags
 		    & CODING_FLAG_ISO_SINGLE_SHIFT)
 		  newmask |= CODING_CATEGORY_MASK_ISO_8_2;
+		single_shifting = 1;
 	      }
 	    if (VECTORP (Vlatin_extra_code_table)
 		&& !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
@@ -833,9 +838,13 @@ detect_coding_iso2022 (src, src_end)
 
 	default:
 	  if (c < 0x80)
-	    break;
+	    {
+	      single_shifting = 0;
+	      break;
+	    }
 	  else if (c < 0xA0)
 	    {
+	      single_shifting = 0;
 	      if (VECTORP (Vlatin_extra_code_table)
 		  && !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
 		{
@@ -860,12 +869,19 @@ detect_coding_iso2022 (src, src_end)
 	      mask &= ~(CODING_CATEGORY_MASK_ISO_7BIT
 			| CODING_CATEGORY_MASK_ISO_7_ELSE);
 	      mask_found |= CODING_CATEGORY_MASK_ISO_8_1;
-	      while (src < src_end && *src >= 0xA0)
-		src++;
-	      if ((src - src_begin - 1) & 1 && src < src_end)
-		mask &= ~CODING_CATEGORY_MASK_ISO_8_2;
-	      else
-		mask_found |= CODING_CATEGORY_MASK_ISO_8_2;
+	      /* Check the length of succeeding codes of the range
+                 0xA0..0FF.  If the byte length is odd, we exclude
+                 CODING_CATEGORY_MASK_ISO_8_2.  We can check this only
+                 when we are not single shifting.  */
+	      if (!single_shifting)
+		{
+		  while (src < src_end && *src >= 0xA0)
+		    src++;
+		  if ((src - src_begin - 1) & 1 && src < src_end)
+		    mask &= ~CODING_CATEGORY_MASK_ISO_8_2;
+		  else
+		    mask_found |= CODING_CATEGORY_MASK_ISO_8_2;
+		}
 	    }
 	  break;
 	}
