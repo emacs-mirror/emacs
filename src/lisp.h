@@ -1337,7 +1337,7 @@ extern Lisp_Object case_temp1, case_temp2;
 
 /* 1 if CH is upper case.  */
 
-#define UPPERCASEP(CH) (DOWNCASE(CH) != (CH))
+#define UPPERCASEP(CH) (DOWNCASE (CH) != (CH))
 
 /* 1 if CH is neither upper nor lower case.  */
 
@@ -1537,7 +1537,7 @@ extern Lisp_Object Freverse (), Fnreverse (), Fget (), Fput (), Fequal ();
 extern Lisp_Object Ffillarray (), Fnconc (), Fmapcar (), Fmapconcat ();
 extern Lisp_Object Fy_or_n_p (), do_yes_or_no_p ();
 extern Lisp_Object Ffeaturep (), Frequire () , Fprovide ();
-extern Lisp_Object concat2 (), nconc2 ();
+extern Lisp_Object concat2 (), concat3 (), nconc2 ();
 extern Lisp_Object assq_no_quit ();
 extern Lisp_Object Fcopy_alist ();
 extern Lisp_Object Fplist_get ();
@@ -1696,6 +1696,7 @@ extern Lisp_Object Fkill_buffer (), Fkill_all_local_variables ();
 extern Lisp_Object Fbuffer_disable_undo (), Fbuffer_enable_undo ();
 extern Lisp_Object Ferase_buffer ();
 extern Lisp_Object Qoverlayp;
+extern Lisp_Object get_truename_buffer ();
 extern struct buffer *all_buffers;
 
 /* defined in marker.c */
