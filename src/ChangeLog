@@ -1,3 +1,10 @@
+2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (SOME_MACHINE_LISP): Add disp-table.elc,
+	dos-vars.elc, ccl.elc, and codepage.elc, all loaded by the MS-DOS
+	version.
+	(MSDOS_SUPPORT): Add dos-vars.elc, ccl.elc, and codepage.elc.
+
 2000-05-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* syntax.c (skip_chars): Use FETCH_STRING_CHAR_ADVANCE
