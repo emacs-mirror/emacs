@@ -551,7 +551,7 @@ version of Emacs."
 	(t (mark))))
 
 (defun tpu-set-mark (pos)
-  "TPU-edt verion of the `set-mark' function.
+  "TPU-edt version of the `set-mark' function.
 Sets the mark at POS and activates the region according to the
 current version of Emacs."
   (set-mark pos)

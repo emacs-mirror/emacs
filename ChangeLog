@@ -1,12 +1,15 @@
+2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (maintainer-clean): Clean in the lisp dir as well.
+	(bootstrap): Use the new boostrap-prepare target in lisp.
+
 2004-02-18  Kim F. Storm  <storm@cua.dk>
 
-	* INSTALL.CVS: Add info about ssh/cvs related problems and
-	work-around.
+	* INSTALL.CVS: Add info about ssh/cvs related problems and work-around.
 
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
 
-	* make-dist: Don't link index.*perm and permute-index into
-	tempdir.
+	* make-dist: Don't link index.*perm and permute-index into tempdir.
 
 2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
 

@@ -196,6 +196,9 @@ If nil, point will always be placed at the beginning of the region."
 
 ;;=== User Command ========================================================
 
+(defvar mouse-sel-has-been-enabled nil
+  "Non-nil if Mouse Sel mode has been enabled at least once.")
+
 (defvar mouse-sel-original-bindings nil)
 (defvar mouse-sel-original-interprogram-cut-function nil)
 (defvar mouse-sel-original-interprogram-paste-function nil)
@@ -252,7 +255,8 @@ primary selection and region."
 	  (setq mouse-sel-original-interprogram-cut-function
 		interprogram-cut-function
 		mouse-sel-original-interprogram-paste-function
-		interprogram-paste-function)
+		interprogram-paste-function
+		mouse-sel-has-been-enabled t)
 	  (unless (eq mouse-sel-default-bindings 'interprogram-cut-paste)
 	    (setq interprogram-cut-function nil
 		  interprogram-paste-function nil))))
@@ -261,10 +265,13 @@ primary selection and region."
     (remove-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
     (dolist (binding mouse-sel-original-bindings)
       (global-set-key (car binding) (cdr binding)))
-    (setq interprogram-cut-function
-          mouse-sel-original-interprogram-cut-function
-          interprogram-paste-function
-          mouse-sel-original-interprogram-paste-function)))
+    ;; Restore the old values of these variables,
+    ;; only if they were actually saved previously.
+    (if mouse-sel-has-been-enabled
+	(setq interprogram-cut-function
+	      mouse-sel-original-interprogram-cut-function
+	      interprogram-paste-function
+	      mouse-sel-original-interprogram-paste-function))))
 
 ;;=== Internal Variables/Constants ========================================
 

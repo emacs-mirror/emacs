@@ -480,19 +480,30 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
 	  (error "sort-columns does not work with tabs -- use M-x untabify"))
-      (if (not (or (eq system-type 'vax-vms)
-		   (text-properties-at beg1)
-		   (< (next-property-change beg1 nil end1) end1)))
+      (if (not (or (memq system-type '(vax-vms windows-nt ms-dos))
+		   (let ((pos beg1) plist fontified)
+		     (catch 'found
+		       (while (< pos end1)
+			 (setq plist (text-properties-at pos))
+			 (setq fontified (plist-get plist 'fontified))
+			 (while (consp plist)
+			   (unless (or (eq (car plist) 'fontified)
+				       (and (eq (car plist) 'face)
+					    fontified))
+			     (throw 'found t))
+			   (setq plist (cddr plist)))
+			 (setq pos (next-property-change pos nil end1)))))))
 	  ;; Use the sort utility if we can; it is 4 times as fast.
-	  ;; Do not use it if there are any properties in the region,
-	  ;; since the sort utility would lose the properties.
+	  ;; Do not use it if there are any non-font-lock properties
+	  ;; in the region, since the sort utility would lose the
+	  ;; properties.
 	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
 				 (concat "+0." (int-to-string col-start))
 				 (concat "-0." (int-to-string col-end)))))
 	    (when sort-fold-case
 	      (push "-f" sort-args))
 	    (apply #'call-process-region beg1 end1 "sort" t t nil sort-args))
-	;; On VMS, use Emacs's own facilities.
+	;; On VMS and ms-windows, use Emacs's own facilities.
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region beg1 end1)

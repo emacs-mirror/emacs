@@ -641,6 +641,7 @@ Kill balanced expression forward (@code{kill-sexp}).
 @item C-M-t
 Transpose expressions (@code{transpose-sexps}).
 @item C-M-@@
+@itemx C-M-@key{SPC}
 Put mark after following expression (@code{mark-sexp}).
 @end table
 
@@ -701,12 +702,14 @@ rather than doing nothing, transposes the balanced expressions ending
 at or after point and the mark.
 
 @kindex C-M-@@
+@kindex C-M-@key{SPC}
 @findex mark-sexp
   To set the region around the next balanced expression in the buffer,
 use @kbd{C-M-@@} (@code{mark-sexp}), which sets mark at the same place
 that @kbd{C-M-f} would move to.  @kbd{C-M-@@} takes arguments like
 @kbd{C-M-f}.  In particular, a negative argument is useful for putting
 the mark at the beginning of the previous balanced expression.
+The alias @kbd{C-M-@key{SPC}} is equivalent to @kbd{C-M-@@}.
 
   In languages that use infix operators, such as C, it is not possible
 to recognize all balanced expressions as such because there can be

@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001, 02, 2003
+   Copyright (C) 1985,86,87,89,93,94,95,96,97,98,1999,2000,01,02,03,2004
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2741,85 +2741,84 @@ DEFUN ("translate-region", Ftranslate_region, Stranslate_region, 3, 3, 0,
        doc: /* From START to END, translate characters according to TABLE.
 TABLE is a string; the Nth character in it is the mapping
 for the character with code N.
-This function does not alter multibyte characters.
 It returns the number of characters changed.  */)
      (start, end, table)
      Lisp_Object start;
      Lisp_Object end;
      register Lisp_Object table;
 {
-  register int pos_byte, stop;	/* Limits of the region. */
   register unsigned char *tt;	/* Trans table. */
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
   int size;			/* Size of translate table. */
-  int pos;
+  int pos, pos_byte;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int string_multibyte;
 
   validate_region (&start, &end);
   CHECK_STRING (table);
 
-  size = SBYTES (table);
+  if (multibyte != (SCHARS (table) < SBYTES (table)))
+    table = (multibyte
+	     ? string_make_multibyte (table)
+	     : string_make_unibyte (table));
+  string_multibyte = SCHARS (table) < SBYTES (table);
+
+  size = SCHARS (table);
   tt = SDATA (table);
 
-  pos_byte = CHAR_TO_BYTE (XINT (start));
-  stop = CHAR_TO_BYTE (XINT (end));
-  modify_region (current_buffer, XINT (start), XINT (end));
   pos = XINT (start);
+  pos_byte = CHAR_TO_BYTE (pos);
+  modify_region (current_buffer, pos, XINT (end));
 
   cnt = 0;
-  for (; pos_byte < stop; )
+  for (; pos < XINT (end); )
     {
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
-      int len;
+      unsigned char *str;
+      int len, str_len;
       int oc;
-      int pos_byte_next;
 
       if (multibyte)
-	oc = STRING_CHAR_AND_LENGTH (p, stop - pos_byte, len);
+	oc = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
       else
 	oc = *p, len = 1;
-      pos_byte_next = pos_byte + len;
-      if (oc < size && len == 1)
+      if (oc < size)
 	{
-	  nc = tt[oc];
+	  if (string_multibyte)
+	    {
+	      str = tt + string_char_to_byte (table, oc);
+	      nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH, str_len);
+	    }
+	  else
+	    {
+	      str = tt + oc;
+	      nc = tt[oc], str_len = 1;
+	    }
 	  if (nc != oc)
 	    {
-	      /* Take care of the case where the new character
-		 combines with neighboring bytes.  */
-	      if (!ASCII_BYTE_P (nc)
-		  && (CHAR_HEAD_P (nc)
-		      ? ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))
-		      : (pos_byte > BEG_BYTE
-			 && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))))
+	      if (len != str_len)
 		{
 		  Lisp_Object string;
 
-		  string = make_multibyte_string (tt + oc, 1, 1);
 		  /* This is less efficient, because it moves the gap,
-		     but it handles combining correctly.  */
-		  replace_range (pos, pos + 1, string,
-				 1, 0, 1);
-		  pos_byte_next = CHAR_TO_BYTE (pos);
-		  if (pos_byte_next > pos_byte)
-		    /* Before combining happened.  We should not
-		       increment POS.  So, to cancel the later
-		       increment of POS, we decrease it now.  */
-		    pos--;
-		  else
-		    INC_POS (pos_byte_next);
+		     but it should multibyte characters correctly.  */
+		  string = make_multibyte_string (str, 1, str_len);
+		  replace_range (pos, pos + 1, string, 1, 0, 1);
+		  len = str_len;
 		}
 	      else
 		{
 		  record_change (pos, 1);
-		  *p = nc;
+		  while (str_len-- > 0)
+		    *p++ = *str++;
 		  signal_after_change (pos, 1, 1);
 		  update_compositions (pos, pos + 1, CHECK_BORDER);
 		}
 	      ++cnt;
 	    }
 	}
-      pos_byte = pos_byte_next;
+      pos_byte += len;
       pos++;
     }
 

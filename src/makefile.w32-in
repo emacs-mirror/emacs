@@ -723,6 +723,21 @@ $(BLD)/frame.$(O) : \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
+$(BLD)/fringe.$(O) : \
+	$(SRC)/fringe.c \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
+	$(SRC)/buffer.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
+	$(SRC)/systime.h \
+	$(SRC)/w32bdf.h \
+	$(SRC)/w32gui.h \
+	$(SRC)/window.h
+
 $(BLD)/gmalloc.$(O) : \
 	$(SRC)/gmalloc.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \

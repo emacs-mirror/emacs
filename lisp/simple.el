@@ -739,11 +739,11 @@ to get different commands to edit and resubmit."
 This is used for all minibuffer input
 except when an alternate history list is specified.")
 (defvar minibuffer-history-sexp-flag nil
-  "Non-nil when doing history operations on the variable `command-history'.
-More generally, indicates that the history list being acted on
-contains expressions rather than strings.
-It is only valid if its value equals the current minibuffer depth,
-to handle recursive uses of the minibuffer.")
+  "Control whether history list elements are expressions or strings.
+If the value of this variable equals current minibuffer depth,
+they are expressions; otherwise they are strings.
+\(That convention is designed to do the right thing fora
+recursive uses of the minibuffer.)")
 (setq minibuffer-history-variable 'minibuffer-history)
 (setq minibuffer-history-position nil)
 (defvar minibuffer-history-search-history nil)
@@ -972,9 +972,13 @@ as an argument limits undo to changes within the current region."
   ;; another undo command will find the undo history empty
   ;; and will get another error.  To begin undoing the undos,
   ;; you must type some other command.
-  (setq this-command 'undo)
   (let ((modified (buffer-modified-p))
 	(recent-save (recent-auto-save-p)))
+    ;; If we get an error in undo-start,
+    ;; the next command should not be a "consecutive undo".
+    ;; So set `this-command' to something other than `undo'.
+    (setq this-command 'undo-start)
+
     (unless (eq last-command 'undo)
       (setq undo-in-region
 	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
@@ -983,6 +987,8 @@ as an argument limits undo to changes within the current region."
 	(undo-start))
       ;; get rid of initial undo boundary
       (undo-more 1))
+    ;; If we got this far, the next command should be a consecutive undo. 
+    (setq this-command 'undo)
     ;; Check to see whether we're hitting a redo record, and if
     ;; so, ask the user whether she wants to skip the redo/undo pair.
     (let ((equiv (gethash pending-undo-list undo-equiv-table)))
@@ -2239,7 +2245,10 @@ even beep.)"
 			  (save-excursion
 			    (end-of-visible-line) (point))))
 		     (if (or (save-excursion
-			       (skip-chars-forward " \t" end)
+			       ;; If trailing whitespace is visible,
+			       ;; don't treat it as nothing.
+			       (unless show-trailing-whitespace
+				 (skip-chars-forward " \t" end))
 			       (= (point) end))
 			     (and kill-whole-line (bolp)))
 			 (forward-visible-line 1)

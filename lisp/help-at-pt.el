@@ -101,7 +101,7 @@ The value may be an integer or floating point number.
 If a timer is already active, there are two ways to make the new
 value take effect immediately.  After setting the value, you can
 first call `help-at-pt-cancel-timer' and then set a new timer
-with `help-at-pt-set-timer' .  Alternatively, you can set this
+with `help-at-pt-set-timer'.  Alternatively, you can set this
 variable through Custom.  This will not set a timer if none is
 active, but if one is already active, Custom will make it use the
 new value."

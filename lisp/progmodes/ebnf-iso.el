@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/22 14:24:55 vinicius>
+;; Time-stamp: <2004/02/29 18:31:33 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.7
 
@@ -113,7 +113,8 @@
 ;; ISO EBNF accepts the characters given by <character> production above,
 ;; HORIZONTAL TAB (^I), VERTICAL TAB (^K), NEWLINE (^J or ^M) and FORM FEED
 ;; (^L), any other characters are illegal.  But ebnf2ps accepts also the
-;; european 8-bit accentuated characters (from \240 to \377) and underscore.
+;; european 8-bit accentuated characters (from \240 to \377) and underscore
+;; (_).
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 01, 03, 2004  Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -109,10 +109,7 @@ CHILD-NAME should be a lower case symbol."
 Return `nil' if the attribute was not found.
 
 See also `xml-get-attribute'."
-  (when (xml-node-attributes node)
-    (let ((value (assoc attribute (xml-node-attributes node))))
-      (when value
-	(cdr value)))))
+  (cdr (assoc attribute (xml-node-attributes node))))
 
 (defsubst xml-get-attribute (node attribute)
   "Get from NODE the value of ATTRIBUTE.

@@ -382,7 +382,7 @@ inputinput@point{}
 
 @defun call-process-shell-command command &optional infile destination display &rest args
 This function executes the shell command @var{command} synchronously
-in separate process.  The final arguments @var{args} are additional
+in a separate process.  The final arguments @var{args} are additional
 arguments to add at the end of @var{command}.  The other arguments
 are handled as in @code{call-process}.
 @end defun
@@ -1512,7 +1512,7 @@ and @code{failed}.  For a network server, the status is always
 @code{listen}.  None of those values is possible for a real
 subprocess.  @xref{Process Information}.
 
-  You can stop and resume operation of a network processes by calling
+  You can stop and resume operation of a network process by calling
 @code{stop-process} and @code{continue-process}.  For a server
 process, being stopped means not accepting new connections.  (Up to 5
 connection requests will be queued for when you resume the server; you
@@ -1667,10 +1667,10 @@ meaning ask the system to allocate an unused port to listen on.
 @section Datagrams 
 @cindex datagrams
 
-  A datagram connection communicates with individual packets
-rather than streams of data.  Each call to @code{process-send}
-sends one datagram packet, and each datagram received results
-in one call to the filter function.
+  A datagram connection communicates with individual packets rather
+than streams of data.  Each call to @code{process-send} sends one
+datagram packet (@pxref{Input to Processes}), and each datagram
+received results in one call to the filter function.
 
   The datagram connection doesn't have to talk with the same remote
 peer all the time.  It has a @dfn{remote peer address} which specifies
@@ -1771,10 +1771,10 @@ in the local address space.
 @item
 An ``unsupported family'' address is represented by a cons
 @code{(@var{f} . @var{av})}, where @var{f} is the family number and
-@var{av} is a vector specifying the socket address using with one
-element per address data byte.  Do not rely on this format in portable
-code, as it may depend on implementation defined constants, data
-sizes, and data structure alignment.
+@var{av} is a vector specifying the socket address using one element
+per address data byte.  Do not rely on this format in portable code,
+as it may depend on implementation defined constants, data sizes, and
+data structure alignment.
 @end itemize
 
 @item :nowait @var{bool}

@@ -42,6 +42,8 @@
 
 ;;; Code:
 
+(require 'eldoc)
+
 ;;
 ;; vars here
 ;;
@@ -236,6 +238,13 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
+    ;; Set a callback function for eldoc.
+    (set (make-variable-buffer-local 'eldoc-print-current-symbol-info-function)
+	 'hexl-print-current-point-info)
+    (eldoc-add-command-completions "hexl-")
+    (eldoc-remove-command "hexl-save-buffer" 
+			  "hexl-current-address")
+
     (if hexl-follow-ascii (hexl-follow-ascii 1)))
   (run-hooks 'hexl-mode-hook))
 
@@ -361,8 +370,14 @@ Ask the user for confirmation."
 		 (- current-column 41)
 	       (/ (- current-column  (/ current-column 5)) 2))))
     (when (interactive-p)
-      (message "Current address is %d" hexl-address))
+      (message "Current address is %d/0x%08x" hexl-address hexl-address))
     hexl-address))
+
+(defun hexl-print-current-point-info ()
+  "Return current hexl-address in string.
+This function is indented to be used as eldoc callback."
+  (let ((addr (hexl-current-address)))
+    (format "Current address is %d/0x%08x" addr addr)))
 
 (defun hexl-address-to-marker (address)
   "Return buffer position for ADDRESS."

@@ -147,7 +147,7 @@ NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
 .el.elc:
 	${RUN-EMACS} -f batch-byte-compile $<
 
-all: ${BUILT-EMACS} ${SUBDIRS} ${TIT} ${MISC-DIC} leim-list.el
+all: ${BUILT-EMACS} ${SUBDIRS} ${WORLD} leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -223,14 +223,17 @@ install: all
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
-	rm -f ${TIT} ${NON-TIT} ${WORLD} ${TIT:.elc=.el} \
-	  ${MISC-DIC} ${MISC-DIC:.elc=.el} leim-list.el
+	rm -f ${TIT} ${TIT:.elc=.el} ${MISC-DIC} ${MISC-DIC:.elc=.el} \
+		leim-list.el
 
-distclean maintainer-clean: clean
+distclean: clean
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
 	rm -f Makefile
 
-extraclean: distclean
+maintainer-clean: distclean
+	rm -f ${WORLD}
+
+extraclean: maintainer-clean
 	-rm -f *~ \#* m/?*~ s/?*~
 
 # arch-tag: f666a939-8145-4d64-a6a6-cc1f61bd32ca

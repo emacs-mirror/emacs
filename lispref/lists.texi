@@ -448,11 +448,11 @@ interesting to note that @code{list} is used more times in the source
 code for Emacs than @code{cons}.
 
 @defun cons object1 object2
-This function is the fundamental function for building new list
+This function is the most basic function for building new list
 structure.  It creates a new cons cell, making @var{object1} the
-@sc{car}, and @var{object2} the @sc{cdr}.  It then returns the new cons
-cell.  The arguments @var{object1} and @var{object2} may be any Lisp
-objects, but most often @var{object2} is a list.
+@sc{car}, and @var{object2} the @sc{cdr}.  It then returns the new
+cons cell.  The arguments @var{object1} and @var{object2} may be any
+Lisp objects, but most often @var{object2} is a list.
 
 @example
 @group

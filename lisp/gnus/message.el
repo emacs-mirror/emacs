@@ -1,5 +1,5 @@
 ;;; message.el --- composing mail and news messages  -*- coding: iso-latin-1 -*-
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1531,7 +1531,10 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (set (make-local-variable 'message-mime-part) 0)
   (message-setup-fill-variables)
   ;; Allow using comment commands to add/remove quoting.
-  (set (make-local-variable 'comment-start) message-yank-prefix)
+  (when message-yank-prefix
+    (set (make-local-variable 'comment-start) message-yank-prefix)
+    (set (make-local-variable 'comment-start-skip)
+	 (concat "^" (regexp-quote message-yank-prefix) "[ \t]*")))
   ;;(when (fboundp 'mail-hist-define-keys)
   ;;  (mail-hist-define-keys))
   (if (featurep 'xemacs)

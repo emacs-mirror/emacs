@@ -1199,7 +1199,6 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
     = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
-  int prev_hpos = 0;
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
@@ -1227,6 +1226,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   int wide_column_end_hpos = 0;
   int prev_pos;			/* Previous buffer position.  */
   int prev_pos_byte;		/* Previous buffer position.  */
+  int prev_hpos = 0;
+  int prev_vpos = 0;
   int contin_hpos;		/* HPOS of last column of continued line.  */
   int prev_tab_offset;		/* Previous tab offset.  */
 
@@ -1275,6 +1276,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  pos = prev_pos;
 		  pos_byte = prev_pos_byte;
 		  hpos = prev_hpos;
+		  vpos = prev_vpos;
 		  tab_offset = prev_tab_offset;
 		}
 	      break;
@@ -1384,6 +1386,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  if (pos >= next_boundary)
 		    next_boundary = pos + 1;
 		  prev_hpos = width;
+		  prev_vpos = vpos;
 		  prev_tab_offset = tab_offset;
 		}
 	    }
@@ -1416,6 +1419,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  pos = prev_pos;
 	  pos_byte = prev_pos_byte;
 	  hpos = prev_hpos;
+	  vpos = prev_vpos;
 	  tab_offset = prev_tab_offset;
 
 	  /* NOTE on contin_hpos, hpos, and prev_hpos.
@@ -1436,10 +1440,6 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      hpos = contin_hpos;
 	      vpos = vpos - 1;
 	    }
-	  else if (c == '\n')
-	    /* If previous character is NEWLINE,
-	       set VPOS back to previous line */
-	    vpos = vpos - 1;
 	  break;
 	}
 
@@ -1457,6 +1457,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      pos = prev_pos;
 	      pos_byte = prev_pos_byte;
 	      hpos = prev_hpos;
+	      vpos = prev_vpos;
 	      tab_offset = prev_tab_offset;
 	    }
 	  break;
@@ -1465,6 +1466,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	break;
 
       prev_hpos = hpos;
+      prev_vpos = vpos;
       prev_pos = pos;
       prev_pos_byte = pos_byte;
       wide_column_end_hpos = 0;

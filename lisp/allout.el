@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.45 2003/10/16 16:28:30 eliz Exp $||
+;; Version: $Id: allout.el,v 1.46 2004/03/01 22:44:04 lektu Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.45 $"))
+  (let ((rcs-rev "$Revision: 1.46 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -3015,9 +3015,9 @@ Third arg NUMBER-CONTROL can force the prefix to or away from
 numbered form.  It has effect only if `allout-numbered-bullet' is
 non-nil and soliciting was not explicitly invoked (via first arg).
 Its effect, numbering or denumbering, then depends on the setting
-of the forth arg, INDEX.
+of the fourth arg, INDEX.
 
-If NUMBER-CONTROL is non-nil and forth arg INDEX is nil, then the
+If NUMBER-CONTROL is non-nil and fourth arg INDEX is nil, then the
 prefix of the topic is forced to be non-numbered.  Null index and
 non-nil NUMBER-CONTROL forces denumbering.  Non-nil INDEX (and
 non-nil NUMBER-CONTROL) forces a numbered-prefix form.  If non-nil

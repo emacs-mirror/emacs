@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/22 14:24:37 vinicius>
+;; Time-stamp: <2004/02/29 18:40:14 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.0
 
@@ -36,6 +36,46 @@
 ;; This package defines an optimizer for ebnf2ps.
 ;;
 ;; See ebnf2ps.el for documentation.
+;;
+;;
+;; Optimizations
+;; -------------
+;;
+;;
+;; *To be implemented*:
+;;    left recursion:
+;;    A = B | A C B | A C D.   ==>   A = B {C (B | D)}*.
+;;
+;;    right recursion:
+;;    A = B | C A.             ==>   A = {C}* B.
+;;    A = B | D | C A | E A.   ==>   A = { C | E }* ( B | D ).
+;;
+;;    optional:
+;;    A = B | C B.             ==>   A = [C] B.
+;;    A = B | B C.             ==>   A = B [C].
+;;    A = D | B D | B C D.     ==>   A = [B [C]] D.
+;;
+;;
+;; *Already implemented*:
+;;    left recursion:
+;;    A = B | A C.             ==>   A = B {C}*.
+;;    A = B | A B.             ==>   A = {B}+.
+;;    A =   | A B.             ==>   A = {B}*.
+;;    A = B | A C B.           ==>   A = {B || C}+.
+;;    A = B | D | A C | A E.   ==>   A = ( B | D ) { C | E }*.
+;;
+;;    optional:
+;;    A = B | .                ==>   A = [B].
+;;    A =   | B .              ==>   A = [B].
+;;
+;;    factoration:
+;;    A = B C | B D.           ==>   A = B (C | D).
+;;    A = C B | D B.           ==>   A = (C | D) B.
+;;    A = B C E | B D E.       ==>   A = B (C | D) E.
+;;
+;;    none:
+;;    A = B | C | .            ==>   A = B | C | .
+;;    A = B | C A D.           ==>   A = B | C A D.
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
