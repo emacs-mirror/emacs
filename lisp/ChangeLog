@@ -1,3 +1,12 @@
+2000-12-19  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-sybase-options): New option.
+	(sql-sybase): Use it.  Add sql-database to the list of parameters
+	provided for login.  The options -w 2048 -n are not used any more.
+	(sql-postgres-options): Changed default from "--pset" to "-P".
+	(sql-mysql-options): Doc change.
+	(sql-stop): Doc change.
+
 2000-12-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-input-method): Always hide
