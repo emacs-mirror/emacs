@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.68 $
+;; Version: $Revision: 1.69 $
 
 ;; This file is part of GNU Emacs.
 
@@ -550,13 +550,8 @@ already exist.
 
 Commands:
 \\{tcl-mode-map}"
-  (set (make-local-variable 'paragraph-start) "$\\|")
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-
   (unless (and (boundp 'filladapt-mode) filladapt-mode)
-    (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-    (set (make-local-variable 'fill-paragraph-function)
-	 'tcl-do-fill-paragraph))
+    (set (make-local-variable 'paragraph-ignore-fill-prefix) t))
 
   (set (make-local-variable 'indent-line-function) 'tcl-indent-line)
   (set (make-local-variable 'comment-indent-function) 'tcl-comment-indent)
@@ -566,10 +561,9 @@ Commands:
 
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-start-skip) "#+ *")
-  (set (make-local-variable 'comment-column) 40) ;why?  -stef
   (set (make-local-variable 'comment-end) "")
 
-  (set (make-local-variable 'outline-regexp) "[^\n\^M]")
+  (set (make-local-variable 'outline-regexp) ".")
   (set (make-local-variable 'outline-level) 'tcl-outline-level)
 
   (set (make-local-variable 'font-lock-defaults)
@@ -1233,47 +1227,6 @@ simpler version that is often right, and works in Emacs 18."
   (let ((save (point)))
     (beginning-of-defun)
     (car (tcl-hairy-scan-for-comment nil save nil))))
-
-(defun tcl-do-fill-paragraph (ignore)
-  "fill-paragraph function for Tcl mode.  Only fills in a comment."
-  (let (in-comment col where)
-    (save-excursion
-      (end-of-line)
-      (setq in-comment (tcl-in-comment))
-      (if in-comment
-	  (progn
-	    (setq where (1+ (point)))
-	    (setq col (1- (current-column))))))
-    (and in-comment
-	 (save-excursion
-	   (back-to-indentation)
-	   (= col (current-column)))
-	 ;; In a comment.  Set the fill prefix, and find the paragraph
-	 ;; boundaries by searching for lines that look like
-	 ;; comment-only lines.
-	 (let ((fill-prefix (buffer-substring (progn
-						(beginning-of-line)
-						(point))
-					      where))
-	       p-start p-end)
-	   ;; Search backwards.
-	   (save-excursion
-	     (while (and (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
-			 (not (bobp)))
-	       (forward-line -1))
-	     (setq p-start (point)))
-
-	   ;; Search forwards.
-	   (save-excursion
-	     (while (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
-	       (forward-line))
-	     (setq p-end (point)))
-
-	   ;; Narrow and do the fill.
-	   (save-restriction
-	     (narrow-to-region p-start p-end)
-	     (fill-paragraph ignore)))))
-  t)
 
 
 
