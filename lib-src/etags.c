@@ -32,7 +32,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.42";
+char pot_etags_version[] = "@(#) pot revision number is 11.45";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -160,6 +160,7 @@ Lang_function Fortran_functions;
 Lang_function Yacc_entries;
 Lang_function Lisp_functions;
 Lang_function Pascal_functions;
+Lang_function Perl_functions;
 Lang_function Prolog_functions;
 Lang_function Scheme_functions;
 Lang_function TeX_functions;
@@ -175,13 +176,16 @@ void Fortran_functions ();
 void Yacc_entries ();
 void Lisp_functions ();
 void Pascal_functions ();
+void Perl_functions ();
 void Prolog_functions ();
 void Scheme_functions ();
 void TeX_functions ();
 void just_read_file ();
 #endif
 
-logical get_language ();
+Lang_function *get_language_from_name ();
+Lang_function *get_language_from_interpreter ();
+Lang_function *get_language_from_suffix ();
 int total_size_of_entries ();
 long readline ();
 long readline_internal ();
@@ -307,140 +311,130 @@ int num_patterns = 0;
 struct pattern *patterns = NULL;
 #endif /* ETAGS_REGEXPS */
 
-/* Language stuff. */
-struct lang_entry
-{
-  char *suffix;
-  Lang_function *function;
-};
-
-/* Table of language names and corresponding functions. */
-/* It is ok for a given function to be listed under more than one
-   name.  I just didn't. */
-/* "auto" language reverts to default behavior. */
-struct lang_entry lang_names[] =
-{
-  { "asm", Asm_labels },
-  { "c", default_C_entries },
-  { "c++", Cplusplus_entries },
-  { "c*", Cstar_entries },
-  { "fortran", Fortran_functions },
-  { "lisp", Lisp_functions },
-  { "none", just_read_file },
-  { "pascal", Pascal_functions },
-  { "scheme" , Scheme_functions },
-  { "tex", TeX_functions },
-  { "auto", NULL },
-  { NULL, NULL }
-};
-
-/* Table of file name suffixes and corresponding language functions. */
-struct lang_entry lang_suffixes[] =
-{
-  /* Assembly code */
-  { "a", Asm_labels },		/* Unix assembler */
-  { "asm", Asm_labels },	/* Microcontroller assembly */
-  { "def", Asm_labels },	/* BSO/Tasking definition includes  */
-  { "inc", Asm_labels },	/* Microcontroller include files */
-  { "ins", Asm_labels },	/* Microcontroller include files */
-  { "s", Asm_labels },
-  { "sa", Asm_labels },		/* Unix assembler */
-  { "src", Asm_labels },	/* BSO/Tasking C compiler output */
-
-  /* LaTeX source code */
-  { "bib", TeX_functions },
-  { "clo", TeX_functions },
-  { "cls", TeX_functions },
-  { "ltx", TeX_functions },
-  { "sty", TeX_functions },
-  { "TeX", TeX_functions },
-  { "tex", TeX_functions },
-
-  /* Lisp source code */
-  { "cl", Lisp_functions },
-  { "clisp", Lisp_functions },
-  { "el", Lisp_functions },
-  { "l", Lisp_functions },
-  { "lisp", Lisp_functions },
-  { "lsp", Lisp_functions },
-  { "ml", Lisp_functions },
-
-  /* Scheme source code */
-  { "SCM", Scheme_functions },
-  { "SM", Scheme_functions },
-  { "oak", Scheme_functions },
-  { "sch", Scheme_functions },
-  { "scheme", Scheme_functions },
-  { "scm", Scheme_functions },
-  { "sm", Scheme_functions },
-  { "t", Scheme_functions },
-  /* FIXME Can't do the `SCM' or `scm' prefix with a version number */
-
-  /* Note that .c and .h can be considered C++, if the --c++ flag was
-     given.  That is why default_C_entries is called here. */
-  { "c", default_C_entries },
-  { "h", default_C_entries },
-
-  /* Pro*C file. */
-  { "pc", plain_C_entries },
-
-  /* C++ file */
-  { "C", Cplusplus_entries },
-  { "H", Cplusplus_entries },
-  { "c++", Cplusplus_entries },
-  { "cc", Cplusplus_entries },
-  { "cpp", Cplusplus_entries },
-  { "cxx", Cplusplus_entries },
-  { "h++", Cplusplus_entries },
-  { "hh", Cplusplus_entries },
-  { "hpp", Cplusplus_entries },
-  { "hxx", Cplusplus_entries },
-
-  /* Yacc file */
-  { "y", Yacc_entries },
-
-  /* C* file */
-  { "cs", Cstar_entries },
-  { "hs", Cstar_entries },
-
-  /* Fortran */
-  { "F", Fortran_functions },
-  { "f", Fortran_functions },
-  { "f90", Fortran_functions },
-  { "for", Fortran_functions },
-
-  /* Prolog source code */
-  { "prolog", Prolog_functions },
-
-  /* Pascal file */
-  { "p", Pascal_functions },
-  { "pas", Pascal_functions },
-
-  { NULL, NULL }
-};
+/*
+ * Language stuff.
+ */
 
 /* Non-NULL if language fixed. */
 Lang_function *lang_func = NULL;
+
+/* Assembly code */
+char *Asm_suffixes [] = { "a",	/* Unix assembler */
+			  "asm", /* Microcontroller assembly */
+			  "def", /* BSO/Tasking definition includes  */
+			  "inc", /* Microcontroller include files */
+			  "ins", /* Microcontroller include files */
+			  "s", "sa", /* Unix assembler */
+			  "src", /* BSO/Tasking C compiler output */
+			  NULL
+			};
+
+/* Note that .c and .h can be considered C++, if the --c++ flag was
+   given.  That is why default_C_entries is called here. */
+char *default_C_suffixes [] =
+  { "c", "h", NULL };
+
+/* C++ file */
+char *Cplusplus_suffixes [] =
+  { "C", "H", "c++", "cc", "cpp", "cxx", "h++", "hh", "hpp", "hxx", NULL };
+
+/* C* file */
+char *Cstar_suffixes [] =
+  { "cs", "hs", NULL };
+
+/* Fortran */
+char *Fortran_suffixes [] =
+  { "F", "f", "f90", "for", NULL };
+
+/* Lisp source code */
+char *Lisp_suffixes [] =
+  { "cl", "clisp", "el", "l", "lisp", "lsp", "ml", NULL };
+
+/* Pascal file */
+char *Pascal_suffixes [] =
+  { "p", "pas", NULL };
+
+/* Perl file */
+char *Perl_suffixes [] =
+  { "pl", "pm", NULL };
+char *Perl_interpreters [] =
+  { "perl", NULL };
+
+/* Pro*C file. */
+char *plain_C_suffixes [] =
+  { "pc", NULL };
+
+/* Prolog source code */
+char *Prolog_suffixes [] =
+  { "prolog", NULL };
+
+/* Scheme source code */
+/* FIXME Can't do the `SCM' or `scm' prefix with a version number */
+char *Scheme_suffixes [] =
+  { "SCM", "SM", "oak", "sch", "scheme", "scm", "sm", "t", NULL };
+
+/* TeX/LaTeX source code */
+char *TeX_suffixes [] =
+  { "bib", "clo", "cls", "ltx", "sty", "TeX", "tex", NULL };
+
+/* Yacc file */
+char *Yacc_suffixes [] =
+  { "y", NULL };
+
+/* Table of language names and corresponding functions, file suffixes
+   and interpreter names.
+   It is ok for a given function to be listed under more than one
+   name.  I just didn't. */
+struct lang_entry
+{
+  char *name;
+  Lang_function *function;
+  char **suffixes;
+  char **interpreters;
+};
+
+struct lang_entry lang_names [] =
+{
+  { "asm", Asm_labels, Asm_suffixes },
+  { "c", default_C_entries, default_C_suffixes },
+  { "c++", Cplusplus_entries, Cplusplus_suffixes },
+  { "c*", Cstar_entries, Cstar_suffixes },
+  { "fortran", Fortran_functions, Fortran_suffixes },
+  { "lisp", Lisp_functions, Lisp_suffixes },
+  { "pascal", Pascal_functions, Pascal_suffixes },
+  { "perl", Perl_functions, Perl_suffixes, Perl_interpreters },
+  { "proc", plain_C_entries, plain_C_suffixes },
+  { "prolog", Prolog_functions, Prolog_suffixes },
+  { "scheme" , Scheme_functions, Scheme_suffixes },
+  { "tex", TeX_functions, TeX_suffixes },
+  { "yacc", Yacc_entries, Yacc_suffixes },
+  { "auto", NULL },		/* default guessing scheme */
+  { "none", just_read_file },	/* regexp matching only */
+  { NULL, NULL }		/* end of list */
+};
 
 
 void
 print_language_names ()
 {
-  struct lang_entry *name, *ext;
+  struct lang_entry *lang;
+  char **ext;
 
   puts ("\nThese are the currently supported languages, along with the\n\
 default file name suffixes:");
-  for (name = lang_names; name->suffix; ++name)
+  for (lang = lang_names; lang->name != NULL; lang++)
     {
-      printf ("\t%s\t", name->suffix);
-      for (ext = lang_suffixes; ext->suffix; ++ext)
-	if (name->function == ext->function)
-	  printf (" .%s", ext->suffix);
+      printf ("\t%s\t", lang->name);
+      if (lang->suffixes != NULL)
+	for (ext = lang->suffixes; *ext != NULL; ext++)
+	  printf (" .%s", *ext);
       puts ("");
     }
   puts ("Where `auto' means use default language for files based on file\n\
 name suffix, and `none' means only do regexp processing on files.\n\
 If no language is specified and no matching suffix is found,\n\
+the first line of the file is read for a sharp-bang (#!) sequence\n\
+followed by the name of an interpreter.  If no such sequence is found,\n\
 Fortran is tried first; if no tags are found, C is tried next.");
 }
 
@@ -562,7 +556,7 @@ typedef struct
   enum argument_type arg_type;
   char *what;
   Lang_function *function;
-} ARGUMENT;
+} argument;
 
 #ifdef VMS			/* VMS specific functions */
 
@@ -698,7 +692,7 @@ main (argc, argv)
   unsigned int nincluded_files = 0;
   char **included_files = xnew (argc, char *);
   char *this_file;
-  ARGUMENT *argbuffer;
+  argument *argbuffer;
   int current_arg = 0, file_count = 0;
   struct linebuffer filename_lb;
 #ifdef VMS
@@ -713,7 +707,7 @@ main (argc, argv)
 
   /* Allocate enough no matter what happens.  Overkill, but each one
      is small. */
-  argbuffer = xnew (argc, ARGUMENT);
+  argbuffer = xnew (argc, argument);
 
 #ifdef ETAGS_REGEXPS
   /* Set syntax for regular expression routines. */
@@ -778,7 +772,8 @@ main (argc, argv)
 	  noindentypedefs = TRUE;
 	  break;
 	case 'l':
-	  if (!get_language (optarg, &argbuffer[current_arg].function))
+	  argbuffer[current_arg].function = get_language_from_name (optarg);
+	  if (argbuffer[current_arg].function == NULL)
 	    {
 	      fprintf (stderr, "%s: language \"%s\" not recognized.\n",
 		       progname, optarg);
@@ -989,25 +984,68 @@ main (argc, argv)
 
 
 /*
- * Set the language, given the name.
+ * Return a Lang_function given the name.
  */
-logical
-get_language (language, func)
-     char *language;
-     Lang_function **func;
+Lang_function *
+get_language_from_name (name)
+     char *name;
 {
   struct lang_entry *lang;
 
-  for (lang = lang_names; lang->suffix; ++lang)
+  if (name == NULL)
+    return NULL;
+  for (lang = lang_names; lang->name != NULL; lang++)
     {
-      if (streq (language, lang->suffix))
-	{
-	  *func = lang->function;
-	  return TRUE;
-	}
+      if (streq (name, lang->name))
+	return lang->function;
     }
 
-  return FALSE;
+  return NULL;
+}
+
+
+/*
+ * Return a Lang_function given the interpreter name.
+ */
+Lang_function *
+get_language_from_interpreter (interpreter)
+     char *interpreter;
+{
+  struct lang_entry *lang;
+  char **iname;
+
+  if (interpreter == NULL)
+    return NULL;
+  for (lang = lang_names; lang->name != NULL; lang++)
+    if (lang->interpreters != NULL)
+      for (iname = lang->interpreters; *iname != NULL; iname++)
+	if (streq (*iname, interpreter))
+	    return lang->function;
+
+  return NULL;
+}
+
+
+
+/*
+ * Return a Lang_function given the file suffix.
+ */
+Lang_function *
+get_language_from_suffix (suffix)
+     char *suffix;
+{
+  struct lang_entry *lang;
+  char **ext;
+
+  if (suffix == NULL)
+    return NULL;
+  for (lang = lang_names; lang->name != NULL; lang++)
+    if (lang->suffixes != NULL)
+      for (ext = lang->suffixes; *ext != NULL; ext++)
+	if (streq (*ext, suffix))
+	    return lang->function;
+
+  return NULL;
 }
 
 
@@ -1103,7 +1141,7 @@ find_entries (file, inf)
      FILE *inf;
 {
   char *cp;
-  struct lang_entry *lang;
+  Lang_function *function;
   NODE *old_last_node;
   extern NODE *last_node;
 
@@ -1111,29 +1149,61 @@ find_entries (file, inf)
      released.  The amount of memory leaked here is the sum of the
      lengths of the input file names. */
   curfile = savestr (file);
-  cp = etags_strrchr (file, '.');
 
   /* If user specified a language, use it. */
-  if (lang_func != NULL)
+  function = lang_func;
+  if (function != NULL)
     {
-      lang_func (inf);
+      function (inf);
       fclose (inf);
       return;
     }
 
-  if (cp)
+  cp = etags_strrchr (file, '.');
+  if (cp != NULL)
     {
-      ++cp;
-      for (lang = lang_suffixes; lang->suffix; ++lang)
+      cp += 1;
+      function = get_language_from_suffix (cp);
+      if (function != NULL)
 	{
-	  if (streq (cp, lang->suffix))
+	  function (inf);
+	  fclose (inf);
+	  return;
+	}
+    }
+
+  /* Look for sharp-bang as the first two characters. */
+  if (readline_internal (&lb, inf) > 2
+      && lb.buffer[0] == '#'
+      && lb.buffer[1] == '!')
+    {
+      char *lp;
+
+      /* Set lp to point at the first char after the last slash in the
+         line or, if no slashes, at the first nonblank.  Then set cp to
+	 the first successive blank and terminate the string. */
+      lp = etags_strrchr (lb.buffer+2, '/');
+      if (lp != NULL)
+	lp += 1;
+      else
+	for (lp = lb.buffer+2; *lp != '\0' && isspace (*lp); lp++)
+	  continue;
+      for (cp = lp; *cp != '\0' && !isspace (*cp); cp++)
+	continue;
+      *cp = '\0';
+
+      if (strlen (lp) > 0)
+	{
+	  function = get_language_from_interpreter (lp);
+	  if (function != NULL)
 	    {
-	      lang->function (inf);
+	      function (inf);
 	      fclose (inf);
 	      return;
 	    }
 	}
     }
+  rewind (inf);
 
   /* Try Fortran. */
   old_last_node = last_node;
@@ -1146,6 +1216,7 @@ find_entries (file, inf)
       default_C_entries (inf);
     }
   fclose (inf);
+  return;
 }
 
 /* Record a tag. */
@@ -2197,7 +2268,13 @@ C_entries (c_ext, inf)
 		typdef = tnone;
 	      }
 	  if (funcdef != fignore)
-	    funcdef = fnone;
+	    {
+	      funcdef = fnone;
+	      /* The following instruction invalidates the token.
+		 Probably the token should be invalidated in all
+		 other cases  where some state machine is reset. */
+	      tok.valid = FALSE;
+	    }
 	  if (structdef == stagseen)
 	    structdef = snone;
 	  break;
@@ -2596,6 +2673,38 @@ Asm_labels (inf)
 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
  	    }
  	}
+    }
+}
+
+/*
+ * Perl support by Bart Robinson <lomew@cs.utah.edu>
+ * Perl sub names: look for /^sub[ \t\n]+[^ \t\n{]+/
+ */
+void
+Perl_functions (inf)
+     FILE *inf;
+{
+  register char *cp;
+
+  lineno = 0;
+  charno = 0;
+
+  while (!feof (inf))
+    {
+      lineno++;
+      linecharno = charno;
+      charno += readline (&lb, inf);
+      cp = lb.buffer;
+
+      if (*cp++ == 's' && *cp++ == 'u' && *cp++ == 'b' && isspace(*cp++))
+	{
+	  while (*cp && isspace(*cp))
+	    cp++;
+	  while (*cp && ! isspace(*cp) && *cp != '{')
+	    cp++;
+	  pfnote (NULL, TRUE,
+		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	}
     }
 }
 
