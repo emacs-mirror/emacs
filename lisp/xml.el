@@ -121,11 +121,12 @@ An empty string is returned if the attribute was not found."
 ;;*******************************************************************
 
 ;;;###autoload
-(defun xml-parse-file (file &optional parse-dtd)
+(defun xml-parse-file (file &optional parse-dtd parse-ns)
   "Parse the well-formed XML file FILE.
 If FILE is already visited, use its buffer and don't kill it.
 Returns the top node with all its children.
-If PARSE-DTD is non-nil, the DTD is parsed rather than skipped."
+If PARSE-DTD is non-nil, the DTD is parsed rather than skipped.
+If PARSE-NS is non-nil, then QNAMES are expanded."
   (let ((keep))
     (if (get-file-buffer file)
 	(progn
@@ -137,7 +138,7 @@ If PARSE-DTD is non-nil, the DTD is parsed rather than skipped."
     (let ((xml (xml-parse-region (point-min)
 				 (point-max)
 				 (current-buffer)
-				 parse-dtd)))
+				 parse-dtd parse-ns)))
       (if keep
 	  (goto-char keep)
 	(kill-buffer (current-buffer)))
@@ -184,13 +185,14 @@ If PARSE-DTD is non-nil, the DTD is parsed rather than skipped."
 ;;   prolog    ::=    XMLDecl? Misc* (doctypedecl Misc*)?
 
 ;;;###autoload
-(defun xml-parse-region (beg end &optional buffer parse-dtd)
+(defun xml-parse-region (beg end &optional buffer parse-dtd parse-ns)
   "Parse the region from BEG to END in BUFFER.
 If BUFFER is nil, it defaults to the current buffer.
 Returns the XML list for the region, or raises an error if the region
-is not a well-formed XML file.
+is not well-formed XML.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped,
-and returned as the first element of the list."
+and returned as the first element of the list.
+If PARSE-NS is non-nil, then QNAMES are expanded."
   (save-restriction
     (narrow-to-region beg end)
     ;; Use fixed syntax table to ensure regexp char classes and syntax
@@ -209,7 +211,7 @@ and returned as the first element of the list."
 		  (if xml
 		      ;;  translation of rule [1] of XML specifications
 		      (error "XML files can have only one toplevel tag")
-		    (setq result (xml-parse-tag parse-dtd))
+		    (setq result (xml-parse-tag parse-dtd parse-ns))
 		    (cond
 		     ((null result))
 		     ((listp (car result))
@@ -224,57 +226,108 @@ and returned as the first element of the list."
 	    (nreverse xml)))))))
 
 
-(defun xml-parse-tag (&optional parse-dtd)
+(defun xml-parse-tag (&optional parse-dtd parse-ns)
   "Parse the tag at point.
 If PARSE-DTD is non-nil, the DTD of the document, if any, is parsed and
 returned as the first element in the list.
+If PARSE-NS is non-nil, then QNAMES are expanded.
 Returns one of:
  - a list : the matching node
  - nil    : the point is not looking at a tag.
  - a pair : the first element is the DTD, the second is the node."
-  (cond
-   ;; Processing instructions (like the <?xml version="1.0"?> tag at the
-   ;; beginning of a document).
-   ((looking-at "<\\?")
-    (search-forward "?>")
-    (skip-syntax-forward " ")
-    (xml-parse-tag parse-dtd))
-   ;;  Character data (CDATA) sections, in which no tag should be interpreted
-   ((looking-at "<!\\[CDATA\\[")
-    (let ((pos (match-end 0)))
-      (unless (search-forward "]]>" nil t)
-	(error "CDATA section does not end anywhere in the document"))
-      (buffer-substring pos (match-beginning 0))))
-   ;;  DTD for the document
-   ((looking-at "<!DOCTYPE")
-    (let (dtd)
-      (if parse-dtd
-	  (setq dtd (xml-parse-dtd))
-	(xml-skip-dtd))
+  (let ((xml-ns (if (consp parse-ns)
+		    parse-ns
+		  (if parse-ns
+		      (list
+		       ;; Default no namespace
+		       (cons "" "")
+		       ;; We need to seed the xmlns namespace
+		       (cons "xmlns" "http://www.w3.org/2000/xmlns/"))))))
+    (cond
+     ;; Processing instructions (like the <?xml version="1.0"?> tag at the
+     ;; beginning of a document).
+     ((looking-at "<\\?")
+      (search-forward "?>")
+      (skip-syntax-forward " ")
+      (xml-parse-tag parse-dtd xml-ns))
+     ;;  Character data (CDATA) sections, in which no tag should be interpreted
+     ((looking-at "<!\\[CDATA\\[")
+      (let ((pos (match-end 0)))
+	(unless (search-forward "]]>" nil t)
+	  (error "CDATA section does not end anywhere in the document"))
+	(buffer-substring pos (match-beginning 0))))
+     ;;  DTD for the document
+     ((looking-at "<!DOCTYPE")
+      (let (dtd)
+	(if parse-dtd
+	    (setq dtd (xml-parse-dtd))
+	  (xml-skip-dtd))
       (skip-syntax-forward " ")
       (if dtd
-	  (cons dtd (xml-parse-tag))
-	(xml-parse-tag))))
-   ;;  skip comments
-   ((looking-at "<!--")
-    (search-forward "-->")
-    nil)
-   ;;  end tag
-   ((looking-at "</")
-    '())
-   ;;  opening tag
-   ((looking-at "<\\([^/>[:space:]]+\\)")
-    (goto-char (match-end 1))
-    (let* ((node-name (match-string 1))
-	   ;; Parse the attribute list.
-	   (children (list (xml-parse-attlist) (intern node-name)))
-	   pos)
+	  (cons dtd (xml-parse-tag nil xml-ns))
+	(xml-parse-tag nil xml-ns))))
+     ;;  skip comments
+     ((looking-at "<!--")
+      (search-forward "-->")
+      nil)
+     ;;  end tag
+     ((looking-at "</")
+      '())
+     ;;  opening tag
+     ((looking-at "<\\([^/>[:space:]]+\\)")
+      (goto-char (match-end 1))
+      (let* ((node-name (match-string 1))
+	     ;; Parse the attribute list.
+	     (children (list (xml-parse-attlist) (intern node-name)))
+	     pos)
 
-      ;; is this an empty element ?
-      (if (looking-at "/>")
-	  (progn
-	    (forward-char 2)
-	    (nreverse children))
+	;; add the xmlns:* attrs to our cache
+	(when (consp xml-ns)
+	  (mapcar
+	   (lambda (attr)
+	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
+		    (prefix (nth 0 splitup))
+		    (lname (nth 1 splitup)))
+	       (when (string= "xmlns" prefix)
+		 (setq xml-ns (append (list (cons (if lname
+						      lname
+						    "")
+						  (cdr attr)))
+				      xml-ns)))))
+	   (car children))
+
+	  ;; expand element names
+	  (let* ((splitup (split-string (symbol-name (cadr children)) ":"))
+		 (lname (or (nth 1 splitup)
+			    (nth 0 splitup)))
+		 (prefix (if (nth 1 splitup)
+			     (nth 0 splitup)
+			   "")))
+	    (setcdr children (list
+			      (intern (concat "{"
+					     (cdr (assoc-string prefix xml-ns))
+					     "}" lname)))))
+
+	  ;; expand attribute names
+	  (mapcar
+	   (lambda (attr)
+	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
+		    (lname (or (nth 1 splitup)
+			       (nth 0 splitup)))
+		    (prefix (if (nth 1 splitup)
+				(nth 0 splitup)
+			      (caar xml-ns))))
+
+	       (setcar attr (intern (concat "{"
+					    (cdr (assoc-string prefix xml-ns))
+					    "}" lname)))))
+	   (car children)))
+
+	;; is this an empty element ?
+	(if (looking-at "/>")
+	(progn
+	  (forward-char 2)
+	  (nreverse children))
 
 	;; is this a valid start tag ?
 	(if (eq (char-after) ?>)
@@ -289,7 +342,7 @@ Returns one of:
 		    (error "XML: Invalid end tag (expecting %s) at pos %d"
 			   node-name (point)))
 		   ((= (char-after) ?<)
-		    (let ((tag (xml-parse-tag)))
+		    (let ((tag (xml-parse-tag nil xml-ns)))
 		      (when tag
 			(push tag children))))
 		   (t
@@ -320,12 +373,11 @@ Returns one of:
 	      (nreverse children))
 	  ;;  This was an invalid start tag
 	  (error "XML: Invalid attribute list")))))
-   (t ;; This is not a tag.
-    (error "XML: Invalid character"))))
+     (t	;; This is not a tag.
+      (error "XML: Invalid character")))))
 
 (defun xml-parse-attlist ()
-  "Return the attribute-list after point.
-Leave point at the first non-blank character after the tag."
+  "Return the attribute-list after point.Leave point at the first non-blank character after the tag."
   (let ((attlist ())
 	start-pos name)
     (skip-syntax-forward " ")
