@@ -989,7 +989,8 @@ indent of the current line in parameterlist."
 	;; Do lineup
 	(setq ind (pascal-get-lineup-indent stpos edpos lineup))
 	(goto-char stpos)
-	(while (<= (point) (marker-position edpos))
+	(while (and (<= (point) (marker-position edpos))
+		    (not (eobp)))
 	  (if (search-forward lineup (pascal-get-end-of-line) 'move)
 	      (forward-char -1))
 	  (delete-horizontal-space)
