@@ -32,6 +32,11 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** A menu item "Show/Hide" was added to the top-level menu "Options".
+This menu allows you to turn various display features on and off (like
+tool bar and the menu bar itself).  You can also move the vertical
+scroll bar to either side here or turn it off completely.
+
 ** Emacs can now indicate presence of new e-mails in directory.
 
 +++
