@@ -1549,7 +1549,8 @@ or in a newly created frame (if the selected frame has no other windows)."
 	      (quail-make-guidance-frame quail-guidance-buf)
 	    ;; Find the bottom window and split it if necessary.
 	    (let (height)
-	      (setq win (window-at 0 (- (frame-height) 2)))
+	      (setq win (window-at
+			 0 (1- (- (frame-height) (window-height win)))))
 	      (setq height (window-height win))
 	      ;; If WIN is tall enough, split it vertically and use
 	      ;; the lower one.
