@@ -8257,9 +8257,20 @@ png_load (f, img)
 
 #if HAVE_JPEG
 
+/* Work around a warning about HAVE_STDLIB_H being redefined in
+   jconfig.h.  */
+#ifdef HAVE_STDLIB_H
+#define HAVE_STDLIB_H_1
+#undef HAVE_STDLIB_H
+#endif /* HAVE_STLIB_H */
+
 #include <jpeglib.h>
 #include <jerror.h>
 #include <setjmp.h>
+
+#ifdef HAVE_STLIB_H_1
+#define HAVE_STDLIB_H 1
+#endif
 
 static int jpeg_image_p P_ ((Lisp_Object object));
 static int jpeg_load P_ ((struct frame *f, struct image *img));
