@@ -1,3 +1,20 @@
+2005-01-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token): Separate the TeX and LaTeX
+	parts.
+
+	* calc/calc-embed.el (calc-embedded-open-formula)
+	(calc-embedded-close-formula): Ignore matrix environments.
+
+	* calc/calc-ext.el (math-read-big-expr): Make LaTeX the default
+	TeX mode.
+
+	* calc/calc-lang.el (math-function-table, math-oper-table)
+	(math-variable-table): Adjust the LaTeX portions.
+
+	* calc/calc.el (math-tex-ignore-words): Remove LaTeX portion.
+	(math-latex-ignore-words): New constant.
+
 2005-01-31  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-local-dictionary-overridden): New var.
