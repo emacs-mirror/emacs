@@ -2713,7 +2713,8 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
 			       ? (state.comstyle == ST_COMMENT_STYLE
 				  ? Qsyntax_table : Qt) :
 			       Qnil),
-			      Fcons ((state.incomment || state.instring
+			      Fcons (((state.incomment
+				       || (state.instring >= 0))
 				      ? make_number (state.comstr_start)
 				      : Qnil),
 				     Fcons (state.levelstarts, Qnil))))))))));
