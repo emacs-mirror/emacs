@@ -86,23 +86,37 @@ Mark is set after the inserted text."
 	(setq tables (cdr tables))))
     (point))))
 
-(defun list-abbrevs ()
-  "Display a list of all defined abbrevs."
-  (interactive)
-  (display-buffer (prepare-abbrev-list-buffer)))
+(defun list-abbrevs (&optional local)
+  "Display a list of defined abbrevs.
+If LOCAL is non-nil, interactively when invoked with a
+prefix arg, display only local, i.e. mode-specific, abbrevs.
+Otherwise display all abbrevs."
+  (interactive "P")
+  (display-buffer (prepare-abbrev-list-buffer local)))
 
-(defun prepare-abbrev-list-buffer ()
+(defun abbrev-table-name (table)
+  "Value is the name of abbrev table TABLE."
+  (let ((tables abbrev-table-name-list)
+	found)
+    (while (and (not found) tables)
+      (when (eq (symbol-value (car tables)) table)
+	(setq found (car tables)))
+      (setq tables (cdr tables)))
+    found))
+    
+(defun prepare-abbrev-list-buffer (&optional local)
   (save-excursion
     (set-buffer (get-buffer-create "*Abbrevs*"))
     (erase-buffer)
-    (let ((tables abbrev-table-name-list))
-      (while tables
-	(insert-abbrev-table-description (car tables) t)
-	(setq tables (cdr tables))))
+    (if local
+	(insert-abbrev-table-description (abbrev-table-name
+					  local-abbrev-table) t)
+      (dolist (table abbrev-table-name-list)
+	(insert-abbrev-table-description table t)))
     (goto-char (point-min))
     (set-buffer-modified-p nil)
-    (edit-abbrevs-mode))
-  (get-buffer-create "*Abbrevs*"))
+    (edit-abbrevs-mode)
+    (current-buffer)))
 
 (defun edit-abbrevs-mode ()
   "Major mode for editing the list of abbrev definitions.
