@@ -1938,6 +1938,7 @@ extern void init_syntax_once P_ ((void));
 extern void syms_of_syntax P_ ((void));
 
 /* Defined in fns.c */
+extern int next_almost_prime P_ ((int));
 extern Lisp_Object larger_vector P_ ((Lisp_Object, int, Lisp_Object));
 extern void sweep_weak_hash_tables P_ ((void));
 extern Lisp_Object Qstring_lessp;
