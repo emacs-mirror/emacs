@@ -1,5 +1,16 @@
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_window_reusing_current_matrix): Use
+	row_containing_pos.
+	(row_containing_pos): Take additional argument DY.  Treat
+	rows ending in middle of char differently.
+	(display_line): Handle tabs on window systems differently.
+
+	* xterm.c (fast_find_position): Call row_containing_pos
+	with additional argument.
+
+	* dispextern.h (row_containing_pos): Adjust prototype.
+
 	* xdisp.c (inhibit_try_window_id, inhibit_try_window_reusing)
 	(inhibit_try_cursor_movement) [GLYPH_DEBUG]: New variables.
 	(try_window_id, try_window_reusing_current_matrix)
