@@ -196,6 +196,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 #include "lisp.h"
 #include "charset.h"
+#include "keyboard.h"
 #include "frame.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -219,6 +220,7 @@ Boston, MA 02111-1307, USA.  */
 #include "fontset.h"
 /* Redefine X specifics to W32 equivalents to avoid cluttering the
    code with #ifdef blocks. */
+#undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
 #define FRAME_X_FONT_TABLE FRAME_W32_FONT_TABLE
@@ -227,6 +229,7 @@ Boston, MA 02111-1307, USA.  */
 #define GCGraphicsExposures 0
 /* For historic reasons, FONT_WIDTH refers to average width on W32,
    not maximum as on X. Redefine here. */
+#undef FONT_WIDTH
 #define FONT_WIDTH FONT_MAX_WIDTH
 #endif /* WINDOWSNT */
 
@@ -284,7 +287,6 @@ x_free_gc (f, gc)
 
 #include <stdio.h>
 #include <ctype.h>
-#include "keyboard.h"
 
 #ifndef max
 #define max(A, B)	((A) > (B) ? (A) : (B))
