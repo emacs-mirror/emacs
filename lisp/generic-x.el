@@ -163,7 +163,7 @@ you must reload generic-x to enable the specified modes."
 (define-generic-mode 'apache-conf-generic-mode
    (list ?#)
    nil
-   '(("^\\(<.*>\\)"       1 'font-lock-constant-face)
+   '(("^\\s-*\\(<.*>\\)"       1 'font-lock-constant-face)
      ("^\\(\\sw+\\)\\s-"  1 'font-lock-variable-name-face))
    (list "srm\\.conf\\'" "httpd\\.conf\\'" "access\\.conf\\'")
    (list
@@ -813,30 +813,32 @@ you must reload generic-x to enable the specified modes."
    ;; as is the choice of which value tokens are included, as
    ;; the choice of face for each token group
    (list
-   (generic-make-keywords-list
-    (list
-     "FILEFLAGSMASK"
-     "FILEFLAGS"
-     "FILEOS"
-     "FILESUBTYPE"
-     "FILETYPE"
-     "FILEVERSION"
-     "PRODUCTVERSION"
-     ) 'font-lock-type-face)
-   (generic-make-keywords-list
-    (list
-     "BEGIN"
-     "BLOCK"
-     "END"
-     "VALUE"
-     ) 'font-lock-function-name-face)
-   '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
-   '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
-   '("^#[ \t]*\\(elif\\|if\\)\\>"
-     ("\\<\\(defined\\)\\>[ \t]*(?\\(\\sw+\\)?" nil nil
+    (eval-when-compile
+      (generic-make-keywords-list
+       (list
+	"FILEFLAGSMASK"
+	"FILEFLAGS"
+	"FILEOS"
+	"FILESUBTYPE"
+	"FILETYPE"
+	"FILEVERSION"
+	"PRODUCTVERSION"
+	) 'font-lock-type-face))
+    (eval-when-compile
+      (generic-make-keywords-list
+       (list
+	"BEGIN"
+	"BLOCK"
+	"END"
+	"VALUE"
+	) 'font-lock-function-name-face))
+    '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
+    '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
+    '("^#[ \t]*\\(elif\\|if\\)\\>"
+      ("\\<\\(defined\\)\\>[ \t]*(?\\(\\sw+\\)?" nil nil
+       (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t)))
+    '("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t)))
-   '("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t)))
    (list "\\.[rR][cC]$")
    nil
    "Generic mode for MS-Windows Resource files."))
@@ -1417,21 +1419,25 @@ you must reload generic-x to enable the specified modes."
      (1 font-lock-keyword-face)
      (2 font-lock-constant-face nil t))
    ;; system variables
-   (generic-make-keywords-list
-    installshield-system-variables-list
-    'font-lock-variable-name-face "[^_]" "[^_]")
+   (eval-when-compile
+     (generic-make-keywords-list
+      installshield-system-variables-list
+      'font-lock-variable-name-face "[^_]" "[^_]"))
    ;; system functions
-   (generic-make-keywords-list
-    installshield-system-functions-list
-    'font-lock-function-name-face "[^_]" "[^_]")
+   (eval-when-compile
+     (generic-make-keywords-list
+      installshield-system-functions-list
+      'font-lock-function-name-face "[^_]" "[^_]"))
    ;; type keywords
-   (generic-make-keywords-list
-    installshield-types-list
-    'font-lock-type-face "[^_]" "[^_]")
+   (eval-when-compile
+     (generic-make-keywords-list
+      installshield-types-list
+      'font-lock-type-face "[^_]" "[^_]"))
    ;; function argument constants
-   (generic-make-keywords-list
-    installshield-funarg-constants-list
-    'font-lock-variable-name-face "[^_]" "[^_]") ; is this face the best choice?
+   (eval-when-compile
+     (generic-make-keywords-list
+      installshield-funarg-constants-list
+      'font-lock-variable-name-face "[^_]" "[^_]")) ; is this face the best choice?
    )
   (list "\\.[rR][uU][lL]$")
   (list
@@ -1596,6 +1602,36 @@ you must reload generic-x to enable the specified modes."
   )
 )
 
+;; Fstab
+(and
+ (memq 'etc-fstab-generic-mode generic-extras-enable-list)
+
+(define-generic-mode 'etc-fstab-generic-mode
+  (list ?#)
+  (list
+   "ext2"
+   "fd"
+   "iso9660"
+   "nfs"
+   "proc"
+   "swap"
+   "ufs"
+   )
+  '(
+    ("^\\([/-A-Za-z0-9_]+\\)\\s-+\\([/-A-Za-z0-9_]+\\)"
+     (1 'font-lock-type-face)
+     (2 'font-lock-variable-name-face)
+     )
+    )
+  '("/etc/[v]*fstab\\'")
+  (list
+   (function
+    (lambda ()
+      (setq imenu-generic-expression
+	    '((nil "^\\([/-A-Za-z0-9_]+\\)\\s-+" 1)))
+      )))
+  )
+)
 
 ;; From Jacques Duthen <jacques.duthen@sncf.fr>
 (defvar show-tabs-generic-mode-font-lock-defaults-1
