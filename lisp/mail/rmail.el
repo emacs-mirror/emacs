@@ -2098,6 +2098,14 @@ the body of the original message."
 	(or (re-search-forward mail-unsent-separator nil t)
 	    (error "Cannot parse this as a failure message")))
       (save-restriction
+	;; One message contained a few random lines before the old
+	;; message header.  The first line of the message started with
+	;; two hyphens.  A blank line follows these random lines.
+	(skip-chars-forward "\n")
+	(if (looking-at "^--")
+	    (progn
+	      (search-forward "\n\n")
+	      (skip-chars-forward "\n")))
 	(narrow-to-region (point) (point-max))
 	;; Now mail-fetch-field will get from headers of the original message,
 	;; not from the headers of the rejection.
