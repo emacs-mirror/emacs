@@ -1126,7 +1126,8 @@ See also the function `signal' for more info.")
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
-  register Lisp_Object var, bodyform, handlers;
+  register Lisp_Object bodyform, handlers;
+  volatile Lisp_Object var;
 
   var      = Fcar (args);
   bodyform = Fcar (Fcdr (args));
@@ -1480,8 +1481,8 @@ skip_debugger (conditions, data)
   int first_string = 1;
   Lisp_Object error_message;
 
-  for (tail = Vdebug_ignored_errors; CONSP (tail);
-       tail = XCDR (tail))
+  error_message = Qnil;
+  for (tail = Vdebug_ignored_errors; CONSP (tail); tail = XCDR (tail))
     {
       if (STRINGP (XCAR (tail)))
 	{
@@ -1490,6 +1491,7 @@ skip_debugger (conditions, data)
 	      error_message = Ferror_message_string (data);
 	      first_string = 0;
 	    }
+	  
 	  if (fast_string_match (XCAR (tail), error_message) >= 0)
 	    return 1;
 	}
@@ -1497,8 +1499,7 @@ skip_debugger (conditions, data)
 	{
 	  Lisp_Object contail;
 
-	  for (contail = conditions; CONSP (contail);
-	       contail = XCDR (contail))
+	  for (contail = conditions; CONSP (contail); contail = XCDR (contail))
 	    if (EQ (XCAR (tail), XCAR (contail)))
 	      return 1;
 	}
@@ -3111,7 +3112,7 @@ Output stream used is value of `standard-output'.")
   return Qnil;
 }
 
-DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 1, "",
+DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 1, NULL,
   "Return the function and arguments NFRAMES up from current execution point.\n\
 If that frame has not evaluated the arguments yet (or is a special form),\n\
 the value is (nil FUNCTION ARG-FORMS...).\n\
