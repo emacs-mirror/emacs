@@ -86,7 +86,7 @@ safe_strdup (s)
 /* Like strcmp but ignore differences in case.  */
 
 static int
-strcasecmp (s1, s2)
+my_strcasecmp (s1, s2)
      char *s1, *s2;
 {
   while (1)
@@ -671,7 +671,7 @@ find_in_table (type, table)
 {
   widget_creation_entry* cur;
   for (cur = table; cur->type; cur++)
-    if (!strcasecmp (type, cur->type))
+    if (!my_strcasecmp (type, cur->type))
       return cur->function;
   return NULL;
 }
