@@ -2365,6 +2365,8 @@ it were the arg to `interactive' (which see) to interactively read the value."
 (or completion-list-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] 'mouse-choose-completion)
+      (define-key map "\C-m" 'choose-completion)
+      (define-key map [return] 'choose-completion)
       (setq completion-list-mode-map map)))
 
 ;; Completion mode is suitable only for specially formatted data.
@@ -2373,10 +2375,48 @@ it were the arg to `interactive' (which see) to interactively read the value."
 ;; Record the buffer that was current when the completion list was requested.
 (defvar completion-reference-buffer)
 
+(defun choose-completion ()
+  "Choose the completion that point is in or next to."
+  (interactive)
+  (let (beg end)
+    (skip-chars-forward "^ \t\n")
+    (setq end (point))
+    (skip-chars-backward "^ \t\n")
+    (setq beg (point))
+    (choose-completion-string (buffer-substring beg end))))
+
+;; Delete the longest partial match for STRING
+;; that can be found before POINT.
+(defun choose-completion-delete-max-match (string)
+  (let ((opoint (point))
+	(len (min (length string)
+		  (- (point) (point-min)))))
+    (goto-char (- (point) (length string)))
+    (while (and (> len 0)
+		(let ((tail (buffer-substring (point)
+					      (+ (point) len))))
+		  (not (string= tail (substring string 0 len)))))
+      (setq len (1- len))
+      (forward-char 1))
+    (delete-char len)))
+
+(defun choose-completion-string (choice &optional buffer)
+  (let ((buffer (or buffer completion-reference-buffer)))
+    (set-buffer buffer)
+    (choose-completion-delete-max-match choice)
+    (insert choice)
+    ;; Update point in the window that BUFFER is showing in.
+    (let ((window (get-buffer-window buffer t)))
+      (set-window-point window (point)))
+    (and (equal buffer (window-buffer (minibuffer-window)))
+	 (minibuffer-complete-and-exit))))
+
 (defun completion-list-mode ()
   "Major mode for buffers showing lists of possible completions.
-Type \\<completion-list-mode-map>\\[mouse-choose-completion] to select
-a completion with the mouse."
+Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
+ to select the completion near point.
+Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
+ with the mouse."
   (interactive)
   (kill-all-local-variables)
   (use-local-map completion-list-mode-map)
@@ -2394,7 +2434,10 @@ a completion with the mouse."
       (goto-char (point-min))
       (if window-system
 	  (insert (substitute-command-keys
-		   "Click \\[mouse-choose-completion] on a completion to select it.\n\n"))))))
+		   "Click \\[mouse-choose-completion] on a completion to select it.\n")))
+      (insert (substitute-command-keys
+	       "In this buffer, type \\[choose-completion] to \
+select the completion near point.\n\n")))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
