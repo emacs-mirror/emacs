@@ -84,7 +84,7 @@ nil means it has not yet been computed; use `tags-table-files' to do so.")
 
 (defvar tags-table-format-hooks '(etags-recognize-tags-table
 				  recognize-empty-tags-table
-				  ctags-recognize-tags-table) ;standard? XXX
+				  ctags-recognize-tags-table)
   "List of functions to be called in a tags table buffer to identify
 the type of tags table.  The functions are called in order, with no arguments,
 until one returns non-nil.  The function should make buffer-local bindings
@@ -757,7 +757,7 @@ See documentation of variable `tags-file-name'."
   (and (zerop (buffer-size))
        (mapcar (function (lambda (sym)
 			   (make-local-variable sym)
-			   (set sym (function (lambda (&rest ignore) nil)))))
+			   (set sym 'ignore)))
 	       '(tags-table-files-function
 		 tags-completion-table-function
 		 find-tag-regexp-search-function
