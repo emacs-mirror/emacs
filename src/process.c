@@ -2775,7 +2775,7 @@ read_process_output (proc, channel)
 	    {
 	      p->encode_coding_system = coding->symbol;
 	      setup_coding_system (coding->symbol,
-				   proc_encode_coding_system[channel]);
+				   proc_encode_coding_system[p->outfd]);
 	    }
 	}
 #ifdef VMS
