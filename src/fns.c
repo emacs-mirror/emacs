@@ -2787,7 +2787,7 @@ for more information.  In this case, the useful bindings are `act', `skip',\n\
 `recenter', and `quit'.\)\n\
 \n\
 Under a windowing system a dialog box will be used if `last-nonmenu-event'\n\
-is nil.")
+is nil and `use-dialog-box' is non-nil.")
   (prompt)
      Lisp_Object prompt;
 {
@@ -2924,7 +2924,7 @@ The user must confirm the answer with RET,\n\
 and can edit it until it has been confirmed.\n\
 \n\
 Under a windowing system a dialog box will be used if `last-nonmenu-event'\n\
-is nil.")
+is nil, and `use-dialog-box' is non-nil.")
   (prompt)
      Lisp_Object prompt;
 {
