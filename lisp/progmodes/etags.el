@@ -491,7 +491,7 @@ multiple matches, more exact matches are found first.
 See documentation of variable `tags-file-name'."
   (interactive (if current-prefix-arg
 		   '(nil t)
-		 (find-tag-tag "Find tag other window: ")))
+		 (find-tag-tag "Find tag: ")))
   (switch-to-buffer (find-tag-noselect tagname next-p)))
 ;;;###autoload (define-key esc-map "." 'find-tag)
 
@@ -589,10 +589,10 @@ See documentation of variable `tags-file-name'."
 	  (if first-search
 	      (setq tag-lines-already-matched nil))
 
-	  (if first-table
-	      (setq first-table nil)
-	    ;; Start at beginning of tags file.
-	    (goto-char (point-min)))
+	  (and first-search first-table
+	       ;; Start at beginning of tags file.
+	       (goto-char (point-min)))
+	  (setq first-table nil)
 
 	  (setq tags-table-file buffer-file-name)
 	  (while order
@@ -807,29 +807,29 @@ See documentation of variable `tags-file-name'."
 
 ;;; Match qualifier functions for tagnames.
 
-(defmacro tags-with-syntax (&rest body)
-  (` (let ((current (current-buffer))
-	   (otable (syntax-table))
-	   (buffer (find-file-noselect (file-of-tag)))
-	   table)
-       (unwind-protect
-	   (progn
-	     (set-buffer buffer)
-	     (setq table (syntax-table))
-	     (set-buffer current)
-	     (set-syntax-table table)
-	     (,@ body))
-	 (set-syntax-table otable)))))
+;; This might be a neat idea, but it's too hairy at the moment.
+;;(defmacro tags-with-syntax (&rest body)
+;;  (` (let ((current (current-buffer))
+;;	   (otable (syntax-table))
+;;	   (buffer (find-file-noselect (file-of-tag)))
+;;	   table)
+;;       (unwind-protect
+;;	   (progn
+;;	     (set-buffer buffer)
+;;	     (setq table (syntax-table))
+;;	     (set-buffer current)
+;;	     (set-syntax-table table)
+;;	     (,@ body))
+;;	 (set-syntax-table otable)))))
+;;(put 'tags-with-syntax 'edebug-form-spec '(&rest form))
 
 ;; t if point is at a tag line that matches TAG "exactly".
 ;; point should be just after a string that matches TAG.
-(defun tags-exact-match-p (tag)
-  (tags-with-syntax
-   (let ((end (point)))
-     (unwind-protect
-	 (= (match-beginning 0)
-	    (re-search-backward "\\(\\sw\\|\\s_\\)+" end t))
-       (goto-char end)))))
+(defun tag-exact-match-p (tag)
+  (and (looking-at "\\Sw.*\177") (looking-at "\\S_.*\177") ;not a symbol char
+       (save-excursion
+	 (backward-char (1+ (length tag)))
+	 (and (looking-at "\\Sw") (looking-at "\\S_")))))
 
 ;; t if point is at a tag line that matches TAG as a word.
 ;; point should be just after a string that matches TAG.
@@ -1098,8 +1098,6 @@ see the doc of that variable if you want to add names to the list."
   (or (one-window-p)
       (delete-window)))  
 
-;;;###autoload (define-key esc-map "\t" 'complete-tag)
-
 ;;;###autoload
 (defun complete-tag ()
   "Perform tags completion on the text around point.
@@ -1131,7 +1129,8 @@ for \\[find-tag] (which see).  See also `visit-tags-table-buffer'."
 	     (display-completion-list
 	      (all-completions pattern 'tags-complete-tag nil)))
 	   (message "Making completion list...%s" "done")))))
-;;;###autoload (define-key esc-map "?" 'complete-tag)	;? XXX
+
+;;;###autoload (define-key esc-map "\t" 'complete-tag)
 
 (provide 'etags)
 
