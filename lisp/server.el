@@ -145,7 +145,10 @@ this way."
     (setq minor-mode-alist (cons '(server-buffer-clients " Server") minor-mode-alist)))
 
 (defvar server-existing-buffer nil
-  "Non-nil means a server buffer existed before visiting a file.")
+  "Non-nil means a buffer existed before the Emacs server was asked visit it.
+This means that the server should not kill the buffer when you say you
+are done with it in the server.  This variable is local in each buffer
+where it is set.")
 (make-variable-buffer-local 'server-existing-buffer)
 
 ;; If a *server* buffer exists,
@@ -399,9 +402,8 @@ or nil.  KILLED is t if we killed BUFFER
 	    (unless for-killing
 	      (when (and (not killed)
 			 server-kill-new-buffers
-			 (save-excursion
-			   (set-buffer buffer)
-			   server-existing-buffer))
+			 (with-current-buffer buffer
+			   (not server-existing-buffer)))
 		(setq killed t)
 		(bury-buffer buffer)
 		(kill-buffer buffer))
