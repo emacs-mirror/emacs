@@ -4069,7 +4069,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		 "^/[^/:]*[^/:.]:")))
   (or (assoc pattern file-name-handler-alist)
       (setq file-name-handler-alist
-	    (cons (cons pattern ange-ftp-hook-function)
+	    (cons (cons pattern 'ange-ftp-hook-function)
 		  file-name-handler-alist))))
 
 ;;; This regexp recognizes and absolute filenames with only one component,
@@ -4080,7 +4080,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		 "^/[^/:]*\\'")))
   (or (assoc pattern file-name-handler-alist)
       (setq file-name-handler-alist
-	    (cons (cons pattern ange-ftp-completion-hook-function)
+	    (cons (cons pattern 'ange-ftp-completion-hook-function)
 		  file-name-handler-alist))))
 
 ;;; The above two forms are sufficient to cause this file to be loaded
