@@ -32,7 +32,7 @@
 ;;  default text much as the mode is automatically set using
 ;;  auto-mode-alist.
 ;;
-;;  To use: 
+;;  To use:
 ;;     (add-hook 'find-file-hooks 'auto-insert)
 ;;     setq auto-insert-directory to an appropriate slash-terminated value
 ;;
@@ -46,7 +46,7 @@
 ;;           Box 3709
 ;;           Duke University Medical Center
 ;;           Durham, NC 27710
-;;	      (crm@cs.duke.edu,mcnc!duke!crm) 
+;;	      (crm@cs.duke.edu,mcnc!duke!crm)
 
 ;;; Code:
 
@@ -58,7 +58,7 @@
 
 
 (defcustom auto-insert-mode nil
-  "Toggle auto-insert-mode.
+  "Toggle Auto-insert mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `auto-insert-mode'."
   :set (lambda (symbol value)
@@ -69,7 +69,8 @@ use either \\[customize] or the function `auto-insert-mode'."
   :require 'autoinsert)
 
 (defcustom auto-insert 'not-modified
-  "*Controls automatic insertion into newly found empty files:
+  "*Controls automatic insertion into newly found empty files.
+Possible values:
 	nil	do nothing
 	t	insert if possible
 	other	insert if possible, but mark as unmodified.
@@ -78,15 +79,15 @@ Insertion is possible when something appropriate is found in
 save it with  \\[write-file] RET.
 This variable is used when `auto-insert' is called as a function, e.g.
 when you do (add-hook 'find-file-hooks 'auto-insert).
-With \\[auto-insert], this is always treated as if it were `t'."
+With \\[auto-insert], this is always treated as if it were t."
   :type '(choice (const :tag "Insert if possible" t)
                  (const :tag "Do nothing" nil)
-                 (other :tag "insert if possible, mark as unmodified." 
+                 (other :tag "insert if possible, mark as unmodified."
                         not-modified))
   :group 'auto-insert)
 
 (defcustom auto-insert-query 'function
-  "*If non-`nil', ask user before auto-inserting.
+  "*Non-nil means ask user before auto-inserting.
 When this is `function', only ask when called non-interactively."
   :type '(choice (const :tag "Don't ask" nil)
                  (const :tag "Ask if called non-interactively" function)
@@ -264,7 +265,10 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 		 (vector action))))
 	 (and (buffer-modified-p)
 	      (not (eq this-command 'auto-insert))
-	      (set-buffer-modified-p (eq auto-insert t))))))
+	      (set-buffer-modified-p (eq auto-insert t)))))
+  ;; Return nil so that it could be used in
+  ;; `find-file-not-found-hooks', though that's probably inadvisable.
+  nil)
 
 
 ;;;###autoload
@@ -289,11 +293,11 @@ or if CONDITION had no actions, after all other CONDITIONs."
 
 ;;;###autoload
 (defun auto-insert-mode (&optional arg)
-  "Toggle auto-insert mode.
-With prefix ARG, turn auto-insert mode on if and only if ARG is positive.
-Returns the new status of auto-insert mode (non-nil means on).
+  "Toggle Auto-insert mode.
+With prefix ARG, turn Auto-insert mode on if and only if ARG is positive.
+Returns the new status of Auto-insert mode (non-nil means on).
 
-When auto-insert mode is enabled, when new files are created you can
+When Auto-insert mode is enabled, when new files are created you can
 insert a template for the file depending on the mode of the buffer."
   (interactive "P")
   (let ((on-p (if arg
@@ -304,8 +308,7 @@ insert a template for the file depending on the mode of the buffer."
       (remove-hook 'find-file-hooks 'auto-insert))
     (if (interactive-p)
 	(message "Auto-insert now %s." (if on-p "on" "off")))
-    (setq auto-insert-mode on-p)
-    ))
+    (setq auto-insert-mode on-p)))
 
 (if auto-insert-mode
     (auto-insert-mode 1))
