@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility.
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995, 1996, 1997 Ralph Schleicher.
+;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@purple.UL.BaWue.DE>
 ;; Keywords: help languages
@@ -280,7 +280,7 @@ The default file name is the one found at point."
 		   (error "Not documented as a %s: %s" topic (or item ""))))
 	(modes (info-lookup->all-modes topic mode))
 	(window (selected-window))
-	found doc-spec node prefix suffix)
+	found doc-spec node prefix suffix doc-found)
     (if (not info-lookup-other-window-flag)
 	(info)
       (save-window-excursion (info))
@@ -291,35 +291,44 @@ The default file name is the one found at point."
 	(setq node (nth 0 (car doc-spec))
 	      prefix (nth 2 (car doc-spec))
 	      suffix (nth 3 (car doc-spec)))
-	(condition-case nil
-	    (progn
-	      (Info-goto-node node)
-	      (Info-menu (or (cdr entry) item))
-	      (setq found t)
-	      (if (or prefix suffix)
-		  (let ((case-fold-search
-			 (info-lookup->ignore-case topic (car modes)))
-			(buffer-read-only nil))
-		    (goto-char (point-min))
-		    (re-search-forward
-		     (concat prefix (regexp-quote item) suffix))
-		    (goto-char (match-beginning 0))
-		    (and window-system info-lookup-highlight-face
-			 ;; Search again for ITEM so that the first
-			 ;; occurence of ITEM will be highlighted.
-			 (re-search-forward (regexp-quote item))
-			 (let ((start (match-beginning 0))
-			       (end (match-end 0)))
-			   (if (overlayp info-lookup-highlight-overlay)
-			       (move-overlay info-lookup-highlight-overlay
-					     start end (current-buffer))
-			     (setq info-lookup-highlight-overlay
-				   (make-overlay start end))))
-			 (overlay-put info-lookup-highlight-overlay
-				      'face info-lookup-highlight-face)))))
-	  (error nil))
+	(when (condition-case error-data
+		  (progn 
+		    (Info-goto-node node)
+		    (setq doc-found t))
+		(error 
+		 (message "Cannot access Info node %s" node)
+		 (sit-for 1)
+		 nil))
+	  (condition-case nil
+	      (progn
+		(Info-menu (or (cdr entry) item))
+		(setq found t)
+		(if (or prefix suffix)
+		    (let ((case-fold-search
+			   (info-lookup->ignore-case topic (car modes)))
+			  (buffer-read-only nil))
+		      (goto-char (point-min))
+		      (re-search-forward
+		       (concat prefix (regexp-quote item) suffix))
+		      (goto-char (match-beginning 0))
+		      (and window-system info-lookup-highlight-face
+			   ;; Search again for ITEM so that the first
+			   ;; occurence of ITEM will be highlighted.
+			   (re-search-forward (regexp-quote item))
+			   (let ((start (match-beginning 0))
+				 (end (match-end 0)))
+			     (if (overlayp info-lookup-highlight-overlay)
+				 (move-overlay info-lookup-highlight-overlay
+					       start end (current-buffer))
+			       (setq info-lookup-highlight-overlay
+				     (make-overlay start end))))
+			   (overlay-put info-lookup-highlight-overlay
+					'face info-lookup-highlight-face)))))
+	    (error nil)))
 	(setq doc-spec (cdr doc-spec)))
       (setq modes (cdr modes)))
+    (or doc-found
+	(error "Info documentation for lookup was not found"))
     ;; Don't leave the Info buffer if the help item couldn't be looked up.
     (if (and info-lookup-other-window-flag found)
 	(select-window window))))
@@ -361,7 +370,7 @@ The default file name is the one found at point."
   (let ((doc-spec (info-lookup->doc-spec topic mode))
 	(regexp (concat "^\\(" (info-lookup->regexp topic mode)
 			"\\)\\([ \t].*\\)?$"))
-	node trans entry item prefix result
+	node trans entry item prefix result doc-found
 	(buffer (get-buffer-create " temp-info-look")))
     (with-current-buffer buffer
       (Info-mode))
@@ -377,24 +386,34 @@ The default file name is the one found at point."
 			   (if (string-match "^\\([^: \t\n]+\\)" arg)
 			       (concat prefix (match-string 1 arg)))))
 			(t (nth 1 (car doc-spec)))))
-      (condition-case nil
-	  (with-current-buffer buffer
-	    (message "Processing Info node `%s'..." node)
-	    (Info-goto-node node)
-	    (goto-char (point-min))
-	    (and (search-forward "\n* Menu:" nil t)
-		 (while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
-		   (setq entry (match-string 1)
-			 item (funcall trans entry))
-		   (and (info-lookup->ignore-case topic mode)
-			(setq item (downcase item)))
-		   (and (string-equal entry item)
-			(setq entry nil))
-		   (or (assoc item result)
-		       (setq result (cons (cons item entry) result))))))
-	(error nil))
+      (with-current-buffer buffer
+	(message "Processing Info node `%s'..." node)
+	(when (condition-case error-data
+		  (progn 
+		    (Info-goto-node node)
+		    (setq doc-found t))
+		(error 
+		 (message "Cannot access Info node `%s'" node)
+		 (sit-for 1)
+		 nil))
+	  (condition-case nil
+	      (progn
+		(goto-char (point-min))
+		(and (search-forward "\n* Menu:" nil t)
+		     (while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+		       (setq entry (match-string 1)
+			     item (funcall trans entry))
+		       (and (info-lookup->ignore-case topic mode)
+			    (setq item (downcase item)))
+		       (and (string-equal entry item)
+			    (setq entry nil))
+		       (or (assoc item result)
+			   (setq result (cons (cons item entry) result))))))
+	    (error nil))))
       (message "Processing Info node `%s'...done" node)
       (setq doc-spec (cdr doc-spec)))
+    (or doc-found
+	(error "Info documentation for lookup was not found"))
     result))
 
 (defun info-lookup-guess-default (topic mode)
