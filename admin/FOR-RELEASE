@@ -178,32 +178,6 @@ Then, point is displayed at the center of the window.
 But point should be displayed at the bottom of the window like Emacs-21.3.
 
 
-** line-spacing and garbage in fringe
-
-From: SAITO Takuya <tabmore@rivo.mediatti.net>
-Date: Mon, 31 May 2004 02:08:05 +0900 (JST)
-
-Start emacs -Q and evaluate below with C-xC-e:
-
-(let ((lines 2)
-      (spacing 1))
-  (setq line-spacing spacing
-	indicate-buffer-boundaries t)
-  (insert (make-string (window-height) ?\n))
-  (goto-char (point-min))
-  (message (make-string (* (window-width) lines) ?.))
-  (scroll-up 1))
-
-then, garbage is displayed in right fringe.
-
-Above code reproduces this bug with
-(frame-parameter nil 'font)
-=> "-Adobe-Courier-Medium-R-Normal--12-120-75-75-M-70-ISO8859-1"
-
-If you use different font, you may need different value of
-`lines' and/or `spacing'.
-
-
 ** line-spacing and Electric-pop-up-window
 
 From: SAITO Takuya <tabmore@rivo.mediatti.net>
