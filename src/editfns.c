@@ -126,7 +126,7 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
      Lisp_Object character;
 {
   int len;
-  char workbuf[4], *str;
+  unsigned char workbuf[4], *str;
 
   CHECK_NUMBER (character, 0);
 
@@ -1284,9 +1284,11 @@ set_time_zone_rule (tzstring)
    type of object is Lisp_String).  INHERIT is passed to
    INSERT_FROM_STRING_FUNC as the last argument.  */
 
+void
 general_insert_function (insert_func, insert_from_string_func,
 			 inherit, nargs, args)
-     int (*insert_func)(), (*insert_from_string_func)();
+     void (*insert_func) P_ ((unsigned char *, int));
+     void (*insert_from_string_func) P_ ((Lisp_Object, int, int, int));
      int inherit, nargs;
      register Lisp_Object *args;
 {
@@ -1299,7 +1301,7 @@ general_insert_function (insert_func, insert_from_string_func,
     retry:
       if (INTEGERP (val))
 	{
-	  char workbuf[4], *str;
+	  unsigned char workbuf[4], *str;
 	  int len;
 
 	  if (!NILP (current_buffer->enable_multibyte_characters))
