@@ -371,7 +371,9 @@ Returns one of:
       (let ((pos (match-end 0)))
 	(unless (search-forward "]]>" nil t)
 	  (error "XML: (Not Well Formed) CDATA section does not end anywhere in the document"))
-	(buffer-substring pos (match-beginning 0))))
+	(concat
+	 (buffer-substring pos (match-beginning 0))
+	 (xml-parse-string))))
      ;;  DTD for the document
      ((looking-at "<!DOCTYPE")
       (let ((dtd (xml-parse-dtd parse-ns)))
@@ -703,7 +705,7 @@ This follows the rule [28] in the XML specifications."
 
   (let ((point 0)
 	children end-point)
-    (while (string-match "&\\([^;]+\\);" string point)
+    (while (string-match "&\\([^;]*\\);" string point)
       (setq end-point (match-end 0))
       (let* ((this-part (match-string 1 string))
 	     (prev-part (substring string point (match-beginning 0)))
@@ -721,10 +723,12 @@ This follows the rule [28] in the XML specifications."
 		       (if c (string c))))
 		    (entity
 		     (cdr entity))
+		    ((eq (length this-part) 0)
+		     (error "XML: (Validity) No entity given"))
 		    (t
 		     (if xml-validating-parser
 			 (error "XML: (Validity) Undefined entity `%s'"
-				(match-string 1 this-part)))))))
+				this-part))))))
 
 	(cond ((null children)
 	       ;; FIXME: If we have an entity that expands into XML, this won't work.
