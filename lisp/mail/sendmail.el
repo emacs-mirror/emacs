@@ -1274,7 +1274,7 @@ and don't delete any header fields."
 		;; on account of mark's being inactive.
 		(mark-even-if-inactive t))
 	    (if mail-citation-hook
-		;; Bind mail-citation-hook to the inserted message's header.
+		;; Bind mail-citation-header to the inserted message's header.
 		(let ((mail-citation-header
 		       (buffer-substring-no-properties
 			start
