@@ -458,7 +458,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     /* Close most of our fd's, but not fd[0]
        since we will use that to read input from.  */
     close (filefd);
-    if (fd1 >= 0)
+    if (fd1 >= 0 && fd1 != fd_error)
       close (fd1);
   }
 
