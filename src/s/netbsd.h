@@ -28,3 +28,5 @@
 
 /* For mem-limits.h.  */
 #define BSD4_2
+
+#define TERMCAP_NAME "/usr/share/misc/termcap"

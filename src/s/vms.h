@@ -249,6 +249,8 @@ globalref char sdata[];
 
 #define NULL_DEVICE "NLA0:"
 
+#define TERMCAP_NAME "emacs_library:[etc]termcap.dat"
+
 #define EXEC_SUFFIXES ".exe:.com"
 
 /* Case conflict with Xlib XFree () */
