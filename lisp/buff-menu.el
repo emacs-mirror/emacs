@@ -632,11 +632,14 @@ For more information, see the function `buffer-menu'."
 			       (Buffer-menu-sort ,column))))
 			map)))
 
-(defun list-buffers-noselect (&optional files-only)
+(defun list-buffers-noselect (&optional files-only buffer-list)
   "Create and return a buffer with a list of names of existing buffers.
 The buffer is named `*Buffer List*'.
 Note that buffers with names starting with spaces are omitted.
 Non-null optional arg FILES-ONLY means mention only file buffers.
+
+If BUFFER-LIST is non-nil, it should be a list of buffers;
+it means list those buffers and no others.
 
 For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
@@ -670,42 +673,43 @@ For more information, see the function `buffer-menu'."
 	(insert "  ----" mode-end "----\n")
 	(put-text-property 1 (point) 'intangible t))
       (setq list
-	    (delq t
-		  (mapcar
-		   (lambda (buffer)
-		     (with-current-buffer buffer
-		       (setq name (buffer-name)
-			     mode (concat (format-mode-line mode-name nil nil buffer)
-					  (if mode-line-process
-					      (format-mode-line mode-line-process nil nil buffer)))
-			     file (buffer-file-name))
-		       (cond
-			;; Don't mention internal buffers.
-			((and (string= (substring name 0 1) " ") (null file)))
-			;; Maybe don't mention buffers without files.
-			((and files-only (not file)))
-			((string= name "*Buffer List*"))
-			;; Otherwise output info.
-			(t
-			 (unless file
-			   ;; No visited file.  Check local value of
-			   ;; list-buffers-directory.
-			   (when (and (boundp 'list-buffers-directory)
-				      list-buffers-directory)
-			     (setq file list-buffers-directory)))
-			 (list buffer
-			       (format "%c%c%c "
-				       (if (eq buffer old-buffer) ?. ? )
-				       ;; Handle readonly status.  The output buffer is special
-				       ;; cased to appear readonly; it is actually made so at a
-				       ;; later date.
-				       (if (or (eq buffer standard-output)
-					       buffer-read-only)
-					   ?% ? )
-				       ;; Identify modified buffers.
-				       (if (buffer-modified-p) ?* ? ))
-			       name (buffer-size) mode file)))))
-		   (buffer-list))))
+	    (or buffer-list
+		(delq t
+		      (mapcar
+		       (lambda (buffer)
+			 (with-current-buffer buffer
+			   (setq name (buffer-name)
+				 mode (concat (format-mode-line mode-name nil nil buffer)
+					      (if mode-line-process
+						  (format-mode-line mode-line-process nil nil buffer)))
+				 file (buffer-file-name))
+			   (cond
+			    ;; Don't mention internal buffers.
+			    ((and (string= (substring name 0 1) " ") (null file)))
+			    ;; Maybe don't mention buffers without files.
+			    ((and files-only (not file)))
+			    ((string= name "*Buffer List*"))
+			    ;; Otherwise output info.
+			    (t
+			     (unless file
+			       ;; No visited file.  Check local value of
+			       ;; list-buffers-directory.
+			       (when (and (boundp 'list-buffers-directory)
+					  list-buffers-directory)
+				 (setq file list-buffers-directory)))
+			     (list buffer
+				   (format "%c%c%c "
+					   (if (eq buffer old-buffer) ?. ? )
+					   ;; Handle readonly status.  The output buffer is special
+					   ;; cased to appear readonly; it is actually made so at a
+					   ;; later date.
+					   (if (or (eq buffer standard-output)
+						   buffer-read-only)
+					       ?% ? )
+					   ;; Identify modified buffers.
+					   (if (buffer-modified-p) ?* ? ))
+				   name (buffer-size) mode file)))))
+		       (buffer-list)))))
       (dolist (buffer
 	       (if Buffer-menu-sort-column
 		   (sort list
