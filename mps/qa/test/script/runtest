@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.6) $
+# $HopeName: MMQA_harness!script:runtest(trunk.7) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -62,7 +62,7 @@ sub clib {
 sub run_test {
  local ($testfile, $interact, $report_type) = @_;
 
- &readheader($testfile);
+ &readheader($testfile, 1);
 
  for $lang ($test_header{"language"}) {
 
@@ -92,7 +92,7 @@ sub run_test {
 sub run_from_testset {
  local ($testfile) = @_;
 
- &readheader($testfile);
+ &readheader($testfile, 1);
  unless ($test_header{"language"} eq "c") {
   &logcomment("Skipping test $testfile: don't know how to run it in batch mode.");
   $testsetresults{$testfile}="/";
