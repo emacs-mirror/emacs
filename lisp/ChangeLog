@@ -1,3 +1,7 @@
+2000-11-22  Miles Bader  <miles@gnu.org>
+
+	* cus-start.el: Remove entry for `mode-line-inverse-video'.
+
 2000-11-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/ada-mode.el (ada-mode): `set '' -> `setq'.

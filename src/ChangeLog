@@ -1,3 +1,7 @@
+2000-11-22  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (syms_of_xdisp): `mode-line-inverse-video' defualts to nil.
+
 2000-11-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* sysdep.c: Move the code for declaring h_errno after #include
