@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.33) $
+ * $HopeName: MMsrc!buffer.c(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.33) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.34) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -147,7 +147,24 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
  * See design.mps.buffer.method.create.
  */
 
-Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
+Res BufferCreate(Buffer *bufferReturn, Pool pool, ...)
+{
+  Res res;
+  va_list args;
+
+  va_start(args, pool);
+  res = BufferCreateV(bufferReturn, pool, args);
+  va_end(args);
+  return res;
+}
+
+
+/* BufferCreateV -- create an allocation buffer, with varargs
+ *
+ * See design.mps.buffer.method.create.
+ */
+
+Res BufferCreateV(Buffer *bufferReturn, Pool pool, va_list args)
 {
   Res res;
   Buffer buffer;
@@ -156,7 +173,6 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
 
   AVER(bufferReturn != NULL);
   AVERT(Pool, pool);
-  AVER(RankCheck(rank));
 
   arena = PoolArena(pool);
 
@@ -166,7 +182,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   buffer = p;
 
   /* Initialize the buffer descriptor structure. */
-  res = BufferInit(buffer, pool, rank);
+  res = BufferInitV(buffer, pool, args);
   if(res != ResOK) goto failInit;
 
   *bufferReturn = buffer;
@@ -179,12 +195,9 @@ failAlloc:
 }
 
 
-/* BufferInit -- initialize an allocation buffer
- *
- * See design.mps.buffer.method.init.
- */
+/* BufferInitV -- initialize an allocation buffer */
 
-Res BufferInit(Buffer buffer, Pool pool, Rank rank)
+Res BufferInitV(Buffer buffer, Pool pool, va_list args)
 {
   Res res;
 
@@ -192,7 +205,6 @@ Res BufferInit(Buffer buffer, Pool pool, Rank rank)
   AVERT(Pool, pool);
   /* The PoolClass should support buffer protocols */
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
-  AVER(RankCheck(rank));
   
   /* Initialize the buffer.  See impl.h.mpmst for a definition of */
   /* the structure.  sig and serial comes later .init.sig-serial */
@@ -201,7 +213,7 @@ Res BufferInit(Buffer buffer, Pool pool, Rank rank)
   RingInit(&buffer->poolRing);
   buffer->alignment = pool->alignment; /* .trans.mod */
   buffer->seg = NULL;
-  buffer->rankSet = RankSetSingle(rank);
+  buffer->rankSet = RankSetEMPTY;
   buffer->base = (Addr)0;
   buffer->initAtFlip = (Addr)0;
   buffer->apStruct.init = (Addr)0;
@@ -213,7 +225,7 @@ Res BufferInit(Buffer buffer, Pool pool, Rank rank)
 
   /* Dispatch to the pool class method to perform any extra */
   /* initialization of the buffer. */
-  res = (*pool->class->bufferInit)(pool, buffer);
+  res = (*pool->class->bufferInit)(pool, buffer, args);
   if(res != ResOK) return res;
 
   /* .init.sig-serial: Now that it's initialized, sign the buffer, */
