@@ -9,12 +9,12 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.2
-@set EDITION 4.2
-@set IDLVERSION 5.3
-@set NSYSROUTINES 1251
-@set NSYSKEYWORDS 5287
-@set DATE June 2000
+@set VERSION 4.7
+@set EDITION 4.7
+@set IDLVERSION 5.4
+@set NSYSROUTINES 1287
+@set NSYSKEYWORDS 5724
+@set DATE December 2000
 @set AUTHOR Carsten Dominik
 @set AUTHOR-EMAIL dominik@@astro.uva.nl
 @set MAINTAINER Carsten Dominik
@@ -108,6 +108,7 @@ shell.
 @menu
 * Introduction::                What IDLWAVE is and what not
 * IDLWAVE in a Nutshell::       One page quick-start guide
+* Getting Started::             Tutorial
 * The IDLWAVE Major Mode::      The mode to edit IDL programs
 * The IDLWAVE Shell::           The mode to run IDL as inferior program
 * Installation::                How to Install or Upgrade               
@@ -155,6 +156,7 @@ Debugging IDL Programs
 
 * Compiling Programs::          Compiling buffers under the shell
 * Breakpoints and Stepping::    Deciding where to stop and look
+* Walking the Calling Stack::   From where was this routine called?
 * Examining Variables::         What is the value now?
 
 Installation
@@ -167,7 +169,7 @@ Sources of Routine Info
 
 * Routine Definitions::         Where IDL Routines are defined.
 * Routine Information Sources::  So how does IDLWAVE know about...
-* Library Scan::                Scanning the Libraries for Routine Info
+* Library Catalog::             Scanning the Libraries for Routine Info
 * Load-Path Shadows::           Routines defined in several places
 * Documentation Scan::          Scanning the IDL Manuals
 
@@ -269,10 +271,8 @@ things.  For a full description of what a particular variable does and
 how to configure it, see the documentation string of that variable.
 Some configuration examples are also given in the appendix.
 
-@node IDLWAVE in a Nutshell, The IDLWAVE Major Mode, Introduction, Top
+@node IDLWAVE in a Nutshell, Getting Started, Introduction, Top
 @chapter IDLWAVE in a Nutshell
-@cindex Quick-Start
-@cindex Getting Started
 @cindex Summary of important commands
 @cindex IDLWAVE in a Nutshell
 @cindex Nutshell, IDLWAVE in a
@@ -337,18 +337,345 @@ at point.
 ;; Pad some operators with spaces
 (setq idlwave-do-actions t
       idlwave-surround-by-blank t)
-;; Automatically expand END to ENDIF, ENDELSE, ...
-(setq idlwave-expand-generic-end t)
 ;; Syntax Highlighting
 (add-hook 'idlwave-mode-hook 'turn-on-font-lock)
-;; Automatically start the shell when needed, in dedicated frame
-(setq idlwave-shell-automatic-start t
-      idlwave-shell-use-dedicated-frame t)
+;; Automatically start the shell when needed
+(setq idlwave-shell-automatic-start t)
+;; Bind debugging commands with CONTROL and SHIFT modifiers
+(setq idlwave-shell-debug-modifiers '(control shift))
 ;; Where are the online help files?
 (setq idlwave-help-directory "~/.idlwave")
 @end lisp
 
-@node The IDLWAVE Major Mode, The IDLWAVE Shell, IDLWAVE in a Nutshell, Top
+@node Getting Started, The IDLWAVE Major Mode, IDLWAVE in a Nutshell, Top
+@chapter Getting Started (Tutorial)
+@cindex Quick-Start
+@cindex Tutorial
+@cindex Getting Started
+
+@section Lession I: Development Cycle
+
+The purpose of this tutorial is to guide you through a very basic
+development cycle with IDLWAVE.  We will type a simple program into a
+buffer and use the shell to compile, debug and run this program.  On the
+way we will use the most important commands in IDLWAVE.  Note
+however that there is much more funtionality available in IDLWAVE than
+we cover here, and it will pay off greatly if eventually you go further
+and read the whole manual.
+
+I assume that you have access to Emacs or XEmacs with the full IDLWAVE
+package including online help (@pxref{Installation}).  I also assume
+that you are familiar with Emacs and can read the nomenclature of key
+presses in Emacs (in particular, @kbd{C} stands for @key{CONTROL} and
+@kbd{M} for @key{META} (often the @key{ALT} key carries this
+functionality)).
+
+Open a new source file by typing
+
+@example
+@kbd{C-x C-f tutorial.pro @key{RET}}
+@end example
+
+A buffer for this file will pop up, and it should be in IDLWAVE mode.
+You can see this by looking at the mode line, just below the editing
+window.  Also, the menu bar should contain entries @samp{IDLWAVE} and
+@samp{Debug}.
+
+Now cut-and-paste the following program, also available as
+@file{tutorial.pro} in the IDLWAVE distribution.
+
+@example
+function daynr,d,m,y
+  ;; compute a sequence number for a date
+  ;; works 1901-2099.
+  if y lt 100 then y = y+1900
+  if m le 2 then delta = 1 else delta = 0
+  m1 = m + delta*12 + 1
+  y1 = y * delta
+  return, d + floor(m1*30.6)+floor(y1*365.25)+5
+end
+     
+function weekday,day,month,year
+  ;; compute weekday number for date
+  nr = daynr(day,month,year)
+  return, nr mod 7
+end
+     
+pro plot_wday,day,month
+  ;; Plot the weekday of a date in the first 10 years of this century.
+  years = 2000,+indgen(10)
+  wdays = intarr(10)
+  for i=0,n_elements(wdays)-1 do begin
+     wdays[i] =  weekday(day,month,years[i])
+  end
+  plot,years,wdays,YS=2,YT="Wday (0=sunday)"
+end
+@end example
+
+The indentation probably looks funny, since it's different from the
+settings you use, so use the @key{TAB} key in each line to automatically
+line it up (or more quickly @emph{select} the entire buffer with
+@kbd{C-x h} followed by @kbd{M-C-\}).  Notice how different syntactical
+elements are highlighted in different colors, if you have set up support
+for font-lock.
+
+Let's check out two particular editing features of IDLWAVE.  Place the
+cursor after the @code{end} statement of the @code{for} loop and press
+@key{SPC}.  IDLWAVE blinks back to the beginning of the block and
+changes the generic @code{end} to the specific @code{endfor}
+automatically.  Now place the cursor in any line you would like to split
+into two and press @kbd{M-@key{RET}}.  The line is split at the cursor
+position, with the continuation @samp{$} and indentation all taken care
+of.  Use @kbd{C-/} to undo the last change.
+
+The procedure @code{plot_wday} is supposed to plot the weekday of a given
+date for the first 10 years of the 21st century.  I have put in a few
+bugs which we are going to fix now.
+
+First, let's launch the IDLWAVE shell.  You do this with the command
+@kbd{C-c C-s}.  The Emacs window will split and display IDL running in a
+shell interaction buffer.  Type a few commands like @code{print,!PI} to
+convince yourself that you can work there like in an xterminal, or the
+IDLDE.  Use the arrow keys to cycle through your command history.  Are
+we having fun now?
+
+Now go back to the source window and type @kbd{C-c C-d C-c} to compile
+the program.  If you watch the shell buffer, you see that IDLWAVE types
+@samp{.run tutorial.pro} for you.  But the compilation fails because
+there is a comma in the line @samp{years=...}.  The line with the error
+is highlighted and the cursor positioned at the error, so remove the
+comma (you should only need to hit Delete!).  Compile again, using the
+same keystrokes as before.  Notice that the file is saved for you.  This
+time everything should work fine, and you should see the three routines
+compile.
+
+Now we want to use the command to plot the weekdays for January 1st.  We
+could type the full command ourselves, but why do that?  Go back to the
+shell window, type @samp{plot_} and hit @key{TAB}.  After a bit of a
+delay (while IDLWAVE initializes its routine info database), the window
+will split to show all procedures it knows starting with that string,
+and @w{@code{plot_wday}} should be one of them.  Saving the buffer was
+enough to tell IDLWAVE about this new routine.  Click with the middle
+mouse button on @code{plot_wday} and it will be copied to the shell
+buffer, or if you prefer, add @samp{w} to @samp{plot_} to make it
+unambiguous, hit @key{TAB}, and the full routine name will be completed.
+Now provide the two arguments:
+
+@example
+plot_wday,1,1
+@end example
+
+
+and press @key{RET}.  This fails with an error message telling you the
+@code{YT} keyword to plot is ambiguous.  What are the allowed keywords
+again?  Go back to the source window and put the cursor into the `plot'
+line, and press @kbd{C-c ?}.  This pops up the routine info window for
+the plot routine, which contains a list of keywords, and the argument
+list.  Oh, we wanted @code{YTITLE}.  Fix that up.  Recompile with
+@kbd{C-c C-d C-c}. Jump back into the shell with @kbd{C-c C-s}, press
+the @key{UP} arrow to recall the previous command and execute again.
+
+This time we get a plot, but it is pretty ugly -- the points are all
+connected with a line.  Hmm, isn't there a way for @code{plot} to use
+symbols instead?  What was that keyword?  Position the cursor on the
+plot line after a comma (where you'd normally type a keyword), and hit
+@kbd{M-@key{Tab}}.  A long list of plot's keywords appears.  Aha, there
+it is, @code{PSYM}.  Middle click to insert it.  An @samp{=} sign is
+included for you too.  Now what were the values of @code{PSYM} supposed
+to be?  With the cursor on or after the keyword, press @kbd{M-?} for
+online help (alternatively, you could have right clicked on the colored
+keyword itself in the completion list).  The online help window will pop
+up showing the documentation for the @code{PYSM} keyword.  Ok, let's use
+diamonds=4.  Fix this, recompile (you know the command by now: @kbd{C-c
+C-d C-c}, go back to the shell (if it's vanished, you know the command
+to recall it by now: @kbd{C-c C-s}) and execute again.  Now things look
+pretty good.
+
+Lets try a different day - how about April fool's day?
+
+@example
+plot_wday,1,4
+@end example
+
+   Oops, this looks very wrong.  All April fool's days cannot be
+Fridays!  We've got a bug in the program, perhaps in the @code{daynr}
+function.  Lets put a breakpoint on the last line there.  Position the
+cursor on the @samp{return, d+...} line and press @kbd{C-c C-d C-b}.
+IDL sets a breakpoint (as you see in the shell window), and the line is
+highlighted in some way.  Back to the shell buffer, re-execute the
+previous command.  IDL stops at the line with the breakpoint.  Now hold
+down the SHIFT key and click with the middle mouse button on a few
+variables there: @samp{d}, @samp{y}, @samp{m}, @samp{y1}, etc.  Maybe
+@code{d} isn't the correct type.  CONTROL-SHIFT middle-click on it for
+help.  Well, it's an integer, so that's not the problem.  Aha, @samp{y1}
+is zero, but it should be the year, depending on delta.  Shift click
+@samp{delta} to see that it's 0.  Below, we see the offending line:
+@samp{y1=y*delta...} the multiplication should have been a minus sign!
+So fix the line to
+
+@example
+y1 = y - delta
+@end example
+
+Now remove all breakpoints: @kbd{C-c C-d C-a}.  Recompile and rerun the
+command.  Everything should now work fine.  How about those leap years?
+Change the code to plot 100 years and see that every 28 years, the
+sequence of weekdays repeats.
+
+@section Lession II: Customization
+
+Emacs is probably the most customizable piece of software available, and
+it would be a shame if you did not make use of this and adapt IDLWAVE to
+your own preferences.  Customizing Emacs or IDLWAVE means that you have
+to set Lisp variables in the @file{.emacs} file in your home directory.
+This looks scary to many people because of all the parenthesis.
+However, you can just cut and paste the examples given here and work
+from there.
+
+Lets first use a boolean variable.  These are variables which you turn
+on or off, much like a checkbox. A value of @samp{t} means on, a
+value of @samp{nil} means off.  Copy the following line into your
+@file{.emacs} file, exit and restart Emacs.
+
+@lisp
+(setq idlwave-reserved-word-upcase t)
+@end lisp
+
+When this option is turned on, each reserved word you type into an IDL
+source buffer will be converted to upper case when you press @key{SPC}
+or @key{RET} right after the word.  Try it out!  @samp{if} changes to
+@samp{IF}, @samp{begin} to @samp{BEGIN}.  If you don't like this
+behavior, remove the option again from your @file{.emacs} file.
+
+Now I bet you have your own indentation preferences for IDL code.  For
+example, I like to indent the main block of an IDL program a bit,
+different from the conventions used by RSI.  Also, I'd like to use only
+3 spaces as indentation between @code{BEGIN} and @code{END}.  Try the
+following lines in @file{.emacs}
+
+@lisp
+(setq idlwave-main-block-indent 2)
+(setq idlwave-block-indent 3)
+(setq idlwave-end-offset -3)
+@end lisp
+
+Restart Emacs, take the program we developed in the first part of this
+tutorial and re-indent it with @kbd{C-c h} and @kbd{M-C-\}.  You
+probably want to keep these lines in @file{.emacs}, with values adjusted
+to your likings.  If you want to get more information about any of these
+variables, type, e.g., @kbd{C-h v idlwave-main-block-indent @key{RET}}.
+To find which variables can be customized, look for items marked
+@samp{User Option:} in the manual.
+
+If you cannot wrap your head around this Lisp stuff, there is another,
+more user-friendly way to customize all the IDLWAVE variables.  You can
+access it through the IDLWAVE menu in one of the @file{.pro} buffers,
+option @code{Customize->Browse IDLWAVE Group}. Here you'll be presented
+with all the various variables grouped into categories.  You can
+navigate the hierarchy (e.g. Idlwave Code Formatting->Idlwave Main Block
+Indent), read about the variables, change them, and `Save for Future
+Sessions'.  Few of these variables need customization, but you can
+exercise considerable control over IDLWAVE's functionality with them.
+
+Many people I talk to find the key bindings used for the debugging
+commands too long and complicated.  Do I always have to type @kbd{C-c
+C-d C-c} to get a single simple command?  Due to Emacs rules and
+conventions I cannot make better bindings by default, but you can.
+First, there is a way to assign all debugging commands in a single sweep
+to other combinations.  The only problem is that we have to use
+something which Emacs does not need for other important commands.  A
+good option is to execute debugging commands by holding down
+@key{CONTROL} and @key{SHIFT} while pressing a single character:
+@kbd{C-S-b} for setting a breakpoint, @kbd{C-S-c} for compiling the
+current source file, @kbd{C-S-a} for deleting all breakpoints.  You can
+have this with
+
+@lisp
+(setq idlwave-shell-debug-modifiers '(shift control))
+@end lisp
+
+If you have a special keyboard with for example a @key{HYPER} key, you
+could use
+
+@lisp
+(setq idlwave-shell-debug-modifiers '(hyper))
+@end lisp
+
+instead to get compilation on @kbd{H-c}.
+
+You can also assign specific commands to function keys.  This you must
+do in the @emph{mode-hook}, a special function which is run when a new
+buffer gets set up.  Keybindings can only be done when the buffer
+exists.  The possibilities for key customization are endless.  Here we
+set function keys f5-f8 to common debugging commands.
+
+@lisp
+;; First for the source buffer
+(add-hook 'idlwave-mode-hook
+   (lambda ()
+    (local-set-key [f5] 'idlwave-shell-break-here)
+    (local-set-key [f6] 'idlwave-shell-clear-current-bp)
+    (local-set-key [f7] 'idlwave-shell-cont)
+    (local-set-key [f8] 'idlwave-shell-clear-all-bp)))
+;; Then for the shell buffer
+(add-hook 'idlwave-shell-mode-hook
+   (lambda ()
+    (local-set-key [f5] 'idlwave-shell-break-here)
+    (local-set-key [f6] 'idlwave-shell-clear-current-bp)
+    (local-set-key [f7] 'idlwave-shell-cont)
+    (local-set-key [f8] 'idlwave-shell-clear-all-bp)))
+@end lisp
+
+@section Lession III: Library Catalog
+
+We have already used the routine info display in the first part of this
+tutorial.  This was the key @kbd{C-c ?} which displays information about 
+the IDL routine near the cursor position.  Wouldn't it be nice
+to have the same available for your own library routines and for the
+huge amount of code in major extension libraries like JHUPL or the
+IDL-Astro library?  To do this, you must give IDLWAVE a chance to study
+these routines first.  We call this @emph{Building the library catalog}.
+
+From the IDLWAVE entry in the menu bar, select @code{Routine Info/Select
+Catalog Directories}.  If necessary, start the shell first with @kbd{C-c
+C-s} (@pxref{Starting the Shell}).  IDLWAVE will find out about the IDL
+@code{!PATH} variable and offer a list of directories on the path.
+Simply select them all (or whichever you want) and click on the
+@samp{Scan&Save} button.  Then go for a cup of coffee while IDLWAVE
+collects information for each and every IDL routine on your search path.
+All this information is written to the file @file{.idlcat} in your home
+directory and will from now one be automatically loaded whenever you use
+IDLWAVE.  Try to use routine info (@kbd{C-c ?}) or completion
+(@kbd{M-<TAB>}) while on any routine or partial routine name you know to
+be located in the library.  E.g., if you have scanned the IDL-Astro
+library:
+
+@example
+    a=readf@key{M-<TAB>}
+@end example
+
+
+expands to `readfits('.  Then try
+
+@example
+    a=readfits(@key{C-c ?}
+@end example
+
+and you get:
+
+@example
+Usage:    Result = READFITS(filename, header, heap)
+...
+@end example
+
+I hope you made it until here.  Now you are set to work with IDLWAVE.
+On the way you will want to change other things, and to learn more about
+the possibilities not discussed in this short tutorial.  Read the
+manual, look at the documentation strings of interesting variables (with
+@kbd{C-h v idlwave<-variable-name> @key{RET}}) and ask the remaining
+questions on @code{comp.lang.idl-pvwave}.
+
+@node The IDLWAVE Major Mode, The IDLWAVE Shell, Getting Started, Top
 @chapter The IDLWAVE Major Mode
 @cindex IDLWAVE major mode
 @cindex Major mode, @code{idlwave-mode}
@@ -626,7 +953,7 @@ This may indicate that your routine is shadowing a library routine,
 which may or may not be what you want (@pxref{Load-Path Shadows}).  The
 information about the calling sequence and the keywords is derived from
 the first source listed.  Library routines can only be supported if you
-have scanned the local IDL library (@pxref{Library Scan}).  The source
+have scanned the local IDL library (@pxref{Library Catalog}).  The source
 entry consists of a @emph{source category}, a set of @emph{flags} and
 the path to the @emph{source file}.  The following categories
 exist:
@@ -635,7 +962,7 @@ exist:
 @item @i{System}
 @tab A system routine, but we do not know if it is @i{Builtin} or
 @i{SystemLib}.  When the system library has bee scanned
-(@pxref{Library Scan}), this category will automatically split into the
+(@pxref{Library Catalog}), this category will automatically split into the
 next two. 
 @item @i{Builtin}
 @tab A builtin routine with no source code available.
@@ -659,7 +986,7 @@ with the variable @code{idlwave-special-lib-alist}.
 @cindex Multiply defined routines
 @cindex Routine definitions, multiple
 The flags @code{[CSB]} indicate if the file is known to IDLWAVE from the
-library catalog (@w{@code{[C--]}}, @pxref{Library Scan}), from the Shell
+library catalog (@w{@code{[C--]}}, @pxref{Library Catalog}), from the Shell
 (@w{@code{[-S-]}}) or from an Emacs buffer (@w{@code{[--B]}}).
 Combinations are possible.  If a file contains multiple definitions of
 the same routine, the file name will be prefixed with @samp{(Nx)} where
@@ -691,6 +1018,11 @@ Another click on the same line switches back to the buffer from which
 @kbd{C-c ?} was called.  If you use the @emph{right} mouse button, the
 source will not be visited by a buffer, but displayed in the online help
 window.
+@item @i{Classes}
+@tab The @i{Classes} line is only included in the routine info window if
+the current class inherits from other classes.  You can click with the
+@emph{middle} mouse button to display routine info about the current
+method in other classes on the inheritance chain.
 @end multitable
 
 @defopt idlwave-resize-routine-help-window (@code{t})
@@ -870,6 +1202,10 @@ file.
 The face for links to IDLWAVE online help.
 @end defopt
 
+@defopt idlwave-help-activate-links-agressively (@code{t})
+Non-@code{nil} means, make all possible links in help window active.
+@end defopt
+
 @node Completion, Routine Source, Online Help, The IDLWAVE Major Mode
 @section Completion
 @cindex Completion
@@ -905,6 +1241,9 @@ x = obj_new('IDL*       @r{Class name}
 x = obj_new('MyCl',a*   @r{Keyword to @code{Init} method in class @code{MyCl}}
 pro A*                  @r{Class name}
 pro *                   @r{Fill in @code{Class::} of first method in this file}
+!v*                     @r{System variable}
+!version.t*             @r{Structure tag of system variable}
+self.g*                 @r{Class structure tag in methods}
 @end example
 
 @cindex Scrolling the @file{*Completions*} window
@@ -979,7 +1318,8 @@ current method in all available classes will be considered.  In the
 will be shown next to the item (see option
 @code{idlwave-completion-show-classes}).  As a special case, the class
 of an object called @samp{self} object is always the class of the
-current routine.
+current routine.  All classes it inherits from are considered as well
+where appropriate.
 
 @cindex Forcing class query.
 @cindex Class query, forcing
@@ -995,6 +1335,10 @@ class information.  Remembering the class works by placing a text
 property in the object operator @samp{->}.  This is not enabled by
 default - the variable @code{idlwave-store-inquired-class} can be used
 to turn it on.
+
+@defopt idlwave-support-inheritance (@code{t})
+Non-@code{nil} means, treat inheritance with completion, online help etc.
+@end defopt
 
 @defopt idlwave-completion-show-classes (@code{1})
 Non-@code{nil} means, show classes in @file{*Completions*} buffer when
@@ -1055,7 +1399,7 @@ taken from context, but you get a chance to edit it.
 
 @code{idlwave-resolve} is one way to get a library module within reach
 of IDLWAVE's routine info collecting functions.  A better way is to
-scan (parts of) the library (@pxref{Library Scan}).  Routine info on
+scan (parts of) the library (@pxref{Library Catalog}).  Routine info on
 library modules will then be available without the need to compile the
 modules first, and even without a running shell.
 
@@ -1115,7 +1459,7 @@ The templates are expanded in upper or lower case, depending upon the
 variables @code{idlwave-abbrev-change-case} and
 @code{idlwave-reserved-word-upcase}.
 
-@defopt idlwave-abbrev-start-char
+@defopt idlwave-abbrev-start-char (@code{"\"})
 A single character string used to start abbreviations in abbrev
 mode.
 @end defopt
@@ -1197,7 +1541,7 @@ Non-@code{nil} means point blinks to block beginning for
 @code{idlwave-show-begin}.
 @end defopt
 
-@defopt idlwave-expand-generic-end (@code{nil})
+@defopt idlwave-expand-generic-end (@code{t})
 Non-@code{nil} means expand generic END to ENDIF/ENDELSE/ENDWHILE etc.
 @end defopt
 
@@ -1498,13 +1842,22 @@ Hook for customizing @code{idlwave-shell-mode}.
 
 The IDLWAVE shell works in the same fashion as other shell modes in
 Emacs.  It provides command history, command line editing and job
-control.  Here is a list of commonly used commands.
+control.  The @key{UP} and @key{DOWN} arrows cycle through the input
+history just like in an X terminal@footnote{This is different from
+normal Emacs/Comint behavior, but more like an xterm.  If you prefer the
+default comint functionality, check the variable
+@code{idlwave-shell-arrows-do-history}.}.  Here is a list of
+commonly used commands.
 
 @multitable @columnfractions .12 .88
+@item @key{UP}
+@tab Cycle backwards in input history
+@item @key{DOWN}
+@tab Cycle forwards in input history
 @item @kbd{M-p}
-@tab Cycle backwards in input history matching input
+@tab Cycle backwards in input history @emph{matching input}
 @item @kbd{M-n}
-@tab Cycle forwards
+@tab Cycle forwards in input history @emph{matching input}
 @item @kbd{M-r}
 @tab Previous input matching a regexp
 @item @kbd{M-s}
@@ -1559,12 +1912,24 @@ information on these commands.
 @tab Compile a library routine (@code{idlwave-resolve})
 @end multitable
 
+@defopt idlwave-shell-arrows-do-history (@code{t})
+Non-@code{nil} means @key{UP} and @key{DOWN} arrows move through command
+history like xterm.
+@end defopt
+
+@defopt idlwave-shell-comint-settings
+Alist of special settings for the comint variables in the IDLWAVE Shell.
+@end defopt
+
 @defopt idlwave-shell-file-name-chars
 The characters allowed in file names, as a string.  Used for file name
 completion.
 @end defopt
 
-@page
+@defopt idlwave-shell-graphics-window-size
+Size of IDL graphics windows popped up by special IDLWAVE command.
+@end defopt
+
 @cindex Input mode
 @cindex Character input mode (Shell)
 @cindex Line input mode (Shell)
@@ -1609,11 +1974,21 @@ C-t} (@code{idlwave-shell-toggle-toolbar}).
 
 The debugging keybindings are by default on the prefix key @kbd{C-c
 C-d}, so for example setting a breakpoint is done with @kbd{C-c C-d
-C-b}.  If you find this too much work and your ALT key is still
-available, turn on the variable
-@code{idlwave-shell-activate-alt-keybindings} in order to get breakpoint
-setting on @kbd{A-b}.  In the remainder of this chapter we will assume
-that the @kbd{C-c C-d} bindings are active.
+C-b}, compiling a source file with @kbd{C-c C-d C-c}.  If you find this
+too much work you can choose a combination of modifier keys which is not
+used by other commands.  For example, if you write in @file{.emacs}
+
+@lisp
+(setq idlwave-shell-debug-modifiers '(control shift))
+@end lisp
+
+a breakpoint can be set by pressing @kbd{b} while holding down
+@kbd{shift} and @kbd{control} keys, i.e. @kbd{C-S-b}.  Compiling a
+source file will be on @kbd{C-S-c}, deleting a breakpoint @kbd{C-S-d}
+etc.  In the remainder of this chapter we will assume that the @kbd{C-c
+C-d} bindings are active, but each of these bindings will have an
+equivalent single-keypress shortcut with the modifiers given in the
+@code{idlwave-shell-debug-modifiers} variable.
 
 @defopt idlwave-shell-prefix-key (@kbd{C-c C-d})
 The prefix key for the debugging map
@@ -1625,9 +2000,9 @@ Non-@code{nil} means, debug commands will be bound to the prefix
 key, like @kbd{C-c C-d C-b}.
 @end defopt
 
-@defopt idlwave-shell-activate-alt-keybindings (@code{nil})
-Non-@code{nil} means, debug commands will be bound to alternate
-keys, like @kbd{A-b}.
+@defopt idlwave-shell-debug-modifiers (@code{nil})
+List of modifier keys to use for binding debugging commands in the shell 
+and in source buffers.
 @end defopt
 
 @defopt idlwave-shell-use-toolbar (@code{t})
@@ -1639,6 +2014,7 @@ buffers.
 @menu
 * Compiling Programs::          Compiling buffers under the shell
 * Breakpoints and Stepping::    Deciding where to stop and look
+* Walking the Calling Stack::   From where was this routine called?
 * Examining Variables::         What is the value now?
 @end menu
 
@@ -1682,7 +2058,7 @@ The face which highlights the source line where IDL is
 stopped.
 @end defopt
 
-@node Breakpoints and Stepping, Examining Variables, Compiling Programs, Debugging IDL Programs
+@node Breakpoints and Stepping, Walking the Calling Stack, Compiling Programs, Debugging IDL Programs
 @subsection Breakpoints and Stepping
 @cindex Breakpoints
 @cindex Stepping
@@ -1693,16 +2069,23 @@ stopped.
 You can set breakpoints and step through a program with IDLWAVE.
 Setting a breakpoint in the current line of the source buffer is done
 with @kbd{C-c C-d C-b} (@code{idlwave-shell-break-here}).  With a prefix
-arg of 1, the breakpoint gets a @code{/ONCE} keyword, meaning that it
-will be deleted after first use.  With a numeric prefix greater than
-one, the breakpoint will only be active the @code{nth} time it is hit.
-To clear the breakpoint in the current line, use @kbd{C-c C-d C-d}
-(@code{idlwave-clear-current-bp}).  To clear all breakpoints, use
-@kbd{C-c C-d C-a} (@code{idlwave-clear-all-bp}).  Breakpoint lines are
-highlighted in the source code.
+arg of 1 (i.e. @kbd{C-1 C-c C-d C-b}, the breakpoint gets a @code{/ONCE}
+keyword, meaning that it will be deleted after first use.  With a
+numeric prefix greater than one, the breakpoint will only be active the
+@code{nth} time it is hit.  To clear the breakpoint in the current line,
+use @kbd{C-c C-d C-d} (@code{idlwave-clear-current-bp}).  When executed
+from the shell window, the breakpoint where IDL is currently stopped
+will be deleted.  To clear all breakpoints, use @kbd{C-c C-d C-a}
+(@code{idlwave-clear-all-bp}).  Breakpoint lines are highlighted in the
+source code.
 
-Once the program has stopped somewhere, you can step through it.  Here
-is a summary of the breakpoint and stepping commands:
+Once the program has stopped somewhere, you can step through it.  The
+most important stepping commands are @kbd{C-c C-d C-s} to execute one
+line of IDL code; @kbd{C-c C-d C-n} to do one step but treat procedure
+and function calls as a single step; @kbd{C-c C-d C-h} to continue
+execution to the line where the cursor is in and @kbd{C-c C-d C-r} to
+continue execution.  Here is a summary of the breakpoint and stepping
+commands:
 
 @multitable @columnfractions .23 .77
 @item @kbd{C-c C-d C-b}
@@ -1746,12 +2129,31 @@ The face for breakpoint lines in the source code if
 @code{idlwave-shell-mark-breakpoints} has the value @code{face}.
 @end defopt
 
-@node Examining Variables,  , Breakpoints and Stepping, Debugging IDL Programs
+@node Walking the Calling Stack, Examining Variables, Breakpoints and Stepping, Debugging IDL Programs
+@subsection Walking the Calling Stack
+@cindex Calling stack, walking
+
+When debugging a program, it can be very useful to check in what context
+the current routine was called, and why the arguments of the call are
+the way they are.  For this one needs to examine the calling stack.  If
+execution is stopped somewhere deep in a program, you can use the
+commands @kbd{C-c C-d C-@key{UP}} (@code{idlwave-shell-stack-up}) and
+@kbd{C-c C-d C-@key{DOWN}} (@code{idlwave-shell-stack-down}) or the
+corresponding toolbar buttons to move through the calling stack.  The
+mode line of the shell window will indicate where you are on the stack
+with a token like @samp{[-3:MYPRO]}, and the line of IDL code which did
+the current call will be highlighted.  When you continue execution,
+IDLWAVE will automatically return to the current level. @xref{Examining
+Variables} for information how to examine the value of variables and
+expressions on higher calling stack levels.
+
+@node Examining Variables,  , Walking the Calling Stack, Debugging IDL Programs
 @subsection Examining Variables
 @cindex @code{PRINT} expressions
 @cindex @code{HELP}, on expressions
 @cindex Expressions, printing
 @cindex Expressions, help
+@cindex Printing expressions
 @cindex Mouse binding to print expressions
 
 @kindex C-c C-d C-p
@@ -1765,23 +2167,21 @@ argument will prompt for an expression instead of using the one at
 point.
 
 It is very convenient to click with the mouse on expressions to retrieve
-their value.  Expression printing is also bound to @kbd{S-mouse-2} and
-expression help to @kbd{C-S-mouse-2}.  I.e. you need to hold down
-@key{SHIFT} and @key{CONTROL} while clicking with the mouse.
+their value.  Use @kbd{S-mouse-2} to print an expression and
+@kbd{C-S-mouse-2} to get help on an expression.  I.e. you need to hold
+down @key{SHIFT} and @key{CONTROL} while clicking with the middle mouse
+buton.
 
-@cindex Calling stack, motion
 @cindex Printing expressions, on calling stack
 @cindex Restrictions for expression printing
 Printing of expressions also works on higher levels of the calling
 stack.  This means that you can examine the values of variables and
 expressions inside the routine which called the current routine etc.
-Use the commands @kbd{C-c C-d C-@key{UP}}
-(@code{idlwave-shell-stack-up}) and @kbd{C-c C-d C-@key{DOWN}}
-(@code{idlwave-shell-stack-down}) or the corresponding toolbar buttons
-to move through the calling stack.  The mode line of the shell window
-will indicate the routine and the calling stack level which define the
-context for printing expressions.  The following restrictions apply for
-all levels except the current:
+@xref{Walking the Calling Stack} for information on how to step back to
+higher levels on the calling stack.  Commands which print values of
+variables and expressions will then use the values of variables in the
+calling routine.  The following restrictions apply for all levels except
+the current:
 
 @itemize @bullet
 @item
@@ -1902,14 +2302,14 @@ The main contributors to the IDLWAVE package have been:
 
 @itemize @minus
 @item
-@uref{mailto:chase@@att.com, @b{Chris Chase}} wrote
-@file{idl.el} and @file{idl-shell.el} and maintained them for several
-years. 
+@uref{mailto:chase@@att.com, @b{Chris Chase}}, the original author.
+Chris wrote @file{idl.el} and @file{idl-shell.el} and maintained them
+for several years.
 
 @item
-@uref{mailto:dominik@@astro.uva.nl, @b{Carsten Dominik}} has been in
-charge of the package since version 3.0.  He renamed the package to
-IDLWAVE, rewrote and added large parts and is the current maintainer.
+@uref{mailto:dominik@@astro.uva.nl, @b{Carsten Dominik}}, current author
+and maintainer.  I have been in charge of the package since version
+3.0. I am also responsible for the manual.
 
 @item 
 @uref{mailto:jdsmith@@astrosun.tn.cornell.edu, @b{J.D. Smith}} has
@@ -1936,6 +2336,8 @@ Kevin Ivory <Kevin.Ivory@@linmpi.mpg.de>
 Xuyong Liu <liu@@stsci.edu>
 @item
 Simon Marshall <Simon.Marshall@@esrin.esa.it>
+@item
+Craig Markwardt <craigm@@cow.physics.wisc.edu>
 @item
 Laurent Mugnier <mugnier@@onera.fr>
 @item
@@ -1965,7 +2367,7 @@ IDLWAVE must know about the accessible routines.
 @menu
 * Routine Definitions::         Where IDL Routines are defined.
 * Routine Information Sources::  So how does IDLWAVE know about...
-* Library Scan::                Scanning the Libraries for Routine Info
+* Library Catalog::             Scanning the Libraries for Routine Info
 * Load-Path Shadows::           Routines defined in several places
 * Documentation Scan::          Scanning the IDL Manuals
 @end menu
@@ -2003,7 +2405,7 @@ cannot provide routine info and completion for external
 routines.
 @end enumerate
 
-@node Routine Information Sources, Library Scan, Routine Definitions, Sources of Routine Info
+@node Routine Information Sources, Library Catalog, Routine Definitions, Sources of Routine Info
 @section Routine Information Sources
 @cindex Routine info sources
 @cindex Builtin list of routines
@@ -2046,7 +2448,7 @@ the shell again at any time.
 @item
 IDLWAVE can scan all or selected library files and store the result in a
 file which will be automatically loaded just like
-@file{idlw-rinfo.el}. @xref{Library Scan}, for information how to
+@file{idlw-rinfo.el}. @xref{Library Catalog}, for information how to
 scan library files.
 @end enumerate
 
@@ -2063,9 +2465,10 @@ Non-@code{nil} means query the shell for info about compiled routines.
 Controls under what circumstances routine info is updated automatically.
 @end defopt
 
-@node Library Scan, Load-Path Shadows, Routine Information Sources, Sources of Routine Info
-@section Library Scan
+@node Library Catalog, Load-Path Shadows, Routine Information Sources, Sources of Routine Info
+@section Library Catalog
 @cindex Library scan
+@cindex Library catalog
 @cindex IDL library routine info
 @cindex Windows
 @cindex MacOS
@@ -2126,7 +2529,7 @@ The IDL system directory for Windows and MacOS.  Not needed under UNIX.
 Alist of regular expressions matching special library directories.
 @end defopt
 
-@node Load-Path Shadows, Documentation Scan, Library Scan, Sources of Routine Info
+@node Load-Path Shadows, Documentation Scan, Library Catalog, Sources of Routine Info
 @section Load-Path Shadows
 @cindex Load-path shadows
 @cindex Shadows, load-path
@@ -2140,11 +2543,14 @@ IDLWAVE can compile a list of routines which are defined in several
 different files.  Since one definition will hide (shadow) the others
 depending on which file is compiled first, such multiple definitions are
 called "load-path shadows".  IDLWAVE has several routines to scan for
-load path shadows.  The output is placed into s special buffer
+load path shadows.  The output is placed into the special buffer
 @file{*Shadows*}.  The format of the output is identical to the source
-section of the routine info buffer (@pxref{Routine Info}).  Before
-calling these routines, you should make sure that routine info is
-up-to-date by pressing @kbd{C-c C-i}.  Here are the different routines:
+section of the routine info buffer (@pxref{Routine Info}).  The
+different definitions of a routine are listed in the sequence of
+@emph{likelyhood of use}.  So the first entry will be most likely the
+one you'll get if an unsuspecting command uses that routine.  Before
+listing shadows, you should make sure that routine info is up-to-date by
+pressing @kbd{C-c C-i}.  Here are the different routines:
 
 @table @asis
 @item @kbd{M-x idlwave-list-buffer-load-path-shadows}
@@ -2158,8 +2564,7 @@ the application, use @code{RESOLVE_ALL} to compile any routines used by
 your code, update the routine info inside IDLWAVE with @kbd{C-c C-i} and
 then check for shadowing.
 @item @kbd{M-x idlwave-list-all-load-path-shadows}
-This command finally checks all routines accessible to IDLWAVE for
-shadowing conflicts.
+This command checks all routines accessible to IDLWAVE for conflicts.
 @end table
 
 For these commands to work properly you should have scanned the entire
@@ -2239,8 +2644,7 @@ break with widely used standards.
 have in my @file{.emacs}:
 
 @lisp
-(setq idlwave-shell-activate-alt-keybindings t
-      idlwave-expand-generic-end t
+(setq idlwave-shell-debug-modifiers '(control shift)
       idlwave-store-inquired-class t
       idlwave-shell-automatic-start t
       idlwave-main-block-indent 2
