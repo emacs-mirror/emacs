@@ -338,9 +338,11 @@ discover the name of the project."
       (error "You've already clocked in!")
     (unless timeclock-last-event
       (timeclock-reread-log))
-    (unless (equal (timeclock-time-to-date
-		    (cadr timeclock-last-event))
-		   (timeclock-time-to-date (current-time)))
+    ;; Either no log file, or day has rolled over.
+    (unless (and timeclock-last-event
+                 (equal (timeclock-time-to-date
+                         (cadr timeclock-last-event))
+                        (timeclock-time-to-date (current-time))))
       (let ((workday (or (and (numberp arg) arg)
 			 (and arg 0)
 			 (and timeclock-get-workday-function
@@ -349,7 +351,7 @@ discover the name of the project."
 	(run-hooks 'timeclock-first-in-hook)
 	;; settle the discrepancy for the new day
 	(setq timeclock-discrepancy
-	      (- timeclock-discrepancy workday))
+	      (- (or timeclock-discrepancy 0) workday))
 	(if (not (= workday timeclock-workday))
 	    (timeclock-log "h" (and (numberp arg)
 				    (number-to-string arg))))))
