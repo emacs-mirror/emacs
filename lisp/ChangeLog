@@ -1,3 +1,8 @@
+2002-06-29  Andreas Schwab  <schwab@suse.de>
+
+	* dired.el (dired-view-file): Quote file name for
+	dired-run-shell-command.
+
 2002-06-29  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el: New file.
