@@ -1,3 +1,10 @@
+2003-11-20  Kim F. Storm  <storm@cua.dk>
+
+	* gdb-ui.el (gud-gdba-command-name): Find gdb command via PATH.
+	(breakpoint-xpm-data, breakpoint-enabled-pbm-data): Make smoother.
+	(breakpoint-enabled-icon, breakpoint-disabled-icon): Set :ascent
+	to 100 for icons to avoid increasing line height when shown.
+
 2003-11-19  Andreas Schwab  <schwab@suse.de>
 
 	* simple.el (set-variable): Fix indentation.
