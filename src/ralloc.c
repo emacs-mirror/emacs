@@ -363,7 +363,18 @@ relinquish ()
 	}
 
       if ((*real_morecore) (- excess) == 0)
-	abort ();
+	{
+	  /* If the system didn't want that much memory back, adjust
+             the end of the last heap to reflect that.  This can occur
+             if break_value is still within the original data segment.  */
+	  last_heap->end += excess;
+	  /* Make sure that the result of the adjustment is accurate.
+             It should be, for the else clause above; the other case,
+             which returns the entire last heap to the system, seems
+             unlikely to trigger this mode of failure.  */
+	  if (last_heap->end != (*real_morecore) (0))
+	    abort ();
+	}
     }
 }
 
