@@ -72,6 +72,7 @@
 (require 'scroll-bar)
 (require 'faces)
 (require 'select)
+(require 'menu-bar)
 
 (setq command-switch-alist
       (append '(("-bw" .	x-handle-numeric-switch)
