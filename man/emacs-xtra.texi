@@ -291,6 +291,12 @@ its old switches.  However, reverting the buffer will relist it using
 the buffer's default switches.  If any of this yields problems, you
 can easily correct the situation using @kbd{C-u i} or @kbd{C-u l}.
 
+Dired does not remember the @code{R} switch.  Inserting a subdirectory
+with switches that include the @code{R} switch is equivalent with
+inserting each of its subdirectories using all remaining switches.
+For instance, updating or deleting a subdirectory that was inserted
+with the @code{R} switch will not update or delete its subdirectories.
+
 The buffer's default switches do not affect subdirectories that were
 inserted using explicitly specified switches.  In particular,
 commands such as @kbd{s}, that change the buffer's switches do not
