@@ -53,20 +53,6 @@
 	* progmodes/ada-mode.el (ada-initialize-properties, ada-mode): Do
 	not use make-local-hook.
 
-2002-01-08  Andre Spiegel  <spiegel@gnu.org>
-
-	Patch by Martin.Lorentzson@telia.com
-
-	* vc-cvs.el (vc-cvs-sticky-date-format-string): New variable.
-	(vc-cvs-sticky-tag-display): New variable.
-	(vc-cvs-mode-line-string): Add sticky-tag to the mode-line.
-	(vc-cvs-checkin): If the input revision is a valid symbolic tag
-	name, we create it as a branch, commit and switch to it.
-	(vc-cvs-retrieve-snapshot): Set file-property sticky-tag.
-	(vc-cvs-valid-symbolic-tag-name-p): New function.
-	(vc-cvs-parse-sticky-tag): New function.
-	(vc-cvs-parse-entry): Added parsing of sticky tags.
-
 2002-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/quail.el (quail-start-translation)
