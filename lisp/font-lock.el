@@ -1912,7 +1912,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   "skeleton\\|widget\\|setf-expander\\|method-combination\\|"
 		   "\\(symbol\\|compiler\\|modify\\)-macro\\)\\)\\|"
 		   ;; Variable declarations.
-		   "\\(const\\|custom\\|face\\|var\\)\\|"
+		   "\\(const\\(ant\\)?\\|custom\\|face\\|var\\|parameter\\)\\|"
 		   ;; Structure declarations.
 		   "\\(class\\|group\\|package\\|struct\\|type\\)"
 		   "\\)\\)\\>"
@@ -1920,9 +1920,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   "[ \t'\(]*"
 		   "\\(\\sw+\\)?")
 	   '(1 font-lock-keyword-face)
-	   '(8 (cond ((match-beginning 3) font-lock-function-name-face)
-		     ((match-beginning 4) font-lock-function-name-face)
+	   '(9 (cond ((match-beginning 3) font-lock-function-name-face)
 		     ((match-beginning 6) font-lock-variable-name-face)
+		     ((match-beginning 8) font-lock-variable-name-face)
 		     (t font-lock-type-face))
 	       nil t))
      ;;
@@ -1946,7 +1946,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		    "save-match-data" "save-current-buffer" "unwind-protect"
 		    "condition-case" "track-mouse"
 		    "eval-after-load" "eval-and-compile" "eval-when-compile"
-		    "eval-when"
+		    "eval-when" "lambda"
 		    "with-current-buffer" "with-electric-help"
 		    "with-output-to-string" "with-output-to-temp-buffer"
 		    "with-temp-buffer" "with-temp-file"
@@ -1959,9 +1959,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	     "(" (regexp-opt
 		  '("when" "unless" "case" "ecase" "typecase" "etypecase"
 		    "ccase" "ctypecase" "handler-case" "handler-bind"
-		    "restart-bind" "restart-case"
+		    "restart-bind" "restart-case" "in-package"
 		    "assert" "abort" "error" "cerror" "break" "ignore-errors"
-		    "loop" "do" "do*" "dotimes" "dolist" "the"
+		    "loop" "do" "do*" "dotimes" "dolist" "the" "locally"
 		    "proclaim" "declaim" "declare" "symbol-macrolet"
 		    "lexical-let" "lexical-let*" "flet" "labels" "compiler-let"
 		    "destructuring-bind" "macrolet" "tagbody" "block"
