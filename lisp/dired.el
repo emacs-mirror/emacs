@@ -60,6 +60,10 @@ some of the `ls' switches are not supported; see the doc string of
   :type 'string
   :group 'dired)
 
+(defvar dired-subdir-switches nil
+  "If non-nil, switches passed to `ls' for inserting subdirectories.
+If nil, `dired-listing-switches' is used.")
+
 ; Don't use absolute file names as /bin should be in any PATH and people
 ; may prefer /usr/local/gnu/bin or whatever.  However, chown is
 ; usually not in PATH.
@@ -274,12 +278,17 @@ The directory name must be absolute, but need not be fully expanded.")
 (defvar dired-re-perms "[-bcdlps][-r][-w].[-r][-w].[-r][-w].")
 (defvar dired-re-dot "^.* \\.\\.?/?$")
 
-;; The subdirectory names in this list are expanded.
+;; The subdirectory names in the next two lists are expanded.
 (defvar dired-subdir-alist nil
   "Association list of subdirectories and their buffer positions.
 Each subdirectory has an element: (DIRNAME . STARTMARKER).
 The order of elements is the reverse of the order in the buffer.
 In simple cases, this list contains one element.")
+
+(defvar dired-switches-alist nil
+  "Keeps track of which switches to use for inserted subdirectories.
+This is an alist of the form (SUBDIR . SWITCHES).")
+(make-variable-buffer-local 'dired-switches-alist)
 
 (defvar dired-subdir-regexp "^. \\([^\n\r]+\\)\\(:\\)[\n\r]"
   "Regexp matching a maybe hidden subdirectory line in `ls -lR' output.
@@ -961,7 +970,14 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 	  (condition-case ()
 	      (progn
 		(dired-uncache dir)
-		(dired-insert-subdir dir))
+		(dired-insert-subdir dir)
+		(let ((switches (cdr (assoc-string dir dired-switches-alist))))
+		  (and switches
+		       (string-match "R" switches)
+		       (dolist (cur-ass (copy-sequence old-subdir-alist))
+			 (when (dired-in-this-tree (car cur-ass) dir)
+			   (setq old-subdir-alist
+				 (delete cur-ass old-subdir-alist)))))))
 	    (error nil))))))
 
 (defun dired-uncache (dir)
@@ -1406,6 +1422,7 @@ Keybindings:
        '(dired-font-lock-keywords t nil nil beginning-of-line))
   (set (make-local-variable 'desktop-save-buffer)
        'dired-desktop-buffer-misc-data)
+  (setq dired-switches-alist nil)
   (dired-sort-other dired-actual-switches t)
   (run-mode-hooks 'dired-mode-hook)
   (when (featurep 'x-dnd)
@@ -2073,7 +2090,7 @@ instead of `dired-actual-switches'."
 			     (goto-char (match-beginning 0))
 			     (beginning-of-line)
 			     (point-marker))))
-      (if (> count 1)
+      (if (and (> count 1) (interactive-p))
 	  (message "Buffer includes %d directories" count))
       ;; We don't need to sort it because it is in buffer order per
       ;; constructionem.  Return new alist:
@@ -3274,16 +3291,16 @@ types in `x-dnd-known-types'.  It returns the action suggested by the source."
       nil)))
 
 (defun dired-dnd-popup-notice ()
-  (x-popup-dialog 
+  (x-popup-dialog
    t
-   '("Recursive copies not enabled.\nSee variable dired-recursive-copies." 
+   '("Recursive copies not enabled.\nSee variable dired-recursive-copies."
      ("Ok" . nil))))
 
 
 (defun dired-dnd-do-ask-action (uri)
   ;; No need to get actions and descriptions from the source,
   ;; we only have three actions anyway.
-  (let ((action (x-popup-menu 
+  (let ((action (x-popup-menu
 		 t
 		 (list "What action?"
 		       (cons ""
