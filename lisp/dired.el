@@ -717,7 +717,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "@" 'dired-mark-symlinks)
   (define-key dired-mode-map "~" 'dired-flag-backup-files)
   ;; Upper case keys (except !) for operating on the marked files
-  (define-key dired-mode-map "A" 'dired-do-tags-search)
+  (define-key dired-mode-map "A" 'dired-do-search)
   (define-key dired-mode-map "C" 'dired-do-copy)
   (define-key dired-mode-map "B" 'dired-do-byte-compile)
   (define-key dired-mode-map "D" 'dired-do-delete)
@@ -727,7 +727,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "M" 'dired-do-chmod)
   (define-key dired-mode-map "O" 'dired-do-chown)
   (define-key dired-mode-map "P" 'dired-do-print)
-  (define-key dired-mode-map "Q" 'dired-do-tags-query-replace)
+  (define-key dired-mode-map "Q" 'dired-do-query-replace)
   (define-key dired-mode-map "R" 'dired-do-rename)
   (define-key dired-mode-map "S" 'dired-do-symlink)
   (define-key dired-mode-map "X" 'dired-do-shell-command)
