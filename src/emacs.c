@@ -1912,8 +1912,13 @@ shut_down_emacs (sig, no_x, stuff)
   term_ntproc ();
 #endif
 
-  check_glyph_memory ();
-  check_message_stack ();
+  /* Do this only if terminating normally, we want glyph matrices
+     etc. in a core dump.  */
+  if (sig && sig != SIGTERM)
+    {
+      check_glyph_memory ();
+      check_message_stack ();
+    }
 
 #ifdef MSDOS
   dos_cleanup ();
