@@ -1,3 +1,7 @@
+2001-09-21  Markus Rost  <rost@math.ohio-state.edu>
+
+	* Makefile.in (shortlisp): Add ../lisp/env.elc.
+
 2001-09-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* process.c (sigchld_handler): Use GC_CONSP, GC_INTEGERP, GC_EQ
