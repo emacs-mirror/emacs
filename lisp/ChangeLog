@@ -1,3 +1,7 @@
+2004-11-19  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* Makefile.in (recompile): Set `max-specpdl-size' before compiling.
+
 2004-11-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-alg.el (math-simplify-divisor): Remove unnecessary
@@ -56,7 +60,7 @@
 
 	(math-simplify-expr): Declare it.
 	Replaced argument expr in all calls of math-defsimplify by
-	math-simplify-expr. 
+	math-simplify-expr.
 	(math-simplify-plus, math-simplify-times, math-simplify-divide)
 	(math-simplify-divisor, math-simplify-one-divisor)
 	(math-simplify-mod, math-simplify-ineq, math-simplify-sqrt)
@@ -90,7 +94,7 @@
 
 	* calc/calc-units.el (math-simplify-expr): Declare it.
 	Replace argument expr in all calls of math-defsimplify by
-	math-simplify-expr. 
+	math-simplify-expr.
 	(math-simplify-units-prod): Replace variable expr by declared
 	variable math-simplify-expr.
 
