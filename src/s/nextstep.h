@@ -73,15 +73,15 @@ Boston, MA 02111-1307, USA.  */
 /* Link this program just by running cc.  */
 #define ORDINARY_LINK
 
-#ifndef __NeXT   /* This is defined by standard GCC
-		    but not by NeXT's compiler.  */
-#define LD_SWITCH_SYSTEM -X -noseglinkedit
-#else /* __NeXT */
-#define LD_SWITCH_SYSTEM -Xlinker -noseglinkedit
-#endif /* __NeXT */
+#define LD_SWITCH_SYSTEM -X
 
 /* Don't use -lc on the NeXT.  */
+#ifdef NS_TARGET /* We use the dynamic libraries under Openstep for Mach 4.0 */
+#define LIB_STANDARD
+#else
 #define LIB_STANDARD -lsys_s
+#endif
+
 #define LIB_MATH -lm
 
 #define START_FILES pre-crt0.o
