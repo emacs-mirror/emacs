@@ -1,3 +1,19 @@
+2003-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-enable-tramp-completion): New defcustom.
+	(ido-enter-single-matching-directory): Change default to 'slash.
+	(ido-is-tramp-root): New defun.
+	(ido-is-root-directory, ido-is-ftp-directory, ido-is-slow-ftp-host)
+	(ido-may-cache-directory, ido-final-slash, ido-read-internal)
+	(ido-complete, ido-make-file-list1, ido-make-dir-list1):
+	Handle tramp completion.
+	(ido-file-name-all-completions1): New defun for tramp completion.
+	(ido-file-name-all-completions): Use it.
+	(ido-set-matches1): Relax matching of text with trailing slash.
+	(ido-exhibit): Handle tramp completion.
+	Simplified code using nested cond forms using new `refresh' var.
+	Fixed handling of /~user/ paths.
+
 2003-01-12  Andreas Schwab  <schwab@suse.de>
 
 	* arc-mode.el (archive-mode-map): Use command remapping instead of

@@ -4,6 +4,7 @@
 
 	* process.c: (QCvars): New variable.
 	(syms_of_process): Intern and staticpro it.
+	(Fset_process_contact): Removed function.
 	(Fprocess_variable, Fset_process_variable): New functions.
 	(syms_of_process): Defsubr them.
 	(Fstart_process): Initialize private_vars plist to nil.
