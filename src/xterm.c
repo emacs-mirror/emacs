@@ -4693,8 +4693,9 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
   int i, j;
 
   /* Let's rather be paranoid than getting a SEGV.  */
-  start = max (0, start);
   end = min (end, row->used[area]);
+  start = max (0, start);
+  start = min (end, start);
   if (real_start)
     *real_start = start;
   if (real_end)
@@ -4748,7 +4749,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
   /* If there are any glyphs with lbearing < 0 or rbearing > width in
      the row, redraw some glyphs in front or following the glyph
      strings built above.  */
-  if (!overlaps_p && row->contains_overlapping_glyphs_p)
+  if (head && !overlaps_p && row->contains_overlapping_glyphs_p)
     {
       int dummy_x = 0;
       struct glyph_string *h, *t;
@@ -4847,6 +4848,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
       if (area > TEXT_AREA)
 	x_reached -= window_box_width (w, TEXT_AREA);
     }
+  
   return x_reached;
 }
 
