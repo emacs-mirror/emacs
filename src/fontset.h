@@ -195,12 +195,12 @@ extern Lisp_Object fontset_font_pattern P_ ((FRAME_PTR, struct face *, int));
 extern int face_suitable_for_char_p P_ ((struct face *, int));
 extern int face_for_char P_ ((FRAME_PTR, struct face *, int));
 extern int make_fontset_for_ascii_face P_ ((FRAME_PTR, int, struct face *));
+extern int new_fontset_from_font_name P_ ((Lisp_Object));
 extern struct font_info *fs_load_font P_ ((struct frame *, char *, int));
 extern int fs_query_fontset P_ ((Lisp_Object, int));
 EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
 
-extern Lisp_Object Qfontset;
 extern Lisp_Object Vuse_default_ascent; 
 extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternate_fontname_alist;
