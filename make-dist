@@ -358,6 +358,9 @@ echo "Making links to \`lisp' and its subdirectories"
        ;;
    esac
  done
+ (cd ../${tempdir}/lisp
+  rm -rf calc
+ )
 
  for file in $subdirs; do
    echo "  lisp/$file"

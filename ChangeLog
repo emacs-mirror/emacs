@@ -1,3 +1,8 @@
+2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist: Remove the (empty) lisp/calc subdirectory after
+	linking.
+
 2002-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in: Recognize BSD/OS 5.0.
