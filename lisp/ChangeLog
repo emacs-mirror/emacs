@@ -1,5 +1,8 @@
 2002-02-28  Colin Walters  <walters@verbum.org>
 
+	* eshell/esh-var.el (eshell-parse-variable-ref): Use
+	`make-temp-file'.
+
 	* calc/calc-graph.el (calc-gnuplot-tempfile): Don't expand against
 	`temporary-file-directory'; we now do that in
 	`calc-graph-file-cache'.
