@@ -22,6 +22,18 @@
 	
 2000-09-21  Dave Love  <fx@gnu.org>
 
+	* progmodes/cperl-mode.el (top-level): Clean up
+	`eval-when-compile's and assorted defvars.
+	(cperl-invalid-face): Don't double-quote value.  Change custom
+	type.
+	(cperl-mode): Set normal-auto-fill-function and don't zap
+	auto-fill-function.
+	(cperl-imenu--function-name-regexp-perl): Renamed from
+	imenu-example--function-name-regexp-perl.
+	(cperl-imenu--create-perl-index): Renamed from
+	imenu-example--create-perl-index.
+	(cperl-xsub-scan): Don't require cl.
+
 	* msb.el (msb-mode-map): Use substitute-key-definition.
 	(msb-mode): Use msb-mode-map.
 
