@@ -572,6 +572,7 @@ XMENU_OBJ = xmenu.o
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
+	bidi.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o \
 	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -1047,6 +1048,7 @@ alloca.o : alloca.s $(config_h)
 
 abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h character.h \
 	$(config_h)
+bidi.o: bidi.c buffer.h character.h
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h character.h \
    $(config_h)
