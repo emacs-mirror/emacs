@@ -1415,6 +1415,10 @@ try_window_id (window)
   register int i, tem;
   int last_text_vpos = 0;
   int stop_vpos;
+  int selective
+    = XTYPE (current_buffer->selective_display) == Lisp_Int
+      ? XINT (current_buffer->selective_display)
+	: !NILP (current_buffer->selective_display) ? -1 : 0;
 
   struct position val, bp, ep, xp, pp;
   int scroll_amount = 0;
@@ -1467,9 +1471,7 @@ try_window_id (window)
   if ((bp.contin && bp.bufpos - 1 == beg_unchanged && vpos > 0)
       ||
       /* Likewise if we have to worry about selective display.  */
-      (XTYPE (current_buffer->selective_display) == Lisp_Int
-       && XINT (current_buffer->selective_display) > 0
-       && bp.bufpos - 1 == beg_unchanged && vpos > 0))
+      (selective > 0 && bp.bufpos - 1 == beg_unchanged && vpos > 0))
     {
       bp = *vmotion (bp.bufpos, -1, width, hscroll, window);
       --vpos;
@@ -1486,11 +1488,8 @@ try_window_id (window)
 
   /* Find first visible newline after which no more is changed.  */
   tem = find_next_newline (Z - max (end_unchanged, Z - ZV), 1);
-  if (XTYPE (current_buffer->selective_display) == Lisp_Int
-      && XINT (current_buffer->selective_display) > 0)
-    while (tem < ZV - 1
-	   && (position_indentation (tem)
-	       >= XINT (current_buffer->selective_display)))
+  if (selective > 0)
+    while (tem < ZV - 1 && (indented_beyond_p (tem, selective)))
       tem = find_next_newline (tem, 1);
 
   /* Compute the cursor position after that newline.  */
@@ -2123,7 +2122,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  invis = 0;
 	  while (pos < end
 		 && selective > 0
-		 && position_indentation (pos + 1) >= selective)
+		 && indented_beyond_p (pos + 1, selective))
 	    {
 	      invis = 1;
 	      pos = find_next_newline (pos + 1, 1);
