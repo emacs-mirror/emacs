@@ -27,6 +27,9 @@
 ;; This file contains multibyte characters.  Save this file always in
 ;; the coding system `iso-2022-7bit'.
 
+;; This file does not define the syntax for Latin-N character sets;
+;; those are defined by the files latin-N.el.
+
 ;;; Predefined categories.
 
 ;; For each character set.
@@ -226,29 +229,6 @@
 (modify-category-entry (make-char 'latin-iso8859-3) ?l)
 (modify-category-entry (make-char 'latin-iso8859-4) ?l)
 (modify-category-entry (make-char 'latin-iso8859-9) ?l)
-
-;; ISO-8859-1 (Latin-1)
-(let ((c 64))
-  (while (< c 128)			; from ',A@(B' to ',A(B'
-    (modify-syntax-entry (make-char 'latin-iso8859-1 c) "w")
-    (setq c (1+ c)))
-  (modify-syntax-entry (make-char 'latin-iso8859-1 32) "w") ; NBSP
-  (modify-syntax-entry ?,AW(B "_")
-  (modify-syntax-entry ?,Aw(B "_")
-  )
-
-;; ISO-8859-2 (Latin-2)
-(let ((c 190))
-  (while (< c 255)
-    (modify-syntax-entry (make-char 'latin-iso8859-2 c) "w")
-    (setq c (1+ c))))
-(let ((chars '(?,B!(B ?,B#(B ?,B%(B ?,B&(B ?,B)(B ?,B*(B ?,B+(B ?,B,(B ?,B.(B ?,B/(B ?,B1(B ?,B3(B ?,B5(B ?,B6(B ?,B9(B ?,B:(B ?,B;(B ?,B<(B)))
-  (while chars
-    (modify-syntax-entry (car chars) "w")
-    (setq chars (cdr chars))))
-(modify-syntax-entry (make-char 'latin-iso8859-2 160) "w") ; NBSP
-(modify-syntax-entry ?,BW(B ".")
-(modify-syntax-entry ?,Bw(B ".")
 
 ;; Greek character set (ISO-8859-7)
 
