@@ -28,11 +28,28 @@
 
 ;;; Code:
 
-(defconst paragraph-start "^[ \t\n\f]" "\
+(defvar use-hard-newlines nil
+    "Non-nil means to distinguish hard and soft newlines.
+When this is non-nil, the functions `newline' and `open-line' add the
+text-property `hard' to newlines that they insert.  Also, a line is
+only considered as a candidate to match `paragraph-start' or
+`paragraph-separate' if it follows a hard newline.  Newlines not
+marked hard are called \"soft\", and are always internal to
+paragraphs.  The fill functions always insert soft newlines.
+
+Each buffer has its own value of this variable.")
+(make-variable-buffer-local 'use-hard-newlines)
+
+(defconst paragraph-start "[ \t\n\f]" "\
 *Regexp for beginning of a line that starts OR separates paragraphs.
 This regexp should match lines that separate paragraphs
 and should also match lines that start a paragraph
 \(and are part of that paragraph).
+
+This is matched against the text at the left margin, which is not necessarily
+the beginning of the line, so it should never use \"^\" as an anchor.  This
+ensures that the paragraph functions will work equally well within a region
+of text indented by a margin setting.
 
 The variable `paragraph-separate' specifies how to distinguish
 lines that start paragraphs from lines that separate them.
@@ -40,12 +57,20 @@ lines that start paragraphs from lines that separate them.
 If the variable `use-hard-newlines' is nonnil, then only lines following a
 hard newline are considered to match.")
 
-(defconst paragraph-separate "^[ \t\f]*$" "\
+;; paragraph-start requires a hard newline, but paragraph-separate does not:
+;; It is assumed that paragraph-separate is distinctive enough to be believed
+;; whenever it occurs, while it is reasonable to set paragraph-start to
+;; something very minimal, even including "." (which makes every hard newline
+;; start a new paragraph).
+
+(defconst paragraph-separate "[ \t\f]*$" "\
 *Regexp for beginning of a line that separates paragraphs.
 If you change this, you may have to change paragraph-start also.
 
-If the variable `use-hard-newlines' is nonnil, then only lines following a
-hard newline are considered to match.")
+This is matched against the text at the left margin, which is not necessarily
+the beginning of the line, so it should not use \"^\" as an anchor.  This
+ensures that the paragraph functions will work equally within a region of
+text indented by a margin setting.")
 
 (defconst sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") "\
 *Regexp describing the end of a sentence.
@@ -62,13 +87,6 @@ unless it's inside some sort of quotes or parenthesis.")
 Non-nil means the paragraph commands are not affected by `fill-prefix'.
 This is desirable in modes where blank lines are the paragraph delimiters.")
 
-(defsubst looking-at-hard (re)
-  ;; Just for convenience in writing the function below.
-  (and (or (null use-hard-newlines)
-	   (bobp)
-	   (get-text-property (1- (point)) 'hard))
-       (looking-at re)))
-
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.
 With arg N, do it N times; negative arg -N means move backward N paragraphs.
@@ -83,21 +101,38 @@ to which the end of the previous line belongs, or the end of the buffer."
 	  (and fill-prefix (not (equal fill-prefix ""))
 	       (not paragraph-ignore-fill-prefix)
 	       (regexp-quote fill-prefix)))
+	 ;; Remove ^ from paragraph-start and paragraph-sep if they are there.
+	 ;; These regexps shouldn't be anchored, because we look for them
+	 ;; starting at the left-margin.  This allows paragraph commands to
+	 ;; work normally with indented text.
+	 ;; This hack will not find problem cases like "whatever\\|^something".
+	 (paragraph-start (if (and (not (equal "" paragraph-start))
+				   (equal ?^ (aref paragraph-start 0)))
+			      (substring paragraph-start 1)
+			    paragraph-start))
+	 (paragraph-separate (if (and (not (equal "" paragraph-start))
+				      (equal ?^ (aref paragraph-separate 0)))
+			      (substring paragraph-separate 1)
+			    paragraph-separate))
 	 (paragraph-separate
 	  (if fill-prefix-regexp
-	      (concat paragraph-separate "\\|^"
+	      (concat paragraph-separate "\\|"
 		      fill-prefix-regexp "[ \t]*$")
-	    paragraph-separate)))
+	    paragraph-separate))
+	 ;; This is used for searching.
+	 (sp-paragraph-start (concat "^[ \t]*\\(" paragraph-start "\\)"))
+	 start)
     (while (and (< arg 0) (not (bobp)))
-      (if (and (not (looking-at-hard paragraph-separate))
+      (if (and (not (looking-at paragraph-separate))
 	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
-	       (looking-at-hard paragraph-separate))
+	       (looking-at paragraph-separate))
 	  nil
 	;; Move back over paragraph-separating lines.
 	(forward-char -1) (beginning-of-line)
 	(while (and (not (bobp))
-		    (looking-at-hard paragraph-separate))
-	  (forward-line -1))
+		    (progn (move-to-left-margin)
+			   (looking-at paragraph-separate)))
+	  (forward-line -1)) 
 	(if (bobp)
 	    nil
 	  ;; Go to end of the previous (non-separating) line.
@@ -106,49 +141,68 @@ to which the end of the previous line belongs, or the end of the buffer."
 	  (if (if fill-prefix-regexp
 		  ;; There is a fill prefix; it overrides paragraph-start.
 		  (progn
-		   (while (progn (beginning-of-line)
-				 (and (not (bobp))
-				      (not (looking-at-hard 
-					    paragraph-separate))
-				      (looking-at fill-prefix-regexp)))
-		     (forward-line -1))
+		    (while (and (progn (beginning-of-line) (not (bobp)))
+				(progn (move-to-left-margin)
+				       (not (looking-at paragraph-separate)))
+				(looking-at fill-prefix-regexp))
+		      (forward-line -1))
 		   (not (bobp)))
-		(while (and (re-search-backward paragraph-start nil 1)
-			    use-hard-newlines
+		(while (and (re-search-backward sp-paragraph-start nil 1)
+			    ;; Found a candidate, but need to check if it is a
+			    ;; REAL paragraph-start.
 			    (not (bobp))
-			    (null (get-text-property (1- (point)) 'hard)))
-		  (if (not (bobp)) (backward-char 1)))
+			    (progn (setq start (point))
+				   (move-to-left-margin)
+				   (not (looking-at paragraph-separate)))
+			    (or (not (looking-at paragraph-start))
+				(and use-hard-newlines
+				     (not (get-text-property (1- start)
+							     'hard)))))
+		  (goto-char start))
 		(> (point) (point-min)))
 	      ;; Found one.
 	      (progn
 		;; Move forward over paragraph separators.
 		;; We know this cannot reach the place we started
 		;; because we know we moved back over a non-separator.
-		(while (and (not (eobp)) (looking-at-hard paragraph-separate))
+		(while (and (not (eobp))
+			    (progn (move-to-left-margin)
+				   (looking-at paragraph-separate)))
 		  (forward-line 1))
-		(if (eq (char-after (- (point) 2)) ?\n)
-		    (forward-line -1)))
+		;; If line before paragraph is just margin, back up to there.
+		(end-of-line 0)
+		(if (> (current-column) (current-left-margin))
+		    (forward-char 1)
+		  (skip-chars-backward " \t")
+		  (if (not (bolp))
+		      (forward-line 1))))
 	    ;; No starter or separator line => use buffer beg.
 	    (goto-char (point-min)))))
       (setq arg (1+ arg)))
     (while (and (> arg 0) (not (eobp)))
-      (beginning-of-line)
       (while (prog1 (and (not (eobp))
-			 (looking-at-hard paragraph-separate))
+			 (progn (move-to-left-margin) (not (eobp)))
+			 (looking-at paragraph-separate))
 	       (forward-line 1)))
       (if fill-prefix-regexp
 	  ;; There is a fill prefix; it overrides paragraph-start.
 	  (while (and (not (eobp))
-		      (not (looking-at-hard paragraph-separate))
+		      (progn (move-to-left-margin) (not (eobp)))
+		      (not (looking-at paragraph-separate))
 		      (looking-at fill-prefix-regexp))
 	    (forward-line 1))
-	(while (and (re-search-forward paragraph-start nil 1)
+	(while (and (re-search-forward sp-paragraph-start nil 1)
 		    (not (eobp))
-		    use-hard-newlines
-		    (null (get-text-property (1- (match-beginning 0)) 'hard)))
+		    (progn (setq start (match-beginning 0))
+			   (goto-char start)
+			   (move-to-left-margin)
+			   (not (looking-at paragraph-separate)))
+		    (or (not (looking-at paragraph-start))
+			(and use-hard-newlines
+			     (not (get-text-property (1- start) 'hard)))))
 	  (forward-char 1))
 	(if (< (point) (point-max))
-	    (goto-char (match-beginning 0))))
+	    (goto-char start)))
       (setq arg (1- arg)))))
 
 (defun backward-paragraph (&optional arg)
