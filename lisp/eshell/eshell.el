@@ -328,18 +328,25 @@ argument ARG is specified.  Returns the buffer selected (or created)."
   (define-key eshell-mode-map [(meta return)] 'exit-minibuffer)
   (define-key eshell-mode-map [(meta control ?m)] 'exit-minibuffer))
 
+(defvar eshell-non-interactive-p nil
+  "A variable which is non-nil when Eshell is not running interactively.
+Modules should use this variable so that they don't clutter
+non-interactive sessions, such as when using `eshell-command'.")
+
 ;;;###autoload
 (defun eshell-command (&optional command arg)
   "Execute the Eshell command string COMMAND.
 With prefix ARG, insert output into the current buffer at point."
   (interactive)
   (require 'esh-cmd)
-  (setq arg current-prefix-arg)
+  (unless arg
+    (setq arg current-prefix-arg))
   (unwind-protect
       (let ((eshell-non-interactive-p t))
 	(add-hook 'minibuffer-setup-hook 'eshell-mode)
 	(add-hook 'eshell-mode-hook 'eshell-return-exits-minibuffer)
-	(setq command (read-from-minibuffer "Emacs shell command: ")))
+	(unless command
+	  (setq command (read-from-minibuffer "Emacs shell command: "))))
     (remove-hook 'eshell-mode-hook 'eshell-return-exits-minibuffer)
     (remove-hook 'minibuffer-setup-hook 'eshell-mode))
   (unless command
