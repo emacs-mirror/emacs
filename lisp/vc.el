@@ -584,24 +584,28 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
 
 (defun vc-steal-lock (file rev &optional owner)
   "Steal the lock on the current workfile."
-  (interactive)
-  (if (not owner)
-      (setq owner (vc-locking-user file)))
-  (if (not (y-or-n-p (format "Take the lock on %s:%s from %s? " file rev owner)))
-      (error "Steal cancelled"))
-  (pop-to-buffer (get-buffer-create "*VC-mail*"))
-  (setq default-directory (expand-file-name "~/"))
-  (auto-save-mode auto-save-default)
-  (mail-mode)
-  (erase-buffer)
-  (mail-setup owner (format "%s:%s" file rev) nil nil nil
-	      (list (list 'vc-finish-steal file rev)))
-  (goto-char (point-max))
-  (insert
-   (format "I stole the lock on %s:%s, " file rev)
-   (current-time-string)
-   ".\n")
-  (message "Please explain why you stole the lock.  Type C-c C-c when done."))
+  (let (file-description)
+    (if (not owner)
+	(setq owner (vc-locking-user file)))
+    (if rev
+	(setq file-description (format "%s:%s" file rev))
+      (setq file-description file))
+    (if (not (y-or-n-p (format "Take the lock on %s from %s? "
+			       file-description owner)))
+	(error "Steal cancelled"))
+    (pop-to-buffer (get-buffer-create "*VC-mail*"))
+    (setq default-directory (expand-file-name "~/"))
+    (auto-save-mode auto-save-default)
+    (mail-mode)
+    (erase-buffer)
+    (mail-setup owner (format "Stolen lock on %s" file-description) nil nil nil
+		(list (list 'vc-finish-steal file rev configuration)))
+    (goto-char (point-max))
+    (insert
+     (format "I stole the lock on %s, " file-description)
+     (current-time-string)
+     ".\n")
+    (message "Please explain why you stole the lock.  Type C-c C-c when done.")))
 
 ;; This is called when the notification has been sent.
 (defun vc-finish-steal (file version)
@@ -1183,6 +1187,7 @@ A prefix argument means do not revert the buffer afterwards."
 	(vc-checkout (buffer-file-name) nil)))
     ))
 
+;;;###autoload
 (defun vc-rename-file (old new)
   "Rename file OLD to NEW, and rename its master file likewise."
   (interactive "fVC rename file: \nFRename to: ")
@@ -1541,7 +1546,13 @@ Return nil if there is no such person."
 	       (progn
 		   (vc-do-command
 		      0 "/bin/sh" file "-c"
-		      (format "umask %o; exec >\"$1\" || exit; shift; umask %o; exec get \"$@\""
+		      ;; Some shells make the "" dummy argument into $0
+		      ;; while others use the shell's name as $0 and
+		      ;; use the "" as $1.  The if-statement
+		      ;; converts the latter case to the former.
+		      (format "if [ x\"$1\" = x ]; then shift; fi; \
+			       umask %o; exec >\"$1\" || exit; \
+			       shift; umask %o; exec get \"$@\""
 			      (logand 511 (lognot vc-modes))
 			      (logand 511 (lognot (default-file-modes))))
 		      "" ; dummy argument for shell's $0
@@ -1563,7 +1574,10 @@ Return nil if there is no such person."
 	       (progn
 		   (vc-do-command
 		      0 "/bin/sh" file "-c"
-		      (format "umask %o; exec >\"$1\" || exit; shift; umask %o; exec co \"$@\""
+		      ;; See the SCCS case, above, regarding the if-statement.
+		      (format "if [ x\"$1\" = x ]; then shift; fi; \
+			       umask %o; exec >\"$1\" || exit; \
+			       shift; umask %o; exec co \"$@\""
 			      (logand 511 (lognot vc-modes))
 			      (logand 511 (lognot (default-file-modes))))
 		      "" ; dummy argument for shell's $0
