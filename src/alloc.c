@@ -22,6 +22,10 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 
+#ifdef ALLOC_DEBUG
+#undef INLINE
+#endif
+
 /* Note that this declares bzero on OSF/1.  How dumb.  */
 
 #include <signal.h>
@@ -422,23 +426,7 @@ static POINTER_TYPE *pure_alloc P_ ((size_t, int));
 				Malloc
  ************************************************************************/
 
-/* Write STR to Vstandard_output plus some advice on how to free some
-   memory.  Called when memory gets low.  */
-
-Lisp_Object
-malloc_warning_1 (str)
-     Lisp_Object str;
-{
-  Fprinc (str, Vstandard_output);
-  write_string ("\nKilling some buffers may delay running out of memory.\n", -1);
-  write_string ("However, certainly by the time you receive the 95% warning,\n", -1);
-  write_string ("you should clean up, kill this Emacs, and start a new one.", -1);
-  return Qnil;
-}
-
-
-/* Function malloc calls this if it finds we are near exhausting
-   storage.  */
+/* Function malloc calls this if it finds we are near exhausting storage.  */
 
 void
 malloc_warning (str)
@@ -448,16 +436,16 @@ malloc_warning (str)
 }
 
 
-/* Display a malloc warning in buffer *Danger*.  */
+/* Display an already-pending malloc warning.  */
 
 void
 display_malloc_warning ()
 {
-  register Lisp_Object val;
-
-  val = build_string (pending_malloc_warning);
+  call3 (intern ("display-warning"),
+	 intern ("alloc"),
+	 build_string (pending_malloc_warning),
+	 intern ("emergency"));
   pending_malloc_warning = 0;
-  internal_with_output_to_temp_buffer (" *Danger*", malloc_warning_1, val);
 }
 
 
