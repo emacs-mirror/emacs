@@ -847,6 +847,17 @@ Debian system, type
 
 and then choose /usr/bin/netkit-ftp.
 
+* Antivirus software interacts badly with the MS-Windows version of Emacs.
+
+The usual manifestation of these problems is that subprocesses don't
+work or even wedge the entire system.  In particular, "M-x shell RET"
+was reported to fail to work.  But other commands also sometimes don't
+work when an antivirus package is installed.
+
+The solution is to switch the antivirus software to a less aggressive
+mode (e.g., disable the ``auto-protect'' feature), or even uninstall
+or disable it entirely.
+
 * On Windows 95/98/ME, subprocesses do not terminate properly.
 
 This is a limitation of the Operating System, and can cause problems
