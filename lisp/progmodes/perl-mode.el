@@ -105,6 +105,10 @@
   :prefix "perl-"
   :group 'languages)
 
+(defvar perl-mode-abbrev-table nil
+  "Abbrev table in use in perl-mode buffers.")
+(define-abbrev-table 'perl-mode-abbrev-table ())
+
 (defvar perl-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "{" 'perl-electric-terminator)
