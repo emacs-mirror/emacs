@@ -2397,8 +2397,6 @@ and put SIZE columns in the first of the pair.")
 
   if (MINI_WINDOW_P (o))
     error ("Attempt to split minibuffer window");
-  else if (FRAME_NO_SPLIT_P (fo) && ! inhibit_frame_unsplittable)
-    error ("Attempt to split unsplittable frame");
 
   check_min_window_sizes ();
 
@@ -3778,13 +3776,6 @@ If there is only one window, it is split regardless of this value.");
     "Functions to call when window configuration changes.\n\
 The selected frae is the one whose configuration has changed.");
   Vwindow_configuration_change_hook = Qnil;
-
-  DEFVAR_BOOL ("inhibit-frame-unsplittable", &inhibit_frame_unsplittable,
-    "Non-nil means allow splitting an `unsplittable' frame.\n\
-\(That means, a frame whise `unsplittable' parameter is non-nil.)\n\
-Packages such as Ispell that work by splitting the selected frame\n\
-can bind this, so that they will work when used in an unsplittable frame.");
-  inhibit_frame_unsplittable = 0;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
