@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.21 2002/09/13 06:21:32 lektu Exp $
+;; $Id: whitespace.el,v 1.22 2002/12/03 00:10:40 schwab Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -817,7 +817,9 @@ With ARG, turn the mode on if and only iff ARG is positive.
 
 When this mode is active, `whitespace-buffer' is added to
 `find-file-hook' and `kill-buffer-hook'."
-  :global t :group 'whitespace
+  :global t
+  :link '(emacs-commentary-link :tag "Commentary" "whitespace.el")
+  :group 'whitespace
   (if whitespace-global-mode
       (progn
 	(add-hook 'find-file-hook 'whitespace-buffer)

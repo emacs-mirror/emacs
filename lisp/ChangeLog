@@ -1,3 +1,8 @@
+2003-05-13  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-global-mode): Add :link entry
+	  to the commentary section in whitespace.el
+
 2003-05-13  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-invalidate-assembler): Update assembler buffer
