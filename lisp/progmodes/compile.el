@@ -971,6 +971,20 @@ Compilation major mode are available.")
 				     minor-mode-map-alist)))
 
 ;;;###autoload
+(defun compilation-shell-minor-mode (&optional arg)
+  "Toggle compilation shell minor mode.
+With arg, turn compilation mode on if and only if arg is positive.
+See `compilation-mode'.
+Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
+  (interactive "P")
+  (if (setq compilation-shell-minor-mode (if (null arg)
+				       (null compilation-shell-minor-mode)
+				     (> (prefix-numeric-value arg) 0)))
+      (let ((mode-line-process))
+	(compilation-setup)
+	(run-hooks 'compilation-shell-minor-mode-hook))))
+
+;;;###autoload
 (defun compilation-minor-mode (&optional arg)
   "Toggle compilation minor mode.
 With arg, turn compilation mode on if and only if arg is positive.
