@@ -2227,7 +2227,7 @@ split_font_name (f, font, numeric_p)
 
 	      /* Check that the matrix contains 4 floating point
 		 numbers.  */
-	      for (j = 0, start = font->fields[i] + 1;
+	      for (j = 0, start = font->fields[i - 1] + 1;
 		   j < 4;
 		   ++j, start = end)
 		if (strtod (start, &end) == 0 && start == end)
