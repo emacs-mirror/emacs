@@ -20,25 +20,26 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "config.h"
 #include "lisp.h"
 #include "xterm.h"
+#include "buffer.h"
 #include "screen.h"
 
 #ifdef HAVE_X11
 
 /* Macros for X Selections */
-#define MAX_SELECTION(dpy) (((dpy)->max_request_size << 3) - 100)
-#define SELECTION_LENGTH(len,format) ((len) * ((format) >> 3))
+#define MAX_SELECTION(dpy) (((dpy)->max_request_size << 2) - 100)
+#define SELECTION_LENGTH(len,format) ((len) * ((format) >> 2))
 
-/* From keyboard.c.  This is almost always the right timestamp for
-   ownership arbitration, since the last event was either the
-   keystroke bound to the command now running, or something else read
-   by that command.  */
-extern unsigned long last_event_timestamp;
+/* The last 23 bits of the timestamp of the last mouse button event. */
+extern Time mouse_timestamp;
 
 /* t if a mouse button is depressed. */
 extern Lisp_Object Vmouse_grabbed;
 
 /* When emacs became the PRIMARY selection owner. */
 Time x_begin_selection_own;
+
+/* When emacs became the SECONDARY selection owner. */
+Time x_begin_secondary_selection_own;
 
 /* When emacs became the CLIPBOARD selection owner. */
 Time x_begin_clipboard_own;
@@ -49,8 +50,15 @@ Lisp_Object Vx_clipboard_value;
 /* The value of the current PRIMARY selection. */
 Lisp_Object Vx_selection_value;
 
-/* Emacs' selection property identifier. */
+/* The value of the current SECONDARY selection. */
+Lisp_Object Vx_secondary_selection_value;
+
+/* Types of selections we may make. */
+Lisp_Object Qprimary, Qsecondary, Qclipboard;
+
+/* Emacs' selection property identifiers. */
 Atom Xatom_emacs_selection;
+Atom Xatom_emacs_secondary_selection;
 
 /* Clipboard selection atom. */
 Atom Xatom_clipboard_selection;
@@ -85,6 +93,14 @@ Atom Xatom_insert_property;
 /* Atom for indicating property type TEXT */
 Atom Xatom_text;
 
+/* Kinds of protocol things we may receive. */
+Atom Xatom_wm_take_focus;
+Atom Xatom_wm_save_yourself;
+Atom Xatom_wm_delete_window;
+
+/* Communication with window managers. */
+Atom Xatom_wm_protocols;
+
 /* These are to handle incremental selection transfer. */
 Window incr_requestor;
 Atom incr_property;
@@ -94,81 +110,82 @@ unsigned char *incr_ptr;
 
 /* SELECTION OWNER CODE */
 
+
+/* Request selection ownership if we do not already have it. */
+
+static int
+own_selection (selection_type, time)
+     Atom selection_type;
+     Time time;
+{
+  Window owner_window, selecting_window;
+
+  if ((EQ (selection_type, Qprimary) && !NILP (Vx_selection_value))
+      || ((EQ (selection_type, Qsecondary)) && !NILP (Vx_secondary_selection_value))
+      || ((EQ (selection_type, Qclipboard)) && !NILP (Vx_clipboard_value)))
+    return 1;
+
+  selecting_window = selected_screen->display.x->window_desc;
+  XSetSelectionOwner (x_current_display, selection_type,
+		      selecting_window, time);
+  owner_window = XGetSelectionOwner (x_current_display, selection_type);
+
+  if (owner_window != selecting_window)
+    return 0;
+
+  return 1;
+}
+
 /* Become the selection owner and make our data the selection value.
    If we are already the owner, merely change data and timestamp values.
    This avoids generating SelectionClear events for ourselves. */
 
 DEFUN ("x-own-selection", Fx_own_selection, Sx_own_selection,
-  1, 1, "sStore text for pasting: ",
-  "Stores string STRING for pasting in another X window.\n\
-This is done with the X11 selection mechanism.")
-  (string)
-     register Lisp_Object string;
+  1, 2, "",
+  "Make STRING the selection value.  Default is the primary selection,\n\
+but optional second argument TYPE may specify secondary or clipboard.")
+  (string, type)
+     register Lisp_Object string, type;
 {
-  Window owner_window, selecting_window;
-  Time event_time;
-
+  Atom selection_type;
+  Lisp_Object val;
+  Time event_time = mouse_timestamp;
   CHECK_STRING (string, 0);
 
-  BLOCK_INPUT;
-  selecting_window = selected_screen->display.x->window_desc;
-
-  if (EQ (Qnil, Vx_selection_value)) /* We are not the owner. */
+  if (NILP (type) || EQ (type, Qprimary))
     {
-      event_time = last_event_timestamp;
-      XSetSelectionOwner (x_current_display, XA_PRIMARY,
-			  selecting_window,  event_time);
-      owner_window = XGetSelectionOwner (x_current_display, XA_PRIMARY);
-
-      if (owner_window != selecting_window)
+      BLOCK_INPUT;
+      if (own_selection (XA_PRIMARY, event_time))
 	{
-	  UNBLOCK_INPUT;
-	  error ("X error: could not acquire selection ownership");
+	  x_begin_selection_own = event_time;
+	  val = Vx_selection_value = string;
 	}
+      UNBLOCK_INPUT;
     }
-
-  x_begin_selection_own = event_time;
-  Vx_selection_value = string;
-  UNBLOCK_INPUT;
-
-  return Qnil;
-}
-
-/* CLIPBOARD OWNERSHIP */
-
-DEFUN ("x-own-clipboard", Fx_own_clipboard, Sx_own_clipboard,
-  1, 1, "sCLIPBOARD string: ",
-  "Assert X clipboard ownership with value STRING.")
-  (string)
-     register Lisp_Object string;
-{
-  Window owner_window, selecting_window;
-  Time event_time;
-
-  CHECK_STRING (string, 0);
-
-  BLOCK_INPUT;
-  selecting_window = selected_screen->display.x->window_desc;
-
-  if (EQ (Qnil, Vx_clipboard_value))
+  else if (EQ (type, Qsecondary))
     {
-      event_time = last_event_timestamp;
-      XSetSelectionOwner (x_current_display, Xatom_clipboard,
-			  selecting_window,  event_time);
-      owner_window = XGetSelectionOwner (x_current_display, Xatom_clipboard);
-
-      if (owner_window != selecting_window)
+      BLOCK_INPUT;
+      if (own_selection (XA_SECONDARY, event_time))
 	{
-	  UNBLOCK_INPUT;
-	  error ("X error: could not acquire selection ownership");
+	  x_begin_secondary_selection_own = event_time;
+	  val = Vx_secondary_selection_value = string;
 	}
+      UNBLOCK_INPUT;
     }
+  else if (EQ (type, Qclipboard))
+    {
+      BLOCK_INPUT;
+      if (own_selection (Xatom_clipboard, event_time))
+	{
+	  x_begin_clipboard_own = event_time;
+	  val = Vx_clipboard_value = string;
+	}
+      UNBLOCK_INPUT;
+    }
+  else
+    error ("Invalid X selection type");
 
-  x_begin_clipboard_own = event_time;
-  Vx_clipboard_value = string;
-  UNBLOCK_INPUT;
-
-  return Qnil;
+  return val;
 }
 
 /* Clear our selection ownership data, as some other client has
@@ -188,6 +205,11 @@ x_disown_selection (old_owner, selection, changed_owner_time)
 	{
 	  x_begin_selection_own = 0;
 	  Vx_selection_value = Qnil;
+	}
+      else if (selection == XA_SECONDARY)
+	{
+	  x_begin_secondary_selection_own = 0;
+	  Vx_secondary_selection_value = Qnil;
 	}
       else if (selection == Xatom_clipboard)
 	{
@@ -234,6 +256,11 @@ x_answer_selection_request (event)
       emacs_own_time = x_begin_selection_own;
       selection_value = Vx_selection_value;
     }
+  else if (event.selection == XA_SECONDARY)
+    {
+      emacs_own_time = x_begin_secondary_selection_own;
+      selection_value = Vx_secondary_selection_value;
+    }
   else if (event.selection == Xatom_clipboard)
     {
       emacs_own_time = x_begin_clipboard_own;
@@ -264,7 +291,7 @@ x_answer_selection_request (event)
       unsigned char *data;
       int result, i;
 
-      if (event.property == 0	/* 0 == NULL */
+      if (event.property == 0	/* 0 == NILP */
 	  || event.property == None)
 	return;
 
@@ -291,7 +318,7 @@ x_answer_selection_request (event)
       format = 32;
       XChangeProperty (evt.display, evt.requestor, evt.property,
 		       evt.target, format, PropModeReplace,
-		       (unsigned char *) &emacs_own_time, format);
+		       (unsigned char *) &emacs_own_time, 1);
       return;
     }
   else if (event.target == Xatom_delete)      /* Delete our selection. */
@@ -301,7 +328,7 @@ x_answer_selection_request (event)
 
       x_disown_selection (event.owner, event.selection, event.time);
 
-      /* Now return property of type NULL, length 0. */
+      /* Now return property of type NILP, length 0. */
       XChangeProperty (event.display, event.requestor, event.property,
 		       0, format, PropModeReplace, (unsigned char *) 0, 0);
       return;
@@ -337,6 +364,8 @@ x_answer_selection_request (event)
 	{
 	  if (event.selection == Xatom_emacs_selection)
 	    Vx_selection_value = make_string (data);
+	  else if (event.selection == Xatom_emacs_secondary_selection)
+	    Vx_secondary_selection_value = make_string (data);
 	  else if (event.selection == Xatom_clipboard_selection)
 	    Vx_clipboard_value = make_string (data);
 	  else
@@ -473,27 +502,22 @@ XCheckSelectionEvent (dpy, event, window)
   return False;
 }
 
-/* Request the selection value from the owner.  If we are the owner,
-   simply return our selection value.  If we are not the owner, this
-   will block until all of the data has arrived. */
+/* Request a selection value from its owner.  This will block until
+   all the data is arrived. */
 
-DEFUN ("x-get-selection", Fx_get_selection, Sx_get_selection, 0, 0, 0,
-  "Return text selected from some X window.\n\
-This is done with the X11 selection mechanism.")
-  ()
+static Lisp_Object
+get_selection_value (type)
+     Atom type;
 {
   XEvent event;
   Lisp_Object val;
   Time requestor_time;		/* Timestamp of selection request. */
   Window requestor_window;
 
-  if (!EQ (Qnil, Vx_selection_value)) /* We are the owner */
-    return Vx_selection_value;
-
   BLOCK_INPUT;
-  requestor_time = last_event_timestamp;
+  requestor_time = mouse_timestamp;
   requestor_window = selected_screen->display.x->window_desc;
-  XConvertSelection (x_current_display, XA_PRIMARY, XA_STRING,
+  XConvertSelection (x_current_display, type, XA_STRING,
 		     Xatom_emacs_selection, requestor_window, requestor_time);
   XIfEvent (x_current_display,
 	    &event,
@@ -505,36 +529,42 @@ This is done with the X11 selection mechanism.")
   return val;
 }
 
-/* Request the clipboard contents from its owner.  If we are the owner,
-   simply return the clipboard string. */
+/* Request a selection value from the owner.  If we are the owner,
+   simply return our selection value.  If we are not the owner, this
+   will block until all of the data has arrived. */
 
-DEFUN ("x-get-clipboard", Fx_get_clipboard, Sx_get_clipboard, 0, 0, 0,
-  "Return text pasted to the clipboard.\n\
-This is done with the X11 selection mechanism.")
-  ()
+DEFUN ("x-selection-value", Fx_selection_value, Sx_selection_value,
+  0, 1, "",
+  "Return the value of one of the selections.  Default is the primary\n\
+selection, but optional argument TYPE may specify secondary or clipboard.")
+  (type)
+     register Lisp_Object type;
 {
-  XEvent event;
-  Lisp_Object val;
-  Time requestor_time;		/* Timestamp of selection request. */
-  Window requestor_window;
+  Atom selection_type;
 
-  if (!EQ (Qnil, Vx_clipboard_value)) /* We are the owner */
-    return Vx_selection_value;
+  if (NILP (type) || EQ (type, Qprimary))
+    {
+      if (!NILP (Vx_selection_value))
+	return Vx_selection_value;
 
-  BLOCK_INPUT;
-  requestor_time = last_event_timestamp;
-  requestor_window = selected_screen->display.x->window_desc;
-  XConvertSelection (x_current_display, Xatom_clipboard, XA_STRING,
-		     Xatom_clipboard_selection,
-		     requestor_window, requestor_time);
-  XIfEvent (x_current_display,
-	    &event,
-	    XCheckSelectionEvent,
-	    (char *) requestor_window);
-  val = x_selection_arrival (&event, requestor_window, requestor_time);
-  UNBLOCK_INPUT;
+      return get_selection_value (XA_PRIMARY);
+    }
+  else if (EQ (type, Qsecondary))
+    {
+      if (!NILP (Vx_secondary_selection_value))
+	return Vx_secondary_selection_value;
 
-  return val;
+      return get_selection_value (XA_SECONDARY);
+    }
+  else if (EQ (type, Qclipboard))
+    {
+      if (!NILP (Vx_clipboard_value))
+	return Vx_clipboard_value;
+
+      return get_selection_value (Xatom_clipboard);
+    }
+  else
+    error ("Invalid X selection type");
 }
 
 Lisp_Object
@@ -553,6 +583,8 @@ x_selection_arrival (event, requestor_window, requestor_time)
 
   if (event->selection == XA_PRIMARY)
     selection = Xatom_emacs_selection;
+  else if (event->selection == XA_SECONDARY)
+    selection = Xatom_emacs_secondary_selection;
   else if (event->selection == Xatom_clipboard)
     selection = Xatom_clipboard_selection;
   else
@@ -568,8 +600,7 @@ x_selection_arrival (event, requestor_window, requestor_time)
 
 	do
 	  {
-	    result = XGetWindowProperty (x_current_display,
-					 requestor_window,
+	    result = XGetWindowProperty (x_current_display, requestor_window,
 					 event->property, 0L,
 					 10000000L, True, XA_STRING,
 					 &type, &format, &items,
@@ -656,13 +687,22 @@ syms_of_xselect ()
 	       "The value of emacs' last cut-string.");
   Vx_selection_value = Qnil;
 
+  DEFVAR_LISP ("x-secondary-selection-value", &Vx_secondary_selection_value,
+	       "The value of emacs' last secondary cut-string.");
+  Vx_secondary_selection_value = Qnil;
+
   DEFVAR_LISP ("x-clipboard-value", &Vx_clipboard_value,
 	       "The string emacs last sent to the clipboard.");
   Vx_clipboard_value = Qnil;
 
+  Qprimary = intern ("primary");
+  staticpro (&Qprimary);
+  Qsecondary = intern ("secondary");
+  staticpro (&Qsecondary);
+  Qclipboard = intern ("clipboard");
+  staticpro (&Qclipboard);
+
   defsubr (&Sx_own_selection);
-  defsubr (&Sx_get_selection);
-  defsubr (&Sx_own_clipboard);
-  defsubr (&Sx_get_clipboard);
+  defsubr (&Sx_selection_value);
 }
 #endif	/* X11 */

@@ -1,11 +1,11 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 1992 Free Software Foundation.
+   Copyright (C) 1989 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 1, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -49,10 +49,6 @@ static XrmDatabase xrdb;
 
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
-
-/* The class of Emacs screens.  */
-#define SCREEN_CLASS "Screen"
-Lisp_Object screen_class;
 
 /* Title name and application name for X stuff. */
 extern char *x_id_name;
@@ -165,6 +161,18 @@ extern Atom Xatom_insert_property;
 
 /* Atom for indicating property type TEXT */
 extern Atom Xatom_text;
+
+/* Communication with window managers. */
+extern Atom Xatom_wm_protocols;
+
+/* Kinds of protocol things we may receive. */
+extern Atom Xatom_wm_take_focus;
+extern Atom Xatom_wm_save_yourself;
+extern Atom Xatom_wm_delete_window;
+
+/* Other WM communication */
+Atom Xatom_wm_configure_denied;	  /* When our config request is denied */
+Atom Xatom_wm_window_moved;	  /* When the WM moves us. */
 
 #else	/* X10 */
 
@@ -1395,16 +1403,15 @@ enum resource_types
 /* Return the value of parameter PARAM.
 
    First search ALIST, then Vdefault_screen_alist, then the X defaults
-   database, using SCREEN_NAME as the subcomponent of emacs and
-   ATTRIBUTE as the attribute name.
+   database, using ATTRIBUTE as the attribute name.
 
    Convert the resource to the type specified by desired_type.
 
    If no default is specified, return nil.  */
 
 static Lisp_Object
-x_get_arg (alist, param, screen_name, attribute, type)
-     Lisp_Object alist, param, screen_name;
+x_get_arg (alist, param, attribute, type)
+     Lisp_Object alist, param;
      char *attribute;
      enum resource_types type;
 {
@@ -1415,42 +1422,7 @@ x_get_arg (alist, param, screen_name, attribute, type)
     tem = Fassq (param, Vdefault_screen_alist);
   if (EQ (tem, Qnil) && attribute)
     {
-      Lisp_Object sterile_name;
-
-      /* Build a version of screen name that is safe to use as a
-	 component name.  */
-      if (XTYPE (screen_name) == Lisp_String)
-	{
-	  int i;
-
-	  sterile_name = make_uninit_string (XSTRING (screen_name)->size);
-	  for (i = 0; i < XSTRING (screen_name)->size; i++)
-	    {
-	      int c = XSTRING (screen_name)->data[i];
-
-	      switch (c)
-		{
-		case ':':
-		case '.':
-		case '*':
-		case ' ':
-		case '\t':
-		case '\n':
-		  c = '_';
-		  break;
-		default:
-		  break;
-		}
-
-	      XSTRING (sterile_name)->data[i] = c;
-	    }
-	}
-      else
-	sterile_name = Qnil;
-
-      tem = Fx_get_resource (build_string (attribute),
-			     sterile_name,
-			     (NILP (sterile_name) ? Qnil : screen_class));
+      tem = Fx_get_resource (build_string (attribute), Qnil, Qnil);
 
       if (NILP (tem))
 	return Qnil;
@@ -1496,7 +1468,7 @@ x_default_parameter (s, alist, propname, deflt, xprop, type)
   Lisp_Object propsym = intern (propname);
   Lisp_Object tem;
 
-  tem = x_get_arg (alist, propsym, s->name, xprop, type);
+  tem = x_get_arg (alist, propsym, xprop, type);
   if (EQ (tem, Qnil))
     tem = deflt;
   store_screen_param (s, propsym, tem);
@@ -1583,8 +1555,8 @@ x_figure_window_size (s, parms)
   s->display.x->top_pos = 1;
   s->display.x->left_pos = 1;
 
-  tem0 = x_get_arg (parms, intern ("height"), s->name, 0, 0);
-  tem1 = x_get_arg (parms, intern ("width"), s->name, 0, 0);
+  tem0 = x_get_arg (parms, intern ("height"), 0, 0);
+  tem1 = x_get_arg (parms, intern ("width"), 0, 0);
   if (! EQ (tem0, Qnil) && ! EQ (tem1, Qnil))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1601,8 +1573,8 @@ x_figure_window_size (s, parms)
   s->display.x->pixel_height = (FONT_HEIGHT (s->display.x->font) * s->height
 				+ 2 * s->display.x->internal_border_width);
 
-  tem0 = x_get_arg (parms, intern ("top"), s->name, 0, 0);
-  tem1 = x_get_arg (parms, intern ("left"), s->name, 0, 0);
+  tem0 = x_get_arg (parms, intern ("top"), 0, 0);
+  tem1 = x_get_arg (parms, intern ("left"), 0, 0);
   if (! EQ (tem0, Qnil) && ! EQ (tem1, Qnil))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1701,8 +1673,8 @@ x_icon (s, parms)
 
   /* Set the position of the icon.  Note that twm groups all
      icons in an icon window. */
-  tem0 = x_get_arg (parms, intern ("icon-left"), s->name, 0, 0);
-  tem1 = x_get_arg (parms, intern ("icon-top"), s->name, 0, 0);
+  tem0 = x_get_arg (parms, intern ("icon-left"), 0, 0);
+  tem1 = x_get_arg (parms, intern ("icon-top"), 0, 0);
   if (!EQ (tem0, Qnil) && !EQ (tem1, Qnil))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1719,7 +1691,7 @@ x_icon (s, parms)
     }
 
   /* Start up iconic or window? */
-  tem0 = x_get_arg (parms, intern ("iconic-startup"), s->name, 0, 0);
+  tem0 = x_get_arg (parms, intern ("iconic-startup"), 0, 0);
   if (!EQ (tem0, Qnil))
     hints.initial_state = IconicState;
   else
@@ -1843,13 +1815,13 @@ be shared by the new screen.")
   if (x_current_display == 0)
     error ("X windows are not in use or not initialized");
 
-  name = x_get_arg (parms, intern ("name"), Qnil, "Title", string);
+  name = x_get_arg (parms, intern ("name"), "Title", string);
   if (NILP (name))
     name = build_string (x_id_name);
   if (XTYPE (name) != Lisp_String)
     error ("x-create-screen: name parameter must be a string");
 
-  tem = x_get_arg (parms, intern ("minibuffer"), name, 0, 0);
+  tem = x_get_arg (parms, intern ("minibuffer"), 0, 0);
   if (EQ (tem, intern ("none")))
     s = make_screen_without_minibuffer (Qnil);
   else if (EQ (tem, intern ("only")))
@@ -1915,7 +1887,7 @@ be shared by the new screen.")
   x_wm_set_size_hint (s, window_prompting);
   UNBLOCK_INPUT;
 
-  tem = x_get_arg (parms, intern ("unsplittable"), name, 0, 0);
+  tem = x_get_arg (parms, intern ("unsplittable"), 0, 0);
   s->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Now handle the rest of the parameters. */
@@ -1925,7 +1897,7 @@ be shared by the new screen.")
 		       Qnil, "?VScrollBar", string);
 
   /* Make the window appear on the screen and enable display.  */
-  if (!EQ (x_get_arg (parms, intern ("suppress-initial-map"), name, 0, 0), Qt))
+  if (!EQ (x_get_arg (parms, intern ("suppress-initial-map"), 0, 0), Qt))
     x_make_screen_visible (s);
 
   return screen;
@@ -1946,7 +1918,7 @@ be shared by the new screen.")
 
   name = Fassq (intern ("name"), parms);
 
-  tem = x_get_arg (parms, intern ("minibuffer"), name, 0, 0);
+  tem = x_get_arg (parms, intern ("minibuffer"), 0, 0);
   if (EQ (tem, intern ("none")))
     s = make_screen_without_minibuffer (Qnil);
   else if (EQ (tem, intern ("only")))
@@ -1983,7 +1955,7 @@ be shared by the new screen.")
   /* Extract some window parameters from the supplied values.
      These are the parameters that affect window geometry.  */
 
-  tem = x_get_arg (parms, intern ("font"), name, "BodyFont", string);
+  tem = x_get_arg (parms, intern ("font"), "BodyFont", string);
   if (EQ (tem, Qnil))
     tem = build_string ("9x15");
   x_set_font (s, tem);
@@ -2004,13 +1976,13 @@ be shared by the new screen.")
   x_default_parameter (s, parms, "auto-raise",
 		       Qnil, "AutoRaise", boolean);
 
-  hscroll = x_get_arg (parms, intern ("horizontal-scroll-bar"), name, 0, 0);
-  vscroll = x_get_arg (parms, intern ("vertical-scroll-bar"), name, 0, 0);
+  hscroll = x_get_arg (parms, intern ("horizontal-scroll-bar"), 0, 0);
+  vscroll = x_get_arg (parms, intern ("vertical-scroll-bar"), 0, 0);
 
   if (s->display.x->internal_border_width < 0)
     s->display.x->internal_border_width = 0;
 
-  tem = x_get_arg (parms, intern ("window-id"), name, 0, 0);
+  tem = x_get_arg (parms, intern ("window-id"), 0, 0);
   if (!EQ (tem, Qnil))
     {
       WINDOWINFO_TYPE wininfo;
@@ -2038,29 +2010,29 @@ be shared by the new screen.")
     }
   else
     {
-      tem = x_get_arg (parms, intern ("parent-id"), name, 0, 0);
+      tem = x_get_arg (parms, intern ("parent-id"), 0, 0);
       if (!EQ (tem, Qnil))
 	{
 	  CHECK_STRING (tem, 0);
 	  parent = (Window) atoi (XSTRING (tem)->data);
 	}
       s->display.x->parent_desc = parent;
-      tem = x_get_arg (parms, intern ("height"), name, 0, 0);
+      tem = x_get_arg (parms, intern ("height"), 0, 0);
       if (EQ (tem, Qnil))
 	{
-	  tem = x_get_arg (parms, intern ("width"), name, 0, 0);
+	  tem = x_get_arg (parms, intern ("width"), 0, 0);
 	  if (EQ (tem, Qnil))
 	    {
-	      tem = x_get_arg (parms, intern ("top"), name, 0, 0);
+	      tem = x_get_arg (parms, intern ("top"), 0, 0);
 	      if (EQ (tem, Qnil))
-		tem = x_get_arg (parms, intern ("left"), name, 0, 0);
+		tem = x_get_arg (parms, intern ("left"), 0, 0);
 	    }
 	}
       /* Now TEM is nil if no edge or size was specified.
 	 In that case, we must do rubber-banding.  */
       if (EQ (tem, Qnil))
 	{
-	  tem = x_get_arg (parms, intern ("geometry"), name, 0, 0);
+	  tem = x_get_arg (parms, intern ("geometry"), 0, 0);
 	  x_rubber_band (s,
 			 &s->display.x->left_pos, &s->display.x->top_pos,
 			 &width, &height,
@@ -2073,25 +2045,25 @@ be shared by the new screen.")
 	{
 	  /* Here if at least one edge or size was specified.
 	     Demand that they all were specified, and use them.  */
-	  tem = x_get_arg (parms, intern ("height"), name, 0, 0);
+	  tem = x_get_arg (parms, intern ("height"), 0, 0);
 	  if (EQ (tem, Qnil))
 	    error ("Height not specified");
 	  CHECK_NUMBER (tem, 0);
 	  height = XINT (tem);
 
-	  tem = x_get_arg (parms, intern ("width"), name, 0, 0);
+	  tem = x_get_arg (parms, intern ("width"), 0, 0);
 	  if (EQ (tem, Qnil))
 	    error ("Width not specified");
 	  CHECK_NUMBER (tem, 0);
 	  width = XINT (tem);
 
-	  tem = x_get_arg (parms, intern ("top"), name, 0, 0);
+	  tem = x_get_arg (parms, intern ("top"), 0, 0);
 	  if (EQ (tem, Qnil))
 	    error ("Top position not specified");
 	  CHECK_NUMBER (tem, 0);
 	  s->display.x->left_pos = XINT (tem);
 
-	  tem = x_get_arg (parms, intern ("left"), name, 0, 0);
+	  tem = x_get_arg (parms, intern ("left"), 0, 0);
 	  if (EQ (tem, Qnil))
 	    error ("Left position not specified");
 	  CHECK_NUMBER (tem, 0);
@@ -2132,11 +2104,11 @@ be shared by the new screen.")
   XStoreName (XDISPLAY s->display.x->window_desc, XSTRING (s->name)->data);
   /* Now override the defaults with all the rest of the specified
      parms.  */
-  tem = x_get_arg (parms, intern ("unsplittable"), name, 0, 0);
+  tem = x_get_arg (parms, intern ("unsplittable"), 0, 0);
   s->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Do not create an icon window if the caller says not to */
-  if (!EQ (x_get_arg (parms, intern ("suppress-icon"), name, 0, 0), Qt)
+  if (!EQ (x_get_arg (parms, intern ("suppress-icon"), 0, 0), Qt)
       || s->display.x->parent_desc != ROOT_WINDOW)
     {
       x_text_icon (s, iconidentity);
@@ -2166,7 +2138,7 @@ be shared by the new screen.")
 
   /* Make the window appear on the screen and enable display.  */
 
-  if (!EQ (x_get_arg (parms, intern ("suppress-initial-map"), name, 0, 0), Qt))
+  if (!EQ (x_get_arg (parms, intern ("suppress-initial-map"), 0, 0), Qt))
     x_make_window_visible (s);
   SCREEN_GARBAGED (s);
 
@@ -3950,8 +3922,7 @@ also be depressed for NEWSTRING to appear.")
      register Lisp_Object newstring;
 {
   char *rawstring;
-  register KeySym keysym;
-  KeySym modifier_list[16];
+  register KeySym keysym, modifier_list[16];
 
   CHECK_STRING (x_keysym, 1);
   CHECK_STRING (newstring, 3);
@@ -4241,6 +4212,20 @@ arg XRM_STRING is a string of resources in xrdb format.")
 					False);
   Xatom_text =             XInternAtom (x_current_display, "TEXT",
 					False);
+  Xatom_wm_protocols =     XInternAtom (x_current_display, "WM_PROTOCOLS",
+					False);
+  Xatom_wm_take_focus =    XInternAtom (x_current_display, "WM_TAKE_FOCUS",
+					False);
+  Xatom_wm_save_yourself = XInternAtom (x_current_display, "WM_SAVE_YOURSELF",
+					False);
+  Xatom_wm_delete_window = XInternAtom (x_current_display, "WM_DELETE_WINDOW",
+					False);
+  Xatom_wm_change_state =  XInternAtom (x_current_display, "WM_CHANGE_STATE",
+					False);
+  Xatom_wm_configure_denied =  XInternAtom (x_current_display,
+					    "WM_CONFIGURE_DENIED", False);
+  Xatom_wm_window_moved =  XInternAtom (x_current_display, "WM_MOVED",
+					False);
   UNBLOCK_INPUT;
 #else /* not HAVE_X11 */
   XFASTINT (Vwindow_system_version) = 10;
@@ -4296,8 +4281,6 @@ syms_of_xfns ()
 	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
 	build_string ("Undefined color"));
-
-  screen_class = make_pure_string (SCREEN_CLASS, sizeof (SCREEN_CLASS)-1);
 
   DEFVAR_INT ("mouse-x-position", &x_mouse_x,
 	      "The X coordinate of the mouse position, in characters.");
