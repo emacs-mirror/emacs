@@ -1,3 +1,7 @@
+2001-03-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (dump_glyph_row): Fix output for NGLYPHS == 2.
+
 2001-03-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xmenu.c: Include widget.h only if USE_X_TOOLKIT is defined.
