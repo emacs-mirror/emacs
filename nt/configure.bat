@@ -180,7 +180,7 @@ del junk.o
 
 :checkgcc
 Rem WARNING -- COMMAND.COM on some systems only looks at the first
-Rem            8 characters of a lable.  So do NOT be tempted to change
+Rem            8 characters of a label.  So do NOT be tempted to change
 Rem            chkapi* into something fancier like checkw32api
 Rem You HAVE been warned!
 if (%nocygwin%) == (Y) goto chkapi
@@ -193,7 +193,7 @@ gcc -mno-cygwin -c junk.c
 if exist junk.o set nocygwin=Y
 rm -f junk.c junk.o
 
-:chk32api
+:chkapi
 rem ----------------------------------------------------------------------
 rem   Older versions of the Windows API headers either don't have any of
 rem   the IMAGE_xxx definitions (the headers that come with Cygwin b20.1
