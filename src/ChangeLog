@@ -1,3 +1,8 @@
+2000-09-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (syms_of_lread): Make Vbytecomp_version_regexp a Lisp
+	variable; recognize Emacs 19 elc files.
+
 2000-09-04  Miles Bader  <miles@gnu.org>
 
 	* xmenu.c (xmenu_show): Call x_set_menu_resources_from_menu_face
