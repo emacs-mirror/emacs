@@ -403,31 +403,36 @@ the major mode's hook.  For example, put in your ~/.emacs:
  (add-hook 'c-mode-hook 'turn-on-font-lock)
 
 Alternatively, you can use Global Font Lock mode to automagically turn on Font
-Lock mode in buffers whose major mode supports it, or in buffers whose major
-mode is one of `font-lock-global-modes'.  For example, put in your ~/.emacs:
+Lock mode in buffers whose major mode supports it and whose major mode is one
+of `font-lock-global-modes'.  For example, put in your ~/.emacs:
 
  (global-font-lock-mode t)
 
-The default Font Lock mode faces and their attributes are defined in the
-variable `font-lock-face-attributes', and Font Lock mode default settings in
-the variable `font-lock-defaults-alist'.  You can set your own default settings
-for some mode, by setting a buffer local value for `font-lock-defaults', via
-its mode hook.
-
-Font Lock mode has a number of support modes that may be used to speed up Font
-Lock mode in various ways.  See the variable `font-lock-support-mode'.
-
-Where modes support different levels of fontification, you can use the variable
+There are a number of support modes that may be used to speed up Font Lock mode
+in various ways, specified via the variable `font-lock-support-mode'.  Where
+major modes support different levels of fontification, you can use the variable
 `font-lock-maximum-decoration' to specify which level you generally prefer.
 When you turn Font Lock mode on/off the buffer is fontified/defontified, though
 fontification occurs only if the buffer is less than `font-lock-maximum-size'.
+
+For example, to specify that Font Lock mode use use Lazy Lock mode as a support
+mode and use maximum levels of fontification, put in your ~/.emacs:
+
+ (setq font-lock-support-mode 'lazy-lock-mode)
+ (setq font-lock-maximum-decoration t)
 
 To fontify a buffer, without turning on Font Lock mode and regardless of buffer
 size, you can use \\[font-lock-fontify-buffer].
 
 To fontify a block (the function or paragraph containing point, or a number of
 lines around point), perhaps because modification on the current line caused
-syntactic change on other lines, you can use \\[font-lock-fontify-block]."
+syntactic change on other lines, you can use \\[font-lock-fontify-block].
+
+The default Font Lock mode faces and their attributes are defined in the
+variable `font-lock-face-attributes', and Font Lock mode default settings in
+the variable `font-lock-defaults-alist'.  You can set your own default settings
+for some mode, by setting a buffer local value for `font-lock-defaults', via
+its mode hook."
   (interactive "P")
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
@@ -463,11 +468,9 @@ syntactic change on other lines, you can use \\[font-lock-fontify-block]."
 ;;;###autoload
 (defun turn-on-font-lock ()
   "Turn on Font Lock mode conditionally.
-Turn on only if the buffer mode supports it and the terminal can display it."
-  (if (and window-system
-	   (not font-lock-mode)
-	   (or font-lock-defaults (assq major-mode font-lock-defaults-alist)))
-      (font-lock-mode t)))
+Turn on only if the terminal can display it."
+  (when window-system
+    (font-lock-mode t)))
 
 ;; Global Font Lock mode.
 ;;
@@ -574,16 +577,19 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 
 (defun turn-on-font-lock-if-enabled ()
   ;; Gross hack warning: Delicate readers should avert eyes now.
-  ;; Turn on Font Lock mode if it's one of `font-lock-global-modes'.
+  ;; Turn on Font Lock mode if it's supported by the major mode and enabled by
+  ;; the user.
   (remove-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
   (while font-lock-buffers
     (if (buffer-live-p (car font-lock-buffers))
 	(save-excursion
 	  (set-buffer (car font-lock-buffers))
-	  (if (or (eq font-lock-global-modes t)
-		  (if (eq (car-safe font-lock-global-modes) 'not)
-		      (not (memq major-mode (cdr font-lock-global-modes)))
-		    (memq major-mode font-lock-global-modes)))
+	  (if (and (or font-lock-defaults
+		       (assq major-mode font-lock-defaults-alist))
+		   (or (eq font-lock-global-modes t)
+		       (if (eq (car-safe font-lock-global-modes) 'not)
+			   (not (memq major-mode (cdr font-lock-global-modes)))
+			 (memq major-mode font-lock-global-modes))))
 	      (let (inhibit-quit)
 		(turn-on-font-lock)))))
     (setq font-lock-buffers (cdr font-lock-buffers))))
@@ -1631,7 +1637,7 @@ the face is also set; its value is the face name."
     (cons (concat "\\<\\(" c++-type-types "\\)\\>") 'font-lock-type-face)
     ;;
     ;; Fontify operator function name overloading.
-    '("\\<\\(operator\\)\\>[ \t]*\\([][)(><!=+-][][)(><!=+-]?\\)?"
+    '("\\<\\(operator\\)\\>[ \t]*\\([[(><!=+-][])><=+-]?\\)?"
       (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
