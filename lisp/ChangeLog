@@ -1,3 +1,13 @@
+2002-05-17  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el (list-character-sets-2): Avoid
+	charset-bytes.
+	(list-iso-charset-chars, list-non-iso-charset-chars): Deleted.
+	(list-block-of-chars): Re-written.
+	(describe-character-set): Show more properties.
+	(describe-char-after): Correct codepoint display.
+	(print-coding-system): Use symbolic types.
+
 2002-05-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in: Be sure also to run emacs with LANG=C.
@@ -10,10 +20,10 @@
 	(list-character-sets-2): Re-written.
 	(non-iso-charset-alist): Set to nil and made obsolete.
 	(decode-codepage-char): Re-written and made obsolete.
-	(read-charset, describe-character-set): Don't use
-	non-iso-charset-alist.
+	(read-charset): Don't use non-iso-charset-alist.
 	(describe-coding-system): Use keyword properties.
-	
+	(describe-character-set): Re-written.
+
 	* international/mule-conf.el (koi8-u, koi8-t, georgian-ps) 
 	(windows-1250, windows-1251, windows-1252, cp1125, ebcdic-us) 
 	(ebcdic-uk): New charsets.
