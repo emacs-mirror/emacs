@@ -35,7 +35,7 @@
  *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is $Revision: 16.55 $";
+char pot_etags_version[] = "@(#) pot revision number is 16.56";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -239,11 +239,12 @@ typedef struct
 typedef struct
 {
   char *name;			/* language name */
-  bool metasource;		/* source used to generate other sources */
+  char *help;                   /* detailed help for the language */
   Lang_function *function;	/* parse function */
-  char **filenames;		/* names of this language's files */
   char **suffixes;		/* name suffixes of this language's files */
+  char **filenames;		/* names of this language's files */
   char **interpreters;		/* interpreters for this language */
+  bool metasource;		/* source used to generate other sources */
 } language;
 
 typedef struct fdesc
@@ -293,7 +294,8 @@ typedef struct
     at_language,		/* a language specification */
     at_regexp,			/* a regular expression */
     at_filename,		/* a file name */
-    at_stdin			/* read from stdin here */
+    at_stdin,			/* read from stdin here */
+    at_end			/* stop parsing the list */
   } arg_type;			/* argument type */
   language *lang;		/* language associated with the argument */
   char *what;			/* the argument itself */
@@ -337,7 +339,7 @@ static void Makefile_targets __P((FILE *));
 static void Pascal_functions __P((FILE *));
 static void Perl_functions __P((FILE *));
 static void PHP_functions __P((FILE *));
-static void Postscript_functions __P((FILE *));
+static void PS_functions __P((FILE *));
 static void Prolog_functions __P((FILE *));
 static void Python_functions __P((FILE *));
 static void Scheme_functions __P((FILE *));
@@ -348,7 +350,7 @@ static void just_read_file __P((FILE *));
 
 static void print_language_names __P((void));
 static void print_version __P((void));
-static void print_help __P((void));
+static void print_help __P((argument *));
 int main __P((int, char **));
 
 static compressor *get_compressor_from_suffix __P((char *, char **));
@@ -532,6 +534,22 @@ static compressor compressors[] =
 /* Ada code */
 static char *Ada_suffixes [] =
   { "ads", "adb", "ada", NULL };
+static char Ada_help [] =
+"In Ada code, functions, procedures, packages, tasks and types are\n\
+tags.  Use the `--packages-only' option to create tags for\n\
+packages only.\n\
+Ada tag names have suffixes indicating the type of entity:\n\
+	Entity type:	Qualifier:\n\
+	------------	----------\n\
+	function	/f\n\
+	procedure	/p\n\
+	package spec	/s\n\
+	package body	/b\n\
+	type		/t\n\
+	task		/k\n\
+Thus, `M-x find-tag <RET> bidule/b <RET>' will go directly to the\n\
+body of the package `bidule', while `M-x find-tag <RET> bidule <RET>'\n\
+will just search for any tag `bidule'.";
 
 /* Assembly code */
 static char *Asm_suffixes [] =
@@ -545,82 +563,187 @@ static char *Asm_suffixes [] =
     "src", /* BSO/Tasking C compiler output */
     NULL
   };
+static char Asm_help [] =
+"In assembler code, labels appearing at the beginning of a line,\n\
+followed by a colon, are tags.";
+
 
 /* Note that .c and .h can be considered C++, if the --c++ flag was
-   given, or if the `class' keyowrd is met inside the file.
+   given, or if the `class' or `template' keyowrds are met inside the file.
    That is why default_C_entries is called for these. */
 static char *default_C_suffixes [] =
   { "c", "h", NULL };
+static char default_C_help [] =
+"In C code, any C function or typedef is a tag, and so are\n\
+definitions of `struct', `union' and `enum'.  `#define' macro\n\
+definitions and `enum' constants are tags unless you specify\n\
+`--no-defines'.  Global variables are tags unless you specify\n\
+`--no-globals'.  Use of `--no-globals' and `--no-defines'\n\
+can make the tags table file much smaller.\n\
+You can tag function declarations and external variables by\n\
+using `--declarations', and struct members by using `--members'.";
 
 static char *Cplusplus_suffixes [] =
   { "C", "c++", "cc", "cpp", "cxx", "H", "h++", "hh", "hpp", "hxx",
     "M",			/* Objective C++ */
     "pdb",			/* Postscript with C syntax */
     NULL };
+static char Cplusplus_help [] =
+"In C++ code, all the tag constructs of C code are tagged\n\
+(use --help --lang=c --lang=c++ for full help).\n\
+In addition to C tags, member functions are also recognized, and\n\
+optionally member variables if you use the `--members' option.\n\
+Tags for variables and functions in classes are named `CLASS::VARIABLE'\n\
+and `CLASS::FUNCTION'.  `operator' definitions have tag names like\n\
+`operator+'.";
 
 static char *Cjava_suffixes [] =
   { "java", NULL };
+static char Cjava_help [] =
+"In Java code, all the tags constructs of C and C++ code are\n\
+tagged (use --help --lang=c --lang=c++ --lang=java for full help).";
+
 
 static char *Cobol_suffixes [] =
   { "COB", "cob", NULL };
+static char Cobol_help [] =
+"In Cobol code, tags are paragraph names; that is, any word\n\
+starting in column 8 and followed by a period.";
 
 static char *Cstar_suffixes [] =
   { "cs", "hs", NULL };
 
 static char *Erlang_suffixes [] =
   { "erl", "hrl", NULL };
+static char Erlang_help [] =
+"In Erlang code, the tags are the functions, records and macros\n\
+defined in the file.";
 
 static char *Fortran_suffixes [] =
   { "F", "f", "f90", "for", NULL };
+static char Fortran_help [] =
+"In Fortran code, functions, subroutines and block data are tags.";
 
 static char *HTML_suffixes [] =
   { "htm", "html", "shtml", NULL };
+static char HTML_help [] =
+"In HTML input files, the tags are the `title' and the `h1', `h2',\n\
+`h3' headers.  Also, tags are `name=' in anchors and all\n\
+occurrences of `id='.";
 
 static char *Lisp_suffixes [] =
   { "cl", "clisp", "el", "l", "lisp", "LSP", "lsp", "ml", NULL };
+static char Lisp_help [] =
+"In Lisp code, any function defined with `defun', any variable\n\
+defined with `defvar' or `defconst', and in general the first\n\
+argument of any expression that starts with `(def' in column zero\n\
+is a tag.";
 
 static char *Makefile_filenames [] =
   { "Makefile", "makefile", "GNUMakefile", "Makefile.in", "Makefile.am", NULL};
+static char Makefile_help [] =
+"In makefiles, targets are tags; additionally, variables are tags\n\
+unless you specify `--no-globals'.";
+
+static char *Objc_suffixes [] =
+  { "lm",			/* Objective lex file */
+    "m",			/* Objective C file */
+     NULL };
+static char Objc_help [] =
+"In Objective C code, tags include Objective C definitions for classes,\n\
+class categories, methods and protocols.  Tags for variables and\n\
+functions in classes are named `CLASS::VARIABLE' and `CLASS::FUNCTION'.";
 
 static char *Pascal_suffixes [] =
   { "p", "pas", NULL };
+static char Pascal_help [] =
+"In Pascal code, the tags are the functions and procedures defined\n\
+in the file.";
 
 static char *Perl_suffixes [] =
   { "pl", "pm", NULL };
-
 static char *Perl_interpreters [] =
   { "perl", "@PERL@", NULL };
+static char Perl_help [] =
+"In Perl code, the tags are the packages, subroutines and variables\n\
+defined by the `package', `sub', `my' and `local' keywords.  Use\n\
+`--globals' if you want to tag global variables.  Tags for\n\
+subroutines are named `PACKAGE::SUB'.  The name for subroutines\n\
+defined in the default package is `main::SUB'.";
 
 static char *PHP_suffixes [] =
   { "php", "php3", "php4", NULL };
+static char PHP_help [] =
+"In PHP code, tags are functions, classes and defines.  When using\n\
+the `--members' option, vars are tags too.";
 
 static char *plain_C_suffixes [] =
-  { "lm",			/* Objective lex file */
-    "m",			/* Objective C file */
-    "pc",			/* Pro*C file */
+  { "pc",			/* Pro*C file */
      NULL };
 
-static char *Postscript_suffixes [] =
+static char *PS_suffixes [] =
   { "ps", "psw", NULL };	/* .psw is for PSWrap */
+static char PS_help [] =
+"In PostScript code, the tags are the functions.";
 
 static char *Prolog_suffixes [] =
   { "prolog", NULL };
+static char Prolog_help [] =
+"In Prolog code, tags are predicates and rules at the beginning of\n\
+line.";
 
 static char *Python_suffixes [] =
   { "py", NULL };
+static char Python_help [] =
+"In Python code, `def' or `class' at the beginning of a line\n\
+generate a tag.";
 
 /* Can't do the `SCM' or `scm' prefix with a version number. */
 static char *Scheme_suffixes [] =
   { "oak", "sch", "scheme", "SCM", "scm", "SM", "sm", "ss", "t", NULL };
+static char Scheme_help [] =
+"In Scheme code, tags include anything defined with `def' or with a\n\
+construct whose name starts with `def'.  They also include\n\
+variables set with `set!' at top level in the file.";
 
 static char *TeX_suffixes [] =
   { "bib", "clo", "cls", "ltx", "sty", "TeX", "tex", NULL };
+static char TeX_help [] =
+"In LaTeX text, the argument of any of the commands `\\chapter',\n\
+`\\section', `\\subsection', `\\subsubsection', `\\eqno', `\\label',\n\
+`\\ref', `\\cite', `\\bibitem', `\\part', `\\appendix', `\\entry',\n\
+`\\index', `\\def', `\\newcommand', `\\renewcommand',\n\
+`\\newenvironment' or `\\renewenvironment' is a tag.\n\
+\n\
+Other commands can be specified by setting the environment variable\n\
+`TEXTAGS' to a colon-separated list like, for example,\n\
+     TEXTAGS=\"mycommand:myothercommand\".";
+
 
 static char *Texinfo_suffixes [] =
   { "texi", "texinfo", "txi", NULL };
+static char Texinfo_help [] =
+"for texinfo files, lines starting with @node are tagged.";
 
 static char *Yacc_suffixes [] =
   { "y", "y++", "ym", "yxx", "yy", NULL }; /* .ym is Objective yacc file */
+static char Yacc_help [] =
+"In Bison or Yacc input files, each rule defines as a tag the\n\
+nonterminal it constructs.  The portions of the file that contain\n\
+C code are parsed as C code (use --help --lang=c --lang=yacc\n\
+for full help).";
+
+static char auto_help [] =
+"`auto' is not a real language, it indicates to use\n\
+a default language for files base on file name suffix and file contents.";
+
+static char none_help [] =
+"`none' is not a real language, it indicates to only do\n\
+regexp processing on files.";
+
+static char no_lang_help [] =
+"No detailed help available for this language.";
+
 
 /*
  * Table of languages.
@@ -631,32 +754,33 @@ static char *Yacc_suffixes [] =
 
 static language lang_names [] =
 {
-  { "ada",      FALSE, Ada_funcs,            NULL, Ada_suffixes,        NULL },
-  { "asm",      FALSE, Asm_labels,           NULL, Asm_suffixes,        NULL },
-  { "c",        FALSE, default_C_entries,    NULL, default_C_suffixes,  NULL },
-  { "c++",      FALSE, Cplusplus_entries,    NULL, Cplusplus_suffixes,  NULL },
-  { "c*",       FALSE, Cstar_entries,        NULL, Cstar_suffixes,      NULL },
-  { "cobol",    FALSE, Cobol_paragraphs,     NULL, Cobol_suffixes,      NULL },
-  { "erlang",   FALSE, Erlang_functions,     NULL, Erlang_suffixes,     NULL },
-  { "fortran",  FALSE, Fortran_functions,    NULL, Fortran_suffixes,    NULL },
-  { "html",     FALSE, HTML_labels,          NULL, HTML_suffixes,       NULL },
-  { "java",     FALSE, Cjava_entries,        NULL, Cjava_suffixes,      NULL },
-  { "lisp",     FALSE, Lisp_functions,       NULL, Lisp_suffixes,       NULL },
-  { "makefile", FALSE, Makefile_targets,     Makefile_filenames, NULL,  NULL },
-  { "pascal",   FALSE, Pascal_functions,     NULL, Pascal_suffixes,     NULL },
-  { "perl",     FALSE, Perl_functions,NULL, Perl_suffixes, Perl_interpreters },
-  { "php",      FALSE, PHP_functions,        NULL, PHP_suffixes,        NULL },
-  { "postscript",FALSE, Postscript_functions,NULL, Postscript_suffixes, NULL },
-  { "proc",     FALSE, plain_C_entries,      NULL, plain_C_suffixes,    NULL },
-  { "prolog",   FALSE, Prolog_functions,     NULL, Prolog_suffixes,     NULL },
-  { "python",   FALSE, Python_functions,     NULL, Python_suffixes,     NULL },
-  { "scheme",   FALSE, Scheme_functions,     NULL, Scheme_suffixes,     NULL },
-  { "tex",      FALSE, TeX_commands,         NULL, TeX_suffixes,        NULL },
-  { "texinfo",  FALSE, Texinfo_nodes,        NULL, Texinfo_suffixes,    NULL },
-  { "yacc",      TRUE, Yacc_entries,         NULL, Yacc_suffixes,       NULL },
-  { "auto", FALSE, NULL },             /* default guessing scheme */
-  { "none", FALSE, just_read_file },   /* regexp matching only */
-  { NULL, FALSE, NULL }                /* end of list */
+  { "ada",       Ada_help,       Ada_funcs,         Ada_suffixes       },
+  { "asm",       Asm_help,       Asm_labels,        Asm_suffixes       },
+  { "c",         default_C_help, default_C_entries, default_C_suffixes },
+  { "c++",       Cplusplus_help, Cplusplus_entries, Cplusplus_suffixes },
+  { "c*",        no_lang_help,   Cstar_entries,     Cstar_suffixes     },
+  { "cobol",     Cobol_help,     Cobol_paragraphs,  Cobol_suffixes     },
+  { "erlang",    Erlang_help,    Erlang_functions,  Erlang_suffixes    },
+  { "fortran",   Fortran_help,   Fortran_functions, Fortran_suffixes   },
+  { "html",      HTML_help,      HTML_labels,       HTML_suffixes      },
+  { "java",      Cjava_help,     Cjava_entries,     Cjava_suffixes     },
+  { "lisp",      Lisp_help,      Lisp_functions,    Lisp_suffixes      },
+  { "makefile",  Makefile_help,Makefile_targets,NULL,Makefile_filenames},
+  { "objc",      Objc_help,      plain_C_entries,   Objc_suffixes      },
+  { "pascal",    Pascal_help,    Pascal_functions,  Pascal_suffixes    },
+  { "perl",Perl_help,Perl_functions,Perl_suffixes,NULL,Perl_interpreters},
+  { "php",       PHP_help,       PHP_functions,     PHP_suffixes       },
+  { "postscript",PS_help,        PS_functions,      PS_suffixes        },
+  { "proc",      no_lang_help,   plain_C_entries,   plain_C_suffixes   },
+  { "prolog",    Prolog_help,    Prolog_functions,  Prolog_suffixes    },
+  { "python",    Python_help,    Python_functions,  Python_suffixes    },
+  { "scheme",    Scheme_help,    Scheme_functions,  Scheme_suffixes    },
+  { "tex",       TeX_help,       TeX_commands,      TeX_suffixes       },
+  { "texinfo",   Texinfo_help,   Texinfo_nodes,     Texinfo_suffixes   },
+  { "yacc",      Yacc_help,Yacc_entries,Yacc_suffixes,NULL,NULL,TRUE},
+  { "auto",      auto_help },                      /* default guessing scheme */
+  { "none",      none_help,      just_read_file }, /* regexp matching only */
+  { NULL }                /* end of list */
 };
 
 
@@ -679,14 +803,18 @@ default file names and dot suffixes:");
 	  printf (" .%s", *ext);
       puts ("");
     }
-  puts ("Where `auto' means use default language for files based on file\n\
+  puts ("where `auto' means use default language for files based on file\n\
 name suffix, and `none' means only do regexp processing on files.\n\
 If no language is specified and no matching suffix is found,\n\
 the first line of the file is read for a sharp-bang (#!) sequence\n\
 followed by the name of an interpreter.  If no such sequence is found,\n\
 Fortran is tried first; if no tags are found, C is tried next.\n\
-When parsing any C file, a \"class\" keyword switches to C++.\n\
-Compressed files are supported using gzip and bzip2.");
+When parsing any C file, a \"class\" or \"template\" keyword\n\
+switches to C++.");
+  puts ("Compressed files are supported using gzip and bzip2.\n\
+\n\
+For detailed help on a given language use, for example,\n\
+etags --help --lang=ada.");
 }
 
 #ifndef EMACS_NAME
@@ -706,8 +834,23 @@ print_version ()
 }
 
 static void
-print_help ()
+print_help (argbuffer)
+     argument *argbuffer;
 {
+  bool help_for_lang = FALSE;
+
+  for (; argbuffer->arg_type != at_end; argbuffer++)
+    if (argbuffer->arg_type == at_language)
+      {
+	if (help_for_lang)
+	  puts ("");
+	puts (argbuffer->lang->help);
+	help_for_lang = TRUE;
+      }
+
+  if (help_for_lang)
+    exit (GOOD);
+
   printf ("Usage: %s [options] [[regex-option ...] file-name] ...\n\
 \n\
 These are the options accepted by %s.\n", progname, progname);
@@ -736,7 +879,7 @@ Relative ones are stored relative to the output file's directory.\n");
   /* This option is mostly obsolete, because etags can now automatically
      detect C++.  Retained for backward compatibility and for debugging and
      experimentation.  In principle, we could want to tag as C++ even
-     before any "class" keyword.
+     before any "class" or "template" keyword.
   puts ("-C, --c++\n\
         Treat files whose name suffix defaults to C language as C++ files.");
   */
@@ -775,7 +918,7 @@ Relative ones are stored relative to the output file's directory.\n");
 	Do not create tag entries for global variables in some\n\
 	languages.  This makes the tags file smaller.");
   puts ("--members\n\
-	Create tag entries for member variables in some languages.");
+	Create tag entries for members of structures in some languages.");
 
 #ifdef ETAGS_REGEXPS
   puts ("-r REGEXP, --regex=REGEXP or --regex=@regexfile\n\
@@ -838,7 +981,9 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("-V, --version\n\
         Print the version of the program.\n\
 -h, --help\n\
-        Print this help message.");
+        Print this help message.\n\
+        Followed by one or more `--language' options prints detailed\n\
+        help about tag generation for the specified languages.");
 
   print_language_names ();
 
@@ -985,6 +1130,7 @@ main (argc, argv)
   argument *argbuffer;
   int current_arg, file_count;
   linebuffer filename_lb;
+  bool help_asked = FALSE;
 #ifdef VMS
   bool got_err;
 #endif
@@ -1063,6 +1209,7 @@ main (argc, argv)
 	  {
 	    error ("-o option may only be given once.", (char *)NULL);
 	    suggest_asking_for_help ();
+	    /* NOTREACHED */
 	  }
 	tagfile = optarg;
 	break;
@@ -1100,7 +1247,7 @@ main (argc, argv)
 	break;
       case 'h':
       case 'H':
-	print_help ();
+	help_asked = TRUE;
 	break;
 
 	/* Etags options */
@@ -1119,9 +1266,10 @@ main (argc, argv)
       case 'w': no_warnings = TRUE;				break;
       default:
 	suggest_asking_for_help ();
+	/* NOTREACHED */
       }
 
-  for (; optind < argc; ++optind)
+  for (; optind < argc; optind++)
     {
       argbuffer[current_arg].arg_type = at_filename;
       argbuffer[current_arg].what = argv[optind];
@@ -1129,10 +1277,17 @@ main (argc, argv)
       ++file_count;
     }
 
+  argbuffer[current_arg].arg_type = at_end;
+
+  if (help_asked)
+    print_help (argbuffer);
+    /* NOTREACHED */
+
   if (nincluded_files == 0 && file_count == 0)
     {
       error ("no input files specified.", (char *)NULL);
       suggest_asking_for_help ();
+      /* NOTREACHED */
     }
 
   if (tagfile == NULL)
@@ -1177,7 +1332,7 @@ main (argc, argv)
   /*
    * Loop through files finding functions.
    */
-  for (i = 0; i < current_arg; ++i)
+  for (i = 0; i < current_arg; i++)
     {
       static language *lang;	/* non-NULL if language is forced */
       char *this_file;
@@ -4751,7 +4906,7 @@ Lisp_functions (inf)
  *   Masatake Yamato <masata-y@is.aist-nara.ac.jp> (1999)
  */
 static void
-Postscript_functions (inf)
+PS_functions (inf)
      FILE *inf;
 {
   register char *bp, *ep;
