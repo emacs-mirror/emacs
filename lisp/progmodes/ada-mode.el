@@ -5,7 +5,7 @@
 ;; Authors: Rolf Ebert      <ebert@inf.enst.fr>
 ;;          Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;; Keywords: languages oop ada
-;; Rolf Ebert's version: 2.25
+;; Rolf Ebert's version: 2.27
 
 ;; This file is part of GNU Emacs.
 
@@ -97,43 +97,70 @@
 ;;;    USER OPTIONS
 ;;;--------------------
 
+
+;; ---- customize support
+
+(defgroup ada nil
+  "Major mode for editing Ada source in Emacs"
+  :group 'languages)
+
 ;; ---- configure indentation
 
-(defvar ada-indent 3
-  "*Defines the size of Ada indentation.")
+(defcustom ada-indent 3
+  "*Defines the size of Ada indentation."
+  :type 'integer
+  :group 'ada)
 
-(defvar ada-broken-indent 2
-  "*# of columns to indent the continuation of a broken line.")
+(defcustom ada-broken-indent 2
+  "*# of columns to indent the continuation of a broken line."
+  :type 'integer
+  :group 'ada)
 
-(defvar ada-label-indent -4
-  "*# of columns to indent a label.")
+(defcustom ada-label-indent -4
+  "*# of columns to indent a label."
+  :type 'integer
+  :group 'ada)
 
-(defvar ada-stmt-end-indent 0
+(defcustom ada-stmt-end-indent 0
   "*# of columns to indent a statement end keyword in a separate line.
-Examples are 'is', 'loop', 'record', ...")
+Examples are 'is', 'loop', 'record', ..."
+  :type 'integer
+  :group 'ada)
 
-(defvar ada-when-indent 3
-  "*Defines the indentation for 'when' relative to 'exception' or 'case'.")
+(defcustom ada-when-indent 3
+  "*Defines the indentation for 'when' relative to 'exception' or 'case'."
+  :type 'integer
+  :group 'ada)
 
-(defvar ada-indent-record-rel-type 3
-  "*Defines the indentation for 'record' relative to 'type' or 'use'.")
+(defcustom ada-indent-record-rel-type 3
+  "*Defines the indentation for 'record' relative to 'type' or 'use'."
+  :type 'integer
+  :group 'ada)
 
-(defvar ada-indent-comment-as-code t
-  "*If non-nil, comment-lines get indented as Ada code.")
+(defcustom ada-indent-comment-as-code t
+  "*If non-nil, comment-lines get indented as Ada code."
+  :type 'boolean
+  :group 'ada)
 
-(defvar ada-indent-is-separate t
-  "*If non-nil, 'is separate' or 'is abstract' on a single line are indented.")
+(defcustom ada-indent-is-separate t
+  "*If non-nil, 'is separate' or 'is abstract' on a single line are indented."
+  :type 'boolean
+  :group 'ada)
 
-(defvar ada-indent-to-open-paren t
-  "*If non-nil, indent according to the innermost open parenthesis.")
+(defcustom ada-indent-to-open-paren t
+  "*If non-nil, indent according to the innermost open parenthesis."
+  :type 'boolean
+  :group 'ada)
 
-(defvar ada-search-paren-char-count-limit 3000
-  "*Search that many characters for an open parenthesis.")
+(defcustom ada-search-paren-char-count-limit 3000
+  "*Search that many characters for an open parenthesis."
+  :type 'integer
+  :group 'ada)
 
 
 ;; ---- other user options
 
-(defvar ada-tab-policy 'indent-auto
+(defcustom ada-tab-policy 'indent-auto
   "*Control behaviour of the TAB key.
 Must be one of `indent-rigidly', `indent-auto', `gei', `indent-af'
 or `always-tab'.
@@ -142,86 +169,163 @@ or `always-tab'.
 `indent-auto'    : use indentation functions in this file.
 `gei'            : use David Kågedal's Generic Indentation Engine.
 `indent-af'      : use Gary E. Barnes' ada-format.el
-`always-tab'     : do indent-relative.")
+`always-tab'     : do indent-relative."
+  :type '(choice (const indent-auto)
+                 (const indent-rigidly)
+                 (const gei)
+                 (const indent-af)
+                 (const always-tab))
+  :group 'ada)
 
-(defvar ada-move-to-declaration nil
+(defcustom ada-move-to-declaration nil
   "*If non-nil, `ada-move-to-start' moves point to the subprog declaration,
-not to 'begin'.")
+not to 'begin'."
+  :type 'boolean
+  :group 'ada)
 
-(defvar ada-spec-suffix ".ads"
-  "*Suffix of Ada specification files.")
+(defcustom ada-spec-suffix ".ads"
+  "*Suffix of Ada specification files."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-body-suffix ".adb"
-  "*Suffix of Ada body files.")
+(defcustom ada-body-suffix ".adb"
+  "*Suffix of Ada body files."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-spec-suffix-as-regexp "\\.ads$"
-  "*Regexp to find Ada specification files.")
+(defcustom ada-spec-suffix-as-regexp "\\.ads$"
+  "*Regexp to find Ada specification files."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-body-suffix-as-regexp "\\.adb$"
-  "*Regexp to find Ada body files.")
+(defcustom ada-body-suffix-as-regexp "\\.adb$"
+  "*Regexp to find Ada body files."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-language-version 'ada95
-  "*Do we program in `ada83' or `ada95'?")
+(defvar ada-other-file-alist
+  (list
+   (list ada-spec-suffix-as-regexp (list ada-body-suffix))
+   (list ada-body-suffix-as-regexp (list ada-spec-suffix))
+   )
+  "*Alist of extensions to find given the current file's extension.
 
-(defvar ada-case-keyword 'downcase-word
+This list should contain the most used extensions before the others,
+since the search algorithm searches sequentially through each directory
+specified in `ada-search-directories'.  If a file is not found, a new one
+is created with the first matching extension (`.adb' yields `.ads').")
+
+(defcustom ada-search-directories
+  '("." "/usr/adainclude" "/usr/local/adainclude" "/opt/gnu/adainclude")
+  "*List of directories to search for Ada files.
+See the description for the `ff-search-directories' variable."
+  :type '(repeat (choice :tag "Directory"
+                         (const :tag "default" nil)
+                         (directory :format "%v")))
+  :group 'ada)
+
+(defcustom ada-language-version 'ada95
+  "*Do we program in `ada83' or `ada95'?"
+  :type '(choice (const ada83)
+                 (const ada95))
+  :group 'ada)
+
+(defcustom ada-case-keyword 'downcase-word
   "*Function to call to adjust the case of Ada keywords.
 It may be `downcase-word', `upcase-word', `ada-loose-case-word' or 
-`capitalize-word'.")
+`capitalize-word'."
+  :type '(choice (const downcase-word)
+                 (const upcase-word)
+                 (const capitalize-word)
+                 (const ada-loose-case-word))
+  :group 'ada)
 
-(defvar ada-case-identifier 'ada-loose-case-word
+(defcustom ada-case-identifier 'ada-loose-case-word
   "*Function to call to adjust the case of an Ada identifier.
 It may be `downcase-word', `upcase-word', `ada-loose-case-word' or 
-`capitalize-word'.")
+`capitalize-word'."
+  :type '(choice (const downcase-word)
+                 (const upcase-word)
+                 (const capitalize-word)
+                 (const ada-loose-case-word))
+  :group 'ada)
 
-(defvar ada-case-attribute 'capitalize-word
+(defcustom ada-case-attribute 'capitalize-word
   "*Function to call to adjust the case of Ada attributes.
 It may be `downcase-word', `upcase-word', `ada-loose-case-word' or 
-`capitalize-word'.")
+`capitalize-word'."
+  :type '(choice (const downcase-word)
+                 (const upcase-word)
+                 (const capitalize-word)
+                 (const ada-loose-case-word))
+  :group 'ada)
 
-(defvar ada-auto-case t
+(defcustom ada-auto-case t
   "*Non-nil automatically changes case of preceding word while typing.
 Casing is done according to `ada-case-keyword', `ada-case-identifier'
-and `ada-case-attribute'.")
+and `ada-case-attribute'."
+  :type 'boolean
+  :group 'ada)
 
-(defvar ada-clean-buffer-before-saving t
-  "*If non-nil, `remove-trailing-spaces' and `untabify' buffer before saving.")
+(defcustom ada-clean-buffer-before-saving t
+  "*If non-nil, `remove-trailing-spaces' and `untabify' buffer before saving."
+  :type 'boolean
+  :group 'ada)
 
 (defvar ada-mode-hook nil
   "*List of functions to call when Ada mode is invoked.
 This is a good place to add Ada environment specific bindings.")
 
-(defvar ada-external-pretty-print-program "aimap"
-  "*External pretty printer to call from within Ada mode.")
+(defcustom ada-external-pretty-print-program "aimap"
+  "*External pretty printer to call from within Ada mode."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-tmp-directory "/tmp/"
-  "*Directory to store the temporary file for the Ada pretty printer.")
+(defcustom ada-tmp-directory "/tmp/"
+  "*Directory to store the temporary file for the Ada pretty printer."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-compile-options "-c"
+(defcustom ada-compile-options "-c"
   "*Buffer local options passed to the Ada compiler.
-These options are used when the compiler is invoked on the current buffer.")
+These options are used when the compiler is invoked on the current buffer."
+  :type 'string
+  :group 'ada)
 (make-variable-buffer-local 'ada-compile-options)
 
-(defvar ada-make-options "-c"
+(defcustom ada-make-options "-c"
   "*Buffer local options passed to `ada-compiler-make' (usually `gnatmake').
-These options are used when `gnatmake' is invoked on the current buffer.")
+These options are used when `gnatmake' is invoked on the current buffer."
+  :type 'string
+  :group 'ada)
 (make-variable-buffer-local 'ada-make-options)
 
-(defvar ada-compiler-syntax-check "gcc -c -gnats"
-  "*Compiler command with options for syntax checking.")
+(defcustom ada-compiler-syntax-check "gcc -c -gnats"
+  "*Compiler command with options for syntax checking."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-compiler-make "gnatmake"
-  "*The `make' command for the given compiler.")
+(defcustom ada-compiler-make "gnatmake"
+  "*The `make' command for the given compiler."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-fill-comment-prefix "-- "
-  "*This is inserted in the first columns when filling a comment paragraph.")
+(defcustom ada-fill-comment-prefix "-- "
+  "*This is inserted in the first columns when filling a comment paragraph."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-fill-comment-postfix " --"
+(defcustom ada-fill-comment-postfix " --"
   "*This is inserted at the end of each line when filling a comment paragraph.
-with `ada-fill-comment-paragraph-postfix'.")
+with `ada-fill-comment-paragraph-postfix'."
+  :type 'string
+  :group 'ada)
 
-(defvar ada-krunch-args "0"
+(defcustom ada-krunch-args "0"
   "*Argument of gnatkr, a string containing the max number of characters.
-Set to 0, if you don't use crunched filenames.")
+Set to 0, if you don't use crunched filenames."
+  :type 'string
+  :group 'ada)
 
 ;;; ---- end of user configurable variables
 
