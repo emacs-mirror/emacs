@@ -193,7 +193,7 @@ arguments compiles from `load-path'."
     (finder-summary)))
 
 (defun finder-list-matches (key)
-  (pop-to-buffer (set-buffer "*Finder Category*"))
+  (pop-to-buffer (set-buffer (get-buffer-create "*Finder Category*")))
   (finder-mode)
   (setq buffer-read-only nil)
   (erase-buffer)
