@@ -29,7 +29,7 @@
 #
 
 sub readheader {
- local($infile) = @_;
+ local($infile, $loud) = @_;
  
  unless (open(IN, $infile)) {
   die "File ".$infile." not found.";
@@ -37,12 +37,12 @@ sub readheader {
 
  $_ = "";
  while (! /TEST_HEADER/) {
-  ($_ = <IN>) || die "Couldn't find start of test header.\n";
+  ($_ = <IN>) || die "Couldn't find start of test header in $infile.\n";
  }
  s/.*TEST_HEADER//;
  $line = $_;
  while (! /END_HEADER/) {
-  ($_ = <IN> || die "Couldn't find end of test header.\n");
+  ($_ = <IN> || die "Couldn't find end of test header in $infile.\n");
   chop;
   $line = $line."; ".$_;
  }
@@ -53,7 +53,9 @@ sub readheader {
   $header = $1;
   $outspec = $2;
  } else {
-  print "No output specification -- assuming result=pass required.\n";
+  if ($loud) {
+   print "No output specification -- assuming result=pass required.\n";
+  }
   $header = $line;
   $outspec = "result=pass";
  }
@@ -84,7 +86,7 @@ sub readvals {
    $keyrelations{$1} = $2;
   } else {
    unless (m/^\W*/) {
-    print "Bad header item: ".$_."\n";
+    print "Bad header item: ".$_." in $infile.\n";
    }
   }
  }
