@@ -2,6 +2,10 @@
  summary = wait until all registered objects are finalized
  language = c
  link = testlib.o rankfmt.o
+OUTPUT_SPEC
+ count = 0
+ iter  < 4
+ result = pass
 END_HEADER
 */
 
@@ -103,9 +107,9 @@ static void test(void) {
  mps_fmt_t format;
  mps_ap_t apamc, apawl, aplo;
 
- mycell *a, *b, *c, *d, *e, *z;
+ mycell *a, *b, *c, *d, *z;
 
- long int j;
+ long int i,j;
 
  cdie(mps_space_create(&space), "create space");
 
@@ -179,9 +183,12 @@ static void test(void) {
 
  mps_arena_collect(space);
 
- while (final_count != 0) {
+ i = 0;
+
+ while (final_count != 0 && i < 10) {
   finalpoll(&z, FINAL_DISCARD);
   if (mps_message_poll(space) == 0) {
+   i++;
    a = allocdumb(apawl, 1024, MPS_RANK_WEAK);
    a = allocdumb(apamc, 1024, MPS_RANK_EXACT);
    a = allocdumb(aplo,  1024, MPS_RANK_EXACT);
@@ -194,7 +201,8 @@ static void test(void) {
    there's no guarantee)
 */
 
- report("count1", "%i", final_count);
+ report("count", "%i", final_count);
+ report("iter", "%i", i);
 
 /* now to test leaving messages open for a long time! */
 
@@ -224,5 +232,6 @@ int main(void) {
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

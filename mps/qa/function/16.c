@@ -27,7 +27,7 @@ static void test(void)
  size_t alignment;
  mps_addr_t q;
 
- int i;
+ mps_word_t i;
 
  cdie(mps_space_create(&space), "create space");
 
@@ -63,7 +63,7 @@ static void test(void)
 
  i = mps_collections(space)+2;
 
- while (mps_collections(space)<i)
+ while ((unsigned) mps_collections(space)<i)
  {
   allocdumb(apA, 1024*256);
  }

@@ -2,6 +2,7 @@
  summary = allocate 100 items, throw away and repeat
  language = c
  link = myfmt.o testlib.o
+ manual = true
 END_HEADER
 */
 

@@ -41,11 +41,11 @@ static void test(void) {
  mps_thr_t thread;
  mps_root_t root0, root1, root2;
 
- mps_addr_t p, q;
+ mps_addr_t p;
  mps_fmt_t format;
  mps_ap_t apawl, apamc;
 
- mycell *a, *b, *c, *d, *e, *f, *g;
+ mycell *a, *b;
 
  int i,j;
 
@@ -171,5 +171,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }
