@@ -93,7 +93,10 @@ rgexp to replace with IMAGE.  IMAGE is the name of a PBM file in
 
 ;;;###autoload
 (defun smiley-region (start end)
-  "Replace in the region `smiley-regexp-alist' matches with corresponding images."
+  "Display textual smileys as images.
+START and END specify the region; interactively, use the values
+of point and mark.  The value of `smiley-regexp-alist' determines
+which smileys to operate on and which images to use for them."
   (interactive "r")
   (when (and (fboundp 'display-graphic-p)
 	     (display-graphic-p))
