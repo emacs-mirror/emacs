@@ -3217,13 +3217,13 @@ save_window_save (window, vector, i)
 			   w->buffer);
 	    }
 	  else
-	    p->pointm = Fcopy_marker (w->pointm);
+	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 
-	  p->start = Fcopy_marker (w->start);
+	  p->start = Fcopy_marker (w->start, Qnil);
 	  p->start_at_line_beg = w->start_at_line_beg;
 
 	  tem = XBUFFER (w->buffer)->mark;
-	  p->mark = Fcopy_marker (tem);
+	  p->mark = Fcopy_marker (tem, Qnil);
 	}
       else
 	{
