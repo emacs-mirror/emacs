@@ -222,6 +222,11 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #endif
   struct coding_system process_coding; /* coding-system of process output */
   struct coding_system argument_coding;	/* coding-system of arguments */
+  /* Set to the return value of Ffind_operation_coding_system.  */
+  Lisp_Object coding_systems;
+
+  /* Qt denotes that Ffind_operation_coding_system is not yet called.  */
+  coding_systems = Qt;
 
   CHECK_STRING (args[0], 0);
 
@@ -234,12 +239,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     error ("Operating system cannot handle asynchronous subprocesses");
 #endif /* subprocesses */
 
-  /* Decide the coding-system for giving arguments and reading process
-     output.  */
+  /* Decide the coding-system for giving arguments.  */
   {
     Lisp_Object val, *args2;
-    /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
-    Lisp_Object coding_systems = Qt;
     int i;
 
     /* If arguments are supplied, we may have to encode them.  */
@@ -272,39 +274,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      val = Qnil;
 	  }
 	setup_coding_system (Fcheck_coding_system (val), &argument_coding);
-      }
-
-    /* If BUFFER is nil, we must read process output once and then
-       discard it, so setup coding system but with nil.  If BUFFER is
-       an integer, we can discard it without reading.  */
-    if (nargs < 3 || NILP (args[2])
-	|| (CONSP (args[2]) && NILP (XCAR (args[2]))))
-      setup_coding_system (Qnil, &process_coding);
-    else if (!INTEGERP (CONSP (args[2]) ? XCAR (args[2]) : args[2]))
-      {
-	val = Qnil;
-	if (!NILP (Vcoding_system_for_read))
-	  val = Vcoding_system_for_read;
-	else if (NILP (current_buffer->enable_multibyte_characters))
-	  val = Qraw_text;
-	else
-	  {
-	    if (EQ (coding_systems, Qt))
-	      {
-		args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
-		args2[0] = Qcall_process;
-		for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-		coding_systems
-		  = Ffind_operation_coding_system (nargs + 1, args2);
-	      }
-	    if (CONSP (coding_systems))
-	      val = XCONS (coding_systems)->car;
-	    else if (CONSP (Vdefault_process_coding_system))
-	      val = XCONS (Vdefault_process_coding_system)->car;
-	    else
-	      val = Qnil;
-	  }
-	setup_coding_system (Fcheck_coding_system (val), &process_coding);
       }
   }
 
@@ -634,6 +603,47 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   if (BUFFERP (buffer))
     Fset_buffer (buffer);
 
+  if (NILP (buffer))
+    {
+      /* If BUFFER is nil, we must read process output once and then
+	 discard it, so setup coding system but with nil.  */
+      setup_coding_system (Qnil, &process_coding);
+    }
+  else
+    {
+      Lisp_Object val, *args2;
+
+      val = Qnil;
+      if (!NILP (Vcoding_system_for_read))
+	val = Vcoding_system_for_read;
+      else
+	{
+	  if (EQ (coding_systems, Qt))
+	    {
+	      int i;
+
+	      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	      args2[0] = Qcall_process;
+	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	      coding_systems
+		= Ffind_operation_coding_system (nargs + 1, args2);
+	    }
+	  if (CONSP (coding_systems))
+	    val = XCONS (coding_systems)->car;
+	  else if (CONSP (Vdefault_process_coding_system))
+	    val = XCONS (Vdefault_process_coding_system)->car;
+	  else
+	    val = Qnil;
+	}
+      setup_coding_system (Fcheck_coding_system (val), &process_coding);
+      /* In unibyte mode, character code conversion should not take
+	 place but EOL conversion should.  So, setup raw-text or one
+	 of the subsidiary according to the information just setup.  */
+      if (NILP (current_buffer->enable_multibyte_characters)
+	  && !NILP (val))
+	setup_raw_text_coding_system (&process_coding);
+    }
+
   immediate_quit = 1;
   QUIT;
 
@@ -811,7 +821,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   register Lisp_Object start, end;
   int count = specpdl_ptr - specpdl;
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
-  Lisp_Object coding_systems = Qt;
+  Lisp_Object coding_systems;
   Lisp_Object val, *args2;
   int i;
 #ifdef DOS_NT
@@ -843,6 +853,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   bcopy (XSTRING (Vtemp_file_name_pattern)->data, tempfile,
 	 STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
 #endif /* not DOS_NT */
+
+  coding_systems = Qt;
 
   mktemp (tempfile);
 
