@@ -104,6 +104,7 @@ But only if `goto-address-highlight-p' is also non-nil."
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
     (define-key m [mouse-2] 'goto-address-at-mouse)
+    (define-key m "\C-c\r" 'goto-address-at-point)
     m)
   "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
@@ -229,7 +230,6 @@ By default, goto-address binds to mouse-2 and C-c RET.
 Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 `goto-address-highlight-p' for more information)."
   (interactive)
-  (local-set-key "\C-c\r" 'goto-address-at-point)
   (if goto-address-highlight-p
       (goto-address-fontify)))
 
