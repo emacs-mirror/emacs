@@ -18,8 +18,8 @@ sub compiler_settings {
  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes \\
   -Winline -Waggregate-return -Wnested-externs -Wcast-qual \\
   -Wshadow -Wmissing-prototypes -Wredundant-decls -Wcast-align \\
-  -O -g -ggdb3 -D$MMQA_VERSION";
- $cc_link = "$obj_dir/platform.o $plat_link{$platform_class}";
+  -O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
+ $cc_link = "$obj_dir/platform.o $plat_link{$PLATFORM}";
  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
 }
 

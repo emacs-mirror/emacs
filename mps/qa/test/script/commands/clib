@@ -4,7 +4,15 @@
 # putting the resulting .o files in $obj_dir.
 #
 
-print "Compiling test libraries in $testlib_dir.\n";
+&options(
+ "MPS_INCLUDE_DIR",
+ "INTERFACE_VERSION",
+ "PLATFORM"
+);
+
+require "dirs";
+
+print "Compiling test libraries from $testlib_dir.\n";
 
 require "compile";
 

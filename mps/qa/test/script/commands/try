@@ -3,6 +3,14 @@
 # run tests interactively (allows for user input, immediate results,
 # &c, but doesn't give results in standard format)
 
+&options(
+ "MPS_INCLUDE_DIR",
+ "MPS_LINK_OBJ",
+ "INTERFACE_VERSION",
+ "PLATFORM"
+);
+
+require "dirs";
 require "headread";
 require "compile";
 
