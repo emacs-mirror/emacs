@@ -19,23 +19,32 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Access the slots of a display-table, according to their purpose.  */
 
-#define DISP_TABLE_SIZE 262
-#define DISP_TRUNC_GLYPH(dp) ((dp)->contents[256])
-#define DISP_CONTINUE_GLYPH(dp) ((dp)->contents[257])
-#define DISP_ESCAPE_GLYPH(dp) ((dp)->contents[258])
-#define DISP_CTRL_GLYPH(dp) ((dp)->contents[259])
-#define DISP_INVIS_VECTOR(dp) ((dp)->contents[260])
-#define DISP_BORDER_GLYPH(dp) ((dp)->contents[261])
+#define DISP_TABLE_P(obj)						    \
+  (CHAR_TABLE_P (obj)							    \
+   && XCHAR_TABLE (obj)->purpose == Qdisplay_table			    \
+   && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (obj)) == DISP_TABLE_EXTRA_SLOTS)
+
+#define DISP_TABLE_EXTRA_SLOTS 6
+#define DISP_TRUNC_GLYPH(dp) ((dp)->extras[0])
+#define DISP_CONTINUE_GLYPH(dp) ((dp)->extras[1])
+#define DISP_ESCAPE_GLYPH(dp) ((dp)->extras[2])
+#define DISP_CTRL_GLYPH(dp) ((dp)->extras[3])
+#define DISP_INVIS_VECTOR(dp) ((dp)->extras[4])
+#define DISP_BORDER_GLYPH(dp) ((dp)->extras[5])
+
 #define DISP_CHAR_VECTOR(dp, c) ((dp)->contents[c])
 
 /* Defined in window.c.  */
-extern struct Lisp_Vector *window_display_table ();
+extern struct Lisp_Char_Table *window_display_table ();
 
 /* Defined in indent.c.  */
-extern struct Lisp_Vector *buffer_display_table ();
+extern struct Lisp_Char_Table *buffer_display_table ();
 
 /* Display table to use for vectors that don't specify their own.  */
 extern Lisp_Object Vstandard_display_table;
+
+/* This is the `purpose' slot of a display table.  */
+extern Lisp_Object Qdisplay_table;
 
 /* Vector of GLYPH definitions.  Indexed by GLYPH number,
    the contents are a string which is how to output the GLYPH.  */
