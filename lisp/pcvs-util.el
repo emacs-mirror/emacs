@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.14 2001/10/03 20:28:01 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.15 2001/11/17 00:48:14 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -185,18 +185,16 @@ Uses columns to keep the listing readable but compact."
 If ONELINE is t, only the first line (no \\n) will be returned.
 If ARGS is non-nil, the file will be executed with ARGS as its
 arguments.  If ARGS is not a list, no argument will be passed."
-  (with-temp-buffer
-    (condition-case nil
-	(progn
-	  (if args
-	      (apply 'call-process
-		     file nil t nil (when (listp args) args))
-	    (insert-file-contents file))
-	  (buffer-substring (point-min)
-			    (if oneline
-				(progn (goto-char (point-min)) (end-of-line) (point))
-			      (point-max))))
-      (file-error nil))))
+  (condition-case nil
+      (with-temp-buffer
+	(if args
+	    (apply 'call-process
+		   file nil t nil (when (listp args) args))
+	  (insert-file-contents file))
+	(goto-char (point-min))
+	(buffer-substring (point)
+			  (if oneline (line-end-position) (point-max))))
+    (file-error nil)))
 
 (defun cvs-string-prefix-p (str1 str2)
   "Tell whether STR1 is a prefix of STR2."
@@ -230,7 +228,8 @@ The SEPARATOR regexp defaults to \"\\s-+\"."
       (append (unless (eq i 0) (split-string (substring string 0 i) sep))
 	      (let ((rfs (read-from-string string i)))
 		(cons (car rfs)
-		      (cvs-string->strings (substring string (cdr rfs)) sep)))))))
+		      (cvs-string->strings (substring string (cdr rfs))
+					   sep)))))))
 
 ;;;; 
 ;;;; file names
