@@ -73,7 +73,11 @@
 
 ;;; Things To Do:
 ;;
-;; 1. More functions for analyzing ciphertext
+;; Email me if you have any suggestions or would like to help.
+;; But be aware that I work on Decipher only sporadically.
+;;
+;; 1. The consonant-line shortcut
+;; 2. More functions for analyzing ciphertext
 
 ;;;===================================================================
 ;;; Variables:
@@ -173,6 +177,18 @@ list of such cons cells.")
 (make-variable-buffer-local 'decipher-undo-list)
 
 (defvar decipher-pending-undo-list nil)
+
+;; The following variables are used by the analysis functions
+;; and are defined here to avoid byte-compiler warnings.
+;; Don't mess with them unless you know what you're doing.
+(defvar decipher-char nil
+  "See the functions decipher-loop-with-breaks and decipher-loop-no-breaks.")
+(defvar decipher--prev-char)
+(defvar decipher--digram)
+(defvar decipher--digram-list)
+(defvar decipher--before)
+(defvar decipher--after)
+(defvar decipher--freqs)
 
 ;;;===================================================================
 ;;; Code:
@@ -750,42 +766,43 @@ TOTAL is the total number of letters in the ciphertext."
   ;; Perform frequency analysis on ciphertext.
   ;;
   ;; This function is called repeatedly with decipher-char set to each
-  ;; character of ciphertext.  It uses decipher-prev-char to remember
+  ;; character of ciphertext.  It uses decipher--prev-char to remember
   ;; the previous ciphertext character.
   ;;
   ;; It builds several data structures, which must be initialized
   ;; before the first call to decipher--analyze.  The arrays are
   ;; indexed with A = 0, B = 1, ..., Z = 25, SPC = 26 (if used).
-  ;;   after-array: (initialize to zeros)
+  ;;   decipher--after: (initialize to zeros)
   ;;     A vector of 26 vectors of 27 integers.  The first vector
   ;;     represents the number of times A follows each character, the
   ;;     second vector represents B, and so on.
-  ;;   before-array: (initialize to zeros)
-  ;;     The same as after-array, but representing the number of times
-  ;;     the character precedes each other character.
-  ;;   digram-list: (initialize to nil)
+  ;;   decipher--before: (initialize to zeros)
+  ;;     The same as decipher--after, but representing the number of
+  ;;     times the character precedes each other character.
+  ;;   decipher--digram-list: (initialize to nil)
   ;;     An alist with an entry for each digram (2-character sequence)
   ;;     encountered.  Each element is a cons cell (DIGRAM . FREQ),
   ;;     where DIGRAM is a 2 character string and FREQ is the number
   ;;     of times it occurs.
-  ;;   freq-array: (initialize to zeros)
+  ;;   decipher--freqs: (initialize to zeros)
   ;;     A vector of 26 integers, counting the number of occurrences
   ;;     of the corresponding characters.
-  (setq digram (format "%c%c" decipher-prev-char decipher-char))
-  (incf (cdr (or (assoc digram digram-list)
-                 (car (push (cons digram 0) digram-list)))))
-  (and (>= decipher-prev-char ?A)
-       (incf (aref (aref before-array (- decipher-prev-char ?A))
+  (setq decipher--digram (format "%c%c" decipher--prev-char decipher-char))
+  (incf (cdr (or (assoc decipher--digram decipher--digram-list)
+                 (car (push (cons decipher--digram 0)
+                            decipher--digram-list)))))
+  (and (>= decipher--prev-char ?A)
+       (incf (aref (aref decipher--before (- decipher--prev-char ?A))
                    (if (equal decipher-char ?\ )
                        26
                      (- decipher-char ?A)))))
   (and (>= decipher-char ?A)
-       (incf (aref freq-array (- decipher-char ?A)))
-       (incf (aref (aref after-array (- decipher-char ?A))
-                   (if (equal decipher-prev-char ?\ )
+       (incf (aref decipher--freqs (- decipher-char ?A)))
+       (incf (aref (aref decipher--after (- decipher-char ?A))
+                   (if (equal decipher--prev-char ?\ )
                        26
-                     (- decipher-prev-char ?A)))))
-  (setq decipher-prev-char decipher-char))
+                     (- decipher--prev-char ?A)))))
+  (setq decipher--prev-char decipher-char))
 
 (defun decipher--digram-counts (counts)
   "Generate the counts for an adjacency list."
@@ -815,29 +832,29 @@ TOTAL is the total number of letters in the ciphertext."
 (defun decipher-analyze-buffer ()
   "Perform frequency analysis and store results in statistics buffer.
 Creates the statistics buffer if it doesn't exist."
-  (let ((decipher-prev-char (if decipher-ignore-spaces ?\  ?\*))
-        (before-array (make-vector 26 nil))
-        (after-array  (make-vector 26 nil))
-        (freq-array   (make-vector 26 0))
+  (let ((decipher--prev-char (if decipher-ignore-spaces ?\  ?\*))
+        (decipher--before (make-vector 26 nil))
+        (decipher--after  (make-vector 26 nil))
+        (decipher--freqs   (make-vector 26 0))
         (total-chars  0)
-        digram digram-list freq-list)
+        decipher--digram decipher--digram-list freq-list)
     (message "Scanning buffer...")
     (let ((i 26))
       (while (>= (decf i) 0)
-        (aset before-array i (make-vector 27 0))
-        (aset after-array  i (make-vector 27 0))))
+        (aset decipher--before i (make-vector 27 0))
+        (aset decipher--after  i (make-vector 27 0))))
     (if decipher-ignore-spaces
         (progn
           (decipher-loop-no-breaks 'decipher--analyze)
           ;; The first character of ciphertext was marked as following a space:
           (let ((i 26))
             (while (>= (decf i) 0)
-              (aset (aref after-array  i) 26 0))))
+              (aset (aref decipher--after  i) 26 0))))
       (decipher-loop-with-breaks 'decipher--analyze))
     (message "Processing results...")
-    (setcdr (last digram-list 2) nil)   ;Delete the phony "* " digram
+    (setcdr (last decipher--digram-list 2) nil)   ;Delete the phony "* " digram
     ;; Sort the digram list by frequency and alphabetical order:
-    (setq digram-list (sort (sort digram-list
+    (setq decipher--digram-list (sort (sort decipher--digram-list
                                   (lambda (a b) (string< (car a) (car b))))
                             (lambda (a b) (> (cdr a) (cdr b)))))
     ;; Generate the frequency list:
@@ -849,11 +866,11 @@ Creates the statistics buffer if it doesn't exist."
       (while (>= (decf i) 0)
         (setq freq-list
               (cons (list (+ i ?A)
-                          (aref freq-array i)
-                          (decipher--digram-total (aref before-array i)
-                                                  (aref after-array  i)))
+                          (aref decipher--freqs i)
+                          (decipher--digram-total (aref decipher--before i)
+                                                  (aref decipher--after  i)))
                     freq-list)
-              total-chars (+ total-chars (aref freq-array i)))))
+              total-chars (+ total-chars (aref decipher--freqs i)))))
     (save-excursion
       ;; Switch to statistics buffer, creating it if necessary:
       (set-buffer (decipher-stats-buffer t))
@@ -874,11 +891,11 @@ Creates the statistics buffer if it doesn't exist."
                              freq-list nil)
               "\n\n")
       ;; Display list of digrams in order of frequency:
-      (let* ((rows (floor (+ (length digram-list) 9) 10))
+      (let* ((rows (floor (+ (length decipher--digram-list) 9) 10))
              (i rows)
              temp-list)
         (while (> i 0)
-          (setq temp-list digram-list)
+          (setq temp-list decipher--digram-list)
           (while temp-list
             (insert (caar temp-list)
                     (format "%3d   "
@@ -886,7 +903,7 @@ Creates the statistics buffer if it doesn't exist."
             (setq temp-list (nthcdr rows temp-list)))
           (delete-horizontal-space)
           (insert ?\n)
-          (setq digram-list (cdr digram-list)
+          (setq decipher--digram-list (cdr decipher--digram-list)
                 i           (1- i))))
       ;; Display adjacency list for each letter, sorted in descending
       ;; order of the number of adjacent letters:
@@ -899,13 +916,13 @@ Creates the statistics buffer if it doesn't exist."
               nil                       ;This letter was not used
             (setq i (- (car entry) ?A))
             (insert ?\n "  "
-                    (decipher--digram-counts (aref before-array i)) ?\n
+                    (decipher--digram-counts (aref decipher--before i)) ?\n
                     (car entry)
                     ": A B C D E F G H I J K L M N O P Q R S T U V W X Y Z *"
                     (format "%4d %4d %3d%%\n  "
                             (third entry) (second entry)
                             (/ (* 100 (second entry)) total-chars))
-                    (decipher--digram-counts (aref after-array  i)) ?\n))))
+                    (decipher--digram-counts (aref decipher--after  i)) ?\n))))
       (setq buffer-read-only t)
       (set-buffer-modified-p nil)
       ))
