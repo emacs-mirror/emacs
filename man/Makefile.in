@@ -13,8 +13,10 @@ VPATH=@srcdir@
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo
 INFO_TARGETS = ../info/emacs ../info/cl ../info/forms ../info/vip \
-	       ../info/gnus ../info/sc ../info/info ../info/dired-x
-DVI_TARGETS = emacs.dvi cl.dvi forms.dvi vip.dvi gnus.dvi sc.dvi dired-x.dvi
+	       ../info/gnus ../info/sc ../info/info ../info/dired-x \
+	       ../info/mh-e
+DVI_TARGETS = emacs.dvi cl.dvi forms.dvi vip.dvi gnus.dvi sc.dvi \
+		dired-x.dvi mh-e.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -93,6 +95,11 @@ dired-x.dvi: dired-x.texi
 	$(MAKEINFO) forms.texi
 forms.dvi: forms.texi
 	$(TEXI2DVI) ${srcdir}/forms.texi
+
+../info/mh-e: mh-e.texi
+	$(MAKEINFO) mh-e.texi
+mh-e.dvi: mh-e.texi
+	$(TEXI2DVI) ${srcdir}/mh-e.texi
 
 ../info/sc: sc.texi
 	$(MAKEINFO) sc.texi
