@@ -1419,7 +1419,7 @@ If summary buffer is currently displayed, update current message there also."
 		(overlays rmail-overlay-list))
 	    (goto-char (point-min))
 	    (while (re-search-forward rmail-highlighted-headers nil t)
-	      (skip-syntax-forward " ")
+	      (skip-chars-forward " \t")
 	      (let ((beg (point))
 		    overlay)
 		(while (progn (forward-line 1)
