@@ -160,6 +160,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_STRING_H
 #undef HAVE_STDLIB_H
 #undef HAVE_TERMCAP_H
+#undef HAVE_TERM_H
 #undef HAVE_STDIO_EXT_H
 #undef STDC_HEADERS
 #undef TIME_WITH_SYS_TIME
@@ -283,6 +284,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_GRANTPT
 #undef HAVE_GETPT
 #undef HAVE_SPEED_T		/* speed_t typedef in termios.h */
+#undef HAVE_STRUCT_TIMEZONE
 
 #undef LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
