@@ -1,8 +1,11 @@
-2004-02-04  Luc Teirlinck  <teirllm@auburn.edu>
-
-	* editfns.c (Fchar_after, Fchar_before): Doc fixes.
-
 2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Add declaration of free_frame_menubar.
+
+	* xfns.c (x_create_bitmap_mask): Removed unused variable depth.
+	(x_set_menu_bar_lines): Added ! defined USE_GTK for olines.
+	(Fx_change_window_property): Add declaration of parameters type and 
+	format.  Remove unused variable cons.
 
 	* xselect.c: Include stdio,h.
 
@@ -11,6 +14,10 @@
 	* fns.c (Fset_char_table_range): Fix previous change.
 
 	* buffer.c (Fset_buffer_multibyte): Fix docstring.
+
+2004-02-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* editfns.c (Fchar_after, Fchar_before): Doc fixes.
 
 2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
