@@ -691,43 +691,46 @@ With prefix argument ARG, repeat this ARG times."
     (if (looking-at "</\\([^ \n\t>]+\\)")
 	;; end tag, skip any nested pairs
 	(let ((case-fold-search t)
-	      (re (concat "</?" (regexp-quote (match-string 1)))))
+	      (re (concat "</?" (regexp-quote (match-string 1))
+			  ;; Ignore empty tags like <foo/>.
+			  "\\([^>]*[^/>]\\)?>")))
 	  (while (and (re-search-backward re nil t)
 		      (eq (char-after (1+ (point))) ?/))
 	    (forward-char 1)
 	    (sgml-skip-tag-backward 1))))
     (setq arg (1- arg))))
 
-(defun sgml-skip-tag-forward (arg &optional return)
+(defun sgml-skip-tag-forward (arg)
   "Skip to end of tag or matching closing tag if present.
 With prefix argument ARG, repeat this ARG times.
 Return t iff after a closing tag."
   (interactive "p")
-  (setq return t)
-  (while (>= arg 1)
-    (skip-chars-forward "^<>")
-    (if (eq (following-char) ?>)
-	(up-list -1))
-    (if (looking-at "<\\([^/ \n\t>]+\\)")
-	;; start tag, skip any nested same pairs _and_ closing tag
-	(let ((case-fold-search t)
-	      (re (concat "</?" (regexp-quote (match-string 1))))
-	      point close)
-	  (forward-list 1)
-	  (setq point (point))
-	  (while (and (re-search-forward re nil t)
-		      (not (setq close
-				 (eq (char-after (1+ (match-beginning 0))) ?/)))
-		      (not (up-list -1))
-		      (sgml-skip-tag-forward 1))
-	    (setq close nil))
-	  (if close
-	      (up-list 1)
-	    (goto-char point)
-	    (setq return)))
-      (forward-list 1))
-    (setq arg (1- arg)))
-  return)
+  (let ((return t))
+    (while (>= arg 1)
+      (skip-chars-forward "^<>")
+      (if (eq (following-char) ?>)
+	  (up-list -1))
+      (if (looking-at "<\\([^/ \n\t>]+\\)\\([^>]*[^/>]\\)?>")
+	  ;; start tag, skip any nested same pairs _and_ closing tag
+	  (let ((case-fold-search t)
+		(re (concat "</?" (regexp-quote (match-string 1))
+			    ;; Ignore empty tags like <foo/>.
+			    "\\([^>]*[^/>]\\)?>"))
+		point close)
+	    (forward-list 1)
+	    (setq point (point))
+	    (while (and (re-search-forward re nil t)
+			(not (setq close
+				   (eq (char-after (1+ (match-beginning 0))) ?/)))
+			(goto-char (match-beginning 0))
+			(sgml-skip-tag-forward 1))
+	      (setq close nil))
+	    (unless close
+	      (goto-char point)
+	      (setq return nil)))
+	(forward-list 1))
+      (setq arg (1- arg)))
+    return))
 
 (defun sgml-delete-tag (arg)
   "Delete tag on or after cursor, and matching closing or opening tag.
