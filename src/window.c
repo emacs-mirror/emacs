@@ -1669,7 +1669,6 @@ MINIBUF neither nil nor t means never include the minibuffer window.")
   (frame, minibuf, window)
      Lisp_Object frame, minibuf, window;
 {
-
   if (NILP (window))
     window = selected_window;
   if (NILP (frame))
@@ -1764,13 +1763,6 @@ window_loop (type, obj, mini, frames)
   else
     window = FRAME_SELECTED_WINDOW (SELECTED_FRAME ());
 
-  /* Figure out the last window we're going to mess with.  Since
-     Fnext_window, given the same options, is guaranteed to go in a
-     ring, we can just use Fprevious_window to find the last one.
-
-     We can't just wait until we hit the first window again, because
-     it might be deleted.  */
-
   windows = window_list_1 (window, mini ? Qt : Qnil, frame_arg);
   GCPRO1 (windows);
   best_window = Qnil;
@@ -1799,8 +1791,12 @@ window_loop (type, obj, mini, frames)
 		    ? EQ (window, minibuf_window)
 		    : 1))
 	      {
-		UNGCPRO;
-		return window;
+		if (NILP (best_window))
+		  best_window = window;
+		else if (EQ (window, selected_window))
+		  /* For compatibility with 20.x, prefer to return
+		     selected-window.  */
+		  best_window = window;
 	      }
 	    break;
 
