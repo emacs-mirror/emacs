@@ -27,12 +27,8 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "mocklisp.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
+#ifdef HAVE_INDEX
+extern char *index P_ ((const char *, int));
 #endif
 
 extern Lisp_Object Qcursor_in_echo_area;

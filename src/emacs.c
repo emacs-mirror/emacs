@@ -60,14 +60,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/resource.h>
 #endif
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -81,6 +73,9 @@ Boston, MA 02111-1307, USA.  */
 
 extern void malloc_warning P_ ((char *));
 extern void set_time_zone_rule P_ ((char *));
+#ifdef HAVE_INDEX
+extern char *index P_ ((const char *, int));
+#endif
 
 /* Make these values available in GDB, which doesn't see macros.  */
 

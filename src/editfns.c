@@ -42,14 +42,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include "systime.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -78,6 +70,10 @@ static void general_insert_function P_ ((void (*) (unsigned char *, int),
 static Lisp_Object subst_char_in_region_unwind P_ ((Lisp_Object));
 static Lisp_Object subst_char_in_region_unwind_1 P_ ((Lisp_Object));
 static void transpose_markers P_ ((int, int, int, int, int, int, int, int));
+
+#ifdef HAVE_INDEX
+extern char *index P_ ((const char *, int));
+#endif
 
 Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;

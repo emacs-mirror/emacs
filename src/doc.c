@@ -41,12 +41,8 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "charset.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
+#ifdef HAVE_INDEX
+extern char *index P_ ((const char *, int));
 #endif
 
 Lisp_Object Vdoc_file_name, Vhelp_manyarg_func_alist;
