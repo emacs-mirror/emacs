@@ -131,9 +131,6 @@
     ("light gray"	. "lightgray")
     ("gray"		. "darkgray")
     ("grey"		. "darkgray")
-    ("gray80"		. "darkgray")
-    ("gray50"		. "black")
-    ("gray90"		. "darkgray")
     ("khaki"		. "green")
     ("maroon"		. "red")
     ("orange"		. "brown")
@@ -165,7 +162,6 @@
     ("greenyellow"	. "yellow")
     ("purple"		. "magenta")
     ("royalblue"	. "blue")
-    ("grey40"		. "darkgray")
     ("rosybrown"	. "brown")
     ("rosy brown"	. "brown")
     ("beige"		. "brown"))
@@ -200,7 +196,26 @@
 	     (msdos-color-translate (substring name 4)))
 	(and (> len 5)
 	     (string= "dark " (substring name 0 5))
-	     (msdos-color-translate (substring name 5))))))
+	     (msdos-color-translate (substring name 5)))
+	(and (> len 4) ;; gray shades: gray0 to gray100
+	     (save-match-data
+	       (and
+		(string-match "gr[ae]y[0-9]" name)
+		(string-match "[0-9]+\\'" name)
+		(let ((num (string-to-int
+			    (substring name (match-beginning 0)))))
+		  (msdos-color-translate
+		   (cond
+		    ((> num 90) "white")
+		    ((> num 50) "lightgray")
+		    ((> num 10) "darkgray")
+		    (t "black")))))))
+	(and (> len 1) ;; purple1 to purple4 and the like
+	     (save-match-data
+	       (and
+		(string-match "[1-4]\\'" name)
+		(msdos-color-translate
+		 (substring name 0 (match-beginning 0)))))))))
 ;; ---------------------------------------------------------------------------
 ;; We want to delay setting frame parameters until the faces are setup
 (defvar default-frame-alist nil)
@@ -217,11 +232,16 @@
 (defun msdos-face-setup ()
   (modify-frame-parameters terminal-frame default-frame-alist)
 
+  (modify-frame-parameters terminal-frame
+			   (list (cons 'background-mode
+				       (msdos-bg-mode terminal-frame))
+				 (cons 'display-type 'color)))
+  (face-set-after-frame-default terminal-frame)
+
   (set-face-foreground 'bold "yellow" terminal-frame)
   (set-face-foreground 'italic "red" terminal-frame)
   (set-face-foreground 'bold-italic "lightred" terminal-frame)
   (set-face-foreground 'underline "white" terminal-frame)
-  (set-face-background 'region "green" terminal-frame)
 
   (make-face 'msdos-menu-active-face)
   (make-face 'msdos-menu-passive-face)
@@ -230,11 +250,7 @@
   (set-face-foreground 'msdos-menu-passive-face "lightgray" terminal-frame)
   (set-face-background 'msdos-menu-active-face "blue" terminal-frame)
   (set-face-background 'msdos-menu-passive-face "blue" terminal-frame)
-  (set-face-background 'msdos-menu-select-face "red" terminal-frame)
-  (modify-frame-parameters terminal-frame
-			   (list (cons 'background-mode
-				       (msdos-bg-mode terminal-frame))
-				 (cons 'display-type 'color))))
+  (set-face-background 'msdos-menu-select-face "red" terminal-frame))
 
 ;; We have only one font, so...
 (add-hook 'before-init-hook 'msdos-face-setup)
