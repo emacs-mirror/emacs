@@ -670,6 +670,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		   (mapconcat (lambda (obj) (prin1-to-string obj t))
 			      (cdr error) ", "))))
       'external-debugging-output)
+     (terpri 'external-debugging-output)
      (setq window-system nil)
      (kill-emacs)))
 
