@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.23 2003/05/13 14:30:58 rv Exp $
+;; $Id: whitespace.el,v 1.24 2003/06/11 03:50:45 rv Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -570,7 +570,8 @@ whitespace problems."
 	(if whitespace-any
 	    (whitespace-cleanup)
 	  (progn
-	    (message "%s clean" buffer-file-name)
+	    (if (not whitespace-silent)
+		(message "%s clean" buffer-file-name))
 	    (whitespace-update-modeline)))
 	(setq tab-width whitespace-tabwith-saved))))
 

@@ -1,6 +1,8 @@
 2003-06-10  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-version): bump to 3.3
+	(whitespace-cleanup): Respect user preference for silence
+
 	* whitespace.el: Remove :tag in commentary :link. Remove empty
 	lines in comment, since commentary seems to have a problem with that.
 	
