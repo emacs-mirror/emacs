@@ -193,11 +193,27 @@ use X selections.")
     }
   else if (EQ (type, Qcut_buffer0))
     {
+      /* DECwindows and some other servers don't seem to like setting
+	 properties to values larger than about 20k.  For very large
+	 values, they signal an error, but for intermediate values
+	 they just seem to hang.
+
+	 We could just truncate the request, but it's better to let
+	 the user know that the strategy he/she's using isn't going to
+	 work than to have it work partially, but incorrectly.  */
       BLOCK_INPUT;
-      XStoreBytes (x_current_display,
-		   (char *) XSTRING (string)->data,
-		   XSTRING (string)->size);
-      val = string;
+      if (XSTRING (string)->size > MAX_SELECTION (x_current_display))
+	{
+	  XStoreBytes (x_current_display, (char *) 0, 0);
+	  val = Qnil;
+	}
+      else
+	{
+	  XStoreBytes (x_current_display,
+		       (char *) XSTRING (string)->data,
+		       XSTRING (string)->size);
+	  val = string;
+	}
       UNBLOCK_INPUT;
     }
   else

@@ -68,6 +68,7 @@ Lisp_Object Qcompletion_ignore_case;
 Lisp_Object Qdirectory_files;
 Lisp_Object Qfile_name_completion;
 Lisp_Object Qfile_name_all_completions;
+Lisp_Object Qfile_attributes;
 
 DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
   "Return a list of names of files in DIRECTORY.\n\
@@ -86,7 +87,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (dirname);
   if (!NILP (handler))
     {
       Lisp_Object args[6];
@@ -190,7 +191,7 @@ Returns nil if DIR contains no name starting with FILE.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (dirname);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_completion, file, dirname);
 
@@ -208,7 +209,7 @@ These are all file names in directory DIR which begin with FILE.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (dirname);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, dirname);
 
@@ -505,6 +506,7 @@ syms_of_dired ()
   Qdirectory_files = intern ("directory-files");
   Qfile_name_completion = intern ("file-name-completion");
   Qfile_name_all_completions = intern ("file-name-all-completions");
+  Qfile_attributes = intern ("file-attributes");
 
   defsubr (&Sdirectory_files);
   defsubr (&Sfile_name_completion);
