@@ -1,3 +1,15 @@
+2004-02-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (generate-calendar)
+	(calendar-read-date): Prevent display of BC calendars once more -
+	reverts 2003-10-01 change.
+	(generate-calendar-month): Doc fix.
+
+2004-02-03  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* calendar/diary-lib.el (fancy-diary-display): Don't rely on
+	return value of increment-calendar-month.
+
 2004-02-21  Stephen Compall  <s11@member.fsf.org>
 
 	* saveplace.el (save-place-forget-unreadable-files)
