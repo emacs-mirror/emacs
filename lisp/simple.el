@@ -2668,7 +2668,8 @@ Outline mode sets this."
 	    (line-end
 	     ;; Compute the end of the line
 	     ;; ignoring effectively intangible newlines.
-	     (let ((inhibit-point-motion-hooks nil))
+	     (let ((inhibit-point-motion-hooks nil)
+		   (inhibit-field-text-motion t))
 	       (save-excursion (end-of-line) (point)))))
 
 	;; Move to the desired column.
