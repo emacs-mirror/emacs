@@ -1978,7 +1978,7 @@ Both characters must have the same length of multi-byte form.")
 	      /* replace_range is less efficient, because it moves the gap,
 		 but it handles combining correctly.  */
 	      replace_range (pos, pos + 1, string,
-			     0, 0, 0);
+			     0, 0, 1);
 	      if (! NILP (noundo))
 		current_buffer->undo_list = tem;
 
