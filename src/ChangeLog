@@ -1,3 +1,11 @@
+2000-12-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c (w32_init_bdf_font): Fix test for valid bmp heap.
+
+	* w32term.c (x_draw_hollow_cursor): Delay obtaining the frame's DC
+	to avoid returning without releasing it.
+
+	
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* keymap.c (push_key_description): Don't convert eight-bit-control
