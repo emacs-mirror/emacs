@@ -749,7 +749,7 @@ If NOERROR is non-nil, return nil on failure."
       (if (cdr (or (assq 'reverse parameters)
 		   (assq 'reverse default-frame-alist)
 		   (cons nil
-			 (x-get-resource "reverseVideo" "Reversevideo"))))
+			 (x-get-resource "reverseVideo" "ReverseVideo"))))
 	  (let ((params (frame-parameters frame)))
 	    (modify-frame-parameters
 	     frame
