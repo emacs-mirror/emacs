@@ -385,6 +385,11 @@ Search}.
 @section Syntax of Regular Expressions
 @cindex syntax of regexps
 
+  This manual describes regular expression features that users
+typically want to use.  There are additional features that are
+mainly used in Lisp programs; see @ref{Regular Expressions,,,
+elisp, the same manual}.
+
   Regular expressions have a syntax in which a few characters are
 special constructs and the rest are @dfn{ordinary}.  An ordinary
 character is a simple regular expression which matches that same
