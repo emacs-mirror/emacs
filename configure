@@ -9797,7 +9797,9 @@ _ACEOF
 
   USE_X_TOOLKIT=none
 
-      with_toolkit_scroll_bars=yes
+      if test "$with_toolkit_scroll_bars" != no; then
+    with_toolkit_scroll_bars=yes
+  fi
 
       HAVE_GTK_MULTIDISPLAY=no
 

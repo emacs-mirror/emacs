@@ -1967,7 +1967,9 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
 
   dnl  GTK scrollbars resemble toolkit scrollbars a lot, so to avoid
   dnl  a lot if #ifdef:s, say we have toolkit scrollbars.
-  with_toolkit_scroll_bars=yes
+  if test "$with_toolkit_scroll_bars" != no; then
+    with_toolkit_scroll_bars=yes
+  fi
 
   dnl  Check if we can use multiple displays with this GTK version.
   dnl  If gdk_display_open exists, assume all others are there also.
