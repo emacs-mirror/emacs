@@ -1,3 +1,12 @@
+2000-12-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/easymenu.el (easy-menu-current-active-maps): Test
+	if symbol is bound before getting its value.
+
+	* tooltip.el (tooltip-show): If an error is signaled in
+	x-show-tip, display that error, and display the help in the
+	echo area.
+
 2000-12-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ja-dic-cnv.el (skkdic-set-okuri-nasi): Show
