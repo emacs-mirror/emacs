@@ -1,5 +1,5 @@
 /* Header for fontset handler.
-   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 1995, 1997, 2000 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -47,14 +47,16 @@ struct font_info
      X window, this is same as (font->max_bounds.width) */
   int size;
 
-  /* Height of the font.  On X window, this is same as (font->ascent
-     + font->descent).  */
+  /* Height of the font.  On X window, this is the same as
+     (font->ascent + font->descent).  */
   int height;
 
-  /* 1 iff we render characters at vartical center positions of lines.  */
+  /* 1 iff `vertical-centering-font-regexp' matches this font name.
+     In this case, we render characters at vartical center positions
+     of lines.  */
   int vertical_centering;
 
-  /* Encodings of the font indexed by CHARSET.  The value an integer
+  /* Encodings of the font indexed by CHARSET.  The value is one of
      0, 1, 2, or 3:
 	0: code points 0x20..0x7F or 0x2020..0x7F7F are used
 	1: code points 0xA0..0xFF or 0xA0A0..0xFFFF are used
@@ -68,7 +70,10 @@ struct font_info
      consult `font-encoding-alist' to get of the corresponding charset
      whose default value is defined in lisp/fontset.el.  Since there's
      no charset whose id is 1, we use encoding[1] to store the
-     encoding information decided by the font itself.  */
+     encoding information decided by the font itself.
+
+     If the member `font_encoder' is not NULL, this member is ignored.
+  */
   unsigned char encoding[MAX_CHARSET + 1];
 
   /* The baseline position of a font is normally `ascent' value of the
@@ -124,50 +129,10 @@ struct font_info
   struct ccl_program *font_encoder;
 };
 
-/* A value which may appear in the member encoding of struch font_info
-   indicating that a font itself doesn't tell which encoding to be
-   used.  */
+/* A value which may appear in the member `encoding' of struch
+   font_info indicating that a font itself doesn't tell which encoding
+   to be used.  */
 #define FONT_ENCODING_NOT_DECIDED 255
-
-#define FONT_NOT_OPENED -1
-#define FONT_NOT_FOUND  -2
-
-struct fontset_info
-{
-  /* Name of the fontset.  */
-  char *name;
-
-  /* Size of the fontset.  This is the same as the size of ASCII font
-     of this fontset.  */
-  int size;
-
-  /* Height of the tallest font in the fontset.  */
-  int height;
-
-  /* Table of font name for each character set.  */
-  char *fontname[MAX_CHARSET + 1];
-
-  /* Table of index numbers of fonts indexed by charset.  If a font is
-     not yet loaded, the value is -1 (FONT_NOT_OPENED).  If font
-     loading is failed, the value is -2 (FONT_NOT_FOUND).  */
-  int font_indexes[MAX_CHARSET + 1];
-};
-
-/* This data type is used for the fontset_data field of struct frame.  */
-
-struct fontset_data
-{
-  /* A table of pointers to all the fontsets.  */
-  struct fontset_info **fontset_table;
-
-  /* The current capacity of fontset_table.  */
-  int fontset_table_size;
-
-  /* The number of fontsets actually stored in fontset_table.
-     fontset_table[n] is used and valid iff 0 <= n < n_fontsets.
-     0 <= n_fontsets <= fontset_table_size.  */
-  int n_fontsets;
-};
 
 /* Forward declaration for prototypes.  */
 struct frame;
@@ -211,46 +176,41 @@ extern void (*find_ccl_program_func) P_ ((struct font_info *));
 /* Check if any window system is used now.  */
 extern void (*check_window_system_func) P_ ((void));
 
-extern struct fontset_data *alloc_fontset_data P_ ((void));
-extern void free_fontset_data P_ ((struct fontset_data *));
-extern struct font_info *fs_load_font P_ ((struct frame *, struct font_info *,
-					   int, char *, int));
-extern int fs_query_fontset P_ ((struct frame *, char *));
-extern int fs_register_fontset P_ ((struct frame *, Lisp_Object));
+struct face;
+
+extern void fs_free_face_fontset P_ ((FRAME_PTR, struct face *));
+extern Lisp_Object fontset_font_pattern P_ ((FRAME_PTR, int, int));
+extern int face_suitable_for_char_p P_ ((struct face *, int));
+extern int face_for_char P_ ((FRAME_PTR, struct face *, int));
+extern int make_fontset_for_ascii_face P_ ((FRAME_PTR, int));
+extern struct font_info *fs_load_font P_ ((struct frame *, int, char *, int,
+					   struct face *));
+extern int fs_query_fontset P_ ((Lisp_Object, int));
 EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
-extern Lisp_Object Vglobal_fontset_alist;
-struct frame;
-int fs_query_fontset P_ ((struct frame *f, char *name));
 
 extern Lisp_Object Qfontset;
 extern Lisp_Object Vuse_default_ascent; 
 extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternate_fontname_alist;
+extern Lisp_Object Vfontset_alias_alist;
 extern Lisp_Object Vhighlight_wrong_size_font;
 extern Lisp_Object Vclip_large_size_font;
 extern Lisp_Object Vvertical_centering_font_regexp;
-extern int font_idx_temp;
 
-/* Load a font named FONTNAME for displaying CHARSET on frame F.
-   All fonts for frame F is stored in a table pointed by FONT_TABLE.
-   Return a pointer to the struct font_info of the loaded font.
-   If loading fails, return 0;
-   If FONTNAME is NULL, the name is taken from the information of FONTSET.
-   If FONTSET is given, try to load a font whose size matches that of
-   FONTSET, and, the font index is stored in the table for FONTSET.  */
+/* Load a font named FONTNAME for displaying character C.  All fonts
+   for frame F is stored in a table pointed by FONT_TABLE.  Return a
+   pointer to the struct font_info of the loaded font.  If loading
+   fails, return 0; If FONTNAME is NULL, the name is taken from the
+   information of FONTSET.  If FONTSET is given, try to load a font
+   whose size matches that of FONTSET, and, the font index is stored
+   in the table for FONTSET.  */
 
-#define FS_LOAD_FONT(f, font_table, charset, fontname, fontset)		  \
-  (fontset >= 0 && fontset < FRAME_FONTSET_DATA (f)->n_fontsets		  \
-   && (font_idx_temp = (FRAME_FONTSET_DATA (f)				  \
-			->fontset_table[fontset]->font_indexes[charset]), \
-       font_idx_temp >= 0)						  \
-   ? font_table + font_idx_temp						  \
-   : fs_load_font (f, font_table, charset, fontname, fontset))
+#define FS_LOAD_FONT(f, c, fontname, fontset)  \
+  fs_load_font (f, c, fontname, fontset, NULL)
 
-extern Lisp_Object Vfontset_alias_alist;
-extern Lisp_Object Vglobal_fontset_alist;
-
+#define FS_LOAD_FACE_FONT(f, c, fontname, face) \
+  fs_load_font (f, c, fontname, -1, face)
 
 /* Return an immutable id for font_info FONT_INFO on frame F.  The
    reason for this macro is hat one cannot hold pointers to font_info
@@ -267,5 +227,9 @@ extern Lisp_Object Vglobal_fontset_alist;
      (((ID) >= 0 && (ID) < FRAME_X_DISPLAY_INFO ((F))->font_table_size)	\
       ? (FRAME_X_DISPLAY_INFO ((F))->font_table + (ID))			\
       : 0)
+
+extern Lisp_Object fontset_name P_ ((int));
+extern Lisp_Object fontset_ascii P_ ((int));
+extern int fontset_height P_ ((int));
 
 #endif /* _FONTSET_H */
