@@ -2,6 +2,8 @@
 
 	* userlock.el (ask-user-about-lock): Doc fix.
 
+	* frame.el: Doc fixes.
+
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (blink-cursor-mode): Call internal-show-cursor instead
