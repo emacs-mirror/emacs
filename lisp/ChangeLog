@@ -1,5 +1,7 @@
 2000-03-01  Dave Love  <fx@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (lisp-mode-syntax-table): Fix syntax of |.
+
 	* help.el (help-xref-button): Add help-echo arg.
 	(describe-function-1, describe-variable, help-make-xrefs): Use it.
 
