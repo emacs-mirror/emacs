@@ -766,7 +766,7 @@ DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buff
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
-until an unused name is found, and then return that name.
+\(starting at 2) until an unused name is found, and then return that name.
 Optional second argument IGNORE specifies a name that is okay to use
 \(if it is in the sequence to be tried)
 even if a buffer with that name exists.  */)
@@ -779,6 +779,9 @@ even if a buffer with that name exists.  */)
 
   CHECK_STRING (name);
 
+  tem = Fstring_equal (name, ignore);
+  if (!NILP (tem))
+    return name;
   tem = Fget_buffer (name);
   if (NILP (tem))
     return name;
