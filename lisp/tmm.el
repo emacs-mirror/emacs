@@ -214,7 +214,9 @@ Its value should be an event that has a binding in MENU."
 	  ;; We just handled a menu keymap and found a command.
 	  (choice
 	   (if chosen-string
-	       (call-interactively choice)
+	       (progn
+		 (setq last-command-event chosen-string)
+		 (call-interactively choice))
 	     choice)))))
 
 
