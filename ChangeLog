@@ -1,6 +1,8 @@
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (install-arch-indep): Install the calc .info files.
+	(uninstall): Handle deletion of calc .info files (thanks Pavel
+	Jan,Bm(Bk).
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
