@@ -9,12 +9,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/10/18 18:31:37 vinicius>
-;; Version:	6.2
+;; Time-stamp:	<2000/10/19 11:54:10 vinicius>
+;; Version:	6.2.1
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.2"
-  "ps-print.el, v 6.2 <2000/10/18 vinicius>
+(defconst ps-print-version "6.2.1"
+  "ps-print.el, v 6.2.1 <2000/10/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -2923,6 +2923,31 @@ The table depends on the current ps-print setup."
 	   t)
 	 ))
 
+  (defun ps-mapper (extent list)
+    (nconc list
+	   (list (list (ps-x-extent-start-position extent) 'push extent)
+		 (list (ps-x-extent-end-position extent) 'pull extent)))
+    nil)
+
+  (defun ps-extent-sorter (a b)
+    (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
+
+  (defun ps-xemacs-face-kind-p (face kind kind-regex)
+    (let* ((frame-font (or (ps-x-face-font-instance face)
+			   (ps-x-face-font-instance 'default)))
+	   (kind-cons
+	    (and frame-font
+		 (assq kind
+		       (ps-x-font-instance-properties frame-font))))
+	   (kind-spec (cdr-safe kind-cons))
+	   (case-fold-search t))
+      (and kind-spec (string-match kind-regex kind-spec))))
+
+  (defun ps-xemacs-color-name (color)
+    (if (ps-x-color-specifier-p color)
+	(ps-x-color-name color)
+      color))
+
   (cond ((eq ps-print-emacs-type 'emacs) ; emacs
 
 	 (defun ps-color-values (x-color)
@@ -2947,31 +2972,6 @@ The table depends on the current ps-print setup."
 
 	 (or (ps-x-find-coding-system 'raw-text-unix)
 	     (ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix))
-
-	 (defun ps-mapper (extent list)
-	   (nconc list
-		  (list (list (ps-x-extent-start-position extent) 'push extent)
-			(list (ps-x-extent-end-position extent) 'pull extent)))
-	   nil)
-
-	 (defun ps-extent-sorter (a b)
-	   (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
-
-	 (defun ps-xemacs-face-kind-p (face kind kind-regex)
-	   (let* ((frame-font (or (ps-x-face-font-instance face)
-				  (ps-x-face-font-instance 'default)))
-		  (kind-cons
-		   (and frame-font
-			(assq kind
-			      (ps-x-font-instance-properties frame-font))))
-		  (kind-spec (cdr-safe kind-cons))
-		  (case-fold-search t))
-	     (and kind-spec (string-match kind-regex kind-spec))))
-
-	 (defun ps-xemacs-color-name (color)
-	   (if (ps-x-color-specifier-p color)
-	       (ps-x-color-name color)
-	     color))
 
 	 (defun ps-color-values (x-color)
 	   (let ((color (ps-xemacs-color-name x-color)))
@@ -3003,6 +3003,8 @@ The table depends on the current ps-print setup."
 	       (memq face ps-italic-faces))) ; Kludge-compatible
 	 )))
 
+
+(defvar ps-print-color-scale nil)
 
 (defun ps-color-scale (color)
   ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
@@ -3108,8 +3110,6 @@ This is in units of points (1/72 inch).")
 
 (defvar ps-height-remaining nil)
 (defvar ps-width-remaining nil)
-
-(defvar ps-print-color-scale nil)
 
 (defvar ps-font-size-internal nil)
 (defvar ps-header-font-size-internal nil)
@@ -5216,6 +5216,8 @@ If FACE is not a valid face name, it is used default face."
 
 ;; to avoid compilation gripes
 (eval-and-compile
+  (require 'lazy-lock)
+
   (defun ps-print-ensure-fontified (start end)
     (and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode)
 	 (lazy-lock-fontify-region start end))))
