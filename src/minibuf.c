@@ -1475,6 +1475,7 @@ Return nil if there is no valid completion, else t.")
     register unsigned char *buffer_string;
     int buffer_length, completion_length;
 
+    CHECK_STRING (completion, 0);
     tem = Fbuffer_string ();
     GCPRO2 (completion, tem);
     /* If reading a file name,
