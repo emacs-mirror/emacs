@@ -1,4 +1,10 @@
-2001-08-27  Thien-Thi Nguyen  <ttn@gnu.org>
+2001-08-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mouse.el (mouse-buffer-menu): If the buffer menu is split by
+	major modes, don't create panes for modes for which
+	mouse-buffer-menu-alist returns an empty alist.
+
+2001-08-28  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el: Update first-line description.
 	Sync comments w/ maintainer version 5.31.
