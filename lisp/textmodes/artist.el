@@ -1675,12 +1675,6 @@ info-variant-part."
   "Call function FN with ARGS iff FN is not nil."
   (list 'if fn (cons 'funcall (cons fn args))))
 
-(defun artist-butlast (l)
-  "Return the list L with all elements but the last."
-  (cond ((null l) nil)
-	((null (cdr l)) nil)
-	(t (cons (car l) (artist-butlast (cdr l))))))
-
 (defun artist-last (seq &optional n)
   "Return the last link in the list SEQ.
 With optional argument N, returns Nth-to-last link (default 1)."
@@ -3347,7 +3341,7 @@ The POINT-LIST is expected to cover the first quadrant."
 				       (t c)))))
 	   ;; The cdr and butlast below is so we don't draw the middle top
 	   ;; and middle bottom char twice.
-	   (artist-butlast (cdr (reverse right-half)))))
+	   (butlast (cdr (reverse right-half)))))
     (append right-half left-half)))
 
 
