@@ -1,3 +1,8 @@
+2002-10-10  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-parse-entry): Parse the time stamp found in
+	CVS/Entries, rather than comparing it textually.
+
 2002-10-10  Markus Rost  <rost@math.ohio-state.edu>
 
 	* international/encoded-kb.el:  Add `provide' call.
