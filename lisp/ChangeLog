@@ -1,3 +1,18 @@
+2002-09-11  Dave Love  <fx@gnu.org>
+
+	* language/cyrillic.el (cyrillic-alternativnyj): Remove bogus
+	charset-origin-alist.
+
+2002-09-06  Dave Love  <fx@gnu.org>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):  Bind
+	syntax and abbrev tables locally rather than setting and resetting
+	them assuming Mail mode.
+	(mailabbrev-unload-hook): New.
+
+	* calendar/calendar.el (calendar-mode-line-format): Select the
+	right window for mouse events.
+
 2002-09-06  Juanma Barranquero  <lektu@terra.es>
 
 	* calendar/solar.el (calendar-time-display-form): Fix spacing.

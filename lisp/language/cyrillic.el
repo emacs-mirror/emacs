@@ -149,7 +149,7 @@
 		   (documentation . "Support for Cyrillic KOI8-R."))
  '("Cyrillic"))
 
-;;; ALTERNATIVNYJ staff
+;;; ALTERNATIVNYJ stuff
 
 (defvar cyrillic-alternativnyj-decode-table
   [
@@ -211,9 +211,7 @@
 			    t)
 		      (setq i (1+ i)))
 		    table))
-   (valid-codes (0 . 175) (224 . 241) 255)
-   (charset-origin-alist (cyrillic-iso8859-5 "ALTERNATIVNYJ"
-					     cyrillic-encode-koi8-r-char))))
+   (valid-codes (0 . 175) (224 . 241) 255)))
 
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
