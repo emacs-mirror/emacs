@@ -1,3 +1,10 @@
+2003-05-03  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (breakpoint-enabled-icon, breakpoint-disabled-icon): 
+	Include bitmap data for monochrome display.
+	(breakpoint-enabled-pbm-data, breakpoint-disabled-pbm-data): 
+	New constants.
+
 2003-05-03  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-nonoverridable-face): Doc fix.
