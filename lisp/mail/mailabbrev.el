@@ -109,8 +109,8 @@
 ;;; move out of the mail-header into the message body (instead of having to
 ;;; type SPC at the end of the abbrev before moving away) then you can do
 ;;;
-;;;	(define-key mail-mode-map "\C-n" 'abbrev-hacking-next-line)
-;;;	(define-key mail-mode-map "\M->" 'abbrev-hacking-end-of-buffer)
+;;;	(define-key mail-mode-map "\C-n" 'mail-abbrev-next-line)
+;;;	(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
 ;;;
 ;;; If you want multiple addresses separated by a string other than ", " then
 ;;; you can set the variable mail-alias-separator-string to it.  This has to
