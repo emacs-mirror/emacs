@@ -305,7 +305,6 @@ If UNP is non-nil, unquote nested comment markers."
 ;;;; Navigation
 ;;;;
 
-;;;###autoload
 (defun comment-search-forward (limit &optional noerror)
   "Find a comment start between point and LIMIT.
 Moves point to inside the comment and returns the position of the
