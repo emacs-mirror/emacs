@@ -43,4 +43,5 @@ environment."))
 
 (provide 'kannada)
 
+;;; arch-tag: 880ba90b-f6f5-4131-bc1d-930705b78416
 ;;; kannada.el ends here

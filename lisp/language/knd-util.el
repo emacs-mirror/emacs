@@ -537,4 +537,5 @@ Default value contains only the basic rules.")
 
 (provide 'knd-util)
 
+;;; arch-tag: 78d32230-a960-46a5-b622-61ed6ffcf8fc
 ;;; knd-util.el ends here
