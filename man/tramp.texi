@@ -33,7 +33,7 @@
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003 Free Software
 Foundation, Inc.
 
-@quotation     
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -635,7 +635,7 @@ easy to implement, so I haven't got around to it, yet.
 @cindex sshx method
 @cindex Cygwin (with sshx method)
 
-As you expect, this is similar to @option{ssh}, only a little
+As you would expect, this is similar to @option{ssh}, only a little
 different.  Whereas @option{ssh} opens a normal interactive shell on
 the remote host, this option uses @samp{ssh -t -t @var{host} -l
 @var{user} /bin/sh} to open a connection.  This is useful for users
@@ -1109,7 +1109,7 @@ Example:
 
 @defun tramp-set-completion-function method function-list
 This function sets @var{function-list} as list of completion functions
-for @var{method}. 
+for @var{method}.
 
 Example:
 @example
@@ -1744,7 +1744,7 @@ packages which make @value{ftp-package-name} file name handlers active.
 You can see it applying @kbd{C-h v file-name-handler-alist}:
 
 @example
-file-name-handler-alist's value is 
+file-name-handler-alist's value is
 (("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
  ("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
  ("^/[^/]*$" . tramp-completion-file-name-handler)
@@ -1931,7 +1931,7 @@ operations on files accessed via @tramp{}.
 
 In the case of a remote file, the @code{shell-command} interface is
 used, with some wrapper code, to provide the same functionality on the
-remote machine as would be seen on the local machine. 
+remote machine as would be seen on the local machine.
 
 
 @node Changed workfiles
