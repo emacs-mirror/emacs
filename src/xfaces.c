@@ -741,7 +741,9 @@ x_free_gc (f, gc)
      GC gc;
 {
   BLOCK_INPUT;
+#if GLYPH_DEBUG
   xassert (--ngcs >= 0);
+#endif
   XFreeGC (FRAME_X_DISPLAY (f), gc);
   UNBLOCK_INPUT;
 }

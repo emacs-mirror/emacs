@@ -2766,9 +2766,11 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 	      SET_CHAR_GLYPH_FROM_GLYPH (*border, right_border_glyph);
 	    }
 
+#if GLYPH_DEBUG
 	  /* Window row window_y must be a slice of frame row
 	     frame_y.  */
 	  xassert (glyph_row_slice_p (window_row, frame_row));
+#endif
 
 	  /* If rows are in sync, we don't have to copy glyphs because
 	     frame and window share glyphs.  */
