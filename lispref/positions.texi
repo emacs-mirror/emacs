@@ -581,9 +581,9 @@ The coordinate arguments @var{frompos} and @var{topos} are cons cells of
 the form @code{(@var{hpos} . @var{vpos})}.
 
 The argument @var{width} is the number of columns available to display
-text; this affects handling of continuation lines.  Use the value
-returned by @code{window-width} for the window of your choice;
-normally, use @code{(window-width @var{window})}.
+text; this affects handling of continuation lines.  @code{nil} means
+the actual number of usable text columns in the window, which is
+equivalent to the value returned by @code{(window-width window)}.
 
 The argument @var{offsets} is either @code{nil} or a cons cell of the
 form @code{(@var{hscroll} . @var{tab-offset})}.  Here @var{hscroll} is
