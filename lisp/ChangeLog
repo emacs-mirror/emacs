@@ -1,3 +1,7 @@
+2000-11-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* select.el (x-get-selection): Docstring dix.
+
 2000-11-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/5x5.el: Update from author.
