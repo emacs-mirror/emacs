@@ -1,3 +1,13 @@
+2000-02-15  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (set_internal): Don't make variable buffer-local
+	if within a let-binding for the same buffer.
+	(let_shadows_buffer_binding_p): New function.
+
+	* eval.c (specbind): For buffer-local value,
+	record the current buffer also.
+	(unbind_to): Cope with that change.
+
 2000-02-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fsave_window_excursion): Doc fix.
@@ -512,11 +522,11 @@
 	* w32term.c: Complete rewrite for new redisplay based on new
 	xterm.c with necessary sections merged back in from old w32term.c.
 
-2000-01-21  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-21  Richard M. Stallman  <rms@gnu.org>
 
 	* data.c (set_internal): Further fix in same criterion.
 
-2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-20  Richard M. Stallman  <rms@gnu.org>
 
 	* data.c (set_internal): Fix the criteria for whether
 	to swap out the old cached binding.
