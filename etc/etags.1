@@ -1,6 +1,6 @@
-.\" Copyright (c) 1992 Free Software Foundation
+.\" Copyright (c) 1992, 2001 Free Software Foundation
 .\" See section COPYING for conditions for redistribution
-.TH etags 1 "02nov1999" "GNU Tools" "GNU Tools"
+.TH etags 1 "08apr2001" "GNU Tools" "GNU Tools"
 .de BP
 .sp
 .ti -.2i
@@ -42,10 +42,10 @@ etags, ctags \- generate tag file for Emacs, vi
 .ad b
 .hy 1
 .SH DESCRIPTION
-The `\|\fBetags\fP\|' program is used to create a tag table file, in a format
+The \|\fBetags\fP\| program is used to create a tag table file, in a format
 understood by
 .BR emacs ( 1 )\c
-\&; the `\|\fBctags\fP\|' program is used to create a similar table in a
+\&; the \|\fBctags\fP\| program is used to create a similar table in a
 format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
@@ -53,14 +53,14 @@ the syntax of C, Objective C, C++, Java, Fortran, Pascal, Cobol, Ada, Perl,
 LaTeX, Scheme, Emacs Lisp/Common Lisp, Postscript, Erlang, Python, Prolog and
 most assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
-table (defaults: `\|TAGS\|' for \fBetags\fP, `\|tags\|' for
+table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
 Files specified with relative file names will be recorded in the tag
 table with file names relative to the directory where the tag table
 resides.  Files specified with absolute file names will be recorded
 with absolute file names.
 The programs recognize the language used in an input file based on its
-file name and contents.  The --language switch can be used to force
+file name and contents.  The \fB\-\-language\fP switch can be used to force
 parsing of the file names following the switch according to the given
 language, overriding guesses based on filename extensions.
 .SH OPTIONS
@@ -70,7 +70,7 @@ by ctags;
 The programs accept unambiguous abbreviations for long option names.
 .TP
 .B \-a, \-\-append
-Append to existing tag file.  (For vi-format tag files, see also
+Append to existing tag file.  (For \fBvi\fP-format tag files, see also
 \fB\-\-update\fP.)
 .TP
 .B \-B, \-\-backward\-search
@@ -140,17 +140,19 @@ Do not tag member variables.  This is the default behavior.
 Only tag packages in Ada files.
 .TP
 \fB\-o\fP \fItagfile\fP, \fB\-\-output=\fItagfile\fP
-Explicit name of file for tag table; overrides default `\|TAGS\|' or
-`\|tags\|'.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
+Explicit name of file for tag table; overrides default \fBTAGS\fP or
+\fBtags\fP.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
 .TP
 \fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP
-\fB\-\-ignore\-case\-regex=\fIregexp\fP\
-Make tags based on regexp matching for each line of the files following
-this option, in addition to the tags made with the standard parsing based
-on language.  When using \-\-regex, case is significant, while it is not
-with \-\-ignore\-case\-regex. May be freely intermixed with filenames and
-the \fB\-R\fP option.  The regexps are cumulative, i.e. each option will
-add to the previous ones.  The regexps are of the form:
+.TP
+\fB\-\-ignore\-case\-regex=\fIregexp\fP
+Make tags based on regexp matching for each line of the files
+following this option, in addition to the tags made with the standard
+parsing based on language.  When using \fB\-\-regex\fP, case is
+significant, while it is not with \fB\-\-ignore\-case\-regex\fP. May
+be freely intermixed with filenames and the \fB\-R\fP option.  The
+regexps are cumulative, i.e. each option will add to the previous
+ones.  The regexps are of the form:
 .br
 	\fB/\fP\fItagregexp\fP[\fB/\fP\fInameregexp\fP]\fB/\fP
 .br
@@ -161,7 +163,8 @@ such that more characters than needed are unavoidably matched by
 \fItagregexp\fP, it may be useful to add a \fInameregexp\fP, to
 narrow down the tag scope.  \fBctags\fP ignores regexps without a
 \fInameregexp\fP.  The syntax of regexps is the same as in emacs,
-augmented with intervals of the form \\{m,n\\}, as in ed or grep.
+augmented with intervals of the form \\{m,n\\}, as in \fBed\fP or
+\fBgrep\fP.
 .br
 Here are some examples.  All the regexps are quoted to protect them
 from shell interpretation.
@@ -186,17 +189,17 @@ Tag TCL files (this last example shows the usage of a \fItagregexp\fP):
 \fI\-\-lang\=none \-\-regex\='/proc[\ \\t]+\\([^\ \\t]+\\)/\\1/'\fP
 
 .br
-A regexp can be preceded by {lang}, thus restriciting it to match lines of
-files of the specified language.  Use \fBetags --help\bP to obtain a list
-of the recognised languages.  This feature is particularly useful inside
-\fBregex files\fB.  A regex file contains one regex per line.  Empty lines,
+A regexp can be preceded by {\fIlang\fP}, thus restriciting it to match
+lines of files of the specified language.  Use \fBetags --help\fP to obtain
+a list of the recognised languages.  This feature is particularly useful inside
+\fBregex files\fP.  A regex file contains one regex per line.  Empty lines,
 and those lines beginning with space or tab are ignored.  Lines beginning
 with @ are references to regex files whose name follows the @ sign.  Other
-lines are considered regular expressions like those following \-\-regex.
+lines are considered regular expressions like those following \fB\-\-regex\fP.
 .br
 For example, the command
 .br
-etags \-\-regex=@regex.file *.c
+\fIetags \-\-regex=@regex.file *.c\fP
 .br
 reads the regexes contained in the file regex.file.
 .TP
@@ -251,7 +254,7 @@ Stallman.
 .BR vi ( 1 ).
 
 .SH COPYING
-Copyright (c) 1999 Free Software Foundation, Inc.
+Copyright (c) 1999, 2001 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
