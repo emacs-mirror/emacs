@@ -1113,6 +1113,8 @@ The default status is as follows:
      coding-category-ccl
      coding-category-binary))
 
+  (update-coding-systems-internal)
+
   (set-default-coding-systems nil)
   ;; Don't alter the terminal and keyboard coding systems here.
   ;; The terminal still supports the same coding system
