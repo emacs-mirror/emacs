@@ -127,14 +127,16 @@ decoded into mule-unicode-0100-24ff.")
    (?$,1(|(B . ?,L|(B) (?$,1(~(B . ?,L~(B) (?$,1((B . ?,L(B)))
 
 (defcustom utf-8-fragment-on-decoding nil
-  "Whether or not to decode some scripts in UTF-8 text into 8-bit characters.
+  "Whether or not to decode some scripts in UTF-8 text into iso8859 charsets.
 Setting this means that the relevant Cyrillic and Greek characters are
 decoded into the iso8859 charsets rather than into
-mule-unicode-0100-24ff.  The 8-bit characters take half as much space
+mule-unicode-0100-24ff.  The iso8859 charsets take half as much space
 in the buffer, but using them may affect how the buffer can be re-encoded
 and may require a different input method to search for them, for instance.
 See `unify-8859-on-decoding-mode' and `unify-8859-on-encoding-mode'
-for mechanisms to make this largely transparent."
+for mechanisms to make this largely transparent.
+
+Setting this variable outside customize has no effect."
   :set (lambda (s v)
 	 (if v
 	     (define-translation-table 'utf-8-translation-table-for-decode
