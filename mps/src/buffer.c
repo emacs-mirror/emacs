@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.44) $
+ * $HopeName: MMsrc!buffer.c(trunk.45) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.44) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.45) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -827,6 +827,7 @@ static Bool AllocPatternCheck(AllocPattern pattern)
 {
   CHECKL(pattern == &AllocPatternRampCollectAllStruct
          || pattern == &AllocPatternRampStruct);
+  UNUSED(pattern); /* impl.c.mpm.check.unused */
   return TRUE;
 }
 
