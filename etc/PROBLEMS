@@ -729,6 +729,25 @@ release was reported to work without problems.  It worked OK on
 another system with Solaris 8 using apparently the same 5.0 compiler
 and the default CFLAGS.
 
+* Compiling syntax.c with the OPENSTEP 4.2 compiler gcc 2.7.2.1 fails.
+
+The compiler was reported to crash while compiling syntax.c with the
+following message:
+
+   cc: Internal compiler error: program cc1obj got fatal signal 11
+
+To work around this, replace the macros UPDATE_SYNTAX_TABLE_FORWARD,
+INC_BOTH, and INC_FROM with functions.  To this end, first define 3
+functions, one each for every macro.  Here's an example:
+
+    static int update_syntax_table_forward(int from)
+    {
+        return(UPDATE_SYNTAX_TABLE_FORWARD(from));
+    }/*update_syntax_table_forward*/
+
+Then replace all references to UPDATE_SYNTAX_TABLE_FORWARD in syntax.c
+with a call to the function update_syntax_table_forward.
+
 * Attempting to visit remote files via ange-ftp fails.
 
 If the error message is "ange-ftp-file-modtime: Specified time is not
