@@ -1,7 +1,7 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 2000, 01, 03, 2004
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
+;;   2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -741,7 +741,7 @@ for a remote directory.  This feature is used by Auto Revert Mode."
 
 (defun dired-readin ()
   "Read in a new dired buffer.
-Differs from dired-insert-subdir in that it accepts
+Differs from `dired-insert-subdir' in that it accepts
 wildcards, erases the buffer, and builds the subdir-alist anew
 \(including making it buffer-local and clearing it first)."
 
@@ -858,10 +858,8 @@ BEG..END is the line where the file info is located."
 	(setq file (copy-marker file))
 	;; Main loop.
 	(goto-char beg)
+	(skip-chars-forward " ")	;Skip to the first field.
 	(while (and (> other-col file-col)
-		    (skip-chars-forward "^ ")
-		    ;; Skip the spaces, and make sure there's at least one.
-		    (> (skip-chars-forward " ") 0)
 		    ;; Don't touch anything just before (and after) the
 		    ;; beginning of the filename.
 		    (> file (point)))
@@ -904,11 +902,13 @@ BEG..END is the line where the file info is located."
 	      (insert-char ?\s spaces)
 	      ;; Let's just make really sure we did not mess up.
 	      (unless (save-excursion
-			(equal (dired-move-to-filename) (marker-position file)))
+			(eq (dired-move-to-filename) (marker-position file)))
 		;; Damn!  We messed up: let's revert the change.
-		(delete-char (- spaces))))))
+		(delete-char (- spaces)))))
+	  ;; Now skip to next field.
+	  (skip-chars-forward "^ ") (skip-chars-forward " "))
 	(set-marker file nil)))))
-			 
+
 
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
@@ -1482,22 +1482,22 @@ again for the directory tree.
 Customization variables (rename this buffer and type \\[describe-variable] on each line
 for more info):
 
-  dired-listing-switches
-  dired-trivial-filenames
-  dired-shrink-to-fit
-  dired-marker-char
-  dired-del-marker
-  dired-keep-marker-rename
-  dired-keep-marker-copy
-  dired-keep-marker-hardlink
-  dired-keep-marker-symlink
+  `dired-listing-switches'
+  `dired-trivial-filenames'
+  `dired-shrink-to-fit'
+  `dired-marker-char'
+  `dired-del-marker'
+  `dired-keep-marker-rename'
+  `dired-keep-marker-copy'
+  `dired-keep-marker-hardlink'
+  `dired-keep-marker-symlink'
 
 Hooks (use \\[describe-variable] to see their documentation):
 
-  dired-before-readin-hook
-  dired-after-readin-hook
-  dired-mode-hook
-  dired-load-hook
+  `dired-before-readin-hook'
+  `dired-after-readin-hook'
+  `dired-mode-hook'
+  `dired-load-hook'
 
 Keybindings:
 \\{dired-mode-map}"
@@ -1508,7 +1508,7 @@ Keybindings:
   (dired-advertise)			; default-directory is already set
   (setq major-mode 'dired-mode
 	mode-name "Dired"
-;;	case-fold-search nil
+	;; case-fold-search nil
 	buffer-read-only t
 	selective-display t		; for subdirectory hiding
 	mode-line-buffer-identification
@@ -3021,7 +3021,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 ;; So anything that does not contain these is sort "by name".
 
 (defvar dired-ls-sorting-switches "SXU"
-  "String of `ls' switches \(single letters\) except `t' that influence sorting.
+  "String of `ls' switches \(single letters\) except \"t\" that influence sorting.
 
 This indicates to Dired which option switches to watch out for because they
 will change the sorting order behavior of `ls'.
@@ -3286,5 +3286,5 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
-;;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
+;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
 ;;; dired.el ends here
