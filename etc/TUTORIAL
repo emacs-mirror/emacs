@@ -578,10 +578,10 @@ should probably use Text Mode.
 >> Type M-x text-mode<Return>.
 
 Don't worry, none of the commands you have learned changes Emacs in
-any great way.  But you can now observe that periods are no longer
-part of words when you do M-f or M-b!  Major modes are usually like
-that: commands don't change into completely unrelated things, but they
-work a little bit differently.
+any great way.  But you can observe that apostrophes are now part of
+words when you do M-f or M-b.  Major modes are usually like that:
+commands don't change into completely unrelated things, but they work
+a little bit differently.
 
 To get documentation on your current major mode, type C-h m.
 
