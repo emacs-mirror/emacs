@@ -1,3 +1,7 @@
+2005-01-16  Xavier Maillard <zedek@gnu-rox.org> (tiny change)
+
+	* gnus-faq.texi ([4.1]): Typo.
+
 2005-01-22  David Kastrup  <dak@gnu.org>
 
 	* building.texi (Grep Searching): Mention alias `find-grep' for
