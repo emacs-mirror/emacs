@@ -11,6 +11,11 @@
 
 	* ccl.c (Fccl_execute_on_string): Add `const' to local variables.
 
+	* character.c (Vscript_alist): This variable deleted.
+	(Vchar_script_table, Qchar_script_table): New variable.
+	(syms_of_character): Declare Vchar_script_table as a lisp variable
+	and initialize it.
+
 	* chartab.c (Fmake_char_table): Doc fixed.  If PURPOSE doesn't
 	have property char-table-extra-slots, make no extra slot.
 
