@@ -615,9 +615,12 @@ this prefix to create a unique file name.")
 	     (setq menubar-bindings-done t)
 	     (unwind-protect
 		 (progn
+		   ;; The convention for this piece of code is that
+		   ;; each piece of output starts with one or two newlines
+		   ;; and does not end with any newlines.
 		   (insert (emacs-version)
 			   "
-Copyright (C) 1995 Free Software Foundation, Inc.\n\n")
+Copyright (C) 1995 Free Software Foundation, Inc.")
 		   ;; If keys have their default meanings,
 		   ;; use precomputed string to save lots of time.
 		   (if (and (eq (key-binding "\C-h") 'help-command)
@@ -625,13 +628,14 @@ Copyright (C) 1995 Free Software Foundation, Inc.\n\n")
 			    (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
 			    (eq (key-binding "\C-ht") 'help-with-tutorial)
 			    (eq (key-binding "\C-hi") 'info))
-		       (insert 
-       "Type C-h for help; C-x u to undo changes.  (`C-' means use CTRL key.)
+		       (insert "\n
+Type C-h for help; C-x u to undo changes.  (`C-' means use CTRL key.)
 To kill the Emacs job, type C-x C-c.
 Type C-h t for a tutorial on using Emacs.
 Type C-h i to enter Info, which you can use to read GNU documentation.")
 		     (insert (substitute-command-keys
-			      (format "Type %s for help; \\[advertised-undo] to undo changes.  (`C-' means use CTRL key.)
+			      (format "\n
+Type %s for help; \\[advertised-undo] to undo changes.  (`C-' means use CTRL key.)
 To kill the Emacs job, type \\[save-buffers-kill-emacs].
 Type \\[help-with-tutorial] for a tutorial on using Emacs.
 Type \\[info] to enter Info, which you can use to read GNU documentation."
@@ -644,7 +648,7 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 		   ;; if that is not with the mouse.
 		   (if (not (assq 'display (frame-parameters)))
 		       (if (eq (key-binding "\M-`") 'tmm-menubar)
-			   (insert "\n\nType M-` to use the menu bar.")
+			   (insert "\n\nType ESC ` or Meta-` to use the menu bar.")
 			 (insert (substitute-command-keys
 				  "\n\nType \\[tmm-menubar] to use the menu bar."))))
 
@@ -652,27 +656,26 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 		   ;; window systems, but do have mouse support.
 		   (if (or (memq system-type '(msdos windowsnt))
 			   window-system)
-		       (insert "
+		       (insert "\n
 C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
-		   (insert "\n")
-		   (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-			    (eq (key-binding "\C-h\C-d") 'describe-distribution)
-			    (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-		       (insert 
-			"
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
-You may give out copies of Emacs; type C-h C-c to see the conditions.
-Type C-h C-d for information on getting the latest version.")
-		     (insert (substitute-command-keys
-			      "
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
-You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
-Type \\[describe-distribution] for information on getting the latest version.")))
-
 		   (if (directory-files "~/" nil "\\`\\.saves-" t)
 		       (insert "\n\nIf an Emacs session crashed recently,\n"
 			       "type M-x recover-session RET to recover"
 			       " the files you were editing."))
+
+		   (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
+			    (eq (key-binding "\C-h\C-d") 'describe-distribution)
+			    (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
+		       (insert 
+			"\n
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
+You may give out copies of Emacs; type C-h C-c to see the conditions.
+Type C-h C-d for information on getting the latest version.")
+		     (insert (substitute-command-keys
+			      "\n
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
+You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
+Type \\[describe-distribution] for information on getting the latest version.")))
 
 		   (set-buffer-modified-p nil)
 		   (sit-for 120))
