@@ -2,6 +2,20 @@
 
 	* textmodes/sgml-mode.el (sgml-guess-indent): New function.
 
+2002-04-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* simple.el (line-move): Use memq rather than or.
+	(transpose-sexps): Don't presume as much of forward-sexp's behavior.
+	(do-auto-fill): Use fill-move-to-break-point.
+	(syntax-code-table): Remove.
+
+	* textmodes/fill.el (canonically-space-region): Obey sentence-end.
+	Don't add spaces at end of sentences at end of line.
+	(fill-move-to-break-point): Make sure the result is always greater
+	than linebeg, so we ensure forward progress.
+	(fill-region-as-paragraph): Compare to `to' rather than eobp.
+	(fill-paragraph): Don't rebind fill-paragraph-function.
+
 2002-04-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-adv-search-menu): Add incremental search.
@@ -11,17 +25,28 @@
 	* files.el (file-name-non-special): Handle return value of t from
 	`file-name-completion'.
 
+2002-04-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-context-prefix): Match the two prefixes
+	differently to avoid pathological exponential-time case.
+	(adaptive-fill-regexp): Add ! and %.
+	(fill-delete-prefix): Remove indentation while removing prefix.
+	(fill-delete-newlines): Obey sentence-end.
+	(fill-move-to-break-point, fill-newline): New functions extracted
+	from fill-region-as-paragraph.
+	(fill-region-as-paragraph): Use them.
+	Don't fiddle with fill-indent-according-to-mode.
+
 2002-04-10  Colin Walters  <walters@verbum.org>
 
 	* play/snake.el (snake-score-file): Default to just "snake-scores".
 
 	* play/tetris.el (tetris-score-file): Likewise.
-	
+
 	* play/gamegrid.el (gamegrid-add-score): Rewrite from scratch to
 	use `update-game-score'.
 
-	* ibuffer.el (ibuffer-canonicalize-state-list): Delete unused
-	function.
+	* ibuffer.el (ibuffer-canonicalize-state-list): Delete unused function.
 	(ibuffer-current-buffers-with-marks): Don't call `buffer-list'
 	ourselves; take it as an argument.  Caller updated.
 	(ibuffer-mode): Make mode-class special.
@@ -109,6 +134,11 @@
 	for prompt.
 
 2002-04-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* autorevert.el (auto-revert-mode, global-auto-revert-mode):
+	Use define-minor-mode.
+	(auto-revert-buffers): Use with-current-buffer.
+	Avoid changing the minor modes.
 
 	* international/iso-acc.el (iso-accents-accent-key): Use `vector'
 	rather than char-to-string since last-input-char can be any event.
