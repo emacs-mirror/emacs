@@ -138,7 +138,7 @@
 
 ;; Ethiopic characters (Amahric and Tigrigna).
 (define-charset nil 'ethiopic
-  [2 94 2 0 ?2 0 "Ethio" "Ethio" "Ethiopic characters"])
+  [2 94 2 0 ?3 0 "Ethiopic" "Ethiopic characters" "Ethiopic characters"])
 
 ;; Chinese CNS11643 Plane3 thru Plane7.  Although these are official
 ;; character sets, the use is rare and don't have to be treated
@@ -188,8 +188,8 @@
 
 ;; This is a table of alternate charsets.
 (setq alternate-charset-table
-      '((japanese-jisx0208-1978 japanese-jisx0208)
-	(latin-jisx0201 ascii)))
+      '((japanese-jisx0208-1978 . japanese-jisx0208)
+	(latin-jisx0201 . ascii)))
 
 ;; Tell C code charset ID's of several charsets.
 (setup-special-charsets)
