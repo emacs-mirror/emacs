@@ -3996,7 +3996,7 @@ update_text_area (w, vpos)
       
       while (i < stop)
 	{
-	  int skip_equal_glyphs_p = 1;
+	  int can_skip_p = 1;
 	  
 	  /* Skip over glyphs that both rows have in common.  These
 	     don't have to be written.  We can't skip if the last
@@ -4013,38 +4013,42 @@ update_text_area (w, vpos)
 	      
 	      rif->get_glyph_overhangs (glyph, XFRAME (w->frame),
 					&left, &right);
-	      skip_equal_glyphs_p = right == 0;
+	      can_skip_p = right == 0;
 	    }
-
-	  if (skip_equal_glyphs_p)
-	    while (i < stop
-		   && GLYPH_EQUAL_P (desired_glyph, current_glyph))
-	      {
-		x += desired_glyph->pixel_width;
-		++desired_glyph, ++current_glyph, ++i;
-	      }
-
-	  /* Consider the case that the current row contains "xxx ppp
-	     ggg" in italic Courier font, and the desired row is "xxx
-	     ggg".  The character `p' has lbearing, `g' has not.  The
-	     loop above will stop in front of the first `p' in the
-	     current row.  If we would start writing glyphs there, we
-	     wouldn't erase the lbearing of the `p'.  The rest of the
-	     lbearing problem is then taken care of by x_draw_glyphs.  */
-	  if (overlapping_glyphs_p
-	      && i > 0
-	      && i < current_row->used[TEXT_AREA]
-	      && current_row->used[TEXT_AREA] != desired_row->used[TEXT_AREA])
+	  
+	  if (can_skip_p)
 	    {
-	      int left, right;
-	      
-	      rif->get_glyph_overhangs (current_glyph, XFRAME (w->frame),
-					&left, &right);
-	      while (left > 0 && i > 0)
+	      while (i < stop
+		     && GLYPH_EQUAL_P (desired_glyph, current_glyph))
 		{
-		  --i, --desired_glyph, --current_glyph;
-		  x -= desired_glyph->pixel_width;
-		  left -= desired_glyph->pixel_width;
+		  x += desired_glyph->pixel_width;
+		  ++desired_glyph, ++current_glyph, ++i;
+		}
+
+	      /* Consider the case that the current row contains "xxx
+		 ppp ggg" in italic Courier font, and the desired row
+		 is "xxx ggg".  The character `p' has lbearing, `g'
+		 has not.  The loop above will stop in front of the
+		 first `p' in the current row.  If we would start
+		 writing glyphs there, we wouldn't erase the lbearing
+		 of the `p'.  The rest of the lbearing problem is then
+		 taken care of by x_draw_glyphs.  */
+	      if (overlapping_glyphs_p
+		  && i > 0
+		  && i < current_row->used[TEXT_AREA]
+		  && (current_row->used[TEXT_AREA]
+		      != desired_row->used[TEXT_AREA]))
+		{
+		  int left, right;
+	      
+		  rif->get_glyph_overhangs (current_glyph, XFRAME (w->frame),
+					    &left, &right);
+		  while (left > 0 && i > 0)
+		    {
+		      --i, --desired_glyph, --current_glyph;
+		      x -= desired_glyph->pixel_width;
+		      left -= desired_glyph->pixel_width;
+		    }
 		}
 	    }
 	  
@@ -4057,15 +4061,18 @@ update_text_area (w, vpos)
 	      int start_x = x, start_hpos = i;
 	      struct glyph *start = desired_glyph;
 	      int current_x = x;
-	      
+	      int skip_first_p = !can_skip_p;
+
 	      /* Find the next glyph that's equal again.  */
 	      while (i < stop
-		     && !GLYPH_EQUAL_P (desired_glyph, current_glyph)
+		     && (skip_first_p
+			 || !GLYPH_EQUAL_P (desired_glyph, current_glyph))
 		     && x == current_x)
 		{
 		  x += desired_glyph->pixel_width;
 		  current_x += current_glyph->pixel_width;
 		  ++desired_glyph, ++current_glyph, ++i;
+		  skip_first_p = 0;
 		}
 
 	      if (i == start_hpos || x != current_x)
