@@ -9356,6 +9356,19 @@ redisplay_window_1 (window)
   return Qnil;
 }
 
+
+/* Increment GLYPH until it reaches END or CONDITION fails while
+   adding (GLYPH)->pixel_width to X. */
+
+#define SKIP_GLYPHS(glyph, end, x, condition)	\
+  do						\
+    {						\
+      (x) += (glyph)->pixel_width;		\
+      ++(glyph);				\
+    }						\
+  while ((glyph) < (end) && (condition))
+
+
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
    DELTA is the number of bytes by which positions recorded in ROW
    differ from current buffer positions.  */
@@ -9369,6 +9382,14 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 {
   struct glyph *glyph = row->glyphs[TEXT_AREA];
   struct glyph *end = glyph + row->used[TEXT_AREA];
+  /* The first glyph that starts a sequence of glyphs from string.  */
+  struct glyph *string_start;
+  /* The X coordinate of string_start.  */
+  int string_start_x;
+  /* The last known character position.  */
+  int last_pos = MATRIX_ROW_START_CHARPOS (row) + delta;
+  /* The last known character position before string_start.  */
+  int string_before_pos;
   int x = row->x;
   int pt_old = PT - delta;
 
@@ -9384,13 +9405,72 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	++glyph;
       }
 
+  string_start = NULL;
   while (glyph < end
 	 && !INTEGERP (glyph->object)
 	 && (!BUFFERP (glyph->object)
-	     || glyph->charpos < pt_old))
+	     || (last_pos = glyph->charpos) < pt_old))
     {
-      x += glyph->pixel_width;
-      ++glyph;
+      if (! STRINGP (glyph->object))
+	{
+	  string_start = NULL;
+	  x += glyph->pixel_width;
+	  ++glyph;
+	}
+      else
+	{
+	  string_before_pos = last_pos;
+	  string_start = glyph;
+	  string_start_x = x;
+	  /* Skip all glyphs from string.  */
+	  SKIP_GLYPHS (glyph, end, x, STRINGP (glyph->object));
+	}
+    }
+
+  if (string_start
+      && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
+    {
+      /* We may have skipped over point because the previous glyphs
+	 are from string.  As there's no easy way to know the
+	 character position of the current glyph, find the correct
+	 glyph on point by scanning from string_start again.  */
+      Lisp_Object limit;
+      Lisp_Object string;
+      int pos;
+
+      limit = make_number (pt_old + 1);
+      end = glyph;
+      glyph = string_start;
+      x = string_start_x;
+      string = glyph->object;
+      pos = string_buffer_position (w, string, string_before_pos);
+      /* If STRING is from overlay, LAST_POS == 0.  We skip such glyphs
+	 because we always put cursor after overlay strings.  */
+      while (pos == 0 && glyph < end)
+	{
+	  string = glyph->object;
+	  SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
+	  if (glyph < end)
+	    pos = string_buffer_position (w, glyph->object, string_before_pos);
+	}
+
+      while (glyph < end)
+	{
+	  pos = XINT (Fnext_single_char_property_change
+		      (make_number (pos), Qdisplay, Qnil, limit));
+	  if (pos > pt_old)
+	    break;
+	  /* Skip glyphs from the same string.  */
+	  string = glyph->object;
+	  SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
+	  /* Skip glyphs from an overlay.  */
+	  while (glyph < end
+		 && ! string_buffer_position (w, glyph->object, pos))
+	    {
+	      string = glyph->object;
+	      SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
+	    }
+	}
     }
 
   w->cursor.hpos = glyph - row->glyphs[TEXT_AREA];
