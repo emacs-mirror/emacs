@@ -35,6 +35,10 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** The scrollbar under Motif has a smoother drag-scrolling.
+On the other hand, the size of the thumb does not represent the actual
+amount of text shown any more (only a crude approximation of it).
+
 ---
 ** PO translation files are decoded according to their MIME headers
 when Emacs visits them.
