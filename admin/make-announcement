@@ -21,10 +21,10 @@ if [ -f $outfile ]; then
     echo -n "interrupt to abort, ENTER to overwrite "; read answer
 fi
 
-echo -n "tag name for emacs $OLD [$oldtag]: "; read answer
+echo -n "tag name for OLD emacs version $OLD [$oldtag]: "; read answer
 if [ "$answer" ]; then oldtag=$answer; fi
 
-echo -n "tag name for emacs $NEW [$newtag]: "; read answer
+echo -n "tag name for NEW emacs version $NEW [$newtag]: "; read answer
 if [ "$answer" ]; then newtag=$answer; fi
 
 exec > $outfile
