@@ -1,3 +1,15 @@
+2002-04-22  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: (last_node): Make it a global variable.
+	(process_file): Print the tags from the nodes as soon as
+	possible, and delete the nodes.  This brings down the memory
+	occupancy as etags to almost the same level as when the #line
+	directives were not parsed.
+	(free_fdesc): New function.
+	(find_entries): Use it.
+	(invalidate_nodes): In etags mode, do not just mark the nodes as
+	invalid, do delete them.
+
 2002-04-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (add_declarator): Test *CLS instead of CLS.
