@@ -775,8 +775,9 @@ used to 899, you would say something along these lines:
 (defcustom gnus-select-method
   (condition-case nil
     (nconc
-     (list 'nntp (or (ignore-errors
-		       (gnus-getenv-nntpserver))
+     (list 'nntp (or (condition-case nil
+			 (gnus-getenv-nntpserver)
+		       (error nil))
 		     (when (and gnus-default-nntp-server
 				(not (string= gnus-default-nntp-server "")))
 		       gnus-default-nntp-server)
