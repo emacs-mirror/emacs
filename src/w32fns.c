@@ -30,12 +30,12 @@ Boston, MA 02111-1307, USA.  */
 
 #include "lisp.h"
 #include "charset.h"
-#include "fontset.h"
 #include "w32term.h"
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
 #include "dispextern.h"
+#include "fontset.h"
 #include "intervals.h"
 #include "keyboard.h"
 #include "blockinput.h"
@@ -4471,6 +4471,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	f->output_data.w32->menubar_active = 0;
       goto dflt;
 
+    case WM_MENUSELECT:
+      wmsg.dwModifiers = w32_get_modifiers ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 0;
+
     case WM_MEASUREITEM:
       f = x_window_to_frame (dpyinfo, hwnd);
       if (f)
@@ -5038,10 +5043,6 @@ This function is an internal primitive--use `make-frame' instead.")
       specbind (Qx_resource_name, name);
     }
 
-  /* Create fontsets from `global_fontset_alist' before handling fonts.  */
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
-    fs_register_fontset (f, XCAR (tem));
-
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   {
@@ -5406,9 +5407,9 @@ w32_load_system_font (f,fontname,size)
 
     /* The slot `encoding' specifies how to map a character
        code-points (0x20..0x7F or 0x2020..0x7F7F) of each charset to
-       the font code-points (0:0x20..0x7F, 1:0xA0..0xFF, 0:0x2020..0x7F7F,
-       the font code-points (0:0x20..0x7F, 1:0xA0..0xFF,
-       0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF, or
+       the font code-points (0:0x20..0x7F, 1:0xA0..0xFF), or
+       (0:0x20..0x7F, 1:0xA0..0xFF,
+       (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
        2:0xA020..0xFF7F).  For the moment, we don't know which charset
        uses this font.  So, we set information in fontp->encoding[1]
        which is never used by any charset.  If mapping can't be
@@ -7129,9 +7130,9 @@ If DISPLAY is nil, that stands for the selected frame's display.")
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
       {
+        if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
+          xfree (dpyinfo->font_table[i].full_name);
         xfree (dpyinfo->font_table[i].name);
-        /* Don't free the full_name string;
-           it is always shared with something else.  */
         w32_unload_font (dpyinfo, dpyinfo->font_table[i].font);
       }
   x_destroy_all_bitmaps (dpyinfo);
@@ -7200,7 +7201,7 @@ Lisp_Object Qxbm;
 
 /* Keywords.  */
 
-Lisp_Object QCtype, QCdata, QCascent, QCmargin, QCrelief;
+Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
 extern Lisp_Object QCindex;
@@ -11847,10 +11848,6 @@ x_create_tip_frame (dpyinfo, parms)
       specbind (Qx_resource_name, name);
     }
 
-  /* Create fontsets from `global_fontset_alist' before handling fonts.  */
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
-    fs_register_fontset (f, XCAR (tem));
-
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   {
@@ -13060,8 +13057,6 @@ only be necessary if the default setting causes problems.");
   staticpro (&QCheuristic_mask);
   QCcolor_symbols = intern (":color-symbols");
   staticpro (&QCcolor_symbols);
-  QCdata = intern (":data");
-  staticpro (&QCdata);
   QCascent = intern (":ascent");
   staticpro (&QCascent);
   QCmargin = intern (":margin");
