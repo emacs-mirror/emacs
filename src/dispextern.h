@@ -1537,6 +1537,7 @@ enum display_element_type
 
 enum prop_idx
 {
+  AUTO_COMPOSED_PROP_IDX,
   FONTIFIED_PROP_IDX,
   FACE_PROP_IDX,
   INVISIBLE_PROP_IDX,
