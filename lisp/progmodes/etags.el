@@ -184,12 +184,14 @@ file the tag was in."
 						       default-directory)
 				     t)
 		     current-prefix-arg))
-  ;; Calling visit-tags-table-buffer with tags-file-name set to FILE will
-  ;; initialize a buffer for FILE and set tags-file-name to the
+  (or (stringp file) (signal 'wrong-type-argument (list 'stringp file)))
+  ;; Bind tags-file-name so we can control below whether the local or
+  ;; global value gets set.  Calling visit-tags-table-buffer will
+  ;; initialize a buffer for the file and set tags-file-name to the
   ;; fully-expanded name.
   (let ((tags-file-name file))
     (save-excursion
-      (or (visit-tags-table-buffer 'same)
+      (or (visit-tags-table-buffer file)
 	  (signal 'file-error (list "Visiting tags table"
 				    "file does not exist"
 				    file)))
@@ -237,6 +239,7 @@ file the tag was in."
 	      ;; Restore the state variables.
 	      (setq tags-table-list
 		    (nth 0 (car tags-table-parent-pointer-list))
+		    tags-file-name (car tags-table-list)
 		    tags-table-list-pointer
 		    (nth 1 (car tags-table-parent-pointer-list))
 		    tags-table-list-started-at
@@ -411,6 +414,7 @@ file the tag was in."
 
 (defun visit-tags-table-buffer (&optional cont)
   "Select the buffer containing the current tags table.
+If optional arg is a string, visit that file as a tags table.
 If optional arg is t, visit the next table in `tags-table-list'.
 If optional arg is the atom `same', don't look for a new table;
  just select the buffer visiting `tags-file-name'.
@@ -427,7 +431,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		       (concat "No tags table in use!  "
 			       "Use \\[visit-tags-table] to select one.")))))
 
-	  (visit-tags-table-buffer-cont
+	  ((eq t visit-tags-table-buffer-cont)
 	   ;; Find the next table.
 	   (if (tags-next-table)
 	       ;; Skip over nonexistent files.
@@ -451,6 +455,10 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	   ;; Pick a table out of our hat.
 	   (setq tags-file-name
 		 (or
+		  ;; If passed a string, use that.
+		  (if (stringp visit-tags-table-buffer-cont)
+		      (prog1 visit-tags-table-buffer-cont
+			(setq visit-tags-table-buffer-cont nil)))
 		  ;; First, try a local variable.
 		  (cdr (assq 'tags-file-name (buffer-local-variables)))
 		  ;; Second, try a user-specified function to guess.
@@ -461,16 +469,19 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		  ;; If one is found, the lists will be frobnicated,
 		  ;; and VISIT-TAGS-TABLE-BUFFER-CONT
 		  ;; will be set non-nil so we don't do it below.
-		  (car (or 
-			;; First check only tables already in buffers.
-			(save-excursion (tags-table-including buffer-file-name
-							      tags-table-list
-							      t))
-			;; Since that didn't find any, now do the
-			;; expensive version: reading new files.
-			(save-excursion (tags-table-including buffer-file-name
-							      tags-table-list
-							      nil))))
+		  (and buffer-file-name
+		       (car (or 
+			     ;; First check only tables already in buffers.
+			     (save-excursion
+			       (tags-table-including buffer-file-name
+						     tags-table-list
+						     t))
+			     ;; Since that didn't find any, now do the
+			     ;; expensive version: reading new files.
+			     (save-excursion
+			       (tags-table-including buffer-file-name
+						     tags-table-list
+						     nil)))))
 		  ;; Fourth, use the user variable tags-file-name, if it is
 		  ;; not already in tags-table-list.
 		  (and tags-file-name
