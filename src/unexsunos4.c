@@ -56,7 +56,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <config.h>
 #endif
 
-#if defined (SUNOS4) || defined (__FreeBSD__)
+#if defined (SUNOS4) || defined (__FreeBSD__) || defined (__NetBSD__)
 #define UNDO_RELOCATION
 #endif
 
@@ -235,7 +235,7 @@ unexec (new_name, a_name, bndry, bss_start, entry)
 #endif /* sparc */
 #define REL_TARGET_ADDRESS(r)	(((REL_INFO_TYPE *)(r))->r_address)
 #endif /* SUNOS4 */
-#ifdef __FreeBSD__
+#if defined (__FreeBSD__) || defined (__NetBSD__)
     extern struct _dynamic _DYNAMIC;
 
     /*  FreeBSD's LD_REL is a virtual address itself. */
