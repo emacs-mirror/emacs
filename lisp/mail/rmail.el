@@ -598,7 +598,7 @@ argument causes us to read a file name and use that file as the inbox."
 		   ;; If we find the proper terminator, delete through there.
 		   (delete-region (point-min) (point))
 		 (funcall invalid-input-resync)
-		 (delete-region (point-min) (point)))
+		 (delete-region (point-min) (point))))
 	      ;; Babyl format message
 	      ((looking-at "\^L")
 	       (or (search-forward "\n\^_" nil t)
@@ -657,7 +657,7 @@ argument causes us to read a file name and use that file as the inbox."
 	      ;;This is a kludge, in case we're wrong about mmdf not
 	      ;;allowing anything in between.  If it loses, we'll have
 	      ;;to look for something else
-	      (t (error "Cannot convert to babyl format"))))))
+	      (t (error "Cannot convert to babyl format")))))
     count))
 
 ;; Delete the "From ..." line, creating various other headers with
