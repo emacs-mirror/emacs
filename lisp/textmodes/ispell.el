@@ -339,7 +339,7 @@ Must be greater than 1.")
 (defvar ispell-complete-word-dict ispell-alternate-dictionary
   "*Dictionary used for word completion.")
 
-(defvar ispell-grep-command "/usr/bin/egrep"
+(defvar ispell-grep-command "egrep"
   "Name of the grep command for search processes.")
 
 (defvar ispell-grep-options "-i"
@@ -347,7 +347,7 @@ Must be greater than 1.")
 Should probably be \"-i\" or \"-e\".
 Some machines (like the NeXT) don't support \"-i\"")
 
-(defvar ispell-look-command "/usr/bin/look"
+(defvar ispell-look-command "look"
   "Name of the look command for search processes.
 This must be an absolute file name.")
 
