@@ -1185,7 +1185,7 @@ generating a buffered list of errors."
 ;; What is it?
 
 ;;;###autoload
-(easy-mmode-define-minor-mode checkdoc-minor-mode
+(define-minor-mode checkdoc-minor-mode
   "Toggle Checkdoc minor mode, a mode for checking Lisp doc strings.
 With prefix ARG, turn Checkdoc minor mode on iff ARG is positive.
 
