@@ -1986,9 +1986,8 @@ in the mode line."
 (defvar blink-matching-paren t
   "*Non-nil means show matching open-paren when close-paren is inserted.")
 
-(defconst blink-matching-paren-distance 4000
-  "*If non-nil, is maximum distance to search for matching open-paren
-when close-paren is inserted.")
+(defconst blink-matching-paren-distance 12000
+  "*If non-nil, is maximum distance to search for matching open-paren.")
 
 (defun blink-matching-open ()
   "Move cursor momentarily to the beginning of the sexp before point."
