@@ -56,10 +56,11 @@ too.  Therefore, when a separate minibuffer frame is active,
 entered the minibuffer, as well as the minibuffer window.  But if the
 minibuffer does not count, only windows from WINDOW's frame count.
 
-Optional third arg ALL-FRAMES t means include windows on all frames.
-ALL-FRAMES nil or omitted means cycle within the frames as specified
-above.  ALL-FRAMES = `visible' means include windows on all visible frames.
+ALL-FRAMES is the optional third argument.
+ALL-FRAMES nil or omitted means cycle within the frames as specified above.
+ALL-FRAMES = `visible' means include windows on all visible frames.
 ALL-FRAMES = 0 means include windows on all visible and iconified frames.
+ALL-FRAMES = t means include windows on all frames including invisible frames.
 Anything else means restrict to WINDOW's frame."
   ;; If we start from the minibuffer window, don't fail to come back to it.
   (if (window-minibuffer-p (selected-window))
