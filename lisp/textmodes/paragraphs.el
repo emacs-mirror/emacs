@@ -34,14 +34,7 @@
   "Paragraph and sentence parsing."
   :group 'editing)
 
-;; It isn't useful to use defcustom for this variable
-;; because it is always buffer-local.
-(defvar use-hard-newlines nil
-    "Non-nil means to distinguish hard and soft newlines.
-See also the documentation for the function `use-hard-newlines'.")
-(make-variable-buffer-local 'use-hard-newlines)
-
-(defun use-hard-newlines (&optional arg insert)
+(define-minor-mode use-hard-newlines
   "Minor mode to distinguish hard and soft newlines.
 When active, the functions `newline' and `open-line' add the
 text-property `hard' to newlines that they insert, and a line is
@@ -58,17 +51,13 @@ or anything else to ask the user.
 
 Newlines not marked hard are called \"soft\", and are always internal
 to paragraphs.  The fill functions insert and delete only soft newlines."
-  (interactive (list current-prefix-arg nil))
-  (if (or (<= (prefix-numeric-value arg) 0)
-	  (and use-hard-newlines (null arg)))
-      ;; Turn mode off
-      (setq use-hard-newlines nil)
+  :extra-args (insert)
+  (when use-hard-newlines
     ;; Turn mode on
     ;; Intuit hard newlines --
     ;;   mark as hard any newlines preceding a paragraph-start line.
     (if (or (eq insert t) (eq insert 'always)
 	    (and (not (eq 'never insert))
-		 (not use-hard-newlines)
 		 (not (text-property-any (point-min) (point-max) 'hard t))
 		 (save-excursion
 		   (goto-char (point-min))
@@ -80,19 +69,16 @@ to paragraphs.  The fill functions insert and delete only soft newlines."
 	  (while (search-forward "\n" nil t)
 	    (let ((pos (point)))
 	      (move-to-left-margin)
-	      (if (looking-at paragraph-start)
-		  (progn
-		    (set-hard-newline-properties (1- pos) pos)
-		    ;; If paragraph-separate, newline after it is hard too.
-		    (if (looking-at paragraph-separate)
-			(progn
-			  (end-of-line)
-			  (if (not (eobp))
-			      (set-hard-newline-properties
-			       (point) (1+ (point))))))))))))
-    (setq use-hard-newlines t)))
+	      (when (looking-at paragraph-start)
+		(set-hard-newline-properties (1- pos) pos))
+	      ;; If paragraph-separate, newline after it is hard too.
+	      (when (looking-at paragraph-separate)
+		(set-hard-newline-properties (1- pos) pos)
+		(end-of-line)
+		(unless (eobp)
+		  (set-hard-newline-properties (point) (1+ (point)))))))))))
 
-(defcustom paragraph-start "[ \t\n\f]" "\
+(defcustom paragraph-start "\f\\|[ \t]*$" "\
 *Regexp for beginning of a line that starts OR separates paragraphs.
 This regexp should match lines that separate paragraphs
 and should also match lines that start a paragraph
@@ -244,8 +230,8 @@ to which the end of the previous line belongs, or the end of the buffer."
 		  (setq found-start nil)
 		  (goto-char start))
 		found-start)
-	      ;; Found one.
-	      (progn
+	    ;; Found one.
+	    (progn
 		;; Move forward over paragraph separators.
 		;; We know this cannot reach the place we started
 		;; because we know we moved back over a non-separator.
