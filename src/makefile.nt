@@ -36,7 +36,11 @@ TEMACS          = $(BLD)\temacs.exe
 TLIB1           = $(BLD)\temacs1.lib
 TLIB2           = $(BLD)\temacs2.lib
 TOBJ            = $(BLD)\emacs.obj
+!if $(MSVCNT11)
+TRES		= $(BLD)\emacs.res
+!else
 TRES		= $(BLD)\emacs.rbj
+!endif
 
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:console -entry:_start 
 
@@ -161,7 +165,9 @@ $(TEMACS):      $(TLIB1) $(TLIB2) $(TOBJ) $(TRES)
 #
 $(TRES):	..\nt\emacs.rc
 		$(RC) -i..\nt -Fo$(BLD)\emacs.res $**
+!if !$(MSVCNT11)
 		$(CVTRES) -r -$(ARCH) -o $@ $(BLD)\emacs.res
+!endif
 
 #
 # Build the library.  Split up the build into two phases...otherwise we 
