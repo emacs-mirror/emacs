@@ -1,3 +1,8 @@
+2001-09-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-file-list-for-emacs): Add elements for ada-mode,
+	ccmode, emacs-mime, and eudc manuals.
+
 2001-09-19  Sam Steingold  <sds@gnu.org>
 
 	w32 find cannot be used with `grep-find'.
