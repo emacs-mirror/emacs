@@ -608,10 +608,9 @@ they are not defaultly assigned to keys."
 
     ;; edit-picture-hook is what we used to run, picture-mode-hook is in doc.
     (run-hooks 'edit-picture-hook 'picture-mode-hook)
-    (message
-     (substitute-command-keys
-      "Type \\[picture-mode-exit] in this buffer to return it to %s mode.")
-     picture-mode-old-mode-name)))
+    (message "Type %s in this buffer to return it to %s mode."
+	     (substitute-command-keys "\\[picture-mode-exit]")
+	     picture-mode-old-mode-name)))
 
 ;;;###autoload
 (defalias 'edit-picture 'picture-mode)
