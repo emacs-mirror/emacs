@@ -1,3 +1,7 @@
+2003-02-23  Simon Josefsson  <jas@extundo.com>
+
+	* Makefile.in (install-arch-indep, uninstall): Add SMTP manual.
+
 2003-02-21  Klaus Zeitler  <kzeitler@lucent.com>
 
 	* configure.in: Set new hpux10-20.h as "major" include for 10.20.

@@ -1,4 +1,8 @@
-2003-02-23  Simon Josefsson  <jas@extundo.com>
+2003-02-23  Alex Schroeder <alex@emacswiki.org>
+
+	* smtpmail.texi (How Mail Works): New.
+
+2003-02-22  Alex Schroeder <alex@emacswiki.org>
 
 	* cmdargs.texi (General Variables): Document SMTPSERVER.
 
