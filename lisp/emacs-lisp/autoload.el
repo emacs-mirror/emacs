@@ -109,7 +109,7 @@ are used."
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(print-length nil)
-	(float-output-format "%.20e")
+	(float-output-format nil)
 	(done-any nil)
 	(visited (get-file-buffer file))
 	output-end)
