@@ -23,8 +23,8 @@ in the larger process of developing and maintaining programs.
                           with different facilities for running
                           the Lisp programs.
 * Libraries: Lisp Libraries.      Creating Lisp programs to run in Emacs.
-* Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
 * Eval: Lisp Eval.      Executing a single Lisp expression in Emacs.
+* Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
 * External Lisp::         Communicating through Emacs with a separate Lisp.
 @end menu
 
@@ -644,7 +644,7 @@ to know GDB commands.
 @menu
 * Layout::               Control the number of displayed buffers.
 * Breakpoints Buffer::   A breakpoint control panel.
-* Stack Buffer::         Select a frame from the call stack. 
+* Stack Buffer::         Select a frame from the call stack.
 * Watch Expressions::    Monitor variable values in the speedbar.
 * Other Buffers::        Input/output, locals, registers and assembler buffers.
 @end menu
@@ -698,12 +698,12 @@ is the relevant buffer type e.g breakpoints.
 @node Breakpoints Buffer
 @subsubsection Breakpoints Buffer
 
-The breakpoints buffer shows the existing breakpoints and watchpoints 
+The breakpoints buffer shows the existing breakpoints and watchpoints
 (@pxref{Breakpoints,,, gdb, The GNU debugger}).  It has three special
 commands:
 
 @table @kbd
-@item @key{SPC} 
+@item @key{SPC}
 @kindex SPC @r{(GDB breakpoints buffer)}
 @findex gdb-toggle-breakpoint
 Enable/disable the breakpoint at the current line
