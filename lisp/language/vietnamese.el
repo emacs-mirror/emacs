@@ -59,7 +59,7 @@
 (set-language-info-alist
  "Vietnamese" `((charset viscii)
 		(coding-system vietnamese-viscii vietnamese-vscii
-			       vietnamese-viqr)
+			       vietnamese-viqr windows-1258)
 		(coding-priority vietnamese-viscii)
 		(nonascii-translation . viscii)
 		(input-method . "vietnamese-viqr")
