@@ -1,3 +1,17 @@
+2002-08-05  John Wiegley  <johnw@gnu.org>
+
+	* pcomplete.el (pcomplete-entries): Don't set `above-cutoff' to a
+	value unless pcomplete-cycle-cutoff-length is non-nil.
+
+2002-04-09  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* esh-util.el (eshell-under-cygwin-p): New function.
+	* em-cmpl.el (eshell-cmpl-ignore-case): Use it.
+	* em-dirs.el (eshell/cd): Ditto.
+	* em-glob.el (eshell-glob-case-insensitive): Ditto.
+	* em-hist.el (eshell-previous-matching-input-string-position): Ditto.
+	* esh-ext.el (eshell-binary-suffixes): Ditto.
+
 2002-08-05  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Check for
