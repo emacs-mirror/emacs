@@ -517,6 +517,10 @@ int trace_redisplay_p;
 
 int automatic_hscrolling_p;
 
+/* A list of symbols, one for each supported image type.  */
+
+Lisp_Object Vimage_types;
+
 /* Value returned from text property handlers (see below).  */
 
 enum prop_handled
@@ -13120,6 +13124,11 @@ Nil means don't display a cursor there.");
   DEFVAR_BOOL ("automatic-hscrolling", &automatic_hscrolling_p,
     "*Non-nil means scroll the display automatically to make point visible.");
   automatic_hscrolling_p = 1;
+  
+  DEFVAR_LISP ("image-types", &Vimage_types,
+     "List of supported image types.\n\
+Each element of the list is a symbol for a supported image type.");
+  Vimage_types = Qnil;
 }
 
 
