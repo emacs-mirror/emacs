@@ -1344,6 +1344,10 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   return w;
 }
 
+static GtkWidget *create_menus P_ ((widget_value *, FRAME_PTR, GCallback,
+				    GCallback, GCallback, int, int, int,
+				    GtkWidget *, xg_menu_cb_data *, char *));
+
 /* Create a full menu tree specified by DATA.
    F is the frame the created menu belongs to.
    SELECT_CB is the callback to use when a menu item is selected.
