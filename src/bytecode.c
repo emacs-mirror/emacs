@@ -562,7 +562,6 @@ If the third argument is incorrect, Emacs may crash.")
 	varset:
 	  {
 	    Lisp_Object sym, val;
-	    extern int keyword_symbols_constant_flag;
 	      
 	    sym = vectorp[op];
 	    val = POP;
@@ -579,7 +578,6 @@ If the third argument is incorrect, Emacs may crash.")
 		&& !EQ (sym, Qt)
 		&& !(XSYMBOL (sym)->name->data[0] == ':'
 		     && EQ (XSYMBOL (sym)->obarray, initial_obarray)
-		     && keyword_symbols_constant_flag
 		     && !EQ (val, sym)))
 	      XSYMBOL (sym)->value = val;
 	    else
