@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.43) $
+ * $HopeName: MMsrc!poolamc.c(trunk.44) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.43) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.44) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -24,7 +24,7 @@ typedef struct AMCGenStruct *AMCGen;
 /* forward declarations */
 
 static Bool AMCCheck(AMC amc);
-static Bool AMCGenCheck(AMCGen gen);
+static Bool AMCGenCheck(AMCGen gen);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern PoolClass EnsureAMCPoolClass(void);
@@ -2007,12 +2007,13 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
-  if (amc->rampMode == collectingRamp)
+  if (amc->rampMode == collectingRamp) {
      if (amc->rampCount > 0)
        /* Entered ramp mode before previous one was cleaned up */
        amc->rampMode = beginRamp;
      else
        amc->rampMode = outsideRamp;
+  }
 
   if (SegNailed(seg) != TraceSetEMPTY) {
     AMCReclaimNailed(pool, trace, seg);
@@ -2097,8 +2098,7 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
 
 /* AMCWalk -- Apply function to (black) objects in segment */
 
-static void AMCWalk(Pool pool, Seg seg,
-                    FormattedObjectsStepMethod f,
+static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                     void *p, unsigned long s)
 {
     Addr object;
@@ -2148,8 +2148,7 @@ static void AMCWalk(Pool pool, Seg seg,
 
 /* AMCWalkAll -- Apply a function to all (black) objects in a pool */
 
-static void AMCWalkAll(Pool pool,
-                       FormattedObjectsStepMethod f,
+static void AMCWalkAll(Pool pool, FormattedObjectsStepMethod f,
                        void *p, unsigned long s)
 {
   Arena arena;
