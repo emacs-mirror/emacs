@@ -16,6 +16,9 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** New function executable-make-buffer-file-executable-if-script-p is
+suitable as an after-save-hook as an alternative to executable-chmod.
+
 ** The most preferred coding-system is now used to save a buffer if
 buffer-file-coding-system is `undecided' and it is safe for the buffer
 contents.  (The most preferred is set by set-language-environment or
@@ -412,7 +415,7 @@ Faces with a weight greater than normal are displayed extra-bright, if
 the terminal supports it.  Faces with a weight less than normal and
 italic faces are displayed dimmed, if the terminal supports it.
 Underlined faces are displayed underlined if possible.  Other face
-attributes like overlines, strike-throught, box are ignored.
+attributes like overlines, strike-through, box are ignored.
 
 ** Sound support
 
