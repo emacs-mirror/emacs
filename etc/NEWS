@@ -64,9 +64,9 @@ changes the behavior of motion commands line C-e and C-p.
 ** In Dired's ! command (dired-do-shell-command), `*' and `?' now
 control substitution of the file names only when they are surrounded
 by whitespace.  This means you can now use them as shell wildcards
-too.  If you want to use just plain `*' as a wildcard, type `*""';
-it has the same effect in the shell, but avoids special treatment
-in Dired !.
+too.  If you want to use just plain `*' as a wildcard, type `*""'; the
+doublequotes make no differentce in the shell, but they prevent
+special treatment in `dired-do-shell-command'.
 
 ** Unquoted `$' in file names do not signal an error any more when
 the corresponding environment variable does not exist.

@@ -1,3 +1,17 @@
+2002-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-aux.el (dired-shell-stuff-it): Substitute for * or ?
+	only when they are surrounded by whitespace.
+	Use dired-mark-separator when adding one file name to a command.
+	(dired-do-shell-command): Verify that * is surrounded by whitespace.
+	Ask for confirmation if * or ? is not surrounded by whitespace.
+	(dired-bunch-files): Re-reverse the partial file list when it is used.
+
+2002-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el (comint-dynamic-list-completions): Repeating the command
+	after displaying a completion list scrolls the list.
+
 2002-01-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (find-file-noselect): Don't consider a buffer as
