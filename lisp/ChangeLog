@@ -1,5 +1,9 @@
 2000-11-02  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* info.el (info-menu-header): New face.
+	(Info-fontify-menu-headers): New function.
+	(Info-fontify-node, Info-insert-dir): Call `Info-fontify-menu-headers'.
+
 	* info.el (Info-insert-dir): Don't include blank lines at
 	beginning of additional dir files (one is added automatically).
 
