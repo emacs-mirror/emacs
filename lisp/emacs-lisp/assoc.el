@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(defun asort (assoc-symbol key)
+(defun asort (alist-symbol key)
   "Move a specified key-value pair to the head of an alist.
 The alist is referenced by ALIST-SYMBOL. Key-value pair to move to
 head is one matching KEY.  Returns the sorted list and doesn't affect
