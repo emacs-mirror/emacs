@@ -126,7 +126,7 @@ locallisppath=${datadir}/emacs/site-lisp
 # this, check to see if your purpose wouldn't better be served by
 # changing locallisppath.  This should be a colon-separated list of
 # directories.
-lisppath=${locallisppath}:${lispdir}:${externallispdir}
+lisppath=${locallisppath}:${lispdir}
 
 # Where Emacs will search for its elisp files while building.  This is
 # only used during the process of compiling Emacs, to help Emacs find
