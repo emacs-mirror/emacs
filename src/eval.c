@@ -789,9 +789,9 @@ Otherwise, the macro is expanded and the expansion is considered\n\
 in place of FORM.  When a non-macro-call results, it is returned.\n\n\
 The second optional arg ENVIRONMENT species an environment of macro\n\
 definitions to shadow the loaded ones for use in file byte-compilation.")
-  (form, env)
+  (form, environment)
      register Lisp_Object form;
-     Lisp_Object env;
+     Lisp_Object environment;
 {
   /* With cleanups from Hallvard Furuseth.  */
   register Lisp_Object expander, sym, def, tem;
@@ -811,7 +811,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	{
 	  QUIT;
 	  sym = def;
-	  tem = Fassq (sym, env);
+	  tem = Fassq (sym, environment);
 	  if (NILP (tem))
 	    {
 	      def = XSYMBOL (sym)->function;
@@ -820,11 +820,11 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	    }
 	  break;
 	}
-      /* Right now TEM is the result from SYM in ENV,
+      /* Right now TEM is the result from SYM in ENVIRONMENT,
 	 and if TEM is nil then DEF is SYM's function definition.  */
       if (NILP (tem))
 	{
-	  /* SYM is not mentioned in ENV.
+	  /* SYM is not mentioned in ENVIRONMENT.
 	     Look at its function definition.  */
 	  if (EQ (def, Qunbound) || !CONSP (def))
 	    /* Not defined or definition not suitable */
@@ -960,8 +960,8 @@ unwind_to_catch (catch, value)
 DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
   "(throw TAG VALUE): throw to the catch for TAG and return VALUE from it.\n\
 Both TAG and VALUE are evalled.")
-  (tag, val)
-     register Lisp_Object tag, val;
+  (tag, value)
+     register Lisp_Object tag, value;
 {
   register struct catchtag *c;
 
@@ -971,9 +971,9 @@ Both TAG and VALUE are evalled.")
 	for (c = catchlist; c; c = c->next)
 	  {
 	    if (EQ (c->tag, tag))
-	      unwind_to_catch (c, val);
+	      unwind_to_catch (c, value);
 	  }
-      tag = Fsignal (Qno_catch, Fcons (tag, Fcons (val, Qnil)));
+      tag = Fsignal (Qno_catch, Fcons (tag, Fcons (value, Qnil)));
     }
 }
 
@@ -2756,7 +2756,7 @@ Output stream used is value of `standard-output'.")
 }
 
 DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 1, "",
-  "Return the function and arguments N frames up from current execution point.\n\
+  "Return the function and arguments NFRAMES up from current execution point.\n\
 If that frame has not evaluated the arguments yet (or is a special form),\n\
 the value is (nil FUNCTION ARG-FORMS...).\n\
 If that frame has evaluated its arguments and called its function already,\n\
@@ -2764,7 +2764,7 @@ the value is (t FUNCTION ARG-VALUES...).\n\
 A &rest arg is represented as the tail of the list ARG-VALUES.\n\
 FUNCTION is whatever was supplied as car of evaluated list,\n\
 or a lambda expression for macro calls.\n\
-If N is more than the number of frames, the value is nil.")
+If NFRAMES is more than the number of frames, the value is nil.")
   (nframes)
      Lisp_Object nframes;
 {
