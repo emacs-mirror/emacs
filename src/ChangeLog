@@ -1,3 +1,12 @@
+2002-08-22  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Do not `goto try_to_scroll' when we
+	end up on a partially visible line; this reverts a specific part
+	of the 2002-07-07 change by Richard M. Stallman to "fix" a nasty
+	display error which has been reported several times now.
+	However it introduces the problem that changes was supposed to fix.
+	See my comments in the source if you want to debug this further.
+
 2002-08-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* abbrev.c (Fexpand_abbrev): Fix for the multibyte case.
