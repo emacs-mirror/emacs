@@ -3186,7 +3186,6 @@ decode_coding_iso_2022 (coding)
 		*charbuf++ = *src_base;
 	      else
 		*charbuf++ = BYTE8_TO_CHAR (*src_base);
-	      char_offset++;
 	    }
 	}
       else if (composition_state == COMPOSING_NO)
@@ -4985,6 +4984,8 @@ raw_text_coding_system (coding_system)
   Lisp_Object spec, attrs;
   Lisp_Object eol_type, raw_text_eol_type;
 
+  if (NILP (coding_system))
+    return Qraw_text;
   spec = CODING_SYSTEM_SPEC (coding_system);
   attrs = AREF (spec, 0);
   
@@ -5012,10 +5013,13 @@ coding_inherit_eol_type (coding_system, parent)
 {
   Lisp_Object spec, attrs, eol_type;
 
+  if (NILP (coding_system))
+    coding_system = Qraw_text;
   spec = CODING_SYSTEM_SPEC (coding_system);
   attrs = AREF (spec, 0);
   eol_type = AREF (spec, 2);
-  if (VECTORP (eol_type))
+  if (VECTORP (eol_type)
+      && ! NILP (parent))
     {
       Lisp_Object parent_spec;
       Lisp_Object parent_eol_type;
@@ -5497,8 +5501,9 @@ produce_chars (coding)
 	      produced_chars++;
 	    }
 	  else
-	    /* This is an annotation datum.  */
-	    buf -= c + 1;
+	    /* This is an annotation datum.  (-C) is the length of
+	       it.  */
+	    buf += -c - 1;
 	}
     }
   else
@@ -6043,9 +6048,10 @@ consume_chars (coding)
 
       if (! multibytep)
 	{
-	  EMACS_INT bytes = MULTIBYTE_LENGTH (src, src_end);
+	  EMACS_INT bytes;
 
-	  if (bytes > 0)
+	  if (! CODING_FOR_UNIBYTE (coding)
+	      && (bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
 	    c = STRING_CHAR_ADVANCE (src), pos += bytes;
 	  else
 	    c = *src++, pos++;
