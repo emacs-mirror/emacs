@@ -225,7 +225,8 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
-  (if (string-match "c" ediff-diff-options)
+  ;; looking either for '-c' or a 'c' in a set of clustered non-long options
+  (if (string-match "^-c\\| -c\\|-[^- ]+c" ediff-diff-options)
       (error "Option `-c' is not allowed in `ediff-diff-options'"))
 						  
   ;; create, if it doesn't exist

@@ -497,8 +497,8 @@ If this file is a backup, `ediff' it with its original."
 ;;;###autoload
 (defun ediff-directories (dir1 dir2 regexp)
   "Run Ediff on a pair of directories, DIR1 and DIR2, comparing files that have
-the same name in both.  The third argument, REGEXP, is a regular expression
-that can be used to filter out certain file names."
+the same name in both.  The third argument, REGEXP, is nil or a regular
+expression; only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
@@ -542,8 +542,9 @@ names.  Only the files that are under revision control are taken into account."
 ;;;###autoload
 (defun ediff-directories3 (dir1 dir2 dir3 regexp)
   "Run Ediff on three directories, DIR1, DIR2, and DIR3, comparing files that
-have the same name in all three.  The last argument, REGEXP, is a regular
-expression that can be used to filter out certain file names."
+have the same name in all three.  The last argument, REGEXP, is nil or a
+regular expression; only file names that match the regexp are considered."
+
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
@@ -571,8 +572,8 @@ expression that can be used to filter out certain file names."
 ;;;###autoload
 (defun ediff-merge-directories (dir1 dir2 regexp &optional merge-autostore-dir)
   "Run Ediff on a pair of directories, DIR1 and DIR2, merging files that have
-the same name in both.  The third argument, REGEXP, is a regular expression
-that can be used to filter out certain file names."
+the same name in both.  The third argument, REGEXP, is nil or a regular
+expression; only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
@@ -600,8 +601,8 @@ that can be used to filter out certain file names."
   "Merge files in directories DIR1 and DIR2 using files in ANCESTOR-DIR as ancestors.
 Ediff merges files that have identical names in DIR1, DIR2.  If a pair of files
 in DIR1 and DIR2 doesn't have an ancestor in ANCESTOR-DIR, Ediff will merge
-without ancestor.  The fourth argument, REGEXP, is a regular expression that
-can be used to filter out certain file names."
+without ancestor.  The fourth argument, REGEXP, is nil or a regular expression;
+only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
@@ -676,8 +677,8 @@ names.  Only the files that are under revision control are taken into account."
 
 ;; Run ediff-action (ediff-files, ediff-merge, ediff-merge-with-ancestors)
 ;; on a pair of directories (three directories, in case of ancestor).
-;; The third argument, REGEXP, is a regular expression that can be used to
-;; filter out certain file names.
+;; The third argument, REGEXP, is nil or a regular expression;
+;; only file names that match the regexp are considered.
 ;; JOBNAME is the symbol indicating the meta-job to be performed.
 ;; MERGE-AUTOSTORE-DIR is the directory in which to store merged files.
 (defun ediff-directories-internal (dir1 dir2 dir3 regexp action jobname 

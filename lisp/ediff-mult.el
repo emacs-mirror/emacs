@@ -505,7 +505,8 @@ behavior."
 ;; DIR1, DIR2, DIR3 are directories.  DIR3 can be nil.
 ;; OUTPUT-DIR is a directory for auto-storing the results of merge jobs.
 ;;	      Can be nil.
-;; REGEXP is a regexp used to filter out files in the directories.
+;; REGEXP is nil or a filter regexp; only file names that match the regexp
+;; are considered.
 ;; If a file is a directory in dir1 but not dir2 (or vice versa), it is not
 ;; included in the intersection.  However, a regular file that is a dir in dir3
 ;; is included, since dir3 files are supposed to be ancestors for merging.
