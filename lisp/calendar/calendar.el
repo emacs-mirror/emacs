@@ -489,7 +489,7 @@ OFFSET is an integer specifying how many minutes east of Greenwich the
     Greenwich.  This describes the standard time; if daylight
     savings time is in effect, it does not affect this value.
 SAVINGS-FLAG is non-nil iff daylight savings time or some other sort
-    of seasonal time adjustment is in effect.
+    of seasonal time adjustment is ever in effect.
 STANDARD is a string giving the name of the time zone when no seasonal
     time adjustment is in effect.
 SAVINGS is a string giving the name of the time zone when there is a
@@ -498,7 +498,7 @@ If the local area does not use a seasonal time adjustment,
 SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.
 
 Some operating systems cannot provide all this information to Emacs;
-in this case, calendar-current-time-zone returns a list containing nil for
+in this case, `calendar-current-time-zone' returns a list containing nil for
 the data it can't find."
   (let* ((quarter-year-seconds 7889238.0) ; # number of seconds in 1/4 year
 	 (current-time-arithmetic-base 65536.0)
@@ -573,13 +573,11 @@ package loads.")
           (car (nthcdr 3 (calendar-current-time-zone)))))
   
 ;;;###autoload
-(defvar calendar-daylight-savings-starts
-  '(calendar-nth-named-day 1 0 4 year)
+(defvar calendar-daylight-savings-starts nil
   "*A sexp in the variable `year' that gives the Gregorian date, in the form
 of a list (month day year), on which daylight savings time starts.  This is
 used to determine the starting date of daylight savings time for the holiday
-list and for correcting times of day in the solar and lunar calculations.  The
-default value is the American rule of the first Sunday in April.
+list and for correcting times of day in the solar and lunar calculations.
 
 For example, if daylight savings time is mandated to start on October 1,
 you would set `calendar-daylight-savings-starts' to
@@ -594,18 +592,32 @@ to
          (calendar-absolute-from-hebrew
             (list 1 1 (+ year 3760))))
 
-because Nisan is the first month in the Hebrew calendar.")
+because Nisan is the first month in the Hebrew calendar.
+
+If this is nil and the locale ever uses daylight savings time,
+it will be set to the American rule of the first Sunday in April
+when the calendar package loads.")
+;;; If the user has given this a value, don't wipe it out.
+(or calendar-daylight-savings-starts
+    (setq calendar-daylight-savings-starts
+	  (and (car (cdr (calendar-current-time-zone)))
+	       '(calendar-nth-named-day 1 0 4 year))))
 
 ;;;###autoload
-(defvar calendar-daylight-savings-ends
-  '(calendar-nth-named-day -1 0 10 year)
+(defvar calendar-daylight-savings-ends nil
   "*An expression in the variable `year' that gives the Gregorian date, in the
 form of a list (month day year), on which daylight savings time ends.  This
 is used to determine the ending date of daylight savings time for the holiday
 list and for correcting times of day in the solar and lunar calculations.
-The default value is the American rule of the last Sunday in October.
+The default value is the American rule of the last Sunday in October
+if the locale ever uses daylight savings time, otherwise nil.
 See the documentation for `calendar-daylight-savings-starts' for other
 examples.")
+;;; If the user has given this a value, don't wipe it out.
+(or calendar-daylight-savings-ends
+    (setq calendar-daylight-savings-ends
+	  (and (car (cdr (calendar-current-time-zone)))
+	       '(calendar-nth-named-day -1 0 10 year))))
 
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
