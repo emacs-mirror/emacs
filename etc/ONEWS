@@ -1,8 +1,783 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
-Copyright (C) 1995 Free Software Foundation, Inc.
+Copyright (C) 1995, 2001 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 For older news, see the file ONEWS.4.
+
+* Emacs 19.34 is a bug-fix release with no user-visible changes.
+
+* Changes in Emacs 19.33.
+
+** Bibtex mode no longer turns on Auto Fill automatically.  (No major
+mode should do that--it is the user's choice.)
+
+** The variable normal-auto-fill-function specifies the function to
+use for auto-fill-function, if and when Auto Fill is turned on.
+Major modes can set this locally to alter how Auto Fill works.
+
+* Editing Changes in Emacs 19.32
+
+** C-x f with no argument now signals an error.
+To set the fill column at the current column, use C-u C-x f.
+
+** Expanding dynamic abbrevs with M-/ is now smarter about case
+conversion.  If you type the abbreviation with mixed case, and it
+matches the beginning of the expansion including case, then the
+expansion is copied verbatim.  Using SPC M-/ to copy an additional
+word always copies it verbatim except when the previous copied word is
+all caps.
+
+** On a non-windowing terminal, which can display only one Emacs frame
+at a time, creating a new frame with C-x 5 2 also selects that frame.
+
+When using a display that can show multiple frames at once, C-x 5 2
+does make the frame visible, but does not select it.  This is the same
+as in previous Emacs versions.
+
+** You can use C-x 5 2 to create multiple frames on MSDOS, just as on a
+non-X terminal on Unix.  Of course, only one frame is visible at any
+time, since your terminal doesn't have the ability to display multiple
+frames.
+
+** On Windows, set win32-pass-alt-to-system to a non-nil value
+if you would like tapping the Alt key to invoke the Windows menu.
+This feature is not enabled by default; since the Alt key is also the
+Meta key, it is too easy and painful to activate this feature by
+accident.
+
+** The command apply-macro-to-region-lines repeats the last defined
+keyboard macro once for each complete line within the current region.
+It does this line by line, by moving point to the beginning of that
+line and then executing the macro.
+
+This command is not new, but was never documented before.
+
+** You can now use Mouse-1 to place the region around a string constant
+(something surrounded by doublequote characters or other delimiter
+characters of like syntax) by double-clicking on one of the delimiting
+characters.
+
+** Font Lock mode
+
+*** Font Lock support modes
+
+Font Lock can be configured to use Fast Lock mode and Lazy Lock mode (see
+below) in a flexible way.  Rather than adding the appropriate function to the
+hook font-lock-mode-hook, you can use the new variable font-lock-support-mode
+to control which modes have Fast Lock mode or Lazy Lock mode turned on when
+Font Lock mode is enabled.
+
+For example, to use Fast Lock mode when Font Lock mode is turned on, put:
+
+ (setq font-lock-support-mode 'fast-lock-mode)
+
+in your ~/.emacs.
+
+*** lazy-lock
+
+The lazy-lock package speeds up Font Lock mode by making fontification occur
+only when necessary, such as when a previously unfontified part of the buffer
+becomes visible in a window.  When you create a buffer with Font Lock mode and
+Lazy Lock mode turned on, the buffer is not fontified.  When certain events
+occur (such as scrolling), Lazy Lock makes sure that the visible parts of the
+buffer are fontified.  Lazy Lock also defers on-the-fly fontification until
+Emacs has been idle for a given amount of time.
+
+To use this package, put in your ~/.emacs:
+
+ (setq font-lock-support-mode 'lazy-lock-mode)
+
+To control the package behaviour, see the documentation for `lazy-lock-mode'.
+
+** Changes in BibTeX mode.
+
+*** For all entries allow spaces and tabs between opening brace or
+paren and key.
+
+*** Non-escaped double-quoted characters (as in `Sch"of') are now
+supported.
+
+** Gnus changes.
+
+Gnus, the Emacs news reader, has undergone further rewriting.  Many new
+commands and variables have been added.  There should be no
+significant incompatibilities between this Gnus version and the
+previously released version, except in the message composition area.
+
+Below is a list of the more user-visible changes.  Coding changes
+between Gnus 5.1 and 5.2 are more extensive.
+
+*** A new message composition mode is used.  All old customization
+variables for mail-mode, rnews-reply-mode and gnus-msg are now
+obsolete.
+
+*** Gnus is now able to generate "sparse" threads -- threads where
+missing articles are represented by empty nodes.
+
+    (setq gnus-build-sparse-threads 'some)
+
+*** Outgoing articles are stored on a special archive server.
+
+    To disable this:  (setq gnus-message-archive-group nil)
+
+*** Partial thread regeneration now happens when articles are
+referred.
+
+*** Gnus can make use of GroupLens predictions:
+
+    (setq gnus-use-grouplens t)
+
+*** A trn-line tree buffer can be displayed.
+
+    (setq gnus-use-trees t)
+
+*** An nn-like pick-and-read minor mode is available for the summary
+buffers.
+
+    (add-hook 'gnus-summary-mode-hook 'gnus-pick-mode)
+
+*** In binary groups you can use a special binary minor mode:
+
+    `M-x gnus-binary-mode'
+
+*** Groups can be grouped in a folding topic hierarchy.
+
+    (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
+
+*** Gnus can re-send and bounce mail.
+
+    Use the `S D r' and `S D b'.
+
+*** Groups can now have a score, and bubbling based on entry frequency
+is possible.
+
+    (add-hook 'gnus-summary-exit-hook 'gnus-summary-bubble-group)
+
+*** Groups can be process-marked, and commands can be performed on
+groups of groups.
+
+*** Caching is possible in virtual groups.
+
+*** nndoc now understands all kinds of digests, mail boxes, rnews news
+batches, ClariNet briefs collections, and just about everything else.
+
+*** Gnus has a new backend (nnsoup) to create/read SOUP packets.
+
+*** The Gnus cache is much faster.
+
+*** Groups can be sorted according to many criteria.
+
+    For instance: (setq gnus-group-sort-function 'gnus-group-sort-by-rank)
+
+*** New group parameters have been introduced to set list-address and
+expiration times.
+
+*** All formatting specs allow specifying faces to be used.
+
+*** There are several more commands for setting/removing/acting on
+process marked articles on the `M P' submap.
+
+*** The summary buffer can be limited to show parts of the available
+articles based on a wide range of criteria.  These commands have been
+bound to keys on the `/' submap.
+
+*** Articles can be made persistent -- as an alternative to saving
+articles with the `*' command.
+
+*** All functions for hiding article elements are now toggles.
+
+*** Article headers can be buttonized.
+
+    (add-hook 'gnus-article-display-hook 'gnus-article-add-buttons-to-head)
+
+*** All mail backends support fetching articles by Message-ID.
+
+*** Duplicate mail can now be treated properly.  See the
+`nnmail-treat-duplicates' variable.
+
+*** All summary mode commands are available directly from the article
+buffer.
+
+*** Frames can be part of `gnus-buffer-configuration'.
+
+*** Mail can be re-scanned by a daemonic process.
+
+*** Gnus can make use of NoCeM files to filter spam.
+
+    (setq gnus-use-nocem t)
+
+*** Groups can be made permanently visible.
+
+    (setq gnus-permanently-visible-groups "^nnml:")
+
+*** Many new hooks have been introduced to make customizing easier.
+
+*** Gnus respects the Mail-Copies-To header.
+
+*** Threads can be gathered by looking at the References header.
+
+    (setq gnus-summary-thread-gathering-function
+          'gnus-gather-threads-by-references)
+
+*** Read articles can be stored in a special backlog buffer to avoid
+refetching.
+
+    (setq gnus-keep-backlog 50)
+
+*** A clean copy of the current article is always stored in a separate
+buffer to allow easier treatment.
+
+*** Gnus can suggest where to save articles.  See `gnus-split-methods'.
+
+*** Gnus doesn't have to do as much prompting when saving.
+
+    (setq gnus-prompt-before-saving t)
+
+*** gnus-uu can view decoded files asynchronously while fetching
+articles.
+
+    (setq gnus-uu-grabbed-file-functions 'gnus-uu-grab-view)
+
+*** Filling in the article buffer now works properly on cited text.
+
+*** Hiding cited text adds buttons to toggle hiding, and how much
+cited text to hide is now customizable.
+
+    (setq gnus-cited-lines-visible 2)
+
+*** Boring headers can be hidden.
+
+    (add-hook 'gnus-article-display-hook 'gnus-article-hide-boring-headers)
+
+*** Default scoring values can now be set from the menu bar.
+
+*** Further syntax checking of outgoing articles have been added.
+
+The Gnus manual has been expanded.  It explains all these new features
+in greater detail.
+
+* Lisp Changes in Emacs 19.32
+
+** The function set-visited-file-name now accepts an optional
+second argument NO-QUERY.  If it is non-nil, then the user is not
+asked for confirmation in the case where the specified file already
+exists.
+
+** The variable print-length applies to printing vectors and bitvectors,
+as well as lists.
+
+** The new function keymap-parent returns the parent keymap
+of a given keymap.
+
+** The new function set-keymap-parent specifies a new parent for a
+given keymap.  The arguments are KEYMAP and PARENT.  PARENT must be a
+keymap or nil.
+
+** Sometimes menu keymaps use a command name, a symbol, which is really
+an automatically generated alias for some other command, the "real"
+name.  In such a case, you should give that alias symbol a non-nil
+menu-alias property.  That property tells the menu system to look for
+equivalent keys for the real name instead of equivalent keys for the
+alias.
+
+* Editing Changes in Emacs 19.31
+
+** Freedom of the press restricted in the United States.
+
+Emacs has been censored in accord with the Communications Decency Act.
+This includes removing some features of the doctor program.  That law
+was described by its supporters as a ban on pornography, but it bans
+far more than that.  The Emacs distribution has never contained any
+pornography, but parts of it were nonetheless prohibited.
+
+For information on US government censorship of the Internet, and what
+you can do to bring back freedom of the press, see the web site
+`http://www.vtw.org/'.
+
+** A note about C mode indentation customization.
+
+The old (Emacs 19.29) ways of specifying a C indentation style
+do not normally work in the new implementation of C mode.
+It has its own methods of customizing indentation, which are
+much more powerful than the old C mode.  See the Editing Programs
+chapter of the manual for details.
+
+However, you can load the library cc-compat to make the old
+customization variables take effect.
+
+** Marking with the mouse.
+
+When you mark a region with the mouse, the region now remains
+highlighted until the next input event, regardless of whether you are
+using M-x transient-mark-mode.
+
+** Improved Windows NT/95 support.
+
+*** Emacs now supports scroll bars on Windows NT and Windows 95.
+
+*** Emacs now supports subprocesses on Windows 95.  (Subprocesses used
+to work on NT only and not on 95.)
+
+*** There are difficulties with subprocesses, though, due to problems
+in Windows, beyond the control of Emacs.  They work fine as long as
+you run Windows applications.  The problems arise when you run a DOS
+application in a subprocesses.  Since current shells run as DOS
+applications, these problems are significant.
+
+If you run a DOS application in a subprocess, then the application is
+likely to busy-wait, which means that your machine will be 100% busy.
+However, if you don't mind the temporary heavy load, the subprocess
+will work OK as long as you tell it to terminate before you start any
+other DOS application as a subprocess.
+
+Emacs is unable to terminate or interrupt a DOS subprocess.
+You have to do this by providing input directly to the subprocess.
+
+If you run two DOS applications at the same time in two separate
+subprocesses, even if one of them is asynchronous, you will probably
+have to reboot your machine--until then, it will remain 100% busy.
+Windows simply does not cope when one Windows process tries to run two
+separate DOS subprocesses.  Typing CTL-ALT-DEL and then choosing
+Shutdown seems to work although it may take a few minutes.
+
+** M-x resize-minibuffer-mode.
+
+This command, not previously mentioned in NEWS, toggles a mode in
+which the minibuffer window expands to show as many lines as the
+minibuffer contains.
+
+** `title' frame parameter and resource.
+
+The `title' X resource now specifies just the frame title, nothing else.
+It does not affect the name used for looking up other X resources.
+It works by setting the new `title' frame parameter, which likewise
+affects just the displayed title of the frame.
+
+The `name' parameter continues to do what it used to do:
+it specifies the frame name for looking up X resources,
+and also serves as the default for the displayed title
+when the `title' parameter is unspecified or nil.
+
+** Emacs now uses the X toolkit by default, if you have a new
+enough version of X installed (X11R5 or newer).
+
+** When you compile Emacs with the Motif widget set, Motif handles the
+F10 key by activating the menu bar.  To avoid confusion, the usual
+Emacs binding of F10 is replaced with a no-op when using Motif.
+
+If you want to be able to use F10 in Emacs, you can rebind the Motif
+menubar to some other key which you don't use.  To do so, add
+something like this to your X resources file.  This example rebinds
+the Motif menu bar activation key to S-F12:
+
+   Emacs*defaultVirtualBindings:  osfMenuBar : Shift<Key>F12
+
+** In overwrite mode, DEL now inserts spaces in most cases
+to replace the characters it "deletes".
+
+** The Rmail summary now shows the number of lines in each message.
+
+** Rmail has a new command M-x unforward-rmail-message, which extracts
+a forwarded message from the message that forwarded it.  To use it,
+select a message which contains a forwarded message and then type the command.
+It inserts the forwarded message as a separate Rmail message
+immediately after the selected one.
+
+This command also undoes the textual modifications that are standardly
+made, as part of forwarding, by Rmail and other mail reader programs.
+
+** Turning off saving of .saves-... files in your home directory.
+
+Each Emacs session writes a file named .saves-... in your home
+directory to record which files M-x recover-session should recover.
+If you exit Emacs normally with C-x C-c, it deletes that file.  If
+Emacs or the operating system crashes, the file remains for M-x
+recover-session.
+
+You can turn off the writing of these files by setting
+auto-save-list-file-name to nil.  If you do this, M-x recover-session
+will not work.
+
+Some previous Emacs versions failed to delete these files even on
+normal exit.  This is fixed now.  If you are thinking of turning off
+this feature because of past experiences with versions that had this
+bug, it would make sense to check whether you still want to do so
+now that the bug is fixed.
+
+** Changes to Version Control (VC)
+
+There is a new variable, vc-follow-symlinks.  It indicates what to do
+when you visit a link to a file that is under version control.
+Editing the file through the link bypasses the version control system,
+which is dangerous and probably not what you want.
+
+If this variable is t, VC follows the link and visits the real file,
+telling you about it in the echo area.  If it is `ask' (the default),
+VC asks for confirmation whether it should follow the link.  If nil,
+the link is visited and a warning displayed.
+
+** iso-acc.el now lets you specify a choice of language.
+Languages include "latin-1" (the default) and "latin-2" (which
+is designed for entering ISO Latin-2 characters).
+
+There are also choices for specific human languages such as French and
+Portuguese.  These are subsets of Latin-1, which differ in that they
+enable only the accent characters needed for particular language.
+The other accent characters, not needed for the chosen language,
+remain normal.
+
+** Posting articles and sending mail now has M-TAB completion on various
+header fields (Newsgroups, To, CC, ...).
+
+Completion in the Newsgroups header depends on the list of groups
+known to your news reader.  Completion in the Followup-To header
+offers those groups which are in the Newsgroups header, since
+Followup-To usually just holds one of those.
+
+Completion in fields that hold mail addresses works based on the list
+of local users plus your aliases.  Additionally, if your site provides
+a mail directory or a specific host to use for any unrecognized user
+name, you can arrange to query that host for completion also.  (See the
+documentation of variables `mail-directory-process' and
+`mail-directory-stream'.)
+
+** A greatly extended sgml-mode offers new features such as (to be configured)
+skeletons with completing read for tags and attributes, typing named
+characters including optionally all 8bit characters, making tags invisible
+with optional alternate display text, skipping and deleting tag(pair)s.
+
+Note: since Emacs' syntax feature cannot limit the special meaning of ', " and
+- to inside <>, for some texts the result, especially of font locking, may be
+wrong (see `sgml-specials' if you get wrong results).
+
+The derived html-mode configures this with tags and attributes more or
+less HTML3ish.  It also offers optional quick keys like C-c 1 for
+headline or C-c u for unordered list (see `html-quick-keys').  Edit /
+Text Properties / Face or M-g combinations create tags as applicable.
+Outline minor mode is supported and level 1 font-locking tries to
+fontify tag contents (which only works when they fit on one line, due
+to a limitation in font-lock).
+
+External viewing via browse-url can occur automatically upon saving.
+
+** M-x imenu-add-to-menubar now adds to the menu bar for the current
+buffer only.  If you want to put an Imenu item in the menu bar for all
+buffers that use a particular major mode, use the mode hook, as in
+this example:
+
+    (add-hook 'emacs-lisp-mode-hook
+	      '(lambda () (imenu-add-to-menubar "Index")))
+
+** Changes in BibTeX mode.
+
+*** Field names may now contain digits, hyphens, and underscores.
+
+*** Font Lock mode is now supported.
+
+*** bibtex-make-optional-field is no longer interactive.
+
+*** If bibtex-maintain-sorted-entries is non-nil, inserting new
+entries is now done with a faster algorithm.  However, inserting
+will fail in this case if the buffer contains invalid entries or
+isn't in sorted order, so you should finish each entry with C-c C-c
+(bibtex-close-entry) after you have inserted or modified it.
+The default value of bibtex-maintain-sorted-entries is nil.
+
+*** Function `show-all' is no longer bound to a key, since C-u C-c C-q
+does the same job.
+
+*** Entries with quotes inside quote-delimited fields (as `author =
+"Stefan Sch{\"o}f"') are now supported.
+
+*** Case in field names doesn't matter anymore when searching for help
+text.
+
+** Font Lock mode
+
+*** Global Font Lock mode
+
+Font Lock mode can be turned on globally, in buffers that support it, by the
+new command global-font-lock-mode.  You can use the new variable
+font-lock-global-modes to control which modes have Font Lock mode automagically
+turned on.  By default, this variable is set so that Font Lock mode is turned
+on globally where the buffer mode supports it.
+
+For example, to automagically turn on Font Lock mode where supported, put:
+
+ (global-font-lock-mode t)
+
+in your ~/.emacs.
+
+*** Local Refontification
+
+In Font Lock mode, editing a line automatically refontifies that line only.
+However, if your change alters the syntactic context for following lines,
+those lines remain incorrectly fontified.  To refontify them, use the new
+command M-g M-g (font-lock-fontify-block).
+
+In certain major modes, M-g M-g refontifies the entire current function.
+(The variable font-lock-mark-block-function controls how to find the
+current function.)  In other major modes, M-g M-g refontifies 16 lines
+above and below point.
+
+With a prefix argument N, M-g M-g refontifies N lines above and below point.
+
+** Follow mode
+
+Follow mode is a new minor mode combining windows showing the same
+buffer into one tall "virtual window".  The windows are typically two
+side-by-side windows.  Follow mode makes them scroll together as if
+they were a unit.  To use it, go to a frame with just one window,
+split it into two side-by-side windows using C-x 3, and then type M-x
+follow-mode.
+
+M-x follow-mode turns off Follow mode if it is already enabled.
+
+To display two side-by-side windows and activate Follow mode, use the
+command M-x follow-delete-other-windows-and-split.
+
+** hide-show changes.
+
+The hooks hs-hide-hooks and hs-show-hooks have been renamed
+to hs-hide-hook and hs-show-hook, to follow the convention for
+normal hooks.
+
+** Simula mode now has a menu containing the most important commands.
+The new command simula-indent-exp is bound to C-M-q.
+
+** etags can now handle programs written in Erlang.  Files are
+recognised by the extensions .erl and .hrl.  The tagged lines are
+those that begin a function, record, or macro.
+
+** MSDOS Changes
+
+*** It is now possible to compile Emacs with the version 2 of DJGPP.
+Compilation with DJGPP version 1 also still works.
+
+*** The documentation of DOS-specific aspects of Emacs was rewritten
+and expanded; see the ``MS-DOS'' node in the on-line docs.
+
+*** Emacs now uses ~ for backup file names, not .bak.
+
+*** You can simulate mouse-3 on two-button mice by simultaneously
+pressing both mouse buttons.
+
+*** A number of packages and commands which previously failed or had
+restricted functionality on MS-DOS, now work.  The most important ones
+are:
+
+**** Printing (both with `M-x lpr-buffer' and with `ps-print' package)
+now works.
+
+**** `Ediff' works (in a single-frame mode).
+
+**** `M-x display-time' can be used on MS-DOS (due to the new
+implementation of Emacs timers, see below).
+
+**** `Dired' supports Unix-style shell wildcards.
+
+**** The `c-macro-expand' command now works as on other platforms.
+
+**** `M-x recover-session' works.
+
+**** `M-x list-colors-display' displays all the available colors.
+
+**** The `TPU-EDT' package works.
+
+* Lisp changes in Emacs 19.31.
+
+** The function using-unix-filesystems on Windows NT and Windows 95
+tells Emacs to read and write files assuming that they reside on a
+remote Unix filesystem.  No CR/LF translation is done on any files in
+this case.  Invoking using-unix-filesystems with t activates this
+behavior, and invoking it with any other value deactivates it.
+
+** Change in system-type and system-configuration values.
+
+The value of system-type on a Linux-based GNU system is now `lignux',
+not `linux'.  This means that some programs which use `system-type'
+need to be changed.  The value of `system-configuration' will also
+be different.
+
+It is generally recommended to use `system-configuration' rather
+than `system-type'.
+
+See the file LINUX-GNU in this directory for more about this.
+
+** The functions shell-command and dired-call-process
+now run file name handlers for default-directory, if it has them.
+
+** Undoing the deletion of text now restores the positions of markers
+that pointed into or next to the deleted text.
+
+** Timers created with run-at-time now work internally to Emacs, and
+no longer use a separate process.  Therefore, they now work more
+reliably and can be used for shorter time delays.
+
+The new function run-with-timer is a convenient way to set up a timer
+to run a specified amount of time after the present.  A call looks
+like this:
+
+  (run-with-timer SECS REPEAT FUNCTION ARGS...)
+
+SECS says how many seconds should elapse before the timer happens.
+It may be an integer or a floating point number.  When the timer
+becomes ripe, the action is to call FUNCTION with arguments ARGS.
+
+REPEAT gives the interval for repeating the timer (measured in
+seconds).  It may be an integer or a floating point number.  nil or 0
+means don't repeat at all--call FUNCTION just once.
+
+*** with-timeout provides an easy way to do something but give
+up if too much time passes.
+
+  (with-timeout (SECONDS TIMEOUT-FORMS...) BODY...)
+
+This executes BODY, but gives up after SECONDS seconds.
+If it gives up, it runs the TIMEOUT-FORMS and returns the value
+of the last one of them.  Normally it returns the value of the last
+form in BODY.
+
+*** You can now arrange to call a function whenever Emacs is idle for
+a certain length of time.  To do this, call run-with-idle-timer.  A
+call looks like this:
+
+  (run-with-idle-timer SECS REPEAT FUNCTION ARGS...)
+
+SECS says how many seconds of idleness should elapse before the timer
+runs.  It may be an integer or a floating point number.  When the
+timer becomes ripe, the action is to call FUNCTION with arguments
+ARGS.
+
+Emacs becomes idle whenever it finishes executing a keyboard or mouse
+command.  It remains idle until it receives another keyboard or mouse
+command.
+
+REPEAT, if non-nil, means this timer should be activated again each
+time Emacs becomes idle and remains idle for SECS seconds The timer
+does not repeat if Emacs *remains* idle; it runs at most once after
+each time Emacs becomes idle.
+
+If REPEAT is nil, the timer runs just once, the first time Emacs is
+idle for SECS seconds.
+
+*** post-command-idle-hook is now obsolete; you shouldn't use it at
+all, because it interferes with the idle timer mechanism.  If your
+programs use post-command-idle-hook, convert them to use idle timers
+instead.
+
+*** y-or-n-p-with-timeout lets you ask a question but give up if
+there is no answer within a certain time.
+
+  (y-or-n-p-with-timeout PROMPT SECONDS DEFAULT-VALUE)
+
+asks the question PROMPT (just like y-or-n-p).  If the user answers
+within SECONDS seconds, it returns the answer that the user gave.
+Otherwise it gives up after SECONDS seconds, and returns DEFAULT-VALUE.
+
+** Minor change to `encode-time': you can now pass more than seven
+arguments.  If you do that, the first six arguments have the usual
+meaning, the last argument is interpreted as the time zone, and the
+arguments in between are ignored.
+
+This means that it works to use the list returned by `decode-time' as
+the list of arguments for `encode-time'.
+
+** The default value of load-path now includes the directory
+/usr/local/share/emacs/VERSION/site-lisp In addition to
+/usr/local/share/emacs/site-lisp.  You can use this new directory for
+site-specific Lisp packages that belong with a particular Emacs
+version.
+
+It is not unusual for a Lisp package that works well in one Emacs
+version to cause trouble in another.  Sometimes packages need updating
+for incompatible changes; sometimes they look at internal data that
+has changed; sometimes the package has been installed in Emacs itself
+and the installed version should be used.  Whatever the reason for the
+problem, this new feature makes it easier to solve.
+
+** When your program contains a fixed file name (like .completions or
+.abbrev.defs), the file name usually needs to be different on operating
+systems with limited file name syntax.
+
+Now you can avoid ad-hoc conditionals by using the function
+convert-standard-filename to convert the file name to a proper form
+for each operating system.  Here is an example of use, from the file
+completions.el:
+
+(defvar save-completions-file-name
+        (convert-standard-filename "~/.completions")
+  "*The filename to save completions to.")
+
+This sets the variable save-completions-file-name to a value that
+depends on the operating system, because the definition of
+convert-standard-filename depends on the operating system.  On
+Unix-like systems, it returns the specified file name unchanged.  On
+MS-DOS, it adapts the name to fit the limitations of that system.
+
+** The interactive spec N now returns the numeric prefix argument
+rather than the raw prefix argument.  (It still reads a number using the
+minibuffer if there is no prefix argument at all.)
+
+** When a process is deleted, this no longer disconnects the process
+marker from its buffer position.
+
+** The variable garbage-collection-messages now controls whether
+Emacs displays a message at the beginning and end of garbage collection.
+The default is nil, meaning there are no messages.
+
+** The variable debug-ignored-errors specifies certain kinds of errors
+that should not enter the debugger.  Its value is a list of error
+condition symbols and/or regular expressions.  If the error has any
+of the condition symbols listed, or if any of the regular expressions
+matches the error message, then that error does not enter the debugger,
+regardless of the value of debug-on-error.
+
+This variable is initialized to match certain common but uninteresting
+errors that happen often during editing.
+
+** The new function error-message-string converts an error datum
+into its error message.  The error datum is what condition-case
+puts into the variable, to describe the error that happened.
+
+** Anything that changes which buffer appears in a given window
+now runs the window-scroll-functions for that window.
+
+** The new function get-buffer-window-list returns a list of windows displaying
+a buffer.  The function is called with the buffer (a buffer object or a buffer
+name) and two optional arguments specifying the minibuffer windows and frames
+to search.  Therefore this function takes optional args like next-window etc.,
+and not get-buffer-window.
+
+** buffer-substring now runs the hook buffer-access-fontify-functions,
+calling each function with two arguments--the range of the buffer
+being accessed.  buffer-substring-no-properties does not call them.
+
+If you use this feature, you should set the variable
+buffer-access-fontified-property to a non-nil symbol, which is a
+property name.  Then, if all the characters in the buffer range have a
+non-nil value for that property, the buffer-access-fontify-functions
+are not called.  When called, these functions should put a non-nil
+property on the text that they fontify, so that they won't get called
+over and over for the same text.
+
+** Changes in lisp-mnt.el
+
+*** The lisp-mnt package can now recognize file headers that are written
+in the formats used by the `what' command and the RCS `ident' command:
+
+;; @(#) HEADER: text
+;; $HEADER: text $
+
+in addition to the normal
+
+;; HEADER: text
+
+*** The commands lm-verify and lm-synopsis are now interactive.  lm-verify
+checks that the library file has proper sections and headers, and
+lm-synopsis extracts first line "synopsis'"information.
+
+
 
 * Editing Changes in Emacs 19.30.
 
@@ -254,7 +1029,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.3 2000/11/02 13:34:50 gerd Exp $') and
+VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.4 2000/11/20 16:15:34 gerd Exp $') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
