@@ -714,7 +714,7 @@ temacs: MAKE_PARALLEL $(LOCALCPP) $(SHORT) $(STARTFILES) $(OLDXMENU) ${obj} ${ot
     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
 
 prefix-args: prefix-args.c $(config_h)
-	$(CC) $(ALL_CFLAGS) ${srcdir}/prefix-args.c -o prefix-args
+	$(CC) $(ALL_CFLAGS) $(ALL_LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
 /* These are needed for C compilation, on the systems that need them */
 #ifdef NEED_CPP
