@@ -1,3 +1,7 @@
+2001-03-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xmenu.c: Include widget.h only if USE_X_TOOLKIT is defined.
+
 2001-03-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (x_update_menu_appearance): Use a different path
