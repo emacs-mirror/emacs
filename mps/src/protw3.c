@@ -1,6 +1,6 @@
 /*  impl.c.protw3: PROTECTION FOR WIN32
  *
- *  $HopeName: MMsrc!protw3.c(trunk.13) $
+ *  $HopeName: MMsrc!protw3.c(trunk.14) $
  *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  */
 
@@ -18,7 +18,7 @@
 
 #include "mpswin.h"
 
-SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.13) $");
+SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.14) $");
 
 
 void ProtSetup(void)
@@ -90,12 +90,17 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
   base = (Addr)address;
   limit = AddrAdd(address, sizeof(Addr));
 
-  AVER(base < limit);  /* nasty case (base = -1): continue search? @@@ */
-
-  if(ArenaAccess(base, mode, &context))
-    action = EXCEPTION_CONTINUE_EXECUTION;
-  else
+  if(base < limit) {
+    if(ArenaAccess(base, mode, &context))
+      action = EXCEPTION_CONTINUE_EXECUTION;
+    else
+      action = EXCEPTION_CONTINUE_SEARCH;
+  } else {
+    /* Access on last sizeof(Addr) (ie 4 on this platform) bytes */
+    /* in memory.  We assume we can't get this page anyway (see */
+    /* impl.c.vmw3.assume.not-last) so it can't be our fault. */
     action = EXCEPTION_CONTINUE_SEARCH;
+  }
 
   return action;
 }
