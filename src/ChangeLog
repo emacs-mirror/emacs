@@ -1,3 +1,8 @@
+2001-02-14  Andrew Innes  <andrewi@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_GETMINMAXINFO>: Allow resizing the
+	Emacs frame above the screen size.
+
 2001-02-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (reseat_1): Set iterator's end_charpos to ZV.
