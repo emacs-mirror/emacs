@@ -456,7 +456,17 @@ Returns the documentation as a string, also."
     (if (not (boundp variable))
         (princ "void.")
       (prin1 (symbol-value variable)))
-    (terpri) (terpri)
+    (terpri)
+    (let ((locals (buffer-local-variables))
+	  is-local)
+      (while locals
+	(if (or (eq variable (car locals))
+		(eq variable (car-safe (car locals))))
+	    (setq is-local t locals nil))
+	(setq locals (cdr locals)))
+      (if is-local
+	  (princ (format "Local in buffer %s\n" (buffer-name)))))
+    (terpri)
     (princ "Documentation:")
     (terpri)
     (let ((doc (documentation-property variable 'variable-documentation)))
