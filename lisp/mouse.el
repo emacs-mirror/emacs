@@ -228,10 +228,6 @@ release the mouse button.  Otherwise, it does not."
 		  end-point (posn-point end))
 
 	    (cond
-
-	     ;; Ignore switch-frame events.
-	     ((eq (car-safe event) 'switch-frame))
-
 	     ;; Are we moving within the original window?
 	     ((and (eq (posn-window end) start-window)
 		   (integer-or-marker-p end-point))
@@ -622,10 +618,6 @@ This must be bound to a button-down mouse event."
 	      (setq end (event-end event)
 		    end-point (posn-point end))
 	      (cond
-
-	       ;; Ignore switch-frame events.
-	       ((eq (car-safe event) 'switch-frame))
-
 	       ;; Are we moving within the original window?
 	       ((and (eq (posn-window end) start-window)
 		     (integer-or-marker-p end-point))
