@@ -1,3 +1,9 @@
+2002-10-13   Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-test.el: Further changes.  Improve the reports from batch
+	runs.
+	(cus-test-libs): Run load tests in external processes.
+
 2002-10-10  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-test.el: Extended and reorganized.  There are now 3 tests
