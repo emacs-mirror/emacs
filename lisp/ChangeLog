@@ -1,5 +1,9 @@
 2000-10-09  Miles Bader  <miles@gnu.org>
 
+	* toolbar/up_arrow.xpm: Flip to put highlight in correct place.
+	Correct image size.
+	* toolbar/left_arrow.xpm: Correct image size.
+
 	* jka-compr.el: Don't call `jka-compr-install' when loading (it
 	will be done by the definition of `auto-compression-mode' if
 	necessary.  Move code to uninstall existing file-name handler
