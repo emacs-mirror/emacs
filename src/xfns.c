@@ -50,7 +50,13 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 
 #ifdef HAVE_X_WINDOWS
+
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#else
 extern void abort ();
+#endif
+#include <ctype.h>
 
 /* On some systems, the character-composition stuff is broken in X11R5.  */
 
