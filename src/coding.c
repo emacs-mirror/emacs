@@ -6157,21 +6157,21 @@ make_conversion_work_buffer (multibytep, depth)
     {
       if (NILP (Vcode_conversion_reused_work_buf))
 	Vcode_conversion_reused_work_buf
-	  = Fget_buffer_create (build_string (" *code-conversion-work<0>*"));
+	  = Fget_buffer_create (build_string (" *code-converting-work<0>*"));
       buf = Vcode_conversion_reused_work_buf;
     }
   else
     {
       if (depth < 0)
 	{
-	  name = build_string (" *code-conversion-work*");
+	  name = build_string (" *code-converting-work*");
 	  name = Fgenerate_new_buffer_name (name, Qnil);
 	}
       else
 	{
 	  char str[128];
 
-	  sprintf (str, " *code-conversion-work*<%d>", depth);
+	  sprintf (str, " *code-converting-work*<%d>", depth);
 	  name = build_string (str);
 	}
       buf = Fget_buffer_create (name);
