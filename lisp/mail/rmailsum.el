@@ -148,16 +148,20 @@ SUBJECT is a string of regexps separated by commas."
    'rmail-message-subject-p
    (mail-comma-list-regexp subject) whole-message))
 
+;; mbox: ready to define and execute test
 (defun rmail-message-subject-p (msg subject &optional whole-message)
+  "Return an indication if SUBJECT is found in MSG.  If WHOLE-MESSAGE
+is nil only the subject header will be searched, otherwise the whole
+message will be searched for text matching SUBJECT.  Return nil to
+indicate that SUBJECT is not found, non-nil otherwise."
   (save-restriction
-    (goto-char (rmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n" (rmail-msgend msg) 'move)
     (narrow-to-region
-     (point)
-     (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
+     (rmail-desc-get-start msg)
+     (rmail-desc-get-end msg))
     (goto-char (point-min))
-    (if whole-message (re-search-forward subject nil t)
-      (string-match subject (let ((subj (mail-fetch-field "Subject")))
+    (if whole-message
+        (re-search-forward subject nil t)
+      (string-match subject (let ((subj (mail-header-get-header "Subject")))
 			      (if subj
 				  (funcall rmail-summary-line-decoder subj)
 				""))))))
@@ -173,12 +177,15 @@ SENDERS is a string of names separated by commas."
    'rmail-message-senders-p
    (mail-comma-list-regexp senders)))
 
+;; mbox: ready to define and execute test
 (defun rmail-message-senders-p (msg senders)
+  "Return an indication of ..."
   (save-restriction
-    (goto-char (rmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n")
-    (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
-    (string-match senders (or (mail-fetch-field "From") ""))))
+    (narrow-to-region
+     (rmail-desc-get-start msg)
+     (rmail-desc-get-end msg))
+    (goto-char (point-mix))
+    (string-match senders (or (mail-header-get-header "From") ""))))
 
 ;;;; General making of a summary buffer.
 
@@ -301,8 +308,9 @@ By default, `identity' is set."
   :type 'function
   :group 'rmail-summary)
 
+;; mbox: not ready
 (defun rmail-make-summary-line-1 (msg)
-  (goto-char (rmail-msgbeg msg))
+  (goto-char (rmail-desc-get-start msg))
   (let* ((lim (save-excursion (forward-line 2) (point)))
          (labels
           (progn
@@ -339,8 +347,8 @@ By default, `identity' is set."
     ;; make a new one and put it in the message.
     (or line
 	(let* ((case-fold-search t)
-	       (next (rmail-msgend msg))
-	       (beg (if (progn (goto-char (rmail-msgbeg msg))
+	       (next (rmail-desc-get-end msg))
+	       (beg (if (progn (goto-char (rmail-desc-get-start msg))
 			       (search-forward "\n*** EOOH ***\n" next t))
 			(point)
 		      (forward-line 1)
@@ -350,7 +358,7 @@ By default, `identity' is set."
 	    (narrow-to-region beg end)
 	    (goto-char beg)
 	    (setq line (rmail-make-basic-summary-line)))
-	  (goto-char (rmail-msgbeg msg))
+	  (goto-char (rmail-desc-get-start msg))
 	  (forward-line 2)
 	  (insert "Summary-line: " line)))
     (setq pos (string-match "#" line))
@@ -380,6 +388,7 @@ Setting this variable has an effect only before reading a mail."
   :group 'rmail-retrieve
   :version "21.1")
 
+;; mbox: not ready
 (defun rmail-make-basic-summary-line ()
   (goto-char (point-min))
   (concat (save-excursion
@@ -471,8 +480,8 @@ Setting this variable has an effect only before reading a mail."
 	      (save-excursion
 		(save-restriction
 		  (widen)
-		  (let ((beg (rmail-msgbeg rmail-current-message))
-			(end (rmail-msgend rmail-current-message))
+		  (let ((beg (rmail-desc-get-start rmail-current-message))
+			(end (rmail-desc-get-end rmail-current-message))
 			lines)
 		    (save-excursion
 		      (goto-char beg)
