@@ -119,6 +119,8 @@
 ;; Make sure calendar is loaded when we compile this.
 (require 'calendar)
 
+(provide 'appt)
+
 ;;;###autoload
 (defvar appt-issue-message t
   "*Non-nil means check for appointments in the diary buffer.
