@@ -112,7 +112,12 @@
  ;; will have to forgive us.
  ?R "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)"
  '(ccl-decode-koi8 . ccl-encode-koi8)
- '((safe-charsets ascii cyrillic-iso8859-5)
+ `((safe-chars . ,(let ((table (make-char-table 'safe-chars))
+			(i 0))
+		    (while (< i 256)
+		      (aset table (aref cyrillic-koi8-r-decode-table i) t)
+		      (setq i (1+ i)))
+		    table))
    (mime-charset . koi8-r)
    (valid-codes (0 . 127) 163 179 (192 . 255))
    (charset-origin-alist (cyrillic-iso8859-5 "KOI8-R"
@@ -190,8 +195,7 @@
   `(1
     ((loop
       (read-multibyte-character r0 r1)
-      (if (r0 == ,(charset-id 'cyrillic-iso8859-5))
-	  (translate-character cyrillic-alternativnyj-encode-table r0 r1))
+      (translate-character cyrillic-alternativnyj-encode-table r0 r1)
       (write-repeat r1))))
   "CCL program to encode Alternativnyj.")
 	     
@@ -199,7 +203,13 @@
  'cyrillic-alternativnyj 4 ?A
  "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
  '(ccl-decode-alternativnyj . ccl-encode-alternativnyj)
- '((safe-charsets ascii cyrillic-iso8859-5)
+ `((safe-chars . ,(let ((table (make-char-table 'safe-chars))
+			(i 0))
+		    (while (< i 256)
+		      (aset table (aref cyrillic-alternativnyj-decode-table i)
+			    t)
+		      (setq i (1+ i)))
+		    table))
    (valid-codes (0 . 175) (224 . 241) 255)
    (charset-origin-alist (cyrillic-iso8859-5 "ALTERNATIVNYJ"
 					     cyrillic-encode-koi8-r-char))))
