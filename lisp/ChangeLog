@@ -19,6 +19,10 @@
 	(ps-print-preprint, ps-output, ps-begin-file, ps-begin-page)
 	(ps-plot-region, ps-generate, ps-end-job): Code fix.
 
+	* delim-col.el: Little programming improvement.
+	(delimit-columns-str): New macro.
+	(delimit-columns-region, delimit-columns-rectangle): Code fix.
+
 2000-10-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* term/mac-win.el: (decode-mac-roman, encode-mac-roman,
