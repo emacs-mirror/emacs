@@ -16,6 +16,11 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** New user options `display-time-mail-face' and
+`display-time-use-mail-icon' control the appearance of mode-line mail
+indicator used by the display-time package.  On a suitable display the
+indicator can be an icon and is mouse-sensitive.
+
 ** Emacs' auto-save list files are now by default stored in a
 sub-directory `.emacs.d/auto-save-list/' of the user's home directory.
 (On MS-DOS, this subdirectory's name is `_emacs.d/auto-save.list/'.)
