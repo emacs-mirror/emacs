@@ -1198,7 +1198,7 @@ Specify which REFERENCE to use; default is based on word at point."
 			    (aheadsym Man-refpages-alist)))
 		   chosen
 		   (prompt (concat "Refer to: (default " default ") ")))
-	      (setq chosen (completing-read prompt Man-refpages-alist nil t))
+	      (setq chosen (completing-read prompt Man-refpages-alist))
 	      (if (or (not chosen)
 		      (string= chosen ""))
 		  default
