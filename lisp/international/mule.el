@@ -45,8 +45,7 @@ Return t if file exists."
     (let* ((buffer
 	    ;; To avoid any autoloading, set default-major-mode to
 	    ;; fundamental-mode.
-	    (let ((default-major-mode 'fundamental-mode)
-		  (default-enable-multibyte-characters t))
+	    (let ((default-major-mode 'fundamental-mode))
 	      ;; We can't use `generate-new-buffer' because files.el
 	      ;; is not yet loaded.
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
