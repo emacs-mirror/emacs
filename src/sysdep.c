@@ -54,7 +54,9 @@ Lisp_Object Vx_bitmap_file_path;
 #define read sys_read
 #define write sys_write
 #include <windows.h>
-extern int errno;
+#ifndef NULL
+#define NULL 0
+#endif
 #endif /* not WINDOWSNT */
 
 /* Does anyone other than VMS need this? */
@@ -106,8 +108,10 @@ extern unsigned start __asm__ ("start");
 #endif
 #endif
 
+#ifndef USE_CRT_DLL
 #ifndef errno
 extern int errno;
+#endif
 #endif
 
 #ifdef VMS
@@ -176,6 +180,7 @@ extern int errno;
 
 extern int quit_char;
 
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "termhooks.h"
