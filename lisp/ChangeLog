@@ -1,3 +1,11 @@
+2003-06-08  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-get-current-frame, gdb-frame-handler): Use Gdb
+	command `info frame' instead of `frame' to preserve point.
+	(gdb-invalidate-assembler): Only run disassemble again if frame
+	has changed.
+	(gdb-append-to-inferior-io): Revert change from 2003-05-17.
+
 2003-06-07  Jason Rumney  <jasonr@gnu.org>
 
 	* mwheel.el (mouse-wheel-up-event, mouse-wheel-down-event):
