@@ -1,3 +1,8 @@
+2004-11-06  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* align.el (align-areas): Delete whitespace before reindenting, so
+	that tabs are never placed after spaces.
+
 2004-11-06  Alan Shutko  <ats@acm.org>
 
 	* macros.el (insert-kbd-macro): Do completions based on macros,
