@@ -130,10 +130,6 @@ should be set to `(system-name)'.")
 *The name of your organization, as a string.
 The `ORGANIZATION' environment variable is used instead if defined.")
 
-(defvar gnus-startup-file "~/.newsrc" "\
-The file listing groups to which user is subscribed.
-Will use `gnus-startup-file'-SERVER instead if exists.")
-
 (defcustom rmail-file-name "~/RMAIL"
   "*Name of user's primary mail file."
   :type 'string

@@ -1,3 +1,7 @@
+2003-01-09  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* paths.el: Remove gnus-startup-file.
+
 2003-01-08  Bill Wohler  <wohler@newt.com>
 
 	* mail/mh-alias.el, mail/mh-customize.el, mail/mh-identity.el,
