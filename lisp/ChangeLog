@@ -1,3 +1,17 @@
+2000-08-10  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-highlight-prompt, comint-highlight-prompt-face)
+	(comint-last-prompt-overlay): New variables.
+	(comint-output-filter): Implement prompt highlighting.
+	(comint-snapshot-last-prompt): New function.
+	(comint-send-input): Snapshot the last prompt.
+	Use comint-highlight-input-face.
+	(comint-highlight-input-face): Renamed from `comint-highlight-face'.
+	Use defface instead of defcustom.
+	(send-invisible, comint-send-eof): Snapshot the last prompt.
+	(comint-delchar-or-maybe-eof): Use comint-send-eof.
+	(comint-mode): Make `comint-last-prompt-overlay' buffer-local.
+
 2000-08-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/regexp-opt.el (make-bool-vector): Remove.
