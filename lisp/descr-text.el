@@ -499,7 +499,10 @@ as well as widgets, buttons, overlays, and text properties."
 		  (format (if (< code 256) "0x%02X" "0x%04X") code)
 		(format "0x%04X%04X" (car code) (cdr code))))
 	    ("syntax"
-	     ,(let ((syntax (syntax-after pos)))
+	     ,(let* ((st (if parse-sexp-lookup-properties
+			     (get-char-property pos 'syntax-table)))
+		     (syntax (if (consp st) st
+			       (aref (or st (syntax-table)) (char-after pos)))))
 		(with-temp-buffer
 		  (internal-describe-syntax-value syntax)
 		  (buffer-string))))

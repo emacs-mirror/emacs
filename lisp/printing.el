@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/09/26 22:11:24 vinicius>
+;; Time-stamp: <2004/11/11 23:54:13 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.8.1
+;; Version: 6.8.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.8.1"
-  "printing.el, v 6.8.1 <2004/09/26 vinicius>
+(defconst pr-version "6.8.2"
+  "printing.el, v 6.8.2 <2004/11/11 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1099,6 +1099,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
   :tag "Printing Utilities"
   :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
   :prefix "pr-"
+  :version "20"
   :group 'wp
   :group 'postscript)
 
@@ -2474,20 +2475,16 @@ See `pr-ps-printer-alist'.")
 
 (eval-and-compile
   (defun pr-get-symbol (name)
-    ;; Recent versions of easy-menu downcase names before interning them.
-    (and (fboundp 'easy-menu-name-match)
-	 (setq name (downcase name)))
-    (or (intern-soft name)
-	(make-symbol name)))
+    (easy-menu-intern name))
 
   (cond
    ((eq ps-print-emacs-type 'emacs)	; GNU Emacs
-    (defsubst pr-region-active-p ()
+    (defun pr-region-active-p ()
       (and pr-auto-region transient-mark-mode mark-active)))
 
    ((eq ps-print-emacs-type 'xemacs)	; XEmacs
     (defvar zmacs-region-stays nil)	; to avoid compilation gripes
-    (defsubst pr-region-active-p ()
+    (defun pr-region-active-p ()
       (and pr-auto-region (not zmacs-region-stays) (ps-mark-active-p)))))
 
 
@@ -2907,18 +2904,18 @@ See `pr-ps-printer-alist'.")
 				  (pr-get-symbol "Printing")))))
      ;; Emacs 21
      (pr-menu-print-item
-      (easy-menu-change '("files") "Print" pr-menu-spec "print-buffer")
+      (easy-menu-change '("file") "Print" pr-menu-spec "print-buffer")
       (let ((items '("print-buffer"          "print-region"
 		     "ps-print-buffer-faces" "ps-print-region-faces"
 		     "ps-print-buffer"       "ps-print-region")))
 	(while items
-	  (easy-menu-remove-item nil '("files") (car items))
+	  (easy-menu-remove-item nil '("file") (car items))
 	  (setq items (cdr items)))
 	(setq pr-menu-print-item nil
-	      pr-menu-bar (vector 'menu-bar 'files
+	      pr-menu-bar (vector 'menu-bar 'file
 				  (pr-get-symbol "Print")))))
      (t
-      (easy-menu-change '("files") "Print" pr-menu-spec)))
+      (easy-menu-change '("file") "Print" pr-menu-spec)))
 
     ;; Key binding
     (global-set-key [print]   'pr-ps-fast-fire)
@@ -6385,5 +6382,5 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (provide 'printing)
 
 
-;;; arch-tag: 9ce9ac3f-0f60-4370-900b-1943215d9d18
+;; arch-tag: 9ce9ac3f-0f60-4370-900b-1943215d9d18
 ;;; printing.el ends here

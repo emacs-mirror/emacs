@@ -10,6 +10,12 @@ Tasks needed before the next release.
 
 ** Let mouse-1 follow links.
 
+** Make Rmail find the best version of movemail.
+To be done by Sergey Poznyakoff <gray@Mirddin.farlep.net>.
+
+** Make VC-over-Tramp work where possible, or at least fail
+gracefully if something isn't supported over Tramp.
+To be done by Andre Spiegel <spiegel@gnu.org>.
 
 * FATAL ERRORS
 
@@ -29,7 +35,6 @@ invalid pointer from string_free_list.
 * LOSSAGE
 
 ** Clean up flymake.el to follow Emacs Lisp conventions.
-
 
 * GTK RELATED BUGS
 
@@ -103,50 +108,6 @@ interrupting I can get a backtrace, here's an example:
 Update: Maybe only reveals itself when compiled with GTK+
 
 
-** Mouse-face overlay bleeds into header line
-
-From: Stephen Berman <Stephen.Berman@gmx.net>
-Date: Thu, 21 Oct 2004 18:11:01 +0200
-
-Mouse-face overlays bleed into the header line when the beginning of
-the overlay is above (point-min).  To reproduce:
-
-1. Start Emacs with -q -no-site-file.
-
-2. In *scratch* eval (setq ov (make-overlay 66 92)), (overlay-put ov
-'mouse-face 'highlight), and (setq header-line-format "test").
-
-3. Drag the mouse over the string "evaluation.\n;; If you want" and
-notice the highlighting of only this string.
-
-4. Now click on the down arrow in the scroll bar until the line
-beginning ";; If you want" is directly below the header line.
-
-5. Drag the mouse over ";; If you want" and notice that not only it
-but also the header line are highlighted.
-
-
-** scroll-preserve-screen-position doesn't work with a header-line-format
-
-From: jbyler+emacs-lists@anon41.eml.cc
-Date: Tue, 17 Aug 2004 17:10:14 -0400
-
-There seems to be an off-by-one error triggered by using a header line
-together with scroll-preserve-screen-position.  The symptom: instead of
-staying in the same position on the screen when scrolling, the cursor
-moves one screen line down each time the buffer is scrolled.  Put
-another way: repeatedly typing C-v M-v or using a mouse scroll wheel to
-scroll up and down causes the cursor to migrate slowly down the screen
-instead of staying put as it should.
-
-To reproduce:
-
-emacs -q --no-site-file
-(setq scroll-preserve-screen-position t)
-(setq header-line-format "")
-C-v M-v C-v M-v C-v M-v etc.
-
-
 ** Clicking on partially visible lines fails
 
 From: David Kastrup <dak@gnu.org>
@@ -200,32 +161,6 @@ Then, point is displayed at the center of the window.
 But point should be displayed at the bottom of the window like Emacs-21.3.
 
 
-** line-spacing and garbage in fringe
-
-From: SAITO Takuya <tabmore@rivo.mediatti.net>
-Date: Mon, 31 May 2004 02:08:05 +0900 (JST)
-
-Start emacs -Q and evaluate below with C-xC-e:
-
-(let ((lines 2)
-      (spacing 1))
-  (setq line-spacing spacing
-	indicate-buffer-boundaries t)
-  (insert (make-string (window-height) ?\n))
-  (goto-char (point-min))
-  (message (make-string (* (window-width) lines) ?.))
-  (scroll-up 1))
-
-then, garbage is displayed in right fringe.
-
-Above code reproduces this bug with
-(frame-parameter nil 'font)
-=> "-Adobe-Courier-Medium-R-Normal--12-120-75-75-M-70-ISO8859-1"
-
-If you use different font, you may need different value of
-`lines' and/or `spacing'.
-
-
 ** line-spacing and Electric-pop-up-window
 
 From: SAITO Takuya <tabmore@rivo.mediatti.net>
@@ -243,6 +178,8 @@ Electric-pop-up-window can use it.
 
 
 * DOCUMENTATION
+
+** Document Custom Themes.
 
 ** Finish updating the Emacs Lisp manual.
 
@@ -318,11 +255,11 @@ names of the people who have checked it.
 SECTION                  READERS
 ----------------------------------
 lispref/abbrevs.texi     "Luc Teirlinck"
-lispref/advice.texi
+lispref/advice.texi	 Joakim Verona <joakim@verona.se>
 lispref/anti.texi
 lispref/backups.texi     "Luc Teirlinck"
 lispref/buffers.texi     "Luc Teirlinck"
-lispref/calendar.texi
+lispref/calendar.texi    Joakim Verona <joakim@verona.se>
 lispref/commands.texi    "Luc Teirlinck"
 lispref/compile.texi     "Luc Teirlinck"
 lispref/control.texi     "Luc Teirlinck"

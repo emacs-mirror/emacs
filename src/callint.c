@@ -265,7 +265,6 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   Lisp_Object *args, *visargs;
   unsigned char **argstrings;
   Lisp_Object fun;
-  Lisp_Object funcar;
   Lisp_Object specs;
   Lisp_Object filter_specs;
   Lisp_Object teml;
@@ -451,25 +450,25 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 	string++;
       else if (*string == '@')
 	{
-	  Lisp_Object event;
+	  Lisp_Object event, tem;
 
 	  event = (next_event < key_count
 		   ? XVECTOR (keys)->contents[next_event]
 		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
-	      && (event = XCDR (event), CONSP (event))
-	      && (event = XCAR (event), CONSP (event))
-	      && (event = XCAR (event), WINDOWP (event)))
+	      && (tem = XCDR (event), CONSP (tem))
+	      && (tem = XCAR (tem), CONSP (tem))
+	      && (tem = XCAR (tem), WINDOWP (tem)))
 	    {
-	      if (MINI_WINDOW_P (XWINDOW (event))
-		  && ! (minibuf_level > 0 && EQ (event, minibuf_window)))
+	      if (MINI_WINDOW_P (XWINDOW (tem))
+		  && ! (minibuf_level > 0 && EQ (tem, minibuf_window)))
 		error ("Attempt to select inactive minibuffer window");
 
 	      /* If the current buffer wants to clean up, let it.  */
 	      if (!NILP (Vmouse_leave_buffer_hook))
 		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
 
-	      Fselect_window (event, Qnil);
+	      Fselect_window (tem, Qnil);
 	    }
 	  string++;
 	}

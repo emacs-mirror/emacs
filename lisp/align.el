@@ -1212,6 +1212,14 @@ have been aligned.  No changes will be made to the buffer."
 	      (cond ((< gocol 0) t)     ; don't do anything
 		    ((= cur gocol) t)   ; don't need to
 		    ((< cur gocol)      ; just add space
+		     ;; FIXME: It is stated above that "...the
+		     ;;	       whitespace to be modified was already
+		     ;;	       deleted by `align-region', all we have
+		     ;;	       to do here is indent."  However, this
+		     ;;	       doesn't seem to be true, so we first
+		     ;;	       delete the whitespace to avoid tabs
+		     ;;	       after spaces.
+		     (delete-horizontal-space t)
 		     (indent-to gocol))
 		    (t
 		     ;; This code works around an oddity in the

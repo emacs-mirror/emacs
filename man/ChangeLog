@@ -1,3 +1,10 @@
+2004-11-10  Andre Spiegel  <spiegel@gnu.org>
+
+	* files.texi (Version Control): Rewrite the introduction about
+	version systems, mentioning the new ones that we support.  Thanks
+	to Alex Ott, Karl Fogel, Stefan Monnier, and David Kastrup for
+	suggestions.
+
 2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-mime.texi (Encoding Customization): Fix

@@ -228,9 +228,14 @@ KIND should be `var' for a variable or `subr' for a subroutine."
       (if (eobp)
 	  (insert-file-contents-literally
 	   (expand-file-name internal-doc-file-name doc-directory)))
-      (search-forward (concat "" name "\n"))
+      (let ((file (catch 'loop
+		    (while t
+		      (let ((pnt (search-forward (concat "" name "\n"))))
       (re-search-backward "S\\(.*\\)")
       (let ((file (match-string 1)))
+			  (if (member file build-files)
+			      (throw 'loop file)
+			    (goto-char pnt))))))))
 	(if (string-match "\\.\\(o\\|obj\\)\\'" file)
 	    (setq file (replace-match ".c" t t file)))
 	(if (string-match "\\.c\\'" file)

@@ -3511,8 +3511,8 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
    call into lisp.  */
 
 Lisp_Object
-merge_face_heights (from, to, invalid, gcpro)
-     Lisp_Object from, to, invalid, gcpro;
+merge_face_heights (from, to, invalid)
+     Lisp_Object from, to, invalid;
 {
   Lisp_Object result = invalid;
 
@@ -3537,15 +3537,10 @@ merge_face_heights (from, to, invalid, gcpro)
       /* Call function with current height as argument.
 	 From is the new height.  */
       Lisp_Object args[2];
-      struct gcpro gcpro1;
-
-      GCPRO1 (gcpro);
 
       args[0] = from;
       args[1] = to;
       result = safe_call (2, args);
-
-      UNGCPRO;
 
       /* Ensure that if TO was absolute, so is the result.  */
       if (INTEGERP (to) && !INTEGERP (result))
@@ -3599,8 +3594,7 @@ merge_face_vectors (f, from, to, named_merge_points)
     if (!UNSPECIFIEDP (from[i]))
       {
 	if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
-	  to[i] = merge_face_heights (from[i], to[i], to[i],
-				      named_merge_points);
+	  to[i] = merge_face_heights (from[i], to[i], to[i]);
 	else
 	  to[i] = from[i];
       }
@@ -3627,11 +3621,16 @@ merge_named_face (f, face_name, to, named_merge_points)
   if (push_named_merge_point (&named_merge_point,
 			      face_name, &named_merge_points))
     {
+      struct gcpro gcpro1;
       Lisp_Object from[LFACE_VECTOR_SIZE];
       int ok = get_lface_attributes (f, face_name, from, 0);
 
       if (ok)
-	merge_face_vectors (f, from, to, named_merge_points);
+	{
+	  GCPRO1 (named_merge_point.face_name);
+	  merge_face_vectors (f, from, to, named_merge_points);
+	  UNGCPRO;
+	}
 
       return ok;
     }
@@ -3722,8 +3721,7 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 	      else if (EQ (keyword, QCheight))
 		{
 		  Lisp_Object new_height =
-		    merge_face_heights (value, to[LFACE_HEIGHT_INDEX],
-					Qnil, Qnil);
+		    merge_face_heights (value, to[LFACE_HEIGHT_INDEX], Qnil);
 
 		  if (! NILP (new_height))
 		    to[LFACE_HEIGHT_INDEX] = new_height;
@@ -4110,7 +4108,7 @@ FRAME 0 means change the face on all frames, and change the default
 		  /* The default face must have an absolute size,
 		     otherwise, we do a test merge with a random
 		     height to see if VALUE's ok. */
-		  : merge_face_heights (value, make_number (10), Qnil, Qnil));
+		  : merge_face_heights (value, make_number (10), Qnil));
 
 	  if (!INTEGERP (test) || XINT (test) <= 0)
 	    signal_error ("Invalid face height", value);
@@ -4824,7 +4822,7 @@ the result will be absolute, otherwise it will be relative.  */)
   if (EQ (value1, Qunspecified))
     return value2;
   else if (EQ (attribute, QCheight))
-    return merge_face_heights (value1, value2, value1, Qnil);
+    return merge_face_heights (value1, value2, value1);
   else
     return value1;
 }

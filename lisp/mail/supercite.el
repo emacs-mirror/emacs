@@ -1424,18 +1424,21 @@ Optional CITATION overrides any citation automatically selected."
   nil)
 
 ;; interactive functions
-(defun sc-cite-region (start end &optional confirm-p)
+(defun sc-cite-region (start end &optional confirm-p interactive)
   "Cite a region delineated by START and END.
 If optional CONFIRM-P is non-nil, the attribution is confirmed before
 its use in the citation string.  This function first runs
-`sc-pre-cite-hook'."
-  (interactive "r\nP")
+`sc-pre-cite-hook'.
+
+When called interactively, the optional arg INTERACTIVE is non-nil,
+and that means call `sc-select-attribution' too."
+  (interactive "r\nP\np")
   (undo-boundary)
   (let ((frame (or (sc-scan-info-alist sc-cite-frame-alist)
 		   sc-default-cite-frame))
 	(sc-confirm-always-p (if confirm-p t sc-confirm-always-p)))
     (run-hooks 'sc-pre-cite-hook)
-    (if (interactive-p)
+    (if interactive
 	(sc-select-attribution))
     (regi-interpret frame start end)))
 
@@ -1978,16 +1981,15 @@ cited."
 	(insert (sc-mail-field "sc-citation"))
       (error "Line is already cited"))))
 
-(defun sc-version (arg)
+(defun sc-version (message)
   "Echo the current version of Supercite in the minibuffer.
-With \\[universal-argument] (universal-argument), or if run non-interactively,
+If MESSAGE is non-nil (interactively, with no prefix argument),
 inserts the version string in the current buffer instead."
-  (interactive "P")
+  (interactive (not current-prefix-arg))
   (let ((verstr (format "Using Supercite.el %s" sc-version)))
-    (if (or (consp arg)
-	    (not (interactive-p)))
-	(insert "`sc-version' says: " verstr)
-      (message verstr))))
+    (if message
+	(message verstr)
+      (insert "`sc-version' says: " verstr))))
 
 (defun sc-describe ()
   "

@@ -1,7 +1,7 @@
 ;;; pcvs.el --- a front-end to CVS
 
-;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,02,03,2004
-;; 		 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
 ;;	(Per Cederqvist) ceder@lysator.liu.se
@@ -923,6 +923,21 @@ With a prefix argument, prompt for cvs FLAGS to use."
 	      (append flags modules) nil 'new
 	      :noexist t))
 
+(defun-cvs-mode (cvs-mode-checkout . NOARGS) (dir)
+  "Run cvs checkout against the current branch.
+The files are stored to DIR."
+  (interactive 
+   (let* ((branch (cvs-prefix-get 'cvs-branch-prefix))
+	  (prompt (format "CVS Checkout Directory for `%s%s': " 
+			 (cvs-get-module)
+			 (if branch (format " (branch: %s)" branch)
+			   ""))))
+     (list (read-directory-name prompt nil default-directory nil))))
+  (let ((modules (cvs-string->strings (cvs-get-module)))
+	(flags (cvs-add-branch-prefix
+		(cvs-flags-query 'cvs-checkout-flags "cvs checkout flags")))
+	(cvs-cvsroot (cvs-get-cvsroot)))
+    (cvs-checkout modules dir flags)))
 
 ;;;;
 ;;;; The code for running a "cvs update" and friends in various ways.
@@ -2353,5 +2368,5 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (provide 'pcvs)
 
-;;; arch-tag: 8e3a7494-0453-4389-9ab3-a557ce9fab61
+;; arch-tag: 8e3a7494-0453-4389-9ab3-a557ce9fab61
 ;;; pcvs.el ends here

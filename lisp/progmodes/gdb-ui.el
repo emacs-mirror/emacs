@@ -60,6 +60,7 @@
 (defvar gdb-previous-address nil)
 (defvar gdb-previous-frame nil)
 (defvar gdb-current-frame nil)
+(defvar gdb-current-stack-level nil)
 (defvar gdb-current-language nil)
 (defvar gdb-view-source t "Non-nil means that source code can be viewed.")
 (defvar gdb-selected-view 'source "Code type that user wishes to view.")
@@ -183,6 +184,7 @@ detailed description of this mode.
   (setq gdb-previous-address nil)
   (setq gdb-previous-frame nil)
   (setq gdb-current-frame nil)
+  (setq gdb-current-stack-level nil)
   (setq gdb-view-source t)
   (setq gdb-selected-view 'source)
   (setq gdb-var-list nil)
@@ -393,7 +395,8 @@ detailed description of this mode.
   "If non-nil highlight values that have recently changed in the speedbar.
 The highlighting is done with `font-lock-warning-face'."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gdb-speedbar-expand-node (text token indent)
   "Expand the node the user clicked on.
@@ -1077,8 +1080,9 @@ static char *magick[] = {
   "Icon for disabled breakpoint in display margin.")
 
 ;; Bitmap for breakpoint in fringe
-(define-fringe-bitmap 'breakpoint
-  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
+(and (display-images-p)
+     (define-fringe-bitmap 'breakpoint
+       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
 
 (defface breakpoint-enabled-bitmap-face
   '((t
@@ -1290,9 +1294,8 @@ static char *magick[] = {
 			     '(mouse-face highlight
 			       help-echo "mouse-2, RET: Select frame"))
 	  (beginning-of-line)
-	  (when (and (or (looking-at "^#[0-9]*\\s-*\\S-* in \\(\\S-*\\)")
-			 (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)"))
-		     (equal (match-string 1) gdb-current-frame))
+	  (when (and (looking-at "^#\\([0-9]+\\)")
+		     (equal (match-string 1) gdb-current-stack-level))
 	    (put-text-property (point-at-bol) (point-at-eol)
 			       'face '(:inverse-video t)))
 	  (forward-line 1))))))
@@ -2046,6 +2049,8 @@ BUFFER nil or omitted means use the current buffer."
    (delq 'gdb-get-current-frame gdb-pending-triggers))
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
+    (if (looking-at "Stack level \\([0-9]+\\)")
+	(setq gdb-current-stack-level (match-string 1)))
     (forward-line)
     (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? ")
 	(progn

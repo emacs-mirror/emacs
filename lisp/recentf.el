@@ -98,7 +98,7 @@ Set VARIABLE with VALUE, and force a rebuild of the recentf menu."
   :type 'string
   :set 'recentf-menu-customization-changed)
 
-(defcustom recentf-menu-path '("files")
+(defcustom recentf-menu-path '("File")
   "*Path where to add the recentf menu.
 If nil add it at top level (see also `easy-menu-add-item')."
   :group 'recentf

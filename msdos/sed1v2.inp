@@ -58,6 +58,7 @@ s/bootstrap-doc/b-doc/
 /rm -f bootstrap-emacs/s/b-emacs/b-emacs b-emacs.exe/
 /^	els=/c\
 	${libsrc}make-docfile -o ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP:.elc=.el} ${shortlisp:.elc=.el} ${SOME_MACHINE_OBJECTS} ${obj}
+s/echo.*buildobj.lst/dj&/
 /^	mv -f emacs/a\
 	stubify b-emacs\
 	stubedit b-emacs.exe minstack=1024k\

@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
-;; Copyright (C) 1985,86,87,92,94,1998,2000,01,02,03,2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
+;;   2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -447,7 +447,9 @@ Each element looks like (MACRONAME . DEFINITION).  It is
   "Alist of functions defined in the file being compiled.
 This is so we can inline them when necessary.
 Each element looks like (FUNCTIONNAME . DEFINITION).  It is
-\(FUNCTIONNAME . nil) when a function is redefined as a macro.")
+\(FUNCTIONNAME . nil) when a function is redefined as a macro.
+It is \(FUNCTIONNAME . t) when all we know is that it was defined,
+and we don't know the definition.")
 
 (defvar byte-compile-unresolved-functions nil
   "Alist of undefined functions to which calls have been compiled.
@@ -1103,6 +1105,10 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 ;;; sanity-checking arglists
 
+;; If a function has an entry saying (FUNCTION . t).
+;; that means we know it is defined but we don't know how.
+;; If a function has an entry saying (FUNCTION . nil),
+;; that means treat it as not defined.
 (defun byte-compile-fdefinition (name macro-p)
   (let* ((list (if macro-p
 		   byte-compile-macro-environment
@@ -1168,7 +1174,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defun byte-compile-callargs-warn (form)
   (let* ((def (or (byte-compile-fdefinition (car form) nil)
 		  (byte-compile-fdefinition (car form) t)))
-	 (sig (if def
+	 (sig (if (and def (not (eq def t)))
 		  (byte-compile-arglist-signature
 		   (if (eq 'lambda (car-safe def))
 		       (nth 1 def)
@@ -1198,7 +1204,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
     (byte-compile-format-warn form)
     ;; Check to see if the function will be available at runtime
     ;; and/or remember its arity if it's unknown.
-    (or (and (or sig (fboundp (car form))) ; might be a subr or autoload.
+    (or (and (or def (fboundp (car form))) ; might be a subr or autoload.
 	     (not (memq (car form) byte-compile-noruntime-functions)))
 	(eq (car form) byte-compile-current-form) ; ## this doesn't work
 					; with recursion.
@@ -1209,9 +1215,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	  (if cons
 	      (or (memq n (cdr cons))
 		  (setcdr cons (cons n (cdr cons))))
-	    (setq byte-compile-unresolved-functions
-		  (cons (list (car form) n)
-			byte-compile-unresolved-functions)))))))
+	    (push (list (car form) n)
+		  byte-compile-unresolved-functions))))))
 
 (defun byte-compile-format-warn (form)
   "Warn if FORM is `format'-like with inconsistent args.
@@ -1243,7 +1248,7 @@ extra args."
 ;; number of arguments.
 (defun byte-compile-arglist-warn (form macrop)
   (let ((old (byte-compile-fdefinition (nth 1 form) macrop)))
-    (if old
+    (if (and old (not (eq old t)))
 	(let ((sig1 (byte-compile-arglist-signature
 		      (if (eq 'lambda (car-safe old))
 			  (nth 1 old)
@@ -2123,9 +2128,9 @@ list that represents a doc string reference.
 	   (eq (car (nth 1 form)) 'quote)
 	   (consp (cdr (nth 1 form)))
 	   (symbolp (nth 1 (nth 1 form))))
-      (add-to-list 'byte-compile-function-environment
-		   (cons (nth 1 (nth 1 form))
-			 (cons 'autoload (cdr (cdr form))))))
+      (push (cons (nth 1 (nth 1 form))
+		  (cons 'autoload (cdr (cdr form))))
+	    byte-compile-function-environment))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.
@@ -3610,7 +3615,6 @@ being undefined will be suppressed."
 (byte-defop-compiler-1 defconst byte-compile-defvar)
 (byte-defop-compiler-1 autoload)
 (byte-defop-compiler-1 lambda byte-compile-lambda-form)
-(byte-defop-compiler-1 defalias)
 
 (defun byte-compile-defun (form)
   ;; This is not used for file-level defuns with doc strings.
@@ -3712,22 +3716,22 @@ being undefined will be suppressed."
   (error "`lambda' used as function name is invalid"))
 
 ;; Compile normally, but deal with warnings for the function being defined.
-(defun byte-compile-defalias (form)
+(put 'defalias 'byte-hunk-handler 'byte-compile-file-form-defalias)
+(defun byte-compile-file-form-defalias (form)
   (if (and (consp (cdr form)) (consp (nth 1 form))
 	   (eq (car (nth 1 form)) 'quote)
 	   (consp (cdr (nth 1 form)))
-	   (symbolp (nth 1 (nth 1 form)))
-	   (consp (nthcdr 2 form))
-	   (consp (nth 2 form))
-	   (eq (car (nth 2 form)) 'quote)
-	   (consp (cdr (nth 2 form)))
-	   (symbolp (nth 1 (nth 2 form))))
-      (progn
+	   (symbolp (nth 1 (nth 1 form))))
+      (let ((constant
+	     (and (consp (nthcdr 2 form))
+		  (consp (nth 2 form))
+		  (eq (car (nth 2 form)) 'quote)
+		  (consp (cdr (nth 2 form)))
+		  (symbolp (nth 1 (nth 2 form))))))
 	(byte-compile-defalias-warn (nth 1 (nth 1 form)))
-	(setq byte-compile-function-environment
-	      (cons (cons (nth 1 (nth 1 form))
-			  (nth 1 (nth 2 form)))
-		    byte-compile-function-environment))))
+	(push (cons (nth 1 (nth 1 form))
+		    (if constant (nth 1 (nth 2 form)) t))
+	      byte-compile-function-environment)))
   (byte-compile-normal-call form))
 
 ;; Turn off warnings about prior calls to the function being defalias'd.
@@ -3930,7 +3934,7 @@ invoked interactively."
 	(while rest
 	  (or (nth 1 (car rest))
 	      (null (setq f (car (car rest))))
-	      (byte-compile-fdefinition f t)
+	      (functionp (byte-compile-fdefinition f t))
 	      (commandp (byte-compile-fdefinition f nil))
 	      (setq uncalled (cons f uncalled)))
 	  (setq rest (cdr rest)))
@@ -4112,5 +4116,5 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 
 (run-hooks 'bytecomp-load-hook)
 
-;;; arch-tag: 9c97b0f0-8745-4571-bfc3-8dceb677292a
+;; arch-tag: 9c97b0f0-8745-4571-bfc3-8dceb677292a
 ;;; bytecomp.el ends here

@@ -2581,9 +2581,9 @@ read1 (readcharfun, pch, first_in_list)
 
 	if (next_char <= 040
 	    || (next_char < 0200
-		&& index ("\"';([#?", next_char)
-		|| (!first_in_list && next_char == '`')
-		|| (new_backquote_flag && next_char == ',')))
+		&& (index ("\"';([#?", next_char)
+		    || (!first_in_list && next_char == '`')
+		    || (new_backquote_flag && next_char == ','))))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -3819,7 +3819,7 @@ init_lread ()
   /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
      almost never correct, thereby causing a warning to be printed out that
      confuses users.  Since PATH_LOADSEARCH is always overridden by the
-     EMACSLOADPATH environment variable below, disable the warning on NT.  
+     EMACSLOADPATH environment variable below, disable the warning on NT.
      Also, when using the "self-contained" option for Carbon Emacs for MacOSX,
      the "standard" paths may not exist and would be overridden by
      EMACSLOADPATH as on NT.  Since this depends on how the executable

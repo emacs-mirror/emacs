@@ -108,7 +108,7 @@ elisp.dvi: $(srcs)
 
 install: elisp
 	$(srcdir)/mkinstalldirs $(infodir)
-	cp elisp elisp-* $(infodir)
+	cp elisp elisp-[1-9] elisp-[1-9][0-9] $(infodir)
 	${INSTALL_INFO} --info-dir=${infodir} ${infodir}/elisp
 
 clean:
@@ -119,7 +119,7 @@ clean:
 distclean: clean
 
 maintainer-clean: clean
-	rm -f elisp elisp-* elisp.dvi elisp.oaux
+	rm -f elisp elisp-[1-9] elisp-[1-9][0-9] elisp.dvi elisp.oaux
 
 dist: elisp elisp.dvi
 	-rm -rf temp
@@ -128,7 +128,7 @@ dist: elisp elisp.dvi
 	-ln $(srcdir)/README $(srcdir)/configure.in $(srcdir)/configure \
  $(srcdir)/Makefile.in $(srcs) \
  $(srcdir)/../man/texinfo.tex \
- elisp.dvi elisp.aux elisp.??s elisp elisp-[0-9] elisp-[0-9][0-9] \
+ elisp.dvi elisp.aux elisp.??s elisp elisp-[1-9] elisp-[1-9][0-9] \
  temp/$(manual)
 	-(cd temp/$(manual); rm -f mkinstalldirs)
 	cp $(srcdir)/mkinstalldirs temp/$(manual)

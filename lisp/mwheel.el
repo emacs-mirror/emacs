@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Wheel mouse support
 
-;; Copyright (C) 1998,2000,2001,2002  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2002, 2004  Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
@@ -137,7 +137,7 @@ less than a full screen."
                     (integer :tag "Specific # of lines")
                     (float :tag "Fraction of window"))))))
 
-(defcustom mouse-wheel-progessive-speed t
+(defcustom mouse-wheel-progressive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.
 Note that this has no effect when `mouse-wheel-scroll-amount' specifies
 a \"near full screen\" scroll or when the mouse wheel sends key instead
@@ -197,7 +197,7 @@ This should only be bound to mouse buttons 4 and 5."
       (let ((list-elt mouse-wheel-scroll-amount))
 	(while (consp (setq amt (pop list-elt))))))
     (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
-    (when (and mouse-wheel-progessive-speed (numberp amt))
+    (when (and mouse-wheel-progressive-speed (numberp amt))
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
       ;; So by adding things up we get a squaring up (1, 3, 6, 10, 15, ...).
       (setq amt (* amt (event-click-count event))))
@@ -250,5 +250,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'mwheel)
 
-;;; arch-tag: 50ed00e7-3686-4b7a-8037-fb31aa5c237f
+;; arch-tag: 50ed00e7-3686-4b7a-8037-fb31aa5c237f
 ;;; mwheel.el ends here

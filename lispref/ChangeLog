@@ -1,3 +1,24 @@
+2004-11-08  Richard M. Stallman  <rms@gnu.org>
+
+	* syntax.texi (Syntax Table Functions): Add syntax-after.
+
+2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
+
+	* os.texi (Processor Run Time): New section documenting
+	get-internal-run-time.
+
+2004-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (install, maintainer-clean): Don't use "elisp-*" as
+	it nukes elisp-cover.texi.
+	(dist): Change elisp-[0-9] to elisp-[1-9], as there could be no
+	elisp-0 etc.
+
+2004-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* commands.texi (Keyboard Macros): Document `append' return value
+	of `defining-kbd-macro'.
+
 2004-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Interactive Call): Add called-interactively-p.

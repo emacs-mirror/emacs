@@ -196,6 +196,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `getpt' function. */
 #undef HAVE_GETPT
 
+/* Define to 1 if you have the `getrusage' function. */
+#undef HAVE_GETRUSAGE
+
 /* Define to 1 if you have the `getsockname' function. */
 #undef HAVE_GETSOCKNAME
 

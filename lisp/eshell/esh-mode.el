@@ -946,10 +946,11 @@ With a prefix argument, narrows region to last command output."
       (eshell-bol)
       (kill-region (point) here))))
 
-(defun eshell-show-maximum-output ()
-  "Put the end of the buffer at the bottom of the window."
-  (interactive)
-  (if (interactive-p)
+(defun eshell-show-maximum-output (&optional interactive)
+  "Put the end of the buffer at the bottom of the window.
+When run interactively, widen the buffer first."
+  (interactive "p")
+  (if interactive
       (widen))
   (goto-char (point-max))
   (recenter -1))
@@ -1005,7 +1006,7 @@ a key."
       (let ((pos (point)))
 	(if (bobp)
 	    (if (interactive-p)
-		(error "Buffer too short to truncate"))
+		(message "Buffer too short to truncate"))
 	  (delete-region (point-min) (point))
 	  (if (interactive-p)
 	      (message "Truncated buffer from %d to %d lines (%.1fk freed)"

@@ -1,3 +1,29 @@
+2004-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1.inp: Revert last change.
+
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sed1v2.inp: Use djecho for buildobj.lst.
+
+	* sed1.inp: Ditto.
+
+2004-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlisp.inp (bootstrap-clean): Copy ldefs-boot.el onto
+	loaddefs.el, unless the latter exists and is newer.
+
+	* mainmake.v2 (mostlyclean, distclean, maintainer-clean)
+	(extraclean, bootfast): New targets.
+	(top_distclean): New macro, used by distclean, maintainer-clean,
+	and extraclean.
+	(.PHONY): Add bootfast.
+	(bootstrap): Make bootstrap-after in lisp.
+	(bootstrap-clean-before): Clean in man, lispref, and lispintro as
+	well.
+
+	* sed2v2.inp (HAVE_BZERO): Define for GCC v3.x and later.
+
 2004-10-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (LC_ALL=C): Fix src/Makefile breakage caused by

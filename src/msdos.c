@@ -2320,7 +2320,7 @@ IT_set_frame_parameters (f, alist)
 
   /* If we are creating a new frame, begin with the original screen colors
      used for the initial frame.  */
-  if (alist == Vdefault_frame_alist
+  if (EQ (alist, Vdefault_frame_alist)
       && initial_screen_colors[0] != -1 && initial_screen_colors[1] != -1)
     {
       FRAME_FOREGROUND_PIXEL (f) = initial_screen_colors[0];

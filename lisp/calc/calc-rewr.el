@@ -166,7 +166,7 @@
 
 
 
-(defun math-rewrite (whole-expr rules &optional mmt-many)
+(defun math-rewrite (whole-expr rules &optional math-mt-many)
   (let ((crules (math-compile-rewrites rules))
 	(heads (math-rewrite-heads whole-expr))
 	(trace-buffer (get-buffer "*Trace*"))
@@ -176,20 +176,20 @@
 	(calc-line-numbering nil)
 	(calc-show-selections t)
 	(calc-why nil)
-	(mmt-func (function
-		   (lambda (x)
-		     (let ((result (math-apply-rewrites x (cdr crules)
-							heads crules)))
-		       (if result
-			   (progn
-			     (if trace-buffer
-				 (let ((fmt (math-format-stack-value
-					     (list result nil nil))))
-				   (save-excursion
-				     (set-buffer trace-buffer)
-				     (insert "\nrewrite to\n" fmt "\n"))))
-			     (setq heads (math-rewrite-heads result heads t))))
-		       result)))))
+	(math-mt-func (function
+                       (lambda (x)
+                         (let ((result (math-apply-rewrites x (cdr crules)
+                                                            heads crules)))
+                           (if result
+                               (progn
+                                 (if trace-buffer
+                                     (let ((fmt (math-format-stack-value
+                                                 (list result nil nil))))
+                                       (save-excursion
+                                         (set-buffer trace-buffer)
+                                         (insert "\nrewrite to\n" fmt "\n"))))
+                                 (setq heads (math-rewrite-heads result heads t))))
+                           result)))))
     (if trace-buffer
 	(let ((fmt (math-format-stack-value (list whole-expr nil nil))))
 	  (save-excursion
@@ -197,22 +197,22 @@
 	    (setq truncate-lines t)
 	    (goto-char (point-max))
 	    (insert "\n\nBegin rewriting\n" fmt "\n"))))
-    (or mmt-many (setq mmt-many (or (nth 1 (car crules))
+    (or math-mt-many (setq math-mt-many (or (nth 1 (car crules))
 				    math-rewrite-default-iters)))
-    (if (equal mmt-many '(var inf var-inf)) (setq mmt-many 1000000))
-    (if (equal mmt-many '(neg (var inf var-inf))) (setq mmt-many -1000000))
+    (if (equal math-mt-many '(var inf var-inf)) (setq math-mt-many 1000000))
+    (if (equal math-mt-many '(neg (var inf var-inf))) (setq math-mt-many -1000000))
     (math-rewrite-phase (nth 3 (car crules)))
     (if trace-buffer
 	(let ((fmt (math-format-stack-value (list whole-expr nil nil))))
 	  (save-excursion
 	    (set-buffer trace-buffer)
 	    (insert "\nDone rewriting"
-		    (if (= mmt-many 0) " (reached iteration limit)" "")
+		    (if (= math-mt-many 0) " (reached iteration limit)" "")
 		    ":\n" fmt "\n"))))
     whole-expr))
 
 (defun math-rewrite-phase (sched)
-  (while (and sched (/= mmt-many 0))
+  (while (and sched (/= math-mt-many 0))
     (if (listp (car sched))
 	(while (let ((save-expr whole-expr))
 		 (math-rewrite-phase (car sched))

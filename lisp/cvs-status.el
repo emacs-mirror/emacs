@@ -1,6 +1,6 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8 -*-
 
-;; Copyright (C) 1999, 2000, 03, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree tools
@@ -31,8 +31,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'pcvs))
 (require 'pcvs-util)
+(eval-when-compile (require 'pcvs))
 
 ;;;
 
@@ -50,7 +50,7 @@
     ("\M-p"	. cvs-status-prev)
     ("t"	. cvs-status-cvstrees)
     ("T"	. cvs-status-trees)
-    (">"        . cvs-status-checkout))
+    (">"        . cvs-mode-checkout))
   "CVS-Status' keymap."
   :group 'cvs-status
   :inherit 'cvs-mode-map)
@@ -89,7 +89,7 @@
 (defconst cvs-status-font-lock-defaults
   '(cvs-status-font-lock-keywords t nil nil nil (font-lock-multiline . t)))
 
-
+(defvar cvs-minor-wrap-function)
 (put 'cvs-status-mode 'mode-class 'special)
 ;;;###autoload
 (define-derived-mode cvs-status-mode fundamental-mode "CVS-Status"
@@ -108,7 +108,8 @@
     (let* ((file (match-string 1))
 	   (cvsdir (and (re-search-backward cvs-status-dir-re nil t)
 			(match-string 1)))
-	   (pcldir (and (re-search-backward cvs-pcl-cvs-dirchange-re nil t)
+	   (pcldir (and (if (boundp 'cvs-pcl-cvs-dirchange-re)
+			    (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
 			(match-string 1)))
 	   (dir ""))
       (let ((default-directory ""))
@@ -466,25 +467,6 @@ Optional prefix ARG chooses between two representations."
 	    ;;(sit-for 0)
 	    ))))))
 
-(defun-cvs-mode (cvs-status-checkout . NOARGS) (dir)
-  "Run cvs-checkout against the tag under the point.
-The files are stored to DIR."
-  (interactive 
-   (let* ((module (cvs-get-module))
-	  (branch (cvs-prefix-get 'cvs-branch-prefix))
-	  (prompt (format "CVS Checkout Directory for `%s%s': " 
-			 module
-			 (if branch (format "(branch: %s)" branch)
-			   ""))))
-     (list
-      (read-directory-name prompt
-			   nil default-directory nil))))
-  (let ((modules (cvs-string->strings (cvs-get-module)))
-	(flags (cvs-add-branch-prefix
-		(cvs-flags-query 'cvs-checkout-flags "cvs checkout flags")))
-	(cvs-cvsroot (cvs-get-cvsroot)))
-    (cvs-checkout modules dir flags)))
-
 (defun cvs-tree-tags-insert (tags prev)
   (when tags
     (let* ((tag (car tags))
@@ -556,5 +538,5 @@ The files are stored to DIR."
 
 (provide 'cvs-status)
 
-;;; arch-tag: db8b5094-d02a-473e-a476-544e89ff5ad0
+;; arch-tag: db8b5094-d02a-473e-a476-544e89ff5ad0
 ;;; cvs-status.el ends here

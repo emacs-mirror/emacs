@@ -295,7 +295,8 @@ key is supported."
 (defgroup filesets nil
   "The fileset swapper."
   :prefix "filesets-"
-  :group 'convenience)
+  :group 'convenience
+  :version "21.4")
 
 (defcustom filesets-menu-name "Filesets"
   "*Filesets' menu name."
@@ -1355,7 +1356,7 @@ Use the viewer defined in EV-ENTRY (a valid element of
 		  (run-hooks 'oh))
 		(set-buffer-modified-p nil)
 		(setq buffer-read-only t)
-		(beginning-of-buffer))
+		(goto-char (point-min)))
 	    (when oh
 	      (run-hooks 'oh))))
       (filesets-error 'error
@@ -1592,7 +1593,8 @@ SAVE-FUNCTION takes no argument, but works on the current buffer."
 (defun filesets-cmd-show-result (cmd output)
   "Show OUTPUT of CMD (a shell command)."
   (pop-to-buffer "*Filesets: Shell Command Output*")
-  (end-of-buffer)
+  (with-no-warnings
+   (end-of-buffer))
   (insert "*** ")
   (insert cmd)
   (newline)
@@ -1637,7 +1639,7 @@ Replace <file-name> or <<file-name>> with filename."
 		(save-restriction
 		  (let ((buffer (filesets-find-file this)))
 		    (when buffer
-		      (beginning-of-buffer)
+		      (goto-char (point-min))
 		      (let ()
 			(cond
 			 ((stringp fn)

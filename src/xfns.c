@@ -5541,6 +5541,14 @@ Chinese, Japanese, and Korean.  */);
   Fprovide (intern ("x-toolkit"), Qnil);
   Fprovide (intern ("gtk"), Qnil);
 
+#ifdef HAVE_GTK_FILE_BOTH
+  DEFVAR_BOOL ("use-old-gtk-file-dialog", &use_old_gtk_file_dialog,
+    doc: /* *Non-nil means that the old GTK file selection dialog is used.
+If nil the new GTK file chooser is used instead.  To turn off
+all file dialogs set the variable `use-file-dialog'.  */);
+  use_old_gtk_file_dialog = 0;
+#endif
+
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
                doc: /* Version info for GTK+.  */);
   {

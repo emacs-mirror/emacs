@@ -1069,14 +1069,14 @@ fontset_pattern_regexp (pattern)
       || strcmp (SDATA (pattern), CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
-      char *regex, *p0, *p1;
+      unsigned char *regex, *p0, *p1;
       int ndashes = 0, nstars = 0;
-      
+
       for (p0 = SDATA (pattern); *p0; p0++)
 	{
 	  if (*p0 == '-')
 	    ndashes++;
-	  else if (*p0 == '*' && p0 > SDATA (pattern) && p0[-1] != '\\')
+	  else if (*p0 == '*')
 	    nstars++;
 	}
 
@@ -1084,14 +1084,14 @@ fontset_pattern_regexp (pattern)
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)
-	p1 = regex = (char *) alloca (SBYTES (pattern) + 2 * nstars + 1);
+	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 2 * nstars + 1);
       else
-	p1 = regex = (char *) alloca (SBYTES (pattern) + 5 * nstars + 1);
+	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 5 * nstars + 1);
 
       *p1++ = '^';
-      for (p0 = (char *) SDATA (pattern); *p0; p0++)
+      for (p0 = SDATA (pattern); *p0; p0++)
 	{
-	  if (*p0 == '*' && p0 > SDATA (pattern) && p0[-1] != '\\')
+	  if (*p0 == '*')
 	    {
 	      if (ndashes < 14)
 		*p1++ = '.';
@@ -1115,31 +1115,35 @@ fontset_pattern_regexp (pattern)
 }
 
 /* Return ID of the base fontset named NAME.  If there's no such
-   fontset, return -1.  */
+   fontset, return -1.  NAME_PATTERN specifies how to treat NAME as this:
+     0: pattern containing '*' and '?' as wildcards
+     1: regular expression
+     2: literal fontset name
+*/
 
 int
-fs_query_fontset (name, regexpp)
+fs_query_fontset (name, name_pattern)
      Lisp_Object name;
-     int regexpp;
+     int name_pattern;
 {
   Lisp_Object tem;
   int i;
 
   name = Fdowncase (name);
-  if (!regexpp)
+  if (name_pattern != 1)
     {
       tem = Frassoc (name, Vfontset_alias_alist);
       if (NILP (tem))
 	tem = Fassoc (name, Vfontset_alias_alist);
       if (CONSP (tem) && STRINGP (XCAR (tem)))
 	name = XCAR (tem);
-      else
+      else if (name_pattern == 0)
 	{
 	  tem = fontset_pattern_regexp (name);
 	  if (STRINGP (tem))
 	    {
 	      name = tem;
-	      regexpp = 1;
+	      name_pattern = 1;
 	    }
 	}
     }
@@ -1154,7 +1158,7 @@ fs_query_fontset (name, regexpp)
 	continue;
 
       this_name = FONTSET_NAME (fontset);
-      if (regexpp
+      if (name_pattern == 1
 	  ? fast_string_match (name, this_name) >= 0
 	  : !strcmp (SDATA (name), SDATA (this_name)))
 	return i;
@@ -1284,7 +1288,11 @@ check_fontset_name (name)
     return Vdefault_fontset;
 
   CHECK_STRING (name);
-  id = fs_query_fontset (name, 0);
+  /* First try NAME as literal.  */
+  id = fs_query_fontset (name, 2);
+  if (id < 0)
+    /* For backward compatibility, try again NAME as pattern.  */
+    id = fs_query_fontset (name, 0);
   if (id < 0)
     error ("Fontset `%s' does not exist", SDATA (name));
   return FONTSET_FROM_ID (id);

@@ -214,13 +214,13 @@ when reading a key-sequence to be looked-up in this keymap.  */)
      (map)
      Lisp_Object map;
 {
+  map = get_keymap (map, 0, 0);
   while (CONSP (map))
     {
-      register Lisp_Object tem;
-      tem = Fcar (map);
+      Lisp_Object tem = XCAR (map);
       if (STRINGP (tem))
 	return tem;
-      map = Fcdr (map);
+      map = XCDR (map);
     }
   return Qnil;
 }

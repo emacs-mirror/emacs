@@ -2209,12 +2209,20 @@ from `standard-syntax-table' otherwise."
     table))
 
 (defun syntax-after (pos)
-  "Return the syntax of the char after POS."
+  "Return the syntax of the char after POS.
+The value is either a syntax class character (a character that designates
+a syntax in `modify-syntax-entry'), or a cons cell
+of the form (CLASS . MATCH), where CLASS is the syntax class character
+and MATCH is the matching parenthesis."
   (unless (or (< pos (point-min)) (>= pos (point-max)))
-    (let ((st (if parse-sexp-lookup-properties
-		  (get-char-property pos 'syntax-table))))
-      (if (consp st) st
-	(aref (or st (syntax-table)) (char-after pos))))))
+    (let* ((st (if parse-sexp-lookup-properties
+		   (get-char-property pos 'syntax-table)))
+	   (value
+	    (if (consp st) st
+	      (aref (or st (syntax-table)) (char-after pos))))
+	   (code (if (consp value) (car value) value)))
+      (setq code (aref "-.w_()'\"$\\/<>@!|" code))
+      (if (consp value) (cons code (cdr value)) code))))
 
 (defun add-to-invisibility-spec (arg)
   "Add elements to `buffer-invisibility-spec'.

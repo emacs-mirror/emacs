@@ -110,7 +110,7 @@ Return the updated VECTOR.  */)
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
-  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len)
+  if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
   dosmemget (offs, len, buf);
@@ -135,7 +135,7 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
-  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len)
+  if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
 
@@ -155,7 +155,7 @@ If the optional argument ALLKEYS is non-nil, the keyboard is mapped for
 all keys; otherwise it is only used when the ALT key is pressed.
 The current keyboard layout is available in dos-keyboard-code.  */)
      (country_code, allkeys)
-     Lisp_Object country_code;
+     Lisp_Object country_code, allkeys;
 {
   CHECK_NUMBER (country_code);
   if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))

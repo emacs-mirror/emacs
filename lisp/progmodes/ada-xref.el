@@ -1292,7 +1292,7 @@ If ARG is non-nil, ask the user to confirm the command."
 
       ;;  Move to the end of the debugger buffer, so that it is automatically
       ;;  scrolled from then on.
-      (end-of-buffer)
+      (goto-char (point-max))
 
       ;;  Display both the source window and the debugger window (the former
       ;;  above the latter).  No need to show the debugger window unless it

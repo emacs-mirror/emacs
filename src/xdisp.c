@@ -16142,27 +16142,31 @@ pint2hrstr (buf, width, d)
 	{
 	  tenths = remainder / 100;
 	  if (50 <= remainder % 100)
-	    if (tenths < 9)
-	      tenths++;
-	    else
-	      {
-		quotient++;
-		if (quotient == 10)
-		  tenths = -1;
-		else
-		  tenths = 0;
-	      }
+	    {
+	      if (tenths < 9)
+		tenths++;
+	      else
+		{
+		  quotient++;
+		  if (quotient == 10)
+		    tenths = -1;
+		  else
+		    tenths = 0;
+		}
+	    }
 	}
       else
 	if (500 <= remainder)
-	  if (quotient < 999)
-	    quotient++;
-	  else
-	    {
-	      quotient = 1;
-	      exponent++;
-	      tenths = 0;
-	    }
+	  {
+	    if (quotient < 999)
+	      quotient++;
+	    else
+	      {
+		quotient = 1;
+		exponent++;
+		tenths = 0;
+	      }
+	  }
     }
 
   /* Calculate the LENGTH of QUOTIENT.TENTHS as a string. */
@@ -18455,7 +18459,7 @@ produce_image_glyph (it)
 {
   struct image *img;
   struct face *face;
-  int face_ascent, glyph_ascent;
+  int glyph_ascent;
   struct glyph_slice slice;
 
   xassert (it->what == IT_IMAGE);
@@ -18538,7 +18542,7 @@ produce_image_glyph (it)
 
 #if 0  /* this breaks image tiling */
   /* If this glyph is alone on the last line, adjust it.ascent to minimum row ascent.  */
-  face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
+  int face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
   if (face_ascent > it->ascent)
     it->ascent = it->phys_ascent = face_ascent;
 #endif
@@ -20558,19 +20562,20 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
   int past_end = 0;
 
   first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  if (charpos < MATRIX_ROW_START_CHARPOS (first))
+    {
+      *x = first->x;
+      *y = first->y;
+      *hpos = 0;
+      *vpos = MATRIX_ROW_VPOS (first, w->current_matrix);
+      return 1;
+    }
+
   row = row_containing_pos (w, charpos, first, NULL, 0);
   if (row == NULL)
     {
-      if (charpos < MATRIX_ROW_START_CHARPOS (first))
-	{
-	  *x = *y = *hpos = *vpos = 0;
-	  return 1;
-	}
-      else
-	{
-	  row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
-	  past_end = 1;
-	}
+      row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+      past_end = 1;
     }
 
   *x = row->x;
@@ -21116,8 +21121,10 @@ note_mouse_highlight (f, x, y)
   /* Which window is that in?  */
   window = window_from_coordinates (f, x, y, &part, 0, 0, 1);
 
-  /* If we were displaying active text in another window, clear that.  */
-  if (! EQ (window, dpyinfo->mouse_face_window))
+  /* If we were displaying active text in another window, clear that.
+     Also clear if we move out of text area in same window.  */
+  if (! EQ (window, dpyinfo->mouse_face_window)
+      || (part != ON_TEXT && !NILP (dpyinfo->mouse_face_window)))
     clear_mouse_face (dpyinfo);
 
   /* Not on a window -> return.  */

@@ -1040,7 +1040,7 @@
 	      (memq (car-safe (nth 1 expr)) '(+ -))
 	      (integerp (nth 2 expr))
 	      (if (> (nth 2 expr) 0)
-		  (or (and (or (> mmt-many 500000) (< mmt-many -500000))
+		  (or (and (or (> math-mt-many 500000) (< math-mt-many -500000))
 			   (math-expand-power (nth 1 expr) (nth 2 expr)
 					      nil t))
 		      (list '*

@@ -617,6 +617,7 @@ scan_c_file (filename, mode)
 	  c = getc (infile);
 	  defunflag = c == 'U';
 	  defvarflag = 0;
+	  defvarperbufferflag = 0;
 	}
       else continue;
 

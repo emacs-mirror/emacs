@@ -321,27 +321,55 @@ advertisements.  For example:
   :version "21.4"
   :group 'gnus-article-washing)
 
+(defmacro gnus-emphasis-custom-with-format (&rest body)
+  `(let ((format "\
+\\(\\s-\\|^\\|\\=\\|[-\"]\\|\\s(\\)\\(%s\\(\\w+\\(\\s-+\\w+\\)*[.,]?\\)%s\\)\
+\\(\\([-,.;:!?\"]\\|\\s)\\)+\\s-\\|[?!.]\\s-\\|\\s)\\|\\s-\\)"))
+     ,@body))
+
+(defun gnus-emphasis-custom-value-to-external (value)
+  (gnus-emphasis-custom-with-format
+   (if (consp (car value))
+       (list (format format (car (car value)) (cdr (car value)))
+	     2
+	     (if (nth 1 value) 2 3)
+	     (nth 2 value))
+     value)))
+
+(defun gnus-emphasis-custom-value-to-internal (value)
+  (gnus-emphasis-custom-with-format
+   (let ((regexp (concat "\\`"
+			 (format (regexp-quote format)
+				 "\\([^()]+\\)" "\\([^()]+\\)")
+			 "\\'"))
+	 pattern)
+     (if (string-match regexp (setq pattern (car value)))
+	 (list (cons (match-string 1 pattern) (match-string 2 pattern))
+	       (= (nth 2 value) 2)
+	       (nth 3 value))
+       value))))
+
 (defcustom gnus-emphasis-alist
-  (let ((format
-	 "\\(\\s-\\|^\\|\\=\\|[-\"]\\|\\s(\\)\\(%s\\(\\w+\\(\\s-+\\w+\\)*[.,]?\\)%s\\)\\(\\([-,.;:!?\"]\\|\\s)\\)+\\s-\\|[?!.]\\s-\\|\\s)\\|\\s-\\)")
-	(types
-	 '(("\\*" "\\*" bold)
+  (let ((types
+	 '(("\\*" "\\*" bold nil 2)
 	   ("_" "_" underline)
 	   ("/" "/" italic)
 	   ("_/" "/_" underline-italic)
 	   ("_\\*" "\\*_" underline-bold)
 	   ("\\*/" "/\\*" bold-italic)
 	   ("_\\*/" "/\\*_" underline-bold-italic))))
-    `(,@(mapcar
-	 (lambda (spec)
-	   (list
-	    (format format (car spec) (cadr spec))
-	    2 3 (intern (format "gnus-emphasis-%s" (nth 2 spec)))))
-	 types)
-	("\\(\\s-\\|^\\)\\(-\\(\\(\\w\\|-[^-]\\)+\\)-\\)\\(\\s-\\|[?!.,;]\\)"
-	 2 3 gnus-emphasis-strikethru)
-	("\\(\\s-\\|^\\)\\(_\\(\\(\\w\\|_[^_]\\)+\\)_\\)\\(\\s-\\|[?!.,;]\\)"
-	 2 3 gnus-emphasis-underline)))
+    (nconc
+     (gnus-emphasis-custom-with-format
+      (mapcar (lambda (spec)
+		(list (format format (car spec) (cadr spec))
+		      (or (nth 3 spec) 2)
+		      (or (nth 4 spec) 3)
+		      (intern (format "gnus-emphasis-%s" (nth 2 spec)))))
+	      types))
+     '(("\\(\\s-\\|^\\)\\(-\\(\\(\\w\\|-[^-]\\)+\\)-\\)\\(\\s-\\|[?!.,;]\\)"
+	2 3 gnus-emphasis-strikethru)
+       ("\\(\\s-\\|^\\)\\(_\\(\\(\\w\\|_[^_]\\)+\\)_\\)\\(\\s-\\|[?!.,;]\\)"
+	2 3 gnus-emphasis-underline))))
   "*Alist that says how to fontify certain phrases.
 Each item looks like this:
 
@@ -352,11 +380,43 @@ is a number that says what regular expression grouping used to find
 the entire emphasized word.  The third is a number that says what
 regexp grouping should be displayed and highlighted.  The fourth
 is the face used for highlighting."
-  :type '(repeat (list :value ("" 0 0 default)
-		       regexp
-		       (integer :tag "Match group")
-		       (integer :tag "Emphasize group")
-		       face))
+  :type
+  '(repeat
+    (menu-choice
+     :format "%[Customizing Style%]\n%v"
+     :indent 2
+     (group :tag "Default"
+	    :value ("" 0 0 default)
+	    :value-create
+	    (lambda (widget)
+	      (let ((value (widget-get
+			    (cadr (widget-get (widget-get widget :parent)
+					      :args))
+			    :value)))
+		(if (not (eq (nth 2 value) 'default))
+		    (widget-put
+		     widget
+		     :value
+		     (gnus-emphasis-custom-value-to-external value))))
+	      (widget-group-value-create widget))
+	    (regexp :format "%t: %v\n" :size 1)
+	    (integer :format "Match group: %v\n" :size 0)
+	    (integer  :format "Emphasize group: %v\n" :size 0)
+	    face)
+     (group :tag "Simple"
+	    :value (("_" . "_") nil default)
+	    (cons :format "%v"
+		  (regexp :format "Start regexp: %v\n" :size 0)
+		  (regexp :format "End regexp: %v\n" :size 0))
+	    (boolean :format "Show start and end patterns: %[%v%]\n"
+		     :on " On " :off " Off ")
+	    face)))
+  :get (lambda (symbol)
+	 (mapcar 'gnus-emphasis-custom-value-to-internal
+		 (default-value symbol)))
+  :set (lambda (symbol value)
+	 (set-default symbol (mapcar 'gnus-emphasis-custom-value-to-external
+				     value)))
   :group 'gnus-article-emphasis)
 
 (defcustom gnus-emphasize-whitespace-regexp "^[ \t]+\\|[ \t]*\n"
