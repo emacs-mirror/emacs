@@ -2141,7 +2141,7 @@ After saving the buffer, run `after-save-hook'."
 	  (if (not (file-directory-p dir))
 	      (if (file-exists-p dir)
 		  (error "%s is not a directory" dir)
-		(error "%s: no such directory"))
+		(error "%s: no such directory" buffer-file-name))
 	    (if (not (file-exists-p buffer-file-name))
 		(error "Directory %s write-protected" dir)
 	      (if (yes-or-no-p
