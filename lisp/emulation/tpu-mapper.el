@@ -22,8 +22,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Revision: $Id: tpu-mapper.el,v 1.1 1993/08/01 21:39:07 riepel Exp $
-
 ;;; Commentary:
 
 ;;  This emacs lisp program can be used to create an emacs lisp file that
@@ -71,7 +69,7 @@
 ;;;
 ;;;  Revision Information
 ;;;
-(defconst tpu-mapper-revision "$Revision: 1.1 $"
+(defconst tpu-mapper-revision "$Revision: 1.3 $"
     "Revision number of TPU-edt x-windows emacs key mapper.")
 
 
@@ -177,12 +175,14 @@
 ;;;
 ;;;  Save <CR> for future reference
 ;;;
-(setq tpu-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
 (cond
  (tpu-lucid-emacs19-p
+  (setq tpu-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
   (setq tpu-return (concat "[" (format "%s" (event-key (aref tpu-return-seq 0))) "]")))
  (t
-  (setq tpu-return (format "%s" tpu-return-seq))))
+  (message "Hit carriage-return <CR> to continue ")
+  (setq tpu-return-seq (read-event))
+  (setq tpu-return (concat "[" (format "%s" tpu-return-seq) "]")))) 
 
 
 ;;;
@@ -206,8 +206,9 @@
 
 (defun tpu-gnu-map-key (ident descrip func gold-func)
   (interactive)
-  (setq tpu-key-seq (read-key-sequence (format "Press %s%s: " ident descrip)))
-  (setq tpu-key (format "%s" tpu-key-seq))
+  (message "Press %s%s: " ident descrip)
+  (setq tpu-key-seq (read-event))
+  (setq tpu-key (concat "[" (format "%s" tpu-key-seq) "]"))
   (cond ((not (equal tpu-key tpu-return))
 	 (set-buffer "Keys")
 	 (insert (format"(global-set-key %s %s)\n" tpu-key func))
@@ -348,8 +349,11 @@
 ;;
 ")
 
-(insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter-seq))
-(insert (format "(setq tpu-help-return \"%s\")\n" tpu-return-seq))
+(cond (tpu-lucid-emacs19-p
+       (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter-seq))
+       (insert (format "(setq tpu-help-return \"%s\")\n" tpu-return-seq)))
+      (t
+       (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter))))
 
 (append-to-buffer "Keys" 1 (point))
 (set-buffer "Keys")
