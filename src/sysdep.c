@@ -239,7 +239,7 @@ init_baud_rate ()
 
       sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
       tcgetattr (0, &sg);
-      ospeed = sg.c_cflag & CBAUD;
+      ospeed = cfgetospeed (&sg);
 #else /* neither VMS nor TERMIOS */
 #ifdef HAVE_TERMIO
       struct termio sg;
@@ -255,7 +255,8 @@ init_baud_rate ()
       struct sgttyb sg;
       
       sg.sg_ospeed = B9600;
-      ioctl (0, TIOCGETP, &sg);
+      if (ioctl (0, TIOCGETP, &sg) < 0)
+	abort ();
       ospeed = sg.sg_ospeed;
 #endif /* not HAVE_TERMIO */
 #endif /* not HAVE_TERMIOS */
