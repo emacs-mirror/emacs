@@ -734,23 +734,6 @@ The value must be a list and each element of the list must fit the type
 @var{element-type}.  This appears in the customization buffer as a
 list of elements, with @samp{[INS]} and @samp{[DEL]} buttons for adding
 more elements or removing elements.
-
-@item (checklist @var{type} @dots{})
-The @var{type} arguments represent each checklist item.  The value will
-be a list containing the values of all checked @var{type} arguments.
-The checklist will match a list whose elements all match at least one of
-the specified @var{type} arguments.
-
-Usually a checklist will only match if the items are in the exact
-sequence given in the specification.  If you supply the additional
-arguments @code{:greedy t}, it will allow the items to come in any
-sequence.  However, if you extract the value they will be in the
-sequence given in the checklist, i.e.@: the original sequence is
-forgotten.
-
-Using this type with @code{:greedy} is useful for specifying association
-or property lists with keys from a fixed set and properly-typed
-arguments.
 @end table
 
 @node Splicing into Lists
