@@ -4137,10 +4137,10 @@ program specified by `directory-free-space-program' if that is non-nil."
     (save-match-data
       (with-temp-buffer
 	(when (and directory-free-space-program
-		   (zerop (call-process directory-free-space-program
-					nil t nil
-					directory-free-space-args
-					dir)))
+		   (eq 0 (call-process directory-free-space-program
+				       nil t nil
+				       directory-free-space-args
+				       dir)))
 	  ;; Usual format is a header line followed by a line of
 	  ;; numbers.
 	  (goto-char (point-min))
@@ -4260,21 +4260,21 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 				 file))))))))
 
 	  ;; If `insert-directory-program' failed, signal an error.
-	  (if (/= result 0)
-	      ;; On non-Posix systems, we cannot open a directory, so
-	      ;; don't even try, because that will always result in
-	      ;; the ubiquitous "Access denied".  Instead, show the
-	      ;; command line so the user can try to guess what went wrong.
-	      (if (and (file-directory-p file)
-		       (memq system-type '(ms-dos windows-nt)))
-		  (error
-		   "Reading directory: \"%s %s -- %s\" exited with status %s"
-		   insert-directory-program
-		   (if (listp switches) (concat switches) switches)
-		   file result)
-		;; Unix.  Access the file to get a suitable error.
-		(access-file file "Reading directory")
-		(error "Listing directory failed but `access-file' worked")))
+	  (unless (eq 0 result)
+	    ;; On non-Posix systems, we cannot open a directory, so
+	    ;; don't even try, because that will always result in
+	    ;; the ubiquitous "Access denied".  Instead, show the
+	    ;; command line so the user can try to guess what went wrong.
+	    (if (and (file-directory-p file)
+		     (memq system-type '(ms-dos windows-nt)))
+		(error
+		 "Reading directory: \"%s %s -- %s\" exited with status %s"
+		 insert-directory-program
+		 (if (listp switches) (concat switches) switches)
+		 file result)
+	      ;; Unix.  Access the file to get a suitable error.
+	      (access-file file "Reading directory")
+	      (error "Listing directory failed but `access-file' worked")))
 
 	  (when (string-match "--dired\\>" switches)
 	    (forward-line -2)

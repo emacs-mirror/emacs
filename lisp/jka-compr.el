@@ -356,7 +356,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 
 	  (jka-compr-delete-temp-file err-file)))
 
-    (or (zerop
+    (or (eq 0
 	 (apply 'call-process
 		prog
 		infile
