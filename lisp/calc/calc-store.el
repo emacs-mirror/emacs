@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -44,6 +43,8 @@
     (calc-store-into var)))
 
 (defvar calc-given-value-flag nil)
+(defvar calc-given-value)
+
 (defun calc-store-into (&optional var)
   (interactive)
   (calc-wrapper
@@ -155,6 +156,24 @@
 			     tag (and (not val) 1))
 	   (message "Stored to variable \"%s\"" (calc-var-name var)))))))
 
+(defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
+(if calc-var-name-map
+    ()
+  (setq calc-var-name-map (copy-keymap minibuffer-local-completion-map))
+  (define-key calc-var-name-map " " 'self-insert-command)
+  (mapcar (function
+	   (lambda (x)
+	     (define-key calc-var-name-map (char-to-string x)
+	       'calcVar-digit)))
+	  "0123456789")
+  (mapcar (function
+	   (lambda (x)
+	     (define-key calc-var-name-map (char-to-string x)
+	       'calcVar-oper)))
+	  "+-*/^|"))
+
+(defvar calc-store-opers)
+
 (defun calc-read-var-name (prompt &optional calc-store-opers)
   (setq calc-given-value nil
 	calc-aborted-prefix nil)
@@ -177,22 +196,6 @@
 		 (setq calc-given-value (math-evaluate-expr calc-given-value))
 		 svar))
 	   (intern var)))))
-
-(defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
-(if calc-var-name-map
-    ()
-  (setq calc-var-name-map (copy-keymap minibuffer-local-completion-map))
-  (define-key calc-var-name-map " " 'self-insert-command)
-  (mapcar (function
-	   (lambda (x)
-	     (define-key calc-var-name-map (char-to-string x)
-	       'calcVar-digit)))
-	  "0123456789")
-  (mapcar (function
-	   (lambda (x)
-	     (define-key calc-var-name-map (char-to-string x)
-	       'calcVar-oper)))
-	  "+-*/^|"))
 
 (defun calcVar-digit ()
   (interactive)
@@ -530,11 +533,16 @@
 				     var-PlotData5 var-PlotData6
 				     var-DUMMY))
 
+;; The variable calc-pv-pos is local to calc-permanent-variable, but
+;; used by calc-insert-permanent-variable, which is called by
+;; calc-permanent-variable.
+(defvar calc-pv-pos)
+
 (defun calc-permanent-variable (&optional var)
   (interactive)
   (calc-wrapper
    (or var (setq var (calc-read-var-name "Save variable (default=all): ")))
-   (let (pos)
+   (let (calc-pv-pos)
      (and var (or (and (boundp var) (symbol-value var))
 		  (error "No such variable")))
      (set-buffer (find-file-noselect (substitute-in-file-name
@@ -556,16 +564,16 @@
   (goto-char (point-min))
   (if (search-forward (concat "(setq " (symbol-name var) " '") nil t)
       (progn
-	(setq pos (point-marker))
+	(setq calc-pv-pos (point-marker))
 	(forward-line -1)
 	(if (looking-at ";;; Variable .* stored by Calc on ")
 	    (progn
 	      (delete-region (match-end 0) (progn (end-of-line) (point)))
 	      (insert (current-time-string))))
-	(goto-char (- pos 8 (length (symbol-name var))))
+	(goto-char (- calc-pv-pos 8 (length (symbol-name var))))
 	(forward-sexp 1)
 	(backward-char 1)
-	(delete-region pos (point)))
+	(delete-region calc-pv-pos (point)))
     (goto-char (point-max))
     (insert "\n;;; Variable \""
 	    (symbol-name var)
