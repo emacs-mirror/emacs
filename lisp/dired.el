@@ -1668,7 +1668,8 @@ Optional argument means return a file name relative to `default-directory'."
     (save-excursion
       (set-buffer (get-buffer-create bufname))
       (erase-buffer)
-      (dired-format-columns-of-files files))
+      (dired-format-columns-of-files files)
+      (remove-text-properties (point-min) (point-max) '(mouse-face)))
     (save-window-excursion
       (dired-pop-to-buffer bufname)
       (apply function args))))
