@@ -1,5 +1,10 @@
 2000-10-21  Miles Bader  <miles@gnu.org>
 
+	* international/quail.el (quail-show-guidance-buf): Make sure
+	guidance window really has enough room.
+	(quail-update-guidance): If quail-guidance-win is already shown,
+	make sure its height is OK.
+
 	* window.el (window-text-height, set-window-text-height):
 	New functions.
 	(shrink-window-if-larger-than-buffer): Use `window-text-height'
