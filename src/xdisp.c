@@ -9754,6 +9754,8 @@ redisplay_window (window, just_this_one_p)
 	    blank_row (w, row, y);
 	  goto finish_scroll_bars;
 	}
+
+      clear_glyph_matrix (w->desired_matrix);
     }
 
   /* Otherwise set up data on this window; select its buffer and point
