@@ -446,8 +446,6 @@ this prefix to create a unique file name.")
 	  (setq default-frame-alist
 		(cons '(icon-type . t) default-frame-alist))
 	  (setq args (cdr args)))
-	 ((and (not (equal "" argi)) (aref argi 0))
-	  (error "Unknown option `%s'" argi))
 	 (t (setq done t)))
 	;; Was argval set but not used?
 	(and argval
@@ -794,6 +792,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		   (if (not did-hook)
 		       ;; Ok, presume that the argument is a file name
 		       (progn
+			 (if (string-match "\\`-" argi)
+			     (error "Unknown option `%s'" argi))
 			 (setq file-count (1+ file-count))
 			 (cond ((= file-count 1)
 				(setq first-file-buffer
