@@ -207,6 +207,41 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 	      (sample-text . "Japanese (日本語)	こんにちは, ｺﾝﾆﾁﾊ")
 	      (documentation . t)))
 
+(let ((map
+       ;; JISX0213-1 vs Unicode
+       '((#x2477 . [#x304B #x309A])
+	 (#x2478 . [#x304D #x309A])
+	 (#x2479 . [#x304F #x309A])
+	 (#x247a . [#x3051 #x309A])
+	 (#x247b . [#x3053 #x309A])
+	 (#x2577 . [#x30AB #x309A])
+	 (#x2578 . [#x30AD #x309A])
+	 (#x2579 . [#x30AF #x309A])
+	 (#x257a . [#x30B1 #x309A])
+	 (#x257b . [#x30B3 #x309A])
+	 (#x257c . [#x30BB #x309A])
+	 (#x257d . [#x30C4 #x309A])
+	 (#x257e . [#x30C8 #x309A])
+	 (#x2678 . [#x31F7 #x309A])
+	 (#x2b44 . [#x00E6 #x0300])
+	 (#x2b48 . [#x0254 #x0300])
+	 (#x2b49 . [#x0254 #x0301])
+	 (#x2b4a . [#x028C #x0300])
+	 (#x2b4b . [#x028C #x0301])
+	 (#x2b4c . [#x0259 #x0300])
+	 (#x2b4d . [#x0259 #x0301])
+	 (#x2b4e . [#x025A #x0300])
+	 (#x2b4f . [#x025A #x0301])
+	 (#x2b65 . [#x02E9 #x02E5])
+	 (#x2b66 . [#x02E5 #x02E9])))
+      table)
+  (dolist (elt map)
+    (setcar elt (decode-char 'japanese-jisx0213-1 (car elt))))
+  (setq table (make-translation-table-from-alist map))
+  (define-translation-table 'jisx0213-to-unicode table)
+  (define-translation-table 'unicode-to-jisx0213
+    (char-table-extra-slot table 0)))
+
 (provide 'japanese)
 
 ;;; japanese.el ends here
