@@ -408,9 +408,9 @@ for language-specific arguments.")
 ;;;###autoload
 (defvar ispell-dictionary-alist-1	; sk  9-Aug-1991 18:28
   '((nil				; default (english.aff)
-     "[A-Za-z]" "[^A-Za-z]" "[---']" nil ("-B") nil)
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil)
     ("english"				; make english explicitly selectable
-     "[A-Za-z]" "[^A-Za-z]" "[---']" nil ("-B") nil)
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil)
     ("deutsch"				; deutsch.aff
      "[a-zA-Z\"]" "[^a-zA-Z\"]" "[---']" t ("-C") nil)
     ("deutsch8"
