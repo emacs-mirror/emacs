@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.30) $
+ * $HopeName: MMsrc!arenavm.c(trunk.31) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.30) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.31) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -719,6 +719,9 @@ static void VMSegFree(Seg seg)
   EVENT_PP(SegFree, vmArena, seg);
 }
 
+/* These Seg functions are low-level and are on the critical path in
+ * various ways.  The more common therefore use AVER_CRITICAL
+ */
 
 /* VMSegBase -- return the base address of a segment
  *
@@ -733,10 +736,10 @@ static Addr VMSegBase(Seg seg)
   Page page;
   Index i;
   
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
 
   vmArena = SegVMArena(seg);
-  AVERT(VMArena, vmArena);
+  AVERT_CRITICAL(VMArena, vmArena);
 
   page = PageOfSeg(seg);
   i = page - vmArena->pageTable;
@@ -757,10 +760,10 @@ static Addr VMSegLimit(Seg seg)
   VMArena vmArena;
   Page page;
 
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
 
   vmArena = SegVMArena(seg);
-  AVERT(VMArena, vmArena);
+  AVERT_CRITICAL(VMArena, vmArena);
 
   if(SegSingle(seg)) {
     return AddrAdd(VMSegBase(seg), vmArena->pageSize);
@@ -779,7 +782,7 @@ static Addr VMSegLimit(Seg seg)
 
 static Size VMSegSize(Seg seg)
 {
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
 
   return AddrOffset(VMSegBase(seg), VMSegLimit(seg));
 }
@@ -890,16 +893,16 @@ static Bool VMSegNext(Seg *segReturn, Arena arena, Addr addr)
   VMArena vmArena;
   Index i;
 
-  AVER(segReturn != NULL);
+  AVER_CRITICAL(segReturn != NULL);
   vmArena = ArenaVMArena(arena);
-  AVERT(VMArena, vmArena);
-  AVER(AddrIsAligned(addr, arena->alignment));
+  AVERT_CRITICAL(VMArena, vmArena);
+  AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
 
   i = indexOfAddr(vmArena, addr);
 
   /* There are fewer pages than addresses, therefore the */
   /* page index can never wrap around */
-  AVER(i+1 != 0);
+  AVER_CRITICAL(i+1 != 0);
 
   return segSearch(segReturn, vmArena, i + 1);
 }

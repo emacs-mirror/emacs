@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.23) $
+ * $HopeName: MMsrc!poolawl.c(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.23) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.24) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -41,6 +41,7 @@ typedef struct AWLGroupStruct {
   BT scanned;
   BT alloc;
   Count grains;
+  Count free; /* number of free grains */
 } AWLGroupStruct, *AWLGroup;
 
 
@@ -147,6 +148,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   SegSetSummary(seg, RefSetUNIV);
   SegSetP(seg, group);
   group->seg = seg;
+  group->free = bits;
   group->sig = AWLGroupSig;
   AVERT(AWLGroup, group);
   *groupReturn = group;
@@ -170,17 +172,13 @@ static Bool AWLGroupAlloc(Addr *baseReturn, Addr *limitReturn,
 {
   Count n;	/* number of grains equivalent to alloc size */
   Index i, j;
-  Arena arena;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(AWLGroup, group);
   AVERT(AWL, awl);
   AVER(size > 0);
-
-  arena = PoolArena(&awl->poolStruct);
-  AVERT(Arena, arena);
-
+  AVER(size << awl->alignShift >= size);
 
   if(size > SegSize(group->seg)) {
     return FALSE;
@@ -267,7 +265,6 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AWLGroup group;
   AWL awl;
   Res res;
-  Arena arena;
   Ring node, nextNode;
 
   AVER(segReturn != NULL);
@@ -276,8 +273,6 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-
-  arena = PoolArena(pool);
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -294,7 +289,8 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
     /* buffered, and has the same ranks as the buffer. */
     if(SegBuffer(seg) == NULL &&
        SegRankSet(seg) == BufferRankSet(buffer))
-      if(AWLGroupAlloc(&base, &limit, group, awl, size))
+      if(group->free << awl->alignShift >= size &&
+	 AWLGroupAlloc(&base, &limit, group, awl, size))
 	goto found;
   }
 
@@ -346,6 +342,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
   AVER(i <= j);
   if(i < j) {
     BTResRange(group->alloc, i, j);
+    group->free += j - i;
   }
 }
 
@@ -558,7 +555,6 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 
 static Res AWLScan(ScanState ss, Pool pool, Seg seg)
 {
-  Arena arena;
   AWL awl;
   AWLGroup group;
   Bool anyScanned;
@@ -574,8 +570,6 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
-
-  arena = PoolArena(pool);
 
   /* If the scanner isn't going to scan all the objects then the */
   /* summary of the unscanned objects must be added into the scan */
@@ -608,7 +602,6 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Index i;
   AWL awl;
   AWLGroup group;
-  Arena arena;
 
   AVERT(Pool, pool);
   AVERT(ScanState, ss);
@@ -620,9 +613,6 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT(AWL, awl);
   group  = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
-
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   ref = *refIO;
   i = AddrOffset(SegBase(seg), ref) >> awl->alignShift;
@@ -666,7 +656,6 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWL awl;
   AWLGroup group;
   Index i;
-  Arena arena;
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -676,9 +665,6 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(AWL, awl);
   group = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
-
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   base = SegBase(seg);
 
@@ -711,6 +697,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       BTResRange(group->mark, i, j);
       BTSetRange(group->scanned, i, j);
       BTResRange(group->alloc, i, j);
+      group->free += j - i;
     }
     i = j;
   }
@@ -807,5 +794,6 @@ static Bool AWLGroupCheck(AWLGroup group)
   CHECKL(group->alloc != NULL);
   /* Can't do any real check on ->grains */
   CHECKL(group->grains > 0);
+  CHECKL(group->free <= group->grains);
   return TRUE;
 }

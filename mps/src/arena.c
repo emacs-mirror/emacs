@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.11) $
+ * $HopeName: MMsrc!arena.c(trunk.12) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.11) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.12) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -900,6 +900,10 @@ Res ArenaRetract(Arena arena, Addr base, Size size)
   return ResOK;
 }
 
+/* These segment functions are low-level and used through-out. 
+ * They are therefore on the critical path and their AVERs are 
+ * so-marked.
+ */
 
 /* SegBase -- return the base address of a segment */
 
@@ -907,9 +911,9 @@ Addr SegBase(Seg seg)
 {
   Arena arena;
 
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
   arena = SegArena(seg);
-  AVERT(Arena, arena);
+  AVERT_CRITICAL(Arena, arena);
   return (*arena->class->segBase)(seg);
 }
 
@@ -919,9 +923,9 @@ Addr SegBase(Seg seg)
 Addr SegLimit(Seg seg)
 {
   Arena arena;
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
   arena = SegArena(seg);
-  AVERT(Arena, arena);
+  AVERT_CRITICAL(Arena, arena);
   return (*arena->class->segLimit)(seg);
 }
 
@@ -931,9 +935,9 @@ Addr SegLimit(Seg seg)
 Size SegSize(Seg seg)
 {
   Arena arena;
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
   arena = SegArena(seg);
-  AVERT(Arena, arena);
+  AVERT_CRITICAL(Arena, arena);
   return (*arena->class->segSize)(seg);
 }
 
@@ -975,8 +979,8 @@ Bool SegFirst(Seg *segReturn, Arena arena)
 
 Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
 {
-  AVER(segReturn != NULL);
-  AVERT(Arena, arena);
+  AVER_CRITICAL(segReturn != NULL);
+  AVERT_CRITICAL(Arena, arena);
 
   return (*arena->class->segNext)(segReturn, arena, addr);
 }
