@@ -16,13 +16,6 @@
 
 	* find-dired.el (find-name-dired): Use shell-quote-argument.
 
-2002-03-08  Andreas Schwab  <schwab@suse.de>
-
-	* textmodes/texinfo.el: Change Maintainer to FSF, as requested by
-	Karl Berry <karl@freefriends.org>.
-	* textmodes/texinfmt.el: Likewise.
-	* textmodes/texnfo-upd.el: Likewise.
-
 2002-03-08  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* play/mpuz.el (mpuz-unsolved-face, mpuz-solved-face)
