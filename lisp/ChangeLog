@@ -1,5 +1,13 @@
 2000-11-22  Miles Bader  <miles@gnu.org>
 
+	* isearch.el (isearch-original-minibuffer-message-timeout): New var.
+	(isearch-mode): Set `minibuffer-message-timeout' to nil, after
+	stashing away its original value.
+	(isearch-edit-string): Temporarily restore `minibuffer-message-timeout'
+	in the recursive edit.
+	Bind `isearch-original-minibuffer-message-timeout' to protect it.
+	(isearch-done): Restore `minibuffer-message-timeout'.
+
 	* cus-start.el: Remove entry for `mode-line-inverse-video'.
 
 2000-11-21  Stefan Monnier  <monnier@cs.yale.edu>
