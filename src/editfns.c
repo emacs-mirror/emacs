@@ -1,5 +1,6 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000
+	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,19 +50,29 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 extern char **environ;
-extern int use_dialog_box;
-extern Lisp_Object make_time ();
-extern void insert_from_buffer ();
-static int tm_diff ();
-static void update_buffer_properties ();
-size_t emacs_strftimeu ();
-void set_time_zone_rule ();
+extern Lisp_Object make_time P_ ((time_t));
+extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
+				   const struct tm *, int));
+static int tm_diff P_ ((struct tm *, struct tm *));
+static void find_field P_ ((Lisp_Object, Lisp_Object, int *, int *));
+static void update_buffer_properties P_ ((int, int));
+static Lisp_Object region_limit P_ ((int));
+static int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
+static size_t emacs_memftimeu P_ ((char *, size_t, const char *,
+				   size_t, const struct tm *, int));
+static void general_insert_function P_ ((void (*) (unsigned char *, int),
+					 void (*) (Lisp_Object, int, int, int,
+						   int, int),
+					 int, int, Lisp_Object *));
+static Lisp_Object subst_char_in_region_unwind P_ ((Lisp_Object));
+static Lisp_Object subst_char_in_region_unwind_1 P_ ((Lisp_Object));
+static void transpose_markers P_ ((int, int, int, int, int, int, int, int));
 
 Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
 Lisp_Object Vbuffer_access_fontified_property;
 
-Lisp_Object Fuser_full_name ();
+Lisp_Object Fuser_full_name P_ ((Lisp_Object));
 
 /* Non-nil means don't stop at field boundary in text motion commands.  */
 
@@ -73,6 +84,15 @@ Lisp_Object Vsystem_name;
 Lisp_Object Vuser_real_login_name;	/* login name of current user ID */
 Lisp_Object Vuser_full_name;		/* full name of current user */
 Lisp_Object Vuser_login_name;		/* user name from LOGNAME or USER */
+
+/* Symbol for the text property used to mark fields.  */
+
+Lisp_Object Qfield;
+
+/* A special value for Qfield properties.  */
+
+Lisp_Object Qboundary;
+
 
 void
 init_editfns ()
@@ -237,35 +257,44 @@ except in the case that `enable-multibyte-characters' is nil.")
   return position;
 }
 
+
+/* Return the start or end position of the region.
+   BEGINNINGP non-zero means return the start.
+   If there is no region active, signal an error. */
+
 static Lisp_Object
 region_limit (beginningp)
      int beginningp;
 {
   extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
-  register Lisp_Object m;
-  if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
+  Lisp_Object m;
+  
+  if (!NILP (Vtransient_mark_mode)
+      && NILP (Vmark_even_if_inactive)
       && NILP (current_buffer->mark_active))
     Fsignal (Qmark_inactive, Qnil);
+  
   m = Fmarker_position (current_buffer->mark);
-  if (NILP (m)) error ("There is no region now");
+  if (NILP (m))
+    error ("There is no region now");
+  
   if ((PT < XFASTINT (m)) == beginningp)
-    return (make_number (PT));
-  else
-    return (m);
+    m = make_number (PT);
+  return m;
 }
 
 DEFUN ("region-beginning", Fregion_beginning, Sregion_beginning, 0, 0, 0,
   "Return position of beginning of region, as an integer.")
   ()
 {
-  return (region_limit (1));
+  return region_limit (1);
 }
 
 DEFUN ("region-end", Fregion_end, Sregion_end, 0, 0, 0,
   "Return position of end of region, as an integer.")
   ()
 {
-  return (region_limit (0));
+  return region_limit (0);
 }
 
 DEFUN ("mark-marker", Fmark_marker, Smark_marker, 0, 0, 0,
@@ -276,6 +305,7 @@ If you set the marker not to point anywhere, the buffer will have no mark.")
 {
   return current_buffer->mark;
 }
+
 
 /* Return nonzero if POS1 and POS2 have the same value
    for the text property PROP.  */
@@ -333,15 +363,11 @@ char_property_stickiness (prop, pos)
   /* PROP is not inherited from either side.  */
   return 0;
 }
+
 
-/* Symbol for the text property used to mark fields.  */
-Lisp_Object Qfield;
-
-/* A special value for Qfield properties.  */
-Lisp_Object Qboundary;
-
 /* Find the field surrounding POS in *BEG and *END.  If POS is nil,
-   the value of point is used instead.
+   the value of point is used instead.  If BEG or END null,
+   means don't store the beginning or end of the field.
 
    If MERGE_AT_BOUNDARY is nonzero, then if POS is at the very first
    position of a field, then the beginning of the previous field is
@@ -356,7 +382,7 @@ Lisp_Object Qboundary;
    Either BEG or END may be 0, in which case the corresponding value
    is not stored.  */
 
-void
+static void
 find_field (pos, merge_at_boundary, beg, end)
      Lisp_Object pos;
      Lisp_Object merge_at_boundary;
@@ -374,12 +400,12 @@ find_field (pos, merge_at_boundary, beg, end)
   else
     CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
-  after_field =
-    Fget_char_property (pos, Qfield, Qnil);
-  before_field =
-    (XFASTINT (pos) > BEGV
-     ? Fget_char_property (make_number (XINT (pos) - 1), Qfield, Qnil)
-     : Qnil);
+  after_field
+    = Fget_char_property (pos, Qfield, Qnil);
+  before_field
+    = (XFASTINT (pos) > BEGV
+       ? Fget_char_property (make_number (XINT (pos) - 1), Qfield, Qnil)
+       : Qnil);
 
   /* See if we need to handle the case where MERGE_AT_BOUNDARY is nil
      and POS is at beginning of a field, which can also be interpreted
@@ -433,37 +459,42 @@ find_field (pos, merge_at_boundary, beg, end)
      the `x' field, and the end as being the end of the `y' field.  */
 
   if (beg)
-    if (at_field_start)
-      /* POS is at the edge of a field, and we should consider it as
-	 the beginning of the following field.  */
-      *beg = XFASTINT (pos);
-    else
-      /* Find the previous field boundary.  */
-      {
-	if (!NILP (merge_at_boundary) && EQ (before_field, Qboundary))
-	  /* Skip a `boundary' field.  */
-	  pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,Qnil);
+    {
+      if (at_field_start)
+	/* POS is at the edge of a field, and we should consider it as
+	   the beginning of the following field.  */
+	*beg = XFASTINT (pos);
+      else
+	/* Find the previous field boundary.  */
+	{
+	  if (!NILP (merge_at_boundary) && EQ (before_field, Qboundary))
+	    /* Skip a `boundary' field.  */
+	    pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,Qnil);
 
-	pos = Fprevious_single_char_property_change (pos, Qfield, Qnil, Qnil);
-	*beg = NILP (pos) ? BEGV : XFASTINT (pos);
-      }
+	  pos = Fprevious_single_char_property_change (pos, Qfield, Qnil, Qnil);
+	  *beg = NILP (pos) ? BEGV : XFASTINT (pos);
+	}
+    }
 
   if (end)
-    if (at_field_end)
-      /* POS is at the edge of a field, and we should consider it as
-	 the end of the previous field.  */
-      *end = XFASTINT (pos);
-    else
-      /* Find the next field boundary.  */
-      {
-	if (!NILP (merge_at_boundary) && EQ (after_field, Qboundary))
-	  /* Skip a `boundary' field.  */
-	  pos = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
+    {
+      if (at_field_end)
+	/* POS is at the edge of a field, and we should consider it as
+	   the end of the previous field.  */
+	*end = XFASTINT (pos);
+      else
+	/* Find the next field boundary.  */
+	{
+	  if (!NILP (merge_at_boundary) && EQ (after_field, Qboundary))
+	    /* Skip a `boundary' field.  */
+	    pos = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
 
-	pos = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
-	*end = NILP (pos) ? ZV : XFASTINT (pos);
-      }
+	  pos = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
+	  *end = NILP (pos) ? ZV : XFASTINT (pos);
+	}
+    }
 }
+
 
 DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, 0,
   "Delete the field surrounding POS.\n\
@@ -620,6 +651,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.")
 
   return new_pos;
 }
+
 
 DEFUN ("line-beginning-position", Fline_beginning_position, Sline_beginning_position,
   0, 1, 0,
@@ -635,7 +667,7 @@ This function does not move point.")
   (n)
      Lisp_Object n;
 {
-  register int orig, orig_byte, end;
+  int orig, orig_byte, end;
 
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -665,7 +697,7 @@ This function does not move point.")
      Lisp_Object n;
 {
   int end_pos;
-  register int orig = PT;
+  int orig = PT;
 
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -682,8 +714,8 @@ This function does not move point.")
 Lisp_Object
 save_excursion_save ()
 {
-  register int visible = (XBUFFER (XWINDOW (selected_window)->buffer)
-			  == current_buffer);
+  int visible = (XBUFFER (XWINDOW (selected_window)->buffer)
+		 == current_buffer);
 
   return Fcons (Fpoint_marker (),
 		Fcons (Fcopy_marker (current_buffer->mark, Qnil),
@@ -777,7 +809,7 @@ Executes BODY just like `progn'.")
   (args)
      Lisp_Object args;
 {
-  register Lisp_Object val;
+  Lisp_Object val;
   int count = specpdl_ptr - specpdl;
 
   record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
@@ -1154,6 +1186,7 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 }
 
 /* For the benefit of callers who don't want to include lisp.h */
+
 char *
 get_system_name ()
 {
@@ -1710,6 +1743,7 @@ static char set_time_zone_rule_tz2[] = "TZ=GMT+1";
 /* Set the local time zone rule to TZSTRING.
    This allocates memory into `environ', which it is the caller's
    responsibility to free.  */
+
 void
 set_time_zone_rule (tzstring)
      char *tzstring;
@@ -1791,7 +1825,7 @@ set_time_zone_rule (tzstring)
    type of object is Lisp_String).  INHERIT is passed to
    INSERT_FROM_STRING_FUNC as the last argument.  */
 
-void
+static void
 general_insert_function (insert_func, insert_from_string_func,
 			 inherit, nargs, args)
      void (*insert_func) P_ ((unsigned char *, int));
@@ -3386,7 +3420,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
 
    It's the caller's job to ensure that START1 <= END1 <= START2 <= END2.  */
 
-void
+static void
 transpose_markers (start1, end1, start2, end2,
 		   start1_byte, end1_byte, start2_byte, end2_byte)
      register int start1, end1, start2, end2;
