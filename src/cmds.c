@@ -413,7 +413,7 @@ internal_self_insert (c, noautofill)
 	    del_range (PT, forward_point (1));
 	  else
 	    {
-	      int pos = point;
+	      int pos = PT;
 	      /* The actual cursor position after the trial of moving
 		 to column TARGET_CLM.  It is greater than TARGET_CLM
 		 if the TARGET_CLM is middle of multi-column
