@@ -34,7 +34,7 @@
 ;; See also the lazy-lock package.  (But don't use the two at the same time!)
 
 ;; Installation:
-;; 
+;;
 ;; Put in your ~/.emacs:
 ;;
 ;; (setq font-lock-support-mode 'fast-lock-mode)
@@ -67,7 +67,7 @@
 ;; 1.01--2.00: complete rewrite---not worth the space to document
 ;; - Changed structure of text properties cache and threw out file mod checks
 ;; 2.00--2.01:
-;; - Made `condition-case' forms understand `quit'. 
+;; - Made `condition-case' forms understand `quit'.
 ;; - Made `fast-lock' require `font-lock'
 ;; - Made `fast-lock-cache-name' chase links (from Ben Liblit)
 ;; 2.01--3.00:
@@ -230,7 +230,7 @@
  ;;
  ;; We use this for compatibility with a future Emacs.
  (or (fboundp 'defcustom)
-     (defmacro defcustom (symbol value doc &rest args) 
+     (defmacro defcustom (symbol value doc &rest args)
        `(defvar ,symbol ,value ,doc))))
 
 ;(defun fast-lock-submit-bug-report ()
@@ -553,7 +553,7 @@ See `fast-lock-cache-directory'."
       (concat buffer-file-name ".flc")
     (let* ((bufile (expand-file-name buffer-file-truename))
 	   (chars-alist
-	    (if (memq system-type '(emx windows-nt))
+	    (if (memq system-type '(emx windows-nt cygwin))
 		'((?/ . (?#)) (?# . (?# ?#)) (?: . (?\;)) (?\; . (?\; ?\;)))
 	      '((?/ . (?#)) (?# . (?# ?#)))))
 	   (mapchars
@@ -807,7 +807,7 @@ See `fast-lock-get-face-properties'."
 	    (font-lock-set-face (nth 0 regions) (nth 1 regions) face)
 	    (setq regions (nthcdr 2 regions)))
 	  (setq face-properties (cdr face-properties))))
-      ;; XEmacs does not support the `syntax-table' text property.      
+      ;; XEmacs does not support the `syntax-table' text property.
       ))
   ;;
   ;; XEmacs 19.12 font-lock.el's `font-lock-fontify-buffer' runs a hook.

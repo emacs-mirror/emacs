@@ -1053,6 +1053,7 @@ case "${canonical}" in
   i[3456]86-*-* )
     machine=intel386
     case "${canonical}" in
+      *-cygwin )                opsys=cygwin ;;
       *-lynxos* )               opsys=lynxos ;;
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2* )		opsys=isc2-2 ;;

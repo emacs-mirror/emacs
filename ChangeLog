@@ -1,3 +1,11 @@
+2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
+
+	* Makefile.in: Use @EXEEXT@ for Cygwin.
+	Use USERNAME if LOGNAME is not set (for Cygwin).
+
+	* configure.in:
+	* configure: Add opsys=cygwin.
+
 2003-01-29  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerated using new format (after fixing numerous

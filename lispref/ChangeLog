@@ -1,3 +1,7 @@
+2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
+
+	* os.texi (System Environment): Added cygwin system-type.
+
 2003-01-25  Richard M. Stallman  <rms@gnu.org>
 
 	* keymaps.texi: Document that a symbol can act as a keymap.
@@ -24,6 +28,7 @@
 	* variables.texi (File Local Variables): Fix typo.
 
 2002-10-23  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
 	From Michael Albinus <Michael.Albinus@alcatel.de>.
 
 	* README: Target for Info file is `make info'.

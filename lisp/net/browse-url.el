@@ -227,7 +227,7 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (if (memq system-type '(windows-nt ms-dos))
+  (if (memq system-type '(windows-nt ms-dos cygwin))
       'browse-url-default-windows-browser
     'browse-url-default-browser)
   "*Function to display the current buffer in a WWW browser.
@@ -381,7 +381,7 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; it in anonymous cases.  If it's not anonymous the next regexp
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
-    (,@ (if (memq system-type '(windows-nt ms-dos))
+    (,@ (if (memq system-type '(windows-nt ms-dos cygwin))
 	    '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/")
               ("^[\\/][\\/]+" . "file://"))))
     ("^/+" . "file:/")))
@@ -972,7 +972,7 @@ effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
-  (interactive (browse-url-interactive-arg "URL: "))  
+  (interactive (browse-url-interactive-arg "URL: "))
   (apply 'start-process (concat "gnome-moz-remote " url)
 	 nil
 	 "gnome-moz-remote"

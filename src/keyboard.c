@@ -741,7 +741,7 @@ echo_char (c)
       Lisp_Object echo_string;
 
       echo_string = current_kboard->echo_string;
-      
+
       /* If someone has passed us a composite event, use its head symbol.  */
       c = EVENT_HEAD (c);
 
@@ -753,7 +753,7 @@ echo_char (c)
 	{
 	  Lisp_Object name = SYMBOL_NAME (c);
 	  int nbytes = SBYTES (name);
-	  
+
 	  if (size - (ptr - buffer) < nbytes)
 	    {
 	      int offset = ptr - buffer;
@@ -771,7 +771,7 @@ echo_char (c)
 	{
 	  const char *text = " (Type ? for further options)";
 	  int len = strlen (text);
-	  
+
 	  if (size - (ptr - buffer) < len)
 	    {
 	      int offset = ptr - buffer;
@@ -820,12 +820,12 @@ echo_dash ()
   if (!current_kboard->immediate_echo
       && SCHARS (current_kboard->echo_string) == 0)
     return;
-      
+
   /* Do nothing if we just printed a prompt.  */
   if (current_kboard->echo_after_prompt
       == SCHARS (current_kboard->echo_string))
     return;
-      
+
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
   current_kboard->echo_string = concat2 (current_kboard->echo_string,
@@ -1032,12 +1032,12 @@ recursive_edit_unwind (info)
 {
   if (BUFFERP (XCAR (info)))
     Fset_buffer (XCAR (info));
-  
+
   if (NILP (XCDR (info)))
     any_kboard_state ();
   else
     single_kboard_state ();
-      
+
   command_loop_level--;
   update_mode_lines = 1;
   return Qnil;
@@ -1214,7 +1214,7 @@ cmd_error_internal (data, context)
      since they are asyncronous.  */
   if (EQ (XCAR (data), Qquit))
     Vsignaling_function = Qnil;
-  
+
   print_error_message (data, stream, context, Vsignaling_function);
 
   Vsignaling_function = Qnil;
@@ -1557,7 +1557,7 @@ command_loop_1 ()
 	 if the symbol is a local variable.  */
       if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
 	safe_run_hooks (Qpre_command_hook);
-      
+
       already_adjusted = 0;
 
       if (NILP (Vthis_command))
@@ -1663,7 +1663,7 @@ command_loop_1 ()
 			}
 		      nonundocount++;
 		    }
-		  
+
 		  lose = ((XFASTINT (XWINDOW (selected_window)->last_modified)
 			   < MODIFF)
 			  || (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
@@ -1676,7 +1676,7 @@ command_loop_1 ()
 			  || detect_input_pending ()
 			  || !NILP (XWINDOW (selected_window)->column_number_displayed)
 			  || !NILP (Vexecuting_macro));
-		  
+
 		  value = internal_self_insert (c, 0);
 
 		  if (value == 2)
@@ -1887,7 +1887,7 @@ adjust_point_for_property (last_pt, modified)
 		(make_number (beg), Qinvisible, Qnil, Qnil);
 	      beg = NATNUMP (tmp) ? XFASTINT (tmp) : BEGV;
 	    }
-	  
+
 	  /* Move away from the inside area.  */
 	  if (beg < PT && end > PT)
 	    {
@@ -2011,7 +2011,7 @@ start_polling ()
       /* Turn alarm handling on unconditionally.  It might have
 	 been turned off in process.c.  */
       turn_on_atimers (1);
-      
+
       /* If poll timer doesn't exist, are we need one with
 	 a different interval, start a new one.  */
       if (poll_timer == NULL
@@ -2021,7 +2021,7 @@ start_polling ()
 
 	  if (poll_timer)
 	    cancel_atimer (poll_timer);
-      
+
 	  EMACS_SET_SECS_USECS (interval, polling_period, 0);
 	  poll_timer = start_atimer (ATIMER_CONTINUOUS, interval,
 				     poll_for_input, NULL);
@@ -2182,7 +2182,7 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 	}
       else
 	help = safe_eval (help);
-      
+
       if (!STRINGP (help))
 	return;
     }
@@ -2205,7 +2205,7 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 
 	      if (!help_echo_showing_p)
 		Vpre_help_message = current_message ();
-	      
+
 	      specbind (Qmessage_truncate_lines, Qt);
 	      message3_nolog (help, SBYTES (help),
 			      STRING_MULTIBYTE (help));
@@ -2221,7 +2221,7 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 	  else
 	    message (0);
 	}
-      
+
       help_echo_showing_p = STRINGP (help);
     }
 }
@@ -2336,13 +2336,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  && EQ (XCDR (c), Qdisabled)
 	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c))))
 	c = XCAR (c);
-      
+
       /* If the queued event is something that used the mouse,
          set used_mouse_menu accordingly.  */
       if (used_mouse_menu
 	  && (EQ (c, Qtool_bar) || EQ (c, Qmenu_bar)))
 	*used_mouse_menu = 1;
-      
+
       reread = 1;
       goto reread_for_input_method;
     }
@@ -2439,7 +2439,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Message turns off echoing unless more keystrokes turn it on again.
-     
+
      The code in 20.x for the condition was
 
      1. echo_area_glyphs && *echo_area_glyphs
@@ -2447,10 +2447,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      3. && ok_to_echo_at_next_pause != echo_area_glyphs
 
      (1) means there's a current message displayed
-     
+
      (2) means it's not the message from echoing from the current
      kboard.
-     
+
      (3) There's only one place in 20.x where ok_to_echo_at_next_pause
      is set to a non-null value.  This is done in read_char and it is
      set to echo_area_glyphs after a call to echo_char.  That means
@@ -2462,7 +2462,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      must be either null, or the current message isn't from echoing at
      all, or it's from echoing from a different kboard than the
      current one.  */
-  
+
   if (/* There currently is something in the echo area.  */
       !NILP (echo_area_buffer[0])
       && (/* And it's either not from echoing.  */
@@ -2474,7 +2474,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     cancel_echoing ();
   else
     echo_dash ();
-      
+
   /* Try reading a character via menu prompting in the minibuf.
      Try this before the sit-for, because the sit-for
      would do the wrong thing if we are supposed to do
@@ -2549,7 +2549,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
 
-  if (minibuf_level == 0 
+  if (minibuf_level == 0
       && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
@@ -2566,7 +2566,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  || (!echo_kboard && ok_to_echo_at_next_pause)))
     {
       Lisp_Object tem0;
-      
+
       /* After a mouse event, start echoing right away.
 	 This is because we are probably about to display a menu,
 	 and we don't want to delay before doing so.  */
@@ -2930,7 +2930,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && (unsigned) XINT (c) != 127
       && (unsigned) XINT (c) < 256)
     {
-      Lisp_Object keys; 
+      Lisp_Object keys;
       int key_count;
       struct gcpro gcpro1;
       int count = SPECPDL_INDEX ();
@@ -3030,7 +3030,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       timer_idleness_start_time = last_idle_start;
       goto retry;
     }
-  
+
   if (this_command_key_count == 0 || ! reread)
     {
       before_command_key_count = this_command_key_count;
@@ -3162,19 +3162,19 @@ record_char (c)
 
       Lisp_Object ev1, ev2, ev3;
       int ix1, ix2, ix3;
-      
+
       if ((ix1 = recent_keys_index - 1) < 0)
 	ix1 = NUM_RECENT_KEYS - 1;
       ev1 = AREF (recent_keys, ix1);
-      
+
       if ((ix2 = ix1 - 1) < 0)
 	ix2 = NUM_RECENT_KEYS - 1;
       ev2 = AREF (recent_keys, ix2);
-      
+
       if ((ix3 = ix2 - 1) < 0)
 	ix3 = NUM_RECENT_KEYS - 1;
       ev3 = AREF (recent_keys, ix3);
-     
+
       if (EQ (XCAR (c), Qhelp_echo))
 	{
 	  /* Don't record `help-echo' in recent_keys unless it shows some help
@@ -3245,7 +3245,7 @@ record_char (c)
     }
 
   num_nonmacro_input_events++;
-      
+
   /* Write c to the dribble file.  If c is a lispy event, write
      the event's symbol to the dribble file, in <brackets>.  Bleaugh.
      If you, dear reader, have a better idea, you've got the source.  :-) */
@@ -3560,7 +3560,7 @@ kbd_buffer_store_event (event)
   if (kbd_fetch_ptr - 1 != kbd_store_ptr)
     {
       int idx;
-      
+
 #if 0 /* The SELECTION_REQUEST_EVENT case looks bogus, and it's error
 	 prone to assign individual members for other events, in case
 	 the input_event structure is changed.  --2000-07-13, gerd.  */
@@ -3684,7 +3684,7 @@ kbd_buffer_events_waiting (discard)
      int discard;
 {
   struct input_event *sp;
-  
+
   for (sp = kbd_fetch_ptr;
        sp != kbd_store_ptr && sp->kind == NO_EVENT;
        ++sp)
@@ -3987,7 +3987,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  if (NILP (obj))
 	    {
 	      obj = make_lispy_event (event);
-	      
+
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined(MAC_OS) \
     || defined (USE_GTK)
 	      /* If this was a menu selection, then set the flag to inhibit
@@ -4318,7 +4318,7 @@ timer_check (do_it_now)
 	  difference = idle_timer_difference;
 	}
       vector = XVECTOR (chosen_timer)->contents;
-	
+
       /* If timer is ripe, run it if it hasn't been run.  */
       if (EMACS_TIME_NEG_P (difference)
 	  || (EMACS_SECS (difference) == 0
@@ -4335,7 +4335,7 @@ timer_check (do_it_now)
 	      vector[0] = Qt;
 
 	      specbind (Qinhibit_quit, Qt);
-	      
+
 	      call1 (Qtimer_event_handler, chosen_timer);
 	      Vdeactivate_mark = old_deactivate_mark;
 	      timers_run++;
@@ -4513,36 +4513,36 @@ static char *lispy_accent_keys[] =
 char *lispy_function_keys[] =
   {
     0,                /* 0                      */
-    
+
     0,                /* VK_LBUTTON        0x01 */
     0,                /* VK_RBUTTON        0x02 */
     "cancel",         /* VK_CANCEL         0x03 */
     0,                /* VK_MBUTTON        0x04 */
-    
+
     0, 0, 0,          /*    0x05 .. 0x07        */
-    
+
     "backspace",      /* VK_BACK           0x08 */
     "tab",            /* VK_TAB            0x09 */
-    
+
     0, 0,             /*    0x0A .. 0x0B        */
-    
+
     "clear",          /* VK_CLEAR          0x0C */
     "return",         /* VK_RETURN         0x0D */
-    
+
     0, 0,             /*    0x0E .. 0x0F        */
-  
+
     0,                /* VK_SHIFT          0x10 */
     0,                /* VK_CONTROL        0x11 */
     0,                /* VK_MENU           0x12 */
     "pause",          /* VK_PAUSE          0x13 */
     "capslock",       /* VK_CAPITAL        0x14 */
-    
+
     0, 0, 0, 0, 0, 0, /*    0x15 .. 0x1A        */
-    
+
     "escape",         /* VK_ESCAPE         0x1B */
-    
+
     0, 0, 0, 0,       /*    0x1C .. 0x1F        */
-    
+
     0,                /* VK_SPACE          0x20 */
     "prior",          /* VK_PRIOR          0x21 */
     "next",           /* VK_NEXT           0x22 */
@@ -4559,25 +4559,25 @@ char *lispy_function_keys[] =
     "insert",         /* VK_INSERT         0x2D */
     "delete",         /* VK_DELETE         0x2E */
     "help",           /* VK_HELP           0x2F */
-  
+
     /* VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39) */
-    
+
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    
+
     0, 0, 0, 0, 0, 0, 0, /* 0x3A .. 0x40       */
-    
+
     /* VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A) */
-    
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 
+
+    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
-    
+
     "lwindow",       /* VK_LWIN           0x5B */
     "rwindow",       /* VK_RWIN           0x5C */
     "apps",          /* VK_APPS           0x5D */
-    
+
     0, 0,            /*    0x5E .. 0x5F        */
-    
+
     "kp-0",          /* VK_NUMPAD0        0x60 */
     "kp-1",          /* VK_NUMPAD1        0x61 */
     "kp-2",          /* VK_NUMPAD2        0x62 */
@@ -4618,13 +4618,13 @@ char *lispy_function_keys[] =
     "f22",           /* VK_F22            0x85 */
     "f23",           /* VK_F23            0x86 */
     "f24",           /* VK_F24            0x87 */
-    
+
     0, 0, 0, 0,      /*    0x88 .. 0x8B        */
     0, 0, 0, 0,      /*    0x8C .. 0x8F        */
-    
+
     "kp-numlock",    /* VK_NUMLOCK        0x90 */
     "scroll",        /* VK_SCROLL         0x91 */
-    
+
     "kp-space",	     /* VK_NUMPAD_CLEAR   0x92 */
     "kp-enter",	     /* VK_NUMPAD_ENTER   0x93 */
     "kp-prior",	     /* VK_NUMPAD_PRIOR   0x94 */
@@ -4646,17 +4646,17 @@ char *lispy_function_keys[] =
      * No other API or message will distinguish left and right keys this way.
      */
     /* 0xA0 .. 0xEF */
-    
+
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    
+
     /* 0xF0 .. 0xF5 */
-    
+
     0, 0, 0, 0, 0, 0,
-    
+
     "attn",          /* VK_ATTN           0xF6 */
     "crsel",         /* VK_CRSEL          0xF7 */
     "exsel",         /* VK_EXSEL          0xF8 */
@@ -4689,7 +4689,7 @@ static char *lispy_kana_keys[] =
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,"overline",0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x480 .. 0x48f */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x490 .. 0x49f */
-    0, "kana-fullstop", "kana-openingbracket", "kana-closingbracket", 
+    0, "kana-fullstop", "kana-openingbracket", "kana-closingbracket",
     "kana-comma", "kana-conjunctive", "kana-WO", "kana-a",
     "kana-i", "kana-u", "kana-e", "kana-o",
     "kana-ya", "kana-yu", "kana-yo", "kana-tsu",
@@ -4808,9 +4808,9 @@ static char *iso_lispy_function_keys[] =
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe10 */
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe18 */
     "iso-lefttab",		/* 0xfe20 */
-    "iso-move-line-up", "iso-move-line-down", 
-    "iso-partial-line-up", "iso-partial-line-down", 
-    "iso-partial-space-left", "iso-partial-space-right", 
+    "iso-move-line-up", "iso-move-line-down",
+    "iso-partial-line-up", "iso-partial-line-down",
+    "iso-partial-space-left", "iso-partial-space-right",
     "iso-set-margin-left", "iso-set-margin-right", /* 0xffe27, 28 */
     "iso-release-margin-left", "iso-release-margin-right",
     "iso-release-both-margins",
@@ -4832,7 +4832,7 @@ Lisp_Object Vlispy_mouse_stem;
    which they operate, and a delta corresponding to the amount and
    direction that the wheel is rotated.  Clicking the mouse-wheel
    generates a mouse-2 event.  */
-static char *lispy_mouse_wheel_names[] = 
+static char *lispy_mouse_wheel_names[] =
 {
   "mouse-wheel"
 };
@@ -5138,7 +5138,7 @@ make_lispy_event (event)
 		       the mouse that may have a `local-map' property.  */
 		    Lisp_Object string;
 		    int charpos;
-		    
+
 		    posn = part == 1 ? Qmode_line : Qheader_line;
 		    string = mode_line_string (w, wx, wy, part == 1, &charpos);
 		    if (STRINGP (string))
@@ -5203,7 +5203,7 @@ make_lispy_event (event)
 						  button + 1, Qnil);
 	    mouse_syms = larger_vector (mouse_syms, button + 1, Qnil);
 	  }
-	
+
 	start_pos_ptr = &AREF (button_down_location, button);
 	start_pos = *start_pos_ptr;
 	*start_pos_ptr = Qnil;
@@ -5236,7 +5236,7 @@ make_lispy_event (event)
 			       && ((int)(event->timestamp - button_down_time)
 				   < XINT (Vdouble_click_time)))));
 	}
-	
+
 	last_mouse_button = button;
 	last_mouse_x = XINT (event->x);
 	last_mouse_y = XINT (event->y);
@@ -5301,7 +5301,7 @@ make_lispy_event (event)
 		    button_down_time = 0;
 		    event->modifiers |= drag_modifier;
 		  }
-		
+
 		/* Don't check is_double; treat this as multiple
 		   if the down-event was multiple.  */
 		if (double_click_count > 1)
@@ -5360,7 +5360,7 @@ make_lispy_event (event)
 	 The incoming input_event contains in its `part' member an
 	 index of type `enum scroll_bar_part' which we can use as an
 	 index in scroll_bar_parts to get the appropriate symbol.  */
-	 
+
     case SCROLL_BAR_CLICK_EVENT:
       {
 	Lisp_Object position, head, window, portion_whole, part;
@@ -5389,7 +5389,7 @@ make_lispy_event (event)
 				    XVECTOR (mouse_syms)->size);
 	return Fcons (head, Fcons (position, Qnil));
       }
-      
+
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
 #ifdef WINDOWSNT
@@ -5427,7 +5427,7 @@ make_lispy_event (event)
 
 	  head = modify_event_symbol (button,
 				      event->modifiers,
-				      Qmouse_click, 
+				      Qmouse_click,
 				      Vlispy_mouse_stem,
 				      NULL, &mouse_syms,
 				      XVECTOR (mouse_syms)->size);
@@ -5617,10 +5617,10 @@ make_lispy_event (event)
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
       return *lispy_user_signals[event->code];
-      
+
     case SAVE_SESSION_EVENT:
       return Qsave_session;
-      
+
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
       abort ();
@@ -5670,13 +5670,13 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	{
 	  struct window *w = XWINDOW (window);
 	  int wx, wy;
-	  
+
 	  /* Get window relative coordinates.  */
 	  wx = FRAME_TO_WINDOW_PIXEL_X (w, XINT (x));
 	  wy = FRAME_TO_WINDOW_PIXEL_Y (w, XINT (y));
 	  XSETINT (x, wx);
 	  XSETINT (y, wy);
-	  
+
 	  if (area == 1)
 	    posn = Qmode_line;
 	  else if (area == 2)
@@ -6518,7 +6518,7 @@ read_avail_input (expected)
       if (n_to_read > sizeof cbuf)
 	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
-#if defined (USG) || defined (DGUX)
+#if defined (USG) || defined (DGUX) || defined(CYGWIN)
       /* Read some input if available, but don't wait.  */
       n_to_read = sizeof cbuf;
       fcntl (input_fd, F_SETFL, O_NDELAY);
@@ -6575,9 +6575,9 @@ read_avail_input (expected)
 	     );
 
 #ifndef FIONREAD
-#if defined (USG) || defined (DGUX)
+#if defined (USG) || defined (DGUX) || defined (CYGWIN)
       fcntl (input_fd, F_SETFL, 0);
-#endif /* USG or DGUX */
+#endif /* USG or DGUX or CYGWIN */
 #endif /* no FIONREAD */
       for (i = 0; i < nread; i++)
 	{
@@ -6963,7 +6963,7 @@ menu_item_eval_property_1 (arg)
   return Qnil;
 }
 
-/* Evaluate an expression and return the result (or nil if something 
+/* Evaluate an expression and return the result (or nil if something
    went wrong).  Used to evaluate dynamic parts of menu items.  */
 Lisp_Object
 menu_item_eval_property (sexpr)
@@ -7016,7 +7016,7 @@ parse_menu_item (item, notreal, inmenubar)
   for (i = ITEM_PROPERTY_DEF; i < ITEM_PROPERTY_ENABLE; i++)
     AREF (item_properties, i) = Qnil;
   AREF (item_properties, ITEM_PROPERTY_ENABLE) = Qt;
-	 
+
   /* Save the item here to protect it from GC.  */
   AREF (item_properties, ITEM_PROPERTY_ITEM) = item;
 
@@ -7036,7 +7036,7 @@ parse_menu_item (item, notreal, inmenubar)
 	  start = item;
 	  item = XCDR (item);
 	}
-	  
+
       /* Maybe key binding cache.  */
       if (CONSP (item) && CONSP (XCAR (item))
 	  && (NILP (XCAR (XCAR (item)))
@@ -7045,7 +7045,7 @@ parse_menu_item (item, notreal, inmenubar)
 	  cachelist = XCAR (item);
 	  item = XCDR (item);
 	}
-      
+
       /* This is the real definition--the function to run.  */
       AREF (item_properties, ITEM_PROPERTY_DEF) = item;
 
@@ -7141,7 +7141,7 @@ parse_menu_item (item, notreal, inmenubar)
 	return 0;
       AREF (item_properties, ITEM_PROPERTY_NAME) = item_string;
     }
-     
+
   /* If got a filter apply it on definition.  */
   def = AREF (item_properties, ITEM_PROPERTY_DEF);
   if (!NILP (filter))
@@ -7169,7 +7169,7 @@ parse_menu_item (item, notreal, inmenubar)
      is OK in a submenu but not in the menubar.  */
   if (NILP (def))
     return (inmenubar ? 0 : 1);
- 
+
   /* See if this is a separate pane or a submenu.  */
   def = AREF (item_properties, ITEM_PROPERTY_DEF);
   tem = get_keymap (def, 0, 1);
@@ -7180,7 +7180,7 @@ parse_menu_item (item, notreal, inmenubar)
       AREF (item_properties, ITEM_PROPERTY_DEF) = tem;
       return 1;
     }
-  
+
   /* At the top level in the menu bar, do likewise for commands also.
      The menu bar does not display equivalent key bindings anyway.
      ITEM_PROPERTY_DEF is already set up properly.  */
@@ -7207,7 +7207,7 @@ parse_menu_item (item, notreal, inmenubar)
 	  XSETCAR (cachelist, Qt);
 	}
     }
-  
+
   tem = XCAR (cachelist);
   if (!EQ (tem, Qt))
     {
@@ -7315,7 +7315,7 @@ parse_menu_item (item, notreal, inmenubar)
     }
   */
 
-  /* Handle radio buttons or toggle boxes.  */ 
+  /* Handle radio buttons or toggle boxes.  */
   tem = AREF (item_properties, ITEM_PROPERTY_SELECTED);
   if (!NILP (tem))
     AREF (item_properties, ITEM_PROPERTY_SELECTED)
@@ -7382,13 +7382,13 @@ tool_bar_items (reuse, nitems)
      avoids risk of specpdl overflow.  */
   oquit = Vinhibit_quit;
   Vinhibit_quit = Qt;
-  
+
   /* Initialize tool_bar_items_vector and protect it from GC.  */
   init_tool_bar_items (reuse);
 
   /* Build list of keymaps in maps.  Set nmaps to the number of maps
      to process.  */
-  
+
   /* Should overriding-terminal-local-map and overriding-local-map apply?  */
   if (!NILP (Voverriding_local_map_menu_flag))
     {
@@ -7433,7 +7433,7 @@ tool_bar_items (reuse, nitems)
 	if (CONSP (keymap))
 	  {
 	    Lisp_Object tail;
-	    
+
 	    /* KEYMAP is a list `(keymap (KEY . BINDING) ...)'.  */
 	    for (tail = keymap; CONSP (tail); tail = XCDR (tail))
 	      {
@@ -7471,7 +7471,7 @@ process_tool_bar_item (key, def)
       for (i = 0; i < ntool_bar_items; i += TOOL_BAR_ITEM_NSLOTS)
 	{
 	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->contents + i;
-	  
+
 	  if (EQ (key, v[TOOL_BAR_ITEM_KEY]))
 	    {
 	      if (ntool_bar_items > i + TOOL_BAR_ITEM_NSLOTS)
@@ -7497,41 +7497,41 @@ process_tool_bar_item (key, def)
    invalid.
 
    ITEM is a list `(menu-item CAPTION BINDING PROPS...)'.
-   
+
    CAPTION is the caption of the item,  If it's not a string, it is
    evaluated to get a string.
-   
+
    BINDING is the tool bar item's binding.  Tool-bar items with keymaps
    as binding are currently ignored.
 
    The following properties are recognized:
 
    - `:enable FORM'.
-   
+
    FORM is evaluated and specifies whether the tool bar item is
    enabled or disabled.
-   
+
    - `:visible FORM'
-   
+
    FORM is evaluated and specifies whether the tool bar item is visible.
-   
+
    - `:filter FUNCTION'
 
    FUNCTION is invoked with one parameter `(quote BINDING)'.  Its
    result is stored as the new binding.
-   
+
    - `:button (TYPE SELECTED)'
 
    TYPE must be one of `:radio' or `:toggle'.  SELECTED is evaluated
    and specifies whether the button is selected (pressed) or not.
-   
+
    - `:image IMAGES'
 
    IMAGES is either a single image specification or a vector of four
    image specifications.  See enum tool_bar_item_images.
-   
+
    - `:help HELP-STRING'.
-   
+
    Gives a help string to display for the tool bar item.  */
 
 static int
@@ -7565,11 +7565,11 @@ parse_tool_bar_item (key, item)
   else
     tool_bar_item_properties
       = Fmake_vector (make_number (TOOL_BAR_ITEM_NSLOTS), Qnil);
-  
+
   /* Set defaults.  */
   PROP (TOOL_BAR_ITEM_KEY) = key;
   PROP (TOOL_BAR_ITEM_ENABLED_P) = Qt;
-	 
+
   /* Get the caption of the item.  If the caption is not a string,
      evaluate it to get a string.  If we don't get a string, skip this
      item.  */
@@ -7656,13 +7656,13 @@ parse_tool_bar_item (key, item)
     PROP (TOOL_BAR_ITEM_ENABLED_P)
       = menu_item_eval_property (PROP (TOOL_BAR_ITEM_ENABLED_P));
 
-  /* Handle radio buttons or toggle boxes.  */ 
+  /* Handle radio buttons or toggle boxes.  */
   if (!NILP (PROP (TOOL_BAR_ITEM_SELECTED_P)))
     PROP (TOOL_BAR_ITEM_SELECTED_P)
       = menu_item_eval_property (PROP (TOOL_BAR_ITEM_SELECTED_P));
 
   return 1;
-  
+
 #undef PROP
 }
 
@@ -7689,7 +7689,7 @@ static void
 append_tool_bar_item ()
 {
   Lisp_Object *to, *from;
-  
+
   /* Enlarge tool_bar_items_vector if necessary.  */
   if (ntool_bar_items + TOOL_BAR_ITEM_NSLOTS
       >= XVECTOR (tool_bar_items_vector)->size)
@@ -7991,7 +7991,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 			tem = build_string (NILP (selected) ? "[X] " : "[ ] ");
 		      s = concat2 (tem, s);
 		    }
-		  
+
 
 		  /* If we have room for the prompt string, add it to this line.
 		     If this is the first on the line, always add it.  */
@@ -8054,7 +8054,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	}
 
       /* Prompt with that and read response.  */
-      message2_nolog (menu, strlen (menu), 
+      message2_nolog (menu, strlen (menu),
 		      ! NILP (current_buffer->enable_multibyte_characters));
 
       /* Make believe its not a keyboard macro in case the help char
@@ -8691,7 +8691,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 		  goto replay_sequence;
 		}
-	      
+
 	      /* For a mouse click, get the local text-property keymap
 		 of the place clicked on, rather than point.  */
 	      if (last_real_key_start == 0
@@ -8702,7 +8702,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  localized_local_map = 1;
 		  start = EVENT_START (key);
-		  
+
 		  if (CONSP (start) && CONSP (XCDR (start)))
 		    {
 		      pos = POSN_BUFFER_POSN (start);
@@ -8741,7 +8741,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		{
 		  if (t + 1 >= bufsize)
 		    error ("Key sequence too long");
-		  
+
 		  keybuf[t]     = posn;
 		  keybuf[t + 1] = key;
 		  mock_input    = t + 2;
@@ -8863,7 +8863,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       else
 	{
 	  Lisp_Object head;
-	  
+
 	  /* Remember the position to put an upper bound on fkey.start.  */
 	  first_unbound = min (t, first_unbound);
 
@@ -9141,7 +9141,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		&& (!NILP (Farrayp (XSYMBOL (next)->function))
 		    || KEYMAPP (XSYMBOL (next)->function)))
 	      next = XSYMBOL (next)->function;
-	    
+
 	    /* If the key translation map gives a function, not an
 	       array, then call the function with one arg and use
 	       its value instead.  */
@@ -9305,7 +9305,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       add_command_key (keybuf[t]);
     }
 
-  
+
 
   UNGCPRO;
   return t;
@@ -9899,7 +9899,7 @@ KEEP-RECORD is non-nil.  */)
      Lisp_Object keep_record;
 {
   int i;
-  
+
   this_command_key_count = 0;
 
   if (NILP (keep_record))
@@ -10048,25 +10048,25 @@ stuff_buffered_input (stuffstring)
 	stuff_char (*p++);
       stuff_char ('\n');
     }
-  
+
   /* Anything we have read ahead, put back for the shell to read.  */
   /* ?? What should this do when we have multiple keyboards??
      Should we ignore anything that was typed in at the "wrong" kboard?  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
       int idx;
-      
+
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
       if (kbd_fetch_ptr->kind == ASCII_KEYSTROKE_EVENT)
 	stuff_char (kbd_fetch_ptr->code);
-      
+
       kbd_fetch_ptr->kind = NO_EVENT;
       idx = 2 * (kbd_fetch_ptr - kbd_buffer);
       ASET (kbd_buffer_gcpro, idx, Qnil);
       ASET (kbd_buffer_gcpro, idx + 1, Qnil);
     }
-  
+
   input_pending = 0;
 #endif
 #endif /* BSD_SYSTEM and not BSD4_1 */
@@ -10096,7 +10096,7 @@ clear_waiting_for_input ()
 }
 
 /* This routine is called at interrupt level in response to C-g.
-   
+
    If interrupt_input, this is the handler for SIGINT.  Otherwise, it
    is called from kbd_buffer_store_event, in handling SIGIO or
    SIGTINT.
@@ -10186,7 +10186,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 	    }
 	  while (c != '\n') c = getchar ();
 	}
-      else 
+      else
 	{
 	  /* During GC, it must be safe to reenable quitting again.  */
 	  Vinhibit_quit = Qnil;
@@ -10428,7 +10428,7 @@ delete_kboard (kb)
      KBOARD *kb;
 {
   KBOARD **kbp;
-  
+
   for (kbp = &all_kboards; *kbp != kb; kbp = &(*kbp)->next_kboard)
     if (*kbp == NULL)
       abort ();
@@ -10443,7 +10443,7 @@ delete_kboard (kb)
       if (current_kboard == kb)
 	abort ();
     }
-  
+
   wipe_kboard (kb);
   xfree (kb);
 }
@@ -10545,7 +10545,7 @@ syms_of_keyboard ()
 {
   Vpre_help_message = Qnil;
   staticpro (&Vpre_help_message);
-  
+
   Vlispy_mouse_stem = build_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
 
@@ -10620,7 +10620,7 @@ syms_of_keyboard ()
 
   Qsave_session = intern ("save-session");
   staticpro(&Qsave_session);
-  
+
   Qusr1_signal = intern ("usr1-signal");
   staticpro (&Qusr1_signal);
   Qusr2_signal = intern ("usr2-signal");
@@ -10918,7 +10918,7 @@ instead of pixels.
 This variable is also the threshold for motion of the mouse
 to count as a drag.  */);
   double_click_fuzz = 3;
-  
+
   DEFVAR_BOOL ("inhibit-local-menu-bar-menus", &inhibit_local_menu_bar_menus,
 	       doc: /* *Non-nil means inhibit local map menu bar menus.  */);
   inhibit_local_menu_bar_menus = 0;

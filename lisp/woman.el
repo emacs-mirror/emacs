@@ -1347,7 +1347,7 @@ Any UN*X-style environment variables are evaluated first."
   ;; including `.' and `..', so remove any trailing / !!!
   (if (string= (substring dir -1) "/")
       (setq dir (substring dir 0 -1)))
-  (if (memq system-type '(windows-nt ms-dos)) ; what else?
+  (if (memq system-type '(windows-nt ms-dos cygwin)) ; what else?
       ;; Match capitalization used by `file-name-directory':
       (setq dir (concat (file-name-directory dir)
 			(file-name-nondirectory dir))))

@@ -46,6 +46,10 @@ extern int etext, __data_start; weak_extern (__data_start)
 #define BSD4_2
 #endif
 
+#ifdef CYGWIN
+#define BSD4_2
+#endif
+
 #ifndef BSD4_2
 #ifndef USG
 #ifndef MSDOS

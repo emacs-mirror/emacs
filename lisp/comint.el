@@ -2536,7 +2536,7 @@ This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
 (defvar comint-file-name-chars
-  (if (memq system-type '(ms-dos windows-nt))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
@@ -2661,7 +2661,7 @@ Returns t if successful."
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 (completion-ignored-extensions comint-completion-fignore)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
@@ -2750,7 +2750,7 @@ Returns `partial' if completed as far as possible with the completion matches.
 Returns `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
 		       ((not (consp comint-completion-addsuffix)) " ")
 		       (t (cdr comint-completion-addsuffix))))
@@ -2791,7 +2791,7 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
   (interactive)
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
 	 ;; but subsequent changes may have made this unnecessary.  sm.

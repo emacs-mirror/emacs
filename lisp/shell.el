@@ -165,7 +165,7 @@ shell buffer.  The value may depend on the operating system or shell.
 This is a fine thing to set in your `.emacs' file.")
 
 (defvar shell-file-name-chars
-  (if (memq system-type '(ms-dos windows-nt))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.

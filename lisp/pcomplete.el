@@ -139,7 +139,7 @@
   :type '(choice regexp (const :tag "None" nil))
   :group 'pcomplete)
 
-(defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt))
+(defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt cygwin))
   "*If non-nil, ignore case when doing filename completion."
   :type 'boolean
   :group 'pcomplete)

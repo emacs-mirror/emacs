@@ -47,7 +47,7 @@
 (defvar nnheader-head-chop-length 2048
   "*Length of each read operation when trying to fetch HEAD headers.")
 
-(defvar nnheader-file-name-translation-alist 
+(defvar nnheader-file-name-translation-alist
   (let ((case-fold-search t))
     (cond
      ((string-match "windows-nt\\|os/2\\|emx\\|cygwin32"
@@ -653,12 +653,12 @@ If FULL, translate everything."
 	;; We translate -- but only the file name.  We leave the directory
 	;; alone.
 	(if (and (featurep 'xemacs)
-		 (memq system-type '(win32 w32 mswindows windows-nt)))
+		 (memq system-type '(win32 w32 mswindows windows-nt cygwin)))
 	    ;; This is needed on NT and stuff, because
 	    ;; file-name-nondirectory is not enough to split
 	    ;; file names, containing ':', e.g.
 	    ;; "d:\\Work\\News\\nntp+news.fido7.ru:fido7.ru.gnu.SCORE"
-	    ;; 
+	    ;;
 	    ;; we are trying to correctly split such names:
 	    ;; "d:file.name" -> "a:" "file.name"
 	    ;; "aaa:bbb.ccc" -> "" "aaa:bbb.ccc"

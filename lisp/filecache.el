@@ -187,7 +187,7 @@ do not use this variable."
   :group 'file-cache)
 
 (defcustom file-cache-completion-ignore-case
-   (if (memq system-type (list 'ms-dos 'windows-nt))
+   (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       t
      completion-ignore-case)
   "If non-nil, file-cache completion should ignore case.
@@ -197,7 +197,7 @@ Defaults to the value of `completion-ignore-case'."
   )
 
 (defcustom file-cache-case-fold-search
-  (if (memq system-type (list 'ms-dos 'windows-nt))
+  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       t
     case-fold-search)
   "If non-nil, file-cache completion should ignore case.
@@ -207,7 +207,7 @@ Defaults to the value of `case-fold-search'."
   )
 
 (defcustom file-cache-assoc-function
-  (if (memq system-type (list 'ms-dos 'windows-nt))
+  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       'assoc-ignore-case
     'assoc)
   "Function to use to check completions in the file cache.

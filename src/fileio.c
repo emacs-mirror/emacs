@@ -2052,13 +2052,13 @@ duplicates what `expand-file-name' does.  */)
   for (p = nm; p != endp; p++)
     {
       if ((p[0] == '~'
-#if defined (APOLLO) || defined (WINDOWSNT)
-	   /* // at start of file name is meaningful in Apollo and
-	      WindowsNT systems.  */
+#if defined (APOLLO) || defined (WINDOWSNT) || defined(CYGWIN)
+	   /* // at start of file name is meaningful in Apollo,
+	      WindowsNT and Cygwin systems.  */
 	   || (IS_DIRECTORY_SEP (p[0]) && p - 1 != nm)
-#else /* not (APOLLO || WINDOWSNT) */
+#else /* not (APOLLO || WINDOWSNT || CYGWIN) */
 	   || IS_DIRECTORY_SEP (p[0])
-#endif /* not (APOLLO || WINDOWSNT) */
+#endif /* not (APOLLO || WINDOWSNT || CYGWIN) */
 	   )
 	  && p != nm
 	  && (0
@@ -2230,11 +2230,11 @@ duplicates what `expand-file-name' does.  */)
 
   for (p = xnm; p != x; p++)
     if ((p[0] == '~'
-#if defined (APOLLO) || defined (WINDOWSNT)
+#if defined (APOLLO) || defined (WINDOWSNT) || defined(CYGWIN)
 	 || (IS_DIRECTORY_SEP (p[0]) && p - 1 != xnm)
-#else /* not (APOLLO || WINDOWSNT) */
+#else /* not (APOLLO || WINDOWSNT || CYGWIN) */
 	 || IS_DIRECTORY_SEP (p[0])
-#endif /* not (APOLLO || WINDOWSNT) */
+#endif /* not (APOLLO || WINDOWSNT || CYGWIN) */
 	 )
 	&& p != xnm && IS_DIRECTORY_SEP (p[-1]))
       xnm = p;
@@ -6116,7 +6116,7 @@ provides a file dialog box.  */)
 	    (NILP (predicate) ? Qfile_exists_p : predicate));
 
   GCPRO2 (insdef, default_filename);
-  
+
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box

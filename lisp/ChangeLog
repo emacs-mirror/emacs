@@ -1,3 +1,21 @@
+2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
+
+	* comint.el:
+	* dired-aux.el:
+	* dired.el:
+	* dirtrack.el:
+	* dos-w32.el:
+	* fast-lock.el:
+	* filecache.el:
+	* files.el:
+	* hippie-exp.el:
+	* international/mule.el:
+	* net/browse-url.el:
+	* pcomplete.el:
+	* recentf.el:
+	* shell.el:
+	* woman.el: Added cygwin to system-type comparisons.
+
 2003-01-31  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/undigest.el (rmail-forward-separator-regex): New custom

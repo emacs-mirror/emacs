@@ -197,7 +197,7 @@ the directory prefix corresponding to the filesystem.")
 (defun untranslated-canonical-name (filename)
   "Return FILENAME in a canonicalized form for use with the functions
 dealing with untranslated filesystems."
-  (if (memq system-type '(ms-dos windows-nt))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       ;; The canonical form for DOS/W32 is with A-Z downcased and all
       ;; directory separators changed to directory-sep-char.
       (let ((name nil))

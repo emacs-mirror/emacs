@@ -215,7 +215,7 @@ have fast storage with limited space, such as a RAM disk."
 		 "[\000-\031]\\|"		  ; control characters
 		 "\\(/\\.\\.?[^/]\\)\\|"	  ; leading dots
 		 "\\(/[^/.]+\\.[^/.]*\\.\\)"))	  ; more than a single dot
-	((memq system-type '(ms-dos windows-nt))
+	((memq system-type '(ms-dos windows-nt cygwin))
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
 		 "[|<>\"?*\000-\031]"))		  ; invalid characters
 	(t "[\000]"))
@@ -1028,6 +1028,7 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 	     ;; MS-DOS root directories can come with a drive letter;
 	     ;; Novell Netware allows drive letters beyond `Z:'.
 	     (not (and (or (eq system-type 'ms-dos)
+			   (eq system-type 'cygwin)
 			   (eq system-type 'windows-nt))
 		       (save-match-data
 			 (string-match "^[a-zA-`]:/$" filename)))))
@@ -1774,7 +1775,7 @@ and we don't even do that unless it would come from the file name."
 		  (mode nil))
 	      ;; Find first matching alist entry.
 	      (let ((case-fold-search
-		     (memq system-type '(vax-vms windows-nt))))
+		     (memq system-type '(vax-vms windows-nt cygwin))))
 		(while (and (not mode) alist)
 		  (if (string-match (car (car alist)) name)
 		      (if (and (consp (cdr (car alist)))
@@ -2615,7 +2616,7 @@ doesn't exist, it is created."
 	file
       (if (file-name-absolute-p backup-directory)
 	  (progn
-	    (when (memq system-type '(windows-nt ms-dos))
+	    (when (memq system-type '(windows-nt ms-dos cygwin))
 	      ;; Normalize DOSish file names: downcase the drive
 	      ;; letter, if any, and replace the leading "x:" with
 	      ;; "/drive_x".
@@ -2737,6 +2738,7 @@ then it returns FILENAME."
       ;; On Microsoft OSes, if FILENAME and DIRECTORY have different
       ;; drive names, they can't be relative, so return the absolute name.
       (if (and (or (eq system-type 'ms-dos)
+		   (eq system-type 'cygwin)
 		   (eq system-type 'windows-nt))
 	       (not (string-equal (substring fname  0 2)
 				  (substring directory 0 2))))
@@ -3136,7 +3138,7 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 With arg, set read-only iff arg is positive.
 If visiting file read-only and `view-read-only' is non-nil, enter view mode."
   (interactive "P")
-  (if (and arg 
+  (if (and arg
            (if (> (prefix-numeric-value arg) 0) buffer-read-only
              (not buffer-read-only)))  ; If buffer-read-only is set correctly,
       nil			       ; do nothing.
@@ -3881,7 +3883,7 @@ Existing quote characters in PATTERN are left alone, so you can pass
 PATTERN that already quotes some of the special characters."
   (save-match-data
     (cond
-     ((memq system-type '(ms-dos windows-nt))
+     ((memq system-type '(ms-dos windows-nt cygwin))
       ;; DOS/Windows don't allow `"' in file names.  So if the
       ;; argument has quotes, we can safely assume it is already
       ;; quoted by the caller.
@@ -4022,7 +4024,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		 ;; bunch by one to preserve that property.
 		 (coding-system-for-read 'no-conversion)
 		 ;; This is to control encoding the arguments in call-process.
-		 (coding-system-for-write 
+		 (coding-system-for-write
 		  (and enable-multibyte-characters
 		       (or file-name-coding-system
 			   default-file-name-coding-system))))

@@ -215,8 +215,8 @@ INSTALL_STRIP =
 TRANSFORM = @program_transform_name@
 
 # What emacs should be called when installed.
-EMACS = `echo emacs | sed '$(TRANSFORM)'`
-EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`
+EMACS = `echo emacs@EXEEXT@ | sed '$(TRANSFORM)'`
+EMACSFULL = `echo emacs-${version}@EXEEXT@ | sed '$(TRANSFORM)'`
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
@@ -358,7 +358,7 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs ${bindir}/$(EMACSFULL)
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs@EXEEXT@ ${bindir}/$(EMACSFULL)
 	-chmod 1755  ${bindir}/$(EMACSFULL)
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/$(EMACSFULL) ${bindir}/$(EMACS)
@@ -406,7 +406,7 @@ install-arch-indep: mkdir info
 	      (cd $${dir}; tar -chf - . ) \
 		| (cd $${dest}; umask 022; \
                    tar -xvf - && cat > /dev/null) || exit 1; \
-	      find $${dest} -exec chown $$LOGNAME {} ';' ;\
+	      find $${dest} -exec chown $${LOGNAME:-$$USERNAME} {} ';' ;\
 	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
@@ -445,7 +445,7 @@ install-arch-indep: mkdir info
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
 	   (cd ./etc; tar -chf - DOC*) \
 	     |(cd ${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(docdir); chown $${LOGNAME} DOC*; chmod a+r DOC*; \
+	   (cd $(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
 	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
@@ -457,7 +457,7 @@ install-arch-indep: mkdir info
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
 	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd ${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd ${lispdir}; find . -exec chown $${LOGNAME} {} ';') ; \
+	   (cd ${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
@@ -735,7 +735,7 @@ maybe_bootstrap:
 bootstrap: bootstrap-clean-before info FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs@EXEEXT@)
 	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
 	$(MAKE) $(MFLAGS) all
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)

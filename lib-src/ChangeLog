@@ -1,3 +1,7 @@
+2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
+
+	* Makefile.in: Use @EXEEXT@ for Cygwin.
+
 2003-01-21  Dave Love  <fx@gnu.org>
 
 	* etags.c (Cplusplus_help, Cjava_help): Re-phrase and avoid
@@ -43,7 +47,7 @@
 
 	* getopt.c (const): Move outside !HAVE_CONFIG_H conditional.
 	(libintl.h): Include this if _LIBC.  Otherwise include gettext.h.
-	(wchar.h): Include, maybe.		     
+	(wchar.h): Include, maybe.
 	(attribute_hidden): Define if not defind.
 	(__getopt_initialized): Use attribute_hidden.
 	(__libc_argc, __libc_argv): Renamed from original_argc, etc.
@@ -204,7 +208,7 @@
 
 	* make-docfile.c (scan_c_file): Warn about missing `usage' info.
 
-2002-07-05  Jonathan Kamens <jik@kamens.brookline.ma.us>
+2002-07-05  Jonathan Kamens  <jik@kamens.brookline.ma.us>
 
 	* b2m.pl: Obey the rmail file and use the unpruned header properly.
 
@@ -1341,7 +1345,7 @@
 
 	* movemail.c (main): Improve error message if can't create lock file.
 
-2000-01-28  Eric Hanchrow <offby1@blarg.net>
+2000-01-28  Eric Hanchrow  <offby1@blarg.net>
 
 	* emacsclient.c (socket_status): New function.
 	(main): If $LOGNAME or $USER exist and differ from our euid, look
@@ -1352,7 +1356,7 @@
 	* emacsclient.c: Add option -a EDITOR and environment variable
 	ALTERNATE_EDITOR.  Exec this editor if we fail to contact Emacs.
 
-1999-12-10  Jonathan Kamens <jik@kamens.brookline.ma.us>
+1999-12-10  Jonathan Kamens  <jik@kamens.brookline.ma.us>
 
 	* movemail.c (popmail): Allow mailbox specifications of the
 	form `po:username:hostname'.
@@ -1704,7 +1708,7 @@
 
 	* makefile.nt: Do string comparision of _NMAKE_VER.
 
-1998-11-03  Theodore Jump <tjump@cais.com>
+1998-11-03  Theodore Jump  <tjump@cais.com>
 
 	* makefile.nt: Compile multiple source files when possible.
 
@@ -2411,7 +2415,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* cvtmail.c, sorted-doc.c, yow.c, emacsserver.c: Undo previous change.
 
-1996-07-15  David Mosberger-Tang <davidm@AZStarNet.com>
+1996-07-15  David Mosberger-Tang  <davidm@AZStarNet.com>
 
 	* cvtmail.c, sorted-doc.c, yow.c: [__GNU_LIBRARY__]: Use <string.h>.
 	* emacsserver.c (main) [__GNU_LIBRARY__]: Use size_t for fromlen.
@@ -2468,11 +2472,11 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	(Pascal_functions): Increase linecharno by the correct number of
 	chars, inline the GET_NEW_LINE macro and delete its definition.
 
-1996-05-03  Andrew Innes <andrewi@harlequin.co.uk>
+1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* makefile.nt (OBJDIR, BLD): Remove macro definitions.
 
-1996-05-03  Andrew Innes <andrewi@harlequin.co.uk>
+1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* makefile.nt (LOCAL_FLAGS): Include path to NT shadow includes.
 	(movemail.exe, fakemail.exe): Now built under Win32.o
@@ -2706,7 +2710,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	(C_entries): Consider // as a comment start even in plain C for
 	the sake of Objective C parsing.
 
-1995-12-04  Francesco Potorti` <pot@cnuce.cnr.it>
+1995-12-04  Francesco Potorti`  <pot@cnuce.cnr.it>
 
 	* Makefile.in (ctags): depend on etags only for simplicity;
  	compile with regexp support enabled.
@@ -3423,7 +3427,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	defined, use simple 32-bit versions of these macros.
 	(main) [HAVE_SOCKETS & !HAVE_SYSVIPC]: Use these macros.
 
-1994-09-16  Andreas Schwab <schwab@issan.informatik.uni-dortmund.de>
+1994-09-16  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
 
 	* etags.c (etags_getcwd): Use getcwd if available.
 
@@ -3804,9 +3808,9 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* profile.c: New file.
 
 1994-01-16  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
-	
+
 	* make-docfile.c: Make the argument list output look more like the
-	Lisp docstrings do.  
+	Lisp docstrings do.
 	(write_c_args): Take new arg FUNC.  Make output
 	look like lisp call prototypes: (function ARG1 ARG2), upcasing args.
 	(scan_c_file): Pass BUF to write_c_args for FUNC arg.

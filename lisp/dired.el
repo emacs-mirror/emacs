@@ -65,7 +65,7 @@ some of the `ls' switches are not supported; see the doc string of
 
 ;;;###autoload
 (defvar dired-chown-program
-  (if (memq system-type '(hpux dgux usg-unix-v irix linux gnu/linux))
+  (if (memq system-type '(hpux dgux usg-unix-v irix linux gnu/linux cygwin))
       "chown"
     (if (file-exists-p "/usr/sbin/chown")
 	"/usr/sbin/chown"
@@ -299,7 +299,7 @@ Subexpression 2 must end right before the \\n or \\r.")
 	 '(".+" (dired-move-to-filename) nil (0 font-lock-function-name-face)))
    ;;
    ;; Symbolic links.
-   (list dired-re-sym 
+   (list dired-re-sym
 	 '(".+" (dired-move-to-filename) nil (0 font-lock-keyword-face)))
    ;;
    ;; Files suffixed with `completion-ignored-extensions'.
@@ -530,11 +530,11 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	  (setq buffer (create-file-buffer (directory-file-name dirname)))))
     (set-buffer buffer)
     (if (not new-buffer-p)     ; existing buffer ...
-	(cond (switches        ; ... but new switches     
+	(cond (switches        ; ... but new switches
 	       ;; file list may have changed
 	       (setq dired-directory dir-or-list)
 	       ;; this calls dired-revert
-	       (dired-sort-other switches))  
+	       (dired-sort-other switches))
 	      ;; If directory has changed on disk, offer to revert.
 	      ((if (let ((attributes (file-attributes dirname))
 			 (modtime (visited-file-modtime)))
@@ -1769,7 +1769,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 	     (substring pattern matched-in-pattern))
 	    "\\'")))
 
-		 
+
 
 (defun dired-advertise ()
   ;;"Advertise in variable `dired-buffers' that we dired `default-directory'."
@@ -2053,7 +2053,7 @@ Anything else means ask for each directory."
 		 (const :tag "Confirm for each top directory only" top))
   :group 'dired)
 
-;; Match anything but `.' and `..'. 
+;; Match anything but `.' and `..'.
 (defvar dired-re-no-dot "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")
 
 ;; Delete file, possibly delete a directory and all its files.
@@ -2174,7 +2174,7 @@ if there are no flagged files."
 	    (setq success-list (cons (buffer-name buf) success-list)))))
     success-list))
 
-;; Delete the entry for FILE from 
+;; Delete the entry for FILE from
 (defun dired-delete-entry (file)
   (save-excursion
     (and (dired-goto-file file)
@@ -2572,7 +2572,7 @@ A prefix argument says to unflag those files instead."
 (defvar dired-garbage-files-regexp
   (concat (regexp-opt
 	   '(".log" ".toc" ".dvi" ".bak" ".orig" ".rej" ".aux"))
-	  "\\'") 
+	  "\\'")
   "*Regular expression to match \"garbage\" files for `dired-flag-garbage-files'.")
 
 (defun dired-flag-garbage-files ()
@@ -2632,7 +2632,7 @@ OLD and NEW are both characters used to mark files."
 
 (defun dired-unmark-all-files (mark &optional arg)
   "Remove a specific mark (or any mark) from every file.
-After this command, type the mark character to remove, 
+After this command, type the mark character to remove,
 or type RET to remove all marks.
 With prefix arg, query for each marked file.
 Type \\[help-command] at that time for help."
@@ -2683,7 +2683,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
   ;; Log a message or the contents of a buffer.
   ;; If LOG is a string and there are more args, it is formatted with
   ;; those ARGS.  Usually the LOG string ends with a \n.
-  ;; End each bunch of errors with (dired-log t): 
+  ;; End each bunch of errors with (dired-log t):
   ;; this inserts the current time and buffer at the start of the page,
   ;; and \f (formfeed) at the end.
   (let ((obuf (current-buffer)))
@@ -3076,7 +3076,7 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 (autoload 'dired-show-file-type "dired-aux"
   "Print the type of FILE, according to the `file' command.
 If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
-true then the type of the file linked to by FILE is printed instead." 
+true then the type of the file linked to by FILE is printed instead."
   t)
 
 (autoload 'dired-run-shell-command "dired-aux")

@@ -58,6 +58,8 @@ together with the Emacs User Manual, into the Info directory.  A menu
 item was added to the menu bar that makes it easy accessible
 (Help->More Manuals->Introduction to Emacs Lisp).
 
+** Support for Cygwin was added.
+
 ---
 ** Support for AIX 5.1 was added.
 
@@ -686,7 +688,7 @@ appears in.
 
 ** The variable `cursor-in-non-selected-windows' can now be set to any
 of the recognized cursor types.
-  
+
 +++
 ** The default values of `tooltip-delay' and `tooltip-hide-delay'
 were changed.
@@ -1189,7 +1191,7 @@ second case, using `foo' as a variable won't produce a warning if it's
 unbound.  The test must be in exactly one of the above forms (after
 macro expansion), but such tests may be nested.  Note that `when' and
 `unless' expand to `if', but `cond' doesn't.
-  
+
 ** New translation table `translation-table-for-input'.
 
 +++
@@ -1308,7 +1310,7 @@ write-file-hooks to write-file-functions,
 write-contents-hooks to write-contents-functions.
 Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
-** The new variable `delete-frame-functions' replaces `delete-frame-hook'. 
+** The new variable `delete-frame-functions' replaces `delete-frame-hook'.
 It was renamed to follow the naming conventions for abnormal hooks.  The old
 name remains available as an alias, but has been marked obsolete.
 
@@ -1533,7 +1535,7 @@ responsible for removing those properties.  This may be necessary
 if FUNCTION adjusts point before or after inserting the object.
   If UNDO is present and non-nil, it is a function that will be called
 by `yank-pop' to undo the insertion of the current object.  It is
-called with two arguments, the start and end of the current region. 
+called with two arguments, the start and end of the current region.
 FUNCTION may set `yank-undo-function' to override the UNDO value.
 
 *** The functions kill-new, kill-append, and kill-region now has an
@@ -1573,7 +1575,7 @@ supported, but new code should use the new functions.
 name in addition to a process id to identify the signalled process.
 
 *** Processes now have an associated property list where programs can
-maintain process state and other per-process related information.  
+maintain process state and other per-process related information.
 
 The new functions process-get and process-put are used to access, add,
 and modify elements on this property list.

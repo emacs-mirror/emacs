@@ -1,3 +1,16 @@
+2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
+
+	* fileio.c: Support // at start of name for Cygwin (just added proper
+	preprocessor tests).
+
+	* keyboard.c: Port to Cygwin (just added proper preprocessor tests).
+
+	* Makefile.in: Use @EXEEXT@ for Cygwin.
+
+	* mem-limits.h: Added ifdef to define BSD4_2 for Cygwin.
+
+	* s/cygwin.h: Added for Cygwin port.
+
 2003-01-31  Juanma Barranquero  <lektu@terra.es>
 
 	* w32fns.c (DrawText): Kludge to avoid a redefinition on Windows

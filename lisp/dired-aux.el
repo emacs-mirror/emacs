@@ -1258,7 +1258,7 @@ Optional arg HOW-TO is used to set the value of the into-dir variable
 			  ;; will return t because the filesystem is
 			  ;; case-insensitive, and Emacs will try to move
 			  ;; foo -> foo/foo, which fails.
-			  (if (and (memq system-type '(ms-dos windows-nt))
+			  (if (and (memq system-type '(ms-dos windows-nt cygwin))
 				   (eq op-symbol 'move)
 				   dired-one-file
 				   (string= (downcase
