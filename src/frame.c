@@ -1318,8 +1318,9 @@ upper-left corner.\n\
 If Emacs is running on a mouseless terminal or hasn't been programmed\n\
 to read the mouse position, it returns the selected frame for FRAME\n\
 and nil for X and Y.\n\
-Runs the abnormal hook `mouse-position-function' with the normal return\n\
-value as argument.")
+If `mouse-position-function' is non-nil, `mouse-position' calls it,\n\
+passing the normal return value to that function as an argument,\n\
+and returns whatever that function returns.")
   ()
 {
   FRAME_PTR f;
