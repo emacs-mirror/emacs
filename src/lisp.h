@@ -1766,7 +1766,7 @@ extern void write_string P_ ((char *, int));
 extern void write_string_1 P_ ((char *, int, Lisp_Object));
 extern void print_error_message P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object internal_with_output_to_temp_buffer
-	P_ ((char *, Lisp_Object (*) (Lisp_Object), Lisp_Object));
+	P_ ((char *, Lisp_Object (*) (), Lisp_Object));
 extern void float_to_string P_ ((unsigned char *, double));
 
 /* Defined in doprnt.c */
