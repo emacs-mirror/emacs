@@ -790,12 +790,26 @@ NAME is a string used to name the menu bar item.
 See `imenu' for more information."
   (interactive "sImenu menu item name: ")
   (define-key (current-local-map) [menu-bar index]
-    (cons name (nconc (make-sparse-keymap "Imenu") (make-sparse-keymap))))
+    (cons name (nconc (make-sparse-keymap "Imenu")
+		      (make-sparse-keymap))))
   (add-hook 'menu-bar-update-hook 'imenu-update-menubar))
+
+(defvar imenu-buffer-menubar nil)
 
 (defun imenu-update-menubar ()
   (and (current-local-map)
        (keymapp (lookup-key (current-local-map) [menu-bar index]))
+       (progn
+	 (or (local-variable-p 'imenu-buffer-menubar)
+	     ;; Make a buffer-specific copy of the local map
+	     ;; so that we don't affect other buffers with the same major mode.
+	     (let ((newmap (make-sparse-keymap)))
+	       (define-key (current-local-map) [menu-bar index]
+		 (cons name (nconc (make-sparse-keymap "Imenu")
+				   (make-sparse-keymap)))))
+	     (use-local-map (append newmap (current-local-map))))
+	 (make-local-variable 'imenu-buffer-menubar)
+	 t)
        (let ((index-alist (imenu--make-index-alist t)))
 	 ;; Don't bother updating if the index-alist has not changed
 	 ;; since the last time we did it.
