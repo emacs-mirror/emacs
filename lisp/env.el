@@ -31,7 +31,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defun putenv (variable &optional value)
+(defun setenv (variable &optional value)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or is
 `nil', the environment variable VARIABLE will be removed.  
@@ -51,9 +51,6 @@ This function works by modifying `process-environment'."
 	 ((null (setq scan (cdr scan)))
 	  (setq process-environment
 		(cons (concat variable "=" value) process-environment))))))))
-
-;; Provide backward-contemptibility. 
-(fset 'setenv 'putenv)
 
 (provide 'env)
 
