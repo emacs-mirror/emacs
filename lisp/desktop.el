@@ -1,6 +1,7 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: convenience
@@ -522,6 +523,7 @@ MODE is the major mode."
       (erase-buffer)
 
       (insert desktop-header
+	      ";; -*- coding: emacs-mule; -*-\n"
 	      ";; Created " (current-time-string) "\n"
 	      ";; Emacs version " emacs-version "\n\n"
 	      ";; Global section:\n")
