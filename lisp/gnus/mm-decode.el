@@ -114,6 +114,10 @@
      mm-inline-image
      (lambda (handle)
        (mm-valid-and-fit-image-p 'bmp handle)))
+    ("image/x-portable-bitmap"
+     mm-inline-image
+     (lambda (handle)
+       (mm-valid-and-fit-image-p 'pbm handle)))
     ("text/plain" mm-inline-text identity)
     ("text/enriched" mm-inline-text identity)
     ("text/richtext" mm-inline-text identity)
@@ -164,7 +168,7 @@
 (defcustom mm-automatic-display
   '("text/plain" "text/enriched" "text/richtext" "text/html"
     "text/x-vcard" "image/.*" "message/delivery-status" "multipart/.*"
-    "message/rfc822" "text/x-patch" "application/pgp-signature" 
+    "message/rfc822" "text/x-patch" "application/pgp-signature"
     "application/emacs-lisp")
   "A list of MIME types to be displayed automatically."
   :type '(repeat string)
@@ -227,7 +231,7 @@ to:
   "Keymap for input viewer with completion.")
 
 ;; Should we bind other key to minibuffer-complete-word?
-(define-key mm-viewer-completion-map " " 'self-insert-command) 
+(define-key mm-viewer-completion-map " " 'self-insert-command)
 
 ;;; The functions.
 
@@ -724,7 +728,7 @@ external if displayed external."
 		   (completing-read "Viewer: " methods))))
     (when (string= method "")
       (error "No method given"))
-    (if (string-match "^[^% \t]+$" method) 
+    (if (string-match "^[^% \t]+$" method)
 	(setq method (concat method " %s")))
     (mm-display-external (copy-sequence handle) method)))
 
@@ -775,6 +779,8 @@ external if displayed external."
 	    "xpm")
 	   ((equal type "x-xbitmap")
 	    "xbm")
+	   ((equal type "x-portable-bitmap")
+	    "pbm")
 	   (t type)))
     (or (mm-handle-cache handle)
 	(mm-with-unibyte-buffer
