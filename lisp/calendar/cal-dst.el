@@ -64,7 +64,7 @@ absolute date ABS-DATE is the equivalent moment to X."
 	     ;; floor((2^16 h +l) / (60*60*24))
 	     (* 512 (floor h 675)) (floor u 675))
 	  ;; (2^16 h +l) % (60*60*24)
-	  (+ (* (mod u 675) 128) (mod l 128)))))
+	  (+ (* (% u 675) 128) (% l 128)))))
 
 (defun calendar-time-from-absolute (abs-date s)
   "Time of absolute date ABS-DATE, S seconds after midnight.
