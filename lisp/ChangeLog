@@ -1,3 +1,10 @@
+2001-07-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* avoid.el (mouse-avoidance-too-close-p): If the frame lacks a
+	tool-bar-lines parameter, behave as if its value were zero.
+	(mouse-avoidance-set-pointer-shape): Don't do anything if
+	x-pointer-shape is not boundp.
+
 2001-07-23  Francesco Potorti`  <pot@gnu.org>
 
 	* uniquify.el: Overall speedup changes when using many buffers.
