@@ -62,7 +62,7 @@
   "Alist specifying where to insert hard spaces.
 
 Each alist item is of the form (MAJOR-MODE REGEXP NUMBER) or
-(MAJOR-MODE . SYMBOL).
+\(MAJOR-MODE . SYMBOL).
 
 MAJOR-MODE defines major mode, for which the item applies.  It can be either:
 - a symbol equal to the major mode of the buffer to be fixed
@@ -91,7 +91,7 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
   "Alist specifying what is a hard space in the current major mode.
 
 Each alist item is of the form (MAJOR-MODE . STRING) or
-(MAJOR-MODE . SYMBOL).
+\(MAJOR-MODE . SYMBOL).
 
 MAJOR-MODE defines major mode, for which the item applies.  It can be either:
 - a symbol equal to the major mode of the buffer to be fixed
@@ -111,7 +111,7 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
   '((latex-mode
      ("\\\\\\\\" . "")		; do not remove this
      ("\\\\begin{verbatim}" . "\\\\end{verbatim}")
-     ("\\\\verb\\(.\\)" . (1))
+     ("\\\\verb*?\\(.\\)" . (1))
      ("\\$\\$" . "\\$\\$")
      ("\\$" . "\\$")
      ("\\\\(" . "\\\\)")
