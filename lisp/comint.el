@@ -1991,7 +1991,7 @@ Typing SPC flushes the help buffer."
 	    (set-window-configuration conf))
 	(if (eq first ?\ )
 	    (set-window-configuration conf)
-	  (setq unread-command-events (append key nil)))))))
+	  (setq unread-command-events (listify-key-sequence key)))))))
 
 ;;; Converting process modes to use comint mode
 ;;; ===========================================================================
