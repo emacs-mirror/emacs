@@ -412,20 +412,28 @@ delete_glyphs (int n)
 }
 
 static unsigned int sound_type = 0xFFFFFFFF;
+#define MB_EMACS_SILENT (0xFFFFFFFF - 1)
 
 void
 w32_sys_ring_bell (void)
 {
   if (sound_type == 0xFFFFFFFF) 
+    {
       Beep (666, 100);
+    }
+  else if (sound_type == MB_EMACS_SILENT)
+    {
+      /* Do nothing.  */
+    }
   else
-      MessageBeep (sound_type);
+    MessageBeep (sound_type);
 }
 
 DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
        "Set the sound generated when the bell is rung.\n\
-SOUND is 'asterisk, 'exclamation, 'hand, 'question, or 'ok\n\
-to use the corresponding system sound for the bell.\n\
+SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent\n\
+to use the corresponding system sound for the bell.  The 'silent sound\n\
+prevents Emacs from making any sound at all.\n\
 SOUND is nil to use the normal beep.")
      (sound)
      Lisp_Object sound;
@@ -444,6 +452,8 @@ SOUND is nil to use the normal beep.")
       sound_type = MB_ICONQUESTION;
   else if (EQ (sound, intern ("ok"))) 
       sound_type = MB_OK;
+  else if (EQ (sound, intern ("silent")))
+      sound_type = MB_EMACS_SILENT;
   else
       sound_type = 0xFFFFFFFF;
 
