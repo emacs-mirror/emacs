@@ -766,7 +766,7 @@ mark_interval_tree (tree)
 
   /* XMARK expands to an assignment; the LHS of an assignment can't be
      a cast.  */
-  XMARK (* (Lisp_Object *) &tree->parent);
+  XMARK (tree->up.obj);
 
   traverse_intervals (tree, 1, 0, mark_interval, Qnil);
 }
@@ -777,7 +777,7 @@ mark_interval_tree (tree)
 #define MARK_INTERVAL_TREE(i)				\
   do {							\
     if (!NULL_INTERVAL_P (i)				\
-	&& ! XMARKBIT (*(Lisp_Object *) &i->parent))	\
+	&& ! XMARKBIT (i->up.obj))			\
       mark_interval_tree (i);				\
   } while (0)
 
@@ -790,7 +790,7 @@ mark_interval_tree (tree)
   do {							\
    if (! NULL_INTERVAL_P (i))				\
      {							\
-       XUNMARK (* (Lisp_Object *) (&(i)->parent));	\
+       XUNMARK ((i)->up.obj);				\
        (i) = balance_intervals (i);			\
      }							\
   } while (0)
@@ -4648,6 +4648,18 @@ Frames, windows, buffers, and subprocesses count as vectors\n\
 	   strings_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
 
   return Flist (8, consed);
+}
+
+int suppress_checking;
+void
+die (msg, file, line)
+     const char *msg;
+     const char *file;
+     int line;
+{
+  fprintf (stderr, "\r\nEmacs fatal error: %s:%d: %s\r\n",
+	   file, line, msg);
+  abort ();
 }
 
 /* Initialization */

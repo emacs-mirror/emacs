@@ -570,6 +570,8 @@ interval_start_pos (source)
   if (NULL_INTERVAL_P (source))
     return 0;
 
+  if (! INTERVAL_HAS_OBJECT (source))
+    return 0;
   GET_INTERVAL_OBJECT (parent, source);
   if (BUFFERP (parent))
     return BUF_BEG (XBUFFER (parent));

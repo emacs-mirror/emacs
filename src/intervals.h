@@ -43,7 +43,8 @@ Boston, MA 02111-1307, USA.  */
 #define INT_LISPLIKE(i) (BUFFERP ((Lisp_Object){(EMACS_INT)(i)}) \
 			 || STRINGP ((Lisp_Object){(EMACS_INT)(i)}))
 #endif
-#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL || INT_LISPLIKE (i))
+#define NULL_INTERVAL_P(i) (CHECK(!INT_LISPLIKE(i),"non-interval"),(i) == NULL_INTERVAL)
+/* old #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL || INT_LISPLIKE (i)) */
 
 /* True if this interval has no right child. */
 #define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
@@ -52,7 +53,7 @@ Boston, MA 02111-1307, USA.  */
 #define NULL_LEFT_CHILD(i) ((i)->left == NULL_INTERVAL)
 
 /* True if this interval has no parent. */
-#define NULL_PARENT(i) (NULL_INTERVAL_P ((i)->parent))
+#define NULL_PARENT(i) ((i)->up_obj || (i)->up.interval == 0)
 
 /* True if this interval is the left child of some other interval. */
 #define AM_LEFT_CHILD(i) (! NULL_PARENT (i) \
@@ -104,24 +105,24 @@ Boston, MA 02111-1307, USA.  */
 
 /* Test what type of parent we have.  Three possibilities: another
    interval, a buffer or string object, or NULL_INTERVAL.  */
-#define INTERVAL_HAS_PARENT(i) ((i)->parent && ! INT_LISPLIKE ((i)->parent))
-#define INTERVAL_HAS_OBJECT(i) ((i)->parent &&   INT_LISPLIKE ((i)->parent))
+#define INTERVAL_HAS_PARENT(i) ((i)->up_obj == 0 && (i)->up.interval != 0)
+#define INTERVAL_HAS_OBJECT(i) ((i)->up_obj)
 
 /* Set/get parent of an interval.
 
    The choice of macros is dependent on the type needed.  Don't add
    casts to get around this, it will break some development work in
    progress.  */
-#define SET_INTERVAL_PARENT(i,p) ((i)->parent = (p))
-#define SET_INTERVAL_OBJECT(i,o) ((i)->parent = (INTERVAL) XFASTINT (o))
-#define INTERVAL_PARENT(i) ((i)->parent)
+#define SET_INTERVAL_PARENT(i,p) (eassert (!BUFFERP ((Lisp_Object)(p)) && !STRINGP ((Lisp_Object)(p))),(i)->up_obj = 0, (i)->up.interval = (p))
+#define SET_INTERVAL_OBJECT(i,o) (eassert ((o) != 0), eassert (BUFFERP (o) || STRINGP (o)),(i)->up_obj = 1, (i)->up.obj = (o))
+#define INTERVAL_PARENT(i) (eassert((i) != 0 && (i)->up_obj == 0),(i)->up.interval)
 /* Because XSETFASTINT has to be used, this can't simply be
    value-returning.  */
-#define GET_INTERVAL_OBJECT(d,s) XSETFASTINT((d), (EMACS_INT) (s)->parent)
+#define GET_INTERVAL_OBJECT(d,s) (eassert((s)->up_obj == 1),XSETFASTINT ((d), (s)->up.obj))
 
 /* Make the parent of D be whatever the parent of S is, regardless of
    type.  This is used when balancing an interval tree.  */
-#define COPY_INTERVAL_PARENT(d,s) ((d)->parent = (s)->parent)
+#define COPY_INTERVAL_PARENT(d,s) ((d)->up = (s)->up, (d)->up_obj = (s)->up_obj)
 
 /* Get the parent interval, if any, otherwise a null pointer.  Useful
    for walking up to the root in a "for" loop; use this to get the

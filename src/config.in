@@ -504,3 +504,6 @@ extern char *getenv ();
 #if defined HAVE_X11R6 && !defined INHIBIT_X11R6_XIM
 #define HAVE_X11R6_XIM
 #endif
+
+/* Should we enable expensive run-time checking of data types?  */
+#undef ENABLE_CHECKING

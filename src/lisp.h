@@ -46,6 +46,23 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif
 
+/* Extra internal type checking?  */
+extern int suppress_checking;
+#ifdef ENABLE_CHECKING
+extern void die P_((const char *, const char *, int));
+#define CHECK(check,msg) ((check || suppress_checking ? 0 : die (msg, __FILE__, __LINE__)), 0)
+#else
+/* Produce same side effects and result, but don't complain.  */
+#define CHECK(check,msg) ((check),0)
+#endif
+/* Define an Emacs version of "assert", since some system ones are
+   flaky.  */
+#if defined (__GNUC__) && __GNUC__ >= 2 && defined (__STDC__)
+#define eassert(cond) CHECK(cond,"assertion failed: " #cond)
+#else
+#define eassert(cond) CHECK(cond,"assertion failed")
+#endif
+
 /* Define the fundamental Lisp data structures.  */
 
 /* This is the set of Lisp data types.  */
@@ -494,17 +511,22 @@ struct interval
      You'd think we could store this information in the parent object
      somewhere (after all, that should be visited once and then
      ignored too, right?), but strings are GC'd strangely.  */
-  struct interval *parent;
+  union
+  {
+    struct interval *interval;
+    Lisp_Object obj;
+  } up;
+  unsigned int up_obj : 1;
 
   /* The remaining components are `properties' of the interval.
      The first four are duplicates for things which can be on the list,
      for purposes of speed.  */
 
-  unsigned char write_protect;	    /* Non-zero means can't modify.  */
-  unsigned char visible;	    /* Zero means don't display.  */
-  unsigned char front_sticky;	    /* Non-zero means text inserted just
+  unsigned int write_protect : 1;    /* Non-zero means can't modify.  */
+  unsigned int visible : 1;	    /* Zero means don't display.  */
+  unsigned int front_sticky : 1;    /* Non-zero means text inserted just
 				       before this interval goes into it.  */
-  unsigned char rear_sticky;	    /* Likewise for just after it.  */
+  unsigned int rear_sticky : 1;	    /* Likewise for just after it.  */
 
   /* Properties of this interval.
      The mark bit on this field says whether this particular interval

@@ -1,3 +1,31 @@
+2000-03-29  Ken Raeburn  <raeburn@gnu.org>
+
+	* config.in (ENABLE_CHECKING): Undef.
+
+	* lisp.h (struct interval): Replace "parent" field with a union of
+	interval pointer and Lisp_Object; add new bitfield to use as
+	discriminant.  Change other flag fields to bitfields.
+	(CHECK): New macro for consistency checking.  If ENABLE_CHECKING
+	is defined and the supplied test fails, print a message and
+	abort.
+	(eassert): New macro.  Use CHECK to provide an assert-like
+	facility.
+
+	* intervals.h (NULL_INTERVAL_P): Now applies only to real interval
+	pointers; abort if the value looks like a lisp object.
+	(NULL_INTERVAL_P, NULL_PARENT, HAS_PARENT, HAS_OBJECT, SET_PARENT,
+	SET_OBJECT, INTERVAL_PARENT, GET_INTERVAL_OBJECT, COPY_PARENT):
+	Modify for new interval parent definition.
+
+	* alloc.c (mark_interval_tree, MARK_INTERVAL_TREE,
+	UNMARK_BALANCE_INTERVALS): Update references that need an
+	addressable lisp object in the interval structure.
+	(die): New function.
+	(suppress_checking): New variable.
+
+	* intervals.c (interval_start_pos): Just return 0 if there's no
+	parent object.
+
 2000-03-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* lread.c (read1): Accept `.' (period) as symbol start like in CL
