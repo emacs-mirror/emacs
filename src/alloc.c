@@ -408,14 +408,14 @@ buffer_memory_full ()
 
 /* Like malloc but check for no memory and block interrupt input..  */
 
-long *
+POINTER_TYPE *
 xmalloc (size)
      int size;
 {
-  register long *val;
+  register POINTER_TYPE *val;
 
   BLOCK_INPUT;
-  val = (long *) malloc (size);
+  val = (POINTER_TYPE *) malloc (size);
   UNBLOCK_INPUT;
 
   if (!val && size)
@@ -426,20 +426,20 @@ xmalloc (size)
 
 /* Like realloc but check for no memory and block interrupt input..  */
 
-long *
+POINTER_TYPE *
 xrealloc (block, size)
-     long *block;
+     POINTER_TYPE *block;
      int size;
 {
-  register long *val;
+  register POINTER_TYPE *val;
 
   BLOCK_INPUT;
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
-    val = (long *) malloc (size);
+    val = (POINTER_TYPE *) malloc (size);
   else
-    val = (long *) realloc (block, size);
+    val = (POINTER_TYPE *) realloc (block, size);
   UNBLOCK_INPUT;
 
   if (!val && size) memory_full ();
@@ -451,7 +451,7 @@ xrealloc (block, size)
 
 void
 xfree (block)
-     long *block;
+     POINTER_TYPE *block;
 {
   BLOCK_INPUT;
   free (block);
