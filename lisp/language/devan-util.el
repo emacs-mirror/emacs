@@ -215,16 +215,17 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;;
 
 (defconst devanagari-digit-viram-visarga
-  "[$(5!q(B-$(5!z!j!#(B]")
+ "[$(5!q(B-$(5!z!j!#(B]")
+
 (defconst devanagari-other-sign
   "\\([$(5!!!j(B]$(5!i(B\\)\\|\\([$(5#!#J(B]\\)")
 
 (defconst devanagari-composite-glyph-unit
   (concat "\\(" devanagari-cons-syllable
 	  "\\)\\|\\(" devanagari-vowel-syllable
-	  "\\)\\|\\(" devanagari-digit-viram-visarga
 	  "\\)\\|\\(" devanagari-cons-vowel-syllable
-	  "\\)\\|\\(" devanagari-other-sign "\\)")
+	  "\\)\\|\\(" devanagari-other-sign
+	  "\\)\\|\\(" devanagari-digit-viram-visarga "\\)")
   "Regexp matching to Devanagari string to be composed form one glyph.")
 
 ;;(put-charset-property charset-devanagari-1-column
@@ -516,10 +517,10 @@ of '$(5!*!&!'(B' and nukta sign.")
     ("\\($(5!j!i(B\\)" "$(5#J(B")
 
     ;; Special rule for "r + some vowels"
+    ("\\($(5!O!_!i(B\\)" "$(5#*"p(B")
+    ("\\($(5!O![!i(B\\)" "$(5#&"p(B")
+    ("\\($(5!O!\!i(B\\)" "$(5#'"p(B")
     ("\\($(5!O!_(B\\)" "$(5!*"p(B")
-    ("\\($(5!O#L(B\\)" "$(5#&"p(B")
-    ("\\($(5!O#K(B\\)" "$(5#*"p(B")
-    ("\\($(5!O#M(B\\)" "$(5#'"p(B")
     ;; If everything fails, "y" will connect to the front consonant.
     ("\\($(5!h!M(B\\)" "$(5"](B")
     )
