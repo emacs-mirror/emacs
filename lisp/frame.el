@@ -103,7 +103,7 @@ These supercede the values given in default-frame-alist.")
 	  (function
 	   (lambda (parameters)
 	     (error
-	      "Can't create multiple frames without a window system."))))))
+	      "Can't create multiple frames without a window system"))))))
 					
 ;;; startup.el calls this function after loading the user's init
 ;;; file.  Now default-frame-alist and initial-frame-alist contain
@@ -335,14 +335,14 @@ When called interactively, prompt for the name of the font to use."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'font font-name))))
 
-(defun set-frame-background (color-name)
+(defun set-background-color (color-name)
   "Set the background color of the selected frame to COLOR.
 When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name))))
 
-(defun set-frame-foreground (color-name)
+(defun set-foreground-color (color-name)
   "Set the foreground color of the selected frame to COLOR.
 When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
@@ -363,7 +363,7 @@ When called interactively, prompt for the name of the color to use."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color color-name))))
 
-(defun set-auto-raise (arg)
+(defun toggle-auto-raise (arg)
   "Toggle whether or not the selected frame should auto-raise.
 With arg, turn auto-raise mode on if and only if arg is positive."
   (interactive "P")
@@ -374,7 +374,7 @@ With arg, turn auto-raise mode on if and only if arg is positive."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-raise (> arg 0)))))
 
-(defun set-auto-lower (arg)
+(defun toggle-auto-lower (arg)
   "Toggle whether or not the selected frame should auto-lower.
 With arg, turn auto-lower mode on if and only if arg is positive."
   (interactive "P")
@@ -385,7 +385,7 @@ With arg, turn auto-lower mode on if and only if arg is positive."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-lower (> arg 0)))))
 
-(defun set-vertical-bar (arg)
+(defun toggle-vertical-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scrollbars.
 With arg, turn vertical scrollbars on if and only if arg is positive."
   (interactive "P")
@@ -397,12 +397,12 @@ With arg, turn vertical scrollbars on if and only if arg is positive."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'vertical-scrollbars (> arg 0)))))
 
-(defun set-horizontal-bar (arg)
+(defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scrollbars.
 With arg, turn horizontal scrollbars on if and only if arg is positive.
 Horizontal scrollbars aren't implemented yet."
   (interactive "P")
-  (error "Horizontal scrollbars aren't implemented yet."))
+  (error "Horizontal scroll bars aren't implemented yet"))
 
 
 ;;;; Aliases for backward compatibility with Emacs 18.
