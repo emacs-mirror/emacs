@@ -4242,11 +4242,11 @@ Optional DIGEST will use digest to forward."
 	       (not message-forward-decoded-p))
 	  (insert
 	   (with-temp-buffer
-	     (mm-disable-multibyte-mule4) ;; Must copy buffer in unibyte mode
+	     (mm-disable-multibyte) ;; Must copy buffer in unibyte mode
 	       (insert
 		(with-current-buffer forward-buffer
 		  (mm-string-as-unibyte (buffer-string))))
-	       (mm-enable-multibyte-mule4)
+	       (mm-enable-multibyte)
 	       (mime-to-mml)
 	       (goto-char (point-min))
 	       (when (looking-at "From ")
