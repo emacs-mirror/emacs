@@ -6780,24 +6780,6 @@ handle_async_input ()
 #ifdef BSD4_1
   extern int select_alarmed;
 #endif
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
-  extern pthread_t main_thread;
-  if (pthread_self () != main_thread)
-    {
-      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
-         not true, but for other systems (FreeBSD at least) it is.  So direct
-         the signal to the correct thread and block it from this thread.  */
-#ifdef SIGIO
-      sigset_t new_mask;
-
-      sigemptyset (&new_mask);
-      sigaddset (&new_mask, SIGIO);
-      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
-      pthread_kill (main_thread, SIGIO);
-#endif
-      return;
-    }
-#endif
 
   interrupt_input_pending = 0;
 
@@ -6826,22 +6808,6 @@ input_available_signal (signo)
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
-  extern pthread_t main_thread;
-  if (pthread_self () != main_thread)
-    {
-      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
-         not true, but for other systems (FreeBSD at least) it is.  So direct
-         the signal to the correct thread and block it from this thread.  */
-      sigset_t new_mask;
-
-      sigemptyset (&new_mask);
-      sigaddset (&new_mask, SIGIO);
-      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
-      pthread_kill (main_thread, SIGIO);
-      return;
-    }
-#endif /* HAVE_GTK_AND_PTHREAD */
 #if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
      must reestablish each time */
@@ -6858,6 +6824,24 @@ input_available_signal (signo)
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
 #else
+
+# if !defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+  extern pthread_t main_thread;
+  if (pthread_self () != main_thread)
+    {
+      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
+         not true, but for other systems (FreeBSD at least) it is.  So direct
+         the signal to the correct thread and block it from this thread.  */
+      sigset_t new_mask;
+
+      sigemptyset (&new_mask);
+      sigaddset (&new_mask, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
+      pthread_kill (main_thread, SIGIO);
+      return;
+    }
+# endif /* HAVE_GTK_AND_PTHREAD */
+
   handle_async_input ();
 #endif
 
