@@ -1,4 +1,4 @@
-2003-10-26  Luc Teirlinck  <teirllm@auburn.edu>>
+2003-10-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* data.c (Fsetplist): Doc fix.
 
