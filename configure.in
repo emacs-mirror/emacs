@@ -35,10 +35,13 @@ archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
 AC_ARG_WITH(gcc,
-[  --with-gcc              use GCC to compile Emacs])
+[  --without-gcc           don't use GCC to compile Emacs if GCC is found])
 AC_ARG_WITH(pop,
-[  --with-pop              support POP for mail retrieval],
-[AC_DEFINE(MAIL_USE_POP)])
+[  --without-pop           don't support POP mail retrieval with movemail],
+[if test "$withval" = yes; then
+   AC_DEFINE(MAIL_USE_POP)
+else :
+fi])
 AC_ARG_WITH(hesiod,
 [  --with-hesiod           support Hesiod to get the POP server host],
 [AC_DEFINE(HESIOD)])
@@ -77,7 +80,7 @@ AC_ARG_WITH(gif,
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(toolkit-scroll-bars,
-[  --with-toolkit-scroll-bars  use Motif or Xaw3d scroll bars])
+[  --without-toolkit-scroll-bars  don't use Motif or Xaw3d scroll bars])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
