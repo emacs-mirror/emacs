@@ -324,7 +324,9 @@ PATTERN regexp."
     ("$,1@m@O@b(B" . "$,46](B") ;; yakar + uu ;; ?
     ("$,1@m@U(B" . "$,46Z(B") ;; vakar modifier
     ("$,1@m@P(B" . "$,46[(B") ;; rakar modifier is the same to rra modifier.
+    ("$,1@m@P@m(B" . "$,46R(B") ;; halant + rakar + halant
     ("$,1@m@Q(B" . "$,46[(B") ;; rrakar modifier
+    ("$,1@m@Q@m(B" . "$,46R(B") ;; halant + rrakar + halant
     ("$,1@m@m(B" . "$,46V(B") ;; double omission sign to stop forming half consonant.
     ("$,1@w(B" . "$,46U(B") ;; not in present use, already at 0D4C.
     ))
