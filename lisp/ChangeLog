@@ -1,5 +1,8 @@
 2000-12-11  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* newcomment.el (comment-indent-new-line): Use delete-horizontal-space
+	(so as to obey the field property in the minibuffer).
+
 	* obsolete/c-mode.el: Moved from lisp/progmodes.
 	* obsolete/auto-show.el: Moved from lisp.
 	* obsolete/ooutline.el: Moved from lisp/textmodes.
