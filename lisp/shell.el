@@ -241,6 +241,12 @@ This mirrors the optional behavior of tcsh."
 		 (const nil))
   :group 'shell-directories)
 
+(defcustom shell-dirtrack-verbose t
+  "*If non-nil, show the directory stack following directory change.
+This is effective only if directory tracking is enabled."
+  :type 'boolean
+  :group 'shell-directories)
+
 (defcustom explicit-shell-file-name nil
   "*If non-nil, is file name to use for explicitly requested inferior shell."
   :type '(choice (const :tag "None" nil) file)
@@ -720,24 +726,26 @@ command again."
 ;;; All the commands that mung the buffer's dirstack finish by calling
 ;;; this guy.
 (defun shell-dirstack-message ()
-  (let* ((msg "")
-	 (ds (cons default-directory shell-dirstack))
-	 (home (expand-file-name (concat comint-file-name-prefix "~/")))
-	 (homelen (length home)))
-    (while ds
-      (let ((dir (car ds)))
-	(and (>= (length dir) homelen) (string= home (substring dir 0 homelen))
-	    (setq dir (concat "~/" (substring dir homelen))))
-	;; Strip off comint-file-name-prefix if present.
-	(and comint-file-name-prefix
-	     (>= (length dir) (length comint-file-name-prefix))
-	     (string= comint-file-name-prefix
-		      (substring dir 0 (length comint-file-name-prefix)))
-	     (setq dir (substring dir (length comint-file-name-prefix)))
-	     (setcar ds dir))
-	(setq msg (concat msg (directory-file-name dir) " "))
-	(setq ds (cdr ds))))
-    (message "%s" msg)))
+  (when shell-dirtrack-verbose
+    (let* ((msg "")
+	   (ds (cons default-directory shell-dirstack))
+	   (home (expand-file-name (concat comint-file-name-prefix "~/")))
+	   (homelen (length home)))
+      (while ds
+	(let ((dir (car ds)))
+	  (and (>= (length dir) homelen)
+	       (string= home (substring dir 0 homelen))
+	       (setq dir (concat "~/" (substring dir homelen))))
+	  ;; Strip off comint-file-name-prefix if present.
+	  (and comint-file-name-prefix
+	       (>= (length dir) (length comint-file-name-prefix))
+	       (string= comint-file-name-prefix
+			(substring dir 0 (length comint-file-name-prefix)))
+	       (setq dir (substring dir (length comint-file-name-prefix)))
+	       (setcar ds dir))
+	  (setq msg (concat msg (directory-file-name dir) " "))
+	  (setq ds (cdr ds))))
+      (message "%s" msg))))
 
 ;; This was mostly copied from shell-resync-dirs.
 (defun shell-snarf-envar (var)
