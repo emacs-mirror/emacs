@@ -1,3 +1,8 @@
+2003-05-22  Kenichi Handa  <handa@m17n.org>
+
+	* quail/pypunct-b5.el ("chinese-py-punct-b5"): Change the title
+	Chinese characters from GB to Big5.
+
 2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Version 21.3 released.
