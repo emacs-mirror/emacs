@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.38) $
+ * $HopeName: MMsrc!config.h(trunk.39) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -253,6 +253,7 @@
 /* .nosync.why: ScriptWorks is single-threaded when using the MM. */
 #define THREAD_SINGLE
 #define PROTECTION_NONE
+#define DONGLE_NONE
 
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_STRING         "dylan"
@@ -265,6 +266,7 @@
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_MULTI
 #define PROTECTION
+#define DONGLE_NONE
 
 #elif defined(CONFIG_PROD_CONFIGURA)
 #define MPS_PROD_STRING         "configura"
@@ -272,6 +274,9 @@
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_SINGLE
 #define PROTECTION
+#define DONGLE
+/* global dongles have customerID 0 */
+#define DONGLE_CUSTOMER_ID ((int)1)
 
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_STRING         "mps"
@@ -279,9 +284,25 @@
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_MULTI
 #define PROTECTION
+#define DONGLE_NONE
 
 #else
 #error "No target product configured."
+#endif
+
+
+/* Dongle configuration */
+
+#if defined(DONGLE)
+
+#define DONGLE_TEST_FREQUENCY ((unsigned int)4000)
+
+#elif defined(DONGLE_NONE)
+
+/* nothing to do */
+
+#else
+#error "No dongle configured."
 #endif
 
 
