@@ -56,10 +56,9 @@ buffer_display_table ()
   Lisp_Object thisbuf;
 
   thisbuf = current_buffer->display_table;
-  if (XTYPE (thisbuf) == Lisp_Vector
-      && XVECTOR (thisbuf)->size == DISP_TABLE_SIZE)
+  if (VECTORP (thisbuf) && XVECTOR (thisbuf)->size == DISP_TABLE_SIZE)
     return XVECTOR (thisbuf);
-  if (XTYPE (Vstandard_display_table) == Lisp_Vector
+  if (VECTORP (Vstandard_display_table)
       && XVECTOR (Vstandard_display_table)->size == DISP_TABLE_SIZE)
     return XVECTOR (Vstandard_display_table);
   return 0;
@@ -138,7 +137,7 @@ current_column ()
 
       c = *--ptr;
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
+	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
 	{
 	  col++;
 	}
@@ -155,7 +154,7 @@ current_column ()
 	  col = 0;
 	  tab_seen = 1;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else
 	col += (ctl_arrow && c < 0200) ? 2 : 4;
@@ -342,7 +341,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 	  col += tab_width;
 	  col = col / tab_width * tab_width;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else if (ctl_arrow && (c < 040 || c == 0177))
         col += 2;
@@ -450,12 +449,12 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Vector *dp = window_display_table (win);
   int selective
-    = (XTYPE (current_buffer->selective_display) == Lisp_Int
+    = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
   int prev_vpos, prev_hpos = 0;
   int selective_rlen
-    = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
+    = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
 #ifdef USE_TEXT_PROPERTIES
   /* The next location where the `invisible' property changes */
@@ -507,7 +506,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 #endif
       c = FETCH_CHAR (pos);
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
+	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
 	hpos++;
       else if (c == '\t')
 	{
@@ -563,7 +562,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 		hpos = width;
 	    }
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else
 	hpos += (ctl_arrow && c < 0200) ? 2 : 4;
@@ -752,9 +751,9 @@ vmotion (from, vtarget, width, hscroll, window)
   register int first;
   int lmargin = hscroll > 0 ? 1 - hscroll : 0;
   int selective
-    = XTYPE (current_buffer->selective_display) == Lisp_Int
-      ? XINT (current_buffer->selective_display)
-	: !NILP (current_buffer->selective_display) ? -1 : 0;
+    = (INTEGERP (current_buffer->selective_display)
+       ? XINT (current_buffer->selective_display)
+       : !NILP (current_buffer->selective_display) ? -1 : 0);
   /* The omission of the clause
          && marker_position (XWINDOW (window)->start) == BEG
      here is deliberate; I think we want to measure from the prompt
