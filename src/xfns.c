@@ -2331,7 +2331,8 @@ x_window (f, window_prompting, minibuffer_only)
   BLOCK_INPUT;
 
   {
-    char *str = (STRINGP (f->name) ? XSTRING (f->name)->data : "emacs");
+    char *str
+      = (STRINGP (f->name) ? (char *)XSTRING (f->name)->data : "emacs");
     f->namebuf = (char *) xrealloc (f->namebuf, strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
@@ -2954,14 +2955,19 @@ This function is an internal primitive--use `make-frame' instead.")
   return unbind_to (count, frame);
 }
 
+/* FRAME is used only to get a handle on the X display.  We don't pass the
+   display info directly because we're called from frame.c, which doesn't
+   know about that structure.  */
 Lisp_Object
-x_get_focus_frame ()
+x_get_focus_frame (frame)
+     struct frame *frame;
 {
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (frame);
   Lisp_Object xfocus;
-  if (! x_focus_frame)
+  if (! dpyinfo->x_focus_frame)
     return Qnil;
 
-  XSETFRAME (xfocus, x_focus_frame);
+  XSETFRAME (xfocus, dpyinfo->x_focus_frame);
   return xfocus;
 }
 
@@ -2987,10 +2993,11 @@ DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
   "If a frame has been focused, release it.")
   ()
 {
-  if (x_focus_frame)
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
+  if (dpyinfo->x_focus_frame)
     {
       BLOCK_INPUT;
-      x_unfocus_frame (x_focus_frame);
+      x_unfocus_frame (dpyinfo->x_focus_frame);
       UNBLOCK_INPUT;
     }
 
