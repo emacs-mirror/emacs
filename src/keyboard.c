@@ -4463,7 +4463,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
       /* No; let's create it.  */
       if (!NILP (name_alist))
 	value = Fcdr_safe (Fassq (symbol_int, name_alist));
-      else if (name_table[symbol_num])
+      else if (name_table != 0 && name_table[symbol_num])
 	value = intern (name_table[symbol_num]);
 
 #ifdef HAVE_WINDOW_SYSTEM
