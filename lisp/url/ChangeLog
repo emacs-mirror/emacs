@@ -168,9 +168,8 @@
 	(set-language-environment-hook): Use it.
 	(url-vars-unload-hook): New function.
 
-	* lisp/url-cookie.el (url-header-comparison): Deleted.
-	(url-cookie-handle-set-cookie): Use assoc-ignore-case to avoid
-	assoc*.
+	* lisp/url-cookie.el (url-header-comparison): Delete.
+	(url-cookie-handle-set-cookie): Use assoc-ignore-case to avoid assoc*.
 	(url-cookie-save-interval): Make value agree with doc.
 
 	* lisp/url.el: Doc fixes.
@@ -179,8 +178,7 @@
 
 2002-02-02  William M. Perry  <wmperry@gnu.org>
 
-	* lisp/Makefile.in (SOURCES): Remove mule-sysdp.el from the build
-	rules.
+	* lisp/Makefile.in (SOURCES): Remove mule-sysdp.el from the build rules.
 
 2001-12-12  William M. Perry  <wmperry@gnu.org>
 
@@ -199,8 +197,8 @@
 
 	* lisp/url-cache.el (url-cache-file-writable-p): Doc fix.
 
-	* lisp/url-imap.el (url-imap): Maybe disable multibyte.  Bind
-	coding-system-for-read.  Require mm-util.
+	* lisp/url-imap.el (url-imap): Maybe disable multibyte.
+	Bind coding-system-for-read.  Require mm-util.
 
 	* lisp/url.el (url-do-setup): Use (featurep 'xemacs).
 
@@ -217,8 +215,7 @@
 	(url-dav-register-handler): New function to easily register a
 	WebDAV-specific file-name-handler operation.
 	(url-dav-file-name-all-completions, url-dav-file-name-completion):
-	New functions that allow file-name completion for WebDAV
-	resources.
+	New functions that allow file-name completion for WebDAV resources.
 
 2001-12-08  William M. Perry  <wmperry@gnu.org>
 
@@ -236,8 +233,8 @@
 	(url-dav-request): New function to act as the main entry point for
 	making DAV requests.  Takes care of building the XML document with
 	appropriate namespaces, depth, etc, and parses the results.
-	(url-dav-get-properties): Use new url-dav-request function.  This
-	is now just a thin wrapper around that to use PROPFIND and set any
+	(url-dav-get-properties): Use new url-dav-request function.
+	This is now just a thin wrapper around that to use PROPFIND and set any
 	extra properties we are looking for.
 	(url-dav-unlock-resource): New function to release a lock given a
 	URL and a lock-token.
@@ -250,8 +247,7 @@
 	active locks for a resource.
 	(url-dav-save-resource): New function to actually save a resource
 	using the PUT method.  I can now successfully save files to an
-	HTTP server with some manual steps from a lisp-interaction
-	buffer.
+	HTTP server with some manual steps from a lisp-interaction buffer.
 
 	* lisp/url-http.el (url-http-wait-for-headers-change-function):
 	Special case the 204/205 response codes.  Some servers do not
@@ -269,13 +265,12 @@
 
 	* lisp/vc-dav.el: Added full copyright information.
 
-	* lisp/url-dav.el (url-dav-process-supportedlock-property): Deal
-	with text nodes in DAV:supportedlock nodes.
+	* lisp/url-dav.el (url-dav-process-supportedlock-property):
+	Deal with text nodes in DAV:supportedlock nodes.
 	(url-dav-file-attributes-mode-string): This now gets the entire
 	property list instead of just the DAV:supportedlock node.
 	(url-dav-file-attributes): Make sure to pass the whole list in.
-	(url-dav-file-attributes-mode-string): Now properly sets do 'd'
-	mode.
+	(url-dav-file-attributes-mode-string): Now properly sets do 'd' mode.
 	(url-dav-file-attributes-mode-string): Now uses the Apache mod_dav
 	'executable' bit to set the 'x' mode.  See `mod_dav's custom
 	properties' at http://www.webdav.org/mod_dav/ for more details.
@@ -284,9 +279,8 @@
 	url-dav-process-XXX (url-dav-process-DAV:prop), otherwise falls
 	back to using url-dav-node-text.  Caches the results on the nodes
 	symbol name.
-	(url-dav-dispatch-node): Utility routine to call a nodes handler
-	easily.
-	(url-dav-process-*): Renamed most of the handlers and made them
+	(url-dav-dispatch-node): Utility routine to call a nodes handler easily.
+	(url-dav-process-*): Rename most of the handlers and made them
 	use url-dav-dispatch-node where appropriate.
 	(url-dav-process-DAV:prop): Instead of using the dav-data-type
 	property to dispatch the node, now uses dav-dispatch-node so that
@@ -311,8 +305,7 @@
 	XML, parses the tree, and interprets the tree.
 	(url-dav-process-response): Make sure that all responses look
 	like a DAV:multistatus response, even if we get a singleton
-	response back.  This will just make the upper layer logic
-	simpler.
+	response back.  This will just make the upper layer logic simpler.
 	(url-dav-get-properties): New optional argument NAMESPACES that
 	specifies what namespaces to use in the XML request.
 	(url-dav-get-properties): Got rid of the D: namespace in
@@ -331,14 +324,14 @@
 	ATTRIBUTES that allows you to ask for specific properties instead
 	of getting all properties via DAV:allprop.
 
-	* lisp/url-http.el (url-http-real-basic-auth-storage): New
-	variable for normal HTTP basic authentication.
+	* lisp/url-http.el (url-http-real-basic-auth-storage):
+	New variable for normal HTTP basic authentication.
 	(url-http-proxy-basic-auth-storage): New variable for HTTP proxy
 	basic authentication.
 	(url-http-handle-authentication): Follow new semantics for
 	url-basic-auth-storage.
 
-	* lisp/url-auth.el (url-basic-auth-storage): Changed meaning of
+	* lisp/url-auth.el (url-basic-auth-storage): Change meaning of
 	this variable.  It is now a symbol pointing to where we really
 	want to store the authorization information.  This fixes proxy
 	auth and normal basic auth because of some local bindings that
@@ -347,17 +340,16 @@
 	(url-basic-auth): Make sure we dereference url-basic-auth-storage
 	everywhere.
 
-	* lisp/url-util.el (url-debug): Added new types 'dav and
+	* lisp/url-util.el (url-debug): Add new types 'dav and
 	'retrieval to the customization list.
 
 	* lisp/url.el (url-retrieve-synchronously): Put in some debugging
 	statements.
 
-	* lisp/url-http.el (url-http-head-file-attributes): Renamed old
+	* lisp/url-http.el (url-http-head-file-attributes): Rename old
 	url-http-file-attributes so that we can have a smarter one that
 	tries WebDAV first, then HEAD.
-	(url-http-file-attributes): New smart version that tries WebDAV
-	first.
+	(url-http-file-attributes): New smart version that tries WebDAV first.
 	(url-http-options): New function that returns information gleaned
 	from an OPTIONS request for a URL.  Returns a property list
 	returning the methods supported for the resource, what DAV and
@@ -386,8 +378,7 @@
 	properties for a URL.  Can specify an optional `depth' parameter
 	to tell the web server how many directory (collection) levels to
 	recurse when retrieving the property lists.  Returns an assoc
-	list keyed off of the resource, the cdr of which is a property
-	list.
+	list keyed off of the resource, the cdr of which is a property list.
 	(url-dav-datatype-attribute): We support the XML-Data note
 	(http://www.w3.org/TR/1998/NOTE-XML-data) to figure out what the
 	datatypes of attributes are.  Currently only date, dateTime, int,
@@ -402,17 +393,16 @@
 	absolute file or URL, then expand it relative to '/'.
 	(url-handler-regexp): New regexp for specific schemes that we
 	want the file-name-handlers to work off of.
-	(url-setup-file-name-handlers): Use it when installing the
-	handlers.
+	(url-setup-file-name-handlers): Use it when installing the handlers.
 
 	* lisp/url-http.el (url-http-find-free-connection): Better logging
 	about whether we are reusing an existing connection or not.
 
-	* lisp/url-methods.el (url-scheme-register-proxy): Fixed bad call
+	* lisp/url-methods.el (url-scheme-register-proxy): Fix bad call
 	to string-match instead of match-string (and with reversed
 	arguments even).
 
-	* lisp/url-http.el (url-http-debug): Changed to now use the
+	* lisp/url-http.el (url-http-debug): Change to now use the
 	generic url-debug function to do the actual logging.  Still a
 	separate function so that we can do our magic on the network
 	connection if the user quits while we are downloading.
@@ -420,8 +410,7 @@
 	* lisp/url-handlers.el (url-file-handler): Now logs the result of
 	the hooked or real call.
 
-	* lisp/url-util.el (url-debug): New function for generic debug
-	logging.
+	* lisp/url-util.el (url-debug): New function for generic debug logging.
 
 2001-11-28  William M. Perry  <wmperry@gnu.org>
 
@@ -435,11 +424,10 @@
 	case we get a false positive or an operation that we do not
 	support.  The old way disabled _ALL_ file-name-handlers when
 	we hit something we didn't understand - this disables JUST us.
-	(url-file-handler): Removed the logic about removing the leading
+	(url-file-handler): Remove the logic about removing the leading
 	'/' off of the first argument... it may not be safe to always
 	assume that the first argument is the one we are acting on -
-	`default' is the second argument for expand-file-name for
-	example.
+	`default' is the second argument for expand-file-name for example.
 	(url-setup-file-name-handlers): Use url-nonrelative-link
 	directly.  This means that you must type in the URL directly
 	without prefixing it with a '/'.
@@ -464,8 +452,7 @@
 
 2001-11-25  William M. Perry  <wmperry@gnu.org>
 
-	* lisp/url-util.el (url-hexify-string): Fixed bad use of
-	mapconcat.
+	* lisp/url-util.el (url-hexify-string): Fix bad use of mapconcat.
 
 2001-11-24  William M. Perry  <wmperry@gnu.org>
 
@@ -487,13 +474,12 @@
 
 	* lisp/url-https.el: Fixed definition of url-https - was using the
 	wrong signature.  Too much cut & paste.
-	(url-https-create-secure-wrapper): Fixed so that url-https works
+	(url-https-create-secure-wrapper): Fix so that url-https works
 	at all.  Was not taking a null `method' into account when calling
-	the wrapped function so url-https tried to call url-http-nil.
-	*sigh*
+	the wrapped function so url-https tried to call url-http-nil.  *sigh*
 
 	* lisp/url-http.el
-	(url-http-chunked-encoding-after-change-function): Added some
+	(url-http-chunked-encoding-after-change-function): Add some
 	feedback when not debugging about what content-type and chunk # we
 	are reading.
 	(url-http-chunked-encoding-after-change-function): Use a marker
@@ -519,31 +505,30 @@
 	(url-http-chunked-encoding-after-change-function): Got rid of the
 	no-initial-crlf.  Had an epiphany and I can just infer this from
 	url-http-chunked-counter being 0.
-	(url-http-chunked-encoding-after-change-function): Moved the debug
+	(url-http-chunked-encoding-after-change-function): Move the debug
 	statement about reading chunk #foo into the loop so that each
 	chunk will have a log message associated with it.
 	(url-http-chunked-encoding-after-change-function): Make sure to
 	set read-next-chunk to nil when the regular expression match fails
 	to fire.  Otherwise we could loop forever.
-	(url-http-chunked-encoding-after-change-function): Tweaked the
-	regular expression to be a little less greedy when looking for a
-	chunk.
+	(url-http-chunked-encoding-after-change-function): Tweak the
+	regular expression to be a little less greedy when looking for a chunk.
 	(url-http-wait-for-headers-change-function): Remove the last
 	argument when calling
 	url-http-chunked-encoding-after-change-function.  It is no longer
 	needed.  I should use my brain sometime.
 
-	* lisp/url-vars.el (and): Fixed feature test for xemacs and
+	* lisp/url-vars.el (and): Fix feature test for xemacs and
 	coding-system-list behaviour.
 
 	* lisp/url-http.el
-	(url-http-chunked-encoding-after-change-function): Added optional
-	no-initial-crlf flag that modifies the regular expression.  This
-	is only set from url-http-wait-for-headers-change-function so that
+	(url-http-chunked-encoding-after-change-function): Add optional
+	no-initial-crlf flag that modifies the regular expression.
+	This is only set from url-http-wait-for-headers-change-function so that
 	the initial CRLF in the HTTP headers is not swallowed.
-	(url-http-chunked-encoding-after-change-function): Fixed a few
+	(url-http-chunked-encoding-after-change-function): Fix a few
 	off-by-one errors by using (match-end 0) instead of 1.
-	(url-http-chunked-encoding-after-change-function): Added a few
+	(url-http-chunked-encoding-after-change-function): Add a few
 	url-http-debug calls to help track down problems in the chunked
 	encoding.
 	(url-http-chunked-encoding-after-change-function): The chunk
@@ -584,8 +569,8 @@
 	(url-http): Use dolist, not mapc (runtime cl dependency).
 
 	* lisp/url-methods.el: Maybe require cl at runtime.
-	(url-scheme-register-proxy): Fix fetching from environment.  Don't
-	concat a number.
+	(url-scheme-register-proxy): Fix fetching from environment.
+	Don't concat a number.
 
 2001-10-01  Dave Love  <fx@gnu.org>
 
@@ -603,14 +588,12 @@
 
 2001-09-20  Dave Love  <fx@gnu.org>
 
-	* lisp/url-http.el (url-http-create-request): Don't concat a
-	number.
+	* lisp/url-http.el (url-http-create-request): Don't concat a number.
 
 2001-06-05  Dave Love  <fx@gnu.org>
 
 	* lisp/url.el (url-do-setup): Doc fix.  Don't try to frob
-	tcp-binary-process-input-services.  Remove function wrapper for
-	lambda.
+	tcp-binary-process-input-services.  Remove function wrapper for lambda.
 	(url-retrieve): Barf with sensible message if url-type is null.
 
 	* lisp/url-http.el (url-http): Don't try to set process
@@ -619,6 +602,11 @@
 	* lisp/url-gw.el (url-gw-inhibit-code-conversion): Remove.
 	(url-open-stream): Bind coding-system-for{read,write} when setting
 	up the connexion.  Don't call url-gw-inhibit-code-conversion.
+
+2001-05-24  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/url.el (url-retrieve-synchronously): Avoid accept-process-output
+	in url-retrieve-synchronously.
 
 2001-05-23  William M. Perry  <wmperry@gnu.org>
 
@@ -642,7 +630,7 @@
 	if you are on a fast net connection and retrieve small documents
 	that finish asynchronously before the first accept-process-output
 	can be run.  All hail broadband and 100Mb in the house!
-	(url-retrieve-synchronously): Added documentation for this function.
+	(url-retrieve-synchronously): Add documentation for this function.
 	(url-retrieve): Ditto.
 	(url-mm-url): Ditto.
 
@@ -662,7 +650,7 @@
 
 	* lisp/url-news.el: Require cl when compiling.
 	(url-warn, gnus-group-read-ephemeral-group):  Autoload.
-	(url-nntp-default-port, url-news-default-port, url-nntp): Deleted.
+	(url-nntp-default-port, url-news-default-port, url-nntp): Delete.
 	(url-news-fetch-newsgroup): Declare gnus-group-buffer special.
 
 	* lisp/url-util.el (mule-decode-string): Don't autoload.
@@ -718,18 +706,15 @@
 	* lisp/url-http.el: Doc fixes.
 	(url-http-create-request): Rearrange how we assemble the request.
 	Avoid generating bogus requests with an empty real-fname.
-	(url-http-handle-authentication): Declare status and success
-	special.
+	(url-http-handle-authentication): Declare status and success special.
 	(url-http): Call mm-disable-multibyte.  Set process buffer's
 	coding systems to binary.
 
 	* lisp/url-misc.el (url-data): Call mm-disable-multibyte.
 
-	* lisp/url-file.el: Don't require mule-sysdp.  Fix `file-truname'
-	typo.
+	* lisp/url-file.el: Don't require mule-sysdp.  Fix `file-truname' typo.
 	(url-file-find-possibly-compressed-file): Doc fix.
-	(url-file): Bind coding-system-for-read.  Call
-	mm-disable-multibyte.
+	(url-file): Bind coding-system-for-read.  Call mm-disable-multibyte.
 
 	* lisp/url-cache.el: Don't require mule-sysdp.
 	(url-store-in-cache): Avoid mule-write-region-no-coding-system.
@@ -739,8 +724,8 @@
 
 2001-05-14  Dave Love  <fx@gnu.org>
 
-	* lisp/url-http.el (url-http-create-request): Declare
-	proxy-object, proxy-info special.
+	* lisp/url-http.el (url-http-create-request):
+	Declare proxy-object, proxy-info special.
 	(url-http-handle-authentication): Declare success special.
 
 2001-05-12  Dave Love  <fx@gnu.org>
@@ -749,8 +734,8 @@
 
 2001-05-10  Dave Love  <fx@gnu.org>
 
-	* lisp/url-http.el (url-http-generic-after-change-function): Make
-	it permanent-local.
+	* lisp/url-http.el (url-http-generic-after-change-function):
+	Make it permanent-local.
 
 2001-05-05  Dave Love  <fx@gnu.org>
 
@@ -769,12 +754,10 @@
 	(url-file-build-filename): Bind pos-index.
 	(url-file): Call url-find-file-dired, not url-dired-find-file.
 
-	* lisp/url-dired.el: Add copyright notice.  Autoload some
-	functions.
+	* lisp/url-dired.el: Add copyright notice.  Autoload some functions.
 	(url-dired-minor-mode-map): Use (featurep 'xemacs).
 	(url-dired-find-file-mouse): Use mouse-set-point, not event-point.
-	(url-find-file-dired): Renamed from one version of
-	url-dired-find-file.
+	(url-find-file-dired): Rename from one version of url-dired-find-file.
 
 	* lisp/url-cid.el: Don't require widget.  Require mm-decode
 	unconditionally.
@@ -794,19 +777,18 @@
 	* lisp/url-handlers.el (url-file-local-copy): Use make-temp-file,
 	not non-existent mailcap-generate-unique-filename.
 
-	* lisp/url-privacy.el: Require url-vars.  Require cl when
-	compiling.
+	* lisp/url-privacy.el: Require url-vars.  Require cl when compiling.
 
-	* lisp/url-parse.el: Require url-vars.  Autoload
-	url-scheme-get-property.
+	* lisp/url-parse.el: Require url-vars.
+	Autoload url-scheme-get-property.
 
 	* lisp/url-nfs.el: Require cl when compiling.  Test for XEmacs
 	with featurep.
 
 	* lisp/url-mailto.el: Require cl when compiling.
 
-	* lisp/url-cookie.el (url-cookie-handle-set-cookie): Call
-	url-parse-args, not url-util-parse-args.
+	* lisp/url-cookie.el (url-cookie-handle-set-cookie):
+	Call url-parse-args, not url-util-parse-args.
 
 	* lisp/url-cache.el (url-cache-expired): Remove bogus `return'.
 
@@ -847,18 +829,17 @@
 	autoload other has functions rather than using cl-...hash.
 	(url-warn): Define.
 
-	* lisp/url-ns.el, lisp/url-methods.el, lisp/url-http.el:  Avoid
-	cl-...hash functions.
+	* lisp/url-ns.el, lisp/url-methods.el, lisp/url-http.el:
+	Avoid cl-...hash functions.
 
 	* lisp/url-history.el: Avoid cl-...hash functions.
 	(url): Require.
 
-	* lisp/url-gw.el, lisp/url-cookie.el:  Require cl only when
-	compiling.
+	* lisp/url-gw.el, lisp/url-cookie.el:  Require cl only when compiling.
 
 2000-10-03  William M. Perry  <wmperry@aventail.com>
 
-	* lisp/url-util.el (url-get-url-at-point): guard against 'url'
+	* lisp/url-util.el (url-get-url-at-point): Guard against 'url'
 	getting set to nil due to bad string matching.  Subsequent matches
 	would then choke because we passed string-match a nil.
 
@@ -870,7 +851,7 @@
 2000-10-02  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/url-http.el (url-http-chunked-encoding-after-change-function):
-	implemented chunked transfer-coding.
+	implement chunked transfer-coding.
 	(url-http-create-request): We can now advertise ourselves as a 1.1
 	compliant browser!
 
@@ -878,15 +859,13 @@
 
 	* lisp/url-methods.el (url-scheme-default-loader): `callback' and
 	`cbargs' are optional args (for calling from w3).
-	(url-scheme-register-proxy): typos fixes: `url-match' replaced
+	(url-scheme-register-proxy): Typos fixes: `url-match' replaced
 	with `string-match' and `protocol' with `scheme'.
 
 2000-07-18  Sam Steingold  <sds@gnu.org>
 
-	* lisp/url-handlers.el (require 'url): For
-	`url-retrieve-synchronously'.
-	* lisp/url-history.el (url-history-save-interval): Avoid
-	circularity.
+	* lisp/url-handlers.el (require 'url): For url-retrieve-synchronously.
+	* lisp/url-history.el (url-history-save-interval): Avoid circularity.
 
 2000-07-10  William M. Perry  <wmperry@aventail.com>
 
@@ -895,10 +874,9 @@
 	instead of letting whoever call us signal an error when they try
 	to insert the character.
 	(mule-make-iso-character): Also wrap the whole thing in a
-	condition case and return "~" on error, in case make-char bombs on
-	us.
+	condition case and return "~" on error, in case make-char bombs on us.
 
-	* lisp/url-cid.el (url-cid): Fixed stupid mistake in the loader
+	* lisp/url-cid.el (url-cid): Fix stupid mistake in the loader
 	for cid parts.
 
 	* lisp/url-util.el (url-display-percentage): New routine that uses
@@ -912,8 +890,7 @@
 2000-01-27  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/url-file.el (url-file-build-filename): Work around for
-	differences in ange-ftp / efs handling of port numbers other than
-	21.
+	differences in ange-ftp / efs handling of port numbers other than 21.
 
 1999-12-24  William M. Perry  <wmperry@aventail.com>
 
@@ -921,8 +898,7 @@
 	IRC URL so people don't think I'm crazy.
 
 	* configure.in: Checks to make sure that Gnus was found, since we
-	HAVE to have it now.  Removed conditional compilation of
-	url-cid.el
+	HAVE to have it now.  Removed conditional compilation of url-cid.el
 
 1999-12-16  Eric Marsden <emarsden@mail.dotcom.fr>
 
@@ -931,7 +907,7 @@
 
 1999-12-14  William M. Perry  <wmperry@aventail.com>
 
-	* lisp/url-misc.el (url-man): Implemented `man' URL types.
+	* lisp/url-misc.el (url-man): Implement `man' URL types.
 	(url-info): Autoload.
 	(url-man): Ditto.
 	(url-rlogin): Ditto.
@@ -975,8 +951,7 @@
 
 	* lisp/url-imap.el (url-imap-open-host): Need to bind
 	nnimap-server-buffer or `nnimap-open-server' chokes trying to use
-	the current buffer as the IMAP server buffer, which fails
-	miserably.
+	the current buffer as the IMAP server buffer, which fails miserably.
 
 1999-12-11  Simon Josefsson <jas@pdc.kth.se>
 
@@ -1009,8 +984,8 @@
 	* lisp/mule-sysdp.el (mule-code-convert-region): Deal with Mule
 	4.1 gracefully
 
-	* lisp/url-news.el: Reimplemented news and nntp URL support.  No
-	longer bothers to check for outdated Gnus versions, since this
+	* lisp/url-news.el: Reimplemented news and nntp URL support.
+	No longer bothers to check for outdated Gnus versions, since this
 	will not work without them anyway.
 
 1999-12-05  Dave Love  <fx@gnu.org>
@@ -1033,7 +1008,7 @@
 	well as efs.
 	(url-file): Add default content-type of application/octet-stream if none
 	known.
-	(url-file): Corrected bad call to url-host-is-local-p
+	(url-file): Correct bad call to url-host-is-local-p
 
 	* lisp/url-handlers.el (url-insert-file-contents): Emacs doesn't
 	like buffer-substring with nil arguments.
@@ -1072,8 +1047,7 @@
 	working.
 
 	* lisp/url-parse.el (url-generic-parse-url): Fix bad call to
-	url-parse-args, which had changed the type of arguments it
-	expects.
+	url-parse-args, which had changed the type of arguments it expects.
 
 	* lisp/url-handlers.el (url-insert-file-contents): Ditto.
 	(url-copy-file): Ditto.
@@ -1087,18 +1061,16 @@
 	this always return 't' instead of 'yes' on successfully finding
 	the library.
 
-	* lisp/url-http.el (url-http-parse-headers): Added some
+	* lisp/url-http.el (url-http-parse-headers): Add some
 	DAV-specific error codes.
 
-	* lisp/url.el (url-retrieve): Allow pre-parsed URLs to be passed
-	in.
+	* lisp/url.el (url-retrieve): Allow pre-parsed URLs to be passed in.
 	(url-retrieve-synchronously): Duh, make this function actually
 	work again.  Numerous problems with it, including variable name
 	collisions - I love dynamically scoped lisps!
 
 	* lisp/url-nfs.el (url-nfs-create-wrapper): New function to create
-	wrappers onto the appropriate file-based URLs for
-	file-name-handlers.
+	wrappers onto the appropriate file-based URLs for file-name-handlers.
 
 	* lisp/url-ftp.el: Moved the FTP stuff into it's own file - it
 	might get messy with file-name-handlers and things.
@@ -1108,13 +1080,12 @@
 	region during an after-change-function.
 
 	* lisp/url-methods.el (url-scheme-methods): New variable that
-	holds a list of the methods/variables we look for in a URL
-	scheme.
+	holds a list of the methods/variables we look for in a URL scheme.
 	(url-scheme-get-property): Use it.
 
 1999-11-29  William M. Perry  <wmperry@aventail.com>
 
-	* lisp/url-http.el (url-http-file-attributes): Reimplemented.
+	* lisp/url-http.el (url-http-file-attributes): Reimplement.
 	(url-http-file-exists-p): Ditto.
 
 	* lisp/url-nfs.el: Reimplemented the `nfs' URL scheme.
@@ -1139,10 +1110,10 @@
 	* url-methods.el (url-scheme-get-property): Emacs does not have
 	the 3rd-argument to plist-get to specify the default.  *sigh*
 
-	* url-dired.el (add-minor-mode): Added definition for Emacs.
+	* url-dired.el (add-minor-mode): Add definition for Emacs.
 
-	* url-http.el (url-http-generic-after-change-function): New
-	function, since Emacs does not allow you to change the
+	* url-http.el (url-http-generic-after-change-function):
+	New function, since Emacs does not allow you to change the
 	after-change-functions variable from within a function run by
 	said hook.  This just hands it off to the REAL function.
 	Side-effect is that this now works on Emacs at all. :)
