@@ -1,3 +1,11 @@
+2000-08-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-find-emacs-command-nodes): Rewrite to use
+	technique similar to Info-index, instead of relying on specific
+	names of relevant Index nodes.
+	(Info-goto-emacs-command-node): Bind Info-history to nil when
+	going to the first node found by Info-find-emacs-command-nodes.
+
 2000-08-11  eliz  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-help-menu): Add a :help string.
