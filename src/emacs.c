@@ -39,13 +39,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/ioctl.h>
 #endif
 
+#ifdef HAVE_TERMIOS
+#include <termios.h>
+#endif
+
 #ifdef APOLLO
 #ifndef APOLLO_SR10
 #include <default_acl.h>
 #endif
 #endif
 
-#undef NULL
 #include "lisp.h"
 #include "commands.h"
 
@@ -107,13 +110,10 @@ int fatal_error_code;
 int fatal_error_in_progress;
 
 /* Handle bus errors, illegal instruction, etc. */
+SIGTYPE
 fatal_error_signal (sig)
      int sig;
 {
-#ifdef BSD
-  int tpgrp;
-#endif /* BSD */
-
   fatal_error_code = sig;
   signal (sig, SIG_DFL);
 
@@ -124,15 +124,23 @@ fatal_error_signal (sig)
   fatal_error_in_progress = 1;
 
   /* If we are controlling the terminal, reset terminal modes */
-#ifdef BSD
-  if (ioctl(0, TIOCGPGRP, &tpgrp) == 0
-      && tpgrp == getpgrp (0))
-#endif /* BSD */
-    {
-      reset_sys_modes ();
-      if (sig != SIGTERM)
-	fprintf (stderr, "Fatal error (%d).", sig);
-    }
+#if defined(TIOCGPGRP) || defined(HAVE_TERMIOS)
+  {
+    int tpgrp;
+    if (
+#ifdef HAVE_TERMIOS
+	(tpgrp = tcgetpgrp (0)) != -1
+#else
+	ioctl(0, TIOCGPGRP, &tpgrp) == 0
+#endif
+	&& tpgrp == getpgrp (0))
+      {
+	reset_sys_modes ();
+	if (sig != SIGTERM)
+	  fprintf (stderr, "Fatal error (%d).", sig);
+      }
+  }
+#endif /* uses pgrp */
 
   /* Clean up */
 #ifdef subprocesses
@@ -410,9 +418,6 @@ main (argc, argv, envp)
     }
 
   init_alloc ();
-#ifdef MAINTAIN_ENVIRONMENT
-  init_environ ();
-#endif
   init_eval ();
   init_data ();
   init_lread ();
@@ -454,9 +459,6 @@ main (argc, argv, envp)
 	 for the sake of symbols like error-message */
       syms_of_data ();
       syms_of_alloc ();
-#ifdef MAINTAIN_ENVIRONMENT
-      syms_of_environ ();
-#endif /* MAINTAIN_ENVIRONMENT */
       syms_of_lread ();
       syms_of_print ();
       syms_of_eval ();
@@ -574,7 +576,7 @@ all of which are called before Emacs is actually killed.")
   if (feof (stdin))
     arg = Qt;
 
-  if (!NULL (Vrun_hooks) && !noninteractive)
+  if (!NILP (Vrun_hooks) && !noninteractive)
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
 #ifdef subprocesses
@@ -677,7 +679,7 @@ and announce itself normally when it is run.")
 
   CHECK_STRING (intoname, 0);
   intoname = Fexpand_file_name (intoname, Qnil);
-  if (!NULL (symname))
+  if (!NILP (symname))
     {
       CHECK_STRING (symname, 0);
       if (XSTRING (symname)->size)
@@ -697,7 +699,7 @@ and announce itself normally when it is run.")
   malloc_init (&my_edata, malloc_warning);
 #endif
   unexec (XSTRING (intoname)->data,
-	  !NULL (symname) ? XSTRING (symname)->data : 0, &my_edata, 0, 0);
+	  !NILP (symname) ? XSTRING (symname)->data : 0, &my_edata, 0, 0);
 #endif /* not VMS */
 
   Vpurify_flag = tem;
@@ -724,7 +726,10 @@ decode_env_path (evarname, defalt)
 
   Lisp_Object lpath;
 
-  path = (char *) egetenv (evarname);
+  /* It's okay to use getenv here, because this function is only used
+     to initialize variables when Emacs starts up, and isn't called
+     after that.  */
+  path = (char *) getenv (evarname);
   if (!path)
     path = defalt;
   lpath = Qnil;
