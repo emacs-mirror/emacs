@@ -897,8 +897,8 @@ of a global face.  Value is the new attribute value."
   "Read the name of a font for FACE on FRAME.
 If optional argument FRAME Is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
-    (completing-read "Set font attributes of face %s from font: "
-		     face (x-list-fonts "*" nil frame))))
+    (completing-read (format "Set font attributes of face %s from font: " face)
+		     (mapcar 'list (x-list-fonts "*" nil frame)))))
 
 
 (defun read-all-face-attributes (face &optional frame)
@@ -1036,7 +1036,8 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:strike-through . "Strike-through")
 		  (:box . "Box")
 		  (:inverse-video . "Inverse")
-		  (:stipple . "Stipple")))
+		  (:stipple . "Stipple")
+		  (:font . "Font or fontset")))
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))
     (with-output-to-temp-buffer "*Help*"
