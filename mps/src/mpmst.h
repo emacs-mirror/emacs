@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.64) $
+ * $HopeName: MMsrc!mpmst.h(trunk.65) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -562,6 +562,34 @@ typedef struct TraceStruct {
   Count reclaimCount;           /* segments reclaimed */
   Count reclaimSize;            /* bytes reclaimed */
 } TraceStruct;
+
+/* Miscellaneous trace support structures
+ *
+ * These structures are used as closures for various
+ * tracer scanning functions.
+ */
+
+/* SIGTRaceScanSeG */
+#define TraceScanSegClosureSig ((Sig)0x51926559)
+typedef struct TraceScanSegClosureStruct {
+  Sig sig;
+  Seg seg;
+} TraceScanSegClosureStruct;
+
+/* SIGTRaceScanSingleRef */
+#define TraceScanSingleRefClosureSig ((Sig)0x51926556)
+typedef struct TraceScanSingleRefClosureStruct {
+  Sig sig;
+  Seg seg;
+  Ref *refLocation;
+} TraceScanSingleRefClosureStruct;
+
+/* SIGTRaceScanRooT */
+#define TraceScanRootClosureSig ((Sig)0x51926562)
+typedef struct TraceScanRootClosureStruct {
+  Sig sig;
+  Root root;
+} TraceScanRootClosureStruct;
 
 
 /* ActionStruct -- action structure

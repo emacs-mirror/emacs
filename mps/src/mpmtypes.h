@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.56) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.57) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -131,14 +131,26 @@ typedef Bool (*ArenaSegFirstMethod)(Seg *segReturn, Arena arena);
 typedef Bool (*ArenaSegNextMethod)(Seg *segReturn, Arena arena, Addr addr);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
 
-typedef unsigned MessageType;           /* design.mps.message */
-typedef struct MessageStruct *Message;  /* design.mps.message */
-typedef struct MessageClassStruct *MessageClass; /* design.mps.message */
+
+/* Messages
+ *
+ * See design.mps.message */
+typedef unsigned MessageType;
+typedef struct MessageStruct *Message;
+typedef struct MessageClassStruct *MessageClass;
 
 
 /* TraceFixMethod */
 
 typedef Res (*TraceFixMethod)(ScanState ss, Ref *refIO);
+
+/* Other trace.c stuff */
+
+typedef Res (*TraceScanMethod)
+  (TraceSet, Rank, Arena, void *, unsigned long);
+typedef struct TraceScanSegClosureStruct *TraceScanSegClosure;
+typedef struct TraceScanSingleRefClosureStruct *TraceScanSingleRefClosure;
+typedef struct TraceScanRootClosureStruct *TraceScanRootClosure;
 
 
 /* Heap Walker */

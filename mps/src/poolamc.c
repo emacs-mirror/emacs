@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.18) $
+ * $HopeName: MMsrc!poolamc.c(trunk.19) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.18) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.19) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -944,19 +944,15 @@ static Res AMCAct(Pool pool, Action action)
       goto failCondemn;
   }
 
-  res = TraceStart(trace, TraceMortalityEstimate,
-                   AMCGen0Frequency * TraceGen0IncrementalityMultiple
-                   * 1024*1024uL);
-  if(res != ResOK)
-    goto failStart;
+  TraceStart(trace, TraceMortalityEstimate,
+             AMCGen0Frequency * TraceGen0IncrementalityMultiple
+             * 1024*1024uL);
 
   /* Make sure the generation collection time gets updated even */
   /* if the collection is empty. */
   gen->collected = ArenaMutatorAllocSize(arena);
   return ResOK;
 
-failStart:
-  NOTREACHED;
 failCondemn:
   NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
 failBegin:

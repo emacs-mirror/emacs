@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.59) $
+ * $HopeName: MMsrc!pool.c(trunk.60) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.59) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.60) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -878,21 +878,14 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
       /* Check that the reference is aligned to a word boundary */
       /* (we assume it is not a reference otherwise) */
       if(WordIsAligned((Word)ref, sizeof(Word))) {
-        TraceSet ts;
+	TraceScanSingleRefClosureStruct closure;
 
-        ts = arena->flippedTraces;
+	TraceScanSingleRefClosureInit(&closure, seg, (Ref *)addr);
         /* See the note in TraceSegAccess about using RankEXACT here */
         /* (impl.c.trace.scan.conservative) */
-        res = TraceScanSingleRef(ts, arena, seg, RankEXACT, (Ref *)addr);
-        if(res != ResOK) {
-          TraceId ti;
-          /* enter emergency tracing mode */
-          for(ti = 0; ti < TRACE_MAX; ++ti) {
-            ArenaTrace(arena, ti)->emergency = TRUE;
-          }
-          res = TraceScanSingleRef(ts, arena, seg, RankEXACT, (Ref *)addr);
-        }
-        AVER(res == ResOK);
+	TraceScan(TraceScanSingleRef, arena->flippedTraces, RankEXACT,
+				      arena, &closure, 0);
+	TraceScanSingleRefClosureFinish(&closure);
       }
     }
     res = ProtStepInstruction(context);
@@ -1058,13 +1051,10 @@ Res PoolCollectAct(Pool pool, Action action)
 
   /* @@@@ mortality and finishing time are set to reasonable values, */
   /* while we wait for a more intelligent strategy. */
-  res = TraceStart(trace, 0.5, 0.5 * trace->condemned);
-  if(res != ResOK)
-    goto failStart;
+  TraceStart(trace, 0.5, 0.5 * trace->condemned);
 
   return ResOK;
 
-failStart:
 failAddWhite:
   NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
 failBegin:
