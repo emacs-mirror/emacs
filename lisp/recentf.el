@@ -108,7 +108,7 @@ If nil add it at top level (see also `easy-menu-change')."
                  (sexp :tag "Menu Path"))
   :set 'recentf-menu-customization-changed)
 
-(defcustom recentf-menu-before "open-file"
+(defcustom recentf-menu-before "Open File..."
   "*Name of the menu before which the recentf menu will be added.
 If nil add it at end of menu (see also `easy-menu-change')."
   :group 'recentf
