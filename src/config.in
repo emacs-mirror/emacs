@@ -47,6 +47,9 @@ and this notice must be preserved on all copies.  */
    Otherwise, Emacs expects to use version 10.  */
 #undef HAVE_X11
 
+/* Define if using an X toolkit.  */
+#undef USE_X_TOOLKIT
+
 /* Define this if you're using XFree386.  */
 #undef HAVE_XFREE386
 
