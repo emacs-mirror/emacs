@@ -1,9 +1,14 @@
-EBNF (Extended Backus Normal Form) description of the format of the tags
-file created by etags.c and interpreted by etags.el
+This file contains two sections:
+
+1) An EBNF (Extended Backus Normal Form) description of the format of
+   the tags file created by etags.c and interpreted by etags.el 
+2) A discussion of tag names and implicit tag names
+
+======================= EBNF tag file description =======================
 
 Productions created from current behaviour to aid extensions
 Francesco Potorti` <pot@gnu.org> 2002
-================================================================
+----------------
 
 FF ::= #x0c				   /* tag section starter */
 
@@ -46,3 +51,41 @@ tagname ::= regchar regstring		   /* a tag name */
 position ::= realposition | "," 	   /* charpos,linepos */
 
 realposition ::= "," unsint | unsint "," | unsint "," unsint
+
+==================== end of EBNF tag file description ====================
+
+
+
+======================== discussion on tag names =========================
+
+- What are tag names
+Tag lines in a tags file are usually made from the above defined pattern
+and by an optional tag name.  The pattern is a string that is searched
+in the source file to find the tagged line.
+
+- Why tag names are good
+When a user looks for a tag, Emacs first compares the tag with the tag
+names contained in the tags file.  If no match is found, Emacs compares
+the tag with the patterns.  The tag name is then the preferred way to
+look for tags in the tags file, because when the tag name is present
+Emacs can find a tag faster and more accurately.  These tag names are
+part of tag lines in the tags file, so we call them "explicit".
+
+- Why implicit tag names are even better
+The purpose of implicit tag names is to reduce the number of tag names
+in a tags file, thus reducing the size of the tags file.  When the user
+looks for a tag, and Emacs founds no explicit tag names that match it,
+Emacs then tries to match the tag with an implicit tag name.  Such a
+match occurs when the tag matches a pattern, subject to the satisfaction
+of all the following four rules:
+
+ NONAM=" \f\t\n\r()=,;";
+  1. the tag does not contain any of the characters in NONAM;
+  2. the pattern contains the tag as either a rightmost, or rightmost
+     but one character, substring;
+  3. the character, if any, immediately before the tag in the pattern
+     must be a character in NONAM;
+  4. the character, if any, immediately after the tag in the pattern
+     must also be a character in NONAM.
+
+===================== end of discussion on tag names =====================
