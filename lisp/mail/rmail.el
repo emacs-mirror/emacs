@@ -67,8 +67,10 @@ value is the user's name.)
 It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
-(defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^message-id:\\|^summary-line:" "\
-*Regexp to match Header fields that Rmail should normally hide.")
+(defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|\
+^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|\
+^x400-mts-identifier:\\|^x400-content-type:\\|^message-id:\\|^summary-line:"
+  "*Regexp to match Header fields that Rmail should normally hide.")
 
 ;;;###autoload
 (defvar rmail-highlighted-headers "^From:\\|^Subject:" "\
