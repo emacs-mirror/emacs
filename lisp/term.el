@@ -670,12 +670,18 @@ without any interpretation."
 (defun term-mouse-paste (click arg)
   "Insert the last stretch of killed text at the position clicked on."
   (interactive "e\nP")
-  (mouse-set-point click)
-  (setq this-command 'yank)
-  (term-send-raw-string (current-kill (cond
-				       ((listp arg) 0)
-				       ((eq arg '-) -1)
-				       (t (1- arg))))))
+  (term-if-xemacs
+   (term-send-raw-string (or (condition-case () (x-get-selection) (error ()))
+			     (x-get-cutbuffer)
+			     (error "No selection or cut buffer available"))))
+  (term-ifnot-xemacs
+   ;; Give temporary modes such as isearch a chance to turn off.
+   (run-hooks 'mouse-leave-buffer-hook)
+   (setq this-command 'yank)
+   (term-send-raw-string (current-kill (cond
+					((listp arg) 0)
+					((eq arg '-) -1)
+					(t (1- arg)))))))
 
 ;; Which would be better:  "\e[A" or "\eOA"? readline accepts either.
 (defun term-send-up    () (interactive) (term-send-raw-string "\e[A"))
