@@ -2336,7 +2336,8 @@ macros."
 	     (error nil))
 	   (eq (car-safe object) 'autoload)
 	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (subrp object) (byte-code-function-p object)
+      (subrp object)
+      (funvecp object)
       (eq (car-safe object) 'lambda)))
 
 (defun assq-delete-all (key alist)

@@ -9711,7 +9711,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
       return Fexecute_kbd_macro (final, prefixarg, Qnil);
     }
 
-  if (CONSP (final) || SUBRP (final) || COMPILEDP (final))
+  if (CONSP (final) || SUBRP (final) || FUNVECP (final))
     {
       backtrace.next = backtrace_list;
       backtrace_list = &backtrace;

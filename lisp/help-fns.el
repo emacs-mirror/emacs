@@ -273,7 +273,7 @@ face (according to `face-differs-from-default-p')."
     doc))
 
 (defun help-highlight-arguments (usage doc &rest args)
-  (when usage
+  (when (and usage (string-match "^(" usage))
     (with-temp-buffer
       (insert usage)
       (goto-char (point-min))
@@ -316,6 +316,13 @@ face (according to `face-differs-from-default-p')."
 		   (concat beg "built-in function")))
 		((byte-code-function-p def)
 		 (concat beg "compiled Lisp function"))
+		((and (funvecp def) (eq (aref def 0) 'curry))
+		 (if (symbolp (aref def 1))
+		     (format "a curried function calling `%s'" (aref def 1))
+		   "a curried function"))
+		((funvecp def)
+		 (format "a function-vector (funvec) of type `%s'"
+			 (aref def 0)))
 		((symbolp def)
 		 (while (symbolp (symbol-function def))
 		   (setq def (symbol-function def)))
@@ -435,9 +442,25 @@ face (according to `face-differs-from-default-p')."
                         ((or (stringp def)
                              (vectorp def))
                          (format "\nMacro: %s" (format-kbd-macro def)))
+			((and (funvecp def) (eq (aref def 0) 'curry))
+			 ;; Describe a curried-function's function and args
+			 (let ((slot 0))
+			   (mapconcat (lambda (arg)
+					(setq slot (1+ slot))
+					(cond
+					 ((= slot 1) "")
+					 ((= slot 2)
+					  (format "  Function: %S" arg))
+					 (t
+					  (format "Argument %d: %S"
+						  (- slot 3) arg))))
+				      def
+				      "\n")))
+			((funvecp def) nil)
                         (t "[Missing arglist.  Please make a bug report.]")))
                  (high (help-highlight-arguments use doc)))
-            (insert (car high) "\n")
+	    (when (car high)
+	      (insert (car high) "\n"))
             (setq doc (cdr high))))
         (let ((obsolete (and
                          ;; function might be a lambda construct.

@@ -21,7 +21,9 @@ define them.
 * Anonymous Functions::   Lambda expressions are functions with no names.
 * Function Cells::        Accessing or setting the function definition
                             of a symbol.
-* Inline Functions::	  Defining functions that the compiler will open code.
+* Inline Functions::      Defining functions that the compiler will open code.
+* Function Currying::     Making wrapper functions that pre-specify
+                            some arguments.
 * Function Safety::       Determining whether a function is safe to call.
 * Related Topics::        Cross-references to specific Lisp primitives
                             that have a special bearing on how functions work.
@@ -109,7 +111,25 @@ editors; for Lisp programs, the distinction is normally unimportant.
 
 @item byte-code function
 A @dfn{byte-code function} is a function that has been compiled by the
-byte compiler.  @xref{Byte-Code Type}.
+byte compiler.  A byte-code function is actually a special case of a
+@dfn{funvec} object (see below).
+
+@item function vector
+A @dfn{function vector}, or @dfn{funvec} is a vector-like object whose
+purpose is to define special kinds of functions.  @xref{Funvec Type}.
+
+The exact meaning of the vector elements is determined by the type of
+funvec: the most common use is byte-code functions, which have a
+list---the argument list---as the first element.  Further types of
+funvec object are:
+
+@table @code
+@item curry
+A curried function.  Remaining arguments in the funvec are function to
+call, and arguments to prepend to user arguments at the time of the
+call; @xref{Function Currying}.
+@end table
+
 @end table
 
 @defun functionp object
@@ -148,6 +168,11 @@ function.  For example:
      @result{} t
 @end group
 @end example
+@end defun
+
+@defun funvecp object
+@code{funvecp} returns @code{t} if @var{object} is a function vector
+object (including byte-code objects), and @code{nil} otherwise.
 @end defun
 
 @defun subr-arity subr
@@ -1196,6 +1221,49 @@ do for macros.  (@xref{Argument Evaluation}.)
 
 Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
+
+@node Function Currying
+@section Function Currying
+@cindex function currying
+@cindex currying
+@cindex partial-application
+
+Function currying is a way to make a new function that calls an
+existing function with a partially pre-determined argument list.
+
+@defun curry function &rest args
+Return a function-like object that will append any arguments it is
+called with to @var{args}, and call @var{function} with the resulting
+list of arguments.
+
+For example, @code{(curry 'concat "The ")} returns a function that
+concatenates @code{"The "} and its arguments.  Calling this function
+on @code{"end"} returns @code{"The end"}:
+
+@example
+(funcall (curry 'concat "The ") "end")
+     @result{} "The end"
+@end example
+
+The @dfn{curried function} is useful as an argument to @code{mapcar}:
+
+@example
+(mapcar (curry 'concat "The ") '("big" "red" "balloon"))
+     @result{} ("The big" "The red" "The balloon")
+@end example
+@end defun
+
+Function currying may be implemented in any Lisp by constructing a
+@code{lambda} expression, for instance:
+
+@example
+(defun curry (function &rest args)
+  `(lambda (&rest call-args)
+      (apply #',function ,@@args call-args)))
+@end example
+
+However in Emacs Lisp, a special curried function object is used for
+efficiency.  @xref{Funvec Type}.
 
 @node Function Safety
 @section Determining whether a function is safe to call

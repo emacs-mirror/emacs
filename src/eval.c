@@ -93,6 +93,7 @@ Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
+Lisp_Object Qcurry;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -2129,7 +2130,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  abort ();
 	}
     }
-  if (COMPILEDP (fun))
+  if (FUNVECP (fun))
     val = apply_lambda (fun, original_args, 1);
   else
     {
@@ -2780,7 +2781,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  abort ();
 	}
     }
-  if (COMPILEDP (fun))
+
+  if (FUNVECP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
@@ -2852,6 +2854,57 @@ apply_lambda (fun, args, eval_flag)
   return tem;
 }
 
+
+/* Call a non-bytecode funvec object FUN, on the argments in ARGS (of
+   length NARGS).  */
+
+static Lisp_Object
+funcall_funvec (fun, nargs, args)
+     Lisp_Object fun;
+     int nargs;
+     Lisp_Object *args;
+{
+  int size = FUNVEC_SIZE (fun);
+  Lisp_Object tag = (size > 0 ? AREF (fun, 0) : Qnil);
+
+  if (EQ (tag, Qcurry))
+    {
+      /* A curried function is a way to attach arguments to a another
+	 function. The first element of the vector is the identifier
+	 `curry', the second is the wrapped function, and remaining
+	 elements are the attached arguments.  */
+      int num_curried_args = size - 2;
+      /* Offset of the curried and user args in the final arglist.  Curried
+	 args are first in the new arg vector, after the function.  User
+	 args follow.  */
+      int curried_args_offs = 1;
+      int user_args_offs = curried_args_offs + num_curried_args;
+      /* The curried function and arguments.  */
+      Lisp_Object *curry_params = XVECTOR (fun)->contents + 1;
+      /* The arguments in the curry vector.  */
+      Lisp_Object *curried_args = curry_params + 1;
+      /* The number of arguments with which we'll call funcall, and the
+	 arguments themselves.  */
+      int num_funcall_args = 1 + num_curried_args + nargs;
+      Lisp_Object *funcall_args
+	= (Lisp_Object *) alloca (num_funcall_args * sizeof (Lisp_Object));
+
+      /* First comes the real function.  */
+      funcall_args[0] = curry_params[0];
+
+      /* Then the arguments in the appropriate order.  */
+      bcopy (curried_args, funcall_args + curried_args_offs,
+	     num_curried_args * sizeof (Lisp_Object));
+      bcopy (args, funcall_args + user_args_offs,
+	     nargs * sizeof (Lisp_Object));
+
+      return Ffuncall (num_funcall_args, funcall_args);
+    }
+  else
+    return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+}
+
+
 /* Apply a Lisp function FUN to the NARGS evaluated arguments in ARG_VECTOR
    and return the result of evaluation.
    FUN must be either a lambda-expression or a compiled-code object.  */
@@ -2865,6 +2918,11 @@ funcall_lambda (fun, nargs, arg_vector)
   Lisp_Object val, syms_left, next;
   int count = SPECPDL_INDEX ();
   int i, optional, rest;
+
+  if (FUNVECP (fun) && !FUNVEC_COMPILED_P (fun))
+    /* Byte-compiled functions are handled directly below, but we
+       call other funvec types via funcall_funvec.  */
+    return funcall_funvec (fun, nargs, arg_vector);
 
   if (CONSP (fun))
     {
@@ -3133,6 +3191,27 @@ unbind_to (count, value)
   return value;
 }
 
+
+DEFUN ("curry", Fcurry, Scurry, 1, MANY, 0,
+       doc: /* Return FUN curried with ARGS.
+The result is a function-like object that will append any arguments it
+is called with to ARGS, and call FUN with the resulting list of arguments.
+
+For instance:
+  (funcall (curry '+ 3 4 5) 2) is the same as (funcall '+ 3 4 5 2)
+and:
+  (mapcar (curry 'concat "The ") '("a" "b" "c"))
+  => ("The a" "The b" "The c")
+
+usage: (curry FUN &rest ARGS)  */)
+     (nargs, args)
+     register int nargs;
+     Lisp_Object *args;
+{
+  return make_funvec (Qcurry, 0, nargs, args);
+}
+
+
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
 The debugger is entered when that frame exits, if the flag is non-nil.  */)
@@ -3342,6 +3421,9 @@ before making `inhibit-quit' nil.  */);
   Qand_optional = intern ("&optional");
   staticpro (&Qand_optional);
 
+  Qcurry = intern ("curry");
+  staticpro (&Qcurry);
+
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
 	       doc: /* *Non-nil means errors display a backtrace buffer.
 More precisely, this happens for any error that is handled
@@ -3459,6 +3541,7 @@ The value the function returns is not used.  */);
   defsubr (&Srun_hook_with_args_until_success);
   defsubr (&Srun_hook_with_args_until_failure);
   defsubr (&Sfetch_bytecode);
+  defsubr (&Scurry);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
