@@ -193,9 +193,11 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "frame.h"
 
+#ifdef HAVE_WINDOW_SYSTEM
+#include "fontset.h"
+#endif
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
-#include "fontset.h"
 #ifdef USE_MOTIF
 #include <Xm/Xm.h>
 #include <Xm/XmStrDefs.h>
@@ -3963,6 +3965,8 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
  ***********************************************************************/
 
 #ifdef USE_X_TOOLKIT
+
+#include "../lwlib/lwlib-utils.h"
 
 /* Structure used to pass X resources to functions called via
    XtApplyToWidgets.  */
