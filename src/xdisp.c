@@ -693,7 +693,8 @@ redisplay ()
 	  if (FRAME_VISIBLE_P (f))
 	    redisplay_windows (FRAME_ROOT_WINDOW (f));
 #ifdef HAVE_X_WINDOWS
-	  else if (FRAME_ICONIFIED_P (f))
+	  else if (FRAME_ICONIFIED_P (f)
+		   && ! MINI_WINDOW_P (XWINDOW (f->selected_window)))
 	    x_consider_frame_title (frame);
 #endif
 
