@@ -1913,6 +1913,8 @@ A value of nil means highlight all matches."
   '((((type tty pc) (class color))
      (:background "magenta4" :foreground "cyan1"))
     (((class color) (background light))
+     ;; The background must not be too dark, for that means
+     ;; the character is hard to see when the cursor is there.
      (:background "magenta2" :foreground "lightskyblue1"))
     (((class color) (background dark))
      (:background "palevioletred2" :foreground "brown4"))
