@@ -4776,11 +4776,11 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
       Lisp_Object prop;
 
       prop = Fget (test, Qhash_table_test);
-      if (!CONSP (prop) || XFASTINT (Flength (prop)) < 2)
+      if (!CONSP (prop) || !CONSP (XCDR (prop)))
 	Fsignal (Qerror, list2 (build_string ("Invalid hash table test"),
 				test));
-      user_test = Fnth (make_number (0), prop);
-      user_hash = Fnth (make_number (1), prop);
+      user_test = XCAR (prop);
+      user_hash = XCAR (XCDR (prop));
     }
   else
     user_test = user_hash = Qnil;
