@@ -5671,7 +5671,7 @@ x_make_frame_visible (f)
      so that incoming events are handled.  */
   {
     Lisp_Object frame;
-    int one_in_four = 0;
+    int one_in_four = 1;
     XSET (frame, Lisp_Frame, f);
     while (! f->async_visible)
       {
