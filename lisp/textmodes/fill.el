@@ -179,7 +179,8 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 			      (or first
 				  (and (not (bobp))
 				       (save-excursion (forward-char -1)
-						       (looking-at "\\. ")))))
+						       (looking-at "\\. ")
+						       (not (looking-at "\\.  "))))))
 		    (skip-chars-forward " ")
 		    (skip-chars-forward "^ \n")
 		    (setq first nil)))
