@@ -1410,10 +1410,10 @@ fullwrite (fd, buf, nbytes)
      int nbytes;
 {
   char *cp;
-  int ret;
+  int ret = 0;
 
   cp = buf;
-  while ((ret = SEND (fd, cp, nbytes, 0)) > 0)
+  while (nbytes && ((ret = SEND (fd, cp, nbytes, 0)) > 0))
     {
       cp += ret;
       nbytes -= ret;
