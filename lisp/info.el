@@ -3724,8 +3724,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
   (let ((first (nth 0 desktop-buffer-misc))
         (second (nth 1 desktop-buffer-misc)))
   (when (and first second)
-    (with-no-warnings
-      (Info-find-node first second))
+    (Info-find-node first second)
     (current-buffer))))
 
 (provide 'info)
