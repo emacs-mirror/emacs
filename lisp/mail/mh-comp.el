@@ -1,9 +1,9 @@
 ;;; mh-comp --- mh-e functions for composing messages
-;; Time-stamp: <95/04/20 19:16:23 gildea>
+;; Time-stamp: <95/08/19 17:48:59 gildea>
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
-;; This file is part of GNU Emacs.
+;; This file is part of mh-e, part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.5 1995/04/20 23:35:49 kwzh Exp kwzh $
+;; $Id: mh-comp.el,v 1.6 1995/04/25 22:28:25 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -184,6 +184,22 @@ See documentation of `\\[mh-send]' for more details on composing mail."
   (call-interactively 'mh-send))
 
 
+(defvar mh-error-if-no-draft nil)	;raise error over using old draft
+
+
+;;;###autoload
+(defun mh-smail-batch ()
+  "Set up a mail composition draft with the MH mail system.
+This function is an entry point to mh-e, the Emacs front end
+to the MH mail system.  This function does not prompt the user
+for any header fields, and thus is suitable for use by programs
+that want to create a mail buffer.
+Users should use `\\[mh-smail]' to compose mail."
+  (mh-find-path)
+  (let ((mh-error-if-no-draft t))
+    (mh-send "" "" "")))
+
+
 (defun mh-edit-again (msg)
   "Clean-up a draft or a message previously sent and make it resendable.
 Default is the current message.
@@ -201,7 +217,7 @@ See also documentation for `\\[mh-send]' function."
 		 (mh-read-draft "clean-up" (mh-msg-filename msg) nil)))))
     (mh-clean-msg-header (point-min) mh-new-draft-cleaned-headers nil)
     (goto-char (point-min))
-    (set-buffer-modified-p nil)
+    (save-buffer)
     (mh-compose-and-send-mail draft "" from-folder nil nil nil nil nil nil
 			      config)))
 
@@ -223,7 +239,7 @@ See also documentation for `\\[mh-send]' function."
 	  (t
 	   (message "Does not appear to be a rejected letter.")))
     (goto-char (point-min))
-    (set-buffer-modified-p nil)
+    (save-buffer)
     (mh-compose-and-send-mail draft "" from-folder msg
 			      (mh-get-header-field "To:")
 			      (mh-get-header-field "From:")
@@ -253,7 +269,7 @@ See also documentation for `\\[mh-send]' function."
 		       (prog1
 			   (mh-read-draft "" draft-name t)
 			 (mh-insert-fields "To:" to "Cc:" cc)
-			 (set-buffer-modified-p nil)))
+			 (save-buffer)))
 		      (t
 		       (mh-read-draft "" draft-name nil)))))
     (let (orig-from
@@ -387,7 +403,7 @@ for the reply.  See also documentation for `\\[mh-send]' function."
 				  (expand-file-name "reply" mh-user-path)
 				  t)))
 	(delete-other-windows)
-	(set-buffer-modified-p nil)
+	(save-buffer)
 	
 	(let ((to (mh-get-header-field "To:"))
 	      (subject (mh-get-header-field "Subject:"))
@@ -500,8 +516,11 @@ See also documentation for `\\[mh-send]' function."
 		  (delete-file draft-name))))))
   (cond ((and initial-contents
 	      (or (zerop (buffer-size))
-		  (not (y-or-n-p
-			(format "A draft exists.  Use for %s? " use)))))
+		  (if (y-or-n-p
+			(format "A draft exists.  Use for %s? " use))
+		      (if mh-error-if-no-draft
+			  (error "A prior draft exists."))
+		    t)))
 	 (erase-buffer)
 	 (insert-file-contents initial-contents)
 	 (if delete-contents-file (delete-file initial-contents))))
@@ -817,7 +836,6 @@ If optional prefix argument is provided, monitor delivery.
 Run mh-before-send-letter-hook before doing anything."
   (interactive "P")
   (run-hooks 'mh-before-send-letter-hook)
-  (set-buffer-modified-p t)		; Make sure buffer is written
   (save-buffer)
   (message "Sending...")
   (let ((draft-buffer (current-buffer))
@@ -986,6 +1004,7 @@ Use \\[kill-buffer] if you don't want to delete the draft message file."
 (define-key mh-letter-mode-map "\C-c\C-e" 'mh-edit-mhn)
 (define-key mh-letter-mode-map "\C-c\C-m\C-u" 'mh-revert-mhn-edit)
 
+;; "C-c /" prefix is used in mh-letter-mode by pgp.el
 
 ;;; autoloads from mh-mime
 
