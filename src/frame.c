@@ -626,13 +626,13 @@ This function selects the selected window of the frame of EVENT.\n\
 \n\
 If EVENT is frame object, handle it as if it were a switch-frame event\n\
 to that frame.")
-  (frame, no_enter)
-     Lisp_Object frame, no_enter;
+  (event, no_enter)
+     Lisp_Object event, no_enter;
 {
   /* Preserve prefix arg that the command loop just cleared.  */
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
   call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
-  return do_switch_frame (frame, no_enter, 0);
+  return do_switch_frame (event, no_enter, 0);
 }
 
 DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
@@ -1876,12 +1876,12 @@ DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
   "Specify that the frame FRAME has LINES lines.\n\
 Optional third arg non-nil means that redisplay should use LINES lines\n\
 but that the idea of the actual height of the frame should not be changed.")
-  (frame, rows, pretend)
-     Lisp_Object frame, rows, pretend;
+  (frame, lines, pretend)
+     Lisp_Object frame, lines, pretend;
 {
   register struct frame *f;
 
-  CHECK_NUMBER (rows, 0);
+  CHECK_NUMBER (lines, 0);
   if (NILP (frame))
     f = selected_frame;
   else
@@ -1894,12 +1894,12 @@ but that the idea of the actual height of the frame should not be changed.")
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      if (XINT (rows) != f->height)
-	x_set_window_size (f, 1, f->width, XINT (rows));
+      if (XINT (lines) != f->height)
+	x_set_window_size (f, 1, f->width, XINT (lines));
     }
   else
 #endif
-    change_frame_size (f, XINT (rows), 0, !NILP (pretend), 0);
+    change_frame_size (f, XINT (lines), 0, !NILP (pretend), 0);
   return Qnil;
 }
 
