@@ -63,8 +63,10 @@ feature from that of defining aliases in `.mailrc' to be expanded in Emacs.
 This variable has no effect unless your system uses sendmail as its mailer.")
 
 (defvar mail-aliases t
-  "Alias of mail address aliases,
-or t meaning should be initialized from `~/.mailrc'.")
+  "Alist of mail address aliases,
+or t meaning should be initialized from `~/.mailrc'.
+The alias definitions in `~/.mailrc' have this form:
+    alias ALIAS MEANING")
 
 (defvar mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
