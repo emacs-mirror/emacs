@@ -1,3 +1,11 @@
+2003-08-29  Thierry Emery <thierry.emery@club-internet.fr>  (tiny change)
+
+	* kinsoku.el (kinsoku-longer, kinsoku-shorter): Do not choose a
+	line break position in the middle of a non-kinsoku (e.g. latin)
+	word, making it skip until either a space or a character with
+	category "|".
+	(kinsoku-longer): Test for end of buffer.
+
 2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Detect
