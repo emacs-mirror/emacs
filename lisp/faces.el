@@ -1548,8 +1548,6 @@ Initialize colors of certain faces from frame parameters."
   "Handle the reverse-video frame parameter for terminal frames."
   (when (cdr (or (assq 'reverse parameters)
 		 (assq 'reverse default-frame-alist)))
-    (if (null window-system)
-	(setq inverse-video t))
     (let* ((params (frame-parameters frame))
 	   (bg (cdr (assq 'foreground-color params)))
 	   (fg (cdr (assq 'background-color params))))
