@@ -66,7 +66,7 @@
 	(matching_regexp): Use them instead of static variables in
 	function scope.
 
-2001-01-25  Francesco Potorti`  <pot@potorti.it>
+2001-01-25  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (struct tok): Renamed from struct token.
 	(token): Renamed from tok.
@@ -95,7 +95,7 @@
 	* ebrowse.c (xfree): New function.
 	(member, declaration, globals): Use xmalloc instead of alloca.
 
-2001-01-15  Francesco Potorti`  <pot@pot.cnuce.cnr.it>
+2001-01-15  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (print_language_names): Print filenames in addition to
 	suffixes.
@@ -351,7 +351,7 @@
 	potential signed char to int conversion problem.
 	(MSDOS): #undefine befere redefining
 
-2000-02-04  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+2000-02-04  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (many functions): Add prototypes.
 
@@ -360,7 +360,7 @@
 	* etags.c (pfnote, new_pfnote, C_entries, prolog_pred)
 	(erlang_func): Add `static' to definitions to keep pcc happy.
 
-2000-01-31  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+2000-01-31  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c [MSDOS]: Set MSDOS to 1 if #defined, 0 otherwise.
 	(get_compressor_from_suffix, process_file): Use MSDOS in if clause.
@@ -399,7 +399,7 @@
 	* movemail.c (popmail): Allow mailbox specifications of the
 	form `po:username:hostname'.
 
-1999-11-19  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1999-11-19  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (_GNU_SOURCE): Define only if undefined.
 	(get_scheme): Declaration deleted.
@@ -420,7 +420,7 @@
 
 	* etags.c (print_help): Change email address to send bugs to.
 
-1999-11-01  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1999-11-01  Francesco Potorti`  <pot@gnu.org>>
 
 	* etags.c: Add suffix psw for PSWrap.
 	(L_getit): Generalize a "cp!=' '" into "!isspace(*cp)".
@@ -474,7 +474,7 @@
 	[MSDOS]: Support DOS file names by handling e.g. foo.cgz as if it
 	were foo.c.gz.
 
-1999-11-01  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1999-11-01  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (sym_type, C_stab_entry): New constant st_C_operator.
 	(fvdev): New constant foperator.
@@ -508,7 +508,7 @@
 	(add_regex): New arg determining whether to use translation table.
 	(analyse_regex): New arg.  Use it for add_regex.
 
-1999-11-01  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1999-11-01  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (init): Cosmetic change: NULL --> '\0'.
 	(erlang_attribute): Bug corrected (uninitialized variable).
