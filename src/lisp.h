@@ -26,6 +26,12 @@ Boston, MA 02111-1307, USA.  */
 #define P_(proto) ()
 #endif
 
+/* Define this temporarily to hunt a bug.  If defined, the size of
+   strings is redundantly recorded in sdata structures so that it can
+   be compared to the sizes recorded in Lisp strings.  */
+
+#define GC_CHECK_STRING_BYTES 1
+
 
 /* These are default choices for the types to use.  */
 #ifdef _LP64
@@ -620,8 +626,19 @@ struct Lisp_Cons
   (XSTRING (STR)->size_byte >= 0)
 
 /* Return the length in bytes of STR.  */
+
+#ifdef GC_CHECK_STRING_BYTES
+
+struct Lisp_String;
+extern int string_bytes P_ ((struct Lisp_String *));
+#define STRING_BYTES(S) string_bytes ((S))
+
+#else /* not GC_CHECK_STRING_BYTES */
+
 #define STRING_BYTES(STR)  \
   ((STR)->size_byte < 0 ? (STR)->size : (STR)->size_byte)
+
+#endif /* not GC_CHECK_STRING_BYTES */
 
 /* Set the length in bytes of STR.  */
 #define SET_STRING_BYTES(STR, SIZE)  ((STR)->size_byte = (SIZE))
