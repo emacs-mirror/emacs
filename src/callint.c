@@ -498,11 +498,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
         case 'c':		/* Character */
-	  /* Use message_with_string rather than message1_nolog here,
-	     so that nothing bad happens if callint_message is changed
-	     within Fread_char (by a timer, for example).  */
-	  message_with_string ("%s", build_string (callint_message), 0);
-	  args[i] = Fread_char ();
+	  args[i] = Fread_char (build_string (callint_message), Qnil);
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
@@ -566,7 +562,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		teml = Fget (teml, intern ("event-symbol-elements"));
 		tem2 = Fmemq (intern ("down"), teml);
 		if (! NILP (tem2))
-		  Fread_event ();
+		  Fread_event (Qnil, Qnil);
 	      }
 	  }
 	  break;
@@ -593,7 +589,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		teml = Fget (teml, intern ("event-symbol-elements"));
 		tem2 = Fmemq (intern ("down"), teml);
 		if (! NILP (tem2))
-		  Fread_event ();
+		  Fread_event (Qnil, Qnil);
 	      }
 	  }
 	  break;
