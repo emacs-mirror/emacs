@@ -1059,11 +1059,15 @@ specifies that @var{n} lines of context are to be displayed before and
 after each matching line.
 
 @kindex RET @r{(Occur mode)}
+@kindex o @r{(Occur mode)}
+@kindex C-o @r{(Occur mode)}
 The buffer @samp{*Occur*} containing the output serves as a menu for
-finding the occurrences in their original context.  Click @kbd{Mouse-2}
-on an occurrence listed in @samp{*Occur*}, or position point there and
-type @key{RET}; this switches to the buffer that was searched and
-moves point to the original of the chosen occurrence.
+finding the occurrences in their original context.  Click
+@kbd{Mouse-2} on an occurrence listed in @samp{*Occur*}, or position
+point there and type @key{RET}; this switches to the buffer that was
+searched and moves point to the original of the chosen occurrence.
+@kbd{o} and @kbd{C-o} display the match in another window; @kbd{C-o}
+does not select it.
 
 @item M-x list-matching-lines
 Synonym for @kbd{M-x occur}.
