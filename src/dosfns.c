@@ -469,6 +469,13 @@ dos_cleanup (void)
 #ifndef HAVE_X_WINDOWS
   restore_parent_vm_title ();
 #endif
+  /* Make sure the termscript file is committed, in case we are
+     crashing and some vital info was written there.  */
+  if (termscript)
+    {
+      fflush (termscript);
+      fsync (fileno (termscript));
+    }
 }
 
 /*
