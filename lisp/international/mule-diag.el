@@ -660,22 +660,8 @@ which font is being used for displaying the character."
 		    "See the variable `reference-point-alist' for "
 		    "the meaning of the rule.\n")))
 	(when props
-	  (insert "\nText properties\n"))
-	;; List the text properties, sorted by the size of the printed
-	;; representation of their value.  This makes it easier to
-	;; read.
-	(dolist (elt (sort (let ((ret nil))
-			     (while props
-			       (push (cons (pop props)
-					   (prin1-to-string (pop props)))
-				     ret))
-			     ret)
-			   (lambda (a b)
-			     (< (length (cdr a))
-				(length (cdr b))))))
-	  (insert (format "  %s: %s\n" (propertize (symbol-name (car elt))
-						   'font-lock-face 'italic)
-			  (cdr elt))))))))
+	  (insert "\nText properties\n")
+	  (describe-text-properties props))))))
 
 
 ;;; CODING-SYSTEM
