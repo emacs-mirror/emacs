@@ -159,7 +159,7 @@ choose_minibuf_frame ()
 	 init_window_once.  That window doesn't have a buffer.  */
       buffer = XWINDOW (minibuf_window)->buffer;
       if (BUFFERP (buffer))
-	Fset_window_buffer (sf->minibuffer_window, buffer);
+	Fset_window_buffer (sf->minibuffer_window, buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -588,7 +588,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuf_scroll_window = selected_window;
   if (minibuf_level == 1 || !EQ (minibuf_window, selected_window))
     minibuf_selected_window = selected_window;
-  Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
+  Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
   Fselect_window (minibuf_window, Qnil);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
 
