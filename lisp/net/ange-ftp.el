@@ -543,32 +543,22 @@
 ;; aspects of ange-ftp.  New versions of ange-ftp are posted periodically to
 ;; the mailing list.
 
-;; [The following information about lists may be obsolete.]
-
 ;; To [un]subscribe to ange-ftp-lovers, or to report mailer problems with the
 ;; list, please mail one of the following addresses:
 ;;
-;;     ange-ftp-lovers-request@anorman.hpl.hp.com
-;; or
-;;     ange-ftp-lovers-request%anorman.hpl.hp.com@hplb.hpl.hp.com
+;;     ange-ftp-lovers-request@hplb.hpl.hp.com
 ;;
 ;; Please don't forget the -request part.
 ;;
 ;; For mail to be posted directly to ange-ftp-lovers, send to one of the
 ;; following addresses:
 ;;
-;;     ange-ftp-lovers@anorman.hpl.hp.com
-;; or
-;;     ange-ftp-lovers%anorman.hpl.hp.com@hplb.hpl.hp.com
+;;     ange-ftp-lovers@hplb.hpl.hp.com
 ;;
 ;; Alternatively, there is a mailing list that only gets announcements of new
 ;; ange-ftp releases.  This is called ange-ftp-lovers-announce, and can be
 ;; subscribed to by e-mailing to the -request address as above.  Please make
 ;; it clear in the request which mailing list you wish to join.
-
-;; The archives for ange-ftp-lovers can be found via anonymous ftp under:
-;;
-;;     ftp.reed.edu:pub/mailing-lists/ange-ftp/
 
 ;; -----------------------------------------------------------
 ;; Technical information on this package:
@@ -916,10 +906,11 @@ This command should stop the terminal from echoing each command, and
 arrange to strip out trailing ^M characters.")
 
 (defcustom ange-ftp-smart-gateway nil
-  "*Non-nil means the ftp gateway and/or the gateway ftp program is smart.
+  "*Non-nil says the ftp gateway (proxy) or gateway ftp program is smart.
 
 Don't bother telnetting, etc., already connected to desired host transparently,
-or just issue a user@host command in case \`ange-ftp-gateway-host\' is non-nil."
+or just issue a user@host command in case \`ange-ftp-gateway-host\' is non-nil.
+See also `ange-ftp-smart-gateway-port'."
   :group 'ange-ftp
   :type 'boolean)
 
