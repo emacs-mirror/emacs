@@ -111,6 +111,8 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
   (if (string-match "\\.el\\(c\\)\\'" library)
       (setq library (substring library 0 (match-beginning 1))))
   (let* ((path find-function-source-path)
+	 (compression (or (rassq 'jka-compr-handler file-name-handler-alist)
+			  (member 'crypt-find-file-hook find-file-hooks)))
 	 (filename (if (and (file-exists-p library)
 			    (not (file-directory-p library)))
 		       library
@@ -119,7 +121,12 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 			 (setq library (substring library 0
 						  (match-beginning 1))))
 		     (or (locate-library (concat library ".el") t path)
-			 (locate-library library t path)))))
+			 (locate-library library t path)
+			 (if compression
+			     (or (locate-library (concat library ".el.gz")
+						 t path)
+				 (locate-library (concat library ".gz")
+						 t path)))))))
     (if (not filename)
 	(error "The library \"%s\" is not in the path." library))
     (with-current-buffer (find-file-noselect filename)
