@@ -3770,7 +3770,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel Janík ml.
+	* time.el: Small doc fixes from Pavel Jan,Am(Bk ml.
 
 2000-05-05  Dave Love  <fx@gnu.org>
 
@@ -6582,3 +6582,7 @@
 	(create-image): Add parameter DATA-P.
 
 See ChangeLog.8 for earlier changes.
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:
