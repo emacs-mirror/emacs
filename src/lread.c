@@ -1136,6 +1136,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
   struct buffer *b = 0;
+  int continue_reading_p;
 
   if (BUFFERP (readcharfun))
     b = XBUFFER (readcharfun);
@@ -1153,7 +1154,8 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
 
   LOADHIST_ATTACH (sourcename);
 
-  while (1)
+  continue_reading_p = 1;
+  while (continue_reading_p)
     {
       if (b != 0 && NILP (b->name))
 	error ("Reading from killed buffer");
@@ -1182,8 +1184,20 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
 	{
 	  UNREAD (c);
 	  read_objects = Qnil;
-	  if (! NILP (readfun))
-	    val = call1 (readfun, readcharfun);
+	  if (!NILP (readfun))
+	    {
+	      val = call1 (readfun, readcharfun);
+
+	      /* If READCHARFUN has set point to ZV, we should
+	         stop reading, even if the form read sets point
+		 to a different value when evaluated.  */
+	      if (BUFFERP (readcharfun))
+		{
+		  struct buffer *b = XBUFFER (readcharfun);
+		  if (BUF_PT (b) == BUF_ZV (b))
+		    continue_reading_p = 0;
+		}
+	    }
 	  else if (! NILP (Vload_read_function))
 	    val = call1 (Vload_read_function, readcharfun);
 	  else
@@ -1191,6 +1205,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
 	}
 
       val = (*evalfun) (val);
+
       if (printflag)
 	{
 	  Vvalues = Fcons (val, Vvalues);
