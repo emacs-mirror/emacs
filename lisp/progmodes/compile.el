@@ -816,10 +816,9 @@ exited abnormally with code %d\n"
 		   (compilation-handle-exit 'bizarre status status))))
 	  (message "Executing `%s'...done" command)))
       (if compilation-scroll-output
-          (let ((currbuf (current-buffer)))
+	  (save-selected-window
             (select-window outwin)
-            (goto-char (point-max))
-            (select-window (get-buffer-window currbuf)))))
+            (goto-char (point-max)))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
