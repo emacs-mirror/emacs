@@ -456,7 +456,8 @@ This can be found in an RCS or SCCS header."
   (let ((keys (lm-keywords-list file)))
     (catch 'keyword-found
       (while keys
-	(if (assoc (intern (car keys)) finder-known-keywords)
+	(if (assoc (intern (car keys)) 
+		   (with-no-warnings finder-known-keywords))
 	    (throw 'keyword-found t))
 	(setq keys (cdr keys)))
       nil)))
