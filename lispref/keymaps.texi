@@ -1378,6 +1378,13 @@ the menu.  The easiest way to construct a keymap with a prompt string is
 to specify the string as an argument when you call @code{make-keymap} or
 @code{make-sparse-keymap} (@pxref{Creating Keymaps}).
 
+The order of items in the menu is the same as the order of bindings in
+the keymap.  Since @code{define-key} puts new bindings at the front, you
+should define the menu items starting at the bottom of the menu and
+moving to the top, if you care about the order.  When you add an item to
+an existing menu, you can specify its position in the menu using
+@code{define-key-after} (@pxref{Modifying Menus}).
+
 The individual bindings in the menu keymap should have item
 strings; these strings become the items displayed in the menu.  A
 binding with an item string looks like this:
@@ -1416,12 +1423,17 @@ the menu item only if the expression's value is non-@code{nil}.  When a
 menu item is disabled, it is displayed in a ``fuzzy'' fashion, and
 cannot be selected with the mouse.
 
-The order of items in the menu is the same as the order of bindings in
-the keymap.  Since @code{define-key} puts new bindings at the front, you
-should define the menu items starting at the bottom of the menu and
-moving to the top, if you care about the order.  When you add an item to
-an existing menu, you can specify its position in the menu using
-@code{define-key-after} (@pxref{Modifying Menus}).
+Sometimes it is useful to make menu items that use the ``same'' command
+but with different enable conditions.  You can do this by defining alias
+commands.  Here's an example that makes two aliases for
+@code{toggle-read-only} and gives them different enable conditions:
+
+@example
+(defalias 'make-read-only 'toggle-read-only)
+(put 'make-read-only 'menu-enable '(not buffer-read-only))
+(defalias 'make-writable 'toggle-read-only)
+(put 'make-writable 'menu-enable 'buffer-read-only)
+@end example
 
 You've probably noticed that menu items show the equivalent keyboard key
 sequence (if any) to invoke the same command.  To save time on
@@ -1436,6 +1448,11 @@ binding, like this:
 Don't put these sublists in the menu item yourself; menu display
 calculates them automatically.  Don't add keyboard equivalents to the
 item strings in a mouse menu, since that is redundant.
+
+If an alias command has no keyboard equivalent itself, menus show the
+keyboard equivalent of its underlying command.  In the example above,
+menus items defined to run @code{make-read-only} or @code{make-writable}
+would show the keyboard equivalents of @code{toggle-read-only}.
 
 @node Mouse Menus
 @subsection Menus and the Mouse
