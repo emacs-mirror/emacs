@@ -1,3 +1,7 @@
+2005-03-28  Kenichi Handa  <handa@m17n.org>
+
+	* language/thai-util.el: Sync with the main trunk.
+
 2005-03-16  Naoto Takahashi  <ntakahas@m17n.org>
 
 	* international/robin.el: New file.

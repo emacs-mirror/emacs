@@ -1,3 +1,8 @@
+2005-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_object): Use safe_call1 instead of call1.
+	(encode_coding_object): Use safe_call instead of call2.
+
 2005-03-14  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (set_default_ascii_font): Fix the change for
