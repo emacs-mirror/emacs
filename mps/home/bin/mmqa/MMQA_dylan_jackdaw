@@ -2,12 +2,13 @@
 #
 # Build the MMsrc compound at tip of branch MM_dylan_jackdaw, and run QA tests
 # 
-# $HopeName: HOMEmm!bin:mmqa:MMQA_dylan_jackdaw(trunk.2) $
+# $HopeName: HOMEmm!bin:mmqa:MMQA_dylan_jackdaw(trunk.3) $
 
 
 script="`basename $0`"
 platform=$1
-varieties="hi we"
+shift
+varieties=$*
 
 
 msg () {
@@ -53,7 +54,7 @@ mmqa_tests () {
   MMQA_LOG_DIR=./log  export MMQA_LOG_DIR
   for variety in $varieties
   do
-    MMQA_MPS_LINK_OBJ="$mmsrc/$platform/$variety/mmsw.a \
+    MMQA_MPS_LINK_OBJ="$mmsrc/$platform/$variety/mmdw.a \
                        $mmsrc/$platform/$variety/mpsplan.a" \
                        export MMQA_MPS_LINK_OBJ
     MMQA_MAIL_SUBJECT="MMQA $1 for variety $variety of MM_dylan_jackdaw:" \
