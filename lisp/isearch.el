@@ -1498,8 +1498,7 @@ If there is no completion possible, say so and continue searching."
 		       (concat " [" current-input-method-title "]: ")
 		     ": ")
 		   )))
-    (aset m 0 (upcase (aref m 0)))
-    m))
+    (concat (upcase (substring m 0 1)) (substring m 1))))
 
 
 (defun isearch-message-suffix (&optional c-q-hack ellipsis)
@@ -1729,7 +1728,7 @@ If there is no completion possible, say so and continue searching."
     (or isearch-overlay (setq isearch-overlay (make-overlay beg end)))
     (move-overlay isearch-overlay beg end (current-buffer))
     (overlay-put isearch-overlay 'face
-		 (if (internal-find-face 'isearch nil)
+		 (if (facep 'isearch)
 		     'isearch 'region))))
 
 (defun isearch-dehighlight (totally)
