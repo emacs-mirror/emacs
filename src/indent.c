@@ -465,6 +465,13 @@ current_column ()
 	      col = 0;
 	      tab_seen = 1;
 	    }
+	  else if (VECTORP (charvec))
+	    /* With a display table entry, C is displayed as is, and
+	       not displayed as \NNN or as ^N.  If C is a single-byte
+	       character, it takes one column.  If C is multi-byte in
+	       an unibyte buffer, it's translated to unibyte, so it
+	       also takes one column.  */
+	    ++col;
 	  else
 	    col += (ctl_arrow && c < 0200) ? 2 : 4;
 	}
@@ -607,6 +614,8 @@ current_column_1 ()
 	      scan_byte += bytes;
 	      col += width;
 	    }
+	  else if (VECTORP (charvec))
+	    ++col;
 	  else if (ctl_arrow && (c < 040 || c == 0177))
 	    col += 2;
 	  else if (c < 040 || c >= 0177)
@@ -1016,6 +1025,8 @@ The return value is the current column.")
 	      col += tab_width;
 	      col = col / tab_width * tab_width;
 	    }
+	  else if (VECTORP (charvec))
+	    ++col;
 	  else if (ctl_arrow && (c < 040 || c == 0177))
 	    col += 2;
 	  else if (c < 040 || c == 0177)
@@ -1654,6 +1665,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		    wide_column_end_hpos = hpos + wide_column;
 		  hpos += width;
 		}
+	      else if (VECTORP (charvec))
+		++hpos;
 	      else
 		hpos += (ctl_arrow && c < 0200) ? 2 : 4;
 	    }
