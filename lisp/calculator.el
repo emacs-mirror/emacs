@@ -4,7 +4,7 @@
 
 ;; Author: Eli Barzilay <eli@www.barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2000-11-07 15:04:06 eli>
+;; Time-stamp: <2000-11-19 20:59:59 eli>
 
 ;; This file is part of GNU Emacs.
 
@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 ;; MA 02111-1307, USA.
 
-;;;============================================================================
+;;;=====================================================================
 ;;; Commentary:
 ;;
 ;; A calculator for Emacs.
@@ -47,7 +47,7 @@
     (defmacro defgroup (&rest forms) nil)
     (defmacro defcustom (s v d &rest r) (list 'defvar s v d))))
 
-;;;============================================================================
+;;;=====================================================================
 ;;; Customization:
 
 (defgroup calculator nil
@@ -209,10 +209,10 @@ Examples:
   :type  '(repeat (list string symbol sexp integer integer))
   :group 'calculator)
 
-;;;============================================================================
+;;;=====================================================================
 ;;; Code:
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Variables
 
 (defvar calculator-initial-operators
@@ -346,7 +346,7 @@ Used for repeating operations in calculator-repR/L.")
 (defvar calculator-restart-other-mode nil
   "Used to hack restarting with the electric mode changed.")
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Key bindings
 
 (defvar calculator-mode-map nil
@@ -389,7 +389,8 @@ Used for repeating operations in calculator-repR/L.")
              (calculator-clear-saved   [?\C-c] [(control delete)])
              (calculator-save-and-quit [(control return)]
                                        [(control kp-enter)])
-             (calculator-paste         [insert] [(shift insert)] [mouse-2])
+             (calculator-paste         [insert] [(shift insert)]
+                                       [mouse-2])
              (calculator-clear         [delete] [?\C-?] [?\C-d])
              (calculator-help          [?h] [??] [f1] [help])
              (calculator-copy          [(control insert)])
@@ -540,7 +541,7 @@ Used for repeating operations in calculator-repR/L.")
            ["Quit"      calculator-quit]))))
     (setq calculator-mode-map map)))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Startup and mode stuff
 
 (defun calculator-mode ()
@@ -716,7 +717,7 @@ See the documentation for `calculator-mode' for more information."
   (if (and calculator-restart-other-mode calculator-electric-mode)
     (calculator)))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Operatos
 
 (defun calculator-op-arity (op)
@@ -759,7 +760,7 @@ Adds MORE-OPS to `calculator-operator', called initially to handle
     (setq calculator-operators
           (append (nreverse added-ops) calculator-operators))))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Display stuff
 
 (defun calculator-reset ()
@@ -1065,7 +1066,7 @@ If optional argument FORCE is non-nil, don't use the cached string."
     (goto-char (1+ (length calculator-prompt)))
     (goto-char (1- (point)))))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Stack computations
 
 (defun calculator-reduce-stack (prec)
@@ -1195,7 +1196,7 @@ arguments."
   (or (fboundp 'key-press-event-p)
       (defun key-press-event-p (&rest _) nil)))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Input interaction
 
 (defun calculator-last-input (&optional keys)
@@ -1356,7 +1357,7 @@ operators)."
     (calculator-digit)
     (calculator-op)))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Input/output modes (not display)
 
 (defun calculator-dec/deg-mode ()
@@ -1408,7 +1409,7 @@ Optional string argument KEYS will force using it as the keys entered."
                      calculator-char-radix))))
   (calculator-update-display t))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Saved values list
 
 (defun calculator-save-on-list ()
@@ -1451,7 +1452,7 @@ Optional string argument KEYS will force using it as the keys entered."
   (interactive)
   (calculator-saved-move -1))
 
-;;;----------------------------------------------------------------------------
+;;;---------------------------------------------------------------------
 ;;; Misc functions
 
 (defun calculator-open-paren ()
@@ -1544,15 +1545,15 @@ Used by `calculator-paste' and `get-register'."
   (interactive)
   (calculator-put-value
    (let ((str (current-kill 0)))
-     (if calculator-paste-decimals
-       (progn
-         (string-match "\\([0-9]+\\)\\(\\.[0-9]+\\)?\\(e[0-9]+\\)?" str)
-         (if (or (match-string 1 str)
-                 (match-string 2 str)
-                 (match-string 3 str))
-           (setq str (concat (match-string 1 str)
-                             (or (match-string 2 str) ".0")
-                             (match-string 3 str))))))
+     (and calculator-paste-decimals
+          (string-match "\\([0-9]+\\)\\(\\.[0-9]+\\)?\\(e[0-9]+\\)?"
+                        str)
+          (or (match-string 1 str)
+              (match-string 2 str)
+              (match-string 3 str))
+          (setq str (concat (match-string 1 str)
+                            (or (match-string 2 str) ".0")
+                            (match-string 3 str))))
      (condition-case nil (car (read-from-string str))
        (error nil)))))
 
@@ -1588,7 +1589,11 @@ Used by `calculator-paste' and `get-register'."
       (require 'ehelp)
       (if calculator-electric-mode
         (use-global-map calculator-saved-global-map))
-      (electric-describe-mode)
+      (if (or (not calculator-electric-mode)
+              ;; XEmacs has a problem with electric-describe-mode
+              (string-match "XEmacs" (emacs-version)))
+        (describe-mode)
+        (electric-describe-mode))
       (if calculator-electric-mode
         (use-global-map g-map))
       (select-window win) ; these are for XEmacs (also below)
