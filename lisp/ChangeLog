@@ -7,6 +7,12 @@
 
 2001-01-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el: Bind <backspace> and <delete> via function-key-map.
+	Don't bind <delete> otherwise.
+
+	* simple.el (delete-key-deletes-forward-mode): Bind <backspace>
+	and <delete> via function-key-map.
+
 	* textmodes/flyspell.el (mail-mode-flyspell-verify): Check in
 	Subject line only if point is after the `Subject:'.
 
