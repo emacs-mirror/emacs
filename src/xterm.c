@@ -10025,6 +10025,9 @@ XTread_socket (sd, bufp, numchars, expected)
 		}
 	      else
 		{
+#ifndef USE_TOOLKIT_SCROLL_BARS
+		  struct scroll_bar *bar;
+#endif
 #if defined USE_X_TOOLKIT && defined USE_LUCID
 		  /* Submenus of the Lucid menu bar aren't widgets
 		     themselves, so there's no way to dispatch events
@@ -10041,8 +10044,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		  /* Dispatch event to the widget.  */
 		  goto OTHER;
 #else /* not USE_TOOLKIT_SCROLL_BARS */
-		  struct scroll_bar *bar
-		    = x_window_to_scroll_bar (event.xexpose.window);
+		  bar = x_window_to_scroll_bar (event.xexpose.window);
 
 		  if (bar)
 		    x_scroll_bar_expose (bar, &event);
