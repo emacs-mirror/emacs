@@ -340,7 +340,7 @@ aborts expansion if it is not confirmed.
 ;; @r{acceptable; the return value has no effect on expansion.}
 
 (defun query-if-not-space ()
-  (if (/= ?\  (preceding-char))
+  (if (/= ?\s  (preceding-char))
       (if (not (y-or-n-p "Do you want to expand this abbrev? "))
           (error "Not expanding this abbrev"))))
 @end smallexample
