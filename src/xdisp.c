@@ -2033,7 +2033,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 				 startp, XFASTINT (w->height), 0,
 				 XFASTINT (w->width), XFASTINT (w->hscroll),
 				 pos_tab_offset (w, startp), w);
-	  if (pos.vpos >= scroll_conservatively)
+	  if (pos.vpos > scroll_conservatively)
 	    goto scroll_fail_1;
 
 	  pos = *vmotion (startp, - pos.vpos - this_scroll_margin, w);
