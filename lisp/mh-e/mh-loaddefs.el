@@ -12,7 +12,7 @@
 ;;;;;;  mh-insert-signature mh-to-fcc mh-to-field mh-fill-paragraph-function
 ;;;;;;  mh-send-other-window mh-send mh-reply mh-redistribute mh-forward
 ;;;;;;  mh-extract-rejected-mail mh-edit-again) "mh-comp" "mh-comp.el"
-;;;;;;  (16039 39609))
+;;;;;;  (16040 52697))
 ;;; Generated autoloads from mh-comp.el
 
 (autoload (quote mh-edit-again) "mh-comp" "\
@@ -152,7 +152,7 @@ passing the prefix ARG if any." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-customize) "mh-customize" "mh-customize.el"
-;;;;;;  (16038 15647))
+;;;;;;  (16040 52697))
 ;;; Generated autoloads from mh-customize.el
 
 (autoload (quote mh-customize) "mh-customize" "\
@@ -163,7 +163,7 @@ are removed." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-goto-cur-msg mh-update-sequences mh-folder-line-matches-show-buffer-p)
-;;;;;;  "mh-e" "mh-e.el" (16040 30321))
+;;;;;;  "mh-e" "mh-e.el" (16040 52698))
 ;;; Generated autoloads from mh-e.el
 
 (autoload (quote mh-folder-line-matches-show-buffer-p) "mh-e" "\
@@ -186,7 +186,7 @@ recenter the folder buffer." nil nil)
 ;;;;;;  mh-store-msg mh-undo-folder mh-sort-folder mh-print-msg mh-page-digest-backwards
 ;;;;;;  mh-page-digest mh-pipe-msg mh-pack-folder mh-list-folders
 ;;;;;;  mh-kill-folder mh-copy-msg mh-burst-digest) "mh-funcs" "mh-funcs.el"
-;;;;;;  (16039 39632))
+;;;;;;  (16040 52698))
 ;;; Generated autoloads from mh-funcs.el
 
 (autoload (quote mh-burst-digest) "mh-funcs" "\
@@ -274,7 +274,7 @@ Display cheat sheet for the commands of the current prefix in minibuffer." t nil
 ;;;***
 
 ;;;### (autoloads (mh-insert-identity mh-identity-list-set mh-identity-make-menu)
-;;;;;;  "mh-identity" "mh-identity.el" (16039 39644))
+;;;;;;  "mh-identity" "mh-identity.el" (16040 52698))
 ;;; Generated autoloads from mh-identity.el
 
 (autoload (quote mh-identity-make-menu) "mh-identity" "\
@@ -293,7 +293,7 @@ Edit the `mh-identity-list' variable to define identity." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (16040
-;;;;;;  51164))
+;;;;;;  52698))
 ;;; Generated autoloads from mh-inc.el
 
 (autoload (quote mh-inc-spool-list-set) "mh-inc" "\
@@ -309,7 +309,7 @@ This is called after 'customize is used to alter `mh-inc-spool-list'." nil nil)
 ;;;;;;  mh-index-delete-folder-headers mh-index-group-by-folder mh-index-insert-folder-headers
 ;;;;;;  mh-index-previous-folder mh-index-next-folder mh-index-parse-search-regexp
 ;;;;;;  mh-index-do-search mh-index-search mh-index-update-maps)
-;;;;;;  "mh-index" "mh-index.el" (16038 15647))
+;;;;;;  "mh-index" "mh-index.el" (16040 52698))
 ;;; Generated autoloads from mh-index.el
 
 (autoload (quote mh-index-update-maps) "mh-index" "\
@@ -564,7 +564,7 @@ system." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-junk-whitelist mh-junk-blacklist) "mh-junk"
-;;;;;;  "mh-junk.el" (16023 25085))
+;;;;;;  "mh-junk.el" (16040 52698))
 ;;; Generated autoloads from mh-junk.el
 
 (autoload (quote mh-junk-blacklist) "mh-junk" "\
@@ -616,7 +616,7 @@ setting `mh-junk-choice' is not recommended." t nil)
 ;;;;;;  mh-mml-to-mime mh-mhn-directive-present-p mh-revert-mhn-edit
 ;;;;;;  mh-edit-mhn mh-mhn-compose-forw mh-mhn-compose-external-compressed-tar
 ;;;;;;  mh-mhn-compose-anon-ftp mh-mhn-compose-insertion mh-compose-forward
-;;;;;;  mh-compose-insertion) "mh-mime" "mh-mime.el" (16039 39680))
+;;;;;;  mh-compose-insertion) "mh-mime" "mh-mime.el" (16040 52699))
 ;;; Generated autoloads from mh-mime.el
 
 (autoload (quote mh-compose-insertion) "mh-mime" "\
@@ -792,7 +792,7 @@ Toggle display of the raw MIME part." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-do-search mh-pick-do-search mh-do-pick-search
-;;;;;;  mh-search-folder) "mh-pick" "mh-pick.el" (16037 44490))
+;;;;;;  mh-search-folder) "mh-pick" "mh-pick.el" (16040 52699))
 ;;; Generated autoloads from mh-pick.el
 
 (autoload (quote mh-search-folder) "mh-pick" "\
@@ -831,7 +831,7 @@ indexing program specified in `mh-index-program' is used." t nil)
 ;;;;;;  mh-iterate-on-messages-in-region mh-add-to-sequence mh-notate-cur
 ;;;;;;  mh-notate-seq mh-map-to-seq-msgs mh-rename-seq mh-widen mh-put-msg-in-seq
 ;;;;;;  mh-narrow-to-seq mh-msg-is-in-seq mh-list-sequences mh-delete-seq)
-;;;;;;  "mh-seq" "mh-seq.el" (16039 39691))
+;;;;;;  "mh-seq" "mh-seq.el" (16040 52700))
 ;;; Generated autoloads from mh-seq.el
 
 (autoload (quote mh-delete-seq) "mh-seq" "\
@@ -982,7 +982,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 ;;;### (autoloads (mh-speed-add-folder mh-speed-invalidate-map mh-speed-flists
 ;;;;;;  mh-speed-view mh-speed-toggle mh-folder-speedbar-buttons)
-;;;;;;  "mh-speed" "mh-speed.el" (16037 44491))
+;;;;;;  "mh-speed" "mh-speed.el" (16040 52700))
 ;;; Generated autoloads from mh-speed.el
 
 (autoload (quote mh-folder-speedbar-buttons) "mh-speed" "\
@@ -1016,7 +1016,7 @@ The function invalidates the latest ancestor that is present." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-get-msg-num mh-goto-address-find-address-at-point)
-;;;;;;  "mh-utils" "mh-utils.el" (16039 40655))
+;;;;;;  "mh-utils" "mh-utils.el" (16040 52700))
 ;;; Generated autoloads from mh-utils.el
 
 (autoload (quote mh-goto-address-find-address-at-point) "mh-utils" "\
@@ -1035,7 +1035,7 @@ not pointing to a message." nil nil)
 ;;;;;;  mh-alias-add-alias mh-alias-from-has-no-alias-p mh-alias-address-to-alias
 ;;;;;;  mh-alias-letter-expand-alias mh-alias-minibuffer-confirm-address
 ;;;;;;  mh-read-address mh-alias-reload) "mh-alias" "mh-alias.el"
-;;;;;;  (16039 39579))
+;;;;;;  (16040 52696))
 ;;; Generated autoloads from mh-alias.el
 
 (autoload (quote mh-alias-reload) "mh-alias" "\
