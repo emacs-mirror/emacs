@@ -74,6 +74,7 @@ typedef struct _child_process
 {
   int                   fd;
   int                   pid;
+  int                   is_dos_process;
   HANDLE                char_avail;
   HANDLE                char_consumed;
   HANDLE                thrd;
