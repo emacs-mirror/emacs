@@ -334,7 +334,9 @@ end of the buffer."
   (interactive
    (keep-lines-read-args "Keep lines (containing match for regexp): "))
   (if rstart
-      (goto-char (min rstart rend))
+      (progn
+	(goto-char (min rstart rend))
+	(setq rend (copy-marker (max rstart rend))))
     (if (and transient-mark-mode mark-active)
 	(setq rstart (region-beginning)
 	      rend (copy-marker (region-end)))
@@ -381,7 +383,9 @@ end of the buffer."
   (interactive
    (keep-lines-read-args "Flush lines (containing match for regexp): "))
   (if rstart
-      (goto-char (min rstart rend))
+      (progn
+	(goto-char (min rstart rend))
+	(setq rend (copy-marker (max rstart rend))))
     (if (and transient-mark-mode mark-active)
 	(setq rstart (region-beginning)
 	      rend (copy-marker (region-end)))
