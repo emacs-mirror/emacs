@@ -15978,26 +15978,49 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
-       1, 4, 0,
+       1, 5, 0,
        doc: /* Return the mode-line of selected window as a string.
 First arg FORMAT specifies the mode line format (see `mode-line-format' for
-details) to use.  Second optional arg WINDOW specifies a different window to
-use as the context for the formatting.  If third optional arg NO-PROPS is
-non-nil, string is not propertized.  Fourth optional arg BUFFER specifies
-which buffer to use.  */)
-  (format, window, no_props, buffer)
-     Lisp_Object format, window, no_props, buffer;
+details) to use.  Second (optional) arg WINDOW specifies the window to
+use as the context for the formatting (default is the selected window).
+
+If third (optional) arg NO-PROPS is non-nil, the value string has
+no text properties.  The fourth (optional) arg BUFFER specifies
+which buffer to use (default, the current buffer).
+
+Fifth (optional) arg FACE specifies the face property to put
+on all characters for which no face is specified.
+t means whatever face the window's mode line currently uses
+\(either `mode-line' or `mode-line-inactive', depending).
+nil means the default is no face property.  */)
+  (format, window, no_props, buffer, face)
+     Lisp_Object format, window, no_props, buffer, face;
 {
   struct it it;
   int len;
   struct window *w;
   struct buffer *old_buffer = NULL;
-  enum face_id face_id = DEFAULT_FACE_ID;
+  enum face_id face_id;
 
   if (NILP (window))
     window = selected_window;
   CHECK_WINDOW (window);
   w = XWINDOW (window);
+
+  if (EQ (face, Qt))
+    face = (EQ (window, selected_window) ? Qmode_line : Qmode_line_inactive);
+
+  if (!NILP (face))
+    {
+      Lisp_Object tem = Fget (face, Qface);
+      if (INTEGERP (tem))
+	face_id = XINT (tem);
+      else
+	{
+	  face = Qnil;
+	  face_id = DEFAULT_FACE_ID;
+	}
+    }
 
   if (NILP (buffer))
     buffer = w->buffer;
@@ -16010,14 +16033,16 @@ which buffer to use.  */)
       set_buffer_internal_1 (XBUFFER (buffer));
     }
 
+  if (NILP (format) || EQ (format, Qt))
+    face_id = (NILP (format)
+	       ? CURRENT_MODE_LINE_FACE_ID (w)
+	       : HEADER_LINE_FACE_ID);
+
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
   if (NILP (no_props))
     {
-      mode_line_string_face
-	= (face_id == MODE_LINE_FACE_ID ? Qmode_line
-	   : face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive
-	   : face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
+      mode_line_string_face = face;
 
       mode_line_string_face_prop
 	= (NILP (mode_line_string_face) ? Qnil
