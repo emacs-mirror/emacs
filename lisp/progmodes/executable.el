@@ -138,21 +138,18 @@ This can be included in `font-lock-keywords' by modes that call `executable'.")
 See `compilation-error-regexp-alist'.")
 
 ;; The C function openp slightly modified would do the trick fine
-(defvar executable-binary-suffixes
-  (if (memq system-type '(ms-dos windows-nt))
-      '(".exe" ".com" ".bat" ".cmd" ".btm" "")
-    '("")))
+(defvaralias 'executable-binary-suffixes 'exec-suffixes)
 
 ;;;###autoload
 (defun executable-find (command)
-  "Search for COMMAND in exec-path and return the absolute file name.
+  "Search for COMMAND in `exec-path' and return the absolute file name.
 Return nil if COMMAND is not found anywhere in `exec-path'."
   (let ((list exec-path)
 	file)
     (while list
       (setq list
 	    (if (and (setq file (expand-file-name command (car list)))
-		     (let ((suffixes executable-binary-suffixes)
+		     (let ((suffixes exec-suffixes)
 			   candidate)
 		       (while suffixes
 			 (setq candidate (concat file (car suffixes)))
@@ -233,7 +230,6 @@ executable."
 	(let ((point (point-marker))
 	      (buffer-modified-p (buffer-modified-p)))
 	  (goto-char (point-min))
-	  (make-local-hook 'after-save-hook)
 	  (add-hook 'after-save-hook 'executable-chmod nil t)
 	  (if (looking-at "#![ \t]*\\(.*\\)$")
 	      (and (goto-char (match-beginning 1))
