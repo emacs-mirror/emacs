@@ -125,7 +125,11 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 	      (while (and (symbolp inner-def)
 			  (fboundp inner-def))
 		(setq inner-def (symbol-function inner-def)))
-	      (if (eq defn olddef)
+	      (if (or (eq defn olddef)
+		      ;; Compare with equal if definition is a key sequence.
+		      ;; That is useful for operating on function-key-map.
+		      (and (or (stringp defn) (vectorp defn))
+			   (equal defn olddef)))
 		  (define-key keymap prefix1 (nconc (nreverse skipped) newdef))
 		(if (and (keymapp defn)
 			 ;; Avoid recursively scanning
@@ -162,7 +166,9 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		    (while (and (symbolp inner-def)
 				(fboundp inner-def))
 		      (setq inner-def (symbol-function inner-def)))
-		    (if (eq defn olddef)
+		    (if (or (eq defn olddef)
+			    (and (or (stringp defn) (vectorp defn))
+				 (equal defn olddef)))
 			(define-key keymap prefix1
 			  (nconc (nreverse skipped) newdef))
 		      (if (and (keymapp defn)
