@@ -164,8 +164,9 @@ This only has effect when `dired-omit-files-p' is t.  See interactive function
 files.")
 
 (defvar dired-find-subdir nil           ; t is pretty near to DWIM...
-  "*If non-nil, Dired does not make a new buffer for a directory if it
-can be found (perhaps as subdir) in some existing Dired buffer.
+  "*If non-nil, Dired always finds a directory in a buffer of its own.
+If nil, Dired finds the directory as a subdirectory in some other buffer
+if it is present as one.
 
 If there are several Dired buffers for a directory, the most recently
 used is chosen.
