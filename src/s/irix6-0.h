@@ -15,4 +15,11 @@
 #undef C_SWITCH_SYSTEM
 #endif
 
+/* The only supported configuration of GCC under IRIX6.x produces
+   n32 MIPS ABI binaries and also supports -g. */
+#ifdef __GNUC__
+#undef C_DEBUG_SWITCH
+#define C_DEBUG_SWITCH -g
+#endif
+
 #undef SA_RESTART
