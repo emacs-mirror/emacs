@@ -132,8 +132,7 @@ position to pop up the tooltip."
   :type 'boolean
   :tag "GUD"
   :set #'(lambda (symbol on)
-	   (setq tooltip-gud-tips-p on)
-	   (if on (tooltip-gud-tips-setup)))
+	   (setq tooltip-gud-tips-p on))
   :group 'tooltip)
 
 
@@ -185,10 +184,6 @@ the last mouse movement event that occurred.")
   "Time when the last tooltip was hidden.")
 
 
-(defvar tooltip-gud-debugger nil
-  "The debugger for which we show tooltips.")
-
-
 
 ;;; Event accessors
 
@@ -228,23 +223,9 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
     (setq show-help-function (if on 'tooltip-show-help-function nil))
     ;; `ignore' is the default binding for mouse movements.
     (define-key global-map [mouse-movement]
-      (if on 'tooltip-mouse-motion 'ignore))
-    (tooltip-gud-tips-setup)))
+      (if on 'tooltip-mouse-motion 'ignore))))
 
-(defun tooltip-gud-tips-setup ()
-  "Setup debugger mode-hooks for tooltips."
-  (when (and tooltip-mode tooltip-gud-tips-p)
-    (global-set-key [S-mouse-3] 'tooltip-gud-toggle-dereference)
-    (add-hook 'gdb-mode-hook
-	      #'(lambda () (setq tooltip-gud-debugger 'gdb)))
-    (add-hook 'sdb-mode-hook
-	      #'(lambda () (setq tooltip-gud-debugger 'sdb)))
-    (add-hook 'dbx-mode-hook
-	      #'(lambda () (setq tooltip-gud-debugger 'dbx)))
-    (add-hook 'xdb-mode-hook
-	      #'(lambda () (setq tooltip-gud-debugger 'xdb)))
-    (add-hook 'perldb-mode-hook
-	      #'(lambda () (setq tooltip-gud-debugger 'perldb)))))
+
 
 ;;; Timeout for tooltip display
 
@@ -457,10 +438,6 @@ For C this would dereference a pointer expression.")
 This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
 
 
-(defvar tooltip-gud-debugger nil
-  "A symbol describing the debugger running under GUD.")
-
-
 (defun tooltip-gud-toggle-dereference ()
   "Toggle whether tooltips should show `* expr' or `expr'."
   (interactive)
@@ -481,8 +458,8 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
 If TOOLTIP-GUD-DEREFERENCE is t, also prepend a `*' to EXPR."
   (when tooltip-gud-dereference
     (setq expr (concat "*" expr)))
-  (case tooltip-gud-debugger
-    (gdb (concat "server print " expr))
+  (case gud-minor-mode
+    ((gdb gdba) (concat "server print " expr))
     (dbx (concat "print " expr))
     (xdb (concat "p " expr))
     (sdb (concat expr "/"))
