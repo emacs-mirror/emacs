@@ -1,10 +1,12 @@
+2001-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (occur-mode): Undo 2001-5-20 change.
+
 2001-11-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* play/landmark.el: Mark lm-mode as special.  Suggested by Klaus
-	Straubinger <ksnetz@arcor.de>.
+	* play/landmark.el: Mark lm-mode as special.
 
-	* play/gomoku.el: Mark gomoku-mode as special.  Suggested by Klaus
-	Straubinger <ksnetz@arcor.de>.
+	* play/gomoku.el: Mark gomoku-mode as special.
 
 2001-11-20  Juanma Barranquero  <lektu@terra.es>
 
