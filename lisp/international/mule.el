@@ -349,6 +349,14 @@ See also the documentation of make-char."
 ;;
 ;; The value is a symbol of which name is `MIME-charset' parameter of
 ;; the coding system.
+;;
+;; o valid-codes (meaningful only for a coding system based on CCL)
+;;
+;; The value is a list to indicate valid byte ranges of the encoded
+;; file.  Each element of the list is an integer or a cons of integer.
+;; In the former case, the integer value is a valid byte code.  In the
+;; latter case, the integers specifies the range of valie byte codes.
+
 
 ;; Return coding-spec of CODING-SYSTEM
 (defsubst coding-system-spec (coding-system)
@@ -591,7 +599,7 @@ a value of `safe-charsets' in PLIST."
 	  ((= type 3)
 	   (setq coding-category 'coding-category-big5))
 	  ((= type 4)			; private
-	   (setq coding-category 'coding-category-binary)
+	   (setq coding-category 'coding-category-ccl)
 	   (if (not (consp flags))
 	       (error "Invalid FLAGS argument for TYPE 4 (CCL)")
 	     (let ((decoder (check-ccl-program
@@ -956,29 +964,28 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 	(if (null (numberp found-eol))
 	    ;; But eol-type is not found.
 	    (setq found-eol nil))
-	(if (not (eq (coding-system-type coding) t))
-	    ;; This is not `undecided'.
-	    (setq found-coding (coding-system-base coding)))
+	(if (eq (coding-system-type coding) t)
+	    (setq found-coding 'undecided)
+	  (setq found-coding (coding-system-base coding)))
 
-	;; The local setting takes precedence over the found one.
-	(setq new-coding (or (and (local-variable-p 'buffer-file-coding-system)
-				  local-coding)
-			     found-coding
-			     local-coding))
-	(setq new-eol (or (and (local-variable-p 'buffer-file-coding-system)
-			       local-eol)
-			  found-eol
-			  local-eol))
-	(when (numberp new-eol)
-	  (or new-coding
-	      (setq new-coding 'undecided))
-	  (if (vectorp (coding-system-eol-type new-coding))
-	      (setq new-coding
-		    (aref (coding-system-eol-type new-coding) new-eol))))
-	;; Return a new coding system only when it is different from
-	;; the current one.
-	(if (not (eq buffer-file-coding-system new-coding))
-	    new-coding)))))
+	(if (and (not found-eol) (eq found-coding 'undecided))
+	    ;; No valid coding information found.
+	    nil
+
+	  ;; Some coding information (eol or text) found.
+
+	  ;; The local setting takes precedence over the found one.
+	  (setq new-coding (if (local-variable-p 'buffer-file-coding-system)
+			       (or local-coding found-coding)
+			     (or found-coding local-coding)))
+	  (setq new-eol (if (local-variable-p 'buffer-file-coding-system)
+			    (or local-eol found-eol)
+			  (or found-eol local-eol)))
+
+	  (let ((eol-type (coding-system-eol-type new-coding)))
+	    (if (and (numberp new-eol) (vectorp eol-type))
+		(aref eol-type new-eol)
+	      new-coding)))))))
 
 (defun modify-coding-system-alist (target-type regexp coding-system)
   "Modify one of look up tables for finding a coding system on I/O operation.
@@ -1032,6 +1039,24 @@ or a function symbol which, when called, returns such a cons cell."
 	     (setq network-coding-system-alist
 		   (cons (cons regexp coding-system)
 			 network-coding-system-alist)))))))
+
+(defvar charset-origin-alist nil
+  "Alist of Emacs charset vs the information of the origin of the charset.
+Each element looks like (CHARSET ORIGIN-NAME GET-ORIGIN-CODE-FUNCTION).
+CHARSET is Emacs character set (symbol).
+ORIGIN-NAME is a name of original (external) character set (string).
+GET-ORIGIN-CODE-FUNCTION is a function which returns an original
+\(external) code.  This function is called with one argument, Emacs
+character code.
+
+The command \\[what-cursor-position] when called with prefix argument
+shows a character set name and character code based on this alist.  If
+a character set of a character at point is not listed here, the
+character set is regarded as identical with the original (external)
+character set.
+
+Setting specific language environment will change the value of this
+variable.")
 
 (defun make-translation-table (&rest args)
   "Make a translation table (char table) from arguments.
@@ -1090,6 +1115,23 @@ without changing their position code(s)."
 	  (setq elts (cdr elts))))
       (setq args (cdr args)))
     ;; Return TABLE just created.
+    table))
+
+(defun make-translation-table-from-vector (vec)
+  "Make translation table from decoding vector VEC.
+VEC is an array of 256 elements to map unibyte codes to multibyte characters.
+See also the variable `nonascii-translation-table'."
+  (let ((table (make-char-table 'translation-table))
+	(rev-table (make-char-table 'translation-table))
+	(i 0)
+	ch)
+    (while (< i 256)
+      (setq ch (aref vec i))
+      (aset table i ch)
+      (if (>= ch 256)
+	  (aset rev-table ch i))
+      (setq i (1+ i)))
+    (set-char-table-extra-slot table 0 rev-table)
     table))
 
 (defun define-translation-table (symbol &rest args)
