@@ -1101,7 +1101,8 @@ N is the digit argument used to invoke this command."
   (interactive)
   (cond ((Info-no-error (Info-next-menu-item)))
 	((Info-no-error (Info-up))
-	 (forward-line 1))
+	 (forward-line 1)
+	 (and (re-search-forward "^\\*" nil t) (beginning-of-line)))
 	(t
 	 (error "No more nodes"))))
 
@@ -1111,7 +1112,8 @@ N is the digit argument used to invoke this command."
   (cond ((Info-no-error (Info-next-menu-item)))
 	((Info-no-error (Info-next)))
 	((Info-no-error (Info-up))
-	 (forward-line 1))
+	 (forward-line 1)
+	 (and (re-search-forward "^\\*" nil t) (beginning-of-line)))
 	(t
 	 (error "No more nodes"))))
 
