@@ -1117,6 +1117,15 @@ the file without bothering you."
 (defvar feedmail-address-list        nil)
 
 
+(defvar feedmail-queue-runner-is-active nil
+  "*Non-nil means we're inside the logic of the queue-running loop.
+That is, iterating over all messages in the queue to send them.  In
+that case, the value is the name of the queued message file currently
+being processed.  This can be used for differentiating customized code
+for different scenarios.  Users shouldn't set or change this
+variable, but may depend on its value as described here.")
+
+
 (defun feedmail-mail-send-hook-splitter ()
   "Facilitate dividing mail-send-hook things into queued and immediate cases.
 If you have mail-send-hook functions that should only be called for sending/
@@ -1260,15 +1269,6 @@ function, for example, to archive all of your sent messages someplace
   :group 'feedmail-queue
   :type 'function
   )
-
-
-(defvar feedmail-queue-runner-is-active nil
-  "*Non-nil means we're inside the logic of the queue-running loop.
-That is, iterating over all messages in the queue to send them.  In
-that case, the value is the name of the queued message file currently
-being processed.  This can be used for differentiating customized code
-for different scenarios.  Users shouldn't set or change this
-variable, but may depend on its value as described here.")
 
 
 (defvar feedmail-is-a-resend nil
