@@ -2340,17 +2340,17 @@ the variable `Info-file-list-for-emacs'."
 	   (Info-goto-emacs-command-node command)))))
 
 (defface Info-title-1-face
-  '((t (:family "helv" :height 240 :weight bold)))
+  '((t (:height 1.2 :inherit Info-title-2-face)))
   "Face for Info titles at level 1."
   :group 'info)
 
 (defface Info-title-2-face
-  '((t (:family "helv" :height 180 :weight bold)))
+  '((t (:height 1.2 :inherit Info-title-3-face)))
   "Face for Info titles at level 2."
   :group 'info)
 
 (defface Info-title-3-face
-  '((t (:family "helv" :height 160 :weight bold)))
+  '((t (:height 1.2 :weight bold :inherit variable-pitch)))
   "Face for Info titles at level 3."
   :group 'info)
 
