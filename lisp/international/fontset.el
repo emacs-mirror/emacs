@@ -73,7 +73,10 @@
     (indian-is13194 . "IS13194-Devanagari")
     (indian-2-column . "MuleIndian-2")
     (indian-1-column . "MuleIndian-1")
-    (lao . "lao.mule-1")))
+    (lao . "lao.mule-1")
+    (tibetan . "Mule.Tibetan-0")
+    (tibetan-1-column . "Mule.Tibetan-1")
+    ))
 
 (let ((l x-charset-registries))
   (while l
