@@ -138,14 +138,14 @@ ${archlibdir}: all
 install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
-	for file in ${INSTALLABLES} ; do \
+	for file in ${INSTALLABLES}  ${INSTALLABLE_SCRIPTS}; do \
 	  cp $${file} ${bindir}/$${file}.new ; \
 	  chmod 755 ${bindir}/$${file}.new ; \
         done
 	@echo
 	@echo "Changing the owner and group of utility programs to \`bin'."
 	@echo "(You may ignore errors here if you don't care about this.)"
-	-for file in emacsclient etags ctags b2m ; do \
+	-for file in ${INSTALLABLES}  ${INSTALLABLE_SCRIPTS} ; do \
 	  chgrp bin ${bindir}/$${file}.new ; \
 	  chown bin ${bindir}/$${file}.new ; \
 	  rm -f ${bindir}/$${file} ; \
