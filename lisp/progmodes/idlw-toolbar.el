@@ -3,8 +3,8 @@
 ;; Copyright (c) 1999 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 3.11
-;; Date: $Date: 2000/01/03 14:26:03 $
+;; Version: 3.12
+;; Date: $Date: 2000/01/05 12:38:47 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.

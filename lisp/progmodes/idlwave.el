@@ -5,8 +5,8 @@
 
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 3.11
-;; Date: $Date: 1999/12/20 11:10:02 $
+;; Version: 3.12
+;; Date: $Date: 2000/01/05 12:39:30 $
 ;; Keywords: languages
 
 ;; This file is part of the GNU Emacs.
@@ -1134,7 +1134,7 @@ Normally a space.")
   "Character which is inserted as a last character on previous line by
    \\[idlwave-split-line] to begin a continuation line.  Normally $.")
 
-(defconst idlwave-mode-version " 3.11")
+(defconst idlwave-mode-version " 3.12")
 
 (defmacro idlwave-keyword-abbrev (&rest args)
   "Creates a function for abbrev hooks to call `idlwave-check-abbrev' with args."
@@ -1274,6 +1274,8 @@ Capitalize system variables - action only
 (define-key idlwave-mode-map "\C-c\C-w" 'idlwave-while)
 (define-key idlwave-mode-map "\C-c\C-s" 'idlwave-shell)
 (define-key idlwave-mode-map "\C-c\C-l" 'idlwave-shell-recenter-shell-window)
+(autoload 'idlwave-shell "idlw-shell"
+  "Run an inferior IDL, with I/O through buffer `(idlwave-shell-buffer)'." t)
 (autoload 'idlwave-shell-send-command "idlw-shell")
 (autoload 'idlwave-shell-recenter-shell-window "idlw-shell"
   "Run `idlwave-shell' and switch back to current window" t)
@@ -3496,7 +3498,7 @@ With two prefix ARG's, also rescans the library tree."
 
 (defun idlwave-load-system-rinfo ()
   ;; Load and case-treat the system and lib info files.
-  (load "idlwave-rinfo" t)
+  (load "idlw-rinfo" t)
   (message "Normalizing idlwave-builtin-routines...")
   (setq idlwave-builtin-routines
 	(idlwave-sintern-rinfo-list idlwave-builtin-routines 'sys))
@@ -5636,8 +5638,8 @@ Assumes that point is at the beginning of the unit as found by
   (interactive)
   ;; Try to load the code for the shell, so that we can customize it 
   ;; as well.
-  (or (featurep 'idlwave-shell)
-      (load "idlwave-shell" t))
+  (or (featurep 'idlw-shell)
+      (load "idlw-shell" t))
   (customize-browse 'idlwave))
 
 (defun idlwave-create-customize-menu ()
@@ -5647,8 +5649,8 @@ Assumes that point is at the beginning of the unit as found by
       (progn
 	;; Try to load the code for the shell, so that we can customize it 
 	;; as well.
-	(or (featurep 'idlwave-shell)
-	    (load "idlwave-shell" t))
+	(or (featurep 'idlw-shell)
+	    (load "idlw-shell" t))
 	(easy-menu-change 
 	 '("IDLWAVE") "Customize"
 	 `(["Browse IDLWAVE group" idlwave-customize t]

@@ -5,8 +5,8 @@
 
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 3.11
-;; Date: $Date: 2000/01/03 14:27:03 $
+;; Version: 3.12
+;; Date: $Date: 2000/01/05 12:38:46 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -2439,9 +2439,9 @@ static char * file[] = {
 (defun idlwave-shell-toggle-toolbar ()
   "Toggle the display of the debugging toolbar."
   (interactive)
-  (if (featurep 'idlwave-toolbar)
+  (if (featurep 'idlw-toolbar)
       (idlwave-toolbar-toggle)
-    (require 'idlwave-toolbar)
+    (require 'idlw-toolbar)
     (idlwave-toolbar-toggle)))
 
 
