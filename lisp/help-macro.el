@@ -105,6 +105,9 @@ and then returns."
 		   (progn
 		     (setcdr local-map (, helped-map))
 		     (define-key local-map [t] 'undefined)
+		     ;; Make the scroll bar keep working normally.
+		     (define-key local-map [vertical-scroll-bar]
+		       (lookup-key global-map [vertical-scroll-bar]))
 		     (if three-step-help
 			 (progn
 			   (setq key (let ((overriding-local-map local-map))
@@ -130,7 +133,7 @@ and then returns."
 			   (help-mode)
 			   (goto-char (point-min))
 			   (while (or (memq char (append help-event-list
-							 (cons help-char '(?? ?\C-v ?\ ?\177 delete backspace ?\M-v))))
+							 (cons help-char '(?? ?\C-v ?\ ?\177 delete backspace vertical-scroll-bar ?\M-v))))
 				      (eq (car-safe char) 'switch-frame)
 				      (equal key "\M-v"))
 			     (condition-case nil
@@ -151,7 +154,11 @@ and then returns."
 						  (if (pos-visible-in-window-p
 						       (point-max))
 						      "" " or Space to scroll")))
-				     char (aref key 0))))))
+				     char (aref key 0)))
+
+			     ;; If this is a scroll bar command, just run it.
+			     (when (eq char 'vertical-scroll-bar)
+			       (command-execute (lookup-key local-map key) nil key)))))
 		     ;; We don't need the prompt any more.
 		     (message "")
 		     ;; Mouse clicks are not part of the help feature,
