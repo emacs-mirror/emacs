@@ -850,7 +850,7 @@ static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *,
 							  Lisp_Object));
 static void extend_face_to_end_of_line P_ ((struct it *));
 static int append_space P_ ((struct it *, int));
-static int make_cursor_line_fully_visible P_ ((struct window *));
+static int make_cursor_line_fully_visible P_ ((struct window *, int));
 static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
 static int trailing_whitespace_p P_ ((int));
@@ -1793,8 +1793,9 @@ get_glyph_string_clip_rect (s, nr)
       height = max (FRAME_LINE_HEIGHT (s->f), glyph->ascent + glyph->descent);
       if (height < r.height)
 	{
-	  r.y = s->ybase + glyph->descent - height;
-	  r.height = height;
+	  int max_y = r.y + r.height;
+	  r.y = min (max_y, s->ybase + glyph->descent - height);
+	  r.height = min (max_y - r.y, height);
 	}
     }
 
@@ -10733,12 +10734,17 @@ run_window_scroll_functions (window, startp)
    A value of 1 means there is nothing to be done.
    (Either the line is fully visible, or it cannot be made so,
    or we cannot tell.)
+
+   If FORCE_P is non-zero, return 0 even if partial visible cursor row
+   is higher than window.
+
    A value of 0 means the caller should do scrolling
    as if point had gone off the screen.  */
 
 static int
-make_cursor_line_fully_visible (w)
+make_cursor_line_fully_visible (w, force_p)
      struct window *w;
+     int force_p;
 {
   struct glyph_matrix *matrix;
   struct glyph_row *row;
@@ -10755,6 +10761,9 @@ make_cursor_line_fully_visible (w)
   /* If the cursor row is not partially visible, there's nothing to do.  */
   if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
     return 1;
+
+  if (force_p)
+    return 0;
 
   /* If the row the cursor is in is taller than the window's height,
      it's not clear what to do, so do nothing.  */
@@ -10852,7 +10861,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   int amount_to_scroll = 0;
   Lisp_Object aggressive;
   int height;
-  int end_scroll_margin;
+  int extra_scroll_margin_lines = last_line_misfit ? 1 : 0;
 
 #if GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
@@ -10895,11 +10904,13 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   CHARPOS (scroll_margin_pos) = XINT (window_end);
   BYTEPOS (scroll_margin_pos) = CHAR_TO_BYTE (CHARPOS (scroll_margin_pos));
 
-  end_scroll_margin = this_scroll_margin + !!last_line_misfit;
-  if (end_scroll_margin)
+  if (this_scroll_margin || extra_scroll_margin_lines)
     {
       start_display (&it, w, scroll_margin_pos);
-      move_it_vertically (&it, - end_scroll_margin);
+      if (this_scroll_margin)
+	move_it_vertically (&it, - this_scroll_margin);
+      if (extra_scroll_margin_lines)
+	move_it_by_lines (&it, - extra_scroll_margin_lines, 0);
       scroll_margin_pos = it.current.pos;
     }
 
@@ -11034,10 +11045,10 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
-      if (! make_cursor_line_fully_visible (w))
+      if (! make_cursor_line_fully_visible (w, extra_scroll_margin_lines <= 1))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
-	  last_line_misfit = 1;
+	  ++extra_scroll_margin_lines;
 	  goto too_near_end;
 	}
       rc = SCROLLING_SUCCESS;
@@ -11326,7 +11337,7 @@ try_cursor_movement (window, startp, scroll_step)
 	      else
 		{
 		  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-		  if (!make_cursor_line_fully_visible (w))
+		  if (!make_cursor_line_fully_visible (w, 0))
 		    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		  else
 		    rc = CURSOR_MOVEMENT_SUCCESS;
@@ -11657,7 +11668,7 @@ redisplay_window (window, just_this_one_p)
 	  new_vpos = window_box_height (w) / 2;
 	}
 
-      if (!make_cursor_line_fully_visible (w))
+      if (!make_cursor_line_fully_visible (w, 0))
 	{
 	  /* Point does appear, but on a line partly visible at end of window.
 	     Move it back to a fully-visible line.  */
@@ -11794,7 +11805,7 @@ redisplay_window (window, just_this_one_p)
 	    /* Forget any recorded base line for line number display.  */
 	    w->base_line_number = Qnil;
 
-	  if (!make_cursor_line_fully_visible (w))
+	  if (!make_cursor_line_fully_visible (w, 1))
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      last_line_misfit = 1;
@@ -11954,7 +11965,7 @@ redisplay_window (window, just_this_one_p)
       set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
     }
 
-  if (!make_cursor_line_fully_visible (w))
+  if (!make_cursor_line_fully_visible (w, centering_position > 0))
     {
       /* If vscroll is enabled, disable it and try again.  */
       if (w->vscroll)
@@ -11967,6 +11978,7 @@ redisplay_window (window, just_this_one_p)
       /* If centering point failed to make the whole line visible,
 	 put point at the top instead.  That has to make the whole line
 	 visible, if it can be done.  */
+      clear_glyph_matrix (w->desired_matrix);
       centering_position = 0;
       goto point_at_top;
     }
