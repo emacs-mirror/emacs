@@ -107,6 +107,11 @@
 (load "language/tibetan")
 (load "language/vietnamese")
 (load "language/misc-lang")
+;; Set the Custom type now the language list is actually defined.
+(put 'current-language-environment 'custom-type
+     (cons 'choice (mapcar (lambda (lang)
+			     (list 'const (car lang)))
+			   language-info-alist)))
 
 (load "international/ucs-tables")
 
