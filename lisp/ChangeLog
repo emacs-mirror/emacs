@@ -1,5 +1,7 @@
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/lisp.el (defun-prompt-regexp): Doc fix.
+
 	* progmodes/cmacexp.el: Change Francesco's email address.
 
 2000-10-24  Kenichi Handa  <handa@etl.go.jp>
