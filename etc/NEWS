@@ -223,11 +223,11 @@ codepage.el, based on Unicode mappings.
 
 ** The utf-8 coding system has been enhanced.  Untranslatable utf-8
 sequences (mostly representing CJK characters) are composed into
-single quasi-characters.  User option `utf-translate-cjk' arranges to
-translate many utf-8 CJK character sequences into real Emacs
-characters in a similar way to the Mule-UCS system.  The utf-8 coding
-system will now encode characters from most of Emacs's one-dimensional
-internal charsets, specifically the ISO-8859 ones.
+single quasi-characters.  User option `utf-translate-cjk-mode'
+arranges to translate many utf-8 CJK character sequences into real
+Emacs characters in a similar way to the Mule-UCS system.  The utf-8
+coding system will now encode characters from most of Emacs's
+one-dimensional internal charsets, specifically the ISO-8859 ones.
 
 ** iso-10646-1 (`Unicode') fonts can be used to display any range of
 characters encodable by the utf-8 coding system.  Just specify the
