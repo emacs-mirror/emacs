@@ -1,3 +1,7 @@
+2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* language/european.el ("French"): New language environment.
+
 2001-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar/todo-mode.el (todo-save): Fix previous change.

@@ -1,5 +1,8 @@
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* permute-index: Don't depend on csh-specific features.  Replace
+	the interpreter name with /bin/sh.
+
 	* two-volume-cross-refs.txt: New file.
 	* two.el: New file.
 	* spellfile: New file.
