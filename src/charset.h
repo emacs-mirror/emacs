@@ -33,6 +33,8 @@ enum define_charset_arg_index
     charset_arg_name,
     charset_arg_dimension,
     charset_arg_code_space,
+    charset_arg_min_code,
+    charset_arg_max_code,
     charset_arg_iso_final,
     charset_arg_iso_revision,
     charset_arg_emacs_mule_id,
@@ -179,6 +181,10 @@ struct charset
 
   /* Mininum and Maximum code points of the charset.  */
   unsigned min_code, max_code;
+
+  /* Offset value used by macros CODE_POINT_TO_INDEX and
+      INDEX_TO_CODE_POINT. .  */
+  unsigned char_index_offset;
 
   /* Mininum and Maximum character codes of the charset.  If the
      charset is compatible with ASCII, min_char is a minimum non-ASCII
