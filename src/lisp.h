@@ -390,6 +390,7 @@ extern int pure_size;
 #define XSETPROCESS(a, b) XSET (a, Lisp_Process, b)
 #define XSETFLOAT(a, b) XSET (a, Lisp_Float, b)
 #define XSETWINDOW_CONFIGURATION(a, b) XSET (a, Lisp_Window_Configuration, b)
+#define XSETCOMPILED(a, b) XSET (a, Lisp_Compiled, b)
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISC (a)->type = Lisp_Misc_Marker)
 
 #ifdef USE_TEXT_PROPERTIES
