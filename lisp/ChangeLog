@@ -1,3 +1,7 @@
+2005-02-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el: Correction to syntax in gud-menu-map.
+
 2005-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/latin-5.el (tbl): Setup cases of I-WITH-DOT-ABOVE,
