@@ -101,14 +101,16 @@ get_doc_string (filepos)
   return make_string (buf, p - buf);
 }
 
-DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 1, 0,
-  "Return the documentation string of FUNCTION.")
-  (fun1)
-     Lisp_Object fun1;
+DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
+  "Return the documentation string of FUNCTION.
+Unless a non-nil second argument is given, the
+string is passed through `substitute-command-keys'.")
+  (fun1, raw)
+     Lisp_Object fun1, raw;
 {
   Lisp_Object fun;
   Lisp_Object funcar;
-  Lisp_Object tem;
+  Lisp_Object tem, doc;
 
   fun = fun1;
   while (XTYPE (fun) == Lisp_Symbol)
@@ -122,20 +124,22 @@ DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 1, 0,
     case Lisp_Subr:
       if (XSUBR (fun)->doc == 0) return Qnil;
       if ((int) XSUBR (fun)->doc >= 0)
-	return Fsubstitute_command_keys (build_string (XSUBR (fun)->doc));
+	doc = build_string (XSUBR (fun)->doc);
       else
-	return
-	  Fsubstitute_command_keys (get_doc_string (- (int) XSUBR (fun)->doc));
+	doc = get_doc_string (- (int) XSUBR (fun)->doc);
+      break;
       
     case Lisp_Compiled:
       if (XVECTOR (fun)->size <= COMPILED_DOC_STRING)
 	return Qnil;
       tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
       if (XTYPE (tem) == Lisp_String)
-	return Fsubstitute_command_keys (tem);
-      if (XTYPE (tem) == Lisp_Int && XINT (tem) >= 0)
-	return Fsubstitute_command_keys (get_doc_string (XFASTINT (tem)));
-      return Qnil;
+	doc = tem;
+      else if (XTYPE (tem) == Lisp_Int && XINT (tem) >= 0)
+	doc = get_doc_string (XFASTINT (tem));
+      else
+	return Qnil;
+      break;
 
     case Lisp_String:
     case Lisp_Vector:
@@ -153,37 +157,45 @@ subcommands.)");
 	{
 	  tem = Fcar (Fcdr (Fcdr (fun)));
 	  if (XTYPE (tem) == Lisp_String)
-	    return Fsubstitute_command_keys (tem);
-	  if (XTYPE (tem) == Lisp_Int && XINT (tem) >= 0)
-	    return Fsubstitute_command_keys (get_doc_string (XFASTINT (tem)));
-	  return Qnil;
+	    doc = tem;
+	  else if (XTYPE (tem) == Lisp_Int && XINT (tem) >= 0)
+	    doc = get_doc_string (XFASTINT (tem));
+	  else
+	    return Qnil;
 	}
       if (XSYMBOL (funcar) == XSYMBOL (Qmocklisp))
 	return Qnil;
       if (XSYMBOL (funcar) == XSYMBOL (Qmacro))
-	return Fdocumentation (Fcdr (fun));
+	return Fdocumentation (Fcdr (fun), raw);
 
       /* Fall through to the default to report an error.  */
 
     default:
       return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
+
+  if (NULL (raw))
+    doc = Fsubstitute_command_keys (doc);
+  return doc;
 }
 
 DEFUN ("documentation-property", Fdocumentation_property, 
        Sdocumentation_property, 2, 2, 0,
+
   "Return the documentation string that is SYMBOL's PROP property.\n\
-This differs from using `get' only in that it can refer to strings\n\
-stored in the `share-lib/DOC' file.")
-  (sym, prop)
-     Lisp_Object sym, prop;
+This is like `get', but it can refer to strings stored in the\n\
+`share-lib/DOC' file; and if the value is a string, it is passed through\n\
+`substitute-command-keys'.  A non-nil third argument avoids this
+translation."
+  (sym, prop, raw)
+     Lisp_Object sym, prop, raw;
 {
   register Lisp_Object tem;
 
   tem = Fget (sym, prop);
   if (XTYPE (tem) == Lisp_Int)
     tem = get_doc_string (XINT (tem) > 0 ? XINT (tem) : - XINT (tem));
-  if (XTYPE (tem) == Lisp_String)
+  if (NULL (raw) && XTYPE (tem) == Lisp_String)
     return Fsubstitute_command_keys (tem);
   return tem;
 }
