@@ -34,12 +34,11 @@
   "Paragraph and sentence parsing."
   :group 'editing)
 
-(defcustom use-hard-newlines nil
+;; It isn't useful to use defcustom for this variable
+;; because it is always buffer-local.
+(defvar use-hard-newlines nil
     "Non-nil means to distinguish hard and soft newlines.
-See documentation for the `use-hard-newlines' function."
-    :set '(lambda (symbol value) (use-hard-newlines (or value 0)))
-    :group 'paragraphs
-    :type 'boolean)
+See documentation for the `use-hard-newlines' function.")
 (make-variable-buffer-local 'use-hard-newlines)
 
 (defun use-hard-newlines (&optional arg insert)
