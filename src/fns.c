@@ -2494,24 +2494,31 @@ and can edit it until it has been confirmed.")
     }
 }
 
-DEFUN ("load-average", Fload_average, Sload_average, 0, 0, 0,
+DEFUN ("load-average", Fload_average, Sload_average, 0, 1, 0,
   "Return list of 1 minute, 5 minute and 15 minute load averages.\n\
 Each of the three load averages is multiplied by 100,\n\
 then converted to integer.\n\
+When USE-FLOATS is non-nil, floats will be used instead of integers.\n\
+These floats are not multiplied by 100.\n\n\
 If the 5-minute or 15-minute load averages are not available, return a\n\
 shortened list, containing only those averages which are available.")
-  ()
+  (use_floats)
+     Lisp_Object use_floats;
 {
   double load_ave[3];
   int loads = getloadavg (load_ave, 3);
-  Lisp_Object ret;
+  Lisp_Object ret = Qnil;
 
   if (loads < 0)
     error ("load-average not implemented for this operating system");
 
-  ret = Qnil;
-  while (loads > 0)
-    ret = Fcons (make_number ((int) (load_ave[--loads] * 100.0)), ret);
+  while (loads-- > 0)
+    {
+      Lisp_Object load = (NILP (use_floats) ?
+			  make_number ((int) (100.0 * load_ave[loads]))
+			  : make_float (load_ave[loads]));
+      ret = Fcons (load, ret);
+    }
 
   return ret;
 }
