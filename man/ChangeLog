@@ -1,3 +1,8 @@
+2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg.texi, sieve.texi: Import from the v5_10 branch of the Gnus
+	repository.
+
 2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-xtra.texi (Subdir switches): Dired does not remember the
