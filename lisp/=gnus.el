@@ -2,7 +2,6 @@
 ;; Copyright (C) 1987,88,89,90,93,94 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.36 1994/04/30 20:15:08 rms Exp kwzh $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -940,6 +939,8 @@ Optional argument HASHSIZE specifies the table size."
   (define-key gnus-group-mode-map "P" 'gnus-group-prev-group)
   (define-key gnus-group-mode-map "\C-n" 'gnus-group-next-group)
   (define-key gnus-group-mode-map "\C-p" 'gnus-group-prev-group)
+  (define-key gnus-group-mode-map [down] 'gnus-group-next-group)
+  (define-key gnus-group-mode-map [up] 'gnus-group-up-group)
   (define-key gnus-group-mode-map "\r" 'next-line)
   ;;(define-key gnus-group-mode-map "/" 'isearch-forward)
   (define-key gnus-group-mode-map "<" 'beginning-of-buffer)
@@ -1713,6 +1714,8 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
   (define-key gnus-summary-mode-map "\C-c\C-p" 'gnus-summary-prev-digest)
   (define-key gnus-summary-mode-map "\C-n" 'gnus-summary-next-subject)
   (define-key gnus-summary-mode-map "\C-p" 'gnus-summary-prev-subject)
+  (define-key gnus-summary-mode-map [down] 'gnus-summary-next-subject)
+  (define-key gnus-summary-mode-map [up] 'gnus-summary-prev-subject)
   (define-key gnus-summary-mode-map "\en" 'gnus-summary-next-unread-subject)
   (define-key gnus-summary-mode-map "\ep" 'gnus-summary-prev-unread-subject)
   ;;(define-key gnus-summary-mode-map "\C-cn" 'gnus-summary-next-group)
