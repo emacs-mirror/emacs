@@ -1,6 +1,6 @@
 /*  ==== POOLS ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!pool.c(trunk.1)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -35,7 +35,6 @@ Bool PoolIsValid(Pool pool, ValidationType validParam)
   AVER(ISVALIDNESTED(Sig, &PoolSigStruct));
   AVER(pool->sig == &PoolSigStruct);
 #endif
-  AVER(ISVALIDNESTED(PoolClass, pool->class));
   AVER(ISVALIDNESTED(DequeNode, &pool->spaceDeque));
   AVER(ISVALIDNESTED(Deque, &pool->segDeque));
   AVER(ISVALIDNESTED(Deque, &pool->bufferDeque));
@@ -50,7 +49,6 @@ void PoolInit(Pool pool, Space space, PoolClass class)
 {
   AVER(pool != NULL);
   AVER(ISVALID(Space, space));
-  AVER(ISVALID(PoolClass, class));
 
   pool->class = class;
   DequeNodeInit(&pool->spaceDeque);
@@ -98,7 +96,6 @@ Error PoolCreate(Pool *poolReturn, PoolClass class, Space space, ...)
 Error PoolCreateV(Pool *poolReturn, PoolClass class, Space space, va_list arg)
 {
   AVER(poolReturn != NULL);
-  AVER(ISVALID(PoolClass, class));
   AVER(ISVALID(Space, space));
   return((*class->create)(poolReturn, space, arg));
 }
@@ -122,7 +119,6 @@ Error (PoolAllocP)(void **pReturn, Pool pool, size_t size)
   if(e != ErrSUCCESS) return(e);
 
   /* Make sure that the allocated address was in the pool's memory. */  
-  AVER(PoolHasAddr(pool, (Addr)*pReturn));
 
   return(ErrSUCCESS);
 }
@@ -132,114 +128,22 @@ void PoolFreeP(Pool pool, void *old, size_t size)
 {
   AVER(ISVALID(Pool, pool));
   AVER(old != NULL);
-  AVER(PoolHasAddr(pool, (Addr)old));
 
   if(pool->class->freeP != NULL)
     (*pool->class->freeP)(pool, old, size);
 }
 
 
-Error PoolSegCreate(Seg *segReturn, Pool pool, Addr size)
-{
-  Error e;
-  Seg seg;
-  Space space;
-  Arena arena;
-
-  AVER(segReturn != NULL);
-  AVER(ISVALID(Pool, pool));
-  
-  space = PoolSpace(pool);
-  arena = SpaceArena(space);
-
-  e = PoolAllocP((void **)&seg, SpaceSegPool(space), sizeof(SegStruct));
-  if(e != ErrSUCCESS) return(e);
-
-  e = SegInit(seg, arena, size);
-  if(e != ErrSUCCESS) return(e);
-  
-  DequeAppend(&pool->segDeque, SegPoolDeque(seg));
-
-  *segReturn = seg;
-  return(ErrSUCCESS);
-}
 
 
-void PoolSegDestroy(Pool pool, Seg seg)
-{
-  AVER(ISVALID(Seg, seg));
-  AVER(ISVALID(Pool, pool));
-  AVER(DequeNodeParent(SegPoolDeque(seg)) == &pool->segDeque);
-  
-  DequeNodeRemove(SegPoolDeque(seg));
-  SegFinish(seg);
-  PoolFreeP(SpaceSegPool(PoolSpace(pool)), seg, sizeof(SegStruct));
-}
 
 
-void PoolSegDestroyAll(Pool pool)
-{
-  DequeNode node;
-  
-  AVER(ISVALID(Pool, pool));
-
-  node = DequeFirst(&pool->segDeque);
-  while(node != DequeSentinel(&pool->segDeque))
-  {
-    DequeNode next = DequeNodeNext(node);
-    Seg seg = DEQUENODEELEMENT(Seg, poolDeque, node);
-
-    PoolSegDestroy(pool, seg);
-
-    node = next;
-  }
-}
 
 
-Pool PoolOfSeg(Seg seg)
-{
-  Deque deque;
-  Pool pool;
-
-  AVER(ISVALID(Seg, seg));
-
-  deque = DequeNodeParent(SegPoolDeque(seg));
-  pool = PARENT(PoolStruct, segDeque, deque);
-
-  return(pool);
-}
 
 
-Bool PoolOfAddr(Pool *poolReturn, Space space, Addr addr)
-{
-  Seg seg;
-  
-  AVER(poolReturn != NULL);
-  AVER(ISVALID(Space, space));
-  
-  if(SegOfAddr(&seg, SpaceArena(space), addr))
-  {
-    Pool pool = PoolOfSeg(seg);
-    AVER(PoolSpace(pool) == space);
-    *poolReturn = pool;
-    return(TRUE);
-  }
-  
-  return(FALSE);
-}
 
 
-Bool PoolHasAddr(Pool pool, Addr addr)
-{
-  Pool addrPool;
-
-  AVER(ISVALID(Pool, pool));
-
-  if(PoolOfAddr(&addrPool, PoolSpace(pool), addr) && addrPool == pool)
-    return(TRUE);
-  else
-    return(FALSE);
-}
      
 
 Error PoolDescribe(Pool pool, LibStream stream)
@@ -263,8 +167,6 @@ Error PoolDescribe(Pool pool, LibStream stream)
     
     while(node != DequeSentinel(&pool->bufferDeque))
     {
-      Buffer buffer = DEQUENODEELEMENT(Buffer, poolDeque, node);
-      (void)BufferDescribe(buffer, stream);
       node = DequeNodeNext(node);
     }
   }
@@ -292,17 +194,44 @@ PoolClass (PoolGetClass)(Pool pool)
   return(pool->class);
 }
 
+
+Error PoolSegCreate(Addr *segReturn, Pool pool, Addr size)
+{
+  Error e;
+  Arena arena;
+  Pool arpool;
+  Addr seg;
+
+  AVER(segReturn != NULL);
+  AVER(ISVALID(Pool, pool));
+  arena = SpaceArena(PoolSpace(pool));
+  AVER(IsAligned(ArenaGrain(arena), size));
+
+  arpool = PoolArenaPool(arena);
+  e = PoolAllocP((void **)&seg, arpool, size);
+  if(e != ErrSUCCESS) return(e);
+  ArenaPut(arena, seg, 0, (void *)pool);
+
+  *segReturn = seg;
+  return(ErrSUCCESS);
+}
+
+
+Pool PoolOfSeg(Arena arena, Addr seg)
+{
+  Pool pool;
+
+  pool = (Pool)ArenaGet(arena, seg, 0);
+  AVER(ISVALID(Pool, pool));
+  return(pool);
+}
+
 DequeNode (PoolSpaceDeque)(Pool pool)
 {
   AVER(ISVALID(Pool, pool));
   return(&pool->spaceDeque);
 }
 
-Deque (PoolSegDeque)(Pool pool)
-{
-  AVER(ISVALID(Pool, pool));
-  return(&pool->segDeque);
-}
 
 Deque (PoolBufferDeque)(Pool pool)
 {
