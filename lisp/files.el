@@ -1828,6 +1828,7 @@ beginning and `after-revert-hook' at the end."
 		 (let ((buffer-file-name nil))
 		   (or auto-save-p
 		       (unlock-buffer)))
+		 (widen)
 		 (insert-file-contents file-name (not auto-save-p)
 				       nil nil t)))
 	     (goto-char (min opoint (point-max)))
