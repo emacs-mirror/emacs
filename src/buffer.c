@@ -109,6 +109,8 @@ Lisp_Object Vbuffer_alist;
 /* Functions to call before and after each text change. */
 Lisp_Object Vbefore_change_function;
 Lisp_Object Vafter_change_function;
+Lisp_Object Vbefore_change_functions;
+Lisp_Object Vafter_change_functions;
 
 Lisp_Object Vtransient_mark_mode;
 
@@ -2586,8 +2588,8 @@ the beginning and end of the range of old text to be changed.\n\
 No information is given about the length of the text after the change.\n\
 position of the change\n\
 \n\
-While executing the `before-change-function', changes to buffers do not\n\
-cause calls to any `before-change-function' or `after-change-function'.");
+Buffer changes made while executing the `before-change-function'\n\
+don't call any before-change or after-change functions.");
   Vbefore_change_function = Qnil;
 
   DEFVAR_LISP ("after-change-function", &Vafter_change_function,
@@ -2599,9 +2601,34 @@ and the length of the pre-change text replaced by that range.\n\
 for a deletion, that length is the number of characters deleted,\n\
 and the post-change beginning and end are at the same place.)\n\
 \n\
-While executing the `after-change-function', changes to buffers do not\n\
-cause calls to any `before-change-function' or `after-change-function'.");
+Buffer changes made while executing the `after-change-function'\n\
+don't call any before-change or after-change functions.");
   Vafter_change_function = Qnil;
+
+  DEFVAR_LISP ("before-change-functions", &Vbefore_change_functions,
+	       "List of functions to call before each text change.\n\
+Two arguments are passed to each function: the positions of\n\
+the beginning and end of the range of old text to be changed.\n\
+\(For an insertion, the beginning and end are at the same place.)\n\
+No information is given about the length of the text after the change.\n\
+position of the change\n\
+\n\
+Buffer changes made while executing the `before-change-functions'\n\
+don't call any before-change or after-change functions.");
+  Vbefore_change_functions = Qnil;
+
+  DEFVAR_LISP ("after-change-functions", &Vafter_change_functions,
+	       "List of function to call after each text change.\n\
+Three arguments are passed to each function: the positions of\n\
+the beginning and end of the range of changed text,\n\
+and the length of the pre-change text replaced by that range.\n\
+\(For an insertion, the pre-change length is zero;\n\
+for a deletion, that length is the number of characters deleted,\n\
+and the post-change beginning and end are at the same place.)\n\
+\n\
+Buffer changes made while executing the `after-change-functions'\n\
+don't call any before-change or after-change functions.");
+  Vafter_change_functions = Qnil;
 
   DEFVAR_LISP ("first-change-hook", &Vfirst_change_hook,
   "A list of functions to call before changing a buffer which is unmodified.\n\
