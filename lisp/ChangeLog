@@ -7,6 +7,19 @@
 
 2000-09-07  Dave Love  <fx@gnu.org>
 
+	* vc-sccs.el: Doc fixes.
+	(vc-sccs-register-switches, vc-sccs-master-templates): Add
+	:version.
+
+	* vc-rcs.el: Doc fixes.
+	(vc-rcs-register-switches, vc-rcs-checkin-switches) 
+	(vc-rcs-checkout-switches, vc-rcs-header) 
+	(vc-rcs-master-templates): Add or change :version.
+
+	* vc-cvs.el: DOc fixes.
+	(vc-cvs-register-switches, vc-cvs-header, vc-cvs-use-edit)
+	(vc-cvs-stay-local): Add :version.
+
 	* menu-bar.el (menu-bar-options-menu): Fix the font-lock toggle.
 
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
