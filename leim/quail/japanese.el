@@ -279,15 +279,15 @@ xya ゃ xyu ゅ xyo ょ xwa ゎ xka ヵ xke ヶ
 
 Digists and punctuations:
 
-key:  1 2 3 4 5 6 7 8 9 0 - = \ ` ! @ # $ % ^ & * ( ) _ + | ~
+key:  1 2 3 4 5 6 7 8 9 0 - = \\ ` ! @ # $ % ^ & * ( ) _ + | ~
 char: １２３４５６７８９０ー＝￥｀！＠＃＄％＾＆＊（）＿＋｜￣
 
 key:  [ ] { } ; ' : \" , . / < > ?
-char: 「」｛｝；’、。／：”＜＞？
+char: 「」｛｝；’：”、。／＜＞？
        	       	 
 Symbols (`z' followed by these keys):
 
-Key:  1 2 3 4 5 6 7 8 9 0 - = \ ` ! @ # $ % ^ & * ( ) _ + | ~
+Key:  1 2 3 4 5 6 7 8 9 0 - = \\ ` ! @ # $ % ^ & * ( ) _ + | ~
 char: ○▽△□◇☆◎¢♂♀〜≠＼´●▼▲■◆★£×【】∴±‖¨
 
 Key:  [ ] { } ; ' : \" , . / < > ?
@@ -316,7 +316,7 @@ C-p		kkc-prev
 	If successively typed `kkc-show-conversion-list-count' times,
 	conversion candidates are shown in the echo area.
 l		kkc-show-conversion-list-or-next-group
-	Show at most 10  candidates for the current phrase in echo area.
+	Show at most 10 candidates for the current phrase in echo area.
 	If typed repeatedly, show the next 10 candidates.
 L		kkc-show-conversion-list-or-prev-group
 	Show at most 10 candidates for the current phrase in echo area.
