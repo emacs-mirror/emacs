@@ -192,16 +192,13 @@ same as ENDRECFUN."
       (set-buffer old-buffer)
       (let ((inhibit-quit t))
 	;; Make sure insertions done for reordering
-	;; do not go after any markers at the end of the sorted region,
-	;; by inserting a space to separate them.
-	(goto-char max)
-	(insert-before-markers " ")
-	;; Delete the original copy of the text.
-	(delete-region min max)
-	;; Now replace the separator " " with the sorted text.
-	(goto-char (point-max))
+	;; saves any markers at the end of the sorted region,
+	;; by leaving the last character of the region.
+	(delete-region min (1- max))
+  	;; Now replace the one remaining old character with the sorted text.
+	(goto-char (point-min))
 	(insert-buffer-substring temp-buffer)
-	(delete-region min (1+ min))))))
+	(delete-region max (1+ max))))))
 
 ;;;###autoload
 (defun sort-lines (reverse beg end)
