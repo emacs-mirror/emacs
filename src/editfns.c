@@ -529,8 +529,7 @@ DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 0, 
   "Return the current time, as a human-readable string.\n\
 Programs can use it too, since the number of columns in each field is fixed.\n\
 The format is `Sun Sep 16 01:03:52 1973'.\n\
-In a future Emacs version, the time zone may be added at the end,\n\
-if we can figure out a reasonably easy way to get that information.")
+In a future Emacs version, the time zone may be added at the end.")
   ()
 {
   long current_time = time ((long *) 0);
