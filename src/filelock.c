@@ -199,9 +199,10 @@ void
 lock_file (fn)
      register Lisp_Object fn;
 {
-  register Lisp_Object attack;
+  register Lisp_Object attack, orig_fn;
   register char *lfname;
 
+  orig_fn = fn;
   fn = Fexpand_file_name (fn, Qnil);
 
   MAKE_LOCK_NAME (lfname, fn);
@@ -210,7 +211,7 @@ lock_file (fn)
      visited.  */
   {
     register Lisp_Object subject_buf;
-    subject_buf = Fget_file_buffer (fn);
+    subject_buf = get_truename_buffer (orig_fn);
     if (!NILP (subject_buf)
 	&& NILP (Fverify_visited_file_modtime (subject_buf))
 	&& !NILP (Ffile_exists_p (fn)))
