@@ -1,4 +1,5 @@
-;; Text mode, and its ideosyncratic commands.
+;;; text-mode.el --- text mode, and its idiosyncratic commands.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -148,3 +149,5 @@ the distance between the end of the text and `fill-column'."
       (indent-to 
 	(+ left-margin 
 	   (/ (- fill-column left-margin line-length) 2))))))
+
+;;; text-mode.el ends here

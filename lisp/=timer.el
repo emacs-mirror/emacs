@@ -1,4 +1,5 @@
-;; Run a function with args at some time in future
+;;; timer.el --- run a function with args at some time in future
+
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -91,3 +92,5 @@ the call to the function."
   (or timer-alist timer-dont-exit (process-send-eof timer-process)))
 
 (provide 'timer)
+
+;;; timer.el ends here

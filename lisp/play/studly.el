@@ -1,4 +1,4 @@
-;;; StudlyCaps (tm)(r)(c)(xxx)
+;;; studly.el --- StudlyCaps (tm)(r)(c)(xxx)
 
 (defun studlify-region (begin end)
   "Studlify-case the region"
@@ -46,3 +46,5 @@
   "Studlify-case the current buffer"
   (interactive "*")
   (studlify-region (point-min) (point-max)))
+
+;;; studly.el ends here

@@ -1,4 +1,5 @@
-;; Override parts of files.el for VMS.
+;;; vms-patch.el --- override parts of files.el for VMS.
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -107,3 +108,5 @@ If the logical name `EMACS_FILE_NAME' is defined, `find-file' that file."
 		  " sys$login:delete-me.txt/name=""GNUprintbuffer"" "
 		  (mapconcat 'identity switches " "))
 	  nil nil nil)))
+
+;;; vms-patch.el ends here

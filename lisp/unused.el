@@ -1,5 +1,6 @@
-;; Editing commands in GNU Emacs that turned out not to be used.
-;; They were added with an eye to making possible a more CCA-compatible
+;;; unused.el --- editing commands in GNU Emacs that turned out not to be used.
+
+;; These were added with an eye to making possible a more CCA-compatible
 ;; command set; but that turned out not to be interesting.
 
 (defun mark-beginning-of-buffer ()
@@ -30,3 +31,5 @@ With argument, do this that many times."
 With argument, do this that many times."
   (interactive "p")
   (forward-to-word (- arg)))
+
+;;; unused.el ends here

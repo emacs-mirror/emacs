@@ -1,4 +1,5 @@
-;; Terminal emulator for GNU Emacs.
+;;; terminal.el --- terminal emulator for GNU Emacs.
+
 ;; Copyright (C) 1986, 1987, 1988, 1989 Free Software Foundation, Inc.
 ;; Written by Richard Mlynarik, November 1986.
 
@@ -1217,3 +1218,5 @@ of the terminal-emulator"
 	   (concat "\"" harder "\"")))))
 
 (provide 'terminal)
+
+;;; terminal.el ends here

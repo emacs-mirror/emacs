@@ -1,4 +1,5 @@
-;; View: Peruse file or buffer without editing.
+;;; view.el --- peruse file or buffer without editing.
+
 ;; Copyright (C) 1985, 1989 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -439,3 +440,4 @@ invocations return to earlier marks."
 
 (provide 'view)
 
+;;; view.el ends here

@@ -1,4 +1,5 @@
-;; Display time and load in mode line of Emacs.
+;;; time.el --- display time and load in mode line of Emacs.
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -122,3 +123,5 @@ After each update, `display-time-hook' is run with `run-hooks'."
   (while (file-symlink-p file)
     (setq file (file-symlink-p file)))
   (> (nth 7 (file-attributes file)) 0))
+
+;;; time.el ends here

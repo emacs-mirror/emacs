@@ -1,3 +1,5 @@
+;;; upd-copyr.el --- update the copyright notice in a GNU Emacs elisp file
+
 ;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
 ;;; Written by Roland McGrath.
 ;;;
@@ -128,3 +130,5 @@ Put this on write-file-hooks."
   nil)
 
 (provide 'upd-copyr)
+
+;;; upd-copyr.el ends here

@@ -1,5 +1,4 @@
-;;;; texnfo-upd.el
-;;;; A utility for updating nodes and menus in Texinfo files.
+;;; texnfo-upd.el --- a utility for updating nodes and menus in Texinfo files.
 
 ;;;; Version 2.00   14 Dec 1990
 
@@ -1721,7 +1720,6 @@ chapter."
           included-file-list)))))
   (message "Multiple files updated."))
 
-;;;;;;;;;;;;;;;; end texnfo-upd.el ;;;;;;;;;;;;;;;;
-
 (provide 'texnfo-upd)
 
+;;; texnfo-upd.el ends here

@@ -1,4 +1,5 @@
-;; "RMAIL" mail reader for Emacs.
+;;; undigest.el --- digest-cracking support for the RMAIL mail reader
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -103,3 +104,4 @@ Leaves original message, deleted, before the undigestified messages."
 	     (delete-region (point-min) (point-max))
 	     (rmail-show-message rmail-current-message))))))
 
+;;; undigest.el ends here

@@ -1,4 +1,5 @@
-; Evi: Major mode for emulating "vi" editor under GNU Emacs.
+;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs.
+
 ; Originally written by : seismo!wucs!nz@rsch.wisc.edu (Neal Ziring)
 ; Extensively redesigned and rewritten by wu@crys.wisc.edu (Felix S.T. Wu)
 ; Last revision: 01/07/87 Wed (for GNU Emacs 18.33)
@@ -1445,3 +1446,5 @@ With arg, inserts that many newlines."
 			  (setq arg (1- arg)))
 			(if flag (forward-char 1))))) arg)
     t))
+
+;;; vi.el ends here

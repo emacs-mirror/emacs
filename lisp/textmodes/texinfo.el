@@ -1,5 +1,4 @@
-;;;; texinfo.el
-;;;; Major mode for editing Texinfo files.
+;;;; texinfo.el ---- major mode for editing Texinfo files.
 
 ;;;; Version 2.00   14 Dec 1990
 
@@ -413,3 +412,4 @@ Runs the shell command defined by tex-dvi-print-command."
 
 (provide 'texinfo)
 
+;;; texinfo.el ends here

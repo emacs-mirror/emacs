@@ -1,3 +1,5 @@
+;;; userlock.el --- handle file access contention between multiple users
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, inc.
 
 ;; This file is part of GNU Emacs.
@@ -123,4 +125,4 @@ If you say `n', the change you started to make will be aborted.
 Usually, you should type `n' and then `M-x revert-buffer',
 to get the latest version of the file, then make the change again.")))
 
-
+;;; userlock.el ends here

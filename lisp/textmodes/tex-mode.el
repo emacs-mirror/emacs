@@ -1,4 +1,5 @@
-;; TeX, LaTeX, and SliTeX mode commands.
+;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands.
+
 ;; Copyright (C) 1985, 1986, 1989 Free Software Foundation, Inc.
 ;; Rewritten following contributions by William F. Schelter
 ;; and Dick King (king@kestrel).
@@ -803,3 +804,4 @@ Runs the shell command defined by tex-show-queue-command."
 
 (provide 'tex-mode)
 
+;;; tex-mode.el ends here

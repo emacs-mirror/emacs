@@ -1,3 +1,5 @@
+;;; term-nasty.el --- Damned Things from terminfo.el
+
 Some people used to be bothered by the following comments that were
 found in terminal.el.  We decided they were distracting, and that it
 was better not to have them there.  On the other hand, we didn't want
@@ -19,3 +21,5 @@ and C-i even though the termcap doesn't say they may be used:
 ;again and again!
 ;wa12id!!
 ;(spiked)
+
+;;; term-nasty.el ends here

@@ -1,4 +1,5 @@
-;; Insert or remove underlining (done by overstriking) in Emacs.
+;;; underline.el --- insert/remove underlining (done by overstriking) in Emacs.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -46,3 +47,5 @@ which specify the range to operate on."
      (goto-char (min start end))
      (while (re-search-forward "_\\|_" end1 t)
        (delete-char -2)))))
+
+;;; underline.el ends here

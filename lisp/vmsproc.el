@@ -1,4 +1,4 @@
-;; vmsx.el --- run asynchronous VMS subprocesses under Emacs
+;; vmsproc.el --- run asynchronous VMS subprocesses under Emacs
 
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
@@ -137,3 +137,5 @@ line to the last line for resubmission."
   (kill-line))
 
 (define-key esc-map "$" 'subprocess-command)
+
+;;; vmsproc.el ends here

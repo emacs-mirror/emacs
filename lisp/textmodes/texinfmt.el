@@ -1,5 +1,4 @@
-;;;; texinfmt.el
-;;;; Convert Texinfo files to Info files.
+;;;; texinfmt.el --- convert Texinfo files to Info files.
 
 ;;;; Version 2.00   14 Dec 1990
 
@@ -1819,3 +1818,5 @@ For example, invoke
 	     (message ">>  %s" s))
 	   (setq error 1))))
       (kill-emacs error))))
+
+;;; texinfmt.el ends here

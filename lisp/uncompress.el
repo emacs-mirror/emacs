@@ -1,3 +1,23 @@
+;;; uncompress.el --- auto-decompression hook for visiting .Z files
+
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 1, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
 ;; When we are about to make a backup file,
 ;; uncompress the file we visited
 ;; so that making the backup can work properly.
@@ -45,3 +65,5 @@ It then selects a major mode from the uncompressed file name and contents."
 	(goto-char (point-min))
 	(setq error nil)
 	t)))
+
+;;; uncompress.el ends here
