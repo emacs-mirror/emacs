@@ -1025,7 +1025,7 @@ defined_color (f, color, color_def, alloc)
 			      * ((color_def->red >> 8) - (cells[x].red >> 8)))
 			     +
 			     (((color_def->green >> 8) - (cells[x].green >> 8))
-			      * ((color_def->green >> 8) - (cells[x].green >> 8))) +
+			      * ((color_def->green >> 8) - (cells[x].green >> 8)))
 			     +
 			     (((color_def->blue >> 8) - (cells[x].blue >> 8))
 			      * ((color_def->blue >> 8) - (cells[x].blue >> 8))));
@@ -1760,14 +1760,23 @@ x_set_scroll_bar_width (f, arg, oldval)
 static void
 validate_x_resource_name ()
 {
+  int len;
+  /* Number of valid characters in the resource name.  */
+  int good_count = 0;
+  /* Number of invalid characters in the resource name.  */
+  int bad_count = 0;
+  Lisp_Object new;
+  int i;
+
   if (STRINGP (Vx_resource_name))
     {
-      int len = XSTRING (Vx_resource_name)->size;
       unsigned char *p = XSTRING (Vx_resource_name)->data;
       int i;
 
-      /* Allow only letters, digits, - and _,
-	 because those are all that X allows.  */
+      len = XSTRING (Vx_resource_name)->size;
+
+      /* Only letters, digits, - and _ are valid in resource names.
+	 Count the valid characters and count the invalid ones.  */
       for (i = 0; i < len; i++)
 	{
 	  int c = p[i];
@@ -1775,12 +1784,41 @@ validate_x_resource_name ()
 		 || (c >= 'A' && c <= 'Z')
 		 || (c >= '0' && c <= '9')
 		 || c == '-' || c == '_'))
-	    goto fail;
+	    bad_count++;
+	  else
+	    good_count++;
 	}
     }
   else
-  fail:
-    Vx_resource_name = make_string ("emacs", 5);
+    /* Not a string => completely invalid.  */
+    bad_count = 5, good_count = 0;
+
+  /* If name is valid already, return.  */
+  if (bad_count == 0)
+    return;
+
+  /* If name is entirely invalid, or nearly so, use `emacs'.  */
+  if (good_count == 0
+      || (good_count == 1 && bad_count > 0))
+    {
+      Vx_resource_name = make_string ("emacs", 5);
+      return;
+    }
+
+  /* Name is partly valid.  Copy it and replace the invalid characters
+     with underscores.  */
+
+  Vx_resource_name = new = Fcopy_sequence (Vx_resource_name);
+
+  for (i = 0; i < len; i++)
+    {
+      int c = XSTRING (new)->data[i];
+      if (! ((c >= 'a' && c <= 'z')
+	     || (c >= 'A' && c <= 'Z')
+	     || (c >= '0' && c <= '9')
+	     || c == '-' || c == '_'))
+	XSTRING (new)->data[i] = '_';
+    }
 }
 
 
@@ -2292,7 +2330,13 @@ x_window (f, window_prompting, minibuffer_only)
   BLOCK_INPUT;
 
   if (STRINGP (f->name))
-    name = (char*) XSTRING (f->name)->data;
+    {
+      /* This is a storage leak, but unless people create
+	 thousands of frames, that's ok.
+	 Fix it later by making a new slot in the frame to hold this.  */
+      name = (char *) xmalloc (XSTRING (f->name)->size + 1);
+      bcopy (XSTRING (f->name)->data, name, XSTRING (f->name)->size + 1);
+    }
   else
     name = "emacs";
 
