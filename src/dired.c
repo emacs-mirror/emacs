@@ -668,8 +668,8 @@ If file does not exist, returns nil.")
 #undef BSD4_2 /* ok, you can look again without throwing up */
 #endif
 #ifdef WINDOWSNT
-  /* NT inodes are 64 bits, so we need to dance a little...  */
-  if (!get_inode_and_device_vals (filename, &values[10], &values[11])) {   ????
+  /* Fill in the inode and device values specially...see nt.c.  */
+  if (!get_inode_and_device_vals (filename, &values[10], &values[11])) {
       return Qnil;
   }
 #else  /* not WINDOWSNT */
