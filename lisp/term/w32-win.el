@@ -148,8 +148,8 @@ the last file dropped is selected."
 	    (setq default-frame-alist
 		  (cons (cons param
 			      (car x-invocation-args))
-			default-frame-alist))
-	    x-invocation-args (cdr x-invocation-args))))))
+			default-frame-alist)
+ 	          x-invocation-args (cdr x-invocation-args)))))))
 
 (defun x-handle-numeric-switch (switch)
   "Handle SWITCH of the form \"-switch n\"."
