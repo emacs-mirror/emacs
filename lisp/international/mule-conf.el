@@ -458,6 +458,12 @@
   :code-space [0 255]
   :map "vscii")
 
+;; Fixme: see note in tcvn.map about combining characters
+(define-charset 'tcvn-5712
+  "TCVN-5712"
+  :code-space [0 255]
+  :map "tcvn")
+
 (define-charset 'koi8-r
   "KOI8-R"
   :short-name "KOI8-R"
