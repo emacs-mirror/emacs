@@ -80,10 +80,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef USE_MOTIF
-#include <Xm/Xm.h>		/* for LESSTIF_VERSION */
-#endif
-
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
 
@@ -1154,11 +1150,7 @@ popup_activate_callback (widget, id, client_data)
      LWLIB_ID id;
      XtPointer client_data;
 {
-#ifdef USE_MOTIF
-  ++popup_activated_flag;
-#else
   popup_activated_flag = 1;
-#endif
 }
 
 /* This callback is invoked when a dialog or menu is finished being
@@ -1170,11 +1162,7 @@ popup_deactivate_callback (widget, id, client_data)
      LWLIB_ID id;
      XtPointer client_data;
 {
-#ifdef USE_MOTIF
-  --popup_activated_flag;
-#else
   popup_activated_flag = 0;
-#endif
 }
 
 /* Lwlib callback called when menu items are highlighted/unhighlighted
