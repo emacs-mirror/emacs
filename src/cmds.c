@@ -106,7 +106,7 @@ With positive ARG, a non-empty line at the end counts as one line\n\
     }
 
   negp = count <= 0;
-  pos = scan_buffer ('\n', pos2, count - negp, &shortage, 1);
+  pos = scan_buffer ('\n', pos2, 0, count - negp, &shortage, 1);
   if (shortage > 0
       && (negp
 	  || (ZV > BEGV
@@ -150,13 +150,7 @@ If scan reaches end of buffer, stop there without error.")
   else
     CHECK_NUMBER (n, 0);
 
-  if (XINT (n) != 1)
-    Fforward_line (make_number (XINT (n) - 1));
-
-  pos = point;
-  stop = ZV;
-  while (pos < stop && FETCH_CHAR (pos) != '\n') pos++;
-  SET_PT (pos);
+  SET_PT (find_before_next_newline (PT, 0, XINT (n) - (XINT (n) <= 0)));
 
   return Qnil;
 }
