@@ -486,6 +486,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	  {
 	    Lisp_Object end, limit;
 
+	    recenter_overlay_lists (current_buffer, pos);
 	    /* This is just an estimate to give reasonable
 	       performance; nothing should go wrong if it is too small.  */
 	    limit = Fnext_overlay_change (position);
