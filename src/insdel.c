@@ -81,7 +81,7 @@ static int check_markers_debug_flag;
 void
 check_markers ()
 {
-  register Lisp_Object tail, prev, next;
+  register Lisp_Object tail;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   tail = BUF_MARKERS (current_buffer);
@@ -683,7 +683,7 @@ copy_text (from_addr, to_addr, nbytes,
     {
       int nchars = 0;
       int bytes_left = nbytes;
-      Lisp_Object tbl = Qnil, temp;
+      Lisp_Object tbl = Qnil;
 
       /* We set the variable tbl to the reverse table of
          Vnonascii_translation_table in advance.  */
@@ -968,9 +968,9 @@ count_combining_after (string, length, pos, pos_byte)
      int length;
      int pos, pos_byte;
 {
-  int opos = pos, opos_byte = pos_byte;
+  int opos_byte = pos_byte;
   int i;
-  int c, bytes;
+  int bytes;
   unsigned char *bufp;
 
   if (NILP (current_buffer->enable_multibyte_characters))
@@ -1082,8 +1082,8 @@ byte_combining_error ()
    region boundary, signal an error.  */
 #define CHECK_BYTE_COMBINING_FOR_INSERT(pos)				\
   do {									\
-    if (combined_before_bytes && pos == BEGV				\
-	|| combined_after_bytes && pos == ZV)				\
+    if ((combined_before_bytes && pos == BEGV)				\
+	|| (combined_after_bytes && pos == ZV))				\
       byte_combining_error ();	\
   } while (0)
 
@@ -1098,7 +1098,6 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
      register int nchars, nbytes;
      int inherit, prepare, before_markers;
 {
-  register Lisp_Object temp;
   int combined_before_bytes, combined_after_bytes;
 
   if (NILP (current_buffer->enable_multibyte_characters))
@@ -1261,11 +1260,9 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
      register int pos, pos_byte, nchars, nbytes;
      int inherit, before_markers;
 {
-  register Lisp_Object temp;
   struct gcpro gcpro1;
   int outgoing_nbytes = nbytes;
   int combined_before_bytes, combined_after_bytes;
-  int adjusted_nchars;
   INTERVAL intervals;
 
   /* Make OUTGOING_NBYTES describe the text
@@ -1437,7 +1434,6 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   int incoming_nbytes = to_byte - from_byte;
   int outgoing_nbytes = incoming_nbytes;
   int combined_before_bytes, combined_after_bytes;
-  int adjusted_nchars;
   INTERVAL intervals;
 
   /* Make OUTGOING_NBYTES describe the text
@@ -1669,8 +1665,8 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
       nbytes_del = STRING_BYTES (XSTRING (prev_text));
     }
 
-  if (combine_before && from == BEGV
-      || combined_after_bytes && from == ZV)
+  if ((combine_before && from == BEGV)
+      || (combined_after_bytes && from == ZV))
     {
       /* We can't combine bytes nor signal an error here.  So, let's
 	 pretend that the new text is just a single space.  */
@@ -1699,7 +1695,7 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
     }
 
   if (combined_before_bytes
-      || len_byte == 0 && combined_after_bytes > 0)
+      || (len_byte == 0 && combined_after_bytes > 0))
     {
       Lisp_Object deletion;
       deletion = Qnil;
@@ -1750,8 +1746,6 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
 #endif
 
   {
-    int pos = PT, pos_byte = PT_BYTE;
-
     if (from < PT)
       adjust_point (len - nchars_del, len_byte - nbytes_del);
 
@@ -1823,7 +1817,6 @@ replace_range (from, to, new, prepare, inherit, markers)
   register Lisp_Object temp;
   struct gcpro gcpro1;
   int combined_before_bytes, combined_after_bytes;
-  int adjusted_inschars;
   INTERVAL intervals;
   int outgoing_insbytes = insbytes;
   Lisp_Object deletion;
@@ -1927,8 +1920,8 @@ replace_range (from, to, new, prepare, inherit, markers)
   combined_after_bytes
     = count_combining_after (GPT_ADDR, outgoing_insbytes, from, from_byte);
 
-  if (combined_before_bytes && from == BEGV
-      || combined_after_bytes && from == ZV)
+  if ((combined_before_bytes && from == BEGV)
+      || (combined_after_bytes && from == ZV))
     {
       /* Bytes are being combined across the region boundary.  We
          should avoid it.  We recover the original contents before
