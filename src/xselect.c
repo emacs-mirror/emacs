@@ -97,7 +97,7 @@ Lisp_Object QPRIMARY, QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
 
 Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
 
-Lisp_Object Qcompound_text_no_extensions;
+Lisp_Object Qcompound_text_with_extensions;
 
 #ifdef CUT_BUFFER_SUPPORT
 Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
@@ -1766,7 +1766,7 @@ lisp_data_to_selection_data (display, obj,
 				 (int *) size_ret, &stringp);
       *nofree_ret = (*data_ret == XSTRING (obj)->data);
       if (EQ (Vnext_selection_coding_system,
-	      Qcompound_text_no_extensions))
+	      Qcompound_text_with_extensions))
 	type = QCOMPOUND_TEXT;
       else if (NILP (type))
 	type = (stringp ? QSTRING : QCOMPOUND_TEXT);
@@ -2400,8 +2400,8 @@ it merely informs you that they have happened.  */);
 	       doc: /* Coding system for communicating with other X clients.
 When sending or receiving text via cut_buffer, selection, and clipboard,
 the text is encoded or decoded by this coding system.
-The default value is `compound-text'.  */);
-  Vselection_coding_system = intern ("compound-text");
+The default value is `compound-text-with-extensions'.  */);
+  Vselection_coding_system = intern ("compound-text-with-extensions");
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
 	       doc: /* Coding system for the next communication with other X clients.
@@ -2435,8 +2435,8 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   QATOM	     = intern ("ATOM");		staticpro (&QATOM);
   QATOM_PAIR = intern ("ATOM_PAIR");	staticpro (&QATOM_PAIR);
   QNULL	     = intern ("NULL");		staticpro (&QNULL);
-  Qcompound_text_no_extensions = intern ("compound-text-no-extensions");
-  staticpro (&Qcompound_text_no_extensions);
+  Qcompound_text_with_extensions = intern ("compound-text-with-extensions");
+  staticpro (&Qcompound_text_with_extensions);
 
 #ifdef CUT_BUFFER_SUPPORT
   QCUT_BUFFER0 = intern ("CUT_BUFFER0"); staticpro (&QCUT_BUFFER0);
