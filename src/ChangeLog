@@ -37,7 +37,9 @@
 
 	* macfns.c (x_specified_cursor_type): Removed.
 	(x_set_cursor_type): Use set_frame_cursor_types.
-
+	(Qbar, Qbox): Removed.
+	(syms_of_macfns): Don't intern or staticpro them.
+	
 	* macterm.c (x_specified_cursor_type): Remove prototype.
 	(x_draw_bar_cursor): Use FRAME_CURSOR_WIDTH.
 	(x_display_and_set_cursor): Use get_window_cursor_type.
