@@ -1879,8 +1879,8 @@ init_lread ()
 	  {
 	    dirfile = Fdirectory_file_name (dirfile);
 	    if (access (XSTRING (dirfile)->data, 0) < 0)
-	      printf ("Warning: lisp library (%s) does not exist.\n",
-		      XSTRING (Fcar (path_tail))->data);
+	      fprintf (stderr, "Warning: lisp library (%s) does not exist.\n",
+		       XSTRING (Fcar (path_tail))->data);
 	  }
       }
   }
