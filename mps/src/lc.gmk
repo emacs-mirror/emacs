@@ -1,6 +1,6 @@
 # impl.gmk.lc: GNUMAKEFILE FRAGMENT FOR LCC
 #
-# $HopeName: MMsrc!lc.gmk(trunk.2) $
+# $HopeName: MMsrc!lc.gmk(trunk.3) $
 # Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # This file is included by platform makefiles that use the LCC
@@ -8,8 +8,7 @@
 # common makefile fragment (impl.gmk.comm) requires.
 #
 # .optimize.noflags: lcc does some minimal amount of optimization all
-# the time and ignores the -O flag.  Hence the empty CFLAGSOPTIMIZE
-# macro.
+# the time and ignores the -O flag.  Hence the empty *OPT* macros.
 
 # We need a symbol for a non-empty definition with empty value
 ifdef MPS_EMPTY
