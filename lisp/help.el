@@ -707,7 +707,8 @@ is used instead of `load-path'."
   (interactive (list (read-string "Locate library: ")
 		     nil nil
 		     t))
-  (let (result)
+  (let (result
+	(jka-compr-inhibit t))
     (catch 'answer
       (mapcar
        (lambda (dir)
