@@ -5,7 +5,7 @@
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
 ;; Created: 8 Feb 1994
-;; Version: 1.14
+;; Version: 1.15
 ;; Keywords: tools
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@
 ;;  [greg] - Greg Thompson gregt@porsche.visix.COM
 ;;  [wolfgang] - Wolfgang Bangerth zcg51122@rpool1.rus.uni-stuttgart.de
 ;;  [kai] - Kai Grossjohann grossjoh@linus.informatik.uni-dortmund.de
-
+;;  [david] - David M. Smith dsmith@stats.adelaide.edu.au
 ;;; Code
 (eval-when-compile (require 'cl))
 
@@ -64,7 +64,8 @@
 
 Non-nil means always display the index in a completion buffer.
 Nil means display the index as a mouse menu when the mouse was
-used to invoke `imenu'.")
+used to invoke `imenu'.
+`never' means never automatically display a listing of any kind.")
 
 (defvar imenu-sort-function nil
   "*The function to use for sorting the index mouse-menu.
@@ -653,21 +654,25 @@ Returns t for rescan and otherwise a position number."
 		  (cons (imenu--replace-spaces (car item) imenu-space-replacement)
 			(cdr item))))
 	       index-alist)))
-    (save-window-excursion
-      ;; Display the completion buffer
-      (with-output-to-temp-buffer "*Completions*"
-	(display-completion-list
-	 (all-completions "" prepared-index-alist )))
-      (let ((minibuffer-setup-hook
-	     (function (lambda ()
-			 (let ((buffer (current-buffer)))
-			   (save-excursion
-			     (set-buffer "*Completions*")
-			     (setq completion-reference-buffer buffer)))))))
-	;; Make a completion question
-	(setq name (completing-read (or prompt "Index item: ")
-				    prepared-index-alist
-				    nil t nil 'imenu--history-list))))
+    (if (eq imenu-always-use-completion-buffer-p 'never)
+  	(setq name (completing-read (or prompt "Index item: ")
+  				    prepared-index-alist
+ 				    nil t nil 'imenu--history-list))
+      (save-window-excursion
+	;; Display the completion buffer
+	(with-output-to-temp-buffer "*Completions*"
+	  (display-completion-list
+	   (all-completions "" prepared-index-alist )))
+	(let ((minibuffer-setup-hook
+	       (function (lambda ()
+			   (let ((buffer (current-buffer)))
+			     (save-excursion
+			       (set-buffer "*Completions*")
+			       (setq completion-reference-buffer buffer)))))))
+	  ;; Make a completion question
+	  (setq name (completing-read (or prompt "Index item: ")
+				      prepared-index-alist
+				      nil t nil 'imenu--history-list)))))
     (cond ((not (stringp name))
 	   nil)
 	  ((string= name (car imenu--rescan-item))
