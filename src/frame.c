@@ -490,6 +490,10 @@ make_terminal_frame ()
   make_mac_terminal_frame (f);
 #else
   f->output_data.x = &tty_display;
+#ifdef CANNOT_DUMP
+  FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
+  FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
+#endif
 #endif /* MAC_OS8 */
 #endif /* WINDOWSNT */
 #endif /* MSDOS */
