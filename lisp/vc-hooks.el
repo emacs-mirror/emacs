@@ -791,7 +791,7 @@ For CVS, the full name of CVS/Entries is returned."
 	      (cond
 	       ((re-search-forward
 		 (concat "^/" (regexp-quote basename) 
-			 "/\\([^/]*\\)/[^ /]* \\([A-Z][a-z][a-z]\\) *\\([0-9]*\\) \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\) \\([0-9]*\\)/")
+			 "/\\([^/]*\\)/[^ /]* \\([A-Z][a-z][a-z]\\) *\\([0-9]*\\) \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\) \\([0-9]*\\)")
 		 nil t)
 		(setq case-fold-search fold)  ;; restore the old value
 		;; We found it.  Store away version number now that we 
