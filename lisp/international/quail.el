@@ -221,7 +221,10 @@ Conversion keymap is a keymap used while conversion region is active
 ;;;###autoload
 (defun quail-use-package (package-name &rest libraries)
   "Start using Quail package PACKAGE-NAME.
-The remaining arguments are libraries to be loaded before using the package."
+The remaining arguments are libraries to be loaded before using the package.
+
+This activates input method defined by PACKAGE-NAME by running
+`quail-activate', which see."
   (let ((package (quail-package package-name)))
     (if (null package)
 	;; Perhaps we have not yet loaded necessary libraries.
@@ -529,13 +532,18 @@ non-Quail commands."
       (kill-buffer quail-guidance-buf)))
 
 (defun quail-inactivate ()
-  "Inactivate Quail input method."
+  "Inactivate Quail input method.
+
+This function runs the normal hook `quail-inactivate-hook'."
   (interactive)
   (quail-activate -1))
 
 (defun quail-activate (&optional arg)
   "Activate Quail input method.
 With arg, activate Quail input method if and only if arg is positive.
+
+This function runs `quail-activate-hook' if it activates the input
+method, `quail-inactivate-hook' if it deactivates it.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `quail-input-method'."
