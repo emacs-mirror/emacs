@@ -484,6 +484,10 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 
 ;;; Bindings for mouse commands.
 
+;; This first won't be needed once the drag and down events
+;; are properly implemented.
+(global-set-key   [mouse-1]	'mouse-set-point)
+
 (global-set-key   [down-mouse-1]	'mouse-set-point)
 (global-set-key   [drag-mouse-1]	'mouse-set-mark)
 (global-set-key   [mouse-2]	'mouse-yank-at-click)
