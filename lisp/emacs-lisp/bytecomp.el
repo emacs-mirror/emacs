@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.133 $")
+(defconst byte-compile-version "$Revision: 2.134 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3614,7 +3614,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		`(funcall '(lambda (,tmp) (defconst ,var ,tmp))
 			  ,value))
 	    ;; `defvar' sets `var' only when unbound.
-	    `(if (not (boundp ',var)) (setq ,var ,value)))
+	    `(if (not (default-boundp ',var)) (setq-default ,var ,value)))
 	(when (eq fun 'defconst)
 	  ;; This will signal an appropriate error at runtime.
 	  `(eval ',form)))
@@ -3984,8 +3984,8 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 
 ;;; report metering (see the hacks in bytecode.c)
 
+(defvar byte-code-meter)
 (defun byte-compile-report-ops ()
-  (defvar byte-code-meter)
   (with-output-to-temp-buffer "*Meter*"
     (set-buffer "*Meter*")
     (let ((i 0) n op off)
