@@ -246,6 +246,26 @@ adjust_markers (from, to, amount)
     }
 }
 
+/* Adjust markers whose insertion-type is t
+   for an insertion of AMOUNT characters at POS.  */
+
+static void
+adjust_markers_for_insert (pos, amount)
+     register int pos, amount;
+{
+  Lisp_Object marker;
+
+  marker = BUF_MARKERS (current_buffer);
+
+  while (!NILP (marker))
+    {
+      register struct Lisp_Marker *m = XMARKER (marker);
+      if (m->insertion_type && m->bufpos == pos)
+	m->bufpos += amount;
+      marker = m->chain;
+    }
+}
+
 /* Add the specified amount to point.  This is used only when the value
    of point changes due to an insert or delete; it does not represent
    a conceptual change in point as a marker.  In particular, point is
@@ -377,6 +397,7 @@ insert_1 (string, length, inherit, prepare)
   ZV += length;
   Z += length;
   adjust_overlays_for_insert (PT, length);
+  adjust_markers_for_insert (PT, length);
   adjust_point (length);
 
 #ifdef USE_TEXT_PROPERTIES
@@ -444,6 +465,7 @@ insert_from_string_1 (string, pos, length, inherit)
   ZV += length;
   Z += length;
   adjust_overlays_for_insert (PT, length);
+  adjust_markers_for_insert (PT, length);
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   graft_intervals_into_buffer (XSTRING (string)->intervals, PT, length,
@@ -519,6 +541,7 @@ insert_from_buffer_1 (buf, pos, length, inherit)
   ZV += length;
   Z += length;
   adjust_overlays_for_insert (PT, length);
+  adjust_markers_for_insert (PT, length);
   adjust_point (length);
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
