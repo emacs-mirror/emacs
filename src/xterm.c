@@ -5128,7 +5128,7 @@ expose_window_tree (w, r)
 	  window_rect.x
 	    = (window_x
 	       - FRAME_X_FLAGS_AREA_WIDTH (f)
-	       - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_Y_UNIT (f));
+	       - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f));
 	  window_rect.y = window_y;
 	  window_rect.width
 	    = (window_width
