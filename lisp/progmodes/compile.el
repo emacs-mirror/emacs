@@ -1,5 +1,7 @@
+;;; compile.el --- run compiler as inferior of Emacs, and parse its error messages.
+
 ;;;!!! dup removal is broken.
-;; Run compiler as inferior of Emacs, and parse its error messages.
+
 ;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -266,6 +268,7 @@ means the default).  The defaults for these variables are the global values of
       (setq outwin (display-buffer outbuf))
       (set-buffer outbuf)
       (compilation-mode)
+      (buffer-disable-undo (current-buffer))
       (set (make-local-variable 'compilation-parse-errors-function) parser)
       (set (make-local-variable 'compilation-error-message) error-message)
       (set (make-local-variable 'compilation-error-regexp-alist) regexp-alist)
@@ -309,7 +312,6 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (interactive)
   (fundamental-mode)
   (use-local-map compilation-mode-map)
-  (buffer-disable-undo (current-buffer))
   (setq major-mode 'compilation-mode)
   (setq mode-name "Compilation")
   ;; Make buffer's mode line show process state
@@ -804,3 +806,5 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 (define-key ctl-x-map "`" 'next-error)
 
 (provide 'compile)
+
+;;; compile.el ends here
