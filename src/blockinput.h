@@ -50,6 +50,12 @@ extern int interrupt_input_blocked;
    during the current critical section.  */
 extern int interrupt_input_pending;
 
+
+/* Non-zero means asynchronous timers should be run when input is
+   unblocked.  */
+
+extern int pending_atimers;
+
 /* Begin critical section. */
 #define BLOCK_INPUT (interrupt_input_blocked++)
 
@@ -67,12 +73,22 @@ extern int interrupt_input_pending;
 
    So, we always test interrupt_input_pending now; that's not too
    expensive, and it'll never get set if we don't need to resignal.  */
-#define UNBLOCK_INPUT \
-  (interrupt_input_blocked--, \
-   (interrupt_input_blocked < 0 ? (abort (), 0) : 0), \
-   ((interrupt_input_blocked == 0 && interrupt_input_pending != 0) \
-    ? (reinvoke_input_signal (), 0) \
-    : 0))
+
+#define UNBLOCK_INPUT 				\
+  do						\
+    {						\
+      --interrupt_input_blocked;		\
+      if (interrupt_input_blocked == 0)		\
+	{					\
+	  if (interrupt_input_pending)		\
+	    reinvoke_input_signal ();		\
+	  if (pending_atimers)			\
+	    do_pending_atimers ();		\
+	}					\
+      else if (interrupt_input_blocked < 0)	\
+	abort ();				\
+    }						\
+  while (0)
 
 #define TOTALLY_UNBLOCK_INPUT (interrupt_input_blocked = 0)
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
