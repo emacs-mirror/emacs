@@ -419,9 +419,10 @@ and the return value must be a string, which is used as the selected
 attribution.  Note that the variable `sc-preferred-attribution-list'
 must contain an element of the string \"sc-consult\" for this variable
 to be consulted during attribution selection."
-  :type '(repeat (list string (repeat (cons regexp
-					    (choice (repeat (repeat sexp))
-						    string)))))
+  :type '(repeat (list string
+		       (repeat (cons regexp
+				     (choice (sexp :tag "List to eval")
+					     string)))))
   :group 'supercite-attr)
 
 (defcustom sc-attribs-preselect-hook nil
@@ -766,9 +767,7 @@ the list should be unique."
 		 (thing   (cdr ml-elem)))
 	    (if (string-match regexp infoval)
 		;; we found a match, time to return
-		(setq rtnvalue (if (consp thing)
-				   (car thing)
-				 thing)
+		(setq rtnvalue thing
 		      mlist nil
 		      alist nil)
 	      ;; else we didn't find a match
