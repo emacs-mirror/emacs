@@ -691,7 +691,7 @@ range START to END. Returns t if any change was made, nil otherwise.")
      Lisp_Object object, start, end;
 {
   register INTERVAL i;
-  register prev_changed = NULL_INTERVAL;
+  register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len, modified;
 
   i = validate_interval_range (object, &start, &end, soft);
