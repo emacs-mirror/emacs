@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.16) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.17) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers, Dylan developers
@@ -324,7 +324,7 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
           pat = *pc++;
     loop: if(pat == 0) goto pat;
           ++pp;
-          b = pat & 1;
+          b = (int)(pat & 1);
           pat >>= 1;
           if(b == 0) goto loop;
           r = *(pp-1);
