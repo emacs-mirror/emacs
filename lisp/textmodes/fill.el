@@ -134,7 +134,8 @@ between words canonical before filling.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
-  (interactive "r\nP")
+  (interactive (list (region-beginning) (region-end)
+		     (if current-prefix-arg 'full)))
   ;; Arrange for undoing the fill to restore point.
   (if (and buffer-undo-list (not (eq buffer-undo-list t)))
       (setq buffer-undo-list (cons (point) buffer-undo-list)))
@@ -335,9 +336,9 @@ space does not end a sentence, so don't break a line there."
 	      ;; Justify the line just ended, if desired.
 	      (if justify
 		  (if (eobp)
-		      (justify-current-line (not (null justify)) t t)
+		      (justify-current-line justify t t)
 		    (forward-line -1)
-		    (justify-current-line (not (null justify)) nil t)
+		    (justify-current-line justify nil t)
 		    (forward-line 1))))))
 	;; Leave point after final newline.
 	(goto-char (point-max)))
