@@ -686,7 +686,8 @@ Major/minor modes can set this variable if they know which option applies.")
 ;;;###autoload
 (define-minor-mode font-lock-mode
   "Toggle Font Lock mode.
-With arg, turn Font Lock mode on if and only if arg is positive.
+With arg, turn Font Lock mode on if and only if arg is positive,
+otherwise turn it off.
 \(Font Lock is also known as \"syntax highlighting\".)
 
 When Font Lock mode is enabled, text is fontified as you type it:
