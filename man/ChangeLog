@@ -1,3 +1,68 @@
+2005-03-21  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Starting GUD): Add bashdb.
+
+2005-03-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Moving Point): Add M-g M-g binding.
+	(Undo): Document undo-only.
+	(Position Info): Document M-g M-g and C-u M-g M-g.
+
+	* building.texi (Building): Put Grep Searching after Compilation
+	Shell.
+	(Compilation Mode): Document M-n, M-p, M-}, M-{, and C-c C-f bindings.
+	Document next-error-highlight.
+	(Grep Searching): Document grep-highlight-matches.
+	(Lisp Eval): Typing C-x C-e twice prints integers specially.
+
+	* calendar.texi (Importing Diary): Rename node from iCalendar.
+	Document diary-from-outlook.
+
+	* dired.texi (Misc Dired Features): Rename node from Misc Dired
+	Commands.
+	Mention effect of X drag and drop on Dired buffers.
+
+	* files.texi (Visiting): Document large-file-warning-threshold.
+	Move paragraph on file-selection dialog.
+	Mention visiting files using X drag and drop.
+	(Reverting): Mention using Auto-Revert mode to tail files.
+	Document auto-revert-tail-mode.
+	(Version Systems): Minor correction.
+	(Comparing Files): Diff-mode is no longer based on Compilation
+	mode.
+	Document compare-ignore-whitespace.
+	(Misc File Ops): Explain passing a directory to rename-file.
+	Likewise for copy-file and make-symbolic-link.
+
+	* frames.texi (Wheeled Mice): Mouse wheel support on by default.
+	Document mouse-wheel-progressive speed.
+
+	* help.texi (Misc Help): Document numeric argument for C-h i.
+	Correctly explain the effect of just C-u as argument.
+
+	* killing.texi (Deletion): Document numeric argument for
+	just-one-space.
+
+	* mini.texi (Completion): Completion acts on text before point.
+
+	* misc.texi (Saving Emacs Sessions): Document desktop-restore-eager.
+	(Emulation): CUA mode replaces pc-bindings-mode,
+	pc-selection-mode, and s-region.
+
+	* mule.texi (Input Methods): Leim is now built-in.
+	(Select Input Method): Document quail-show-key.
+	(Specify Coding): Document revert-buffer-with-coding-system.
+
+	* programs.texi (Fortran Motion): Document f90-next-statement,
+	f90-previous-statement, f90-next-block, f90-previous-block,
+	f90-end-of-block, and f90-beginning-of-block.
+
+	* text.texi (Format Faces): Replace old M-g key prefix with M-o.
+
+	* emacs.texi (Acknowledgments): Updated.
+
+	* anti.texi: Total rewrite.
+
 2005-03-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.48.
