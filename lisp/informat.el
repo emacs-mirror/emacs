@@ -28,7 +28,7 @@
 
 ;;;###autoload
 (defun Info-tagify ()
-  "Create or update Info-file tag table in current buffer."
+  "Create or update Info file tag table in current buffer."
   (interactive)
   ;; Save and restore point and restrictions.
   ;; save-restrictions would not work
@@ -40,27 +40,79 @@
 	(nomax (= (point-max) (1+ (buffer-size))))
 	(opoint (point)))
     (unwind-protect
-	(progn
-	  (widen)
-	  (goto-char (point-min))
-	  (if (search-forward "\^_\nIndirect:\n" nil t)
-	      (message "Cannot tagify split info file")
-	    (let ((regexp "Node:[ \t]*\\([^,\n\t]*\\)[,\t\n]")
-		  (case-fold-search t)
-		  list)
-	      (while (search-forward "\n\^_" nil t)
-		;; We want the 0-origin character position of the ^_.
-		;; That is the same as the Emacs (1-origin) position
-		;; of the newline before it.
-		(let ((beg (match-beginning 0)))
-		  (forward-line 2)
-		  (if (re-search-backward regexp beg t)
-		      (setq list
-			    (cons (list (buffer-substring-no-properties
-					  (match-beginning 1)
-					  (match-end 1))
-					beg)
-				  list)))))
+    (progn
+      (widen)
+      (goto-char (point-min))
+      (if (search-forward "\^_\nIndirect:\n" nil t)
+          (message "Cannot tagify split info file")
+
+        (let (tag-list
+              refillp
+              (case-fold-search t)
+              (regexp 
+               (concat
+                "\\("
+
+
+                "\\("
+                "@anchor"        ; match-string 2 matches @anchor
+                "\\)"
+                "\\(-no\\|-yes\\)"  ; match-string 3 matches -no or -yes
+                "\\("
+                "-refill"
+                "\\)"
+
+                "\\("
+                "{"
+                "\\)"
+                "\\("
+                "[^}]+"          ; match-string 6 matches arg to anchor
+                "\\)"
+                "\\("
+                "}"
+                "\\)"
+
+                "\\|"
+
+                "\\("
+                "\n\^_"
+                "\\)"
+
+                "\\("
+                "\nFile:[ \t]*\\([^,\n\t]*\\)[,\t\n]+[ \t\n]*"
+                "Node:[ \t]*"
+                "\\("
+                "[^,\n\t]*"      ; match-string 11 matches arg to node name
+                "\\)"
+                "[,\t\n]"
+                "\\)"
+
+                "\\)"
+                )))
+          (while (re-search-forward regexp nil t)
+            (if (string-equal "@anchor" (match-string 2))
+                (progn
+                  ;; kludge lest lose match-data
+                  (if (string-equal "-yes" (match-string 3))
+                      (setq refillp t))
+                  (setq tag-list
+                        (cons (list
+                               (concat "Ref: " (match-string 6))
+                               (match-beginning 0))
+                              tag-list))
+                  (if (eq refillp t)
+                      ;; set start and end so texinfo-format-refill works
+                      (let ((texinfo-command-start (match-beginning 0))
+                            (texinfo-command-end (match-end 0)))
+                        (texinfo-format-refill))
+                  (delete-region  (match-beginning 0) (match-end 0))))
+              ;; else this is a Node
+              (setq tag-list
+                    (cons (list 
+                           (concat "Node: " (match-string 11))
+                           (match-beginning 0))
+                          tag-list))))
+
 	      (goto-char (point-max))
 	      (forward-line -8)
 	      (let ((buffer-read-only nil))
@@ -73,13 +125,13 @@
 		(insert "\^_\f\nTag table:\n")
 		(if (eq major-mode 'info-mode)
 		    (move-marker Info-tag-table-marker (point)))
-		(setq list (nreverse list))
-		(while list
-		  (insert "Node: " (car (car list)) ?\177)
+		(setq tag-list (nreverse tag-list))
+		(while tag-list
+		  (insert (car (car tag-list)) ?\177)
 		  (princ (position-bytes (car (cdr (car list))))
 			 (current-buffer))
 		  (insert ?\n)
-		  (setq list (cdr list)))
+		  (setq tag-list (cdr tag-list)))
 		(insert "\^_\nEnd tag table\n")))))
       (goto-char opoint)
       (narrow-to-region omin (if nomax (1+ (buffer-size))
