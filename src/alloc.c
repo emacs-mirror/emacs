@@ -1020,7 +1020,7 @@ make_number (n)
 
 /* Lisp_Strings are allocated in string_block structures.  When a new
    string_block is allocated, all the Lisp_Strings it contains are
-   added to a free-list stiing_free_list.  When a new Lisp_String is
+   added to a free-list string_free_list.  When a new Lisp_String is
    needed, it is taken from that list.  During the sweep phase of GC,
    string_blocks that are entirely free are freed, except two which
    we keep.
@@ -4096,6 +4096,24 @@ Garbage collection happens automatically if you cons more than
 	  nextb->undo_list 
 	    = truncate_undo_list (nextb->undo_list, undo_limit,
 				  undo_strong_limit);
+
+	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
+	if (nextb->base_buffer == 0 && !NILP (nextb->name))
+	  {
+	    /* If a buffer's gap size is more than 10% of the buffer
+	       size, or larger than 2000 bytes, then shrink it
+	       accordingly.  Keep a minimum size of 20 bytes.  */
+	    int size = min (2000, max (20, (nextb->text->z_byte / 10)));
+
+	    if (nextb->text->gap_size > size)
+	      {
+		struct buffer *save_current = current_buffer;
+		current_buffer = nextb;
+		make_gap (-(nextb->text->gap_size - size));
+		current_buffer = save_current;
+	      }
+	  }
+
 	nextb = nextb->next;
       }
   }
