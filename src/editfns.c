@@ -527,6 +527,13 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
   return Vsystem_name;
 }
 
+DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
+  "Return the process ID of Emacs, as an integer.")
+  ()
+{
+  return make_number (getpid ());
+}
+
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
   "Return the current time, as the number of seconds since 12:00 AM January 1970.\n\
 The time is returned as a list of three integers.  The first has the\n\
@@ -1628,6 +1635,7 @@ syms_of_editfns ()
   defsubr (&Suser_uid);
   defsubr (&Suser_real_uid);
   defsubr (&Suser_full_name);
+  defsubr (&Semacs_pid);
   defsubr (&Scurrent_time);
   defsubr (&Scurrent_time_string);
   defsubr (&Scurrent_time_zone);
