@@ -8723,6 +8723,19 @@ XTread_socket (sd, bufp, numchars, expected)
 			if (f && FRAME_XIC (f))
 			  XSetICFocus (FRAME_XIC (f));
 #endif
+#if 0 /* Emacs sets WM hints whose `input' field is `true'.  This
+	 instructs the WM to set the input focus automatically for
+	 Emacs with a call to XSetInputFocus.  Setting WM_TAKE_FOCUS
+	 tells the WM to send us a ClientMessage WM_TAKE_FOCUS after
+	 it has set the focus.  So, XSetInputFocus below is not
+	 needed.
+
+	 The call to XSetInputFocus below has also caused trouble.  In
+	 cases where the XSetInputFocus done by the WM and the one
+	 below are temporally close (on a fast machine), the call
+	 below can generate additional FocusIn events which confuse
+	 Emacs.  */
+			
 			/* Since we set WM_TAKE_FOCUS, we must call
 			   XSetInputFocus explicitly.  But not if f is null,
 			   since that might be an event for a deleted frame.  */
@@ -8743,6 +8756,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			    x_uncatch_errors (d, count);
 			  }  
 			/* Not certain about handling scroll bars here */
+#endif /* 0 */
 		      }
 		    else if (event.xclient.data.l[0]
 			     == dpyinfo->Xatom_wm_save_yourself)
