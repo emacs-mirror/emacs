@@ -57,6 +57,10 @@ Lisp_Object Vwin32_quote_process_args;
    but is useful for Win32 processes on both Win95 and NT as well.  */
 Lisp_Object Vwin32_pipe_read_delay;
 
+/* Control conversion of upper case file names to lower case.
+   nil means no, t means yes. */
+Lisp_Object Vwin32_downcase_file_names;
+
 /* Keep track of whether we have already started a DOS program, and
    whether we can run them in the first place. */
 BOOL can_run_dos_process;
@@ -1177,5 +1181,10 @@ reading the subprocess output.  If negative, the magnitude is the number\n\
 of time slices to wait (effectively boosting the priority of the child\n\
 process temporarily).  A value of zero disables waiting entirely.");
   Vwin32_pipe_read_delay = 50;
+
+  DEFVAR_LISP ("win32-downcase-file-names", &Vwin32_downcase_file_names,
+    "Non-nil means convert all-upper case file names to lower case.\n\
+This applies when performing completions and file name expansion.");
+  Vwin32_downcase_file_names = Qnil;
 }
 /* end of ntproc.c */
