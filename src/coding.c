@@ -5812,7 +5812,6 @@ decode_coding_string (str, coding, nocopy)
   int len;
   struct conversion_buffer buf;
   int from, to_byte;
-  struct gcpro gcpro1;
   Lisp_Object saved_coding_symbol;
   int result;
   int require_decoding;
