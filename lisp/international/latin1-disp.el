@@ -810,15 +810,16 @@ turn it off and display Unicode characters literally.  The display
 is't changed if the display can render Unicode characters."
   (interactive "p")
   (if (> arg 0)
-      (unless nil;; (latin1-char-displayable-p
-;; 	       (make-char 'mule-unicode-0100-24ff 32 33))
+      (unless (latin1-char-displayable-p
+ 	       (make-char 'mule-unicode-0100-24ff 32 33))
 	;; It doesn't look as though we have a Unicode font.
 	(let ((latin1-display-format "%s"))
 	  (mapc
 	   (lambda (l)
 	     (apply 'latin1-display-char l))
 	   ;; Table derived by running Lynx on a suitable list of
-	   ;; characters in a utf-8 file.
+	   ;; characters in a utf-8 file, except for some added by
+	   ;; hand at the end.
 	   '((?\τ   "A")
 	     (?\τ ΅ "a")
 	     (?\τ Ά "A")
@@ -3226,7 +3227,10 @@ is't changed if the display can render Unicode characters."
 	     (?\σσα ".")
 	     (?\σσβ "\"")
 	     (?\σσγ "\"")
-	     (?\σσδ ",")))))
+	     (?\σσδ ",")
+	     ;; Not from Lynx
+	     (?σςί . "")
+	     (?συ½ . "?")))))
     (aset standard-display-table
 	  (make-char 'mule-unicode-0100-24ff) nil)
     (aset standard-display-table
