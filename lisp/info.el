@@ -2369,14 +2369,25 @@ Allowed only if variable `Info-enable-edit' is non-nil."
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
 (defvar Info-file-list-for-emacs
-  '("ediff" "forms" "gnus" "info" ("mh" . "mh-e") "sc" "message"
-    ("dired" . "dired-x") ("c" . "ccmode") "viper" "vip"
+  '("ediff" "eudc" "forms" "gnus" "info" ("mh" . "mh-e")
+    "sc" "message" ("dired" . "dired-x") "viper" "vip" "idlwave"
+    ("c" . "ccmode") ("c++" . "ccmode") ("objc" . "ccmode")
+    ("java" . "ccmode") ("idl" . "ccmode") ("pike" . "ccmode")
     ("skeleton" . "autotype") ("auto-insert" . "autotype")
     ("copyright" . "autotype") ("executable" . "autotype")
     ("time-stamp" . "autotype") ("quickurl" . "autotype")
     ("tempo" . "autotype") ("hippie-expand" . "autotype")
-    ("cvs" . "pcl-cvs")
-    "ebrowse" "eshell" "cl" "idlwave" "reftex" "speedbar" "widget" "woman")
+    ("cvs" . "pcl-cvs") ("ada" . "ada-mode")
+    "ebrowse" "eshell" "cl" "reftex" "speedbar" "widget" "woman"
+    ("mail-header" . "emacs-mime") ("mail-content" . "emacs-mime")
+    ("mail-encode" . "emacs-mime") ("mail-decode" . "emacs-mime")
+    ("rfc2045" . "emacs-mime")
+    ("rfc2231" . "emacs-mime")  ("rfc2047" . "emacs-mime")
+    ("rfc2045" . "emacs-mime") ("rfc1843" . "emacs-mime")
+    ("ietf-drums" . "emacs-mime")  ("quoted-printable" . "emacs-mime")
+    ("binhex" . "emacs-mime") ("uudecode" . "emacs-mime")
+    ("mailcap" . "emacs-mime") ("mm" . "emacs-mime")
+    ("mml" . "emacs-mime"))
   "List of Info files that describe Emacs commands.
 An element can be a file name, or a list of the form (PREFIX . FILE)
 where PREFIX is a name prefix and FILE is the file to look in.
