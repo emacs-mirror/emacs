@@ -1,3 +1,8 @@
+2002-04-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* callint.c (Fcall_interactively): Use INTEGERP instead of 
+	NUMBERP for checking Vhistory_length.
+
 2002-04-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* sound.c (Fplay_sound_internal): Renamed from Fplay_sound.
