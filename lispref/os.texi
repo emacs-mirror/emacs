@@ -738,6 +738,10 @@ process-environment
     "HOME=/user/lewis")
 @end group
 @end smallexample
+
+If @code{process-environment} contains ``duplicate'' elements that
+specify the same environment variable, the first of these elements
+specifies the variable, and the other ``duplicates'' are ignored.
 @end defvar
 
 @defvar path-separator
