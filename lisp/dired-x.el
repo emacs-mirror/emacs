@@ -1561,16 +1561,13 @@ to test if that file exists.  Use minibuffer after snatching filename."
 
 ;;; Internal functions.
 
-;; Fixme: This should probably be replaced with `thing-at-point', but
-;; that needs checking for compatibility.  -- fx
+;; Fixme: This should probably use `thing-at-point'.  -- fx
 (defun dired-filename-at-point ()
   "Get the filename closest to point, but do not change position.
 Has a preference for looking backward when not directly on a symbol.  Not
 perfect - point must be in middle of or end of filename."
 
   (let ((filename-chars "-.[:alnum:]_/:$+@")
-        (bol (save-excursion (beginning-of-line) (point)))
-        (eol (save-excursion (end-of-line) (point)))
         start end filename prefix)
 
     (save-excursion
@@ -1585,16 +1582,19 @@ perfect - point must be in middle of or end of filename."
       (if (string-match (concat "[" filename-chars "]")
                         (char-to-string (following-char)))
           (progn
-            (skip-chars-backward filename-chars)
+            (if (re-search-backward (concat "[^" filename-chars "]") nil t)
+		(forward-char)
+	      (goto-char (point-min)))
             (setq start (point))
 	    (setq prefix
-		  (and (string-match "^\\w+@" 
-				     (buffer-substring start eol))
+		  (and (string-match
+			"^\\w+@"
+			(buffer-substring start (line-beginning-position)))
 		       "/"))
             (goto-char start)
             (if (string-match "[/~]" (char-to-string (preceding-char)))
                 (setq start (1- start)))
-            (skip-chars-forward filename-chars))
+            (re-search-forward (concat "\\=[" filename-chars "]*") nil t))
 
         (error "No file found around point!"))
 
