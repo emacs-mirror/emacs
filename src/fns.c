@@ -2578,6 +2578,11 @@ is nil.")
   xprompt = prompt;
   GCPRO2 (prompt, xprompt);
 
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
+  
   while (1)
     {
 
