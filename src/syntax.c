@@ -162,7 +162,7 @@ update_syntax_table (charpos, count, init, object)
     }
   oldi = i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
 
-  /* We are guarantied to be called with CHARPOS either in i,
+  /* We are guaranteed to be called with CHARPOS either in i,
      or further off.  */
   if (NULL_INTERVAL_P (i))
     error ("Error in syntax_table logic for to-the-end intervals");
@@ -172,21 +172,21 @@ update_syntax_table (charpos, count, init, object)
 	error ("Error in syntax_table logic for intervals <-");
       /* Update the interval.  */
       i = update_interval (i, charpos);
-      if (oldi->position != INTERVAL_LAST_POS (i))
+      if (!gl_state.left_ok || oldi->position != INTERVAL_LAST_POS (i))
 	{
 	  invalidate = 0;
 	  gl_state.right_ok = 1;	/* Invalidate the other end.  */
 	  gl_state.forward_i = i;
 	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
 	}
-    } 
+    }
   else if (charpos >= INTERVAL_LAST_POS (i)) /* Move right.  */
     {
       if (count < 0)
 	error ("Error in syntax_table logic for intervals ->");
       /* Update the interval.  */
       i = update_interval (i, charpos);
-      if (i->position != INTERVAL_LAST_POS (oldi))
+      if (!gl_state.right_ok || i->position != INTERVAL_LAST_POS (oldi))
 	{
 	  invalidate = 0;
 	  gl_state.left_ok = 1;		/* Invalidate the other end.  */
@@ -206,9 +206,9 @@ update_syntax_table (charpos, count, init, object)
   if (invalidate)
     invalidate = !EQ (tmp_table, gl_state.old_prop); /* Need to invalidate? */
       
-  if (invalidate)			/* Did not get to adjacent interval.  */
-    {					/* with the same table => */
-					/* invalidate the old range.  */
+  if (invalidate)		/* Did not get to adjacent interval.  */
+    {				/* with the same table => */
+				/* invalidate the old range.  */
       if (count > 0)
 	{
 	  gl_state.backward_i = i;
