@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate August 11, 1999
+@set lastupdate August 16, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -167,7 +167,7 @@ We do not recommend any non-free materials as documentation.
 
 @itemize @bullet
 @item
-A manual for libsdtc++.
+A manual for libstdc++.
 
 @item
 A unified manual for La@TeX{}.  (Existing documentation is non-free.)
