@@ -530,10 +530,14 @@ int trace_move;
 #ifdef DEBUG_TRACE_MOVE
 #define TRACE_MOVE(x)	if (trace_move) fprintf x; else (void) 0
 #else
-#define TRACE_MOVE(x)	(void) 0;
+#define TRACE_MOVE(x)	(void) 0
 #endif
 
-#endif /* GLYPH_DEBUG */
+#else /* not GLYPH_DEBUG */
+
+#define TRACE_MOVE(x)	(void) 0
+
+#endif /* not GLYPH_DEBUG */
 
 /* Non-zero means automatically scroll windows horizontally to make
    point visible.  */
