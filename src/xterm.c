@@ -5934,7 +5934,25 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           }
 #endif /* USE_TOOLKIT_SCROLL_BARS */
         else
-          goto OTHER;
+          {
+            struct frame *f
+              = x_any_window_to_frame (dpyinfo, event.xclient.window);
+
+            if (f)
+              {
+                int ret = x_handle_dnd_message (f, &event.xclient,
+                                                dpyinfo, bufp);
+                if (ret > 0)
+                  {
+                    ++bufp, ++count, --numchars;
+                  }
+
+                if (ret != 0)
+                  *finish = X_EVENT_DROP;
+              }
+            else
+              goto OTHER;
+          }
       }
       break;
 
