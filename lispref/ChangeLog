@@ -1,3 +1,53 @@
+2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Choosing Window): Add same-window-p, special-display-p.
+	(Window Configurations): Add window-configuration-frame.
+
+	* variables.texi (Creating Buffer-Local): Add local-variable-if-set-p.
+
+	* text.texi (Examining Properties): Add get-char-property-and-overlay.
+	Change arg name in get-char-property.
+	(Special Properties): Update handling of keymap property.
+
+	* strings.texi (Modifying Strings): Add clear-string.
+	(Text Comparison): Add assoc-string and remove
+	assoc-ignore-case, assoc-ignore-representation.
+
+	* os.texi (Time of Day): Add set-time-zone-rule.
+
+	* numbers.texi (Math Functions): asin, acos, log, log10
+	report domain-error errors.	
+
+	* nonascii.texi (Converting Representations): 
+	Add multibyte-char-to-unibyte and unibyte-char-to-multibyte.
+	(Encoding and I/O): Add file-name-coding-system.
+
+	* modes.texi (Search-based Fontification): Explain that
+	face specs are symbols with face names as values.
+
+	* minibuf.texi (Minibuffer Misc): Add set-minibuffer-window.
+
+	* lists.texi (Building Lists): remq moved elsewhere.
+	(Sets And Lists): remq moved here.
+	(Association Lists): Refer to assoc-string.
+
+	* internals.texi (Garbage Collection): Add memory-use-counts.
+
+	* frames.texi (Frames and Windows): Add set-frame-selected-window
+	and frame-root-window.
+
+	* files.texi (Contents of Directories): 
+	Add directory-files-and-attributes.
+
+	* display.texi (Refresh Screen): Add force-window-update.
+	(Invisible Text): Explain about moving point out of invis text.
+	(Overlay Properties): Add overlay-properties.
+	(Managing Overlays): Add overlayp.
+	(GIF Images): Invalid image number displays a hollow box.
+
+	* buffers.texi (Buffer Modification): Add restore-buffer-modified-p.
+	(Killing Buffers): Add buffer-live-p.
+
 2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* display.texi (Fringes): Fix typo "set-buffer-window".
