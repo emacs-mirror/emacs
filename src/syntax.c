@@ -2795,7 +2795,7 @@ syms_of_syntax ()
   Qscan_error = intern ("scan-error");
   staticpro (&Qscan_error);
   Fput (Qscan_error, Qerror_conditions,
-	Fcons (Qerror, Qnil));
+	Fcons (Qscan_error, Fcons (Qerror, Qnil)));
   Fput (Qscan_error, Qerror_message,
 	build_string ("Scan error"));
 
