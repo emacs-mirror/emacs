@@ -144,6 +144,15 @@ wish to have fontification turned on and off by Font Lock.  If this
 variable is non-nil, then calling `font-lock-mode' will simply toggle
 the symbol property `face' of CATEGORY-SYMBOL.")
 
+(defvar font-lock-symbol-category-alist nil
+  "An alist of (SYMBOL . CATEGORY-SYMBOL) to help maintain categories.
+This variable is not directly used by font-lock; instead it is
+intended to be used by modes which use `font-lock-category-alist'.
+Normally, you want category symbols to be uninterned, so that their
+properties can be local to a buffer.  This variable helps you maintain
+a mapping between normal category names (i.e. interned symbols) and
+their local uninterned versions.")
+
 (defvar font-lock-function 'font-lock-default-function
   "A function which is called when `font-lock-mode' is toggled.
 It will be passed one argument, which is the current value of
