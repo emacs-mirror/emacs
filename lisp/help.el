@@ -186,7 +186,7 @@ If FUNCTION is nil, it applies `message', thus displaying the message."
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
 a  command-apropos.  Give a substring, and see a list of commands
-	(functions interactively callable) that contain
+	(functions that are interactively callable) that contain
 	that substring.  See also the  apropos  command.
 b  describe-bindings.  Display table of all key bindings.
 c  describe-key-briefly.  Type a command key sequence;
@@ -194,24 +194,28 @@ c  describe-key-briefly.  Type a command key sequence;
 C  describe-coding-system.  This describes either a specific coding system
         (if you type its name) or the coding systems currently in use
 	(if you type just RET).
-e  view-echo-area-messages.  Show the `*Messages*' buffer.
-f  describe-function.  Type a function name and get documentation of it.
+e  view-echo-area-messages.  Show the buffer where the echo-area messages
+	are stored.
+f  describe-function.  Type a function name and get its documentation.
 F  Info-goto-emacs-command-node.  Type a function name;
-	it takes you to the Info node for that command.
+	it takes you to the on-line manual's section that describes
+	the command.
 h  Display the HELLO file which illustrates various scripts.
-i  info. The  info  documentation reader.
+i  info. The Info documentation reader: read on-line manuals.
 I  describe-input-method.  Describe a specific input method (if you type
 	its name) or the current input method (if you type just RET).
 k  describe-key.  Type a command key sequence;
-	it displays the full documentation.
+	it displays the full documentation for that key sequence.
 K Info-goto-emacs-key-command-node.  Type a command key sequence;
-	it takes you to the Info node for the command bound to that key.
+	it takes you to the on-line manual's section that describes
+	the command bound to that key.
 l  view-lossage.  Show last 100 characters you typed.
 L  describe-language-environment.  This describes either a
 	specific language environment (if you type its name)
 	or the current language environment (if you type just RET).
-m  describe-mode.  Print documentation of current minor modes,
+m  describe-mode.  Display documentation of current minor modes,
 	and the current major mode, including their special commands.
+n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
 s  describe-syntax.  Display contents of syntax table, plus explanations.
 S  info-lookup-symbol.  Display the definition of a specific symbol
