@@ -1078,15 +1078,15 @@ event type that has no other definition in this keymap.
 
 DEF is anything that can be a key's definition:
  nil (means key is undefined in this keymap),
- a command (a Lisp function suitable for interactive calling)
+ a command (a Lisp function suitable for interactive calling),
  a string (treated as a keyboard macro),
  a keymap (to define a prefix key),
- a symbol.  When the key is looked up, the symbol will stand for its
+ a symbol (when the key is looked up, the symbol will stand for its
     function definition, which should at that time be one of the above,
-    or another symbol whose function definition is used, etc.
+    or another symbol whose function definition is used, etc.),
  a cons (STRING . DEFN), meaning that DEFN is the definition
     (DEFN should be a valid definition in its own right),
- or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.
+ or a cons (MAP . CHAR), meaning use definition of CHAR in keymap MAP.
 
 If KEYMAP is a sparse keymap with a binding for KEY, the existing
 binding is altered.  If there is no binding for KEY, the new pair
