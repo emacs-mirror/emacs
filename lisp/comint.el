@@ -108,6 +108,7 @@
 
 (defconst comint-version "2.03")
 
+(require 'ring)
 
 ;;; Buffer Local Variables:
 ;;;============================================================================
@@ -184,9 +185,16 @@ executed once when the buffer is created.")
 
 (defvar comint-mode-map nil)
 
+(defvar comint-ptyp t
+  "True if communications via pty; false if by pipe.  Buffer local.
+This is to work around a bug in emacs process signalling.")
+
 (defvar comint-input-ring nil)
 (defvar comint-last-input-start)
 (defvar comint-last-input-end)
+(defvar comint-input-ring-index)
+(put 'comint-input-ring 'permanent-local t)
+(put 'comint-ptyp 'permanent-local t)
 
 (defun comint-mode ()
   "Major mode for interacting with an inferior interpreter.
@@ -215,11 +223,8 @@ to continue it.
 
 Entry to this mode runs the hooks on comint-mode-hook"
   (interactive)
-  (let ((old-ring (and (assq 'comint-input-ring (buffer-local-variables))
-		       (boundp 'comint-input-ring)
-		       comint-input-ring))
-	(old-ptyp comint-ptyp)) ; preserve across local var kill. gross.
-;   (kill-all-local-variables) ; Removed 1/15/90 Olin
+    ;; Do not remove this.  All major modes must do this.
+    (kill-all-local-variables)
     (setq major-mode 'comint-mode)
     (setq mode-name "Comint")
     (setq mode-line-process '(": %s"))
@@ -241,21 +246,10 @@ Entry to this mode runs the hooks on comint-mode-hook"
     (make-local-variable 'comint-input-sender)
     (make-local-variable 'comint-eol-on-send)
     (make-local-variable 'comint-ptyp)
-    (setq comint-ptyp old-ptyp)
     (make-local-variable 'comint-exec-hook)
     (run-hooks 'comint-mode-hook)
-    ;Do this after the hook so the user can mung COMINT-INPUT-RING-SIZE w/his hook.
-    ;The test is so we don't lose history if we run comint-mode twice in
-    ;a buffer.
-    (setq comint-input-ring (if (ring-p old-ring) old-ring
-			      (make-ring comint-input-ring-size)))))
-
-;;; The old-ptyp stuff above is because we have to preserve the value of
-;;; comint-ptyp across calls to comint-mode, in spite of the
-;;; kill-all-local-variables that it does. Blech. Hopefully, this will all
-;;; go away when a later release fixes the signalling bug.
-;;; (Later: I removed the kill-all-local-variables, but have left this
-;;; other code in place just in case I reverse myself.)
+    (or comint-input-ring
+	(setq comint-input-ring (make-ring comint-input-ring-size))))
 
 (if comint-mode-map
     nil
@@ -312,10 +306,6 @@ name of one"
 	     (comint-mode)) ; Install local vars, mode, keymap, ...
 	   (comint-exec buffer name program startfile switches)))
     buffer))
-
-(defvar comint-ptyp t
-  "True if communications via pty; false if by pipe. Buffer local.
-This is to work around a bug in emacs process signalling.")
 
 (defun comint-exec (buffer name command startfile switches)
   "Fires up a process in buffer for comint modes.
