@@ -11,7 +11,8 @@
 
 2003-02-18  Kim F. Storm  <storm@cua.dk>
 
-	* lread.c (read1): Fix last change; "`" is not always special.
+	* lread.c (read1): Fix last change.
+	"`" is not always special.  Allow "?" after a character constant.
 
 2003-02-18  Andrew Choi  <akochoi@shaw.ca>
 
