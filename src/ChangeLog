@@ -1,15 +1,18 @@
+2003-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* w32term.c (w32_draw_window_cursor): Fix last change.
+
 2003-03-23  Kenichi Handa  <handa@m17n.org>
 
-	* alloc.c (make_string_from_bytes): Add `const' for the arg
-	CONTENTS.
-	(make_specified_string): Likewise.
+	* alloc.c (make_string_from_bytes, make_specified_string):
+	Add `const' for the arg CONTENTS.
 
 	* lisp.h (make_string_from_bytes, make_specified_string):
 	Prototypes adjusted.
 
 2003-03-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xdisp.c (get_glyph_string_clip_rect): Removed ; at end of #endif
+	* xdisp.c (get_glyph_string_clip_rect): Remove ; at end of #endif
 
 	* gtkutil.h: Take two more arguments to xg_update_scrollbar_pos.
 	(XG_SB_RANGE): New define.
