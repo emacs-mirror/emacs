@@ -10,13 +10,12 @@
 	properly.  Don't use buffer-substring-no-properties.  Don't bind
 	case-fold-search.  Fix syntax for empty elements.  Hoist consing
 	of end-of-tag regexp out of loop.
-	(xml-parse-attlist): Remove arg.  Callers changed.  Use
-	skip-syntax-forward, replace-regexp-in-string, forward-sexp.
+	(xml-parse-attlist): Remove arg.  Callers changed.
+	Use skip-syntax-forward, replace-regexp-in-string, forward-sexp.
 	Allow non-ASCII names.
-	(xml-skip-dtd): Remove arg.  Callers changed.  Change matching
-	code.
-	(xml-parse-dtd): Grok external DTDs.  Allow non-ASCII.  Don't use
-	match-string-no-properties.
+	(xml-skip-dtd): Remove arg.  Callers changed.  Change matching code.
+	(xml-parse-dtd): Grok external DTDs.  Allow non-ASCII.
+	Don't use match-string-no-properties.
 	(xml-ucs-to-string): Deleted.
 	(xml-substitute-entity): New.
 	(xml-substitute-special): Use it.
@@ -34,7 +33,7 @@
 	Value t means no limit.
 	(goto-address-fontify): Implement that feature.
 
-	* emacs-lisp/find-func.el (find-function-on-key): 
+	* emacs-lisp/find-func.el (find-function-on-key):
 	Move the call to find-function-other-window outside
 	the save-excursion.
 
@@ -50,6 +49,27 @@
 	* skeleton.el (skeleton-internal-1): Allow - as alternate
 	interesting point marker and revert @ to just setting
 	skeleton-positions.
+
+2003-05-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Use shy-group.
+
+	* progmodes/executable.el (executable-set-magic): Remove unused
+	vars `point' and `buffer-modified-p'.
+
+	* mail/sendmail.el (mail-mode): Don't bother setting paragraph-start.
+
+	* mail/mail-extr.el: Use explicit coding tag.
+
+	* international/mule.el (sgml-xml-auto-coding-function)
+	(sgml-html-meta-auto-coding-function): Don't assume point-min == 1.
+
+	* language/china-util.el (hz-set-msb-table): Build when compiling.
+	(big5-to-cns): Pre-build the alist when compiling.
+
+	* language/ind-util.el (indian-regexp-of-hashtbl-keys): Don't bother
+	sorting the argument to regexp-opt.
+	(indian--puthash-char): Use dolist rather than mapc.
 
 2003-05-18  Nick Roberts  <nick@nick.uklinux.net>
 
