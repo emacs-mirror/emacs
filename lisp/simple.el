@@ -3066,6 +3066,7 @@ for `auto-fill-function' when turning Auto Fill mode on."
 
 (defun set-fill-column (arg)
   "Set `fill-column' to specified argument.
+Use \\[universal-argument] followed by a number to specify a column.
 Just \\[universal-argument] as argument means to use the current column."
   (interactive "P")
   (if (consp arg)
