@@ -1,3 +1,7 @@
+2001-11-05  Richard M. Stallman  <rms@gnu.org>
+
+	* quail/rfc1345.el: Get rid of the explicit ^Z character.
+
 2001-11-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/latin-ltx.el: Remove the call to IT-setup-unicode-display.
