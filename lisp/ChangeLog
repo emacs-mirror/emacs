@@ -5,17 +5,6 @@
 	* smerge-mode.el (smerge-mine-face, smerge-other-face) 
 	(smerge-base-face, smerge-markers-face): Add dark-background variants.
 
-2000-10-04  Miles Bader  <miles@lsi.nec.co.jp>
-
-	* emacs-lisp/authors.el (authors-canonical-author-id): Renamed
-	from authors-canonical-author-name.  Return a cons-cell containing
-	both name and email addr instead of a string.  Use
-	mail-extract-address-components to do the real work.
-	(authors-scan-el, authors-scan-change-log): Use new name.
-	(authors-add): Accept a cons-cell for author, and add entries
-	under both name and email-addr.  Change structure of hash-table
-	entries.
-
 2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net/net-utils.el (nslookup-font-lock-keywords)
