@@ -138,8 +138,10 @@ SUBJECT is a string of regexps separated by commas."
      (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
     (goto-char (point-min))
     (if whole-message (re-search-forward subject nil t)
-      (string-match subject (or (funcall rmail-summary-line-decoder
-					 (mail-fetch-field "Subject")) "")) )))
+      (string-match subject (let ((subj (mail-fetch-field "Subject")))
+			      (if subj
+				  (funcall rmail-summary-line-decoder subj)
+				""))))))
 
 ;;;###autoload
 (defun rmail-summary-by-senders (senders)
