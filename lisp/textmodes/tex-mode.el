@@ -506,23 +506,59 @@ inserts \" characters."
 
 (defun validate-tex-buffer ()
   "Check current buffer for paragraphs containing mismatched $s.
-As each such paragraph is found, a mark is pushed at its beginning,
-and the location is displayed for a few seconds."
+Their positions are recorded in the buffer `*Occur*'.
+To find a particular invalidity from `*Occur*',
+switch to to that buffer and type C-c C-c on the line
+for the invalidity you want to see."
   (interactive)
-  (let ((opoint (point)))
-    (goto-char (point-max))
-    ;; Does not use save-excursion
-    ;; because we do not want to save the mark.
-    (unwind-protect
+  (let ((buffer (current-buffer))
+	(prevpos (point-min))
+	(linenum nil))
+    (with-output-to-temp-buffer "*Occur*"
+      (princ "Mismatches:\n")
+      (save-excursion
+	(set-buffer standard-output)
+	(occur-mode)
+	(setq occur-buffer buffer)
+	(setq occur-nlines 0)
+	(setq occur-pos-list nil))
+      (save-excursion
+	(goto-char (point-max))
 	(while (and (not (input-pending-p)) (not (bobp)))
 	  (let ((end (point)))
+	    ;; Scan the previous paragraph for invalidities.
 	    (search-backward "\n\n" nil 'move)
 	    (or (tex-validate-region (point) end)
-		(progn
-		  (push-mark (point))
-		  (message "Mismatch found in paragraph starting here")
-		  (sit-for 4)))))
-      (goto-char opoint))))
+		(let* ((end (save-excursion (forward-line 1) (point)))
+		       start tem)
+		  (beginning-of-line)
+		  (setq start (point))
+		  ;; Keep track of line number as we scan,
+		  ;; in a cumulative fashion.
+		  (if linenum
+		      (setq linenum (- linenum (count-lines prevpos (point))))
+		    (setq linenum (1+ (count-lines 1 start))))
+		  (setq prevpos (point))
+		  ;; Mention this mismatch in *Occur*.  
+		  ;; Since we scan from end of buffer to beginning,
+		  ;; add each mismatch at the beginning of *Occur*
+		  ;; and at the beginning of occur-pos-list.
+		  (save-excursion
+		    (setq tem (point-marker))
+		    (set-buffer standard-output)
+		    (goto-char (point-min))
+		    ;; Skip "Mismatches:" header line.
+		    (forward-line 1)
+		    (setq occur-pos-list (cons tem occur-pos-list))
+		    (insert-buffer-substring buffer start end)
+		    (forward-char (- start end))
+		    (insert (format "%3d: " linenum))))))))
+      (save-excursion
+	(set-buffer standard-output)
+	(if (null occur-pos-list)
+	    (insert "None!\n"))
+	(if (interactive-p)
+	    (message "%d mismatches found" (length occur-pos-list)))))))
 
 (defun tex-validate-region (start end)
   "Check for mismatched braces or $'s in region.
