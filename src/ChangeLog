@@ -1,3 +1,8 @@
+2002-03-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xsmfns.c: Include stdio.h because termhooks.h needs it.
+	Include termopt.h for interrupt_input.
+
 2002-03-11  Andreas Schwab  <schwab@suse.de>
 
 	* coding.c (syms_of_coding) <file-coding-system-alist>: Doc fix.
