@@ -1,5 +1,6 @@
 ;;; sgml-mode.el --- SGML-editing mode
 
+;; Author: James Clark
 ;; Maintainer: FSF
 ;; Last-Modified: 14 Jul 1992
 ;; Adapted-By: ESR
