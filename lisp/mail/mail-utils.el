@@ -168,17 +168,18 @@ Usenet paths ending in an element that matches are removed also."
       userids)))
 
 ;;;###autoload
-(defun mail-fetch-field (field-name &optional last all)
+(defun mail-fetch-field (field-name &optional last all list)
   "Return the value of the header field FIELD-NAME.
 The buffer is expected to be narrowed to just the headers of the message.
 If second arg LAST is non-nil, use the last such field if there are several.
-If third arg ALL is non-nil, concatenate all such fields with commas between."
+If third arg ALL is non-nil, concatenate all such fields with commas between.
+If 4th arg LIST is non-nil, return a list of all such fields."
   (save-excursion
     (goto-char (point-min))
     (let ((case-fold-search t)
 	  (name (concat "^" (regexp-quote field-name) "[ \t]*:[ \t]*")))
-      (if all
-	  (let ((value ""))
+      (if (or all list)
+	  (let ((value (if all "")))
 	    (while (re-search-forward name nil t)
 	      (let ((opoint (point)))
 		(while (progn (forward-line 1)
@@ -186,11 +187,17 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 		;; Back up over newline, then trailing spaces or tabs
 		(forward-char -1)
 		(skip-chars-backward " \t" opoint)
-		(setq value (concat value
-				    (if (string= value "") "" ", ")
-				    (buffer-substring-no-properties
-				     opoint (point))))))
-	    (and (not (string= value "")) value))
+		(if list
+		    (setq value (cons (buffer-substring-no-properties
+				       opoint (point))
+				      value))
+		  (setq value (concat value
+				      (if (string= value "") "" ", ")
+				      (buffer-substring-no-properties
+				       opoint (point)))))))
+	    (if list
+		value
+	      (and (not (string= value "")) value)))
 	(if (re-search-forward name nil t)
 	    (progn
 	      (if last (while (re-search-forward name nil t)))
