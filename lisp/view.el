@@ -331,23 +331,23 @@ No arg means whole window full, or number of lines set by \\[View-scroll-lines-f
 Arg is number of lines to scroll."
   (interactive "P")
   (if (pos-visible-in-window-p (point-max))
-      (view-exit))
-  (setq lines
-	(if lines (prefix-numeric-value lines)
-	  (view-scroll-size)))
-; (view-last-command 'View-scroll-lines-forward lines)
-  (if (>= lines (view-window-size))
-      (scroll-up nil)
-    (if (>= (- lines) (view-window-size))
-	(scroll-down nil)
-      (scroll-up lines)))
-  (cond ((pos-visible-in-window-p (point-max))
-	 (goto-char (point-max))
-	 (recenter -1)
-	 (message (substitute-command-keys
-		"End.  Type \\[view-exit] to quit viewing."))))
-  (move-to-window-line -1)
-  (beginning-of-line))
+      (view-exit)
+    (setq lines
+	  (if lines (prefix-numeric-value lines)
+	    (view-scroll-size)))
+    ;; (view-last-command 'View-scroll-lines-forward lines)
+    (if (>= lines (view-window-size))
+	(scroll-up nil)
+      (if (>= (- lines) (view-window-size))
+	  (scroll-down nil)
+	(scroll-up lines)))
+    (cond ((pos-visible-in-window-p (point-max))
+	   (goto-char (point-max))
+	   (recenter -1)
+	   (message (substitute-command-keys
+		     "End.  Type \\[view-exit] to quit viewing."))))
+    (move-to-window-line -1)
+    (beginning-of-line)))
 
 (defun View-scroll-lines-forward-set-scroll-size (&optional lines)
   "Scroll forward LINES lines in View mode, setting the \"scroll size\".
