@@ -533,6 +533,9 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
         mode-name  "PostScript")
   (use-local-map ps-mode-map)
   (set-syntax-table ps-mode-syntax-table)
+  (set (make-local-variable 'comment-start) "%")
+  (set (make-local-variable 'comment-start-skip)
+       "\\(\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
   (run-hooks 'ps-mode-hook))
 
 (defun ps-mode-show-version ()
