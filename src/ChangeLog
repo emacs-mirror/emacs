@@ -1,3 +1,9 @@
+2002-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (lisp): Add ucs-tables.elc.
+
+	* s/hpux10.h (C_SWITCH_SYSTEM): #undef it.
+
 2002-08-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* coding.c (Ffind_operation_coding_system): Lisp_Object/int mixup.

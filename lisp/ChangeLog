@@ -1,3 +1,13 @@
+2002-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* loadup.el: Load international/ucs-tables.elc.
+	Call ucs-unify-8859.
+
+2002-08-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-return-item):
+	Only return nil if there is no binding.
+
 2002-08-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-mode-abbrev-table): Fix abbrev for "include".
