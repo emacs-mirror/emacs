@@ -1,3 +1,9 @@
+2001-03-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/japanese.el (quail-japanese-transliteration-rules): New
+	variable.  Use it to define these input methods: "japanese",
+	"japanese-hiragana", "japanese-katakana".
+
 2001-03-14  Kenichi Handa  <handa@mule.m17n.org>
 
 	* quail/slovak.el ("slovak"): Give t to the arg SHOW-LAYOUT.
