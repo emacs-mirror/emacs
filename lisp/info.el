@@ -2097,6 +2097,7 @@ If no reference to follow, moves to the next node, or up if none."
   (define-key Info-mode-map "<" 'Info-top-node)
   (define-key Info-mode-map ">" 'Info-final-node)
   (define-key Info-mode-map "b" 'beginning-of-buffer)
+  (define-key Info-mode-map "c" 'Info-copy-current-node-name)
   (define-key Info-mode-map "d" 'Info-directory)
   (define-key Info-mode-map "e" 'Info-edit)
   (define-key Info-mode-map "f" 'Info-follow-reference)
