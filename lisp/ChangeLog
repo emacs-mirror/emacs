@@ -1,3 +1,8 @@
+2002-06-13  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-mode): Don't set `font-lock-defaults'.
+	(comint-mode-hook): Turn on font-lock by default.
+
 2002-06-12  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-file-or-variation-thereof): Restore
