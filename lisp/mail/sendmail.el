@@ -212,17 +212,23 @@ actually occur.")
 
 (defvar mail-font-lock-keywords
   (eval-when-compile
-    (let* ((cite-prefix "A-Za-z") (cite-suffix (concat cite-prefix "0-9_.@-")))
+    (let* ((cite-chars "[>|}]")
+	   (cite-prefix "A-Za-z")
+	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^To:" . font-lock-function-name-face)
 	    '("^B?CC:\\|^Reply-to:" . font-lock-keyword-face)
 	    '("^\\(Subject:\\)[ \t]*\\(.+\\)?"
 	      (1 font-lock-comment-face) (2 font-lock-type-face nil t))
+	    ;; Use EVAL to delay in case `mail-header-separator' gets changed.
 	    '(eval cons (concat "^" (regexp-quote mail-header-separator) "$")
 		   'font-lock-comment-face)
-	    (cons (concat "^[ \t]*"
-			  "\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
-			  "[>|}].*")
-		  'font-lock-reference-face)
+	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
+	    `(,cite-chars
+	      (,(concat "\\=[ \t]*"
+			"\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+			cite-chars ".*")
+	       (beginning-of-line) (end-of-line)
+	       (0 font-lock-reference-face)))
 	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Mail mode.")
