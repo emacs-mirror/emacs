@@ -4148,9 +4148,9 @@ the @ifeq command."
 (put 'medbreak 'texinfo-format 'texinfo-discard-line)
 (put 'bigbreak 'texinfo-format 'texinfo-discard-line)
 (put 'afourpaper 'texinfo-format 'texinfo-discard-line)
-(put 'afivepaper 'texinoo-format 'texinfo-discard-line)
-(put 'afourlatex 'texinoo-format 'texinfo-discard-line)
-(put 'afourwide  'texinoo-format 'texinfo-discard-line)
+(put 'afivepaper 'texinfo-format 'texinfo-discard-line)
+(put 'afourlatex 'texinfo-format 'texinfo-discard-line)
+(put 'afourwide  'texinfo-format 'texinfo-discard-line)
 
 
 ;;; These noop commands discard the rest of the line.
