@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Types
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.3) $
+ * $HopeName: MMsrc!eventcom.h(trunk.4) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -72,5 +72,6 @@ typedef Word EventType;
 #define EventIntern         ((EventType)0xEF142E64) /* INTERN */
 #define EventArenaExtend    ((EventType)0xEFA64E82) /* AReNa EXTend */
 #define EventArenaRetract   ((EventType)0xEFA646E2) /* AReNa RETract */
+#define EventRootScan       ((EventType)0xEF625CA4) /* RooT SCAN */
 
 #endif /* eventcom_h */
