@@ -143,7 +143,8 @@ stamp-bytecomp: ${WORLD} ${EMACS}
 	  else \
 	    ${RUN-EMACS} -batch -l skkdic-cnv \
 		--eval '(byte-recompile-directory "skk" 0)'; \
-	  fi \
+	  fi ; \
+	else true ; \
 	fi
 	touch stamp-bytecomp
 
@@ -275,7 +276,7 @@ clean:
 # If this is not a dot-srcdir build, then remove the link made to skkdic.elc.
 	if test ! -f Makefile.in; then \
 	  rm -f skk/skkdic.elc; \
-	else; true; fi
+	else true; fi
 
 distclean maintainer-clean: clean
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
