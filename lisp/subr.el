@@ -937,9 +937,9 @@ See also `with-temp-buffer'."
     (set-buffer ,buffer)
     ,@body))
 
-(defmacro with-temp-file (file &rest forms)
-  "Create a new buffer, evaluate FORMS there, and write the buffer to FILE.
-The value of the last form in FORMS is returned, like `progn'.
+(defmacro with-temp-file (file &rest body)
+  "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
+The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
   (let ((temp-file (make-symbol "temp-file"))
 	(temp-buffer (make-symbol "temp-buffer")))
@@ -949,22 +949,35 @@ See also `with-temp-buffer'."
        (unwind-protect
 	   (prog1
 	       (with-current-buffer ,temp-buffer
-		 ,@forms)
+		 ,@body)
 	     (with-current-buffer ,temp-buffer
 	       (widen)
 	       (write-region (point-min) (point-max) ,temp-file nil 0)))
 	 (and (buffer-name ,temp-buffer)
 	      (kill-buffer ,temp-buffer))))))
 
-(defmacro with-temp-buffer (&rest forms)
-  "Create a temporary buffer, and evaluate FORMS there like `progn'.
+(defmacro with-temp-message (message &rest body)
+  "Display MESSAGE temporarily while BODY is evaluated.
+The original message is restored to the echo area after BODY has finished.
+The value returned is the value of the last form in BODY.
+MESSAGE is written to the message log buffer if `message-log-max' is non-nil."
+  (let ((current-message (make-symbol "current-message")))
+    `(let ((,current-message (current-message)))
+       (unwind-protect
+	   (progn
+	     (message ,message)
+	     ,@body)
+	 (message ,current-message)))))
+
+(defmacro with-temp-buffer (&rest body)
+  "Create a temporary buffer, and evaluate BODY there like `progn'.
 See also `with-temp-file' and `with-output-to-string'."
   (let ((temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-buffer
 	    (get-buffer-create (generate-new-buffer-name " *temp*"))))
        (unwind-protect
 	   (with-current-buffer ,temp-buffer
-	     ,@forms)
+	     ,@body)
 	 (and (buffer-name ,temp-buffer)
 	      (kill-buffer ,temp-buffer))))))
 
