@@ -1708,7 +1708,10 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11)
+    dnl Checking for jpeglib.h can lose becsue of a redefinition of
+    dnl  HAVE_STDLIB_H.
+    AC_CHECK_HEADER(jerror.h,
+      AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
