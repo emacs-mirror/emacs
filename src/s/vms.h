@@ -250,3 +250,9 @@ globalref char sdata[];
 #define NULL_DEVICE "NLA0:"
 
 #define EXEC_SUFFIXES ".exe:.com"
+
+/* Case conflict with Xlib XFree () */
+#define xfree emacs_xfree
+
+/* What separator do we use in paths?  */
+#define SEPCHAR ','
