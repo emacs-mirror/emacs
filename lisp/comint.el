@@ -1094,7 +1094,7 @@ it just adds completion characters to the end of the filename."
 	     (sit-for 0)
 	     (message "Hit space to flush")
 	     (let ((ch (read-event)))
-	       (if (= ch ?\ )
+	       (if (eq ch ?\ )
 		   (set-window-configuration conf)
 		 (setq unread-command-events (list ch)))))))))
 
