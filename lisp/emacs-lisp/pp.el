@@ -32,8 +32,7 @@ that `read' can handle, whenever this is possible."
     (set-buffer (generate-new-buffer " pp-to-string"))
     (unwind-protect
 	(progn
-	  (lisp-mode-variables)
-	  (set-syntax-table emacs-lisp-mode-syntax-table)
+	  (lisp-mode-variables t)
 	  (let ((print-escape-newlines pp-escape-newlines))
 	    (prin1 object (current-buffer)))
 	  (goto-char (point-min))
