@@ -527,12 +527,13 @@ struct scroll_bar {
 };
 
 /* The number of elements a vector holding a struct scroll_bar needs.  */
-#define SCROLL_BAR_VEC_SIZE \
-  ((sizeof (struct scroll_bar) - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *)) \
+#define SCROLL_BAR_VEC_SIZE					\
+  ((sizeof (struct scroll_bar)					\
+    - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *))	\
    / sizeof (Lisp_Object))
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
-#define XSCROLL_BAR(vec) ((struct scroll_bar *) XPNTR (vec))
+#define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
 
 /* Building a 32-bit C integer from two 16-bit lisp integers.  */
