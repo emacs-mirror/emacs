@@ -621,7 +621,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		   (list (read-file-name "Run rmail on RMAIL file: "))))
   (rmail-require-mime-maybe)
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
-	 (existed (get-file-buffer file-name))
+	 ;; Use find-buffer-visiting, not get-file-buffer, for those users
+	 ;; who have find-file-visit-truename set to t.
+	 (existed (find-buffer-visiting file-name))
 	 ;; This binding is necessary because we must decide if we
 	 ;; need code conversion while the buffer is unibyte
 	 ;; (i.e. enable-multibyte-characters is nil).

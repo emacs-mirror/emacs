@@ -1,3 +1,11 @@
+2002-02-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/rmail.el (rmail): Use find-buffer-visiting instead of
+	get-file-buffer to check for rmail buffer existence.
+
+	* term.el (term-emulate-terminal): Extract proper command string
+	which is supplied to term-command-hook.
+
 2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/uce.el (uce-reply-to-uce): Prune the headers before copying
