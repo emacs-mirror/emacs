@@ -18,6 +18,10 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#ifndef EMACS_BLOCKINPUT_H
+#define EMACS_BLOCKINPUT_H
+
+#include "atimer.h"
 
 /* When Emacs is using signal-driven input, the processing of those
    input signals can get pretty hairy.  For example, when Emacs is
@@ -96,3 +100,5 @@ extern int pending_atimers;
 /* Defined in keyboard.c */
 /* Don't use a prototype here; it causes trouble in some files.  */
 extern void reinvoke_input_signal ();
+
+#endif /* EMACS_BLOCKINPUT_H */
