@@ -160,7 +160,10 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; Microsoft C/C++:
     ;;  keyboard.c(537) : warning C4005: 'min' : macro redefinition
     ;;  d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
-    ("\\(\\([a-zA-Z]:\\)?[^:( \t\n-]+\\)[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 3)
+    ;; This used to be less selective and allow characters other than
+    ;; parens around the line number, but that caused confusion for
+    ;; GNU-style error messages.
+    ("\\(\\([a-zA-Z]:\\)?[^:( \t\n-]+\\)(\\([0-9]+\\))" 1 3)
 
     ;; Borland C++:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
@@ -241,9 +244,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; E, file.cc(35,52) Illegal operation on pointers
     ("[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
-    ;; GNU messages with program name and optional column number.
-    ("[a-zA-Z]?:?[^0-9 \n\t:]+[^ \n\t:]*:[ \t]*\\([^ \n\t:]+\\):\
-\\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
+;;; This seems to be superfluous because the first pattern matches it.
+;;;    ;; GNU messages with program name and optional column number.
+;;;    ("[a-zA-Z]?:?[^0-9 \n\t:]+[^ \n\t:]*:[ \t]*\\([^ \n\t:]+\\):\
+;;;\\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
 
     ;; Cray C compiler error messages
     ("\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,\n]+, \\)* File = \
@@ -1581,12 +1585,12 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
-    (if (bobp)
-	(progn
-	  (setq compilation-current-file nil) ; No current file at start.
-	  ;; Don't parse the first two lines as error messages.
-	  ;; This matters for grep.
-	  (forward-line 2)))
+    (when (and (bobp)
+	       (eq major-mode 'compilation-mode))
+      (setq compilation-current-file nil) ; No current file at start.
+      ;; Don't parse the first two lines as error messages.
+      ;; This matters for grep.
+      (forward-line 2))
 
     ;; Parse messages.
     (while (not (or found-desired (eobp)))
