@@ -406,7 +406,9 @@ unload_color (f, pixel)
 {
   Colormap cmap;
   Display *dpy = x_current_display;
-  if (pixel == FACE_DEFAULT)
+  if (pixel == FACE_DEFAULT
+      || pixel == BLACK_PIX_DEFAULT
+      || pixel == WHITE_PIX_DEFAULT)
     return;
   cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (x_current_display));
   BLOCK_INPUT;
