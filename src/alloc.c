@@ -876,7 +876,7 @@ significance.")
 	args[index] = Fpurecopy (args[index]);
       p->contents[index] = args[index];
     }
-  XSETCOMPILED (val, val);
+  XSETCOMPILED (val, p);
   return val;
 }
 
@@ -1274,7 +1274,7 @@ make_event_array (nargs, args)
   {
     Lisp_Object result;
     
-    result = Fmake_string (nargs, make_number (0));
+    result = Fmake_string (make_number (nargs), make_number (0));
     for (i = 0; i < nargs; i++)
       {
 	XSTRING (result)->data[i] = XINT (args[i]);
