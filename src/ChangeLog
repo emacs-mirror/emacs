@@ -8,7 +8,7 @@
 2000-11-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* xterm.c (VCENTER_BASELINE_OFFSET): Fix previous change.  If the
-	font is taller than the frame line, we don't have to vias the
+	font is taller than the frame line, we don't have to bias the
 	division by two.
 
 	* w32term.c (VCENTER_BASELINE_OFFSET): Likewise.
