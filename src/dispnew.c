@@ -3676,8 +3676,12 @@ direct_output_forward_char (n)
   if (!display_completed || cursor_in_echo_area)
     return 0;
 
-  /* Give up if the buffer's direction is reversed.  */
-  if (!NILP (XBUFFER (w->buffer)->direction_reversed))
+  /* Give up if we need bidi display.  */
+  if (!NILP (XBUFFER (w->buffer)->enable_bidi_display))
+    return 0;
+
+  /* Give up if the buffer's orientation is reversed.  */
+  if (!NILP (XBUFFER (w->buffer)->orientation_reversed))
     return 0;
 
   /* Can't use direct output if highlighting a region.  */
