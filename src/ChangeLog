@@ -1,5 +1,7 @@
 2001-04-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (Fplist_get, Fplist_put): Add QUITs.
+
 	* window.c (window_internal_height): Return 1 less if the
 	window has a header line.
 

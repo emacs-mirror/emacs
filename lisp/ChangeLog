@@ -1,5 +1,7 @@
 2001-04-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* obsolete/profile.el: Moved from emacs-lisp/.
+	
 	* Makefile.in (nonobsolete_setwins): New macro.
 	(finder-data): Use it instead of `setwins'.  
 	From: Dave Love <fx@gnu.org>.
