@@ -308,6 +308,31 @@ struct x_output the_only_x_display;
 /* This is never dereferenced.  */
 Display *x_current_display;
 
+/* Support for DOS/V (allows Japanese characters to be displayed on
+   standard, non-Japanese, ATs).  Only supported for DJGPP v2 and later.  */
+
+/* Holds the address of the text-mode screen buffer.  */
+static unsigned long screen_old_address = 0;
+/* Segment and offset of the virtual screen.  If 0, DOS/V is NOT loaded.  */
+static unsigned short screen_virtual_segment = 0;
+static unsigned short screen_virtual_offset = 0;
+
+#if __DJGPP__ > 1
+/* Update the screen from a part of relocated DOS/V screen buffer which
+   begins at OFFSET and includes COUNT characters.  */
+static void
+dosv_refresh_virtual_screen (int offset, int count)
+{
+  __dpmi_regs regs;
+
+  regs.h.ah = 0xff;	/* update relocated screen */
+  regs.x.es = screen_virtual_segment;
+  regs.x.di = screen_virtual_offset + offset;
+  regs.x.cx = count;
+  __dpmi_int (0x10, &regs);
+}
+#endif
+
 static
 dos_direct_output (y, x, buf, len)
      int y;
@@ -316,6 +341,8 @@ dos_direct_output (y, x, buf, len)
      int len;
 {
   int t = (int) ScreenPrimary + 2 * (x + y * screen_size_X);
+  int t0 = t;
+  int l0 = len;
 
 #if (__DJGPP__ < 2)
   while (--len >= 0) {
@@ -326,6 +353,9 @@ dos_direct_output (y, x, buf, len)
   /* This is faster.  */
   for (_farsetsel (_dos_ds); --len >= 0; t += 2, buf++)
     _farnspokeb (t, *buf);
+
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (t0, l0);
 #endif
 }
 #endif
@@ -542,6 +572,11 @@ dos_set_window_size (rows, cols)
 
   /* Enable bright background colors.  */
   bright_bg ();
+
+  /* FIXME: I'm not sure the above will run at all on DOS/V.  But let's
+     be defensive anyway.  */
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (0, *cols * *rows);
 }
 
 /* If we write a character in the position where the mouse is,
@@ -604,6 +639,7 @@ IT_write_glyphs (GLYPH *str, int len)
   int newface;
   int ch, l = len;
   unsigned char *buf, *bp;
+  int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
 
   if (len == 0) return;
   
@@ -624,8 +660,9 @@ IT_write_glyphs (GLYPH *str, int len)
     }
 
   mouse_off_maybe ();
-  dosmemput (buf, 2 * len, 
-	     (int)ScreenPrimary + 2 * (new_pos_X + screen_size_X * new_pos_Y));
+  dosmemput (buf, 2 * len, (int)ScreenPrimary + offset);
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (offset, len);
   new_pos_X += len;
 }
 
@@ -634,6 +671,7 @@ IT_clear_end_of_line (first_unused)
 {
   char *spaces, *sp;
   int i, j;
+  int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
 
   IT_set_face (0);
   if (termscript)
@@ -648,8 +686,9 @@ IT_clear_end_of_line (first_unused)
     }
 
   mouse_off_maybe ();
-  dosmemput (spaces, i, 
-	     (int)ScreenPrimary + 2 * (new_pos_X + screen_size_X * new_pos_Y));
+  dosmemput (spaces, i, (int)ScreenPrimary + offset);
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (offset, i / 2);
 }
 
 static
@@ -660,6 +699,8 @@ IT_clear_screen (void)
   IT_set_face (0);
   mouse_off ();
   ScreenClear ();
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (0, screen_size);
   new_pos_X = new_pos_Y = 0;
 }
 
@@ -700,6 +741,8 @@ IT_display_cursor (int on)
       ScreenSetCursor (-1, -1);
       cursor_cleared = 1;
     }
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (2 * (current_pos_X + screen_size_X * current_pos_Y), 1);
 }
 
 /* Emacs calls cursor-movement functions a lot when it updates the
@@ -824,12 +867,40 @@ IT_set_terminal_modes (void)
   startup_screen_size_Y = screen_size_Y;
   startup_screen_attrib = ScreenAttrib;
 
+#if __DJGPP__ > 1
+  /* Is DOS/V (or any other RSIS software which relocates
+     the screen) installed?  */
+  {
+    unsigned short es_value;
+    __dpmi_regs regs;
+
+    regs.h.ah = 0xfe;	/* get relocated screen address */
+    if (ScreenPrimary == 0xb0000UL || ScreenPrimary == 0xb8000UL)
+      regs.x.es = (ScreenPrimary >> 4) & 0xffff;
+    else if (screen_old_address) /* already switched to Japanese mode once */
+      regs.x.es = (screen_old_address >> 4) & 0xffff;
+    else
+      regs.x.es = ScreenMode () == 7 ? 0xb000 : 0xb800;
+    regs.x.di = 0;
+    es_value = regs.x.es;
+    __dpmi_int (0x10, &regs);
+
+    if (regs.x.es != es_value && regs.x.es != (ScreenPrimary >> 4) & 0xffff)
+      {
+	screen_old_address = ScreenPrimary;
+	screen_virtual_segment = regs.x.es;
+	screen_virtual_offset  = regs.x.di;
+	ScreenPrimary = (screen_virtual_segment << 4) + screen_virtual_offset;
+      }
+  }
+#endif /* __DJGPP__ > 1 */
+
   ScreenGetCursor (&startup_pos_Y, &startup_pos_X);
   ScreenRetrieve (startup_screen_buffer = xmalloc (screen_size * 2));
 
   if (termscript)
     fprintf (termscript, "<SCREEN SAVED (dimensions=%dx%d)>\n",
-             screen_size_X, screen_size_Y);
+	     screen_size_X, screen_size_Y);
 
   bright_bg ();
 }
@@ -877,6 +948,8 @@ IT_reset_terminal_modes (void)
 
   ScreenAttrib = startup_screen_attrib;
   ScreenClear ();
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (0, screen_size);
 
   if (update_row_len > saved_row_len)
     update_row_len = saved_row_len;
@@ -890,6 +963,9 @@ IT_reset_terminal_modes (void)
   while (current_rows--)
     {
       dosmemput (saved_row, update_row_len, display_row_start);
+      if (screen_virtual_segment)
+	dosv_refresh_virtual_screen (display_row_start - ScreenPrimary,
+				     update_row_len / 2);
       saved_row         += saved_row_len;
       display_row_start += to_next_row;
     }
@@ -899,6 +975,9 @@ IT_reset_terminal_modes (void)
     cursor_pos_Y = startup_pos_Y;
 
   ScreenSetCursor (cursor_pos_Y, cursor_pos_X);
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (2*(cursor_pos_X+cursor_pos_Y*screen_size_X),
+				 1);
   xfree (startup_screen_buffer);
 
   term_setup_done = 0;
@@ -1031,7 +1110,10 @@ internal_terminal_init ()
 
   Vwindow_system = intern ("pc");
   Vwindow_system_version = make_number (1);
- 
+
+  /* If Emacs was dumped on DOS/V machine, forget the stale VRAM address.  */
+  screen_old_address = 0;
+
   bzero (&the_only_x_display, sizeof the_only_x_display);
   the_only_x_display.background_pixel = 7; /* White */
   the_only_x_display.foreground_pixel = 0; /* Black */
@@ -1086,7 +1168,7 @@ dos_get_saved_screen (screen, rows, cols)
   *screen = startup_screen_buffer;
   *cols = startup_screen_size_X;
   *rows = startup_screen_size_Y;
-  return 1;
+  return *screen != (char *)0;
 #else
   return 0;
 #endif  
@@ -2231,6 +2313,8 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 			  statecount--;
 			  mouse_off ();
 			  ScreenUpdate (state[statecount].screen_behind);
+			  if (screen_virtual_segment)
+			    dosv_refresh_virtual_screen (0, screen_size);
 			  xfree (state[statecount].screen_behind);
 			}
 		    if (i == statecount - 1 && state[i].menu->submenu[dy])
@@ -2266,6 +2350,8 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 
   mouse_off ();
   ScreenUpdate (state[0].screen_behind);
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (0, screen_size);
   while (statecount--)
     xfree (state[statecount].screen_behind);
   IT_display_cursor (1);	/* turn cursor back on */
@@ -3443,6 +3529,10 @@ abort ()
   ScreenSetCursor (10, 0);
   cputs ("\r\n\nEmacs aborted!\r\n");
 #if __DJGPP__ > 1
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
+  if (screen_virtual_segment)
+    dosv_refresh_virtual_screen (2 * 10 * screen_size_X, 4 * screen_size_X);
+#endif /* __DJGPP_MINOR__ < 2 */
   /* Generate traceback, so we could tell whodunit.  */
   signal (SIGINT, SIG_DFL);
   __asm__ __volatile__ ("movb $0x1b,%al;call ___djgpp_hw_exception");
