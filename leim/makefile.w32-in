@@ -85,7 +85,7 @@ KOREAN=	$(srcdir)/quail/hangul.elc	\
 
 THAI=$(srcdir)/quail/thai.elc
 
-VIETNAMESE=$(srcdir)/quail/viqr.elc
+VIETNAMESE=$(srcdir)/quail/viqr.elc $(srcdir)/quail/vntelex.elc
 
 LAO=$(srcdir)/quail/lao.elc $(srcdir)/quail/lrt.elc
 
