@@ -1,3 +1,13 @@
+2005-02-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-theme-set-variables): Handle variable aliases.
+
+	* frame.el (blink-cursor-timer): Doc fix.
+	(blink-cursor-mode): Use correct standard expression in defcustom.
+	(blink-cursor): Make it an alias for `blink-cursor-mode' and
+	declare obsolete.
+	* startup.el (command-line): Adapt to above changes in frame.el.
+
 2005-02-11  Lute Kamstra  <lute@gnu.org>
 
 	* apropos.el (apropos-score-doc): Prevent division by zero.
