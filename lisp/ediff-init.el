@@ -443,11 +443,11 @@ set local variables that determine how the display looks like."
   :type 'hook
   :group 'ediff-hook)
 
-(defcustom ediff-suspend-hook (list 'ediff-default-suspend-function)
+(defcustom ediff-suspend-hook nil
   "*Hooks to run in the Ediff control buffer when Ediff is suspended."
   :type 'hook
   :group 'ediff-hook)
-(defcustom ediff-quit-hook (list 'ediff-cleanup-mess)
+(defcustom ediff-quit-hook nil
   "*Hooks to run in the Ediff control buffer after finishing Ediff."
   :type 'hook
   :group 'ediff-hook)
@@ -1152,6 +1152,9 @@ this variable represents.")
 (put 'ediff-fine-diff-face-Ancestor 'ediff-help-echo
      "A `refinement' of the current difference region")
 
+(add-hook 'ediff-quit-hook 'ediff-cleanup-mess)
+(add-hook 'ediff-suspend-hook 'ediff-default-suspend-function)
+
 
 ;;; Overlays
 
@@ -1273,11 +1276,12 @@ This default should work without changes."
 
 (or (fboundp 'ediff-file-remote-p) ; user supplied his own function: use it
     (defun ediff-file-remote-p (file-name)
-      (car (cond ((featurep 'efs-auto) (efs-ftp-path file-name))
-		 ((fboundp 'file-remote-p) (file-remote-p file-name))
-		 (t (require 'ange-ftp)
-		    ;; Can happen only in Emacs, since XEmacs has file-remote-p
-		    (ange-ftp-ftp-name file-name))))))
+      (find-file-name-handler file-name 'file-local-copy)))
+;;;      (or (and (featurep 'efs-auto) (efs-ftp-path file-name))
+;;;	  (and (featurep 'tramp) (tramp-tramp-file-p file-name))
+;;;	  (and (fboundp 'file-remote-p) (file-remote-p file-name))
+;;;	  ;; Can happen only in Emacs, since XEmacs has file-remote-p
+;;;	  (and (require 'ange-ftp) (ange-ftp-ftp-name file-name)))))
 
 
 (defsubst ediff-frame-unsplittable-p (frame)

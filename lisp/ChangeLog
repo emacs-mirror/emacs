@@ -1,3 +1,16 @@
+2000-12-25  Michael Kifer  <kifer@cs.sunysb.edu>
+	* viper-init (viper-restore-cursor-type): added condition-case
+	guard.
+	
+	* ediff-init.el (ediff-quit-hook,ediff-suspend-hook): changed
+	initialization; use add-hook.
+	(ediff-file-remote-p): use file-local-copy.
+	
+	* ediff-ptch.el (ediff-prompt-for-patch-buffer): improved defaults.
+	
+	* ediff.el (ediff-patch-buffer): bug fix.
+	(ediff-revision): allow selection of the file at the prompt.
+	
 2000-12-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (combine-run-hooks): Remove.

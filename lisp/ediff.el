@@ -1265,7 +1265,11 @@ buffer. If odd -- assume it is in a file."
 
 ;;;###autoload
 (defun ediff-patch-buffer (&optional arg patch-buf)
-  "Run Ediff by patching BUFFER-NAME."
+  "Run Ediff by patching BUFFER-NAME.
+Without prefix argument: asks if the patch is in some buffer and prompts for
+the buffer or a file, depending on the answer.
+With prefix arg=1: assumes the patch is in a file and prompts for the file.
+With prefix arg=2: assumes the patch is in a buffer and prompts for the buffer."
   (interactive "P")
   (require 'ediff-ptch)
   (setq patch-buf
@@ -1275,7 +1279,7 @@ buffer. If odd -- assume it is in a file."
    patch-buf
    (read-buffer
     "Which buffer to patch? "
-    (ediff-prompt-for-patch-buffer))))
+    (current-buffer))))
   
 
 ;;;###autoload
@@ -1291,22 +1295,32 @@ buffer. If odd -- assume it is in a file."
 ;;;###autoload
 (defun ediff-revision (&optional file startup-hooks)
   "Run Ediff by comparing versions of a file.
-The file is an optional FILE argument or the file visited by the current
-buffer.  Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
+The file is an optional FILE argument or the file entered at the prompt.
+Default: the file visited by the current buffer.
+Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   ;; if buffer is non-nil, use that buffer instead of the current buffer
   (interactive "P")
-  (if (stringp file) (find-file file))
+  (if (not (stringp file))
+    (setq file
+	  (ediff-read-file-name "Compare revisions for file"
+				(if ediff-use-last-dir
+				    ediff-last-dir-A
+				  default-directory)
+				(ediff-get-default-file-name)))) 
+  (find-file file)
+  (if (and (buffer-modified-p)
+	   (y-or-n-p (message "Buffer %s is modified. Save buffer? "
+			      (buffer-name))))
+      (save-buffer (current-buffer)))
   (let (rev1 rev2)
     (setq rev1
 	  (read-string
 	   (format "Version 1 to compare (default: %s's latest version): "
-		   (if (stringp file)
-		       (file-name-nondirectory file) "current buffer")))
+		   (file-name-nondirectory file)))
 	  rev2
 	  (read-string 
 	   (format "Version 2 to compare (default: %s): "
-		   (if (stringp file)
-		       (file-name-nondirectory file) "current buffer"))))
+		   (file-name-nondirectory file))))
     (ediff-load-version-control)
     (funcall
      (intern (format "ediff-%S-internal" ediff-version-control-package))

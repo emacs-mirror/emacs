@@ -427,7 +427,7 @@ are two possible targets for this patch.  However, these files do not exist."
 (defun ediff-prompt-for-patch-buffer ()
   (get-buffer
    (read-buffer
-    "Patch is in buffer: "
+    "Buffer that holds the patch: "
     (cond ((save-excursion
 	     (goto-char (point-min))
 	     (re-search-forward ediff-context-diff-label-regexp nil t))
@@ -444,7 +444,7 @@ are two possible targets for this patch.  However, these files do not exist."
 	       (goto-char (point-min))
 	       (and (re-search-forward ediff-context-diff-label-regexp nil t)
 		    (current-buffer)))))
-	  (t nil))
+	  (t (other-buffer (current-buffer) 'visible-ok)))
     'must-match)))
 
 
