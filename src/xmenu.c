@@ -854,11 +854,12 @@ You can also use a list of keymaps as MENU.\n\
 When MENU is a keymap or a list of keymaps, the return value\n\
 is a list of events.\n\n\
 Alternatively, you can specify a menu of multiple panes\n\
-  with a list of the form (TITLE PANE1 PANE2...),\n\
-where each pane is a list of form (TITLE ITEM1 ITEM2...).\n\
+  with a list of the form (TITLE PANE),\n\
+where PANE is a list of form (TITLE ITEM1 ITEM2...).\n\
 Each ITEM is normally a cons cell (STRING . VALUE);\n\
 but a string can appear as an item--that makes a nonselectable line\n\
 in the menu.\n\
+Dialog boxes do not support multiple panes.\n\
 With this form of menu, the return value is VALUE from the chosen item.\n\
 \n\
 If POSITION is nil, don't display the menu at all, just precalculate the\n\
@@ -904,6 +905,31 @@ cached information about equivalent key sequences.")
 	      window = selected_window;
 	      XFASTINT (x) = 0;
 	      XFASTINT (y) = 0;
+	    }
+	}
+      else
+	{
+	  tem = Fcar (position);
+	  if (XTYPE (tem) == Lisp_Cons)
+	    {
+	      window = Fcar (Fcdr (position));
+	      x = Fcar (tem);
+	      y = Fcar (Fcdr (tem));
+	    }
+	  else
+	    {
+	      tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+	      window = Fcar (tem);	     /* POSN_WINDOW (tem) */
+	      tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
+	      x = Fcar (tem);
+	      y = Fcdr (tem);
+
+	      /* Determine whether this menu is handling a menu bar click.  */
+	      tem = Fcar (Fcdr (Fcar (Fcdr (position))));
+	      if (XTYPE (Fcar (position)) != Lisp_Cons
+		  && CONSP (tem)
+		  && EQ (Fcar (tem), Qmenu_bar))
+		menubarp = 1;
 	    }
 	}
 
@@ -1740,6 +1766,7 @@ xdialog_show (f, x, y, menubarp, keymaps, title, error)
   int dialog_id;
   Widget menu;
   XlwMenuWidget menubar = (XlwMenuWidget) f->display.x->menubar_widget;
+  char dialog_name[6];
 
   /* This is the menu bar item (if any) that led to this menu.  */
   widget_value *menubar_item = 0;
@@ -1758,6 +1785,12 @@ xdialog_show (f, x, y, menubarp, keymaps, title, error)
   struct event_queue *queue_tmp;
 
   *error = NULL;
+
+  if (menu_items_n_panes > 1)
+    {
+      *error = "Multiple panes in dialog box";
+      return Qnil;
+    }
 
   /* Create a tree of widget_value objects
      representing the text label and buttons.  */
@@ -1788,9 +1821,22 @@ xdialog_show (f, x, y, menubarp, keymaps, title, error)
 	descrip
 	  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	
+	if (NILP (item_name))
+	  {
+	    free_menubar_widget_value_tree (first_wv);
+	    *error = "Submenu in dialog items";
+	    return Qnil;
+	  }
+	if (nb_buttons >= 10)
+	  {
+	    free_menubar_widget_value_tree (first_wv);
+	    *error = "Too many dialog items";
+	    return Qnil;
+	  }
+
 	wv = malloc_widget_value ();
 	prev_wv->next = wv;
-	wv->name = (char *) button_names [nb_buttons];
+	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
 	  wv->key = XSTRING (descrip)->data;
 	wv->value = XSTRING (item_name)->data;
@@ -1803,7 +1849,18 @@ xdialog_show (f, x, y, menubarp, keymaps, title, error)
       }
 
     wv = malloc_widget_value ();
-    wv->name = "Q2BR1";
+    wv->name = dialog_name;
+
+    /* Dialog boxes use a really stupid name encoding
+       which specifies how many buttons to use
+       and how many buttons are on the right.
+       The Q means something also.  */
+    dialog_name[0] = 'Q';
+    dialog_name[1] = '0' + nb_buttons;
+    dialog_name[2] = 'B';
+    dialog_name[3] = 'R';
+    dialog_name[4] = '0' + nb_buttons / 2;
+    dialog_name[5] = 0;
     wv->contents = first_wv;
     first_wv = wv;
 
@@ -1814,8 +1871,10 @@ xdialog_show (f, x, y, menubarp, keymaps, title, error)
   menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
 			   f->display.x->widget, 1, 0,
 			   dialog_selection_callback, 0);
+#if 0 /* This causes crashes, and seems to be redundant -- rms.  */
   lw_modify_all_widgets (dialog_id, first_wv, True);
-  lw_modify_all_widgets (dialog_id, first_wv->contents, True);
+#endif
+  lw_modify_all_widgets (dialog_id, first_wv->contents->next, True);
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
 
