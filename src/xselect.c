@@ -1661,9 +1661,9 @@ Disowning it means there is no such selection.")
      the selection owner to None.  The NCD server does, the MIT Sun4 server
      doesn't.  So we synthesize one; this means we might get two, but
      that's ok, because the second one won't have any effect.  */
-  event.display = display;
-  event.selection = selection_atom;
-  event.time = timestamp;
+  SELECTION_EVENT_DISPLAY (&event) = display;
+  SELECTION_EVENT_SELECTION (&event) = selection_atom;
+  SELECTION_EVENT_TIME (&event) = timestamp;
   x_handle_selection_clear (&event);
 
   return Qt;
