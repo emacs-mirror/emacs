@@ -1,7 +1,7 @@
 /* Coding system handler (conversion, detection, and etc).
    Copyright (C) 1995, 1997, 1998, 2002 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
-   Copyright (C) 2001,2002  Free Software Foundation, Inc.
+   Copyright (C) 2001,2002,2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6504,7 +6504,7 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 		  accept_latin_extra
 		    = ((EQ (AREF (val, 0), make_number (2))
 			&& VECTORP (AREF (val, 4)))
-		       ? AREF (AREF (val, 4), CODING_FLAG_ISO_LATIN_EXTRA)
+		       ? AREF (AREF (val, 4), 16)
 		       : Qnil);
 		  XSETCAR (tail, list5 (XCAR (elt), XCDR (elt),
 					translation_table, hash_table,
