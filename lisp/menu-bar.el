@@ -853,33 +853,87 @@ key (or menu-item)"))
 	      :help "Describe this buffer's major and minor mode"))
 
 (defvar menu-bar-apropos-menu (make-sparse-keymap "Apropos"))
+(defun menu-bar-read-lispref ()
+  "Display the Emacs Lisp Reference manual in Info mode."
+  (interactive)
+  (info "elisp"))
+
+(defun menu-bar-read-lispintro ()
+  "Display the Introduction to Emacs Lisp Programming in Info mode."
+  (interactive)
+  (info "eintr"))
+
+(defun menu-bar-read-emacs-man ()
+  "Display Emacs User Manual in Info mode."
+  (interactive)
+  (info "emacs"))
+
+(defun search-emacs-glossary ()
+  "Display the Glossary node of the Emacs manual in Info mode."
+  (interactive)
+  (info "(emacs)Glossary"))
+
+(defun emacs-index-search (topic)
+  "Look up TOPIC in the indices of the Emacs User Manual."
+  (interactive "sSubject to look up: ")
+  (info "emacs")
+  (Info-index topic))
+
+(defun elisp-index-search (topic)
+  "Look up TOPIC in the indices of the Emacs Lisp Reference Manual."
+  (interactive "sSubject to look up: ")
+  (info "elisp")
+  (Info-index topic))
 
 (define-key menu-bar-apropos-menu [apropos-documentation]
-  '(menu-item "Apropos Documentation..." apropos-documentation
-              :help "List variables whose doc strings match a regexp"))
+  '(menu-item "Search Documentation Strings..." apropos-documentation
+              :help
+	      "Find functions and variables whose doc strings match a regexp"))
 (define-key menu-bar-apropos-menu [apropos]
-  '(menu-item "Apropos Symbol..."  apropos
-              :help "List symbols whose names match a regexp"))
+  '(menu-item "Find Any Object by Name..."  apropos
+              :help "Find symbols of any kind whose names match a regexp"))
 (define-key menu-bar-apropos-menu [apropos-value]
-  '(menu-item "Apropos Value..." apropos-value
-              :help "List variables whose values match a regexp"))
+  '(menu-item "Find Options by Value..." apropos-value
+              :help "Find variables whose values match a regexp"))
 (define-key menu-bar-apropos-menu [apropos-variables]
-  '(menu-item "Apropos Variables..." apropos-variable
-	      :help "List variables whose names match a regexp"))
+  '(menu-item "Find Options by Name..." apropos-variable
+	      :help "Find variables whose names match a regexp"))
 (define-key menu-bar-apropos-menu [apropos-commands]
-  '(menu-item "Apropos Commands..." apropos-command
-	      :help "List commands whose names match a regexp"))
+  '(menu-item "Find Commands by Name..." apropos-command
+	      :help "Find commands whose names match a regexp"))
+(define-key menu-bar-apropos-menu [sep1]
+  '("--"))
+(define-key menu-bar-apropos-menu [elisp-index-search]
+  '(menu-item "Look Up Subject in ELisp Manual..." elisp-index-search
+	      :help "Find description of a subject in Emacs Lisp manual"))
+(define-key menu-bar-apropos-menu [emacs-index-search]
+  '(menu-item "Look Up Subject in User Manual..." emacs-index-search
+	      :help "Find description of a subject in Emacs User manual"))
+(define-key menu-bar-apropos-menu [emacs-glossary]
+  '(menu-item "Emacs Terminology" search-emacs-glossary
+	      :help "Display the Glossary section of the Emacs manual"))
 
-(defvar menu-bar-manuals-menu (make-sparse-keymap "Manuals"))
+(defvar menu-bar-manuals-menu (make-sparse-keymap "More Manuals"))
 
 (define-key menu-bar-manuals-menu [man]
   '(menu-item "Read Man Page..." manual-entry
 	      :help "Man-page docs for external commands and libraries"))
 (define-key menu-bar-manuals-menu [sep2]
   '("--"))
+(define-key menu-bar-manuals-menu [order-emacs-manuals]
+  '(menu-item "Ordering Manuals" view-order-manuals
+	      :help "How to order manuals from the Free Software Foundation"))
 (define-key menu-bar-manuals-menu [info]
-  '(menu-item "Browse Manuals with Info" Info-directory
+  '(menu-item "All Other Manuals (Info)" Info-directory
 	      :help "Read any of the installed manuals"))
+(define-key menu-bar-manuals-menu [info-elisp]
+  '(menu-item "Emacs Lisp Reference" menu-bar-read-lispref
+	      :help "Read the Emacs Lisp Reference manual"))
+(define-key menu-bar-manuals-menu [info-elintro]
+  '(menu-item "Introduction to Emacs Lisp" menu-bar-read-lispintro
+	      :help "Read the Introduction to Emacs Lisp Programming"))
+(define-key menu-bar-manuals-menu [sep3]
+  '("--"))
 (define-key menu-bar-manuals-menu [command]
   '(menu-item "Find Command in Manual" Info-goto-emacs-command-node
 	      :help "Display manual section that describes a command"))
@@ -890,7 +944,7 @@ key (or menu-item)"))
 (define-key menu-bar-help-menu [eliza]
   '(menu-item "Emacs Psychiatrist" doctor
 	      :help "Our doctor will help you feel better"))
-(define-key menu-bar-help-menu [sep3]
+(define-key menu-bar-help-menu [sep4]
   '("--"))
 (define-key menu-bar-help-menu [describe-no-warranty]
   '(menu-item "(Non)Warranty" describe-no-warranty
@@ -917,26 +971,23 @@ key (or menu-item)"))
 (define-key menu-bar-help-menu [finder-by-keyword]
   '(menu-item "Find Emacs Packages..." finder-by-keyword
 	      :help "Find packages and features by keyword"))
-(define-key menu-bar-help-menu [apropos]
-  (list 'menu-item "Apropos" menu-bar-apropos-menu
-	:help "Find commands, variables, keys"))
+(define-key menu-bar-help-menu [manuals]
+  (list 'menu-item "More Manuals" menu-bar-manuals-menu
+	:help "Search and browse on-line manuals"))
+(define-key menu-bar-help-menu [emacs-manual]
+  '(menu-item "Read the Emacs Manual" menu-bar-read-emacs-man
+	      :help "Full documentation of Emacs features"))
 (define-key menu-bar-help-menu [describe]
   (list 'menu-item "Describe" menu-bar-describe-menu
 	:help "Describe commands, variables, keys"))
-(define-key menu-bar-help-menu [manuals]
-  (list 'menu-item "Manuals" menu-bar-manuals-menu
-	:help "Lookup commands and keys in docs, read manuals"))
+(define-key menu-bar-help-menu [apropos]
+  (list 'menu-item "Search Documentation" menu-bar-apropos-menu
+	:help "Look up terms, find commands, options, etc. (Apropos)"))
 (define-key menu-bar-help-menu [sep1]
   '("--"))
 (define-key menu-bar-help-menu [report-emacs-bug]
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
-(define-key menu-bar-help-menu [order-emacs-manuals]
-  '(menu-item "Ordering Manuals" view-order-manuals
-	      :help "How to order manuals from the Free Software Foundation"))
-(define-key menu-bar-help-menu [emacs-manual]
-  '(menu-item "Read the Emacs Manual"
-	      (lambda () (interactive) (info "emacs"))))
 (define-key menu-bar-help-menu [emacs-problems]
   '(menu-item "Emacs Known Problems" view-emacs-problems))
 (define-key menu-bar-help-menu [emacs-news]
