@@ -1346,7 +1346,10 @@ The seventh argument ACTIONS is a list of actions to take
   ;; to avoid any danger that it can't be written.
   (if (file-exists-p (expand-file-name "~/"))
       (setq default-directory (expand-file-name "~/")))
-  (auto-save-mode auto-save-default)
+  ;; Only call auto-save-mode if necessary, to avoid changing auto-save file.
+  (if (or (and auto-save-default (not buffer-auto-save-file-name))
+          (and (not auto-save-default) buffer-auto-save-file-name))
+      (auto-save-mode auto-save-default))
   (mail-mode)
   ;; Disconnect the buffer from its visited file
   ;; (in case the user has actually visited a file *mail*).
