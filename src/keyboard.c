@@ -1327,7 +1327,7 @@ command_loop_1 ()
   /* If displaying a message, resize the echo area window to fit
      that message's size exactly.  */
   if (!NILP (echo_area_buffer[0]))
-    resize_echo_area_axactly ();
+    resize_echo_area_exactly ();
 
   if (!NILP (Vdeferred_action_list))
     call0 (Vdeferred_action_function);
@@ -1642,7 +1642,7 @@ command_loop_1 ()
       /* If displaying a message, resize the echo area window to fit
 	 that message's size exactly.  */
       if (!NILP (echo_area_buffer[0]))
-	resize_echo_area_axactly ();
+	resize_echo_area_exactly ();
 
       if (!NILP (Vdeferred_action_list))
 	safe_run_hooks (Qdeferred_action_function);
