@@ -1101,6 +1101,12 @@ If `enable-local-variables' is nil, this function does not check for a
   '(enable-local-eval)
   "Variables to be ignored in a file's local variable spec.")
 
+;; Get confirmation before setting these variables as locals in a file.
+(put 'eval 'risky-local-variable t)
+(put 'file-name-handler-alist 'risky-local-variable t)
+(put 'minor-mode-map-alist 'risky-local-variable t)
+(put 'after-load-alist 'risky-local-variable t)
+	    
 ;; "Set" one variable in a local variables spec.
 ;; A few variable names are treated specially.
 (defun hack-one-local-variable (var val)
@@ -1111,7 +1117,7 @@ If `enable-local-variables' is nil, this function does not check for a
 	 nil)
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
-	((or (memq var '(eval file-name-handler-alist after-load-alist))
+	((or (get var 'risky-local-variable)
 	     (string-match "-hooks?$\\|-functions?$\\|-forms?$"
 			   (symbol-name var)))
 	 (if (and (not (string= (user-login-name) "root"))
