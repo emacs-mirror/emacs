@@ -1,6 +1,6 @@
 ;;; nnmh.el --- mhspool access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -232,7 +232,7 @@ as unread by Gnus.")
 	  (goto-char (point-max))
 	  (insert
 	   (format
-	    "%s %d %d y\n"
+	    "%s %.0f %.0f y\n"
 	    (progn
 	      (string-match
 	       (regexp-quote
