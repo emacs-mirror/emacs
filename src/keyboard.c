@@ -251,6 +251,10 @@ Lisp_Object Vmenu_bar_final_items;
    If the value is non-nil and not a number, we wait 2 seconds.  */
 Lisp_Object Vsuggest_key_bindings;
 
+/* How long to display an echo-area message when the minibuffer is active.
+   If the value is not a number, such messages don't time out.  */
+Lisp_Object Vminibuffer_message_timeout;
+
 /* Character that causes a quit.  Normally C-g.
 
    If we are running on an ordinary terminal, this must be an ordinary
@@ -1333,18 +1337,19 @@ command_loop_1 ()
       Vdeactivate_mark = Qnil;
 
       /* If minibuffer on and echo area in use,
-	 wait 2 sec and redraw minibuffer.  */
+	 wait a short time and redraw minibuffer.  */
 
       if (minibuf_level
 	  && !NILP (echo_area_buffer[0])
-	  && EQ (minibuf_window, echo_area_window))
+	  && EQ (minibuf_window, echo_area_window)
+	  && NUMBERP (Vminibuffer_message_timeout))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
 	  int count = specpdl_ptr - specpdl;
 	  specbind (Qinhibit_quit, Qt);
 
-	  Fsit_for (make_number (2), Qnil, Qnil);
+	  Fsit_for (Vminibuffer_message_timeout, Qnil, Qnil);
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);
 	  safe_run_hooks (Qecho_area_clear_hook);
@@ -10591,6 +10596,11 @@ suppressed only after special commands that set\n\
 A value of nil means menu bindings should not be updated.\n\
 Used during Emacs' startup.");
   update_menu_bindings = 1;
+
+  DEFVAR_LISP ("minibuffer-message-timeout", &Vminibuffer_message_timeout,
+    "*How long to display an echo-area message when the minibuffer is active.\n\
+If the value is not a number, such messages don't time out.");
+  Vminibuffer_message_timeout = make_number (2);
 }
 
 void
