@@ -251,13 +251,12 @@
 
 ;; For machines with CANNOT_DUMP defined in config.h,
 ;; this file must be loaded each time Emacs is run.
-;; So run the startup code now.
+;; So run the startup code now.  First, remove `-l loadup' from args.
 
-(or (equal (nth 3 command-line-args) "dump")
-    (equal (nth 4 command-line-args) "dump")
-    (progn
-      ;; Avoid loading loadup.el a second time!
-      (setq command-line-args (cdr (cdr command-line-args)))
-      (eval top-level)))
+(if (and (equal (nth 1 command-line-args) "-l")
+	 (equal (nth 2 command-line-args) "loadup"))
+    (setcdr command-line-args (nthcdr 3 command-line-args)))
+
+(eval top-level)
 
 ;;; loadup.el ends here
