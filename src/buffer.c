@@ -397,7 +397,7 @@ The value is never nil.  */)
   b->zv_marker = Qnil;
 
   name = Fcopy_sequence (name);
-  STRING_INTERVALS (name) = NULL_INTERVAL;
+  STRING_SET_INTERVALS (name, NULL_INTERVAL);
   b->name = name;
 
   if (SREF (name, 0) != ' ')
@@ -556,7 +556,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   all_buffers = b;
 
   name = Fcopy_sequence (name);
-  STRING_INTERVALS (name) = NULL_INTERVAL;
+  STRING_SET_INTERVALS (name, NULL_INTERVAL);
   b->name = name;
 
   reset_buffer (b);
