@@ -1,4 +1,5 @@
-/* Copyright (C) 1985, 86, 87, 93, 94, 96 Free Software Foundation, Inc.
+/* Lock files for editing.
+   Copyright (C) 1985, 86, 87, 93, 94, 96, 98, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -104,6 +105,7 @@ extern int errno;
 /* Return the time of the last system boot.  */
 
 static time_t boot_time;
+static int boot_time_initialized;
 
 extern Lisp_Object Vshell_file_name;
 
@@ -115,8 +117,9 @@ get_boot_time ()
   EMACS_TIME time_before, after;
   int counter;
 
-  if (boot_time)
+  if (boot_time_initialized)
     return boot_time;
+  boot_time_initialized = 1;
 
   EMACS_GET_TIME (time_before);
 
@@ -166,11 +169,27 @@ get_boot_time ()
 #endif /* defined (CTL_KERN) && defined (KERN_BOOTTIME) */
 
 #if defined (BOOT_TIME) && ! defined (NO_WTMP_FILE)
+#ifndef CANNOT_DUMP
+  /* The utmp routines maintain static state.
+     Don't touch that state unless we are initialized,
+     since it might not survive dumping.  */
+  if (! initialized)
+    return boot_time;
+#endif /* not CANNOT_DUMP */
+
+  /* Try to get boot time from utmp before wtmp,
+     since utmp is typically much smaller than wtmp.
+     Passing a null pointer causes get_boot_time_1
+     to inspect the default file, namely utmp.  */
+  get_boot_time_1 ((char *) 0, 0);
+  if (boot_time)
+    return boot_time;
+
   /* Try to get boot time from the current wtmp file.  */
-  get_boot_time_1 (WTMP_FILE);
+  get_boot_time_1 (WTMP_FILE, 1);
 
   /* If we did not find a boot time in wtmp, look at wtmp, and so on.  */
-  for (counter = 0; counter < 20 && boot_time == 1; counter++)
+  for (counter = 0; counter < 20 && ! boot_time; counter++)
     {
       char cmd_string[100];
       Lisp_Object tempname, filename;
@@ -206,7 +225,7 @@ get_boot_time ()
 
       if (! NILP (filename))
 	{
-	  get_boot_time_1 (XSTRING (filename)->data);
+	  get_boot_time_1 (XSTRING (filename)->data, 1);
 	  if (delete_flag)
 	    unlink (XSTRING (filename)->data);
 	}
@@ -221,24 +240,36 @@ get_boot_time ()
 #ifdef BOOT_TIME
 /* Try to get the boot time from wtmp file FILENAME.
    This succeeds if that file contains a reboot record.
-   Success is indicated by setting BOOT_TIME.  */
 
-get_boot_time_1 (filename)
+   If FILENAME is zero, use the same file as before;
+   if no FILENAME has ever been specified, this is the utmp file.
+   Use the newest reboot record if NEWEST is nonzero,
+   the first reboot record otherwise.
+   Ignore all reboot records on or before BOOT_TIME.
+   Success is indicated by setting BOOT_TIME to a larger value.  */
+
+get_boot_time_1 (filename, newest)
      char *filename;
+     int newest;
 {
   struct utmp ut, *utp;
   int desc;
 
-  /* On some versions of IRIX, opening a nonexistent file name
-     is likely to crash in the utmp routines.  */
-  desc = open (filename, O_RDONLY);
-  if (desc < 0)
-    return;
+  if (filename)
+    {
+      /* On some versions of IRIX, opening a nonexistent file name
+	 is likely to crash in the utmp routines.  */
+      desc = open (filename, O_RDONLY);
+      if (desc < 0)
+	return;
 
-  close (desc);
-      
-  utmpname (filename);
+      close (desc);
+
+      utmpname (filename);
+    }
+
   setutent ();
+
   while (1)
     {
       /* Find the next reboot record.  */
@@ -248,7 +279,11 @@ get_boot_time_1 (filename)
 	break;
       /* Compare reboot times and use the newest one.  */
       if (utp->ut_time > boot_time)
-	boot_time = utp->ut_time;
+	{
+	  boot_time = utp->ut_time;
+	  if (! newest)
+	    break;
+	}
       /* Advance on element in the file
 	 so that getutid won't repeat the same one.  */
       utp = getutent ();
@@ -684,6 +719,7 @@ void
 init_filelock ()
 {
   boot_time = 0;
+  boot_time_initialized = 0;
 }
 
 void
