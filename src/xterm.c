@@ -10877,8 +10877,8 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
     }
   else
     {
-      if (w != XWINDOW (selected_window)
-	  || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
+      if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
+	  || w != XWINDOW (f->selected_window))
 	{
 	  extern int cursor_in_non_selected_windows;
 	  
