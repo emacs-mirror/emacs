@@ -238,7 +238,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
      output.  */
   {
     Lisp_Object val, *args2;
-    /* Qt denotes that we have not yet called Ffind_coding_system.  */
+    /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
     Lisp_Object coding_systems = Qt;
     int i;
 
@@ -250,7 +250,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	    coding_systems = Ffind_coding_system (nargs + 1, args2);
+	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	    if (CONSP (coding_systems))
 	      val = XCONS (coding_systems)->cdr;
 	    else if (CONSP (Vdefault_process_coding_system))
@@ -273,7 +273,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 		args2[0] = Qcall_process;
 		for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-		coding_systems = Ffind_coding_system (nargs + 1, args2);
+		coding_systems
+		  = Ffind_operation_coding_system (nargs + 1, args2);
 	      }
 	    if (CONSP (coding_systems))
 	      val = XCONS (coding_systems)->car;
@@ -735,7 +736,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   Lisp_Object filename_string;
   register Lisp_Object start, end;
   int count = specpdl_ptr - specpdl;
-  /* Qt denotes that we have not yet called Ffind_coding_system.  */
+  /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
   Lisp_Object coding_systems = Qt;
   Lisp_Object val, *args2;
   int i;
@@ -785,7 +786,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	args2[0] = Qcall_process_region;
 	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	coding_systems = Ffind_coding_system (nargs + 1, args2);
+	coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	if (CONSP (coding_systems))
 	  val = XCONS (coding_systems)->cdr;
 	else if (CONSP (Vdefault_process_coding_system))
@@ -806,7 +807,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qcall_process_region;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	    coding_systems = Ffind_coding_system (nargs + 1, args2);
+	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	  }
 	val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
       }
