@@ -1022,9 +1022,12 @@ Instead, these commands are available:
       (rmail-select-summary (set-buffer-modified-p nil))))
 
 (defun rmail-quit ()
-  "Quit out of RMAIL."
+  "Quit out of RMAIL.
+Hook `rmail-quit-hook' is run after expunging."
   (interactive)
   (rmail-expunge-and-save)
+  (when (boundp 'rmail-quit-hook)
+    (run-hooks 'rmail-quit-hook))
   ;; Don't switch to the summary buffer even if it was recently visible.
   (when rmail-summary-buffer
     (replace-buffer-in-windows rmail-summary-buffer)
