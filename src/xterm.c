@@ -255,9 +255,9 @@ static int any_help_event_p;
 
 /* Non-zero means autoselect window with the mouse cursor.  */
 
-int autoselect_window_p;
+int mouse_autoselect_window;
 
-/* Last window where we saw the mouse.  Used by autoselect-window.  */
+/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
 
 /* Non-zero means draw block and hollow cursor as wide as the glyph
@@ -10878,7 +10878,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		  {
 
 		    /* Generate SELECT_WINDOW_EVENTs when needed.  */
-		    if (autoselect_window_p)
+		    if (mouse_autoselect_window)
 		      {
 			Lisp_Object window;
 			int area;
@@ -15117,9 +15117,9 @@ syms_of_xterm ()
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
 
-  DEFVAR_BOOL ("autoselect-window", &autoselect_window_p,
+  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
     doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  autoselect_window_p = 0;
+  mouse_autoselect_window = 0;
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
     doc: /* *Non-nil means draw block cursor as wide as the glyph under it.

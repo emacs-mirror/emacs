@@ -1195,9 +1195,9 @@ static int help_echo_pos;
 
 /* Non-zero means automatically select any window when the mouse
    cursor moves into it.  */
-int autoselect_window_p;
+int mouse_autoselect_window;
 
-/* Last window where we saw the mouse.  Used by autoselect-window.  */
+/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_mouse_window;
 
 static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
@@ -3411,7 +3411,7 @@ dos_rawgetc ()
 	    }
 
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
-	  if (autoselect_window_p)
+	  if (mouse_autoselect_window)
 	    {
 	      int mouse_area;
 
@@ -5366,9 +5366,9 @@ syms_of_msdos ()
 This variable is used only by MSDOS terminals.  */);
   Vdos_unsupported_char_glyph = '\177';
 
-  DEFVAR_BOOL ("autoselect-window", &autoselect_window_p,
+  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
     doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  autoselect_window_p = 0;
+  mouse_autoselect_window_p = 0;
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,

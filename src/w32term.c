@@ -172,7 +172,7 @@ static int any_help_event_p;
 
 /* Non-zero means autoselect window with the mouse cursor.  */
 
-int autoselect_window_p;
+int mouse_autoselect_window;
 
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
@@ -6296,7 +6296,7 @@ note_mouse_movement (frame, msg)
   XSETFRAME (last_mouse_motion_frame, frame);
 
 #if 0 /* Calling Lisp asynchronously is not safe.  */
-  if (autoselect_window_p)
+  if (mouse_autoselect_window)
     {
       int area;
       Lisp_Object window;
@@ -11388,9 +11388,9 @@ affect on NT machines.  */);
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
 
-  DEFVAR_BOOL ("autoselect-window", &autoselect_window_p,
+  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
     doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  autoselect_window_p = 0;
+  mouse_autoselect_window = 0;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",
 	       &w32_use_visible_system_caret,
