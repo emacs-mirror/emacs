@@ -571,8 +571,8 @@ Completion and configuration are done according to `sgml-tag-alist'.
 If you like tags and attributes in uppercase do \\[set-variable]
 skeleton-transformation RET upcase RET, or put this in your `.emacs':
   (setq sgml-transformation 'upcase)"
-  (funcall skeleton-transformation
-	   (completing-read "Tag: " sgml-tag-alist))
+  (funcall (or skeleton-transformation 'identity)
+           (completing-read "Tag: " sgml-tag-alist))
   ?< str |
   (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
   `(("") '(setq v2 (sgml-attributes ,str t)) ?>
