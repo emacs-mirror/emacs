@@ -1214,7 +1214,7 @@ $(BLD)\w32bdf.obj: \
 	$(SRC)\blockinput.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\w32term.h \
-	$(SRC)\w32bdf.h
+	$(SRC)\w32bdf.h \
 	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32.h \
