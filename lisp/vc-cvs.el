@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.24 2001/08/28 17:06:36 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.25 2001/10/21 12:21:29 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -553,14 +553,22 @@ Optional arg VERSION is a version to annotate from."
   (vc-do-command buffer 0 "cvs" file "annotate" (if version
                                                     (concat "-r" version))))
 
-(defun vc-cvs-annotate-difference (point)
-  "Return the difference between the time of the line and the current time.
-Return values are as defined for `current-time'."
-  ;; We need a list of months and their corresponding numbers.
-  (if (looking-at "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): ")
+(defun vc-cvs-annotate-current-time ()
+  "Return the current time, based at midnight of the current day, and
+encoded as fractional days."
+  (vc-annotate-convert-time
+   (apply 'encode-time 0 0 0 (nthcdr 3 (decode-time (current-time))))))
+
+(defun vc-cvs-annotate-time ()
+  "Return the time of the next annotation (as fraction of days)
+systime , or NIL if there is none."
+  (let ((time-stamp 
+	 "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "))
+    (if (looking-at time-stamp)
       (progn
 	(let* ((day (string-to-number (match-string 1)))
-	       (month (cdr (assoc (match-string 2) vc-cvs-local-month-numbers)))
+		 (month (cdr (assoc (match-string 2) 
+				    vc-cvs-local-month-numbers)))
 	       (year-tmp (string-to-number (match-string 3)))
 	       ;; Years 0..68 are 2000..2068.
 	       ;; Years 69..99 are 1969..1999.
@@ -569,17 +577,14 @@ Return values are as defined for `current-time'."
 			      (t 0))
 			year-tmp)))
 	  (goto-char (match-end 0)) ; Position at end makes for nicer overlay result
-	  (- (car (current-time))
-	     (car (encode-time 0 0 0 day month year)))))
+	    (vc-annotate-convert-time (encode-time 0 0 0 day month year))))
     ;; If we did not look directly at an annotation, there might be
     ;; some further down.  This is the case if we are positioned at
     ;; the very top of the buffer, for instance.
-    (if (re-search-forward
-	 "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): " nil t)
+      (if (re-search-forward time-stamp nil t)
 	(progn
 	  (beginning-of-line nil)
-	  (vc-cvs-annotate-difference (point))))))
-
+	    (vc-cvs-annotate-time))))))
 
 ;;;
 ;;; Snapshot system
