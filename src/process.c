@@ -345,7 +345,8 @@ status_message (status)
       if (code < NSIG)
 	{
 #ifndef VMS
-	  signame = sys_siglist[code];
+	  /* Cast to suppress warning if the table has const char *.  */
+	  signame = (char *) sys_siglist[code];
 #else
 	  signame = sys_errlist[code];
 #endif
@@ -3107,7 +3108,8 @@ sigchld_handler (signo)
 	      if (code < NSIG)
 		{
 #ifndef VMS
-		  signame = sys_siglist[code];
+		  /* Suppress warning if the table has const char *.  */
+		  signame = (char *) sys_siglist[code];
 #else
 		  signame = sys_errlist[code];
 #endif
