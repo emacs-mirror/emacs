@@ -771,8 +771,9 @@ deleted."
 	(and interactive (push-mark))
 	(call-process-region start end shell-file-name t t nil
 			     "-c" command)
-	(if (get-buffer "*Shell Command Output*")
-	    (kill-buffer "*Shell Command Output*"))
+	(let ((shell-buffer (get-buffer "*Shell Command Output*")))
+	  (and shell-buffer (not (eq shell-buffer (current-buffer)))
+	       (kill-buffer shell-buffer)))
 	(and interactive swap (exchange-point-and-mark)))
     ;; No prefix argument: put the output in a temp buffer,
     ;; replacing its entire contents.
