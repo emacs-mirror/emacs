@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-seq.el,v 1.4 1995/11/03 02:30:17 kwzh Exp erik $
+;; $Id: mh-seq.el,v 1.5 1996/01/14 07:34:30 erik Exp kwzh $
 
 ;;; Code:
 
@@ -169,7 +169,7 @@ If optional prefix argument provided, then prompt for the message sequence."
 		    (t (intern input))))
 	 (msgs (mh-seq-to-msgs seq)))
     (if (and (null msgs) not-empty)
-	(error (format "No messages in sequence `%s'" seq)))
+	(error "No messages in sequence `%s'" seq))
     seq))
 
 
