@@ -140,7 +140,6 @@
 ;;  comint-scroll-to-bottom-on-output	symbol	...
 ;;  comint-scroll-show-maximum-output	boolean	...
 ;;  comint-accum-marker			maker	  For comint-accumulate
-;;  comint-last-output-overlay          overlay
 ;;
 ;; Comint mode non-buffer local variables:
 ;;  comint-completion-addsuffix		boolean/cons	For file name
@@ -477,7 +476,6 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (set (make-local-variable 'comint-last-input-start) (point-min-marker))
   (set (make-local-variable 'comint-last-input-end) (point-min-marker))
   (set (make-local-variable 'comint-last-output-start) (make-marker))
-  (make-local-variable 'comint-last-output-overlay)
   (make-local-variable 'comint-last-prompt-overlay)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
@@ -768,27 +766,26 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 (defun comint-insert-clicked-input (event)
   "In a comint buffer, set the current input to the clicked-on previous input."
   (interactive "e")
-  (let ((over (catch 'found
-		;; Ignore non-input overlays
-		(dolist (ov (overlays-at (posn-point (event-end event))))
-		  (when (eq (overlay-get ov 'field) 'input)
-		    (throw 'found ov))))))
-    ;; Do we have input in this area?
-    (if over
-	(let ((input-str (buffer-substring (overlay-start over)
-					   (overlay-end over))))
-	  (goto-char (point-max))
-	  (delete-region
-	   ;; Can't use kill-region as it sets this-command
-	   (or  (marker-position comint-accum-marker)
-		(process-mark (get-buffer-process (current-buffer))))
-	   (point))
-	  (insert input-str))
-      ;; Fall back to the global definition.
-      (let* ((keys (this-command-keys))
-	     (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
-	     (fun (and last-key (lookup-key global-map (vector last-key)))))
-	(if fun (call-interactively fun))))))
+  (let ((pos (posn-point (event-end event))))
+    (if (not (eq (get-char-property pos 'field) 'input))
+	;; No input at POS, fall back to the global definition.
+	(let* ((keys (this-command-keys))
+	       (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
+	       (fun (and last-key (lookup-key global-map (vector last-key)))))
+	  (and fun (call-interactively fun)))
+      ;; There's previous input at POS, insert it at the end of the buffer.
+      (goto-char (point-max))
+      ;; First delete any old unsent input at the end
+      (delete-region
+       (or (marker-position comint-accum-marker)
+	   (process-mark (get-buffer-process (current-buffer))))
+       (point))
+      ;; Insert the clicked-upon input
+      (insert-buffer-substring
+       (current-buffer)
+       (previous-single-char-property-change (1+ pos) 'field)
+       (next-single-char-property-change pos 'field)))))
+
 
 
 ;; Input history processing in a buffer
@@ -1450,27 +1447,26 @@ Similarly for Soar, Scheme, etc."
 	  (let ((beg (marker-position pmark))
 		(end (if no-newline (point) (1- (point)))))
 	    (when (not (> beg end))	; handle a special case
-	      ;; Make an overlay for the input field
-	      (let ((over (make-overlay beg end nil nil t)))
-		(unless comint-use-prompt-regexp-instead-of-fields
-		  ;; Give old user input a field property of `input', to
-		  ;; distinguish it from both process output and unsent
-		  ;; input.  The terminating newline is put into a special
-		  ;; `boundary' field to make cursor movement between input
-		  ;; and output fields smoother.
-		  (overlay-put over 'field 'input))
-		(overlay-put over 'font-lock-face 'comint-highlight-input)
-		(overlay-put over 'mouse-face 'highlight)
-		(overlay-put over
-			     'help-echo
-			     "mouse-2: insert after prompt as new input")
-		(overlay-put over 'evaporate t)))
+	      ;; Set text-properties for the input field
+	      (add-text-properties
+	       beg end
+	       '(front-sticky t
+		 font-lock-face comint-highlight-input
+		 mouse-face highlight
+		 help-echo "mouse-2: insert after prompt as new input"))
+	      (unless comint-use-prompt-regexp-instead-of-fields
+		;; Give old user input a field property of `input', to
+		;; distinguish it from both process output and unsent
+		;; input.  The terminating newline is put into a special
+		;; `boundary' field to make cursor movement between input
+		;; and output fields smoother.
+		(put-text-property beg end 'field 'input)))
 	    (unless comint-use-prompt-regexp-instead-of-fields
-	      ;; Make an overlay for the terminating newline
-	      (let ((over (make-overlay end (1+ end) nil t nil)))
-		(overlay-put over 'field 'boundary)
-		(overlay-put over 'inhibit-line-move-field-capture t)
-		(overlay-put over 'evaporate t))))
+	      ;; Cover the terminating newline
+	      (add-text-properties end (1+ end)
+				   '(rear-nonsticky t
+				     field boundary
+				     inhibit-line-move-field-capture t))))
 
 	  (comint-snapshot-last-prompt)
 
@@ -1532,21 +1528,18 @@ redirection buffer.
 You can use `add-hook' to add functions to this list
 either globally or locally.")
 
-;; When non-nil, this is the last overlay used for output.
-;; It is kept around so that we can extend it instead of creating
-;; multiple contiguous overlays for multiple contiguous output chunks.
-(defvar comint-last-output-overlay nil)
-
 ;; When non-nil, this is an overlay over the last recognized prompt in
 ;; the buffer; it is used when highlighting the prompt.
 (defvar comint-last-prompt-overlay nil)
 
-;; `snapshot' any current comint-last-prompt-overlay, freezing it in place.
-;; Any further output will then create a new comint-last-prompt-overlay.
+;; `snapshot' any current comint-last-prompt-overlay, freezing its
+;; attributes in place, even when more input comes a long and moves the
+;; prompt overlay.
 (defun comint-snapshot-last-prompt ()
   (when comint-last-prompt-overlay
-    (overlay-put comint-last-prompt-overlay 'evaporate t)
-    (setq comint-last-prompt-overlay nil)))
+    (add-text-properties (overlay-start comint-last-prompt-overlay)
+			 (overlay-end comint-last-prompt-overlay)
+			 (overlay-properties comint-last-prompt-overlay))))
 
 (defun comint-carriage-motion (string)
   "Handle carriage control characters in comint output.
@@ -1670,22 +1663,10 @@ This function should be in the list `comint-output-filter-functions'."
 	    (set-marker (process-mark process) (point))
 
 	    (unless comint-use-prompt-regexp-instead-of-fields
-	      ;; We check to see if the last overlay used for output is
-	      ;; adjacent to the new input, and if so, just extend it.
-	      (if (and comint-last-output-overlay
-		       (equal (overlay-end comint-last-output-overlay)
-			      (marker-position comint-last-output-start)))
-		  ;; Extend comint-last-output-overlay to include the
-		  ;; most recent output
-		  (move-overlay comint-last-output-overlay
-				(overlay-start comint-last-output-overlay)
-				(point))
-		;; Create a new overlay
-		(let ((over (make-overlay comint-last-output-start (point))))
-		  (overlay-put over 'field 'output)
-		  (overlay-put over 'inhibit-line-move-field-capture t)
-		  (overlay-put over 'evaporate t)
-		  (setq comint-last-output-overlay over))))
+	      (add-text-properties comint-last-output-start (point)
+				   '(rear-nonsticky t
+				     field output
+				     inhibit-line-move-field-capture t)))
 
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
@@ -1816,7 +1797,7 @@ the current line with any initial string matching the regexp
     (if (eq (get-char-property bof 'field) 'input)
 	(field-string bof)
       (comint-bol)
-      (buffer-substring (point) (line-end-position)))))
+      (buffer-substring-no-properties (point) (line-end-position)))))
 
 (defun comint-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited.
@@ -2404,7 +2385,7 @@ This command is like `M-.' in bash."
 		       (and (search-forward "\"" eol t)
 			    (1- (point))))))
       (and start end
-	   (buffer-substring start end)))))
+	   (buffer-substring-no-properties start end)))))
 
 (defun comint-get-source (prompt prev-dir/file source-modes mustmatch-p)
   (let* ((def (comint-source-default prev-dir/file source-modes))
