@@ -2278,7 +2278,7 @@ read1 (readcharfun, pch, first_in_list)
 	else
 	  {
 	    ok = (next_char <= 040
-		  || index ("\"';()[]#", next_char)
+		  || index ("\"';()[]#?", next_char)
 		  || (!first_in_list && next_char == '`')
 		  || (new_backquote_flag && next_char == ','));
 	  }
