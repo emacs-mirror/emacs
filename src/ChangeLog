@@ -1,3 +1,11 @@
+2000-06-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (back_comment): Simplify string-parity counting (with
+	the added benefit of handling multiple string-styles as long as
+	they are not intertwined).
+	Jump to the slow code as soon as a comment starter is found in
+	a "string_lossage" position.  Fixes the case:  " /* " /* " */.
+
 2000-06-21  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Use GETLOADAVG_LIBS.
