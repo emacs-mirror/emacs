@@ -1,5 +1,21 @@
 2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* keymap.h (Fcopy_keymap): Don't export.
+
+	* lisp.h (empty_string): Declare.
+
+	* emacs.c (empty_string): New var.
+	(syms_of_emacs): Initialize it.
+
+	* search.c (wordify): Use it.
+
+	* buffer.c (Fbury_buffer): Don't try to remove the buffer from the
+	selected window if it's not displayed there.  Handle the case
+	when the window is dedicated.
+	(syms_of_buffer): Fix docstrings not to mention "buffer-local" anymore.
+
+	* undo.c (Fprimitive_undo): Use XCAR/XCDR.
+
 	* syntax.h (struct gl_state_s): Change the meaning of b_property.
 	Remove left_ok and right_ok.
 	(UPDATE_SYNTAX_TABLE_BACKWARD, UPDATE_SYNTAX_TABLE)
