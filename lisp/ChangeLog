@@ -1,3 +1,15 @@
+2005-03-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (redraw-calendar): Work from any buffer,
+	not just the calendar.
+
+	* calendar/diary-lib.el (mark-diary-entries): Remove any old marks
+	first.
+	(diary-redraw-calendar): New function.
+	(make-diary-entry): Add diary-redraw-calendar to local
+	write-contents-functions.  Turn off selective display before
+	inserting in diary.
+
 2005-03-01  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/copyright.el (copyright-fix-years): New command.
