@@ -333,9 +333,9 @@ vi mode.  ARG is used as the prefix value for the executed command.  If
 CHAR is given it becomes the first character of the command."
   (interactive "P")
   (let (com (buff (current-buffer)) (first t))
-    (if char (setq unread-command-char char))
+    (if char (setq unread-command-event char))
     (setq prefix-arg arg)
-    (while (or first (>= unread-command-char 0))
+    (while (or first unread-command-event)
       ;; this while loop is executed until unread command char will be
       ;; exhausted.
       (setq first nil)
@@ -393,7 +393,7 @@ obtained so far, and COM is the command part obtained so far."
   (while (= char ?U)
     (vip-describe-arg prefix-arg)
     (setq char (read-char)))
-  (setq unread-command-char char))
+  (setq unread-command-event char))
 
 (defun vip-prefix-arg-com (char value com)
   "Vi operator as prefix argument."
@@ -447,7 +447,7 @@ obtained so far, and COM is the command part obtained so far."
 	(while (= char ?U)
 	  (vip-describe-arg prefix-arg)
 	  (setq char (read-char)))
-	(setq unread-command-char char))
+	(setq unread-command-event char))
     ;; as com is non-nil, this means that we have a command to execute
     (if (or (= (car com) ?r) (= (car com) ?R))
 	;; execute apropriate region command.
@@ -1708,7 +1708,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
 	(progn
 	  (if (and (<= ?A vip-use-register) (<= vip-use-register ?Z))
 	      (vip-append-to-register
-	       (+ vip-use-register 32) (point) (- (point) val) nil)
+	       (+ vip-use-register 32) (point) (- (point) val))
 	    (copy-to-register vip-use-register (point) (- (point) val) nil))
 	  (setq vip-use-register nil)))
     (delete-char val t)))
@@ -1722,7 +1722,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
 	(progn
 	  (if (and (<= ?A vip-use-register) (<= vip-use-register ?Z))
 	      (vip-append-to-register
-	       (+ vip-use-register 32) (point) (+ (point) val) nil)
+	       (+ vip-use-register 32) (point) (+ (point) val))
 	    (copy-to-register vip-use-register (point) (+ (point) val) nil))
 	  (setq vip-use-register nil)))
     (delete-backward-char val t)))
@@ -1806,7 +1806,7 @@ the query replace mode will toggle between string replace and regexp replace."
 (defun vip-mark-point (char)
   (interactive "c")
   (cond ((and (<= ?a char) (<= char ?z))
-	 (point-to-register (- char (- ?a ?\C-a))))
+	 (point-to-register (- char (- ?a ?\C-a)) nil))
 	((= char ?<) (vip-mark-beginning-of-buffer))
 	((= char ?>) (vip-mark-end-of-buffer))
 	((= char ?.) (push-mark))
@@ -2676,7 +2676,7 @@ a token has type \(command, address, end-mark\) and value."
 	(if ex-buffer
 	    (if (and (<= ?A ex-buffer) (<= ex-buffer ?Z))
 		(vip-append-to-register
-		 (+ ex-buffer 32) (point) (mark) nil)
+		 (+ ex-buffer 32) (point) (mark))
 	      (copy-to-register ex-buffer (point) (mark) nil)))
 	(delete-region (point) (mark))))))
 
@@ -2828,7 +2828,7 @@ a token has type \(command, address, end-mark\) and value."
 	  (error "Mark must specify a letter"))))
     (save-excursion
       (goto-char (car ex-addresses))
-      (point-to-register (- char (- ?a ?\C-a))))))
+      (point-to-register (- char (- ?a ?\C-a)) nil))))
 
 (defun ex-map ()
   "ex map"
