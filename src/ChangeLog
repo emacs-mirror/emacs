@@ -1,3 +1,7 @@
+2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* w32fns.c (Fw32_define_rgb_color): Avoid XSET.
+
 2004-05-14  Kenichi Handa  <handa@m17n.org>
 
 	* ccl.c (Fccl_execute_on_string): Fix setting elements of STATUS.
@@ -7,7 +11,7 @@
 	* lisp.h (Vx_resource_name, Vx_resource_class): Move from xfns.c
 	section to frame.c section.
 	(Fxw_display_color_p, Fx_file_dialog): Declare if
-	HAVE_WINDOW_SYSTEM defined.	
+	HAVE_WINDOW_SYSTEM defined.
 	* macfns.c (Fx_create_frame): Fix int/Lisp_Object mixup.
 	* macmenu.c (set_frame_menubar): Use NILP to test a lisp value.
 	* macterm.c (mac_get_emulated_btn, mac_event_to_emacs_modifiers)
@@ -16,8 +20,8 @@
 	(mac_check_for_quit_char): Fix pointer/Lisp_Object mixup.
 	* macterm.h (struct frame, struct face, struct image)
 	(display_x_get_resource, Fx_display_color_p)
-	(Fx_display_grayscale_p, Fx_display_planes, x_free_gcs): Add
-	prototypes.
+	(Fx_display_grayscale_p, Fx_display_planes, x_free_gcs):
+	Add prototypes.
 
 2004-05-14  Kim F. Storm  <storm@cua.dk>
 
@@ -1555,7 +1559,7 @@
 
 2004-02-09  Sam Steingold  <sds@gnu.org>
 
-	* w32term.c (w32_draw_fringe_bitmap): Fixed a typo in the last patch.
+	* w32term.c (w32_draw_fringe_bitmap): Fix a typo in the last patch.
 
 2004-02-09  Kim F. Storm  <storm@cua.dk>
 
