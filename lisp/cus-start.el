@@ -156,6 +156,26 @@
 	     ;; minibuf.c
 	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
+	     (minibuffer-prompt-properties
+	      minibuffer
+	      (list
+	       (checklist :inline t
+			  (const :tag "Read-Only"
+				 :doc "Prevent prompt from being modified"
+				 :format "%t%n%h"
+				 :inline t
+				 (read-only t))
+			  (const :tag "Inviolable"
+				 :doc "Prevent point from ever entering prompt"
+				 :format "%t%n%h"
+				 :inline t
+				 (point-entered minibuffer-avoid-prompt)))
+	       (repeat :inline t
+		       :tag "Other Properties"
+		       (list :inline t
+			     :format "%v"
+			     (symbol :tag "Property")
+			     (sexp :tag "Value")))))
 	     (minibuffer-auto-raise minibuffer boolean)
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
