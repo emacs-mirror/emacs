@@ -1434,7 +1434,13 @@ parse_single_submenu (item_key, item_name, maps)
 			  Qnil, Qnil, Qnil, Qnil);
 	}
       else
-	single_keymap_panes (mapvec[i], item_name, item_key, 0, 10);
+	{
+	  Lisp_Object prompt;
+	  prompt = Fkeymap_prompt (mapvec[i]);
+	  single_keymap_panes (mapvec[i],
+			       !NILP (prompt) ? prompt : item_name,
+			       item_key, 0, 10);
+	}
     }
 
   return top_level_items;
@@ -1465,10 +1471,10 @@ digest_single_submenu (start, end, top_level_items)
   save_wv = 0;
   prev_wv = 0;
  
-  /* Loop over all panes and items made during this call
-     and construct a tree of widget_value objects.
-     Ignore the panes and items made by previous calls to
-     single_submenu, even though those are also in menu_items.  */
+  /* Loop over all panes and items made by the preceding call
+     to parse_single_submenu and construct a tree of widget_value objects.
+     Ignore the panes and items used by previous calls to
+     digest_single_submenu, even though those are also in menu_items.  */
   i = start;
   while (i < end)
     {
@@ -1674,7 +1680,7 @@ set_frame_menubar (f, first_time, deep_p)
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i, last_i;
   int *submenu_start, *submenu_end;
-  int *submenu_top_level_items;
+  int *submenu_top_level_items, *submenu_n_panes;
 
   LWLIB_ID id;
 
@@ -1752,6 +1758,7 @@ set_frame_menubar (f, first_time, deep_p)
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
       submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
       submenu_top_level_items
 	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
       init_menu_items ();
@@ -1772,6 +1779,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  menu_items_n_panes = 0;
 	  submenu_top_level_items[i]
 	    = parse_single_submenu (key, string, maps);
+	  submenu_n_panes[i] = menu_items_n_panes;
 
 	  submenu_end[i] = menu_items_used;
 	}
@@ -1791,6 +1799,7 @@ set_frame_menubar (f, first_time, deep_p)
 
       for (i = 0; i < last_i; i += 4)
 	{
+	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
 				      submenu_top_level_items[i]);
 	  if (prev_wv) 
