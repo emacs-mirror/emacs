@@ -64,6 +64,9 @@ Boston, MA 02111-1307, USA.  */
    */
 #undef GETLOADAVG_PRIVILEGED
 
+/* Define to 1 if the `getpgrp' function requires zero arguments. */
+#undef GETPGRP_VOID
+
 /* Define to 1 if gettimeofday accepts only one argument. */
 #undef GETTIMEOFDAY_ONE_ARGUMENT
 
@@ -106,6 +109,14 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
+
+/* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
+   don't. */
+#undef HAVE_DECL_SYS_SIGLIST
+
+/* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
+   don't. */
+#undef HAVE_DECL___SYS_SIGLIST
 
 /* Define to 1 if you have the <des.h> header file. */
 #undef HAVE_DES_H
@@ -331,6 +342,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
 
 /* Define to 1 if you have mouse menus. (This is automatic if you use X, but
    the option to specify it remains.) It is also defined with other window
@@ -682,9 +696,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 on System V Release 4. */
 #undef SVR4
 
-/* Define to 1 if `sys_siglist' is declared by <signal.h> or <unistd.h>. */
-#undef SYS_SIGLIST_DECLARED
-
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
@@ -753,6 +764,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
+
+/* Define to any substitute for sys_siglist. */
+#undef sys_siglist
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
