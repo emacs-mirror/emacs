@@ -125,7 +125,7 @@ it is called after EXPANSION is inserted.")
   oexp = XSYMBOL (sym)->value;
   ohook = XSYMBOL (sym)->function;
   if (!((EQ (oexp, expansion)
-	 || (XTYPE (oexp) == Lisp_String && XTYPE (expansion) == Lisp_String
+	 || (STRINGP (oexp) && STRINGP (expansion)
 	     && (tem = Fstring_equal (oexp, expansion), !NILP (tem))))
 	&&
 	(EQ (ohook, hook)
@@ -268,13 +268,13 @@ Returns t if expansion took place.")
       *p++ = c;
     }
 
-  if (XTYPE (current_buffer->abbrev_table) == Lisp_Vector)
+  if (VECTORP (current_buffer->abbrev_table))
     sym = oblookup (current_buffer->abbrev_table, buffer, p - buffer);
   else
     XFASTINT (sym) = 0;
-  if (XTYPE (sym) == Lisp_Int || NILP (XSYMBOL (sym)->value))
+  if (INTEGERP (sym) || NILP (XSYMBOL (sym)->value))
     sym = oblookup (Vglobal_abbrev_table, buffer, p - buffer);
-  if (XTYPE (sym) == Lisp_Int || NILP (XSYMBOL (sym)->value))
+  if (INTEGERP (sym) || NILP (XSYMBOL (sym)->value))
     return value;
 
   if (INTERACTIVE && !EQ (minibuf_window, selected_window))
@@ -291,7 +291,7 @@ Returns t if expansion took place.")
   Vlast_abbrev = sym;
   last_abbrev_point = wordstart;
 
-  if (XTYPE (XSYMBOL (sym)->plist) == Lisp_Int)
+  if (INTEGERP (XSYMBOL (sym)->plist))
     XSETINT (XSYMBOL (sym)->plist,
 	     XINT (XSYMBOL (sym)->plist) + 1);	/* Increment use count */
 
@@ -349,13 +349,13 @@ is not undone.")
       || last_abbrev_point > ZV)
     return Qnil;
   SET_PT (last_abbrev_point);
-  if (XTYPE (Vlast_abbrev_text) == Lisp_String)
+  if (STRINGP (Vlast_abbrev_text))
     {
       /* This isn't correct if Vlast_abbrev->function was used
          to do the expansion */
       Lisp_Object val;
       val = XSYMBOL (Vlast_abbrev)->value;
-      if (XTYPE (val) != Lisp_String)
+      if (!STRINGP (val))
 	error ("value of abbrev-symbol must be a string");
       adjust = XSTRING (val)->size;
       del_range (point, point + adjust);
