@@ -257,6 +257,9 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 	 (message "Ispell parsing done.")
 	 (ispell-next))))
 
+;;;###autoload
+(fset 'ispell-buffer 'ispell)
+
 (defun ispell-next ()
   "Resume command loop for most recent ispell command."
   (interactive)
@@ -303,7 +306,8 @@ See `ispell' for more information."
 	    (load-library "spell")
 	    (define-key esc-map "$" 'spell-word)
 	    (spell-word))))))
-;;;###autoload (define-key esc-map "$" 'ispell-word)
+;;;###autoload
+(define-key esc-map "$" 'ispell-word)
 
 ;;;###autoload
 (defun ispell-region (start &optional end)
