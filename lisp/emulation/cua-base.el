@@ -244,7 +244,7 @@ use either \\[customize] or the function `cua-mode'."
 	 (cua-mode (or value 0)))
   :initialize 'custom-initialize-default
   :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
-  :require 'cua
+  :require 'cua-base
   :link '(emacs-commentary-link "cua-base.el")
   :version "21.4"
   :type 'boolean
