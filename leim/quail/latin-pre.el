@@ -292,10 +292,10 @@ Key translation rules are:
  ("~>" ?\,A;(B)
  ("~C" ?,AG(B)
  ("~c" ?,Ag(B)
- ("~," ?,)
+ ("~ " ?~)
  (",C" ?,AG(B)
  (",c" ?,Ag(B)
- (", " ?~)
+ (", " ?,)
 )
 
 (quail-define-package
