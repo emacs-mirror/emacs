@@ -77,18 +77,22 @@
 
 * Optional image library support
 
-  To build Emacs with support for PNG image, the libpng and zlib
+  To build Emacs with support for PNG images, the libpng and zlib
   headers must be in the include path when the configure script is
-  run.  Likewise, the jpeg headers must be in the include path for
-  JPEG support.  This can be setup using environment variables, or by
+  run.  This can be setup using environment variables, or by
   specifying --cflags -I...  options on the command-line to
-  configure.bat.  The configure script will report whether it was able
-  to detect the headers.
+  configure.bat.  Similarly, the jpeg-6b, libXpm, tiff and libungif
+  headers need to be in the include path for support for those image
+  formats to work. The configure script will report whether it was
+  able to detect the headers.
 
   To use the PNG support, zlib.dll (or zlibd.dll) and libpng.dll (or
   libpng13.dll, or libpng13d.dll) must be on the PATH or in the same
-  directory as emacs.exe when Emacs is started. For JPEG support,
-  jpeg.dll must be on the path or emacs.exe directory.
+  directory as emacs.exe when Emacs is started. Similar instructions
+  apply for other image libraries. Note that tiff support depends on
+  the jpeg library. If you did not compile the libraries yourself, you
+  must make sure that the jpeg library you install is the same one
+  that the tiff library was compiled against.
 
 * Building
 
