@@ -266,7 +266,7 @@ be put below text lines on the affected frame or frames.
 
 +++
 - By setting X resource `lineSpacing', class `LineSpacing'.  This is
-equivalent ot specifying the frame parameter.
+equivalent to specifying the frame parameter.
 
 - By specifying `--line-spacing=N' or `-lsp N' on the command line.
 
@@ -756,7 +756,7 @@ Default is 0.25.
 - User option: resize-mini-windows
 
 How to resize mini-windows.  If nil, don't resize.  If t, always
-resize ot fit the size of the text.  If `grow-only', let mini-windows
+resize to fit the size of the text.  If `grow-only', let mini-windows
 grow only, until they become empty, at which point they are shrunk
 again.
 
