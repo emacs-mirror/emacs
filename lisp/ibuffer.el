@@ -2014,8 +2014,7 @@ Do not display messages if SILENT is non-nil."
 		      (cadr bufs)
 		      (eq ibuffer-always-show-last-buffer
 			  :nomini)
-		      (with-current-buffer (cadr bufs)
-			(minibufferp)))
+		      (minibufferp (cadr bufs)))
 		     (caddr bufs)
 		   (cadr bufs))
 		 (ibuffer-current-buffers-with-marks bufs)

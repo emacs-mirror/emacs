@@ -1,3 +1,8 @@
+2002-09-26  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* ibuffer.el (ibuffer-update): Call `minibufferp' with argument
+	instead of within `with-current-buffer'.
+
 2002-09-26  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-completions): Test that
