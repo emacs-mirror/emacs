@@ -9732,19 +9732,24 @@ appears in the echo area and in the value of `this-command-keys'.  */)
 }
 
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
-       Sclear_this_command_keys, 0, 0, 0,
+       Sclear_this_command_keys, 0, 1, 0,
        doc: /* Clear out the vector that `this-command-keys' returns.
-Also clear the record of the last 100 events.  */)
-     ()
+Also clear the record of the last 100 events, unless optional arg
+KEEP-RECORD is non-nil.  */)
+     (keep_record)
+     Lisp_Object keep_record;
 {
   int i;
   
   this_command_key_count = 0;
 
-  for (i = 0; i < XVECTOR (recent_keys)->size; ++i)
-    XVECTOR (recent_keys)->contents[i] = Qnil;
-  total_keys = 0;
-  recent_keys_index = 0;
+  if (NILP (keep_record))
+    {
+      for (i = 0; i < XVECTOR (recent_keys)->size; ++i)
+	XVECTOR (recent_keys)->contents[i] = Qnil;
+      total_keys = 0;
+      recent_keys_index = 0;
+    }
   return Qnil;
 }
 
