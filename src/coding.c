@@ -3959,8 +3959,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
   int first = 1;
   int fake_multibyte = 0;
   unsigned char *src, *dst;
-  int combined_before_bytes = 0;
-  int adjusted_inserted;
+  int combined_before_bytes = 0, combined_after_bytes = 0;
 
   if (adjust)
     {
@@ -4018,17 +4017,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
 	    move_gap_both (from, from_byte);
 	  coding->produced_char
 	    = multibyte_chars_in_text (BYTE_POS_ADDR (from_byte), len_byte);
-	  if (coding->produced_char != len)
-	    {
-	      int diff = coding->produced_char - len;
-
-	      if (adjust)
-		adjust_before_replace (from, from_byte, to, to_byte);
-	      ZV += diff; Z += diff; GPT += diff;
-	      if (adjust)
-		adjust_after_replace (from, from_byte, to, to_byte,
-				      diff, 0);
-	    }
 	}
       else
 	coding->produced_char = len_byte;
@@ -4039,13 +4027,12 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
 
   /* For encoding, we must process pre-write-conversion in advance.  */
   if (encodep
-      && adjust
       && ! NILP (coding->pre_write_conversion)
       && SYMBOLP (coding->pre_write_conversion)
       && ! NILP (Ffboundp (coding->pre_write_conversion)))
     {
-      /* The function in pre-write-conversion put a new text in a new
-         buffer.  */
+      /* The function in pre-write-conversion may put a new text in a
+         new buffer.  */
       struct buffer *prev = current_buffer, *new;
 
       call2 (coding->pre_write_conversion, from, to);
@@ -4240,100 +4227,33 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
     }
   if (src - dst > 0) *dst = 0; /* Put an anchor.  */
 
-  adjusted_inserted = inserted;
+  if (multibyte
+      && (fake_multibyte || !encodep && (to - from) != (to_byte - from_byte)))
+    inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
 
-  if (multibyte)
+  adjust_after_replace (from, from_byte, to, to_byte,
+			inserted, inserted_byte);
+  if (from_byte_orig == from_byte)
+    from_byte_orig = from_byte = PT_BYTE;
+
+  if (! encodep && ! NILP (coding->post_read_conversion))
     {
-      if (fake_multibyte || !encodep && (to - from) != (to_byte - from_byte))
-	adjusted_inserted
-	  = inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
+      Lisp_Object val;
+      int orig_inserted = inserted, pos = PT;
 
-      if (! CHAR_HEAD_P (*GPT_ADDR)
-	  && GPT_BYTE > 1
-	  && from_byte == from_byte_orig)
+      if (from != pos)
+	temp_set_point_both (current_buffer, from, from_byte);
+      val = call1 (coding->post_read_conversion, make_number (inserted));
+      if (! NILP (val))
 	{
-	  unsigned char *p0 = GPT_ADDR - 1, *pmin = BEG_ADDR, *p1, *pmax;
-
-	  while (! CHAR_HEAD_P (*p0) && p0 > pmin) p0--;
-	  if (BASE_LEADING_CODE_P (*p0))
-	    {
-	      /* Codes in the range 0240..0377 were inserted just
-		 after a multibyte sequence.  We must treat those
-		 codes as tailing constituents of the multibyte
-		 sequence.  For that, we increase byte positions of
-		 position keepers whose char positions are GPT.  */
-	      Lisp_Object tail;
-
-	      combined_before_bytes
-		= count_combining_before (GPT_ADDR, inserted_byte,
-					 GPT, GPT_BYTE);
-	      if (PT == GPT)
-		BUF_PT_BYTE (current_buffer) += combined_before_bytes;
-	      if (BEGV == GPT)
-		BUF_BEGV_BYTE (current_buffer) += combined_before_bytes;
-
-	      tail = BUF_MARKERS (current_buffer);
-	      while (XSYMBOL (tail) != XSYMBOL (Qnil))
-		{
-		  if (XMARKER (tail)->charpos == GPT)
-		    XMARKER (tail)->bytepos += combined_before_bytes;
-		  tail = XMARKER (tail)->chain;
-		}
-
-	      from_byte += combined_before_bytes;
-	      from_byte_orig = from_byte;
-	      adjusted_inserted = inserted - !! combined_before_bytes;
-
-	      if (! EQ (current_buffer->undo_list, Qt))
-		{
-		  /* We record the multibyte sequence preceding the
-		     gap as deleted, and the new multibyte sequence
-		     combined with COMBINED_BYTES as inserted.  We
-		     directly modify the undo list because we have
-		     already done record_delete and can skip various
-		     checking.  */
-		  Lisp_Object str = make_multibyte_string (p0, 1,
-							   GPT_ADDR - p0);
-		  current_buffer->undo_list
-		    = Fcons (Fcons (make_number (GPT - 1), make_number (GPT)),
-			     Fcons (Fcons (str, make_number (GPT - 1)),
-				    current_buffer->undo_list));
-		}
-	    }
+	  CHECK_NUMBER (val, 0);
+	  inserted = XFASTINT (val);
 	}
+      if (pos >= from + orig_inserted)
+	temp_set_point (current_buffer, pos + (inserted - orig_inserted));
     }
 
-  /* Update various buffer positions for the new text.  */
-  GAP_SIZE -= inserted_byte;
-  ZV += adjusted_inserted; Z+= adjusted_inserted;
-  ZV_BYTE += inserted_byte; Z_BYTE += inserted_byte;
-  GPT += adjusted_inserted; GPT_BYTE += inserted_byte;
-
-  if (adjust)
-    {
-      adjust_after_replace (from, from_byte, to, to_byte,
-			    inserted, inserted_byte,
-			    combined_before_bytes, 0);
-
-      if (! encodep && ! NILP (coding->post_read_conversion))
-	{
-	  Lisp_Object val;
-	  int orig_inserted = adjusted_inserted, pos = PT;
-
-	  temp_set_point_both (current_buffer, from, from_byte);
-	  val = call1 (coding->post_read_conversion,
-		       make_number (adjusted_inserted));
-	  if (! NILP (val))
-	    {
-	      CHECK_NUMBER (val, 0);
-	      adjusted_inserted = XFASTINT (val);
-	    }
-	  if (pos >= from + orig_inserted)
-	    temp_set_point (current_buffer,
-			    pos + (adjusted_inserted - orig_inserted));
-	}
-      signal_after_change (from, to - from, adjusted_inserted);
-    }
+  signal_after_change (from, to - from, inserted);
 
   {
     int skip = (to_byte_orig - to_byte) + (from_byte - from_byte_orig);
@@ -4341,7 +4261,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
     coding->consumed = to_byte_orig - from_byte_orig;
     coding->consumed_char = skip + (to - from);
     coding->produced = skip + inserted_byte;
-    coding->produced_char = skip + adjusted_inserted;
+    coding->produced_char = skip + inserted;
   }
 
   return 0;
