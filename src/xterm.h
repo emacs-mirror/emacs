@@ -248,11 +248,28 @@ extern Lisp_Object Vx_screen_visual;
 extern unsigned int x_mouse_grabbed;
 
 #endif /* HAVE_X11 */
-
+
 enum text_cursor_kinds {
   filled_box_cursor, hollow_box_cursor, bar_cursor
 };
+
+/* For each X display, we have a structure that records
+   information about it.  */
 
+struct x_screen
+{
+  /* Chain of all x_display structures.  */
+  struct x_display *next;
+  /* This says how to access this display in Xlib.  */
+  Display *x_display_value;
+  /* This records previous values returned by x-list-fonts.  */
+  Lisp_Object font_list_cache;
+  /* The name of this display.  */
+  Lisp_Object name;
+  /* Number of frames that are on this display.  */
+  int reference_count;
+};
+
 /* Each X frame object points to its own struct x_display object
    in the display.x field.  The x_display structure contains all
    the information that is specific to X windows.  */
@@ -389,6 +406,9 @@ struct x_display
 
   /* The geometry flags for this window.  */
   int size_hint_flags;
+
+  /* This is the Emacs structure for the X display this frame is on.  */
+  struct x_screen *x_screen;
 };
 
 /* Get at the computed faces of an X window frame.  */
@@ -405,6 +425,11 @@ struct x_display
 
 /* Return the window associated with the frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->display.x->window_desc)
+
+#define FRAME_X_SCREEN(f) ((f)->display.x->x_screen)
+
+/* This is the `Display *' which frame F is on.  */
+#define FRAME_X_DISPLAY(f) ((f)->display.x->x_screen->x_display_value)
 
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->display.x->pixel_width)
