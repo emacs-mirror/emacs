@@ -1,6 +1,5 @@
-;;; shell.el --- general command interpreter in a window stuff
-
-;;; Copyright Olin Shivers (1988).
+;;; shell.el --- specialized comint.el for running the shell.
+;;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes

@@ -1,10 +1,8 @@
 ;;; comint.el --- general command interpreter in a window stuff
+;; Copyright (C) 1988, 1990, 1992 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keyword: processes
-
-;; Copyright (C) 1988, 1990, 1992 Free Software Foundation, Inc.
-;; Written by Olin Shivers.
 
 ;; This file is part of GNU Emacs.
 
