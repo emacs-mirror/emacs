@@ -1,4 +1,11 @@
-2000-10-11  Miles Bader  <miles@gnu.org>
+2000-10-11  Dave Love  <fx@gnu.org>
+
+	* progmodes/scheme.el (scheme-mode-variables, dsssl-mode): Avoid
+	compiler warnings.
+	(scheme-mode): Doc fix.
+	(scheme-font-lock-keywords-1): Match `define-syntax'.
+
+2000-10-11  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* faces.el (frame-set-background-mode): Pay attention to saved
 	face specs as well as default ones.  Only do anything if the
@@ -40,8 +47,8 @@
 
 	* play/zone.el (zone-timer, zone-wc-tbl): Rework
 	these vars as symbol properties.
-	(zone, zone-when-idle, zone-leave-me-alone,
-	zone-pgm-whack-chars): Use new symbol properties.
+	(zone, zone-when-idle, zone-leave-me-alone)
+	(zone-pgm-whack-chars): Use new symbol properties.
 
 	* battery.el (display-battery): Doc spelling fix.
 
