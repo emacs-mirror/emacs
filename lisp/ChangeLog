@@ -1,5 +1,11 @@
 2003-07-12  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/cc-engine.el (c-declare-lang-variables): Don't use mapcan.
+
+	* progmodes/cc-defs.el (c-make-keywords-re):
+	Don't use delete-duplicates.
+	(c-lang-const): Don't use mapcan.
+
 	* apropos.el (apropos-show-scores): Make it customizable.
 	Document new meaning.
 	(apropos): Compute scores from symbols.
