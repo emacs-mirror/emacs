@@ -1,3 +1,14 @@
+2002-06-24  Dave Love  <fx@gnu.org>
+
+	* quail/latin-pre.el: Recoded to utf-8.
+	("latin-1-prefix", "latin-8-prefix", "latin-9-prefix"): Add nbsp.
+	("latin-3-prefix"): Remove bogus Latin-3 characters and ~o -> ,Cu(B,
+	~O -> ,CU(B.
+	("latin-prefix"): New method.
+
+	* quail/uni-input.el (utf-8-ccl-encode): Deleted.
+	(ucs-input-method): Modified.
+
 2002-06-10  Dave Love  <fx@gnu.org>
 
 	* quail/hanja3.el, quail/hanja.el, makefile.nt, Makefile.in: 
