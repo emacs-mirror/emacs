@@ -1027,16 +1027,12 @@ Or you can bind the function to C-c i in gnus or mail with:
     (let (non-internal-message
 	  (old-case-fold-search case-fold-search)
 	  (case-fold-search nil))
-      (goto-char (point-min))
+
       ;; Don't spell-check the headers.
-      (if (search-forward mail-header-separator nil t)
-	  ;; Move to first body line.
-	  (forward-line 1)
-	(while (and (looking-at "[a-zA-Z-]+:\\|\t\\| ")
-		    (not (eobp)))
-	  (forward-line 1))
-	(setq non-internal-message t)
-	)
+      (rfc822-goto-eoh)
+      (forward-line 1)
+      (setq non-internal-message (looking-at ""))
+
       (let* ((cite-regexp		;Prefix of inserted text
 	     (cond
 	      ((featurep 'supercite)	; sc 3.0
