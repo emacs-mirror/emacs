@@ -195,6 +195,10 @@ PLIST (property list) may contain any type of information a user
       `(make-char-internal ,(charset-id (nth 1 charset)) ,c1 ,c2)
     `(make-char-internal (charset-id ,charset) ,c1 ,c2)))
 
+(defmacro charset-list ()
+  "Return list of charsets ever defined."
+  charset-list)
+
 ;; Coding-system staffs
 
 ;; Coding-system object is a symbol that has the property
@@ -237,27 +241,32 @@ PLIST (property list) may contain any type of information a user
 
 ;; Return type of CODING-SYSTEM.
 (defun coding-system-type (coding-system)
+  (check-coding-system coding-system)
   (let ((vec (coding-system-vector coding-system)))
     (if vec (coding-vector-type vec))))
 
 ;; Return mnemonic character of CODING-SYSTEM.
 (defun coding-system-mnemonic (coding-system)
+  (check-coding-system coding-system)
   (let ((vec (coding-system-vector coding-system)))
     (if vec (coding-vector-mnemonic vec)
       ?-)))
 
 ;; Return docstring of CODING-SYSTEM.
 (defun coding-system-docstring (coding-system)
+  (check-coding-system coding-system)
   (let ((vec (coding-system-vector coding-system)))
     (if vec (coding-vector-docstring vec))))
 
 ;; Return flags of CODING-SYSTEM.
 (defun coding-system-flags (coding-system)
+  (check-coding-system coding-system)
   (let ((vec (coding-system-vector coding-system)))
     (if vec (coding-vector-flags vec))))
 
 ;; Return eol-type of CODING-SYSTEM.
 (defun coding-system-eoltype (coding-system)
+  (check-coding-system coding-system)
   (and coding-system
        (or (get coding-system 'eol-type)
 	   (coding-system-eoltype (get coding-system 'coding-system)))))
@@ -319,6 +328,10 @@ FLAGS specifies more precise information of each TYPE.
     USE-ROMAN non-nil means designate JIS0201-1976-Roman instead of ASCII.
     USE-OLDJIS non-nil means designate JIS0208-1976 instead of JIS0208-1983.
     NO-ISO6429 non-nil means not use ISO6429's direction specification.
+    INIT-BOL non-nil means any designation state is assumed to be reset
+      to initial at each beginning of line on output.
+    DESIGNATION-BOL non-nil means designation sequences should be placed
+      at beginning of line on output.
   If TYPE is 4 (private), FLAGS should be a cons of CCL programs,
     for encoding and decoding.  See the documentation of CCL for more detail."
 
@@ -335,14 +348,14 @@ FLAGS specifies more precise information of each TYPE.
 		 (vec (make-vector 32 nil)))
 	     (while (< i 4)
 	       (let ((charset (car flags)))
-		 (if (and charset (not (eq charset t)))
-		     (if (symbolp charset)
-			 (setq charset (charset-id charset))
+		 (or (not charset) (eq charset t) (charsetp charset)
+		     (if (not (listp charset))
+			 (error "Invalid charset: %s" charset)
 		       (let (elt l)
 			 (while charset
 			   (setq elt (car charset))
-			   (if (and elt (not (eq elt t)))
-			       (setq elt (charset-id elt)))
+			   (or (not elt) (eq elt t) (charsetp elt)
+			       (error "Invalid charset: %s" elt))
 			   (setq l (cons elt l))
 			   (setq charset (cdr charset)))
 			 (setq charset (nreverse l)))))
@@ -378,18 +391,17 @@ FLAGS specifies more precise information of each TYPE.
 (defun define-coding-system-alias (symbol new-symbol)
   "Define NEW-SYMBOL as the same coding system as SYMBOL."
   (check-coding-system symbol)
-  (put new-symbol 'coding-system (get symbol 'coding-system))
-  (let ((eol-type (get symbol 'eol-type)))
+  (put new-symbol 'coding-system symbol)
+  (let ((eol-type (coding-system-eoltype symbol)))
     (if (vectorp eol-type)
 	(let* ((name (symbol-name new-symbol))
-	       (new (vector (intern (concat name "-unix"))
-			    (intern (concat name "-dos"))
-			    (intern (concat name "-mac"))))
-	       (i 0))
-	  (while (< i 3)
-	    (define-coding-system-alias (aref eol-type i) (aref new i))
-	    (setq i (1+ i)))
-	  (setq eol-type new)))
+	       (new-eol-type (vector (intern (concat name "-unix"))
+				     (intern (concat name "-dos"))
+				     (intern (concat name "-mac")))))
+	  (define-coding-system-alias (aref eol-type 0) (aref new-eol-type 0))
+	  (define-coding-system-alias (aref eol-type 1) (aref new-eol-type 1))
+	  (define-coding-system-alias (aref eol-type 2) (aref new-eol-type 2))
+	  (setq eol-type new-eol-type)))
     (put new-symbol 'eol-type eol-type)))
 
 (defvar buffer-file-coding-system nil
@@ -525,6 +537,12 @@ buffer-file-coding-system."
 		  (aref (coding-system-eoltype new-coding) new-eol)))
 	new-coding))))
 
+;;; Initialize some variables.
+
+(put 'use-default-ascent 'char-table-extra-slots 0)
+(setq use-default-ascent (make-char-table 'use-default-ascent))
+
+;;;
 (provide 'mule)
 
 ;;; mule.el ends here
