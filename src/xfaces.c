@@ -839,7 +839,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
     len = 40;
     overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
     
-    noverlays = overlays_at (pos, 0, &overlay_vec, &len, &next_overlay);
+    noverlays = overlays_at (pos, 0, &overlay_vec, &len, &next_overlay, NULL);
 
     /* If there are more than 40,
        make enough space for all, and try again.  */
@@ -847,7 +847,8 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
       {
 	len = noverlays;
 	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len, &next_overlay);
+	noverlays = overlays_at (pos, 0, &overlay_vec, &len,
+				 &next_overlay, NULL);
       }
 
     if (next_overlay < endpos)
