@@ -1035,6 +1035,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	       (setq term (substring term 0 hyphend))
 	     (setq term nil)))))
 
+  ;; Update the out-of-memory error message based on user's key bindings
+  ;; for save-some-buffers.
+  (setq memory-signal-data
+	(list 'error
+	      (substitute-command-keys "Memory exhausted--use \\[save-some-buffers] then exit and restart Emacs")))
+
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
 
@@ -1072,13 +1078,14 @@ using the mouse.\n\n"
 	   :face variable-pitch "\
 Emacs Tutorial\tLearn-by-doing tutorial for using Emacs efficiently
 Emacs FAQ\tFrequently asked questions and answers
+Read the Emacs Manual\tView the Emacs manual using Info
 \(Non)Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
 	   "\
 Copying Conditions\tConditions for redistributing and changing Emacs
-Ordering Manuals\tHow to order Emacs manuals from the Free Software Foundation\n")
+Ordering Manuals\tBuying printed Emacs manuals from the Free Software Foundation\n")
   (:face variable-pitch
 	   "You can do basic editing with the menu bar and scroll bar \
 using the mouse.\n\n"
@@ -1352,10 +1359,11 @@ Recover Session		recover files you were editing before a crash
 Important Help menu items:
 Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
 Emacs FAQ		Frequently asked questions and answers
+Read the Emacs Manual	View the Emacs manual using Info
 \(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
 Copying Conditions	Conditions for redistributing and changing Emacs.
 Getting New Versions	How to obtain the latest version of Emacs.
-Ordering Manuals	How to order manuals from the FSF.
+Ordering Manuals	How to order printed manuals from the FSF.
 ")
 	    (insert "\n\n" (emacs-version)
 			    "
@@ -1370,20 +1378,22 @@ Copyright (C) 2002 Free Software Foundation, Inc."))
 		 (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
 		 (eq (key-binding "\C-ht") 'help-with-tutorial)
 		 (eq (key-binding "\C-hi") 'info)
+		 (eq (key-binding "\C-hr") 'info-emacs-manual)
 		 (eq (key-binding "\C-h\C-n") 'view-emacs-news))
 	    (insert "
 Get help	   C-h  (Hold down CTRL and press h)
-Undo changes	   C-x u       Exit Emacs		C-x C-c
-Get a tutorial	   C-h t       Use Info to read docs	C-h i
-Ordering manuals   C-h RET")
+Emacs manual	   C-h r
+Emacs tutorial	   C-h t           Undo changes     C-x u
+Buy manuals        C-h C-m         Exit Emacs	    C-x C-c
+Browse manuals     C-h i")
+
 	  (insert (substitute-command-keys
 		   (format "\n
 Get help	   %s
-Undo changes	   \\[advertised-undo]
-Exit Emacs	   \\[save-buffers-kill-emacs]
-Get a tutorial	   \\[help-with-tutorial]
-Use Info to read docs	\\[info]
-Ordering manuals   \\[view-order-manuals]"
+Emacs manual	   \\[info-emacs-manual]
+Emacs tutorial	   \\[help-with-tutorial]   Undo changes   \\[advertised-undo]
+Buy manuals        \\[view-order-manuals]   Exit Emacs	   \\[save-buffers-kill-emacs]
+Browse manuals     \\[info]"
 			   (let ((where (where-is-internal
 					 'help-command nil t)))
 			     (if where
