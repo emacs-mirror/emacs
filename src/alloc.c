@@ -1659,7 +1659,7 @@ compact_small_strings ()
 
 
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
-  doc: /* Return a newly created string of length LENGTH, with each element being INIT.
+       doc: /* Return a newly created string of length LENGTH, with each element being INIT.
 Both LENGTH and INIT must be numbers.  */)
      (length, init)
      Lisp_Object length, init;
@@ -1703,7 +1703,7 @@ Both LENGTH and INIT must be numbers.  */)
 
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
-  doc: /* Return a new bool-vector of length LENGTH, using INIT for as each element.
+       doc: /* Return a new bool-vector of length LENGTH, using INIT for as each element.
 LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
      (length, init)
      Lisp_Object length, init;
@@ -2057,7 +2057,7 @@ free_cons (ptr)
 
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
-  doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */)
+       doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */)
      (car, cdr)
      Lisp_Object car, cdr;
 {
@@ -2130,7 +2130,7 @@ list5 (arg1, arg2, arg3, arg4, arg5)
 
 
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
-  doc: /* Return a newly created list with specified arguments as elements.
+       doc: /* Return a newly created list with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.  */)
      (nargs, args)
      int nargs;
@@ -2149,7 +2149,7 @@ Any number of arguments, even zero arguments, are allowed.  */)
 
 
 DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
-  doc: /* Return a newly created list of length LENGTH, with each element being INIT.  */)
+       doc: /* Return a newly created list of length LENGTH, with each element being INIT.  */)
      (length, init)
      register Lisp_Object length, init;
 {
@@ -2336,7 +2336,7 @@ allocate_other_vector (len)
 
 
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
-  doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
+       doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
 See also the function `vector'.  */)
      (length, init)
      register Lisp_Object length, init;
@@ -2359,7 +2359,7 @@ See also the function `vector'.  */)
 
 
 DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
-  doc: /* Return a newly created char-table, with purpose PURPOSE.
+       doc: /* Return a newly created char-table, with purpose PURPOSE.
 Each element is initialized to INIT, which defaults to nil.
 PURPOSE should be a symbol which has a `char-table-extra-slots' property.
 The property's value should be an integer between 0 and 10.  */)
@@ -2402,7 +2402,7 @@ make_sub_char_table (defalt)
 
 
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
-  doc: /* Return a newly created vector with specified arguments as elements.
+       doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.  */)
      (nargs, args)
      register int nargs;
@@ -2422,7 +2422,7 @@ Any number of arguments, even zero arguments, are allowed.  */)
 
 
 DEFUN ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
-  doc: /* Create a byte-code object with specified arguments as elements.
+       doc: /* Create a byte-code object with specified arguments as elements.
 The arguments should be the arglist, bytecode-string, constant vector,
 stack size, (optional) doc string, and (optional) interactive spec.
 The first four arguments are required; at most six have any
@@ -2510,7 +2510,7 @@ init_symbol ()
 
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
-  doc: /* Return a newly allocated uninterned symbol whose name is NAME.
+       doc: /* Return a newly allocated uninterned symbol whose name is NAME.
 Its value and function definition are void, and its property list is nil.  */)
      (name)
      Lisp_Object name;
@@ -2628,7 +2628,7 @@ allocate_misc ()
 }
 
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
-  doc: /* Return a newly allocated marker which does not point at any place.  */)
+       doc: /* Return a newly allocated marker which does not point at any place.  */)
      ()
 {
   register Lisp_Object val;
@@ -5320,7 +5320,7 @@ gc_sweep ()
 /* Debugging aids.  */
 
 DEFUN ("memory-limit", Fmemory_limit, Smemory_limit, 0, 0, 0,
-  doc: /* Return the address of the last byte Emacs has allocated, divided by 1024.
+       doc: /* Return the address of the last byte Emacs has allocated, divided by 1024.
 This may be helpful in debugging Emacs's memory usage.
 We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
      ()
@@ -5333,7 +5333,7 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 }
 
 DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
-  doc: /* Return a list of counters that measure how much consing there has been.
+       doc: /* Return a list of counters that measure how much consing there has been.
 Each of these counters increments for a certain kind of object.
 The counters wrap around from the largest positive integer to zero.
 Garbage collection does not decrease them.
@@ -5439,7 +5439,7 @@ void
 syms_of_alloc ()
 {
   DEFVAR_INT ("gc-cons-threshold", &gc_cons_threshold,
-    doc: /* *Number of bytes of consing between garbage collections.
+	      doc: /* *Number of bytes of consing between garbage collections.
 Garbage collection can happen automatically once this many bytes have been
 allocated since the last garbage collection.  All data types count.
 
@@ -5449,45 +5449,45 @@ By binding this temporarily to a large number, you can effectively
 prevent garbage collection during a part of the program.  */);
 
   DEFVAR_INT ("pure-bytes-used", &pure_bytes_used,
-    doc: /* Number of bytes of sharable Lisp data allocated so far.  */);
+	      doc: /* Number of bytes of sharable Lisp data allocated so far.  */);
 
   DEFVAR_INT ("cons-cells-consed", &cons_cells_consed,
-    doc: /* Number of cons cells that have been consed so far.  */);
+	      doc: /* Number of cons cells that have been consed so far.  */);
 
   DEFVAR_INT ("floats-consed", &floats_consed,
-    doc: /* Number of floats that have been consed so far.  */);
+	      doc: /* Number of floats that have been consed so far.  */);
 
   DEFVAR_INT ("vector-cells-consed", &vector_cells_consed,
-    doc: /* Number of vector cells that have been consed so far.  */);
+	      doc: /* Number of vector cells that have been consed so far.  */);
 
   DEFVAR_INT ("symbols-consed", &symbols_consed,
-    doc: /* Number of symbols that have been consed so far.  */);
+	      doc: /* Number of symbols that have been consed so far.  */);
 
   DEFVAR_INT ("string-chars-consed", &string_chars_consed,
-    doc: /* Number of string characters that have been consed so far.  */);
+	      doc: /* Number of string characters that have been consed so far.  */);
 
   DEFVAR_INT ("misc-objects-consed", &misc_objects_consed,
-    doc: /* Number of miscellaneous objects that have been consed so far.  */);
+	      doc: /* Number of miscellaneous objects that have been consed so far.  */);
 
   DEFVAR_INT ("intervals-consed", &intervals_consed,
-    doc: /* Number of intervals that have been consed so far.  */);
+	      doc: /* Number of intervals that have been consed so far.  */);
 
   DEFVAR_INT ("strings-consed", &strings_consed,
-    doc: /* Number of strings that have been consed so far.  */);
+	      doc: /* Number of strings that have been consed so far.  */);
 
   DEFVAR_LISP ("purify-flag", &Vpurify_flag,
-    doc: /* Non-nil means loading Lisp code in order to dump an executable.
+	       doc: /* Non-nil means loading Lisp code in order to dump an executable.
 This means that certain objects should be allocated in shared (pure) space.  */);
 
   DEFVAR_INT ("undo-limit", &undo_limit,
-    doc: /* Keep no more undo information once it exceeds this size.
+	      doc: /* Keep no more undo information once it exceeds this size.
 This limit is applied when garbage collection happens.
 The size is counted as the number of bytes occupied,
 which includes both saved text and other data.  */);
   undo_limit = 20000;
 
   DEFVAR_INT ("undo-strong-limit", &undo_strong_limit,
-    doc: /* Don't keep more than this much size of undo information.
+	      doc: /* Don't keep more than this much size of undo information.
 A command which pushes past this size is itself forgotten.
 This limit is applied when garbage collection happens.
 The size is counted as the number of bytes occupied,
@@ -5495,11 +5495,11 @@ which includes both saved text and other data.  */);
   undo_strong_limit = 30000;
 
   DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
-    doc: /* Non-nil means display messages at start and end of garbage collection.  */);
+	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);
   garbage_collection_messages = 0;
 
   DEFVAR_LISP ("post-gc-hook", &Vpost_gc_hook,
-    doc: /* Hook run after garbage collection has finished.  */);
+	       doc: /* Hook run after garbage collection has finished.  */);
   Vpost_gc_hook = Qnil;
   Qpost_gc_hook = intern ("post-gc-hook");
   staticpro (&Qpost_gc_hook);
