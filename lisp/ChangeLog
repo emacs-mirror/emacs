@@ -1,3 +1,8 @@
+2005-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (handle-select-window): Don't switch window when we're
+	in the minibuffer.
+
 2005-01-10  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* subr.el (dotimes-with-progress-reporter): New macro.
