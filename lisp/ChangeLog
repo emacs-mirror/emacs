@@ -1,3 +1,17 @@
+2002-08-20  Carsten Dominik  <dominik@astro.uva.nl>
+
+	* textfiles/reftex-cite.el (reftex-bib-or-thebib): New function
+	which determines on a per-file-basis if BibTeX is being used
+	locally for citations.
+	(reftex-offer-bib-menu): Use `reftex-bib-or-thebib' for better
+	cooperation with chapterbib.
+	(reftex-bibtex-selection-callback): Use `reftex-bib-or-thebib' for
+	better cooperation with chapterbib.
+
+	* textfiles/reftex-dcr.el (reftex-view-cr-cite): Use
+	`reftex-bib-or-thebib' for better cooperation with chapterbib.
+
+
 2002-08-20  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el: Major rework based on discussions with RMS.
