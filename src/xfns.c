@@ -1640,7 +1640,7 @@ x_set_mouse_color (f, arg, oldval)
 {
   struct x_output *x = f->output_data.x;
   Display *dpy = FRAME_X_DISPLAY (f);
-  Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
+  Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   Cursor hourglass_cursor, horizontal_drag_cursor;
   int count;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
@@ -1703,11 +1703,11 @@ x_set_mouse_color (f, arg, oldval)
   if (!NILP (Vx_sensitive_text_pointer_shape))
     {
       CHECK_NUMBER (Vx_sensitive_text_pointer_shape);
-      cross_cursor
+      hand_cursor
 	= XCreateFontCursor (dpy, XINT (Vx_sensitive_text_pointer_shape));
     }
   else
-    cross_cursor = XCreateFontCursor (dpy, XC_hand2);
+    hand_cursor = XCreateFontCursor (dpy, XC_hand2);
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
@@ -1734,7 +1734,7 @@ x_set_mouse_color (f, arg, oldval)
     XRecolorCursor (dpy, cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, nontext_cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, mode_cursor, &fore_color, &back_color);
-    XRecolorCursor (dpy, cross_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, hand_cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, hourglass_cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, horizontal_drag_cursor, &fore_color, &back_color);
   }
@@ -1762,10 +1762,10 @@ x_set_mouse_color (f, arg, oldval)
     XFreeCursor (dpy, f->output_data.x->modeline_cursor);
   x->modeline_cursor = mode_cursor;
 
-  if (cross_cursor != x->cross_cursor
-      && x->cross_cursor != 0)
-    XFreeCursor (dpy, x->cross_cursor);
-  x->cross_cursor = cross_cursor;
+  if (hand_cursor != x->hand_cursor
+      && x->hand_cursor != 0)
+    XFreeCursor (dpy, x->hand_cursor);
+  x->hand_cursor = hand_cursor;
 
   if (horizontal_drag_cursor != x->horizontal_drag_cursor
       && x->horizontal_drag_cursor != 0)
