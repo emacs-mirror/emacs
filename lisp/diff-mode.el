@@ -856,7 +856,13 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
   "Major mode for viewing/editing context diffs.
 Supports unified and context diffs as well as (to a lesser extent)
 normal diffs.
-When the buffer is read-only, the ESC prefix is not necessary."
+When the buffer is read-only, the ESC prefix is not necessary.
+IF you edit the buffer manually, diff-mode will try to update the hunk
+headers for you on-the-fly.
+
+You can also switch between context diff and unified diff with \\[diff-context->unified],
+or vice versa with \\[diff-unified->context] and you can also revert the direction of
+a diff with \\[diff-reverse-direction]."
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
