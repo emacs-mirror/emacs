@@ -487,13 +487,13 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'b':   		/* Name of existing buffer */
 	  args[i] = Fcurrent_buffer ();
 	  if (EQ (selected_window, minibuf_window))
-	    args[i] = Fother_buffer (args[i], Qnil);
+	    args[i] = Fother_buffer (args[i], Qnil, Qnil);
 	  args[i] = Fread_buffer (build_string (callint_message), args[i], Qt);
 	  break;
 
 	case 'B':		/* Name of buffer, possibly nonexistent */
 	  args[i] = Fread_buffer (build_string (callint_message),
-				  Fother_buffer (Fcurrent_buffer (), Qnil),
+				  Fother_buffer (Fcurrent_buffer (), Qnil, Qnil),
 				  Qnil);
 	  break;
 
