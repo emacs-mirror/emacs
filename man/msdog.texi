@@ -63,7 +63,7 @@ define the keypad @key{ENTER} key to act like @kbd{C-j}, by putting the
 following line into your @file{_emacs} file:
 
 @smallexample
-;; Make the Enter key from the Numeric keypad act as C-j.
+;; @r{Make the @key{ENTER} key from the numeric keypad act as @kbd{C-j}.}
 (define-key function-key-map [kp-enter] [?\C-j])
 @end smallexample
 
@@ -159,8 +159,8 @@ others) by defining the relevant faces to use different colors.  Use the
 @code{list-faces-display} command (@pxref{Faces}) to see what colors and
 faces are available and what they look like.
 
-  The section @ref{MS-DOS and MULE}, later in this chapter, describes
-how Emacs displays glyphs and characters which aren't supported by the
+  @xref{MS-DOS and MULE}, later in this chapter, for information on
+how Emacs displays glyphs and characters that aren't supported by the
 native font built into the DOS display.
 
 @cindex cursor shape on MS-DOS
